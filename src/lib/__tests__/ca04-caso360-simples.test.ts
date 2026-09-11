@@ -117,4 +117,15 @@ describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)"
     const antesDoDetails = pagina.slice(0, pagina.indexOf('<details id="secao-log"'));
     expect(antesDoDetails).not.toContain("<table");
   });
+
+  it("macro 11/09: Caso 360 declara fronteira com Pessoa 360 e não embute muro de pesquisa nem pagamento no hero", () => {
+    expect(pagina).toContain("CASO_360_MACRO");
+    expect(pagina).toContain("Abrir Pesquisa deste caso");
+    expect(pagina).not.toContain("Achados genealógicos");
+    expect(pagina).not.toContain("Biblioteca de evidências");
+    expect(pagina).not.toContain("Registrar pagamento");
+    expect(pagina).not.toContain("Preparar cobrança");
+    expect(pagina).toContain("PONTE_FINANCEIRO");
+    expect(pagina).toContain("PONTE_CONTRATOS");
+  });
 });
