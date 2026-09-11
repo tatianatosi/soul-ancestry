@@ -1,0 +1,24 @@
+---
+description: Quadro de tarefas da aba Desk — atualizar de manhã e no fim do dia, em linguagem simples.
+alwaysApply: true
+---
+
+# Relatório de tarefas da aba Desk
+
+Duas vezes por dia (manhã e fim do dia), atualizar `docs/relatorios/tarefas-aba-desk.md` e mostrar o mesmo texto à Proprietária.
+
+## Formato (sempre estes 3 blocos)
+
+1. **O que já funciona** — back-end e front-end, só o que tem prova (tela com login ou consulta persistida).
+2. **O que estou fazendo agora** — a correção desta aba, nesta hora. Sem plano paralelo.
+3. **Travado** — fiação (Supabase/fonte/escritor/consumidor) ou distorção de texto/lugar. Uma linha por item.
+
+Linguagem simples. Pesquisadora acompanha visualmente. Sem jargão de sprint.
+
+## Prova
+
+Print autenticado com `tati@pluggedresearch.com` no preview da branch. Nunca colar senha em git, PR, relatório ou chat público.
+
+## Não fazer neste relatório
+
+Não inventar tabela. Não tratar Planilha/SKU legado como operação. Não mergear produção sem ordem explícita. Não apagar rota nesta rodada.
