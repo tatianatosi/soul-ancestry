@@ -853,7 +853,11 @@ function FichaCaso() {
 
       {/* Quatro resumos acionáveis — cada um leva à seção completa, já preservada abaixo. */}
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <a href="#secao-jornada" className="rounded-xl border border-navy/10 bg-white p-4 hover:border-gold/60">
+        <a
+          href="#secao-jornada"
+          onClick={() => setSecaoFoco("jornada")}
+          className="rounded-xl border border-navy/10 bg-white p-4 hover:border-gold/60"
+        >
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Jornada/onboarding</p>
           <p className="mt-1 text-sm font-medium text-navy">
             {bloqueiosReais.length === 0
