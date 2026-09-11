@@ -18,6 +18,15 @@ Política ativa de método: `RESET-DE-CONFIANCA-OPERACIONAL-2026-09-10.md`.
 - Briefs dos três agentes eleitos: `docs/agentes/` (Mesa Discovery ativo; KPIs e Abas pausados até Discovery `PASSOU`).
 - Prova do corte: `docs/relatorios/` com o formato §9 do reset.
 
+## Adendo vinculante — contexto não arquivável + prova autenticada (2026-09-10)
+
+Política ativa: `ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`.
+
+- Completa o reset: o produto é uno; contexto de resgate **não** se arquiva por haver código/PR/teste.
+- Exige prova visual da Proprietária autenticada (inicial + ação + confirmação + releitura + integração).
+- Vitest/PR/build/preview sem login **não** encerram o contexto.
+- Rodapé obrigatório de continuidade deve constar em prompts, PRs, specs e relatórios futuros.
+
 ## Sequência confirmada pela proprietária (30/08/2026)
 
 > "Concordo com a sequência: manter P0 e P1 operacionais agora; Cockpit, indicadores e revisão visual somente depois."

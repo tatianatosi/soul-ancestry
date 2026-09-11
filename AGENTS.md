@@ -29,13 +29,25 @@ Uma capacidade por vez. Se falhar: registrar `PASSOU` / `FALHOU` / `BLOQUEADO_*`
 
 Não apagar ativos. Não usar CA OPS / Planilha Mestre / Matriz Operacional / DEMO como fonte da operação atual.
 
+## Adendo vinculante — contexto não arquivável (2026-09-10)
+
+Política ativa: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`.
+
+O Clube Ancestral é **um produto**, não módulos soltos. Nenhum contexto, prompt, decisão, premissa, mockup, roteiro, matriz, especificação de motor, de-para, política de dados ou artefato de resgate pode ser arquivado, reduzido a histórico ou declarado “substituído” enquanto os motores relacionados não estiverem comprovados **integrados**.
+
+**Prova que conta:** a Proprietária autenticada na própria conta, com print inicial, ação, confirmação, releitura (F5/reabertura) e, quando aplicável, print de integração com o módulo seguinte. Código, PR, build, Vitest, log, mockup, preview sem login ou declaração de agente **não bastam** isoladamente.
+
+Resultados permitidos: `PASSOU` | `FALHOU` | `BLOQUEADO_POR_DADO` | `BLOQUEADO_POR_DECISAO` | `ERRO_DE_FONTE` | `NAO_LOCALIZADO`.
+
+Até a cadeia comercial → Discovery → Pessoa/Dossiê → Caso → Pesquisa → Formalização → Financeiro → Entrega/App → Hoje/Radar estar comprovada pela proprietária, o contexto de resgate permanece **ativo e acessível**.
+
 ## Ordem de autoridade
 
 1. Decisão explícita e mais recente da proprietária.
 2. **Planejador** = única fonte válida do planejamento operacional ativo (prioridades, capacidade, prazos, responsáveis, o que vem a seguir).
 3. Modelo de dados, migrations e código efetivamente aprovados. Divergência = dívida ou bloqueio declarado, nunca escondida.
 4. Mockup aprovado de **17 páginas** (`docs/evolucao/recuperados/prompts-lovable-2026-08-31/clube-ancestral-mockup.pdf`) = contrato visual normativo.
-5. Políticas aprovadas em `docs/politicas/` (autoridade operacional, fonte de verdade de design, taxonomia do mockup, reset de confiança).
+5. Políticas aprovadas em `docs/politicas/` (autoridade operacional, fonte de verdade de design, taxonomia do mockup, reset de confiança, adendo de contexto não arquivável).
 6. Materiais legados = histórico / auditoria / migração controlada. **Nunca** dirigem a operação atual.
 
 Se o código divergir destas instruções, declarar a dívida. Não “corrigir” a realidade do schema inventando entidades paralelas.

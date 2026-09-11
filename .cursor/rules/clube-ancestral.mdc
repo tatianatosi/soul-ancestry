@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Clube Ancestral — regras permanentes
 
-Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da proprietária: `docs/politicas/MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Verificação contra o código: `docs/relatorios/2026-09-10_memoria-permanente-verificacao.md`. Reset de confiança: `docs/politicas/RESET-DE-CONFIANCA-OPERACIONAL-2026-09-10.md`.
+Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da proprietária: `docs/politicas/MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Verificação contra o código: `docs/relatorios/2026-09-10_memoria-permanente-verificacao.md`. Reset de confiança: `docs/politicas/RESET-DE-CONFIANCA-OPERACIONAL-2026-09-10.md`. Adendo de continuidade: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`.
 
 ## Reset de confiança (sempre)
 
@@ -13,6 +13,13 @@ Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da propriet
 - Classificar ativos antes de usar; uma capacidade por vez; sem cascata se falhar.
 - Primeiro corte: Mesa Discovery (`/calls`) até `PASSOU`. Briefs em `docs/agentes/`.
 - Não declarar “já existe / funciona / integrado” sem evidência no formato do reset.
+
+## Contexto não arquivável (sempre)
+
+- Produto único: Marketing → Discovery → Pessoa/Dossiê → Caso → Pesquisa → Formalização/Financeiro → Entrega/App → Hoje/Radar.
+- Não arquivar prompts, decisões, mockups, roteiros, matrizes ou artefatos de resgate só porque existe código/PR/teste.
+- Prova que conta: Proprietária autenticada + prints (inicial, ação, confirmação, releitura, integração). Vitest/PR/preview sem login não bastam.
+- Até a cadeia integrada estar `COMPROVADO_EM_USO` pela proprietária, o contexto de resgate permanece ativo.
 
 ## Fazer sempre
 

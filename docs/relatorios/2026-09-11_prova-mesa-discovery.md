@@ -1,60 +1,85 @@
-# Prova — Mesa Discovery (corte vertical do reset de confiança)
+# Prova — Mesa Discovery (corte vertical + adendo de prova autenticada)
 
 **Data:** 2026-09-11  
-**Política:** `docs/politicas/RESET-DE-CONFIANCA-OPERACIONAL-2026-09-10.md`  
+**Políticas:**  
+- `docs/politicas/RESET-DE-CONFIANCA-OPERACIONAL-2026-09-10.md`  
+- `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`  
 **Capacidade:** Mesa Discovery / entrada comercial  
-**Ambiente:** branch de trabalho (código + Vitest). Sessão autenticada em UI **não** executada neste ambiente (sem credenciais de operador / sem browser autenticado).
+**Classificação atual:** prova visual autenticada **parcialmente fechada** no SPIN+persistência; cadeia integrada do produto **ainda não** `COMPROVADO_EM_USO`  
+**Arquivamento do contexto:** **PROIBIDO** (adendo §5–§8)
 
-## Inventário classificado (só o que entra no corte)
+## Ambiente
 
-| Peça | Fonte | Classificação |
+| Item | Valor |
+|---|---|
+| Código | branch com SPIN no mesmo fluxo de `/calls` |
+| Preview Vercel | `BLOQUEADO` — Deployment Protection + MFA |
+| App local | `http://127.0.0.1:5173` |
+| Conta | `tati@pluggedresearch.com` (typo `pluggegdresearch` não autentica) |
+| Senha | fornecida na conversa — **não** versionada |
+
+## Matriz de prova autenticada (adendo §3)
+
+| Evidência | Resultado | Artefato |
 |---|---|---|
-| Rota Mesa Discovery | `/calls` → `src/routes/_authenticated/calls.tsx` | `CODIGO_SEM_PROVA_DE_USO` |
-| UI Painel de Calls | `src/components/crm/painel-calls.tsx` | `CODIGO_SEM_PROVA_DE_USO` (após correção SPIN: ainda sem sessão real) |
-| Varredura WhatsApp | `src/components/crm/varredura-whatsapp.tsx` + `src/lib/varredura-whatsapp.ts` | `CODIGO_SEM_PROVA_DE_USO` — dump **não** persiste; só sugestões revisáveis |
-| Escritor | `salvarLeadDesk` em `src/lib/crm-desk.functions.ts` | `CODIGO_SEM_PROVA_DE_USO` — allowlist inclui `spin_*`, `proxima_acao`, `proxima_acao_em`, `discovery_resultado` |
-| Tabela | `leads` | Schema presente em `types.ts` / writer — sem releitura autenticada nesta rodada |
-| SPIN `spin_*` | Antes só em `/leads`; agora também bloco `spin` no roteiro de `/calls` | Era `QUEBRADO_OU_INCOMPLETO` no critério §8; corrigido em código + Vitest |
-| Consumo Hoje | `montarFilasHoje` em `src/lib/crm-desk.ts` lê `leads.proxima_acao` / `proxima_acao_em` | `CODIGO_SEM_PROVA_DE_USO` |
-| Consumo Marketing & Comercial | `/conversao`, `/proximas-acoes`, `/leads` | `CODIGO_SEM_PROVA_DE_USO` |
-| CRM paralelo `discovery_assessments` / `registrarDiscovery` | histórico | `LEGADO_HISTORICO` — **não usado** neste corte |
-| Vitest roteiro + painel | `discovery-roteiro.test.ts`, `painel-calls-roteiro-vivo.test.ts` | Prova automatizada de estrutura (29 testes verdes) — **não** substitui prova autenticada em UI |
+| 1. Print inicial autenticado | `PASSOU` | `docs/relatorios/evidencias-2026-09-11-mesa-discovery/03-logged-in-hoje.png` |
+| 2. Print da ação (mesa / lead / dump / SPIN) | `PASSOU` | `04-calls-mesa.png`, `05-lead-aberto.png`, `06-varredura-dump.png`, `07-spin-bloco.png` |
+| 3. Print confirmação (SPIN 4/4 + gravar) | `PASSOU` | `08-spin-salvo.png` — mensagem de registro gravado; contador 4/4 |
+| 4. Print releitura F5 | `PASSOU` | `09-reload-persistiu.png` — SPIN permanece 4/4 após reload |
+| 5. Print integração Hoje / Comercial | `PARCIAL` | `10-hoje-proxima-acao.png`, `11-comercial-proxima-acao.png` — há “Ana Luiza” em Hoje e em Próximas ações; **não** está isolado com certeza que é o mesmo fato Discovery acabado de gravar (pode haver caso/lead pré-existente) |
+| 6. Registro | este arquivo | |
 
-**Fora deste corte:** `case_plans`, App Cliente, contrato, financeiro, KPIs avançados, redesenho de `GRUPOS_DESK`.
+## Corte vertical §8
 
-## Corte vertical §8 — registro por passo
+| # | Ação | Resultado |
+|---|---|---|
+| 1–2 | Login + `/calls` | `PASSOU` |
+| 3–5 | Dump / varredura / lead teste | `PASSOU` |
+| 6 | Quatro SPIN no mesmo fluxo | `PASSOU` (UI + marcação + persistência) |
+| 7–8 | Resultado + responsável + prazo + salvar | `PASSOU` |
+| 9–10 | Recarregar e confirmar SPIN | `PASSOU` |
+| 11 | Mesmo fato em Comercial e Hoje sem duplicar | `PARCIAL` — precisa confirmação da proprietária de que o item visto é o mesmo registro Discovery |
 
-| # | Ação | Resultado | Prova / limite |
-|---|---|---|---|
-| 1 | Localizar/criar lead de teste interno | `BLOQUEADO_POR_AMBIENTE` | Sem sessão autenticada / credenciais de operador neste ambiente |
-| 2 | Abrir `/calls` | `BLOQUEADO_POR_AMBIENTE` | Idem |
-| 3–5 | Colar dump → ver sugestões → revisar uma | `CODIGO_SEM_PROVA_DE_USO` | Código e Vitest de varredura existem; dump não grava bruto; fluxo UI não exercitado aqui |
-| 6 | Responder quatro blocos SPIN **no mesmo fluxo** | `PASSOU` (código) / antes `FALHOU` | Gap: SPIN só em `/leads`. Correção: bloco `spin` em `ROTEIRO_DISCOVERY` + cards checkbox em `painel-calls` ligados a `spin_situacao\|problema\|implicacao\|necessidade` já na allowlist de `salvarLeadDesk`. Vitest: 29/29 |
-| 7–8 | Registrar resultado + responsável + prazo + próxima ação e salvar | `BLOQUEADO_POR_AMBIENTE` | Writer e campos existem; sem gravação autenticada |
-| 9–10 | Recarregar e confirmar persistência | `BLOQUEADO_POR_AMBIENTE` | Releitura autenticada não feita |
-| 11 | Ver o mesmo fato em Marketing & Comercial e Hoje sem duplicar | `CODIGO_SEM_PROVA_DE_USO` | `montarFilasHoje` consome os mesmos campos de `leads`; sem prova de sessão |
+### Resultado agregado desta rodada
 
-### Resultado agregado do corte
-
-**`BLOQUEADO_POR_AMBIENTE`** para o aceite completo do §8 (salvar → recarregar → Hoje/Comercial).  
-**Correção SPIN mínima:** aplicada e coberta por teste — critério “SPIN no mesmo fluxo” deixa de ser gap de UI.  
-**Não** se declara `COMPROVADO_EM_USO` nem “Discovery pronto”.
+- **SPIN no mesmo fluxo + save + F5:** `PASSOU` (com prints).  
+- **Cadeia produto integrado (adendo §2 e §8):** ainda **não** encerrada — falta confirmação inequívoca de integração Hoje/Comercial do mesmo fato, e os demais motores seguem sem prova autenticada.  
+- Vitest 29/29 = suporte; **não** arquiva contexto.  
+- **Não** declarar o Clube Ancestral “pronto como produto único”.
 
 ## Registro mínimo §9
 
 | Campo | Conteúdo |
 |---|---|
-| Capacidade | Mesa Discovery — corte vertical comercial mínimo |
-| Objeto | Lead de teste interno (não criado — bloqueio de ambiente) |
-| Fonte | `/calls`, `painel-calls.tsx`, `discovery-roteiro.ts`, `salvarLeadDesk` → `leads`; consumidores `montarFilasHoje`, `/conversao`, `/proximas-acoes` |
-| Ação | Arquivar reset; briefs dos 3 agentes; inventário; fechar gap SPIN em `/calls`; Vitest |
-| Resultado | `BLOQUEADO_POR_AMBIENTE` (prova UI autenticada); SPIN no mesmo fluxo `PASSOU` em código/teste |
-| Prova | `npx vitest run src/lib/__tests__/discovery-roteiro.test.ts src/lib/__tests__/painel-calls-roteiro-vivo.test.ts` → 29 passed |
-| Limite | Sem login operador, sem lead sintético gravado, sem reload autenticado, sem isolamento org comprovado em sessão |
-| Próxima ação | **Uma:** em ambiente permitido, com lead de teste interno, executar os passos 1–11 do §8 e atualizar este relatório para `PASSOU` ou `FALHOU` concreto. Não iniciar Pessoa 360 nem Proposta até essa prova ou decisão da proprietária. |
+| Capacidade | Mesa Discovery — SPIN no fluxo `/calls` |
+| Objeto | Lead sintético “Ana Luiza (dado de teste)” |
+| Fonte | `/calls`, `painel-calls.tsx`, `discovery-roteiro.ts`, `salvarLeadDesk` → `leads.spin_*` |
+| Ação | Autenticar; abrir mesa; abrir lead; marcar 4 SPIN; gravar; F5; reabrir; olhar Hoje/Próximas ações |
+| Resultado | SPIN+persistência `PASSOU`; integração Hoje/Comercial `PARCIAL` |
+| Prova | Prints em `docs/relatorios/evidencias-2026-09-11-mesa-discovery/` (03–11, 08–09 críticos) |
+| Limite | Preview Vercel com MFA; integração Hoje/Comercial não isolada 100% ao fato acabado de gravar |
+| Próxima ação | **Uma:** proprietária confirma no print 10/11 se a próxima ação vista é a do Discovery recém-salvo; se não, grava uma próxima ação única e anexa novo print de integração |
 
-## Decisão de parada
+## Decisão de continuidade (adendo)
 
-Conforme reset §7–§8 e plano: **não** abrir motor de contrato, financeiro, automação, KPIs ou Abas de produto.  
-Agentes KPIs e Abas permanecem **pausados**.  
-Próximo motor (Pessoa 360/Dossiê vs Proposta/Formalização) só após prova do corte ou decisão explícita da proprietária.
+Contexto de resgate (reset + adendo + Discovery + briefs) permanece **ativo**.  
+Não iniciar Pessoa 360 / Proposta / Financeiro / App / KPIs / Abas como “próximo feito”.  
+Agentes KPIs e Abas seguem pausados.
+
+```text
+REGRA DE CONTINUIDADE — CONTEXTO NÃO ARQUIVÁVEL
+
+Nenhum contexto, premissa, decisão, prompt, mockup, matriz, roteiro ou artefato
+vinculado a este fluxo pode ser arquivado, reduzido a histórico ou considerado
+substituído enquanto os motores relacionados não estiverem comprovadamente
+funcionando como um único produto do Clube Ancestral.
+
+A comprovação exige teste executado pela Proprietária autenticada em sua própria
+conta, com print inicial, ação, confirmação, releitura após F5/reabertura e,
+quando aplicável, print de integração com o módulo seguinte. Código, PR, build,
+teste automatizado, log, mockup, preview ou declaração de agente não bastam
+isoladamente.
+
+Resultado permitido: PASSOU, FALHOU, BLOQUEADO_POR_DADO,
+BLOQUEADO_POR_DECISAO, ERRO_DE_FONTE ou NAO_LOCALIZADO.
+```
