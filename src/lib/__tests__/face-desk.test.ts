@@ -103,4 +103,12 @@ describe("Face do Desk — 7 telas do mockup, 6 grupos por dentro", () => {
   it("rotas do menu ainda alcançam o acervo preservado", () => {
     expect(rotasDoMenu()).toEqual(expect.arrayContaining(["/calls", "/contratos", "/financeiro"]));
   });
+
+  it("a tela de entrada descreve a face, não o grupo Comercial como menu", () => {
+    const entrar = readFileSync("src/routes/equipe.entrar.tsx", "utf8");
+    expect(entrar).toContain("Visão Geral");
+    expect(entrar).toContain("Casos 360");
+    expect(entrar).toContain("Biblioteca Mestre");
+    expect(entrar).not.toContain("continua em Comercial");
+  });
 });
