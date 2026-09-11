@@ -87,6 +87,9 @@ Gaps duros do CA-008 ainda abertos:
 4. Consentimentos / comercial como seções de primeira classe.
 5. Máscaras na criação em `/clientes` + formatação na leitura da Pessoa.
 6. Máscara/normalização de RG (número brasileiro vs órgão/UF).
+7. Unificação `contacts` ↔ `clientes` ↔ `leads` (Pessoa 360 **não** carrega `contacts`).
+8. Cards “Pessoa 360 rápida” no Cockpit/Hoje (prompt) — hoje só link “Buscar pessoa 360” → `/clientes`.
+9. Artefato CA-FICHAS original (.docx) não está no repo (só destilado em AGENTS/memória).
 
 ## 7. Próximos passos sugeridos (ordem sua)
 
