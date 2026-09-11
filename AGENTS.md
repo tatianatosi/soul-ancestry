@@ -11,7 +11,7 @@
 
 # Clube Ancestral — memória permanente para agentes
 
-Documento normativo da proprietária (Tatiana, tati@pluggedresearch.com), destilado em 2026-09-10. Texto completo arquivado em `docs/politicas/MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Regra Cursor espelhada em `.cursor/rules/clube-ancestral.mdc`.
+Documento normativo da proprietária (Tatiana, tati@pluggedresearch.com), destilado em 2026-09-10. Texto completo em `docs/politicas/MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md` — contexto ativo, não arquivo encerrado. Regra Cursor espelhada em `.cursor/rules/clube-ancestral.mdc`.
 
 Isto **não** autoriza redesenho de navegação, vocabulário novo (incluindo taxonomia “CHECK-*”) nem tabelas hipotéticas de prompts antigos. Antes de implementar, confirmar o schema real e as decisões já vigentes.
 
@@ -69,7 +69,7 @@ Migrations versionadas; sem alteração manual de produção como substituto. Va
 
 ## Navegação real — não redesenhar
 
-**Desk: exatamente 8 grupos** em `src/lib/navegacao-desk.ts` (`GRUPOS_DESK`), decisão vinculante. Não fundir, não criar nona aba, não voltar às 7 itens do mockup sem nova decisão da proprietária.
+**Desk vigente: 6 grupos** em `src/lib/navegacao-desk.ts` (`GRUPOS_OPERACIONAIS_DESK`), decisão da proprietária em 10/09/2026 (#96, #100). A lista de 8 grupos abaixo é **contexto ativo** da memória permanente — descreve a composição do trabalho, não o menu a restaurar. Não criar sétima aba de Desk, não voltar às 7 itens do mockup sem nova decisão da proprietária.
 
 1. `hoje` — Visão Geral (`/painel`)
 2. `marketing` — Marketing
@@ -92,7 +92,7 @@ Rótulo da primeira aba no mockup e em `COPY_TELAS.casos.navegacao`: **Home** (n
 
 Abas extras condicionais (Entregas, Fase 01, Fase 02, Proposta) ainda existem no código — **dívida a retirar da barra**, não expansão da taxonomia. Ver artefato 007 abaixo.
 
-**Mockup vs produção:** o PDF de 17 páginas é normativo visual. O PDF de auditoria de **47 páginas** (`clube-ancestral-mockup-auditoria.pdf`) é complementar (conteúdo/estados/fluxos), **sem força normativa de design**. Produção tem 8 grupos operacionais; o mockup mostra 7 itens de Desk — divergência já decidida: manter os 8.
+**Mockup vs produção:** o PDF de 17 páginas é normativo visual. O PDF de auditoria de **47 páginas** (`clube-ancestral-mockup-auditoria.pdf`) é complementar (conteúdo/estados/fluxos), **sem força normativa de design**. Produção vigente tem **6 grupos** (#96, #100); o mockup mostra 7 itens de Desk. A menção a 8 grupos na memória permanente permanece contexto ativo.
 
 README raiz ainda descreve o protótipo visual antigo (6 abas, dados fictícios). É histórico, não a operação atual.
 
@@ -125,7 +125,7 @@ Texto integral: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA
 - Nenhum agente pode arquivar, reduzir a “histórico” ou declarar “já resolvido, pode arquivar” só porque existe código, PR, teste, migration, mockup ou log.
 - Arquivamento só depois de `COMPROVADO_EM_USO` pela proprietária autenticada (`tati@pluggedresearch.com`), com prints **inicial, ação, confirmação, releitura** e, na cadeia, **integração**. Resultado: `PASSOU` / `FALHOU` / `BLOQUEADO_POR_DADO` / `BLOQUEADO_POR_DECISAO` / `ERRO_DE_FONTE` / `NAO_LOCALIZADO`.
 - Este adendo **não** autoriza alterar dados, contratos, pagamentos, RLS, permissões, migrations, integrações, publicações, mensagens ou merges. Print complementa — não substitui — RLS, auditoria e persistência.
-- “Seis áreas” no adendo **não** redesenha o Desk: continuam os **8 grupos** e as **7 abas** do App Cliente.
+- “Seis áreas” no adendo são os **6 grupos vigentes** de `GRUPOS_OPERACIONAIS_DESK` (#96, #100): Hoje · Marketing & Comercial · Pessoas & Casos · Inteligência & Pesquisa · Formalização & Financeiro · Governança & Administração. O texto de 8 grupos mais abaixo permanece **contexto ativo**, não licença para restaurar 8 abas. App Cliente: **7 abas**.
 - Contextos de resgate (Discovery, Pessoa 360, Pesquisa, formalização, Radar, App Cliente, RLS etc.) permanecem **ativos** até a prova integrada. Listar um documento como “arquivado” no inventário antigo **não** retira a continuidade.
 
 ## Recuperação (se o produto estiver fragmentado)
@@ -154,9 +154,9 @@ Código atual (`portal-shell.tsx`, `portal-navegacao.ts`) ainda injeta Entregas/
 
 ### Desk — fichas e mockups (009)
 
-Oito superfícies distintas, ligadas por IDs — não formulários duplicados da mesma entidade: Pessoa 360, Núcleo 360, Lead/Discovery, Caso 360, Pesquisa/Genealogia 360, Contrato/Formalização/OS, visão admin do App Cliente, Desk em 8 grupos.
+Oito superfícies distintas, ligadas por IDs — não formulários duplicados da mesma entidade: Pessoa 360, Núcleo 360, Lead/Discovery, Caso 360, Pesquisa/Genealogia 360, Contrato/Formalização/OS, visão admin do App Cliente, e o Desk. Menu vigente = **6 grupos**.
 
-Seis blocos = composição de trabalho, não substituição de navegação. CA-UX-04: Marketing explícito; Administração = utilidade no menu da conta. Protótipo histórico fora do runtime. App Cliente = projeção autorizada dos mesmos objetos canônicos, não um segundo banco.
+Seis blocos = composição de trabalho e, desde #96/#100, também o menu. CA-UX-04: Marketing explícito; Administração = utilidade no menu da conta. Protótipo histórico fora do runtime. App Cliente = projeção autorizada dos mesmos objetos canônicos, não um segundo banco.
 
 Visual normativo: mockup de **17 páginas**. PDF de auditoria de **47 páginas**, PDF de distorção/comparação visual e relatórios de pente-fino visual = **auditoria**, não briefing de redesign. Nenhuma migration/merge/deploy de produção sem autorização explícita. Homologação só com dado sintético reversível.
 
