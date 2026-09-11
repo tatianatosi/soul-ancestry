@@ -19,4 +19,7 @@
 ## Conclusão da auditoria
 
 - **Dia 2026-09-11:** ritual cumprido (manhã + fim).
-- **Objetivo “manter”:** permanece **ativo** até a proprietária pausar ou pedir encerramento — cada novo dia exige par manhã/fim do dia.
+- **Objetivo “manter”:** permanece **ativo** — timers Cloud Agent:
+  - manhã `0 11 * * *` UTC (`circuito-minimo-manha`)
+  - fim do dia `0 21 * * *` UTC (`circuito-minimo-fim-do-dia`)
+- Sem merge sem ordem da Tatiana.

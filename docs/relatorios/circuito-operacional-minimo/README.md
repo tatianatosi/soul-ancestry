@@ -112,3 +112,5 @@ Registro vivo: `docs/relatorios/2026-09-11_registro-prova-autenticada.md`
 2. Preencher as 4 seções em linguagem simples.
 3. Atualizar a tabela de travamentos (não esconder falha de Supabase/RLS).
 4. Commit + push na branch de trabalho; **não** merge sem ordem da Tatiana.
+
+**Timers Cloud Agent (UTC):** manhã `11:00` · fim do dia `21:00` — geram o par de arquivos automaticamente quando o agente estiver livre.
