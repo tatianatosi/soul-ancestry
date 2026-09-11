@@ -1,5 +1,5 @@
 ---
-description: Memória permanente do Clube Ancestral — autoridade, motor unificado, legado, schema real, 6 grupos vigentes do Desk, 7 abas do App, contexto não arquivável.
+description: Memória permanente do Clube Ancestral — autoridade, motor unificado, legado, schema real, face 7 telas do Desk, 6 grupos internos, 7 abas do App, contexto não arquivável.
 alwaysApply: true
 ---
 
@@ -12,7 +12,7 @@ Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da propriet
 - Tratar o **planejador** como fonte do trabalho ativo; o **caso** (`crm_casos`) como eixo; a próxima ação como campo obrigatório de caso ativo (`proxima_acao_prioritaria`).
 - Entregar fatia vertical (UI + persistência + permissão + evidência). Aparência sozinha não é “feito”.
 - Mapear conceitos para tabelas **já existentes** em `src/integrations/supabase/types.ts` e `supabase/migrations/`. Reaproveitar `case_members` / `tarefas` / `planner_tarefas` / `research_cases` / `documents` etc. Cruzar escritores de `src/lib` com `types.ts` **e** `CHECK` das migrations — `string` no tipo gerado não libera vocabulário novo.
-- Menu vigente do Desk: **6 grupos** em `GRUPOS_DESK` (Hoje, Marketing & Comercial, Pessoas & Casos, Inteligência & Pesquisa, Formalização & Financeiro, Governança & Administração). App Cliente: **7 abas** (`Home, Jornada, Radar, Árvore, Documentos, Legado, Conta`). A memória permanente ainda cita 8 grupos — dívida declarada, contexto ativo até `COMPROVADO_EM_USO`. Não arquivar nenhuma das leituras, não criar nona aba, não restaurar 8 sem decisão explícita. Hierarquia funcional da memória permanente não é menu novo.
+- Face do Desk = **7 telas** (`FACE_PRINCIPAL_DESK`). Seis grupos em `GRUPOS_DESK` são **internos/recolhidos**, não segunda barra. App Cliente = **7 abas** (`Home, Jornada, Radar, Árvore, Documentos, Legado, Conta`). Decisão 2026-09-11: não 6 abas nem 8 grupos como face. Prova `COMPROVADO_EM_USO` continua obrigatória para arquivar contextos de resgate.
 - Nav do cliente = só as 7. Entregas / Fase 01 / Fase 02 **fora** da barra (conteúdo ou rota profunda, não aba).
 - Usar o mockup de **17 páginas** como visual normativo. PDF de **47 páginas**, distorção e comparação visual = auditoria de conteúdo/estados/indicadores **em conjunto** com o de 17 (adendo 2026-09-11); não briefing para restaurar sidebar Lovable.
 - Tratar Pessoa, Núcleo, Lead, Caso, Pesquisa e Contrato como entidades distintas ligadas por IDs. App Cliente = projeção autorizada desses objetos.

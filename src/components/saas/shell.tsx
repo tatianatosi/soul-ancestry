@@ -7,12 +7,13 @@ import {
   LayoutDashboard,
   FolderOpen,
   Scale,
-  Target,
+  ListChecks,
+  Activity,
+  Bell,
   Library,
   LogOut,
   Menu,
   ChevronDown,
-  ShieldCheck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -23,14 +24,15 @@ import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
 import {
-  GRUPOS_DESK,
+  FACE_PRINCIPAL_DESK,
   MENU_CONTA,
-  grupoNavAtivo,
+  faceNavAtiva,
   itemNavAtivo,
   naturezaDaBiblioteca,
   origemDoAtalho,
   rotaAtendeDestino,
-  type GrupoDesk,
+  subItensDaFace,
+  type FaceDesk,
   type ItemNav,
 } from "@/lib/navegacao-desk";
 import { AssistenteTransversal } from "@/components/desk/assistente-transversal";
@@ -78,9 +80,9 @@ export function useSaas() {
 }
 
 /**
- * Navegação do Desk: 6 grupos. O registro canônico vive em
- * `src/lib/navegacao-desk.ts`; aqui só há apresentação. Cada função mora em
- * um grupo; atalho não cria segunda fila. Nenhuma rota operacional some.
+ * Navegação do Desk: face de 7 telas (mockup). Os 6 grupos operacionais
+ * aparecem só como submenu contextual recolhido — nunca como segunda barra.
+ * Decisão 2026-09-11. Nenhuma rota operacional some.
  */
 type SubItem = ItemNav;
 
@@ -89,26 +91,25 @@ type SecaoNav = {
   label: string;
   descricao: string;
   icon: typeof LayoutDashboard;
-  agrupador?: boolean;
   sub: readonly SubItem[];
 };
 
-const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
-  hoje: LayoutDashboard,
-  comercial: Target,
+const ICONES_FACE: Record<FaceDesk["icone"], typeof LayoutDashboard> = {
+  visao: LayoutDashboard,
   casos: FolderOpen,
-  pesquisa: Library,
-  contratos: Scale,
-  governanca: ShieldCheck,
+  checklist: ListChecks,
+  juridico: Scale,
+  radar: Activity,
+  alertas: Bell,
+  biblioteca: Library,
 };
 
-const NAV: readonly SecaoNav[] = GRUPOS_DESK.map((g) => ({
-  to: g.to,
-  label: g.label,
-  descricao: g.descricao,
-  icon: ICONES[g.icone],
-  ...(g.agrupador ? { agrupador: true } : {}),
-  sub: g.sub,
+const NAV: readonly SecaoNav[] = FACE_PRINCIPAL_DESK.map((f) => ({
+  to: f.to,
+  label: f.label,
+  descricao: f.descricao,
+  icon: ICONES_FACE[f.icone],
+  sub: subItensDaFace(f),
 }));
 
 export function SaasShell({
@@ -184,8 +185,8 @@ export function SaasShell({
     navigate({ to: "/equipe/entrar", replace: true });
   }
 
-  // Admin não ganha aba nova: módulos administrativos entram em Governança.
-  // O Desk tem 6 grupos para qualquer papel interno.
+  // Admin não ganha aba nova: módulos administrativos entram na face Biblioteca
+  // (grupo interno Governança). A face do Desk tem 7 telas para qualquer papel.
   const carregarAlertas = useServerFn(alertasOps);
   const alertas = useQuery({
     queryKey: ["shell", "alertas-menu"],
@@ -198,7 +199,7 @@ export function SaasShell({
   const badgeDe = (to: string): number => (to === "/casos" ? atrasadasCasos : 0);
 
   // Itens restritos a admin (equipe) só aparecem para admin.
-  // O Desk tem 6 grupos para qualquer papel interno.
+  // Face de 7 telas; submenus trazem o acervo operacional sem segunda barra.
   const itens: SecaoNav[] = NAV.map((item) => ({
     ...item,
     sub: item.sub.filter((s) => !("to" in s) || !s.adminOnly || ehAdmin),
@@ -222,8 +223,9 @@ export function SaasShell({
         <nav className="flex-1 space-y-1">
           {itens.map((item) => {
             const { to, label, icon: Icon, sub, descricao: descricaoGrupo } = item;
-            const ativo = grupoNavAtivo(rota, hash, item);
-            const expandida = to in abertosManuais ? abertosManuais[to] : desktop && ativo;
+            const ativo = faceNavAtiva(rota, hash, item, NAV);
+            // Submenus só abrem com toque explícito (mobile e desktop) — decisão 2026-09-11.
+            const expandida = abertosManuais[to] === true;
             return (
               <div key={to}>
                 <button
@@ -231,13 +233,10 @@ export function SaasShell({
                   title={descricaoGrupo}
                   onClick={() => {
                     if (ativo) {
-                      setAbertosManuais((v) => ({
-                        ...v,
-                        [to]: !(to in v ? v[to] : desktop && ativo),
-                      }));
+                      setAbertosManuais((v) => ({ ...v, [to]: !expandida }));
                       return;
                     }
-                    setAbertosManuais((v) => ({ ...v, [to]: true }));
+                    setAbertosManuais((v) => ({ ...v, [to]: false }));
                     void navigate({ to: to as never });
                     setAberto(false);
                   }}
@@ -395,7 +394,7 @@ export function SaasShell({
         >
           {children}
         </main>
-        {/* CA-UX-03 (adendo v1.0): Assistente transversal — presente nos 8 grupos,
+        {/* CA-UX-03 (adendo v1.0): Assistente transversal — presente nas 7 telas da face,
             conforme papel e contexto. Não é aba nem fonte de verdade. */}
         <AssistenteTransversal papeis={papeis} />
       </div>

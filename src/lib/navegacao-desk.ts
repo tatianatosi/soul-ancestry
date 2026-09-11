@@ -1,15 +1,20 @@
 /**
- * NAVEGAÇÃO CANÔNICA DO DESK — 6 grupos, um endereço por função.
+ * NAVEGAÇÃO CANÔNICA DO DESK — decisão 2026-09-11 (proprietária).
  *
- * Três camadas, sem concorrer:
- *   Abas     — definem onde cada função vive.
- *   Mesa     — faz a entrada comercial funcionar (/calls).
- *   KPIs     — mostram o que está parado, vencido ou precisa de decisão (/painel).
+ * Face principal (sempre visível): 7 telas do mockup aprovado
+ *   → `FACE_PRINCIPAL_DESK`
  *
- * Pesquisa e bases moram na Inteligência. Matrizes individual/casal/familiar
- * moram na Formalização. CA-04 mora no Comercial com a Mesa. URLs não mudam.
- * Planilha Mestre, conciliação e SKU legado saem da operação diária e ficam
- * em Governança, rotulados. Nada é apagado nesta rodada.
+ * Camada operacional interna (recolhida / contextual): 6 grupos
+ *   → `GRUPOS_DESK` / `GRUPOS_OPERACIONAIS_DESK`
+ *
+ * Os 6 grupos NÃO são segunda barra lateral. Os 8 grupos NÃO voltam como
+ * menu principal. Nada é apagado: rotas seguem em submenus, CTAs e busca.
+ *
+ * Doc: `docs/politicas/DECISAO-NAVEGACAO-DESK-7-TELAS-6-GRUPOS-INTERNOS-2026-09-11.md`
+ *
+ * Camadas auxiliares (sem concorrer com a face):
+ *   Mesa — entrada comercial (/calls)
+ *   KPIs — o que está parado, vencido ou precisa de decisão (/painel)
  */
 
 /** As três camadas do Desk. Não são abas novas. */
@@ -18,7 +23,7 @@ export const CAMADAS_DESK = [
     id: "abas",
     papel: "Onde cada função vive",
     frase: "Abas definem onde cada função vive.",
-    superficie: "os 6 grupos",
+    superficie: "as 7 telas da face + 6 grupos internos",
   },
   {
     id: "mesa",
@@ -58,8 +63,88 @@ export type GrupoDesk = {
   sub: readonly ItemNav[];
 };
 
-/** Nomes das 7 telas do mockup — taxonomia visual, não a sidebar. */
-export const TELAS_DESK_MOCKUP = [
+/**
+ * Face principal do Desk — 7 telas do mockup (sempre visíveis na sidebar).
+ * Decisão 2026-09-11: esta é a navegação de primeiro nível.
+ */
+export type FaceDesk = {
+  id: string;
+  to: string;
+  label: string;
+  descricao: string;
+  icone:
+    | "visao"
+    | "casos"
+    | "checklist"
+    | "juridico"
+    | "radar"
+    | "alertas"
+    | "biblioteca";
+  /** Grupos operacionais internos que alimentam esta face (submenu contextual). */
+  gruposInternos: readonly string[];
+};
+
+export const FACE_PRINCIPAL_DESK: readonly FaceDesk[] = [
+  {
+    id: "visao-geral",
+    to: "/painel",
+    label: "Visão Geral",
+    descricao: "Prioridades do dia, KPIs vivos e atalhos para o que precisa de decisão.",
+    icone: "visao",
+    gruposInternos: ["hoje"],
+  },
+  {
+    id: "casos-360",
+    to: "/casos",
+    label: "Casos 360",
+    descricao: "Carteira por caso/pessoa — comercial, pesquisa e formalização no contexto.",
+    icone: "casos",
+    gruposInternos: ["casos", "comercial"],
+  },
+  {
+    id: "checklist",
+    to: "/tarefas",
+    label: "Checklist",
+    descricao: "Tarefas, pendências e próximos passos da equipe.",
+    icone: "checklist",
+    gruposInternos: ["casos"],
+  },
+  {
+    id: "validacao-juridica",
+    to: "/matriz-juridica",
+    label: "Validação Jurídica",
+    descricao: "Matriz jurídica, contratos e checagens do caso — sem expor motor/IDs.",
+    icone: "juridico",
+    gruposInternos: ["contratos", "pesquisa"],
+  },
+  {
+    id: "radar-interno",
+    to: "/qualidade",
+    label: "Radar Interno",
+    descricao: "Risco, prioridade e qualidade com uma fonte canônica por número.",
+    icone: "radar",
+    gruposInternos: ["casos", "hoje"],
+  },
+  {
+    id: "alertas",
+    to: "/alertas",
+    label: "Alertas",
+    descricao: "Sinais de prazo, documento, pesquisa e cadência — sempre com destino.",
+    icone: "alertas",
+    gruposInternos: ["hoje"],
+  },
+  {
+    id: "biblioteca-mestre",
+    to: "/biblioteca",
+    label: "Biblioteca Mestre",
+    descricao: "Acervo, pesquisa, catálogo e governança — admin só em submenu.",
+    icone: "biblioteca",
+    gruposInternos: ["pesquisa", "governanca"],
+  },
+] as const;
+
+/** Alias estável: nomes das 7 telas (mesma ordem da face). */
+export const TELAS_DESK_MOCKUP = FACE_PRINCIPAL_DESK.map((f) => f.label) as unknown as readonly [
   "Visão Geral",
   "Casos 360",
   "Checklist",
@@ -67,16 +152,35 @@ export const TELAS_DESK_MOCKUP = [
   "Radar Interno",
   "Alertas",
   "Biblioteca Mestre",
-] as const;
+];
 
+/**
+ * Seis grupos operacionais internos — organização/filtro, não menu principal.
+ * Rótulos curtos da decisão 2026-09-11.
+ */
 export const GRUPOS_OPERACIONAIS_DESK = [
   "Hoje",
-  "Marketing & Comercial",
-  "Pessoas & Casos",
-  "Inteligência & Pesquisa",
-  "Formalização & Financeiro",
-  "Governança & Administração",
+  "Comercial",
+  "Casos & Pessoas",
+  "Pesquisa",
+  "Formalização",
+  "Governança",
 ] as const;
+
+/** Subitens contextuais da face = união dos grupos operacionais ligados a ela. */
+export function subItensDaFace(face: FaceDesk): ItemNav[] {
+  const itens: ItemNav[] = [];
+  for (const gid of face.gruposInternos) {
+    const g = GRUPOS_DESK.find((x) => x.id === gid);
+    if (!g) continue;
+    itens.push({ grupo: g.label });
+    for (const s of g.sub) {
+      if ("grupo" in s) continue;
+      itens.push(s);
+    }
+  }
+  return itens;
+}
 
 export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
@@ -94,8 +198,8 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
     id: "comercial",
     to: "/calls",
-    label: "Marketing & Comercial",
-    descricao: "A Mesa de Discovery é a entrada. Leads, proposta e conversão moram nesta aba — não no Hoje.",
+    label: "Comercial",
+    descricao: "A Mesa de Discovery é a entrada. Leads, proposta e conversão moram aqui — não na face como aba própria.",
     icone: "comercial",
     agrupador: true,
     sub: [
@@ -114,7 +218,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
     id: "casos",
     to: "/casos",
-    label: "Pessoas & Casos",
+    label: "Casos & Pessoas",
     descricao: "Pessoa, núcleo, caso, jornada, checklist e radar — sem copiar contrato nem pesquisa.",
     icone: "casos",
     agrupador: true,
@@ -140,7 +244,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
     id: "pesquisa",
     to: "/biblioteca",
-    label: "Inteligência & Pesquisa",
+    label: "Pesquisa",
     descricao: "Biblioteca Mestre, bases genealógicas, evidências, dossiê do Legado e trilhas.",
     icone: "pesquisa",
     agrupador: true,
@@ -162,7 +266,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
     id: "contratos",
     to: "/contratos",
-    label: "Formalização & Financeiro",
+    label: "Formalização",
     descricao: "Contrato vivo, matrizes individual/casal/familiar, catálogo homologado e financeiro.",
     icone: "contratos",
     agrupador: true,
@@ -184,7 +288,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
     id: "governanca",
     to: "/configuracoes",
-    label: "Governança & Administração",
+    label: "Governança",
     descricao: "Papéis, privacidade, integrações e legado fora da operação diária.",
     icone: "governanca",
     agrupador: true,
@@ -221,7 +325,7 @@ export const ROTAS_LEGADO_MENU_GOVERNANCA = [
 
 /**
  * Menu da conta — só a sessão DEMO. Equipe, configurações e legado moram
- * em Governança & Administração. Não é nona aba.
+ * em Governança. Não é nona aba.
  */
 export const MENU_CONTA: {
   id: "conta";
@@ -313,9 +417,13 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/equipe",
 ] as const;
 
-/** Todas as rotas com link direto no menu principal ou no menu da conta. */
+/** Todas as rotas com link direto na face, nos grupos operacionais ou no menu da conta. */
 export function rotasDoMenu(): string[] {
   const set = new Set<string>();
+  for (const f of FACE_PRINCIPAL_DESK) {
+    set.add(f.to);
+    for (const s of subItensDaFace(f)) if ("to" in s) set.add(s.to);
+  }
   for (const g of GRUPOS_DESK) {
     set.add(g.to);
     for (const s of g.sub) if ("to" in s) set.add(s.to);
@@ -473,6 +581,22 @@ export function itemNavAtivo(atual: string, hashAtual: string, item: DestinoNav)
   if (item.hash) return atual === item.to && hash === hashDaRota(item.hash);
   if (hash && atual === item.to) return false;
   return rotaAtendeDestino(atual, item.to);
+}
+
+/** Face ativa: destino da própria face vence submenu compartilhado (ex.: /alertas). */
+export function faceNavAtiva(
+  atual: string,
+  hashAtual: string,
+  face: { to: string; label: string; sub: readonly ItemNav[] },
+  faces: readonly { to: string }[] = FACE_PRINCIPAL_DESK,
+): boolean {
+  const hash = hashDaRota(hashAtual);
+  const facePorTo = faces.find((f) => rotaAtendeDestino(atual, f.to) && !hash);
+  if (facePorTo) return facePorTo.to === face.to;
+  return face.sub.some((s) => {
+    if (!("to" in s)) return false;
+    return itemNavAtivo(atual, hashAtual, s);
+  });
 }
 
 /** Grupo ativo canônico: entrada do grupo ou item que mora nele — atalhos não douram o grupo errado. */

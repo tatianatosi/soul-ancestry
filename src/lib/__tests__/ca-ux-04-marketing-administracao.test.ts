@@ -24,7 +24,7 @@ const ler = (p: string) => readFileSync(p, "utf8");
 const ORDEM = ["hoje", "comercial", "casos", "pesquisa", "contratos", "governanca"];
 
 describe("CA-UX-04 — navegação", () => {
-  it("tem exatamente 6 grupos; Marketing mora em Marketing & Comercial", () => {
+  it("tem exatamente 6 grupos; Marketing mora em Comercial", () => {
     expect(GRUPOS_DESK).toHaveLength(6);
     expect(GRUPOS_DESK.map((g) => g.id)).toEqual(ORDEM);
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;

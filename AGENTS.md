@@ -69,18 +69,13 @@ Migrations versionadas; sem alteração manual de produção como substituto. Va
 
 ## Navegação real — não redesenhar
 
-**Desk vigente: 6 grupos** em `src/lib/navegacao-desk.ts` (`GRUPOS_DESK`), decisão explícita da proprietária (adendo §4 “seis áreas”). Não criar nona aba. Não voltar às 7 itens do mockup sem nova decisão.
+**Desk — face de 7 telas + 6 grupos internos** (decisão da proprietária, 2026-09-11): `FACE_PRINCIPAL_DESK` é o menu principal; `GRUPOS_DESK` (6) é camada operacional recolhida/contextual — **não** segunda barra. Não escolher 6 abas nem 8 grupos como face. Doc: `docs/politicas/DECISAO-NAVEGACAO-DESK-7-TELAS-6-GRUPOS-INTERNOS-2026-09-11.md`.
 
-1. `hoje` — Hoje / Visão Geral (`/painel`)
-2. `comercial` — Marketing & Comercial
-3. `casos` — Pessoas & Casos
-4. `pesquisa` — Inteligência & Pesquisa
-5. `contratos` — Formalização & Financeiro (financeiro **não** é grupo separado)
-6. `governanca` — Governança & Administração
+Face (sempre visível): Visão Geral · Casos 360 · Checklist · Validação Jurídica · Radar Interno · Alertas · Biblioteca Mestre.
 
-Configuração, equipe e preferências ficam no **menu da conta**, não como 7º grupo.
+Grupos internos: Hoje · Comercial · Casos & Pessoas · Pesquisa · Formalização · Governança.
 
-O texto de **8 grupos** (hoje, marketing, comercial, casos, pesquisa, contratos, cliente, governança) permanece **contexto ativo** até `COMPROVADO_EM_USO`. Não arquivar, não tratar como superado, não restaurar como menu sem decisão explícita.
+Configuração, equipe e preferências ficam no **menu da conta** / Governança interna, não como 8º/9º item da face. Texto antigo de 8 grupos no menu principal permanece contexto de resgate até `COMPROVADO_EM_USO` — não arquivar a memória; não restaurar 8 como face.
 
 A “hierarquia de telas” da memória permanente (planner, lista de casos, caso 360, pessoa, documentos, pesquisa, portal, admin) é **prioridade funcional**, não um menu novo.
 
@@ -92,7 +87,7 @@ Rótulo da primeira aba no mockup e em `COPY_TELAS.casos.navegacao`: **Home** (n
 
 Abas extras condicionais (Entregas, Fase 01, Fase 02, Proposta) ainda existem no código — **dívida a retirar da barra**, não expansão da taxonomia. Ver artefato 007 abaixo.
 
-**Mockup vs produção:** o PDF de 17 páginas é normativo visual. O PDF de auditoria de **47 páginas** (`clube-ancestral-mockup-auditoria.pdf`) guia **conteúdo, estados e indicadores** em conjunto com o de 17 — sem redesenhar navegação. Comparativos visuais e telas Lovable em `docs/evolucao/recuperados/auditoria-mockup-2026-09-11/` e Canvas em `…/ancestral-canvas-2026-09-11/`; destilado em `docs/politicas/ADENDO-MEMORIA-AUDITORIA-MOCKUP-CANVAS-2026-09-11.md`. Prompts em `docs/politicas/PROMPT-*` são **execução** (`ADENDO-PROMPTS-SAO-EXECUCAO-2026-09-11.md`), não arquivo morto. Resgate do produto: `ESTRATEGIA-RESGATE-PRODUTO-CLUBE-ANCESTRAL-2026-09-11.md`. “Aderente” no PDF de comparação **não** é aceite. Menu vigente = 6 grupos (`GRUPOS_DESK`); mockup mostra 7 itens de Desk; memória permanente descreve 8 — os três textos permanecem ativos até prova integrada. Radar não é aba extra. App Cliente = 7 abas.
+**Mockup vs produção:** o PDF de 17 páginas é normativo visual. O PDF de auditoria de **47 páginas** (`clube-ancestral-mockup-auditoria.pdf`) guia **conteúdo, estados e indicadores** em conjunto com o de 17 — sem redesenhar navegação. Comparativos visuais e telas Lovable em `docs/evolucao/recuperados/auditoria-mockup-2026-09-11/` e Canvas em `…/ancestral-canvas-2026-09-11/`; destilado em `docs/politicas/ADENDO-MEMORIA-AUDITORIA-MOCKUP-CANVAS-2026-09-11.md`. Prompts em `docs/politicas/PROMPT-*` são **execução** (`ADENDO-PROMPTS-SAO-EXECUCAO-2026-09-11.md`), não arquivo morto. Resgate do produto: `ESTRATEGIA-RESGATE-PRODUTO-CLUBE-ANCESTRAL-2026-09-11.md`. “Aderente” no PDF de comparação **não** é aceite. Face Desk = `FACE_PRINCIPAL_DESK` (7); grupos internos = `GRUPOS_DESK` (6); App Cliente = 7 abas. Memória que ainda cita 8 grupos no menu permanece contexto ativo até `COMPROVADO_EM_USO`.
 
 README raiz ainda descreve o protótipo visual antigo (6 abas, dados fictícios). É histórico, não a operação atual.
 
@@ -126,7 +121,7 @@ Texto integral: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA
 - Nenhum agente pode arquivar, reduzir a “histórico” ou declarar “já resolvido, pode arquivar” só porque existe código, PR, teste, migration, mockup ou log.
 - Arquivamento só depois de `COMPROVADO_EM_USO` pela proprietária autenticada (`tati@pluggedresearch.com`), com prints **inicial, ação, confirmação, releitura** e, na cadeia, **integração**. Resultado: `PASSOU` / `FALHOU` / `BLOQUEADO_POR_DADO` / `BLOQUEADO_POR_DECISAO` / `ERRO_DE_FONTE` / `NAO_LOCALIZADO`.
 - Este adendo **não** autoriza alterar dados, contratos, pagamentos, RLS, permissões, migrations, integrações, publicações, mensagens ou merges. Print complementa — não substitui — RLS, auditoria e persistência.
-- “Seis áreas” no adendo mapeia para os **6 grupos vigentes** do Desk e **não** cria nona aba. As **7 abas** do App Cliente permanecem. Dívida declarada: `GRUPOS_DESK` tem 6 grupos; a memória permanente ainda cita 8. Nenhuma das duas leituras se arquiva até `COMPROVADO_EM_USO` — não restaurar 8 como menu sem decisão explícita.
+- Decisão 2026-09-11: face = **7 telas**; **6 grupos** só internos — **não** cria nona aba. As **7 abas** do App Cliente permanecem. Memória que cita 8 grupos no menu principal permanece contexto de resgate até `COMPROVADO_EM_USO` — não arquivar; não restaurar 8 como face.
 - Contextos de resgate (Discovery, Pessoa 360, Pesquisa, formalização, Radar, App Cliente, RLS etc.) permanecem **ativos** até a prova integrada. Listar um documento como “arquivado” no inventário antigo **não** retira a continuidade.
 - Checklist de PR: `docs/politicas/CHECKLIST-PR-CONTINUIDADE-PROVA.md`. Prints da sessão autenticada: `docs/provas/`.
 
@@ -156,7 +151,7 @@ Código atual (`portal-shell.tsx`, `portal-navegacao.ts`) ainda injeta Entregas/
 
 ### Desk — fichas e mockups (009)
 
-Oito superfícies distintas, ligadas por IDs — não formulários duplicados da mesma entidade: Pessoa 360, Núcleo 360, Lead/Discovery, Caso 360, Pesquisa/Genealogia 360, Contrato/Formalização/OS, visão admin do App Cliente, Desk em 8 grupos.
+Oito superfícies distintas, ligadas por IDs — não formulários duplicados da mesma entidade: Pessoa 360, Núcleo 360, Lead/Discovery, Caso 360, Pesquisa/Genealogia 360, Contrato/Formalização/OS, visão admin do App Cliente, Desk com face de 7 telas (grupos operacionais internos).
 
 Menu vigente = 6 grupos (adendo). O texto de 8 grupos desta ficha permanece contexto ativo até `COMPROVADO_EM_USO` — não arquivar.
 

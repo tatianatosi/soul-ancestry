@@ -6,13 +6,13 @@ import { GRUPOS_DESK, LINKS_CONTEXTUAIS } from "@/lib/navegacao-desk";
  * RESGATE DAS NOMENCLATURAS APROVADAS (09/09/2026) — de-para obrigatório:
  * Hoje → Visão Geral; Casos → Casos 360; Governança → Biblioteca Mestre.
  * Validação Jurídica, Radar Interno, Alertas já batiam com o aprovado.
- * Os 8 grupos operacionais reais (Hoje/Visão Geral, Marketing, Comercial,
+ * Os 6 grupos operacionais internos (Hoje/Visão Geral, Marketing, Comercial,
  * Casos/Casos 360, Pesquisa, Contratos e financeiro, Cliente, Biblioteca/
  * Governança) continuam existindo e com as mesmas rotas — só o rótulo de
  * navegação principal mudou, nunca a URL nem a funcionalidade.
  */
 
-describe("De-para de nomenclatura — Desk usa os 6 grupos na navegação principal", () => {
+describe("De-para de nomenclatura — Desk usa os 6 grupos internos (face = 7 telas)", () => {
   it("expõe os 6 grupos, com rotas de entrada já existentes", () => {
     expect(GRUPOS_DESK).toHaveLength(6);
     expect(GRUPOS_DESK.map((g) => g.to)).toEqual([
@@ -28,11 +28,11 @@ describe("De-para de nomenclatura — Desk usa os 6 grupos na navegação princi
   it("usa os rótulos dos 6 grupos operacionais", () => {
     expect(GRUPOS_DESK.map((g) => g.label)).toEqual([
       "Hoje",
-      "Marketing & Comercial",
-      "Pessoas & Casos",
-      "Inteligência & Pesquisa",
-      "Formalização & Financeiro",
-      "Governança & Administração",
+      "Comercial",
+      "Casos & Pessoas",
+      "Pesquisa",
+      "Formalização",
+      "Governança",
     ]);
   });
 
@@ -42,7 +42,7 @@ describe("De-para de nomenclatura — Desk usa os 6 grupos na navegação princi
     expect(comercial.sub.some((s) => "to" in s && s.to === "/leads")).toBe(true);
   });
 
-  it("Checklist continua no submenu de Pessoas & Casos, com o nome aprovado", () => {
+  it("Checklist continua no submenu de Casos & Pessoas, com o nome aprovado", () => {
     const casos = GRUPOS_DESK.find((g) => g.id === "casos")!;
     const tarefas = casos.sub.find((s) => "to" in s && s.to === "/tarefas") as
       | { label: string }

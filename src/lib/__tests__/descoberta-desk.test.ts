@@ -67,12 +67,12 @@ describe("atalhos de descoberta", () => {
   });
 
   it("o atalho aponta para a aba dona da função, não para o nome antigo do grupo", () => {
-    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe("Pessoas & Casos");
+    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe("Casos & Pessoas");
     expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/matriz-juridica")?.onde).toBe(
-      "Inteligência & Pesquisa",
+      "Pesquisa",
     );
     expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/integracoes")?.onde).toBe(
-      "Governança & Administração",
+      "Governança",
     );
     expect(painel).toContain('to: "/calls"');
     expect(painel).toContain("Mesa de Discovery");
@@ -86,17 +86,28 @@ describe("atalhos de descoberta", () => {
 });
 
 describe("superfícies preservadas", () => {
-  it("mantém os 6 grupos na navegação do Desk", () => {
+  it("mantém face de 7 telas na sidebar e 6 grupos internos no acervo", () => {
+    const face = [
+      "Visão Geral",
+      "Casos 360",
+      "Checklist",
+      "Validação Jurídica",
+      "Radar Interno",
+      "Alertas",
+      "Biblioteca Mestre",
+    ];
+    for (const t of face) expect(navegacao).toContain(`label: "${t}"`);
     const grupos = [
       "Hoje",
-      "Marketing & Comercial",
-      "Pessoas & Casos",
-      "Inteligência & Pesquisa",
-      "Formalização & Financeiro",
-      "Governança & Administração",
+      "Comercial",
+      "Casos & Pessoas",
+      "Pesquisa",
+      "Formalização",
+      "Governança",
     ];
     for (const g of grupos) expect(navegacao).toContain(`label: "${g}"`);
-    expect(shell).toContain("GRUPOS_DESK");
+    expect(shell).toContain("FACE_PRINCIPAL_DESK");
+    expect(shell).not.toContain("GRUPOS_DESK.map");
   });
 
   it("o protótipo antigo saiu do runtime; o mockup aprovado volta como referência (CA-UX-04, revisto 05/09/2026)", () => {

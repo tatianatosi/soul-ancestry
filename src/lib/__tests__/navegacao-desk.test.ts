@@ -63,7 +63,7 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     for (const r of rotasDoMenu()) expect(r.startsWith("/")).toBe(true);
   });
 
-  it("Marketing e Calls moram em Marketing & Comercial", () => {
+  it("Marketing e Calls moram em Comercial", () => {
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
     const rotas = comercial.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/marketing");
@@ -83,7 +83,7 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     expect(rotas).not.toContain("/crm-mestre");
   });
 
-  it("Validação Jurídica mora na Inteligência; Radar Interno mora em Pessoas & Casos", () => {
+  it("Validação Jurídica mora na Inteligência; Radar Interno mora em Casos & Pessoas", () => {
     const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
     const casos = GRUPOS_DESK.find((g) => g.id === "casos")!;
     expect(pesquisa.sub.some((s) => "to" in s && s.to === "/matriz-juridica")).toBe(true);
@@ -160,7 +160,7 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     expect(rotasDoMenuConta()).not.toContain("/crm-mestre");
   });
 
-  it("Painel de Calls permanece na face de Marketing & Comercial", () => {
+  it("Painel de Calls permanece na face de Comercial", () => {
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
     const rotas = comercial.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/calls");
@@ -175,19 +175,19 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
   });
 
   it("cada função mora em um único grupo — privacidade e SKU legado não são operação diária", () => {
-    expect(grupoDonoDaRota("/calls")).toBe("Marketing & Comercial");
-    expect(grupoDonoDaRota("/leads")).toBe("Marketing & Comercial");
-    expect(grupoDonoDaRota("/casos")).toBe("Pessoas & Casos");
-    expect(grupoDonoDaRota("/evidencias")).toBe("Inteligência & Pesquisa");
-    expect(grupoDonoDaRota("/contratos")).toBe("Formalização & Financeiro");
-    expect(grupoDonoDaRota("/financeiro")).toBe("Formalização & Financeiro");
-    expect(grupoDonoDaRota("/catalogo")).toBe("Formalização & Financeiro");
-    expect(grupoDonoDaRota("/privacidade")).toBe("Governança & Administração");
-    expect(grupoDonoDaRota("/homologacao-skus")).toBe("Governança & Administração");
-    expect(grupoDonoDaRota("/conciliacao-catalogo")).toBe("Governança & Administração");
-    expect(grupoDonoDaRota("/escopo-origem")).toBe("Governança & Administração");
+    expect(grupoDonoDaRota("/calls")).toBe("Comercial");
+    expect(grupoDonoDaRota("/leads")).toBe("Comercial");
+    expect(grupoDonoDaRota("/casos")).toBe("Casos & Pessoas");
+    expect(grupoDonoDaRota("/evidencias")).toBe("Pesquisa");
+    expect(grupoDonoDaRota("/contratos")).toBe("Formalização");
+    expect(grupoDonoDaRota("/financeiro")).toBe("Formalização");
+    expect(grupoDonoDaRota("/catalogo")).toBe("Formalização");
+    expect(grupoDonoDaRota("/privacidade")).toBe("Governança");
+    expect(grupoDonoDaRota("/homologacao-skus")).toBe("Governança");
+    expect(grupoDonoDaRota("/conciliacao-catalogo")).toBe("Governança");
+    expect(grupoDonoDaRota("/escopo-origem")).toBe("Governança");
     expect(grupoDonoDaRota("/governanca/catalogo-operacional-30")).toBe(
-      "Governança & Administração",
+      "Governança",
     );
     const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
     expect(pesquisa.sub.some((s) => "to" in s && s.to === "/privacidade")).toBe(false);
@@ -202,7 +202,7 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
     const rotasGov = gov.sub.filter((s) => "to" in s).map((s) => s.to);
     for (const r of ROTAS_LEGADO_MENU_GOVERNANCA) {
-      expect(grupoDonoDaRota(r)).toBe("Governança & Administração");
+      expect(grupoDonoDaRota(r)).toBe("Governança");
       expect(rotasGov).toContain(r);
       expect(rotasDoMenu()).toContain(r);
       expect(rotasDoMenuConta()).not.toContain(r);

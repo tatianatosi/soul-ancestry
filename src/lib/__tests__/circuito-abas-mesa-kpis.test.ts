@@ -17,10 +17,10 @@ import type { LeadDesk } from "@/lib/crm-desk";
 const ler = (p: string) => readFileSync(p, "utf8");
 
 describe("Abas — circuito nas seis áreas (sem tela nova)", () => {
-  it("Desk tem exatamente 6 grupos e Calls mora em Marketing & Comercial", () => {
+  it("Desk tem exatamente 6 grupos e Calls mora em Comercial", () => {
     expect(GRUPOS_DESK).toHaveLength(6);
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial");
-    expect(comercial?.label).toBe("Marketing & Comercial");
+    expect(comercial?.label).toBe("Comercial");
     expect(comercial?.sub.some((i) => "to" in i && i.to === "/calls")).toBe(true);
   });
 
@@ -30,7 +30,7 @@ describe("Abas — circuito nas seis áreas (sem tela nova)", () => {
     expect(hoje?.sub.some((i) => "to" in i && i.to === "/calls")).toBe(false);
   });
 
-  it("Pessoas & Casos recebe o destino do handoff (/casos, /clientes)", () => {
+  it("Casos & Pessoas recebe o destino do handoff (/casos, /clientes)", () => {
     const casos = GRUPOS_DESK.find((g) => g.id === "casos");
     expect(casos?.sub.some((i) => "to" in i && i.to === "/casos")).toBe(true);
     expect(casos?.sub.some((i) => "to" in i && i.to === "/clientes")).toBe(true);

@@ -31,7 +31,7 @@ Cliente externo nunca vê nota interna, outro caso ou outro cliente. Esconder na
 ## Peças que não se apagam
 
 - Painel de Calls (`/calls`, `PainelCalls`) é entrada canônica do CRM Vivo. Isolar dicionário/legado não autoriza esconder a rota.
-- Menu vigente: **6 grupos** em `GRUPOS_DESK`. Não criar nona aba. O texto de 8 grupos permanece contexto ativo até prova autenticada `COMPROVADO_EM_USO` — não arquivar.
+- Face = 7 telas (`FACE_PRINCIPAL_DESK`); 6 grupos internos em `GRUPOS_DESK`. Não voltar a 8 grupos como menu principal. Doc: `DECISAO-NAVEGACAO-DESK-7-TELAS-6-GRUPOS-INTERNOS-2026-09-11.md`.
 - Adendo vinculante: nenhum contexto de resgate se arquiva sem prints autenticados da proprietária (inicial, ação, confirmação, releitura, integração). Registro: `docs/relatorios/2026-09-11_registro-prova-autenticada.md`.
 
 ## Marca e presença digital

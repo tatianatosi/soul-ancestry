@@ -61,7 +61,7 @@ export const REGRAS_ASSISTENTE: readonly RegraAssistente[] = [
   },
   {
     grupo: "comercial",
-    label: "Marketing & Comercial",
+    label: "Comercial",
     contexto: "Leads, Calls, Discovery, proposta e conversão — CRM Vivo",
     resultado: "Explicar o funil e o próximo passo comercial, sem inventar origem",
     papeis: ["admin", "operacoes", "comercial", "leitura"],
@@ -69,7 +69,7 @@ export const REGRAS_ASSISTENTE: readonly RegraAssistente[] = [
   },
   {
     grupo: "casos",
-    label: "Pessoas & Casos",
+    label: "Casos & Pessoas",
     contexto: "Caso confirmado, núcleo, checklist, radar e portal",
     resultado: "Sintetizar estado do caso e próximos passos internos",
     papeis: ["admin", "operacoes", "pesquisador", "comercial", "financeiro", "leitura"],
@@ -77,7 +77,7 @@ export const REGRAS_ASSISTENTE: readonly RegraAssistente[] = [
   },
   {
     grupo: "pesquisa",
-    label: "Inteligência & Pesquisa",
+    label: "Pesquisa",
     contexto: "Biblioteca Mestre, evidências, dossiê do Legado e Validação Jurídica",
     resultado:
       "Organizar evidências existentes e formular hipóteses marcadas como não confirmadas",
@@ -86,7 +86,7 @@ export const REGRAS_ASSISTENTE: readonly RegraAssistente[] = [
   },
   {
     grupo: "contratos",
-    label: "Formalização & Financeiro",
+    label: "Formalização",
     contexto: "Contrato vivo, catálogo homologado, OS e financeiro interno",
     resultado: "Explicar pendência de formalização sem emitir parecer automático",
     papeis: ["admin", "operacoes", "financeiro", "leitura"],
@@ -94,7 +94,7 @@ export const REGRAS_ASSISTENTE: readonly RegraAssistente[] = [
   },
   {
     grupo: "governanca",
-    label: "Governança & Administração",
+    label: "Governança",
     contexto: "Papéis, legado arquivado, integrações e configurações",
     resultado: "Orientar administração sem misturar com a fila do dia",
     papeis: TODOS,
