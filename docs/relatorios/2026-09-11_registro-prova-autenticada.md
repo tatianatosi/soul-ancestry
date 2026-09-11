@@ -58,7 +58,21 @@ Prints feitos por agente com a conta da proprietária (pedido explícito dela) s
 | F5 após gravar | **não feito** |
 | Integração Hoje | **não feito** |
 | Resultado do protocolo | não `PASSOU`; não `COMPROVADO_EM_USO` |
-| Depois do merge | A #98 entrou em `main` em 2026-09-11 01:45 UTC. Esta evidência vale para o código mesclado; produção só conta depois do deploy + print novo. |
+| Depois do merge | A #98 entrou em `main` em 2026-09-11 01:45 UTC. Produção no ar conferida no bloco D. |
+
+### D. Produção `soul-ancestry.vercel.app` — depois do deploy da #98
+
+| Campo | Valor |
+|---|---|
+| Data/hora | 2026-09-11 ~01:50–01:51 UTC |
+| Ambiente | `https://soul-ancestry.vercel.app/calls` |
+| Conta | `tati@pluggedresearch.com` |
+| Quem executou | Agente, com a conta da proprietária |
+| Prints | `docs/provas/2026-09-11-producao-pos-98/` |
+| O que a tela mostrou | Comercial abre **Mesa de Discovery** `/calls`. Item de menu “Mesa de Discovery”. Ana Luiza: Situação, pergunta 2 de 19, uma pergunta (nacionalidade). Hoje diz que a Mesa faz a entrada comercial. |
+| F5 após gravar | **não feito** |
+| Integração Hoje | **não feito** |
+| Resultado do protocolo | não `PASSOU`; não `COMPROVADO_EM_USO` |
 
 ## Matriz por motor
 
@@ -70,7 +84,7 @@ Resultados permitidos: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_
 | Sessão (Vite local) | `BLOQUEADO_POR_DADO` | não / tentada / erro / não / não | Bloco A. |
 | Sessão (produção pré-#98) | evidência de agente | sim / login / `/painel` / — / — | Bloco B. Desk aberto. |
 | Sessão (preview #98) | evidência de agente | sim / login / Mesa / — / — | Bloco C. |
-| Mesa Discovery / CRM | não `PASSOU`; **não** `COMPROVADO_EM_USO` | preview: abrir + chip Problema / sem gravar / sem save / sem F5 / sem Hoje | Código da #98 agora em `main`. Produção pré-deploy ainda era Painel antigo. Falta gravar resposta, responsável, próxima ação, recarregar, ver a ação no Hoje. |
+| Mesa Discovery / CRM | evidência de abertura em produção; não `PASSOU`; **não** `COMPROVADO_EM_USO` | inicial `/calls` + Ana Luiza pergunta 2/19 / sem gravar / sem save / sem F5 / sem Hoje | #98 no ar. Comercial entra na Mesa. Falta gravar, F5 e próxima ação no Hoje. |
 | Pessoa 360 | `NAO_LOCALIZADO` | — | Mesa ainda não grava na Pessoa 360. |
 | Varredura de dossiê | `NAO_LOCALIZADO` | — | Skill só em documento. Sem UI comprovada. |
 | Pesquisa e evidências | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
@@ -103,6 +117,15 @@ Entrada comercial → Mesa Discovery → Pessoa/Dossiê → Caso/Jornada
 | `docs/provas/2026-09-11-producao/calls_painel_antigo.webp` | `/calls` = Painel de Calls antigo. |
 | `docs/provas/2026-09-11-producao/ana_luiza_call.webp` | Lead de teste Ana Luiza aberto; sem gravação. |
 | `docs/provas/2026-09-11-producao/pessoas_casos.webp` | Pessoas & Casos → Casos 360. |
+
+## Prints (produção depois da #98)
+
+| Arquivo | O que mostra |
+|---|---|
+| `docs/provas/2026-09-11-producao-pos-98/comercial_abre_mesa.webp` | Comercial → Mesa de Discovery `/calls`; 6 grupos. |
+| `docs/provas/2026-09-11-producao-pos-98/mesa_sidebar_6_grupos.webp` | Mesma Mesa, menu “Mesa de Discovery”. |
+| `docs/provas/2026-09-11-producao-pos-98/ana_spin_uma_pergunta.webp` | Ana Luiza; Situação pergunta 2/19; uma pergunta. |
+| `docs/provas/2026-09-11-producao-pos-98/hoje_kpis.webp` | Hoje: a Mesa faz a entrada comercial; 3 exceções. |
 
 ## Prints (preview PR #98, código agora em `main`)
 
