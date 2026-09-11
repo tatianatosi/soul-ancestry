@@ -12,6 +12,11 @@ import {
   type Papel,
   type SupabaseCliente,
 } from "@/lib/onboarding-regras";
+import {
+  autoSatisfazerChecksIdentidade,
+  filtrarChecksAtivacaoOperacionais,
+  filtrarItensOnboardingOperacionais,
+} from "@/lib/checks-identidade-startup";
 
 export type { CheckAtivacao, EventoOnboarding, Papel } from "@/lib/onboarding-regras";
 
@@ -27,12 +32,23 @@ export const obterOnboarding = createServerFn({ method: "GET" })
     const caso = await supabase
       .from("crm_casos")
       .select(
-        "id,codigo,titulo,status,ativo,ativado_em,ativado_por,data_ativacao,responsavel_id,cliente_id,tipo_servico,suspenso_motivo,suspenso_em,created_at",
+        "id,codigo,titulo,status,ativo,ativado_em,ativado_por,data_ativacao,responsavel_id,responsavel_principal,cliente_id,tipo_servico,suspenso_motivo,suspenso_em,created_at",
       )
       .eq("id", data.casoId)
       .eq("organization_id", organizationId)
       .maybeSingle();
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
+
+    const temResponsavel = Boolean(
+      (caso.data as { responsavel_id?: string | null }).responsavel_id ||
+        String((caso.data as { responsavel_principal?: string | null }).responsavel_principal ?? "").trim(),
+    );
+    await autoSatisfazerChecksIdentidade(supabase, {
+      organizationId,
+      caseId: data.casoId,
+      userId: context.userId as string,
+      temResponsavel,
+    });
 
     const checks = await supabase
       .from("case_activation_checks")
@@ -73,8 +89,8 @@ export const obterOnboarding = createServerFn({ method: "GET" })
       .limit(200);
 
     const linha = (caso.data ?? {}) as Record<string, string | number | boolean | null>;
-    const listaChecks = ((checks.data ?? []) as CheckAtivacao[]).sort((a, b) =>
-      a.check_key.localeCompare(b.check_key),
+    const listaChecks = filtrarChecksAtivacaoOperacionais(
+      ((checks.data ?? []) as CheckAtivacao[]).sort((a, b) => a.check_key.localeCompare(b.check_key)),
     );
     const idsChecks = new Set(listaChecks.map((c) => c.id));
 
@@ -98,20 +114,8 @@ export const obterOnboarding = createServerFn({ method: "GET" })
             : String((l["metadados"] as any)?.["resumo"] ?? "Caso"),
       }));
 
-    return {
-      caso: linha,
-      papeis,
-      checks: listaChecks,
-      pendencias: (pendencias.data ?? []) as { check_key: string; label: string; motivo: string }[],
-      bloqueiosReais: (bloqueiosReais.data ?? []) as {
-        regra: string;
-        dominio: string;
-        motivo: string;
-        tabela_campo: string;
-        valor_atual: string;
-        cta_tela: string | null;
-      }[],
-      checklistOnboarding: (checklistOnboarding.data ?? []) as {
+    const checklistOperacional = filtrarItensOnboardingOperacionais(
+      (checklistOnboarding.data ?? []) as {
         id: string;
         item_code: string;
         label: string;
@@ -120,6 +124,24 @@ export const obterOnboarding = createServerFn({ method: "GET" })
         observacao: string | null;
         concluido_em: string | null;
       }[],
+    );
+
+    return {
+      caso: linha,
+      papeis,
+      checks: listaChecks,
+      pendencias: ((pendencias.data ?? []) as { check_key: string; label: string; motivo: string }[]).filter(
+        (p) => !["responsavel_designado", "aprovacao_interna_ativacao"].includes(p.check_key),
+      ),
+      bloqueiosReais: (bloqueiosReais.data ?? []) as {
+        regra: string;
+        dominio: string;
+        motivo: string;
+        tabela_campo: string;
+        valor_atual: string;
+        cta_tela: string | null;
+      }[],
+      checklistOnboarding: checklistOperacional,
       podeAtivar: podeAtivar(papeis),
       timeline,
     };
@@ -315,7 +337,7 @@ export const atualizarCheckAtivacao = createServerFn({ method: "POST" })
 
 export const ativarCasoComChecks = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { casoId: string }) => data)
+  .inputValidator((data: { casoId: string; motivoOverride?: string | null }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
@@ -327,33 +349,82 @@ export const ativarCasoComChecks = createServerFn({ method: "POST" })
       return { ok: false, pendencias: ["Somente admin ou operações podem ativar."] };
     }
 
-    // Fonte de verdade: as 5 trilhas reais de trava (checklist de 14 itens,
-    // consentimento, checklist de onboarding e inconsistências críticas) —
-    // a mesma projeção que a tela usa para decidir se mostra "Requisitos
-    // completos". Ver 20260905120000_case_ativacao_bloqueios_reais.sql.
+    // Fonte de verdade: as 5 trilhas reais de trava — mesma projeção da tela.
     const bloq = await supabase.rpc("case_ativacao_bloqueios_reais", { _case: data.casoId });
     const lista = ((bloq.data ?? []) as { motivo: string }[]).map((b) => b.motivo);
     if (bloq.error) lista.push(bloq.error.message);
 
     if (lista.length > 0) {
-      await registrar(supabase, organizationId, "ativacao_bloqueada", data.casoId, {
-        resumo: `Tentativa de ativação recusada: ${lista.length} requisito(s) obrigatório(s) fora de validado`,
-        pendencias: lista,
+      // Pendência informa: proprietária assume e ativa; demais papéis bloqueiam.
+      const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
+      let assumidas: string[];
+      try {
+        assumidas = await assumirOuRecusarComUsuario(
+          supabase,
+          context.userId as string,
+          lista,
+          `Ativação bloqueada: ${lista.join("; ")}`,
+        );
+      } catch (e) {
+        await registrar(supabase, organizationId, "ativacao_bloqueada", data.casoId, {
+          resumo: `Tentativa de ativação recusada: ${lista.length} requisito(s) obrigatório(s) fora de validado`,
+          pendencias: lista,
+        });
+        return { ok: false, pendencias: lista };
+      }
+      await supabase.from("owner_override_events").insert({
+        organization_id: organizationId,
+        actor_user_id: context.userId,
+        actor_papel: "admin",
+        categoria: "override_interno",
+        acao: "ativar_caso_com_pendencia",
+        modulo: "onboarding",
+        operacao: "avanco_fase_caso",
+        entidade: "crm_casos",
+        entidade_id: data.casoId,
+        motivo:
+          (data.motivoOverride ?? "").trim() ||
+          "Ativação por decisão da proprietária com checklist incompleto (startup solo).",
+        fonte: "onboarding_ativacao",
+        pendencias_assumidas: assumidas,
+        acao_externa: false,
+        irreversivel: false,
+        confirmacao_manual: true,
+        executado: true,
       });
-      return { ok: false, pendencias: lista };
     }
 
-    // A máquina de estados (estados.ts, espelhada no banco) não permite pular
-    // direto de "rascunho" para "ativo" — exige passar por um estado
-    // intermediário e por "pronto_para_ativar". Os 14 requisitos acima já
-    // validaram tudo que essas etapas exigiriam; este caminho só formaliza a
-    // transição passo a passo para não ser recusado pela trava do banco.
+    // A máquina de estados não permite pular direto de "rascunho" para "ativo".
     const caminhoAteAtivo: Record<string, string> = {
       rascunho: "aguardando_documentos",
       aguardando_documentos: "pronto_para_ativar",
       aguardando_pagamento: "pronto_para_ativar",
       pronto_para_ativar: "ativo",
     };
+
+    // Responsável padrão Tatiana/sessão se o caso ainda estiver sem dono.
+    const { data: casoAntes } = await supabase
+      .from("crm_casos")
+      .select("responsavel_id,responsavel_principal")
+      .eq("id", data.casoId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (casoAntes && !casoAntes.responsavel_id) {
+      const { nomeResponsavelPadrao } = await import("@/lib/responsavel-padrao");
+      const { nomeResponsavelSessao } = await import("@/lib/cadeia-operacional.server");
+      const nome = nomeResponsavelPadrao(
+        (casoAntes.responsavel_principal as string | null) ||
+          (await nomeResponsavelSessao(supabase, organizationId, context.userId as string)),
+      );
+      await supabase
+        .from("crm_casos")
+        .update({
+          responsavel_id: context.userId,
+          responsavel_principal: nome,
+        })
+        .eq("id", data.casoId)
+        .eq("organization_id", organizationId);
+    }
 
     const { data: casoAtual, error: erroLeitura } = await supabase
       .from("crm_casos")
@@ -412,9 +483,13 @@ export const ativarCasoComChecks = createServerFn({ method: "POST" })
     }
 
     await registrar(supabase, organizationId, "caso_ativado", data.casoId, {
-      resumo: "Caso ativado com todos os 14 requisitos obrigatórios validados",
+      resumo:
+        lista.length > 0
+          ? `Caso ativado por decisão da proprietária com ${lista.length} pendência(s) preservada(s)`
+          : "Caso ativado com requisitos validados",
+      pendencias: lista.length ? lista : undefined,
     });
-    return { ok: true, pendencias: [] as string[] };
+    return { ok: true, pendencias: lista };
   });
 
 export const suspenderCaso = createServerFn({ method: "POST" })

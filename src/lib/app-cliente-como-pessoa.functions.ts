@@ -62,8 +62,15 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
     if (!caso) throw new Error("Caso não encontrado nesta organização.");
 
     const agora = new Date().toISOString();
+    // Policy portal (LGPD shares) recursa com app_projection_shares mesmo para
+    // is_org_member. Enquanto 20260911120000 não estiver no projeto remoto, a
+    // visão master lê projeções via admin *depois* de autorizar proprietária +
+    // org + caso — mesmos filtros. Portal do cliente continua no JWT.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const leitorProjecoes = supabaseAdmin as typeof supabase;
+
     const [proj, docs, pendencias, faturas] = await Promise.all([
-      supabase
+      leitorProjecoes
         .from("app_projections")
         .select("id, case_id, projection_type, content_sanitized, effective_from, updated_at")
         .eq("organization_id", organizationId)
@@ -170,6 +177,10 @@ export const resumoVisaoClienteCaso = createServerFn({ method: "GET" })
       .maybeSingle();
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
 
+    // Mesma ponte admin de dadosVivosDoPortalComoAdmin (recursão RLS shares).
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const leitorProjecoes = supabaseAdmin as typeof supabase;
+
     const [acessoCaso, projecoes, entregas, documentos] = await Promise.all([
       supabase
         .from("client_portal_case_access")
@@ -179,7 +190,7 @@ export const resumoVisaoClienteCaso = createServerFn({ method: "GET" })
         .order("granted_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
-      supabase
+      leitorProjecoes
         .from("app_projections")
         .select("id,projection_type,approval_status,effective_from,archived_at")
         .eq("organization_id", organizationId)

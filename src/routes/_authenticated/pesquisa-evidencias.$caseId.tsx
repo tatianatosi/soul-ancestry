@@ -174,6 +174,24 @@ function AreaPesquisaEvidencias() {
         <p className="text-sm text-navy/70">
           {d?.caso ? `${d.caso.codigo} — ${d.caso.titulo}` : "Carregando caso…"}
         </p>
+        <div className="flex flex-wrap gap-2 pt-1 text-xs">
+          <Link
+            to="/casos/$caseId"
+            params={{ caseId }}
+            className="rounded-lg border border-navy/20 px-2.5 py-1.5 font-medium text-navy underline-offset-2 hover:underline"
+          >
+            Abrir Caso 360
+          </Link>
+          {d?.caso?.cliente_id ? (
+            <Link
+              to="/pessoas/$clienteId"
+              params={{ clienteId: String(d.caso.cliente_id) }}
+              className="rounded-lg border border-gold/50 bg-gold/10 px-2.5 py-1.5 font-medium text-navy underline-offset-2 hover:underline"
+            >
+              Abrir Pessoa 360
+            </Link>
+          ) : null}
+        </div>
         <p className="text-xs text-navy/60">
           Área interna. Nenhuma pesquisa externa, solicitação a instituição, despesa, cobrança, pasta, mensagem ou
           documento externo é disparada por esta tela.

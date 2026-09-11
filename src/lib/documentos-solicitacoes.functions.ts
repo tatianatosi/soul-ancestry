@@ -56,7 +56,7 @@ export const painelPesquisaEvidencias = createServerFn({ method: "GET" })
     if (!PAPEIS_LE_DETALHE.includes(papel)) throw new Error("Seu papel não acessa a área de pesquisa e evidências.");
 
     const [caso, solicitacoes, evidencias, fontes, pessoas, alertas, comunicacoes, equipe] = await Promise.all([
-      supabase.from("crm_casos").select("id,codigo,titulo,pais").eq("id", data.caseId).maybeSingle(),
+      supabase.from("crm_casos").select("id,codigo,titulo,pais,cliente_id").eq("id", data.caseId).maybeSingle(),
       supabase
         .from("document_requests")
         .select("*")

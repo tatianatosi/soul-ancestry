@@ -2,6 +2,16 @@
 
 Cópias verbatim dos documentos de política/prompt enviados pela proprietária, guardadas aqui para que nada dependa de memória de conversa ou de contexto que pode ser resumido ao longo de uma sessão longa. Nenhum deles foi implementado só por estar aqui — este diretório é **arquivo de referência**, não registro de execução. O estado real de cada capacidade fica no Mapa de Autoridade Admin (`docs/auditorias/MAPA-AUTORIDADE-ADMIN-DESK-APP-2026-08-30.md`).
 
+**Adendo 2026-09-11:** documentos `PROMPT-*` e artefatos de unificação **não** são “política passiva”. Devem ser tratados como backlog de execução (`ADENDO-PROMPTS-SAO-EXECUCAO-2026-09-11.md`) na ordem de `ESTRATEGIA-RESGATE-PRODUTO-CLUBE-ANCESTRAL-2026-09-11.md`. Arquivar aqui nunca substitui fatia vertical no Desk. Marca e site SEO: `ADENDO-MARCA-SITE-SEO-2026-09-11.md` — `https://clubeancestral.com.br/` não vai para o Vercel do app. Enterprise PRD: `CLUBE_ANCESTRAL_ENTERPRISE_PRD.md` com de-para em `ADENDO-ENTERPRISE-PRD-VS-CORE-2026-09-11.md`.
+
+**Fontes permanentes de execução (2026-09-11):** ver `ADENDO-FONTES-EXECUCAO-POLITICAS-QUADRO-PRS-2026-09-11.md`.
+
+| Fonte | Uso pelo agente |
+|---|---|
+| Este diretório (`docs/politicas/`) — [GitHub main](https://github.com/tatianatosi/soul-ancestry/tree/main/docs/politicas) | Norma + prompts; status nas tabelas abaixo é inventário histórico — cruzar com código e com o inventário vivo |
+| [Quadro completo PRs #1–#85](https://github.com/tatianatosi/soul-ancestry/blob/claude/ancestral-club-desk-intelligence-0gsoeg/docs/relatorios/2026-09-05_quadro_completo_prs_1_ate_atual.md) → `docs/relatorios/2026-09-05_quadro_completo_prs_1_ate_atual.md` | Distingue PR com código real vs só docs/auditoria; itens “DOCS EM MAIN” e PRs abertas sem merge = backlog |
+| `docs/relatorios/2026-09-11_inventario-politicas-nao-executadas.md` | O que executar agora vs adiar (Trilha A primeiro) |
+
 ## Adendo vinculante — contexto não arquivável (2026-09-10)
 
 Decisão da proprietária: `ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`. Registro vivo: `docs/relatorios/2026-09-11_registro-prova-autenticada.md`.

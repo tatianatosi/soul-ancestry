@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 
 import { Painel, Selo, moeda } from "@/components/comercial/base";
+import { useAutoridade } from "@/components/saas/autoridade";
 import {
   conferirEscopoProposta,
   painelPreparacaoContratual,
@@ -145,6 +146,9 @@ function Bloco({ n, titulo, children }: { n: number; titulo: string; children: R
 
 /** Painel de preparação contratual — leitura, conferência e gates. Não cria nada. */
 export function PainelPreparacao({ caseId }: { caseId: string }) {
+  const autoridade = useAutoridade();
+  const papel = autoridade.papeis.find((p) => p === "admin" || p === "proprietaria_administradora")
+    ?? autoridade.papeis[0];
   const qc = useQueryClient();
   const carregar = useServerFn(painelPreparacaoContratual);
   const conferir = useServerFn(conferirEscopoProposta);
@@ -175,7 +179,7 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
   const r = d.resultado;
   const san = d.saneamento;
   const contexto = contextoGatesDaConferencia(r);
-  const liberadas = ACOES_GATEADAS.filter((a) => podeExecutar(a, contexto));
+  const liberadas = ACOES_GATEADAS.filter((a) => podeExecutar(a, contexto, papel));
 
   return (
     <Painel titulo="Preparação contratual — conferência e gates">

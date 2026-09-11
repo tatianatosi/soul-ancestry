@@ -49,6 +49,8 @@ export function EntidadeCrud({
   classeLinha,
   topo,
   larguraMinima = 720,
+  apresentacao = "tabela",
+  renderCard,
 }: {
   entidade: Entidade;
   titulo: string;
@@ -71,6 +73,10 @@ export function EntidadeCrud({
   topo?: React.ReactNode;
   /** Largura mínima da tabela em px — evita colunas espremidas quando há muitos eixos. */
   larguraMinima?: number;
+  /** `cards` = carteira em cartões (Casos 360); `tabela` = grade clássica. */
+  apresentacao?: "tabela" | "cards";
+  /** Conteúdo do cartão quando `apresentacao === "cards"`. Ações Editar/Arquivar ficam no rodapé padrão. */
+  renderCard?: (linha: Record<string, unknown>) => React.ReactNode;
 }) {
   const queryClient = useQueryClient();
   const carregar = useServerFn(listarRegistros);
@@ -234,6 +240,52 @@ export function EntidadeCrud({
               : `Nenhum registro em ${titulo.toLowerCase()} ainda.`
           }
         />
+      ) : apresentacao === "cards" && renderCard ? (
+        <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+          {linhasBusca.map((linha) => {
+            const arquivado = Boolean(linha["archived_at"]);
+            return (
+              <article
+                key={String(linha["id"])}
+                className={cn(
+                  "flex flex-col rounded-xl border border-navy/15 bg-white p-4 shadow-sm",
+                  arquivado && "opacity-55",
+                  classeLinha?.(linha),
+                )}
+              >
+                <div className="min-h-0 flex-1 space-y-3">{renderCard(linha)}</div>
+                <div className="mt-4 flex flex-col gap-2 border-t border-navy/10 pt-3">
+                  {extra ? extra(linha, recarregar) : null}
+                  {arquivado ? (
+                    <span className="text-xs text-navy/50">
+                      Arquivado — {String(linha["archive_motivo"] ?? "sem motivo")}
+                    </span>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => abrirEdicao(linha)}
+                        className="inline-flex items-center gap-1 rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/70 hover:bg-navy/5"
+                      >
+                        <Pencil className="h-3.5 w-3.5" /> Editar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setErro(null);
+                          setArquivando({ id: String(linha["id"]), motivo: "" });
+                        }}
+                        className="inline-flex items-center gap-1 rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/70 hover:bg-navy/5"
+                      >
+                        <Archive className="h-3.5 w-3.5" /> Arquivar
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+        </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
           <table className="w-full text-sm" style={{ minWidth: `${larguraMinima}px` }}>

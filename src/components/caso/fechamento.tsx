@@ -136,7 +136,7 @@ export function AbaFechamento({
 
               {g.motivo ? <p className="mt-2 text-xs text-terracotta">{g.motivo}</p> : null}
 
-              {g.situacao !== "concluido" ? (
+              {g.situacao !== "concluido" && g.chave !== "perfil_institucional" ? (
                 <button
                   type="button"
                   onClick={() => tarefa.mutate(g.chave)}
@@ -145,6 +145,11 @@ export function AbaFechamento({
                 >
                   Abrir tarefa operacional
                 </button>
+              ) : null}
+              {g.chave === "perfil_institucional" ? (
+                <p className="mt-2 text-[11px] text-navy/55">
+                  Dado institucional da operação — não gera tarefa por caso.
+                </p>
               ) : null}
             </li>
           ))}

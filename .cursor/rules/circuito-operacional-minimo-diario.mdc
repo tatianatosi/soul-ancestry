@@ -1,0 +1,25 @@
+---
+description: Relatório diário (manhã e fim do dia) do Circuito operacional mínimo — Abas → Mesa → KPIs.
+alwaysApply: true
+---
+
+# Circuito operacional mínimo — relatório diário
+
+**Obrigatório** em toda jornada de trabalho neste repositório que toque Desk/App/circuito: no **início** e no **fim** do dia (ou do turno Cloud), criar ou atualizar:
+
+`docs/relatorios/circuito-operacional-minimo/AAAA-MM-DD_manha.md`  
+`docs/relatorios/circuito-operacional-minimo/AAAA-MM-DD_fim-do-dia.md`
+
+Usar o modelo em `docs/relatorios/circuito-operacional-minimo/README.md`.  
+Índice do dia atual: apontar no registro vivo de prova quando houver mudança de status de motor.
+
+## Quatro blocos obrigatórios (simples)
+
+1. **O que já funciona** — Back-end e Front-end, separados.
+2. **O que estou fazendo agora** — só o trabalho ativo nesta aba/circuito.
+3. **Travados para 100%** — tabela: travamento | onde | tipo (fiação Supabase / distorção / prova dona / decisão) | o que falta.
+4. **Prova autenticada** — apontar o registro vivo; nunca inventar `COMPROVADO_EM_USO`.
+
+## Regras do núcleo (não contradizer)
+
+Ver `.cursor/rules/clube-ancestral-core.mdc`: planejador = fonte; caso = eixo; sem tabela inventada; sem merge/deploy sem ordem; App Cliente = 7 abas; site SEO ≠ Vercel app.

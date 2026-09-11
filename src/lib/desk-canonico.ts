@@ -3,6 +3,12 @@
  * Regras puras — sem acesso a banco, sem efeito externo.
  */
 
+import {
+  DIAS_PRIMEIRA_MICROENTREGA,
+  DIAS_CADENCIA_ATENCAO,
+  DIAS_CADENCIA_CRITICA,
+} from "@/lib/cadencia-limiares";
+
 export const TIPOS_CONVERSA = [
   "whatsapp_registrado",
   "call",
@@ -241,15 +247,28 @@ export function avaliarCadencia(diasSemTouchpoint: number, esperaExternaJustific
   alerta: string | null;
   envioExterno: false;
 } {
+  // Régua Ana única: src/lib/cadencia-limiares.ts (D7 / D10 / D14).
   if (esperaExternaJustificada) return { estado: "regular", alerta: null, envioExterno: false };
-  if (diasSemTouchpoint >= 14) {
-    return { estado: "critico", alerta: "14 dias sem atualização contextualizada: gerar rascunho interno.", envioExterno: false };
+  if (diasSemTouchpoint >= DIAS_CADENCIA_CRITICA) {
+    return {
+      estado: "critico",
+      alerta: `${DIAS_CADENCIA_CRITICA} dias sem atualização contextualizada: gerar rascunho interno.`,
+      envioExterno: false,
+    };
   }
-  if (diasSemTouchpoint >= 10) {
-    return { estado: "atencao", alerta: "10 dias sem touchpoint: alerta interno de atenção.", envioExterno: false };
+  if (diasSemTouchpoint >= DIAS_CADENCIA_ATENCAO) {
+    return {
+      estado: "atencao",
+      alerta: `${DIAS_CADENCIA_ATENCAO} dias sem touchpoint: alerta interno de atenção.`,
+      envioExterno: false,
+    };
   }
-  if (diasSemTouchpoint >= 7) {
-    return { estado: "regular", alerta: "D7: primeira microentrega planejada após onboarding.", envioExterno: false };
+  if (diasSemTouchpoint >= DIAS_PRIMEIRA_MICROENTREGA) {
+    return {
+      estado: "regular",
+      alerta: `D${DIAS_PRIMEIRA_MICROENTREGA}: primeira microentrega planejada após onboarding.`,
+      envioExterno: false,
+    };
   }
   return { estado: "regular", alerta: null, envioExterno: false };
 }

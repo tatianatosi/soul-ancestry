@@ -21,7 +21,7 @@ Isto **não** autoriza redesenho de navegação, vocabulário novo (incluindo ta
 2. **Planejador** = única fonte válida do planejamento operacional ativo (prioridades, capacidade, prazos, responsáveis, o que vem a seguir).
 3. Modelo de dados, migrations e código efetivamente aprovados. Divergência = dívida ou bloqueio declarado, nunca escondida.
 4. Mockup aprovado de **17 páginas** (`docs/evolucao/recuperados/prompts-lovable-2026-08-31/clube-ancestral-mockup.pdf`) = contrato visual normativo.
-5. Políticas aprovadas em `docs/politicas/` (autoridade operacional, fonte de verdade de design, taxonomia do mockup, **adendo de contexto não arquivável e prova autenticada** de 2026-09-10).
+5. Políticas aprovadas em `docs/politicas/` (autoridade operacional, fonte de verdade de design, taxonomia do mockup, **adendo de contexto não arquivável e prova autenticada** de 2026-09-10). Árvore canônica: https://github.com/tatianatosi/soul-ancestry/tree/main/docs/politicas — `PROMPT-*` = backlog de execução (`ADENDO-PROMPTS-SAO-EXECUCAO` + `ADENDO-FONTES-EXECUCAO-POLITICAS-QUADRO-PRS-2026-09-11.md`). Quadro PRs código×docs: `docs/relatorios/2026-09-05_quadro_completo_prs_1_ate_atual.md` (blob: https://github.com/tatianatosi/soul-ancestry/blob/claude/ancestral-club-desk-intelligence-0gsoeg/docs/relatorios/2026-09-05_quadro_completo_prs_1_ate_atual.md).
 6. Materiais legados = histórico / auditoria / migração controlada. **Nunca** dirigem a operação atual.
 
 Se o código divergir destas instruções, declarar a dívida. Não “corrigir” a realidade do schema inventando entidades paralelas.
@@ -92,13 +92,14 @@ Rótulo da primeira aba no mockup e em `COPY_TELAS.casos.navegacao`: **Home** (n
 
 Abas extras condicionais (Entregas, Fase 01, Fase 02, Proposta) ainda existem no código — **dívida a retirar da barra**, não expansão da taxonomia. Ver artefato 007 abaixo.
 
-**Mockup vs produção:** o PDF de 17 páginas é normativo visual. O PDF de auditoria de **47 páginas** (`clube-ancestral-mockup-auditoria.pdf`) é complementar (conteúdo/estados/fluxos), **sem força normativa de design**. Produção tem 8 grupos operacionais; o mockup mostra 7 itens de Desk — divergência já decidida: manter os 8.
+**Mockup vs produção:** o PDF de 17 páginas é normativo visual. O PDF de auditoria de **47 páginas** (`clube-ancestral-mockup-auditoria.pdf`) guia **conteúdo, estados e indicadores** em conjunto com o de 17 — sem redesenhar navegação. Comparativos visuais e telas Lovable arquivados em `docs/evolucao/recuperados/auditoria-mockup-2026-09-11/` e Canvas em `…/ancestral-canvas-2026-09-11/`; destilado em `docs/politicas/ADENDO-MEMORIA-AUDITORIA-MOCKUP-CANVAS-2026-09-11.md`. Prompts em `docs/politicas/PROMPT-*` são **execução** (`ADENDO-PROMPTS-SAO-EXECUCAO-2026-09-11.md`), não arquivo morto. Resgate do produto: `ESTRATEGIA-RESGATE-PRODUTO-CLUBE-ANCESTRAL-2026-09-11.md`. “Aderente” no PDF de comparação **não** é aceite. Grupos Desk = o que `GRUPOS_DESK` define no código; App Cliente = 7 abas.
 
 README raiz ainda descreve o protótipo visual antigo (6 abas, dados fictícios). É histórico, não a operação atual.
 
 ## Front-end e integração
 
-- PT-BR, marca em `src/lib/marca.ts` / `src/styles.css` (navy `#2F4B6E`, dourado `#FCB73A`, creme `#ECDFCD`, terracota `#9A3A2F`).
+- PT-BR, marca em `src/lib/marca.ts` / `src/styles.css` (navy `#2F4B6E`, dourado `#FCB73A`, creme `#ECDFCD`, terracota `#9A3A2F`). Site institucional **SEO** `https://clubeancestral.com.br/` — **não** migrar/apontar para o app Vercel (`ADENDO-MARCA-SITE-SEO-2026-09-11.md`). Logos: `public/marca/` + `<BrandLogo />`.
+- Enterprise PRD (blueprint 18/08): `docs/politicas/CLUBE_ANCESTRAL_ENTERPRISE_PRD.md` — executar só via `ADENDO-ENTERPRISE-PRD-VS-CORE-2026-09-11.md` (sem schema paralelo / sem Planilha Mestre).
 - Interface lê e grava dados reais; recarregar deve mostrar o persistido.
 - Não simular sucesso. Distinguir carregando / vazio legítimo / erro (`EstadoDados`).
 - Próxima ação e responsável visíveis em caso ativo; bloqueios destacados; status não só por cor.

@@ -160,13 +160,21 @@ export function validarTransicao(
   }
 }
 
-/** Regras de integridade obrigatórias (também aplicadas por trigger no banco). */
-export function validarRegrasNegocio(tabela: string, registro: Record<string, unknown>) {
+/** Regras de integridade obrigatórias (também aplicadas por trigger no banco).
+ *  `livreProprietaria`: pendência de responsável em caso ativo informa, não impede. */
+export function validarRegrasNegocio(
+  tabela: string,
+  registro: Record<string, unknown>,
+  opcoes?: { livreProprietaria?: boolean },
+) {
   const vazio = (v: unknown) => v === undefined || v === null || String(v).trim() === "";
+  const livre = Boolean(opcoes?.livreProprietaria);
 
   if (tabela === "crm_casos" && registro["status"] === "ativo") {
     if (vazio(registro["cliente_id"])) throw new Error("Caso ativo exige cliente vinculado.");
-    if (vazio(registro["responsavel_id"])) throw new Error("Caso ativo exige responsável.");
+    if (vazio(registro["responsavel_id"]) && !livre) {
+      throw new Error("Caso ativo exige responsável.");
+    }
     if (vazio(registro["tipo_servico"])) throw new Error("Caso ativo exige tipo de serviço.");
   }
 

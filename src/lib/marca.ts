@@ -1,6 +1,6 @@
 /**
  * FONTE DE VERDADE VISUAL — Clube Ancestral (Guia de Marca oficial,
- * aceite da Proprietária em 23/08/2026).
+ * aceite da Proprietária em 23/08/2026; reenvio arquivado 11/09/2026).
  *
  * Regras:
  * - Estes valores existem para superfícies que NÃO podem usar token CSS
@@ -8,7 +8,28 @@
  *   de `src/styles.css` (`bg-navy`, `text-gold`, `border-border`, …).
  * - Proibido criar paleta paralela, azul "aproximado" ou logo improvisado.
  * - Conflito entre CSS, mockup e Guia de Marca resolve-se pelo Guia.
+ * - Site institucional (SEO) ≠ app Vercel — ver SITE_OFICIAL e adendo 2026-09-11.
  */
+
+/** Site institucional / marketing. Não apontar este domínio ao app Vercel. */
+export const SITE_OFICIAL = "https://clubeancestral.com.br/" as const;
+
+/**
+ * Logotipos oficiais (zip logotipo-clube → public/marca/).
+ * Variante 1 = mesma arte já usada como favicon (`public/clube-ancestral-logo.svg`).
+ * Telas devem usar `<BrandLogo />` / `BRAND_LOGO_URL`, não inventar SVG.
+ */
+export const MARCA_LOGOS = {
+  variante1: "/marca/logo-variante-1.svg",
+  variante2: "/marca/logo-variante-2.svg",
+  variante3: "/marca/logo-variante-3.svg",
+  /** Alias estável (favicon / compat); bytes idênticos à variante 1. */
+  principal: "/clube-ancestral-logo.svg",
+} as const;
+
+/** Guia de Marca (8 páginas) no repositório. */
+export const MARCA_GUIA_PATH =
+  "docs/evolucao/recuperados/marca-oficial-2026-09-11/CA-MARCA-Guia-Apresentacao-8-paginas.pdf" as const;
 
 export const MARCA_CORES = {
   /** Azul oficial. Substitui o azul retirado #1B2B4B. */
@@ -27,13 +48,20 @@ export const MARCA_CORES = {
 /** Azuis retirados do produto: nenhuma superfície de cliente pode usá-los. */
 export const AZUIS_RETIRADOS = ["#1B2B4B", "#1b2b4b", "#2A3D63"] as const;
 
-/** Tipografia oficial: Cormorant Garamond (títulos) + Inter (corpo). */
+/**
+ * Tipografia em uso no app: Cormorant Garamond (títulos) + Inter (corpo).
+ * O guia impresso declara Amolina (logo) + Montserrat (UI) — divergência
+ * documentada; troca tipográfica só com ordem explícita (P11).
+ */
 export const MARCA_TIPOGRAFIA = {
   titulos: '"Cormorant Garamond", ui-serif, Georgia, serif',
   corpo: '"Inter", ui-sans-serif, system-ui, sans-serif',
   /** Fallback para e-mail, onde webfont não é garantida. */
   emailTitulos: 'Georgia, "Times New Roman", serif',
   emailCorpo: 'Arial, Helvetica, sans-serif',
+  /** Declaração do guia impresso (ainda não aplicada no runtime). */
+  guiaImpressoDecorativa: "Amolina Boutique Script",
+  guiaImpressoFuncional: "Montserrat",
 } as const;
 
 /**

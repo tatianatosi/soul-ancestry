@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
-import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
+import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -12,10 +12,16 @@ import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
 export const Route = createFileRoute("/portal/")({
   head: () => ({
     meta: [
-      { title: "Meus casos — Portal Clube Ancestral" },
-      { name: "description", content: "Acompanhe o andamento da sua pesquisa genealógica em linguagem simples." },
-      { property: "og:title", content: "Meus casos — Portal Clube Ancestral" },
-      { property: "og:description", content: "Andamento do seu processo com o Clube Ancestral." },
+      { title: "Home — Portal Clube Ancestral" },
+      {
+        name: "description",
+        content: "Painel do caso, progresso e achados recentes do seu acompanhamento.",
+      },
+      { property: "og:title", content: "Home — Portal Clube Ancestral" },
+      {
+        property: "og:description",
+        content: "Painel do caso, progresso e achados recentes.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
@@ -24,6 +30,10 @@ export const Route = createFileRoute("/portal/")({
   component: PortalHome,
 });
 
+/**
+ * Home do mockup aprovado: painel do caso, progresso e achados recentes —
+ * não uma lista administrativa de fichas.
+ */
 export function PortalHome() {
   const previa = usePreviaPortal();
   const vivo = usePortalVivo();
@@ -34,27 +44,29 @@ export function PortalHome() {
     enabled: previa === null,
   });
 
+  const jornada = jornadaSanitizada(
+    vivo.data?.projecoes ?? [],
+    new Date(),
+    vivo.data?.proximaAcao,
+  );
+
   if (previa) {
-    const jornada = jornadaSanitizada(vivo.data?.projecoes ?? [], new Date(), vivo.data?.proximaAcao);
     return (
       <PortalShell titulo={COPY_TELAS.home.titulo} descricao={COPY_TELAS.home.descricao}>
         {vivo.isLoading ? (
           <PortalCarregando />
         ) : (
-          <div className="rounded-xl border border-navy/10 bg-white p-4">
-            <p className="font-serif text-lg">{previa.titulo}</p>
-            <p className="mt-2 text-sm text-navy/70">Próximo passo: {jornada.proximoPasso}</p>
-            {jornada.linha.length > 0 ? (
-              <ul className="mt-3 space-y-2">
-                {jornada.linha.slice(0, 3).map((item) => (
-                  <li key={item.id} className="rounded-lg border border-navy/10 bg-cream/50 p-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-navy/50">{item.tipoRotulo}</p>
-                    <p className="mt-1 text-sm text-navy/80">{item.conteudo}</p>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
+          <PainelHomeMockup
+            tituloCaso={previa.titulo}
+            statusRotulo="Acompanhamento ativo"
+            proximoPasso={jornada.proximoPasso}
+            marcos={jornada.marcosPublicados}
+            achados={jornada.linha.slice(0, 3).map((item) => ({
+              id: item.id,
+              tipo: item.tipoRotulo,
+              texto: item.conteudo,
+            }))}
+          />
         )}
       </PortalShell>
     );
@@ -63,51 +75,165 @@ export function PortalHome() {
   return (
     <PortalShell titulo={COPY_TELAS.home.titulo} descricao={COPY_TELAS.home.descricao}>
       <EstadoDados
-        carregando={isLoading}
+        carregando={isLoading || vivo.isLoading}
         erro={error}
         dados={data}
         aoTentarNovamente={() => void refetch()}
-        recurso="os seus casos"
-        vazio={COPY_TELAS.casos.vazio}
+        recurso="o painel do seu caso"
+        vazio={COPY_TELAS.home.vazio}
       >
-        {(casos) => (
-        <ul className="space-y-3">
-          {casos.map((c) => (
-            <li
-              key={c.id}
-              className="rounded-xl border border-navy/10 bg-white p-4 transition-colors hover:border-gold"
-            >
-              <Link
-                to="/portal/casos/$id"
-                params={{ id: c.id }}
-                className="block"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-serif text-lg">{c.titulo}</p>
-                  <span className="rounded-full border border-navy/15 bg-cream px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
-                    {c.statusRotulo}
-                  </span>
-                </div>
-                <p className="mt-1 text-sm text-navy/70">{c.statusTexto}</p>
-              </Link>
-              {c.proximoPasso ? (
-                <p className="mt-2 text-sm text-navy">
-                  Próximo passo: {c.proximoPasso}{" "}
-                  {c.proximoPassoDestino ? (
-                    <LinkPortal
-                      to={c.proximoPassoDestino}
-                      className="font-medium text-terracotta underline-offset-2 hover:underline"
-                    >
-                      Abrir
-                    </LinkPortal>
-                  ) : null}
-                </p>
+        {(casos) => {
+          const principal = casos[0];
+          if (!principal) {
+            return <p className="text-sm text-navy/70">{COPY_TELAS.home.vazio}</p>;
+          }
+          return (
+            <div className="space-y-4">
+              <PainelHomeMockup
+                tituloCaso={principal.titulo}
+                statusRotulo={principal.statusRotulo}
+                statusTexto={principal.statusTexto}
+                proximoPasso={principal.proximoPasso || jornada.proximoPasso}
+                proximoPassoDestino={principal.proximoPassoDestino}
+                marcos={jornada.marcosPublicados}
+                casoId={principal.id}
+                achados={jornada.linha.slice(0, 3).map((item) => ({
+                  id: item.id,
+                  tipo: item.tipoRotulo,
+                  texto: item.conteudo,
+                }))}
+              />
+              {casos.length > 1 ? (
+                <section className="space-y-2">
+                  <h2 className="text-xs font-medium uppercase tracking-wide text-navy/50">
+                    Outros acompanhamentos
+                  </h2>
+                  <ul className="space-y-2">
+                    {casos.slice(1).map((c) => (
+                      <li key={c.id}>
+                        <Link
+                          to="/portal/casos/$id"
+                          params={{ id: c.id }}
+                          className="block rounded-xl border border-navy/10 bg-white px-4 py-3 hover:border-gold"
+                        >
+                          <p className="font-serif text-base text-navy">{c.titulo}</p>
+                          <p className="text-xs text-navy/60">{c.statusRotulo}</p>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               ) : null}
-            </li>
-          ))}
-        </ul>
-        )}
+            </div>
+          );
+        }}
       </EstadoDados>
     </PortalShell>
+  );
+}
+
+function PainelHomeMockup({
+  tituloCaso,
+  statusRotulo,
+  statusTexto,
+  proximoPasso,
+  proximoPassoDestino,
+  marcos,
+  casoId,
+  achados,
+}: {
+  tituloCaso: string;
+  statusRotulo: string;
+  statusTexto?: string;
+  proximoPasso: string;
+  proximoPassoDestino?: string | null;
+  marcos: number;
+  casoId?: string;
+  achados: Array<{ id: string; tipo: string; texto: string }>;
+}) {
+  return (
+    <div className="space-y-4">
+      <section className="rounded-2xl border border-navy/10 bg-gradient-to-br from-cream to-white p-5 shadow-sm">
+        <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">Seu caso</p>
+        <div className="mt-1 flex flex-wrap items-start justify-between gap-2">
+          <h2 className="font-serif text-2xl text-navy">{tituloCaso}</h2>
+          <span className="rounded-full border border-navy/15 bg-white px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
+            {statusRotulo}
+          </span>
+        </div>
+        {statusTexto ? <p className="mt-2 text-sm text-navy/70">{statusTexto}</p> : null}
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-navy/10 bg-white/80 p-3">
+            <p className="text-[11px] uppercase tracking-wide text-navy/45">Progresso publicado</p>
+            <p className="mt-1 font-serif text-2xl text-navy">{marcos}</p>
+            <p className="text-xs text-navy/55">
+              {marcos === 0 ? "Aguardando primeira publicação" : "marcos já compartilhados com você"}
+            </p>
+          </div>
+          <div className="rounded-xl border border-gold/40 bg-gold/10 p-3">
+            <p className="text-[11px] uppercase tracking-wide text-navy/45">Próxima ação</p>
+            <p className="mt-1 text-sm font-medium text-navy">{proximoPasso}</p>
+            {proximoPassoDestino ? (
+              <LinkPortal
+                to={proximoPassoDestino}
+                className="mt-2 inline-block text-sm font-medium text-terracotta underline-offset-2 hover:underline"
+              >
+                Abrir
+              </LinkPortal>
+            ) : casoId ? (
+              <Link
+                to="/portal/casos/$id"
+                params={{ id: casoId }}
+                className="mt-2 inline-block text-sm font-medium text-terracotta underline-offset-2 hover:underline"
+              >
+                Ver detalhes do caso
+              </Link>
+            ) : null}
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-navy/10 bg-white p-5">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="font-serif text-lg text-navy">Achados recentes</h3>
+          <LinkPortal to="/portal/jornada" className="text-xs font-medium text-navy/60 hover:text-navy">
+            Ver jornada
+          </LinkPortal>
+        </div>
+        {achados.length === 0 ? (
+          <p className="mt-3 text-sm text-navy/60">
+            Assim que a equipe publicar um achado ou atualização, ele aparece aqui.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {achados.map((a) => (
+              <li key={a.id} className="rounded-lg border border-navy/10 bg-cream/50 p-3">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-navy/45">{a.tipo}</p>
+                <p className="mt-1 text-sm text-navy/85">{a.texto}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <nav className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {[
+          { to: "/portal/radar", label: "Radar" },
+          { to: "/portal/arvore", label: "Árvore" },
+          { to: "/portal/documentos", label: "Documentos" },
+          { to: "/portal/legado", label: "Legado" },
+          { to: "/portal/conta", label: "Conta" },
+        ].map((atalho) => (
+          <LinkPortal
+            key={atalho.to}
+            to={atalho.to}
+            className="rounded-xl border border-navy/10 bg-white px-3 py-3 text-center text-sm font-medium text-navy hover:border-gold"
+          >
+            {atalho.label}
+          </LinkPortal>
+        ))}
+      </nav>
+    </div>
   );
 }

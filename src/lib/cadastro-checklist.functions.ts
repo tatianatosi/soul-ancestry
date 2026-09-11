@@ -158,9 +158,10 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
         cliente: null,
       });
     }
-    pessoas.push({ tipo: "contratada", nome: "Clube Ancestral (contratada)", ref: null, tabela: null, cliente: null });
+    // Contratada = perfil institucional org-wide (Tatiana ME). Não gera
+    // checklist por caso — pediria a proprietária se reconfirmar a cada caso.
 
-    const semRef = pessoas.filter((p) => p.tipo !== "contratada" && !p.ref).map((p) => p.nome);
+    const semRef = pessoas.filter((p) => !p.ref).map((p) => p.nome);
     if (semRef.length)
       throw new Error(
         `Checklist por pessoa exige referência por ID. Sem referência: ${semRef.join(", ")}. Nenhuma linha foi criada por nome.`,

@@ -7,6 +7,7 @@ import {
   consolidarDia,
   faixaCockpitHoje,
   itensNaoExibidos,
+  MAPA_BLOCOS_PAINEL_HOJE,
   opcoesFiltroDia,
 } from "@/lib/painel-dia";
 
@@ -95,6 +96,8 @@ describe("cards e filtros do Painel Hoje", () => {
     }
     expect(cards.find((c) => c.chave === "acoes_vencidas")?.destino).toBe("/calls");
     expect(cards.find((c) => c.chave === "sem_responsavel")?.destino).toBe("/casos");
+    // Bloqueios de fila → bloco #excecoes deste painel (não ops_excecoes).
+    expect(cards.find((c) => c.chave === "excecoes_criticas")?.destino).toBe("/painel#excecoes");
   });
 
   it("deriva opções de filtro dos próprios itens e restringe a fila", () => {
@@ -130,11 +133,31 @@ describe("deduplicação de resumos", () => {
 });
 
 describe("faixa do cockpit no Hoje", () => {
-  it("abre lista real e não conta SLA inventado", () => {
+  it("atalhos únicos — sem recontação de leads, bloqueios nem cadência D10/D14", () => {
     const faixa = faixaCockpitHoje(filas, { cadenciasAtrasadas: 2 });
-    expect(faixa.find((f) => f.chave === "cadencias")?.total).toBe(2);
+    expect(faixa.map((f) => f.chave)).toEqual(["cadencias", "calls_hoje", "propostas"]);
+    // Cadência: contagem canônica em /ops — faixa só linka (null).
+    expect(faixa.find((f) => f.chave === "cadencias")?.total).toBeNull();
+    expect(faixa.find((f) => f.chave === "cadencias")?.destino).toBe("/ops");
     expect(faixa.find((f) => f.chave === "calls_hoje")?.destino).toBe("/calls");
-    expect(faixa.find((f) => f.chave === "leads_sem_acao")?.destino).toBe("/calls");
     expect(faixa.every((f) => f.destino.startsWith("/") && f.destino !== "/painel")).toBe(true);
+    // Removidos por duplicação com mockup KPI / Exceções críticas.
+    expect(faixa.find((f) => f.chave === "leads_sem_acao")).toBeUndefined();
+    expect(faixa.find((f) => f.chave === "documentos")).toBeUndefined();
+    expect(faixa.find((f) => f.chave === "contratos")).toBeUndefined();
+  });
+});
+
+describe("mapa dos blocos do Painel Hoje", () => {
+  it("classifica cada bloco como kpi, fila, cadencia, descoberta ou tecnico", () => {
+    expect(MAPA_BLOCOS_PAINEL_HOJE.length).toBeGreaterThanOrEqual(8);
+    for (const b of MAPA_BLOCOS_PAINEL_HOJE) {
+      expect(["kpi", "fila", "cadencia", "descoberta", "tecnico"]).toContain(b.tipo);
+      expect(b.titulo.length).toBeGreaterThan(3);
+      expect(b.papel.length).toBeGreaterThan(10);
+    }
+    expect(MAPA_BLOCOS_PAINEL_HOJE.find((b) => b.bloco === "excecoes")?.tipo).toBe("fila");
+    expect(MAPA_BLOCOS_PAINEL_HOJE.find((b) => b.bloco === "prazos")?.tipo).toBe("cadencia");
+    expect(MAPA_BLOCOS_PAINEL_HOJE.find((b) => b.bloco === "descoberta")?.tipo).toBe("descoberta");
   });
 });

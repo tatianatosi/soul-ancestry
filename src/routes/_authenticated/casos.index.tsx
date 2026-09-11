@@ -198,7 +198,7 @@ function CasosPage() {
     >
       <PageHeader
         titulo="Casos 360 em acompanhamento"
-        subtitulo="Cada eixo tem estado próprio. Hipótese de elegibilidade nunca equivale a elegibilidade definitiva, e datas futuras são previsão condicional."
+        subtitulo="Carteira em cartões individuais: próxima ação, responsável e prazo do planejador. Hipótese de elegibilidade nunca é elegibilidade definitiva; datas futuras são previsão condicional."
       />
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -216,7 +216,7 @@ function CasosPage() {
         <CardIndicador
           rotulo="Sem responsável interno"
           valor={semResponsavelInterno}
-          apoio="Requisito de responsável designado pendente"
+          apoio="Gate de ativação — distinto do «Sem responsável» do Painel Hoje"
           tom="critico"
         />
         <CardIndicador
@@ -260,11 +260,112 @@ function CasosPage() {
         titulo="Casos 360"
         podeEscrever={podeEscrever}
         dominio="caso"
+        apresentacao="cards"
         larguraMinima={2100}
         filtrarLinhas={(l) =>
           (mostrarDemo || papelDoRegistro(l).valor !== "demo") && casaComFase(l, faseFiltro)
         }
         classeLinha={(l) => (papelDoRegistro(l).valor === "demo" ? "bg-terracotta/5" : undefined)}
+        renderCard={(l) => {
+          const e = estados.get(String(l["id"]));
+          const prazoManual = qualificarData(l["prazo_proxima_acao"]);
+          const rpc = e?.proximaAcaoCanonica ?? null;
+          const canonica = obterProximaAcaoCanonica({
+            caseId: String(l["id"]),
+            rpc: rpc
+              ? { nivel: rpc.nivel, motivo: rpc.motivo, origem_tabela: null, origem_id: null, prazo: rpc.prazo }
+              : null,
+            responsavelPrincipal: (l["proxima_acao_responsavel"] as string) ?? null,
+            dependencia: (l["proxima_acao_dependencia"] as string) ?? null,
+            criterioConclusao: (l["proxima_acao_criterio_conclusao"] as string) ?? null,
+          });
+          const prioridade = calcularPrioridade({
+            tipo: "caso",
+            id: String(l["id"]),
+            elegibilidade: (l["hipotese_elegibilidade"] as string) ?? null,
+            prazo: (l["prazo_proxima_acao"] as string) ?? null,
+            bloqueios:
+              e && e.pendentes > 0 ? [`${e.pendentes} requisito(s) de ativação pendente(s)`] : [],
+            responsavel: (l["proxima_acao_responsavel"] as string) ?? null,
+            origem: papelDoRegistro(l).valor === "demo" ? "demo" : "real",
+          });
+          return (
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="font-serif text-lg text-navy">{(l["titulo"] as string) || "Caso sem título"}</p>
+                  <p className="mt-0.5 flex flex-wrap items-center gap-1 text-xs text-navy/60">
+                    <span>{(l["codigo"] as string) || "sem código"}</span>
+                    {ehFixture(l["codigo"] as string | null) ? (
+                      <Badge texto={ROTULO_FIXTURE} tom="alerta" />
+                    ) : null}
+                    <Badge
+                      texto={papelDoRegistro(l).rotulo}
+                      tom={
+                        papelDoRegistro(l).valor === "demo"
+                          ? "alerta"
+                          : papelDoRegistro(l).valor === "referencia"
+                            ? "gold"
+                            : "neutro"
+                      }
+                    />
+                  </p>
+                </div>
+                <Badge
+                  texto={prioridade.rotulo}
+                  tom={
+                    prioridade.sinal === "critica"
+                      ? "alerta"
+                      : prioridade.sinal === "atencao"
+                        ? "gold"
+                        : "neutro"
+                  }
+                />
+              </div>
+              <dl className="grid gap-2 text-sm">
+                <div>
+                  <dt className="text-[11px] uppercase tracking-wide text-navy/50">Próxima ação</dt>
+                  <dd className="font-medium text-navy">{canonica.acao}</dd>
+                  <dd className="text-xs text-navy/65">
+                    {SELO_PROXIMA_ACAO[canonica.origem]} · Responsável: {canonica.responsavel || "—"}
+                  </dd>
+                  <dd className="text-xs text-navy/65">
+                    Prazo:{" "}
+                    {canonica.prazo ? qualificarData(canonica.prazo).texto : prazoManual.texto}
+                    {prazoManual.condicional ? " · previsão condicional" : ""}
+                  </dd>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  <Badge texto={rotulo(EIXO_FORMALIZACAO, l["eixo_formalizacao"])} />
+                  <Badge texto={rotulo(SITUACAO_OPERACIONAL, l["situacao_operacional"])} />
+                  <Badge
+                    texto={rotulo(
+                      HIPOTESE_ELEGIBILIDADE,
+                      l["hipotese_elegibilidade"] || "nao_avaliada",
+                    )}
+                    tom="gold"
+                  />
+                </div>
+                <div>
+                  {l["ativo"] ? (
+                    <Badge texto="Caso ativo" tom="ok" />
+                  ) : e && e.pendentes > 0 ? (
+                    <span className="space-y-1">
+                      <Badge texto="Ativação com pendências" tom="alerta" />
+                      <span className="block text-[11px] text-navy/55">
+                        {e.validados}/{e.total} requisitos — pendência informa
+                      </span>
+                    </span>
+                  ) : e ? (
+                    <Badge texto="Requisitos completos — ativação no painel" tom="gold" />
+                  ) : (
+                    <Badge texto="Verificando requisitos…" />
+                  )}
+                </div>
+              </dl>
+            </div>
+          );
+        }}
         topo={
           <div className="space-y-3">
             {/* Lista filtrada nunca fica filtrada em silêncio: quem chegou da
@@ -508,9 +609,9 @@ function CasosPage() {
               if (e.pendentes > 0) {
                 return (
                   <span className="block space-y-1">
-                    <Badge texto="Não elegível — ativação bloqueada" tom="alerta" />
+                    <Badge texto="Ativação com pendências" tom="alerta" />
                     <span className="block text-[11px] text-navy/55">
-                      {e.validados}/{e.total} requisitos validados no banco
+                      {e.validados}/{e.total} requisitos — pendência informa; proprietária ativa no onboarding
                     </span>
                     <ul className="ml-3 list-disc space-y-0.5 text-[11px] text-navy/70">
                       {e.motivos.slice(0, 3).map((m) => (

@@ -162,9 +162,29 @@ function ContratoDetalhe() {
       titulo={c.title}
       descricao={`${c.contract_number} · ${ROTULO_TIPO_INSTRUMENTO[c.contract_type]} · ${ROTULO_STATUS_CONTRATO[c.status]}`}
       acoes={
-        <Link to="/contratos" className="rounded-lg border border-navy/20 px-3 py-2 text-sm">
-          Voltar
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          {c.client_id ? (
+            <Link
+              to="/pessoas/$clienteId"
+              params={{ clienteId: String(c.client_id) }}
+              className="rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-sm font-medium text-navy"
+            >
+              Abrir Pessoa 360
+            </Link>
+          ) : null}
+          {c.case_id ? (
+            <Link
+              to="/casos/$caseId"
+              params={{ caseId: String(c.case_id) }}
+              className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy"
+            >
+              Abrir Caso 360
+            </Link>
+          ) : null}
+          <Link to="/contratos" className="rounded-lg border border-navy/20 px-3 py-2 text-sm">
+            Voltar
+          </Link>
+        </div>
       }
     >
       {pendenciaVinculo || !podeEscrever ? (
@@ -552,7 +572,18 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
           <Tabela cabecalho={["Nome", "Papel", "Capacidade", "Assinatura", "Ações"]}>
             {(partes as any[]).map((p) => (
               <tr key={p.id} className={`border-t border-navy/10 ${p.archived_at ? "opacity-50" : ""}`}>
-                <td className="px-3 py-2">{p.person_name}</td>
+                <td className="px-3 py-2">
+                  {p.person_name}
+                  {p.client_id ? (
+                    <Link
+                      to="/pessoas/$clienteId"
+                      params={{ clienteId: String(p.client_id) }}
+                      className="ml-2 text-xs text-navy underline underline-offset-4"
+                    >
+                      Pessoa 360
+                    </Link>
+                  ) : null}
+                </td>
                 <td className="px-3 py-2">{ROTULO_PAPEL_PARTE[p.role] ?? p.role}</td>
                 <td className="px-3 py-2">{p.legal_capacity_status}</td>
                 <td className="px-3 py-2">{p.signature_required ? "requerida" : "não requerida"}</td>

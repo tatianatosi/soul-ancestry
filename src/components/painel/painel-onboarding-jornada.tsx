@@ -1,6 +1,9 @@
 /**
  * Painel interno — Onboarding e jornada (CA-LOVABLE-ONBOARDING-JORNADA-v1.1).
  * Somente leitura. Alertas de cadência são internos e nunca disparam mensagem.
+ *
+ * Fonte canônica de contagem D10/D14 e casos no eixo operação em /ops.
+ * Não montar MetricasJornada nem PainelCadencia na mesma rota (dedup CA-UX-03).
  */
 
 import { useQuery } from "@tanstack/react-query";

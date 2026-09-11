@@ -220,6 +220,7 @@ function ContratosPage() {
                 <th className="px-3 py-2">Número</th>
                 <th className="px-3 py-2">Instrumento</th>
                 <th className="px-3 py-2">Caso</th>
+                <th className="px-3 py-2">Pessoa</th>
                 <th className="px-3 py-2">Tipo</th>
                 <th className="px-3 py-2">Status</th>
                 <th className="px-3 py-2">Financeiro</th>
@@ -236,10 +237,31 @@ function ContratosPage() {
                     </Link>
                   </td>
                   <td className="px-3 py-2 text-xs text-navy/70">
-                    {c.case_id
-                      ? ((qCasos.data?.casos ?? []) as { id: string; codigo?: string }[]).find((x) => x.id === c.case_id)?.codigo ??
-                        "ligado"
-                      : "sem caso"}
+                    {c.case_id ? (
+                      <Link
+                        to="/casos/$caseId"
+                        params={{ caseId: String(c.case_id) }}
+                        className="underline underline-offset-2"
+                      >
+                        {((qCasos.data?.casos ?? []) as { id: string; codigo?: string }[]).find((x) => x.id === c.case_id)?.codigo ??
+                          "Caso 360"}
+                      </Link>
+                    ) : (
+                      "sem caso"
+                    )}
+                  </td>
+                  <td className="px-3 py-2 text-xs">
+                    {c.client_id ? (
+                      <Link
+                        to="/pessoas/$clienteId"
+                        params={{ clienteId: String(c.client_id) }}
+                        className="text-navy underline underline-offset-2"
+                      >
+                        Pessoa 360
+                      </Link>
+                    ) : (
+                      <span className="text-navy/40">—</span>
+                    )}
                   </td>
                   <td className="px-3 py-2">{ROTULO_TIPO_INSTRUMENTO[c.contract_type] ?? c.contract_type}</td>
                   <td className="px-3 py-2">

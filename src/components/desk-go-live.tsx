@@ -42,11 +42,19 @@ export function GoLiveDesk() {
 
   return (
     <div className="space-y-6">
+      <div className="rounded-lg border border-terracotta/40 bg-terracotta/10 px-4 py-3 text-sm text-terracotta">
+        <p className="font-medium">Arquivo histórico — fora da operação</p>
+        <p className="mt-1 text-terracotta/90">
+          “Go-live” saiu do vocabulário de produto (decisão 2026-09-11). Registro de casos, fechamento e
+          ativação vivem em Casos 360 (`/casos`) e onboarding. Este componente usa fixture local e não
+          grava no motor.
+        </p>
+      </div>
       <div>
-        <h1 className="font-serif text-3xl text-navy">Go-live e registro de casos</h1>
+        <h1 className="font-serif text-3xl text-navy">Go-live (legado) — registro demonstrativo</h1>
         <p className="mt-1 text-sm text-navy/70">
-          Estados padronizados, checklist pós-fechamento e alertas operacionais. Dados demonstrativos e locais — sem
-          integração ativa com Asaas, CRM ou planilha mestre.
+          Estados padronizados e checklist pós-fechamento do protótipo. Dados demonstrativos e locais —
+          sem integração ativa com Asaas, CRM ou planilha mestre.
         </p>
       </div>
 

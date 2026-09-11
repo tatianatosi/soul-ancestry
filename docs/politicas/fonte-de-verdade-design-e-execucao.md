@@ -19,7 +19,7 @@ Esta política define a fonte de verdade para decisões de design e execução n
 3. O estado persistido e verificável nos sistemas integrados é a referência para dados operacionais; não deve ser substituído por estado simulado quando houver integração aplicável.
 4. Em caso de divergência, prevalece a seguinte ordem: decisão explícita e mais recente da Proprietária; política aprovada; arquitetura aprovada; mockup aprovado de **17 páginas**; implementação existente; hipótese de trabalho.
 5. O **planejador** é a fonte válida do planejamento operacional ativo (o que está planejado, próxima ação, responsável, atraso, capacidade). Não duplicar estado contraditório da mesma ação.
-6. Matriz operacional legada, planilha mestre, DRE e reconciliação antiga do Asaas não são fonte de verdade do presente. O PDF de auditoria de 47 páginas não é o mockup normativo.
+6. Matriz operacional legada, planilha mestre, DRE e reconciliação antiga do Asaas não são fonte de verdade do presente. O PDF de auditoria de **47 páginas** não redesenha layout no lugar do mockup de **17**, mas **guia conteúdo, estados e indicadores** em conjunto com ele (adendo 2026-09-11). Comparativos “aderente” ≠ aceite sem prova.
 7. Esta política não revoga `politica-autoridade-operacional.md` (pendência informa, não impede). Não autoriza redesenhar os 8 grupos do Desk nem as 7 abas canônicas do App Cliente.
 
 ## Regras de execução

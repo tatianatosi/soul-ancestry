@@ -1,11 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
 import { HandoffLead } from "@/components/crm/handoff-lead";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
+import { executarHandoffDiscovery } from "@/lib/handoff-discovery.functions";
+import { podeExecutarHandoffDiscovery } from "@/lib/handoff-discovery";
 import { salvarTarefa } from "@/lib/ops.functions";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
 import {
@@ -214,9 +217,11 @@ function MesaDiscovery({
   );
 }
 
-export function PainelCalls() {
+export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) {
   const carregar = useServerFn(listarLeadsDesk);
   const salvar = useServerFn(salvarLeadDesk);
+  const handoffFn = useServerFn(executarHandoffDiscovery);
+  const navegar = useNavigate();
   const qc = useQueryClient();
 
   const {
@@ -229,9 +234,16 @@ export function PainelCalls() {
     queryFn: () => carregar(),
   });
   const [mostrarTeste, setMostrarTeste] = useState(false);
-  const [selecionado, setSelecionado] = useState<string | null>(null);
+  const [selecionado, setSelecionado] = useState<string | null>(leadIdInicial ?? null);
   const [rascunho, setRascunho] = useState<Record<string, unknown>>({});
   const [aviso, setAviso] = useState<string | null>(null);
+  const [candidatosCliente, setCandidatosCliente] = useState<
+    Array<{ id: string; nome: string; motivo: string }>
+  >([]);
+
+  useEffect(() => {
+    if (leadIdInicial) setSelecionado(leadIdInicial);
+  }, [leadIdInicial]);
   // CA02-CRM-VIVO-PAINEL-CALLS (09/09/2026): achados da varredura de
   // WhatsApp, vivos só nesta tela (a conversa nunca é persistida). Hipótese
   // e achado ignorado são por lead+campo para não vazar de um lead a outro.
@@ -329,6 +341,50 @@ export function PainelCalls() {
       void refetch();
     },
     onError: (e: any) => setAviso(e?.message ?? "Falha ao gravar."),
+  });
+
+  const mutarHandoff = useMutation({
+    mutationFn: (opcoes?: {
+      clienteIdConfirmado?: string | null;
+      forcarCriarCliente?: boolean;
+      motivoOverride?: string | null;
+    }) =>
+      handoffFn({
+        data: {
+          leadId: selecionado!,
+          clienteIdConfirmado: opcoes?.clienteIdConfirmado ?? null,
+          forcarCriarCliente: opcoes?.forcarCriarCliente === true,
+          rascunho,
+          motivoOverride: opcoes?.motivoOverride ?? null,
+        },
+      }),
+    onSuccess: (r) => {
+      if (!r.ok && "precisaConfirmarCliente" in r && r.precisaConfirmarCliente) {
+        setCandidatosCliente(r.candidatos);
+        setAviso(
+          "Há pessoa com o mesmo telefone. Confirme se é a mesma ou crie outra — fundir errado é pior.",
+        );
+        return;
+      }
+      if (!r.ok) {
+        setAviso("Handoff não concluído.");
+        return;
+      }
+      setCandidatosCliente([]);
+      setRascunho({});
+      const partes = [
+        r.clienteCriado ? "pessoa criada" : "pessoa reutilizada",
+        r.casoCriado ? "caso aberto" : "caso já ligado",
+        r.codigoCaso ? `código ${r.codigoCaso}` : null,
+      ].filter(Boolean);
+      setAviso(`Handoff gravado: ${partes.join(" · ")}.`);
+      void qc.invalidateQueries({ queryKey: ["leads-desk"] });
+      void qc.invalidateQueries({ queryKey: ["painel-desk-hoje"] });
+      void qc.invalidateQueries({ queryKey: ["painel-cadencia"] });
+      void refetch();
+      void navegar({ to: "/casos/$caseId", params: { caseId: r.casoId } });
+    },
+    onError: (e: Error) => setAviso(e.message),
   });
 
   const set = (campo: string) => (v: string | boolean) =>
@@ -732,6 +788,56 @@ export function PainelCalls() {
                 </div>
               </Secao>
 
+              {candidatosCliente.length > 0 ? (
+                <div className={`${CARTAO} space-y-2 border-gold/40 bg-gold/5`}>
+                  <p className="text-sm font-medium text-navy">
+                    Confirme a pessoa antes do handoff
+                  </p>
+                  <p className="text-xs text-navy/65">
+                    O telefone bate com cadastro existente. Escolha a ficha certa ou crie outra —
+                    não fundimos por nome.
+                  </p>
+                  <ul className="space-y-2">
+                    {candidatosCliente.map((c) => (
+                      <li
+                        key={c.id}
+                        className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/10 bg-white px-3 py-2 text-sm"
+                      >
+                        <span>
+                          <strong>{c.nome}</strong>
+                          <span className="ml-2 text-xs text-navy/55">{c.motivo}</span>
+                        </span>
+                        <button
+                          type="button"
+                          disabled={mutarHandoff.isPending}
+                          onClick={() => mutarHandoff.mutate({ clienteIdConfirmado: c.id })}
+                          className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy hover:bg-navy/5 disabled:opacity-40"
+                        >
+                          Usar esta pessoa
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <button
+                      type="button"
+                      disabled={mutarHandoff.isPending}
+                      onClick={() => mutarHandoff.mutate({ forcarCriarCliente: true })}
+                      className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
+                    >
+                      Criar pessoa nova
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCandidatosCliente([])}
+                      className="text-xs text-navy/60 underline"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
               <div className={`${CARTAO} flex flex-wrap items-center gap-3`}>
                 <button
                   type="button"
@@ -741,25 +847,20 @@ export function PainelCalls() {
                 >
                   Gravar registro da call
                 </button>
-                <button
-                  type="button"
-                  disabled={
-                    mutar.isPending ||
-                    !avaliacao?.liberado ||
-                    avaliacao?.destino !== "proposta"
-                  }
-                  onClick={() =>
-                    mutar.mutate({
-                      ...rascunho,
-                      ...spinDerivadoDoLead(lead),
-                      eixo_comercial: "diagnostico_em_elaboracao",
-                    })
-                  }
-                  className="rounded-lg border border-gold bg-gold/15 px-4 py-2 text-sm text-navy disabled:opacity-40"
-                  title="Move o eixo comercial para diagnóstico. Nenhum envio externo é executado."
-                >
-                  Concluir handoff para diagnóstico
-                </button>
+                {(() => {
+                  const gateHandoff = lead ? podeExecutarHandoffDiscovery(lead) : { ok: false, motivo: "Selecione um lead" };
+                  return (
+                    <AcaoOperacional
+                      rotulo="Concluir handoff para pessoa e caso"
+                      capacidade="avancar_caso_planejador_tarefa"
+                      pendenciaGate={gateHandoff.ok ? null : gateHandoff.motivo}
+                      validacaoFormulario={!selecionado ? "Selecione um lead na Mesa" : null}
+                      efeito="Cria ou reutiliza pessoa e caso, grava o vínculo no lead e leva a próxima ação — sem envio externo."
+                      onConfirmar={(motivo) => mutarHandoff.mutate({ motivoOverride: motivo || null })}
+                      className="rounded-lg border border-gold bg-gold/15 px-4 py-2 text-sm text-navy"
+                    />
+                  );
+                })()}
                 {rascunho && Object.keys(rascunho).length ? (
                   <button
                     type="button"

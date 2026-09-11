@@ -1,10 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
 import { DeskOperacional } from "@/components/ops/desk-operacional";
-import { MetricasJornada } from "@/components/painel/metricas-jornada";
 import { PainelOnboardingJornada } from "@/components/painel/painel-onboarding-jornada";
-import { PainelCadencia } from "@/components/painel/painel-cadencia";
 
 export const Route = createFileRoute("/_authenticated/ops")({
   head: () => ({
@@ -30,10 +28,20 @@ function OpsPage() {
       titulo="Desk Operacional"
       descricao="Acompanhamento de casos, tarefas e micro-entregas com SLA calculado pelo banco."
     >
+      <p
+        data-ops-dedup="cadencia"
+        className="mb-4 rounded-lg border border-navy/10 bg-cream/50 px-4 py-3 text-sm text-navy/70"
+      >
+        Cadência Ana (D10/D14), casos no eixo operação e SLA contam{" "}
+        <strong className="font-medium text-navy">somente aqui</strong> — em Onboarding e jornada e no desk
+        abaixo. O Painel Hoje só linka para esta tela. Métricas de aquisição ficam em{" "}
+        <Link to="/marketing" className="font-medium text-navy underline decoration-gold underline-offset-4">
+          Marketing
+        </Link>
+        .
+      </p>
       <DeskOperacional />
       <PainelOnboardingJornada />
-      <MetricasJornada />
-      <PainelCadencia />
     </SaasShell>
   );
 }

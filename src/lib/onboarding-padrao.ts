@@ -34,7 +34,7 @@ export type ItemOnboarding = {
 export const CHECKLIST_ONBOARDING: ItemOnboarding[] = [
   { item: "Contrato assinado", fase: "fase_3_contrato_os", ordem: 1, obrigatorio: true, prazo_dias: null, descricao: "Assinatura registrada pelo método homologado." },
   { item: "Pagamento inicial confirmado", fase: "fase_4_pagamento", ordem: 2, obrigatorio: true, prazo_dias: null, descricao: "Confirmação vinda da fonte transacional canônica." },
-  { item: "Responsável definido", fase: "fase_2_cadastro_escopo", ordem: 3, obrigatorio: true, prazo_dias: null, descricao: "Responsável interno nomeado no caso." },
+  { item: "Responsável definido", fase: "fase_2_cadastro_escopo", ordem: 3, obrigatorio: false, prazo_dias: null, descricao: "Derivado do caso (padrão Tatiana). Sem tick manual." },
   { item: "Núcleo familiar e participantes", fase: "fase_2_cadastro_escopo", ordem: 4, obrigatorio: true, prazo_dias: null, descricao: "Signatários, dependentes e representação registrados." },
   { item: "Dossiê-mãe", fase: "fase_5_onboarding", ordem: 5, obrigatorio: true, prazo_dias: 7, descricao: "Dossiê consolidado do caso criado ou vinculado." },
   { item: "Ambiente e nível de acesso", fase: "fase_5_onboarding", ordem: 6, obrigatorio: true, prazo_dias: 3, descricao: "Acesso autorizado por caso, sem URL pública." },

@@ -15,7 +15,7 @@ function Kpi({ rotulo, valor, nota }: { rotulo: string; valor: string | number; 
   );
 }
 
-/** Métricas diárias da jornada do cliente — visão interna, nunca projetada ao App. */
+/** Métricas diárias da jornada — código preservado; fora de /ops (dedup CA-UX-03). */
 export function MetricasJornada() {
   const carregar = useServerFn(metricasJornada);
   const q = useQuery({ queryKey: ["metricas-jornada"], queryFn: () => carregar() });

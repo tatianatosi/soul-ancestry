@@ -32,3 +32,17 @@ Cliente externo nunca vê nota interna, outro caso ou outro cliente. Esconder na
 
 - Painel de Calls (`/calls`, `PainelCalls`) é entrada canônica do CRM Vivo. Isolar dicionário/legado não autoriza esconder a rota.
 - Os 8 grupos de `GRUPOS_DESK` permanecem. Não fundir, não criar nona aba.
+
+## Marca e presença digital
+
+- **Site institucional (SEO):** `https://clubeancestral.com.br/` — marketing e indexação. **Não** apontar este domínio ao app Vercel do `soul-ancestry`; **não** redirect site→Desk/portal (perda de SEO).
+- **Produto (Desk + App Cliente):** Vercel (`*.vercel.app` / previews). Cita o site só como URL institucional (`SITE_OFICIAL` em `src/lib/marca.ts`).
+- **Guia de Marca (8 páginas):** `docs/evolucao/recuperados/marca-oficial-2026-09-11/` (+ adendo `docs/politicas/ADENDO-MARCA-SITE-SEO-2026-09-11.md`).
+- **Logos oficiais:** `public/marca/logo-variante-{1,2,3}.svg`; runtime via `<BrandLogo />` / `BRAND_LOGO_URL`. Proibido logo improvisado ou paleta paralela.
+- **Paleta:** `marca.ts` / `styles.css` (navy `#2F4B6E`, dourado `#FCB73A`, creme `#ECDFCD`, terracota `#9A3A2F`). Tipografia do guia impresso (Amolina + Montserrat) diverge do app (Cormorant + Inter) — não trocar sem ordem explícita.
+
+## Enterprise PRD (blueprint)
+
+- Arquivo: `docs/politicas/CLUBE_ANCESTRAL_ENTERPRISE_PRD.md`.
+- Leitura operacional: `docs/politicas/ADENDO-ENTERPRISE-PRD-VS-CORE-2026-09-11.md`.
+- Útil para isolamento App/Desk, segredos, auditoria e piloto. **Não** executar o SQL/schema paralelo do PRD; **não** voltar Planilha Mestre como fonte de oferta; **não** ligar o domínio SEO ao app.

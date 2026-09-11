@@ -44,7 +44,6 @@ function PesquisaIndex() {
     [casos, busca],
   );
 
-  const casosAtivos = q.data ? casos.filter((c) => c["status"] === "ativo").length : null;
   const semVia = q.data ? casos.filter((c) => !c["via"]).length : null;
   const semPais = q.data ? casos.filter((c) => !c["pais"]).length : null;
 
@@ -67,8 +66,28 @@ function PesquisaIndex() {
       </p>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <CardIndicador rotulo="Casos em pesquisa" valor={q.data ? casos.length : null} tom="neutro" />
-        <CardIndicador rotulo="Casos ativos" valor={casosAtivos} tom="sucesso" />
+        {/*
+          Casos em pesquisa / Casos ativos: contagens canônicas em
+          /pesquisa-modulo e /casos. Aqui só etiqueta (CA-UX-03 dedup global).
+        */}
+        <Link
+          to="/pesquisa-modulo"
+          className="block rounded-xl border border-navy/10 bg-white px-4 py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          data-indicador-etiqueta="casos-em-pesquisa"
+        >
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Casos em pesquisa</p>
+          <p className="mt-1 text-sm font-medium text-navy">Ver contagem em Pesquisa e Evidências</p>
+          <p className="mt-0.5 text-xs text-navy/55">Fonte canônica — sem segundo número neste dossiê</p>
+        </Link>
+        <Link
+          to="/casos"
+          className="block rounded-xl border border-navy/10 bg-white px-4 py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          data-indicador-etiqueta="casos-ativos"
+        >
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Casos ativos</p>
+          <p className="mt-1 text-sm font-medium text-navy">Ver contagem em Casos 360</p>
+          <p className="mt-0.5 text-xs text-navy/55">Ativação canônica — não reconta status de pesquisa</p>
+        </Link>
         <CardIndicador rotulo="Sem via jurídica definida" valor={semVia} tom={semVia ? "atencao" : "neutro"} />
         <CardIndicador rotulo="Sem país definido" valor={semPais} tom={semPais ? "atencao" : "neutro"} />
       </div>

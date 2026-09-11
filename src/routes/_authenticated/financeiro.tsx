@@ -24,12 +24,9 @@ import {
 } from "@/components/comercial/base";
 import { FLUXO } from "@/lib/comercial-fluxo";
 import {
-  cac,
-  cpl,
   formatarIndicador,
   previsoesControladas,
   resultadoCaixa,
-  roi,
   type EntradaFinanceira,
 } from "@/lib/indicadores-marketing";
 import {
@@ -318,7 +315,14 @@ function FinanceiroPage() {
 
               <div className="rounded-lg border border-navy/10 p-3">
                 <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
-                  3 · Eficiência de mídia — mesmo período do caixa, exige atribuição declarada
+                  3 · Eficiência de mídia — contagem canônica em Marketing
+                </p>
+                <p className="mt-2 text-sm text-navy/70" data-indicador-etiqueta="cac-roi-cpl">
+                  CAC, CPL e ROI de mídia contam somente em{" "}
+                  <a href="/marketing#indicadores" className="font-medium text-navy underline">
+                    Marketing → Indicadores
+                  </a>
+                  . Esta tela não reconta os mesmos números (CA-UX-03).
                 </p>
                 <div className="mt-2 grid gap-2 text-[11px] sm:grid-cols-5">
                   {[
@@ -331,18 +335,6 @@ function FinanceiroPage() {
                     <div key={c.rotulo} className="rounded border border-navy/10 bg-cream/40 p-2">
                       <p className="uppercase tracking-wide text-navy/45">{c.rotulo}</p>
                       <p className="mt-0.5 text-navy/75">{c.valor}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-2 grid gap-2 sm:grid-cols-3">
-                  {[
-                    { rotulo: "CPL", valor: formatarIndicador(cpl(base)) },
-                    { rotulo: "CAC", valor: formatarIndicador(cac(base)) },
-                    { rotulo: "ROI de mídia", valor: formatarIndicador(roi(base)) },
-                  ].map((c) => (
-                    <div key={c.rotulo} className="rounded border border-navy/10 p-3">
-                      <p className="text-[11px] uppercase tracking-wide text-navy/45">{c.rotulo}</p>
-                      <p className="mt-1 text-sm text-navy/70">{c.valor}</p>
                     </div>
                   ))}
                 </div>
