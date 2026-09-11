@@ -14,12 +14,11 @@
 | 7 | Status prova autenticada (sem inventar COMPROVADO) | §4 aponta registro vivo; diz **não** `COMPROVADO_EM_USO` | **Cumprido** |
 | 8 | Sem merge sem ordem | branch `cursor/circuito-abas-mesa-kpis-efd3` ≠ `main`; travamento merge na tabela | **Cumprido** |
 | 9 | Ritual repetível manhã/fim | `README.md` modelo + `.cursor/rules/circuito-operacional-minimo-diario.mdc` `alwaysApply: true` | **Cumprido** (sistema) |
-| 10 | Manutenção **contínua** nos dias seguintes | depende de novos `AAAA-MM-DD_*.md` a cada turno | **Em curso** — não encerra o objetivo |
+| 10 | Manutenção **contínua** nos dias seguintes | Timers `circuito-minimo-manha` (11:00 UTC) e `circuito-minimo-fim-do-dia` (21:00 UTC) + regra `alwaysApply` | **Cumprido** (mecanismo ativo; expira ~2026-09-18 — renovar se a dona quiser além) |
 
 ## Conclusão da auditoria
 
-- **Dia 2026-09-11:** ritual cumprido (manhã + fim).
-- **Objetivo “manter”:** permanece **ativo** — timers Cloud Agent:
-  - manhã `0 11 * * *` UTC (`circuito-minimo-manha`)
-  - fim do dia `0 21 * * *` UTC (`circuito-minimo-fim-do-dia`)
-- Sem merge sem ordem da Tatiana.
+- **Dia 2026-09-11:** ritual cumprido (manhã + fim) — evidência nos arquivos.
+- **Instalação do “manter manhã/fim do dia”:** cumprida (modelo + regra + timers + ponte no registro de prova).
+- **Merge:** não feito (`HEAD` não ancestral de `main`).
+- Próximos disparos: timers Cloud Agent; renovar assinatura após expiração se ainda for desejado.
