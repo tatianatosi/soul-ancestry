@@ -83,4 +83,11 @@ describe("Cadeia legado → lista-alimento → planejador → Caso 360 → App �
     expect(cadeia).not.toContain('titulo: "SKU/preço da Planilha Mestre"');
     expect(cadeia).toContain("lista-alimento");
   });
+
+  it("a memória permanente registra a cadeia única", () => {
+    const agents = readFileSync("AGENTS.md", "utf8");
+    expect(agents).toContain("LISTA-ALIMENTO VERSIONADA");
+    expect(agents).toContain("CATÁLOGO OPERACIONAL DO PLANEJADOR");
+    expect(agents).toContain("produto-pai + fase + trilha(s) + itens + condição particular");
+  });
 });
