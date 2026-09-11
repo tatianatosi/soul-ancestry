@@ -1,10 +1,13 @@
 /**
  * CA-UX-03 — Adendo v1.0: Assistente transversal do Desk Intelligence.
  *
- * Registro puro de regras. Não cria rota, não cria nona aba, não é fonte de
+ * Registro puro de regras. Não cria rota, não cria oitava aba, não é fonte de
  * verdade de dado operacional e não concede permissão adicional: apenas
- * declara, por grupo, qual contexto o Assistente pode ler e qual resultado
- * pode produzir, respeitando papel, organização e RLS já existentes.
+ * declara, por tela do mockup, qual contexto o Assistente pode ler e qual
+ * resultado pode produzir, respeitando papel, organização e RLS já existentes.
+ *
+ * Sidebar canônica (2026-09-11): 7 telas do mockup. Eixos internos
+ * (Comercial, Formalização, Governança…) são contexto — não grupos de menu.
  */
 
 import { GRUPOS_DESK, MENU_CONTA } from "@/lib/navegacao-desk";
@@ -20,13 +23,16 @@ export type PapelAssistente =
   | "financeiro"
   | "leitura";
 
+/** IDs alinhados a `GRUPOS_DESK` + menu da conta (contexto admin). */
 export type GrupoAssistenteId =
-  | "hoje"
-  | "comercial"
-  | "casos"
-  | "pesquisa"
-  | "contratos"
-  | "governanca";
+  | "visao-geral"
+  | "casos-360"
+  | "checklist"
+  | "validacao-juridica"
+  | "radar-interno"
+  | "alertas"
+  | "biblioteca-mestre"
+  | "conta";
 
 export type RegraAssistente = {
   grupo: GrupoAssistenteId;
@@ -37,7 +43,7 @@ export type RegraAssistente = {
   resultado: string;
   /** Papéis autorizados a ver o Assistente neste grupo. */
   papeis: readonly PapelAssistente[];
-  /** Verdadeiro quando o grupo admite análise vinculada a um caso confirmado. */
+  /** Verdadeiro quando a tela admite análise vinculada a um caso confirmado. */
   analisaCaso: boolean;
 };
 
@@ -52,49 +58,65 @@ const TODOS: readonly PapelAssistente[] = [
 
 export const REGRAS_ASSISTENTE: readonly RegraAssistente[] = [
   {
-    grupo: "hoje",
-    label: "Hoje",
-    contexto: "KPIs vivos, fila do dia, alertas e bloqueios",
+    grupo: "visao-geral",
+    label: "Visão Geral",
+    contexto: "Prioridades do dia, alertas, Mesa de Discovery e contexto comercial/marketing",
     resultado: "Explicar prioridades, resumir bloqueios e sugerir navegação interna",
     papeis: TODOS,
     analisaCaso: false,
   },
   {
-    grupo: "comercial",
-    label: "Marketing & Comercial",
-    contexto: "Leads, Calls, Discovery, proposta e conversão — CRM Vivo",
-    resultado: "Explicar o funil e o próximo passo comercial, sem inventar origem",
-    papeis: ["admin", "operacoes", "comercial", "leitura"],
-    analisaCaso: false,
-  },
-  {
-    grupo: "casos",
-    label: "Pessoas & Casos",
-    contexto: "Caso confirmado, núcleo, checklist, radar e portal",
+    grupo: "casos-360",
+    label: "Casos 360",
+    contexto: "Caso confirmado, pessoas, núcleo, formalização e portal",
     resultado: "Sintetizar estado do caso e próximos passos internos",
     papeis: ["admin", "operacoes", "pesquisador", "comercial", "financeiro", "leitura"],
     analisaCaso: true,
   },
   {
-    grupo: "pesquisa",
-    label: "Inteligência & Pesquisa",
-    contexto: "Biblioteca Mestre, evidências, dossiê do Legado e Validação Jurídica",
+    grupo: "checklist",
+    label: "Checklist",
+    contexto: "Tarefas, prazos, operação e exceções",
+    resultado: "Orientar a fila de trabalho sem inventar status",
+    papeis: ["admin", "operacoes", "pesquisador", "leitura"],
+    analisaCaso: true,
+  },
+  {
+    grupo: "validacao-juridica",
+    label: "Validação Jurídica",
+    contexto: "Elegibilidade, requisito legal e parecer humano por caso",
+    resultado: "Explicar pendência jurídica sem emitir parecer automático",
+    papeis: ["admin", "operacoes", "pesquisador", "leitura"],
+    analisaCaso: true,
+  },
+  {
+    grupo: "radar-interno",
+    label: "Radar Interno",
+    contexto: "Riscos, prioridades e saúde da carteira",
+    resultado: "Resumir riscos e apontar o caso que precisa de atenção",
+    papeis: ["admin", "operacoes", "leitura"],
+    analisaCaso: true,
+  },
+  {
+    grupo: "alertas",
+    label: "Alertas",
+    contexto: "Achados e notificações acionáveis",
+    resultado: "Explicar o alerta e o destino da ação",
+    papeis: TODOS,
+    analisaCaso: true,
+  },
+  {
+    grupo: "biblioteca-mestre",
+    label: "Biblioteca Mestre",
+    contexto: "Conteúdo, pesquisa, fontes e modelos reutilizáveis",
     resultado:
       "Organizar evidências existentes e formular hipóteses marcadas como não confirmadas",
     papeis: ["admin", "operacoes", "pesquisador", "leitura"],
     analisaCaso: true,
   },
   {
-    grupo: "contratos",
-    label: "Formalização & Financeiro",
-    contexto: "Contrato vivo, catálogo homologado, OS e financeiro interno",
-    resultado: "Explicar pendência de formalização sem emitir parecer automático",
-    papeis: ["admin", "operacoes", "financeiro", "leitura"],
-    analisaCaso: true,
-  },
-  {
-    grupo: "governanca",
-    label: "Governança & Administração",
+    grupo: "conta",
+    label: "Conta e administração",
     contexto: "Papéis, legado arquivado, integrações e configurações",
     resultado: "Orientar administração sem misturar com a fila do dia",
     papeis: TODOS,
@@ -107,15 +129,15 @@ export function regraDoGrupo(grupo: GrupoAssistenteId): RegraAssistente {
 }
 
 /**
- * Descobre o grupo a partir da rota usando o registro canônico de navegação
+ * Descobre a tela a partir da rota usando o registro canônico de navegação
  * (`GRUPOS_DESK`), por prefixo mais longo. Sem segunda fonte de verdade.
  */
 export function grupoDaRota(rota: string): GrupoAssistenteId {
   for (const item of MENU_CONTA.itens) {
     if (!("to" in item)) continue;
-    if (rota === item.to || rota.startsWith(`${item.to}/`)) return "governanca";
+    if (rota === item.to || rota.startsWith(`${item.to}/`)) return "conta";
   }
-  let melhor: { id: string; tamanho: number } = { id: "hoje", tamanho: -1 };
+  let melhor: { id: string; tamanho: number } = { id: "visao-geral", tamanho: -1 };
   for (const grupo of GRUPOS_DESK) {
     const rotas = [grupo.to, ...grupo.sub.flatMap((s) => ("to" in s ? [s.to] : []))];
     for (const alvo of rotas) {
@@ -196,11 +218,14 @@ export function estadoAssistente(entrada: {
   };
 }
 
-/** Atalhos internos do grupo — abrem rota existente, não executam mudança. */
+/** Atalhos internos da tela — abrem rota existente, não executam mudança. */
 export function atalhosDoGrupo(grupo: GrupoAssistenteId): readonly { to: string; label: string }[] {
+  if (grupo === "conta") {
+    return MENU_CONTA.itens.flatMap((s) => ("to" in s ? [{ to: s.to, label: s.label }] : []));
+  }
   const registro = GRUPOS_DESK.find((g) => g.id === grupo);
   if (!registro) return [];
   const itens = registro.sub.flatMap((s) => ("to" in s ? [{ to: s.to, label: s.label }] : []));
   const vistos = new Set<string>();
-  return itens.filter((i) => (vistos.has(i.to + i.label) ? false : vistos.add(i.to + i.label)));
+  return itens.filter((i) => (vistos.has(i.to + i.label) ? false : (vistos.add(i.to + i.label), true)));
 }

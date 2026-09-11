@@ -15,15 +15,17 @@ const CASO = "11111111-2222-3333-4444-555555555555";
 const OUTRO = "99999999-8888-7777-6666-555555555555";
 
 describe("CA-UX-03 adendo — Assistente transversal", () => {
-  it("1. cobre exatamente os 6 grupos, sem sétima aba", () => {
-    expect(REGRAS_ASSISTENTE).toHaveLength(6);
+  it("1. cobre as 7 telas do mockup + conta, sem aba nova na sidebar", () => {
+    expect(REGRAS_ASSISTENTE).toHaveLength(8);
     expect(REGRAS_ASSISTENTE.map((r) => r.grupo)).toEqual([
-      "hoje",
-      "comercial",
-      "casos",
-      "pesquisa",
-      "contratos",
-      "governanca",
+      "visao-geral",
+      "casos-360",
+      "checklist",
+      "validacao-juridica",
+      "radar-interno",
+      "alertas",
+      "biblioteca-mestre",
+      "conta",
     ]);
   });
 
@@ -89,26 +91,29 @@ describe("CA-UX-03 adendo — Assistente transversal", () => {
     expect(SELO_DEMO_ASSISTENTE).toBe("DEMO — DADOS FICTÍCIOS — NÃO USAR EM OPERAÇÃO");
   });
 
-  it("8. grupos sem análise por caso jamais entram em modo de análise", () => {
+  it("8. telas sem análise por caso jamais entram em modo de análise", () => {
     for (const regra of REGRAS_ASSISTENTE.filter((r) => !r.analisaCaso)) {
-      const rota = regra.grupo === "hoje" ? "/painel" : "/alertas";
+      const rota = regra.grupo === "visao-geral" ? "/painel" : "/configuracoes";
       const e = estadoAssistente({ rota, confirmado: { casoId: CASO, rota } });
-      if (!e.regra.analisaCaso) expect(e.podeAnalisarCaso).toBe(false);
+      expect(e.podeAnalisarCaso).toBe(false);
     }
   });
 
-  it("resolve o grupo pela rota usando o registro canônico de navegação", () => {
-    expect(grupoDaRota("/painel")).toBe("hoje");
-    expect(grupoDaRota("/leads")).toBe("comercial");
-    expect(grupoDaRota(`/casos/${CASO}`)).toBe("casos");
-    expect(grupoDaRota("/pesquisa-modulo")).toBe("pesquisa");
-    expect(grupoDaRota("/financeiro")).toBe("contratos");
-    expect(grupoDaRota("/equipe")).toBe("governanca");
-    expect(grupoDaRota("/marketing")).toBe("comercial");
+  it("resolve a tela pela rota usando o registro canônico de navegação", () => {
+    expect(grupoDaRota("/painel")).toBe("visao-geral");
+    expect(grupoDaRota("/leads")).toBe("visao-geral");
+    expect(grupoDaRota(`/casos/${CASO}`)).toBe("casos-360");
+    expect(grupoDaRota("/pesquisa-modulo")).toBe("biblioteca-mestre");
+    expect(grupoDaRota("/financeiro")).toBe("casos-360");
+    expect(grupoDaRota("/equipe")).toBe("conta");
+    expect(grupoDaRota("/marketing")).toBe("visao-geral");
+    expect(grupoDaRota("/matriz-juridica")).toBe("validacao-juridica");
+    expect(grupoDaRota("/qualidade")).toBe("radar-interno");
+    expect(grupoDaRota("/alertas")).toBe("alertas");
   });
 
-  it("atalhos apontam apenas para rotas já existentes do grupo", () => {
-    const atalhos = atalhosDoGrupo("hoje");
+  it("atalhos apontam apenas para rotas já existentes da tela", () => {
+    const atalhos = atalhosDoGrupo("visao-geral");
     expect(atalhos.length).toBeGreaterThan(0);
     for (const a of atalhos) expect(a.to.startsWith("/")).toBe(true);
   });

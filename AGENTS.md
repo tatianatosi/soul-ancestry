@@ -69,18 +69,17 @@ Migrations versionadas; sem alteração manual de produção como substituto. Va
 
 ## Navegação real — não redesenhar
 
-**Desk: exatamente 8 grupos** em `src/lib/navegacao-desk.ts` (`GRUPOS_DESK`), decisão vinculante. Não fundir, não criar nona aba, não voltar às 7 itens do mockup sem nova decisão da proprietária.
+**Desk: exatamente 7 telas do mockup** em `src/lib/navegacao-desk.ts` (`GRUPOS_DESK`), decisão vinculante da proprietária em 2026-09-11 (`docs/politicas/ADENDO-SIDEBAR-7-TELAS-MOCKUP-2026-09-11.md`). Não criar oitava aba. Os 6 eixos internos (Hoje, Comercial, Casos & Pessoas, Pesquisa, Formalização, Governança) organizam contexto/CTA/submenu — **não** são a sidebar de primeiro nível.
 
-1. `hoje` — Visão Geral (`/painel`)
-2. `marketing` — Marketing
-3. `comercial` — Comercial
-4. `casos` — Casos 360
-5. `pesquisa` — Pesquisa
-6. `contratos` — Contratos e financeiro (financeiro **não** é grupo separado)
-7. `cliente` — Cliente / App
-8. `governanca` — Biblioteca Mestre
+1. `visao-geral` — Visão Geral (`/painel`)
+2. `casos-360` — Casos 360 (`/casos`)
+3. `checklist` — Checklist (`/tarefas`)
+4. `validacao-juridica` — Validação Jurídica (`/matriz-juridica`)
+5. `radar-interno` — Radar Interno (`/qualidade`)
+6. `alertas` — Alertas (`/alertas`)
+7. `biblioteca-mestre` — Biblioteca Mestre (`/biblioteca`)
 
-Configuração, equipe e preferências ficam no **menu da conta**, não como 9º grupo.
+Comercial, Marketing, Formalização e Governança ficam como contexto (submenu/CTA, no máximo dois cliques). Configuração, equipe e preferências ficam no **menu da conta**, não como 8ª tela.
 
 A “hierarquia de telas” da memória permanente (planner, lista de casos, caso 360, pessoa, documentos, pesquisa, portal, admin) é **prioridade funcional**, não um menu novo.
 
