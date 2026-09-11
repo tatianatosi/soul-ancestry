@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { LeadDesk } from "@/lib/crm-desk";
 import {
   avaliarHandoffCall,
+  avisosOperacionaisLeadAtivo,
   bloqueiosQualificacao,
   bloqueiosRegistroCall,
   estadoCall,
@@ -112,6 +113,25 @@ describe("avaliarHandoffCall", () => {
     expect(avaliarHandoffCall({ ...completo, discovery_resultado: "reagendar" }).destino).toBe(
       "nutricao",
     );
+  });
+});
+
+describe("avisosOperacionaisLeadAtivo", () => {
+  it("lista área, responsável e próxima ação datada em lead ativo incompleto", () => {
+    const p = avisosOperacionaisLeadAtivo(base);
+    expect(p.map((x) => x.campo).sort()).toEqual([
+      "area_responsavel",
+      "proxima_acao",
+      "proxima_acao_em",
+      "responsavel_nome",
+    ]);
+  });
+  it("não avisa quando o lead ativo está completo nesses campos", () => {
+    expect(avisosOperacionaisLeadAtivo(completo)).toEqual([]);
+  });
+  it("não avisa lead arquivado ou perdido", () => {
+    expect(avisosOperacionaisLeadAtivo({ ...base, archived_at: "2026-01-01" })).toEqual([]);
+    expect(avisosOperacionaisLeadAtivo({ ...base, eixo_comercial: "perdido" })).toEqual([]);
   });
 });
 
