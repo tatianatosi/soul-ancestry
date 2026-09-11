@@ -2,6 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { evidenciaDeMesmaPessoa } from "@/lib/pessoa-identidade";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -127,7 +128,10 @@ export const carregarPessoa = createServerFn({ method: "GET" })
     const { data: leads } = await supabase
       .from("leads")
       .select(
-        "id, nome, email, telefone, estagio, origem, created_at, case_id, call_realizada_em, discovery_resultado",
+        "id, codigo, nome, email, telefone, estagio, origem, created_at, case_id, nucleo_id," +
+          " call_realizada_em, call_agendada_em, discovery_resultado, resumo_call, narrativa_familiar," +
+          " proxima_acao, proxima_acao_em, status_call, consentimento_canal," +
+          " nacionalidades_interesse, geracao_ascendente, linha_transmissao, documentos_chave",
       )
       .eq("organization_id", organizationId)
       .is("archived_at", null)
@@ -153,12 +157,15 @@ export const carregarPessoa = createServerFn({ method: "GET" })
     ] = await Promise.all([
       supabase
         .from("nucleo_membros")
-        .select("id, nucleo_id, nome, papel, vinculo, processo, ordem")
+        .select(
+          "id, nucleo_id, nome, papel, vinculo, processo, ordem, cliente_id, representacao_necessaria, status_cadastral",
+        )
         .eq("cliente_id", cliente.id)
+        .eq("organization_id", organizationId)
         .is("archived_at", null),
       supabase
         .from("proposals")
-        .select("id, case_id, status, valor, created_at")
+        .select("id, case_id, status, valor, moeda, created_at, enviada_em, aprovada_em, validade")
         .eq("client_id", cliente.id)
         .eq("organization_id", organizationId)
         .is("archived_at", null)
@@ -226,19 +233,78 @@ export const carregarPessoa = createServerFn({ method: "GET" })
     ]);
 
     const idsPesquisaDoCaso = (pesquisaCasos.data ?? []).map((p: Linha) => p.id as string);
-    const { data: fichaGenealogica } = idsPesquisaDoCaso.length
-      ? await supabase
-          .from("research_people")
-          .select(
-            "id, canonical_name, preferred_display_name, papel_na_linhagem, geracao, identity_status, birth_date, birth_place, research_case_id",
-          )
-          .eq("organization_id", organizationId)
-          .in("research_case_id", idsPesquisaDoCaso)
-          .is("archived_at", null)
-      : { data: [] as Linha[] };
+    const idsNucleoDoMembro = (nucleoMembros.data ?? []).map((m: Linha) => String(m.nucleo_id)).filter(Boolean);
+    const idsNucleoDoLead = ((leads ?? []) as Linha[])
+      .filter((l) => l.nucleo_id && evidenciaDeMesmaPessoa(l, cliente))
+      .map((l) => String(l.nucleo_id));
+    const idsNucleo = [...new Set([...idsNucleoDoMembro, ...idsNucleoDoLead])];
+
+    const [fichaGenealogicaRes, familiaRes, nucleosRes, achadosRes, evidenciasRes, whatsappRes] = await Promise.all([
+      idsPesquisaDoCaso.length
+        ? supabase
+            .from("research_people")
+            .select(
+              "id, canonical_name, preferred_display_name, papel_na_linhagem, geracao, identity_status, birth_date, birth_place, research_case_id",
+            )
+            .eq("organization_id", organizationId)
+            .in("research_case_id", idsPesquisaDoCaso)
+            .is("archived_at", null)
+        : { data: [] as Linha[] },
+      idsNucleo.length
+        ? supabase
+            .from("nucleo_membros")
+            .select(
+              "id, nucleo_id, nome, papel, vinculo, processo, ordem, cliente_id, representacao_necessaria, status_cadastral",
+            )
+            .in("nucleo_id", idsNucleo)
+            .eq("organization_id", organizationId)
+            .is("archived_at", null)
+            .order("ordem", { ascending: true })
+        : { data: [] as Linha[] },
+      idsNucleo.length
+        ? supabase
+            .from("nucleos_familiares")
+            .select("id, nome, case_id, dossie_mae, status, contratante_nome")
+            .eq("organization_id", organizationId)
+            .in("id", idsNucleo)
+            .is("archived_at", null)
+        : { data: [] as Linha[] },
+      ids.length
+        ? supabase
+            .from("genealogical_findings")
+            .select(
+              "id, case_id, title, finding_type, validation_status, confidence, client_projection_status, internal_summary, found_at, updated_at, locality, generation",
+            )
+            .eq("organization_id", organizationId)
+            .in("case_id", ids)
+            .is("archived_at", null)
+            .order("found_at", { ascending: false })
+            .limit(100)
+        : { data: [] as Linha[] },
+      ids.length
+        ? supabase
+            .from("evidences")
+            .select("id, case_id, title_internal, evidence_type, workflow_status, confidence_level, created_at")
+            .eq("organization_id", organizationId)
+            .in("case_id", ids)
+            .is("archived_at", null)
+            .order("created_at", { ascending: false })
+            .limit(100)
+        : { data: [] as Linha[] },
+      ids.length
+        ? supabase
+            .from("touchpoints")
+            .select("id, caso_id, canal, resumo, ocorrido_em, direcao")
+            .in("caso_id", ids)
+            .eq("canal", "whatsapp")
+            .order("ocorrido_em", { ascending: false })
+            .limit(50)
+        : { data: [] as Linha[] },
+    ]);
+    const fichaGenealogica = fichaGenealogicaRes.data ?? [];
 
     const nomeDaPessoa = (cliente.nome_social || cliente.nome || "").trim().toLowerCase();
-    const fichaDestaPessoa = ((fichaGenealogica ?? []) as Linha[]).filter((p) => {
+    const fichaDestaPessoa = (fichaGenealogica as Linha[]).filter((p) => {
       const nome = String(p["canonical_name"] ?? p["preferred_display_name"] ?? "").toLowerCase();
       return (
         nome &&
@@ -246,7 +312,7 @@ export const carregarPessoa = createServerFn({ method: "GET" })
         (nome === nomeDaPessoa || nomeDaPessoa.includes(nome) || nome.includes(nomeDaPessoa))
       );
     });
-    const outrosDaMesmaPesquisa = ((fichaGenealogica ?? []) as Linha[]).filter(
+    const outrosDaMesmaPesquisa = (fichaGenealogica as Linha[]).filter(
       (p) => !fichaDestaPessoa.some((f) => f["id"] === p["id"]),
     );
 
@@ -257,6 +323,8 @@ export const carregarPessoa = createServerFn({ method: "GET" })
       eventos: (eventos ?? []) as Linha[],
       leads: (leads ?? []) as Linha[],
       nucleoMembros: (nucleoMembros.data ?? []) as Linha[],
+      nucleos: (nucleosRes.data ?? []) as Linha[],
+      familiaMembros: (familiaRes.data ?? []) as Linha[],
       propostas: (propostas.data ?? []) as Linha[],
       contratos: (contratos.data ?? []) as Linha[],
       contractParties: (contractParties.data ?? []) as Linha[],
@@ -265,6 +333,9 @@ export const carregarPessoa = createServerFn({ method: "GET" })
       perfisGenealogicos: (perfisGenealogicos.data ?? []) as Linha[],
       fichaGenealogica: fichaDestaPessoa,
       fichaGenealogicaEquipe: outrosDaMesmaPesquisa,
+      achados: (achadosRes.data ?? []) as Linha[],
+      evidencias: (evidenciasRes.data ?? []) as Linha[],
+      touchpointsWhatsapp: (whatsappRes.data ?? []) as Linha[],
     };
   });
 

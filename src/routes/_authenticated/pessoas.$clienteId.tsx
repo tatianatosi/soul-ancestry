@@ -8,11 +8,12 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { atualizarPessoa, carregarPessoa } from "@/lib/pessoa.functions";
 import { salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { DecisaoAposSalvarPessoa } from "@/components/pessoa/decisao-apos-salvar";
+import { MapaPessoa360 } from "@/components/pessoa/mapa-pessoa-360";
 import {
   evidenciaDeMesmaPessoa,
-  montarLinhaDoTempoDaPessoa,
   type EvidenciaDeElo,
 } from "@/lib/pessoa-identidade";
+import { montarLinhaDoTempoDoCliente, ORIGEM_FATO_ROTULO } from "@/lib/pessoa-360-cards";
 import { formatarCep, formatarCpf, formatarTelefone, UFS_BRASIL } from "@/lib/validacao-pessoa";
 import { rotuloFase } from "@/lib/fase-rotulo";
 import { obterProximaAcaoCanonica, SELO_PROXIMA_ACAO } from "@/lib/caso-ficha";
@@ -247,7 +248,8 @@ function Pessoa() {
     casos,
     eventos,
     leads,
-    nucleoMembros,
+    nucleos,
+    familiaMembros,
     propostas,
     contratos,
     contractParties,
@@ -256,21 +258,30 @@ function Pessoa() {
     perfisGenealogicos,
     fichaGenealogica,
     fichaGenealogicaEquipe,
+    achados,
+    evidencias,
+    touchpointsWhatsapp,
   } = q.data;
-
-  const linha = montarLinhaDoTempoDaPessoa(
-    casos.map((c) => ({
-      casoCodigo: c.codigo ?? null,
-      casoTitulo: c.titulo ?? null,
-      eventos: eventos.filter((e) => e.case_id === c.id),
-    })),
-  );
 
   // Leads que podem ser esta mesma pessoa, com a evidência à vista.
   const candidatos = leads
     .map((l) => ({ lead: l, evidencia: evidenciaDeMesmaPessoa(l, cliente) }))
     .filter((x): x is { lead: typeof x.lead; evidencia: EvidenciaDeElo } => x.evidencia !== null)
     .sort((a, b) => ordemDaForca(a.evidencia.forca) - ordemDaForca(b.evidencia.forca));
+
+  const linha = montarLinhaDoTempoDoCliente({
+    casos: casos.map((c) => ({
+      id: c.id,
+      casoCodigo: c.codigo ?? null,
+      casoTitulo: c.titulo ?? null,
+      eventos: eventos.filter((e) => e.case_id === c.id),
+    })),
+    leads: candidatos.map((c) => c.lead),
+    propostas,
+    contratos,
+    achados,
+    touchpointsWhatsapp,
+  });
 
   const nome = (cliente.nome_social || cliente.nome || "Sem nome").trim();
 
@@ -398,7 +409,7 @@ function Pessoa() {
             <>
               <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
                 <Campo rotulo="E-mail" valor={cliente.email?.trim()} />
-                <Campo rotulo="Telefone" valor={cliente.telefone} />
+                <Campo rotulo="Telefone" valor={cliente.telefone ? formatarTelefone(String(cliente.telefone)) : null} />
                 <Campo rotulo="Como entrou" valor={cliente.origem} />
                 <Campo rotulo="Na carteira desde" valor={formatarDia(cliente.created_at)} />
               </dl>
@@ -419,7 +430,7 @@ function Pessoa() {
                 <Campo rotulo="Nacionalidade" valor={cliente.nacionalidade} />
                 <Campo rotulo="Profissão" valor={cliente.profissao} />
                 <Campo rotulo="Data de nascimento" valor={formatarDia(cliente.data_nascimento)} />
-                <Campo rotulo="CPF" valor={cliente.cpf} />
+                <Campo rotulo="CPF" valor={cliente.cpf ? formatarCpf(String(cliente.cpf)) : null} />
                 <Campo
                   rotulo="RG"
                   valor={
@@ -448,7 +459,7 @@ function Pessoa() {
                       cliente.endereco_complemento,
                       cliente.endereco_bairro,
                       [cliente.endereco_cidade, cliente.endereco_uf].filter(Boolean).join(" - "),
-                      cliente.endereco_cep,
+                      cliente.endereco_cep ? formatarCep(String(cliente.endereco_cep)) : null,
                       cliente.endereco_pais,
                     ]
                       .filter(Boolean)
@@ -473,6 +484,26 @@ function Pessoa() {
             </p>
           ) : null}
         </section>
+
+        <MapaPessoa360
+          clienteId={clienteId}
+          casos={casos.map((c) => ({ id: c.id, codigo: c.codigo, titulo: c.titulo }))}
+          eventos={eventos}
+          nucleos={nucleos}
+          familiaMembros={familiaMembros}
+          fichaGenealogica={fichaGenealogica}
+          fichaGenealogicaEquipe={fichaGenealogicaEquipe}
+          perfisGenealogicos={perfisGenealogicos}
+          achados={achados}
+          evidencias={evidencias}
+          propostas={propostas}
+          contratos={contratos}
+          documentos={documentos}
+          contractParties={contractParties}
+          leadsCandidatos={candidatos.map((c) => c.lead)}
+          touchpointsWhatsapp={touchpointsWhatsapp}
+          projecoesPublicadas={projecoesPublicadas}
+        />
 
         <section className="rounded-xl border border-navy/10 bg-white p-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -582,268 +613,6 @@ function Pessoa() {
           )}
         </section>
 
-        <section className="rounded-xl border border-navy/10 bg-white p-5">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="font-serif text-lg text-navy">Núcleo familiar e papéis</h2>
-            <p className="text-xs text-navy/55">{nucleoMembros.length} vínculo(s)</p>
-          </div>
-          {nucleoMembros.length === 0 ? (
-            <p className="mt-2 text-sm text-navy/60">
-              Esta pessoa não está vinculada a nenhum núcleo familiar.
-            </p>
-          ) : (
-            <ul className="mt-3 space-y-2">
-              {nucleoMembros.map((m) => (
-                <li key={m.id} className="rounded-lg border border-navy/12 bg-cream/25 p-3">
-                  <p className="text-sm font-medium text-navy">
-                    {m.papel === "dependente" ? "Dependente" : "Contratante/signatária"}
-                  </p>
-                  <p className="mt-0.5 text-xs text-navy/60">
-                    {m.vinculo}
-                    {m.processo ? ` · ${m.processo}` : ""}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="rounded-xl border border-navy/10 bg-white p-5">
-          <h2 className="font-serif text-lg text-navy">Propostas, contratos e documentos</h2>
-          <p className="mt-1 text-xs text-navy/55">
-            Status aqui; edição e formalização nas rotas de origem (sem formulário duplicado).
-          </p>
-          <div className="mt-3 grid gap-4 sm:grid-cols-3">
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
-                Propostas
-              </p>
-              {propostas.length === 0 ? (
-                <p className="mt-1 text-sm text-navy/55">Nenhuma proposta.</p>
-              ) : (
-                <ul className="mt-1 space-y-1">
-                  {propostas.map((p) => (
-                    <li key={p.id} className="text-sm text-navy/80">
-                      {p.status}
-                      {p.valor ? ` · R$ ${p.valor}` : ""}
-                      {p.case_id ? (
-                        <>
-                          {" · "}
-                          <Link
-                            to="/casos/$caseId/contrato/preparar"
-                            params={{ caseId: String(p.case_id) }}
-                            className="text-navy underline underline-offset-2"
-                          >
-                            preparar contrato
-                          </Link>
-                        </>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <Link to="/propostas" className="mt-2 inline-block text-xs font-medium text-navy underline underline-offset-4">
-                Abrir Propostas no Desk
-              </Link>
-            </div>
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
-                Contratos
-              </p>
-              {contratos.length === 0 ? (
-                <p className="mt-1 text-sm text-navy/55">Nenhum contrato.</p>
-              ) : (
-                <ul className="mt-1 space-y-1">
-                  {contratos.map((c) => (
-                    <li key={c.id} className="text-sm text-navy/80">
-                      {c.case_id ? (
-                        <Link
-                          to="/contratos/$id"
-                          params={{ id: String(c.id) }}
-                          className="underline underline-offset-2"
-                        >
-                          {c.status}
-                        </Link>
-                      ) : (
-                        c.status
-                      )}
-                      {c.signed_at ? ` · assinado em ${formatarDia(c.signed_at)}` : ""}
-                      {c.case_id ? (
-                        <>
-                          {" · "}
-                          <Link
-                            to="/casos/$caseId/contrato/preparar"
-                            params={{ caseId: String(c.case_id) }}
-                            className="underline underline-offset-2"
-                          >
-                            parâmetros
-                          </Link>
-                        </>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {contractParties.length > 0 ? (
-                <p className="mt-1 text-[11px] text-navy/50">
-                  Parte em {contractParties.length} instrumento(s) (
-                  {contractParties
-                    .map((p) => p.document_type)
-                    .filter(Boolean)
-                    .join(", ") || "documento não informado"}
-                  )
-                </p>
-              ) : null}
-              <Link to="/contratos" className="mt-2 inline-block text-xs font-medium text-navy underline underline-offset-4">
-                Abrir Contratos no Desk
-              </Link>
-            </div>
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
-                Documentos
-              </p>
-              {documentos.length === 0 ? (
-                <p className="mt-1 text-sm text-navy/55">Nenhum documento vinculado.</p>
-              ) : (
-                <ul className="mt-1 space-y-1">
-                  {documentos.slice(0, 5).map((d) => (
-                    <li key={d.id} className="text-sm text-navy/80">
-                      {d.titulo}{" "}
-                      {d.liberado_cliente ? (
-                        <span className="text-[11px] text-navy/50">· liberado ao cliente</span>
-                      ) : null}
-                      {d.case_id ? (
-                        <>
-                          {" · "}
-                          <Link
-                            to="/casos/$caseId"
-                            params={{ caseId: String(d.case_id) }}
-                            className="underline underline-offset-2"
-                          >
-                            caso
-                          </Link>
-                        </>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <Link
-                to="/acessos-portal"
-                className="mt-2 inline-block text-xs font-medium text-navy underline underline-offset-4"
-              >
-                Publicar no App Cliente
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <section className="rounded-xl border border-navy/10 bg-white p-5">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="font-serif text-lg text-navy">Conteúdo publicado para o App Cliente</h2>
-            <p className="text-xs text-navy/55">{projecoesPublicadas.length} projeção(ões)</p>
-          </div>
-          {projecoesPublicadas.length === 0 ? (
-            <p className="mt-2 text-sm text-navy/60">
-              Nada foi publicado para o App Cliente nos casos desta pessoa ainda.
-            </p>
-          ) : (
-            <ul className="mt-3 space-y-2">
-              {projecoesPublicadas.map((p) => (
-                <li
-                  key={p.id}
-                  className="flex items-center justify-between rounded-lg border border-navy/12 bg-cream/25 p-3 text-sm"
-                >
-                  <span className="text-navy/85">{p.projection_type}</span>
-                  <span
-                    className={`rounded px-1.5 py-0.5 text-[11px] ${
-                      p.approval_status === "published"
-                        ? "bg-gold/15 text-navy"
-                        : "bg-navy/8 text-navy/70"
-                    }`}
-                  >
-                    {p.approval_status === "published" ? "Publicado" : p.approval_status}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        {/*
-          05/09/2026 — achado real reportado pela Proprietária: esta seção só
-          olhava genealogical_person_profiles por correspondência de NOME
-          (uma tabela quase vazia — 2 linhas de teste em toda a organização).
-          A ficha genealógica de verdade — a mesma que /pessoas-linhagens usa,
-          com Ana, Adair, Alice e Felipe já cadastrados — vive em
-          research_people, ligada pelo caso. Corrigido para o vínculo real.
-        */}
-        {fichaGenealogica.length > 0 ||
-        fichaGenealogicaEquipe.length > 0 ||
-        perfisGenealogicos.length > 0 ? (
-          <section className="rounded-xl border border-dashed border-navy/20 bg-cream/20 p-5">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="font-serif text-lg text-navy">
-                Pesquisa genealógica interna (restrita ao Desk)
-              </h2>
-              {casos[0] ? (
-                <Link
-                  to="/pessoas-linhagens/$caseId"
-                  params={{ caseId: casos[0].id }}
-                  className="text-xs text-navy underline underline-offset-4"
-                >
-                  Abrir ficha completa
-                </Link>
-              ) : null}
-            </div>
-            <p className="mt-1 text-xs text-navy/55">
-              Vínculo pelo caso, não por nome — esta camada nunca é exposta ao App Cliente.
-            </p>
-
-            {fichaGenealogica.length > 0 ? (
-              <ul className="mt-3 space-y-1">
-                {fichaGenealogica.map((p) => (
-                  <li key={p.id} className="text-sm text-navy/80">
-                    {p.canonical_name || p.preferred_display_name}
-                    <span className="text-[11px] text-navy/50">
-                      {" "}
-                      · {p.identity_status}
-                      {p.papel_na_linhagem ? ` · ${p.papel_na_linhagem}` : ""}
-                      {p.geracao ? ` · geração ${p.geracao}` : ""}
-                      {p.birth_place ? ` · nascido(a) em ${p.birth_place}` : ""}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-2 text-sm text-navy/60">
-                Esta pessoa não está cadastrada na ficha genealógica do caso ainda.
-              </p>
-            )}
-
-            {perfisGenealogicos.length > 0 ? (
-              <ul className="mt-3 space-y-1 border-t border-navy/10 pt-2">
-                {perfisGenealogicos.map((p) => (
-                  <li key={p.id} className="text-sm text-navy/80">
-                    Perfil 360°: {p.nome_completo}{" "}
-                    <span className="text-[11px] text-navy/50">· {p.status_verificacao}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-
-            {fichaGenealogicaEquipe.length > 0 ? (
-              <p className="mt-3 text-xs text-navy/55">
-                Outros membros na mesma pesquisa:{" "}
-                {fichaGenealogicaEquipe
-                  .map((p) => p.canonical_name || p.preferred_display_name)
-                  .filter(Boolean)
-                  .join(", ")}
-              </p>
-            ) : null}
-          </section>
-        ) : null}
-
         {/*
           O elo com o lead. `leads.case_id` era nulo em todo o banco por falta
           de escritor — não por regra de negócio. A tela nunca funde registro
@@ -928,9 +697,9 @@ function Pessoa() {
           )}
         </section>
 
-        <section className="rounded-xl border border-navy/10 bg-white p-5">
+        <section id="linha-do-tempo" className="rounded-xl border border-navy/10 bg-white p-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="font-serif text-lg text-navy">Linha do tempo</h2>
+            <h2 className="font-serif text-lg text-navy">Linha do tempo do cliente</h2>
             <p className="text-xs text-navy/55">
               {linha.eventos.length} fato(s)
               {linha.de ? ` · de ${formatarDia(linha.de)} a ${formatarDia(linha.ate!)}` : ""}
@@ -946,7 +715,8 @@ function Pessoa() {
 
           {linha.eventos.length === 0 ? (
             <p className="mt-2 text-sm text-navy/60">
-              Ainda não há fatos registrados na linha do tempo dos casos desta pessoa.
+              Ainda não há fatos de caso, lead, proposta, contrato, achado ou WhatsApp para montar a
+              história desta pessoa.
             </p>
           ) : (
             <ol className="mt-4 space-y-0 border-l border-navy/15 pl-5">
@@ -972,10 +742,11 @@ function Pessoa() {
                     <p className="mt-0.5 text-xs text-navy/60">{e.resumoInterno}</p>
                   ) : null}
                   <p className="mt-1 flex flex-wrap gap-x-2 text-[11px] text-navy/45">
+                    <span>{ORIGEM_FATO_ROTULO[e.origem] ?? e.origem}</span>
                     {e.fase ? <span>{e.fase}</span> : null}
                     {e.status ? <span>{e.status}</span> : null}
                     {e.responsavel ? <span>{e.responsavel}</span> : null}
-                    {linha.casos > 1 && e.casoCodigo ? (
+                    {e.casoCodigo ? (
                       <span className="font-mono">{e.casoCodigo}</span>
                     ) : null}
                     {e.alerta ? <span className="text-terracotta">{e.alerta}</span> : null}
