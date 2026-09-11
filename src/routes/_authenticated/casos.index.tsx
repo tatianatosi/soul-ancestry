@@ -216,7 +216,7 @@ function CasosPage() {
         <CardIndicador
           rotulo="Sem responsável interno"
           valor={semResponsavelInterno}
-          apoio="Requisito de responsável designado pendente"
+          apoio="Gate de ativação — distinto do «Sem responsável» do Painel Hoje"
           tom="critico"
         />
         <CardIndicador

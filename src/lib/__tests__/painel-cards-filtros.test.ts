@@ -133,10 +133,11 @@ describe("deduplicação de resumos", () => {
 });
 
 describe("faixa do cockpit no Hoje", () => {
-  it("atalhos únicos — sem recontação de leads nem de bloqueios do topo", () => {
+  it("atalhos únicos — sem recontação de leads, bloqueios nem cadência D10/D14", () => {
     const faixa = faixaCockpitHoje(filas, { cadenciasAtrasadas: 2 });
     expect(faixa.map((f) => f.chave)).toEqual(["cadencias", "calls_hoje", "propostas"]);
-    expect(faixa.find((f) => f.chave === "cadencias")?.total).toBe(2);
+    // Cadência: contagem canônica em /ops — faixa só linka (null).
+    expect(faixa.find((f) => f.chave === "cadencias")?.total).toBeNull();
     expect(faixa.find((f) => f.chave === "cadencias")?.destino).toBe("/ops");
     expect(faixa.find((f) => f.chave === "calls_hoje")?.destino).toBe("/calls");
     expect(faixa.every((f) => f.destino.startsWith("/") && f.destino !== "/painel")).toBe(true);

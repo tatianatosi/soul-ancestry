@@ -4,6 +4,9 @@
  * Registro declarativo, sem efeito colateral: define qual superfície pode
  * exibir CONTAGEM de cada indicador e quais só podem exibir ETIQUETA/LINK
  * derivado. Nenhuma leitura de banco, nenhuma ação externa.
+ *
+ * Regra (todas as abas, subabas e grupos): uma métrica = uma superfície
+ * canônica de contagem. As demais mostram link/etiqueta, nunca segundo número.
  */
 
 export const TETO_METRICAS_PRINCIPAIS = 5;
@@ -14,7 +17,7 @@ export type EstadoConfianca = "confirmado" | "parcial" | "a_confirmar";
 export type IndicadorCanonico = {
   /** Nome humano do indicador. */
   indicador: string;
-  /** Grupo do Desk (CA-UX-03, 8 grupos). */
+  /** Grupo do Desk (CA-UX-03). */
   grupo: string;
   tipo: TipoIndicador;
   /** Módulo/rota que é a única origem de contagem. */
@@ -32,7 +35,7 @@ export type IndicadorCanonico = {
   observacao: string;
 };
 
-/** Os 6 KPIs antes duplicados, agora com origem única de contagem. */
+/** Indicadores com origem única de contagem (sem concorrência entre grupos). */
 export const INDICADORES_CANONICOS: readonly IndicadorCanonico[] = [
   {
     indicador: "Vencidos e vence hoje",
@@ -47,21 +50,94 @@ export const INDICADORES_CANONICOS: readonly IndicadorCanonico[] = [
     etiquetaEm: ["/metricas", "/leads", "/casos", "/tarefas"],
     confianca: "confirmado",
     observacao:
-      "Deduplicação obrigatória: um objeto aparece uma única vez na fila. O cartão abre o Painel de Calls porque a contagem atual é leads.proxima_acao_em — não é marco do Planejador nem tarefa do Checklist.",
+      "Deduplicação obrigatória: um objeto aparece uma única vez na fila. O cartão abre a Mesa de Discovery porque a contagem atual é leads.proxima_acao_em.",
   },
   {
     indicador: "Sem responsável",
     grupo: "Hoje",
     tipo: "decisao",
-    fonteCanonica: "src/lib/alertas-derivados.ts",
-    formula: "casos e tarefas ativos com responsavel_id nulo",
+    fonteCanonica: "src/lib/painel-dia.ts (consolidarDia → semResponsavel)",
+    formula: "itens da fila do dia sem responsável nominal",
     recorteTemporal: "estado atual",
     responsavel: "proprietária / operações",
     rotaAcao: "/casos",
     contagemEm: ["/painel"],
-    etiquetaEm: ["/casos", "/tarefas", "/metricas"],
+    etiquetaEm: ["/casos", "/tarefas", "/metricas", "/ops"],
     confianca: "confirmado",
-    observacao: "Alerta derivado: some quando o registro canônico recebe responsável. O cartão abre Casos 360.",
+    observacao:
+      "Distinto de «Sem responsável interno» em Casos 360 (gate de ativação). Contagem operacional só no Painel Hoje; Casos 360 conta o requisito de ativação.",
+  },
+  {
+    indicador: "Sem responsável interno (ativação)",
+    grupo: "Casos",
+    tipo: "decisao",
+    fonteCanonica: "listarEstadoAtivacao (requisito responsável interno)",
+    formula: "casos não ativos cujo motivo de ativação inclui Responsável interno",
+    recorteTemporal: "estado atual",
+    responsavel: "operações",
+    rotaAcao: "/casos",
+    contagemEm: ["/casos"],
+    etiquetaEm: ["/painel", "/metricas"],
+    confianca: "confirmado",
+    observacao: "Gate de ativação — não é o mesmo indicador que «Sem responsável» do Painel Hoje.",
+  },
+  {
+    indicador: "Casos ativos (ativação 360)",
+    grupo: "Casos",
+    tipo: "decisao",
+    fonteCanonica: "listarEstadoAtivacao (crm_casos + requisitos)",
+    formula: "casos com todos os requisitos de ativação ok (e.ativo)",
+    recorteTemporal: "estado atual",
+    responsavel: "operações",
+    rotaAcao: "/casos",
+    contagemEm: ["/casos"],
+    etiquetaEm: ["/painel", "/pesquisa", "/ops", "/metricas"],
+    confianca: "confirmado",
+    observacao:
+      "Única contagem de «Casos ativos» no sentido de ativação. Painel Hoje e Pesquisa só linkam para /casos — não recontam via cadência ou status de pesquisa.",
+  },
+  {
+    indicador: "Casos ativos (eixo operação)",
+    grupo: "Operação",
+    tipo: "decisao",
+    fonteCanonica: "onboarding-jornada (eixo_operacao === caso_ativo)",
+    formula: "casos com eixo_operacao = caso_ativo",
+    recorteTemporal: "estado atual",
+    responsavel: "operações",
+    rotaAcao: "/ops",
+    contagemEm: ["/ops"],
+    etiquetaEm: ["/painel", "/casos", "/metricas"],
+    confianca: "confirmado",
+    observacao: "Contagem só em Onboarding e jornada (/ops). Não confundir com ativação 360.",
+  },
+  {
+    indicador: "Cadência D10/D14",
+    grupo: "Operação",
+    tipo: "decisao",
+    fonteCanonica: "PainelOnboardingJornada (/ops) + limiares Ana em cadencia-limiares.ts",
+    formula: "casos com 10+ dias sem touchpoint (atenção) ou 14+ sem atualização (crítico)",
+    recorteTemporal: "estado atual",
+    responsavel: "operações",
+    rotaAcao: "/ops",
+    contagemEm: ["/ops"],
+    etiquetaEm: ["/painel", "/casos", "/metricas"],
+    confianca: "confirmado",
+    observacao:
+      "Uma superfície: PainelOnboardingJornada. MetricasJornada e PainelCadencia não montam em /ops. Faixa do Painel Hoje só linka.",
+  },
+  {
+    indicador: "SLA em risco",
+    grupo: "Operação",
+    tipo: "decisao",
+    fonteCanonica: "DeskOperacional / tarefas.sla_status e ops_microentregas",
+    formula: "tarefas ou micro-entregas com SLA em risco ou atrasado",
+    recorteTemporal: "estado atual",
+    responsavel: "operações",
+    rotaAcao: "/ops",
+    contagemEm: ["/ops"],
+    etiquetaEm: ["/painel", "/metricas", "/tarefas"],
+    confianca: "parcial",
+    observacao: "Painel Hoje pode mostrar cartão com ausência (null) e link para /ops — nunca zero inventado.",
   },
   {
     indicador: "Contratos enviados e pagamentos aguardados",
@@ -75,7 +151,7 @@ export const INDICADORES_CANONICOS: readonly IndicadorCanonico[] = [
     contagemEm: ["/contratos"],
     etiquetaEm: ["/financeiro", "/painel", "/metricas"],
     confianca: "confirmado",
-    observacao: "Painel Hoje mostra o item na fila, não um contador concorrente.",
+    observacao: "Painel Hoje mostra o item na fila/exceções, não um contador concorrente.",
   },
   {
     indicador: "Divergência de catálogo",
@@ -90,6 +166,20 @@ export const INDICADORES_CANONICOS: readonly IndicadorCanonico[] = [
     etiquetaEm: ["/divergencias-catalogo", "/painel", "/metricas"],
     confianca: "confirmado",
     observacao: "Bloqueio de emissão de OS continua no registro canônico.",
+  },
+  {
+    indicador: "Casos em pesquisa",
+    grupo: "Pesquisa",
+    tipo: "decisao",
+    fonteCanonica: "painel de /pesquisa-modulo (research_cases ativos)",
+    formula: "pesquisas ativas no Desk",
+    recorteTemporal: "estado atual",
+    responsavel: "pesquisador",
+    rotaAcao: "/pesquisa-modulo",
+    contagemEm: ["/pesquisa-modulo"],
+    etiquetaEm: ["/pesquisa", "/painel", "/metricas"],
+    confianca: "confirmado",
+    observacao: "/pesquisa (dossiê/legado) só linka; não reconta o mesmo total.",
   },
   {
     indicador: "Pendência documental",
@@ -123,15 +213,17 @@ export const INDICADORES_CANONICOS: readonly IndicadorCanonico[] = [
     indicador: "Higiene comercial",
     grupo: "Comercial",
     tipo: "decisao",
-    fonteCanonica: "src/lib/conversao-funil.ts (montarSaude) + leads (follow-up e próxima ação)",
-    formula: "leads ativos sem próxima ação + follow-ups com prazo vencido",
+    fonteCanonica: "src/lib/conversao-funil.ts (montarSaude) — sem reconta de leads sem próxima ação",
+    formula:
+      "follow-ups vencidos + propostas sem resposta + aceite verbal sem formalização + inconsistências (leads sem próxima ação contam só no Painel Hoje)",
     recorteTemporal: "estado atual",
     responsavel: "comercial",
     rotaAcao: "/conversao",
     contagemEm: ["/conversao"],
     etiquetaEm: ["/metricas", "/painel"],
     confianca: "confirmado",
-    observacao: "Fase B: card removido visualmente de /metricas; permanece como link.",
+    observacao:
+      "«Leads ativos sem próxima ação» na saúde comercial vira etiqueta/link para o Painel Hoje — não segundo KPI.",
   },
   {
     indicador: "Leads aguardando ação",
@@ -144,12 +236,53 @@ export const INDICADORES_CANONICOS: readonly IndicadorCanonico[] = [
     responsavel: "comercial",
     rotaAcao: "/conversao",
     contagemEm: ["/painel"],
-    etiquetaEm: ["/conversao", "/metricas", "/leads"],
+    etiquetaEm: ["/conversao", "/metricas", "/leads", "/calls"],
     confianca: "confirmado",
-    observacao: "Resumo comercial único do Painel Hoje: uma frase, um número, sem listas concorrentes.",
+    observacao: "Resumo comercial único do Painel Hoje: uma frase, um número, sem listas concorrentes de KPI.",
+  },
+  {
+    indicador: "CAC",
+    grupo: "Marketing",
+    tipo: "decisao",
+    fonteCanonica: "src/lib/indicadores-marketing.ts (cac) via /marketing",
+    formula: "investimento classificado ÷ leads atribuíveis",
+    recorteTemporal: "recorte selecionável em Marketing",
+    responsavel: "financeiro / comercial",
+    rotaAcao: "/marketing#indicadores",
+    contagemEm: ["/marketing"],
+    etiquetaEm: ["/financeiro", "/metricas", "/painel"],
+    confianca: "parcial",
+    observacao: "Financeiro só linka para Marketing — não reconta CAC/CPL/ROI.",
+  },
+  {
+    indicador: "ROI de mídia",
+    grupo: "Marketing",
+    tipo: "decisao",
+    fonteCanonica: "src/lib/indicadores-marketing.ts (roi) via /marketing",
+    formula: "receita atribuída ÷ investimento classificado",
+    recorteTemporal: "recorte selecionável em Marketing",
+    responsavel: "financeiro / comercial",
+    rotaAcao: "/marketing#indicadores",
+    contagemEm: ["/marketing"],
+    etiquetaEm: ["/financeiro", "/metricas", "/painel"],
+    confianca: "parcial",
+    observacao: "Financeiro só linka para Marketing.",
+  },
+  {
+    indicador: "CPL",
+    grupo: "Marketing",
+    tipo: "decisao",
+    fonteCanonica: "src/lib/indicadores-marketing.ts (cpl) via /marketing",
+    formula: "investimento classificado ÷ leads atribuíveis",
+    recorteTemporal: "recorte selecionável em Marketing",
+    responsavel: "financeiro / comercial",
+    rotaAcao: "/marketing#indicadores",
+    contagemEm: ["/marketing"],
+    etiquetaEm: ["/financeiro", "/metricas", "/painel"],
+    confianca: "parcial",
+    observacao: "Financeiro só linka para Marketing.",
   },
 ];
-
 
 /** Painéis aposentados visualmente: arquivo, rota e teste preservados. */
 export const PAINEIS_HISTORICOS = [
@@ -162,6 +295,20 @@ export const PAINEIS_HISTORICOS = [
     componente: "src/components/painel/painel-hoje.tsx",
     rotaHistorica: "/historico/painel-hoje",
     substituidoPor: "/painel",
+  },
+] as const;
+
+/** Painéis de cadência/métricas de jornada aposentados da rota /ops (código preservado). */
+export const PAINEIS_OPS_APOSENTADOS_DA_ROTA = [
+  {
+    componente: "src/components/painel/metricas-jornada.tsx",
+    substituidoPor: "PainelOnboardingJornada em /ops",
+    motivo: "Recontava D14, casos e entregas já cobertos por Onboarding e jornada",
+  },
+  {
+    componente: "src/components/painel/painel-cadencia.tsx",
+    substituidoPor: "PainelOnboardingJornada em /ops",
+    motivo: "Recontava regular/atenção/crítico da mesma régua Ana",
   },
 ] as const;
 

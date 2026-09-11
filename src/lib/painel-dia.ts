@@ -428,14 +428,17 @@ export function faixaCockpitHoje(
   const daFila = (chave: string) =>
     visiveis((filas.find((f) => f.chave === chave)?.itens ?? []) as ItemFila[]).length;
 
+  // Cadência D10/D14: contagem canônica só em /ops (PainelOnboardingJornada).
+  // Aqui só etiqueta/link — nunca reconta o mesmo total (CA-UX-03 dedup global).
+  void opcoes?.cadenciasAtrasadas;
   return [
     {
       chave: "cadencias",
       rotulo: "Cadências atrasadas",
-      total: opcoes?.cadenciasAtrasadas ?? 0,
+      total: null,
       destino: "/ops",
-      acao: "Abrir cadência D0–D365",
-      leitura: "Casos em atenção/crítica (régua Ana: D10 atenção, D14 crítico)",
+      acao: "Abrir cadência D0–D365 em Operação",
+      leitura: "Contagem canônica em /ops (régua Ana: D10 atenção, D14 crítico)",
     },
     {
       chave: "calls_hoje",
@@ -466,7 +469,7 @@ export const MAPA_BLOCOS_PAINEL_HOJE = [
     bloco: "cards",
     tipo: "kpi" as const,
     titulo: "Métricas de decisão",
-    papel: "Cinco cartões CA-UX-02 + três atalhos únicos (casos, alertas, leads). Sem recontação.",
+    papel: "Cinco cartões CA-UX-02 + atalhos (casos = link canônico; alertas; leads). Sem recontação.",
   },
   {
     bloco: "destaque",

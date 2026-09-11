@@ -717,16 +717,18 @@ export function PainelDia() {
           Só interno · Cinco métricas de decisão + atalhos únicos (sem recontação)
         </p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-mockup-kpis>
+          {/*
+            Casos ativos: contagem canônica em /casos (ativação 360). Aqui só
+            etiqueta/link — não reconta via lista de cadência (CA-UX-03 dedup).
+          */}
           <Link
             to="/casos"
-            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            className="block rounded-xl border border-navy/10 bg-white px-4 py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            data-indicador-etiqueta="casos-ativos"
           >
-            <CardIndicador
-              rotulo="Casos ativos"
-              valor={(qCad.data?.casos ?? []).length}
-              apoio="Abrir Casos 360"
-              tom="neutro"
-            />
+            <p className="text-[11px] uppercase tracking-wide text-navy/50">Casos ativos</p>
+            <p className="mt-1 text-sm font-medium text-navy">Ver contagem em Casos 360</p>
+            <p className="mt-0.5 text-xs text-navy/55">Fonte canônica de ativação — sem segundo número aqui</p>
           </Link>
           <Link
             to="/alertas"
