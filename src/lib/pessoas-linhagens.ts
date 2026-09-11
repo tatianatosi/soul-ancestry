@@ -68,12 +68,15 @@ export const TIPOS_RELACAO: Opcao[] = [
   { id: "a_confirmar", rotulo: "A confirmar" },
 ];
 
+/** CHECK genealogical_relationships.status_pesquisa (migration 20260822205306). */
 export const STATUS_PESQUISA_RELACAO: Opcao[] = [
   { id: "a_confirmar", rotulo: "A confirmar" },
-  { id: "em_pesquisa", rotulo: "Em pesquisa" },
+  { id: "pendente", rotulo: "Pendente" },
+  { id: "hipotese", rotulo: "Hipótese" },
+  { id: "provavel", rotulo: "Provável" },
   { id: "com_suporte", rotulo: "Com suporte documental" },
   { id: "confirmado", rotulo: "Confirmada" },
-  { id: "descartado", rotulo: "Descartada" },
+  { id: "refutado", rotulo: "Refutada" },
 ];
 
 export const TIPOS_EVENTO: Opcao[] = [
@@ -307,7 +310,7 @@ const ativos = <T extends { archived_at?: string | null }>(lista: T[]) => lista.
 function arestasFiliacao(relacoes: Relacao[]) {
   const arestas: { pai: string; filho: string; tipo: string; status: string }[] = [];
   for (const r of ativos(relacoes)) {
-    if (r.status_pesquisa === "descartado") continue;
+    if (r.status_pesquisa === "refutado" || r.status_pesquisa === "descartado") continue;
     if (r.relation_type === "pai_mae") {
       arestas.push({ pai: r.person_from_id, filho: r.person_to_id, tipo: r.relation_type, status: r.status_pesquisa });
     } else if (r.relation_type === "filho") {
@@ -335,7 +338,7 @@ export function montarArvore(perfis: Perfil[], relacoes: Relacao[], ancoraPerson
 
   const conjugesDe = new Map<string, string[]>();
   for (const r of ativos(relacoes)) {
-    if (r.relation_type !== "conjuge" || r.status_pesquisa === "descartado") continue;
+    if (r.relation_type !== "conjuge" || r.status_pesquisa === "refutado" || r.status_pesquisa === "descartado") continue;
     conjugesDe.set(r.person_from_id, [...(conjugesDe.get(r.person_from_id) ?? []), r.person_to_id]);
     conjugesDe.set(r.person_to_id, [...(conjugesDe.get(r.person_to_id) ?? []), r.person_from_id]);
   }
@@ -450,7 +453,12 @@ export function calcularLacunas(
   }
   const nomes = new Map(perfis.map((p) => [p.research_person_id, p.nome_completo]));
   for (const r of ativos(relacoes)) {
-    if (r.status_pesquisa === "a_confirmar" || r.status_pesquisa === "em_pesquisa") {
+    if (
+      r.status_pesquisa === "a_confirmar" ||
+      r.status_pesquisa === "pendente" ||
+      r.status_pesquisa === "hipotese" ||
+      r.status_pesquisa === "em_pesquisa"
+    ) {
       const de = nomes.get(r.person_from_id) ?? "—";
       const para = nomes.get(r.person_to_id) ?? "—";
       lacunas.push({
