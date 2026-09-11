@@ -141,6 +141,18 @@ function Conversao() {
             titulo="Fases do CRM Journey"
             aviso="Ciclo completo · Calls = leads · WhatsApp = fila/cópia (sem envio automático)"
           >
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gold/35 bg-gold/10 px-3 py-2">
+              <p className="text-xs text-navy/75">
+                Hub navegável com stepper, CTA por fase e telas reais do Desk.
+              </p>
+              <Link
+                to="/crm-journey"
+                className="rounded-lg bg-navy px-3 py-1.5 text-xs font-medium text-cream hover:bg-navy/90"
+                data-cta-abrir-crm-journey
+              >
+                Abrir CRM Journey →
+              </Link>
+            </div>
             <ol className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
               {FASES_CRM_JOURNEY.map((f, i) => (
                 <li
@@ -160,14 +172,23 @@ function Conversao() {
                   {f.microEntregaApp ? (
                     <p className="mt-1 text-[11px] text-navy/60">App: {f.microEntregaApp}</p>
                   ) : null}
-                  <Link
-                    to={f.rotaDesk}
-                    hash={f.rotaHash}
-                    className="mt-2 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-2"
-                  >
-                    Abrir no Desk → {f.rotaDesk}
-                    {f.rotaHash ? `#${f.rotaHash}` : ""}
-                  </Link>
+                  <div className="mt-2 flex flex-wrap gap-3 text-xs font-medium">
+                    <Link
+                      to="/crm-journey"
+                      search={{ fase: f.id }}
+                      className="text-navy underline decoration-gold underline-offset-2"
+                    >
+                      Ver no hub
+                    </Link>
+                    <Link
+                      to={f.rotaDesk}
+                      hash={f.rotaHash}
+                      className="text-navy/70 underline decoration-navy/30 underline-offset-2"
+                    >
+                      Abrir tela → {f.rotaDesk}
+                      {f.rotaHash ? `#${f.rotaHash}` : ""}
+                    </Link>
+                  </div>
                 </li>
               ))}
             </ol>

@@ -105,11 +105,11 @@ export const FASES_CRM_JOURNEY: readonly FaseCrmJourney[] = [
     id: "cliente_pesquisa",
     rotulo: "Cliente em Pesquisa",
     ritual: "SLA / achado genealógico",
-    rotaDesk: "/achados",
+    rotaDesk: "/pesquisa-modulo",
     whatsapp: {
       template: "template_achado_historico",
       canal: "copia_manual",
-      detalhe: "Alerta de achado: template + cópia manual / fila — não envia sozinho.",
+      detalhe: "Alerta de achado: template + cópia manual / fila — não envia sozinho. Achados por caso em /achados/$caseId.",
     },
     microEntregaApp: "Achado publicado em Jornada/Árvore",
     statusPiloto: "mvp",
@@ -145,7 +145,7 @@ export const FASES_CRM_JOURNEY: readonly FaseCrmJourney[] = [
     id: "cliente_recorrente",
     rotulo: "Cliente Recorrente",
     ritual: "Check-in D30 / NPS",
-    rotaDesk: "/conversao",
+    rotaDesk: "/crm-journey",
     whatsapp: {
       template: "template_nps_d30",
       canal: "bloqueado_auto",
@@ -162,4 +162,43 @@ export function fasesMvp(): FaseCrmJourney[] {
 
 export function hrefFase(f: FaseCrmJourney): string {
   return f.rotaHash ? `${f.rotaDesk}#${f.rotaHash}` : f.rotaDesk;
+}
+
+export function indiceFase(id: string): number {
+  return FASES_CRM_JOURNEY.findIndex((f) => f.id === id);
+}
+
+export function fasePorId(id: string | undefined | null): FaseCrmJourney {
+  const achada = FASES_CRM_JOURNEY.find((f) => f.id === id);
+  return achada ?? FASES_CRM_JOURNEY[0]!;
+}
+
+export function faseVizinha(id: string, delta: -1 | 1): FaseCrmJourney | null {
+  const i = indiceFase(id);
+  if (i < 0) return null;
+  return FASES_CRM_JOURNEY[i + delta] ?? null;
+}
+
+/** Próxima ação concreta da fase (CTA principal no hub). */
+export function ctaPrincipalFase(f: FaseCrmJourney): { rotulo: string; to: string; hash?: string } {
+  switch (f.id) {
+    case "lead_bruto":
+      return { rotulo: "Abrir Mesa e agendar/registrar call", to: "/calls" };
+    case "lead_qualificado":
+      return { rotulo: "Continuar SPIN e próxima ação", to: "/calls" };
+    case "oportunidade":
+      return { rotulo: "Registrar / abrir proposta", to: "/propostas" };
+    case "proposta_aceita":
+      return { rotulo: "Abrir contratos e formalização", to: "/contratos" };
+    case "cliente_ativo":
+      return { rotulo: "Gerir acessos do App Cliente", to: "/acessos-portal" };
+    case "cliente_pesquisa":
+      return { rotulo: "Abrir módulo de pesquisa", to: "/pesquisa-modulo" };
+    case "cliente_pesquisa_documento":
+      return { rotulo: "Atendimento e publicação", to: "/atendimento", hash: "publicacao" };
+    case "pos_reconhecimento":
+      return { rotulo: "Abrir Casos 360", to: "/casos" };
+    case "cliente_recorrente":
+      return { rotulo: "Ver hub da jornada", to: "/crm-journey" };
+  }
 }

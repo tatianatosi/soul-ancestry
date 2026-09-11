@@ -108,6 +108,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/governanca/dicionario-calls-crm", label: "Dicionário Calls → CRM" },
       { to: "/propostas", label: "Propostas (Canva → Desk)" },
       { to: "/conversao", label: "Conversão, follow-up e handoff" },
+      { to: "/crm-journey", label: "CRM Journey (ciclo completo)" },
       { to: "/proximas-acoes", label: "Próximas ações dos leads" },
     ],
   },
