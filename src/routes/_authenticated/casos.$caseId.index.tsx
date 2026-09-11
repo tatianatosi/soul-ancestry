@@ -18,6 +18,7 @@ import {
 import { ROTULO_STATUS_FINANCEIRO_CASO } from "@/lib/financeiro-caso";
 import { validacaoJuridicaCaso } from "@/lib/crm-desk.functions";
 import { cadeiaPesquisaDoCaso } from "@/lib/pesquisa-cadeia.functions";
+import { evidenciaComprovada } from "@/lib/pesquisa-cadeia";
 import { pendenciaPesquisaAberta } from "@/lib/rotulo-negocio";
 import { ROTULO_ATO_FORMAL } from "@/lib/validacao-juridica-caso";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
@@ -889,7 +890,7 @@ function FichaCaso() {
             (() => {
               const c = qPesquisa.data;
               const evidencias = c?.evidencias ?? [];
-              const comprovadas = evidencias.filter((e: any) => e.workflow_status === "validada_internamente").length;
+              const comprovadas = evidencias.filter((e: any) => evidenciaComprovada(e.workflow_status)).length;
               const pendencias = (c?.pendencias ?? []).filter((p: any) => p.status !== "resolvido" && pendenciaPesquisaAberta(p.status)).length;
               const achados = c?.achados?.length ?? 0;
               return (

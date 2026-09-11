@@ -88,32 +88,33 @@ export function PortalJornada() {
                     ))}
                   </ol>
                 )}
-                <div className="mt-4 flex flex-wrap gap-2 text-sm">
-                  {abreJornada(entrega.visibilidade) ? (
-                    <LinkPortal
-                      to="/portal/entregas"
-                      className="rounded-md border border-navy/15 px-3 py-1.5 text-navy hover:border-gold/60"
-                    >
-                      Entregas da jornada
-                    </LinkPortal>
-                  ) : null}
-                  {abreJornada(fase1.visibilidade) ? (
-                    <LinkPortal
-                      to="/portal/fase-01"
-                      className="rounded-md border border-navy/15 px-3 py-1.5 text-navy hover:border-gold/60"
-                    >
-                      Relatório Fase 01
-                    </LinkPortal>
-                  ) : null}
-                  {abreJornada(fase2.visibilidade) ? (
-                    <LinkPortal
-                      to="/portal/fase-02"
-                      className="rounded-md border border-navy/15 px-3 py-1.5 text-navy hover:border-gold/60"
-                    >
-                      Fase 02
-                    </LinkPortal>
-                  ) : null}
-                </div>
+                {(abreJornada(entrega.visibilidade) ||
+                  abreJornada(fase1.visibilidade) ||
+                  abreJornada(fase2.visibilidade)) && (
+                  <p className="mt-4 text-[11px] text-navy/50">
+                    Conteúdo publicado (rota profunda, não aba):{" "}
+                    {abreJornada(entrega.visibilidade) ? (
+                      <LinkPortal to="/portal/entregas" className="underline underline-offset-2 hover:text-navy/70">
+                        Entregas
+                      </LinkPortal>
+                    ) : null}
+                    {abreJornada(entrega.visibilidade) && abreJornada(fase1.visibilidade) ? " · " : null}
+                    {abreJornada(fase1.visibilidade) ? (
+                      <LinkPortal to="/portal/fase-01" className="underline underline-offset-2 hover:text-navy/70">
+                        Relatório Fase 01
+                      </LinkPortal>
+                    ) : null}
+                    {(abreJornada(entrega.visibilidade) || abreJornada(fase1.visibilidade)) &&
+                    abreJornada(fase2.visibilidade)
+                      ? " · "
+                      : null}
+                    {abreJornada(fase2.visibilidade) ? (
+                      <LinkPortal to="/portal/fase-02" className="underline underline-offset-2 hover:text-navy/70">
+                        Fase 02
+                      </LinkPortal>
+                    ) : null}
+                  </p>
+                )}
               </BlocoVisibilidade>
             );
           }}

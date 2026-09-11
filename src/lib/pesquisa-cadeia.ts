@@ -80,21 +80,73 @@ export function statusPesquisaCanonico(bruto: unknown): StatusPesquisaCheck | nu
   return STATUS_PESQUISA_ALIAS[id] ?? null;
 }
 
-/** D. Situações controladas da evidência. */
+/** D. Situações controladas da evidência — CHECK evidences_workflow_ck. */
+export const STATUS_EVIDENCIA_CHECK = [
+  "recebida",
+  "registrada",
+  "em_revisao",
+  "divergente",
+  "insuficiente",
+  "requer_complemento",
+  "requer_retificacao",
+  "requer_traducao_apostila",
+  "rejeitada_inaplicavel",
+  "aprovada_para_entrega",
+  "publicada",
+] as const;
+
+export type StatusEvidenciaCheck = (typeof STATUS_EVIDENCIA_CHECK)[number];
+
+/** Aliases de linhas/UI antigas → CHECK. Nunca gravar o alias. */
+export const STATUS_EVIDENCIA_ALIAS: Record<string, StatusEvidenciaCheck> = {
+  validada_internamente: "aprovada_para_entrega",
+  aprovada_para_entrega_cliente: "aprovada_para_entrega",
+  publicada_ao_cliente: "publicada",
+  requer_traducao_ou_apostila: "requer_traducao_apostila",
+  rejeitada_ou_inaplicavel: "rejeitada_inaplicavel",
+};
+
+/** Normaliza workflow_status para o CHECK. Recusa valor inventado. */
+export function statusEvidenciaCanonico(bruto: unknown): StatusEvidenciaCheck | null {
+  const id = String(bruto ?? "").trim();
+  if (!id) return null;
+  if ((STATUS_EVIDENCIA_CHECK as readonly string[]).includes(id)) return id as StatusEvidenciaCheck;
+  return STATUS_EVIDENCIA_ALIAS[id] ?? null;
+}
+
+/** Opções de UI = só CHECK (rótulos PT). */
 export const STATUS_EVIDENCIA = [
   { id: "recebida", rotulo: "Recebida" },
   { id: "registrada", rotulo: "Registrada" },
   { id: "em_revisao", rotulo: "Em revisão" },
-  { id: "validada_internamente", rotulo: "Validada internamente" },
   { id: "divergente", rotulo: "Divergente" },
   { id: "insuficiente", rotulo: "Insuficiente" },
   { id: "requer_complemento", rotulo: "Requer complemento" },
   { id: "requer_retificacao", rotulo: "Requer retificação" },
-  { id: "requer_traducao_ou_apostila", rotulo: "Requer tradução ou apostila" },
-  { id: "rejeitada_ou_inaplicavel", rotulo: "Rejeitada ou inaplicável" },
-  { id: "aprovada_para_entrega_cliente", rotulo: "Aprovada para entrega ao cliente" },
-  { id: "publicada_ao_cliente", rotulo: "Publicada ao cliente" },
+  { id: "requer_traducao_apostila", rotulo: "Requer tradução ou apostila" },
+  { id: "rejeitada_inaplicavel", rotulo: "Rejeitada ou inaplicável" },
+  { id: "aprovada_para_entrega", rotulo: "Aprovada para entrega" },
+  { id: "publicada", rotulo: "Publicada" },
 ] as const;
+
+/** Estados que contam como “comprovada / em validação” na UI de caso. */
+export const STATUS_EVIDENCIA_VALIDACAO = [
+  "em_revisao",
+  "divergente",
+  "insuficiente",
+  "aprovada_para_entrega",
+  "publicada",
+] as const;
+
+export function evidenciaComprovada(workflowStatus: unknown): boolean {
+  const s = statusEvidenciaCanonico(workflowStatus);
+  return s === "aprovada_para_entrega" || s === "publicada";
+}
+
+export function evidenciaEmValidacao(workflowStatus: unknown): boolean {
+  const s = statusEvidenciaCanonico(workflowStatus);
+  return s != null && (STATUS_EVIDENCIA_VALIDACAO as readonly string[]).includes(s);
+}
 
 /** F. Situações controladas do relatório F1/F2. */
 export const STATUS_RELATORIO = [
@@ -148,10 +200,12 @@ export function gatilhosDaEvidencia(status: string): GatilhoInterno[] {
       return [
         { tipo: "pendencia", criticidade: "alta", titulo: "Retificação pendente", detalhe: "Registrar pendência interna de retificação documental.", prazoEmDias: 7 },
       ];
+    case "requer_traducao_apostila":
     case "requer_traducao_ou_apostila":
       return [
         { tipo: "pendencia", criticidade: "media", titulo: "Tradução ou apostila pendente", detalhe: "Pendência interna registrada, sem criar despesa, cobrança ou pedido externo.", prazoEmDias: 10 },
       ];
+    case "aprovada_para_entrega":
     case "validada_internamente":
       return [
         { tipo: "rascunho_microentrega", criticidade: "baixa", titulo: "Rascunho de microentrega liberado", detalhe: "Permite preparar versão sanitizada. Não publica no App Cliente e não conclui nada juridicamente.", prazoEmDias: null },
@@ -255,26 +309,25 @@ export function validarArquivamentoPesquisa(motivo: string): { ok: boolean; erro
  * sai para tratamento explícito, jamais direto para validação/entrega/publicação.
  */
 export const TRANSICOES_EVIDENCIA: Record<string, string[]> = {
-  recebida: ["registrada", "rejeitada_ou_inaplicavel"],
-  registrada: ["em_revisao", "requer_complemento", "requer_traducao_ou_apostila", "rejeitada_ou_inaplicavel"],
+  recebida: ["registrada", "rejeitada_inaplicavel"],
+  registrada: ["em_revisao", "requer_complemento", "requer_traducao_apostila", "rejeitada_inaplicavel"],
   em_revisao: [
-    "validada_internamente",
+    "aprovada_para_entrega",
     "divergente",
     "insuficiente",
     "requer_complemento",
     "requer_retificacao",
-    "requer_traducao_ou_apostila",
-    "rejeitada_ou_inaplicavel",
+    "requer_traducao_apostila",
+    "rejeitada_inaplicavel",
   ],
-  divergente: ["em_revisao", "insuficiente", "requer_complemento", "requer_retificacao", "rejeitada_ou_inaplicavel"],
-  insuficiente: ["em_revisao", "requer_complemento", "rejeitada_ou_inaplicavel"],
-  requer_complemento: ["em_revisao", "rejeitada_ou_inaplicavel"],
-  requer_retificacao: ["em_revisao", "rejeitada_ou_inaplicavel"],
-  requer_traducao_ou_apostila: ["em_revisao", "rejeitada_ou_inaplicavel"],
-  validada_internamente: ["aprovada_para_entrega_cliente", "divergente", "em_revisao"],
-  aprovada_para_entrega_cliente: ["publicada_ao_cliente", "em_revisao", "divergente"],
-  publicada_ao_cliente: ["em_revisao", "divergente"],
-  rejeitada_ou_inaplicavel: ["em_revisao"],
+  divergente: ["em_revisao", "insuficiente", "requer_complemento", "requer_retificacao", "rejeitada_inaplicavel"],
+  insuficiente: ["em_revisao", "requer_complemento", "rejeitada_inaplicavel"],
+  requer_complemento: ["em_revisao", "rejeitada_inaplicavel"],
+  requer_retificacao: ["em_revisao", "rejeitada_inaplicavel"],
+  requer_traducao_apostila: ["em_revisao", "rejeitada_inaplicavel"],
+  aprovada_para_entrega: ["publicada", "divergente", "em_revisao"],
+  publicada: ["em_revisao", "divergente"],
+  rejeitada_inaplicavel: ["em_revisao"],
 };
 
 /** Transição só avança com autor, justificativa e origem registrados. */
@@ -285,12 +338,13 @@ export function validarTransicaoEvidencia(entrada: {
   justificativa?: string | null;
   origem?: string | null;
 }): { ok: boolean; erro?: string } {
-  const { de, para } = entrada;
-  if (!STATUS_EVIDENCIA.some((s) => s.id === para)) return { ok: false, erro: "Situação de evidência desconhecida." };
-  if (de === para) return { ok: false, erro: "A evidência já está nesta situação." };
+  const de = statusEvidenciaCanonico(entrada.de) ?? entrada.de;
+  const paraCanon = statusEvidenciaCanonico(entrada.para);
+  if (!paraCanon) return { ok: false, erro: "Situação de evidência desconhecida." };
+  if (de === paraCanon) return { ok: false, erro: "A evidência já está nesta situação." };
   const permitidas = TRANSICOES_EVIDENCIA[de] ?? [];
-  if (!permitidas.includes(para)) {
-    return { ok: false, erro: `Transição não permitida: “${de}” → “${para}”.` };
+  if (!permitidas.includes(paraCanon)) {
+    return { ok: false, erro: `Transição não permitida: “${de}” → “${paraCanon}”.` };
   }
   if (!entrada.autor) return { ok: false, erro: "Transição exige responsável identificado." };
   if (!entrada.justificativa || entrada.justificativa.trim().length < 5) {

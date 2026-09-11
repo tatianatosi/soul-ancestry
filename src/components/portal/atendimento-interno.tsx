@@ -391,7 +391,7 @@ export function AtendimentoInterno() {
           </button>
         ) : null}
         {casoSelecionado ? (
-          <div className="rounded-lg border border-navy/15 bg-cream/40 p-3">
+          <div id="publicacao" className="rounded-lg border border-navy/15 bg-cream/40 p-3 scroll-mt-24">
             <p className="text-xs font-medium text-navy">Publicar no App Cliente</p>
             <p className="mt-0.5 text-[11px] text-navy/60">
               Grava uma atualização de Jornada ou um registro de Árvore, aprovado e publicado no mesmo instante — o
