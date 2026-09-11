@@ -216,6 +216,7 @@ export function PainelCalls() {
     setRascunho((r) => ({ ...r, [campo]: v === "" ? null : v }));
   const setArray = (campo: string) => (v: string[]) => setRascunho((r) => ({ ...r, [campo]: v }));
   const campo = (c: keyof LeadDesk) => String((lead?.[c] as string | null | undefined) ?? "");
+  const campoBool = (c: keyof LeadDesk) => Boolean(lead?.[c]);
   const campoArray = (c: keyof LeadDesk) => ((lead?.[c] as string[] | null | undefined) ?? []) as string[];
 
   // Item 6 da missão: só cria/atualiza tarefa quando há consequência real —
@@ -283,6 +284,21 @@ export function PainelCalls() {
       controle = <Selecao label={rotuloCampo} valor={campo("trilha_referencia_id")} opcoes={opcoesTrilhas} onChange={set("trilha_referencia_id")} />;
     } else if (meta.tipo === "marco") {
       controle = <Selecao label={rotuloCampo} valor={campo("marco_referencia_id")} opcoes={opcoesMarcos} onChange={set("marco_referencia_id")} />;
+    } else if (meta.tipo === "checkbox") {
+      controle = (
+        <label className="flex items-start gap-2 text-sm text-navy">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={campoBool(campoId as keyof LeadDesk)}
+            onChange={(e) => set(campoId)(e.target.checked)}
+          />
+          <span>
+            <span className="font-medium">{rotuloCampo}</span>
+            {meta.pergunta ? <span className="mt-0.5 block text-[11px] font-normal text-navy/60">{meta.pergunta}</span> : null}
+          </span>
+        </label>
+      );
     } else {
       controle = <Texto label={rotuloCampo} valor={campo(campoId as keyof LeadDesk)} onChange={set(campoId)} />;
     }
@@ -290,7 +306,12 @@ export function PainelCalls() {
     return (
       <div key={campoId} className="rounded-lg border border-navy/10 bg-white p-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <p className="min-w-0 text-[11px] text-navy/55">{meta.porQueImporta}</p>
+          <div className="min-w-0">
+            {meta.pergunta && meta.tipo !== "checkbox" ? (
+              <p className="text-[12px] font-medium text-navy">{meta.pergunta}</p>
+            ) : null}
+            <p className="text-[11px] text-navy/55">{meta.porQueImporta}</p>
+          </div>
           <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium ${CORES_ESTADO_RESPOSTA[estado]}`}>
             {ROTULO_ESTADO_RESPOSTA[estado]}
           </span>

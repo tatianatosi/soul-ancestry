@@ -15,13 +15,27 @@ Documento normativo da proprietária (Tatiana, tati@pluggedresearch.com), destil
 
 Isto **não** autoriza redesenho de navegação, vocabulário novo (incluindo taxonomia “CHECK-*”) nem tabelas hipotéticas de prompts antigos. Antes de implementar, confirmar o schema real e as decisões já vigentes.
 
+## Reset de confiança operacional (2026-09-10)
+
+Política ativa: `docs/politicas/RESET-DE-CONFIANCA-OPERACIONAL-2026-09-10.md`. Briefs: `docs/agentes/`.
+
+**Fórmula:** documento / prompt / mockup / commit / PR / tela ≠ capacidade comprovada. Capacidade comprovada = fonte + leitura + ação + persistência/releitura + isolamento + resultado observável.
+
+Classificar cada ativo antes de usá-lo: `COMPROVADO_EM_USO` | `CODIGO_SEM_PROVA_DE_USO` | `TELA_SEM_FONTE_CONFIRMADA` | `DOCUMENTADO` | `MOCKUP_APROVADO` | `PR_ABERTA` | `LEGADO_HISTORICO` | `DEMO_OU_LOCAL` | `QUEBRADO_OU_INCOMPLETO` | `NAO_LOCALIZADO`. Sem prova no formato §9 do reset, não declarar “feito”.
+
+Uma capacidade por vez. Se falhar: registrar `PASSOU` / `FALHOU` / `BLOQUEADO_*` / `NAO_LOCALIZADO` — sem cascata de arquitetura, tabela, aba ou motor novo.
+
+**Primeiro corte obrigatório:** Mesa Discovery (`/calls`) — dump/Call → varredura revisável → SPIN → próxima ação + responsável + prazo → salvar → recarregar → aparecer em Marketing & Comercial e Hoje sem duplicidade. Até esse corte passar, não iniciar contrato, financeiro, automação ou o próximo motor.
+
+Não apagar ativos. Não usar CA OPS / Planilha Mestre / Matriz Operacional / DEMO como fonte da operação atual.
+
 ## Ordem de autoridade
 
 1. Decisão explícita e mais recente da proprietária.
 2. **Planejador** = única fonte válida do planejamento operacional ativo (prioridades, capacidade, prazos, responsáveis, o que vem a seguir).
 3. Modelo de dados, migrations e código efetivamente aprovados. Divergência = dívida ou bloqueio declarado, nunca escondida.
 4. Mockup aprovado de **17 páginas** (`docs/evolucao/recuperados/prompts-lovable-2026-08-31/clube-ancestral-mockup.pdf`) = contrato visual normativo.
-5. Políticas aprovadas em `docs/politicas/` (autoridade operacional, fonte de verdade de design, taxonomia do mockup).
+5. Políticas aprovadas em `docs/politicas/` (autoridade operacional, fonte de verdade de design, taxonomia do mockup, reset de confiança).
 6. Materiais legados = histórico / auditoria / migração controlada. **Nunca** dirigem a operação atual.
 
 Se o código divergir destas instruções, declarar a dívida. Não “corrigir” a realidade do schema inventando entidades paralelas.

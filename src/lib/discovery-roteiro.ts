@@ -111,6 +111,17 @@ export const ROTEIRO_DISCOVERY: BlocoRoteiro[] = [
       "responsavel_nome",
     ],
   },
+  {
+    chave: "spin",
+    titulo: "SPIN — Situação, Problema, Implicação, Necessidade",
+    perguntas: [
+      "Qual é a situação atual da pessoa/família em relação à cidadania, documentos e jornada?",
+      "Qual problema concreto impede avançar com clareza?",
+      "Se nada mudar, qual implicação prática isso gera (tempo, custo, risco, família)?",
+      "Qual necessidade de solução a pessoa declara querer daqui para frente?",
+    ],
+    campos: ["spin_situacao", "spin_problema", "spin_implicacao", "spin_necessidade"],
+  },
 ];
 
 export type ProgressoBlocoRoteiro = { chave: string; titulo: string; preenchidos: number; total: number; completo: boolean };
@@ -123,10 +134,20 @@ export type ProgressoBlocoRoteiro = { chave: string; titulo: string; preenchidos
  * ela é respondida. Não é campo novo — é o texto que faltava ao lado do
  * campo que já existe.
  */
-export type TipoControleRoteiro = "select" | "multi" | "texto" | "numero" | "data" | "trilha" | "marco";
+export type TipoControleRoteiro =
+  | "select"
+  | "multi"
+  | "texto"
+  | "numero"
+  | "data"
+  | "trilha"
+  | "marco"
+  | "checkbox";
 
 export type MetaCampoRoteiro = {
   tipo: TipoControleRoteiro;
+  /** Pergunta explícita do card (obrigatória no contrato SPIN). */
+  pergunta?: string;
   porQueImporta: string;
   destino: string;
   consequencia: string;
@@ -307,6 +328,34 @@ export const META_CAMPO_ROTEIRO: Record<string, MetaCampoRoteiro> = {
     destino: "Ficha do lead — responsável",
     consequencia: "Some do sinal 'sem responsável' assim que preenchido.",
   },
+  spin_situacao: {
+    tipo: "checkbox",
+    pergunta: "Qual é a situação atual da pessoa/família em relação à cidadania, documentos e jornada?",
+    porQueImporta: "Sem situação mapeada, o restante do SPIN e a próxima ação ficam no vazio.",
+    destino: "Ficha do lead — SPIN situação (`spin_situacao`)",
+    consequencia: "Marca o bloco Situação como respondido na Discovery; não cria caso nem contrato.",
+  },
+  spin_problema: {
+    tipo: "checkbox",
+    pergunta: "Qual problema concreto impede avançar com clareza?",
+    porQueImporta: "Nomear o problema evita tratar sintoma e objeção como se fossem a mesma coisa.",
+    destino: "Ficha do lead — SPIN problema (`spin_problema`)",
+    consequencia: "Marca o bloco Problema como respondido; alimenta o handoff revisável.",
+  },
+  spin_implicacao: {
+    tipo: "checkbox",
+    pergunta: "Se nada mudar, qual implicação prática isso gera (tempo, custo, risco, família)?",
+    porQueImporta: "A implicação mostra o custo de não agir — sem ela, a urgência fica subjetiva.",
+    destino: "Ficha do lead — SPIN implicação (`spin_implicacao`)",
+    consequencia: "Marca o bloco Implicação como respondido; não infere preço nem prazo jurídico.",
+  },
+  spin_necessidade: {
+    tipo: "checkbox",
+    pergunta: "Qual necessidade de solução a pessoa declara querer daqui para frente?",
+    porQueImporta: "A necessidade declarada amarra a próxima ação ao que a pessoa pediu, não ao que a mesa inventou.",
+    destino: "Ficha do lead — SPIN necessidade (`spin_necessidade`)",
+    consequencia: "Marca o bloco Necessidade como respondido; sustenta resultado e próxima ação da Discovery.",
+  },
 };
 
 /** Rótulo curto de cada campo do roteiro — o mesmo texto usado no CRM de leads. */
@@ -340,6 +389,10 @@ export const ROTULO_CAMPO_ROTEIRO: Record<string, string> = {
   proxima_acao_em: "Prazo da próxima ação",
   area_responsavel: "Área responsável",
   elegibilidade_preliminar: "Elegibilidade preliminar",
+  spin_situacao: "Situação (SPIN)",
+  spin_problema: "Problema (SPIN)",
+  spin_implicacao: "Implicação (SPIN)",
+  spin_necessidade: "Necessidade (SPIN)",
 };
 
 export type EstadoRespostaRoteiro = "confirmado" | "informado_a_confirmar" | "hipotese" | "pendente";
@@ -352,6 +405,7 @@ export const ROTULO_ESTADO_RESPOSTA: Record<EstadoRespostaRoteiro, string> = {
 };
 
 function valorPreenchido(v: unknown): boolean {
+  if (typeof v === "boolean") return v === true;
   if (Array.isArray(v)) return v.length > 0;
   return v !== null && v !== undefined && String(v).trim() !== "";
 }
@@ -385,7 +439,7 @@ export function estadoResposta(args: {
  * já têm resposta — transforma lista em indicador real de progresso da call.
  */
 export function progressoRoteiro(l: LeadDesk, roteiro: BlocoRoteiro[] = ROTEIRO_DISCOVERY): ProgressoBlocoRoteiro[] {
-  const vazio = (v: unknown) => v === null || v === undefined || String(v).trim() === "";
+  const vazio = (v: unknown) => !valorPreenchido(v);
   return roteiro.map((b) => {
     const total = b.campos.length;
     const preenchidos = b.campos.filter((c) => !vazio((l as unknown as Record<string, unknown>)[c])).length;

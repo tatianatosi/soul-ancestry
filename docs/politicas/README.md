@@ -8,6 +8,16 @@ A partir de 10/09/2026, as regras operacionais que todo agente deve aplicar est�
 
 Esse destilado **não substitui** `politica-autoridade-operacional.md`, a taxonomia do mockup de 17 páginas, nem os 8 grupos reais do Desk. Não inventar vocabulário CHECK-* nem tabelas hipotéticas (`case_participants`, `citizenship_cases`).
 
+## Reset de confiança operacional (2026-09-10)
+
+Política ativa de método: `RESET-DE-CONFIANCA-OPERACIONAL-2026-09-10.md`.
+
+- **Não substitui** a memória permanente nem a `politica-autoridade-operacional.md`.
+- **Substitui** a presunção de que documento, prompt, mockup, PR ou código equivalem a capacidade operacional pronta.
+- Classifica ativos (`COMPROVADO_EM_USO`, `CODIGO_SEM_PROVA_DE_USO`, …); exige ciclo de uma capacidade por vez; primeiro corte vertical = Mesa Discovery.
+- Briefs dos três agentes eleitos: `docs/agentes/` (Mesa Discovery ativo; KPIs e Abas pausados até Discovery `PASSOU`).
+- Prova do corte: `docs/relatorios/` com o formato §9 do reset.
+
 ## Sequência confirmada pela proprietária (30/08/2026)
 
 > "Concordo com a sequência: manter P0 e P1 operacionais agora; Cockpit, indicadores e revisão visual somente depois."
