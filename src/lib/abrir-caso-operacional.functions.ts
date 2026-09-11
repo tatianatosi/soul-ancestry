@@ -9,6 +9,7 @@ import {
 import { organizacaoDo } from "@/lib/caso-canonico.server";
 import { nomeResponsavelSessao } from "@/lib/cadeia-operacional.server";
 import { nomeResponsavelPadrao } from "@/lib/responsavel-padrao";
+import { autoSatisfazerChecksIdentidade } from "@/lib/checks-identidade-startup";
 import { garantirTarefaAberta } from "@/lib/tarefa-garantida.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
@@ -115,6 +116,13 @@ export const abrirCasoOperacional = createServerFn({ method: "POST" })
         userId,
       });
     }
+
+    await autoSatisfazerChecksIdentidade(supabase, {
+      organizationId,
+      caseId: caso.id as string,
+      userId,
+      temResponsavel: true,
+    });
 
     return {
       id: caso.id as string,

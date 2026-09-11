@@ -12,6 +12,11 @@ import {
   type Papel,
   type SupabaseCliente,
 } from "@/lib/onboarding-regras";
+import {
+  autoSatisfazerChecksIdentidade,
+  filtrarChecksAtivacaoOperacionais,
+  filtrarItensOnboardingOperacionais,
+} from "@/lib/checks-identidade-startup";
 
 export type { CheckAtivacao, EventoOnboarding, Papel } from "@/lib/onboarding-regras";
 
@@ -27,12 +32,23 @@ export const obterOnboarding = createServerFn({ method: "GET" })
     const caso = await supabase
       .from("crm_casos")
       .select(
-        "id,codigo,titulo,status,ativo,ativado_em,ativado_por,data_ativacao,responsavel_id,cliente_id,tipo_servico,suspenso_motivo,suspenso_em,created_at",
+        "id,codigo,titulo,status,ativo,ativado_em,ativado_por,data_ativacao,responsavel_id,responsavel_principal,cliente_id,tipo_servico,suspenso_motivo,suspenso_em,created_at",
       )
       .eq("id", data.casoId)
       .eq("organization_id", organizationId)
       .maybeSingle();
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
+
+    const temResponsavel = Boolean(
+      (caso.data as { responsavel_id?: string | null }).responsavel_id ||
+        String((caso.data as { responsavel_principal?: string | null }).responsavel_principal ?? "").trim(),
+    );
+    await autoSatisfazerChecksIdentidade(supabase, {
+      organizationId,
+      caseId: data.casoId,
+      userId: context.userId as string,
+      temResponsavel,
+    });
 
     const checks = await supabase
       .from("case_activation_checks")
@@ -73,8 +89,8 @@ export const obterOnboarding = createServerFn({ method: "GET" })
       .limit(200);
 
     const linha = (caso.data ?? {}) as Record<string, string | number | boolean | null>;
-    const listaChecks = ((checks.data ?? []) as CheckAtivacao[]).sort((a, b) =>
-      a.check_key.localeCompare(b.check_key),
+    const listaChecks = filtrarChecksAtivacaoOperacionais(
+      ((checks.data ?? []) as CheckAtivacao[]).sort((a, b) => a.check_key.localeCompare(b.check_key)),
     );
     const idsChecks = new Set(listaChecks.map((c) => c.id));
 
@@ -98,20 +114,8 @@ export const obterOnboarding = createServerFn({ method: "GET" })
             : String((l["metadados"] as any)?.["resumo"] ?? "Caso"),
       }));
 
-    return {
-      caso: linha,
-      papeis,
-      checks: listaChecks,
-      pendencias: (pendencias.data ?? []) as { check_key: string; label: string; motivo: string }[],
-      bloqueiosReais: (bloqueiosReais.data ?? []) as {
-        regra: string;
-        dominio: string;
-        motivo: string;
-        tabela_campo: string;
-        valor_atual: string;
-        cta_tela: string | null;
-      }[],
-      checklistOnboarding: (checklistOnboarding.data ?? []) as {
+    const checklistOperacional = filtrarItensOnboardingOperacionais(
+      (checklistOnboarding.data ?? []) as {
         id: string;
         item_code: string;
         label: string;
@@ -120,6 +124,24 @@ export const obterOnboarding = createServerFn({ method: "GET" })
         observacao: string | null;
         concluido_em: string | null;
       }[],
+    );
+
+    return {
+      caso: linha,
+      papeis,
+      checks: listaChecks,
+      pendencias: ((pendencias.data ?? []) as { check_key: string; label: string; motivo: string }[]).filter(
+        (p) => !["responsavel_designado", "aprovacao_interna_ativacao"].includes(p.check_key),
+      ),
+      bloqueiosReais: (bloqueiosReais.data ?? []) as {
+        regra: string;
+        dominio: string;
+        motivo: string;
+        tabela_campo: string;
+        valor_atual: string;
+        cta_tela: string | null;
+      }[],
+      checklistOnboarding: checklistOperacional,
       podeAtivar: podeAtivar(papeis),
       timeline,
     };

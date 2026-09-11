@@ -117,8 +117,12 @@ export function AbaCadastro({
     );
   }
 
-  const itens = q.data.itens as ItemChecklist[];
-  const resumo: any[] = Array.isArray(q.data.resumo) ? q.data.resumo : [];
+  const itensBrutos = q.data.itens as ItemChecklist[];
+  // Contratada = perfil institucional da org (Tatiana ME) — não checklist por caso.
+  const itens = itensBrutos.filter((i) => i.pessoa_tipo !== "contratada");
+  const resumo: any[] = (Array.isArray(q.data.resumo) ? q.data.resumo : []).filter(
+    (r: any) => r.pessoa_tipo !== "contratada",
+  );
   const grupos = [...new Set(itens.map((i) => `${i.pessoa_tipo}::${i.pessoa_nome}`))];
 
   return (
@@ -127,7 +131,7 @@ export function AbaCadastro({
 
       <Secao
         titulo="Checklist cadastral por pessoa"
-        descricao="Cada dado pertence à pessoa, não ao caso. Nada é inferido: sem fonte declarada e data, o item continua pendente. Nenhum formulário, mensagem ou documento externo é criado aqui."
+        descricao="Só titular e dependentes do cliente. Dados da contratada (você) vêm do perfil institucional — sem tick por caso."
       >
         <div className="flex flex-wrap items-center gap-3 text-sm">
           <AcaoDeEscrita
@@ -162,9 +166,7 @@ export function AbaCadastro({
             key={g}
             titulo={`${nome} — ${rotuloTipo}`}
             descricao={
-              tipo === "contratada"
-                ? "Dados oficiais da contratada: só podem ser marcados como verificados a partir de fonte societária."
-                : "Status, fonte, data de verificação e acesso restrito por dado."
+              "Status, fonte, data de verificação e acesso restrito por dado."
             }
           >
             <div className="overflow-x-auto">

@@ -31,6 +31,7 @@ import { assumirOuRecusarComUsuario } from "@/lib/autoridade.server";
 import { nomeResponsavelSessao } from "@/lib/cadeia-operacional.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { nomeResponsavelPadrao } from "@/lib/responsavel-padrao";
+import { autoSatisfazerChecksIdentidade } from "@/lib/checks-identidade-startup";
 import { garantirTarefaAberta } from "@/lib/tarefa-garantida.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
@@ -406,6 +407,13 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
         estagio: "ganho",
         eixo_comercial: "diagnostico_em_elaboracao",
       },
+    });
+
+    await autoSatisfazerChecksIdentidade(supabase, {
+      organizationId,
+      caseId: casoId,
+      userId,
+      temResponsavel: true,
     });
 
     return {

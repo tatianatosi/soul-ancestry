@@ -119,7 +119,7 @@ export type ItemPadrao = {
 export const CHECKLIST_ONBOARDING_PADRAO: ItemPadrao[] = [
   { item_codigo: "contrato_assinado", titulo: "Contrato assinado", descricao_interna: "Assinatura registrada internamente.", obrigatorio: true, gate: "contrato_assinado" },
   { item_codigo: "pagamento_inicial", titulo: "Pagamento inicial confirmado", descricao_interna: "Confirmação financeira registrada.", obrigatorio: true, gate: "pagamento_inicial" },
-  { item_codigo: "responsavel_principal", titulo: "Responsável principal definido", descricao_interna: "Responsável nominal pelo caso.", obrigatorio: true, gate: "responsavel_principal" },
+  { item_codigo: "responsavel_principal", titulo: "Responsável principal definido", descricao_interna: "Derivado do caso (padrão Tatiana). Sem tick manual.", obrigatorio: false, gate: "responsavel_principal" },
   { item_codigo: "nucleo_familiar", titulo: "Núcleo familiar validado", descricao_interna: "Validação do núcleo quando aplicável.", obrigatorio: true, gate: "nucleo_familiar" },
   { item_codigo: "participantes", titulo: "Participantes vinculados", descricao_interna: "Contratante e participantes identificados.", obrigatorio: true, gate: "participantes" },
   { item_codigo: "representacao_menor", titulo: "Representação de menor validada", descricao_interna: "Documentação de representação quando houver menor ou dependente.", obrigatorio: true, gate: "representacao_menor" },

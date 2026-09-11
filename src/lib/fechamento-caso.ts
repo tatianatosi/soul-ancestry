@@ -79,9 +79,9 @@ export const DEFINICOES_FECHAMENTO: DefinicaoGate[] = [
     chave: "perfil_institucional",
     ordem: 4,
     rotulo: "Perfil institucional",
-    estadoInicialEsperado: "A conferir",
-    condicaoAvanco: "Perfil institucional da contratada vigente para o contrato",
-    acaoDesk: "Conferir vigência do perfil institucional em Governança",
+    estadoInicialEsperado: "Vigente (fonte institucional)",
+    condicaoAvanco: "Perfil institucional da contratada vigente — dado org-wide, não checklist por caso",
+    acaoDesk: "Conferir só em Governança se o perfil deixar de estar vigente — não abre tarefa por caso",
     depende: [],
   },
   {
