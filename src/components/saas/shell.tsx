@@ -78,10 +78,9 @@ export function useSaas() {
 }
 
 /**
- * Navegação do Desk: 7 telas do mockup aprovado.
- * O registro canônico vive em `src/lib/navegacao-desk.ts`; aqui só há
- * apresentação. Trabalho operacional (Calls, contratos, pesquisa, portal)
- * aparece como subitem da tela correspondente — nenhuma rota some.
+ * Navegação do Desk: 6 grupos. O registro canônico vive em
+ * `src/lib/navegacao-desk.ts`; aqui só há apresentação. Cada função mora em
+ * um grupo; atalho não cria segunda fila. Nenhuma rota operacional some.
  */
 type SubItem = ItemNav;
 
@@ -185,8 +184,8 @@ export function SaasShell({
     navigate({ to: "/equipe/entrar", replace: true });
   }
 
-  // Admin não ganha abas novas: os módulos administrativos entram no menu da
-  // conta. O Desk mantém as 7 telas do mockup para qualquer papel interno.
+  // Admin não ganha aba nova: módulos administrativos entram em Governança.
+  // O Desk tem 6 grupos para qualquer papel interno.
   const carregarAlertas = useServerFn(alertasOps);
   const alertas = useQuery({
     queryKey: ["shell", "alertas-menu"],
@@ -198,8 +197,8 @@ export function SaasShell({
     (alertas.data?.atrasadas?.length ?? 0) + (alertas.data?.microAtrasadas?.length ?? 0);
   const badgeDe = (to: string): number => (to === "/casos" ? atrasadasCasos : 0);
 
-  // Itens restritos a admin (equipe, auditoria) só aparecem para admin.
-  // O Desk mantém as 7 telas do mockup para qualquer papel interno.
+  // Itens restritos a admin (equipe) só aparecem para admin.
+  // O Desk tem 6 grupos para qualquer papel interno.
   const itens: SecaoNav[] = NAV.map((item) => ({
     ...item,
     sub: item.sub.filter((s) => !("to" in s) || !s.adminOnly || ehAdmin),

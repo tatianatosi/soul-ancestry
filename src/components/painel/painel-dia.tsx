@@ -1075,12 +1075,17 @@ export function PainelDia() {
       >
         <h2 className="font-serif text-lg text-navy">Encontrar no Desk</h2>
         <AncoraApp bloco="descoberta" />
+        <p className="mt-1 text-sm text-navy/65">
+          Cada função vive na sua aba. A Mesa de Discovery faz a entrada. O Hoje
+          só aponta o que está parado, vencido ou pede decisão.
+        </p>
 
         <p className="mt-3 text-[11px] uppercase tracking-wide text-navy/50">
           Começar alguma coisa
         </p>
         <div className="mt-2 flex flex-wrap gap-2 text-xs">
           {[
+            { to: "/calls" as const, rotulo: "Mesa de Discovery" },
             { to: "/leads" as const, rotulo: "Novo lead" },
             { to: "/propostas" as const, rotulo: "Abrir proposta" },
             { to: "/casos" as const, rotulo: "Abrir caso" },
