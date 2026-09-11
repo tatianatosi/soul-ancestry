@@ -7,7 +7,7 @@
  * pode produzir, respeitando papel, organização e RLS já existentes.
  */
 
-import { GRUPOS_DESK, MENU_CONTA } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK, MENU_CONTA, grupoInternoDaRota, itensDoGrupoInterno } from "@/lib/navegacao-desk";
 
 export const SELO_DEMO_ASSISTENTE = "DEMO — DADOS FICTÍCIOS — NÃO USAR EM OPERAÇÃO";
 export const EVENTO_BLOQUEIO_ASSISTENTE = "analysis_blocked_insufficient_case_data";
@@ -107,23 +107,11 @@ export function regraDoGrupo(grupo: GrupoAssistenteId): RegraAssistente {
 }
 
 /**
- * Descobre o grupo a partir da rota usando o registro canônico de navegação
- * (`GRUPOS_DESK`), por prefixo mais longo. Sem segunda fonte de verdade.
+ * Descobre o grupo interno a partir da rota usando o registro canônico
+ * (`GRUPOS_DESK` + cabeçalhos recolhidos). Sem segunda fonte de verdade.
  */
 export function grupoDaRota(rota: string): GrupoAssistenteId {
-  for (const item of MENU_CONTA.itens) {
-    if (!("to" in item)) continue;
-    if (rota === item.to || rota.startsWith(`${item.to}/`)) return "governanca";
-  }
-  let melhor: { id: string; tamanho: number } = { id: "hoje", tamanho: -1 };
-  for (const grupo of GRUPOS_DESK) {
-    const rotas = [grupo.to, ...grupo.sub.flatMap((s) => ("to" in s ? [s.to] : []))];
-    for (const alvo of rotas) {
-      const casa = rota === alvo || rota.startsWith(`${alvo}/`);
-      if (casa && alvo.length > melhor.tamanho) melhor = { id: grupo.id, tamanho: alvo.length };
-    }
-  }
-  return melhor.id as GrupoAssistenteId;
+  return grupoInternoDaRota(rota) ?? "hoje";
 }
 
 /** Presença do Assistente: papel autorizado + superfície interna. Nunca no App Cliente. */
@@ -198,9 +186,7 @@ export function estadoAssistente(entrada: {
 
 /** Atalhos internos do grupo — abrem rota existente, não executam mudança. */
 export function atalhosDoGrupo(grupo: GrupoAssistenteId): readonly { to: string; label: string }[] {
-  const registro = GRUPOS_DESK.find((g) => g.id === grupo);
-  if (!registro) return [];
-  const itens = registro.sub.flatMap((s) => ("to" in s ? [{ to: s.to, label: s.label }] : []));
+  const itens = itensDoGrupoInterno(grupo).map((s) => ({ to: s.to, label: s.label }));
   const vistos = new Set<string>();
   return itens.filter((i) => (vistos.has(i.to + i.label) ? false : vistos.add(i.to + i.label)));
 }

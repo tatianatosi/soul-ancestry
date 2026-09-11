@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-import { GRUPOS_DESK, MENU_CONTA } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK, MENU_CONTA, rotasDoGrupoInterno } from "@/lib/navegacao-desk";
 
 const ler = (p: string) => readFileSync(p, "utf8");
 
@@ -91,8 +91,8 @@ describe("o link morto do espelho no menu", () => {
   it("a sessão demo não entra na Conta do App Cliente; mora em Governança", () => {
     expect(abas).not.toContain("/app-cliente-demo");
     expect(JSON.stringify(MENU_CONTA)).not.toContain("/app-cliente-demo");
-    const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
-    expect(gov.sub.some((s) => "to" in s && s.to === "/app-cliente-demo")).toBe(true);
+    const gov = rotasDoGrupoInterno("governanca");
+    expect(gov).toContain("/app-cliente-demo");
     expect(GRUPOS_DESK.find((g) => g.id === "casos")!.sub.some((s) => "to" in s && s.to === "/app-cliente-demo")).toBe(
       false,
     );

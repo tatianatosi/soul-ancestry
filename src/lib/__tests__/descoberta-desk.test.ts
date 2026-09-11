@@ -23,8 +23,8 @@ describe("nomenclatura humana", () => {
   });
 
   it("exibe os rótulos na navegação do Desk real", () => {
-    expect(navegacao).toContain('{ to: "/qualidade", label: "Radar Interno e Qualidade" }');
-    expect(navegacao).toContain('{ to: "/matriz-juridica", label: "Validação Jurídica" }');
+    expect(navegacao).toContain('label: "Radar Interno"');
+    expect(navegacao).toContain('label: "Validação Jurídica"');
   });
 
   it("mantém os cabeçalhos das telas alinhados ao rótulo humano", () => {
@@ -74,17 +74,23 @@ describe("atalhos de descoberta", () => {
 });
 
 describe("superfícies preservadas", () => {
-  it("mantém os 6 grupos na navegação do Desk", () => {
-    const grupos = [
-      "Hoje",
-      "Marketing & Comercial",
-      "Pessoas & Casos",
-      "Inteligência & Pesquisa",
-      "Formalização & Financeiro",
-      "Governança & Administração",
+  it("mantém as 7 telas do mockup na face do Desk", () => {
+    const telas = [
+      "Visão Geral",
+      "Casos 360",
+      "Checklist",
+      "Validação Jurídica",
+      "Radar Interno",
+      "Alertas",
+      "Biblioteca Mestre",
     ];
-    for (const g of grupos) expect(navegacao).toContain(`label: "${g}"`);
+    for (const g of telas) expect(navegacao).toContain(`label: "${g}"`);
     expect(shell).toContain("GRUPOS_DESK");
+    expect(shell).toContain("data-nav-chevron");
+    expect(shell).toContain("abertosManuais[to] === true");
+    for (const interno of ["Hoje", "Comercial", "Casos & Pessoas", "Pesquisa", "Formalização", "Governança"]) {
+      expect(navegacao).toContain(`grupo: "${interno}"`);
+    }
   });
 
   it("o protótipo antigo saiu do runtime; o mockup aprovado volta como referência (CA-UX-04, revisto 05/09/2026)", () => {

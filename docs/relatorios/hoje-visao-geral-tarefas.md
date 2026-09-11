@@ -78,7 +78,7 @@ Aguardando você para: merge, e as decisões da seção 3.
 7. Faixas **Só interno** / **App · Home** em cima dos cards (âncora Desk↔App). Não estão no PDF.
 8. Título da página ainda diz “Painel Hoje — o que precisa de ação hoje…”.
 9. Abaixo do bloco do mockup a aba continua operacional (jornada, fila, exceções…). O PDF para na dupla alertas | prioridades.
-10. Menu do Desk nesta branch tem **6 grupos**. A memória permanente pede **8**. Isso é decisão desta PR, não um conserto silencioso.
+10. Menu do Desk nesta branch: **7 telas de face** (mockup) + **6 grupos internos** recolhidos. Decisão da proprietária em 11/09/2026: nem 8 grupos nem 6 abas como barra principal.
 
 ### O que esta aba não deve fazer (não é atraso)
 

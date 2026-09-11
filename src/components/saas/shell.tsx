@@ -6,13 +6,14 @@ import type { ReactNode } from "react";
 import {
   LayoutDashboard,
   FolderOpen,
+  ListChecks,
   Scale,
-  Target,
+  Radio,
+  Bell,
   Library,
   LogOut,
   Menu,
   ChevronDown,
-  ShieldCheck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -95,12 +96,13 @@ type SecaoNav = {
 };
 
 const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
-  hoje: LayoutDashboard,
-  comercial: Target,
+  "visao-geral": LayoutDashboard,
   casos: FolderOpen,
-  pesquisa: Library,
-  contratos: Scale,
-  governanca: ShieldCheck,
+  checklist: ListChecks,
+  juridica: Scale,
+  radar: Radio,
+  alertas: Bell,
+  biblioteca: Library,
 };
 
 const NAV: readonly SecaoNav[] = GRUPOS_DESK.map((g) => ({
@@ -224,43 +226,60 @@ export function SaasShell({
           {itens.map((item) => {
             const { to, label, icon: Icon, sub, descricao: descricaoGrupo } = item;
             const ativo = grupoNavAtivo(rota, hash, item);
-            const expandida = to in abertosManuais ? abertosManuais[to] : desktop && ativo;
+            const temSub = sub.length > 0;
+            const expandida =
+              temSub &&
+              (desktop
+                ? to in abertosManuais
+                  ? Boolean(abertosManuais[to])
+                  : ativo
+                : abertosManuais[to] === true);
             return (
               <div key={to}>
-                <button
-                  type="button"
+                <div
                   title={descricaoGrupo}
-                  onClick={() => {
-                    if (ativo) {
-                      setAbertosManuais((v) => ({
-                        ...v,
-                        [to]: !(to in v ? v[to] : desktop && ativo),
-                      }));
-                      return;
-                    }
-                    setAbertosManuais((v) => ({ ...v, [to]: true }));
-                    void navigate({ to: to as never });
-                    setAberto(false);
-                  }}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                    "flex w-full items-center rounded-lg text-sm transition-colors",
                     ativo ? "bg-gold text-navy font-medium" : "text-cream/80 hover:bg-cream/10",
                   )}
                 >
-                  <Icon className="h-4 w-4" />
-                  <span className="flex-1">{label}</span>
-                  {badgeDe(to) > 0 ? (
-                    <span
-                      title={`${badgeDe(to)} item(ns) com prazo vencido`}
-                      className="rounded-full bg-terracotta px-1.5 py-0.5 text-[10px] font-semibold text-cream"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void navigate({ to: to as never });
+                      setAberto(false);
+                    }}
+                    className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2 text-left"
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span className="flex-1 truncate">{label}</span>
+                    {badgeDe(to) > 0 ? (
+                      <span
+                        title={`${badgeDe(to)} item(ns) com prazo vencido`}
+                        className="rounded-full bg-terracotta px-1.5 py-0.5 text-[10px] font-semibold text-cream"
+                      >
+                        {badgeDe(to)}
+                      </span>
+                    ) : null}
+                  </button>
+                  {temSub ? (
+                    <button
+                      type="button"
+                      data-nav-chevron
+                      aria-expanded={expandida}
+                      aria-label={expandida ? `Recolher ${label}` : `Abrir submenu de ${label}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAbertosManuais((v) => ({ ...v, [to]: !expandida }));
+                      }}
+                      className="shrink-0 px-2 py-2"
                     >
-                      {badgeDe(to)}
-                    </span>
+                      <ChevronDown
+                        className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")}
+                      />
+                    </button>
                   ) : null}
-                  <ChevronDown
-                    className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")}
-                  />
-                </button>
+                </div>
                 {expandida && sub.length ? (
                   <div className="mb-1 ml-7 space-y-0.5 border-l border-cream/15 pl-3">
                     {sub.map((s, i) =>
@@ -398,8 +417,8 @@ export function SaasShell({
         >
           {children}
         </main>
-        {/* CA-UX-03 (adendo v1.0): Assistente transversal — presente nos 8 grupos,
-            conforme papel e contexto. Não é aba nem fonte de verdade. */}
+        {/* CA-UX-03: Assistente transversal — presente nas 7 telas, conforme
+            papel e o grupo interno da rota. Não é aba nem fonte de verdade. */}
         <AssistenteTransversal papeis={papeis} />
       </div>
     </div>

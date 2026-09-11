@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 /**
  * CA-UX-03 (adendo v1.0) — Assistente transversal.
  *
- * Ponto de entrada único e persistente em cada um dos 8 grupos do Desk.
+ * Ponto de entrada único e persistente em cada uma das 7 telas do Desk.
  * Não é aba, não altera dado, não dispara ação externa e não eleva permissão.
  * Sem caso confirmado explicitamente, atua apenas como orientador de navegação.
  */

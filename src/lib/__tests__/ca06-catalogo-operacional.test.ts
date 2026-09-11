@@ -10,7 +10,7 @@ import {
   resumoCatalogo30,
   resumoForaCatalogo,
 } from "@/lib/ca06-catalogo-operacional";
-import { GRUPOS_DESK, MENU_CONTA } from "@/lib/navegacao-desk";
+import { MENU_CONTA, rotasDoGrupoInterno } from "@/lib/navegacao-desk";
 
 describe("CA-06 — Catálogo Operacional 30", () => {
   it("registra exatamente 30 SKUs sem duplicidade", () => {
@@ -56,12 +56,8 @@ describe("CA-06 — Catálogo Operacional 30", () => {
 
   it("mantém as 6 decisões bloqueadoras e a rota em Governança, fora de Contratos", () => {
     expect(DECISOES_BLOQUEADORAS).toHaveLength(6);
-    const gov = GRUPOS_DESK.find((g) => g.id === "governanca");
-    const rotasGov = gov?.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
-    expect(rotasGov).toContain("/governanca/catalogo-operacional-30");
-    const contratos = GRUPOS_DESK.find((g) => g.id === "contratos");
-    const rotas = contratos?.sub.filter((s) => "to" in s).map((s) => s.to);
-    expect(rotas).not.toContain("/governanca/catalogo-operacional-30");
+    expect(rotasDoGrupoInterno("governanca")).toContain("/governanca/catalogo-operacional-30");
+    expect(rotasDoGrupoInterno("contratos")).not.toContain("/governanca/catalogo-operacional-30");
     expect(MENU_CONTA.itens.some((s) => "to" in s && s.to === "/governanca/catalogo-operacional-30")).toBe(
       false,
     );

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { GRUPOS_DESK, MENU_CONTA, rotasDoMenu } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK, MENU_CONTA, rotasDoMenu, rotasDoGrupoInterno } from "@/lib/navegacao-desk";
 import {
   CLASSIFICACAO_SUPERFICIES,
   KPIS_TRANSVERSAIS,
@@ -21,21 +21,14 @@ describe("Entrega 1 — classificação das superfícies", () => {
 
   it("dicionário, legado e DEMO não competem nas abas operacionais", () => {
     const menuOperacional = new Set(
-      GRUPOS_DESK.filter((g) => g.id !== "governanca")
-        .flatMap((g) => g.sub)
-        .filter((s) => "to" in s)
-        .map((s) => s.to),
+      (["hoje", "comercial", "casos", "pesquisa", "contratos"] as const).flatMap(rotasDoGrupoInterno),
     );
     for (const s of CLASSIFICACAO_SUPERFICIES) {
       if (s.natureza === "DICIONARIO_ADMIN" || s.natureza === "LEGADO" || s.natureza === "DEMO_LOCAL") {
         expect(menuOperacional.has(s.rota)).toBe(false);
       }
     }
-    expect(
-      GRUPOS_DESK.find((g) => g.id === "governanca")!.sub.some(
-        (s) => "to" in s && s.to === "/app-cliente-demo",
-      ),
-    ).toBe(true);
+    expect(rotasDoGrupoInterno("governanca").includes("/app-cliente-demo")).toBe(true);
     expect(MENU_CONTA.itens.some((s) => "to" in s && s.to === "/app-cliente-demo")).toBe(false);
   });
 
@@ -56,7 +49,7 @@ describe("Entrega 1 — classificação das superfícies", () => {
     }
   });
 
-  it("as 7 telas do mockup de Desk existem como superfície, sem virar 7ª aba", () => {
+  it("as 7 telas do mockup de Desk são a face principal", () => {
     const menu = new Set(rotasDoMenu());
     expect(menu.has("/painel")).toBe(true);
     expect(menu.has("/casos")).toBe(true);
@@ -65,7 +58,7 @@ describe("Entrega 1 — classificação das superfícies", () => {
     expect(menu.has("/qualidade")).toBe(true);
     expect(menu.has("/alertas")).toBe(true);
     expect(menu.has("/biblioteca")).toBe(true);
-    expect(GRUPOS_DESK).toHaveLength(6);
+    expect(GRUPOS_DESK).toHaveLength(7);
   });
 });
 

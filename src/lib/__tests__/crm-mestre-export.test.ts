@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { GRUPOS_DESK, MENU_CONTA, rotaAtendeDestino } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK, MENU_CONTA, rotaAtendeDestino, rotasDoGrupoInterno } from "@/lib/navegacao-desk";
 import {
   CABECALHO_CSV_CRM_MESTRE,
   gerarCsvCrmMestre,
@@ -10,16 +10,14 @@ import {
 } from "@/lib/crm-mestre-export";
 
 describe("/crm-mestre no menu do Desk", () => {
-  const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
-  const links = gov.sub.filter((s): s is { to: string; label: string } => "to" in s);
+  const bib = GRUPOS_DESK.find((g) => g.id === "biblioteca")!;
+  const links = bib.sub.filter((s): s is { to: string; label: string } => "to" in s);
 
   it("é dicionário administrativo: acessível em Governança, fora da fila comercial", () => {
-    expect(links.some((s) => s.to === "/crm-mestre")).toBe(true);
+    expect(rotasDoGrupoInterno("governanca")).toContain("/crm-mestre");
     expect(MENU_CONTA.itens.some((s) => "to" in s && s.to === "/crm-mestre")).toBe(false);
-    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
-    const rotasComercial = comercial.sub.filter((s) => "to" in s).map((s) => s.to);
-    expect(rotasComercial).not.toContain("/crm-mestre");
-    expect(rotasComercial).toContain("/calls");
+    expect(rotasDoGrupoInterno("comercial")).not.toContain("/crm-mestre");
+    expect(rotasDoGrupoInterno("comercial")).toContain("/calls");
   });
 
   it("mantém estado ativo sem colisão de prefixo (desktop e mobile usam a mesma regra)", () => {

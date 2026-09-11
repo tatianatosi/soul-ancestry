@@ -69,18 +69,21 @@ Migrations versionadas; sem alteração manual de produção como substituto. Va
 
 ## Navegação real — não redesenhar
 
-**Desk: exatamente 8 grupos** em `src/lib/navegacao-desk.ts` (`GRUPOS_DESK`), decisão vinculante. Não fundir, não criar nona aba, não voltar às 7 itens do mockup sem nova decisão da proprietária.
+**Desk: exatamente 7 telas de face** em `src/lib/navegacao-desk.ts` (`GRUPOS_DESK`), decisão da proprietária em 11/09/2026. Não voltar às 8 grupos nem às 6 abas como menu principal. Não criar nona aba. Os 6 grupos internos existem só como submenu/contexto.
 
-1. `hoje` — Visão Geral (`/painel`)
-2. `marketing` — Marketing
-3. `comercial` — Comercial
-4. `casos` — Casos 360
-5. `pesquisa` — Pesquisa
-6. `contratos` — Contratos e financeiro (financeiro **não** é grupo separado)
-7. `cliente` — Cliente / App
-8. `governanca` — Biblioteca Mestre
+Face (sempre visível):
 
-Configuração, equipe e preferências ficam no **menu da conta**, não como 9º grupo.
+1. Visão Geral (`/painel`)
+2. Casos 360 (`/casos`)
+3. Checklist (`/tarefas`)
+4. Validação Jurídica (`/matriz-juridica`)
+5. Radar Interno (`/qualidade`)
+6. Alertas (`/alertas`)
+7. Biblioteca Mestre (`/biblioteca`)
+
+Internos (recolhidos): Hoje · Comercial · Casos & Pessoas · Pesquisa · Formalização · Governança.
+
+Calls, contratos, financeiro, pesquisa, marketing, pessoas, núcleos, catálogo e configuração permanecem acessíveis por CTA, busca e submenu — nada é apagado. Configuração e equipe ficam em Biblioteca → Governança, não como 9º grupo.
 
 A “hierarquia de telas” da memória permanente (planner, lista de casos, caso 360, pessoa, documentos, pesquisa, portal, admin) é **prioridade funcional**, não um menu novo.
 
@@ -92,7 +95,7 @@ Rótulo da primeira aba no mockup e em `COPY_TELAS.casos.navegacao`: **Home** (n
 
 Abas extras condicionais (Entregas, Fase 01, Fase 02, Proposta) ainda existem no código — **dívida a retirar da barra**, não expansão da taxonomia. Ver artefato 007 abaixo.
 
-**Mockup vs produção:** o PDF de 17 páginas é normativo visual. O PDF de auditoria de **47 páginas** (`clube-ancestral-mockup-auditoria.pdf`) é complementar (conteúdo/estados/fluxos), **sem força normativa de design**. Produção tem 8 grupos operacionais; o mockup mostra 7 itens de Desk — divergência já decidida: manter os 8.
+**Mockup vs produção:** o PDF de 17 páginas é normativo visual. O PDF de auditoria de **47 páginas** (`clube-ancestral-mockup-auditoria.pdf`) é complementar (conteúdo/estados/fluxos), **sem força normativa de design**. A face do Desk são as 7 telas do mockup; os 6 grupos internos não aparecem como barra.
 
 README raiz ainda descreve o protótipo visual antigo (6 abas, dados fictícios). É histórico, não a operação atual.
 
@@ -141,7 +144,7 @@ Código atual (`portal-shell.tsx`, `portal-navegacao.ts`) ainda injeta Entregas/
 
 ### Desk — fichas e mockups (009)
 
-Oito superfícies distintas, ligadas por IDs — não formulários duplicados da mesma entidade: Pessoa 360, Núcleo 360, Lead/Discovery, Caso 360, Pesquisa/Genealogia 360, Contrato/Formalização/OS, visão admin do App Cliente, Desk em 8 grupos.
+Oito superfícies distintas, ligadas por IDs — não formulários duplicados da mesma entidade: Pessoa 360, Núcleo 360, Lead/Discovery, Caso 360, Pesquisa/Genealogia 360, Contrato/Formalização/OS, visão admin do App Cliente, Desk com 7 telas de face.
 
 Seis blocos = composição de trabalho, não substituição de navegação. CA-UX-04: Marketing explícito; Administração = utilidade no menu da conta. Protótipo histórico fora do runtime. App Cliente = projeção autorizada dos mesmos objetos canônicos, não um segundo banco.
 

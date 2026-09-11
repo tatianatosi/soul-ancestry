@@ -6,48 +6,47 @@ import { GRUPOS_DESK, LINKS_CONTEXTUAIS } from "@/lib/navegacao-desk";
  * RESGATE DAS NOMENCLATURAS APROVADAS (09/09/2026) — de-para obrigatório:
  * Hoje → Visão Geral; Casos → Casos 360; Governança → Biblioteca Mestre.
  * Validação Jurídica, Radar Interno, Alertas já batiam com o aprovado.
- * Os 8 grupos operacionais reais (Hoje/Visão Geral, Marketing, Comercial,
- * Casos/Casos 360, Pesquisa, Contratos e financeiro, Cliente, Biblioteca/
- * Governança) continuam existindo e com as mesmas rotas — só o rótulo de
- * navegação principal mudou, nunca a URL nem a funcionalidade.
+ * Decisão 11/09/2026: a face é as 7 telas do mockup. Os 6 grupos
+ * operacionais existem só como submenu/contexto. Rotas e funções
+ * permanecem; nenhuma 8ª tela e nenhuma barra concorrente.
  */
 
-describe("De-para de nomenclatura — Desk usa os 6 grupos na navegação principal", () => {
-  it("expõe os 6 grupos, com rotas de entrada já existentes", () => {
-    expect(GRUPOS_DESK).toHaveLength(6);
+describe("De-para de nomenclatura — Desk usa as 7 telas do mockup na face", () => {
+  it("expõe as 7 telas, com rotas de entrada já existentes", () => {
+    expect(GRUPOS_DESK).toHaveLength(7);
     expect(GRUPOS_DESK.map((g) => g.to)).toEqual([
       "/painel",
-      "/leads",
       "/casos",
+      "/tarefas",
+      "/matriz-juridica",
+      "/qualidade",
+      "/alertas",
       "/biblioteca",
-      "/contratos",
-      "/configuracoes",
     ]);
   });
 
-  it("usa os rótulos dos 6 grupos operacionais", () => {
+  it("usa os rótulos das 7 telas aprovadas", () => {
     expect(GRUPOS_DESK.map((g) => g.label)).toEqual([
-      "Hoje",
-      "Marketing & Comercial",
-      "Pessoas & Casos",
-      "Inteligência & Pesquisa",
-      "Formalização & Financeiro",
-      "Governança & Administração",
+      "Visão Geral",
+      "Casos 360",
+      "Checklist",
+      "Validação Jurídica",
+      "Radar Interno",
+      "Alertas",
+      "Biblioteca Mestre",
     ]);
   });
 
-  it("Marketing e CRM Vivo moram no grupo comercial, sem segunda face", () => {
-    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
-    expect(comercial.sub.some((s) => "to" in s && s.to === "/marketing")).toBe(true);
-    expect(comercial.sub.some((s) => "to" in s && s.to === "/leads")).toBe(true);
+  it("Marketing e CRM Vivo moram no Comercial interno, sob Visão Geral", () => {
+    const visao = GRUPOS_DESK.find((g) => g.id === "visao-geral")!;
+    expect(visao.sub.some((s) => "to" in s && s.to === "/marketing")).toBe(true);
+    expect(visao.sub.some((s) => "to" in s && s.to === "/leads")).toBe(true);
   });
 
-  it("Checklist continua no submenu de Pessoas & Casos, com o nome aprovado", () => {
-    const casos = GRUPOS_DESK.find((g) => g.id === "casos")!;
-    const tarefas = casos.sub.find((s) => "to" in s && s.to === "/tarefas") as
-      | { label: string }
-      | undefined;
-    expect(tarefas?.label).toContain("Checklist");
+  it("Checklist é tela de face, com o nome aprovado", () => {
+    const checklist = GRUPOS_DESK.find((g) => g.id === "checklist")!;
+    expect(checklist.to).toBe("/tarefas");
+    expect(checklist.label).toBe("Checklist");
   });
 
   it("sem links contextuais sobrepostos entre grupos", () => {

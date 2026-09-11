@@ -16,7 +16,7 @@ import {
   VOCABULARIO_OFICIAL,
   revisarTerminologiaCliente,
 } from "@/lib/glossario-oficial";
-import { GRUPOS_DESK } from "@/lib/navegacao-desk";
+import { rotasDoGrupoInterno } from "@/lib/navegacao-desk";
 
 const base: RegistroCallsCrm = { dataRegistro: "2026-08-24" };
 
@@ -131,15 +131,11 @@ describe("Dicionário de validações Calls → CRM", () => {
 
   it("informa o Painel de Calls e mora em Governança, fora da fila comercial", () => {
     expect(FORMATACAO_CONDICIONAL_CALLS).toHaveLength(10);
-    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial");
-    const rotas = comercial?.sub.filter((s) => "to" in s).map((s) => s.to);
-    expect(rotas).toContain("/calls");
-    expect(rotas).not.toContain("/crm-mestre");
-    expect(rotas).not.toContain("/governanca/dicionario-calls-crm");
-    const gov = GRUPOS_DESK.find((g) => g.id === "governanca");
-    const rotasGov = gov?.sub.filter((s) => "to" in s).map((s) => s.to);
-    expect(rotasGov).toContain("/governanca/dicionario-calls-crm");
-    expect(rotasGov).toContain("/crm-mestre");
+    expect(rotasDoGrupoInterno("comercial")).toContain("/calls");
+    expect(rotasDoGrupoInterno("comercial")).not.toContain("/crm-mestre");
+    expect(rotasDoGrupoInterno("comercial")).not.toContain("/governanca/dicionario-calls-crm");
+    expect(rotasDoGrupoInterno("governanca")).toContain("/governanca/dicionario-calls-crm");
+    expect(rotasDoGrupoInterno("governanca")).toContain("/crm-mestre");
   });
 
   it("avalia o lead canônico do Painel de Calls com as regras do dicionário", () => {

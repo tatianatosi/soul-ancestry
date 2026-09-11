@@ -5,7 +5,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-import { GRUPOS_DESK, rotasDoMenuConta } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK, rotasDoMenuConta, rotasDoGrupoInterno } from "@/lib/navegacao-desk";
 import {
   CAMADAS_WHATSAPP,
   CATALOGO_ORIGENS,
@@ -21,38 +21,36 @@ import {
 } from "@/lib/marketing-aquisicao";
 
 const ler = (p: string) => readFileSync(p, "utf8");
-const ORDEM = ["hoje", "comercial", "casos", "pesquisa", "contratos", "governanca"];
+const FACE = ["visao-geral", "casos", "checklist", "juridica", "radar", "alertas", "biblioteca"];
 
 describe("CA-UX-04 — navegação", () => {
-  it("tem exatamente 6 grupos; Marketing mora em Marketing & Comercial", () => {
-    expect(GRUPOS_DESK).toHaveLength(6);
-    expect(GRUPOS_DESK.map((g) => g.id)).toEqual(ORDEM);
-    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
-    expect(comercial.sub.some((s) => "to" in s && s.to === "/marketing")).toBe(true);
+  it("tem exatamente 7 telas de face; Marketing mora no Comercial interno", () => {
+    expect(GRUPOS_DESK).toHaveLength(7);
+    expect(GRUPOS_DESK.map((g) => g.id)).toEqual(FACE);
+    expect(rotasDoGrupoInterno("comercial")).toContain("/marketing");
   });
 
-  it("não expõe Administração como id próprio — mora em Governança", () => {
+  it("não expõe Administração como id próprio — mora em Governança interna", () => {
     expect(GRUPOS_DESK.some((g) => g.id === "administracao")).toBe(false);
-    expect(GRUPOS_DESK.some((g) => g.id === "governanca")).toBe(true);
+    expect(GRUPOS_DESK.some((g) => g.id === "governanca")).toBe(false);
+    expect(rotasDoGrupoInterno("governanca").length).toBeGreaterThan(0);
   });
 
   it("mantém rotas administrativas em Governança, com permissão preservada", () => {
     expect(rotasDoMenuConta()).toEqual([]);
-    const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
-    expect(gov.sub.some((s) => "to" in s && s.to === "/app-cliente-demo")).toBe(true);
-    const rotas = gov.sub.filter((s) => "to" in s).map((s) => s.to);
+    const gov = rotasDoGrupoInterno("governanca");
+    expect(gov).toContain("/app-cliente-demo");
     for (const r of ["/equipe", "/configuracoes", "/etiquetas"]) {
-      expect(rotas).toContain(r);
+      expect(gov).toContain(r);
     }
-    const equipe = gov.sub.find((i) => "to" in i && i.to === "/equipe") as { adminOnly?: boolean };
+    const bib = GRUPOS_DESK.find((g) => g.id === "biblioteca")!;
+    const equipe = bib.sub.find((i) => "to" in i && i.to === "/equipe") as { adminOnly?: boolean };
     expect(equipe.adminOnly).toBe(true);
   });
 
-  it("mantém Integrações em Governança, não na Inteligência", () => {
-    const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
-    expect(gov.sub.some((s) => "to" in s && s.to === "/integracoes")).toBe(true);
-    const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
-    expect(pesquisa.sub.some((s) => "to" in s && s.to === "/integracoes")).toBe(false);
+  it("mantém Integrações em Governança, não na Pesquisa", () => {
+    expect(rotasDoGrupoInterno("governanca")).toContain("/integracoes");
+    expect(rotasDoGrupoInterno("pesquisa")).not.toContain("/integracoes");
     expect(rotasDoMenuConta()).not.toContain("/integracoes");
   });
 

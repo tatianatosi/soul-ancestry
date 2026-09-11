@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { PAPEL_REGISTRO, papelDoRegistro } from "@/lib/caso-ficha";
 import { CLAUSULAS_FIXAS } from "@/lib/contrato-base-consolidado";
-import { GRUPOS_DESK, MENU_CONTA } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK, MENU_CONTA, rotasDoGrupoInterno } from "@/lib/navegacao-desk";
 import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
 import { COPY_TELAS } from "@/lib/portal-copy";
 
@@ -40,7 +40,7 @@ describe("pente-fino Ana — primeira cliente e contrato decente", () => {
 
 describe("pente-fino visual — legado fora da face do produto", () => {
   it("grupo Biblioteca Mestre entra no módulo vivo e no dossiê do Legado; DEMO sai da face", () => {
-    const bib = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
+    const bib = GRUPOS_DESK.find((g) => g.id === "biblioteca")!;
     expect(bib.to).toBe("/biblioteca");
     const rotasBib = bib.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotasBib).toContain("/pesquisa");
@@ -52,8 +52,7 @@ describe("pente-fino visual — legado fora da face do produto", () => {
     const conta = MENU_CONTA.itens.filter((i) => "to" in i).map((i) => i.to);
     expect(conta).not.toContain("/pesquisa");
     expect(conta).not.toContain("/app-cliente-demo");
-    const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
-    expect(gov.sub.some((s) => "to" in s && s.to === "/app-cliente-demo")).toBe(true);
+    expect(rotasDoGrupoInterno("governanca")).toContain("/app-cliente-demo");
   });
 
   it("App Cliente: Home, 7 abas, sem Entregas/Fase na barra", () => {

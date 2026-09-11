@@ -1,18 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 
+import { GRUPOS_DESK } from "@/lib/navegacao-desk";
+
 // CA-CORTE-ALERTAS-ROTA-CANONICA (09/09/2026): a rota Alertas usa a fonte já
 // existente (case_alerts, via listarAlertas), sem tabela ou escritor novo.
 const alertasFn = readFileSync("src/lib/alertas.functions.ts", "utf8");
 const rota = readFileSync("src/routes/_authenticated/alertas.tsx", "utf8");
 const painel = readFileSync("src/components/painel/painel-dia.tsx", "utf8");
 const canonico = readFileSync("src/lib/caso-canonico.functions.ts", "utf8");
-const navegacao = readFileSync("src/lib/navegacao-desk.ts", "utf8");
 
 describe("CA-CORTE-ALERTAS-ROTA-CANONICA", () => {
   it("a rota /alertas existe, autenticada, e está na navegação", () => {
     expect(existsSync("src/routes/_authenticated/alertas.tsx")).toBe(true);
-    expect(navegacao).toContain('{ to: "/alertas", label: "Alertas" }');
+    const alertas = GRUPOS_DESK.find((g) => g.id === "alertas");
+    expect(alertas?.to).toBe("/alertas");
+    expect(alertas?.label).toBe("Alertas");
   });
 
   it("lê apenas a fonte já existente (case_alerts) — nenhuma tabela nova", () => {
