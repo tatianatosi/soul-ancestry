@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -38,6 +38,10 @@ import { RegraComercial } from "@/components/contrato/regra-comercial";
 const AJUDA_PROPOSTA: Record<string, string> = Object.fromEntries(CAT_ESTADO_PROPOSTA.map((o) => [o.valor, o.ajuda ?? ""]));
 
 export const Route = createFileRoute("/_authenticated/propostas")({
+  validateSearch: (s: Record<string, unknown>): { caso?: string; lead?: string } => ({
+    caso: typeof s.caso === "string" && s.caso.length > 0 ? s.caso : undefined,
+    lead: typeof s.lead === "string" && s.lead.length > 0 ? s.lead : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Propostas — Clube Ancestral" },
@@ -55,6 +59,7 @@ export const Route = createFileRoute("/_authenticated/propostas")({
 type Linha = Record<string, unknown>;
 
 function PropostasPage() {
+  const { caso: casoSearch, lead: leadSearch } = Route.useSearch();
   const autoridade = useAutoridade();
   const { podeEscrever: podeEscreverVinculo } = useSaas();
   // Autoridade operacional: vínculo somente leitura vira pendência declarada,
@@ -79,7 +84,19 @@ function PropostasPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [renovacao, setRenovacao] = useState({ validade: "", motivo: "" });
   const [visao, setVisao] = useState<"ativas" | "todas" | "arquivadas">("ativas");
-  const [busca, setBusca] = useState("");
+  const [busca, setBusca] = useState(casoSearch ?? "");
+
+  useEffect(() => {
+    if (casoSearch) setBusca(casoSearch);
+  }, [casoSearch]);
+
+  useEffect(() => {
+    if (!casoSearch) return;
+    setForm((atual) => {
+      if (atual) return { ...atual, case_id: casoSearch };
+      return { moeda: "BRL", case_id: casoSearch };
+    });
+  }, [casoSearch]);
 
   const q = useQuery({
     queryKey: ["propostas", status, visao],
@@ -216,6 +233,14 @@ function PropostasPage() {
             </Link>
             .
           </p>
+          {casoSearch || leadSearch ? (
+            <p className="mt-2 text-xs text-navy/65">
+              Chegou do handoff da Mesa
+              {casoSearch ? ` · caso ${casoSearch}` : ""}
+              {leadSearch ? ` · lead ${leadSearch}` : ""}. O formulário de nova versão abre com o
+              caso pré-selecionado quando o vínculo estiver carregado — sem inventar SKU.
+            </p>
+          ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <FiltroStatus rotulos={ROTULO_PROPOSTA} valor={status} aoMudar={setStatus} />

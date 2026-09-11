@@ -31,6 +31,7 @@ Cliente externo nunca vê nota interna, outro caso ou outro cliente. Esconder na
 ## Peças que não se apagam
 
 - Painel de Calls (`/calls`, `PainelCalls`) é entrada canônica do CRM Vivo. Isolar dicionário/legado não autoriza esconder a rota.
+- CRM Journey (blueprint 18/08): Calls = entrada; ciclo de vida = `leads` → handoff → `clientes`/`crm_casos`; **não** criar `crm_calls`/`crm_interactions`. Leitura: `docs/politicas/ADENDO-CRM-JOURNEY-PAINEL-CALLS-2026-09-11.md`.
 - Os 8 grupos de `GRUPOS_DESK` permanecem. Não fundir, não criar nona aba.
 
 ## Marca e presença digital

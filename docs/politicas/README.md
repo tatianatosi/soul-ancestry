@@ -2,7 +2,7 @@
 
 Cópias verbatim dos documentos de política/prompt enviados pela proprietária, guardadas aqui para que nada dependa de memória de conversa ou de contexto que pode ser resumido ao longo de uma sessão longa. Nenhum deles foi implementado só por estar aqui — este diretório é **arquivo de referência**, não registro de execução. O estado real de cada capacidade fica no Mapa de Autoridade Admin (`docs/auditorias/MAPA-AUTORIDADE-ADMIN-DESK-APP-2026-08-30.md`).
 
-**Adendo 2026-09-11:** documentos `PROMPT-*` e artefatos de unificação **não** são “política passiva”. Devem ser tratados como backlog de execução (`ADENDO-PROMPTS-SAO-EXECUCAO-2026-09-11.md`) na ordem de `ESTRATEGIA-RESGATE-PRODUTO-CLUBE-ANCESTRAL-2026-09-11.md`. Arquivar aqui nunca substitui fatia vertical no Desk. Marca e site SEO: `ADENDO-MARCA-SITE-SEO-2026-09-11.md` — `https://clubeancestral.com.br/` não vai para o Vercel do app. Enterprise PRD: `CLUBE_ANCESTRAL_ENTERPRISE_PRD.md` com de-para em `ADENDO-ENTERPRISE-PRD-VS-CORE-2026-09-11.md`.
+**Adendo 2026-09-11:** documentos `PROMPT-*` e artefatos de unificação **não** são “política passiva”. Devem ser tratados como backlog de execução (`ADENDO-PROMPTS-SAO-EXECUCAO-2026-09-11.md`) na ordem de `ESTRATEGIA-RESGATE-PRODUTO-CLUBE-ANCESTRAL-2026-09-11.md`. Arquivar aqui nunca substitui fatia vertical no Desk. Marca e site SEO: `ADENDO-MARCA-SITE-SEO-2026-09-11.md` — `https://clubeancestral.com.br/` não vai para o Vercel do app. Enterprise PRD: `CLUBE_ANCESTRAL_ENTERPRISE_PRD.md` com de-para em `ADENDO-ENTERPRISE-PRD-VS-CORE-2026-09-11.md`. CRM Journey × Calls: `ADENDO-CRM-JOURNEY-PAINEL-CALLS-2026-09-11.md` (fonte = `leads`; sem `crm_calls`).
 
 **Fontes permanentes de execução (2026-09-11):** ver `ADENDO-FONTES-EXECUCAO-POLITICAS-QUADRO-PRS-2026-09-11.md`.
 
@@ -70,7 +70,7 @@ Documentos operacionais enviados ao longo do dia 31/08, arquivados com nota expl
 | `RECONCILIACAO-CRIAR-TAREFA-FECHAMENTO-MAPA-2026-08-31.md` | Reconciliação formal da divergência acima, com taxonomia mais granular | Substitui a conclusão do documento anterior |
 | `ATUALIZACAO-PR40-PROXIMA-FATIA-MAPA-2026-08-31.md` | Pedia a mesma fatia do Mapa (Marketing/Configuração/App Cliente) já entregue | Arquivado — auditoria pedida já estava no commit `cf4c86a` quando o pedido chegou |
 | `INVENTARIO-CONSOLIDADO-PROMPTS-FASES-2026-08-31.md` | Inventário P0→P11 de todos os prompts anteriores, com prioridades imediatas | Arquivado — conteúdo já refletido nesta tabela e no Mapa |
-| `ADENDO-PAINEL-CALLS-DISCOVERY-2026-08-31.md` | Pedia localizar o Painel de Calls (CA-04) no código | Arquivado com achado: `/calls` usa a mesma tabela `leads`/função `salvarLeadDesk` já mapeada em Comercial — não é sistema paralelo |
+| `ADENDO-PAINEL-CALLS-DISCOVERY-2026-08-31.md` | Pedia localizar o Painel de Calls (CA-04) no código | Arquivado com achado: `/calls` usa a mesma tabela `leads`/função `salvarLeadDesk` já mapeada em Comercial — não é sistema paralelo. **2026-09-11:** handoff já grava pessoa+caso; ver também `ADENDO-CRM-JOURNEY-PAINEL-CALLS-2026-09-11.md` |
 
 ## Documentos históricos adicionais (arquivados em 30/08/2026, "adicione todos os demais prompts anteriores")
 

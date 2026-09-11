@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
@@ -41,6 +41,7 @@ import {
   ROTULO_ESTADO_CALL,
   acaoVencida,
   avaliarHandoffCall,
+  avisosOperacionaisLeadAtivo,
   corComplexidade,
   corElegibilidade,
   estadoCall,
@@ -221,7 +222,6 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
   const carregar = useServerFn(listarLeadsDesk);
   const salvar = useServerFn(salvarLeadDesk);
   const handoffFn = useServerFn(executarHandoffDiscovery);
-  const navegar = useNavigate();
   const qc = useQueryClient();
 
   const {
@@ -237,6 +237,11 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
   const [selecionado, setSelecionado] = useState<string | null>(leadIdInicial ?? null);
   const [rascunho, setRascunho] = useState<Record<string, unknown>>({});
   const [aviso, setAviso] = useState<string | null>(null);
+  const [posHandoff, setPosHandoff] = useState<{
+    casoId: string;
+    codigoCaso: string | null;
+    leadId: string;
+  } | null>(null);
   const [candidatosCliente, setCandidatosCliente] = useState<
     Array<{ id: string; nome: string; motivo: string }>
   >([]);
@@ -269,6 +274,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
   const leadBase = visiveis.find((l) => l.id === selecionado) ?? null;
   const lead = leadBase ? ({ ...leadBase, ...rascunho } as LeadDesk) : null;
   const avaliacao = lead ? avaliarHandoffCall(lead) : null;
+  const avisosOperacao = lead ? avisosOperacionaisLeadAtivo(lead) : [];
 
   const opcoesTrilhas: Opcao[] = trilhas.map((t: any) => ({
     valor: t.id,
@@ -377,12 +383,18 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
         r.casoCriado ? "caso aberto" : "caso já ligado",
         r.codigoCaso ? `código ${r.codigoCaso}` : null,
       ].filter(Boolean);
-      setAviso(`Handoff gravado: ${partes.join(" · ")}.`);
+      setAviso(
+        `Handoff gravado: ${partes.join(" · ")}. O handoff cria pessoa e caso — a proposta comercial é o próximo passo (não é criada sozinha).`,
+      );
+      setPosHandoff({
+        casoId: r.casoId,
+        codigoCaso: r.codigoCaso ?? null,
+        leadId: selecionado!,
+      });
       void qc.invalidateQueries({ queryKey: ["leads-desk"] });
       void qc.invalidateQueries({ queryKey: ["painel-desk-hoje"] });
       void qc.invalidateQueries({ queryKey: ["painel-cadencia"] });
       void refetch();
-      void navegar({ to: "/casos/$caseId", params: { caseId: r.casoId } });
     },
     onError: (e: Error) => setAviso(e.message),
   });
@@ -666,6 +678,57 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
             </p>
           ) : (
             <>
+              {avisosOperacao.length > 0 ? (
+                <div className="rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-xs text-navy">
+                  <p className="font-medium">
+                    Pendência operacional (informa — não trava a proprietária)
+                  </p>
+                  <ul className="mt-1 list-disc pl-4 text-navy/80">
+                    {avisosOperacao.map((a) => (
+                      <li key={a.campo}>{a.motivo}</li>
+                    ))}
+                  </ul>
+                  <p className="mt-1 text-[11px] text-navy/55">
+                    Lead ativo exige área responsável, responsável nominal e próxima ação datada
+                    (CRM Journey / Calls).
+                  </p>
+                </div>
+              ) : null}
+
+              {posHandoff ? (
+                <div className="rounded-lg border border-sage/40 bg-sage/10 px-3 py-3 text-sm text-navy">
+                  <p className="font-medium">Handoff concluído — próximos passos</p>
+                  <p className="mt-1 text-xs text-navy/70">
+                    Pessoa e caso gravados
+                    {posHandoff.codigoCaso ? ` (${posHandoff.codigoCaso})` : ""}. A proposta comercial
+                    continua em Propostas (Canva + Desk) — o handoff não cria proposta sozinho.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link
+                      to="/casos/$caseId"
+                      params={{ caseId: posHandoff.casoId }}
+                      className="rounded-lg border border-navy/20 bg-white px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5"
+                    >
+                      Abrir caso
+                    </Link>
+                    <Link
+                      to="/propostas"
+                      search={{ caso: posHandoff.casoId, lead: posHandoff.leadId }}
+                      className="rounded-lg bg-navy px-3 py-1.5 text-xs font-medium text-cream hover:bg-navy/90"
+                    >
+                      Abrir / registrar proposta
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => setPosHandoff(null)}
+                      className="text-xs text-navy/55 underline"
+                    >
+                      Dispensar
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
               <Secao
                 titulo={`Registro da call — ${lead.nome}`}
                 descricao="Grava no lead canônico do CRM. Não cria ficha paralela. Próxima ação e prazo ficam no roteiro abaixo, no card 'Decisão e próximo passo'."
