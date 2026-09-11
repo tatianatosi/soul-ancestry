@@ -122,7 +122,7 @@ describe("proposta estruturada e preço da fonte mestre", () => {
     expect(bloqueiosAprovacaoProposta(p, sku()).some((b) => b.includes("preço livre"))).toBe(true);
   });
 
-  it("bloqueia SKU sem referência da Planilha Mestre", () => {
+  it("bloqueia SKU sem referência de origem no catálogo homologado", () => {
     const p = { ...propostaValida(), preco_fonte_referencia: null };
     expect(bloqueiosAprovacaoProposta(p, sku({ fonte_referencia: null })).length).toBeGreaterThan(
       0,

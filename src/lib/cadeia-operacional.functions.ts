@@ -31,21 +31,36 @@ export const salvarPlanejadorOperacional = createServerFn({ method: "POST" })
     return sincronizarPlanejador(supabase, { org, userId, entrada });
   });
 
-/** SKUs do catálogo homologado elegíveis para o Planejador selecionar. */
+/** SKUs do catálogo operacional do planejador (product_catalog), filtrados pela lista-alimento. */
 export const listarSkusPlanejador = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     semCache();
     const supabase = (context as any).supabase;
-    const { data, error } = await supabase
-      .from("product_catalog")
-      .select("id,code,nome_comercial")
-      .is("archived_at", null)
-      .neq("elegivel_para_proposta", false)
-      .order("code", { ascending: true })
-      .limit(500);
-    if (error) throw new Error(error.message);
-    return { skus: (data ?? []) as { id: string; code: string; nome_comercial: string | null }[] };
+    const [catalogo, alimento] = await Promise.all([
+      supabase
+        .from("product_catalog")
+        .select("id,code,nome_comercial")
+        .is("archived_at", null)
+        .neq("elegivel_para_proposta", false)
+        .order("code", { ascending: true })
+        .limit(500),
+      supabase
+        .from("planner_catalog_feed")
+        .select("item_id,product_parent,status_dictionary,legacy_aliases")
+        .is("archived_at", null),
+    ]);
+    if (catalogo.error) throw new Error(catalogo.error.message);
+    if (alimento.error) throw new Error(alimento.error.message);
+    const skus = (catalogo.data ?? []) as { id: string; code: string; nome_comercial: string | null }[];
+    const feed = alimento.data ?? [];
+    if (!feed.length) return { skus };
+    const { construirMapaProdutoPaiPorCodigo, produtoPaiDoCodigo, itemAlimentoOfereceNoMotor } =
+      await import("@/lib/planejador-produtos-pai");
+    const mapa = construirMapaProdutoPaiPorCodigo(feed as never);
+    return {
+      skus: skus.filter((s) => itemAlimentoOfereceNoMotor(produtoPaiDoCodigo(s.code, mapa).status_reconciliacao)),
+    };
   });
 
 /**

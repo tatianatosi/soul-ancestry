@@ -34,6 +34,23 @@ Acesso permitido só com tarefa formal de: preservação histórica, conferênci
 
 Tabela já existente para vínculos históricos: `legacy_record_links`. Não recriar a matriz legada como núcleo.
 
+Cadeia vigente (11/09/2026) — uma única, sem tabela nova. Política: `docs/politicas/cadeia-legado-planejador-caso-2026-09-11.md`.
+
+```text
+LEGADO (Planilha Mestre, planilhas e arquivos históricos)
+          ↓ leitura, inventário e migração única
+LISTA-ALIMENTO VERSIONADA (`planner_catalog_feed`)
+          ↓
+CATÁLOGO OPERACIONAL DO PLANEJADOR (`product_catalog`)
+          ↓
+CASO 360 = produto-pai + fase + trilha(s) + itens + condição particular
+          (`crm_casos` + `case_plans` + `case_services` + `citizenship_tracks`)
+          ↓
+DESK produz/valida/libera → APP mostra valor autorizado → WhatsApp comunica
+```
+
+Não pular camada. A Planilha não dirige preço, fase, próxima ação nem o que o App mostra. WhatsApp (`communication_queue`) é fila humana: nada sai sozinho.
+
 Asaas, quando houver integração aprovada, registra eventos financeiros ligados a cliente/caso/contrato. Não substitui caso, tarefa, documento, planner nem comunicação.
 
 ## Motor unificado (núcleo obrigatório)
@@ -57,7 +74,9 @@ Confirmar sempre em `src/integrations/supabase/types.ts` e `supabase/migrations/
 | Caso | `crm_casos` (eixo). Também existe `casos` — não tratar como segundo eixo sem decisão. |
 | Participantes do caso | `case_members`, `case_dependents`, `nucleo_membros` — **não** `case_participants`. |
 | Cliente / pessoa | `clientes`, `contacts`, `client_contacts`, `genealogical_person_profiles` |
-| Tarefa / planner | `tarefas`, `planner_tarefas` |
+| Tarefa / planner | `case_plans` (fonte do planejamento ativo), `tarefas`, `planner_tarefas` |
+| Lista-alimento | `planner_catalog_feed`, `price_catalog_rescued` — nunca face comercial |
+| Catálogo operacional | `product_catalog` (o Desk seleciona daqui, filtrado pela lista-alimento) |
 | Documento / evidência | `documents`, `evidencias`, `evidences`, `case_source_documents`, `genealogical_findings` (há fragmentação — dívida, não licença para uma quarta cópia) |
 | Pesquisa | `research_cases`, `research_people`, `research_sources`, `genealogical_*` |
 | Timeline | `case_timeline_events`; mudança de fase: `case_phase_history` (migration existe; pode faltar em `types.ts`) |

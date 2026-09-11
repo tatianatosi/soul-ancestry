@@ -2,10 +2,13 @@
  * Cadeia operacional — ligação entre elos JÁ EXISTENTES.
  *
  * PLANEJADOR (case_plans) → PROPOSTA ESTRUTURADA (proposals) →
- * SKU/PREÇO (product_catalog, Planilha Mestre) → CONDIÇÃO COMERCIAL
- * (commercial_conditions) → OS/ANEXO I (service_orders + contract_scope_items)
- * → PRÉVIA CONTRATUAL PERSISTIDA (contract_parameter_previews) →
- * REVISÃO HUMANA → ASSINATURA (preparada e desabilitada).
+ * CATÁLOGO OPERACIONAL (product_catalog, alimentado pela lista-alimento) →
+ * CONDIÇÃO COMERCIAL (commercial_conditions) → OS/ANEXO I
+ * (service_orders + contract_scope_items) → PRÉVIA CONTRATUAL PERSISTIDA
+ * (contract_parameter_previews) → REVISÃO HUMANA → ASSINATURA
+ * (preparada e desabilitada).
+ *
+ * A Planilha Mestre não é elo desta cadeia: é legado, via lista-alimento.
  *
  * Lógica pura: nada aqui assina, cobra, comunica, pesquisa ou infere valor
  * ausente. Ausência de fonte vira pendência explícita; conflito vira bloqueio.
@@ -227,7 +230,7 @@ export function bloqueiosAprovacaoProposta(p: PropostaEstruturada, sku: SkuCanon
   else {
     if (!sku.ativo || !sku.elegivel_para_proposta) b.push(`SKU ${sku.code} não está ativo/elegível para proposta.`);
     if (sku.preco_sugerido === null) b.push(`SKU ${sku.code} sem preço sugerido na fonte mestre.`);
-    if (!sku.fonte_referencia) b.push(`SKU ${sku.code} sem referência da Planilha Mestre.`);
+    if (!sku.fonte_referencia) b.push(`SKU ${sku.code} sem referência de origem no catálogo homologado.`);
     if (!sku.inclusoes.length) b.push(`SKU ${sku.code} sem inclusões na fonte: exige complementação formal.`);
     if (!sku.exclusoes.length) b.push(`SKU ${sku.code} sem exclusões na fonte: exige complementação formal.`);
     if (p.valor !== null && sku.preco_sugerido !== null && Number(p.valor) !== Number(sku.preco_sugerido))
@@ -288,7 +291,7 @@ export function derivarCondicaoComercial(p: PropostaEstruturada, sku: SkuCanonic
     forma_pagamento: p.forma_pagamento,
     parcelas: p.parcelas_declaradas,
     primeiro_vencimento: p.primeiro_vencimento_declarado,
-    origem: sku.fonte_referencia ?? "planilha_mestre",
+    origem: sku.fonte_referencia ?? "product_catalog",
     pendencias,
   };
 }
@@ -428,7 +431,7 @@ export function itensEscopoDaOS(c: ConteudoOS, ref: ReferenciaOrigemEscopo): Ite
 export const ELOS_OPERACIONAIS = [
   { chave: "planejador", titulo: "Planejador operacional", entrada: "crm_casos/leads", saida: "case_plans" },
   { chave: "proposta", titulo: "Proposta estruturada", entrada: "case_plans", saida: "proposals" },
-  { chave: "catalogo", titulo: "SKU/preço da Planilha Mestre", entrada: "proposals", saida: "product_catalog" },
+  { chave: "catalogo", titulo: "Catálogo operacional do planejador", entrada: "proposals", saida: "product_catalog" },
   { chave: "condicao_comercial", titulo: "Condição comercial", entrada: "proposals", saida: "commercial_conditions" },
   { chave: "os_anexo_i", titulo: "Ordem de Serviço / Anexo I", entrada: "proposals", saida: "service_orders" },
   { chave: "previa", titulo: "Prévia contratual persistida", entrada: "service_orders", saida: "contract_parameter_previews" },

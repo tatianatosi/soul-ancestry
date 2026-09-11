@@ -10,6 +10,7 @@ Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da propriet
 ## Fazer sempre
 
 - Tratar o **planejador** como fonte do trabalho ativo; o **caso** (`crm_casos`) como eixo; a próxima ação como campo obrigatório de caso ativo (`proxima_acao_prioritaria`).
+- Respeitar a cadeia única (11/09/2026): legado → lista-alimento (`planner_catalog_feed`) → catálogo do planejador (`product_catalog`) → Caso 360 (`case_plans` + `case_services`) → Desk libera → App mostra → WhatsApp comunica. Não pular camada.
 - Entregar fatia vertical (UI + persistência + permissão + evidência). Aparência sozinha não é “feito”.
 - Mapear conceitos para tabelas **já existentes** em `src/integrations/supabase/types.ts` e `supabase/migrations/`. Reaproveitar `case_members` / `tarefas` / `planner_tarefas` / `research_cases` / `documents` etc. Cruzar escritores de `src/lib` com `types.ts` **e** `CHECK` das migrations — `string` no tipo gerado não libera vocabulário novo.
 - Manter as **7 telas** de face do Desk em `GRUPOS_DESK` (decisão 11/09/2026) e as **7 abas canônicas** do App Cliente (`Home, Jornada, Radar, Árvore, Documentos, Legado, Conta`). Os 6 grupos internos do Desk não competem na barra. Hierarquia funcional da memória permanente não é menu novo.
@@ -23,7 +24,7 @@ Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da propriet
 
 ## Nunca
 
-- Usar matriz operacional legada, planilha mestre, DRE ou reconciliação antiga do Asaas como operação atual.
+- Usar matriz operacional legada, planilha mestre, DRE ou reconciliação antiga do Asaas como operação atual, nem pular a lista-alimento tratando a Planilha como catálogo vivo.
 - Inventar tabelas (`citizenship_cases`, `case_participants`, …) ou prefixo **CHECK-*** de requisitos.
 - Inventar valores de `CHECK` Postgres (`em_pesquisa`, `descartado`, `not_started`, `fase_2_pesquisa` gravado, `validada_internamente` em `evidences`, etc.). Ler a constraint na migration.
 - Colocar Entregas / Fase 01 / Fase 02 (ou Proposta / Faturas / Mensagens) como aba de primeiro nível do App Cliente.

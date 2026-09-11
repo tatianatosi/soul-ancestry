@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { AcaoDeEscrita, Secao, Selecao, Texto, Rotulo, inputCls } from "@/components/caso/campos";
 import { salvarCaseService } from "@/lib/caso-canonico.functions";
 import { STATUS_CASE_SERVICE, rotulo } from "@/lib/caso-ficha";
+import { itemAlimentoOfereceNoMotor } from "@/lib/planejador-produtos-pai";
 
 type Linha = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -58,11 +59,10 @@ export function AbaProdutoTrilha({
   // ARQUIVADO_DECISAO_PROPRIETARIA saem da lista porque essas duas situações
   // significam, por definição, "não oferecer este item".
   const grupos = useMemo(() => {
-    const naoOferecer = new Set(["NAO_USAR_NO_MOTOR", "ARQUIVADO_DECISAO_PROPRIETARIA"]);
     const porProdutoPai = new Map<string, Linha[]>();
     for (const p of produtos) {
       if (p.ativo === false) continue;
-      if (naoOferecer.has(String(p.status_reconciliacao))) continue;
+      if (!itemAlimentoOfereceNoMotor(p.status_reconciliacao)) continue;
       const grupo = String(p.produto_pai || "Sem produto-pai definido");
       if (!porProdutoPai.has(grupo)) porProdutoPai.set(grupo, []);
       porProdutoPai.get(grupo)!.push(p);

@@ -143,3 +143,11 @@ export function produtoPaiDoCodigo(
 ): EnriquecimentoProdutoPai {
   return mapa.get(String(codigo ?? "")) ?? { produto_pai: null, status_reconciliacao: null };
 }
+
+/** Itens da lista-alimento que o motor não oferece — nunca viram opção no Planejador. */
+export const STATUS_FORA_DO_MOTOR = ["NAO_USAR_NO_MOTOR", "ARQUIVADO_DECISAO_PROPRIETARIA"] as const;
+
+export function itemAlimentoOfereceNoMotor(status: string | null | undefined): boolean {
+  if (!status) return true;
+  return !(STATUS_FORA_DO_MOTOR as readonly string[]).includes(status);
+}

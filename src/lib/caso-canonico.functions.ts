@@ -23,12 +23,13 @@ export const carregarCanonico = createServerFn({ method: "GET" })
     const organizationId = await organizacaoDo(supabase, context.userId as string);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
 
-    const [produtos, catalogoPlanejador, trilhas, servicos, taxonomia, etiquetas, alertas, comunicacoes, onboarding, nucleos, entregas, aliases, proximaAcao] =
+    const [produtos, catalogoPlanejador, trilhas, servicos, planos, taxonomia, etiquetas, alertas, comunicacoes, onboarding, nucleos, entregas, aliases, proximaAcao] =
       await Promise.all([
         eq("product_catalog").is("archived_at", null).order("nome_comercial"),
         eq("planner_catalog_feed").is("archived_at", null),
         eq("citizenship_tracks").is("archived_at", null).order("pais"),
         eq("case_services").eq("case_id", data.caseId).is("archived_at", null).order("created_at"),
+        eq("case_plans").eq("case_id", data.caseId).is("archived_at", null).order("updated_at", { ascending: false }),
         eq("label_taxonomy").eq("active", true).order("sort_order"),
         eq("entity_labels").eq("entity_id", data.caseId).is("removed_at", null),
         eq("case_alerts").eq("case_id", data.caseId).order("triggered_at", { ascending: false }),
@@ -67,6 +68,7 @@ export const carregarCanonico = createServerFn({ method: "GET" })
       produtos: produtosComProdutoPai,
       trilhas: linhas<Linha>(trilhas, "trilhas de cidadania"),
       servicos: linhas<Linha>(servicos, "serviços do caso"),
+      planos: linhas<Linha>(planos, "planos do caso"),
       taxonomia: linhas<Linha>(taxonomia, "taxonomia de etiquetas"),
       etiquetas: linhas<Linha>(etiquetas, "etiquetas aplicadas ao caso"),
       alertas: linhas<Linha>(alertas, "alertas do caso"),

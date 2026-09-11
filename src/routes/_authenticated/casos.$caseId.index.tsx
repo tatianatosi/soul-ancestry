@@ -31,6 +31,7 @@ import { PlanejadorOperacional } from "@/components/contrato/planejador-operacio
 import { AbaVisaoGeral } from "@/components/caso/visao-geral";
 import { RadarInternoCaso } from "@/components/caso/radar-interno";
 import { radarInternoDoCaso } from "@/lib/radar-interno-caso";
+import { ComposicaoCaso360, composicaoAPartirDoCanonico } from "@/components/caso/composicao-caso-360";
 import { AbaProdutoTrilha } from "@/components/caso/produto-trilha";
 import { ConsolidacaoCaseService } from "@/components/caso/consolidacao-case-service";
 import { AbaProximaAcao } from "@/components/caso/proxima-acao";
@@ -805,6 +806,8 @@ function FichaCaso() {
           </Link>
         </div>
       </div>
+
+      <ComposicaoCaso360 caseId={id} composicao={composicaoAPartirDoCanonico(qc2.data)} />
 
       <section className="mb-4 rounded-xl border border-navy/10 bg-white p-4" data-radar-caso>
         <p className="text-[11px] uppercase tracking-wide text-navy/50">Radar do caso</p>

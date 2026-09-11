@@ -7,10 +7,11 @@ import { readFileSync } from "node:fs";
 const pagina = readFileSync("src/routes/_authenticated/casos.$caseId.index.tsx", "utf8");
 
 describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)", () => {
-  it("acima da dobra mostra exatamente os seis campos exigidos", () => {
+  it("acima da dobra mostra os seis campos do mockup e a composição do caso", () => {
     for (const campo of ["Situação hoje", "Próxima ação", "Responsável", "Prazo", "Motivo", "Impacto"]) {
       expect(pagina, `campo ausente: ${campo}`).toContain(campo);
     }
+    expect(pagina).toContain("ComposicaoCaso360");
   });
 
   it("as seis ações exigidas existem, todas no mesmo bloco do hero", () => {

@@ -10,7 +10,7 @@ Texto irmão: `.cursor/rules/clube-ancestral.mdc`. Não altera legado; não inve
 ## Premissas permanentes
 
 1. O **planejador** (`case_plans` + `salvarPlanejadorOperacional`) é a única fonte válida para planejamento e operação ativa.
-2. Matriz operacional legada, planilha mestre, DRE e reconciliação antiga do Asaas são **passado**. Não usá-los para status, prioridade, próxima ação, workflow, automação ou dashboard. Preservar isolados; não adaptar nesta etapa.
+2. Matriz operacional legada, planilha mestre, DRE e reconciliação antiga do Asaas são **passado**. Cadeia vigente: legado → lista-alimento (`planner_catalog_feed`) → catálogo do planejador (`product_catalog`) → Caso 360 (`case_plans` + `case_services`) → Desk libera → App mostra → WhatsApp comunica. Não pular camada.
 3. O produto opera com **motor unificado**. Fonte coerente entre: contatos/clientes, casos, serviços, jornadas, tarefas, responsáveis, prazos, próxima ação, pendências/bloqueios, documentos, timeline/auditoria, comunicações, permissões, planejador, portal.
 4. **Caso** (`crm_casos`) é a unidade operacional central. Tarefa, documento, pendência, comunicação ou evento relevante exige `caso_id` / `case_id`, salvo lead não convertido ou registro administrativo explícito.
 5. Tela sem persistência não é funcionalidade. Mock, layout isolado, endpoint solto, tabela sem fluxo, dado em memória ou permissão só no front **não** está implementado.

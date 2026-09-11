@@ -50,9 +50,12 @@ describe("Planejador operacional — entrada que faltava no elo 1 da cadeia", ()
     expect(fn).toContain("nunca aceito do cliente");
   });
 
-  it("a listagem de SKU chama semCache() — é GET autenticado", () => {
+  it("a listagem de SKU chama semCache() e lê a lista-alimento, não a Planilha", () => {
     expect(fn).toContain("listarSkusPlanejador");
     const trecho = fn.slice(fn.indexOf("listarSkusPlanejador"));
-    expect(trecho.slice(0, 400)).toContain("semCache();");
+    expect(trecho).toContain("semCache();");
+    expect(trecho).toContain("planner_catalog_feed");
+    expect(trecho).toContain("product_catalog");
+    expect(trecho).not.toContain("catalogo-fonte-mestre");
   });
 });
