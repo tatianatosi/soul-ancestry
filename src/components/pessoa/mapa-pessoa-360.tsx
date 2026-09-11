@@ -243,6 +243,11 @@ export function MapaPessoa360(p: PessoaMapaProps) {
                       .join(", ")}
                   </p>
                 ) : null}
+                {p.perfisGenealogicos.map((perfil) => (
+                  <p key={perfil.id} className="text-xs text-navy/55">
+                    Perfil 360°: {perfil.nome_completo} · {estado(perfil.status_verificacao)}
+                  </p>
+                ))}
               </>
             )}
         </CardNuance>
