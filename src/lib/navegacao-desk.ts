@@ -102,7 +102,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { grupo: "Aquisição" },
       { to: "/marketing", label: "Marketing e aquisição" },
       { grupo: "CRM Vivo" },
-      { to: "/calls", label: "Mesa de Discovery" },
+      { to: "/calls", label: "Painel de Calls (CRM vivo)" },
       { to: "/leads", label: "Leads e triagem" },
       { to: "/crm-mestre", label: "CRM Mestre — Discovery e Handoff" },
       { to: "/governanca/dicionario-calls-crm", label: "Dicionário Calls → CRM" },

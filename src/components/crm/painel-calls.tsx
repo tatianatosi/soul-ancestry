@@ -581,8 +581,8 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
       ) : null}
 
       <Secao
-        titulo="Mesa de Discovery"
-        descricao="Aqui a entrada comercial funciona: varredura, uma pergunta SPIN por vez, próxima ação e handoff. Os KPIs do que está parado ou vencido ficam no Hoje. Toda triagem é sinal interno — não conclui elegibilidade nem envia proposta."
+        titulo="Painel de Calls · CRM vivo"
+        descricao="CRM Calls faz parte do CRM vivo: varredura, Mesa de Discovery (SPIN), próxima ação e handoff. Os KPIs do que está parado ou vencido ficam no Hoje. Toda triagem é sinal interno — não conclui elegibilidade nem envia proposta."
       >
         <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {[

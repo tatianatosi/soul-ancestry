@@ -9,20 +9,20 @@ export const Route = createFileRoute("/_authenticated/calls")({
     lead: typeof s.lead === "string" && s.lead.length > 0 ? s.lead : undefined,
   }),
   errorComponent: ({ error, reset }) => (
-    <ErroSuperficieDesk error={error} reset={reset} titulo="Mesa de Discovery" />
+    <ErroSuperficieDesk error={error} reset={reset} titulo="Painel de Calls" />
   ),
   head: () => ({
     meta: [
-      { title: "Mesa de Discovery — Clube Ancestral" },
+      { title: "Painel de Calls — Clube Ancestral" },
       {
         name: "description",
         content:
-          "Entrada comercial: varredura, perguntas SPIN, próxima ação e handoff para pessoa/caso. KPIs de atraso ficam no Hoje.",
+          "CRM vivo: Calls, SPIN, próxima ação e handoff para pessoa/caso. KPIs de atraso ficam no Hoje.",
       },
-      { property: "og:title", content: "Mesa de Discovery — Clube Ancestral" },
+      { property: "og:title", content: "Painel de Calls — Clube Ancestral" },
       {
         property: "og:description",
-        content: "A Mesa faz a entrada comercial funcionar — Calls, SPIN e handoff no Desk.",
+        content: "CRM Calls faz parte do CRM vivo — Mesa de Discovery, SPIN e handoff no Desk.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -36,8 +36,8 @@ function CallsPage() {
   const { lead } = Route.useSearch();
   return (
     <SaasShell
-      titulo="Mesa de Discovery"
-      descricao="Entrada comercial: uma pergunta por vez, com origem e destino. O handoff cria pessoa e caso. O que está parado ou vencido aparece no Hoje."
+      titulo="Painel de Calls"
+      descricao="CRM vivo: uma pergunta por vez, com origem e destino. A Mesa de Discovery registra a call; o handoff cria pessoa e caso. O que está parado ou vencido aparece no Hoje."
     >
       <PainelCalls leadIdInicial={lead} />
     </SaasShell>

@@ -24,7 +24,7 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     expect(CAMADAS_DESK.find((c) => c.id === "kpis")?.superficie).toBe("/painel");
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
     expect(comercial.to).toBe("/calls");
-    expect(comercial.sub.some((s) => "to" in s && s.to === "/calls" && s.label === "Mesa de Discovery")).toBe(
+    expect(comercial.sub.some((s) => "to" in s && s.to === "/calls" && s.label === "Painel de Calls (CRM vivo)")).toBe(
       true,
     );
     expect(GRUPOS_DESK.find((g) => g.id === "hoje")?.to).toBe("/painel");

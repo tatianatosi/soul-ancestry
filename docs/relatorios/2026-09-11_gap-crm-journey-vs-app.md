@@ -8,7 +8,7 @@ Leitura operacional: `docs/politicas/ADENDO-CRM-JOURNEY-PAINEL-CALLS-2026-09-11.
 | Journey | Código / tabela | Status |
 |---|---|---|
 | Lead bruto / qualificado | `/leads`, filas em `/calls` → `leads` | OK |
-| Painel de Calls (entrada) | `PainelCalls`, rota `/calls` | OK — não esconder |
+| Painel de Calls (CRM vivo) | `PainelCalls`, rota `/calls` | OK — Calls ⊂ CRM vivo; não esconder |
 | SPIN Discovery | `discovery-roteiro.ts` + Mesa em `painel-calls.tsx` | OK |
 | status_call / consentimento | `leads.status_call`, `consentimento_*` + `bloqueiosRegistroCall` | OK |
 | Próxima ação + responsável + área | `leads.proxima_acao`, `proxima_acao_em`, `responsavel_nome`, `area_responsavel` + `validarLead` | OK backend; UI de aviso reforçada nesta fatia |

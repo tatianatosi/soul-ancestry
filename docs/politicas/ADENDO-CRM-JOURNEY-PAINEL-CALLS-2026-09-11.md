@@ -8,13 +8,15 @@
 
 ## Papéis canônicos
 
+**CRM Calls faz parte do CRM vivo** — não é módulo paralelo nem “pré-CRM”. A call é a primeira superfície operacional do ciclo comercial vivo.
+
 | Camada | Papel | Persistência real |
 |---|---|---|
-| **Painel de Calls** (`/calls`, `PainelCalls`) | Entrada: preparação, SPIN, registro, próxima ação, handoff | Tabela **`leads`** |
-| **CRM vivo** | Ciclo de vida comercial após/além da call | `leads` → handoff → **`clientes`** + **`crm_casos`**; proposta em **`proposals`** |
+| **CRM vivo · Calls** (`/calls`, `PainelCalls`) | Entrada viva: preparação, SPIN, registro, próxima ação, handoff | Conceito Journey `crm_calls` → tabela **`leads`** (não criar `crm_calls`) |
+| **CRM vivo · pós-handoff** | Pessoa, caso, proposta, follow-up, App | `leads` → **`clientes`** + **`crm_casos`**; proposta em **`proposals`** |
 | **Planejador** | Plano operacional do **caso** (não do lead) | `case_plans` + `salvarPlanejadorOperacional` |
 
-Calls alimenta lead/discovery até o handoff. Depois do handoff, o eixo é o caso; o planejador comanda a operação.
+Calls é CRM vivo do primeiro contato até o handoff. Depois do handoff o eixo operacional passa a ser o caso; o planejador comanda a operação do caso — sem desligar o histórico comercial no lead.
 
 ## De-para Journey → runtime (não inventar tabela)
 
