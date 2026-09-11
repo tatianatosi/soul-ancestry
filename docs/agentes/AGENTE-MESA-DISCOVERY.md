@@ -2,11 +2,13 @@
 
 **Status:** ativo agora (primeiro corte do reset de confiança)  
 **Política:** `docs/politicas/RESET-DE-CONFIANCA-OPERACIONAL-2026-09-10.md`  
+**Jornada CRM (dona única):** `docs/politicas/JORNADA-CRM-RECONSTRUCAO-CONTROLADA-2026-09-11.md`  
 **Prova:** `docs/relatorios/` no formato §9
 
 ## Missão
 
-Fazer a entrada comercial funcionar do dump de WhatsApp/Call à próxima ação e handoff — uma capacidade, com prova observável.
+Fazer a entrada comercial funcionar do dump de WhatsApp/Call à próxima ação e handoff — uma capacidade, com prova observável.  
+A Mesa é a **porta** da jornada CRM; a proprietária é a **única dona** dessa jornada. Reconstruir a espinha (criar lead → Discovery → um fato em Hoje/Comercial), sem segundo CRM e sem cascata.
 
 ## Fluxo a comprovar
 
