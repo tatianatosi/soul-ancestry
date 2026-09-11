@@ -296,6 +296,35 @@ function LeadsPage() {
         <div className="space-y-3">
           {msg ? <p className="rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-sm text-navy">{msg}</p> : null}
 
+          {atual ? (
+            <div className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-white px-3 py-2 text-xs">
+              {atual.case_id ? (
+                <Link
+                  to="/casos/$caseId"
+                  params={{ caseId: atual.case_id }}
+                  className="rounded-lg border border-navy/20 px-2.5 py-1.5 font-medium text-navy underline-offset-2 hover:underline"
+                >
+                  Abrir Caso 360
+                </Link>
+              ) : (
+                <span className="rounded-lg border border-navy/10 px-2.5 py-1.5 text-navy/50">Sem caso vinculado</span>
+              )}
+              {atual.cliente_id ? (
+                <Link
+                  to="/pessoas/$clienteId"
+                  params={{ clienteId: atual.cliente_id }}
+                  className="rounded-lg border border-gold/50 bg-gold/10 px-2.5 py-1.5 font-medium text-navy underline-offset-2 hover:underline"
+                >
+                  Abrir Pessoa 360
+                </Link>
+              ) : (
+                <span className="rounded-lg border border-navy/10 px-2.5 py-1.5 text-navy/50">
+                  Pessoa 360 após vínculo com cliente/caso
+                </span>
+              )}
+            </div>
+          ) : null}
+
           {atual ? <HandoffLead lead={editado} /> : null}
 
           {atual ? <DerivacaoJornada lead={editado} /> : null}

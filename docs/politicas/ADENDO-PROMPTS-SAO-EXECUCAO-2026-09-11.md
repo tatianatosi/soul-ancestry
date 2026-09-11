@@ -22,3 +22,10 @@
 ## Material reenviado 2026-09-11
 
 Arquivado em `docs/evolucao/recuperados/prompts-execucao-2026-09-11/` (muitos já existiam em `docs/politicas/` ou `prompts-lovable-2026-08-31/` — cópia canônica para não depender do chat).
+
+## Fontes permanentes adicionadas (2026-09-11)
+
+Ver `ADENDO-FONTES-EXECUCAO-POLITICAS-QUADRO-PRS-2026-09-11.md`:
+
+- Políticas (main): https://github.com/tatianatosi/soul-ancestry/tree/main/docs/politicas → `docs/politicas/`
+- Quadro PRs #1–#85: https://github.com/tatianatosi/soul-ancestry/blob/claude/ancestral-club-desk-intelligence-0gsoeg/docs/relatorios/2026-09-05_quadro_completo_prs_1_ate_atual.md → `docs/relatorios/2026-09-05_quadro_completo_prs_1_ate_atual.md`

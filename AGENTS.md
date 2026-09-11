@@ -21,7 +21,7 @@ Isto **não** autoriza redesenho de navegação, vocabulário novo (incluindo ta
 2. **Planejador** = única fonte válida do planejamento operacional ativo (prioridades, capacidade, prazos, responsáveis, o que vem a seguir).
 3. Modelo de dados, migrations e código efetivamente aprovados. Divergência = dívida ou bloqueio declarado, nunca escondida.
 4. Mockup aprovado de **17 páginas** (`docs/evolucao/recuperados/prompts-lovable-2026-08-31/clube-ancestral-mockup.pdf`) = contrato visual normativo.
-5. Políticas aprovadas em `docs/politicas/` (autoridade operacional, fonte de verdade de design, taxonomia do mockup, **adendo de contexto não arquivável e prova autenticada** de 2026-09-10).
+5. Políticas aprovadas em `docs/politicas/` (autoridade operacional, fonte de verdade de design, taxonomia do mockup, **adendo de contexto não arquivável e prova autenticada** de 2026-09-10). Árvore canônica: https://github.com/tatianatosi/soul-ancestry/tree/main/docs/politicas — `PROMPT-*` = backlog de execução (`ADENDO-PROMPTS-SAO-EXECUCAO` + `ADENDO-FONTES-EXECUCAO-POLITICAS-QUADRO-PRS-2026-09-11.md`). Quadro PRs código×docs: `docs/relatorios/2026-09-05_quadro_completo_prs_1_ate_atual.md` (blob: https://github.com/tatianatosi/soul-ancestry/blob/claude/ancestral-club-desk-intelligence-0gsoeg/docs/relatorios/2026-09-05_quadro_completo_prs_1_ate_atual.md).
 6. Materiais legados = histórico / auditoria / migração controlada. **Nunca** dirigem a operação atual.
 
 Se o código divergir destas instruções, declarar a dívida. Não “corrigir” a realidade do schema inventando entidades paralelas.

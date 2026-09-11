@@ -422,7 +422,22 @@ function Pagina() {
       <div className="space-y-4">
         <p className="rounded-lg border border-gold/40 bg-gold/5 px-4 py-3 text-sm text-navy/80">
           Motor contratual parametrizado por cliente: dados e anexos (escopo, entregas) vêm do Canva da
-          proposta. A timeline da jornada da pessoa fica na Pessoa 360 — aqui só formalização.
+          proposta. A timeline da jornada da pessoa fica na Pessoa 360 — aqui só formalização.{" "}
+          {d.cliente?.id ? (
+            <Link
+              to="/pessoas/$clienteId"
+              params={{ clienteId: String(d.cliente.id) }}
+              className="font-medium text-navy underline underline-offset-2"
+            >
+              Abrir Pessoa 360
+            </Link>
+          ) : (
+            <span className="text-navy/50">Vincule o cliente do caso para abrir a Pessoa 360.</span>
+          )}
+          {" · "}
+          <Link to="/casos/$caseId" params={{ caseId }} className="font-medium text-navy underline underline-offset-2">
+            Caso 360
+          </Link>
         </p>
         <Painel titulo={`Caso em preparação: ${d.caso.codigo} — ${d.cliente?.nome ?? "cliente não vinculado"}`}>
           <div className="flex flex-wrap items-center gap-2 text-xs">

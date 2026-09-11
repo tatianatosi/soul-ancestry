@@ -153,8 +153,26 @@ export const listarLeadsDesk = createServerFn({ method: "GET" })
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     const leads = (data ?? []) as LeadDesk[];
+    const caseIds = Array.from(
+      new Set(leads.map((l) => l.case_id).filter((id): id is string => Boolean(id))),
+    );
+    const clientePorCaso = new Map<string, string>();
+    if (caseIds.length) {
+      const { data: casos, error: errCasos } = await supabase
+        .from("crm_casos")
+        .select("id,cliente_id")
+        .in("id", caseIds);
+      if (errCasos) throw new Error(errCasos.message);
+      for (const c of casos ?? []) {
+        if (c?.id && c.cliente_id) clientePorCaso.set(c.id as string, c.cliente_id as string);
+      }
+    }
     const livre = await proprietariaOperando(supabase, (context as any).userId as string);
-    return leads.map((l) => ({ ...l, pendencias: validarLead(l, livre) }));
+    return leads.map((l) => ({
+      ...l,
+      cliente_id: (l.case_id && clientePorCaso.get(l.case_id)) || l.cliente_id || null,
+      pendencias: validarLead(l, livre),
+    }));
   });
 
 /** Cria ou atualiza um lead. Rejeita valores fora das listas controladas. */

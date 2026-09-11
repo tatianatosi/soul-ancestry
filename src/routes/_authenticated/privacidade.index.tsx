@@ -42,18 +42,40 @@ function PrivacidadeIndex() {
           {(casos) => (
         <div className="space-y-2">
           {casos.map((c: Record<string, unknown>) => (
-            <Link
+            <div
               key={c["id"] as string}
-              to="/privacidade/$id"
-              params={{ id: c["id"] as string }}
-              className="block rounded-xl border border-navy/10 bg-white p-3 hover:border-navy/30"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-white p-3"
             >
-              <div className="flex flex-wrap items-center gap-2">
-                <strong className="text-sm">{String(c["codigo"] ?? "—")}</strong>
-                <span className="text-sm text-navy/70">{String(c["titulo"] ?? "")}</span>
-                <Selo texto={String(c["status"] ?? "—")} tom={c["status"] === "ativo" ? "ok" : "neutro"} />
+              <Link
+                to="/privacidade/$id"
+                params={{ id: c["id"] as string }}
+                className="min-w-0 flex-1 hover:opacity-90"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <strong className="text-sm">{String(c["codigo"] ?? "—")}</strong>
+                  <span className="text-sm text-navy/70">{String(c["titulo"] ?? "")}</span>
+                  <Selo texto={String(c["status"] ?? "—")} tom={c["status"] === "ativo" ? "ok" : "neutro"} />
+                </div>
+              </Link>
+              <div className="flex flex-wrap gap-2 text-xs">
+                <Link
+                  to="/casos/$caseId"
+                  params={{ caseId: c["id"] as string }}
+                  className="rounded-lg border border-navy/20 px-2 py-1 text-navy underline-offset-2 hover:underline"
+                >
+                  Caso 360
+                </Link>
+                {c["cliente_id"] ? (
+                  <Link
+                    to="/pessoas/$clienteId"
+                    params={{ clienteId: String(c["cliente_id"]) }}
+                    className="rounded-lg border border-gold/50 bg-gold/10 px-2 py-1 font-medium text-navy underline-offset-2 hover:underline"
+                  >
+                    Pessoa 360
+                  </Link>
+                ) : null}
               </div>
-            </Link>
+            </div>
           ))}
         </div>
           )}
