@@ -31,4 +31,5 @@ Cliente externo nunca vê nota interna, outro caso ou outro cliente. Esconder na
 ## Peças que não se apagam
 
 - Painel de Calls (`/calls`, `PainelCalls`) é entrada canônica do CRM Vivo. Isolar dicionário/legado não autoriza esconder a rota.
-- Os 8 grupos de `GRUPOS_DESK` permanecem. Não fundir, não criar nona aba.
+- Os 8 grupos de `GRUPOS_DESK` permanecem. Não fundir, não criar nona aba. (Código desta linha pode mostrar 6 — dívida declarada, não arquivar nenhuma leitura.)
+- Manhã e fim do dia: atualizar o quadro de tarefas da aba em foco (`docs/relatorios/TAREFAS-ABA-*.md`). Não dizer “100%” sem persistência + F5 + fio até o caso/Hoje.
