@@ -126,7 +126,11 @@ function LinkItem({
     );
   }
   return (
-    <Link to="/calls" className="text-navy underline underline-offset-2">
+    <Link
+      to="/calls"
+      search={{ lead: item.id }}
+      className="text-navy underline underline-offset-2"
+    >
       {children}
     </Link>
   );
