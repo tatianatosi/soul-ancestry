@@ -27,7 +27,7 @@ Nenhum motor abaixo está `COMPROVADO_EM_USO`. Código, PR, Vitest, build, previ
 | Campo | Valor |
 |---|---|
 | Data/hora | 2026-09-11 ~00:39–00:52 UTC |
-| Ambiente | `https://soul-ancestry-git-cursor-mesa-discov-f8ced8-tati-6134s-projects.vercel.app` |
+| Ambiente | `https://soul-ancestry-git-cursor-desk-sistem-e65597-tati-6134s-projects.vercel.app` |
 | Conta visível | `tati@pluggedresearch.com` · Clube Ancestral · Admin (menu Conta) |
 | Quem executou | Agente, com a conta da proprietária. **Não** é o protocolo da seção 3 (teste executado pela proprietária). |
 | Lead | Ana Luiza (`dados_teste`) — fixture, não operação real. |
@@ -60,7 +60,7 @@ Essa linha **não** pede que a proprietária refaça o clique só para repetir o
 |---|---|
 | Data | 2026-09-11 |
 | Quem | Proprietária (`tati@pluggedresearch.com`), autenticada |
-| URL | `https://soul-ancestry.vercel.app/app-cliente-como-pessoa` |
+| URL | `https://soul-ancestry-git-cursor-desk-sistem-e65597-tati-6134s-projects.vercel.app/app-cliente-como-pessoa` |
 | Caso | `CA-CID-AT-FAM-2026-001` — Projeto familiar — Ana Luiza (fixture) |
 | Selo | ACESSO MASTER — VISÃO REAL DO APP CLIENTE |
 | Abas percorridas | Home · Jornada · Radar · Árvore · Documentos · Legado · Conta (7/7) |
@@ -69,6 +69,22 @@ Essa linha **não** pede que a proprietária refaça o clique só para repetir o
 | Mockup (referência P11, sem redesign agora) | 17 págs: `docs/evolucao/recuperados/prompts-lovable-2026-08-31/clube-ancestral-mockup.pdf` · 47 págs: mesmo dir + `…/auditoria-mockup-2026-09-11/` · autoridade: `docs/politicas/ADENDO-MEMORIA-AUDITORIA-MOCKUP-CANVAS-2026-09-11.md` |
 | Backlog visual | `docs/relatorios/2026-09-11_backlog-p11-app-cliente-vs-mockup.md` |
 | `COMPROVADO_EM_USO` | **não** — só leitura/empty; sem protocolo publicar + F5 |
+
+### E. Pacote de prints do dia — Planejador v2.1 / Desk sistema do dia (PR #111)
+
+| Campo | Valor |
+|---|---|
+| Data/hora | 2026-09-11 ~18:00–18:15 UTC |
+| Quem preparou | Agente (Cloud) — **não** é certificação da dona |
+| Preview | `https://soul-ancestry-git-cursor-desk-sistem-e65597-tati-6134s-projects.vercel.app` |
+| SHA | `ce3c7576` |
+| Pasta | `docs/relatorios/provas/2026-09-11-planejador-v21/` |
+| Conteúdo agente | fixtures 01–06 (cadeia, cenários, matriz, 91 SKUs, roteiro, vitest) + preview 07–09 (landing, `/equipe/entrar`, `/painel` → login) |
+| `/painel` autenticado | **não** — sem sessão da proprietária neste pacote |
+| Resultado do protocolo | **não** `PASSOU`; **não** `COMPROVADO_EM_USO` |
+| Próximo passo dona | Colar `dona-01`…`dona-05` no README da pasta (inicial → ação → confirmação → releitura → integração) |
+
+Essa linha **prepara** a certificação; não a substitui. Vitest/preview sem Painel logado **não** movem motor para `COMPROVADO_EM_USO`.
 
 ## Matriz por motor
 
@@ -87,7 +103,8 @@ Resultados permitidos: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_
 | Proposta / formalização | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
 | Financeiro | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
 | Entregas / App Cliente | `PASSOU` (leitura master) | sim×7 / — / empty por aba / — / não | Ambiente D. Sem `42P17`. **não** `COMPROVADO_EM_USO` (falta publicar→F5). Prints em `provas/2026-09-11-app-cliente-master/`. |
-| KPIs e Hoje | `NAO_LOCALIZADO` | — | Sem print de integração da próxima ação da Mesa. |
+| KPIs e Hoje | `NAO_LOCALIZADO` | — | Sem print de integração da próxima ação da Mesa. Pacote E só prepara slots; sem sessão dona no `/painel`. |
+| Planejador / preços resgatados / 91 SKUs (v2.1) | evidência de agente — **não** `PASSOU` | fixture 01–06 / — / — / — / — | Ambiente E. Sem homologar preço. Sem `COMPROVADO_EM_USO`. |
 | Abas / taxonomia | parcial | sim (7 abas App) / — / — / — / — | App Cliente: 7 abas confirmadas pela dona (ambiente D). Desk: código desta linha ainda diverge da memória de 8 grupos — dívida declarada. |
 
 ## Cadeia transversal
