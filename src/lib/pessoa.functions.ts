@@ -65,15 +65,46 @@ export const carregarPessoa = createServerFn({ method: "GET" })
     const { data: casos } = await supabase
       .from("crm_casos")
       .select(
-        "id, codigo, titulo, fase, pais, via, data_entrada, ativo, prioridade, proxima_acao, prazo_proxima_acao",
+        "id, codigo, titulo, fase, pais, via, data_entrada, ativo, prioridade, proxima_acao, prazo_proxima_acao, proxima_acao_responsavel, responsavel_principal, situacao_operacional, eixo_formalizacao",
       )
       .eq("cliente_id", cliente.id)
       .eq("organization_id", organizationId)
       .is("archived_at", null)
       .order("data_entrada", { ascending: true });
 
-    const listaCasos = (casos ?? []) as Linha[];
-    const ids = listaCasos.map((c) => c.id);
+    const listaCasosBruta = (casos ?? []) as Linha[];
+    const ids = listaCasosBruta.map((c) => c.id);
+
+    /*
+      11/09/2026 — Pessoa 360 sem próxima ação canônica: a ficha do caso já
+      usa proxima_acao_prioritaria; o perfil só mostrava fase/código. Mesma
+      RPC em lote, sem tabela nova.
+    */
+    const porCasoCanonica = new Map<
+      string,
+      { nivel: number; motivo: string; prazo: string | null }
+    >();
+    if (ids.length > 0) {
+      const { data: canonicas } = await supabase.rpc("proxima_acao_prioritaria_lote", {
+        _cases: ids,
+      });
+      for (const p of (canonicas ?? []) as {
+        case_id: string;
+        nivel: number;
+        motivo: string;
+        prazo: string | null;
+      }[]) {
+        porCasoCanonica.set(p.case_id, {
+          nivel: p.nivel,
+          motivo: p.motivo,
+          prazo: p.prazo,
+        });
+      }
+    }
+    const listaCasos = listaCasosBruta.map((c) => ({
+      ...c,
+      proximaAcaoCanonica: porCasoCanonica.get(String(c.id)) ?? null,
+    }));
 
     const { data: eventos } = ids.length
       ? await supabase

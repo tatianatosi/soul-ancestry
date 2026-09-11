@@ -803,6 +803,15 @@ function FichaCaso() {
           >
             Abrir visão do cliente
           </Link>
+          {clienteId ? (
+            <Link
+              to="/pessoas/$clienteId"
+              params={{ clienteId }}
+              className="rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-sm font-medium text-navy hover:bg-gold/20"
+            >
+              Abrir Pessoa 360
+            </Link>
+          ) : null}
         </div>
       </div>
 

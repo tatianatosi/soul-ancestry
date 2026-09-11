@@ -14,6 +14,9 @@ import {
   type EvidenciaDeElo,
 } from "@/lib/pessoa-identidade";
 import { formatarCep, formatarCpf, formatarTelefone, UFS_BRASIL } from "@/lib/validacao-pessoa";
+import { rotuloFase } from "@/lib/fase-rotulo";
+import { obterProximaAcaoCanonica, SELO_PROXIMA_ACAO } from "@/lib/caso-ficha";
+import { NOME_RESPONSAVEL_PADRAO } from "@/lib/responsavel-padrao";
 
 /**
  * A página de uma pessoa.
@@ -476,37 +479,105 @@ function Pessoa() {
             <h2 className="font-serif text-lg text-navy">Casos</h2>
             <p className="text-xs text-navy/55">{casos.length} caso(s)</p>
           </div>
+          <p className="mt-1 text-xs text-navy/55">
+            Próxima ação vem do mesmo planejador da ficha do caso (RPC). Responsável padrão da operação:{" "}
+            {NOME_RESPONSAVEL_PADRAO}.
+          </p>
           {casos.length === 0 ? (
             <p className="mt-2 text-sm text-navy/60">Nenhum caso aberto para esta pessoa.</p>
           ) : (
-            <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-              {casos.map((c) => (
-                <li
-                  key={c.id}
-                  className="rounded-lg border border-navy/12 bg-cream/25 p-3 transition-colors hover:bg-cream/50"
-                >
-                  <Link to="/casos/$caseId" params={{ caseId: c.id }} className="block">
-                    <p className="font-mono text-[11px] text-navy/60">{c.codigo}</p>
-                    <p className="text-sm font-medium text-navy">{c.titulo}</p>
-                    <p className="mt-1 text-xs text-navy/55">
-                      {[
-                        c.fase,
-                        c.pais,
-                        c.data_entrada ? `desde ${formatarDia(c.data_entrada)}` : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
-                  </Link>
-                  <Link
-                    to="/app-cliente-como-pessoa"
-                    search={{ casoId: c.id }}
-                    className="mt-2 inline-block text-xs font-medium text-navy underline underline-offset-4"
+            <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+              {casos.map((c) => {
+                const rpc = c.proximaAcaoCanonica ?? null;
+                const canonica = obterProximaAcaoCanonica({
+                  caseId: String(c.id),
+                  rpc: rpc
+                    ? {
+                        nivel: rpc.nivel,
+                        motivo: rpc.motivo,
+                        origem_tabela: null,
+                        origem_id: null,
+                        prazo: rpc.prazo,
+                      }
+                    : null,
+                  responsavelPrincipal:
+                    (c.proxima_acao_responsavel as string) ||
+                    (c.responsavel_principal as string) ||
+                    null,
+                  dependencia: null,
+                  criterioConclusao: null,
+                });
+                return (
+                  <li
+                    key={c.id}
+                    className="flex flex-col rounded-lg border border-navy/12 bg-cream/25 p-3 transition-colors hover:bg-cream/50"
                   >
-                    Abrir visão do cliente
-                  </Link>
-                </li>
-              ))}
+                    <Link to="/casos/$caseId" params={{ caseId: c.id }} className="block">
+                      <p className="font-mono text-[11px] text-navy/60">{c.codigo}</p>
+                      <p className="text-sm font-medium text-navy">{c.titulo}</p>
+                      <p className="mt-1 text-xs text-navy/55">
+                        {[
+                          rotuloFase(c.fase as string | null),
+                          c.pais,
+                          c.data_entrada ? `desde ${formatarDia(c.data_entrada)}` : null,
+                          c.ativo ? "ativo" : "em ativação",
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                    </Link>
+                    <dl className="mt-3 space-y-1 border-t border-navy/10 pt-2 text-xs text-navy/75">
+                      <div>
+                        <dt className="text-[10px] uppercase tracking-wide text-navy/45">Próxima ação</dt>
+                        <dd className="font-medium text-navy">{canonica.acao}</dd>
+                        <dd>
+                          {SELO_PROXIMA_ACAO[canonica.origem]} · Responsável:{" "}
+                          {canonica.responsavel || NOME_RESPONSAVEL_PADRAO}
+                        </dd>
+                        <dd>
+                          Prazo:{" "}
+                          {canonica.prazo
+                            ? new Date(String(canonica.prazo)).toLocaleDateString("pt-BR")
+                            : c.prazo_proxima_acao
+                              ? formatarDia(c.prazo_proxima_acao)
+                              : "—"}
+                        </dd>
+                      </div>
+                    </dl>
+                    <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs font-medium">
+                      <Link
+                        to="/casos/$caseId"
+                        params={{ caseId: c.id }}
+                        className="text-navy underline underline-offset-4"
+                      >
+                        Abrir Caso 360
+                      </Link>
+                      <Link
+                        to="/casos/$caseId/contrato/preparar"
+                        params={{ caseId: c.id }}
+                        className="text-navy underline underline-offset-4"
+                      >
+                        Formalização
+                      </Link>
+                      <Link
+                        to="/casos/$caseId"
+                        params={{ caseId: c.id }}
+                        hash="jornada"
+                        className="text-navy underline underline-offset-4"
+                      >
+                        Jornada
+                      </Link>
+                      <Link
+                        to="/app-cliente-como-pessoa"
+                        search={{ casoId: c.id }}
+                        className="text-navy underline underline-offset-4"
+                      >
+                        Visão do cliente
+                      </Link>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>
@@ -539,6 +610,9 @@ function Pessoa() {
 
         <section className="rounded-xl border border-navy/10 bg-white p-5">
           <h2 className="font-serif text-lg text-navy">Propostas, contratos e documentos</h2>
+          <p className="mt-1 text-xs text-navy/55">
+            Status aqui; edição e formalização nas rotas de origem (sem formulário duplicado).
+          </p>
           <div className="mt-3 grid gap-4 sm:grid-cols-3">
             <div>
               <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
@@ -552,10 +626,25 @@ function Pessoa() {
                     <li key={p.id} className="text-sm text-navy/80">
                       {p.status}
                       {p.valor ? ` · R$ ${p.valor}` : ""}
+                      {p.case_id ? (
+                        <>
+                          {" · "}
+                          <Link
+                            to="/casos/$caseId/contrato/preparar"
+                            params={{ caseId: String(p.case_id) }}
+                            className="text-navy underline underline-offset-2"
+                          >
+                            preparar contrato
+                          </Link>
+                        </>
+                      ) : null}
                     </li>
                   ))}
                 </ul>
               )}
+              <Link to="/propostas" className="mt-2 inline-block text-xs font-medium text-navy underline underline-offset-4">
+                Abrir Propostas no Desk
+              </Link>
             </div>
             <div>
               <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
@@ -567,8 +656,30 @@ function Pessoa() {
                 <ul className="mt-1 space-y-1">
                   {contratos.map((c) => (
                     <li key={c.id} className="text-sm text-navy/80">
-                      {c.status}
+                      {c.case_id ? (
+                        <Link
+                          to="/contratos/$id"
+                          params={{ id: String(c.id) }}
+                          className="underline underline-offset-2"
+                        >
+                          {c.status}
+                        </Link>
+                      ) : (
+                        c.status
+                      )}
                       {c.signed_at ? ` · assinado em ${formatarDia(c.signed_at)}` : ""}
+                      {c.case_id ? (
+                        <>
+                          {" · "}
+                          <Link
+                            to="/casos/$caseId/contrato/preparar"
+                            params={{ caseId: String(c.case_id) }}
+                            className="underline underline-offset-2"
+                          >
+                            parâmetros
+                          </Link>
+                        </>
+                      ) : null}
                     </li>
                   ))}
                 </ul>
@@ -583,6 +694,9 @@ function Pessoa() {
                   )
                 </p>
               ) : null}
+              <Link to="/contratos" className="mt-2 inline-block text-xs font-medium text-navy underline underline-offset-4">
+                Abrir Contratos no Desk
+              </Link>
             </div>
             <div>
               <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
@@ -598,10 +712,28 @@ function Pessoa() {
                       {d.liberado_cliente ? (
                         <span className="text-[11px] text-navy/50">· liberado ao cliente</span>
                       ) : null}
+                      {d.case_id ? (
+                        <>
+                          {" · "}
+                          <Link
+                            to="/casos/$caseId"
+                            params={{ caseId: String(d.case_id) }}
+                            className="underline underline-offset-2"
+                          >
+                            caso
+                          </Link>
+                        </>
+                      ) : null}
                     </li>
                   ))}
                 </ul>
               )}
+              <Link
+                to="/acessos-portal"
+                className="mt-2 inline-block text-xs font-medium text-navy underline underline-offset-4"
+              >
+                Publicar no App Cliente
+              </Link>
             </div>
           </div>
         </section>
