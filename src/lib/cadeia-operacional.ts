@@ -16,6 +16,36 @@ export const CADEIA_OPERACIONAL_VERSAO = "CADEIA-OPERACIONAL-v1.0";
 export const COMPOSICOES = ["individual", "casal", "nucleo_familiar"] as const;
 export type Composicao = (typeof COMPOSICOES)[number];
 
+/** Valores CHECK de `case_plans.fase_jornada` — não inventar sinônimo. */
+export const FASES_JORNADA = [
+  "aceite_e_formalizacao",
+  "onboarding",
+  "pesquisa_inicial",
+  "pesquisa_e_validacao",
+  "preparacao_documental",
+  "protocolo_e_acompanhamento",
+  "reconhecimento",
+  "pos_reconhecimento",
+] as const;
+export type FaseJornada = (typeof FASES_JORNADA)[number];
+export const FASE_JORNADA_PADRAO: FaseJornada = "aceite_e_formalizacao";
+
+export const ROTULO_FASE_JORNADA: Record<FaseJornada, string> = {
+  aceite_e_formalizacao: "Aceite e formalização",
+  onboarding: "Onboarding",
+  pesquisa_inicial: "Pesquisa inicial",
+  pesquisa_e_validacao: "Pesquisa e validação",
+  preparacao_documental: "Preparação documental",
+  protocolo_e_acompanhamento: "Protocolo e acompanhamento",
+  reconhecimento: "Reconhecimento",
+  pos_reconhecimento: "Pós-reconhecimento",
+};
+
+export function faseJornadaValida(valor: string | null | undefined): FaseJornada {
+  if (valor && (FASES_JORNADA as readonly string[]).includes(valor)) return valor as FaseJornada;
+  return FASE_JORNADA_PADRAO;
+}
+
 export type EstadoFonte = "confirmada" | "pendente" | "conflito";
 export type Fonte = { chave: string; estado: EstadoFonte; referencia?: string | null };
 
@@ -107,7 +137,7 @@ export function avaliarPlanejador(e: EntradaPlanejador): SaidaPlanejador {
   }
 
   const saida: Omit<SaidaPlanejador, "hash"> = {
-    fase_jornada: e.faseJornada ?? null,
+    fase_jornada: faseJornadaValida(e.faseJornada),
     checklist_aplicavel: checklist,
     perguntas: limpar(e.perguntas),
     dependencias_cliente: limpar(e.dependenciasCliente),

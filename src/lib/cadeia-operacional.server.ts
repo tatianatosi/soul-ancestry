@@ -15,6 +15,7 @@ import {
   conteudoOSDaProposta,
   consolidarCadeia,
   derivarCondicaoComercial,
+  faseJornadaValida,
   hashConteudo,
   itensEscopoDaOS,
   referenciaOrigemEscopo,
@@ -105,6 +106,15 @@ export async function sincronizarPlanejador(
 ) {
   const caso = await casoDaCadeia(supabase, input.org, input.entrada.caseId);
   const saida = avaliarPlanejador(input.entrada);
+  const fase = faseJornadaValida(saida.fase_jornada);
+  // Plano operacional utilizável: próxima ação + prazo + responsável e sem bloqueio de fonte.
+  // Pendências informativas não impedem `ativo` (política: pendência informa).
+  const planoOperavel =
+    Boolean(saida.proxima_acao?.trim()) &&
+    Boolean(saida.prazo_proxima_acao) &&
+    Boolean(saida.responsavel_user_id) &&
+    saida.bloqueios.length === 0;
+  const statusPlano = planoOperavel ? "ativo" : "rascunho";
 
   const { data: existente } = await supabase
     .from("case_plans")
@@ -133,7 +143,7 @@ export async function sincronizarPlanejador(
     etapa: input.entrada.etapa,
     composicao: input.entrada.composicao,
     rota_confirmada: input.entrada.rotaConfirmada,
-    fase_jornada: saida.fase_jornada,
+    fase_jornada: fase,
     checklist_aplicavel: saida.checklist_aplicavel,
     perguntas: saida.perguntas,
     marcos: saida.marcos,
@@ -151,13 +161,44 @@ export async function sincronizarPlanejador(
     revisao_humana: "pendente",
     plano_hash: saida.hash,
     dados_teste: caso.dados_teste === true,
-    status: "rascunho",
+    status: statusPlano,
     updated_by: input.userId,
   };
 
+  const espelharProximaAcaoNoCaso = async () => {
+    // Nível 8 da RPC `proxima_acao_prioritaria` lê crm_casos.proxima_acao /
+    // prazo_proxima_acao — sem este espelho o planejador salva e a ficha/Hoje
+    // continuam vazios. Texto livre do plano; não inventa código de catálogo.
+    if (!saida.proxima_acao?.trim()) return;
+    const patch: Record<string, unknown> = {
+      proxima_acao: saida.proxima_acao.trim(),
+      prazo_proxima_acao: saida.prazo_proxima_acao,
+      updated_by: input.userId,
+    };
+    if (caso.responsavel_principal) {
+      patch.proxima_acao_responsavel = caso.responsavel_principal;
+    }
+    const { error } = await supabase.from("crm_casos").update(patch).eq("id", caso.id).eq("organization_id", input.org);
+    if (error) throw new Error(error.message);
+  };
+
   // Reprocessamento idempotente: hash igual não cria versão nem duplica itens.
+  // Ainda assim reforça status/fase e espelha próxima ação (corrige saves antigos).
   if (existente?.plano_hash === saida.hash) {
-    return { planId: existente.id, versao: existente.versao, saida, idempotente: true };
+    const { error } = await supabase
+      .from("case_plans")
+      .update({
+        fase_jornada: fase,
+        status: statusPlano,
+        responsavel_user_id: saida.responsavel_user_id,
+        proxima_acao: saida.proxima_acao,
+        prazo_proxima_acao: saida.prazo_proxima_acao,
+        updated_by: input.userId,
+      })
+      .eq("id", existente.id);
+    if (error) throw new Error(error.message);
+    await espelharProximaAcaoNoCaso();
+    return { planId: existente.id, versao: existente.versao, saida: { ...saida, fase_jornada: fase }, idempotente: true, status: statusPlano };
   }
 
   let planId = existente?.id as string | undefined;
@@ -179,16 +220,59 @@ export async function sincronizarPlanejador(
     planId = data.id;
   }
 
+  await espelharProximaAcaoNoCaso();
+
   await auditar(supabase, {
     org: input.org,
     userId: input.userId,
     acao: "planejador_sincronizado",
     entidade: "case_plans",
     entidadeId: planId ?? null,
-    metadados: { case_id: caso.id, versao, hash: saida.hash, pendencias: saida.pendencias.length, bloqueios: saida.bloqueios.length },
+    metadados: {
+      case_id: caso.id,
+      versao,
+      hash: saida.hash,
+      status: statusPlano,
+      fase_jornada: fase,
+      pendencias: saida.pendencias.length,
+      bloqueios: saida.bloqueios.length,
+    },
   });
 
-  return { planId: planId as string, versao, saida, idempotente: false };
+  return { planId: planId as string, versao, saida: { ...saida, fase_jornada: fase }, idempotente: false, status: statusPlano };
+}
+
+/** Lê o planejador persistido do caso para hidratar o formulário (reload). */
+export async function carregarPlanejadorOperacional(
+  supabase: Sb,
+  input: { org: string; caseId: string },
+): Promise<{
+  planId: string | null;
+  versao: number | null;
+  status: string | null;
+  entrada: EntradaPlanejador | null;
+}> {
+  const caso = await casoDaCadeia(supabase, input.org, input.caseId);
+  const { data: plano } = await supabase
+    .from("case_plans")
+    .select("*")
+    .eq("case_id", caso.id)
+    .is("archived_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!plano) return { planId: null, versao: null, status: null, entrada: null };
+
+  const { data: sku } = plano.product_catalog_id
+    ? await supabase.from("product_catalog").select("code").eq("id", plano.product_catalog_id).maybeSingle()
+    : { data: null };
+
+  return {
+    planId: plano.id as string,
+    versao: (plano.versao as number) ?? null,
+    status: (plano.status as string) ?? null,
+    entrada: entradaDoPlano(plano, caso.id, (sku?.code as string | null) ?? null),
+  };
 }
 
 /* ------------------------------------------------------------------ */

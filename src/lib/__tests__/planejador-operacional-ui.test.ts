@@ -55,4 +55,16 @@ describe("Planejador operacional — entrada que faltava no elo 1 da cadeia", ()
     const trecho = fn.slice(fn.indexOf("listarSkusPlanejador"));
     expect(trecho.slice(0, 400)).toContain("semCache();");
   });
+
+  it("hidrata o formulário a partir do planejador persistido (reload)", () => {
+    expect(componente).toContain("carregarPlanejadorOperacional");
+    expect(componente).toContain("planejador-operacional");
+    expect(fn).toContain("carregarPlanejadorOperacional");
+  });
+
+  it("grava fase da jornada com valor CHECK válido, não null", () => {
+    expect(componente).toContain("faseJornada: estado.faseJornada");
+    expect(componente).not.toContain("faseJornada: null");
+    expect(componente).toContain("FASES_JORNADA");
+  });
 });

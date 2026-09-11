@@ -31,6 +31,18 @@ export const salvarPlanejadorOperacional = createServerFn({ method: "POST" })
     return sincronizarPlanejador(supabase, { org, userId, entrada });
   });
 
+/** Lê o planejador já persistido (hidratação do formulário após F5/reabertura). */
+export const carregarPlanejadorOperacional = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { caseId: string }) => ({ caseId: String(d.caseId) }))
+  .handler(async ({ data, context }) => {
+    semCache();
+    const { carregarPlanejadorOperacional: carregar, orgDoUsuario } = await import("@/lib/cadeia-operacional.server");
+    const supabase = (context as any).supabase;
+    const org = await orgDoUsuario(supabase, context.userId as string);
+    return carregar(supabase, { org, caseId: data.caseId });
+  });
+
 /** SKUs do catálogo homologado elegíveis para o Planejador selecionar. */
 export const listarSkusPlanejador = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
