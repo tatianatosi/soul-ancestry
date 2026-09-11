@@ -46,7 +46,8 @@ export function RegistroSemana({
   aoTentarNovamente: () => void;
 }) {
   return (
-    <section data-painel-bloco="registro" className="rounded-2xl border border-navy/10 bg-white p-5">
+    <section data-painel-bloco="registro" className="rounded-2xl border border-navy/10 bg-card p-4 shadow-sm sm:p-5">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">Timeline</p>
       <h2 className="font-serif text-lg text-navy">Registro da semana</h2>
       <AncoraApp bloco="registro" />
       <p className="mt-0.5 text-xs text-navy/55">

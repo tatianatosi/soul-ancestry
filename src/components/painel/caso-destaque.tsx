@@ -30,7 +30,7 @@ export function CasoEmDestaque({
 }) {
   if (!dados) {
     return (
-      <section data-painel-bloco="destaque" className="rounded-2xl border border-navy/10 bg-white p-5">
+      <section data-painel-bloco="destaque" className="rounded-2xl border border-navy/10 bg-card p-4 shadow-sm sm:p-5">
         <h2 className="font-serif text-lg text-navy">Prioridade agora</h2>
         <p className="mt-2 text-sm text-navy/55">
           Nenhum registro em faixa de urgência hoje. Nada aqui é estimativa: sem sinal da matriz,
@@ -44,7 +44,7 @@ export function CasoEmDestaque({
   const caso = item.tipo === "caso";
 
   return (
-    <section data-painel-bloco="destaque" className="rounded-2xl border border-navy/15 bg-white p-5">
+    <section data-painel-bloco="destaque" className="rounded-2xl border border-navy/10 bg-card p-4 shadow-sm sm:p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-navy/50">
           Prioridade agora
@@ -59,7 +59,7 @@ export function CasoEmDestaque({
         </span>
       </div>
 
-      <h2 className="mt-2 font-serif text-2xl leading-tight text-navy">{item.rotulo}</h2>
+      <h2 className="mt-2 font-serif text-xl leading-tight text-navy">{item.rotulo}</h2>
       <p className="mt-2 text-sm text-navy/80">{item.acao}</p>
 
       <dl className="mt-4 grid gap-x-6 gap-y-2 text-xs sm:grid-cols-3">
@@ -89,24 +89,24 @@ export function CasoEmDestaque({
           <Link
             to="/casos/$caseId"
             params={{ caseId: item.id }}
-            className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream"
+            className="rounded-full bg-navy px-4 py-2 text-sm font-medium text-cream"
           >
             Abrir ficha e agir
           </Link>
         ) : (
-          <Link to="/calls" className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream">
+          <Link to="/calls" className="rounded-full bg-navy px-4 py-2 text-sm font-medium text-cream">
             Abrir Mesa de Discovery
           </Link>
         )}
         {caso ? (
           <Link
             to="/atendimento"
-            className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy"
+            className="rounded-full border border-navy/20 px-4 py-2 text-sm text-navy"
           >
             Registrar interação
           </Link>
         ) : null}
-        <Link to="/calls" className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy">
+        <Link to="/calls" className="rounded-full border border-navy/20 px-4 py-2 text-sm text-navy">
           Mesa de Discovery
         </Link>
       </div>

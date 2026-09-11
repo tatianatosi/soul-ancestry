@@ -2,9 +2,17 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
+  celulasFunilMockup17,
+  contarLeadsWhatsApp,
+  diasDeEspera,
+  ehCanalWhatsApp,
+  percentualInteiro,
   recorteFunilHoje,
+  recorteMesVisaoGeral,
   receitaDoMes,
   taxaConversaoLeadParaCaso,
+  taxaLeadParaDiagnostico,
+  tomEspera,
 } from "@/lib/visao-geral-mockup";
 
 describe("Visão Geral — receita e conversão reais", () => {
@@ -42,7 +50,7 @@ describe("Visão Geral — receita e conversão reais", () => {
     ).toBe(0.2);
   });
 
-  it("recorte do funil do Hoje usa as cinco etapas do mockup", () => {
+  it("recorte de cinco etapas permanece para a tela de Conversão", () => {
     const recorte = recorteFunilHoje([
       { codigo: "lead_criado", entidades: 8, rotulo: "Lead criado" },
       { codigo: "proposta_enviada", entidades: 3, rotulo: "Proposta enviada" },
@@ -53,15 +61,77 @@ describe("Visão Geral — receita e conversão reais", () => {
   });
 });
 
+describe("Visão Geral — funil de 4 células da p. 11", () => {
+  it("reconhece WhatsApp só pelo canal/origem gravado", () => {
+    expect(ehCanalWhatsApp("WhatsApp")).toBe(true);
+    expect(ehCanalWhatsApp(null, "indicação")).toBe(false);
+    expect(
+      contarLeadsWhatsApp(
+        [
+          { id: "a", canal: "whatsapp" },
+          { id: "b", origem: "Instagram" },
+        ],
+        [{ event_type: "lead_criado", lead_id: "c", canal: "WhatsApp" }],
+      ),
+    ).toBe(2);
+  });
+
+  it("diagnóstico e cliente ficam nulos sem lead criado", () => {
+    expect(taxaLeadParaDiagnostico([{ codigo: "discovery_realizada", entidades: 3 }])).toBeNull();
+    expect(percentualInteiro(null)).toBeNull();
+    expect(percentualInteiro(0.42)).toBe("42%");
+  });
+
+  it("monta as quatro células com barras navy, sage, gold e terracota", () => {
+    const celulas = celulasFunilMockup17({
+      funil: [
+        { codigo: "lead_criado", entidades: 10 },
+        { codigo: "discovery_realizada", entidades: 4 },
+        { codigo: "caso_ativo", entidades: 1 },
+      ],
+      leads: [{ id: "a", canal: "whatsapp" }],
+    });
+    expect(celulas.map((c) => c.rotulo)).toEqual([
+      "Novos leads",
+      "Leads em WhatsApp",
+      "Lead → diagnóstico",
+      "Lead → cliente",
+    ]);
+    expect(celulas[0]?.texto).toBe("10");
+    expect(celulas[1]?.texto).toBe("1");
+    expect(celulas[2]?.texto).toBe("40%");
+    expect(celulas[3]?.texto).toBe("10%");
+    expect(celulas.map((c) => c.barra)).toEqual(["bg-navy", "bg-sage", "bg-gold", "bg-terracotta"]);
+    expect(celulas.some((c) => c.texto.includes("18.400") || c.texto.includes("34%"))).toBe(false);
+  });
+
+  it("espera pinta 2d verde, 4d âmbar e 5d+ terracota", () => {
+    expect(diasDeEspera("2026-09-09", "2026-09-11")).toBe(2);
+    expect(tomEspera(2)).toBe("ok");
+    expect(tomEspera(4)).toBe("atencao");
+    expect(tomEspera(5)).toBe("critico");
+  });
+
+  it("eyebrow do mês não inventa julho fora de julho", () => {
+    expect(recorteMesVisaoGeral(new Date(2026, 8, 11))).toBe("SETEMBRO 2026");
+  });
+});
+
 describe("Visão Geral — face do mockup no Hoje", () => {
-  it("o topo declara os quatro KPIs, o funil e as prioridades", () => {
+  it("o topo declara os quatro KPIs, o funil de 4 células e as prioridades", () => {
     const topo = readFileSync("src/components/painel/visao-geral-topo.tsx", "utf8");
     expect(topo).toContain("Funil de leads");
     expect(topo).toContain("Prioridades de hoje");
-    expect(topo).toContain("Painel Hoje");
+    expect(topo).toContain("Últimos 30 dias");
+    expect(topo).toContain('rotulo="Taxa de conversão"');
     expect(topo).toContain('to="/casos"');
     expect(topo).toContain('to="/financeiro"');
     expect(topo).toContain('to="/conversao"');
+    expect(topo).toContain("c.barra");
+    expect(readFileSync("src/lib/visao-geral-mockup.ts", "utf8")).toContain('"bg-gold"');
+    expect(readFileSync("src/lib/visao-geral-mockup.ts", "utf8")).toContain('"bg-terracotta"');
+    expect(topo).not.toContain("18.400");
+    expect(topo).not.toContain("34%");
   });
 });
 

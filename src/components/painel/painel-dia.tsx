@@ -11,7 +11,7 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { ATALHOS_DESCOBERTA, ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { SELO_PROXIMA_ACAO } from "@/lib/caso-ficha";
-import { BadgeDesk, CarregandoDesk, type TomEstado } from "@/components/desk/ui-desk";
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { listarAlertas } from "@/lib/alertas.functions";
 import { derivarCadenciaDoPainel } from "@/lib/painel-cadencia-derivada";
 import { escolherCasoDestaque } from "@/lib/painel-caso-destaque";
@@ -19,7 +19,7 @@ import { FilaCadencia } from "@/components/painel/fila-cadencia";
 import { CasoEmDestaque } from "@/components/painel/caso-destaque";
 import { JornadaCasos } from "@/components/painel/jornada-casos";
 import { AncoraApp } from "@/components/painel/ancora-app";
-import { VisaoGeralTopo } from "@/components/painel/visao-geral-topo";
+import { SaudacaoVisaoGeral, VisaoGeralTopo } from "@/components/painel/visao-geral-topo";
 import { RegistroSemana } from "@/components/painel/registro-semana";
 import { GRUPOS_INDICADOR } from "@/components/painel/sinais-por-grupo";
 import { AcoesRapidasProprietaria } from "@/components/painel/acoes-rapidas";
@@ -36,9 +36,11 @@ import { carregarConversao } from "@/lib/conversao.functions";
 import { listarRegistroSemana } from "@/lib/registro-semana.functions";
 import { montarEstados, montarFunil, type EventoBruto } from "@/lib/conversao-funil";
 import {
-  recorteFunilHoje,
+  celulasFunilMockup17,
+  diasDeEspera,
   receitaDoMes,
   taxaConversaoLeadParaCaso,
+  tomEspera,
 } from "@/lib/visao-geral-mockup";
 import { GATILHOS, type Gatilho } from "@/lib/fila-comunicacao";
 import {
@@ -380,7 +382,11 @@ export function PainelDia() {
     casos: new Map((qConversao.data?.rotulos?.casos ?? []).map((c) => [c.id, c.rotulo])),
   });
   const funilCheio = montarFunil(eventosConv, estadosConv);
-  const funilHoje = recorteFunilHoje(funilCheio);
+  const funilHoje = celulasFunilMockup17({
+    funil: funilCheio,
+    leads: qConversao.data?.rotulos?.leads ?? [],
+    eventos: eventosConv,
+  });
   const taxaConversao = qConversao.isSuccess ? taxaConversaoLeadParaCaso(funilCheio) : null;
   const receitaMes = qPagamentos.isSuccess
     ? receitaDoMes((qPagamentos.data ?? []) as { status?: unknown; pago_em?: unknown; valor?: unknown; dados_teste?: unknown }[], hoje, incluirDemo)
@@ -617,11 +623,11 @@ export function PainelDia() {
 
   return (
     <div ref={raizRef} className="space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
-        <p data-desk-enxuto className="min-w-0 text-sm text-navy/60">
-          O que precisa de ação hoje, por quem e até quando. Governança, catálogo, métricas e
-          planejamento ficam nas áreas proprietárias.
-        </p>
+      <div
+        data-desk-enxuto
+        className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between"
+      >
+        <SaudacaoVisaoGeral />
         <label className="flex shrink-0 items-center gap-2 text-xs text-navy/60">
           <input
             type="checkbox"
@@ -680,6 +686,7 @@ export function PainelDia() {
           conversao={taxaConversao}
           funil={funilHoje}
           prioridades={prioridadesTopo}
+          alertas={<AlertasPrioritariosDoPainel />}
         />
       </section>
 
@@ -853,12 +860,11 @@ export function PainelDia() {
       </section>
 
       {/*
-        3 — Alertas prioritários (CA-CORTE-ALERTAS-ROTA-CANONICA, 09/09/2026):
-        mesma fonte (case_alerts, via listarAlertas) da rota /alertas — aqui só
-        o subconjunto pendente mais crítico de hoje, nunca a lista completa.
-        Abrir/reconhecer/reprogramar vive em /alertas; aqui é só contagem e link.
+        Alertas de achados pendentes (CA-CORTE-ALERTAS-ROTA-CANONICA):
+        mesma fonte (case_alerts, via listarAlertas) da rota /alertas.
+        A tabela vive no topo, ao lado de Prioridades, como na p. 11 do mockup.
+        Abrir/reconhecer/reprogramar vive em /alertas; aqui é só leitura e link.
       */}
-      <AlertasPrioritariosDoPainel />
 
       {/* 4 — Comercial hoje: resumo único (CA-UX-03 Fase B). Detalhe em /conversao. */}
 
@@ -1081,17 +1087,17 @@ export function PainelDia() {
   );
 }
 
-const TOM_CRITICIDADE_PAINEL: Record<string, TomEstado> = {
-  critica: "bloqueio",
-  alta: "critico",
-  atencao: "atencao",
-};
-
 /**
  * CA-CORTE-ALERTAS-ROTA-CANONICA (09/09/2026) — subconjunto prioritário de
  * hoje, mesma fonte (case_alerts, via listarAlertas) da rota /alertas. Só
  * conta e linka: reconhecer/reprogramar/abrir tarefa vivem na rota completa.
  */
+const TOM_ESPERA_TEXTO = {
+  ok: "text-sucesso",
+  atencao: "text-atencao",
+  critico: "text-terracotta",
+} as const;
+
 function AlertasPrioritariosDoPainel() {
   const carregar = useServerFn(listarAlertas);
   const q = useQuery({
@@ -1099,41 +1105,71 @@ function AlertasPrioritariosDoPainel() {
     queryFn: () => carregar({ data: { status: "pending", limite: 5 } }),
   });
   const linhas = q.data ?? [];
+  const hoje = hojeISO();
 
   return (
-    <section data-painel-bloco="alertas" className="rounded-xl border border-navy/10 bg-white p-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="min-w-0 font-serif text-lg text-navy">Alertas de achados pendentes</h2>
-        <AncoraApp bloco="alertas" />
-        <Link to="/alertas" className="shrink-0 text-xs text-navy/60 underline">
-          Abrir Alertas
-        </Link>
+    <section data-painel-bloco="alertas" className="rounded-2xl border border-navy/10 bg-card p-4 shadow-sm sm:p-5">
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h2 className="min-w-0 font-serif text-lg text-navy">Alertas de achados pendentes</h2>
+          <AncoraApp bloco="alertas" />
+        </div>
+        <span className="rounded-full border border-gold/40 bg-gold/20 px-2 py-0.5 text-[11px] font-medium text-navy">
+          {linhas.length} não enviado{linhas.length === 1 ? "" : "s"}
+        </span>
       </div>
-      <p className="mt-1 text-xs text-navy/50">
-        Sinal sem duplicar tarefa. Enviar abre a tela de Alertas — a fila humana confirma; nada sai
-        sozinho por WhatsApp ou e-mail.
-      </p>
       {q.isLoading ? (
         <CarregandoDesk linhas={2} />
       ) : linhas.length === 0 ? (
-        <p className="mt-3 text-sm text-navy/60">Nenhum alerta pendente agora.</p>
+        <p className="text-sm text-navy/60">Nenhum alerta pendente agora.</p>
       ) : (
-        <ul className="mt-3 space-y-2">
-          {linhas.map((a) => (
-            <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
-              <Link to="/casos/$caseId" params={{ caseId: a.caseId }} className="text-navy underline underline-offset-2">
-                {a.titulo} — {a.caseCodigo ?? a.caseTitulo ?? a.caseId}
-              </Link>
-              <span className="flex items-center gap-2">
-                <BadgeDesk texto={a.criticidade} tom={TOM_CRITICIDADE_PAINEL[a.criticidade] ?? "neutro"} />
-                <Link to="/alertas" className="rounded-full bg-navy px-3 py-1 text-[11px] font-medium text-cream">
-                  Enviar
-                </Link>
-              </span>
-            </li>
-          ))}
-        </ul>
+        <div className="-mx-1 overflow-x-auto">
+          <table className="w-full min-w-[420px] text-left text-sm">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-[0.14em] text-navy/50">
+                <th className="px-2 pb-2 font-semibold">Cliente</th>
+                <th className="px-2 pb-2 font-semibold">Tipo</th>
+                <th className="px-2 pb-2 font-semibold">Espera</th>
+                <th className="px-2 pb-2 font-semibold">
+                  <span className="sr-only">Ação</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-navy/10">
+              {linhas.map((a) => {
+                const dias = diasDeEspera(a.dataOcorrencia, hoje);
+                const tom = tomEspera(dias);
+                return (
+                  <tr key={a.id} className="align-middle">
+                    <td className="px-2 py-2.5">
+                      <Link
+                        to="/casos/$caseId"
+                        params={{ caseId: a.caseId }}
+                        className="text-navy underline underline-offset-2"
+                      >
+                        {a.caseTitulo ?? a.caseCodigo ?? a.caseId}
+                      </Link>
+                    </td>
+                    <td className="px-2 py-2.5 text-navy/85">{a.titulo}</td>
+                    <td className={`px-2 py-2.5 tabular-nums ${TOM_ESPERA_TEXTO[tom]}`}>{dias}d</td>
+                    <td className="px-2 py-2.5 text-right">
+                      <Link
+                        to="/alertas"
+                        className="rounded-full bg-navy px-3 py-1 text-[11px] font-medium text-cream"
+                      >
+                        Enviar
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
+      <p className="mt-3 text-[11px] text-navy/45">
+        Enviar abre Alertas — a fila humana confirma; nada sai sozinho por WhatsApp ou e-mail.
+      </p>
     </section>
   );
 }

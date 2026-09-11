@@ -20,11 +20,11 @@ export type BlocoPainel = {
 export const ORDEM_BLOCOS_PAINEL: readonly BlocoPainel[] = [
   { chave: "destaque", titulo: "Prioridade agora", fila: false },
   { chave: "cards", titulo: "Casos, receita, funil e prioridades", fila: false },
+  { chave: "alertas", titulo: "Alertas de achados pendentes", fila: false },
   { chave: "registro", titulo: "Registro da semana", fila: false },
   { chave: "jornada", titulo: "Jornada dos casos", fila: false },
   { chave: "fila_priorizada", titulo: "Minha fila priorizada", fila: true },
   { chave: "excecoes", titulo: "Exceções que exigem dono", fila: true },
-  { chave: "alertas", titulo: "Alertas de achados pendentes", fila: false },
   { chave: "comercial", titulo: "Comercial hoje", fila: false },
   { chave: "prazos", titulo: "Cadência — quem precisa de um toque", fila: true },
   { chave: "descoberta", titulo: "Encontrar no Desk", fila: false },

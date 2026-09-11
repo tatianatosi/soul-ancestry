@@ -28,7 +28,7 @@ describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
     expect(topo).toContain('rotulo="Casos ativos"');
     expect(topo).toContain('rotulo="Alertas pendentes"');
     expect(topo).toContain('rotulo="Receita do mês"');
-    expect(topo).toContain('rotulo="Conversão"');
+    expect(topo).toContain('rotulo="Taxa de conversão"');
     expect(topo).toContain("Funil de leads");
     expect(topo).toContain("Prioridades de hoje");
     expect(painel).toContain("Buscar pessoa 360");
