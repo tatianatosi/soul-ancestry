@@ -20,17 +20,29 @@ import { CATALOGOS, validarLead, type LeadDesk } from "@/lib/crm-desk";
 const base: LeadDesk = { nome: "Teste" } as LeadDesk;
 
 describe("Roteiro vivo de Discovery", () => {
-  it("mantém os cinco blocos contextuais com perguntas e campos", () => {
-    expect(ROTEIRO_DISCOVERY).toHaveLength(5);
+  it("mantém os blocos contextuais com perguntas e campos (inclui SPIN no mesmo fluxo)", () => {
+    expect(ROTEIRO_DISCOVERY).toHaveLength(6);
+    expect(ROTEIRO_DISCOVERY.map((b) => b.chave)).toContain("spin");
     for (const b of ROTEIRO_DISCOVERY) {
       expect(b.perguntas.length).toBeGreaterThan(2);
       expect(b.campos.length).toBeGreaterThan(2);
     }
   });
 
+  it("bloco SPIN usa os quatro campos booleanos já persistidos em leads", () => {
+    const spin = ROTEIRO_DISCOVERY.find((b) => b.chave === "spin")!;
+    expect(spin.campos).toEqual(["spin_situacao", "spin_problema", "spin_implicacao", "spin_necessidade"]);
+    for (const c of spin.campos) {
+      expect(META_CAMPO_ROTEIRO[c].tipo).toBe("checkbox");
+      expect(META_CAMPO_ROTEIRO[c].pergunta!.length).toBeGreaterThan(10);
+      expect(META_CAMPO_ROTEIRO[c].destino).toMatch(/spin_/);
+      expect(META_CAMPO_ROTEIRO[c].consequencia.length).toBeGreaterThan(5);
+    }
+  });
+
   it("progressoRoteiro: lead vazio começa 0/total em todos os blocos", () => {
     const progresso = progressoRoteiro(base);
-    expect(progresso).toHaveLength(5);
+    expect(progresso).toHaveLength(6);
     for (const p of progresso) {
       expect(p.preenchidos).toBe(0);
       expect(p.completo).toBe(false);

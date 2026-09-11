@@ -15,13 +15,39 @@ Documento normativo da proprietária (Tatiana, tati@pluggedresearch.com), destil
 
 Isto **não** autoriza redesenho de navegação, vocabulário novo (incluindo taxonomia “CHECK-*”) nem tabelas hipotéticas de prompts antigos. Antes de implementar, confirmar o schema real e as decisões já vigentes.
 
+## Reset de confiança operacional (2026-09-10)
+
+Política ativa: `docs/politicas/RESET-DE-CONFIANCA-OPERACIONAL-2026-09-10.md`. Briefs: `docs/agentes/`.
+
+**Fórmula:** documento / prompt / mockup / commit / PR / tela ≠ capacidade comprovada. Capacidade comprovada = fonte + leitura + ação + persistência/releitura + isolamento + resultado observável.
+
+Classificar cada ativo antes de usá-lo: `COMPROVADO_EM_USO` | `CODIGO_SEM_PROVA_DE_USO` | `TELA_SEM_FONTE_CONFIRMADA` | `DOCUMENTADO` | `MOCKUP_APROVADO` | `PR_ABERTA` | `LEGADO_HISTORICO` | `DEMO_OU_LOCAL` | `QUEBRADO_OU_INCOMPLETO` | `NAO_LOCALIZADO`. Sem prova no formato §9 do reset, não declarar “feito”.
+
+Uma capacidade por vez. Se falhar: registrar `PASSOU` / `FALHOU` / `BLOQUEADO_*` / `NAO_LOCALIZADO` — sem cascata de arquitetura, tabela, aba ou motor novo.
+
+**Primeiro corte obrigatório:** Mesa Discovery (`/calls`) — dump/Call → varredura revisável → SPIN → próxima ação + responsável + prazo → salvar → recarregar → aparecer em Marketing & Comercial e Hoje sem duplicidade. Até esse corte passar, não iniciar contrato, financeiro, automação ou o próximo motor.
+
+Não apagar ativos. Não usar CA OPS / Planilha Mestre / Matriz Operacional / DEMO como fonte da operação atual.
+
+## Adendo vinculante — contexto não arquivável (2026-09-10)
+
+Política ativa: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`.
+
+O Clube Ancestral é **um produto**, não módulos soltos. Nenhum contexto, prompt, decisão, premissa, mockup, roteiro, matriz, especificação de motor, de-para, política de dados ou artefato de resgate pode ser arquivado, reduzido a histórico ou declarado “substituído” enquanto os motores relacionados não estiverem comprovados **integrados**.
+
+**Prova que conta:** a Proprietária autenticada na própria conta, com print inicial, ação, confirmação, releitura (F5/reabertura) e, quando aplicável, print de integração com o módulo seguinte. Código, PR, build, Vitest, log, mockup, preview sem login ou declaração de agente **não bastam** isoladamente.
+
+Resultados permitidos: `PASSOU` | `FALHOU` | `BLOQUEADO_POR_DADO` | `BLOQUEADO_POR_DECISAO` | `ERRO_DE_FONTE` | `NAO_LOCALIZADO`.
+
+Até a cadeia comercial → Discovery → Pessoa/Dossiê → Caso → Pesquisa → Formalização → Financeiro → Entrega/App → Hoje/Radar estar comprovada pela proprietária, o contexto de resgate permanece **ativo e acessível**.
+
 ## Ordem de autoridade
 
 1. Decisão explícita e mais recente da proprietária.
 2. **Planejador** = única fonte válida do planejamento operacional ativo (prioridades, capacidade, prazos, responsáveis, o que vem a seguir).
 3. Modelo de dados, migrations e código efetivamente aprovados. Divergência = dívida ou bloqueio declarado, nunca escondida.
 4. Mockup aprovado de **17 páginas** (`docs/evolucao/recuperados/prompts-lovable-2026-08-31/clube-ancestral-mockup.pdf`) = contrato visual normativo.
-5. Políticas aprovadas em `docs/politicas/` (autoridade operacional, fonte de verdade de design, taxonomia do mockup, **adendo de contexto não arquivável e prova autenticada** de 2026-09-10).
+5. Políticas aprovadas em `docs/politicas/` (autoridade operacional, fonte de verdade de design, taxonomia do mockup, **reset de confiança operacional**, **adendo de contexto não arquivável e prova autenticada** de 2026-09-10).
 6. Materiais legados = histórico / auditoria / migração controlada. **Nunca** dirigem a operação atual.
 
 Se o código divergir destas instruções, declarar a dívida. Não “corrigir” a realidade do schema inventando entidades paralelas.

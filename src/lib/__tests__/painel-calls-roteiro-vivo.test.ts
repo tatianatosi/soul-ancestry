@@ -73,4 +73,10 @@ describe("Painel de Calls — mesa de Discovery (CA02-CRM-VIVO-PAINEL-CALLS)", (
     expect(painel).toContain('className="mt-3 space-y-2"');
     expect(painel).not.toContain('className="mt-3 grid gap-2 md:grid-cols-2"');
   });
+
+  it("SPIN no mesmo fluxo: checkbox ligado aos spin_* já existentes, com pergunta no card", () => {
+    expect(painel).toContain('meta.tipo === "checkbox"');
+    expect(painel).toContain("campoBool");
+    expect(painel).toContain("meta.pergunta");
+  });
 });

@@ -10,6 +10,7 @@ responsável pela decisão: Proprietária do Clube Ancestral
 fonte(s) de evidência:
   - decisão explícita da proprietária nesta conversa em 10/09/2026
   - CA_RESET_CONTEXTO_CANONICO_RECONSTRUCAO_CONTROLADA_2026-09-10.md
+  - docs/politicas/RESET-DE-CONFIANCA-OPERACIONAL-2026-09-10.md
 escopo: >
   Estabelecer regra obrigatória de continuidade: nenhum contexto, prompt,
   decisão, premissa, artefato, mockup, roteiro, matriz, contrato de sistema
