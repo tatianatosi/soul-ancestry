@@ -24,7 +24,10 @@ export const Route = createFileRoute("/_authenticated/calls")({
 
 function CallsPage() {
   return (
-    <SaasShell titulo="Painel de Calls" descricao="Registrar chamadas, qualificar leads e fazer o handoff da Discovery.">
+    <SaasShell
+      titulo="Painel de Calls"
+      descricao="Mesa de Discovery: dump, perguntas, próxima ação e handoff. A entrada comercial vive aqui."
+    >
       <PainelCalls />
     </SaasShell>
   );
