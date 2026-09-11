@@ -93,7 +93,7 @@ export function VisaoGeralTopo({
           </p>
           <ol className="mt-4 space-y-2">
             {funil.map((e, i) => {
-              const largura = Math.max(12, Math.round((e.entidades / picoFunil) * 100));
+              const largura = e.entidades <= 0 ? 0 : Math.max(12, Math.round((e.entidades / picoFunil) * 100));
               return (
                 <li key={e.codigo} className="list-none">
                   <div className="flex items-baseline justify-between gap-2">
