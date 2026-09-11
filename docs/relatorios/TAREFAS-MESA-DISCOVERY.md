@@ -1,106 +1,99 @@
 # Tarefas — Mesa Discovery (`/calls`)
 
 **Aba / capacidade:** Mesa Discovery (entrada comercial)  
-**Última atualização:** 2026-09-11 · noite (após prints da dona)  
-**Status geral:** fio Vercel/Supabase ok · UX fragmentada confirmada · prova integrada ainda aberta · **não** `COMPROVADO_EM_USO`  
+**Última atualização:** 2026-09-11 · **fim do dia** (rotina 21:00 UTC)  
+**Status geral:** login produção ok · jornada CRM mapeada · espinha **ainda não** reconstruída no código · prova integrada aberta · **não** `COMPROVADO_EM_USO`  
 **Diagnóstico:** `docs/relatorios/2026-09-11_diagnostico-crm-vivo-fragmentacao.md`  
-**Rotina:** este quadro é atualizado **todo dia de manhã** e **no fim do dia**.
+**Plano jornada:** `docs/politicas/JORNADA-CRM-RECONSTRUCAO-CONTROLADA-2026-09-11.md`  
+**Rotina:** manhã + fim do dia.
 
-Legenda rápida: `OK` = funciona com evidência · `PARCIAL` = quase · `TRAVADO` = precisa de você ou de fio · `PAUSADO` = não mexer agora
+Legenda: `OK` · `PARCIAL` · `TRAVADO` · `PAUSADO`
 
 ---
 
 ## 1. O que já está funcionando
 
-### Front-end (tela)
-- Login autenticado em produção (Vercel ↔ Supabase) — **confirmado pela dona**
-- Criar lead em `/leads` (“Novo lead”) — **não** existe botão equivalente na Mesa `/calls`
-- Abrir a mesa em `/calls` com lead **já existente** e percorrer o roteiro
-- SPIN na prática = **19 perguntas** (uma por vez), não 4 checkboxes na tela
-- Em `/leads`, o bloco SPIN só mostra **progresso derivado** + link para `/calls`
-- Mensagem de gravação; flags `spin_*` derivadas no banco
+### Front-end
+- Login autenticado em produção (Vercel ↔ Supabase) — **confirmado pela dona hoje**
+- Criar lead em `/leads` (“Novo lead”) — **ainda não** na Mesa `/calls`
+- Abrir `/calls` com lead existente e percorrer roteiro (19 perguntas SPIN, uma a uma)
+- Em `/leads`: progresso SPIN derivado + link para `/calls`
+- Gravação com mensagem de sucesso; flags `spin_*` derivadas
 
-### Back-end (gravação)
-- Escritor `salvarLeadDesk` grava respostas + flags `spin_*` na tabela **`leads`** (um CRM, não dois)
-- Próxima ação / responsável / prazo nos campos já existentes de `leads`
-- Bug conhecido: `DIVERGENCIA_PERSISTENCIA` em `call_realizada_em` (formato de data; checagem pedante)
+### Back-end
+- Um CRM: tabela **`leads`** via `salvarLeadDesk`
+- Próxima ação / responsável / prazo nos campos existentes
+- Bug conhecido: `DIVERGENCIA_PERSISTENCIA` em `call_realizada_em` (formato de data)
 
 ### Política / trilha
-- Reset de confiança + adendo de prova autenticada arquivados e ligados ao Desk
-- Brief do agente Discovery ativo; KPIs e Abas **pausados**
-- Conflitos de merge com `main` na PR #102 resolvidos
+- Reset + adendo de prova autenticada vigentes
+- Diagnóstico de fragmentação CRM Vivo registrado
+- Plano de **reconstrução controlada da jornada** sob dona única (sem segundo CRM)
+- KPIs e Abas **pausados**; merge conflicts da PR #102 resolvidos
 
 ---
 
-## 2. O que estou fazendo / corrigindo **agora**
+## 2. O que executei / tentei corrigir **hoje**
 
-| Agora | Detalhe |
+| Feito hoje | Resultado |
 |---|---|
-| **Esperando sua prova** | Preciso que **você** rode o teste autenticado (prints). Print só do agente **não** fecha a aba. |
-| **Não estou** abrindo Pessoa 360, Proposta, Financeiro, App, KPIs ou Abas | Ordem do reset: só Discovery até fechar. |
-| **Não estou** inventando tabela nem migration | Fiação usa `leads` + filas Hoje/Comercial já existentes. |
-| **Aguardando confirmação de fio** | Se o login no Vercel falhar, a causa mais comum é falta da chave secreta do Supabase **só no servidor** da Vercel (nunca no chat). |
+| Guia Vercel/Supabase para a dona | Login produção **ok** |
+| Auditoria CRM Vivo / Mesa / dicionários (prints dela) | Fragmentação confirmada: lead em `/leads`, Mesa só edita |
+| Documento de diagnóstico | Publicado no repo |
+| Plano jornada CRM (espinha A→E) | Publicado; **aguardando autorização** para Fase A+B no código |
+| Check CI Vercel na PR | **TRAVADO** por rate limit do plano (~24h) — não é bug de código |
+| Correção “Novo lead na Mesa” + fix de data | **Não iniciada** — falta “pode começar” da dona |
 
-**Próxima ação concreta (uma só):**  
-Você grava um lead de teste com **próxima ação com texto único** → F5 → confere se **a mesma frase** aparece em Hoje e em Comercial → manda os prints ou diz `PASSOU` / `FALHOU`.
-
----
-
-## 3. Próximos passos travados (para a aba ir a 100%)
-
-### A. Prova visual sua (obrigatória)
-- [ ] Print inicial (logada, e-mail visível)
-- [ ] Print da ação (mesa + lead + SPIN)
-- [ ] Print da confirmação (gravar, 4/4)
-- [ ] Print da releitura (F5)
-- [ ] Print de integração: **mesma** próxima ação em **Hoje** e **Comercial**, sem duplicar
-- [ ] Sua declaração explícita: `PASSOU` ou `FALHOU` nessa integração
-
-**Por que trava:** o agente viu “Ana Luiza” em Hoje/Comercial, mas não dá para jurar que é o **mesmo** fato acabado de gravar → status `PARCIAL`.
-
-### B. Fiação Supabase ↔ Vercel (se o login falhar)
-- [ ] No Vercel (`soul-ancestry`), Production **e** Preview com:
-  - `SUPABASE_URL`
-  - `SUPABASE_PUBLISHABLE_KEY` (+ espelho `VITE_*` se usar)
-  - `SUPABASE_SERVICE_ROLE_KEY` (**só servidor**, mesmo projeto `zsxpdbhdvbuulwpepemd`)
-- [ ] Redeploy depois de salvar as variáveis
-- [ ] No Supabase: e-mail/senha ligado; seu usuário ativo; linha `staff_access` admin ativa
-- [ ] Se duvidar do fio: abrir `/equipe/diagnostico-conexao`
-
-**Sintoma típico:** tela de login com erro genérico / “configuração do servidor” = falta da chave secreta no servidor (não é bug da mesa em si).
-
-### C. Ambiente de prova
-- [ ] Preferir `https://soul-ancestry.vercel.app/equipe/entrar`
-- [ ] Se o preview pedir login da Vercel / MFA: entrar logada no browser **ou** usar a URL de produção acima
-- [ ] **Não** colar `service_role` no chat, PR ou artefato
-
-### D. Fora do escopo desta aba (pausado de propósito)
-- Pessoa 360, Pesquisa, Proposta, Financeiro, App Cliente, KPIs, Abas  
-- Cadeia ponta a ponta do produto único  
-→ só depois de Discovery = `COMPROVADO_EM_USO` **por você**
+**Agora (fim do dia):** parado na autorização da espinha. Sem cascata para outros motores.
 
 ---
 
-## 4. Quadro visual do dia
+## 3. O que ainda trava o 100% desta aba
+
+### A. Prova autenticada da dona (integração)
+- [ ] Print inicial / ação / confirmação / F5 (parte já existe do agente; falta certificação dela)
+- [ ] Mesma próxima ação em **Hoje** e **Comercial** sem duplicar → `PASSOU` / `FALHOU` dela
+- Status: `PARCIAL` / `TRAVADO`
+
+### B. Espinha jornada (autorização pendente)
+- [ ] Botão **Novo lead** também em `/calls` (mesmo fluxo de `/leads`)
+- [ ] Corrigir divergência de data `call_realizada_em`
+- [ ] Copy clara: criar aqui ou abrir existente
+- Status: `TRAVADO` (espera decisão)
+
+### C. Deploy Vercel
+- [ ] Rate limit de build — esperar ~24h ou upgrade; depois redeploy
+- Status: `TRAVADO` (infra, fora do diff)
+
+### D. Pausado de propósito
+- Pessoa 360, Proposta, Financeiro, App, KPIs, Abas → `PAUSADO`
+
+---
+
+## 4. Quadro visual do dia (2026-09-11)
 
 | Peça | Manhã | Fim do dia |
 |---|---|---|
 | Abrir `/calls` | — | `OK` (código) |
-| SPIN 4/4 + gravar + F5 | — | `OK` (agente) · falta **sua** certificação |
-| Mesma próxima ação em Hoje/Comercial | — | `PARCIAL` / `TRAVADO` |
-| Login Vercel com seu e-mail | — | conferir fio se falhar |
-| Contexto de resgate arquivável? | — | **Não** |
+| Login produção (dona) | — | `OK` |
+| SPIN gravar + F5 | — | `PARCIAL` (agente ok · falta certificação dela) |
+| Mesma ação Hoje/Comercial | — | `TRAVADO` |
+| Novo lead na Mesa | — | `TRAVADO` (não autorizado ainda) |
+| Fix data `call_realizada_em` | — | `TRAVADO` (não iniciado) |
+| Deploy Vercel CI | — | `TRAVADO` (rate limit) |
+| KPIs / Abas / outros motores | — | `PAUSADO` |
+| Contexto arquivável? | — | **Não** |
 
 ---
 
-## 5. Como ler o progresso amanhã
+## 5. Como ler amanhã de manhã
 
-1. Seção **1** cresce só com o que tem print ou comportamento estável.  
-2. Seção **2** diz o que o agente está mexendo **hoje** (sem cascata).  
-3. Seção **3** lista só o que ainda impede 100% **desta** aba.  
-4. Nada sobe para “pronto” sem o seu `PASSOU` autenticado.
+1. Seção 1 = só o estável.  
+2. Seção 2 = o que o agente mexeu **naquele dia**.  
+3. Seção 3 = o que impede 100% **desta** aba.  
+4. Sem `COMPROVADO_EM_USO` sem `PASSOU` autenticado dela.
 
 ```text
 REGRA: código / PR / Vitest ≠ feito.
-Feito = você logada + print inicial + ação + confirmação + F5 + (se couber) integração.
+Feito = dona logada + prints + F5 + (se couber) integração.
 ```
