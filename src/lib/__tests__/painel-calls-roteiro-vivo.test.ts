@@ -12,9 +12,15 @@ describe("Painel de Calls — mesa de Discovery (CA02-CRM-VIVO-PAINEL-CALLS)", (
     expect(painel).not.toContain('titulo="Qualificação preliminar"');
   });
 
-  it("o roteiro deduplica campos repetidos entre blocos — cada campo aparece um único card", () => {
-    expect(painel).toContain("jaRenderizado");
-    expect(painel).toMatch(/jaRenderizado\.has\(c\)/);
+  it("a Mesa mostra uma pergunta SPIN por vez, com resposta e destino no mesmo card", () => {
+    expect(painel).toContain("Mesa de Discovery");
+    expect(painel).toContain("data-mesa-discovery");
+    expect(painel).toContain("atual.pergunta");
+    expect(painel).toContain("Pergunta anterior");
+    expect(painel).toContain("Próxima pergunta");
+    expect(painel).not.toContain("jaRenderizado");
+    expect(painel).not.toContain('className="mt-3 grid gap-2 md:grid-cols-2"');
+    expect(painel).not.toContain("ROTEIRO_DISCOVERY.map");
   });
 
   it("gravar rascunho da call não exige o roteiro inteiro (mesma trava de sempre)", () => {
@@ -52,7 +58,15 @@ describe("Painel de Calls — mesa de Discovery (CA02-CRM-VIVO-PAINEL-CALLS)", (
     expect(painel).toContain("Uso interno de triagem. Não apresentar como parecer, garantia de direito, prazo ou instrução ao cliente.");
   });
 
-  it("cards do roteiro usam grid responsivo (uma coluna no celular, duas a partir de md)", () => {
-    expect(painel).toContain('className="mt-3 grid gap-2 md:grid-cols-2"');
+  it("SPIN no cadastro de leads não é mais checkbox — aponta para a Mesa", () => {
+    const leads = readFileSync("src/routes/_authenticated/leads.tsx", "utf8");
+    expect(leads).toContain("Abrir Mesa de Discovery no Painel de Calls");
+    expect(leads).not.toContain('["spin_situacao", "Situação mapeada"]');
+    expect(leads).not.toContain('type="checkbox" checked={bool(k)}');
+  });
+
+  it("cards do roteiro não voltam ao grid de formulário de duas colunas", () => {
+    expect(painel).toContain('className="mt-3 space-y-2"');
+    expect(painel).not.toContain('className="mt-3 grid gap-2 md:grid-cols-2"');
   });
 });

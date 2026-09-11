@@ -558,19 +558,30 @@ function LeadsPage() {
             </div>
           </Secao>
 
-          <Secao titulo="SPIN e registro da conversa" descricao="Gravação e transcrição só com consentimento explícito registrado.">
-            <div className="grid gap-3 md:grid-cols-2">
-              {[
-                ["spin_situacao", "Situação mapeada"],
-                ["spin_problema", "Problema explicitado"],
-                ["spin_implicacao", "Implicação discutida"],
-                ["spin_necessidade", "Necessidade de solução declarada"],
-              ].map(([k, label]) => (
-                <label key={k} className="flex items-center gap-2 text-sm text-navy">
-                  <input type="checkbox" checked={bool(k)} onChange={(e) => set(k)(e.target.checked)} />
-                  {label}
-                </label>
+          <Secao
+            titulo="SPIN da conversa"
+            descricao="SPIN não é checklist. Situação, Problema, Implicação e Necessidade são perguntas da Mesa de Discovery no Painel de Calls. Os sinais abaixo só espelham o que já foi respondido lá."
+          >
+            <p className="text-sm text-navy">
+              <Link to="/calls" className="underline underline-offset-2">
+                Abrir Mesa de Discovery no Painel de Calls
+              </Link>
+            </p>
+            <ul className="mt-3 grid gap-2 text-sm text-navy/80 sm:grid-cols-2">
+              {(
+                [
+                  ["Situação", "spin_situacao"],
+                  ["Problema", "spin_problema"],
+                  ["Implicação", "spin_implicacao"],
+                  ["Necessidade", "spin_necessidade"],
+                ] as const
+              ).map(([rotuloSpin, k]) => (
+                <li key={k} className="rounded-lg border border-navy/10 bg-cream/40 px-3 py-2">
+                  {rotuloSpin}: {bool(k) ? "há resposta na Mesa" : "ainda sem resposta"}
+                </li>
               ))}
+            </ul>
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
               <Texto label="Dossiê do cliente (referência interna)" valor={campo("dossie_link_interno")} onChange={set("dossie_link_interno")} />
             </div>
           </Secao>
