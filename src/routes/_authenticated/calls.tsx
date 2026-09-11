@@ -38,7 +38,7 @@ function CallsPage() {
   return (
     <SaasShell
       titulo="Painel de Calls"
-      descricao="Sequência: Lead primeiro, depois Call Discovery/diagnóstico (Mesa SPIN). Idealmente uma call para apresentar a proposta — o registro fica em Propostas. O handoff cria pessoa e caso. O que está parado ou vencido aparece no Hoje."
+      descricao="Call/Discovery (Mesa SPIN) vem depois do Lead. Depois: oportunidade → proposta (idealmente com call) → confirmação → handoff → pessoa/caso → Planejador Universal. O handoff só após confirmação. O que está parado ou vencido aparece no Hoje."
     >
       <PainelCalls leadIdInicial={lead} />
     </SaasShell>
