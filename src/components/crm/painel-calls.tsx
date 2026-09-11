@@ -390,11 +390,6 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
         r.casoCriado ? "caso aberto" : "caso já ligado",
         r.codigoCaso ? `código ${r.codigoCaso}` : null,
       ].filter(Boolean);
-      const searchProp = searchPropostaAposHandoff({
-        leadId: selecionado,
-        caseId: r.casoId,
-        clienteId: r.clienteId,
-      });
       setAviso(
         `Handoff gravado: ${partes.join(" · ")}. Circuito comercial: abra a proposta, o caso ou o onboarding — não é só um KPI.`,
       );
