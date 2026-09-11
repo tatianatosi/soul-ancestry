@@ -33,15 +33,15 @@ const filas = [
 ] as never[];
 
 describe("cards e filtros do Painel Hoje", () => {
-  it("expõe as cinco métricas de decisão do CA-UX-02 §7, nesta ordem", () => {
+  it("expõe as métricas de decisão do Hoje, sem card de responsável", () => {
     const cards = cardsHoje(filas);
     expect(cards.map((c) => c.chave)).toEqual([
       "acoes_vencidas",
       "acoes_hoje",
-      "sem_responsavel",
       "excecoes_criticas",
       "sla_em_risco",
     ]);
+    expect(cards.map((c) => c.chave)).not.toContain("sem_responsavel");
   });
 
   it("nenhum cartão reconta um número já exibido por outro bloco da tela", () => {
@@ -94,7 +94,7 @@ describe("cards e filtros do Painel Hoje", () => {
       expect(c.acao.length).toBeGreaterThan(8);
     }
     expect(cards.find((c) => c.chave === "acoes_vencidas")?.destino).toBe("/calls");
-    expect(cards.find((c) => c.chave === "sem_responsavel")?.destino).toBe("/casos");
+    expect(cards.find((c) => c.chave === "sem_responsavel")).toBeUndefined();
   });
 
   it("deriva opções de filtro dos próprios itens e restringe a fila", () => {

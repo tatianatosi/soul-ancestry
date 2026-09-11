@@ -6,9 +6,12 @@ import {
   GRUPOS_OPERACIONAIS_DESK,
   LACUNAS_CONHECIDAS,
   ROTAS_ARQUIVO_GITHUB,
+  CAMADAS_DESK,
   ROTAS_PRESERVADAS,
+  ROTAS_LEGADO_MENU_GOVERNANCA,
   destinosDuplicados,
   destinosSobrepostos,
+  grupoDonoDaRota,
   rotasDoMenu,
   rotasSemLink,
   rotasDoMenuConta,
@@ -17,6 +20,18 @@ import {
 import { MATRIZ_EQUIVALENCIA } from "@/lib/matriz-equivalencia";
 
 describe("Navegação do Desk — 6 grupos operacionais", () => {
+  it("as três camadas não concorrem: abas, Painel de Calls e KPIs", () => {
+    expect(CAMADAS_DESK.map((c) => c.id)).toEqual(["abas", "mesa", "kpis"]);
+    expect(CAMADAS_DESK.find((c) => c.id === "mesa")?.superficie).toBe("/calls");
+    expect(CAMADAS_DESK.find((c) => c.id === "kpis")?.superficie).toBe("/painel");
+    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
+    expect(comercial.to).toBe("/calls");
+    expect(comercial.sub.some((s) => "to" in s && s.to === "/calls" && s.label === "Painel de Calls")).toBe(
+      true,
+    );
+    expect(GRUPOS_DESK.find((g) => g.id === "hoje")?.to).toBe("/painel");
+  });
+
   it("expõe exatamente os 6 grupos aprovados", () => {
     expect(GRUPOS_DESK).toHaveLength(6);
     expect(GRUPOS_DESK.map((g) => g.label)).toEqual([...GRUPOS_OPERACIONAIS_DESK]);
@@ -160,7 +175,7 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     expect(GRUPOS_DESK.map((g) => g.id)).not.toContain("legado");
     expect(
       GRUPOS_DESK.flatMap((g) => g.sub).some(
-        (s) => "grupo" in s && /legado \(arquivo\)/i.test(s.grupo),
+        (s) => "grupo" in s && /legado/i.test(s.grupo),
       ),
     ).toBe(false);
     expect(ROTAS_PRESERVADAS).not.toEqual(expect.arrayContaining([...ROTAS_ARQUIVO_GITHUB]));
@@ -181,5 +196,49 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     const rotas = comercial.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/calls");
     expect(rotasDoMenu()).toContain("/calls");
+  });
+
+  it("declara as três camadas sem criar aba nova", () => {
+    expect(CAMADAS_DESK.map((c) => c.id)).toEqual(["abas", "mesa", "kpis"]);
+    expect(GRUPOS_DESK).toHaveLength(6);
+    expect(CAMADAS_DESK.find((c) => c.id === "mesa")?.rota).toBe("/calls");
+    expect(CAMADAS_DESK.find((c) => c.id === "kpis")?.rota).toBe("/painel");
+  });
+
+  it("cada função mora em um único grupo — privacidade não é operação diária", () => {
+    expect(grupoDonoDaRota("/calls")).toBe("Marketing & Comercial");
+    expect(grupoDonoDaRota("/leads")).toBe("Marketing & Comercial");
+    expect(grupoDonoDaRota("/casos")).toBe("Pessoas & Casos");
+    expect(grupoDonoDaRota("/evidencias")).toBe("Inteligência & Pesquisa");
+    expect(grupoDonoDaRota("/contratos")).toBe("Formalização & Financeiro");
+    expect(grupoDonoDaRota("/financeiro")).toBe("Formalização & Financeiro");
+    expect(grupoDonoDaRota("/catalogo")).toBe("Formalização & Financeiro");
+    expect(grupoDonoDaRota("/privacidade")).toBe("Governança & Administração");
+    expect(grupoDonoDaRota("/homologacao-skus")).toBeNull();
+    expect(grupoDonoDaRota("/conciliacao-catalogo")).toBeNull();
+    expect(grupoDonoDaRota("/escopo-origem")).toBeNull();
+    expect(grupoDonoDaRota("/governanca/catalogo-operacional-30")).toBeNull();
+    const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
+    expect(pesquisa.sub.some((s) => "to" in s && s.to === "/privacidade")).toBe(false);
+    const contratos = GRUPOS_DESK.find((g) => g.id === "contratos")!;
+    const rotasContratos = contratos.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotasContratos).not.toContain("/homologacao-skus");
+    expect(rotasContratos).not.toContain("/conciliacao-catalogo");
+    expect(rotasContratos).not.toContain("/escopo-origem");
+  });
+
+  it("legado de Governança sai do menu e fica só no arquivo GitHub", () => {
+    const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
+    const rotasGov = gov.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotasGov).toContain("/privacidade");
+    expect(gov.sub.some((s) => "grupo" in s && /legado/i.test(s.grupo))).toBe(false);
+    expect(gov.sub.some((s) => "to" in s && /legado/i.test(s.label))).toBe(false);
+    for (const r of ROTAS_LEGADO_MENU_GOVERNANCA) {
+      expect(grupoDonoDaRota(r)).toBeNull();
+      expect(rotasGov).not.toContain(r);
+      expect(rotasDoMenu()).not.toContain(r);
+      expect(rotasDoMenuConta()).not.toContain(r);
+    }
+    for (const r of ROTAS_ARQUIVO_GITHUB) expect(rotasDoMenu()).not.toContain(r);
   });
 });

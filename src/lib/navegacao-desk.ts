@@ -1,14 +1,42 @@
 /**
  * NAVEGAÇÃO CANÔNICA DO DESK — 6 grupos, um endereço por função.
  *
- * Hoje · Marketing & Comercial · Pessoas & Casos · Inteligência & Pesquisa ·
- * Formalização & Financeiro · Governança & Administração.
+ * Três camadas, sem concorrer:
+ *   Abas     — definem onde cada função vive.
+ *   Calls    — o Painel de Calls faz a entrada comercial (/calls).
+ *              Mesa de Discovery = roteiro SPIN dentro do Painel, não o fecha.
+ *   KPIs     — o que está parado, vencido ou precisa de decisão (/painel).
  *
  * Pesquisa e bases moram na Inteligência. Matrizes individual/casal/familiar
  * moram na Formalização. CA-04 (CRM Mestre + Dicionário) mora no Comercial
- * junto do Painel de Calls. Planilha Mestre, conciliação, Catálogo 30 e
- * homologação de SKU legado saíram do Desk — arquivo só no GitHub.
+ * junto do Painel de Calls. A Mesa de Discovery é o roteiro SPIN *dentro*
+ * do Painel — não o fecha. Planilha Mestre, conciliação e SKU legado saíram
+ * do Desk — arquivo só no GitHub. Nada é apagado.
  */
+
+/** As três camadas do Desk. Não são abas novas. */
+export const CAMADAS_DESK = [
+  {
+    id: "abas",
+    papel: "Onde cada função vive",
+    frase: "Abas definem onde cada função vive.",
+    superficie: "os 6 grupos",
+  },
+  {
+    id: "mesa",
+    papel: "A entrada comercial funciona",
+    frase: "O Painel de Calls faz a entrada comercial. A Mesa de Discovery é o roteiro SPIN dentro dele.",
+    superficie: "/calls",
+    rota: "/calls",
+  },
+  {
+    id: "kpis",
+    papel: "O que está parado, vencido ou precisa de decisão",
+    frase: "Os KPIs do Hoje mostram o que está parado, vencido ou precisa de decisão.",
+    superficie: "/painel",
+    rota: "/painel",
+  },
+] as const;
 
 export type ItemNav =
   { grupo: string } | { to: string; label: string; hash?: string; adminOnly?: boolean };
@@ -67,17 +95,17 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   },
   {
     id: "comercial",
-    to: "/leads",
+    to: "/calls",
     label: "Marketing & Comercial",
-    descricao: "Origem da demanda, Calls, Discovery, proposta e conversão — CRM Vivo.",
+    descricao: "Painel de Calls: entrada, Discovery, qualificação e handoff. Leads, proposta e conversão moram nesta aba — não no Hoje.",
     icone: "comercial",
     agrupador: true,
     sub: [
       { grupo: "Aquisição" },
       { to: "/marketing", label: "Marketing e aquisição" },
       { grupo: "CRM Vivo" },
-      { to: "/leads", label: "Leads e triagem" },
       { to: "/calls", label: "Painel de Calls" },
+      { to: "/leads", label: "Leads e triagem" },
       { to: "/crm-mestre", label: "CRM Mestre — Discovery e Handoff" },
       { to: "/governanca/dicionario-calls-crm", label: "Dicionário Calls → CRM" },
       { to: "/propostas", label: "Propostas" },
@@ -127,7 +155,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { grupo: "Fontes e prova" },
       { to: "/fontes-genealogicas", label: "Fontes, consultas e bases genealógicas" },
       { to: "/evidencias", label: "Evidências e documentos" },
-      { to: "/privacidade", label: "Privacidade e consentimento" },
       { grupo: "Trilha" },
       { to: "/matriz-juridica", label: "Validação Jurídica" },
       { to: "/biblioteca-mensagens", label: "Biblioteca de Mensagens" },
@@ -160,7 +187,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     id: "governanca",
     to: "/configuracoes",
     label: "Governança & Administração",
-    descricao: "Papéis, integrações, DEMO e o que não decide o dia.",
+    descricao: "Papéis, privacidade, integrações e o que não decide o dia.",
     icone: "governanca",
     agrupador: true,
     sub: [
@@ -171,12 +198,32 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/integracoes", label: "Integrações" },
       { to: "/importacoes", label: "Importações e migração" },
       { to: "/metricas", label: "Métricas comerciais e operacionais" },
+      { to: "/privacidade", label: "Privacidade e consentimento" },
     ],
   },
 ] as const;
 
 /**
- * Menu da conta — só a sessão DEMO. Equipe, configurações e legado moram
+ * Superfícies de Planilha Mestre, SKU e conciliação que o `main` chegou a
+ * colocar no submenu “Legado” de Governança. Opção B da proprietária
+ * (11/09/2026): saíram do menu. Cópia em ROTAS_ARQUIVO_GITHUB. Rotas em
+ * `src/` permanecem para URL direta — não apagar tabela nem arquivo.
+ *
+ * Varredura da Governança na mesma data: só estes cinco eram legado na face.
+ * O que ficou no grupo é administração viva (configurações, equipe, etiquetas,
+ * integrações, importações, métricas, privacidade). `/governanca/decisoes`
+ * já estava fora do menu. CA-04 e o dicionário moram no Comercial.
+ */
+export const ROTAS_LEGADO_MENU_GOVERNANCA = [
+  "/governanca/catalogo-operacional-30",
+  "/homologacao-skus",
+  "/conciliacao-catalogo",
+  "/divergencias-catalogo",
+  "/escopo-origem",
+] as const;
+
+/**
+ * Menu da conta — só a sessão DEMO. Equipe e configurações moram
  * em Governança & Administração. Não é nona aba.
  */
 export const MENU_CONTA: {
@@ -318,6 +365,26 @@ export function destinosDuplicados(): string[] {
     }
   }
   return dup;
+}
+
+/**
+ * Grupo dono da rota: o trabalho completo mora aqui. Nos demais lugares,
+ * só resumo e link. Sem dono = rota fora do menu (não inventar aba).
+ */
+export function grupoDonoDaRota(rota: string): string | null {
+  const path = (rota.split("#")[0] ?? "").replace(/\/$/, "") || "/";
+  for (const g of GRUPOS_DESK) {
+    for (const s of g.sub) {
+      if ("to" in s && s.to === path) return g.label;
+    }
+  }
+  for (const g of GRUPOS_DESK) {
+    for (const s of g.sub) {
+      if (!("to" in s)) continue;
+      if (rotaAtendeDestino(path, s.to)) return g.label;
+    }
+  }
+  return null;
 }
 
 /**

@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Clube Ancestral — núcleo (Fase 1)
 
-Texto irmão: `.cursor/rules/clube-ancestral.mdc`. Não altera legado; não inventa tabela.
+Texto irmão: `.cursor/rules/clube-ancestral.mdc`. Adendo de continuidade: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`. Não altera legado; não inventa tabela.
 
 ## Premissas permanentes
 
@@ -30,5 +30,45 @@ Cliente externo nunca vê nota interna, outro caso ou outro cliente. Esconder na
 
 ## Peças que não se apagam
 
-- Painel de Calls (`/calls`, `PainelCalls`) é entrada canônica do CRM Vivo. Isolar dicionário/legado não autoriza esconder a rota.
-- Os 8 grupos de `GRUPOS_DESK` permanecem. Não fundir, não criar nona aba.
+- Painel de Calls / Mesa de Discovery (`/calls`, `PainelCalls`) é entrada canônica do CRM Vivo. Isolar dicionário/legado não autoriza esconder a rota.
+- Os **6 grupos** de `GRUPOS_OPERACIONAIS_DESK` permanecem. Não fundir, não criar sétima aba de Desk. O texto de 8 grupos na memória permanente é contexto ativo, não menu a restaurar.
+
+## Relatório diário — aba Hoje (`/painel`)
+
+Atualizar **de manhã** e **no fim do dia**. Não marcar “100%” sem print autenticado da proprietária (abrir → agir → confirmar → F5).
+
+**Corte:** 2026-09-11, fim do dia (após merge da Mesa #98 no `main`).  
+**Aba:** Hoje — Visão Geral.  
+**O que a aba deve fazer:** mostrar o que está parado, vencido ou pede decisão, com link para a aba dona. A call se faz no Painel de Calls, não aqui. Tatiana Tosi é a única responsável — sem card “Sem responsável”.
+
+### 1. Já funciona (back-end e front-end)
+
+**Front-end**
+
+- A tela abre depois do login da proprietária em `/painel`.
+- Os 6 grupos aparecem no menu.
+- Cards vivos no topo: Casos ativos, Alertas pendentes, Leads sem próxima ação, Vencidos, Vence hoje, Exceções e bloqueios.
+- Cada card é um link (Casos 360, Alertas, Painel de Calls `/calls`, exceções).
+- Receita e conversão **não** estão no topo (ficam em Financeiro e Conversão).
+- Filtro “Incluir demonstrações” esconde massa de teste por padrão.
+
+**Back-end**
+
+- Leitura autenticada (RLS) de `leads` e `crm_casos`.
+- Encadeamento operacional (`pendenciasCadeiaPainel`) entra nas filas de contrato/pagamento/onboarding.
+- RPC `proxima_acao_prioritaria_lote` existe e é chamada para casos com documento mínimo em falta.
+- Alertas vêm de `listarAlertas` (outra consulta, mesma tela).
+
+### 2. Em correção agora
+
+- Merge da PR **#97** contra o `main` (Mesa #98 + 6 grupos). Opção B da proprietária: Planilha/SKU/conciliação **fora** do menu, só no arquivo GitHub. Card “Sem responsável” saiu do Hoje.
+
+### 3. Travado para a aba funcionar 100%
+
+- **Fiação SLA:** o card “SLA em risco” pediria `tarefas.sla_status` / microentregas. O Hoje **não lê** essas colunas no Supabase. Sem fonte, o número seria mentira — por isso o card não entra no topo.
+- **Fiação próxima ação:** a RPC em lote só roda para caso com `documentos_minimos_ok = false`. Os outros casos podem aparecer no Hoje com texto de fila, não com a mesma frase da Ficha 360.
+- **Clique → F5:** não há prova de resolver um item (gravar próxima ação) e recarregar o card sem duplicar registro.
+- **Integração Painel de Calls → Hoje:** gravar próxima ação no Painel e vê-la no Hoje ainda não foi comprovado.
+- **Login Vite local:** bloqueado sem `SUPABASE_SERVICE_ROLE_KEY` no Cloud Agent (a chave não entra no git).
+
+Nenhum motor desta aba está `COMPROVADO_EM_USO`.

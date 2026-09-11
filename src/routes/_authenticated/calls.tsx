@@ -11,9 +11,9 @@ export const Route = createFileRoute("/_authenticated/calls")({
   head: () => ({
     meta: [
       { title: "Painel de Calls — Clube Ancestral" },
-      { name: "description", content: "Registro de calls, qualificação preliminar de leads e handoff da Discovery com validações de bloqueio." },
+      { name: "description", content: "Painel de Calls: entrada, varredura, Discovery, próxima ação e handoff. Ainda incompleto. KPIs de atraso ficam no Hoje." },
       { property: "og:title", content: "Painel de Calls — Clube Ancestral" },
-      { property: "og:description", content: "Calls, qualificação e handoff da Discovery no Desk Intelligence." },
+      { property: "og:description", content: "O Painel de Calls faz a entrada comercial. A Mesa de Discovery é o roteiro SPIN dentro dele." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
@@ -24,7 +24,10 @@ export const Route = createFileRoute("/_authenticated/calls")({
 
 function CallsPage() {
   return (
-    <SaasShell titulo="Painel de Calls" descricao="Registrar chamadas, qualificar leads e fazer o handoff da Discovery.">
+    <SaasShell
+      titulo="Painel de Calls"
+      descricao="Entrada, Discovery, qualificação e handoff — ainda incompleto. A Mesa de Discovery é o roteiro SPIN dentro deste painel. O que está parado ou vencido aparece no Hoje."
+    >
       <PainelCalls />
     </SaasShell>
   );

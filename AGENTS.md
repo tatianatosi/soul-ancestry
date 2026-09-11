@@ -21,7 +21,7 @@ Isto **não** autoriza redesenho de navegação, vocabulário novo (incluindo ta
 2. **Planejador** = única fonte válida do planejamento operacional ativo (prioridades, capacidade, prazos, responsáveis, o que vem a seguir).
 3. Modelo de dados, migrations e código efetivamente aprovados. Divergência = dívida ou bloqueio declarado, nunca escondida.
 4. Mockup aprovado de **17 páginas** (`docs/evolucao/recuperados/prompts-lovable-2026-08-31/clube-ancestral-mockup.pdf`) = contrato visual normativo.
-5. Políticas aprovadas em `docs/politicas/` (autoridade operacional, fonte de verdade de design, taxonomia do mockup).
+5. Políticas aprovadas em `docs/politicas/` (autoridade operacional, fonte de verdade de design, taxonomia do mockup, **adendo de contexto não arquivável e prova autenticada** de 2026-09-10).
 6. Materiais legados = histórico / auditoria / migração controlada. **Nunca** dirigem a operação atual.
 
 Se o código divergir destas instruções, declarar a dívida. Não “corrigir” a realidade do schema inventando entidades paralelas.
@@ -115,13 +115,26 @@ Protótipo só visual; componente sem persistência; schema sem fluxo; endpoint 
 
 Relato de progresso deve dizer: o que foi implementado, em qual camada, quais entidades, qual evidência, o que falta, bloqueio, próximo passo concreto. Evitar “estrutura criada” / “quase finalizado” sem prova.
 
+Print de homepage, login sem sessão, Vitest, build, PR verde ou declaração de agente **não** comprovam motor. Ver adendo de prova autenticada abaixo.
+
+## Adendo vinculante — contexto não arquivável e prova autenticada (2026-09-10)
+
+Texto integral: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`. Registro vivo: `docs/relatorios/2026-09-11_registro-prova-autenticada.md`.
+
+- O Clube Ancestral é **um produto**, não módulos soltos. A cadeia comercial → Discovery → Pessoa/Dossiê → Caso/Planejador → Pesquisa → Formalização/Financeiro → Entrega/App → Hoje/Radar precisa preservar a mesma identidade, fonte e próxima ação.
+- Nenhum agente pode arquivar, reduzir a “histórico” ou declarar “já resolvido, pode arquivar” só porque existe código, PR, teste, migration, mockup ou log.
+- Arquivamento só depois de `COMPROVADO_EM_USO` pela proprietária autenticada (`tati@pluggedresearch.com`), com prints **inicial, ação, confirmação, releitura** e, na cadeia, **integração**. Resultado: `PASSOU` / `FALHOU` / `BLOQUEADO_POR_DADO` / `BLOQUEADO_POR_DECISAO` / `ERRO_DE_FONTE` / `NAO_LOCALIZADO`.
+- Este adendo **não** autoriza alterar dados, contratos, pagamentos, RLS, permissões, migrations, integrações, publicações, mensagens ou merges. Print complementa — não substitui — RLS, auditoria e persistência.
+- “Seis áreas” no adendo **não** cria nona aba. Dívida declarada: `GRUPOS_DESK` nesta linha tem 6 grupos; a memória permanente ainda cita 8. Nenhuma das duas leituras se arquiva até a proprietária certificar a taxonomia.
+- Contextos de resgate (Discovery, Pessoa 360, Pesquisa, formalização, Radar, App Cliente, RLS etc.) permanecem **ativos** até a prova integrada. Listar um documento como “arquivado” no inventário antigo **não** retira a continuidade.
+
 ## Recuperação (se o produto estiver fragmentado)
 
 Núcleo canônico → motor de casos → planner ligado à próxima ação → timeline → documentos → permissões e portal → comunicação → dashboards a partir de dado real → legado só em trilha segregada → visual por último (P11). Não começar por página nova, Cockpit ou refinamento estético se o fluxo central não estiver provado.
 
 ## Antes de cada entrega, perguntar
 
-Isto fortalece ou fragmenta o motor? Qual é a fonte de verdade? O planejador continua válido? Há legado tratado como operação atual? Há responsável, próxima ação e prazo? O perfil certo vê a informação? O fluxo fecha sem planilha/banco manual? Há persistência e teste? Falha é visível? O requisito original tem prova?
+Isto fortalece ou fragmenta o motor? Qual é a fonte de verdade? O planejador continua válido? Há legado tratado como operação atual? Há responsável, próxima ação e prazo? O perfil certo vê a informação? O fluxo fecha sem planilha/banco manual? Há persistência e teste? Falha é visível? O requisito original tem prova? Há prints autenticados da proprietária (inicial, ação, confirmação, releitura, integração) no registro vivo, ou o resultado é `BLOQUEADO_*` / `NAO_LOCALIZADO`?
 
 ## Artefatos 005–010 (verificados contra o repo em 2026-09-10)
 

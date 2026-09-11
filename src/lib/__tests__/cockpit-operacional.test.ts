@@ -22,6 +22,7 @@ describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
   it("cartões do Painel Hoje são links para lista com ação", () => {
     const painel = ler("src/components/painel/painel-dia.tsx");
     expect(painel).toContain("faixaCockpitHoje");
+    expect(painel).not.toContain('to={c.destino as "/tarefas"}');
     expect(painel).toContain("Buscar pessoa 360");
     expect(painel).toContain('to="/calls"');
     expect(painel).not.toContain('to={c.destino as "/tarefas"}');
@@ -34,18 +35,19 @@ describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
     expect(painel).toContain('rotulo="Leads sem próxima ação"');
     expect(painel).toContain('rotulo="Vencidos"');
     expect(painel).toContain('rotulo="Vence hoje"');
-    expect(painel).toContain('rotulo="Sem responsável"');
     expect(painel).toContain('rotulo="Exceções e bloqueios"');
+    expect(painel).not.toContain('rotulo="Sem responsável"');
+    expect(painel).not.toContain('rotulo="SLA em risco"');
     expect(painel).not.toContain('rotulo="Receita do mês"');
     expect(painel).not.toContain('rotulo="Taxa de conversão"');
     expect(painel).not.toContain('rotulo="SLA em risco"');
   });
 
-  it("indicadores canônicos de vencidos e sem responsável abrem a lista, não o próprio painel", () => {
+  it("indicador canônico de vencidos abre a lista; Sem responsável não volta ao Hoje", () => {
     expect(INDICADORES_CANONICOS.find((i) => i.indicador === "Vencidos e vence hoje")?.rotaAcao).toBe(
       "/calls",
     );
-    expect(INDICADORES_CANONICOS.find((i) => i.indicador === "Sem responsável")?.rotaAcao).toBe("/casos");
+    expect(INDICADORES_CANONICOS.find((i) => i.indicador === "Sem responsável")).toBeUndefined();
   });
 
   it("Painel de Calls grava o lead e recarrega o Hoje", () => {

@@ -228,7 +228,7 @@ const GRUPOS_INDICADOR = [
   {
     chave: "integridade" as const,
     titulo: "Integridade",
-    resumo: "Sem responsável, sem próxima ação, conflito de fonte e pendência de auditoria.",
+    resumo: "Sem próxima ação, conflito de fonte e pendência de auditoria.",
     // Corte D (09/09/2026): /auditoria foi removida — o Radar Interno em
     // /qualidade já cobre este conteúdo (ver qualidade.tsx). O card tinha CTA
     // morto (404).
@@ -362,7 +362,7 @@ export function PainelDia() {
   const itens = consolidarDia(filas, { incluirDemo });
   // Precedência exclusiva: fila priorizada → exceções → comercial. Um registro só aparece uma vez.
   const priorizada = filaPriorizada(itens, hoje);
-  const cards = cardsHoje(filas, { incluirDemo, itens });
+  const cards = cardsHoje(filas, { incluirDemo });
   const casoDestaque = escolherCasoDestaque(itens, { incluirDemo });
   const opcoes = opcoesFiltroDia(itens);
   const priorizadaVisivel = priorizada.map((f) => ({
@@ -689,23 +689,16 @@ export function PainelDia() {
         data-desk-enxuto
         className="rounded-xl border border-gold/40 bg-gold/15 px-4 py-3 text-sm text-navy"
       >
-        Painel de Calls abre o funil comercial: gravar a call e recarregar.{" "}
+        As abas dizem onde cada função vive. O{" "}
         <Link to="/calls" className="font-medium underline decoration-gold underline-offset-4">
-          Abrir Painel de Calls
-        </Link>
-        . Receita recebida confirmada mora em{" "}
-        <Link to="/financeiro" className="font-medium underline decoration-gold underline-offset-4">
-          /financeiro
-        </Link>
-        ; o funil mora em{" "}
-        <Link to="/conversao" className="font-medium underline decoration-gold underline-offset-4">
-          /conversao
-        </Link>
-        — nenhum dos dois volta ao topo com número de mockup. Campo com pendência continua
-        editável.
+          Painel de Calls
+        </Link>{" "}
+        faz a entrada comercial (ainda incompleto). A Mesa de Discovery é o roteiro SPIN
+        dentro dele. Os números abaixo só mostram o que está parado, vencido ou precisa de
+        decisão — receita e conversão ficam em Financeiro e Conversão.
       </p>
 
-      {/* 0 — KPIs vivos do dia. Sem receita/conversão de mockup; sem SLA sem fonte; sem segunda faixa. */}
+      {/* 0 — KPIs: parado, vencido, decisão. Sem receita/conversão de mockup; sem SLA sem fonte. */}
       <AncoraApp bloco="cards" />
       <section data-painel-bloco="cards" className="space-y-3">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-mockup-kpis>
@@ -762,17 +755,6 @@ export function PainelDia() {
               valor={cards.find((c) => c.chave === "acoes_hoje")?.total ?? 0}
               apoio="Abrir o que vence hoje no Painel de Calls"
               tom={cards.find((c) => c.chave === "acoes_hoje")?.total ? "atencao" : "neutro"}
-            />
-          </Link>
-          <Link
-            to={(cards.find((c) => c.chave === "sem_responsavel")?.destino ?? "/casos") as "/casos"}
-            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-          >
-            <CardIndicador
-              rotulo="Sem responsável"
-              valor={cards.find((c) => c.chave === "sem_responsavel")?.total ?? 0}
-              apoio="Abrir casos para atribuir dono"
-              tom={cards.find((c) => c.chave === "sem_responsavel")?.total ? "atencao" : "neutro"}
             />
           </Link>
           <Link
@@ -1083,12 +1065,18 @@ export function PainelDia() {
       >
         <h2 className="font-serif text-lg text-navy">Encontrar no Desk</h2>
         <AncoraApp bloco="descoberta" />
+        <p className="mt-1 text-sm text-navy/65">
+          Cada função vive na sua aba. O Painel de Calls faz a entrada. A Mesa de
+          Discovery é o roteiro SPIN dentro dele. O Hoje só aponta o que está parado,
+          vencido ou pede decisão.
+        </p>
 
         <p className="mt-3 text-[11px] uppercase tracking-wide text-navy/50">
           Começar alguma coisa
         </p>
         <div className="mt-2 flex flex-wrap gap-2 text-xs">
           {[
+            { to: "/calls" as const, rotulo: "Painel de Calls" },
             { to: "/leads" as const, rotulo: "Novo lead" },
             { to: "/propostas" as const, rotulo: "Abrir proposta" },
             { to: "/casos" as const, rotulo: "Abrir caso" },

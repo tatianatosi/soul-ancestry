@@ -1,6 +1,6 @@
 # Arquivo GitHub — Planilha Mestre, conciliação e SKU legado
 
-**Data:** 10/09/2026  
+**Data:** 10/09/2026 (confirmado opção B em 11/09/2026)  
 **Pedido:** sair da face do Desk; preservar no GitHub. Nada disso volta ao menu, à conta ou a um grupo “Legado”.
 
 Nada foi apagado. As rotas originais continuam em `src/routes/_authenticated/` para URL direta e recuperação. Tabelas (`product_catalog`, divergências, runs de conciliação) não foram tocadas. O catálogo vivo do Desk é `/catalogo` (homologado). Financeiro continua em `/financeiro`.
@@ -17,12 +17,20 @@ Nada foi apagado. As rotas originais continuam em `src/routes/_authenticated/` p
 
 Cópia das rotas nesta pasta: `rotas/`.
 
+## Varredura de Governança (11/09/2026)
+
+O submenu “Legado (fora da operação diária)” do `main` tinha exatamente estes cinco itens. Foram os únicos legado na face da Governança.
+
+**Permanece no menu de Governança (administração viva):** configurações, equipe, etiquetas, integrações, importações, métricas, privacidade.
+
+**Já estava fora do menu:** `/governanca/decisoes` (log citado em pesquisa). CA-04 `/crm-mestre` e `/governanca/dicionario-calls-crm` moram no Comercial.
+
 ## O que permanece na face
 
 - `/catalogo` — catálogo homologado (`product_catalog`)
 - `/financeiro` — receita confirmada, condições, faturas
 - CA-04 `/crm-mestre` e `/governanca/dicionario-calls-crm` no Comercial, com as Calls
-- KPIs vivos no Hoje: casos, alertas, leads sem próxima ação, vencidos, vence hoje, sem responsável, exceções
+- KPIs vivos no Hoje: casos, alertas, leads sem próxima ação, vencidos, vence hoje, exceções. Sem card “Sem responsável”: Tatiana Tosi é a única responsável.
 
 ## O que não está neste arquivo
 

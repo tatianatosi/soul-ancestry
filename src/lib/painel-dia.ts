@@ -305,7 +305,6 @@ export function agruparLinhasIndicadores(linhas: LinhaIndicadorDia[]): Record<Gr
 export const DESTINO_CARD_HOJE = {
   acoes_vencidas: { destino: "/calls", acao: "Abrir Painel de Calls — vencidos" },
   acoes_hoje: { destino: "/calls", acao: "Abrir o que vence hoje no Painel de Calls" },
-  sem_responsavel: { destino: "/casos", acao: "Abrir casos para atribuir dono" },
   excecoes_criticas: { destino: "/ops-excecoes", acao: "Abrir exceções operacionais" },
   sla_em_risco: { destino: "/ops", acao: "Abrir operação e SLA" },
 } as const;
@@ -334,10 +333,10 @@ export type IndicadorCockpit = {
 };
 
 /**
- * Métricas de decisão do topo do Painel Hoje, na ordem canônica do CA-UX-02 §7
- * (grupo Visão geral: vencidos; vence hoje; sem responsável; exceções críticas;
- * SLA em risco). O limite de cinco é normativo — o mesmo parágrafo manda que
- * métrica secundária fique em "Ver detalhes", não no topo.
+ * Métricas de decisão do topo do Painel Hoje. 11/09/2026 — o card
+ * "Sem responsável" saiu: a proprietária Tatiana Tosi é a única responsável.
+ * Não repor. SLA em risco permanece declarado, mas sem fonte não entra na face.
+ */
  *
  * As filas de bloqueio que antes ocupavam um cartão cada (contrato enviado,
  * pagamento aguardado, onboarding pendente, documento aguardado) não se
@@ -347,11 +346,6 @@ export type IndicadorCockpit = {
 export const CARDS_HOJE: { chave: string; rotulo: string; leitura: string }[] = [
   { chave: "acoes_vencidas", rotulo: "Vencidos", leitura: "Próxima ação com data anterior a hoje" },
   { chave: "acoes_hoje", rotulo: "Vence hoje", leitura: "Próxima ação datada para hoje" },
-  {
-    chave: "sem_responsavel",
-    rotulo: "Sem responsável",
-    leitura: "Registro operacional ativo sem dono nominal",
-  },
   {
     chave: "excecoes_criticas",
     rotulo: "Exceções críticas",
@@ -372,10 +366,9 @@ export const CARDS_HOJE: { chave: string; rotulo: string; leitura: string }[] = 
  */
 export function cardsHoje(
   filas: Fila[],
-  opcoes?: { incluirDemo?: boolean; itens?: ItemDia[] },
+  opcoes?: { incluirDemo?: boolean },
 ): CardHoje[] {
   const incluirDemo = opcoes?.incluirDemo ?? false;
-  const itens = opcoes?.itens ?? consolidarDia(filas);
   const visiveis = <T extends { rotulo: string }>(lista: T[]) =>
     incluirDemo ? lista : lista.filter((i) => !eDemo(i.rotulo));
 
@@ -391,7 +384,6 @@ export function cardsHoje(
   const valor: Record<string, number | null> = {
     acoes_vencidas: daFila("acoes_vencidas"),
     acoes_hoje: daFila("acoes_hoje"),
-    sem_responsavel: visiveis(itens.filter((i) => i.semResponsavel)).length,
     excecoes_criticas: criticos.size,
     // CA-UX-02 §7 pede SLA em risco. A fonte é tarefas.sla_status /
     // ops_microentregas.prazo_status, que a consulta do Painel Hoje ainda não

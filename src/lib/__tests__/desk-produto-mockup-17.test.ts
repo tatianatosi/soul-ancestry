@@ -18,7 +18,7 @@ describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas com
     expect(GRUPOS_DESK.map((g) => g.label)).toEqual([...GRUPOS_OPERACIONAIS_DESK]);
     expect(GRUPOS_DESK.map((g) => g.to)).toEqual([
       "/painel",
-      "/leads",
+      "/calls",
       "/casos",
       "/biblioteca",
       "/contratos",
@@ -55,6 +55,14 @@ describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas com
     expect(rotas("pesquisa")).toEqual(
       expect.arrayContaining(["/pesquisa-modulo", "/pesquisa", "/evidencias", "/matriz-juridica"]),
     );
+    expect(rotas("pesquisa")).not.toContain("/privacidade");
+    expect(rotas("contratos")).not.toContain("/conciliacao-catalogo");
+    expect(rotas("contratos")).not.toContain("/homologacao-skus");
+    expect(rotas("governanca")).toEqual(expect.arrayContaining(["/privacidade", "/configuracoes"]));
+    expect(rotas("governanca")).not.toContain("/homologacao-skus");
+    expect(rotas("governanca")).not.toContain("/conciliacao-catalogo");
+    expect(rotas("governanca")).not.toContain("/escopo-origem");
+    expect(rotas("governanca")).not.toContain("/governanca/catalogo-operacional-30");
     expect(destinosSobrepostos()).toEqual([]);
   });
 
@@ -75,6 +83,7 @@ describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas com
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
     expect(gov.sub.some((s) => "to" in s && s.to === "/crm-mestre")).toBe(false);
     expect(gov.sub.some((s) => "to" in s && s.to === "/governanca/catalogo-operacional-30")).toBe(false);
+    expect(gov.sub.some((s) => "to" in s && s.to === "/privacidade")).toBe(true);
   });
 
   it("dossiê /pesquisa é o repositório do Legado, dentro da Inteligência", () => {

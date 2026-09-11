@@ -197,6 +197,7 @@ export type TipoCampoCalls =
   | "Número"
   | "URL"
   | "Checkbox"
+  | "Pergunta da Mesa"
   | "Dropdown"
   | "Dropdown fixo"
   | "Dropdown dependente"
@@ -265,10 +266,10 @@ export const CAMPOS_DICIONARIO_CALLS: readonly CampoDicionario[] = [
   { campo: "Resultado comercial", tipo: "Dropdown", obrigatorio_na_etapa: "Fechamento", lista: "Resultado comercial", regra: "Lista controlada; derivado dos dois eixos." },
   { campo: "Motivo de perda", tipo: "Dropdown", obrigatorio_na_etapa: "Se perdido", lista: "Motivo de perda", regra: "Obrigatório quando o resultado comercial é de perda." },
   { campo: "Consentimento de gravação", tipo: "Checkbox", obrigatorio_na_etapa: "Discovery", regra: "Sim/Não. Obrigatório antes de gravar." },
-  { campo: "SPIN — Situação concluída", tipo: "Checkbox", obrigatorio_na_etapa: "Discovery", regra: "Marcar somente após registrar dados familiares básicos." },
-  { campo: "SPIN — Problema identificado", tipo: "Checkbox", obrigatorio_na_etapa: "Discovery", regra: "Marcar somente após registrar dor/lacuna objetiva." },
-  { campo: "SPIN — Implicação explicada", tipo: "Checkbox", obrigatorio_na_etapa: "Discovery", regra: "Marcar somente após explicar risco de não estruturar a via/documentação." },
-  { campo: "SPIN — Necessidade/valor validado", tipo: "Checkbox", obrigatorio_na_etapa: "Discovery", regra: "Marcar somente se o lead verbalizar benefício/próximo passo." },
+  { campo: "SPIN — Situação", tipo: "Pergunta da Mesa", obrigatorio_na_etapa: "Discovery", regra: "Pergunta da Mesa de Discovery no Painel de Calls. Completa quando deriva da resposta em objetivo, país, participantes ou linha familiar. Não é checkbox." },
+  { campo: "SPIN — Problema", tipo: "Pergunta da Mesa", obrigatorio_na_etapa: "Discovery", regra: "Pergunta da Mesa: lacuna objetiva (documento incerto, ruptura). Completa quando deriva da resposta nesses campos. Não é checkbox." },
+  { campo: "SPIN — Implicação", tipo: "Pergunta da Mesa", obrigatorio_na_etapa: "Discovery", regra: "Pergunta da Mesa: o que muda se não estruturar (via, complexidade, idioma, pesquisa prévia). Completa quando deriva da resposta. Não é checkbox." },
+  { campo: "SPIN — Necessidade", tipo: "Pergunta da Mesa", obrigatorio_na_etapa: "Discovery", regra: "Pergunta da Mesa: valor verbalizado e próximo passo (intenção, objeção, resultado, prazo). Completa quando deriva da resposta. Não é checkbox." },
   { campo: "Link da gravação/transcrição", tipo: "URL", obrigatorio_na_etapa: "Pós-Discovery", regra: "Link válido; acesso interno restrito." },
   { campo: "Link do dossiê/pasta do caso", tipo: "URL", obrigatorio_na_etapa: "Onboarding", regra: "Um único dossiê-mãe por família/caso." },
 ];

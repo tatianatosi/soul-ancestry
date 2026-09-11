@@ -1,0 +1,39 @@
+# Clube Ancestral — Guia curto por aba
+
+**Status:** vigente como checklist de conteúdo (11/09/2026).  
+**Decisão da Proprietária:** as abas definem onde cada função vive; o Painel de Calls faz a entrada comercial; a Mesa de Discovery é o roteiro SPIN dentro do Painel; os KPIs do Hoje mostram o que está parado, vencido ou precisa de decisão. Tatiana Tosi é a única responsável — o card “Sem responsável” não entra no Hoje.
+
+Não apagar dados, rotas, componentes, migrations, RLS nem histórico nesta rodada. Recolher do fluxo diário o que é legado, DEMO, lista administrativa ou duplicidade. Nos demais lugares: só sinal e link para a origem.
+
+## Três camadas
+
+1. **Abas** — dona do dado. Trabalho completo mora em um único grupo.
+2. **Painel de Calls** (`/calls`) — entrada comercial: dump, perguntas SPIN, próxima ação, handoff. Mesa de Discovery = roteiro SPIN interno.
+3. **KPIs do Hoje** — o que está parado, vencido ou pede decisão, sempre com link para a aba dona.
+
+## Onde vive
+
+| Se o item é… | Fica em… | Nos demais lugares… |
+|---|---|---|
+| Ação do dia | Hoje | Só resumo/link |
+| Lead, Call, Discovery, proposta, conteúdo | Marketing & Comercial | Resumo em Hoje; ponte ao Caso após handoff |
+| Pessoa, núcleo, jornada, tarefa, bloqueio de caso | Pessoas & Casos | Resumo em Hoje e links contextuais |
+| Fonte, evidência, árvore, lacuna, achado | Inteligência & Pesquisa | Contexto no Caso; projeção autorizada ao cliente |
+| Contrato, assinatura, condição, financeiro | Formalização & Financeiro | Bloqueio/status no Caso e em Hoje |
+| Política, fórmula, RLS, integração, DEMO | Governança & Administração | Nunca como operação diária |
+
+## Recolher da operação diária
+
+CA OPS, Matriz Operacional, Planilha Mestre, SKU/ranking legado, conciliação histórica e DEMO/local não orientam o dia. Continuam no repositório; **não entram no menu do Desk**. Cópia em `archive/github/2026-09-10-legado-catalogo-desk/`. Rotas em `src/` seguem no ar por URL direta. Nada é apagado.
+
+Varredura de Governança (11/09/2026, opção B): os cinco itens do submenu “Legado” saíram da face. O que permanece no grupo é administração viva (configurações, equipe, etiquetas, integrações, importações, métricas, privacidade).
+
+## Superfícies no código
+
+| Camada | Onde está | O que não é |
+|---|---|---|
+| Abas | `GRUPOS_DESK` + `grupoDonoDaRota` | Painel de KPI paralelo, 7ª aba, segundo CRM |
+| Painel de Calls | `/calls` | Checkbox SPIN, formulário longo, score de elegibilidade |
+| KPIs | Painel Hoje (`/painel`) | Receita/conversão no topo, Planilha Mestre como operação, card Sem responsável |
+
+URLs não mudam. Nada é apagado nesta rodada.

@@ -32,7 +32,7 @@ export type IndicadorCanonico = {
   observacao: string;
 };
 
-/** Os 6 KPIs antes duplicados, agora com origem única de contagem. */
+/** Os KPIs do Hoje com origem única de contagem. Sem card de responsável: Tatiana Tosi é a única. */
 export const INDICADORES_CANONICOS: readonly IndicadorCanonico[] = [
   {
     indicador: "Vencidos e vence hoje",
@@ -48,20 +48,6 @@ export const INDICADORES_CANONICOS: readonly IndicadorCanonico[] = [
     confianca: "confirmado",
     observacao:
       "Deduplicação obrigatória: um objeto aparece uma única vez na fila. O cartão abre o Painel de Calls porque a contagem atual é leads.proxima_acao_em — não é marco do Planejador nem tarefa do Checklist.",
-  },
-  {
-    indicador: "Sem responsável",
-    grupo: "Hoje",
-    tipo: "decisao",
-    fonteCanonica: "src/lib/alertas-derivados.ts",
-    formula: "casos e tarefas ativos com responsavel_id nulo",
-    recorteTemporal: "estado atual",
-    responsavel: "proprietária / operações",
-    rotaAcao: "/casos",
-    contagemEm: ["/painel"],
-    etiquetaEm: ["/casos", "/tarefas", "/metricas"],
-    confianca: "confirmado",
-    observacao: "Alerta derivado: some quando o registro canônico recebe responsável. O cartão abre Casos 360.",
   },
   {
     indicador: "Contratos enviados e pagamentos aguardados",
