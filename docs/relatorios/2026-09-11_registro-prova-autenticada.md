@@ -36,6 +36,20 @@ Nenhum motor abaixo está `COMPROVADO_EM_USO`. Código, PR, Vitest, build, previ
 
 Essa linha **não** pede que a proprietária refaça o clique só para repetir o agente. Quando ela for certificar a Mesa, o protocolo completo (inicial, ação, confirmação, releitura, integração) vale sobre estes prints.
 
+### C. Fix remoto RLS `app_projections` ↔ `app_projection_shares` (42P17)
+
+| Campo | Valor |
+|---|---|
+| Data/hora | 2026-09-11 ~13:56–14:05 UTC |
+| Migration | `supabase/migrations/20260911120000_fix_recursao_rls_app_projections_shares.sql` |
+| Projeto remoto | `zsxpdbhdvbuulwpepemd` |
+| Aplicação | SQL Editor → **DDL Success** (“Success. No rows returned” = esperado; sem `SELECT` no script) |
+| Confirmação (1) | 3 funções: `fn_app_projection_compartilhada_com_cliente`, `fn_sou_titular_app_projection`, `fn_app_projection_org_bate` |
+| Confirmação (2) | Policy `app_proj_select_portal` cita `fn_app_projection_compartilhada_com_cliente` (sem `EXISTS` cruzado em shares) |
+| Smoke leitura | `SET ROLE authenticated` + `SELECT` em `app_projections` e `app_projection_shares` → **sem** `42P17`; PostgREST publishable `HTTP 200` `[]` (vazio legítimo) sem recursão |
+| Logs Postgres | Último erro `infinite recursion…app_projections` **antes** do DDL (~02:37 UTC); **nenhum** após 13:56 UTC |
+| Certificação dona | **não** `COMPROVADO_EM_USO` — evidência de agente/SQL remoto; falta clique autenticado dela em Biblioteca / portal / visão do cliente |
+
 ## Matriz por motor
 
 Resultados permitidos: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_DECISAO`, `ERRO_DE_FONTE`, `NAO_LOCALIZADO`.  
