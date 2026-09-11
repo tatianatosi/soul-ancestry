@@ -33,6 +33,8 @@ import { AbaVisaoGeral } from "@/components/caso/visao-geral";
 import { RadarInternoCaso } from "@/components/caso/radar-interno";
 import { radarInternoDoCaso } from "@/lib/radar-interno-caso";
 import { AbaProdutoTrilha } from "@/components/caso/produto-trilha";
+import { CadeiaCaso360 } from "@/components/caso/cadeia-caso-360";
+import { entradaCadeiaDoCanonico } from "@/lib/cadeia-caso-360";
 import { ConsolidacaoCaseService } from "@/components/caso/consolidacao-case-service";
 import { AbaProximaAcao } from "@/components/caso/proxima-acao";
 import { AbaEtiquetas } from "@/components/caso/etiquetas-caso";
@@ -1786,6 +1788,27 @@ function FichaCaso() {
             propriamente dita, como moldura de tudo isso.
           */}
           <div className="space-y-8">
+            <EstadoDados
+              carregando={qc2.isLoading}
+              erro={qc2.error}
+              dados={comoPayload(qc2.data)}
+              aoTentarNovamente={() => void qc2.refetch()}
+              recurso="a cadeia do caso"
+            >
+              {([c]) => (
+                <CadeiaCaso360
+                  caseId={id}
+                  entrada={entradaCadeiaDoCanonico({
+                    produtos: c.produtos,
+                    trilhas: c.trilhas,
+                    servicos: c.servicos,
+                    planos: c.planos ?? [],
+                    projecoes: c.projecoes ?? [],
+                    comunicacoes: c.comunicacoes,
+                  })}
+                />
+              )}
+            </EstadoDados>
             <PlanejadorOperacional caseId={id} podeEscrever={!bloqueado} inicialAberto />
             <AbaJornadaCliente casoId={id} bloqueado={bloqueado} />
 

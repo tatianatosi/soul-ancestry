@@ -70,6 +70,40 @@ Essa linha **não** pede que a proprietária refaça o clique só para repetir o
 | Backlog visual | `docs/relatorios/2026-09-11_backlog-p11-app-cliente-vs-mockup.md` |
 | `COMPROVADO_EM_USO` | **não** — só leitura/empty; sem protocolo publicar + F5 |
 
+### E. Preview Vercel — cadeia no Caso 360 (PR #117) — evidência de agente
+
+| Campo | Valor |
+|---|---|
+| Data/hora | 2026-09-11 ~20:13–20:23 UTC |
+| Ambiente | `https://soul-ancestry-git-cursor-cadeia-caso-2b63ed-tati-6134s-projects.vercel.app` |
+| Conta visível | `tati@pluggedresearch.com` · Clube Ancestral · Admin |
+| Quem executou | Agente, com a conta da proprietária. **Não** é o protocolo da seção 3. |
+| Caso | `CA-CID-AT-FAM-2026-001` · Ana Luiza (fixture) · `/casos/…0002#secao-jornada` |
+| Inicial | Bloco «Cadeia deste caso»: legado não opera; lista-alimento operável; catálogo bloqueado; Caso 360 operável (5 peças); Desk→App→WhatsApp pendente |
+| Ação | CTA «O que o App mostra» (só leitura) |
+| Confirmação / integração | App master, 7 abas, «Aguardando primeira publicação»; sem toast `42P17` |
+| F5 | Cadeia reaparece igual |
+| Prints | `docs/relatorios/provas/2026-09-11-cadeia-caso-360/` |
+| Resultado do protocolo | evidência de agente — **não** `COMPROVADO_EM_USO` |
+| Sem gravação | Sem Salvar, sem publicação, sem WhatsApp |
+
+### F. Preview Vercel — Pessoa 360 em cards (PR #114) — evidência de agente
+
+| Campo | Valor |
+|---|---|
+| Data/hora | 2026-09-11 ~20:26–20:38 UTC |
+| Ambiente | `https://soul-ancestry-git-cursor-pessoa-360-4802a0-tati-6134s-projects.vercel.app` |
+| Conta visível | mesma sessão da proprietária (login no origin da preview) |
+| Quem executou | Agente. **Não** é o protocolo da seção 3. |
+| Pessoa | Ana Luiza · `/pessoas/a11a0000-0000-4000-8000-000000000001` |
+| Inicial | Mapa em cards após «Quem é» (núcleo, pesquisa, achados, proposta, contrato, Discovery, WhatsApp, timeline, App) |
+| Ação | CTA «Abrir Mesa de Discovery» → `/calls` |
+| F5 | Cards no lugar |
+| Integração | Caso `CA-CID-AT-FAM-2026-001` no card Casos; Mesa abriu (sem `?lead=` nesta sessão) |
+| Prints | `docs/relatorios/provas/2026-09-11-pessoa-360-cards/` |
+| Resultado do protocolo | evidência de agente — **não** `COMPROVADO_EM_USO` |
+| Dívida vista na tela | CPF/telefone/CEP ainda por extenso no card «Quem é» desta preview |
+
 ## Matriz por motor
 
 Resultados permitidos: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_DECISAO`, `ERRO_DE_FONTE`, `NAO_LOCALIZADO`.  
@@ -80,7 +114,7 @@ Resultados permitidos: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_
 | Sessão da proprietária (Vite local) | `BLOQUEADO_POR_DADO` | não / tentada / erro genérico / não / não | Ambiente A. |
 | Sessão no preview Vercel (agente) | evidência de agente — **não** `PASSOU` do protocolo | sim / — / sessão no Desk / não / não | Ambiente B. Print do e-mail no menu Conta. |
 | Mesa Discovery / CRM | não `PASSOU` | sim / chip Problema / card mudou / não / não | Uma pergunta SPIN por vez; `/leads` só espelha progresso. Sem F5 de persistência. Sem próxima ação no Hoje. Lead de teste. |
-| Pessoa 360 | `NAO_LOCALIZADO` | — | Mesa ainda não grava na Pessoa 360. |
+| Pessoa 360 | evidência de agente — **não** `PASSOU` da dona | sim / Mesa `/calls` / cards / F5 sim / Caso 360 no card | Ambiente F. Cards visíveis. Discovery/WhatsApp vazios específicos. Mesa ainda não devolve SPIN gravado nesta Pessoa. |
 | Varredura de dossiê por palavra-chave | `NAO_LOCALIZADO` | — | Peça inexistente no `src/`. |
 | Pesquisa e evidências | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
 | Contexto de países / jurídico | `NAO_LOCALIZADO` | — | Trilha/marco na Mesa são dropdown interno, não parecer. |
@@ -101,6 +135,7 @@ Entrada comercial → Mesa Discovery → Pessoa/Dossiê → Caso/Jornada
 | Fluxo | Resultado | Prints de integração |
 |---|---|---|
 | Cadeia ponta a ponta autenticada | `NAO_LOCALIZADO` | nenhum |
+| Cadeia no Caso 360 (PR #117, agente) | evidência de agente — **não** `PASSOU` da dona | Ambiente E: Jornada → App master vazio → F5. Catálogo do planejador ainda bloqueado neste caso. WhatsApp não dispara. |
 
 ## O que este registro recusa como prova
 
