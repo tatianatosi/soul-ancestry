@@ -20,6 +20,10 @@
  * Responsável padrão canônico: `src/lib/responsavel-padrao.ts`
  * Política: `docs/politicas/politica-autoridade-operacional.md`
  *
+ * Complemento (mesmo dia): retirou ticks que só reconfirmam identidade —
+ * «sou a responsável», «aprovação interna», checklist da contratada por caso
+ * e tarefa de perfil institucional. Ver `src/lib/checks-identidade-startup.ts`.
+ *
  * Não apagamos tabelas nem migrations de checklist — só o comportamento de
  * trava na aplicação. Artefatos de governança já removidos estão em
  * `docs/arquivados/governanca-removida-2026-08-29/`.
@@ -34,5 +38,6 @@ export const DEMOTE_BLOQUEIOS_STARTUP_2026_09_11 = {
     "proxima_acao",
     "preparacao_contratual",
     "abertura_caso_tarefa",
+    "checks_identidade_contratada",
   ],
 } as const;
