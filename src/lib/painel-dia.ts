@@ -336,7 +336,6 @@ export type IndicadorCockpit = {
  * Métricas de decisão do topo do Painel Hoje. 11/09/2026 — o card
  * "Sem responsável" saiu: a proprietária Tatiana Tosi é a única responsável.
  * Não repor. SLA em risco permanece declarado, mas sem fonte não entra na face.
- */
  *
  * As filas de bloqueio que antes ocupavam um cartão cada (contrato enviado,
  * pagamento aguardado, onboarding pendente, documento aguardado) não se
