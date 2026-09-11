@@ -17,12 +17,13 @@ export const Route = createFileRoute("/_authenticated/calls")({
       {
         name: "description",
         content:
-          "CRM vivo: Calls, SPIN, próxima ação e handoff para pessoa/caso. KPIs de atraso ficam no Hoje.",
+          "CRM vivo após o Lead: Call Discovery/diagnóstico (SPIN), idealmente call de proposta, handoff. KPIs de atraso ficam no Hoje.",
       },
       { property: "og:title", content: "Painel de Calls — Clube Ancestral" },
       {
         property: "og:description",
-        content: "CRM Calls faz parte do CRM vivo — Mesa de Discovery, SPIN e handoff no Desk.",
+        content:
+          "Sequência: Lead → Call Discovery → (ideal) call de proposta. Persistência em leads; sem crm_calls.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -37,7 +38,7 @@ function CallsPage() {
   return (
     <SaasShell
       titulo="Painel de Calls"
-      descricao="CRM vivo: uma pergunta por vez, com origem e destino. A Mesa de Discovery registra a call; o handoff cria pessoa e caso. O que está parado ou vencido aparece no Hoje."
+      descricao="Sequência: Lead primeiro, depois Call Discovery/diagnóstico (Mesa SPIN). Idealmente uma call para apresentar a proposta — o registro fica em Propostas. O handoff cria pessoa e caso. O que está parado ou vencido aparece no Hoje."
     >
       <PainelCalls leadIdInicial={lead} />
     </SaasShell>

@@ -1,7 +1,8 @@
 /**
  * CRM Journey — fases do ciclo de vida mapeadas ao schema real.
  *
- * Não cria `crm_calls` / `whatsapp_automations`. Call = `leads`.
+ * Sequência canônica: Lead → Call Discovery/diagnóstico → (ideal) Call de proposta.
+ * Não cria `crm_calls` / `whatsapp_automations`. Call = superfície sobre `leads`.
  * WhatsApp = rascunho em `communication_queue` (awaiting_approval) ou
  * cópia manual (`alertas-whatsapp.ts`) — nunca envio automático sem gate.
  */
@@ -39,12 +40,12 @@ export const FASES_CRM_JOURNEY: readonly FaseCrmJourney[] = [
   {
     id: "lead_bruto",
     rotulo: "Lead Bruto",
-    ritual: "Call de Discovery (agendada)",
-    rotaDesk: "/calls",
+    ritual: "Captura e triagem do lead (antes da call)",
+    rotaDesk: "/leads",
     whatsapp: {
       template: "template_lembrete_call",
       canal: "communication_queue",
-      detalhe: "Lembrete 24h: rascunho na fila, aprovação humana antes de qualquer envio.",
+      detalhe: "Após agendar Discovery: lembrete 24h em rascunho na fila (aprovação humana).",
     },
     microEntregaApp: null,
     statusPiloto: "mvp",
@@ -52,12 +53,12 @@ export const FASES_CRM_JOURNEY: readonly FaseCrmJourney[] = [
   {
     id: "lead_qualificado",
     rotulo: "Lead Qualificado",
-    ritual: "Reunião de Alinhamento (SPIN)",
+    ritual: "Call Discovery / diagnóstico (SPIN)",
     rotaDesk: "/calls",
     whatsapp: {
       template: "template_followup_proposta",
       canal: "communication_queue",
-      detalhe: "Follow-up 48h pós-call: fila interna, sem webhook automático.",
+      detalhe: "Follow-up 48h pós-Discovery: fila interna, sem webhook automático.",
     },
     microEntregaApp: "Relatório de elegibilidade (sanitizado) quando publicado",
     statusPiloto: "mvp",
@@ -65,12 +66,12 @@ export const FASES_CRM_JOURNEY: readonly FaseCrmJourney[] = [
   {
     id: "oportunidade",
     rotulo: "Oportunidade",
-    ritual: "Envio / registro de proposta",
+    ritual: "Call de apresentação da proposta (ideal) + registro",
     rotaDesk: "/propostas",
     whatsapp: {
       template: "template_followup_proposta",
       canal: "communication_queue",
-      detalhe: "Follow-up 48h sem resposta: rascunho aguardando aprovação.",
+      detalhe: "Follow-up 48h sem resposta à proposta: rascunho aguardando aprovação.",
     },
     microEntregaApp: "Checklist de documentos (App) quando liberado",
     statusPiloto: "mvp",
@@ -183,11 +184,11 @@ export function faseVizinha(id: string, delta: -1 | 1): FaseCrmJourney | null {
 export function ctaPrincipalFase(f: FaseCrmJourney): { rotulo: string; to: string; hash?: string } {
   switch (f.id) {
     case "lead_bruto":
-      return { rotulo: "Abrir Mesa e agendar/registrar call", to: "/calls" };
+      return { rotulo: "Abrir Leads e triar / agendar Discovery", to: "/leads" };
     case "lead_qualificado":
-      return { rotulo: "Continuar SPIN e próxima ação", to: "/calls" };
+      return { rotulo: "Abrir Call Discovery / diagnóstico (SPIN)", to: "/calls" };
     case "oportunidade":
-      return { rotulo: "Registrar / abrir proposta", to: "/propostas" };
+      return { rotulo: "Registrar proposta (ideal: call de apresentação)", to: "/propostas" };
     case "proposta_aceita":
       return { rotulo: "Abrir contratos e formalização", to: "/contratos" };
     case "cliente_ativo":

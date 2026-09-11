@@ -7,8 +7,9 @@ Leitura operacional: `docs/politicas/ADENDO-CRM-JOURNEY-PAINEL-CALLS-2026-09-11.
 
 | Journey | Código / tabela | Status |
 |---|---|---|
-| Lead bruto / qualificado | `/leads`, filas em `/calls` → `leads` | OK |
-| Painel de Calls (CRM vivo) | `PainelCalls`, rota `/calls` | OK — Calls ⊂ CRM vivo; não esconder |
+| Lead bruto / triagem (antes da call) | `/leads` → `leads` | OK — Lead vem primeiro |
+| Call Discovery / diagnóstico | `PainelCalls`, `/calls` | OK — Calls ⊂ CRM vivo; após o Lead |
+| Call de proposta (ideal) + registro | `/calls` (ritual) + `/propostas` | PILOTO — handoff não cria proposta |
 | SPIN Discovery | `discovery-roteiro.ts` + Mesa em `painel-calls.tsx` | OK |
 | status_call / consentimento | `leads.status_call`, `consentimento_*` + `bloqueiosRegistroCall` | OK |
 | Próxima ação + responsável + área | `leads.proxima_acao`, `proxima_acao_em`, `responsavel_nome`, `area_responsavel` + `validarLead` | OK backend; UI de aviso reforçada nesta fatia |

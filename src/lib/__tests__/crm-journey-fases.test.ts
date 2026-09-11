@@ -30,14 +30,20 @@ describe("crm-journey-fases", () => {
     }
   });
 
-  it("navega hub e CTAs canônicos", () => {
-    expect(fasePorId("lead_bruto").rotaDesk).toBe("/calls");
+  it("navega hub e CTAs canônicos na sequência Lead → Discovery → proposta", () => {
+    expect(fasePorId("lead_bruto").rotaDesk).toBe("/leads");
+    expect(fasePorId("lead_bruto").ritual).toMatch(/antes da call/i);
+    expect(fasePorId("lead_qualificado").rotaDesk).toBe("/calls");
+    expect(fasePorId("lead_qualificado").ritual).toMatch(/Discovery|diagnóstico/i);
+    expect(fasePorId("oportunidade").ritual).toMatch(/apresentação da proposta/i);
     expect(fasePorId("cliente_pesquisa").rotaDesk).toBe("/pesquisa-modulo");
     expect(fasePorId("cliente_recorrente").rotaDesk).toBe("/crm-journey");
     expect(fasePorId("inexistente").id).toBe("lead_bruto");
     expect(faseVizinha("lead_bruto", -1)).toBeNull();
     expect(faseVizinha("lead_bruto", 1)?.id).toBe("lead_qualificado");
     expect(faseVizinha("cliente_recorrente", 1)).toBeNull();
+    expect(ctaPrincipalFase(fasePorId("lead_bruto")).to).toBe("/leads");
+    expect(ctaPrincipalFase(fasePorId("lead_qualificado")).to).toBe("/calls");
     expect(ctaPrincipalFase(fasePorId("oportunidade")).to).toBe("/propostas");
   });
 

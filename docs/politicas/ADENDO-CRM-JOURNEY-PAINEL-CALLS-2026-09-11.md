@@ -6,17 +6,24 @@
 - Irmão: [`ADENDO-PAINEL-CALLS-DISCOVERY-2026-08-31.md`](./ADENDO-PAINEL-CALLS-DISCOVERY-2026-08-31.md), [`ADENDO-ENTERPRISE-PRD-VS-CORE-2026-09-11.md`](./ADENDO-ENTERPRISE-PRD-VS-CORE-2026-09-11.md)
 - Gap detalhado: [`docs/relatorios/2026-09-11_gap-crm-journey-vs-app.md`](../relatorios/2026-09-11_gap-crm-journey-vs-app.md)
 
-## Papéis canônicos
+## Sequência comercial canônica (revisão 2026-09-11)
 
-**CRM Calls faz parte do CRM vivo** — não é módulo paralelo nem “pré-CRM”. A call é a primeira superfície operacional do ciclo comercial vivo.
+Ordem que a operação deve respeitar — **não** começar pela call:
+
+1. **Lead** — captura e triagem (`/leads`). Existe antes de qualquer call.
+2. **Call Discovery / diagnóstico** — SPIN, elegibilidade preliminar, próxima ação (`/calls`, Mesa). Faz parte do **CRM vivo**.
+3. **Call de apresentação da proposta** (ideal) — mostrar a oferta ao lead/cliente; o registro formal da proposta fica em `/propostas` (handoff **não** cria proposta).
+
+Calls ⊂ CRM vivo. Lead ⊂ CRM vivo. A call **não** antecede o lead.
+
+## Papéis canônicos
 
 | Camada | Papel | Persistência real |
 |---|---|---|
-| **CRM vivo · Calls** (`/calls`, `PainelCalls`) | Entrada viva: preparação, SPIN, registro, próxima ação, handoff | Conceito Journey `crm_calls` → tabela **`leads`** (não criar `crm_calls`) |
-| **CRM vivo · pós-handoff** | Pessoa, caso, proposta, follow-up, App | `leads` → **`clientes`** + **`crm_casos`**; proposta em **`proposals`** |
+| **CRM vivo · Lead** (`/leads`) | Entrada comercial: captura, triagem, agenda da Discovery | Tabela **`leads`** |
+| **CRM vivo · Calls** (`/calls`, `PainelCalls`) | Discovery/diagnóstico e (idealmente) call de proposta; registro SPIN, próxima ação, handoff | Conceito Journey `crm_calls` → **`leads`** (não criar `crm_calls`) |
+| **CRM vivo · pós-handoff** | Pessoa, caso, proposta registrada, follow-up, App | `leads` → **`clientes`** + **`crm_casos`**; proposta em **`proposals`** |
 | **Planejador** | Plano operacional do **caso** (não do lead) | `case_plans` + `salvarPlanejadorOperacional` |
-
-Calls é CRM vivo do primeiro contato até o handoff. Depois do handoff o eixo operacional passa a ser o caso; o planejador comanda a operação do caso — sem desligar o histórico comercial no lead.
 
 ## De-para Journey → runtime (não inventar tabela)
 
@@ -24,30 +31,33 @@ O Journey sugere `crm_calls`, `crm_interactions`, `opportunities`, `discovery_da
 
 | Conceito Journey | Onde está hoje |
 |---|---|
-| Call / SPIN / status_call / consentimento | Colunas em `leads` (`status_call`, `spin_*` derivados, `consentimento_*`, `resumo_validado`, …) |
+| Lead bruto / triagem | `/leads` + colunas de origem/status em `leads` |
+| Call Discovery / diagnóstico (SPIN) | `/calls` sobre o mesmo `leads` (`status_call`, SPIN, consentimento, resumo) |
+| Call de apresentação da proposta | Ritual ideal na Mesa/`/calls` + registro em `/propostas` (`proposals`) |
 | `proxima_acao` + data + área/responsável | `leads.proxima_acao`, `proxima_acao_em`, `area_responsavel`, `responsavel_nome` |
-| Opportunity | Etapa comercial do próprio `leads` (`eixo_comercial`) + caso após handoff |
+| Opportunity | Etapa comercial do `leads` (`eixo_comercial`) + caso após handoff |
 | Handoff → pessoa + caso | `executarHandoffDiscovery` → `clientes` + `crm_casos` + `leads.case_id` (**já grava**) |
-| Proposta | `/propostas` + tabela `proposals` — **não** criada pelo handoff |
-| Interações / WhatsApp webhooks | Varredura local no Calls (não persiste dump); automação WhatsApp = **BLOQUEADO** |
-| Asaas como master de cobrança | Eventos financeiros atuais ≠ reconciliação legada; Asaas legado = passado |
-| Planilha Mestre como SKU/preço | Legado — produtos-pai / catálogo + Canva |
+| Proposta (artefato) | `/propostas` + `proposals` — **não** criada pelo handoff |
+| Interações / WhatsApp webhooks | Varredura local no Calls; automação WhatsApp = **BLOQUEADO** |
+| Asaas / Planilha Mestre | Legado — não dirigem a operação atual |
 
 ## ESTÁVEL · PILOTO · BLOQUEADO
 
 | Estado | Itens |
 |---|---|
-| **ESTÁVEL** | `/calls` sobre `leads`; SPIN na Mesa; validação lead ativo (área + responsável + próxima ação datada); handoff → pessoa+caso; dicionário CA-04 em `/governanca/dicionario-calls-crm` |
-| **PILOTO** | CTA pós-handoff → registrar/abrir proposta; avisos operacionais claros na UI (pendência informa a proprietária — autoridade operacional); deep-link `?lead=` / `?caso=` em propostas; matriz de fases em `/conversao` (`crm-journey-fases.ts`) |
-| **BLOQUEADO** (fora desta fatia) | Tabela `crm_calls` / `crm_interactions`; **envio** WhatsApp via webhook automático (fila/cópia = permitido); Asaas como master; Edge Functions Claude; split monorepo App/Desk; apontar `clubeancestral.com.br` ao Vercel |
+| **ESTÁVEL** | Lead antes da call; `/calls` sobre `leads`; SPIN Discovery; validação lead ativo; handoff → pessoa+caso |
+| **PILOTO** | Ritual explícito da **call de proposta** (ideal) + CTA pós-handoff → `/propostas`; avisos operacionais; hub `/crm-journey` |
+| **BLOQUEADO** | Tabela `crm_calls` / `crm_interactions`; envio WhatsApp automático; Asaas master; apontar SEO ao Vercel |
 
 ## Regras que não se negociam
 
-1. Nenhum dado interno (gravação, transcrição, score, SKU técnico, hipótese jurídica, nota de Desk) vaza ao App Cliente.
-2. Lead ativo sem área, responsável nominal e próxima ação datada → **aviso claro**; para a proprietária a pendência **informa, não impede** (`politica-autoridade-operacional.md`).
-3. Handoff **não** envia proposta, mensagem, cobrança nem publica no App.
-4. Site SEO ≠ app Vercel (`ADENDO-MARCA-SITE-SEO-2026-09-11.md`).
+1. Sequência: **Lead → Discovery → (ideal) call de proposta** — não inverter.
+2. Nenhum dado interno vaza ao App Cliente.
+3. Lead ativo sem área, responsável e próxima ação datada → aviso; para a proprietária **informa, não impede**.
+4. Handoff **não** envia proposta, mensagem nem cobrança.
+5. Site SEO ≠ app Vercel.
 
 ## Correção ao inventário antigo
 
-O adendo de 2026-08-31 descrevia o handoff como “avaliação em memória” sem materializar caso. **Desatualizado:** `executarHandoffDiscovery` grava pessoa + caso. Ver nota no próprio `ADENDO-PAINEL-CALLS-DISCOVERY-2026-08-31.md`.
+- Handoff **já grava** pessoa + caso (`ADENDO-PAINEL-CALLS-DISCOVERY-2026-08-31.md`).
+- Calls não é “pré-CRM” nem o primeiro objeto: o **Lead** vem primeiro; Calls é a superfície viva de conversa do CRM vivo.

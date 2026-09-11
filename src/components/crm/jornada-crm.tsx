@@ -117,8 +117,17 @@ export function JornadaCrmHub({
       <div className={`${CARTAO} text-xs text-navy/65`}>
         <p className="font-medium text-navy">Como operar esta jornada</p>
         <ol className="mt-2 list-decimal space-y-1 pl-4">
-          <li>Use a Mesa (`/calls`) para Lead Bruto → Qualificado e handoff (pessoa + caso).</li>
-          <li>Registre a proposta em `/propostas` — o handoff não cria proposta sozinho.</li>
+          <li>
+            Primeiro o <strong>Lead</strong> (`/leads`): captura e triagem — a call não vem antes.
+          </li>
+          <li>
+            Depois a <strong>Call Discovery / diagnóstico</strong> (`/calls`, Mesa SPIN) e handoff
+            (pessoa + caso).
+          </li>
+          <li>
+            Idealmente uma <strong>call para apresentar a proposta</strong>; o registro fica em
+            `/propostas` (handoff não cria proposta).
+          </li>
           <li>Formalize em `/contratos` e libere App em `/acessos-portal`.</li>
           <li>Pesquisa e documentos: `/pesquisa-modulo` e `/atendimento#publicacao`.</li>
           <li>WhatsApp nunca dispara sozinho: fila `communication_queue` ou cópia manual.</li>

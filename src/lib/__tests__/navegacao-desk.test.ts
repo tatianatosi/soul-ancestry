@@ -24,9 +24,17 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     expect(CAMADAS_DESK.find((c) => c.id === "kpis")?.superficie).toBe("/painel");
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
     expect(comercial.to).toBe("/calls");
-    expect(comercial.sub.some((s) => "to" in s && s.to === "/calls" && s.label === "Painel de Calls (CRM vivo)")).toBe(
-      true,
-    );
+    expect(comercial.sub.some((s) => "to" in s && s.to === "/leads" && s.label === "Leads e triagem")).toBe(true);
+    expect(
+      comercial.sub.some(
+        (s) => "to" in s && s.to === "/calls" && s.label === "Painel de Calls (Discovery → proposta)",
+      ),
+    ).toBe(true);
+    // Lead antes de Calls na ordem do menu CRM Vivo
+    const idxLead = comercial.sub.findIndex((s) => "to" in s && s.to === "/leads");
+    const idxCalls = comercial.sub.findIndex((s) => "to" in s && s.to === "/calls");
+    expect(idxLead).toBeGreaterThanOrEqual(0);
+    expect(idxCalls).toBeGreaterThan(idxLead);
     expect(GRUPOS_DESK.find((g) => g.id === "hoje")?.to).toBe("/painel");
   });
 
