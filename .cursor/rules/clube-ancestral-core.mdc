@@ -38,3 +38,14 @@ Cliente externo nunca vê nota interna, outro caso ou outro cliente. Esconder na
 - Contexto de resgate permanece ativo até a proprietária autenticada comprovar o produto integrado (prints + releitura). Código/PR/teste não arquivam contexto.
 - Fonte: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`. Registro: `docs/relatorios/2026-09-10_registro-prova-autenticada-por-motor.md`.
 - Este adendo não autoriza mudar dados, RLS, migrations, contratos, pagamentos ou merges.
+
+## Relatório diário de tarefas (manhã e fim do dia)
+
+Em toda sessão ativa, publicar (ou atualizar) um relatório curto em `docs/relatorios/AAAA-MM-DD_tarefas-<frente>.md` e espelhar o resumo para a proprietária, com quatro blocos só:
+
+1. **Já funciona** — back-end e front-end (só o que está persistindo e reaparecendo de verdade).
+2. **Agora** — o que o agente está executando ou corrigindo nesta frente, neste momento.
+3. **Travado / próximo** — fiação Supabase, distorção de tela, permissão, dado ou decisão que impede 100%.
+4. **Prova** — se já há print autenticado da proprietária; senão, `NAO_LOCALIZADO`.
+
+Linguagem simples, tópicos curtos, sem jargão de PR verde como prova de uso.
