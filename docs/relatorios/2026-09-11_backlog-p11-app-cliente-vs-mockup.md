@@ -24,6 +24,8 @@
 | CTAs na Jornada | Botões “Entregas da jornada” e “Relatório Fase 01” parecem primários | Mockup: entregáveis, não abas |
 | Banner master | “ACESSO MASTER — VISÃO REAL…” só no espelho Desk — correto; não levar ao portal cliente real | `app-cliente-como-pessoa.tsx` |
 | Radar zerado | 0% nas 6 dimensões = empty legítimo; calibrar visual vs mockup/auditoria 47 | PDF 17 + 47 |
+| Timeline dupla (Jornada/Home) | **Não implementada** — lista única de `app_projections`; mockup pede operacional + familiar via `case_timeline_events` | Verificação 2026-09-11 |
+| Achados ≠ Publicação Atendimento | Pipeline de achados = alerta interno em Pesquisa (`ale-achados`); `/atendimento#publicacao` é outra peça | `2026-09-11_verificacao-achados-alertas-vs-publicacao-e-gaps-app-cliente.md` |
 | Site vs app | Site institucional permanece em clubeancestral.com.br (SEO) | adendo marca/SEO |
 
 ## Explicitamente fora deste backlog
