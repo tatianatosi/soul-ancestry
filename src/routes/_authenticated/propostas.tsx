@@ -38,6 +38,11 @@ import { RegraComercial } from "@/components/contrato/regra-comercial";
 const AJUDA_PROPOSTA: Record<string, string> = Object.fromEntries(CAT_ESTADO_PROPOSTA.map((o) => [o.valor, o.ajuda ?? ""]));
 
 export const Route = createFileRoute("/_authenticated/propostas")({
+  validateSearch: (s: Record<string, unknown>): { lead?: string; caso?: string; cliente?: string } => ({
+    lead: typeof s.lead === "string" && s.lead.length > 0 ? s.lead : undefined,
+    caso: typeof s.caso === "string" && s.caso.length > 0 ? s.caso : undefined,
+    cliente: typeof s.cliente === "string" && s.cliente.length > 0 ? s.cliente : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Propostas — Clube Ancestral" },
@@ -55,6 +60,7 @@ export const Route = createFileRoute("/_authenticated/propostas")({
 type Linha = Record<string, unknown>;
 
 function PropostasPage() {
+  const ctxHandoff = Route.useSearch();
   const autoridade = useAutoridade();
   const { podeEscrever: podeEscreverVinculo } = useSaas();
   // Autoridade operacional: vínculo somente leitura vira pendência declarada,
@@ -187,7 +193,7 @@ function PropostasPage() {
           <button
             onClick={() => {
               setErro(null);
-              setForm({ moeda: "BRL" });
+              setForm({ moeda: "BRL", ...(ctxHandoff.cliente ? { client_id: ctxHandoff.cliente } : {}), ...(ctxHandoff.caso ? { case_id: ctxHandoff.caso } : {}) });
             }}
             className="rounded-lg bg-navy px-3 py-2 text-sm text-cream"
           >
@@ -196,6 +202,50 @@ function PropostasPage() {
         )
       }
     >
+
+      {(ctxHandoff.lead || ctxHandoff.caso || ctxHandoff.cliente) ? (
+        <div className="mb-4 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-sm text-navy">
+          <p className="font-medium">Contexto pós-handoff / Calls</p>
+          <p className="mt-1 text-xs text-navy/70">
+            Lead e caso vindos do Painel de Calls. Registre a proposta aqui (produtos-pai / Canva) — sem inventar SKU.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2 text-xs">
+            {ctxHandoff.caso ? (
+              <Link
+                to="/casos/$caseId"
+                params={{ caseId: ctxHandoff.caso }}
+                className="rounded-md border border-navy/20 px-2 py-1 underline-offset-2 hover:underline"
+              >
+                Abrir caso
+              </Link>
+            ) : null}
+            {ctxHandoff.lead ? (
+              <Link
+                to="/calls"
+                search={{ lead: ctxHandoff.lead }}
+                className="rounded-md border border-navy/20 px-2 py-1 underline-offset-2 hover:underline"
+              >
+                Voltar ao Calls
+              </Link>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => {
+                setErro(null);
+                setForm({
+                  moeda: "BRL",
+                  ...(ctxHandoff.cliente ? { client_id: ctxHandoff.cliente } : {}),
+                  ...(ctxHandoff.caso ? { case_id: ctxHandoff.caso } : {}),
+                });
+              }}
+              className="rounded-md border border-gold bg-gold/20 px-2 py-1 font-medium"
+            >
+              Abrir / registrar proposta neste contexto
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {pendenciaVinculo || !podeEscrever ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
           Pendência registrada:{" "}

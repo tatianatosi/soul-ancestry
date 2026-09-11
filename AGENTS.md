@@ -99,7 +99,8 @@ README raiz ainda descreve o protótipo visual antigo (6 abas, dados fictícios)
 ## Front-end e integração
 
 - PT-BR, marca em `src/lib/marca.ts` / `src/styles.css` (navy `#2F4B6E`, dourado `#FCB73A`, creme `#ECDFCD`, terracota `#9A3A2F`). Site institucional **SEO** `https://clubeancestral.com.br/` — **não** migrar/apontar para o app Vercel (`ADENDO-MARCA-SITE-SEO-2026-09-11.md`). Logos: `public/marca/` + `<BrandLogo />`.
-- Enterprise PRD (blueprint 18/08): `docs/politicas/CLUBE_ANCESTRAL_ENTERPRISE_PRD.md` — executar só via `ADENDO-ENTERPRISE-PRD-VS-CORE-2026-09-11.md` (sem schema paralelo / sem Planilha Mestre).
+- Enterprise PRD (blueprint 18/08): `docs/politicas/CLUBE_ANCESTRAL_ENTERPRISE_PRD.md` — executar só via `ADENDO-ENTERPRISE-PRD-VS-CORE-2026-09-11.md` (sem schema paralelo / sem Planilha Mestre). Arquivo espelho: `docs/evolucao/recuperados/enterprise-prd-2026-09-11/`.
+- CRM Journey / Painel de Calls: entrada canônica `/calls` sobre tabela **`leads`** (não criar `crm_calls`). Adendo `ADENDO-CRM-JOURNEY-PAINEL-CALLS-2026-09-11.md`; gap `docs/relatorios/2026-09-11_gap-crm-journey-vs-app.md`. Planejador governa o **caso** após handoff.
 - Interface lê e grava dados reais; recarregar deve mostrar o persistido.
 - Não simular sucesso. Distinguir carregando / vazio legítimo / erro (`EstadoDados`).
 - Próxima ação e responsável visíveis em caso ativo; bloqueios destacados; status não só por cor.

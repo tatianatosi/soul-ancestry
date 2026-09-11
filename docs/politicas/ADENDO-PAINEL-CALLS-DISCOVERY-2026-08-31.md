@@ -1,5 +1,7 @@
 # Adendo ao inventário — Painel de Calls e Discovery já existente
 
+> **Atualização 2026-09-11:** o trecho abaixo que descreve `avaliarHandoffCall` como “só avaliação em memória” permanece válido para essa função pura. O handoff operacional **já grava** pessoa + caso via `executarHandoffDiscovery` (`handoff-discovery.functions.ts`) → `clientes` / `crm_casos` / `leads.case_id`. Ver `ADENDO-CRM-JOURNEY-PAINEL-CALLS-2026-09-11.md`.
+
 ```yaml
 status: em revisão
 versão: 1.0

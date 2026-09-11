@@ -30,7 +30,7 @@ Cliente externo nunca vê nota interna, outro caso ou outro cliente. Esconder na
 
 ## Peças que não se apagam
 
-- Painel de Calls (`/calls`, `PainelCalls`) é entrada canônica do CRM Vivo. Isolar dicionário/legado não autoriza esconder a rota.
+- Painel de Calls (`/calls`, `PainelCalls`) é entrada canônica do CRM Vivo. Isolar dicionário/legado não autoriza esconder a rota. Persistência = `leads` + handoff → `clientes`/`crm_casos` — **não** inventar `crm_calls` / `crm_interactions` (CRM Journey 2026-09-11: `ADENDO-CRM-JOURNEY-PAINEL-CALLS-2026-09-11.md`).
 - Os 8 grupos de `GRUPOS_DESK` permanecem. Não fundir, não criar nona aba.
 
 ## Marca e presença digital
@@ -46,3 +46,8 @@ Cliente externo nunca vê nota interna, outro caso ou outro cliente. Esconder na
 - Arquivo: `docs/politicas/CLUBE_ANCESTRAL_ENTERPRISE_PRD.md`.
 - Leitura operacional: `docs/politicas/ADENDO-ENTERPRISE-PRD-VS-CORE-2026-09-11.md`.
 - Útil para isolamento App/Desk, segredos, auditoria e piloto. **Não** executar o SQL/schema paralelo do PRD; **não** voltar Planilha Mestre como fonte de oferta; **não** ligar o domínio SEO ao app.
+
+## CRM Journey (Calls)
+
+- Fonte bruta: `docs/evolucao/recuperados/crm-journey-2026-09-11/`.
+- Calls alimenta discovery até handoff; depois o eixo é `crm_casos` + planejador. WhatsApp/Asaas como motor = BLOQUEADO nesta etapa.

@@ -9,6 +9,10 @@ import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { executarHandoffDiscovery } from "@/lib/handoff-discovery.functions";
 import { podeExecutarHandoffDiscovery } from "@/lib/handoff-discovery";
+import {
+  pendenciasLeadAtivoSemProximaAcao,
+  searchPropostaAposHandoff,
+} from "@/lib/crm-journey-calls";
 import { salvarTarefa } from "@/lib/ops.functions";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
 import {
@@ -386,6 +390,11 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
         r.casoCriado ? "caso aberto" : "caso já ligado",
         r.codigoCaso ? `código ${r.codigoCaso}` : null,
       ].filter(Boolean);
+      const searchProp = searchPropostaAposHandoff({
+        leadId: selecionado,
+        caseId: r.casoId,
+        clienteId: r.clienteId,
+      });
       setAviso(
         `Handoff gravado: ${partes.join(" · ")}. Circuito comercial: abra a proposta, o caso ou o onboarding — não é só um KPI.`,
       );
@@ -681,6 +690,49 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
             </p>
           ) : (
             <>
+              {(() => {
+                const pend = pendenciasLeadAtivoSemProximaAcao(lead);
+                if (!pend.length) return null;
+                return (
+                  <div
+                    role="status"
+                    className="rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-xs text-navy"
+                  >
+                    <p className="font-medium">Pendência operacional (informa — não impede a proprietária)</p>
+                    <ul className="mt-1 list-disc pl-4">
+                      {pend.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                    <p className="mt-1 text-navy/65">
+                      Lead ativo deve ter área, responsável nominal, próxima ação e data.
+                    </p>
+                  </div>
+                );
+              })()}
+              {lead.case_id ? (
+                <div className="flex flex-wrap items-center gap-2 rounded-lg border border-navy/15 bg-cream/50 px-3 py-2 text-xs text-navy">
+                  <span>Caso ligado — próximo passo comercial:</span>
+                  <Link
+                    to="/propostas"
+                    search={searchPropostaAposHandoff({
+                      leadId: lead.id,
+                      caseId: lead.case_id,
+                      clienteId: lead.cliente_id,
+                    })}
+                    className="rounded-md border border-gold bg-gold/20 px-2 py-1 font-medium text-navy"
+                  >
+                    Abrir / registrar proposta
+                  </Link>
+                  <Link
+                    to="/casos/$caseId"
+                    params={{ caseId: lead.case_id }}
+                    className="underline decoration-navy/40 underline-offset-2"
+                  >
+                    Abrir caso
+                  </Link>
+                </div>
+              ) : null}
               <Secao
                 titulo={`Registro da call — ${lead.nome}`}
                 descricao="Grava no lead canônico do CRM. Não cria ficha paralela. Próxima ação e prazo ficam no roteiro abaixo, no card 'Decisão e próximo passo'."
@@ -910,6 +962,19 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
               ) : null}
 
               <div className={`${CARTAO} flex flex-wrap items-center gap-3`}>
+                {lead.case_id ? (
+                  <Link
+                    to="/propostas"
+                    search={searchPropostaAposHandoff({
+                      leadId: lead.id,
+                      caseId: lead.case_id,
+                      clienteId: lead.cliente_id,
+                    })}
+                    className="rounded-lg border border-gold bg-gold/20 px-4 py-2 text-sm text-navy"
+                  >
+                    Abrir / registrar proposta
+                  </Link>
+                ) : null}
                 <button
                   type="button"
                   disabled={mutar.isPending || !Object.keys(rascunho).length}

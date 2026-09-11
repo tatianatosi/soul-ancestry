@@ -54,3 +54,19 @@
 ---
 
 *Gap de engenharia. Não comprova uso autenticado.*
+
+---
+
+## Anexo — de-para de colunas (`LeadDesk`)
+
+| Journey | `leads` |
+|---|---|
+| `status_call` | `status_call` |
+| `consentimento_gravacao` | `consentimento_status` / `consentimento_gravacao` |
+| `spin_*` | `spin_situacao` / `problema` / `implicacao` / `necessidade` |
+| `proxima_acao` + data | `proxima_acao` / `proxima_acao_em` |
+| `area_responsavel` / responsável | `area_responsavel` / `responsavel_nome` |
+| `crm_calls` / `crm_interactions` | **Não criar** |
+
+Ver também `ADENDO-CRM-JOURNEY-PAINEL-CALLS-2026-09-11.md` e `src/lib/crm-journey-calls.ts`.
+
