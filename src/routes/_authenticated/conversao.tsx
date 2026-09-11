@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -17,7 +17,7 @@ import {
   type EventoBruto,
   type LeadMinimo,
 } from "@/lib/conversao-funil";
-
+import { FASES_CRM_JOURNEY } from "@/lib/crm-journey-fases";
 
 export const Route = createFileRoute("/_authenticated/conversao")({
   head: () => ({
@@ -137,6 +137,42 @@ function Conversao() {
       >
         {() => (
         <div className="grid gap-4">
+          <Bloco
+            titulo="Fases do CRM Journey"
+            aviso="Ciclo completo · Calls = leads · WhatsApp = fila/cópia (sem envio automático)"
+          >
+            <ol className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+              {FASES_CRM_JOURNEY.map((f, i) => (
+                <li
+                  key={f.id}
+                  data-fase-journey={f.id}
+                  className="rounded-lg border border-navy/10 bg-cream/40 p-3"
+                >
+                  <p className="text-[10px] uppercase tracking-wide text-navy/45">
+                    Fase {i + 1} · {f.statusPiloto === "mvp" ? "MVP" : "Backlog"}
+                  </p>
+                  <p className="mt-0.5 font-medium text-navy">{f.rotulo}</p>
+                  <p className="mt-1 text-xs text-navy/65">{f.ritual}</p>
+                  <p className="mt-2 text-[11px] text-navy/55">
+                    WhatsApp: {f.whatsapp.template} · {f.whatsapp.canal.replace(/_/g, " ")}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-navy/50">{f.whatsapp.detalhe}</p>
+                  {f.microEntregaApp ? (
+                    <p className="mt-1 text-[11px] text-navy/60">App: {f.microEntregaApp}</p>
+                  ) : null}
+                  <Link
+                    to={f.rotaDesk}
+                    hash={f.rotaHash}
+                    className="mt-2 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-2"
+                  >
+                    Abrir no Desk → {f.rotaDesk}
+                    {f.rotaHash ? `#${f.rotaHash}` : ""}
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </Bloco>
+
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-navy/10 bg-white px-4 py-3 text-xs text-navy/70">
             <span>
               {incluirDemo
