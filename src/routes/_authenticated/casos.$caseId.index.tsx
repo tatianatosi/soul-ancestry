@@ -11,15 +11,19 @@ import { atualizarRegistro, criarRegistro } from "@/lib/saas.functions";
 import {
   obterPropostaCanvaDoCliente,
   obterResumoFinanceiroCaso,
-  salvarPagamento,
-  conciliarPagamento,
-  salvarFatura,
 } from "@/lib/comercial.functions";
 import { ROTULO_STATUS_FINANCEIRO_CASO } from "@/lib/financeiro-caso";
 import { validacaoJuridicaCaso } from "@/lib/crm-desk.functions";
 import { cadeiaPesquisaDoCaso } from "@/lib/pesquisa-cadeia.functions";
 import { pendenciaPesquisaAberta } from "@/lib/rotulo-negocio";
 import { ROTULO_ATO_FORMAL } from "@/lib/validacao-juridica-caso";
+import {
+  CASO_360_MACRO,
+  PONTE_CONTRATOS,
+  PONTE_FINANCEIRO,
+  PONTE_PESQUISA_CASO,
+  STATUS_EVIDENCIA_COMPROVADA_RESUMO,
+} from "@/lib/caso-360-superficie";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions";
 import { listarFilaOps } from "@/lib/ops.functions";
@@ -414,47 +418,7 @@ function FichaCaso() {
     queryFn: () => carregarJuridicoFn({ data: { caseId: id } }),
     retry: false,
   });
-  const salvarPagamentoFn = useServerFn(salvarPagamento);
-  const conciliarPagamentoFn = useServerFn(conciliarPagamento);
-  const salvarFaturaFn = useServerFn(salvarFatura);
-
-  const mRegistrarPagamento = useMutation({
-    mutationFn: async (v: { invoiceId: string; valor: number; pagoEm: string; referenciaExterna: string }) => {
-      const criado = await salvarPagamentoFn({ data: { dados: { invoice_id: v.invoiceId, valor: v.valor } } });
-      return conciliarPagamentoFn({
-        data: { id: criado.id, pago_em: v.pagoEm, valor: v.valor, referencia_externa: v.referenciaExterna },
-      });
-    },
-    onSuccess: () => {
-      toast.success("Pagamento registrado e conciliado.");
-      void qc.invalidateQueries({ queryKey: ["ficha-caso-financeiro", id] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const mPrepararCobranca = useMutation({
-    mutationFn: (v: { faturaId?: string; valor?: number; vencimento?: string; descricao?: string }) =>
-      v.faturaId
-        ? salvarFaturaFn({ data: { id: v.faturaId, dados: { status: "emitida" } } })
-        : salvarFaturaFn({
-            data: {
-              dados: {
-                case_id: id,
-                client_id: caso?.["cliente_id"],
-                valor: v.valor,
-                moeda: qFinanceiro.data?.moeda ?? "BRL",
-                vencimento: v.vencimento,
-                descricao: v.descricao,
-                status: "rascunho",
-              },
-            },
-          }),
-    onSuccess: () => {
-      toast.success("Cobrança preparada internamente. Nada foi enviado ao cliente.");
-      void qc.invalidateQueries({ queryKey: ["ficha-caso-financeiro", id] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
+  // Pagamento/cobrança: superfície dona = /financeiro (macro do Caso 360 só resume + ponte).
 
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [salvoEm, setSalvoEm] = useState<string | null>(null);
@@ -699,13 +663,15 @@ function FichaCaso() {
         </p>
       ) : null}
       {/*
-        CA04-CASO360-SIMPLES (09/09/2026) — mockup aprovado define a primeira
-        superfície: Situação hoje/Próxima ação/Responsável/Prazo/Motivo/
-        Impacto e seis ações, acima da dobra. Nada do que existia foi perdido:
-        eixos comerciais completos, estado de ativação e os links de pesquisa
-        continuam abaixo, nos quatro resumos; gates/logs/histórico foram para
-        "Dados técnicos e validações", recolhida, no fim da página.
+        CA04-CASO360-SIMPLES + macro 2026-09-11 — mockup/auditoria: primeira
+        superfície = Situação/Próxima ação/Responsável/Prazo/Motivo/Impacto.
+        Pesquisa, contrato e financeiro NÃO moram no meio da ficha (só ponte).
+        Pessoa 360 = macro da pessoa; Caso 360 = macro operacional do caso.
       */}
+      <p className="mb-3 rounded-lg border border-navy/10 bg-white px-3 py-2 text-xs text-navy/75">
+        <span className="font-medium text-navy">{CASO_360_MACRO.titulo}.</span>{" "}
+        {CASO_360_MACRO.resumo} {CASO_360_MACRO.fronteiraPessoa}
+      </p>
       <div className="mb-4 rounded-xl border border-gold/50 bg-gold/10 p-4">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div>
@@ -881,6 +847,7 @@ function FichaCaso() {
         </a>
         <div className="rounded-xl border border-navy/10 bg-white p-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Pesquisa/entregas</p>
+          <p className="mt-1 text-[11px] text-navy/55">{CASO_360_MACRO.fronteiraPesquisa}</p>
           {qPesquisa.isLoading ? (
             <p className="mt-1 text-xs text-navy/50">Carregando resumo de pesquisa…</p>
           ) : qPesquisa.isError ? (
@@ -889,7 +856,9 @@ function FichaCaso() {
             (() => {
               const c = qPesquisa.data;
               const evidencias = c?.evidencias ?? [];
-              const comprovadas = evidencias.filter((e: any) => e.workflow_status === "validada_internamente").length;
+              const comprovadas = evidencias.filter(
+                (e: any) => e.workflow_status === STATUS_EVIDENCIA_COMPROVADA_RESUMO,
+              ).length;
               const pendencias = (c?.pendencias ?? []).filter((p: any) => p.status !== "resolvido" && pendenciaPesquisaAberta(p.status)).length;
               const achados = c?.achados?.length ?? 0;
               return (
@@ -900,43 +869,13 @@ function FichaCaso() {
               );
             })()
           )}
-          <ul className="mt-2 space-y-1 text-xs">
-            <li>
-              <Link to="/achados/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
-                Achados genealógicos →
-              </Link>
-            </li>
-            <li>
-              <Link to="/biblioteca-evidencias/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
-                Biblioteca de evidências →
-              </Link>
-            </li>
-            <li>
-              <Link to="/pesquisa-evidencias/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
-                Pesquisa e documentos →
-              </Link>
-            </li>
-            <li>
-              <Link to="/pessoas-linhagens/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
-                Pessoas e linhagens →
-              </Link>
-            </li>
-            <li>
-              <Link to="/plano-acao/$caseId" params={{ caseId: id }} search={{ foco: undefined }} className="text-navy underline decoration-gold underline-offset-4">
-                Plano de ação de pesquisa →
-              </Link>
-            </li>
-            <li>
-              <Link to="/relatorios-fase/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
-                Relatórios de fase →
-              </Link>
-            </li>
-            <li>
-              <Link to="/fontes-genealogicas" className="text-navy underline decoration-gold underline-offset-4">
-                Fontes e integrações →
-              </Link>
-            </li>
-          </ul>
+          <Link
+            to={PONTE_PESQUISA_CASO}
+            params={{ caseId: id }}
+            className="mt-2 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+          >
+            Abrir Pesquisa deste caso →
+          </Link>
         </div>
         <div id="resumo-visao-cliente" className="rounded-xl border border-navy/10 bg-white p-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Visão do cliente</p>
@@ -957,28 +896,23 @@ function FichaCaso() {
                   ? `${qVisaoCliente.data.ultimaAtualizacaoLiberada.tipo} — ${String(qVisaoCliente.data.ultimaAtualizacaoLiberada.em).slice(0, 10)}`
                   : "nenhuma ainda"}
               </li>
-              <li>Prontas para revisão/liberação (App): {qVisaoCliente.data?.microentregasProntasParaRevisao ?? 0}</li>
-              <li>Produção interna em revisão (não vai ao App sozinha): {qVisaoCliente.data?.producaoInternaEmRevisao ?? 0}</li>
-              <li>Documentos disponíveis ao titular: {qVisaoCliente.data?.documentosDisponiveis ?? 0}</li>
-              <li>Projeções de árvore publicadas: {qVisaoCliente.data?.projecoesDeArvore ?? 0}</li>
-              <li>Preferências: sem fonte viva homologada</li>
               <li>
                 Publicação: {qVisaoCliente.data?.estadoPublicacao.publicadas ?? 0} publicada(s),{" "}
-                {qVisaoCliente.data?.estadoPublicacao.pendentes ?? 0} pendente(s),{" "}
-                {qVisaoCliente.data?.estadoPublicacao.arquivadas ?? 0} arquivada(s)
+                {qVisaoCliente.data?.estadoPublicacao.pendentes ?? 0} pendente(s)
               </li>
             </ul>
           )}
           <Link
-            to="/biblioteca-evidencias/$caseId"
-            params={{ caseId: id }}
+            to="/app-cliente-como-pessoa"
+            search={{ casoId: id }}
             className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4"
           >
-            Preparar, revisar, aprovar, liberar ou despublicar →
+            Abrir App Cliente como pessoa →
           </Link>
         </div>
         <div id="resumo-financeiro" className="rounded-xl border border-navy/10 bg-white p-4 sm:col-span-2 lg:col-span-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Financeiro</p>
+          <p className="mt-1 text-[11px] text-navy/55">{CASO_360_MACRO.fronteiraFinanceiro}</p>
           {qFinanceiro.isLoading ? (
             <p className="mt-2 text-xs text-navy/50">Carregando…</p>
           ) : qFinanceiro.isError ? (
@@ -987,17 +921,9 @@ function FichaCaso() {
             <>
               <dl className="mt-2 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
                 <div>
-                  <dt className="text-navy/50">Valor contratado</dt>
+                  <dt className="text-navy/50">Status</dt>
                   <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data?.valorContratado == null
-                      ? "Sem dados suficientes"
-                      : `${qFinanceiro.data.moeda} ${qFinanceiro.data.valorContratado.toFixed(2)}`}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Valor recebido</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data?.moeda} {qFinanceiro.data?.valorRecebido.toFixed(2)}
+                    {qFinanceiro.data ? ROTULO_STATUS_FINANCEIRO_CASO[qFinanceiro.data.status] : "—"}
                   </dd>
                 </div>
                 <div>
@@ -1017,82 +943,17 @@ function FichaCaso() {
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-navy/50">Status</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data ? ROTULO_STATUS_FINANCEIRO_CASO[qFinanceiro.data.status] : "—"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Despesas de terceiros</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data?.despesasTerceiros
-                      ? `${qFinanceiro.data.despesasTerceiros.total} registrada(s), ${qFinanceiro.data.despesasTerceiros.aguardandoAprovacao} aguardando aprovação`
-                      : "Sem dados suficientes"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Reembolsos (pagamentos estornados)</dt>
-                  <dd className="mt-0.5 text-sm text-navy">
-                    {qFinanceiro.data?.reembolsos
-                      ? `${qFinanceiro.data.reembolsos.total} estorno(s) — ${qFinanceiro.data.moeda} ${qFinanceiro.data.reembolsos.valor.toFixed(2)}`
-                      : "Sem dados suficientes"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-navy/50">Condição comercial</dt>
-                  <dd className="mt-0.5 text-sm text-navy">{qFinanceiro.data?.condicaoComercial ?? "Sem dados suficientes"}</dd>
-                </div>
-                <div>
                   <dt className="text-navy/50">Próxima ação financeira</dt>
-                  <dd className="mt-0.5 text-sm text-navy">{qFinanceiro.data?.proximaAcaoFinanceira}</dd>
+                  <dd className="mt-0.5 text-sm text-navy">{qFinanceiro.data?.proximaAcaoFinanceira ?? "—"}</dd>
                 </div>
               </dl>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  disabled={mRegistrarPagamento.isPending || !qFinanceiro.data?.proximaParcela}
-                  onClick={() => {
-                    const parcela = qFinanceiro.data?.proximaParcela;
-                    if (!parcela) return;
-                    const valorStr = prompt("Valor pago:", String(parcela.valor));
-                    if (!valorStr?.trim()) return;
-                    const pagoEm = prompt("Data do pagamento (AAAA-MM-DD):", new Date().toISOString().slice(0, 10));
-                    if (!pagoEm?.trim()) return;
-                    const referencia = prompt("Referência externa do pagamento (comprovante/transação):");
-                    if (!referencia?.trim()) return;
-                    mRegistrarPagamento.mutate({
-                      invoiceId: parcela.faturaId,
-                      valor: Number(valorStr),
-                      pagoEm: pagoEm.trim(),
-                      referenciaExterna: referencia.trim(),
-                    });
-                  }}
-                  className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
-                  title={qFinanceiro.data?.proximaParcela ? undefined : "Sem parcela em aberto para registrar."}
-                >
-                  Registrar pagamento
-                </button>
-                <button
-                  type="button"
-                  disabled={mPrepararCobranca.isPending}
-                  onClick={() => {
-                    const rascunho = qFinanceiro.data?.faturaRascunhoAberta;
-                    if (rascunho) {
-                      mPrepararCobranca.mutate({ faturaId: rascunho.faturaId });
-                      return;
-                    }
-                    const valorStr = prompt("Valor da cobrança a preparar:");
-                    if (!valorStr?.trim()) return;
-                    const vencimento = prompt("Vencimento (AAAA-MM-DD):");
-                    if (!vencimento?.trim()) return;
-                    const descricao = prompt("Descrição interna da cobrança:") ?? "";
-                    mPrepararCobranca.mutate({ valor: Number(valorStr), vencimento: vencimento.trim(), descricao });
-                  }}
-                  className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
-                  title="Só prepara internamente. Nenhum link, mensagem ou cobrança é enviado ao cliente."
-                >
-                  Preparar cobrança
-                </button>
+              <div className="mt-3 flex flex-wrap gap-3 text-xs">
+                <Link to={PONTE_FINANCEIRO} className="font-medium text-navy underline decoration-gold underline-offset-4">
+                  Abrir Financeiro →
+                </Link>
+                <Link to={PONTE_CONTRATOS} className="font-medium text-navy underline decoration-gold underline-offset-4">
+                  Abrir Contratos →
+                </Link>
               </div>
             </>
           )}
