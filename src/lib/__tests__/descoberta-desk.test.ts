@@ -67,12 +67,12 @@ describe("atalhos de descoberta", () => {
   });
 
   it("o atalho aponta para a aba dona da função, não para o nome antigo do grupo", () => {
-    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe("Pessoas & Casos");
+    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe("Casos & Pessoas");
     expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/matriz-juridica")?.onde).toBe(
-      "Inteligência & Pesquisa",
+      "Pesquisa",
     );
     expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/integracoes")?.onde).toBe(
-      "Governança & Administração",
+      "Governança",
     );
     expect(painel).toContain('to: "/calls"');
     expect(painel).toContain("Mesa de Discovery");
@@ -89,11 +89,11 @@ describe("superfícies preservadas", () => {
   it("mantém os 6 grupos na navegação do Desk", () => {
     const grupos = [
       "Hoje",
-      "Marketing & Comercial",
-      "Pessoas & Casos",
-      "Inteligência & Pesquisa",
-      "Formalização & Financeiro",
-      "Governança & Administração",
+      "Comercial",
+      "Casos & Pessoas",
+      "Pesquisa",
+      "Formalização",
+      "Governança",
     ];
     for (const g of grupos) expect(navegacao).toContain(`label: "${g}"`);
     expect(shell).toContain("GRUPOS_DESK");

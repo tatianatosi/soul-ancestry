@@ -69,20 +69,15 @@ Migrations versionadas; sem alteração manual de produção como substituto. Va
 
 ## Navegação real — não redesenhar
 
-**Desk: exatamente 8 grupos** em `src/lib/navegacao-desk.ts` (`GRUPOS_DESK`), decisão vinculante. Não fundir, não criar nona aba, não voltar às 7 itens do mockup sem nova decisão da proprietária.
+**Desk — decisão 2026-09-11:** face = **7 telas do mockup** (`FACE_DESK` em `src/lib/navegacao-desk.ts`); operação = **6 grupos internos** recolhidos (`GRUPOS_DESK`). **Não** usar 8 grupos nem 6 abas como menu principal. Adendo: `docs/politicas/ADENDO-DECISAO-NAVEGACAO-DESK-7-TELAS-6-GRUPOS-2026-09-11.md`.
 
-1. `hoje` — Visão Geral (`/painel`)
-2. `marketing` — Marketing
-3. `comercial` — Comercial
-4. `casos` — Casos 360
-5. `pesquisa` — Pesquisa
-6. `contratos` — Contratos e financeiro (financeiro **não** é grupo separado)
-7. `cliente` — Cliente / App
-8. `governanca` — Biblioteca Mestre
+Face (sempre visível): Visão Geral · Casos 360 · Checklist · Validação Jurídica · Radar Interno · Alertas · Biblioteca Mestre.
 
-Configuração, equipe e preferências ficam no **menu da conta**, não como 9º grupo.
+Operação (recolhida): Hoje · Comercial · Casos & Pessoas · Pesquisa · Formalização · Governança.
 
-A “hierarquia de telas” da memória permanente (planner, lista de casos, caso 360, pessoa, documentos, pesquisa, portal, admin) é **prioridade funcional**, não um menu novo.
+Configuração, equipe e preferências ficam no **menu da conta**, não como item da face.
+
+A “hierarquia de telas” da memória permanente (planner, lista de casos, caso 360, oficina, documentos, pesquisa, portal, admin) é **prioridade funcional**, não um menu novo.
 
 **App Cliente canônico: 7 abas** (taxonomia do mockup de 17 páginas), em `src/components/portal/portal-shell.tsx`:
 
@@ -92,7 +87,7 @@ Rótulo da primeira aba no mockup e em `COPY_TELAS.casos.navegacao`: **Home** (n
 
 Abas extras condicionais (Entregas, Fase 01, Fase 02, Proposta) ainda existem no código — **dívida a retirar da barra**, não expansão da taxonomia. Ver artefato 007 abaixo.
 
-**Mockup vs produção:** o PDF de 17 páginas é normativo visual. O PDF de auditoria de **47 páginas** (`clube-ancestral-mockup-auditoria.pdf`) guia **conteúdo, estados e indicadores** em conjunto com o de 17 — sem redesenhar navegação. Comparativos visuais e telas Lovable arquivados em `docs/evolucao/recuperados/auditoria-mockup-2026-09-11/` e Canvas em `…/ancestral-canvas-2026-09-11/`; destilado em `docs/politicas/ADENDO-MEMORIA-AUDITORIA-MOCKUP-CANVAS-2026-09-11.md`. Prompts em `docs/politicas/PROMPT-*` são **execução** (`ADENDO-PROMPTS-SAO-EXECUCAO-2026-09-11.md`), não arquivo morto. Resgate do produto: `ESTRATEGIA-RESGATE-PRODUTO-CLUBE-ANCESTRAL-2026-09-11.md`. “Aderente” no PDF de comparação **não** é aceite. Grupos Desk = o que `GRUPOS_DESK` define no código; App Cliente = 7 abas.
+**Mockup vs produção:** o PDF de 17 páginas é normativo visual. O PDF de auditoria de **47 páginas** (`clube-ancestral-mockup-auditoria.pdf`) guia **conteúdo, estados e indicadores** em conjunto com o de 17 — sem redesenhar navegação. Comparativos visuais e telas Lovable arquivados em `docs/evolucao/recuperados/auditoria-mockup-2026-09-11/` e Canvas em `…/ancestral-canvas-2026-09-11/`; destilado em `docs/politicas/ADENDO-MEMORIA-AUDITORIA-MOCKUP-CANVAS-2026-09-11.md`. Prompts em `docs/politicas/PROMPT-*` são **execução** (`ADENDO-PROMPTS-SAO-EXECUCAO-2026-09-11.md`), não arquivo morto. Resgate do produto: `ESTRATEGIA-RESGATE-PRODUTO-CLUBE-ANCESTRAL-2026-09-11.md`. “Aderente” no PDF de comparação **não** é aceite. Desk = `FACE_DESK` (7) + `GRUPOS_DESK` internos (6); App Cliente = 7 abas.
 
 README raiz ainda descreve o protótipo visual antigo (6 abas, dados fictícios). É histórico, não a operação atual.
 
@@ -127,7 +122,7 @@ Texto integral: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA
 - Nenhum agente pode arquivar, reduzir a “histórico” ou declarar “já resolvido, pode arquivar” só porque existe código, PR, teste, migration, mockup ou log.
 - Arquivamento só depois de `COMPROVADO_EM_USO` pela proprietária autenticada (`tati@pluggedresearch.com`), com prints **inicial, ação, confirmação, releitura** e, na cadeia, **integração**. Resultado: `PASSOU` / `FALHOU` / `BLOQUEADO_POR_DADO` / `BLOQUEADO_POR_DECISAO` / `ERRO_DE_FONTE` / `NAO_LOCALIZADO`.
 - Este adendo **não** autoriza alterar dados, contratos, pagamentos, RLS, permissões, migrations, integrações, publicações, mensagens ou merges. Print complementa — não substitui — RLS, auditoria e persistência.
-- “Seis áreas” no adendo **não** cria nona aba. Dívida declarada: `GRUPOS_DESK` nesta linha tem 6 grupos; a memória permanente ainda cita 8. Nenhuma das duas leituras se arquiva até a proprietária certificar a taxonomia.
+- “Seis áreas” no adendo **não** cria nona aba. Dívida 6×8 **resolvida** em 2026-09-11: face = 7 telas mockup; `GRUPOS_DESK` = 6 grupos internos (não face). Ver `ADENDO-DECISAO-NAVEGACAO-DESK-7-TELAS-6-GRUPOS-2026-09-11.md`.
 - Contextos de resgate (Discovery, Pessoa 360, Pesquisa, formalização, Radar, App Cliente, RLS etc.) permanecem **ativos** até a prova integrada. Listar um documento como “arquivado” no inventário antigo **não** retira a continuidade.
 
 ## Recuperação (se o produto estiver fragmentado)

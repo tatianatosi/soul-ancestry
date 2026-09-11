@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  ACOES_DOIS_CLIQUES_DESK,
+  FACE_DESK,
   GRUPOS_DESK,
   GRUPOS_OPERACIONAIS_DESK,
   LACUNAS_CONHECIDAS,
@@ -17,11 +19,11 @@ import {
 } from "@/lib/navegacao-desk";
 import { MATRIZ_EQUIVALENCIA } from "@/lib/matriz-equivalencia";
 
-describe("Navegação do Desk — 6 grupos operacionais", () => {
-  it("as três camadas não concorrem: abas, Mesa e KPIs", () => {
-    expect(CAMADAS_DESK.map((c) => c.id)).toEqual(["abas", "mesa", "kpis"]);
+describe("Navegação do Desk — face 7 + 6 grupos operacionais", () => {
+  it("as três camadas não concorrem: face, operação e Mesa", () => {
+    expect(CAMADAS_DESK.map((c) => c.id)).toEqual(["face", "operacao", "mesa"]);
     expect(CAMADAS_DESK.find((c) => c.id === "mesa")?.superficie).toBe("/calls");
-    expect(CAMADAS_DESK.find((c) => c.id === "kpis")?.superficie).toBe("/painel");
+    expect(CAMADAS_DESK.find((c) => c.id === "face")?.superficie).toContain("FACE_DESK");
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
     expect(comercial.to).toBe("/calls");
     expect(comercial.sub.some((s) => "to" in s && s.to === "/calls" && s.label === "Mesa de Discovery")).toBe(
@@ -29,6 +31,37 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     );
     expect(GRUPOS_DESK.find((g) => g.id === "hoje")?.to).toBe("/painel");
   });
+
+  it("FACE_DESK tem 7 telas do mockup como face principal", () => {
+    expect(FACE_DESK).toHaveLength(7);
+    expect(FACE_DESK.map((f) => f.label)).toEqual([
+      "Visão Geral",
+      "Casos 360",
+      "Checklist",
+      "Validação Jurídica",
+      "Radar Interno",
+      "Alertas",
+      "Biblioteca Mestre",
+    ]);
+    expect(FACE_DESK.map((f) => f.to)).toEqual([
+      "/painel",
+      "/casos",
+      "/tarefas",
+      "/matriz-juridica",
+      "/qualidade",
+      "/alertas",
+      "/biblioteca",
+    ]);
+  });
+
+  it("ações comuns têm face + atalho interno (≤2 cliques)", () => {
+    expect(ACOES_DOIS_CLIQUES_DESK.length).toBeGreaterThanOrEqual(7);
+    for (const a of ACOES_DOIS_CLIQUES_DESK) {
+      expect(a.face.startsWith("/")).toBe(true);
+      expect(a.interno.startsWith("/")).toBe(true);
+    }
+  });
+
 
   it("expõe exatamente os 6 grupos aprovados", () => {
     expect(GRUPOS_DESK).toHaveLength(6);
@@ -63,7 +96,7 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     for (const r of rotasDoMenu()) expect(r.startsWith("/")).toBe(true);
   });
 
-  it("Marketing e Calls moram em Marketing & Comercial", () => {
+  it("Marketing e Calls moram em Comercial", () => {
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
     const rotas = comercial.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/marketing");
@@ -83,7 +116,7 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     expect(rotas).not.toContain("/crm-mestre");
   });
 
-  it("Validação Jurídica mora na Inteligência; Radar Interno mora em Pessoas & Casos", () => {
+  it("Validação Jurídica mora na Inteligência; Radar Interno mora em Casos & Pessoas", () => {
     const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
     const casos = GRUPOS_DESK.find((g) => g.id === "casos")!;
     expect(pesquisa.sub.some((s) => "to" in s && s.to === "/matriz-juridica")).toBe(true);
@@ -160,7 +193,7 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     expect(rotasDoMenuConta()).not.toContain("/crm-mestre");
   });
 
-  it("Painel de Calls permanece na face de Marketing & Comercial", () => {
+  it("Painel de Calls permanece na face de Comercial", () => {
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
     const rotas = comercial.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/calls");
@@ -168,26 +201,26 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
   });
 
   it("declara as três camadas sem criar aba nova", () => {
-    expect(CAMADAS_DESK.map((c) => c.id)).toEqual(["abas", "mesa", "kpis"]);
+    expect(CAMADAS_DESK.map((c) => c.id)).toEqual(["face", "operacao", "mesa"]);
     expect(GRUPOS_DESK).toHaveLength(6);
     expect(CAMADAS_DESK.find((c) => c.id === "mesa")?.rota).toBe("/calls");
-    expect(CAMADAS_DESK.find((c) => c.id === "kpis")?.rota).toBe("/painel");
+    expect(CAMADAS_DESK.find((c) => c.id === "operacao")?.superficie).toContain("GRUPOS_DESK");
   });
 
   it("cada função mora em um único grupo — privacidade e SKU legado não são operação diária", () => {
-    expect(grupoDonoDaRota("/calls")).toBe("Marketing & Comercial");
-    expect(grupoDonoDaRota("/leads")).toBe("Marketing & Comercial");
-    expect(grupoDonoDaRota("/casos")).toBe("Pessoas & Casos");
-    expect(grupoDonoDaRota("/evidencias")).toBe("Inteligência & Pesquisa");
-    expect(grupoDonoDaRota("/contratos")).toBe("Formalização & Financeiro");
-    expect(grupoDonoDaRota("/financeiro")).toBe("Formalização & Financeiro");
-    expect(grupoDonoDaRota("/catalogo")).toBe("Formalização & Financeiro");
-    expect(grupoDonoDaRota("/privacidade")).toBe("Governança & Administração");
-    expect(grupoDonoDaRota("/homologacao-skus")).toBe("Governança & Administração");
-    expect(grupoDonoDaRota("/conciliacao-catalogo")).toBe("Governança & Administração");
-    expect(grupoDonoDaRota("/escopo-origem")).toBe("Governança & Administração");
+    expect(grupoDonoDaRota("/calls")).toBe("Comercial");
+    expect(grupoDonoDaRota("/leads")).toBe("Comercial");
+    expect(grupoDonoDaRota("/casos")).toBe("Casos & Pessoas");
+    expect(grupoDonoDaRota("/evidencias")).toBe("Pesquisa");
+    expect(grupoDonoDaRota("/contratos")).toBe("Formalização");
+    expect(grupoDonoDaRota("/financeiro")).toBe("Formalização");
+    expect(grupoDonoDaRota("/catalogo")).toBe("Formalização");
+    expect(grupoDonoDaRota("/privacidade")).toBe("Governança");
+    expect(grupoDonoDaRota("/homologacao-skus")).toBe("Governança");
+    expect(grupoDonoDaRota("/conciliacao-catalogo")).toBe("Governança");
+    expect(grupoDonoDaRota("/escopo-origem")).toBe("Governança");
     expect(grupoDonoDaRota("/governanca/catalogo-operacional-30")).toBe(
-      "Governança & Administração",
+      "Governança",
     );
     const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
     expect(pesquisa.sub.some((s) => "to" in s && s.to === "/privacidade")).toBe(false);
@@ -202,7 +235,7 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
     const rotasGov = gov.sub.filter((s) => "to" in s).map((s) => s.to);
     for (const r of ROTAS_LEGADO_MENU_GOVERNANCA) {
-      expect(grupoDonoDaRota(r)).toBe("Governança & Administração");
+      expect(grupoDonoDaRota(r)).toBe("Governança");
       expect(rotasGov).toContain(r);
       expect(rotasDoMenu()).toContain(r);
       expect(rotasDoMenuConta()).not.toContain(r);

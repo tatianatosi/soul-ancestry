@@ -1,24 +1,28 @@
 /**
- * NAVEGAÇÃO CANÔNICA DO DESK — 6 grupos, um endereço por função.
+ * NAVEGAÇÃO CANÔNICA DO DESK — decisão 2026-09-11 (proprietária):
  *
- * Três camadas, sem concorrer:
- *   Abas     — definem onde cada função vive.
- *   Mesa     — faz a entrada comercial funcionar (/calls).
- *   KPIs     — mostram o que está parado, vencido ou precisa de decisão (/painel).
+ *   Face (sempre visível) — 7 telas do mockup (`FACE_DESK`).
+ *   Operação (recolhida)  — 6 grupos internos (`GRUPOS_DESK`).
  *
- * Pesquisa e bases moram na Inteligência. Matrizes individual/casal/familiar
- * moram na Formalização. CA-04 mora no Comercial com a Mesa. URLs não mudam.
- * Planilha Mestre, conciliação e SKU legado saem da operação diária e ficam
- * em Governança, rotulados. Nada é apagado nesta rodada.
+ * Não usar 8 grupos nem 6 abas como menu principal. URLs não mudam.
+ * Nada é apagado: rotas seguem acessíveis por face, CTA e submenu.
+ *
+ * @see docs/politicas/ADENDO-DECISAO-NAVEGACAO-DESK-7-TELAS-6-GRUPOS-2026-09-11.md
  */
 
-/** As três camadas do Desk. Não são abas novas. */
+/** Camadas do Desk após a decisão 2026-09-11. */
 export const CAMADAS_DESK = [
   {
-    id: "abas",
-    papel: "Onde cada função vive",
-    frase: "Abas definem onde cada função vive.",
-    superficie: "os 6 grupos",
+    id: "face",
+    papel: "Face principal (mockup)",
+    frase: "Sete telas sempre visíveis — Visão Geral até Biblioteca Mestre.",
+    superficie: "FACE_DESK (7)",
+  },
+  {
+    id: "operacao",
+    papel: "Camada operacional interna",
+    frase: "Seis grupos recolhidos — contexto e filtros, não menu concorrente.",
+    superficie: "GRUPOS_DESK (6)",
   },
   {
     id: "mesa",
@@ -26,13 +30,6 @@ export const CAMADAS_DESK = [
     frase: "A Mesa de Discovery faz a entrada comercial funcionar.",
     superficie: "/calls",
     rota: "/calls",
-  },
-  {
-    id: "kpis",
-    papel: "O que está parado, vencido ou precisa de decisão",
-    frase: "Os KPIs do Hoje mostram o que está parado, vencido ou precisa de decisão.",
-    superficie: "/painel",
-    rota: "/painel",
   },
 ] as const;
 
@@ -58,7 +55,7 @@ export type GrupoDesk = {
   sub: readonly ItemNav[];
 };
 
-/** Nomes das 7 telas do mockup — taxonomia visual, não a sidebar. */
+/** Nomes das 7 telas do mockup — agora também a face do menu. */
 export const TELAS_DESK_MOCKUP = [
   "Visão Geral",
   "Casos 360",
@@ -69,13 +66,99 @@ export const TELAS_DESK_MOCKUP = [
   "Biblioteca Mestre",
 ] as const;
 
+export type TelaFaceDesk = {
+  id: string;
+  label: (typeof TELAS_DESK_MOCKUP)[number];
+  to: string;
+  descricao: string;
+  icone:
+    | "visao-geral"
+    | "casos-360"
+    | "checklist"
+    | "validacao-juridica"
+    | "radar-interno"
+    | "alertas"
+    | "biblioteca-mestre";
+};
+
+/**
+ * Face principal do Desk — sempre visível.
+ * Rotas já existentes; não cria arquitetura paralela.
+ */
+export const FACE_DESK: readonly TelaFaceDesk[] = [
+  {
+    id: "visao-geral",
+    label: "Visão Geral",
+    to: "/painel",
+    descricao: "Prioridades do dia, KPIs e entrada rápida.",
+    icone: "visao-geral",
+  },
+  {
+    id: "casos-360",
+    label: "Casos 360",
+    to: "/casos",
+    descricao: "Carteira de casos, pessoa e núcleo.",
+    icone: "casos-360",
+  },
+  {
+    id: "checklist",
+    label: "Checklist",
+    to: "/tarefas",
+    descricao: "Tarefas e entregas internas do caso.",
+    icone: "checklist",
+  },
+  {
+    id: "validacao-juridica",
+    label: "Validação Jurídica",
+    to: "/matriz-juridica",
+    descricao: "Matriz e trilha jurídica do caso.",
+    icone: "validacao-juridica",
+  },
+  {
+    id: "radar-interno",
+    label: "Radar Interno",
+    to: "/qualidade",
+    descricao: "Risco, qualidade e prioridade operacional.",
+    icone: "radar-interno",
+  },
+  {
+    id: "alertas",
+    label: "Alertas",
+    to: "/alertas",
+    descricao: "Prazos, documentos e cadências que pedem ação.",
+    icone: "alertas",
+  },
+  {
+    id: "biblioteca-mestre",
+    label: "Biblioteca Mestre",
+    to: "/biblioteca",
+    descricao: "Fontes, evidências, catálogo e referências.",
+    icone: "biblioteca-mestre",
+  },
+] as const;
+
+/** Seis grupos internos — recolhidos; não competem com a face. */
 export const GRUPOS_OPERACIONAIS_DESK = [
   "Hoje",
-  "Marketing & Comercial",
-  "Pessoas & Casos",
-  "Inteligência & Pesquisa",
-  "Formalização & Financeiro",
-  "Governança & Administração",
+  "Comercial",
+  "Casos & Pessoas",
+  "Pesquisa",
+  "Formalização",
+  "Governança",
+] as const;
+
+/**
+ * Ações comuns em ≤2 cliques (critério de aceite da decisão 2026-09-11).
+ * `face` = item sempre visível; `interno` = atalho sob Operação (opcional).
+ */
+export const ACOES_DOIS_CLIQUES_DESK = [
+  { acao: "Criar/abrir caso", face: "/casos", interno: "/casos" },
+  { acao: "Abrir pessoa", face: "/casos", interno: "/clientes" },
+  { acao: "Mesa Discovery", face: "/painel", interno: "/calls" },
+  { acao: "Preparar contrato", face: "/casos", interno: "/contratos" },
+  { acao: "Ver financeiro", face: "/casos", interno: "/financeiro" },
+  { acao: "Abrir pesquisa", face: "/biblioteca", interno: "/pesquisa-modulo" },
+  { acao: "Configuração", face: "/biblioteca", interno: "/configuracoes" },
 ] as const;
 
 export const GRUPOS_DESK: readonly GrupoDesk[] = [
@@ -94,7 +177,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
     id: "comercial",
     to: "/calls",
-    label: "Marketing & Comercial",
+    label: "Comercial",
     descricao: "A Mesa de Discovery é a entrada. Leads, proposta e conversão moram nesta aba — não no Hoje.",
     icone: "comercial",
     agrupador: true,
@@ -114,7 +197,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
     id: "casos",
     to: "/casos",
-    label: "Pessoas & Casos",
+    label: "Casos & Pessoas",
     descricao: "Pessoa, núcleo, caso, jornada, checklist e radar — sem copiar contrato nem pesquisa.",
     icone: "casos",
     agrupador: true,
@@ -140,7 +223,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
     id: "pesquisa",
     to: "/biblioteca",
-    label: "Inteligência & Pesquisa",
+    label: "Pesquisa",
     descricao: "Biblioteca Mestre, bases genealógicas, evidências, dossiê do Legado e trilhas.",
     icone: "pesquisa",
     agrupador: true,
@@ -162,7 +245,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
     id: "contratos",
     to: "/contratos",
-    label: "Formalização & Financeiro",
+    label: "Formalização",
     descricao: "Contrato vivo, matrizes individual/casal/familiar, catálogo homologado e financeiro.",
     icone: "contratos",
     agrupador: true,
@@ -184,7 +267,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
     id: "governanca",
     to: "/configuracoes",
-    label: "Governança & Administração",
+    label: "Governança",
     descricao: "Papéis, privacidade, integrações e legado fora da operação diária.",
     icone: "governanca",
     agrupador: true,
@@ -476,6 +559,16 @@ export function itemNavAtivo(atual: string, hashAtual: string, item: DestinoNav)
 }
 
 /** Grupo ativo canônico: entrada do grupo ou item que mora nele — atalhos não douram o grupo errado. */
+
+/** Tela da face ativa para o pathname atual (mais específica primeiro). */
+export function faceNavAtiva(pathname: string): TelaFaceDesk | null {
+  const ordenadas = [...FACE_DESK].sort((a, b) => b.to.length - a.to.length);
+  for (const t of ordenadas) {
+    if (pathname === t.to || pathname.startsWith(t.to + "/")) return t;
+  }
+  return null;
+}
+
 export function grupoNavAtivo(
   atual: string,
   hashAtual: string,

@@ -31,7 +31,7 @@ Cliente externo nunca vê nota interna, outro caso ou outro cliente. Esconder na
 ## Peças que não se apagam
 
 - Painel de Calls (`/calls`, `PainelCalls`) é entrada canônica do CRM Vivo. Isolar dicionário/legado não autoriza esconder a rota. Persistência = `leads` + handoff → `clientes`/`crm_casos` — **não** inventar `crm_calls` / `crm_interactions` (CRM Journey 2026-09-11: `ADENDO-CRM-JOURNEY-PAINEL-CALLS-2026-09-11.md`).
-- Os 8 grupos de `GRUPOS_DESK` permanecem. Não fundir, não criar nona aba.
+- Face do Desk = 7 telas (`FACE_DESK`); operação = 6 grupos internos (`GRUPOS_DESK`), recolhidos. Não voltar a 8 grupos nem 6 abas como menu principal (`ADENDO-DECISAO-NAVEGACAO-DESK-7-TELAS-6-GRUPOS-2026-09-11.md`).
 
 ## Marca e presença digital
 

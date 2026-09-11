@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
 import {
+  FACE_DESK,
   GRUPOS_DESK,
   GRUPOS_OPERACIONAIS_DESK,
   MENU_CONTA,
@@ -12,8 +13,30 @@ import {
   rotasSemLink,
 } from "@/lib/navegacao-desk";
 
-describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas como referência)", () => {
-  it("expõe exatamente os 6 grupos, na ordem aprovada", () => {
+describe("Desk Intelligence — face 7 + 6 grupos internos (mockup 17 + decisão 2026-09-11)", () => {
+  it("face principal = 7 telas do mockup", () => {
+    expect(FACE_DESK).toHaveLength(7);
+    expect(FACE_DESK.map((f) => f.label)).toEqual([
+      "Visão Geral",
+      "Casos 360",
+      "Checklist",
+      "Validação Jurídica",
+      "Radar Interno",
+      "Alertas",
+      "Biblioteca Mestre",
+    ]);
+    expect(FACE_DESK.map((f) => f.to)).toEqual([
+      "/painel",
+      "/casos",
+      "/tarefas",
+      "/matriz-juridica",
+      "/qualidade",
+      "/alertas",
+      "/biblioteca",
+    ]);
+  });
+
+  it("expõe exatamente os 6 grupos internos, na ordem aprovada", () => {
     expect(GRUPOS_DESK).toHaveLength(6);
     expect(GRUPOS_DESK.map((g) => g.label)).toEqual([...GRUPOS_OPERACIONAIS_DESK]);
     expect(GRUPOS_DESK.map((g) => g.to)).toEqual([
@@ -26,7 +49,7 @@ describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas com
     ]);
   });
 
-  it("não volta ao mockup de 14 abas nem às 7 telas como sidebar", () => {
+  it("grupos internos não duplicam ids da face; face não usa ids dos 6 grupos", () => {
     expect(GRUPOS_DESK.map((g) => g.id)).toEqual([
       "hoje",
       "comercial",
@@ -35,8 +58,9 @@ describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas com
       "contratos",
       "governanca",
     ]);
+    expect(FACE_DESK.map((f) => f.id)).toContain("visao-geral");
+    expect(FACE_DESK.map((f) => f.id)).toContain("checklist");
     expect(GRUPOS_DESK.map((g) => g.id)).not.toContain("visao-geral");
-    expect(GRUPOS_DESK.map((g) => g.id)).not.toContain("checklist");
   });
 
   it("mantém o trabalho operacional no grupo certo, sem sobreposição", () => {

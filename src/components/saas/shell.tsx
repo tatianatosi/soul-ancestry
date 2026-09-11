@@ -13,6 +13,9 @@ import {
   Menu,
   ChevronDown,
   ShieldCheck,
+  ListChecks,
+  Bell,
+  Radar,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -23,8 +26,10 @@ import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
 import {
+  FACE_DESK,
   GRUPOS_DESK,
   MENU_CONTA,
+  faceNavAtiva,
   grupoNavAtivo,
   itemNavAtivo,
   naturezaDaBiblioteca,
@@ -32,6 +37,7 @@ import {
   rotaAtendeDestino,
   type GrupoDesk,
   type ItemNav,
+  type TelaFaceDesk,
 } from "@/lib/navegacao-desk";
 import { AssistenteTransversal } from "@/components/desk/assistente-transversal";
 import { BrandLogo } from "@/components/brand";
@@ -78,9 +84,10 @@ export function useSaas() {
 }
 
 /**
- * Navegação do Desk: 6 grupos. O registro canônico vive em
- * `src/lib/navegacao-desk.ts`; aqui só há apresentação. Cada função mora em
- * um grupo; atalho não cria segunda fila. Nenhuma rota operacional some.
+ * Navegação do Desk (decisão 2026-09-11):
+ *   Face — 7 telas do mockup (`FACE_DESK`), sempre visíveis.
+ *   Operação — 6 grupos internos (`GRUPOS_DESK`), recolhidos.
+ * Registro canônico: `src/lib/navegacao-desk.ts`. Nenhuma rota some.
  */
 type SubItem = ItemNav;
 
@@ -93,7 +100,7 @@ type SecaoNav = {
   sub: readonly SubItem[];
 };
 
-const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
+const ICONES_GRUPO: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
   hoje: LayoutDashboard,
   comercial: Target,
   casos: FolderOpen,
@@ -102,11 +109,26 @@ const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
   governanca: ShieldCheck,
 };
 
+const ICONES_FACE: Record<TelaFaceDesk["icone"], typeof LayoutDashboard> = {
+  "visao-geral": LayoutDashboard,
+  "casos-360": FolderOpen,
+  checklist: ListChecks,
+  "validacao-juridica": Scale,
+  "radar-interno": Radar,
+  alertas: Bell,
+  "biblioteca-mestre": Library,
+};
+
+const FACE_NAV = FACE_DESK.map((t) => ({
+  ...t,
+  icon: ICONES_FACE[t.icone],
+}));
+
 const NAV: readonly SecaoNav[] = GRUPOS_DESK.map((g) => ({
   to: g.to,
   label: g.label,
   descricao: g.descricao,
-  icon: ICONES[g.icone],
+  icon: ICONES_GRUPO[g.icone],
   ...(g.agrupador ? { agrupador: true } : {}),
   sub: g.sub,
 }));
@@ -129,6 +151,7 @@ export function SaasShell({
   const hash = useRouterState({ select: (s) => s.location.hash });
   const [aberto, setAberto] = useState(false);
   const [abertosManuais, setAbertosManuais] = useState<Record<string, boolean>>({});
+  const [operacaoAberta, setOperacaoAberta] = useState(false);
   const [desktop, setDesktop] = useState(false);
   const registrarSaida = useServerFn(registrarLogoutEquipe);
 
@@ -184,8 +207,8 @@ export function SaasShell({
     navigate({ to: "/equipe/entrar", replace: true });
   }
 
-  // Admin não ganha aba nova: módulos administrativos entram em Governança.
-  // O Desk tem 6 grupos para qualquer papel interno.
+  // Admin não ganha aba nova: módulos administrativos entram em Governança (Operação).
+  // Face = 7 telas; Operação = 6 grupos internos para qualquer papel.
   const carregarAlertas = useServerFn(alertasOps);
   const alertas = useQuery({
     queryKey: ["shell", "alertas-menu"],
@@ -198,7 +221,7 @@ export function SaasShell({
   const badgeDe = (to: string): number => (to === "/casos" ? atrasadasCasos : 0);
 
   // Itens restritos a admin (equipe) só aparecem para admin.
-  // O Desk tem 6 grupos para qualquer papel interno.
+  // Face = 7; Operação = 6 grupos (filtrados por papel só nos itens admin).
   const itens: SecaoNav[] = NAV.map((item) => ({
     ...item,
     sub: item.sub.filter((s) => !("to" in s) || !s.adminOnly || ehAdmin),
@@ -220,100 +243,132 @@ export function SaasShell({
         </div>
 
         <nav className="flex-1 space-y-1">
-          {itens.map((item) => {
-            const { to, label, icon: Icon, sub, descricao: descricaoGrupo } = item;
-            const ativo = grupoNavAtivo(rota, hash, item);
-            const expandida = to in abertosManuais ? abertosManuais[to] : desktop && ativo;
+          <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gold">
+            Desk
+          </p>
+          {FACE_NAV.map((tela) => {
+            const Icon = tela.icon;
+            const ativa = faceNavAtiva(rota)?.id === tela.id;
             return (
-              <div key={to}>
-                <button
-                  type="button"
-                  title={descricaoGrupo}
-                  onClick={() => {
-                    if (ativo) {
-                      setAbertosManuais((v) => ({
-                        ...v,
-                        [to]: !(to in v ? v[to] : desktop && ativo),
-                      }));
-                      return;
-                    }
-                    setAbertosManuais((v) => ({ ...v, [to]: true }));
-                    void navigate({ to: to as never });
-                    setAberto(false);
-                  }}
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
-                    ativo ? "bg-gold text-navy font-medium" : "text-cream/80 hover:bg-cream/10",
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="flex-1">{label}</span>
-                  {badgeDe(to) > 0 ? (
-                    <span
-                      title={`${badgeDe(to)} item(ns) com prazo vencido`}
-                      className="rounded-full bg-terracotta px-1.5 py-0.5 text-[10px] font-semibold text-cream"
-                    >
-                      {badgeDe(to)}
-                    </span>
-                  ) : null}
-                  <ChevronDown
-                    className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")}
-                  />
-                </button>
-                {expandida && sub.length ? (
-                  <div className="mb-1 ml-7 space-y-0.5 border-l border-cream/15 pl-3">
-                    {sub.map((s, i) =>
-                      "grupo" in s ? (
-                        <p
-                          key={`g-${s.grupo}`}
-                          className="px-2 pb-0.5 pt-2 text-[10px] font-semibold uppercase tracking-widest text-gold"
-                        >
-                          {s.grupo}
-                        </p>
-                      ) : (
-                        <Link
-                          key={`${s.to}-${s.hash ?? i}`}
-                          to={s.to}
-                          hash={s.hash}
-                          onClick={() => setAberto(false)}
-                          className={cn(
-                            "block rounded-md px-2 py-1.5 text-[13px] transition-colors",
-                            itemNavAtivo(rota, hash, s)
-                              ? "bg-cream/15 text-cream font-medium"
-                              : "text-cream/65 hover:bg-cream/10",
-                          )}
-                        >
-                          {s.label}
-                          {/* Atalho para rota que mora em outro grupo: sem esta
-                              marca, a repetição deliberada lê-se como
-                              duplicação. */}
-                          {origemDoAtalho(label, s.to) ? (
-                            <span className="ml-1.5 text-[10px] font-normal text-cream/40">
-                              ↗ {origemDoAtalho(label, s.to)}
-                            </span>
-                          ) : null}
-                          {/* Biblioteca que um motor chama não se lê igual a
-                              biblioteca de referência. Sem a marca, as duas
-                              parecem a mesma coisa no menu. */}
-                          {naturezaDaBiblioteca(s.to) ? (
-                            <span
-                              className="ml-1.5 text-[10px] font-normal text-cream/40"
-                              title={naturezaDaBiblioteca(s.to)!.nota}
-                            >
-                              ·{" "}
-                              {naturezaDaBiblioteca(s.to)!.natureza === "motor"
-                                ? "motor"
-                                : "referência"}
-                            </span>
-                          ) : null}
-                        </Link>
-                      ),
-                    )}
-                  </div>
+              <Link
+                key={tela.id}
+                to={tela.to}
+                title={tela.descricao}
+                onClick={() => setAberto(false)}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                  ativa ? "bg-gold text-navy font-medium" : "text-cream/80 hover:bg-cream/10",
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                <span className="flex-1">{tela.label}</span>
+                {badgeDe(tela.to) > 0 ? (
+                  <span
+                    title={`${badgeDe(tela.to)} item(ns) com prazo vencido`}
+                    className="rounded-full bg-terracotta px-1.5 py-0.5 text-[10px] font-semibold text-cream"
+                  >
+                    {badgeDe(tela.to)}
+                  </span>
                 ) : null}
-              </div>
+              </Link>
             );
           })}
+
+          <div className="pt-3">
+            <button
+              type="button"
+              onClick={() => setOperacaoAberta((v) => !v)}
+              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[10px] font-semibold uppercase tracking-widest text-gold hover:bg-cream/10"
+              aria-expanded={operacaoAberta}
+            >
+              <span className="flex-1">Operação</span>
+              <ChevronDown
+                className={cn("h-3.5 w-3.5 transition-transform", operacaoAberta ? "" : "-rotate-90")}
+              />
+            </button>
+            {operacaoAberta
+              ? itens.map((item) => {
+                  const { to, label, icon: Icon, sub, descricao: descricaoGrupo } = item;
+                  const ativo = grupoNavAtivo(rota, hash, item);
+                  const expandida = to in abertosManuais ? abertosManuais[to] : false;
+                  return (
+                    <div key={to}>
+                      <button
+                        type="button"
+                        title={descricaoGrupo}
+                        onClick={() => {
+                          if (ativo) {
+                            setAbertosManuais((v) => ({
+                              ...v,
+                              [to]: !(to in v ? v[to] : false),
+                            }));
+                            return;
+                          }
+                          setAbertosManuais((v) => ({ ...v, [to]: true }));
+                          void navigate({ to: to as never });
+                          setAberto(false);
+                        }}
+                        className={cn(
+                          "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                          ativo ? "bg-cream/15 text-cream font-medium" : "text-cream/70 hover:bg-cream/10",
+                        )}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span className="flex-1">{label}</span>
+                        <ChevronDown
+                          className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")}
+                        />
+                      </button>
+                      {expandida && sub.length ? (
+                        <div className="mb-1 ml-7 space-y-0.5 border-l border-cream/15 pl-3">
+                          {sub.map((s, i) =>
+                            "grupo" in s ? (
+                              <p
+                                key={`g-${s.grupo}`}
+                                className="px-2 pb-0.5 pt-2 text-[10px] font-semibold uppercase tracking-widest text-gold"
+                              >
+                                {s.grupo}
+                              </p>
+                            ) : (
+                              <Link
+                                key={`${s.to}-${s.hash ?? i}`}
+                                to={s.to}
+                                hash={s.hash}
+                                onClick={() => setAberto(false)}
+                                className={cn(
+                                  "block rounded-md px-2 py-1.5 text-[13px] transition-colors",
+                                  itemNavAtivo(rota, hash, s)
+                                    ? "bg-cream/15 text-cream font-medium"
+                                    : "text-cream/65 hover:bg-cream/10",
+                                )}
+                              >
+                                {s.label}
+                                {origemDoAtalho(label, s.to) ? (
+                                  <span className="ml-1.5 text-[10px] font-normal text-cream/40">
+                                    ↗ {origemDoAtalho(label, s.to)}
+                                  </span>
+                                ) : null}
+                                {naturezaDaBiblioteca(s.to) ? (
+                                  <span
+                                    className="ml-1.5 text-[10px] font-normal text-cream/40"
+                                    title={naturezaDaBiblioteca(s.to)!.nota}
+                                  >
+                                    ·{" "}
+                                    {naturezaDaBiblioteca(s.to)!.natureza === "motor"
+                                      ? "motor"
+                                      : "referência"}
+                                  </span>
+                                ) : null}
+                              </Link>
+                            ),
+                          )}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })
+              : null}
+          </div>
         </nav>
         <div className="mt-4 border-t border-cream/15 pt-3">
           <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gold">
