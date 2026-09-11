@@ -32,3 +32,9 @@ Cliente externo nunca vê nota interna, outro caso ou outro cliente. Esconder na
 
 - Painel de Calls (`/calls`, `PainelCalls`) é entrada canônica do CRM Vivo. Isolar dicionário/legado não autoriza esconder a rota.
 - Os 8 grupos de `GRUPOS_DESK` permanecem. Não fundir, não criar nona aba.
+
+## Continuidade e prova (adendo 2026-09-10)
+
+- Contexto de resgate permanece ativo até a proprietária autenticada comprovar o produto integrado (prints + releitura). Código/PR/teste não arquivam contexto.
+- Fonte: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`. Registro: `docs/relatorios/2026-09-10_registro-prova-autenticada-por-motor.md`.
+- Este adendo não autoriza mudar dados, RLS, migrations, contratos, pagamentos ou merges.

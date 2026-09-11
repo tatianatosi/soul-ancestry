@@ -666,3 +666,11 @@ Resumo normativo, sem contradizer as seções 1–18:
 - Mockup de 17 páginas = visual normativo. PDF de 47 páginas e PDFs de distorção/comparação = auditoria, não redesign.
 - “Entregue” exige fonte + escritor + persistência + consumidor + CTA + reload. Não inventar vocabulário de `CHECK`.
 - PR #85 mesclada: não regredir `documentos_minimos_ok`, convite/login oficial, RLS, isolamento. Merge futuro só com autorização explícita.
+
+## 20. Adendo vinculante 2026-09-10 — contexto não arquivável e prova autenticada
+
+Política ativa (texto completo): `ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`.  
+Registro vivo: `docs/relatorios/2026-09-10_registro-prova-autenticada-por-motor.md`.  
+Checklist/rodapé: `CHECKLIST-PR-CONTINUIDADE-PROVA.md`.
+
+Enquanto a proprietária autenticada não comprovar a cadeia integrada (comercial → Discovery → Pessoa/Dossiê → Caso → Pesquisa → Formalização → Financeiro → App Cliente → Hoje/Radar) com prints de inicial/ação/confirmação/releitura (+ integração), o contexto de resgate permanece ativo. Código, PR, build, teste automatizado, log, mock ou declaração de agente não autorizam arquivar. Este adendo não autoriza alterar dados, RLS, migrations, contratos, pagamentos ou merges.

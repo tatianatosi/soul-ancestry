@@ -8,6 +8,16 @@ A partir de 10/09/2026, as regras operacionais que todo agente deve aplicar est�
 
 Esse destilado **não substitui** `politica-autoridade-operacional.md`, a taxonomia do mockup de 17 páginas, nem os 8 grupos reais do Desk. Não inventar vocabulário CHECK-* nem tabelas hipotéticas (`case_participants`, `citizenship_cases`).
 
+### Adendo vinculante — contexto não arquivável + prova autenticada (2026-09-10)
+
+| Documento | Papel | Status |
+|---|---|---|
+| `ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md` | Política ativa: contexto de resgate não arquiva sem prova visual autenticada da proprietária no produto integrado | **Ativo / vinculante** (não é “arquivado”) |
+| `CHECKLIST-PR-CONTINUIDADE-PROVA.md` | Checklist de PR/merge + rodapé `REGRA DE CONTINUIDADE` | Ativo |
+| `docs/relatorios/2026-09-10_registro-prova-autenticada-por-motor.md` | Registro vivo por motor (todos `NAO_LOCALIZADO` até a proprietária executar) | Ativo |
+
+Vocabulário: **arquivo de referência no repositório** (cópia acessível) ≠ **arquivado fora da continuidade ativa** (só após `COMPROVADO_EM_USO` + declaração explícita da proprietária + destino registrado). Rótulos “arquivado / substituído / histórico” de 31/08 **não** equivalem a prova integrada.
+
 ## Sequência confirmada pela proprietária (30/08/2026)
 
 > "Concordo com a sequência: manter P0 e P1 operacionais agora; Cockpit, indicadores e revisão visual somente depois."

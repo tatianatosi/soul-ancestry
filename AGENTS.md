@@ -11,7 +11,7 @@
 
 # Clube Ancestral — memória permanente para agentes
 
-Documento normativo da proprietária (Tatiana, tati@pluggedresearch.com), destilado em 2026-09-10. Texto completo arquivado em `docs/politicas/MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Regra Cursor espelhada em `.cursor/rules/clube-ancestral.mdc`.
+Documento normativo da proprietária (Tatiana, tati@pluggedresearch.com), destilado em 2026-09-10. Texto completo arquivado em `docs/politicas/MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Adendo vinculante de continuidade/prova: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`. Regra Cursor espelhada em `.cursor/rules/clube-ancestral.mdc`.
 
 Isto **não** autoriza redesenho de navegação, vocabulário novo (incluindo taxonomia “CHECK-*”) nem tabelas hipotéticas de prompts antigos. Antes de implementar, confirmar o schema real e as decisões já vigentes.
 
@@ -114,6 +114,21 @@ README raiz ainda descreve o protótipo visual antigo (6 abas, dados fictícios)
 Protótipo só visual; componente sem persistência; schema sem fluxo; endpoint sem UI; demo no lugar de produção; permissões só na UI; erro conhecido no fluxo central; requisito sem critério de aceite.
 
 Relato de progresso deve dizer: o que foi implementado, em qual camada, quais entidades, qual evidência, o que falta, bloqueio, próximo passo concreto. Evitar “estrutura criada” / “quase finalizado” sem prova.
+
+## Adendo vinculante — contexto não arquivável + prova autenticada (2026-09-10)
+
+Fonte: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`. Registro vivo: `docs/relatorios/2026-09-10_registro-prova-autenticada-por-motor.md`. Checklist/rodapé: `docs/politicas/CHECKLIST-PR-CONTINUIDADE-PROVA.md`.
+
+1. Contexto de resgate, premissa, mockup, matriz, roteiro ou decisão **não** pode ser tratado como arquivado/concluído/substituído sem prova autenticada da proprietária no fluxo integrado.
+2. Código, PR verde, teste automatizado, log, mock, preview sem login **não** bastam para declarar motor em uso.
+3. Evidência mínima da proprietária: prints inicial → ação → confirmação → releitura (F5/reabertura); + integração quando houver cadeia.
+4. Um produto: identidade, contexto e próxima ação contínuos na cadeia comercial → Discovery → Pessoa/Dossiê → Caso → Pesquisa → Formalização → Financeiro → App Cliente → Hoje/Radar.
+5. Resultado permitido: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_DECISAO`, `ERRO_DE_FONTE`, `NAO_LOCALIZADO`. Só a proprietária promove motor a `COMPROVADO_EM_USO`.
+6. Rodapé `REGRA DE CONTINUIDADE` obrigatório em artefatos técnicos/operacionais novos.
+7. Este adendo **não** autoriza mudar dados, RLS, migrations, contratos, pagamentos, publicações ou merges; print complementa controle técnico, não o substitui.
+8. Não repetir teste já documentado com esse protocolo, salvo regressão ou alteração concreta de fluxo/ambiente/dado/permissão.
+9. “Arquivo de referência no repo” ≠ “arquivado fora da continuidade”. Rótulos históricos de 31/08 não equivalem a prova integrada.
+10. Taxonomia de prova de abas: **8 grupos Desk** + **7 abas App Cliente** (não “seis áreas” de rascunho).
 
 ## Recuperação (se o produto estiver fragmentado)
 

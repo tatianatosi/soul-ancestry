@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Clube Ancestral — regras permanentes
 
-Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da proprietária: `docs/politicas/MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Verificação contra o código: `docs/relatorios/2026-09-10_memoria-permanente-verificacao.md`.
+Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da proprietária: `docs/politicas/MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Adendo de continuidade/prova: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`. Verificação contra o código: `docs/relatorios/2026-09-10_memoria-permanente-verificacao.md`.
 
 ## Fazer sempre
 
@@ -20,6 +20,7 @@ Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da propriet
 - Preservar fechamentos da PR #85: escritor `confirmarDocumentosMinimos` → `documentos_minimos_ok`; convite/login cliente pelo fluxo oficial; não regredir.
 - Preservar o aviso Lovable em `AGENTS.md`: sem force-push, rebase, amend ou squash de commits já publicados.
 - Respeitar `docs/politicas/politica-autoridade-operacional.md`: para a proprietária, pendência informa, não impede; override auditado.
+- Tratar contexto de resgate/premissa/mockup/matriz como **não arquivável** até prova autenticada da proprietária no fluxo integrado; incluir rodapé `REGRA DE CONTINUIDADE` em artefatos novos; registrar prova em `docs/relatorios/2026-09-10_registro-prova-autenticada-por-motor.md`.
 
 ## Nunca
 
@@ -34,3 +35,5 @@ Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da propriet
 - Expor `service_role`, usar dado real de cliente em homologação, ou tratar TypeScript/Vitest/preview como prova de UI autenticada.
 - Mesclar/deployar produção sem autorização explícita da Proprietária (branch + SHA + se dispara produção).
 - Reescrever história git publicada (Lovable).
+- Arquivar, “concluir” ou substituir contexto essencial só porque há código, PR, teste, documento ou declaração de agente — sem prints autenticados da proprietária (inicial, ação, confirmação, releitura; + integração se houver cadeia).
+- Preencher `PASSOU` / `COMPROVADO_EM_USO` no registro de prova sem a proprietária autenticada.
