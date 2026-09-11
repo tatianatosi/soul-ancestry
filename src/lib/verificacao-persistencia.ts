@@ -13,6 +13,8 @@ export type Divergencia = {
 };
 
 const DATA_ISO = /^\d{4}-\d{2}-\d{2}$/;
+/** datetime-local do browser: YYYY-MM-DDTHH:mm (sem segundos nem fuso). */
+const DATETIME_LOCAL = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 const TIMESTAMP_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
 
 /** Normaliza para comparação tolerante a tipo de coluna (data, número, texto, lista). */
@@ -32,6 +34,11 @@ function equivalente(enviado: unknown, persistido: unknown): boolean {
   // data enviada como YYYY-MM-DD contra timestamp devolvido pelo banco
   if (DATA_ISO.test(a) && b.startsWith(a)) return true;
   if (DATA_ISO.test(b) && a.startsWith(b)) return true;
+  // 11/09/2026 — datetime-local (HH:mm) contra timestamptz Postgres
+  // (HH:mm:ss+00:00). Ex.: call_realizada_em "2026-09-18T05:00" vs
+  // "2026-09-18T05:00:00+00:00" gerava DIVERGENCIA_PERSISTENCIA falsa na Mesa.
+  if (DATETIME_LOCAL.test(a) && b.startsWith(a)) return true;
+  if (DATETIME_LOCAL.test(b) && a.startsWith(b)) return true;
   // 06/09/2026 — mesmo instante, formatos diferentes: "...615Z" (enviado pelo
   // cliente) contra "...615+00:00" (devolvido pelo Postgres). Comparar como
   // texto sempre falhava e disparava DIVERGENCIA_PERSISTENCIA falsa em toda

@@ -19,6 +19,14 @@ describe("ANA-SAVE-SEC-01B — persistência da Aba Casos", () => {
     expect(r.map((d) => d.campo)).toContain("titulo");
   });
 
+  it("2b. datetime-local (HH:mm) não diverge do timestamptz Postgres no mesmo minuto", () => {
+    const r = compararPersistencia(
+      { call_realizada_em: "2026-09-18T05:00" },
+      { call_realizada_em: "2026-09-18T05:00:00+00:00" },
+    );
+    expect(r).toHaveLength(0);
+  });
+
   it("3. campo não mapeado retorna código estável", () => {
     const c = classificarErroPersistencia(new Error(CODIGOS_PERSISTENCIA.NAO_MAPEADO));
     expect(c.codigo).toBe(CODIGOS_PERSISTENCIA.NAO_MAPEADO);

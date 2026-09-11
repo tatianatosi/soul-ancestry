@@ -5,6 +5,7 @@ import { useMemo, useState, type ReactNode } from "react";
 
 import { MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
 import { HandoffLead } from "@/components/crm/handoff-lead";
+import { NovoLeadDialog } from "@/components/crm/novo-lead";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { salvarTarefa } from "@/lib/ops.functions";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
@@ -230,6 +231,7 @@ export function PainelCalls() {
   });
   const [mostrarTeste, setMostrarTeste] = useState(false);
   const [selecionado, setSelecionado] = useState<string | null>(null);
+  const [novoLeadAberto, setNovoLeadAberto] = useState(false);
   const [rascunho, setRascunho] = useState<Record<string, unknown>>({});
   const [aviso, setAviso] = useState<string | null>(null);
   // CA02-CRM-VIVO-PAINEL-CALLS (09/09/2026): achados da varredura de
@@ -533,9 +535,24 @@ export function PainelCalls() {
         </p>
       ) : null}
 
+      <NovoLeadDialog
+        aberto={novoLeadAberto}
+        onFechar={() => setNovoLeadAberto(false)}
+        onCriado={(id) => {
+          setNovoLeadAberto(false);
+          setRascunho({});
+          setAviso(id ? "Lead criado. Continue a Discovery neste registro." : null);
+          if (id) {
+            setSelecionado(id);
+            setIndicePergunta(0);
+          }
+          void qc.invalidateQueries({ queryKey: ["leads-desk"] });
+        }}
+      />
+
       <Secao
         titulo="Mesa de Discovery"
-        descricao="Aqui a entrada comercial funciona: varredura, uma pergunta SPIN por vez, próxima ação e handoff. Os KPIs do que está parado ou vencido ficam no Hoje. Toda triagem é sinal interno — não conclui elegibilidade nem envia proposta."
+        descricao="Crie o lead aqui ou abra um existente à esquerda. Depois: varredura, uma pergunta SPIN por vez, próxima ação e handoff. Os KPIs do que está parado ficam no Hoje. Triagem é sinal interno — não conclui elegibilidade nem envia proposta."
       >
         <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {[
@@ -551,14 +568,26 @@ export function PainelCalls() {
             </div>
           ))}
         </div>
-        <label className="mt-3 flex items-center gap-2 text-xs text-navy/70">
-          <input
-            type="checkbox"
-            checked={mostrarTeste}
-            onChange={(e) => setMostrarTeste(e.target.checked)}
-          />
-          Exibir registros de teste/demonstração (fora das métricas reais)
-        </label>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            className="rounded-lg bg-navy px-3 py-2 text-sm text-cream"
+            onClick={() => {
+              setNovoLeadAberto(true);
+              setAviso(null);
+            }}
+          >
+            Novo lead
+          </button>
+          <label className="flex items-center gap-2 text-xs text-navy/70">
+            <input
+              type="checkbox"
+              checked={mostrarTeste}
+              onChange={(e) => setMostrarTeste(e.target.checked)}
+            />
+            Exibir registros de teste/demonstração (fora das métricas reais)
+          </label>
+        </div>
         <p className="mt-2 text-xs text-navy/60">
           Regras do CRM:{" "}
           <Link to="/crm-mestre" className="underline decoration-gold underline-offset-2">
@@ -626,9 +655,19 @@ export function PainelCalls() {
 
         <div className="space-y-4">
           {!lead ? (
-            <p className={`${CARTAO} text-sm text-navy/60`}>
-              Selecione um lead à esquerda para registrar a call.
-            </p>
+            <div className={`${CARTAO} space-y-3 text-sm text-navy/70`}>
+              <p>
+                Crie um lead com <strong className="font-medium text-navy">Novo lead</strong> acima, ou
+                selecione um existente à esquerda para registrar a call.
+              </p>
+              <button
+                type="button"
+                className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy hover:bg-navy/5"
+                onClick={() => setNovoLeadAberto(true)}
+              >
+                Novo lead
+              </button>
+            </div>
           ) : (
             <>
               <Secao

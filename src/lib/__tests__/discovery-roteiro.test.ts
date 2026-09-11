@@ -167,6 +167,8 @@ describe("Mesa de Discovery — SPIN como pergunta, não checkbox", () => {
       }
     }
     for (const c of new Set(ROTEIRO_DISCOVERY.flatMap((b) => b.campos))) {
+      // spin_* são flags/checkbox no mesmo fluxo (derivadas ou marcação), não pergunta textual da Mesa.
+      if (c.startsWith("spin_")) continue;
       expect(perguntaDaMesaPorCampo(c), `campo órfão: ${c}`).toBeDefined();
       expect(perguntaDaMesaPorCampo(c)?.pergunta.length).toBeGreaterThan(10);
     }

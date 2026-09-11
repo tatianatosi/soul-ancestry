@@ -69,6 +69,13 @@ describe("Painel de Calls — mesa de Discovery (CA02-CRM-VIVO-PAINEL-CALLS)", (
     expect(leads).not.toContain('type="checkbox" checked={bool(k)}');
   });
 
+  it("a Mesa cria lead no mesmo fluxo (NovoLeadDialog), sem mandar só para /leads", () => {
+    expect(painel).toContain("NovoLeadDialog");
+    expect(painel).toContain("Novo lead");
+    expect(painel).toContain("Crie o lead aqui ou abra um existente");
+    expect(painel).toContain('queryKey: ["leads-desk"]');
+  });
+
   it("cards do roteiro não voltam ao grid de formulário de duas colunas", () => {
     expect(painel).toContain('className="mt-3 space-y-2"');
     expect(painel).not.toContain('className="mt-3 grid gap-2 md:grid-cols-2"');
