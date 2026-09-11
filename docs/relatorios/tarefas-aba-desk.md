@@ -41,8 +41,9 @@ Como ler: **ok** = já usa; **agora** = em cima disto; **travado** = ainda não 
 
 **Ainda em cima (esta aba)**
 
-- Esperar a sua ordem para o merge do **#100**. Produção continua o Desk antigo.
-- Não misturar aqui os PRs #97 (tira legado do menu) e #98 (SPIN da Mesa).
+- O **#100** já está no `main` (mesclado 11/09). As 6 abas existem lá.
+- O recorte de **hoje nesta branch** (legado agrupado em Governança + texto do Hoje “até o pente fino”) **ainda não** foi para o `main`. Sem merge extra sem a sua ordem.
+- Não misturar aqui o PR #97 (tira legado do menu).
 
 Não estou, nesta aba: criando tabela, mesclando produção, apagando rota, nem tirando o legado do menu.
 
@@ -52,9 +53,9 @@ Não estou, nesta aba: criando tabela, mesclando produção, apagando rota, nem 
 
 | Item | Tipo | O que falta |
 |---|---|---|
-| Esta aba no `main` | merge | O preview prova. Produção espera a sua autorização do #100. |
+| Recorte de legado desta branch no `main` | merge | O #100 já entrou. Falta o seu ok para o texto do Hoje e o grupo Legado em Governança (commits depois do merge). |
 | Login `/equipe/entrar` | distorção | A tela de senha ainda diz que Catálogo 30 fica “na conta, embaixo”. O menu e o Hoje já dizem Governança. |
-| Mesa SPIN (perguntas, uma a uma) | outro PR | Código no **#98**, não neste. Nesta aba o Calls abre. |
+| Mesa SPIN (perguntas, uma a uma) | outro PR | O **#98** já está no `main`. Nesta aba o Calls só aponta o lugar; o roteiro vive na Mesa. |
 | KPIs vivos do recorte #97 | outro PR | O Hoje já tem números. O #97 tira legado do menu — fica de fora até o pente fino. |
 | Números do Hoje → aba dona | fiação | `grupoDonoDaRota` existe. Os cartões ainda não usam essa função em todo atalho. Sem tabela nova. |
 | Calls → Pessoa 360 | fiação | A call grava o **lead**. Não devolve sozinha para a ficha da pessoa. Dívida antiga. |
