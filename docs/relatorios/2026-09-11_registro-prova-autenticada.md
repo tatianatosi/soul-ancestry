@@ -49,7 +49,24 @@ Essa linha **não** pede que a proprietária refaça o clique só para repetir o
 | Smoke leitura | `SET ROLE authenticated` + `SELECT` em `app_projections` e `app_projection_shares` → **sem** `42P17`; PostgREST publishable `HTTP 200` `[]` (vazio legítimo) sem recursão |
 | Logs Postgres | Último erro `infinite recursion…app_projections` **antes** do DDL (~02:37 UTC); **nenhum** após 13:56 UTC |
 | UI preview (agente) | Landing Vercel da branch carregou; sem 42P17 na página pública; **sem login** (sem credenciais) — Desk/portal não abertos |
-| Certificação dona | **não** `COMPROVADO_EM_USO` — evidência de agente/SQL remoto; falta clique autenticado dela em Biblioteca / portal / visão do cliente |
+| Certificação dona (leitura) | **feita** via ambiente D (espelho master `/app-cliente-como-pessoa`): 7 abas sem recursão/`42P17` — ver prints |
+| `COMPROVADO_EM_USO` | **não** — falta publicar conteúdo → F5 → releitura → integração Desk→portal |
+
+### D. App Cliente master — proprietária (produção Vercel)
+
+| Campo | Valor |
+|---|---|
+| Data | 2026-09-11 |
+| Quem | Proprietária (`tati@pluggedresearch.com`), autenticada |
+| URL | `https://soul-ancestry.vercel.app/app-cliente-como-pessoa` |
+| Caso | `CA-CID-AT-FAM-2026-001` — Projeto familiar — Ana Luiza (fixture) |
+| Selo | ACESSO MASTER — VISÃO REAL DO APP CLIENTE |
+| Abas percorridas | Home · Jornada · Radar · Árvore · Documentos · Legado · Conta (7/7) |
+| Resultado leitura | `PASSOU` — empty states específicos; **sem** toast/`42P17` / “infinite recursion” |
+| Prints | `docs/relatorios/provas/2026-09-11-app-cliente-master/` (`01-home` … `07-conta`) |
+| Mockup (referência P11, sem redesign agora) | 17 págs: `docs/evolucao/recuperados/prompts-lovable-2026-08-31/clube-ancestral-mockup.pdf` · 47 págs: mesmo dir + `…/auditoria-mockup-2026-09-11/` · autoridade: `docs/politicas/ADENDO-MEMORIA-AUDITORIA-MOCKUP-CANVAS-2026-09-11.md` |
+| Backlog visual | `docs/relatorios/2026-09-11_backlog-p11-app-cliente-vs-mockup.md` |
+| `COMPROVADO_EM_USO` | **não** — só leitura/empty; sem protocolo publicar + F5 |
 
 ## Matriz por motor
 
@@ -67,9 +84,9 @@ Resultados permitidos: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_
 | Contexto de países / jurídico | `NAO_LOCALIZADO` | — | Trilha/marco na Mesa são dropdown interno, não parecer. |
 | Proposta / formalização | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
 | Financeiro | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
-| Entregas / App Cliente | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
+| Entregas / App Cliente | `PASSOU` (leitura master) | sim×7 / — / empty por aba / — / não | Ambiente D. Sem `42P17`. **não** `COMPROVADO_EM_USO` (falta publicar→F5). Prints em `provas/2026-09-11-app-cliente-master/`. |
 | KPIs e Hoje | `NAO_LOCALIZADO` | — | Sem print de integração da próxima ação da Mesa. |
-| Abas / taxonomia | `NAO_LOCALIZADO` | — | Código desta linha tem 6 grupos; memória permanente ainda cita 8. Dívida declarada — não arquivar nenhuma das duas até a dona certificar. |
+| Abas / taxonomia | parcial | sim (7 abas App) / — / — / — / — | App Cliente: 7 abas confirmadas pela dona (ambiente D). Desk: código desta linha ainda diverge da memória de 8 grupos — dívida declarada. |
 
 ## Cadeia transversal
 
