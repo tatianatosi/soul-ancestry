@@ -1,0 +1,28 @@
+---
+description: Relatório de tarefas da aba do Desk — manhã e fim do dia, em tópicos simples para a pesquisadora.
+alwaysApply: true
+---
+
+# Relatório de tarefas da aba (manhã e fim do dia)
+
+A proprietária acompanha o produto como pesquisadora. Sempre que o trabalho for de uma aba do Desk (hoje: Mesa de Discovery `/calls`), atualizar o quadro vivo **no início e no fim do dia** (e no início/fim de um turno longo).
+
+Arquivo da Mesa: `docs/relatorios/TAREFAS-ABA-MESA-DISCOVERY.md`.  
+Se o foco for outra aba, criar/atualizar `docs/relatorios/TAREFAS-ABA-<nome>.md` no mesmo formato. Não arquivar o anterior.
+
+## Formato obrigatório (três blocos, linguagem simples)
+
+1. **O que já existe e aparece na tela** — back-end (tabela + função que grava) e front-end (o que ela vê). Não usar “perfeitamente” se faltar F5, caso_id ou prova dela.
+2. **O que estou fazendo agora** — só o que este turno está mexendo. Se não estiver corrigindo código, dizer isso.
+3. **O que ainda trava o 100%** — fiação (dado que não passa de uma tela à outra), Supabase (login, RLS, variável de servidor), distorção (texto/menu que mente ou duplica). Uma linha por trava. Próximo passo de uma linha no fim.
+
+## Núcleo (não negociar)
+
+- Caso (`crm_casos`) é o eixo; lead sem caso fica em `leads`.
+- Tela sem persistência não é feito. Print de agente, Vitest e PR verde não certificam.
+- `/calls` não some. Não inventar tabela. Não arquivar contexto desta aba.
+- Não colar `service_role` nem senha em relatório, PR ou print.
+
+## Como escrever
+
+PT-BR, tópicos curtos, nomes de tela que ela usa (Mesa, Hoje, Pessoa 360). Data e turno no topo. Resultado: `PASSOU` / `FALHOU` / `BLOQUEADO_POR_DADO` / `BLOQUEADO_POR_DECISAO` / `ERRO_DE_FONTE` / `NAO_LOCALIZADO`.
