@@ -29,6 +29,7 @@ import {
   STATUS_EVIDENCIA,
   STATUS_PESQUISA,
   STATUS_RELATORIO,
+  evidenciaEmValidacao,
   gatilhosDaEvidencia,
   relatorioVisivelAoCliente,
 } from "@/lib/pesquisa-cadeia";
@@ -336,9 +337,7 @@ function AreaPesquisaEvidencias() {
                   (c?.pendencias.length ?? 0),
                 fonte: c?.fontes.length ?? 0,
                 evidencia: c?.evidencias.length ?? 0,
-                validacao: (c?.evidencias ?? []).filter((x: any) =>
-                  ["validada_internamente", "divergente", "insuficiente", "em_revisao"].includes(x.workflow_status),
-                ).length,
+                validacao: (c?.evidencias ?? []).filter((x: any) => evidenciaEmValidacao(x.workflow_status)).length,
                 achado: c?.achados.length ?? 0,
                 relatorio: c?.relatorios.length ?? 0,
                 app: (c?.achados ?? []).filter((a: any) => a.client_projection_status === "publicado_cliente").length,
