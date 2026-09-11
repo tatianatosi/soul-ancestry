@@ -2,6 +2,12 @@
 
 Cópias verbatim dos documentos de política/prompt enviados pela proprietária, guardadas aqui para que nada dependa de memória de conversa ou de contexto que pode ser resumido ao longo de uma sessão longa. Nenhum deles foi implementado só por estar aqui — este diretório é **arquivo de referência**, não registro de execução. O estado real de cada capacidade fica no Mapa de Autoridade Admin (`docs/auditorias/MAPA-AUTORIDADE-ADMIN-DESK-APP-2026-08-30.md`).
 
+## Adendo vinculante — contexto não arquivável (2026-09-10)
+
+Decisão da proprietária: `ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`. Registro vivo: `docs/relatorios/2026-09-11_registro-prova-autenticada.md`.
+
+Rótulos “arquivado” / “fechado” / “superado” nas tabelas abaixo são **inventário histórico**. **Não** retiram o documento da continuidade ativa. Nenhum contexto de resgate pode ser tratado como concluído até `COMPROVADO_EM_USO` com prints autenticados da proprietária (inicial, ação, confirmação, releitura, integração). Código, PR, teste ou este README não bastam.
+
 ## Memória permanente para agentes (2026-09-10)
 
 A partir de 10/09/2026, as regras operacionais que todo agente deve aplicar estão destiladas em **`AGENTS.md`** (raiz) e **`.cursor/rules/clube-ancestral.mdc`**. O texto completo enviado pela proprietária está em `MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Verificação contra o código: `docs/relatorios/2026-09-10_memoria-permanente-verificacao.md`.

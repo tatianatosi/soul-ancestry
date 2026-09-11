@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Clube Ancestral — regras permanentes
 
-Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da proprietária: `docs/politicas/MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Verificação contra o código: `docs/relatorios/2026-09-10_memoria-permanente-verificacao.md`.
+Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da proprietária: `docs/politicas/MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Adendo vinculante de continuidade: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`. Registro vivo de provas: `docs/relatorios/2026-09-11_registro-prova-autenticada.md`. Verificação contra o código: `docs/relatorios/2026-09-10_memoria-permanente-verificacao.md`.
 
 ## Fazer sempre
 
@@ -20,6 +20,7 @@ Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da propriet
 - Preservar fechamentos da PR #85: escritor `confirmarDocumentosMinimos` → `documentos_minimos_ok`; convite/login cliente pelo fluxo oficial; não regredir.
 - Preservar o aviso Lovable em `AGENTS.md`: sem force-push, rebase, amend ou squash de commits já publicados.
 - Respeitar `docs/politicas/politica-autoridade-operacional.md`: para a proprietária, pendência informa, não impede; override auditado.
+- Tratar o resgate (Discovery, Pessoa 360, Caso, Pesquisa, formalização, Radar, App, RLS) como **contexto ativo** até `COMPROVADO_EM_USO` com prints autenticados da proprietária (inicial, ação, confirmação, releitura, integração). Registrar resultado no registro vivo (`PASSOU` / `FALHOU` / `BLOQUEADO_*` / `NAO_LOCALIZADO`).
 
 ## Nunca
 
@@ -31,6 +32,7 @@ Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da propriet
 - Misturar legado com dado ativo sem rótulo e sem precedência do planejador.
 - Confiar só em esconder rota/botão; RLS e validação no servidor são a autorização.
 - Simular sucesso, usar mock permanente como produção, ou apresentar hipótese genealógica como fato.
-- Expor `service_role`, usar dado real de cliente em homologação, ou tratar TypeScript/Vitest/preview como prova de UI autenticada.
+- Expor `service_role`, usar dado real de cliente em homologação, ou tratar TypeScript/Vitest/preview/homepage sem sessão como prova de UI autenticada da proprietária.
+- Arquivar, reduzir a “histórico” ou declarar “já resolvido, pode arquivar” contexto de resgate só porque existe código, PR, teste, migration, mockup ou log.
 - Mesclar/deployar produção sem autorização explícita da Proprietária (branch + SHA + se dispara produção).
 - Reescrever história git publicada (Lovable).
