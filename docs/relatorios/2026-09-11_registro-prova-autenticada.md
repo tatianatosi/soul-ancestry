@@ -3,11 +3,13 @@
 **Status do registro:** ativo (não arquivável)  
 **Política:** `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`  
 **Conta exigida:** proprietária `tati@pluggedresearch.com`  
-**Atualizado em:** 2026-09-11
+**Atualizado em:** 2026-09-11 (após merge da #98 em `main` `e3c72a03`)
 
-Nenhum motor abaixo está `COMPROVADO_EM_USO`. Código, PR, Vitest, build ou tela sem sessão da proprietária **não** alteram essa condição.
+Nenhum motor abaixo está `COMPROVADO_EM_USO`. Código, PR, Vitest, build, merge ou declaração de agente **não** alteram essa condição.
 
 A senha da conta **não** entra neste arquivo, no git nem em print.
+
+Prints feitos por agente com a conta da proprietária (pedido explícito dela) são **evidência de sessão**, não o protocolo completo da seção 3 (inicial + ação + confirmação + releitura + integração executados por ela). Não pedimos que ela refaça o clique já documentado; o próximo teste dela, quando autorizar escrita, é gravar na Mesa → F5 → ver a próxima ação no Hoje.
 
 ## Fonte citada e não localizada no repositório
 
@@ -17,7 +19,7 @@ A senha da conta **não** entra neste arquivo, no git nem em print.
 
 ## Sessões autenticadas
 
-### A. Vite local — bloqueio já registrado (#103)
+### A. Vite local — bloqueio (#103)
 
 | Campo | Valor |
 |---|---|
@@ -27,54 +29,57 @@ A senha da conta **não** entra neste arquivo, no git nem em print.
 | Resultado | `BLOQUEADO_POR_DADO` |
 | Evidência | Tela de login; mensagem genérica de falha. Sem Painel autenticado. |
 | Causa | `prepararLoginEquipe` → `estadoLimite` exige `SUPABASE_SERVICE_ROLE_KEY` no servidor local. A chave **não** pode ser colada em chat, git ou artefato. |
-| Limitação | Esse bloqueio vale só para o Vite do Cloud Agent. **Não** anula a sessão no preview Vercel. |
 
-### B. Produção `soul-ancestry.vercel.app` — sessão autenticada
+### B. Produção `soul-ancestry.vercel.app` — antes do deploy da #98
 
 | Campo | Valor |
 |---|---|
 | Data/hora | 2026-09-11 ~00:52–00:54 UTC |
 | Ambiente | `https://soul-ancestry.vercel.app` |
 | Conta | `tati@pluggedresearch.com` (Painel visível; sem print do campo de senha) |
+| Quem executou | Agente, com a conta da proprietária |
 | Entrada | Landing → “Acesso da equipe” → `/equipe/entrar` → `/painel` |
-| Motor | Sessão da proprietária |
-| Resultado | `PASSOU` |
+| Resultado da sessão | evidência autenticada (Desk aberto) |
 | Prints | `docs/provas/2026-09-11-producao/` |
-| Limitação | Só leitura. Sem gravar, sem F5 de persistência, sem nova sessão. |
+| O que a tela mostrou | 6 grupos. Comercial abria `/leads`. `/calls` era o Painel de Calls antigo. |
+| Limitação | Só leitura. Sem gravar, sem F5. **Superado como estado de produção** quando o deploy da #98 (`e3c72a03`) estiver no ar — a linha permanece como evidência daquele instante, não como arquivo de contexto. |
 
-### C. Preview Vercel da PR #98 — sessão autenticada
+### C. Preview Vercel da PR #98 — Mesa SPIN (agora mesclada)
 
 | Campo | Valor |
 |---|---|
 | Data/hora | 2026-09-11 ~00:31–00:37 UTC |
 | Ambiente | `https://soul-ancestry-git-cursor-mesa-discov-f8ced8-tati-6134s-projects.vercel.app` |
-| Conta | `tati@pluggedresearch.com` (Painel visível; sem print do campo de senha) |
-| Objeto | Lead de teste **Ana Luiza** (rótulo “dado de teste”) |
-| Motor | Sessão da proprietária |
-| Resultado | `PASSOU` |
+| Conta | `tati@pluggedresearch.com` |
+| Quem executou | Agente, com a conta da proprietária |
+| Objeto | Lead de teste **Ana Luiza** |
 | Prints | `docs/provas/2026-09-11-preview-pr98/` |
-| Limitação | Preview da branch da Mesa, não `main`/produção. Sem gravação de resposta, sem F5 de persistência, sem alteração de dado (o adendo não autoriza escrita nesta incorporação). |
+| O que a tela mostrou | Comercial → Mesa `/calls`. SPIN uma pergunta por vez. Clique em Problema saltou. `/leads` sem checkbox. |
+| F5 após gravar | **não feito** |
+| Integração Hoje | **não feito** |
+| Resultado do protocolo | não `PASSOU`; não `COMPROVADO_EM_USO` |
+| Depois do merge | A #98 entrou em `main` em 2026-09-11 01:45 UTC. Esta evidência vale para o código mesclado; produção só conta depois do deploy + print novo. |
 
 ## Matriz por motor
 
 Resultados permitidos: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_DECISAO`, `ERRO_DE_FONTE`, `NAO_LOCALIZADO`.  
-`COMPROVADO_EM_USO` só depois de prints inicial + ação + confirmação + releitura (+ integração quando houver cadeia).
+`COMPROVADO_EM_USO` só depois de prints inicial + ação + confirmação + releitura (+ integração quando houver cadeia), **executados pela proprietária**.
 
 | Motor | Resultado | Prints (inicial / ação / confirmação / releitura / integração) | Observação |
 |---|---|---|---|
-| Sessão da proprietária (Vite local) | `BLOQUEADO_POR_DADO` | não / tentada / erro / não / não | Ver bloco A. |
-| Sessão da proprietária (produção) | `PASSOU` | sim / login equipe / `/painel` / — / — | Ver bloco B. |
-| Sessão da proprietária (preview #98) | `PASSOU` | sim / login / Desk aberto / — / — | Ver bloco C. Sem nova sessão depois do F5. |
-| Mesa Discovery / CRM | produção `PASSOU` só abertura; preview #98 `PASSOU` SPIN leitura; **não** `COMPROVADO_EM_USO` | inicial + abrir `/calls` / sem gravar / sem save / sem F5 / sem Hoje | **Produção:** `/calls` é o Painel de Calls antigo (varredura + filas). Comercial **abre `/leads`**, não a Mesa. Ana Luiza existe (dado de teste). **Preview #98:** SPIN uma pergunta por vez; clique em Problema saltou. Falta em ambos: gravar resposta, responsável, próxima ação, recarregar, ver a ação no Hoje. |
-| Pessoa 360 | `NAO_LOCALIZADO` | — | Sem teste autenticado neste registro. |
-| Varredura de dossiê | `NAO_LOCALIZADO` | — | Skill só em documento (`docs/prompts/ARTEFATO-RESGATE-SKILLS-INTELIGENCIA-VARREDURA-DOSSIE-2026-09-02.md`). Sem UI comprovada. |
-| Pesquisa e evidências | `NAO_LOCALIZADO` | — | Sem teste autenticado neste registro. |
-| Contexto de países / jurídico | `NAO_LOCALIZADO` | — | Sem teste autenticado neste registro. |
-| Proposta / formalização | `NAO_LOCALIZADO` | — | Sem teste autenticado neste registro. |
-| Financeiro | `NAO_LOCALIZADO` | — | Sem teste autenticado neste registro. |
-| Entregas / App Cliente | `NAO_LOCALIZADO` | — | Sem teste autenticado neste registro. |
-| KPIs e Hoje | `PASSOU` só leitura; **não** `COMPROVADO_EM_USO` | inicial `/painel` / sem resolver item / — / sem F5 / — | Produção e preview: 7 casos ativos, 3 exceções. Produção ainda mostra SLA em risco (fonte vazia) e mais cards. Falta resolver um item e recarregar a fila. |
-| Abas / taxonomia (6 grupos vigentes) | `PASSOU` navegação; **não** `COMPROVADO_EM_USO` | inicial autenticado / abriu Comercial e Pessoas & Casos / — / — / parcial | Seis grupos no menu em produção e no preview. **Produção:** Comercial entra em `/leads`. **Preview #98:** Comercial entra em `/calls`. Pessoas & Casos abre Casos 360. Falta prova de que um mesmo objeto só resume nas outras abas. |
+| Sessão (Vite local) | `BLOQUEADO_POR_DADO` | não / tentada / erro / não / não | Bloco A. |
+| Sessão (produção pré-#98) | evidência de agente | sim / login / `/painel` / — / — | Bloco B. Desk aberto. |
+| Sessão (preview #98) | evidência de agente | sim / login / Mesa / — / — | Bloco C. |
+| Mesa Discovery / CRM | não `PASSOU`; **não** `COMPROVADO_EM_USO` | preview: abrir + chip Problema / sem gravar / sem save / sem F5 / sem Hoje | Código da #98 agora em `main`. Produção pré-deploy ainda era Painel antigo. Falta gravar resposta, responsável, próxima ação, recarregar, ver a ação no Hoje. |
+| Pessoa 360 | `NAO_LOCALIZADO` | — | Mesa ainda não grava na Pessoa 360. |
+| Varredura de dossiê | `NAO_LOCALIZADO` | — | Skill só em documento. Sem UI comprovada. |
+| Pesquisa e evidências | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
+| Contexto de países / jurídico | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
+| Proposta / formalização | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
+| Financeiro | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
+| Entregas / App Cliente | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
+| KPIs e Hoje | evidência de leitura; **não** `COMPROVADO_EM_USO` | `/painel` / sem resolver item / — / sem F5 / — | 7 casos, 3 exceções. Falta resolver item e recarregar. Sem print da próxima ação da Mesa no Hoje. |
+| Abas / taxonomia (6 grupos) | evidência de navegação; **não** `COMPROVADO_EM_USO` | autenticado / Comercial e Pessoas & Casos / — / — / parcial | 6 grupos no menu. Memória permanente ainda cita 8 — nenhuma leitura se arquiva. |
 
 ## Cadeia transversal
 
@@ -88,34 +93,37 @@ Entrada comercial → Mesa Discovery → Pessoa/Dossiê → Caso/Jornada
 |---|---|---|
 | Cadeia ponta a ponta autenticada | `NAO_LOCALIZADO` | nenhum |
 
-## Prints desta rodada (produção)
+## Prints (produção pré-#98)
 
 | Arquivo | O que mostra |
 |---|---|
 | `docs/provas/2026-09-11-producao/hoje_autenticado.webp` | Sessão autenticada em `/painel`; 6 grupos no menu. |
 | `docs/provas/2026-09-11-producao/hoje_kpis.webp` | Cards de parado/vencido/decisão (7 casos, 3 exceções). |
-| `docs/provas/2026-09-11-producao/comercial_abre_leads.webp` | Comercial em produção abre `/leads`, não a Mesa. |
-| `docs/provas/2026-09-11-producao/calls_painel_antigo.webp` | `/calls` = Painel de Calls (varredura + filas), sem SPIN uma-a-uma. |
+| `docs/provas/2026-09-11-producao/comercial_abre_leads.webp` | Comercial abria `/leads` (estado anterior ao deploy da #98). |
+| `docs/provas/2026-09-11-producao/calls_painel_antigo.webp` | `/calls` = Painel de Calls antigo. |
 | `docs/provas/2026-09-11-producao/ana_luiza_call.webp` | Lead de teste Ana Luiza aberto; sem gravação. |
 | `docs/provas/2026-09-11-producao/pessoas_casos.webp` | Pessoas & Casos → Casos 360. |
 
-## Prints desta rodada (preview PR #98)
+## Prints (preview PR #98, código agora em `main`)
 
 | Arquivo | O que mostra |
 |---|---|
-| `docs/provas/2026-09-11-preview-pr98/abas_comercial_entra_na_mesa.webp` | Sessão autenticada; 6 grupos; Comercial → Mesa de Discovery `/calls`. |
-| `docs/provas/2026-09-11-preview-pr98/hoje_kpis_parado_vencido_decisao.webp` | `/painel` com casos, alertas, vencidos, exceções. Sem Receita/Conversão no topo. |
-| `docs/provas/2026-09-11-preview-pr98/mesa_discovery_uma_pergunta.webp` | Ana Luiza; Situação 1/7; uma pergunta (nacionalidade). |
+| `docs/provas/2026-09-11-preview-pr98/abas_comercial_entra_na_mesa.webp` | 6 grupos; Comercial → Mesa de Discovery `/calls`. |
+| `docs/provas/2026-09-11-preview-pr98/hoje_kpis_parado_vencido_decisao.webp` | `/painel` sem Receita/Conversão no topo. |
+| `docs/provas/2026-09-11-preview-pr98/mesa_discovery_uma_pergunta.webp` | Ana Luiza; Situação 1/7; uma pergunta. |
 | `docs/provas/2026-09-11-preview-pr98/mesa_discovery_salto_problema.webp` | Clique em Problema; pergunta de casamento/nome/adoção. |
-| `docs/provas/2026-09-11-preview-pr98/leads_spin_sem_checkbox.webp` | `/leads` com progresso SPIN e link para a Mesa; sem checkbox. |
+| `docs/provas/2026-09-11-preview-pr98/leads_spin_sem_checkbox.webp` | `/leads` com progresso SPIN; sem checkbox. |
 
 ## O que este registro recusa como prova
 
 - Homepage pública e formulário `/equipe/entrar` sem Painel autenticado.
-- Vitest, `tsc`, ESLint, build, PR verde, inclusive #103.
-- Preview sem sessão da proprietária.
+- Vitest, `tsc`, ESLint, build, PR verde, merge da #98.
+- Preview ou produção com lead `dados_teste` executado só por agente, sem F5 após gravar.
+- Toast sem releitura após salvar.
 - Declaração de agente de que o ambiente “está funcionando”.
-- Cópia em `archive/` ou pasta GitHub de catálogo legado: **não** é arquivamento de contexto. Esses materiais permanecem ativos até `COMPROVADO_EM_USO`.
+- Cópia em `archive/` ou pasta GitHub de catálogo legado: **não** é arquivamento de contexto.
+
+Nenhum contexto de resgate (Discovery, Pessoa 360, dossiê, Pesquisa, formalização, Radar, App, RLS) foi arquivado.
 
 ```text
 REGRA DE CONTINUIDADE — CONTEXTO NÃO ARQUIVÁVEL
