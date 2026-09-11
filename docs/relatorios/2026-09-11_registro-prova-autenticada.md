@@ -5,25 +5,73 @@
 **Conta exigida:** proprietária `tati@pluggedresearch.com`  
 **Atualizado em:** 2026-09-11
 
-Nenhum motor abaixo está `COMPROVADO_EM_USO`. Código, PR, Vitest, build, DEMO ou declaração de agente **não** alteram essa coluna.
+Nenhum motor abaixo está `COMPROVADO_EM_USO`. Código, PR, Vitest, build, DEMO, preview ou declaração de agente **não** alteram essa certificação.
 
-## Sessões
+**Circuito operacional mínimo (Abas → Mesa → KPIs):** relatórios manhã/fim do dia em `docs/relatorios/circuito-operacional-minimo/` (ex.: `2026-09-11_fim-do-dia.md`). Não substitui este registro de prova.
 
-### A — Vite local (Cloud Agent)
+## Ambientes tentados
+
+### A. Vite local no Cloud Agent
 
 | Campo | Valor |
 |---|---|
 | Data/hora | 2026-09-11 ~00:34 UTC |
-| Ambiente | `http://127.0.0.1:5173/equipe/entrar` (e tentativa em `:8080`) |
+| Ambiente | `http://127.0.0.1:5173/equipe/entrar` e `http://127.0.0.1:8080/equipe/entrar` |
 | Motor | Sessão da proprietária (pré-requisito) |
-| Ação | Login da proprietária no Desk |
 | Resultado | `BLOQUEADO_POR_DADO` |
-| Evidência visual | Tela de login; mensagem genérica “Não foi possível entrar. Verifique os dados e tente novamente.” |
-| Causa | `prepararLoginEquipe` → `estadoLimite` usa cliente administrativo e exige `SUPABASE_SERVICE_ROLE_KEY` no servidor. A variável não está no Cloud Agent. A chave **não** pode ser colada em chat, git ou artefato. |
-| Limitação | Print sem Painel autenticado **não** conta. A senha não foi o ponto de falha visível. |
-| Próximo passo | Segredo só no ambiente de servidor. Não repetir este teste local até o ambiente ter a chave. |
+| Evidência | Tela de login; mensagem genérica “Não foi possível entrar. Verifique os dados e tente novamente.” Sem Painel autenticado. |
+| Causa | `prepararLoginEquipe` → `estadoLimite` exige `SUPABASE_SERVICE_ROLE_KEY` no servidor. A variável não está no Cloud Agent. A chave **não** entra em chat, git ou artefato. |
+| Limitação | Esse ambiente local **não** serve para a matriz da seção 4 do adendo. Não repetir até o servidor ter a chave. |
 
-### B — Prévia Vercel do Desk de 6 grupos (sessão autenticada)
+### B. Preview Vercel da Mesa (PR #98) — evidência de agente, não certificação da dona
+
+| Campo | Valor |
+|---|---|
+| Data/hora | 2026-09-11 ~00:39–00:52 UTC |
+| Ambiente | `https://soul-ancestry-git-cursor-mesa-discov-f8ced8-tati-6134s-projects.vercel.app` |
+| Conta visível | `tati@pluggedresearch.com` · Clube Ancestral · Admin (menu Conta) |
+| Quem executou | Agente, com a conta da proprietária. **Não** é o protocolo da seção 3 (teste executado pela proprietária). |
+| Lead | Ana Luiza (`dados_teste`) — fixture, não operação real. |
+| Prints | sessão autenticada; Mesa Situação (1 pergunta); chip Problema; varredura WhatsApp; `/leads` sem checkbox SPIN |
+| F5 após gravar SPIN / próxima ação | **não feito** |
+| Integração Hoje (mesma próxima ação, sem duplicar) | **não feito** |
+| Resultado do protocolo | não `PASSOU`; não `COMPROVADO_EM_USO` |
+
+Essa linha **não** pede que a proprietária refaça o clique só para repetir o agente. Quando ela for certificar a Mesa, o protocolo completo (inicial, ação, confirmação, releitura, integração) vale sobre estes prints.
+
+### C. Fix remoto RLS `app_projections` ↔ `app_projection_shares` (42P17)
+
+| Campo | Valor |
+|---|---|
+| Data/hora | 2026-09-11 ~13:56–14:05 UTC |
+| Migration | `supabase/migrations/20260911120000_fix_recursao_rls_app_projections_shares.sql` |
+| Projeto remoto | `zsxpdbhdvbuulwpepemd` |
+| Aplicação | SQL Editor → **DDL Success** (“Success. No rows returned” = esperado; sem `SELECT` no script) |
+| Confirmação (1) | 3 funções: `fn_app_projection_compartilhada_com_cliente`, `fn_sou_titular_app_projection`, `fn_app_projection_org_bate` |
+| Confirmação (2) | Policy `app_proj_select_portal` cita `fn_app_projection_compartilhada_com_cliente` (sem `EXISTS` cruzado em shares) |
+| Smoke leitura | `SET ROLE authenticated` + `SELECT` em `app_projections` e `app_projection_shares` → **sem** `42P17`; PostgREST publishable `HTTP 200` `[]` (vazio legítimo) sem recursão |
+| Logs Postgres | Último erro `infinite recursion…app_projections` **antes** do DDL (~02:37 UTC); **nenhum** após 13:56 UTC |
+| UI preview (agente) | Landing Vercel da branch carregou; sem 42P17 na página pública; **sem login** (sem credenciais) — Desk/portal não abertos |
+| Certificação dona (leitura) | **feita** via ambiente D (espelho master `/app-cliente-como-pessoa`): 7 abas sem recursão/`42P17` — ver prints |
+| `COMPROVADO_EM_USO` | **não** — falta publicar conteúdo → F5 → releitura → integração Desk→portal |
+
+### D. App Cliente master — proprietária (produção Vercel)
+
+| Campo | Valor |
+|---|---|
+| Data | 2026-09-11 |
+| Quem | Proprietária (`tati@pluggedresearch.com`), autenticada |
+| URL | `https://soul-ancestry.vercel.app/app-cliente-como-pessoa` |
+| Caso | `CA-CID-AT-FAM-2026-001` — Projeto familiar — Ana Luiza (fixture) |
+| Selo | ACESSO MASTER — VISÃO REAL DO APP CLIENTE |
+| Abas percorridas | Home · Jornada · Radar · Árvore · Documentos · Legado · Conta (7/7) |
+| Resultado leitura | `PASSOU` — empty states específicos; **sem** toast/`42P17` / “infinite recursion” |
+| Prints | `docs/relatorios/provas/2026-09-11-app-cliente-master/` (`01-home` … `07-conta`) |
+| Mockup (referência P11, sem redesign agora) | 17 págs: `docs/evolucao/recuperados/prompts-lovable-2026-08-31/clube-ancestral-mockup.pdf` · 47 págs: mesmo dir + `…/auditoria-mockup-2026-09-11/` · autoridade: `docs/politicas/ADENDO-MEMORIA-AUDITORIA-MOCKUP-CANVAS-2026-09-11.md` |
+| Backlog visual | `docs/relatorios/2026-09-11_backlog-p11-app-cliente-vs-mockup.md` |
+| `COMPROVADO_EM_USO` | **não** — só leitura/empty; sem protocolo publicar + F5 |
+
+### E. Prévia Vercel do Desk de 6 grupos — sessão autenticada (navegação)
 
 | Campo | Valor |
 |---|---|
@@ -34,27 +82,28 @@ Nenhum motor abaixo está `COMPROVADO_EM_USO`. Código, PR, Vitest, build, DEMO 
 | Ação | Login em `/equipe/entrar` → `/painel` → `/calls` → `/contratos` → `/catalogo` → `/biblioteca` → `/configuracoes` → `/crm-mestre` → `/app-cliente-demo` → `/painel` |
 | Resultado da **sessão** | `PASSOU` |
 | Prints | `docs/provas/2026-09-11-preview-desk-6-grupos/` |
-| Limitação | Sem escrita persistida neste passe (o adendo desta incorporação não autoriza gravar dado). DEMO do App Cliente não é projeção de cliente real. Relesitura = retorno a `/painel`, não F5 de um save. Integração de cadeia (Discovery → Pessoa → Caso → Hoje) **não** executada. |
+| Limitação | Sem escrita persistida neste passe. DEMO do App Cliente não é projeção de cliente real. Releitura = retorno a `/painel`, não F5 de um save. Integração Discovery → Pessoa → Caso → Hoje **não** executada. Distinto do ambiente B (Mesa PR #98). |
 
 ## Matriz por motor
 
 Resultados permitidos: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_DECISAO`, `ERRO_DE_FONTE`, `NAO_LOCALIZADO`.  
-`COMPROVADO_EM_USO` só depois de prints inicial + ação + confirmação + releitura (+ integração quando houver cadeia).
+`COMPROVADO_EM_USO` só depois de prints inicial + ação + confirmação + releitura (+ integração quando houver cadeia), **executados pela proprietária**.
 
 | Motor | Resultado | Prints (inicial / ação / confirmação / releitura / integração) | Observação |
 |---|---|---|---|
-| Sessão da proprietária (Vite local) | `BLOQUEADO_POR_DADO` | não / tentada / erro genérico / não / não | Sessão A. |
-| Sessão da proprietária (prévia 6 grupos) | `PASSOU` | sim / login / `/painel` com Admin / retorno a `/painel` / N/A | `sessao_autenticada_tati_admin.png`, `painel_hoje_6_grupos_kpis.png`. |
-| Mesa Discovery / CRM | `NAO_LOCALIZADO` | inicial Calls sim / sem SPIN gravado / — / — / — | `/calls` aberto; varredura visível; **sem** salvar próxima ação nem recarregar. |
-| Pessoa 360 | `NAO_LOCALIZADO` | — | Não aberta para edição nesta sessão. |
-| Varredura de dossiê | `NAO_LOCALIZADO` | — | Não executada. |
-| Pesquisa e evidências | `NAO_LOCALIZADO` | leitura Biblioteca sim / sem gravar lacuna / — / — / — | Face da Biblioteca sem Top 30. |
-| Contexto de países / jurídico | `NAO_LOCALIZADO` | — | Não aberto. |
-| Proposta / formalização | `NAO_LOCALIZADO` | leitura Contratos sim / sem parâmetro gravado / — / — / — | Sem Top 30 na face. |
-| Financeiro | `NAO_LOCALIZADO` | — | Não aberto `/financeiro`. Catálogo homologado lido (não é caixa). |
-| Entregas / App Cliente | `NAO_LOCALIZADO` | DEMO 7 abas sim / — / — / — / — | `/app-cliente-demo` é DEMO rotulada. O adendo recusa DEMO como prova do motor. |
-| KPIs e Hoje | `PASSOU` (leitura) / `NAO_LOCALIZADO` (escrever item e recarregar) | inicial `/painel` / navegação / cards visíveis / retorno `/painel` / sem fila atualizada por ação | Casos ativos 7; sem Receita/Conversão no topo. Não se abriu um KPI para resolver item. |
-| Abas / taxonomia (6 grupos Desk + 7 abas App) | `PASSOU` (navegação) | sim / sidebar + rotas / páginas carregaram / retorno `/painel` / objeto ainda não “dono vs resumo” | 6 grupos visíveis. App: Home · Jornada · Radar · Árvore · Documentos · Legado · Conta. **Dívida visível:** CRM Mestre e Dicionário ainda aparecem no Comercial nesta prévia. |
+| Sessão da proprietária (Vite local) | `BLOQUEADO_POR_DADO` | não / tentada / erro genérico / não / não | Ambiente A. |
+| Sessão no preview Mesa (agente) | evidência de agente — **não** `PASSOU` do protocolo | sim / — / sessão no Desk / não / não | Ambiente B. |
+| Sessão na prévia Desk 6 grupos | `PASSOU` | sim / login / `/painel` com Admin / retorno a `/painel` / N/A | Ambiente E. `sessao_autenticada_tati_admin.png`. |
+| Mesa Discovery / CRM | não `PASSOU` | sim / chip Problema / card mudou / não / não | Ambiente B: uma pergunta SPIN por vez; sem F5; sem próxima ação no Hoje. Ambiente E: `/calls` aberto, sem gravar SPIN. |
+| Pessoa 360 | `NAO_LOCALIZADO` | — | Mesa ainda não grava na Pessoa 360. |
+| Varredura de dossiê por palavra-chave | `NAO_LOCALIZADO` | — | Peça inexistente no `src/`. |
+| Pesquisa e evidências | `NAO_LOCALIZADO` | leitura Biblioteca (E) / sem gravar lacuna / — / — / — | Sem prova autenticada da dona com save+F5. |
+| Contexto de países / jurídico | `NAO_LOCALIZADO` | — | Trilha/marco na Mesa são dropdown interno, não parecer. |
+| Proposta / formalização | `NAO_LOCALIZADO` | leitura Contratos (E) / sem parâmetro gravado / — / — / — | Sem Top 30 na face da prévia E. |
+| Financeiro | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. Catálogo homologado lido em E (não é caixa). |
+| Entregas / App Cliente | `PASSOU` (leitura master) / `NAO_LOCALIZADO` (DEMO e publicar→F5) | sim×7 (D) / — / empty por aba / — / não | Ambiente D. Sem `42P17`. DEMO em E **não** conta como motor. **não** `COMPROVADO_EM_USO`. |
+| KPIs e Hoje | `PASSOU` (leitura na prévia E) / `NAO_LOCALIZADO` (escrever item / integração Mesa) | inicial `/painel` (E) / navegação / cards visíveis / retorno `/painel` / sem fila por ação | Casos ativos visíveis; sem Receita/Conversão no topo. Sem print de integração da próxima ação da Mesa. |
+| Abas / taxonomia | `PASSOU` (navegação) | sim (E: 6 grupos Desk; D: 7 abas App) / sidebar + rotas / páginas carregaram / retorno `/painel` / objeto ainda não “dono vs resumo” | Dívida: CRM Mestre e Dicionário ainda no Comercial na prévia E; memória permanente ainda cita 8 grupos. |
 
 ## Cadeia transversal
 
@@ -68,7 +117,7 @@ Entrada comercial → Mesa Discovery → Pessoa/Dossiê → Caso/Jornada
 |---|---|---|
 | Cadeia ponta a ponta autenticada | `NAO_LOCALIZADO` | nenhum (não houve save de Discovery → Hoje) |
 
-## Prints desta sessão (prévia)
+## Prints da prévia Desk de 6 grupos (ambiente E)
 
 | Arquivo | Rota | O que mostra |
 |---|---|---|
@@ -86,8 +135,12 @@ Entrada comercial → Mesa Discovery → Pessoa/Dossiê → Caso/Jornada
 - Vite local sem chave de servidor.
 - Vitest, `tsc`, ESLint, build, PR verde.
 - DEMO do App Cliente como se fosse entrega ao cliente real.
+- Preview com lead `dados_teste` executado por agente.
+- Toast sem releitura após salvar.
 - Declaração de agente de que o ambiente “está funcionando”.
 - Leitura de face como `COMPROVADO_EM_USO` de motor.
+
+Nenhum contexto de resgate (Discovery, Pessoa 360, dossiê, Pesquisa, formalização, Radar, App, RLS) foi arquivado.
 
 ```text
 REGRA DE CONTINUIDADE — CONTEXTO NÃO ARQUIVÁVEL

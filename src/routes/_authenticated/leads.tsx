@@ -61,7 +61,7 @@ import {
   type LeadDesk,
   type Opcao,
 } from "@/lib/crm-desk";
-import { ROTEIRO_DISCOVERY, sinaisQualidadeLead } from "@/lib/discovery-roteiro";
+import { ETAPAS_SPIN, progressoSpin, sinaisQualidadeLead, spinDerivadoDoLead } from "@/lib/discovery-roteiro";
 import { calcularRadar } from "@/lib/radar-elegibilidade";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
 import { formatarTelefone } from "@/lib/validacao-pessoa";
@@ -155,10 +155,11 @@ function LeadsPage() {
       }),
     [editado, marcos],
   );
-  const [roteiroAberto, setRoteiroAberto] = useState(false);
-
   const mutSalvar = useMutation({
-    mutationFn: () => salvar({ data: { id: atual?.id ?? null, valores: rascunho } }),
+    mutationFn: () =>
+      salvar({
+        data: { id: atual?.id ?? null, valores: { ...rascunho, ...spinDerivadoDoLead(editado) } },
+      }),
     onSuccess: (r) => {
       if (!r.ok) {
         setMsg("Gravação recusada: corrija as pendências listadas.");
@@ -295,38 +296,65 @@ function LeadsPage() {
         <div className="space-y-3">
           {msg ? <p className="rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-sm text-navy">{msg}</p> : null}
 
+          {atual ? (
+            <div className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-white px-3 py-2 text-xs">
+              {atual.case_id ? (
+                <Link
+                  to="/casos/$caseId"
+                  params={{ caseId: atual.case_id }}
+                  className="rounded-lg border border-navy/20 px-2.5 py-1.5 font-medium text-navy underline-offset-2 hover:underline"
+                >
+                  Abrir Caso 360
+                </Link>
+              ) : (
+                <span className="rounded-lg border border-navy/10 px-2.5 py-1.5 text-navy/50">Sem caso vinculado</span>
+              )}
+              {atual.cliente_id ? (
+                <Link
+                  to="/pessoas/$clienteId"
+                  params={{ clienteId: atual.cliente_id }}
+                  className="rounded-lg border border-gold/50 bg-gold/10 px-2.5 py-1.5 font-medium text-navy underline-offset-2 hover:underline"
+                >
+                  Abrir Pessoa 360
+                </Link>
+              ) : (
+                <span className="rounded-lg border border-navy/10 px-2.5 py-1.5 text-navy/50">
+                  Pessoa 360 após vínculo com cliente/caso
+                </span>
+              )}
+            </div>
+          ) : null}
+
           {atual ? <HandoffLead lead={editado} /> : null}
 
           {atual ? <DerivacaoJornada lead={editado} /> : null}
 
           <div className="rounded-xl border border-navy/10 bg-white p-4">
-            <button
-              type="button"
-              onClick={() => setRoteiroAberto((v) => !v)}
-              className="flex w-full items-center justify-between text-left"
-            >
-              <span className="text-sm font-medium text-navy">Roteiro vivo de Discovery</span>
-              <span className="text-xs text-navy/50">{roteiroAberto ? "recolher" : "expandir"}</span>
-            </button>
+            <p className="text-sm font-medium text-navy">SPIN e Mesa de Discovery</p>
             <p className="mt-1 text-xs text-navy/55">
-              Guia contextual de perguntas. Não é formulário obrigatório e não conclui elegibilidade, rota, prazo, preço ou contrato — toda
-              leitura é preliminar e interna.
+              As perguntas de Situação, Problema, Implicação e Necessidade moram no Painel de Calls,
+              uma por vez, com resposta e destino. Aqui só aparece o progresso derivado — sem
+              checkbox.
             </p>
-            {roteiroAberto ? (
-              <div className="mt-3 space-y-3">
-                {ROTEIRO_DISCOVERY.map((b) => (
-                  <div key={b.chave} className="rounded-lg border border-navy/10 bg-cream/40 p-3">
-                    <p className="text-sm font-medium text-navy">{b.titulo}</p>
-                    <ul className="mt-1 list-disc space-y-1 pl-4 text-xs text-navy/70">
-                      {b.perguntas.map((p) => (
-                        <li key={p}>{p}</li>
-                      ))}
-                    </ul>
-                    <p className="mt-2 text-[11px] uppercase tracking-wide text-navy/45">Alimenta: {b.campos.join(", ")}</p>
-                  </div>
-                ))}
-              </div>
-            ) : null}
+            <ul className="mt-3 grid gap-2 sm:grid-cols-4">
+              {progressoSpin(editado).map((e) => {
+                const meta = ETAPAS_SPIN.find((x) => x.chave === e.chave);
+                return (
+                  <li key={e.chave} className="rounded-lg border border-navy/10 bg-cream/40 px-3 py-2">
+                    <p className="text-[11px] uppercase tracking-wide text-navy/50">{e.rotulo}</p>
+                    <p className="font-serif text-lg tabular-nums text-navy">
+                      {e.preenchidas}/{e.total}
+                    </p>
+                    <p className="text-[10px] text-navy/50">{meta?.paraQue}</p>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="mt-3 text-xs">
+              <Link to="/calls" className="text-navy underline underline-offset-2">
+                Abrir a Mesa de Discovery no Painel de Calls
+              </Link>
+            </p>
           </div>
 
           <div className="rounded-xl border border-navy/10 bg-white p-4">
@@ -558,23 +586,6 @@ function LeadsPage() {
             </div>
           </Secao>
 
-          <Secao titulo="SPIN e registro da conversa" descricao="Gravação e transcrição só com consentimento explícito registrado.">
-            <div className="grid gap-3 md:grid-cols-2">
-              {[
-                ["spin_situacao", "Situação mapeada"],
-                ["spin_problema", "Problema explicitado"],
-                ["spin_implicacao", "Implicação discutida"],
-                ["spin_necessidade", "Necessidade de solução declarada"],
-              ].map(([k, label]) => (
-                <label key={k} className="flex items-center gap-2 text-sm text-navy">
-                  <input type="checkbox" checked={bool(k)} onChange={(e) => set(k)(e.target.checked)} />
-                  {label}
-                </label>
-              ))}
-              <Texto label="Dossiê do cliente (referência interna)" valor={campo("dossie_link_interno")} onChange={set("dossie_link_interno")} />
-            </div>
-          </Secao>
-
           <Secao
             titulo="Dossiê-mãe autorizado"
             descricao="Dossiê só fica ativo com identificação, ambiente autorizado, link interno, nível de acesso e responsável nominal. Nada disso aparece em área de cliente."
@@ -588,6 +599,7 @@ function LeadsPage() {
                 />
                 Dossiê-mãe ativo
               </label>
+              <Texto label="Dossiê do cliente (referência interna)" valor={campo("dossie_link_interno")} onChange={set("dossie_link_interno")} />
               <Texto label="ID/nome do dossiê-mãe" valor={campo("dossie_mae_ref")} onChange={set("dossie_mae_ref")} />
               <Selecao
                 label="Ambiente autorizado"

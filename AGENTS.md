@@ -21,7 +21,7 @@ Isto **não** autoriza redesenho de navegação, vocabulário novo (incluindo ta
 2. **Planejador** = única fonte válida do planejamento operacional ativo (prioridades, capacidade, prazos, responsáveis, o que vem a seguir).
 3. Modelo de dados, migrations e código efetivamente aprovados. Divergência = dívida ou bloqueio declarado, nunca escondida.
 4. Mockup aprovado de **17 páginas** (`docs/evolucao/recuperados/prompts-lovable-2026-08-31/clube-ancestral-mockup.pdf`) = contrato visual normativo.
-5. Políticas aprovadas em `docs/politicas/` (autoridade operacional, fonte de verdade de design, taxonomia do mockup, **adendo de contexto não arquivável e prova autenticada** de 2026-09-10).
+5. Políticas aprovadas em `docs/politicas/` (autoridade operacional, fonte de verdade de design, taxonomia do mockup, **adendo de contexto não arquivável e prova autenticada** de 2026-09-10). Árvore canônica: https://github.com/tatianatosi/soul-ancestry/tree/main/docs/politicas — `PROMPT-*` = backlog de execução (`ADENDO-PROMPTS-SAO-EXECUCAO` + `ADENDO-FONTES-EXECUCAO-POLITICAS-QUADRO-PRS-2026-09-11.md`). Quadro PRs código×docs: `docs/relatorios/2026-09-05_quadro_completo_prs_1_ate_atual.md` (blob: https://github.com/tatianatosi/soul-ancestry/blob/claude/ancestral-club-desk-intelligence-0gsoeg/docs/relatorios/2026-09-05_quadro_completo_prs_1_ate_atual.md).
 6. Materiais legados = histórico / auditoria / migração controlada. **Nunca** dirigem a operação atual.
 
 Se o código divergir destas instruções, declarar a dívida. Não “corrigir” a realidade do schema inventando entidades paralelas.
@@ -92,13 +92,14 @@ Rótulo da primeira aba no mockup e em `COPY_TELAS.casos.navegacao`: **Home** (n
 
 Abas extras condicionais (Entregas, Fase 01, Fase 02, Proposta) ainda existem no código — **dívida a retirar da barra**, não expansão da taxonomia. Ver artefato 007 abaixo.
 
-**Mockup vs produção:** o PDF de 17 páginas é normativo visual. O PDF de auditoria de **47 páginas** (`clube-ancestral-mockup-auditoria.pdf`) é complementar (conteúdo/estados/fluxos), **sem força normativa de design**. Menu vigente = 6 grupos; mockup mostra 7 itens de Desk; memória permanente descreve 8 — os três textos permanecem ativos até prova integrada. Radar não é aba extra.
+**Mockup vs produção:** o PDF de 17 páginas é normativo visual. O PDF de auditoria de **47 páginas** (`clube-ancestral-mockup-auditoria.pdf`) guia **conteúdo, estados e indicadores** em conjunto com o de 17 — sem redesenhar navegação. Comparativos visuais e telas Lovable em `docs/evolucao/recuperados/auditoria-mockup-2026-09-11/` e Canvas em `…/ancestral-canvas-2026-09-11/`; destilado em `docs/politicas/ADENDO-MEMORIA-AUDITORIA-MOCKUP-CANVAS-2026-09-11.md`. Prompts em `docs/politicas/PROMPT-*` são **execução** (`ADENDO-PROMPTS-SAO-EXECUCAO-2026-09-11.md`), não arquivo morto. Resgate do produto: `ESTRATEGIA-RESGATE-PRODUTO-CLUBE-ANCESTRAL-2026-09-11.md`. “Aderente” no PDF de comparação **não** é aceite. Menu vigente = 6 grupos (`GRUPOS_DESK`); mockup mostra 7 itens de Desk; memória permanente descreve 8 — os três textos permanecem ativos até prova integrada. Radar não é aba extra. App Cliente = 7 abas.
 
 README raiz ainda descreve o protótipo visual antigo (6 abas, dados fictícios). É histórico, não a operação atual.
 
 ## Front-end e integração
 
-- PT-BR, marca em `src/lib/marca.ts` / `src/styles.css` (navy `#2F4B6E`, dourado `#FCB73A`, creme `#ECDFCD`, terracota `#9A3A2F`).
+- PT-BR, marca em `src/lib/marca.ts` / `src/styles.css` (navy `#2F4B6E`, dourado `#FCB73A`, creme `#ECDFCD`, terracota `#9A3A2F`). Site institucional **SEO** `https://clubeancestral.com.br/` — **não** migrar/apontar para o app Vercel (`ADENDO-MARCA-SITE-SEO-2026-09-11.md`). Logos: `public/marca/` + `<BrandLogo />`.
+- Enterprise PRD (blueprint 18/08): `docs/politicas/CLUBE_ANCESTRAL_ENTERPRISE_PRD.md` — executar só via `ADENDO-ENTERPRISE-PRD-VS-CORE-2026-09-11.md` (sem schema paralelo / sem Planilha Mestre).
 - Interface lê e grava dados reais; recarregar deve mostrar o persistido.
 - Não simular sucesso. Distinguir carregando / vazio legítimo / erro (`EstadoDados`).
 - Próxima ação e responsável visíveis em caso ativo; bloqueios destacados; status não só por cor.
@@ -125,7 +126,7 @@ Texto integral: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA
 - Nenhum agente pode arquivar, reduzir a “histórico” ou declarar “já resolvido, pode arquivar” só porque existe código, PR, teste, migration, mockup ou log.
 - Arquivamento só depois de `COMPROVADO_EM_USO` pela proprietária autenticada (`tati@pluggedresearch.com`), com prints **inicial, ação, confirmação, releitura** e, na cadeia, **integração**. Resultado: `PASSOU` / `FALHOU` / `BLOQUEADO_POR_DADO` / `BLOQUEADO_POR_DECISAO` / `ERRO_DE_FONTE` / `NAO_LOCALIZADO`.
 - Este adendo **não** autoriza alterar dados, contratos, pagamentos, RLS, permissões, migrations, integrações, publicações, mensagens ou merges. Print complementa — não substitui — RLS, auditoria e persistência.
-- “Seis áreas” no adendo mapeia para os **6 grupos vigentes** do Desk. As **7 abas** do App Cliente permanecem. O texto de **8 grupos** da memória permanente permanece **contexto ativo** até `COMPROVADO_EM_USO` — não arquivar, não restaurar como menu sem nova decisão.
+- “Seis áreas” no adendo mapeia para os **6 grupos vigentes** do Desk e **não** cria nona aba. As **7 abas** do App Cliente permanecem. Dívida declarada: `GRUPOS_DESK` tem 6 grupos; a memória permanente ainda cita 8. Nenhuma das duas leituras se arquiva até `COMPROVADO_EM_USO` — não restaurar 8 como menu sem decisão explícita.
 - Contextos de resgate (Discovery, Pessoa 360, Pesquisa, formalização, Radar, App Cliente, RLS etc.) permanecem **ativos** até a prova integrada. Listar um documento como “arquivado” no inventário antigo **não** retira a continuidade.
 - Checklist de PR: `docs/politicas/CHECKLIST-PR-CONTINUIDADE-PROVA.md`. Prints da sessão autenticada: `docs/provas/`.
 

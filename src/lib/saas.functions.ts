@@ -5,6 +5,10 @@ import type { AcaoGateada } from "@/lib/gates-formalizacao";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gravarComVerificacao, linhasDeLog } from "@/lib/persistencia.server";
 import { exigirProximaAcaoCompleta } from "@/lib/proxima-acao-regras";
+import { exigirProximaAcaoOperavel } from "@/lib/proxima-acao-startup";
+import { proprietariaOperando } from "@/lib/autoridade.server";
+import { nomeResponsavelSessao } from "@/lib/cadeia-operacional.server";
+import { nomeResponsavelPadrao } from "@/lib/responsavel-padrao";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import {
   validarEstadoInicial,
@@ -460,21 +464,34 @@ export const criarRegistro = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
+    const livre = await proprietariaOperando(supabase, context.userId as string);
+    const responsavelNome = nomeResponsavelPadrao(
+      await nomeResponsavelSessao(supabase, organizationId, context.userId as string),
+    );
     const payload = {
       ...sanitizar(data.entidade, data.dados).saida,
       organization_id: organizationId,
       created_by: context.userId,
       updated_by: context.userId,
-    };
+    } as Record<string, unknown>;
+    if (data.entidade === "crm_casos") {
+      if (!payload["responsavel_id"]) payload["responsavel_id"] = context.userId;
+      if (!payload["responsavel_principal"] || String(payload["responsavel_principal"]).trim() === "") {
+        payload["responsavel_principal"] = responsavelNome;
+      }
+    }
+    if (data.entidade === "tarefas" && !payload["responsavel_id"]) {
+      payload["responsavel_id"] = context.userId;
+    }
     validarEstadoInicial(data.entidade, payload);
-    validarRegrasNegocio(data.entidade, payload);
+    validarRegrasNegocio(data.entidade, payload, { livreProprietaria: livre });
 
     // Idempotência (achado de 09/09/2026, rodada de limpeza pré-Perfil 360):
     // este CRUD genérico atende a tela /tarefas sem a proteção que
     // salvarTarefa (ops.functions.ts) já tem — reabrir um modal ou duas abas
     // podia criar duas tarefas idênticas. Mesma regra: caso_id + título +
     // status aberto reaproveita em vez de duplicar.
-    const payloadGenerico = payload as Record<string, unknown>;
+    const payloadGenerico = payload;
     if (data.entidade === "crm_casos") {
       if (!payloadGenerico["cliente_id"] || String(payloadGenerico["cliente_id"]).trim() === "") {
         throw new Error("Caso operacional exige cliente vinculado.");
@@ -547,6 +564,10 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
+    const livre = await proprietariaOperando(supabase, context.userId as string);
+    const responsavelNome = nomeResponsavelPadrao(
+      await nomeResponsavelSessao(supabase, organizationId, context.userId as string),
+    );
 
     const atual = await supabase
       .from(data.entidade)
@@ -557,11 +578,12 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
     if (!atual.data) throw new Error("Registro não encontrado nesta organização.");
     if (atual.data["archived_at"]) throw new Error("Registro arquivado não pode ser editado.");
 
-    const { saida: alteracoes, ignorados } = sanitizar(data.entidade, data.dados);
+    const { saida: alteracoesBrutas, ignorados } = sanitizar(data.entidade, data.dados);
+    const alteracoes = { ...alteracoesBrutas } as Record<string, unknown>;
     const anterior = atual.data as Record<string, unknown>;
-    const combinado = { ...anterior, ...alteracoes };
+    let combinado = { ...anterior, ...alteracoes };
     validarTransicao(data.entidade, anterior, alteracoes);
-    validarRegrasNegocio(data.entidade, combinado);
+    validarRegrasNegocio(data.entidade, combinado, { livreProprietaria: livre });
 
     // Gates de formalização: nenhuma transição de eixo pode ser liberada pela
     // interface — a avaliação roda aqui, no servidor, e registra a tentativa.
@@ -592,17 +614,38 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
     }
 
 
+    // Próxima ação: proprietária recebe defaults de startup; equipe segue regra completa.
+    if (data.entidade === "crm_casos" && CAMPOS_PROXIMA_ACAO.some((c) => c in alteracoes)) {
+      if (livre) {
+        const { estado, pendenciasAssumidas } = exigirProximaAcaoOperavel(combinado, {
+          livreProprietaria: true,
+          responsavelPreferido: responsavelNome,
+        });
+        for (const k of [
+          "responsavel_principal",
+          "prazo_proxima_acao",
+          "target_audience",
+          "visibility",
+          "suggested_channel",
+        ] as const) {
+          if (estado[k] !== undefined && estado[k] !== combinado[k]) {
+            alteracoes[k] = estado[k];
+          }
+        }
+        if (!combinado["responsavel_id"]) alteracoes["responsavel_id"] = context.userId;
+        combinado = { ...combinado, ...alteracoes };
+        void pendenciasAssumidas;
+        void exigirProximaAcaoCompleta;
+      } else {
+        exigirProximaAcaoCompleta(combinado as Record<string, unknown>);
+      }
+    }
+
     const diff = Object.keys(alteracoes).filter(
       (k) => JSON.stringify(anterior[k] ?? null) !== JSON.stringify(alteracoes[k] ?? null),
     );
     if (diff.length === 0) {
       return { ok: true, alterados: [] as string[], ignorados, salvoEm: new Date().toISOString() };
-    }
-
-    // Próxima ação: completude exigida no servidor sempre que a tela toca um
-    // dos campos da ação. Nada aqui envia comunicação externa.
-    if (data.entidade === "crm_casos" && CAMPOS_PROXIMA_ACAO.some((c) => c in alteracoes)) {
-      exigirProximaAcaoCompleta(combinado as Record<string, unknown>);
     }
 
     // eventos_financeiros não tem coluna updated_by (confirmado na migration):

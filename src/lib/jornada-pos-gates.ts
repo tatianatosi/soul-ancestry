@@ -6,6 +6,12 @@
  * permanece como preparação interna.
  */
 
+import {
+  DIAS_PRIMEIRA_MICROENTREGA,
+  DIAS_CADENCIA_ATENCAO,
+  DIAS_CADENCIA_CRITICA,
+} from "@/lib/cadencia-limiares";
+
 export type EstadoJornada = {
   contrato_assinado?: boolean | null;
   pagamento_confirmado?: boolean | null;
@@ -36,9 +42,10 @@ export type Regra = {
   executa: false;
 };
 
-export const D_PRIMEIRA_ENTREGA = 7;
-export const D_ALERTA_INTERNO = 10;
-export const D_ALERTA_CRITICO = 14;
+/** Alias da régua Ana (cadencia-limiares) — não redeclarar números. */
+export const D_PRIMEIRA_ENTREGA = DIAS_PRIMEIRA_MICROENTREGA;
+export const D_ALERTA_INTERNO = DIAS_CADENCIA_ATENCAO;
+export const D_ALERTA_CRITICO = DIAS_CADENCIA_CRITICA;
 
 /** Onboarding iniciado exige os seis fatos registrados. */
 export function onboardingIniciado(e: EstadoJornada): { ok: boolean; pendencias: string[] } {

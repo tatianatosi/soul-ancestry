@@ -5,6 +5,7 @@ Pasta viva. **Não arquivar** enquanto os motores não estiverem `COMPROVADO_EM_
 | Pasta | Ambiente | Conta | O que prova | O que não prova |
 |---|---|---|---|---|
 | `2026-09-11-preview-desk-6-grupos/` | Prévia Vercel da branch do Desk de 6 grupos | `tati@pluggedresearch.com` (Admin) | Sessão autenticada, 6 grupos, KPIs de leitura, Calls, Contratos, Catálogo, Biblioteca, 7 abas do App em DEMO | Escrita + F5 de motor; cadeia ponta a ponta; App Cliente com dado real |
+| `docs/relatorios/provas/2026-09-11-app-cliente-master/` | Produção Vercel `/app-cliente-como-pessoa` | proprietária autenticada | 7 abas do App em leitura, sem `42P17` | Publicar conteúdo → F5 → `COMPROVADO_EM_USO` |
 
 Senha e `service_role` **não** entram nesta pasta.
 

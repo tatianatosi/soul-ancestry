@@ -52,6 +52,15 @@ export function PortalJornada() {
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <p className="mb-4 rounded-lg border border-navy/10 bg-cream/60 p-3 text-sm text-navy/70">
+                  <span className="mb-1 block text-[11px] uppercase tracking-wide text-navy/45">
+                    {jornada.ritmo === "sem_publicacao"
+                      ? "Aguardando primeira publicação"
+                      : jornada.ritmo === "regular"
+                        ? "Ritmo em dia"
+                        : jornada.ritmo === "atencao"
+                          ? "Próxima atualização em preparação"
+                          : "Atualização em revisão"}
+                  </span>
                   {jornada.proximoPasso}{" "}
                   {destino ? (
                     <LinkPortal to={destino} className="font-medium text-terracotta underline-offset-2 hover:underline">

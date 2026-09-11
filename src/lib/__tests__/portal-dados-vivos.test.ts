@@ -18,6 +18,7 @@ describe("CA-PORTAL-02 — dados vivos sanitizados", () => {
     expect(j.marcosPublicados).toBe(0);
     expect(j.linha).toEqual([]);
     expect(j.proximoPasso).toMatch(/atualização publicada/i);
+    expect(j.ritmo).toBe("sem_publicacao");
   });
 
   it("jornada usa a mesma régua de cadência da equipe, em linguagem humana", () => {
@@ -35,6 +36,7 @@ describe("CA-PORTAL-02 — dados vivos sanitizados", () => {
     );
     expect(antiga.marcosPublicados).toBe(1);
     expect(antiga.proximoPasso).not.toMatch(/gate|SLA|alerta|touchpoint/i);
+    expect(antiga.ritmo).toBe("critico");
   });
 
   it("quando o motor informa a próxima ação, a Jornada usa essa ação — não inventa um segundo motor", () => {

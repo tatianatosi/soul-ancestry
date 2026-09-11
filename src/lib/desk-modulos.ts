@@ -213,12 +213,13 @@ export const MODULOS_DESK: ModuloDesk[] = [
   },
   {
     id: "caso-go-live",
-    nome: "Go-live",
+    nome: "Fechamento e ativação",
     tela: "casos",
     destino: "/casos/$id (aba Fechamento) · /onboarding/$id",
     forma: "aba_interna",
     tipo: "operacional",
-    descricao: "Os 9 gates de fechamento e liberação do caso ativo. Nenhuma liberação automática.",
+    descricao:
+      "Fechamento e liberação do caso ativo (antes chamado Go-live no mockup). Sem rota própria de produto; fixture desk-go-live é histórico.",
   },
   {
     id: "caso-dossie",

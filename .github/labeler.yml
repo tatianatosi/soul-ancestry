@@ -1,0 +1,18 @@
+# Configuração do actions/labeler@v4 (workflow .github/workflows/label.yml).
+# Sem este arquivo o job "label" falha com 404.
+# Rótulos abaixo já existem no repositório.
+
+documentation:
+  - docs/**/*
+  - "**/*.md"
+  - AGENTS.md
+  - .cursor/rules/**/*
+
+enhancement:
+  - src/**/*
+  - supabase/migrations/**/*
+
+# Mudanças só de infraestrutura GitHub / CI
+# (usa um rótulo existente; não cria label nova no GitHub)
+question:
+  - .github/**/*

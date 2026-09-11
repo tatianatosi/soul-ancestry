@@ -59,6 +59,11 @@ export type JornadaCliente = {
   ultimaAtualizacaoEm: string | null;
   /** Ritmo derivado da mesma régua interna, traduzido para linguagem humana. */
   proximoPasso: string;
+  /**
+   * Saúde do ritmo (régua Ana via saudeDoPlano / limiares). Exposta só como
+   * estado sanitizado — nunca como D10/D14 ou alerta interno ao cliente.
+   */
+  ritmo: "regular" | "atencao" | "critico" | "sem_publicacao";
   linha: PublicacaoCliente[];
 };
 
@@ -79,13 +84,16 @@ export function jornadaSanitizada(
   const linha = publicacoesParaCliente(projecoes).filter((p) => !contemConteudoInterno(p.conteudo));
   const ultima = linha[0]?.publicadoEm ?? null;
   const dias = diasEntre(ultima, hoje);
+  const ritmo =
+    dias === null ? ("sem_publicacao" as const) : saudeDoPlano(dias);
   const proximoPasso =
     proximaDoMotor?.acao?.trim() ||
-    (dias === null ? TEXTO_SEM_PUBLICACAO : TEXTO_RITMO[saudeDoPlano(dias)]);
+    (ritmo === "sem_publicacao" ? TEXTO_SEM_PUBLICACAO : TEXTO_RITMO[ritmo]);
   return {
     marcosPublicados: linha.length,
     ultimaAtualizacaoEm: ultima,
     proximoPasso,
+    ritmo,
     linha,
   };
 }

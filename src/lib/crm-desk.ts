@@ -522,6 +522,8 @@ export type LeadDesk = {
   pagamento_previsto_em?: string | null;
   dados_teste?: boolean | null;
   case_id?: string | null;
+  /** Derivado de `crm_casos.cliente_id` quando o lead já tem caso — não coluna de `leads`. */
+  cliente_id?: string | null;
   nucleo_id?: string | null;
   ultimo_followup_em?: string | null;
   archived_at?: string | null;

@@ -3,8 +3,8 @@
  *
  * Regras normativas:
  * - Nada é inferido: campo sem fonte declarada permanece "pendente".
- * - Cada dado pertence a uma pessoa (titular, dependente ou contratada),
- *   nunca ao caso global.
+ * - Cada dado pertence a uma pessoa (titular ou dependente do cliente).
+ *   A contratada não entra no checklist por caso: é o perfil institucional.
  * - Todo item guarda status, fonte, data de verificação e acesso restrito.
  * - Nenhum formulário, mensagem, contrato ou documento externo é gerado aqui.
  */
@@ -31,7 +31,8 @@ export const FONTES_CADASTRO = [
 export const PESSOA_TIPOS = [
   { valor: "titular", rotulo: "Titular / contratante" },
   { valor: "dependente", rotulo: "Dependente" },
-  { valor: "contratada", rotulo: "Contratada (dados oficiais)" },
+  /** Legado: não criar mais itens; perfil institucional cobre a contratada. */
+  { valor: "contratada", rotulo: "Contratada (legado — não usar)" },
 ] as const;
 export type PessoaTipo = (typeof PESSOA_TIPOS)[number]["valor"];
 

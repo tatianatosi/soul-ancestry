@@ -1,6 +1,7 @@
 /**
  * Garante uma tarefa aberta no caso (mesmo título → reusa, não duplica).
  * Sem tabela nova. Não envia mensagem nem ativa cliente.
+ * Responsável padrão = quem está autenticado (proprietária na operação solo).
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -41,6 +42,7 @@ export async function garantirTarefaAberta(
       descricao: input.descricao ?? null,
       status: "nao_iniciada",
       prioridade: "media",
+      responsavel_id: input.userId ?? null,
       created_by: input.userId ?? null,
       updated_by: input.userId ?? null,
     })

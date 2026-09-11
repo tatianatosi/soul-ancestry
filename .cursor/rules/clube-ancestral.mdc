@@ -5,16 +5,16 @@ alwaysApply: true
 
 # Clube Ancestral — regras permanentes
 
-Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da proprietária: `docs/politicas/MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Adendo vinculante de continuidade: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`. Registro vivo de provas: `docs/relatorios/2026-09-11_registro-prova-autenticada.md`. Verificação contra o código: `docs/relatorios/2026-09-10_memoria-permanente-verificacao.md`.
+Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da proprietária: `docs/politicas/MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Adendo vinculante de continuidade: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`. Registro vivo de provas: `docs/relatorios/2026-09-11_registro-prova-autenticada.md`. Verificação contra o código: `docs/relatorios/2026-09-10_memoria-permanente-verificacao.md`. Fontes de execução (políticas + quadro PRs): `docs/politicas/ADENDO-FONTES-EXECUCAO-POLITICAS-QUADRO-PRS-2026-09-11.md`. Marca + site SEO: `docs/politicas/ADENDO-MARCA-SITE-SEO-2026-09-11.md` e `.cursor/rules/clube-ancestral-core.mdc` (não apontar `clubeancestral.com.br` ao app Vercel). Enterprise PRD: `docs/politicas/CLUBE_ANCESTRAL_ENTERPRISE_PRD.md` + `ADENDO-ENTERPRISE-PRD-VS-CORE-2026-09-11.md`.
 
 ## Fazer sempre
 
 - Tratar o **planejador** como fonte do trabalho ativo; o **caso** (`crm_casos`) como eixo; a próxima ação como campo obrigatório de caso ativo (`proxima_acao_prioritaria`).
 - Entregar fatia vertical (UI + persistência + permissão + evidência). Aparência sozinha não é “feito”.
 - Mapear conceitos para tabelas **já existentes** em `src/integrations/supabase/types.ts` e `supabase/migrations/`. Reaproveitar `case_members` / `tarefas` / `planner_tarefas` / `research_cases` / `documents` etc. Cruzar escritores de `src/lib` com `types.ts` **e** `CHECK` das migrations — `string` no tipo gerado não libera vocabulário novo.
-- Menu vigente do Desk: **6 grupos** (Hoje, Marketing & Comercial, Pessoas & Casos, Inteligência & Pesquisa, Formalização & Financeiro, Governança & Administração). App Cliente: **7 abas** (`Home, Jornada, Radar, Árvore, Documentos, Legado, Conta`). O texto de 8 grupos permanece contexto ativo até `COMPROVADO_EM_USO` — não arquivar, não criar nona aba, não restaurar 8 sem decisão explícita. Hierarquia funcional da memória permanente não é menu novo.
+- Menu vigente do Desk: **6 grupos** em `GRUPOS_DESK` (Hoje, Marketing & Comercial, Pessoas & Casos, Inteligência & Pesquisa, Formalização & Financeiro, Governança & Administração). App Cliente: **7 abas** (`Home, Jornada, Radar, Árvore, Documentos, Legado, Conta`). A memória permanente ainda cita 8 grupos — dívida declarada, contexto ativo até `COMPROVADO_EM_USO`. Não arquivar nenhuma das leituras, não criar nona aba, não restaurar 8 sem decisão explícita. Hierarquia funcional da memória permanente não é menu novo.
 - Nav do cliente = só as 7. Entregas / Fase 01 / Fase 02 **fora** da barra (conteúdo ou rota profunda, não aba).
-- Usar o mockup de **17 páginas** como visual normativo. PDF de **47 páginas**, distorção e comparação visual = auditoria, não briefing de redesign.
+- Usar o mockup de **17 páginas** como visual normativo. PDF de **47 páginas**, distorção e comparação visual = auditoria de conteúdo/estados/indicadores **em conjunto** com o de 17 (adendo 2026-09-11); não briefing para restaurar sidebar Lovable.
 - Tratar Pessoa, Núcleo, Lead, Caso, Pesquisa e Contrato como entidades distintas ligadas por IDs. App Cliente = projeção autorizada desses objetos.
 - Classificar motor/planejador/skill/dump como operável só com fonte + escritor + persistência + consumidor + CTA + reload.
 - Preservar fechamentos da PR #85: escritor `confirmarDocumentosMinimos` → `documentos_minimos_ok`; convite/login cliente pelo fluxo oficial; não regredir.

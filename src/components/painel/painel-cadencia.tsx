@@ -12,7 +12,7 @@ const CORES: Record<string, string> = {
   critico: "border-terracotta/30 bg-terracotta/10 text-terracotta",
 };
 
-/** Saúde de cadência dos casos: uso diário do Desk, sem exposição ao cliente. */
+/** Saúde de cadência — código preservado; fora de /ops (dedup CA-UX-03 → Onboarding e jornada). */
 export function PainelCadencia() {
   const carregar = useServerFn(painelCadencia);
   const q = useQuery({ queryKey: ["painel-cadencia"], queryFn: () => carregar() });

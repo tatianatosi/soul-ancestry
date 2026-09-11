@@ -7,6 +7,9 @@ import {
   validarAberturaCasoOperacional,
 } from "@/lib/abrir-caso-operacional";
 import { organizacaoDo } from "@/lib/caso-canonico.server";
+import { nomeResponsavelSessao } from "@/lib/cadeia-operacional.server";
+import { nomeResponsavelPadrao } from "@/lib/responsavel-padrao";
+import { autoSatisfazerChecksIdentidade } from "@/lib/checks-identidade-startup";
 import { garantirTarefaAberta } from "@/lib/tarefa-garantida.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
@@ -14,9 +17,8 @@ import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 /**
  * Abre um caso operacional no eixo canônico `crm_casos`.
- * Sem tabela nova. Status rascunho (ativo exigiria responsável e gates).
+ * Sem tabela nova. Status rascunho. Responsável padrão = sessão / Tatiana.
  * Primeira tarefa em `tarefas` com tipo `geral`. Próxima ação gravada no caso.
- * Timeline vem do trigger corretivo em case_timeline_events.
  */
 export const abrirCasoOperacional = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -36,6 +38,9 @@ export const abrirCasoOperacional = createServerFn({ method: "POST" })
     const supabase = (context as any).supabase;
     const userId = context.userId as string;
     const organizationId = await organizacaoDo(supabase, userId);
+    const responsavelNome = nomeResponsavelPadrao(
+      await nomeResponsavelSessao(supabase, organizationId, userId),
+    );
 
     const { data: recente } = await supabase
       .from("crm_casos")
@@ -69,6 +74,8 @@ export const abrirCasoOperacional = createServerFn({ method: "POST" })
         resumo: data.resumo,
         status: "rascunho",
         proxima_acao: PROXIMA_ACAO_ABERTURA,
+        responsavel_id: userId,
+        responsavel_principal: responsavelNome,
         created_by: userId,
         updated_by: userId,
       })
@@ -109,6 +116,13 @@ export const abrirCasoOperacional = createServerFn({ method: "POST" })
         userId,
       });
     }
+
+    await autoSatisfazerChecksIdentidade(supabase, {
+      organizationId,
+      caseId: caso.id as string,
+      userId,
+      temResponsavel: true,
+    });
 
     return {
       id: caso.id as string,

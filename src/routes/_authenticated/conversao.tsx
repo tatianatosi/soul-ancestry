@@ -279,10 +279,26 @@ function Conversao() {
 
           <Bloco titulo="Saúde comercial" aviso="Filas de ação — mesmo recorte de dados acima">
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {filas.map((g) => (
+              {filas.map((g) => {
+                const leadsSemAcaoNoPainel = g.r === "Leads ativos sem próxima ação";
+                return (
                 <div key={g.r} className="rounded-lg border border-navy/10 p-3">
                   <p className="text-[10px] uppercase tracking-wide text-navy/50">{g.r}</p>
-                  <p className="font-serif text-2xl text-navy">{g.l.length}</p>
+                  {leadsSemAcaoNoPainel ? (
+                    <>
+                      <p className="mt-1 text-sm font-medium text-navy" data-indicador-etiqueta="leads-sem-proxima-acao">
+                        Contagem canônica no Painel Hoje
+                      </p>
+                      <p className="text-[10px] text-navy/45">
+                        Lista abaixo é fila de trabalho — o KPI numérico não se repete aqui (CA-UX-03).
+                      </p>
+                      <a href="/painel" className="mt-1 inline-block text-[11px] text-navy underline">
+                        Abrir Painel Hoje
+                      </a>
+                    </>
+                  ) : (
+                    <p className="font-serif text-2xl text-navy">{g.l.length}</p>
+                  )}
                   {"nota" in g && g.nota && <p className="text-[10px] text-navy/40">{g.nota}</p>}
 
                   <ul className="mt-1 space-y-0.5 text-[11px] text-navy/60">
@@ -301,13 +317,14 @@ function Conversao() {
                       </li>
                     )}
                   </ul>
-                  {g.l.length > 0 && (
+                  {g.l.length > 0 && !leadsSemAcaoNoPainel && (
                     <a href="/leads" className="mt-2 inline-block text-[11px] text-navy underline">
                       Abrir lista filtrada
                     </a>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </Bloco>
 
