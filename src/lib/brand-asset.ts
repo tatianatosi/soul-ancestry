@@ -9,20 +9,23 @@
  * - Nenhum nome de cliente ou identificador de caso pode aparecer em URL de asset, metadados,
  *   logs ou eventos de autenticação.
  *
- * 25/08/2026 — o asset oficial passou a ser servido de `public/`.
- * `clube-ancestral-logo.svg.asset.json` aponta para `/__l5e/assets-v1/…`, rota
- * que só existe dentro do Lovable: fora dele o `<img>` dava 404 e o cabeçalho
- * renderizava imagem quebrada. O mesmo arquivo (127.559 bytes, idêntico ao que
- * era servido como favicon) agora mora em `public/clube-ancestral-logo.svg` e
- * serve de ícone de aba e de logo — um arquivo só, sem cópia duplicada.
- * O JSON do Lovable fica registrado como procedência histórica.
+ * 25/08/2026 — asset em `public/` (fora da rota Lovable `__l5e`).
+ * 11/09/2026 — três variantes oficiais em `public/marca/`; principal =
+ * `MARCA_LOGOS.principal` (alias estável = variante 1).
  */
 import logoOficial from "@/assets/clube-ancestral-logo.svg.asset.json";
+import { MARCA_LOGOS, SITE_OFICIAL } from "@/lib/marca";
 
 export const BRAND_NAME = "Clube Ancestral";
 
-/** Caminho público do asset oficial, servido pelo próprio domínio. */
-export const BRAND_LOGO_URL: string | null = "/clube-ancestral-logo.svg";
+/** Site institucional (SEO). Não confundir com o host do app Vercel. */
+export const BRAND_SITE_URL = SITE_OFICIAL;
+
+/** Caminho público do asset oficial, servido pelo próprio domínio do app. */
+export const BRAND_LOGO_URL: string | null = MARCA_LOGOS.principal;
+
+/** Variantes oficiais extras (guia / zip logotipo-clube). */
+export const BRAND_LOGO_VARIANTES = MARCA_LOGOS;
 
 /** Procedência: onde o asset era servido no ambiente do Lovable. */
 export const BRAND_LOGO_URL_LOVABLE: string | null = logoOficial?.url ?? null;

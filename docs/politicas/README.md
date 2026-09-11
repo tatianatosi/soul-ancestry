@@ -2,7 +2,7 @@
 
 Cópias verbatim dos documentos de política/prompt enviados pela proprietária, guardadas aqui para que nada dependa de memória de conversa ou de contexto que pode ser resumido ao longo de uma sessão longa. Nenhum deles foi implementado só por estar aqui — este diretório é **arquivo de referência**, não registro de execução. O estado real de cada capacidade fica no Mapa de Autoridade Admin (`docs/auditorias/MAPA-AUTORIDADE-ADMIN-DESK-APP-2026-08-30.md`).
 
-**Adendo 2026-09-11:** documentos `PROMPT-*` e artefatos de unificação **não** são “política passiva”. Devem ser tratados como backlog de execução (`ADENDO-PROMPTS-SAO-EXECUCAO-2026-09-11.md`) na ordem de `ESTRATEGIA-RESGATE-PRODUTO-CLUBE-ANCESTRAL-2026-09-11.md`. Arquivar aqui nunca substitui fatia vertical no Desk.
+**Adendo 2026-09-11:** documentos `PROMPT-*` e artefatos de unificação **não** são “política passiva”. Devem ser tratados como backlog de execução (`ADENDO-PROMPTS-SAO-EXECUCAO-2026-09-11.md`) na ordem de `ESTRATEGIA-RESGATE-PRODUTO-CLUBE-ANCESTRAL-2026-09-11.md`. Arquivar aqui nunca substitui fatia vertical no Desk. Marca e site SEO: `ADENDO-MARCA-SITE-SEO-2026-09-11.md` — `https://clubeancestral.com.br/` não vai para o Vercel do app.
 
 **Fontes permanentes de execução (2026-09-11):** ver `ADENDO-FONTES-EXECUCAO-POLITICAS-QUADRO-PRS-2026-09-11.md`.
 
