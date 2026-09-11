@@ -18,9 +18,9 @@ function seloPrioridade(data: string | null, hoje: string) {
 }
 
 /**
- * Face da Visão Geral no mockup de 17 páginas: quatro KPIs no topo, funil de
- * leads à esquerda, prioridades à direita. Cada número abre a aba dona.
- * Chrome visual alinhado ao Kpi/Card do mockup (rounded-2xl, eyebrow terracotta).
+ * Face da Visão Geral no mockup de 17 páginas: quatro KPIs, funil de leads e
+ * prioridades. Cartões brancos, sem faixa creme/dourada. Cada número abre a
+ * aba dona. Sem dado, o card declara ausência.
  */
 export function VisaoGeralTopo({
   casosAtivos,
@@ -45,24 +45,24 @@ export function VisaoGeralTopo({
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Link
           to="/casos"
-          className="block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          className="block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-navy"
         >
           <CardIndicador rotulo="Casos ativos" valor={casosAtivos} apoio="Abrir Casos 360" tom="neutro" />
         </Link>
         <Link
           to="/alertas"
-          className="block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          className="block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-navy"
         >
           <CardIndicador
             rotulo="Alertas pendentes"
             valor={alertasPendentes}
             apoio="Abrir a lista em Alertas"
-            tom="atencao"
+            tom="neutro"
           />
         </Link>
         <Link
           to="/financeiro"
-          className="block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          className="block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-navy"
         >
           <CardIndicador
             rotulo="Receita do mês"
@@ -73,7 +73,7 @@ export function VisaoGeralTopo({
         </Link>
         <Link
           to="/conversao"
-          className="block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          className="block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-navy"
         >
           <CardIndicador
             rotulo="Conversão"
@@ -85,8 +85,8 @@ export function VisaoGeralTopo({
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-navy/10 bg-white p-5 shadow-sm">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">Painel Hoje</p>
+        <div className="rounded-2xl border border-navy/10 bg-white p-5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-navy/50">Painel Hoje</p>
           <h2 className="font-serif text-lg text-navy">Funil de leads</h2>
           <p className="mt-0.5 text-xs text-navy/55">
             Lead → Discovery → proposta → contrato → caso. Sem evento, a etapa fica zero.
@@ -102,9 +102,9 @@ export function VisaoGeralTopo({
                     </p>
                     <p className="font-serif text-xl tabular-nums text-navy">{e.entidades}</p>
                   </div>
-                  <div className="mt-1 h-2 overflow-hidden rounded-full bg-cream">
+                  <div className="mt-1 h-2 overflow-hidden rounded-full bg-navy/10">
                     <div
-                      className="h-full rounded-full bg-gold"
+                      className="h-full rounded-full bg-navy"
                       style={{ width: `${largura}%` }}
                       aria-hidden
                     />
@@ -118,8 +118,8 @@ export function VisaoGeralTopo({
           </Link>
         </div>
 
-        <div className="rounded-2xl border border-navy/10 bg-white p-5 shadow-sm">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">Painel Hoje</p>
+        <div className="rounded-2xl border border-navy/10 bg-white p-5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-navy/50">Painel Hoje</p>
           <h2 className="font-serif text-lg text-navy">Prioridades de hoje</h2>
           <p className="mt-0.5 text-xs text-navy/55">O que está parado, vencido ou pede decisão.</p>
           {prioridades.length ? (
@@ -129,7 +129,7 @@ export function VisaoGeralTopo({
                 return (
                   <li
                     key={`${i.tipo}-${i.id}`}
-                    className="flex items-start justify-between gap-3 rounded-lg border border-navy/10 bg-cream/40 px-3 py-2"
+                    className="flex items-start justify-between gap-3 rounded-lg border border-navy/10 px-3 py-2"
                   >
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-navy">{i.rotulo}</p>

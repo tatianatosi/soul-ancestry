@@ -19,8 +19,8 @@ import { FilaCadencia } from "@/components/painel/fila-cadencia";
 import { CasoEmDestaque } from "@/components/painel/caso-destaque";
 import { JornadaCasos } from "@/components/painel/jornada-casos";
 import { AncoraApp } from "@/components/painel/ancora-app";
-import { AberturaPainel } from "@/components/painel/abertura";
 import { VisaoGeralTopo } from "@/components/painel/visao-geral-topo";
+import { RegistroSemana } from "@/components/painel/registro-semana";
 import { GRUPOS_INDICADOR } from "@/components/painel/sinais-por-grupo";
 import { AcoesRapidasProprietaria } from "@/components/painel/acoes-rapidas";
 import { casosBloqueadosPorCatalogo } from "@/lib/catalogo-referencia.functions";
@@ -33,6 +33,7 @@ import { sinaisMarketing } from "@/lib/indicadores-marketing";
 import { contarLeadsAguardandoAcao, fraseComercialHoje } from "@/lib/comercial-hoje-canonico";
 import { listarComercial } from "@/lib/comercial.functions";
 import { carregarConversao } from "@/lib/conversao.functions";
+import { listarRegistroSemana } from "@/lib/registro-semana.functions";
 import { montarEstados, montarFunil, type EventoBruto } from "@/lib/conversao-funil";
 import {
   recorteFunilHoje,
@@ -43,7 +44,6 @@ import { GATILHOS, type Gatilho } from "@/lib/fila-comunicacao";
 import {
   aplicarFiltrosDia,
   cadenciaRelevante,
-  cardsHoje,
   chavesExibidas,
   comercialHoje,
   consolidarDia,
@@ -289,12 +289,19 @@ export function PainelDia() {
     queryFn: () => carregarPagamentos({ data: { recurso: "payments", incluirDemos: incluirDemo } }),
     retry: false,
   });
+  const carregarRegistro = useServerFn(listarRegistroSemana);
+  const qRegistro = useQuery({
+    queryKey: ["painel-registro-semana", incluirDemo],
+    queryFn: () => carregarRegistro({ data: { incluirDemo } }),
+    retry: false,
+  });
   const leiturasSecundarias = [
     { rotulo: "cadência dos casos", q: qCad },
     { rotulo: "bloqueios de catálogo", q: qCatalogo },
     { rotulo: "checklist jurídico", q: qJuridico },
     { rotulo: "estado de acesso do painel", q: qModo },
     { rotulo: "alertas pendentes", q: qAlertas },
+    { rotulo: "registro da semana", q: qRegistro },
   ].filter((l) => l.q.isError);
 
   const instrumentosJuridico = (qJuridico.data?.instrumentos ?? []) as any[];
@@ -338,7 +345,6 @@ export function PainelDia() {
   const itens = consolidarDia(filas, { incluirDemo });
   // Precedência exclusiva: fila priorizada → exceções → comercial. Um registro só aparece uma vez.
   const priorizada = filaPriorizada(itens, hoje);
-  const cards = cardsHoje(filas, { incluirDemo, itens });
   const casoDestaque = escolherCasoDestaque(itens, { incluirDemo });
   const opcoes = opcoesFiltroDia(itens);
   const priorizadaVisivel = priorizada.map((f) => ({
@@ -659,7 +665,12 @@ export function PainelDia() {
         </div>
       ) : null}
 
-      {/* 0 — Visão Geral do mockup: Casos, Alertas, Receita, Conversão, funil e prioridades. */}
+      <CasoEmDestaque
+        dados={casoDestaque}
+        proprietaria={proprietaria}
+        aoSalvar={() => void qDesk.refetch()}
+      />
+
       <section data-painel-bloco="cards">
         <AncoraApp bloco="cards" />
         <VisaoGeralTopo
@@ -671,14 +682,13 @@ export function PainelDia() {
           prioridades={prioridadesTopo}
         />
       </section>
-      <AberturaPainel cards={cards} totalCasos={(qCad.data?.casos ?? []).length} />
 
-      {/*
-        1 — Caso em destaque. O que olhar primeiro, com a regra que o colocou
-        no topo. Reusa `calcularPrioridade`, a mesma função da fila e de
-        Casos 360 — nenhum cálculo paralelo.
-      */}
-      <CasoEmDestaque dados={casoDestaque} />
+      <RegistroSemana
+        carregando={qRegistro.isLoading}
+        erro={qRegistro.error}
+        dados={qRegistro.data}
+        aoTentarNovamente={() => void qRegistro.refetch()}
+      />
 
       {/*
         2 — Jornada dos casos. A fase como percurso, com a saúde de contato
@@ -1094,6 +1104,7 @@ function AlertasPrioritariosDoPainel() {
     <section data-painel-bloco="alertas" className="rounded-xl border border-navy/10 bg-white p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="min-w-0 font-serif text-lg text-navy">Alertas de achados pendentes</h2>
+        <AncoraApp bloco="alertas" />
         <Link to="/alertas" className="shrink-0 text-xs text-navy/60 underline">
           Abrir Alertas
         </Link>

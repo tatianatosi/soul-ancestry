@@ -103,7 +103,7 @@ export function AcoesRapidasProprietaria({
     return (
       <button
         onClick={() => setAberto(true)}
-        className="mt-1 rounded-md border border-gold/50 bg-gold/10 px-2 py-0.5 text-[11px] text-navy hover:bg-gold/20"
+        className="mt-1 rounded-md border border-navy/20 px-2 py-0.5 text-[11px] text-navy hover:bg-navy/5"
       >
         Ações rápidas da proprietária
       </button>
@@ -111,7 +111,7 @@ export function AcoesRapidasProprietaria({
   }
 
   return (
-    <div className="mt-2 rounded-lg border border-gold/40 bg-cream/40 p-2 text-[11px]">
+    <div className="mt-2 rounded-lg border border-navy/15 bg-white p-2 text-[11px]">
       <p className="mb-1 text-navy/70">
         Correção interna auditada. Nenhuma cobrança, assinatura, comunicação, publicação ou
         integração é executada aqui.

@@ -54,7 +54,7 @@ describe("CA-UX-03 Fase B — Painel Hoje como fila diária única", () => {
       "jornada",
       "fila_priorizada",
       "excecoes",
-      "sinais",
+      "registro",
       "alertas",
       "comercial",
       "prazos",

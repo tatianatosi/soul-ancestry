@@ -128,7 +128,7 @@ export const PARES_APP_DESK: readonly ParAppDesk[] = [
     chave: "cards",
     telaApp: "—",
     oQueOClienteVe: "Nada: métrica de carteira é leitura interna",
-    oQueODeskVe: "As cinco métricas de decisão do dia",
+    oQueODeskVe: "Casos, receita, funil e prioridades do mockup",
     alcance: "nunca",
   },
   {
@@ -136,6 +136,20 @@ export const PARES_APP_DESK: readonly ParAppDesk[] = [
     telaApp: "—",
     oQueOClienteVe: "Nada: navegação interna do Desk",
     oQueODeskVe: "Onde encontrar cada assunto no Desk",
+    alcance: "nunca",
+  },
+  {
+    chave: "registro",
+    telaApp: "Jornada / Timeline",
+    oQueOClienteVe: "Marcos já publicados",
+    oQueODeskVe: "O que a timeline gravou ontem e na semana",
+    alcance: "sanitizado",
+  },
+  {
+    chave: "alertas",
+    telaApp: "—",
+    oQueOClienteVe: "Nada: alerta interno não dispara sozinho",
+    oQueODeskVe: "Achados aguardando leitura humana",
     alcance: "nunca",
   },
 ] as const;

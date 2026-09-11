@@ -102,6 +102,14 @@ describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
     expect(visib).toContain("ESCOPO_PREVIA");
   });
 
+  it("o caso de alta prioridade fica no topo com botões de acionamento", () => {
+    const destaque = ler("src/components/painel/caso-destaque.tsx");
+    expect(destaque).toContain("Abrir ficha e agir");
+    expect(destaque).toContain("AcoesRapidasProprietaria");
+    expect(ler("src/components/painel/painel-dia.tsx")).not.toContain("AberturaPainel");
+    expect(ler("src/components/painel/painel-dia.tsx")).toContain("RegistroSemana");
+  });
+
   it("os cinco KPIs de sinal abrem a aba dona; o Hoje não replica a grade", () => {
     const painel = ler("src/components/painel/painel-dia.tsx");
     expect(painel).not.toContain("<SinaisPorGrupo");
