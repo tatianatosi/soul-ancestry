@@ -21,7 +21,8 @@ Fonte principal: [`docs/auditorias/2026-09-04-fluxo-evidencia-achado-alerta-app-
 | `ale-achados` | Catalogado `CONECTADO` → rota `/achados/$caseId` (`fiacao-cadencia-catalogo.ts`). |
 | Autorizar alerta 🔔 | **Não existe** botão próprio na tela de achados (só salvar + aviso “nada é publicado”). |
 | Template WhatsApp de achado | Gap: `template_oficial = não aplicável` no catálogo. |
-| Visível no App | `client_deliverables` **sem** RLS portal; caminho que funciona = `app_projections` (hoje ligado a evidência/Biblioteca ou ao atalho em Atendimento — **não** a `genealogical_findings`). |
+| Visível no App | `client_deliverables` **sem** RLS portal; caminho que funciona = `app_projections` (Biblioteca de evidências ou atalho Atendimento marco/árvore — **não** nascido de `genealogical_findings`). Declarações 09/09: App = `app_projections`; deliverables = operacional. |
+| Achado → alerta (CA11) | `prepararConsequenciaAchado` → `case_alerts` tipo `achado_pendente_decisao` — Desk `/alertas`; **nunca** publica no App. |
 
 Taxonomia Desk ([`TAXONOMIA-CANONICA-MOCKUP-APROVADO.md`](../politicas/TAXONOMIA-CANONICA-MOCKUP-APROVADO.md) Tela 6 — **Alertas**): “Gestão de achados e notificações” / alertas de pesquisa — superfície **Desk**, não aba do App Cliente.
 
@@ -41,9 +42,13 @@ Nessa âncora misturam-se:
 5. Bloco **“Publicar no App Cliente”** → `publicarProjecaoApp` com tipo `marco` \| `arvore` → `app_projections` (texto livre, já “publicado”)
 6. Liberar documento / fatura (escritores `liberarEntregaCliente` / `liberarFaturaCliente`)
 
+**Hash `#publicacao`:** rótulo de nav em `navegacao-desk.ts`; **não** há `id="publicacao"` no JSX — a página é uma superfície única rolável.
+
 **Não** lista `genealogical_findings`, **não** cria `ale-achados`, **não** liga evidência → achado.
 
-Conclusão de produto: o rótulo “Publicação de entregas autorizadas” **sobrecarrega** a tela de atendimento e **não substitui** o fluxo de Pesquisa + Alertas internos.
+Caminho Desk canônico para conteúdo no App (além do atalho): **Biblioteca de evidências/projeções** (`salvarProjecao` → revisar/aprovar → `app_projections`). Achado elegível pode gerar `case_alerts` (`achado_pendente_decisao`, CA11) — sinal interno, **sem** publicar.
+
+Conclusão de produto: o rótulo “Publicação de entregas autorizadas” **sobrecarrega** a tela de atendimento e **não substitui** Pesquisa + Alertas internos + Biblioteca.
 
 ## 4. App Cliente vs mockup / auditoria — o que foi desenvolvido
 
