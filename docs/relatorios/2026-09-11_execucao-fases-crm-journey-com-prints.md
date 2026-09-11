@@ -1,50 +1,58 @@
-# Execução CRM Journey — todas as fases (com print) — 2026-09-11
+# Execução CRM Journey — jornada navegável com prints — 2026-09-11
 
 **Branch:** `cursor/crm-journey-painel-calls-8085` · **PR:** https://github.com/tatianatosi/soul-ancestry/pull/110  
 **Quem:** agente Cloud  
 **Conta exigida para `COMPROVADO_EM_USO`:** `tati@pluggedresearch.com`
 
-## Como as fases foram executadas no código
+## O que ficou navegável no Desk
 
-| # | Fase Journey | Rota Desk | WhatsApp (seguro) | Código |
-|---|---|---|---|---|
-| 1 | Lead Bruto | `/calls` | fila `communication_queue` | Mesa + `leads` |
-| 2 | Lead Qualificado | `/calls` | fila | SPIN + avisos |
-| 3 | Oportunidade | `/propostas` | fila | CTA pós-handoff |
-| 4 | Proposta Aceita | `/contratos` | fila D0 | contratos existentes |
-| 5 | Cliente Ativo | `/acessos-portal` | fila D1 | portal access |
-| 6 | Cliente Pesquisa | `/achados` | cópia manual | `alertas-whatsapp.ts` |
-| 7 | Doc. validado | `/atendimento#publicacao` | fila | publicação App |
-| 8 | Pós-reconhecimento | `/casos` | **bloqueado_auto** | backlog |
-| 9 | Recorrente D30 | `/conversao` | **bloqueado_auto** | backlog |
-
-Mapa canônico: `src/lib/crm-journey-fases.ts` · UI: bloco **Fases do CRM Journey** em `/conversao`.
-
-**Não criado:** `crm_calls`, `whatsapp_automations`, webhook de envio automático (efeito externo exige aprovação humana + segredo de provedor).
-
-## Prints desta rodada
-
-| Artefato | O que mostra | Resultado |
+| Superfície | Rota | Papel |
 |---|---|---|
-| `crm-journey-fases/01_fase_auth_login_local.png` | Login Desk local `/equipe/entrar` | Rota existe; **sem sessão** |
-| `crm-journey-fases/02_fase_auth_login_vercel.png` | Login Desk no preview Vercel | Mesmo gate; share Vercel ≠ login Supabase |
+| Hub CRM Journey | `/crm-journey?fase=` | Stepper das 9 fases + CTA para tela real |
+| Menu Desk | Marketing & Comercial → **CRM Journey (ciclo completo)** | Entrada canônica |
+| Conversão | `/conversao` | Matriz das fases + botão **Abrir CRM Journey** (visível mesmo se o funil falhar) |
 
-Todas as rotas internas das fases **redirecionam para login** sem credencial.  
-Resultado de prova autenticada por fase: **`BLOQUEADO_POR_DADO`** (falta sessão da proprietária).
+Código: `src/lib/crm-journey-fases.ts`, `src/components/crm/jornada-crm.tsx`, `src/routes/_authenticated/crm-journey.tsx`.
 
-## Protocolo para você fechar `COMPROVADO_EM_USO` (uma fase por vez)
+**Não criado:** `crm_calls`, `whatsapp_automations`, webhook de envio automático.
 
-Para cada fase MVP (1–7):
+## Mapa fase → rota
 
-1. Print **inicial** da rota  
-2. **Ação** (ex.: gravar SPIN, registrar proposta, enfileirar WhatsApp)  
-3. Print **confirmação**  
-4. **F5 / releitura**  
-5. Se houver cadeia, print de **integração** (ex.: caso ↔ proposta)
+| # | Fase | Rota | WhatsApp |
+|---|---|---|---|
+| 1 | Lead Bruto | `/calls` | fila |
+| 2 | Lead Qualificado | `/calls` | fila |
+| 3 | Oportunidade | `/propostas` | fila |
+| 4 | Proposta Aceita | `/contratos` | fila |
+| 5 | Cliente Ativo | `/acessos-portal` | fila |
+| 6 | Cliente Pesquisa | `/pesquisa-modulo` | cópia manual |
+| 7 | Doc. validado | `/atendimento#publicacao` | fila |
+| 8 | Pós-reconhecimento | `/casos` | bloqueado_auto |
+| 9 | Recorrente | `/crm-journey` | bloqueado_auto |
 
-Registrar em `docs/relatorios/2026-09-11_registro-prova-autenticada.md`.
+## Prints (artefatos)
 
-## Próximo desbloqueio
+Pasta: `/opt/cursor/artifacts/crm-journey-fases/`
 
-- Senha / magic link da proprietária **ou** captura manual por Tatiana  
-- Credenciais WhatsApp (Twilio/Z-API) só em Edge Function — **não** no browser; envio só após gate  
+| Arquivo | Conteúdo | Classificação |
+|---|---|---|
+| `01_fase_auth_login_local.png` | Login Desk local | Gate real |
+| `02_fase_auth_login_vercel.png` | Login preview Vercel | Gate real |
+| `03_hub_crm_journey.png` | Hub fase 1 Lead Bruto + nav | UI hub (sessão de captura local; **não** dona) |
+| `04_hub_fase_oportunidade.png` | Hub fase 3 Oportunidade | UI hub |
+| `05_fase_propostas.png` | Tela `/propostas` | Rota alcançada |
+| `06_fase_calls_mesa.png` | Mesa `/calls` | Rota alcançada |
+| `07_conversao_com_link_hub.png` | Conversão com fases + CTA hub | UI + erro de API sem sessão real |
+| `08`–`12` | contratos, pesquisa, acessos, atendimento, casos | Rotas alcançadas |
+| `13_hub_fase_lead_bruto.png` | Hub Lead Bruto | UI hub |
+| `14_nav_marketing_crm_journey.png` | Item de menu CRM Journey | Nav |
+| `15_hub_fase_pesquisa.png` | Hub Cliente em Pesquisa | UI hub |
+
+Resultado de prova autenticada da **proprietária**: ainda **`BLOQUEADO_POR_DADO`** / **`NAO_LOCALIZADO`** para `COMPROVADO_EM_USO` (falta login `tati@pluggedresearch.com` com prints inicial → ação → confirmação → F5).
+
+## Como fechar `COMPROVADO_EM_USO`
+
+1. Entrar como Tatiana no Desk.  
+2. Abrir `/crm-journey` e percorrer MVP 1–7 (CTA de cada fase).  
+3. Em cada fase: print inicial, ação real, confirmação, F5.  
+4. Registrar em `docs/relatorios/2026-09-11_registro-prova-autenticada.md`.

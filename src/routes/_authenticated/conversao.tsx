@@ -128,6 +128,66 @@ function Conversao() {
           operação; o título da tela é Comercial.
         </p>
       </details>
+
+      <div className="mb-4">
+        <Bloco
+          titulo="Fases do CRM Journey"
+          aviso="Ciclo completo · Calls = leads · WhatsApp = fila/cópia (sem envio automático)"
+        >
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gold/35 bg-gold/10 px-3 py-2">
+            <p className="text-xs text-navy/75">
+              Hub navegável com stepper, CTA por fase e telas reais do Desk.
+            </p>
+            <Link
+              to="/crm-journey"
+              className="rounded-lg bg-navy px-3 py-1.5 text-xs font-medium text-cream hover:bg-navy/90"
+              data-cta-abrir-crm-journey
+            >
+              Abrir CRM Journey →
+            </Link>
+          </div>
+          <ol className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+            {FASES_CRM_JOURNEY.map((f, i) => (
+              <li
+                key={f.id}
+                data-fase-journey={f.id}
+                className="rounded-lg border border-navy/10 bg-cream/40 p-3"
+              >
+                <p className="text-[10px] uppercase tracking-wide text-navy/45">
+                  Fase {i + 1} · {f.statusPiloto === "mvp" ? "MVP" : "Backlog"}
+                </p>
+                <p className="mt-0.5 font-medium text-navy">{f.rotulo}</p>
+                <p className="mt-1 text-xs text-navy/65">{f.ritual}</p>
+                <p className="mt-2 text-[11px] text-navy/55">
+                  WhatsApp: {f.whatsapp.template} · {f.whatsapp.canal.replace(/_/g, " ")}
+                </p>
+                <p className="mt-0.5 text-[11px] text-navy/50">{f.whatsapp.detalhe}</p>
+                {f.microEntregaApp ? (
+                  <p className="mt-1 text-[11px] text-navy/60">App: {f.microEntregaApp}</p>
+                ) : null}
+                <div className="mt-2 flex flex-wrap gap-3 text-xs font-medium">
+                  <Link
+                    to="/crm-journey"
+                    search={{ fase: f.id }}
+                    className="text-navy underline decoration-gold underline-offset-2"
+                  >
+                    Ver no hub
+                  </Link>
+                  <Link
+                    to={f.rotaDesk}
+                    hash={f.rotaHash}
+                    className="text-navy/70 underline decoration-navy/30 underline-offset-2"
+                  >
+                    Abrir tela → {f.rotaDesk}
+                    {f.rotaHash ? `#${f.rotaHash}` : ""}
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </Bloco>
+      </div>
+
       <EstadoDados
         carregando={q.isLoading}
         erro={q.error}
@@ -137,63 +197,6 @@ function Conversao() {
       >
         {() => (
         <div className="grid gap-4">
-          <Bloco
-            titulo="Fases do CRM Journey"
-            aviso="Ciclo completo · Calls = leads · WhatsApp = fila/cópia (sem envio automático)"
-          >
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gold/35 bg-gold/10 px-3 py-2">
-              <p className="text-xs text-navy/75">
-                Hub navegável com stepper, CTA por fase e telas reais do Desk.
-              </p>
-              <Link
-                to="/crm-journey"
-                className="rounded-lg bg-navy px-3 py-1.5 text-xs font-medium text-cream hover:bg-navy/90"
-                data-cta-abrir-crm-journey
-              >
-                Abrir CRM Journey →
-              </Link>
-            </div>
-            <ol className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-              {FASES_CRM_JOURNEY.map((f, i) => (
-                <li
-                  key={f.id}
-                  data-fase-journey={f.id}
-                  className="rounded-lg border border-navy/10 bg-cream/40 p-3"
-                >
-                  <p className="text-[10px] uppercase tracking-wide text-navy/45">
-                    Fase {i + 1} · {f.statusPiloto === "mvp" ? "MVP" : "Backlog"}
-                  </p>
-                  <p className="mt-0.5 font-medium text-navy">{f.rotulo}</p>
-                  <p className="mt-1 text-xs text-navy/65">{f.ritual}</p>
-                  <p className="mt-2 text-[11px] text-navy/55">
-                    WhatsApp: {f.whatsapp.template} · {f.whatsapp.canal.replace(/_/g, " ")}
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-navy/50">{f.whatsapp.detalhe}</p>
-                  {f.microEntregaApp ? (
-                    <p className="mt-1 text-[11px] text-navy/60">App: {f.microEntregaApp}</p>
-                  ) : null}
-                  <div className="mt-2 flex flex-wrap gap-3 text-xs font-medium">
-                    <Link
-                      to="/crm-journey"
-                      search={{ fase: f.id }}
-                      className="text-navy underline decoration-gold underline-offset-2"
-                    >
-                      Ver no hub
-                    </Link>
-                    <Link
-                      to={f.rotaDesk}
-                      hash={f.rotaHash}
-                      className="text-navy/70 underline decoration-navy/30 underline-offset-2"
-                    >
-                      Abrir tela → {f.rotaDesk}
-                      {f.rotaHash ? `#${f.rotaHash}` : ""}
-                    </Link>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </Bloco>
-
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-navy/10 bg-white px-4 py-3 text-xs text-navy/70">
             <span>
               {incluirDemo
