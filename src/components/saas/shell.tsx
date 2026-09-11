@@ -7,12 +7,13 @@ import {
   LayoutDashboard,
   FolderOpen,
   Scale,
-  Target,
+  ListChecks,
+  Radar,
+  Bell,
   Library,
   LogOut,
   Menu,
   ChevronDown,
-  ShieldCheck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -78,9 +79,10 @@ export function useSaas() {
 }
 
 /**
- * Navegação do Desk: 6 grupos. O registro canônico vive em
- * `src/lib/navegacao-desk.ts`; aqui só há apresentação. Cada função mora em
- * um grupo; atalho não cria segunda fila. Nenhuma rota operacional some.
+ * Navegação do Desk: 7 telas do mockup. Registro canônico em
+ * `src/lib/navegacao-desk.ts`; aqui só há apresentação. Submenus são contexto
+ * recolhido — Comercial/Marketing/Formalização/Governança não disputam a
+ * entrada diária. Nenhuma rota operacional some.
  */
 type SubItem = ItemNav;
 
@@ -94,12 +96,13 @@ type SecaoNav = {
 };
 
 const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
-  hoje: LayoutDashboard,
-  comercial: Target,
+  "visao-geral": LayoutDashboard,
   casos: FolderOpen,
-  pesquisa: Library,
-  contratos: Scale,
-  governanca: ShieldCheck,
+  checklist: ListChecks,
+  juridico: Scale,
+  radar: Radar,
+  alertas: Bell,
+  biblioteca: Library,
 };
 
 const NAV: readonly SecaoNav[] = GRUPOS_DESK.map((g) => ({
@@ -129,16 +132,7 @@ export function SaasShell({
   const hash = useRouterState({ select: (s) => s.location.hash });
   const [aberto, setAberto] = useState(false);
   const [abertosManuais, setAbertosManuais] = useState<Record<string, boolean>>({});
-  const [desktop, setDesktop] = useState(false);
   const registrarSaida = useServerFn(registrarLogoutEquipe);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const sync = () => setDesktop(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
 
   // Só sai da área protegida quando o servidor responde e a autorização não
   // existe. Erro de rede/token com sessão válida apenas refaz a consulta —
@@ -184,8 +178,8 @@ export function SaasShell({
     navigate({ to: "/equipe/entrar", replace: true });
   }
 
-  // Admin não ganha aba nova: módulos administrativos entram em Governança.
-  // O Desk tem 6 grupos para qualquer papel interno.
+  // Admin não ganha aba nova: administração fica no menu da conta.
+  // Sidebar = 7 telas do mockup para qualquer papel interno.
   const carregarAlertas = useServerFn(alertasOps);
   const alertas = useQuery({
     queryKey: ["shell", "alertas-menu"],
@@ -198,7 +192,6 @@ export function SaasShell({
   const badgeDe = (to: string): number => (to === "/casos" ? atrasadasCasos : 0);
 
   // Itens restritos a admin (equipe) só aparecem para admin.
-  // O Desk tem 6 grupos para qualquer papel interno.
   const itens: SecaoNav[] = NAV.map((item) => ({
     ...item,
     sub: item.sub.filter((s) => !("to" in s) || !s.adminOnly || ehAdmin),
@@ -219,48 +212,62 @@ export function SaasShell({
           </p>
         </div>
 
-        <nav className="flex-1 space-y-1">
+        <nav className="flex-1 space-y-1" aria-label="Telas principais do Desk">
           {itens.map((item) => {
             const { to, label, icon: Icon, sub, descricao: descricaoGrupo } = item;
             const ativo = grupoNavAtivo(rota, hash, item);
-            const expandida = to in abertosManuais ? abertosManuais[to] : desktop && ativo;
+            // Contexto recolhido por padrão; no mobile nunca abre sozinho.
+            // No desktop, abre só se a operadora expandiu manualmente.
+            const expandida = Boolean(abertosManuais[to]) && sub.length > 0;
             return (
               <div key={to}>
-                <button
-                  type="button"
-                  title={descricaoGrupo}
-                  onClick={() => {
-                    if (ativo) {
-                      setAbertosManuais((v) => ({
-                        ...v,
-                        [to]: !(to in v ? v[to] : desktop && ativo),
-                      }));
-                      return;
-                    }
-                    setAbertosManuais((v) => ({ ...v, [to]: true }));
-                    void navigate({ to: to as never });
-                    setAberto(false);
-                  }}
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
-                    ativo ? "bg-gold text-navy font-medium" : "text-cream/80 hover:bg-cream/10",
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="flex-1">{label}</span>
-                  {badgeDe(to) > 0 ? (
-                    <span
-                      title={`${badgeDe(to)} item(ns) com prazo vencido`}
-                      className="rounded-full bg-terracotta px-1.5 py-0.5 text-[10px] font-semibold text-cream"
+                <div className="flex items-center gap-0.5">
+                  <button
+                    type="button"
+                    title={descricaoGrupo}
+                    onClick={() => {
+                      void navigate({ to: to as never });
+                      setAberto(false);
+                    }}
+                    className={cn(
+                      "flex min-w-0 flex-1 items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                      ativo ? "bg-gold text-navy font-medium" : "text-cream/80 hover:bg-cream/10",
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span className="flex-1 truncate">{label}</span>
+                    {badgeDe(to) > 0 ? (
+                      <span
+                        title={`${badgeDe(to)} item(ns) com prazo vencido`}
+                        className="rounded-full bg-terracotta px-1.5 py-0.5 text-[10px] font-semibold text-cream"
+                      >
+                        {badgeDe(to)}
+                      </span>
+                    ) : null}
+                  </button>
+                  {sub.length ? (
+                    <button
+                      type="button"
+                      aria-label={expandida ? `Recolher contexto de ${label}` : `Abrir contexto de ${label}`}
+                      aria-expanded={expandida}
+                      onClick={() =>
+                        setAbertosManuais((v) => ({
+                          ...v,
+                          [to]: !v[to],
+                        }))
+                      }
+                      className={cn(
+                        "rounded-md p-2 text-cream/70 hover:bg-cream/10",
+                        ativo && "text-navy",
+                      )}
                     >
-                      {badgeDe(to)}
-                    </span>
+                      <ChevronDown
+                        className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")}
+                      />
+                    </button>
                   ) : null}
-                  <ChevronDown
-                    className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")}
-                  />
-                </button>
-                {expandida && sub.length ? (
+                </div>
+                {expandida ? (
                   <div className="mb-1 ml-7 space-y-0.5 border-l border-cream/15 pl-3">
                     {sub.map((s, i) =>
                       "grupo" in s ? (
@@ -284,17 +291,11 @@ export function SaasShell({
                           )}
                         >
                           {s.label}
-                          {/* Atalho para rota que mora em outro grupo: sem esta
-                              marca, a repetição deliberada lê-se como
-                              duplicação. */}
                           {origemDoAtalho(label, s.to) ? (
                             <span className="ml-1.5 text-[10px] font-normal text-cream/40">
                               ↗ {origemDoAtalho(label, s.to)}
                             </span>
                           ) : null}
-                          {/* Biblioteca que um motor chama não se lê igual a
-                              biblioteca de referência. Sem a marca, as duas
-                              parecem a mesma coisa no menu. */}
                           {naturezaDaBiblioteca(s.to) ? (
                             <span
                               className="ml-1.5 text-[10px] font-normal text-cream/40"
@@ -320,23 +321,31 @@ export function SaasShell({
             {MENU_CONTA.label}
           </p>
           {MENU_CONTA.itens
-            .filter((s): s is { to: string; label: string; adminOnly?: boolean } => "to" in s)
-            .filter((s) => !s.adminOnly || ehAdmin)
-            .map((s) => (
-              <Link
-                key={s.to}
-                to={s.to}
-                onClick={() => setAberto(false)}
-                className={cn(
-                  "block rounded-md px-2 py-1.5 text-[13px] transition-colors",
-                  rotaAtendeDestino(rota, s.to)
-                    ? "bg-cream/15 text-cream font-medium"
-                    : "text-cream/65 hover:bg-cream/10",
-                )}
-              >
-                {s.label}
-              </Link>
-            ))}
+            .filter((s) => !("to" in s) || !s.adminOnly || ehAdmin)
+            .map((s, i) =>
+              "grupo" in s ? (
+                <p
+                  key={`conta-g-${s.grupo}`}
+                  className="px-2 pb-0.5 pt-2 text-[10px] font-semibold uppercase tracking-widest text-gold/80"
+                >
+                  {s.grupo}
+                </p>
+              ) : (
+                <Link
+                  key={`${s.to}-${i}`}
+                  to={s.to}
+                  onClick={() => setAberto(false)}
+                  className={cn(
+                    "block rounded-md px-2 py-1.5 text-[13px] transition-colors",
+                    rotaAtendeDestino(rota, s.to)
+                      ? "bg-cream/15 text-cream font-medium"
+                      : "text-cream/65 hover:bg-cream/10",
+                  )}
+                >
+                  {s.label}
+                </Link>
+              ),
+            )}
         </div>
         <div className="mt-4 border-t border-cream/15 pt-3 text-xs text-cream/70">
           <p className="truncate font-medium text-cream">{contexto?.perfil?.email ?? "—"}</p>
@@ -395,8 +404,7 @@ export function SaasShell({
         >
           {children}
         </main>
-        {/* CA-UX-03 (adendo v1.0): Assistente transversal — presente nos 8 grupos,
-            conforme papel e contexto. Não é aba nem fonte de verdade. */}
+        {/* Assistente transversal — presente nas 7 telas; não é aba nem fonte de verdade. */}
         <AssistenteTransversal papeis={papeis} />
       </div>
     </div>

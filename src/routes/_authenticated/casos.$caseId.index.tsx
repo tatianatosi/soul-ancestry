@@ -733,18 +733,26 @@ function FichaCaso() {
               {canonica?.prazo ? new Date(String(canonica.prazo)).toLocaleDateString("pt-BR") : "Sem prazo definido"}
             </p>
           </div>
-          <div>
-            <p className="text-[11px] uppercase tracking-wide text-navy/55">Motivo</p>
-            <p className="mt-0.5 text-sm text-navy/85">{derivado.motivo}</p>
-          </div>
-          <div>
-            <p className="text-[11px] uppercase tracking-wide text-navy/55">Impacto</p>
-            <p className="mt-0.5 text-sm text-navy/85">
-              {bloqueiosReais.length === 0
-                ? "Nenhum bloqueio real — elegível para ativação"
-                : `Ativação bloqueada — ${bloqueiosReais.length} pendência(s), primeiro: ${bloqueiosReais[0]?.motivo ?? "—"}`}
+        </div>
+
+        <div className="mt-4 rounded-lg border border-navy/15 bg-white/70 p-3">
+          <p className="text-[11px] uppercase tracking-wide text-navy/55">
+            O que falta para o próximo passo
+          </p>
+          <p className="mt-1 text-sm text-navy">
+            {bloqueiosReais.length === 0
+              ? derivado.motivo || "Nada bloqueia o próximo passo agora."
+              : bloqueiosReais
+                  .slice(0, 3)
+                  .map((b) => b.motivo)
+                  .filter(Boolean)
+                  .join(" · ") || derivado.motivo}
+          </p>
+          {bloqueiosReais.length > 3 ? (
+            <p className="mt-1 text-xs text-navy/60">
+              +{bloqueiosReais.length - 3} pendência(s) — ver detalhes recolhidos no fim da ficha.
             </p>
-          </div>
+          ) : null}
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
@@ -854,8 +862,8 @@ function FichaCaso() {
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Jornada/onboarding</p>
           <p className="mt-1 text-sm font-medium text-navy">
             {bloqueiosReais.length === 0
-              ? "Elegível — onboarding liberado"
-              : `${bloqueiosReais.length} bloqueio(s) de ativação`}
+              ? "Próximo passo liberado"
+              : "Ver o que falta acima"}
           </p>
           {sugestoes.length ? (
             <p className="mt-1 text-xs text-navy/60">{sugestoes[0].titulo}</p>
@@ -1844,6 +1852,9 @@ function FichaCaso() {
           <summary className="cursor-pointer font-serif text-lg text-navy">
             Dados técnicos e validações
           </summary>
+          <p className="mt-2 text-xs text-navy/55">
+            Histórico, auditoria e mapa de persistência — fora da leitura operacional diária.
+          </p>
           <div className="mt-4 space-y-5">
           {/*
             07/09/2026 — case_phase_history grava sozinha desde 06/09 (trigger

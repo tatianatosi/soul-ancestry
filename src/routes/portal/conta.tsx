@@ -49,7 +49,7 @@ export function PortalConta() {
               <dd className="text-sm text-navy">{previa?.titulo ?? data?.cliente?.nome ?? "—"}</dd>
             </div>
             <div className="rounded-lg border border-navy/10 bg-cream/60 p-3">
-              <dt className="text-[11px] uppercase tracking-widest text-navy/50">Acesso</dt>
+              <dt className="text-[11px] uppercase tracking-widest text-navy/50">Conta</dt>
               <dd className="text-sm text-navy">Aplicativo do cliente</dd>
             </div>
           </dl>

@@ -87,25 +87,10 @@ function useVerificacaoLeituraPainel(
   return problemas;
 }
 
-function AvisoLeituraPainel({ problemas }: { problemas: ProblemaPainel[] }) {
-  if (problemas.length === 0) return null;
-  return (
-    <details
-      data-aviso-leitura-painel
-      className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy"
-    >
-      <summary className="cursor-pointer font-medium text-navy">Detalhes técnicos de leitura</summary>
-      <p className="mt-2 text-xs text-navy/75">A leitura desta tela saiu do padrão acordado</p>
-      <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-navy/75">
-        {problemas.map((p) => (
-          <li key={`${p.chave}-${p.mensagem}`}>{p.mensagem}</li>
-        ))}
-      </ul>
-      <p className="mt-2 text-[11px] text-navy/55">
-        Aviso apenas de exibição: nenhum dado foi alterado e nenhuma ação externa foi disparada.
-      </p>
-    </details>
-  );
+function AvisoLeituraPainel({ problemas: _problemas }: { problemas: ProblemaPainel[] }) {
+  // Inventário 2026-09-11 §22: banner técnico fora da operação diária.
+  // Diagnóstico permanece disponível em revisão/admin; não no Painel.
+  return null;
 }
 
 function LinkItem({
@@ -647,41 +632,16 @@ export function PainelDia() {
     <div ref={raizRef} className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
         <p className="min-w-0 text-sm text-navy/60">
-          O que precisa de ação hoje, por quem e até quando. Governança, catálogo, métricas e
-          planejamento ficam nas áreas proprietárias.
+          O que precisa de ação hoje, por quem e até quando.
         </p>
-        <label className="flex shrink-0 items-center gap-2 text-xs text-navy/60">
-          <input
-            type="checkbox"
-            checked={incluirDemo}
-            onChange={(e) => setIncluirDemo(e.target.checked)}
-          />
-          Incluir demonstrações
-        </label>
       </div>
 
       {/*
         26/08/2026 — o verificador de acesso administrativo saiu daqui.
-
-        Ele foi pedido pela Proprietária em 25/08, no meio da crise de acesso,
-        quando não estava claro se ela ainda era admin. Era instrumento de
-        emergência, e a emergência acabou: o vínculo está confirmado no banco.
-
-        Ficar no Painel custava duas coisas. Era o mesmo diagnóstico que a
-        Governança já oferece — e lá acompanhado da reconfirmação, que é a
-        parte que de fato conserta; aqui o botão só sabia mandar a pessoa
-        para outra tela. E ocupava, todo dia, um espaço no Painel Hoje, que
-        existe para o que pede ação hoje.
-
-        A ferramenta completa continua em Modo Proprietária / Governança.
+        Inventário 2026-09-11: banner técnico de leitura também fora da dobra.
       */}
       <AvisoLeituraPainel problemas={problemasLeitura} />
 
-      {/*
-        Abertura: a frase antes do número. O Painel abria com cinco métricas, e
-        quem chega de manhã lia cinco números sem saber o que fazer com eles.
-        Nada de novo é calculado aqui — é leitura do que já foi derivado.
-      */}
       {leiturasSecundarias.length ? (
         <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2">
           <p className="text-sm text-terracotta">
@@ -698,23 +658,26 @@ export function PainelDia() {
         </div>
       ) : null}
       <AberturaPainel cards={cards} totalCasos={(qCad.data?.casos ?? []).length} />
-      <p
-        data-desk-enxuto
-        className="rounded-xl border border-gold/40 bg-gold/15 px-4 py-3 text-sm text-navy"
-      >
-        As abas dizem onde cada função vive. A{" "}
+      <p className="rounded-xl border border-gold/40 bg-gold/15 px-4 py-3 text-sm text-navy">
+        Entrada comercial:{" "}
         <Link to="/calls" className="font-medium underline decoration-gold underline-offset-4">
-          Mesa de Discovery
-        </Link>{" "}
-        faz a entrada comercial. Os números abaixo só mostram o que está parado, vencido ou
-        precisa de decisão — receita e conversão ficam em Financeiro e Conversão.
+          Abrir Mesa de Discovery
+        </Link>
+        {" · "}
+        <Link to="/casos" className="font-medium underline decoration-gold underline-offset-4">
+          Abrir Casos 360
+        </Link>
+        {" · "}
+        <Link to="/marketing" className="font-medium underline decoration-gold underline-offset-4">
+          Marketing
+        </Link>
       </p>
 
-{/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco + atalhos únicos, sem recontação) */}
+{/* 0 — Prioridades do dia */}
       <AncoraApp bloco="cards" />
       <section data-painel-bloco="cards" className="space-y-3">
         <p className="text-[11px] uppercase tracking-wide text-navy/50">
-          Só interno · Cinco métricas de decisão + atalhos únicos (sem recontação)
+          Prioridades de hoje
         </p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-mockup-kpis>
           {/*
@@ -1164,16 +1127,12 @@ export function PainelDia() {
                 maior urgência aplicável.
               </li>
               <li>
-                Cadência (Desk e App Cliente) segue a régua Ana em{" "}
-                <code className="text-[10px]">cadencia-limiares</code>: D7 microentrega · D10
-                atenção · D14 crítico. D0–D365 detalhado em /ops e na aba Onboarding do caso.
+                Cadência do Desk e do App Cliente: microentrega em cerca de 7 dias, atenção em 10,
+                crítico em 14. O detalhe completo fica em Operação e na Jornada do caso.
               </li>
               <li>
-                &quot;Exceções críticas&quot; ≠ tabela Exceções operacionais (`ops_excecoes`): o
-                cartão conta bloqueios de fila; overrides admin ficam em Governança.
-              </li>
-              <li>
-                Demonstrações só entram com o filtro explícito “Incluir demonstrações”.
+                &quot;Exceções críticas&quot; conta bloqueios da fila do dia — não substitui a lista
+                de exceções operacionais.
               </li>
             </ul>
             <div>
@@ -1192,6 +1151,19 @@ export function PainelDia() {
                 ))}
               </ul>
             </div>
+            <details className="rounded-lg border border-navy/10 bg-cream/40 p-3">
+              <summary className="cursor-pointer text-xs font-medium text-navy/70">
+                Opções de revisão
+              </summary>
+              <label className="mt-2 flex items-center gap-2 text-xs text-navy/60">
+                <input
+                  type="checkbox"
+                  checked={incluirDemo}
+                  onChange={(e) => setIncluirDemo(e.target.checked)}
+                />
+                Incluir registros de demonstração nesta leitura
+              </label>
+            </details>
           </div>
         ) : null}
       </div>
