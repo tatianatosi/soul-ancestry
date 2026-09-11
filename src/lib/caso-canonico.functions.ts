@@ -26,7 +26,7 @@ export const carregarCanonico = createServerFn({ method: "GET" })
     const organizationId = await organizacaoDo(supabase, context.userId as string);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
 
-    const [produtos, catalogoPlanejador, trilhas, servicos, taxonomia, etiquetas, alertas, comunicacoes, onboarding, nucleos, entregas, aliases, proximaAcao] =
+    const [produtos, catalogoPlanejador, trilhas, servicos, taxonomia, etiquetas, alertas, comunicacoes, onboarding, nucleos, entregas, aliases, proximaAcao, planos, projecoes] =
       await Promise.all([
         eq("product_catalog").is("archived_at", null).order("nome_comercial"),
         eq("planner_catalog_feed").is("archived_at", null),
@@ -43,6 +43,8 @@ export const carregarCanonico = createServerFn({ method: "GET" })
         eq("case_aliases").eq("case_id", data.caseId).order("created_at"),
         // CRM Vivo — próxima ação prioritária única (PROMPT-MOTORES-UNIFICADOS-CRM-VIVO.md, seção 3.4).
         supabase.rpc("proxima_acao_prioritaria", { _case: data.caseId }),
+        eq("case_plans").eq("case_id", data.caseId).is("archived_at", null).order("created_at", { ascending: false }),
+        eq("app_projections").eq("case_id", data.caseId).is("archived_at", null),
       ]);
 
 
@@ -79,6 +81,8 @@ export const carregarCanonico = createServerFn({ method: "GET" })
       membrosNucleo: linhas<Linha>(membrosNucleo as any, "membros do núcleo familiar"),
       entregas: linhas<Linha>(entregas, "entregas ao cliente do caso"),
       aliases: linhas<Linha>(aliases, "aliases históricos do caso"),
+      planos: linhas<Linha>(planos, "planos do planejador do caso"),
+      projecoes: linhas<Linha>(projecoes, "projeções liberadas ao App Cliente"),
       proximaAcaoPrioritaria: (proximaAcao.data?.[0] ?? null) as {
         nivel: number;
         motivo: string;

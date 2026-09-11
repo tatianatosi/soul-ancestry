@@ -969,7 +969,7 @@ export async function estadoCadeiaOperacional(
         : null,
     },
     catalogo: {
-      motivos: sku ? (sku.fonte_referencia ? [] : ["SKU sem referência da Planilha Mestre."]) : ["SKU do catálogo não vinculado à proposta."],
+      motivos: sku ? (sku.fonte_referencia ? [] : ["SKU sem referência de origem no catálogo homologado."]) : ["SKU do catálogo não vinculado à proposta."],
       fonte: sku?.fonte_referencia ?? "product_catalog",
       versao: sku?.code ?? null,
     },

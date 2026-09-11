@@ -2,10 +2,13 @@
  * Cadeia operacional — ligação entre elos JÁ EXISTENTES.
  *
  * PLANEJADOR (case_plans) → PROPOSTA ESTRUTURADA (proposals) →
- * SKU/PREÇO (product_catalog, Planilha Mestre) → CONDIÇÃO COMERCIAL
+ * SKU/PREÇO (product_catalog homologado, alimentado por planner_catalog_feed) → CONDIÇÃO COMERCIAL
  * (commercial_conditions) → OS/ANEXO I (service_orders + contract_scope_items)
  * → PRÉVIA CONTRATUAL PERSISTIDA (contract_parameter_previews) →
  * REVISÃO HUMANA → ASSINATURA (preparada e desabilitada).
+ *
+ * A Planilha Mestre é legado de inventário/migração única — nunca fonte viva
+ * de preço, SKU, Desk, App ou WhatsApp.
  *
  * Lógica pura: nada aqui assina, cobra, comunica, pesquisa ou infere valor
  * ausente. Ausência de fonte vira pendência explícita; conflito vira bloqueio.
@@ -227,7 +230,7 @@ export function bloqueiosAprovacaoProposta(p: PropostaEstruturada, sku: SkuCanon
   else {
     if (!sku.ativo || !sku.elegivel_para_proposta) b.push(`SKU ${sku.code} não está ativo/elegível para proposta.`);
     if (sku.preco_sugerido === null) b.push(`SKU ${sku.code} sem preço sugerido na fonte mestre.`);
-    if (!sku.fonte_referencia) b.push(`SKU ${sku.code} sem referência da Planilha Mestre.`);
+    if (!sku.fonte_referencia) b.push(`SKU ${sku.code} sem referência de origem no catálogo homologado.`);
     if (!sku.inclusoes.length) b.push(`SKU ${sku.code} sem inclusões na fonte: exige complementação formal.`);
     if (!sku.exclusoes.length) b.push(`SKU ${sku.code} sem exclusões na fonte: exige complementação formal.`);
     if (p.valor !== null && sku.preco_sugerido !== null && Number(p.valor) !== Number(sku.preco_sugerido))
