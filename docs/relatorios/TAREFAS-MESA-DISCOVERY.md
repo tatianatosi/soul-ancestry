@@ -1,8 +1,9 @@
 # Tarefas — Mesa Discovery (`/calls`)
 
 **Aba / capacidade:** Mesa Discovery (entrada comercial)  
-**Última atualização:** 2026-09-11 · fim do dia (agente)  
-**Status geral:** código SPIN ok · prova da dona ainda aberta · **não** `COMPROVADO_EM_USO`  
+**Última atualização:** 2026-09-11 · noite (após prints da dona)  
+**Status geral:** fio Vercel/Supabase ok · UX fragmentada confirmada · prova integrada ainda aberta · **não** `COMPROVADO_EM_USO`  
+**Diagnóstico:** `docs/relatorios/2026-09-11_diagnostico-crm-vivo-fragmentacao.md`  
 **Rotina:** este quadro é atualizado **todo dia de manhã** e **no fim do dia**.
 
 Legenda rápida: `OK` = funciona com evidência · `PARCIAL` = quase · `TRAVADO` = precisa de você ou de fio · `PAUSADO` = não mexer agora
@@ -12,18 +13,17 @@ Legenda rápida: `OK` = funciona com evidência · `PARCIAL` = quase · `TRAVADO
 ## 1. O que já está funcionando
 
 ### Front-end (tela)
-- Abrir a mesa em `/calls`
-- Abrir um lead e ver o roteiro vivo
-- Bloco **SPIN** com 4 checkboxes no **mesmo** fluxo (não em outra tela)
-- Contador de progresso SPIN (ex.: 4/4)
-- Campos de resultado, responsável, prazo e próxima ação no card
-- Mensagem de “registro gravado” após salvar
-- Após F5, o SPIN marcado continua na tela (prova local do agente)
+- Login autenticado em produção (Vercel ↔ Supabase) — **confirmado pela dona**
+- Criar lead em `/leads` (“Novo lead”) — **não** existe botão equivalente na Mesa `/calls`
+- Abrir a mesa em `/calls` com lead **já existente** e percorrer o roteiro
+- SPIN na prática = **19 perguntas** (uma por vez), não 4 checkboxes na tela
+- Em `/leads`, o bloco SPIN só mostra **progresso derivado** + link para `/calls`
+- Mensagem de gravação; flags `spin_*` derivadas no banco
 
 ### Back-end (gravação)
-- Escritor `salvarLeadDesk` grava `spin_situacao`, `spin_problema`, `spin_implicacao`, `spin_necessidade` na tabela `leads`
-- Também grava próxima ação / responsável / prazo nos campos já existentes de `leads`
-- Testes automáticos do roteiro/painel: suporte técnico ok (não substituem print seu)
+- Escritor `salvarLeadDesk` grava respostas + flags `spin_*` na tabela **`leads`** (um CRM, não dois)
+- Próxima ação / responsável / prazo nos campos já existentes de `leads`
+- Bug conhecido: `DIVERGENCIA_PERSISTENCIA` em `call_realizada_em` (formato de data; checagem pedante)
 
 ### Política / trilha
 - Reset de confiança + adendo de prova autenticada arquivados e ligados ao Desk
