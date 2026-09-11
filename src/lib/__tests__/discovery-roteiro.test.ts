@@ -126,7 +126,12 @@ describe("card por pergunta (CA02-CRM-VIVO-PAINEL-CALLS)", () => {
 
 describe("Mesa de Discovery — SPIN como pergunta, não checkbox", () => {
   it("toda pergunta tem etapa SPIN, texto e campos que já existem no roteiro", () => {
-    expect(ETAPAS_SPIN).toHaveLength(4);
+    expect(ETAPAS_SPIN.map((e) => e.chave)).toEqual([
+      "situacao",
+      "problema",
+      "implicacao",
+      "necessidade",
+    ]);
     expect(PERGUNTAS_MESA.length).toBeGreaterThan(10);
     const camposRoteiro = new Set(ROTEIRO_DISCOVERY.flatMap((b) => b.campos));
     for (const p of PERGUNTAS_MESA) {
@@ -135,7 +140,7 @@ describe("Mesa de Discovery — SPIN como pergunta, não checkbox", () => {
       expect(ETAPAS_SPIN.some((e) => e.chave === p.etapa)).toBe(true);
       for (const c of p.campos) {
         expect(camposRoteiro.has(c), `campo fora do roteiro: ${c}`).toBe(true);
-        expect(META_CAMPO_ROTEIRO[c], c).toBeDefined();
+        expect(META_CAMPO_ROTEIRO[c], `campo sem card: ${c}`).toBeDefined();
       }
     }
   });
@@ -151,6 +156,7 @@ describe("Mesa de Discovery — SPIN como pergunta, não checkbox", () => {
     }
     for (const c of new Set(ROTEIRO_DISCOVERY.flatMap((b) => b.campos))) {
       expect(perguntaDaMesaPorCampo(c), `campo órfão: ${c}`).toBeDefined();
+      expect(perguntaDaMesaPorCampo(c)?.pergunta.length).toBeGreaterThan(10);
     }
   });
 
@@ -164,8 +170,16 @@ describe("Mesa de Discovery — SPIN como pergunta, não checkbox", () => {
     const comObjetivo = { ...base, objetivo: "cidadania" } as LeadDesk;
     expect(spinDerivadoDoLead(comObjetivo).spin_situacao).toBe(true);
     expect(spinDerivadoDoLead(comObjetivo).spin_problema).toBe(false);
-    const progresso = progressoSpin(comObjetivo);
-    expect(progresso.find((p) => p.chave === "situacao")?.preenchidas).toBeGreaterThan(0);
+  });
+
+  it("progressoSpin conta perguntas respondidas, não flags booleanas", () => {
+    const vazio = progressoSpin(base).find((e) => e.chave === "situacao")!;
+    expect(vazio.preenchidas).toBe(0);
+    const parcial = progressoSpin({ ...base, objetivo: "cidadania" } as LeadDesk).find(
+      (e) => e.chave === "situacao",
+    )!;
+    expect(parcial.preenchidas).toBe(1);
+    expect(parcial.completo).toBe(false);
   });
 });
 

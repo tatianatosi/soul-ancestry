@@ -158,6 +158,7 @@ function MesaDiscovery({
       <div
         data-mesa-discovery
         data-pergunta={atual.id}
+        data-pergunta-mesa={atual.id}
         data-etapa={atual.etapa}
         className="rounded-xl border border-navy/10 bg-cream/30 p-4"
       >
@@ -357,10 +358,8 @@ export function PainelCalls() {
   });
 
   /**
-   * Um card por campo do roteiro: pergunta (no bloco em volta), por que
-   * importa, contexto/origem (achado de WhatsApp, quando houver), o controle
-   * de resposta, o estado e o destino — a lacuna que a missão pediu para
-   * fechar ("perguntas SPIN sem local evidente para resposta/destino").
+   * Controle de um campo dentro do card da pergunta SPIN.
+   * A pergunta em si mora no card da Mesa, não numa lista ao lado.
    */
   function renderCampoRoteiro(campoId: string) {
     const meta = META_CAMPO_ROTEIRO[campoId];
@@ -514,8 +513,8 @@ export function PainelCalls() {
       ) : null}
 
       <Secao
-        titulo="Painel de Calls"
-        descricao="Registro da chamada, qualificação preliminar e handoff — o mesmo sistema do CA-04 / CRM Mestre. Toda triagem é sinal interno: não conclui elegibilidade jurídica, não envia proposta, contrato, cobrança nem mensagem."
+        titulo="Mesa de Discovery"
+        descricao="Aqui a entrada comercial funciona: varredura, uma pergunta SPIN por vez, próxima ação e handoff. Os KPIs do que está parado ou vencido ficam no Hoje. Toda triagem é sinal interno — não conclui elegibilidade nem envia proposta."
       >
         <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {[
@@ -737,7 +736,7 @@ export function PainelCalls() {
                 <button
                   type="button"
                   disabled={mutar.isPending || !Object.keys(rascunho).length}
-                  onClick={() => mutar.mutate(rascunho)}
+                  onClick={() => mutar.mutate({ ...rascunho, ...spinDerivadoDoLead(lead) })}
                   className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
                 >
                   Gravar registro da call
@@ -750,7 +749,11 @@ export function PainelCalls() {
                     avaliacao?.destino !== "proposta"
                   }
                   onClick={() =>
-                    mutar.mutate({ ...rascunho, eixo_comercial: "diagnostico_em_elaboracao" })
+                    mutar.mutate({
+                      ...rascunho,
+                      ...spinDerivadoDoLead(lead),
+                      eixo_comercial: "diagnostico_em_elaboracao",
+                    })
                   }
                   className="rounded-lg border border-gold bg-gold/15 px-4 py-2 text-sm text-navy disabled:opacity-40"
                   title="Move o eixo comercial para diagnóstico. Nenhum envio externo é executado."

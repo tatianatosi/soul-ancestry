@@ -61,7 +61,7 @@ import {
   type LeadDesk,
   type Opcao,
 } from "@/lib/crm-desk";
-import { ROTEIRO_DISCOVERY, sinaisQualidadeLead } from "@/lib/discovery-roteiro";
+import { ETAPAS_SPIN, progressoSpin, sinaisQualidadeLead, spinDerivadoDoLead } from "@/lib/discovery-roteiro";
 import { calcularRadar } from "@/lib/radar-elegibilidade";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
 import { formatarTelefone } from "@/lib/validacao-pessoa";
@@ -155,10 +155,11 @@ function LeadsPage() {
       }),
     [editado, marcos],
   );
-  const [roteiroAberto, setRoteiroAberto] = useState(false);
-
   const mutSalvar = useMutation({
-    mutationFn: () => salvar({ data: { id: atual?.id ?? null, valores: rascunho } }),
+    mutationFn: () =>
+      salvar({
+        data: { id: atual?.id ?? null, valores: { ...rascunho, ...spinDerivadoDoLead(editado) } },
+      }),
     onSuccess: (r) => {
       if (!r.ok) {
         setMsg("Gravação recusada: corrija as pendências listadas.");
@@ -300,33 +301,31 @@ function LeadsPage() {
           {atual ? <DerivacaoJornada lead={editado} /> : null}
 
           <div className="rounded-xl border border-navy/10 bg-white p-4">
-            <button
-              type="button"
-              onClick={() => setRoteiroAberto((v) => !v)}
-              className="flex w-full items-center justify-between text-left"
-            >
-              <span className="text-sm font-medium text-navy">Roteiro vivo de Discovery</span>
-              <span className="text-xs text-navy/50">{roteiroAberto ? "recolher" : "expandir"}</span>
-            </button>
+            <p className="text-sm font-medium text-navy">SPIN e Mesa de Discovery</p>
             <p className="mt-1 text-xs text-navy/55">
-              Guia contextual de perguntas. Não é formulário obrigatório e não conclui elegibilidade, rota, prazo, preço ou contrato — toda
-              leitura é preliminar e interna.
+              As perguntas de Situação, Problema, Implicação e Necessidade moram no Painel de Calls,
+              uma por vez, com resposta e destino. Aqui só aparece o progresso derivado — sem
+              checkbox.
             </p>
-            {roteiroAberto ? (
-              <div className="mt-3 space-y-3">
-                {ROTEIRO_DISCOVERY.map((b) => (
-                  <div key={b.chave} className="rounded-lg border border-navy/10 bg-cream/40 p-3">
-                    <p className="text-sm font-medium text-navy">{b.titulo}</p>
-                    <ul className="mt-1 list-disc space-y-1 pl-4 text-xs text-navy/70">
-                      {b.perguntas.map((p) => (
-                        <li key={p}>{p}</li>
-                      ))}
-                    </ul>
-                    <p className="mt-2 text-[11px] uppercase tracking-wide text-navy/45">Alimenta: {b.campos.join(", ")}</p>
-                  </div>
-                ))}
-              </div>
-            ) : null}
+            <ul className="mt-3 grid gap-2 sm:grid-cols-4">
+              {progressoSpin(editado).map((e) => {
+                const meta = ETAPAS_SPIN.find((x) => x.chave === e.chave);
+                return (
+                  <li key={e.chave} className="rounded-lg border border-navy/10 bg-cream/40 px-3 py-2">
+                    <p className="text-[11px] uppercase tracking-wide text-navy/50">{e.rotulo}</p>
+                    <p className="font-serif text-lg tabular-nums text-navy">
+                      {e.preenchidas}/{e.total}
+                    </p>
+                    <p className="text-[10px] text-navy/50">{meta?.paraQue}</p>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="mt-3 text-xs">
+              <Link to="/calls" className="text-navy underline underline-offset-2">
+                Abrir a Mesa de Discovery no Painel de Calls
+              </Link>
+            </p>
           </div>
 
           <div className="rounded-xl border border-navy/10 bg-white p-4">
@@ -559,34 +558,6 @@ function LeadsPage() {
           </Secao>
 
           <Secao
-            titulo="SPIN da conversa"
-            descricao="SPIN não é checklist. Situação, Problema, Implicação e Necessidade são perguntas da Mesa de Discovery no Painel de Calls. Os sinais abaixo só espelham o que já foi respondido lá."
-          >
-            <p className="text-sm text-navy">
-              <Link to="/calls" className="underline underline-offset-2">
-                Abrir Mesa de Discovery no Painel de Calls
-              </Link>
-            </p>
-            <ul className="mt-3 grid gap-2 text-sm text-navy/80 sm:grid-cols-2">
-              {(
-                [
-                  ["Situação", "spin_situacao"],
-                  ["Problema", "spin_problema"],
-                  ["Implicação", "spin_implicacao"],
-                  ["Necessidade", "spin_necessidade"],
-                ] as const
-              ).map(([rotuloSpin, k]) => (
-                <li key={k} className="rounded-lg border border-navy/10 bg-cream/40 px-3 py-2">
-                  {rotuloSpin}: {bool(k) ? "há resposta na Mesa" : "ainda sem resposta"}
-                </li>
-              ))}
-            </ul>
-            <div className="mt-3 grid gap-3 md:grid-cols-2">
-              <Texto label="Dossiê do cliente (referência interna)" valor={campo("dossie_link_interno")} onChange={set("dossie_link_interno")} />
-            </div>
-          </Secao>
-
-          <Secao
             titulo="Dossiê-mãe autorizado"
             descricao="Dossiê só fica ativo com identificação, ambiente autorizado, link interno, nível de acesso e responsável nominal. Nada disso aparece em área de cliente."
           >
@@ -599,6 +570,7 @@ function LeadsPage() {
                 />
                 Dossiê-mãe ativo
               </label>
+              <Texto label="Dossiê do cliente (referência interna)" valor={campo("dossie_link_interno")} onChange={set("dossie_link_interno")} />
               <Texto label="ID/nome do dossiê-mãe" valor={campo("dossie_mae_ref")} onChange={set("dossie_mae_ref")} />
               <Selecao
                 label="Ambiente autorizado"
