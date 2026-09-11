@@ -1,3 +1,5 @@
+> **Decisão explícita da proprietária (Tatiana, 2026-09-10 / 2026-09-11).** Superfície operacional: `AGENTS.md` e `.cursor/rules/clube-ancestral.mdc`. Registro vivo de provas: `docs/relatorios/2026-09-11_registro-prova-autenticada.md`. Este arquivo é o texto integral do adendo; não reinterpretar como redesenho de menu, vocabulário CHECK-* ou autorização de merge/deploy.
+
 # Clube Ancestral — Adendo Vinculante
 ## Contexto Não Arquivável e Prova Visual Autenticada da Proprietária
 
@@ -105,16 +107,42 @@ Toda declaração de funcionamento deve ser acompanhada de prova visual produzid
 
 Cada execução deve registrar:
 
-1. **Print inicial autenticado** — sessão da proprietária, rota/título legível, objeto testado sem expor dado pessoal desnecessário.
-2. **Print da ação** — campo/botão/fluxo usado; alteração realizada; mascarar sensível se preciso.
-3. **Print de confirmação** — sucesso, bloqueio ou erro visível; toast sozinho não basta se a ação deveria persistir.
-4. **Print de releitura** — F5, reabertura ou nova sessão; valor/estado/vínculo continua no lugar certo.
-5. **Print de integração** — o mesmo fato no segundo contexto necessário (ex.: Discovery → Hoje).
-6. **Registro de resultado** — `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_DECISAO`, `ERRO_DE_FONTE` ou `NAO_LOCALIZADO`, com data/hora, ambiente, rota, motor e limite.
+1. **Print inicial autenticado**
+   - Tela com sessão autenticada da proprietária.
+   - Rota/título legível.
+   - Identificação segura do objeto testado: lead, pessoa, caso ou item, sem expor dados pessoais desnecessários.
+
+2. **Print da ação**
+   - Campo, botão ou fluxo usado.
+   - Alteração, aceite, criação de rascunho ou transição realizada.
+   - Se houver dado sensível, ocultar/mascarar no print sem apagar o contexto funcional.
+
+3. **Print de confirmação**
+   - Retorno visual claro de sucesso, bloqueio ou erro.
+   - Mensagem não basta como prova final se a ação deveria persistir.
+
+4. **Print de releitura**
+   - F5 completo, reabertura da tela ou nova sessão autenticada.
+   - Valor, estado, pendência ou vínculo continua presente no local correto.
+
+5. **Print de integração**
+   - O mesmo fato aparece no segundo contexto necessário: por exemplo, próxima ação de Discovery aparece em Hoje; pedido documental aparece em Pesquisa e no Caso; bloqueio de contrato aparece em Caso 360.
+
+6. **Registro de resultado**
+   - `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_DECISAO`, `ERRO_DE_FONTE` ou `NAO_LOCALIZADO`.
+   - Data/hora, ambiente, rota, motor testado e limitação do teste.
 
 ### Evidência que não basta sozinha
 
-Print sem login da proprietária; mockup/DEMO/fixture/preview sem dado real; teste/build/PR verde; código existente; log sem comportamento visível; toast sem releitura; declaração de agente/IA/desenvolvedor.
+- Print de ambiente sem login autenticado da proprietária.
+- Print de mockup, DEMO, fixture, preview sem dado real ou estado local.
+- Teste automatizado verde.
+- Build verde.
+- PR verde.
+- Código existente.
+- Log técnico sem comportamento visível.
+- Toast sem releitura após salvar.
+- Declaração de qualquer agente, IA, desenvolvedor ou relatório.
 
 ---
 
@@ -132,6 +160,8 @@ Print sem login da proprietária; mockup/DEMO/fixture/preview sem dado real; tes
 | Entregas / App Cliente | Revisar/liberar uma entrega em ambiente autorizado; abrir a projeção do cliente com acesso correto. | Conteúdo permitido aparece no App; conteúdo interno/sensível permanece ausente. |
 | KPIs e Hoje | Abrir um KPI, conferir fonte/lista e resolver ou atualizar um item; recarregar. | O card e a fila atualizam sem criar segundo registro. |
 | Abas / taxonomia | Navegar autenticada pelas seis áreas e abrir os contextos. | Um objeto fica em sua aba proprietária e só aparece como resumo/link nas demais. |
+
+> **Nota de mapeamento (não é autorização de redesenho):** o texto acima cita “seis áreas”. A navegação vigente continua sendo os **8 grupos** do Desk e as **7 abas** do App Cliente. A prova de taxonomia usa essas superfícies reais; não reabrir menu de 6 ou 7 itens internos.
 
 ---
 
@@ -178,6 +208,8 @@ Esta regra deve ser incluída, por referência, em:
 - toda proposta de arquivamento, remoção, simplificação ou migração.
 
 ### Texto obrigatório de rodapé
+
+Adicionar o bloco abaixo aos próximos artefatos técnicos e operacionais:
 
 ```text
 REGRA DE CONTINUIDADE — CONTEXTO NÃO ARQUIVÁVEL
@@ -226,3 +258,21 @@ Entrada comercial
 ```
 
 Até esse momento, o contexto continua ativo, versionado e acessível. Nenhuma parte essencial será arquivada por parecer concluída, por estar em código ou por decisão unilateral de um agente.
+
+```text
+REGRA DE CONTINUIDADE — CONTEXTO NÃO ARQUIVÁVEL
+
+Nenhum contexto, premissa, decisão, prompt, mockup, matriz, roteiro ou artefato
+vinculado a este fluxo pode ser arquivado, reduzido a histórico ou considerado
+substituído enquanto os motores relacionados não estiverem comprovadamente
+funcionando como um único produto do Clube Ancestral.
+
+A comprovação exige teste executado pela Proprietária autenticada em sua própria
+conta, com print inicial, ação, confirmação, releitura após F5/reabertura e,
+quando aplicável, print de integração com o módulo seguinte. Código, PR, build,
+teste automatizado, log, mockup, preview ou declaração de agente não bastam
+isoladamente.
+
+Resultado permitido: PASSOU, FALHOU, BLOQUEADO_POR_DADO,
+BLOQUEADO_POR_DECISAO, ERRO_DE_FONTE ou NAO_LOCALIZADO.
+```

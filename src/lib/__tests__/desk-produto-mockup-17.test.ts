@@ -18,7 +18,7 @@ describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas com
     expect(GRUPOS_DESK.map((g) => g.label)).toEqual([...GRUPOS_OPERACIONAIS_DESK]);
     expect(GRUPOS_DESK.map((g) => g.to)).toEqual([
       "/painel",
-      "/leads",
+      "/calls",
       "/casos",
       "/biblioteca",
       "/contratos",

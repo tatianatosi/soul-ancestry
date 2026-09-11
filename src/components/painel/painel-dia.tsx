@@ -224,18 +224,6 @@ function Linha({
   );
 }
 
-/**
- * Tom de cada métrica de decisão do topo. Só se aplica quando há valor maior
- * que zero: um contador zerado é boa notícia e não deve aparecer em vermelho.
- */
-const TOM_DO_CARD: Record<string, TomEstado> = {
-  acoes_vencidas: "critico",
-  acoes_hoje: "atencao",
-  sem_responsavel: "atencao",
-  excecoes_criticas: "critico",
-  sla_em_risco: "atencao",
-};
-
 const GRUPOS_INDICADOR = [
   {
     chave: "integridade" as const,
@@ -701,16 +689,15 @@ export function PainelDia() {
         data-desk-enxuto
         className="rounded-xl border border-gold/40 bg-gold/15 px-4 py-3 text-sm text-navy"
       >
-        Painel de Calls abre o funil comercial: gravar a call e recarregar.{" "}
+        As abas dizem onde cada função vive. A{" "}
         <Link to="/calls" className="font-medium underline decoration-gold underline-offset-4">
-          Abrir Painel de Calls
-        </Link>
-        . CRM Mestre e o dicionário moram no Comercial, com as Calls. Catálogo 30 fica em
-        Governança, no arquivo. Campo com pendência continua editável — a gravação é revalidada
-        no servidor.
+          Mesa de Discovery
+        </Link>{" "}
+        faz a entrada comercial. Os números abaixo só mostram o que está parado, vencido ou
+        precisa de decisão — receita e conversão ficam em Financeiro e Conversão.
       </p>
 
-      {/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco, nesta ordem) */}
+      {/* 0 — KPIs: parado, vencido, decisão. Sem receita/conversão de mockup; sem SLA sem fonte. */}
       <AncoraApp bloco="cards" />
       <section data-painel-bloco="cards" className="space-y-3">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-mockup-kpis>
@@ -748,6 +735,39 @@ export function PainelDia() {
             />
           </Link>
           <Link
+            to={(cards.find((c) => c.chave === "acoes_vencidas")?.destino ?? "/calls") as "/calls"}
+            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          >
+            <CardIndicador
+              rotulo="Vencidos"
+              valor={cards.find((c) => c.chave === "acoes_vencidas")?.total ?? 0}
+              apoio="Abrir a Mesa — vencidos"
+              tom={cards.find((c) => c.chave === "acoes_vencidas")?.total ? "critico" : "neutro"}
+            />
+          </Link>
+          <Link
+            to={(cards.find((c) => c.chave === "acoes_hoje")?.destino ?? "/calls") as "/calls"}
+            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          >
+            <CardIndicador
+              rotulo="Vence hoje"
+              valor={cards.find((c) => c.chave === "acoes_hoje")?.total ?? 0}
+              apoio="Abrir o que vence hoje na Mesa"
+              tom={cards.find((c) => c.chave === "acoes_hoje")?.total ? "atencao" : "neutro"}
+            />
+          </Link>
+          <Link
+            to={(cards.find((c) => c.chave === "sem_responsavel")?.destino ?? "/casos") as "/casos"}
+            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          >
+            <CardIndicador
+              rotulo="Sem responsável"
+              valor={cards.find((c) => c.chave === "sem_responsavel")?.total ?? 0}
+              apoio="Abrir casos para atribuir dono"
+              tom={cards.find((c) => c.chave === "sem_responsavel")?.total ? "atencao" : "neutro"}
+            />
+          </Link>
+          <Link
             to="/ops-excecoes"
             className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           >
@@ -759,24 +779,8 @@ export function PainelDia() {
             />
           </Link>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {cards.map((c) => (
-            <Link
-              key={c.chave}
-              to={c.destino as "/tarefas"}
-              className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-            >
-              <CardIndicador
-                rotulo={c.rotulo}
-                valor={c.total}
-                apoio={c.acao}
-                tom={c.total ? (TOM_DO_CARD[c.chave] ?? "neutro") : "neutro"}
-              />
-            </Link>
-          ))}
-        </div>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {faixa.map((f) => (
+          {faixa.filter((f) => f.chave !== "leads_sem_acao").map((f) => (
             <Link
               key={f.chave}
               to={f.destino as "/calls"}

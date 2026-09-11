@@ -4,9 +4,9 @@ import {
   GRUPOS_DESK,
   GRUPOS_OPERACIONAIS_DESK,
   LACUNAS_CONHECIDAS,
+  CAMADAS_DESK,
   ROTAS_PRESERVADAS,
   ROTAS_LEGADO_MENU_GOVERNANCA,
-  CAMADAS_DESK,
   destinosDuplicados,
   destinosSobrepostos,
   grupoDonoDaRota,
@@ -18,6 +18,18 @@ import {
 import { MATRIZ_EQUIVALENCIA } from "@/lib/matriz-equivalencia";
 
 describe("Navegação do Desk — 6 grupos operacionais", () => {
+  it("as três camadas não concorrem: abas, Mesa e KPIs", () => {
+    expect(CAMADAS_DESK.map((c) => c.id)).toEqual(["abas", "mesa", "kpis"]);
+    expect(CAMADAS_DESK.find((c) => c.id === "mesa")?.superficie).toBe("/calls");
+    expect(CAMADAS_DESK.find((c) => c.id === "kpis")?.superficie).toBe("/painel");
+    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
+    expect(comercial.to).toBe("/calls");
+    expect(comercial.sub.some((s) => "to" in s && s.to === "/calls" && s.label === "Mesa de Discovery")).toBe(
+      true,
+    );
+    expect(GRUPOS_DESK.find((g) => g.id === "hoje")?.to).toBe("/painel");
+  });
+
   it("expõe exatamente os 6 grupos aprovados", () => {
     expect(GRUPOS_DESK).toHaveLength(6);
     expect(GRUPOS_DESK.map((g) => g.label)).toEqual([...GRUPOS_OPERACIONAIS_DESK]);
