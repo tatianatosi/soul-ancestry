@@ -35,6 +35,50 @@ import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 const UUID = /^[0-9a-f-]{36}$/i;
 
+/**
+ * O guard `fn_lead_case_id_guard` só aceita `case_id` com `estagio = ganho`.
+ * A máquina de estados do lead só avança um passo por vez
+ * (novo → qualificado → proposta_em_preparo → proposta_enviada → ganho).
+ * Handoff Discovery = abertura formal: percorre a trilha até ganho.
+ */
+const TRILHA_ATE_GANHO = [
+  "novo",
+  "qualificado",
+  "proposta_em_preparo",
+  "proposta_enviada",
+  "ganho",
+] as const;
+
+async function promoverLeadParaGanho(args: {
+  supabase: any;
+  leadId: string;
+  organizationId: string;
+  userId: string;
+  estagioAtual: string | null | undefined;
+}): Promise<void> {
+  const atual = String(args.estagioAtual ?? "novo").toLowerCase();
+  if (atual === "ganho") return;
+  if (atual === "perdido" || atual === "arquivado") {
+    throw new Error(
+      `Lead em estágio «${atual}» — reabra a trilha comercial antes do handoff para pessoa e caso.`,
+    );
+  }
+  const idx = TRILHA_ATE_GANHO.indexOf(atual as (typeof TRILHA_ATE_GANHO)[number]);
+  if (idx < 0) {
+    throw new Error(`Estágio de lead não reconhecido: «${atual}».`);
+  }
+  for (let i = idx + 1; i < TRILHA_ATE_GANHO.length; i++) {
+    await gravarComVerificacao({
+      supabase: args.supabase,
+      tabela: "leads",
+      id: args.leadId,
+      organizationId: args.organizationId,
+      userId: args.userId,
+      payload: { estagio: TRILHA_ATE_GANHO[i] },
+    });
+  }
+}
+
 export type ResultadoHandoffDiscovery =
   | {
       ok: true;
@@ -136,6 +180,14 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
         });
       }
 
+      await promoverLeadParaGanho({
+        supabase,
+        leadId: data.leadId,
+        organizationId,
+        userId,
+        estagioAtual: (lead as { estagio?: string | null }).estagio,
+      });
+
       await gravarComVerificacao({
         supabase,
         tabela: "leads",
@@ -144,6 +196,7 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
         userId,
         payload: {
           case_id: casoExistente.id,
+          estagio: "ganho",
           eixo_comercial: "diagnostico_em_elaboracao",
         },
       });
@@ -293,6 +346,14 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
       }
     }
 
+    await promoverLeadParaGanho({
+      supabase,
+      leadId: data.leadId,
+      organizationId,
+      userId,
+      estagioAtual: (lead as { estagio?: string | null }).estagio,
+    });
+
     await gravarComVerificacao({
       supabase,
       tabela: "leads",
@@ -301,6 +362,7 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
       userId,
       payload: {
         case_id: casoId,
+        estagio: "ganho",
         eixo_comercial: "diagnostico_em_elaboracao",
       },
     });

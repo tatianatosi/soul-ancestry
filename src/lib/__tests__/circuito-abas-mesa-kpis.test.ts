@@ -86,6 +86,9 @@ describe("Mesa Discovery — handoff cria/reusa pessoa+caso sem redigitar", () =
     expect(fn).toContain('from("crm_casos")');
     expect(fn).toContain("case_id");
     expect(fn).toContain("diagnostico_em_elaboracao");
+    // Guard do banco: case_id só com estágio ganho (abertura formal).
+    expect(fn).toContain("promoverLeadParaGanho");
+    expect(fn).toContain('estagio: "ganho"');
     expect(fn).not.toMatch(/create table|nova_tabela/i);
   });
 
