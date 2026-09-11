@@ -1,14 +1,40 @@
 /**
  * NAVEGAÇÃO CANÔNICA DO DESK — 6 grupos, um endereço por função.
  *
- * Hoje · Marketing & Comercial · Pessoas & Casos · Inteligência & Pesquisa ·
- * Formalização & Financeiro · Governança & Administração.
+ * Três camadas, sem concorrer:
+ *   Abas     — definem onde cada função vive.
+ *   Mesa     — faz a entrada comercial funcionar (/calls).
+ *   KPIs     — mostram o que está parado, vencido ou precisa de decisão (/painel).
  *
  * Pesquisa e bases moram na Inteligência. Matrizes individual/casal/familiar
- * moram na Formalização. CA-04 (CRM Mestre + Dicionário) mora no Comercial
- * junto do Painel de Calls. Planilha Mestre, Top 30 e Catálogo 30 ficam só
- * em Governança (legado). URLs não mudam. Nenhuma rota operacional some.
+ * moram na Formalização. CA-04 mora no Comercial com a Mesa. URLs não mudam.
+ * Planilha Mestre, conciliação e SKU legado saem da operação diária e ficam
+ * em Governança, rotulados. Nada é apagado nesta rodada.
  */
+
+/** As três camadas do Desk. Não são abas novas. */
+export const CAMADAS_DESK = [
+  {
+    id: "abas",
+    papel: "Onde cada função vive",
+    frase: "Abas definem onde cada função vive.",
+    superficie: "os 6 grupos",
+  },
+  {
+    id: "mesa",
+    papel: "A entrada comercial funciona",
+    frase: "A Mesa de Discovery faz a entrada comercial funcionar.",
+    superficie: "/calls",
+    rota: "/calls",
+  },
+  {
+    id: "kpis",
+    papel: "O que está parado, vencido ou precisa de decisão",
+    frase: "Os KPIs do Hoje mostram o que está parado, vencido ou precisa de decisão.",
+    superficie: "/painel",
+    rota: "/painel",
+  },
+] as const;
 
 export type ItemNav =
   { grupo: string } | { to: string; label: string; hash?: string; adminOnly?: boolean };
@@ -57,7 +83,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     id: "hoje",
     to: "/painel",
     label: "Hoje",
-    descricao: "O que precisa de decisão agora — indicadores com ação, fila, alertas, bloqueios e prazos.",
+    descricao: "KPIs do que está parado, vencido ou precisa de decisão. A call se faz na Mesa.",
     icone: "hoje",
     sub: [
       { to: "/painel", label: "Visão Geral" },
@@ -67,17 +93,17 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   },
   {
     id: "comercial",
-    to: "/leads",
+    to: "/calls",
     label: "Marketing & Comercial",
-    descricao: "Origem da demanda, Calls, Discovery, proposta e conversão — CRM Vivo.",
+    descricao: "A Mesa de Discovery é a entrada. Leads, proposta e conversão moram nesta aba — não no Hoje.",
     icone: "comercial",
     agrupador: true,
     sub: [
       { grupo: "Aquisição" },
       { to: "/marketing", label: "Marketing e aquisição" },
       { grupo: "CRM Vivo" },
+      { to: "/calls", label: "Mesa de Discovery" },
       { to: "/leads", label: "Leads e triagem" },
-      { to: "/calls", label: "Painel de Calls" },
       { to: "/crm-mestre", label: "CRM Mestre — Discovery e Handoff" },
       { to: "/governanca/dicionario-calls-crm", label: "Dicionário Calls → CRM" },
       { to: "/propostas", label: "Propostas" },
@@ -127,7 +153,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { grupo: "Fontes e prova" },
       { to: "/fontes-genealogicas", label: "Fontes, consultas e bases genealógicas" },
       { to: "/evidencias", label: "Evidências e documentos" },
-      { to: "/privacidade", label: "Privacidade e consentimento" },
       { grupo: "Trilha" },
       { to: "/matriz-juridica", label: "Validação Jurídica" },
       { to: "/biblioteca-mensagens", label: "Biblioteca de Mensagens" },
@@ -153,19 +178,14 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/governanca/modelos-contratuais", label: "Matriz de modelos contratuais" },
       { grupo: "Catálogo e financeiro" },
       { to: "/catalogo", label: "Catálogo homologado" },
-      { to: "/homologacao-skus", label: "Homologação de SKUs" },
-      { to: "/conciliacao-catalogo", label: "Conciliação de catálogo" },
-      { to: "/divergencias-catalogo", label: "Divergências de catálogo" },
       { to: "/financeiro", label: "Condições, faturas e pagamentos internos" },
-      { to: "/conciliacao-catalogo", hash: "bloqueios", label: "Pendências de cobrança" },
-      { to: "/escopo-origem", label: "Origem do escopo (leitura, exportação CSV)" },
     ],
   },
   {
     id: "governanca",
     to: "/configuracoes",
     label: "Governança & Administração",
-    descricao: "Papéis, legado arquivado, integrações, DEMO e o que não decide o dia.",
+    descricao: "Papéis, privacidade, integrações e legado fora da operação diária.",
     icone: "governanca",
     agrupador: true,
     sub: [
@@ -176,10 +196,27 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/integracoes", label: "Integrações" },
       { to: "/importacoes", label: "Importações e migração" },
       { to: "/metricas", label: "Métricas comerciais e operacionais" },
-      { grupo: "Legado (arquivo)" },
+      { to: "/privacidade", label: "Privacidade e consentimento" },
+      { grupo: "Legado (fora da operação diária)" },
       { to: "/governanca/catalogo-operacional-30", label: "Catálogo operacional 30 (legado)" },
+      { to: "/homologacao-skus", label: "Homologação de SKUs (legado)" },
+      { to: "/conciliacao-catalogo", label: "Conciliação de catálogo (legado)" },
+      { to: "/divergencias-catalogo", label: "Divergências de catálogo (legado)" },
+      { to: "/escopo-origem", label: "Origem do escopo (legado)" },
     ],
   },
+] as const;
+
+/**
+ * Legado no menu de Governança. Decisão de 10/09/2026: fica aqui agora.
+ * No pente fino, sai do Desk e vai para arquivo GitHub — não apagar nesta rodada.
+ */
+export const ROTAS_LEGADO_MENU_GOVERNANCA = [
+  "/governanca/catalogo-operacional-30",
+  "/homologacao-skus",
+  "/conciliacao-catalogo",
+  "/divergencias-catalogo",
+  "/escopo-origem",
 ] as const;
 
 /**
@@ -315,6 +352,26 @@ export function destinosDuplicados(): string[] {
     }
   }
   return dup;
+}
+
+/**
+ * Grupo dono da rota: o trabalho completo mora aqui. Nos demais lugares,
+ * só resumo e link. Sem dono = rota fora do menu (não inventar aba).
+ */
+export function grupoDonoDaRota(rota: string): string | null {
+  const path = (rota.split("#")[0] ?? "").replace(/\/$/, "") || "/";
+  for (const g of GRUPOS_DESK) {
+    for (const s of g.sub) {
+      if ("to" in s && s.to === path) return g.label;
+    }
+  }
+  for (const g of GRUPOS_DESK) {
+    for (const s of g.sub) {
+      if (!("to" in s)) continue;
+      if (rotaAtendeDestino(path, s.to)) return g.label;
+    }
+  }
+  return null;
 }
 
 /**

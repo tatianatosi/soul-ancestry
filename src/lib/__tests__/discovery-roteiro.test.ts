@@ -1,14 +1,19 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  ETAPAS_SPIN,
   META_CAMPO_ROTEIRO,
+  PERGUNTAS_MESA,
   ROTEIRO_DISCOVERY,
   ROTULO_CAMPO_ROTEIRO,
   estadoResposta,
   marcoUsavelExternamente,
+  perguntaDaMesaPorCampo,
   pesquisaExternaPermitida,
   progressoRoteiro,
+  progressoSpin,
   sinaisQualidadeLead,
+  spinDerivadoDoLead,
 } from "@/lib/discovery-roteiro";
 import { CATALOGOS, validarLead, type LeadDesk } from "@/lib/crm-desk";
 
@@ -116,6 +121,65 @@ describe("card por pergunta (CA02-CRM-VIVO-PAINEL-CALLS)", () => {
   it("elegibilidade_preliminar (síntese da call) agora tem card — não fica fora do roteiro", () => {
     const decisao = ROTEIRO_DISCOVERY.find((b) => b.chave === "decisao")!;
     expect(decisao.campos).toContain("elegibilidade_preliminar");
+  });
+});
+
+describe("Mesa de Discovery — SPIN como pergunta, não checkbox", () => {
+  it("toda pergunta tem etapa SPIN, texto e campos que já existem no roteiro", () => {
+    expect(ETAPAS_SPIN.map((e) => e.chave)).toEqual([
+      "situacao",
+      "problema",
+      "implicacao",
+      "necessidade",
+    ]);
+    expect(PERGUNTAS_MESA.length).toBeGreaterThan(10);
+    const camposRoteiro = new Set(ROTEIRO_DISCOVERY.flatMap((b) => b.campos));
+    for (const p of PERGUNTAS_MESA) {
+      expect(p.pergunta.length).toBeGreaterThan(20);
+      expect(p.campos.length).toBeGreaterThan(0);
+      expect(ETAPAS_SPIN.some((e) => e.chave === p.etapa)).toBe(true);
+      for (const c of p.campos) {
+        expect(camposRoteiro.has(c), `campo fora do roteiro: ${c}`).toBe(true);
+        expect(META_CAMPO_ROTEIRO[c], `campo sem card: ${c}`).toBeDefined();
+      }
+    }
+  });
+
+  it("cada campo do roteiro tem exatamente uma pergunta da Mesa", () => {
+    const vistos = new Set<string>();
+    for (const p of PERGUNTAS_MESA) {
+      for (const c of p.campos) {
+        expect(vistos.has(c), `campo em duas perguntas: ${c}`).toBe(false);
+        vistos.add(c);
+        expect(perguntaDaMesaPorCampo(c)?.id).toBe(p.id);
+      }
+    }
+    for (const c of new Set(ROTEIRO_DISCOVERY.flatMap((b) => b.campos))) {
+      expect(perguntaDaMesaPorCampo(c), `campo órfão: ${c}`).toBeDefined();
+      expect(perguntaDaMesaPorCampo(c)?.pergunta.length).toBeGreaterThan(10);
+    }
+  });
+
+  it("spinDerivado segue resposta da Mesa, não um clique avulso", () => {
+    expect(spinDerivadoDoLead(base)).toEqual({
+      spin_situacao: false,
+      spin_problema: false,
+      spin_implicacao: false,
+      spin_necessidade: false,
+    });
+    const comObjetivo = { ...base, objetivo: "cidadania" } as LeadDesk;
+    expect(spinDerivadoDoLead(comObjetivo).spin_situacao).toBe(true);
+    expect(spinDerivadoDoLead(comObjetivo).spin_problema).toBe(false);
+  });
+
+  it("progressoSpin conta perguntas respondidas, não flags booleanas", () => {
+    const vazio = progressoSpin(base).find((e) => e.chave === "situacao")!;
+    expect(vazio.preenchidas).toBe(0);
+    const parcial = progressoSpin({ ...base, objetivo: "cidadania" } as LeadDesk).find(
+      (e) => e.chave === "situacao",
+    )!;
+    expect(parcial.preenchidas).toBe(1);
+    expect(parcial.completo).toBe(false);
   });
 });
 

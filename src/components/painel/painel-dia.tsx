@@ -229,10 +229,6 @@ function Linha({
   );
 }
 
-/**
- * Tom de cada métrica de decisão do topo. Só se aplica quando há valor maior
- * que zero: um contador zerado é boa notícia e não deve aparecer em vermelho.
- */
 const TOM_DO_CARD: Record<string, TomEstado> = {
   acoes_vencidas: "critico",
   acoes_hoje: "atencao",
@@ -706,16 +702,15 @@ export function PainelDia() {
         data-desk-enxuto
         className="rounded-xl border border-gold/40 bg-gold/15 px-4 py-3 text-sm text-navy"
       >
-        Painel de Calls abre o funil comercial: gravar a call e recarregar.{" "}
+        As abas dizem onde cada função vive. A{" "}
         <Link to="/calls" className="font-medium underline decoration-gold underline-offset-4">
-          Abrir Painel de Calls
-        </Link>
-        . CRM Mestre e o dicionário moram no Comercial, com as Calls. Catálogo 30 fica em
-        Governança, no arquivo. Campo com pendência continua editável — a gravação é revalidada
-        no servidor.
+          Mesa de Discovery
+        </Link>{" "}
+        faz a entrada comercial. Os números abaixo só mostram o que está parado, vencido ou
+        precisa de decisão — receita e conversão ficam em Financeiro e Conversão.
       </p>
 
-      {/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco + três atalhos únicos) */}
+{/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco + atalhos únicos, sem recontação) */}
       <AncoraApp bloco="cards" />
       <section data-painel-bloco="cards" className="space-y-3">
         <p className="text-[11px] uppercase tracking-wide text-navy/50">
@@ -751,7 +746,7 @@ export function PainelDia() {
             <CardIndicador
               rotulo="Leads sem próxima ação"
               valor={qtd("leads_sem_proxima_acao")}
-              apoio="Abrir no Painel de Calls"
+              apoio="Abrir na Mesa de Discovery"
               tom={qtd("leads_sem_proxima_acao") ? "atencao" : "neutro"}
             />
           </Link>
@@ -777,7 +772,7 @@ export function PainelDia() {
           })}
         </div>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {faixa.map((f) => (
+          {faixa.filter((f) => f.chave !== "leads_sem_acao").map((f) => (
             <Link
               key={f.chave}
               to={f.destino as "/calls"}
@@ -1078,12 +1073,17 @@ export function PainelDia() {
       >
         <h2 className="font-serif text-lg text-navy">Encontrar no Desk</h2>
         <AncoraApp bloco="descoberta" />
+        <p className="mt-1 text-sm text-navy/65">
+          Cada função vive na sua aba. A Mesa de Discovery faz a entrada. O Hoje
+          só aponta o que está parado, vencido ou pede decisão.
+        </p>
 
         <p className="mt-3 text-[11px] uppercase tracking-wide text-navy/50">
           Começar alguma coisa
         </p>
         <div className="mt-2 flex flex-wrap gap-2 text-xs">
           {[
+            { to: "/calls" as const, rotulo: "Mesa de Discovery" },
             { to: "/leads" as const, rotulo: "Novo lead" },
             { to: "/propostas" as const, rotulo: "Abrir proposta" },
             { to: "/casos" as const, rotulo: "Abrir caso" },

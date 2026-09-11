@@ -4,7 +4,10 @@
  * Regras puras, sem dado operacional: mapeiam rota técnica → rótulo humano e
  * descrevem os atalhos de descoberta do Painel Hoje. Nada aqui cria, altera ou
  * lê registro; é apenas linguagem de navegação sobre rotas já existentes.
+ * O campo `onde` é o grupo dono da rota — a aba onde a função vive.
  */
+
+import { grupoDonoDaRota } from "@/lib/navegacao-desk";
 
 /** Rótulo humano exibido na navegação e no cabeçalho, sem mudar a URL. */
 export const ROTULOS_HUMANOS: Record<string, string> = {
@@ -33,13 +36,17 @@ export type AtalhoDescoberta = {
  * Bloco "Encontrar no Desk": somente links para rotas existentes.
  * Nenhum atalho executa ação, cria tarefa, alerta, status ou fonte de verdade.
  */
+function atalho(rota: string, rotulo: string): AtalhoDescoberta {
+  return { rota, rotulo, onde: grupoDonoDaRota(rota) ?? "" };
+}
+
 export const ATALHOS_DESCOBERTA: readonly AtalhoDescoberta[] = [
-  { rota: "/qualidade", rotulo: "Radar Interno", onde: "Casos e núcleos" },
-  { rota: "/matriz-juridica", rotulo: "Validação Jurídica", onde: "Governança e biblioteca" },
-  { rota: "/casos", rotulo: ROTULO_PRIORIDADE, onde: "Casos 360 e Painel Hoje" },
-  { rota: "/pesquisa-modulo", rotulo: "Pesquisa Genealógica", onde: "Pesquisa genealógica" },
-  { rota: "/integracoes", rotulo: "Integrações", onde: "Governança e biblioteca" },
-  { rota: "/acessos-portal", rotulo: "App Cliente", onde: "App Cliente" },
+  atalho("/qualidade", "Radar Interno"),
+  atalho("/matriz-juridica", "Validação Jurídica"),
+  atalho("/casos", ROTULO_PRIORIDADE),
+  atalho("/pesquisa-modulo", "Pesquisa Genealógica"),
+  atalho("/integracoes", "Integrações"),
+  atalho("/acessos-portal", "App Cliente"),
 ] as const;
 
 /**

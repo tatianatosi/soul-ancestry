@@ -303,8 +303,8 @@ export function agruparLinhasIndicadores(linhas: LinhaIndicadorDia[]): Record<Gr
 
 /** Destino clicável de cada cartão do topo — o número sem ação não opera. */
 export const DESTINO_CARD_HOJE = {
-  acoes_vencidas: { destino: "/calls", acao: "Abrir Painel de Calls — vencidos" },
-  acoes_hoje: { destino: "/calls", acao: "Abrir o que vence hoje no Painel de Calls" },
+  acoes_vencidas: { destino: "/calls", acao: "Abrir a Mesa — vencidos" },
+  acoes_hoje: { destino: "/calls", acao: "Abrir o que vence hoje na Mesa" },
   sem_responsavel: { destino: "/casos", acao: "Abrir casos para atribuir dono" },
   // Conta FILAS_BLOQUEIO (contrato/pagamento/onboarding/documento), não a
   // tabela ops_excecoes. Destino = bloco de exceções deste painel.
@@ -442,7 +442,7 @@ export function faixaCockpitHoje(
       rotulo: "Calls de hoje",
       total: daFila("calls_hoje"),
       destino: "/calls",
-      acao: "Abrir Painel de Calls",
+      acao: "Abrir a Mesa de Discovery",
       leitura: "Leads com call marcada para hoje — mesma tabela leads",
     },
     {

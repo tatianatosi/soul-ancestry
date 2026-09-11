@@ -17,7 +17,7 @@ describe("De-para de nomenclatura — Desk usa os 6 grupos na navegação princi
     expect(GRUPOS_DESK).toHaveLength(6);
     expect(GRUPOS_DESK.map((g) => g.to)).toEqual([
       "/painel",
-      "/leads",
+      "/calls",
       "/casos",
       "/biblioteca",
       "/contratos",

@@ -23,6 +23,7 @@ describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
     const painel = ler("src/components/painel/painel-dia.tsx");
     expect(painel).toContain("faixaCockpitHoje");
     expect(painel).toContain("c.destino.split");
+    expect(painel).not.toContain('to={c.destino as "/tarefas"}');
     expect(painel).toContain("Buscar pessoa 360");
     expect(painel).toContain('to="/calls"');
   });
@@ -35,6 +36,8 @@ describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
     // Uma só face de exceções: cardsHoje "Exceções críticas" (não o rótulo antigo duplicado).
     expect(painel).not.toContain('rotulo="Exceções e bloqueios"');
     expect(painel).toContain("excecoes_criticas");
+    // Vencidos / Vence hoje vêm de cardsHoje (rótulo dinâmico c.rotulo), não hardcoded no TSX.
+    expect(painel).not.toContain('rotulo="SLA em risco"');
     expect(painel).not.toContain('rotulo="Receita do mês"');
     expect(painel).not.toContain('rotulo="Taxa de conversão"');
   });
