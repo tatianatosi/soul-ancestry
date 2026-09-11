@@ -94,8 +94,8 @@ export function CardIndicador({
 }) {
   const temValor = valor !== null && valor !== undefined && valor !== "";
   return (
-    <div className="rounded-xl border border-navy/10 bg-white p-4 shadow-[0_1px_2px_rgba(16,16,16,0.04)]">
-      <p className="text-[11px] font-medium uppercase tracking-widest text-navy/55">{rotulo}</p>
+    <div className="rounded-2xl border border-navy/10 bg-white p-4 shadow-sm">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-navy/50">{rotulo}</p>
       <p
         className={cn(
           "mt-1 font-serif text-3xl leading-none tabular-nums",

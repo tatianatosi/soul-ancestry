@@ -17,12 +17,68 @@ import type { LinhaIndicadorDia } from "@/lib/painel-dia";
  */
 
 export type GrupoIndicador = {
-  chave: string;
+  chave: "integridade" | "formalizacao" | "operacao" | "financeiro" | "cliente";
   titulo: string;
   resumo: string;
-  rota: string;
+  rota: "/qualidade" | "/conversao" | "/casos" | "/financeiro" | "/atendimento";
   acao: string;
 };
+
+/** Cada grupo mora na aba dona — não é um segundo dashboard no Hoje. */
+export const GRUPOS_INDICADOR: readonly GrupoIndicador[] = [
+  {
+    chave: "integridade",
+    titulo: "Integridade",
+    resumo: "Sem responsável, sem próxima ação, conflito de fonte e pendência de auditoria.",
+    rota: "/qualidade",
+    acao: "Abrir auditoria e integridade",
+  },
+  {
+    chave: "formalizacao",
+    titulo: "Formalização e comercial",
+    resumo: "Proposta incompleta, condição comercial bloqueada, revisão pendente e contrato sem avanço.",
+    rota: "/conversao",
+    acao: "Abrir conversão e funil",
+  },
+  {
+    chave: "operacao",
+    titulo: "Casos e operação",
+    resumo: "Documentos aguardados, prazo crítico, ausência de touchpoint e rechecagem vencida.",
+    rota: "/casos",
+    acao: "Abrir casos 360",
+  },
+  {
+    chave: "financeiro",
+    titulo: "Financeiro",
+    resumo: "Cobrança vencida, pagamento aguardado, pagamento sem onboarding e previsão sem condição comercial.",
+    rota: "/financeiro",
+    acao: "Abrir financeiro",
+  },
+  {
+    chave: "cliente",
+    titulo: "Cliente",
+    resumo: "Projeção aguardando aprovação, acesso pendente e comunicação humana sugerida.",
+    rota: "/atendimento",
+    acao: "Abrir fila humana em Atendimento",
+  },
+];
+
+export function ChamadaDaAba({ chave }: { chave: GrupoIndicador["chave"] }) {
+  const g = GRUPOS_INDICADOR.find((x) => x.chave === chave);
+  if (!g) return null;
+  return (
+    <aside
+      data-kpi-aba={g.chave}
+      className="mb-4 rounded-2xl border border-navy/10 bg-white p-4 shadow-sm"
+    >
+      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">
+        KPI desta aba
+      </p>
+      <h2 className="mt-1 font-serif text-lg text-navy">{g.titulo}</h2>
+      <p className="mt-1 text-sm text-navy/70">{g.resumo}</p>
+    </aside>
+  );
+}
 
 const CLASSE_GRAVIDADE: Record<string, string> = {
   P0: "border-terracotta/50 bg-terracotta/5 text-terracotta",

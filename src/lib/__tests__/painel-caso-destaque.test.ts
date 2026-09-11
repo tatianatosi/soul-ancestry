@@ -95,24 +95,25 @@ describe("marca: logo servido pelo próprio domínio", () => {
   });
 });
 
-describe("Sinais de atenção fundidos em Encontrar no Desk", () => {
+describe("Sinais de atenção nas abas donas", () => {
   const painel = readFileSync("src/components/painel/painel-dia.tsx", "utf8");
 
   it("deixou de ser bloco próprio", () => {
     expect(painel).not.toContain('data-painel-bloco="sinais"');
   });
 
-  it("os grupos passaram a ser renderizados dentro da descoberta", () => {
-    expect(painel).toContain("<SinaisPorGrupo");
+  it("no Hoje só restam atalhos para a aba dona, dentro da descoberta", () => {
+    expect(painel).not.toContain("<SinaisPorGrupo");
     const descoberta = painel.indexOf('data-painel-bloco="descoberta"');
-    expect(painel.indexOf("<SinaisPorGrupo")).toBeGreaterThan(descoberta);
+    expect(painel.indexOf("GRUPOS_INDICADOR.map")).toBeGreaterThan(descoberta);
   });
 
-  it("nada se perdeu: contagem, gravidade e link continuam por grupo", () => {
+  it("nada se perdeu: contagem, gravidade e link continuam no componente da aba", () => {
     const comp = readFileSync("src/components/painel/sinais-por-grupo.tsx", "utf8");
     expect(comp).toContain("{linhas.length}");
     expect(comp).toContain("maiorGravidade");
     expect(comp).toContain("{g.acao}");
+    expect(comp).toContain("ChamadaDaAba");
   });
 
   it("Itens derivados foram para a Cadência, que é o mesmo assunto", () => {

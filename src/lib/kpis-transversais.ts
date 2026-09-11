@@ -3,8 +3,8 @@
  *
  * Classifica o que já está no Desk (sem apagar rota nem tabela) e declara os
  * nove KPIs transversais como mapa de fonte → fila. A face da Visão Geral
- * (mockup de 17 páginas) continua sendo cardsHoje + faixaCockpitHoje +
- * alertas; estes nove não substituem essa hierarquia.
+ * (mockup de 17 páginas) é Casos, Alertas, Receita, Conversão, funil e
+ * prioridades no topo do Hoje; estes nove não substituem essa hierarquia.
  */
 
 import type { Fila } from "@/lib/crm-desk";

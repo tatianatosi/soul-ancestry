@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
 import { AtendimentoInterno } from "@/components/portal/atendimento-interno";
+import { ChamadaDaAba } from "@/components/painel/sinais-por-grupo";
 
 export const Route = createFileRoute("/_authenticated/atendimento")({
   head: () => ({
@@ -24,6 +25,7 @@ function AtendimentoPage() {
       titulo="Atendimento ao cliente"
       descricao="Tudo que o cliente vê no portal é liberado aqui, com registro de quem liberou e quando."
     >
+      <ChamadaDaAba chave="cliente" />
       <AtendimentoInterno />
     </SaasShell>
   );

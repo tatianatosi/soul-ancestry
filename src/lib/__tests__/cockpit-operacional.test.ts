@@ -21,26 +21,35 @@ describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
 
   it("cartões do Painel Hoje são os KPIs do mockup Visão Geral, com ação", () => {
     const painel = ler("src/components/painel/painel-dia.tsx");
-    expect(painel).toContain("faixaCockpitHoje");
+    const topo = ler("src/components/painel/visao-geral-topo.tsx");
+    expect(painel).toContain("VisaoGeralTopo");
     expect(painel).toContain('from "@/lib/painel-derivados"');
     expect(painel).toContain("itensDerivadosDoPainel");
-    expect(painel).toContain("Radar da carteira");
-    expect(painel).toContain('rotulo="Casos ativos"');
-    expect(painel).toContain('rotulo="Alertas pendentes"');
+    expect(topo).toContain('rotulo="Casos ativos"');
+    expect(topo).toContain('rotulo="Alertas pendentes"');
+    expect(topo).toContain('rotulo="Receita do mês"');
+    expect(topo).toContain('rotulo="Conversão"');
+    expect(topo).toContain("Funil de leads");
+    expect(topo).toContain("Prioridades de hoje");
     expect(painel).toContain("Buscar pessoa 360");
     expect(painel).toContain('to="/calls"');
     expect(painel).not.toContain('to={c.destino as "/tarefas"}');
+    expect(painel).not.toContain("Radar da carteira");
   });
 
-  it("o topo do Hoje segue o mockup: KPIs, funil e alertas — sem receita nem conversão DEMO", () => {
+  it("o topo do Hoje segue o mockup: KPIs, funil e prioridades — receita e conversão reais, sem DEMO", () => {
     const painel = ler("src/components/painel/painel-dia.tsx");
-    expect(painel).toContain("Radar da carteira");
-    expect(painel).toContain('rotulo="Leads sem próxima ação"');
-    expect(painel).toContain("faixa.map");
+    const topo = ler("src/components/painel/visao-geral-topo.tsx");
+    expect(painel).toContain("<VisaoGeralTopo");
+    expect(painel).toContain("receitaDoMes");
+    expect(painel).toContain("taxaConversaoLeadParaCaso");
     expect(painel).not.toContain("GradeKpisVivos");
     expect(painel).not.toContain("KPIS_TRANSVERSAIS");
-    expect(painel).not.toContain('rotulo="Receita do mês"');
-    expect(painel).not.toContain('rotulo="Taxa de conversão"');
+    expect(painel).not.toContain("Radar da carteira");
+    expect(topo).not.toContain("18.400");
+    expect(topo).not.toContain("34%");
+    expect(topo).toContain("receitaMes === null");
+    expect(topo).toContain("conversao === null");
   });
 
   it("indicadores canônicos de vencidos e sem responsável abrem a lista, não o próprio painel", () => {
@@ -62,9 +71,9 @@ describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
   });
 
   it("o Hoje declara as três camadas: abas, Mesa de Discovery e KPIs de decisão", () => {
-    const painel = ler("src/components/painel/painel-dia.tsx");
-    expect(painel).toContain("parado, vencido ou pede decisão");
-    expect(painel).toContain("Mesa de Discovery");
+    const topo = ler("src/components/painel/visao-geral-topo.tsx");
+    expect(topo).toContain("parado, vencido ou pede decisão");
+    expect(topo).toContain("Mesa de Discovery");
     expect(ler("src/lib/navegacao-desk.ts")).toContain("Painel de Calls — Mesa de Discovery");
   });
 
@@ -91,5 +100,16 @@ describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
     const visib = ler("src/components/portal/portal-visibilidade.tsx");
     expect(visib).toContain("enabled: previa === null");
     expect(visib).toContain("ESCOPO_PREVIA");
+  });
+
+  it("os cinco KPIs de sinal abrem a aba dona; o Hoje não replica a grade", () => {
+    const painel = ler("src/components/painel/painel-dia.tsx");
+    expect(painel).not.toContain("<SinaisPorGrupo");
+    expect(painel).toContain("GRUPOS_INDICADOR.map");
+    expect(ler("src/routes/_authenticated/qualidade.tsx")).toContain('chave="integridade"');
+    expect(ler("src/routes/_authenticated/conversao.tsx")).toContain('chave="formalizacao"');
+    expect(ler("src/routes/_authenticated/casos.index.tsx")).toContain('chave="operacao"');
+    expect(ler("src/routes/_authenticated/financeiro.tsx")).toContain('chave="financeiro"');
+    expect(ler("src/routes/_authenticated/atendimento.tsx")).toContain('chave="cliente"');
   });
 });

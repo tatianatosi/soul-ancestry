@@ -11,7 +11,7 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { ATALHOS_DESCOBERTA, ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { SELO_PROXIMA_ACAO } from "@/lib/caso-ficha";
-import { BadgeDesk, CarregandoDesk, CardIndicador, type TomEstado } from "@/components/desk/ui-desk";
+import { BadgeDesk, CarregandoDesk, type TomEstado } from "@/components/desk/ui-desk";
 import { listarAlertas } from "@/lib/alertas.functions";
 import { derivarCadenciaDoPainel } from "@/lib/painel-cadencia-derivada";
 import { escolherCasoDestaque } from "@/lib/painel-caso-destaque";
@@ -20,10 +20,10 @@ import { CasoEmDestaque } from "@/components/painel/caso-destaque";
 import { JornadaCasos } from "@/components/painel/jornada-casos";
 import { AncoraApp } from "@/components/painel/ancora-app";
 import { AberturaPainel } from "@/components/painel/abertura";
-import { SinaisPorGrupo } from "@/components/painel/sinais-por-grupo";
+import { VisaoGeralTopo } from "@/components/painel/visao-geral-topo";
+import { GRUPOS_INDICADOR } from "@/components/painel/sinais-por-grupo";
 import { AcoesRapidasProprietaria } from "@/components/painel/acoes-rapidas";
 import { casosBloqueadosPorCatalogo } from "@/lib/catalogo-referencia.functions";
-import { EXCECAO_CONDICAO_COMERCIAL } from "@/lib/catalogo-referencia";
 import { painelCadencia } from "@/lib/jornada-cliente.functions";
 import { panoramaChecklistJuridico } from "@/lib/contratos.functions";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
@@ -31,12 +31,19 @@ import { FilaSlaOperacional } from "@/components/ops/fila-sla-operacional";
 import { rotulo as rotuloCatalogo } from "@/lib/crm-desk";
 import { sinaisMarketing } from "@/lib/indicadores-marketing";
 import { contarLeadsAguardandoAcao, fraseComercialHoje } from "@/lib/comercial-hoje-canonico";
+import { listarComercial } from "@/lib/comercial.functions";
+import { carregarConversao } from "@/lib/conversao.functions";
+import { montarEstados, montarFunil, type EventoBruto } from "@/lib/conversao-funil";
+import {
+  recorteFunilHoje,
+  receitaDoMes,
+  taxaConversaoLeadParaCaso,
+} from "@/lib/visao-geral-mockup";
 import { GATILHOS, type Gatilho } from "@/lib/fila-comunicacao";
 import {
   aplicarFiltrosDia,
   cadenciaRelevante,
   cardsHoje,
-  faixaCockpitHoje,
   chavesExibidas,
   comercialHoje,
   consolidarDia,
@@ -224,57 +231,6 @@ function Linha({
   );
 }
 
-const TOM_DO_CARD: Record<string, TomEstado> = {
-  acoes_vencidas: "critico",
-  acoes_hoje: "atencao",
-  sem_responsavel: "atencao",
-  excecoes_criticas: "critico",
-  sla_em_risco: "atencao",
-};
-
-const GRUPOS_INDICADOR = [
-  {
-    chave: "integridade" as const,
-    titulo: "Integridade",
-    resumo: "Sem responsável, sem próxima ação, conflito de fonte e pendência de auditoria.",
-    // Corte D (09/09/2026): /auditoria foi removida — o Radar Interno em
-    // /qualidade já cobre este conteúdo (ver qualidade.tsx). O card tinha CTA
-    // morto (404).
-    rota: "/qualidade" as const,
-    acao: "Abrir auditoria e integridade",
-  },
-  {
-    chave: "formalizacao" as const,
-    titulo: "Formalização e comercial",
-    resumo:
-      "Proposta incompleta, condição comercial bloqueada, revisão pendente e contrato sem avanço.",
-    rota: "/conversao" as const,
-    acao: "Abrir conversão e funil",
-  },
-  {
-    chave: "operacao" as const,
-    titulo: "Casos e operação",
-    resumo: "Documentos aguardados, prazo crítico, ausência de touchpoint e rechecagem vencida.",
-    rota: "/casos" as const,
-    acao: "Abrir casos 360",
-  },
-  {
-    chave: "financeiro" as const,
-    titulo: "Financeiro",
-    resumo:
-      "Cobrança vencida, pagamento aguardado, pagamento sem onboarding e previsão sem condição comercial.",
-    rota: "/financeiro" as const,
-    acao: "Abrir financeiro",
-  },
-  {
-    chave: "cliente" as const,
-    titulo: "Cliente",
-    resumo: "Projeção aguardando aprovação, acesso pendente e comunicação humana sugerida.",
-    rota: "/atendimento" as const,
-    acao: "Abrir fila humana em Atendimento",
-  },
-];
-
 /** Painel Hoje enxuto: fila priorizada, exceções com dono, comercial e casos do dia. */
 export function PainelDia() {
   const carregarDesk = useServerFn(painelHojeDesk);
@@ -319,6 +275,18 @@ export function PainelDia() {
   const qAlertas = useQuery({
     queryKey: ["alertas-pendentes-hoje"],
     queryFn: () => carregarAlertas({ data: { status: "pending" } }),
+    retry: false,
+  });
+  const carregarConversaoHoje = useServerFn(carregarConversao);
+  const qConversao = useQuery({
+    queryKey: ["conversao", incluirDemo],
+    queryFn: () => carregarConversaoHoje({ data: { incluirDemo } }),
+    retry: false,
+  });
+  const carregarPagamentos = useServerFn(listarComercial);
+  const qPagamentos = useQuery({
+    queryKey: ["painel-receita-mes", incluirDemo],
+    queryFn: () => carregarPagamentos({ data: { recurso: "payments", incluirDemos: incluirDemo } }),
     retry: false,
   });
   const leiturasSecundarias = [
@@ -395,14 +363,23 @@ export function PainelDia() {
     incluirDemo,
   });
   const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[], 6, usados);
-  const faixa = faixaCockpitHoje(filas, {
-    incluirDemo,
-    cadenciasAtrasadas: cadencia.length,
-  });
   for (const c of cadencia) usados.add(`caso:${String((c as any).id)}`);
   for (const i of cadenciaFollowUp) usados.add(i.pessoaOuCasoId);
   const qtd = (chave: string) =>
     (filas.find((f: any) => f.chave === chave)?.itens.length ?? 0) as number;
+
+  const eventosConv = (qConversao.isSuccess ? (qConversao.data?.eventos ?? []) : []) as EventoBruto[];
+  const estadosConv = montarEstados(eventosConv, {
+    leads: new Map((qConversao.data?.rotulos?.leads ?? []).map((l) => [l.id, l.rotulo])),
+    casos: new Map((qConversao.data?.rotulos?.casos ?? []).map((c) => [c.id, c.rotulo])),
+  });
+  const funilCheio = montarFunil(eventosConv, estadosConv);
+  const funilHoje = recorteFunilHoje(funilCheio);
+  const taxaConversao = qConversao.isSuccess ? taxaConversaoLeadParaCaso(funilCheio) : null;
+  const receitaMes = qPagamentos.isSuccess
+    ? receitaDoMes((qPagamentos.data ?? []) as { status?: unknown; pago_em?: unknown; valor?: unknown; dados_teste?: unknown }[], hoje, incluirDemo)
+    : null;
+  const prioridadesTopo = priorizada.flatMap((f) => f.itens).slice(0, 5);
 
   const sinais = sinaisMarketing({
     leads_sem_origem: qtd("leads_sem_origem"),
@@ -631,17 +608,11 @@ export function PainelDia() {
   });
 
   const agrupado = agruparLinhasIndicadores(linhasIndicadores);
-  const PESO = { P0: 3, P1: 2, P2: 1 } as const;
-  const maiorGravidade = (ls: LinhaIndicadorDia[]) =>
-    ls.reduce<LinhaIndicadorDia["severidade"] | null>(
-      (m, l) => (!m || PESO[l.severidade] > PESO[m] ? l.severidade : m),
-      null,
-    );
 
   return (
     <div ref={raizRef} className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
-        <p className="min-w-0 text-sm text-navy/60">
+        <p data-desk-enxuto className="min-w-0 text-sm text-navy/60">
           O que precisa de ação hoje, por quem e até quando. Governança, catálogo, métricas e
           planejamento ficam nas áreas proprietárias.
         </p>
@@ -672,11 +643,6 @@ export function PainelDia() {
       */}
       <AvisoLeituraPainel problemas={problemasLeitura} />
 
-      {/*
-        Abertura: a frase antes do número. O Painel abria com cinco métricas, e
-        quem chega de manhã lia cinco números sem saber o que fazer com eles.
-        Nada de novo é calculado aqui — é leitura do que já foi derivado.
-      */}
       {leiturasSecundarias.length ? (
         <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2">
           <p className="text-sm text-terracotta">
@@ -692,108 +658,20 @@ export function PainelDia() {
           </button>
         </div>
       ) : null}
-      <AberturaPainel cards={cards} totalCasos={(qCad.data?.casos ?? []).length} />
-      <p
-        data-desk-enxuto
-        className="rounded-xl border border-gold/40 bg-gold/15 px-4 py-3 text-sm text-navy"
-      >
-        As abas definem onde cada função vive. A{" "}
-        <Link to="/calls" className="font-medium underline decoration-gold underline-offset-4">
-          Mesa de Discovery
-        </Link>{" "}
-        faz a entrada comercial. Os KPIs mostram o que está parado, vencido ou pede decisão.
-        Funil e alertas abrem a fila. Receita e conversão de demonstração não entram aqui.
-      </p>
 
-      {/* 0 — Visão Geral do mockup: KPIs, funil (Calls) e alertas. Radar é camada, não aba. */}
-      <AncoraApp bloco="cards" />
-      <section data-painel-bloco="cards" className="space-y-3">
-        <div>
-          <h2 className="font-serif text-lg text-navy">Radar da carteira</h2>
-          <p className="text-xs text-navy/55">
-            Leitura do dia: o que está parado, vencido ou pede decisão. Sem score. Cada número abre a fila.
-          </p>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-mockup-kpis>
-          <Link
-            to="/casos"
-            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-          >
-            <CardIndicador
-              rotulo="Casos ativos"
-              valor={(qCad.data?.casos ?? []).length}
-              apoio="Abrir Casos 360"
-              tom="neutro"
-            />
-          </Link>
-          <Link
-            to="/alertas"
-            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-          >
-            <CardIndicador
-              rotulo="Alertas pendentes"
-              valor={qAlertas.isSuccess ? (qAlertas.data ?? []).length : null}
-              apoio="Abrir a lista em Alertas"
-              tom="atencao"
-            />
-          </Link>
-          <Link
-            to="/calls"
-            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-          >
-            <CardIndicador
-              rotulo="Leads sem próxima ação"
-              valor={qtd("leads_sem_proxima_acao")}
-              apoio="Abrir no Painel de Calls"
-              tom={qtd("leads_sem_proxima_acao") ? "atencao" : "neutro"}
-            />
-          </Link>
-          <Link
-            to="/ops-excecoes"
-            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-          >
-            <CardIndicador
-              rotulo="Exceções e bloqueios"
-              valor={cards.find((c) => c.chave === "excecoes_criticas")?.total ?? 0}
-              apoio="Abrir exceções operacionais"
-              tom={cards.find((c) => c.chave === "excecoes_criticas")?.total ? "critico" : "neutro"}
-            />
-          </Link>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {cards.map((c) => (
-            <Link
-              key={c.chave}
-              to={c.destino as "/calls"}
-              className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-            >
-              <CardIndicador
-                rotulo={c.rotulo}
-                valor={c.total}
-                apoio={c.acao}
-                tom={c.total ? (TOM_DO_CARD[c.chave] ?? "neutro") : "neutro"}
-              />
-            </Link>
-          ))}
-        </div>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {faixa.map((f) => (
-            <Link
-              key={f.chave}
-              to={f.destino as "/calls"}
-              className="flex items-baseline justify-between gap-3 rounded-lg border border-navy/10 bg-white px-3 py-2 text-sm text-navy hover:border-gold/60"
-            >
-              <span>
-                <span className="block text-[11px] uppercase tracking-wide text-navy/50">{f.rotulo}</span>
-                <span className="text-xs text-navy/65">{f.acao}</span>
-              </span>
-              <span className="shrink-0 font-serif text-xl tabular-nums">
-                {f.total === null ? "—" : f.total}
-              </span>
-            </Link>
-          ))}
-        </div>
+      {/* 0 — Visão Geral do mockup: Casos, Alertas, Receita, Conversão, funil e prioridades. */}
+      <section data-painel-bloco="cards">
+        <AncoraApp bloco="cards" />
+        <VisaoGeralTopo
+          casosAtivos={(qCad.data?.casos ?? []).length}
+          alertasPendentes={qAlertas.isSuccess ? (qAlertas.data ?? []).length : null}
+          receitaMes={receitaMes}
+          conversao={taxaConversao}
+          funil={funilHoje}
+          prioridades={prioridadesTopo}
+        />
       </section>
+      <AberturaPainel cards={cards} totalCasos={(qCad.data?.casos ?? []).length} />
 
       {/*
         1 — Caso em destaque. O que olhar primeiro, com a regra que o colocou
@@ -1115,30 +993,37 @@ export function PainelDia() {
         </details>
 
         {/*
-          Sinais de atenção, fundidos aqui em 25/08. Cada grupo já era contagem,
-          gravidade e link para a página canônica — a mesma natureza deste
-          bloco, com severidade por cima. Só conta e linka.
+          Os cinco grupos de sinal saíram desta grade. Cada um abre a aba dona
+          (Radar Interno, Conversão, Casos, Financeiro, Atendimento). O Hoje
+          guarda só o atalho — a contagem vive na superfície canônica.
         */}
-        <div className="mt-4 flex flex-wrap items-baseline justify-between gap-3 border-t border-navy/10 pt-3">
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">
-            Onde há sinal de atenção
-          </p>
-          <span className="flex flex-wrap items-baseline gap-3">
-            {/* CA-OPS-02: cadência não é recalculada aqui; só atalho para a fonte canônica em /ops. */}
-            <Link
-              to="/ops"
-              className="text-[11px] font-medium text-navy underline underline-offset-2"
-            >
-              Ver cadência e onboarding em risco
-            </Link>
-          </span>
-        </div>
-        <SinaisPorGrupo
-          grupos={GRUPOS_INDICADOR}
-          agrupado={agrupado}
-          maiorGravidade={maiorGravidade}
-          bloqueadosCatalogo={bloqueadosCatalogo}
-        />
+        <details className="mt-4 border-t border-navy/10 pt-3">
+          <summary className="cursor-pointer text-[11px] uppercase tracking-wide text-navy/50">
+            Abrir sinal na aba dona
+          </summary>
+          <div className="mt-2 flex flex-wrap gap-2 text-xs">
+            {GRUPOS_INDICADOR.map((g) => {
+              const n = (agrupado[g.chave] ?? []).length;
+              return (
+                <Link
+                  key={g.chave}
+                  to={g.rota}
+                  title={n ? `${n} sinal(is) nesta leitura` : g.resumo}
+                  className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/75 hover:bg-navy/5"
+                >
+                  {g.titulo}
+                </Link>
+              );
+            })}
+          </div>
+          {/* CA-OPS-02: cadência não é recalculada aqui; só atalho para a fonte canônica em /ops. */}
+          <Link
+            to="/ops"
+            className="mt-2 inline-block text-[11px] font-medium text-navy underline underline-offset-2"
+          >
+            Ver cadência e onboarding em risco
+          </Link>
+        </details>
       </section>
 
       <div className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy/70">

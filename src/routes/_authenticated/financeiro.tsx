@@ -8,6 +8,7 @@ import { diasDesde, rotuloIdade, tomIdade } from "@/lib/idade-registro";
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { ChamadaDaAba } from "@/components/painel/sinais-por-grupo";
 import {
   Campo,
   FiltroStatus,
@@ -201,6 +202,7 @@ function FinanceiroPage() {
       }
     >
       <div className="space-y-4">
+        <ChamadaDaAba chave="financeiro" />
         {qFaturas.isError || qPagamentos.isError ? (
           <p className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
             Não foi possível carregar {qFaturas.isError && qPagamentos.isError ? "faturas nem pagamentos" : qFaturas.isError ? "as faturas" : "os pagamentos"}.

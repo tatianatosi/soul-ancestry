@@ -93,11 +93,9 @@ describe("CA-OPS-02 — Painel Hoje e catálogo", () => {
 
   it("6. sinais não duplicam GATILHOS existentes", () => {
     expect(painel).toContain("import { GATILHOS");
-    // Desde 25/08 os grupos são renderizados por <SinaisPorGrupo />, dentro de
-    // "Encontrar no Desk". O que a regra protege continua valendo: os grupos
-    // são percorridos uma única vez, em um único lugar.
-    expect(painel.match(/<SinaisPorGrupo/g)?.length ?? 0).toBe(1);
-    expect(painel.match(/GRUPOS_INDICADOR\.map/g)?.length ?? 0).toBe(0);
+    // Os grupos saíram da grade do Hoje: cada um abre a aba dona uma única vez.
+    expect(painel.match(/<SinaisPorGrupo/g)?.length ?? 0).toBe(0);
+    expect(painel.match(/GRUPOS_INDICADOR\.map/g)?.length ?? 0).toBe(1);
     const comp = readFileSync("src/components/painel/sinais-por-grupo.tsx", "utf8");
     expect(comp.match(/grupos\.map/g)?.length ?? 0).toBe(1);
   });

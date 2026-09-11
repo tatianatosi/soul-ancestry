@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import { SaasShell, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { ChamadaDaAba } from "@/components/painel/sinais-por-grupo";
 import { carregarConversao } from "@/lib/conversao.functions";
 import {
   ESCADA,
@@ -118,6 +119,7 @@ function Conversao() {
       titulo="Comercial"
       descricao="Leitura interna. Nenhuma cobrança, mensagem, contrato ou automação é disparada nesta tela."
     >
+      <ChamadaDaAba chave="formalizacao" />
       <p data-conversao="rotulo-canonico" className="text-[11px] uppercase tracking-wide text-navy/50">
         Fonte canônica de conversão e saúde comercial
       </p>
