@@ -160,7 +160,7 @@ Cada execução deve registrar:
 | KPIs e Hoje | Abrir um KPI, conferir fonte/lista e resolver ou atualizar um item; recarregar. | O card e a fila atualizam sem criar segundo registro. |
 | Abas / taxonomia | Navegar autenticada pelas seis áreas e abrir os contextos. | Um objeto fica em sua aba proprietária e só aparece como resumo/link nas demais. |
 
-> **Nota de mapeamento (não é autorização de redesenho):** o texto acima cita “seis áreas”. A navegação vigente continua sendo os **8 grupos** do Desk e as **7 abas** do App Cliente. A prova de taxonomia usa essas superfícies reais; não reabrir menu de 6 ou 7 itens internos.
+> **Nota de mapeamento (não é autorização de redesenho nem de arquivamento):** o texto da matriz cita “seis áreas”. Isso mapeia para os **6 grupos vigentes** do Desk: Hoje · Marketing & Comercial · Pessoas & Casos · Inteligência & Pesquisa · Formalização & Financeiro · Governança & Administração. O App Cliente permanece com **7 abas** (`Home` · `Jornada` · `Radar` · `Árvore` · `Documentos` · `Legado` · `Conta`). O texto de **8 grupos** da memória permanente (CA-UX-03) permanece **contexto ativo** até `COMPROVADO_EM_USO` — não arquivar, não tratar como superado, não restaurar como menu sem nova decisão explícita. Radar é leitura/camada, não 7ª aba da sidebar.
 
 ---
 
