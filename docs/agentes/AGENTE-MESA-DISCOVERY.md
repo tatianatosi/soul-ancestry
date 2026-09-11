@@ -27,6 +27,16 @@ conversa/dump → varredura revisável → SPIN → próxima ação + responsáv
 | Consumo Hoje | `montarFilasHoje` / painel em `src/lib/crm-desk.ts` |
 | Consumo comercial | `/conversao`, `/proximas-acoes`, `/leads` |
 
+## Quadro diário de tarefas (manhã e fim do dia)
+
+Atualizar `docs/relatorios/TAREFAS-MESA-DISCOVERY.md` com o formato fixo:
+
+1. O que já funciona (front + back)  
+2. O que o agente está corrigindo **agora**  
+3. O que ainda trava o 100% (fio Supabase/Vercel, prova da dona, distorções)  
+
+Linguagem simples; sem declarar pronto sem print autenticado da proprietária.
+
 ## Prova de conclusão
 
 Registrar `PASSOU` somente se o corte vertical §8 do reset passar com releitura após recarregar.
