@@ -420,6 +420,10 @@ function Pagina() {
         </p>
       ) : null}
       <div className="space-y-4">
+        <p className="rounded-lg border border-gold/40 bg-gold/5 px-4 py-3 text-sm text-navy/80">
+          Motor contratual parametrizado por cliente: dados e anexos (escopo, entregas) vêm do Canva da
+          proposta. A timeline da jornada da pessoa fica na Pessoa 360 — aqui só formalização.
+        </p>
         <Painel titulo={`Caso em preparação: ${d.caso.codigo} — ${d.cliente?.nome ?? "cliente não vinculado"}`}>
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <Selo texto={`Situação da ficha: ${d.registro.status}`} tom={d.registro.status === "assinado" ? "ok" : "alerta"} />

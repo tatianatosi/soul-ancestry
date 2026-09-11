@@ -14,7 +14,7 @@ Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da propriet
 - Mapear conceitos para tabelas **já existentes** em `src/integrations/supabase/types.ts` e `supabase/migrations/`. Reaproveitar `case_members` / `tarefas` / `planner_tarefas` / `research_cases` / `documents` etc. Cruzar escritores de `src/lib` com `types.ts` **e** `CHECK` das migrations — `string` no tipo gerado não libera vocabulário novo.
 - Manter os grupos reais de `GRUPOS_DESK` (desta linha: 6) e as **7 abas canônicas** do App Cliente (`Home, Jornada, Radar, Árvore, Documentos, Legado, Conta`). A memória permanente ainda cita 8 grupos — dívida declarada, não licença para nona aba nem para arquivar nenhuma das leituras.
 - Nav do cliente = só as 7. Entregas / Fase 01 / Fase 02 **fora** da barra (conteúdo ou rota profunda, não aba).
-- Usar o mockup de **17 páginas** como visual normativo. PDF de **47 páginas**, distorção e comparação visual = auditoria, não briefing de redesign.
+- Usar o mockup de **17 páginas** como visual normativo. PDF de **47 páginas**, distorção e comparação visual = auditoria de conteúdo/estados/indicadores **em conjunto** com o de 17 (adendo 2026-09-11); não briefing para restaurar sidebar Lovable.
 - Tratar Pessoa, Núcleo, Lead, Caso, Pesquisa e Contrato como entidades distintas ligadas por IDs. App Cliente = projeção autorizada desses objetos.
 - Classificar motor/planejador/skill/dump como operável só com fonte + escritor + persistência + consumidor + CTA + reload.
 - Preservar fechamentos da PR #85: escritor `confirmarDocumentosMinimos` → `documentos_minimos_ok`; convite/login cliente pelo fluxo oficial; não regredir.

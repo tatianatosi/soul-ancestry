@@ -181,7 +181,7 @@ function PropostasPage() {
   return (
     <SaasShell
       titulo="CRM Vivo — Propostas"
-      descricao="Versões, escopo, condições e validade. Só uma proposta aprovada por cliente."
+      descricao="A proposta comercial é montada no Canva. Aqui ficam versão, status, validade e o vínculo ao caso. A oferta canônica são os produtos-pai do planejador — não SKUs do protótipo Lovable."
       acoes={
         (
           <button
@@ -191,7 +191,7 @@ function PropostasPage() {
             }}
             className="rounded-lg bg-navy px-3 py-2 text-sm text-cream"
           >
-            Nova proposta
+            Registrar versão no Desk
           </button>
         )
       }
@@ -204,6 +204,19 @@ function PropostasPage() {
         </p>
       ) : null}
       <div className="space-y-4">
+        <div className="rounded-lg border border-gold/40 bg-gold/5 px-4 py-3 text-sm text-navy/80">
+          <p>
+            <span className="font-medium text-navy">Fonte da proposta:</span> Canva (conteúdo
+            comercial personalizado). No Desk, após o aceite, a formalização puxa escopo, entregas e
+            anexos em{" "}
+            <span className="font-medium">Casos 360 → Preparar contrato</span>. Produtos-pai do
+            planejador universal:{" "}
+            <Link to="/catalogo" className="font-medium text-navy underline underline-offset-2">
+              Catálogo / produtos-pai
+            </Link>
+            .
+          </p>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <FiltroStatus rotulos={ROTULO_PROPOSTA} valor={status} aoMudar={setStatus} />
           {(["ativas", "todas", "arquivadas"] as const).map((v) => (
@@ -389,7 +402,28 @@ function PropostasPage() {
           </Painel>
 
           {detalhe["case_id"] ? (
-            <RegraComercial caseId={String(detalhe["case_id"])} />
+            <details className="rounded-xl border border-navy/15 bg-cream/40 p-3">
+              <summary className="cursor-pointer text-sm font-medium text-navy">
+                Conferência comercial legada (SKU) — não é a oferta canônica
+              </summary>
+              <p className="mt-2 text-xs text-navy/65">
+                A oferta vigente são os produtos-pai do planejador. Este bloco permanece só para
+                conferência de preço legado / despesas de terceiros; não substitui o Canva nem o
+                catálogo.
+              </p>
+              <div className="mt-3">
+                <RegraComercial caseId={String(detalhe["case_id"])} />
+              </div>
+              <p className="mt-3 text-xs">
+                <Link
+                  to="/casos/$caseId/contrato/preparar"
+                  params={{ caseId: String(detalhe["case_id"]) }}
+                  className="font-medium text-navy underline underline-offset-2"
+                >
+                  Abrir preparação contratual (Canva → parâmetros e anexos)
+                </Link>
+              </p>
+            </details>
           ) : null}
 
           {(

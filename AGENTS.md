@@ -92,7 +92,7 @@ Rótulo da primeira aba no mockup e em `COPY_TELAS.casos.navegacao`: **Home** (n
 
 Abas extras condicionais (Entregas, Fase 01, Fase 02, Proposta) ainda existem no código — **dívida a retirar da barra**, não expansão da taxonomia. Ver artefato 007 abaixo.
 
-**Mockup vs produção:** o PDF de 17 páginas é normativo visual. O PDF de auditoria de **47 páginas** (`clube-ancestral-mockup-auditoria.pdf`) é complementar (conteúdo/estados/fluxos), **sem força normativa de design**. Produção tem 8 grupos operacionais; o mockup mostra 7 itens de Desk — divergência já decidida: manter os 8.
+**Mockup vs produção:** o PDF de 17 páginas é normativo visual. O PDF de auditoria de **47 páginas** (`clube-ancestral-mockup-auditoria.pdf`) guia **conteúdo, estados e indicadores** em conjunto com o de 17 — sem redesenhar navegação. Comparativos visuais e telas Lovable arquivados em `docs/evolucao/recuperados/auditoria-mockup-2026-09-11/` e Canvas em `…/ancestral-canvas-2026-09-11/`; destilado em `docs/politicas/ADENDO-MEMORIA-AUDITORIA-MOCKUP-CANVAS-2026-09-11.md`. “Aderente” no PDF de comparação **não** é aceite. Grupos Desk = o que `GRUPOS_DESK` define no código; App Cliente = 7 abas.
 
 README raiz ainda descreve o protótipo visual antigo (6 abas, dados fictícios). É histórico, não a operação atual.
 
