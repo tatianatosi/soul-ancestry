@@ -306,7 +306,9 @@ export const DESTINO_CARD_HOJE = {
   acoes_vencidas: { destino: "/calls", acao: "Abrir Painel de Calls — vencidos" },
   acoes_hoje: { destino: "/calls", acao: "Abrir o que vence hoje no Painel de Calls" },
   sem_responsavel: { destino: "/casos", acao: "Abrir casos para atribuir dono" },
-  excecoes_criticas: { destino: "/ops-excecoes", acao: "Abrir exceções operacionais" },
+  // Conta FILAS_BLOQUEIO (contrato/pagamento/onboarding/documento), não a
+  // tabela ops_excecoes. Destino = bloco de exceções deste painel.
+  excecoes_criticas: { destino: "/painel#excecoes", acao: "Ver bloqueios que exigem dono" },
   sla_em_risco: { destino: "/ops", acao: "Abrir operação e SLA" },
 } as const;
 
@@ -411,9 +413,10 @@ export function cardsHoje(
 }
 
 /**
- * Faixa operacional extra do cockpit (Fase 1): cada item abre uma lista com
- * ação. Não entra no teto das cinco métricas de decisão — é atalho, não
- * segundo contador concorrente das mesmas filas do topo.
+ * Faixa operacional extra do cockpit: atalhos únicos que NÃO recontem métricas
+ * do topo (CA-UX-02 §7). Removidos em 11/09/2026 por duplicação:
+ * - leads_sem_acao → já no cartão mockup "Leads sem próxima ação"
+ * - documentos / contratos → já dentro de "Exceções críticas" (FILAS_BLOQUEIO)
  */
 export function faixaCockpitHoje(
   filas: Fila[],
@@ -430,17 +433,9 @@ export function faixaCockpitHoje(
       chave: "cadencias",
       rotulo: "Cadências atrasadas",
       total: opcoes?.cadenciasAtrasadas ?? 0,
-      destino: "/casos",
-      acao: "Abrir casos sem toque",
-      leitura: "Casos acima da regra de dias sem touchpoint",
-    },
-    {
-      chave: "documentos",
-      rotulo: "Documentos aguardados",
-      total: daFila("casos_pendencia_documental"),
-      destino: "/evidencias",
-      acao: "Abrir evidências e pedidos",
-      leitura: "Caso com documento aguardando retorno",
+      destino: "/ops",
+      acao: "Abrir cadência D0–D365",
+      leitura: "Casos em atenção/crítica (régua Ana: D10 atenção, D14 crítico)",
     },
     {
       chave: "calls_hoje",
@@ -451,14 +446,6 @@ export function faixaCockpitHoje(
       leitura: "Leads com call marcada para hoje — mesma tabela leads",
     },
     {
-      chave: "leads_sem_acao",
-      rotulo: "Leads sem próxima ação",
-      total: daFila("leads_sem_proxima_acao"),
-      destino: "/calls",
-      acao: "Definir próxima ação no CRM",
-      leitura: "Lead ativo sem próxima ação datada",
-    },
-    {
       chave: "propostas",
       rotulo: "Propostas sem follow-up",
       total: daFila("propostas_sem_followup"),
@@ -466,16 +453,76 @@ export function faixaCockpitHoje(
       acao: "Abrir propostas",
       leitura: "Proposta enviada sem follow-up registrado",
     },
-    {
-      chave: "contratos",
-      rotulo: "Contratos parados",
-      total: daFila("contratos_enviados_pendentes"),
-      destino: "/contratos",
-      acao: "Abrir contratos",
-      leitura: "Contrato enviado sem avanço registrado",
-    },
   ];
 }
+
+/**
+ * Mapa normativo do que existe abaixo dos KPIs no Painel Hoje.
+ * KPI = métrica de decisão; fila = trabalho do dia; cadência = régua Ana;
+ * descoberta = atalho/dicionário de rotas; técnico = ajuda de leitura.
+ */
+export const MAPA_BLOCOS_PAINEL_HOJE = [
+  {
+    bloco: "cards",
+    tipo: "kpi" as const,
+    titulo: "Métricas de decisão",
+    papel: "Cinco cartões CA-UX-02 + três atalhos únicos (casos, alertas, leads). Sem recontação.",
+  },
+  {
+    bloco: "destaque",
+    tipo: "fila" as const,
+    titulo: "Caso em destaque",
+    papel: "Um caso prioritário com a mesma regra de Casos 360 — não é segundo KPI.",
+  },
+  {
+    bloco: "jornada",
+    tipo: "cadencia" as const,
+    titulo: "Jornada dos casos",
+    papel: "Carteira por fase + saúde de contato (calcularCadencia / limiares D10–D14).",
+  },
+  {
+    bloco: "fila",
+    tipo: "fila" as const,
+    titulo: "Minha fila priorizada",
+    papel: "Lista de ações do dia — um registro, uma linha.",
+  },
+  {
+    bloco: "excecoes",
+    tipo: "fila" as const,
+    titulo: "Exceções que exigem dono",
+    papel: "Detalhe dos bloqueios (não é a tabela ops_excecoes).",
+  },
+  {
+    bloco: "alertas",
+    tipo: "fila" as const,
+    titulo: "Alertas de achados",
+    papel: "Subconjunto de case_alerts; ação completa em /alertas.",
+  },
+  {
+    bloco: "comercial",
+    tipo: "descoberta" as const,
+    titulo: "Comercial hoje",
+    papel: "Links para Calls/propostas/financeiro — sem segunda contagem.",
+  },
+  {
+    bloco: "prazos",
+    tipo: "cadencia" as const,
+    titulo: "Cadência — quem precisa de toque",
+    papel: "Régua Ana D0–D365 (touchpoint D10/D14) + onboarding; detalhe em /ops.",
+  },
+  {
+    bloco: "descoberta",
+    tipo: "descoberta" as const,
+    titulo: "Encontrar no Desk",
+    papel: "Atalhos e dicionário de rotas — não são indicadores.",
+  },
+  {
+    bloco: "ajuda",
+    tipo: "tecnico" as const,
+    titulo: "Como ler / detalhes técnicos",
+    papel: "Ajuda de leitura e validação DOM — não opera o dia.",
+  },
+] as const;
 
 export type FiltrosDia = { responsavel?: string | null; area?: string | null; etapa?: string | null };
 

@@ -22,17 +22,19 @@ describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
   it("cartões do Painel Hoje são links para lista com ação", () => {
     const painel = ler("src/components/painel/painel-dia.tsx");
     expect(painel).toContain("faixaCockpitHoje");
-    expect(painel).toContain('to={c.destino as "/tarefas"}');
+    expect(painel).toContain("c.destino.split");
     expect(painel).toContain("Buscar pessoa 360");
     expect(painel).toContain('to="/calls"');
   });
 
-  it("o topo do Hoje usa KPIs vivos e tira receita e conversão da face", () => {
+  it("o topo do Hoje usa KPIs vivos sem duplicar exceções nem receita", () => {
     const painel = ler("src/components/painel/painel-dia.tsx");
     expect(painel).toContain('rotulo="Alertas pendentes"');
     expect(painel).toContain("qAlertas.isSuccess");
     expect(painel).toContain('rotulo="Leads sem próxima ação"');
-    expect(painel).toContain('rotulo="Exceções e bloqueios"');
+    // Uma só face de exceções: cardsHoje "Exceções críticas" (não o rótulo antigo duplicado).
+    expect(painel).not.toContain('rotulo="Exceções e bloqueios"');
+    expect(painel).toContain("excecoes_criticas");
     expect(painel).not.toContain('rotulo="Receita do mês"');
     expect(painel).not.toContain('rotulo="Taxa de conversão"');
   });

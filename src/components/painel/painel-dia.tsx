@@ -46,6 +46,7 @@ import {
   opcoesFiltroDia,
   textoPrazo,
   agruparLinhasIndicadores,
+  MAPA_BLOCOS_PAINEL_HOJE,
   type FiltrosDia,
   type ItemDia,
   type LinhaIndicadorDia,
@@ -714,10 +715,13 @@ export function PainelDia() {
         no servidor.
       </p>
 
-      {/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco, nesta ordem) */}
+      {/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco + três atalhos únicos) */}
       <AncoraApp bloco="cards" />
       <section data-painel-bloco="cards" className="space-y-3">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-mockup-kpis>
+        <p className="text-[11px] uppercase tracking-wide text-navy/50">
+          Só interno · Cinco métricas de decisão + atalhos únicos (sem recontação)
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-mockup-kpis>
           <Link
             to="/casos"
             className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
@@ -751,33 +755,26 @@ export function PainelDia() {
               tom={qtd("leads_sem_proxima_acao") ? "atencao" : "neutro"}
             />
           </Link>
-          <Link
-            to="/ops-excecoes"
-            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-          >
-            <CardIndicador
-              rotulo="Exceções e bloqueios"
-              valor={cards.find((c) => c.chave === "excecoes_criticas")?.total ?? 0}
-              apoio="Abrir exceções operacionais"
-              tom={cards.find((c) => c.chave === "excecoes_criticas")?.total ? "critico" : "neutro"}
-            />
-          </Link>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {cards.map((c) => (
-            <Link
-              key={c.chave}
-              to={c.destino as "/tarefas"}
-              className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-            >
-              <CardIndicador
-                rotulo={c.rotulo}
-                valor={c.total}
-                apoio={c.acao}
-                tom={c.total ? (TOM_DO_CARD[c.chave] ?? "neutro") : "neutro"}
-              />
-            </Link>
-          ))}
+          {cards.map((c) => {
+            const [path, hash] = c.destino.split("#");
+            return (
+              <Link
+                key={c.chave}
+                to={(path || "/painel") as "/tarefas"}
+                hash={hash}
+                className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              >
+                <CardIndicador
+                  rotulo={c.rotulo}
+                  valor={c.total}
+                  apoio={c.acao}
+                  tom={c.total ? (TOM_DO_CARD[c.chave] ?? "neutro") : "neutro"}
+                />
+              </Link>
+            );
+          })}
         </div>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {faixa.map((f) => (
@@ -924,13 +921,19 @@ export function PainelDia() {
         </div>
       </section>
 
-      {/* 2 — Exceções que exigem dono */}
+      {/* 2 — Exceções que exigem dono (detalhe dos bloqueios do cartão Exceções críticas) */}
       <section
+        id="excecoes"
         data-painel-bloco="excecoes"
         className="rounded-xl border border-navy/10 bg-white p-5"
       >
         <h2 className="font-serif text-lg text-navy">Exceções que exigem dono</h2>
         <AncoraApp bloco="excecoes" />
+        <p className="mt-1 text-xs text-navy/50">
+          Bloqueios de contrato, pagamento, onboarding ou documento — mesma conta do cartão
+          &quot;Exceções críticas&quot;. Não confundir com a tabela de overrides em Exceções
+          operacionais (Governança).
+        </p>
         {excecoes.length === 0 ? (
           <p className="mt-2 text-sm text-navy/55">Nenhuma exceção acionável no momento.</p>
         ) : (
@@ -1030,9 +1033,9 @@ export function PainelDia() {
         </div>
 
         <p className="mt-1 text-xs text-navy/50">
-          Quem parou, há quanto tempo, por quê e qual toque faz avançar. Ausência de prazo é exibida
-          como “Sem prazo definido”, nunca como número. Registro já exibido nos blocos acima não
-          reaparece aqui.
+          Régua Ana D0–D365: atenção a partir de D10 sem touchpoint, crítico em D14. Onboarding da
+          jornada usa a mesma régua (D7 microentrega). Ausência de prazo aparece como “Sem prazo
+          definido”. Registro já exibido acima não reaparece aqui.
         </p>
 
         <FilaCadencia itens={cadenciaFollowUp} carregando={qCad.isLoading} erro={qCad.isError} />
@@ -1152,37 +1155,42 @@ export function PainelDia() {
           {ajuda ? "Ocultar ajuda" : "Como ler estas informações"}
         </button>
         {ajuda ? (
-          <ul className="mt-3 list-disc space-y-1 pl-5 text-xs">
-            <li>
-              Prioridade: vencidas → hoje → próximos 7 dias. Um registro aparece uma única vez, na
-              maior urgência aplicável.
-            </li>
-            <li>
-              Cada registro aparece uma única vez: a ação principal fica aqui, os demais bloqueios
-              na ficha do caso.
-            </li>
-
-            <li>
-              Itens sem responsável são falha de qualidade, viram exceção e têm rota de correção na
-              ficha do registro.
-            </li>
-            <li>
-              Sem prazo é exibido como “Sem prazo definido”; nunca convertemos ausência de data em
-              número.
-            </li>
-            <li>
-              Demonstrações são excluídas na consulta e só entram com o filtro explícito “Incluir
-              demonstrações”.
-            </li>
-            <li>
-              Catálogo, formalização, pesquisa, conversão e jornada ficam nos módulos proprietários
-              — aqui só priorização.
-            </li>
-            <li>
-              Nada aqui é conclusão: dados jurídicos e genealógicos seguem como hipótese até
-              confirmação documental.
-            </li>
-          </ul>
+          <div className="mt-3 space-y-3 text-xs">
+            <ul className="list-disc space-y-1 pl-5">
+              <li>
+                Prioridade: vencidas → hoje → próximos 7 dias. Um registro aparece uma única vez, na
+                maior urgência aplicável.
+              </li>
+              <li>
+                Cadência (Desk e App Cliente) segue a régua Ana em{" "}
+                <code className="text-[10px]">cadencia-limiares</code>: D7 microentrega · D10
+                atenção · D14 crítico. D0–D365 detalhado em /ops e na aba Onboarding do caso.
+              </li>
+              <li>
+                &quot;Exceções críticas&quot; ≠ tabela Exceções operacionais (`ops_excecoes`): o
+                cartão conta bloqueios de fila; overrides admin ficam em Governança.
+              </li>
+              <li>
+                Demonstrações só entram com o filtro explícito “Incluir demonstrações”.
+              </li>
+            </ul>
+            <div>
+              <p className="font-medium text-navy/80">Mapa dos blocos desta aba</p>
+              <ul className="mt-1 space-y-1">
+                {MAPA_BLOCOS_PAINEL_HOJE.map((b) => (
+                  <li key={b.bloco} className="flex gap-2">
+                    <span className="shrink-0 rounded bg-navy/5 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/55">
+                      {b.tipo}
+                    </span>
+                    <span>
+                      <span className="font-medium text-navy/75">{b.titulo}</span>
+                      <span className="text-navy/55"> — {b.papel}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         ) : null}
       </div>
     </div>
