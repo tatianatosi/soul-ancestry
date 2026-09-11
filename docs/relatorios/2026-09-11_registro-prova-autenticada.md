@@ -88,7 +88,9 @@ Resultados permitidos: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_
 | Financeiro | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
 | Entregas / App Cliente | `PASSOU` (leitura master) | sim×7 / — / empty por aba / — / não | Ambiente D. Sem `42P17`. **não** `COMPROVADO_EM_USO` (falta publicar→F5). Prints em `provas/2026-09-11-app-cliente-master/`. |
 | KPIs e Hoje | `NAO_LOCALIZADO` | — | Sem print de integração da próxima ação da Mesa. |
-| Abas / taxonomia | parcial | sim (7 abas App) / — / — / — / — | App Cliente: 7 abas confirmadas pela dona (ambiente D). Desk: código desta linha ainda diverge da memória de 8 grupos — dívida declarada. |
+| Abas / taxonomia | parcial | sim (7 abas App) / — / — / — / — | App Cliente: 7 abas (ambiente D). Desk: decisão 2026-09-11 recomenda **7 telas mockup + 6 grupos internos** (`00_governanca/DECISAO-NAV-…`); código ainda 6-face; 8-grupos = histórico. Status: em revisão — **não** `COMPROVADO_EM_USO`. |
+| Catálogo SKU / Planilha face | `BLOQUEADO_POR_DECISAO` | — | Legado (PR #97). Sync: `00_governanca/SINCRONIZACAO_MESTRE_2026-09-11.md`. |
+| Link Asaas / checkout | `BLOQUEADO_POR_DECISAO` | — | Só quando automações estiverem ativas e tudo funcionando. Matriz `08_dados_e_integracoes/…`. |
 
 ## Cadeia transversal
 

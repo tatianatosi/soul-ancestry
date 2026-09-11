@@ -1,6 +1,6 @@
 # Sincronização Mestre — 2026-08-19
 
-**Status:** registro retroativo do estado implementado; requer validação operacional contínua.
+**Status:** trilha histórica (commits 17–19/08). **Sync ativa:** [`SINCRONIZACAO_MESTRE_2026-09-11.md`](./SINCRONIZACAO_MESTRE_2026-09-11.md) — inclui nav 7+6, SKU legado (PR #97), Asaas bloqueado até automações, microentregas na jornada.
 
 ## Objetivo
 
