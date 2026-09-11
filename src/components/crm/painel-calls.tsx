@@ -377,12 +377,14 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
         r.casoCriado ? "caso aberto" : "caso já ligado",
         r.codigoCaso ? `código ${r.codigoCaso}` : null,
       ].filter(Boolean);
-      setAviso(`Handoff gravado: ${partes.join(" · ")}.`);
+      setAviso(
+        `Handoff gravado: ${partes.join(" · ")}. Abrindo Propostas — o handoff cria pessoa e caso; a proposta comercial é o próximo passo.`,
+      );
       void qc.invalidateQueries({ queryKey: ["leads-desk"] });
       void qc.invalidateQueries({ queryKey: ["painel-desk-hoje"] });
       void qc.invalidateQueries({ queryKey: ["painel-cadencia"] });
       void refetch();
-      void navegar({ to: "/casos/$caseId", params: { caseId: r.casoId } });
+      void navegar({ to: "/propostas" });
     },
     onError: (e: Error) => setAviso(e.message),
   });
