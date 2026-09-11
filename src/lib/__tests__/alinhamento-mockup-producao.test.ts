@@ -25,16 +25,18 @@ describe("rota do menu sem colisão de prefixo", () => {
     expect(itemNavAtivo("/marketing", "", { to: "/marketing" })).toBe(true);
   });
 
-  it("atalho não doura o grupo errado", () => {
-    const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
-    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
-    expect(grupoNavAtivo("/matriz-juridica", "", comercial)).toBe(false);
-    expect(grupoNavAtivo("/matriz-juridica", "", pesquisa)).toBe(true);
-    expect(grupoNavAtivo("/pesquisa-modulo", "", pesquisa)).toBe(true);
+  it("atalho não doura a tela errada", () => {
+    const bib = GRUPOS_DESK.find((g) => g.id === "biblioteca-mestre")!;
+    const visao = GRUPOS_DESK.find((g) => g.id === "visao-geral")!;
+    const juridica = GRUPOS_DESK.find((g) => g.id === "validacao-juridica")!;
+    expect(grupoNavAtivo("/matriz-juridica", "", visao)).toBe(false);
+    expect(grupoNavAtivo("/matriz-juridica", "", bib)).toBe(false);
+    expect(grupoNavAtivo("/matriz-juridica", "", juridica)).toBe(true);
+    expect(grupoNavAtivo("/pesquisa-modulo", "", bib)).toBe(true);
   });
 
-  it("o grupo Inteligência entra no módulo vivo e no dossiê do Legado", () => {
-    const bib = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
+  it("Biblioteca Mestre entra no módulo vivo e no dossiê do Legado", () => {
+    const bib = GRUPOS_DESK.find((g) => g.id === "biblioteca-mestre")!;
     expect(bib.to).toBe("/biblioteca");
     const rotas = bib.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/pesquisa-modulo");
@@ -82,7 +84,8 @@ describe("regressão das distorções P0/P1 no código", () => {
   it("painel operacional não exibe o aviso técnico à vista", () => {
     const src = readFileSync("src/components/painel/painel-dia.tsx", "utf8");
     expect(src).toContain("<details");
-    expect(src).toMatch(/Detalhes t[eé]cnicos de leitura/);
+    expect(src).toContain("Opções de revisão");
+    expect(src).not.toMatch(/banner técnico de leitura.*à vista/i);
   });
 
   it("App Cliente mantém só as 7 abas aprovadas na barra", () => {

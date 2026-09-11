@@ -56,7 +56,7 @@ describe("App Cliente como pessoa (acesso master, dado real)", () => {
 
 describe("navegação — App Cliente como pessoa é alcançável em Casos 360", () => {
   it("está listado em Casos 360; a sessão demo mora no menu da conta", () => {
-    const casos = GRUPOS_DESK.find((g) => g.id === "casos")!;
+    const casos = GRUPOS_DESK.find((g) => g.id === "casos-360")!;
     const rotas = casos.sub.map((s) => ("to" in s ? s.to : null));
     expect(rotas).not.toContain("/app-cliente-demo");
     expect(rotas).toContain("/app-cliente-como-pessoa");

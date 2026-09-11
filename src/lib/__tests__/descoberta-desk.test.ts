@@ -23,8 +23,10 @@ describe("nomenclatura humana", () => {
   });
 
   it("exibe os rótulos na navegação do Desk real", () => {
-    expect(navegacao).toContain('{ to: "/qualidade", label: "Radar Interno e Qualidade" }');
-    expect(navegacao).toContain('{ to: "/matriz-juridica", label: "Validação Jurídica" }');
+    expect(navegacao).toContain('label: "Radar Interno"');
+    expect(navegacao).toContain('to: "/qualidade"');
+    expect(navegacao).toContain('label: "Validação Jurídica"');
+    expect(navegacao).toContain('to: "/matriz-juridica"');
   });
 
   it("mantém os cabeçalhos das telas alinhados ao rótulo humano", () => {
@@ -66,14 +68,17 @@ describe("atalhos de descoberta", () => {
     expect(painel).not.toContain("ATALHOS_DESCOBERTA.map((a) => a.acao");
   });
 
-  it("o atalho aponta para a aba dona da função, não para o nome antigo do grupo", () => {
-    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe("Pessoas & Casos");
+  it("o atalho aponta para a tela dona da função (grupoDonoDaRota)", () => {
+    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe("Radar Interno");
     expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/matriz-juridica")?.onde).toBe(
-      "Inteligência & Pesquisa",
+      "Validação Jurídica",
     );
-    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/integracoes")?.onde).toBe(
-      "Governança & Administração",
+    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/pesquisa-modulo")?.onde).toBe(
+      "Biblioteca Mestre",
     );
+    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/acessos-portal")?.onde).toBe("Casos 360");
+    // Integrações mora no MENU_CONTA — fora das 7 telas; sem dono de sidebar.
+    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/integracoes")?.onde).toBe("");
     expect(painel).toContain('to: "/calls"');
     expect(painel).toContain("Mesa de Discovery");
   });
@@ -86,16 +91,17 @@ describe("atalhos de descoberta", () => {
 });
 
 describe("superfícies preservadas", () => {
-  it("mantém os 6 grupos na navegação do Desk", () => {
-    const grupos = [
-      "Hoje",
-      "Marketing & Comercial",
-      "Pessoas & Casos",
-      "Inteligência & Pesquisa",
-      "Formalização & Financeiro",
-      "Governança & Administração",
+  it("mantém as 7 telas na navegação do Desk", () => {
+    const telas = [
+      "Visão Geral",
+      "Casos 360",
+      "Checklist",
+      "Validação Jurídica",
+      "Radar Interno",
+      "Alertas",
+      "Biblioteca Mestre",
     ];
-    for (const g of grupos) expect(navegacao).toContain(`label: "${g}"`);
+    for (const g of telas) expect(navegacao).toContain(`label: "${g}"`);
     expect(shell).toContain("GRUPOS_DESK");
   });
 

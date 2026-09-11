@@ -1,53 +1,50 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { GRUPOS_DESK, LINKS_CONTEXTUAIS } from "@/lib/navegacao-desk";
+import {
+  GRUPOS_DESK,
+  GRUPOS_OPERACIONAIS_DESK,
+  LINKS_CONTEXTUAIS,
+  TELAS_DESK_MOCKUP,
+} from "@/lib/navegacao-desk";
 
 /*
- * RESGATE DAS NOMENCLATURAS APROVADAS (09/09/2026) — de-para obrigatório:
- * Hoje → Visão Geral; Casos → Casos 360; Governança → Biblioteca Mestre.
- * Validação Jurídica, Radar Interno, Alertas já batiam com o aprovado.
- * Os 8 grupos operacionais reais (Hoje/Visão Geral, Marketing, Comercial,
- * Casos/Casos 360, Pesquisa, Contratos e financeiro, Cliente, Biblioteca/
- * Governança) continuam existindo e com as mesmas rotas — só o rótulo de
- * navegação principal mudou, nunca a URL nem a funcionalidade.
+ * RESGATE DAS NOMENCLATURAS APROVADAS — de-para obrigatório (atualizado 2026-09-11):
+ * Sidebar = 7 telas do mockup (Visão Geral … Biblioteca Mestre).
+ * Comercial/Marketing = contexto sob Visão Geral; Formalização = contexto sob Casos 360.
+ * Os 6 eixos internos (GRUPOS_OPERACIONAIS_DESK) não são a sidebar.
  */
 
-describe("De-para de nomenclatura — Desk usa os 6 grupos na navegação principal", () => {
-  it("expõe os 6 grupos, com rotas de entrada já existentes", () => {
-    expect(GRUPOS_DESK).toHaveLength(6);
+describe("De-para de nomenclatura — Desk usa as 7 telas na navegação principal", () => {
+  it("expõe as 7 telas, com rotas de entrada já existentes", () => {
+    expect(GRUPOS_DESK).toHaveLength(7);
     expect(GRUPOS_DESK.map((g) => g.to)).toEqual([
       "/painel",
-      "/calls",
       "/casos",
+      "/tarefas",
+      "/matriz-juridica",
+      "/qualidade",
+      "/alertas",
       "/biblioteca",
-      "/contratos",
-      "/configuracoes",
     ]);
   });
 
-  it("usa os rótulos dos 6 grupos operacionais", () => {
-    expect(GRUPOS_DESK.map((g) => g.label)).toEqual([
-      "Hoje",
-      "Marketing & Comercial",
-      "Pessoas & Casos",
-      "Inteligência & Pesquisa",
-      "Formalização & Financeiro",
-      "Governança & Administração",
-    ]);
+  it("usa os rótulos das 7 telas do mockup", () => {
+    expect(GRUPOS_DESK.map((g) => g.label)).toEqual([...TELAS_DESK_MOCKUP]);
+    expect(GRUPOS_OPERACIONAIS_DESK).toHaveLength(6);
+    expect(GRUPOS_DESK.map((g) => g.label)).not.toEqual([...GRUPOS_OPERACIONAIS_DESK]);
   });
 
-  it("Marketing e CRM Vivo moram no grupo comercial, sem segunda face", () => {
-    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
-    expect(comercial.sub.some((s) => "to" in s && s.to === "/marketing")).toBe(true);
-    expect(comercial.sub.some((s) => "to" in s && s.to === "/leads")).toBe(true);
+  it("Marketing e CRM Vivo moram no contexto comercial de Visão Geral, sem segunda face", () => {
+    const visao = GRUPOS_DESK.find((g) => g.id === "visao-geral")!;
+    expect(visao.sub.some((s) => "to" in s && s.to === "/marketing")).toBe(true);
+    expect(visao.sub.some((s) => "to" in s && s.to === "/leads")).toBe(true);
+    expect(visao.sub.some((s) => "to" in s && s.to === "/calls")).toBe(true);
   });
 
-  it("Checklist continua no submenu de Pessoas & Casos, com o nome aprovado", () => {
-    const casos = GRUPOS_DESK.find((g) => g.id === "casos")!;
-    const tarefas = casos.sub.find((s) => "to" in s && s.to === "/tarefas") as
-      | { label: string }
-      | undefined;
-    expect(tarefas?.label).toContain("Checklist");
+  it("Checklist é tela de primeiro nível, com o nome aprovado", () => {
+    const checklist = GRUPOS_DESK.find((g) => g.id === "checklist")!;
+    expect(checklist.to).toBe("/tarefas");
+    expect(checklist.label).toBe("Checklist");
   });
 
   it("sem links contextuais sobrepostos entre grupos", () => {

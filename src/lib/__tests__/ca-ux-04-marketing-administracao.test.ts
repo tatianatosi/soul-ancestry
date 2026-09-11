@@ -1,11 +1,12 @@
 /**
- * CA-UX-04 — Marketing como 2º grupo e Administração no menu da conta.
+ * CA-UX-04 — Marketing no contexto comercial de Visão Geral;
+ * Administração no menu da conta (não é tela da sidebar).
  * Testes de leitura estática: nenhuma ação externa, dado ou migration.
  */
 import { readFileSync, existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-import { GRUPOS_DESK, rotasDoMenuConta } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK, MENU_CONTA, rotasDoMenuConta } from "@/lib/navegacao-desk";
 import {
   CAMADAS_WHATSAPP,
   CATALOGO_ORIGENS,
@@ -21,38 +22,46 @@ import {
 } from "@/lib/marketing-aquisicao";
 
 const ler = (p: string) => readFileSync(p, "utf8");
-const ORDEM = ["hoje", "comercial", "casos", "pesquisa", "contratos", "governanca"];
+const ORDEM = [
+  "visao-geral",
+  "casos-360",
+  "checklist",
+  "validacao-juridica",
+  "radar-interno",
+  "alertas",
+  "biblioteca-mestre",
+];
 
 describe("CA-UX-04 — navegação", () => {
-  it("tem exatamente 6 grupos; Marketing mora em Marketing & Comercial", () => {
-    expect(GRUPOS_DESK).toHaveLength(6);
+  it("tem exatamente 7 telas; Marketing mora no contexto de Visão Geral", () => {
+    expect(GRUPOS_DESK).toHaveLength(7);
     expect(GRUPOS_DESK.map((g) => g.id)).toEqual(ORDEM);
-    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
-    expect(comercial.sub.some((s) => "to" in s && s.to === "/marketing")).toBe(true);
+    const visao = GRUPOS_DESK.find((g) => g.id === "visao-geral")!;
+    expect(visao.sub.some((s) => "to" in s && s.to === "/marketing")).toBe(true);
   });
 
-  it("não expõe Administração como id próprio — mora em Governança", () => {
+  it("não expõe Administração nem Governança como id da sidebar — admin mora em MENU_CONTA", () => {
     expect(GRUPOS_DESK.some((g) => g.id === "administracao")).toBe(false);
-    expect(GRUPOS_DESK.some((g) => g.id === "governanca")).toBe(true);
+    expect(GRUPOS_DESK.some((g) => g.id === "governanca")).toBe(false);
+    expect(MENU_CONTA.id).toBe("conta");
   });
 
-  it("mantém rotas administrativas em Governança, com permissão preservada", () => {
-    expect(rotasDoMenuConta()).toEqual(["/app-cliente-demo"]);
-    const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
-    const rotas = gov.sub.filter((s) => "to" in s).map((s) => s.to);
+  it("mantém rotas administrativas no menu da conta, com permissão preservada", () => {
+    const conta = rotasDoMenuConta();
+    expect(conta).toContain("/app-cliente-demo");
     for (const r of ["/equipe", "/configuracoes", "/etiquetas"]) {
-      expect(rotas).toContain(r);
+      expect(conta).toContain(r);
     }
-    const equipe = gov.sub.find((i) => "to" in i && i.to === "/equipe") as { adminOnly?: boolean };
+    const equipe = MENU_CONTA.itens.find((i) => "to" in i && i.to === "/equipe") as {
+      adminOnly?: boolean;
+    };
     expect(equipe.adminOnly).toBe(true);
   });
 
-  it("mantém Integrações em Governança, não na Inteligência", () => {
-    const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
-    expect(gov.sub.some((s) => "to" in s && s.to === "/integracoes")).toBe(true);
-    const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
-    expect(pesquisa.sub.some((s) => "to" in s && s.to === "/integracoes")).toBe(false);
-    expect(rotasDoMenuConta()).not.toContain("/integracoes");
+  it("mantém Integrações no menu da conta, não na Biblioteca Mestre", () => {
+    expect(rotasDoMenuConta()).toContain("/integracoes");
+    const bib = GRUPOS_DESK.find((g) => g.id === "biblioteca-mestre")!;
+    expect(bib.sub.some((s) => "to" in s && s.to === "/integracoes")).toBe(false);
   });
 
   it("rotas administrativas e Marketing vivem sob _authenticated (cliente não acessa)", () => {

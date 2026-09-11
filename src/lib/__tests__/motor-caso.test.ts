@@ -145,10 +145,10 @@ describe("projeção autorizada no App Cliente (mesma ordem da RPC)", () => {
 });
 
 describe("premissas que o motor não pode desfazer", () => {
-  it("Desk continua com 6 grupos; Inteligência hospeda a Biblioteca Mestre", () => {
-    expect(GRUPOS_DESK).toHaveLength(6);
-    expect(GRUPOS_DESK[3]?.id).toBe("pesquisa");
-    expect(GRUPOS_DESK[2]?.label).toMatch(/Pessoas & Casos/i);
+  it("Desk continua com 7 telas; Biblioteca Mestre é tela de primeiro nível", () => {
+    expect(GRUPOS_DESK).toHaveLength(7);
+    expect(GRUPOS_DESK.find((g) => g.id === "biblioteca-mestre")?.to).toBe("/biblioteca");
+    expect(GRUPOS_DESK.find((g) => g.id === "casos-360")?.label).toMatch(/Casos 360/i);
   });
 
   it("escritor da RPC e consumidores Desk seguem no lugar (sem motor paralelo)", () => {

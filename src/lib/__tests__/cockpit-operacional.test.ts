@@ -7,15 +7,16 @@ import { INDICADORES_CANONICOS } from "@/lib/fontes-canonicas-indicadores";
 const ler = (p: string) => readFileSync(p, "utf8");
 
 describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
-  it("os 6 grupos do Desk permanecem; não volta o mockup de 14 abas", () => {
-    expect(GRUPOS_DESK).toHaveLength(6);
+  it("as 7 telas do Desk permanecem; não volta o mockup de 14 abas nem os 6 grupos como sidebar", () => {
+    expect(GRUPOS_DESK).toHaveLength(7);
     expect(GRUPOS_DESK.map((g) => g.id)).toEqual([
-      "hoje",
-      "comercial",
-      "casos",
-      "pesquisa",
-      "contratos",
-      "governanca",
+      "visao-geral",
+      "casos-360",
+      "checklist",
+      "validacao-juridica",
+      "radar-interno",
+      "alertas",
+      "biblioteca-mestre",
     ]);
   });
 
@@ -96,13 +97,17 @@ describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
     );
   });
 
-  it("Jornada do App Cliente abre Entregas e Fases sem promovê-las a aba", () => {
+  it("Jornada do App Cliente aponta para Documentos e Legado, sem Entregas/Fase na barra", () => {
     const jornada = ler("src/routes/portal/jornada.tsx");
-    expect(jornada).toContain('to="/portal/entregas"');
-    expect(jornada).toContain('to="/portal/fase-01"');
-    expect(jornada).toContain('to="/portal/fase-02"');
+    expect(jornada).toContain('to="/portal/documentos"');
+    expect(jornada).toContain('to="/portal/legado"');
+    expect(jornada).not.toContain('to="/portal/entregas"');
+    expect(jornada).not.toContain('to="/portal/fase-01"');
+    expect(jornada).not.toContain('to="/portal/fase-02"');
     const shell = ler("src/components/portal/portal-shell.tsx");
     expect(shell).not.toContain("/portal/entregas");
+    expect(shell).not.toContain("/portal/fase-01");
+    expect(shell).not.toContain("/portal/fase-02");
   });
 
   it("prévia do App Cliente não espera sessão de cliente para visibilidade", () => {

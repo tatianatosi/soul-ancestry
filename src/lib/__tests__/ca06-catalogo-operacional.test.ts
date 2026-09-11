@@ -54,17 +54,16 @@ describe("CA-06 — Catálogo Operacional 30", () => {
     }
   });
 
-  it("mantém as 6 decisões bloqueadoras e a rota em Governança, fora de Contratos", () => {
+  it("mantém as 6 decisões bloqueadoras; catálogo operacional 30 mora no MENU_CONTA (legado), fora da sidebar", () => {
     expect(DECISOES_BLOQUEADORAS).toHaveLength(6);
-    const gov = GRUPOS_DESK.find((g) => g.id === "governanca");
-    const rotasGov = gov?.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
-    expect(rotasGov).toContain("/governanca/catalogo-operacional-30");
-    const contratos = GRUPOS_DESK.find((g) => g.id === "contratos");
-    const rotas = contratos?.sub.filter((s) => "to" in s).map((s) => s.to);
-    expect(rotas).not.toContain("/governanca/catalogo-operacional-30");
     expect(MENU_CONTA.itens.some((s) => "to" in s && s.to === "/governanca/catalogo-operacional-30")).toBe(
-      false,
+      true,
     );
+    expect(GRUPOS_DESK.map((g) => g.id)).not.toContain("governanca");
+    const casos = GRUPOS_DESK.find((g) => g.id === "casos-360");
+    const rotasCasos = casos?.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotasCasos).not.toContain("/governanca/catalogo-operacional-30");
+    expect(JSON.stringify(GRUPOS_DESK)).not.toContain("/governanca/catalogo-operacional-30");
   });
 
   it("exporta CSV com cabeçalho e uma linha por SKU", () => {

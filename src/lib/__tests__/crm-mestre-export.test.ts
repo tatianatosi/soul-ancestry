@@ -10,17 +10,18 @@ import {
 } from "@/lib/crm-mestre-export";
 
 describe("/crm-mestre no menu do Desk", () => {
-  const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
-  const links = comercial.sub.filter((s): s is { to: string; label: string } => "to" in s);
+  const visao = GRUPOS_DESK.find((g) => g.id === "visao-geral")!;
+  const links = visao.sub.filter((s): s is { to: string; label: string } => "to" in s);
 
-  it("aparece no Comercial com o Painel de Calls, fora da conta e da Governança", () => {
+  it("aparece no contexto comercial de Visão Geral com o Painel de Calls, fora da conta e da Biblioteca", () => {
     expect(links.some((s) => s.to === "/crm-mestre")).toBe(true);
     expect(MENU_CONTA.itens.some((s) => "to" in s && s.to === "/crm-mestre")).toBe(false);
-    const rotasComercial = links.map((s) => s.to);
-    expect(rotasComercial).toContain("/crm-mestre");
-    expect(rotasComercial).toContain("/calls");
-    const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
-    expect(gov.sub.some((s) => "to" in s && s.to === "/crm-mestre")).toBe(false);
+    const rotasVisao = links.map((s) => s.to);
+    expect(rotasVisao).toContain("/crm-mestre");
+    expect(rotasVisao).toContain("/calls");
+    const bib = GRUPOS_DESK.find((g) => g.id === "biblioteca-mestre")!;
+    expect(bib.sub.some((s) => "to" in s && s.to === "/crm-mestre")).toBe(false);
+    expect(GRUPOS_DESK.map((g) => g.id)).not.toContain("governanca");
   });
 
   it("mantém estado ativo sem colisão de prefixo (desktop e mobile usam a mesma regra)", () => {

@@ -46,14 +46,14 @@ describe("rótulo de fase", () => {
 describe("atalhos contextuais no menu", () => {
   it("sem atalho cruzado, /nucleos não ganha marca de origem", async () => {
     const { origemDoAtalho } = await import("@/lib/navegacao-desk");
-    expect(origemDoAtalho("Inteligência & Pesquisa", "/nucleos")).toBeNull();
-    expect(origemDoAtalho("Pessoas & Casos", "/nucleos")).toBeNull();
+    expect(origemDoAtalho("Biblioteca Mestre", "/nucleos")).toBeNull();
+    expect(origemDoAtalho("Casos 360", "/nucleos")).toBeNull();
   });
 
   it("não marca a entrada canônica — não há nada a dizer ali", async () => {
     const { origemDoAtalho } = await import("@/lib/navegacao-desk");
     expect(origemDoAtalho("Validação Jurídica", "/matriz-juridica")).toBeNull();
-    expect(origemDoAtalho("Marketing", "/marketing")).toBeNull();
+    expect(origemDoAtalho("Visão Geral", "/marketing")).toBeNull();
   });
 
   it("rota sem registro de atalho não ganha marca", async () => {
@@ -61,12 +61,12 @@ describe("atalhos contextuais no menu", () => {
     expect(origemDoAtalho("Casos 360", "/tarefas")).toBeNull();
   });
 
-  it("toda rota de LINKS_CONTEXTUAIS aparece mesmo nos grupos declarados", async () => {
+  it("toda rota de LINKS_CONTEXTUAIS aparece nas telas declaradas", async () => {
     const { GRUPOS_DESK, LINKS_CONTEXTUAIS } = await import("@/lib/navegacao-desk");
     for (const l of LINKS_CONTEXTUAIS) {
       for (const nome of [l.origem, ...l.tambemEm]) {
         const g = GRUPOS_DESK.find((x) => x.label === nome);
-        expect(g, `grupo ${nome} não existe`).toBeTruthy();
+        expect(g, `tela ${nome} não existe`).toBeTruthy();
         const tem = g!.sub.some((s) => "to" in s && s.to === l.rota);
         expect(tem, `${l.rota} deveria estar em ${nome}`).toBe(true);
       }

@@ -138,17 +138,18 @@ describe("Dicionário de validações Calls → CRM", () => {
     ).toBe(true);
   });
 
-  it("mora no Comercial com o Painel de Calls, não em Governança", () => {
+  it("mora no contexto comercial de Visão Geral com o Painel de Calls, não na Biblioteca nem na conta", () => {
     expect(FORMATACAO_CONDICIONAL_CALLS).toHaveLength(10);
-    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial");
-    const rotas = comercial?.sub.filter((s) => "to" in s).map((s) => s.to);
+    const visao = GRUPOS_DESK.find((g) => g.id === "visao-geral");
+    const rotas = visao?.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/calls");
     expect(rotas).toContain("/crm-mestre");
     expect(rotas).toContain("/governanca/dicionario-calls-crm");
-    const gov = GRUPOS_DESK.find((g) => g.id === "governanca");
-    const rotasGov = gov?.sub.filter((s) => "to" in s).map((s) => s.to);
-    expect(rotasGov).not.toContain("/governanca/dicionario-calls-crm");
-    expect(rotasGov).not.toContain("/crm-mestre");
+    expect(GRUPOS_DESK.map((g) => g.id)).not.toContain("governanca");
+    const bib = GRUPOS_DESK.find((g) => g.id === "biblioteca-mestre");
+    const rotasBib = bib?.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotasBib).not.toContain("/governanca/dicionario-calls-crm");
+    expect(rotasBib).not.toContain("/crm-mestre");
   });
 
   it("avalia o lead canônico do Painel de Calls com as regras do dicionário", () => {

@@ -16,23 +16,25 @@ import type { LeadDesk } from "@/lib/crm-desk";
 
 const ler = (p: string) => readFileSync(p, "utf8");
 
-describe("Abas — circuito nas seis áreas (sem tela nova)", () => {
-  it("Desk tem exatamente 6 grupos e Calls mora em Marketing & Comercial", () => {
-    expect(GRUPOS_DESK).toHaveLength(6);
-    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial");
-    expect(comercial?.label).toBe("Marketing & Comercial");
-    expect(comercial?.sub.some((i) => "to" in i && i.to === "/calls")).toBe(true);
+describe("Abas — circuito nas sete telas (sem tela nova)", () => {
+  it("Desk tem exatamente 7 telas e Calls mora no contexto comercial de Visão Geral", () => {
+    expect(GRUPOS_DESK).toHaveLength(7);
+    const visao = GRUPOS_DESK.find((g) => g.id === "visao-geral");
+    expect(visao?.label).toBe("Visão Geral");
+    expect(visao?.sub.some((i) => "to" in i && i.to === "/calls")).toBe(true);
   });
 
-  it("Hoje aponta para /painel e não hospeda Calls na face", () => {
-    const hoje = GRUPOS_DESK.find((g) => g.id === "hoje");
-    expect(hoje?.to).toBe("/painel");
-    expect(hoje?.sub.some((i) => "to" in i && i.to === "/calls")).toBe(false);
+  it("Visão Geral aponta para /painel e hospeda Calls no submenu (não como aba)", () => {
+    const visao = GRUPOS_DESK.find((g) => g.id === "visao-geral");
+    expect(visao?.to).toBe("/painel");
+    expect(visao?.sub.some((i) => "to" in i && i.to === "/calls" && i.label === "Mesa de Discovery")).toBe(
+      true,
+    );
   });
 
-  it("Pessoas & Casos recebe o destino do handoff (/casos, /clientes)", () => {
-    const casos = GRUPOS_DESK.find((g) => g.id === "casos");
-    expect(casos?.sub.some((i) => "to" in i && i.to === "/casos")).toBe(true);
+  it("Casos 360 recebe o destino do handoff (/casos, /clientes)", () => {
+    const casos = GRUPOS_DESK.find((g) => g.id === "casos-360");
+    expect(casos?.to).toBe("/casos");
     expect(casos?.sub.some((i) => "to" in i && i.to === "/clientes")).toBe(true);
   });
 });
