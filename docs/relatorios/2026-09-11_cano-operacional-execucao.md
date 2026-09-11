@@ -38,6 +38,12 @@ Card **Cano operacional** no Caso 360 (seção Jornada), acima do planejador: es
 3. Card do cano reflete serviço/plano/projeções/alertas após reload.
 4. WhatsApp continua só cópia humana.
 
+## Prints da jornada com produto (2026-09-11)
+
+Pasta: `docs/relatorios/provas/2026-09-11-cano-jornada-produto/`
+
+Caso fixture Ana + produto **CA-HIST-005** (Pesquisa de Base Familiar). Preview da branch do cano. Card mostra elos ok até Caso 360; Desk libera parcial; App ausente (nada publicado). Evidência de agente autenticado — **não** `COMPROVADO_EM_USO`.
+
 ## Fora desta fatia (dívida declarada)
 
 - Botão em `/achados` (aguardando decisão 1–4 da proprietária).

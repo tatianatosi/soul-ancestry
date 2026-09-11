@@ -793,6 +793,7 @@ function FichaCaso() {
           </button>
           <a
             href="#secao-jornada"
+            onClick={() => setSecaoFoco("jornada")}
             className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5"
             title="Abre a seção Jornada, onde a microentrega é preparada e enviada à revisão."
           >
