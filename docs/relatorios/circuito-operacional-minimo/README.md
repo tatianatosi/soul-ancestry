@@ -8,6 +8,8 @@
 **Dia 2026-09-11:** [`2026-09-11_manha.md`](2026-09-11_manha.md) · [`2026-09-11_fim-do-dia.md`](2026-09-11_fim-do-dia.md)  
 **Auditoria do ritual:** [`AUDITORIA-REQUISITOS.md`](AUDITORIA-REQUISITOS.md)
 
+**De–para Desk sistema do dia (mesmo dia):** [`../2026-09-11_desk-sistema-operacional-dia-de-para.md`](../2026-09-11_desk-sistema-operacional-dia-de-para.md)
+
 ---
 
 ## Modelo (copiar a cada turno)

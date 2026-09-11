@@ -59,6 +59,13 @@ import {
   type ProblemaPainel,
   type RegistroRenderizado,
 } from "@/lib/painel-ordem";
+import {
+  ROTULO_CATEGORIA_OPERACIONAL,
+  derivarAgendaDoPainel,
+  enriquecerItemDia,
+  montarFilaCanonicaOperacional,
+  type ItemOperacionalDia,
+} from "@/lib/sistema-operacional-dia";
 
 /**
  * Verificação de leitura da tela: confere, no que foi de fato renderizado, a
@@ -167,20 +174,39 @@ function EtiquetaPrioridade({ item }: { item: ItemDia }) {
   );
 }
 
+const ROTULO_TIPO_ACAO: Record<ItemOperacionalDia["tipoAcao"], string> = {
+  somente_leitura: "Somente leitura",
+  acao_interna_permitida: "Ação interna",
+  decisao_proprietaria: "Decisão da Proprietária",
+  acao_externa_bloqueada: "Ação externa bloqueada",
+  nao_disponivel: "Não disponível",
+};
+
 function Linha({
   item,
   proprietaria,
   aoSalvar,
   bloqueioComercial,
+  operacional,
 }: {
   item: ItemDia;
   proprietaria?: boolean;
   aoSalvar?: () => void;
   bloqueioComercial?: boolean;
+  operacional?: ItemOperacionalDia;
 }) {
+  const op =
+    operacional ??
+    enriquecerItemDia(item, {
+      categoria: item.tipo === "caso" ? "proxima_acao_caso" : "comercial_followup",
+    });
   return (
     <li
       data-registro={`${item.tipo}:${item.id}`}
+      data-categoria-operacional={op.categoria}
+      data-estado-operacional={op.estado}
+      data-tipo-acao={op.tipoAcao}
+      data-origem-dado={op.origem}
       className="min-w-0 rounded-lg border border-navy/10 px-3 py-2"
     >
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2">
@@ -189,8 +215,19 @@ function Linha({
         </span>
         <span className="shrink-0 text-xs text-navy/60">{textoPrazo(item.data)}</span>
       </div>
-      <p className="mt-0.5">
+      <p className="mt-0.5 flex flex-wrap gap-1">
         <EtiquetaPrioridade item={item} />
+        <span className="inline-block rounded-full border border-navy/15 bg-navy/5 px-2 py-0.5 text-[10px] text-navy/70">
+          {ROTULO_CATEGORIA_OPERACIONAL[op.categoria]}
+        </span>
+        <span className="inline-block rounded-full border border-navy/10 px-2 py-0.5 text-[10px] text-navy/60">
+          {ROTULO_TIPO_ACAO[op.tipoAcao]}
+        </span>
+        {op.origem !== "real" ? (
+          <span className="inline-block rounded-full border border-terracotta/30 bg-terracotta/10 px-2 py-0.5 text-[10px] text-terracotta">
+            {op.origem}
+          </span>
+        ) : null}
       </p>
       <p className="mt-0.5 flex flex-wrap items-center gap-1.5 break-words text-xs text-navy/65">
         <span>{item.acao}</span>
@@ -199,6 +236,10 @@ function Linha({
             {SELO_PROXIMA_ACAO[item.origemAcao]}
           </span>
         ) : null}
+      </p>
+      <p className="mt-0.5 text-[11px] text-navy/50">
+        Motivo: {op.motivo} · Evidência: {op.evidencia}
+        {op.dependeDe ? ` · Não disponível — depende de ${op.dependeDe}` : null}
       </p>
 
       <p className="mt-0.5 text-xs">
@@ -373,6 +414,8 @@ export function PainelDia() {
   const filas = qDesk.data.filas;
   const hoje = hojeISO();
   const itens = consolidarDia(filas, { incluirDemo });
+  const filaOperacional = montarFilaCanonicaOperacional(filas, { incluirDemo, hoje });
+  const operacionalPorId = new Map(filaOperacional.map((i) => [i.id, i]));
   // Precedência exclusiva: fila priorizada → exceções → comercial. Um registro só aparece uma vez.
   const priorizada = filaPriorizada(itens, hoje);
   const cards = cardsHoje(filas, { incluirDemo, itens });
@@ -406,6 +449,7 @@ export function PainelDia() {
   });
   for (const c of cadencia) usados.add(`caso:${String((c as any).id)}`);
   for (const i of cadenciaFollowUp) usados.add(i.pessoaOuCasoId);
+  const agendaAssistida = derivarAgendaDoPainel(filaOperacional, usados);
   const qtd = (chave: string) =>
     (filas.find((f: any) => f.chave === chave)?.itens.length ?? 0) as number;
 
@@ -904,6 +948,7 @@ export function PainelDia() {
                   <Linha
                     key={`${f.chave}-${i.tipo}-${i.id}`}
                     item={i}
+                    operacional={operacionalPorId.get(`${i.tipo}:${i.id}`)}
                     proprietaria={proprietaria}
                     bloqueioComercial={idsBloqueadosCatalogo.has(i.id)}
                     aoSalvar={() => void qDesk.refetch()}
@@ -945,6 +990,7 @@ export function PainelDia() {
                     <Linha
                       key={`${e.chave}-${i.tipo}-${i.id}`}
                       item={i}
+                      operacional={operacionalPorId.get(`${i.tipo}:${i.id}`)}
                       proprietaria={proprietaria}
                       bloqueioComercial={idsBloqueadosCatalogo.has(i.id)}
                       aoSalvar={() => void qDesk.refetch()}
@@ -1060,6 +1106,54 @@ export function PainelDia() {
             Ver cadência completa
           </Link>
         </div>
+      </section>
+
+      {/* Agenda assistida — sugestões internas; nunca cria evento externo. */}
+      <section data-painel-bloco="agenda" className="rounded-xl border border-navy/10 bg-white p-5">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="min-w-0 font-serif text-lg text-navy">Agenda assistida (interna)</h2>
+          <AncoraApp bloco="agenda" />
+          <span className="text-[11px] text-navy/45">
+            Rascunho · sem Google Calendar · sem e-mail/WhatsApp
+          </span>
+        </div>
+        <p className="mt-1 text-xs text-navy/50">
+          Sugestões derivadas da fila canônica (follow-up, cadência, contrato, override). Estado
+          máximo nesta etapa: RASCUNHO_INTERNO ou AGUARDA_CONFIRMACAO_PROPRIETARIA. Nada é criado
+          fora do Desk.
+        </p>
+        {agendaAssistida.length === 0 ? (
+          <p className="mt-2 text-sm text-navy/55">
+            Nenhuma sugestão de agenda a partir das pendências já exibidas.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-2 text-sm">
+            {agendaAssistida.slice(0, 6).map((s) => (
+              <li
+                key={`${s.titulo}-${s.rotaDoObjeto}`}
+                data-agenda-estado={s.estado}
+                className="rounded-lg border border-navy/10 px-3 py-2"
+              >
+                <p className="font-medium text-navy">{s.titulo}</p>
+                <p className="text-xs text-navy/65">{s.objetivo}</p>
+                <p className="mt-1 text-[11px] text-navy/50">
+                  Estado: {s.estado}
+                  {s.camposAusentes.length > 0
+                    ? ` · pendente: ${s.camposAusentes.join(", ")}`
+                    : null}{" "}
+                  ·{" "}
+                  <a href={s.rotaDoObjeto} className="underline underline-offset-2">
+                    Abrir objeto
+                  </a>
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="mt-2 text-[11px] text-navy/45">
+          Criar evento externo permanece{" "}
+          <span className="font-medium">PENDENTE_DE_DECISAO_PROPRIETARIA</span>.
+        </p>
       </section>
 
       {/* 6 — Atalhos: cada atalho apenas abre a entidade canônica; nada é executado ao abrir. */}

@@ -123,7 +123,7 @@ describe("Sinais de atenção fundidos em Encontrar no Desk", () => {
     expect(derivados).toBeLessThan(descoberta);
   });
 
-  it("o painel volta aos cinco blocos da norma, mais os auxiliares de leitura e Alertas prioritários (CA-CORTE-ALERTAS-ROTA-CANONICA, 09/09/2026)", () => {
+  it("o painel volta aos cinco blocos da norma, mais os auxiliares de leitura, Alertas e Agenda assistida", () => {
     const blocos = [...painel.matchAll(/data-painel-bloco="([a-z_]+)"/g)].map((m) => m[1]);
     expect(new Set(blocos)).toEqual(
       new Set([
@@ -134,6 +134,7 @@ describe("Sinais de atenção fundidos em Encontrar no Desk", () => {
         "alertas",
         "comercial",
         "prazos",
+        "agenda",
         "descoberta",
       ]),
     );

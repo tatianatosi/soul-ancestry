@@ -104,6 +104,13 @@ export const PARES_APP_DESK: readonly ParAppDesk[] = [
     alcance: "sanitizado",
   },
   {
+    chave: "agenda",
+    telaApp: "—",
+    oQueOClienteVe: "Nada: sugestão de agenda interna não tem espelho no App",
+    oQueODeskVe: "Rascunhos de follow-up e revisão, sem criar evento externo",
+    alcance: "nunca",
+  },
+  {
     chave: "excecoes",
     telaApp: "Documentos",
     oQueOClienteVe: "Lista, status e instruções simples",

@@ -28,6 +28,10 @@ export const ORDEM_BLOCOS_PAINEL: readonly BlocoPainel[] = [
   { chave: "excecoes", titulo: "Exceções que exigem dono", fila: true },
   { chave: "comercial", titulo: "Comercial hoje", fila: false },
   { chave: "prazos", titulo: "Cadência — quem precisa de um toque", fila: true },
+  // 11/09/2026 — agenda assistida: sugestões internas (RASCUNHO_INTERNO).
+  // Não é fila de trabalho (fila: false): não disputa dedup de lead/caso nem
+  // cria evento em calendário. Só rascunho + rota para confirmação humana.
+  { chave: "agenda", titulo: "Agenda assistida (interna)", fila: false },
   { chave: "descoberta", titulo: "Encontrar no Desk", fila: false },
 ] as const;
 

@@ -58,6 +58,7 @@ describe("CA-UX-03 Fase B — Painel Hoje como fila diária única", () => {
       "alertas",
       "comercial",
       "prazos",
+      "agenda",
       "descoberta",
     ];
     for (const b of blocos) expect(permitidos).toContain(b);

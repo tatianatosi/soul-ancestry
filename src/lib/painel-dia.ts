@@ -514,6 +514,12 @@ export const MAPA_BLOCOS_PAINEL_HOJE = [
     papel: "Régua Ana D0–D365 (touchpoint D10/D14) + onboarding; detalhe em /ops.",
   },
   {
+    bloco: "agenda",
+    tipo: "descoberta" as const,
+    titulo: "Agenda assistida (interna)",
+    papel: "Sugestões RASCUNHO_INTERNO — sem Google Calendar, e-mail ou WhatsApp.",
+  },
+  {
     bloco: "descoberta",
     tipo: "descoberta" as const,
     titulo: "Encontrar no Desk",
