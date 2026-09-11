@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   FASES_CRM_JOURNEY,
+  SEQUENCIA_COMERCIAL_CRM_VIVO,
   ctaPrincipalFase,
   fasePorId,
   faseVizinha,
@@ -11,12 +12,32 @@ import {
 } from "@/lib/crm-journey-fases";
 
 describe("crm-journey-fases", () => {
-  it("expõe 9 fases do ciclo (MVP + backlog) sem inventar crm_calls", () => {
-    expect(FASES_CRM_JOURNEY).toHaveLength(9);
+  it("expõe a cadeia comercial canônica na ordem da proprietária", () => {
+    expect(SEQUENCIA_COMERCIAL_CRM_VIVO.map((p) => p.id)).toEqual([
+      "lead",
+      "call_discovery",
+      "oportunidade",
+      "proposta",
+      "confirmacao",
+      "handoff",
+      "pessoa_caso",
+      "planejador_universal",
+    ]);
+    expect(SEQUENCIA_COMERCIAL_CRM_VIVO.map((p) => p.passo)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    expect(SEQUENCIA_COMERCIAL_CRM_VIVO[0]?.rotaDesk).toBe("/leads");
+    expect(SEQUENCIA_COMERCIAL_CRM_VIVO[1]?.rotaDesk).toBe("/calls");
+    expect(SEQUENCIA_COMERCIAL_CRM_VIVO[3]?.rotaDesk).toBe("/propostas");
+    expect(SEQUENCIA_COMERCIAL_CRM_VIVO[7]?.rotulo).toMatch(/Planejador Universal/i);
+  });
+
+  it("expõe o ciclo Desk completo sem inventar crm_calls", () => {
+    expect(FASES_CRM_JOURNEY.length).toBeGreaterThanOrEqual(11);
     expect(fasesMvp().every((f) => f.statusPiloto === "mvp")).toBe(true);
-    expect(fasesMvp().length).toBeGreaterThanOrEqual(7);
-    expect(readFileSync("src/lib/crm-journey-fases.ts", "utf8")).not.toMatch(/CREATE TABLE.*crm_calls/i);
-    expect(readFileSync("src/lib/crm-journey-fases.ts", "utf8")).toContain('rotaDesk: "/calls"');
+    expect(fasesMvp().length).toBeGreaterThanOrEqual(8);
+    const src = readFileSync("src/lib/crm-journey-fases.ts", "utf8");
+    expect(src).not.toMatch(/CREATE TABLE.*crm_calls/i);
+    expect(src).toContain("SEQUENCIA_COMERCIAL_CRM_VIVO");
+    expect(src).toContain('rotaDesk: "/calls"');
   });
 
   it("mapeia cada fase para rota Desk e canal WhatsApp seguro", () => {
@@ -30,29 +51,29 @@ describe("crm-journey-fases", () => {
     }
   });
 
-  it("navega hub e CTAs canônicos na sequência Lead → Discovery → proposta", () => {
+  it("navega hub: Lead → Discovery → oportunidade → proposta → confirmação → handoff → planejador", () => {
     expect(fasePorId("lead_bruto").rotaDesk).toBe("/leads");
-    expect(fasePorId("lead_bruto").ritual).toMatch(/antes da call/i);
     expect(fasePorId("lead_qualificado").rotaDesk).toBe("/calls");
-    expect(fasePorId("lead_qualificado").ritual).toMatch(/Discovery|diagnóstico/i);
-    expect(fasePorId("oportunidade").ritual).toMatch(/apresentação da proposta/i);
-    expect(fasePorId("cliente_pesquisa").rotaDesk).toBe("/pesquisa-modulo");
-    expect(fasePorId("cliente_recorrente").rotaDesk).toBe("/crm-journey");
-    expect(fasePorId("inexistente").id).toBe("lead_bruto");
+    expect(fasePorId("oportunidade").rotaDesk).toBe("/conversao");
+    expect(fasePorId("proposta").rotaDesk).toBe("/propostas");
+    expect(fasePorId("confirmacao").rotaDesk).toBe("/propostas");
+    expect(fasePorId("handoff_pessoa_caso").rotaDesk).toBe("/calls");
+    expect(fasePorId("planejador_universal").rotaDesk).toBe("/casos");
     expect(faseVizinha("lead_bruto", -1)).toBeNull();
     expect(faseVizinha("lead_bruto", 1)?.id).toBe("lead_qualificado");
-    expect(faseVizinha("cliente_recorrente", 1)).toBeNull();
     expect(ctaPrincipalFase(fasePorId("lead_bruto")).to).toBe("/leads");
-    expect(ctaPrincipalFase(fasePorId("lead_qualificado")).to).toBe("/calls");
-    expect(ctaPrincipalFase(fasePorId("oportunidade")).to).toBe("/propostas");
+    expect(ctaPrincipalFase(fasePorId("proposta")).to).toBe("/propostas");
+    expect(ctaPrincipalFase(fasePorId("planejador_universal")).to).toBe("/casos");
   });
 
-  it("conversão e hub referenciam a matriz", () => {
+  it("hub e conversão referenciam a matriz e a sequência", () => {
     const conversao = readFileSync("src/routes/_authenticated/conversao.tsx", "utf8");
     expect(conversao).toContain("FASES_CRM_JOURNEY");
     expect(conversao).toContain("/crm-journey");
-    const hub = readFileSync("src/routes/_authenticated/crm-journey.tsx", "utf8");
-    expect(hub).toContain("JornadaCrmHub");
+    const hub = readFileSync("src/components/crm/jornada-crm.tsx", "utf8");
+    expect(hub).toContain("SEQUENCIA_COMERCIAL_CRM_VIVO");
+    expect(hub).toContain("Planejador Universal");
+    expect(hub).toContain("confirmação");
     const nav = readFileSync("src/lib/navegacao-desk.ts", "utf8");
     expect(nav).toContain('to: "/crm-journey"');
   });

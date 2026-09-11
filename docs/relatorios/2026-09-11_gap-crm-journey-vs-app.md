@@ -9,7 +9,10 @@ Leitura operacional: `docs/politicas/ADENDO-CRM-JOURNEY-PAINEL-CALLS-2026-09-11.
 |---|---|---|
 | Lead bruto / triagem (antes da call) | `/leads` → `leads` | OK — Lead vem primeiro |
 | Call Discovery / diagnóstico | `PainelCalls`, `/calls` | OK — Calls ⊂ CRM vivo; após o Lead |
-| Call de proposta (ideal) + registro | `/calls` (ritual) + `/propostas` | PILOTO — handoff não cria proposta |
+| Oportunidade | `/conversao` | OK — após Discovery, antes da proposta |
+| Proposta + confirmação | `/propostas` | OK — handoff só depois da confirmação |
+| Handoff → pessoa/caso | `executarHandoffDiscovery` | OK — grava clientes + crm_casos |
+| Planejador Universal | UI no caso | OK — fonte operacional do caso |
 | SPIN Discovery | `discovery-roteiro.ts` + Mesa em `painel-calls.tsx` | OK |
 | status_call / consentimento | `leads.status_call`, `consentimento_*` + `bloqueiosRegistroCall` | OK |
 | Próxima ação + responsável + área | `leads.proxima_acao`, `proxima_acao_em`, `responsavel_nome`, `area_responsavel` + `validarLead` | OK backend; UI de aviso reforçada nesta fatia |

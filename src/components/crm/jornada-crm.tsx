@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 
 import {
   FASES_CRM_JOURNEY,
+  SEQUENCIA_COMERCIAL_CRM_VIVO,
   ctaPrincipalFase,
   fasePorId,
   faseVizinha,
@@ -40,8 +41,39 @@ export function JornadaCrmHub({
 
   return (
     <div className="space-y-4" data-crm-journey-hub>
+      <div className={`${CARTAO} border-gold/40 bg-gold/10`} data-sequencia-comercial>
+        <p className="text-[11px] uppercase tracking-wide text-navy/50">
+          Cadeia comercial canônica · CRM vivo
+        </p>
+        <p className="mt-1 text-sm text-navy/80">
+          Lead → Call/Discovery → oportunidade → proposta → confirmação → handoff → pessoa e caso →
+          Planejador Universal
+        </p>
+        <ol className="mt-3 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
+          {SEQUENCIA_COMERCIAL_CRM_VIVO.map((p) => (
+            <li
+              key={p.id}
+              data-passo-comercial={p.id}
+              className="rounded-lg border border-navy/10 bg-white/80 px-2.5 py-2"
+            >
+              <p className="text-[10px] uppercase tracking-wide text-navy/45">Passo {p.passo}</p>
+              <p className="text-sm font-medium text-navy">{p.rotulo}</p>
+              <p className="mt-0.5 text-[11px] text-navy/55">{p.rotaDesk}</p>
+              <Link
+                to={p.rotaDesk}
+                className="mt-1 inline-block text-[11px] font-medium text-navy underline decoration-gold underline-offset-2"
+              >
+                Abrir
+              </Link>
+            </li>
+          ))}
+        </ol>
+      </div>
+
       <div className={`${CARTAO} border-gold/30 bg-cream/50`}>
-        <p className="text-[11px] uppercase tracking-wide text-navy/50">CRM Journey · ciclo completo</p>
+        <p className="text-[11px] uppercase tracking-wide text-navy/50">
+          Ciclo Desk · fase selecionada
+        </p>
         <h2 className="mt-1 font-serif text-xl text-navy">
           Fase {indice} de {FASES_CRM_JOURNEY.length}: {ativa.rotulo}
         </h2>
@@ -49,7 +81,8 @@ export function JornadaCrmHub({
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <SeloCanal canal={ativa.whatsapp.canal} />
           <span className="text-[11px] text-navy/55">
-            {ativa.statusPiloto === "mvp" ? "MVP" : "Backlog"} · persistência em leads / caso / proposals
+            {ativa.statusPiloto === "mvp" ? "MVP" : "Backlog"} · leads / propostas / clientes /
+            crm_casos
           </span>
         </div>
         <p className="mt-2 text-xs text-navy/60">{ativa.whatsapp.detalhe}</p>
@@ -115,21 +148,33 @@ export function JornadaCrmHub({
       </ol>
 
       <div className={`${CARTAO} text-xs text-navy/65`}>
-        <p className="font-medium text-navy">Como operar esta jornada</p>
+        <p className="font-medium text-navy">Como operar (ordem obrigatória)</p>
         <ol className="mt-2 list-decimal space-y-1 pl-4">
           <li>
-            Primeiro o <strong>Lead</strong> (`/leads`): captura e triagem — a call não vem antes.
+            <strong>Lead</strong> (`/leads`) — captura e triagem.
           </li>
           <li>
-            Depois a <strong>Call Discovery / diagnóstico</strong> (`/calls`, Mesa SPIN) e handoff
-            (pessoa + caso).
+            <strong>Call / Discovery</strong> (`/calls`) — diagnóstico SPIN.
           </li>
           <li>
-            Idealmente uma <strong>call para apresentar a proposta</strong>; o registro fica em
-            `/propostas` (handoff não cria proposta).
+            <strong>Oportunidade</strong> (`/conversao`) — qualificação comercial.
           </li>
-          <li>Formalize em `/contratos` e libere App em `/acessos-portal`.</li>
-          <li>Pesquisa e documentos: `/pesquisa-modulo` e `/atendimento#publicacao`.</li>
+          <li>
+            <strong>Proposta</strong> (`/propostas`) — idealmente com call de apresentação; handoff
+            não cria proposta.
+          </li>
+          <li>
+            <strong>Confirmação</strong> — aceite da proposta.
+          </li>
+          <li>
+            <strong>Handoff</strong> — só depois da confirmação; grava pessoa + caso.
+          </li>
+          <li>
+            <strong>Pessoa e caso canônicos</strong> (`/casos`).
+          </li>
+          <li>
+            <strong>Planejador Universal</strong> no caso — fonte do que vem a seguir.
+          </li>
           <li>WhatsApp nunca dispara sozinho: fila `communication_queue` ou cópia manual.</li>
         </ol>
         <p className="mt-3">

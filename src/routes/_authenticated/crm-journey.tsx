@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/crm-journey")({
       {
         name: "description",
         content:
-          "Jornada comercial completa: Calls → proposta → contrato → App → pesquisa. WhatsApp só com aprovação humana.",
+          "Lead → Call/Discovery → oportunidade → proposta → confirmação → handoff → pessoa/caso → Planejador. WhatsApp só com aprovação humana.",
       },
       { property: "og:title", content: "CRM Journey — Clube Ancestral" },
       { property: "og:type", content: "website" },
@@ -39,7 +39,7 @@ function CrmJourneyPage() {
   return (
     <SaasShell
       titulo="CRM Journey"
-      descricao="Ciclo inteiro navegável: da Mesa de Discovery ao App e à pesquisa. Cada fase abre a tela real do Desk — sem inventar crm_calls nem enviar WhatsApp sozinho."
+      descricao="Cadeia canônica: Lead → Call/Discovery → oportunidade → proposta → confirmação → handoff → pessoa/caso → Planejador Universal. Sem inventar crm_calls nem enviar WhatsApp sozinho."
     >
       <JornadaCrmHub
         faseAtivaId={ativa.id}
