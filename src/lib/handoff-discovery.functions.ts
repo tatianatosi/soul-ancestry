@@ -27,7 +27,10 @@ import {
   podeExecutarHandoffDiscovery,
   type CandidatoCliente,
 } from "@/lib/handoff-discovery";
+import { assumirOuRecusarComUsuario } from "@/lib/autoridade.server";
+import { nomeResponsavelSessao } from "@/lib/cadeia-operacional.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { nomeResponsavelPadrao } from "@/lib/responsavel-padrao";
 import { garantirTarefaAberta } from "@/lib/tarefa-garantida.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
@@ -103,6 +106,7 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
       forcarCriarCliente?: boolean;
       tipoServico?: string | null;
       rascunho?: Record<string, unknown>;
+      motivoOverride?: string | null;
     }) => {
       if (!UUID.test(String(data?.leadId ?? ""))) throw new Error("leadId inválido.");
       if (data.clienteIdConfirmado && !UUID.test(String(data.clienteIdConfirmado))) {
@@ -114,6 +118,7 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
         forcarCriarCliente: data.forcarCriarCliente === true,
         tipoServico: data.tipoServico?.trim() || null,
         rascunho: data.rascunho ?? {},
+        motivoOverride: data.motivoOverride?.trim() || null,
       };
     },
   )
@@ -121,6 +126,9 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
     const supabase = (context as any).supabase;
     const userId = context.userId as string;
     const organizationId = await organizacaoDo(supabase, userId);
+    const responsavelPadrao = nomeResponsavelPadrao(
+      await nomeResponsavelSessao(supabase, organizationId, userId),
+    );
 
     const { data: leadRow, error: errLead } = await supabase
       .from("leads")
@@ -153,7 +161,37 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
     const lead = (leadAtual ?? leadRow) as LeadDesk;
 
     const gate = podeExecutarHandoffDiscovery(lead);
-    if (!gate.ok) throw new Error(gate.motivo ?? "Handoff bloqueado.");
+    if (!gate.ok) {
+      // Pendência informa: proprietária assume e segue; demais papéis bloqueiam.
+      const assumidas = await assumirOuRecusarComUsuario(
+        supabase,
+        userId,
+        [gate.motivo ?? "Handoff bloqueado."],
+        gate.motivo ?? "Handoff bloqueado.",
+      );
+      if (assumidas.length) {
+        await supabase.from("owner_override_events").insert({
+          organization_id: organizationId,
+          actor_user_id: userId,
+          actor_papel: "admin",
+          categoria: "override_interno",
+          acao: "handoff_discovery_com_pendencia",
+          modulo: "mesa_discovery",
+          operacao: "avanco_fase_caso",
+          entidade: "leads",
+          entidade_id: data.leadId,
+          motivo:
+            data.motivoOverride ||
+            "Handoff Discovery avançado pela proprietária com checklist incompleto (startup solo).",
+          fonte: "mesa_discovery",
+          pendencias_assumidas: assumidas,
+          acao_externa: false,
+          irreversivel: false,
+          confirmacao_manual: true,
+          executado: true,
+        });
+      }
+    }
 
     if (lead.case_id) {
       const { data: casoExistente } = await supabase
@@ -168,7 +206,9 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
       const patchCaso: Record<string, unknown> = {};
       if (lead.proxima_acao) patchCaso.proxima_acao = lead.proxima_acao;
       if (lead.proxima_acao_em) patchCaso.prazo_proxima_acao = lead.proxima_acao_em;
-      if (lead.responsavel_nome) patchCaso.responsavel_principal = lead.responsavel_nome;
+      patchCaso.responsavel_principal =
+        lead.responsavel_nome?.trim() || responsavelPadrao;
+      patchCaso.responsavel_id = userId;
       if (Object.keys(patchCaso).length) {
         await gravarComVerificacao({
           supabase,
@@ -300,7 +340,8 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
           status: "rascunho",
           proxima_acao: lead.proxima_acao?.trim() || PROXIMA_ACAO_ABERTURA,
           prazo_proxima_acao: lead.proxima_acao_em ?? null,
-          responsavel_principal: lead.responsavel_nome?.trim() || null,
+          responsavel_principal: lead.responsavel_nome?.trim() || responsavelPadrao,
+          responsavel_id: userId,
           created_by: userId,
           updated_by: userId,
         })

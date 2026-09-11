@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { SaasShell } from "@/components/saas/shell";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import {
   atualizarCheckAtivacao,
   atualizarItemChecklistOnboarding,
@@ -93,11 +94,14 @@ function OnboardingPage() {
     },
   });
   const mAtivar = useMutation({
-    mutationFn: () => ativar({ data: { casoId: id } }),
+    mutationFn: (motivo?: string) =>
+      ativar({ data: { casoId: id, motivoOverride: motivo?.trim() || null } }),
     onSuccess: (r) => {
       setAviso(
         r.ok
-          ? "Caso ativado. Data de ativação, usuário e evento de auditoria registrados."
+          ? r.pendencias?.length
+            ? `Caso ativado. Pendências preservadas: ${r.pendencias.join(" · ")}`
+            : "Caso ativado. Data de ativação, usuário e evento de auditoria registrados."
           : `Ativação bloqueada: ${r.pendencias.join(" · ")}`,
       );
       recarregar();
@@ -220,16 +224,16 @@ function OnboardingPage() {
                   ? "Caso ativo"
                   : pronto
                     ? "Requisitos completos"
-                    : `Não elegível — ativação bloqueada (${bloqueiosReais.length} bloqueio(s) real(is))`}
+                    : `Ativação com ${bloqueiosReais.length} pendência(s) — informa, não impede a proprietária`}
               </span>
             </header>
 
             {!pronto ? (
-              <div className="mb-4 rounded-lg border border-terracotta/30 bg-terracotta/5 p-3 text-sm text-navy">
+              <div className="mb-4 rounded-lg border border-navy/15 bg-cream/40 p-3 text-sm text-navy">
                 <p className="font-medium">
-                  Não elegível — ativação bloqueada. Cada linha abaixo é um bloqueio real que o
-                  banco confere agora mesmo — não uma opinião do checklist. Resolver a linha na tela
-                  indicada e recarregar atualiza o estado aqui.
+                  Pendências reais abaixo (startup: informam, não travam a proprietária). Resolver
+                  na tela indicada melhora a qualidade; o botão de ativação permanece disponível
+                  com decisão auditada.
                 </p>
                 <div className="mt-2 overflow-x-auto">
                   <table className="w-full min-w-[640px] border-collapse text-xs">
@@ -341,18 +345,22 @@ function OnboardingPage() {
             </ul>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
-              {dados.podeAtivar && !ativo && pronto ? (
-                <button
-                  onClick={() => mAtivar.mutate()}
-                  className="rounded-md bg-navy px-3 py-1.5 text-sm text-cream"
-                >
-                  Ativar caso
-                </button>
+              {dados.podeAtivar && !ativo ? (
+                <AcaoOperacional
+                  rotulo={pronto ? "Ativar caso" : "Ativar mesmo com pendências"}
+                  capacidade="avancar_caso_planejador_tarefa"
+                  pendenciaGate={
+                    pronto
+                      ? null
+                      : `Checklist incompleto: ${(bloqueiosReais ?? []).map((b: { motivo: string }) => b.motivo).join("; ") || "requisitos pendentes"}`
+                  }
+                  efeito="Ativa o caso operacional. Pendências do checklist permanecem visíveis e auditadas."
+                  onConfirmar={(motivo) => mAtivar.mutate(motivo)}
+                />
               ) : null}
-              {!ativo && !pronto ? (
+              {!ativo && !pronto && dados.podeAtivar ? (
                 <p className="text-xs text-navy/55">
-                  Sem botão de ativação: o checklist obrigatório ainda não está completo. A
-                  validação final é feita pelo banco de dados.
+                  Pendências informam — para a proprietária não impedem. O botão acima registra a decisão.
                 </p>
               ) : null}
               {dados.podeAtivar && ativo ? (

@@ -11,7 +11,10 @@ import { construirMapaProdutoPaiPorCodigo, produtoPaiDoCodigo } from "@/lib/plan
 /** Catálogos, serviços, etiquetas, alertas, comunicação e onboarding do caso. */
 import { exigirGate } from "@/lib/escopo-conferencia.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
-import { exigirProximaAcaoCompleta } from "@/lib/proxima-acao-regras";
+import { exigirProximaAcaoOperavel } from "@/lib/proxima-acao-startup";
+import { proprietariaOperando } from "@/lib/autoridade.server";
+import { nomeResponsavelSessao } from "@/lib/cadeia-operacional.server";
+import { nomeResponsavelPadrao } from "@/lib/responsavel-padrao";
 
 
 export const carregarCanonico = createServerFn({ method: "GET" })
@@ -198,11 +201,33 @@ export const registrarProximaAcao = createServerFn({ method: "POST" })
       .eq("organization_id", organizationId)
       .maybeSingle();
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
-    const c = caso.data as Linha;
-    // Completude obrigatória: responsável, prazo, público, visibilidade, canal
-    // e aprovação humana quando o canal é externo (códigos específicos de erro).
-    exigirProximaAcaoCompleta(c as Record<string, unknown>);
-
+    const cBruto = caso.data as Linha;
+    const livre = await proprietariaOperando(supabase, context.userId as string);
+    const responsavelNome = nomeResponsavelPadrao(
+      await nomeResponsavelSessao(supabase, organizationId, context.userId as string),
+    );
+    const { estado: preenchido, pendenciasAssumidas } = exigirProximaAcaoOperavel(
+      cBruto as Record<string, unknown>,
+      { livreProprietaria: livre, responsavelPreferido: responsavelNome },
+    );
+    const c = { ...cBruto, ...preenchido } as Linha;
+    if (pendenciasAssumidas.length || c.responsavel_principal !== cBruto.responsavel_principal) {
+      await gravarComVerificacao({
+        supabase,
+        tabela: "crm_casos",
+        id: data.caseId,
+        organizationId,
+        userId: context.userId as string,
+        payload: {
+          responsavel_principal: c.responsavel_principal,
+          responsavel_id: cBruto.responsavel_id || context.userId,
+          prazo_proxima_acao: c.prazo_proxima_acao,
+          target_audience: c.target_audience,
+          visibility: c.visibility,
+          suggested_channel: c.suggested_channel,
+        },
+      });
+    }
 
     const mapa = mapaDaAcao(c.proxima_acao_codigo);
     const externo = c.target_audience && c.target_audience !== "interno_tatiana";

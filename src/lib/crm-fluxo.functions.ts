@@ -11,6 +11,7 @@ import {
   validarOportunidade,
 } from "@/lib/crm-fluxo";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { NOME_RESPONSAVEL_PADRAO } from "@/lib/responsavel-padrao";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -56,7 +57,8 @@ async function materializarCasoDaOportunidade(
       pais: op.pais_linha_prioritaria ?? null,
       via: op.via_preliminar || "a-definir",
       citizenship_track_id: op.citizenship_track_id ?? null,
-      responsavel_principal: op.responsavel_nome || "Tatiana Melani Tosi",
+      responsavel_principal: op.responsavel_nome || NOME_RESPONSAVEL_PADRAO,
+      responsavel_id: userId,
       eixo_comercial: "confirmacao_formal_recebida",
       eixo_formalizacao: "formalizacao_em_preparacao",
       data_confirmacao_formal_proposta: new Date().toISOString().slice(0, 10),

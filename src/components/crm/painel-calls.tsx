@@ -5,8 +5,10 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
 import { HandoffLead } from "@/components/crm/handoff-lead";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { executarHandoffDiscovery } from "@/lib/handoff-discovery.functions";
+import { podeExecutarHandoffDiscovery } from "@/lib/handoff-discovery";
 import { salvarTarefa } from "@/lib/ops.functions";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
 import {
@@ -342,13 +344,18 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
   });
 
   const mutarHandoff = useMutation({
-    mutationFn: (opcoes?: { clienteIdConfirmado?: string | null; forcarCriarCliente?: boolean }) =>
+    mutationFn: (opcoes?: {
+      clienteIdConfirmado?: string | null;
+      forcarCriarCliente?: boolean;
+      motivoOverride?: string | null;
+    }) =>
       handoffFn({
         data: {
           leadId: selecionado!,
           clienteIdConfirmado: opcoes?.clienteIdConfirmado ?? null,
           forcarCriarCliente: opcoes?.forcarCriarCliente === true,
           rascunho,
+          motivoOverride: opcoes?.motivoOverride ?? null,
         },
       }),
     onSuccess: (r) => {
@@ -840,20 +847,20 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 >
                   Gravar registro da call
                 </button>
-                <button
-                  type="button"
-                  disabled={
-                    mutar.isPending ||
-                    mutarHandoff.isPending ||
-                    !selecionado ||
-                    (!lead?.case_id && (!avaliacao?.liberado || avaliacao?.destino !== "proposta"))
-                  }
-                  onClick={() => mutarHandoff.mutate({})}
-                  className="rounded-lg border border-gold bg-gold/15 px-4 py-2 text-sm text-navy disabled:opacity-40"
-                  title="Cria ou reutiliza pessoa e caso, grava o vínculo no lead e leva a próxima ação — sem envio externo."
-                >
-                  Concluir handoff para pessoa e caso
-                </button>
+                {(() => {
+                  const gateHandoff = lead ? podeExecutarHandoffDiscovery(lead) : { ok: false, motivo: "Selecione um lead" };
+                  return (
+                    <AcaoOperacional
+                      rotulo="Concluir handoff para pessoa e caso"
+                      capacidade="avancar_caso_planejador_tarefa"
+                      pendenciaGate={gateHandoff.ok ? null : gateHandoff.motivo}
+                      validacaoFormulario={!selecionado ? "Selecione um lead na Mesa" : null}
+                      efeito="Cria ou reutiliza pessoa e caso, grava o vínculo no lead e leva a próxima ação — sem envio externo."
+                      onConfirmar={(motivo) => mutarHandoff.mutate({ motivoOverride: motivo || null })}
+                      className="rounded-lg border border-gold bg-gold/15 px-4 py-2 text-sm text-navy"
+                    />
+                  );
+                })()}
                 {rascunho && Object.keys(rascunho).length ? (
                   <button
                     type="button"

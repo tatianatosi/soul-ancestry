@@ -508,9 +508,9 @@ function CasosPage() {
               if (e.pendentes > 0) {
                 return (
                   <span className="block space-y-1">
-                    <Badge texto="Não elegível — ativação bloqueada" tom="alerta" />
+                    <Badge texto="Ativação com pendências" tom="alerta" />
                     <span className="block text-[11px] text-navy/55">
-                      {e.validados}/{e.total} requisitos validados no banco
+                      {e.validados}/{e.total} requisitos — pendência informa; proprietária ativa no onboarding
                     </span>
                     <ul className="ml-3 list-disc space-y-0.5 text-[11px] text-navy/70">
                       {e.motivos.slice(0, 3).map((m) => (
