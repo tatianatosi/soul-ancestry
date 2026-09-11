@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 import { MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
 import { HandoffLead } from "@/components/crm/handoff-lead";
@@ -22,12 +22,16 @@ import {
   type Opcao,
 } from "@/lib/crm-desk";
 import {
+  ETAPAS_SPIN,
   META_CAMPO_ROTEIRO,
-  ROTEIRO_DISCOVERY,
+  PERGUNTAS_MESA,
   ROTULO_CAMPO_ROTEIRO,
   ROTULO_ESTADO_RESPOSTA,
   estadoResposta,
-  progressoRoteiro,
+  indicePrimeiraPerguntaPendente,
+  perguntaDaMesaPorCampo,
+  progressoSpin,
+  spinDerivadoDoLead,
   type EstadoRespostaRoteiro,
 } from "@/lib/discovery-roteiro";
 import {
@@ -100,6 +104,116 @@ function Pendencias({ titulo, itens }: { titulo: string; itens: Pendencia[] }) {
   );
 }
 
+function MesaDiscovery({
+  lead,
+  indice,
+  onIndice,
+  renderCampo,
+  onTarefa,
+  tarefaPendente,
+}: {
+  lead: LeadDesk;
+  indice: number;
+  onIndice: (n: number) => void;
+  renderCampo: (campoId: string) => ReactNode;
+  onTarefa: () => void;
+  tarefaPendente: boolean;
+}) {
+  const i = Math.min(Math.max(indice, 0), PERGUNTAS_MESA.length - 1);
+  const atual = PERGUNTAS_MESA[i]!;
+  const etapa = ETAPAS_SPIN.find((e) => e.chave === atual.etapa)!;
+  const spin = progressoSpin(lead);
+  const metaPrimeiro = META_CAMPO_ROTEIRO[atual.campos[0] ?? ""];
+
+  return (
+    <Secao
+      titulo="Mesa de Discovery"
+      descricao="Uma pergunta por vez, na ordem SPIN. A resposta vai para o lead canônico. Salvar rascunho não exige o roteiro inteiro. Nada aqui é parecer jurídico."
+    >
+      <div className="mb-3 flex flex-wrap gap-2" data-mesa-spin>
+        {spin.map((e) => (
+          <button
+            key={e.chave}
+            type="button"
+            data-spin-etapa={e.chave}
+            onClick={() => {
+              const primeiro = PERGUNTAS_MESA.findIndex((p) => p.etapa === e.chave);
+              if (primeiro >= 0) onIndice(primeiro);
+            }}
+            className={`rounded-full border px-2.5 py-1 text-[11px] ${
+              atual.etapa === e.chave ? "border-gold bg-gold/15 text-navy" : "border-navy/15 bg-white text-navy/70"
+            }`}
+          >
+            {e.rotulo} · {e.preenchidas}/{e.total}
+          </button>
+        ))}
+        <Selo cor={corElegibilidade(lead.elegibilidade_preliminar)}>
+          Elegibilidade: {rotulo("elegibilidade_preliminar", lead.elegibilidade_preliminar)}
+        </Selo>
+        <Selo cor={corComplexidade(lead.complexidade_documental)}>
+          Complexidade: {rotulo("complexidade_documental", lead.complexidade_documental)}
+        </Selo>
+      </div>
+
+      <div
+        data-mesa-discovery
+        data-pergunta={atual.id}
+        data-pergunta-mesa={atual.id}
+        data-etapa={atual.etapa}
+        className="rounded-xl border border-navy/10 bg-cream/30 p-4"
+      >
+        <p className="text-[11px] font-medium uppercase tracking-wide text-navy/55">
+          {etapa.rotulo} · pergunta {i + 1} de {PERGUNTAS_MESA.length}
+        </p>
+        <h3 className="mt-1 font-serif text-lg text-navy">{atual.pergunta}</h3>
+        <p className="mt-1 text-xs text-navy/60">{etapa.paraQue}</p>
+        {metaPrimeiro ? <p className="mt-2 text-xs text-navy/55">{metaPrimeiro.porQueImporta}</p> : null}
+
+        <div className="mt-3 space-y-2">
+          {atual.campos.map((c) => renderCampo(c))}
+        </div>
+
+        {atual.campos.includes("proxima_acao") ? (
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-navy/10 pt-3">
+            <button
+              type="button"
+              disabled={!lead.case_id || !lead.proxima_acao || !lead.proxima_acao_em || tarefaPendente}
+              onClick={onTarefa}
+              title={
+                lead.case_id
+                  ? "Cria ou reaproveita a tarefa no caso a partir da próxima ação."
+                  : "Só disponível depois do handoff, quando o lead já tem caso."
+              }
+              className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy hover:bg-navy/5 disabled:opacity-40"
+            >
+              Criar/atualizar tarefa desta próxima ação
+            </button>
+          </div>
+        ) : null}
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            disabled={i === 0}
+            onClick={() => onIndice(i - 1)}
+            className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy disabled:opacity-40"
+          >
+            Pergunta anterior
+          </button>
+          <button
+            type="button"
+            disabled={i >= PERGUNTAS_MESA.length - 1}
+            onClick={() => onIndice(i + 1)}
+            className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
+          >
+            Próxima pergunta
+          </button>
+        </div>
+      </div>
+    </Secao>
+  );
+}
+
 export function PainelCalls() {
   const carregar = useServerFn(listarLeadsDesk);
   const salvar = useServerFn(salvarLeadDesk);
@@ -124,6 +238,7 @@ export function PainelCalls() {
   const [achados, setAchados] = useState<Achado[]>([]);
   const [hipoteses, setHipoteses] = useState<Set<string>>(new Set());
   const [ignorados, setIgnorados] = useState<Set<string>>(new Set());
+  const [indicePergunta, setIndicePergunta] = useState(0);
   const chaveLeadCampo = (campo: string) => `${selecionado ?? ""}:${campo}`;
 
   const carregarTrilhas = useServerFn(listarTrilhasJuridicas);
@@ -193,8 +308,12 @@ export function PainelCalls() {
     });
 
   const mutar = useMutation({
-    mutationFn: (valores: Record<string, unknown>) =>
-      salvar({ data: { id: selecionado, valores } }),
+    mutationFn: (valores: Record<string, unknown>) => {
+      const merged = { ...(lead ?? {}), ...valores } as LeadDesk;
+      return salvar({
+        data: { id: selecionado, valores: { ...valores, ...spinDerivadoDoLead(merged) } },
+      });
+    },
     onSuccess: (r: any) => {
       if (r?.ok === false) {
         setAviso(
@@ -239,10 +358,8 @@ export function PainelCalls() {
   });
 
   /**
-   * Um card por campo do roteiro: pergunta (no bloco em volta), por que
-   * importa, contexto/origem (achado de WhatsApp, quando houver), o controle
-   * de resposta, o estado e o destino — a lacuna que a missão pediu para
-   * fechar ("perguntas SPIN sem local evidente para resposta/destino").
+   * Controle de um campo dentro do card da pergunta SPIN.
+   * A pergunta em si mora no card da Mesa, não numa lista ao lado.
    */
   function renderCampoRoteiro(campoId: string) {
     const meta = META_CAMPO_ROTEIRO[campoId];
@@ -257,7 +374,7 @@ export function PainelCalls() {
     const achadosPendentes = achadosDoCampo(campoId);
     const multi = meta.tipo === "multi";
 
-    let controle: React.ReactNode;
+    let controle: ReactNode;
     if (meta.tipo === "select") {
       controle = (
         <Selecao label={rotuloCampo} valor={campo(campoId as keyof LeadDesk)} opcoes={CATALOGOS[campoId] ?? []} onChange={set(campoId)} />
@@ -374,6 +491,8 @@ export function PainelCalls() {
           const dest = CAMPO_LEAD_POR_VARREDURA[a.campo];
           if (!dest) return;
           aplicarAchado(dest.campoLead, a.valor, dest.multi);
+          const p = perguntaDaMesaPorCampo(dest.campoLead);
+          if (p) setIndicePergunta(PERGUNTAS_MESA.findIndex((x) => x.id === p.id));
         }}
       />
 
@@ -394,8 +513,8 @@ export function PainelCalls() {
       ) : null}
 
       <Secao
-        titulo="Painel de Calls"
-        descricao="Registro da chamada, qualificação preliminar e handoff — o mesmo sistema do CA-04 / CRM Mestre. Toda triagem é sinal interno: não conclui elegibilidade jurídica, não envia proposta, contrato, cobrança nem mensagem."
+        titulo="Mesa de Discovery"
+        descricao="Aqui a entrada comercial funciona: varredura, uma pergunta SPIN por vez, próxima ação e handoff. Os KPIs do que está parado ou vencido ficam no Hoje. Toda triagem é sinal interno — não conclui elegibilidade nem envia proposta."
       >
         <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {[
@@ -448,6 +567,7 @@ export function PainelCalls() {
                         setSelecionado(l.id ?? null);
                         setRascunho({});
                         setAviso(null);
+                        setIndicePergunta(indicePrimeiraPerguntaPendente(l));
                       }}
                       className={`w-full rounded-lg border px-3 py-2 text-left text-xs ${
                         selecionado === l.id
@@ -562,82 +682,20 @@ export function PainelCalls() {
                 </div>
               </Secao>
 
-              <Secao
-                titulo="Roteiro vivo de Discovery"
-                descricao="Cada pergunta com pergunta, por que importa, contexto/origem, resposta, estado e destino no mesmo card. Não é formulário obrigatório: salvar rascunho não exige o roteiro inteiro."
-              >
-                <div className="mb-3 flex flex-wrap gap-2">
-                  <Selo cor={corElegibilidade(lead.elegibilidade_preliminar)}>
-                    Elegibilidade: {rotulo("elegibilidade_preliminar", lead.elegibilidade_preliminar)}
-                  </Selo>
-                  <Selo cor={corComplexidade(lead.complexidade_documental)}>
-                    Complexidade: {rotulo("complexidade_documental", lead.complexidade_documental)}
-                  </Selo>
-                </div>
-
-                {(() => {
-                  const jaRenderizado = new Set<string>();
-                  return (
-                    <div className="space-y-4">
-                      {ROTEIRO_DISCOVERY.map((b) => {
-                        const p = progressoRoteiro(lead).find((x) => x.chave === b.chave);
-                        if (!p) return null;
-                        const camposDoBloco = b.campos.filter((c) => {
-                          if (jaRenderizado.has(c)) return false;
-                          jaRenderizado.add(c);
-                          return true;
-                        });
-                        return (
-                          <div key={b.chave} className="rounded-xl border border-navy/10 bg-cream/30 p-3">
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <p className="text-xs font-medium uppercase tracking-wide text-navy/60">{b.titulo}</p>
-                              <span
-                                className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                                  p.completo ? "bg-sage/30 text-navy" : "bg-navy/10 text-navy/60"
-                                }`}
-                              >
-                                {p.preenchidos}/{p.total}
-                              </span>
-                            </div>
-                            <ul className="mt-1.5 space-y-1 text-xs text-navy/70">
-                              {b.perguntas.map((q) => (
-                                <li key={q}>• {q}</li>
-                              ))}
-                            </ul>
-                            <div className="mt-3 grid gap-2 md:grid-cols-2">
-                              {camposDoBloco.map((c) => renderCampoRoteiro(c))}
-                            </div>
-                            {b.chave === "decisao" ? (
-                              <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-navy/10 pt-3">
-                                <button
-                                  type="button"
-                                  disabled={!lead.case_id || !lead.proxima_acao || !lead.proxima_acao_em || mTarefaProximaAcao.isPending}
-                                  onClick={() => mTarefaProximaAcao.mutate()}
-                                  title={
-                                    lead.case_id
-                                      ? "Cria ou reaproveita a tarefa no caso a partir da próxima ação."
-                                      : "Só disponível depois do handoff, quando o lead já tem caso."
-                                  }
-                                  className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy hover:bg-navy/5 disabled:opacity-40"
-                                >
-                                  Criar/atualizar tarefa desta próxima ação
-                                </button>
-                              </div>
-                            ) : null}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
-
-                <div className="mt-3">
-                  <Pendencias
-                    titulo="Bloqueios da qualificação"
-                    itens={avaliacao?.qualificacao ?? []}
-                  />
-                </div>
-              </Secao>
+              <MesaDiscovery
+                lead={lead}
+                indice={indicePergunta}
+                onIndice={setIndicePergunta}
+                renderCampo={renderCampoRoteiro}
+                onTarefa={() => mTarefaProximaAcao.mutate()}
+                tarefaPendente={mTarefaProximaAcao.isPending}
+              />
+              <div className="mt-3">
+                <Pendencias
+                  titulo="Bloqueios da qualificação"
+                  itens={avaliacao?.qualificacao ?? []}
+                />
+              </div>
 
               <Secao
                 titulo="Handoff da Discovery"
@@ -678,7 +736,7 @@ export function PainelCalls() {
                 <button
                   type="button"
                   disabled={mutar.isPending || !Object.keys(rascunho).length}
-                  onClick={() => mutar.mutate(rascunho)}
+                  onClick={() => mutar.mutate({ ...rascunho, ...spinDerivadoDoLead(lead) })}
                   className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
                 >
                   Gravar registro da call
@@ -691,7 +749,11 @@ export function PainelCalls() {
                     avaliacao?.destino !== "proposta"
                   }
                   onClick={() =>
-                    mutar.mutate({ ...rascunho, eixo_comercial: "diagnostico_em_elaboracao" })
+                    mutar.mutate({
+                      ...rascunho,
+                      ...spinDerivadoDoLead(lead),
+                      eixo_comercial: "diagnostico_em_elaboracao",
+                    })
                   }
                   className="rounded-lg border border-gold bg-gold/15 px-4 py-2 text-sm text-navy disabled:opacity-40"
                   title="Move o eixo comercial para diagnóstico. Nenhum envio externo é executado."

@@ -21,6 +21,15 @@ import { GRUPOS_DESK } from "@/lib/navegacao-desk";
 const base: RegistroCallsCrm = { dataRegistro: "2026-08-24" };
 
 describe("Dicionário de validações Calls → CRM", () => {
+  it("SPIN no dicionário é pergunta da Mesa, não checkbox", () => {
+    const spins = CAMPOS_DICIONARIO_CALLS.filter((c) => c.campo.startsWith("SPIN"));
+    expect(spins).toHaveLength(4);
+    for (const c of spins) {
+      expect(c.tipo).toBe("Pergunta da Mesa");
+      expect(c.regra).toMatch(/deriva da resposta/i);
+    }
+  });
+
   it("todo campo classificatório aponta para uma lista existente", () => {
     const classificatorios = CAMPOS_DICIONARIO_CALLS.filter((c) => c.tipo.startsWith("Dropdown"));
     expect(classificatorios.length).toBeGreaterThan(20);

@@ -125,7 +125,7 @@ Texto integral: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA
 - Nenhum agente pode arquivar, reduzir a “histórico” ou declarar “já resolvido, pode arquivar” só porque existe código, PR, teste, migration, mockup ou log.
 - Arquivamento só depois de `COMPROVADO_EM_USO` pela proprietária autenticada (`tati@pluggedresearch.com`), com prints **inicial, ação, confirmação, releitura** e, na cadeia, **integração**. Resultado: `PASSOU` / `FALHOU` / `BLOQUEADO_POR_DADO` / `BLOQUEADO_POR_DECISAO` / `ERRO_DE_FONTE` / `NAO_LOCALIZADO`.
 - Este adendo **não** autoriza alterar dados, contratos, pagamentos, RLS, permissões, migrations, integrações, publicações, mensagens ou merges. Print complementa — não substitui — RLS, auditoria e persistência.
-- “Seis áreas” no adendo **não** redesenha o Desk: continuam os **8 grupos** e as **7 abas** do App Cliente.
+- “Seis áreas” no adendo **não** cria nona aba. Dívida declarada: `GRUPOS_DESK` nesta linha tem 6 grupos; a memória permanente ainda cita 8. Nenhuma das duas leituras se arquiva até a proprietária certificar a taxonomia.
 - Contextos de resgate (Discovery, Pessoa 360, Pesquisa, formalização, Radar, App Cliente, RLS etc.) permanecem **ativos** até a prova integrada. Listar um documento como “arquivado” no inventário antigo **não** retira a continuidade.
 
 ## Recuperação (se o produto estiver fragmentado)

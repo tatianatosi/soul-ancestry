@@ -1,31 +1,37 @@
 /**
  * NAVEGAÇÃO CANÔNICA DO DESK — 6 grupos, um endereço por função.
  *
- * Três camadas (decisão da Proprietária, 10/09/2026):
- * 1. Abas definem onde cada função vive.
- * 2. Mesa de Discovery (`/calls`) faz a entrada comercial funcionar.
- * 3. KPIs do Hoje mostram o que está parado, vencido ou precisa de decisão.
+ * Três camadas, sem concorrer:
+ *   Abas     — definem onde cada função vive.
+ *   Mesa     — faz a entrada comercial funcionar (/calls).
+ *   KPIs     — mostram o que está parado, vencido ou precisa de decisão (/painel).
  *
+ * Pesquisa e bases moram na Inteligência. Matrizes individual/casal/familiar
+ * moram na Formalização. CA-04 mora no Comercial com a Mesa. URLs não mudam.
  * Planilha Mestre, conciliação e SKU legado saem da operação diária e ficam
- * em Governança, rotulados. URLs não mudam. Nada é apagado nesta rodada.
- * 10/09/2026 — Proprietária: agora no menu de Governança; no pente fino,
- * essas rotas saem do Desk e vão para arquivo GitHub.
+ * em Governança, rotulados. Nada é apagado nesta rodada.
  */
 
-/** As três camadas do Desk — não são abas novas. */
+/** As três camadas do Desk. Não são abas novas. */
 export const CAMADAS_DESK = [
   {
     id: "abas",
+    papel: "Onde cada função vive",
     frase: "Abas definem onde cada função vive.",
+    superficie: "os 6 grupos",
   },
   {
     id: "mesa",
+    papel: "A entrada comercial funciona",
     frase: "A Mesa de Discovery faz a entrada comercial funcionar.",
+    superficie: "/calls",
     rota: "/calls",
   },
   {
     id: "kpis",
+    papel: "O que está parado, vencido ou precisa de decisão",
     frase: "Os KPIs do Hoje mostram o que está parado, vencido ou precisa de decisão.",
+    superficie: "/painel",
     rota: "/painel",
   },
 ] as const;
@@ -77,7 +83,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     id: "hoje",
     to: "/painel",
     label: "Hoje",
-    descricao: "O que está parado, vencido ou pede decisão hoje — com ação concreta.",
+    descricao: "KPIs do que está parado, vencido ou precisa de decisão. A call se faz na Mesa.",
     icone: "hoje",
     sub: [
       { to: "/painel", label: "Painel Hoje" },
@@ -87,17 +93,17 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   },
   {
     id: "comercial",
-    to: "/leads",
+    to: "/calls",
     label: "Marketing & Comercial",
-    descricao: "Entrada comercial: Calls, Mesa de Discovery, lead, proposta e conversão.",
+    descricao: "A Mesa de Discovery é a entrada. Leads, proposta e conversão moram nesta aba — não no Hoje.",
     icone: "comercial",
     agrupador: true,
     sub: [
       { grupo: "Aquisição" },
       { to: "/marketing", label: "Marketing e aquisição" },
       { grupo: "CRM Vivo" },
+      { to: "/calls", label: "Mesa de Discovery" },
       { to: "/leads", label: "Leads e triagem" },
-      { to: "/calls", label: "Painel de Calls" },
       { to: "/crm-mestre", label: "CRM Mestre — Discovery e Handoff" },
       { to: "/governanca/dicionario-calls-crm", label: "Dicionário Calls → CRM" },
       { to: "/propostas", label: "Propostas" },

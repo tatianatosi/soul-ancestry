@@ -12,7 +12,7 @@ Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da propriet
 - Tratar o **planejador** como fonte do trabalho ativo; o **caso** (`crm_casos`) como eixo; a próxima ação como campo obrigatório de caso ativo (`proxima_acao_prioritaria`).
 - Entregar fatia vertical (UI + persistência + permissão + evidência). Aparência sozinha não é “feito”.
 - Mapear conceitos para tabelas **já existentes** em `src/integrations/supabase/types.ts` e `supabase/migrations/`. Reaproveitar `case_members` / `tarefas` / `planner_tarefas` / `research_cases` / `documents` etc. Cruzar escritores de `src/lib` com `types.ts` **e** `CHECK` das migrations — `string` no tipo gerado não libera vocabulário novo.
-- Manter os **8 grupos** de `GRUPOS_DESK` e as **7 abas canônicas** do App Cliente (`Home, Jornada, Radar, Árvore, Documentos, Legado, Conta`). Hierarquia funcional da memória permanente não é menu novo.
+- Manter os grupos reais de `GRUPOS_DESK` (desta linha: 6) e as **7 abas canônicas** do App Cliente (`Home, Jornada, Radar, Árvore, Documentos, Legado, Conta`). A memória permanente ainda cita 8 grupos — dívida declarada, não licença para nona aba nem para arquivar nenhuma das leituras.
 - Nav do cliente = só as 7. Entregas / Fase 01 / Fase 02 **fora** da barra (conteúdo ou rota profunda, não aba).
 - Usar o mockup de **17 páginas** como visual normativo. PDF de **47 páginas**, distorção e comparação visual = auditoria, não briefing de redesign.
 - Tratar Pessoa, Núcleo, Lead, Caso, Pesquisa e Contrato como entidades distintas ligadas por IDs. App Cliente = projeção autorizada desses objetos.

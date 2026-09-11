@@ -3,43 +3,58 @@
 **Status do registro:** ativo (não arquivável)  
 **Política:** `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`  
 **Conta exigida:** proprietária `tati@pluggedresearch.com`  
-**Ambiente alvo desta linha:** Cloud Agent / Vite local `http://127.0.0.1:8080`  
 **Atualizado em:** 2026-09-11
 
-Nenhum motor abaixo está `COMPROVADO_EM_USO`. Código, PR, Vitest, build ou tela sem sessão da proprietária **não** alteram esta tabela.
+Nenhum motor abaixo está `COMPROVADO_EM_USO`. Código, PR, Vitest, build, preview ou declaração de agente **não** alteram essa certificação.
 
-## Bloqueio atual da sessão autenticada
+## Ambientes tentados
+
+### A. Vite local no Cloud Agent (`http://127.0.0.1:8080`)
 
 | Campo | Valor |
 |---|---|
 | Data/hora | 2026-09-11 ~00:34 UTC |
-| Ambiente | `http://127.0.0.1:8080/equipe/entrar` |
-| Motor | Sessão da proprietária (pré-requisito de todos os demais) |
-| Ação | Tentativa de login da proprietária no Desk |
+| Rota | `/equipe/entrar` |
 | Resultado | `BLOQUEADO_POR_DADO` |
-| Evidência visual | Tela de login com e-mail da proprietária; mensagem genérica “Não foi possível entrar. Verifique os dados e tente novamente.” Print de sessão autenticada **não existe**. |
-| Causa | O passo de rate-limit (`prepararLoginEquipe` → `estadoLimite`) usa cliente administrativo e exige `SUPABASE_SERVICE_ROLE_KEY` no servidor. A variável não está no ambiente Cloud Agent. A chave **não** pode ser colada em chat, git ou artefato. |
-| Limitação | Sem sessão autenticada, a matriz da seção 4 do adendo não pode ser executada. Prints de homepage/login sem Painel **não** contam como prova. |
-| Próximo passo | Proprietária adiciona no painel de Environment os segredos `SUPABASE_SERVICE_ROLE_KEY`, `TEST_LOGIN_USERNAME` e `TEST_LOGIN_PASSWORD`. Depois: print inicial autenticado em `/painel`, ação, confirmação, releitura e integração. |
+| Evidência | Tela de login; mensagem genérica de falha. Sem Painel autenticado. |
+| Causa | `prepararLoginEquipe` exige `SUPABASE_SERVICE_ROLE_KEY` no servidor local. A chave **não** entra em chat, git ou artefato. |
+| Limitação | Esse ambiente local **não** serve para a matriz da seção 4 do adendo. |
+
+### B. Preview Vercel da Mesa (PR #98) — evidência de agente, não certificação da dona
+
+| Campo | Valor |
+|---|---|
+| Data/hora | 2026-09-11 ~00:39–00:52 UTC |
+| Ambiente | `https://soul-ancestry-git-cursor-mesa-discov-f8ced8-tati-6134s-projects.vercel.app` |
+| Conta visível | `tati@pluggedresearch.com` · Clube Ancestral · Admin (menu Conta) |
+| Quem executou | Agente, com a conta da proprietária. **Não** é o protocolo da seção 3 (teste executado pela proprietária). |
+| Lead | Ana Luiza (`dados_teste`) — fixture, não operação real. |
+| Prints | sessão autenticada; Mesa Situação (1 pergunta); chip Problema; varredura WhatsApp; `/leads` sem checkbox SPIN |
+| F5 após gravar SPIN / próxima ação | **não feito** |
+| Integração Hoje (mesma próxima ação, sem duplicar) | **não feito** |
+| Resultado do protocolo | não `PASSOU`; não `COMPROVADO_EM_USO` |
+
+Essa linha **não** pede que a proprietária refaça o clique só para repetir o agente. Quando ela for certificar a Mesa, o protocolo completo (inicial, ação, confirmação, releitura, integração) vale sobre estes prints.
 
 ## Matriz por motor
 
 Resultados permitidos: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_DECISAO`, `ERRO_DE_FONTE`, `NAO_LOCALIZADO`.  
-`COMPROVADO_EM_USO` só depois de prints inicial + ação + confirmação + releitura (+ integração quando houver cadeia).
+`COMPROVADO_EM_USO` só depois de prints inicial + ação + confirmação + releitura (+ integração quando houver cadeia), **executados pela proprietária**.
 
 | Motor | Resultado | Prints (inicial / ação / confirmação / releitura / integração) | Observação |
 |---|---|---|---|
-| Sessão da proprietária | `BLOQUEADO_POR_DADO` | não / tentada / erro genérico / não / não | Ver bloco acima. |
-| Mesa Discovery / CRM | `NAO_LOCALIZADO` | — | Dependente da sessão. |
-| Pessoa 360 | `NAO_LOCALIZADO` | — | Dependente da sessão. |
-| Varredura de dossiê | `NAO_LOCALIZADO` | — | Dependente da sessão. |
-| Pesquisa e evidências | `NAO_LOCALIZADO` | — | Dependente da sessão. |
-| Contexto de países / jurídico | `NAO_LOCALIZADO` | — | Dependente da sessão. |
-| Proposta / formalização | `NAO_LOCALIZADO` | — | Dependente da sessão. |
-| Financeiro | `NAO_LOCALIZADO` | — | Dependente da sessão. |
-| Entregas / App Cliente | `NAO_LOCALIZADO` | — | Dependente da sessão. |
-| KPIs e Hoje | `NAO_LOCALIZADO` | — | Dependente da sessão. |
-| Abas / taxonomia (8 grupos Desk + 7 abas App) | `NAO_LOCALIZADO` | — | Dependente da sessão. |
+| Sessão da proprietária (Vite local) | `BLOQUEADO_POR_DADO` | não / tentada / erro genérico / não / não | Ambiente A. |
+| Sessão no preview Vercel (agente) | evidência de agente — **não** `PASSOU` do protocolo | sim / — / sessão no Desk / não / não | Ambiente B. Print do e-mail no menu Conta. |
+| Mesa Discovery / CRM | não `PASSOU` | sim / chip Problema / card mudou / não / não | Uma pergunta SPIN por vez; `/leads` só espelha progresso. Sem F5 de persistência. Sem próxima ação no Hoje. Lead de teste. |
+| Pessoa 360 | `NAO_LOCALIZADO` | — | Mesa ainda não grava na Pessoa 360. |
+| Varredura de dossiê por palavra-chave | `NAO_LOCALIZADO` | — | Peça inexistente no `src/`. |
+| Pesquisa e evidências | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
+| Contexto de países / jurídico | `NAO_LOCALIZADO` | — | Trilha/marco na Mesa são dropdown interno, não parecer. |
+| Proposta / formalização | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
+| Financeiro | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
+| Entregas / App Cliente | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
+| KPIs e Hoje | `NAO_LOCALIZADO` | — | Sem print de integração da próxima ação da Mesa. |
+| Abas / taxonomia | `NAO_LOCALIZADO` | — | Código desta linha tem 6 grupos; memória permanente ainda cita 8. Dívida declarada — não arquivar nenhuma das duas até a dona certificar. |
 
 ## Cadeia transversal
 
@@ -56,8 +71,12 @@ Entrada comercial → Mesa Discovery → Pessoa/Dossiê → Caso/Jornada
 ## O que este registro recusa como prova
 
 - Homepage pública e formulário `/equipe/entrar` sem Painel autenticado.
-- Vitest, `tsc`, ESLint, build de environment, PR verde.
+- Vitest, `tsc`, ESLint, build, PR verde.
+- Preview com lead `dados_teste` executado por agente.
+- Toast sem releitura após salvar.
 - Declaração de agente de que o ambiente “está funcionando”.
+
+Nenhum contexto de resgate (Discovery, Pessoa 360, dossiê, Pesquisa, formalização, Radar, App, RLS) foi arquivado.
 
 ```text
 REGRA DE CONTINUIDADE — CONTEXTO NÃO ARQUIVÁVEL
