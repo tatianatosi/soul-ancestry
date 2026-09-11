@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_authenticated/calls")({
       {
         property: "og:description",
         content:
-          "Sequência: Lead → Call Discovery → (ideal) call de proposta. Persistência em leads; sem crm_calls.",
+          "Lead → Call/Discovery → oportunidade → proposta → confirmação → handoff → pessoa/caso → Planejador. Persistência em leads; sem crm_calls.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
