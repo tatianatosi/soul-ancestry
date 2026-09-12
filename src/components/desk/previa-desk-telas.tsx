@@ -1066,7 +1066,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
   },
   {
     id: "configuracao",
-    titulo: "Configuração & Acesso",
+    titulo: "Configuração & Acesso Master",
     grupo: "governanca",
     rota: "/configuracoes",
     render: () => (
@@ -1173,7 +1173,7 @@ export function PreviaDeskTelas() {
           <div className="px-2 pb-4">
             <BrandLogo size={34} showText variant="client-dark" />
           </div>
-          <nav className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">
+          <nav className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible" aria-label="Áreas do Desk">
             {GRUPOS.map((g) => {
               const Icone = g.icon;
               const ativo = tela.grupo === g.id;
@@ -1198,6 +1198,26 @@ export function PreviaDeskTelas() {
               );
             })}
           </nav>
+          <div className="mt-3 border-t border-primary-foreground/15 pt-3">
+            <p className="mb-2 hidden px-3 text-[9px] font-semibold uppercase tracking-widest text-primary-foreground/45 lg:block">Superfícies desta área</p>
+            <nav className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible" aria-label="Superfícies da área selecionada">
+              {TELAS_PREVIA_DESK.filter((item) => item.grupo === tela.grupo).map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setAtiva(item.id)}
+                  className={cn(
+                    "shrink-0 rounded-md border px-2.5 py-1.5 text-left text-[10px] transition-colors lg:w-full",
+                    item.id === tela.id
+                      ? "border-gold bg-primary-foreground/10 font-semibold text-gold"
+                      : "border-primary-foreground/10 text-primary-foreground/65 hover:border-primary-foreground/25 hover:text-primary-foreground",
+                  )}
+                >
+                  {item.titulo}
+                </button>
+              ))}
+            </nav>
+          </div>
         </aside>
 
         <div className="min-w-0 flex-1">
@@ -1227,25 +1247,6 @@ export function PreviaDeskTelas() {
                 </p>
               </div>
               <Etiqueta texto="Sem dados reais" tom="atencao" />
-            </div>
-
-            {/* Índice das telas convertidas */}
-            <div className="mb-5 flex flex-wrap gap-2">
-              {TELAS_PREVIA_DESK.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setAtiva(t.id)}
-                  className={cn(
-                    "rounded-full border px-3 py-1 text-[11px] transition-colors",
-                    t.id === tela.id
-                      ? "border-navy bg-navy text-white"
-                      : "border-navy/15 text-navy/70 hover:bg-cream",
-                  )}
-                >
-                  {t.titulo}
-                </button>
-              ))}
             </div>
 
             {tela.render()}
