@@ -8,7 +8,7 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
+import { jornadaSanitizada, microentregaPublicada } from "@/lib/portal-dados-vivos";
 import { ChipIdentidadeCaso } from "@/components/caso/chip-identidade-caso";
 import { identidadeDePortalCaso } from "@/lib/caso-compartilhado";
 
@@ -61,6 +61,7 @@ export function PortalHome() {
     new Date(),
     vivo.data?.proximaAcao,
   );
+  const microentrega = microentregaPublicada(vivo.data?.projecoes ?? []);
 
   if (previa) {
     return (
@@ -71,6 +72,7 @@ export function PortalHome() {
           <PainelHomeMockup
             tituloCaso={previa.titulo}
             statusRotulo="Acompanhamento ativo"
+            microentrega={microentrega}
             proximoPasso={jornada.proximoPasso}
             marcos={jornada.marcosPublicados}
             casoCodigo={previa.identidade?.codigo ?? CASO_DEMO_CODIGO}
@@ -106,6 +108,7 @@ export function PortalHome() {
               <PainelHomeMockup
                 tituloCaso={principal.titulo}
                 statusRotulo={principal.statusRotulo}
+                microentrega={microentrega}
                 statusTexto={principal.statusTexto}
                 proximoPasso={principal.proximoPasso || jornada.proximoPasso}
                 proximoPassoDestino={principal.proximoPassoDestino}
@@ -163,6 +166,7 @@ function PainelHomeMockup({
   casoId,
   identidade,
   achados,
+  microentrega,
 }: {
   tituloCaso: string;
   statusRotulo: string;
@@ -174,6 +178,7 @@ function PainelHomeMockup({
   casoId?: string;
   identidade?: import("@/lib/caso-compartilhado").IdentidadeCaso;
   achados: Array<{ id: string; tipo: string; texto: string }>;
+  microentrega?: import("@/lib/projecoes-cliente").PublicacaoCliente | null;
 }) {
   const proximaCurta =
     proximoPasso.length > 48 ? `${proximoPasso.slice(0, 45).trimEnd()}…` : proximoPasso;
@@ -194,6 +199,50 @@ function PainelHomeMockup({
           valor={achados.length === 0 ? "Nenhum ainda" : `${achados.length} recentes`}
         />
       </div>
+
+      <section
+        data-microentrega-publicada
+        className="grid gap-3 rounded-2xl border border-navy/10 bg-cream/50 p-5 sm:grid-cols-3"
+      >
+        <div>
+          <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">Etapa</p>
+          <p className="mt-1 text-sm font-medium text-navy">{statusRotulo}</p>
+        </div>
+        <div>
+          <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">
+            Próxima ação
+          </p>
+          <p className="mt-1 text-sm text-navy/85">{proximoPasso || "Aguardando equipe"}</p>
+        </div>
+        <div>
+          <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">
+            Microentrega publicada
+          </p>
+          {microentrega ? (
+            <>
+              <p className="mt-1 text-sm font-medium text-navy">{microentrega.tipoRotulo}</p>
+              <p className="mt-0.5 text-sm text-navy/80">{microentrega.conteudo}</p>
+              {microentrega.publicadoEm ? (
+                <p className="mt-1 text-[11px] text-navy/50">
+                  Publicada em{" "}
+                  {new Date(microentrega.publicadoEm).toLocaleDateString("pt-BR")}
+                </p>
+              ) : null}
+              <LinkPortal
+                to="/portal/jornada"
+                className="mt-2 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
+              >
+                Ver na jornada
+              </LinkPortal>
+            </>
+          ) : (
+            <p className="mt-1 text-sm text-navy/60">
+              Nenhuma microentrega publicada até agora.
+            </p>
+          )}
+        </div>
+      </section>
+
 
       <section className="rounded-2xl border border-navy/10 bg-cream/50 p-5 shadow-sm">
         <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">Seu caso</p>
