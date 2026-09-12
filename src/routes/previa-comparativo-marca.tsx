@@ -38,8 +38,10 @@ const CHECKLIST: { item: string; status: "ok" | "prova" }[] = [
   { item: "App Cliente: exatamente 7 abas (Home → Conta)", status: "ok" },
   { item: "Entregas / Fase 01 / Fase 02 fora da barra", status: "ok" },
   { item: "Desk: 6 grupos GRUPOS_DESK (sem sidebar Lovable)", status: "ok" },
-  { item: "Radar: teia 6 eixos em canvas cream + gold", status: "prova" },
-  { item: "Árvore: estrutura G1–G5, G1 em gold, sem nomes inventados", status: "prova" },
+  { item: "Radar: teia 6 eixos em canvas cream + gold", status: "ok" },
+  { item: "Árvore: estrutura G1–G5, G1 em gold, sem nomes inventados", status: "ok" },
+  { item: "Home/Jornada/Documentos/Legado/Conta em painéis cream (sem SaaS branco)", status: "prova" },
+  { item: "Rotas profundas sem H1 Entregas/Fase 01/Fase 02", status: "ok" },
   { item: "Tokens hex = guia OKI (navy/gold/cream/terracotta)", status: "ok" },
   { item: "Site SEO ≠ app Vercel", status: "ok" },
 ];

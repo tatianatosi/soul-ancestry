@@ -45,7 +45,7 @@ export function PortalConta() {
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>
           <div className="space-y-4">
-            <section className="rounded-2xl border border-navy/10 bg-white/80 p-5 shadow-sm">
+            <section className="rounded-2xl border border-navy/10 bg-cream/50 p-5 shadow-sm">
               <h2 className="font-serif text-lg text-navy">Perfil</h2>
               <dl className="mt-3 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-lg border border-navy/10 bg-cream/60 p-3">
@@ -66,7 +66,7 @@ export function PortalConta() {
               </p>
             </section>
 
-            <section className="rounded-2xl border border-navy/10 bg-white/80 p-5">
+            <section className="rounded-2xl border border-navy/10 bg-cream/50 p-5">
               <h2 className="font-serif text-lg text-navy">Alertas</h2>
               <p className="mt-2 text-sm text-navy/75">
                 Avisos sobre documentos e próximas ações do seu caso. Sem alerta publicado no momento.

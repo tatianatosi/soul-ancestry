@@ -122,7 +122,7 @@ export function PortalHome() {
                         <Link
                           to="/portal/casos/$id"
                           params={{ id: c.id }}
-                          className="block rounded-xl border border-navy/10 bg-white px-4 py-3 hover:border-gold"
+                          className="block rounded-xl border border-navy/10 bg-cream/50 px-4 py-3 hover:border-gold"
                         >
                           <p className="font-serif text-base text-navy">{c.titulo}</p>
                           <p className="text-xs text-navy/60">{c.statusRotulo}</p>
@@ -180,7 +180,7 @@ function PainelHomeMockup({
         ) : null}
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-navy/10 bg-white/80 p-3">
+          <div className="rounded-xl border border-navy/10 bg-cream/40 p-3">
             <p className="text-[11px] uppercase tracking-wide text-navy/45">Progresso publicado</p>
             <p className="mt-1 font-serif text-2xl text-navy">{marcos}</p>
             <p className="text-xs text-navy/55">
@@ -237,7 +237,7 @@ function PainelHomeMockup({
         ) : (
           <ul className="mt-3 space-y-2">
             {achados.map((a) => (
-              <li key={a.id} className="rounded-lg border border-navy/10 bg-white/70 p-3">
+              <li key={a.id} className="rounded-lg border border-navy/10 bg-cream/40 p-3">
                 <p className="text-[11px] font-medium uppercase tracking-wide text-navy/45">{a.tipo}</p>
                 <p className="mt-1 text-sm text-navy/85">{a.texto}</p>
               </li>

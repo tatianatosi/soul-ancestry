@@ -64,7 +64,7 @@ export function PortalLegado() {
                 ) : (
                   <ul className="space-y-3">
                     {entregas.map((item) => (
-                      <li key={item.id} className="rounded-lg border border-navy/10 bg-white p-4">
+                      <li key={item.id} className="rounded-lg border border-navy/10 bg-cream/40 p-4">
                         <p className="text-sm font-medium text-navy">{item.tipoRotulo}</p>
                         <p className="mt-1 whitespace-pre-line text-sm text-navy/80">{item.conteudo}</p>
                       </li>

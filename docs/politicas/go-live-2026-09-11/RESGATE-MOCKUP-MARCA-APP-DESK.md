@@ -140,6 +140,19 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 Prints: `docs/provas/2026-09-12-radar-arvore-marca/`.  
 De-para Radar/Árvore: **em prova visual** (não `COMPROVADO_EM_USO`).
 
+## Fatia 2026-09-12 — App cream chrome P2 (coesão visual)
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| Home / Jornada / Legado | Cards `bg-white` vs Radar/Árvore cream | Painéis `bg-cream/40–50` |
+| Documentos / Conta | Blocos brancos SaaS | Checklist + 4 blocos Conta em cream |
+| `PortalVazio` | Fundo branco | `bg-cream/50` dashed |
+| Rotas profundas | H1 Entregas / Fase 01 / Fase 02 | Materiais / Relatório / Atualização (`COPY_TELAS`) |
+| Gate marca | Checklist desatualizado | `/previa-comparativo-marca` marca cream P2 + rotas soft |
+
+Prints: `docs/provas/2026-09-12-app-cream-chrome/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`).
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

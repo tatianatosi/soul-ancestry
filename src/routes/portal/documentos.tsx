@@ -54,7 +54,7 @@ export function PortalDocumentos() {
         ) : (
           <div className="space-y-8">
             {/* Checklist visual do mockup — estados de acompanhamento, sem arquivo inventado. */}
-            <section className="rounded-2xl border border-navy/10 bg-white/80 p-5 shadow-sm">
+            <section className="rounded-2xl border border-navy/10 bg-cream/50 p-5 shadow-sm">
               <h2 className="font-serif text-xl text-navy">Checklist do caso</h2>
               <p className="mt-1 text-sm text-navy/60">
                 Situação dos documentos pedidos neste acompanhamento. Arquivos só aparecem quando a equipe libera.
@@ -142,7 +142,7 @@ export function PortalDocumentos() {
         >
           {() => (
         <div className="space-y-8">
-          <section className="rounded-2xl border border-navy/10 bg-white/80 p-5 shadow-sm">
+          <section className="rounded-2xl border border-navy/10 bg-cream/50 p-5 shadow-sm">
             <h2 className="font-serif text-xl text-navy">Checklist do caso</h2>
             <p className="mt-1 text-sm text-navy/60">
               Situação a partir dos documentos já pedidos ou liberados — sem inventar itens.
@@ -189,7 +189,7 @@ export function PortalDocumentos() {
                 {data.entregas.map((d) => (
                   <li
                     key={d.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-white p-4"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-cream/40 p-4"
                   >
                     <div>
                       <p className="font-medium">{textoParaCliente(d.titulo)}</p>
@@ -218,7 +218,7 @@ export function PortalDocumentos() {
                 {data.envios.map((d) => (
                   <li
                     key={d.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-white p-4"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-cream/40 p-4"
                   >
                     <div>
                       <p className="font-medium">{textoParaCliente(d.titulo)}</p>

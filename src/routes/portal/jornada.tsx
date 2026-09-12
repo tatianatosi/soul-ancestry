@@ -53,7 +53,7 @@ export function PortalJornada() {
               <BlocoVisibilidade visibilidade={visibilidade}>
                 {/* Eixo editorial 1820–2024 (taxonomia do mockup) — o feed abaixo permanece a fonte de atualizações. */}
                 <div
-                  className="mb-4 flex items-center gap-3 rounded-xl border border-navy/10 bg-white/70 px-4 py-3"
+                  className="mb-4 flex items-center gap-3 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
                   aria-label="Linha do tempo ancestral de 1820 a 2024"
                 >
                   <span className="font-serif text-sm text-navy">1820</span>
@@ -88,7 +88,7 @@ export function PortalJornada() {
                     {jornada.linha.map((item) => (
                       <li
                         key={item.id}
-                        className="flex items-start gap-3 rounded-lg border border-navy/10 bg-white p-3"
+                        className="flex items-start gap-3 rounded-lg border border-navy/10 bg-cream/40 p-3"
                       >
                         <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-gold" />
                         <div>

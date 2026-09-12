@@ -192,7 +192,7 @@ export function PortalShell({
 
 export function PortalVazio({ mensagem }: { mensagem: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-navy/20 bg-white/70 p-10 text-center text-sm text-navy/75">
+    <div className="rounded-xl border border-dashed border-navy/20 bg-cream/50 p-10 text-center text-sm text-navy/75">
       {mensagem}
     </div>
   );

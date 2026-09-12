@@ -9,9 +9,9 @@ import { publicacoesDeFase01 } from "@/lib/portal-dados-vivos";
 export const Route = createFileRoute("/portal/fase-01")({
   head: () => ({
     meta: [
-      { title: "Fase 01 — Portal Clube Ancestral" },
+      { title: "Relatório preparado — Portal Clube Ancestral" },
       { name: "description", content: "Situação da Fase 01 dentro do seu acompanhamento." },
-      { property: "og:title", content: "Fase 01 — Portal Clube Ancestral" },
+      { property: "og:title", content: "Relatório preparado — Portal Clube Ancestral" },
       { property: "og:description", content: "Acompanhe a Fase 01 do seu processo." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -39,7 +39,7 @@ export function PortalFase01() {
           ) : (
             <ul className="space-y-3">
               {itens.map((item) => (
-                <li key={item.id} className="rounded-lg border border-navy/10 bg-white p-4">
+                <li key={item.id} className="rounded-lg border border-navy/10 bg-cream/40 p-4">
                   <p className="text-sm font-medium text-navy">{item.tipoRotulo}</p>
                   <p className="mt-1 whitespace-pre-line text-sm text-navy/80">{item.conteudo}</p>
                 </li>

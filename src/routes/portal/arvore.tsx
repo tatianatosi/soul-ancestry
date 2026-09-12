@@ -79,11 +79,11 @@ export function PortalArvore() {
                                     ehG1
                                       ? "border-2 border-gold bg-gold/20 font-medium text-navy shadow-[0_0_0_3px_rgba(252,183,58,0.25)]"
                                       : painel.temPublicacao
-                                        ? "border-gold/40 bg-white/70 text-navy/55"
-                                        : "border-navy/15 bg-white/50 text-navy/45",
+                                        ? "border-gold/40 bg-cream/70 text-navy/55"
+                                        : "border-navy/15 bg-cream/40 text-navy/45",
                                   )}
                                   aria-hidden="true"
-                                  title={ehG1 ? "Você (G1)" : undefined}
+                                  {...(ehG1 ? { title: "Você (G1)" } : {})}
                                 >
                                   {ehG1 ? "G1" : "—"}
                                 </div>
