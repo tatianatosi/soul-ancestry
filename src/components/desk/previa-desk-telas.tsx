@@ -11,13 +11,21 @@
  */
 import { useState } from "react";
 import {
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  Clock3,
+  FileText,
+  Filter,
   LayoutDashboard,
   Target,
   FolderOpen,
   Library,
+  Paperclip,
   Scale,
   ShieldCheck,
   Search,
+  UserRound,
   ChevronDown,
 } from "lucide-react";
 
@@ -308,6 +316,105 @@ function Pessoa({ nome, papel }: { nome: string; papel: string }) {
         <span className="block truncate text-xs font-medium text-navy">{nome}</span>
         <span className="block truncate text-[10px] text-navy/55">{papel}</span>
       </span>
+    </div>
+  );
+}
+
+function CabecalhoFerramenta({
+  titulo,
+  apoio,
+  acao,
+}: {
+  titulo: string;
+  apoio: string;
+  acao: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-navy/10 bg-card p-3">
+      <div>
+        <h2 className="font-serif text-lg text-navy">{titulo}</h2>
+        <p className="text-[11px] text-navy/55">{apoio}</p>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center gap-1 rounded-md border border-navy/15 px-2 py-1 text-[10px] text-navy/65">
+          <Filter className="h-3 w-3" aria-hidden /> Filtros
+        </span>
+        <span className="rounded-md bg-navy px-2.5 py-1 text-[10px] font-medium text-primary-foreground">{acao}</span>
+      </div>
+    </div>
+  );
+}
+
+type CartaoKanban = {
+  titulo: string;
+  contexto: string;
+  responsavel: string;
+  prazo: string;
+  etiqueta: string;
+  tom?: Tom;
+  anexos?: number;
+};
+
+function KanbanVisual({
+  colunas,
+}: {
+  colunas: { titulo: string; cartoes: CartaoKanban[] }[];
+}) {
+  return (
+    <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
+      {colunas.map((coluna) => (
+        <section key={coluna.titulo} className="min-w-0 rounded-lg border border-navy/10 bg-cream/45 p-2.5">
+          <div className="mb-2 flex items-center justify-between gap-2 border-b border-navy/10 pb-2">
+            <h3 className="truncate text-[11px] font-semibold uppercase text-navy/65">{coluna.titulo}</h3>
+            <span className="grid h-5 min-w-5 place-items-center rounded-full bg-card px-1 text-[9px] font-semibold text-navy">
+              {coluna.cartoes.length}
+            </span>
+          </div>
+          <div className="space-y-2">
+            {coluna.cartoes.map((cartao) => (
+              <article key={`${coluna.titulo}-${cartao.titulo}`} className="rounded-lg border border-navy/10 bg-card p-2.5 shadow-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-[11px] font-semibold leading-snug text-navy">{cartao.titulo}</p>
+                  {cartao.anexos ? (
+                    <span className="inline-flex items-center gap-0.5 text-[9px] text-navy/45">
+                      <Paperclip className="h-3 w-3" aria-hidden /> {cartao.anexos}
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-1 text-[10px] leading-snug text-navy/55">{cartao.contexto}</p>
+                <div className="mt-2"><Etiqueta texto={cartao.etiqueta} tom={cartao.tom} /></div>
+                <div className="mt-2 flex items-center justify-between gap-2 border-t border-navy/5 pt-2 text-[9px] text-navy/50">
+                  <span className="inline-flex min-w-0 items-center gap-1 truncate">
+                    <UserRound className="h-3 w-3 shrink-0" aria-hidden /> {cartao.responsavel}
+                  </span>
+                  <span className="inline-flex shrink-0 items-center gap-1">
+                    <Clock3 className="h-3 w-3" aria-hidden /> {cartao.prazo}
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function MedidorConfianca({ valor }: { valor: number }) {
+  const raio = 32;
+  const comprimento = 2 * Math.PI * raio;
+  const restante = comprimento * (1 - valor / 100);
+  return (
+    <div className="flex items-center gap-3">
+      <svg viewBox="0 0 80 80" className="h-20 w-20 shrink-0" role="img" aria-label={`Confiança ${valor}%`}>
+        <circle cx="40" cy="40" r={raio} fill="none" className="stroke-navy/10" strokeWidth="8" />
+        <circle cx="40" cy="40" r={raio} fill="none" className="stroke-gold" strokeWidth="8" strokeLinecap="round" strokeDasharray={comprimento} strokeDashoffset={restante} transform="rotate(-90 40 40)" />
+        <text x="40" y="44" textAnchor="middle" className="fill-navy text-[14px] font-semibold">{valor}%</text>
+      </svg>
+      <div>
+        <p className="text-xs font-semibold text-navy">Confiança da cadeia</p>
+        <p className="mt-1 text-[10px] text-navy/55">Baseada em fontes revisadas e vínculos documentados.</p>
+      </div>
     </div>
   );
 }
