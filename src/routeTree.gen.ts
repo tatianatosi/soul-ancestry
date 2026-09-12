@@ -48,6 +48,7 @@ import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedMarketingRouteImport } from './routes/_authenticated/marketing'
 import { Route as AuthenticatedMatrizJuridicaRouteImport } from './routes/_authenticated/matriz-juridica'
 import { Route as AuthenticatedMetricasRouteImport } from './routes/_authenticated/metricas'
+import { Route as AuthenticatedMicroentregasRouteImport } from './routes/_authenticated/microentregas'
 import { Route as AuthenticatedMockupRouteImport } from './routes/_authenticated/mockup'
 import { Route as AuthenticatedNucleosRouteImport } from './routes/_authenticated/nucleos'
 import { Route as AuthenticatedNucleosDuplicidadesRouteImport } from './routes/_authenticated/nucleos-duplicidades'
@@ -325,6 +326,12 @@ const AuthenticatedMetricasRoute = AuthenticatedMetricasRouteImport.update({
   path: '/metricas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMicroentregasRoute =
+  AuthenticatedMicroentregasRouteImport.update({
+    id: '/microentregas',
+    path: '/microentregas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMockupRoute = AuthenticatedMockupRouteImport.update({
   id: '/mockup',
   path: '/mockup',
@@ -738,6 +745,7 @@ export interface FileRoutesByFullPath {
   '/marketing': typeof AuthenticatedMarketingRoute
   '/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
   '/metricas': typeof AuthenticatedMetricasRoute
+  '/microentregas': typeof AuthenticatedMicroentregasRoute
   '/mockup': typeof AuthenticatedMockupRoute
   '/nucleos': typeof AuthenticatedNucleosRoute
   '/nucleos-duplicidades': typeof AuthenticatedNucleosDuplicidadesRoute
@@ -845,6 +853,7 @@ export interface FileRoutesByTo {
   '/marketing': typeof AuthenticatedMarketingRoute
   '/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
   '/metricas': typeof AuthenticatedMetricasRoute
+  '/microentregas': typeof AuthenticatedMicroentregasRoute
   '/mockup': typeof AuthenticatedMockupRoute
   '/nucleos': typeof AuthenticatedNucleosRoute
   '/nucleos-duplicidades': typeof AuthenticatedNucleosDuplicidadesRoute
@@ -955,6 +964,7 @@ export interface FileRoutesById {
   '/_authenticated/marketing': typeof AuthenticatedMarketingRoute
   '/_authenticated/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
   '/_authenticated/metricas': typeof AuthenticatedMetricasRoute
+  '/_authenticated/microentregas': typeof AuthenticatedMicroentregasRoute
   '/_authenticated/mockup': typeof AuthenticatedMockupRoute
   '/_authenticated/nucleos': typeof AuthenticatedNucleosRoute
   '/_authenticated/nucleos-duplicidades': typeof AuthenticatedNucleosDuplicidadesRoute
@@ -1065,6 +1075,7 @@ export interface FileRouteTypes {
     | '/marketing'
     | '/matriz-juridica'
     | '/metricas'
+    | '/microentregas'
     | '/mockup'
     | '/nucleos'
     | '/nucleos-duplicidades'
@@ -1172,6 +1183,7 @@ export interface FileRouteTypes {
     | '/marketing'
     | '/matriz-juridica'
     | '/metricas'
+    | '/microentregas'
     | '/mockup'
     | '/nucleos'
     | '/nucleos-duplicidades'
@@ -1281,6 +1293,7 @@ export interface FileRouteTypes {
     | '/_authenticated/marketing'
     | '/_authenticated/matriz-juridica'
     | '/_authenticated/metricas'
+    | '/_authenticated/microentregas'
     | '/_authenticated/mockup'
     | '/_authenticated/nucleos'
     | '/_authenticated/nucleos-duplicidades'
@@ -1648,6 +1661,13 @@ declare module '@tanstack/react-router' {
       path: '/metricas'
       fullPath: '/metricas'
       preLoaderRoute: typeof AuthenticatedMetricasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/microentregas': {
+      id: '/_authenticated/microentregas'
+      path: '/microentregas'
+      fullPath: '/microentregas'
+      preLoaderRoute: typeof AuthenticatedMicroentregasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/mockup': {
@@ -2158,6 +2178,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMarketingRoute: typeof AuthenticatedMarketingRoute
   AuthenticatedMatrizJuridicaRoute: typeof AuthenticatedMatrizJuridicaRoute
   AuthenticatedMetricasRoute: typeof AuthenticatedMetricasRoute
+  AuthenticatedMicroentregasRoute: typeof AuthenticatedMicroentregasRoute
   AuthenticatedMockupRoute: typeof AuthenticatedMockupRoute
   AuthenticatedNucleosRoute: typeof AuthenticatedNucleosRoute
   AuthenticatedNucleosDuplicidadesRoute: typeof AuthenticatedNucleosDuplicidadesRoute
@@ -2233,6 +2254,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMarketingRoute: AuthenticatedMarketingRoute,
   AuthenticatedMatrizJuridicaRoute: AuthenticatedMatrizJuridicaRoute,
   AuthenticatedMetricasRoute: AuthenticatedMetricasRoute,
+  AuthenticatedMicroentregasRoute: AuthenticatedMicroentregasRoute,
   AuthenticatedMockupRoute: AuthenticatedMockupRoute,
   AuthenticatedNucleosRoute: AuthenticatedNucleosRoute,
   AuthenticatedNucleosDuplicidadesRoute: AuthenticatedNucleosDuplicidadesRoute,

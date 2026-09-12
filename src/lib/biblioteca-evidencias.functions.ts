@@ -149,6 +149,100 @@ export const painelBibliotecaEvidencias = createServerFn({ method: "GET" })
     };
   });
 
+/** Fila editorial transversal de microentregas, sem duplicar projeções. */
+export const listarFilaMicroentregas = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
+    if (!PAPEIS_LE_DETALHE.includes(papel)) throw new Error("Seu papel não acessa a fila de microentregas.");
+
+    const projecoesRes = await supabase
+      .from("app_projections")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (projecoesRes.error) throw new Error(projecoesRes.error.message);
+    const projecoes = (projecoesRes.data ?? []) as Record<string, any>[];
+    const caseIds = [...new Set(projecoes.map((p) => p["case_id"] as string).filter(Boolean))];
+    const evidenciaIds = projecoes.filter((p) => p["source_entity_type"] === "evidence").map((p) => p["source_entity_id"] as string);
+    const entregaIds = projecoes.filter((p) => p["source_entity_type"] === "client_deliverable").map((p) => p["source_entity_id"] as string);
+    const userIds = [...new Set(projecoes.flatMap((p) => [p["approved_by"], p["created_by"]]).filter(Boolean) as string[])];
+
+    const [casosRes, evidenciasRes, entregasRes, equipeRes, achadosRes] = await Promise.all([
+      caseIds.length
+        ? supabase.from("crm_casos").select("id,codigo,titulo").eq("organization_id", organizationId).in("id", caseIds)
+        : Promise.resolve({ data: [] as any[], error: null }),
+      evidenciaIds.length
+        ? supabase.from("evidences").select("id,title_internal,description_internal,source_id,workflow_status").eq("organization_id", organizationId).in("id", evidenciaIds)
+        : Promise.resolve({ data: [] as any[], error: null }),
+      entregaIds.length
+        ? supabase.from("client_deliverables").select("id,title_client,summary_approved,internal_reference,responsible_user_id").eq("organization_id", organizationId).in("id", entregaIds)
+        : Promise.resolve({ data: [] as any[], error: null }),
+      userIds.length
+        ? supabase.from("staff_access").select("auth_user_id,full_name,email").eq("organization_id", organizationId).in("auth_user_id", userIds)
+        : Promise.resolve({ data: [] as any[], error: null }),
+      caseIds.length
+        ? supabase.from("genealogical_findings").select("id,case_id,title,internal_summary,evidence_links,client_deliverable_id,validation_status").eq("organization_id", organizationId).in("case_id", caseIds).is("archived_at", null)
+        : Promise.resolve({ data: [] as any[], error: null }),
+    ]);
+    for (const r of [casosRes, evidenciasRes, entregasRes, equipeRes, achadosRes]) {
+      if (r.error) throw new Error(r.error.message);
+    }
+
+    const evidencias = (evidenciasRes.data ?? []) as Record<string, any>[];
+    const sourceIds = [...new Set(evidencias.map((e) => e["source_id"] as string).filter(Boolean))];
+    const fontesRes = sourceIds.length
+      ? await supabase.from("research_sources").select("id,title,source_type").eq("organization_id", organizationId).in("id", sourceIds)
+      : { data: [] as any[], error: null };
+    if (fontesRes.error) throw new Error(fontesRes.error.message);
+
+    const porId = (linhas: any[]) => new Map(linhas.map((l) => [String(l.id), l]));
+    const casos = porId(casosRes.data ?? []);
+    const evidenciasPorId = porId(evidencias);
+    const entregas = porId(entregasRes.data ?? []);
+    const fontes = porId(fontesRes.data ?? []);
+    const equipe = new Map((equipeRes.data ?? []).map((e: any) => [String(e.auth_user_id), e]));
+    const achados = (achadosRes.data ?? []) as Record<string, any>[];
+
+    return projecoes.map((p) => {
+      const caso = casos.get(String(p["case_id"])) as Record<string, any> | undefined;
+      const evidencia = p["source_entity_type"] === "evidence"
+        ? evidenciasPorId.get(String(p["source_entity_id"])) as Record<string, any> | undefined
+        : undefined;
+      const entrega = p["source_entity_type"] === "client_deliverable"
+        ? entregas.get(String(p["source_entity_id"])) as Record<string, any> | undefined
+        : undefined;
+      const fonte = evidencia?.["source_id"] ? fontes.get(String(evidencia["source_id"])) as Record<string, any> | undefined : undefined;
+      const achado = achados.find((a) =>
+        (entrega && a["client_deliverable_id"] === entrega["id"]) ||
+        (evidencia && Array.isArray(a["evidence_links"]) && a["evidence_links"].includes(evidencia["id"])),
+      );
+      const responsavelId = p["approved_by"] ?? entrega?.["responsible_user_id"] ?? p["created_by"] ?? null;
+      const responsavel = responsavelId ? equipe.get(String(responsavelId)) as Record<string, any> | undefined : undefined;
+      return {
+        id: String(p["id"]),
+        caseId: String(p["case_id"]),
+        casoCodigo: caso?.["codigo"] ?? null,
+        casoTitulo: caso?.["titulo"] ?? null,
+        tipo: p["projection_type"] as string,
+        descricao: p["content_sanitized"] as string,
+        status: p["approval_status"] as string,
+        prazo: (p["due_at"] ?? null) as string | null,
+        responsavel: responsavel?.["full_name"] ?? responsavel?.["email"] ?? null,
+        origemTipo: p["source_entity_type"] as string,
+        origemId: p["source_entity_id"] as string,
+        fonte: fonte ? { titulo: fonte["title"], tipo: fonte["source_type"] } : null,
+        evidencia: evidencia ? { titulo: evidencia["title_internal"], descricao: evidencia["description_internal"], status: evidencia["workflow_status"] } : null,
+        achado: achado ? { titulo: achado["title"], resumo: achado["internal_summary"], status: achado["validation_status"] } : null,
+        entrega: entrega ? { titulo: entrega["title_client"], resumo: entrega["summary_approved"], referencia: entrega["internal_reference"] } : null,
+      };
+    });
+  });
+
 export const salvarEvidencia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id?: string; valores: Record<string, unknown> }) => d)

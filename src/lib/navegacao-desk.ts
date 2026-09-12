@@ -147,6 +147,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     sub: [
       { grupo: "Centro de inteligência" },
       { to: "/biblioteca", label: "Biblioteca Mestre" },
+      { to: "/microentregas", label: "Microentregas" },
       { to: "/pesquisa-modulo", label: "Pesquisa Genealógica e Evidências" },
       { to: "/pesquisa", label: "Dossiê e repositório do Legado" },
       { to: "/pesquisa-modulo", hash: "assistente-ia", label: "Assistente IA de pesquisa" },
