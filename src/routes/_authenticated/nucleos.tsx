@@ -50,7 +50,7 @@ const opcoes = (lista: readonly string[]) => lista.map((v) => ({ valor: v, rotul
 const CORES_STATUS: Record<string, string> = {
   nao_iniciado: "bg-navy/10 text-navy/70",
   em_preparacao: "bg-gold/20 text-navy",
-  ativo: "bg-emerald-100 text-emerald-800",
+  ativo: "bg-sucesso-suave text-sucesso",
   arquivado: "bg-navy/5 text-navy/50",
 };
 
@@ -476,7 +476,7 @@ function NucleosPage() {
                                   />
                                 )}
                               </EstadoDados>
-                              {erroMembro ? <p className="text-red-700">{erroMembro}</p> : null}
+                              {erroMembro ? <p className="text-critico">{erroMembro}</p> : null}
                               <div className="flex gap-2 pt-1">
                                 <button
                                   type="button"
@@ -655,8 +655,8 @@ function NucleosPage() {
               />
             </div>
 
-            {erro ? <p className="mt-3 text-sm text-red-700">{erro}</p> : null}
-            {ok ? <p className="mt-3 text-sm text-emerald-700">{ok}</p> : null}
+            {erro ? <p className="mt-3 text-sm text-critico">{erro}</p> : null}
+            {ok ? <p className="mt-3 text-sm text-sucesso">{ok}</p> : null}
 
             <div className="mt-4 flex gap-2">
               <button

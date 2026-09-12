@@ -42,9 +42,9 @@ export const Route = createFileRoute("/_authenticated/governanca/decisoes")({
 });
 
 const CORES_SITUACAO: Record<SituacaoCriterio, string> = {
-  atendido: "bg-emerald-100 text-emerald-900",
-  parcial: "bg-amber-100 text-amber-900",
-  pendente: "bg-orange-100 text-orange-900",
+  atendido: "bg-sucesso-suave text-sucesso",
+  parcial: "bg-atencao-suave text-atencao",
+  pendente: "bg-critico-suave text-critico",
 };
 
 function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {

@@ -377,7 +377,7 @@ function Pagina() {
                 <tr key={c.id} className="border-t border-navy/10 align-top">
                   <td className="py-1.5 pr-2 font-medium text-navy">{c.id}</td>
                   <td className="py-1.5 pr-2">{c.criterio}</td>
-                  <td className={`py-1.5 pr-2 ${c.atendido ? "text-emerald-700" : "text-terracotta"}`}>
+                  <td className={`py-1.5 pr-2 ${c.atendido ? "text-sucesso" : "text-critico"}`}>
                     {c.atendido ? "Atendido" : "Pendente"}
                   </td>
                   <td className="py-1.5 text-navy/55">{c.observacao}</td>

@@ -54,6 +54,18 @@ export function MobileNav({ items, active, onSelect }: { items: ItemNavegacao[];
   return <nav className="ca-kit__mobile-nav" aria-label="Navegação móvel">{items.map((item) => <button key={item.id} type="button" className="ca-kit__nav-button" aria-current={item.id === active ? "page" : undefined} onClick={() => onSelect?.(item.id)}>{item.icon}{item.label}</button>)}</nav>;
 }
 
+export function DeskShell({ items, active, title, action, children, onSelect }: { items: ItemNavegacao[]; active: string; title: string; action?: ReactNode; children: ReactNode; onSelect?: (id: string) => void }) {
+  return <KitRoot className="ca-kit__shell"><DeskSidebar items={items} active={active} onSelect={onSelect} /><div className="ca-kit__workspace"><DeskTopbar title={title} action={action} /><main className="ca-kit__main">{children}</main></div><MobileNav items={items} active={active} onSelect={onSelect} /></KitRoot>;
+}
+
+export function ClientHeader({ accountLabel, action }: { accountLabel?: string; action?: ReactNode }) {
+  return <header className="ca-kit__client-header"><div className="ca-kit__client-header-inner"><BrandLogo size={36} /><span className="ca-kit__client-account">{accountLabel ?? "App Cliente"}</span>{action}</div><div className="ca-kit__gold-rule" aria-hidden /></header>;
+}
+
+export function ClientShell({ items, active, title, subtitle, action, children, onSelect }: { items: ItemNavegacao[]; active: string; title: string; subtitle?: string; action?: ReactNode; children: ReactNode; onSelect?: (id: string) => void }) {
+  return <KitRoot className="ca-kit__client-shell"><ClientHeader action={action} /><nav className="ca-kit__client-tabs" aria-label="Navegação do aplicativo do cliente">{items.map((item) => <button key={item.id} type="button" className="ca-kit__client-tab" aria-current={item.id === active ? "page" : undefined} onClick={() => onSelect?.(item.id)}>{item.icon}{item.label}</button>)}</nav><main className="ca-kit__client-main"><header className="ca-kit__section-head"><div><h1 className="ca-kit__title">{title}</h1>{subtitle ? <p>{subtitle}</p> : null}</div></header>{children}</main><MobileNav items={items} active={active} onSelect={onSelect} /></KitRoot>;
+}
+
 export type TimelineItem = { id: string; title: string; detail?: string; meta?: string; state: EstadoEtapa };
 export function VerticalTimeline({ items, emptyTitle = "Nenhum evento" }: { items: TimelineItem[]; emptyTitle?: string }) {
   if (!items.length) return <KitEmptyState title={emptyTitle} description="Não há informações disponíveis para esta linha do tempo." />;

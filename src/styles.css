@@ -226,7 +226,27 @@
   --border: #D7D3CB;
   --input: #D7D3CB;
   --ring: #C2A84D;
+  --critico: #28334A;
+  --critico-suave: color-mix(in srgb, #28334A 12%, #FFFFFF);
+  --atencao: #13294B;
+  --atencao-suave: color-mix(in srgb, #C2A84D 22%, #FFFFFF);
+  --sucesso: #1B365D;
+  --sucesso-suave: color-mix(in srgb, #1B365D 12%, #FFFFFF);
+  --bloqueio: #28334A;
+  --bloqueio-suave: color-mix(in srgb, #28334A 12%, #FFFFFF);
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0;
   background-color: var(--background);
+  color: var(--foreground);
+}
+
+[data-visual-kit="pantone"] :is(section, article, table, input, select, textarea, dialog) {
+  border-color: var(--border);
+}
+
+[data-visual-kit="pantone"] :is(input, select, textarea) {
+  background-color: var(--card);
   color: var(--foreground);
 }
 

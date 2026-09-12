@@ -63,9 +63,9 @@ const Lista = ({ itens }: { itens: readonly string[] }) => (
 );
 
 const CORES: Record<string, string> = {
-  verde: "text-emerald-700",
-  amarelo: "text-amber-700",
-  laranja: "text-orange-700",
+  verde: "text-sucesso",
+  amarelo: "text-atencao",
+  laranja: "text-critico",
   vermelho: "text-terracotta",
   neutro: "text-navy/60",
 };

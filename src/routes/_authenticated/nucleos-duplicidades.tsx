@@ -259,7 +259,7 @@ function NucleosDuplicidadesPage() {
         </Secao>
 
         {q.isLoading ? <p className="text-sm text-navy/60">Comparando núcleos…</p> : null}
-        {q.error ? <p className="text-sm text-red-700">{(q.error as Error).message}</p> : null}
+        {q.error ? <p className="text-sm text-critico">{(q.error as Error).message}</p> : null}
         {!q.isLoading && !q.error && candidatos.length === 0 ? (
           <p className="text-sm text-navy/60">Nenhum candidato a duplicidade encontrado com os filtros atuais.</p>
         ) : null}

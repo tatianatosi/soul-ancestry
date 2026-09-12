@@ -7,8 +7,8 @@ import { painelCadencia } from "@/lib/jornada-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
 
 const CORES: Record<string, string> = {
-  regular: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  atencao: "border-amber-200 bg-amber-50 text-amber-900",
+  regular: "border-sucesso/30 bg-sucesso-suave text-sucesso",
+  atencao: "border-atencao/30 bg-atencao-suave text-atencao",
   critico: "border-terracotta/30 bg-terracotta/10 text-terracotta",
 };
 

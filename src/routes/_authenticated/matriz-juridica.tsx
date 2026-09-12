@@ -71,6 +71,7 @@ function MatrizPage() {
     <SaasShell
       titulo="Validação Jurídica"
       descricao="Registro de decisão por tema. Esta tela não guarda redação de cláusula e nenhum conteúdo público é versão vigente."
+      visualKit="pantone"
     >
       <div className="mb-4 rounded-xl border border-navy/10 bg-cream/50 p-4 text-sm text-navy">
         {pendentes.length

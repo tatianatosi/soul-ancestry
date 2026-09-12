@@ -51,7 +51,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 function badge(status: string, expirada: boolean) {
   if (expirada) return "bg-terracotta/15 text-terracotta";
-  if (status === "validado") return "bg-emerald-100 text-emerald-800";
+  if (status === "validado") return "bg-sucesso-suave text-sucesso";
   if (status === "isento") return "bg-gold/20 text-navy";
   if (status === "nao_aplicavel") return "bg-navy/10 text-navy/60";
   return "bg-terracotta/10 text-terracotta";
@@ -214,7 +214,7 @@ function OnboardingPage() {
               <span
                 className={`rounded-full px-3 py-1 text-xs font-medium ${
                   ativo
-                    ? "bg-emerald-100 text-emerald-800"
+                    ? "bg-sucesso-suave text-sucesso"
                     : pronto
                       ? "bg-gold/20 text-navy"
                       : "bg-terracotta/10 text-terracotta"
@@ -410,7 +410,7 @@ function OnboardingPage() {
                     <span
                       className={`rounded-full px-2 py-1 text-xs ${
                         item.status === "concluido"
-                          ? "bg-emerald-100 text-emerald-800"
+                          ? "bg-sucesso-suave text-sucesso"
                           : item.status === "nao_aplicavel"
                             ? "bg-navy/10 text-navy/60"
                             : "bg-terracotta/10 text-terracotta"

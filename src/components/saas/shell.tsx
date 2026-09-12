@@ -116,7 +116,7 @@ export function SaasShell({
   descricao,
   acoes,
   children,
-  visualKit,
+  visualKit = "pantone",
 }: {
   titulo: string;
   descricao?: string;
@@ -385,18 +385,7 @@ export function SaasShell({
             DEMO — não usar dados reais
           </div>
         ) : null}
-        {/* Identidade de marca aplicada em escopo isolado: somente a área de
-            Pesquisa / Gestão de Pesquisa (inclui /evidencias). Demais telas permanecem congeladas. */}
-        <main
-          className="min-w-0 flex-1 p-4 pb-20 lg:p-8"
-          data-marca={
-            rota.startsWith("/pesquisa") ||
-            rota === "/evidencias" ||
-            rota.startsWith("/evidencias/")
-              ? "guia"
-              : undefined
-          }
-        >
+        <main className="min-w-0 flex-1 p-4 pb-20 lg:p-8">
           {children}
         </main>
         {/* CA-UX-03 (adendo v1.0): Assistente transversal — presente nos 8 grupos,
@@ -409,7 +398,7 @@ export function SaasShell({
 
 export function EstadoVazio({ mensagem, acao }: { mensagem: string; acao?: ReactNode }) {
   return (
-    <div className="rounded-xl border border-dashed border-navy/20 bg-cream/50 p-10 text-center text-sm text-navy/60">
+    <div className="rounded-lg border border-dashed border-navy/20 bg-card p-10 text-center text-sm text-navy/60">
       <p>{mensagem}</p>
       {acao ? <div className="mt-3 flex justify-center">{acao}</div> : null}
     </div>

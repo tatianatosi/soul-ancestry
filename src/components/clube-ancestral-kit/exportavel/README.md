@@ -27,6 +27,7 @@ export function Exemplo({ eixos, series }) {
 ## Exportações
 
 - Marca e estrutura: `BrandLogo`, `DeskSidebar`, `DeskTopbar`, `MobileNav`, `KitRoot`.
+- Composições de aplicação: `DeskShell`, `ClientHeader`, `ClientShell`.
 - Base: `KitButton`, `KitBadge`, `KitCard`, `KitEmptyState`, `DataTable`, `KpiCard`.
 - Jornada: `VerticalTimeline`, `Stepper`.
 - Genealogia e pesquisa: `RadarSvg`, `FamilyTree`, `FamilyNode`, `DocumentCard`, `FindingCard`, `MicrodeliveryCard`.
@@ -47,6 +48,12 @@ Todos recebem conteúdo por propriedades. Arrays vazios resultam em estados vazi
 - Branco `#FFFFFF`
 
 O CSS não altera `:root`, `body` ou tokens globais do projeto hospedeiro.
+
+## Estrutura aprovada
+
+- Desk: use `DeskShell` com os seis grupos existentes no produto hospedeiro.
+- App Cliente: use `ClientShell` com exatamente Home, Jornada, Radar, Árvore, Documentos, Legado e Conta.
+- O kit não cria rotas nem decide permissões; `items`, `active` e `onSelect` vêm da aplicação.
 
 ## Tipografia
 
