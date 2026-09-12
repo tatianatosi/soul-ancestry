@@ -53,6 +53,39 @@ export function PortalDocumentos() {
           <PortalCarregando />
         ) : (
           <div className="space-y-8">
+            {/* Checklist visual do mockup — estados de acompanhamento, sem arquivo inventado. */}
+            <section className="rounded-2xl border border-navy/10 bg-white/80 p-5 shadow-sm">
+              <h2 className="font-serif text-xl text-navy">Checklist do caso</h2>
+              <p className="mt-1 text-sm text-navy/60">
+                Situação dos documentos pedidos neste acompanhamento. Arquivos só aparecem quando a equipe libera.
+              </p>
+              <ul className="mt-4 space-y-2">
+                {[
+                  { rotulo: "Certidão de nascimento — linha direta", estado: "Recebido", tom: "ok" as const },
+                  { rotulo: "Certidão de casamento — linha direta", estado: "Em revisão", tom: "neutro" as const },
+                  { rotulo: "Documento de identidade", estado: "Pendente com você", tom: "atencao" as const },
+                  { rotulo: "Registro paroquial / batismo", estado: "Em conferência", tom: "neutro" as const },
+                ].map((item) => (
+                  <li
+                    key={item.rotulo}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/10 bg-cream/40 px-3 py-2.5"
+                  >
+                    <span className="text-sm text-navy/85">{item.rotulo}</span>
+                    <span
+                      className={
+                        item.tom === "ok"
+                          ? "rounded-full border border-navy/15 bg-white px-2.5 py-0.5 text-[11px] font-medium text-navy/70"
+                          : item.tom === "atencao"
+                            ? "rounded-full border border-terracotta/30 bg-terracotta/10 px-2.5 py-0.5 text-[11px] font-medium text-terracotta"
+                            : "rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[11px] font-medium text-navy/70"
+                      }
+                    >
+                      {item.estado}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
             <section>
               <h2 className="font-serif text-xl">Preparado para você</h2>
               {liberados.length === 0 ? (

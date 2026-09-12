@@ -210,7 +210,7 @@ function PainelHomeMockup({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-navy/10 bg-white p-5">
+      <section className="rounded-2xl border border-navy/10 bg-cream/40 p-5">
         <div className="flex items-center justify-between gap-2">
           <h3 className="font-serif text-lg text-navy">Achados recentes</h3>
           <LinkPortal to="/portal/jornada" className="text-xs font-medium text-navy/60 hover:text-navy">
@@ -224,7 +224,7 @@ function PainelHomeMockup({
         ) : (
           <ul className="mt-3 space-y-2">
             {achados.map((a) => (
-              <li key={a.id} className="rounded-lg border border-navy/10 bg-cream/50 p-3">
+              <li key={a.id} className="rounded-lg border border-navy/10 bg-white/70 p-3">
                 <p className="text-[11px] font-medium uppercase tracking-wide text-navy/45">{a.tipo}</p>
                 <p className="mt-1 text-sm text-navy/85">{a.texto}</p>
               </li>
@@ -232,24 +232,6 @@ function PainelHomeMockup({
           </ul>
         )}
       </section>
-
-      <nav className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {[
-          { to: "/portal/radar", label: "Radar" },
-          { to: "/portal/arvore", label: "Árvore" },
-          { to: "/portal/documentos", label: "Documentos" },
-          { to: "/portal/legado", label: "Legado" },
-          { to: "/portal/conta", label: "Conta" },
-        ].map((atalho) => (
-          <LinkPortal
-            key={atalho.to}
-            to={atalho.to}
-            className="rounded-xl border border-navy/10 bg-white px-3 py-3 text-center text-sm font-medium text-navy hover:border-gold"
-          >
-            {atalho.label}
-          </LinkPortal>
-        ))}
-      </nav>
     </div>
   );
 }

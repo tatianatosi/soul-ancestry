@@ -26,12 +26,21 @@ const ESCOPO_DEMO = escopoAPartirDePublicacoes({
   tiposPublicados: DADOS_DEMO_SOPHIA.projecoes.map((p) => String(p.projection_type ?? "")),
 });
 
+/** Resolve aba inicial da prévia via `?aba=` (home|jornada|radar|arvore|documentos|legado|conta). */
+function rotaInicialDaPrevia(): string {
+  if (typeof window === "undefined") return "/portal";
+  const aba = new URLSearchParams(window.location.search).get("aba")?.toLowerCase().trim();
+  if (!aba || aba === "home") return "/portal";
+  const candidata = `/portal/${aba}`;
+  return candidata in TELAS_INTERNAS_PORTAL ? candidata : "/portal";
+}
+
 export function SessaoDemoAppCliente({
   modo = "desk",
 }: {
   modo?: "desk" | "cliente";
 }) {
-  const [rotaInterna, setRotaInterna] = useState("/portal");
+  const [rotaInterna, setRotaInterna] = useState(rotaInicialDaPrevia);
   const Tela = TELAS_INTERNAS_PORTAL[rotaInterna] ?? TELAS_INTERNAS_PORTAL["/portal"]!;
 
   const app = (

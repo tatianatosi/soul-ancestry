@@ -51,6 +51,17 @@ export function PortalJornada() {
             const destino = vivo.proximaAcao?.destino ?? null;
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
+                {/* Eixo editorial 1820–2024 (taxonomia do mockup) — o feed abaixo permanece a fonte de atualizações. */}
+                <div
+                  className="mb-4 flex items-center gap-3 rounded-xl border border-navy/10 bg-white/70 px-4 py-3"
+                  aria-label="Linha do tempo ancestral de 1820 a 2024"
+                >
+                  <span className="font-serif text-sm text-navy">1820</span>
+                  <span className="h-px flex-1 bg-gradient-to-r from-navy/30 via-gold to-navy/30" aria-hidden="true" />
+                  <span className="text-[10px] uppercase tracking-widest text-navy/45">Linha ancestral</span>
+                  <span className="h-px flex-1 bg-gradient-to-r from-navy/30 via-gold to-navy/30" aria-hidden="true" />
+                  <span className="font-serif text-sm text-navy">2024</span>
+                </div>
                 <p className="mb-4 rounded-lg border border-navy/10 bg-cream/60 p-3 text-sm text-navy/70">
                   <span className="mb-1 block text-[11px] uppercase tracking-wide text-navy/45">
                     {jornada.ritmo === "sem_publicacao"

@@ -357,7 +357,7 @@ export function SaasShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b border-navy/10 bg-white px-4 py-4 lg:px-8">
+        <header className="flex items-center gap-3 border-b border-navy/10 bg-cream px-4 py-4 lg:px-8">
           <button
             className="lg:hidden"
             onClick={() => setAberto((v) => !v)}

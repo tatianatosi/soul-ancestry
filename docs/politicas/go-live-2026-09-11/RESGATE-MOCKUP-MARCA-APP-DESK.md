@@ -57,6 +57,36 @@ Backend (Caso 360, CRM, contrato, financeiro, radar) só avança com linha de de
 
 `https://clubeancestral.com.br/` institucional. Produto em Vercel. Não apontar domínio SEO ao app.
 
+## Fatia 2026-09-12 — fidelidade visual App (em curso)
+
+Chrome OKI aplicado (nav cream, ícone Home, filete gold). Ajustes desta fatia:
+
+| Aba | Mockup 17 | Runtime agora |
+|---|---|---|
+| Home | Painel + achados | Sem grade de atalhos; canvas cream |
+| Jornada | 1820–2024 + feed | Eixo editorial 1820–2024 + cards de publicação |
+| Radar | 6 eixos | Mantido (`RadarSeisEixos`) |
+| Árvore | G1–G5 | Chrome G1–G5 + notas publicadas (`painelArvoreGeracoes`) |
+| Documentos | Checklist / upload | Checklist visual na prévia + listas reais |
+| Legado | Biblioteca + premium | Chip Premium + publicações `legado` |
+| Conta | Perfil / plano / alertas / histórico | Quatro blocos canônicos |
+
+Desk: header cream (sem restaurar sidebar Lovable; `GRUPOS_DESK` = 6).
+
+## De-para backend contínuo (Ordens 3+ — páginas 17/47)
+
+| Página mockup / indicador 47 | Entidade runtime | Escritor / RPC | Consumidor UI | Próxima fatia |
+|---|---|---|---|---|
+| Desk Visão Geral (p.11) + KPIs 47 | `crm_casos` + `proxima_acao_prioritaria` | RPC lote | `/painel` Hoje | Indicadores 47 alinhados ao planejador |
+| Caso 360 (p.12) | `crm_casos`, `case_plans`, `case_members` | `case_plans` + writers do planejador | Ficha caso Desk | Chip caseId + próxima ação |
+| Checklist / docs (p.13) | `documents`, `evidences` | writers docs | Desk + App Documentos | Upload real + checklist vivo |
+| Validação jurídica (p.14) | `evidences.workflow_status` (CHECK) | workflow evidence | Desk pesquisa | Sem inventar status |
+| Radar interno (p.15) | radar 6 eixos + `research_cases` / `research_people` / `research_sources` | sanitizers | Desk + App Radar | Mesma identidade de eixos |
+| Alertas (p.16) | `case_alerts`, timeline | alert writers | Desk Alertas / Conta | Sem mock permanente |
+| Biblioteca mestre (p.17) | `legado` via `app_projections` | publish portal | App Legado | Premium só com publicação |
+
+Regra: nenhuma Ordem 3–7 avança sem linha nesta tabela + print da fatia.
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

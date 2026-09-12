@@ -43,16 +43,42 @@ export function PortalConta() {
         <PortalCarregando />
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>
-          <dl className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-lg border border-navy/10 bg-cream/60 p-3">
-              <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>
-              <dd className="text-sm text-navy">{previa?.titulo ?? data?.cliente?.nome ?? "—"}</dd>
-            </div>
-            <div className="rounded-lg border border-navy/10 bg-cream/60 p-3">
-              <dt className="text-[11px] uppercase tracking-widest text-navy/50">Acesso</dt>
-              <dd className="text-sm text-navy">Aplicativo do cliente</dd>
-            </div>
-          </dl>
+          <div className="space-y-4">
+            <section className="rounded-2xl border border-navy/10 bg-white/80 p-5 shadow-sm">
+              <h2 className="font-serif text-lg text-navy">Perfil</h2>
+              <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border border-navy/10 bg-cream/60 p-3">
+                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>
+                  <dd className="text-sm text-navy">{previa?.titulo ?? data?.cliente?.nome ?? "—"}</dd>
+                </div>
+                <div className="rounded-lg border border-navy/10 bg-cream/60 p-3">
+                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">Acesso</dt>
+                  <dd className="text-sm text-navy">Aplicativo do cliente</dd>
+                </div>
+              </dl>
+            </section>
+
+            <section className="rounded-2xl border border-navy/10 bg-cream/40 p-5">
+              <h2 className="font-serif text-lg text-navy">Plano</h2>
+              <p className="mt-2 text-sm text-navy/75">
+                Acompanhamento ativo do reconhecimento — detalhes do plano aparecem aqui quando a equipe publica.
+              </p>
+            </section>
+
+            <section className="rounded-2xl border border-navy/10 bg-white/80 p-5">
+              <h2 className="font-serif text-lg text-navy">Alertas</h2>
+              <p className="mt-2 text-sm text-navy/75">
+                Avisos sobre documentos e próximas ações do seu caso. Sem alerta publicado no momento.
+              </p>
+            </section>
+
+            <section className="rounded-2xl border border-navy/10 bg-cream/40 p-5">
+              <h2 className="font-serif text-lg text-navy">Histórico</h2>
+              <p className="mt-2 text-sm text-navy/75">
+                Pagamentos e movimentos da conta ficam reunidos aqui quando disponíveis.
+              </p>
+            </section>
+          </div>
 
           {falhaFaturas ? (
             <p className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">

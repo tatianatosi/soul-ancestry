@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, type ReactNode } from "react";
 import {
-  FolderOpen,
+  Home,
   FileText,
   Receipt,
   LogOut,
@@ -67,7 +67,7 @@ export function PortalShell({
   const nav =
     previa || data?.nivel === "client_workspace"
       ? [
-          { to: "/portal", label: COPY_TELAS.home.navegacao, icon: FolderOpen },
+          { to: "/portal", label: COPY_TELAS.home.navegacao, icon: Home },
           { to: "/portal/jornada", label: COPY_TELAS.jornada.navegacao, icon: Route },
           { to: "/portal/radar", label: COPY_TELAS.radar.navegacao, icon: Radar },
           { to: "/portal/arvore", label: COPY_TELAS.arvore.navegacao, icon: Trees },
@@ -137,7 +137,7 @@ export function PortalShell({
       */}
       <nav
         aria-label="Navegação do aplicativo do cliente"
-        className="hidden border-b border-navy/10 bg-white px-4 sm:block lg:px-8"
+        className="hidden border-b border-navy/10 bg-cream px-4 sm:block lg:px-8"
       >
         <div className="mx-auto flex max-w-4xl gap-1">
           {nav.map(({ to, label, icon: Icon }) => (
@@ -167,7 +167,7 @@ export function PortalShell({
 
       <nav
         aria-label="Navegação do aplicativo do cliente"
-        className="fixed inset-x-0 bottom-0 z-10 border-t border-navy/10 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-10 border-t border-navy/10 bg-cream pb-[env(safe-area-inset-bottom)] sm:hidden"
       >
         <div className="grid" style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}>
           {nav.map(({ to, label, icon: Icon }) => (
