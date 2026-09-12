@@ -20,6 +20,19 @@ import { cn } from "@/lib/utils";
 import { CheckCircle2, Search, ArrowRight } from "lucide-react";
 import { CaCard } from "@/components/ui/ca-card";
 
+/**
+ * Rota real por tipo de publicação (correção 2026-09-12, pedido da
+ * Proprietária): achado sobre a árvore abre Árvore, sobre legado abre
+ * Legado, documento analisado abre Documentos; o resto (marco, resumo,
+ * atualização, linha do tempo) abre Jornada. Nunca uma rota inventada.
+ */
+function destinoPorTipo(tipo: string): "/portal/jornada" | "/portal/arvore" | "/portal/documentos" | "/portal/legado" {
+  if (tipo === "arvore") return "/portal/arvore";
+  if (tipo === "legado") return "/portal/legado";
+  if (tipo === "evidencia") return "/portal/documentos";
+  return "/portal/jornada";
+}
+
 export const Route = createFileRoute("/portal/")({
   head: () => ({
     meta: [
@@ -71,13 +84,14 @@ export function PortalHome() {
             tituloCaso={previa.titulo}
             statusRotulo="Acompanhamento ativo"
             proximoPasso={jornada.proximoPasso}
+            proximoPassoDestino={vivo.data?.proximaAcao?.destino ?? null}
             marcos={jornada.marcosPublicados}
             casoCodigo={previa.identidade?.codigo ?? CASO_DEMO_CODIGO}
             identidade={previa.identidade}
             achados={jornada.linha.slice(0, 3).map((item) => ({
               id: item.id,
               tipo: item.tipoRotulo,
-              destino: item.tipo === "arvore" ? "/portal/arvore" : "/portal/jornada",
+              destino: destinoPorTipo(item.tipo),
               texto: item.conteudo,
             }))}
             fase={{
@@ -125,7 +139,7 @@ export function PortalHome() {
                 achados={jornada.linha.slice(0, 3).map((item) => ({
                   id: item.id,
                   tipo: item.tipoRotulo,
-                  destino: item.tipo === "arvore" ? "/portal/arvore" : "/portal/jornada",
+                  destino: destinoPorTipo(item.tipo),
                   texto: item.conteudo,
                 }))}
               />
@@ -233,7 +247,12 @@ function PainelHomeMockup({
   casoCodigo: string;
   casoId?: string;
   identidade?: import("@/lib/caso-compartilhado").IdentidadeCaso;
-  achados: Array<{ id: string; tipo: string; destino: "/portal/jornada" | "/portal/arvore"; texto: string }>;
+  achados: Array<{
+    id: string;
+    tipo: string;
+    destino: "/portal/jornada" | "/portal/arvore" | "/portal/documentos" | "/portal/legado";
+    texto: string;
+  }>;
   /** Só preenchido na demo — não existe policy de portal para fase real do caso ainda. */
   fase?: { rotulos: readonly string[]; indice: number; percentual: number } | null;
 }) {
@@ -280,29 +299,29 @@ function PainelHomeMockup({
       <div className="grid gap-4 lg:grid-cols-2">
         <section>
           <h3 className="mb-2 text-sm font-semibold text-navy">Próximos passos</h3>
-          <CaCard className="flex flex-row items-center gap-3 p-3">
+          <CaCard className="flex flex-row items-start gap-3 p-3">
             <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gold/20 text-sm font-semibold text-navy">
               1
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-navy">{proximaCurta}</p>
+              <p className="text-sm font-medium text-navy">{proximaCurta}</p>
+              {proximoPassoDestino ? (
+                <LinkPortal
+                  to={proximoPassoDestino}
+                  className="mt-0.5 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
+                >
+                  {proximoPassoDestino.includes("documentos") ? "Ver documentos solicitados" : "Ver próxima ação"}
+                </LinkPortal>
+              ) : casoId ? (
+                <Link
+                  to="/portal/casos/$id"
+                  params={{ id: casoId }}
+                  className="mt-0.5 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
+                >
+                  Ver detalhes do caso
+                </Link>
+              ) : null}
             </div>
-            {proximoPassoDestino ? (
-              <LinkPortal to={proximoPassoDestino} className="shrink-0" aria-label="Abrir">
-                <ArrowRight className="h-4 w-4 text-navy/40" aria-hidden="true" />
-              </LinkPortal>
-            ) : casoId ? (
-              <Link
-                to="/portal/casos/$id"
-                params={{ id: casoId }}
-                className="shrink-0"
-                aria-label="Ver detalhes do caso"
-              >
-                <ArrowRight className="h-4 w-4 text-navy/40" aria-hidden="true" />
-              </Link>
-            ) : (
-              <ArrowRight className="h-4 w-4 shrink-0 text-navy/40" aria-hidden="true" />
-            )}
           </CaCard>
         </section>
 
