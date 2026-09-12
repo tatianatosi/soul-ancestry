@@ -52,7 +52,7 @@ export const Route = createFileRoute("/_authenticated/biblioteca")({
   ),
   notFoundComponent: () => (
     <SaasShell titulo="Biblioteca Mestre" descricao="Conteúdo não encontrado.">
-      <p className="text-sm text-muted-foreground">Nada a exibir.</p>
+      <p className="text-sm text-navy/65">Nada a exibir.</p>
     </SaasShell>
   ),
 });
@@ -385,12 +385,12 @@ function BibliotecaPage() {
                   {i.revisadoEm && <span>Revisão: {String(i.revisadoEm).slice(0, 10)}</span>}
                   {i.arquivado && <span>Arquivado: {i.motivoArquivo ?? "sem motivo registrado"}</span>}
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground">Regra: {i.regraHomologacao}</p>
+                <p className="mt-2 text-xs text-navy/65">Regra: {i.regraHomologacao}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-4">
                   <button
                     type="button"
                     onClick={() => setDetalhe(detalhe?.id === i.id ? null : i)}
-                    className="text-xs font-medium text-primary underline-offset-2 hover:underline"
+                    className="text-xs font-medium text-navy underline-offset-2 hover:underline"
                   >
                     {detalhe?.id === i.id ? "Fechar detalhe" : "Ver detalhe e vínculos"}
                   </button>
@@ -402,7 +402,7 @@ function BibliotecaPage() {
                         setMotivo("");
                         setErroArquivo(null);
                       }}
-                      className="text-xs font-medium text-muted-foreground underline-offset-2 hover:underline"
+                      className="text-xs font-medium text-navy/65 underline-offset-2 hover:underline"
                     >
                       Arquivar item
                     </button>
@@ -412,11 +412,11 @@ function BibliotecaPage() {
                   <div className="mt-3 space-y-3 border-t border-navy/10 pt-3 text-xs">
                     <dl className="space-y-1">
                       {i.detalhes.length === 0 ? (
-                        <p className="text-muted-foreground">Sem campos adicionais registrados.</p>
+                        <p className="text-navy/65">Sem campos adicionais registrados.</p>
                       ) : (
                         i.detalhes.map((d) => (
                           <div key={d.rotulo} className="flex gap-2">
-                            <dt className="shrink-0 text-muted-foreground">{d.rotulo}:</dt>
+                            <dt className="shrink-0 text-navy/65">{d.rotulo}:</dt>
                             <dd className="text-foreground">{d.valor}</dd>
                           </div>
                         ))
@@ -430,17 +430,17 @@ function BibliotecaPage() {
                             {ESTADOS_VIGENCIA.find((e) => e.valor === (i.vigencia ?? "rascunho"))?.rotulo}
                           </strong>
                         </p>
-                        <p className="text-muted-foreground">
+                        <p className="text-navy/65">
                           Critério/evidência de homologação: {i.homologacaoCriterio ?? "não registrado"}
                           {i.homologadoEm ? ` · homologado em ${String(i.homologadoEm).slice(0, 10)}` : ""}
                         </p>
                         {i.predecessorId && (
-                          <p className="text-muted-foreground">
+                          <p className="text-navy/65">
                             Substitui o item anterior: <code>{i.predecessorId}</code>
                           </p>
                         )}
                         {i.sucessorId && (
-                          <p className="text-muted-foreground">
+                          <p className="text-navy/65">
                             Substituído pelo sucessor: <code>{i.sucessorId}</code>
                           </p>
                         )}
@@ -462,7 +462,7 @@ function BibliotecaPage() {
                         {dependencias.length > 0 && (
                           <div className="rounded-lg border border-navy/10 p-2">
                             <p className="font-medium">Revalidar dependências após a troca de vigência</p>
-                            <ul className="mt-1 space-y-0.5 text-muted-foreground">
+                            <ul className="mt-1 space-y-0.5 text-navy/65">
                               {dependencias.map((d) => (
                                 <li key={d.id}>
                                   • {d.titulo} {d.versao ? `(v${d.versao})` : ""} — {d.vinculo}: {d.pendencia}
@@ -471,7 +471,7 @@ function BibliotecaPage() {
                             </ul>
                           </div>
                         )}
-                        <p className="text-muted-foreground">
+                        <p className="text-navy/65">
                           Homologar, tornar vigente, substituir, suspender ou arquivar exige perfil admin/operações e é
                           validado no banco: versão, responsável, critério, sucessor recíproco e motivo de suspensão são
                           obrigatórios, e cada transição grava evento append-only com ator, data, estado anterior e novo.
@@ -501,7 +501,7 @@ function BibliotecaPage() {
                             erro={erroHomologacao}
                           />
                         )}
-                        <p className="text-muted-foreground">
+                        <p className="text-navy/65">
                           Homologar exige critério ou evidência registrada e é revalidado no servidor. A trilha ou
                           regra segue legível e navegável mesmo antes de homologada; homologar não versiona nem altera
                           nenhum outro campo do registro.
@@ -524,7 +524,7 @@ function BibliotecaPage() {
             className="rounded-xl border border-navy/10 bg-cream/50 p-4"
           >
             <h2 className="text-sm font-medium text-foreground">Arquivar “{aArquivar.titulo}”</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-xs text-navy/65">
               Não existe exclusão física: o item deixa de ser elegível, permanece rastreável no Arquivo histórico e o
               motivo fica registrado.
             </p>
@@ -558,7 +558,7 @@ function BibliotecaPage() {
               <button
                 type="button"
                 onClick={() => setAArquivar(null)}
-                className="rounded-lg border border-navy/20 px-3 py-2 text-xs font-medium text-muted-foreground"
+                className="rounded-lg border border-navy/20 px-3 py-2 text-xs font-medium text-navy/65"
               >
                 Cancelar
               </button>
@@ -591,7 +591,7 @@ function FormularioHomologacaoSimples({
   return (
     <form className="space-y-2" onSubmit={(e) => e.preventDefault()}>
       <label className="block">
-        <span className="text-muted-foreground">Critério ou evidência de homologação</span>
+        <span className="text-navy/65">Critério ou evidência de homologação</span>
         <textarea
           value={criterio}
           onChange={(e) => setCriterio(e.target.value)}
@@ -601,7 +601,7 @@ function FormularioHomologacaoSimples({
         />
       </label>
       <label className="block">
-        <span className="text-muted-foreground">Justificativa (opcional)</span>
+        <span className="text-navy/65">Justificativa (opcional)</span>
         <textarea
           value={justificativa}
           onChange={(e) => setJustificativa(e.target.value)}
@@ -680,7 +680,7 @@ function FormularioVigencia({
   return (
     <form className="space-y-2" onSubmit={(e) => e.preventDefault()}>
       <label className="block">
-        <span className="text-muted-foreground">Novo estado de vigência</span>
+        <span className="text-navy/65">Novo estado de vigência</span>
         <select
           value={estado}
           onChange={(e) => setEstado(e.target.value as EstadoVigencia)}
@@ -695,7 +695,7 @@ function FormularioVigencia({
       </label>
       {(estado === "homologado" || estado === "vigente") && (
         <label className="block">
-          <span className="text-muted-foreground">Critério ou evidência de homologação</span>
+          <span className="text-navy/65">Critério ou evidência de homologação</span>
           <textarea
             value={criterio}
             onChange={(e) => setCriterio(e.target.value)}
@@ -706,7 +706,7 @@ function FormularioVigencia({
       )}
       {estado === "suspenso" && (
         <label className="block">
-          <span className="text-muted-foreground">Motivo da suspensão (bloqueia novo uso imediatamente)</span>
+          <span className="text-navy/65">Motivo da suspensão (bloqueia novo uso imediatamente)</span>
           <textarea
             value={motivoSuspensao}
             onChange={(e) => setMotivoSuspensao(e.target.value)}
@@ -717,7 +717,7 @@ function FormularioVigencia({
       )}
       {estado === "substituido" && (
         <label className="block">
-          <span className="text-muted-foreground">Item sucessor</span>
+          <span className="text-navy/65">Item sucessor</span>
           <select
             value={sucessor}
             onChange={(e) => setSucessor(e.target.value)}
@@ -733,7 +733,7 @@ function FormularioVigencia({
         </label>
       )}
       <label className="block">
-        <span className="text-muted-foreground">Justificativa da mudança (registro append-only)</span>
+        <span className="text-navy/65">Justificativa da mudança (registro append-only)</span>
         <textarea
           value={justificativa}
           onChange={(e) => setJustificativa(e.target.value)}

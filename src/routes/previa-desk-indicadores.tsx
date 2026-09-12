@@ -9,7 +9,7 @@ import { SELO_DEMO_PORTAL } from "@/lib/portal-demo-sophia";
 /**
  * Prévia pública — faces Desk mockup 17 p.11–17 + vocabulário 47.
  * Chrome OKI + DEMO. Sem auth. Não restaura sidebar Lovable: 6 GRUPOS_DESK.
- * Deep-link: ?face=visao|caso360|checklist|juridica|radar|alertas|biblioteca
+ * Deep-link: ?face=visao|caso360|checklist|juridica|radar|alertas|biblioteca|pessoas
  */
 
 export const Route = createFileRoute("/previa-desk-indicadores")({
@@ -34,7 +34,8 @@ type FaceId =
   | "juridica"
   | "radar"
   | "alertas"
-  | "biblioteca";
+  | "biblioteca"
+  | "pessoas";
 
 const FACES: { id: FaceId; rotulo: string; pagina: string }[] = [
   { id: "visao", rotulo: "Visão Geral", pagina: "p.11" },
@@ -44,6 +45,7 @@ const FACES: { id: FaceId; rotulo: string; pagina: string }[] = [
   { id: "radar", rotulo: "Radar Interno", pagina: "p.15" },
   { id: "alertas", rotulo: "Alertas", pagina: "p.16" },
   { id: "biblioteca", rotulo: "Biblioteca Mestre", pagina: "p.17" },
+  { id: "pessoas", rotulo: "Pessoas", pagina: "grupo" },
 ];
 
 const FACES_VALIDAS = new Set<string>(FACES.map((f) => f.id));
@@ -81,18 +83,23 @@ function PreviaDeskIndicadores() {
           <div className="mt-3 h-0.5 w-full bg-gold/80" aria-hidden />
           <p className="mt-4 text-[10px] uppercase tracking-widest text-cream/50">Desk · 6 grupos</p>
           <nav className="mt-2 space-y-1">
-            {GRUPOS_DESK.map((g) => (
-              <div
-                key={g.id}
-                className={
-                  g.id === "hoje"
-                    ? "rounded-lg bg-gold px-3 py-2 text-sm font-medium text-navy"
-                    : "rounded-lg px-3 py-2 text-sm text-cream/70"
-                }
-              >
-                {g.label}
-              </div>
-            ))}
+            {GRUPOS_DESK.map((g) => {
+              const ativo =
+                (face === "pessoas" && g.id === "casos") ||
+                (face !== "pessoas" && g.id === "hoje");
+              return (
+                <div
+                  key={g.id}
+                  className={
+                    ativo
+                      ? "rounded-lg bg-gold px-3 py-2 text-sm font-medium text-navy"
+                      : "rounded-lg px-3 py-2 text-sm text-cream/70"
+                  }
+                >
+                  {g.label}
+                </div>
+              );
+            })}
           </nav>
         </aside>
 
@@ -151,10 +158,12 @@ function PreviaDeskIndicadores() {
             {face === "radar" ? <FaceRadar /> : null}
             {face === "alertas" ? <FaceAlertas /> : null}
             {face === "biblioteca" ? <FaceBiblioteca /> : null}
+            {face === "pessoas" ? <FacePessoas /> : null}
 
             <p className="text-xs text-navy/50">
               Runtime vivo (auth staff): <code className="font-mono">/painel</code>,{" "}
-              <code className="font-mono">/casos/$caseId</code>, <code className="font-mono">/tarefas</code>,{" "}
+              <code className="font-mono">/casos/$caseId</code>, <code className="font-mono">/clientes</code>,{" "}
+              <code className="font-mono">/tarefas</code>,{" "}
               <code className="font-mono">/matriz-juridica</code>, <code className="font-mono">/qualidade</code>,{" "}
               <code className="font-mono">/alertas</code>, <code className="font-mono">/biblioteca</code>.{" "}
               <code className="font-mono">GRUPOS_DESK</code> permanece 6.
@@ -449,6 +458,60 @@ function FaceBiblioteca() {
           ))}
         </div>
       </article>
+    </section>
+  );
+}
+
+/** Chrome do grupo Pessoas & Casos (`/clientes`) — não é página 11–17 do mockup. */
+function FacePessoas() {
+  const linhas: { nome: string; camada: string; status: string; tom: TomEstado }[] = [
+    { nome: "Sophia Piccoli (DEMO)", camada: "Cliente", status: "Ativo", tom: "sucesso" },
+    { nome: "Núcleo Piccoli — 3 participantes", camada: "Núcleo", status: "Em acompanhamento", tom: "atencao" },
+    { nome: "Lead Discovery — sem caso", camada: "Pré-cliente", status: "Triagem", tom: "neutro" },
+  ];
+  return (
+    <section aria-label="Pessoas e clientes" className="space-y-4" data-face-pessoas>
+      <p className="text-sm text-navy/70">
+        Lista operacional de pessoas/clientes com chrome OKI (navy/cream/gold). Runtime vivo:{" "}
+        <code className="font-mono text-xs">/clientes</code>. Sem inventar genealogia.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {["Ativos", "Suspensos", "Encerrados", "Arquivados"].map((aba, i) => (
+          <span
+            key={aba}
+            className={
+              i === 0
+                ? "rounded-lg border border-navy bg-navy/10 px-3 py-1.5 text-xs font-medium text-navy"
+                : "rounded-lg border border-navy/15 bg-cream/50 px-3 py-1.5 text-xs text-navy/65"
+            }
+          >
+            {aba}
+          </span>
+        ))}
+        <span className="ml-auto rounded-md bg-navy px-3 py-1.5 text-xs text-cream">Novo cadastro</span>
+      </div>
+      <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
+        <table className="w-full text-left text-sm">
+          <thead className="text-[11px] uppercase tracking-wide text-navy/50">
+            <tr>
+              <th className="px-3 py-2">Pessoa</th>
+              <th className="px-3 py-2">Camada</th>
+              <th className="px-3 py-2">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {linhas.map((l) => (
+              <tr key={l.nome} className="border-t border-navy/10">
+                <td className="px-3 py-2 text-navy">{l.nome}</td>
+                <td className="px-3 py-2 text-navy/70">{l.camada}</td>
+                <td className="px-3 py-2">
+                  <BadgeDesk texto={l.status} tom={l.tom} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }

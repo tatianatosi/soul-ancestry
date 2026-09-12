@@ -153,6 +153,17 @@ De-para Radar/Árvore: **em prova visual** (não `COMPROVADO_EM_USO`).
 Prints: `docs/provas/2026-09-12-app-cream-chrome/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 
+## Fatia 2026-09-12 — Desk Pessoas OKI (grupo vivo)
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `/clientes` | Tokens `primary`/`muted`/`card` | Navy/cream/gold (etiquetas, CTA, modais, tabela) |
+| `/biblioteca` + mensagens | `text-primary` / `muted-foreground` | `text-navy` / `text-navy/65` |
+| Prévia | Sem face Pessoas | `/previa-desk-indicadores?face=pessoas` (grupo Desk, não p.11–17) |
+
+Prints: `docs/provas/2026-09-12-desk-pessoas-oki/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`). `GRUPOS_DESK` permanece 6.
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).
