@@ -148,7 +148,19 @@ function AppClienteComoPessoa() {
                 titulo: casoEscolhido
                   ? `${String(casoEscolhido["codigo"])} — ${String(casoEscolhido["titulo"])}`
                   : "Carregando caso…",
+                // Identidade real do caso escolhido: sem ela as telas caíam no
+                // código da demonstração antiga, contradizendo o cabeçalho.
+                ...(casoEscolhido
+                  ? {
+                      identidade: identidadeDePortalCaso({
+                        id: String(casoEscolhido["id"]),
+                        codigo: (casoEscolhido["codigo"] as string | null) ?? null,
+                        titulo: String(casoEscolhido["titulo"] ?? ""),
+                      }),
+                    }
+                  : {}),
               },
+
             }}
           >
             <Tela />
