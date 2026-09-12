@@ -12,6 +12,7 @@ import {
 } from "@/components/portal/abas-app-cliente";
 import { listarCasosFicha } from "@/lib/caso-ficha.functions";
 import { dadosVivosDoPortalComoAdmin } from "@/lib/app-cliente-como-pessoa.functions";
+import { identidadeDePortalCaso } from "@/lib/caso-compartilhado";
 
 /**
  * Acesso master ao App Cliente com dado real de um caso.
@@ -148,7 +149,19 @@ function AppClienteComoPessoa() {
                 titulo: casoEscolhido
                   ? `${String(casoEscolhido["codigo"])} — ${String(casoEscolhido["titulo"])}`
                   : "Carregando caso…",
+                // Identidade real do caso escolhido: sem ela as telas caíam no
+                // código da demonstração antiga, contradizendo o cabeçalho.
+                ...(casoEscolhido
+                  ? {
+                      identidade: identidadeDePortalCaso({
+                        id: String(casoEscolhido["id"]),
+                        codigo: (casoEscolhido["codigo"] as string | null) ?? null,
+                        titulo: String(casoEscolhido["titulo"] ?? ""),
+                      }),
+                    }
+                  : {}),
               },
+
             }}
           >
             <Tela />
