@@ -498,6 +498,23 @@ Entregas / Fase 01 / Fase 02: rotas profundas com H1 Materiais / Relatório / At
 
 **Proibido** restaurar sidebar Lovable de 14 itens. Face 7 e labels da imagem Soul Ancestry = referência de **qualidade visual** (navy/cream/gold), não menu novo.
 
+## Indicadores do 47 por superfície (mínimo de prova)
+
+| Superfície | Indicadores / estados (auditoria 47) | Fonte runtime |
+|---|---|---|
+| Home App | caso · progresso publicado · próxima ação · achados · Você\|Nós | `/portal` + publicações |
+| Jornada App | História \| Seu caso · marcos · União de Ramos só c/ pubs | `/portal/jornada` |
+| Radar App | 6 dims · `em_preparacao` sem % inventado | `radar-seis-eixos` |
+| Árvore App | G1–G5 · nomes só liberados | `/portal/arvore` |
+| Documentos App | checklist · liberados · enviados · upload sob pedido | `/portal/documentos` |
+| Legado App | prateleiras · Premium só c/ pub | `/portal/legado` |
+| Conta App | perfil · plano · alertas · histórico | `/portal/conta` |
+| Visão Geral Desk | fila · vencidas · responsável · exceções | `/painel` + RPC lote |
+| Caso 360 Desk | caso · próxima ação · 4 eixos · bloqueio | ficha `crm_casos` + planejador |
+| Checklist / Alertas Desk | tarefa/sinal · caso · responsável · prazo/criticidade | `/tarefas` · `/alertas` |
+
+Sem inventar tabela/`CHECK`. Indicador sem escritor + UI + print = não entregue.
+
 ## Checklist de aceite visual (marca/layout)
 
 - [ ] Canvas App/Desk = cream `#ECDFCD` (não `#F7F1E7` lavado)

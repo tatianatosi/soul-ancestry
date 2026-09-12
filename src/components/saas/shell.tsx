@@ -407,7 +407,7 @@ export function SaasShell({
 
 export function EstadoVazio({ mensagem, acao }: { mensagem: string; acao?: ReactNode }) {
   return (
-    <div className="rounded-xl border border-dashed border-navy/20 bg-cream/50 p-10 text-center text-sm text-navy/60">
+    <div className="rounded-xl border border-dashed border-navy/20 bg-card p-10 text-center text-sm text-navy/60">
       <p>{mensagem}</p>
       {acao ? <div className="mt-3 flex justify-center">{acao}</div> : null}
     </div>
