@@ -19,15 +19,19 @@
 
 ```text
 0  Realinhar (prova Desk-chrome inválida)           [feito]
-1  App Cliente mockup no ar + prints web/mobile     [código+prints → commit/PR]
-1B Magic link /acesso mobile+web + prints           [próxima]
-2  caseId App↔Desk + prints
+1  App Cliente mockup no ar + prints web/mobile     [feito na branch; aguarda merge]
+1B Magic link /acesso mobile+web + prints           [prints feitos; aguarda merge]
+2  caseId App↔Desk + prints                         [próxima após merge 1+1B]
 3  Caso 360 / Pessoas / Pesquisa
 4  CRM Vivo / Journey / Calls
 5  Proposta / contrato / jurídico contextual
 6  Funil financeiro / marketing
 7  Radar / Biblioteca / Legado / automações
 ```
+
+**Branch:** `cursor/app-cliente-preview-a5bc` (pushed).  
+**PR:** token Cloud sem permissão `createPullRequest` — abrir manualmente:  
+https://github.com/tatianatosi/soul-ancestry/pull/new/cursor/app-cliente-preview-a5bc
 
 Cada ordem: implementar → print → “Aprova para merge?” → commit/PR → merge só com sim.
 
