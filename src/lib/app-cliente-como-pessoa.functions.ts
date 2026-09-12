@@ -198,11 +198,15 @@ export const resumoVisaoClienteCaso = createServerFn({ method: "GET" })
       .maybeSingle();
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
 
-    // Mesma ponte admin de dadosVivosDoPortalComoAdmin (recursão RLS shares).
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const leitorProjecoes = supabaseAdmin as typeof supabase;
+    const projecoes = await lerProjecoes(supabase, (cliente: any) =>
+      cliente
+        .from("app_projections")
+        .select("id,projection_type,approval_status,effective_from,archived_at")
+        .eq("organization_id", organizationId)
+        .eq("case_id", data.casoId),
+    );
 
-    const [acessoCaso, projecoes, entregas, documentos] = await Promise.all([
+    const [acessoCaso, entregas, documentos] = await Promise.all([
       supabase
         .from("client_portal_case_access")
         .select("access_status,revoked_at,client_portal_access:client_portal_access_id(access_status,last_authenticated_at)")
@@ -211,14 +215,10 @@ export const resumoVisaoClienteCaso = createServerFn({ method: "GET" })
         .order("granted_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
-      leitorProjecoes
-        .from("app_projections")
-        .select("id,projection_type,approval_status,effective_from,archived_at")
-        .eq("organization_id", organizationId)
-        .eq("case_id", data.casoId),
       supabase
         .from("client_deliverables")
         .select("id", { count: "exact", head: true })
+
         .eq("organization_id", organizationId)
         .eq("case_id", data.casoId)
         .eq("approval_status", "em_revisao")
