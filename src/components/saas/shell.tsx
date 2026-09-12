@@ -13,8 +13,6 @@ import {
   Menu,
   ChevronDown,
   ShieldCheck,
-  Search,
-  UserRound,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -37,7 +35,6 @@ import {
 } from "@/lib/navegacao-desk";
 import { AssistenteTransversal } from "@/components/desk/assistente-transversal";
 import { BrandLogo } from "@/components/brand";
-import { Button } from "@/components/ui/button";
 
 const PAPEIS_ESCRITA: Papel[] = ["admin", "operacoes", "pesquisador", "comercial", "financeiro"];
 
@@ -208,31 +205,31 @@ export function SaasShell({
   }));
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground" data-desk-shell="clube-ancestral">
+    <div className="flex min-h-screen bg-cream text-navy">
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-60 shrink-0 flex-col overflow-y-auto border-r border-gold/30 bg-navy px-3 py-4 text-cream shadow-xl lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-56",
+          "fixed inset-y-0 left-0 z-40 w-64 shrink-0 flex-col overflow-y-auto border-r border-navy/20 bg-navy px-3 py-5 text-cream lg:static lg:flex",
           aberto ? "flex" : "hidden",
         )}
       >
-        <div className="border-b border-gold/25 px-2 pb-4 text-center" data-marca-guia="oki">
-          <BrandLogo size={52} variant="client-dark" showText={false} className="justify-center" />
-          <p className="mt-2 font-serif text-xl leading-none text-gold">Clube Ancestral</p>
-          <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-cream/60">
+        <div className="px-2 pb-4" data-marca-guia="oki">
+          <BrandLogo size={34} variant="client-dark" showText={false} className="items-center" />
+          <p className="mt-2 font-serif text-base leading-tight text-gold">Clube Ancestral</p>
+          <p className="mt-0.5 pl-0.5 text-[11px] uppercase tracking-widest text-cream/60">
             Desk Intelligence
           </p>
+          <div className="mt-3 h-0.5 w-full bg-gold/80" aria-hidden="true" />
         </div>
 
-        <nav className="mt-3 flex-1 space-y-1" aria-label="Áreas do Desk">
+        <nav className="flex-1 space-y-1">
           {itens.map((item) => {
             const { to, label, icon: Icon, sub, descricao: descricaoGrupo } = item;
             const ativo = grupoNavAtivo(rota, hash, item);
             const expandida = to in abertosManuais ? abertosManuais[to] : desktop && ativo;
             return (
               <div key={to}>
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
                   title={descricaoGrupo}
                   onClick={() => {
                     if (ativo) {
@@ -247,10 +244,8 @@ export function SaasShell({
                     setAberto(false);
                   }}
                   className={cn(
-                    "h-auto w-full justify-start gap-3 rounded-md px-3 py-2 text-left text-[13px] font-normal",
-                    ativo
-                      ? "bg-gold font-semibold text-navy hover:bg-gold/90 hover:text-navy"
-                      : "text-cream/80 hover:bg-cream/10 hover:text-cream",
+                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                    ativo ? "bg-gold text-navy font-medium" : "text-cream/80 hover:bg-cream/10",
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -266,7 +261,7 @@ export function SaasShell({
                   <ChevronDown
                     className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")}
                   />
-                </Button>
+                </button>
                 {expandida && sub.length ? (
                   <div className="mb-1 ml-7 space-y-0.5 border-l border-cream/15 pl-3">
                     {sub.map((s, i) =>
@@ -352,29 +347,24 @@ export function SaasShell({
             {papeis.length ? papeis.map((p) => PAPEL_LABEL[p] ?? p).join(" · ") : "Sem papel atribuído"}
           </p>
 
-          <Button
-            type="button"
-            variant="ghost"
+          <button
             onClick={sair}
-            className="mt-3 h-auto w-full justify-start gap-2 rounded-md border border-cream/20 px-3 py-2 text-sm text-cream hover:bg-cream/10 hover:text-cream"
+            className="mt-3 flex w-full items-center gap-2 rounded-lg border border-cream/20 px-3 py-2 text-sm text-cream hover:bg-cream/10"
           >
             <LogOut className="h-4 w-4" /> Sair
-          </Button>
+          </button>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 grid min-h-16 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-b border-border bg-card/95 px-4 py-3 shadow-sm backdrop-blur lg:px-6">
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
+        <header className="flex items-center gap-3 border-b border-navy/10 bg-cream px-4 py-4 lg:px-8">
+          <button
             className="lg:hidden"
             onClick={() => setAberto((v) => !v)}
             aria-label="Abrir navegação"
           >
             <Menu className="h-5 w-5" />
-          </Button>
+          </button>
           <BrandLogo
             size={30}
             showText={false}
@@ -382,35 +372,11 @@ export function SaasShell({
             className="shrink-0 lg:hidden"
           />
 
-          <div className="min-w-0 lg:grid lg:grid-cols-[minmax(12rem,0.8fr)_minmax(16rem,1.2fr)] lg:items-center lg:gap-6">
-            <div className="min-w-0">
-              <h1 className="truncate font-serif text-2xl leading-none text-navy">{titulo}</h1>
-              {descricao ? <p className="mt-1 truncate text-xs text-muted-foreground">{descricao}</p> : null}
-            </div>
-            <Link
-              to="/painel"
-              hash="encontrar-no-desk"
-              className="hidden h-9 min-w-0 items-center gap-2 rounded-md border border-border bg-background px-3 text-sm text-muted-foreground shadow-sm transition-colors hover:border-gold hover:text-navy lg:flex"
-              aria-label="Encontrar pessoas, casos e documentos no Desk"
-            >
-              <Search className="size-4 shrink-0" />
-              <span className="truncate">Encontrar no Desk</span>
-            </Link>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate font-serif text-2xl">{titulo}</h1>
+            {descricao ? <p className="text-sm text-navy/60">{descricao}</p> : null}
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            {acoes}
-            <div className="hidden items-center gap-2 border-l border-border pl-3 xl:flex">
-              <span className="grid size-8 place-items-center rounded-full bg-navy text-cream">
-                <UserRound className="size-4" aria-hidden="true" />
-              </span>
-              <div className="max-w-32 leading-tight">
-                <p className="truncate text-xs font-semibold text-navy">{contexto?.perfil?.email ?? "Equipe"}</p>
-                <p className="truncate text-[10px] text-muted-foreground">
-                  {papeis.length ? papeis.map((p) => PAPEL_LABEL[p] ?? p).join(" · ") : "Acesso interno"}
-                </p>
-              </div>
-            </div>
-          </div>
+          {acoes}
         </header>
         {contexto?.organizacao?.demo ? (
           <div className="border-b border-gold/40 bg-gold/15 px-4 py-2 text-xs font-medium uppercase tracking-wide text-navy lg:px-8">
@@ -420,8 +386,7 @@ export function SaasShell({
         {/* Identidade de marca aplicada em escopo isolado: somente a área de
             Pesquisa / Gestão de Pesquisa (inclui /evidencias). Demais telas permanecem congeladas. */}
         <main
-          className="min-w-0 flex-1 p-4 pb-20 lg:p-6"
-          data-desk-surface="true"
+          className="min-w-0 flex-1 p-4 pb-20 lg:p-8"
           data-marca={
             rota.startsWith("/pesquisa") ||
             rota === "/evidencias" ||
