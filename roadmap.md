@@ -15,3 +15,4 @@
 - [ ] Publicar o App Cliente e conferir etapa, próxima ação e microentrega publicada em tela real.
 - [x] Completar o pente-fino visual das 15 prévias contra o mockup aprovado de 17 páginas, preservando 6 grupos do Desk e 7 telas do App Cliente.
 - [ ] Validar visualmente as prévias atualizadas em desktop e mobile.
+- [x] Aplicar no Desk os modelos gráficos aprovados de família, marketing, comercial, pesquisa, acervo, financeiro e jurídico, sem alterar o App Cliente.
