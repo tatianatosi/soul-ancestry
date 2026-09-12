@@ -436,6 +436,18 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqu
 Prints: `docs/provas/2026-09-12-fidelidade-home-meta-47/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 
+
+## Fatia 2026-09-12 — Jornada duas linhas + rotas profundas densificadas
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `/portal/jornada` | Feed único vs mockup História\|Seu caso | Duas colunas a partir de tipos publicados; União de Ramos só se ambas têm itens |
+| `/portal/entregas` · `fase-01` · `fase-02` | Corpo fino pós-H1 soft | Meta caso·tipo·publicados·estado |
+| Gate marca | Sem item duas linhas | Checklist atualizado |
+
+Prints: `docs/provas/2026-09-12-fidelidade-jornada-duas-linhas/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`).
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).
