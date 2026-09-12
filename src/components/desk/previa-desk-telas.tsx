@@ -1198,7 +1198,7 @@ export function PreviaDeskTelas() {
               );
             })}
           </nav>
-          <div className="mt-3 border-t border-primary-foreground/15 pt-3">
+          {TELAS_PREVIA_DESK.filter((item) => item.grupo === tela.grupo).length > 1 ? <div className="mt-3 border-t border-primary-foreground/15 pt-3">
             <p className="mb-2 hidden px-3 text-[9px] font-semibold uppercase tracking-widest text-primary-foreground/45 lg:block">Superfícies desta área</p>
             <nav className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible" aria-label="Superfícies da área selecionada">
               {TELAS_PREVIA_DESK.filter((item) => item.grupo === tela.grupo).map((item) => (
@@ -1217,7 +1217,7 @@ export function PreviaDeskTelas() {
                 </button>
               ))}
             </nav>
-          </div>
+          </div> : null}
         </aside>
 
         <div className="min-w-0 flex-1">
