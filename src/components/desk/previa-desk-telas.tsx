@@ -472,6 +472,118 @@ function FilaPublicacao({ origem }: { origem: "Biblioteca" | "Portal interno" })
   );
 }
 
+function FunilVisual() {
+  const etapas = [
+    { nome: "Novos leads", valor: 58, largura: "w-full" },
+    { nome: "Discovery", valor: 31, largura: "w-4/5" },
+    { nome: "Diagnóstico", valor: 18, largura: "w-3/5" },
+    { nome: "Cliente", valor: 7, largura: "w-2/5" },
+  ];
+  return (
+    <figure role="img" aria-label="Funil comercial demonstrativo dos últimos trinta dias">
+      <div className="space-y-2">
+        {etapas.map((etapa, indice) => (
+          <div key={etapa.nome} className={cn("mx-auto rounded-md border border-navy/10 px-3 py-2", etapa.largura, indice === etapas.length - 1 ? "bg-gold/35" : "bg-navy/[0.06]")}>
+            <div className="flex items-center justify-between gap-2 text-[10px] text-navy">
+              <span className="font-medium">{etapa.nome}</span>
+              <span className="font-semibold tabular-nums">{etapa.valor}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <figcaption className="mt-3 text-center text-[10px] text-navy/50">Últimos 30 dias · valores demonstrativos</figcaption>
+    </figure>
+  );
+}
+
+function JornadaD0Visual() {
+  const marcos = [
+    { nome: "D0", apoio: "Aceite", estado: "feito" },
+    { nome: "D14", apoio: "Onboarding", estado: "feito" },
+    { nome: "D60", apoio: "Pesquisa", estado: "atual" },
+    { nome: "D180", apoio: "Documentos", estado: "futuro" },
+    { nome: "D365", apoio: "Encerramento", estado: "futuro" },
+  ];
+  return (
+    <div>
+      <div className="relative grid grid-cols-5 gap-1 pt-2">
+        <div className="absolute left-[10%] right-[10%] top-[19px] h-1 rounded-full bg-navy/10"><div className="h-full w-[43%] rounded-full bg-gold" /></div>
+        {marcos.map((marco) => (
+          <div key={marco.nome} className="relative text-center">
+            <span className={cn("mx-auto grid h-7 w-7 place-items-center rounded-full border-2 border-card text-[9px] font-semibold ring-1", marco.estado === "feito" ? "bg-navy text-primary-foreground ring-navy" : marco.estado === "atual" ? "bg-gold text-navy ring-gold" : "bg-card text-navy/45 ring-navy/20")}>{marco.nome}</span>
+            <p className="mt-2 text-[9px] font-medium text-navy">{marco.apoio}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 grid gap-2 sm:grid-cols-5">
+        <Linha rotulo="Etapa atual" valor="Pesquisa" tom="atencao" />
+        <Linha rotulo="Cadência" valor="Em dia" tom="sucesso" />
+        <Linha rotulo="Próxima ação" valor="Revisar fonte" />
+        <Linha rotulo="Microentrega" valor="Síntese" />
+        <Linha rotulo="Alertas" valor="1 prazo" tom="atencao" />
+      </div>
+    </div>
+  );
+}
+
+function ArvoreCincoGeracoes() {
+  const geracoes = [
+    ["G5", "Antônio R. · 1860", "Isabel F. · 1887"],
+    ["G4", "Carlo Bianchi · 1891", "Elena Rossi · 1895"],
+    ["G3", "Luigi Bianchi · 1923", "Rosa Moretti · 1927"],
+    ["G2", "Paulo Bianchi · 1965", "Marta Costa · 1968"],
+    ["G1", "Giulia Bianchi", "Marina Bianchi"],
+  ];
+  return (
+    <div className="space-y-1.5">
+      {geracoes.map(([geracao, pessoaA, pessoaB], indice) => (
+        <div key={geracao} className="relative grid grid-cols-[2.5rem_1fr_1fr] items-center gap-2">
+          <span className="text-[9px] font-semibold text-gold">{geracao}</span>
+          <span className={cn("rounded-md border px-2 py-1.5 text-[9px] text-navy", indice < 2 ? "border-gold/40 bg-gold/10" : "border-navy/10 bg-cream/40")}>{pessoaA}</span>
+          <span className="rounded-md border border-navy/10 bg-cream/40 px-2 py-1.5 text-[9px] text-navy">{pessoaB}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AppClienteSeteTelas() {
+  const telas = [
+    { nome: "Home", detalhe: "Etapa, progresso, próxima ação e achado publicado", valor: "65%" },
+    { nome: "Jornada", detalhe: "Linha ancestral 1820–2024 e linha do caso", valor: "7 marcos" },
+    { nome: "Radar", detalhe: "Documentação, origem, conexões, elegibilidade, memória e legado", valor: "6 eixos" },
+    { nome: "Árvore", detalhe: "G1–G5, conexão-chave, território e pendência", valor: "12 pessoas" },
+    { nome: "Documentos", detalhe: "Solicitados, recebidos e liberados", valor: "4/10" },
+    { nome: "Legado", detalhe: "Achados publicados e continuidade da jornada", valor: "3 peças" },
+    { nome: "Conta", detalhe: "Perfil, plano, alertas do cliente e histórico", valor: "Ativo" },
+  ];
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl bg-navy p-4 text-primary-foreground">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">App Cliente · 7 telas aprovadas</p>
+        <div className="mt-3 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+          <div><h2 className="font-serif text-2xl">Sua jornada ancestral</h2><p className="mt-1 text-xs text-primary-foreground/70">Somente informações publicadas e autorizadas.</p></div>
+          <Etiqueta texto="Caso ativo" tom="sucesso" />
+        </div>
+        <div className="mt-4"><ProgressoJornadaGrafico /></div>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {telas.map((tela, indice) => (
+          <article key={tela.nome} className={cn("rounded-xl border p-3", indice === 0 ? "border-gold/60 bg-gold/10" : "border-navy/10 bg-card")}>
+            <div className="flex items-start justify-between gap-2"><h3 className="font-serif text-base text-navy">{tela.nome}</h3><span className="text-[10px] font-semibold text-gold">{tela.valor}</span></div>
+            <p className="mt-2 text-[10px] leading-relaxed text-navy/60">{tela.detalhe}</p>
+            {tela.nome === "Radar" ? <div className="mt-3 grid grid-cols-6 gap-1">{[78, 90, 65, 72, 55, 40].map((valor) => <span key={valor} className="h-8 rounded-sm bg-gold/20" style={{ height: `${Math.max(12, valor / 3)}px` }} />)}</div> : null}
+            {tela.nome === "Árvore" ? <div className="mt-3"><ArvoreCincoGeracoes /></div> : null}
+          </article>
+        ))}
+      </div>
+      <nav aria-label="Navegação demonstrativa do App Cliente" className="grid grid-cols-7 overflow-hidden rounded-lg border border-navy/10 bg-card">
+        {telas.map((tela, indice) => <span key={tela.nome} className={cn("px-1 py-2 text-center text-[9px]", indice === 0 ? "bg-gold/20 font-semibold text-navy" : "text-navy/55")}>{tela.nome}</span>)}
+      </nav>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Telas do mockup e complementos visuais aprovados                    */
 /* ------------------------------------------------------------------ */
@@ -529,6 +641,14 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <Linha rotulo="Síntese do registro paroquial" valor="Revisar" tom="atencao" />
             <Linha rotulo="Linha familiar documentada" valor="Revisar" tom="atencao" />
           </Cartao>
+          <Cartao titulo="Funil de leads · Visão Geral">
+            <FunilVisual />
+          </Cartao>
+          <Cartao titulo="Alertas centralizados · com origem">
+            <Linha rotulo="Cadência vencida · Jornada" valor="3" tom="critico" />
+            <Linha rotulo="Sem próxima ação · Caso 360" valor="1" tom="critico" />
+            <Linha rotulo="Lead parado · CRM Vivo" valor="2" tom="atencao" />
+          </Cartao>
         </div>
       </div>
     ),
@@ -540,6 +660,12 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     rota: "/calls",
     render: () => (
       <div className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-4">
+          <Indicador rotulo="Leads ativos" valor="7" apoio="em cinco etapas" />
+          <Indicador rotulo="Discovery" valor="2" apoio="conversas abertas" />
+          <Indicador rotulo="Conversão" valor="12%" apoio="lead → cliente" />
+          <Indicador rotulo="Parados" valor="2" apoio="com alerta visível" />
+        </div>
         <CabecalhoFerramenta titulo="Funil comercial vivo" apoio="Origem → Discovery → diagnóstico → proposta → contrato" acao="Novo lead" />
         <KanbanVisual colunas={[
           { titulo: "Leads", cartoes: [
@@ -565,11 +691,17 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
   },
   {
     id: "kanban",
-    titulo: "Kanban operacional",
+    titulo: "Checklist / Kanban operacional",
     grupo: "casos",
     rota: "/ops · /tarefas",
     render: () => (
       <div className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-4">
+          <Indicador rotulo="Confirmar" valor="3" apoio="itens concluídos" />
+          <Indicador rotulo="Em revisão" valor="4" apoio="esta semana" />
+          <Indicador rotulo="Pendente crítico" valor="3" apoio="exige decisão" />
+          <Indicador rotulo="SLA em risco" valor="1" apoio="prazo próximo" />
+        </div>
         <CabecalhoFerramenta titulo="Trabalho dos casos" apoio="Próxima ação, responsável, prazo e bloqueio em uma única leitura" acao="Nova tarefa" />
         <KanbanVisual colunas={[
           { titulo: "Não iniciada", cartoes: [
@@ -639,13 +771,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
           </Cartao>
         </div>
         <Cartao titulo="Jornada D0–D365">
-          <div className="grid gap-2 sm:grid-cols-5">
-            <Linha rotulo="Etapa atual" valor="Pesquisa" tom="atencao" />
-            <Linha rotulo="Cadência" valor="Em dia" tom="sucesso" />
-            <Linha rotulo="Próxima ação" valor="Revisar fonte" />
-            <Linha rotulo="Microentrega atual / próxima" valor="Síntese / Linha familiar" />
-            <Linha rotulo="Alertas" valor="1 prazo próximo" tom="atencao" />
-          </div>
+          <JornadaD0Visual />
         </Cartao>
       </div>
     ),
@@ -706,7 +832,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     rota: "/qualidade",
     render: () => (
       <div className={grade2}>
-        <Cartao titulo="Radar interno — 4 eixos da jornada">
+        <Cartao titulo="Radar interno — leitura operacional">
           <RadarGrafico
             tituloAcessivel="Radar interno com quatro eixos da jornada"
             eixos={[
@@ -717,7 +843,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             ]}
           />
           <p className="mt-3 border-t border-navy/10 pt-3 text-[11px] text-navy/55">
-            Mesma construção visual do App Cliente, preservando os quatro eixos canônicos do Desk.
+            Leitura interna em quatro eixos. O App Cliente usa seis dimensões publicáveis; as duas taxonomias não são equivalentes.
           </p>
         </Cartao>
         <Cartao titulo="Matriz elegibilidade × prioridade">
@@ -827,6 +953,11 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
         </div>
         <Cartao titulo="Fila de publicação para o App Cliente">
           <FilaPublicacao origem="Biblioteca" />
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            <Linha rotulo="Síntese paroquial" valor="Tatiana · hoje" tom="atencao" />
+            <Linha rotulo="Linha familiar" valor="Pesquisa · 15 set" />
+            <Linha rotulo="Nota de contexto" valor="Operações · 16 set" />
+          </div>
         </Cartao>
       </div>
     ),
@@ -925,24 +1056,15 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     rota: "/nucleos",
     render: () => (
       <div className="space-y-4">
-        <div className={grade3}>
-          <Cartao titulo="Geração 1">
-            <div className="space-y-3">
-              <Pessoa nome="Carlo Bianchi" papel="Ascendente italiano" />
-              <Pessoa nome="Elena Rossi" papel="Cônjuge" />
-            </div>
+        <div className="grid gap-4 lg:grid-cols-[1.4fr_0.6fr]">
+          <Cartao titulo="Gerações G1–G5">
+            <ArvoreCincoGeracoes />
           </Cartao>
-          <Cartao titulo="Geração 2">
-            <div className="space-y-3">
-              <Pessoa nome="Giulia Bianchi" papel="Requerente" />
-              <Pessoa nome="Paulo Tavares" papel="Cônjuge" />
-            </div>
-          </Cartao>
-          <Cartao titulo="Geração 3">
-            <div className="space-y-3">
-              <Pessoa nome="Marina Bianchi" papel="Dependente" />
-              <Pessoa nome="João Bianchi" papel="Dependente" />
-            </div>
+          <Cartao titulo="Leitura da linhagem">
+            <Linha rotulo="Conexão-chave" valor="Carlo Bianchi" tom="sucesso" />
+            <Linha rotulo="Território" valor="Lucca · Toscana" />
+            <Linha rotulo="Pessoas conectadas" valor="12 de 31" tom="atencao" />
+            <Linha rotulo="O que ainda falta" valor="Certidão G4" tom="critico" />
           </Cartao>
         </div>
         <Cartao titulo="Árvore visual do núcleo">
@@ -995,22 +1117,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     grupo: "casos",
     rota: "/previa-app-cliente",
     render: () => (
-      <div className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-3">
-          <Cartao titulo="Etapa atual">
-            <p className="font-serif text-2xl text-navy">Pesquisa documental</p>
-            <p className="mt-2 text-[11px] text-navy/55">Sua jornada segue em andamento.</p>
-          </Cartao>
-          <Cartao titulo="Próxima ação">
-            <p className="text-sm font-semibold text-navy">Aguardar retorno do arquivo civil</p>
-            <p className="mt-2 text-[11px] text-navy/55">Nova atualização prevista para 18 de setembro.</p>
-          </Cartao>
-          <Cartao titulo="Microentrega publicada">
-            <p className="text-sm font-semibold text-navy">Síntese da linha familiar</p>
-            <div className="mt-3"><Etiqueta texto="Disponível" tom="sucesso" /></div>
-          </Cartao>
-        </div>
-      </div>
+      <AppClienteSeteTelas />
     ),
   },
   {
@@ -1062,10 +1169,19 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
         <CabecalhoFerramenta titulo="Da prévia para a operação" apoio="Cada elemento visual será conectado à superfície que já é dona do dado" acao="Somente leitura" />
         <div className="grid gap-3 lg:grid-cols-2">
           {[
+            { titulo: "Hoje / Visão Geral", grupo: "Hoje", destino: "/painel · /alertas", fonte: "Prioridades, cadências, casos sem próxima ação, leads parados e microentregas", estado: "Tela real existente" },
             { titulo: "Comercial / CRM Vivo", grupo: "Marketing & Comercial", destino: "/calls · /leads · /crm-mestre · /propostas", fonte: "Leads, calls, propostas, responsáveis e próximas ações", estado: "Tela real existente" },
             { titulo: "Kanban operacional", grupo: "Pessoas & Casos", destino: "/ops · /tarefas", fonte: "Tarefas, microentregas, SLA, responsáveis, prazos e bloqueios", estado: "Tela real existente" },
+            { titulo: "Caso 360", grupo: "Pessoas & Casos", destino: "/casos · /casos/$caseId", fonte: "Caso, participantes, jornada, próxima ação, documentos e alertas", estado: "Tela real existente" },
+            { titulo: "Pessoa 360 e Famílias", grupo: "Pessoas & Casos", destino: "/clientes · /pessoas-linhagens/$caseId", fonte: "Pessoas canônicas, núcleos, fontes, vínculos e gerações", estado: "Tela real existente" },
+            { titulo: "Radar & Matrizes", grupo: "Pessoas & Casos", destino: "/qualidade", fonte: "Prioridade, urgência, elegibilidade e qualidade interna", estado: "Tela real existente" },
             { titulo: "Pesquisa", grupo: "Inteligência & Pesquisa", destino: "/pesquisa-modulo · /fontes-genealogicas · /evidencias", fonte: "Pessoas pesquisadas, fontes, evidências, eventos, hipóteses e relatórios", estado: "Tela real existente" },
             { titulo: "Biblioteca Mestre", grupo: "Inteligência & Pesquisa", destino: "/biblioteca", fonte: "Acervo, bases, taxonomias, trilhas, regras e modelos versionados", estado: "Tela real existente" },
+            { titulo: "Financeiro", grupo: "Formalização & Financeiro", destino: "/financeiro", fonte: "Contrato, parcelas, pagamentos e reconciliação", estado: "Tela real existente" },
+            { titulo: "Jurídico & Contrato", grupo: "Formalização & Financeiro", destino: "/contratos · /matriz-juridica", fonte: "Contrato, atos formais, elegibilidade e conferências", estado: "Tela real existente" },
+            { titulo: "Portal interno", grupo: "Pessoas & Casos", destino: "/acessos-portal · /microentregas", fonte: "Acessos e projeções publicáveis por caso", estado: "Tela real existente" },
+            { titulo: "App Cliente", grupo: "Projeção autorizada", destino: "/portal + 6 rotas canônicas", fonte: "Etapa, jornada, radar, árvore, documentos, legado e conta sanitizados", estado: "Sete telas existentes" },
+            { titulo: "Configuração & Acesso", grupo: "Governança & Administração", destino: "/configuracoes · /equipe · /auditoria", fonte: "Papéis, acessos, políticas e auditoria", estado: "Tela real existente" },
           ].map((item) => (
             <article key={item.titulo} className="rounded-lg border border-navy/10 bg-card p-4">
               <div className="flex items-start justify-between gap-3">
