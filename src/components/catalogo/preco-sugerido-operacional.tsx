@@ -30,7 +30,7 @@ export function PrecoSugeridoOperacional() {
   const criticas = q.data?.divergencias_criticas ?? [];
 
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-4">
+    <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
       <h2 className="font-serif text-lg text-navy">Preço sugerido — referência comercial operacional</h2>
       <p className="mt-1 text-xs text-navy/60">
         O preço sugerido canônico do catálogo é a referência interna para Planejador, Comercial, Proposta, Anexo I/OS e

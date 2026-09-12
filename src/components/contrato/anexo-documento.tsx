@@ -7,7 +7,7 @@ function Secao({ s }: { s: SecaoDocumento }) {
     return (
       <div className="space-y-1">
         {titulo}
-        <dl className="divide-y divide-navy/5 rounded border border-navy/10 bg-white">
+        <dl className="divide-y divide-navy/5 rounded border border-navy/10 bg-cream/40">
           {s.linhas.map((l) => (
             <div key={l.rotulo + (l.valor ?? "")} className="grid gap-0.5 p-2 sm:grid-cols-[240px_1fr]">
               <dt className="text-[11px] text-navy/50">{l.rotulo}</dt>

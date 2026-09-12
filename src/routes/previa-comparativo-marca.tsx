@@ -55,6 +55,8 @@ const CHECKLIST: { item: string; status: "ok" | "prova" }[] = [
   { item: "Desk p.17 Biblioteca: subáreas canônicas + país/versão/vigência/responsável", status: "ok" },
   { item: "Desk p.11/12: Visão (fila/ações/responsável) + Caso 360 (caso·próxima ação·4 eixos)", status: "ok" },
   { item: "App Home cream puro (sem gradiente to-white) + caseId prévia em cream", status: "ok" },
+  { item: "Formalização cream (contrato/anexo/governança sem bg-white SaaS)", status: "ok" },
+  { item: "Rotas profundas App: Materiais/Relatório/Atualização (sem H1 Fase 01/02)", status: "ok" },
   { item: "Rotas profundas sem H1 Entregas/Fase 01/Fase 02", status: "ok" },
   { item: "Tokens hex = guia OKI (navy/gold/cream/terracotta)", status: "ok" },
   { item: "Site SEO ≠ app Vercel", status: "ok" },
@@ -295,6 +297,18 @@ function PreviaComparativoMarca() {
                 {" · "}
                 <a href="/previa-caseid" className="underline decoration-gold/40">
                   caseId
+                </a>
+                {" · "}
+                <a href="/previa-app-cliente?aba=entregas" className="underline decoration-gold/40">
+                  Materiais
+                </a>
+                {" · "}
+                <a href="/previa-app-cliente?aba=fase-01" className="underline decoration-gold/40">
+                  Relatório
+                </a>
+                {" · "}
+                <a href="/previa-app-cliente?aba=fase-02" className="underline decoration-gold/40">
+                  Atualização
                 </a>
               </p>
             </div>

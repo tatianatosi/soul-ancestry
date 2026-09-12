@@ -26,7 +26,7 @@ const ESCOPO_DEMO = escopoAPartirDePublicacoes({
   tiposPublicados: DADOS_DEMO_SOPHIA.projecoes.map((p) => String(p.projection_type ?? "")),
 });
 
-/** Resolve aba inicial da prévia via `?aba=` (home|jornada|radar|arvore|documentos|legado|conta). */
+/** Resolve aba inicial da prévia via `?aba=` (7 abas + entregas|fase-01|fase-02 profundas). */
 function rotaInicialDaPrevia(): string {
   if (typeof window === "undefined") return "/portal";
   const aba = new URLSearchParams(window.location.search).get("aba")?.toLowerCase().trim();

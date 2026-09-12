@@ -33,7 +33,7 @@ export function RessincronizarAnexos({
   const semPendencia = pendentes === 0;
 
   return (
-    <section className="rounded-lg border border-navy/15 bg-white p-3">
+    <section className="rounded-lg border border-navy/15 bg-cream/40 p-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-sm font-medium text-navy">Sincronizar anexos com a ficha atual</h3>
         <span className="text-[11px] text-navy/55">Autocura · sem exigir nova prévia</span>

@@ -857,26 +857,57 @@ function FaceFormalizacao() {
   return (
     <section aria-label="Formalização e Financeiro" className="space-y-4" data-face-formalizacao>
       <p className="text-sm text-navy/70">
-        Contratos e financeiro ligados ao caso — chrome cream OKI. Runtime:{" "}
+        Mockup 47 / Formalização: caso · contrato · status · responsável · próximo passo. Chrome cream
+        (painéis contrato/governança sem branco SaaS). Runtime{" "}
         <code className="font-mono text-xs">/contratos</code>,{" "}
-        <code className="font-mono text-xs">/financeiro</code>. Sem Asaas legado como fonte.
+        <code className="font-mono text-xs">/financeiro</code>,{" "}
+        <code className="font-mono text-xs">/matriz-juridica</code>. Sem Asaas legado como fonte.
       </p>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <article className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Contratos</p>
-          <p className="mt-1 text-sm font-medium text-navy">3 em preparação · 1 aguardando assinatura</p>
-          <p className="mt-1 text-xs text-navy/60">Eixo: crm_casos + formalização</p>
-        </article>
-        <article className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Financeiro do caso</p>
-          <p className="mt-1 text-sm font-medium text-navy">Eventos ligados a caso/contrato</p>
-          <p className="mt-1 text-xs text-navy/60">Não substitui planejador nem tarefas</p>
-        </article>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          ["Contratos em preparação", "3", "atencao"],
+          ["Aguardando assinatura", "1", "atencao"],
+          ["Eventos financeiros do caso", "5", "neutro"],
+          ["Temas jurídicos pendentes", "1", "critico"],
+        ].map(([r, v]) => (
+          <div key={r} className="rounded-xl border border-navy/10 bg-cream/40 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-wide text-navy/50">{r}</p>
+            <p className="mt-1 font-serif text-2xl tabular-nums text-navy">{v}</p>
+          </div>
+        ))}
+      </div>
+      <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
+        <table className="w-full text-left text-sm">
+          <thead className="text-[11px] uppercase tracking-wide text-navy/50">
+            <tr>
+              <th className="px-3 py-2">Caso</th>
+              <th className="px-3 py-2">Contrato</th>
+              <th className="px-3 py-2">Status</th>
+              <th className="px-3 py-2">Responsável</th>
+              <th className="px-3 py-2">Próximo passo</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ["CA-DEMO-014", "BASE-GEN-V2", "Em preparação", "Formalização", "Anexar docs mínimos"],
+              ["CA-DEMO-021", "MODELO-ESTUDO", "Aguardando assinatura", "Jurídico", "Enviar link de assinatura"],
+              ["CA-DEMO-033", "ANX-COMERCIAL", "Rascunho", "Comercial", "Definir parcelamento"],
+            ].map((row) => (
+              <tr key={row[0]} className="border-t border-navy/10">
+                <td className="px-3 py-2 font-mono text-xs text-navy/70">{row[0]}</td>
+                <td className="px-3 py-2 font-mono text-xs text-navy/70">{row[1]}</td>
+                <td className="px-3 py-2 text-navy">{row[2]}</td>
+                <td className="px-3 py-2 text-navy/70">{row[3]}</td>
+                <td className="px-3 py-2 text-navy/80">{row[4]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
       <div className="rounded-xl border border-gold/40 bg-cream/50 p-4">
-        <p className="text-[11px] uppercase tracking-wide text-navy/50">Gate visual</p>
+        <p className="text-[11px] uppercase tracking-wide text-navy/50">Chrome OKI</p>
         <p className="mt-1 text-sm text-navy">
-          Painéis cream (não branco SaaS) em Formalização & Financeiro — prova desta fatia.
+          Painéis de contrato/anexo/governança em cream — sem branco SaaS residual nesta fatia.
         </p>
       </div>
     </section>

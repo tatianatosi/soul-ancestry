@@ -10,9 +10,9 @@ export const Route = createFileRoute("/portal/fase-01")({
   head: () => ({
     meta: [
       { title: "Relatório preparado — Portal Clube Ancestral" },
-      { name: "description", content: "Situação da Fase 01 dentro do seu acompanhamento." },
+      { name: "description", content: "Relatório da primeira etapa do seu acompanhamento." },
       { property: "og:title", content: "Relatório preparado — Portal Clube Ancestral" },
-      { property: "og:description", content: "Acompanhe a Fase 01 do seu processo." },
+      { property: "og:description", content: "Acompanhe o relatório preparado para o seu processo." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
@@ -34,7 +34,7 @@ export function PortalFase01() {
         <BlocoVisibilidade visibilidade={visibilidade}>
           {itens.length === 0 ? (
             <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
-              Nenhum conteúdo desta fase foi publicado para consulta até agora.
+              Nenhum relatório desta etapa foi publicado para consulta até agora.
             </p>
           ) : (
             <ul className="space-y-3">

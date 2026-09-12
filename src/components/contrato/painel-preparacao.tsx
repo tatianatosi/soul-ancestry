@@ -284,7 +284,7 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
             }
           </ListaLida>
           {Array.isArray(r.bloqueios) && r.bloqueios.length > 0 && (
-            <div className="mt-2 space-y-1 rounded border border-navy/15 bg-white p-2">
+            <div className="mt-2 space-y-1 rounded border border-navy/15 bg-cream/40 p-2">
               <p className="text-[11px] text-navy/60">
                 Bloqueio interno — a Proprietária Administradora pode assumir a pendência e seguir. A pendência
                 continua registrada; a decisão fica auditada.

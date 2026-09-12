@@ -10,9 +10,9 @@ export const Route = createFileRoute("/portal/fase-02")({
   head: () => ({
     meta: [
       { title: "Atualização seguinte — Portal Clube Ancestral" },
-      { name: "description", content: "Situação da Fase 02 dentro do seu acompanhamento." },
+      { name: "description", content: "Atualização da etapa seguinte do seu acompanhamento." },
       { property: "og:title", content: "Atualização seguinte — Portal Clube Ancestral" },
-      { property: "og:description", content: "Acompanhe a Fase 02 do seu processo." },
+      { property: "og:description", content: "Acompanhe a atualização seguinte do seu processo." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
@@ -35,7 +35,7 @@ export function PortalFase02() {
           {/* permiteUpsell é sempre false: nenhuma oferta, preço ou CTA de compra. */}
           {itens.length === 0 ? (
             <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
-              Nenhum conteúdo desta fase foi publicado para consulta até agora.
+              Nenhuma atualização desta etapa foi publicada para consulta até agora.
             </p>
           ) : (
             <ul className="space-y-3">

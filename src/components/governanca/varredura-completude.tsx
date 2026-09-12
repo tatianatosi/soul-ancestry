@@ -31,7 +31,7 @@ import { AnexosTresCamadasPainel } from "@/components/governanca/anexos-tres-cam
 
 function Secao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-4">
+    <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
       <h2 className="text-sm font-medium text-navy">{titulo}</h2>
       <div className="mt-3">{children}</div>
     </section>

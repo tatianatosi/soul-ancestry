@@ -9,7 +9,7 @@
  * - nenhum termo de operação interna (Desk, CRM, banco, fila, gate, SLA,
  *   registro técnico, código, SKU, preço técnico, hipótese, risco);
  * - nenhum juízo de mérito sobre o caso e nenhuma linguagem de venda na
- *   Fase 02;
+ *   atualização seguinte (rota profunda; não é aba);
  * - nenhuma mensagem vaga ("erro desconhecido", "sem dados", "nenhum
  *   registro encontrado", "null", "undefined").
  */

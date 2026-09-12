@@ -311,6 +311,19 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqu
 Prints: `docs/provas/2026-09-12-fidelidade-visao-caso360-mapa47/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqueadas.
 
+
+## Fatia 2026-09-12 — Formalização cream + rotas profundas soft
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| Componentes contrato/governança/catálogo | `bg-white` residual | `bg-cream/40–50` |
+| Face Formalização | Só KPI genérico | Tabela caso·contrato·status·responsável·próximo passo |
+| Meta/empty Fase 01/02 | Copy com “Fase 01/02” | Relatório / Atualização (sem H1 Fase) |
+| Gate | Sem checklist formalização/profundas | Itens + atalhos Materiais/Relatório/Atualização |
+
+Prints: `docs/provas/2026-09-12-fidelidade-formalizacao-profundas-47/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`).
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).
