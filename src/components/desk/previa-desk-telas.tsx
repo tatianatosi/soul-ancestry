@@ -1,7 +1,7 @@
 /**
  * PRÉVIA VISUAL DO DESK — conversão das telas do mockup aprovado em
  * superfícies reais do Desk, com o guia de marca oficial (navy #2F4B6E,
- * dourado #FCB73A e creme #ECDFCD), logo oficial
+ * dourado #FCB73A, creme #ECDFCD, terracota #9A3A2F), logo oficial
  * (<BrandLogo />) e tipografia Cormorant (títulos) + Montserrat (corpo).
  *
  * Regras respeitadas:
@@ -568,23 +568,9 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             )}
           </nav>
         </div>
-        <div className="grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
-          <Cartao titulo="Sala do caso">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-lg border border-navy/10 bg-cream/40 p-3">
-                <p className="text-[10px] font-semibold uppercase text-navy/50">Próxima ação concreta</p>
-                <p className="mt-1 text-xs font-semibold text-navy">Validar certidão de casamento</p>
-                <p className="mt-1 text-[10px] text-navy/55">Marina · prazo 14 set</p>
-              </div>
-              <div className="rounded-lg border border-atencao/30 bg-atencao-suave p-3">
-                <p className="text-[10px] font-semibold uppercase text-atencao">Bloqueio atual</p>
-                <p className="mt-1 text-xs font-semibold text-navy">Divergência de grafia</p>
-                <p className="mt-1 text-[10px] text-navy/55">Aguardando conferência da fonte</p>
-              </div>
-            </div>
-            <div className="mt-4 border-t border-navy/10 pt-2">
-              <LinhaTempoGrafica />
-            </div>
+        <div className={grade2}>
+          <Cartao titulo="Linha do tempo">
+            <LinhaTempoGrafica />
           </Cartao>
           <Cartao titulo="Participantes">
             <div className="space-y-3">
@@ -614,7 +600,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <p className="text-xs text-navy/60">Pessoa canônica · sem duplicidade</p>
           </div>
         </div>
-        <div className="grid gap-4 lg:grid-cols-4">
+        <div className={grade3}>
           <Cartao titulo="Identidade">
             <Linha rotulo="Nome civil" valor="Giulia Bianchi" />
             <Linha rotulo="Nascimento" valor="1990" />
@@ -623,12 +609,6 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
           </Cartao>
           <Cartao titulo="Vínculos familiares">
             <ArvoreFamiliaGrafica />
-          </Cartao>
-          <Cartao titulo="Fontes da pessoa">
-            <Linha rotulo="Registro civil" valor="66" />
-            <Linha rotulo="Arquivo paroquial" valor="18" />
-            <Linha rotulo="Memória familiar" valor="7" />
-            <Linha rotulo="Confiança consolidada" valor="Alta" tom="sucesso" />
           </Cartao>
           <Cartao titulo="Casos vinculados">
             <Linha rotulo="Reconhecimento italiano" valor="Ativo" tom="sucesso" />
@@ -645,7 +625,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     grupo: "casos",
     rota: "/qualidade",
     render: () => (
-      <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+      <div className={grade2}>
         <Cartao titulo="Radar interno — 4 eixos da jornada">
           <RadarGrafico
             tituloAcessivel="Radar interno com quatro eixos da jornada"
@@ -660,21 +640,9 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             Mesma construção visual do App Cliente, preservando os quatro eixos canônicos do Desk.
           </p>
         </Cartao>
-        <div className="grid gap-4">
-          <Cartao titulo="Matriz elegibilidade × prioridade">
-            <MatrizGrafica />
-          </Cartao>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Cartao titulo="Risco comercial">
-              <Linha rotulo="Sem proposta vigente" valor="13" tom="critico" />
-              <Linha rotulo="Prazo de retorno" valor="10" tom="atencao" />
-            </Cartao>
-            <Cartao titulo="Fragilidade documental">
-              <Linha rotulo="Fonte insuficiente" valor="5" tom="critico" />
-              <Linha rotulo="Pendência de cliente" valor="4" tom="atencao" />
-            </Cartao>
-          </div>
-        </div>
+        <Cartao titulo="Matriz elegibilidade × prioridade">
+          <MatrizGrafica />
+        </Cartao>
       </div>
     ),
   },
@@ -786,26 +754,21 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     grupo: "contratos",
     rota: "/financeiro",
     render: () => (
-      <div className="space-y-4">
-        <div className="grid gap-4 sm:grid-cols-4">
-          <Indicador rotulo="Valor do contrato" valor="R$ 43 mil" apoio="escopo assinado" />
-          <Indicador rotulo="Já recebido" valor="R$ 9,5 mil" apoio="6 pagamentos" />
-          <Indicador rotulo="A receber" valor="R$ 33,5 mil" apoio="parcelas futuras" />
-          <Indicador rotulo="Vencido" valor="R$ 0" apoio="sem inadimplência" />
-        </div>
-        <div className={grade2}>
-          <Cartao titulo="Fornecedores e terceiros">
-            <Linha rotulo="Custos registrados" valor="3" />
-            <Linha rotulo="Sem comprovante" valor="1" tom="atencao" />
-            <Linha rotulo="Aguardando aprovação" valor="2" tom="atencao" />
-          </Cartao>
-          <Cartao titulo="Reconciliação">
-            <Linha rotulo="Pagamentos conciliados" valor="6" tom="sucesso" />
-            <Linha rotulo="Aguardando conferência" valor="2" tom="atencao" />
-            <Linha rotulo="Divergências abertas" valor="0" tom="sucesso" />
-            <p className="mt-3 text-[11px] text-navy/55">Nenhuma cobrança é enviada a partir desta tela.</p>
-          </Cartao>
-        </div>
+      <div className={grade2}>
+        <Cartao titulo="Valores do contrato">
+          <Linha rotulo="Valor do contrato" valor="R$ 43.000,00" />
+          <Linha rotulo="Já recebido" valor="R$ 9.500,00" tom="sucesso" />
+          <Linha rotulo="A receber" valor="R$ 33.500,00" tom="atencao" />
+          <Linha rotulo="Vencido" valor="R$ 0,00" tom="sucesso" />
+        </Cartao>
+        <Cartao titulo="Reconciliação">
+          <Linha rotulo="Pagamentos conciliados" valor="6" tom="sucesso" />
+          <Linha rotulo="Aguardando conferência" valor="2" tom="atencao" />
+          <Linha rotulo="Divergências abertas" valor="0" tom="sucesso" />
+          <p className="mt-3 text-[11px] text-navy/55">
+            Nenhuma cobrança é enviada a partir desta tela.
+          </p>
+        </Cartao>
       </div>
     ),
   },
@@ -815,28 +778,19 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     grupo: "contratos",
     rota: "/contratos",
     render: () => (
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="grid gap-4">
-          <Cartao titulo="Escopo do contrato">
-            <p className="text-xs leading-relaxed text-navy/70">Pesquisa genealógica e preparação documental conforme versão vinculada ao caso.</p>
-            <p className="mt-3 border-t border-navy/10 pt-2 font-serif text-lg italic text-navy">Clube Ancestral</p>
-          </Cartao>
-          <Cartao titulo="Assinatura">
-            <Linha rotulo="Validade" valor="Confirmada" tom="sucesso" />
-            <Linha rotulo="Versão imutável" valor="v2" tom="sucesso" />
-          </Cartao>
-        </div>
-        <div className="grid gap-4">
-          <Cartao titulo="Validação jurídica">
-            <Linha rotulo="Cadeia documental completa" valor="Validado" tom="sucesso" />
-            <Linha rotulo="Retificação necessária" valor="Em análise" tom="atencao" />
-          </Cartao>
-          <Cartao titulo="Conflitos documentais">
-            <Linha rotulo="Variação de sobrenome" valor="Relevante" tom="critico" />
-            <Linha rotulo="Tradução juramentada" valor="Pendente" tom="atencao" />
-            <Linha rotulo="Apostilamento" valor="Pendente" tom="atencao" />
-          </Cartao>
-        </div>
+      <div className={grade2}>
+        <Cartao titulo="Escopo e assinatura">
+          <Linha rotulo="Contrato-base v2" valor="Vigente" tom="sucesso" />
+          <Linha rotulo="Anexo I — escopo" valor="Assinado" tom="sucesso" />
+          <Linha rotulo="Anexo IV — condições" valor="Assinado" tom="sucesso" />
+          <Linha rotulo="Aditivo de dependente" valor="Pendente" tom="atencao" />
+        </Cartao>
+        <Cartao titulo="Validação jurídica">
+          <Linha rotulo="Cadeia documental completa" valor="Validado" tom="sucesso" />
+          <Linha rotulo="Retificação necessária" valor="Em análise" tom="atencao" />
+          <Linha rotulo="Tradução juramentada" valor="Pendente" tom="critico" />
+          <Linha rotulo="Apostilamento" valor="Pendente" tom="critico" />
+        </Cartao>
       </div>
     ),
   },
@@ -884,23 +838,19 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     rota: "/acessos-portal",
     render: () => (
       <div className={grade2}>
-        <Cartao titulo="Árvore publicada">
-          <ArvoreFamiliaGrafica />
+        <Cartao titulo="Acessos concedidos">
+          <Linha rotulo="Giulia Bianchi" valor="Ativo" tom="sucesso" />
+          <Linha rotulo="Paulo Tavares" valor="Convite enviado" tom="atencao" />
+          <Linha rotulo="Marina Bianchi" valor="Sem acesso" />
         </Cartao>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-          <Cartao titulo="Acessos concedidos">
-            <Linha rotulo="Giulia Bianchi" valor="Ativo" tom="sucesso" />
-            <Linha rotulo="Paulo Tavares" valor="Convite enviado" tom="atencao" />
-          </Cartao>
-          <Cartao titulo="Núcleos vinculados">
-            <Linha rotulo="Núcleo Bianchi" valor="Publicado" tom="sucesso" />
-            <Linha rotulo="Núcleo Rossi" valor="Interno" />
-          </Cartao>
-          <Cartao titulo="Conteúdo publicado no App">
-            <Linha rotulo="Resumo da jornada" valor="Publicado" tom="sucesso" />
-            <Linha rotulo="Achado genealógico" valor="Aguardando" tom="atencao" />
-          </Cartao>
-        </div>
+        <Cartao titulo="Conteúdo publicado no App">
+          <Linha rotulo="Resumo da jornada" valor="Publicado" tom="sucesso" />
+          <Linha rotulo="Documentos solicitados" valor="Publicado" tom="sucesso" />
+          <Linha rotulo="Achado genealógico" valor="Aguardando aprovação" tom="atencao" />
+          <p className="mt-3 text-[11px] text-navy/55">
+            O cliente vê apenas o que está publicado e sanitizado.
+          </p>
+        </Cartao>
       </div>
     ),
   },
@@ -952,28 +902,21 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     grupo: "governanca",
     rota: "/configuracoes",
     render: () => (
-      <div className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
+      <div className={grade2}>
         <Cartao titulo="Papéis e permissões">
           <Linha rotulo="Administração" valor="Acesso total" tom="sucesso" />
           <Linha rotulo="Operações" valor="Escrita" tom="sucesso" />
           <Linha rotulo="Pesquisa" valor="Escrita" tom="sucesso" />
           <Linha rotulo="Leitura" valor="Somente leitura" />
         </Cartao>
-        <div className="grid gap-4">
-          <Cartao titulo="Política operacional">
-            <Linha rotulo="Pendência informa" valor="Ativo" tom="sucesso" />
-            <Linha rotulo="Confirmação externa" valor="Obrigatória" tom="atencao" />
-            <Linha rotulo="Exclusão física" valor="Bloqueada" tom="sucesso" />
-          </Cartao>
-          <Cartao titulo="Registro de auditoria">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[480px] text-left text-[10px]">
-                <thead className="border-b border-navy/10 uppercase text-navy/45"><tr><th className="pb-2">Data</th><th className="pb-2">Ação</th><th className="pb-2">Autoria</th><th className="pb-2">Estado</th></tr></thead>
-                <tbody className="divide-y divide-navy/5 text-navy/70"><tr><td className="py-2">12/09</td><td>Alteração de escopo</td><td>Tatiana</td><td>Registrada</td></tr><tr><td className="py-2">11/09</td><td>Publicação no App</td><td>Operações</td><td>Registrada</td></tr><tr><td className="py-2">10/09</td><td>Acesso concedido</td><td>Administração</td><td>Registrada</td></tr></tbody>
-              </table>
-            </div>
-          </Cartao>
-        </div>
+        <Cartao titulo="Registro de auditoria">
+          <Linha rotulo="Alteração de escopo" valor="12/09" />
+          <Linha rotulo="Publicação no App" valor="11/09" />
+          <Linha rotulo="Acesso concedido" valor="10/09" />
+          <p className="mt-3 text-[11px] text-navy/55">
+            Todo registro guarda autor, data e conteúdo anterior.
+          </p>
+        </Cartao>
       </div>
     ),
   },
@@ -987,20 +930,10 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
         <CabecalhoFerramenta titulo="Da prévia para a operação" apoio="Cada elemento visual será conectado à superfície que já é dona do dado" acao="Somente leitura" />
         <div className="grid gap-3 lg:grid-cols-2">
           {[
-            { titulo: "Hoje", grupo: "Hoje / Visão Geral", destino: "/painel", fonte: "Decisões, tarefas, cadência, alertas e próxima ação prioritária", estado: "Tela real existente" },
             { titulo: "Comercial / CRM Vivo", grupo: "Marketing & Comercial", destino: "/calls · /leads · /crm-mestre · /propostas", fonte: "Leads, calls, propostas, responsáveis e próximas ações", estado: "Tela real existente" },
             { titulo: "Kanban operacional", grupo: "Pessoas & Casos", destino: "/ops · /tarefas", fonte: "Tarefas, microentregas, SLA, responsáveis, prazos e bloqueios", estado: "Tela real existente" },
-            { titulo: "Caso 360", grupo: "Pessoas & Casos", destino: "/casos · /casos/$caseId", fonte: "Caso, participantes, jornada, próxima ação, documentos e linha do tempo", estado: "Tela real existente" },
-            { titulo: "Pessoa 360", grupo: "Pessoas & Casos", destino: "/clientes · /nucleos", fonte: "Identidade, vínculos familiares, fontes, confiança e casos relacionados", estado: "Aplicação futura" },
-            { titulo: "Radar & Matrizes", grupo: "Pessoas & Casos", destino: "/qualidade · /matriz-juridica", fonte: "Eixos do caso, riscos, elegibilidade, prioridade e fragilidade documental", estado: "Aplicação futura" },
             { titulo: "Pesquisa", grupo: "Inteligência & Pesquisa", destino: "/pesquisa-modulo · /fontes-genealogicas · /evidencias", fonte: "Pessoas pesquisadas, fontes, evidências, eventos, hipóteses e relatórios", estado: "Tela real existente" },
             { titulo: "Biblioteca Mestre", grupo: "Inteligência & Pesquisa", destino: "/biblioteca", fonte: "Acervo, bases, taxonomias, trilhas, regras e modelos versionados", estado: "Tela real existente" },
-            { titulo: "Financeiro", grupo: "Formalização & Financeiro", destino: "/financeiro", fonte: "Contrato, faturas, pagamentos, eventos financeiros e reconciliação", estado: "Tela real existente" },
-            { titulo: "Jurídico & Contrato", grupo: "Formalização & Financeiro", destino: "/contratos · /matriz-juridica", fonte: "Contrato versionado, escopo, assinatura, validações e conflitos", estado: "Tela real existente" },
-            { titulo: "Pessoas & Famílias", grupo: "Pessoas & Casos", destino: "/nucleos · /nucleos-duplicidades", fonte: "Pessoas, membros, dependentes, vínculos e núcleos familiares", estado: "Tela real existente" },
-            { titulo: "Portal do cliente (visão interna)", grupo: "Pessoas & Casos", destino: "/acessos-portal", fonte: "Acessos, projeções sanitizadas, publicações e entregáveis", estado: "Aplicação futura" },
-            { titulo: "App Cliente", grupo: "Projeção autorizada", destino: "/portal", fonte: "Jornada, radar, árvore, documentos, legado e conta publicados", estado: "Tela real existente" },
-            { titulo: "Configuração & Acesso", grupo: "Menu da conta", destino: "/configuracoes · /equipe · /auditoria", fonte: "Papéis, permissões, política operacional e auditoria", estado: "Tela real existente" },
           ].map((item) => (
             <article key={item.titulo} className="rounded-lg border border-navy/10 bg-card p-4">
               <div className="flex items-start justify-between gap-3">
@@ -1008,7 +941,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
                   <p className="font-serif text-lg text-navy">{item.titulo}</p>
                   <p className="mt-1 text-[10px] font-semibold uppercase text-gold">{item.grupo}</p>
                 </div>
-                <Etiqueta texto={item.estado} tom={item.estado === "Aplicação futura" ? "atencao" : "sucesso"} />
+                <Etiqueta texto={item.estado} tom="sucesso" />
               </div>
               <dl className="mt-3 space-y-2 border-t border-navy/10 pt-3 text-[11px]">
                 <div><dt className="font-semibold text-navy">Onde estará</dt><dd className="mt-0.5 text-navy/60">{item.destino}</dd></div>
@@ -1044,9 +977,13 @@ export function PreviaDeskTelas() {
 
   return (
     <div className="min-h-screen bg-background font-sans text-navy">
+      <div className="bg-terracotta px-4 py-2 text-center text-[11px] font-medium uppercase tracking-widest text-cream">
+        Prévia visual do Desk · guia de marca oficial · dados demonstrativos
+      </div>
+
       <div className="lg:flex">
         {/* Barra lateral navy com o logo oficial */}
-        <aside className="bg-navy px-3 py-4 lg:min-h-screen lg:w-64 lg:shrink-0">
+        <aside className="bg-navy px-3 py-4 lg:min-h-[calc(100vh-2rem)] lg:w-64 lg:shrink-0">
           <div className="px-2 pb-4">
             <BrandLogo size={34} showText variant="client-dark" />
           </div>
@@ -1103,10 +1040,7 @@ export function PreviaDeskTelas() {
                   Equivalente no Desk: <span className="font-medium">{tela.rota}</span>
                 </p>
               </div>
-              <div className="text-right">
-                <Etiqueta texto="Dados demonstrativos" tom="atencao" />
-                <p className="mt-1 hidden text-[9px] text-navy/45 sm:block">Prévia visual · sem leitura ou gravação</p>
-              </div>
+              <Etiqueta texto="Sem dados reais" tom="atencao" />
             </div>
 
             {/* Índice das telas convertidas */}
