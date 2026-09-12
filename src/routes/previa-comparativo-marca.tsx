@@ -56,6 +56,8 @@ const CHECKLIST: { item: string; status: "ok" | "prova" }[] = [
   { item: "Desk p.11/12: Visão (fila/ações/responsável) + Caso 360 (caso·próxima ação·4 eixos)", status: "ok" },
   { item: "App Home cream puro (sem gradiente to-white) + caseId prévia em cream", status: "ok" },
   { item: "Formalização cream (contrato/anexo/governança sem bg-white SaaS)", status: "ok" },
+  { item: "Painel Hoje abertura cream (sem gradiente to-white) + relatório visual cream", status: "ok" },
+  { item: "Pesquisa Desk: fonte · pessoa · status CHECK · hipótese≠fato · caso", status: "ok" },
   { item: "Rotas profundas App: Materiais/Relatório/Atualização (sem H1 Fase 01/02)", status: "ok" },
   { item: "Rotas profundas sem H1 Entregas/Fase 01/Fase 02", status: "ok" },
   { item: "Tokens hex = guia OKI (navy/gold/cream/terracotta)", status: "ok" },

@@ -236,7 +236,7 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
                 {documentos.map((d, i) => (
                   <div
                     key={i}
-                    className="rounded-xl border border-border border-l-4 border-l-gold bg-white p-3.5"
+                    className="rounded-xl border border-border border-l-4 border-l-gold bg-cream/40 p-3.5"
                   >
                     {d.pessoa && (
                       <div className="text-[13px] font-semibold text-navy">{d.pessoa}</div>

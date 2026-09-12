@@ -324,6 +324,21 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqu
 Prints: `docs/provas/2026-09-12-fidelidade-formalizacao-profundas-47/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 
+
+## Fatia 2026-09-12 — Painel abertura cream + Pesquisa 47 + pack mobile 7 abas
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `AberturaPainel` (live `/painel`) | Gradiente `to-white` | `bg-cream/50` |
+| `RelatorioVisual` | Cards `bg-white` | `bg-cream/40` |
+| Face Visão p.11 | Só KPIs | + bloco saudação/fila (espelha abertura live) |
+| Face Pesquisa | Lista curta | Tabela fonte·pessoa·status·camada·caso |
+| App mobile | Pack visual incompleto | Prints das 7 abas com bottom nav cream |
+| Gate | Checklist | Itens Painel cream + Pesquisa 47 |
+
+Prints: `docs/provas/2026-09-12-fidelidade-painel-pesquisa-mobile-47/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`).
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

@@ -211,6 +211,16 @@ function FaceVisao() {
         Mockup 47 / p.11: fila do dia · ações vencidas · sem responsável · exceções · SLA. Sem KPI de
         receita/conversão. Runtime <code className="font-mono text-xs">/painel</code>.
       </p>
+      <article
+        data-face-visao-abertura
+        className="rounded-xl border border-navy/10 bg-cream/50 p-5"
+      >
+        <p className="text-[11px] uppercase tracking-widest text-navy/45">sábado, 12 de setembro</p>
+        <h2 className="mt-1 font-serif text-2xl leading-tight text-navy">Bom dia.</h2>
+        <p className="mt-1.5 text-sm text-navy/80">
+          3 ações vencidas · 5 para hoje · 1 sem responsável. Comece pela fila — não pelo gráfico.
+        </p>
+      </article>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-xl border border-navy/10 bg-cream/50 px-4 py-3">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Casos ativos</p>
@@ -919,21 +929,19 @@ function FacePesquisa() {
   return (
     <section aria-label="Inteligência e Pesquisa" className="space-y-4" data-face-pesquisa>
       <p className="text-sm text-navy/70">
-        Pesquisa genealógica + módulo com chrome OKI. Runtime:{" "}
-        <code className="font-mono text-xs">/pesquisa</code>,{" "}
-        <code className="font-mono text-xs">/pesquisa-modulo</code>. Hipótese ≠ fato; status só do
-        CHECK.
+        Mockup 47 / Pesquisa: fonte · pessoa · status · hipótese ≠ fato · evidência. Chrome cream OKI.
+        Runtime <code className="font-mono text-xs">/pesquisa</code>,{" "}
+        <code className="font-mono text-xs">/pesquisa-modulo</code>. Status só do CHECK.
       </p>
       <div className="grid gap-3 sm:grid-cols-3">
         {[
-          ["Casos de pesquisa", "5", "research_cases"],
-          ["Fontes em revisão", "8", "research_sources"],
-          ["Achados a confirmar", "3", "status_pesquisa"],
-        ].map(([r, v, a]) => (
+          ["Casos de pesquisa", "5"],
+          ["Fontes em revisão", "8"],
+          ["Achados a confirmar", "3"],
+        ].map(([r, v]) => (
           <div key={r} className="rounded-xl border border-navy/10 bg-cream/40 px-4 py-3">
             <p className="text-[11px] uppercase tracking-wide text-navy/50">{r}</p>
             <p className="mt-1 font-serif text-2xl tabular-nums text-navy">{v}</p>
-            <p className="text-xs text-navy/60">{a}</p>
           </div>
         ))}
       </div>
@@ -951,18 +959,38 @@ function FacePesquisa() {
           </span>
         ))}
       </div>
-      <ul className="space-y-2">
-        {[
-          ["Fonte", "Registro civil · cartório (DEMO)"],
-          ["Transcrição", "Trecho sanitizado — sem nota interna"],
-          ["Hipótese", "Rótulo explícito: ainda não confirmado"],
-        ].map(([k, v]) => (
-          <li key={k} className="rounded-xl border border-navy/10 bg-cream/40 px-4 py-3">
-            <p className="text-[11px] uppercase tracking-wide text-navy/50">{k}</p>
-            <p className="mt-0.5 text-sm text-navy">{v}</p>
-          </li>
-        ))}
-      </ul>
+      <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
+        <table className="w-full text-left text-sm">
+          <thead className="text-[11px] uppercase tracking-wide text-navy/50">
+            <tr>
+              <th className="px-3 py-2">Fonte</th>
+              <th className="px-3 py-2">Pessoa</th>
+              <th className="px-3 py-2">Status</th>
+              <th className="px-3 py-2">Camada</th>
+              <th className="px-3 py-2">Caso</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ["Registro civil · cartório", "G2 — bisavô (rótulo)", "a_confirmar", "Hipótese", "CA-DEMO-014"],
+              ["Batismo paroquial", "G3 — trisavô (rótulo)", "com_suporte", "Evidência", "CA-DEMO-014"],
+              ["Passaporte emigratório", "G2 — cônjuge (rótulo)", "pendente", "Transcrição", "CA-DEMO-021"],
+            ].map((row) => (
+              <tr key={row[0] + row[1]} className="border-t border-navy/10">
+                <td className="px-3 py-2 text-navy">{row[0]}</td>
+                <td className="px-3 py-2 text-navy/80">{row[1]}</td>
+                <td className="px-3 py-2 font-mono text-xs text-navy/70">{row[2]}</td>
+                <td className="px-3 py-2 text-navy/70">{row[3]}</td>
+                <td className="px-3 py-2 font-mono text-xs text-navy/70">{row[4]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs text-navy/55">
+        Camadas separadas: fonte → transcrição → interpretação → hipótese → conclusão. Sem inventar
+        genealogia nem tratar hipótese como fato.
+      </p>
     </section>
   );
 }
