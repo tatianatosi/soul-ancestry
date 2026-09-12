@@ -98,6 +98,20 @@ Regra: nenhuma Ordem 3–7 avança sem linha nesta tabela + print da fatia.
 
 De-para p.11–12: status **em prova visual** (não `COMPROVADO_EM_USO`). `GRUPOS_DESK` permanece 6.
 
+## Fatia 2026-09-12 — faces Desk 13–17 (chrome OKI)
+
+| Face mockup | Rota viva | Chrome agora | Prévia DEMO |
+|---|---|---|---|
+| Checklist (p.13) | `/tarefas` (`EntidadeCrud`) | Cards/modais cream | `?face=checklist` |
+| Validação Jurídica (p.14) | `/matriz-juridica` | `Secao` cream | `?face=juridica` |
+| Radar Interno (p.15) | `/qualidade` | Painel + matriz cream; eixos cream | `?face=radar` |
+| Alertas (p.16) | `/alertas` | Selects cream + `BadgeDesk` | `?face=alertas` |
+| Biblioteca Mestre (p.17) | `/biblioteca` | Seções/chips cream/gold (sem `primary` genérico) | `?face=biblioteca` |
+
+Prévia unificada: `/previa-desk-indicadores?face=visao|caso360|checklist|juridica|radar|alertas|biblioteca`.  
+Prints: `docs/provas/2026-09-12-desk-faces-13-17/`.  
+De-para p.13–17: **em prova visual** (não `COMPROVADO_EM_USO`). Sem tabela inventada; sem restaurar 8 grupos.
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

@@ -70,7 +70,7 @@ function EixosCanonicosInternos() {
       </p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {eixos.map((eixo) => (
-          <article key={eixo.id} className="rounded-md border border-navy/10 bg-background p-3">
+          <article key={eixo.id} className="rounded-md border border-navy/10 bg-cream/60 p-3">
             <h3 className="text-sm font-medium text-navy">{eixo.titulo}</h3>
             <p className="mt-1 text-xs text-navy/60">{eixo.resumo}</p>
           </article>

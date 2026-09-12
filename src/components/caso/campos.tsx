@@ -61,7 +61,7 @@ export function Rotulo({ children }: { children: React.ReactNode }) {
 
 export function Secao({ titulo, descricao, children }: { titulo: string; descricao?: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-5">
+    <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
       <h2 className="font-serif text-lg text-navy">{titulo}</h2>
       {descricao ? <p className="mb-4 mt-1 text-xs text-navy/55">{descricao}</p> : <div className="mb-4" />}
       {children}

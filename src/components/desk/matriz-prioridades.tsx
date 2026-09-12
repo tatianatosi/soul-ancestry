@@ -28,7 +28,7 @@ const ROTULO_FAIXA: Record<string, string> = {
 const TOM_FAIXA: Record<string, string> = {
   vencida: "bg-terracotta/10 border-terracotta/30",
   aproximando: "bg-gold/10 border-gold/40",
-  em_dia: "bg-white border-navy/15",
+  em_dia: "bg-cream/60 border-navy/15",
   sem_base: "bg-navy/[0.03] border-navy/10",
 };
 
@@ -46,7 +46,7 @@ export function MatrizPrioridades({ casos }: { casos: readonly CasoPosicionado[]
   const semPosicao = semPosicaoConfiavel(casos);
 
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-5">
+    <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-serif text-lg text-navy">Matriz de prioridades</h2>
         <p className="text-xs text-navy/55">
