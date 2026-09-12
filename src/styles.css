@@ -212,6 +212,13 @@
   h1, h2, h3, .font-serif { font-family: var(--font-serif); }
 }
 
+/* App Cliente (mockup aprovado, 2026-09-12): cartões ganham sombra suave
+   em vez de depender só da borda — como no mockup, sem trocar branco por
+   cream nem alterar conteúdo. Escopo restrito ao shell do portal. */
+[data-marca-guia="oki"] .bg-card {
+  box-shadow: 0 1px 2px rgba(47, 75, 110, 0.06), 0 1px 1px rgba(47, 75, 110, 0.04);
+}
+
 /* ---- Versão print-friendly do Relatório Visual ---- */
 @media print {
   @page { margin: 14mm; }

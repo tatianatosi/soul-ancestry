@@ -95,16 +95,11 @@ export function PortalShell({
 
   return (
     <div className="min-h-screen bg-cream text-navy" data-marca-guia="oki">
-      <header className="bg-navy px-4 pt-4 text-cream lg:px-8">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-4 pb-4">
+      <header className="bg-navy text-cream">
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-4 px-4 pt-4 pb-3 lg:px-8">
           <div className="flex min-w-0 items-center gap-3">
             <BrandLogo size={36} variant="client-dark" showText={false} />
-            <div className="min-w-0">
-              <p className="font-serif text-lg leading-tight text-gold">Clube Ancestral</p>
-              <p className="truncate text-[11px] uppercase tracking-widest text-cream/70">
-                {previa ? previa.titulo : (data?.cliente?.nome ?? "Aplicativo do cliente")}
-              </p>
-            </div>
+            <p className="font-serif text-lg italic leading-tight text-gold">Clube Ancestral</p>
           </div>
 
           <button
@@ -114,6 +109,23 @@ export function PortalShell({
             <LogOut className="h-3.5 w-3.5" /> {COPY_GERAL.sair}
           </button>
         </div>
+
+        {/* Segunda faixa navy — saudação, como no mockup aprovado. */}
+        <div className="mx-auto flex max-w-4xl items-center gap-3 border-t border-cream/10 px-4 py-3 lg:px-8">
+          <div
+            aria-hidden="true"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cream/15 text-sm font-medium text-cream"
+          >
+            <UserRound className="h-4.5 w-4.5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-widest text-cream/60">Bem-vinda</p>
+            <p className="truncate font-serif italic text-cream">
+              {previa ? previa.titulo : (data?.cliente?.nome ?? "Aplicativo do cliente")}
+            </p>
+          </div>
+        </div>
+
         {/* Filete gold do guia OKI — âncora sob o header navy. */}
         <div className="h-0.5 w-full bg-gold" aria-hidden="true" />
       </header>
