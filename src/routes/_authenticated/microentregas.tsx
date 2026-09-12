@@ -159,6 +159,17 @@ function Detalhe({ item }: { item: Linha }) {
         </div>
         <BadgeDesk texto={rotuloStatus(item.status)} tom={TOM_STATUS[item.status] ?? "neutro"} />
       </div>
+      <div className="mt-5">
+        <ChecklistCard
+          title="Estágio da fila"
+          items={ORDEM.map((etapa, indice) => ({
+            id: etapa,
+            label: rotuloStatus(etapa),
+            done: indice <= ORDEM.indexOf(item.status as (typeof ORDEM)[number]),
+            detail: etapa === item.status ? "Estágio atual registrado" : undefined,
+          }))}
+        />
+      </div>
       <div className="mt-5 space-y-4 text-sm">
         <Bloco titulo="Descrição" texto={item.descricao} vazio="Descrição sanitizada não preenchida." />
         <Bloco titulo="Fonte" texto={item.fonte ? `${item.fonte.titulo} · ${item.fonte.tipo}` : null} vazio="Nenhuma fonte diretamente vinculada a esta origem." />
