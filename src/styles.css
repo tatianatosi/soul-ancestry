@@ -91,11 +91,11 @@
 
 
 
-  --background: #F7F1E7;
+  --background: #ECDFCD;
   --foreground: var(--preto);
-  --card: #FFFFFF;
+  --card: #F5EEE3;
   --card-foreground: var(--preto);
-  --popover: #FFFFFF;
+  --popover: #F5EEE3;
   --popover-foreground: var(--preto);
   --primary: var(--navy);
   --primary-foreground: #FFFFFF;
@@ -167,10 +167,10 @@
   --terracotta: #9A3A2F;
   --preto: #101010;
 
-  /* superfícies */
-  --background: #F7F1E7;
-  --card: #ffffff;
-  --popover: #ffffff;
+  /* superfícies — creme OKI (#ECDFCD) + elevação quente (#F5EEE3), nunca branco SaaS. */
+  --background: #ECDFCD;
+  --card: #F5EEE3;
+  --popover: #F5EEE3;
   --muted: var(--areia);
 
   /* texto */
