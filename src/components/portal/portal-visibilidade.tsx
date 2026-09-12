@@ -74,13 +74,22 @@ export function BlocoVisibilidade({
   const estado = visibilidade.estado;
   const mostraConteudo = estado === "always_available" || estado === "released";
 
+  // Conteúdo liberado: sem cartão/pill repetido — o mockup já carda por seção.
+  if (mostraConteudo) {
+    return (
+      <div aria-live="polite" data-visibilidade={estado}>
+        {children}
+      </div>
+    );
+  }
+
   return (
-    <section className={TIPO_CLIENTE.cartao} aria-live="polite">
+    <section className={TIPO_CLIENTE.cartao} aria-live="polite" data-visibilidade={estado}>
       <span className="inline-flex rounded-full border border-navy/15 bg-cream px-2.5 py-0.5 text-[11px] font-medium tracking-wide text-navy/80">
         {COPY_ESTADO_TITULO[estado]}
       </span>
       <p className={`mt-3 ${TIPO_CLIENTE.corpo}`}>{COPY_ESTADO_TEXTO[estado]}</p>
-      {mostraConteudo && children ? <div className="mt-4">{children}</div> : null}
     </section>
   );
 }
+

@@ -42,7 +42,7 @@ export function PortalLegado() {
             const entregas = legadoSanitizado(vivo.projecoes);
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gold/40 bg-gold/10 px-4 py-3">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3">
                   <div>
                     <p className="text-[11px] font-medium uppercase tracking-widest text-navy/50">
                       Biblioteca de legado
@@ -51,13 +51,15 @@ export function PortalLegado() {
                       Materiais preparados para ficar com a sua família.
                     </p>
                   </div>
-                  <span className="rounded-full border border-gold/50 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-navy">
-                    Premium
-                  </span>
+                  {entregas.length > 0 ? (
+                    <span className="rounded-full border border-gold/50 bg-gold/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-navy">
+                      Premium
+                    </span>
+                  ) : null}
                 </div>
                 {entregas.length === 0 ? (
                   <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
-                    Nenhum material de legado publicado no momento.
+                    {COPY_TELAS.legado.vazio}
                   </p>
                 ) : (
                   <ul className="space-y-3">

@@ -103,16 +103,16 @@ export function PortalJornada() {
                   abreJornada(fase1.visibilidade) ||
                   abreJornada(fase2.visibilidade)) && (
                   <p className="mt-4 text-[11px] text-navy/50">
-                    Conteúdo publicado (rota profunda, não aba):{" "}
+                    Material publicado:{" "}
                     {abreJornada(entrega.visibilidade) ? (
                       <LinkPortal to="/portal/entregas" className="underline underline-offset-2 hover:text-navy/70">
-                        Entregas
+                        ver materiais liberados
                       </LinkPortal>
                     ) : null}
                     {abreJornada(entrega.visibilidade) && abreJornada(fase1.visibilidade) ? " · " : null}
                     {abreJornada(fase1.visibilidade) ? (
                       <LinkPortal to="/portal/fase-01" className="underline underline-offset-2 hover:text-navy/70">
-                        Relatório Fase 01
+                        ver relatório preparado
                       </LinkPortal>
                     ) : null}
                     {(abreJornada(entrega.visibilidade) || abreJornada(fase1.visibilidade)) &&
@@ -121,7 +121,7 @@ export function PortalJornada() {
                       : null}
                     {abreJornada(fase2.visibilidade) ? (
                       <LinkPortal to="/portal/fase-02" className="underline underline-offset-2 hover:text-navy/70">
-                        Fase 02
+                        ver atualização seguinte
                       </LinkPortal>
                     ) : null}
                   </p>
