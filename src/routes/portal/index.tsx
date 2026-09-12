@@ -9,6 +9,7 @@ import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/
 import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { KpiCard } from "@/components/clube-ancestral-kit";
+import { FaixaD0D365 } from "@/components/portal/faixa-d0-d365";
 import { jornadaSanitizada, microentregaPublicada } from "@/lib/portal-dados-vivos";
 import { ChipIdentidadeCaso } from "@/components/caso/chip-identidade-caso";
 import { identidadeDePortalCaso } from "@/lib/caso-compartilhado";
@@ -69,6 +70,7 @@ export function PortalHome() {
           <PainelHomeMockup
             tituloCaso={previa.titulo}
             statusRotulo="Acompanhamento ativo"
+            inicioEm={vivo.data?.inicioEm ?? null}
             microentrega={microentrega}
             proximoPasso={jornada.proximoPasso}
             marcos={jornada.marcosPublicados}
@@ -105,6 +107,7 @@ export function PortalHome() {
               <PainelHomeMockup
                 tituloCaso={principal.titulo}
                 statusRotulo={principal.statusRotulo}
+                inicioEm={vivo.data?.inicioEm ?? null}
                 microentrega={microentrega}
                 statusTexto={principal.statusTexto}
                 proximoPasso={principal.proximoPasso || jornada.proximoPasso}
@@ -164,6 +167,7 @@ function PainelHomeMockup({
   identidade,
   achados,
   microentrega,
+  inicioEm,
 }: {
   tituloCaso: string;
   statusRotulo: string;
@@ -176,11 +180,18 @@ function PainelHomeMockup({
   identidade?: import("@/lib/caso-compartilhado").IdentidadeCaso;
   achados: Array<{ id: string; tipo: string; texto: string }>;
   microentrega?: import("@/lib/projecoes-cliente").PublicacaoCliente | null;
+  inicioEm?: string | null;
 }) {
   const proximaCurta =
     proximoPasso.length > 48 ? `${proximoPasso.slice(0, 45).trimEnd()}…` : proximoPasso;
   return (
     <div className="space-y-4" data-aba-home>
+      <FaixaD0D365
+        etapa={statusRotulo}
+        inicioEm={inicioEm}
+        proximaAcao={proximoPasso || "Aguardando a equipe registrar a próxima ação."}
+        microentrega={microentrega}
+      />
       <div
         data-home-meta
         className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"

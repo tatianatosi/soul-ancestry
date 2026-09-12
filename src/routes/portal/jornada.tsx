@@ -6,6 +6,7 @@ import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-v
 import { LinkPortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { KpiCard } from "@/components/clube-ancestral-kit";
+import { FaixaD0D365 } from "@/components/portal/faixa-d0-d365";
 import { jornadaSanitizada, partirJornadaEmDuasLinhas } from "@/lib/portal-dados-vivos";
 
 function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
@@ -69,6 +70,12 @@ export function PortalJornada() {
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-4" data-aba-jornada>
+                <FaixaD0D365
+                  etapa={ritmoRotulo}
+                  inicioEm={vivo.inicioEm ?? null}
+                  proximaAcao={jornada.proximoPasso}
+                  microentrega={jornada.linha[0] ?? null}
+                />
                 <div
                   data-jornada-meta
                   className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
