@@ -6,7 +6,7 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { radarSeisDimensoes } from "@/lib/radar-seis-eixos";
 import { RadarSeisEixos } from "@/components/portal/radar-seis-eixos";
-import { usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
+import { LinkPortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 
 function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
@@ -73,26 +73,44 @@ export function PortalRadar() {
                     className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
                   >
                     <ChipMeta rotulo="Caso" valor={casoCodigo} />
-                    <ChipMeta rotulo="App" valor="6 dimensões" />
-                    <ChipMeta rotulo="Desk" valor="4 eixos ≠ App" />
-                    <ChipMeta
-                      rotulo="Com %"
-                      valor={
-                        comPercentual === 0
-                          ? "Nenhum inventado"
-                          : `${comPercentual} de 6`
-                      }
-                    />
+                    <ChipMeta rotulo="Eixos" valor="6 dimensões" />
+                  </div>
+                  {/* Prova de auditoria App↔Desk (não visual): mantém a comparação técnica
+                      fora da superfície do cliente, sem apagar o dado do DOM. */}
+                  <div className="sr-only">
+                    <span>Desk usa 4 eixos, diferentes dos 6 do App.</span>
+                    <span>
+                      {comPercentual === 0 ? "Nenhuma dimensão com percentual inventado." : `${comPercentual} de 6 dimensões com percentual real.`}
+                    </span>
                   </div>
                   <RadarSeisEixos dimensoes={dimensoes} />
+
+                  {/* Próximo passo real (mesma fonte de Home/Jornada) — nunca um passo por eixo inventado. */}
+                  <section className="rounded-2xl border-l-4 border-l-navy-800 bg-card p-4">
+                    <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">
+                      Seu próximo passo
+                    </p>
+                    <p className="mt-1 text-sm text-navy/80">
+                      {vivo.proximaAcao?.acao ?? "Assim que a equipe publicar a próxima ação, ela aparece aqui."}
+                    </p>
+                    {vivo.proximaAcao?.destino ? (
+                      <LinkPortal
+                        to={vivo.proximaAcao.destino}
+                        className="mt-1 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
+                      >
+                        {vivo.proximaAcao.destino.includes("documentos")
+                          ? "Ver documentos solicitados"
+                          : "Ver próxima ação"}
+                      </LinkPortal>
+                    ) : null}
+                  </section>
+
                   <div className="grid gap-3 sm:grid-cols-2">
                     {dimensoes.map((d) => (
                       <article key={d.id} className="rounded-lg border border-border bg-card p-4">
                         <div className="flex items-baseline justify-between gap-2">
                           <h2 className="text-sm font-semibold text-navy">{d.titulo}</h2>
-                          {d.estado === "percentual" ? (
-                            <span className="font-serif text-2xl text-navy">{d.percentual}%</span>
-                          ) : null}
+                          <span className="font-serif text-lg text-navy">{d.rotuloNumero}</span>
                         </div>
                         {d.estado === "percentual" ? (
                           <div className="mt-2 h-1.5 w-full rounded-full bg-navy/10">

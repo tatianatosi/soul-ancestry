@@ -40,15 +40,15 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
   );
 
   return (
-    <div className="rounded-2xl border border-navy/10 bg-cream/50 p-4 shadow-sm">
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
       {!comProgresso ? (
-        <p className="mb-3 rounded-lg border border-navy/10 bg-cream/70 px-3 py-2 text-center text-xs text-navy/65">
+        <p className="mb-3 rounded-lg border border-border bg-cream/70 px-3 py-2 text-center text-xs text-navy/65">
           O radar ganha forma conforme a equipe publica documentação e achados. Enquanto isso, a teia permanece
           no centro — sem inventar percentual.
         </p>
       ) : null}
       <svg
-        viewBox="-40 -30 300 300"
+        viewBox="-90 -30 400 300"
         className="mx-auto w-full max-w-sm"
         role="img"
         aria-label="Radar das 6 dimensões da sua jornada"
