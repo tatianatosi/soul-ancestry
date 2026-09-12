@@ -48,10 +48,9 @@ export function PortalConta() {
   const falhaFaturas = faturas.isError;
 
   const titular = data?.cliente?.nome ?? (previa ? CLIENTE_DEMO_NOME : null) ?? "—";
+  const casosPortal = (data as { casos?: { codigo?: string | null }[] } | null)?.casos;
   const casoCodigo =
-    (data as { casos?: { codigo?: string | null }[] } | undefined)?.casos?.[0]?.codigo ??
-    (previa ? CASO_DEMO_CODIGO : null) ??
-    "—";
+    casosPortal?.[0]?.codigo ?? (previa ? CASO_DEMO_CODIGO : null) ?? "—";
   const paisInteresse = data?.cliente?.pais_interesse ?? (previa ? "Itália" : null) ?? "—";
   const planoEstado = previa || data?.autorizado ? "Acompanhamento ativo" : "Aguardando publicação";
 

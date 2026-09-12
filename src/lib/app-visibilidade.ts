@@ -53,9 +53,9 @@ export const TELA_APP_LABEL: Record<TelaApp, string> = {
   radar: "Radar",
   arvore: "Árvore",
   docs: "Documentos",
-  entrega: "Entregas da Jornada",
-  relatorio: "Fase 01",
-  fase02: "Fase 02",
+  entrega: "Materiais",
+  relatorio: "Relatório",
+  fase02: "Atualização",
   biblio: "Legado",
   conta: "Conta",
 };
@@ -124,7 +124,7 @@ export function visibilidadeTela(tela: TelaApp, escopo: EscopoCliente): Resultad
 
   if (tela === "relatorio") {
     if (!escopo.fase1Contratada || escopo.fase1Status === "nao_prevista") {
-      return base(tela, "not_applicable", "A Fase 01 não está prevista no seu acompanhamento atual.");
+      return base(tela, "not_applicable", "Este relatório não está previsto no seu acompanhamento atual.");
     }
     if (escopo.fase1Status === "em_preparacao") return base(tela, "in_preparation");
     if (escopo.fase1Status === "disponivel" || escopo.fase1Status === "entregue") {
@@ -136,10 +136,10 @@ export function visibilidadeTela(tela: TelaApp, escopo: EscopoCliente): Resultad
   if (tela === "fase02") {
     if (!escopo.escopoIncluiFase2 || escopo.fase2Status === "nao_aplicavel") {
       // Diagnóstico isolado: sem Fase 02 e sem upsell automático.
-      return base(tela, "not_applicable", "A Fase 02 não está prevista no seu acompanhamento atual.");
+      return base(tela, "not_applicable", "Esta atualização não está prevista no seu acompanhamento atual.");
     }
     if (escopo.fase2Status === "prevista") {
-      return base(tela, "contracted_not_released", "A Fase 02 está prevista no seu acompanhamento.");
+      return base(tela, "contracted_not_released", "A próxima atualização está prevista no seu acompanhamento.");
     }
     if (escopo.fase2Status === "em_preparacao") return base(tela, "in_preparation");
     return base(tela, "released");
@@ -157,10 +157,10 @@ export function visibilidadeCompleta(escopo: EscopoCliente): ResultadoVisibilida
 export type TipoEntrega = "relatorio_f1" | "relatorio_f2" | "microentrega" | "proxima_acao";
 
 export const TAXONOMIA_ENTREGA: Record<TipoEntrega, { rotulo: string; ehEntrega: boolean; nota: string }> = {
-  relatorio_f1: { rotulo: "Relatório Fase 01", ehEntrega: true, nota: "Entrega robusta." },
-  relatorio_f2: { rotulo: "Relatório Fase 02", ehEntrega: true, nota: "Entrega robusta." },
+  relatorio_f1: { rotulo: "Relatório preparado", ehEntrega: true, nota: "Material robusto liberado ao cliente." },
+  relatorio_f2: { rotulo: "Atualização seguinte", ehEntrega: true, nota: "Material robusto liberado ao cliente." },
   microentrega: { rotulo: "Micro-entrega", ehEntrega: true, nota: "Card menor, exibido apenas após aprovação." },
-  proxima_acao: { rotulo: "Próxima ação", ehEntrega: false, nota: "Não é entrega; não gera card em Entregas da Jornada." },
+  proxima_acao: { rotulo: "Próxima ação", ehEntrega: false, nota: "Não é material liberado; não gera card em Materiais." },
 };
 
 export function ehEntrega(tipo: TipoEntrega): boolean {
