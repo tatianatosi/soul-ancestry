@@ -25,6 +25,17 @@ import { identidadeDeDemo, type IdentidadeCaso } from "@/lib/caso-compartilhado"
 export const SELO_DEMO_PORTAL = "DEMO — DADOS FICTÍCIOS — NÃO USAR EM OPERAÇÃO";
 
 /**
+ * As 5 fases do mockup aprovado (Entrega 1, 2026-09-12): Diagnóstico,
+ * Pesquisa, Reconstrução, Validação, Entrega. Hoje não existe policy de
+ * portal para uma fase real do caso (ver nota em portal-dados-vivos.ts) —
+ * este índice/percentual só existe aqui, na demo, nunca no caminho do
+ * cliente real ("sem dado = sem dado").
+ */
+export const FASES_JORNADA_DEMO = ["Diagnóstico", "Pesquisa", "Reconstrução", "Validação", "Entrega"] as const;
+export const FASE_ATUAL_DEMO_SOPHIA_INDICE = 2;
+export const FASE_ATUAL_DEMO_SOPHIA_PERCENTUAL = 65;
+
+/**
  * UUID estável da demo (= contrato `crm_casos.id`).
  * O código humano fica em `CASO_DEMO_CODIGO` — não misturar os dois.
  */

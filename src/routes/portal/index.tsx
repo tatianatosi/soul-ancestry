@@ -3,7 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
-import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
+import {
+  CASO_DEMO_CODIGO,
+  FASES_JORNADA_DEMO,
+  FASE_ATUAL_DEMO_SOPHIA_INDICE,
+  FASE_ATUAL_DEMO_SOPHIA_PERCENTUAL,
+} from "@/lib/portal-demo-sophia";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { meusCasos } from "@/lib/portal-cliente.functions";
@@ -11,6 +16,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
 import { ChipIdentidadeCaso } from "@/components/caso/chip-identidade-caso";
 import { identidadeDePortalCaso } from "@/lib/caso-compartilhado";
+import { cn } from "@/lib/utils";
 
 function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
@@ -80,6 +86,11 @@ export function PortalHome() {
               tipo: item.tipoRotulo,
               texto: item.conteudo,
             }))}
+            fase={{
+              rotulos: FASES_JORNADA_DEMO,
+              indice: FASE_ATUAL_DEMO_SOPHIA_INDICE,
+              percentual: FASE_ATUAL_DEMO_SOPHIA_PERCENTUAL,
+            }}
           />
         )}
       </PortalShell>
@@ -152,6 +163,53 @@ export function PortalHome() {
   );
 }
 
+function EstepeJornada({
+  rotulos,
+  indice,
+  percentual,
+}: {
+  rotulos: readonly string[];
+  indice: number;
+  percentual: number;
+}) {
+  return (
+    <div className="mt-4">
+      <div className="flex items-center justify-between text-[11px] uppercase tracking-widest text-cream/60">
+        <span>Progresso da jornada</span>
+        <span className="font-medium text-gold">{percentual}%</span>
+      </div>
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-cream/15">
+        <div className="h-full rounded-full bg-gold" style={{ width: `${percentual}%` }} />
+      </div>
+      <div className="mt-4 flex items-start justify-between gap-1">
+        {rotulos.map((rotulo, i) => {
+          const concluida = i < indice;
+          const atual = i === indice;
+          return (
+            <div key={rotulo} className="flex flex-1 flex-col items-center gap-1.5 text-center">
+              <span
+                className={cn(
+                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
+                  atual
+                    ? "bg-gold text-navy"
+                    : concluida
+                      ? "bg-cream/25 text-cream"
+                      : "bg-cream/10 text-cream/50",
+                )}
+              >
+                {i + 1}
+              </span>
+              <span className={cn("text-[10px] leading-tight", atual ? "text-cream" : "text-cream/50")}>
+                {rotulo}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function PainelHomeMockup({
   tituloCaso,
   statusRotulo,
@@ -163,6 +221,7 @@ function PainelHomeMockup({
   casoId,
   identidade,
   achados,
+  fase,
 }: {
   tituloCaso: string;
   statusRotulo: string;
@@ -174,6 +233,8 @@ function PainelHomeMockup({
   casoId?: string;
   identidade?: import("@/lib/caso-compartilhado").IdentidadeCaso;
   achados: Array<{ id: string; tipo: string; texto: string }>;
+  /** Só preenchido na demo — não existe policy de portal para fase real do caso ainda. */
+  fase?: { rotulos: readonly string[]; indice: number; percentual: number } | null;
 }) {
   const proximaCurta =
     proximoPasso.length > 48 ? `${proximoPasso.slice(0, 45).trimEnd()}…` : proximoPasso;
@@ -195,15 +256,15 @@ function PainelHomeMockup({
         />
       </div>
 
-      <section className="rounded-2xl border border-navy/10 bg-cream/50 p-5 shadow-sm">
-        <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">Seu caso</p>
+      <section className="rounded-2xl bg-navy p-5 text-cream shadow-sm sm:p-6">
+        <p className="text-[11px] font-medium uppercase tracking-widest text-cream/50">Seu caso</p>
         <div className="mt-1 flex flex-wrap items-start justify-between gap-2">
-          <h2 className="font-serif text-2xl text-navy">{tituloCaso}</h2>
-          <span className="rounded-full border border-navy/15 bg-cream/40 px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
+          <h2 className="font-serif text-2xl">{tituloCaso}</h2>
+          <span className="rounded-full bg-gold px-2.5 py-0.5 text-[11px] font-medium text-navy">
             {statusRotulo}
           </span>
         </div>
-        {statusTexto ? <p className="mt-2 text-sm text-navy/70">{statusTexto}</p> : null}
+        {statusTexto ? <p className="mt-2 text-sm text-cream/75">{statusTexto}</p> : null}
 
         {identidade ? (
           <div className="mt-3">
@@ -211,23 +272,27 @@ function PainelHomeMockup({
           </div>
         ) : null}
 
+        {fase ? (
+          <EstepeJornada rotulos={fase.rotulos} indice={fase.indice} percentual={fase.percentual} />
+        ) : null}
+
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-navy/10 bg-cream/40 p-3">
-            <p className="text-[11px] uppercase tracking-wide text-navy/45">Progresso publicado</p>
-            <p className="mt-1 font-serif text-2xl text-navy">{marcos}</p>
-            <p className="text-xs text-navy/55">
+          <div className="rounded-xl bg-cream/10 p-3">
+            <p className="text-[11px] uppercase tracking-wide text-cream/50">Progresso publicado</p>
+            <p className="mt-1 font-serif text-2xl">{marcos}</p>
+            <p className="text-xs text-cream/60">
               {marcos === 0
                 ? "Aguardando primeira publicação"
                 : "marcos já compartilhados com você — sem % inventado"}
             </p>
           </div>
-          <div className="rounded-xl border border-gold/40 bg-gold/10 p-3">
-            <p className="text-[11px] uppercase tracking-wide text-navy/45">Próxima ação</p>
-            <p className="mt-1 text-sm font-medium text-navy">{proximoPasso}</p>
+          <div className="rounded-xl bg-gold/15 p-3">
+            <p className="text-[11px] uppercase tracking-wide text-cream/50">Próxima ação</p>
+            <p className="mt-1 text-sm font-medium">{proximoPasso}</p>
             {proximoPassoDestino ? (
               <LinkPortal
                 to={proximoPassoDestino}
-                className="mt-2 inline-block text-sm font-medium text-terracotta underline-offset-2 hover:underline"
+                className="mt-2 inline-block text-sm font-medium text-gold underline-offset-2 hover:underline"
               >
                 Abrir
               </LinkPortal>
@@ -235,7 +300,7 @@ function PainelHomeMockup({
               <Link
                 to="/portal/casos/$id"
                 params={{ id: casoId }}
-                className="mt-2 inline-block text-sm font-medium text-terracotta underline-offset-2 hover:underline"
+                className="mt-2 inline-block text-sm font-medium text-gold underline-offset-2 hover:underline"
               >
                 Ver detalhes do caso
               </Link>

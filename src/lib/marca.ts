@@ -41,7 +41,7 @@ export const MARCA_CORES = {
   dourado: "#FCB73A",
   douradoClaro: "#FFD98A",
   creme: "#ECDFCD",
-  fundo: "#F7F1E7",
+  fundo: "#ECDFCD",
   terracota: "#9A3A2F",
   preto: "#101010",
   borda: "#DCCDB6",

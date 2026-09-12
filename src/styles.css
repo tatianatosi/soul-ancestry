@@ -91,11 +91,11 @@
 
 
 
-  --background: #F7F1E7;
+  --background: #ECDFCD;
   --foreground: var(--preto);
-  --card: #FFFFFF;
+  --card: #F5EEE3;
   --card-foreground: var(--preto);
-  --popover: #FFFFFF;
+  --popover: #F5EEE3;
   --popover-foreground: var(--preto);
   --primary: var(--navy);
   --primary-foreground: #FFFFFF;
@@ -167,10 +167,10 @@
   --terracotta: #9A3A2F;
   --preto: #101010;
 
-  /* superfícies */
-  --background: #F7F1E7;
-  --card: #ffffff;
-  --popover: #ffffff;
+  /* superfícies — creme OKI (#ECDFCD) + elevação quente (#F5EEE3), nunca branco SaaS. */
+  --background: #ECDFCD;
+  --card: #F5EEE3;
+  --popover: #F5EEE3;
   --muted: var(--areia);
 
   /* texto */
@@ -208,6 +208,13 @@
     -webkit-font-smoothing: antialiased;
   }
   h1, h2, h3, .font-serif { font-family: var(--font-serif); }
+}
+
+/* App Cliente (Entrega 1, 2026-09-12): cartões ganham sombra suave em vez
+   de depender só da borda — como no mockup, sem trocar branco por cream
+   nem alterar conteúdo. Escopo restrito ao shell do portal. */
+[data-marca-guia="oki"] .bg-card {
+  box-shadow: 0 1px 2px rgba(47, 75, 110, 0.06), 0 1px 1px rgba(47, 75, 110, 0.04);
 }
 
 /* ---- Versão print-friendly do Relatório Visual ---- */
