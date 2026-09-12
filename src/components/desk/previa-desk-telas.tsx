@@ -505,23 +505,21 @@ function BarrasHorizontais({
 }) {
   return (
     <figure role="img" aria-label={tituloAcessivel} className="space-y-3">
-      {itens.map((item) => (
-        <div key={item.rotulo}>
-          <div className="mb-1 flex items-center justify-between gap-3 text-[10px]">
-            <span className="font-medium text-navy">{item.rotulo}</span>
-            <span className="tabular-nums text-navy/55">{item.apoio ?? `${item.valor}%`}</span>
+      {itens.map((item) => {
+        const largura = Math.max(4, Math.min(100, item.valor));
+        return (
+          <div key={item.rotulo}>
+            <div className="mb-1 flex items-center justify-between gap-3 text-[10px]">
+              <span className="font-medium text-navy">{item.rotulo}</span>
+              <span className="tabular-nums text-navy/55">{item.apoio ?? `${item.valor}%`}</span>
+            </div>
+            <svg viewBox="0 0 100 4" preserveAspectRatio="none" className="h-2 w-full overflow-hidden rounded-full">
+              <rect width="100" height="4" className="fill-navy/10" />
+              <rect width={largura} height="4" rx="2" className={item.tom === "terracotta" ? "fill-terracotta" : item.tom === "gold" ? "fill-gold" : "fill-navy"} />
+            </svg>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-navy/10">
-            <div
-              className={cn(
-                "h-full rounded-full",
-                item.tom === "terracotta" ? "bg-terracotta" : item.tom === "gold" ? "bg-gold" : "bg-navy",
-              )}
-              style={{ width: `${Math.max(4, Math.min(100, item.valor))}%` }}
-            />
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </figure>
   );
 }
@@ -540,10 +538,9 @@ function GraficoColunas({
         {itens.map((item) => (
           <div key={item.rotulo} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1">
             <span className="text-[9px] font-semibold tabular-nums text-navy/60">{item.valor}</span>
-            <div
-              className={cn("w-full max-w-10 rounded-t-sm", item.destaque ? "bg-gold" : "bg-navy/70")}
-              style={{ height: `${Math.max(10, (item.valor / maior) * 92)}px` }}
-            />
+            <svg viewBox="0 0 32 96" preserveAspectRatio="none" className="h-24 w-full max-w-10 overflow-hidden rounded-t-sm">
+              <rect x="0" y={96 - Math.max(10, (item.valor / maior) * 92)} width="32" height={Math.max(10, (item.valor / maior) * 92)} className={item.destaque ? "fill-gold" : "fill-navy/70"} />
+            </svg>
             <span className="w-full truncate text-center text-[8px] text-navy/55">{item.rotulo}</span>
           </div>
         ))}
@@ -805,6 +802,12 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <Linha rotulo="Sem próxima ação · Caso 360" valor="1" tom="critico" />
             <Linha rotulo="Lead parado · CRM Vivo" valor="2" tom="atencao" />
           </Cartao>
+          <Cartao titulo="Ritmo operacional · 6 semanas">
+            <SerieTendencia valores={[9, 13, 11, 16, 14, 19]} rotulos={["S1", "S2", "S3", "S4", "S5", "S6"]} tituloAcessivel="Evolução demonstrativa das ações concluídas em seis semanas" />
+          </Cartao>
+          <Cartao titulo="Distribuição das prioridades">
+            <DonutEstados tituloAcessivel="Distribuição demonstrativa das prioridades do dia" segmentos={[{ rotulo: "Críticas", valor: 3, tom: "terracotta" }, { rotulo: "Atenção", valor: 5, tom: "gold" }, { rotulo: "Em dia", valor: 8, tom: "sucesso" }]} />
+          </Cartao>
         </div>
       </div>
     ),
@@ -823,6 +826,17 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
           <Indicador rotulo="Parados" valor="2" apoio="com alerta visível" />
         </div>
         <CabecalhoFerramenta titulo="Funil comercial vivo" apoio="Origem → Discovery → diagnóstico → proposta → contrato" acao="Novo lead" />
+        <div className="grid gap-3 lg:grid-cols-3">
+          <Cartao titulo="Aquisição por canal">
+            <GraficoColunas tituloAcessivel="Leads demonstrativos por canal de aquisição" itens={[{ rotulo: "Indicação", valor: 22, destaque: true }, { rotulo: "Orgânico", valor: 17 }, { rotulo: "Eventos", valor: 11 }, { rotulo: "Ads", valor: 8 }]} />
+          </Cartao>
+          <Cartao titulo="Conversão por etapa">
+            <FunilVisual />
+          </Cartao>
+          <Cartao titulo="Origem e qualidade">
+            <BarrasHorizontais tituloAcessivel="Qualidade demonstrativa dos leads por origem" itens={[{ rotulo: "Indicação", valor: 88, apoio: "Alta", tom: "gold" }, { rotulo: "Busca orgânica", valor: 71, apoio: "Boa" }, { rotulo: "Campanhas", valor: 54, apoio: "Média", tom: "terracotta" }, { rotulo: "Eventos", valor: 63, apoio: "Boa" }]} />
+          </Cartao>
+        </div>
         <KanbanVisual colunas={[
           { titulo: "Leads", cartoes: [
             { titulo: "João Martins", contexto: "Portugal · indicação", responsavel: "Tatiana", prazo: "Hoje", etiqueta: "Responder", proximoPasso: "Confirmar horário da conversa", alerta: "Lead parado há 4 dias", tom: "atencao" },
@@ -926,6 +940,14 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             </div>
           </Cartao>
         </div>
+        <div className={grade2}>
+          <Cartao titulo="Progresso do caso por frente">
+            <BarrasHorizontais tituloAcessivel="Progresso demonstrativo do caso por frente" itens={[{ rotulo: "Formalização", valor: 100, apoio: "Concluída" }, { rotulo: "Pesquisa", valor: 64, apoio: "Em andamento", tom: "gold" }, { rotulo: "Documentos", valor: 48, apoio: "Em coleta", tom: "terracotta" }, { rotulo: "Publicação", valor: 25, apoio: "Inicial" }]} />
+          </Cartao>
+          <Cartao titulo="Estados do dossiê">
+            <DonutEstados tituloAcessivel="Distribuição demonstrativa dos estados do dossiê" segmentos={[{ rotulo: "Confirmados", valor: 12, tom: "sucesso" }, { rotulo: "Em revisão", valor: 5, tom: "gold" }, { rotulo: "Pendentes", valor: 3, tom: "terracotta" }]} />
+          </Cartao>
+        </div>
         <Cartao titulo="Jornada D0–D365">
           <JornadaD0Visual />
         </Cartao>
@@ -976,6 +998,14 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
           </Cartao>
           <Cartao titulo="Confiança da pessoa">
             <EstrelasConfianca valor={4.8} />
+          </Cartao>
+        </div>
+        <div className={grade2}>
+          <Cartao titulo="Completude por dimensão">
+            <BarrasHorizontais tituloAcessivel="Completude demonstrativa da ficha da pessoa" itens={[{ rotulo: "Identidade", valor: 94, apoio: "94%" }, { rotulo: "Parentesco", valor: 82, apoio: "82%", tom: "gold" }, { rotulo: "Fontes", valor: 68, apoio: "68%", tom: "terracotta" }, { rotulo: "Casos vinculados", valor: 76, apoio: "76%" }]} />
+          </Cartao>
+          <Cartao titulo="Rede de vínculos">
+            <RedeNucleoGrafica />
           </Cartao>
         </div>
       </div>
@@ -1053,6 +1083,14 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             ))}
           </ol>
         </Cartao>
+        <div className={grade2}>
+          <Cartao titulo="Cobertura das fontes">
+            <BarrasHorizontais tituloAcessivel="Cobertura demonstrativa por tipo de fonte" itens={[{ rotulo: "Registro civil", valor: 92, apoio: "11 fontes" }, { rotulo: "Paroquial", valor: 76, apoio: "8 fontes", tom: "gold" }, { rotulo: "Imigração", valor: 58, apoio: "5 fontes", tom: "terracotta" }, { rotulo: "Militar", valor: 24, apoio: "2 fontes" }]} />
+          </Cartao>
+          <Cartao titulo="Produção de evidências">
+            <GraficoColunas tituloAcessivel="Evidências demonstrativas produzidas por período" itens={[{ rotulo: "Abr", valor: 4 }, { rotulo: "Mai", valor: 7 }, { rotulo: "Jun", valor: 6 }, { rotulo: "Jul", valor: 10, destaque: true }, { rotulo: "Ago", valor: 13, destaque: true }]} />
+          </Cartao>
+        </div>
       </div>
     ),
   },
@@ -1115,6 +1153,14 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <Linha rotulo="Nota de contexto" valor="Operações · 16 set" />
           </div>
         </Cartao>
+        <div className={grade2}>
+          <Cartao titulo="Composição do acervo">
+            <DonutEstados tituloAcessivel="Composição demonstrativa da Biblioteca Mestre" segmentos={[{ rotulo: "Fontes", valor: 42, tom: "navy" }, { rotulo: "Modelos", valor: 18, tom: "gold" }, { rotulo: "Regras", valor: 27, tom: "terracotta" }, { rotulo: "Trilhas", valor: 11, tom: "sucesso" }]} />
+          </Cartao>
+          <Cartao titulo="Uso do acervo por área">
+            <GraficoColunas tituloAcessivel="Uso demonstrativo do acervo por área do Desk" itens={[{ rotulo: "Pesquisa", valor: 31, destaque: true }, { rotulo: "Casos", valor: 22 }, { rotulo: "Jurídico", valor: 17 }, { rotulo: "Portal", valor: 9 }]} />
+          </Cartao>
+        </div>
       </div>
     ),
   },
@@ -1160,6 +1206,14 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <Linha rotulo="Contrato Costa · Parcela 1" valor="Conciliada" tom="sucesso" />
           </div>
         </Cartao>
+        <div className={grade2}>
+          <Cartao titulo="Recebimentos previstos × confirmados">
+            <SerieTendencia valores={[9, 14, 12, 18, 22, 27]} rotulos={["Abr", "Mai", "Jun", "Jul", "Ago", "Set"]} tituloAcessivel="Evolução financeira demonstrativa do contrato" />
+          </Cartao>
+          <Cartao titulo="Situação das parcelas">
+            <DonutEstados tituloAcessivel="Distribuição demonstrativa das parcelas" segmentos={[{ rotulo: "Pagas", valor: 6, tom: "sucesso" }, { rotulo: "Programadas", valor: 3, tom: "navy" }, { rotulo: "A conferir", valor: 2, tom: "gold" }, { rotulo: "Vencidas", valor: 0, tom: "terracotta" }]} />
+          </Cartao>
+        </div>
       </div>
     ),
   },
@@ -1202,6 +1256,9 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <Linha rotulo="Anexo IV · integridade" valor="Validada" tom="sucesso" />
           </div>
         </Cartao>
+        <Cartao titulo="Completude formal" className="lg:col-span-2">
+          <BarrasHorizontais tituloAcessivel="Completude demonstrativa dos atos formais" itens={[{ rotulo: "Contrato-base", valor: 100, apoio: "Assinado" }, { rotulo: "Anexos", valor: 86, apoio: "6 de 7", tom: "gold" }, { rotulo: "Procurações", valor: 72, apoio: "Em conferência", tom: "terracotta" }, { rotulo: "Validação documental", valor: 64, apoio: "Em análise" }]} />
+        </Cartao>
       </div>
     ),
   },
@@ -1230,6 +1287,14 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <Linha rotulo="Núcleo Rossi — possível duplicidade" valor="Revisar" tom="atencao" />
           </div>
         </Cartao>
+        <div className={grade2}>
+          <Cartao titulo="Rede de núcleos e dependentes">
+            <RedeNucleoGrafica />
+          </Cartao>
+          <Cartao titulo="Cobertura por geração">
+            <GraficoColunas tituloAcessivel="Cobertura demonstrativa das cinco gerações" itens={[{ rotulo: "G1", valor: 100, destaque: true }, { rotulo: "G2", valor: 92 }, { rotulo: "G3", valor: 78 }, { rotulo: "G4", valor: 56 }, { rotulo: "G5", valor: 34 }]} />
+          </Cartao>
+        </div>
       </div>
     ),
   },
