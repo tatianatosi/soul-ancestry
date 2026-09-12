@@ -9,12 +9,12 @@
   --ca-muted: color-mix(in srgb, var(--ca-ink) 68%, var(--ca-white));
   --ca-gold-soft: color-mix(in srgb, var(--ca-gold) 22%, var(--ca-white));
   --ca-navy-wash: color-mix(in srgb, var(--ca-navy) 7%, var(--ca-white));
-  --ca-success: #315E4B;
-  --ca-success-soft: #E7F0EB;
-  --ca-warning: #735C17;
-  --ca-warning-soft: #F4EEDC;
-  --ca-critical: #7A3540;
-  --ca-critical-soft: #F4E8EA;
+  --ca-success: var(--ca-navy-soft);
+  --ca-success-soft: color-mix(in srgb, var(--ca-navy-soft) 12%, var(--ca-white));
+  --ca-warning: var(--ca-navy);
+  --ca-warning-soft: var(--ca-gold-soft);
+  --ca-critical: var(--ca-ink);
+  --ca-critical-soft: color-mix(in srgb, var(--ca-ink) 12%, var(--ca-white));
   --ca-radius-sm: 4px;
   --ca-radius: 7px;
   --ca-shadow: 0 1px 2px color-mix(in srgb, var(--ca-ink) 8%, transparent);
