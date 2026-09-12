@@ -59,25 +59,25 @@ export const COPY_TELAS = {
   jornada: {
     navegacao: "Jornada",
     titulo: "Jornada",
-    descricao: "As etapas do seu acompanhamento, contadas em linguagem simples.",
+    descricao: "Linha do tempo ancestral 1820–2024",
     vazio: "Ainda não há atualizações publicadas. Este espaço é atualizado a cada nova etapa concluída.",
   },
   radar: {
     navegacao: "Radar",
-    titulo: "Radar Ancestral",
-    descricao: "Seu equilíbrio nas 6 dimensões da jornada. Nada aqui é conclusão sobre a sua história.",
+    titulo: "Radar",
+    descricao: "Radar de elegibilidade em 6 eixos",
     vazio: "Estas leituras aparecem assim que houver material preparado para compartilhar.",
   },
   arvore: {
     navegacao: "Árvore",
-    titulo: "Árvore da família",
-    descricao: "Pessoas, vínculos e datas aparecem aqui depois de confirmados pela equipe.",
+    titulo: "Árvore",
+    descricao: "Árvore genealógica G1–G5",
     vazio: "Nenhuma pessoa ou ligação familiar foi publicada até agora.",
   },
   documentos: {
     navegacao: "Documentos",
     titulo: "Documentos",
-    descricao: "Aqui ficam os documentos preparados para você e os que você compartilhou conosco.",
+    descricao: "Upload, checklist e entregas do caso",
     vazio: "Ainda não há documentos preparados para você neste momento.",
   },
   entregas: {
@@ -101,13 +101,13 @@ export const COPY_TELAS = {
   legado: {
     navegacao: "Legado",
     titulo: "Legado",
-    descricao: "Materiais preparados para permanecer com a sua família.",
+    descricao: "Biblioteca de conteúdo e nível premium",
     vazio: "Este espaço vai reunir o que for preparado para ficar com a sua família.",
   },
   conta: {
     navegacao: "Conta",
-    titulo: "Sua conta",
-    descricao: "Os dados do seu acesso ao Clube Ancestral.",
+    titulo: "Conta",
+    descricao: "Perfil, plano, alertas e histórico",
     vazio: "As informações do seu acesso aparecem aqui.",
   },
   faturas: {

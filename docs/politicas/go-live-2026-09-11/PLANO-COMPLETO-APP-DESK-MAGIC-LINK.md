@@ -19,9 +19,9 @@
 
 ```text
 0  Realinhar (prova Desk-chrome inválida)           [feito]
-1  App Cliente mockup no ar + prints web/mobile     [feito na branch; aguarda merge]
-1B Magic link /acesso mobile+web + prints           [prints feitos; aguarda merge]
-2  caseId App↔Desk + prints                         [próxima após merge 1+1B]
+1  App Cliente mockup no ar + prints web/mobile     [conteúdo mobile/desktop APROVADO pela dona 2026-09-12; aguarda sim explícito merge produção]
+1B Magic link /acesso mobile+web + prints           [prints feitos; segue com Ordem 1 no mesmo gate de merge]
+2  caseId App↔Desk + prints                         [em curso — adapter/chip/prévia; marca OKI aplicada no chrome]
 3  Caso 360 / Pessoas / Pesquisa
 4  CRM Vivo / Journey / Calls
 5  Proposta / contrato / jurídico contextual

@@ -27,8 +27,11 @@ export const MARCA_LOGOS = {
   principal: "/clube-ancestral-logo.svg",
 } as const;
 
-/** Guia de Marca (8 páginas) no repositório. */
+/** Guia de Marca OKI (8 páginas) — fonte enviada pela proprietária. */
 export const MARCA_GUIA_PATH =
+  "docs/evolucao/recuperados/marca-oficial-2026-09-11/Apresentacao-Clube-Ancestral-OKI.pdf" as const;
+/** Cópia irmã arquivada (mesmo guia visual). */
+export const MARCA_GUIA_PATH_LEGADO =
   "docs/evolucao/recuperados/marca-oficial-2026-09-11/CA-MARCA-Guia-Apresentacao-8-paginas.pdf" as const;
 
 export const MARCA_CORES = {

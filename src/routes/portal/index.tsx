@@ -8,6 +8,8 @@ import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/
 import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
+import { ChipIdentidadeCaso } from "@/components/caso/chip-identidade-caso";
+import { identidadeDePortalCaso } from "@/lib/caso-compartilhado";
 
 export const Route = createFileRoute("/portal/")({
   head: () => ({
@@ -61,6 +63,7 @@ export function PortalHome() {
             statusRotulo="Acompanhamento ativo"
             proximoPasso={jornada.proximoPasso}
             marcos={jornada.marcosPublicados}
+            identidade={previa.identidade}
             achados={jornada.linha.slice(0, 3).map((item) => ({
               id: item.id,
               tipo: item.tipoRotulo,
@@ -97,6 +100,11 @@ export function PortalHome() {
                 proximoPassoDestino={principal.proximoPassoDestino}
                 marcos={jornada.marcosPublicados}
                 casoId={principal.id}
+                identidade={identidadeDePortalCaso({
+                  id: principal.id,
+                  codigo: principal.codigo ?? null,
+                  titulo: principal.titulo,
+                })}
                 achados={jornada.linha.slice(0, 3).map((item) => ({
                   id: item.id,
                   tipo: item.tipoRotulo,
@@ -140,6 +148,7 @@ function PainelHomeMockup({
   proximoPassoDestino,
   marcos,
   casoId,
+  identidade,
   achados,
 }: {
   tituloCaso: string;
@@ -149,6 +158,7 @@ function PainelHomeMockup({
   proximoPassoDestino?: string | null;
   marcos: number;
   casoId?: string;
+  identidade?: import("@/lib/caso-compartilhado").IdentidadeCaso;
   achados: Array<{ id: string; tipo: string; texto: string }>;
 }) {
   return (
@@ -162,6 +172,12 @@ function PainelHomeMockup({
           </span>
         </div>
         {statusTexto ? <p className="mt-2 text-sm text-navy/70">{statusTexto}</p> : null}
+
+        {identidade ? (
+          <div className="mt-3">
+            <ChipIdentidadeCaso identidade={identidade} superficie="App Cliente" />
+          </div>
+        ) : null}
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-navy/10 bg-white/80 p-3">

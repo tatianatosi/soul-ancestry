@@ -212,11 +212,13 @@ export function SaasShell({
           aberto ? "flex" : "hidden",
         )}
       >
-        <div className="px-2 pb-6">
-          <BrandLogo size={34} variant="client-dark" className="items-center" />
-          <p className="mt-2 pl-0.5 text-[11px] uppercase tracking-widest text-cream/60">
+        <div className="px-2 pb-4" data-marca-guia="oki">
+          <BrandLogo size={34} variant="client-dark" showText={false} className="items-center" />
+          <p className="mt-2 font-serif text-base leading-tight text-gold">Clube Ancestral</p>
+          <p className="mt-0.5 pl-0.5 text-[11px] uppercase tracking-widest text-cream/60">
             Desk Intelligence
           </p>
+          <div className="mt-3 h-0.5 w-full bg-gold/80" aria-hidden="true" />
         </div>
 
         <nav className="flex-1 space-y-1">

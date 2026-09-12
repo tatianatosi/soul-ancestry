@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as PortalRouteRouteImport } from './routes/portal/route'
 import { Route as PreviaAppClienteRouteImport } from './routes/previa-app-cliente'
+import { Route as PreviaCaseidRouteImport } from './routes/previa-caseid'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
 import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
 import { Route as AuthenticatedAppClienteComoPessoaRouteImport } from './routes/_authenticated/app-cliente-como-pessoa'
@@ -145,6 +146,11 @@ const PortalRouteRoute = PortalRouteRouteImport.update({
 const PreviaAppClienteRoute = PreviaAppClienteRouteImport.update({
   id: '/previa-app-cliente',
   path: '/previa-app-cliente',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreviaCaseidRoute = PreviaCaseidRouteImport.update({
+  id: '/previa-caseid',
+  path: '/previa-caseid',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAcessosPortalRoute =
@@ -682,6 +688,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
   '/previa-app-cliente': typeof PreviaAppClienteRoute
+  '/previa-caseid': typeof PreviaCaseidRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -785,6 +792,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
   '/previa-app-cliente': typeof PreviaAppClienteRoute
+  '/previa-caseid': typeof PreviaCaseidRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -891,6 +899,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
   '/previa-app-cliente': typeof PreviaAppClienteRoute
+  '/previa-caseid': typeof PreviaCaseidRoute
   '/_authenticated/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/_authenticated/alertas': typeof AuthenticatedAlertasRoute
   '/_authenticated/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -997,6 +1006,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devolutiva'
     | '/previa-app-cliente'
+    | '/previa-caseid'
     | '/acessos-portal'
     | '/alertas'
     | '/app-cliente-como-pessoa'
@@ -1100,6 +1110,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devolutiva'
     | '/previa-app-cliente'
+    | '/previa-caseid'
     | '/acessos-portal'
     | '/alertas'
     | '/app-cliente-como-pessoa'
@@ -1205,6 +1216,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devolutiva'
     | '/previa-app-cliente'
+    | '/previa-caseid'
     | '/_authenticated/acessos-portal'
     | '/_authenticated/alertas'
     | '/_authenticated/app-cliente-como-pessoa'
@@ -1311,6 +1323,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DevolutivaRoute: typeof DevolutivaRoute
   PreviaAppClienteRoute: typeof PreviaAppClienteRoute
+  PreviaCaseidRoute: typeof PreviaCaseidRoute
   ApiPesquisaAssistenteRoute: typeof ApiPesquisaAssistenteRoute
   CanvasTokenRoute: typeof CanvasTokenRoute
   EquipeDiagnosticoConexaoRoute: typeof EquipeDiagnosticoConexaoRoute
@@ -1372,6 +1385,13 @@ declare module '@tanstack/react-router' {
       path: '/previa-app-cliente'
       fullPath: '/previa-app-cliente'
       preLoaderRoute: typeof PreviaAppClienteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/previa-caseid': {
+      id: '/previa-caseid'
+      path: '/previa-caseid'
+      fullPath: '/previa-caseid'
+      preLoaderRoute: typeof PreviaCaseidRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/acessos-portal': {
@@ -2273,6 +2293,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DevolutivaRoute: DevolutivaRoute,
   PreviaAppClienteRoute: PreviaAppClienteRoute,
+  PreviaCaseidRoute: PreviaCaseidRoute,
   ApiPesquisaAssistenteRoute: ApiPesquisaAssistenteRoute,
   CanvasTokenRoute: CanvasTokenRoute,
   EquipeDiagnosticoConexaoRoute: EquipeDiagnosticoConexaoRoute,

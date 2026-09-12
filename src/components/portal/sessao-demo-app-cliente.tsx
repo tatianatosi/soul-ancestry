@@ -6,7 +6,12 @@ import {
   TELAS_INTERNAS_PORTAL,
   rotaInternaDoPortal,
 } from "@/components/portal/abas-app-cliente";
-import { CASO_DEMO_TITULO, DADOS_DEMO_SOPHIA, SELO_DEMO_PORTAL } from "@/lib/portal-demo-sophia";
+import {
+  CASO_DEMO_TITULO,
+  DADOS_DEMO_SOPHIA,
+  IDENTIDADE_DEMO_SOPHIA,
+  SELO_DEMO_PORTAL,
+} from "@/lib/portal-demo-sophia";
 import { escopoAPartirDePublicacoes } from "@/lib/app-visibilidade";
 
 /**
@@ -42,6 +47,7 @@ export function SessaoDemoAppCliente({
           selo: SELO_DEMO_PORTAL,
           titulo: CASO_DEMO_TITULO,
           destinoSair: modo === "cliente" ? "/acesso" : "/acessos-portal",
+          identidade: IDENTIDADE_DEMO_SOPHIA,
         },
       }}
     >

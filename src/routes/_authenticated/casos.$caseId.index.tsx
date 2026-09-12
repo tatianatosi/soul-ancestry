@@ -31,6 +31,8 @@ import { FormularioTarefaCaso } from "@/components/caso/formulario-tarefa-caso";
 import { PlanejadorOperacional } from "@/components/contrato/planejador-operacional";
 import { AbaVisaoGeral } from "@/components/caso/visao-geral";
 import { RadarInternoCaso } from "@/components/caso/radar-interno";
+import { ChipIdentidadeCaso } from "@/components/caso/chip-identidade-caso";
+import { identidadeDeCrmCaso } from "@/lib/caso-compartilhado";
 import { radarInternoDoCaso } from "@/lib/radar-interno-caso";
 import { AbaProdutoTrilha } from "@/components/caso/produto-trilha";
 import { ConsolidacaoCaseService } from "@/components/caso/consolidacao-case-service";
@@ -699,6 +701,16 @@ function FichaCaso() {
           App Cliente.
         </p>
       ) : null}
+      <div className="mb-4" data-ordem2-identidade-desk>
+        <ChipIdentidadeCaso
+          superficie="Desk"
+          identidade={identidadeDeCrmCaso({
+            id: String(caso["id"]),
+            codigo: (caso["codigo"] as string | null) ?? null,
+            titulo: (caso["titulo"] as string | null) ?? null,
+          })}
+        />
+      </div>
       {/*
         CA04-CASO360-SIMPLES (09/09/2026) — mockup aprovado define a primeira
         superfície: Situação hoje/Próxima ação/Responsável/Prazo/Motivo/
