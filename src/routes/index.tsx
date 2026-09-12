@@ -106,6 +106,12 @@ function Home() {
             <Link to="/acesso" className="rounded-full bg-gold px-6 py-3 font-medium text-navy hover:brightness-95">
               Entrar como cliente
             </Link>
+            <Link
+              to="/previa-desk"
+              className="rounded-full border border-navy/25 px-6 py-3 font-medium text-navy hover:bg-cream"
+            >
+              Ver prévia das telas
+            </Link>
           </div>
         </section>
 
