@@ -49,18 +49,27 @@ Regra mantida em todas: nenhum alerta interno, nenhum juízo de mérito, nenhuma
 | Prévia visual do Desk | `/previa-desk` | 15 superfícies demonstrativas para aceite visual | Sem leitura de dado real | Demonstrativa, rotulada |
 | Mesa de Discovery | `/calls` | Entrada comercial | `crm-desk.functions.ts`, `crm-mestre` | Real |
 
-## 5. Dívidas declaradas (não corrigidas por este documento)
+## 5. Fechamento de 2026-09-12 (Alertas, Microentregas, Radar e Matriz interna)
+
+- `/alertas`: os três indicadores das filas centralizadas passaram a usar `KpiCard` do kit reutilizável, com tom derivado da contagem real.
+- `/microentregas`: contadores da fila em `KpiCard` do kit e novo bloco "Estágio da fila" (`ChecklistCard`) derivado do status real da projeção.
+- `/qualidade` (Radar Interno): nova leitura `RadarCarteiraConectado` com `RadarChart`, `KpiCard` e `DeskMatrix` do kit, alimentada pela mesma consulta real de `crm_casos` usada pela matriz de prioridades; registros demonstrativos excluídos e ausência de caso declarada como "sem dados suficientes".
+- Matriz interna: resumo em `DeskMatrix` (sem próxima ação · sem responsável · prazo vencido; com leitura de origem · espera externa · total), coerente com a matriz de quadrantes já existente.
+
+Nenhuma migration, RLS, integração, aba ou entidade nova. O kit permanece reutilizável e isolado em `src/components/clube-ancestral-kit/`.
+
+## 6. Dívidas declaradas remanescentes
 
 - **D-NAV-01** — rotas `entregas`, `fase-01`, `fase-02`, `faturas`, `proposta` continuam existindo sob `/portal`; fora da barra de 7 abas, aguardando arquivamento explícito.
 - **D-APP-02** — Jornada, Radar, Árvore e Legado do App Cliente ainda não expõem todos os indicadores textuais da auditoria (marcos publicados, rota provável em texto, conexão-chave/territórios, continuidade da jornada).
 - **D-DESK-03** — "Checklist da Semana" da auditoria (p. 19) está distribuído entre `/tarefas`, `/ops` e plano de ação; sem superfície semanal única.
 - **D-GOV-04** — memória permanente cita 8 grupos; runtime opera 6 (`GRUPOS_DESK`). Nenhuma das leituras se arquiva até `COMPROVADO_EM_USO`.
 
-## 6. Publicação
+## 7. Publicação
 
 - Código publicado no GitHub do projeto e servido pelo Vercel próprio; o mesmo build responde pelas rotas do Desk e do App Cliente.
 - Merge em `main` / produção continua exigindo autorização explícita da Proprietária, com branch e SHA informados.
 
-## 7. O que ainda falta para prova de aceite
+## 8. O que ainda falta para prova de aceite
 
 Este documento é conferência estrutural. Para virar aceite, falta prova autenticada da Proprietária (`tati@pluggedresearch.com`) com prints **inicial, ação, confirmação, releitura e integração** por tela, registrados em `docs/relatorios/2026-09-11_registro-prova-autenticada.md`. Até lá, cada linha "Aderente" acima vale como **verificado em código**, não como `COMPROVADO_EM_USO`.
