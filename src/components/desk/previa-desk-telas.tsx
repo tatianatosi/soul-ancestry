@@ -664,7 +664,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
                   key={aba}
                   className={cn(
                     "rounded-full px-3 py-1",
-                    i === 0 ? "bg-navy text-white" : "border border-navy/15 text-navy/70",
+                    i === 0 ? "bg-navy text-primary-foreground" : "border border-navy/15 text-navy/70",
                   )}
                 >
                   {aba}
@@ -673,6 +673,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             )}
           </nav>
         </div>
+        <FaixaTransversal etapa="D45 · Pesquisa" cadencia="Em dia" proximaAcao="Revisar registro paroquial" responsavel="Marina" prazo="18 set" microentrega="Síntese / linha familiar" alerta="1 prazo próximo" />
         <div className={grade2}>
           <Cartao titulo="Linha do tempo">
             <LinhaTempoGrafica />
@@ -686,7 +687,6 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             </div>
           </Cartao>
         </div>
-        <FaixaTransversal etapa="D45 · Pesquisa" cadencia="Em dia" proximaAcao="Revisar registro paroquial" responsavel="Marina" prazo="18 set" microentrega="Síntese / linha familiar" alerta="1 prazo próximo" />
       </div>
     ),
   },
@@ -1189,7 +1189,7 @@ export function PreviaDeskTelas() {
                     "flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-left font-serif text-sm transition-colors",
                     ativo
                       ? "bg-gold text-navy"
-                      : "text-cream/80 hover:bg-white/10 hover:text-cream",
+                      : "text-cream/80 hover:bg-primary-foreground/10 hover:text-cream",
                   )}
                 >
                   <Icone className="h-4 w-4 shrink-0" aria-hidden />
