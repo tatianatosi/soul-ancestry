@@ -39,7 +39,7 @@ function CanvasPorToken() {
         <BrandLogo size={38} showText />
         {isLoading && <p className="mt-8 text-sm text-navy/60">Carregando seu acompanhamento…</p>}
         {!isLoading && !data && (
-          <div className="mt-8 rounded-xl border border-border bg-white p-5 text-navy">
+          <div className="mt-8 rounded-xl border border-border bg-cream/50 p-5 text-navy">
             <h1 className="font-serif text-2xl italic">Link indisponível</h1>
             <p className="mt-2 text-sm text-navy/70">
               Este acompanhamento ainda não está liberado. Fale com a sua consultora para receber um
@@ -49,7 +49,7 @@ function CanvasPorToken() {
         )}
         {data && (
           <div className="mt-8 space-y-5">
-            <header className="rounded-xl border border-border bg-white p-5">
+            <header className="rounded-xl border border-border bg-cream/50 p-5">
               <h1 className="font-serif text-3xl italic text-navy">{data.cliente_nome}</h1>
               <p className="mt-1 text-sm text-navy/70">
                 {data.produto_nome ?? "Pesquisa de ancestralidade em andamento"}
@@ -66,7 +66,7 @@ function CanvasPorToken() {
               )}
             </header>
 
-            <section className="rounded-xl border border-border bg-white p-5">
+            <section className="rounded-xl border border-border bg-cream/50 p-5">
               <h2 className="font-serif text-xl text-navy">Suas entregas</h2>
               <ul className="mt-3 space-y-2">
                 {data.entregas.map((e) => (

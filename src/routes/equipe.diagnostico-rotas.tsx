@@ -54,7 +54,7 @@ function DiagnosticoRotas() {
   return (
     <EquipeMoldura titulo="Diagnóstico de rotas" subtitulo="Página temporária de validação. Nenhum dado operacional é exibido.">
       <div className="space-y-6 text-sm text-navy">
-        <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
+        <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
           <table className="w-full min-w-[720px] text-left text-xs">
             <thead className="bg-navy/5 text-navy/70">
               <tr>
@@ -79,7 +79,7 @@ function DiagnosticoRotas() {
           </table>
         </div>
 
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <h2 className="font-serif text-lg">Redirecionamento efetivo</h2>
           <ul className="mt-2 space-y-1 text-xs text-navy/70">
             {DESTINOS.map(([origem, destino]) => (

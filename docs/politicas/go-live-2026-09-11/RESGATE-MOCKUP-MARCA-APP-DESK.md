@@ -339,6 +339,21 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 Prints: `docs/provas/2026-09-12-fidelidade-painel-pesquisa-mobile-47/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 
+
+## Fatia 2026-09-12 — Pessoas/Comercial/Governança vocab 47 + Canvas/equipe cream
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| Face Pessoas | Só nome/camada/status | + caso · próxima ação · responsável |
+| Face Comercial | Lead/origem/ação | + etapa · caso · responsável |
+| Face Governança | KPIs prontidão | + tabela decisões (escopo/caso) |
+| Canvas cliente (`canvas.$token`) | Cards `bg-white` | `bg-cream/50` |
+| Equipe auth (entrar/senha/diagnóstico) | Inputs/cards brancos | cream OKI |
+| Gate | Checklist | Item Canvas + vocab 47 Pessoas/Comercial/Governança |
+
+Prints: `docs/provas/2026-09-12-fidelidade-pessoas-comercial-canvas-47/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`).
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

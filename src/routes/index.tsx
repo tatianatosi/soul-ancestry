@@ -109,7 +109,7 @@ function Home() {
           </div>
         </section>
 
-        <section className="border-y border-navy/10 bg-white/50">
+        <section className="border-y border-navy/10 bg-cream/60">
           <div className="mx-auto grid max-w-5xl gap-8 px-6 py-16 sm:grid-cols-3">
             {[
               {

@@ -714,15 +714,47 @@ function FaceBiblioteca() {
 
 /** Chrome do grupo Pessoas & Casos (`/clientes`) — não é página 11–17 do mockup. */
 function FacePessoas() {
-  const linhas: { nome: string; camada: string; status: string; tom: TomEstado }[] = [
-    { nome: "Sophia Piccoli (DEMO)", camada: "Cliente", status: "Ativo", tom: "sucesso" },
-    { nome: "Núcleo Piccoli — 3 participantes", camada: "Núcleo", status: "Em acompanhamento", tom: "atencao" },
-    { nome: "Lead Discovery — sem caso", camada: "Pré-cliente", status: "Triagem", tom: "neutro" },
+  const linhas: {
+    nome: string;
+    camada: string;
+    caso: string;
+    proxima: string;
+    responsavel: string;
+    status: string;
+    tom: TomEstado;
+  }[] = [
+    {
+      nome: "Sophia Piccoli (DEMO)",
+      camada: "Cliente",
+      caso: "CA-DEMO-014",
+      proxima: "Confirmar docs mínimos",
+      responsavel: "Operação",
+      status: "Ativo",
+      tom: "sucesso",
+    },
+    {
+      nome: "Núcleo Piccoli — 3 participantes",
+      camada: "Núcleo",
+      caso: "CA-DEMO-014",
+      proxima: "Atualizar vínculos G2",
+      responsavel: "Pesquisa",
+      status: "Em acompanhamento",
+      tom: "atencao",
+    },
+    {
+      nome: "Lead Discovery — sem caso",
+      camada: "Pré-cliente",
+      caso: "—",
+      proxima: "Agendar Discovery",
+      responsavel: "Comercial",
+      status: "Triagem",
+      tom: "neutro",
+    },
   ];
   return (
     <section aria-label="Pessoas e clientes" className="space-y-4" data-face-pessoas>
       <p className="text-sm text-navy/70">
-        Lista operacional de pessoas/clientes com chrome OKI (navy/cream/gold). Runtime vivo:{" "}
+        Mockup 47 / Pessoas: pessoa · camada · caso · próxima ação · responsável · status. Runtime{" "}
         <code className="font-mono text-xs">/clientes</code>. Sem inventar genealogia.
       </p>
       <div className="flex flex-wrap gap-2">
@@ -746,6 +778,9 @@ function FacePessoas() {
             <tr>
               <th className="px-3 py-2">Pessoa</th>
               <th className="px-3 py-2">Camada</th>
+              <th className="px-3 py-2">Caso</th>
+              <th className="px-3 py-2">Próxima ação</th>
+              <th className="px-3 py-2">Responsável</th>
               <th className="px-3 py-2">Status</th>
             </tr>
           </thead>
@@ -754,6 +789,9 @@ function FacePessoas() {
               <tr key={l.nome} className="border-t border-navy/10">
                 <td className="px-3 py-2 text-navy">{l.nome}</td>
                 <td className="px-3 py-2 text-navy/70">{l.camada}</td>
+                <td className="px-3 py-2 font-mono text-xs text-navy/70">{l.caso}</td>
+                <td className="px-3 py-2 text-navy/80">{l.proxima}</td>
+                <td className="px-3 py-2 text-navy/70">{l.responsavel}</td>
                 <td className="px-3 py-2">
                   <BadgeDesk texto={l.status} tom={l.tom} />
                 </td>
@@ -794,7 +832,8 @@ function FaceComercial() {
   return (
     <section aria-label="Marketing e Comercial" className="space-y-4" data-face-comercial>
       <p className="text-sm text-navy/70">
-        Mesa de Discovery e CRM vivo com chrome OKI (painéis cream). Runtime:{" "}
+        Mockup 47 / Comercial: lead · etapa · caso · responsável · próxima ação. Mesa Discovery + CRM
+        cream OKI. Runtime:{" "}
         <code className="font-mono text-xs">/calls</code>,{" "}
         <code className="font-mono text-xs">/leads</code>,{" "}
         <code className="font-mono text-xs">/conversao</code>,{" "}
@@ -840,20 +879,24 @@ function FaceComercial() {
           <thead className="text-[11px] uppercase tracking-wide text-navy/50">
             <tr>
               <th className="px-3 py-2">Lead</th>
-              <th className="px-3 py-2">Origem</th>
+              <th className="px-3 py-2">Etapa</th>
+              <th className="px-3 py-2">Caso</th>
+              <th className="px-3 py-2">Responsável</th>
               <th className="px-3 py-2">Próxima ação</th>
             </tr>
           </thead>
           <tbody>
             {[
-              ["LD-DEMO-014", "Indicação", "Agendar Discovery"],
-              ["LD-DEMO-021", "Site institucional", "Enviar proposta"],
-              ["LD-DEMO-033", "WhatsApp", "Confirmar elegibilidade"],
-            ].map(([c, o, p]) => (
-              <tr key={c} className="border-t border-navy/10">
-                <td className="px-3 py-2 text-navy">{c}</td>
-                <td className="px-3 py-2 text-navy/70">{o}</td>
-                <td className="px-3 py-2 text-navy/80">{p}</td>
+              ["LD-DEMO-014", "SPIN", "—", "Comercial", "Agendar Discovery"],
+              ["LD-DEMO-021", "Proposta", "CA-DEMO-021", "Comercial", "Enviar proposta"],
+              ["LD-DEMO-033", "Elegibilidade", "—", "Discovery", "Confirmar elegibilidade"],
+            ].map((row) => (
+              <tr key={row[0]} className="border-t border-navy/10">
+                <td className="px-3 py-2 font-mono text-xs text-navy">{row[0]}</td>
+                <td className="px-3 py-2 text-navy/70">{row[1]}</td>
+                <td className="px-3 py-2 font-mono text-xs text-navy/70">{row[2]}</td>
+                <td className="px-3 py-2 text-navy/70">{row[3]}</td>
+                <td className="px-3 py-2 text-navy/80">{row[4]}</td>
               </tr>
             ))}
           </tbody>
@@ -1034,6 +1077,33 @@ function FaceGovernanca() {
           App deep (proposta/mensagens/faturas/docs) + Desk Governança em cream — prova desta fatia.
           GRUPOS_DESK permanece 6.
         </p>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40" data-face-governanca-decisoes>
+        <table className="w-full text-left text-sm">
+          <thead className="text-[11px] uppercase tracking-wide text-navy/50">
+            <tr>
+              <th className="px-3 py-2">Decisão</th>
+              <th className="px-3 py-2">Escopo</th>
+              <th className="px-3 py-2">Responsável</th>
+              <th className="px-3 py-2">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ["Publicar material sanitizado", "CA-DEMO-014", "Operação", "Aguardando revisão"],
+              ["Convite portal titular", "CA-DEMO-021", "Governança", "Enviado"],
+              ["Override checklist mínimo", "CA-DEMO-033", "Proprietária", "Registrado"],
+            ].map((row) => (
+              <tr key={row[0]} className="border-t border-navy/10">
+                <td className="px-3 py-2 text-navy">{row[0]}</td>
+                <td className="px-3 py-2 font-mono text-xs text-navy/70">{row[1]}</td>
+                <td className="px-3 py-2 text-navy/70">{row[2]}</td>
+                <td className="px-3 py-2 text-navy/80">{row[3]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </section>
   );
