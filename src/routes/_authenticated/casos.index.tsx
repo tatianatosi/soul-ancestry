@@ -83,7 +83,7 @@ function Badge({
     tom === "alerta"
       ? "border-terracotta/40 bg-terracotta/10 text-terracotta"
       : tom === "ok"
-        ? "border-sucesso/30 bg-sucesso-suave text-sucesso"
+        ? "border-emerald-300 bg-emerald-50 text-emerald-800"
         : tom === "gold"
           ? "border-gold/50 bg-gold/10 text-navy"
           : "border-navy/15 bg-navy/5 text-navy/75";

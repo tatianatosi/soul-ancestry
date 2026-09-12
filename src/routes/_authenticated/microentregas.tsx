@@ -4,8 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
 import { SaasShell } from "@/components/saas/shell";
-import { BadgeDesk, CarregandoDesk, SectionHeader, VazioDesk, type TomEstado } from "@/components/desk/ui-desk";
-import { KpiCard, ChecklistCard, type KitTone } from "@/components/clube-ancestral-kit";
+import { BadgeDesk, CardIndicador, CarregandoDesk, SectionHeader, VazioDesk, type TomEstado } from "@/components/desk/ui-desk";
 import { Button } from "@/components/ui/button";
 import { listarFilaMicroentregas } from "@/lib/biblioteca-evidencias.functions";
 import { APROVACOES } from "@/lib/biblioteca-evidencias";
@@ -33,12 +32,6 @@ const TOM_STATUS: Record<string, TomEstado> = {
   in_review: "atencao",
   approved: "sucesso",
   published: "sucesso",
-};
-const TOM_KIT: Record<string, KitTone> = {
-  draft: "neutral",
-  in_review: "attention",
-  approved: "success",
-  published: "gold",
 };
 
 function dataBr(v: string | null) {
@@ -88,7 +81,7 @@ function MicroentregasPage() {
         />
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {ORDEM.map((item) => (
-            <KpiCard key={item} label={rotuloStatus(item)} value={contagem(item)} detail="Fila editorial real" tone={TOM_KIT[item]} />
+            <CardIndicador key={item} rotulo={rotuloStatus(item)} valor={contagem(item)} apoio="Fila editorial real" tom={TOM_STATUS[item]} />
           ))}
         </div>
 
@@ -158,17 +151,6 @@ function Detalhe({ item }: { item: Linha }) {
           <h2 className="font-serif text-xl text-navy">{item.tipo}</h2>
         </div>
         <BadgeDesk texto={rotuloStatus(item.status)} tom={TOM_STATUS[item.status] ?? "neutro"} />
-      </div>
-      <div className="mt-5">
-        <ChecklistCard
-          title="Estágio da fila"
-          items={ORDEM.map((etapa, indice) => ({
-            id: etapa,
-            label: rotuloStatus(etapa),
-            done: indice <= ORDEM.indexOf(item.status as (typeof ORDEM)[number]),
-            detail: etapa === item.status ? "Estágio atual registrado" : undefined,
-          }))}
-        />
       </div>
       <div className="mt-5 space-y-4 text-sm">
         <Bloco titulo="Descrição" texto={item.descricao} vazio="Descrição sanitizada não preenchida." />

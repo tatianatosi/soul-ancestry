@@ -9,8 +9,7 @@ import { listarAlertas, listarAlertasCentrais, type AlertaCentral, type LinhaAle
 import { atualizarAlerta } from "@/lib/caso-canonico.functions";
 import { salvarTarefa } from "@/lib/ops.functions";
 import { ALERT_STATUS } from "@/lib/caso-ficha";
-import { SectionHeader } from "@/components/desk/ui-desk";
-import { KpiCard } from "@/components/clube-ancestral-kit";
+import { CardIndicador, SectionHeader } from "@/components/desk/ui-desk";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/alertas")({
@@ -138,9 +137,9 @@ function AlertasPage() {
         {!centrais.isLoading && !centrais.isError ? (
           <>
             <div className="grid gap-3 md:grid-cols-3">
-              <KpiCard label="Cadências vencidas" value={centrais.data?.cadencias.length ?? 0} detail="Origem: Jornada" tone={centrais.data?.cadencias.length ? "critical" : "success"} />
-              <KpiCard label="Casos sem próxima ação" value={centrais.data?.casosSemAcao.length ?? 0} detail="Origem: Caso 360" tone={centrais.data?.casosSemAcao.length ? "attention" : "success"} />
-              <KpiCard label="Leads parados" value={centrais.data?.leadsParados.length ?? 0} detail="Origem: CRM" tone={centrais.data?.leadsParados.length ? "attention" : "success"} />
+              <CardIndicador rotulo="Cadências vencidas" valor={centrais.data?.cadencias.length ?? 0} apoio="Origem: Jornada" tom="critico" />
+              <CardIndicador rotulo="Casos sem próxima ação" valor={centrais.data?.casosSemAcao.length ?? 0} apoio="Origem: Caso 360" tom="atencao" />
+              <CardIndicador rotulo="Leads parados" valor={centrais.data?.leadsParados.length ?? 0} apoio="Origem: CRM" tom="atencao" />
             </div>
             <div className="grid gap-4 xl:grid-cols-3">
               {filasCentrais.map((fila) => (

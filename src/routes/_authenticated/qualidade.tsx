@@ -3,7 +3,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SaasShell } from "@/components/saas/shell";
 import { PainelQualidade } from "@/components/qualidade/painel";
 import { MatrizPrioridadesConectada } from "@/components/desk/matriz-prioridades-conectada";
-import { RadarCarteiraConectado } from "@/components/desk/radar-carteira-conectado";
 import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos";
 
 export const Route = createFileRoute("/_authenticated/qualidade")({
@@ -32,12 +31,8 @@ function QualidadePage() {
   return (
     <SaasShell
       titulo="Radar Interno"
-      descricao="Radar da carteira, matriz de prioridade e leitura de qualidade por caso."
-      visualKit="pantone"
+      descricao="Matriz de prioridade da carteira e leitura de qualidade por caso."
     >
-      <div className="mb-6">
-        <RadarCarteiraConectado />
-      </div>
       <p className="mb-4 text-sm text-navy/70">
         Cada ponto é um caso ativo. O quadrante superior direito pede ação agora — alta urgência e
         leitura de elegibilidade mais forte. Sem campo preenchido, o ponto não é inventado: a
