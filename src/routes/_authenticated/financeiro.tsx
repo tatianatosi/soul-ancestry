@@ -185,6 +185,7 @@ function FinanceiroPage() {
     <SaasShell
       titulo="Financeiro"
       descricao="Faturas, pagamentos e conciliação. Toda alteração é auditada."
+      visualKit="pantone"
       acoes={
         <button
           onClick={() => {

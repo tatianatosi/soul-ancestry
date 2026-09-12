@@ -198,6 +198,38 @@
   color: var(--foreground);
 }
 
+/* Kit visual exportável aprovado em 12/09/2026. Escopo isolado: as telas
+   operacionais só adotam esta paleta quando declaram data-visual-kit. */
+[data-visual-kit="pantone"] {
+  --navy: #13294B;
+  --navy-soft: #1B365D;
+  --gold: #C2A84D;
+  --gold-soft: #DED19A;
+  --cream: #F0EEE9;
+  --areia: #F0EEE9;
+  --terracotta: #28334A;
+  --preto: #13294B;
+  --background: #F0EEE9;
+  --foreground: #13294B;
+  --card: #FFFFFF;
+  --card-foreground: #13294B;
+  --popover: #FFFFFF;
+  --popover-foreground: #13294B;
+  --primary: #13294B;
+  --primary-foreground: #FFFFFF;
+  --secondary: #C2A84D;
+  --secondary-foreground: #13294B;
+  --muted: #F0EEE9;
+  --muted-foreground: #526078;
+  --accent: #DED19A;
+  --accent-foreground: #13294B;
+  --border: #D7D3CB;
+  --input: #D7D3CB;
+  --ring: #C2A84D;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
 
 @layer base {
   * { border-color: var(--color-border); }

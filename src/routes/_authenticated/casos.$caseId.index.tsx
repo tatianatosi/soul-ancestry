@@ -664,6 +664,7 @@ function FichaCaso() {
 
   return (
     <SaasShell
+      visualKit="pantone"
       titulo={String(caso["titulo"] ?? "Caso")}
       descricao={`${caso["codigo"] ?? "sem código"} · ficha operacional canônica`}
       acoes={
