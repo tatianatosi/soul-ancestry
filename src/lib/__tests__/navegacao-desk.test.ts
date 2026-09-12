@@ -1,9 +1,11 @@
+import { existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
   GRUPOS_DESK,
   GRUPOS_OPERACIONAIS_DESK,
   LACUNAS_CONHECIDAS,
+  ROTAS_ARQUIVO_GITHUB,
   CAMADAS_DESK,
   ROTAS_PRESERVADAS,
   ROTAS_LEGADO_MENU_GOVERNANCA,
@@ -79,7 +81,7 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     const rotas = gov.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/configuracoes");
     expect(rotas).toContain("/equipe");
-    expect(rotas).toContain("/governanca/catalogo-operacional-30");
+    expect(rotas).not.toContain("/governanca/catalogo-operacional-30");
     expect(rotas).not.toContain("/crm-mestre");
   });
 
@@ -143,10 +145,10 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     }
   });
 
-  it("CA-04 e o dicionário moram no Comercial com as Calls; Catálogo 30 fica em Governança", () => {
+  it("CA-04 e o dicionário moram no Comercial com as Calls; catálogo legado não volta ao Desk", () => {
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
     const rotasGov = gov.sub.filter((s) => "to" in s).map((s) => s.to);
-    expect(rotasGov).toContain("/governanca/catalogo-operacional-30");
+    expect(rotasGov).not.toContain("/governanca/catalogo-operacional-30");
     expect(rotasGov).not.toContain("/crm-mestre");
     expect(rotasGov).not.toContain("/governanca/dicionario-calls-crm");
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
@@ -154,10 +156,39 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     expect(rotasComercial).toContain("/calls");
     expect(rotasComercial).toContain("/crm-mestre");
     expect(rotasComercial).toContain("/governanca/dicionario-calls-crm");
+    const contratos = GRUPOS_DESK.find((g) => g.id === "contratos")!;
+    const rotasContratos = contratos.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotasContratos).toContain("/catalogo");
+    expect(rotasContratos).toContain("/financeiro");
+    expect(rotasContratos).not.toContain("/conciliacao-catalogo");
+    expect(rotasContratos).not.toContain("/homologacao-skus");
+    expect(rotasContratos).not.toContain("/escopo-origem");
     const hoje = GRUPOS_DESK.find((g) => g.id === "hoje")!;
     const rotasHoje = hoje.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotasHoje).not.toContain("/crm-mestre");
     expect(rotasDoMenuConta()).not.toContain("/crm-mestre");
+  });
+
+  it("Planilha, conciliação e SKU legado não voltam ao menu do Desk", () => {
+    const menu = new Set(rotasDoMenu());
+    for (const r of ROTAS_ARQUIVO_GITHUB) expect(menu.has(r)).toBe(false);
+    expect(GRUPOS_DESK.map((g) => g.id)).not.toContain("legado");
+    expect(
+      GRUPOS_DESK.flatMap((g) => g.sub).some(
+        (s) => "grupo" in s && /legado/i.test(s.grupo),
+      ),
+    ).toBe(false);
+    expect(ROTAS_PRESERVADAS).not.toEqual(expect.arrayContaining([...ROTAS_ARQUIVO_GITHUB]));
+    expect(existsSync("archive/github/2026-09-10-legado-catalogo-desk/README.md")).toBe(true);
+    for (const arquivo of [
+      "governanca.catalogo-operacional-30.tsx",
+      "conciliacao-catalogo.tsx",
+      "divergencias-catalogo.tsx",
+      "homologacao-skus.tsx",
+      "escopo-origem.tsx",
+    ]) {
+      expect(existsSync(`archive/github/2026-09-10-legado-catalogo-desk/rotas/${arquivo}`)).toBe(true);
+    }
   });
 
   it("Painel de Calls permanece na face de Marketing & Comercial", () => {
@@ -174,7 +205,7 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     expect(CAMADAS_DESK.find((c) => c.id === "kpis")?.rota).toBe("/painel");
   });
 
-  it("cada função mora em um único grupo — privacidade e SKU legado não são operação diária", () => {
+  it("cada função mora em um único grupo — privacidade não é operação diária", () => {
     expect(grupoDonoDaRota("/calls")).toBe("Marketing & Comercial");
     expect(grupoDonoDaRota("/leads")).toBe("Marketing & Comercial");
     expect(grupoDonoDaRota("/casos")).toBe("Pessoas & Casos");
@@ -183,12 +214,10 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     expect(grupoDonoDaRota("/financeiro")).toBe("Formalização & Financeiro");
     expect(grupoDonoDaRota("/catalogo")).toBe("Formalização & Financeiro");
     expect(grupoDonoDaRota("/privacidade")).toBe("Governança & Administração");
-    expect(grupoDonoDaRota("/homologacao-skus")).toBe("Governança & Administração");
-    expect(grupoDonoDaRota("/conciliacao-catalogo")).toBe("Governança & Administração");
-    expect(grupoDonoDaRota("/escopo-origem")).toBe("Governança & Administração");
-    expect(grupoDonoDaRota("/governanca/catalogo-operacional-30")).toBe(
-      "Governança & Administração",
-    );
+    expect(grupoDonoDaRota("/homologacao-skus")).toBeNull();
+    expect(grupoDonoDaRota("/conciliacao-catalogo")).toBeNull();
+    expect(grupoDonoDaRota("/escopo-origem")).toBeNull();
+    expect(grupoDonoDaRota("/governanca/catalogo-operacional-30")).toBeNull();
     const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
     expect(pesquisa.sub.some((s) => "to" in s && s.to === "/privacidade")).toBe(false);
     const contratos = GRUPOS_DESK.find((g) => g.id === "contratos")!;
@@ -198,14 +227,18 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     expect(rotasContratos).not.toContain("/escopo-origem");
   });
 
-  it("legado SKU/conciliação fica no menu de Governança até o pente fino arquivar no GitHub", () => {
+  it("legado de Governança sai do menu e fica só no arquivo GitHub", () => {
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
     const rotasGov = gov.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotasGov).toContain("/privacidade");
+    expect(gov.sub.some((s) => "grupo" in s && /legado/i.test(s.grupo))).toBe(false);
+    expect(gov.sub.some((s) => "to" in s && /legado/i.test(s.label))).toBe(false);
     for (const r of ROTAS_LEGADO_MENU_GOVERNANCA) {
-      expect(grupoDonoDaRota(r)).toBe("Governança & Administração");
-      expect(rotasGov).toContain(r);
-      expect(rotasDoMenu()).toContain(r);
+      expect(grupoDonoDaRota(r)).toBeNull();
+      expect(rotasGov).not.toContain(r);
+      expect(rotasDoMenu()).not.toContain(r);
       expect(rotasDoMenuConta()).not.toContain(r);
     }
+    for (const r of ROTAS_ARQUIVO_GITHUB) expect(rotasDoMenu()).not.toContain(r);
   });
 });

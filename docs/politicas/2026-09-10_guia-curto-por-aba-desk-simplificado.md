@@ -20,14 +20,17 @@ Não apagar dados, rotas, componentes, migrations, RLS nem histórico nesta roda
 | Pessoa, núcleo, jornada, tarefa, bloqueio de caso | Pessoas & Casos | Resumo em Hoje e links contextuais |
 | Fonte, evidência, árvore, lacuna, achado | Inteligência & Pesquisa | Contexto no Caso; projeção autorizada ao cliente |
 | Contrato, assinatura, condição, financeiro | Formalização & Financeiro | Bloqueio/status no Caso e em Hoje |
-| Política, fórmula, RLS, integração, DEMO, legado | Governança & Administração | Nunca como operação diária |
+| Política, fórmula, RLS, integração, DEMO | Governança & Administração | Nunca como operação diária |
 
 ## Recolher da operação diária
 
-CA OPS, Matriz Operacional, Planilha Mestre, SKU/ranking legado, conciliação histórica e DEMO/local não orientam o dia. Continuam no repositório; no Desk entram só em Governança, rotulados como legado.
+CA OPS, Matriz Operacional, Planilha Mestre, SKU/ranking legado, conciliação histórica e DEMO/local não orientam o dia. Continuam no repositório.
 
-**Agora:** menu de Governança, grupo “Legado (fora da operação diária)”.  
-**No pente fino:** essas rotas saem do Desk e vão para arquivo GitHub. Nada é apagado nesta rodada. Não tirar do menu antes do pente fino.
+**Agora (opção B, 11/09/2026):** Planilha Mestre, Catálogo 30, homologação de SKUs, conciliação, divergências e origem do escopo saíram do menu do Desk. Cópia em `archive/github/2026-09-10-legado-catalogo-desk/`. Rotas em `src/` permanecem para URL direta — não apagar tabela nem arquivo. Não voltam ao menu, à conta nem a um grupo “Legado”.
+
+Face viva: `/catalogo` e `/financeiro`. CA-04 e o dicionário Calls → CRM ficam no Comercial. Dossiê `/pesquisa` e a aba Legado do App Cliente **não** entram neste arquivo.
+
+**Permanece em Governança:** configurações, equipe, etiquetas, integrações, importações, métricas, privacidade.
 
 ## Superfícies no código
 

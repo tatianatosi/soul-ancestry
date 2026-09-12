@@ -8,8 +8,8 @@
  *
  * Pesquisa e bases moram na Inteligência. Matrizes individual/casal/familiar
  * moram na Formalização. CA-04 mora no Comercial com a Mesa. URLs não mudam.
- * Planilha Mestre, conciliação e SKU legado saem da operação diária e ficam
- * em Governança, rotulados. Nada é apagado nesta rodada.
+ * Planilha Mestre, conciliação e SKU legado saíram do Desk — arquivo só
+ * no GitHub. Nada é apagado.
  */
 
 /** As três camadas do Desk. Não são abas novas. */
@@ -185,7 +185,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     id: "governanca",
     to: "/configuracoes",
     label: "Governança & Administração",
-    descricao: "Papéis, privacidade, integrações e legado fora da operação diária.",
+    descricao: "Papéis, privacidade, integrações e o que não decide o dia.",
     icone: "governanca",
     agrupador: true,
     sub: [
@@ -197,19 +197,20 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/importacoes", label: "Importações e migração" },
       { to: "/metricas", label: "Métricas comerciais e operacionais" },
       { to: "/privacidade", label: "Privacidade e consentimento" },
-      { grupo: "Legado (fora da operação diária)" },
-      { to: "/governanca/catalogo-operacional-30", label: "Catálogo operacional 30 (legado)" },
-      { to: "/homologacao-skus", label: "Homologação de SKUs (legado)" },
-      { to: "/conciliacao-catalogo", label: "Conciliação de catálogo (legado)" },
-      { to: "/divergencias-catalogo", label: "Divergências de catálogo (legado)" },
-      { to: "/escopo-origem", label: "Origem do escopo (legado)" },
     ],
   },
 ] as const;
 
 /**
- * Legado no menu de Governança. Decisão de 10/09/2026: fica aqui agora.
- * No pente fino, sai do Desk e vai para arquivo GitHub — não apagar nesta rodada.
+ * Superfícies de Planilha Mestre, SKU e conciliação que o `main` chegou a
+ * colocar no submenu “Legado” de Governança. Opção B da proprietária
+ * (11/09/2026): saíram do menu. Cópia em ROTAS_ARQUIVO_GITHUB. Rotas em
+ * `src/` permanecem para URL direta — não apagar tabela nem arquivo.
+ *
+ * Varredura da Governança na mesma data: só estes cinco eram legado na face.
+ * O que ficou no grupo é administração viva (configurações, equipe, etiquetas,
+ * integrações, importações, métricas, privacidade). `/governanca/decisoes`
+ * já estava fora do menu. CA-04 e o dicionário moram no Comercial.
  */
 export const ROTAS_LEGADO_MENU_GOVERNANCA = [
   "/governanca/catalogo-operacional-30",
@@ -220,7 +221,7 @@ export const ROTAS_LEGADO_MENU_GOVERNANCA = [
 ] as const;
 
 /**
- * Menu da conta — só a sessão DEMO. Equipe, configurações e legado moram
+ * Menu da conta — só a sessão DEMO. Equipe e configurações moram
  * em Governança & Administração. Não é nona aba.
  */
 export const MENU_CONTA: {
@@ -290,10 +291,6 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/privacidade",
   "/contratos",
   "/ordens-servico",
-  "/escopo-origem",
-  "/conciliacao-catalogo",
-  "/divergencias-catalogo",
-  "/homologacao-skus",
   "/contrato-parametros",
   "/financeiro",
   "/governanca/contrato-base",
@@ -312,6 +309,20 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/atendimento",
   "/equipe",
 ] as const;
+
+/**
+ * Superfícies de Planilha Mestre, conciliação e SKU legado.
+ * Saíram do Desk (menu e conta). Cópia em
+ * archive/github/2026-09-10-legado-catalogo-desk/. Rotas em src/ permanecem
+ * para URL direta e recuperação — não apagar tabela nem arquivo.
+ */
+export const ROTAS_ARQUIVO_GITHUB: readonly string[] = [
+  "/governanca/catalogo-operacional-30",
+  "/conciliacao-catalogo",
+  "/divergencias-catalogo",
+  "/homologacao-skus",
+  "/escopo-origem",
+];
 
 /** Todas as rotas com link direto no menu principal ou no menu da conta. */
 export function rotasDoMenu(): string[] {
