@@ -1357,14 +1357,14 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             ))}
           </div>
         </Cartao>
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <Cartao titulo="Política operacional">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-lg border border-navy/10 bg-cream/40 p-3"><p className="text-[10px] text-navy/55">Perfil selecionado</p><p className="mt-1 text-xs font-semibold text-navy">Administração</p></div>
               <div className="rounded-lg border border-navy/10 bg-cream/40 p-3"><p className="text-[10px] text-navy/55">Confirmação externa</p><p className="mt-1 text-xs font-semibold text-navy">Sempre obrigatória</p></div>
             </div>
           </Cartao>
-          <Cartao titulo="Registro de auditoria">
+          <Cartao titulo="Registro de auditoria" className="overflow-hidden">
             <div className="max-w-full overflow-x-auto">
               <table className="w-full min-w-[520px] text-left text-[10px]">
                 <thead className="border-b border-navy/10 uppercase text-navy/45"><tr><th className="pb-2">Data</th><th className="pb-2">Ação</th><th className="pb-2">Pessoa</th><th className="pb-2">Resultado</th></tr></thead>
