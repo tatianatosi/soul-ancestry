@@ -234,7 +234,7 @@ function FinanceiroPage() {
           ))}
         </div>
 
-        <section className="rounded-xl border border-navy/10 bg-white p-4">
+        <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <button
             type="button"
             onClick={() => setRealidadeAberta((v) => !v)}
@@ -278,13 +278,13 @@ function FinanceiroPage() {
                     { rotulo: "Investimento em mídia", valor: formatarIndicador(base.investimento_midia == null ? { estado: "sem_dados", motivo: "" } : { estado: "ok", valor: base.investimento_midia, unidade: "moeda" }) },
                     { rotulo: "Despesas operacionais", valor: formatarIndicador(base.despesas_operacionais == null ? { estado: "sem_dados", motivo: "" } : { estado: "ok", valor: base.despesas_operacionais, unidade: "moeda" }) },
                   ].map((c) => (
-                    <div key={c.rotulo} className="rounded border border-navy/10 bg-white p-3">
+                    <div key={c.rotulo} className="rounded border border-navy/10 bg-cream/40 p-3">
                       <p className="text-[11px] uppercase tracking-wide text-navy/45">{c.rotulo}</p>
                       <p className="mt-1 text-sm font-medium text-navy">{c.valor}</p>
                     </div>
                   ))}
                 </div>
-                <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2 rounded border border-navy/15 bg-white px-3 py-2">
+                <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2 rounded border border-navy/15 bg-cream/40 px-3 py-2">
                   <p className="text-[11px] uppercase tracking-wide text-navy/45">Resultado de caixa do período</p>
                   <p className="font-serif text-xl text-navy">{formatarIndicador(resultadoCaixa(base))}</p>
                 </div>
@@ -404,7 +404,7 @@ function FinanceiroPage() {
                     setErro(null);
                     setDetalhe(l);
                   }}
-                  className="rounded-xl border border-navy/10 bg-white p-3 text-left text-sm"
+                  className="rounded-xl border border-navy/10 bg-cream/40 p-3 text-left text-sm"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span className="font-medium text-navy">
@@ -465,7 +465,7 @@ function FinanceiroPage() {
             </div>
 
             {/* Desktop/tablet (≥640px): tabela completa */}
-            <div className="hidden overflow-x-auto rounded-xl border border-navy/10 bg-white sm:block">
+            <div className="hidden overflow-x-auto rounded-xl border border-navy/10 bg-cream/40 sm:block">
             <table className="w-full min-w-[760px] text-sm">
               <thead className="bg-navy/5 text-left text-xs uppercase tracking-wide text-navy/60">
                 <tr>

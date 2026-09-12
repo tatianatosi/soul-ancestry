@@ -11,7 +11,7 @@ import { SELO_DEMO_PORTAL } from "@/lib/portal-demo-sophia";
 /**
  * Prévia pública — faces Desk mockup 17 p.11–17 + vocabulário 47.
  * Chrome OKI + DEMO. Sem auth. Não restaura sidebar Lovable: 6 GRUPOS_DESK.
- * Deep-link: ?face=visao|caso360|checklist|juridica|radar|alertas|biblioteca|pessoas|jornada
+ * Deep-link: ?face=visao|caso360|checklist|juridica|radar|alertas|biblioteca|pessoas|jornada|comercial|formalizacao|pesquisa
  */
 
 export const Route = createFileRoute("/previa-desk-indicadores")({
@@ -38,7 +38,10 @@ type FaceId =
   | "alertas"
   | "biblioteca"
   | "pessoas"
-  | "jornada";
+  | "jornada"
+  | "comercial"
+  | "formalizacao"
+  | "pesquisa";
 
 const FACES: { id: FaceId; rotulo: string; pagina: string }[] = [
   { id: "visao", rotulo: "Visão Geral", pagina: "p.11" },
@@ -50,6 +53,9 @@ const FACES: { id: FaceId; rotulo: string; pagina: string }[] = [
   { id: "biblioteca", rotulo: "Biblioteca Mestre", pagina: "p.17" },
   { id: "pessoas", rotulo: "Pessoas", pagina: "grupo" },
   { id: "jornada", rotulo: "Cadeia Jornada", pagina: "ops" },
+  { id: "comercial", rotulo: "Marketing & Comercial", pagina: "grupo" },
+  { id: "formalizacao", rotulo: "Formalização & Financeiro", pagina: "grupo" },
+  { id: "pesquisa", rotulo: "Inteligência & Pesquisa", pagina: "grupo" },
 ];
 
 const FACES_VALIDAS = new Set<string>(FACES.map((f) => f.id));
@@ -88,14 +94,25 @@ function PreviaDeskIndicadores() {
           <p className="mt-4 text-[10px] uppercase tracking-widest text-cream/50">Desk · 6 grupos</p>
           <nav className="mt-2 space-y-1">
             {GRUPOS_DESK.map((g) => {
-                            const ativo =
+              const destacado =
                 ((face === "pessoas" || face === "jornada" || face === "caso360") && g.id === "casos") ||
-                (face !== "pessoas" && face !== "jornada" && face !== "caso360" && g.id === "hoje");
+                (face === "comercial" && g.id === "comercial") ||
+                (face === "formalizacao" && g.id === "contratos") ||
+                (face === "pesquisa" && g.id === "pesquisa") ||
+                (
+                  (face === "visao" ||
+                    face === "alertas" ||
+                    face === "checklist" ||
+                    face === "juridica" ||
+                    face === "radar" ||
+                    face === "biblioteca") &&
+                  g.id === "hoje"
+                );
               return (
                 <div
                   key={g.id}
                   className={
-                    ativo
+                    destacado
                       ? "rounded-lg bg-gold px-3 py-2 text-sm font-medium text-navy"
                       : "rounded-lg px-3 py-2 text-sm text-cream/70"
                   }
@@ -164,14 +181,16 @@ function PreviaDeskIndicadores() {
             {face === "biblioteca" ? <FaceBiblioteca /> : null}
             {face === "pessoas" ? <FacePessoas /> : null}
             {face === "jornada" ? <FaceJornada /> : null}
+            {face === "comercial" ? <FaceComercial /> : null}
+            {face === "formalizacao" ? <FaceFormalizacao /> : null}
+            {face === "pesquisa" ? <FacePesquisa /> : null}
 
             <p className="text-xs text-navy/50">
               Runtime vivo (auth staff): <code className="font-mono">/painel</code>,{" "}
-              <code className="font-mono">/casos/$caseId</code>, <code className="font-mono">/clientes</code>,{" "}
-              <code className="font-mono">/tarefas</code>,{" "}
-              <code className="font-mono">/matriz-juridica</code>, <code className="font-mono">/qualidade</code>,{" "}
-              <code className="font-mono">/alertas</code>, <code className="font-mono">/biblioteca</code>,{" "}
-              <code className="font-mono">/biblioteca-mensagens</code>.{" "}
+              <code className="font-mono">/marketing</code>, <code className="font-mono">/leads</code>,{" "}
+              <code className="font-mono">/casos</code>, <code className="font-mono">/clientes</code>,{" "}
+              <code className="font-mono">/pesquisa</code>, <code className="font-mono">/contratos</code>,{" "}
+              <code className="font-mono">/financeiro</code>, <code className="font-mono">/biblioteca</code>.{" "}
               <code className="font-mono">GRUPOS_DESK</code> permanece 6.
             </p>
           </main>
@@ -555,6 +574,125 @@ function FaceJornada() {
       <div className="rounded-xl border border-navy/10 bg-cream/40 p-3">
         <CadeiaJornada resultado={resultado} evento="proposta_enviada" />
       </div>
+    </section>
+  );
+}
+
+/** Chrome do grupo Marketing & Comercial (`/marketing`, `/leads`) — não é p.11–17. */
+function FaceComercial() {
+  return (
+    <section aria-label="Marketing e Comercial" className="space-y-4" data-face-comercial>
+      <p className="text-sm text-navy/70">
+        Aquisição e CRM vivo com chrome OKI (painéis cream). Runtime:{" "}
+        <code className="font-mono text-xs">/marketing</code>,{" "}
+        <code className="font-mono text-xs">/leads</code>,{" "}
+        <code className="font-mono text-xs">/calls</code>. Sem inventar métricas de receita.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {[
+          ["Leads na triagem", "12", "Fila Discovery"],
+          ["Sem próxima ação", "4", "Atribuir dono"],
+          ["Calls hoje", "2", "Mesa"],
+        ].map(([r, v, a]) => (
+          <div key={r} className="rounded-xl border border-navy/10 bg-cream/40 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-wide text-navy/50">{r}</p>
+            <p className="mt-1 font-serif text-2xl tabular-nums text-navy">{v}</p>
+            <p className="text-xs text-navy/60">{a}</p>
+          </div>
+        ))}
+      </div>
+      <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
+        <table className="w-full text-left text-sm">
+          <thead className="text-[11px] uppercase tracking-wide text-navy/50">
+            <tr>
+              <th className="px-3 py-2">Lead</th>
+              <th className="px-3 py-2">Origem</th>
+              <th className="px-3 py-2">Próxima ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ["LD-DEMO-014", "Indicação", "Agendar Discovery"],
+              ["LD-DEMO-021", "Site institucional", "Enviar proposta"],
+              ["LD-DEMO-033", "WhatsApp", "Confirmar elegibilidade"],
+            ].map(([c, o, p]) => (
+              <tr key={c} className="border-t border-navy/10">
+                <td className="px-3 py-2 text-navy">{c}</td>
+                <td className="px-3 py-2 text-navy/70">{o}</td>
+                <td className="px-3 py-2 text-navy/80">{p}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+/** Chrome do grupo Formalização & Financeiro (`/contratos`, `/financeiro`). */
+function FaceFormalizacao() {
+  return (
+    <section aria-label="Formalização e Financeiro" className="space-y-4" data-face-formalizacao>
+      <p className="text-sm text-navy/70">
+        Contratos e financeiro ligados ao caso — chrome cream OKI. Runtime:{" "}
+        <code className="font-mono text-xs">/contratos</code>,{" "}
+        <code className="font-mono text-xs">/financeiro</code>. Sem Asaas legado como fonte.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <article className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Contratos</p>
+          <p className="mt-1 text-sm font-medium text-navy">3 em preparação · 1 aguardando assinatura</p>
+          <p className="mt-1 text-xs text-navy/60">Eixo: crm_casos + formalização</p>
+        </article>
+        <article className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Financeiro do caso</p>
+          <p className="mt-1 text-sm font-medium text-navy">Eventos ligados a caso/contrato</p>
+          <p className="mt-1 text-xs text-navy/60">Não substitui planejador nem tarefas</p>
+        </article>
+      </div>
+      <div className="rounded-xl border border-gold/40 bg-cream/50 p-4">
+        <p className="text-[11px] uppercase tracking-wide text-navy/50">Gate visual</p>
+        <p className="mt-1 text-sm text-navy">
+          Painéis cream (não branco SaaS) em Formalização & Financeiro — prova desta fatia.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/** Chrome do grupo Inteligência & Pesquisa (`/pesquisa`). */
+function FacePesquisa() {
+  return (
+    <section aria-label="Inteligência e Pesquisa" className="space-y-4" data-face-pesquisa>
+      <p className="text-sm text-navy/70">
+        Pesquisa genealógica com chrome OKI. Runtime:{" "}
+        <code className="font-mono text-xs">/pesquisa</code>. Hipótese ≠ fato; status só do CHECK.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {[
+          ["Casos de pesquisa", "5", "research_cases"],
+          ["Fontes em revisão", "8", "research_sources"],
+          ["Achados a confirmar", "3", "status_pesquisa"],
+        ].map(([r, v, a]) => (
+          <div key={r} className="rounded-xl border border-navy/10 bg-cream/40 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-wide text-navy/50">{r}</p>
+            <p className="mt-1 font-serif text-2xl tabular-nums text-navy">{v}</p>
+            <p className="text-xs text-navy/60">{a}</p>
+          </div>
+        ))}
+      </div>
+      <ul className="space-y-2">
+        {[
+          ["Fonte", "Registro civil · cartório (DEMO)"],
+          ["Transcrição", "Trecho sanitizado — sem nota interna"],
+          ["Hipótese", "Rótulo explícito: ainda não confirmado"],
+        ].map(([k, v]) => (
+          <li key={k} className="rounded-xl border border-navy/10 bg-cream/40 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-wide text-navy/50">{k}</p>
+            <p className="mt-0.5 text-sm text-navy">{v}</p>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

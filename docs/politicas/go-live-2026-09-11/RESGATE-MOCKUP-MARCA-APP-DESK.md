@@ -190,6 +190,20 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 Prints: `docs/provas/2026-09-12-caso360-cream/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 
+
+## Fatia 2026-09-12 — Desk Comercial / Formalização / Pesquisa cream
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `/marketing`, `/leads` | Painéis `bg-white` SaaS | `bg-cream/40` OKI |
+| `/financeiro`, `/contratos` | Cards brancos | Cream |
+| `/pesquisa`, `/casos` (lista) | Cards/input brancos | Cream |
+| Prévia | Sem faces de grupo | `?face=comercial\|formalizacao\|pesquisa` |
+| Gate marca | Checklist parcial | Item cream Comercial/Formalização/Pesquisa = ok |
+
+Prints: `docs/provas/2026-09-12-desk-comercial-formalizacao/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`). `GRUPOS_DESK` permanece 6.
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

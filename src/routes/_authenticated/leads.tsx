@@ -261,7 +261,7 @@ function LeadsPage() {
                       setMsg(null);
                     }}
                     className={`w-full rounded-lg border px-3 py-2 text-left text-sm ${
-                      selecionado === l.id ? "border-gold bg-cream/60" : "border-navy/10 bg-white"
+                      selecionado === l.id ? "border-gold bg-cream/60" : "border-navy/10 bg-cream/40"
                     }`}
                   >
                     <span className="block font-medium text-navy">
@@ -297,7 +297,7 @@ function LeadsPage() {
           {msg ? <p className="rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-sm text-navy">{msg}</p> : null}
 
           {atual ? (
-            <div className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-white px-3 py-2 text-xs">
+            <div className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/40 px-3 py-2 text-xs">
               {atual.case_id ? (
                 <Link
                   to="/casos/$caseId"
@@ -329,7 +329,7 @@ function LeadsPage() {
 
           {atual ? <DerivacaoJornada lead={editado} /> : null}
 
-          <div className="rounded-xl border border-navy/10 bg-white p-4">
+          <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
             <p className="text-sm font-medium text-navy">SPIN e Mesa de Discovery</p>
             <p className="mt-1 text-xs text-navy/55">
               As perguntas de Situação, Problema, Implicação e Necessidade moram no Painel de Calls,
@@ -357,7 +357,7 @@ function LeadsPage() {
             </p>
           </div>
 
-          <div className="rounded-xl border border-navy/10 bg-white p-4">
+          <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
             <p className="text-[11px] uppercase tracking-wide text-navy/45">Radar de elegibilidade preliminar</p>
             <div className="mt-1 flex flex-wrap items-end gap-x-4 gap-y-1">
               <p className="font-serif text-2xl leading-tight text-navy">{radar.rotulo}</p>

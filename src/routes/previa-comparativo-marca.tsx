@@ -43,6 +43,7 @@ const CHECKLIST: { item: string; status: "ok" | "prova" }[] = [
   { item: "Home/Jornada/Documentos/Legado/Conta em painéis cream (sem SaaS branco)", status: "ok" },
   { item: "Desk Caso 360 / Pessoa 360 em painéis cream (não branco SaaS)", status: "ok" },
   { item: "Cadeia Jornada Desk com chrome OKI", status: "ok" },
+  { item: "Desk Marketing/Leads/Financeiro/Contratos/Pesquisa em painéis cream", status: "ok" },
   { item: "Rotas profundas sem H1 Entregas/Fase 01/Fase 02", status: "ok" },
   { item: "Tokens hex = guia OKI (navy/gold/cream/terracotta)", status: "ok" },
   { item: "Site SEO ≠ app Vercel", status: "ok" },
@@ -158,6 +159,28 @@ function PreviaComparativoMarca() {
               <span className="font-medium">Desk faces 11–17</span>
               <span className="mt-0.5 block text-xs text-navy/55">/previa-desk-indicadores</span>
             </Link>
+
+            <a
+              href="/previa-desk-indicadores?face=comercial"
+              className="rounded-xl border border-navy/15 bg-white/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
+            >
+              <span className="font-medium">Desk · Marketing & Comercial</span>
+              <span className="mt-0.5 block text-xs text-navy/55">/previa-desk-indicadores?face=comercial</span>
+            </a>
+            <a
+              href="/previa-desk-indicadores?face=formalizacao"
+              className="rounded-xl border border-navy/15 bg-white/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
+            >
+              <span className="font-medium">Desk · Formalização & Financeiro</span>
+              <span className="mt-0.5 block text-xs text-navy/55">/previa-desk-indicadores?face=formalizacao</span>
+            </a>
+            <a
+              href="/previa-desk-indicadores?face=pesquisa"
+              className="rounded-xl border border-navy/15 bg-white/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
+            >
+              <span className="font-medium">Desk · Inteligência & Pesquisa</span>
+              <span className="mt-0.5 block text-xs text-navy/55">/previa-desk-indicadores?face=pesquisa</span>
+            </a>
             <Link
               to="/previa-caseid"
               className="rounded-xl border border-navy/15 bg-white/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
