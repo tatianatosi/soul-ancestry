@@ -75,7 +75,7 @@ export function TemplatesWhatsapp() {
             type="button"
             onClick={() => trocarGrupo(g)}
             className={`rounded-lg border px-3 py-1.5 text-xs ${
-              grupo === g ? "border-navy bg-navy text-cream" : "border-navy/15 bg-white text-navy/70"
+              grupo === g ? "border-navy bg-navy text-cream" : "border-navy/15 bg-cream/40 text-navy/70"
             }`}
           >
             {g === "funil" ? "Funil comercial" : "Onboarding e jornada"}
@@ -95,7 +95,7 @@ export function TemplatesWhatsapp() {
                   setCopiado(false);
                 }}
                 className={`w-full rounded-lg border px-3 py-2 text-left text-xs ${
-                  t.id === template.id ? "border-gold bg-gold/10 text-navy" : "border-navy/10 bg-white text-navy/70"
+                  t.id === template.id ? "border-gold bg-gold/10 text-navy" : "border-navy/10 bg-cream/40 text-navy/70"
                 }`}
               >
                 <span className="block font-medium">{t.etapa}</span>
@@ -140,7 +140,7 @@ export function TemplatesWhatsapp() {
 
           <div>
             <Rotulo>Mensagem para revisão</Rotulo>
-            <pre className="whitespace-pre-wrap rounded-lg border border-navy/15 bg-white px-3 py-3 text-sm text-navy">
+            <pre className="whitespace-pre-wrap rounded-lg border border-navy/15 bg-cream/40 px-3 py-3 text-sm text-navy">
               {texto}
             </pre>
           </div>

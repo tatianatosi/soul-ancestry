@@ -133,7 +133,7 @@ function HomologacaoSkusPage() {
           { r: "Elegíveis (sem pendência)", v: resumo.elegiveis },
           { r: "Bloqueados por pendência", v: resumo.bloqueados },
         ].map((c) => (
-          <div key={c.r} className="rounded-xl border border-navy/10 bg-white p-4">
+          <div key={c.r} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
             <p className="text-xs uppercase tracking-wide text-navy/50">{c.r}</p>
             <p className="mt-1 font-serif text-2xl text-navy">{c.v}</p>
           </div>
@@ -174,7 +174,7 @@ function HomologacaoSkusPage() {
           return (
             <article
               key={i.id}
-              className={`rounded-xl border bg-white p-4 ${
+              className={`rounded-xl border bg-cream/40 p-4 ${
                 d === "homologar"
                   ? "border-gold/60"
                   : d === "manter_rascunho"
@@ -274,7 +274,7 @@ function HomologacaoSkusPage() {
         </EstadoDados>
       </section>
 
-      <section className="mt-6 rounded-xl border border-navy/15 bg-white p-4">
+      <section className="mt-6 rounded-xl border border-navy/15 bg-cream/40 p-4">
         <h2 className="font-serif text-xl text-navy">Confirmar homologação em lote</h2>
         <p className="mt-1 text-xs text-navy/60">
           Só entram no lote os SKUs marcados como “Homologar” e sem pendência bloqueante. Todos os itens precisam ter

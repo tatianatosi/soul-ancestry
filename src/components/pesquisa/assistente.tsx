@@ -230,7 +230,7 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
         <textarea
           value={complemento}
           onChange={(e) => setComplemento(e.target.value)}
-          className="mt-1 h-24 w-full rounded-lg border border-navy/15 bg-white p-2 text-sm text-navy"
+          className="mt-1 h-24 w-full rounded-lg border border-navy/15 bg-cream/40 p-2 text-sm text-navy"
           placeholder="Descreva apenas informações reais deste caso. Textos de exemplo bloqueiam a análise."
         />
       </label>
@@ -304,7 +304,7 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
           )}
           <pre
             className={cn(
-              "mt-2 max-h-[36rem] overflow-auto whitespace-pre-wrap rounded-lg border border-navy/15 bg-white p-3 font-mono text-xs text-navy",
+              "mt-2 max-h-[36rem] overflow-auto whitespace-pre-wrap rounded-lg border border-navy/15 bg-cream/40 p-3 font-mono text-xs text-navy",
               rodando && "border-gold",
             )}
           >

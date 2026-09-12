@@ -25,7 +25,7 @@ export function PainelModulosContextuais({ tela }: { tela: TelaDesk }) {
   const badges = modulos.filter((m) => m.tipo === "metrica" || m.tipo === "duplicado");
 
   return (
-    <section className="mb-6 rounded-2xl border border-navy/15 bg-white/80 p-4">
+    <section className="mb-6 rounded-2xl border border-navy/15 bg-cream/80 p-4">
       <button
         type="button"
         onClick={() => setAberto((v) => !v)}
@@ -117,7 +117,7 @@ export function AssistenteLateral({ contexto }: { contexto: string }) {
       </button>
 
       {aberto ? (
-        <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col border-l border-navy/20 bg-white shadow-2xl">
+        <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col border-l border-navy/20 bg-cream/40 shadow-2xl">
           <header className="flex items-center justify-between border-b border-navy/10 bg-navy px-4 py-3 text-cream">
             <div>
               <p className="text-[11px] uppercase tracking-widest text-gold">

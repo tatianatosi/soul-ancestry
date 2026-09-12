@@ -143,7 +143,7 @@ function OrigemEscopoPage() {
           </Painel>
         ) : null}
 
-        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-navy/10 bg-white p-3 text-sm">
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-navy/10 bg-cream/40 p-3 text-sm">
           <input
             value={busca}
             onChange={(ev) => setBusca(ev.target.value)}
@@ -173,7 +173,7 @@ function OrigemEscopoPage() {
             !linhas.length ? (
               <EstadoVazio mensagem="Nenhum item de escopo para os filtros escolhidos." />
             ) : (
-          <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
+          <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
             <table className="w-full text-left text-sm">
               <thead className="bg-cream/60 text-xs uppercase tracking-wide text-navy/60">
                 <tr>

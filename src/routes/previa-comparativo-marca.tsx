@@ -47,6 +47,8 @@ const CHECKLIST: { item: string; status: "ok" | "prova" }[] = [
   { item: "Mesa Discovery (/calls) + conversão/propostas/CRM + módulo pesquisa em cream", status: "ok" },
   { item: "Painel Hoje (/painel) + Governança/Contrato detalhe/Onboarding/Evidências em cream", status: "ok" },
   { item: "App deep (proposta/mensagens/faturas) + Desk Governança/integrações/ops em cream", status: "ok" },
+  { item: "Entregas sanitizadas (consultiva/modelo/fase02/studio) + módulos Desk em cream", status: "ok" },
+  { item: "Mapa mockup 17 (7 App + faces Desk) + de-para 47 no gate de marca", status: "ok" },
   { item: "Rotas profundas sem H1 Entregas/Fase 01/Fase 02", status: "ok" },
   { item: "Tokens hex = guia OKI (navy/gold/cream/terracotta)", status: "ok" },
   { item: "Site SEO ≠ app Vercel", status: "ok" },
@@ -86,7 +88,7 @@ function PreviaComparativoMarca() {
             {SWATCHES.map((s) => (
               <li
                 key={s.chave}
-                className="overflow-hidden rounded-xl border border-navy/10 bg-white/60 shadow-sm"
+                className="overflow-hidden rounded-xl border border-navy/10 bg-cream/60 shadow-sm"
                 data-swatch={s.chave.toLowerCase()}
               >
                 <div className="h-16 w-full" style={{ backgroundColor: s.hex }} aria-hidden />
@@ -112,7 +114,7 @@ function PreviaComparativoMarca() {
             {CHECKLIST.map((c) => (
               <li
                 key={c.item}
-                className="flex items-start gap-3 rounded-lg border border-navy/10 bg-white/50 px-3 py-2 text-sm"
+                className="flex items-start gap-3 rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-sm"
               >
                 <span
                   className={
@@ -136,28 +138,28 @@ function PreviaComparativoMarca() {
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <a
               href="/previa-app-cliente?aba=radar"
-              className="rounded-xl border border-navy/15 bg-white/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
+              className="rounded-xl border border-navy/15 bg-cream/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
             >
               <span className="font-medium">App · Radar</span>
               <span className="mt-0.5 block text-xs text-navy/55">/previa-app-cliente?aba=radar</span>
             </a>
             <a
               href="/previa-app-cliente?aba=arvore"
-              className="rounded-xl border border-navy/15 bg-white/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
+              className="rounded-xl border border-navy/15 bg-cream/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
             >
               <span className="font-medium">App · Árvore</span>
               <span className="mt-0.5 block text-xs text-navy/55">/previa-app-cliente?aba=arvore</span>
             </a>
             <Link
               to="/previa-app-cliente"
-              className="rounded-xl border border-navy/15 bg-white/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
+              className="rounded-xl border border-navy/15 bg-cream/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
             >
               <span className="font-medium">App Cliente (7 abas)</span>
               <span className="mt-0.5 block text-xs text-navy/55">/previa-app-cliente</span>
             </Link>
             <Link
               to="/previa-desk-indicadores"
-              className="rounded-xl border border-navy/15 bg-white/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
+              className="rounded-xl border border-navy/15 bg-cream/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
             >
               <span className="font-medium">Desk faces 11–17</span>
               <span className="mt-0.5 block text-xs text-navy/55">/previa-desk-indicadores</span>
@@ -165,21 +167,21 @@ function PreviaComparativoMarca() {
 
             <a
               href="/previa-desk-indicadores?face=comercial"
-              className="rounded-xl border border-navy/15 bg-white/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
+              className="rounded-xl border border-navy/15 bg-cream/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
             >
               <span className="font-medium">Desk · Marketing & Comercial</span>
               <span className="mt-0.5 block text-xs text-navy/55">/previa-desk-indicadores?face=comercial</span>
             </a>
             <a
               href="/previa-desk-indicadores?face=formalizacao"
-              className="rounded-xl border border-navy/15 bg-white/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
+              className="rounded-xl border border-navy/15 bg-cream/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
             >
               <span className="font-medium">Desk · Formalização & Financeiro</span>
               <span className="mt-0.5 block text-xs text-navy/55">/previa-desk-indicadores?face=formalizacao</span>
             </a>
             <a
               href="/previa-desk-indicadores?face=pesquisa"
-              className="rounded-xl border border-navy/15 bg-white/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
+              className="rounded-xl border border-navy/15 bg-cream/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
             >
               <span className="font-medium">Desk · Inteligência & Pesquisa</span>
               <span className="mt-0.5 block text-xs text-navy/55">/previa-desk-indicadores?face=pesquisa</span>
@@ -194,7 +196,7 @@ function PreviaComparativoMarca() {
             </a>
             <Link
               to="/previa-caseid"
-              className="rounded-xl border border-navy/15 bg-white/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
+              className="rounded-xl border border-navy/15 bg-cream/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
             >
               <span className="font-medium">Ordem 2 · caseId</span>
               <span className="mt-0.5 block text-xs text-navy/55">/previa-caseid</span>
@@ -216,6 +218,69 @@ function PreviaComparativoMarca() {
               </li>
             ))}
           </ol>
+        </section>
+
+        
+        <section aria-labelledby="mapa-titulo">
+          <h2 id="mapa-titulo" className="font-serif text-xl text-navy">
+            Mapa mockup 17 → runtime (prova)
+          </h2>
+          <p className="mt-1 text-sm text-navy/65">
+            Cada célula abre a prévia correspondente. Auditoria 47 (estados/indicadores) acompanha o de-para
+            em <code className="font-mono text-xs">RESGATE-MOCKUP-MARCA-APP-DESK.md</code>.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+              <p className="text-[11px] uppercase tracking-wide text-navy/50">App Cliente · 7 abas</p>
+              <ul className="mt-2 space-y-1.5 text-sm">
+                {[
+                  ["Home", "/previa-app-cliente?aba=home"],
+                  ["Jornada", "/previa-app-cliente?aba=jornada"],
+                  ["Radar", "/previa-app-cliente?aba=radar"],
+                  ["Árvore", "/previa-app-cliente?aba=arvore"],
+                  ["Documentos", "/previa-app-cliente?aba=documentos"],
+                  ["Legado", "/previa-app-cliente?aba=legado"],
+                  ["Conta", "/previa-app-cliente?aba=conta"],
+                ].map(([label, href]) => (
+                  <li key={href}>
+                    <a href={href} className="text-navy underline decoration-gold/50 underline-offset-2 hover:decoration-gold">
+                      {label}
+                    </a>
+                    <span className="ml-2 font-mono text-[10px] text-navy/45">{href.replace("/previa-app-cliente?aba=", "")}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+              <p className="text-[11px] uppercase tracking-wide text-navy/50">Desk · faces 11–17 + grupos</p>
+              <ul className="mt-2 space-y-1.5 text-sm">
+                {[
+                  ["p.11 Visão", "visao"],
+                  ["p.12 Caso 360", "caso360"],
+                  ["p.13 Checklist", "checklist"],
+                  ["p.14 Jurídica", "juridica"],
+                  ["p.15 Radar", "radar"],
+                  ["p.16 Alertas", "alertas"],
+                  ["p.17 Biblioteca", "biblioteca"],
+                  ["Comercial / Mesa", "comercial"],
+                  ["Governança", "governanca"],
+                ].map(([label, face]) => (
+                  <li key={face}>
+                    <a
+                      href={`/previa-desk-indicadores?face=${face}`}
+                      className="text-navy underline decoration-gold/50 underline-offset-2 hover:decoration-gold"
+                    >
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="mt-3 rounded-xl border border-gold/40 bg-cream/50 px-4 py-3 text-sm text-navy">
+            De-para 47 (KPIs / estados): Visão · Caso 360 · Checklist · Jurídica · Radar · Alertas · Biblioteca —
+            cada linha exige escritor + RPC + UI + print. Ordens 3–7 bloqueadas até marca/layout + merge.
+          </div>
         </section>
 
         <section

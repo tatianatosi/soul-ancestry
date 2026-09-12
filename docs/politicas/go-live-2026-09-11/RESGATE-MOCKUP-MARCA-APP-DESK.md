@@ -252,6 +252,22 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`). `GRUPOS_DESK` permanece 
 Prints: `docs/provas/2026-09-12-app-deep-governanca-oki/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`). `GRUPOS_DESK` permanece 6.
 
+
+## Fatia 2026-09-12 — Entregas + mapa mockup 17/47 no gate
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| Entrega consultiva / modelo / fase 02 / studio | Cards `bg-white` | `bg-cream/40` |
+| Módulos contextuais + assistente transversal Desk | White/80 | Cream |
+| CRM WhatsApp / handoff / fluxo / próximas ações | White residual | Cream |
+| Catálogo / homologação SKUs / escopo / config | White | Cream |
+| Contrato leftovers (matriz, anexos, leitor) | White | Cream |
+| Gate `/previa-comparativo-marca` | Sem mapa 17 | Mapa App 7 abas + Desk faces 11–17 + grupos; checklist + de-para 47 |
+| Gate painéis | `bg-white/*` | Cream |
+
+Prints: `docs/provas/2026-09-12-mapa-mockup-entregas-oki/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqueadas.
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

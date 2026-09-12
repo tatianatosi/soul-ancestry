@@ -26,7 +26,7 @@ import {
 type ModoPreview = "a4" | "whatsapp" | "texto";
 
 const inputCls =
-  "w-full rounded-xl border border-navy/15 bg-white/80 px-3 py-2 text-[13px] text-navy outline-none transition focus:border-gold";
+  "w-full rounded-xl border border-navy/15 bg-cream/80 px-3 py-2 text-[13px] text-navy outline-none transition focus:border-gold";
 
 const labelCls = "text-[10.5px] font-semibold uppercase tracking-[0.14em] text-navy/55";
 
@@ -169,7 +169,7 @@ export function StudioDevolutivas() {
           {/* Achados */}
           <Secao titulo="Achados">
             {dados.achados.map((a) => (
-              <article key={a.id} className="rounded-2xl border border-navy/10 bg-white/70 p-4">
+              <article key={a.id} className="rounded-2xl border border-navy/10 bg-cream/70 p-4">
                 <div className="grid gap-3 sm:grid-cols-[1fr_88px]">
                   <Campo label="Título do achado">
                     <input
@@ -295,7 +295,7 @@ export function StudioDevolutivas() {
           {/* Pendências */}
           <Secao titulo="Pendências">
             {dados.pendencias.map((p) => (
-              <article key={p.id} className="rounded-2xl border border-navy/10 bg-white/70 p-4">
+              <article key={p.id} className="rounded-2xl border border-navy/10 bg-cream/70 p-4">
                 <Campo label="Descrição simples">
                   <input
                     className={inputCls}
@@ -477,7 +477,7 @@ export function StudioDevolutivas() {
                   {termos.map((t) => (
                     <li
                       key={t}
-                      className="rounded-full border border-terracotta/40 bg-white/60 px-2.5 py-1 text-[11px] text-terracotta"
+                      className="rounded-full border border-terracotta/40 bg-cream/60 px-2.5 py-1 text-[11px] text-terracotta"
                     >
                       {t}
                     </li>
@@ -553,7 +553,7 @@ export function StudioDevolutivas() {
               Não enviar
             </span>
           </div>
-          <div className="max-h-[80vh] overflow-y-auto rounded-2xl border border-navy/10 bg-white/50 p-3">
+          <div className="max-h-[80vh] overflow-y-auto rounded-2xl border border-navy/10 bg-cream/50 p-3">
             {modo === "texto" ? (
               <pre className="whitespace-pre-wrap break-words font-sans text-[12.5px] leading-relaxed text-navy/85">
                 {textoSimples(dados, achadosVisiveis, pendenciasVisiveis)}
@@ -652,7 +652,7 @@ function OnePagePreview({
               O que já identificamos
             </h2>
             {achados.map((a) => (
-              <article key={a.id} className="rounded-xl border border-navy/10 bg-white/70 p-3">
+              <article key={a.id} className="rounded-xl border border-navy/10 bg-cream/70 p-3">
                 {a.titulo && (
                   <h3 className="font-serif text-[14.5px] italic leading-snug text-navy">{a.titulo}</h3>
                 )}

@@ -101,7 +101,7 @@ export function AssistenteTransversal({ papeis }: { papeis: readonly string[] })
             <AssistentePesquisa casoId={estado.casoConfirmado} />
           ) : (
             <div className="space-y-3">
-              <p className="rounded-xl border border-navy/15 bg-white/70 p-3 text-sm text-navy/80">
+              <p className="rounded-xl border border-navy/15 bg-cream/70 p-3 text-sm text-navy/80">
                 Sem caso confirmado, o Assistente orienta apenas a navegação interna deste grupo.
                 Ele não infere dados de caso, não altera registros e não dispara envio, cobrança,
                 assinatura, publicação ou pesquisa externa.
@@ -116,7 +116,7 @@ export function AssistenteTransversal({ papeis }: { papeis: readonly string[] })
                       <Link
                         to={a.to}
                         onClick={() => setAberto(false)}
-                        className="block rounded-lg border border-navy/10 bg-white px-3 py-2 text-sm text-navy hover:border-gold/60"
+                        className="block rounded-lg border border-navy/10 bg-cream/40 px-3 py-2 text-sm text-navy hover:border-gold/60"
                       >
                         {a.label}
                       </Link>
