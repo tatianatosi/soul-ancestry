@@ -482,32 +482,56 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     grupo: "comercial",
     rota: "/calls",
     render: () => (
-      <div className="grid gap-3 md:grid-cols-5">
-        {[
-          { etapa: "Leads", itens: ["Origem: indicação", "Origem: Ads"], tom: "neutro" as Tom },
-          { etapa: "Discovery", itens: ["Mesa agendada", "Mesa realizada"], tom: "atencao" as Tom },
-          { etapa: "Diagnóstico", itens: ["Linhagem provável", "Aguarda documento"], tom: "atencao" as Tom },
-          { etapa: "Proposta", itens: ["Enviada", "Em análise"], tom: "neutro" as Tom },
-          { etapa: "Contrato", itens: ["Assinado", "Onboarding"], tom: "sucesso" as Tom },
-        ].map((coluna) => (
-          <div key={coluna.etapa} className="rounded-xl border border-navy/10 bg-card p-3">
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="font-serif text-sm text-navy">{coluna.etapa}</h3>
-              <Etiqueta texto={String(coluna.itens.length)} />
-            </div>
-            <div className="space-y-2">
-              {coluna.itens.map((item) => (
-                <div key={item} className="rounded-lg border border-navy/10 bg-cream/50 p-2">
-                  <p className="text-[11px] font-medium text-navy">{item}</p>
-                  <p className="mt-1 text-[10px] text-navy/55">Próxima ação definida</p>
-                  <div className="mt-2">
-                    <Etiqueta texto="Demonstrativo" tom={coluna.tom} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+      <div className="space-y-3">
+        <CabecalhoFerramenta titulo="Funil comercial vivo" apoio="Origem → Discovery → diagnóstico → proposta → contrato" acao="Novo lead" />
+        <KanbanVisual colunas={[
+          { titulo: "Leads", cartoes: [
+            { titulo: "João Martins", contexto: "Portugal · indicação", responsavel: "Tatiana", prazo: "Hoje", etiqueta: "Responder", tom: "atencao" },
+            { titulo: "Família Moretti", contexto: "Itália · campanha", responsavel: "Carla", prazo: "13 set", etiqueta: "Qualificar", anexos: 2 },
+          ] },
+          { titulo: "Discovery", cartoes: [
+            { titulo: "Ana Luiza", contexto: "Mesa realizada · Áustria", responsavel: "Tatiana", prazo: "Hoje", etiqueta: "Handoff", tom: "atencao", anexos: 4 },
+            { titulo: "Núcleo Rossi", contexto: "Call agendada · Itália", responsavel: "Camila", prazo: "14 set", etiqueta: "Agendado" },
+          ] },
+          { titulo: "Diagnóstico", cartoes: [
+            { titulo: "Amigo do Danilo", contexto: "Aguarda certidão-base", responsavel: "Pesquisa", prazo: "16 set", etiqueta: "Documento", tom: "critico", anexos: 1 },
+          ] },
+          { titulo: "Proposta", cartoes: [
+            { titulo: "Família Bianchi", contexto: "Escopo enviado · v3", responsavel: "Tatiana", prazo: "15 set", etiqueta: "Em análise", anexos: 3 },
+          ] },
+          { titulo: "Contrato", cartoes: [
+            { titulo: "Núcleo Costa", contexto: "Aceite registrado", responsavel: "Operações", prazo: "17 set", etiqueta: "Onboarding", tom: "sucesso", anexos: 5 },
+          ] },
+        ]} />
+      </div>
+    ),
+  },
+  {
+    id: "kanban",
+    titulo: "Kanban operacional",
+    grupo: "casos",
+    rota: "/ops · /tarefas",
+    render: () => (
+      <div className="space-y-3">
+        <CabecalhoFerramenta titulo="Trabalho dos casos" apoio="Próxima ação, responsável, prazo e bloqueio em uma única leitura" acao="Nova tarefa" />
+        <KanbanVisual colunas={[
+          { titulo: "Não iniciada", cartoes: [
+            { titulo: "Conferir certidão-base", contexto: "CA-2026-ANA-001", responsavel: "Marina", prazo: "13 set", etiqueta: "Alta", tom: "atencao", anexos: 2 },
+            { titulo: "Preparar linha familiar", contexto: "Família Bianchi", responsavel: "Pesquisa", prazo: "15 set", etiqueta: "Média" },
+          ] },
+          { titulo: "Em andamento", cartoes: [
+            { titulo: "Validar grafia do ascendente", contexto: "Núcleo Rossi", responsavel: "Carla", prazo: "Hoje", etiqueta: "SLA em risco", tom: "atencao", anexos: 3 },
+          ] },
+          { titulo: "Bloqueada", cartoes: [
+            { titulo: "Emitir relatório F1", contexto: "Falta transcrição da fonte", responsavel: "Joana", prazo: "12 set", etiqueta: "Bloqueio", tom: "critico", anexos: 1 },
+          ] },
+          { titulo: "Concluída", cartoes: [
+            { titulo: "Registrar fonte paroquial", contexto: "Família Bianchi", responsavel: "Marina", prazo: "11 set", etiqueta: "Concluída", tom: "sucesso", anexos: 4 },
+          ] },
+          { titulo: "Cancelada", cartoes: [
+            { titulo: "Consulta duplicada", contexto: "Substituída por fonte vigente", responsavel: "Pesquisa", prazo: "10 set", etiqueta: "Histórico" },
+          ] },
+        ]} />
       </div>
     ),
   },
@@ -626,31 +650,98 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     id: "pesquisa",
     titulo: "Pesquisa",
     grupo: "pesquisa",
-    rota: "/pesquisa-modulo",
+    rota: "/pesquisa-modulo · /fontes-genealogicas · /evidencias",
     render: () => (
-      <div className={grade3}>
-        <Cartao titulo="Fontes consultadas">
-          <Linha rotulo="Arquivo paroquial — Lucca" valor="Confirmada" tom="sucesso" />
-          <Linha rotulo="Registro civil — Santos" valor="Confirmada" tom="sucesso" />
-          <Linha rotulo="Lista de imigração" valor="Em leitura" tom="atencao" />
-          <Linha rotulo="Arquivo militar" valor="Hipótese" />
+      <div className="space-y-4">
+        <CabecalhoFerramenta titulo="Dossiê de pesquisa" apoio="Fontes, transcrições, interpretações, hipóteses e conclusões permanecem separadas" acao="Nova consulta" />
+        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr_0.9fr]">
+          <Cartao titulo="Fontes e referências">
+            <Linha rotulo="Arquivo paroquial — Lucca" valor="Revisada" tom="sucesso" />
+            <Linha rotulo="Registro civil — Santos" valor="Revisada" tom="sucesso" />
+            <Linha rotulo="Lista de imigração" valor="Em leitura" tom="atencao" />
+            <Linha rotulo="Arquivo militar" valor="A consultar" />
+            <div className="mt-3 rounded-lg border border-navy/10 bg-cream/40 p-2.5">
+              <p className="text-[10px] font-semibold uppercase text-navy/55">Referência auxiliar</p>
+              <p className="mt-1 text-[11px] text-navy">Dicionário de variações onomásticas · versão 2.1</p>
+            </div>
+          </Cartao>
+          <Cartao titulo="Hipóteses e confiança">
+            <MedidorConfianca valor={82} />
+            <div className="mt-3 border-t border-navy/10 pt-2">
+              <Linha rotulo="Grafia alternativa" valor="Provável" tom="atencao" />
+              <Linha rotulo="Segundo casamento" valor="A confirmar" />
+              <Linha rotulo="Naturalização anterior" valor="Refutada" tom="critico" />
+            </div>
+          </Cartao>
+          <Cartao titulo="Miniatura familiar">
+            <ArvoreFamiliaGrafica />
+            <div className="mt-3 border-t border-navy/10 pt-2">
+              <Linha rotulo="Gerações documentadas" valor="2 de 3" tom="atencao" />
+            </div>
+          </Cartao>
+        </div>
+        <Cartao titulo="Cadeia de prova">
+          <ol className="grid gap-2 sm:grid-cols-5">
+            {["Fonte", "Transcrição", "Interpretação", "Hipótese", "Conclusão"].map((etapa, indice) => (
+              <li key={etapa} className="relative rounded-lg border border-navy/10 bg-cream/40 p-2.5 text-center">
+                <CheckCircle2 className={cn("mx-auto h-4 w-4", indice < 3 ? "text-sucesso" : "text-navy/25")} aria-hidden />
+                <p className="mt-1 text-[10px] font-semibold text-navy">{etapa}</p>
+                {indice < 4 ? <ArrowRight className="absolute -right-3 top-1/2 z-10 hidden h-4 w-4 -translate-y-1/2 text-gold sm:block" aria-hidden /> : null}
+              </li>
+            ))}
+          </ol>
         </Cartao>
-        <Cartao titulo="Hipóteses em aberto">
-          <Linha rotulo="Grafia alternativa do sobrenome" valor="Provável" tom="atencao" />
-          <Linha rotulo="Segundo casamento do ascendente" valor="A confirmar" />
-          <Linha rotulo="Naturalização antes do nascimento" valor="Refutada" tom="critico" />
-        </Cartao>
-        <Cartao titulo="Confiança da cadeia">
-          <p className="font-serif text-4xl leading-none tabular-nums text-navy">4,5</p>
-          <p className="mt-1 text-[11px] text-navy/55">
-            Escala interna de 1 a 5 · dado demonstrativo
-          </p>
-          <div className="mt-3 space-y-1">
-            <Linha rotulo="Geração 1" valor="Documentada" tom="sucesso" />
-            <Linha rotulo="Geração 2" valor="Documentada" tom="sucesso" />
-            <Linha rotulo="Geração 3" valor="Parcial" tom="atencao" />
-          </div>
-        </Cartao>
+      </div>
+    ),
+  },
+  {
+    id: "biblioteca",
+    titulo: "Biblioteca Mestre",
+    grupo: "pesquisa",
+    rota: "/biblioteca",
+    render: () => (
+      <div className="space-y-4">
+        <CabecalhoFerramenta titulo="Centro de inteligência" apoio="Acervo interno, bases, taxonomias, trilhas, regras e modelos versionados" acao="Novo item" />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {[
+            ["Acervo", "42", FileText], ["Bases genealógicas", "18", Search], ["Dicionários", "13", BookOpen],
+            ["Trilhas", "11", Target], ["Regras jurídicas", "27", Scale],
+          ].map(([nome, total, Icone]) => (
+            <div key={String(nome)} className="rounded-lg border border-navy/10 bg-card p-3">
+              <Icone className="h-4 w-4 text-gold" aria-hidden />
+              <p className="mt-2 text-xs font-semibold text-navy">{String(nome)}</p>
+              <p className="mt-1 font-serif text-2xl text-navy">{String(total)}</p>
+              <p className="text-[9px] text-navy/50">itens vigentes</p>
+            </div>
+          ))}
+        </div>
+        <div className="grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
+          <Cartao titulo="Itens revisados recentemente">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[560px] text-left text-[11px]">
+                <thead className="border-b border-navy/10 text-[9px] uppercase text-navy/45">
+                  <tr><th className="pb-2">Item</th><th className="pb-2">Área</th><th className="pb-2">Versão</th><th className="pb-2">Estado</th><th className="pb-2">Uso</th></tr>
+                </thead>
+                <tbody className="divide-y divide-navy/5 text-navy/70">
+                  <tr><td className="py-2 font-medium text-navy">Registros civis da Toscana</td><td>Bases</td><td>v3.2</td><td><Etiqueta texto="Homologado" tom="sucesso" /></td><td>Pesquisa</td></tr>
+                  <tr><td className="py-2 font-medium text-navy">Variações Bianchi / Bianco</td><td>Dicionário</td><td>v2.1</td><td><Etiqueta texto="Vigente" tom="sucesso" /></td><td>Pesquisa</td></tr>
+                  <tr><td className="py-2 font-medium text-navy">Trilha Itália — administrativa</td><td>Trilhas</td><td>v4.0</td><td><Etiqueta texto="Em revisão" tom="atencao" /></td><td>Casos</td></tr>
+                  <tr><td className="py-2 font-medium text-navy">Modelo de relatório F1</td><td>Modelos</td><td>v1.8</td><td><Etiqueta texto="Homologado" tom="sucesso" /></td><td>Relatórios</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </Cartao>
+          <Cartao titulo="Biblioteca → Pesquisa">
+            <div className="space-y-2">
+              {["Selecionar base vigente", "Registrar consulta", "Vincular evidência", "Revisar interpretação", "Publicar só após aprovação"].map((texto, indice) => (
+                <div key={texto} className="flex items-center gap-2 rounded-lg border border-navy/10 bg-cream/40 p-2">
+                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-navy text-[9px] text-primary-foreground">{indice + 1}</span>
+                  <span className="text-[10px] text-navy/70">{texto}</span>
+                </div>
+              ))}
+            </div>
+          </Cartao>
+        </div>
       </div>
     ),
   },
