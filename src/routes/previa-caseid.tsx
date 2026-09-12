@@ -73,7 +73,7 @@ function PreviaCaseId() {
           data-alinhamento={alinhado ? "ok" : "divergente"}
           className={`rounded-lg border px-3 py-2 text-sm ${
             alinhado
-              ? "border-navy/20 bg-white text-navy"
+              ? "border-navy/20 bg-cream/60 text-navy"
               : "border-terracotta/40 bg-terracotta/10 text-terracotta"
           }`}
         >

@@ -53,6 +53,8 @@ const CHECKLIST: { item: string; status: "ok" | "prova" }[] = [
   { item: "Desk p.13/16: checklist e alertas com caso + responsável (vocabulário 47)", status: "ok" },
   { item: "Desk p.14 Jurídica: tema · status · responsável · versão · bloqueia (sem rótulo Fase 01)", status: "ok" },
   { item: "Desk p.17 Biblioteca: subáreas canônicas + país/versão/vigência/responsável", status: "ok" },
+  { item: "Desk p.11/12: Visão (fila/ações/responsável) + Caso 360 (caso·próxima ação·4 eixos)", status: "ok" },
+  { item: "App Home cream puro (sem gradiente to-white) + caseId prévia em cream", status: "ok" },
   { item: "Rotas profundas sem H1 Entregas/Fase 01/Fase 02", status: "ok" },
   { item: "Tokens hex = guia OKI (navy/gold/cream/terracotta)", status: "ok" },
   { item: "Site SEO ≠ app Vercel", status: "ok" },
@@ -227,63 +229,79 @@ function PreviaComparativoMarca() {
         
         <section aria-labelledby="mapa-titulo">
           <h2 id="mapa-titulo" className="font-serif text-xl text-navy">
-            Mapa mockup 17 → runtime (prova)
+            Mapa mockup 17 → runtime + vocabulário 47
           </h2>
           <p className="mt-1 text-sm text-navy/65">
-            Cada célula abre a prévia correspondente. Auditoria 47 (estados/indicadores) acompanha o de-para
-            em <code className="font-mono text-xs">RESGATE-MOCKUP-MARCA-APP-DESK.md</code>.
+            Cada linha: página · vocabulário de prova · atalho. De-para completo em{" "}
+            <code className="font-mono text-xs">RESGATE-MOCKUP-MARCA-APP-DESK.md</code>.
           </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
             <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-              <p className="text-[11px] uppercase tracking-wide text-navy/50">App Cliente · 7 abas</p>
-              <ul className="mt-2 space-y-1.5 text-sm">
+              <p className="text-[11px] uppercase tracking-wide text-navy/50">App Cliente · 7 abas (mockup)</p>
+              <ul className="mt-2 divide-y divide-navy/10 text-sm">
                 {[
-                  ["Home", "/previa-app-cliente?aba=home"],
-                  ["Jornada", "/previa-app-cliente?aba=jornada"],
-                  ["Radar", "/previa-app-cliente?aba=radar"],
-                  ["Árvore", "/previa-app-cliente?aba=arvore"],
-                  ["Documentos", "/previa-app-cliente?aba=documentos"],
-                  ["Legado", "/previa-app-cliente?aba=legado"],
-                  ["Conta", "/previa-app-cliente?aba=conta"],
-                ].map(([label, href]) => (
-                  <li key={href}>
-                    <a href={href} className="text-navy underline decoration-gold/50 underline-offset-2 hover:decoration-gold">
-                      {label}
-                    </a>
-                    <span className="ml-2 font-mono text-[10px] text-navy/45">{href.replace("/previa-app-cliente?aba=", "")}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-              <p className="text-[11px] uppercase tracking-wide text-navy/50">Desk · faces 11–17 + grupos</p>
-              <ul className="mt-2 space-y-1.5 text-sm">
-                {[
-                  ["p.11 Visão", "visao"],
-                  ["p.12 Caso 360", "caso360"],
-                  ["p.13 Checklist", "checklist"],
-                  ["p.14 Jurídica", "juridica"],
-                  ["p.15 Radar", "radar"],
-                  ["p.16 Alertas", "alertas"],
-                  ["p.17 Biblioteca", "biblioteca"],
-                  ["Comercial / Mesa", "comercial"],
-                  ["Governança", "governanca"],
-                ].map(([label, face]) => (
-                  <li key={face}>
+                  ["Home", "caso · progresso · próxima ação · achados", "/previa-app-cliente?aba=home"],
+                  ["Jornada", "linha do tempo · publicações sanitizadas", "/previa-app-cliente?aba=jornada"],
+                  ["Radar", "6 dimensões (≠ Desk 4 eixos)", "/previa-app-cliente?aba=radar"],
+                  ["Árvore", "G1–G5 · sem nomes inventados", "/previa-app-cliente?aba=arvore"],
+                  ["Documentos", "checklist · uploads · entregas", "/previa-app-cliente?aba=documentos"],
+                  ["Legado", "biblioteca · Premium só com publicação", "/previa-app-cliente?aba=legado"],
+                  ["Conta", "perfil · plano · alertas · histórico", "/previa-app-cliente?aba=conta"],
+                ].map(([label, vocab, href]) => (
+                  <li key={href} className="flex flex-wrap items-baseline justify-between gap-2 py-2">
                     <a
-                      href={`/previa-desk-indicadores?face=${face}`}
-                      className="text-navy underline decoration-gold/50 underline-offset-2 hover:decoration-gold"
+                      href={href}
+                      className="font-medium text-navy underline decoration-gold/50 underline-offset-2 hover:decoration-gold"
                     >
                       {label}
                     </a>
+                    <span className="text-[11px] text-navy/55">{vocab}</span>
                   </li>
                 ))}
               </ul>
             </div>
+            <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+              <p className="text-[11px] uppercase tracking-wide text-navy/50">Desk · faces 11–17 (auditoria 47)</p>
+              <ul className="mt-2 divide-y divide-navy/10 text-sm">
+                {[
+                  ["p.11 Visão", "fila · vencidas · responsável · exceções", "visao"],
+                  ["p.12 Caso 360", "caso · próxima ação · 4 eixos · bloqueio", "caso360"],
+                  ["p.13 Checklist", "tarefa · caso · responsável · prazo", "checklist"],
+                  ["p.14 Jurídica", "tema · status · versão · bloqueia", "juridica"],
+                  ["p.15 Radar", "4 eixos jornada (≠ App 6 dims)", "radar"],
+                  ["p.16 Alertas", "sinal · caso · responsável · criticidade", "alertas"],
+                  ["p.17 Biblioteca", "subárea · país · versão · vigência", "biblioteca"],
+                ].map(([label, vocab, face]) => (
+                  <li key={face} className="flex flex-wrap items-baseline justify-between gap-2 py-2">
+                    <a
+                      href={`/previa-desk-indicadores?face=${face}`}
+                      className="font-medium text-navy underline decoration-gold/50 underline-offset-2 hover:decoration-gold"
+                    >
+                      {label}
+                    </a>
+                    <span className="text-[11px] text-navy/55">{vocab}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-[11px] text-navy/50">
+                Grupos satélite (não são p.11–17):{" "}
+                <a href="/previa-desk-indicadores?face=comercial" className="underline decoration-gold/40">
+                  Comercial
+                </a>
+                {" · "}
+                <a href="/previa-desk-indicadores?face=governanca" className="underline decoration-gold/40">
+                  Governança
+                </a>
+                {" · "}
+                <a href="/previa-caseid" className="underline decoration-gold/40">
+                  caseId
+                </a>
+              </p>
+            </div>
           </div>
           <div className="mt-3 rounded-xl border border-gold/40 bg-cream/50 px-4 py-3 text-sm text-navy">
-            De-para 47 (KPIs / estados): Visão · Caso 360 · Checklist · Jurídica · Radar · Alertas · Biblioteca —
-            cada linha exige escritor + RPC + UI + print. Ordens 3–7 bloqueadas até marca/layout + merge.
+            De-para 47: cada indicador exige escritor + RPC/persistência + UI + print. Ordens 3–7 backend
+            bloqueadas até <strong>marca/layout</strong> + merge autorizado.
           </div>
         </section>
 

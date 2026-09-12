@@ -163,7 +163,7 @@ function PainelHomeMockup({
 }) {
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-navy/10 bg-gradient-to-br from-cream to-white p-5 shadow-sm">
+      <section className="rounded-2xl border border-navy/10 bg-cream/50 p-5 shadow-sm">
         <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">Seu caso</p>
         <div className="mt-1 flex flex-wrap items-start justify-between gap-2">
           <h2 className="font-serif text-2xl text-navy">{tituloCaso}</h2>

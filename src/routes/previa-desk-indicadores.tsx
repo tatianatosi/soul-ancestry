@@ -207,9 +207,9 @@ function PreviaDeskIndicadores() {
 function FaceVisao() {
   return (
     <section aria-label="KPIs Visão Geral" className="space-y-4" data-face-visao>
-      <p className="text-[11px] uppercase tracking-wide text-navy/50">
-        Painel Hoje · decisão (sem receita / conversão) · runtime{" "}
-        <code className="font-mono normal-case tracking-normal">/painel</code>
+      <p className="text-sm text-navy/65">
+        Mockup 47 / p.11: fila do dia · ações vencidas · sem responsável · exceções · SLA. Sem KPI de
+        receita/conversão. Runtime <code className="font-mono text-xs">/painel</code>.
       </p>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-xl border border-navy/10 bg-cream/50 px-4 py-3">
@@ -277,19 +277,35 @@ function FaceVisao() {
 
 function FaceCaso360() {
   return (
-    <section aria-label="Caso 360 — quatro indicadores" className="space-y-4">
-      <div>
-        <h2 className="font-serif text-xl text-navy">Caso 360 · quatro indicadores</h2>
-        <p className="text-sm text-navy/65">
-          Jornada · Pessoas · Contrato · Pesquisa (mockup p.12 / auditoria 47)
-        </p>
+    <section aria-label="Caso 360 — quatro indicadores" className="space-y-4" data-face-caso360>
+      <p className="text-sm text-navy/65">
+        Mockup 47 / p.12: caso · responsável · próxima ação · bloqueio · quatro eixos (Jornada · Pessoas ·
+        Contrato · Pesquisa). Runtime <code className="font-mono text-xs">/casos/$caseId</code>.
+      </p>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-navy/10 bg-cream/40 px-4 py-3 text-xs text-navy/70">
+        <span>
+          <span className="text-navy/45">Caso: </span>
+          <span className="font-mono">CA-DEMO-014</span>
+        </span>
+        <span>
+          <span className="text-navy/45">Código: </span>
+          <span className="font-mono">PICCOLI-IT</span>
+        </span>
+        <span>
+          <span className="text-navy/45">Responsável: </span>
+          Operação
+        </span>
+        <span>
+          <span className="text-navy/45">Fase: </span>
+          Pesquisa e validação
+        </span>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          ["Jornada/onboarding", "1 bloqueio de ativação"],
-          ["Pessoas/família", "3 pessoa(s) no caso"],
+          ["Jornada", "1 bloqueio de ativação"],
+          ["Pessoas", "3 pessoa(s) no caso"],
           ["Contrato", "Formalização em andamento"],
-          ["Pesquisa/entregas", "4 evidência(s) · 1 pendência"],
+          ["Pesquisa", "4 evidência(s) · 1 pendência"],
         ].map(([t, d]) => (
           <div key={t} className="rounded-xl border border-navy/10 bg-cream/50 p-4">
             <p className="text-[11px] uppercase tracking-wide text-navy/50">{t}</p>
@@ -301,7 +317,16 @@ function FaceCaso360() {
         <article className="rounded-xl border border-navy/10 bg-cream/50 p-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Próxima ação</p>
           <p className="mt-1 font-medium text-navy">Confirmar documentos mínimos com o titular</p>
-          <p className="mt-1 text-xs text-navy/60">Responsável: operação · prazo: hoje</p>
+          <dl className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-navy/60">
+            <div>
+              <dt className="inline text-navy/45">Responsável: </dt>
+              <dd className="inline">Operação</dd>
+            </div>
+            <div>
+              <dt className="inline text-navy/45">Prazo: </dt>
+              <dd className="inline">Hoje</dd>
+            </div>
+          </dl>
         </article>
         <article className="rounded-xl border border-gold/40 bg-gold/10 p-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Bloqueio em destaque</p>
@@ -309,9 +334,6 @@ function FaceCaso360() {
           <p className="mt-1 text-xs text-navy/60">Pendência informa — não impede override da proprietária</p>
         </article>
       </div>
-      <p className="text-xs text-navy/50">
-        Runtime vivo: <code className="font-mono">/casos/$caseId</code> · chrome cream alinhado ao mockup p.12
-      </p>
     </section>
   );
 }

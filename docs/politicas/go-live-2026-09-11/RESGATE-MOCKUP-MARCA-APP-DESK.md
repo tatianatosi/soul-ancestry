@@ -297,6 +297,20 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 Prints: `docs/provas/2026-09-12-fidelidade-juridica-biblioteca-47/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqueadas até marca/layout + merge.
 
+
+## Fatia 2026-09-12 — Visão/Caso360 + mapa 17/47 densificado + cream Home
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| Face Visão p.11 | Header genérico | Vocabulário 47: fila · vencidas · responsável · exceções · SLA |
+| Face Caso 360 p.12 | Sem barra de caso/código | Caso · código · responsável · fase + 4 eixos + próxima ação/bloqueio |
+| App Home | Gradiente `to-white` residual | `bg-cream/50` puro |
+| Prévia caseId | Banner `bg-white` | `bg-cream/60` |
+| Gate marca | Mapa só com links | Mapa com vocabulário 47 por página App+Desk |
+
+Prints: `docs/provas/2026-09-12-fidelidade-visao-caso360-mapa47/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqueadas.
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).
