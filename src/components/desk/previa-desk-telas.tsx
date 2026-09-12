@@ -472,52 +472,6 @@ function FilaPublicacao({ origem }: { origem: "Biblioteca" | "Portal interno" })
   );
 }
 
-function FaixaTransversal({
-  etapa,
-  cadencia,
-  proximaAcao,
-  responsavel,
-  prazo,
-  microentrega,
-  alerta,
-}: {
-  etapa: string;
-  cadencia: string;
-  proximaAcao: string;
-  responsavel: string;
-  prazo: string;
-  microentrega: string;
-  alerta: string;
-}) {
-  return (
-    <section className="overflow-hidden rounded-lg border border-navy/15 bg-card" aria-label="Jornada D0 a D365">
-      <div className="flex flex-wrap items-center justify-between gap-2 bg-navy px-3 py-2 text-primary-foreground">
-        <div className="flex items-center gap-2">
-          <Clock3 className="h-4 w-4 text-gold" aria-hidden />
-          <h3 className="font-serif text-sm">Jornada D0–D365</h3>
-        </div>
-        <span className="text-[10px] text-primary-foreground/70">{etapa} · {cadencia}</span>
-      </div>
-      <div className="grid divide-y divide-navy/10 sm:grid-cols-[1.35fr_1fr_0.85fr] sm:divide-x sm:divide-y-0">
-        <div className="p-3">
-          <p className="text-[9px] font-semibold uppercase tracking-widest text-navy/45">Próxima ação</p>
-          <p className="mt-1 text-xs font-semibold text-navy">{proximaAcao}</p>
-          <p className="mt-1 text-[10px] text-navy/55">{responsavel} · {prazo}</p>
-        </div>
-        <div className="p-3">
-          <p className="text-[9px] font-semibold uppercase tracking-widest text-navy/45">Microentrega</p>
-          <p className="mt-1 text-xs font-semibold text-navy">{microentrega}</p>
-          <p className="mt-1 text-[10px] text-navy/55">Conteúdo em acompanhamento</p>
-        </div>
-        <div className="p-3">
-          <p className="text-[9px] font-semibold uppercase tracking-widest text-navy/45">Alerta contextual</p>
-          <div className="mt-1"><Etiqueta texto={alerta} tom={alerta === "Sem alertas" ? "sucesso" : "atencao"} /></div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 /* ------------------------------------------------------------------ */
 /* Telas do mockup e complementos visuais aprovados                    */
 /* ------------------------------------------------------------------ */
@@ -548,7 +502,6 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
           <Indicador rotulo="Casos sem próxima ação" valor="1" apoio="precisa de decisão" />
           <Indicador rotulo="Microentregas para revisão" valor="2" apoio="prontas para conferir" />
         </div>
-        <FaixaTransversal etapa="D45 · Pesquisa" cadencia="3 retomadas hoje" proximaAcao="Priorizar os casos sem ação definida" responsavel="Operações" prazo="Hoje" microentrega="2 sínteses prontas para revisão" alerta="4 itens pedem atenção" />
         <div className={grade2}>
           <Cartao titulo="Decisões prioritárias">
             <Linha rotulo="Aprovar escopo — Família Bianchi" valor="Decidir" tom="critico" />
@@ -588,7 +541,6 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     render: () => (
       <div className="space-y-3">
         <CabecalhoFerramenta titulo="Funil comercial vivo" apoio="Origem → Discovery → diagnóstico → proposta → contrato" acao="Novo lead" />
-        <FaixaTransversal etapa="D0 · Entrada" cadencia="Retorno em até 2 dias" proximaAcao="Retomar João Martins" responsavel="Tatiana" prazo="Hoje" microentrega="Resumo da Discovery" alerta="2 leads parados" />
         <KanbanVisual colunas={[
           { titulo: "Leads", cartoes: [
             { titulo: "João Martins", contexto: "Portugal · indicação", responsavel: "Tatiana", prazo: "Hoje", etiqueta: "Responder", proximoPasso: "Confirmar horário da conversa", alerta: "Lead parado há 4 dias", tom: "atencao" },
@@ -664,7 +616,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
                   key={aba}
                   className={cn(
                     "rounded-full px-3 py-1",
-                    i === 0 ? "bg-navy text-primary-foreground" : "border border-navy/15 text-navy/70",
+                    i === 0 ? "bg-navy text-white" : "border border-navy/15 text-navy/70",
                   )}
                 >
                   {aba}
@@ -673,7 +625,6 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             )}
           </nav>
         </div>
-        <FaixaTransversal etapa="D45 · Pesquisa" cadencia="Em dia" proximaAcao="Revisar registro paroquial" responsavel="Marina" prazo="18 set" microentrega="Síntese / linha familiar" alerta="1 prazo próximo" />
         <div className={grade2}>
           <Cartao titulo="Linha do tempo">
             <LinhaTempoGrafica />
@@ -687,6 +638,15 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             </div>
           </Cartao>
         </div>
+        <Cartao titulo="Jornada D0–D365">
+          <div className="grid gap-2 sm:grid-cols-5">
+            <Linha rotulo="Etapa atual" valor="Pesquisa" tom="atencao" />
+            <Linha rotulo="Cadência" valor="Em dia" tom="sucesso" />
+            <Linha rotulo="Próxima ação" valor="Revisar fonte" />
+            <Linha rotulo="Microentrega atual / próxima" valor="Síntese / Linha familiar" />
+            <Linha rotulo="Alertas" valor="1 prazo próximo" tom="atencao" />
+          </div>
+        </Cartao>
       </div>
     ),
   },
@@ -706,7 +666,6 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <p className="text-xs text-navy/60">Pessoa canônica · sem duplicidade</p>
           </div>
         </div>
-        <FaixaTransversal etapa="D45 · Pesquisa" cadencia="Contato há 2 dias" proximaAcao="Confirmar vínculo com Carlo Bianchi" responsavel="Pesquisa" prazo="18 set" microentrega="Perfil biográfico" alerta="1 fonte em revisão" />
         <div className="grid gap-4 lg:grid-cols-[1fr_1.25fr_0.9fr]">
           <Cartao titulo="Identidade">
             <Linha rotulo="Nome civil" valor="Giulia Bianchi" />
@@ -746,10 +705,8 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     grupo: "casos",
     rota: "/qualidade",
     render: () => (
-      <div className="space-y-4">
-        <FaixaTransversal etapa="Carteira ativa" cadencia="Leitura semanal" proximaAcao="Tratar quadrante de alta prioridade" responsavel="Operações" prazo="Hoje" microentrega="Matriz de acompanhamento" alerta="5 casos em atenção" />
-        <div className={grade2}>
-          <Cartao titulo="Radar interno — 4 eixos da jornada">
+      <div className={grade2}>
+        <Cartao titulo="Radar interno — 4 eixos da jornada">
           <RadarGrafico
             tituloAcessivel="Radar interno com quatro eixos da jornada"
             eixos={[
@@ -762,11 +719,10 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
           <p className="mt-3 border-t border-navy/10 pt-3 text-[11px] text-navy/55">
             Mesma construção visual do App Cliente, preservando os quatro eixos canônicos do Desk.
           </p>
-          </Cartao>
-          <Cartao titulo="Matriz elegibilidade × prioridade">
-            <MatrizGrafica />
-          </Cartao>
-        </div>
+        </Cartao>
+        <Cartao titulo="Matriz elegibilidade × prioridade">
+          <MatrizGrafica />
+        </Cartao>
       </div>
     ),
   },
@@ -778,7 +734,6 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     render: () => (
       <div className="space-y-4">
         <CabecalhoFerramenta titulo="Dossiê de pesquisa" apoio="Fontes, transcrições, interpretações, hipóteses e conclusões permanecem separadas" acao="Nova consulta" />
-        <FaixaTransversal etapa="D45 · Pesquisa" cadencia="Revisão em 3 dias" proximaAcao="Conferir transcrição da fonte" responsavel="Marina" prazo="15 set" microentrega="Síntese do registro paroquial" alerta="1 evidência divergente" />
         <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr_0.9fr]">
           <Cartao titulo="Fontes e referências">
             <Linha rotulo="Arquivo paroquial — Lucca" valor="Revisada" tom="sucesso" />
@@ -883,7 +838,6 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     rota: "/financeiro",
     render: () => (
       <div className="space-y-4">
-        <FaixaTransversal etapa="Contrato vigente" cadencia="Conferência mensal" proximaAcao="Conciliar parcela 2" responsavel="Financeiro" prazo="15 set" microentrega="Resumo financeiro do caso" alerta="1 parcela próxima" />
         <div className="grid gap-4 sm:grid-cols-4">
           <Indicador rotulo="Valor do contrato" valor="R$ 43 mil" apoio="escopo vigente" />
           <Indicador rotulo="Já recebido" valor="R$ 9,5 mil" apoio="pagamentos confirmados" />
@@ -928,9 +882,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     grupo: "contratos",
     rota: "/contratos",
     render: () => (
-      <div className="space-y-4">
-        <FaixaTransversal etapa="Formalização" cadencia="Revisão a cada ato" proximaAcao="Conferir poderes da procuração" responsavel="Jurídico" prazo="16 set" microentrega="Quadro documental validado" alerta="2 atos pendentes" />
-        <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <Cartao titulo="Escopo e assinatura">
           <Linha rotulo="Contrato-base v2" valor="Vigente" tom="sucesso" />
           <Linha rotulo="Anexo I — escopo" valor="Assinado" tom="sucesso" />
@@ -963,7 +915,6 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <Linha rotulo="Anexo IV · integridade" valor="Validada" tom="sucesso" />
           </div>
         </Cartao>
-        </div>
       </div>
     ),
   },
@@ -974,7 +925,6 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     rota: "/nucleos",
     render: () => (
       <div className="space-y-4">
-        <FaixaTransversal etapa="D45 · Núcleo em pesquisa" cadencia="Atualização semanal" proximaAcao="Revisar possível duplicidade Rossi" responsavel="Pesquisa" prazo="17 set" microentrega="Árvore familiar comentada" alerta="1 vínculo a conferir" />
         <div className={grade3}>
           <Cartao titulo="Geração 1">
             <div className="space-y-3">
@@ -1012,7 +962,6 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     rota: "/acessos-portal",
     render: () => (
       <div className="space-y-4">
-        <FaixaTransversal etapa="D45 · Pesquisa" cadencia="Próxima atualização em 3 dias" proximaAcao="Aprovar achado para publicação" responsavel="Operações" prazo="15 set" microentrega="Síntese da linha familiar" alerta="1 item aguarda aprovação" />
         <div className="grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
           <Cartao titulo="Família no portal">
             <ArvoreFamiliaGrafica />
@@ -1066,13 +1015,11 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
   },
   {
     id: "configuracao",
-    titulo: "Configuração & Acesso Master",
+    titulo: "Configuração & Acesso",
     grupo: "governanca",
     rota: "/configuracoes",
     render: () => (
-      <div className="space-y-4">
-        <FaixaTransversal etapa="Acesso Master" cadencia="Revisão mensal" proximaAcao="Revisar convite interno pendente" responsavel="Administração" prazo="20 set" microentrega="Relatório de acessos" alerta="1 convite pendente" />
-        <div className="grid gap-4 lg:grid-cols-[0.65fr_1.35fr]">
+      <div className="grid gap-4 lg:grid-cols-[0.65fr_1.35fr]">
         <Cartao titulo="Permissões">
           <div className="space-y-2">
             {["Política operacional", "Perfis e papéis", "Acessos internos", "Acessos ao portal", "Integrações", "Auditoria"].map((item, indice) => (
@@ -1101,7 +1048,6 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
               </table>
             </div>
           </Cartao>
-        </div>
         </div>
       </div>
     ),
@@ -1169,11 +1115,11 @@ export function PreviaDeskTelas() {
 
       <div className="lg:flex">
         {/* Barra lateral navy com o logo oficial */}
-        <aside className="min-w-0 max-w-full overflow-hidden bg-navy px-3 py-4 lg:min-h-[calc(100vh-2rem)] lg:w-64 lg:shrink-0">
+        <aside className="bg-navy px-3 py-4 lg:min-h-[calc(100vh-2rem)] lg:w-64 lg:shrink-0">
           <div className="px-2 pb-4">
             <BrandLogo size={34} showText variant="client-dark" />
           </div>
-          <nav className="flex w-full gap-1 overflow-x-auto lg:flex-col lg:overflow-visible" aria-label="Áreas do Desk">
+          <nav className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">
             {GRUPOS.map((g) => {
               const Icone = g.icon;
               const ativo = tela.grupo === g.id;
@@ -1189,7 +1135,7 @@ export function PreviaDeskTelas() {
                     "flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-left font-serif text-sm transition-colors",
                     ativo
                       ? "bg-gold text-navy"
-                      : "text-cream/80 hover:bg-primary-foreground/10 hover:text-cream",
+                      : "text-cream/80 hover:bg-white/10 hover:text-cream",
                   )}
                 >
                   <Icone className="h-4 w-4 shrink-0" aria-hidden />
@@ -1198,26 +1144,6 @@ export function PreviaDeskTelas() {
               );
             })}
           </nav>
-          {TELAS_PREVIA_DESK.filter((item) => item.grupo === tela.grupo).length > 1 ? <div className="mt-3 border-t border-primary-foreground/15 pt-3">
-            <p className="mb-2 hidden px-3 text-[9px] font-semibold uppercase tracking-widest text-primary-foreground/45 lg:block">Superfícies desta área</p>
-            <nav className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible" aria-label="Superfícies da área selecionada">
-              {TELAS_PREVIA_DESK.filter((item) => item.grupo === tela.grupo).map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setAtiva(item.id)}
-                  className={cn(
-                    "shrink-0 rounded-md border px-2.5 py-1.5 text-left text-[10px] transition-colors lg:w-full",
-                    item.id === tela.id
-                      ? "border-gold bg-primary-foreground/10 font-semibold text-gold"
-                      : "border-primary-foreground/10 text-primary-foreground/65 hover:border-primary-foreground/25 hover:text-primary-foreground",
-                  )}
-                >
-                  {item.titulo}
-                </button>
-              ))}
-            </nav>
-          </div> : null}
         </aside>
 
         <div className="min-w-0 flex-1">
@@ -1247,6 +1173,25 @@ export function PreviaDeskTelas() {
                 </p>
               </div>
               <Etiqueta texto="Sem dados reais" tom="atencao" />
+            </div>
+
+            {/* Índice das telas convertidas */}
+            <div className="mb-5 flex flex-wrap gap-2">
+              {TELAS_PREVIA_DESK.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setAtiva(t.id)}
+                  className={cn(
+                    "rounded-full border px-3 py-1 text-[11px] transition-colors",
+                    t.id === tela.id
+                      ? "border-navy bg-navy text-white"
+                      : "border-navy/15 text-navy/70 hover:bg-cream",
+                  )}
+                >
+                  {t.titulo}
+                </button>
+              ))}
             </div>
 
             {tela.render()}

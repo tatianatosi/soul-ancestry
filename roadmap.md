@@ -13,4 +13,3 @@
 - [x] Validar compilação, rotas e estados de leitura das novas superfícies.
 - [x] Ligar os cartões de Hoje e a fila da Biblioteca às fontes reais do Desk.
 - [ ] Publicar o App Cliente e conferir etapa, próxima ação e microentrega publicada em tela real.
-- [x] Completar visualmente a prancha Desk nas 11 superfícies solicitadas, com D0–D365, alertas e microentregas transversais, sem backend.

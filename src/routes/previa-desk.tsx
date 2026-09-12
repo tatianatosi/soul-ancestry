@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PreviaDeskTelas } from "@/components/desk/previa-desk-telas";
 
 /**
- * Prévia visual do Desk — superfícies do mockup aprovado convertidas em
+ * Prévia visual do Desk — as 12 telas do mockup aprovado convertidas em
  * superfícies do Desk com marca, logo e tipografia oficiais.
  *
  * Rota pública de leitura (como /previa-app-cliente): não lê dado real,
@@ -17,12 +17,12 @@ export const Route = createFileRoute("/previa-desk")({
       {
         name: "description",
         content:
-          "Prévia visual do Desk Intelligence do Clube Ancestral com superfícies operacionais, marca e tipografia oficiais. Dados demonstrativos.",
+          "Prévia visual do Desk Intelligence do Clube Ancestral: doze telas com marca, logo e tipografia oficiais. Dados demonstrativos.",
       },
       { property: "og:title", content: "Prévia do Desk — Clube Ancestral" },
       {
         property: "og:description",
-        content: "Prancha do Desk com a identidade oficial do Clube Ancestral.",
+        content: "Doze telas do Desk com a identidade oficial do Clube Ancestral.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
