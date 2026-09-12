@@ -22,6 +22,27 @@ import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { TIPO_CLIENTE } from "@/lib/marca";
 import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
+import { MAPA_APP_CLIENTE_KIT, type AbaAppCliente } from "@/lib/portal-mapa-kit";
+
+const ROTULO_ABA: Record<AbaAppCliente, string> = {
+  home: COPY_TELAS.home.navegacao,
+  jornada: COPY_TELAS.jornada.navegacao,
+  radar: COPY_TELAS.radar.navegacao,
+  arvore: COPY_TELAS.arvore.navegacao,
+  documentos: COPY_TELAS.documentos.navegacao,
+  legado: COPY_TELAS.legado.navegacao,
+  conta: COPY_TELAS.conta.navegacao,
+};
+
+const ICONE_ABA: Record<AbaAppCliente, typeof Home> = {
+  home: Home,
+  jornada: Route,
+  radar: Radar,
+  arvore: Trees,
+  documentos: FileText,
+  legado: BookOpen,
+  conta: UserRound,
+};
 
 export function usePortal() {
   const previa = usePreviaPortal();
