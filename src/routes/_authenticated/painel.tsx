@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
 import { PainelDia } from "@/components/painel/painel-dia";
+import { CardsAlertasCentrais } from "@/components/painel/cards-alertas-centrais";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
