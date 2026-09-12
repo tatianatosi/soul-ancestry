@@ -18,6 +18,7 @@ import { Route as PortalRouteRouteImport } from './routes/portal/route'
 import { Route as PreviaAppClienteRouteImport } from './routes/previa-app-cliente'
 import { Route as PreviaCaseidRouteImport } from './routes/previa-caseid'
 import { Route as PreviaComparativoMarcaRouteImport } from './routes/previa-comparativo-marca'
+import { Route as PreviaDeskRouteImport } from './routes/previa-desk'
 import { Route as PreviaDeskIndicadoresRouteImport } from './routes/previa-desk-indicadores'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
 import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
@@ -158,6 +159,11 @@ const PreviaCaseidRoute = PreviaCaseidRouteImport.update({
 const PreviaComparativoMarcaRoute = PreviaComparativoMarcaRouteImport.update({
   id: '/previa-comparativo-marca',
   path: '/previa-comparativo-marca',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreviaDeskRoute = PreviaDeskRouteImport.update({
+  id: '/previa-desk',
+  path: '/previa-desk',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PreviaDeskIndicadoresRoute = PreviaDeskIndicadoresRouteImport.update({
@@ -702,6 +708,7 @@ export interface FileRoutesByFullPath {
   '/previa-app-cliente': typeof PreviaAppClienteRoute
   '/previa-caseid': typeof PreviaCaseidRoute
   '/previa-comparativo-marca': typeof PreviaComparativoMarcaRoute
+  '/previa-desk': typeof PreviaDeskRoute
   '/previa-desk-indicadores': typeof PreviaDeskIndicadoresRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/alertas': typeof AuthenticatedAlertasRoute
@@ -808,6 +815,7 @@ export interface FileRoutesByTo {
   '/previa-app-cliente': typeof PreviaAppClienteRoute
   '/previa-caseid': typeof PreviaCaseidRoute
   '/previa-comparativo-marca': typeof PreviaComparativoMarcaRoute
+  '/previa-desk': typeof PreviaDeskRoute
   '/previa-desk-indicadores': typeof PreviaDeskIndicadoresRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/alertas': typeof AuthenticatedAlertasRoute
@@ -917,6 +925,7 @@ export interface FileRoutesById {
   '/previa-app-cliente': typeof PreviaAppClienteRoute
   '/previa-caseid': typeof PreviaCaseidRoute
   '/previa-comparativo-marca': typeof PreviaComparativoMarcaRoute
+  '/previa-desk': typeof PreviaDeskRoute
   '/previa-desk-indicadores': typeof PreviaDeskIndicadoresRoute
   '/_authenticated/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/_authenticated/alertas': typeof AuthenticatedAlertasRoute
@@ -1026,6 +1035,7 @@ export interface FileRouteTypes {
     | '/previa-app-cliente'
     | '/previa-caseid'
     | '/previa-comparativo-marca'
+    | '/previa-desk'
     | '/previa-desk-indicadores'
     | '/acessos-portal'
     | '/alertas'
@@ -1132,6 +1142,7 @@ export interface FileRouteTypes {
     | '/previa-app-cliente'
     | '/previa-caseid'
     | '/previa-comparativo-marca'
+    | '/previa-desk'
     | '/previa-desk-indicadores'
     | '/acessos-portal'
     | '/alertas'
@@ -1240,6 +1251,7 @@ export interface FileRouteTypes {
     | '/previa-app-cliente'
     | '/previa-caseid'
     | '/previa-comparativo-marca'
+    | '/previa-desk'
     | '/previa-desk-indicadores'
     | '/_authenticated/acessos-portal'
     | '/_authenticated/alertas'
@@ -1349,6 +1361,7 @@ export interface RootRouteChildren {
   PreviaAppClienteRoute: typeof PreviaAppClienteRoute
   PreviaCaseidRoute: typeof PreviaCaseidRoute
   PreviaComparativoMarcaRoute: typeof PreviaComparativoMarcaRoute
+  PreviaDeskRoute: typeof PreviaDeskRoute
   PreviaDeskIndicadoresRoute: typeof PreviaDeskIndicadoresRoute
   ApiPesquisaAssistenteRoute: typeof ApiPesquisaAssistenteRoute
   CanvasTokenRoute: typeof CanvasTokenRoute
@@ -1425,6 +1438,13 @@ declare module '@tanstack/react-router' {
       path: '/previa-comparativo-marca'
       fullPath: '/previa-comparativo-marca'
       preLoaderRoute: typeof PreviaComparativoMarcaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/previa-desk': {
+      id: '/previa-desk'
+      path: '/previa-desk'
+      fullPath: '/previa-desk'
+      preLoaderRoute: typeof PreviaDeskRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/previa-desk-indicadores': {
@@ -2335,6 +2355,7 @@ const rootRouteChildren: RootRouteChildren = {
   PreviaAppClienteRoute: PreviaAppClienteRoute,
   PreviaCaseidRoute: PreviaCaseidRoute,
   PreviaComparativoMarcaRoute: PreviaComparativoMarcaRoute,
+  PreviaDeskRoute: PreviaDeskRoute,
   PreviaDeskIndicadoresRoute: PreviaDeskIndicadoresRoute,
   ApiPesquisaAssistenteRoute: ApiPesquisaAssistenteRoute,
   CanvasTokenRoute: CanvasTokenRoute,
