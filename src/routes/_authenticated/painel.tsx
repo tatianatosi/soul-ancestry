@@ -23,6 +23,7 @@ function Painel() {
     <SaasShell
       titulo="Visão Geral"
       descricao="O que está parado, vencido ou pede decisão — com ação e link para a aba dona."
+      visualKit="pantone"
     >
       <PainelDia />
       {/*

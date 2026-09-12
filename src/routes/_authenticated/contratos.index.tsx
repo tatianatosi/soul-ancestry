@@ -81,6 +81,7 @@ function ContratosPage() {
     <SaasShell
       titulo="Contratos"
       descricao="Instrumentos de trabalho interno. Nada aqui é enviado, cobrado ou assinado automaticamente."
+      visualKit="pantone"
       acoes={
         (
           <button

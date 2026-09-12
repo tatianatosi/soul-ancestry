@@ -183,6 +183,7 @@ function BibliotecaPage() {
     <SaasShell
       titulo="Biblioteca Mestre"
       descricao="Base operacional interna do Desk: referências estruturadas que alimentam pesquisa, relatórios e operação. Nada aqui é exposto ao App Cliente."
+      visualKit="pantone"
     >
       {pendenciaVinculo || !podeEscrever ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">

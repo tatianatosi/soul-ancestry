@@ -50,6 +50,7 @@ import {
   type SinalCor,
 } from "@/lib/painel-calls";
 import { VarreduraWhatsApp } from "@/components/crm/varredura-whatsapp";
+import { CrmKanban } from "@/components/clube-ancestral-kit";
 import { CAMPO_LEAD_POR_VARREDURA, codigoLeadDoAchado, type Achado } from "@/lib/varredura-whatsapp";
 
 /** Catálogos de seleção múltipla — não vivem em CATALOGOS (só campo único). */
@@ -607,6 +608,37 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
           </Link>
         </p>
       </Secao>
+
+      <section aria-label="Funil visual do CRM" className="space-y-2">
+        <div>
+          <h2 className="font-serif text-lg text-navy">CRM Vivo</h2>
+          <p className="text-xs text-navy/60">
+            Leads reais organizados pelas filas da Mesa, com responsável, prazo e próximo passo.
+          </p>
+        </div>
+        {isLoading ? (
+          <p className={`${CARTAO} text-xs text-navy/60`}>Carregando CRM…</p>
+        ) : (
+          <CrmKanban
+            columns={filas.map((fila) => ({
+              id: fila.chave,
+              title: fila.rotulo,
+              items: fila.leads.slice(0, 8).map((item) => ({
+                id: item.id ?? `lead-${fila.chave}-${item.nome}`,
+                title: item.nome || "Lead sem nome",
+                context: ROTULO_ESTADO_CALL[estadoCall(item)],
+                owner: item.responsavel_nome || "A definir",
+                due: item.proxima_acao_em
+                  ? String(item.proxima_acao_em).slice(0, 10)
+                  : "Sem prazo",
+                nextAction: item.proxima_acao || "Próximo passo não definido",
+                alert: acaoVencida(item, hoje) ? "Lead com ação vencida" : undefined,
+                tone: acaoVencida(item, hoje) ? "attention" : "neutral",
+              })),
+            }))}
+          />
+        )}
+      </section>
 
       <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
         <div className="space-y-3">
