@@ -5,10 +5,65 @@ import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
-import { painelArvoreGeracoes } from "@/lib/portal-arvore-geracoes";
-import { usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
+import { painelArvoreGeracoes, type GeracaoArvore } from "@/lib/portal-arvore-geracoes";
+import { LinkPortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { cn } from "@/lib/utils";
+import { Search, Clock } from "lucide-react";
+
+/**
+ * Conector real entre gerações (correção 2026-09-12): um leque de linhas da
+ * geração anterior até cada slot desta geração — mostra a estrutura real de
+ * descendência entre as duas faixas, sem inventar QUAL slot é filho de qual
+ * (essa relação pessoa-a-pessoa não existe em dado publicado no portal).
+ */
+function ConectorGeracao({ slots }: { slots: number }) {
+  const pontos = Array.from({ length: slots }, (_, i) => ((i + 0.5) / slots) * 100);
+  return (
+    <svg viewBox="0 0 100 20" className="mx-auto block h-4 w-full max-w-xs" preserveAspectRatio="none" aria-hidden="true">
+      {pontos.map((x, i) => (
+        <path key={i} d={`M 50 0 L ${x} 20`} stroke="var(--gold)" strokeOpacity={0.4} strokeWidth={1} fill="none" />
+      ))}
+    </svg>
+  );
+}
+
+function NoArvore({
+  ehG1,
+  estado,
+  titulo,
+}: {
+  ehG1: boolean;
+  estado: "em_pesquisa" | "a_publicar";
+  titulo?: string;
+}) {
+  const rotuloEstado = estado === "em_pesquisa" ? "Em pesquisa" : "A publicar";
+  return (
+    <div
+      className={cn(
+        "flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-lg border text-center shadow-sm",
+        ehG1 ? "border-2 border-navy bg-navy font-semibold text-cream shadow" : "border-gold/40 bg-white text-navy/55",
+      )}
+      title={ehG1 ? "Você (G1)" : rotuloEstado}
+    >
+      {ehG1 ? (
+        <span className="text-[10px]">Você</span>
+      ) : (
+        <>
+          {/* Ajuste 2026-09-12 (opcional, pedido da Proprietária): no desktop,
+              ícone + tooltip evita repetir o mesmo texto em vários nós; no
+              mobile (sem hover), o texto continua visível. */}
+          {estado === "em_pesquisa" ? (
+            <Search className="hidden h-3.5 w-3.5 text-gold/70 lg:block" aria-hidden="true" />
+          ) : (
+            <Clock className="hidden h-3.5 w-3.5 text-navy/40 lg:block" aria-hidden="true" />
+          )}
+          <span className="text-[8px] leading-tight lg:hidden">{rotuloEstado}</span>
+        </>
+      )}
+    </div>
+  );
+}
 
 function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
@@ -88,11 +143,9 @@ export function PortalArvore() {
                         : COPY_TELAS.arvore.vazio}
                     </p>
                     <div className="mt-5 space-y-1">
-                      {painel.geracoes.map((geracao, gi) => (
+                      {painel.geracoes.map((geracao: GeracaoArvore, gi) => (
                         <div key={geracao.id}>
-                          {gi > 0 ? (
-                            <div className="mx-auto mb-1 h-4 w-px bg-gold/50" aria-hidden />
-                          ) : null}
+                          {gi > 0 ? <ConectorGeracao slots={geracao.slots} /> : null}
                           <p className="mb-2 text-center text-[10px] uppercase tracking-[0.14em] text-navy/45">
                             {geracao.rotulo}
                           </p>
@@ -100,21 +153,11 @@ export function PortalArvore() {
                             {Array.from({ length: geracao.slots }).map((_, i) => {
                               const ehG1 = geracao.id === "G1";
                               return (
-                                <div
+                                <NoArvore
                                   key={`${geracao.id}-${i}`}
-                                  className={cn(
-                                    "flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-lg border text-center text-[10px] shadow-sm",
-                                    ehG1
-                                      ? "border-2 border-navy bg-navy font-semibold text-cream shadow"
-                                      : painel.temPublicacao
-                                        ? "border-gold/40 bg-white text-navy/60"
-                                        : "border-border bg-white text-navy/40",
-                                  )}
-                                  aria-hidden="true"
-                                  {...(ehG1 ? { title: "Você (G1)" } : {})}
-                                >
-                                  {ehG1 ? "Você" : "—"}
-                                </div>
+                                  ehG1={ehG1}
+                                  estado={painel.estadoSlotAnonimo}
+                                />
                               );
                             })}
                           </div>
@@ -125,7 +168,13 @@ export function PortalArvore() {
 
                   {painel.notasPublicadas.length > 0 ? (
                     <section aria-label="Atualizações publicadas da árvore" className="space-y-3">
-                      <h2 className="text-sm font-semibold text-navy">Atualizações publicadas</h2>
+                      <div className="flex items-center justify-between gap-2">
+                        <h2 className="text-sm font-semibold text-navy">Atualizações publicadas</h2>
+                        {/* Só linka para a Jornada quando há evento real publicado para ver lá. */}
+                        <LinkPortal to="/portal/jornada" className="text-xs font-medium text-navy/60 hover:text-navy">
+                          Ver na Jornada
+                        </LinkPortal>
+                      </div>
                       <ul className="space-y-3">
                         {painel.notasPublicadas.map((item) => (
                           <li
