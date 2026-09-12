@@ -94,7 +94,7 @@ export function PortalShell({
   }
 
   return (
-    <div className="min-h-screen bg-cream text-navy" data-marca-guia="oki">
+    <div className="min-h-screen bg-cream text-navy" data-marca-guia="oki" data-visual-kit="pantone">
       <header className="bg-navy px-4 pt-4 text-cream lg:px-8">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-4 pb-4">
           <div className="flex min-w-0 items-center gap-3">

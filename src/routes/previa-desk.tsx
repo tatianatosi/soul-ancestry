@@ -33,5 +33,5 @@ export const Route = createFileRoute("/previa-desk")({
 });
 
 function PreviaDesk() {
-  return <PreviaDeskTelas />;
+  return <div data-visual-kit="pantone"><PreviaDeskTelas /></div>;
 }
