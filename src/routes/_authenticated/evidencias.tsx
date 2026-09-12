@@ -11,6 +11,7 @@ import { SaasShell, useSaas } from "@/components/saas/shell";
 import { PageHeader, SectionHeader } from "@/components/desk/ui-desk";
 import { listarAcessosEvidencia, registrarAcessoEvidencia } from "@/lib/saas.functions";
 import { ESTADOS, rotuloEstado } from "@/lib/estados";
+import { KitBadge, KitCard } from "@/components/clube-ancestral-kit";
 
 export const Route = createFileRoute("/_authenticated/evidencias")({
   head: () => ({
@@ -49,13 +50,30 @@ function EvidenciasPage() {
 
   return (
     <SaasShell
-      titulo="Evidências"
-      descricao="Fontes, evidências e próximos passos do caso — uso interno."
+      titulo="Documentos e evidências"
+      descricao="Documentos, fontes e evidências com estados separados e acesso auditado."
+      visualKit="pantone"
     >
       <PageHeader
         titulo="Biblioteca de evidências"
         subtitulo="Caso → hipótese → fonte → evidência → estado de validação. Cada visualização é registrada; documento é evidência, nunca conclusão jurídica."
       />
+      <KitCard
+        className="mb-4"
+        eyebrow="Área de Documentos"
+        title="Fluxo documental"
+        action={<KitBadge tone="gold">Acesso auditado</KitBadge>}
+      >
+        <ol className="grid gap-2 text-xs sm:grid-cols-4">
+          {["Documento recebido", "Fonte catalogada", "Evidência em revisão", "Publicação autorizada"].map((etapa, indice) => (
+            <li key={etapa} className="rounded-md border border-navy/10 bg-cream/40 p-3 text-navy">
+              <span className="mb-1 block text-[10px] font-semibold uppercase text-navy/45">Etapa {indice + 1}</span>
+              {etapa}
+            </li>
+          ))}
+        </ol>
+        <p className="mt-3 text-xs text-navy/60">O fluxo indica estados possíveis; os registros abaixo são os dados reais da organização.</p>
+      </KitCard>
       {pendenciaVinculo ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
           Pendência registrada: {pendenciaVinculo}

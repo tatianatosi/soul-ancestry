@@ -15,6 +15,7 @@ import {
   convidarMembroEquipe,
   listarEquipe,
 } from "@/lib/equipe.functions";
+import { KitBadge, KitCard, KpiCard } from "@/components/clube-ancestral-kit";
 
 export const Route = createFileRoute("/_authenticated/equipe")({
   head: () => ({
@@ -103,26 +104,22 @@ function EquipePage() {
     <SaasShell
       titulo="Usuários e papéis"
       descricao="Equipe interna acessa por e-mail e senha. Não existe autocadastro."
+      visualKit="pantone"
     >
       {!liberado ? (
         <EstadoVazio mensagem={decisao.motivo} />
       ) : (
         <div className="space-y-8">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <CardIndicador rotulo="Usuários ativos" valor={usuariosAtivos} apoio="Status ativo" />
-            <CardIndicador rotulo="Convites pendentes" valor={convitesPendentes} apoio="Aguardando definição de senha" tom="atencao" />
-            <CardIndicador rotulo="Suspensos ou revogados" valor={suspensosOuRevogados} apoio="Sem acesso ativo" tom="critico" />
-            <CardIndicador
-              rotulo="Papéis não reconhecidos"
-              valor={papeisNaoReconhecidos}
-              apoio="Ativo com papel fora da lista padrão"
-              tom="critico"
-            />
+            <KpiCard label="Usuários ativos" value={usuariosAtivos} detail="Status ativo" tone="success" />
+            <KpiCard label="Convites pendentes" value={convitesPendentes} detail="Aguardando definição de senha" tone="attention" />
+            <KpiCard label="Suspensos ou revogados" value={suspensosOuRevogados} detail="Sem acesso ativo" tone="critical" />
+            <KpiCard label="Papéis não reconhecidos" value={papeisNaoReconhecidos} detail="Fora da lista padrão" tone="critical" />
           </div>
 
           <StatusEnvioRecuperacao />
 
-          <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
+          <KitCard eyebrow="Acesso Master" title="Convidar membro" action={<KitBadge tone="gold">Equipe interna</KitBadge>}>
             <h2 className="font-serif text-xl">Convidar membro</h2>
             <p className="mt-1 text-sm text-navy/60">
               O convite envia um link temporário apenas para definir a senha inicial. Papel e organização são
@@ -182,7 +179,7 @@ function EquipePage() {
             </button>
             {msg ? <p className="mt-3 text-sm text-green-700">{msg}</p> : null}
             {erro ? <p className="mt-3 text-sm text-terracotta">{erro}</p> : null}
-          </section>
+          </KitCard>
 
           <section>
             <h2 className="font-serif text-xl">Membros</h2>

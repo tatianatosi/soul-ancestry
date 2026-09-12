@@ -167,6 +167,7 @@ function AreaPesquisaEvidencias() {
     <SaasShell
       titulo="Pesquisa Genealógica e Evidências"
       descricao="Documentos, solicitações, evidências e pendências internas do caso."
+      visualKit="pantone"
     >
     <div className="space-y-6">
       <header className="space-y-1">

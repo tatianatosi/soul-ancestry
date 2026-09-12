@@ -27,6 +27,7 @@ import {
   verFonteDocumento,
 } from "@/lib/fontes-documentos.functions";
 import { VinculosDoDocumento } from "@/components/pesquisa/fontes-vinculos";
+import { KitBadge, KitCard, KpiCard } from "@/components/clube-ancestral-kit";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -208,9 +209,17 @@ export function SecaoFontesDocumentos({ caseId }: { caseId: string }) {
 
   const detalhe = documentos.find((doc) => String(doc["id"]) === detalheId) ?? null;
   const ativos = documentos.filter((doc) => !doc["archived_at"]).length;
+  const pendentes = documentos.filter((doc) => !doc["archived_at"] && doc["status"] === "pendente_revisao").length;
+  const vinculados = documentos.filter((doc) => !doc["archived_at"] && doc["pessoa_ref_id"]).length;
 
   return (
-    <section className="space-y-4 rounded-xl border border-navy/10 bg-cream/40 p-5">
+    <section className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <KpiCard label="Documentos ativos" value={painel.data ? ativos : null} detail="Acervo deste caso" />
+        <KpiCard label="Em revisão" value={painel.data ? pendentes : null} detail="Aguardando conferência" tone="attention" />
+        <KpiCard label="Com pessoa vinculada" value={painel.data ? vinculados : null} detail="Identidade relacionada" />
+      </div>
+      <KitCard eyebrow="Documentos" title="Acervo privado do caso" action={<KitBadge tone="gold">Sem publicação automática</KitBadge>}>
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-serif text-lg text-navy">Fontes e documentos</h2>
@@ -230,6 +239,7 @@ export function SecaoFontesDocumentos({ caseId }: { caseId: string }) {
           </button>
         )}
       </header>
+      </KitCard>
 
       {painel.isLoading && <p className="text-sm text-navy/60">Carregando fontes e documentos…</p>}
       {painel.error && <p className="text-sm text-terracotta">{String((painel.error as any).message)}</p>}
