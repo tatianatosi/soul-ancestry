@@ -197,7 +197,7 @@ function ContratoDetalhe() {
       <AvisoInstrumento tipo={c.contract_type} status={c.status} />
 
       {d.contratoBase ? (
-        <p className="mt-3 rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm">
+        <p className="mt-3 rounded-lg border border-navy/15 bg-cream/40 px-3 py-2 text-sm">
           Contrato-base vinculado: <strong>{(d.contratoBase as any).contract_number}</strong> —{" "}
           {(d.contratoBase as any).title}. Permanece íntegro e em leitura.
         </p>
@@ -299,7 +299,7 @@ function ContratoDetalhe() {
           <button
             key={a}
             onClick={() => setAba(a)}
-            className={`shrink-0 rounded-t-lg px-3 py-2 text-sm ${aba === a ? "bg-white font-medium text-navy" : "text-navy/60 hover:text-navy"}`}
+            className={`shrink-0 rounded-t-lg px-3 py-2 text-sm ${aba === a ? "bg-cream/40 font-medium text-navy" : "text-navy/60 hover:text-navy"}`}
           >
             {a}
           </button>
@@ -308,7 +308,7 @@ function ContratoDetalhe() {
           <summary className="cursor-pointer list-none rounded-t-lg px-3 py-2 text-sm text-navy/50 hover:text-navy/70">
             Dados técnicos ▾
           </summary>
-          <div className="absolute right-0 z-10 flex flex-col rounded-lg border border-navy/10 bg-white p-1 shadow-lg">
+          <div className="absolute right-0 z-10 flex flex-col rounded-lg border border-navy/10 bg-cream/40 p-1 shadow-lg">
             {ABAS_AVANCADAS.map((a) => (
               <button
                 key={a}
@@ -322,7 +322,7 @@ function ContratoDetalhe() {
         </details>
       </nav>
 
-      <div className="rounded-b-xl rounded-tr-xl border border-navy/10 bg-white p-4">
+      <div className="rounded-b-xl rounded-tr-xl border border-navy/10 bg-cream/40 p-4">
         {aba === "Resumo" ? <Resumo dados={d} onSalvo={recarregar} /> : null}
         {aba === "Partes" ? <Partes dados={d} contratoId={id} onSalvo={recarregar} /> : null}
         {aba === "Escopo" ? <Escopo dados={d} contratoId={id} onSalvo={recarregar} /> : null}
@@ -1107,7 +1107,7 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
         )}
       </EstadoDados>
       {previa ? (
-        <section className="overflow-hidden rounded-lg border border-navy/15 bg-white">
+        <section className="overflow-hidden rounded-lg border border-navy/15 bg-cream/40">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-navy/10 bg-cream/60 px-3 py-2">
             <div>
               <p className="text-sm font-medium text-navy">Prévia interna · versão {previa.versao}</p>
@@ -1130,7 +1130,7 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
             title={`Prévia interna da versão ${previa.versao}`}
             srcDoc={previa.html}
             sandbox=""
-            className="h-[65vh] min-h-[480px] w-full bg-white"
+            className="h-[65vh] min-h-[480px] w-full bg-cream/40"
           />
         </section>
       ) : null}

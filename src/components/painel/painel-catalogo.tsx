@@ -70,7 +70,7 @@ export function PainelCatalogo() {
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {blocos.map((b) => (
-          <div key={b.chave} className="rounded-xl border border-navy/10 bg-white p-4">
+          <div key={b.chave} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
             <div className="flex items-baseline justify-between">
               <p className="text-xs uppercase tracking-wide text-navy/50">{b.rotulo}</p>
               <span className="font-serif text-2xl text-navy">{b.itens.length}</span>
@@ -94,7 +94,7 @@ export function PainelCatalogo() {
           </div>
         ))}
 
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <div className="flex items-baseline justify-between">
             <p className="text-xs uppercase tracking-wide text-navy/50">
               Casos bloqueados por SKU não homologado
@@ -122,7 +122,7 @@ export function PainelCatalogo() {
         </div>
       </div>
 
-      <div className="mt-3 rounded-xl border border-navy/10 bg-white p-4">
+      <div className="mt-3 rounded-xl border border-navy/10 bg-cream/40 p-4">
         <p className="text-xs uppercase tracking-wide text-navy/50">
           Critérios para liberar um SKU
         </p>

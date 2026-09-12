@@ -220,6 +220,21 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`). `GRUPOS_DESK` permanece 
 Prints: `docs/provas/2026-09-12-mesa-discovery-oki/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`). `GRUPOS_DESK` permanece 6.
 
+
+## Fatia 2026-09-12 — Painel Hoje + Governança/Contrato cream (p.11)
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `PainelDia` / `PainelDeskHoje` / top30 / catálogo | Cards `bg-white` | `bg-cream/40` |
+| Manifesto governança + contrato-base | Painéis brancos | Cream |
+| `/contratos/$id`, onboarding, biblioteca evidências | Cards brancos | Cream |
+| `planejador-operacional` | Cards brancos | Cream |
+| Prévia `?face=visao` | Só KPIs | + fila do dia + bloqueios cream |
+| Gate marca | Checklist | Painel Hoje + governança/contrato = ok |
+
+Prints: `docs/provas/2026-09-12-painel-hoje-oki/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`). `GRUPOS_DESK` permanece 6.
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

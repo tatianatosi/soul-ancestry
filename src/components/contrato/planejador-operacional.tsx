@@ -149,7 +149,7 @@ export function PlanejadorOperacional({
         value={estado[chave]}
         onChange={(e) => setEstado((s) => ({ ...s, [chave]: e.target.value }))}
         placeholder={placeholder}
-        className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+        className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
       />
     </label>
   );
@@ -162,7 +162,7 @@ export function PlanejadorOperacional({
         onChange={(e) => setEstado((s) => ({ ...s, [chave]: e.target.value }))}
         placeholder={dica}
         rows={3}
-        className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+        className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
       />
       <span className="text-[10px] text-navy/40">Um item por linha.</span>
     </label>
@@ -182,7 +182,7 @@ export function PlanejadorOperacional({
           <select
             value={estado.composicao}
             onChange={(e) => setEstado((s) => ({ ...s, composicao: e.target.value as Composicao | "" }))}
-            className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+            className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
           >
             <option value="">Selecione…</option>
             {COMPOSICOES.map((c) => (
@@ -204,7 +204,7 @@ export function PlanejadorOperacional({
           <select
             value={estado.produtoSkuCodigo}
             onChange={(e) => setEstado((s) => ({ ...s, produtoSkuCodigo: e.target.value }))}
-            className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+            className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
           >
             <option value="">Selecione…</option>
             {(skus.data?.skus ?? []).map((s) => (
@@ -221,7 +221,7 @@ export function PlanejadorOperacional({
             type="date"
             value={estado.prazoProximaAcao}
             onChange={(e) => setEstado((s) => ({ ...s, prazoProximaAcao: e.target.value }))}
-            className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+            className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
           />
         </label>
       </div>

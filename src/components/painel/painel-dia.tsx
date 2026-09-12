@@ -92,7 +92,7 @@ function AvisoLeituraPainel({ problemas }: { problemas: ProblemaPainel[] }) {
   return (
     <details
       data-aviso-leitura-painel
-      className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy"
+      className="rounded-xl border border-navy/10 bg-cream/40 p-4 text-sm text-navy"
     >
       <summary className="cursor-pointer font-medium text-navy">Detalhes técnicos de leitura</summary>
       <p className="mt-2 text-xs text-navy/75">A leitura desta tela saiu do padrão acordado</p>
@@ -826,7 +826,7 @@ export function PainelDia() {
       {/* 3 — Minha fila priorizada */}
       <section
         data-painel-bloco="fila_priorizada"
-        className="rounded-xl border border-navy/10 bg-white p-5"
+        className="rounded-xl border border-navy/10 bg-cream/40 p-5"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <h2 className="min-w-0 font-serif text-lg text-navy">Minha fila priorizada</h2>
@@ -842,7 +842,7 @@ export function PainelDia() {
               <label key={campo} className="flex min-w-0 items-center gap-1 text-navy/60">
                 <span className="shrink-0">{rotuloCampo}</span>
                 <select
-                  className="min-w-0 max-w-full flex-1 rounded border border-navy/15 bg-white px-2 py-1 text-navy sm:flex-none"
+                  className="min-w-0 max-w-full flex-1 rounded border border-navy/15 bg-cream/40 px-2 py-1 text-navy sm:flex-none"
                   value={filtros[campo] ?? ""}
                   onChange={(e) => setFiltros((f) => ({ ...f, [campo]: e.target.value }))}
                 >
@@ -922,7 +922,7 @@ export function PainelDia() {
       <section
         id="excecoes"
         data-painel-bloco="excecoes"
-        className="rounded-xl border border-navy/10 bg-white p-5"
+        className="rounded-xl border border-navy/10 bg-cream/40 p-5"
       >
         <h2 className="font-serif text-lg text-navy">Exceções que exigem dono</h2>
         <AncoraApp bloco="excecoes" />
@@ -979,7 +979,7 @@ export function PainelDia() {
 
       <section
         data-painel-bloco="comercial"
-        className="rounded-xl border border-navy/10 bg-white p-5"
+        className="rounded-xl border border-navy/10 bg-cream/40 p-5"
       >
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="min-w-0 font-serif text-lg text-navy">Comercial hoje</h2>
@@ -1018,7 +1018,7 @@ export function PainelDia() {
       </section>
 
       {/* 5 — Casos com prazo em atenção. Catálogo e condição comercial ficam nos sinais e na área proprietária. */}
-      <section data-painel-bloco="prazos" className="rounded-xl border border-navy/10 bg-white p-5">
+      <section data-painel-bloco="prazos" className="rounded-xl border border-navy/10 bg-cream/40 p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="min-w-0 font-serif text-lg text-navy">
             Cadência — quem precisa de um toque
@@ -1071,7 +1071,7 @@ export function PainelDia() {
       */}
       <section
         data-painel-bloco="descoberta"
-        className="rounded-xl border border-navy/10 bg-white p-5"
+        className="rounded-xl border border-navy/10 bg-cream/40 p-5"
       >
         <h2 className="font-serif text-lg text-navy">Encontrar no Desk</h2>
         <AncoraApp bloco="descoberta" />
@@ -1149,7 +1149,7 @@ export function PainelDia() {
         />
       </section>
 
-      <div className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy/70">
+      <div className="rounded-xl border border-navy/10 bg-cream/40 p-4 text-sm text-navy/70">
         <button
           onClick={() => setAjuda((v) => !v)}
           className="text-xs uppercase tracking-wide text-navy/55"
@@ -1219,7 +1219,7 @@ function AlertasPrioritariosDoPainel() {
   const linhas = q.data ?? [];
 
   return (
-    <section data-painel-bloco="alertas" className="rounded-xl border border-navy/10 bg-white p-5">
+    <section data-painel-bloco="alertas" className="rounded-xl border border-navy/10 bg-cream/40 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="min-w-0 font-serif text-lg text-navy">Alertas de achados pendentes</h2>
         <Link to="/alertas" className="shrink-0 text-xs text-navy/60 underline">

@@ -33,7 +33,7 @@ export function PainelOnboardingJornada() {
   });
 
   return (
-    <section className="mt-6 rounded-xl border border-navy/10 bg-white p-5">
+    <section className="mt-6 rounded-xl border border-navy/10 bg-cream/40 p-5">
       <h2 className="font-serif text-xl text-navy">Onboarding e jornada</h2>
       <p className="mt-1 text-xs text-navy/60">
         Diagnóstico interno de gates, cadência e entregas. Nenhuma comunicação é enviada

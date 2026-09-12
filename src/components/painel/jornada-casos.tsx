@@ -18,7 +18,7 @@ export function JornadaCasos({ casos }: { casos: readonly CasoNaJornada[] }) {
   if (!leitura.total) return null;
 
   return (
-    <section id="jornada-dos-casos" className="rounded-xl border border-navy/10 bg-white p-5">
+    <section id="jornada-dos-casos" className="rounded-xl border border-navy/10 bg-cream/40 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-serif text-lg text-navy">Jornada dos casos</h2>
         <p className="text-xs text-navy/55">
@@ -56,7 +56,7 @@ export function JornadaCasos({ casos }: { casos: readonly CasoNaJornada[] }) {
                     ? "border-navy/10 bg-cream/30 hover:bg-cream/50"
                     : parado
                       ? "border-terracotta/40 bg-terracotta/5 hover:bg-terracotta/10"
-                      : "border-navy/15 bg-white hover:bg-navy/5"
+                      : "border-navy/15 bg-cream/40 hover:bg-navy/5"
                 }`}
               >
                 <div className="flex items-baseline justify-between gap-2">

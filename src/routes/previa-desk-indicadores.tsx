@@ -202,9 +202,10 @@ function PreviaDeskIndicadores() {
 
 function FaceVisao() {
   return (
-    <section aria-label="KPIs Visão Geral" className="space-y-3">
+    <section aria-label="KPIs Visão Geral" className="space-y-4" data-face-visao>
       <p className="text-[11px] uppercase tracking-wide text-navy/50">
-        Painel Hoje · decisão (sem receita / conversão)
+        Painel Hoje · decisão (sem receita / conversão) · runtime{" "}
+        <code className="font-mono normal-case tracking-normal">/painel</code>
       </p>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-xl border border-navy/10 bg-cream/50 px-4 py-3">
@@ -221,6 +222,32 @@ function FaceVisao() {
         <CardIndicador rotulo="Sem responsável" valor={1} apoio="Atribuir dono" tom="atencao" />
         <CardIndicador rotulo="Exceções críticas" valor={2} apoio="Bloqueios operacionais" tom="critico" />
         <CardIndicador rotulo="SLA em risco" valor={null} apoio="Sem dados suficientes" />
+      </div>
+      <div className="grid gap-3 lg:grid-cols-2">
+        <article className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Fila do dia (DEMO)</p>
+          <ul className="mt-2 space-y-2 text-sm text-navy">
+            <li className="flex justify-between gap-2 border-b border-navy/10 pb-2">
+              <span>Confirmar docs mínimos · Caso Piccoli</span>
+              <span className="text-xs text-terracotta">vencida</span>
+            </li>
+            <li className="flex justify-between gap-2 border-b border-navy/10 pb-2">
+              <span>Call Discovery · LD-DEMO-014</span>
+              <span className="text-xs text-navy/60">hoje 14h</span>
+            </li>
+            <li className="flex justify-between gap-2">
+              <span>Publicar entrega sanitizada · Árvore</span>
+              <span className="text-xs text-navy/60">hoje</span>
+            </li>
+          </ul>
+        </article>
+        <article className="rounded-xl border border-gold/40 bg-cream/50 p-4">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Bloqueios visíveis</p>
+          <p className="mt-1 text-sm font-medium text-navy">2 exceções críticas · 1 sem responsável</p>
+          <p className="mt-1 text-xs text-navy/65">
+            Chrome cream no PainelDia vivo — sem cards brancos SaaS. GRUPOS_DESK = 6.
+          </p>
+        </article>
       </div>
       <div className="grid gap-2 sm:grid-cols-3">
         {[

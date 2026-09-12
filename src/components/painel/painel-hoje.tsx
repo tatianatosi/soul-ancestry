@@ -72,7 +72,7 @@ function ConteudoPainelHoje({ dados }: { dados: DadosPainelHoje }) {
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {filas.map((fila) => (
-          <div key={fila.rotulo} className="rounded-xl border border-navy/10 bg-white p-4">
+          <div key={fila.rotulo} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
             <div className="flex items-baseline justify-between">
               <p className="text-xs uppercase tracking-wide text-navy/50">{fila.rotulo}</p>
               <span className="font-serif text-2xl text-navy">{fila.itens.length}</span>
@@ -91,7 +91,7 @@ function ConteudoPainelHoje({ dados }: { dados: DadosPainelHoje }) {
           </div>
         ))}
 
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <p className="text-xs uppercase tracking-wide text-navy/50">Importações Placego</p>
           <ul className="mt-2 space-y-1 text-xs text-navy/60">
             <li>Lotes com erro: {dados.importacoes.comErro.length}</li>
@@ -103,7 +103,7 @@ function ConteudoPainelHoje({ dados }: { dados: DadosPainelHoje }) {
           </Link>
         </div>
 
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <p className="text-xs uppercase tracking-wide text-navy/50">Conversão e investimento</p>
           <ul className="mt-2 space-y-1 text-xs text-navy/60">
             <li>Investimento registrado: {moeda(metricas?.investimentoTotal ?? 0)}</li>

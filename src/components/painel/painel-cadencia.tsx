@@ -24,7 +24,7 @@ export function PainelCadencia() {
       .slice(0, 12);
 
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-5">
+    <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
       <h2 className="font-serif text-lg text-navy">Cadência dos casos</h2>
       <p className="mt-1 text-xs text-navy/55">
         Dias sem atualização contextualizada ao cliente. Espera institucional comunicada não conta

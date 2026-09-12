@@ -81,7 +81,7 @@ function Campo({ label, ajuda, children }: { label: string; ajuda?: string; chil
   );
 }
 
-const inputCls = "mt-1 w-full rounded border border-navy/20 bg-white px-2 py-1.5 text-xs text-navy";
+const inputCls = "mt-1 w-full rounded border border-navy/20 bg-cream/40 px-2 py-1.5 text-xs text-navy";
 
 type Aba = "evidencias" | "nova" | "validacao" | "projecoes" | "cadeia";
 
@@ -281,7 +281,7 @@ function Pagina() {
             <p className="text-xs text-navy/60">Nenhuma evidência registrada para este caso.</p>
           ) : null}
           {evidencias.map((e) => (
-            <article key={String(e["id"])} className="rounded border border-navy/15 bg-white p-3">
+            <article key={String(e["id"])} className="rounded border border-navy/15 bg-cream/40 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-sm font-semibold text-navy">{String(e["title_internal"])}</h2>
                 <span className="rounded-full bg-cream px-2 py-0.5 text-[11px] text-navy">
@@ -354,7 +354,7 @@ function Pagina() {
                 effective_from: p["effective_from"] as string | null,
               });
               return (
-              <article key={String(p["id"])} className="rounded border border-navy/15 bg-white p-3">
+              <article key={String(p["id"])} className="rounded border border-navy/15 bg-cream/40 p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold text-navy">{String(p["projection_type"])}</h3>
                   <span className="rounded-full bg-cream px-2 py-0.5 text-[11px] text-navy">
@@ -443,7 +443,7 @@ function Pagina() {
           {evidencias.map((e) => {
             const c = cadeiaDaEvidencia(e, validacoes, projecoes);
             return (
-              <article key={String(e["id"])} className="rounded border border-navy/15 bg-white p-3 text-xs text-navy">
+              <article key={String(e["id"])} className="rounded border border-navy/15 bg-cream/40 p-3 text-xs text-navy">
                 <p className="font-semibold">{String(e["title_internal"])}</p>
                 <p className="mt-1 text-[11px] text-navy/70">
                   Evidência → {c.validacoes.length} validação(ões) → {c.projecoes.length} projeção(ões) ·{" "}
@@ -491,7 +491,7 @@ function FormEvidencia({
   const check = validarEvidencia(v);
 
   return (
-    <section className="grid gap-3 rounded border border-navy/15 bg-white p-4 md:grid-cols-2">
+    <section className="grid gap-3 rounded border border-navy/15 bg-cream/40 p-4 md:grid-cols-2">
       <Campo label="Título interno">
         <input className={inputCls} value={String(v["title_internal"] ?? "")} onChange={(e) => set("title_internal", e.target.value)} />
       </Campo>
@@ -649,7 +649,7 @@ function FormValidacao({
   });
 
   return (
-    <section className="grid gap-3 rounded border border-navy/15 bg-white p-4 md:grid-cols-2">
+    <section className="grid gap-3 rounded border border-navy/15 bg-cream/40 p-4 md:grid-cols-2">
       <Campo label="Evidência">
         <select className={inputCls} value={selecionada} onChange={(e) => onSelecionar(e.target.value)}>
           <option value="">Selecione…</option>
@@ -725,7 +725,7 @@ function FormProjecao({
   const checkEv = checkOrigem;
 
   return (
-    <section className="grid gap-3 rounded border border-navy/15 bg-white p-4 md:grid-cols-2">
+    <section className="grid gap-3 rounded border border-navy/15 bg-cream/40 p-4 md:grid-cols-2">
       <Campo label="Tipo de origem">
         <select
           className={inputCls}

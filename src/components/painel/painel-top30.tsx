@@ -89,7 +89,7 @@ export function PainelTop30() {
       </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <div className="flex items-baseline justify-between">
             <p className="text-xs uppercase tracking-wide text-navy/50">
               Homologados para proposta
@@ -110,7 +110,7 @@ export function PainelTop30() {
           </ul>
         </div>
 
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <div className="flex items-baseline justify-between">
             <p className="text-xs uppercase tracking-wide text-navy/50">Top 30 em revisão</p>
             <span className="font-serif text-2xl text-navy">{filas.top30EmRevisao.length}</span>
@@ -126,7 +126,7 @@ export function PainelTop30() {
           </ul>
         </div>
 
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <div className="flex items-baseline justify-between">
             <p className="text-xs uppercase tracking-wide text-navy/50">
               Entregas pendentes de aprovação
@@ -146,7 +146,7 @@ export function PainelTop30() {
         </div>
 
         {filasCasos.map((f) => (
-          <div key={f.chave} className="rounded-xl border border-navy/10 bg-white p-4">
+          <div key={f.chave} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
             <div className="flex items-baseline justify-between">
               <p className="text-xs uppercase tracking-wide text-navy/50">{f.rotulo}</p>
               <span className="font-serif text-2xl text-navy">{f.itens.length}</span>
@@ -162,7 +162,7 @@ export function PainelTop30() {
           </div>
         ))}
 
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <p className="text-xs uppercase tracking-wide text-navy/50">Pendências por responsável</p>
           <ul className="mt-2 space-y-1 text-xs text-navy/60">
             {pendenciasPorResponsavel.slice(0, 8).map((r) => (
@@ -177,7 +177,7 @@ export function PainelTop30() {
           </ul>
         </div>
 
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <p className="text-xs uppercase tracking-wide text-navy/50">Casos por fase do plano</p>
           <p className="mt-0.5 text-[11px] text-navy/45">
             Fase do plano operacional (<code>case_plans.fase_jornada</code>), não a fase do CRM
@@ -230,7 +230,7 @@ function ListaProdutos({
   }[];
 }) {
   return (
-    <div className="rounded-xl border border-navy/10 bg-white p-4">
+    <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
       <div className="flex items-baseline justify-between">
         <p className="text-xs uppercase tracking-wide text-navy/50">{titulo}</p>
         <span className="font-serif text-2xl text-navy">{itens.length}</span>
