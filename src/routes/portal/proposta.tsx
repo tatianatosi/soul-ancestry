@@ -76,7 +76,7 @@ function PropostaPage() {
                 {data.faturas.map((f) => (
                   <li key={f.id} className="flex items-center justify-between rounded-xl border border-navy/10 bg-cream/40 p-4">
                     <div>
-                      <p className="font-medium">{f.descricao}</p>
+                      <p className="font-medium">{f.numero ? `Fatura ${f.numero}` : "Fatura"}</p>
                       <p className="text-sm text-navy/60">
                         {f.status}
                         {f.vencimento ? ` · vence em ${new Date(f.vencimento).toLocaleDateString("pt-BR")}` : ""}

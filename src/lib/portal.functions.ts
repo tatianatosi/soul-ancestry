@@ -272,11 +272,15 @@ export const portalProposta = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     semCache();
     const supabase = context.supabase as any;
+    // CA-APP-01 (09/09/2026): lia eventos_financeiros, tabela legada sem
+    // linha real nenhuma — "Condições" nunca mostrava a fatura de verdade.
+    // invoices já tem RLS própria do portal (invoices_sel_portal: organização,
+    // caso autorizado, liberada_cliente=true) — fonte viva certa.
     const [casos, faturas] = await Promise.all([
       supabase.from("portal_casos").select("id, codigo, titulo, pais, via, status"),
       supabase
-        .from("eventos_financeiros")
-        .select("id, descricao, valor, moeda, status, vencimento")
+        .from("invoices")
+        .select("id, numero, valor, moeda, status, vencimento")
         .order("vencimento", { ascending: true }),
     ]);
     return { casos: (casos.data ?? []) as any[], faturas: (faturas.data ?? []) as any[] };
