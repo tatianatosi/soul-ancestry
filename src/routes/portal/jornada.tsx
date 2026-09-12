@@ -181,14 +181,38 @@ function TrilhaCompacta({ passoAtualIndice }: { passoAtualIndice: number | null 
   );
 }
 
+/**
+ * Cor do nó na linha contínua (correção 2026-09-12, acabamento): passado
+ * dourado suave -> dourado -> transição na União de Ramos -> presente navy
+ * médio -> navy profundo na próxima ação; Legado volta a dourado suave.
+ * Sem terracota/laranja/roxo — só os tokens Pantone já aprovados.
+ */
+function corDoNo(no: NoEvento, ultimo: boolean): string {
+  if (no.categoria === "gold-soft") return "var(--gold-soft)";
+  if (no.categoria === "gold") return "var(--gold)";
+  return ultimo ? "var(--navy)" : "var(--navy-800)";
+}
+
 function TimelineVertical({ nos }: { nos: No[] }) {
+  const paradas = nos
+    .map((no, i) => ({ no, i }))
+    .filter((x): x is { no: NoEvento; i: number } => x.no.tipo === "evento")
+    .map(({ no, i }) => {
+      const pct = nos.length > 1 ? (i / (nos.length - 1)) * 100 : 0;
+      return `${corDoNo(no, i === nos.length - 1)} ${pct}%`;
+    });
+  const gradiente = `linear-gradient(to bottom, ${paradas.join(", ")})`;
+
   return (
-    <ol className="relative mx-auto max-w-[820px]">
+    <div className="relative mx-auto max-w-[820px]">
+      {/* Linha única contínua por trás dos marcadores — sem segmentos soltos. */}
+      <div className="absolute inset-y-0 left-0 w-0.5 rounded-full" style={{ background: gradiente }} aria-hidden="true" />
+      <ol className="relative">
       {nos.map((no, i) =>
         no.tipo === "ponte" ? (
-          <li key={`ponte-${i}`} className="relative border-l-2 border-gold/50 py-3 pl-5">
+          <li key={`ponte-${i}`} className="relative py-3 pl-5">
             <span
-              className="absolute -left-[7px] top-4 h-3.5 w-3.5 rounded-full border-2 border-navy bg-gold"
+              className="absolute -left-[7px] top-4 h-3.5 w-3.5 rounded-full border-2 border-navy-800 bg-gold"
               aria-hidden="true"
             />
             <p className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gradient-to-r from-gold/15 to-navy/10 px-3 py-1 text-[11px] font-semibold text-navy">
@@ -197,21 +221,13 @@ function TimelineVertical({ nos }: { nos: No[] }) {
             <p className="mt-1 text-xs text-navy/70">{no.texto}</p>
           </li>
         ) : (
-          <li
-            key={no.id}
-            className={cn(
-              "relative py-4 pl-5 last:pb-0 lg:py-6",
-              no.categoria === "gold" && "border-l-2 border-gold",
-              no.categoria === "gold-soft" && "border-l-2 border-gold/40",
-              no.categoria === "navy" && "border-l-2 border-navy/40",
-            )}
-          >
+          <li key={no.id} className="relative py-4 pl-5 last:pb-0 lg:py-6">
             <span
               className={cn(
                 "absolute -left-[5px] top-5 h-2.5 w-2.5 rounded-full",
                 no.categoria === "gold" && "bg-gold",
                 no.categoria === "gold-soft" && "bg-gold/50",
-                no.categoria === "navy" && "bg-navy",
+                no.categoria === "navy" && (no.id === "__agora__" ? "bg-navy" : "bg-navy-800"),
               )}
               aria-hidden="true"
             />
@@ -238,7 +254,8 @@ function TimelineVertical({ nos }: { nos: No[] }) {
           </li>
         ),
       )}
-    </ol>
+      </ol>
+    </div>
   );
 }
 
