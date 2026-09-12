@@ -213,7 +213,7 @@ function AcessosPortalPage() {
             ))}
           </section>
 
-          <section className="rounded-xl border border-navy/10 bg-white p-5">
+          <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
             <h2 className="font-serif text-xl">E-mails autorizados</h2>
             <p className="mt-1 text-sm text-navy/60">
               Sem senha e sem autocadastro. Todo e-mail precisa de finalidade registrada e validação humana antes de
@@ -358,7 +358,7 @@ function AcessosPortalPage() {
             </ul>
           </section>
 
-          <section className="rounded-xl border border-navy/10 bg-white p-5">
+          <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
             <h2 className="font-serif text-xl">Novo convite</h2>
             <p className="mt-1 text-sm text-navy/60">
               O seletor de pessoa lista somente quem é elegível ao nível escolhido. Registros bloqueados ficam fora da
@@ -545,7 +545,7 @@ function AcessosPortalPage() {
                   return (
                     <div
                       key={a.id}
-                      className={`rounded-xl border p-4 ${a.is_demo ? "border-dashed border-gold/60 bg-gold/5" : "border-navy/10 bg-white"}`}
+                      className={`rounded-xl border p-4 ${a.is_demo ? "border-dashed border-gold/60 bg-gold/5" : "border-navy/10 bg-cream/40"}`}
                     >
 
                       <div className="flex flex-wrap items-start justify-between gap-3">

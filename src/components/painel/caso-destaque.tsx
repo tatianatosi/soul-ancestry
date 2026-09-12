@@ -25,7 +25,7 @@ export function CasoEmDestaque({ dados }: { dados: CasoDestaqueDados | null }) {
     return (
       <section
         data-painel-bloco="destaque"
-        className="rounded-xl border border-navy/10 bg-white p-5"
+        className="rounded-xl border border-navy/10 bg-cream/40 p-5"
       >
         <h2 className="font-serif text-lg text-navy">Caso em destaque</h2>
         <p className="mt-2 text-sm text-navy/55">
@@ -41,7 +41,7 @@ export function CasoEmDestaque({ dados }: { dados: CasoDestaqueDados | null }) {
   return (
     <section
       data-painel-bloco="destaque"
-      className="rounded-xl border border-navy/15 bg-white p-5 shadow-[0_1px_2px_rgba(16,16,16,0.04)]"
+      className="rounded-xl border border-navy/15 bg-cream/40 p-5 shadow-[0_1px_2px_rgba(16,16,16,0.04)]"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-serif text-lg text-navy">Caso em destaque</h2>

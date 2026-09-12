@@ -19,12 +19,29 @@
  */
 
 import type { DadosPortal } from "@/components/portal/fonte-portal";
+import { identidadeDeDemo, type IdentidadeCaso } from "@/lib/caso-compartilhado";
 
 /** Selo obrigatório em qualquer superfície que exiba este caso. */
 export const SELO_DEMO_PORTAL = "DEMO — DADOS FICTÍCIOS — NÃO USAR EM OPERAÇÃO";
 
-export const CASO_DEMO_ID = "CA-ITA-SOPHI-PICCOLI";
+/**
+ * UUID estável da demo (= contrato `crm_casos.id`).
+ * O código humano fica em `CASO_DEMO_CODIGO` — não misturar os dois.
+ */
+export const CASO_DEMO_CASE_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+/** @deprecated use CASO_DEMO_CASE_ID ou CASO_DEMO_CODIGO */
+export const CASO_DEMO_ID = CASO_DEMO_CASE_ID;
+export const CASO_DEMO_CODIGO = "CA-ITA-SOPHI-PICCOLI";
 export const CASO_DEMO_TITULO = "Reconhecimento de cidadania italiana — família Piccoli";
+/** Nome do titular na demo (Conta) — não confundir com título do caso. */
+export const CLIENTE_DEMO_NOME = "Sophia Piccoli";
+
+/** Identidade canônica da demo (UUID = caseId; código = rótulo humano). */
+export const IDENTIDADE_DEMO_SOPHIA: IdentidadeCaso = identidadeDeDemo({
+  caseId: CASO_DEMO_CASE_ID,
+  codigo: CASO_DEMO_CODIGO,
+  titulo: CASO_DEMO_TITULO,
+});
 
 /**
  * Projeções na mesma forma que `portal_projecoes` devolve, para que todos os

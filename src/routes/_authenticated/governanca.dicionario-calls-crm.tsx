@@ -48,7 +48,7 @@ export const Route = createFileRoute("/_authenticated/governanca/dicionario-call
 });
 
 const Bloco = ({ id, titulo, children }: { id?: string; titulo: string; children: React.ReactNode }) => (
-  <section id={id} className="rounded-xl border border-navy/10 bg-white p-5">
+  <section id={id} className="rounded-xl border border-navy/10 bg-cream/40 p-5">
     <h2 className="font-serif text-lg text-navy">{titulo}</h2>
     <div className="mt-3 text-sm text-navy/70">{children}</div>
   </section>

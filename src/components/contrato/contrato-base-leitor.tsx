@@ -38,7 +38,7 @@ export function ContratoBaseLeitor() {
   const clausulasOrfas = clausulasSemSecaoPublicada();
 
   return (
-    <section data-testid="contrato-base-leitor" className="rounded-xl border border-navy/10 bg-white p-5">
+    <section data-testid="contrato-base-leitor" className="rounded-xl border border-navy/10 bg-cream/40 p-5">
       {/* Cabeçalho obrigatório */}
       <header className="border-b border-navy/10 pb-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -70,7 +70,7 @@ export function ContratoBaseLeitor() {
               </div>
             ))}
           </dl>
-          <div className="mt-3 rounded border border-navy/10 bg-white p-2">
+          <div className="mt-3 rounded border border-navy/10 bg-cream/40 p-2">
             <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
               {doc.qualificacao.titulo} · {doc.qualificacao.versao} · {doc.qualificacao.status}
             </p>

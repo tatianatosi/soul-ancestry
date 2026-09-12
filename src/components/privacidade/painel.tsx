@@ -182,7 +182,7 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
 
   return (
     <div className="space-y-4">
-      <header className="rounded-xl border border-navy/10 bg-white p-4">
+      <header className="rounded-xl border border-navy/10 bg-cream/40 p-4">
         <p className="text-xs uppercase tracking-wide text-navy/50">Privacidade e acesso</p>
         <h1 className="font-serif text-2xl">
           {p.caso["codigo"]} — {p.caso["titulo"]}
@@ -267,7 +267,7 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
                 className={cn(
                   "rounded-xl border p-3",
                   d["visibilidade"] === "interno_restrito" && "border-navy/40 bg-navy/5",
-                  d["visibilidade"] === "equipe_do_caso" && "border-navy/15 bg-white",
+                  d["visibilidade"] === "equipe_do_caso" && "border-navy/15 bg-cream/40",
                   d["visibilidade"] === "cliente_quando_liberado" && "border-gold bg-gold/10",
                 )}
               >
@@ -387,7 +387,7 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
             {p.excecoes.length === 0 && <p className="text-sm text-navy/60">Nenhuma exceção registrada.</p>}
             <ul className="space-y-2">
               {p.excecoes.map((e: Linha) => (
-                <li key={e["id"]} className="rounded-xl border border-navy/15 bg-white p-3 text-sm">
+                <li key={e["id"]} className="rounded-xl border border-navy/15 bg-cream/40 p-3 text-sm">
                   {e["motivo"]}
                   <span className="block text-xs text-navy/50">
                     Aprovada em {dataHora(e["aprovado_em"])} · válida até {e["valido_ate"] ?? "sem prazo"}

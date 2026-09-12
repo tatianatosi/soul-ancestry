@@ -34,7 +34,7 @@ export function ItensDerivados({
         <li
           key={i.chave}
           data-item-derivado={i.chave}
-          className="rounded-lg border border-navy/10 bg-white p-3"
+          className="rounded-lg border border-navy/10 bg-cream/40 p-3"
         >
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="min-w-0 font-medium text-navy">{i.titulo}</p>

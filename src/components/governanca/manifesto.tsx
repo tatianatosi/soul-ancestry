@@ -32,7 +32,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 
 type Aba = "manifesto" | "biblioteca" | "decisoes" | "historico";
 
-const CAMPO = "w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm";
+const CAMPO = "w-full rounded-lg border border-navy/15 bg-cream/40 px-3 py-2 text-sm";
 
 function Selo({ status }: { status: string }) {
   const tom = TOM_STATUS_RECUPERACAO[status as StatusRecuperacao] ?? "border-navy/20 bg-cream text-navy";
@@ -136,7 +136,7 @@ export function ManifestoResgate() {
             key={chave}
             onClick={() => setAba(chave)}
             className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${
-              aba === chave ? "border-navy bg-navy text-cream" : "border-navy/15 bg-white text-navy"
+              aba === chave ? "border-navy bg-navy text-cream" : "border-navy/15 bg-cream/40 text-navy"
             }`}
           >
             <Icone className="h-4 w-4" />
@@ -149,7 +149,7 @@ export function ManifestoResgate() {
 
       {aba === "manifesto" ? (
         <section className="space-y-4">
-          <div className="grid gap-2 rounded-xl border border-navy/10 bg-white p-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-2 rounded-xl border border-navy/10 bg-cream/40 p-3 sm:grid-cols-2 lg:grid-cols-4">
             <select className={CAMPO} value={fStatus} onChange={(e) => setFStatus(e.target.value)}>
               <option value="">Todos os status</option>
               {ORDEM_STATUS_RECUPERACAO.map((s) => (
@@ -201,7 +201,7 @@ export function ManifestoResgate() {
                   </ul>
 
                   {arquivados.length ? (
-                    <details className="mt-3 rounded-xl border border-navy/10 bg-white p-3">
+                    <details className="mt-3 rounded-xl border border-navy/10 bg-cream/40 p-3">
                       <summary className="cursor-pointer text-sm font-medium text-navy">Artefatos arquivados</summary>
                       <ul className="mt-2 space-y-1 text-sm text-navy/70">
                         {arquivados.map((a) => (
@@ -265,7 +265,7 @@ export function ManifestoResgate() {
           {(historico) => (
             <ul className="space-y-2">
               {historico.map((h: any) => (
-                <li key={h.id} className="rounded-xl border border-navy/10 bg-white p-3 text-sm">
+                <li key={h.id} className="rounded-xl border border-navy/10 bg-cream/40 p-3 text-sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <strong className="text-navy">{h.titulo ?? h.entidade_id}</strong>
                     <span className="text-xs text-navy/50">
@@ -286,7 +286,7 @@ export function ManifestoResgate() {
 
 function Cartao({ rotulo, valor, alerta }: { rotulo: string; valor: number; alerta?: boolean }) {
   return (
-    <div className={`rounded-xl border p-3 ${alerta && valor > 0 ? "border-red-600/30 bg-red-50" : "border-navy/10 bg-white"}`}>
+    <div className={`rounded-xl border p-3 ${alerta && valor > 0 ? "border-red-600/30 bg-red-50" : "border-navy/10 bg-cream/40"}`}>
       <p className="text-xs uppercase tracking-wide text-navy/50">{rotulo}</p>
       <p className="mt-1 text-2xl font-semibold text-navy">{valor}</p>
     </div>
@@ -312,7 +312,7 @@ function LinhaArtefato({
   const naoLocalizado = artefato.status_recuperacao === "NAO_LOCALIZADO";
 
   return (
-    <li className={`rounded-xl border bg-white p-4 ${naoLocalizado ? "border-red-600/30" : "border-navy/10"}`}>
+    <li className={`rounded-xl border bg-cream/40 p-4 ${naoLocalizado ? "border-red-600/30" : "border-navy/10"}`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -435,7 +435,7 @@ function NovoArtefato({ onCriar }: { onCriar: (campos: Record<string, unknown>) 
   const [status, setStatus] = useState<string>("NAO_LOCALIZADO");
   const [dominio, setDominio] = useState<string>("governanca");
   return (
-    <div className="rounded-xl border border-dashed border-navy/20 bg-white p-3">
+    <div className="rounded-xl border border-dashed border-navy/20 bg-cream/40 p-3">
       <p className="text-sm font-medium text-navy">Registrar artefato</p>
       <div className="mt-2 grid gap-2 sm:grid-cols-4">
         <input className={CAMPO} placeholder="Nome original" value={nome} onChange={(e) => setNome(e.target.value)} />
@@ -470,7 +470,7 @@ function Biblioteca({
     <section className="space-y-3">
       <ul className="space-y-2">
         {itens.map((i) => (
-          <li key={i.id} className="rounded-xl border border-navy/10 bg-white p-3">
+          <li key={i.id} className="rounded-xl border border-navy/10 bg-cream/40 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <strong className="text-navy">{i.titulo}</strong>
               <span className="text-xs text-navy/50">
@@ -502,7 +502,7 @@ function Biblioteca({
         ))}
       </ul>
 
-      <div className="rounded-xl border border-dashed border-navy/20 bg-white p-3">
+      <div className="rounded-xl border border-dashed border-navy/20 bg-cream/40 p-3">
           <div className="grid gap-2 sm:grid-cols-3">
             <input className={CAMPO} placeholder="Título do item" value={titulo} onChange={(e) => setTitulo(e.target.value)} />
             <select className={CAMPO} value={tipo} onChange={(e) => setTipo(e.target.value)}>
@@ -548,7 +548,7 @@ function Decisoes({
     <section className="space-y-4">
       <ul className="space-y-2">
         {decisoes.map((d) => (
-          <li key={d.id} className="rounded-xl border border-navy/10 bg-white p-3">
+          <li key={d.id} className="rounded-xl border border-navy/10 bg-cream/40 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <strong className="text-navy">{d.titulo}</strong>
               <span className="text-xs text-navy/50">
@@ -592,7 +592,7 @@ function Decisoes({
         ) : null}
       </ul>
 
-      <div className="space-y-2 rounded-xl border border-dashed border-navy/20 bg-white p-3">
+      <div className="space-y-2 rounded-xl border border-dashed border-navy/20 bg-cream/40 p-3">
           <p className="text-sm font-medium text-navy">Nova decisão</p>
           <div className="grid gap-2 sm:grid-cols-2">
             <Campo rotulo="Título" valor={form.titulo} onChange={(v) => setForm({ ...form, titulo: v })} />

@@ -65,7 +65,7 @@ const CASO = "Caso Melani";
 export function PlanoAcaoDemo() {
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-5">
+      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-navy/10 pb-5">
         <div>
           <p className="text-[11px] uppercase tracking-widest text-gold">Pesquisa genealógica e evidências</p>
           <h1 className="font-serif text-3xl italic text-navy">Plano de ação de pesquisa</h1>
@@ -91,7 +91,7 @@ export function PlanoAcaoDemo() {
         </p>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           {VISAO.map(([rotulo, total, Icon], index) => (
-            <div key={rotulo} className="flex min-h-20 items-start gap-3 rounded-lg border border-border bg-white p-3">
+            <div key={rotulo} className="flex min-h-20 items-start gap-3 rounded-lg border border-navy/10 bg-cream/40 p-3">
               <span className={cn("grid h-9 w-9 shrink-0 place-items-center rounded-md", index === 0 ? "bg-terracotta text-cream" : "bg-navy text-cream")}>
                 <Icon className="h-4 w-4" />
               </span>
@@ -122,7 +122,7 @@ export function PlanoAcaoDemo() {
         </div>
         <div className="grid gap-3 lg:grid-cols-3">
           {ACOES.map((acao) => (
-            <article key={acao.id} className="rounded-lg border border-navy/10 bg-white p-4 shadow-sm">
+            <article key={acao.id} className="rounded-lg border border-navy/10 bg-cream/40 p-4 shadow-sm">
               <div className="flex items-start justify-between gap-2">
                 <span className="font-mono text-[10px] text-navy/45">{acao.id}</span>
                 <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", acao.prioridade === "Crítica" ? "bg-terracotta/15 text-terracotta" : "bg-gold/15 text-navy")}>
@@ -140,14 +140,14 @@ export function PlanoAcaoDemo() {
                 <div><dt className="inline font-semibold text-navy">Estado: </dt><dd className="inline">{acao.status}</dd></div>
                 <div><dt className="inline font-semibold text-navy">Prazo: </dt><dd className="inline">{acao.prazo}</dd></div>
               </dl>
-              <p className="mt-3 border-t border-border pt-3 text-xs text-navy/75"><strong>Próxima ação:</strong> {acao.proxima}</p>
+              <p className="mt-3 border-t border-navy/10 pt-3 text-xs text-navy/75"><strong>Próxima ação:</strong> {acao.proxima}</p>
             </article>
           ))}
         </div>
       </section>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="rounded-lg border border-border bg-white p-4">
+        <section className="rounded-lg border border-navy/10 bg-cream/40 p-4">
           <h2 className="font-serif text-lg text-navy">Estimativas de terceiros aguardando aprovação</h2>
           <p className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-navy/55">
             <span>{CASO}</span>
@@ -159,7 +159,7 @@ export function PlanoAcaoDemo() {
           </ul>
           <p className="mt-2 text-[11px] text-navy/50">Previsões internas; não são cobrança, receita, reembolso ou despesa executada.</p>
         </section>
-        <section className="rounded-lg border border-border bg-white p-4">
+        <section className="rounded-lg border border-navy/10 bg-cream/40 p-4">
           <h2 className="font-serif text-lg text-navy">Histórico</h2>
           <p className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-navy/55">
             <span>{CASO}</span>

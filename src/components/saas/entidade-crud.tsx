@@ -248,7 +248,7 @@ export function EntidadeCrud({
               <article
                 key={String(linha["id"])}
                 className={cn(
-                  "flex flex-col rounded-xl border border-navy/15 bg-white p-4 shadow-sm",
+                  "flex flex-col rounded-xl border border-navy/15 bg-cream/50 p-4 shadow-sm",
                   arquivado && "opacity-55",
                   classeLinha?.(linha),
                 )}
@@ -287,7 +287,7 @@ export function EntidadeCrud({
           })}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
+        <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
           <table className="w-full text-sm" style={{ minWidth: `${larguraMinima}px` }}>
             <thead className="bg-navy/5 text-left text-xs uppercase tracking-wide text-navy/60">
               <tr>
@@ -348,7 +348,7 @@ export function EntidadeCrud({
 
       {form ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4">
-          <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-5">
+          <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl bg-cream p-5">
             <h2 className="font-serif text-xl">
               {editandoId ? "Editar registro" : "Novo registro"} — {titulo}
             </h2>
@@ -448,7 +448,7 @@ export function EntidadeCrud({
 
       {arquivando ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-5">
+          <div className="w-full max-w-md rounded-xl bg-cream p-5">
             <h2 className="font-serif text-xl">Arquivar registro</h2>
             <p className="mt-1 text-xs text-navy/60">
               Não há exclusão neste sistema. O registro fica arquivado, com autor, data e motivo.

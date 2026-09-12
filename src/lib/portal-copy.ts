@@ -9,7 +9,7 @@
  * - nenhum termo de operação interna (Desk, CRM, banco, fila, gate, SLA,
  *   registro técnico, código, SKU, preço técnico, hipótese, risco);
  * - nenhum juízo de mérito sobre o caso e nenhuma linguagem de venda na
- *   Fase 02;
+ *   atualização seguinte (rota profunda; não é aba);
  * - nenhuma mensagem vaga ("erro desconhecido", "sem dados", "nenhum
  *   registro encontrado", "null", "undefined").
  */
@@ -59,55 +59,55 @@ export const COPY_TELAS = {
   jornada: {
     navegacao: "Jornada",
     titulo: "Jornada",
-    descricao: "As etapas do seu acompanhamento, contadas em linguagem simples.",
+    descricao: "Linha do tempo ancestral 1820–2024",
     vazio: "Ainda não há atualizações publicadas. Este espaço é atualizado a cada nova etapa concluída.",
   },
   radar: {
     navegacao: "Radar",
-    titulo: "Radar Ancestral",
-    descricao: "Seu equilíbrio nas 6 dimensões da jornada. Nada aqui é conclusão sobre a sua história.",
+    titulo: "Radar",
+    descricao: "Radar de elegibilidade em 6 eixos",
     vazio: "Estas leituras aparecem assim que houver material preparado para compartilhar.",
   },
   arvore: {
     navegacao: "Árvore",
-    titulo: "Árvore da família",
-    descricao: "Pessoas, vínculos e datas aparecem aqui depois de confirmados pela equipe.",
+    titulo: "Árvore",
+    descricao: "Árvore genealógica G1–G5",
     vazio: "Nenhuma pessoa ou ligação familiar foi publicada até agora.",
   },
   documentos: {
     navegacao: "Documentos",
     titulo: "Documentos",
-    descricao: "Aqui ficam os documentos preparados para você e os que você compartilhou conosco.",
+    descricao: "Upload, checklist e entregas do caso",
     vazio: "Ainda não há documentos preparados para você neste momento.",
   },
   entregas: {
-    navegacao: "Entregas",
-    titulo: "Entregas da jornada",
-    descricao: "Cada entrega aparece aqui quando estiver pronta para você.",
-    vazio: "Este espaço vai receber as entregas assim que houver material pronto para compartilhar.",
+    navegacao: "Materiais",
+    titulo: "Materiais liberados",
+    descricao: "Cada material aparece aqui quando a equipe libera para você.",
+    vazio: "Este espaço recebe os materiais assim que houver algo pronto para compartilhar.",
   },
   fase01: {
-    navegacao: "Fase 01",
-    titulo: "Fase 01",
-    descricao: "Como está a primeira fase do seu acompanhamento.",
-    vazio: "O material desta fase aparece aqui quando estiver pronto para você.",
+    navegacao: "Relatório",
+    titulo: "Relatório preparado",
+    descricao: "Leitura da primeira etapa do seu acompanhamento.",
+    vazio: "O relatório desta etapa aparece aqui quando estiver pronto para você.",
   },
   fase02: {
-    navegacao: "Fase 02",
-    titulo: "Fase 02",
-    descricao: "Como está a segunda fase do seu acompanhamento.",
-    vazio: "O material desta fase aparece aqui quando estiver pronto para você.",
+    navegacao: "Atualização",
+    titulo: "Atualização seguinte",
+    descricao: "Novidades da etapa seguinte do seu acompanhamento.",
+    vazio: "A atualização desta etapa aparece aqui quando estiver pronta para você.",
   },
   legado: {
     navegacao: "Legado",
     titulo: "Legado",
-    descricao: "Materiais preparados para permanecer com a sua família.",
+    descricao: "Biblioteca de conteúdo e nível premium",
     vazio: "Este espaço vai reunir o que for preparado para ficar com a sua família.",
   },
   conta: {
     navegacao: "Conta",
-    titulo: "Sua conta",
-    descricao: "Os dados do seu acesso ao Clube Ancestral.",
+    titulo: "Conta",
+    descricao: "Perfil, plano, alertas e histórico",
     vazio: "As informações do seu acesso aparecem aqui.",
   },
   faturas: {

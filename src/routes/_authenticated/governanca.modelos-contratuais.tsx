@@ -55,31 +55,31 @@ function PreviaTeste({ chave }: { chave: ChaveModelo }) {
       <AvisoRascunho />
       <div className="rounded-md border p-3 text-sm">
         <p className="font-semibold">{rascunho.capa.modelo}</p>
-        <p className="text-muted-foreground">
+        <p className="text-navy/65">
           Versão {rascunho.capa.versao} · status {rascunho.capa.status} · gerado em {rascunho.capa.dataGeracao}
         </p>
-        <p className="mt-1 break-words font-mono text-xs text-muted-foreground">
+        <p className="mt-1 break-words font-mono text-xs text-navy/65">
           {rascunho.capa.identificadorTecnico}
         </p>
       </div>
 
       <section className="space-y-1">
         <h4 className="text-sm font-semibold">Perfil institucional ({rascunho.perfil.versao})</h4>
-        <ul className="text-xs text-muted-foreground">
+        <ul className="text-xs text-navy/65">
           {rascunho.perfil.campos.map((c) => (
             <li key={c.rotulo}>
-              <span className="font-medium text-foreground">{c.rotulo}:</span> {c.valor}
+              <span className="font-medium text-navy">{c.rotulo}:</span> {c.valor}
             </li>
           ))}
           {rascunho.perfil.placeholders.map((p) => (
             <li key={p.rotulo}>
-              <span className="font-medium text-foreground">{p.rotulo}:</span> {p.valor}
+              <span className="font-medium text-navy">{p.rotulo}:</span> {p.valor}
             </li>
           ))}
         </ul>
         <h5 className="pt-2 text-sm font-semibold">{rascunho.perfil.qualificacao.titulo}</h5>
         {rascunho.perfil.qualificacao.paragrafos.map((p) => (
-          <p key={p.slice(0, 24)} className="text-xs text-muted-foreground">
+          <p key={p.slice(0, 24)} className="text-xs text-navy/65">
             {p}
           </p>
         ))}
@@ -87,7 +87,7 @@ function PreviaTeste({ chave }: { chave: ChaveModelo }) {
 
       <section className="space-y-1">
         <h4 className="text-sm font-semibold">Bloco de partes</h4>
-        <ul className="text-xs text-muted-foreground">
+        <ul className="text-xs text-navy/65">
           {rascunho.partes.map((p) => (
             <li key={p}>{p}</li>
           ))}
@@ -96,11 +96,11 @@ function PreviaTeste({ chave }: { chave: ChaveModelo }) {
 
       <section className="space-y-1">
         <h4 className="text-sm font-semibold">Preâmbulo e 14 cláusulas</h4>
-        <p className="text-xs text-muted-foreground">{rascunho.preambulo}</p>
-        <ol className="list-decimal space-y-1 pl-5 text-xs text-muted-foreground">
+        <p className="text-xs text-navy/65">{rascunho.preambulo}</p>
+        <ol className="list-decimal space-y-1 pl-5 text-xs text-navy/65">
           {rascunho.clausulas.map((c) => (
             <li key={c.numero}>
-              <span className="font-medium text-foreground">{c.titulo}</span>
+              <span className="font-medium text-navy">{c.titulo}</span>
               <ul className="list-disc pl-4">
                 {c.itens.map((i) => (
                   <li key={i.slice(0, 30)}>{i}</li>
@@ -115,7 +115,7 @@ function PreviaTeste({ chave }: { chave: ChaveModelo }) {
         <h4 className="text-sm font-semibold">Anexos e gates</h4>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
-            <thead className="text-left text-muted-foreground">
+            <thead className="text-left text-navy/65">
               <tr>
                 <th className="py-1 pr-2">Anexo</th>
                 <th className="py-1 pr-2">Aplicabilidade</th>
@@ -141,10 +141,10 @@ function PreviaTeste({ chave }: { chave: ChaveModelo }) {
 
       <section className="space-y-1">
         <h4 className="text-sm font-semibold">Pendências para formalização</h4>
-        <ul className="space-y-1 text-xs text-muted-foreground">
+        <ul className="space-y-1 text-xs text-navy/65">
           {rascunho.pendencias.map((p) => (
             <li key={p.tema}>
-              <span className="font-medium text-foreground">{p.tema}:</span> {p.situacao} — gate:{" "}
+              <span className="font-medium text-navy">{p.tema}:</span> {p.situacao} — gate:{" "}
               {p.gateBloqueado}
             </li>
           ))}
@@ -163,14 +163,14 @@ function MatrizModelosPage() {
       <div className="space-y-6">
         <AvisoRascunho />
 
-        <Card>
+        <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">
               {qualificacao.titulo} · {qualificacao.versao}{" "}
               <Badge variant="outline">{qualificacao.status}</Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <CardContent className="space-y-2 text-sm text-navy/65">
             {qualificacao.paragrafos.map((p) => (
               <p key={p.slice(0, 24)}>{p}</p>
             ))}
@@ -183,7 +183,7 @@ function MatrizModelosPage() {
         </Card>
 
         {MODELOS_CONTRATUAIS.map((m) => (
-          <Card key={m.id}>
+          <Card key={m.id} className="border-navy/10 bg-cream/50 text-navy shadow-sm">
             <CardHeader>
               <CardTitle className="flex flex-wrap items-center gap-2 text-base">
                 {m.nome} <Badge variant="outline">{m.status}</Badge>
@@ -191,8 +191,8 @@ function MatrizModelosPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <p className="break-words font-mono text-xs text-muted-foreground">{m.id}</p>
-              <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground">
+              <p className="break-words font-mono text-xs text-navy/65">{m.id}</p>
+              <ul className="list-disc space-y-1 pl-5 text-xs text-navy/65">
                 {m.regrasComposicao.map((r) => (
                   <li key={r.slice(0, 30)}>{r}</li>
                 ))}
@@ -204,7 +204,7 @@ function MatrizModelosPage() {
                   </Badge>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground">{m.gates.length} gates bloqueantes.</p>
+              <p className="text-xs text-navy/65">{m.gates.length} gates bloqueantes.</p>
               <Button variant="outline" size="sm" onClick={() => setPrevia(previa === m.chave ? null : m.chave)}>
                 {previa === m.chave ? "Ocultar prévia TESTE" : "Ver prévia TESTE (somente leitura)"}
               </Button>

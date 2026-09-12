@@ -22,7 +22,7 @@ const TOM_TEXTO: Record<TomEstado, string> = {
 };
 
 const TOM_CLASSE: Record<TomEstado, string> = {
-  neutro: "border-navy/15 bg-white text-navy/75",
+  neutro: "border-navy/15 bg-cream/70 text-navy/75",
   critico: "border-critico/30 bg-critico-suave text-critico",
   atencao: "border-atencao/30 bg-atencao-suave text-atencao",
   sucesso: "border-sucesso/30 bg-sucesso-suave text-sucesso",
@@ -94,7 +94,7 @@ export function CardIndicador({
 }) {
   const temValor = valor !== null && valor !== undefined && valor !== "";
   return (
-    <div className="rounded-xl border border-navy/10 bg-white p-4 shadow-[0_1px_2px_rgba(16,16,16,0.04)]">
+    <div className="rounded-xl border border-navy/10 bg-cream/50 p-4 shadow-[0_1px_2px_rgba(16,16,16,0.04)]">
       <p className="text-[11px] font-medium uppercase tracking-widest text-navy/55">{rotulo}</p>
       <p
         className={cn(
@@ -148,7 +148,7 @@ export function BarraFiltros({ children, className }: { children: ReactNode; cla
   return (
     <div
       className={cn(
-        "mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-navy/10 bg-white/70 p-2",
+        "mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-navy/10 bg-cream/60 p-2",
         className,
       )}
     >
@@ -168,7 +168,7 @@ export function TabelaDesk({
   legenda?: string;
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
+    <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
       <table className="w-full min-w-[36rem] font-sans text-sm tabular-nums">
         {legenda ? <caption className="sr-only">{legenda}</caption> : null}
         <thead>
@@ -201,7 +201,7 @@ export function VazioDesk({
   acao?: ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-dashed border-navy/20 bg-white/60 p-8 text-center">
+    <div className="rounded-xl border border-dashed border-navy/20 bg-cream/40 p-8 text-center">
       <p className="font-serif text-lg text-navy">{titulo}</p>
       {descricao ? <p className="mx-auto mt-1 max-w-md text-sm text-navy/60">{descricao}</p> : null}
       {acao ? <div className="mt-3 flex justify-center">{acao}</div> : null}
@@ -221,7 +221,7 @@ export function CarregandoDesk({
     <div className="space-y-2" role="status" aria-live="polite" aria-busy="true">
       <span className="sr-only">{rotulo}</span>
       {Array.from({ length: linhas }).map((_, i) => (
-        <div key={i} className="h-12 animate-pulse rounded-xl border border-navy/10 bg-white/70" />
+        <div key={i} className="h-12 animate-pulse rounded-xl border border-navy/10 bg-cream/50" />
       ))}
     </div>
   );

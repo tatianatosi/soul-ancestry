@@ -31,7 +31,7 @@ const CLASSE_ESTADO: Record<EstadoElo, string> = {
   concluido: "border-[hsl(var(--sucesso))] text-[hsl(var(--sucesso))]",
   pendente: "border-[hsl(var(--atencao))] text-[hsl(var(--atencao))]",
   bloqueado: "border-[hsl(var(--bloqueio))] text-[hsl(var(--bloqueio))]",
-  nao_aplicavel: "border-border text-muted-foreground",
+  nao_aplicavel: "border-navy/15 text-navy/65",
 };
 
 /**
@@ -172,16 +172,16 @@ export function CadeiaJornada({
 
   return (
     <section
-      className="mt-6 border-t border-border pt-4"
+      className="mt-6 border-t border-navy/15 pt-4"
       data-cadeia="jornada"
       aria-labelledby="cadeia-jornada-titulo"
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h3 id="cadeia-jornada-titulo" className="text-sm font-medium text-foreground">
+          <h3 id="cadeia-jornada-titulo" className="text-sm font-medium text-navy">
             Cadeia da jornada (11 elos)
           </h3>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-navy/65">
             Estado derivado de cada elo para este evento. Nenhuma etapa executa ação externa.
           </p>
         </div>
@@ -191,7 +191,7 @@ export function CadeiaJornada({
             onClick={copiarResumo}
             data-cadeia="copiar-resumo"
             aria-label="Copiar resumo padronizado do painel contextual (motivo, evidências e próxima ação)"
-            className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy hover:bg-navy/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           >
             Copiar resumo
           </button>
@@ -200,7 +200,7 @@ export function CadeiaJornada({
             onClick={baixarResumoTxt}
             data-cadeia="baixar-txt"
             aria-label="Baixar o resumo do painel contextual em arquivo .txt para arquivar junto ao PDF"
-            className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy hover:bg-navy/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           >
             Baixar resumo (.txt)
           </button>
@@ -214,7 +214,7 @@ export function CadeiaJornada({
             aria-haspopup="dialog"
             aria-expanded={previa}
             aria-label="Pré-visualizar o PDF somente leitura do painel contextual antes de imprimir"
-            className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy hover:bg-navy/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           >
             Gerar PDF somente leitura
           </button>
@@ -222,7 +222,7 @@ export function CadeiaJornada({
       </div>
 
       <p
-        className="mt-2 text-xs text-muted-foreground"
+        className="mt-2 text-xs text-navy/65"
         data-cadeia="copiar-status"
         role="status"
         aria-live="polite"
@@ -247,15 +247,15 @@ export function CadeiaJornada({
         >
           <div
             ref={previaRef}
-            className="flex h-full max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-border bg-card"
+            className="flex h-full max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-navy/15 bg-cream/50"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-2 border-b border-border p-4">
+            <div className="flex items-start justify-between gap-2 border-b border-navy/15 p-4">
               <div>
-                <p id="cadeia-previa-titulo" className="text-sm font-medium text-foreground">
+                <p id="cadeia-previa-titulo" className="text-sm font-medium text-navy">
                   Prévia do PDF somente leitura
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-navy/65">
                   Exatamente o conteúdo que sai na impressão. Nada é enviado, publicado ou gravado.
                 </p>
               </div>
@@ -265,7 +265,7 @@ export function CadeiaJornada({
                   onClick={exportarPdf}
                   data-cadeia="previa-imprimir"
                   aria-label="Abrir a impressão do navegador para salvar o PDF revisado"
-                  className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy hover:bg-navy/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                 >
                   Imprimir / salvar PDF
                 </button>
@@ -273,7 +273,7 @@ export function CadeiaJornada({
                   type="button"
                   onClick={fecharPrevia}
                   aria-label="Fechar prévia do PDF"
-                  className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy hover:bg-navy/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                 >
                   Fechar
                 </button>
@@ -282,7 +282,7 @@ export function CadeiaJornada({
             <iframe
               title="Prévia do documento somente leitura do painel contextual"
               data-cadeia="previa-iframe"
-              className="h-full w-full flex-1 bg-background"
+              className="h-full w-full flex-1 bg-cream"
               srcDoc={htmlImpressaoPainelContextual(dadosImpressao)}
             />
           </div>
@@ -292,41 +292,41 @@ export function CadeiaJornada({
       <div
         className={`mt-3 rounded-lg border p-3 text-xs ${
           proxima.semPendencias
-            ? "border-[hsl(var(--sucesso))] bg-muted/20"
-            : "border-[hsl(var(--atencao))] bg-muted/20"
+            ? "border-[hsl(var(--sucesso))] bg-cream/30"
+            : "border-[hsl(var(--atencao))] bg-cream/30"
         }`}
         data-cadeia="proxima-acao"
         role="group"
         aria-label="Próxima ação no Painel Hoje"
       >
-        <p className="font-medium text-foreground">Próxima ação no Painel Hoje</p>
-        <p className="text-muted-foreground" data-cadeia="status">
+        <p className="font-medium text-navy">Próxima ação no Painel Hoje</p>
+        <p className="text-navy/65" data-cadeia="status">
           {proxima.status}
           {proxima.semPendencias ? " Sugestão obtida por melhor ajuste." : ""}
         </p>
-        <p className="mt-1 text-foreground">{proxima.rotulo}</p>
+        <p className="mt-1 text-navy">{proxima.rotulo}</p>
         <dl className="mt-2 grid gap-2 sm:grid-cols-3">
           <div>
-            <dt className="text-muted-foreground">Responsável</dt>
-            <dd className="text-foreground">{proxima.responsavel}</dd>
+            <dt className="text-navy/65">Responsável</dt>
+            <dd className="text-navy">{proxima.responsavel}</dd>
           </div>
           <div>
-            <dt className="text-muted-foreground">Prazo</dt>
-            <dd className="text-foreground">{proxima.prazo}</dd>
+            <dt className="text-navy/65">Prazo</dt>
+            <dd className="text-navy">{proxima.prazo}</dd>
           </div>
           <div>
-            <dt className="text-muted-foreground">Objeto canônico</dt>
-            <dd className="text-foreground">{proxima.destino ?? "—"}</dd>
+            <dt className="text-navy/65">Objeto canônico</dt>
+            <dd className="text-navy">{proxima.destino ?? "—"}</dd>
           </div>
         </dl>
 
         <div
-          className="mt-3 rounded-lg border border-border bg-background/60 p-3"
+          className="mt-3 rounded-lg border border-navy/15 bg-cream/40 p-3"
           data-cadeia="motivo-evidencias"
         >
-          <p className="font-medium text-foreground">Motivo e evidências</p>
-          <p className="mt-1 text-muted-foreground">{proxima.motivo}</p>
-          <ul className="mt-2 list-disc space-y-1 pl-4 text-muted-foreground">
+          <p className="font-medium text-navy">Motivo e evidências</p>
+          <p className="mt-1 text-navy/65">{proxima.motivo}</p>
+          <ul className="mt-2 list-disc space-y-1 pl-4 text-navy/65">
             {proxima.evidencias.map((ev, i) => (
               <li key={`${i}-${ev}`}>{ev}</li>
             ))}
@@ -335,17 +335,17 @@ export function CadeiaJornada({
 
         {proxima.semPendencias && proxima.justificativa.length > 0 ? (
           <div
-            className="mt-3 rounded-lg border border-border bg-background/60 p-3"
+            className="mt-3 rounded-lg border border-navy/15 bg-cream/40 p-3"
             data-cadeia="melhor-ajuste"
           >
-            <p className="font-medium text-foreground">
+            <p className="font-medium text-navy">
               Pontuação do melhor ajuste:{" "}
               <span data-cadeia="pontuacao">{proxima.pontuacao ?? 0}</span> pontos
             </p>
-            <p className="mt-1 text-muted-foreground">
+            <p className="mt-1 text-navy/65">
               Critérios determinísticos usados para escolher o elo sugerido.
             </p>
-            <ul className="mt-2 list-disc space-y-1 pl-4 text-muted-foreground">
+            <ul className="mt-2 list-disc space-y-1 pl-4 text-navy/65">
               {proxima.justificativa.map((c) => (
                 <li key={c}>{c}</li>
               ))}
@@ -353,7 +353,7 @@ export function CadeiaJornada({
             <table className="mt-3 w-full text-left">
               <caption className="sr-only">Ranking de pontuação dos elos candidatos</caption>
               <thead>
-                <tr className="text-muted-foreground">
+                <tr className="text-navy/65">
                   <th scope="col" className="py-1 font-normal">
                     Elo
                   </th>
@@ -367,12 +367,12 @@ export function CadeiaJornada({
               </thead>
               <tbody>
                 {proxima.ranking.map((r) => (
-                  <tr key={r.elo.chave} className="border-t border-border/60">
-                    <td className="py-1 text-foreground">
+                  <tr key={r.elo.chave} className="border-t border-navy/15">
+                    <td className="py-1 text-navy">
                       {r.elo.ordem}. {r.elo.rotulo}
                     </td>
-                    <td className="py-1 text-muted-foreground">{ROTULO_ESTADO[r.elo.estado]}</td>
-                    <td className="py-1 text-foreground">{r.pontos}</td>
+                    <td className="py-1 text-navy/65">{ROTULO_ESTADO[r.elo.estado]}</td>
+                    <td className="py-1 text-navy">{r.pontos}</td>
                   </tr>
                 ))}
               </tbody>
@@ -394,12 +394,12 @@ export function CadeiaJornada({
               aria-label={`Ver detalhes do elo ${elo.ordem}: ${elo.rotulo} — ${ROTULO_ESTADO[elo.estado]}`}
               aria-haspopup="dialog"
               aria-expanded={aberto?.chave === elo.chave}
-              className="flex w-full flex-wrap items-start gap-2 rounded-lg border border-border bg-muted/20 p-3 text-left text-xs hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex w-full flex-wrap items-start gap-2 rounded-lg border border-navy/15 bg-cream/30 p-3 text-left text-xs hover:bg-navy/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
             >
-              <span className="w-5 shrink-0 text-muted-foreground">{elo.ordem}</span>
+              <span className="w-5 shrink-0 text-navy/65">{elo.ordem}</span>
               <div className="min-w-0 flex-1">
-                <p className="text-foreground">{elo.rotulo}</p>
-                <p className="text-muted-foreground">{elo.detalhe}</p>
+                <p className="text-navy">{elo.rotulo}</p>
+                <p className="text-navy/65">{elo.detalhe}</p>
               </div>
               <span className={`rounded-full border px-2 py-0.5 ${CLASSE_ESTADO[elo.estado]}`}>
                 {ROTULO_ESTADO[elo.estado]}
@@ -419,12 +419,12 @@ export function CadeiaJornada({
           onClick={fechar}
         >
           <div
-            className="h-full w-full max-w-sm overflow-y-auto border-l border-border bg-card p-4 text-xs"
+            className="h-full w-full max-w-sm overflow-y-auto border-l border-navy/15 bg-cream/50 p-4 text-xs"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p id="cadeia-drawer-titulo" className="text-sm font-medium text-foreground">
+                <p id="cadeia-drawer-titulo" className="text-sm font-medium text-navy">
                   Elo {detalhe.elo.ordem} — {detalhe.elo.rotulo}
                 </p>
                 <span
@@ -438,7 +438,7 @@ export function CadeiaJornada({
                 ref={fecharRef}
                 onClick={fechar}
                 aria-label="Fechar detalhes do elo"
-                className="rounded-lg border border-border px-2 py-1 text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="rounded-lg border border-navy/15 px-2 py-1 text-navy hover:bg-navy/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
               >
                 Fechar
               </button>
@@ -446,37 +446,37 @@ export function CadeiaJornada({
 
             <dl className="mt-4 space-y-3">
               <div>
-                <dt className="text-muted-foreground">Tarefa canônica</dt>
-                <dd className="text-foreground">{detalhe.tarefa}</dd>
+                <dt className="text-navy/65">Tarefa canônica</dt>
+                <dd className="text-navy">{detalhe.tarefa}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Responsável</dt>
-                <dd className="text-foreground">{detalhe.responsavel}</dd>
+                <dt className="text-navy/65">Responsável</dt>
+                <dd className="text-navy">{detalhe.responsavel}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Prazo</dt>
-                <dd className="text-foreground">{detalhe.prazo}</dd>
+                <dt className="text-navy/65">Prazo</dt>
+                <dd className="text-navy">{detalhe.prazo}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">
+                <dt className="text-navy/65">
                   Modelo sugerido para a próxima ação do Painel Hoje
                 </dt>
-                <dd className="text-foreground" data-cadeia="drawer-template">
+                <dd className="text-navy" data-cadeia="drawer-template">
                   {detalhe.templateResumo}
                 </dd>
               </div>
             </dl>
 
-            <div className="mt-4 border-t border-border pt-3" data-cadeia="drawer-evidencias">
-              <p className="font-medium text-foreground">Evidências</p>
-              <ul className="mt-2 list-disc space-y-1 pl-4 text-muted-foreground">
+            <div className="mt-4 border-t border-navy/15 pt-3" data-cadeia="drawer-evidencias">
+              <p className="font-medium text-navy">Evidências</p>
+              <ul className="mt-2 list-disc space-y-1 pl-4 text-navy/65">
                 {detalhe.evidencias.map((ev, i) => (
                   <li key={`${i}-${ev}`}>{ev}</li>
                 ))}
               </ul>
             </div>
 
-            <p className="mt-4 text-muted-foreground">
+            <p className="mt-4 text-navy/65">
               Somente leitura: nenhum envio, publicação ou gravação é executado por este painel.
             </p>
           </div>

@@ -14,7 +14,7 @@ const COR: Record<string, string> = {
   canonica: "border-navy/20 bg-cream/40 text-navy/70",
   desatualizada: "border-gold/50 bg-gold/10 text-navy/80",
   nao_materializada: "border-terracotta/40 bg-terracotta/10 text-terracotta",
-  somente_persistida: "border-navy/20 bg-white text-navy/60",
+  somente_persistida: "border-navy/20 bg-cream/40 text-navy/60",
 };
 
 function dataCurta(v: string | null) {
@@ -33,7 +33,7 @@ export function InstanciaDocumental({
   const resumo = resumoInstancias(linhas);
 
   return (
-    <section className="rounded-lg border border-navy/15 bg-white p-3">
+    <section className="rounded-lg border border-navy/15 bg-cream/40 p-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-sm font-medium text-navy">Documento oficial do caso</h3>
         <span className="text-[11px] text-navy/55">

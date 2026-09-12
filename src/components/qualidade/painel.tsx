@@ -117,7 +117,7 @@ function AbaInconsistencias() {
             key={s}
             className={cn(
               "rounded-xl border p-3",
-              s === "critica" ? "border-terracotta/50 bg-terracotta/10" : "border-navy/10 bg-white",
+              s === "critica" ? "border-terracotta/50 bg-terracotta/10" : "border-navy/10 bg-cream/50",
             )}
           >
             <p className="text-xs uppercase tracking-wide text-navy/60">{ROTULO_SEVERIDADE[s]}</p>
@@ -129,7 +129,7 @@ function AbaInconsistencias() {
         ))}
       </div>
 
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-navy/10 bg-white p-3">
+      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-navy/10 bg-cream/50 p-3">
         <Campo rotulo="Severidade">
           <select value={severidade} onChange={(e) => setSeveridade(e.target.value)} className={inputCls}>
             <option value="">Todas</option>
@@ -194,12 +194,12 @@ function AbaInconsistencias() {
 
       <div className="space-y-2">
         {lista.length === 0 && !q.isLoading && (
-          <p className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy/60">
+          <p className="rounded-xl border border-navy/10 bg-cream/50 p-4 text-sm text-navy/60">
             Nenhuma inconsistência com esses filtros.
           </p>
         )}
         {lista.map((l: Linha) => (
-          <article key={l["id"]} className="rounded-xl border border-navy/10 bg-white p-3">
+          <article key={l["id"]} className="rounded-xl border border-navy/10 bg-cream/50 p-3">
             <div className="flex flex-wrap items-center gap-2">
               <Selo texto={ROTULO_SEVERIDADE[l["severidade"]] ?? l["severidade"]} tom={TOM_SEVERIDADE[l["severidade"]]} />
               <Selo texto={ROTULO_DOMINIO[l["dominio"]] ?? l["dominio"]} />
@@ -339,7 +339,7 @@ function AbaChecklists() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-navy/10 bg-white p-3">
+      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-navy/10 bg-cream/50 p-3">
         <Campo rotulo="Caso">
           <select value={casoId} onChange={(e) => setCasoId(e.target.value)} className={inputCls}>
             <option value="">Selecione um caso…</option>
@@ -466,7 +466,7 @@ function AbaSemanal() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-navy/10 bg-white p-3">
+      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-navy/10 bg-cream/50 p-3">
         <Campo rotulo="Semana de referência">
           <input type="date" value={inicio} onChange={(e) => setInicio(e.target.value)} className={inputCls} />
         </Campo>
@@ -491,7 +491,7 @@ function AbaSemanal() {
 
       <div className="grid gap-3 sm:grid-cols-3">
         {numeros.map(([k, v]) => (
-          <div key={k} className="rounded-xl border border-navy/10 bg-white p-3">
+          <div key={k} className="rounded-xl border border-navy/10 bg-cream/50 p-3">
             <p className="text-xs uppercase tracking-wide text-navy/60">{rotuloIndicador(k)}</p>
             <p className="font-serif text-2xl">{String(v)}</p>
           </div>

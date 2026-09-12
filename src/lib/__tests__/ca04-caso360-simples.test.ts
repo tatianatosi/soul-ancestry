@@ -26,7 +26,7 @@ describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)"
     for (const [resumo, ancora] of [
       ["Jornada/onboarding", "#secao-jornada"],
       ["Pessoas/família", "#secao-pessoas"],
-      ["Comercial/formalização", "#secao-comercial"],
+      ["Contrato", "#secao-comercial"],
     ] as const) {
       expect(pagina).toContain(resumo);
       expect(pagina).toContain(ancora);

@@ -92,7 +92,7 @@ export function ReferenciasNormativasAplicaveis({ caseId }: { caseId: string }) 
   const d = q.data;
 
   return (
-    <section className="rounded border border-navy/15 bg-white p-4">
+    <section className="rounded border border-navy/15 bg-cream/40 p-4">
       <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-navy">
         Referências normativas aplicáveis
       </h2>
@@ -153,7 +153,7 @@ export function ConsultaBasesHomologadas({ caseId }: { caseId: string }) {
   const d = q.data;
 
   return (
-    <section className="rounded border border-navy/15 bg-white p-4">
+    <section className="rounded border border-navy/15 bg-cream/40 p-4">
       <button
         type="button"
         onClick={() => setAberto((v) => !v)}
@@ -212,7 +212,7 @@ export function DecisoesNormativasDoCaso({ caseId }: { caseId: string }) {
   const d = q.data;
 
   return (
-    <section className="rounded border border-navy/15 bg-white p-4">
+    <section className="rounded border border-navy/15 bg-cream/40 p-4">
       <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-navy">
         Decisões normativas vinculadas
       </h2>

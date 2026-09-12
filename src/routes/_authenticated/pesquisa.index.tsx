@@ -72,7 +72,7 @@ function PesquisaIndex() {
         */}
         <Link
           to="/pesquisa-modulo"
-          className="block rounded-xl border border-navy/10 bg-white px-4 py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          className="block rounded-xl border border-navy/10 bg-cream/40 px-4 py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           data-indicador-etiqueta="casos-em-pesquisa"
         >
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Casos em pesquisa</p>
@@ -81,7 +81,7 @@ function PesquisaIndex() {
         </Link>
         <Link
           to="/casos"
-          className="block rounded-xl border border-navy/10 bg-white px-4 py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          className="block rounded-xl border border-navy/10 bg-cream/40 px-4 py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           data-indicador-etiqueta="casos-ativos"
         >
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Casos ativos</p>
@@ -108,11 +108,11 @@ function PesquisaIndex() {
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Buscar por código, título, status ou país"
-            className="w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm"
           />
           {casosVisiveis.map((c) => {
             const classe =
-              "block rounded-xl border border-navy/10 bg-white p-4 transition-colors hover:border-navy/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2";
+              "block rounded-xl border border-navy/10 bg-cream/40 p-4 transition-colors hover:border-navy/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2";
             const corpo = (
               <>
               <div className="flex flex-wrap items-center gap-2">

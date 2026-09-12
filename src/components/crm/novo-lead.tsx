@@ -79,7 +79,7 @@ export function NovoLeadDialog({ aberto, onFechar, onCriado }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-auto bg-navy/50 p-4">
-      <div className="w-full max-w-2xl rounded-2xl border border-navy/10 bg-white p-5 shadow-xl">
+      <div className="w-full max-w-2xl rounded-2xl border border-navy/10 bg-cream/40 p-5 shadow-xl">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-lg font-medium text-navy">Novo lead</h2>

@@ -238,7 +238,7 @@ function ConteudoFluxoCanonico({ dados }: { dados: DadosFluxo }) {
                         setSelecionada(o.id);
                         setRascunho({});
                       }}
-                      className={`w-full rounded-lg border p-3 text-left text-sm ${selecionada === o.id ? "border-gold bg-gold/10" : "border-navy/10 bg-white"}`}
+                      className={`w-full rounded-lg border p-3 text-left text-sm ${selecionada === o.id ? "border-gold bg-gold/10" : "border-navy/10 bg-cream/40"}`}
                     >
                       <span className="block font-medium text-navy">{nomeContato(o.contact_id)}</span>
                       <span className="block text-xs text-navy/60">{rotuloDe(ETAPAS_COMERCIAIS, o.etapa_comercial)}</span>
@@ -393,7 +393,7 @@ function ConteudoFluxoCanonico({ dados }: { dados: DadosFluxo }) {
                     .filter((i) => i.opportunity_id === atual.id)
                     .slice(0, 12)
                     .map((i) => (
-                      <li key={i.id} className="rounded-lg border border-navy/10 bg-white p-3 text-xs text-navy/70">
+                      <li key={i.id} className="rounded-lg border border-navy/10 bg-cream/40 p-3 text-xs text-navy/70">
                         <span className="font-medium text-navy">{rotuloDe(TIPOS_INTERACAO, i.tipo)}</span> ·{" "}
                         {String(i.ocorrido_em ?? i.created_at ?? "").slice(0, 10)}
                         <p className="mt-1">{i.resumo_interno}</p>

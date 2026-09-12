@@ -2,7 +2,7 @@ import { escadaConversao, handoffLead, resultadoComercialDerivado, rotulo, type 
 
 const CORES: Record<string, string> = {
   concluido: "border-gold/50 bg-gold/10 text-navy",
-  em_andamento: "border-navy/20 bg-white text-navy",
+  em_andamento: "border-navy/20 bg-cream/40 text-navy",
   bloqueado: "border-terracotta/40 bg-terracotta/5 text-terracotta",
 };
 
@@ -28,7 +28,7 @@ export function HandoffLead({ lead }: { lead: LeadDesk }) {
   const escada = escadaConversao(lead);
 
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-4">
+    <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="font-serif text-lg text-navy">Handoff Discovery → oportunidade → operação</h3>
         <span className="text-xs text-navy/55">Resultado derivado: {resultadoComercialDerivado(lead)}</span>

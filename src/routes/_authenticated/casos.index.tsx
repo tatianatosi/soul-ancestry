@@ -125,7 +125,7 @@ function BuscaPorCodigo() {
           onChange={(e) => setTermo(e.target.value)}
           placeholder="Buscar por código canônico ou identificador histórico"
           aria-label="Buscar caso por código canônico ou identificador histórico"
-          className="min-w-[22rem] rounded-md border border-navy/20 bg-white px-3 py-1.5 text-sm text-navy"
+          className="min-w-[22rem] rounded-md border border-navy/20 bg-cream/40 px-3 py-1.5 text-sm text-navy"
         />
         <button
           type="submit"

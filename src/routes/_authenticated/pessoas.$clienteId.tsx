@@ -277,7 +277,7 @@ function Pessoa() {
   return (
     <SaasShell titulo={nome} descricao="A história desta pessoa, reunida de todos os casos dela.">
       <div className="space-y-6">
-        <section className="rounded-xl border border-navy/10 bg-white p-5">
+        <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-serif text-lg text-navy">Quem é</h2>
             {editando ? (
@@ -474,7 +474,7 @@ function Pessoa() {
           ) : null}
         </section>
 
-        <section className="rounded-xl border border-navy/10 bg-white p-5">
+        <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="font-serif text-lg text-navy">Casos</h2>
             <p className="text-xs text-navy/55">{casos.length} caso(s)</p>
@@ -582,7 +582,7 @@ function Pessoa() {
           )}
         </section>
 
-        <section className="rounded-xl border border-navy/10 bg-white p-5">
+        <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="font-serif text-lg text-navy">Núcleo familiar e papéis</h2>
             <p className="text-xs text-navy/55">{nucleoMembros.length} vínculo(s)</p>
@@ -608,7 +608,7 @@ function Pessoa() {
           )}
         </section>
 
-        <section className="rounded-xl border border-navy/10 bg-white p-5">
+        <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
           <h2 className="font-serif text-lg text-navy">Propostas, contratos e documentos</h2>
           <p className="mt-1 text-xs text-navy/55">
             Status aqui; edição e formalização nas rotas de origem (sem formulário duplicado).
@@ -738,7 +738,7 @@ function Pessoa() {
           </div>
         </section>
 
-        <section className="rounded-xl border border-navy/10 bg-white p-5">
+        <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="font-serif text-lg text-navy">Conteúdo publicado para o App Cliente</h2>
             <p className="text-xs text-navy/55">{projecoesPublicadas.length} projeção(ões)</p>
@@ -852,7 +852,7 @@ function Pessoa() {
           09/09/2026). Nome sozinho nunca é motivo suficiente — por isso o
           botão exige escolher o caso, mesmo quando a evidência já é forte.
         */}
-        <section className="rounded-xl border border-navy/10 bg-white p-5">
+        <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
           <h2 className="font-serif text-lg text-navy">Antes de virar cliente</h2>
           {erroVinculo ? <p className="mt-2 text-xs text-terracotta">{erroVinculo}</p> : null}
           {candidatos.length === 0 ? (
@@ -898,7 +898,7 @@ function Pessoa() {
                       <select
                         value={casoEscolhido[lead.id] ?? ""}
                         onChange={(e) => setCasoEscolhido((s) => ({ ...s, [lead.id]: e.target.value }))}
-                        className="rounded-md border border-navy/20 bg-white px-2 py-1 text-xs text-navy"
+                        className="rounded-md border border-navy/20 bg-cream px-2 py-1 text-xs text-navy"
                       >
                         <option value="">Escolher o caso desta pessoa…</option>
                         {casos.map((c: any) => (
@@ -928,7 +928,7 @@ function Pessoa() {
           )}
         </section>
 
-        <section className="rounded-xl border border-navy/10 bg-white p-5">
+        <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="font-serif text-lg text-navy">Linha do tempo</h2>
             <p className="text-xs text-navy/55">

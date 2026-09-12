@@ -63,7 +63,7 @@ export function LinhaParametro({ valor, aoMudar }: { valor: any; aoMudar: () => 
   const exigeJustificativa = def.justificativa === "obrigatoria";
 
   return (
-    <div id={`campo-${valor.id}`} className="rounded-lg border border-navy/15 bg-white p-3">
+    <div id={`campo-${valor.id}`} className="rounded-lg border border-navy/15 bg-cream/40 p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-medium text-navy" title={def.validacao}>
           {valor.label} {valor.obrigatorio && <span className="text-terracotta">*</span>}

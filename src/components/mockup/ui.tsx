@@ -19,7 +19,7 @@ export function Card({
   className?: string;
 }) {
   return (
-    <section className={cn("rounded-2xl border border-navy/10 bg-card p-4 shadow-sm sm:p-5", className)}>
+    <section className={cn("rounded-2xl border border-navy/10 bg-cream/50 p-4 shadow-sm sm:p-5", className)}>
       {(titulo || acao) && (
         <header className="mb-3 flex items-start justify-between gap-3">
           <div>
@@ -38,7 +38,7 @@ export function Card({
 
 export function Kpi({ rotulo, valor, nota }: { rotulo: string; valor: string; nota?: string }) {
   return (
-    <div className="rounded-2xl border border-navy/10 bg-card p-4">
+    <div className="rounded-2xl border border-navy/10 bg-cream/50 p-4">
       <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-navy/50">{rotulo}</p>
       <p className="mt-1 font-serif text-2xl text-navy">{valor}</p>
       {nota && <p className="mt-1 text-xs text-navy/60">{nota}</p>}

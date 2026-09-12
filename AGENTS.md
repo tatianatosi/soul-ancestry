@@ -15,6 +15,10 @@ Documento normativo da proprietária (Tatiana, tati@pluggedresearch.com), destil
 
 Isto **não** autoriza redesenho de navegação, vocabulário novo (incluindo taxonomia “CHECK-*”) nem tabelas hipotéticas de prompts antigos. Antes de implementar, confirmar o schema real e as decisões já vigentes.
 
+## Documentos executáveis (go-live 2026-09-11)
+
+PRD, guia Cursor, de-para Desk, CA-CONN/EVO/RESET e Catálogo 30 da pasta `docs/politicas/go-live-2026-09-11/` são **comandos de execução**, não arquivo morto. Ordem: uma fatia por vez; print antes de cada merge; sem merge sem aprovação explícita.
+
 ## Ordem de autoridade
 
 1. Decisão explícita e mais recente da proprietária.

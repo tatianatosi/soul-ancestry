@@ -69,7 +69,7 @@ export function CatalogoSaneamento() {
   const ind = q.data?.indicadores;
 
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-5">
+    <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <h2 className="font-serif text-lg text-navy">Catálogo e homologação de SKUs</h2>
         <div className="flex items-center gap-3">

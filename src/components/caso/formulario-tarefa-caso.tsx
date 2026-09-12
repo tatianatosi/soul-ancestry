@@ -79,7 +79,7 @@ export function FormularioTarefaCaso({
         value={titulo}
         onChange={(e) => setTitulo(e.target.value)}
         placeholder="Título da tarefa"
-        className="w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy"
+        className="w-full rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm text-navy"
       />
       <div className="grid gap-2 sm:grid-cols-2">
         <label className="block text-xs text-navy/70">
@@ -87,7 +87,7 @@ export function FormularioTarefaCaso({
           <select
             value={tipo}
             onChange={(e) => setTipo(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-navy/15 bg-white px-2 py-1.5 text-sm"
+            className="mt-1 w-full rounded-lg border border-navy/15 bg-cream px-2 py-1.5 text-sm"
           >
             {TIPOS_TAREFA.map((t) => (
               <option key={t} value={t}>
@@ -101,7 +101,7 @@ export function FormularioTarefaCaso({
           <select
             value={prioridade}
             onChange={(e) => setPrioridade(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-navy/15 bg-white px-2 py-1.5 text-sm"
+            className="mt-1 w-full rounded-lg border border-navy/15 bg-cream px-2 py-1.5 text-sm"
           >
             {PRIORIDADES.map((p) => (
               <option key={p} value={p}>
@@ -116,7 +116,7 @@ export function FormularioTarefaCaso({
             type="date"
             value={prazo}
             onChange={(e) => setPrazo(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-navy/15 bg-white px-2 py-1.5 text-sm"
+            className="mt-1 w-full rounded-lg border border-navy/15 bg-cream px-2 py-1.5 text-sm"
           />
         </label>
         <label className="block text-xs text-navy/70">
@@ -124,7 +124,7 @@ export function FormularioTarefaCaso({
           <select
             value={responsavelId}
             onChange={(e) => setResponsavelId(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-navy/15 bg-white px-2 py-1.5 text-sm"
+            className="mt-1 w-full rounded-lg border border-navy/15 bg-cream px-2 py-1.5 text-sm"
           >
             <option value="">— sem responsável —</option>
             {(qRefs.data?.equipe ?? []).map((p: Record<string, unknown>) => (
@@ -146,7 +146,7 @@ export function FormularioTarefaCaso({
           onChange={(e) => setMotivoBloqueio(e.target.value)}
           placeholder="Motivo do bloqueio (obrigatório)"
           rows={2}
-          className="w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm"
+          className="w-full rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm"
         />
       ) : null}
       <button

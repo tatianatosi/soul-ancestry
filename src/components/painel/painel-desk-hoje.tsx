@@ -70,13 +70,13 @@ function ConteudoDeskHoje({ dados }: { dados: DadosDeskHoje }) {
         </Link>
       </div>
 
-      <div className="mb-3 grid gap-2 rounded-xl border border-navy/10 bg-white p-3 sm:grid-cols-3">
+      <div className="mb-3 grid gap-2 rounded-xl border border-navy/10 bg-cream/40 p-3 sm:grid-cols-3">
         <label className="text-xs text-navy/60">
           Área responsável
           <select
             value={area}
             onChange={(e) => setArea(e.target.value)}
-            className="mt-1 w-full rounded border border-navy/15 bg-white px-2 py-1 text-sm text-navy"
+            className="mt-1 w-full rounded border border-navy/15 bg-cream/40 px-2 py-1 text-sm text-navy"
           >
             <option value="">Todas</option>
             {AREAS_RESPONSAVEIS.map((o) => (
@@ -91,7 +91,7 @@ function ConteudoDeskHoje({ dados }: { dados: DadosDeskHoje }) {
           <select
             value={responsavel}
             onChange={(e) => setResponsavel(e.target.value)}
-            className="mt-1 w-full rounded border border-navy/15 bg-white px-2 py-1 text-sm text-navy"
+            className="mt-1 w-full rounded border border-navy/15 bg-cream/40 px-2 py-1 text-sm text-navy"
           >
             <option value="">Todos</option>
             {responsaveis.map((r) => (
@@ -106,7 +106,7 @@ function ConteudoDeskHoje({ dados }: { dados: DadosDeskHoje }) {
           <select
             value={etapa}
             onChange={(e) => setEtapa(e.target.value)}
-            className="mt-1 w-full rounded border border-navy/15 bg-white px-2 py-1 text-sm text-navy"
+            className="mt-1 w-full rounded border border-navy/15 bg-cream/40 px-2 py-1 text-sm text-navy"
           >
             <option value="">Todas</option>
             {EIXO_COMERCIAL.map((o) => (
@@ -129,7 +129,7 @@ function ConteudoDeskHoje({ dados }: { dados: DadosDeskHoje }) {
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {filas.map((f) => (
-          <div key={f.chave} className="rounded-xl border border-navy/10 bg-white p-4">
+          <div key={f.chave} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
             <div className="flex items-baseline justify-between">
               <p className="text-xs uppercase tracking-wide text-navy/50">{f.rotulo}</p>
               <span className="font-serif text-2xl text-navy">{f.itens.length}</span>
@@ -156,7 +156,7 @@ function ConteudoDeskHoje({ dados }: { dados: DadosDeskHoje }) {
         ))}
       </div>
 
-      <div className="mt-4 rounded-xl border border-navy/10 bg-white p-4">
+      <div className="mt-4 rounded-xl border border-navy/10 bg-cream/40 p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="text-xs uppercase tracking-wide text-navy/50">
             Lista priorizada por prazo da próxima ação ({priorizada.length})
@@ -209,7 +209,7 @@ function ConteudoDeskHoje({ dados }: { dados: DadosDeskHoje }) {
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <p className="text-xs uppercase tracking-wide text-navy/50">Funil comercial</p>
           <ul className="mt-2 space-y-1 text-xs text-navy/60">
             {metricas.funil.map((e) => (
@@ -220,7 +220,7 @@ function ConteudoDeskHoje({ dados }: { dados: DadosDeskHoje }) {
           </ul>
         </div>
 
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <p className="text-xs uppercase tracking-wide text-navy/50">Discovery</p>
           <ul className="mt-2 space-y-1 text-xs text-navy/60">
             <li>Agendadas: {metricas.calls.agendadas}</li>
@@ -233,7 +233,7 @@ function ConteudoDeskHoje({ dados }: { dados: DadosDeskHoje }) {
           </ul>
         </div>
 
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <p className="text-xs uppercase tracking-wide text-navy/50">Higiene operacional</p>
           <ul className="mt-2 space-y-1 text-xs text-navy/60">
             <li>Leads sem próxima ação: {metricas.semProximaAcao}</li>
@@ -246,7 +246,7 @@ function ConteudoDeskHoje({ dados }: { dados: DadosDeskHoje }) {
           </ul>
         </div>
 
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <p className="text-xs uppercase tracking-wide text-navy/50">Leads por origem</p>
           <ul className="mt-2 space-y-1 text-xs text-navy/60">
             {metricas.porOrigem.slice(0, 6).map((o) => (
@@ -258,7 +258,7 @@ function ConteudoDeskHoje({ dados }: { dados: DadosDeskHoje }) {
           </ul>
         </div>
 
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <p className="text-xs uppercase tracking-wide text-navy/50">
             Casos por nacionalidade e via
           </p>
@@ -274,7 +274,7 @@ function ConteudoDeskHoje({ dados }: { dados: DadosDeskHoje }) {
           </ul>
         </div>
 
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <p className="text-xs uppercase tracking-wide text-navy/50">Entrada de leads</p>
           <ul className="mt-2 space-y-1 text-xs text-navy/60">
             {metricas.entradaMensal.slice(-4).map((m) => (

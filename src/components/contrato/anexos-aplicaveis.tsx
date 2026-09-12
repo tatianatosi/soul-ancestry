@@ -46,7 +46,7 @@ export function AnexosAplicaveis({
       </p>
       <div className="space-y-2">
         {regras.map((a) => (
-          <div key={a.codigo} id={`anexo-${a.codigo}`} className="rounded-lg border border-navy/15 bg-white p-3">
+          <div key={a.codigo} id={`anexo-${a.codigo}`} className="rounded-lg border border-navy/15 bg-cream/40 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm font-medium text-navy">
                 {a.codigo} — {a.titulo}

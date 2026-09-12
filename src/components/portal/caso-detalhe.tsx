@@ -23,7 +23,7 @@ const CATEGORIAS = [
 ];
 
 function Cartao({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-xl border border-navy/10 bg-white p-4">{children}</div>;
+  return <div className="rounded-xl border border-navy/10 bg-cream/50 p-4">{children}</div>;
 }
 
 function Selo({ texto }: { texto: string }) {
@@ -161,7 +161,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
         ) : (
           <ul className="mt-3 space-y-3">
             {painel.solicitacoes.map((s) => (
-              <li key={s.id} className="rounded-xl border border-navy/10 bg-white p-4">
+              <li key={s.id} className="rounded-xl border border-navy/10 bg-cream/50 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-medium">{s.titulo}</p>
                   <Selo texto={s.statusRotulo} />
@@ -215,7 +215,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
           <h2 className="font-serif text-xl">Meus envios</h2>
           <ul className="mt-3 space-y-2">
             {painel.meusEnvios.map((d) => (
-              <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-white p-4">
+              <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-cream/50 p-4">
                 <div>
                   <p className="font-medium">{d.titulo}</p>
                   <p className="text-xs text-navy/50">Enviado em {data(d.enviadoEm)}</p>
@@ -238,7 +238,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
         ) : (
           <ul className="mt-3 space-y-2">
             {painel.publicacoes.map((p) => (
-              <li key={p.id} className="rounded-xl border border-navy/10 bg-white p-4">
+              <li key={p.id} className="rounded-xl border border-navy/10 bg-cream/50 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-medium">{p.tipoRotulo}</p>
                   <Selo texto={`Publicado em ${data(p.publicadoEm)}`} />
@@ -261,7 +261,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
         ) : (
           <ul className="mt-3 space-y-2">
             {painel.entregas.map((d) => (
-              <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-white p-4">
+              <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-cream/50 p-4">
                 <div>
                   <p className="font-medium">{d.titulo}</p>
                   <p className="text-xs text-navy/50">Liberado em {data(d.liberadoEm)}</p>
@@ -287,7 +287,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
         ) : (
           <ul className="mt-3 space-y-2">
             {painel.faturas.map((f) => (
-              <li key={f.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-white p-4">
+              <li key={f.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-cream/50 p-4">
                 <div>
                   <p className="font-medium">{f.descricao ?? f.numero ?? "Fatura"}</p>
                   <p className="text-xs text-navy/50">Vencimento {data(f.vencimento)}</p>
@@ -315,7 +315,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
                 <Link
                   to="/portal/mensagens/$id"
                   params={{ id: t.id }}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-white p-4 hover:border-gold"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-cream/50 p-4 hover:border-gold"
                 >
                   <div>
                     <p className="font-medium">{t.assunto}</p>
@@ -330,7 +330,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
           </ul>
         ) : null}
 
-        <div className="mt-4 rounded-xl border border-navy/10 bg-white p-4">
+        <div className="mt-4 rounded-xl border border-navy/10 bg-cream/50 p-4">
           <p className="flex items-center gap-2 font-medium">
             <MessageSquare className="h-4 w-4" /> Nova mensagem
           </p>

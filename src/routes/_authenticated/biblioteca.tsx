@@ -52,7 +52,7 @@ export const Route = createFileRoute("/_authenticated/biblioteca")({
   ),
   notFoundComponent: () => (
     <SaasShell titulo="Biblioteca Mestre" descricao="Conteúdo não encontrado.">
-      <p className="text-sm text-muted-foreground">Nada a exibir.</p>
+      <p className="text-sm text-navy/65">Nada a exibir.</p>
     </SaasShell>
   ),
 });
@@ -192,15 +192,15 @@ function BibliotecaPage() {
         </p>
       ) : null}
       <div className="space-y-6">
-        <section className="rounded-xl border border-border bg-card p-4">
-          <h2 className="text-lg font-medium text-foreground">Centro de Inteligência</h2>
-          <p className="mb-3 mt-1 text-sm text-muted-foreground">
+        <section className="rounded-xl border border-navy/10 bg-cream/50 p-4">
+          <h2 className="font-serif text-lg text-navy">Centro de Inteligência</h2>
+          <p className="mb-3 mt-1 text-sm text-navy/65">
             As nove áreas do Centro de Inteligência e onde cada uma mora hoje. Nenhum dado é movido ou copiado por
             este mapa: ele só declara a casa de cada núcleo e nomeia a fonte concorrente onde ela existe de fato.
           </p>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              <thead className="text-[11px] uppercase tracking-wide text-navy/50">
                 <tr>
                   <th className="py-2 pr-3">Área</th>
                   <th className="py-2 pr-3">Casa</th>
@@ -208,21 +208,21 @@ function BibliotecaPage() {
                   <th className="py-2">Nota</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-navy/10">
                 {MAPA_CENTRO_INTELIGENCIA.map((l) => (
                   <tr key={l.area}>
-                    <td className="py-2 pr-3 font-medium text-foreground">{l.area}</td>
-                    <td className="py-2 pr-3 text-muted-foreground">{l.casa}</td>
-                    <td className="py-2 pr-3 text-muted-foreground">
+                    <td className="py-2 pr-3 font-medium text-navy">{l.area}</td>
+                    <td className="py-2 pr-3 text-navy/65">{l.casa}</td>
+                    <td className="py-2 pr-3 text-navy/65">
                       {rotuloFonteNegocio(l.fonte)}
                       <details className="mt-1">
-                        <summary className="cursor-pointer text-[10px] text-muted-foreground/80">
+                        <summary className="cursor-pointer text-[10px] text-navy/50">
                           Detalhes técnicos
                         </summary>
                         <code className="mt-1 block font-mono text-[10px]">{l.fonte}</code>
                       </details>
                     </td>
-                    <td className="py-2 text-muted-foreground">{l.nota}</td>
+                    <td className="py-2 text-navy/65">{l.nota}</td>
                   </tr>
                 ))}
               </tbody>
@@ -232,9 +232,9 @@ function BibliotecaPage() {
 
         <MotoresPrimordiais />
 
-        <section className="rounded-xl border border-border bg-card p-4">
-          <h2 className="text-lg font-medium text-foreground">Da Biblioteca até o App Cliente</h2>
-          <p className="mb-3 mt-1 text-sm text-muted-foreground">
+        <section className="rounded-xl border border-navy/10 bg-cream/50 p-4">
+          <h2 className="font-serif text-lg text-navy">Da Biblioteca até o App Cliente</h2>
+          <p className="mb-3 mt-1 text-sm text-navy/65">
             Bases Genealógicas, Dicionários e Trilhas são o insumo da pesquisa. O caminho é único e nenhum elo é
             pulado.
           </p>
@@ -252,24 +252,26 @@ function BibliotecaPage() {
                 setDetalhe(null);
               }}
               className={`rounded-xl border p-3 text-left transition ${
-                sub === s.chave ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/50"
+                sub === s.chave
+                  ? "border-gold bg-gold/15 text-navy"
+                  : "border-navy/10 bg-cream/40 text-navy hover:border-gold/60"
               }`}
             >
-              <div className="text-sm font-medium text-foreground">{s.label}</div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-sm font-medium">{s.label}</div>
+              <div className="text-xs text-navy/60">
                 {contadores.get(s.chave) ?? 0} {(contadores.get(s.chave) ?? 0) === 1 ? "item" : "itens"}
               </div>
             </button>
           ))}
         </section>
 
-        <section className="rounded-xl border border-border bg-card p-4">
-          <h2 className="text-lg font-medium text-foreground">{meta.label}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{meta.finalidade}</p>
-          <p className="mt-2 text-xs text-muted-foreground">Regra interna: {meta.regra}</p>
+        <section className="rounded-xl border border-navy/10 bg-cream/50 p-4">
+          <h2 className="font-serif text-lg text-navy">{meta.label}</h2>
+          <p className="mt-1 text-sm text-navy/65">{meta.finalidade}</p>
+          <p className="mt-2 text-xs text-navy/55">Regra interna: {meta.regra}</p>
           <div className="mt-3 flex flex-wrap gap-1.5">
             {meta.dimensoes.map((d) => (
-              <span key={d} className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+              <span key={d} className="rounded-full border border-navy/15 bg-cream px-2 py-0.5 text-xs text-navy/70">
                 {d}
               </span>
             ))}
@@ -281,14 +283,14 @@ function BibliotecaPage() {
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Buscar por nome, código, país, versão ou status"
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="rounded-lg border border-navy/20 bg-cream px-3 py-2 text-sm text-navy"
             aria-label="Buscar na Biblioteca Mestre"
           />
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
             aria-label="Filtrar por status"
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="rounded-lg border border-navy/20 bg-cream px-3 py-2 text-sm text-navy"
           >
             <option value="">Todos os status</option>
             {opcoes.status.map((v) => (
@@ -301,7 +303,7 @@ function BibliotecaPage() {
             value={responsavel}
             onChange={(e) => setResponsavel(e.target.value)}
             aria-label="Filtrar por responsável"
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="rounded-lg border border-navy/20 bg-cream px-3 py-2 text-sm text-navy"
           >
             <option value="">Todos os responsáveis</option>
             {opcoes.responsavel.map((v) => (
@@ -314,7 +316,7 @@ function BibliotecaPage() {
             value={pais}
             onChange={(e) => setPais(e.target.value)}
             aria-label="Filtrar por país ou trilha"
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="rounded-lg border border-navy/20 bg-cream px-3 py-2 text-sm text-navy"
           >
             <option value="">Todos os países/trilhas</option>
             {opcoes.pais.map((v) => (
@@ -327,7 +329,7 @@ function BibliotecaPage() {
             value={arquivamento}
             onChange={(e) => setArquivamento(e.target.value as typeof arquivamento)}
             aria-label="Filtrar por situação de arquivamento"
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="rounded-lg border border-navy/20 bg-cream px-3 py-2 text-sm text-navy"
           >
             <option value="ativos">Somente vigentes</option>
             <option value="arquivados">Somente arquivados</option>
@@ -349,46 +351,46 @@ function BibliotecaPage() {
           {(itensVisiveis) => (
           <ul className="grid gap-3 lg:grid-cols-2">
             {itensVisiveis.map((i) => (
-              <li key={i.id} className="rounded-xl border border-border bg-card p-4">
+              <li key={i.id} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="text-sm font-medium text-foreground">{i.titulo}</div>
+                    <div className="text-sm font-medium text-navy">{i.titulo}</div>
                     {i.subtitulo && (
-                      <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{i.subtitulo}</p>
+                      <p className="mt-0.5 line-clamp-2 text-xs text-navy/60">{i.subtitulo}</p>
                     )}
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
                     {i.status && (
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                      <span className="rounded-full border border-navy/15 bg-cream px-2 py-0.5 text-xs text-navy/70">
                         {i.status}
                       </span>
                     )}
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs ${
                         i.arquivado
-                          ? "bg-muted text-muted-foreground"
+                          ? "border border-navy/15 bg-cream text-navy/60"
                           : i.homologado
-                            ? "bg-primary/10 text-primary"
-                            : "bg-destructive/10 text-destructive"
+                            ? "border border-gold/40 bg-gold/15 text-navy"
+                            : "border border-terracotta/30 bg-terracotta/10 text-terracotta"
                       }`}
                     >
                       {i.arquivado ? "Arquivado" : i.homologado ? "Homologado" : "Não homologado"}
                     </span>
                   </div>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-navy/60">
                   {i.codigo && <span>Código: {i.codigo}</span>}
                   {i.versao && <span>Versão: {i.versao}</span>}
                   {i.responsavel && <span>Responsável: {i.responsavel}</span>}
                   {i.revisadoEm && <span>Revisão: {String(i.revisadoEm).slice(0, 10)}</span>}
                   {i.arquivado && <span>Arquivado: {i.motivoArquivo ?? "sem motivo registrado"}</span>}
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground">Regra: {i.regraHomologacao}</p>
+                <p className="mt-2 text-xs text-navy/65">Regra: {i.regraHomologacao}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-4">
                   <button
                     type="button"
                     onClick={() => setDetalhe(detalhe?.id === i.id ? null : i)}
-                    className="text-xs font-medium text-primary underline-offset-2 hover:underline"
+                    className="text-xs font-medium text-navy underline-offset-2 hover:underline"
                   >
                     {detalhe?.id === i.id ? "Fechar detalhe" : "Ver detalhe e vínculos"}
                   </button>
@@ -400,45 +402,45 @@ function BibliotecaPage() {
                         setMotivo("");
                         setErroArquivo(null);
                       }}
-                      className="text-xs font-medium text-muted-foreground underline-offset-2 hover:underline"
+                      className="text-xs font-medium text-navy/65 underline-offset-2 hover:underline"
                     >
                       Arquivar item
                     </button>
                   )}
                 </div>
                 {detalhe?.id === i.id && (
-                  <div className="mt-3 space-y-3 border-t border-border pt-3 text-xs">
+                  <div className="mt-3 space-y-3 border-t border-navy/10 pt-3 text-xs">
                     <dl className="space-y-1">
                       {i.detalhes.length === 0 ? (
-                        <p className="text-muted-foreground">Sem campos adicionais registrados.</p>
+                        <p className="text-navy/65">Sem campos adicionais registrados.</p>
                       ) : (
                         i.detalhes.map((d) => (
                           <div key={d.rotulo} className="flex gap-2">
-                            <dt className="shrink-0 text-muted-foreground">{d.rotulo}:</dt>
+                            <dt className="shrink-0 text-navy/65">{d.rotulo}:</dt>
                             <dd className="text-foreground">{d.valor}</dd>
                           </div>
                         ))
                       )}
                     </dl>
                     {i.fonte === "acervo" && (
-                      <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+                      <div className="space-y-2 rounded-lg border border-navy/10 bg-cream/30 p-3">
                         <p className="text-foreground">
                           Vigência atual:{" "}
                           <strong>
                             {ESTADOS_VIGENCIA.find((e) => e.valor === (i.vigencia ?? "rascunho"))?.rotulo}
                           </strong>
                         </p>
-                        <p className="text-muted-foreground">
+                        <p className="text-navy/65">
                           Critério/evidência de homologação: {i.homologacaoCriterio ?? "não registrado"}
                           {i.homologadoEm ? ` · homologado em ${String(i.homologadoEm).slice(0, 10)}` : ""}
                         </p>
                         {i.predecessorId && (
-                          <p className="text-muted-foreground">
+                          <p className="text-navy/65">
                             Substitui o item anterior: <code>{i.predecessorId}</code>
                           </p>
                         )}
                         {i.sucessorId && (
-                          <p className="text-muted-foreground">
+                          <p className="text-navy/65">
                             Substituído pelo sucessor: <code>{i.sucessorId}</code>
                           </p>
                         )}
@@ -458,9 +460,9 @@ function BibliotecaPage() {
                           />
                         )}
                         {dependencias.length > 0 && (
-                          <div className="rounded-lg border border-border p-2">
+                          <div className="rounded-lg border border-navy/10 p-2">
                             <p className="font-medium">Revalidar dependências após a troca de vigência</p>
-                            <ul className="mt-1 space-y-0.5 text-muted-foreground">
+                            <ul className="mt-1 space-y-0.5 text-navy/65">
                               {dependencias.map((d) => (
                                 <li key={d.id}>
                                   • {d.titulo} {d.versao ? `(v${d.versao})` : ""} — {d.vinculo}: {d.pendencia}
@@ -469,7 +471,7 @@ function BibliotecaPage() {
                             </ul>
                           </div>
                         )}
-                        <p className="text-muted-foreground">
+                        <p className="text-navy/65">
                           Homologar, tornar vigente, substituir, suspender ou arquivar exige perfil admin/operações e é
                           validado no banco: versão, responsável, critério, sucessor recíproco e motivo de suspensão são
                           obrigatórios, e cada transição grava evento append-only com ator, data, estado anterior e novo.
@@ -480,7 +482,7 @@ function BibliotecaPage() {
                       </div>
                     )}
                     {(i.fonte === "trilhas" || i.fonte === "juridico") && !i.arquivado && (
-                      <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+                      <div className="space-y-2 rounded-lg border border-navy/10 bg-cream/30 p-3">
                         <p className="text-foreground">
                           Homologação atual:{" "}
                           <strong>{i.homologado ? "Homologada/aprovada" : "Não homologada"}</strong>
@@ -499,7 +501,7 @@ function BibliotecaPage() {
                             erro={erroHomologacao}
                           />
                         )}
-                        <p className="text-muted-foreground">
+                        <p className="text-navy/65">
                           Homologar exige critério ou evidência registrada e é revalidado no servidor. A trilha ou
                           regra segue legível e navegável mesmo antes de homologada; homologar não versiona nem altera
                           nenhum outro campo do registro.
@@ -519,10 +521,10 @@ function BibliotecaPage() {
           <section
             role="dialog"
             aria-label="Arquivamento lógico de item da Biblioteca"
-            className="rounded-xl border border-border bg-card p-4"
+            className="rounded-xl border border-navy/10 bg-cream/50 p-4"
           >
             <h2 className="text-sm font-medium text-foreground">Arquivar “{aArquivar.titulo}”</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-xs text-navy/65">
               Não existe exclusão física: o item deixa de ser elegível, permanece rastreável no Arquivo histórico e o
               motivo fica registrado.
             </p>
@@ -532,7 +534,7 @@ function BibliotecaPage() {
               rows={2}
               aria-label="Motivo do arquivamento"
               placeholder="Motivo do arquivamento (mínimo 5 caracteres)"
-              className="mt-3 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+              className="mt-3 w-full rounded-lg border border-navy/20 bg-cream px-3 py-2 text-sm"
             />
             {erroArquivo && (
               <p role="alert" className="mt-2 text-xs text-destructive">
@@ -556,7 +558,7 @@ function BibliotecaPage() {
               <button
                 type="button"
                 onClick={() => setAArquivar(null)}
-                className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted-foreground"
+                className="rounded-lg border border-navy/20 px-3 py-2 text-xs font-medium text-navy/65"
               >
                 Cancelar
               </button>
@@ -589,22 +591,22 @@ function FormularioHomologacaoSimples({
   return (
     <form className="space-y-2" onSubmit={(e) => e.preventDefault()}>
       <label className="block">
-        <span className="text-muted-foreground">Critério ou evidência de homologação</span>
+        <span className="text-navy/65">Critério ou evidência de homologação</span>
         <textarea
           value={criterio}
           onChange={(e) => setCriterio(e.target.value)}
           rows={2}
           placeholder="Ex.: aprovação jurídica já dada fora do sistema, referência do parecer, decisão registrada"
-          className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+          className="mt-1 w-full rounded-lg border border-navy/20 bg-cream px-2 py-1.5 text-xs"
         />
       </label>
       <label className="block">
-        <span className="text-muted-foreground">Justificativa (opcional)</span>
+        <span className="text-navy/65">Justificativa (opcional)</span>
         <textarea
           value={justificativa}
           onChange={(e) => setJustificativa(e.target.value)}
           rows={2}
-          className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+          className="mt-1 w-full rounded-lg border border-navy/20 bg-cream px-2 py-1.5 text-xs"
         />
       </label>
       {erro && (
@@ -678,11 +680,11 @@ function FormularioVigencia({
   return (
     <form className="space-y-2" onSubmit={(e) => e.preventDefault()}>
       <label className="block">
-        <span className="text-muted-foreground">Novo estado de vigência</span>
+        <span className="text-navy/65">Novo estado de vigência</span>
         <select
           value={estado}
           onChange={(e) => setEstado(e.target.value as EstadoVigencia)}
-          className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+          className="mt-1 w-full rounded-lg border border-navy/20 bg-cream px-2 py-1.5 text-xs"
         >
           {ESTADOS_VIGENCIA.filter((o) => o.valor !== "arquivado").map((o) => (
             <option key={o.valor} value={o.valor}>
@@ -693,33 +695,33 @@ function FormularioVigencia({
       </label>
       {(estado === "homologado" || estado === "vigente") && (
         <label className="block">
-          <span className="text-muted-foreground">Critério ou evidência de homologação</span>
+          <span className="text-navy/65">Critério ou evidência de homologação</span>
           <textarea
             value={criterio}
             onChange={(e) => setCriterio(e.target.value)}
             rows={2}
-            className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+            className="mt-1 w-full rounded-lg border border-navy/20 bg-cream px-2 py-1.5 text-xs"
           />
         </label>
       )}
       {estado === "suspenso" && (
         <label className="block">
-          <span className="text-muted-foreground">Motivo da suspensão (bloqueia novo uso imediatamente)</span>
+          <span className="text-navy/65">Motivo da suspensão (bloqueia novo uso imediatamente)</span>
           <textarea
             value={motivoSuspensao}
             onChange={(e) => setMotivoSuspensao(e.target.value)}
             rows={2}
-            className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+            className="mt-1 w-full rounded-lg border border-navy/20 bg-cream px-2 py-1.5 text-xs"
           />
         </label>
       )}
       {estado === "substituido" && (
         <label className="block">
-          <span className="text-muted-foreground">Item sucessor</span>
+          <span className="text-navy/65">Item sucessor</span>
           <select
             value={sucessor}
             onChange={(e) => setSucessor(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+            className="mt-1 w-full rounded-lg border border-navy/20 bg-cream px-2 py-1.5 text-xs"
           >
             <option value="">Selecione o sucessor</option>
             {candidatos.map((c) => (
@@ -731,12 +733,12 @@ function FormularioVigencia({
         </label>
       )}
       <label className="block">
-        <span className="text-muted-foreground">Justificativa da mudança (registro append-only)</span>
+        <span className="text-navy/65">Justificativa da mudança (registro append-only)</span>
         <textarea
           value={justificativa}
           onChange={(e) => setJustificativa(e.target.value)}
           rows={2}
-          className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+          className="mt-1 w-full rounded-lg border border-navy/20 bg-cream px-2 py-1.5 text-xs"
         />
       </label>
 

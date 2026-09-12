@@ -124,7 +124,7 @@ function ContratosPage() {
         </p>
       ) : null}
 
-      <section className="mb-6 rounded-xl border border-navy/10 bg-white p-4">
+      <section className="mb-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
         <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="font-serif text-lg text-navy">Contrato de Estudo Genealógico v2 e anexos</h2>
           <span className="text-[11px] text-navy/50">Inventário patrimonial · leitura de {INVENTARIO_DATA}</span>
@@ -213,7 +213,7 @@ function ContratosPage() {
         vazio="Nenhum instrumento contratual nesta organização ainda."
       >
         {(contratos) => (
-        <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
+        <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
           <table className="w-full min-w-[720px] text-sm">
             <thead className="bg-navy/5 text-left text-xs uppercase tracking-wide text-navy/60">
               <tr>
@@ -293,7 +293,7 @@ function ContratosPage() {
 
 function Cartao({ titulo, valor }: { titulo: string; valor: number }) {
   return (
-    <div className="rounded-xl border border-navy/10 bg-white p-4">
+    <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
       <p className="text-xs uppercase tracking-wide text-navy/60">{titulo}</p>
       <p className="mt-1 font-serif text-3xl text-navy">{valor}</p>
     </div>
@@ -340,7 +340,7 @@ function FormNovo({
           case_id: tipo === "contract_base" ? casoId : null,
         });
       }}
-      className="mb-6 grid gap-3 rounded-xl border border-gold/40 bg-white p-4 sm:grid-cols-2"
+      className="mb-6 grid gap-3 rounded-xl border border-gold/40 bg-cream/40 p-4 sm:grid-cols-2"
     >
       <label className="text-sm">
         Tipo de instrumento

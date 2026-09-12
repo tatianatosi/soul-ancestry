@@ -347,8 +347,8 @@ export type IndicadorCockpit = {
  * Sinais de atenção e nas páginas canônicas.
  */
 export const CARDS_HOJE: { chave: string; rotulo: string; leitura: string }[] = [
-  { chave: "acoes_vencidas", rotulo: "Vencidos", leitura: "Próxima ação com data anterior a hoje" },
-  { chave: "acoes_hoje", rotulo: "Vence hoje", leitura: "Próxima ação datada para hoje" },
+  { chave: "acoes_vencidas", rotulo: "Ações vencidas", leitura: "Próxima ação com data anterior a hoje" },
+  { chave: "acoes_hoje", rotulo: "Ações para hoje", leitura: "Próxima ação datada para hoje" },
   {
     chave: "sem_responsavel",
     rotulo: "Sem responsável",

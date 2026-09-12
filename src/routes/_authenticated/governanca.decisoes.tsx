@@ -49,7 +49,7 @@ const CORES_SITUACAO: Record<SituacaoCriterio, string> = {
 
 function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-4">
+    <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
       <h2 className="text-sm font-semibold text-navy">{titulo}</h2>
       <div className="mt-2">{children}</div>
     </section>
@@ -98,7 +98,7 @@ function DecisoesPage() {
         </header>
 
         {DECISOES.map((d) => (
-          <article key={d.codigo} className="rounded-xl border border-navy/10 bg-white p-4">
+          <article key={d.codigo} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
             <div className="flex flex-wrap items-baseline gap-2">
               <h2 className="text-base font-semibold text-navy">
                 {d.codigo} — {d.titulo}

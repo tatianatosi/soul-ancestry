@@ -61,6 +61,7 @@ export const meusCasos = createServerFn({ method: "GET" })
       return {
         id: c.id as string,
         titulo: c.titulo as string,
+        codigo: (c.codigo as string | null) ?? null,
         pais: c.pais as string | null,
         via: c.via as string | null,
         atualizadoEm: c.updated_at as string,

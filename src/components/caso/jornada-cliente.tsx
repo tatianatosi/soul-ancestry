@@ -27,7 +27,7 @@ import {
 
 function Secao({ titulo, descricao, children }: { titulo: string; descricao?: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-5">
+    <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
       <h3 className="font-serif text-lg text-navy">{titulo}</h3>
       {descricao ? <p className="mt-1 text-xs text-navy/55">{descricao}</p> : null}
       <div className="mt-4 space-y-4">{children}</div>

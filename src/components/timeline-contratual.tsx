@@ -29,9 +29,9 @@ function Ponto({ status }: { status: EtapaContratual["status"] }) {
         "mt-1 grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full border-2",
         status === "concluido" && "border-sage bg-sage",
         status === "em_andamento" && "border-gold bg-gold",
-        status === "aguardando" && "border-terracotta bg-white",
-        status === "bloqueado" && "border-plum bg-white",
-        status === "nao_iniciado" && "border-navy/25 bg-white",
+        status === "aguardando" && "border-terracotta bg-cream/40",
+        status === "bloqueado" && "border-plum bg-cream/40",
+        status === "nao_iniciado" && "border-navy/25 bg-cream/40",
       )}
     />
   );
@@ -42,7 +42,7 @@ export function TimelineContratualDesk({ caso }: { caso: CaseData }) {
   if (etapas.length === 0) return null;
 
   return (
-    <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+    <section className="rounded-2xl border border-navy/10 bg-cream/40 p-5 shadow-sm">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h3 className="font-serif text-xl text-navy">Timeline contratual do caso</h3>
@@ -62,7 +62,7 @@ export function TimelineContratualDesk({ caso }: { caso: CaseData }) {
               <span className="absolute left-[6px] top-5 h-full w-px bg-border" aria-hidden />
             )}
             <Ponto status={e.status} />
-            <div className="min-w-0 flex-1 rounded-xl border border-border bg-cream/50 p-4">
+            <div className="min-w-0 flex-1 rounded-xl border border-navy/10 bg-cream/50 p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="font-semibold text-navy">{e.titulo}</div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -74,7 +74,7 @@ export function TimelineContratualDesk({ caso }: { caso: CaseData }) {
                   >
                     {STATUS_ETAPA_LABEL[e.status]}
                   </span>
-                  <span className="rounded-full border border-navy/15 bg-white px-2.5 py-0.5 text-[11px] text-navy/70">
+                  <span className="rounded-full border border-navy/15 bg-cream/40 px-2.5 py-0.5 text-[11px] text-navy/70">
                     {VISIBILIDADE_LABEL[e.visibilidade]}
                   </span>
                 </div>
@@ -117,7 +117,7 @@ export function TimelineContratualCliente({ caso }: { caso: CaseData }) {
   if (etapas.length === 0) return null;
 
   return (
-    <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+    <section className="rounded-2xl border border-navy/10 bg-cream/40 p-5 shadow-sm">
       <div className="text-[11px] uppercase tracking-widest text-terracotta">
         Andamento da formalização
       </div>

@@ -30,7 +30,7 @@ export function AnexosIaV({ anexos, entrada }: { anexos: AnexoGovernado[]; entra
   return (
     <div className="space-y-3">
       {anexos.map((a) => (
-        <article key={a.codigo} id={`anexo-${a.codigo}`} className="rounded-lg border border-navy/15 bg-white p-3">
+        <article key={a.codigo} id={`anexo-${a.codigo}`} className="rounded-lg border border-navy/15 bg-cream/40 p-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="text-sm font-medium text-navy">{a.titulo}</p>
             <span className="rounded-full border border-navy/15 px-2 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
@@ -146,7 +146,7 @@ export function PainelPendenciasContratuais({
   const grupos = [...new Set(pendencias.map((p) => p.grupo))];
 
   return (
-    <section className="rounded-lg border border-navy/15 bg-white p-3">
+    <section className="rounded-lg border border-navy/15 bg-cream/40 p-3">
       <h3 className="text-sm font-medium text-navy">Pendências agrupadas e efeito no gate</h3>
       {grupos.length === 0 && conflitos.length === 0 && <p className="mt-1 text-xs text-navy/60">Nenhuma pendência registrada.</p>}
       {grupos.map((g) => (

@@ -90,7 +90,7 @@ function ReprocessarConciliacao({ proposalId }: { proposalId: string }) {
             <p className="text-xs text-navy/60">Nenhum reprocessamento registrado para esta proposta.</p>
           )}
           {linhas.map((l) => (
-            <div key={l.id} className="rounded-md border border-navy/10 bg-white/60 p-2 text-xs text-navy/70">
+            <div key={l.id} className="rounded-md border border-navy/10 bg-cream/40 p-2 text-xs text-navy/70">
               <p className="font-medium text-navy">
                 Versão {l.versao} · {dataHora(l.created_at)} ·{" "}
                 {l.pode_gerar_os ? "sem bloqueio" : `${(l.bloqueios ?? []).length} bloqueio(s)`}

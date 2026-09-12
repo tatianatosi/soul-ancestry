@@ -33,7 +33,7 @@ export function AberturaPainel({
   });
 
   return (
-    <section className="rounded-xl border border-navy/10 bg-gradient-to-br from-cream/70 to-white p-5">
+    <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
       <p className="text-[11px] uppercase tracking-widest text-navy/45">{hoje}</p>
       {/* Sem nome: o Desk tem equipe, e o Painel não carrega identidade de
           quem está logado. Saudar pelo nome errado é pior que não saudar. */}

@@ -22,7 +22,7 @@ export function MetricasJornada() {
   const m = q.data as any;
 
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-5">
+    <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
       <h2 className="font-serif text-lg text-navy">Métricas da jornada</h2>
       <p className="mt-1 text-xs text-navy/55">
         Ativação, tempo até valor percebido, cadência e pendências. Uso diário da equipe.

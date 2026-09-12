@@ -271,7 +271,7 @@ function NucleosDuplicidadesPage() {
             const origem = lado === "A" ? c.nucleoB : c.nucleoA;
             const plano = montarPlanoUnificacao(canonico, origem);
             return (
-              <article key={c.chave} className="rounded-xl border border-navy/10 bg-white p-4">
+              <article key={c.chave} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className={`rounded-full px-2 py-1 text-[11px] ${CORES_CONFIANCA[c.confianca]}`}>
                     {ROTULOS_CONFIANCA[c.confianca]}

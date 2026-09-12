@@ -166,7 +166,7 @@ function DivergenciasCatalogoPage() {
               ) : (
             <ul className="space-y-3">
               {linhas.map((l) => (
-                <li key={l.id} className="rounded-xl border border-navy/15 bg-white p-4">
+                <li key={l.id} className="rounded-xl border border-navy/15 bg-cream/40 p-4">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-medium text-navy">{l.sku}</span>
                     <Selo

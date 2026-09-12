@@ -7,6 +7,10 @@ alwaysApply: true
 
 Texto irmão: `.cursor/rules/clube-ancestral.mdc`. Não altera legado; não inventa tabela.
 
+## Documentos executáveis (go-live)
+
+Todos os documentos da ordem de leitura do PRD go-live (`prd-e-ordem-cursor-…`, taxonomia, guia Cursor, de-para backend/Desk, CA-CONN/EVO/RESET, Catálogo 30) são **executáveis**: não são arquivo morto. Ler só para decidir o próximo passo de código. Cópias vigentes: `docs/politicas/go-live-2026-09-11/`.
+
 ## Premissas permanentes
 
 1. O **planejador** (`case_plans` + `salvarPlanejadorOperacional`) é a única fonte válida para planejamento e operação ativa.

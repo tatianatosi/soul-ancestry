@@ -38,7 +38,7 @@ export const Route = createFileRoute("/_authenticated/conversao")({
 });
 
 const Bloco = ({ titulo, aviso, children }: { titulo: string; aviso?: string; children: React.ReactNode }) => (
-  <section className="rounded-xl border border-navy/10 bg-white p-5">
+  <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
     <div className="flex flex-wrap items-baseline justify-between gap-2">
       <h2 className="font-serif text-lg text-navy">{titulo}</h2>
       {aviso && <span className="text-[11px] text-navy/50">{aviso}</span>}
@@ -121,7 +121,7 @@ function Conversao() {
       <p data-conversao="rotulo-canonico" className="text-[11px] uppercase tracking-wide text-navy/50">
         Fonte canônica de conversão e saúde comercial
       </p>
-      <details className="mb-3 rounded-lg border border-navy/10 bg-white px-3 py-2 text-xs text-navy/60">
+      <details className="mb-3 rounded-lg border border-navy/10 bg-cream/40 px-3 py-2 text-xs text-navy/60">
         <summary className="cursor-pointer font-medium text-navy/70">Leitura técnica do funil por eventos</summary>
         <p className="mt-2">
           Conversão — funil por eventos. Estado por lead, eventos imutáveis e saúde comercial. Uso interno de QA e
@@ -137,7 +137,7 @@ function Conversao() {
       >
         {() => (
         <div className="grid gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-navy/10 bg-white px-4 py-3 text-xs text-navy/70">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-navy/10 bg-cream/40 px-4 py-3 text-xs text-navy/70">
             <span>
               {incluirDemo
                 ? `Exibindo operação real + demonstração: ${dados.ocultosLeads.length} registro(s) de teste incluídos nas contagens.`
@@ -328,7 +328,7 @@ function Conversao() {
             </div>
           </Bloco>
 
-          <section className="rounded-xl border border-navy/10 bg-white">
+          <section className="rounded-xl border border-navy/10 bg-cream/40">
             <button
               className="flex w-full items-center justify-between px-5 py-4 text-left"
               onClick={() => setReferenciaAberta((v) => !v)}

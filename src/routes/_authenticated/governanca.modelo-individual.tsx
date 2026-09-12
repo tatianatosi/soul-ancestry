@@ -85,7 +85,7 @@ function RegistroVersionado() {
     | undefined;
 
   return (
-    <Card>
+    <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
       <CardHeader>
         <CardTitle className="text-base">Registro versionado (organização)</CardTitle>
       </CardHeader>
@@ -100,7 +100,7 @@ function RegistroVersionado() {
             </Badge>
           </div>
         ) : (
-          <p className="text-muted-foreground">
+          <p className="text-navy/65">
             Modelo ainda não registrado nesta organização. O registro é apenas de governança
             interna e não libera contrato, assinatura ou cobrança.
           </p>
@@ -128,7 +128,7 @@ function RegistroVersionado() {
           vazio="Nenhum evento registrado ainda."
         >
           {(eventos) => (
-            <ul className="space-y-1 text-xs text-muted-foreground">
+            <ul className="space-y-1 text-xs text-navy/65">
               {eventos.map((ev) => (
                 <li key={ev.id}>
                   {new Date(ev.criado_em).toLocaleString("pt-BR")} · {ev.evento}
@@ -179,21 +179,21 @@ function ModeloIndividualPage() {
             <Badge variant="outline">{MODELO_INDIVIDUAL_AUTOR}</Badge>
             <Badge variant="outline">Base: {MODELO_INDIVIDUAL_BASE}</Badge>
           </div>
-          <p className="max-w-3xl text-sm text-muted-foreground">{MODELO_INDIVIDUAL_FINALIDADE}</p>
+          <p className="max-w-3xl text-sm text-navy/65">{MODELO_INDIVIDUAL_FINALIDADE}</p>
           <p className="max-w-3xl rounded-md border border-terracotta/40 bg-terracotta/5 p-3 text-xs text-terracotta">
             {MODELO_INDIVIDUAL_AVISO}
           </p>
-          <p className="text-xs text-muted-foreground">Fonte canônica: {MODELO_INDIVIDUAL_FONTE}</p>
+          <p className="text-xs text-navy/65">Fonte canônica: {MODELO_INDIVIDUAL_FONTE}</p>
         </header>
 
         <RegistroVersionado />
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
+          <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Requerente único obrigatório</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm text-muted-foreground">
+            <CardContent className="space-y-2 text-sm text-navy/65">
               <p>Exatamente uma pessoa adulta como requerente principal.</p>
               <ul className="list-disc space-y-1 pl-5">
                 <li>Parte contratante e signatário por padrão, com confirmação humana obrigatória.</li>
@@ -203,11 +203,11 @@ function ModeloIndividualPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Acompanhante facultativa e limitada</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm text-muted-foreground">
+            <CardContent className="space-y-2 text-sm text-navy/65">
               <ul className="space-y-1">
                 {Object.entries(TRAVAS_ACOMPANHANTE).map(([chave, valor]) => (
                   <li key={chave} className="flex items-center justify-between gap-3">
@@ -223,7 +223,7 @@ function ModeloIndividualPage() {
           </Card>
         </div>
 
-        <Card>
+        <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">Anexos do modelo</CardTitle>
           </CardHeader>
@@ -232,17 +232,17 @@ function ModeloIndividualPage() {
               <div key={anexo.codigo} className="rounded-md border p-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium text-navy">{anexo.codigo}</span>
-                  <span className="text-muted-foreground">{anexo.titulo}</span>
+                  <span className="text-navy/65">{anexo.titulo}</span>
                   <Badge variant="outline">{CLASSE_ROTULO[anexo.classe]}</Badge>
                 </div>
-                <p className="pt-1 text-xs text-muted-foreground">{anexo.regra}</p>
+                <p className="pt-1 text-xs text-navy/65">{anexo.regra}</p>
               </div>
             ))}
           </CardContent>
         </Card>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
+          <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Gates bloqueantes</CardTitle>
             </CardHeader>
@@ -250,7 +250,7 @@ function ModeloIndividualPage() {
               {GATES_MODELO_INDIVIDUAL.map((gate) => (
                 <div key={gate.codigo} className="rounded-md border p-3">
                   <p className="font-medium text-navy">{gate.codigo}</p>
-                  <p className="text-xs text-muted-foreground">{gate.regra}</p>
+                  <p className="text-xs text-navy/65">{gate.regra}</p>
                   <p className="pt-1 text-xs text-terracotta">Bloqueia: {gate.bloqueia}</p>
                 </div>
               ))}
@@ -258,12 +258,12 @@ function ModeloIndividualPage() {
           </Card>
 
           <div className="space-y-6">
-            <Card>
+            <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
               <CardHeader>
                 <CardTitle className="text-base">Privacidade e acesso</CardTitle>
               </CardHeader>
               <CardContent>
-                <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                <ul className="list-disc space-y-1 pl-5 text-sm text-navy/65">
                   {REGRAS_PRIVACIDADE_MODELO.map((regra) => (
                     <li key={regra}>{regra}</li>
                   ))}
@@ -271,15 +271,15 @@ function ModeloIndividualPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
               <CardHeader>
                 <CardTitle className="text-base">Prévia TESTE</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <Badge variant="outline">{previa.marca}</Badge>
                 {previa.blocos.map((bloco) => (
-                  <div key={bloco.titulo} className="rounded-md border bg-muted/30 p-3">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  <div key={bloco.titulo} className="rounded-md border bg-cream/40 p-3">
+                    <p className="text-xs uppercase tracking-wide text-navy/65">
                       {bloco.titulo}
                     </p>
                     <p className="font-mono text-sm text-navy">{bloco.conteudo}</p>

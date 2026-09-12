@@ -62,7 +62,7 @@ export function PessoasDoNucleo({ caseId }: { caseId: string }) {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-navy/15 bg-white px-4 py-4">
+      <section className="rounded-xl border border-navy/15 bg-cream px-4 py-4">
         <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
           <h3 className="text-sm font-semibold text-navy">Composição familiar (somente leitura)</h3>
           <Link to="/nucleos" className="text-xs text-navy underline underline-offset-2">

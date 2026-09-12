@@ -75,7 +75,7 @@ const Bloco = ({
   descricao?: string;
   children: React.ReactNode;
 }) => (
-  <section id={id} className="scroll-mt-24 rounded-xl border border-navy/10 bg-white p-5">
+  <section id={id} className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-5">
     <h2 className="font-serif text-lg text-navy">{titulo}</h2>
     {descricao && <p className="mt-1 text-[12px] text-navy/55">{descricao}</p>}
     <div className="mt-3 text-sm text-navy/70">{children}</div>
@@ -175,7 +175,7 @@ function Marketing() {
           {([dados]) => <ConteudoMarketing dados={dados as DadosMarketing} />}
         </EstadoDados>
 
-        <section className="rounded-xl border border-navy/10 bg-white p-5">
+        <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
           <button
             type="button"
             onClick={() => setTecnicoAberto((v) => !v)}
@@ -259,14 +259,14 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
     <div className="space-y-5">
         <section
           data-marketing="filtros"
-          className="flex flex-wrap items-end gap-3 rounded-xl border border-navy/10 bg-white p-4"
+          className="flex flex-wrap items-end gap-3 rounded-xl border border-navy/10 bg-cream/40 p-4"
         >
           <label className="flex flex-col text-[11px] uppercase tracking-wide text-navy/50">
             Período
             <select
               value={filtro.periodo}
               onChange={(e) => setFiltro((f) => ({ ...f, periodo: e.target.value as PeriodoMarketing }))}
-              className="mt-1 rounded-lg border border-navy/15 bg-white px-3 py-1.5 text-[13px] normal-case tracking-normal text-navy"
+              className="mt-1 rounded-lg border border-navy/15 bg-cream/40 px-3 py-1.5 text-[13px] normal-case tracking-normal text-navy"
             >
               {PERIODOS_MARKETING.map((p) => (
                 <option key={p.valor} value={p.valor}>
@@ -280,7 +280,7 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
             <select
               value={filtro.canal}
               onChange={(e) => setFiltro((f) => ({ ...f, canal: e.target.value }))}
-              className="mt-1 rounded-lg border border-navy/15 bg-white px-3 py-1.5 text-[13px] normal-case tracking-normal text-navy"
+              className="mt-1 rounded-lg border border-navy/15 bg-cream/40 px-3 py-1.5 text-[13px] normal-case tracking-normal text-navy"
             >
               <option value={CANAL_TODOS}>Todos os canais</option>
               {canais.map((c) => (
@@ -335,7 +335,7 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
                 <p className="mt-1 font-serif text-lg text-navy">{m.valor}</p>
                 <p className="mt-1 text-[11px] text-navy/55">{m.nota}</p>
                 {m.valor === SEM_DADOS && (m.chave === "cac" || m.chave === "roi") && (
-                  <div data-marketing-explicacao={m.chave} className="mt-2 rounded-lg border border-navy/10 bg-white p-2">
+                  <div data-marketing-explicacao={m.chave} className="mt-2 rounded-lg border border-navy/10 bg-cream/40 p-2">
                     {(m.chave === "cac" ? ["cac"] : ["roi", "roas"]).map((k) => {
                       const e = explicacoes[k as "cac" | "roi" | "roas"];
                       return (
@@ -525,7 +525,7 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
           </p>
         </Bloco>
 
-        <details className="rounded-xl border border-navy/10 bg-white p-5">
+        <details className="rounded-xl border border-navy/10 bg-cream/40 p-5">
           <summary className="cursor-pointer font-serif text-lg text-navy">
             Leitura complementar de aquisição
           </summary>

@@ -39,7 +39,7 @@ export function ClienteMockup() {
         {tab === "legado" && <LegadoTab />}
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-md justify-between border-t border-navy/10 bg-card px-1 pb-[env(safe-area-inset-bottom)] pt-1">
+      <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-md justify-between border-t border-navy/10 bg-cream/50 px-1 pb-[env(safe-area-inset-bottom)] pt-1">
         {TABS.map(([id, Icone, nome]) => (
           <button
             key={id}

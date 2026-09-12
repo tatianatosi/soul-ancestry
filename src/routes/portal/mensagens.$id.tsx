@@ -85,7 +85,7 @@ function MensagemPage() {
             className={
               m.autor_tipo === "cliente"
                 ? "ml-auto max-w-[85%] rounded-xl bg-navy p-3 text-sm text-cream"
-                : "max-w-[85%] rounded-xl border border-navy/10 bg-white p-3 text-sm"
+                : "max-w-[85%] rounded-xl border border-navy/10 bg-cream/40 p-3 text-sm"
             }
           >
             <p className="whitespace-pre-wrap">{m.corpo}</p>
@@ -98,7 +98,7 @@ function MensagemPage() {
       </ul>
 
       {data.ticket.status !== "fechado" ? (
-        <div className="mt-5 rounded-xl border border-navy/10 bg-white p-4">
+        <div className="mt-5 rounded-xl border border-navy/10 bg-cream/40 p-4">
           {erroEnvio ? (
             <p className="mb-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
               {erroEnvio}

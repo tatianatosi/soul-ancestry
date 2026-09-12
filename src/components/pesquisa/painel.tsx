@@ -68,7 +68,7 @@ function molduraPor(tipo: "validado" | "hipotese" | "inconclusivo" | "pendencia"
   return cn(
     "rounded-xl border p-3",
     tipo === "validado" && "border-gold bg-gold/10",
-    tipo === "hipotese" && "border-dashed border-navy/40 bg-white",
+    tipo === "hipotese" && "border-dashed border-navy/40 bg-cream/40",
     tipo === "inconclusivo" && "border-navy/15 bg-navy/5",
     tipo === "pendencia" && "border-terracotta/40 bg-terracotta/5",
   );
@@ -258,7 +258,7 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
 
   return (
     <div className="space-y-4">
-      <header className="rounded-xl border border-navy/10 bg-white p-4">
+      <header className="rounded-xl border border-navy/10 bg-cream/40 p-4">
         <p className="text-xs uppercase tracking-wide text-navy/50">Pesquisa genealógica</p>
         <h1 className="font-serif text-2xl">
           {d.caso["codigo"]} — {d.caso["titulo"]}
@@ -496,7 +496,7 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
           <p className="mb-2 text-xs text-navy/60">
             Gerado a partir dos registros atuais. Não é enviado ao cliente automaticamente.
           </p>
-          <textarea readOnly value={relatorio} className="h-[28rem] w-full rounded-lg border border-navy/15 bg-white p-3 font-mono text-xs" />
+          <textarea readOnly value={relatorio} className="h-[28rem] w-full rounded-lg border border-navy/15 bg-cream/40 p-3 font-mono text-xs" />
           <div className="mt-2 flex gap-2">
             <button
               onClick={() => {

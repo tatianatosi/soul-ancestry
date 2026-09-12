@@ -43,7 +43,7 @@ function DevolutivaPage() {
             className={`rounded-full border px-3 py-1 text-xs ${
               p.clientId === data.clientId
                 ? "border-gold bg-gold/15 text-navy"
-                : "border-navy/20 bg-white/60 text-navy/70"
+                : "border-navy/20 bg-cream/50 text-navy/70"
             }`}
           >
             {p.displayName}
