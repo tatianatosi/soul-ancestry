@@ -15,6 +15,7 @@ import { Route as AcessoRouteImport } from './routes/acesso'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as PortalRouteRouteImport } from './routes/portal/route'
+import { Route as PreviaAppClienteRouteImport } from './routes/previa-app-cliente'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
 import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
 import { Route as AuthenticatedAppClienteComoPessoaRouteImport } from './routes/_authenticated/app-cliente-como-pessoa'
@@ -139,6 +140,11 @@ const DevolutivaRoute = DevolutivaRouteImport.update({
 const PortalRouteRoute = PortalRouteRouteImport.update({
   id: '/portal',
   path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreviaAppClienteRoute = PreviaAppClienteRouteImport.update({
+  id: '/previa-app-cliente',
+  path: '/previa-app-cliente',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAcessosPortalRoute =
@@ -675,6 +681,7 @@ export interface FileRoutesByFullPath {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/previa-app-cliente': typeof PreviaAppClienteRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -777,6 +784,7 @@ export interface FileRoutesByTo {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/previa-app-cliente': typeof PreviaAppClienteRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -882,6 +890,7 @@ export interface FileRoutesById {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/previa-app-cliente': typeof PreviaAppClienteRoute
   '/_authenticated/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/_authenticated/alertas': typeof AuthenticatedAlertasRoute
   '/_authenticated/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -987,6 +996,7 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
+    | '/previa-app-cliente'
     | '/acessos-portal'
     | '/alertas'
     | '/app-cliente-como-pessoa'
@@ -1089,6 +1099,7 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
+    | '/previa-app-cliente'
     | '/acessos-portal'
     | '/alertas'
     | '/app-cliente-como-pessoa'
@@ -1193,6 +1204,7 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
+    | '/previa-app-cliente'
     | '/_authenticated/acessos-portal'
     | '/_authenticated/alertas'
     | '/_authenticated/app-cliente-como-pessoa'
@@ -1298,6 +1310,7 @@ export interface RootRouteChildren {
   AcessoRoute: typeof AcessoRouteWithChildren
   AuthRoute: typeof AuthRoute
   DevolutivaRoute: typeof DevolutivaRoute
+  PreviaAppClienteRoute: typeof PreviaAppClienteRoute
   ApiPesquisaAssistenteRoute: typeof ApiPesquisaAssistenteRoute
   CanvasTokenRoute: typeof CanvasTokenRoute
   EquipeDiagnosticoConexaoRoute: typeof EquipeDiagnosticoConexaoRoute
@@ -1352,6 +1365,13 @@ declare module '@tanstack/react-router' {
       path: '/portal'
       fullPath: '/portal'
       preLoaderRoute: typeof PortalRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/previa-app-cliente': {
+      id: '/previa-app-cliente'
+      path: '/previa-app-cliente'
+      fullPath: '/previa-app-cliente'
+      preLoaderRoute: typeof PreviaAppClienteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/acessos-portal': {
@@ -2252,6 +2272,7 @@ const rootRouteChildren: RootRouteChildren = {
   AcessoRoute: AcessoRouteWithChildren,
   AuthRoute: AuthRoute,
   DevolutivaRoute: DevolutivaRoute,
+  PreviaAppClienteRoute: PreviaAppClienteRoute,
   ApiPesquisaAssistenteRoute: ApiPesquisaAssistenteRoute,
   CanvasTokenRoute: CanvasTokenRoute,
   EquipeDiagnosticoConexaoRoute: EquipeDiagnosticoConexaoRoute,

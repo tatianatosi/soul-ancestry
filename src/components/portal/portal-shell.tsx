@@ -82,7 +82,8 @@ export function PortalShell({
     // deslogaria a Proprietária do próprio Desk — o botão apenas fecha a
     // prévia e volta para a superfície interna.
     if (previa) {
-      navigate({ to: "/acessos-portal", replace: true });
+      const destino = previa.destinoSair ?? "/acessos-portal";
+      void navigate({ to: destino, replace: true });
       return;
     }
     await queryClient.cancelQueries();

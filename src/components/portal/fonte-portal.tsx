@@ -55,6 +55,11 @@ export type PreviaPortal = {
   selo: string;
   /** Identifica a origem do que está sendo exibido. */
   titulo: string;
+  /**
+   * Para onde o botão Sair leva na prévia.
+   * Desk demo → `/acessos-portal`. Prévia pública go-live → `/acesso`.
+   */
+  destinoSair?: string;
 };
 
 export type FontePortal = {
