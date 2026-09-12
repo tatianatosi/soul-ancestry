@@ -70,7 +70,7 @@ function Cartao({
   return (
     <section
       className={cn(
-        "rounded-xl border border-navy/10 bg-card p-4 shadow-[0_1px_2px_rgba(16,16,16,0.05)]",
+        "min-w-0 rounded-xl border border-navy/10 bg-card p-4 shadow-[0_1px_2px_rgba(16,16,16,0.05)]",
         className,
       )}
     >
@@ -1120,7 +1120,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
         </div>
         <div className="grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
           <Cartao titulo="Itens revisados recentemente">
-            <div className="overflow-x-auto">
+            <div className="max-w-full overflow-x-auto">
               <table className="w-full min-w-[560px] text-left text-[11px]">
                 <thead className="border-b border-navy/10 text-[9px] uppercase text-navy/45">
                   <tr><th className="pb-2">Item</th><th className="pb-2">Área</th><th className="pb-2">Versão</th><th className="pb-2">Estado</th><th className="pb-2">Uso</th></tr>
@@ -1365,7 +1365,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             </div>
           </Cartao>
           <Cartao titulo="Registro de auditoria">
-            <div className="overflow-x-auto">
+            <div className="max-w-full overflow-x-auto">
               <table className="w-full min-w-[520px] text-left text-[10px]">
                 <thead className="border-b border-navy/10 uppercase text-navy/45"><tr><th className="pb-2">Data</th><th className="pb-2">Ação</th><th className="pb-2">Pessoa</th><th className="pb-2">Resultado</th></tr></thead>
                 <tbody className="divide-y divide-navy/5 text-navy/70">
