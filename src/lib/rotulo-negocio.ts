@@ -114,14 +114,14 @@ export function filtrarPorBusca<T extends Record<string, unknown>>(
   );
 }
 
-/** Situação de evidência do módulo vivo → vocabulário da cadeia de custódia (UI). */
+/** Situação de evidência do módulo vivo → vocabulário CHECK de evidences.workflow_status. */
 export const EVIDENCIA_MODULO_PARA_CADEIA: Record<string, string> = {
   collected: "recebida",
   under_review: "em_revisao",
-  validated: "validada_internamente",
+  validated: "aprovada_para_entrega",
   inconclusive: "insuficiente",
-  discarded: "rejeitada_ou_inaplicavel",
-  archived: "rejeitada_ou_inaplicavel",
+  discarded: "rejeitada_inaplicavel",
+  archived: "rejeitada_inaplicavel",
 };
 
 export function workflowStatusDeEvidenciaModulo(evidenceStatus: string | null | undefined): string {

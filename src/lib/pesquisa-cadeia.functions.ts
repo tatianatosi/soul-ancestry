@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
-import { statusPesquisaCanonico, validarTransicaoEvidencia } from "@/lib/pesquisa-cadeia";
+import { statusEvidenciaCanonico, statusPesquisaCanonico, validarTransicaoEvidencia } from "@/lib/pesquisa-cadeia";
 import { workflowStatusDeEvidenciaModulo } from "@/lib/rotulo-negocio";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -278,23 +278,26 @@ export const mudarEstadoEvidencia = createServerFn({ method: "POST" })
     if (atual.error) throw new Error(atual.error.message);
     if (!atual.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
 
-    const de = String((atual.data as any).workflow_status ?? "recebida");
+    const deBruto = String((atual.data as any).workflow_status ?? "recebida");
+    const de = statusEvidenciaCanonico(deBruto) ?? deBruto;
+    const para = statusEvidenciaCanonico(data.status);
+    if (!para) throw new Error("Situação de evidência desconhecida.");
     const origem = String((atual.data as any).data_origin ?? (atual.data as any).evidence_nature ?? "");
     const check = validarTransicaoEvidencia({
       de,
-      para: data.status,
+      para,
       autor: context.userId as string,
       justificativa: data.nota ?? "",
       origem,
     });
     if (!check.ok) throw new Error(check.erro as string);
 
-    const revisando = ["validada_internamente", "aprovada_para_entrega_cliente", "em_revisao"].includes(data.status);
+    const revisando = ["aprovada_para_entrega", "em_revisao", "publicada"].includes(para);
     const agora = new Date().toISOString();
     const r = await supabase
       .from("evidences")
       .update({
-        workflow_status: data.status,
+        workflow_status: para,
         validation_notes_internal: data.nota?.trim() || null,
         reviewed_by: revisando ? context.userId : undefined,
         reviewed_at: revisando ? agora : undefined,
@@ -302,7 +305,7 @@ export const mudarEstadoEvidencia = createServerFn({ method: "POST" })
       })
       .eq("id", data.id)
       .eq("organization_id", organizationId)
-      .eq("workflow_status", de)
+      .eq("workflow_status", deBruto)
       .select("id,workflow_status")
       .maybeSingle();
     if (r.error) throw new Error(r.error.message);
@@ -312,7 +315,7 @@ export const mudarEstadoEvidencia = createServerFn({ method: "POST" })
       organization_id: organizationId,
       entity_type: "evidences",
       entity_id: data.id,
-      event_type: `estado:${de}->${data.status}`,
+      event_type: `estado:${de}->${para}`,
       actor_user_id: context.userId,
       metadata: { justificativa: data.nota?.trim() ?? "", origem },
     } as any);

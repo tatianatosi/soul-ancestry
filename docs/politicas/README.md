@@ -22,7 +22,7 @@ Rótulos “arquivado” / “fechado” / “superado” nas tabelas abaixo sã
 
 A partir de 10/09/2026, as regras operacionais que todo agente deve aplicar estão destiladas em **`AGENTS.md`** (raiz) e **`.cursor/rules/clube-ancestral.mdc`**. O texto completo enviado pela proprietária está em `MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Verificação contra o código: `docs/relatorios/2026-09-10_memoria-permanente-verificacao.md`.
 
-Esse destilado **não substitui** `politica-autoridade-operacional.md`, a taxonomia do mockup de 17 páginas, nem os 8 grupos reais do Desk. Não inventar vocabulário CHECK-* nem tabelas hipotéticas (`case_participants`, `citizenship_cases`).
+Esse destilado **não substitui** `politica-autoridade-operacional.md`, a taxonomia do mockup de 17 páginas, nem o adendo de contexto não arquivável. Menu vigente = 6 grupos; texto de 8 grupos permanece contexto ativo. Não inventar vocabulário CHECK-* nem tabelas hipotéticas (`case_participants`, `citizenship_cases`). Checklist de PR: `CHECKLIST-PR-CONTINUIDADE-PROVA.md`.
 
 ## Sequência confirmada pela proprietária (30/08/2026)
 

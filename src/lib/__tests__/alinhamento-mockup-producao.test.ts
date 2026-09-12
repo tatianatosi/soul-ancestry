@@ -73,7 +73,7 @@ describe("rótulos de negócio e notas técnicas", () => {
   });
 
   it("mapeia evidência do módulo vivo para a cadeia e reconhece pendência aberta", () => {
-    expect(workflowStatusDeEvidenciaModulo("validated")).toBe("validada_internamente");
+    expect(workflowStatusDeEvidenciaModulo("validated")).toBe("aprovada_para_entrega");
     expect(pendenciaPesquisaAberta("open")).toBe(true);
     expect(pendenciaPesquisaAberta("resolved")).toBe(false);
     expect(pendenciaPesquisaAberta("resolvido")).toBe(false);

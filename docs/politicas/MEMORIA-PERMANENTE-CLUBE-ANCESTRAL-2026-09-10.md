@@ -666,3 +666,15 @@ Resumo normativo, sem contradizer as seções 1–18:
 - Mockup de 17 páginas = visual normativo. PDF de 47 páginas e PDFs de distorção/comparação = auditoria, não redesign.
 - “Entregue” exige fonte + escritor + persistência + consumidor + CTA + reload. Não inventar vocabulário de `CHECK`.
 - PR #85 mesclada: não regredir `documentos_minimos_ok`, convite/login oficial, RLS, isolamento. Merge futuro só com autorização explícita.
+
+---
+
+## 20. Adendo vinculante — contexto não arquivável e prova autenticada (2026-09-10)
+
+Texto integral (não resumir no lugar do original): `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`.  
+Registro vivo: `docs/relatorios/2026-09-11_registro-prova-autenticada.md`.  
+Checklist de PR: `docs/politicas/CHECKLIST-PR-CONTINUIDADE-PROVA.md`.
+
+Esta seção **não** arquiva as seções 1–19. Complementa: nenhum contexto de resgate pode ser retirado da continuidade até `COMPROVADO_EM_USO` com prints autenticados da proprietária (inicial, ação, confirmação, releitura e, na cadeia, integração). Código, PR, build, teste, mockup ou declaração de agente não bastam. Este adendo não autoriza alterar dados, RLS, migrations, pagamentos, mensagens ou merges.
+
+“Seis áreas” = 6 grupos vigentes do Desk. App Cliente = 7 abas. O texto de 8 grupos destas seções permanece ativo até a prova integrada.

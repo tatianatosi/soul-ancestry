@@ -88,9 +88,9 @@ describe("testes de aceite — cadeia operacional", () => {
 
   it("evidência divergente não é sobrescrita silenciosamente por validação ou publicação", () => {
     const saidas = TRANSICOES_EVIDENCIA["divergente"] ?? [];
+    expect(saidas).not.toContain("aprovada_para_entrega");
+    expect(saidas).not.toContain("publicada");
     expect(saidas).not.toContain("validada_internamente");
-    expect(saidas).not.toContain("aprovada_para_entrega_cliente");
-    expect(saidas).not.toContain("publicada_ao_cliente");
   });
 
   it("nó derivado sempre aponta para evidência ou hipótese interna explícita", () => {

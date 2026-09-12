@@ -27,7 +27,7 @@ describe("CA20 — Caso 360 resume Pesquisa com a mesma fonte de /pesquisa-evide
     const bloco = arquivo.slice(arquivo.indexOf("Pesquisa/entregas"), arquivo.indexOf("Pesquisa/entregas") + 1600);
     expect(bloco).toContain("qPesquisa.isLoading");
     expect(bloco).toContain("qPesquisa.isError");
-    expect(bloco).toContain('workflow_status === "validada_internamente"');
+    expect(bloco).toContain("evidenciaComprovada(e.workflow_status)");
     expect(bloco).toContain('p.status !== "resolvido"');
     expect(bloco).toContain("achados");
   });

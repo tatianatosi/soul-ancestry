@@ -1,5 +1,5 @@
 ---
-description: Memória permanente do Clube Ancestral — autoridade, motor unificado, legado, schema real, 7 telas do Desk (mockup) e 7 abas do App.
+description: Memória permanente do Clube Ancestral — autoridade, motor unificado, legado, schema real, 7 telas do Desk (mockup), 7 abas do App, contexto não arquivável.
 alwaysApply: true
 ---
 
@@ -12,7 +12,7 @@ Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da propriet
 - Tratar o **planejador** como fonte do trabalho ativo; o **caso** (`crm_casos`) como eixo; a próxima ação como campo obrigatório de caso ativo (`proxima_acao_prioritaria`).
 - Entregar fatia vertical (UI + persistência + permissão + evidência). Aparência sozinha não é “feito”.
 - Mapear conceitos para tabelas **já existentes** em `src/integrations/supabase/types.ts` e `supabase/migrations/`. Reaproveitar `case_members` / `tarefas` / `planner_tarefas` / `research_cases` / `documents` etc. Cruzar escritores de `src/lib` com `types.ts` **e** `CHECK` das migrations — `string` no tipo gerado não libera vocabulário novo.
-- Manter a **sidebar do Desk com as 7 telas do mockup** em `GRUPOS_DESK` (`Visão Geral, Casos 360, Checklist, Validação Jurídica, Radar Interno, Alertas, Biblioteca Mestre`) e as **7 abas canônicas** do App Cliente (`Home, Jornada, Radar, Árvore, Documentos, Legado, Conta`). Os 6 eixos internos (Hoje/Comercial/Casos & Pessoas/Pesquisa/Formalização/Governança) são organização de contexto — não navegação de primeiro nível (`ADENDO-SIDEBAR-7-TELAS-MOCKUP-2026-09-11.md`).
+- Manter a **sidebar do Desk com as 7 telas do mockup** em `GRUPOS_DESK` (`Visão Geral, Casos 360, Checklist, Validação Jurídica, Radar Interno, Alertas, Biblioteca Mestre`) e as **7 abas canônicas** do App Cliente (`Home, Jornada, Radar, Árvore, Documentos, Legado, Conta`). Os 6 eixos internos (Hoje/Comercial/Casos & Pessoas/Pesquisa/Formalização/Governança) são organização de contexto — não navegação de primeiro nível (`ADENDO-SIDEBAR-7-TELAS-MOCKUP-2026-09-11.md`). Hierarquia funcional da memória permanente não é menu novo. Contextos de resgate permanecem ativos até `COMPROVADO_EM_USO`.
 - Nav do cliente = só as 7. Entregas / Fase 01 / Fase 02 **fora** da barra (conteúdo ou rota profunda, não aba).
 - Usar o mockup de **17 páginas** como visual normativo. PDF de **47 páginas**, distorção e comparação visual = auditoria de conteúdo/estados/indicadores **em conjunto** com o de 17 (adendo 2026-09-11); não briefing para restaurar sidebar Lovable.
 - Tratar Pessoa, Núcleo, Lead, Caso, Pesquisa e Contrato como entidades distintas ligadas por IDs. App Cliente = projeção autorizada desses objetos.
@@ -29,6 +29,7 @@ Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da propriet
 - Inventar valores de `CHECK` Postgres (`em_pesquisa`, `descartado`, `not_started`, `fase_2_pesquisa` gravado, `validada_internamente` em `evidences`, etc.). Ler a constraint na migration.
 - Colocar Entregas / Fase 01 / Fase 02 (ou Proposta / Faturas / Mensagens) como aba de primeiro nível do App Cliente.
 - Voltar a sidebar do Desk para 6 grupos operacionais como face do produto, ou criar oitava aba, sem nova decisão da proprietária.
+- Redesenhar Desk/App só para caber no PDF de distorção. O README histórico de 6 abas (protótipo visual antigo) não é o menu vigente.
 - Misturar legado com dado ativo sem rótulo e sem precedência do planejador.
 - Confiar só em esconder rota/botão; RLS e validação no servidor são a autorização.
 - Simular sucesso, usar mock permanente como produção, ou apresentar hipótese genealógica como fato.
