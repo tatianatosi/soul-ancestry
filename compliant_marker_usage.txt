@@ -1,0 +1,16 @@
+src/routes/_authenticated/alertas.tsx
+src/routes/_authenticated/biblioteca.tsx
+src/routes/_authenticated/calls.tsx
+src/routes/_authenticated/casos.$caseId.index.tsx
+src/routes/_authenticated/casos.index.tsx
+src/routes/_authenticated/configuracoes.tsx
+src/routes/_authenticated/contratos.index.tsx
+src/routes/_authenticated/equipe.tsx
+src/routes/_authenticated/evidencias.tsx
+src/routes/_authenticated/financeiro.tsx
+src/routes/_authenticated/microentregas.tsx
+src/routes/_authenticated/painel.tsx
+src/routes/_authenticated/pesquisa-evidencias.$caseId.tsx
+src/routes/_authenticated/pesquisa.index.tsx
+src/routes/_authenticated/pessoas-linhagens.$caseId.tsx
+src/routes/_authenticated/qualidade.tsx
