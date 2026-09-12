@@ -10,6 +10,6 @@
 - [x] Aplicar o kit na área de Documentos mantendo fonte, evidência e publicação separadas.
 - [x] Centralizar cadências vencidas, casos sem próxima ação e leads parados em Alertas, preservando as fontes de origem.
 - [x] Conectar a fila editorial da Biblioteca a uma tela de Microentregas com status, responsável, prazo e detalhe real.
-- [ ] Validar compilação, rotas e estados de leitura das novas superfícies.
+- [x] Validar compilação, rotas e estados de leitura das novas superfícies.
 - [x] Ligar os cartões de Hoje e a fila da Biblioteca às fontes reais do Desk.
 - [ ] Publicar o App Cliente e conferir etapa, próxima ação e microentrega publicada em tela real.
