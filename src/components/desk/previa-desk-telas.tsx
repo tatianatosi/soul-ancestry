@@ -1,5 +1,5 @@
 /**
- * PRÉVIA VISUAL DO DESK — conversão das 12 telas do mockup aprovado em
+ * PRÉVIA VISUAL DO DESK — conversão das telas do mockup aprovado em
  * superfícies reais do Desk, com o guia de marca oficial (navy #2F4B6E,
  * dourado #FCB73A, creme #ECDFCD, terracota #9A3A2F), logo oficial
  * (<BrandLogo />) e tipografia Cormorant (títulos) + Montserrat (corpo).
@@ -420,7 +420,7 @@ function MedidorConfianca({ valor }: { valor: number }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* As 12 telas do mockup                                               */
+/* Telas do mockup e complementos visuais aprovados                    */
 /* ------------------------------------------------------------------ */
 
 export type TelaPrevia = {
@@ -704,13 +704,16 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
         <CabecalhoFerramenta titulo="Centro de inteligência" apoio="Acervo interno, bases, taxonomias, trilhas, regras e modelos versionados" acao="Novo item" />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {[
-            ["Acervo", "42", FileText], ["Bases genealógicas", "18", Search], ["Dicionários", "13", BookOpen],
-            ["Trilhas", "11", Target], ["Regras jurídicas", "27", Scale],
-          ].map(([nome, total, Icone]) => (
-            <div key={String(nome)} className="rounded-lg border border-navy/10 bg-card p-3">
+            { nome: "Acervo", total: "42", Icone: FileText },
+            { nome: "Bases genealógicas", total: "18", Icone: Search },
+            { nome: "Dicionários", total: "13", Icone: BookOpen },
+            { nome: "Trilhas", total: "11", Icone: Target },
+            { nome: "Regras jurídicas", total: "27", Icone: Scale },
+          ].map(({ nome, total, Icone }) => (
+            <div key={nome} className="rounded-lg border border-navy/10 bg-card p-3">
               <Icone className="h-4 w-4 text-gold" aria-hidden />
-              <p className="mt-2 text-xs font-semibold text-navy">{String(nome)}</p>
-              <p className="mt-1 font-serif text-2xl text-navy">{String(total)}</p>
+              <p className="mt-2 text-xs font-semibold text-navy">{nome}</p>
+              <p className="mt-1 font-serif text-2xl text-navy">{total}</p>
               <p className="text-[9px] text-navy/50">itens vigentes</p>
             </div>
           ))}
@@ -917,6 +920,42 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
       </div>
     ),
   },
+  {
+    id: "depara",
+    titulo: "Mapa de aplicação real",
+    grupo: "governanca",
+    rota: "mapa visual · sem mudança de rotas",
+    render: () => (
+      <div className="space-y-4">
+        <CabecalhoFerramenta titulo="Da prévia para a operação" apoio="Cada elemento visual será conectado à superfície que já é dona do dado" acao="Somente leitura" />
+        <div className="grid gap-3 lg:grid-cols-2">
+          {[
+            { titulo: "Comercial / CRM Vivo", grupo: "Marketing & Comercial", destino: "/calls · /leads · /crm-mestre · /propostas", fonte: "Leads, calls, propostas, responsáveis e próximas ações", estado: "Tela real existente" },
+            { titulo: "Kanban operacional", grupo: "Pessoas & Casos", destino: "/ops · /tarefas", fonte: "Tarefas, microentregas, SLA, responsáveis, prazos e bloqueios", estado: "Tela real existente" },
+            { titulo: "Pesquisa", grupo: "Inteligência & Pesquisa", destino: "/pesquisa-modulo · /fontes-genealogicas · /evidencias", fonte: "Pessoas pesquisadas, fontes, evidências, eventos, hipóteses e relatórios", estado: "Tela real existente" },
+            { titulo: "Biblioteca Mestre", grupo: "Inteligência & Pesquisa", destino: "/biblioteca", fonte: "Acervo, bases, taxonomias, trilhas, regras e modelos versionados", estado: "Tela real existente" },
+          ].map((item) => (
+            <article key={item.titulo} className="rounded-lg border border-navy/10 bg-card p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-serif text-lg text-navy">{item.titulo}</p>
+                  <p className="mt-1 text-[10px] font-semibold uppercase text-gold">{item.grupo}</p>
+                </div>
+                <Etiqueta texto={item.estado} tom="sucesso" />
+              </div>
+              <dl className="mt-3 space-y-2 border-t border-navy/10 pt-3 text-[11px]">
+                <div><dt className="font-semibold text-navy">Onde estará</dt><dd className="mt-0.5 text-navy/60">{item.destino}</dd></div>
+                <div><dt className="font-semibold text-navy">O que alimentará</dt><dd className="mt-0.5 text-navy/60">{item.fonte}</dd></div>
+              </dl>
+            </article>
+          ))}
+        </div>
+        <div className="rounded-lg border border-gold/40 bg-gold/10 p-3 text-[11px] text-navy/70">
+          A nova prévia não criou uma área paralela: ela mostra o desenho que será aplicado às páginas reais após aprovação visual e validação autenticada.
+        </div>
+      </div>
+    ),
+  },
 ] as const;
 
 /* ------------------------------------------------------------------ */
@@ -1004,7 +1043,7 @@ export function PreviaDeskTelas() {
               <Etiqueta texto="Sem dados reais" tom="atencao" />
             </div>
 
-            {/* Índice das 12 telas convertidas */}
+            {/* Índice das telas convertidas */}
             <div className="mb-5 flex flex-wrap gap-2">
               {TELAS_PREVIA_DESK.map((t) => (
                 <button
