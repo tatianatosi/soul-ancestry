@@ -103,7 +103,9 @@ Resultados permitidos: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_
 | Financeiro | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. Catálogo homologado lido em E (não é caixa). |
 | Entregas / App Cliente | `PASSOU` (leitura master) / `NAO_LOCALIZADO` (DEMO e publicar→F5) | sim×7 (D) / — / empty por aba / — / não | Ambiente D. Sem `42P17`. DEMO em E **não** conta como motor. **não** `COMPROVADO_EM_USO`. |
 | KPIs e Hoje | `PASSOU` (leitura na prévia E) / `NAO_LOCALIZADO` (escrever item / integração Mesa) | inicial `/painel` (E) / navegação / cards visíveis / retorno `/painel` / sem fila por ação | Casos ativos visíveis; sem Receita/Conversão no topo. Sem print de integração da próxima ação da Mesa. |
-| Abas / taxonomia | `PASSOU` (navegação) | sim (E: 6 grupos Desk; D: 7 abas App) / sidebar + rotas / páginas carregaram / retorno `/painel` / objeto ainda não “dono vs resumo” | Dívida: CRM Mestre e Dicionário ainda no Comercial na prévia E; memória permanente ainda cita 8 grupos. |
+| Abas / taxonomia | `PASSOU` (navegação) / parcial (decisão 7+6) | sim (E: 6 grupos Desk; D: 7 abas App) / sidebar + rotas / páginas carregaram / retorno `/painel` / — | Prévia E ainda 6-face; decisão 2026-09-11 recomenda **7 telas + 6 grupos internos** (`00_governanca/DECISAO-NAV-…`); 8-grupos = histórico — **não** `COMPROVADO_EM_USO`. |
+| Catálogo SKU / Planilha face | `BLOQUEADO_POR_DECISAO` | — | Legado (PR #97). Sync: `00_governanca/SINCRONIZACAO_MESTRE_2026-09-11.md`. |
+| Link Asaas / checkout | `BLOQUEADO_POR_DECISAO` | — | Só quando automações estiverem ativas e tudo funcionando. Matriz `08_dados_e_integracoes/…`. |
 
 ## Cadeia transversal
 

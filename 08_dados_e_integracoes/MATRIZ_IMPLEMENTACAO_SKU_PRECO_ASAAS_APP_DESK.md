@@ -1,45 +1,115 @@
 # Matriz de Implementação — SKU, Preço, Asaas, App e Desk
 
-**Status:** matriz de governança e reconciliação; não é tabela de preços nem autorização de cobrança.
+**Status:** matriz de governança; **não** é tabela de preços nem autorização de cobrança.  
+**Sync:** [`../00_governanca/SINCRONIZACAO_MESTRE_2026-09-11.md`](../00_governanca/SINCRONIZACAO_MESTRE_2026-09-11.md)  
+**Arquitetura:** [`../07_contratos_e_comercial/ARQUITETURA_SKU_CICLO_DE_VIDA_E_MICROENTREGAS.md`](../07_contratos_e_comercial/ARQUITETURA_SKU_CICLO_DE_VIDA_E_MICROENTREGAS.md)
 
-## Separação obrigatória de responsabilidades
+Estados: `implementado` | `decidido` | `revisar` | `historica_superada`.
 
-| Elemento | Fonte canônica esperada | Pode aparecer no app | Pode gerar automação | Controles obrigatórios |
-|---|---|---|---|---|
-| SKU canônico | Catálogo aprovado | Não como código técnico | Somente após aprovação | ID estável, status, ciclo de vida e histórico |
-| Nome comercial | Catálogo/proposta aprovada | Sim, como entrega contextual | Sim, se reconciliado | Versão e relação com SKU |
-| Escopo | Contrato/proposta aprovada | Sim, em linguagem de jornada | Não sem validação humana | Inclusões, exclusões e exceções |
-| Preço | Fonte comercial/financeira aprovada | Somente se vigente e contextual | Somente se reconciliado | Moeda, validade, condição e responsável |
-| Link Asaas | Registro financeiro aprovado | Não como dado técnico | Sim, apenas após reconciliação | Link, produto, valor e status confirmados |
-| Proposta | Fonte comercial versionada | Resumo contextual | Pré-carga controlada | Versão, status e regras de arquivo |
-| App | Estado da jornada/caso | Sim | Não determina cobrança | Permissão, dados mínimos e trilha de auditoria |
-| Desk/CRM | Operação e rastreabilidade | Não diretamente | Pode orquestrar ações aprovadas | Perfil, consentimento, logs e responsabilidade |
+---
 
-## Fluxo de reconciliação
+## Separação de responsabilidades
 
-1. Identificar `sku_id` canônico ou registrar ausência de SKU aprovado.
-2. Vincular nome comercial, escopo e ciclo de vida sem misturar os campos.
-3. Validar proposta vigente e seu estado: ativa, revisada, aceita, arquivada ou substituída.
-4. Confirmar preço e link na fonte financeira autorizada; divergência bloqueia automação.
-5. Permitir pré-carga no caso apenas para campos definidos, com origem e versão registradas.
-6. Exibir no app somente a entrega e o próximo passo pertinentes; preservar controles internos no Desk/CRM.
-7. Registrar alteração em log com data, origem, responsável e evidência técnica.
+| Elemento | Fonte canônica esperada | App | Automação | Estado | Controles |
+|---|---|---|---|---|---|
+| SKU canônico | `product_catalog` homologado | Não como código técnico | Só após aprovação | `implementado` (dado); face legado `historica_superada` (PR #97) | Status, histórico |
+| Nome comercial | Catálogo/proposta | Sim, contextual | Se reconciliado | `implementado` parcial | Versão ↔ SKU |
+| Escopo | Contrato/proposta | Linguagem de jornada | Não sem validação humana | `implementado` parcial | Inclusões/exclusões |
+| Preço | Catálogo homologado / exceção comercial | Só vigente contextual | Só reconciliado | `implementado` + drift `revisar` (`precos-sku`) | Moeda, validade |
+| **Link Asaas** | Registro financeiro + **automações ativas e OK** | Não como dado técnico solto | **Bloqueado** até gate | `decidido` bloqueado | Sem link se automação não pronta |
+| Planilha Mestre / Top 30 face | — | Não | Não | `historica_superada` | Só archive/GitHub |
+| Proposta | Fonte comercial versionada | Resumo | Pré-carga controlada | `implementado` | Status/arquivo |
+| Microentrega | Jornada/onboarding (`ops_microentregas`) | Entrega/alerta | Cadência | `implementado` parcial | Alerta Hoje / WA / App |
+| Desk | Operação + próxima ação | Não diretamente | Orquestra ações aprovadas | `implementado` | Perfil, logs |
 
-## Implementações que demandam documentação técnica
+---
 
-| Tema | Decisão/implementação observada | Risco de integração | Ação documental |
-|---|---|---|---|
-| Pré-carga por proposta | Corrigida em commit recente | Sobrescrever dados do caso ou usar proposta arquivada | Definir precedência, campos, idempotência e rollback |
-| Proposta arquivada | Correção aplicada | Reativação ou consumo indevido | Definir status e bloqueios de leitura/uso |
-| Estrutura familiar | CRM e app receberam integração | Vínculos duplicados, acesso indevido, dados inconsistentes | Schema, RLS/permissões, eventos e testes |
-| País/canônico | Coerência corrigida | Produto/etapa incompatível com o país | Dicionário, normalização e validação por transação |
-| Despesas | Regra implementada | Valor/escopo exibido ou cobrado indevidamente | Modelo de dados, aprovação, contrato e trilha financeira |
-| Motor contratual | P0 corrigido | Documento inconsistente ou incompleto | Campos obrigatórios, template e regressão |
+## Quatro blocos da varredura SKU
+
+### 1. Catálogo
+
+| Verificação | Achado | Estado |
+|---|---|---|
+| “57 SKUs” | Número histórico divergente (63/85/91/35) | `historica_superada` |
+| Top Pareto / Catálogo operacional 30 | Sai da face (PR #97) | `historica_superada` (face) |
+| Ativos/arquivados em `product_catalog` | Tabela + `/catalogo` | `implementado` |
+| Produto comercial vs operacional | Produtos-pai no planejador | `implementado` parcial |
+| Homologação SKUs / conciliação / divergências | Rotas existem; menu → archive | `historica_superada` face; rotas preservadas |
+
+### 2. Ciclo de vida
+
+| Fase | Estado |
+|---|---|
+| Descoberta → estratégia (proposta) → execução → pós-reconhecimento → legado | Ver arquitetura `07_…`; misto `implementado`/`decidido` |
+| Legado de produto (SKU face) ≠ legado de cliente (App Legado) | Distinção obrigatória |
+
+### 3. Oferta contextual
+
+| Elo | Estado |
+|---|---|
+| Microentrega → SKU → regra exibição → CTA → canal | `decidido`; fiação incompleta |
+| `tipo_oferta` (`produto_pai` \| `complemento` \| `contextual`) | `implementado` no Desk |
+| App consulta só catálogo/condição homologada | `decidido`; App hoje lê `eventos_financeiros` na proposta — não inventa |
+
+### 4. Financeiro / Asaas
+
+| Elo | Estado |
+|---|---|
+| Preço homologado | `implementado` + `revisar` drift |
+| Link Asaas | **`decidido` bloqueado** — só com automações funcionando |
+| Modalidade / condição | `implementado` parcial (`commercial_conditions`, proposals) |
+| Reconciliação Asaas antiga | `historica_superada` |
+| Webhook / API Asaas | Ausente (`NAO_CONFIGURADA`) — `decidido` futuro |
+| Pagamento + auditoria | `implementado` parcial (`payments`, `eventos_financeiros`, `audit_logs`) |
+
+---
+
+## Gate Asaas (obrigatório)
+
+Antes de qualquer link/checkout/webhook:
+
+1. Condição comercial aprovada (valor, moeda, destinatário).
+2. Automações financeiras **ativadas** e validadas end-to-end.
+3. Idempotência por condição/parcela.
+4. Confirmação explícita da proprietária para ambiente (sandbox → produção).
+
+Enquanto o gate falhar: **não** expor link Asaas no App; **não** tratar colunas `link_asaas_*` como autorização de cobrança.
+
+---
+
+## Fluxo de reconciliação (quando permitido)
+
+1. Identificar SKU canônico ou registrar ausência.
+2. Vincular nome, escopo e ciclo sem misturar campos.
+3. Validar proposta vigente.
+4. Confirmar preço na fonte canônica; divergência bloqueia.
+5. **Só então** (com gate Asaas) emitir/exibir link.
+6. Pré-carga no caso só com campos definidos + origem/versão.
+7. App: entrega + próximo passo; Desk: conversão + próxima ação.
+8. Log: data, origem, responsável, evidência.
+
+---
 
 ## Bloqueadores absolutos
 
-- Divergência entre preço, SKU, proposta, link ou escopo.
-- Proposta arquivada, sem versão ou sem aprovação identificada.
-- Dado familiar sem finalidade, consentimento, perfil de acesso ou auditoria.
-- Código de SKU proposto tratado como catálogo oficial.
-- Tela do app tratada como fonte financeira ou jurídica.
+- Divergência preço / SKU / proposta / link / escopo.
+- Proposta arquivada ou sem aprovação.
+- Dado familiar sem finalidade/consentimento/auditoria.
+- SKU proposto tratado como catálogo oficial.
+- App como fonte financeira/jurídica.
+- **Link Asaas sem automações ativas e OK.**
+- Planilha Mestre ou reconciliação antiga como operação.
+
+---
+
+## Implementações que pedem fechamento documental
+
+| Tema | Estado | Risco | Ação |
+|---|---|---|---|
+| Pré-carga proposta | `implementado` / doc `revisar` | Sobrescrever caso | Precedência, idempotência |
+| Estrutura familiar | `implementado` / doc `revisar` | Acesso indevido | RLS + ciclo |
+| País/canônico | `implementado` / `revisar` | Produto×país | Dicionário |
+| Despesas | `implementado` / doc `revisar` | Cobrança indevida | Modelo + trilha |
+| Motor contratual P0 | `implementado` / doc `revisar` | Documento incompleto | Regressão |
+| `precos-sku.ts` drift | `revisar` | Fonte errada | Alinhar a `preco-canonico` |
+| PR #97 legado fora do menu | `decidido` | Face confusa no `main` | Seguir PR; merge só com ordem |
