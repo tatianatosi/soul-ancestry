@@ -392,6 +392,18 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 Prints: `docs/provas/2026-09-12-fidelidade-conta-vocab47/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqueadas.
 
+
+## Fatia 2026-09-12 — App Legado prateleiras (mockup 17)
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `/portal/legado` | Lista flat + vazio genérico | Meta biblioteca·caso·publicados·nível; prateleiras Cadernos·Relatórios·Narrativas·Memória; Premium só com publicação |
+| `DetalhesTecnicos` | `bg-card` residual | `bg-cream/40` |
+| Gate | Sem item Legado densificado | Checklist Legado + DetalhesTecnicos |
+
+Prints: `docs/provas/2026-09-12-fidelidade-legado-prateleiras/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`).
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

@@ -64,6 +64,8 @@ const CHECKLIST: { item: string; status: "ok" | "prova" }[] = [
   { item: "Governança modelos + RelatorioVisual: Card/bg-card → cream (sem #FFF SaaS)", status: "ok" },
   { item: "Mockup primitives (/mockup): Card/Kpi/nav cream (sem bg-card)", status: "ok" },
   { item: "App Conta densificada: perfil · plano · alertas · histórico (vocab 47 + vaz específicos)", status: "ok" },
+  { item: "App Legado densificado: prateleiras Cadernos·Relatórios·Narrativas·Memória + Premium só com publicação", status: "ok" },
+  { item: "DetalhesTecnicos cream (sem bg-card residual)", status: "ok" },
   { item: "Rotas profundas App: Materiais/Relatório/Atualização (sem H1 Fase 01/02)", status: "ok" },
   { item: "Rotas profundas sem H1 Entregas/Fase 01/Fase 02", status: "ok" },
   { item: "Tokens hex = guia OKI (navy/gold/cream/terracotta)", status: "ok" },
