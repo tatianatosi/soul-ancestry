@@ -213,39 +213,30 @@ function RadarGrafico({
 }
 
 function MatrizGrafica() {
-  const pontos = [
-    { x: 24, y: 72, total: 3, tom: "fill-sucesso" },
-    { x: 48, y: 44, total: 6, tom: "fill-atencao" },
-    { x: 72, y: 76, total: 12, tom: "fill-critico" },
-    { x: 82, y: 28, total: 5, tom: "fill-gold" },
-  ];
+  const linhas = [
+    { nome: "Alta", valores: [[12, "bg-critico/75"], [4, "bg-atencao/65"], [5, "bg-critico/55"]] },
+    { nome: "Média", valores: [[10, "bg-atencao/55"], [6, "bg-sucesso/55"], [5, "bg-atencao/55"]] },
+    { nome: "Baixa", valores: [[5, "bg-sucesso/45"], [3, "bg-sucesso/55"], [2, "bg-sucesso/65"]] },
+  ] as const;
   return (
-    <figure>
-      <svg viewBox="0 0 360 250" className="block w-full" role="img" aria-label="Matriz de prioridade e elegibilidade com quatro grupos de casos">
-        <rect x="42" y="16" width="292" height="190" rx="8" className="fill-cream/35 stroke-navy/15" />
-        <rect x="188" y="16" width="146" height="95" className="fill-critico-suave/70" />
-        <line x1="188" y1="16" x2="188" y2="206" className="stroke-navy/20" strokeDasharray="4 4" />
-        <line x1="42" y1="111" x2="334" y2="111" className="stroke-navy/20" strokeDasharray="4 4" />
-        <text x="261" y="31" textAnchor="middle" className="fill-critico text-[9px] font-medium">AÇÃO PRIORITÁRIA</text>
-        {pontos.map((p) => {
-          const cx = 42 + (p.x / 100) * 292;
-          const cy = 206 - (p.y / 100) * 190;
-          const raio = 10 + p.total * 0.65;
-          return (
-            <g key={`${p.x}-${p.y}`}>
-              <circle cx={cx} cy={cy} r={raio} className={`${p.tom} opacity-80 stroke-card`} strokeWidth={3} />
-              <text x={cx} y={cy + 3} textAnchor="middle" className="fill-card text-[9px] font-semibold">{p.total}</text>
-            </g>
-          );
-        })}
-        <text x="188" y="232" textAnchor="middle" className="fill-navy/60 text-[9px]">Elegibilidade →</text>
-        <text x="13" y="111" textAnchor="middle" transform="rotate(-90 13 111)" className="fill-navy/60 text-[9px]">Urgência →</text>
-      </svg>
-      <figcaption className="flex flex-wrap justify-center gap-3 text-[10px] text-navy/60">
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-critico" />Crítico</span>
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-atencao" />Atenção</span>
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-sucesso" />Acompanhamento</span>
-        <span>Bolha = quantidade de casos</span>
+    <figure role="img" aria-label="Matriz em grade de risco e elegibilidade documental">
+      <div className="grid grid-cols-[3.5rem_repeat(3,minmax(0,1fr))] gap-1 text-center text-[10px]">
+        <span />
+        {['Baixa', 'Média', 'Alta'].map((rotulo) => <span key={rotulo} className="pb-1 font-medium text-navy/60">{rotulo}</span>)}
+        {linhas.map((linha) => (
+          <div key={linha.nome} className="contents">
+            <span className="flex items-center justify-end pr-2 font-medium text-navy/60">{linha.nome}</span>
+            {linha.valores.map(([valor, classe], indice) => (
+              <span key={`${linha.nome}-${indice}`} className={cn("grid min-h-16 place-items-center rounded-md border border-card text-sm font-semibold text-navy", classe)}>{valor}</span>
+            ))}
+          </div>
+        ))}
+      </div>
+      <div className="mt-2 flex justify-between text-[9px] text-navy/50"><span>Risco ↑</span><span>Elegibilidade documental →</span></div>
+      <figcaption className="mt-3 flex flex-wrap justify-center gap-3 text-[10px] text-navy/60">
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-critico/75" />Crítico</span>
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-atencao/65" />Atenção</span>
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-sucesso/55" />Acompanhamento</span>
       </figcaption>
     </figure>
   );
