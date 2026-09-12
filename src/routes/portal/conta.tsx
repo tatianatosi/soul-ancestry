@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
+import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
 import { usePreviaPortal } from "@/components/portal/fonte-portal";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
@@ -49,7 +50,7 @@ export function PortalConta() {
               <dl className="mt-3 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-lg border border-navy/10 bg-cream/60 p-3">
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>
-                  <dd className="text-sm text-navy">{previa?.titulo ?? data?.cliente?.nome ?? "—"}</dd>
+                  <dd className="text-sm text-navy">{data?.cliente?.nome ?? (previa ? CLIENTE_DEMO_NOME : null) ?? "—"}</dd>
                 </div>
                 <div className="rounded-lg border border-navy/10 bg-cream/60 p-3">
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Acesso</dt>

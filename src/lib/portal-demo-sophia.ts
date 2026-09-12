@@ -33,6 +33,8 @@ export const CASO_DEMO_CASE_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 export const CASO_DEMO_ID = CASO_DEMO_CASE_ID;
 export const CASO_DEMO_CODIGO = "CA-ITA-SOPHI-PICCOLI";
 export const CASO_DEMO_TITULO = "Reconhecimento de cidadania italiana — família Piccoli";
+/** Nome do titular na demo (Conta) — não confundir com título do caso. */
+export const CLIENTE_DEMO_NOME = "Sophia Piccoli";
 
 /** Identidade canônica da demo (UUID = caseId; código = rótulo humano). */
 export const IDENTIDADE_DEMO_SOPHIA: IdentidadeCaso = identidadeDeDemo({

@@ -142,6 +142,42 @@ export function PortalDocumentos() {
         >
           {() => (
         <div className="space-y-8">
+          <section className="rounded-2xl border border-navy/10 bg-white/80 p-5 shadow-sm">
+            <h2 className="font-serif text-xl text-navy">Checklist do caso</h2>
+            <p className="mt-1 text-sm text-navy/60">
+              Situação a partir dos documentos já pedidos ou liberados — sem inventar itens.
+            </p>
+            {!data || (data.entregas.length === 0 && data.envios.length === 0) ? (
+              <p className="mt-4 rounded-lg border border-dashed border-navy/20 bg-cream/50 px-3 py-4 text-center text-sm text-navy/60">
+                Quando a equipe pedir ou liberar um documento, a situação aparece aqui.
+              </p>
+            ) : (
+              <ul className="mt-4 space-y-2">
+                {data.entregas.map((d) => (
+                  <li
+                    key={`ent-${d.id}`}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/10 bg-cream/40 px-3 py-2.5"
+                  >
+                    <span className="text-sm text-navy/85">{textoParaCliente(d.titulo)}</span>
+                    <span className="rounded-full border border-navy/15 bg-white px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
+                      Liberado para você
+                    </span>
+                  </li>
+                ))}
+                {data.envios.map((d) => (
+                  <li
+                    key={`env-${d.id}`}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/10 bg-cream/40 px-3 py-2.5"
+                  >
+                    <span className="text-sm text-navy/85">{textoParaCliente(d.titulo)}</span>
+                    <span className="rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
+                      {rotuloEstadoVivo(d.statusRotulo)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
           <section>
             <h2 className="font-serif text-xl">Preparado para você</h2>
             {!data || data.entregas.length === 0 ? (

@@ -52,17 +52,18 @@ export const MARCA_CORES = {
 export const AZUIS_RETIRADOS = ["#1B2B4B", "#1b2b4b", "#2A3D63"] as const;
 
 /**
- * Tipografia em uso no app: Cormorant Garamond (títulos) + Inter (corpo).
- * O guia impresso declara Amolina (logo) + Montserrat (UI) — divergência
- * documentada; troca tipográfica só com ordem explícita (P11).
+ * Tipografia em uso no app: Cormorant Garamond (títulos) + Montserrat (corpo).
+ * O guia impresso declara Amolina (logo) + Montserrat (UI) — corpo já alinhado
+ * via `--font-sans` / Google Fonts em `__root.tsx`. Script decorativo Amolina
+ * permanece dívida (só com ordem explícita).
  */
 export const MARCA_TIPOGRAFIA = {
   titulos: '"Cormorant Garamond", ui-serif, Georgia, serif',
-  corpo: '"Inter", ui-sans-serif, system-ui, sans-serif',
+  corpo: '"Montserrat", ui-sans-serif, system-ui, sans-serif',
   /** Fallback para e-mail, onde webfont não é garantida. */
   emailTitulos: 'Georgia, "Times New Roman", serif',
   emailCorpo: 'Arial, Helvetica, sans-serif',
-  /** Declaração do guia impresso (ainda não aplicada no runtime). */
+  /** Declaração do guia impresso. */
   guiaImpressoDecorativa: "Amolina Boutique Script",
   guiaImpressoFuncional: "Montserrat",
 } as const;

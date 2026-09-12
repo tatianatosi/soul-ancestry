@@ -112,6 +112,23 @@ Prévia unificada: `/previa-desk-indicadores?face=visao|caso360|checklist|juridi
 Prints: `docs/provas/2026-09-12-desk-faces-13-17/`.  
 De-para p.13–17: **em prova visual** (não `COMPROVADO_EM_USO`). Sem tabela inventada; sem restaurar 8 grupos.
 
+
+## Fatia 2026-09-12 — App Cliente fidelidade P1 (chrome cliente)
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| Home chip | UUID/fonte no chrome | Só título + código humano; `data-*` para prova |
+| Home progresso | Contagem sem barra | Barra gold proporcional a marcos publicados |
+| Visibilidade | Pill/cartão em toda aba | Só em estados não liberados |
+| Jornada links | Rótulos Fase/Entregas | “ver materiais / relatório / atualização” |
+| Legado Premium | Sempre ligado | Só com publicação `legado` |
+| Conta titular | Título do caso na demo | Nome da pessoa (`CLIENTE_DEMO_NOME` / `cliente.nome`) |
+| Documentos vivo | Sem checklist | Checklist só com entregas/envios reais |
+| Tipografia `marca.ts` | Comentário Inter | Corpo = Montserrat (já no CSS/`__root`) |
+
+Prints: `docs/provas/2026-09-12-app-fidelidade-p1/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`).
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

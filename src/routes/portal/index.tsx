@@ -186,6 +186,19 @@ function PainelHomeMockup({
             <p className="text-xs text-navy/55">
               {marcos === 0 ? "Aguardando primeira publicação" : "marcos já compartilhados com você"}
             </p>
+            <div
+              className="mt-3 h-1.5 overflow-hidden rounded-full bg-navy/10"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.min(100, marcos * 12)}
+              aria-label="Progresso publicado do acompanhamento"
+            >
+              <div
+                className="h-full rounded-full bg-gold transition-[width]"
+                style={{ width: `${Math.min(100, marcos * 12)}%` }}
+              />
+            </div>
           </div>
           <div className="rounded-xl border border-gold/40 bg-gold/10 p-3">
             <p className="text-[11px] uppercase tracking-wide text-navy/45">Próxima ação</p>
