@@ -86,7 +86,7 @@ function RegistroVersionado() {
     | undefined;
 
   return (
-    <Card>
+    <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
       <CardHeader>
         <CardTitle className="text-base">Registro versionado (organização)</CardTitle>
       </CardHeader>
@@ -193,7 +193,7 @@ function ModeloFamiliarCasalPage() {
         <RegistroVersionado />
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
+          <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Estrutura do núcleo familiar</CardTitle>
             </CardHeader>
@@ -216,7 +216,7 @@ function ModeloFamiliarCasalPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Papéis e campos obrigatórios</CardTitle>
             </CardHeader>
@@ -236,7 +236,7 @@ function ModeloFamiliarCasalPage() {
           </Card>
         </div>
 
-        <Card>
+        <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">Anexos do modelo</CardTitle>
           </CardHeader>
@@ -258,7 +258,7 @@ function ModeloFamiliarCasalPage() {
         </Card>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
+          <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Gates bloqueantes</CardTitle>
             </CardHeader>
@@ -274,7 +274,7 @@ function ModeloFamiliarCasalPage() {
           </Card>
 
           <div className="space-y-6">
-            <Card>
+            <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
               <CardHeader>
                 <CardTitle className="text-base">Privacidade e acesso</CardTitle>
               </CardHeader>
@@ -287,7 +287,7 @@ function ModeloFamiliarCasalPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
               <CardHeader>
                 <CardTitle className="text-base">Prévia TESTE</CardTitle>
               </CardHeader>

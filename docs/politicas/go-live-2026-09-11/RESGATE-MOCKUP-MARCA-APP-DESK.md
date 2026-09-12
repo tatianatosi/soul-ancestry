@@ -367,6 +367,20 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 Prints: `docs/provas/2026-09-12-fidelidade-cartao-jornada-pantone-47/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqueadas.
 
+
+## Fatia 2026-09-12 — Governança modelos cream + RelatorioVisual/mockup
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `governanca.modelo-individual` / `familiar-casal` / `modelos-contratuais` | Cards shadcn `bg-card` (#FFF) | `className` cream `bg-cream/50` |
+| `RelatorioVisual` | Claim cream vs `bg-card` | `bg-cream/40` |
+| Mockup primitives (`/mockup`) | Card/Kpi/nav `bg-card` | `bg-cream/50` |
+| Face Governança prévia | Sem bloco modelos | Cards demo + rotas live |
+| Gate | Sem item modelos/RelatorioVisual | Checklist atualizado |
+
+Prints: `docs/provas/2026-09-12-fidelidade-governanca-modelos-cream/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`).
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

@@ -163,7 +163,7 @@ function MatrizModelosPage() {
       <div className="space-y-6">
         <AvisoRascunho />
 
-        <Card>
+        <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">
               {qualificacao.titulo} · {qualificacao.versao}{" "}
@@ -183,7 +183,7 @@ function MatrizModelosPage() {
         </Card>
 
         {MODELOS_CONTRATUAIS.map((m) => (
-          <Card key={m.id}>
+          <Card key={m.id} className="border-navy/10 bg-cream/50 text-navy shadow-sm">
             <CardHeader>
               <CardTitle className="flex flex-wrap items-center gap-2 text-base">
                 {m.nome} <Badge variant="outline">{m.status}</Badge>

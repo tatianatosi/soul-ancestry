@@ -36,7 +36,7 @@ function CardShell({
   return (
     <section
       className={cn(
-        "break-inside-avoid rounded-2xl border border-navy/25 bg-card p-5 shadow-sm",
+        "break-inside-avoid rounded-2xl border border-navy/25 bg-cream/40 p-5 shadow-sm",
         className,
       )}
     >
@@ -374,7 +374,7 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
           onClick={() => setModal(false)}
         >
           <div
-            className="w-full max-w-md rounded-2xl border border-gold/40 bg-card p-5 shadow-xl"
+            className="w-full max-w-md rounded-2xl border border-gold/40 bg-cream/40 p-5 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-3">

@@ -85,7 +85,7 @@ function RegistroVersionado() {
     | undefined;
 
   return (
-    <Card>
+    <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
       <CardHeader>
         <CardTitle className="text-base">Registro versionado (organização)</CardTitle>
       </CardHeader>
@@ -189,7 +189,7 @@ function ModeloIndividualPage() {
         <RegistroVersionado />
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
+          <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Requerente único obrigatório</CardTitle>
             </CardHeader>
@@ -203,7 +203,7 @@ function ModeloIndividualPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Acompanhante facultativa e limitada</CardTitle>
             </CardHeader>
@@ -223,7 +223,7 @@ function ModeloIndividualPage() {
           </Card>
         </div>
 
-        <Card>
+        <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">Anexos do modelo</CardTitle>
           </CardHeader>
@@ -242,7 +242,7 @@ function ModeloIndividualPage() {
         </Card>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
+          <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Gates bloqueantes</CardTitle>
             </CardHeader>
@@ -258,7 +258,7 @@ function ModeloIndividualPage() {
           </Card>
 
           <div className="space-y-6">
-            <Card>
+            <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
               <CardHeader>
                 <CardTitle className="text-base">Privacidade e acesso</CardTitle>
               </CardHeader>
@@ -271,7 +271,7 @@ function ModeloIndividualPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
               <CardHeader>
                 <CardTitle className="text-base">Prévia TESTE</CardTitle>
               </CardHeader>

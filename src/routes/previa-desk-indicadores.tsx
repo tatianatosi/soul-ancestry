@@ -1100,8 +1100,49 @@ function FaceGovernanca() {
         <p className="text-[11px] uppercase tracking-wide text-navy/50">Gate visual</p>
         <p className="mt-1 text-sm text-navy">
           App deep (proposta/mensagens/faturas/docs) + Desk Governança em cream — prova desta fatia.
-          GRUPOS_DESK permanece 6.
+          GRUPOS_DESK permanece 6. Modelos contratuais live: Cards shadcn com{" "}
+          <code className="font-mono text-xs">bg-cream/50</code> (sem{" "}
+          <code className="font-mono text-xs">bg-card</code> branco).
         </p>
+      </div>
+
+      <div className="space-y-3" data-face-governanca-modelos>
+        <p className="text-[11px] uppercase tracking-wide text-navy/50">
+          Modelos contratuais · chrome cream (espelha live)
+        </p>
+        <div className="grid gap-3 lg:grid-cols-2">
+          {[
+            {
+              nome: "Individual",
+              rota: "/governanca/modelo-individual",
+              meta: "caso · requerente · gates · responsável",
+            },
+            {
+              nome: "Familiar / casal",
+              rota: "/governanca/modelo-familiar-casal",
+              meta: "núcleo · papéis · anexos · prazo",
+            },
+            {
+              nome: "Matriz de modelos",
+              rota: "/governanca/modelos-contratuais",
+              meta: "composição · status · base · versão",
+            },
+            {
+              nome: "Relatório visual",
+              rota: "/painel (RelatorioVisual)",
+              meta: "cards cream — sem bg-card #FFF",
+            },
+          ].map((m) => (
+            <article
+              key={m.nome}
+              className="rounded-xl border border-navy/10 bg-cream/50 p-4 text-navy shadow-sm"
+            >
+              <h3 className="font-serif text-base text-navy">{m.nome}</h3>
+              <p className="mt-1 font-mono text-[11px] text-navy/55">{m.rota}</p>
+              <p className="mt-2 text-xs text-navy/70">{m.meta}</p>
+            </article>
+          ))}
+        </div>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40" data-face-governanca-decisoes>
