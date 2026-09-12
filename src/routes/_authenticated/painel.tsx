@@ -25,6 +25,7 @@ function Painel() {
       descricao="O que está parado, vencido ou pede decisão — com ação e link para a aba dona."
       visualKit="pantone"
     >
+      <CardsAlertasCentrais />
       <PainelDia />
       {/*
         08/09/2026 — correção de um erro meu de 07/09. Ao encontrar
