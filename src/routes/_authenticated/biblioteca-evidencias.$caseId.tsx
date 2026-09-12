@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -341,6 +341,12 @@ function Pagina() {
 
       {aba === "projecoes" ? (
         <section className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-xs text-navy/70">
+            <span>Esta é a fila do caso. A visão transversal reúne todas as microentregas sem duplicar registros.</span>
+            <Link to="/microentregas" className="font-medium text-navy underline decoration-gold underline-offset-4">
+              Abrir fila de Microentregas
+            </Link>
+          </div>
           <FormProjecao
             caseId={caseId}
             evidencias={evidencias}
