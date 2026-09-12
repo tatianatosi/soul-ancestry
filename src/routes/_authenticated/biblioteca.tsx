@@ -193,6 +193,7 @@ function BibliotecaPage() {
         </p>
       ) : null}
       <div className="space-y-6">
+        <FilaPublicacaoReal />
         <section className="rounded-xl border border-navy/10 bg-cream/50 p-4">
           <h2 className="font-serif text-lg text-navy">Centro de Inteligência</h2>
           <p className="mb-3 mt-1 text-sm text-navy/65">
