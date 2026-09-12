@@ -354,6 +354,19 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 Prints: `docs/provas/2026-09-12-fidelidade-pessoas-comercial-canvas-47/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 
+
+## Fatia 2026-09-12 — token cartão cream + Cadeia Jornada 47 + Pantone
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `TIPO_CLIENTE.cartao` (`marca.ts`) | `bg-white` residual no token permanente do App | `bg-cream/50` |
+| Face Cadeia Jornada Desk | Só cadeia genérica | Meta strip caso · evento · responsável · prazo (vocab 47) |
+| Devolutiva chips inativos | `bg-white/60` | `bg-cream/50` |
+| Gate marca | Sem item cartão/Pantone | Checklist cartão cream + Cadeia 47 + nota Pantone (hex só; Pantone no guia impresso) |
+
+Prints: `docs/provas/2026-09-12-fidelidade-cartao-jornada-pantone-47/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqueadas.
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

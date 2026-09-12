@@ -84,6 +84,6 @@ export const TIPO_CLIENTE = {
     "inline-flex items-center gap-2 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-navy-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-cream",
   botaoDiscreto:
     "inline-flex items-center gap-2 rounded-lg border border-navy/20 px-3 py-1.5 text-sm text-navy transition-colors hover:bg-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2",
-  cartao: "rounded-xl border border-navy/10 bg-white p-5 shadow-[0_1px_2px_rgba(16,16,16,0.04)]",
+  cartao: "rounded-xl border border-navy/10 bg-cream/50 p-5 shadow-[0_1px_2px_rgba(16,16,16,0.04)]",
   aviso: "rounded-lg border border-navy/10 bg-cream/70 p-3 text-sm text-navy/80",
 } as const;

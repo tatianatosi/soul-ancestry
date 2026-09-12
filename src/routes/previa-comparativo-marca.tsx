@@ -59,6 +59,8 @@ const CHECKLIST: { item: string; status: "ok" | "prova" }[] = [
   { item: "Painel Hoje abertura cream (sem gradiente to-white) + relatório visual cream", status: "ok" },
   { item: "Pesquisa Desk: fonte · pessoa · status CHECK · hipótese≠fato · caso", status: "ok" },
   { item: "Canvas cliente cream (entrega por link) + Pessoas/Comercial/Governança vocab 47", status: "ok" },
+  { item: "TIPO_CLIENTE.cartao cream (token permanente App — sem bg-white)", status: "ok" },
+  { item: "Cadeia Jornada Desk: elo · caso · responsável · prazo (vocab 47)", status: "ok" },
   { item: "Rotas profundas App: Materiais/Relatório/Atualização (sem H1 Fase 01/02)", status: "ok" },
   { item: "Rotas profundas sem H1 Entregas/Fase 01/Fase 02", status: "ok" },
   { item: "Tokens hex = guia OKI (navy/gold/cream/terracotta)", status: "ok" },
@@ -92,8 +94,9 @@ function PreviaComparativoMarca() {
             Paleta oficial (guia OKI)
           </h1>
           <p className="mt-1 text-sm text-navy/65">
-            Hex de runtime. Pantone/CMYK ficam na impressão. Tipografia funcional:{" "}
-            {MARCA_TIPOGRAFIA.guiaImpressoFuncional}; títulos no app: Cormorant Garamond.
+            Hex de runtime. Pantone/CMYK ficam na impressão (guia OKI) — não inventar código
+            Pantone no runtime. Tipografia funcional: {MARCA_TIPOGRAFIA.guiaImpressoFuncional};
+            títulos no app: Cormorant Garamond.
           </p>
           <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {SWATCHES.map((s) => (
@@ -111,6 +114,10 @@ function PreviaComparativoMarca() {
               </li>
             ))}
           </ul>
+          <p data-pantone-nota className="mt-3 rounded-lg border border-navy/10 bg-cream/40 px-3 py-2 text-xs text-navy/65">
+            Hex canônicos em <code className="font-mono">MARCA_CORES</code> (#2F4B6E · #FCB73A · #ECDFCD · #9A3A2F).
+            Pantone/CMYK só no guia impresso — runtime não inventa código Pantone.
+          </p>
         </section>
 
         <section aria-labelledby="checklist-titulo">

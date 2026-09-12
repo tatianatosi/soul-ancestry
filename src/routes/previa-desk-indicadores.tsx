@@ -816,9 +816,34 @@ function FaceJornada() {
   return (
     <section aria-label="Cadeia da jornada" className="space-y-4" data-face-jornada>
       <p className="text-sm text-navy/70">
-        Cadeia canônica de 11 elos com chrome OKI. Somente leitura — não envia nem persiste. Runtime:{" "}
-        <code className="font-mono text-xs">/biblioteca-mensagens</code> (orquestração contextual).
+        Mockup 47 / Cadeia: elo · caso · responsável · prazo · status. 11 elos canônicos, somente
+        leitura. Runtime <code className="font-mono text-xs">/biblioteca-mensagens</code>.
       </p>
+      <dl
+        data-face-jornada-meta
+        className="flex flex-wrap gap-x-4 gap-y-1 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3 text-xs text-navy/70"
+      >
+        <div>
+          <dt className="inline text-navy/45">Caso: </dt>
+          <dd className="inline font-mono">CA-DEMO-PREVIA</dd>
+        </div>
+        <div>
+          <dt className="inline text-navy/45">Evento: </dt>
+          <dd className="inline font-mono">proposta_enviada</dd>
+        </div>
+        <div>
+          <dt className="inline text-navy/45">Responsável: </dt>
+          <dd className="inline">demo</dd>
+        </div>
+        <div>
+          <dt className="inline text-navy/45">Prazo: </dt>
+          <dd className="inline font-mono">2026-09-20</dd>
+        </div>
+        <div>
+          <dt className="inline text-navy/45">Modo: </dt>
+          <dd className="inline">somente leitura</dd>
+        </div>
+      </dl>
       <div className="rounded-xl border border-navy/10 bg-cream/40 p-3">
         <CadeiaJornada resultado={resultado} evento="proposta_enviada" />
       </div>
