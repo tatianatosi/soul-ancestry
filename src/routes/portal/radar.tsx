@@ -1,12 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
+import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { radarSeisDimensoes } from "@/lib/radar-seis-eixos";
 import { RadarSeisEixos } from "@/components/portal/radar-seis-eixos";
-import { usePortalVivo } from "@/components/portal/fonte-portal";
+import { usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
+
+function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
+  return (
+    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
+      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
+      <p className="mt-0.5 text-sm text-navy">{valor}</p>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/portal/radar")({
   head: () => ({
@@ -32,6 +42,7 @@ export const Route = createFileRoute("/portal/radar")({
  * Elegibilidade continua sem percentual (decisão institucional, não esquecimento).
  */
 export function PortalRadar() {
+  const previa = usePreviaPortal();
   const { visibilidade, carregando } = useVisibilidade("radar");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
 
@@ -48,10 +59,31 @@ export function PortalRadar() {
           recurso="o seu radar ancestral"
         >
           {([vivo]) => {
-            const dimensoes = radarSeisDimensoes({ projecoes: vivo.projecoes, documentos: vivo.documentos });
+            const dimensoes = radarSeisDimensoes({
+              projecoes: vivo.projecoes,
+              documentos: vivo.documentos,
+            });
+            const casoCodigo = previa?.identidade?.codigo ?? (previa ? CASO_DEMO_CODIGO : "—");
+            const comPercentual = dimensoes.filter((d) => d.estado === "percentual").length;
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
-                <div className="space-y-6">
+                <div className="space-y-6" data-aba-radar>
+                  <div
+                    data-radar-meta
+                    className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+                  >
+                    <ChipMeta rotulo="Caso" valor={casoCodigo} />
+                    <ChipMeta rotulo="App" valor="6 dimensões" />
+                    <ChipMeta rotulo="Desk" valor="4 eixos ≠ App" />
+                    <ChipMeta
+                      rotulo="Com %"
+                      valor={
+                        comPercentual === 0
+                          ? "Nenhum inventado"
+                          : `${comPercentual} de 6`
+                      }
+                    />
+                  </div>
                   <RadarSeisEixos dimensoes={dimensoes} />
                   <div className="grid gap-3 sm:grid-cols-2">
                     {dimensoes.map((d) => (

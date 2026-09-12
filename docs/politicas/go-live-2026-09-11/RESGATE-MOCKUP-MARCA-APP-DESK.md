@@ -414,6 +414,18 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 Prints: `docs/provas/2026-09-12-fidelidade-documentos-checklist-47/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 
+## Fatia 2026-09-12 — App Jornada / Árvore / Radar meta strips (vocab 47)
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `/portal/jornada` | Sem faixa meta do caso | Meta caso·marcos·ritmo·atualizações + eixo 1820–2024 + feed |
+| `/portal/arvore` | Sem faixa meta | Meta caso·G1–G5·publicações·nomes só liberados (sem inventar pessoas) |
+| `/portal/radar` | Sem faixa meta Desk≠App | Meta caso·6 dims·Desk 4≠App·com % (sem inventar parecer jurídico) |
+| Gate marca | Sem item meta strips | Checklist Jornada/Árvore/Radar vocab 47 |
+
+Prints: `docs/provas/2026-09-12-fidelidade-jornada-arvore-radar-meta/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqueadas.
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

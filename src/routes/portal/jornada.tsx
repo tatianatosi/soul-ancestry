@@ -1,10 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { COPY_TELAS } from "@/lib/portal-copy";
+import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
-import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
+import { LinkPortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
+
+function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
+  return (
+    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
+      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
+      <p className="mt-0.5 text-sm text-navy">{valor}</p>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/portal/jornada")({
   head: () => ({
@@ -25,6 +35,7 @@ export const Route = createFileRoute("/portal/jornada")({
 });
 
 export function PortalJornada() {
+  const previa = usePreviaPortal();
   const { visibilidade, carregando } = useVisibilidade("jornada");
   const entrega = useVisibilidade("entrega");
   const fase1 = useVisibilidade("relatorio");
@@ -49,11 +60,37 @@ export function PortalJornada() {
           {([vivo]) => {
             const jornada = jornadaSanitizada(vivo.projecoes, new Date(), vivo.proximaAcao);
             const destino = vivo.proximaAcao?.destino ?? null;
+            const casoCodigo = previa?.identidade?.codigo ?? (previa ? CASO_DEMO_CODIGO : "—");
+            const ritmoRotulo =
+              jornada.ritmo === "sem_publicacao"
+                ? "Aguardando primeira publicação"
+                : jornada.ritmo === "regular"
+                  ? "Ritmo em dia"
+                  : jornada.ritmo === "atencao"
+                    ? "Próxima atualização em preparação"
+                    : "Atualização em revisão";
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
+                <div className="space-y-4" data-aba-jornada>
+                <div
+                  data-jornada-meta
+                  className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+                >
+                  <ChipMeta rotulo="Caso" valor={casoCodigo} />
+                  <ChipMeta rotulo="Marcos" valor={String(jornada.marcosPublicados)} />
+                  <ChipMeta rotulo="Ritmo" valor={ritmoRotulo} />
+                  <ChipMeta
+                    rotulo="Atualizações"
+                    valor={
+                      jornada.linha.length === 0
+                        ? "Nenhuma ainda"
+                        : `${jornada.linha.length} publicadas`
+                    }
+                  />
+                </div>
                 {/* Eixo editorial 1820–2024 (taxonomia do mockup) — o feed abaixo permanece a fonte de atualizações. */}
                 <div
-                  className="mb-4 flex items-center gap-3 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+                  className="flex items-center gap-3 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
                   aria-label="Linha do tempo ancestral de 1820 a 2024"
                 >
                   <span className="font-serif text-sm text-navy">1820</span>
@@ -62,15 +99,9 @@ export function PortalJornada() {
                   <span className="h-px flex-1 bg-gradient-to-r from-navy/30 via-gold to-navy/30" aria-hidden="true" />
                   <span className="font-serif text-sm text-navy">2024</span>
                 </div>
-                <p className="mb-4 rounded-lg border border-navy/10 bg-cream/60 p-3 text-sm text-navy/70">
+                <p className="rounded-lg border border-navy/10 bg-cream/60 p-3 text-sm text-navy/70">
                   <span className="mb-1 block text-[11px] uppercase tracking-wide text-navy/45">
-                    {jornada.ritmo === "sem_publicacao"
-                      ? "Aguardando primeira publicação"
-                      : jornada.ritmo === "regular"
-                        ? "Ritmo em dia"
-                        : jornada.ritmo === "atencao"
-                          ? "Próxima atualização em preparação"
-                          : "Atualização em revisão"}
+                    {ritmoRotulo}
                   </span>
                   {jornada.proximoPasso}{" "}
                   {destino ? (
@@ -80,7 +111,7 @@ export function PortalJornada() {
                   ) : null}
                 </p>
                 {jornada.linha.length === 0 ? (
-                  <p className="rounded-lg border border-dashed border-navy/20 p-6 text-center text-sm text-navy/60">
+                  <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
                     {COPY_TELAS.jornada.vazio}
                   </p>
                 ) : (
@@ -102,7 +133,7 @@ export function PortalJornada() {
                 {(abreJornada(entrega.visibilidade) ||
                   abreJornada(fase1.visibilidade) ||
                   abreJornada(fase2.visibilidade)) && (
-                  <p className="mt-4 text-[11px] text-navy/50">
+                  <p className="text-[11px] text-navy/50">
                     Material publicado:{" "}
                     {abreJornada(entrega.visibilidade) ? (
                       <LinkPortal to="/portal/entregas" className="underline underline-offset-2 hover:text-navy/70">
@@ -126,6 +157,7 @@ export function PortalJornada() {
                     ) : null}
                   </p>
                 )}
+                </div>
               </BlocoVisibilidade>
             );
           }}

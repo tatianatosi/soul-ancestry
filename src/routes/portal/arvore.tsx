@@ -1,13 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
+import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
 import { painelArvoreGeracoes } from "@/lib/portal-arvore-geracoes";
-import { usePortalVivo } from "@/components/portal/fonte-portal";
+import { usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { cn } from "@/lib/utils";
+
+function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
+  return (
+    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
+      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
+      <p className="mt-0.5 text-sm text-navy">{valor}</p>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/portal/arvore")({
   head: () => ({
@@ -25,6 +35,7 @@ export const Route = createFileRoute("/portal/arvore")({
 });
 
 export function PortalArvore() {
+  const previa = usePreviaPortal();
   const { visibilidade, carregando } = useVisibilidade("arvore");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
 
@@ -43,9 +54,26 @@ export function PortalArvore() {
           {([vivo]) => {
             const itens = arvoreSanitizada(vivo.projecoes);
             const painel = painelArvoreGeracoes(itens);
+            const casoCodigo = previa?.identidade?.codigo ?? (previa ? CASO_DEMO_CODIGO : "—");
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
-                <div className="space-y-5">
+                <div className="space-y-5" data-aba-arvore>
+                  <div
+                    data-arvore-meta
+                    className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+                  >
+                    <ChipMeta rotulo="Caso" valor={casoCodigo} />
+                    <ChipMeta rotulo="Estrutura" valor="G1–G5" />
+                    <ChipMeta
+                      rotulo="Publicações"
+                      valor={
+                        painel.notasPublicadas.length === 0
+                          ? "Nenhuma ainda"
+                          : `${painel.notasPublicadas.length}`
+                      }
+                    />
+                    <ChipMeta rotulo="Nomes" valor="Só quando liberados" />
+                  </div>
                   {/* Estrutura G1–G5 do mockup — chrome visual, sem inventar pessoas. */}
                   <section
                     aria-label="Gerações G1 a G5"
