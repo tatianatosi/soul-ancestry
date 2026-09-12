@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
 import { PainelDia } from "@/components/painel/painel-dia";
+import { MapaSuperficiesDesk } from "@/components/desk/mapa-superficies";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
@@ -24,6 +25,7 @@ function Painel() {
       titulo="Visão Geral"
       descricao="O que está parado, vencido ou pede decisão — com ação e link para a aba dona."
     >
+      <MapaSuperficiesDesk />
       <PainelDia />
       {/*
         08/09/2026 — correção de um erro meu de 07/09. Ao encontrar
