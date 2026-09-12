@@ -346,6 +346,8 @@ type CartaoKanban = {
   responsavel: string;
   prazo: string;
   etiqueta: string;
+  proximoPasso?: string;
+  alerta?: string;
   tom?: Tom;
   anexos?: number;
 };
@@ -377,6 +379,16 @@ function KanbanVisual({
                   ) : null}
                 </div>
                 <p className="mt-1 text-[10px] leading-snug text-navy/55">{cartao.contexto}</p>
+                {cartao.proximoPasso ? (
+                  <p className="mt-2 border-t border-navy/5 pt-2 text-[10px] leading-snug text-navy/70">
+                    <span className="font-semibold text-navy">Próximo passo:</span> {cartao.proximoPasso}
+                  </p>
+                ) : null}
+                {cartao.alerta ? (
+                  <p className="mt-2 rounded-md border border-atencao/30 bg-atencao-suave px-2 py-1 text-[9px] font-medium text-atencao">
+                    {cartao.alerta}
+                  </p>
+                ) : null}
                 <div className="mt-2"><Etiqueta texto={cartao.etiqueta} tom={cartao.tom} /></div>
                 <div className="mt-2 flex items-center justify-between gap-2 border-t border-navy/5 pt-2 text-[9px] text-navy/50">
                   <span className="inline-flex min-w-0 items-center gap-1 truncate">
@@ -432,6 +444,34 @@ function EstrelasConfianca({ valor }: { valor: number }) {
   );
 }
 
+function FilaPublicacao({ origem }: { origem: "Biblioteca" | "Portal interno" }) {
+  const etapas = [
+    { nome: "Rascunho", total: "2", tom: "neutro" as Tom },
+    { nome: "Revisão", total: "1", tom: "atencao" as Tom },
+    { nome: "Aprovado", total: "3", tom: "sucesso" as Tom },
+    { nome: "Publicado", total: "5", tom: "sucesso" as Tom },
+  ];
+
+  return (
+    <div>
+      <p className="mb-3 text-[10px] text-navy/55">{origem} · conteúdo demonstrativo</p>
+      <ol className="grid gap-2 sm:grid-cols-4">
+        {etapas.map((etapa, indice) => (
+          <li key={etapa.nome} className="relative rounded-lg border border-navy/10 bg-cream/40 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] font-semibold text-navy">{etapa.nome}</span>
+              <Etiqueta texto={etapa.total} tom={etapa.tom} />
+            </div>
+            {indice < etapas.length - 1 ? (
+              <ArrowRight className="absolute -right-3 top-1/2 z-10 hidden h-4 w-4 -translate-y-1/2 text-gold sm:block" aria-hidden />
+            ) : null}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Telas do mockup e complementos visuais aprovados                    */
 /* ------------------------------------------------------------------ */
@@ -458,9 +498,9 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
       <div className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-4">
           <Indicador rotulo="Decisões do dia" valor="6" apoio="aguardando você" />
-          <Indicador rotulo="Vencidas" valor="2" apoio="prazo estourado" />
-          <Indicador rotulo="Em cadência" valor="9" apoio="jornada ativa" />
-          <Indicador rotulo="Sem próxima ação" valor="1" apoio="precisa de decisão" />
+          <Indicador rotulo="Cadências vencidas" valor="3" apoio="pedem retomada" />
+          <Indicador rotulo="Casos sem próxima ação" valor="1" apoio="precisa de decisão" />
+          <Indicador rotulo="Microentregas para revisão" valor="2" apoio="prontas para conferir" />
         </div>
         <div className={grade2}>
           <Cartao titulo="Decisões prioritárias">
@@ -485,6 +525,10 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <Linha rotulo="Caso pausado" valor="2" />
             <Linha rotulo="Caso encerrado no mês" valor="5" tom="sucesso" />
           </Cartao>
+          <Cartao titulo="Microentregas prontas para revisão">
+            <Linha rotulo="Síntese do registro paroquial" valor="Revisar" tom="atencao" />
+            <Linha rotulo="Linha familiar documentada" valor="Revisar" tom="atencao" />
+          </Cartao>
         </div>
       </div>
     ),
@@ -499,21 +543,21 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
         <CabecalhoFerramenta titulo="Funil comercial vivo" apoio="Origem → Discovery → diagnóstico → proposta → contrato" acao="Novo lead" />
         <KanbanVisual colunas={[
           { titulo: "Leads", cartoes: [
-            { titulo: "João Martins", contexto: "Portugal · indicação", responsavel: "Tatiana", prazo: "Hoje", etiqueta: "Responder", tom: "atencao" },
-            { titulo: "Família Moretti", contexto: "Itália · campanha", responsavel: "Carla", prazo: "13 set", etiqueta: "Qualificar", anexos: 2 },
+            { titulo: "João Martins", contexto: "Portugal · indicação", responsavel: "Tatiana", prazo: "Hoje", etiqueta: "Responder", proximoPasso: "Confirmar horário da conversa", alerta: "Lead parado há 4 dias", tom: "atencao" },
+            { titulo: "Família Moretti", contexto: "Itália · campanha", responsavel: "Carla", prazo: "13 set", etiqueta: "Qualificar", proximoPasso: "Revisar origem e interesse", anexos: 2 },
           ] },
           { titulo: "Discovery", cartoes: [
-            { titulo: "Ana Luiza", contexto: "Mesa realizada · Áustria", responsavel: "Tatiana", prazo: "Hoje", etiqueta: "Handoff", tom: "atencao", anexos: 4 },
-            { titulo: "Núcleo Rossi", contexto: "Call agendada · Itália", responsavel: "Camila", prazo: "14 set", etiqueta: "Agendado" },
+            { titulo: "Ana Luiza", contexto: "Mesa realizada · Áustria", responsavel: "Tatiana", prazo: "Hoje", etiqueta: "Handoff", proximoPasso: "Registrar decisão da Discovery", tom: "atencao", anexos: 4 },
+            { titulo: "Núcleo Rossi", contexto: "Call agendada · Itália", responsavel: "Camila", prazo: "14 set", etiqueta: "Agendado", proximoPasso: "Realizar Discovery" },
           ] },
           { titulo: "Diagnóstico", cartoes: [
-            { titulo: "Amigo do Danilo", contexto: "Aguarda certidão-base", responsavel: "Pesquisa", prazo: "16 set", etiqueta: "Documento", tom: "critico", anexos: 1 },
+            { titulo: "Amigo do Danilo", contexto: "Aguarda certidão-base", responsavel: "Pesquisa", prazo: "16 set", etiqueta: "Documento", proximoPasso: "Solicitar documento mínimo", alerta: "Lead parado há 7 dias", tom: "critico", anexos: 1 },
           ] },
           { titulo: "Proposta", cartoes: [
-            { titulo: "Família Bianchi", contexto: "Escopo enviado · v3", responsavel: "Tatiana", prazo: "15 set", etiqueta: "Em análise", anexos: 3 },
+            { titulo: "Família Bianchi", contexto: "Escopo enviado · v3", responsavel: "Tatiana", prazo: "15 set", etiqueta: "Em análise", proximoPasso: "Confirmar retorno da proposta", anexos: 3 },
           ] },
           { titulo: "Contrato", cartoes: [
-            { titulo: "Núcleo Costa", contexto: "Aceite registrado", responsavel: "Operações", prazo: "17 set", etiqueta: "Onboarding", tom: "sucesso", anexos: 5 },
+            { titulo: "Núcleo Costa", contexto: "Aceite registrado", responsavel: "Operações", prazo: "17 set", etiqueta: "Onboarding", proximoPasso: "Preparar abertura do caso", tom: "sucesso", anexos: 5 },
           ] },
         ]} />
       </div>
@@ -529,17 +573,17 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
         <CabecalhoFerramenta titulo="Trabalho dos casos" apoio="Próxima ação, responsável, prazo e bloqueio em uma única leitura" acao="Nova tarefa" />
         <KanbanVisual colunas={[
           { titulo: "Não iniciada", cartoes: [
-            { titulo: "Conferir certidão-base", contexto: "CA-2026-ANA-001", responsavel: "Marina", prazo: "13 set", etiqueta: "Alta", tom: "atencao", anexos: 2 },
-            { titulo: "Preparar linha familiar", contexto: "Família Bianchi", responsavel: "Pesquisa", prazo: "15 set", etiqueta: "Média" },
+            { titulo: "Conferir certidão-base", contexto: "CA-2026-ANA-001", responsavel: "Marina", prazo: "13 set", etiqueta: "Alta", proximoPasso: "Comparar nomes e datas", tom: "atencao", anexos: 2 },
+            { titulo: "Preparar linha familiar", contexto: "Família Bianchi", responsavel: "Pesquisa", prazo: "15 set", etiqueta: "Média", proximoPasso: "Vincular ascendentes confirmados" },
           ] },
           { titulo: "Em andamento", cartoes: [
-            { titulo: "Validar grafia do ascendente", contexto: "Núcleo Rossi", responsavel: "Carla", prazo: "Hoje", etiqueta: "SLA em risco", tom: "atencao", anexos: 3 },
+            { titulo: "Validar grafia do ascendente", contexto: "Núcleo Rossi", responsavel: "Carla", prazo: "Hoje", etiqueta: "SLA em risco", proximoPasso: "Conferir registro civil", alerta: "Atividade parada há 3 dias", tom: "atencao", anexos: 3 },
           ] },
           { titulo: "Bloqueada", cartoes: [
-            { titulo: "Emitir relatório F1", contexto: "Falta transcrição da fonte", responsavel: "Joana", prazo: "12 set", etiqueta: "Bloqueio", tom: "critico", anexos: 1 },
+            { titulo: "Emitir relatório F1", contexto: "Falta transcrição da fonte", responsavel: "Joana", prazo: "12 set", etiqueta: "Bloqueio", proximoPasso: "Finalizar transcrição vinculada", alerta: "Atividade parada por bloqueio", tom: "critico", anexos: 1 },
           ] },
           { titulo: "Concluída", cartoes: [
-            { titulo: "Registrar fonte paroquial", contexto: "Família Bianchi", responsavel: "Marina", prazo: "11 set", etiqueta: "Concluída", tom: "sucesso", anexos: 4 },
+            { titulo: "Registrar fonte paroquial", contexto: "Família Bianchi", responsavel: "Marina", prazo: "11 set", etiqueta: "Concluída", proximoPasso: "Encaminhar para revisão", tom: "sucesso", anexos: 4 },
           ] },
           { titulo: "Cancelada", cartoes: [
             { titulo: "Consulta duplicada", contexto: "Substituída por fonte vigente", responsavel: "Pesquisa", prazo: "10 set", etiqueta: "Histórico" },
@@ -594,6 +638,15 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             </div>
           </Cartao>
         </div>
+        <Cartao titulo="Jornada D0–D365">
+          <div className="grid gap-2 sm:grid-cols-5">
+            <Linha rotulo="Etapa atual" valor="Pesquisa" tom="atencao" />
+            <Linha rotulo="Cadência" valor="Em dia" tom="sucesso" />
+            <Linha rotulo="Próxima ação" valor="Revisar fonte" />
+            <Linha rotulo="Microentrega atual / próxima" valor="Síntese / Linha familiar" />
+            <Linha rotulo="Alertas" valor="1 prazo próximo" tom="atencao" />
+          </div>
+        </Cartao>
       </div>
     ),
   },
@@ -707,13 +760,13 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             </div>
           </Cartao>
         </div>
-        <Cartao titulo="Cadeia de prova">
-          <ol className="grid gap-2 sm:grid-cols-5">
-            {["Fonte", "Transcrição", "Interpretação", "Hipótese", "Conclusão"].map((etapa, indice) => (
+        <Cartao titulo="Da pergunta à microentrega">
+          <ol className="grid gap-2 sm:grid-cols-6">
+            {["Pergunta", "Fonte", "Evidência", "Achado", "Microentrega", "Pronta para revisão"].map((etapa, indice) => (
               <li key={etapa} className="relative rounded-lg border border-navy/10 bg-cream/40 p-2.5 text-center">
-                <CheckCircle2 className={cn("mx-auto h-4 w-4", indice < 3 ? "text-sucesso" : "text-navy/25")} aria-hidden />
+                <CheckCircle2 className={cn("mx-auto h-4 w-4", indice < 5 ? "text-sucesso" : "text-gold")} aria-hidden />
                 <p className="mt-1 text-[10px] font-semibold text-navy">{etapa}</p>
-                {indice < 4 ? <ArrowRight className="absolute -right-3 top-1/2 z-10 hidden h-4 w-4 -translate-y-1/2 text-gold sm:block" aria-hidden /> : null}
+                {indice < 5 ? <ArrowRight className="absolute -right-3 top-1/2 z-10 hidden h-4 w-4 -translate-y-1/2 text-gold sm:block" aria-hidden /> : null}
               </li>
             ))}
           </ol>
@@ -772,6 +825,9 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             </div>
           </Cartao>
         </div>
+        <Cartao titulo="Fila de publicação para o App Cliente">
+          <FilaPublicacao origem="Biblioteca" />
+        </Cartao>
       </div>
     ),
   },
@@ -810,6 +866,13 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
           </p>
         </Cartao>
         </div>
+        <Cartao titulo="Alertas financeiros contextualizados">
+          <div className="grid gap-2 sm:grid-cols-3">
+            <Linha rotulo="Contrato Bianchi · Parcela 2" valor="Vence em 3 dias" tom="atencao" />
+            <Linha rotulo="Contrato Rossi · Entrada" valor="Conferir vínculo" tom="atencao" />
+            <Linha rotulo="Contrato Costa · Parcela 1" valor="Conciliada" tom="sucesso" />
+          </div>
+        </Cartao>
       </div>
     ),
   },
@@ -844,6 +907,13 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
           <Linha rotulo="Datas entre documentos" valor="Conferido" tom="sucesso" />
           <Linha rotulo="Representação de menor" valor="Aplicável" tom="atencao" />
           <Linha rotulo="Poderes da procuração" valor="Conferido" tom="sucesso" />
+        </Cartao>
+        <Cartao titulo="Alertas do contrato e atos formais" className="lg:col-span-2">
+          <div className="grid gap-2 sm:grid-cols-3">
+            <Linha rotulo="Contrato-base v2 · Aditivo" valor="Assinatura pendente" tom="atencao" />
+            <Linha rotulo="Procuração · representação de menor" valor="Conferir poderes" tom="atencao" />
+            <Linha rotulo="Anexo IV · integridade" valor="Validada" tom="sucesso" />
+          </div>
         </Cartao>
       </div>
     ),
@@ -913,6 +983,9 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <Linha rotulo="Achado genealógico" valor="Aprovar" tom="atencao" />
           </div>
         </Cartao>
+        <Cartao titulo="Fila de publicação para o App Cliente">
+          <FilaPublicacao origem="Portal interno" />
+        </Cartao>
       </div>
     ),
   },
@@ -923,37 +996,19 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     rota: "/previa-app-cliente",
     render: () => (
       <div className="space-y-4">
-        <Cartao titulo="Progresso da jornada">
-          <ProgressoJornadaGrafico />
-        </Cartao>
-        <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-          <Cartao titulo="Radar Ancestral — 6 dimensões">
-            <RadarGrafico
-              tituloAcessivel="Radar Ancestral com seis dimensões da jornada do cliente"
-              eixos={[
-                { rotulo: "Documentação", valor: 68 },
-                { rotulo: "Origem", valor: 92 },
-                { rotulo: "Conexões", valor: 54 },
-                { rotulo: "Elegibilidade", valor: 66 },
-                { rotulo: "Memória", valor: 78 },
-                { rotulo: "Legado", valor: 48 },
-              ]}
-            />
+        <div className="grid gap-4 md:grid-cols-3">
+          <Cartao titulo="Etapa atual">
+            <p className="font-serif text-2xl text-navy">Pesquisa documental</p>
+            <p className="mt-2 text-[11px] text-navy/55">Sua jornada segue em andamento.</p>
           </Cartao>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-          <Cartao titulo="Jornada">
-            <Linha rotulo="Etapa atual: documentos" />
-            <Linha rotulo="Próximo passo definido" valor="Sim" tom="sucesso" />
+          <Cartao titulo="Próxima ação">
+            <p className="text-sm font-semibold text-navy">Aguardar retorno do arquivo civil</p>
+            <p className="mt-2 text-[11px] text-navy/55">Nova atualização prevista para 18 de setembro.</p>
           </Cartao>
-          <Cartao titulo="Documentos solicitados">
-            <Linha rotulo="Certidão de nascimento" valor="Recebido" tom="sucesso" />
-            <Linha rotulo="Certidão de casamento" valor="Pendente" tom="atencao" />
+          <Cartao titulo="Microentrega publicada">
+            <p className="text-sm font-semibold text-navy">Síntese da linha familiar</p>
+            <div className="mt-3"><Etiqueta texto="Disponível" tom="sucesso" /></div>
           </Cartao>
-          <Cartao titulo="Mensagens">
-            <Linha rotulo="Atualização da pesquisa" valor="Nova" tom="atencao" />
-            <Linha rotulo="Confirmação de recebimento" valor="Lida" />
-          </Cartao>
-          </div>
         </div>
       </div>
     ),
