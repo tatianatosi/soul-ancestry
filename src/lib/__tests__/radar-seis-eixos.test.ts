@@ -26,11 +26,11 @@ describe("radarSeisDimensoes", () => {
     ]);
   });
 
-  it("sem nenhuma publicação nem documento, todos os percentuais ficam em 0", () => {
+  it("sem publicação nem documento, dimensões ficam em_preparacao (sem % inventado)", () => {
     const dimensoes = radarSeisDimensoes({ projecoes: [], documentos: [] });
     for (const d of dimensoes) {
-      if (d.id === "elegibilidade") continue;
-      expect(d.percentual).toBe(0);
+      expect(d.estado).toBe("em_preparacao");
+      expect(d.percentual).toBeNull();
     }
   });
 
@@ -47,9 +47,11 @@ describe("radarSeisDimensoes", () => {
     expect(elegibilidade.percentual).toBe(mediaEsperada);
   });
 
-  it("sem nenhum dado publicado, elegibilidade fica em 0 (média de zeros, não em preparação)", () => {
+  it("sem nenhum dado publicado, elegibilidade fica em_preparacao (não inventa 0% medido)", () => {
     const dimensoes = radarSeisDimensoes({ projecoes: [], documentos: [] });
-    expect(dimensoes.find((d) => d.id === "elegibilidade")!.percentual).toBe(0);
+    const eleg = dimensoes.find((d) => d.id === "elegibilidade")!;
+    expect(eleg.estado).toBe("em_preparacao");
+    expect(eleg.percentual).toBeNull();
   });
 
   it("documentação é a proporção real de documentos liberados, ignorando demo", () => {
@@ -72,8 +74,8 @@ describe("radarSeisDimensoes", () => {
 
   it("origem e conexões sobem juntas (mesma fonte, presença vs. contagem)", () => {
     const semNada = radarSeisDimensoes({ projecoes: [], documentos: [] });
-    expect(semNada.find((d) => d.id === "origem")!.percentual).toBe(0);
-    expect(semNada.find((d) => d.id === "conexoes")!.percentual).toBe(0);
+    expect(semNada.find((d) => d.id === "origem")!.estado).toBe("em_preparacao");
+    expect(semNada.find((d) => d.id === "conexoes")!.estado).toBe("em_preparacao");
 
     const comArvore = radarSeisDimensoes({ projecoes: [projecao("arvore")], documentos: [] });
     expect(comArvore.find((d) => d.id === "origem")!.percentual).toBe(100);

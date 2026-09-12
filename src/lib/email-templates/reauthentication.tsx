@@ -40,7 +40,7 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
 
 export default ReauthenticationEmail
 
-const main = { backgroundColor: '#F7F1E7', fontFamily: 'Georgia, "Times New Roman", serif' }
+const main = { backgroundColor: '#ECDFCD', fontFamily: 'Georgia, "Times New Roman", serif' }
 const container = {
   padding: '32px 28px',
   backgroundColor: '#ffffff',
@@ -67,10 +67,10 @@ const codeStyle = {
   letterSpacing: '8px',
   fontWeight: 'bold' as const,
   color: '#2F4B6E',
-  backgroundColor: '#F7F1E7',
+  backgroundColor: '#ECDFCD',
   padding: '16px 20px',
   margin: '0 0 8px',
   fontFamily: 'Arial, sans-serif',
 }
-const hr = { borderColor: '#F7F1E7', margin: '28px 0 16px' }
+const hr = { borderColor: '#ECDFCD', margin: '28px 0 16px' }
 const footer = { fontSize: '12px', color: '#6b6b6b', margin: 0, fontFamily: 'Arial, sans-serif' }

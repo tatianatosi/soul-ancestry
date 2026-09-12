@@ -41,10 +41,14 @@ export const MARCA_CORES = {
   dourado: "#FCB73A",
   douradoClaro: "#FFD98A",
   creme: "#ECDFCD",
-  fundo: "#F7F1E7",
+  /** Canvas do App Cliente = creme oficial (não bege lavado #F7F1E7). */
+  fundo: "#ECDFCD",
+  /** Painéis elevados sobre o canvas (Home/Jornada/cards) — sem branco SaaS. */
+  superficie: "#F5EEE3",
   terracota: "#9A3A2F",
   preto: "#101010",
   borda: "#DCCDB6",
+  /** Só tipografia sobre navy/gold; não usar como fundo de painel do App. */
   branco: "#FFFFFF",
 } as const;
 
@@ -84,6 +88,8 @@ export const TIPO_CLIENTE = {
     "inline-flex items-center gap-2 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-navy-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-cream",
   botaoDiscreto:
     "inline-flex items-center gap-2 rounded-lg border border-navy/20 px-3 py-1.5 text-sm text-navy transition-colors hover:bg-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2",
-  cartao: "rounded-xl border border-navy/10 bg-cream/50 p-5 shadow-[0_1px_2px_rgba(16,16,16,0.04)]",
-  aviso: "rounded-lg border border-navy/10 bg-cream/70 p-3 text-sm text-navy/80",
+  /** Painel elevado = superfície OKI (#F5EEE3 via --card), nunca branco SaaS nem bege lavado. */
+  cartao:
+    "rounded-xl border border-navy/10 bg-card p-5 shadow-[0_1px_2px_rgba(16,16,16,0.04)]",
+  aviso: "rounded-lg border border-navy/10 bg-card p-3 text-sm text-navy/80",
 } as const;

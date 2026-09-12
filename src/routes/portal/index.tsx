@@ -8,13 +8,13 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
+import { jornadaSanitizada, arvoreSanitizada } from "@/lib/portal-dados-vivos";
 import { ChipIdentidadeCaso } from "@/components/caso/chip-identidade-caso";
 import { identidadeDePortalCaso } from "@/lib/caso-compartilhado";
 
 function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
-    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
+    <div className="rounded-lg border border-navy/10 bg-card px-3 py-2">
       <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
       <p className="mt-0.5 text-sm text-navy">{valor}</p>
     </div>
@@ -61,6 +61,7 @@ export function PortalHome() {
     new Date(),
     vivo.data?.proximaAcao,
   );
+  const notasArvore = arvoreSanitizada(vivo.data?.projecoes ?? []);
 
   if (previa) {
     return (
@@ -75,6 +76,9 @@ export function PortalHome() {
             marcos={jornada.marcosPublicados}
             casoCodigo={previa.identidade?.codigo ?? CASO_DEMO_CODIGO}
             identidade={previa.identidade}
+            ritmo={jornada.ritmo}
+            notasArvore={notasArvore.length}
+            acaoCliente={vivo.data?.proximaAcao?.acao ?? null}
             achados={jornada.linha.slice(0, 3).map((item) => ({
               id: item.id,
               tipo: item.tipoRotulo,
@@ -117,6 +121,9 @@ export function PortalHome() {
                   codigo: principal.codigo ?? null,
                   titulo: principal.titulo,
                 })}
+                ritmo={jornada.ritmo}
+                notasArvore={notasArvore.length}
+                acaoCliente={principal.proximoPasso || vivo.data?.proximaAcao?.acao || null}
                 achados={jornada.linha.slice(0, 3).map((item) => ({
                   id: item.id,
                   tipo: item.tipoRotulo,
@@ -134,7 +141,7 @@ export function PortalHome() {
                         <Link
                           to="/portal/casos/$id"
                           params={{ id: c.id }}
-                          className="block rounded-xl border border-navy/10 bg-cream/50 px-4 py-3 hover:border-gold"
+                          className="block rounded-xl border border-navy/10 bg-card px-4 py-3 hover:border-gold"
                         >
                           <p className="font-serif text-base text-navy">{c.titulo}</p>
                           <p className="text-xs text-navy/60">{c.statusRotulo}</p>
@@ -162,6 +169,9 @@ function PainelHomeMockup({
   casoCodigo,
   casoId,
   identidade,
+  ritmo,
+  notasArvore,
+  acaoCliente,
   achados,
 }: {
   tituloCaso: string;
@@ -173,15 +183,35 @@ function PainelHomeMockup({
   casoCodigo: string;
   casoId?: string;
   identidade?: import("@/lib/caso-compartilhado").IdentidadeCaso;
+  ritmo: "regular" | "atencao" | "critico" | "sem_publicacao";
+  notasArvore: number;
+  /** Ação explícita do cliente (motor/caso) — nunca o texto de ritmo da equipe. */
+  acaoCliente?: string | null;
   achados: Array<{ id: string; tipo: string; texto: string }>;
 }) {
   const proximaCurta =
     proximoPasso.length > 48 ? `${proximoPasso.slice(0, 45).trimEnd()}…` : proximoPasso;
+
+  const passoVoce = acaoCliente?.trim() || null;
+  const passoNos =
+    ritmo === "sem_publicacao"
+      ? null
+      : ritmo === "regular"
+        ? "Acompanhamento em andamento com a equipe"
+        : ritmo === "atencao"
+          ? "Equipe preparando a próxima atualização"
+          : "Equipe revisando o caso para a próxima atualização";
+
+  const pessoasRotulo =
+    notasArvore === 0
+      ? "Aguardando publicação da árvore"
+      : `${notasArvore} publicação(ões) de árvore — nomes só quando liberados`;
+
   return (
     <div className="space-y-4" data-aba-home>
       <div
         data-home-meta
-        className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+        className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-card px-4 py-3"
       >
         <ChipMeta rotulo="Caso" valor={casoCodigo} />
         <ChipMeta
@@ -195,24 +225,22 @@ function PainelHomeMockup({
         />
       </div>
 
-      <section className="rounded-2xl border border-navy/10 bg-cream/50 p-5 shadow-sm">
-        <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">Seu caso</p>
+      <section className="rounded-2xl border border-navy/10 bg-card p-5 shadow-sm" data-home-status>
+        <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">Status</p>
         <div className="mt-1 flex flex-wrap items-start justify-between gap-2">
           <h2 className="font-serif text-2xl text-navy">{tituloCaso}</h2>
-          <span className="rounded-full border border-navy/15 bg-cream/40 px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
+          <span className="rounded-full border border-navy/15 bg-card px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
             {statusRotulo}
           </span>
         </div>
         {statusTexto ? <p className="mt-2 text-sm text-navy/70">{statusTexto}</p> : null}
-
         {identidade ? (
           <div className="mt-3">
             <ChipIdentidadeCaso identidade={identidade} superficie="App Cliente" />
           </div>
         ) : null}
-
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-navy/10 bg-cream/40 p-3">
+          <div className="rounded-xl border border-navy/10 bg-card p-3">
             <p className="text-[11px] uppercase tracking-wide text-navy/45">Progresso publicado</p>
             <p className="mt-1 font-serif text-2xl text-navy">{marcos}</p>
             <p className="text-xs text-navy/55">
@@ -244,9 +272,54 @@ function PainelHomeMockup({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-navy/10 bg-cream/40 p-5">
+      <section
+        className="rounded-2xl border border-navy/10 bg-card p-5"
+        data-home-proximos-passos
+        aria-label="Próximos passos"
+      >
+        <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">
+          Próximos passos · Você e nós
+        </p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-navy/10 bg-card p-3">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-terracotta">Você</p>
+            {passoVoce ? (
+              <p className="mt-1 text-sm text-navy">{passoVoce}</p>
+            ) : (
+              <p className="mt-1 text-sm text-navy/55">Nenhuma ação sua publicada no momento.</p>
+            )}
+          </div>
+          <div className="rounded-xl border border-navy/10 bg-card p-3">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-navy/55">Nós</p>
+            {passoNos ? (
+              <p className="mt-1 text-sm text-navy">{passoNos}</p>
+            ) : (
+              <p className="mt-1 text-sm text-navy/55">Aguardando primeira publicação da equipe.</p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section
+        className="rounded-2xl border border-navy/10 bg-card p-5"
+        data-home-pessoas
+        aria-label="Pessoas conectadas"
+      >
+        <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">
+          Pessoas conectadas
+        </p>
+        <p className="mt-2 font-serif text-xl text-navy">{pessoasRotulo}</p>
+        <p className="mt-1 text-sm text-navy/60">
+          Contagem só a partir de publicações de árvore — sem inventar nomes nem vínculos.
+        </p>
+        <LinkPortal to="/portal/arvore" className="mt-2 inline-block text-xs font-medium text-navy/60 hover:text-navy">
+          Ver árvore
+        </LinkPortal>
+      </section>
+
+      <section className="rounded-2xl border border-navy/10 bg-card p-5" data-home-recebidos>
         <div className="flex items-center justify-between gap-2">
-          <h3 className="font-serif text-lg text-navy">Achados recentes</h3>
+          <h3 className="font-serif text-lg text-navy">Recebidos recentemente</h3>
           <LinkPortal to="/portal/jornada" className="text-xs font-medium text-navy/60 hover:text-navy">
             Ver jornada
           </LinkPortal>
@@ -258,7 +331,7 @@ function PainelHomeMockup({
         ) : (
           <ul className="mt-3 space-y-2">
             {achados.map((a) => (
-              <li key={a.id} className="rounded-lg border border-navy/10 bg-cream/40 p-3">
+              <li key={a.id} className="rounded-lg border border-navy/10 bg-card p-3">
                 <p className="text-[11px] font-medium uppercase tracking-wide text-navy/45">{a.tipo}</p>
                 <p className="mt-1 text-sm text-navy/85">{a.texto}</p>
               </li>

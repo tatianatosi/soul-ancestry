@@ -9,7 +9,7 @@ import { jornadaSanitizada, partirJornadaEmDuasLinhas } from "@/lib/portal-dados
 
 function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
-    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
+    <div className="rounded-lg border border-navy/10 bg-card px-3 py-2">
       <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
       <p className="mt-0.5 text-sm text-navy">{valor}</p>
     </div>
@@ -74,7 +74,7 @@ export function PortalJornada() {
                 <div className="space-y-4" data-aba-jornada>
                 <div
                   data-jornada-meta
-                  className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+                  className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-card px-4 py-3"
                 >
                   <ChipMeta rotulo="Caso" valor={casoCodigo} />
                   <ChipMeta rotulo="Marcos" valor={String(jornada.marcosPublicados)} />
@@ -90,7 +90,7 @@ export function PortalJornada() {
                 </div>
                 {/* Eixo editorial 1820–2024 (taxonomia do mockup) — o feed abaixo permanece a fonte de atualizações. */}
                 <div
-                  className="flex items-center gap-3 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+                  className="flex items-center gap-3 rounded-xl border border-navy/10 bg-card px-4 py-3"
                   aria-label="Linha do tempo ancestral de 1820 a 2024"
                 >
                   <span className="font-serif text-sm text-navy">1820</span>
@@ -99,7 +99,7 @@ export function PortalJornada() {
                   <span className="h-px flex-1 bg-gradient-to-r from-navy/30 via-gold to-navy/30" aria-hidden="true" />
                   <span className="font-serif text-sm text-navy">2024</span>
                 </div>
-                <p className="rounded-lg border border-navy/10 bg-cream/60 p-3 text-sm text-navy/70">
+                <p className="rounded-lg border border-navy/10 bg-card p-3 text-sm text-navy/70">
                   <span className="mb-1 block text-[11px] uppercase tracking-wide text-navy/45">
                     {ritmoRotulo}
                   </span>
@@ -125,7 +125,7 @@ export function PortalJornada() {
                   }) => (
                     <section
                       aria-label={titulo}
-                      className="rounded-xl border border-navy/10 bg-cream/50 p-4"
+                      className="rounded-xl border border-navy/10 bg-card p-4"
                       data-jornada-coluna={tom}
                     >
                       <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-navy/45">
@@ -147,7 +147,7 @@ export function PortalJornada() {
                   );
                   if (jornada.linha.length === 0) {
                     return (
-                      <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
+                      <p className="rounded-lg border border-dashed border-navy/20 bg-card p-6 text-center text-sm text-navy/60">
                         {COPY_TELAS.jornada.vazio}
                       </p>
                     );

@@ -70,7 +70,7 @@ export function SessaoDemoAppCliente({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-navy/10 bg-cream/40 p-5">
+      <div className="rounded-xl border border-navy/10 bg-card p-5">
         <h1 className="font-serif text-xl text-navy">Sessão demo do App Cliente</h1>
         <p className="mt-1 text-sm text-navy/70">
           A experiência que o cliente vê, com um caso fictício. São as telas reais do App Cliente —

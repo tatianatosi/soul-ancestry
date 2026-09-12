@@ -189,7 +189,7 @@ function Overview({ sub }: { sub: string }) {
           <RadarSvg
             eixos={["Documentação", "Origem", "Conexões", "Elegibilidade", "Memória", "Legado"]}
             series={[
-              { nome: "Ana", cor: "#C9A84C", valores: [72, 85, 64, 58, 45, 30] },
+              { nome: "Ana", cor: "#FCB73A", valores: [72, 85, 64, 58, 45, 30] },
               { nome: "João", cor: "#8B4513", valores: [55, 60, 48, 70, 35, 22] },
               { nome: "Sophia", cor: "#2A3D63", valores: [88, 70, 76, 52, 60, 40] },
             ]}

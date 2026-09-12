@@ -157,7 +157,7 @@ export function htmlImpressaoCrmMestre(dataISO = new Date().toISOString().slice(
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8" />
 <title>CRM Mestre, Discovery e Handoff — Clube Ancestral</title>
 <style>
-  :root { --navy:#2F4B6E; --gold:#FCB73A; --cream:#ECDFCD; --fundo:#F7F1E7; --borda:#DCCDB6; }
+  :root { --navy:#2F4B6E; --gold:#FCB73A; --cream:#ECDFCD; --fundo:#ECDFCD; --borda:#DCCDB6; }
   * { box-sizing: border-box; }
   body { margin:0; padding:32px; background:#fff; color:var(--navy); font-family:Inter, system-ui, sans-serif; font-size:11px; }
   h1 { font-family:"Cormorant Garamond", Georgia, serif; font-size:26px; margin:0 0 4px; }

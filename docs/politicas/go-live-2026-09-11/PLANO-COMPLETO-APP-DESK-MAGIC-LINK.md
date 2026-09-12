@@ -19,15 +19,17 @@
 
 ```text
 0  Realinhar (prova Desk-chrome inválida)           [feito]
-1  App Cliente mockup no ar + prints web/mobile     [conteúdo mobile/desktop APROVADO pela dona 2026-09-12; aguarda sim explícito merge produção]
-1B Magic link /acesso mobile+web + prints           [prints feitos; segue com Ordem 1 no mesmo gate de merge]
-2  caseId App↔Desk + prints                         [em curso — adapter/chip/prévia; marca OKI aplicada no chrome]
-3  Caso 360 / Pessoas / Pesquisa
-4  CRM Vivo / Journey / Calls
-5  Proposta / contrato / jurídico contextual
-6  Funil financeiro / marketing
-7  Radar / Biblioteca / Legado / automações
+1  App Cliente mockup no ar + prints web/mobile     [conteúdo APROVADO; marca/layout em prova visual]
+1B Magic link /acesso mobile+web + prints           [prints feitos; mesmo gate de merge da Ordem 1]
+2  caseId App↔Desk + prints                         [adapter/chip/prévia prontos; aguarda “Aprova Ordem 2?”]
+3  Caso 360 / Pessoas / Pesquisa                    [bloqueada — de-para em RESGATE; sem marca aprovada]
+4  CRM Vivo / Journey / Calls                       [bloqueada]
+5  Proposta / contrato / jurídico contextual        [bloqueada]
+6  Funil financeiro / marketing                     [bloqueada]
+7  Radar / Biblioteca / Legado / automações         [bloqueada]
 ```
+
+Resgate marca/layout (2026-09-12): tokens canvas `#ECDFCD` + superfície `#F5EEE3`; App 7 abas + Desk 6 grupos; de-para congelado em `RESGATE-MOCKUP-MARCA-APP-DESK.md`.
 
 **Branch:** `cursor/app-cliente-preview-a5bc` (pushed).  
 **PR:** token Cloud sem permissão `createPullRequest` — abrir manualmente:  

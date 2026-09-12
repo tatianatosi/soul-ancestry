@@ -131,7 +131,7 @@ function RadarTab() {
   return (
     <>
       <Card titulo="Radar da Jornada" eyebrow="Leitura de origem">
-        <RadarSvg eixos={eixos} series={[{ nome: "Você", cor: "#C9A84C", valores }]} />
+        <RadarSvg eixos={eixos} series={[{ nome: "Você", cor: "#FCB73A", valores }]} />
       </Card>
       <div className="grid grid-cols-2 gap-3">
         {eixos.map((e, i) => (

@@ -9,7 +9,7 @@ import { publicacoesDeFase02 } from "@/lib/portal-dados-vivos";
 
 function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
-    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
+    <div className="rounded-lg border border-navy/10 bg-card px-3 py-2">
       <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
       <p className="mt-0.5 text-sm text-navy">{valor}</p>
     </div>
@@ -47,7 +47,7 @@ export function PortalFase02() {
           <div className="space-y-4">
             <div
               data-atualizacao-meta
-              className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+              className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-card px-4 py-3"
             >
               <ChipMeta
                 rotulo="Caso"
@@ -64,13 +64,13 @@ export function PortalFase02() {
               />
             </div>
             {itens.length === 0 ? (
-              <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
+              <p className="rounded-lg border border-dashed border-navy/20 bg-card p-6 text-center text-sm text-navy/60">
                 Nenhuma atualização desta etapa foi publicada para consulta até agora.
               </p>
             ) : (
               <ul className="space-y-3">
                 {itens.map((item) => (
-                  <li key={item.id} className="rounded-lg border border-navy/10 bg-cream/40 p-4">
+                  <li key={item.id} className="rounded-lg border border-navy/10 bg-card p-4">
                     <p className="text-sm font-medium text-navy">{item.tipoRotulo}</p>
                     <p className="mt-1 whitespace-pre-line text-sm text-navy/80">{item.conteudo}</p>
                   </li>

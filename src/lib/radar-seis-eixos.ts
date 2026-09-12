@@ -76,74 +76,118 @@ export function radarSeisDimensoes(entrada: {
   const achados = publicacoes.filter((p) => p.tipo === "achado");
   const marcos = publicacoes.filter((p) => p.tipo === "marco" || p.tipo === "resumo");
 
-  const documentacao: DimensaoRadar = {
-    id: "documentacao",
-    titulo: "Documentação",
-    estado: "percentual",
-    percentual: percentual(liberados, docs.length),
-    legenda:
-      docs.length > 0
-        ? `${liberados} de ${docs.length} documentos do seu caso já liberados para você.`
-        : "Nenhum documento vinculado ao seu caso ainda.",
-  };
-  const origem: DimensaoRadar = {
-    id: "origem",
-    titulo: "Origem",
-    estado: "percentual",
-    // Sem teto conhecido de "quantos registros de origem um caso tem" —
-    // dois degraus honestos, não percentual fino fingindo precisão. Usa a
-    // mesma fonte de "Conexões Familiares" (publicações de árvore/linha),
-    // só que como presença/ausência em vez de contagem contra um teto —
-    // por isso os dois eixos sobem juntos; não é redundância acidental.
-    percentual: arvore.length > 0 ? 100 : 0,
-    legenda:
-      arvore.length > 0
-        ? `${arvore.length} registro(s) de origem/linha publicados pela equipe.`
-        : "Ainda não há registro de origem publicado pela equipe.",
-  };
-  const conexoes: DimensaoRadar = {
-    id: "conexoes",
-    titulo: "Conexões Familiares",
-    estado: "percentual",
-    percentual: percentual(arvore.length, TETO_ANCESTRAIS_G1_G5),
-    legenda: `${arvore.length} de até ${TETO_ANCESTRAIS_G1_G5} ancestrais possíveis em 5 gerações (você, pais, avós, bisavós e trisavós).`,
-  };
-  const memoria: DimensaoRadar = {
-    id: "memoria",
-    titulo: "Memória",
-    estado: "percentual",
-    percentual: achados.length > 0 ? 100 : 0,
-    legenda:
-      achados.length > 0
-        ? `${achados.length} achado(s) de memória familiar publicados.`
-        : "Nenhum achado de memória familiar publicado ainda.",
-  };
-  const legado: DimensaoRadar = {
-    id: "legado",
-    titulo: "Legado",
-    estado: "percentual",
-    percentual: marcos.length > 0 ? 100 : 0,
-    legenda:
-      marcos.length > 0
-        ? `${marcos.length} marco(s)/resumo(s) de jornada publicados.`
-        : "Nenhum marco de jornada publicado ainda.",
-  };
+  const documentacao: DimensaoRadar =
+    docs.length === 0
+      ? {
+          id: "documentacao",
+          titulo: "Documentação",
+          estado: "em_preparacao",
+          percentual: null,
+          legenda: "Ainda sem documentos vinculados — sem percentual inventado.",
+        }
+      : {
+          id: "documentacao",
+          titulo: "Documentação",
+          estado: "percentual",
+          percentual: percentual(liberados, docs.length),
+          legenda: `${liberados} de ${docs.length} documentos do seu caso já liberados para você.`,
+        };
 
-  // Elegibilidade = média dos outros 5 eixos já calculados. Nunca lê parecer
-  // jurídico (sem fonte com RLS de portal): é só "quanto do resto da
-  // jornada já está pronto", reaproveitando número que já existe.
+  // Sem teto conhecido de "quantos registros de origem" — presença/ausência
+  // honesta, ou em_preparacao quando nada foi publicado (não fingir 0% medido).
+  const origem: DimensaoRadar =
+    arvore.length === 0
+      ? {
+          id: "origem",
+          titulo: "Origem",
+          estado: "em_preparacao",
+          percentual: null,
+          legenda: "Aguardando registro de origem/linha publicado pela equipe.",
+        }
+      : {
+          id: "origem",
+          titulo: "Origem",
+          estado: "percentual",
+          percentual: 100,
+          legenda: `${arvore.length} registro(s) de origem/linha publicados pela equipe.`,
+        };
+
+  const conexoes: DimensaoRadar =
+    arvore.length === 0
+      ? {
+          id: "conexoes",
+          titulo: "Conexões Familiares",
+          estado: "em_preparacao",
+          percentual: null,
+          legenda: `Sem publicação de árvore ainda — o teto de ${TETO_ANCESTRAIS_G1_G5} só vale com dados reais.`,
+        }
+      : {
+          id: "conexoes",
+          titulo: "Conexões Familiares",
+          estado: "percentual",
+          percentual: percentual(arvore.length, TETO_ANCESTRAIS_G1_G5),
+          legenda: `${arvore.length} de até ${TETO_ANCESTRAIS_G1_G5} ancestrais possíveis em 5 gerações (você, pais, avós, bisavós e trisavós).`,
+        };
+
+  const memoria: DimensaoRadar =
+    achados.length === 0
+      ? {
+          id: "memoria",
+          titulo: "Memória",
+          estado: "em_preparacao",
+          percentual: null,
+          legenda: "Nenhum achado de memória familiar publicado ainda.",
+        }
+      : {
+          id: "memoria",
+          titulo: "Memória",
+          estado: "percentual",
+          percentual: 100,
+          legenda: `${achados.length} achado(s) de memória familiar publicados.`,
+        };
+
+  const legado: DimensaoRadar =
+    marcos.length === 0
+      ? {
+          id: "legado",
+          titulo: "Legado",
+          estado: "em_preparacao",
+          percentual: null,
+          legenda: "Nenhum marco de jornada publicado ainda.",
+        }
+      : {
+          id: "legado",
+          titulo: "Legado",
+          estado: "percentual",
+          percentual: 100,
+          legenda: `${marcos.length} marco(s)/resumo(s) de jornada publicados.`,
+        };
+
+  // Elegibilidade = média só dos eixos com percentual real. Sem fonte jurídica.
+  // Se nenhum eixo tem % ainda, fica em_preparacao — não inventa 0% medido.
   const outros = [documentacao, origem, conexoes, memoria, legado];
-  const mediaOutros = Math.round(
-    outros.reduce((soma, d) => soma + (d.percentual ?? 0), 0) / outros.length,
-  );
-  const elegibilidade: DimensaoRadar = {
-    id: "elegibilidade",
-    titulo: "Elegibilidade",
-    estado: "percentual",
-    percentual: mediaOutros,
-    legenda:
-      "Média de completude dos outros 5 eixos — não é parecer jurídico nem promessa de resultado.",
-  };
+  const comPercentual = outros.filter((d) => d.estado === "percentual");
+  const elegibilidade: DimensaoRadar =
+    comPercentual.length === 0
+      ? {
+          id: "elegibilidade",
+          titulo: "Elegibilidade",
+          estado: "em_preparacao",
+          percentual: null,
+          legenda:
+            "Aguardando publicações nos outros eixos — média só com dados reais; não é parecer jurídico.",
+        }
+      : {
+          id: "elegibilidade",
+          titulo: "Elegibilidade",
+          estado: "percentual",
+          percentual: Math.round(
+            comPercentual.reduce((soma, d) => soma + (d.percentual ?? 0), 0) /
+              comPercentual.length,
+          ),
+          legenda:
+            "Média de completude dos eixos já publicados — não é parecer jurídico nem promessa de resultado.",
+        };
 
   return [documentacao, origem, conexoes, elegibilidade, memoria, legado];
 }

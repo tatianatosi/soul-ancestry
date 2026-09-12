@@ -459,6 +459,83 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 Prints: `docs/provas/2026-09-12-fidelidade-documentos-meta-vivo/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 
+
+## Fatia 2026-09-12 — Home densificada + Radar em_preparacao
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `/portal` Home | Meta só; faltavam Você\|Nós, pessoas, recebidos | Status + Próximos passos Você\|Nós + Pessoas (só pubs árvore) + Recebidos |
+| `/portal/radar` | 0% fingia medição sem dado | `em_preparacao` sem barra/%; média de elegibilidade só com eixos publicados |
+
+Prints: `docs/provas/2026-09-12-fidelidade-home-radar-honestidade/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`).
+
+## De-para congelado — App 7 abas ↔ mockup 17 (págs. 3–9)
+
+| Mockup 17 | Vocab 47 (prova) | Runtime | Prévia |
+|---|---|---|---|
+| p.3 Home | caso · progresso · próxima ação · achados | `/portal` | `/previa-app-cliente?aba=home` |
+| p.4 Jornada | História \| Seu caso · marcos | `/portal/jornada` | `?aba=jornada` |
+| p.5 Radar | 6 dims (≠ Desk 4) · sem % inventado | `/portal/radar` | `?aba=radar` |
+| p.6 Árvore | G1–G5 · sem nomes inventados | `/portal/arvore` | `?aba=arvore` |
+| p.7 Documentos | checklist · liberados · enviados | `/portal/documentos` | `?aba=documentos` |
+| p.8 Legado | prateleiras · Premium só c/ pub | `/portal/legado` | `?aba=legado` |
+| p.9 Conta | perfil · plano · alertas · histórico | `/portal/conta` | `?aba=conta` |
+
+Entregas / Fase 01 / Fase 02: rotas profundas com H1 Materiais / Relatório / Atualização — **fora** da barra.
+
+## De-para congelado — Desk face 7 / imagem ↔ `GRUPOS_DESK` (6)
+
+| Face mockup 17 | Vocab 47 | Grupo runtime (`GRUPOS_DESK`) | Rota / prévia |
+|---|---|---|---|
+| p.11 Visão Geral | fila · vencidas · responsável | `hoje` | `/painel` · `?face=visao` |
+| p.12 Caso 360 | caso · próxima ação · 4 eixos | `casos` | ficha caso · `?face=caso360` |
+| p.13 Checklist | tarefa · caso · responsável · prazo | `casos` / tarefas | `/tarefas` · `?face=checklist` |
+| p.14 Jurídica | tema · status · versão · bloqueia | `pesquisa` / matriz | `/matriz-juridica` · `?face=juridica` |
+| p.15 Radar interno | **4 eixos jornada** (≠ App 6) | `pesquisa` / qualidade | `/qualidade` · `?face=radar` |
+| p.16 Alertas | sinal · caso · responsável | `hoje` / alertas | `/alertas` · `?face=alertas` |
+| p.17 Biblioteca | subárea · país · versão · vigência | `pesquisa` / biblioteca | `/biblioteca` · `?face=biblioteca` |
+
+**Proibido** restaurar sidebar Lovable de 14 itens. Face 7 e labels da imagem Soul Ancestry = referência de **qualidade visual** (navy/cream/gold), não menu novo.
+
+## Checklist de aceite visual (marca/layout)
+
+- [ ] Canvas App/Desk = cream `#ECDFCD` (não `#F7F1E7` lavado)
+- [ ] Painéis elevados = superfície `#F5EEE3` / `bg-card` (não `#FFFFFF` SaaS)
+- [ ] Navy `#2F4B6E` + gold `#FCB73A` + terracotta `#9A3A2F`
+- [ ] Logo via `<BrandLogo />` / assets oficiais
+- [ ] App: exatamente 7 abas; bottom nav mobile; sem Entregas/Fase na barra
+- [ ] Desk: exatamente 6 grupos `GRUPOS_DESK`; item ativo gold; canvas cream
+- [ ] Sem azul aposentado `#1B2B4B` / gold `#C9A84C` em superfície App
+- [ ] Tipografia Amolina: dívida (só com ordem explícita)
+- [ ] Prints desktop + mobile App; Visão Geral + Caso 360 Desk
+- [ ] Dona responde “Aprova marca/layout?” — até lá: **em prova visual**, não `COMPROVADO_EM_USO`
+
+## Fatia 2026-09-12 — tokens canvas/superfície + chrome App/Desk
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `--background` / `MARCA_CORES.fundo` | Bege lavado `#F7F1E7` | Cream OKI `#ECDFCD` |
+| `--card` / `superficie` | Branco `#FFFFFF` | Elevação quente `#F5EEE3` |
+| `TIPO_CLIENTE.cartao` + painéis portal | `bg-cream/40–70` lavado | `bg-card` sólido |
+| Desk `CardIndicador` / painel Hoje | cream translúcido | `bg-card` |
+| Shell Desk | — | Sidebar navy + filete gold + canvas cream (6 grupos) |
+
+Prints: `docs/provas/2026-09-12-resgate-marca-layout-app-desk/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`).
+
+## Ordens 3–7 — de-para (bloqueadas até marca/layout + merge)
+
+| Ordem | Mockup 17/47 | Entidade | Escritor | UI | Status |
+|---|---|---|---|---|---|
+| 3 Caso 360 / Pessoas / Pesquisa | p.12 + 47 | `crm_casos`, `case_plans`, `case_members` | planejador | ficha + prévia | **bloqueada** — aguarda marca + Ordem 2 |
+| 4 CRM Vivo / Journey / Calls | p.11 comercial | `crm_casos`, calls | writers CRM | `/calls` | bloqueada |
+| 5 Proposta / contrato / jurídico | p.14 | `evidences.workflow_status` CHECK | workflow | matriz / contrato | bloqueada |
+| 6 Funil financeiro / marketing | face comercial | `invoices`, `payments` | writers fin | formalização | bloqueada |
+| 7 Radar / Biblioteca / Legado | p.15–17 + App 6 dims | radar-eixos + `app_projections` | publish | App+Desk | bloqueada |
+
+Regra: nenhuma Ordem 3–7 implementa motor novo sem linha nesta tabela + print da fatia. Backend amarrado a `crm_casos.id` + planejador; sem schema paralelo.
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

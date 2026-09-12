@@ -29,7 +29,12 @@ export const Route = createFileRoute("/previa-comparativo-marca")({
 const SWATCHES: { chave: string; hex: string; papel: string }[] = [
   { chave: "Navy", hex: MARCA_CORES.azul, papel: "Header / sidebar / títulos" },
   { chave: "Gold", hex: MARCA_CORES.dourado, papel: "CTA / destaque / filete" },
-  { chave: "Cream", hex: MARCA_CORES.creme, papel: "Canvas / fundo" },
+  { chave: "Cream", hex: MARCA_CORES.creme, papel: "Canvas / fundo (não #F7F1E7)" },
+  {
+    chave: "Superfície",
+    hex: MARCA_CORES.superficie,
+    papel: "Painéis elevados / bg-card (não #FFFFFF)",
+  },
   { chave: "Terracotta", hex: MARCA_CORES.terracota, papel: "Alerta / ênfase" },
   { chave: "Preto", hex: MARCA_CORES.preto, papel: "Texto denso" },
 ];
@@ -38,6 +43,8 @@ const CHECKLIST: { item: string; status: "ok" | "prova" }[] = [
   { item: "App Cliente: exatamente 7 abas (Home → Conta)", status: "ok" },
   { item: "Entregas / Fase 01 / Fase 02 fora da barra", status: "ok" },
   { item: "Desk: 6 grupos GRUPOS_DESK (sem sidebar Lovable)", status: "ok" },
+  { item: "Canvas cream #ECDFCD + painéis superfície #F5EEE3 (sem branco SaaS)", status: "ok" },
+  { item: "Gate marca = App web+mobile (Desk = chrome 6 grupos, não redesign de menu)", status: "ok" },
   { item: "Radar: teia 6 eixos em canvas cream + gold", status: "ok" },
   { item: "Árvore: estrutura G1–G5, G1 em gold, sem nomes inventados", status: "ok" },
   { item: "Home/Jornada/Documentos/Legado/Conta em painéis cream (sem SaaS branco)", status: "ok" },
@@ -72,6 +79,8 @@ const CHECKLIST: { item: string; status: "ok" | "prova" }[] = [
   { item: "App Jornada: duas linhas História|Seu caso + União de Ramos só com publicações reais", status: "ok" },
   { item: "Rotas profundas densificadas: meta caso·tipo·publicados·estado (Materiais/Relatório/Atualização)", status: "ok" },
   { item: "App Documentos vivo+prévia: meta caso·checklist·liberados·enviados + upload só sob pedido (sem inventar)", status: "ok" },
+  { item: "App Radar: dimensões sem dado em_preparacao (sem barra/0% inventado); Com % só com denominador real", status: "ok" },
+  { item: "App Home densificada: Status · Próximos passos Você|Nós · Pessoas (só pubs) · Recebidos (sem % inventado)", status: "ok" },
   { item: "Rotas profundas App: Materiais/Relatório/Atualização (sem H1 Fase 01/02)", status: "ok" },
   { item: "Rotas profundas sem H1 Entregas/Fase 01/Fase 02", status: "ok" },
   { item: "Tokens hex = guia OKI (navy/gold/cream/terracotta)", status: "ok" },

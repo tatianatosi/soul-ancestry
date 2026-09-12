@@ -55,7 +55,7 @@ function PropostaPage() {
             ) : (
               <ul className="mt-3 space-y-3">
                 {data.casos.map((c) => (
-                  <li key={c.id} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+                  <li key={c.id} className="rounded-xl border border-navy/10 bg-card p-4">
                     <p className="font-medium">{c.titulo}</p>
                     <p className="mt-1 text-sm text-navy/60">{[c.pais, c.via].filter(Boolean).join(" · ")}</p>
                   </li>
@@ -73,7 +73,7 @@ function PropostaPage() {
             ) : (
               <ul className="mt-3 space-y-3">
                 {data.faturas.map((f) => (
-                  <li key={f.id} className="flex items-center justify-between rounded-xl border border-navy/10 bg-cream/40 p-4">
+                  <li key={f.id} className="flex items-center justify-between rounded-xl border border-navy/10 bg-card p-4">
                     <div>
                       <p className="font-medium">{f.descricao}</p>
                       <p className="text-sm text-navy/60">

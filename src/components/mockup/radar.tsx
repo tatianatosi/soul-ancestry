@@ -25,13 +25,13 @@ export function RadarSvg({
           key={n}
           points={eixos.map((_, i) => ponto(i, n).join(",")).join(" ")}
           fill="none"
-          stroke="#1B2B4B"
+          stroke="#2F4B6E"
           strokeOpacity={0.12}
         />
       ))}
       {eixos.map((_, i) => {
         const [x, y] = ponto(i, 100);
-        return <line key={i} x1={c} y1={c} x2={x} y2={y} stroke="#1B2B4B" strokeOpacity={0.12} />;
+        return <line key={i} x1={c} y1={c} x2={x} y2={y} stroke="#2F4B6E" strokeOpacity={0.12} />;
       })}
       {series.map((s) => (
         <polygon
@@ -53,7 +53,7 @@ export function RadarSvg({
             textAnchor="middle"
             dominantBaseline="middle"
             fontSize={10}
-            fill="#1B2B4B"
+            fill="#2F4B6E"
             opacity={0.7}
           >
             {e}
