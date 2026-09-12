@@ -1169,11 +1169,11 @@ export function PreviaDeskTelas() {
 
       <div className="lg:flex">
         {/* Barra lateral navy com o logo oficial */}
-        <aside className="bg-navy px-3 py-4 lg:min-h-[calc(100vh-2rem)] lg:w-64 lg:shrink-0">
+        <aside className="min-w-0 max-w-full overflow-hidden bg-navy px-3 py-4 lg:min-h-[calc(100vh-2rem)] lg:w-64 lg:shrink-0">
           <div className="px-2 pb-4">
             <BrandLogo size={34} showText variant="client-dark" />
           </div>
-          <nav className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible" aria-label="Áreas do Desk">
+          <nav className="flex w-full gap-1 overflow-x-auto lg:flex-col lg:overflow-visible" aria-label="Áreas do Desk">
             {GRUPOS.map((g) => {
               const Icone = g.icon;
               const ativo = tela.grupo === g.id;
