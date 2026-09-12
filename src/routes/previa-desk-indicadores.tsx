@@ -2,14 +2,16 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 
 import { BrandLogo } from "@/components/brand";
+import { CadeiaJornada } from "@/components/desk/cadeia-jornada";
 import { BadgeDesk, CardIndicador, type TomEstado } from "@/components/desk/ui-desk";
 import { GRUPOS_DESK } from "@/lib/navegacao-desk";
+import { executarCadeiaJornada } from "@/lib/orquestracao-jornada";
 import { SELO_DEMO_PORTAL } from "@/lib/portal-demo-sophia";
 
 /**
  * Prévia pública — faces Desk mockup 17 p.11–17 + vocabulário 47.
  * Chrome OKI + DEMO. Sem auth. Não restaura sidebar Lovable: 6 GRUPOS_DESK.
- * Deep-link: ?face=visao|caso360|checklist|juridica|radar|alertas|biblioteca|pessoas
+ * Deep-link: ?face=visao|caso360|checklist|juridica|radar|alertas|biblioteca|pessoas|jornada
  */
 
 export const Route = createFileRoute("/previa-desk-indicadores")({
@@ -35,7 +37,8 @@ type FaceId =
   | "radar"
   | "alertas"
   | "biblioteca"
-  | "pessoas";
+  | "pessoas"
+  | "jornada";
 
 const FACES: { id: FaceId; rotulo: string; pagina: string }[] = [
   { id: "visao", rotulo: "Visão Geral", pagina: "p.11" },
@@ -46,6 +49,7 @@ const FACES: { id: FaceId; rotulo: string; pagina: string }[] = [
   { id: "alertas", rotulo: "Alertas", pagina: "p.16" },
   { id: "biblioteca", rotulo: "Biblioteca Mestre", pagina: "p.17" },
   { id: "pessoas", rotulo: "Pessoas", pagina: "grupo" },
+  { id: "jornada", rotulo: "Cadeia Jornada", pagina: "ops" },
 ];
 
 const FACES_VALIDAS = new Set<string>(FACES.map((f) => f.id));
@@ -85,8 +89,8 @@ function PreviaDeskIndicadores() {
           <nav className="mt-2 space-y-1">
             {GRUPOS_DESK.map((g) => {
               const ativo =
-                (face === "pessoas" && g.id === "casos") ||
-                (face !== "pessoas" && g.id === "hoje");
+                ((face === "pessoas" || face === "jornada") && g.id === "casos") ||
+                (face !== "pessoas" && face !== "jornada" && g.id === "hoje");
               return (
                 <div
                   key={g.id}
@@ -159,13 +163,15 @@ function PreviaDeskIndicadores() {
             {face === "alertas" ? <FaceAlertas /> : null}
             {face === "biblioteca" ? <FaceBiblioteca /> : null}
             {face === "pessoas" ? <FacePessoas /> : null}
+            {face === "jornada" ? <FaceJornada /> : null}
 
             <p className="text-xs text-navy/50">
               Runtime vivo (auth staff): <code className="font-mono">/painel</code>,{" "}
               <code className="font-mono">/casos/$caseId</code>, <code className="font-mono">/clientes</code>,{" "}
               <code className="font-mono">/tarefas</code>,{" "}
               <code className="font-mono">/matriz-juridica</code>, <code className="font-mono">/qualidade</code>,{" "}
-              <code className="font-mono">/alertas</code>, <code className="font-mono">/biblioteca</code>.{" "}
+              <code className="font-mono">/alertas</code>, <code className="font-mono">/biblioteca</code>,{" "}
+              <code className="font-mono">/biblioteca-mensagens</code>.{" "}
               <code className="font-mono">GRUPOS_DESK</code> permanece 6.
             </p>
           </main>
@@ -511,6 +517,28 @@ function FacePessoas() {
             ))}
           </tbody>
         </table>
+      </div>
+    </section>
+  );
+}
+
+/** Painel real CadeiaJornada (somente leitura) — chrome OKI no runtime Desk. */
+function FaceJornada() {
+  const resultado = executarCadeiaJornada({
+    hoje: "2026-09-12",
+    evento: "proposta_enviada",
+    caso_id: "CA-DEMO-PREVIA",
+    responsavel_id: "demo",
+    prazo: "2026-09-20",
+  });
+  return (
+    <section aria-label="Cadeia da jornada" className="space-y-4" data-face-jornada>
+      <p className="text-sm text-navy/70">
+        Cadeia canônica de 11 elos com chrome OKI. Somente leitura — não envia nem persiste. Runtime:{" "}
+        <code className="font-mono text-xs">/biblioteca-mensagens</code> (orquestração contextual).
+      </p>
+      <div className="rounded-xl border border-navy/10 bg-cream/40 p-3">
+        <CadeiaJornada resultado={resultado} evento="proposta_enviada" />
       </div>
     </section>
   );

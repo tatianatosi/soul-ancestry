@@ -164,6 +164,18 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 Prints: `docs/provas/2026-09-12-desk-pessoas-oki/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`). `GRUPOS_DESK` permanece 6.
 
+
+## Fatia 2026-09-12 — Desk Cadeia Jornada OKI
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `cadeia-jornada.tsx` / orquestração | Tokens `border-border` / `muted` / `card` | Cream/navy/gold |
+| Governança modelos contratuais | `text-muted-foreground` | `text-navy/65` |
+| Prévia | Sem face jornada | `/previa-desk-indicadores?face=jornada` (CadeiaJornada real, DEMO) |
+
+Prints: `docs/provas/2026-09-12-desk-jornada-oki/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`).
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).
