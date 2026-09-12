@@ -476,7 +476,7 @@ function NucleosPage() {
                                   />
                                 )}
                               </EstadoDados>
-                              {erroMembro ? <p className="text-red-700">{erroMembro}</p> : null}
+                              {erroMembro ? <p className="text-critico">{erroMembro}</p> : null}
                               <div className="flex gap-2 pt-1">
                                 <button
                                   type="button"
