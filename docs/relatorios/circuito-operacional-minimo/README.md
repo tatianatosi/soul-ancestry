@@ -6,6 +6,7 @@
 **Pasta:** `docs/relatorios/circuito-operacional-minimo/`
 
 **Dia 2026-09-11:** [`2026-09-11_manha.md`](2026-09-11_manha.md) · [`2026-09-11_fim-do-dia.md`](2026-09-11_fim-do-dia.md)  
+**Dia 2026-09-12:** [`2026-09-12_manha.md`](2026-09-12_manha.md) · fim-do-dia pendente (21:00 UTC)  
 **Auditoria do ritual:** [`AUDITORIA-REQUISITOS.md`](AUDITORIA-REQUISITOS.md)
 
 ---
@@ -44,14 +45,14 @@
 
 ---
 
-## Turno atual — FIM DO DIA — 2026-09-11 (21:00 UTC)
+## Turno atual — MANHÃ — 2026-09-12 (11:00 UTC)
 
 **Quem:** agente (Cloud)  
 **Branch:** `cursor/circuito-abas-mesa-kpis-efd3`  
-**Arquivo canônico:** [`2026-09-11_fim-do-dia.md`](2026-09-11_fim-do-dia.md)  
+**Arquivo canônico:** [`2026-09-12_manha.md`](2026-09-12_manha.md)  
 **PR:** https://github.com/tatianatosi/soul-ancestry/pull/112
 
-Resumo vivo nas 4 seções do arquivo do dia (não duplicar aqui a tabela completa). Destaques: cano fiado + prints CA-HIST-005; face Desk 7; App leitura **PASSOU** / Mesa **não PASSOU**; **nenhum** `COMPROVADO_EM_USO`.
+Destaques: merge com `main` **abortado** após pausa da dona (conflitos de doutrina face 7 vs 6 + UX pós-handoff). App leitura **PASSOU** / Mesa **não PASSOU**; **nenhum** `COMPROVADO_EM_USO`.
 
 ---
 
