@@ -284,6 +284,19 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqu
 Prints: `docs/provas/2026-09-12-fidelidade-radar-47/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 
+
+## Fatia 2026-09-12 — fidelidade Jurídica/Biblioteca (p.14/17) + soft Fase 01
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| Face Jurídica p.14 | Temas genéricos + “Escopo Fase 01”; sem responsável/versão | Temas canônicos `TEMAS_JURIDICOS` + status `STATUS_TEMA` · responsável · versão · bloqueia |
+| Face Biblioteca p.17 | 5 chips curtos sem dimensões 47 | Subáreas canônicas + país · versão · vigência · responsável · status |
+| Face Alertas p.16 | Caso sem responsável | Coluna responsável (vocabulário 47) |
+| Gate marca | Checklist sem p.14/17 | Itens Jurídica sem Fase 01 + Biblioteca canônica |
+
+Prints: `docs/provas/2026-09-12-fidelidade-juridica-biblioteca-47/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqueadas até marca/layout + merge.
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

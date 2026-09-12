@@ -51,6 +51,8 @@ const CHECKLIST: { item: string; status: "ok" | "prova" }[] = [
   { item: "Mapa mockup 17 (7 App + faces Desk) + de-para 47 no gate de marca", status: "ok" },
   { item: "Radar: Desk 4 eixos jornada ≠ App 6 dimensões (identidades documentadas)", status: "ok" },
   { item: "Desk p.13/16: checklist e alertas com caso + responsável (vocabulário 47)", status: "ok" },
+  { item: "Desk p.14 Jurídica: tema · status · responsável · versão · bloqueia (sem rótulo Fase 01)", status: "ok" },
+  { item: "Desk p.17 Biblioteca: subáreas canônicas + país/versão/vigência/responsável", status: "ok" },
   { item: "Rotas profundas sem H1 Entregas/Fase 01/Fase 02", status: "ok" },
   { item: "Tokens hex = guia OKI (navy/gold/cream/terracotta)", status: "ok" },
   { item: "Site SEO ≠ app Vercel", status: "ok" },

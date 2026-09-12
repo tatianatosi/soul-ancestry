@@ -393,27 +393,70 @@ function FaceChecklist() {
 }
 
 function FaceJuridica() {
-  const temas: { tema: string; status: string; bloqueia: boolean; tom: TomEstado }[] = [
-    { tema: "Representação de menor", status: "Pendente", bloqueia: true, tom: "atencao" },
-    { tema: "Escopo de pesquisa Fase 01", status: "Aprovado", bloqueia: false, tom: "sucesso" },
-    { tema: "Compartilhamento com núcleo", status: "Em revisão", bloqueia: true, tom: "neutro" },
+  /** Vocabulário mockup 47 / p.14 — alinhado a TEMAS_JURIDICOS + STATUS_TEMA (sem rótulo “Fase 01”). */
+  const temas: {
+    tema: string;
+    status: string;
+    responsavel: string;
+    versao: string;
+    bloqueia: boolean;
+    tom: TomEstado;
+  }[] = [
+    {
+      tema: "Dependentes e representação",
+      status: "Pendente de revisão jurídica",
+      responsavel: "Jurídico",
+      versao: "—",
+      bloqueia: true,
+      tom: "atencao",
+    },
+    {
+      tema: "Limite do relatório e ausência de parecer jurídico individual",
+      status: "Aprovado",
+      responsavel: "Jurídico",
+      versao: "MODELO-ESTUDO",
+      bloqueia: true,
+      tom: "sucesso",
+    },
+    {
+      tema: "Parcelamento",
+      status: "Não aplicável",
+      responsavel: "—",
+      versao: "—",
+      bloqueia: false,
+      tom: "neutro",
+    },
   ];
   return (
-    <section aria-label="Validação Jurídica" className="space-y-3">
+    <section aria-label="Validação Jurídica" className="space-y-3" data-face-juridica>
+      <p className="text-sm text-navy/65">
+        Mockup 47 / p.14: tema · status · responsável · versão jurídica · bloqueia assinatura. Sem
+        redação de cláusula. Runtime <code className="font-mono text-xs">/matriz-juridica</code>.
+      </p>
       <div className="rounded-xl border border-navy/10 bg-cream/50 p-4 text-sm text-navy">
-        2 tema(s) bloqueante(s) sem decisão: assinatura fica como pendência.
+        1 tema bloqueante sem decisão: assinatura fica como pendência.
       </div>
       <div className="space-y-3">
         {temas.map((t) => (
           <article key={t.tema} className="rounded-xl border border-navy/10 bg-cream/50 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-start justify-between gap-2">
               <h3 className="font-serif text-lg text-navy">{t.tema}</h3>
               <BadgeDesk texto={t.status} tom={t.tom} />
             </div>
-            <p className="mt-1 text-xs text-navy/55">
-              {t.bloqueia ? "Bloqueia assinatura" : "Não bloqueia assinatura"} · sem redação de cláusula nesta
-              tela
-            </p>
+            <dl className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-navy/60">
+              <div>
+                <dt className="inline text-navy/45">Responsável: </dt>
+                <dd className="inline">{t.responsavel}</dd>
+              </div>
+              <div>
+                <dt className="inline text-navy/45">Versão jurídica: </dt>
+                <dd className="inline font-mono">{t.versao}</dd>
+              </div>
+              <div>
+                <dt className="inline text-navy/45">Assinatura: </dt>
+                <dd className="inline">{t.bloqueia ? "Bloqueia" : "Não bloqueia"}</dd>
+              </div>
+            </dl>
           </article>
         ))}
       </div>
@@ -491,15 +534,43 @@ function FaceRadar() {
 }
 
 function FaceAlertas() {
-  const linhas: { titulo: string; caso: string; crit: string; status: string; tom: TomEstado }[] = [
-    { titulo: "Prazo documental vencido", caso: "CA-DEMO-014", crit: "crítica", status: "Aberto", tom: "bloqueio" },
-    { titulo: "Sem próxima ação no caso", caso: "CA-DEMO-021", crit: "alta", status: "Em tratamento", tom: "critico" },
-    { titulo: "Evidência requer complemento", caso: "CA-DEMO-033", crit: "atenção", status: "Aberto", tom: "atencao" },
+  const linhas: {
+    titulo: string;
+    caso: string;
+    responsavel: string;
+    crit: string;
+    status: string;
+    tom: TomEstado;
+  }[] = [
+    {
+      titulo: "Prazo documental vencido",
+      caso: "CA-DEMO-014",
+      responsavel: "Operação",
+      crit: "crítica",
+      status: "Aberto",
+      tom: "bloqueio",
+    },
+    {
+      titulo: "Sem próxima ação no caso",
+      caso: "CA-DEMO-021",
+      responsavel: "—",
+      crit: "alta",
+      status: "Em tratamento",
+      tom: "critico",
+    },
+    {
+      titulo: "Evidência requer complemento",
+      caso: "CA-DEMO-033",
+      responsavel: "Pesquisa",
+      crit: "atenção",
+      status: "Aberto",
+      tom: "atencao",
+    },
   ];
   return (
     <section aria-label="Alertas" className="space-y-3" data-face-alertas>
       <p className="text-sm text-navy/65">
-        Mockup 47 / p.16: sinal · caso · criticidade · status. Runtime{" "}
+        Mockup 47 / p.16: sinal · caso · responsável · criticidade · status. Runtime{" "}
         <code className="font-mono text-xs">/alertas</code>.
       </p>
       <div className="flex flex-wrap gap-2">
@@ -516,6 +587,7 @@ function FaceAlertas() {
             <tr>
               <th className="px-3 py-2">Sinal</th>
               <th className="px-3 py-2">Caso</th>
+              <th className="px-3 py-2">Responsável</th>
               <th className="px-3 py-2">Criticidade</th>
               <th className="px-3 py-2">Status</th>
             </tr>
@@ -525,6 +597,7 @@ function FaceAlertas() {
               <tr key={l.titulo} className="border-t border-navy/10">
                 <td className="px-3 py-2 text-navy">{l.titulo}</td>
                 <td className="px-3 py-2 font-mono text-xs text-navy/70">{l.caso}</td>
+                <td className="px-3 py-2 text-navy/70">{l.responsavel}</td>
                 <td className="px-3 py-2">
                   <BadgeDesk texto={l.crit} tom={l.tom} />
                 </td>
@@ -539,45 +612,69 @@ function FaceAlertas() {
 }
 
 function FaceBiblioteca() {
-  const subs = ["Acervo", "Bases", "Taxonomias", "Trilhas", "Regras"];
+  /** Subáreas alinhadas a SUBAREAS_BIBLIOTECA (naFace) — mockup 47 / p.17. */
+  const subs: { label: string; itens: string; dims: string }[] = [
+    { label: "Acervo", itens: "12", dims: "Tipo · Versão · Aprovação" },
+    { label: "Bases Genealógicas", itens: "8", dims: "País · Localidade · Acesso" },
+    { label: "Dicionários e taxonomias", itens: "6", dims: "Domínio · Termo canônico" },
+    { label: "Trilhas de pesquisa", itens: "5", dims: "País · Via · Riscos" },
+    { label: "Regras jurídicas versionadas", itens: "4", dims: "Fonte · Vigência · Revisão" },
+  ];
   return (
-    <section aria-label="Biblioteca Mestre" className="space-y-4">
+    <section aria-label="Biblioteca Mestre" className="space-y-4" data-face-biblioteca>
       <p className="text-sm text-navy/65">
-        Base operacional interna — nada aqui é exposto ao App Cliente sem publicação sanitizada.
+        Mockup 47 / p.17: subárea · item · país · versão · vigência · responsável · status. Interno —
+        nada vai ao App Cliente sem publicação sanitizada. Runtime{" "}
+        <code className="font-mono text-xs">/biblioteca</code>.
       </p>
       <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
         {subs.map((s, i) => (
           <div
-            key={s}
+            key={s.label}
             className={
               i === 0
                 ? "rounded-xl border border-gold bg-gold/15 p-3 text-navy"
                 : "rounded-xl border border-navy/10 bg-cream/40 p-3 text-navy"
             }
           >
-            <div className="text-sm font-medium">{s}</div>
-            <div className="text-xs text-navy/60">{i === 0 ? "12 itens" : `${3 + i} itens`}</div>
+            <div className="text-sm font-medium">{s.label}</div>
+            <div className="text-xs text-navy/60">{s.itens} itens</div>
+            <div className="mt-1 text-[10px] leading-snug text-navy/45">{s.dims}</div>
           </div>
         ))}
       </div>
       <article className="rounded-xl border border-navy/10 bg-cream/40 p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-sm font-medium text-navy">Trilha Itália — jure sanguinis (DEMO)</h3>
-            <p className="mt-0.5 text-xs text-navy/60">Referência interna de passos e documentos mínimos</p>
+            <h3 className="text-sm font-medium text-navy">Trilha Itália — via preliminar (DEMO)</h3>
+            <p className="mt-0.5 text-xs text-navy/60">
+              Referência interna de passos e documentos prioritários — exige revisão humana
+            </p>
           </div>
           <BadgeDesk texto="Homologado" tom="sucesso" />
         </div>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {["país", "versão", "vigência"].map((d) => (
-            <span
-              key={d}
-              className="rounded-full border border-navy/15 bg-cream px-2 py-0.5 text-xs text-navy/70"
-            >
-              {d}
-            </span>
-          ))}
-        </div>
+        <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-navy/60">
+          <div>
+            <dt className="inline text-navy/45">País: </dt>
+            <dd className="inline">Itália</dd>
+          </div>
+          <div>
+            <dt className="inline text-navy/45">Versão: </dt>
+            <dd className="inline font-mono">v1.2</dd>
+          </div>
+          <div>
+            <dt className="inline text-navy/45">Vigência: </dt>
+            <dd className="inline">Ativa</dd>
+          </div>
+          <div>
+            <dt className="inline text-navy/45">Responsável: </dt>
+            <dd className="inline">Pesquisa</dd>
+          </div>
+          <div>
+            <dt className="inline text-navy/45">Status: </dt>
+            <dd className="inline">Homologado</dd>
+          </div>
+        </dl>
       </article>
     </section>
   );
