@@ -95,6 +95,204 @@ function Indicador({ rotulo, valor, apoio }: { rotulo: string; valor: string; ap
   );
 }
 
+type EixoGrafico = { rotulo: string; valor: number };
+
+function RadarGrafico({
+  eixos,
+  tituloAcessivel,
+}: {
+  eixos: EixoGrafico[];
+  tituloAcessivel: string;
+}) {
+  const centro = 120;
+  const raio = 78;
+  const ponto = (indice: number, valor: number) => {
+    const angulo = (-90 + indice * (360 / eixos.length)) * (Math.PI / 180);
+    const distancia = raio * (valor / 100);
+    return {
+      x: centro + distancia * Math.cos(angulo),
+      y: centro + distancia * Math.sin(angulo),
+    };
+  };
+  const poligono = (valor: number) =>
+    eixos.map((_, indice) => {
+      const p = ponto(indice, valor);
+      return `${p.x},${p.y}`;
+    }).join(" ");
+  const dados = eixos.map((eixo, indice) => {
+    const p = ponto(indice, eixo.valor);
+    return `${p.x},${p.y}`;
+  }).join(" ");
+
+  return (
+    <figure>
+      <svg
+        viewBox="-42 -28 324 306"
+        className="mx-auto block w-full max-w-[350px]"
+        role="img"
+        aria-label={tituloAcessivel}
+      >
+        {[25, 50, 75, 100].map((nivel) => (
+          <polygon
+            key={nivel}
+            points={poligono(nivel)}
+            fill="none"
+            stroke="currentColor"
+            className="text-navy/15"
+            strokeWidth={nivel === 100 ? 1.4 : 1}
+          />
+        ))}
+        {eixos.map((_, indice) => {
+          const p = ponto(indice, 100);
+          return (
+            <line
+              key={indice}
+              x1={centro}
+              y1={centro}
+              x2={p.x}
+              y2={p.y}
+              stroke="currentColor"
+              className="text-navy/15"
+            />
+          );
+        })}
+        <polygon
+          points={dados}
+          className="fill-gold/30 stroke-navy"
+          strokeWidth={2.5}
+          strokeLinejoin="round"
+        />
+        {eixos.map((eixo, indice) => {
+          const p = ponto(indice, eixo.valor);
+          const rotulo = ponto(indice, 124);
+          const angulo = -90 + indice * (360 / eixos.length);
+          const ancora = angulo > -78 && angulo < 78 ? "start" : angulo > 102 && angulo < 258 ? "end" : "middle";
+          return (
+            <g key={eixo.rotulo}>
+              <circle cx={p.x} cy={p.y} r={4} className="fill-card stroke-navy" strokeWidth={2} />
+              <text
+                x={rotulo.x}
+                y={rotulo.y - 4}
+                textAnchor={ancora}
+                dominantBaseline="middle"
+                className="fill-navy text-[10px] font-medium"
+              >
+                {eixo.rotulo}
+              </text>
+              <text
+                x={rotulo.x}
+                y={rotulo.y + 10}
+                textAnchor={ancora}
+                dominantBaseline="middle"
+                className="fill-navy/60 text-[9px]"
+              >
+                {eixo.valor}%
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+      <figcaption className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[10px] text-navy/60">
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm border border-navy bg-gold/30" />Leitura atual</span>
+        <span className="flex items-center gap-1.5"><span className="h-px w-4 bg-navy/30" />Faixas de 25%</span>
+      </figcaption>
+    </figure>
+  );
+}
+
+function MatrizGrafica() {
+  const pontos = [
+    { x: 24, y: 72, total: 3, tom: "fill-sucesso" },
+    { x: 48, y: 44, total: 6, tom: "fill-atencao" },
+    { x: 72, y: 76, total: 12, tom: "fill-critico" },
+    { x: 82, y: 28, total: 5, tom: "fill-gold" },
+  ];
+  return (
+    <figure>
+      <svg viewBox="0 0 360 250" className="block w-full" role="img" aria-label="Matriz de prioridade e elegibilidade com quatro grupos de casos">
+        <rect x="42" y="16" width="292" height="190" rx="8" className="fill-cream/35 stroke-navy/15" />
+        <rect x="188" y="16" width="146" height="95" className="fill-critico-suave/70" />
+        <line x1="188" y1="16" x2="188" y2="206" className="stroke-navy/20" strokeDasharray="4 4" />
+        <line x1="42" y1="111" x2="334" y2="111" className="stroke-navy/20" strokeDasharray="4 4" />
+        <text x="261" y="31" textAnchor="middle" className="fill-critico text-[9px] font-medium">AÇÃO PRIORITÁRIA</text>
+        {pontos.map((p) => {
+          const cx = 42 + (p.x / 100) * 292;
+          const cy = 206 - (p.y / 100) * 190;
+          const raio = 10 + p.total * 0.65;
+          return (
+            <g key={`${p.x}-${p.y}`}>
+              <circle cx={cx} cy={cy} r={raio} className={`${p.tom} opacity-80 stroke-card`} strokeWidth={3} />
+              <text x={cx} y={cy + 3} textAnchor="middle" className="fill-card text-[9px] font-semibold">{p.total}</text>
+            </g>
+          );
+        })}
+        <text x="188" y="232" textAnchor="middle" className="fill-navy/60 text-[9px]">Elegibilidade →</text>
+        <text x="13" y="111" textAnchor="middle" transform="rotate(-90 13 111)" className="fill-navy/60 text-[9px]">Urgência →</text>
+      </svg>
+      <figcaption className="flex flex-wrap justify-center gap-3 text-[10px] text-navy/60">
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-critico" />Crítico</span>
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-atencao" />Atenção</span>
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-sucesso" />Acompanhamento</span>
+        <span>Bolha = quantidade de casos</span>
+      </figcaption>
+    </figure>
+  );
+}
+
+function LinhaTempoGrafica() {
+  const etapas = [
+    ["Contrato", "21/03", true],
+    ["Onboarding", "04/04", true],
+    ["Pesquisa", "18/05", false],
+    ["Certidões", "02/06", false],
+  ] as const;
+  return (
+    <ol className="grid grid-cols-4 gap-0 pt-3">
+      {etapas.map(([nome, data, concluida], indice) => (
+        <li key={nome} className="relative text-center">
+          {indice > 0 ? <span className={cn("absolute left-0 top-2 h-0.5 w-1/2", concluida ? "bg-sucesso" : "bg-navy/15")} /> : null}
+          {indice < etapas.length - 1 ? <span className={cn("absolute right-0 top-2 h-0.5 w-1/2", concluida ? "bg-sucesso" : "bg-navy/15")} /> : null}
+          <span className={cn("relative mx-auto block h-4 w-4 rounded-full border-2 border-card ring-1", concluida ? "bg-sucesso ring-sucesso" : "bg-gold ring-gold")} />
+          <p className="mt-2 text-[10px] font-medium text-navy">{nome}</p>
+          <p className="text-[9px] text-navy/50">{data}</p>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function ArvoreFamiliaGrafica() {
+  return (
+    <div className="mx-auto grid max-w-lg grid-cols-4 grid-rows-[auto_28px_auto_28px_auto] items-center text-center">
+      <div className="col-span-2"><Pessoa nome="Carlo Bianchi" papel="Ascendente" /></div>
+      <div className="col-span-2"><Pessoa nome="Elena Rossi" papel="Cônjuge" /></div>
+      <div className="col-span-4 mx-auto h-7 w-px bg-gold" />
+      <div className="col-span-2 col-start-2 rounded-lg border border-gold/50 bg-gold/10 p-2"><Pessoa nome="Giulia Bianchi" papel="Requerente" /></div>
+      <div className="col-span-4 mx-auto h-7 w-px bg-gold" />
+      <div className="col-span-2"><Pessoa nome="Marina Bianchi" papel="Dependente" /></div>
+      <div className="col-span-2"><Pessoa nome="João Bianchi" papel="Dependente" /></div>
+    </div>
+  );
+}
+
+function ProgressoJornadaGrafico() {
+  const etapas = ["Assinatura", "Onboarding", "Documentos", "Protocolo"];
+  return (
+    <div className="relative grid grid-cols-4 gap-2 pt-2">
+      <div className="absolute left-[12.5%] right-[12.5%] top-[17px] h-1 rounded-full bg-navy/10">
+        <div className="h-full w-[67%] rounded-full bg-gold" />
+      </div>
+      {etapas.map((etapa, indice) => (
+        <div key={etapa} className="relative text-center">
+          <span className={cn("mx-auto grid h-6 w-6 place-items-center rounded-full border-2 border-card text-[9px] font-semibold ring-1", indice < 2 ? "bg-navy text-primary-foreground ring-navy" : indice === 2 ? "bg-gold text-navy ring-gold" : "bg-card text-navy/50 ring-navy/20")}>{indice + 1}</span>
+          <p className="mt-2 text-[10px] font-medium text-navy">{etapa}</p>
+          <p className="mt-0.5 text-[9px] text-navy/50">{indice < 2 ? "Concluído" : indice === 2 ? "Em andamento" : "A iniciar"}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function Pessoa({ nome, papel }: { nome: string; papel: string }) {
   const iniciais = nome
     .split(" ")
@@ -241,10 +439,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
         </div>
         <div className={grade2}>
           <Cartao titulo="Linha do tempo">
-            <Linha rotulo="Contrato assinado" valor="21/03" tom="sucesso" />
-            <Linha rotulo="Onboarding concluído" valor="04/04" tom="sucesso" />
-            <Linha rotulo="Pesquisa em arquivo civil" valor="18/05" tom="atencao" />
-            <Linha rotulo="Certidões solicitadas" valor="02/06" tom="atencao" />
+            <LinhaTempoGrafica />
           </Cartao>
           <Cartao titulo="Participantes">
             <div className="space-y-3">
@@ -282,11 +477,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <Linha rotulo="Confiança do dado" valor="Alta" tom="sucesso" />
           </Cartao>
           <Cartao titulo="Vínculos familiares">
-            <div className="space-y-3">
-              <Pessoa nome="Carlo Bianchi" papel="Pai" />
-              <Pessoa nome="Renata Bianchi" papel="Mãe" />
-              <Pessoa nome="Marina Bianchi" papel="Filha" />
-            </div>
+            <ArvoreFamiliaGrafica />
           </Cartao>
           <Cartao titulo="Casos vinculados">
             <Linha rotulo="Reconhecimento italiano" valor="Ativo" tom="sucesso" />
@@ -304,47 +495,22 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     rota: "/qualidade",
     render: () => (
       <div className={grade2}>
-        <Cartao titulo="Radar interno — eixos canônicos">
-          <div className="space-y-2">
-            {[
-              ["Risco documental", 62],
-              ["Elegibilidade", 84],
-              ["Prioridade", 71],
-              ["Evidência", 55],
-              ["Prazo", 40],
-            ].map(([eixo, v]) => (
-              <div key={String(eixo)}>
-                <div className="flex items-center justify-between text-[11px] text-navy/70">
-                  <span>{eixo}</span>
-                  <span className="tabular-nums">{v}</span>
-                </div>
-                <div className="mt-1 h-2 rounded-full bg-cream">
-                  <div
-                    className="h-2 rounded-full bg-navy"
-                    style={{ width: `${Number(v)}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+        <Cartao titulo="Radar interno — 4 eixos da jornada">
+          <RadarGrafico
+            tituloAcessivel="Radar interno com quatro eixos da jornada"
+            eixos={[
+              { rotulo: "História familiar", valor: 72 },
+              { rotulo: "Documentos", valor: 58 },
+              { rotulo: "Estratégia", valor: 81 },
+              { rotulo: "Próximos passos", valor: 64 },
+            ]}
+          />
+          <p className="mt-3 border-t border-navy/10 pt-3 text-[11px] text-navy/55">
+            Mesma construção visual do App Cliente, preservando os quatro eixos canônicos do Desk.
+          </p>
         </Cartao>
         <Cartao titulo="Matriz elegibilidade × prioridade">
-          <div className="grid grid-cols-3 gap-2 text-center">
-            {[12, 6, 3, 8, 15, 5, 2, 9, 14].map((n, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "rounded-lg border p-4 font-serif text-lg tabular-nums",
-                  i % 4 === 0 ? TOM.sucesso : i % 3 === 0 ? TOM.critico : TOM.neutro,
-                )}
-              >
-                {n}
-              </div>
-            ))}
-          </div>
-          <p className="mt-3 text-[11px] text-navy/55">
-            Distribuição demonstrativa dos casos por faixa.
-          </p>
+          <MatrizGrafica />
         </Cartao>
       </div>
     ),
@@ -454,9 +620,12 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             </div>
           </Cartao>
         </div>
-        <Cartao titulo="Núcleos relacionados">
-          <Linha rotulo="Núcleo Bianchi — dossiê-mãe" valor="Ativo" tom="sucesso" />
-          <Linha rotulo="Núcleo Rossi — possível duplicidade" valor="Revisar" tom="atencao" />
+        <Cartao titulo="Árvore visual do núcleo">
+          <ArvoreFamiliaGrafica />
+          <div className="mt-4 border-t border-navy/10 pt-3">
+            <Linha rotulo="Núcleo Bianchi — dossiê-mãe" valor="Ativo" tom="sucesso" />
+            <Linha rotulo="Núcleo Rossi — possível duplicidade" valor="Revisar" tom="atencao" />
+          </div>
         </Cartao>
       </div>
     ),
@@ -492,26 +661,23 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     render: () => (
       <div className="space-y-4">
         <Cartao titulo="Progresso da jornada">
-          <div className="grid gap-3 sm:grid-cols-4">
-            {[
-              ["Assinatura", "Concluído"],
-              ["Onboarding", "Concluído"],
-              ["Documentos", "Em andamento"],
-              ["Protocolo", "A iniciar"],
-            ].map(([etapa, estado], i) => (
-              <div key={etapa} className="rounded-xl border border-navy/10 bg-cream/50 p-3">
-                <p className="font-serif text-sm text-navy">{etapa}</p>
-                <div className="mt-2">
-                  <Etiqueta
-                    texto={estado}
-                    tom={i < 2 ? "sucesso" : i === 2 ? "atencao" : "neutro"}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+          <ProgressoJornadaGrafico />
         </Cartao>
-        <div className={grade3}>
+        <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+          <Cartao titulo="Radar Ancestral — 6 dimensões">
+            <RadarGrafico
+              tituloAcessivel="Radar Ancestral com seis dimensões da jornada do cliente"
+              eixos={[
+                { rotulo: "Documentação", valor: 68 },
+                { rotulo: "Origem", valor: 92 },
+                { rotulo: "Conexões", valor: 54 },
+                { rotulo: "Elegibilidade", valor: 66 },
+                { rotulo: "Memória", valor: 78 },
+                { rotulo: "Legado", valor: 48 },
+              ]}
+            />
+          </Cartao>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
           <Cartao titulo="Jornada">
             <Linha rotulo="Etapa atual: documentos" />
             <Linha rotulo="Próximo passo definido" valor="Sim" tom="sucesso" />
@@ -524,6 +690,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <Linha rotulo="Atualização da pesquisa" valor="Nova" tom="atencao" />
             <Linha rotulo="Confirmação de recebimento" valor="Lida" />
           </Cartao>
+          </div>
         </div>
       </div>
     ),
