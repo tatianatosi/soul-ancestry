@@ -38,12 +38,13 @@ type NoEvento = {
   tipo: "evento";
   id: string;
   categoria: "gold" | "gold-soft" | "navy";
-  rotuloCategoria: "Passado" | "Presente" | "Conteúdo";
+  rotuloCategoria: string;
   dataPrincipal: string | null;
   dataSecundaria?: string | null;
   titulo: string;
   conteudo: string;
   destino?: string | null;
+  rotuloCta?: string;
 };
 type NoPonte = { tipo: "ponte"; texto: string };
 type No = NoEvento | NoPonte;
@@ -87,7 +88,10 @@ function noDemoDeItem(item: PublicacaoCliente): NoEvento {
         tipo: "evento",
         id: item.id,
         categoria: "gold",
-        rotuloCategoria: "Passado",
+        // Ajuste 2026-09-12: "Documento histórico" no lugar de "Passado" —
+        // explica por que o documento é histórico, em vez de repetir o
+        // rótulo genérico da categoria.
+        rotuloCategoria: "Documento histórico",
         dataPrincipal: "1897",
         dataSecundaria: `publicado em ${dataCurta(item.publicadoEm)}`,
         titulo: item.tipoRotulo,
@@ -167,6 +171,12 @@ function TrilhaCompacta({ passoAtualIndice }: { passoAtualIndice: number | null 
           );
         })}
       </div>
+      {/* Ajuste 2026-09-12: microtexto explícito — o dourado sozinho não deixava claro que é a etapa atual. */}
+      {passoAtualIndice !== null ? (
+        <p className="mt-2 text-center text-[10px] text-navy/55">
+          Você está aqui: <span className="font-semibold text-navy">{PASSOS_CASO[passoAtualIndice]}</span>
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -190,7 +200,7 @@ function TimelineVertical({ nos }: { nos: No[] }) {
           <li
             key={no.id}
             className={cn(
-              "relative py-4 pl-5 last:pb-0",
+              "relative py-4 pl-5 last:pb-0 lg:py-6",
               no.categoria === "gold" && "border-l-2 border-gold",
               no.categoria === "gold-soft" && "border-l-2 border-gold/40",
               no.categoria === "navy" && "border-l-2 border-navy/40",
@@ -222,7 +232,7 @@ function TimelineVertical({ nos }: { nos: No[] }) {
                 to={no.destino}
                 className="mt-1 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
               >
-                Abrir
+                {no.rotuloCta ?? "Ver próxima ação"}
               </LinkPortal>
             ) : null}
           </li>
@@ -313,6 +323,7 @@ export function PortalJornada() {
             }
 
             // Nó final: próxima ação publicada, sempre presente (real ou demo).
+            // Ajuste 2026-09-12: CTA nomeia a rota real em vez de "Abrir" genérico.
             nos.push({
               tipo: "evento",
               id: "__agora__",
@@ -322,6 +333,7 @@ export function PortalJornada() {
               titulo: "Próxima ação",
               conteudo: jornada.proximoPasso,
               destino,
+              rotuloCta: destino?.includes("documentos") ? "Ver documentos solicitados" : "Ver próxima ação",
             });
 
             return (

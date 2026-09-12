@@ -58,7 +58,9 @@ export const PASSO_CASO_ATUAL_DEMO_SOPHIA_INDICE = 3;
 export const UNIAO_DE_RAMOS_DEMO_SOPHIA = {
   historiaProjecaoId: "demo-sophia-03",
   casoProjecaoId: "demo-sophia-01",
-  legenda: "Registro de 1897 orienta esta etapa do caso",
+  // Ajuste 2026-09-12 (acabamento pós-aprovação): mais específico, sem
+  // sugerir efeito jurídico.
+  legenda: "O registro de 1897 confirma o ramo investigado nesta etapa.",
 } as const;
 
 /**
