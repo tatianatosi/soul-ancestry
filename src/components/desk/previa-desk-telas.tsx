@@ -70,7 +70,7 @@ function Cartao({
   return (
     <section
       className={cn(
-        "rounded-xl border border-navy/10 bg-card p-4 shadow-[0_1px_2px_rgba(16,16,16,0.05)]",
+        "min-w-0 rounded-xl border border-navy/10 bg-card p-4 shadow-[0_1px_2px_rgba(16,16,16,0.05)]",
         className,
       )}
     >
@@ -496,6 +496,158 @@ function FunilVisual() {
   );
 }
 
+function BarrasHorizontais({
+  itens,
+  tituloAcessivel,
+}: {
+  itens: { rotulo: string; valor: number; apoio?: string; tom?: "navy" | "gold" | "terracotta" }[];
+  tituloAcessivel: string;
+}) {
+  return (
+    <figure role="img" aria-label={tituloAcessivel} className="space-y-3">
+      {itens.map((item) => {
+        const largura = Math.max(4, Math.min(100, item.valor));
+        return (
+          <div key={item.rotulo}>
+            <div className="mb-1 flex items-center justify-between gap-3 text-[10px]">
+              <span className="font-medium text-navy">{item.rotulo}</span>
+              <span className="tabular-nums text-navy/55">{item.apoio ?? `${item.valor}%`}</span>
+            </div>
+            <svg viewBox="0 0 100 4" preserveAspectRatio="none" className="h-2 w-full overflow-hidden rounded-full">
+              <rect width="100" height="4" className="fill-navy/10" />
+              <rect width={largura} height="4" rx="2" className={item.tom === "terracotta" ? "fill-terracotta" : item.tom === "gold" ? "fill-gold" : "fill-navy"} />
+            </svg>
+          </div>
+        );
+      })}
+    </figure>
+  );
+}
+
+function GraficoColunas({
+  itens,
+  tituloAcessivel,
+}: {
+  itens: { rotulo: string; valor: number; destaque?: boolean }[];
+  tituloAcessivel: string;
+}) {
+  const maior = Math.max(...itens.map((item) => item.valor), 1);
+  return (
+    <figure role="img" aria-label={tituloAcessivel}>
+      <div className="flex h-36 items-end gap-2 border-b border-l border-navy/15 px-2 pt-3">
+        {itens.map((item) => (
+          <div key={item.rotulo} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1">
+            <span className="text-[9px] font-semibold tabular-nums text-navy/60">{item.valor}</span>
+            <svg viewBox="0 0 32 96" preserveAspectRatio="none" className="h-24 w-full max-w-10 overflow-hidden rounded-t-sm">
+              <rect x="0" y={96 - Math.max(10, (item.valor / maior) * 92)} width="32" height={Math.max(10, (item.valor / maior) * 92)} className={item.destaque ? "fill-gold" : "fill-navy/70"} />
+            </svg>
+            <span className="w-full truncate text-center text-[8px] text-navy/55">{item.rotulo}</span>
+          </div>
+        ))}
+      </div>
+    </figure>
+  );
+}
+
+function SerieTendencia({
+  valores,
+  rotulos,
+  tituloAcessivel,
+}: {
+  valores: number[];
+  rotulos: string[];
+  tituloAcessivel: string;
+}) {
+  const largura = 320;
+  const altura = 112;
+  const maximo = Math.max(...valores, 1);
+  const minimo = Math.min(...valores, 0);
+  const intervalo = Math.max(maximo - minimo, 1);
+  const pontos = valores.map((valor, indice) => {
+    const x = 18 + indice * ((largura - 36) / Math.max(valores.length - 1, 1));
+    const y = altura - 22 - ((valor - minimo) / intervalo) * (altura - 42);
+    return { x, y, valor };
+  });
+  return (
+    <figure role="img" aria-label={tituloAcessivel}>
+      <svg viewBox={`0 0 ${largura} ${altura}`} className="w-full">
+        {[28, 54, 80].map((y) => <line key={y} x1="12" x2={largura - 12} y1={y} y2={y} className="stroke-navy/10" />)}
+        <polyline points={pontos.map((p) => `${p.x},${p.y}`).join(" ")} fill="none" className="stroke-terracotta" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+        {pontos.map((p, indice) => (
+          <g key={`${rotulos[indice]}-${p.valor}`}>
+            <circle cx={p.x} cy={p.y} r="4" className="fill-card stroke-terracotta" strokeWidth="2" />
+            <text x={p.x} y={altura - 6} textAnchor="middle" className="fill-navy/55 text-[8px]">{rotulos[indice]}</text>
+          </g>
+        ))}
+      </svg>
+    </figure>
+  );
+}
+
+function DonutEstados({
+  segmentos,
+  tituloAcessivel,
+}: {
+  segmentos: { rotulo: string; valor: number; tom: "navy" | "gold" | "terracotta" | "sucesso" }[];
+  tituloAcessivel: string;
+}) {
+  const total = segmentos.reduce((soma, item) => soma + item.valor, 0);
+  let acumulado = 0;
+  const classes = { navy: "stroke-navy", gold: "stroke-gold", terracotta: "stroke-terracotta", sucesso: "stroke-sucesso" } as const;
+  return (
+    <figure role="img" aria-label={tituloAcessivel} className="grid gap-4 sm:grid-cols-[8rem_1fr] sm:items-center">
+      <svg viewBox="0 0 120 120" className="mx-auto h-32 w-32 -rotate-90">
+        <circle cx="60" cy="60" r="42" fill="none" className="stroke-navy/10" strokeWidth="18" />
+        {segmentos.map((segmento) => {
+          const proporcao = total > 0 ? segmento.valor / total : 0;
+          const inicio = acumulado;
+          acumulado += proporcao;
+          return (
+            <circle
+              key={segmento.rotulo}
+              cx="60"
+              cy="60"
+              r="42"
+              fill="none"
+              className={classes[segmento.tom]}
+              strokeWidth="18"
+              strokeDasharray={`${proporcao * 263.89} 263.89`}
+              strokeDashoffset={-inicio * 263.89}
+            />
+          );
+        })}
+      </svg>
+      <figcaption className="space-y-2">
+        {segmentos.map((segmento) => (
+          <div key={segmento.rotulo} className="flex items-center justify-between gap-3 text-[10px]">
+            <span className="flex items-center gap-2 text-navy/65"><span className={cn("h-2.5 w-2.5 rounded-sm", segmento.tom === "navy" ? "bg-navy" : segmento.tom === "gold" ? "bg-gold" : segmento.tom === "terracotta" ? "bg-terracotta" : "bg-sucesso")} />{segmento.rotulo}</span>
+            <strong className="tabular-nums text-navy">{segmento.valor}</strong>
+          </div>
+        ))}
+      </figcaption>
+    </figure>
+  );
+}
+
+function RedeNucleoGrafica() {
+  return (
+    <figure role="img" aria-label="Rede demonstrativa de pessoas, núcleos e casos" className="relative mx-auto h-56 max-w-xl overflow-hidden rounded-lg border border-navy/10 bg-cream/35">
+      <svg viewBox="0 0 520 220" className="h-full w-full">
+        <g className="stroke-gold/60" strokeWidth="2">
+          <line x1="260" y1="110" x2="105" y2="52" /><line x1="260" y1="110" x2="410" y2="48" />
+          <line x1="260" y1="110" x2="110" y2="174" /><line x1="260" y1="110" x2="408" y2="176" />
+          <line x1="105" y1="52" x2="410" y2="48" className="stroke-navy/15" />
+        </g>
+        {[
+          { x: 260, y: 110, sigla: "GB", destaque: true }, { x: 105, y: 52, sigla: "CB" },
+          { x: 410, y: 48, sigla: "ER" }, { x: 110, y: 174, sigla: "MB" }, { x: 408, y: 176, sigla: "JB" },
+        ].map((no) => <g key={no.sigla}><circle cx={no.x} cy={no.y} r={no.destaque ? 27 : 22} className={no.destaque ? "fill-gold stroke-navy" : "fill-card stroke-navy/40"} strokeWidth="2" /><text x={no.x} y={no.y + 4} textAnchor="middle" className="fill-navy text-[11px] font-semibold">{no.sigla}</text></g>)}
+      </svg>
+      <figcaption className="absolute bottom-2 left-3 text-[9px] text-navy/50">Vínculos demonstrativos · pessoa central, ascendentes e dependentes</figcaption>
+    </figure>
+  );
+}
+
 function JornadaD0Visual() {
   const marcos = [
     { nome: "D0", apoio: "Aceite", estado: "feito" },
@@ -650,6 +802,12 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <Linha rotulo="Sem próxima ação · Caso 360" valor="1" tom="critico" />
             <Linha rotulo="Lead parado · CRM Vivo" valor="2" tom="atencao" />
           </Cartao>
+          <Cartao titulo="Ritmo operacional · 6 semanas">
+            <SerieTendencia valores={[9, 13, 11, 16, 14, 19]} rotulos={["S1", "S2", "S3", "S4", "S5", "S6"]} tituloAcessivel="Evolução demonstrativa das ações concluídas em seis semanas" />
+          </Cartao>
+          <Cartao titulo="Distribuição das prioridades">
+            <DonutEstados tituloAcessivel="Distribuição demonstrativa das prioridades do dia" segmentos={[{ rotulo: "Críticas", valor: 3, tom: "terracotta" }, { rotulo: "Atenção", valor: 5, tom: "gold" }, { rotulo: "Em dia", valor: 8, tom: "sucesso" }]} />
+          </Cartao>
         </div>
       </div>
     ),
@@ -668,6 +826,17 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
           <Indicador rotulo="Parados" valor="2" apoio="com alerta visível" />
         </div>
         <CabecalhoFerramenta titulo="Funil comercial vivo" apoio="Origem → Discovery → diagnóstico → proposta → contrato" acao="Novo lead" />
+        <div className="grid gap-3 lg:grid-cols-3">
+          <Cartao titulo="Aquisição por canal">
+            <GraficoColunas tituloAcessivel="Leads demonstrativos por canal de aquisição" itens={[{ rotulo: "Indicação", valor: 22, destaque: true }, { rotulo: "Orgânico", valor: 17 }, { rotulo: "Eventos", valor: 11 }, { rotulo: "Ads", valor: 8 }]} />
+          </Cartao>
+          <Cartao titulo="Conversão por etapa">
+            <FunilVisual />
+          </Cartao>
+          <Cartao titulo="Origem e qualidade">
+            <BarrasHorizontais tituloAcessivel="Qualidade demonstrativa dos leads por origem" itens={[{ rotulo: "Indicação", valor: 88, apoio: "Alta", tom: "gold" }, { rotulo: "Busca orgânica", valor: 71, apoio: "Boa" }, { rotulo: "Campanhas", valor: 54, apoio: "Média", tom: "terracotta" }, { rotulo: "Eventos", valor: 63, apoio: "Boa" }]} />
+          </Cartao>
+        </div>
         <KanbanVisual colunas={[
           { titulo: "Leads", cartoes: [
             { titulo: "João Martins", contexto: "Portugal · indicação", responsavel: "Tatiana", prazo: "Hoje", etiqueta: "Responder", proximoPasso: "Confirmar horário da conversa", alerta: "Lead parado há 4 dias", tom: "atencao" },
@@ -771,6 +940,14 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             </div>
           </Cartao>
         </div>
+        <div className={grade2}>
+          <Cartao titulo="Progresso do caso por frente">
+            <BarrasHorizontais tituloAcessivel="Progresso demonstrativo do caso por frente" itens={[{ rotulo: "Formalização", valor: 100, apoio: "Concluída" }, { rotulo: "Pesquisa", valor: 64, apoio: "Em andamento", tom: "gold" }, { rotulo: "Documentos", valor: 48, apoio: "Em coleta", tom: "terracotta" }, { rotulo: "Publicação", valor: 25, apoio: "Inicial" }]} />
+          </Cartao>
+          <Cartao titulo="Estados do dossiê">
+            <DonutEstados tituloAcessivel="Distribuição demonstrativa dos estados do dossiê" segmentos={[{ rotulo: "Confirmados", valor: 12, tom: "sucesso" }, { rotulo: "Em revisão", valor: 5, tom: "gold" }, { rotulo: "Pendentes", valor: 3, tom: "terracotta" }]} />
+          </Cartao>
+        </div>
         <Cartao titulo="Jornada D0–D365">
           <JornadaD0Visual />
         </Cartao>
@@ -821,6 +998,14 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
           </Cartao>
           <Cartao titulo="Confiança da pessoa">
             <EstrelasConfianca valor={4.8} />
+          </Cartao>
+        </div>
+        <div className={grade2}>
+          <Cartao titulo="Completude por dimensão">
+            <BarrasHorizontais tituloAcessivel="Completude demonstrativa da ficha da pessoa" itens={[{ rotulo: "Identidade", valor: 94, apoio: "94%" }, { rotulo: "Parentesco", valor: 82, apoio: "82%", tom: "gold" }, { rotulo: "Fontes", valor: 68, apoio: "68%", tom: "terracotta" }, { rotulo: "Casos vinculados", valor: 76, apoio: "76%" }]} />
+          </Cartao>
+          <Cartao titulo="Rede de vínculos">
+            <RedeNucleoGrafica />
           </Cartao>
         </div>
       </div>
@@ -898,6 +1083,14 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             ))}
           </ol>
         </Cartao>
+        <div className={grade2}>
+          <Cartao titulo="Cobertura das fontes">
+            <BarrasHorizontais tituloAcessivel="Cobertura demonstrativa por tipo de fonte" itens={[{ rotulo: "Registro civil", valor: 92, apoio: "11 fontes" }, { rotulo: "Paroquial", valor: 76, apoio: "8 fontes", tom: "gold" }, { rotulo: "Imigração", valor: 58, apoio: "5 fontes", tom: "terracotta" }, { rotulo: "Militar", valor: 24, apoio: "2 fontes" }]} />
+          </Cartao>
+          <Cartao titulo="Produção de evidências">
+            <GraficoColunas tituloAcessivel="Evidências demonstrativas produzidas por período" itens={[{ rotulo: "Abr", valor: 4 }, { rotulo: "Mai", valor: 7 }, { rotulo: "Jun", valor: 6 }, { rotulo: "Jul", valor: 10, destaque: true }, { rotulo: "Ago", valor: 13, destaque: true }]} />
+          </Cartao>
+        </div>
       </div>
     ),
   },
@@ -927,7 +1120,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
         </div>
         <div className="grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
           <Cartao titulo="Itens revisados recentemente">
-            <div className="overflow-x-auto">
+            <div className="max-w-full overflow-x-auto">
               <table className="w-full min-w-[560px] text-left text-[11px]">
                 <thead className="border-b border-navy/10 text-[9px] uppercase text-navy/45">
                   <tr><th className="pb-2">Item</th><th className="pb-2">Área</th><th className="pb-2">Versão</th><th className="pb-2">Estado</th><th className="pb-2">Uso</th></tr>
@@ -960,6 +1153,14 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <Linha rotulo="Nota de contexto" valor="Operações · 16 set" />
           </div>
         </Cartao>
+        <div className={grade2}>
+          <Cartao titulo="Composição do acervo">
+            <DonutEstados tituloAcessivel="Composição demonstrativa da Biblioteca Mestre" segmentos={[{ rotulo: "Fontes", valor: 42, tom: "navy" }, { rotulo: "Modelos", valor: 18, tom: "gold" }, { rotulo: "Regras", valor: 27, tom: "terracotta" }, { rotulo: "Trilhas", valor: 11, tom: "sucesso" }]} />
+          </Cartao>
+          <Cartao titulo="Uso do acervo por área">
+            <GraficoColunas tituloAcessivel="Uso demonstrativo do acervo por área do Desk" itens={[{ rotulo: "Pesquisa", valor: 31, destaque: true }, { rotulo: "Casos", valor: 22 }, { rotulo: "Jurídico", valor: 17 }, { rotulo: "Portal", valor: 9 }]} />
+          </Cartao>
+        </div>
       </div>
     ),
   },
@@ -1005,6 +1206,14 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <Linha rotulo="Contrato Costa · Parcela 1" valor="Conciliada" tom="sucesso" />
           </div>
         </Cartao>
+        <div className={grade2}>
+          <Cartao titulo="Recebimentos previstos × confirmados">
+            <SerieTendencia valores={[9, 14, 12, 18, 22, 27]} rotulos={["Abr", "Mai", "Jun", "Jul", "Ago", "Set"]} tituloAcessivel="Evolução financeira demonstrativa do contrato" />
+          </Cartao>
+          <Cartao titulo="Situação das parcelas">
+            <DonutEstados tituloAcessivel="Distribuição demonstrativa das parcelas" segmentos={[{ rotulo: "Pagas", valor: 6, tom: "sucesso" }, { rotulo: "Programadas", valor: 3, tom: "navy" }, { rotulo: "A conferir", valor: 2, tom: "gold" }, { rotulo: "Vencidas", valor: 0, tom: "terracotta" }]} />
+          </Cartao>
+        </div>
       </div>
     ),
   },
@@ -1047,6 +1256,9 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <Linha rotulo="Anexo IV · integridade" valor="Validada" tom="sucesso" />
           </div>
         </Cartao>
+        <Cartao titulo="Completude formal" className="lg:col-span-2">
+          <BarrasHorizontais tituloAcessivel="Completude demonstrativa dos atos formais" itens={[{ rotulo: "Contrato-base", valor: 100, apoio: "Assinado" }, { rotulo: "Anexos", valor: 86, apoio: "6 de 7", tom: "gold" }, { rotulo: "Procurações", valor: 72, apoio: "Em conferência", tom: "terracotta" }, { rotulo: "Validação documental", valor: 64, apoio: "Em análise" }]} />
+        </Cartao>
       </div>
     ),
   },
@@ -1075,6 +1287,14 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <Linha rotulo="Núcleo Rossi — possível duplicidade" valor="Revisar" tom="atencao" />
           </div>
         </Cartao>
+        <div className={grade2}>
+          <Cartao titulo="Rede de núcleos e dependentes">
+            <RedeNucleoGrafica />
+          </Cartao>
+          <Cartao titulo="Cobertura por geração">
+            <GraficoColunas tituloAcessivel="Cobertura demonstrativa das cinco gerações" itens={[{ rotulo: "G1", valor: 100, destaque: true }, { rotulo: "G2", valor: 92 }, { rotulo: "G3", valor: 78 }, { rotulo: "G4", valor: 56 }, { rotulo: "G5", valor: 34 }]} />
+          </Cartao>
+        </div>
       </div>
     ),
   },
@@ -1137,15 +1357,15 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             ))}
           </div>
         </Cartao>
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <Cartao titulo="Política operacional">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-lg border border-navy/10 bg-cream/40 p-3"><p className="text-[10px] text-navy/55">Perfil selecionado</p><p className="mt-1 text-xs font-semibold text-navy">Administração</p></div>
               <div className="rounded-lg border border-navy/10 bg-cream/40 p-3"><p className="text-[10px] text-navy/55">Confirmação externa</p><p className="mt-1 text-xs font-semibold text-navy">Sempre obrigatória</p></div>
             </div>
           </Cartao>
-          <Cartao titulo="Registro de auditoria">
-            <div className="overflow-x-auto">
+          <Cartao titulo="Registro de auditoria" className="overflow-hidden">
+            <div className="max-w-full overflow-x-auto">
               <table className="w-full min-w-[520px] text-left text-[10px]">
                 <thead className="border-b border-navy/10 uppercase text-navy/45"><tr><th className="pb-2">Data</th><th className="pb-2">Ação</th><th className="pb-2">Pessoa</th><th className="pb-2">Resultado</th></tr></thead>
                 <tbody className="divide-y divide-navy/5 text-navy/70">
