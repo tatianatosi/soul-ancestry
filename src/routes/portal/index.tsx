@@ -182,8 +182,6 @@ function PainelHomeMockup({
   microentrega?: import("@/lib/projecoes-cliente").PublicacaoCliente | null;
   inicioEm?: string | null;
 }) {
-  const proximaCurta =
-    proximoPasso.length > 48 ? `${proximoPasso.slice(0, 45).trimEnd()}…` : proximoPasso;
   return (
     <div className="space-y-4" data-aba-home>
       <FaixaD0D365
