@@ -381,6 +381,17 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqu
 Prints: `docs/provas/2026-09-12-fidelidade-governanca-modelos-cream/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 
+
+## Fatia 2026-09-12 — App Conta densificada (vocab 47)
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `/portal/conta` | Quatro blocos thin (placeholders genéricos) | Meta strip titular·caso·interesse·acesso + Perfil/Plano/Alertas/Histórico com vazios específicos |
+| Gate marca | Sem item Conta densificada | Checklist Conta perfil·plano·alertas·histórico |
+
+Prints: `docs/provas/2026-09-12-fidelidade-conta-vocab47/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqueadas.
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).
