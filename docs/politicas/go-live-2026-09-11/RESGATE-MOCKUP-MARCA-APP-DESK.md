@@ -176,6 +176,20 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`). `GRUPOS_DESK` permanece 
 Prints: `docs/provas/2026-09-12-desk-jornada-oki/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 
+
+## Fatia 2026-09-12 — Caso 360 / Pessoa cream
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `/casos/$caseId` + `caso/*` | Cards `bg-white` SaaS | `bg-cream/40–50` |
+| `/pessoas/$clienteId` | Seções brancas | Cream OKI |
+| `portal/caso-detalhe` | Cards brancos | Cream (App deep) |
+| Prévia p.12 | Só 4 KPIs | + próxima ação + bloqueio; grupo Pessoas & Casos ativo |
+| Gate marca | Checklist parcial | Caso/Pessoa cream + cadeia jornada = ok |
+
+Prints: `docs/provas/2026-09-12-caso360-cream/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`).
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

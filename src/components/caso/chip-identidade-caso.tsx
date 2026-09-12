@@ -25,7 +25,7 @@ export function ChipIdentidadeCaso({
       className={
         noCliente
           ? "rounded-lg border border-navy/10 bg-cream/70 px-3 py-2 text-left text-xs text-navy"
-          : "rounded-lg border border-navy/15 bg-white/90 px-3 py-2 text-left text-xs text-navy"
+          : "rounded-lg border border-navy/15 bg-cream/90 px-3 py-2 text-left text-xs text-navy"
       }
     >
       {noCliente ? (

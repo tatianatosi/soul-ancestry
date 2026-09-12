@@ -3,7 +3,7 @@ import type { AcaoExterna, Capacidade } from "@/lib/modo-proprietaria";
 import type { Opcao } from "@/lib/caso-ficha";
 
 export const inputCls =
-  "w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold disabled:bg-navy/5 disabled:text-navy/50";
+  "w-full rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm text-navy outline-none focus:border-gold disabled:bg-navy/5 disabled:text-navy/50";
 
 /**
  * Ação de escrita com validade de formulário separada da autoridade.

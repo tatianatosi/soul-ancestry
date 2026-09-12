@@ -30,7 +30,7 @@ export function MapaPersistenciaCaso() {
   const leitura = MAPA_PERSISTENCIA.filter((l) => l.estado === "somente_leitura").length;
 
   return (
-    <section className="mt-8 rounded-xl border border-navy/10 bg-white p-4">
+    <section className="mt-8 rounded-xl border border-navy/10 bg-cream/50 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold text-navy">Mapa de persistência desta ficha</h3>

@@ -88,9 +88,9 @@ function PreviaDeskIndicadores() {
           <p className="mt-4 text-[10px] uppercase tracking-widest text-cream/50">Desk · 6 grupos</p>
           <nav className="mt-2 space-y-1">
             {GRUPOS_DESK.map((g) => {
-              const ativo =
-                ((face === "pessoas" || face === "jornada") && g.id === "casos") ||
-                (face !== "pessoas" && face !== "jornada" && g.id === "hoje");
+                            const ativo =
+                ((face === "pessoas" || face === "jornada" || face === "caso360") && g.id === "casos") ||
+                (face !== "pessoas" && face !== "jornada" && face !== "caso360" && g.id === "hoje");
               return (
                 <div
                   key={g.id}
@@ -227,7 +227,7 @@ function FaceVisao() {
 
 function FaceCaso360() {
   return (
-    <section aria-label="Caso 360 — quatro indicadores" className="space-y-3">
+    <section aria-label="Caso 360 — quatro indicadores" className="space-y-4">
       <div>
         <h2 className="font-serif text-xl text-navy">Caso 360 · quatro indicadores</h2>
         <p className="text-sm text-navy/65">
@@ -247,6 +247,21 @@ function FaceCaso360() {
           </div>
         ))}
       </div>
+      <div className="grid gap-3 lg:grid-cols-2">
+        <article className="rounded-xl border border-navy/10 bg-cream/50 p-4">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Próxima ação</p>
+          <p className="mt-1 font-medium text-navy">Confirmar documentos mínimos com o titular</p>
+          <p className="mt-1 text-xs text-navy/60">Responsável: operação · prazo: hoje</p>
+        </article>
+        <article className="rounded-xl border border-gold/40 bg-gold/10 p-4">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Bloqueio em destaque</p>
+          <p className="mt-1 font-medium text-navy">Ativação do portal aguarda checklist mínimo</p>
+          <p className="mt-1 text-xs text-navy/60">Pendência informa — não impede override da proprietária</p>
+        </article>
+      </div>
+      <p className="text-xs text-navy/50">
+        Runtime vivo: <code className="font-mono">/casos/$caseId</code> · chrome cream alinhado ao mockup p.12
+      </p>
     </section>
   );
 }

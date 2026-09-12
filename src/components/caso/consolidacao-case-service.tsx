@@ -176,7 +176,7 @@ export function ConsolidacaoCaseService({ caseId }: { caseId: string }) {
             <label className="mb-4 block max-w-xs">
               <Rotulo>Quem está decidindo</Rotulo>
               <input
-                className="w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                className="w-full rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm text-navy outline-none focus:border-gold"
                 value={quem}
                 onChange={(e) => setQuem(e.target.value)}
               />
@@ -206,7 +206,7 @@ export function ConsolidacaoCaseService({ caseId }: { caseId: string }) {
                           <div className="flex w-full flex-col gap-1 sm:w-auto sm:flex-row sm:items-center">
                           <input
                             placeholder="Justificativa"
-                            className="rounded-lg border border-navy/15 bg-white px-2 py-1 text-xs text-navy"
+                            className="rounded-lg border border-navy/15 bg-cream px-2 py-1 text-xs text-navy"
                             value={rascunhoCriterio[i.id!]?.justificativa ?? i.justificativa ?? ""}
                             onChange={(e) =>
                               setRascunhoCriterio((p) => ({
@@ -217,7 +217,7 @@ export function ConsolidacaoCaseService({ caseId }: { caseId: string }) {
                           />
                           <input
                             placeholder="Evidência interna"
-                            className="rounded-lg border border-navy/15 bg-white px-2 py-1 text-xs text-navy"
+                            className="rounded-lg border border-navy/15 bg-cream px-2 py-1 text-xs text-navy"
                             value={rascunhoCriterio[i.id!]?.evidencia ?? i.evidencia_interna ?? ""}
                             onChange={(e) =>
                               setRascunhoCriterio((p) => ({
@@ -227,7 +227,7 @@ export function ConsolidacaoCaseService({ caseId }: { caseId: string }) {
                             }
                           />
                           <select
-                            className="rounded-lg border border-navy/15 bg-white px-2 py-1 text-xs text-navy"
+                            className="rounded-lg border border-navy/15 bg-cream px-2 py-1 text-xs text-navy"
                             value={i.status}
                             disabled={mDecidir.isPending}
                             onChange={(e) => mDecidir.mutate({ id: i.id!, status: e.target.value })}
@@ -298,7 +298,7 @@ export function ConsolidacaoCaseService({ caseId }: { caseId: string }) {
               <Rotulo>{f.l}</Rotulo>
               <input
                 type={f.t}
-                className="w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                className="w-full rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm text-navy outline-none focus:border-gold"
                 value={cond[f.k] ?? (d.condicao ? String((d.condicao as Record<string, unknown>)[f.k] ?? "") : "")}
                 onChange={(e) => setCond((p) => ({ ...p, [f.k]: e.target.value }))}
               />

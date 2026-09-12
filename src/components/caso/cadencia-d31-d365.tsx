@@ -35,7 +35,7 @@ export function CadenciaD31D365({
   const temLacuna = l.resumo.descobertos > 0;
 
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-5">
+    <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="font-serif text-lg text-navy">Cadência universal · D31 a D365</h3>
         <p className="text-xs text-navy/55">
