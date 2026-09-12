@@ -59,8 +59,8 @@ export function GoLiveDesk() {
       </div>
 
       {/* filtros */}
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-white p-3">
-        <div className="flex min-w-[200px] flex-1 items-center gap-2 rounded-lg border border-border px-3 py-1.5">
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-navy/10 bg-cream/40 p-3">
+        <div className="flex min-w-[200px] flex-1 items-center gap-2 rounded-lg border border-navy/10 px-3 py-1.5">
           <Search className="h-3.5 w-3.5 text-navy/40" />
           <input
             value={busca}
@@ -81,8 +81,8 @@ export function GoLiveDesk() {
               key={c.id}
               onClick={() => setSelecionado(c.id)}
               className={cn(
-                "w-full rounded-xl border bg-white p-4 text-left shadow-sm transition",
-                c.id === caso.id ? "border-gold ring-2 ring-gold/25" : "border-border hover:bg-areia/50",
+                "w-full rounded-xl border bg-cream/40 p-4 text-left shadow-sm transition",
+                c.id === caso.id ? "border-gold ring-2 ring-gold/25" : "border-navy/10 hover:bg-areia/50",
               )}
             >
               <div className="flex items-start justify-between gap-3">
@@ -109,7 +109,7 @@ export function GoLiveDesk() {
             </button>
           ))}
           {lista.length === 0 && (
-            <div className="rounded-xl border border-dashed border-border p-6 text-center text-[12px] text-navy/60">
+            <div className="rounded-xl border border-dashed border-navy/10 p-6 text-center text-[12px] text-navy/60">
               Nenhum caso com esses filtros.
             </div>
           )}
@@ -140,7 +140,7 @@ export function GoLiveDesk() {
           <Bloco titulo="Documentos">
             <div className="space-y-1.5">
               {caso.documents.map((d) => (
-                <div key={d.item} className="rounded-lg border border-border px-3 py-2">
+                <div key={d.item} className="rounded-lg border border-navy/10 px-3 py-2">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-[12px] text-navy">{d.item}</span>
                     <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-semibold", CONFIANCA_TOM[d.status])}>
@@ -267,7 +267,7 @@ export function GoLiveDesk() {
       <Bloco titulo="Integração futura (dados demonstrativos)">
         <div className="grid gap-2 md:grid-cols-2">
           {INTEGRACOES_FUTURAS.map((i) => (
-            <div key={i.nome} className="rounded-lg border border-border px-3 py-2">
+            <div key={i.nome} className="rounded-lg border border-navy/10 px-3 py-2">
               <div className="text-[12px] font-semibold text-navy">{i.nome}</div>
               <div className="text-[11px] text-navy/60">{i.campos}</div>
               <div className="mt-1 inline-block rounded-full bg-areia px-2 py-0.5 text-[10px] font-semibold text-navy">{i.estado}</div>
@@ -281,7 +281,7 @@ export function GoLiveDesk() {
 
 function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-border bg-white p-4 shadow-sm">
+    <section className="rounded-xl border border-navy/10 bg-cream/40 p-4 shadow-sm">
       <div className="mb-3 text-[11px] uppercase tracking-widest text-terracotta">{titulo}</div>
       {children}
     </section>
@@ -313,7 +313,7 @@ function Select({
   label: string;
 }) {
   return (
-    <label className="flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-[12px] text-navy">
+    <label className="flex items-center gap-2 rounded-lg border border-navy/10 px-3 py-1.5 text-[12px] text-navy">
       <Filter className="h-3.5 w-3.5 text-navy/40" />
       <span className="text-navy/50">{label}</span>
       <select value={value} onChange={(e) => onChange(e.target.value)} className="bg-transparent text-navy outline-none">

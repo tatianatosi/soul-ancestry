@@ -235,6 +235,23 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`). `GRUPOS_DESK` permanece 
 Prints: `docs/provas/2026-09-12-painel-hoje-oki/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`). `GRUPOS_DESK` permanece 6.
 
+
+## Fatia 2026-09-12 — App deep + Desk Governança cream
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| Portal proposta / mensagens / faturas / docs chips | `bg-white` residual | `bg-cream/40` |
+| Radar empty chip | `bg-white/70` | `bg-cream/70` |
+| Atendimento interno / sessão demo | Painéis brancos | Cream |
+| Integrações + prontidão + desk operacional | White / muted shadcn | Cream / navy |
+| Equipe, acessos portal, decisões, inventário | Cards brancos | Cream |
+| Pesquisa painel/fontes/plano + contrato leftovers | White | Cream |
+| Prévia | Sem face governança | `?face=governanca` |
+| Gate marca | Checklist | App deep + Governança = ok |
+
+Prints: `docs/provas/2026-09-12-app-deep-governanca-oki/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`). `GRUPOS_DESK` permanece 6.
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

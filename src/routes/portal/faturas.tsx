@@ -42,7 +42,7 @@ function FaturasPage() {
           {data.map((f) => (
             <li
               key={f.id}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-white p-4"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-cream/40 p-4"
             >
               <div>
                 <p className="font-medium">{f.descricao ?? f.numero ?? "Fatura"}</p>

@@ -11,7 +11,7 @@ import { SELO_DEMO_PORTAL } from "@/lib/portal-demo-sophia";
 /**
  * Prévia pública — faces Desk mockup 17 p.11–17 + vocabulário 47.
  * Chrome OKI + DEMO. Sem auth. Não restaura sidebar Lovable: 6 GRUPOS_DESK.
- * Deep-link: ?face=visao|caso360|checklist|juridica|radar|alertas|biblioteca|pessoas|jornada|comercial|formalizacao|pesquisa
+ * Deep-link: ?face=visao|caso360|checklist|juridica|radar|alertas|biblioteca|pessoas|jornada|comercial|formalizacao|pesquisa|governanca
  */
 
 export const Route = createFileRoute("/previa-desk-indicadores")({
@@ -41,7 +41,8 @@ type FaceId =
   | "jornada"
   | "comercial"
   | "formalizacao"
-  | "pesquisa";
+  | "pesquisa"
+  | "governanca";
 
 const FACES: { id: FaceId; rotulo: string; pagina: string }[] = [
   { id: "visao", rotulo: "Visão Geral", pagina: "p.11" },
@@ -56,6 +57,7 @@ const FACES: { id: FaceId; rotulo: string; pagina: string }[] = [
   { id: "comercial", rotulo: "Marketing & Comercial", pagina: "grupo" },
   { id: "formalizacao", rotulo: "Formalização & Financeiro", pagina: "grupo" },
   { id: "pesquisa", rotulo: "Inteligência & Pesquisa", pagina: "grupo" },
+  { id: "governanca", rotulo: "Governança & Admin", pagina: "grupo" },
 ];
 
 const FACES_VALIDAS = new Set<string>(FACES.map((f) => f.id));
@@ -99,6 +101,7 @@ function PreviaDeskIndicadores() {
                 (face === "comercial" && g.id === "comercial") ||
                 (face === "formalizacao" && g.id === "contratos") ||
                 (face === "pesquisa" && g.id === "pesquisa") ||
+                (face === "governanca" && g.id === "governanca") ||
                 (
                   (face === "visao" ||
                     face === "alertas" ||
@@ -184,6 +187,7 @@ function PreviaDeskIndicadores() {
             {face === "comercial" ? <FaceComercial /> : null}
             {face === "formalizacao" ? <FaceFormalizacao /> : null}
             {face === "pesquisa" ? <FacePesquisa /> : null}
+            {face === "governanca" ? <FaceGovernanca /> : null}
 
             <p className="text-xs text-navy/50">
               Runtime vivo (auth staff): <code className="font-mono">/painel</code>,{" "}
@@ -759,6 +763,50 @@ function FacePesquisa() {
           </li>
         ))}
       </ul>
+    </section>
+  );
+}
+
+/** Chrome do grupo Governança & Administração (`/integracoes`, ops, equipe, acessos). */
+function FaceGovernanca() {
+  return (
+    <section aria-label="Governança e Administração" className="space-y-4" data-face-governanca>
+      <p className="text-sm text-navy/70">
+        Integrações, ops, equipe e acessos do portal com chrome OKI. Runtime:{" "}
+        <code className="font-mono text-xs">/integracoes</code>,{" "}
+        <code className="font-mono text-xs">/equipe</code>,{" "}
+        <code className="font-mono text-xs">/acessos-portal</code>,{" "}
+        <code className="font-mono text-xs">/governanca/decisoes</code>. Sem inventar política.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          ["Integrações", "3 ativas", "Centro"],
+          ["Ops / exceções", "2 críticas", "Desk operacional"],
+          ["Equipe", "5 contas", "Papéis"],
+          ["Acessos portal", "1 convite", "Cliente"],
+        ].map(([r, v, a]) => (
+          <div key={r} className="rounded-xl border border-navy/10 bg-cream/40 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-wide text-navy/50">{r}</p>
+            <p className="mt-1 font-serif text-xl text-navy">{v}</p>
+            <p className="text-xs text-navy/60">{a}</p>
+          </div>
+        ))}
+      </div>
+      <article className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+        <p className="text-[11px] uppercase tracking-wide text-navy/50">Prontidão (DEMO)</p>
+        <ul className="mt-2 space-y-1 text-sm text-navy/80">
+          <li>· Auth / sessão — ok</li>
+          <li>· RLS portal — estrutural (prova UI A×B pendente)</li>
+          <li>· Segredos fora do cliente — ok</li>
+        </ul>
+      </article>
+      <div className="rounded-xl border border-gold/40 bg-cream/50 p-4">
+        <p className="text-[11px] uppercase tracking-wide text-navy/50">Gate visual</p>
+        <p className="mt-1 text-sm text-navy">
+          App deep (proposta/mensagens/faturas/docs) + Desk Governança em cream — prova desta fatia.
+          GRUPOS_DESK permanece 6.
+        </p>
+      </div>
     </section>
   );
 }

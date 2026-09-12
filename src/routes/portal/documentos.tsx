@@ -74,7 +74,7 @@ export function PortalDocumentos() {
                     <span
                       className={
                         item.tom === "ok"
-                          ? "rounded-full border border-navy/15 bg-white px-2.5 py-0.5 text-[11px] font-medium text-navy/70"
+                          ? "rounded-full border border-navy/15 bg-cream/40 px-2.5 py-0.5 text-[11px] font-medium text-navy/70"
                           : item.tom === "atencao"
                             ? "rounded-full border border-terracotta/30 bg-terracotta/10 px-2.5 py-0.5 text-[11px] font-medium text-terracotta"
                             : "rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[11px] font-medium text-navy/70"
@@ -159,7 +159,7 @@ export function PortalDocumentos() {
                     className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/10 bg-cream/40 px-3 py-2.5"
                   >
                     <span className="text-sm text-navy/85">{textoParaCliente(d.titulo)}</span>
-                    <span className="rounded-full border border-navy/15 bg-white px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
+                    <span className="rounded-full border border-navy/15 bg-cream/40 px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
                       Liberado para você
                     </span>
                   </li>

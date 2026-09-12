@@ -245,7 +245,7 @@ function Pagina() {
         <Painel titulo="Prévias versionadas e anexos aplicáveis">
           <div className="space-y-2">
             {(previas as any[]).map((p) => (
-              <div key={p.id} className="rounded-lg border border-navy/15 bg-white p-3">
+              <div key={p.id} className="rounded-lg border border-navy/15 bg-cream/40 p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-sm text-navy">
                     v{p.versao} · {p.tipo} · {p.template_code} {p.template_version ? `v${p.template_version}` : ""}
@@ -289,7 +289,7 @@ function Pagina() {
             {previas.length === 0 && <p className="text-sm text-navy/60">Nenhuma prévia gerada ainda.</p>}
           </div>
           {html && (
-            <iframe title="Prévia do instrumento" srcDoc={html} sandbox="" className="mt-3 h-[520px] w-full rounded-lg border border-navy/15 bg-white" />
+            <iframe title="Prévia do instrumento" srcDoc={html} sandbox="" className="mt-3 h-[520px] w-full rounded-lg border border-navy/15 bg-cream/40" />
           )}
         </Painel>
 

@@ -23,7 +23,7 @@ import {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-const inputCls = "w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm";
+const inputCls = "w-full rounded-lg border border-navy/15 bg-cream/40 px-3 py-2 text-sm";
 
 const CORES_STATUS: Record<string, string> = {
   desligada: "border-navy/20 bg-cream text-navy/70",
@@ -185,7 +185,7 @@ export function CentroIntegracoes() {
           </p>
           <ul className="mt-3 space-y-2">
             {(data?.revisao ?? []).map((r: any) => (
-              <li key={r.id} className="rounded-lg border border-navy/10 bg-white p-3 text-sm">
+              <li key={r.id} className="rounded-lg border border-navy/10 bg-cream/40 p-3 text-sm">
                 <p className="font-medium">{r.motivo}</p>
                 <p className="text-xs text-navy/50">
                   {r.tentativas} tentativas · {new Date(r.created_at).toLocaleString("pt-BR")}
@@ -226,7 +226,7 @@ export function CentroIntegracoes() {
               <button
                 onClick={() => abrir(i)}
                 className={`w-full rounded-xl border p-3 text-left ${
-                  selecionada === i.id ? "border-navy bg-white" : "border-navy/10 bg-white/70"
+                  selecionada === i.id ? "border-navy bg-cream/40" : "border-navy/10 bg-cream/70"
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
@@ -248,13 +248,13 @@ export function CentroIntegracoes() {
 
         <div className="space-y-4">
           {!atual ? (
-            <p className="rounded-xl border border-navy/10 bg-white p-6 text-sm text-navy/60">
+            <p className="rounded-xl border border-navy/10 bg-cream/40 p-6 text-sm text-navy/60">
               <Plug className="mr-2 inline h-4 w-4" />
               Escolha uma integração para configurar, testar com dados DEMO e ver os logs mascarados.
             </p>
           ) : (
             <>
-              <section className="rounded-xl border border-navy/10 bg-white p-4">
+              <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <h2 className="font-serif text-xl">{atual.nome}</h2>
@@ -399,7 +399,7 @@ export function CentroIntegracoes() {
               </section>
 
               {resultado ? (
-                <section className="rounded-xl border border-navy/10 bg-white p-4">
+                <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
                   <h3 className="font-serif text-lg">Resultado do teste</h3>
                   <p className={`text-sm ${resultado.ok ? "text-emerald-800" : "text-terracotta"}`}>
                     {resultado.mensagem}
@@ -423,7 +423,7 @@ export function CentroIntegracoes() {
                 </section>
               ) : null}
 
-              <section className="rounded-xl border border-navy/10 bg-white p-4">
+              <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
                 <h3 className="font-serif text-lg">Logs de execução</h3>
                 <p className="text-xs text-navy/50">
                   E-mails, telefones, documentos e tokens já chegam mascarados ao log.
@@ -460,7 +460,7 @@ export function CentroIntegracoes() {
 
       {modalAtivar && atual ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/60 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-5">
+          <div className="w-full max-w-md rounded-xl bg-cream/40 p-5">
             <h3 className="font-serif text-xl">Ativar {atual.nome}?</h3>
             <p className="mt-2 text-sm text-navy/70">
               A partir da ativação esta integração pode agir fora do sistema. A ação exige admin, fica registrada em

@@ -42,7 +42,7 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
   return (
     <div className="rounded-2xl border border-navy/10 bg-cream/50 p-4 shadow-sm">
       {!comProgresso ? (
-        <p className="mb-3 rounded-lg border border-navy/10 bg-white/70 px-3 py-2 text-center text-xs text-navy/65">
+        <p className="mb-3 rounded-lg border border-navy/10 bg-cream/70 px-3 py-2 text-center text-xs text-navy/65">
           O radar ganha forma conforme a equipe publica documentação e achados. Enquanto isso, a teia permanece
           no centro — sem inventar percentual.
         </p>

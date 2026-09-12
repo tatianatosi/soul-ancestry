@@ -236,7 +236,7 @@ export function DeskOperacional() {
       </nav>
 
       {aba !== "painel" && aba !== "sla" && (
-        <div className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-white p-3">
+        <div className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/40 p-3">
           <select
             className={cn(inputCls, "w-auto")}
             value={filtros["responsavelId"] ?? ""}
@@ -309,7 +309,7 @@ export function DeskOperacional() {
               ["Micro-entregas pendentes", p["micro_pendentes"]],
               ["Micro-entregas atrasadas", p["micro_atrasadas"]],
             ].map(([rotulo, valor]) => (
-              <div key={String(rotulo)} className="rounded-xl border border-navy/10 bg-white p-4">
+              <div key={String(rotulo)} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
                 <p className="text-xs uppercase tracking-wide text-navy/50">{String(rotulo)}</p>
                 <p className="font-serif text-3xl">{Number(valor ?? 0)}</p>
               </div>
@@ -360,7 +360,7 @@ export function DeskOperacional() {
           <div className="space-y-2">
             {tarefas.length === 0 && <p className="text-sm text-navy/60">Nenhuma tarefa com esses filtros.</p>}
             {tarefas.map((t) => (
-              <div key={t["id"]} className="rounded-xl border border-navy/10 bg-white p-3">
+              <div key={t["id"]} className="rounded-xl border border-navy/10 bg-cream/40 p-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <strong className="text-sm">{t["titulo"]}</strong>
                   <Selo texto={ROTULO_TAREFA[t["status"]] ?? t["status"]} />
@@ -415,7 +415,7 @@ export function DeskOperacional() {
       {aba === "kanban" && (
         <div className="grid gap-3 lg:grid-cols-5">
           {STATUS_TAREFA.map((coluna) => (
-            <div key={coluna} className="rounded-xl border border-navy/10 bg-white p-3">
+            <div key={coluna} className="rounded-xl border border-navy/10 bg-cream/40 p-3">
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy/60">
                 {ROTULO_TAREFA[coluna]} ({tarefas.filter((t) => t["status"] === coluna).length})
               </h3>
@@ -472,7 +472,7 @@ export function DeskOperacional() {
           <div className="space-y-2">
             {microentregas.length === 0 && <p className="text-sm text-navy/60">Nenhuma micro-entrega registrada.</p>}
             {microentregas.map((m) => (
-              <div key={m["id"]} className="rounded-xl border border-navy/10 bg-white p-3">
+              <div key={m["id"]} className="rounded-xl border border-navy/10 bg-cream/40 p-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <strong className="text-sm">{m["titulo"]}</strong>
                   <Selo texto={ROTULO_MICRO[m["status"]] ?? m["status"]} />
@@ -504,7 +504,7 @@ export function DeskOperacional() {
           {calendario.length === 0 && <p className="text-sm text-navy/60">Nenhum prazo agendado.</p>}
           <div className="space-y-3">
             {calendario.map(([dia, itens]) => (
-              <div key={dia} className="rounded-xl border border-navy/10 bg-white p-3">
+              <div key={dia} className="rounded-xl border border-navy/10 bg-cream/40 p-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-navy/60">{dataBr(dia)}</p>
                 <ul className="mt-1 space-y-1 text-sm">
                   {itens.tarefas.map((t) => (

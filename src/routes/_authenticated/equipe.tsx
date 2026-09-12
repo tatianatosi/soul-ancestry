@@ -122,7 +122,7 @@ function EquipePage() {
 
           <StatusEnvioRecuperacao />
 
-          <section className="rounded-xl border border-navy/10 bg-white p-5">
+          <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
             <h2 className="font-serif text-xl">Convidar membro</h2>
             <p className="mt-1 text-sm text-navy/60">
               O convite envia um link temporário apenas para definir a senha inicial. Papel e organização são
@@ -197,7 +197,7 @@ function EquipePage() {
               {(listaMembros) => (
               <div className="mt-3 space-y-3">
                 {listaMembros.map((m) => (
-                  <div key={m.id} className="rounded-xl border border-navy/10 bg-white p-4">
+                  <div key={m.id} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="font-medium">

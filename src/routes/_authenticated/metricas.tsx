@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_authenticated/metricas")({
 
 function Cartao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-navy/10 bg-white p-4">
+    <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
       <p className="text-xs uppercase tracking-wide text-navy/50">{titulo}</p>
       <div className="mt-2 space-y-1 text-xs text-navy/70">{children}</div>
     </div>
@@ -121,7 +121,7 @@ function Metricas() {
             </Link>
           </p>
 
-          <details data-metricas="historico" className="rounded-xl border border-navy/10 bg-white p-4">
+          <details data-metricas="historico" className="rounded-xl border border-navy/10 bg-cream/40 p-4">
             <summary className="cursor-pointer text-sm font-semibold text-navy">Histórico e análise</summary>
             <p className="mt-1 text-xs text-navy/50">
               Leitura retrospectiva. Nenhum card desta seção cria fila, alerta, tarefa ou status.

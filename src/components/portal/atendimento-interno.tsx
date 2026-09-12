@@ -51,11 +51,11 @@ type Confirmacao = {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-const inputCls = "w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm";
+const inputCls = "w-full rounded-lg border border-navy/15 bg-cream/40 px-3 py-2 text-sm";
 
 function Painel({ titulo, descricao, children }: { titulo: string; descricao?: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-4">
+    <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
       <h2 className="font-serif text-lg">{titulo}</h2>
       {descricao ? <p className="mt-0.5 text-sm text-navy/60">{descricao}</p> : null}
       <div className="mt-3">{children}</div>
@@ -440,7 +440,7 @@ export function AtendimentoInterno() {
                     ? "border-terracotta/30 bg-terracotta/5"
                     : e.situacao === "demo"
                       ? "border-dashed border-gold/50 bg-gold/5"
-                      : "border-navy/10 bg-white"
+                      : "border-navy/10 bg-cream/40"
                 }`}
               >
                 <p className="font-medium text-navy">
@@ -843,7 +843,7 @@ export function AtendimentoInterno() {
 
       {confirmacao ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4">
-          <div className="w-full max-w-lg rounded-xl border border-navy/10 bg-white p-4">
+          <div className="w-full max-w-lg rounded-xl border border-navy/10 bg-cream/40 p-4">
             <h3 className="font-serif text-lg">
               {confirmacao.liberar ? "Confirmar liberação ao cliente" : "Confirmar recolhimento"}
             </h3>

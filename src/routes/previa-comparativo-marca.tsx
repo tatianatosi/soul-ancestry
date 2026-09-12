@@ -46,6 +46,7 @@ const CHECKLIST: { item: string; status: "ok" | "prova" }[] = [
   { item: "Desk Marketing/Leads/Financeiro/Contratos/Pesquisa em painéis cream", status: "ok" },
   { item: "Mesa Discovery (/calls) + conversão/propostas/CRM + módulo pesquisa em cream", status: "ok" },
   { item: "Painel Hoje (/painel) + Governança/Contrato detalhe/Onboarding/Evidências em cream", status: "ok" },
+  { item: "App deep (proposta/mensagens/faturas) + Desk Governança/integrações/ops em cream", status: "ok" },
   { item: "Rotas profundas sem H1 Entregas/Fase 01/Fase 02", status: "ok" },
   { item: "Tokens hex = guia OKI (navy/gold/cream/terracotta)", status: "ok" },
   { item: "Site SEO ≠ app Vercel", status: "ok" },
@@ -182,6 +183,14 @@ function PreviaComparativoMarca() {
             >
               <span className="font-medium">Desk · Inteligência & Pesquisa</span>
               <span className="mt-0.5 block text-xs text-navy/55">/previa-desk-indicadores?face=pesquisa</span>
+            </a>
+
+            <a
+              href="/previa-desk-indicadores?face=governanca"
+              className="rounded-xl border border-navy/15 bg-cream/40 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
+            >
+              <span className="font-medium">Desk · Governança & Admin</span>
+              <span className="mt-0.5 block text-xs text-navy/55">/previa-desk-indicadores?face=governanca</span>
             </a>
             <Link
               to="/previa-caseid"

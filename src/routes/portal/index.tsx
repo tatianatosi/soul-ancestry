@@ -167,7 +167,7 @@ function PainelHomeMockup({
         <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">Seu caso</p>
         <div className="mt-1 flex flex-wrap items-start justify-between gap-2">
           <h2 className="font-serif text-2xl text-navy">{tituloCaso}</h2>
-          <span className="rounded-full border border-navy/15 bg-white px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
+          <span className="rounded-full border border-navy/15 bg-cream/40 px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
             {statusRotulo}
           </span>
         </div>
