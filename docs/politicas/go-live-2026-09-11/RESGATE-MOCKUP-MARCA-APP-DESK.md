@@ -448,6 +448,17 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 Prints: `docs/provas/2026-09-12-fidelidade-jornada-duas-linhas/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 
+
+## Fatia 2026-09-12 — Documentos meta vivo + upload honesto
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `/portal/documentos` (vivo) | Sem faixa meta da prévia | Meta caso·checklist·liberados·enviados |
+| Documentos | Upload implícito | Nota explícita: envio só quando a equipe solicita |
+
+Prints: `docs/provas/2026-09-12-fidelidade-documentos-meta-vivo/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`).
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

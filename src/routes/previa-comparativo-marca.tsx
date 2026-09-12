@@ -71,6 +71,7 @@ const CHECKLIST: { item: string; status: "ok" | "prova" }[] = [
   { item: "App Home: meta caso·progresso·próxima ação·achados (sem % inventado na barra)", status: "ok" },
   { item: "App Jornada: duas linhas História|Seu caso + União de Ramos só com publicações reais", status: "ok" },
   { item: "Rotas profundas densificadas: meta caso·tipo·publicados·estado (Materiais/Relatório/Atualização)", status: "ok" },
+  { item: "App Documentos vivo+prévia: meta caso·checklist·liberados·enviados + upload só sob pedido (sem inventar)", status: "ok" },
   { item: "Rotas profundas App: Materiais/Relatório/Atualização (sem H1 Fase 01/02)", status: "ok" },
   { item: "Rotas profundas sem H1 Entregas/Fase 01/Fase 02", status: "ok" },
   { item: "Tokens hex = guia OKI (navy/gold/cream/terracotta)", status: "ok" },

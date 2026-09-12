@@ -77,6 +77,9 @@ export function PortalDocumentos() {
               <ChipMeta rotulo="Liberados" valor={String(liberados.length)} />
               <ChipMeta rotulo="Enviados" valor={String(enviados.length)} />
             </div>
+            <p className="rounded-lg border border-navy/10 bg-cream/40 px-4 py-3 text-sm text-navy/65">
+              Envio de arquivo acontece quando a equipe solicita — sem inventar upload nem status de certidão nesta tela.
+            </p>
 
             {/* Checklist só com itens reais — nunca inventar estado de certidão. */}
             <section
@@ -192,8 +195,31 @@ export function PortalDocumentos() {
           aoTentarNovamente={() => void refetch()}
           recurso="os seus documentos"
         >
-          {() => (
-        <div className="space-y-8">
+          {() => {
+            const liberados = data?.entregas?.length ?? 0;
+            const enviados = data?.envios?.length ?? 0;
+            const checklist = liberados + enviados;
+            const casoCodigo =
+              data?.entregas?.[0]?.caso ||
+              data?.envios?.[0]?.caso ||
+              "—";
+            return (
+        <div className="space-y-8" data-aba-documentos-vivo>
+          <div
+            data-documentos-meta
+            className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+          >
+            <ChipMeta rotulo="Caso" valor={String(casoCodigo)} />
+            <ChipMeta
+              rotulo="Checklist"
+              valor={checklist === 0 ? "Aguardando pedidos" : `${checklist} item(ns)`}
+            />
+            <ChipMeta rotulo="Liberados" valor={String(liberados)} />
+            <ChipMeta rotulo="Enviados" valor={String(enviados)} />
+          </div>
+          <p className="rounded-lg border border-navy/10 bg-cream/40 px-4 py-3 text-sm text-navy/65">
+            Envio de arquivo acontece quando a equipe solicita — não inventamos upload nem status de certidão nesta tela.
+          </p>
           <section className="rounded-2xl border border-navy/10 bg-cream/50 p-5 shadow-sm">
             <h2 className="font-serif text-xl text-navy">Checklist do caso</h2>
             <p className="mt-1 text-sm text-navy/60">
@@ -290,7 +316,8 @@ export function PortalDocumentos() {
             )}
           </section>
         </div>
-          )}
+          );
+          }}
         </EstadoDados>
       )}
     </PortalShell>
