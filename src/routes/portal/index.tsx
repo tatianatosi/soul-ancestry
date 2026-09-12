@@ -17,16 +17,8 @@ import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
 import { ChipIdentidadeCaso } from "@/components/caso/chip-identidade-caso";
 import { identidadeDePortalCaso } from "@/lib/caso-compartilhado";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, Search, ArrowRight, Lock } from "lucide-react";
-
-function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
-      <p className="mt-0.5 text-sm text-navy">{valor}</p>
-    </div>
-  );
-}
+import { CheckCircle2, Search, ArrowRight } from "lucide-react";
+import { CaCard } from "@/components/ui/ca-card";
 
 export const Route = createFileRoute("/portal/")({
   head: () => ({
@@ -173,50 +165,46 @@ function EstepeJornada({
   indice: number;
   percentual: number;
 }) {
+  const rotuloAtual = rotulos[indice];
   return (
-    <div className="mt-5">
-      <div className="mb-2 flex items-center justify-between text-xs text-cream/70">
+    <div className="mt-4">
+      <div className="mb-1.5 flex items-center justify-between text-xs text-cream/70">
         <span>Progresso da jornada</span>
         <span className="font-semibold text-gold">{percentual}%</span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-navy-soft">
+      <div className="h-1.5 overflow-hidden rounded-full bg-navy-soft">
         <div
           className="h-full rounded-full bg-gradient-to-r from-gold-soft to-gold"
           style={{ width: `${percentual}%` }}
         />
       </div>
 
-      <div className="mt-5 rounded-xl bg-navy-soft/60 p-3">
-        <div className="mb-2 text-[10px] uppercase tracking-widest text-gold/80">Hoje você está aqui</div>
-        <div className="flex items-center justify-between gap-1">
-          {rotulos.map((rotulo, i) => {
-            const concluida = i < indice;
-            const atual = i === indice;
-            return (
-              <div key={rotulo} className="flex flex-1 flex-col items-center">
-                <div
-                  className={cn(
-                    "grid h-7 w-7 place-items-center rounded-full text-[10px] font-bold transition",
-                    concluida && "bg-gold/40 text-gold",
-                    atual && "scale-110 bg-gold text-navy ring-4 ring-gold/30",
-                    !concluida && !atual && "border border-cream/20 bg-navy/40 text-cream/50",
-                  )}
-                >
-                  {concluida ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}
-                </div>
-                <div
-                  className={cn(
-                    "mt-1.5 text-center text-[9px] leading-tight",
-                    atual ? "font-bold text-gold" : "text-cream/60",
-                  )}
-                >
-                  {rotulo}
-                </div>
+      <div className="mt-3 flex items-start justify-between gap-1">
+        {rotulos.map((rotulo, i) => {
+          const concluida = i < indice;
+          const atual = i === indice;
+          return (
+            <div key={rotulo} className="flex flex-1 flex-col items-center gap-1">
+              <div
+                className={cn(
+                  "grid h-5 w-5 shrink-0 place-items-center rounded-full text-[9px] font-bold",
+                  concluida && "bg-gold/40 text-gold",
+                  atual && "bg-gold text-navy",
+                  !concluida && !atual && "bg-cream/15 text-cream/50",
+                )}
+              >
+                {concluida ? <CheckCircle2 className="h-3 w-3" /> : i + 1}
               </div>
-            );
-          })}
-        </div>
+              <span className={cn("text-center text-[8px] leading-tight", atual ? "text-gold" : "text-cream/50")}>
+                {rotulo}
+              </span>
+            </div>
+          );
+        })}
       </div>
+      {rotuloAtual ? (
+        <p className="sr-only">Etapa atual: {rotuloAtual}</p>
+      ) : null}
     </div>
   );
 }
@@ -248,127 +236,100 @@ function PainelHomeMockup({
   fase?: { rotulos: readonly string[]; indice: number; percentual: number } | null;
 }) {
   const proximaCurta =
-    proximoPasso.length > 48 ? `${proximoPasso.slice(0, 45).trimEnd()}…` : proximoPasso;
+    proximoPasso.length > 64 ? `${proximoPasso.slice(0, 61).trimEnd()}…` : proximoPasso;
   return (
     <div className="space-y-4" data-aba-home>
-      <div
-        data-home-meta
-        className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
-      >
-        <ChipMeta rotulo="Caso" valor={casoCodigo} />
-        <ChipMeta
-          rotulo="Progresso"
-          valor={marcos === 0 ? "Sem publicação ainda" : `${marcos} marcos`}
-        />
-        <ChipMeta rotulo="Próxima ação" valor={proximaCurta || "Aguardando equipe"} />
-        <ChipMeta
-          rotulo="Achados"
-          valor={achados.length === 0 ? "Nenhum ainda" : `${achados.length} recentes`}
-        />
-      </div>
-
-      <section className="rounded-2xl bg-gradient-to-br from-navy to-navy-soft p-5 text-cream shadow-lg sm:p-6">
+      {/*
+        Correção 2026-09-12: um card navy só, sem cartão bege duplicado
+        antes dele nem cartão cinza/claro dentro dele (o chip de
+        identidade do caso continua no DOM para prova App↔Desk, só não
+        aparece mais visualmente aqui).
+      */}
+      <section className="rounded-2xl bg-navy p-4 text-cream sm:p-5">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-widest text-gold/80">Seu caso</p>
-            <h2 className="font-serif text-xl italic">{tituloCaso}</h2>
+            <p className="text-[10px] uppercase tracking-widest text-gold/80">Seu caso</p>
+            <h2 className="font-serif text-lg text-cream">{tituloCaso}</h2>
           </div>
-          <span className="shrink-0 rounded-full bg-gold px-3 py-1 text-[11px] font-semibold text-navy">
+          <span className="shrink-0 rounded-full bg-gold px-2.5 py-1 text-[10px] font-semibold text-navy">
             {statusRotulo}
           </span>
         </div>
-        {statusTexto ? <p className="mt-2 text-sm text-cream/75">{statusTexto}</p> : null}
+        {statusTexto ? <p className="mt-1.5 text-xs text-cream/70">{statusTexto}</p> : null}
 
         {identidade ? (
-          <div className="mt-3">
+          <div className="sr-only">
             <ChipIdentidadeCaso identidade={identidade} superficie="App Cliente" />
           </div>
         ) : null}
 
         {fase ? (
           <EstepeJornada rotulos={fase.rotulos} indice={fase.indice} percentual={fase.percentual} />
-        ) : null}
-
-        <div className="mt-4 rounded-xl bg-cream/10 p-3">
-          <p className="text-[11px] uppercase tracking-wide text-cream/50">Progresso publicado</p>
-          <p className="mt-1 font-serif text-2xl">{marcos}</p>
-          <p className="text-xs text-cream/60">
+        ) : (
+          <p className="mt-3 text-xs text-cream/60">
             {marcos === 0
               ? "Aguardando primeira publicação"
-              : "marcos já compartilhados com você — sem % inventado"}
+              : `${marcos} marcos já compartilhados com você — sem % inventado`}
           </p>
-        </div>
+        )}
       </section>
 
-      <section>
-        <h3 className="mb-3 font-serif text-lg text-navy">Próximos passos</h3>
-        <div className="flex items-start gap-3 rounded-xl border border-navy/10 bg-card p-4 shadow-sm">
-          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gold/20 font-serif text-sm font-semibold text-navy">
-            1
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-navy">{proximoPasso}</p>
+      {/* Correção 2026-09-12: grade em telas largas (sidebar liberou espaço horizontal); CTA lilás removido (fora do guia oficial de marca — só 5 cores). */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section>
+          <h3 className="mb-2 text-sm font-semibold text-navy">Próximos passos</h3>
+          <CaCard className="flex flex-row items-center gap-3 p-3">
+            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gold/20 text-sm font-semibold text-navy">
+              1
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-navy">{proximaCurta}</p>
+            </div>
             {proximoPassoDestino ? (
-              <LinkPortal
-                to={proximoPassoDestino}
-                className="text-xs font-medium text-terracotta underline-offset-2 hover:underline"
-              >
-                Abrir
+              <LinkPortal to={proximoPassoDestino} className="shrink-0" aria-label="Abrir">
+                <ArrowRight className="h-4 w-4 text-navy/40" aria-hidden="true" />
               </LinkPortal>
             ) : casoId ? (
               <Link
                 to="/portal/casos/$id"
                 params={{ id: casoId }}
-                className="text-xs font-medium text-terracotta underline-offset-2 hover:underline"
+                className="shrink-0"
+                aria-label="Ver detalhes do caso"
               >
-                Ver detalhes do caso
+                <ArrowRight className="h-4 w-4 text-navy/40" aria-hidden="true" />
               </Link>
-            ) : null}
-          </div>
-          <ArrowRight className="h-4 w-4 shrink-0 text-navy/40" aria-hidden="true" />
-        </div>
-      </section>
+            ) : (
+              <ArrowRight className="h-4 w-4 shrink-0 text-navy/40" aria-hidden="true" />
+            )}
+          </CaCard>
+        </section>
 
-      <section>
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <h3 className="font-serif text-lg text-navy">Achados recentes</h3>
-          <LinkPortal to="/portal/jornada" className="text-xs font-medium text-navy/60 hover:text-navy">
-            Ver jornada
-          </LinkPortal>
-        </div>
-        {achados.length === 0 ? (
-          <p className="text-sm text-navy/60">
-            Assim que a equipe publicar um achado ou atualização, ele aparece aqui.
-          </p>
-        ) : (
-          <div className="space-y-2.5">
-            {achados.map((a) => (
-              <div key={a.id} className="rounded-xl border border-navy/10 border-l-4 border-l-gold bg-card p-4">
-                <div className="mb-1 flex items-center gap-2">
-                  <Search className="h-3.5 w-3.5 text-gold" aria-hidden="true" />
-                  <span className="text-[10px] font-medium uppercase tracking-widest text-gold">{a.tipo}</span>
-                </div>
-                <p className="text-sm text-navy/85">{a.texto}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="rounded-xl border border-plum/30 bg-plum/5 p-4">
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-plum/15 text-plum">
-            <Lock className="h-3.5 w-3.5" aria-hidden="true" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-widest text-plum">Próximo nível disponível</p>
-            <p className="mt-0.5 text-sm text-navy">Sua história familiar completa aguarda.</p>
-            <LinkPortal to="/portal/legado" className="mt-2 inline-block text-xs font-medium text-plum hover:underline">
-              Saber mais →
+        <section>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold text-navy">Achados recentes</h3>
+            <LinkPortal to="/portal/jornada" className="text-xs font-medium text-navy/60 hover:text-navy">
+              Ver Jornada
             </LinkPortal>
           </div>
-        </div>
-      </section>
+          {achados.length === 0 ? (
+            <p className="text-sm text-navy/60">
+              Assim que a equipe publicar um achado ou atualização, ele aparece aqui.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {achados.map((a) => (
+                <CaCard key={a.id} className="border-l-4 border-l-gold p-3">
+                  <div className="mb-0.5 flex items-center gap-1.5">
+                    <Search className="h-3 w-3 text-gold" aria-hidden="true" />
+                    <span className="text-[10px] font-medium uppercase tracking-widest text-gold">{a.tipo}</span>
+                  </div>
+                  <p className="line-clamp-2 text-sm text-navy/85">{a.texto}</p>
+                </CaCard>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

@@ -55,14 +55,43 @@ describe("Entrega 1 — hero navy + stepper de 5 fases na Home", () => {
     expect(home).toContain("FASE_ATUAL_DEMO_SOPHIA_PERCENTUAL");
   });
 
-  it("o hero do caso é navy em gradiente, não mais o cartão claro anterior", () => {
+  it("o hero do caso é um único card navy, sem gradiente nem card claro/cinza dentro dele (correção 2026-09-12, rejeição visual)", () => {
     const home = readFileSync("src/routes/portal/index.tsx", "utf8");
-    expect(home).toContain("bg-gradient-to-br from-navy to-navy-soft");
+    const hero = home.slice(home.indexOf("<section className=\"rounded-2xl bg-navy"), home.indexOf("<EstepeJornada"));
+    expect(home).toContain('<section className="rounded-2xl bg-navy p-4 text-cream sm:p-5">');
+    expect(hero).toContain("sr-only");
+    expect(hero).toContain("ChipIdentidadeCaso");
   });
 
-  it("o passo ativo do stepper usa o destaque em anel/gold do mockup, os concluídos usam check", () => {
+  it("o passo ativo do stepper usa check nos concluídos, sem painel/anel/escala extras (versão compacta)", () => {
     const home = readFileSync("src/routes/portal/index.tsx", "utf8");
-    expect(home).toContain("ring-4 ring-gold/30");
     expect(home).toContain("CheckCircle2");
+    expect(home).not.toContain("Hoje você está aqui");
+    expect(home).not.toContain("ring-4 ring-gold/30");
+  });
+
+  it("não há mais cartões bege duplicados de Caso/Progresso/Achados antes do hero", () => {
+    const home = readFileSync("src/routes/portal/index.tsx", "utf8");
+    expect(home).not.toContain("data-home-meta");
+  });
+
+  it("o banner de dado fictício não aparece mais como faixa colorida na superfície do App Cliente", () => {
+    const shell = readFileSync("src/components/portal/portal-shell.tsx", "utf8");
+    const bloco = shell.slice(shell.indexOf("{previa ? ("), shell.indexOf("{previa ? (") + 400);
+    expect(bloco).toContain('className="sr-only"');
+    expect(bloco).not.toContain("bg-gold/15");
+  });
+
+  it("a topbar do App Cliente é uma faixa única e compacta, não duas faixas altas", () => {
+    const shell = readFileSync("src/components/portal/portal-shell.tsx", "utf8");
+    const numeroDeHeaders = (shell.match(/<header/g) ?? []).length;
+    expect(numeroDeHeaders).toBe(1);
+    expect(shell).not.toContain("Segunda faixa navy");
+  });
+
+  it("títulos de seção da Home usam sans, não serifada dominante (serifada só como acento no nome do caso)", () => {
+    const home = readFileSync("src/routes/portal/index.tsx", "utf8");
+    expect(home).toContain('<h3 className="mb-2 text-sm font-semibold text-navy">Próximos passos</h3>');
+    expect(home).toContain('<h3 className="text-sm font-semibold text-navy">Achados recentes</h3>');
   });
 });

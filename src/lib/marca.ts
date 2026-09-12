@@ -74,7 +74,7 @@ export const MARCA_TIPOGRAFIA = {
  * mesmo peso visual em todas as superfícies do cliente.
  */
 export const TIPO_CLIENTE = {
-  titulo: "font-serif text-2xl leading-tight text-navy",
+  titulo: "text-2xl font-semibold leading-tight text-navy",
   subtitulo: "mt-1 text-sm text-navy/70",
   secao: "font-serif text-xl text-navy",
   corpo: "text-sm text-navy/80",
