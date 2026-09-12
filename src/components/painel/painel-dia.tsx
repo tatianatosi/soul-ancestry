@@ -723,7 +723,7 @@ export function PainelDia() {
           */}
           <Link
             to="/casos"
-            className="block rounded-xl border border-navy/10 bg-white px-4 py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            className="block rounded-xl border border-navy/10 bg-cream/50 px-4 py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
             data-indicador-etiqueta="casos-ativos"
           >
             <p className="text-[11px] uppercase tracking-wide text-navy/50">Casos ativos</p>
@@ -778,7 +778,7 @@ export function PainelDia() {
             <Link
               key={f.chave}
               to={f.destino as "/calls"}
-              className="flex items-baseline justify-between gap-3 rounded-lg border border-navy/10 bg-white px-3 py-2 text-sm text-navy hover:border-gold/60"
+              className="flex items-baseline justify-between gap-3 rounded-lg border border-navy/10 bg-cream/40 px-3 py-2 text-sm text-navy hover:border-gold/60"
             >
               <span>
                 <span className="block text-[11px] uppercase tracking-wide text-navy/50">{f.rotulo}</span>

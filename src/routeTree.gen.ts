@@ -17,6 +17,7 @@ import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as PortalRouteRouteImport } from './routes/portal/route'
 import { Route as PreviaAppClienteRouteImport } from './routes/previa-app-cliente'
 import { Route as PreviaCaseidRouteImport } from './routes/previa-caseid'
+import { Route as PreviaDeskIndicadoresRouteImport } from './routes/previa-desk-indicadores'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
 import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
 import { Route as AuthenticatedAppClienteComoPessoaRouteImport } from './routes/_authenticated/app-cliente-como-pessoa'
@@ -151,6 +152,11 @@ const PreviaAppClienteRoute = PreviaAppClienteRouteImport.update({
 const PreviaCaseidRoute = PreviaCaseidRouteImport.update({
   id: '/previa-caseid',
   path: '/previa-caseid',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreviaDeskIndicadoresRoute = PreviaDeskIndicadoresRouteImport.update({
+  id: '/previa-desk-indicadores',
+  path: '/previa-desk-indicadores',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAcessosPortalRoute =
@@ -689,6 +695,7 @@ export interface FileRoutesByFullPath {
   '/devolutiva': typeof DevolutivaRoute
   '/previa-app-cliente': typeof PreviaAppClienteRoute
   '/previa-caseid': typeof PreviaCaseidRoute
+  '/previa-desk-indicadores': typeof PreviaDeskIndicadoresRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -793,6 +800,7 @@ export interface FileRoutesByTo {
   '/devolutiva': typeof DevolutivaRoute
   '/previa-app-cliente': typeof PreviaAppClienteRoute
   '/previa-caseid': typeof PreviaCaseidRoute
+  '/previa-desk-indicadores': typeof PreviaDeskIndicadoresRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -900,6 +908,7 @@ export interface FileRoutesById {
   '/devolutiva': typeof DevolutivaRoute
   '/previa-app-cliente': typeof PreviaAppClienteRoute
   '/previa-caseid': typeof PreviaCaseidRoute
+  '/previa-desk-indicadores': typeof PreviaDeskIndicadoresRoute
   '/_authenticated/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/_authenticated/alertas': typeof AuthenticatedAlertasRoute
   '/_authenticated/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -1007,6 +1016,7 @@ export interface FileRouteTypes {
     | '/devolutiva'
     | '/previa-app-cliente'
     | '/previa-caseid'
+    | '/previa-desk-indicadores'
     | '/acessos-portal'
     | '/alertas'
     | '/app-cliente-como-pessoa'
@@ -1111,6 +1121,7 @@ export interface FileRouteTypes {
     | '/devolutiva'
     | '/previa-app-cliente'
     | '/previa-caseid'
+    | '/previa-desk-indicadores'
     | '/acessos-portal'
     | '/alertas'
     | '/app-cliente-como-pessoa'
@@ -1217,6 +1228,7 @@ export interface FileRouteTypes {
     | '/devolutiva'
     | '/previa-app-cliente'
     | '/previa-caseid'
+    | '/previa-desk-indicadores'
     | '/_authenticated/acessos-portal'
     | '/_authenticated/alertas'
     | '/_authenticated/app-cliente-como-pessoa'
@@ -1324,6 +1336,7 @@ export interface RootRouteChildren {
   DevolutivaRoute: typeof DevolutivaRoute
   PreviaAppClienteRoute: typeof PreviaAppClienteRoute
   PreviaCaseidRoute: typeof PreviaCaseidRoute
+  PreviaDeskIndicadoresRoute: typeof PreviaDeskIndicadoresRoute
   ApiPesquisaAssistenteRoute: typeof ApiPesquisaAssistenteRoute
   CanvasTokenRoute: typeof CanvasTokenRoute
   EquipeDiagnosticoConexaoRoute: typeof EquipeDiagnosticoConexaoRoute
@@ -1392,6 +1405,13 @@ declare module '@tanstack/react-router' {
       path: '/previa-caseid'
       fullPath: '/previa-caseid'
       preLoaderRoute: typeof PreviaCaseidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/previa-desk-indicadores': {
+      id: '/previa-desk-indicadores'
+      path: '/previa-desk-indicadores'
+      fullPath: '/previa-desk-indicadores'
+      preLoaderRoute: typeof PreviaDeskIndicadoresRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/acessos-portal': {
@@ -2294,6 +2314,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevolutivaRoute: DevolutivaRoute,
   PreviaAppClienteRoute: PreviaAppClienteRoute,
   PreviaCaseidRoute: PreviaCaseidRoute,
+  PreviaDeskIndicadoresRoute: PreviaDeskIndicadoresRoute,
   ApiPesquisaAssistenteRoute: ApiPesquisaAssistenteRoute,
   CanvasTokenRoute: CanvasTokenRoute,
   EquipeDiagnosticoConexaoRoute: EquipeDiagnosticoConexaoRoute,

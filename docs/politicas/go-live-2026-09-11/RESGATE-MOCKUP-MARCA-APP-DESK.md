@@ -77,8 +77,8 @@ Desk: header cream (sem restaurar sidebar Lovable; `GRUPOS_DESK` = 6).
 
 | Página mockup / indicador 47 | Entidade runtime | Escritor / RPC | Consumidor UI | Próxima fatia |
 |---|---|---|---|---|
-| Desk Visão Geral (p.11) + KPIs 47 | `crm_casos` + `proxima_acao_prioritaria` | RPC lote | `/painel` Hoje | Indicadores 47 alinhados ao planejador |
-| Caso 360 (p.12) | `crm_casos`, `case_plans`, `case_members` | `case_plans` + writers do planejador | Ficha caso Desk | Chip caseId + próxima ação |
+| Desk Visão Geral (p.11) + KPIs 47 | `crm_casos` + `proxima_acao_prioritaria` | RPC lote | `/painel` + `/previa-desk-indicadores` | Chrome/rótulos alinhados; prova visual nesta fatia |
+| Caso 360 (p.12) | `crm_casos`, `case_plans`, `case_members` | `case_plans` + writers do planejador | Ficha caso + prévia | Quatro cards: Jornada · Pessoas · Contrato · Pesquisa |
 | Checklist / docs (p.13) | `documents`, `evidences` | writers docs | Desk + App Documentos | Upload real + checklist vivo |
 | Validação jurídica (p.14) | `evidences.workflow_status` (CHECK) | workflow evidence | Desk pesquisa | Sem inventar status |
 | Radar interno (p.15) | radar 6 eixos + `research_cases` / `research_people` / `research_sources` | sanitizers | Desk + App Radar | Mesma identidade de eixos |
@@ -86,6 +86,17 @@ Desk: header cream (sem restaurar sidebar Lovable; `GRUPOS_DESK` = 6).
 | Biblioteca mestre (p.17) | `legado` via `app_projections` | publish portal | App Legado | Premium só com publicação |
 
 Regra: nenhuma Ordem 3–7 avança sem linha nesta tabela + print da fatia.
+
+
+## Fatia 2026-09-12 — indicadores Desk (p.11–12 / 47)
+
+| Superfície | Mockup 47 | Runtime agora |
+|---|---|---|
+| Visão Geral `/painel` | KPIs decisão do dia | Chrome cream nos `CardIndicador`; rótulos **Ações vencidas** / **Ações para hoje**; SLA continua “sem dados” se fonte não carrega |
+| Caso 360 | 4 indicadores | Terceiro card **Contrato** (antes Comercial/formalização); cards em cream |
+| Prévia pública | — | `/previa-desk-indicadores` (DEMO) + prints em `docs/provas/2026-09-12-desk-indicadores/` |
+
+De-para p.11–12: status **em prova visual** (não `COMPROVADO_EM_USO`). `GRUPOS_DESK` permanece 6.
 
 ## Gate
 

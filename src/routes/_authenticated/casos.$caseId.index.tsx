@@ -863,7 +863,7 @@ function FichaCaso() {
 
       {/* Quatro resumos acionáveis — cada um leva à seção completa, já preservada abaixo. */}
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <a href="#secao-jornada" className="rounded-xl border border-navy/10 bg-white p-4 hover:border-gold/60">
+        <a href="#secao-jornada" className="rounded-xl border border-navy/10 bg-cream/50 p-4 hover:border-gold/60">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Jornada/onboarding</p>
           <p className="mt-1 text-sm font-medium text-navy">
             {bloqueiosReais.length === 0
@@ -874,7 +874,7 @@ function FichaCaso() {
             <p className="mt-1 text-xs text-navy/60">{sugestoes[0].titulo}</p>
           ) : null}
         </a>
-        <a href="#secao-pessoas" className="rounded-xl border border-navy/10 bg-white p-4 hover:border-gold/60">
+        <a href="#secao-pessoas" className="rounded-xl border border-navy/10 bg-cream/50 p-4 hover:border-gold/60">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Pessoas/família</p>
           <p className="mt-1 text-sm font-medium text-navy">
             {(q.data?.membros ?? []).length} pessoa(s) no caso
@@ -887,12 +887,12 @@ function FichaCaso() {
             estadoDerivado={(caso["status_caso_derivado"] as string | null) ?? null}
           />
         </a>
-        <a href="#secao-comercial" className="rounded-xl border border-navy/10 bg-white p-4 hover:border-gold/60">
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Comercial/formalização</p>
+        <a href="#secao-comercial" className="rounded-xl border border-navy/10 bg-cream/50 p-4 hover:border-gold/60">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Contrato</p>
           <p className="mt-1 text-sm font-medium text-navy">{rotulo(EIXO_COMERCIAL, v("eixo_comercial"))}</p>
           <p className="text-xs text-navy/60">{rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao"))}</p>
         </a>
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/50 p-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Pesquisa/entregas</p>
           {qPesquisa.isLoading ? (
             <p className="mt-1 text-xs text-navy/50">Carregando resumo de pesquisa…</p>
