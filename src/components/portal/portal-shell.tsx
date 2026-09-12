@@ -22,6 +22,27 @@ import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { TIPO_CLIENTE } from "@/lib/marca";
 import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
+import { MAPA_APP_CLIENTE_KIT, type AbaAppCliente } from "@/lib/portal-mapa-kit";
+
+const ROTULO_ABA: Record<AbaAppCliente, string> = {
+  home: COPY_TELAS.home.navegacao,
+  jornada: COPY_TELAS.jornada.navegacao,
+  radar: COPY_TELAS.radar.navegacao,
+  arvore: COPY_TELAS.arvore.navegacao,
+  documentos: COPY_TELAS.documentos.navegacao,
+  legado: COPY_TELAS.legado.navegacao,
+  conta: COPY_TELAS.conta.navegacao,
+};
+
+const ICONE_ABA: Record<AbaAppCliente, typeof Home> = {
+  home: Home,
+  jornada: Route,
+  radar: Radar,
+  arvore: Trees,
+  documentos: FileText,
+  legado: BookOpen,
+  conta: UserRound,
+};
 
 export function usePortal() {
   const previa = usePreviaPortal();
@@ -64,17 +85,14 @@ export function PortalShell({
     Legado e Conta. Entregas / Fase 01 / Fase 02 saem da barra — as rotas
     continuam existindo como arquivos, só não ocupam a navegação.
   */
+  // Rótulo e destino de cada aba vêm do de-para canônico em portal-mapa-kit.
   const nav =
     previa || data?.nivel === "client_workspace"
-      ? [
-          { to: "/portal", label: COPY_TELAS.home.navegacao, icon: Home },
-          { to: "/portal/jornada", label: COPY_TELAS.jornada.navegacao, icon: Route },
-          { to: "/portal/radar", label: COPY_TELAS.radar.navegacao, icon: Radar },
-          { to: "/portal/arvore", label: COPY_TELAS.arvore.navegacao, icon: Trees },
-          { to: "/portal/documentos", label: COPY_TELAS.documentos.navegacao, icon: FileText },
-          { to: "/portal/legado", label: COPY_TELAS.legado.navegacao, icon: BookOpen },
-          { to: "/portal/conta", label: COPY_TELAS.conta.navegacao, icon: UserRound },
-        ]
+      ? MAPA_APP_CLIENTE_KIT.map(({ aba, rota }) => ({
+          to: rota,
+          label: ROTULO_ABA[aba],
+          icon: ICONE_ABA[aba],
+        }))
       : [{ to: "/portal/proposta", label: COPY_TELAS.proposta.navegacao, icon: Receipt }];
 
   async function sair() {
