@@ -426,6 +426,16 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 Prints: `docs/provas/2026-09-12-fidelidade-jornada-arvore-radar-meta/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqueadas.
 
+## Fatia 2026-09-12 — App Home meta strip (vocab 47)
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `/portal` (Home) | Sem faixa meta + barra de % inventada (marcos×12) | Meta caso·progresso·próxima ação·achados; progresso só com contagem publicada |
+| Gate marca | Sem item Home meta | Checklist Home sem % inventado |
+
+Prints: `docs/provas/2026-09-12-fidelidade-home-meta-47/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`).
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

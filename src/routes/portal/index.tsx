@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
+import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { meusCasos } from "@/lib/portal-cliente.functions";
@@ -10,6 +11,15 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
 import { ChipIdentidadeCaso } from "@/components/caso/chip-identidade-caso";
 import { identidadeDePortalCaso } from "@/lib/caso-compartilhado";
+
+function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
+  return (
+    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
+      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
+      <p className="mt-0.5 text-sm text-navy">{valor}</p>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/portal/")({
   head: () => ({
@@ -63,6 +73,7 @@ export function PortalHome() {
             statusRotulo="Acompanhamento ativo"
             proximoPasso={jornada.proximoPasso}
             marcos={jornada.marcosPublicados}
+            casoCodigo={previa.identidade?.codigo ?? CASO_DEMO_CODIGO}
             identidade={previa.identidade}
             achados={jornada.linha.slice(0, 3).map((item) => ({
               id: item.id,
@@ -99,6 +110,7 @@ export function PortalHome() {
                 proximoPasso={principal.proximoPasso || jornada.proximoPasso}
                 proximoPassoDestino={principal.proximoPassoDestino}
                 marcos={jornada.marcosPublicados}
+                casoCodigo={principal.codigo ?? "—"}
                 casoId={principal.id}
                 identidade={identidadeDePortalCaso({
                   id: principal.id,
@@ -147,6 +159,7 @@ function PainelHomeMockup({
   proximoPasso,
   proximoPassoDestino,
   marcos,
+  casoCodigo,
   casoId,
   identidade,
   achados,
@@ -157,12 +170,31 @@ function PainelHomeMockup({
   proximoPasso: string;
   proximoPassoDestino?: string | null;
   marcos: number;
+  casoCodigo: string;
   casoId?: string;
   identidade?: import("@/lib/caso-compartilhado").IdentidadeCaso;
   achados: Array<{ id: string; tipo: string; texto: string }>;
 }) {
+  const proximaCurta =
+    proximoPasso.length > 48 ? `${proximoPasso.slice(0, 45).trimEnd()}…` : proximoPasso;
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-aba-home>
+      <div
+        data-home-meta
+        className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+      >
+        <ChipMeta rotulo="Caso" valor={casoCodigo} />
+        <ChipMeta
+          rotulo="Progresso"
+          valor={marcos === 0 ? "Sem publicação ainda" : `${marcos} marcos`}
+        />
+        <ChipMeta rotulo="Próxima ação" valor={proximaCurta || "Aguardando equipe"} />
+        <ChipMeta
+          rotulo="Achados"
+          valor={achados.length === 0 ? "Nenhum ainda" : `${achados.length} recentes`}
+        />
+      </div>
+
       <section className="rounded-2xl border border-navy/10 bg-cream/50 p-5 shadow-sm">
         <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">Seu caso</p>
         <div className="mt-1 flex flex-wrap items-start justify-between gap-2">
@@ -184,21 +216,10 @@ function PainelHomeMockup({
             <p className="text-[11px] uppercase tracking-wide text-navy/45">Progresso publicado</p>
             <p className="mt-1 font-serif text-2xl text-navy">{marcos}</p>
             <p className="text-xs text-navy/55">
-              {marcos === 0 ? "Aguardando primeira publicação" : "marcos já compartilhados com você"}
+              {marcos === 0
+                ? "Aguardando primeira publicação"
+                : "marcos já compartilhados com você — sem % inventado"}
             </p>
-            <div
-              className="mt-3 h-1.5 overflow-hidden rounded-full bg-navy/10"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.min(100, marcos * 12)}
-              aria-label="Progresso publicado do acompanhamento"
-            >
-              <div
-                className="h-full rounded-full bg-gold transition-[width]"
-                style={{ width: `${Math.min(100, marcos * 12)}%` }}
-              />
-            </div>
           </div>
           <div className="rounded-xl border border-gold/40 bg-gold/10 p-3">
             <p className="text-[11px] uppercase tracking-wide text-navy/45">Próxima ação</p>
