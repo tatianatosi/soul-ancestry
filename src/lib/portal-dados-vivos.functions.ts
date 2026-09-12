@@ -23,24 +23,15 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
     projecoes: ProjecaoBruta[];
     documentos: DocumentoPortal[];
     proximaAcao: ProximaAcaoCliente | null;
-    /** D0 real do acompanhamento (onboarding iniciado, ou criação do caso). */
-    inicioEm: string | null;
   }> => {
     semCache();
     const supabase = context.supabase as any;
 
-    const casos = await supabase.from("portal_casos").select("id, status, ativo, suspenso_em, onboarding_iniciado_em, created_at");
-    const permitidos = ((casos.data ?? []) as {
-      id: string;
-      status?: string;
-      ativo?: boolean;
-      suspenso_em?: string | null;
-      onboarding_iniciado_em?: string | null;
-      created_at?: string | null;
-    }[]);
+    const casos = await supabase.from("portal_casos").select("id, status, ativo, suspenso_em");
+    const permitidos = ((casos.data ?? []) as { id: string; status?: string; ativo?: boolean; suspenso_em?: string | null }[]);
     const ids = permitidos.map((c) => String(c.id));
     const alvo = data.casoId ? ids.filter((id) => id === data.casoId) : ids;
-    if (alvo.length === 0) return { projecoes: [], documentos: [], proximaAcao: null, inicioEm: null };
+    if (alvo.length === 0) return { projecoes: [], documentos: [], proximaAcao: null };
 
     const [proj, docs, pendencias, faturas] = await Promise.all([
       supabase
@@ -71,6 +62,5 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       projecoes: (proj.data ?? []) as ProjecaoBruta[],
       documentos: (docs.data ?? []) as DocumentoPortal[],
       proximaAcao,
-      inicioEm: caso?.onboarding_iniciado_em ?? caso?.created_at ?? null,
     };
   });

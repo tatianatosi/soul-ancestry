@@ -8,11 +8,14 @@ import { radarSeisDimensoes } from "@/lib/radar-seis-eixos";
 import { RadarSeisEixos } from "@/components/portal/radar-seis-eixos";
 import { usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { KpiCard } from "@/components/clube-ancestral-kit";
 
 function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
-  // Kit visual aprovado: o cartão de indicador do Clube Ancestral.
-  return <KpiCard label={rotulo} value={valor} />;
+  return (
+    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
+      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
+      <p className="mt-0.5 text-sm text-navy">{valor}</p>
+    </div>
+  );
 }
 
 export const Route = createFileRoute("/portal/radar")({
@@ -67,7 +70,7 @@ export function PortalRadar() {
                 <div className="space-y-6" data-aba-radar>
                   <div
                     data-radar-meta
-                    className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+                    className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
                   >
                     <ChipMeta rotulo="Caso" valor={casoCodigo} />
                     <ChipMeta rotulo="App" valor="6 dimensões" />

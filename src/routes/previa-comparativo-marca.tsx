@@ -180,7 +180,7 @@ function PreviaComparativoMarca() {
               <span className="mt-0.5 block text-xs text-navy/55">/previa-app-cliente?aba=arvore</span>
             </a>
             <Link
-              to="/previa-app-cliente" search={{ formato: "desktop" as const, tela: undefined }}
+              to="/previa-app-cliente"
               className="rounded-xl border border-navy/15 bg-cream/70 px-4 py-3 text-sm text-navy transition-colors hover:border-gold"
             >
               <span className="font-medium">App Cliente (7 abas)</span>

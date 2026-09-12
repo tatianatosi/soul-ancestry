@@ -40,8 +40,6 @@ export type DadosPortal = {
   documentos: DocumentoPortal[];
   /** Mesma próxima ação do motor, quando a fonte já a calculou. */
   proximaAcao?: ProximaAcaoCliente | null;
-  /** D0 real do acompanhamento (onboarding iniciado, ou criação do caso). */
-  inicioEm?: string | null;
 };
 
 /**

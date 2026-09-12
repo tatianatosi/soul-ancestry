@@ -5,13 +5,15 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { LinkPortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { KpiCard } from "@/components/clube-ancestral-kit";
-import { FaixaD0D365 } from "@/components/portal/faixa-d0-d365";
 import { jornadaSanitizada, partirJornadaEmDuasLinhas } from "@/lib/portal-dados-vivos";
 
 function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
-  // Kit visual aprovado: o cartão de indicador do Clube Ancestral.
-  return <KpiCard label={rotulo} value={valor} />;
+  return (
+    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
+      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
+      <p className="mt-0.5 text-sm text-navy">{valor}</p>
+    </div>
+  );
 }
 
 export const Route = createFileRoute("/portal/jornada")({
@@ -70,15 +72,9 @@ export function PortalJornada() {
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-4" data-aba-jornada>
-                <FaixaD0D365
-                  etapa={ritmoRotulo}
-                  inicioEm={vivo.inicioEm ?? null}
-                  proximaAcao={jornada.proximoPasso}
-                  microentrega={jornada.linha[0] ?? null}
-                />
                 <div
                   data-jornada-meta
-                  className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+                  className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
                 >
                   <ChipMeta rotulo="Caso" valor={casoCodigo} />
                   <ChipMeta rotulo="Marcos" valor={String(jornada.marcosPublicados)} />

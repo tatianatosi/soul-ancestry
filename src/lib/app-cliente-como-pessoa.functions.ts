@@ -13,29 +13,6 @@ import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/**
- * Leitura de `app_projections` para a visão master.
- *
- * Primeiro tenta a sessão autenticada (RLS como membro da organização). Só se
- * essa leitura falhar (recursão da policy de shares) recorre à chave de
- * serviço — e, se o servidor não tiver segredo válido para o projeto
- * declarado, devolve o erro original da leitura autenticada, em vez de
- * "Invalid API key", que não diz nada a quem lê a tela.
- */
-async function lerProjecoes(supabase: any, montar: (cliente: any) => any) {
-  const comSessao = await montar(supabase);
-  if (!comSessao.error) return comSessao;
-  try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const comAdmin = await montar(supabaseAdmin as any);
-    if (!comAdmin.error) return comAdmin;
-  } catch {
-    /* sem segredo de servidor para este projeto: vale o erro autenticado */
-  }
-  return comSessao;
-}
-
-
 export type DadosPortalComoAdmin = {
   projecoes: ProjecaoBruta[];
   documentos: DocumentoPortal[];
@@ -85,9 +62,15 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
     if (!caso) throw new Error("Caso não encontrado nesta organização.");
 
     const agora = new Date().toISOString();
+    // Policy portal (LGPD shares) recursa com app_projection_shares mesmo para
+    // is_org_member. Enquanto 20260911120000 não estiver no projeto remoto, a
+    // visão master lê projeções via admin *depois* de autorizar proprietária +
+    // org + caso — mesmos filtros. Portal do cliente continua no JWT.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const leitorProjecoes = supabaseAdmin as typeof supabase;
 
-    const proj = await lerProjecoes(supabase, (cliente: any) =>
-      cliente
+    const [proj, docs, pendencias, faturas] = await Promise.all([
+      leitorProjecoes
         .from("app_projections")
         .select("id, case_id, projection_type, content_sanitized, effective_from, updated_at")
         .eq("organization_id", organizationId)
@@ -97,10 +80,6 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
         .is("archived_at", null)
         .not("effective_from", "is", null)
         .lte("effective_from", agora),
-    );
-
-    const [docs, pendencias, faturas] = await Promise.all([
-
       supabase
         .from("documents")
         .select("id, liberado_cliente, origem")
@@ -198,15 +177,11 @@ export const resumoVisaoClienteCaso = createServerFn({ method: "GET" })
       .maybeSingle();
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
 
-    const projecoes = await lerProjecoes(supabase, (cliente: any) =>
-      cliente
-        .from("app_projections")
-        .select("id,projection_type,approval_status,effective_from,archived_at")
-        .eq("organization_id", organizationId)
-        .eq("case_id", data.casoId),
-    );
+    // Mesma ponte admin de dadosVivosDoPortalComoAdmin (recursão RLS shares).
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const leitorProjecoes = supabaseAdmin as typeof supabase;
 
-    const [acessoCaso, entregas, documentos] = await Promise.all([
+    const [acessoCaso, projecoes, entregas, documentos] = await Promise.all([
       supabase
         .from("client_portal_case_access")
         .select("access_status,revoked_at,client_portal_access:client_portal_access_id(access_status,last_authenticated_at)")
@@ -215,10 +190,14 @@ export const resumoVisaoClienteCaso = createServerFn({ method: "GET" })
         .order("granted_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
+      leitorProjecoes
+        .from("app_projections")
+        .select("id,projection_type,approval_status,effective_from,archived_at")
+        .eq("organization_id", organizationId)
+        .eq("case_id", data.casoId),
       supabase
         .from("client_deliverables")
         .select("id", { count: "exact", head: true })
-
         .eq("organization_id", organizationId)
         .eq("case_id", data.casoId)
         .eq("approval_status", "em_revisao")

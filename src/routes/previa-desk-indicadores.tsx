@@ -139,7 +139,7 @@ function PreviaDeskIndicadores() {
               </p>
             </div>
             <Link
-              to="/previa-app-cliente" search={{ formato: "desktop" as const, tela: undefined }}
+              to="/previa-app-cliente"
               className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy hover:border-gold"
             >
               Ver App Cliente

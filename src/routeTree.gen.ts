@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AcessoRouteImport } from './routes/acesso'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as CatalogoSuperficiesRouteImport } from './routes/catalogo-superficies'
 import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as PortalRouteRouteImport } from './routes/portal/route'
 import { Route as PreviaAppClienteRouteImport } from './routes/previa-app-cliente'
@@ -136,11 +135,6 @@ const AcessoRoute = AcessoRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CatalogoSuperficiesRoute = CatalogoSuperficiesRouteImport.update({
-  id: '/catalogo-superficies',
-  path: '/catalogo-superficies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DevolutivaRoute = DevolutivaRouteImport.update({
@@ -717,7 +711,6 @@ export interface FileRoutesByFullPath {
   '/portal': typeof PortalRouteRouteWithChildren
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
-  '/catalogo-superficies': typeof CatalogoSuperficiesRoute
   '/devolutiva': typeof DevolutivaRoute
   '/previa-app-cliente': typeof PreviaAppClienteRoute
   '/previa-caseid': typeof PreviaCaseidRoute
@@ -826,7 +819,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
-  '/catalogo-superficies': typeof CatalogoSuperficiesRoute
   '/devolutiva': typeof DevolutivaRoute
   '/previa-app-cliente': typeof PreviaAppClienteRoute
   '/previa-caseid': typeof PreviaCaseidRoute
@@ -938,7 +930,6 @@ export interface FileRoutesById {
   '/portal': typeof PortalRouteRouteWithChildren
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
-  '/catalogo-superficies': typeof CatalogoSuperficiesRoute
   '/devolutiva': typeof DevolutivaRoute
   '/previa-app-cliente': typeof PreviaAppClienteRoute
   '/previa-caseid': typeof PreviaCaseidRoute
@@ -1050,7 +1041,6 @@ export interface FileRouteTypes {
     | '/portal'
     | '/acesso'
     | '/auth'
-    | '/catalogo-superficies'
     | '/devolutiva'
     | '/previa-app-cliente'
     | '/previa-caseid'
@@ -1159,7 +1149,6 @@ export interface FileRouteTypes {
     | '/'
     | '/acesso'
     | '/auth'
-    | '/catalogo-superficies'
     | '/devolutiva'
     | '/previa-app-cliente'
     | '/previa-caseid'
@@ -1270,7 +1259,6 @@ export interface FileRouteTypes {
     | '/portal'
     | '/acesso'
     | '/auth'
-    | '/catalogo-superficies'
     | '/devolutiva'
     | '/previa-app-cliente'
     | '/previa-caseid'
@@ -1382,7 +1370,6 @@ export interface RootRouteChildren {
   PortalRouteRoute: typeof PortalRouteRouteWithChildren
   AcessoRoute: typeof AcessoRouteWithChildren
   AuthRoute: typeof AuthRoute
-  CatalogoSuperficiesRoute: typeof CatalogoSuperficiesRoute
   DevolutivaRoute: typeof DevolutivaRoute
   PreviaAppClienteRoute: typeof PreviaAppClienteRoute
   PreviaCaseidRoute: typeof PreviaCaseidRoute
@@ -1429,13 +1416,6 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/catalogo-superficies': {
-      id: '/catalogo-superficies'
-      path: '/catalogo-superficies'
-      fullPath: '/catalogo-superficies'
-      preLoaderRoute: typeof CatalogoSuperficiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/devolutiva': {
@@ -2393,7 +2373,6 @@ const rootRouteChildren: RootRouteChildren = {
   PortalRouteRoute: PortalRouteRouteWithChildren,
   AcessoRoute: AcessoRouteWithChildren,
   AuthRoute: AuthRoute,
-  CatalogoSuperficiesRoute: CatalogoSuperficiesRoute,
   DevolutivaRoute: DevolutivaRoute,
   PreviaAppClienteRoute: PreviaAppClienteRoute,
   PreviaCaseidRoute: PreviaCaseidRoute,

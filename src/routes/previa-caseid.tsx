@@ -44,7 +44,7 @@ function PreviaCaseId() {
             </div>
           </div>
           <Link
-            to="/previa-app-cliente" search={{ formato: "desktop" as const, tela: undefined }}
+            to="/previa-app-cliente"
             className="rounded-lg border border-cream/30 px-3 py-1.5 text-xs text-cream hover:bg-cream/10"
           >
             Ver App Cliente
