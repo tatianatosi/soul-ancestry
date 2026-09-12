@@ -4,7 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
 import { SaasShell } from "@/components/saas/shell";
-import { BadgeDesk, CardIndicador, CarregandoDesk, SectionHeader, VazioDesk, type TomEstado } from "@/components/desk/ui-desk";
+import { BadgeDesk, CarregandoDesk, SectionHeader, VazioDesk, type TomEstado } from "@/components/desk/ui-desk";
+import { KpiCard, ChecklistCard, type KitTone } from "@/components/clube-ancestral-kit";
 import { Button } from "@/components/ui/button";
 import { listarFilaMicroentregas } from "@/lib/biblioteca-evidencias.functions";
 import { APROVACOES } from "@/lib/biblioteca-evidencias";
