@@ -55,8 +55,8 @@ function QualidadePage() {
 }
 
 /**
- * Mesma restrição do Radar do cliente: o Radar Interno lê a jornada pelos
- * quatro eixos canônicos, sem eixo extra, para Cliente e Ops nunca divergirem.
+ * Radar Interno (Desk) usa os quatro eixos da jornada (radar-eixos.ts).
+ * Distinto das seis dimensões do App Cliente (radar-seis-eixos.ts). Sem eixo extra aqui.
  */
 function EixosCanonicosInternos() {
   const eixos = garantirEixosCanonicos(EIXOS_RADAR_CANONICOS);
