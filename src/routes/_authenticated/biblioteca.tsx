@@ -10,6 +10,7 @@ import { ManifestoResgate } from "@/components/governanca/manifesto";
 import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
 
 import { MotoresPrimordiais } from "@/components/biblioteca/motores-primordiais";
+import { FilaPublicacaoReal } from "@/components/biblioteca/fila-publicacao-real";
 import { MAPA_CENTRO_INTELIGENCIA, SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
 import { rotuloFonteNegocio } from "@/lib/rotulo-negocio";
 import {
