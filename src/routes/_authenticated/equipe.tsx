@@ -7,7 +7,6 @@ import { EstadoVazio, PAPEL_LABEL, SaasShell } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { StatusEnvioRecuperacao } from "@/components/equipe/status-envio-recuperacao";
-import { CardIndicador } from "@/components/desk/ui-desk";
 import {
   alterarPapelMembro,
   alterarStatusMembro,
