@@ -548,6 +548,7 @@ function ArvoreCincoGeracoes() {
 }
 
 function AppClienteSeteTelas() {
+  const ALTURA_RADAR = ["h-7", "h-8", "h-6", "h-7", "h-5", "h-4"] as const;
   const telas = [
     { nome: "Home", detalhe: "Etapa, progresso, próxima ação e achado publicado", valor: "65%" },
     { nome: "Jornada", detalhe: "Linha ancestral 1820–2024 e linha do caso", valor: "7 marcos" },
@@ -572,7 +573,7 @@ function AppClienteSeteTelas() {
           <article key={tela.nome} className={cn("rounded-xl border p-3", indice === 0 ? "border-gold/60 bg-gold/10" : "border-navy/10 bg-card")}>
             <div className="flex items-start justify-between gap-2"><h3 className="font-serif text-base text-navy">{tela.nome}</h3><span className="text-[10px] font-semibold text-gold">{tela.valor}</span></div>
             <p className="mt-2 text-[10px] leading-relaxed text-navy/60">{tela.detalhe}</p>
-            {tela.nome === "Radar" ? <div className="mt-3 grid grid-cols-6 gap-1">{[78, 90, 65, 72, 55, 40].map((valor) => <span key={valor} className="h-8 rounded-sm bg-gold/20" style={{ height: `${Math.max(12, valor / 3)}px` }} />)}</div> : null}
+            {tela.nome === "Radar" ? <div className="mt-3 flex h-8 items-end gap-1">{[78, 90, 65, 72, 55, 40].map((valor, eixo) => <span key={valor} className={cn("min-w-0 flex-1 rounded-sm bg-gold/30", ALTURA_RADAR[eixo])} />)}</div> : null}
             {tela.nome === "Árvore" ? <div className="mt-3"><ArvoreCincoGeracoes /></div> : null}
           </article>
         ))}

@@ -13,3 +13,5 @@
 - [ ] Validar compilação, rotas e estados de leitura das novas superfícies.
 - [x] Ligar os cartões de Hoje e a fila da Biblioteca às fontes reais do Desk.
 - [ ] Publicar o App Cliente e conferir etapa, próxima ação e microentrega publicada em tela real.
+- [x] Completar o pente-fino visual das 15 prévias contra o mockup aprovado de 17 páginas, preservando 6 grupos do Desk e 7 telas do App Cliente.
+- [ ] Validar visualmente as prévias atualizadas em desktop e mobile.
