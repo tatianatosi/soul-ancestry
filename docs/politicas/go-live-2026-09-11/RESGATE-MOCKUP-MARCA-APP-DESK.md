@@ -404,6 +404,16 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqu
 Prints: `docs/provas/2026-09-12-fidelidade-legado-prateleiras/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 
+## Fatia 2026-09-12 — App Documentos checklist honesto (47)
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `/portal/documentos` (prévia) | Checklist inventava certidões/status | Meta caso·checklist·liberados·enviados; vazio específico; próxima ação só se publicada |
+| Gate | Sem item Documentos honesto | Checklist Documentos sem inventar certidão |
+
+Prints: `docs/provas/2026-09-12-fidelidade-documentos-checklist-47/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`).
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).

@@ -5,11 +5,21 @@ import { Download } from "lucide-react";
 import { useState } from "react";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
+import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
 import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
 import { usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { baixarEntrega, minhasEntregas } from "@/lib/portal-cliente.functions";
 import { mensagemDeFalha, rotuloEstadoVivo, textoParaCliente } from "@/lib/portal-linguagem-viva";
+
+function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
+  return (
+    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
+      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
+      <p className="mt-0.5 text-sm text-navy">{valor}</p>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/portal/documentos")({
   head: () => ({
@@ -47,61 +57,103 @@ export function PortalDocumentos() {
     const docs = (vivo.data?.documentos ?? []).filter((d) => d.is_demo !== true);
     const liberados = docs.filter((d) => d.liberado_cliente);
     const enviados = docs.filter((d) => d.origem === "cliente");
+    const casoCodigo = previa.identidade?.codigo ?? CASO_DEMO_CODIGO;
+    const proxima = vivo.data?.proximaAcao?.acao ?? null;
     return (
       <PortalShell titulo={COPY_TELAS.documentos.titulo} descricao={COPY_TELAS.documentos.descricao}>
         {vivo.isLoading ? (
           <PortalCarregando />
         ) : (
-          <div className="space-y-8">
-            {/* Checklist visual do mockup — estados de acompanhamento, sem arquivo inventado. */}
-            <section className="rounded-2xl border border-navy/10 bg-cream/50 p-5 shadow-sm">
-              <h2 className="font-serif text-xl text-navy">Checklist do caso</h2>
+          <div className="space-y-6" data-aba-documentos>
+            <div
+              data-documentos-meta
+              className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+            >
+              <ChipMeta rotulo="Caso" valor={casoCodigo} />
+              <ChipMeta
+                rotulo="Checklist"
+                valor={docs.length === 0 ? "Aguardando pedidos" : `${docs.length} item(ns)`}
+              />
+              <ChipMeta rotulo="Liberados" valor={String(liberados.length)} />
+              <ChipMeta rotulo="Enviados" valor={String(enviados.length)} />
+            </div>
+
+            {/* Checklist só com itens reais — nunca inventar estado de certidão. */}
+            <section
+              data-documentos-checklist
+              className="rounded-2xl border border-navy/10 bg-cream/50 p-5 shadow-sm"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <h2 className="font-serif text-xl text-navy">Checklist do caso</h2>
+                <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
+                  Só publicações reais
+                </span>
+              </div>
               <p className="mt-1 text-sm text-navy/60">
-                Situação dos documentos pedidos neste acompanhamento. Arquivos só aparecem quando a equipe libera.
+                Situação a partir do que a equipe pediu ou liberou. Arquivos e status só aparecem com
+                publicação real — sem inventar certidão.
               </p>
-              <ul className="mt-4 space-y-2">
-                {[
-                  { rotulo: "Certidão de nascimento — linha direta", estado: "Recebido", tom: "ok" as const },
-                  { rotulo: "Certidão de casamento — linha direta", estado: "Em revisão", tom: "neutro" as const },
-                  { rotulo: "Documento de identidade", estado: "Pendente com você", tom: "atencao" as const },
-                  { rotulo: "Registro paroquial / batismo", estado: "Em conferência", tom: "neutro" as const },
-                ].map((item) => (
-                  <li
-                    key={item.rotulo}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/10 bg-cream/40 px-3 py-2.5"
-                  >
-                    <span className="text-sm text-navy/85">{item.rotulo}</span>
-                    <span
-                      className={
-                        item.tom === "ok"
-                          ? "rounded-full border border-navy/15 bg-cream/40 px-2.5 py-0.5 text-[11px] font-medium text-navy/70"
-                          : item.tom === "atencao"
-                            ? "rounded-full border border-terracotta/30 bg-terracotta/10 px-2.5 py-0.5 text-[11px] font-medium text-terracotta"
-                            : "rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[11px] font-medium text-navy/70"
-                      }
-                    >
-                      {item.estado}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-            <section>
-              <h2 className="font-serif text-xl">Preparado para você</h2>
-              {liberados.length === 0 ? (
-                <div className="mt-3">
-                  <PortalVazio mensagem={COPY_TELAS.documentos.vazio} />
+              {docs.length === 0 ? (
+                <div className="mt-4 space-y-3">
+                  <p className="rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center text-sm text-navy/65">
+                    Nenhum documento pedido ou liberado neste momento.
+                  </p>
+                  {proxima ? (
+                    <div className="rounded-xl border border-gold/35 bg-gold/10 px-4 py-3">
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
+                        Próxima ação publicada
+                      </p>
+                      <p className="mt-1 text-sm text-navy">{proxima}</p>
+                    </div>
+                  ) : null}
                 </div>
               ) : (
-                <p className="mt-3 text-sm text-navy/70">{liberados.length} documento(s) liberado(s) neste caso.</p>
+                <ul className="mt-4 space-y-2">
+                  {liberados.map((d, i) => (
+                    <li
+                      key={d.id ?? `lib-${i}`}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/10 bg-cream/40 px-3 py-2.5"
+                    >
+                      <span className="text-sm text-navy/85">Documento liberado</span>
+                      <span className="rounded-full border border-navy/15 bg-cream/40 px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
+                        Liberado para você
+                      </span>
+                    </li>
+                  ))}
+                  {enviados.map((d, i) => (
+                    <li
+                      key={d.id ?? `env-${i}`}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/10 bg-cream/40 px-3 py-2.5"
+                    >
+                      <span className="text-sm text-navy/85">Envio seu</span>
+                      <span className="rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
+                        Compartilhado
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               )}
             </section>
-            <section>
-              <h2 className="font-serif text-xl">O que você compartilhou</h2>
+
+            <section data-documentos-preparado className="rounded-2xl border border-navy/10 bg-cream/40 p-5">
+              <h2 className="font-serif text-xl text-navy">Preparado para você</h2>
+              {liberados.length === 0 ? (
+                <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
+                  {COPY_TELAS.documentos.vazio}
+                </p>
+              ) : (
+                <p className="mt-3 text-sm text-navy/70">
+                  {liberados.length} documento(s) liberado(s) neste caso.
+                </p>
+              )}
+            </section>
+
+            <section data-documentos-enviados className="rounded-2xl border border-navy/10 bg-cream/50 p-5">
+              <h2 className="font-serif text-xl text-navy">O que você compartilhou</h2>
               {enviados.length === 0 ? (
-                <div className="mt-3">
-                  <PortalVazio mensagem="Você ainda não compartilhou documentos conosco." />
-                </div>
+                <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
+                  Você ainda não compartilhou documentos conosco.
+                </p>
               ) : (
                 <p className="mt-3 text-sm text-navy/70">{enviados.length} envio(s) neste caso.</p>
               )}

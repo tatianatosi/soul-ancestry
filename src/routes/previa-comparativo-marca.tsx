@@ -66,6 +66,7 @@ const CHECKLIST: { item: string; status: "ok" | "prova" }[] = [
   { item: "App Conta densificada: perfil · plano · alertas · histórico (vocab 47 + vaz específicos)", status: "ok" },
   { item: "App Legado densificado: prateleiras Cadernos·Relatórios·Narrativas·Memória + Premium só com publicação", status: "ok" },
   { item: "DetalhesTecnicos cream (sem bg-card residual)", status: "ok" },
+  { item: "App Documentos: checklist sem inventar certidão; meta caso·liberados·enviados + próxima ação real", status: "ok" },
   { item: "Rotas profundas App: Materiais/Relatório/Atualização (sem H1 Fase 01/02)", status: "ok" },
   { item: "Rotas profundas sem H1 Entregas/Fase 01/Fase 02", status: "ok" },
   { item: "Tokens hex = guia OKI (navy/gold/cream/terracotta)", status: "ok" },
