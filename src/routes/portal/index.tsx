@@ -17,6 +17,7 @@ import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
 import { ChipIdentidadeCaso } from "@/components/caso/chip-identidade-caso";
 import { identidadeDePortalCaso } from "@/lib/caso-compartilhado";
 import { cn } from "@/lib/utils";
+import { CheckCircle2, Search, ArrowRight, Lock } from "lucide-react";
 
 function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
@@ -173,38 +174,48 @@ function EstepeJornada({
   percentual: number;
 }) {
   return (
-    <div className="mt-4">
-      <div className="flex items-center justify-between text-[11px] uppercase tracking-widest text-cream/60">
+    <div className="mt-5">
+      <div className="mb-2 flex items-center justify-between text-xs text-cream/70">
         <span>Progresso da jornada</span>
-        <span className="font-medium text-gold">{percentual}%</span>
+        <span className="font-semibold text-gold">{percentual}%</span>
       </div>
-      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-cream/15">
-        <div className="h-full rounded-full bg-gold" style={{ width: `${percentual}%` }} />
+      <div className="h-2 overflow-hidden rounded-full bg-navy-soft">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-gold-soft to-gold"
+          style={{ width: `${percentual}%` }}
+        />
       </div>
-      <div className="mt-4 flex items-start justify-between gap-1">
-        {rotulos.map((rotulo, i) => {
-          const concluida = i < indice;
-          const atual = i === indice;
-          return (
-            <div key={rotulo} className="flex flex-1 flex-col items-center gap-1.5 text-center">
-              <span
-                className={cn(
-                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
-                  atual
-                    ? "bg-gold text-navy"
-                    : concluida
-                      ? "bg-cream/25 text-cream"
-                      : "bg-cream/10 text-cream/50",
-                )}
-              >
-                {i + 1}
-              </span>
-              <span className={cn("text-[10px] leading-tight", atual ? "text-cream" : "text-cream/50")}>
-                {rotulo}
-              </span>
-            </div>
-          );
-        })}
+
+      <div className="mt-5 rounded-xl bg-navy-soft/60 p-3">
+        <div className="mb-2 text-[10px] uppercase tracking-widest text-gold/80">Hoje você está aqui</div>
+        <div className="flex items-center justify-between gap-1">
+          {rotulos.map((rotulo, i) => {
+            const concluida = i < indice;
+            const atual = i === indice;
+            return (
+              <div key={rotulo} className="flex flex-1 flex-col items-center">
+                <div
+                  className={cn(
+                    "grid h-7 w-7 place-items-center rounded-full text-[10px] font-bold transition",
+                    concluida && "bg-gold/40 text-gold",
+                    atual && "scale-110 bg-gold text-navy ring-4 ring-gold/30",
+                    !concluida && !atual && "border border-cream/20 bg-navy/40 text-cream/50",
+                  )}
+                >
+                  {concluida ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}
+                </div>
+                <div
+                  className={cn(
+                    "mt-1.5 text-center text-[9px] leading-tight",
+                    atual ? "font-bold text-gold" : "text-cream/60",
+                  )}
+                >
+                  {rotulo}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -256,11 +267,13 @@ function PainelHomeMockup({
         />
       </div>
 
-      <section className="rounded-2xl bg-navy p-5 text-cream shadow-sm sm:p-6">
-        <p className="text-[11px] font-medium uppercase tracking-widest text-cream/50">Seu caso</p>
-        <div className="mt-1 flex flex-wrap items-start justify-between gap-2">
-          <h2 className="font-serif text-2xl">{tituloCaso}</h2>
-          <span className="rounded-full bg-gold px-2.5 py-0.5 text-[11px] font-medium text-navy">
+      <section className="rounded-2xl bg-gradient-to-br from-navy to-navy-soft p-5 text-cream shadow-lg sm:p-6">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[11px] uppercase tracking-widest text-gold/80">Seu caso</p>
+            <h2 className="font-serif text-xl italic">{tituloCaso}</h2>
+          </div>
+          <span className="shrink-0 rounded-full bg-gold px-3 py-1 text-[11px] font-semibold text-navy">
             {statusRotulo}
           </span>
         </div>
@@ -276,23 +289,29 @@ function PainelHomeMockup({
           <EstepeJornada rotulos={fase.rotulos} indice={fase.indice} percentual={fase.percentual} />
         ) : null}
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl bg-cream/10 p-3">
-            <p className="text-[11px] uppercase tracking-wide text-cream/50">Progresso publicado</p>
-            <p className="mt-1 font-serif text-2xl">{marcos}</p>
-            <p className="text-xs text-cream/60">
-              {marcos === 0
-                ? "Aguardando primeira publicação"
-                : "marcos já compartilhados com você — sem % inventado"}
-            </p>
+        <div className="mt-4 rounded-xl bg-cream/10 p-3">
+          <p className="text-[11px] uppercase tracking-wide text-cream/50">Progresso publicado</p>
+          <p className="mt-1 font-serif text-2xl">{marcos}</p>
+          <p className="text-xs text-cream/60">
+            {marcos === 0
+              ? "Aguardando primeira publicação"
+              : "marcos já compartilhados com você — sem % inventado"}
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h3 className="mb-3 font-serif text-lg text-navy">Próximos passos</h3>
+        <div className="flex items-start gap-3 rounded-xl border border-navy/10 bg-card p-4 shadow-sm">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gold/20 font-serif text-sm font-semibold text-navy">
+            1
           </div>
-          <div className="rounded-xl bg-gold/15 p-3">
-            <p className="text-[11px] uppercase tracking-wide text-cream/50">Próxima ação</p>
-            <p className="mt-1 text-sm font-medium">{proximoPasso}</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-navy">{proximoPasso}</p>
             {proximoPassoDestino ? (
               <LinkPortal
                 to={proximoPassoDestino}
-                className="mt-2 inline-block text-sm font-medium text-gold underline-offset-2 hover:underline"
+                className="text-xs font-medium text-terracotta underline-offset-2 hover:underline"
               >
                 Abrir
               </LinkPortal>
@@ -300,36 +319,55 @@ function PainelHomeMockup({
               <Link
                 to="/portal/casos/$id"
                 params={{ id: casoId }}
-                className="mt-2 inline-block text-sm font-medium text-gold underline-offset-2 hover:underline"
+                className="text-xs font-medium text-terracotta underline-offset-2 hover:underline"
               >
                 Ver detalhes do caso
               </Link>
             ) : null}
           </div>
+          <ArrowRight className="h-4 w-4 shrink-0 text-navy/40" aria-hidden="true" />
         </div>
       </section>
 
-      <section className="rounded-2xl border border-navy/10 bg-cream/40 p-5">
-        <div className="flex items-center justify-between gap-2">
+      <section>
+        <div className="mb-3 flex items-center justify-between gap-2">
           <h3 className="font-serif text-lg text-navy">Achados recentes</h3>
           <LinkPortal to="/portal/jornada" className="text-xs font-medium text-navy/60 hover:text-navy">
             Ver jornada
           </LinkPortal>
         </div>
         {achados.length === 0 ? (
-          <p className="mt-3 text-sm text-navy/60">
+          <p className="text-sm text-navy/60">
             Assim que a equipe publicar um achado ou atualização, ele aparece aqui.
           </p>
         ) : (
-          <ul className="mt-3 space-y-2">
+          <div className="space-y-2.5">
             {achados.map((a) => (
-              <li key={a.id} className="rounded-lg border border-navy/10 bg-cream/40 p-3">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-navy/45">{a.tipo}</p>
-                <p className="mt-1 text-sm text-navy/85">{a.texto}</p>
-              </li>
+              <div key={a.id} className="rounded-xl border border-navy/10 border-l-4 border-l-gold bg-card p-4">
+                <div className="mb-1 flex items-center gap-2">
+                  <Search className="h-3.5 w-3.5 text-gold" aria-hidden="true" />
+                  <span className="text-[10px] font-medium uppercase tracking-widest text-gold">{a.tipo}</span>
+                </div>
+                <p className="text-sm text-navy/85">{a.texto}</p>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
+      </section>
+
+      <section className="rounded-xl border border-plum/30 bg-plum/5 p-4">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-plum/15 text-plum">
+            <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-widest text-plum">Próximo nível disponível</p>
+            <p className="mt-0.5 text-sm text-navy">Sua história familiar completa aguarda.</p>
+            <LinkPortal to="/portal/legado" className="mt-2 inline-block text-xs font-medium text-plum hover:underline">
+              Saber mais →
+            </LinkPortal>
+          </div>
+        </div>
       </section>
     </div>
   );

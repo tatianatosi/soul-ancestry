@@ -55,8 +55,14 @@ describe("Entrega 1 — hero navy + stepper de 5 fases na Home", () => {
     expect(home).toContain("FASE_ATUAL_DEMO_SOPHIA_PERCENTUAL");
   });
 
-  it("o hero do caso é navy (bg-navy), não mais o cartão claro anterior", () => {
+  it("o hero do caso é navy em gradiente, não mais o cartão claro anterior", () => {
     const home = readFileSync("src/routes/portal/index.tsx", "utf8");
-    expect(home).toContain('rounded-2xl bg-navy p-5 text-cream shadow-sm');
+    expect(home).toContain("bg-gradient-to-br from-navy to-navy-soft");
+  });
+
+  it("o passo ativo do stepper usa o destaque em anel/gold do mockup, os concluídos usam check", () => {
+    const home = readFileSync("src/routes/portal/index.tsx", "utf8");
+    expect(home).toContain("ring-4 ring-gold/30");
+    expect(home).toContain("CheckCircle2");
   });
 });
