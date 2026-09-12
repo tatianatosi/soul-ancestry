@@ -34,6 +34,12 @@ const TOM_STATUS: Record<string, TomEstado> = {
   approved: "sucesso",
   published: "sucesso",
 };
+const TOM_KIT: Record<string, KitTone> = {
+  draft: "neutral",
+  in_review: "attention",
+  approved: "success",
+  published: "gold",
+};
 
 function dataBr(v: string | null) {
   if (!v) return "Sem prazo definido";
@@ -82,7 +88,7 @@ function MicroentregasPage() {
         />
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {ORDEM.map((item) => (
-            <CardIndicador key={item} rotulo={rotuloStatus(item)} valor={contagem(item)} apoio="Fila editorial real" tom={TOM_STATUS[item]} />
+            <KpiCard key={item} label={rotuloStatus(item)} value={contagem(item)} detail="Fila editorial real" tone={TOM_KIT[item]} />
           ))}
         </div>
 
