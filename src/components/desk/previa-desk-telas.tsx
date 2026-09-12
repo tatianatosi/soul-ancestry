@@ -496,6 +496,161 @@ function FunilVisual() {
   );
 }
 
+function BarrasHorizontais({
+  itens,
+  tituloAcessivel,
+}: {
+  itens: { rotulo: string; valor: number; apoio?: string; tom?: "navy" | "gold" | "terracotta" }[];
+  tituloAcessivel: string;
+}) {
+  return (
+    <figure role="img" aria-label={tituloAcessivel} className="space-y-3">
+      {itens.map((item) => (
+        <div key={item.rotulo}>
+          <div className="mb-1 flex items-center justify-between gap-3 text-[10px]">
+            <span className="font-medium text-navy">{item.rotulo}</span>
+            <span className="tabular-nums text-navy/55">{item.apoio ?? `${item.valor}%`}</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-navy/10">
+            <div
+              className={cn(
+                "h-full rounded-full",
+                item.tom === "terracotta" ? "bg-terracotta" : item.tom === "gold" ? "bg-gold" : "bg-navy",
+              )}
+              style={{ width: `${Math.max(4, Math.min(100, item.valor))}%` }}
+            />
+          </div>
+        </div>
+      ))}
+    </figure>
+  );
+}
+
+function GraficoColunas({
+  itens,
+  tituloAcessivel,
+}: {
+  itens: { rotulo: string; valor: number; destaque?: boolean }[];
+  tituloAcessivel: string;
+}) {
+  const maior = Math.max(...itens.map((item) => item.valor), 1);
+  return (
+    <figure role="img" aria-label={tituloAcessivel}>
+      <div className="flex h-36 items-end gap-2 border-b border-l border-navy/15 px-2 pt-3">
+        {itens.map((item) => (
+          <div key={item.rotulo} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1">
+            <span className="text-[9px] font-semibold tabular-nums text-navy/60">{item.valor}</span>
+            <div
+              className={cn("w-full max-w-10 rounded-t-sm", item.destaque ? "bg-gold" : "bg-navy/70")}
+              style={{ height: `${Math.max(10, (item.valor / maior) * 92)}px` }}
+            />
+            <span className="w-full truncate text-center text-[8px] text-navy/55">{item.rotulo}</span>
+          </div>
+        ))}
+      </div>
+    </figure>
+  );
+}
+
+function SerieTendencia({
+  valores,
+  rotulos,
+  tituloAcessivel,
+}: {
+  valores: number[];
+  rotulos: string[];
+  tituloAcessivel: string;
+}) {
+  const largura = 320;
+  const altura = 112;
+  const maximo = Math.max(...valores, 1);
+  const minimo = Math.min(...valores, 0);
+  const intervalo = Math.max(maximo - minimo, 1);
+  const pontos = valores.map((valor, indice) => {
+    const x = 18 + indice * ((largura - 36) / Math.max(valores.length - 1, 1));
+    const y = altura - 22 - ((valor - minimo) / intervalo) * (altura - 42);
+    return { x, y, valor };
+  });
+  return (
+    <figure role="img" aria-label={tituloAcessivel}>
+      <svg viewBox={`0 0 ${largura} ${altura}`} className="w-full">
+        {[28, 54, 80].map((y) => <line key={y} x1="12" x2={largura - 12} y1={y} y2={y} className="stroke-navy/10" />)}
+        <polyline points={pontos.map((p) => `${p.x},${p.y}`).join(" ")} fill="none" className="stroke-terracotta" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+        {pontos.map((p, indice) => (
+          <g key={`${rotulos[indice]}-${p.valor}`}>
+            <circle cx={p.x} cy={p.y} r="4" className="fill-card stroke-terracotta" strokeWidth="2" />
+            <text x={p.x} y={altura - 6} textAnchor="middle" className="fill-navy/55 text-[8px]">{rotulos[indice]}</text>
+          </g>
+        ))}
+      </svg>
+    </figure>
+  );
+}
+
+function DonutEstados({
+  segmentos,
+  tituloAcessivel,
+}: {
+  segmentos: { rotulo: string; valor: number; tom: "navy" | "gold" | "terracotta" | "sucesso" }[];
+  tituloAcessivel: string;
+}) {
+  const total = segmentos.reduce((soma, item) => soma + item.valor, 0);
+  let acumulado = 0;
+  const classes = { navy: "stroke-navy", gold: "stroke-gold", terracotta: "stroke-terracotta", sucesso: "stroke-sucesso" } as const;
+  return (
+    <figure role="img" aria-label={tituloAcessivel} className="grid gap-4 sm:grid-cols-[8rem_1fr] sm:items-center">
+      <svg viewBox="0 0 120 120" className="mx-auto h-32 w-32 -rotate-90">
+        <circle cx="60" cy="60" r="42" fill="none" className="stroke-navy/10" strokeWidth="18" />
+        {segmentos.map((segmento) => {
+          const proporcao = total > 0 ? segmento.valor / total : 0;
+          const inicio = acumulado;
+          acumulado += proporcao;
+          return (
+            <circle
+              key={segmento.rotulo}
+              cx="60"
+              cy="60"
+              r="42"
+              fill="none"
+              className={classes[segmento.tom]}
+              strokeWidth="18"
+              strokeDasharray={`${proporcao * 263.89} 263.89`}
+              strokeDashoffset={-inicio * 263.89}
+            />
+          );
+        })}
+      </svg>
+      <figcaption className="space-y-2">
+        {segmentos.map((segmento) => (
+          <div key={segmento.rotulo} className="flex items-center justify-between gap-3 text-[10px]">
+            <span className="flex items-center gap-2 text-navy/65"><span className={cn("h-2.5 w-2.5 rounded-sm", segmento.tom === "navy" ? "bg-navy" : segmento.tom === "gold" ? "bg-gold" : segmento.tom === "terracotta" ? "bg-terracotta" : "bg-sucesso")} />{segmento.rotulo}</span>
+            <strong className="tabular-nums text-navy">{segmento.valor}</strong>
+          </div>
+        ))}
+      </figcaption>
+    </figure>
+  );
+}
+
+function RedeNucleoGrafica() {
+  return (
+    <figure role="img" aria-label="Rede demonstrativa de pessoas, núcleos e casos" className="relative mx-auto h-56 max-w-xl overflow-hidden rounded-lg border border-navy/10 bg-cream/35">
+      <svg viewBox="0 0 520 220" className="h-full w-full">
+        <g className="stroke-gold/60" strokeWidth="2">
+          <line x1="260" y1="110" x2="105" y2="52" /><line x1="260" y1="110" x2="410" y2="48" />
+          <line x1="260" y1="110" x2="110" y2="174" /><line x1="260" y1="110" x2="408" y2="176" />
+          <line x1="105" y1="52" x2="410" y2="48" className="stroke-navy/15" />
+        </g>
+        {[
+          { x: 260, y: 110, sigla: "GB", destaque: true }, { x: 105, y: 52, sigla: "CB" },
+          { x: 410, y: 48, sigla: "ER" }, { x: 110, y: 174, sigla: "MB" }, { x: 408, y: 176, sigla: "JB" },
+        ].map((no) => <g key={no.sigla}><circle cx={no.x} cy={no.y} r={no.destaque ? 27 : 22} className={no.destaque ? "fill-gold stroke-navy" : "fill-card stroke-navy/40"} strokeWidth="2" /><text x={no.x} y={no.y + 4} textAnchor="middle" className="fill-navy text-[11px] font-semibold">{no.sigla}</text></g>)}
+      </svg>
+      <figcaption className="absolute bottom-2 left-3 text-[9px] text-navy/50">Vínculos demonstrativos · pessoa central, ascendentes e dependentes</figcaption>
+    </figure>
+  );
+}
+
 function JornadaD0Visual() {
   const marcos = [
     { nome: "D0", apoio: "Aceite", estado: "feito" },
