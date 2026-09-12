@@ -624,7 +624,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
               id: fila.chave,
               title: fila.rotulo,
               items: fila.leads.slice(0, 8).map((item) => ({
-                id: item.id,
+                id: item.id ?? `lead-${fila.chave}-${item.nome}`,
                 title: item.nome || "Lead sem nome",
                 context: ROTULO_ESTADO_CALL[estadoCall(item)],
                 owner: item.responsavel_nome || "A definir",
