@@ -129,6 +129,23 @@ De-para p.13–17: **em prova visual** (não `COMPROVADO_EM_USO`). Sem tabela in
 Prints: `docs/provas/2026-09-12-app-fidelidade-p1/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 
+## Fatia 2026-09-12 — Radar + Árvore + comparativo marca
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| Radar (App) | Teia sem chrome cream / empty state | Card cream + empty sem inventar %; rótulos com padding SVG |
+| Árvore (App) | Bandas sem G1 gold / conectores | Canvas cream; G1 gold; conectores verticais; sem nomes inventados |
+| Gate marca | Sem superfície única para dona | `/previa-comparativo-marca` — paleta OKI + checklist + atalhos + 3 perguntas |
+
+Prints: `docs/provas/2026-09-12-radar-arvore-marca/`.  
+De-para Radar/Árvore: **em prova visual** (não `COMPROVADO_EM_USO`).
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).
+
+Perguntas abertas (dona):
+
+1. **Aprova marca/layout?**
+2. **Aprova Ordem 2 caseId para merge?**
+3. Produção: **sim** + branch + SHA?

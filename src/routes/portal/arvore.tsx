@@ -49,7 +49,7 @@ export function PortalArvore() {
                   {/* Estrutura G1–G5 do mockup — chrome visual, sem inventar pessoas. */}
                   <section
                     aria-label="Gerações G1 a G5"
-                    className="rounded-2xl border border-navy/10 bg-white/80 p-5 shadow-sm"
+                    className="rounded-2xl border border-navy/10 bg-cream/60 p-5 shadow-sm"
                   >
                     <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">
                       Árvore genealógica G1–G5
@@ -59,27 +59,36 @@ export function PortalArvore() {
                         ? "A estrutura abaixo acompanha o que a equipe já publicou para você. Nomes só aparecem quando liberados."
                         : COPY_TELAS.arvore.vazio}
                     </p>
-                    <div className="mt-5 space-y-5">
-                      {painel.geracoes.map((geracao) => (
+                    <div className="mt-5 space-y-1">
+                      {painel.geracoes.map((geracao, gi) => (
                         <div key={geracao.id}>
-                          <p className="mb-2 text-[10px] uppercase tracking-[0.14em] text-navy/45">
+                          {gi > 0 ? (
+                            <div className="mx-auto mb-1 h-4 w-px bg-gold/50" aria-hidden />
+                          ) : null}
+                          <p className="mb-2 text-center text-[10px] uppercase tracking-[0.14em] text-navy/45">
                             {geracao.rotulo}
                           </p>
                           <div className="flex flex-wrap justify-center gap-2">
-                            {Array.from({ length: geracao.slots }).map((_, i) => (
-                              <div
-                                key={`${geracao.id}-${i}`}
-                                className={cn(
-                                  "flex h-12 w-12 items-center justify-center rounded-full border text-[10px] text-navy/55",
-                                  painel.temPublicacao
-                                    ? "border-gold/50 bg-gold/10"
-                                    : "border-navy/15 bg-cream",
-                                )}
-                                aria-hidden="true"
-                              >
-                                —
-                              </div>
-                            ))}
+                            {Array.from({ length: geracao.slots }).map((_, i) => {
+                              const ehG1 = geracao.id === "G1";
+                              return (
+                                <div
+                                  key={`${geracao.id}-${i}`}
+                                  className={cn(
+                                    "flex h-12 w-12 items-center justify-center rounded-full border text-[10px]",
+                                    ehG1
+                                      ? "border-2 border-gold bg-gold/20 font-medium text-navy shadow-[0_0_0_3px_rgba(252,183,58,0.25)]"
+                                      : painel.temPublicacao
+                                        ? "border-gold/40 bg-white/70 text-navy/55"
+                                        : "border-navy/15 bg-white/50 text-navy/45",
+                                  )}
+                                  aria-hidden="true"
+                                  title={ehG1 ? "Você (G1)" : undefined}
+                                >
+                                  {ehG1 ? "G1" : "—"}
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       ))}
