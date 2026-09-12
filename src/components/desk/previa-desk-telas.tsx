@@ -27,6 +27,10 @@ import {
   Search,
   UserRound,
   ChevronDown,
+  MapPin,
+  Star,
+  Users,
+  LockKeyhole,
 } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand";
@@ -419,6 +423,24 @@ function MedidorConfianca({ valor }: { valor: number }) {
   );
 }
 
+function EstrelasConfianca({ valor }: { valor: number }) {
+  return (
+    <div className="rounded-lg border border-navy/10 bg-cream/40 p-3">
+      <div className="flex items-center gap-1" role="img" aria-label={`Confiança ${valor} de 5`}>
+        {Array.from({ length: 5 }).map((_, indice) => (
+          <Star
+            key={indice}
+            className={cn("h-4 w-4", indice < Math.round(valor) ? "fill-gold text-gold" : "text-navy/15")}
+            aria-hidden
+          />
+        ))}
+        <span className="ml-1 font-serif text-xl text-navy">{valor.toFixed(1)}</span>
+      </div>
+      <p className="mt-1 text-[10px] text-navy/55">Fontes conferidas e vínculos documentados</p>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Telas do mockup e complementos visuais aprovados                    */
 /* ------------------------------------------------------------------ */
@@ -600,20 +622,34 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <p className="text-xs text-navy/60">Pessoa canônica · sem duplicidade</p>
           </div>
         </div>
-        <div className={grade3}>
+        <div className="grid gap-4 lg:grid-cols-[1fr_1.25fr_0.9fr]">
           <Cartao titulo="Identidade">
             <Linha rotulo="Nome civil" valor="Giulia Bianchi" />
             <Linha rotulo="Nascimento" valor="1990" />
             <Linha rotulo="Naturalidade" valor="Brasil" />
             <Linha rotulo="Confiança do dado" valor="Alta" tom="sucesso" />
           </Cartao>
-          <Cartao titulo="Vínculos familiares">
+          <Cartao titulo="Gráfico de parentesco">
             <ArvoreFamiliaGrafica />
           </Cartao>
           <Cartao titulo="Casos vinculados">
             <Linha rotulo="Reconhecimento italiano" valor="Ativo" tom="sucesso" />
             <Linha rotulo="Retificação de certidão" valor="Aguardando" tom="atencao" />
             <Linha rotulo="Dossiê do legado" valor="Em pesquisa" />
+          </Cartao>
+          <Cartao titulo="Fontes">
+            <Linha rotulo="Certidão de nascimento" valor="Confirmada" tom="sucesso" />
+            <Linha rotulo="Registro paroquial" valor="Confirmada" tom="sucesso" />
+            <Linha rotulo="Lista de imigração" valor="Em revisão" tom="atencao" />
+          </Cartao>
+          <Cartao titulo="Localização">
+            <div className="flex items-center gap-3 rounded-lg border border-navy/10 bg-cream/40 p-3">
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-navy text-gold"><MapPin className="h-4 w-4" aria-hidden /></span>
+              <div><p className="text-xs font-semibold text-navy">Santos, Brasil</p><p className="text-[10px] text-navy/55">Último registro confirmado</p></div>
+            </div>
+          </Cartao>
+          <Cartao titulo="Confiança da pessoa">
+            <EstrelasConfianca valor={4.8} />
           </Cartao>
         </div>
       </div>
@@ -754,12 +790,25 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     grupo: "contratos",
     rota: "/financeiro",
     render: () => (
-      <div className={grade2}>
-        <Cartao titulo="Valores do contrato">
+      <div className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-4">
+          <Indicador rotulo="Valor do contrato" valor="R$ 43 mil" apoio="escopo vigente" />
+          <Indicador rotulo="Já recebido" valor="R$ 9,5 mil" apoio="pagamentos confirmados" />
+          <Indicador rotulo="A receber" valor="R$ 33,5 mil" apoio="parcelas futuras" />
+          <Indicador rotulo="Vencido" valor="R$ 0" apoio="nenhuma pendência" />
+        </div>
+        <div className={grade3}>
+        <Cartao titulo="Fluxo do contrato">
           <Linha rotulo="Valor do contrato" valor="R$ 43.000,00" />
           <Linha rotulo="Já recebido" valor="R$ 9.500,00" tom="sucesso" />
           <Linha rotulo="A receber" valor="R$ 33.500,00" tom="atencao" />
           <Linha rotulo="Vencido" valor="R$ 0,00" tom="sucesso" />
+        </Cartao>
+        <Cartao titulo="Parcelas previstas">
+          <Linha rotulo="Entrada" valor="Confirmada" tom="sucesso" />
+          <Linha rotulo="Parcela 2 · 15 set" valor="Programada" />
+          <Linha rotulo="Parcela 3 · 15 out" valor="Programada" />
+          <Linha rotulo="Parcela final" valor="A definir" tom="atencao" />
         </Cartao>
         <Cartao titulo="Reconciliação">
           <Linha rotulo="Pagamentos conciliados" valor="6" tom="sucesso" />
@@ -769,6 +818,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             Nenhuma cobrança é enviada a partir desta tela.
           </p>
         </Cartao>
+        </div>
       </div>
     ),
   },
@@ -778,18 +828,31 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     grupo: "contratos",
     rota: "/contratos",
     render: () => (
-      <div className={grade2}>
+      <div className="grid gap-4 lg:grid-cols-2">
         <Cartao titulo="Escopo e assinatura">
           <Linha rotulo="Contrato-base v2" valor="Vigente" tom="sucesso" />
           <Linha rotulo="Anexo I — escopo" valor="Assinado" tom="sucesso" />
           <Linha rotulo="Anexo IV — condições" valor="Assinado" tom="sucesso" />
           <Linha rotulo="Aditivo de dependente" valor="Pendente" tom="atencao" />
         </Cartao>
+        <Cartao titulo="Assinatura">
+          <div className="rounded-lg border border-navy/10 bg-cream/40 p-3">
+            <p className="font-serif text-lg italic text-navy">Giulia Bianchi</p>
+            <p className="mt-1 text-[10px] text-navy/55">Assinatura registrada · 21/03/2026</p>
+          </div>
+          <div className="mt-3"><Linha rotulo="Integridade do documento" valor="Validada" tom="sucesso" /></div>
+        </Cartao>
         <Cartao titulo="Validação jurídica">
           <Linha rotulo="Cadeia documental completa" valor="Validado" tom="sucesso" />
           <Linha rotulo="Retificação necessária" valor="Em análise" tom="atencao" />
           <Linha rotulo="Tradução juramentada" valor="Pendente" tom="critico" />
           <Linha rotulo="Apostilamento" valor="Pendente" tom="critico" />
+        </Cartao>
+        <Cartao titulo="Conflitos e conferências">
+          <Linha rotulo="Variação de sobrenome" valor="Revisar" tom="atencao" />
+          <Linha rotulo="Datas entre documentos" valor="Conferido" tom="sucesso" />
+          <Linha rotulo="Representação de menor" valor="Aplicável" tom="atencao" />
+          <Linha rotulo="Poderes da procuração" valor="Conferido" tom="sucesso" />
         </Cartao>
       </div>
     ),
@@ -837,19 +900,27 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     grupo: "casos",
     rota: "/acessos-portal",
     render: () => (
-      <div className={grade2}>
-        <Cartao titulo="Acessos concedidos">
-          <Linha rotulo="Giulia Bianchi" valor="Ativo" tom="sucesso" />
-          <Linha rotulo="Paulo Tavares" valor="Convite enviado" tom="atencao" />
-          <Linha rotulo="Marina Bianchi" valor="Sem acesso" />
-        </Cartao>
+      <div className="space-y-4">
+        <div className="grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
+          <Cartao titulo="Família no portal">
+            <ArvoreFamiliaGrafica />
+          </Cartao>
+          <div className="space-y-4">
+            <Cartao titulo="Núcleos com acesso">
+              <div className="space-y-3"><Pessoa nome="Giulia Bianchi" papel="Acesso ativo" /><Pessoa nome="Paulo Tavares" papel="Convite enviado" /></div>
+            </Cartao>
+            <Cartao titulo="Núcleos sem acesso">
+              <Linha rotulo="Marina Bianchi" valor="Sem acesso" />
+              <Linha rotulo="João Bianchi" valor="Sem acesso" />
+            </Cartao>
+          </div>
+        </div>
         <Cartao titulo="Conteúdo publicado no App">
-          <Linha rotulo="Resumo da jornada" valor="Publicado" tom="sucesso" />
-          <Linha rotulo="Documentos solicitados" valor="Publicado" tom="sucesso" />
-          <Linha rotulo="Achado genealógico" valor="Aguardando aprovação" tom="atencao" />
-          <p className="mt-3 text-[11px] text-navy/55">
-            O cliente vê apenas o que está publicado e sanitizado.
-          </p>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <Linha rotulo="Resumo da jornada" valor="Publicado" tom="sucesso" />
+            <Linha rotulo="Documentos solicitados" valor="Publicado" tom="sucesso" />
+            <Linha rotulo="Achado genealógico" valor="Aprovar" tom="atencao" />
+          </div>
         </Cartao>
       </div>
     ),
@@ -902,21 +973,36 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     grupo: "governanca",
     rota: "/configuracoes",
     render: () => (
-      <div className={grade2}>
-        <Cartao titulo="Papéis e permissões">
-          <Linha rotulo="Administração" valor="Acesso total" tom="sucesso" />
-          <Linha rotulo="Operações" valor="Escrita" tom="sucesso" />
-          <Linha rotulo="Pesquisa" valor="Escrita" tom="sucesso" />
-          <Linha rotulo="Leitura" valor="Somente leitura" />
+      <div className="grid gap-4 lg:grid-cols-[0.65fr_1.35fr]">
+        <Cartao titulo="Permissões">
+          <div className="space-y-2">
+            {["Política operacional", "Perfis e papéis", "Acessos internos", "Acessos ao portal", "Integrações", "Auditoria"].map((item, indice) => (
+              <div key={item} className={cn("flex items-center gap-2 rounded-lg border p-2 text-[11px]", indice === 0 ? "border-gold/50 bg-gold/10 text-navy" : "border-navy/10 text-navy/60")}>
+                {indice === 0 ? <LockKeyhole className="h-3.5 w-3.5 text-gold" aria-hidden /> : <Users className="h-3.5 w-3.5" aria-hidden />}{item}
+              </div>
+            ))}
+          </div>
         </Cartao>
-        <Cartao titulo="Registro de auditoria">
-          <Linha rotulo="Alteração de escopo" valor="12/09" />
-          <Linha rotulo="Publicação no App" valor="11/09" />
-          <Linha rotulo="Acesso concedido" valor="10/09" />
-          <p className="mt-3 text-[11px] text-navy/55">
-            Todo registro guarda autor, data e conteúdo anterior.
-          </p>
-        </Cartao>
+        <div className="space-y-4">
+          <Cartao titulo="Política operacional">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-navy/10 bg-cream/40 p-3"><p className="text-[10px] text-navy/55">Perfil selecionado</p><p className="mt-1 text-xs font-semibold text-navy">Administração</p></div>
+              <div className="rounded-lg border border-navy/10 bg-cream/40 p-3"><p className="text-[10px] text-navy/55">Confirmação externa</p><p className="mt-1 text-xs font-semibold text-navy">Sempre obrigatória</p></div>
+            </div>
+          </Cartao>
+          <Cartao titulo="Registro de auditoria">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[520px] text-left text-[10px]">
+                <thead className="border-b border-navy/10 uppercase text-navy/45"><tr><th className="pb-2">Data</th><th className="pb-2">Ação</th><th className="pb-2">Pessoa</th><th className="pb-2">Resultado</th></tr></thead>
+                <tbody className="divide-y divide-navy/5 text-navy/70">
+                  <tr><td className="py-2">12/09</td><td>Alteração de escopo</td><td>Tatiana</td><td><Etiqueta texto="Registrado" tom="sucesso" /></td></tr>
+                  <tr><td className="py-2">11/09</td><td>Publicação no App</td><td>Operações</td><td><Etiqueta texto="Registrado" tom="sucesso" /></td></tr>
+                  <tr><td className="py-2">10/09</td><td>Acesso concedido</td><td>Administração</td><td><Etiqueta texto="Registrado" tom="sucesso" /></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </Cartao>
+        </div>
       </div>
     ),
   },
