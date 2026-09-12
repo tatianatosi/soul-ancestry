@@ -317,9 +317,19 @@ function FaceCaso360() {
 }
 
 function FaceChecklist() {
-  const itens: { titulo: string; status: string; prioridade: string; prazo: string; tom: TomEstado }[] = [
+  const itens: {
+    titulo: string;
+    caso: string;
+    responsavel: string;
+    status: string;
+    prioridade: string;
+    prazo: string;
+    tom: TomEstado;
+  }[] = [
     {
       titulo: "Coletar certidão de nascimento (titular)",
+      caso: "CA-DEMO-014",
+      responsavel: "Operação",
       status: "Em andamento",
       prioridade: "Alta",
       prazo: "Hoje",
@@ -327,6 +337,8 @@ function FaceChecklist() {
     },
     {
       titulo: "Validar vínculo G2–G3 na árvore",
+      caso: "CA-DEMO-014",
+      responsavel: "Pesquisa",
       status: "Pendente",
       prioridade: "Média",
       prazo: "Amanhã",
@@ -334,6 +346,8 @@ function FaceChecklist() {
     },
     {
       titulo: "Publicar nota sanitizada no Radar",
+      caso: "CA-DEMO-021",
+      responsavel: "—",
       status: "Bloqueada",
       prioridade: "Alta",
       prazo: "—",
@@ -341,10 +355,10 @@ function FaceChecklist() {
     },
   ];
   return (
-    <section aria-label="Checklist operacional" className="space-y-3">
+    <section aria-label="Checklist operacional" className="space-y-3" data-face-checklist>
       <p className="text-sm text-navy/65">
-        Tarefas com caso, responsável, prazo e bloqueio — chrome cream (EntidadeCrud vivo em{" "}
-        <code className="font-mono">/tarefas</code>).
+        Mockup 47 / p.13: tarefa · caso · responsável · prazo · bloqueio. Runtime{" "}
+        <code className="font-mono text-xs">/tarefas</code>.
       </p>
       <div className="grid gap-3">
         {itens.map((i) => (
@@ -355,16 +369,20 @@ function FaceChecklist() {
             </div>
             <dl className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-navy/60">
               <div>
+                <dt className="inline text-navy/45">Caso: </dt>
+                <dd className="inline font-mono">{i.caso}</dd>
+              </div>
+              <div>
+                <dt className="inline text-navy/45">Responsável: </dt>
+                <dd className="inline">{i.responsavel}</dd>
+              </div>
+              <div>
                 <dt className="inline text-navy/45">Prioridade: </dt>
                 <dd className="inline">{i.prioridade}</dd>
               </div>
               <div>
                 <dt className="inline text-navy/45">Prazo: </dt>
                 <dd className="inline">{i.prazo}</dd>
-              </div>
-              <div>
-                <dt className="inline text-navy/45">Caso: </dt>
-                <dd className="inline font-mono">CA-ITA-SOPHI-PICCOLI</dd>
               </div>
             </dl>
           </article>
@@ -404,11 +422,19 @@ function FaceJuridica() {
 }
 
 function FaceRadar() {
-  const eixos = [
-    ["Documental", "Checklist mínimo e gaps"],
-    ["Genealógico", "Vínculos e fontes"],
-    ["Jurídico", "Temas bloqueantes"],
-    ["Operacional", "Prazo e responsável"],
+  const eixosJornada = [
+    ["História familiar", "Pessoas e gerações reconhecidas"],
+    ["Documentos e evidências", "Registros que sustentam a história"],
+    ["Estratégia e possibilidades", "Hipóteses — não conclusões"],
+    ["Próximos passos e progresso", "Onde estamos e o que segue"],
+  ];
+  const dimsApp = [
+    "Documentação",
+    "Origem",
+    "Conexões Familiares",
+    "Elegibilidade",
+    "Memória",
+    "Legado",
   ];
   const tiles: { rotulo: string; valor: string; tom: TomEstado }[] = [
     { rotulo: "Críticas", valor: "2", tom: "critico" },
@@ -417,28 +443,46 @@ function FaceRadar() {
     { rotulo: "Sem base", valor: "3", tom: "neutro" },
   ];
   return (
-    <section aria-label="Radar Interno" className="space-y-4">
+    <section aria-label="Radar Interno" className="space-y-4" data-face-radar>
       <p className="text-sm text-navy/70">
-        Matriz de prioridade da carteira + leitura de qualidade. Quatro eixos canônicos — mesmos do Radar do
-        cliente.
+        Desk <strong>Radar Interno</strong> (p.15 / <code className="font-mono text-xs">/qualidade</code>):{" "}
+        <strong>4 eixos da jornada</strong> — mesmos de <code className="font-mono text-xs">radar-eixos.ts</code>.
+        App Cliente (mockup 17): <strong>6 dimensões</strong> distintas (
+        <code className="font-mono text-xs">radar-seis-eixos.ts</code>). Não misturar identidades.
       </p>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {tiles.map((t) => (
-          <div key={t.rotulo} className="rounded-xl border border-navy/10 bg-cream/50 p-3">
-            <p className="text-[11px] uppercase tracking-wide text-navy/50">{t.rotulo}</p>
-            <p className="mt-1 font-serif text-2xl tabular-nums text-navy">{t.valor}</p>
-            <BadgeDesk texto={t.rotulo} tom={t.tom} />
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {tiles.map((tile) => (
+          <div key={tile.rotulo} className="rounded-xl border border-navy/10 bg-cream/50 p-3">
+            <p className="text-[11px] uppercase tracking-wide text-navy/50">{tile.rotulo}</p>
+            <p className="mt-1 font-serif text-2xl tabular-nums text-navy">{tile.valor}</p>
+            <BadgeDesk texto={tile.rotulo} tom={tile.tom} />
           </div>
         ))}
       </div>
       <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-        <h3 className="font-serif text-base text-navy">Eixos canônicos</h3>
+        <h3 className="font-serif text-base text-navy">4 eixos da jornada (Desk)</h3>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {eixos.map(([t, d]) => (
-            <article key={t} className="rounded-md border border-navy/10 bg-cream/60 p-3">
-              <h4 className="text-sm font-medium text-navy">{t}</h4>
-              <p className="mt-1 text-xs text-navy/60">{d}</p>
+          {eixosJornada.map(([titulo, resumo]) => (
+            <article key={titulo} className="rounded-md border border-navy/10 bg-cream/60 p-3">
+              <h4 className="text-sm font-medium text-navy">{titulo}</h4>
+              <p className="mt-1 text-xs text-navy/60">{resumo}</p>
             </article>
+          ))}
+        </div>
+      </div>
+      <div className="rounded-xl border border-gold/40 bg-cream/50 p-4">
+        <h3 className="font-serif text-base text-navy">App Cliente · 6 dimensões (mockup)</h3>
+        <p className="mt-1 text-xs text-navy/60">
+          Prova de taxonomia — Elegibilidade ≠ parecer jurídico (média honesta dos outros eixos).
+        </p>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {dimsApp.map((d) => (
+            <span
+              key={d}
+              className="rounded-lg border border-navy/15 bg-cream/40 px-3 py-2 text-center text-xs font-medium text-navy"
+            >
+              {d}
+            </span>
           ))}
         </div>
       </div>
@@ -447,13 +491,17 @@ function FaceRadar() {
 }
 
 function FaceAlertas() {
-  const linhas: { titulo: string; crit: string; status: string; tom: TomEstado }[] = [
-    { titulo: "Prazo documental vencido", crit: "crítica", status: "Aberto", tom: "bloqueio" },
-    { titulo: "Sem próxima ação no caso", crit: "alta", status: "Em tratamento", tom: "critico" },
-    { titulo: "Evidência requer complemento", crit: "atenção", status: "Aberto", tom: "atencao" },
+  const linhas: { titulo: string; caso: string; crit: string; status: string; tom: TomEstado }[] = [
+    { titulo: "Prazo documental vencido", caso: "CA-DEMO-014", crit: "crítica", status: "Aberto", tom: "bloqueio" },
+    { titulo: "Sem próxima ação no caso", caso: "CA-DEMO-021", crit: "alta", status: "Em tratamento", tom: "critico" },
+    { titulo: "Evidência requer complemento", caso: "CA-DEMO-033", crit: "atenção", status: "Aberto", tom: "atencao" },
   ];
   return (
-    <section aria-label="Alertas" className="space-y-3">
+    <section aria-label="Alertas" className="space-y-3" data-face-alertas>
+      <p className="text-sm text-navy/65">
+        Mockup 47 / p.16: sinal · caso · criticidade · status. Runtime{" "}
+        <code className="font-mono text-xs">/alertas</code>.
+      </p>
       <div className="flex flex-wrap gap-2">
         <span className="rounded-lg border border-navy/20 bg-cream px-2 py-1.5 text-sm text-navy/70">
           Todos os status
@@ -467,6 +515,7 @@ function FaceAlertas() {
           <thead className="text-[11px] uppercase tracking-wide text-navy/50">
             <tr>
               <th className="px-3 py-2">Sinal</th>
+              <th className="px-3 py-2">Caso</th>
               <th className="px-3 py-2">Criticidade</th>
               <th className="px-3 py-2">Status</th>
             </tr>
@@ -475,6 +524,7 @@ function FaceAlertas() {
             {linhas.map((l) => (
               <tr key={l.titulo} className="border-t border-navy/10">
                 <td className="px-3 py-2 text-navy">{l.titulo}</td>
+                <td className="px-3 py-2 font-mono text-xs text-navy/70">{l.caso}</td>
                 <td className="px-3 py-2">
                   <BadgeDesk texto={l.crit} tom={l.tom} />
                 </td>

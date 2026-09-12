@@ -147,7 +147,7 @@ function EvidenciasPage() {
       />
 
       {acessos ? (
-        <div className="mt-5 rounded-xl border border-navy/10 bg-white p-4">
+        <div className="mt-5 rounded-xl border border-navy/10 bg-cream/40 p-4">
           <SectionHeader
             titulo="Registro de acessos"
             descricao="Auditoria de visualização desta evidência."

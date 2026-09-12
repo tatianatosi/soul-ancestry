@@ -80,7 +80,7 @@ function RelatoriosPage() {
       ) : null}
       <div className="grid gap-4 md:grid-cols-2">
         {blocos.map((b) => (
-          <div key={b.titulo} className="rounded-xl border border-navy/10 bg-white p-5">
+          <div key={b.titulo} className="rounded-xl border border-navy/10 bg-cream/40 p-5">
             <h2 className="font-serif text-lg text-navy">{b.titulo}</h2>
             <EstadoDados
               carregando={consultas[b.fonte]?.isLoading ?? false}

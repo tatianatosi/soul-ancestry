@@ -49,6 +49,8 @@ const CHECKLIST: { item: string; status: "ok" | "prova" }[] = [
   { item: "App deep (proposta/mensagens/faturas) + Desk Governança/integrações/ops em cream", status: "ok" },
   { item: "Entregas sanitizadas (consultiva/modelo/fase02/studio) + módulos Desk em cream", status: "ok" },
   { item: "Mapa mockup 17 (7 App + faces Desk) + de-para 47 no gate de marca", status: "ok" },
+  { item: "Radar: Desk 4 eixos jornada ≠ App 6 dimensões (identidades documentadas)", status: "ok" },
+  { item: "Desk p.13/16: checklist e alertas com caso + responsável (vocabulário 47)", status: "ok" },
   { item: "Rotas profundas sem H1 Entregas/Fase 01/Fase 02", status: "ok" },
   { item: "Tokens hex = guia OKI (navy/gold/cream/terracotta)", status: "ok" },
   { item: "Site SEO ≠ app Vercel", status: "ok" },

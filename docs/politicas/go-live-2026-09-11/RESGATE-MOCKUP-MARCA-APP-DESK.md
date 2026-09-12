@@ -81,7 +81,8 @@ Desk: header cream (sem restaurar sidebar Lovable; `GRUPOS_DESK` = 6).
 | Caso 360 (p.12) | `crm_casos`, `case_plans`, `case_members` | `case_plans` + writers do planejador | Ficha caso + prévia | Quatro cards: Jornada · Pessoas · Contrato · Pesquisa |
 | Checklist / docs (p.13) | `documents`, `evidences` | writers docs | Desk + App Documentos | Upload real + checklist vivo |
 | Validação jurídica (p.14) | `evidences.workflow_status` (CHECK) | workflow evidence | Desk pesquisa | Sem inventar status |
-| Radar interno (p.15) | radar 6 eixos + `research_cases` / `research_people` / `research_sources` | sanitizers | Desk + App Radar | Mesma identidade de eixos |
+| Radar interno Desk (p.15) | **4 eixos jornada** (`radar-eixos.ts`) + matriz carteira | sanitizers | `/qualidade` + prévia | Não confundir com App 6 dims |
+| Radar App (mockup 17) | **6 dimensões** (`radar-seis-eixos.ts`) | publicações portal | App Radar | Elegibilidade ≠ parecer jurídico |
 | Alertas (p.16) | `case_alerts`, timeline | alert writers | Desk Alertas / Conta | Sem mock permanente |
 | Biblioteca mestre (p.17) | `legado` via `app_projections` | publish portal | App Legado | Premium só com publicação |
 
@@ -267,6 +268,21 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`). `GRUPOS_DESK` permanece 
 
 Prints: `docs/provas/2026-09-12-mapa-mockup-entregas-oki/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`). Ordens 3–7 ainda bloqueadas.
+
+
+## Fatia 2026-09-12 — fidelidade Radar 4≠6 + vocabulário 47 (p.13/16)
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| Face Radar Desk | Dizia “4 eixos = cliente” (falso vs App 6 dims) | 4 eixos jornada Desk + faixa App 6 dims separada |
+| De-para p.15 | Conflato 6 eixos | Desk 4 ≠ App 6 documentado |
+| Face Checklist p.13 | Sem caso/responsável | Campos caso · responsável · prazo · bloqueio |
+| Face Alertas p.16 | Sem caso | Coluna caso + criticidade + status |
+| Rotas residuais nucleos/ops/importações/… | `bg-white` residual | Cream |
+| Gate marca | Checklist | Itens Radar 4≠6 + vocabulário 47 |
+
+Prints: `docs/provas/2026-09-12-fidelidade-radar-47/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 
 ## Gate
 

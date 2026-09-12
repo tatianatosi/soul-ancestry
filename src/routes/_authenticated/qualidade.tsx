@@ -65,8 +65,7 @@ function EixosCanonicosInternos() {
     <section className="mb-4 rounded-lg border border-navy/10 bg-cream/50 p-4">
       <h2 className="font-serif text-base text-navy">Eixos canônicos da leitura</h2>
       <p className="mt-1 text-xs text-navy/60">
-        Leitura compartilhada com o Radar do cliente. Somente estes quatro eixos existem: nenhum
-        eixo pode ser criado, renomeado ou reordenado em telas internas.
+        Radar Interno do Desk — quatro eixos da jornada (radar-eixos.ts), compartilhados com a leitura de progresso do cliente. Distinto das 6 dimensões do App (radar-seis-eixos.ts). Nenhum eixo extra aqui.
       </p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {eixos.map((eixo) => (
