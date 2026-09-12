@@ -31,6 +31,8 @@ import { FormularioTarefaCaso } from "@/components/caso/formulario-tarefa-caso";
 import { PlanejadorOperacional } from "@/components/contrato/planejador-operacional";
 import { AbaVisaoGeral } from "@/components/caso/visao-geral";
 import { RadarInternoCaso } from "@/components/caso/radar-interno";
+import { ChipIdentidadeCaso } from "@/components/caso/chip-identidade-caso";
+import { identidadeDeCrmCaso } from "@/lib/caso-compartilhado";
 import { radarInternoDoCaso } from "@/lib/radar-interno-caso";
 import { AbaProdutoTrilha } from "@/components/caso/produto-trilha";
 import { ConsolidacaoCaseService } from "@/components/caso/consolidacao-case-service";
@@ -113,7 +115,7 @@ function Rotulo({ children }: { children: React.ReactNode }) {
 }
 
 const inputCls =
-  "w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold disabled:bg-navy/5 disabled:text-navy/50";
+  "w-full rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm text-navy outline-none focus:border-gold disabled:bg-navy/5 disabled:text-navy/50";
 
 /**
  * Envolve o resultado de uma consulta como payload único para `<EstadoDados>`.
@@ -288,7 +290,7 @@ function Secao({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-5">
+    <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
       <h2 className="font-serif text-lg text-navy">{titulo}</h2>
       {descricao ? (
         <p className="mb-4 mt-1 text-xs text-navy/55">{descricao}</p>
@@ -699,6 +701,16 @@ function FichaCaso() {
           App Cliente.
         </p>
       ) : null}
+      <div className="mb-4" data-ordem2-identidade-desk>
+        <ChipIdentidadeCaso
+          superficie="Desk"
+          identidade={identidadeDeCrmCaso({
+            id: String(caso["id"]),
+            codigo: (caso["codigo"] as string | null) ?? null,
+            titulo: (caso["titulo"] as string | null) ?? null,
+          })}
+        />
+      </div>
       {/*
         CA04-CASO360-SIMPLES (09/09/2026) — mockup aprovado define a primeira
         superfície: Situação hoje/Próxima ação/Responsável/Prazo/Motivo/
@@ -719,7 +731,7 @@ function FichaCaso() {
             <p className="text-[11px] uppercase tracking-wide text-navy/55">Próxima ação</p>
             <p className="mt-0.5 text-sm font-medium text-navy">{canonica?.acao ?? "—"}</p>
             {canonica ? (
-              <span className="mt-0.5 inline-block rounded-full border border-navy/15 bg-white px-2 py-0.5 text-[10px] text-navy/70">
+              <span className="mt-0.5 inline-block rounded-full border border-navy/15 bg-cream px-2 py-0.5 text-[10px] text-navy/70">
                 {SELO_PROXIMA_ACAO[canonica.origem]}
               </span>
             ) : null}
@@ -851,7 +863,7 @@ function FichaCaso() {
 
       {/* Quatro resumos acionáveis — cada um leva à seção completa, já preservada abaixo. */}
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <a href="#secao-jornada" className="rounded-xl border border-navy/10 bg-white p-4 hover:border-gold/60">
+        <a href="#secao-jornada" className="rounded-xl border border-navy/10 bg-cream/50 p-4 hover:border-gold/60">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Jornada/onboarding</p>
           <p className="mt-1 text-sm font-medium text-navy">
             {bloqueiosReais.length === 0
@@ -862,7 +874,7 @@ function FichaCaso() {
             <p className="mt-1 text-xs text-navy/60">{sugestoes[0].titulo}</p>
           ) : null}
         </a>
-        <a href="#secao-pessoas" className="rounded-xl border border-navy/10 bg-white p-4 hover:border-gold/60">
+        <a href="#secao-pessoas" className="rounded-xl border border-navy/10 bg-cream/50 p-4 hover:border-gold/60">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Pessoas/família</p>
           <p className="mt-1 text-sm font-medium text-navy">
             {(q.data?.membros ?? []).length} pessoa(s) no caso
@@ -875,12 +887,12 @@ function FichaCaso() {
             estadoDerivado={(caso["status_caso_derivado"] as string | null) ?? null}
           />
         </a>
-        <a href="#secao-comercial" className="rounded-xl border border-navy/10 bg-white p-4 hover:border-gold/60">
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Comercial/formalização</p>
+        <a href="#secao-comercial" className="rounded-xl border border-navy/10 bg-cream/50 p-4 hover:border-gold/60">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Contrato</p>
           <p className="mt-1 text-sm font-medium text-navy">{rotulo(EIXO_COMERCIAL, v("eixo_comercial"))}</p>
           <p className="text-xs text-navy/60">{rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao"))}</p>
         </a>
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/50 p-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Pesquisa/entregas</p>
           {qPesquisa.isLoading ? (
             <p className="mt-1 text-xs text-navy/50">Carregando resumo de pesquisa…</p>
@@ -939,7 +951,7 @@ function FichaCaso() {
             </li>
           </ul>
         </div>
-        <div id="resumo-visao-cliente" className="rounded-xl border border-navy/10 bg-white p-4">
+        <div id="resumo-visao-cliente" className="rounded-xl border border-navy/10 bg-cream/50 p-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Visão do cliente</p>
           <p className="mt-1 text-xs text-navy/60">O que o App Cliente mostra hoje — nunca produção interna.</p>
           {qVisaoCliente.isLoading ? (
@@ -978,7 +990,7 @@ function FichaCaso() {
             Preparar, revisar, aprovar, liberar ou despublicar →
           </Link>
         </div>
-        <div id="resumo-financeiro" className="rounded-xl border border-navy/10 bg-white p-4 sm:col-span-2 lg:col-span-4">
+        <div id="resumo-financeiro" className="rounded-xl border border-navy/10 bg-cream/50 p-4 sm:col-span-2 lg:col-span-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Financeiro</p>
           {qFinanceiro.isLoading ? (
             <p className="mt-2 text-xs text-navy/50">Carregando…</p>
@@ -1102,7 +1114,7 @@ function FichaCaso() {
 
       {/* No máximo: três tarefas, três atualizações, documentos prioritários, microentregas recentes e alertas críticos. */}
       <div className="mb-6 grid gap-3 lg:grid-cols-2">
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/50 p-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Tarefas</p>
           <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
             {(qTarefas.data?.tarefas ?? []).slice(0, 3).map((t: any) => (
@@ -1114,7 +1126,7 @@ function FichaCaso() {
           </ul>
           <FormularioTarefaCaso caseId={id} onCriada={recarregarTarefas} />
         </div>
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/50 p-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Atualizações recentes</p>
           <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
             {((q.data?.timeline ?? []) as any[]).slice(0, 3).map((e) => (
@@ -1128,7 +1140,7 @@ function FichaCaso() {
             {!((q.data?.timeline ?? []) as any[]).length ? <li className="text-navy/50">Nenhuma atualização registrada.</li> : null}
           </ul>
         </div>
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/50 p-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Documentos prioritários</p>
           <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
             {((qDocumentos.data ?? []) as any[])
@@ -1142,7 +1154,7 @@ function FichaCaso() {
             {!((qDocumentos.data ?? []) as any[]).length ? <li className="text-navy/50">Nenhum documento registrado.</li> : null}
           </ul>
         </div>
-        <div className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/50 p-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Microentregas recentes</p>
           <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
             {((qc2.data?.entregas ?? []) as any[]).slice(0, 3).map((m) => (
@@ -1484,7 +1496,7 @@ function FichaCaso() {
                     Plano inicial (tarefas): {q.data?.planoInicialOk ? "registrado" : "pendente"}
                   </li>
                 </ul>
-                <div className="rounded-lg border border-navy/10 bg-white/60 p-3">
+                <div className="rounded-lg border border-navy/10 bg-cream/40 p-3">
                   <p className="text-xs font-semibold text-navy">
                     Completude do núcleo familiar (critérios persistidos)
                   </p>
@@ -1549,7 +1561,7 @@ function FichaCaso() {
               ) : (
                 <ul className="mt-2 space-y-2 text-xs">
                   {qJuridico.data!.pendencias.map((p, i) => (
-                    <li key={i} className="rounded-lg border border-navy/10 bg-white/60 p-2">
+                    <li key={i} className="rounded-lg border border-navy/10 bg-cream/40 p-2">
                       <p className="font-medium text-navy">{p.rotulo}</p>
                       <p className="text-navy/60">Estado: {p.estado}</p>
                       <p className="text-navy/60">Decisão necessária: {p.decisaoHumanaNecessaria}</p>
@@ -1841,7 +1853,7 @@ function FichaCaso() {
           de persistência campo→tabela) recolhidos por padrão — nada foi
           apagado, "secao-log" continua sendo o alvo do índice fixo.
         */}
-        <details id="secao-log" hidden={secaoFoco !== null && secaoFoco !== "log"} className="scroll-mt-16 rounded-xl border border-navy/10 bg-white p-5">
+        <details id="secao-log" hidden={secaoFoco !== null && secaoFoco !== "log"} className="scroll-mt-16 rounded-xl border border-navy/10 bg-cream/50 p-5">
           <summary className="cursor-pointer font-serif text-lg text-navy">
             Dados técnicos e validações
           </summary>

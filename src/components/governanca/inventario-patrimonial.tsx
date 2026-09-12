@@ -30,7 +30,7 @@ import {
 
 function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-4">
+    <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
       <h2 className="text-sm font-medium text-navy">{titulo}</h2>
       <div className="mt-3">{children}</div>
     </section>
@@ -167,7 +167,7 @@ export function InventarioPatrimonial() {
             <select
               value={dominioCsv}
               onChange={(e) => setDominioCsv(e.target.value as Dominio | "todos")}
-              className="mt-1 rounded-md border border-navy/15 bg-white px-2 py-1 text-xs text-navy"
+              className="mt-1 rounded-md border border-navy/15 bg-cream/40 px-2 py-1 text-xs text-navy"
             >
               <option value="todos">Todos os domínios</option>
               {DOMINIOS.map((d) => (
@@ -182,7 +182,7 @@ export function InventarioPatrimonial() {
             <select
               value={statusCsv}
               onChange={(e) => setStatusCsv(e.target.value as StatusInventario | "todos")}
-              className="mt-1 rounded-md border border-navy/15 bg-white px-2 py-1 text-xs text-navy"
+              className="mt-1 rounded-md border border-navy/15 bg-cream/40 px-2 py-1 text-xs text-navy"
             >
               <option value="todos">Todos os status</option>
               {STATUS_INVENTARIO.map((s) => (

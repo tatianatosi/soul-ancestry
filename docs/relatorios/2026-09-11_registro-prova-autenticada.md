@@ -5,22 +5,23 @@
 **Conta exigida:** proprietária `tati@pluggedresearch.com`  
 **Atualizado em:** 2026-09-11
 
-Nenhum motor abaixo está `COMPROVADO_EM_USO`. Código, PR, Vitest, build, preview ou declaração de agente **não** alteram essa certificação.
+Nenhum motor abaixo está `COMPROVADO_EM_USO`. Código, PR, Vitest, build, DEMO, preview ou declaração de agente **não** alteram essa certificação.
 
 **Circuito operacional mínimo (Abas → Mesa → KPIs):** relatórios manhã/fim do dia em `docs/relatorios/circuito-operacional-minimo/` (ex.: `2026-09-11_fim-do-dia.md`). Não substitui este registro de prova.
 
 ## Ambientes tentados
 
-### A. Vite local no Cloud Agent (`http://127.0.0.1:8080`)
+### A. Vite local no Cloud Agent
 
 | Campo | Valor |
 |---|---|
 | Data/hora | 2026-09-11 ~00:34 UTC |
-| Rota | `/equipe/entrar` |
+| Ambiente | `http://127.0.0.1:5173/equipe/entrar` e `http://127.0.0.1:8080/equipe/entrar` |
+| Motor | Sessão da proprietária (pré-requisito) |
 | Resultado | `BLOQUEADO_POR_DADO` |
-| Evidência | Tela de login; mensagem genérica de falha. Sem Painel autenticado. |
-| Causa | `prepararLoginEquipe` exige `SUPABASE_SERVICE_ROLE_KEY` no servidor local. A chave **não** entra em chat, git ou artefato. |
-| Limitação | Esse ambiente local **não** serve para a matriz da seção 4 do adendo. |
+| Evidência | Tela de login; mensagem genérica “Não foi possível entrar. Verifique os dados e tente novamente.” Sem Painel autenticado. |
+| Causa | `prepararLoginEquipe` → `estadoLimite` exige `SUPABASE_SERVICE_ROLE_KEY` no servidor. A variável não está no Cloud Agent. A chave **não** entra em chat, git ou artefato. |
+| Limitação | Esse ambiente local **não** serve para a matriz da seção 4 do adendo. Não repetir até o servidor ter a chave. |
 
 ### B. Preview Vercel da Mesa (PR #98) — evidência de agente, não certificação da dona
 
@@ -70,6 +71,19 @@ Essa linha **não** pede que a proprietária refaça o clique só para repetir o
 | Backlog visual | `docs/relatorios/2026-09-11_backlog-p11-app-cliente-vs-mockup.md` |
 | `COMPROVADO_EM_USO` | **não** — só leitura/empty; sem protocolo publicar + F5 |
 
+### E. Prévia Vercel do Desk de 6 grupos — sessão autenticada (navegação)
+
+| Campo | Valor |
+|---|---|
+| Data/hora | 2026-09-11 ~00:39–00:48 UTC |
+| Ambiente | `https://soul-ancestry-git-cursor-desk-produt-c233f7-tati-6134s-projects.vercel.app` |
+| Conta | `tati@pluggedresearch.com` · Clube Ancestral · Admin |
+| Motor | Sessão + taxonomia + leitura de face |
+| Ação | Login em `/equipe/entrar` → `/painel` → `/calls` → `/contratos` → `/catalogo` → `/biblioteca` → `/configuracoes` → `/crm-mestre` → `/app-cliente-demo` → `/painel` |
+| Resultado da **sessão** | `PASSOU` |
+| Prints | `docs/provas/2026-09-11-preview-desk-6-grupos/` |
+| Limitação | Sem escrita persistida neste passe. DEMO do App Cliente não é projeção de cliente real. Releitura = retorno a `/painel`, não F5 de um save. Integração Discovery → Pessoa → Caso → Hoje **não** executada. Distinto do ambiente B (Mesa PR #98). |
+
 ## Matriz por motor
 
 Resultados permitidos: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_DECISAO`, `ERRO_DE_FONTE`, `NAO_LOCALIZADO`.  
@@ -78,17 +92,18 @@ Resultados permitidos: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_
 | Motor | Resultado | Prints (inicial / ação / confirmação / releitura / integração) | Observação |
 |---|---|---|---|
 | Sessão da proprietária (Vite local) | `BLOQUEADO_POR_DADO` | não / tentada / erro genérico / não / não | Ambiente A. |
-| Sessão no preview Vercel (agente) | evidência de agente — **não** `PASSOU` do protocolo | sim / — / sessão no Desk / não / não | Ambiente B. Print do e-mail no menu Conta. |
-| Mesa Discovery / CRM | não `PASSOU` | sim / chip Problema / card mudou / não / não | Uma pergunta SPIN por vez; `/leads` só espelha progresso. Sem F5 de persistência. Sem próxima ação no Hoje. Lead de teste. |
+| Sessão no preview Mesa (agente) | evidência de agente — **não** `PASSOU` do protocolo | sim / — / sessão no Desk / não / não | Ambiente B. |
+| Sessão na prévia Desk 6 grupos | `PASSOU` | sim / login / `/painel` com Admin / retorno a `/painel` / N/A | Ambiente E. `sessao_autenticada_tati_admin.png`. |
+| Mesa Discovery / CRM | não `PASSOU` | sim / chip Problema / card mudou / não / não | Ambiente B: uma pergunta SPIN por vez; sem F5; sem próxima ação no Hoje. Ambiente E: `/calls` aberto, sem gravar SPIN. |
 | Pessoa 360 | `NAO_LOCALIZADO` | — | Mesa ainda não grava na Pessoa 360. |
 | Varredura de dossiê por palavra-chave | `NAO_LOCALIZADO` | — | Peça inexistente no `src/`. |
-| Pesquisa e evidências | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
+| Pesquisa e evidências | `NAO_LOCALIZADO` | leitura Biblioteca (E) / sem gravar lacuna / — / — / — | Sem prova autenticada da dona com save+F5. |
 | Contexto de países / jurídico | `NAO_LOCALIZADO` | — | Trilha/marco na Mesa são dropdown interno, não parecer. |
-| Proposta / formalização | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
-| Financeiro | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. |
-| Entregas / App Cliente | `PASSOU` (leitura master) | sim×7 / — / empty por aba / — / não | Ambiente D. Sem `42P17`. **não** `COMPROVADO_EM_USO` (falta publicar→F5). Prints em `provas/2026-09-11-app-cliente-master/`. |
-| KPIs e Hoje | `NAO_LOCALIZADO` | — | Sem print de integração da próxima ação da Mesa. |
-| Abas / taxonomia | parcial | sim (7 abas App) / — / — / — / — | App Cliente: 7 abas (ambiente D). Desk: decisão 2026-09-11 recomenda **7 telas mockup + 6 grupos internos** (`00_governanca/DECISAO-NAV-…`); código ainda 6-face; 8-grupos = histórico. Status: em revisão — **não** `COMPROVADO_EM_USO`. |
+| Proposta / formalização | `NAO_LOCALIZADO` | leitura Contratos (E) / sem parâmetro gravado / — / — / — | Sem Top 30 na face da prévia E. |
+| Financeiro | `NAO_LOCALIZADO` | — | Sem prova autenticada da dona. Catálogo homologado lido em E (não é caixa). |
+| Entregas / App Cliente | `PASSOU` (leitura master) / `NAO_LOCALIZADO` (DEMO e publicar→F5) | sim×7 (D) / — / empty por aba / — / não | Ambiente D. Sem `42P17`. DEMO em E **não** conta como motor. **não** `COMPROVADO_EM_USO`. |
+| KPIs e Hoje | `PASSOU` (leitura na prévia E) / `NAO_LOCALIZADO` (escrever item / integração Mesa) | inicial `/painel` (E) / navegação / cards visíveis / retorno `/painel` / sem fila por ação | Casos ativos visíveis; sem Receita/Conversão no topo. Sem print de integração da próxima ação da Mesa. |
+| Abas / taxonomia | `PASSOU` (navegação) / parcial (decisão 7+6) | sim (E: 6 grupos Desk; D: 7 abas App) / sidebar + rotas / páginas carregaram / retorno `/painel` / — | Prévia E ainda 6-face; decisão 2026-09-11 recomenda **7 telas + 6 grupos internos** (`00_governanca/DECISAO-NAV-…`); 8-grupos = histórico — **não** `COMPROVADO_EM_USO`. |
 | Catálogo SKU / Planilha face | `BLOQUEADO_POR_DECISAO` | — | Legado (PR #97). Sync: `00_governanca/SINCRONIZACAO_MESTRE_2026-09-11.md`. |
 | Link Asaas / checkout | `BLOQUEADO_POR_DECISAO` | — | Só quando automações estiverem ativas e tudo funcionando. Matriz `08_dados_e_integracoes/…`. |
 
@@ -102,15 +117,30 @@ Entrada comercial → Mesa Discovery → Pessoa/Dossiê → Caso/Jornada
 
 | Fluxo | Resultado | Prints de integração |
 |---|---|---|
-| Cadeia ponta a ponta autenticada | `NAO_LOCALIZADO` | nenhum |
+| Cadeia ponta a ponta autenticada | `NAO_LOCALIZADO` | nenhum (não houve save de Discovery → Hoje) |
+
+## Prints da prévia Desk de 6 grupos (ambiente E)
+
+| Arquivo | Rota | O que mostra |
+|---|---|---|
+| `docs/provas/2026-09-11-preview-desk-6-grupos/sessao_autenticada_tati_admin.png` | `/configuracoes` | Rodapé: `tati@pluggedresearch.com`, Clube Ancestral, Admin. |
+| `docs/provas/2026-09-11-preview-desk-6-grupos/painel_hoje_6_grupos_kpis.png` | `/painel` | 6 grupos; KPIs vivos; sem Receita/Conversão no topo. |
+| `docs/provas/2026-09-11-preview-desk-6-grupos/painel_calls_comercial.png` | `/calls` | Painel de Calls no grupo Marketing & Comercial. |
+| `docs/provas/2026-09-11-preview-desk-6-grupos/contratos_sem_top30.png` | `/contratos` | Formalização; sem Top 30 na face. |
+| `docs/provas/2026-09-11-preview-desk-6-grupos/catalogo_homologado.png` | `/catalogo` | Catálogo homologado; Planilha Mestre como origem histórica. |
+| `docs/provas/2026-09-11-preview-desk-6-grupos/biblioteca_mestre.png` | `/biblioteca` | Centro de Inteligência; Top 30 fora da face. |
+| `docs/provas/2026-09-11-preview-desk-6-grupos/app_cliente_demo_7_abas.png` | `/app-cliente-demo` | 7 abas; faixa DEMO. |
 
 ## O que este registro recusa como prova
 
 - Homepage pública e formulário `/equipe/entrar` sem Painel autenticado.
+- Vite local sem chave de servidor.
 - Vitest, `tsc`, ESLint, build, PR verde.
+- DEMO do App Cliente como se fosse entrega ao cliente real.
 - Preview com lead `dados_teste` executado por agente.
 - Toast sem releitura após salvar.
 - Declaração de agente de que o ambiente “está funcionando”.
+- Leitura de face como `COMPROVADO_EM_USO` de motor.
 
 Nenhum contexto de resgate (Discovery, Pessoa 360, dossiê, Pesquisa, formalização, Radar, App, RLS) foi arquivado.
 

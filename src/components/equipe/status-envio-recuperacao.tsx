@@ -55,7 +55,7 @@ export function StatusEnvioRecuperacao() {
   const ultimaEntrega = dados?.entregas?.[0];
 
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-5">
+    <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-serif text-xl">Status do envio de recuperação</h2>

@@ -14,11 +14,11 @@ export function DetalhesTecnicos({
   children: ReactNode;
 }) {
   return (
-    <details className="rounded-lg border border-border bg-card/60">
-      <summary className="cursor-pointer select-none px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+    <details className="rounded-lg border border-navy/10 bg-cream/40">
+      <summary className="cursor-pointer select-none px-4 py-3 text-xs font-semibold uppercase tracking-wide text-navy/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold">
         {titulo}
       </summary>
-      <div className="border-t border-border p-4">{children}</div>
+      <div className="border-t border-navy/10 p-4 text-navy/80">{children}</div>
     </details>
   );
 }

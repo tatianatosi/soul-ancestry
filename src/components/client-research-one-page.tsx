@@ -146,7 +146,7 @@ export function ClientResearchOnePage({
             {achados.map((f, i) => (
               <article
                 key={i}
-                className="rounded-2xl border border-navy/10 bg-white/70 p-4 shadow-[0_1px_0_rgba(27,43,75,0.04)]"
+                className="rounded-2xl border border-navy/10 bg-cream/70 p-4 shadow-[0_1px_0_rgba(27,43,75,0.04)]"
               >
                 {f.title && (
                   <h3 className="font-serif text-base italic leading-snug text-navy">{f.title}</h3>
@@ -222,7 +222,7 @@ export function ClientResearchOnePage({
         )}
 
         {/* 8. CTA neutro */}
-        <section className="rounded-2xl border border-navy/10 bg-white/70 p-5 text-center">
+        <section className="rounded-2xl border border-navy/10 bg-cream/70 p-5 text-center">
           <p className="text-[13.5px] leading-relaxed text-navy/80">{convite}</p>
           {exportMode ? (
             <p className="mt-4 inline-block rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy">
@@ -437,7 +437,7 @@ export function ClientResearchOnePageModal({
             </button>
           </div>
 
-          <div className="mt-3 flex gap-1 rounded-full border border-navy/15 bg-white/60 p-1">
+          <div className="mt-3 flex gap-1 rounded-full border border-navy/15 bg-cream/60 p-1">
             {(["whatsapp", "pdf"] as OnePageFormato[]).map((f) => (
               <button
                 key={f}

@@ -192,7 +192,7 @@ function RelatoriosFase() {
         via qual versão de modelo está homologada. case_reports não tem campo
         de vínculo, então isto é só leitura: mostra o modelo, não grava nada.
       */}
-      <section className="mt-6 rounded-xl border border-navy/10 bg-white p-4">
+      <section className="mt-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-sm font-semibold text-navy">Modelos F1/F2 homologados (Biblioteca Mestre)</h2>
           <Link to="/biblioteca" className="text-[11px] text-terracotta underline">

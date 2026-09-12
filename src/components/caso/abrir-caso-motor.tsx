@@ -67,7 +67,7 @@ export function AbrirCasoMotor() {
             required
             value={clienteId}
             onChange={(e) => setClienteId(e.target.value)}
-            className="w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy"
+            className="w-full rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm text-navy"
           >
             <option value="">— selecionar cliente —</option>
             {clientes.map((c) => (
@@ -85,7 +85,7 @@ export function AbrirCasoMotor() {
             required
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
-            className="w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy"
+            className="w-full rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm text-navy"
           />
         </label>
         <label className="block">
@@ -96,7 +96,7 @@ export function AbrirCasoMotor() {
             required
             value={tipoServico}
             onChange={(e) => setTipoServico(e.target.value)}
-            className="w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy"
+            className="w-full rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm text-navy"
           >
             <option value="">— selecionar serviço —</option>
             {SERVICOS_CASO_OPERACIONAL.map((s) => (
@@ -114,7 +114,7 @@ export function AbrirCasoMotor() {
             value={resumo}
             onChange={(e) => setResumo(e.target.value)}
             rows={2}
-            className="w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy"
+            className="w-full rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm text-navy"
           />
         </label>
         <div className="flex flex-wrap items-center gap-3 sm:col-span-2">

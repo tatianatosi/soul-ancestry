@@ -69,7 +69,7 @@ function AcessoPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-navy outline-none focus:border-gold"
+                className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-navy outline-none focus:border-gold"
                 placeholder="voce@exemplo.com"
               />
             </div>

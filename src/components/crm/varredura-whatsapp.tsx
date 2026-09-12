@@ -93,7 +93,7 @@ export function VarreduraWhatsApp({
   }, [resultado]);
 
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-5">
+    <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
       <h2 className="font-serif text-lg text-navy">Varredura de conversa</h2>
       <p className="mt-0.5 text-xs text-navy/55">
         Cole o dump do WhatsApp do prospect. A varredura aponta o que parece responder ao roteiro e
@@ -115,7 +115,7 @@ export function VarreduraWhatsApp({
             value={casa}
             onChange={(e) => setCasa(e.target.value)}
             placeholder="Tatiana"
-            className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+            className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
           />
           <span className="mt-1 block text-[11px] text-navy/45">
             As mensagens da equipe ficam de fora: pergunta não é resposta.
@@ -130,7 +130,7 @@ export function VarreduraWhatsApp({
             type="file"
             accept=".txt,.zip,text/plain,application/zip"
             onChange={(e) => carregarArquivo(e.target.files?.[0])}
-            className="mt-1 block w-full text-xs text-navy/70 file:mr-3 file:rounded-lg file:border file:border-navy/20 file:bg-white file:px-3 file:py-1.5 file:text-xs file:text-navy"
+            className="mt-1 block w-full text-xs text-navy/70 file:mr-3 file:rounded-lg file:border file:border-navy/20 file:bg-cream/40 file:px-3 file:py-1.5 file:text-xs file:text-navy"
           />
           {avisoArquivo ? (
             <span className="mt-1 block text-[11px] text-terracotta">{avisoArquivo}</span>
@@ -150,7 +150,7 @@ export function VarreduraWhatsApp({
             onChange={(e) => setBruto(e.target.value)}
             rows={8}
             placeholder={"[10/08/2026, 14:35] Ana Luiza: meu bisavô era italiano…"}
-            className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-3 py-2 font-mono text-xs text-navy outline-none focus:border-gold"
+            className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 font-mono text-xs text-navy outline-none focus:border-gold"
           />
         </label>
       </div>

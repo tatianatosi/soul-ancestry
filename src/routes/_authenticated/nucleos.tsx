@@ -335,7 +335,7 @@ function NucleosPage() {
           {lista.map((n: Nucleo) => {
             const status = n.dossie_status ?? "nao_iniciado";
             return (
-              <article key={n.id} className="rounded-xl border border-navy/10 bg-white p-5">
+              <article key={n.id} className="rounded-xl border border-navy/10 bg-cream/40 p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h3 className="truncate font-serif text-lg text-navy">{n.nome}</h3>

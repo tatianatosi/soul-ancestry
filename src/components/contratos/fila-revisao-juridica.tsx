@@ -20,7 +20,7 @@ export function FilaRevisaoJuridica({ compacto = false }: { compacto?: boolean }
   const lista = compacto ? itens.slice(0, 5) : itens;
 
   return (
-    <section className="mb-6 rounded-xl border border-navy/10 bg-white p-4">
+    <section className="mb-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
       <header className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-sm font-semibold text-navy">Revisão jurídica automática</h2>

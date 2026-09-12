@@ -26,7 +26,7 @@ export function CadeiaSuprimentoPesquisa({ compacto = false }: { compacto?: bool
                 {e.origensBiblioteca.map((o) => (
                   <span
                     key={o}
-                    className="rounded border border-navy/15 bg-white/60 px-1.5 py-0.5 text-[11px] text-navy/70"
+                    className="rounded border border-navy/15 bg-cream/40/60 px-1.5 py-0.5 text-[11px] text-navy/70"
                   >
                     {subareaBiblioteca(o)?.label ?? o}
                   </span>

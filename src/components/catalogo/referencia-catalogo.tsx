@@ -55,7 +55,7 @@ export function ReferenciaCatalogo() {
 
       <div className="mt-4 grid gap-3 lg:grid-cols-3">
         {FILAS.map((f) => (
-          <div key={f} className="rounded-xl border border-navy/10 bg-white p-4">
+          <div key={f} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
             <div className="flex items-baseline justify-between">
               <p className="text-xs uppercase tracking-wide text-navy/50">{ROTULO_FILA_REFERENCIA[f]}</p>
               <span className="font-serif text-2xl text-navy">{filas?.[f].length ?? 0}</span>
@@ -73,7 +73,7 @@ export function ReferenciaCatalogo() {
         ))}
       </div>
 
-      <div className="mt-4 rounded-xl border border-navy/10 bg-white p-4">
+      <div className="mt-4 rounded-xl border border-navy/10 bg-cream/40 p-4">
         <p className="text-xs uppercase tracking-wide text-navy/50">Critérios para liberar um SKU</p>
         <ol className="mt-2 list-decimal space-y-1 pl-5 text-xs text-navy/65">
           {CRITERIOS_LIBERACAO_SKU.map((c) => (
@@ -82,7 +82,7 @@ export function ReferenciaCatalogo() {
         </ol>
       </div>
 
-      <div className="mt-4 overflow-x-auto rounded-xl border border-navy/10 bg-white">
+      <div className="mt-4 overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
         <table className="min-w-full text-left text-xs">
           <thead className="bg-cream/60 text-[11px] uppercase tracking-wide text-navy/55">
             <tr>

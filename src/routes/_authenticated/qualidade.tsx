@@ -55,8 +55,8 @@ function QualidadePage() {
 }
 
 /**
- * Mesma restrição do Radar do cliente: o Radar Interno lê a jornada pelos
- * quatro eixos canônicos, sem eixo extra, para Cliente e Ops nunca divergirem.
+ * Radar Interno (Desk) usa os quatro eixos da jornada (radar-eixos.ts).
+ * Distinto das seis dimensões do App Cliente (radar-seis-eixos.ts). Sem eixo extra aqui.
  */
 function EixosCanonicosInternos() {
   const eixos = garantirEixosCanonicos(EIXOS_RADAR_CANONICOS);
@@ -65,12 +65,11 @@ function EixosCanonicosInternos() {
     <section className="mb-4 rounded-lg border border-navy/10 bg-cream/50 p-4">
       <h2 className="font-serif text-base text-navy">Eixos canônicos da leitura</h2>
       <p className="mt-1 text-xs text-navy/60">
-        Leitura compartilhada com o Radar do cliente. Somente estes quatro eixos existem: nenhum
-        eixo pode ser criado, renomeado ou reordenado em telas internas.
+        Radar Interno do Desk — quatro eixos da jornada (radar-eixos.ts), compartilhados com a leitura de progresso do cliente. Distinto das 6 dimensões do App (radar-seis-eixos.ts). Nenhum eixo extra aqui.
       </p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {eixos.map((eixo) => (
-          <article key={eixo.id} className="rounded-md border border-navy/10 bg-background p-3">
+          <article key={eixo.id} className="rounded-md border border-navy/10 bg-cream/60 p-3">
             <h3 className="text-sm font-medium text-navy">{eixo.titulo}</h3>
             <p className="mt-1 text-xs text-navy/60">{eixo.resumo}</p>
           </article>

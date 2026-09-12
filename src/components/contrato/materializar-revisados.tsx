@@ -14,8 +14,8 @@ import {
 const COR: Record<string, string> = {
   materializar: "border-gold/50 bg-gold/10 text-navy/80",
   ja_canonica: "border-navy/20 bg-cream/40 text-navy/70",
-  preservado: "border-navy/25 bg-white text-navy/65",
-  fora_do_lote: "border-navy/15 bg-white text-navy/50",
+  preservado: "border-navy/25 bg-cream/40 text-navy/65",
+  fora_do_lote: "border-navy/15 bg-cream/40 text-navy/50",
 };
 
 export function MaterializarRevisados({
@@ -33,7 +33,7 @@ export function MaterializarRevisados({
   const nadaAMaterializar = Boolean(resumo && resumo.materializar === 0);
 
   return (
-    <section className="rounded-lg border border-navy/15 bg-white p-3">
+    <section className="rounded-lg border border-navy/15 bg-cream/40 p-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-sm font-medium text-navy">Anexos II, IV e V revisados</h3>
         <span className="text-[11px] text-navy/55">Revisão jurídica concluída · pendência apenas de materialização</span>

@@ -625,7 +625,7 @@ function Pagina() {
             <div className="mt-3">
               <MatrizClausulas linhas={clausulasAvaliadas} />
 
-              <div className="mt-3 rounded-lg border border-navy/10 bg-white p-3">
+              <div className="mt-3 rounded-lg border border-navy/10 bg-cream/40 p-3">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
                     Matriz de renderização por bloco
@@ -830,7 +830,7 @@ function Pagina() {
           </p>
           <div className="mt-3 space-y-2">
             {(d.previas as any[]).map((p) => (
-              <div key={p.id} className="rounded-lg border border-navy/15 bg-white p-3">
+              <div key={p.id} className="rounded-lg border border-navy/15 bg-cream/40 p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p className="text-sm text-navy">
@@ -874,7 +874,7 @@ function Pagina() {
               title="Prévia do instrumento"
               srcDoc={html}
               sandbox=""
-              className="mt-3 h-[520px] w-full rounded-lg border border-navy/15 bg-white"
+              className="mt-3 h-[520px] w-full rounded-lg border border-navy/15 bg-cream/40"
             />
           )}
         </Painel>

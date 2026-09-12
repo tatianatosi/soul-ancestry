@@ -66,7 +66,7 @@ const CORES_ESTADO_RESPOSTA: Record<EstadoRespostaRoteiro, string> = {
   pendente: "border-navy/15 bg-navy/5 text-navy/50",
 };
 
-const CARTAO = "rounded-xl border border-navy/10 bg-white p-4";
+const CARTAO = "rounded-xl border border-navy/10 bg-cream/40 p-4";
 
 const CORES_SELO: Record<Exclude<SinalCor, "neutro">, string> = {
   verde: "border-sage/50 bg-sage/15 text-navy",
@@ -144,7 +144,7 @@ function MesaDiscovery({
               if (primeiro >= 0) onIndice(primeiro);
             }}
             className={`rounded-full border px-2.5 py-1 text-[11px] ${
-              atual.etapa === e.chave ? "border-gold bg-gold/15 text-navy" : "border-navy/15 bg-white text-navy/70"
+              atual.etapa === e.chave ? "border-gold bg-gold/15 text-navy" : "border-navy/15 bg-cream/40 text-navy/70"
             }`}
           >
             {e.rotulo} · {e.preenchidas}/{e.total}
@@ -463,7 +463,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
     }
 
     return (
-      <div key={campoId} className="rounded-lg border border-navy/10 bg-white p-3">
+      <div key={campoId} className="rounded-lg border border-navy/10 bg-cream/40 p-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <p className="min-w-0 text-[11px] text-navy/55">{meta.porQueImporta}</p>
           <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium ${CORES_ESTADO_RESPOSTA[estado]}`}>
@@ -505,21 +505,21 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
               <button
                 type="button"
                 onClick={() => aplicarAchado(campoId, a.valor, multi)}
-                className="rounded border border-navy/20 px-1.5 py-0.5 text-navy hover:bg-white"
+                className="rounded border border-navy/20 px-1.5 py-0.5 text-navy hover:bg-cream/50"
               >
                 Confirmar
               </button>
               <button
                 type="button"
                 onClick={() => virarHipoteseAchado(campoId, a.valor, multi)}
-                className="rounded border border-navy/20 px-1.5 py-0.5 text-navy hover:bg-white"
+                className="rounded border border-navy/20 px-1.5 py-0.5 text-navy hover:bg-cream/50"
               >
                 Virar hipótese
               </button>
               <button
                 type="button"
                 onClick={() => ignorarAchado(campoId, a.valor)}
-                className="rounded border border-navy/20 px-1.5 py-0.5 text-navy hover:bg-white"
+                className="rounded border border-navy/20 px-1.5 py-0.5 text-navy hover:bg-cream/50"
               >
                 Ignorar
               </button>
@@ -630,7 +630,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                       className={`w-full rounded-lg border px-3 py-2 text-left text-xs ${
                         selecionado === l.id
                           ? "border-gold bg-gold/10"
-                          : "border-navy/10 bg-white hover:border-navy/30"
+                          : "border-navy/10 bg-cream/40 hover:border-navy/30"
                       }`}
                     >
                       <span className="flex flex-wrap items-center gap-1 font-medium text-navy">
@@ -803,7 +803,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                     {candidatosCliente.map((c) => (
                       <li
                         key={c.id}
-                        className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/10 bg-white px-3 py-2 text-sm"
+                        className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/10 bg-cream/40 px-3 py-2 text-sm"
                       >
                         <span>
                           <strong>{c.nome}</strong>

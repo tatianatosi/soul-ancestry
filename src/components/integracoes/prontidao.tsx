@@ -13,7 +13,7 @@ import {
 const COR_ESTADO: Record<EstadoIntegracao, string> = {
   VALIDADA_EM_QA: "border-sage/50 bg-sage/10 text-sage",
   CONFIGURADA_NAO_TESTADA: "border-navy/30 bg-navy/5 text-navy",
-  NAO_CONFIGURADA: "border-border bg-muted text-muted-foreground",
+  NAO_CONFIGURADA: "border-navy/10 bg-muted text-navy/65",
   BLOQUEADA_POR_DADO: "border-terracotta/50 bg-terracotta/10 text-terracotta",
   AGUARDA_CONFIRMACAO_DA_PROPRIETARIA: "border-gold/60 bg-gold/15 text-foreground",
 };
@@ -25,7 +25,7 @@ export function MatrizProntidaoIntegracoes() {
         <h2 id="prontidao-integracoes" className="font-serif text-xl text-foreground">
           Prontidão das integrações
         </h2>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-navy/65">
           Estado comprovável de cada integração. Esta tela é somente leitura: nenhuma mensagem, cobrança,
           assinatura, publicação ou pesquisa externa é disparada a partir daqui.
         </p>
@@ -33,7 +33,7 @@ export function MatrizProntidaoIntegracoes() {
 
       <ul className="grid gap-3 md:grid-cols-2">
         {PRONTIDAO_INTEGRACOES.map((i) => (
-          <li key={i.chave} className="rounded-lg border border-border bg-card p-4">
+          <li key={i.chave} className="rounded-lg border border-navy/10 bg-cream/40 p-4">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <h3 className="text-sm font-semibold text-foreground">{i.nome}</h3>
               <span
@@ -42,7 +42,7 @@ export function MatrizProntidaoIntegracoes() {
                 {ROTULO_ESTADO[i.estado]}
               </span>
             </div>
-            <dl className="mt-3 space-y-1 text-xs text-muted-foreground">
+            <dl className="mt-3 space-y-1 text-xs text-navy/65">
               <div>
                 <dt className="inline font-medium text-foreground">Ambiente: </dt>
                 <dd className="inline">{i.ambiente}</dd>
@@ -67,7 +67,7 @@ export function MatrizProntidaoIntegracoes() {
             <p className="mt-2 text-xs text-foreground">
               <span className="font-medium">Pré-requisitos:</span>
             </p>
-            <ul className="list-disc pl-5 text-xs text-muted-foreground">
+            <ul className="list-disc pl-5 text-xs text-navy/65">
               {i.prerequisitos.map((p) => (
                 <li key={p}>{p}</li>
               ))}
@@ -77,7 +77,7 @@ export function MatrizProntidaoIntegracoes() {
                 {i.erro_acionavel}
               </p>
             )}
-            <p className="mt-2 text-[11px] text-muted-foreground">
+            <p className="mt-2 text-[11px] text-navy/65">
               {i.sandbox ? "Pode ser testada em QA/sandbox." : "Sem sandbox disponível."}{" "}
               {i.exige_confirmacao_final
                 ? "Exige confirmação final da proprietária."
@@ -88,7 +88,7 @@ export function MatrizProntidaoIntegracoes() {
       </ul>
 
       <DetalhesTecnicos titulo="Ações externas que não foram executadas">
-        <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground">
+        <ul className="list-disc space-y-1 pl-5 text-xs text-navy/65">
           {ACOES_EXTERNAS_NAO_EXECUTADAS.map((a) => (
             <li key={a}>{a}</li>
           ))}

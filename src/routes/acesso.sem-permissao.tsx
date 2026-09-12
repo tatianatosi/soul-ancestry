@@ -30,7 +30,7 @@ function SemPermissaoCliente() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-cream px-5 py-12">
-      <div className="w-full max-w-md rounded-2xl border border-navy/10 bg-white p-6 text-navy">
+      <div className="w-full max-w-md rounded-2xl border border-navy/10 bg-cream/50 p-6 text-navy">
         <BrandLogo size={40} variant="client-light" showText />
         <h1 className="mt-6 font-serif text-2xl italic">Acesso indisponível</h1>
         <p className="mt-2 text-sm text-navy/70">

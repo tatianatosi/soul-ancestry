@@ -29,7 +29,7 @@ export function PlanejadorProdutosPai() {
   });
 
   return (
-    <section className="mt-8 rounded-xl border border-navy/10 bg-white p-5">
+    <section className="mt-8 rounded-xl border border-navy/10 bg-cream/40 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="font-serif text-lg text-navy">Planejador Universal · Produtos-pai e multipaís</h3>
       </div>

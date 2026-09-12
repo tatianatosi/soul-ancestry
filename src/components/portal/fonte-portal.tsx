@@ -8,6 +8,7 @@ import type { DocumentoPortal } from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 import type { ProximaAcaoCliente } from "@/lib/motor-caso";
 import type { EscopoCliente } from "@/lib/app-visibilidade";
+import type { IdentidadeCaso } from "@/lib/caso-compartilhado";
 
 /**
  * Fonte de dados do App Cliente — ponto único de desacoplamento.
@@ -55,6 +56,13 @@ export type PreviaPortal = {
   selo: string;
   /** Identifica a origem do que está sendo exibido. */
   titulo: string;
+  /**
+   * Para onde o botão Sair leva na prévia.
+   * Desk demo → `/acessos-portal`. Prévia pública go-live → `/acesso`.
+   */
+  destinoSair?: string;
+  /** Identidade canônica do caso (Ordem 2) — UUID = crm_casos.id. */
+  identidade?: IdentidadeCaso;
 };
 
 export type FontePortal = {

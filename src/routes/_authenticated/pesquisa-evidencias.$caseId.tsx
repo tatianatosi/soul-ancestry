@@ -1009,7 +1009,7 @@ function AreaPesquisaEvidencias() {
 
 function Cartao({ titulo, valor, nota }: { titulo: string; valor: number; nota: string }) {
   return (
-    <div className="rounded border border-navy/15 bg-white p-4">
+    <div className="rounded border border-navy/15 bg-cream/40 p-4">
       <p className="text-xs uppercase tracking-wide text-navy/60">{titulo}</p>
       <p className="text-2xl font-semibold text-navy">{valor}</p>
       <p className="text-xs text-navy/60">{nota}</p>
@@ -1019,7 +1019,7 @@ function Cartao({ titulo, valor, nota }: { titulo: string; valor: number; nota: 
 
 function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <section className="rounded border border-navy/15 bg-white p-4">
+    <section className="rounded border border-navy/15 bg-cream/40 p-4">
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-navy">{titulo}</h2>
       {children}
     </section>

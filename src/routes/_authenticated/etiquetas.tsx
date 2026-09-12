@@ -70,12 +70,12 @@ function Etiquetas() {
           return (
         <>
           <input
-            className="mb-5 w-full max-w-sm rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+            className="mb-5 w-full max-w-sm rounded-lg border border-navy/15 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
             placeholder="Buscar por nome, código ou equivalente"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
           />
-          <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
+          <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
             <table className="w-full text-left text-sm">
               <thead className="text-[11px] uppercase tracking-wide text-navy/50">
                 <tr>

@@ -95,7 +95,7 @@ export function DescoberturasAlertas({
         {achados.map((achado) => (
           <div
             key={achado.id}
-            className="rounded-md border border-navy/10 bg-white p-4 space-y-3"
+            className="rounded-md border border-navy/10 bg-cream/50 p-4 space-y-3"
           >
             {/* Cabeçalho */}
             <div className="flex items-start justify-between gap-3">

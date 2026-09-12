@@ -44,7 +44,7 @@ function PrivacidadeIndex() {
           {casos.map((c: Record<string, unknown>) => (
             <div
               key={c["id"] as string}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-white p-3"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-cream/40 p-3"
             >
               <Link
                 to="/privacidade/$id"

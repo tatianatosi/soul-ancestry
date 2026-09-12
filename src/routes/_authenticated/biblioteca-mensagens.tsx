@@ -65,7 +65,7 @@ export const Route = createFileRoute("/_authenticated/biblioteca-mensagens")({
   ),
   notFoundComponent: () => (
     <SaasShell titulo="Biblioteca de Mensagens" descricao="Conteúdo não encontrado.">
-      <p className="text-sm text-muted-foreground">Nada a exibir.</p>
+      <p className="text-sm text-navy/65">Nada a exibir.</p>
     </SaasShell>
   ),
 });
@@ -206,18 +206,18 @@ function BibliotecaMensagensPage() {
         </p>
       ) : null}
       <div className="space-y-6">
-        <section data-catalogo="precedencia-templates" className="rounded-xl border border-border bg-card p-4">
+        <section data-catalogo="precedencia-templates" className="rounded-xl border border-navy/15 bg-cream/50 p-4">
           <h2 className="text-sm font-medium text-foreground">Catálogo canônico de modelos</h2>
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="mt-2 text-xs text-navy/65">
             {PRECEDENCIA_TEMPLATES.regra} A entrada histórica “{CATALOGO_ALIAS_TEMPLATES.rotulo}” da Biblioteca Mestre
             permanece registrada, sem conteúdo próprio, e aponta para esta tela. Nenhum modelo, versão ou histórico de
             uso foi removido.
           </p>
         </section>
 
-        <section className="rounded-xl border border-border bg-card p-4">
+        <section className="rounded-xl border border-navy/15 bg-cream/50 p-4">
           <h2 className="text-sm font-medium text-foreground">Regras de uso</h2>
-          <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+          <ul className="mt-2 space-y-1 text-xs text-navy/65">
             {REGRAS.map((r) => (
               <li key={r}>• {r}</li>
             ))}
@@ -228,16 +228,16 @@ function BibliotecaMensagensPage() {
         {contextoAlerta ? (
           <section
             data-fiacao="alerta-cadencia"
-            className="rounded-xl border border-border bg-card p-4"
+            className="rounded-xl border border-navy/15 bg-cream/50 p-4"
           >
             <h2 className="text-sm font-medium text-foreground">
               Modelo sugerido para o alerta: {contextoAlerta.rotuloAlerta}
             </h2>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-xs text-navy/65">
               Contexto de leitura, não persistido. Ação permitida: {ACAO_PERMITIDA.replace(/_/g, " ")}. Nenhuma
               mensagem é enviada, enfileirada ou registrada por abrir este modelo.
             </p>
-            <dl className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+            <dl className="mt-2 grid gap-1 text-xs text-navy/65 sm:grid-cols-2">
               <div>
                 <dt className="inline font-medium text-foreground">Caso: </dt>
                 <dd className="inline">{contextoAlerta.codigoCaso ?? contextoAlerta.caseId ?? "—"}</dd>
@@ -273,13 +273,13 @@ function BibliotecaMensagensPage() {
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Buscar por nome, chave, etapa ou canal"
             aria-label="Buscar modelo"
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="rounded-lg border border-navy/15 bg-background px-3 py-2 text-sm"
           />
           <select
             value={categoria}
             onChange={(e) => setCategoria(e.target.value)}
             aria-label="Filtrar por categoria"
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="rounded-lg border border-navy/15 bg-background px-3 py-2 text-sm"
           >
             <option value="">Todas as categorias</option>
             {dados.data?.categorias?.map((c) => (
@@ -292,7 +292,7 @@ function BibliotecaMensagensPage() {
             value={status}
             onChange={(e) => setStatus(e.target.value)}
             aria-label="Filtrar por estado"
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="rounded-lg border border-navy/15 bg-background px-3 py-2 text-sm"
           >
             <option value="">Todos os estados</option>
             {STATUS_TEMPLATE.map((s) => (
@@ -315,7 +315,7 @@ function BibliotecaMensagensPage() {
             const lista = filtrarTemplates(todos, { categoria, status, busca });
             if (lista.length === 0) {
               return (
-                <p className="rounded-xl border border-dashed border-border bg-muted/30 p-6 text-center text-sm text-muted-foreground">
+                <p className="rounded-xl border border-dashed border-navy/15 bg-cream/60/30 p-6 text-center text-sm text-navy/65">
                   Nenhum modelo com os filtros atuais.
                 </p>
               );
@@ -323,25 +323,25 @@ function BibliotecaMensagensPage() {
             return (
           <ul className="grid gap-3 lg:grid-cols-2">
             {lista.map((t) => (
-              <li key={t.id} className="rounded-xl border border-border bg-card p-4">
+              <li key={t.id} className="rounded-xl border border-navy/15 bg-cream/50 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="text-sm font-medium text-foreground">{t.nome}</div>
-                    <p className="mt-0.5 text-xs text-muted-foreground">{t.objetivo ?? "—"}</p>
+                    <p className="mt-0.5 text-xs text-navy/65">{t.objetivo ?? "—"}</p>
                   </div>
                   <span
                     className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${
                       t.status === "vigente"
-                        ? "bg-primary/10 text-primary"
+                        ? "bg-navy/10 text-navy"
                         : t.status === "aprovado"
-                          ? "bg-muted text-foreground"
+                          ? "bg-cream/60 text-foreground"
                           : "bg-destructive/10 text-destructive"
                     }`}
                   >
                     {STATUS_TEMPLATE.find((s) => s.valor === t.status)?.rotulo}
                   </span>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-navy/65">
                   <span>{t.categoriaNome}</span>
                   <span>Canal: {t.canal}</span>
                   <span>Versão {t.versao}</span>
@@ -358,7 +358,7 @@ function BibliotecaMensagensPage() {
                     setErro(null);
                     setAviso(null);
                   }}
-                  className="mt-3 text-xs font-medium text-primary underline-offset-2 hover:underline"
+                  className="mt-3 text-xs font-medium text-navy underline-offset-2 hover:underline"
                 >
                   {selecionado?.id === t.id ? "Fechar modelo" : "Abrir modelo"}
                 </button>
@@ -370,10 +370,10 @@ function BibliotecaMensagensPage() {
         </EstadoDados>
 
         {selecionado && (
-          <section className="space-y-4 rounded-xl border border-border bg-card p-4">
+          <section className="space-y-4 rounded-xl border border-navy/15 bg-cream/50 p-4">
             <div>
               <h2 className="text-sm font-medium text-foreground">{selecionado.nome}</h2>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-xs text-navy/65">
                 Público: {selecionado.publico} · Canal: {selecionado.canal} · Versão {selecionado.versao}
               </p>
             </div>
@@ -382,11 +382,11 @@ function BibliotecaMensagensPage() {
               <div className="grid gap-2 sm:grid-cols-2">
                 {selecionado.variaveisSeguras.map((v) => (
                   <label key={v} className="block text-xs">
-                    <span className="text-muted-foreground">{v}</span>
+                    <span className="text-navy/65">{v}</span>
                     <input
                       value={valores[v] ?? ""}
                       onChange={(e) => setValores({ ...valores, [v]: e.target.value })}
-                      className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+                      className="mt-1 w-full rounded-lg border border-navy/15 bg-background px-2 py-1.5 text-xs"
                     />
                   </label>
                 ))}
@@ -394,16 +394,16 @@ function BibliotecaMensagensPage() {
             )}
 
             <label className="block text-xs">
-              <span className="text-muted-foreground">Caso vinculado (identificador interno), quando aplicável</span>
+              <span className="text-navy/65">Caso vinculado (identificador interno), quando aplicável</span>
               <input
                 value={casoId}
                 onChange={(e) => setCasoId(e.target.value)}
                 placeholder="ID do caso"
-                className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+                className="mt-1 w-full rounded-lg border border-navy/15 bg-background px-2 py-1.5 text-xs"
               />
             </label>
 
-            <pre className="whitespace-pre-wrap rounded-lg border border-border bg-muted/30 p-3 text-xs text-foreground">
+            <pre className="whitespace-pre-wrap rounded-lg border border-navy/15 bg-cream/60/30 p-3 text-xs text-foreground">
               {texto}
             </pre>
 
@@ -412,7 +412,7 @@ function BibliotecaMensagensPage() {
             )}
 
             {validacao && (
-              <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs">
+              <div className="rounded-lg border border-navy/15 bg-cream/60/30 p-3 text-xs">
                 {validacao.permitido ? (
                   <p className="text-foreground">Uso liberado: modelo vigente e gates cumpridos.</p>
                 ) : (
@@ -430,14 +430,14 @@ function BibliotecaMensagensPage() {
                 {erro}
               </p>
             )}
-            {aviso && <p className="text-xs text-primary">{aviso}</p>}
+            {aviso && <p className="text-xs text-navy">{aviso}</p>}
 
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 disabled={validar.isPending}
                 onClick={() => validar.mutate({ templateId: selecionado.id, casoId: casoId || null })}
-                className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-60"
+                className="rounded-lg border border-navy/15 px-3 py-2 text-xs font-medium text-foreground disabled:opacity-60"
               >
                 {validar.isPending ? "Conferindo…" : "Conferir liberação de uso"}
               </button>
@@ -463,11 +463,11 @@ function BibliotecaMensagensPage() {
                 onChange={(e) => setFinalidade(e.target.value)}
                 placeholder="Finalidade do uso (opcional)"
                 aria-label="Finalidade do uso"
-                className="min-w-48 flex-1 rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+                className="min-w-48 flex-1 rounded-lg border border-navy/15 bg-background px-2 py-1.5 text-xs"
               />
             </div>
 
-            <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3 text-xs">
+            <div className="space-y-2 rounded-lg border border-navy/15 bg-cream/60/20 p-3 text-xs">
               <p className="text-foreground">Ciclo de vigência</p>
               <div className="flex flex-wrap gap-2">
                 {(["aprovado", "vigente", "suspenso"] as StatusTemplate[]).map((s) => (
@@ -490,7 +490,7 @@ function BibliotecaMensagensPage() {
                   onChange={(e) => setMotivoArquivo(e.target.value)}
                   placeholder="Motivo do arquivamento"
                   aria-label="Motivo do arquivamento"
-                  className="min-w-48 flex-1 rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+                  className="min-w-48 flex-1 rounded-lg border border-navy/15 bg-background px-2 py-1.5 text-xs"
                 />
                 <AcaoOperacional
                   size="sm"
@@ -508,13 +508,13 @@ function BibliotecaMensagensPage() {
                   }}
                 />
               </div>
-              <p className="text-muted-foreground">
+              <p className="text-navy/65">
                 Não há exclusão física: arquivar exige motivo e substituir exige apontar o sucessor.
               </p>
             </div>
 
             <div className="grid gap-3 lg:grid-cols-2">
-              <div className="rounded-lg border border-border p-3 text-xs">
+              <div className="rounded-lg border border-navy/15 p-3 text-xs">
                 <p className="font-medium text-foreground">Histórico de versões</p>
                 <EstadoDados
                   carregando={versoes.isLoading}
@@ -525,7 +525,7 @@ function BibliotecaMensagensPage() {
                   vazio="Sem versões anteriores registradas."
                 >
                   {(itens) => (
-                    <ul className="mt-1 space-y-1 text-muted-foreground">
+                    <ul className="mt-1 space-y-1 text-navy/65">
                       {itens.map((v) => (
                         <li key={v.id}>
                           v{v.versao} · {v.status} · {String(v.criadoEm).slice(0, 10)}
@@ -535,7 +535,7 @@ function BibliotecaMensagensPage() {
                   )}
                 </EstadoDados>
               </div>
-              <div className="rounded-lg border border-border p-3 text-xs">
+              <div className="rounded-lg border border-navy/15 p-3 text-xs">
                 <p className="font-medium text-foreground">Usos registrados (sem disparo)</p>
                 <EstadoDados
                   carregando={usos.isLoading}
@@ -546,7 +546,7 @@ function BibliotecaMensagensPage() {
                   vazio="Nenhum uso registrado ainda."
                 >
                   {(itens) => (
-                    <ul className="mt-1 space-y-1 text-muted-foreground">
+                    <ul className="mt-1 space-y-1 text-navy/65">
                       {itens.map((u) => (
                         <li key={u.id}>
                           v{u.versao} · {u.canal} · {String(u.em).slice(0, 16).replace("T", " ")}
@@ -560,9 +560,9 @@ function BibliotecaMensagensPage() {
           </section>
         )}
 
-        <section className="rounded-xl border border-border bg-card p-4">
+        <section className="rounded-xl border border-navy/15 bg-cream/50 p-4">
           <h2 className="text-sm font-medium text-foreground">Conteúdos editoriais</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-xs text-navy/65">
             Pautas e materiais institucionais. Não podem ser vinculados a pessoa, lead ou caso identificável.
           </p>
           <EstadoDados
@@ -576,19 +576,19 @@ function BibliotecaMensagensPage() {
             {(itens) => (
               <ul className="mt-3 space-y-2">
                 {itens.map((e) => (
-                  <li key={e.id} className="rounded-lg border border-border p-3 text-xs">
+                  <li key={e.id} className="rounded-lg border border-navy/15 p-3 text-xs">
                     <div className="font-medium text-foreground">{e.titulo}</div>
-                    <div className="mt-1 flex flex-wrap gap-x-4 text-muted-foreground">
+                    <div className="mt-1 flex flex-wrap gap-x-4 text-navy/65">
                       <span>{e.tipo}</span>
                       {e.tema && <span>Tema: {e.tema}</span>}
                       {e.etapaFunil && <span>Etapa: {e.etapaFunil}</span>}
                       <span>Estado: {rotuloStatusEditorial(e.status)}</span>
                     </div>
-                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground">
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-navy/65">
                       <span>Responsável: {e.responsavel ?? "Sem responsável definido"}</span>
                       <span>Próxima ação: {e.proximaAcao}</span>
                     </div>
-                    <div className="mt-1 text-muted-foreground">
+                    <div className="mt-1 text-navy/65">
                       {e.vinculos.length === 0 ? (
                         <span>Sem vínculo aplicável registrado.</span>
                       ) : (

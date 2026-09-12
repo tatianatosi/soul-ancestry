@@ -88,7 +88,7 @@ function CartaoItem({
             : "—";
 
   return (
-    <li className="rounded-xl border border-navy/10 bg-white p-4">
+    <li className="rounded-xl border border-navy/10 bg-cream/40 p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="text-sm font-medium text-navy">{item.titulo || rotuloDe(TIPOS_ACAO, item.action_type)}</p>
         <span className="rounded-full border border-gold/50 bg-gold/10 px-2 py-0.5 text-[11px] text-navy">
@@ -256,7 +256,7 @@ function PlanoAcao() {
         <h2 className="font-serif text-lg text-navy">Ações por instituição</h2>
         <div className="mt-2 grid gap-3 lg:grid-cols-2">
           {grupos.porInstituicao.map((g) => (
-            <div key={g.chave} className="rounded-xl border border-navy/10 bg-white p-4">
+            <div key={g.chave} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
               <p className="text-sm font-medium text-navy">{nomeInstituicao(g.chave) ?? "Sem instituição vinculada"}</p>
               <ul className="mt-1 space-y-1 text-[11px] text-navy/60">
                 {g.itens.map((i) => (
@@ -276,7 +276,7 @@ function PlanoAcao() {
         <p className="mb-2 text-xs text-navy/55">Agrupadas pelo registro de pesquisa, achado, evidência ou solicitação vinculada.</p>
         <div className="grid gap-3 lg:grid-cols-2">
           {grupos.porPessoaGeracao.map((g) => (
-            <div key={g.chave} className="rounded-xl border border-navy/10 bg-white p-4">
+            <div key={g.chave} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
               <p className="text-sm font-medium text-navy">
                 {g.chave === "sem_vinculo" ? "Sem pessoa/geração vinculada" : `Vínculo ${g.chave.slice(0, 8)}`}
               </p>

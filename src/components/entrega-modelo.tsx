@@ -50,7 +50,7 @@ export function EntregaModeloTab({ modelo }: { modelo: ModeloEntrega }) {
           ) : (
             <ol className="space-y-2">
               {modelo.linhaFamiliar.map((n, i) => (
-                <li key={n.nome + i} className="rounded-xl border border-border bg-cream/60 p-3">
+                <li key={n.nome + i} className="rounded-xl border border-navy/10 bg-cream/60 p-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="text-sm font-medium text-navy">{n.nome}</div>
@@ -79,7 +79,7 @@ export function EntregaModeloTab({ modelo }: { modelo: ModeloEntrega }) {
           ) : (
             <div className="space-y-2">
               {modelo.raizes.map((r) => (
-                <div key={r.nome} className="rounded-xl border border-border bg-white p-3">
+                <div key={r.nome} className="rounded-xl border border-navy/10 bg-cream/40 p-3">
                   <div className="font-serif text-lg text-navy">{r.nome}</div>
                   <div className="text-[12px] text-navy/75">
                     {r.local} — {r.nascimento}
@@ -149,7 +149,7 @@ export function EntregaModeloTab({ modelo }: { modelo: ModeloEntrega }) {
       </Card>
 
       {/* H. Próximo passo */}
-      <section className="rounded-2xl border-2 border-gold bg-white p-5 shadow-lg">
+      <section className="rounded-2xl border-2 border-gold bg-cream/40 p-5 shadow-lg">
         <div className="text-[11px] uppercase tracking-widest text-navy/60">Próximo passo recomendado</div>
         <h3 className="mt-1 font-serif text-xl text-navy">{modelo.recommendedNextStep.titulo}</h3>
         <p className="mt-2 text-[13px] leading-relaxed text-navy/80">{modelo.recommendedNextStep.texto}</p>
@@ -169,7 +169,7 @@ export function EntregaModeloTab({ modelo }: { modelo: ModeloEntrega }) {
       </section>
 
       {/* Fase 02 */}
-      <section className="rounded-2xl border border-border bg-white p-5">
+      <section className="rounded-2xl border border-navy/10 bg-cream/40 p-5">
         <div className="text-[11px] uppercase tracking-widest text-navy/60">Fase 02</div>
         <h3 className="mt-1 font-serif text-lg text-navy">Relatório Completo de Pesquisa Genealógica</h3>
         <p className="mt-1 text-[12px] leading-relaxed text-navy/70">
@@ -178,7 +178,7 @@ export function EntregaModeloTab({ modelo }: { modelo: ModeloEntrega }) {
         </p>
       </section>
 
-      <section data-print-hide className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-white p-5">
+      <section data-print-hide className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-navy/10 bg-cream/40 p-5">
         <div>
           <h3 className="font-serif text-lg text-navy">Exportar diagnóstico em PDF</h3>
           <p className="text-[12px] text-navy/70">Versão institucional para compartilhar · {modelo.reportSource.versao}</p>
@@ -204,7 +204,7 @@ function GrupoDocs({ grupo }: { grupo: GrupoChecklist }) {
       <div className="mb-2 text-[11px] uppercase tracking-widest text-terracotta">{grupo.grupo}</div>
       <div className="space-y-2">
         {grupo.itens.map((i) => (
-          <div key={i.item} className="rounded-xl border border-border bg-cream/50 p-3">
+          <div key={i.item} className="rounded-xl border border-navy/10 bg-cream/50 p-3">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0 text-[13px] text-navy">{i.item}</div>
               <span className={cn("shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold", STATUS_DOC_TOM[i.status])}>
@@ -237,7 +237,7 @@ function Chip({ children, tone }: { children: React.ReactNode; tone?: "gold" }) 
 
 function Card({ icon, titulo, children }: { icon: React.ReactNode; titulo: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+    <section className="rounded-2xl border border-navy/10 bg-cream/40 p-5 shadow-sm">
       <div className="mb-3 flex items-center gap-2 text-navy">
         <span className="grid h-7 w-7 place-items-center rounded-full bg-navy/5">{icon}</span>
         <h3 className="font-serif text-lg">{titulo}</h3>

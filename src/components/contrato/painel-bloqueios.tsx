@@ -37,7 +37,7 @@ export function PainelBloqueios({
       ) : (
         <ul className="space-y-2">
           {lista.map((b, i) => (
-            <li key={`${b.chave}-${i}`} className="rounded-lg border border-navy/15 bg-white p-3">
+            <li key={`${b.chave}-${i}`} className="rounded-lg border border-navy/15 bg-cream/40 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm font-medium text-navy">{b.titulo}</p>
                 <Selo texto={b.impeditivo ? "Impeditivo" : "Não impeditivo"} tom={b.impeditivo ? "erro" : "alerta"} />

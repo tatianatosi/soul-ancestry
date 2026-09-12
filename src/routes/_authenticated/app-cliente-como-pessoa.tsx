@@ -63,7 +63,7 @@ function AppClienteComoPessoa() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-navy/10 bg-white p-5">
+      <div className="rounded-xl border border-navy/10 bg-cream/40 p-5">
         <h1 className="font-serif text-xl text-navy">App Cliente como pessoa — acesso master</h1>
         <p className="mt-1 text-sm text-navy/70">
           As sete telas reais do App Cliente, com dado real de um caso escolhido — a mesma projeção
@@ -90,7 +90,7 @@ function AppClienteComoPessoa() {
                     setCasoId(e.target.value);
                     setRotaInterna("/portal");
                   }}
-                  className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                  className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
                 >
                   <option value="">Selecione um caso…</option>
                   {lista.map((c) => (
@@ -126,7 +126,7 @@ function AppClienteComoPessoa() {
       </div>
 
       {!casoId ? (
-        <p className="rounded-xl border border-navy/10 bg-white p-5 text-sm text-navy/60">
+        <p className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-sm text-navy/60">
           Escolha um caso acima para abrir o App Cliente dele.
         </p>
       ) : dados.isError ? (

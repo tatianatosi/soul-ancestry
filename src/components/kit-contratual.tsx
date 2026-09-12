@@ -234,7 +234,7 @@ export function KitContratual() {
   const atual = itens.find((i) => i.id === area);
 
   return (
-    <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+    <section className="rounded-2xl border border-navy/10 bg-cream/40 p-5 shadow-sm">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h3 className="font-serif text-xl text-navy">Kit Contratual do Caso</h3>
@@ -259,7 +259,7 @@ export function KitContratual() {
                 "whitespace-nowrap rounded-lg border px-3 py-2 text-left text-[12px] font-semibold transition lg:whitespace-normal",
                 area === n.id
                   ? "border-gold bg-gold text-navy"
-                  : "border-border bg-cream/50 text-navy/75 hover:bg-cream",
+                  : "border-navy/10 bg-cream/50 text-navy/75 hover:bg-cream",
               )}
             >
               {n.label}
@@ -275,14 +275,14 @@ export function KitContratual() {
                   key={k.id}
                   type="button"
                   onClick={() => setArea(k.id)}
-                  className="rounded-xl border border-border bg-cream/50 p-4 text-left transition hover:border-gold/60"
+                  className="rounded-xl border border-navy/10 bg-cream/50 p-4 text-left transition hover:border-gold/60"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <k.icone className="h-4 w-4 text-gold" />
                       <div className="font-semibold text-navy">{k.titulo}</div>
                     </div>
-                    <span className="rounded-full border border-terracotta/40 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-terracotta">
+                    <span className="rounded-full border border-terracotta/40 bg-cream/40 px-2.5 py-0.5 text-[11px] font-semibold text-terracotta">
                       {k.status}
                     </span>
                   </div>
@@ -297,13 +297,13 @@ export function KitContratual() {
           {area === "historico" && <HistoricoContratual />}
 
           {atual && (
-            <div className="rounded-xl border border-border bg-cream/40 p-4">
+            <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <atual.icone className="h-4 w-4 text-gold" />
                   <h4 className="font-serif text-lg text-navy">{atual.titulo}</h4>
                 </div>
-                <span className="rounded-full border border-terracotta/40 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-terracotta">
+                <span className="rounded-full border border-terracotta/40 bg-cream/40 px-2.5 py-0.5 text-[11px] font-semibold text-terracotta">
                   {atual.status}
                 </span>
               </div>
@@ -316,7 +316,7 @@ export function KitContratual() {
                   ["Responsável", atual.responsavel],
                   ["Estado do documento", DOCUMENTO_ESTADO_LABEL[estadoDoCard(atual.id, c)]],
                 ].map(([l, v]) => (
-                  <div key={l} className="flex justify-between gap-3 border-b border-border py-1">
+                  <div key={l} className="flex justify-between gap-3 border-b border-navy/10 py-1">
                     <dt className="text-navy/55">{l}</dt>
                     <dd className="text-right font-medium text-navy">{v}</dd>
                   </div>
@@ -331,7 +331,7 @@ export function KitContratual() {
               </p>
 
               {atual.modelo && (
-                <div className="mt-4 rounded-xl border border-border bg-white p-4">
+                <div className="mt-4 rounded-xl border border-navy/10 bg-cream/40 p-4">
                   <div className="text-[11px] uppercase tracking-widest text-terracotta">
                     Prévia interna estática · somente leitura
                   </div>
@@ -350,7 +350,7 @@ function HistoricoContratual() {
   const caso = useActiveCase();
   const etapas = caso.contratacao?.timeline ?? [];
   return (
-    <div className="rounded-xl border border-border bg-cream/40 p-4">
+    <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
       <h4 className="font-serif text-lg text-navy">Histórico contratual</h4>
       {etapas.length === 0 ? (
         <p className="mt-2 text-[12px] text-navy/70">
@@ -361,7 +361,7 @@ function HistoricoContratual() {
           {etapas.map((e) => (
             <li
               key={e.id}
-              className="rounded-lg border border-border bg-white p-3 text-[12px] text-navy/80"
+              className="rounded-lg border border-navy/10 bg-cream/40 p-3 text-[12px] text-navy/80"
             >
               <div className="flex flex-wrap justify-between gap-2">
                 <span className="font-semibold text-navy">{e.titulo}</span>
@@ -385,7 +385,7 @@ function HistoricoContratual() {
 
 function Linha({ l, v }: { l: string; v: string }) {
   return (
-    <div className="flex flex-wrap justify-between gap-2 border-b border-border py-2 text-sm last:border-0">
+    <div className="flex flex-wrap justify-between gap-2 border-b border-navy/10 py-2 text-sm last:border-0">
       <span className="text-navy/60">{l}</span>
       <span className="max-w-[70%] text-right font-medium text-navy">{v}</span>
     </div>
@@ -394,7 +394,7 @@ function Linha({ l, v }: { l: string; v: string }) {
 
 function ListaCampo({ l, itens }: { l: string; itens: string[] }) {
   return (
-    <div className="border-b border-border py-2 text-sm last:border-0">
+    <div className="border-b border-navy/10 py-2 text-sm last:border-0">
       <div className="text-navy/60">{l}</div>
       {itens.length > 0 ? (
         <ul className="mt-1 list-disc space-y-0.5 pl-5 text-navy">
@@ -503,14 +503,14 @@ function ModeloCorpo({ id }: { id: ModeloId }) {
                   </thead>
                   <tbody>
                     {(c?.despesas_externas.itens ?? []).length === 0 ? (
-                      <tr className="border-t border-border">
+                      <tr className="border-t border-navy/10">
                         <td className="p-2 text-navy/70" colSpan={8}>
                           Nenhum item de despesa registrado até o momento.
                         </td>
                       </tr>
                     ) : (
                       c!.despesas_externas.itens.map((i) => (
-                        <tr key={i.item} className="border-t border-border align-top">
+                        <tr key={i.item} className="border-t border-navy/10 align-top">
                           <td className="p-2 font-medium text-navy">{i.item}</td>
                           <td className="p-2 text-navy/70">{texto(i.finalidade, "—")}</td>
                           <td className="p-2 text-navy/70">{texto(i.estimativa, "—")}</td>

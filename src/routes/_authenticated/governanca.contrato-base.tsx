@@ -73,7 +73,7 @@ export const Route = createFileRoute("/_authenticated/governanca/contrato-base")
 
 function Bloco({ titulo, children, nota }: { titulo: string; nota?: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-5">
+    <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
       <h2 className="font-serif text-lg text-navy">{titulo}</h2>
       {nota && <p className="mt-1 text-xs text-navy/55">{nota}</p>}
       <div className="mt-3">{children}</div>
@@ -184,7 +184,7 @@ function Pagina() {
             enviado, assinado, cobrado ou pesquisado externamente a partir desta tela.
           </p>
 
-          <div className="mt-4 overflow-x-auto rounded-lg border border-navy/10 bg-white p-3">
+          <div className="mt-4 overflow-x-auto rounded-lg border border-navy/10 bg-cream/40 p-3">
             <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">Variáveis com origem, estado e versão</p>
             <table className="mt-2 min-w-[860px] text-left text-xs">
               <thead className="text-[10px] uppercase tracking-wide text-navy/45">
@@ -210,7 +210,7 @@ function Pagina() {
             </table>
           </div>
 
-          <div className="mt-3 rounded-lg border border-navy/10 bg-white p-3">
+          <div className="mt-3 rounded-lg border border-navy/10 bg-cream/40 p-3">
             <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">Anexos derivados por regra</p>
             <ul className="mt-2 space-y-2">
               {anexos.map((a) => (
@@ -234,7 +234,7 @@ function Pagina() {
             </p>
           </div>
 
-          <div className="mt-3 rounded-lg border border-navy/10 bg-white p-3">
+          <div className="mt-3 rounded-lg border border-navy/10 bg-cream/40 p-3">
             <div className="mb-3">
               <PerfilInstitucionalBloco campos={perfil.campos} versao={perfil.versao} status={perfil.status} pendencias={perfil.pendencias} />
             </div>
@@ -269,7 +269,7 @@ function Pagina() {
             </p>
           </div>
 
-          <div className="mt-3 rounded-lg border border-navy/10 bg-white p-3">
+          <div className="mt-3 rounded-lg border border-navy/10 bg-cream/40 p-3">
             <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">Bloqueios explicáveis com rota de resolução</p>
             <ul className="mt-2 space-y-1 text-xs">
               {bloqueios.map((b) => (
@@ -341,7 +341,7 @@ function Pagina() {
               </ol>
               <p className="mt-2 text-[11px] text-terracotta">{FONTES_APENAS_APOIO}</p>
             </div>
-            <div className="rounded-lg border border-navy/10 bg-white p-3">
+            <div className="rounded-lg border border-navy/10 bg-cream/40 p-3">
               <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">Anexos familiares</p>
               <table className="mt-1 w-full text-left text-[11px] text-navy/70">
                 <tbody>

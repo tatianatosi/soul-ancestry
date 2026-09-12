@@ -98,7 +98,7 @@ export function AbaEtiquetas({
 
       <Secao titulo="Taxonomia canônica" descricao="Equivalente ao agente do WhatsApp; a fonte canônica é sempre o Desk.">
         <input
-          className="mb-4 w-full max-w-sm rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+          className="mb-4 w-full max-w-sm rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm text-navy outline-none focus:border-gold"
           placeholder="Buscar etiqueta…"
           value={busca}
           onChange={(e) => setBusca(e.target.value)}

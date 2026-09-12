@@ -153,7 +153,7 @@ function Index() {
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               placeholder="Buscar por código, título, status ou país"
-              className="mb-3 w-full rounded-lg border border-navy/15 bg-white px-3 py-1.5 text-sm"
+              className="mb-3 w-full rounded-lg border border-navy/15 bg-cream/40 px-3 py-1.5 text-sm"
             />
             <div className="space-y-2">
               {pesquisasFiltradas.map((p: any) => (
@@ -161,7 +161,7 @@ function Index() {
                   key={p["id"]}
                   to="/pesquisa-modulo/$id"
                   params={{ id: p["id"] }}
-                  className="block rounded-xl border border-navy/10 bg-white p-3 hover:border-navy/30"
+                  className="block rounded-xl border border-navy/10 bg-cream/40 p-3 hover:border-navy/30"
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <strong className="text-sm">{String(p.caso?.codigo ?? "caso")}</strong>
@@ -197,7 +197,7 @@ function Index() {
                 <select
                   value={casoId}
                   onChange={(e) => setCasoId(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-navy/15 bg-white px-2 py-1 text-sm text-navy"
+                  className="mt-1 w-full rounded-lg border border-navy/15 bg-cream/40 px-2 py-1 text-sm text-navy"
                 >
                   <option value="">Selecione…</option>
                   {d.casosSemPesquisa.map((c: any) => (
@@ -213,7 +213,7 @@ function Index() {
                   rows={2}
                   value={objetivo}
                   onChange={(e) => setObjetivo(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-navy/15 bg-white px-2 py-1 text-sm text-navy"
+                  className="mt-1 w-full rounded-lg border border-navy/15 bg-cream/40 px-2 py-1 text-sm text-navy"
                   placeholder="Ex.: reconstruir a linha paterna até o ancestral emigrado e localizar registros civis correspondentes."
                 />
               </label>

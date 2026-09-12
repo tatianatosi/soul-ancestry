@@ -83,7 +83,7 @@ function CatalogoPage() {
           { r: "Itens no catálogo homologado", v: itens ? itens.length : "—" },
           { r: "Divergências abertas", v: divergencias ? divergencias.length : "—" },
         ].map((c) => (
-          <div key={c.r} className="rounded-xl border border-navy/10 bg-white p-4">
+          <div key={c.r} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
             <p className="text-xs uppercase tracking-wide text-navy/50">{c.r}</p>
             <p className="mt-1 font-serif text-2xl text-navy">{c.v}</p>
           </div>
@@ -101,7 +101,7 @@ function CatalogoPage() {
         >
           {() =>
             grupos.map(([produtoPai, lista]) => (
-              <div key={produtoPai} className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
+              <div key={produtoPai} className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
                 <p className="border-b border-navy/10 bg-navy/5 p-3 text-sm font-medium text-navy">
                   {produtoPai}
                 </p>
@@ -164,7 +164,7 @@ function CatalogoPage() {
           {(lista) => (
             <ul className="mt-3 space-y-2">
               {lista.map((d) => (
-                <li key={`${d.sku}-${d.tipo}`} className="rounded-xl border border-navy/10 bg-white p-3 text-xs">
+                <li key={`${d.sku}-${d.tipo}`} className="rounded-xl border border-navy/10 bg-cream/40 p-3 text-xs">
                   <p className="font-medium text-navy/85">
                     {d.sku} — {ROTULO_DIVERGENCIA[d.tipo as TipoDivergencia] ?? d.tipo}
                   </p>

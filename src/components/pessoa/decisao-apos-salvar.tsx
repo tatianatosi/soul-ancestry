@@ -74,7 +74,7 @@ export function DecisaoAposSalvarPessoa({
         <label className="mt-2 block text-xs">
           Caso
           <select
-            className="mt-1 w-full rounded-md border border-navy/20 bg-white px-2 py-1 text-sm"
+            className="mt-1 w-full rounded-md border border-navy/20 bg-cream/40 px-2 py-1 text-sm"
             value={casoId}
             onChange={(e) => setCasoId(e.target.value)}
           >

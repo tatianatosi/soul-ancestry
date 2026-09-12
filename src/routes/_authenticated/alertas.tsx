@@ -93,7 +93,7 @@ function AlertasPage() {
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className="rounded-lg border border-navy/20 bg-white px-2 py-1.5 text-sm"
+          className="rounded-lg border border-navy/20 bg-cream px-2 py-1.5 text-sm"
           aria-label="Filtrar por status"
         >
           <option value="">Todos os status (exceto concluído)</option>
@@ -106,7 +106,7 @@ function AlertasPage() {
         <select
           value={criticidade}
           onChange={(e) => setCriticidade(e.target.value)}
-          className="rounded-lg border border-navy/20 bg-white px-2 py-1.5 text-sm"
+          className="rounded-lg border border-navy/20 bg-cream px-2 py-1.5 text-sm"
           aria-label="Filtrar por criticidade"
         >
           <option value="">Toda criticidade</option>

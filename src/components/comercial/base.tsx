@@ -113,7 +113,7 @@ export function FiltroStatus({
 
 export function Painel({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-4">
+    <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
       <h3 className="font-serif text-lg">{titulo}</h3>
       <div className="mt-3">{children}</div>
     </section>
@@ -195,4 +195,4 @@ export function Campo({
   );
 }
 
-export const inputCls = "w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm";
+export const inputCls = "w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm";

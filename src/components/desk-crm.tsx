@@ -57,7 +57,7 @@ export function DeskCrm() {
       {sla.length > 0 && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {sla.map((r) => (
-            <div key={r.chave} className="rounded-xl border border-border bg-white p-3">
+            <div key={r.chave} className="rounded-xl border border-navy/10 bg-cream/40 p-3">
               <div className="text-[11px] uppercase tracking-wide text-navy/55">SLA</div>
               <div className="font-medium text-navy">{r.rotulo}</div>
               <div className="mt-1 font-serif text-2xl text-navy">{r.horas_alvo}h</div>
@@ -67,7 +67,7 @@ export function DeskCrm() {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-white">
+      <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
         <table className="w-full min-w-[820px] text-sm">
           <thead className="bg-cream/60 text-[11px] uppercase tracking-wide text-navy/60">
             <tr>
@@ -86,7 +86,7 @@ export function DeskCrm() {
                   key={c.id}
                   onClick={() => setCaseId(c.case_id)}
                   className={cn(
-                    "cursor-pointer border-t border-border/70 transition hover:bg-cream/50",
+                    "cursor-pointer border-t border-navy/10/70 transition hover:bg-cream/50",
                     ativo === c.case_id && "bg-gold/10",
                   )}
                 >
@@ -200,7 +200,7 @@ function CasoCrm({ caseId, onChanged }: { caseId: string; onChanged: () => void 
 
   return (
     <div className="grid gap-5 lg:grid-cols-2">
-      <section className="rounded-xl border border-border bg-white p-4">
+      <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
         <h2 className="font-serif text-xl text-navy">{d.caso.cliente_nome}</h2>
         <p className="mt-1 text-[12px] text-navy/65">
           {d.caso.produto_nome ?? "Produto a definir"} · responsável {d.caso.responsavel ?? "—"}
@@ -234,7 +234,7 @@ function CasoCrm({ caseId, onChanged }: { caseId: string; onChanged: () => void 
         </h3>
         <ul className="mt-2 space-y-2">
           {d.touchpoints.map((t) => (
-            <li key={t.id} className="rounded-lg border border-border bg-cream/40 p-2.5 text-sm text-navy">
+            <li key={t.id} className="rounded-lg border border-navy/10 bg-cream/40 p-2.5 text-sm text-navy">
               <div className="flex items-center justify-between text-[11px] uppercase tracking-wide text-navy/55">
                 <span>{CANAL_LABEL[t.canal] ?? t.canal}</span>
                 <span>{new Date(t.ocorrido_em).toLocaleDateString("pt-BR")}</span>
@@ -247,7 +247,7 @@ function CasoCrm({ caseId, onChanged }: { caseId: string; onChanged: () => void 
           ))}
         </ul>
 
-        <div className="mt-3 space-y-2 rounded-lg border border-border p-3">
+        <div className="mt-3 space-y-2 rounded-lg border border-navy/10 p-3">
           <div className="flex flex-wrap gap-1">
             {CANAIS.map((c) => (
               <button
@@ -267,13 +267,13 @@ function CasoCrm({ caseId, onChanged }: { caseId: string; onChanged: () => void 
             value={resumo}
             onChange={(e) => setResumo(e.target.value)}
             placeholder="Resumo do contato"
-            className="w-full rounded-lg border border-border px-2.5 py-1.5 text-sm"
+            className="w-full rounded-lg border border-navy/10 px-2.5 py-1.5 text-sm"
           />
           <textarea
             value={transcricao}
             onChange={(e) => setTranscricao(e.target.value)}
             placeholder="Transcrição ou notas (opcional)"
-            className="h-20 w-full rounded-lg border border-border px-2.5 py-1.5 text-sm"
+            className="h-20 w-full rounded-lg border border-navy/10 px-2.5 py-1.5 text-sm"
           />
           <button
             type="button"
@@ -297,7 +297,7 @@ function CasoCrm({ caseId, onChanged }: { caseId: string; onChanged: () => void 
       </section>
 
       <section className="space-y-5">
-        <div className="rounded-xl border border-border bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <h3 className="flex items-center gap-2 font-serif text-lg text-navy">
             <Radio className="h-4 w-4" /> Microentregas
           </h3>
@@ -305,7 +305,7 @@ function CasoCrm({ caseId, onChanged }: { caseId: string; onChanged: () => void 
             {d.microentregas.map((m) => (
               <li
                 key={m.id}
-                className="flex items-start justify-between gap-2 rounded-lg border border-border bg-cream/40 p-2.5 text-sm text-navy"
+                className="flex items-start justify-between gap-2 rounded-lg border border-navy/10 bg-cream/40 p-2.5 text-sm text-navy"
               >
                 <div>
                   <div className="font-medium">{m.titulo}</div>
@@ -333,7 +333,7 @@ function CasoCrm({ caseId, onChanged }: { caseId: string; onChanged: () => void 
           </ul>
         </div>
 
-        <div className="rounded-xl border border-border bg-white p-4">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           <h3 className="font-serif text-lg text-navy">Planner</h3>
           {Object.entries(etapas).map(([etapa, tarefas]) => (
             <div key={etapa} className="mt-3">
@@ -346,7 +346,7 @@ function CasoCrm({ caseId, onChanged }: { caseId: string; onChanged: () => void 
                       <button
                         type="button"
                         onClick={() => mTarefa.mutate({ data: { id: t.id, concluida: !feita } })}
-                        className="flex w-full items-start gap-2 rounded-lg border border-border bg-cream/40 p-2 text-left text-sm text-navy"
+                        className="flex w-full items-start gap-2 rounded-lg border border-navy/10 bg-cream/40 p-2 text-left text-sm text-navy"
                       >
                         {feita ? (
                           <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-sage" />

@@ -77,7 +77,7 @@ export function VinculoNucleo({
         </div>
       ) : null}
       <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px]">
-        <span className="rounded-full border border-navy/20 bg-white px-2 py-0.5 uppercase tracking-wide text-navy/70">
+        <span className="rounded-full border border-navy/20 bg-cream/50 px-2 py-0.5 uppercase tracking-wide text-navy/70">
           {papel}
         </span>
         {estadoDerivado === "pre_onboarding_bloqueado" ? (

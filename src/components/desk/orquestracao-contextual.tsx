@@ -57,22 +57,22 @@ export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
     : "";
 
   return (
-    <section className="rounded-xl border border-border bg-card p-4">
+    <section className="rounded-xl border border-navy/15 bg-cream/50 p-4">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-sm font-medium text-foreground">Uso contextual por etapa e evento</h2>
-          <p className="text-xs text-muted-foreground">
+          <h2 className="text-sm font-medium text-navy">Uso contextual por etapa e evento</h2>
+          <p className="text-xs text-navy/65">
             Sugestão interna — nenhum envio é realizado pelo sistema. O modelo vigente é apenas
             exibido para revisão e cópia manual.
           </p>
         </div>
-        <label className="text-xs text-muted-foreground">
+        <label className="text-xs text-navy/65">
           <span className="sr-only">Evento canônico</span>
           <select
             value={evento}
             onChange={(e) => setEvento(e.target.value as EventoInterno | "")}
             aria-label="Evento canônico"
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+            className="rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm text-navy"
           >
             <option value="">Selecione um evento canônico</option>
             {EVENTOS_INTERNOS.map((ev) => (
@@ -85,7 +85,7 @@ export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
       </header>
 
       {!cadeia ? (
-        <p className="mt-4 rounded-lg border border-dashed border-border bg-muted/30 p-4 text-xs text-muted-foreground">
+        <p className="mt-4 rounded-lg border border-dashed border-navy/20 bg-cream/40 p-4 text-xs text-navy/65">
           Nenhum evento selecionado. Escolha um evento canônico para ver o modelo vigente sugerido.
           Nenhum dado de caso é carregado neste painel.
         </p>
@@ -93,36 +93,36 @@ export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
         <>
           <dl className="mt-4 grid gap-3 text-xs sm:grid-cols-2">
             <div>
-              <dt className="text-muted-foreground">Etapa da jornada</dt>
-              <dd className="text-foreground">
+              <dt className="text-navy/65">Etapa da jornada</dt>
+              <dd className="text-navy">
                 {template?.etapa_jornada ?? "Sem etapa associada"}
               </dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">Tarefa canônica sugerida</dt>
-              <dd className="text-foreground">
+              <dt className="text-navy/65">Tarefa canônica sugerida</dt>
+              <dd className="text-navy">
                 {cadeia.plano.tarefaSugerida ?? "Nenhuma tarefa nova para este evento"}
               </dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">Modelo vigente</dt>
-              <dd className="text-foreground">
+              <dt className="text-navy/65">Modelo vigente</dt>
+              <dd className="text-navy">
                 {template
                   ? `${template.titulo} (v${cadeia.template.versao ?? 1} · ${template.canal_previsto})`
                   : cadeia.template.motivo}
               </dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">Público elegível</dt>
-              <dd className="text-foreground">{template?.publico_elegivel ?? "—"}</dd>
+              <dt className="text-navy/65">Público elegível</dt>
+              <dd className="text-navy">{template?.publico_elegivel ?? "—"}</dd>
             </div>
             <div className="sm:col-span-2">
-              <dt className="text-muted-foreground">Regra de bloqueio</dt>
-              <dd className="text-foreground">{template?.regra_de_bloqueio ?? "—"}</dd>
+              <dt className="text-navy/65">Regra de bloqueio</dt>
+              <dd className="text-navy">{template?.regra_de_bloqueio ?? "—"}</dd>
             </div>
             <div className="sm:col-span-2">
-              <dt className="text-muted-foreground">Resultado possível</dt>
-              <dd className="text-foreground">
+              <dt className="text-navy/65">Resultado possível</dt>
+              <dd className="text-navy">
                 Preview interno para revisão humana. Envio externo permanece desligado.
               </dd>
             </div>
@@ -130,7 +130,7 @@ export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
 
           {template ? (
             <div className="mt-4 space-y-2">
-              <pre className="whitespace-pre-wrap rounded-lg border border-border bg-muted/30 p-3 text-xs text-foreground">
+              <pre className="whitespace-pre-wrap rounded-lg border border-navy/15 bg-cream/40 p-3 text-xs text-navy">
                 {preview}
               </pre>
               <button
@@ -138,13 +138,13 @@ export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
                 onClick={() => {
                   void navigator.clipboard?.writeText(preview).catch(() => undefined);
                 }}
-                className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted"
+                className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy hover:bg-navy/5"
               >
                 Copiar preview interno
               </button>
             </div>
           ) : (
-            <p className="mt-4 rounded-lg border border-dashed border-border bg-muted/30 p-4 text-xs text-muted-foreground">
+            <p className="mt-4 rounded-lg border border-dashed border-navy/20 bg-cream/40 p-4 text-xs text-navy/65">
               Nenhum modelo vigente aplicável a este evento. Nada é sugerido, criado ou enviado.
             </p>
           )}
@@ -154,55 +154,55 @@ export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
           <div className="mt-4 flex flex-wrap items-center gap-3 text-xs">
             <a
               href={cadeia.plano.objetoCanonico}
-              className="rounded-lg border border-border px-3 py-1.5 text-foreground hover:bg-muted"
+              className="rounded-lg border border-navy/15 px-3 py-1.5 text-navy hover:bg-navy/5"
             >
               Abrir objeto canônico ({cadeia.plano.objetoCanonico})
             </a>
-            <span className="text-muted-foreground">
+            <span className="text-navy/65">
               {vigentes.length} modelos vigentes por etapa × canal × evento.
             </span>
           </div>
         </>
       )}
 
-      <div className="mt-6 border-t border-border pt-4">
-        <h3 className="text-sm font-medium text-foreground">Cadência real do caso</h3>
-        <p className="text-xs text-muted-foreground">
+      <div className="mt-6 border-t border-navy/15 pt-4">
+        <h3 className="text-sm font-medium text-navy">Cadência real do caso</h3>
+        <p className="text-xs text-navy/65">
           Informe o caso e o último touchpoint válido para ver o modelo vigente do evento derivado.
           Nada é enviado, agendado ou gravado.
         </p>
         <div className="mt-3 flex flex-wrap gap-3 text-xs">
           <label className="flex flex-col gap-1">
-            <span className="text-muted-foreground">Identificador do caso</span>
+            <span className="text-navy/65">Identificador do caso</span>
             <input
               value={casoId}
               onChange={(e) => setCasoId(e.target.value)}
               placeholder="CA-2026-..."
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+              className="rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm text-navy"
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-muted-foreground">Último touchpoint válido</span>
+            <span className="text-navy/65">Último touchpoint válido</span>
             <input
               type="date"
               value={ultimoTouchpoint}
               onChange={(e) => setUltimoTouchpoint(e.target.value)}
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+              className="rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm text-navy"
             />
           </label>
         </div>
 
         {!fiacao ? (
-          <p className="mt-4 rounded-lg border border-dashed border-border bg-muted/30 p-4 text-xs text-muted-foreground">
+          <p className="mt-4 rounded-lg border border-dashed border-navy/20 bg-cream/40 p-4 text-xs text-navy/65">
             Sem caso informado. Nenhum dado de caso é carregado ou consultado neste painel.
           </p>
         ) : (
           <div className="mt-4 space-y-3 text-xs">
-            <p className="text-foreground">
+            <p className="text-navy">
               {fiacao.cadencia.diasSemTouchpoint} dia(s) sem touchpoint · situação{" "}
               {fiacao.cadencia.status} — {fiacao.cadencia.motivo}
             </p>
-            <p className="text-muted-foreground">
+            <p className="text-navy/65">
               Evento derivado:{" "}
               {fiacao.eventoDerivado
                 ? ROTULO_EVENTO[fiacao.eventoDerivado]
@@ -210,29 +210,29 @@ export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
             </p>
             <ul className="space-y-2">
               {fiacao.resolucoes.map((r) => (
-                <li key={`${r.origem}-${r.evento}`} className="rounded-lg border border-border p-3">
-                  <p className="text-foreground">
+                <li key={`${r.origem}-${r.evento}`} className="rounded-lg border border-navy/15 p-3">
+                  <p className="text-navy">
                     {ROTULO_EVENTO[r.evento]} ·{" "}
                     {r.origem === "derivado" ? "derivado da cadência" : "evento base"}
                   </p>
-                  <p className="text-muted-foreground">
+                  <p className="text-navy/65">
                     {r.template.template
                       ? `Modelo vigente: ${r.template.template.titulo} (v${r.template.versao ?? 1} · ${r.template.template.canal_previsto})`
                       : r.template.motivo}
                   </p>
-                  <p className="text-muted-foreground">
+                  <p className="text-navy/65">
                     Tarefa canônica: {r.tarefaSugerida ?? "nenhuma tarefa nova"} · Objeto:{" "}
                     {r.destino}
                   </p>
                 </li>
               ))}
               {fiacao.resolucoes.length === 0 ? (
-                <li className="rounded-lg border border-dashed border-border p-3 text-muted-foreground">
+                <li className="rounded-lg border border-dashed border-navy/20 p-3 text-navy/65">
                   Cadência regular e sem evento base: nada é sugerido.
                 </li>
               ) : null}
             </ul>
-            <p className="text-muted-foreground">
+            <p className="text-navy/65">
               Fila derivada: {fiacao.painelHoje.length} item(ns) no Painel Hoje · envio executado:
               não · persistido: não.
             </p>

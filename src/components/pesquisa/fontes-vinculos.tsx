@@ -14,7 +14,7 @@ import {
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const inputCls =
-  "w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold";
+  "w-full rounded-lg border border-navy/15 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold";
 
 const ROTULO_ALVO: Record<TipoAlvo, string> = {
   evidencia: "Evidência",
@@ -112,7 +112,7 @@ export function VinculosDoDocumento({
   });
 
   return (
-    <div className="space-y-3 rounded-lg border border-navy/10 bg-white/70 p-3">
+    <div className="space-y-3 rounded-lg border border-navy/10 bg-cream/70 p-3">
       <div className="flex items-center justify-between">
         <h4 className="text-xs font-medium uppercase tracking-wide text-navy/60">Vínculos da pesquisa</h4>
         <span className="text-[11px] text-navy/45">{vinculos.length} ativo(s)</span>
@@ -249,7 +249,7 @@ export function LastroDeFontes({ caseId, tipoAlvo }: { caseId: string; tipoAlvo:
   const itens = ((d?.vinculos ?? []) as Record<string, any>[]).filter((v) => alvoDoVinculo(v)?.tipo === tipoAlvo);
 
   return (
-    <div className="rounded-lg border border-navy/10 bg-white/60 p-3 text-xs text-navy">
+    <div className="rounded-lg border border-navy/10 bg-cream/60 p-3 text-xs text-navy">
       <h4 className="mb-1 text-[11px] font-medium uppercase tracking-wide text-navy/60">
         Documentos-fonte vinculados ({ROTULO_ALVO[tipoAlvo].toLowerCase()})
       </h4>

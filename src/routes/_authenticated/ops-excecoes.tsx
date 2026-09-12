@@ -147,7 +147,7 @@ function ExcecoesPage() {
             {(excecoes) => (
               <div className="space-y-2">
                 {excecoes.map((e) => (
-                  <div key={e["id"]} className="rounded-xl border border-navy/10 bg-white p-3">
+                  <div key={e["id"]} className="rounded-xl border border-navy/10 bg-cream/40 p-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <strong className="text-sm">{TIPOS_EXCECAO[e["tipo"]] ?? e["tipo"]}</strong>
                       <Selo

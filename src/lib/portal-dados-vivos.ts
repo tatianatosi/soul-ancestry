@@ -214,3 +214,39 @@ export function publicacoesDeFase02(projecoes: ProjecaoBruta[]): PublicacaoClien
     .filter((p) => TIPOS_FASE_02.has(p.tipo))
     .filter((p) => !contemConteudoInterno(p.conteudo));
 }
+
+/**
+ * Mockup 17 — Jornada em duas colunas (História | Seu caso).
+ * Parte só publicações já sanitizadas; não inventa anos, nomes nem % .
+ * Tipos de família/registro → História; acompanhamento operacional → Seu caso.
+ * "União de Ramos" só quando as duas colunas têm publicação (encontro real).
+ */
+const TIPOS_HISTORIA = new Set([
+  "arvore",
+  "achado",
+  "evidencia",
+  "linha_tempo",
+  "legado",
+]);
+
+export type JornadaDuasLinhas = {
+  historia: PublicacaoCliente[];
+  seuCaso: PublicacaoCliente[];
+  uniaoDeRamos: boolean;
+};
+
+export function partirJornadaEmDuasLinhas(
+  linha: PublicacaoCliente[],
+): JornadaDuasLinhas {
+  const historia: PublicacaoCliente[] = [];
+  const seuCaso: PublicacaoCliente[] = [];
+  for (const item of linha) {
+    if (TIPOS_HISTORIA.has(item.tipo)) historia.push(item);
+    else seuCaso.push(item);
+  }
+  return {
+    historia,
+    seuCaso,
+    uniaoDeRamos: historia.length > 0 && seuCaso.length > 0,
+  };
+}

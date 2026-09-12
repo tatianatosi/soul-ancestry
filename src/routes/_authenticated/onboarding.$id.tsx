@@ -208,7 +208,7 @@ function OnboardingPage() {
 
       {dados ? (
         <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-          <section className="rounded-xl border border-navy/10 bg-white p-4">
+          <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
             <header className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-base font-semibold text-navy">Requisitos de ativação</h2>
               <span
@@ -379,7 +379,7 @@ function OnboardingPage() {
             </div>
           </section>
 
-          <section className="rounded-xl border border-navy/10 bg-white p-4">
+          <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
             <h2 className="text-base font-semibold text-navy">Checklist de onboarding</h2>
             <p className="mb-3 mt-1 text-xs text-navy/50">
               Esta tabela existe há semanas e é lida pelo banco (trg_caso_ativo_guard) e pela lista
@@ -473,7 +473,7 @@ function OnboardingPage() {
             </ul>
           </section>
 
-          <section className="rounded-xl border border-navy/10 bg-white p-4">
+          <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
             <h2 className="mb-3 text-base font-semibold text-navy">Linha do tempo do onboarding</h2>
             <ol className="space-y-3">
               <li className="border-l-2 border-gold/60 pl-3">
@@ -501,7 +501,7 @@ function OnboardingPage() {
 
       {isencaoDe ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-4">
+          <div className="w-full max-w-md rounded-xl bg-cream/40 p-4">
             <h3 className="text-sm font-semibold text-navy">
               Autorizar isenção — {isencaoDe.label}
             </h3>
@@ -551,7 +551,7 @@ function OnboardingPage() {
 
       {itemOnboardingDe ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-4">
+          <div className="w-full max-w-md rounded-xl bg-cream/40 p-4">
             <h3 className="text-sm font-semibold text-navy">
               {itemOnboardingDe.status === "concluido" ? "Concluir" : "Marcar não aplicável"} —{" "}
               {itemOnboardingDe.label}
@@ -595,7 +595,7 @@ function OnboardingPage() {
 
       {suspendendo ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-4">
+          <div className="w-full max-w-md rounded-xl bg-cream/40 p-4">
             <h3 className="text-sm font-semibold text-navy">Suspender caso</h3>
             <p className="mt-1 text-xs text-navy/60">
               O motivo é obrigatório e uma tarefa de revisão será criada para o responsável.

@@ -23,7 +23,7 @@ import {
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const inputCls =
-  "w-full rounded-lg border border-navy/15 bg-white px-2 py-1.5 text-sm text-navy outline-none focus:border-gold disabled:bg-navy/5 disabled:text-navy/50";
+  "w-full rounded-lg border border-navy/15 bg-cream px-2 py-1.5 text-sm text-navy outline-none focus:border-gold disabled:bg-navy/5 disabled:text-navy/50";
 
 function Secao({ titulo, descricao, children }: { titulo: string; descricao?: string; children: React.ReactNode }) {
   return (
@@ -320,7 +320,7 @@ export function AbaCadastro({
           >
             {(comunicacoes) =>
               comunicacoes.map((c: any) => (
-                <article key={c.id} className="rounded-xl border border-navy/10 bg-white p-3 text-sm">
+                <article key={c.id} className="rounded-xl border border-navy/10 bg-cream/50 p-3 text-sm">
                   <p className="font-medium text-navy">{c.assunto}</p>
                   <p className="text-xs text-navy/50">
                     {c.status} · {c.suggested_channel} · {c.sent_at ? "enviado" : "não enviado"}

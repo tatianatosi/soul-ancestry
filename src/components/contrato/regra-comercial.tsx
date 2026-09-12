@@ -185,7 +185,7 @@ export function RegraComercial({ caseId }: { caseId: string }) {
                  */}
                 {data?.sku ? (
                   abrirExcecao ? (
-                    <div className="mt-2 space-y-2 rounded border border-terracotta/30 bg-white p-2 text-navy">
+                    <div className="mt-2 space-y-2 rounded border border-terracotta/30 bg-cream/40 p-2 text-navy">
                       <label className="block text-xs">
                         Motivo (mínimo 15 caracteres)
                         <textarea
@@ -251,7 +251,7 @@ export function RegraComercial({ caseId }: { caseId: string }) {
                     <button
                       type="button"
                       onClick={() => setAbrirExcecao(true)}
-                      className="mt-2 rounded border border-terracotta/50 bg-white px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+                      className="mt-2 rounded border border-terracotta/50 bg-cream/40 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
                     >
                       Assumir exceção comercial
                     </button>

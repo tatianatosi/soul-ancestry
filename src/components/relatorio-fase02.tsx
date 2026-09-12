@@ -35,7 +35,7 @@ export function RelatorioFase02({ registro }: { registro: CaseRecord }) {
       </header>
 
       {!entregue && (
-        <section className="rounded-2xl border border-gold/50 bg-white p-5 shadow-sm">
+        <section className="rounded-2xl border border-gold/50 bg-cream/40 p-5 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold/15 text-navy">
               <Lock className="h-5 w-5" />
@@ -57,7 +57,7 @@ export function RelatorioFase02({ registro }: { registro: CaseRecord }) {
       <div className="grid gap-5 lg:grid-cols-[240px_1fr]">
         {/* índice lateral — desktop */}
         <nav data-print-hide className="hidden lg:block">
-          <div className="sticky top-4 rounded-2xl border border-border bg-white p-3 shadow-sm">
+          <div className="sticky top-4 rounded-2xl border border-navy/10 bg-cream/40 p-3 shadow-sm">
             <div className="px-2 pb-2 text-[11px] uppercase tracking-widest text-terracotta">Índice</div>
             <ol className="space-y-0.5">
               {secoes.map((s, i) => (
@@ -81,7 +81,7 @@ export function RelatorioFase02({ registro }: { registro: CaseRecord }) {
         </nav>
 
         {/* conteúdo — desktop */}
-        <section className="hidden rounded-2xl border border-border bg-white p-6 shadow-sm lg:block">
+        <section className="hidden rounded-2xl border border-navy/10 bg-cream/40 p-6 shadow-sm lg:block">
           <div className="text-[11px] uppercase tracking-widest text-terracotta">{secaoAtiva.resumo}</div>
           <h2 className="mt-1 font-serif text-2xl text-navy">{secaoAtiva.titulo}</h2>
           <Corpo secao={secaoAtiva} />
@@ -92,7 +92,7 @@ export function RelatorioFase02({ registro }: { registro: CaseRecord }) {
           {secoes.map((s, i) => {
             const open = aberta === s.id;
             return (
-              <div key={s.id} className="overflow-hidden rounded-xl border border-border bg-white shadow-sm">
+              <div key={s.id} className="overflow-hidden rounded-xl border border-navy/10 bg-cream/40 shadow-sm">
                 <button
                   onClick={() => setAberta(open ? null : s.id)}
                   className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
@@ -106,7 +106,7 @@ export function RelatorioFase02({ registro }: { registro: CaseRecord }) {
                   <ChevronDown className={cn("h-4 w-4 shrink-0 text-navy/50 transition", open && "rotate-180")} />
                 </button>
                 {open && (
-                  <div className="border-t border-border px-4 pb-4">
+                  <div className="border-t border-navy/10 px-4 pb-4">
                     <div className="pt-2 text-[11px] uppercase tracking-widest text-terracotta">{s.resumo}</div>
                     <Corpo secao={s} />
                   </div>
@@ -117,7 +117,7 @@ export function RelatorioFase02({ registro }: { registro: CaseRecord }) {
         </div>
       </div>
 
-      <section className="rounded-2xl border border-border bg-areia/60 p-5">
+      <section className="rounded-2xl border border-navy/10 bg-areia/60 p-5">
         <div className="flex items-start gap-3">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-sage" />
           <p className="text-[12px] text-navy/75">
@@ -132,7 +132,7 @@ export function RelatorioFase02({ registro }: { registro: CaseRecord }) {
           >
             <Printer className="h-3.5 w-3.5" /> Versão para impressão
           </button>
-          <span className="inline-flex items-center gap-2 rounded-full border border-navy/15 bg-white px-4 py-2 text-[12px] text-navy/50">
+          <span className="inline-flex items-center gap-2 rounded-full border border-navy/15 bg-cream/40 px-4 py-2 text-[12px] text-navy/50">
             <FileText className="h-3.5 w-3.5" /> Exportação em PDF em breve
           </span>
         </div>
@@ -152,7 +152,7 @@ function Corpo({ secao }: { secao: ReturnType<typeof secoesFase02>[number] }) {
       {secao.itens && secao.itens.length > 0 && (
         <ul className="space-y-2">
           {secao.itens.map((it) => (
-            <li key={it} className="flex items-start gap-2 rounded-lg border border-border bg-cream/60 p-3 text-[12px] text-navy/80">
+            <li key={it} className="flex items-start gap-2 rounded-lg border border-navy/10 bg-cream/60 p-3 text-[12px] text-navy/80">
               <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
               <span className="leading-snug">{it}</span>
             </li>

@@ -81,7 +81,7 @@ function ConfiguracoesPage() {
           {(usuarios) => (
         <div className="space-y-3">
           {usuarios.map((u) => (
-            <div key={u.userId} className="rounded-xl border border-navy/10 bg-white p-4">
+            <div key={u.userId} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <p className="font-medium text-navy">{u.nome ?? u.email ?? "Membro"}</p>
@@ -205,7 +205,7 @@ function PainelModoProprietaria({
         ) : (
           <ul className="mt-2 space-y-1.5 text-xs text-navy/70">
             {dados.ultimosEventos.slice(0, 8).map((e) => (
-              <li key={e.id} className="rounded-md bg-white/60 px-2 py-1.5">
+              <li key={e.id} className="rounded-md bg-cream/60 px-2 py-1.5">
                 <span className="font-medium text-navy">{rotuloAcaoEvento(e.acao)}</span>
                 {e.entidade ? ` · ${e.entidade}` : ""}
                 {" · "}

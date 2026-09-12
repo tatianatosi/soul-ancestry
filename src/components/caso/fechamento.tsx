@@ -59,7 +59,7 @@ export function AbaFechamento({
 
   return (
     <div className="space-y-5">
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
+      <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-[11px] uppercase tracking-wide text-navy/50">Situação do caso no Desk</p>
@@ -101,7 +101,7 @@ export function AbaFechamento({
         </p>
       </section>
 
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
+      <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
         <h3 className="font-serif text-lg text-navy">Checklist de gates</h3>
         <p className="mt-1 text-xs text-navy/55">
           Cada gate exige evidência registrada. Cobrança, assinatura, pesquisa externa e comunicação continuam sendo atos
@@ -156,7 +156,7 @@ export function AbaFechamento({
         </ul>
       </section>
 
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
+      <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
         <h3 className="font-serif text-lg text-navy">Evidências consultadas</h3>
         <ul className="mt-2 grid gap-1 text-xs text-navy/65 sm:grid-cols-2">
           <li>

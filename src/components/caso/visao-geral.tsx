@@ -52,7 +52,7 @@ function FaixaPrioridade({ caso }: { caso: Linha }) {
 
   return (
     <div className={`flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3 ${TOM_SINAL[p.sinal]}`}>
-      <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
+      <span className="rounded-full bg-cream/70 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
         {ROTULO_SINAL[p.sinal]}
       </span>
       <p className="text-sm">{p.porque}</p>
@@ -65,7 +65,7 @@ function FaixaPrioridade({ caso }: { caso: Linha }) {
 
 function Cartao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-5">
+    <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
       <h2 className="mb-3 font-serif text-lg text-navy">{titulo}</h2>
       {children}
     </section>
@@ -182,7 +182,7 @@ export function AbaVisaoGeral({
         técnico.
       </p>
 
-      <details className="lg:col-span-2 rounded-xl border border-navy/10 bg-white p-5">
+      <details className="lg:col-span-2 rounded-xl border border-navy/10 bg-cream/50 p-5">
         <summary className="cursor-pointer font-serif text-lg text-navy">
           Dados técnicos e validações desta visão
         </summary>

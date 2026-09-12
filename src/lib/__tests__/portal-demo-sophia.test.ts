@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CASO_DEMO_CASE_ID,
+  CASO_DEMO_CODIGO,
   CASO_DEMO_ID,
   DADOS_DEMO_SOPHIA,
+  IDENTIDADE_DEMO_SOPHIA,
   PROJECOES_DEMO_SOPHIA,
   SELO_DEMO_PORTAL,
 } from "@/lib/portal-demo-sophia";
@@ -12,7 +15,11 @@ import { contemConteudoInterno } from "@/lib/onboarding-jornada";
 
 describe("caso demo do App Cliente — Sophia Piccoli", () => {
   it("é o caso-modelo declarado, e traz o selo de dado fictício", () => {
-    expect(CASO_DEMO_ID).toBe("CA-ITA-SOPHI-PICCOLI");
+        expect(CASO_DEMO_CASE_ID).toBe("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+    expect(CASO_DEMO_CODIGO).toBe("CA-ITA-SOPHI-PICCOLI");
+    expect(CASO_DEMO_ID).toBe(CASO_DEMO_CASE_ID);
+    expect(IDENTIDADE_DEMO_SOPHIA.caseId).toBe(CASO_DEMO_CASE_ID);
+    expect(IDENTIDADE_DEMO_SOPHIA.codigo).toBe(CASO_DEMO_CODIGO);
     expect(SELO_DEMO_PORTAL).toContain("DADOS FICTÍCIOS");
   });
 

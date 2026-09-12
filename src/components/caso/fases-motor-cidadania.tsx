@@ -55,7 +55,7 @@ export function FasesMotorCidadania({ caseId }: { caseId: string }) {
         <>
           <ol className="grid gap-2 sm:grid-cols-3">
             {(q.data?.fases ?? []).map((f) => (
-              <li key={f.fase} className="rounded-lg border border-navy/10 bg-white px-3 py-2">
+              <li key={f.fase} className="rounded-lg border border-navy/10 bg-cream/40 px-3 py-2">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-[12px] font-medium text-navy">
                     {f.fase}. {f.nome}

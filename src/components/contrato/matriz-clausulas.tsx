@@ -18,7 +18,7 @@ const COR: Record<StatusClausula, string> = {
 
 export function MatrizClausulas({ linhas }: { linhas: LinhaClausulaAvaliada[] }) {
   return (
-    <div className="rounded-lg border border-navy/10 bg-white p-3">
+    <div className="rounded-lg border border-navy/10 bg-cream/40 p-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
           Matriz de cláusulas A–P · {MATRIZ_CLAUSULAS_VERSAO}
@@ -86,7 +86,7 @@ export function PerfilInstitucionalBloco({
   pendencias: string[];
 }) {
   return (
-    <div className="rounded-lg border border-navy/10 bg-white p-3">
+    <div className="rounded-lg border border-navy/10 bg-cream/40 p-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
           Perfil institucional versionado — {status === "vigente" ? "vigente" : "em revisão jurídica"}

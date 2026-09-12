@@ -10,7 +10,7 @@ export function CorpoContratualVersionado() {
   const faltantes = temasSemTextoVersionado();
 
   return (
-    <section className="rounded-xl border border-navy/12 bg-white/70 p-4">
+    <section className="rounded-xl border border-navy/12 bg-cream/50 p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="text-sm font-semibold text-navy">Corpo do contrato — texto fixo versionado</p>
         <span className="text-[11px] uppercase tracking-wide text-navy/50">

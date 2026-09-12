@@ -7,7 +7,7 @@ import { PROXIMAS_ACOES, type LeadDesk } from "@/lib/crm-desk";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { ROTULO_ESTADO_ACAO, listaAcoes, resumoAcoes, type EstadoAcao, type LinhaAcao } from "@/lib/proximas-acoes";
 
-const CARTAO = "rounded-xl border border-navy/10 bg-white p-4";
+const CARTAO = "rounded-xl border border-navy/10 bg-cream/40 p-4";
 
 const COR: Record<EstadoAcao, string> = {
   atrasada: "border-terracotta/40 bg-terracotta/10 text-terracotta",
@@ -15,7 +15,7 @@ const COR: Record<EstadoAcao, string> = {
   proxima: "border-navy/15 bg-cream text-navy",
   sem_data: "border-terracotta/30 bg-terracotta/5 text-terracotta",
   sem_acao: "border-terracotta/30 bg-terracotta/5 text-terracotta",
-  futura: "border-navy/10 bg-white text-navy/70",
+  futura: "border-navy/10 bg-cream/40 text-navy/70",
 };
 
 export function ProximasAcoes() {

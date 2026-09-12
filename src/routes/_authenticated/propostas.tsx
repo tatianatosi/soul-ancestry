@@ -279,7 +279,7 @@ function PropostasPage() {
           !linhas.length ? (
           <EstadoVazio mensagem="Nenhuma proposta neste filtro." />
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
+          <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
             <table className="w-full min-w-[760px] text-sm">
               <thead className="bg-navy/5 text-left text-xs uppercase tracking-wide text-navy/60">
                 <tr>

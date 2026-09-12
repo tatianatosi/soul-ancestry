@@ -93,7 +93,7 @@ export function EntregaConsultivaTab({ caso }: { caso: Caso }) {
     <div className="space-y-4 p-5 lg:mx-auto lg:max-w-5xl" data-print-area>
       {/* uso interno da demonstração — nunca visível para clientes reais */}
       {MODO_DEMO && (
-        <div data-print-hide className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-white p-3">
+        <div data-print-hide className="flex flex-wrap items-center gap-2 rounded-xl border border-navy/10 bg-cream/40 p-3">
           <span className="text-[11px] uppercase tracking-widest text-navy/60">Visualizar (interno)</span>
           <button
             onClick={() => {
@@ -176,7 +176,7 @@ export function EntregaConsultivaTab({ caso }: { caso: Caso }) {
         <Card icon={<FileText className="h-4 w-4" />} titulo="Checklist mínimo de documentos" className="lg:col-span-2">
           <ul className="grid gap-2 sm:grid-cols-2">
             {entrega.documentChecklist.map((c) => (
-              <li key={c.item} className="flex items-start gap-3 rounded-xl border border-border bg-cream/60 p-3">
+              <li key={c.item} className="flex items-start gap-3 rounded-xl border border-navy/10 bg-cream/60 p-3">
                 <span
                   className={cn(
                     "mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full",
@@ -198,7 +198,7 @@ export function EntregaConsultivaTab({ caso }: { caso: Caso }) {
       </div>
 
       {/* Próximo passo */}
-      <section className="rounded-2xl border-2 border-gold bg-white p-5 shadow-lg">
+      <section className="rounded-2xl border-2 border-gold bg-cream/40 p-5 shadow-lg">
         <div className="text-[11px] uppercase tracking-widest text-navy/60">Etapa 02 · Aprofundar e desenhar seu caminho</div>
         <h3 className="mt-1 font-serif text-xl text-navy">{oferta.productName}</h3>
         <p className="mt-2 text-[13px] leading-relaxed text-navy/80">{oferta.description}</p>
@@ -265,7 +265,7 @@ export function EntregaConsultivaTab({ caso }: { caso: Caso }) {
       </section>
 
       {/* Exportação */}
-      <section data-print-hide className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-white p-5">
+      <section data-print-hide className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-navy/10 bg-cream/40 p-5">
         <div>
           <h3 className="font-serif text-lg text-navy">Exportar entrega em PDF</h3>
           <p className="text-[12px] text-navy/70">
@@ -285,7 +285,7 @@ export function EntregaConsultivaTab({ caso }: { caso: Caso }) {
 
       {/* Mensagem de WhatsApp (envio manual pela equipe) */}
       {MODO_DEMO && (
-        <section data-print-hide className="rounded-2xl border border-border bg-white p-5">
+        <section data-print-hide className="rounded-2xl border border-navy/10 bg-cream/40 p-5">
           <div className="mb-2 flex items-center gap-2">
             <MessageCircle className="h-4 w-4 text-navy" />
             <h3 className="font-serif text-lg text-navy">Mensagem de WhatsApp (envio manual)</h3>
@@ -374,7 +374,7 @@ function CheckoutModal({
       className="fixed inset-0 z-50 grid place-items-end bg-navy/50 p-0 sm:place-items-center sm:p-6"
       onClick={onClose}
     >
-      <div className="w-full max-w-md rounded-t-3xl bg-white p-6 shadow-2xl sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-md rounded-t-3xl bg-cream/40 p-6 shadow-2xl sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="text-[11px] uppercase tracking-widest text-navy/60">Produto recomendado</div>
@@ -442,7 +442,7 @@ function Card({
   className?: string;
 }) {
   return (
-    <section className={cn("rounded-2xl border border-border bg-white p-5 shadow-sm", className)}>
+    <section className={cn("rounded-2xl border border-navy/10 bg-cream/40 p-5 shadow-sm", className)}>
       <div className="mb-3 flex items-center gap-2 text-navy">
         <span className="grid h-7 w-7 place-items-center rounded-full bg-navy/5">{icon}</span>
         <h3 className="font-serif text-lg">{titulo}</h3>

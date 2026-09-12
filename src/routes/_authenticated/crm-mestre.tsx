@@ -42,10 +42,10 @@ export const Route = createFileRoute("/_authenticated/crm-mestre")({
   errorComponent: ErroCrmMestre,
 });
 
-const CARTAO = "rounded-xl border border-navy/10 bg-white p-4";
+const CARTAO = "rounded-xl border border-navy/10 bg-cream/40 p-4";
 const TITULO_SECAO = "font-serif text-xl text-navy";
 const BOTAO =
-  "inline-flex items-center gap-2 rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm font-medium text-navy transition-colors hover:bg-cream disabled:opacity-60";
+  "inline-flex items-center gap-2 rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm font-medium text-navy transition-colors hover:bg-cream disabled:opacity-60";
 
 /** Estado de carregamento da rota, com a mesma moldura da tela. */
 function CarregandoCrmMestre() {

@@ -212,11 +212,13 @@ export function SaasShell({
           aberto ? "flex" : "hidden",
         )}
       >
-        <div className="px-2 pb-6">
-          <BrandLogo size={34} variant="client-dark" className="items-center" />
-          <p className="mt-2 pl-0.5 text-[11px] uppercase tracking-widest text-cream/60">
+        <div className="px-2 pb-4" data-marca-guia="oki">
+          <BrandLogo size={34} variant="client-dark" showText={false} className="items-center" />
+          <p className="mt-2 font-serif text-base leading-tight text-gold">Clube Ancestral</p>
+          <p className="mt-0.5 pl-0.5 text-[11px] uppercase tracking-widest text-cream/60">
             Desk Intelligence
           </p>
+          <div className="mt-3 h-0.5 w-full bg-gold/80" aria-hidden="true" />
         </div>
 
         <nav className="flex-1 space-y-1">
@@ -355,7 +357,7 @@ export function SaasShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b border-navy/10 bg-white px-4 py-4 lg:px-8">
+        <header className="flex items-center gap-3 border-b border-navy/10 bg-cream px-4 py-4 lg:px-8">
           <button
             className="lg:hidden"
             onClick={() => setAberto((v) => !v)}
@@ -405,7 +407,7 @@ export function SaasShell({
 
 export function EstadoVazio({ mensagem, acao }: { mensagem: string; acao?: ReactNode }) {
   return (
-    <div className="rounded-xl border border-dashed border-navy/20 bg-white/60 p-10 text-center text-sm text-navy/60">
+    <div className="rounded-xl border border-dashed border-navy/20 bg-cream/50 p-10 text-center text-sm text-navy/60">
       <p>{mensagem}</p>
       {acao ? <div className="mt-3 flex justify-center">{acao}</div> : null}
     </div>
