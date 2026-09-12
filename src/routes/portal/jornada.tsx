@@ -5,15 +5,12 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { LinkPortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { KpiCard } from "@/components/clube-ancestral-kit";
 import { jornadaSanitizada, partirJornadaEmDuasLinhas } from "@/lib/portal-dados-vivos";
 
 function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
-      <p className="mt-0.5 text-sm text-navy">{valor}</p>
-    </div>
-  );
+  // Kit visual aprovado: o cartão de indicador do Clube Ancestral.
+  return <KpiCard label={rotulo} value={valor} />;
 }
 
 export const Route = createFileRoute("/portal/jornada")({
@@ -74,7 +71,7 @@ export function PortalJornada() {
                 <div className="space-y-4" data-aba-jornada>
                 <div
                   data-jornada-meta
-                  className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+                  className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
                 >
                   <ChipMeta rotulo="Caso" valor={casoCodigo} />
                   <ChipMeta rotulo="Marcos" valor={String(jornada.marcosPublicados)} />
