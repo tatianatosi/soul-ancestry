@@ -62,15 +62,9 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
     if (!caso) throw new Error("Caso não encontrado nesta organização.");
 
     const agora = new Date().toISOString();
-    // Policy portal (LGPD shares) recursa com app_projection_shares mesmo para
-    // is_org_member. Enquanto 20260911120000 não estiver no projeto remoto, a
-    // visão master lê projeções via admin *depois* de autorizar proprietária +
-    // org + caso — mesmos filtros. Portal do cliente continua no JWT.
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const leitorProjecoes = supabaseAdmin as typeof supabase;
 
-    const [proj, docs, pendencias, faturas] = await Promise.all([
-      leitorProjecoes
+    const proj = await lerProjecoes(supabase, (cliente: any) =>
+      cliente
         .from("app_projections")
         .select("id, case_id, projection_type, content_sanitized, effective_from, updated_at")
         .eq("organization_id", organizationId)
@@ -80,6 +74,10 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
         .is("archived_at", null)
         .not("effective_from", "is", null)
         .lte("effective_from", agora),
+    );
+
+    const [docs, pendencias, faturas] = await Promise.all([
+
       supabase
         .from("documents")
         .select("id, liberado_cliente, origem")
