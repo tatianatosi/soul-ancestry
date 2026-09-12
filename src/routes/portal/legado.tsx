@@ -6,6 +6,7 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { KpiCard } from "@/components/clube-ancestral-kit";
 import { legadoSanitizado } from "@/lib/portal-dados-vivos";
 import type { PublicacaoCliente } from "@/lib/projecoes-cliente";
 
@@ -62,12 +63,8 @@ function prateleiraDe(item: PublicacaoCliente): PrateleiraId {
 }
 
 function Chip({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
-      <p className="mt-0.5 text-sm text-navy">{valor}</p>
-    </div>
-  );
+  // Kit visual aprovado: o cartão de indicador do Clube Ancestral.
+  return <KpiCard label={rotulo} value={valor} />;
 }
 
 export function PortalLegado() {
@@ -102,7 +99,7 @@ export function PortalLegado() {
                     data-legado-meta
                     className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
                   >
-                    <div className="flex flex-wrap gap-2">
+                    <div className="grid flex-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                       <Chip rotulo="Biblioteca" valor="Legado familiar" />
                       <Chip rotulo="Caso" valor={casoCodigo} />
                       <Chip
