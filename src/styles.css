@@ -210,6 +210,54 @@
   h1, h2, h3, .font-serif { font-family: var(--font-serif); }
 }
 
+/* Desk Intelligence — tradução estrutural do mockup aprovado para as telas
+   reais. A imagem de referência não é usada como fundo: cada painel continua
+   sendo conteúdo navegável, acessível e ligado às fontes existentes. */
+[data-desk-shell="clube-ancestral"] {
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--cream) 82%, white), var(--background));
+}
+
+[data-desk-surface="true"] {
+  width: min(100%, 96rem);
+  margin-inline: auto;
+}
+
+[data-desk-surface="true"] :where(section, article, [data-slot="card"]) {
+  border-color: color-mix(in oklab, var(--border) 84%, var(--gold));
+}
+
+[data-desk-surface="true"] :where(.rounded-xl, .rounded-2xl) {
+  border-radius: 0.5rem;
+}
+
+[data-desk-surface="true"] :where(.bg-cream\/40, .bg-cream\/50, .bg-cream\/60, .bg-cream\/70) {
+  background-color: color-mix(in oklab, var(--card) 86%, var(--cream));
+}
+
+[data-desk-surface="true"] :where(table) {
+  background-color: var(--card);
+}
+
+[data-desk-surface="true"] :where(thead) {
+  background-color: color-mix(in oklab, var(--cream) 72%, white);
+}
+
+[data-desk-surface="true"] :where(h2, h3) {
+  color: var(--navy);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-desk-surface="true"] > * {
+    animation: desk-entrada 220ms ease-out both;
+  }
+}
+
+@keyframes desk-entrada {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ---- Versão print-friendly do Relatório Visual ---- */
 @media print {
   @page { margin: 14mm; }
