@@ -194,62 +194,39 @@ function PainelHomeMockup({
       />
       <div
         data-home-meta
-        className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid gap-3 sm:grid-cols-3"
       >
         <ChipMeta rotulo="Caso" valor={casoCodigo} />
         <ChipMeta
           rotulo="Progresso"
           valor={marcos === 0 ? "Sem publicação ainda" : `${marcos} marcos`}
         />
-        <ChipMeta rotulo="Próxima ação" valor={proximaCurta || "Aguardando equipe"} />
         <ChipMeta
           rotulo="Achados"
           valor={achados.length === 0 ? "Nenhum ainda" : `${achados.length} recentes`}
         />
       </div>
 
-      <section
-        data-microentrega-publicada
-        className="grid gap-3 rounded-2xl border border-navy/10 bg-cream/50 p-5 sm:grid-cols-3"
-      >
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">Etapa</p>
-          <p className="mt-1 text-sm font-medium text-navy">{statusRotulo}</p>
-        </div>
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">
-            Próxima ação
-          </p>
-          <p className="mt-1 text-sm text-navy/85">{proximoPasso || "Aguardando equipe"}</p>
-        </div>
-        <div>
+      {microentrega ? (
+        <section
+          data-microentrega-publicada
+          className="rounded-2xl border border-navy/10 bg-cream/50 p-5"
+        >
           <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">
             Microentrega publicada
           </p>
-          {microentrega ? (
-            <>
-              <p className="mt-1 text-sm font-medium text-navy">{microentrega.tipoRotulo}</p>
-              <p className="mt-0.5 text-sm text-navy/80">{microentrega.conteudo}</p>
-              {microentrega.publicadoEm ? (
-                <p className="mt-1 text-[11px] text-navy/50">
-                  Publicada em{" "}
-                  {new Date(microentrega.publicadoEm).toLocaleDateString("pt-BR")}
-                </p>
-              ) : null}
-              <LinkPortal
-                to="/portal/jornada"
-                className="mt-2 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
-              >
-                Ver na jornada
-              </LinkPortal>
-            </>
-          ) : (
-            <p className="mt-1 text-sm text-navy/60">
-              Nenhuma microentrega publicada até agora.
-            </p>
-          )}
-        </div>
-      </section>
+          <p className="mt-1 text-sm font-medium text-navy">{microentrega.tipoRotulo}</p>
+          <p className="mt-0.5 text-sm text-navy/80">{microentrega.conteudo}</p>
+          <LinkPortal
+            to="/portal/jornada"
+            className="mt-2 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
+          >
+            Ver na jornada
+          </LinkPortal>
+        </section>
+      ) : null}
+
+
 
 
       <section className="rounded-2xl border border-navy/10 bg-cream/50 p-5 shadow-sm">
