@@ -6,6 +6,7 @@ import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-v
 import { LinkPortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada, partirJornadaEmDuasLinhas } from "@/lib/portal-dados-vivos";
+import { cn } from "@/lib/utils";
 
 function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
@@ -128,7 +129,12 @@ export function PortalJornada() {
                       className="rounded-xl border border-border bg-card p-4"
                       data-jornada-coluna={tom}
                     >
-                      <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-navy/45">
+                      <p
+                        className={cn(
+                          "text-[10px] font-medium uppercase tracking-[0.14em]",
+                          tom === "historia" ? "text-gold" : "text-navy/70",
+                        )}
+                      >
                         {titulo}
                       </p>
                       {itens.length === 0 ? (

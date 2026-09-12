@@ -103,17 +103,17 @@ export function PortalArvore() {
                                 <div
                                   key={`${geracao.id}-${i}`}
                                   className={cn(
-                                    "flex h-12 w-12 items-center justify-center rounded-full border text-[10px]",
+                                    "flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-lg border text-center text-[10px] shadow-sm",
                                     ehG1
-                                      ? "border-2 border-gold bg-gold/20 font-medium text-navy shadow-[0_0_0_3px_rgba(252,183,58,0.25)]"
+                                      ? "border-2 border-navy bg-navy font-semibold text-cream shadow"
                                       : painel.temPublicacao
-                                        ? "border-gold/40 bg-cream/70 text-navy/55"
-                                        : "border-navy/15 bg-cream/40 text-navy/45",
+                                        ? "border-gold/40 bg-white text-navy/60"
+                                        : "border-border bg-white text-navy/40",
                                   )}
                                   aria-hidden="true"
                                   {...(ehG1 ? { title: "Você (G1)" } : {})}
                                 >
-                                  {ehG1 ? "G1" : "—"}
+                                  {ehG1 ? "Você" : "—"}
                                 </div>
                               );
                             })}

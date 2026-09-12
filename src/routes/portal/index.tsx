@@ -77,6 +77,7 @@ export function PortalHome() {
             achados={jornada.linha.slice(0, 3).map((item) => ({
               id: item.id,
               tipo: item.tipoRotulo,
+              destino: item.tipo === "arvore" ? "/portal/arvore" : "/portal/jornada",
               texto: item.conteudo,
             }))}
             fase={{
@@ -124,6 +125,7 @@ export function PortalHome() {
                 achados={jornada.linha.slice(0, 3).map((item) => ({
                   id: item.id,
                   tipo: item.tipoRotulo,
+                  destino: item.tipo === "arvore" ? "/portal/arvore" : "/portal/jornada",
                   texto: item.conteudo,
                 }))}
               />
@@ -231,7 +233,7 @@ function PainelHomeMockup({
   casoCodigo: string;
   casoId?: string;
   identidade?: import("@/lib/caso-compartilhado").IdentidadeCaso;
-  achados: Array<{ id: string; tipo: string; texto: string }>;
+  achados: Array<{ id: string; tipo: string; destino: "/portal/jornada" | "/portal/arvore"; texto: string }>;
   /** Só preenchido na demo — não existe policy de portal para fase real do caso ainda. */
   fase?: { rotulos: readonly string[]; indice: number; percentual: number } | null;
 }) {
@@ -318,13 +320,18 @@ function PainelHomeMockup({
           ) : (
             <div className="space-y-2">
               {achados.map((a) => (
-                <CaCard key={a.id} className="border-l-4 border-l-gold p-3">
-                  <div className="mb-0.5 flex items-center gap-1.5">
-                    <Search className="h-3 w-3 text-gold" aria-hidden="true" />
-                    <span className="text-[10px] font-medium uppercase tracking-widest text-gold">{a.tipo}</span>
-                  </div>
-                  <p className="line-clamp-2 text-sm text-navy/85">{a.texto}</p>
-                </CaCard>
+                <LinkPortal key={a.id} to={a.destino} className="block">
+                  <CaCard className="flex items-start justify-between gap-2 border-l-4 border-l-gold p-3 transition-colors hover:border-gold">
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-0.5 flex items-center gap-1.5">
+                        <Search className="h-3 w-3 text-gold" aria-hidden="true" />
+                        <span className="text-[10px] font-medium uppercase tracking-widest text-gold">{a.tipo}</span>
+                      </div>
+                      <p className="line-clamp-2 text-sm text-navy/85">{a.texto}</p>
+                    </div>
+                    <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-navy/40" aria-hidden="true" />
+                  </CaCard>
+                </LinkPortal>
               ))}
             </div>
           )}
