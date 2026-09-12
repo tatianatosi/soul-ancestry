@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Montar a prancha de aceite do App Cliente com sete telas desktop/mobile, sem alterar Desk, dados ou produção.
+
 - [x] Consolidar o kit visual exportável aprovado, com tokens Pantone isolados e componentes reutilizáveis.
 - [x] Preservar as 15 prévias e as 7 telas canônicas do App Cliente.
 - [x] Conectar Hoje, CRM, Caso 360, Pesquisa, Biblioteca, Financeiro e Jurídico aos dados reais existentes, sem criar registros fictícios.
