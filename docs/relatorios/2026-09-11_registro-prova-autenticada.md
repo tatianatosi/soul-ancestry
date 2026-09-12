@@ -3,7 +3,7 @@
 **Status do registro:** ativo (não arquivável)  
 **Política:** `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`  
 **Conta exigida:** proprietária `tati@pluggedresearch.com`  
-**Atualizado em:** 2026-09-11
+**Atualizado em:** 2026-09-12
 
 Nenhum motor abaixo está `COMPROVADO_EM_USO`. Código, PR, Vitest, build, preview ou declaração de agente **não** alteram essa certificação.
 
@@ -70,6 +70,22 @@ Essa linha **não** pede que a proprietária refaça o clique só para repetir o
 | Backlog visual | `docs/relatorios/2026-09-11_backlog-p11-app-cliente-vs-mockup.md` |
 | `COMPROVADO_EM_USO` | **não** — só leitura/empty; sem protocolo publicar + F5 |
 
+### G. Legado fora do menu — arquivo GitHub (PR #121)
+
+| Campo | Valor |
+|---|---|
+| Data/hora | 2026-09-12 ~11:00–11:08 UTC |
+| Ambiente | `https://soul-ancestry-git-cursor-legado-arqu-a0d02e-tati-6134s-projects.vercel.app` |
+| Conta visível | `tati@pluggedresearch.com` na Equipe; sessão abriu o Painel autenticado |
+| Quem executou | Agente, com a conta da proprietária. **Não** é o protocolo da seção 3 (teste executado pela proprietária). |
+| Prints | `docs/relatorios/provas/2026-09-12-legado-arquivo-github/` |
+| Inicial | Login: catálogo legado saiu do menu — arquivo só no GitHub |
+| Ação | Governança expandida **sem** grupo Legado |
+| Confirmação | Formalização só com catálogo homologado e financeiro |
+| F5 | Governança continua sem Legado |
+| Integração | `/catalogo` vivo; URL direta `/governanca/catalogo-operacional-30` ainda abre |
+| Resultado do protocolo | evidência de agente — **não** `PASSOU` da dona; **não** `COMPROVADO_EM_USO` |
+
 ## Matriz por motor
 
 Resultados permitidos: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_DECISAO`, `ERRO_DE_FONTE`, `NAO_LOCALIZADO`.  
@@ -89,6 +105,7 @@ Resultados permitidos: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_
 | Entregas / App Cliente | `PASSOU` (leitura master) | sim×7 / — / empty por aba / — / não | Ambiente D. Sem `42P17`. **não** `COMPROVADO_EM_USO` (falta publicar→F5). Prints em `provas/2026-09-11-app-cliente-master/`. |
 | KPIs e Hoje | `NAO_LOCALIZADO` | — | Sem print de integração da próxima ação da Mesa. |
 | Abas / taxonomia | parcial | sim (7 abas App) / — / — / — / — | App Cliente: 7 abas confirmadas pela dona (ambiente D). Desk: código desta linha ainda diverge da memória de 8 grupos — dívida declarada. |
+| Legado Planilha/SKU/conciliação fora do menu (PR #121) | evidência de agente — **não** `PASSOU` da dona | sim / Governança sem Legado / Formalização `/catalogo` / F5 sim / URL direta Catálogo 30 | Ambiente G. Rotas não apagadas. Sem merge. |
 
 ## Cadeia transversal
 
