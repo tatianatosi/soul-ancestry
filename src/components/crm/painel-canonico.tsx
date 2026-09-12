@@ -122,7 +122,7 @@ export function PainelCanonicoCrm() {
                     setOpportunityId(null);
                   }}
                   className={`w-full rounded-lg border px-3 py-2 text-left text-sm ${
-                    contactId === c.id ? "border-gold bg-cream/60" : "border-navy/10 bg-white"
+                    contactId === c.id ? "border-gold bg-cream/60" : "border-navy/10 bg-cream/40"
                   }`}
                 >
                   <span className="block font-medium text-navy">{c.nome}</span>
@@ -162,7 +162,7 @@ export function PainelCanonicoCrm() {
                       setContactId(o.contact_id ?? null);
                     }}
                     className={`w-full rounded-lg border px-3 py-2 text-left text-sm ${
-                      opportunityId === o.id ? "border-gold bg-cream/60" : "border-navy/10 bg-white"
+                      opportunityId === o.id ? "border-gold bg-cream/60" : "border-navy/10 bg-cream/40"
                     }`}
                   >
                     <span className="block font-medium text-navy">{o.objetivo_declarado ?? "Objetivo não declarado"}</span>
@@ -198,7 +198,7 @@ export function PainelCanonicoCrm() {
             {(lista) => (
           <ul className="max-h-[280px] space-y-2 overflow-auto text-sm">
             {lista.map((c) => (
-              <li key={c.id} className="rounded-lg border border-navy/10 bg-white px-3 py-2">
+              <li key={c.id} className="rounded-lg border border-navy/10 bg-cream/40 px-3 py-2">
                 <span className="block text-[11px] uppercase tracking-wide text-navy/50">
                   {ROTULO_CONVERSA[(c.canal ?? "nota_interna") as TipoConversa] ?? c.tipo} · {dataCurta(c.ocorrido_em)}
                 </span>
@@ -225,7 +225,7 @@ export function PainelCanonicoCrm() {
             {(lista) => (
           <ul className="max-h-[280px] space-y-2 overflow-auto text-sm">
             {lista.map((e) => (
-              <li key={e.id} className="rounded-lg border border-navy/10 bg-white px-3 py-2">
+              <li key={e.id} className="rounded-lg border border-navy/10 bg-cream/40 px-3 py-2">
                 <span className="block font-medium text-navy">{ROTULO_EVENTO[e.event_type as EventoFunil] ?? e.event_type}</span>
                 <span className="block text-[11px] text-navy/55">
                   {dataCurta(e.occurred_at)} · evidência: {e.evidencia_referencia ?? "—"}

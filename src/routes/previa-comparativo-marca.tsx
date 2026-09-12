@@ -44,6 +44,7 @@ const CHECKLIST: { item: string; status: "ok" | "prova" }[] = [
   { item: "Desk Caso 360 / Pessoa 360 em painéis cream (não branco SaaS)", status: "ok" },
   { item: "Cadeia Jornada Desk com chrome OKI", status: "ok" },
   { item: "Desk Marketing/Leads/Financeiro/Contratos/Pesquisa em painéis cream", status: "ok" },
+  { item: "Mesa Discovery (/calls) + conversão/propostas/CRM + módulo pesquisa em cream", status: "ok" },
   { item: "Rotas profundas sem H1 Entregas/Fase 01/Fase 02", status: "ok" },
   { item: "Tokens hex = guia OKI (navy/gold/cream/terracotta)", status: "ok" },
   { item: "Site SEO ≠ app Vercel", status: "ok" },

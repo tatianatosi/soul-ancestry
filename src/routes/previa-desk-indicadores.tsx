@@ -578,16 +578,33 @@ function FaceJornada() {
   );
 }
 
-/** Chrome do grupo Marketing & Comercial (`/marketing`, `/leads`) — não é p.11–17. */
+/** Chrome do grupo Marketing & Comercial — Mesa Discovery + CRM (`/calls`, `/leads`, …). */
 function FaceComercial() {
+  const etapas = ["Abertura", "SPIN", "Elegibilidade", "Proposta", "Handoff"];
   return (
     <section aria-label="Marketing e Comercial" className="space-y-4" data-face-comercial>
       <p className="text-sm text-navy/70">
-        Aquisição e CRM vivo com chrome OKI (painéis cream). Runtime:{" "}
-        <code className="font-mono text-xs">/marketing</code>,{" "}
+        Mesa de Discovery e CRM vivo com chrome OKI (painéis cream). Runtime:{" "}
+        <code className="font-mono text-xs">/calls</code>,{" "}
         <code className="font-mono text-xs">/leads</code>,{" "}
-        <code className="font-mono text-xs">/calls</code>. Sem inventar métricas de receita.
+        <code className="font-mono text-xs">/conversao</code>,{" "}
+        <code className="font-mono text-xs">/propostas</code>,{" "}
+        <code className="font-mono text-xs">/crm-mestre</code>. Sem inventar receita.
       </p>
+      <div className="flex flex-wrap gap-2" aria-label="Etapas Mesa Discovery">
+        {etapas.map((e, i) => (
+          <span
+            key={e}
+            className={
+              i === 1
+                ? "rounded-lg border border-gold bg-gold/15 px-3 py-1.5 text-xs font-medium text-navy"
+                : "rounded-lg border border-navy/15 bg-cream/40 px-3 py-1.5 text-xs text-navy/70"
+            }
+          >
+            {e}
+          </span>
+        ))}
+      </div>
       <div className="grid gap-3 sm:grid-cols-3">
         {[
           ["Leads na triagem", "12", "Fila Discovery"],
@@ -601,6 +618,13 @@ function FaceComercial() {
           </div>
         ))}
       </div>
+      <article className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+        <p className="text-[11px] uppercase tracking-wide text-navy/50">Call em curso (DEMO)</p>
+        <p className="mt-1 text-sm font-medium text-navy">LD-DEMO-014 · etapa SPIN</p>
+        <p className="mt-1 text-xs text-navy/65">
+          Próxima pergunta: implicação do prazo documental — sem checkbox paralelo à Mesa.
+        </p>
+      </article>
       <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
         <table className="w-full text-left text-sm">
           <thead className="text-[11px] uppercase tracking-wide text-navy/50">
@@ -629,7 +653,6 @@ function FaceComercial() {
   );
 }
 
-/** Chrome do grupo Formalização & Financeiro (`/contratos`, `/financeiro`). */
 function FaceFormalizacao() {
   return (
     <section aria-label="Formalização e Financeiro" className="space-y-4" data-face-formalizacao>
@@ -660,13 +683,15 @@ function FaceFormalizacao() {
   );
 }
 
-/** Chrome do grupo Inteligência & Pesquisa (`/pesquisa`). */
+/** Chrome do grupo Inteligência & Pesquisa (`/pesquisa`, módulo). */
 function FacePesquisa() {
   return (
     <section aria-label="Inteligência e Pesquisa" className="space-y-4" data-face-pesquisa>
       <p className="text-sm text-navy/70">
-        Pesquisa genealógica com chrome OKI. Runtime:{" "}
-        <code className="font-mono text-xs">/pesquisa</code>. Hipótese ≠ fato; status só do CHECK.
+        Pesquisa genealógica + módulo com chrome OKI. Runtime:{" "}
+        <code className="font-mono text-xs">/pesquisa</code>,{" "}
+        <code className="font-mono text-xs">/pesquisa-modulo</code>. Hipótese ≠ fato; status só do
+        CHECK.
       </p>
       <div className="grid gap-3 sm:grid-cols-3">
         {[
@@ -679,6 +704,20 @@ function FacePesquisa() {
             <p className="mt-1 font-serif text-2xl tabular-nums text-navy">{v}</p>
             <p className="text-xs text-navy/60">{a}</p>
           </div>
+        ))}
+      </div>
+      <div className="grid gap-2 sm:grid-cols-4">
+        {["Fontes", "Pessoas", "Achados", "Plano"].map((aba, i) => (
+          <span
+            key={aba}
+            className={
+              i === 0
+                ? "rounded-lg border border-navy bg-navy/10 px-3 py-2 text-center text-xs font-medium text-navy"
+                : "rounded-lg border border-navy/15 bg-cream/40 px-3 py-2 text-center text-xs text-navy/65"
+            }
+          >
+            {aba}
+          </span>
         ))}
       </div>
       <ul className="space-y-2">

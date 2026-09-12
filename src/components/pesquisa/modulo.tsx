@@ -112,7 +112,7 @@ function Formulario({
               rows={3}
               value={valores[c.nome] ?? ""}
               onChange={(e) => set(c.nome, e.target.value)}
-              className="mt-1 w-full rounded-lg border border-navy/15 bg-white px-2 py-1 text-sm text-navy"
+              className="mt-1 w-full rounded-lg border border-navy/15 bg-cream/40 px-2 py-1 text-sm text-navy"
             />
           ) : c.tipo === "bool" ? (
             <div className="mt-1">
@@ -126,7 +126,7 @@ function Formulario({
             <select
               value={valores[c.nome] ?? ""}
               onChange={(e) => set(c.nome, e.target.value)}
-              className="mt-1 w-full rounded-lg border border-navy/15 bg-white px-2 py-1 text-sm text-navy"
+              className="mt-1 w-full rounded-lg border border-navy/15 bg-cream/40 px-2 py-1 text-sm text-navy"
             >
               <option value="">—</option>
               {(c.tipo === "select"
@@ -143,7 +143,7 @@ function Formulario({
               type={c.tipo === "data" ? "date" : "text"}
               value={valores[c.nome] ?? ""}
               onChange={(e) => set(c.nome, e.target.value)}
-              className="mt-1 w-full rounded-lg border border-navy/15 bg-white px-2 py-1 text-sm text-navy"
+              className="mt-1 w-full rounded-lg border border-navy/15 bg-cream/40 px-2 py-1 text-sm text-navy"
             />
           )}
           {c.ajuda && <span className="mt-1 block text-[11px] text-navy/50">{c.ajuda}</span>}
@@ -282,7 +282,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
     ) : null;
 
   const cartao = (conteudo: React.ReactNode, key: string) => (
-    <div key={key} className="rounded-xl border border-navy/10 bg-white p-3">
+    <div key={key} className="rounded-xl border border-navy/10 bg-cream/40 p-3">
       {conteudo}
     </div>
   );
@@ -377,7 +377,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
       )}
 
       {aba === "pessoas" && (
-        <section className="rounded-xl border border-navy/10 bg-white p-4">
+        <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           {cabecalhoBloco("pessoas", "Pessoas e identidades")}
           {form("pessoas")}
           <div className="mt-3 space-y-2">
@@ -432,7 +432,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
       )}
 
       {aba === "relacoes" && (
-        <section className="rounded-xl border border-navy/10 bg-white p-4">
+        <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           {cabecalhoBloco("relacoes", "Relações familiares")}
           {form("relacoes")}
           <Aviso tom="info">Confirmar uma relação exige evidência validada vinculada — o banco recusa o contrário.</Aviso>
@@ -459,7 +459,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
       )}
 
       {aba === "eventos" && (
-        <section className="rounded-xl border border-navy/10 bg-white p-4">
+        <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           {cabecalhoBloco("eventos", "Linha do tempo de eventos civis")}
           {form("eventos")}
           <ol className="mt-3 space-y-2 border-l border-navy/15 pl-4">
@@ -486,7 +486,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
       )}
 
       {aba === "fontes" && (
-        <section className="rounded-xl border border-navy/10 bg-white p-4">
+        <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           {cabecalhoBloco("fontes", "Fontes")}
           {form("fontes")}
           <div className="mt-3 space-y-2">
@@ -515,7 +515,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
       )}
 
       {aba === "evidencias" && (
-        <section className="rounded-xl border border-navy/10 bg-white p-4">
+        <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           {cabecalhoBloco("evidencias", "Matriz de evidências")}
           {form("evidencias")}
           <Aviso tom="info">
@@ -562,7 +562,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
       )}
 
       {aba === "hipoteses" && (
-        <section className="rounded-xl border border-navy/10 bg-white p-4">
+        <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           {cabecalhoBloco("hipoteses", "Hipóteses de pesquisa")}
           {form("hipoteses")}
           <Aviso tom="info">Hipótese é caminho de investigação, nunca conclusão jurídica ou promessa ao cliente.</Aviso>
@@ -587,7 +587,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
       )}
 
       {aba === "pedidos" && (
-        <section className="rounded-xl border border-navy/10 bg-white p-4">
+        <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           {cabecalhoBloco("pedidos", "Pedidos documentais")}
           {form("pedidos")}
           {!gate?.elegivel && (
@@ -619,7 +619,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
       )}
 
       {aba === "pendencias" && (
-        <section className="rounded-xl border border-navy/10 bg-white p-4">
+        <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           {cabecalhoBloco("pendencias", "Pendências e bloqueios")}
           {form("pendencias")}
           <div className="mt-3 space-y-2">
@@ -671,7 +671,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
       )}
 
       {aba === "relatorios" && (
-        <section className="rounded-xl border border-navy/10 bg-white p-4">
+        <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           {cabecalhoBloco("relatorios", "Relatórios internos")}
           {form("relatorios")}
           <Aviso tom="bloqueio">Conteúdo interno. Não enviar ao cliente e não publicar.</Aviso>
@@ -705,7 +705,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
       )}
 
       {aba === "resumos" && (
-        <section className="rounded-xl border border-navy/10 bg-white p-4">
+        <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
           {cabecalhoBloco("resumos", "Resumo ao cliente")}
           {form("resumos")}
           <Aviso tom="info">

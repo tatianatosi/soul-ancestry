@@ -204,6 +204,22 @@ Status: **em prova visual** (não `COMPROVADO_EM_USO`).
 Prints: `docs/provas/2026-09-12-desk-comercial-formalizacao/`.  
 Status: **em prova visual** (não `COMPROVADO_EM_USO`). `GRUPOS_DESK` permanece 6.
 
+
+## Fatia 2026-09-12 — Mesa Discovery + CRM + módulo Pesquisa cream
+
+| Superfície | Gap | Runtime agora |
+|---|---|---|
+| `/calls` (`PainelCalls`) | Cards `bg-white` SaaS | `bg-cream/40` + etapa ativa gold |
+| `/conversao`, `/propostas`, `/crm-mestre` | Painéis brancos | Cream OKI |
+| `painel-canonico` / `derivacao-jornada` | Cards brancos | Cream |
+| `pesquisa/modulo` + `/pesquisa-modulo` | 14+ painéis brancos | Cream |
+| Prévia `?face=comercial` | Só KPIs leads | + etapas Mesa + call DEMO |
+| Prévia `?face=pesquisa` | Só KPIs | + abas módulo Fontes/Pessoas/Achados/Plano |
+| Gate marca | Checklist | Mesa Discovery + módulo pesquisa = ok |
+
+Prints: `docs/provas/2026-09-12-mesa-discovery-oki/`.  
+Status: **em prova visual** (não `COMPROVADO_EM_USO`). `GRUPOS_DESK` permanece 6.
+
 ## Gate
 
 Print → aprovação de **marca/layout** (separada do conteúdo Ordem 1) → merge produção só com **sim** explícito (branch + SHA).
