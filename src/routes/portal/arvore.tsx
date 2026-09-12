@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
-    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
+    <div className="rounded-lg border border-border bg-card px-3 py-2">
       <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
       <p className="mt-0.5 text-sm text-navy">{valor}</p>
     </div>
@@ -60,7 +60,7 @@ export function PortalArvore() {
                 <div className="space-y-5" data-aba-arvore>
                   <div
                     data-arvore-meta
-                    className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+                    className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
                   >
                     <ChipMeta rotulo="Caso" valor={casoCodigo} />
                     <ChipMeta rotulo="Estrutura" valor="G1–G5" />
@@ -77,7 +77,7 @@ export function PortalArvore() {
                   {/* Estrutura G1–G5 do mockup — chrome visual, sem inventar pessoas. */}
                   <section
                     aria-label="Gerações G1 a G5"
-                    className="rounded-2xl border border-navy/10 bg-cream/60 p-5 shadow-sm"
+                    className="rounded-2xl border border-border bg-card p-5 shadow-sm"
                   >
                     <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">
                       Árvore genealógica G1–G5
@@ -125,12 +125,12 @@ export function PortalArvore() {
 
                   {painel.notasPublicadas.length > 0 ? (
                     <section aria-label="Atualizações publicadas da árvore" className="space-y-3">
-                      <h2 className="font-serif text-lg text-navy">Atualizações publicadas</h2>
+                      <h2 className="text-sm font-semibold text-navy">Atualizações publicadas</h2>
                       <ul className="space-y-3">
                         {painel.notasPublicadas.map((item) => (
                           <li
                             key={item.id}
-                            className="rounded-lg border border-navy/10 bg-cream/50 p-3 text-sm text-navy/75"
+                            className="rounded-lg border border-border bg-card p-3 text-sm text-navy/75"
                           >
                             <p className="text-[11px] font-medium uppercase tracking-wide text-navy/45">
                               {item.tipoRotulo}

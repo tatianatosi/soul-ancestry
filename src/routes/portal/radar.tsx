@@ -11,7 +11,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 
 function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
-    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
+    <div className="rounded-lg border border-border bg-card px-3 py-2">
       <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
       <p className="mt-0.5 text-sm text-navy">{valor}</p>
     </div>
@@ -70,7 +70,7 @@ export function PortalRadar() {
                 <div className="space-y-6" data-aba-radar>
                   <div
                     data-radar-meta
-                    className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+                    className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
                   >
                     <ChipMeta rotulo="Caso" valor={casoCodigo} />
                     <ChipMeta rotulo="App" valor="6 dimensões" />
@@ -87,9 +87,9 @@ export function PortalRadar() {
                   <RadarSeisEixos dimensoes={dimensoes} />
                   <div className="grid gap-3 sm:grid-cols-2">
                     {dimensoes.map((d) => (
-                      <article key={d.id} className="rounded-lg border border-navy/10 bg-cream/60 p-4">
+                      <article key={d.id} className="rounded-lg border border-border bg-card p-4">
                         <div className="flex items-baseline justify-between gap-2">
-                          <h2 className="font-serif text-base text-navy">{d.titulo}</h2>
+                          <h2 className="text-sm font-semibold text-navy">{d.titulo}</h2>
                           {d.estado === "percentual" ? (
                             <span className="font-serif text-2xl text-navy">{d.percentual}%</span>
                           ) : null}

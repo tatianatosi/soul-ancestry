@@ -28,9 +28,9 @@ function arquivosTsx(dir: string): string[] {
 describe("CA24 — paleta de marca é única (tokens em styles.css, sem hex nem cor fora de marca no App Cliente)", () => {
   it("styles.css declara navy/gold/cream/terracotta uma única vez por tema", () => {
     const css = readFileSync("src/styles.css", "utf8");
-    expect(css).toContain("--navy: #2F4B6E");
-    expect(css).toContain("--gold: #FCB73A");
-    expect(css).toContain("--cream: #ECDFCD");
+    expect(css).toContain("--navy: #13294B");
+    expect(css).toContain("--gold: #C2A84D");
+    expect(css).toContain("--cream: #F0EEE9");
     expect(css).toContain("--terracotta: #9A3A2F");
   });
 

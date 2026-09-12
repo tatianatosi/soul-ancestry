@@ -28,8 +28,8 @@ function arquivosDoCliente(): string[] {
 }
 
 describe("marca do App Cliente", () => {
-  it("o azul oficial do Guia de Marca é #2F4B6E", () => {
-    expect(MARCA_CORES.azul).toBe("#2F4B6E");
+  it("o azul oficial (Pantone 2767 C) é #13294B", () => {
+    expect(MARCA_CORES.azul).toBe("#13294B");
   });
 
   it("nenhuma superfície do cliente usa o azul retirado", () => {

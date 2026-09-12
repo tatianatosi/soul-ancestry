@@ -34,21 +34,30 @@ export const MARCA_GUIA_PATH =
 export const MARCA_GUIA_PATH_LEGADO =
   "docs/evolucao/recuperados/marca-oficial-2026-09-11/CA-MARCA-Guia-Apresentacao-8-paginas.pdf" as const;
 
+/**
+ * Paleta Pantone do mockup (decisão aprovada da Proprietária, 12/09/2026).
+ * Substitui integralmente a paleta OKI anterior — ver AZUIS_RETIRADOS.
+ */
 export const MARCA_CORES = {
-  /** Azul oficial. Substitui o azul retirado #1B2B4B. */
-  azul: "#2F4B6E",
-  azulClaro: "#40628B",
-  dourado: "#FCB73A",
-  douradoClaro: "#FFD98A",
-  creme: "#ECDFCD",
-  fundo: "#ECDFCD",
+  /** Navy estrutural (sidebar/topbar) — Pantone 2767 C. */
+  azul: "#13294B",
+  /** Navy do hero/camadas — Pantone 534 C. */
+  azulHero: "#1B365D",
+  dourado: "#C2A84D",
+  creme: "#F0EEE9",
+  fundo: "#F0EEE9",
   terracota: "#9A3A2F",
-  preto: "#101010",
-  borda: "#DCCDB6",
+  /** Texto/ícones — Pantone 2380 C. */
+  preto: "#28334A",
   branco: "#FFFFFF",
 } as const;
 
-/** Azuis retirados do produto: nenhuma superfície de cliente pode usá-los. */
+/**
+ * Azuis retirados do produto: nenhuma superfície de cliente pode usá-los.
+ * O azul OKI (#2F4B6E) segue em uso em e-mail transacional/PDF/contratos —
+ * superfícies fora do escopo desta troca de paleta — por isso não entra
+ * nesta lista ainda.
+ */
 export const AZUIS_RETIRADOS = ["#1B2B4B", "#1b2b4b", "#2A3D63"] as const;
 
 /**

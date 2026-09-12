@@ -245,7 +245,7 @@ function PainelHomeMockup({
         identidade do caso continua no DOM para prova App↔Desk, só não
         aparece mais visualmente aqui).
       */}
-      <section className="rounded-2xl bg-navy p-4 text-cream sm:p-5">
+      <section className="rounded-2xl bg-navy-800 p-4 text-cream sm:p-5">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-widest text-gold/80">Seu caso</p>

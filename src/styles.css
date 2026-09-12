@@ -31,6 +31,7 @@
   --color-ring: var(--ring);
   --color-navy: var(--navy);
   --color-navy-soft: var(--navy-soft);
+  --color-navy-800: var(--navy-800);
   --color-gold: var(--gold);
   --color-gold-soft: var(--gold-soft);
   --color-cream: var(--cream);
@@ -58,23 +59,27 @@
   --radius: 0.75rem;
 
   /* ---------------------------------------------------------------
-     GUIA DE MARCA OFICIAL (Apresentação Clube Ancestral, aplicada
-     globalmente em 23/08/2026 com aceite expresso da Proprietária).
-     Azul #2F4B6E · Dourado #FCB73A · Creme #ECDFCD ·
-     Terracota #9A3A2F · Preto #101010.
+     PALETA PANTONE DO MOCKUP (decisão aprovada da Proprietária,
+     12/09/2026) — substitui integralmente a paleta OKI anterior
+     (#2F4B6E / #FCB73A / #ECDFCD / #9A3A2F / #101010). Não misturar.
+     Navy 2767 C #13294B (sidebar/topbar) · Navy 534 C #1B365D (hero) ·
+     Dourado 4019 C #C2A84D (destaques/progresso) ·
+     Cinza-tinta 2380 C #28334A (texto/ícones) ·
+     Cloud Dancer #F0EEE9 (fundo). Branco só em cards elevados/inputs/modais.
      A paleta institucional anterior fica preservada e isolada em
      [data-paleta="anterior"] apenas para comparação pontual.
      --------------------------------------------------------------- */
-  --navy: #2F4B6E;
-  --navy-soft: #40628B;
-  --gold: #FCB73A;
-  --gold-soft: #FFD98A;
-  --cream: #ECDFCD;
-  --areia: #ECDFCD;
+  --navy: #13294B;
+  --navy-800: #1B365D;
+  --navy-soft: color-mix(in srgb, var(--cream) 14%, transparent);
+  --gold: #C2A84D;
+  --gold-soft: color-mix(in srgb, var(--gold) 45%, transparent);
+  --cream: #F0EEE9;
+  --areia: color-mix(in srgb, var(--preto) 8%, var(--cream));
   --terracotta: #9A3A2F;
   --sage: #6B7B5E;
   --plum: #7B4F9E;
-  --preto: #101010;
+  --preto: #28334A;
 
   /* Estados semânticos do Desk — contraste AA sobre fundo claro.
      Crítico usa a terracota da marca; atenção usa um âmbar escurecido
@@ -91,24 +96,24 @@
 
 
 
-  --background: #ECDFCD;
+  --background: var(--cream);
   --foreground: var(--preto);
-  --card: #F5EEE3;
+  --card: #FFFFFF;
   --card-foreground: var(--preto);
-  --popover: #F5EEE3;
+  --popover: #FFFFFF;
   --popover-foreground: var(--preto);
   --primary: var(--navy);
   --primary-foreground: #FFFFFF;
   --secondary: var(--gold);
   --secondary-foreground: var(--preto);
   --muted: var(--areia);
-  --muted-foreground: #5B5348;
+  --muted-foreground: color-mix(in srgb, var(--preto) 72%, var(--cream));
   --accent: var(--gold-soft);
   --accent-foreground: var(--preto);
   --destructive: #9A3A2F;
   --destructive-foreground: #ffffff;
-  --border: #DCCDB6;
-  --input: #DCCDB6;
+  --border: color-mix(in srgb, var(--preto) 18%, var(--cream));
+  --input: color-mix(in srgb, var(--preto) 18%, var(--cream));
   --ring: var(--gold);
 }
 
@@ -155,29 +160,31 @@
    Aplicada APENAS onde o elemento (ou um ancestral) declara
    data-marca="guia" — hoje: área de Pesquisa / Gestão de Pesquisa.
    Tokens semânticos por superfície e estado; nunca substituição global.
+   Paleta Pantone (12/09/2026) — mesmos valores do :root, sem mistura.
    --------------------------------------------------------------- */
 [data-marca="guia"] {
   /* marca */
-  --navy: #2F4B6E;
-  --navy-soft: #40628B;
-  --gold: #FCB73A;
-  --gold-soft: #FFD98A;
-  --cream: #ECDFCD;
-  --areia: #ECDFCD;
+  --navy: #13294B;
+  --navy-800: #1B365D;
+  --navy-soft: color-mix(in srgb, var(--cream) 14%, transparent);
+  --gold: #C2A84D;
+  --gold-soft: color-mix(in srgb, var(--gold) 45%, transparent);
+  --cream: #F0EEE9;
+  --areia: color-mix(in srgb, var(--preto) 8%, var(--cream));
   --terracotta: #9A3A2F;
-  --preto: #101010;
+  --preto: #28334A;
 
-  /* superfícies — creme OKI (#ECDFCD) + elevação quente (#F5EEE3), nunca branco SaaS. */
-  --background: #ECDFCD;
-  --card: #F5EEE3;
-  --popover: #F5EEE3;
+  /* superfícies — Cloud Dancer (#F0EEE9); branco reservado a cards elevados/inputs/modais. */
+  --background: var(--cream);
+  --card: #FFFFFF;
+  --popover: #FFFFFF;
   --muted: var(--areia);
 
   /* texto */
   --foreground: var(--preto);
   --card-foreground: var(--preto);
   --popover-foreground: var(--preto);
-  --muted-foreground: #5B5348;
+  --muted-foreground: color-mix(in srgb, var(--preto) 72%, var(--cream));
 
   /* ações e estados */
   --primary: var(--navy);
@@ -190,8 +197,8 @@
   --destructive-foreground: #ffffff;
 
   /* bordas e foco */
-  --border: #DCCDB6;
-  --input: #DCCDB6;
+  --border: color-mix(in srgb, var(--preto) 18%, var(--cream));
+  --input: color-mix(in srgb, var(--preto) 18%, var(--cream));
   --ring: var(--gold);
 
   background-color: var(--background);
@@ -214,7 +221,7 @@
    de depender só da borda — como no mockup, sem trocar branco por cream
    nem alterar conteúdo. Escopo restrito ao shell do portal. */
 [data-marca-guia="oki"] .bg-card {
-  box-shadow: 0 1px 2px rgba(47, 75, 110, 0.06), 0 1px 1px rgba(47, 75, 110, 0.04);
+  box-shadow: 0 1px 2px rgba(19, 41, 75, 0.08), 0 1px 1px rgba(19, 41, 75, 0.05);
 }
 
 /* ---- Versão print-friendly do Relatório Visual ---- */

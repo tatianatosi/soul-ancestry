@@ -4,36 +4,47 @@ import { readFileSync } from "node:fs";
 /*
  * Entrega 1 — Sistema visual e App Home (2026-09-12).
  *
- * Tokens de --background/--card do :root nunca receberam o creme OKI
- * aprovado (23/08/2026) — o app inteiro renderizava fundo bege/branco em
- * vez do creme aprovado desde o commit que introduziu a paleta. Corrigido
- * aqui junto com o hero navy + stepper de 5 fases da Home do App Cliente
- * (só na demo pública — não existe policy de portal para fase real do
- * caso ainda, então o cliente real nunca recebe fase/percentual inventado).
+ * Rodada 1: tokens de --background/--card do :root nunca receberam o creme
+ * OKI aprovado (23/08/2026) — corrigido junto com o hero navy + stepper de
+ * 5 fases da Home do App Cliente.
+ *
+ * Rodada 2 (12/09/2026): decisão aprovada da Proprietária troca toda a
+ * paleta estrutural pela paleta Pantone do mockup — navy 2767 C #13294B
+ * (sidebar/topbar), navy 534 C #1B365D (hero), dourado 4019 C #C2A84D,
+ * cinza-tinta 2380 C #28334A (texto/ícones), Cloud Dancer #F0EEE9 (fundo).
+ * A paleta OKI anterior (#2F4B6E/#FCB73A/#ECDFCD/#9A3A2F/#101010) sai por
+ * completo — sem mistura.
  */
 
-describe("Entrega 1 — tokens do guia de marca", () => {
-  it("--background e --card em :root usam o creme OKI aprovado, não a paleta SaaS antiga", () => {
+describe("Entrega 1 — tokens Pantone do mockup", () => {
+  it("--background e --card em :root usam a paleta Pantone aprovada, não a OKI anterior", () => {
     const css = readFileSync("src/styles.css", "utf8");
-    const inicio = css.indexOf("GUIA DE MARCA OFICIAL");
+    const inicio = css.indexOf("PALETA PANTONE DO MOCKUP");
     const root = css.slice(inicio, inicio + 1400);
-    expect(root).toContain("--background: #ECDFCD;");
-    expect(root).toContain("--card: #F5EEE3;");
-    expect(root).not.toContain("--background: #F7F1E7;");
-    expect(root).not.toContain("--card: #FFFFFF;");
+    expect(root).toContain("--navy: #13294B;");
+    expect(root).toContain("--navy-800: #1B365D;");
+    expect(root).toContain("--gold: #C2A84D;");
+    expect(root).toContain("--cream: #F0EEE9;");
+    expect(root).toContain("--preto: #28334A;");
+    expect(root).not.toContain("--navy: #2F4B6E;");
+    expect(root).not.toContain("--gold: #FCB73A;");
   });
 
-  it("o bloco isolado [data-marca=guia] usa o mesmo creme OKI, não branco/bege SaaS", () => {
+  it("o bloco isolado [data-marca=guia] usa a mesma paleta Pantone, sem mistura com a OKI", () => {
     const css = readFileSync("src/styles.css", "utf8");
     const inicioBloco = css.lastIndexOf('[data-marca="guia"] {');
-    const bloco = css.slice(inicioBloco, inicioBloco + 900);
-    expect(bloco).toContain("--background: #ECDFCD;");
-    expect(bloco).toContain("--card: #F5EEE3;");
+    const bloco = css.slice(inicioBloco, inicioBloco + 1000);
+    expect(bloco).toContain("--navy: #13294B;");
+    expect(bloco).toContain("--navy-800: #1B365D;");
+    expect(bloco).toContain("--gold: #C2A84D;");
+    expect(bloco).toContain("--cream: #F0EEE9;");
+    expect(bloco).not.toContain("--navy: #2F4B6E;");
   });
 
-  it("MARCA_CORES.fundo não fica mais na paleta SaaS antiga", () => {
+  it("MARCA_CORES.fundo usa o Cloud Dancer da paleta Pantone, não a OKI anterior", () => {
     const marca = readFileSync("src/lib/marca.ts", "utf8");
-    expect(marca).toContain('fundo: "#ECDFCD"');
+    expect(marca).toContain('fundo: "#F0EEE9"');
+    expect(marca).not.toContain('fundo: "#ECDFCD"');
   });
 });
 
@@ -55,10 +66,10 @@ describe("Entrega 1 — hero navy + stepper de 5 fases na Home", () => {
     expect(home).toContain("FASE_ATUAL_DEMO_SOPHIA_PERCENTUAL");
   });
 
-  it("o hero do caso é um único card navy, sem gradiente nem card claro/cinza dentro dele (correção 2026-09-12, rejeição visual)", () => {
+  it("o hero do caso é um único card navy-800 (Pantone 534 C), sem gradiente nem card claro/cinza dentro dele", () => {
     const home = readFileSync("src/routes/portal/index.tsx", "utf8");
     const hero = home.slice(home.indexOf("<section className=\"rounded-2xl bg-navy"), home.indexOf("<EstepeJornada"));
-    expect(home).toContain('<section className="rounded-2xl bg-navy p-4 text-cream sm:p-5">');
+    expect(home).toContain('<section className="rounded-2xl bg-navy-800 p-4 text-cream sm:p-5">');
     expect(hero).toContain("sr-only");
     expect(hero).toContain("ChipIdentidadeCaso");
   });
