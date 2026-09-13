@@ -12,6 +12,7 @@ import { CrmKanban, type KanbanItem } from "./operacao";
 import { ColumnChart, DeskMatrix, HorizontalBars, KpiCard, RadarChart, type RadarAxis, StatusDonut, TrendChart } from "./visualizacao";
 import { ContextAlert } from "./operacao";
 import { MatrizPrioridadeNominal, RadarIndividualOperacional, RadarInternoTemplate } from "./radar-operacional";
+import { ComercialTemplate, FormalizacaoFinanceiroTemplate, GovernancaTemplate, HojeTemplate, PesquisaBibliotecaTemplate } from "./superficies-desk";
 
 export { BrandLogo, Button };
 
@@ -129,8 +130,8 @@ export const KIT_COMPONENTS = {
   jornada: ["TimelineVertical", "JourneyStepper", "JourneyProgress"],
   conteudo: ["DocumentoCard", "AchadoCard", "MicroentregaDetalhe"],
   visualizacao: ["RadarSvg", "MatrizPrioridadeNominal", "RadarIndividualOperacional", "MiniFamilyTree", "FamilyNetwork", "PersonNode", "CrmKanban", "ContextAlert", "KpiCard", "HorizontalBars", "ColumnChart", "TrendChart", "StatusDonut"],
-  templates: ["RadarInternoTemplate", "Caso360Template", "Pessoa360Template", "FinanceiroTemplate", "JuridicoTemplate"],
+  templates: ["HojeTemplate", "ComercialTemplate", "RadarInternoTemplate", "Caso360Template", "Pessoa360Template", "PesquisaBibliotecaTemplate", "FormalizacaoFinanceiroTemplate", "FinanceiroTemplate", "JuridicoTemplate", "GovernancaTemplate"],
 } as const;
 
 export type { GenealogyPerson, JourneyStep, KanbanItem, RadarAxis };
-export { ColumnChart, ContextAlert, CrmKanban, DeskSidebar, DeskTopbar, FamilyNetwork, HorizontalBars, KitBadge, KitCard, KitEmptyState, KitField, KitModal, KitTable, KpiCard, MatrizPrioridadeNominal, MiniFamilyTree, PersonNode, RadarChart, RadarIndividualOperacional, RadarInternoTemplate, StatusDonut, TrendChart };
+export { ColumnChart, ComercialTemplate, ContextAlert, CrmKanban, DeskSidebar, DeskTopbar, FamilyNetwork, FormalizacaoFinanceiroTemplate, GovernancaTemplate, HojeTemplate, HorizontalBars, KitBadge, KitCard, KitEmptyState, KitField, KitModal, KitTable, KpiCard, MatrizPrioridadeNominal, MiniFamilyTree, PersonNode, PesquisaBibliotecaTemplate, RadarChart, RadarIndividualOperacional, RadarInternoTemplate, StatusDonut, TrendChart };

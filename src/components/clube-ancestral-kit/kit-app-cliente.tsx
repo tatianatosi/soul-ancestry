@@ -31,6 +31,20 @@ export const ABAS_KIT_APP_CLIENTE = [
 
 export type AbaKitAppCliente = (typeof ABAS_KIT_APP_CLIENTE)[number]["id"];
 
+export const DIMENSOES_RADAR_CLIENTE = [
+  "Documentação",
+  "Origem",
+  "Conexões Familiares",
+  "Elegibilidade",
+  "Memória",
+  "Legado",
+] as const;
+
+export type ValoresRadarCliente = Record<
+  "documentacao" | "origem" | "conexoes" | "elegibilidade" | "memoria" | "legado",
+  number
+>;
+
 export function ClienteTopbar({ titulo, saudacao }: { titulo: string; saudacao?: string }) {
   return (
     <header className="flex items-center gap-3 border-b border-navy/10 bg-card px-4 py-3">
@@ -138,6 +152,19 @@ export function ClienteRadarTemplate({ eixos, leitura }: { eixos: RadarAxis[]; l
   );
 }
 
+/** Variante canônica: fixa nomes e ordem das seis dimensões públicas. */
+export function ClienteRadarSeisDimensoes({ valores, leitura }: { valores: ValoresRadarCliente; leitura?: string }) {
+  const eixos: RadarAxis[] = [
+    { label: DIMENSOES_RADAR_CLIENTE[0], value: valores.documentacao },
+    { label: DIMENSOES_RADAR_CLIENTE[1], value: valores.origem },
+    { label: DIMENSOES_RADAR_CLIENTE[2], value: valores.conexoes },
+    { label: DIMENSOES_RADAR_CLIENTE[3], value: valores.elegibilidade },
+    { label: DIMENSOES_RADAR_CLIENTE[4], value: valores.memoria },
+    { label: DIMENSOES_RADAR_CLIENTE[5], value: valores.legado },
+  ];
+  return <ClienteRadarTemplate eixos={eixos} leitura={leitura} />;
+}
+
 /** 4 · Árvore — pessoas e vínculos aprovados para o cliente. */
 export function ClienteArvoreTemplate({ pessoas, destaque }: { pessoas: GenealogyPerson[]; destaque?: GenealogyPerson }) {
   return (
@@ -221,6 +248,7 @@ export const KIT_APP_CLIENTE_COMPONENTS = [
   "ClienteHomeTemplate",
   "ClienteJornadaTemplate",
   "ClienteRadarTemplate",
+  "ClienteRadarSeisDimensoes",
   "ClienteArvoreTemplate",
   "ClienteDocumentosTemplate",
   "ClienteLegadoTemplate",
