@@ -5,11 +5,13 @@ import { BrandLogo } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import { DeskSidebar, DeskTopbar, KitBadge, KitCard, KitEmptyState, KitTable, type KitTone } from "./base";
+import { DeskSidebar, DeskTopbar, KitBadge, KitCard, KitEmptyState, KitField, KitModal, KitTable, type KitTone } from "./base";
 import { FamilyNetwork, MiniFamilyTree, PersonNode, ResearchArtifactCard, type GenealogyPerson } from "./genealogia";
 import { JourneyProgress, MicrodeliveryCard, NextActionCard, type JourneyStep } from "./jornada";
 import { CrmKanban, type KanbanItem } from "./operacao";
-import { DeskMatrix, KpiCard, RadarChart, type RadarAxis, StatusDonut } from "./visualizacao";
+import { ColumnChart, DeskMatrix, HorizontalBars, KpiCard, RadarChart, type RadarAxis, StatusDonut, TrendChart } from "./visualizacao";
+import { ContextAlert } from "./operacao";
+import { MatrizPrioridadeNominal, RadarIndividualOperacional, RadarInternoTemplate } from "./radar-operacional";
 
 export { BrandLogo, Button };
 
@@ -123,12 +125,12 @@ export function JuridicoTemplate({ header, acts, documents, alerts = [] }: { hea
 export const KIT_COMPONENTS = {
   marca: ["BrandLogo"],
   estrutura: ["DeskSidebar", "DeskTopbar", "DeskMobileNav"],
-  base: ["Button", "KitBadge", "KitCard", "KitEmptyState", "KitTable"],
+  base: ["Button", "KitBadge", "KitCard", "KitField", "KitTable", "KitEmptyState", "KitModal"],
   jornada: ["TimelineVertical", "JourneyStepper", "JourneyProgress"],
   conteudo: ["DocumentoCard", "AchadoCard", "MicroentregaDetalhe"],
-  visualizacao: ["RadarSvg", "MiniFamilyTree", "FamilyNetwork", "PersonNode", "CrmKanban", "KpiCard"],
-  templates: ["Caso360Template", "Pessoa360Template", "FinanceiroTemplate", "JuridicoTemplate"],
+  visualizacao: ["RadarSvg", "MatrizPrioridadeNominal", "RadarIndividualOperacional", "MiniFamilyTree", "FamilyNetwork", "PersonNode", "CrmKanban", "ContextAlert", "KpiCard", "HorizontalBars", "ColumnChart", "TrendChart", "StatusDonut"],
+  templates: ["RadarInternoTemplate", "Caso360Template", "Pessoa360Template", "FinanceiroTemplate", "JuridicoTemplate"],
 } as const;
 
 export type { GenealogyPerson, JourneyStep, KanbanItem, RadarAxis };
-export { CrmKanban, DeskSidebar, DeskTopbar, FamilyNetwork, KitBadge, KitCard, KitEmptyState, KitTable, KpiCard, MiniFamilyTree, PersonNode, RadarChart, StatusDonut };
+export { ColumnChart, ContextAlert, CrmKanban, DeskSidebar, DeskTopbar, FamilyNetwork, HorizontalBars, KitBadge, KitCard, KitEmptyState, KitField, KitModal, KitTable, KpiCard, MatrizPrioridadeNominal, MiniFamilyTree, PersonNode, RadarChart, RadarIndividualOperacional, RadarInternoTemplate, StatusDonut, TrendChart };
