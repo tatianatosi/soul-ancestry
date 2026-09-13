@@ -18,7 +18,9 @@ import { Route as PortalRouteRouteImport } from './routes/portal/route'
 import { Route as PreviaAppClienteRouteImport } from './routes/previa-app-cliente'
 import { Route as PreviaCaseidRouteImport } from './routes/previa-caseid'
 import { Route as PreviaComparativoMarcaRouteImport } from './routes/previa-comparativo-marca'
+import { Route as PreviaDeskRouteImport } from './routes/previa-desk'
 import { Route as PreviaDeskIndicadoresRouteImport } from './routes/previa-desk-indicadores'
+import { Route as PreviaKitAppClienteRouteImport } from './routes/previa-kit-app-cliente'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
 import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
 import { Route as AuthenticatedAppClienteComoPessoaRouteImport } from './routes/_authenticated/app-cliente-como-pessoa'
@@ -47,6 +49,7 @@ import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedMarketingRouteImport } from './routes/_authenticated/marketing'
 import { Route as AuthenticatedMatrizJuridicaRouteImport } from './routes/_authenticated/matriz-juridica'
 import { Route as AuthenticatedMetricasRouteImport } from './routes/_authenticated/metricas'
+import { Route as AuthenticatedMicroentregasRouteImport } from './routes/_authenticated/microentregas'
 import { Route as AuthenticatedMockupRouteImport } from './routes/_authenticated/mockup'
 import { Route as AuthenticatedNucleosRouteImport } from './routes/_authenticated/nucleos'
 import { Route as AuthenticatedNucleosDuplicidadesRouteImport } from './routes/_authenticated/nucleos-duplicidades'
@@ -160,9 +163,19 @@ const PreviaComparativoMarcaRoute = PreviaComparativoMarcaRouteImport.update({
   path: '/previa-comparativo-marca',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PreviaDeskRoute = PreviaDeskRouteImport.update({
+  id: '/previa-desk',
+  path: '/previa-desk',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PreviaDeskIndicadoresRoute = PreviaDeskIndicadoresRouteImport.update({
   id: '/previa-desk-indicadores',
   path: '/previa-desk-indicadores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreviaKitAppClienteRoute = PreviaKitAppClienteRouteImport.update({
+  id: '/previa-kit-app-cliente',
+  path: '/previa-kit-app-cliente',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAcessosPortalRoute =
@@ -319,6 +332,12 @@ const AuthenticatedMetricasRoute = AuthenticatedMetricasRouteImport.update({
   path: '/metricas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMicroentregasRoute =
+  AuthenticatedMicroentregasRouteImport.update({
+    id: '/microentregas',
+    path: '/microentregas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMockupRoute = AuthenticatedMockupRouteImport.update({
   id: '/mockup',
   path: '/mockup',
@@ -702,7 +721,9 @@ export interface FileRoutesByFullPath {
   '/previa-app-cliente': typeof PreviaAppClienteRoute
   '/previa-caseid': typeof PreviaCaseidRoute
   '/previa-comparativo-marca': typeof PreviaComparativoMarcaRoute
+  '/previa-desk': typeof PreviaDeskRoute
   '/previa-desk-indicadores': typeof PreviaDeskIndicadoresRoute
+  '/previa-kit-app-cliente': typeof PreviaKitAppClienteRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -731,6 +752,7 @@ export interface FileRoutesByFullPath {
   '/marketing': typeof AuthenticatedMarketingRoute
   '/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
   '/metricas': typeof AuthenticatedMetricasRoute
+  '/microentregas': typeof AuthenticatedMicroentregasRoute
   '/mockup': typeof AuthenticatedMockupRoute
   '/nucleos': typeof AuthenticatedNucleosRoute
   '/nucleos-duplicidades': typeof AuthenticatedNucleosDuplicidadesRoute
@@ -808,7 +830,9 @@ export interface FileRoutesByTo {
   '/previa-app-cliente': typeof PreviaAppClienteRoute
   '/previa-caseid': typeof PreviaCaseidRoute
   '/previa-comparativo-marca': typeof PreviaComparativoMarcaRoute
+  '/previa-desk': typeof PreviaDeskRoute
   '/previa-desk-indicadores': typeof PreviaDeskIndicadoresRoute
+  '/previa-kit-app-cliente': typeof PreviaKitAppClienteRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -837,6 +861,7 @@ export interface FileRoutesByTo {
   '/marketing': typeof AuthenticatedMarketingRoute
   '/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
   '/metricas': typeof AuthenticatedMetricasRoute
+  '/microentregas': typeof AuthenticatedMicroentregasRoute
   '/mockup': typeof AuthenticatedMockupRoute
   '/nucleos': typeof AuthenticatedNucleosRoute
   '/nucleos-duplicidades': typeof AuthenticatedNucleosDuplicidadesRoute
@@ -917,7 +942,9 @@ export interface FileRoutesById {
   '/previa-app-cliente': typeof PreviaAppClienteRoute
   '/previa-caseid': typeof PreviaCaseidRoute
   '/previa-comparativo-marca': typeof PreviaComparativoMarcaRoute
+  '/previa-desk': typeof PreviaDeskRoute
   '/previa-desk-indicadores': typeof PreviaDeskIndicadoresRoute
+  '/previa-kit-app-cliente': typeof PreviaKitAppClienteRoute
   '/_authenticated/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/_authenticated/alertas': typeof AuthenticatedAlertasRoute
   '/_authenticated/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -946,6 +973,7 @@ export interface FileRoutesById {
   '/_authenticated/marketing': typeof AuthenticatedMarketingRoute
   '/_authenticated/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
   '/_authenticated/metricas': typeof AuthenticatedMetricasRoute
+  '/_authenticated/microentregas': typeof AuthenticatedMicroentregasRoute
   '/_authenticated/mockup': typeof AuthenticatedMockupRoute
   '/_authenticated/nucleos': typeof AuthenticatedNucleosRoute
   '/_authenticated/nucleos-duplicidades': typeof AuthenticatedNucleosDuplicidadesRoute
@@ -1026,7 +1054,9 @@ export interface FileRouteTypes {
     | '/previa-app-cliente'
     | '/previa-caseid'
     | '/previa-comparativo-marca'
+    | '/previa-desk'
     | '/previa-desk-indicadores'
+    | '/previa-kit-app-cliente'
     | '/acessos-portal'
     | '/alertas'
     | '/app-cliente-como-pessoa'
@@ -1055,6 +1085,7 @@ export interface FileRouteTypes {
     | '/marketing'
     | '/matriz-juridica'
     | '/metricas'
+    | '/microentregas'
     | '/mockup'
     | '/nucleos'
     | '/nucleos-duplicidades'
@@ -1132,7 +1163,9 @@ export interface FileRouteTypes {
     | '/previa-app-cliente'
     | '/previa-caseid'
     | '/previa-comparativo-marca'
+    | '/previa-desk'
     | '/previa-desk-indicadores'
+    | '/previa-kit-app-cliente'
     | '/acessos-portal'
     | '/alertas'
     | '/app-cliente-como-pessoa'
@@ -1161,6 +1194,7 @@ export interface FileRouteTypes {
     | '/marketing'
     | '/matriz-juridica'
     | '/metricas'
+    | '/microentregas'
     | '/mockup'
     | '/nucleos'
     | '/nucleos-duplicidades'
@@ -1240,7 +1274,9 @@ export interface FileRouteTypes {
     | '/previa-app-cliente'
     | '/previa-caseid'
     | '/previa-comparativo-marca'
+    | '/previa-desk'
     | '/previa-desk-indicadores'
+    | '/previa-kit-app-cliente'
     | '/_authenticated/acessos-portal'
     | '/_authenticated/alertas'
     | '/_authenticated/app-cliente-como-pessoa'
@@ -1269,6 +1305,7 @@ export interface FileRouteTypes {
     | '/_authenticated/marketing'
     | '/_authenticated/matriz-juridica'
     | '/_authenticated/metricas'
+    | '/_authenticated/microentregas'
     | '/_authenticated/mockup'
     | '/_authenticated/nucleos'
     | '/_authenticated/nucleos-duplicidades'
@@ -1349,7 +1386,9 @@ export interface RootRouteChildren {
   PreviaAppClienteRoute: typeof PreviaAppClienteRoute
   PreviaCaseidRoute: typeof PreviaCaseidRoute
   PreviaComparativoMarcaRoute: typeof PreviaComparativoMarcaRoute
+  PreviaDeskRoute: typeof PreviaDeskRoute
   PreviaDeskIndicadoresRoute: typeof PreviaDeskIndicadoresRoute
+  PreviaKitAppClienteRoute: typeof PreviaKitAppClienteRoute
   ApiPesquisaAssistenteRoute: typeof ApiPesquisaAssistenteRoute
   CanvasTokenRoute: typeof CanvasTokenRoute
   EquipeDiagnosticoConexaoRoute: typeof EquipeDiagnosticoConexaoRoute
@@ -1427,11 +1466,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreviaComparativoMarcaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/previa-desk': {
+      id: '/previa-desk'
+      path: '/previa-desk'
+      fullPath: '/previa-desk'
+      preLoaderRoute: typeof PreviaDeskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/previa-desk-indicadores': {
       id: '/previa-desk-indicadores'
       path: '/previa-desk-indicadores'
       fullPath: '/previa-desk-indicadores'
       preLoaderRoute: typeof PreviaDeskIndicadoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/previa-kit-app-cliente': {
+      id: '/previa-kit-app-cliente'
+      path: '/previa-kit-app-cliente'
+      fullPath: '/previa-kit-app-cliente'
+      preLoaderRoute: typeof PreviaKitAppClienteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/acessos-portal': {
@@ -1628,6 +1681,13 @@ declare module '@tanstack/react-router' {
       path: '/metricas'
       fullPath: '/metricas'
       preLoaderRoute: typeof AuthenticatedMetricasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/microentregas': {
+      id: '/_authenticated/microentregas'
+      path: '/microentregas'
+      fullPath: '/microentregas'
+      preLoaderRoute: typeof AuthenticatedMicroentregasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/mockup': {
@@ -2138,6 +2198,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMarketingRoute: typeof AuthenticatedMarketingRoute
   AuthenticatedMatrizJuridicaRoute: typeof AuthenticatedMatrizJuridicaRoute
   AuthenticatedMetricasRoute: typeof AuthenticatedMetricasRoute
+  AuthenticatedMicroentregasRoute: typeof AuthenticatedMicroentregasRoute
   AuthenticatedMockupRoute: typeof AuthenticatedMockupRoute
   AuthenticatedNucleosRoute: typeof AuthenticatedNucleosRoute
   AuthenticatedNucleosDuplicidadesRoute: typeof AuthenticatedNucleosDuplicidadesRoute
@@ -2213,6 +2274,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMarketingRoute: AuthenticatedMarketingRoute,
   AuthenticatedMatrizJuridicaRoute: AuthenticatedMatrizJuridicaRoute,
   AuthenticatedMetricasRoute: AuthenticatedMetricasRoute,
+  AuthenticatedMicroentregasRoute: AuthenticatedMicroentregasRoute,
   AuthenticatedMockupRoute: AuthenticatedMockupRoute,
   AuthenticatedNucleosRoute: AuthenticatedNucleosRoute,
   AuthenticatedNucleosDuplicidadesRoute: AuthenticatedNucleosDuplicidadesRoute,
@@ -2335,7 +2397,9 @@ const rootRouteChildren: RootRouteChildren = {
   PreviaAppClienteRoute: PreviaAppClienteRoute,
   PreviaCaseidRoute: PreviaCaseidRoute,
   PreviaComparativoMarcaRoute: PreviaComparativoMarcaRoute,
+  PreviaDeskRoute: PreviaDeskRoute,
   PreviaDeskIndicadoresRoute: PreviaDeskIndicadoresRoute,
+  PreviaKitAppClienteRoute: PreviaKitAppClienteRoute,
   ApiPesquisaAssistenteRoute: ApiPesquisaAssistenteRoute,
   CanvasTokenRoute: CanvasTokenRoute,
   EquipeDiagnosticoConexaoRoute: EquipeDiagnosticoConexaoRoute,

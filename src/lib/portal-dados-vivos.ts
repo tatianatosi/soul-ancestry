@@ -200,6 +200,18 @@ export function publicacoesDeEntrega(projecoes: ProjecaoBruta[]): PublicacaoClie
     .filter((p) => !contemConteudoInterno(p.conteudo));
 }
 
+/**
+ * Microentrega publicada mais recente (a mesma fila do Desk: `app_projections`
+ * publicada e vigente, via `portal_projecoes`). Sem publicação real → null;
+ * nada é inferido nem preenchido com exemplo.
+ */
+export function microentregaPublicada(
+  projecoes: ProjecaoBruta[],
+): PublicacaoCliente | null {
+  return publicacoesDeEntrega(projecoes)[0] ?? null;
+}
+
+
 const TIPOS_FASE_01 = new Set(["resumo", "marco", "relatorio_f1", "fase01", "fase_01"]);
 const TIPOS_FASE_02 = new Set(["relatorio_f2", "fase02", "fase_02"]);
 

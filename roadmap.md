@@ -1,0 +1,26 @@
+# Roadmap
+
+- [x] Consolidar o kit visual exportável aprovado, com tokens Pantone isolados e componentes reutilizáveis.
+- [x] Preservar as 15 prévias e as 7 telas canônicas do App Cliente.
+- [x] Conectar Hoje, CRM, Caso 360, Pesquisa, Biblioteca, Financeiro e Jurídico aos dados reais existentes, sem criar registros fictícios.
+- [x] Gerar pacote exportável com código, assets locais e dependências mínimas.
+- [x] Validar compilação e integridade do pacote exportável. A validação autenticada de navegador depende de uma sessão de proprietária disponível.
+- [x] Aplicar o kit em Pessoas & Famílias com resumo visual derivado dos registros reais.
+- [x] Aplicar o kit em Configuração & Acesso Master sem alterar autoridade ou papéis.
+- [x] Aplicar o kit na área de Documentos mantendo fonte, evidência e publicação separadas.
+- [x] Centralizar cadências vencidas, casos sem próxima ação e leads parados em Alertas, preservando as fontes de origem.
+- [x] Conectar a fila editorial da Biblioteca a uma tela de Microentregas com status, responsável, prazo e detalhe real.
+- [x] Validar compilação, rotas e estados de leitura das novas superfícies.
+- [x] Ligar os cartões de Hoje e a fila da Biblioteca às fontes reais do Desk.
+- [ ] Publicar o App Cliente e conferir etapa, próxima ação e microentrega publicada em tela real.
+- [x] Completar o pente-fino visual das 15 prévias contra o mockup aprovado de 17 páginas, preservando 6 grupos do Desk e 7 telas do App Cliente.
+- [x] Validar visualmente as prévias atualizadas em desktop e mobile.
+- [x] Aplicar no Desk os modelos gráficos aprovados de família, marketing, comercial, pesquisa, acervo, financeiro e jurídico, sem alterar o App Cliente.
+- [x] Gerar prancha visual das 15 superfícies do Desk e pacote reutilizável com tokens, gráficos, assets e instruções.
+- [x] Revisar App Cliente e Desk tela a tela contra o mockup de 17 páginas, validar os radares e entregar PDF comparativo da versão anterior versus publicação verificável.
+- [ ] Unificar, na tela Radar Interno, a matriz geral e o Radar Individual por caso conforme a página 15 do mockup, validar em sessão autenticada e publicar para revisão.
+- [x] Conectar o Radar Individual de cada Caso 360 aos dados reais, com status e ações, atualizar o PDF comparativo anterior × atual e publicar ambos para revisão.
+- [x] Consolidar o Kit Visual de aprovação com a nova paleta, componentes TSX/CSS e 13 superfícies do Desk, sem backend ou publicação.
+- [ ] Após aprovação visual, gerar o ZIP final com componentes, tokens, logos, exemplos, dependências e README curto.
+- [x] Atualizar a prancha visual do Desk com o Radar Individual aprovado e a matriz nominal por urgência e elegibilidade.
+- [ ] Gerar ZIP do Kit Visual do Desk e ZIP do Kit Visual do App Cliente (7 telas) para aprovação.

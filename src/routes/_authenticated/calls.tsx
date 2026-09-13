@@ -38,6 +38,7 @@ function CallsPage() {
     <SaasShell
       titulo="Mesa de Discovery"
       descricao="Entrada comercial: uma pergunta por vez, com origem e destino. O handoff cria pessoa e caso. O que está parado ou vencido aparece no Hoje."
+      visualKit="pantone"
     >
       <PainelCalls leadIdInicial={lead} />
     </SaasShell>

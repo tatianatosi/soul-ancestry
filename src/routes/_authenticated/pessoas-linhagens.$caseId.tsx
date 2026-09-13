@@ -47,6 +47,13 @@ import {
 import { useAutoridade } from "@/components/saas/autoridade";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { DecisaoAposSalvarPessoa } from "@/components/pessoa/decisao-apos-salvar";
+import {
+  KitBadge,
+  KitCard,
+  KpiCard,
+  MiniFamilyTree,
+  PersonNode,
+} from "@/components/clube-ancestral-kit";
 
 export const Route = createFileRoute("/_authenticated/pessoas-linhagens/$caseId")({
   component: Pagina,
@@ -270,13 +277,13 @@ function Pagina() {
 
   if (isLoading)
     return (
-      <SaasShell titulo="Pessoas e linhagens" descricao="Ficha genealógica interna do caso.">
+      <SaasShell titulo="Pessoas e linhagens" descricao="Ficha genealógica interna do caso." visualKit="pantone">
         <p className="text-sm text-navy/60">Carregando ficha genealógica…</p>
       </SaasShell>
     );
   if (isError)
     return (
-      <SaasShell titulo="Pessoas e linhagens" descricao="Falha ao carregar a ficha.">
+      <SaasShell titulo="Pessoas e linhagens" descricao="Falha ao carregar a ficha." visualKit="pantone">
         <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
           Não foi possível carregar a ficha genealógica deste caso.
           <button
@@ -292,7 +299,7 @@ function Pagina() {
   // Consulta concluída sem erro e sem payload é falha de carga, não base vazia.
   if (!data)
     return (
-      <SaasShell titulo="Pessoas e linhagens" descricao="Falha ao carregar a ficha.">
+      <SaasShell titulo="Pessoas e linhagens" descricao="Falha ao carregar a ficha." visualKit="pantone">
         <div role="alert" className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
           <p className="font-medium text-destructive">
             Não foi possível carregar a ficha genealógica deste caso.
@@ -316,6 +323,7 @@ function Pagina() {
     <SaasShell
       titulo="Pessoas e linhagens"
       descricao="Origem canônica interna de pessoas, relações, variantes, eventos e linhagens."
+      visualKit="pantone"
     >
     <div className="space-y-6">
       <header className="space-y-2">
@@ -342,6 +350,53 @@ function Pagina() {
           </p>
         ) : null}
       </header>
+
+      <section aria-label="Resumo de pessoas e famílias" className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <KpiCard label="Pessoas ativas" value={perfis.filter((p) => !p.archived_at).length} detail="Perfis do caso" />
+          <KpiCard label="Relações" value={relacoes.filter((r) => !r.archived_at).length} detail="Vínculos registrados" />
+          <KpiCard label="Eventos" value={eventos.filter((e) => !e.archived_at).length} detail="Linha do tempo" />
+          <KpiCard label="Lacunas" value={lacunas.length} detail="Próximas pesquisas" tone={lacunas.length ? "attention" : "success"} />
+        </div>
+        <div className="grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
+          <KitCard
+            eyebrow="Pessoas & Famílias"
+            title="Núcleo do caso"
+            action={<KitBadge tone={pesquisaId ? "success" : "attention"}>{pesquisaId ? "Pesquisa vinculada" : "Pesquisa pendente"}</KitBadge>}
+          >
+            {perfis.length ? (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {perfis.filter((p) => !p.archived_at).slice(0, 6).map((p) => (
+                  <PersonNode
+                    key={p.id}
+                    person={{
+                      id: p.id,
+                      name: p.nome_completo,
+                      role: rotuloDe(STATUS_VERIFICACAO, p.status_verificacao),
+                      place: p.nascimento_localidade ?? undefined,
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-navy/60">Nenhuma pessoa cadastrada neste caso.</p>
+            )}
+          </KitCard>
+          <KitCard eyebrow="Derivada" title="Miniárvore familiar">
+            {perfis.length ? (
+              <MiniFamilyTree
+                people={perfis.filter((p) => !p.archived_at).slice(0, 3).map((p) => ({
+                  id: p.id,
+                  name: p.nome_completo,
+                  role: rotuloDe(STATUS_VERIFICACAO, p.status_verificacao),
+                }))}
+              />
+            ) : (
+              <p className="text-sm text-navy/60">Sem relações suficientes para montar a árvore.</p>
+            )}
+          </KitCard>
+        </div>
+      </section>
 
         {pendenciaVinculo || !podeEscrever ? (
           <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">

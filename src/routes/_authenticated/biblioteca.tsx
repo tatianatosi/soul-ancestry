@@ -10,6 +10,7 @@ import { ManifestoResgate } from "@/components/governanca/manifesto";
 import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
 
 import { MotoresPrimordiais } from "@/components/biblioteca/motores-primordiais";
+import { FilaPublicacaoReal } from "@/components/biblioteca/fila-publicacao-real";
 import { MAPA_CENTRO_INTELIGENCIA, SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
 import { rotuloFonteNegocio } from "@/lib/rotulo-negocio";
 import {
@@ -183,6 +184,7 @@ function BibliotecaPage() {
     <SaasShell
       titulo="Biblioteca Mestre"
       descricao="Base operacional interna do Desk: referências estruturadas que alimentam pesquisa, relatórios e operação. Nada aqui é exposto ao App Cliente."
+      visualKit="pantone"
     >
       {pendenciaVinculo || !podeEscrever ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
@@ -192,6 +194,7 @@ function BibliotecaPage() {
         </p>
       ) : null}
       <div className="space-y-6">
+        <FilaPublicacaoReal />
         <section className="rounded-xl border border-navy/10 bg-cream/50 p-4">
           <h2 className="font-serif text-lg text-navy">Centro de Inteligência</h2>
           <p className="mb-3 mt-1 text-sm text-navy/65">

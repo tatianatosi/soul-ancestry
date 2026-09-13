@@ -5,10 +5,12 @@ import { useState } from "react";
 
 import { SaasShell } from "@/components/saas/shell";
 import { BadgeDesk, BarraFiltros, CarregandoDesk, TabelaDesk, VazioDesk, type TomEstado } from "@/components/desk/ui-desk";
-import { listarAlertas, type LinhaAlerta } from "@/lib/alertas.functions";
+import { listarAlertas, listarAlertasCentrais, type AlertaCentral, type LinhaAlerta } from "@/lib/alertas.functions";
 import { atualizarAlerta } from "@/lib/caso-canonico.functions";
 import { salvarTarefa } from "@/lib/ops.functions";
 import { ALERT_STATUS } from "@/lib/caso-ficha";
+import { CardIndicador, SectionHeader } from "@/components/desk/ui-desk";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/alertas")({
   head: () => ({
@@ -54,6 +56,11 @@ function AlertasPage() {
     queryKey: ["alertas-completo", status, criticidade],
     queryFn: () => carregar({ data: { status: status || undefined, criticidade: criticidade || undefined } }),
   });
+  const carregarCentrais = useServerFn(listarAlertasCentrais);
+  const centrais = useQuery({
+    queryKey: ["alertas-centrais"],
+    queryFn: () => carregarCentrais(),
+  });
 
   const mudarAlerta = useServerFn(atualizarAlerta);
   const mAtualizar = useMutation({
@@ -77,11 +84,35 @@ function AlertasPage() {
   });
 
   const linhas = q.data ?? [];
+  const filasCentrais = [
+    {
+      chave: "cadencias",
+      titulo: "Cadências vencidas",
+      descricao: "Casos em atenção ou críticos pelos limites D10/D14 da Jornada.",
+      itens: centrais.data?.cadencias ?? [],
+      destino: "/ops" as const,
+    },
+    {
+      chave: "sem-acao",
+      titulo: "Casos sem próxima ação",
+      descricao: "Casos para os quais a regra canônica retorna “Definir próximo passo”.",
+      itens: centrais.data?.casosSemAcao ?? [],
+      destino: "/casos" as const,
+    },
+    {
+      chave: "leads-parados",
+      titulo: "Leads parados",
+      descricao: "Ações vencidas, ausência de próxima ação e follow-ups pendentes no CRM.",
+      itens: centrais.data?.leadsParados ?? [],
+      destino: "/proximas-acoes" as const,
+    },
+  ];
 
   return (
     <SaasShell
       titulo="Alertas"
-      descricao="Sinal sem duplicar tarefa. Lista completa e filtrável — a Visão Geral mostra só os prioritários de hoje."
+      descricao="Central operacional com a origem de cada sinal. Nenhuma fila cria registros ou dispara ações externas."
+      visualKit="pantone"
     >
       {erro ? (
         <p className="mb-3 rounded-lg border border-terracotta/40 bg-terracotta/5 px-3 py-2 text-sm text-terracotta">
@@ -89,6 +120,73 @@ function AlertasPage() {
         </p>
       ) : null}
 
+      <section className="mb-8 space-y-4" aria-labelledby="filas-centrais">
+        <SectionHeader
+          titulo="Filas centralizadas"
+          descricao="Leitura ao vivo de Jornada, Caso 360 e CRM, sem duplicar os dados de origem."
+        />
+        {centrais.isLoading ? <CarregandoDesk linhas={3} rotulo="Carregando filas centralizadas" /> : null}
+        {centrais.isError ? (
+          <div role="alert" className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-4 text-sm text-terracotta">
+            <p>Não foi possível ler as filas de origem. Isto é uma falha de leitura, não uma fila vazia.</p>
+            <Button variant="outline" size="sm" className="mt-3" onClick={() => void centrais.refetch()}>
+              Tentar novamente
+            </Button>
+          </div>
+        ) : null}
+        {!centrais.isLoading && !centrais.isError ? (
+          <>
+            <div className="grid gap-3 md:grid-cols-3">
+              <CardIndicador rotulo="Cadências vencidas" valor={centrais.data?.cadencias.length ?? 0} apoio="Origem: Jornada" tom="critico" />
+              <CardIndicador rotulo="Casos sem próxima ação" valor={centrais.data?.casosSemAcao.length ?? 0} apoio="Origem: Caso 360" tom="atencao" />
+              <CardIndicador rotulo="Leads parados" valor={centrais.data?.leadsParados.length ?? 0} apoio="Origem: CRM" tom="atencao" />
+            </div>
+            <div className="grid gap-4 xl:grid-cols-3">
+              {filasCentrais.map((fila) => (
+                <article key={fila.chave} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="font-serif text-lg text-navy">{fila.titulo}</h3>
+                      <p className="mt-1 text-xs text-navy/60">{fila.descricao}</p>
+                    </div>
+                    <BadgeDesk texto={`${fila.itens.length}`} tom={fila.itens.length ? "atencao" : "sucesso"} />
+                  </div>
+                  <ul className="mt-4 space-y-2">
+                    {fila.itens.slice(0, 8).map((item: AlertaCentral) => (
+                      <li key={item.id} className="rounded-lg border border-navy/10 bg-background/60 p-3 text-sm">
+                        <div className="flex items-start justify-between gap-2">
+                          {item.caseId ? (
+                            <Link to="/casos/$caseId" params={{ caseId: item.caseId }} className="font-medium text-navy underline decoration-gold underline-offset-4">
+                              {item.codigo ?? item.titulo}
+                            </Link>
+                          ) : (
+                            <span className="font-medium text-navy">{item.codigo ?? item.titulo}</span>
+                          )}
+                          <BadgeDesk texto={item.origem} />
+                        </div>
+                        <p className="mt-1 text-xs text-navy/70">{item.motivo}</p>
+                        <p className="mt-2 text-[11px] text-navy/55">
+                          Responsável: {item.responsavel ?? "não definido"}{item.prazo ? ` · Prazo: ${formatarData(item.prazo)}` : ""}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                  {!fila.itens.length ? <p className="mt-4 text-sm text-navy/55">Nenhum sinal nesta fila.</p> : null}
+                  <Button asChild variant="outline" size="sm" className="mt-4">
+                    <Link to={fila.destino}>Abrir origem</Link>
+                  </Button>
+                </article>
+              ))}
+            </div>
+          </>
+        ) : null}
+      </section>
+
+      <section aria-labelledby="alertas-registrados">
+      <SectionHeader
+        titulo="Alertas registrados"
+        descricao="Sinais persistidos com reconhecimento, reprogramação e tarefa vinculada."
+      />
       <BarraFiltros>
         <select
           value={status}
@@ -201,6 +299,7 @@ function AlertasPage() {
           ))}
         </TabelaDesk>
       )}
+      </section>
     </SaasShell>
   );
 }

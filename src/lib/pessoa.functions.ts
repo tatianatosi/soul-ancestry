@@ -101,7 +101,7 @@ export const carregarPessoa = createServerFn({ method: "GET" })
         });
       }
     }
-    const listaCasos = listaCasosBruta.map((c) => ({
+    const listaCasos: Linha[] = listaCasosBruta.map((c) => ({
       ...c,
       proximaAcaoCanonica: porCasoCanonica.get(String(c.id)) ?? null,
     }));

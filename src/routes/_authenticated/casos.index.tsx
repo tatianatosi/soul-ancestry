@@ -195,6 +195,7 @@ function CasosPage() {
     <SaasShell
       titulo="Casos 360"
       descricao="Comercial, formalização, financeiro e operação são eixos independentes. Hipótese de elegibilidade é sempre provisória e ativação depende de gates validados no servidor."
+      visualKit="pantone"
     >
       <PageHeader
         titulo="Casos 360 em acompanhamento"

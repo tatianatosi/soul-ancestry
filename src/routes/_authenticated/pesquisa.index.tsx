@@ -51,6 +51,7 @@ function PesquisaIndex() {
     <SaasShell
       titulo="Pesquisa genealógica"
       descricao="Fontes, evidências e próximos passos do caso — uso interno."
+      visualKit="pantone"
     >
       <PageHeader
         titulo="Dossiê e repositório do Legado"

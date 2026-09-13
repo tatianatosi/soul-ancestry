@@ -116,11 +116,13 @@ export function SaasShell({
   descricao,
   acoes,
   children,
+  visualKit,
 }: {
   titulo: string;
   descricao?: string;
   acoes?: ReactNode;
   children: ReactNode;
+  visualKit?: "pantone";
 }) {
   const { contexto, papeis, ehAdmin, isLoading, isError, autorizado, refetch } = useSaas();
   const navigate = useNavigate();
@@ -205,7 +207,7 @@ export function SaasShell({
   }));
 
   return (
-    <div className="flex min-h-screen bg-cream text-navy">
+    <div className="flex min-h-screen bg-cream text-navy" data-visual-kit={visualKit}>
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-40 w-64 shrink-0 flex-col overflow-y-auto border-r border-navy/20 bg-navy px-3 py-5 text-cream lg:static lg:flex",

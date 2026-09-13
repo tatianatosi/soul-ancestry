@@ -34,6 +34,9 @@ import { RadarInternoCaso } from "@/components/caso/radar-interno";
 import { ChipIdentidadeCaso } from "@/components/caso/chip-identidade-caso";
 import { identidadeDeCrmCaso } from "@/lib/caso-compartilhado";
 import { radarInternoDoCaso } from "@/lib/radar-interno-caso";
+import { papelDoRegistro } from "@/lib/caso-ficha";
+import { posicionar } from "@/lib/matriz-posicionamento";
+import { ROTULO_SINAL } from "@/lib/prioridade-matriz";
 import { AbaProdutoTrilha } from "@/components/caso/produto-trilha";
 import { ConsolidacaoCaseService } from "@/components/caso/consolidacao-case-service";
 import { AbaProximaAcao } from "@/components/caso/proxima-acao";
@@ -664,6 +667,7 @@ function FichaCaso() {
 
   return (
     <SaasShell
+      visualKit="pantone"
       titulo={String(caso["titulo"] ?? "Caso")}
       descricao={`${caso["codigo"] ?? "sem código"} · ficha operacional canônica`}
       acoes={
@@ -1242,15 +1246,46 @@ function FichaCaso() {
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy/50">
                     Radar Individual deste caso
                   </p>
-                  <RadarInternoCaso
-                    eixos={radarInternoDoCaso({
-                      caso,
-                      nucleoCompletude: d.nucleoOk,
-                      nucleoCriterios: d.nucleoCriterios,
-                      checksAtivacao: d.checksAtivacao,
-                      bloqueiosReais: d.bloqueiosReais,
-                    })}
-                  />
+                  {(() => {
+                    const posicaoRadar = posicionar({
+                      tipo: "caso",
+                      id,
+                      rotulo: String(caso?.["codigo"] ?? caso?.["titulo"] ?? id),
+                      elegibilidade: (caso?.["hipotese_elegibilidade"] as string) ?? null,
+                      prazo: (caso?.["prazo_proxima_acao"] as string) ?? null,
+                      diasSemTouchpoint: (caso?.["dias_sem_touchpoint"] as number) ?? null,
+                      esperaExternaAtiva: Boolean(caso?.["aguardando_instituicao_externa"]),
+                      bloqueios: d.bloqueiosReais.map((b) => b.motivo),
+                      responsavel: (caso?.["proxima_acao_responsavel"] as string) ?? null,
+                      origem: papelDoRegistro(caso).valor === "demo" ? "demo" : "real",
+                    });
+                    const prazo = String(caso?.["prazo_proxima_acao"] ?? "").slice(0, 10);
+                    const [ano, mes, dia] = prazo.split("-");
+                    return (
+                      <RadarInternoCaso
+                        contexto={{
+                          caseId: id,
+                          status: String(caso?.["status"] ?? "Não informado"),
+                          prioridade: ROTULO_SINAL[posicaoRadar.sinal],
+                          urgencia: posicaoRadar.urgencia,
+                          elegibilidade: posicaoRadar.elegibilidade,
+                          responsavel: String(caso?.["proxima_acao_responsavel"] ?? "Não informado"),
+                          prazo: ano && mes && dia ? `${dia}/${mes}/${ano}` : "Sem prazo definido",
+                          proximaAcao: String(caso?.["proxima_acao"] ?? caso?.["proxima_acao_codigo"] ?? "Não informada"),
+                          bloqueios: d.bloqueiosReais.length
+                            ? d.bloqueiosReais.map((b) => b.motivo).join(" · ")
+                            : "Nenhum bloqueio registrado",
+                        }}
+                        eixos={radarInternoDoCaso({
+                          caso,
+                          nucleoCompletude: d.nucleoOk,
+                          nucleoCriterios: d.nucleoCriterios,
+                          checksAtivacao: d.checksAtivacao,
+                          bloqueiosReais: d.bloqueiosReais,
+                        })}
+                      />
+                    );
+                  })()}
                 </div>
                 <FasesMotorCidadania caseId={id} />
               </>
