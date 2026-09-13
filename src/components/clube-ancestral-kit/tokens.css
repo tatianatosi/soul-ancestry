@@ -1,0 +1,48 @@
+[data-clube-ancestral-kit="visual"] {
+  --ca-navy-950: #13294b;
+  --ca-navy-800: #1b365d;
+  --ca-cream: #f0eee9;
+  --ca-gold: #c2a84d;
+  --ca-ink: #28334a;
+  --ca-white: #ffffff;
+
+  --ca-background: var(--ca-cream);
+  --ca-surface: var(--ca-white);
+  --ca-primary: var(--ca-navy-950);
+  --ca-primary-soft: var(--ca-navy-800);
+  --ca-accent: var(--ca-gold);
+  --ca-text: var(--ca-ink);
+  --ca-text-muted: color-mix(in srgb, var(--ca-ink) 68%, transparent);
+  --ca-border: color-mix(in srgb, var(--ca-navy-950) 14%, var(--ca-white));
+  --ca-focus: var(--ca-gold);
+
+  --ca-font-title: "Cormorant Garamond", Georgia, serif;
+  --ca-font-body: "Montserrat", Arial, sans-serif;
+  --ca-radius-sm: 6px;
+  --ca-radius-md: 8px;
+
+  color: var(--ca-text);
+  background: var(--ca-background);
+  font-family: var(--ca-font-body);
+}
+
+[data-clube-ancestral-kit="visual"] :where(h1, h2, h3, .ca-title) {
+  font-family: var(--ca-font-title);
+  letter-spacing: 0;
+}
+
+[data-clube-ancestral-kit="visual"] :where(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--ca-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-clube-ancestral-kit="visual"] *,
+  [data-clube-ancestral-kit="visual"] *::before,
+  [data-clube-ancestral-kit="visual"] *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
