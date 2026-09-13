@@ -15,27 +15,27 @@ import type { CSSProperties, InputHTMLAttributes, ReactNode } from "react";
 
 /* ------------------------------------------------------------------ tokens */
 
-/** Paleta Pantone aprovada + estados semânticos. */
+/** Paleta aprovada para o kit exportável + estados semânticos. */
 export const KIT_TOKENS_CSS = `
 [data-visual-kit="pantone"] {
-  --ca-navy: #2F4B6E;
-  --ca-gold: #FCB73A;
-  --ca-cream: #ECDFCD;
-  --ca-terracotta: #9A3A2F;
-  --ca-preto: #101010;
-  --ca-fundo: #F7F1E7;
+  --ca-navy: #13294B;
+  --ca-navy-soft: #1B365D;
+  --ca-gold: #C2A84D;
+  --ca-cream: #F0EEE9;
+  --ca-terracotta: #28334A;
+  --ca-preto: #28334A;
+  --ca-fundo: #F0EEE9;
   --ca-card: #FFFFFF;
-  --ca-borda: #DCCDB6;
+  --ca-borda: #D7D6D1;
 
   --ca-sucesso: #2F6E4B;
   --ca-sucesso-suave: #E6F1EA;
   --ca-atencao: #8A5A12;
   --ca-atencao-suave: #FBF0DA;
-  --ca-critico: #9A3A2F;
-  --ca-critico-suave: #F7E6E3;
-
+  --ca-critico: #7B3540;
+  --ca-critico-suave: #F5E8E9;
   --ca-fonte-titulo: "Cormorant Garamond", Georgia, serif;
-  --ca-fonte-corpo: Inter, system-ui, sans-serif;
+  --ca-fonte-corpo: "Montserrat", Arial, sans-serif;
 
   color: var(--ca-navy);
   background-color: var(--ca-fundo);
@@ -68,11 +68,11 @@ const toneStyle: Record<KitTone, CSSProperties> = {
   attention: { borderColor: "var(--ca-atencao)", background: "var(--ca-atencao-suave)", color: "var(--ca-atencao)" },
   critical: { borderColor: "var(--ca-critico)", background: "var(--ca-critico-suave)", color: "var(--ca-critico)" },
   success: { borderColor: "var(--ca-sucesso)", background: "var(--ca-sucesso-suave)", color: "var(--ca-sucesso)" },
-  gold: { borderColor: "var(--ca-gold)", background: "rgba(252,183,58,.18)", color: "var(--ca-navy)" },
+  gold: { borderColor: "var(--ca-gold)", background: "color-mix(in srgb, var(--ca-gold) 18%, transparent)", color: "var(--ca-navy)" },
 };
 
 const cardStyle: CSSProperties = { borderColor: "var(--ca-borda)", background: "var(--ca-card)" };
-const mutado: CSSProperties = { color: "rgba(47,75,110,.62)" };
+const mutado: CSSProperties = { color: "color-mix(in srgb, var(--ca-navy) 62%, transparent)" };
 
 /* -------------------------------------------------------------------- base */
 
@@ -497,7 +497,7 @@ export function RadarChart({ axes, label }: { axes: RadarAxis[]; label: string }
       })}
       <polygon
         points={axes.map((axis, i) => { const p = point(i, axis.value); return `${p.x},${p.y}`; }).join(" ")}
-        fill="rgba(252,183,58,.35)"
+        fill="color-mix(in srgb, var(--ca-gold) 35%, transparent)"
         stroke="var(--ca-navy)"
         strokeWidth="2.5"
       />
@@ -508,7 +508,7 @@ export function RadarChart({ axes, label }: { axes: RadarAxis[]; label: string }
 export function KpiCard({ label, value, detail, tone = "neutral" }: { label: string; value: string | number | null | undefined; detail?: string; tone?: KitTone }) {
   const color =
     value == null
-      ? "rgba(47,75,110,.4)"
+      ? "color-mix(in srgb, var(--ca-navy) 40%, transparent)"
       : tone === "critical"
         ? "var(--ca-critico)"
         : tone === "attention"
@@ -644,7 +644,7 @@ export function ChecklistCard({ title, items }: { title: string; items: { id: st
       <ul className="space-y-2">
         {items.map((item) => (
           <li key={item.id} className="flex items-start gap-2 rounded-md border p-2" style={{ borderColor: "var(--ca-borda)", background: "var(--ca-cream)" }}>
-            <span aria-hidden style={{ color: item.done ? "var(--ca-sucesso)" : "rgba(47,75,110,.35)" }}>
+             <span aria-hidden style={{ color: item.done ? "var(--ca-sucesso)" : "color-mix(in srgb, var(--ca-navy) 35%, transparent)" }}>
               {item.done ? "✓" : "○"}
             </span>
             <span>

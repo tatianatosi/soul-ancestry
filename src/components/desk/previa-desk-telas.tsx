@@ -1427,6 +1427,11 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
   },
 ] as const;
 
+/** Prancha aprovada: somente as 13 superfícies do Desk solicitadas. */
+const TELAS_PRANCHA_DESK = TELAS_PREVIA_DESK.filter(
+  (tela) => tela.id !== "appcliente" && tela.id !== "depara",
+);
+
 /* ------------------------------------------------------------------ */
 /* Moldura do Desk (marca oficial)                                     */
 /* ------------------------------------------------------------------ */
@@ -1441,18 +1446,18 @@ const GRUPOS = [
 ] as const;
 
 export function PreviaDeskTelas() {
-  const [ativa, setAtiva] = useState(TELAS_PREVIA_DESK[0]!.id);
-  const tela = TELAS_PREVIA_DESK.find((t) => t.id === ativa) ?? TELAS_PREVIA_DESK[0]!;
+  const [ativa, setAtiva] = useState(TELAS_PRANCHA_DESK[0]!.id);
+  const tela = TELAS_PRANCHA_DESK.find((item) => item.id === ativa) ?? TELAS_PRANCHA_DESK[0]!;
 
   return (
     <div className="min-h-screen bg-background font-sans text-navy">
       <div className="bg-terracotta px-4 py-2 text-center text-[11px] font-medium uppercase tracking-widest text-cream">
-        Prévia visual do Desk · guia de marca oficial · dados demonstrativos
+        Prancha visual do Desk · kit para aprovação · conteúdo demonstrativo
       </div>
 
       <div className="lg:flex">
         {/* Barra lateral navy com o logo oficial */}
-        <aside className="bg-navy px-3 py-4 lg:min-h-[calc(100vh-2rem)] lg:w-64 lg:shrink-0">
+        <aside className="hidden bg-navy px-3 py-4 lg:block lg:min-h-[calc(100vh-2rem)] lg:w-64 lg:shrink-0">
           <div className="px-2 pb-4">
             <BrandLogo size={34} showText variant="client-dark" />
           </div>
@@ -1465,7 +1470,7 @@ export function PreviaDeskTelas() {
                   key={g.id}
                   type="button"
                   onClick={() => {
-                    const primeira = TELAS_PREVIA_DESK.find((t) => t.grupo === g.id);
+                    const primeira = TELAS_PRANCHA_DESK.find((t) => t.grupo === g.id);
                     if (primeira) setAtiva(primeira.id);
                   }}
                   className={cn(
@@ -1505,16 +1510,14 @@ export function PreviaDeskTelas() {
                 <h1 className="truncate font-serif text-3xl leading-tight text-navy">
                   {tela.titulo}
                 </h1>
-                <p className="mt-1 text-xs text-navy/60">
-                  Equivalente no Desk: <span className="font-medium">{tela.rota}</span>
-                </p>
+                 <p className="mt-1 text-xs text-navy/60">Composição visual aprovada para adaptação no Desk</p>
               </div>
               <Etiqueta texto="Sem dados reais" tom="atencao" />
             </div>
 
             {/* Índice das telas convertidas */}
             <div className="mb-5 flex flex-wrap gap-2">
-              {TELAS_PREVIA_DESK.map((t) => (
+               {TELAS_PRANCHA_DESK.map((t) => (
                 <button
                   key={t.id}
                   type="button"
