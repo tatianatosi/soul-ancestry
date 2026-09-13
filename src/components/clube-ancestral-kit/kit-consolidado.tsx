@@ -550,6 +550,34 @@ export function DeskMatrix({ rows }: { rows: { label: string; values: { value: n
   );
 }
 
+export type BarDatum = { label: string; value: number; detail?: string; tone?: "navy" | "gold" | "terracotta" };
+
+export function HorizontalBars({ items, label }: { items: BarDatum[]; label: string }) {
+  return <figure role="img" aria-label={label} className="space-y-3">{items.map((item) => <div key={item.label}><div className="mb-1 flex items-center justify-between gap-3 text-[10px]"><span className="font-medium">{item.label}</span><span className="tabular-nums" style={mutado}>{item.detail ?? `${item.value}%`}</span></div><div className="h-2 overflow-hidden rounded-full" style={{ background: "var(--ca-borda)" }}><div className="h-full rounded-full" style={{ width: `${Math.max(4, Math.min(100, item.value))}%`, background: item.tone === "terracotta" ? "var(--ca-terracotta)" : item.tone === "gold" ? "var(--ca-gold)" : "var(--ca-navy)" }} /></div></div>)}</figure>;
+}
+
+export function ColumnChart({ items, label }: { items: { label: string; value: number; highlighted?: boolean }[]; label: string }) {
+  const maximum = Math.max(...items.map((item) => item.value), 1);
+  return <figure role="img" aria-label={label}><div className="flex h-36 items-end gap-2 border-b border-l px-2 pt-3" style={{ borderColor: "var(--ca-borda)" }}>{items.map((item) => <div key={item.label} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1"><span className="text-[9px] font-semibold tabular-nums" style={mutado}>{item.value}</span><div className="w-full max-w-10 rounded-t-sm" style={{ height: `${Math.max(10, (item.value / maximum) * 96)}px`, background: item.highlighted ? "var(--ca-gold)" : "var(--ca-navy)" }} /><span className="w-full truncate text-center text-[8px]" style={mutado}>{item.label}</span></div>)}</div></figure>;
+}
+
+export function TrendChart({ values, labels, label }: { values: number[]; labels: string[]; label: string }) {
+  const width = 320; const height = 112; const maximum = Math.max(...values, 1); const minimum = Math.min(...values, 0); const range = Math.max(maximum - minimum, 1);
+  const points = values.map((value, index) => ({ x: 18 + index * ((width - 36) / Math.max(values.length - 1, 1)), y: height - 22 - ((value - minimum) / range) * (height - 42), value }));
+  return <figure role="img" aria-label={label}><svg viewBox={`0 0 ${width} ${height}`} className="w-full">{[28,54,80].map((y) => <line key={y} x1="12" x2={width - 12} y1={y} y2={y} stroke="var(--ca-borda)" />)}<polyline points={points.map((point) => `${point.x},${point.y}`).join(" ")} fill="none" stroke="var(--ca-terracotta)" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />{points.map((point,index) => <g key={`${labels[index]}-${point.value}`}><circle cx={point.x} cy={point.y} r="4" fill="var(--ca-card)" stroke="var(--ca-terracotta)" strokeWidth="2" /><text x={point.x} y={height - 6} textAnchor="middle" fontSize="8" fill="var(--ca-navy)">{labels[index]}</text></g>)}</svg></figure>;
+}
+
+export function StatusDonut({ segments, label }: { segments: { label: string; value: number; tone: "navy" | "gold" | "terracotta" | "success" }[]; label: string }) {
+  const total = segments.reduce((sum, item) => sum + item.value, 0); let accumulated = 0;
+  const color = { navy: "var(--ca-navy)", gold: "var(--ca-gold)", terracotta: "var(--ca-terracotta)", success: "var(--ca-sucesso)" } as const;
+  return <figure role="img" aria-label={label} className="grid gap-4 sm:grid-cols-[8rem_1fr] sm:items-center"><svg viewBox="0 0 120 120" className="mx-auto h-32 w-32 -rotate-90"><circle cx="60" cy="60" r="42" fill="none" stroke="var(--ca-borda)" strokeWidth="18" />{segments.map((segment) => { const ratio = total > 0 ? segment.value / total : 0; const start = accumulated; accumulated += ratio; return <circle key={segment.label} cx="60" cy="60" r="42" fill="none" stroke={color[segment.tone]} strokeWidth="18" strokeDasharray={`${ratio * 263.89} 263.89`} strokeDashoffset={-start * 263.89} />; })}</svg><figcaption className="space-y-2">{segments.map((segment) => <div key={segment.label} className="flex items-center justify-between gap-3 text-[10px]"><span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: color[segment.tone] }} />{segment.label}</span><strong className="tabular-nums">{segment.value}</strong></div>)}</figcaption></figure>;
+}
+
+export function FamilyNetwork({ people, label = "Rede de pessoas, núcleos e casos" }: { people: [GenealogyPerson, GenealogyPerson, GenealogyPerson, GenealogyPerson, GenealogyPerson]; label?: string }) {
+  const nodes = [{ x: 260, y: 110, person: people[0], main: true }, { x: 105, y: 52, person: people[1] }, { x: 410, y: 48, person: people[2] }, { x: 110, y: 174, person: people[3] }, { x: 408, y: 176, person: people[4] }];
+  return <figure role="img" aria-label={label} className="relative mx-auto h-56 max-w-xl overflow-hidden rounded-lg border" style={{ borderColor: "var(--ca-borda)", background: "var(--ca-cream)" }}><svg viewBox="0 0 520 220" className="h-full w-full"><g stroke="var(--ca-gold)" strokeWidth="2"><line x1="260" y1="110" x2="105" y2="52" /><line x1="260" y1="110" x2="410" y2="48" /><line x1="260" y1="110" x2="110" y2="174" /><line x1="260" y1="110" x2="408" y2="176" /></g>{nodes.map((node) => { const initials = node.person.name.split(" ").slice(0,2).map((part) => part.charAt(0)).join(""); return <g key={node.person.id}><circle cx={node.x} cy={node.y} r={node.main ? 27 : 22} fill={node.main ? "var(--ca-gold)" : "var(--ca-card)"} stroke="var(--ca-navy)" strokeWidth="2" /><text x={node.x} y={node.y + 4} textAnchor="middle" fontSize="11" fontWeight="600" fill="var(--ca-navy)">{initials}</text></g>; })}</svg></figure>;
+}
+
 /* ---------------------------------------------------------------- operação */
 
 export type KanbanItem = {
