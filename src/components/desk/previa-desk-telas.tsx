@@ -1504,7 +1504,7 @@ export function PreviaDeskTelas() {
             </div>
           </header>
 
-          <main className="p-4 lg:p-6">
+           <main className="p-4 pb-24 lg:p-6">
             <div className="mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 sm:flex sm:justify-between">
               <div className="min-w-0">
                 <h1 className="truncate font-serif text-3xl leading-tight text-navy">
@@ -1538,6 +1538,32 @@ export function PreviaDeskTelas() {
           </main>
         </div>
       </div>
+
+       <nav aria-label="Navegação móvel da prancha" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-navy/10 bg-card px-1 py-1.5 shadow-sm lg:hidden">
+         {GRUPOS.map((grupo) => {
+           const Icone = grupo.icon;
+           const ativo = tela.grupo === grupo.id;
+           return (
+             <button
+               key={grupo.id}
+               type="button"
+               aria-current={ativo ? "page" : undefined}
+               aria-label={grupo.label}
+               onClick={() => {
+                 const primeira = TELAS_PRANCHA_DESK.find((item) => item.grupo === grupo.id);
+                 if (primeira) setAtiva(primeira.id);
+               }}
+               className={cn(
+                 "flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-[8px] font-medium",
+                 ativo ? "bg-gold/20 text-navy" : "text-navy/50",
+               )}
+             >
+               <Icone className="h-4 w-4" aria-hidden />
+               <span className="max-w-full truncate">{grupo.label.split(" ")[0]}</span>
+             </button>
+           );
+         })}
+       </nav>
     </div>
   );
 }

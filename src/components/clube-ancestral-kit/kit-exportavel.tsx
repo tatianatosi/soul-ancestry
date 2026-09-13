@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Check, Circle, FileText, Landmark, Scale, UserRound } from "lucide-react";
+import { Check, Circle, Scale } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand";
 import { Button } from "@/components/ui/button";
@@ -81,6 +81,11 @@ export function JourneyStepper({ steps }: { steps: JourneyStep[] }) {
   );
 }
 
+/** Nome estável pedido pelo kit; mantém a implementação vetorial acessível. */
+export function RadarSvg(props: Parameters<typeof RadarChart>[0]) {
+  return <RadarChart {...props} />;
+}
+
 export function DocumentoCard(props: Omit<Parameters<typeof ResearchArtifactCard>[0], "kind">) {
   return <ResearchArtifactCard kind="Documento" {...props} />;
 }
@@ -121,7 +126,7 @@ export const KIT_COMPONENTS = {
   base: ["Button", "KitBadge", "KitCard", "KitEmptyState", "KitTable"],
   jornada: ["TimelineVertical", "JourneyStepper", "JourneyProgress"],
   conteudo: ["DocumentoCard", "AchadoCard", "MicroentregaDetalhe"],
-  visualizacao: ["RadarChart", "MiniFamilyTree", "FamilyNetwork", "PersonNode", "CrmKanban", "KpiCard"],
+  visualizacao: ["RadarSvg", "MiniFamilyTree", "FamilyNetwork", "PersonNode", "CrmKanban", "KpiCard"],
   templates: ["Caso360Template", "Pessoa360Template", "FinanceiroTemplate", "JuridicoTemplate"],
 } as const;
 
