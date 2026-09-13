@@ -8,6 +8,7 @@
  *   em Montserrat (`font-sans`), com tabular-nums para números.
  */
 import type { ReactNode } from "react";
+import { AlertTriangle, CheckCircle2, CircleGauge, Minus } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -107,6 +108,97 @@ export function CardIndicador({
       <p className="mt-1 text-xs text-navy/55">
         {temValor ? (apoio ?? "") : "Sem dados suficientes"}
       </p>
+    </div>
+  );
+}
+
+export function FaixaDecisao({
+  contexto,
+  titulo,
+  descricao,
+  fonte,
+  atualizado,
+  children,
+}: {
+  contexto: string;
+  titulo: string;
+  descricao: string;
+  fonte: string;
+  atualizado?: string;
+  children?: ReactNode;
+}) {
+  return (
+    <section className="mb-6 border-b border-navy/15 pb-6" aria-labelledby="faixa-decisao-titulo">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="max-w-3xl">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-navy/55">{contexto}</p>
+          <h2 id="faixa-decisao-titulo" className="mt-1 font-serif text-3xl leading-tight text-navy">{titulo}</h2>
+          <p className="mt-1 text-sm leading-relaxed text-navy/65">{descricao}</p>
+        </div>
+        <div className="text-right text-[11px] leading-relaxed text-navy/55">
+          <p>Fonte: {fonte}</p>
+          <p>{atualizado ?? "Atualizado nesta leitura"}</p>
+        </div>
+      </div>
+      {children ? <div className="mt-5">{children}</div> : null}
+    </section>
+  );
+}
+
+export function IndicadorExecutivo({
+  rotulo,
+  valor,
+  apoio,
+  tom = "neutro",
+}: {
+  rotulo: string;
+  valor: string | number | null | undefined;
+  apoio: string;
+  tom?: TomEstado;
+}) {
+  const temValor = valor !== null && valor !== undefined;
+  const Icone = tom === "critico" ? AlertTriangle : tom === "sucesso" ? CheckCircle2 : tom === "atencao" ? CircleGauge : Minus;
+  return (
+    <article className="min-w-0 rounded-lg border border-navy/10 bg-card p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-xs font-medium text-navy/60">{rotulo}</p>
+        <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-md", TOM_CLASSE[tom])} aria-hidden="true">
+          <Icone className="h-4 w-4" />
+        </span>
+      </div>
+      <p className={cn("mt-3 font-serif text-3xl leading-none tabular-nums", temValor ? TOM_TEXTO[tom] : "text-navy/40")}>
+        {temValor ? valor : "—"}
+      </p>
+      <p className="mt-2 min-h-8 text-xs leading-relaxed text-navy/55">{temValor ? apoio : "Fonte indisponível nesta leitura"}</p>
+    </article>
+  );
+}
+
+export type DadoGrafico = { rotulo: string; valor: number };
+
+export function BarrasCompactas({ dados, vazio = "Sem dados suficientes." }: { dados: DadoGrafico[]; vazio?: string }) {
+  if (dados.length === 0) return <p className="py-6 text-center text-sm text-navy/50">{vazio}</p>;
+  const maior = Math.max(...dados.map((item) => item.valor), 1);
+  return (
+    <div className="space-y-3" role="img" aria-label={dados.map((item) => `${item.rotulo}: ${item.valor}`).join(", ")}>
+      {dados.map((item) => (
+        <div key={item.rotulo} className="grid grid-cols-[minmax(7rem,0.8fr)_minmax(6rem,1fr)_2.5rem] items-center gap-3">
+          <span className="truncate text-xs text-navy/65" title={item.rotulo}>{item.rotulo}</span>
+          <span className="h-2 overflow-hidden rounded-full bg-cream" aria-hidden="true">
+            <span className="block h-full rounded-full bg-navy" style={{ width: `${Math.max(4, (item.valor / maior) * 100)}%` }} />
+          </span>
+          <strong className="text-right text-xs tabular-nums text-navy">{item.valor}</strong>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function EstadoFonte({ erro, nome }: { erro: unknown; nome: string }) {
+  if (!erro) return null;
+  return (
+    <div role="status" className="mb-3 rounded-md border border-critico/25 bg-critico-suave px-3 py-2 text-xs text-critico">
+      {nome}: fonte indisponível nesta leitura. Nenhum valor foi presumido.
     </div>
   );
 }

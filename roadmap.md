@@ -18,3 +18,6 @@
 - [x] Aplicar no Desk os modelos gráficos aprovados de família, marketing, comercial, pesquisa, acervo, financeiro e jurídico, sem alterar o App Cliente.
 - [x] Aplicar a moldura Pantone aprovada a todos os grupos e subabas autenticados do Desk.
 - [ ] Validar os 52 destinos reais do Desk em desktop e celular. A varredura de 13/09/2026 confirmou compilação e cobertura estrutural do shell, mas a sessão local expirou e redirecionou as rotas protegidas para `/equipe/entrar`; nenhuma tela bloqueada foi registrada como aprovada.
+- [ ] Consolidar `/metricas` como painel executivo dos seis grupos, com fontes reais e teto de cinco KPIs no topo.
+- [ ] Aplicar a faixa de decisão aprovada ao topo compartilhado do Desk e harmonizar paleta/tipografia.
+- [ ] Atualizar o de-para mockup 17 × auditoria 47 × rotas × motores após a implementação.

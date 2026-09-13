@@ -50,7 +50,7 @@
   --color-bloqueio: var(--bloqueio);
   --color-bloqueio-suave: var(--bloqueio-suave);
   --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
-  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Karla", ui-sans-serif, system-ui, sans-serif;
 
 }
 
@@ -201,31 +201,31 @@
 /* Kit visual exportável aprovado em 12/09/2026. Escopo isolado: as telas
    operacionais só adotam esta paleta quando declaram data-visual-kit. */
 [data-visual-kit="pantone"] {
-  --navy: #13294B;
-  --navy-soft: #1B365D;
-  --gold: #C2A84D;
-  --gold-soft: #DED19A;
-  --cream: #F0EEE9;
-  --areia: #F0EEE9;
-  --terracotta: #28334A;
-  --preto: #13294B;
-  --background: #F0EEE9;
-  --foreground: #13294B;
+  --navy: #2F4B6E;
+  --navy-soft: #40628B;
+  --gold: #FCB73A;
+  --gold-soft: #FFD98A;
+  --cream: #ECDFCD;
+  --areia: #ECDFCD;
+  --terracotta: #9A3A2F;
+  --preto: #101010;
+  --background: #F7F1E7;
+  --foreground: #101010;
   --card: #FFFFFF;
-  --card-foreground: #13294B;
+  --card-foreground: #101010;
   --popover: #FFFFFF;
-  --popover-foreground: #13294B;
-  --primary: #13294B;
+  --popover-foreground: #101010;
+  --primary: #2F4B6E;
   --primary-foreground: #FFFFFF;
-  --secondary: #C2A84D;
-  --secondary-foreground: #13294B;
-  --muted: #F0EEE9;
-  --muted-foreground: #526078;
-  --accent: #DED19A;
-  --accent-foreground: #13294B;
-  --border: #D7D3CB;
-  --input: #D7D3CB;
-  --ring: #C2A84D;
+  --secondary: #FCB73A;
+  --secondary-foreground: #101010;
+  --muted: #ECDFCD;
+  --muted-foreground: #5B5348;
+  --accent: #FFD98A;
+  --accent-foreground: #101010;
+  --border: #DCCDB6;
+  --input: #DCCDB6;
+  --ring: #FCB73A;
   background-color: var(--background);
   color: var(--foreground);
 }
@@ -259,6 +259,15 @@
 [data-visual-kit="pantone"] [data-desk-content] :where(button, a):focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
+}
+
+[data-visual-kit="pantone"] [data-desk-decision-band] {
+  background-color: var(--card);
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--gold) 72%, transparent);
+}
+
+[data-visual-kit="pantone"] [data-desk-group-label] {
+  color: color-mix(in srgb, var(--navy) 68%, transparent);
 }
 
 
