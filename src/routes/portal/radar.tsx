@@ -105,25 +105,28 @@ export function PortalRadar() {
                     ) : null}
                   </section>
 
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {dimensoes.map((d) => (
-                      <article key={d.id} className="rounded-lg border border-border bg-card p-4">
-                        <div className="flex items-baseline justify-between gap-2">
-                          <h2 className="text-sm font-semibold text-navy">{d.titulo}</h2>
-                          <span className="font-serif text-lg text-navy">{d.rotuloNumero}</span>
-                        </div>
-                        {d.estado === "percentual" ? (
-                          <div className="mt-2 h-1.5 w-full rounded-full bg-navy/10">
-                            <div
-                              className="h-1.5 rounded-full bg-gold"
-                              style={{ width: `${d.percentual ?? 0}%` }}
-                            />
+                  {/* Acabamento 2026-09-13 (referência Lovable): leitura mais leve —
+                      lista numerada com selo suave no lugar de 6 cartões com barra de
+                      progresso. Mesmos dados (titulo/legenda/rotuloNumero), sem
+                      recalcular nada. */}
+                  <section className="rounded-2xl border border-border bg-card p-2 sm:p-3">
+                    <ul className="divide-y divide-border">
+                      {dimensoes.map((d, i) => (
+                        <li key={d.id} className="flex items-start gap-3 px-3 py-3">
+                          <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-gold/15 text-[11px] font-semibold text-navy">
+                            {i + 1}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <h2 className="text-sm font-semibold text-navy">{d.titulo}</h2>
+                            <p className="mt-0.5 text-xs text-navy/60">{d.legenda}</p>
                           </div>
-                        ) : null}
-                        <p className="mt-2 text-xs text-navy/60">{d.legenda}</p>
-                      </article>
-                    ))}
-                  </div>
+                          <span className="shrink-0 rounded-full bg-cream px-2.5 py-1 text-[11px] font-medium text-navy/75">
+                            {d.rotuloNumero}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
                 </div>
               </BlocoVisibilidade>
             );

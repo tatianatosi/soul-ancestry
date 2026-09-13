@@ -91,7 +91,7 @@ export function PortalConta() {
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="text-sm font-semibold text-navy">Perfil</h2>
-                <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
+                <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
                   Dados pessoais
                 </span>
               </div>
@@ -130,17 +130,17 @@ export function PortalConta() {
                 Acompanhamento do reconhecimento — SKU, preço técnico e gates internos não aparecem
                 nesta tela. Detalhes do plano publicado pela equipe ficam neste bloco.
               </p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                <Chip rotulo="Estado" valor={planoEstado} />
-                <Chip rotulo="Publicação" valor={previa ? "Demo" : "Quando a equipe publica"} />
-                <Chip rotulo="Escopo" valor="Caso vinculado" />
-              </div>
+              {/* Acabamento 2026-09-13 (referência Lovable): texto corrido no lugar
+                  de grade de 3 crachás — mesmos três dados reais, leitura mais serena. */}
+              <p className="mt-3 text-xs text-navy/55">
+                Publicação: {previa ? "Demo" : "Quando a equipe publica"} · Escopo: Caso vinculado
+              </p>
             </section>
 
             <section data-conta-alertas className="rounded-2xl border border-border bg-card p-5">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="text-sm font-semibold text-navy">Alertas</h2>
-                <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
+                <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
                   Pessoais do caso
                 </span>
               </div>
@@ -160,7 +160,7 @@ export function PortalConta() {
                   ) : null}
                 </div>
               ) : (
-                <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
+                <div className="mt-3 rounded-xl bg-cream/60 px-4 py-5 text-center">
                   <p className="text-sm text-navy/70">Sem alerta publicado no momento.</p>
                   <p className="mt-1 text-xs text-navy/50">
                     Documentos pendentes e próximas ações do seu caso aparecem aqui quando a equipe
@@ -173,7 +173,7 @@ export function PortalConta() {
             <section data-conta-historico className="rounded-2xl border border-border bg-card p-5">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="text-sm font-semibold text-navy">Histórico</h2>
-                <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
+                <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
                   Pagamentos · acessos
                 </span>
               </div>
@@ -199,7 +199,7 @@ export function PortalConta() {
                   </Link>
                 </div>
               ) : (
-                <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
+                <div className="mt-3 rounded-xl bg-cream/60 px-4 py-5 text-center">
                   <p className="text-sm text-navy/70">Nenhum pagamento ou movimento listado ainda.</p>
                   <p className="mt-1 text-xs text-navy/50">
                     Histórico de acessos e faturas publicadas para você aparece neste bloco — sem

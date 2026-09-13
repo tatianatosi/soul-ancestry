@@ -299,29 +299,25 @@ function PainelHomeMockup({
       <div className="grid gap-4 lg:grid-cols-2">
         <section>
           <h3 className="mb-2 text-sm font-semibold text-navy">Próximos passos</h3>
-          <CaCard className="flex flex-row items-start gap-3 p-3">
-            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gold/20 text-sm font-semibold text-navy">
-              1
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-navy">{proximaCurta}</p>
-              {proximoPassoDestino ? (
-                <LinkPortal
-                  to={proximoPassoDestino}
-                  className="mt-0.5 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
-                >
-                  {proximoPassoDestino.includes("documentos") ? "Ver documentos solicitados" : "Ver próxima ação"}
-                </LinkPortal>
-              ) : casoId ? (
-                <Link
-                  to="/portal/casos/$id"
-                  params={{ id: casoId }}
-                  className="mt-0.5 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
-                >
-                  Ver detalhes do caso
-                </Link>
-              ) : null}
-            </div>
+          {/* Acabamento 2026-09-13 (referência Lovable): título editorial em
+              vez de crachá numerado — mesma frase real, leitura mais serena. */}
+          <CaCard titulo={proximaCurta}>
+            {proximoPassoDestino ? (
+              <LinkPortal
+                to={proximoPassoDestino}
+                className="inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
+              >
+                {proximoPassoDestino.includes("documentos") ? "Ver documentos solicitados" : "Ver próxima ação"}
+              </LinkPortal>
+            ) : casoId ? (
+              <Link
+                to="/portal/casos/$id"
+                params={{ id: casoId }}
+                className="inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
+              >
+                Ver detalhes do caso
+              </Link>
+            ) : null}
           </CaCard>
         </section>
 
