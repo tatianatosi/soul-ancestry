@@ -27,6 +27,14 @@ import { listarRegistros } from "@/lib/saas.functions";
 type Linha = Record<string, unknown>;
 type ModoRadar = "matriz" | "individual";
 
+/* Traduz o estado canônico do eixo em altura do desenho. Nenhum cálculo novo. */
+const NIVEL_EIXO = {
+  identificado: 92,
+  em_confirmacao: 62,
+  proxima_etapa: 34,
+} as const;
+
+
 function texto(valor: unknown, vazio = "Não informado"): string {
   const normalizado = String(valor ?? "").trim();
   return normalizado || vazio;
