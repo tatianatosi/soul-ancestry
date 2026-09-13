@@ -116,7 +116,7 @@ export function SaasShell({
   descricao,
   acoes,
   children,
-  visualKit,
+  visualKit = "pantone",
 }: {
   titulo: string;
   descricao?: string;
@@ -359,9 +359,9 @@ export function SaasShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b border-navy/10 bg-cream px-4 py-4 lg:px-8">
+        <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-navy/10 bg-card px-4 py-4 sm:flex lg:px-8">
           <button
-            className="lg:hidden"
+            className="shrink-0 lg:hidden"
             onClick={() => setAberto((v) => !v)}
             aria-label="Abrir navegação"
           >
@@ -376,26 +376,18 @@ export function SaasShell({
 
           <div className="min-w-0 flex-1">
             <h1 className="truncate font-serif text-2xl">{titulo}</h1>
-            {descricao ? <p className="text-sm text-navy/60">{descricao}</p> : null}
+            {descricao ? <p className="mt-0.5 text-sm text-navy/60">{descricao}</p> : null}
           </div>
-          {acoes}
+          {acoes ? <div className="col-span-2 flex min-w-0 flex-wrap items-center gap-2 sm:col-auto sm:shrink-0">{acoes}</div> : null}
         </header>
         {contexto?.organizacao?.demo ? (
           <div className="border-b border-gold/40 bg-gold/15 px-4 py-2 text-xs font-medium uppercase tracking-wide text-navy lg:px-8">
             DEMO — não usar dados reais
           </div>
         ) : null}
-        {/* Identidade de marca aplicada em escopo isolado: somente a área de
-            Pesquisa / Gestão de Pesquisa (inclui /evidencias). Demais telas permanecem congeladas. */}
         <main
           className="min-w-0 flex-1 p-4 pb-20 lg:p-8"
-          data-marca={
-            rota.startsWith("/pesquisa") ||
-            rota === "/evidencias" ||
-            rota.startsWith("/evidencias/")
-              ? "guia"
-              : undefined
-          }
+          data-desk-content=""
         >
           {children}
         </main>

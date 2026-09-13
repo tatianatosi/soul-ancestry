@@ -16,3 +16,5 @@
 - [x] Completar o pente-fino visual das 15 prévias contra o mockup aprovado de 17 páginas, preservando 6 grupos do Desk e 7 telas do App Cliente.
 - [x] Validar visualmente as prévias atualizadas em desktop e mobile.
 - [x] Aplicar no Desk os modelos gráficos aprovados de família, marketing, comercial, pesquisa, acervo, financeiro e jurídico, sem alterar o App Cliente.
+- [x] Aplicar a moldura Pantone aprovada a todos os grupos e subabas autenticados do Desk.
+- [ ] Validar os 52 destinos reais do Desk em desktop e celular, registrando bloqueios de sessão ou dados sem mascará-los como vazio.

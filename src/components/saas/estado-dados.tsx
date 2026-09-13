@@ -64,9 +64,12 @@ export function EstadoDados<T>({
 }: EstadoDadosProps<T>) {
   if (carregando) {
     return (
-      <p className="py-6 text-sm text-navy/60" role="status">
-        Carregando {recurso}…
-      </p>
+      <div className="space-y-2 rounded-lg border border-navy/10 bg-card p-4" role="status" aria-live="polite" aria-busy="true">
+        <span className="sr-only">Carregando {recurso}…</span>
+        <div className="h-3 w-1/3 animate-pulse rounded bg-navy/10" />
+        <div className="h-10 animate-pulse rounded bg-cream" />
+        <div className="h-10 animate-pulse rounded bg-cream" />
+      </div>
     );
   }
 
@@ -80,7 +83,7 @@ export function EstadoDados<T>({
     return (
       <div
         role="alert"
-        className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm"
+        className="space-y-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm"
       >
         <p className="font-medium text-destructive">Não foi possível carregar {recurso}.</p>
         <p className="text-navy/80">{detalhe}</p>
@@ -97,9 +100,9 @@ export function EstadoDados<T>({
   const lista = dados as T[];
   if (lista.length === 0) {
     return (
-      <p className="py-6 text-sm text-navy/60">
+      <div className="rounded-lg border border-dashed border-navy/20 bg-card/60 px-4 py-8 text-center text-sm text-navy/60">
         {vazio ?? `Nenhum registro em ${recurso}. A consulta foi concluída com sucesso.`}
-      </p>
+      </div>
     );
   }
 
