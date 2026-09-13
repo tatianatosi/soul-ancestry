@@ -213,30 +213,69 @@ function RadarGrafico({
 }
 
 function MatrizGrafica() {
-  const linhas = [
-    { nome: "Alta", valores: [[12, "bg-critico/75"], [4, "bg-atencao/65"], [5, "bg-critico/55"]] },
-    { nome: "Média", valores: [[10, "bg-atencao/55"], [6, "bg-sucesso/55"], [5, "bg-atencao/55"]] },
-    { nome: "Baixa", valores: [[5, "bg-sucesso/45"], [3, "bg-sucesso/55"], [2, "bg-sucesso/65"]] },
+  const clientes = [
+    { nome: "Beatriz Lima", x: 70, y: 14, tom: "fill-critico", prioridade: "1" },
+    { nome: "Diego Nogueira", x: 58, y: 18, tom: "fill-critico", prioridade: "2" },
+    { nome: "Helena Duarte", x: 53, y: 25, tom: "fill-critico", prioridade: "3" },
+    { nome: "Otávio Pires", x: 76, y: 30, tom: "fill-atencao", prioridade: "4" },
+    { nome: "Ricardo Vieira", x: 63, y: 43, tom: "fill-atencao", prioridade: "5" },
+    { nome: "Sofia Mendes", x: 39, y: 49, tom: "fill-atencao", prioridade: "6" },
+    { nome: "João Ferreira", x: 48, y: 60, tom: "fill-atencao", prioridade: "7" },
+    { nome: "Marina Alves", x: 87, y: 54, tom: "fill-sucesso", prioridade: "8" },
+    { nome: "Luana Braga", x: 90, y: 65, tom: "fill-sucesso", prioridade: "9" },
+    { nome: "Camila Santos", x: 93, y: 71, tom: "fill-sucesso", prioridade: "10" },
+    { nome: "Paulo Neto", x: 80, y: 85, tom: "fill-sucesso", prioridade: "11" },
   ] as const;
+
   return (
-    <figure role="img" aria-label="Matriz em grade de risco e elegibilidade documental">
-      <div className="grid grid-cols-[3.5rem_repeat(3,minmax(0,1fr))] gap-1 text-center text-[10px]">
-        <span />
-        {['Baixa', 'Média', 'Alta'].map((rotulo) => <span key={rotulo} className="pb-1 font-medium text-navy/60">{rotulo}</span>)}
-        {linhas.map((linha) => (
-          <div key={linha.nome} className="contents">
-            <span className="flex items-center justify-end pr-2 font-medium text-navy/60">{linha.nome}</span>
-            {linha.valores.map(([valor, classe], indice) => (
-              <span key={`${linha.nome}-${indice}`} className={cn("grid min-h-16 place-items-center rounded-md border border-card text-sm font-semibold text-navy", classe)}>{valor}</span>
-            ))}
-          </div>
-        ))}
-      </div>
-      <div className="mt-2 flex justify-between text-[9px] text-navy/50"><span>Risco ↑</span><span>Elegibilidade documental →</span></div>
-      <figcaption className="mt-3 flex flex-wrap justify-center gap-3 text-[10px] text-navy/60">
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-critico/75" />Crítico</span>
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-atencao/65" />Atenção</span>
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-sucesso/55" />Acompanhamento</span>
+    <figure>
+      <svg
+        viewBox="0 0 620 430"
+        role="img"
+        aria-label="Matriz de prioridade com cada cliente identificado por nome, ordenada por urgência e elegibilidade"
+        className="block w-full"
+      >
+        <rect x="58" y="34" width="252" height="170" className="fill-terracotta/5" />
+        <rect x="310" y="34" width="252" height="170" className="fill-gold/10" />
+        <rect x="58" y="204" width="252" height="170" className="fill-terracotta/[0.025]" />
+        <rect x="310" y="204" width="252" height="170" className="fill-sucesso/5" />
+        <line x1="58" y1="374" x2="562" y2="374" className="stroke-navy" strokeWidth="1.5" />
+        <line x1="58" y1="34" x2="58" y2="374" className="stroke-navy" strokeWidth="1.5" />
+        <line x1="310" y1="34" x2="310" y2="374" className="stroke-navy/10" />
+        <line x1="58" y1="204" x2="562" y2="204" className="stroke-navy/10" />
+
+        <text x="184" y="54" textAnchor="middle" className="fill-terracotta text-[11px] font-semibold uppercase">Avaliar</text>
+        <text x="436" y="54" textAnchor="middle" className="fill-navy text-[11px] font-semibold uppercase">Agir agora</text>
+        <text x="184" y="360" textAnchor="middle" className="fill-terracotta text-[11px] font-semibold uppercase">Monitorar</text>
+        <text x="436" y="360" textAnchor="middle" className="fill-sucesso text-[11px] font-semibold uppercase">Cultivar</text>
+
+        {clientes.map((cliente) => {
+          const x = 58 + (cliente.x / 100) * 504;
+          const y = 34 + (cliente.y / 100) * 340;
+          const ancora = cliente.x > 86 ? "end" : "start";
+          const deslocamento = cliente.x > 86 ? -10 : 10;
+          return (
+            <g key={cliente.nome}>
+              <circle cx={x} cy={y} r="7" className={cn(cliente.tom, "stroke-card")} strokeWidth="2" />
+              <text x={x} y={y + 3} textAnchor="middle" className="fill-card text-[7px] font-bold">{cliente.prioridade}</text>
+              <text x={x + deslocamento} y={y + 4} textAnchor={ancora} className="fill-navy text-[10px] font-medium">{cliente.nome}</text>
+            </g>
+          );
+        })}
+
+        <text x="310" y="414" textAnchor="middle" className="fill-navy/60 text-[11px]">Elegibilidade →</text>
+        <text x="17" y="204" textAnchor="middle" transform="rotate(-90 17 204)" className="fill-navy/60 text-[11px]">Urgência →</text>
+      </svg>
+      <figcaption className="mt-3 grid gap-3 border-t border-navy/10 pt-3 sm:grid-cols-[1fr_auto] sm:items-start">
+        <div>
+          <p className="text-[10px] font-semibold uppercase text-navy/55">Ordem de atendimento</p>
+          <p className="mt-1 text-[11px] text-navy">1. Beatriz Lima · 2. Diego Nogueira · 3. Helena Duarte</p>
+        </div>
+        <div className="flex flex-wrap gap-3 text-[10px] text-navy/60">
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-critico" />Crítico</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-atencao" />Atenção</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-sucesso" />Saudável</span>
+        </div>
       </figcaption>
     </figure>
   );
