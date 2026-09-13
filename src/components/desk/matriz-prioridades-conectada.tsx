@@ -6,6 +6,53 @@ import { listarRegistros } from "@/lib/saas.functions";
 import { papelDoRegistro } from "@/lib/caso-ficha";
 import { posicionar } from "@/lib/matriz-posicionamento";
 import { MatrizPrioridades } from "@/components/desk/matriz-prioridades";
+import { MatrizPrioridadeNominal, type PontoMatrizPrioridade } from "@/components/clube-ancestral-kit";
+import type { CasoPosicionado } from "@/lib/matriz-posicionamento";
+
+/*
+  13/09/2026 — a matriz do kit visual passa a ler os MESMOS casos reais já
+  posicionados pelo motor. Nenhum número novo é calculado aqui: a posição
+  vem de `posicionar`, e este mapa só traduz faixa em coordenada de desenho.
+*/
+const ESCALA_ELEGIBILIDADE: Record<CasoPosicionado["elegibilidade"], number> = {
+  forte: 95,
+  provavel: 78,
+  possivel_com_pesquisa: 58,
+  baixa: 34,
+  inconclusiva: 18,
+  nao_avaliada: 8,
+};
+
+const ESCALA_URGENCIA: Record<CasoPosicionado["urgencia"], number> = {
+  vencida: 92,
+  aproximando: 68,
+  em_dia: 40,
+  sem_base: 10,
+};
+
+const PESO_SINAL: Record<CasoPosicionado["sinal"], number> = {
+  critica: 0,
+  atencao: 1,
+  acompanhada: 2,
+  sem_dados: 3,
+};
+
+function paraPontosDoKit(casos: readonly CasoPosicionado[]): PontoMatrizPrioridade[] {
+  return [...casos]
+    .sort((a, b) =>
+      PESO_SINAL[a.sinal] - PESO_SINAL[b.sinal] ||
+      ESCALA_URGENCIA[b.urgencia] - ESCALA_URGENCIA[a.urgencia] ||
+      ESCALA_ELEGIBILIDADE[b.elegibilidade] - ESCALA_ELEGIBILIDADE[a.elegibilidade],
+    )
+    .map((caso, indice) => ({
+      id: caso.id,
+      nome: caso.rotulo,
+      prioridade: indice + 1,
+      elegibilidade: ESCALA_ELEGIBILIDADE[caso.elegibilidade],
+      urgencia: ESCALA_URGENCIA[caso.urgencia],
+      sinal: caso.sinal,
+    }));
+}
 
 /**
  * Liga a matriz aos casos reais.
@@ -58,10 +105,24 @@ export function MatrizPrioridadesConectada({
   }
 
   return (
-    <MatrizPrioridades
-      casos={casos}
-      casoSelecionado={casoSelecionado}
-      onSelecionarCaso={onSelecionarCaso}
-    />
+    <div className="space-y-6">
+      <MatrizPrioridadeNominal
+        casos={paraPontosDoKit(casos)}
+        casoSelecionado={casoSelecionado}
+        onSelecionarCaso={onSelecionarCaso}
+      />
+      <details className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+        <summary className="cursor-pointer text-sm font-medium text-navy">
+          Grade completa por faixa de elegibilidade e urgência
+        </summary>
+        <div className="mt-4">
+          <MatrizPrioridades
+            casos={casos}
+            casoSelecionado={casoSelecionado}
+            onSelecionarCaso={onSelecionarCaso}
+          />
+        </div>
+      </details>
+    </div>
   );
 }
