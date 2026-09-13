@@ -107,10 +107,10 @@ function Home() {
               Entrar como cliente
             </Link>
             <Link
-              to="/previa-desk"
+              to="/equipe/entrar"
               className="rounded-full border border-navy/25 px-6 py-3 font-medium text-navy hover:bg-cream"
             >
-              Ver prévia das telas
+              Acesso da equipe
             </Link>
           </div>
         </section>
