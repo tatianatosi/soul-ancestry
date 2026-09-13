@@ -17,3 +17,4 @@
 - [x] Validar visualmente as prévias atualizadas em desktop e mobile.
 - [x] Aplicar no Desk os modelos gráficos aprovados de família, marketing, comercial, pesquisa, acervo, financeiro e jurídico, sem alterar o App Cliente.
 - [x] Gerar prancha visual das 15 superfícies do Desk e pacote reutilizável com tokens, gráficos, assets e instruções.
+- [ ] Revisar App Cliente e Desk tela a tela contra o mockup de 17 páginas, validar os radares e entregar PDF comparativo da versão anterior versus publicação verificável.
