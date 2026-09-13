@@ -1017,27 +1017,54 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
     grupo: "casos",
     rota: "/qualidade",
     render: () => (
-      <div className={grade2}>
-        <Cartao titulo="Radar interno — leitura operacional">
-          <RadarGrafico
-            tituloAcessivel="Radar interno com quatro eixos da jornada"
-            eixos={[
-              { rotulo: "História familiar", valor: 72 },
-              { rotulo: "Documentos", valor: 58 },
-              { rotulo: "Estratégia", valor: 81 },
-              { rotulo: "Próximos passos", valor: 64 },
-            ]}
-          />
-          <p className="mt-3 border-t border-navy/10 pt-3 text-[11px] text-navy/55">
-            Leitura interna em quatro eixos. O App Cliente usa seis dimensões publicáveis; as duas taxonomias não são equivalentes.
-          </p>
-        </Cartao>
-        <Cartao titulo="Matriz elegibilidade × prioridade">
-          <MatrizGrafica />
-        </Cartao>
+      <div className="space-y-4">
+        <CabecalhoFerramenta
+          titulo="Radar interno"
+          apoio="Uma única tela com duas leituras: matriz geral de prioridade e radar individual do caso selecionado"
+          acao="Caso: Ana Luiza (demonstrativo)"
+        />
+        <div className="flex flex-wrap gap-2">
+          <span className="rounded-full bg-navy px-3 py-1 text-[11px] font-medium text-cream">Matriz de prioridade</span>
+          <span className="rounded-full border border-navy/15 bg-cream/60 px-3 py-1 text-[11px] text-navy/65">Radar individual</span>
+        </div>
+        <div className={grade2}>
+          <Cartao titulo="Matriz elegibilidade × prioridade">
+            <MatrizGrafica />
+            <p className="mt-3 border-t border-navy/10 pt-3 text-[11px] text-navy/55">
+              Clicar em um caso da matriz seleciona o mesmo caso no radar individual ao lado.
+            </p>
+          </Cartao>
+          <Cartao titulo="Radar individual — caso selecionado">
+            <RadarGrafico
+              tituloAcessivel="Radar interno com quatro eixos da jornada do caso selecionado"
+              eixos={[
+                { rotulo: "História familiar", valor: 72 },
+                { rotulo: "Documentos", valor: 58 },
+                { rotulo: "Estratégia", valor: 81 },
+                { rotulo: "Próximos passos", valor: 64 },
+              ]}
+            />
+            <div className="mt-3 border-t border-navy/10 pt-2">
+              <Linha rotulo="Situação" valor="Em pesquisa" tom="atencao" />
+              <Linha rotulo="Prioridade" valor="Alta" tom="critico" />
+              <Linha rotulo="Urgência" valor="Prazo em 5 dias" tom="atencao" />
+              <Linha rotulo="Elegibilidade" valor="Provável" />
+              <Linha rotulo="Responsável" valor="Equipe de pesquisa" />
+            </div>
+            <div className="mt-3 rounded-lg border border-gold/40 bg-gold/10 p-2.5">
+              <p className="text-[10px] font-semibold uppercase text-navy/60">Próxima ação</p>
+              <p className="mt-1 text-[11px] text-navy">Confirmar certidão de nascimento do ascendente · prazo 18/09</p>
+              <p className="mt-1 text-[11px] text-navy/60">Bloqueio: aguardando retorno do arquivo paroquial</p>
+            </div>
+            <p className="mt-3 border-t border-navy/10 pt-3 text-[11px] text-navy/55">
+              Leitura interna em quatro eixos. O App Cliente usa seis dimensões publicáveis; as duas taxonomias não são equivalentes.
+            </p>
+          </Cartao>
+        </div>
       </div>
     ),
   },
+
   {
     id: "pesquisa",
     titulo: "Pesquisa",
