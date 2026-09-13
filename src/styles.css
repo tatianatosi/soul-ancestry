@@ -230,6 +230,37 @@
   color: var(--foreground);
 }
 
+/* Linguagem visual integral do Desk. A moldura autenticada declara
+   data-visual-kit e todas as subabas herdam os mesmos materiais sem alterar
+   seu conteúdo, dados ou comportamento. */
+[data-visual-kit="pantone"] [data-desk-content] {
+  background-color: var(--background);
+}
+
+[data-visual-kit="pantone"] [data-desk-content] :where(section, article).rounded-xl,
+[data-visual-kit="pantone"] [data-desk-content] :where(div, form).rounded-xl.border {
+  border-radius: var(--radius-md);
+  border-color: color-mix(in srgb, var(--navy) 12%, transparent);
+}
+
+[data-visual-kit="pantone"] [data-desk-content] :where(table) {
+  font-variant-numeric: tabular-nums;
+}
+
+[data-visual-kit="pantone"] [data-desk-content] :where(thead) {
+  color: color-mix(in srgb, var(--navy) 65%, transparent);
+}
+
+[data-visual-kit="pantone"] [data-desk-content] :where(input, select, textarea) {
+  accent-color: var(--navy);
+}
+
+[data-visual-kit="pantone"] [data-desk-content] :where(input, select, textarea):focus-visible,
+[data-visual-kit="pantone"] [data-desk-content] :where(button, a):focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
 
 @layer base {
   * { border-color: var(--color-border); }
