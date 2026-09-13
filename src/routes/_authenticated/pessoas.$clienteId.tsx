@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { NucleoKitPessoa } from "@/components/desk/kit-conectado";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { atualizarPessoa, carregarPessoa } from "@/lib/pessoa.functions";
 import { salvarLeadDesk } from "@/lib/crm-desk.functions";
@@ -275,8 +276,10 @@ function Pessoa() {
   const nome = (cliente.nome_social || cliente.nome || "Sem nome").trim();
 
   return (
-    <SaasShell titulo={nome} descricao="A história desta pessoa, reunida de todos os casos dela.">
+    <SaasShell titulo={nome} descricao="A história desta pessoa, reunida de todos os casos dela." visualKit="pantone">
       <div className="space-y-6">
+        <NucleoKitPessoa clienteId={String(cliente.id)} />
+
         <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-serif text-lg text-navy">Quem é</h2>

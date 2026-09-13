@@ -25,3 +25,7 @@
 - [x] Atualizar a prancha visual do Desk com o Radar Individual aprovado e a matriz nominal por urgência e elegibilidade.
 - [x] Gerar ZIP do Kit Visual do Desk e ZIP do Kit Visual do App Cliente (7 telas) para aprovação.
 - [x] Revisar o kit final contra o Radar atual, incluindo matriz nominal e Radar Individual operacional, sem alterar dados ou regras.
+
+## Kit visual ligado a dados reais (13/09/2026)
+- Caso 360, Pessoa, Microentregas e Radar usam componentes do kit lendo tabelas canônicas (crm_casos, clientes/nucleo_membros/documents, app_projections). Sem tabela nova.
+- Pendente: prova autenticada na UI pela Proprietária (sessão de teste do agente cai em /equipe/entrar por falta de acesso de equipe).
