@@ -2,9 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 
-import { RadarInternoCaso } from "@/components/caso/radar-interno";
+import { Link } from "@tanstack/react-router";
+
+import { RadarIndividualOperacional } from "@/components/clube-ancestral-kit";
 import { MatrizPrioridadesConectada } from "@/components/desk/matriz-prioridades-conectada";
+import { Button } from "@/components/ui/button";
+import { ESTADO_EIXO_LABEL, ESTADO_EIXO_TOM } from "@/lib/radar-eixos";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import {
   Select,
   SelectContent,
