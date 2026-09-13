@@ -275,8 +275,10 @@ function Pessoa() {
   const nome = (cliente.nome_social || cliente.nome || "Sem nome").trim();
 
   return (
-    <SaasShell titulo={nome} descricao="A história desta pessoa, reunida de todos os casos dela.">
+    <SaasShell titulo={nome} descricao="A história desta pessoa, reunida de todos os casos dela." visualKit="pantone">
       <div className="space-y-6">
+        <NucleoKitPessoa clienteId={String(cliente.id)} />
+
         <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-serif text-lg text-navy">Quem é</h2>
