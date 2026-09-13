@@ -140,50 +140,82 @@ export function RadarInternoIntegrado() {
         ) : null}
 
         {caso && ficha && posicao ? (
-          <>
-            <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-navy/50">Caso selecionado</p>
-                  <h2 className="mt-1 font-serif text-xl text-navy">{texto(caso["codigo"] ?? caso["titulo"])}</h2>
+          (() => {
+            const eixos = radarInternoDoCaso({
+              caso,
+              nucleoCompletude: ficha.nucleoOk,
+              nucleoCriterios: ficha.nucleoCriterios,
+              checksAtivacao: ficha.checksAtivacao,
+              bloqueiosReais: ficha.bloqueiosReais,
+            });
+            const idDoCaso = texto(caso["id"], "");
+            return (
+              <>
+                <RadarIndividualOperacional
+                  titulo={texto(caso["codigo"] ?? caso["titulo"])}
+                  eixos={eixos.map((eixo) => ({
+                    label: eixo.titulo,
+                    value: NIVEL_EIXO[eixo.estado],
+                  }))}
+                  contexto={{
+                    status: texto(caso["status"]),
+                    prioridade: ROTULO_SINAL[posicao.sinal],
+                    urgencia: posicao.urgencia,
+                    elegibilidade: posicao.elegibilidade,
+                    responsavel: texto(caso["proxima_acao_responsavel"]),
+                    prazo: dataPtBr(caso["prazo_proxima_acao"]),
+                    proximaAcao: texto(caso["proxima_acao"] ?? caso["proxima_acao_codigo"]),
+                    bloqueios: ficha.bloqueiosReais.length
+                      ? ficha.bloqueiosReais.map((b) => b.motivo).join(" · ")
+                      : "Nenhum bloqueio registrado",
+                  }}
+                  actions={
+                    idDoCaso ? (
+                      <>
+                        <Button asChild size="sm">
+                          <Link to="/casos/$caseId" params={{ caseId: idDoCaso }} hash="secao-visao">
+                            Abrir Caso 360
+                          </Link>
+                        </Button>
+                        <Button asChild size="sm" variant="outline">
+                          <Link to="/casos/$caseId" params={{ caseId: idDoCaso }} hash="secao-jornada">
+                            Ver jornada e ações
+                          </Link>
+                        </Button>
+                      </>
+                    ) : null
+                  }
+                />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {eixos.map((eixo) => (
+                    <article key={eixo.id} className="rounded-lg border border-navy/10 bg-cream/50 p-4">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <h3 className="font-serif text-sm text-navy">{eixo.titulo}</h3>
+                        <span className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide ${ESTADO_EIXO_TOM[eixo.estado]}`}>
+                          {ESTADO_EIXO_LABEL[eixo.estado]}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[11px] text-navy/55">{eixo.resumo}</p>
+                      {eixo.itens.length > 0 ? (
+                        <dl className="mt-2 space-y-1">
+                          {eixo.itens.map((item) => (
+                            <div key={item.rotulo} className="flex justify-between gap-2 text-xs text-navy/70">
+                              <dt className="text-navy/50">{item.rotulo}</dt>
+                              <dd className="text-right font-medium text-navy">{item.valor}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      ) : (
+                        <p className="mt-2 text-xs text-navy/50">{eixo.mensagemVazio}</p>
+                      )}
+                    </article>
+                  ))}
                 </div>
-                <span className="rounded-full border border-gold/50 bg-gold/15 px-3 py-1 text-xs font-semibold text-navy">
-                  {ROTULO_SINAL[posicao.sinal]}
-                </span>
-              </div>
-              <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                <div><dt className="text-navy/50">Urgência</dt><dd className="font-medium text-navy">{posicao.urgencia}</dd></div>
-                <div><dt className="text-navy/50">Hipótese de elegibilidade</dt><dd className="font-medium text-navy">{posicao.elegibilidade}</dd></div>
-                <div><dt className="text-navy/50">Responsável</dt><dd className="font-medium text-navy">{texto(caso["proxima_acao_responsavel"])}</dd></div>
-                <div><dt className="text-navy/50">Prazo</dt><dd className="font-medium text-navy">{dataPtBr(caso["prazo_proxima_acao"])}</dd></div>
-                <div className="sm:col-span-2"><dt className="text-navy/50">Próxima ação</dt><dd className="font-medium text-navy">{texto(caso["proxima_acao"] ?? caso["proxima_acao_codigo"])}</dd></div>
-                <div className="sm:col-span-2"><dt className="text-navy/50">Bloqueios reais</dt><dd className="font-medium text-navy">{ficha.bloqueiosReais.length ? ficha.bloqueiosReais.map((b) => b.motivo).join(" · ") : "Nenhum bloqueio registrado"}</dd></div>
-              </dl>
-            </section>
-            <RadarInternoCaso
-              contexto={{
-                caseId: texto(caso["id"], ""),
-                status: texto(caso["status"]),
-                prioridade: ROTULO_SINAL[posicao.sinal],
-                urgencia: posicao.urgencia,
-                elegibilidade: posicao.elegibilidade,
-                responsavel: texto(caso["proxima_acao_responsavel"]),
-                prazo: dataPtBr(caso["prazo_proxima_acao"]),
-                proximaAcao: texto(caso["proxima_acao"] ?? caso["proxima_acao_codigo"]),
-                bloqueios: ficha.bloqueiosReais.length
-                  ? ficha.bloqueiosReais.map((b) => b.motivo).join(" · ")
-                  : "Nenhum bloqueio registrado",
-              }}
-              eixos={radarInternoDoCaso({
-                caso,
-                nucleoCompletude: ficha.nucleoOk,
-                nucleoCriterios: ficha.nucleoCriterios,
-                checksAtivacao: ficha.checksAtivacao,
-                bloqueiosReais: ficha.bloqueiosReais,
-              })}
-            />
-          </>
+              </>
+            );
+          })()
         ) : null}
+
       </TabsContent>
     </Tabs>
   );
