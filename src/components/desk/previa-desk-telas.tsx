@@ -10,6 +10,7 @@
  * - Navegação canônica do Desk (6 grupos) preservada; nenhuma aba nova.
  */
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   BookOpen,
@@ -35,6 +36,7 @@ import {
 
 import { BrandLogo } from "@/components/brand";
 import { cn } from "@/lib/utils";
+import { CASO_DEMO_CODIGO, CASO_DEMO_TITULO, CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 
 type Tom = "neutro" | "critico" | "atencao" | "sucesso";
 
@@ -306,13 +308,13 @@ function LinhaTempoGrafica() {
 function ArvoreFamiliaGrafica() {
   return (
     <div className="mx-auto grid max-w-lg grid-cols-4 grid-rows-[auto_28px_auto_28px_auto] items-center text-center">
-      <div className="col-span-2"><Pessoa nome="Carlo Bianchi" papel="Ascendente" /></div>
+      <div className="col-span-2"><Pessoa nome="Carlo Piccoli" papel="Ascendente" /></div>
       <div className="col-span-2"><Pessoa nome="Elena Rossi" papel="Cônjuge" /></div>
       <div className="col-span-4 mx-auto h-7 w-px bg-gold" />
-      <div className="col-span-2 col-start-2 rounded-lg border border-gold/50 bg-gold/10 p-2"><Pessoa nome="Giulia Bianchi" papel="Requerente" /></div>
+      <div className="col-span-2 col-start-2 rounded-lg border border-gold/50 bg-gold/10 p-2"><Pessoa nome="Sophia Piccoli" papel="Requerente" /></div>
       <div className="col-span-4 mx-auto h-7 w-px bg-gold" />
-      <div className="col-span-2"><Pessoa nome="Marina Bianchi" papel="Dependente" /></div>
-      <div className="col-span-2"><Pessoa nome="João Bianchi" papel="Dependente" /></div>
+      <div className="col-span-2"><Pessoa nome="Marina Piccoli" papel="Dependente" /></div>
+      <div className="col-span-2"><Pessoa nome="João Piccoli" papel="Dependente" /></div>
     </div>
   );
 }
@@ -678,8 +680,8 @@ function RedeNucleoGrafica() {
           <line x1="105" y1="52" x2="410" y2="48" className="stroke-navy/15" />
         </g>
         {[
-          { x: 260, y: 110, sigla: "GB", destaque: true }, { x: 105, y: 52, sigla: "CB" },
-          { x: 410, y: 48, sigla: "ER" }, { x: 110, y: 174, sigla: "MB" }, { x: 408, y: 176, sigla: "JB" },
+          { x: 260, y: 110, sigla: "SP", destaque: true }, { x: 105, y: 52, sigla: "CP" },
+          { x: 410, y: 48, sigla: "ER" }, { x: 110, y: 174, sigla: "MP" }, { x: 408, y: 176, sigla: "JP" },
         ].map((no) => <g key={no.sigla}><circle cx={no.x} cy={no.y} r={no.destaque ? 27 : 22} className={no.destaque ? "fill-gold stroke-navy" : "fill-card stroke-navy/40"} strokeWidth="2" /><text x={no.x} y={no.y + 4} textAnchor="middle" className="fill-navy text-[11px] font-semibold">{no.sigla}</text></g>)}
       </svg>
       <figcaption className="absolute bottom-2 left-3 text-[9px] text-navy/50">Vínculos demonstrativos · pessoa central, ascendentes e dependentes</figcaption>
@@ -720,10 +722,10 @@ function JornadaD0Visual() {
 function ArvoreCincoGeracoes() {
   const geracoes = [
     ["G5", "Antônio R. · 1860", "Isabel F. · 1887"],
-    ["G4", "Carlo Bianchi · 1891", "Elena Rossi · 1895"],
-    ["G3", "Luigi Bianchi · 1923", "Rosa Moretti · 1927"],
-    ["G2", "Paulo Bianchi · 1965", "Marta Costa · 1968"],
-    ["G1", "Giulia Bianchi", "Marina Bianchi"],
+    ["G4", "Carlo Piccoli · 1891", "Elena Rossi · 1895"],
+    ["G3", "Luigi Piccoli · 1923", "Rosa Moretti · 1927"],
+    ["G2", "Paulo Piccoli · 1965", "Marta Costa · 1968"],
+    ["G1", "Sophia Piccoli", "Marina Piccoli"],
   ];
   return (
     <div className="space-y-1.5">
@@ -808,7 +810,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
         </div>
         <div className={grade2}>
           <Cartao titulo="Decisões prioritárias">
-            <Linha rotulo="Aprovar escopo — Família Bianchi" valor="Decidir" tom="critico" />
+            <Linha rotulo="Aprovar escopo — Família Piccoli" valor="Decidir" tom="critico" />
             <Linha rotulo="Liberar pesquisa — Ana Luiza" valor="Decidir" tom="critico" />
             <Linha rotulo="Rever proposta — Núcleo Rossi" valor="Atenção" tom="atencao" />
             <Linha rotulo="Confirmar documento mínimo" valor="Atenção" tom="atencao" />
@@ -889,7 +891,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             { titulo: "Amigo do Danilo", contexto: "Aguarda certidão-base", responsavel: "Pesquisa", prazo: "16 set", etiqueta: "Documento", proximoPasso: "Solicitar documento mínimo", alerta: "Lead parado há 7 dias", tom: "critico", anexos: 1 },
           ] },
           { titulo: "Proposta", cartoes: [
-            { titulo: "Família Bianchi", contexto: "Escopo enviado · v3", responsavel: "Tatiana", prazo: "15 set", etiqueta: "Em análise", proximoPasso: "Confirmar retorno da proposta", anexos: 3 },
+            { titulo: "Família Piccoli", contexto: "Escopo enviado · v3", responsavel: "Tatiana", prazo: "15 set", etiqueta: "Em análise", proximoPasso: "Confirmar retorno da proposta", anexos: 3 },
           ] },
           { titulo: "Contrato", cartoes: [
             { titulo: "Núcleo Costa", contexto: "Aceite registrado", responsavel: "Operações", prazo: "17 set", etiqueta: "Onboarding", proximoPasso: "Preparar abertura do caso", tom: "sucesso", anexos: 5 },
@@ -914,8 +916,8 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
         <CabecalhoFerramenta titulo="Trabalho dos casos" apoio="Próxima ação, responsável, prazo e bloqueio em uma única leitura" acao="Nova tarefa" />
         <KanbanVisual colunas={[
           { titulo: "Não iniciada", cartoes: [
-            { titulo: "Conferir certidão-base", contexto: "CA-2026-ANA-001", responsavel: "Marina", prazo: "13 set", etiqueta: "Alta", proximoPasso: "Comparar nomes e datas", tom: "atencao", anexos: 2 },
-            { titulo: "Preparar linha familiar", contexto: "Família Bianchi", responsavel: "Pesquisa", prazo: "15 set", etiqueta: "Média", proximoPasso: "Vincular ascendentes confirmados" },
+            { titulo: "Conferir certidão-base", contexto: CASO_DEMO_CODIGO, responsavel: "Marina", prazo: "13 set", etiqueta: "Alta", proximoPasso: "Comparar nomes e datas", tom: "atencao", anexos: 2 },
+            { titulo: "Preparar linha familiar", contexto: "Família Piccoli", responsavel: "Pesquisa", prazo: "15 set", etiqueta: "Média", proximoPasso: "Vincular ascendentes confirmados" },
           ] },
           { titulo: "Em andamento", cartoes: [
             { titulo: "Validar grafia do ascendente", contexto: "Núcleo Rossi", responsavel: "Carla", prazo: "Hoje", etiqueta: "SLA em risco", proximoPasso: "Conferir registro civil", alerta: "Atividade parada há 3 dias", tom: "atencao", anexos: 3 },
@@ -924,7 +926,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             { titulo: "Emitir relatório F1", contexto: "Falta transcrição da fonte", responsavel: "Joana", prazo: "12 set", etiqueta: "Bloqueio", proximoPasso: "Finalizar transcrição vinculada", alerta: "Atividade parada por bloqueio", tom: "critico", anexos: 1 },
           ] },
           { titulo: "Concluída", cartoes: [
-            { titulo: "Registrar fonte paroquial", contexto: "Família Bianchi", responsavel: "Marina", prazo: "11 set", etiqueta: "Concluída", proximoPasso: "Encaminhar para revisão", tom: "sucesso", anexos: 4 },
+            { titulo: "Registrar fonte paroquial", contexto: "Família Piccoli", responsavel: "Marina", prazo: "11 set", etiqueta: "Concluída", proximoPasso: "Encaminhar para revisão", tom: "sucesso", anexos: 4 },
           ] },
           { titulo: "Cancelada", cartoes: [
             { titulo: "Consulta duplicada", contexto: "Substituída por fonte vigente", responsavel: "Pesquisa", prazo: "10 set", etiqueta: "Histórico" },
@@ -943,12 +945,21 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
         <div className="rounded-xl border border-navy/10 bg-card p-4">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:justify-between">
             <div className="min-w-0">
-              <h2 className="truncate font-serif text-2xl text-navy">Família Bianchi</h2>
-              <p className="mt-1 text-xs text-navy/60">
-                Reconhecimento italiano · pesquisa e validação
-              </p>
+              <h2 className="truncate font-serif text-2xl text-navy">Família Piccoli</h2>
+              <p className="mt-1 text-xs text-navy/60">{CASO_DEMO_TITULO} · {CASO_DEMO_CODIGO}</p>
             </div>
-            <Etiqueta texto="Dados demonstrativos" tom="atencao" />
+            <div className="flex shrink-0 flex-col items-end gap-2">
+              <Etiqueta texto="Dados demonstrativos" tom="atencao" />
+              {/* Mesmo caso demo do App Cliente (portal-demo-sophia.ts) — a
+                  travessia mostra a mesma pessoa/caso do lado do Desk para
+                  o lado do cliente, sem inventar um segundo caso fictício. */}
+              <Link
+                to="/previa-app-cliente"
+                className="text-[11px] font-medium text-terracotta underline-offset-2 hover:underline"
+              >
+                Ver como {CLIENTE_DEMO_NOME} vê este caso →
+              </Link>
+            </div>
           </div>
           <nav className="mt-4 flex flex-wrap gap-2 border-t border-navy/10 pt-3 text-xs">
             {["Visão geral", "Jornada", "Pesquisa", "Documentos", "Financeiro", "Jurídico", "Cliente"].map(
@@ -972,9 +983,9 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
           </Cartao>
           <Cartao titulo="Participantes">
             <div className="space-y-3">
-              <Pessoa nome="Giulia Bianchi" papel="Requerente principal" />
-              <Pessoa nome="Carlo Bianchi" papel="Ascendente direto" />
-              <Pessoa nome="Marina Bianchi" papel="Dependente" />
+              <Pessoa nome="Sophia Piccoli" papel="Requerente principal" />
+              <Pessoa nome="Carlo Piccoli" papel="Ascendente direto" />
+              <Pessoa nome="Marina Piccoli" papel="Dependente" />
               <Pessoa nome="Tatiana Tosi" papel="Responsável interna" />
             </div>
           </Cartao>
@@ -1002,16 +1013,16 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
       <div className="space-y-4">
         <div className="flex items-center gap-3 rounded-xl border border-navy/10 bg-card p-4">
           <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full border border-gold/50 bg-navy font-serif text-lg text-gold">
-            GB
+            SP
           </span>
           <div className="min-w-0">
-            <h2 className="truncate font-serif text-2xl text-navy">Giulia Bianchi</h2>
+            <h2 className="truncate font-serif text-2xl text-navy">Sophia Piccoli</h2>
             <p className="text-xs text-navy/60">Pessoa canônica · sem duplicidade</p>
           </div>
         </div>
         <div className="grid gap-4 lg:grid-cols-[1fr_1.25fr_0.9fr]">
           <Cartao titulo="Identidade">
-            <Linha rotulo="Nome civil" valor="Giulia Bianchi" />
+            <Linha rotulo="Nome civil" valor="Sophia Piccoli" />
             <Linha rotulo="Nascimento" valor="1990" />
             <Linha rotulo="Naturalidade" valor="Brasil" />
             <Linha rotulo="Confiança do dado" valor="Alta" tom="sucesso" />
@@ -1193,7 +1204,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
                 </thead>
                 <tbody className="divide-y divide-navy/5 text-navy/70">
                   <tr><td className="py-2 font-medium text-navy">Registros civis da Toscana</td><td>Bases</td><td>v3.2</td><td><Etiqueta texto="Homologado" tom="sucesso" /></td><td>Pesquisa</td></tr>
-                  <tr><td className="py-2 font-medium text-navy">Variações Bianchi / Bianco</td><td>Dicionário</td><td>v2.1</td><td><Etiqueta texto="Vigente" tom="sucesso" /></td><td>Pesquisa</td></tr>
+                  <tr><td className="py-2 font-medium text-navy">Variações Piccoli / Picolli</td><td>Dicionário</td><td>v2.1</td><td><Etiqueta texto="Vigente" tom="sucesso" /></td><td>Pesquisa</td></tr>
                   <tr><td className="py-2 font-medium text-navy">Trilha Itália — administrativa</td><td>Trilhas</td><td>v4.0</td><td><Etiqueta texto="Em revisão" tom="atencao" /></td><td>Casos</td></tr>
                   <tr><td className="py-2 font-medium text-navy">Modelo de relatório F1</td><td>Modelos</td><td>v1.8</td><td><Etiqueta texto="Homologado" tom="sucesso" /></td><td>Relatórios</td></tr>
                 </tbody>
@@ -1267,7 +1278,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
         </div>
         <Cartao titulo="Alertas financeiros contextualizados">
           <div className="grid gap-2 sm:grid-cols-3">
-            <Linha rotulo="Contrato Bianchi · Parcela 2" valor="Vence em 3 dias" tom="atencao" />
+            <Linha rotulo="Contrato Piccoli · Parcela 2" valor="Vence em 3 dias" tom="atencao" />
             <Linha rotulo="Contrato Rossi · Entrada" valor="Conferir vínculo" tom="atencao" />
             <Linha rotulo="Contrato Costa · Parcela 1" valor="Conciliada" tom="sucesso" />
           </div>
@@ -1298,7 +1309,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
         </Cartao>
         <Cartao titulo="Assinatura">
           <div className="rounded-lg border border-navy/10 bg-cream/40 p-3">
-            <p className="font-serif text-lg italic text-navy">Giulia Bianchi</p>
+            <p className="font-serif text-lg italic text-navy">Sophia Piccoli</p>
             <p className="mt-1 text-[10px] text-navy/55">Assinatura registrada · 21/03/2026</p>
           </div>
           <div className="mt-3"><Linha rotulo="Integridade do documento" valor="Validada" tom="sucesso" /></div>
@@ -1340,7 +1351,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
             <ArvoreCincoGeracoes />
           </Cartao>
           <Cartao titulo="Leitura da linhagem">
-            <Linha rotulo="Conexão-chave" valor="Carlo Bianchi" tom="sucesso" />
+            <Linha rotulo="Conexão-chave" valor="Carlo Piccoli" tom="sucesso" />
             <Linha rotulo="Território" valor="Lucca · Toscana" />
             <Linha rotulo="Pessoas conectadas" valor="12 de 31" tom="atencao" />
             <Linha rotulo="O que ainda falta" valor="Certidão G4" tom="critico" />
@@ -1349,7 +1360,7 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
         <Cartao titulo="Árvore visual do núcleo">
           <ArvoreFamiliaGrafica />
           <div className="mt-4 border-t border-navy/10 pt-3">
-            <Linha rotulo="Núcleo Bianchi — dossiê-mãe" valor="Ativo" tom="sucesso" />
+            <Linha rotulo="Núcleo Piccoli — dossiê-mãe" valor="Ativo" tom="sucesso" />
             <Linha rotulo="Núcleo Rossi — possível duplicidade" valor="Revisar" tom="atencao" />
           </div>
         </Cartao>
@@ -1377,11 +1388,11 @@ export const TELAS_PREVIA_DESK: readonly TelaPrevia[] = [
           </Cartao>
           <div className="space-y-4">
             <Cartao titulo="Núcleos com acesso">
-              <div className="space-y-3"><Pessoa nome="Giulia Bianchi" papel="Acesso ativo" /><Pessoa nome="Paulo Tavares" papel="Convite enviado" /></div>
+              <div className="space-y-3"><Pessoa nome="Sophia Piccoli" papel="Acesso ativo" /><Pessoa nome="Paulo Tavares" papel="Convite enviado" /></div>
             </Cartao>
             <Cartao titulo="Núcleos sem acesso">
-              <Linha rotulo="Marina Bianchi" valor="Sem acesso" />
-              <Linha rotulo="João Bianchi" valor="Sem acesso" />
+              <Linha rotulo="Marina Piccoli" valor="Sem acesso" />
+              <Linha rotulo="João Piccoli" valor="Sem acesso" />
             </Cartao>
           </div>
         </div>
