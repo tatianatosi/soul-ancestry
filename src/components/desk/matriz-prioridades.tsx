@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 
+import { Button } from "@/components/ui/button";
 import { ROTULO_SINAL, type EixoElegibilidade } from "@/lib/prioridade-matriz";
 import {
   ELEGIBILIDADE_ORDEM,
@@ -41,7 +42,15 @@ const TOM_FAIXA: Record<string, string> = {
  *
  * Nada é recalculado nesta tela, e nada daqui é projetado ao App Cliente.
  */
-export function MatrizPrioridades({ casos }: { casos: readonly CasoPosicionado[] }) {
+export function MatrizPrioridades({
+  casos,
+  casoSelecionado,
+  onSelecionarCaso,
+}: {
+  casos: readonly CasoPosicionado[];
+  casoSelecionado?: string | null;
+  onSelecionarCaso?: (caseId: string) => void;
+}) {
   const grade = montarMatriz(casos);
   const semPosicao = semPosicaoConfiavel(casos);
 
@@ -93,7 +102,14 @@ export function MatrizPrioridades({ casos }: { casos: readonly CasoPosicionado[]
                       ) : (
                         <ul className="space-y-1">
                           {celula.casos.map((c) => (
-                            <li key={c.id}>
+                            <li
+                              key={c.id}
+                              className={
+                                casoSelecionado === c.id
+                                  ? "rounded-md border border-gold/60 bg-gold/15 p-1.5"
+                                  : "rounded-md p-1.5"
+                              }
+                            >
                               <Link
                                 to="/casos/$caseId"
                                 params={{ caseId: c.id }}
@@ -102,6 +118,17 @@ export function MatrizPrioridades({ casos }: { casos: readonly CasoPosicionado[]
                               >
                                 {c.rotulo}
                               </Link>
+                              {onSelecionarCaso ? (
+                                <Button
+                                  type="button"
+                                  variant="link"
+                                  size="sm"
+                                  className="mt-0.5 h-auto p-0 text-[11px] text-navy"
+                                  onClick={() => onSelecionarCaso(c.id)}
+                                >
+                                  Ver Radar Individual
+                                </Button>
+                              ) : null}
                             </li>
                           ))}
                         </ul>
