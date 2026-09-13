@@ -63,7 +63,7 @@ function prateleiraDe(item: PublicacaoCliente): PrateleiraId {
 
 function Chip({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
-    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
+    <div className="rounded-lg border border-border bg-card px-3 py-2">
       <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
       <p className="mt-0.5 text-sm text-navy">{valor}</p>
     </div>
@@ -100,7 +100,7 @@ export function PortalLegado() {
                 <div className="space-y-4" data-aba-legado>
                   <div
                     data-legado-meta
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3"
                   >
                     <div className="flex flex-wrap gap-2">
                       <Chip rotulo="Biblioteca" valor="Legado familiar" />
@@ -122,10 +122,21 @@ export function PortalLegado() {
                     ) : null}
                   </div>
 
-                  <p className="text-sm text-navy/70">
-                    Cadernos, relatórios, narrativas e memória — só o que a equipe publica para
-                    ficar com a sua família. Sem inventar material.
-                  </p>
+                  {/* Acabamento 2026-09-13 (referência Lovable): card editorial de
+                      abertura, mesmo texto que já existia (movido para cá, não
+                      duplicado), no padrão navy já usado no hero da Home. */}
+                  <section className="rounded-2xl bg-navy-800 p-4 text-cream sm:p-5">
+                    <p className="text-[10px] uppercase tracking-widest text-gold/80">
+                      Biblioteca da família
+                    </p>
+                    <h2 className="mt-1 font-serif text-lg text-cream">
+                      Seu legado, organizado por coleção
+                    </h2>
+                    <p className="mt-2 text-sm text-cream/70">
+                      Cadernos, relatórios, narrativas e memória — só o que a equipe publica para
+                      ficar com a sua família. Sem inventar material.
+                    </p>
+                  </section>
 
                   <div className="space-y-3" data-legado-prateleiras>
                     {PRATELEIRAS.map((p) => {
@@ -134,11 +145,14 @@ export function PortalLegado() {
                         <section
                           key={p.id}
                           data-legado-prateleira={p.id}
-                          className="rounded-2xl border border-navy/10 bg-cream/40 p-4"
+                          className="rounded-2xl border border-border bg-card p-4"
                         >
                           <div className="flex flex-wrap items-start justify-between gap-2">
                             <div>
-                              <h2 className="font-serif text-lg text-navy">{p.rotulo}</h2>
+                              <p className="text-[10px] font-medium uppercase tracking-widest text-gold/70">
+                                Coleção
+                              </p>
+                              <h2 className="mt-0.5 text-sm font-semibold text-navy">{p.rotulo}</h2>
                               <p className="mt-0.5 text-xs text-navy/55">{p.dica}</p>
                             </div>
                             <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
@@ -154,7 +168,7 @@ export function PortalLegado() {
                               {itens.map((item) => (
                                 <li
                                   key={item.id}
-                                  className="rounded-lg border border-navy/10 bg-cream/50 p-4 shadow-sm"
+                                  className="rounded-lg border border-border bg-card p-4 shadow-sm"
                                 >
                                   <p className="text-[11px] font-medium uppercase tracking-wide text-navy/45">
                                     {item.tipoRotulo}

@@ -14,8 +14,8 @@ const SUPERFICIES_CLIENTE = [
 ];
 
 describe("CA-PORTAL-03 — branding das superfícies de cliente", () => {
-  it("azul oficial é o do Guia de Marca", () => {
-    expect(MARCA_CORES.azul).toBe("#2F4B6E");
+  it("azul oficial é o da paleta Pantone (2767 C)", () => {
+    expect(MARCA_CORES.azul).toBe("#13294B");
   });
 
   it.each(SUPERFICIES_CLIENTE)("%s não usa cor retirada", (arquivo) => {

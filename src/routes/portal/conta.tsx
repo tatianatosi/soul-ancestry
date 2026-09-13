@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { CASO_DEMO_CODIGO, CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
-import { usePreviaPortal } from "@/components/portal/fonte-portal";
+import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { minhasFaturas } from "@/lib/portal-cliente.functions";
 
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/portal/conta")({
 
 function Chip({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
-    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
+    <div className="rounded-lg border border-border bg-card px-3 py-2">
       <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
       <p className="mt-0.5 text-sm text-navy">{valor}</p>
     </div>
@@ -37,6 +37,7 @@ export function PortalConta() {
   const previa = usePreviaPortal();
   const { visibilidade, carregando } = useVisibilidade("conta");
   const { data } = usePortal();
+  const vivo = usePortalVivo();
   const carregarFaturas = useServerFn(minhasFaturas);
   const faturas = useQuery({
     queryKey: ["portal-conta-faturas"],
@@ -54,6 +55,19 @@ export function PortalConta() {
   const paisInteresse = data?.cliente?.pais_interesse ?? (previa ? "Itália" : null) ?? "—";
   const planoEstado = previa || data?.autorizado ? "Acompanhamento ativo" : "Aguardando publicação";
 
+  /**
+   * Alertas usa o mesmo `proximaAcao` já publicado para Home/Documentos —
+   * nunca uma fonte nova. Só vira alerta quando o motor sinaliza algo
+   * acionável (documento pendente ou pagamento em aberto); qualquer outro
+   * destino (jornada seguindo, caso encerrado/pausado) fica no "sem alerta".
+   */
+  const proximaAcao = vivo.data?.proximaAcao ?? null;
+  const alertaAcionavel =
+    proximaAcao &&
+    (proximaAcao.destino === "/portal/documentos" || proximaAcao.destino === "/portal/conta")
+      ? proximaAcao
+      : null;
+
   return (
     <PortalShell titulo={COPY_TELAS.conta.titulo} descricao={COPY_TELAS.conta.descricao}>
       {carregando ? (
@@ -63,7 +77,7 @@ export function PortalConta() {
           <div className="space-y-4" data-aba-conta>
             <div
               data-conta-meta
-              className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+              className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
             >
               <Chip rotulo="Titular" valor={titular} />
               <Chip rotulo="Caso" valor={casoCodigo} />
@@ -73,28 +87,28 @@ export function PortalConta() {
 
             <section
               data-conta-perfil
-              className="rounded-2xl border border-navy/10 bg-cream/50 p-5 shadow-sm"
+              className="rounded-2xl border border-border bg-card p-5 shadow-sm"
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-lg text-navy">Perfil</h2>
-                <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
+                <h2 className="text-sm font-semibold text-navy">Perfil</h2>
+                <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
                   Dados pessoais
                 </span>
               </div>
               <dl className="mt-3 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-lg border border-navy/10 bg-cream/60 p-3">
+                <div className="rounded-lg border border-border bg-card p-3">
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>
                   <dd className="text-sm text-navy">{titular}</dd>
                 </div>
-                <div className="rounded-lg border border-navy/10 bg-cream/60 p-3">
+                <div className="rounded-lg border border-border bg-card p-3">
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Caso vinculado</dt>
                   <dd className="font-mono text-sm text-navy">{casoCodigo}</dd>
                 </div>
-                <div className="rounded-lg border border-navy/10 bg-cream/60 p-3">
+                <div className="rounded-lg border border-border bg-card p-3">
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Preferência</dt>
                   <dd className="text-sm text-navy">{paisInteresse}</dd>
                 </div>
-                <div className="rounded-lg border border-navy/10 bg-cream/60 p-3">
+                <div className="rounded-lg border border-border bg-card p-3">
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Canal</dt>
                   <dd className="text-sm text-navy">Aplicativo do cliente</dd>
                 </div>
@@ -105,9 +119,9 @@ export function PortalConta() {
               </p>
             </section>
 
-            <section data-conta-plano className="rounded-2xl border border-navy/10 bg-cream/40 p-5">
+            <section data-conta-plano className="rounded-2xl border border-border bg-card p-5">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-lg text-navy">Plano</h2>
+                <h2 className="text-sm font-semibold text-navy">Plano</h2>
                 <span className="rounded-full border border-gold/40 bg-gold/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-navy">
                   {planoEstado}
                 </span>
@@ -116,33 +130,50 @@ export function PortalConta() {
                 Acompanhamento do reconhecimento — SKU, preço técnico e gates internos não aparecem
                 nesta tela. Detalhes do plano publicado pela equipe ficam neste bloco.
               </p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                <Chip rotulo="Estado" valor={planoEstado} />
-                <Chip rotulo="Publicação" valor={previa ? "Demo" : "Quando a equipe publica"} />
-                <Chip rotulo="Escopo" valor="Caso vinculado" />
-              </div>
+              {/* Acabamento 2026-09-13 (referência Lovable): texto corrido no lugar
+                  de grade de 3 crachás — mesmos três dados reais, leitura mais serena. */}
+              <p className="mt-3 text-xs text-navy/55">
+                Publicação: {previa ? "Demo" : "Quando a equipe publica"} · Escopo: Caso vinculado
+              </p>
             </section>
 
-            <section data-conta-alertas className="rounded-2xl border border-navy/10 bg-cream/50 p-5">
+            <section data-conta-alertas className="rounded-2xl border border-border bg-card p-5">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-lg text-navy">Alertas</h2>
-                <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
+                <h2 className="text-sm font-semibold text-navy">Alertas</h2>
+                <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
                   Pessoais do caso
                 </span>
               </div>
-              <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
-                <p className="text-sm text-navy/70">Sem alerta publicado no momento.</p>
-                <p className="mt-1 text-xs text-navy/50">
-                  Documentos pendentes e próximas ações do seu caso aparecem aqui quando a equipe
-                  publica um aviso sanitizado.
-                </p>
-              </div>
+              {alertaAcionavel ? (
+                <div className="mt-3 rounded-xl border border-gold/40 bg-gold/10 px-4 py-4">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
+                    {alertaAcionavel.destino === "/portal/conta" ? "Pagamento em aberto" : "Documento pendente"}
+                  </p>
+                  <p className="mt-1 text-sm text-navy">{alertaAcionavel.acao}</p>
+                  {alertaAcionavel.destino === "/portal/documentos" ? (
+                    <LinkPortal
+                      to="/portal/documentos"
+                      className="mt-2 inline-flex text-xs font-medium text-navy/70 underline hover:text-navy"
+                    >
+                      Ver documentos solicitados
+                    </LinkPortal>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="mt-3 rounded-xl bg-cream/60 px-4 py-5 text-center">
+                  <p className="text-sm text-navy/70">Sem alerta publicado no momento.</p>
+                  <p className="mt-1 text-xs text-navy/50">
+                    Documentos pendentes e próximas ações do seu caso aparecem aqui quando a equipe
+                    publica um aviso sanitizado.
+                  </p>
+                </div>
+              )}
             </section>
 
-            <section data-conta-historico className="rounded-2xl border border-navy/10 bg-cream/40 p-5">
+            <section data-conta-historico className="rounded-2xl border border-border bg-card p-5">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-lg text-navy">Histórico</h2>
-                <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
+                <h2 className="text-sm font-semibold text-navy">Histórico</h2>
+                <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
                   Pagamentos · acessos
                 </span>
               </div>
@@ -168,7 +199,7 @@ export function PortalConta() {
                   </Link>
                 </div>
               ) : (
-                <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
+                <div className="mt-3 rounded-xl bg-cream/60 px-4 py-5 text-center">
                   <p className="text-sm text-navy/70">Nenhum pagamento ou movimento listado ainda.</p>
                   <p className="mt-1 text-xs text-navy/50">
                     Histórico de acessos e faturas publicadas para você aparece neste bloco — sem

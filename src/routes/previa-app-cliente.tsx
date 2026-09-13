@@ -10,6 +10,16 @@ import { SessaoDemoAppCliente } from "@/components/portal/sessao-demo-app-client
  */
 
 export const Route = createFileRoute("/previa-app-cliente")({
+  /**
+   * `aba` decide a aba inicial da prévia. Validado aqui (Router) em vez de
+   * lido de `window.location.search` no componente: o Router resolve o
+   * mesmo valor no servidor e no cliente a partir da mesma URL, o que evita
+   * o mismatch de hidratação que existia antes (servidor sempre caía em
+   * "Home" porque `window` não existe lá).
+   */
+  validateSearch: (search: Record<string, unknown>): { aba?: string } => ({
+    aba: typeof search.aba === "string" ? search.aba : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Prévia App Cliente — Clube Ancestral" },
@@ -25,5 +35,6 @@ export const Route = createFileRoute("/previa-app-cliente")({
 });
 
 function PreviaAppCliente() {
-  return <SessaoDemoAppCliente modo="cliente" />;
+  const { aba } = Route.useSearch();
+  return <SessaoDemoAppCliente modo="cliente" abaInicial={aba} />;
 }

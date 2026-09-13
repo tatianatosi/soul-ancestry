@@ -72,9 +72,10 @@ describe("guardas do modo de prévia", () => {
     expect(signOut).toBeGreaterThan(saidaAntecipada);
   });
 
-  it("o selo aparece no topo sempre que há prévia", () => {
+  it("o selo de dado fictício continua no DOM sempre que há prévia (correção 2026-09-12: sem faixa colorida visível, que destoava do mockup 3/17)", () => {
     expect(shell).toContain("data-previa-portal");
     expect(shell).toContain("{previa.selo}");
+    expect(shell).toContain('className="sr-only"');
   });
 
   it("em prévia o cabeçalho mostra a origem, não o nome de um cliente", () => {

@@ -49,6 +49,15 @@ export type DimensaoRadar = {
   /** Só presente quando estado === "percentual". */
   percentual: number | null;
   legenda: string;
+  /**
+   * Rótulo de exibição no lugar do "%" (correção 2026-09-12, pedido da
+   * Proprietária): eixos sem denominador real (origem, memória, legado)
+   * usam presença/ausência (0/100) só para o cálculo — mostrar "100%" ao
+   * cliente lia como "concluído", o que não é verdade. Aqui mostramos a
+   * contagem real publicada; `percentual` continua 0/100 internamente
+   * (usado pela média de Elegibilidade), sem mudar nenhum cálculo.
+   */
+  rotuloNumero: string;
 };
 
 /**
@@ -85,6 +94,7 @@ export function radarSeisDimensoes(entrada: {
       docs.length > 0
         ? `${liberados} de ${docs.length} documentos do seu caso já liberados para você.`
         : "Nenhum documento vinculado ao seu caso ainda.",
+    rotuloNumero: `${percentual(liberados, docs.length)}%`,
   };
   const origem: DimensaoRadar = {
     id: "origem",
@@ -100,6 +110,8 @@ export function radarSeisDimensoes(entrada: {
       arvore.length > 0
         ? `${arvore.length} registro(s) de origem/linha publicados pela equipe.`
         : "Ainda não há registro de origem publicado pela equipe.",
+    // Presença/ausência, não "% concluído" — rótulo mostra a contagem real.
+    rotuloNumero: arvore.length > 0 ? `${arvore.length} registro(s)` : "Nenhum ainda",
   };
   const conexoes: DimensaoRadar = {
     id: "conexoes",
@@ -107,6 +119,7 @@ export function radarSeisDimensoes(entrada: {
     estado: "percentual",
     percentual: percentual(arvore.length, TETO_ANCESTRAIS_G1_G5),
     legenda: `${arvore.length} de até ${TETO_ANCESTRAIS_G1_G5} ancestrais possíveis em 5 gerações (você, pais, avós, bisavós e trisavós).`,
+    rotuloNumero: `${percentual(arvore.length, TETO_ANCESTRAIS_G1_G5)}%`,
   };
   const memoria: DimensaoRadar = {
     id: "memoria",
@@ -117,6 +130,7 @@ export function radarSeisDimensoes(entrada: {
       achados.length > 0
         ? `${achados.length} achado(s) de memória familiar publicados.`
         : "Nenhum achado de memória familiar publicado ainda.",
+    rotuloNumero: achados.length > 0 ? `${achados.length} achado(s)` : "Nenhum ainda",
   };
   const legado: DimensaoRadar = {
     id: "legado",
@@ -127,6 +141,7 @@ export function radarSeisDimensoes(entrada: {
       marcos.length > 0
         ? `${marcos.length} marco(s)/resumo(s) de jornada publicados.`
         : "Nenhum marco de jornada publicado ainda.",
+    rotuloNumero: marcos.length > 0 ? `${marcos.length} marco(s)` : "Nenhum ainda",
   };
 
   // Elegibilidade = média dos outros 5 eixos já calculados. Nunca lê parecer
@@ -143,6 +158,7 @@ export function radarSeisDimensoes(entrada: {
     percentual: mediaOutros,
     legenda:
       "Média de completude dos outros 5 eixos — não é parecer jurídico nem promessa de resultado.",
+    rotuloNumero: `${mediaOutros}%`,
   };
 
   return [documentacao, origem, conexoes, elegibilidade, memoria, legado];

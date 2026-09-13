@@ -26,21 +26,30 @@ const ESCOPO_DEMO = escopoAPartirDePublicacoes({
   tiposPublicados: DADOS_DEMO_SOPHIA.projecoes.map((p) => String(p.projection_type ?? "")),
 });
 
-/** Resolve aba inicial da prévia via `?aba=` (7 abas + entregas|fase-01|fase-02 profundas). */
-function rotaInicialDaPrevia(): string {
-  if (typeof window === "undefined") return "/portal";
-  const aba = new URLSearchParams(window.location.search).get("aba")?.toLowerCase().trim();
-  if (!aba || aba === "home") return "/portal";
-  const candidata = `/portal/${aba}`;
+/**
+ * Resolve aba inicial da prévia a partir do `aba` já validado pela rota
+ * (7 abas + entregas|fase-01|fase-02 profundas) — função pura, sem tocar
+ * `window`. O valor chega igual no servidor e no cliente porque quem lê a
+ * URL é o Router (`validateSearch`), não este componente; isso é o que
+ * elimina o mismatch de hidratação que existia ao ler `window.location`
+ * direto num `useState` (o servidor não tem `window` e caía sempre em
+ * "Home", o cliente corrigia depois de hidratar).
+ */
+function rotaInicialDaPrevia(aba?: string): string {
+  const chave = aba?.toLowerCase().trim();
+  if (!chave || chave === "home") return "/portal";
+  const candidata = `/portal/${chave}`;
   return candidata in TELAS_INTERNAS_PORTAL ? candidata : "/portal";
 }
 
 export function SessaoDemoAppCliente({
   modo = "desk",
+  abaInicial,
 }: {
   modo?: "desk" | "cliente";
+  abaInicial?: string;
 }) {
-  const [rotaInterna, setRotaInterna] = useState(rotaInicialDaPrevia);
+  const [rotaInterna, setRotaInterna] = useState(() => rotaInicialDaPrevia(abaInicial));
   const Tela = TELAS_INTERNAS_PORTAL[rotaInterna] ?? TELAS_INTERNAS_PORTAL["/portal"]!;
 
   const app = (

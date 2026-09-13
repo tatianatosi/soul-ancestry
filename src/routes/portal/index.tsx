@@ -3,22 +3,34 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
-import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
+import {
+  CASO_DEMO_CODIGO,
+  FASES_JORNADA_DEMO,
+  FASE_ATUAL_DEMO_SOPHIA_INDICE,
+  FASE_ATUAL_DEMO_SOPHIA_PERCENTUAL,
+} from "@/lib/portal-demo-sophia";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { jornadaSanitizada, microentregaPublicada } from "@/lib/portal-dados-vivos";
+import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
 import { ChipIdentidadeCaso } from "@/components/caso/chip-identidade-caso";
 import { identidadeDePortalCaso } from "@/lib/caso-compartilhado";
+import { cn } from "@/lib/utils";
+import { CheckCircle2, Search, ArrowRight } from "lucide-react";
+import { CaCard } from "@/components/ui/ca-card";
 
-function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
-      <p className="mt-0.5 text-sm text-navy">{valor}</p>
-    </div>
-  );
+/**
+ * Rota real por tipo de publicação (correção 2026-09-12, pedido da
+ * Proprietária): achado sobre a árvore abre Árvore, sobre legado abre
+ * Legado, documento analisado abre Documentos; o resto (marco, resumo,
+ * atualização, linha do tempo) abre Jornada. Nunca uma rota inventada.
+ */
+function destinoPorTipo(tipo: string): "/portal/jornada" | "/portal/arvore" | "/portal/documentos" | "/portal/legado" {
+  if (tipo === "arvore") return "/portal/arvore";
+  if (tipo === "legado") return "/portal/legado";
+  if (tipo === "evidencia") return "/portal/documentos";
+  return "/portal/jornada";
 }
 
 export const Route = createFileRoute("/portal/")({
@@ -61,7 +73,6 @@ export function PortalHome() {
     new Date(),
     vivo.data?.proximaAcao,
   );
-  const microentrega = microentregaPublicada(vivo.data?.projecoes ?? []);
 
   if (previa) {
     return (
@@ -72,16 +83,22 @@ export function PortalHome() {
           <PainelHomeMockup
             tituloCaso={previa.titulo}
             statusRotulo="Acompanhamento ativo"
-            microentrega={microentrega}
             proximoPasso={jornada.proximoPasso}
+            proximoPassoDestino={vivo.data?.proximaAcao?.destino ?? null}
             marcos={jornada.marcosPublicados}
             casoCodigo={previa.identidade?.codigo ?? CASO_DEMO_CODIGO}
             identidade={previa.identidade}
             achados={jornada.linha.slice(0, 3).map((item) => ({
               id: item.id,
               tipo: item.tipoRotulo,
+              destino: destinoPorTipo(item.tipo),
               texto: item.conteudo,
             }))}
+            fase={{
+              rotulos: FASES_JORNADA_DEMO,
+              indice: FASE_ATUAL_DEMO_SOPHIA_INDICE,
+              percentual: FASE_ATUAL_DEMO_SOPHIA_PERCENTUAL,
+            }}
           />
         )}
       </PortalShell>
@@ -108,7 +125,6 @@ export function PortalHome() {
               <PainelHomeMockup
                 tituloCaso={principal.titulo}
                 statusRotulo={principal.statusRotulo}
-                microentrega={microentrega}
                 statusTexto={principal.statusTexto}
                 proximoPasso={principal.proximoPasso || jornada.proximoPasso}
                 proximoPassoDestino={principal.proximoPassoDestino}
@@ -123,6 +139,7 @@ export function PortalHome() {
                 achados={jornada.linha.slice(0, 3).map((item) => ({
                   id: item.id,
                   tipo: item.tipoRotulo,
+                  destino: destinoPorTipo(item.tipo),
                   texto: item.conteudo,
                 }))}
               />
@@ -155,6 +172,59 @@ export function PortalHome() {
   );
 }
 
+function EstepeJornada({
+  rotulos,
+  indice,
+  percentual,
+}: {
+  rotulos: readonly string[];
+  indice: number;
+  percentual: number;
+}) {
+  const rotuloAtual = rotulos[indice];
+  return (
+    <div className="mt-4">
+      <div className="mb-1.5 flex items-center justify-between text-xs text-cream/70">
+        <span>Progresso da jornada</span>
+        <span className="font-semibold text-gold">{percentual}%</span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-navy-soft">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-gold-soft to-gold"
+          style={{ width: `${percentual}%` }}
+        />
+      </div>
+
+      <div className="mt-3 flex items-start justify-between gap-1">
+        {rotulos.map((rotulo, i) => {
+          const concluida = i < indice;
+          const atual = i === indice;
+          return (
+            <div key={rotulo} className="flex flex-1 flex-col items-center gap-1">
+              <div
+                className={cn(
+                  "grid h-5 w-5 shrink-0 place-items-center rounded-full text-[9px] font-bold",
+                  concluida && "bg-gold/40 text-gold",
+                  atual && "bg-gold text-navy",
+                  !concluida && !atual && "bg-cream/15 text-cream/50",
+                )}
+              >
+                {concluida ? <CheckCircle2 className="h-3 w-3" /> : i + 1}
+              </div>
+              <span className={cn("text-center text-[8px] leading-tight", atual ? "text-gold" : "text-cream/50")}>
+                {rotulo}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      {rotuloAtual ? (
+        <p className="sr-only">Etapa atual: {rotuloAtual}</p>
+      ) : null}
+    </div>
+  );
+}
+
 function PainelHomeMockup({
   tituloCaso,
   statusRotulo,
@@ -166,7 +236,7 @@ function PainelHomeMockup({
   casoId,
   identidade,
   achados,
-  microentrega,
+  fase,
 }: {
   tituloCaso: string;
   statusRotulo: string;
@@ -177,144 +247,111 @@ function PainelHomeMockup({
   casoCodigo: string;
   casoId?: string;
   identidade?: import("@/lib/caso-compartilhado").IdentidadeCaso;
-  achados: Array<{ id: string; tipo: string; texto: string }>;
-  microentrega?: import("@/lib/projecoes-cliente").PublicacaoCliente | null;
+  achados: Array<{
+    id: string;
+    tipo: string;
+    destino: "/portal/jornada" | "/portal/arvore" | "/portal/documentos" | "/portal/legado";
+    texto: string;
+  }>;
+  /** Só preenchido na demo — não existe policy de portal para fase real do caso ainda. */
+  fase?: { rotulos: readonly string[]; indice: number; percentual: number } | null;
 }) {
   const proximaCurta =
-    proximoPasso.length > 48 ? `${proximoPasso.slice(0, 45).trimEnd()}…` : proximoPasso;
+    proximoPasso.length > 64 ? `${proximoPasso.slice(0, 61).trimEnd()}…` : proximoPasso;
   return (
     <div className="space-y-4" data-aba-home>
-      <div
-        data-home-meta
-        className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
-      >
-        <ChipMeta rotulo="Caso" valor={casoCodigo} />
-        <ChipMeta
-          rotulo="Progresso"
-          valor={marcos === 0 ? "Sem publicação ainda" : `${marcos} marcos`}
-        />
-        <ChipMeta rotulo="Próxima ação" valor={proximaCurta || "Aguardando equipe"} />
-        <ChipMeta
-          rotulo="Achados"
-          valor={achados.length === 0 ? "Nenhum ainda" : `${achados.length} recentes`}
-        />
-      </div>
-
-      <section
-        data-microentrega-publicada
-        className="grid gap-3 rounded-2xl border border-navy/10 bg-cream/50 p-5 sm:grid-cols-3"
-      >
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">Etapa</p>
-          <p className="mt-1 text-sm font-medium text-navy">{statusRotulo}</p>
-        </div>
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">
-            Próxima ação
-          </p>
-          <p className="mt-1 text-sm text-navy/85">{proximoPasso || "Aguardando equipe"}</p>
-        </div>
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">
-            Microentrega publicada
-          </p>
-          {microentrega ? (
-            <>
-              <p className="mt-1 text-sm font-medium text-navy">{microentrega.tipoRotulo}</p>
-              <p className="mt-0.5 text-sm text-navy/80">{microentrega.conteudo}</p>
-              {microentrega.publicadoEm ? (
-                <p className="mt-1 text-[11px] text-navy/50">
-                  Publicada em{" "}
-                  {new Date(microentrega.publicadoEm).toLocaleDateString("pt-BR")}
-                </p>
-              ) : null}
-              <LinkPortal
-                to="/portal/jornada"
-                className="mt-2 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
-              >
-                Ver na jornada
-              </LinkPortal>
-            </>
-          ) : (
-            <p className="mt-1 text-sm text-navy/60">
-              Nenhuma microentrega publicada até agora.
-            </p>
-          )}
-        </div>
-      </section>
-
-
-      <section className="rounded-2xl border border-navy/10 bg-cream/50 p-5 shadow-sm">
-        <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">Seu caso</p>
-        <div className="mt-1 flex flex-wrap items-start justify-between gap-2">
-          <h2 className="font-serif text-2xl text-navy">{tituloCaso}</h2>
-          <span className="rounded-full border border-navy/15 bg-cream/40 px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
+      {/*
+        Correção 2026-09-12: um card navy só, sem cartão bege duplicado
+        antes dele nem cartão cinza/claro dentro dele (o chip de
+        identidade do caso continua no DOM para prova App↔Desk, só não
+        aparece mais visualmente aqui).
+      */}
+      <section className="rounded-2xl bg-navy-800 p-4 text-cream sm:p-5">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-widest text-gold/80">Seu caso</p>
+            <h2 className="font-serif text-lg text-cream">{tituloCaso}</h2>
+          </div>
+          <span className="shrink-0 rounded-full bg-gold px-2.5 py-1 text-[10px] font-semibold text-navy">
             {statusRotulo}
           </span>
         </div>
-        {statusTexto ? <p className="mt-2 text-sm text-navy/70">{statusTexto}</p> : null}
+        {statusTexto ? <p className="mt-1.5 text-xs text-cream/70">{statusTexto}</p> : null}
 
         {identidade ? (
-          <div className="mt-3">
+          <div className="sr-only">
             <ChipIdentidadeCaso identidade={identidade} superficie="App Cliente" />
           </div>
         ) : null}
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-navy/10 bg-cream/40 p-3">
-            <p className="text-[11px] uppercase tracking-wide text-navy/45">Progresso publicado</p>
-            <p className="mt-1 font-serif text-2xl text-navy">{marcos}</p>
-            <p className="text-xs text-navy/55">
-              {marcos === 0
-                ? "Aguardando primeira publicação"
-                : "marcos já compartilhados com você — sem % inventado"}
-            </p>
-          </div>
-          <div className="rounded-xl border border-gold/40 bg-gold/10 p-3">
-            <p className="text-[11px] uppercase tracking-wide text-navy/45">Próxima ação</p>
-            <p className="mt-1 text-sm font-medium text-navy">{proximoPasso}</p>
+        {fase ? (
+          <EstepeJornada rotulos={fase.rotulos} indice={fase.indice} percentual={fase.percentual} />
+        ) : (
+          <p className="mt-3 text-xs text-cream/60">
+            {marcos === 0
+              ? "Aguardando primeira publicação"
+              : `${marcos} marcos já compartilhados com você — sem % inventado`}
+          </p>
+        )}
+      </section>
+
+      {/* Correção 2026-09-12: grade em telas largas (sidebar liberou espaço horizontal); CTA lilás removido (fora do guia oficial de marca — só 5 cores). */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section>
+          <h3 className="mb-2 text-sm font-semibold text-navy">Próximos passos</h3>
+          {/* Acabamento 2026-09-13 (referência Lovable): título editorial em
+              vez de crachá numerado — mesma frase real, leitura mais serena. */}
+          <CaCard titulo={proximaCurta}>
             {proximoPassoDestino ? (
               <LinkPortal
                 to={proximoPassoDestino}
-                className="mt-2 inline-block text-sm font-medium text-terracotta underline-offset-2 hover:underline"
+                className="inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
               >
-                Abrir
+                {proximoPassoDestino.includes("documentos") ? "Ver documentos solicitados" : "Ver próxima ação"}
               </LinkPortal>
             ) : casoId ? (
               <Link
                 to="/portal/casos/$id"
                 params={{ id: casoId }}
-                className="mt-2 inline-block text-sm font-medium text-terracotta underline-offset-2 hover:underline"
+                className="inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
               >
                 Ver detalhes do caso
               </Link>
             ) : null}
-          </div>
-        </div>
-      </section>
+          </CaCard>
+        </section>
 
-      <section className="rounded-2xl border border-navy/10 bg-cream/40 p-5">
-        <div className="flex items-center justify-between gap-2">
-          <h3 className="font-serif text-lg text-navy">Achados recentes</h3>
-          <LinkPortal to="/portal/jornada" className="text-xs font-medium text-navy/60 hover:text-navy">
-            Ver jornada
-          </LinkPortal>
-        </div>
-        {achados.length === 0 ? (
-          <p className="mt-3 text-sm text-navy/60">
-            Assim que a equipe publicar um achado ou atualização, ele aparece aqui.
-          </p>
-        ) : (
-          <ul className="mt-3 space-y-2">
-            {achados.map((a) => (
-              <li key={a.id} className="rounded-lg border border-navy/10 bg-cream/40 p-3">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-navy/45">{a.tipo}</p>
-                <p className="mt-1 text-sm text-navy/85">{a.texto}</p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+        <section>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold text-navy">Achados recentes</h3>
+            <LinkPortal to="/portal/jornada" className="text-xs font-medium text-navy/60 hover:text-navy">
+              Ver Jornada
+            </LinkPortal>
+          </div>
+          {achados.length === 0 ? (
+            <p className="text-sm text-navy/60">
+              Assim que a equipe publicar um achado ou atualização, ele aparece aqui.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {achados.map((a) => (
+                <LinkPortal key={a.id} to={a.destino} className="block">
+                  <CaCard className="flex items-start justify-between gap-2 border-l-4 border-l-gold p-3 transition-colors hover:border-gold">
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-0.5 flex items-center gap-1.5">
+                        <Search className="h-3 w-3 text-gold" aria-hidden="true" />
+                        <span className="text-[10px] font-medium uppercase tracking-widest text-gold">{a.tipo}</span>
+                      </div>
+                      <p className="line-clamp-2 text-sm text-navy/85">{a.texto}</p>
+                    </div>
+                    <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-navy/40" aria-hidden="true" />
+                  </CaCard>
+                </LinkPortal>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

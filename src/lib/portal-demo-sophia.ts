@@ -25,6 +25,62 @@ import { identidadeDeDemo, type IdentidadeCaso } from "@/lib/caso-compartilhado"
 export const SELO_DEMO_PORTAL = "DEMO — DADOS FICTÍCIOS — NÃO USAR EM OPERAÇÃO";
 
 /**
+ * As 5 fases do mockup aprovado (Entrega 1, 2026-09-12): Diagnóstico,
+ * Pesquisa, Reconstrução, Validação, Entrega. Hoje não existe policy de
+ * portal para uma fase real do caso (ver nota em portal-dados-vivos.ts) —
+ * este índice/percentual só existe aqui, na demo, nunca no caminho do
+ * cliente real ("sem dado = sem dado").
+ */
+export const FASES_JORNADA_DEMO = ["Diagnóstico", "Pesquisa", "Reconstrução", "Validação", "Entrega"] as const;
+export const FASE_ATUAL_DEMO_SOPHIA_INDICE = 2;
+export const FASE_ATUAL_DEMO_SOPHIA_PERCENTUAL = 65;
+
+/**
+ * Trilha do caso na tela Jornada (correção 2026-09-12, rejeição da Timeline
+ * Dupla): passo atual dentro de Onboarding→Pesquisa→Documentos→Validação→
+ * Entrega. Só existe na demo — não há policy de portal para o passo real
+ * do caso ainda (mesma razão de FASE_ATUAL_DEMO_SOPHIA_INDICE acima).
+ * Índice 3 = "Validação": a publicação mais recente do caso (resumo,
+ * demo-sophia-06) descreve aguardar devolutiva do comune sobre grafia —
+ * uma etapa de validação de registro, não de pesquisa ou entrega.
+ */
+export const PASSO_CASO_ATUAL_DEMO_SOPHIA_INDICE = 3;
+
+/**
+ * União de Ramos (demo): vínculo editorial EXPLÍCITO — não inferido por
+ * data — entre o achado ancestral do bisavô paterno (registro de batismo
+ * em 1897, projeção `demo-sophia-03`) e o marco que abriu essa mesma linha
+ * de investigação ("bisavô paterno, emigrado do Vêneto", projeção
+ * `demo-sophia-01`): os dois textos publicados citam o mesmo bisavô. Só
+ * existe na demo — para o cliente real, sem campo de vínculo publicado,
+ * a União de Ramos simplesmente não aparece.
+ */
+export const UNIAO_DE_RAMOS_DEMO_SOPHIA = {
+  historiaProjecaoId: "demo-sophia-03",
+  casoProjecaoId: "demo-sophia-01",
+  // Ajuste 2026-09-12 (acabamento pós-aprovação): mais específico, sem
+  // sugerir efeito jurídico.
+  legenda: "O registro de 1897 confirma o ramo investigado nesta etapa.",
+} as const;
+
+/**
+ * Ordem narrativa da Timeline Vertical Contínua (correção 2026-09-12):
+ * sequência editorial pedida pela Proprietária para a revisão da Jornada —
+ * é ordem de leitura da história, não ordem de publicação. Só existe na
+ * demo; o cliente real usa a ordem cronológica real (jornada.tsx).
+ * `demo-sophia-06` (resumo) fica fora desta vitrine: seu conteúdo já é
+ * coberto pela próxima ação ("Agora") ao final da timeline.
+ */
+export const ORDEM_NARRATIVA_DEMO_SOPHIA: readonly string[] = [
+  "demo-sophia-03", // 1897 · Registro encontrado
+  "demo-sophia-01", // Marco da jornada
+  "demo-sophia-04", // Documento analisado
+  "demo-sophia-02", // Atualização da equipe
+  "demo-sophia-05", // Árvore da família
+  "demo-sophia-07", // Entrega de legado (dourado suave)
+] as const;
+
+/**
  * UUID estável da demo (= contrato `crm_casos.id`).
  * O código humano fica em `CASO_DEMO_CODIGO` — não misturar os dois.
  */
@@ -64,8 +120,11 @@ export const PROJECOES_DEMO_SOPHIA: DadosPortal["projecoes"] = [
     projection_type: "atualizacao",
     content_sanitized:
       "Levantamento inicial concluído. Reunimos as certidões brasileiras da linha direta e identificamos duas grafias diferentes do sobrenome nos registros — algo comum em famílias de imigrantes e que tratamos como parte do trabalho.",
-    effective_from: "2026-06-19",
-    updated_at: "2026-06-19",
+    // Data ajustada para 19 ago 2026 por pedido explícito e repetido da
+    // Proprietária (correção Timeline Vertical, 2026-09-12) — reordena a
+    // posição cronológica real deste item na demo; não afeta cliente real.
+    effective_from: "2026-08-19",
+    updated_at: "2026-08-19",
   },
   {
     id: "demo-sophia-03",

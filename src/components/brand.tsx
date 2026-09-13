@@ -14,9 +14,9 @@ interface LogoProps {
 }
 
 const VARIANT_TEXT: Record<BrandLogoVariant, string> = {
-  "client-light": "#2F4B6E",
-  "client-dark": "#ECDFCD",
-  "internal-minimal": "#FCB73A",
+  "client-light": "#13294B",
+  "client-dark": "#F0EEE9",
+  "internal-minimal": "#C2A84D",
 };
 
 export function BrandLogo({

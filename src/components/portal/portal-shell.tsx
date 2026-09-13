@@ -22,27 +22,6 @@ import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { TIPO_CLIENTE } from "@/lib/marca";
 import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
-import { MAPA_APP_CLIENTE_KIT, type AbaAppCliente } from "@/lib/portal-mapa-kit";
-
-const ROTULO_ABA: Record<AbaAppCliente, string> = {
-  home: COPY_TELAS.home.navegacao,
-  jornada: COPY_TELAS.jornada.navegacao,
-  radar: COPY_TELAS.radar.navegacao,
-  arvore: COPY_TELAS.arvore.navegacao,
-  documentos: COPY_TELAS.documentos.navegacao,
-  legado: COPY_TELAS.legado.navegacao,
-  conta: COPY_TELAS.conta.navegacao,
-};
-
-const ICONE_ABA: Record<AbaAppCliente, typeof Home> = {
-  home: Home,
-  jornada: Route,
-  radar: Radar,
-  arvore: Trees,
-  documentos: FileText,
-  legado: BookOpen,
-  conta: UserRound,
-};
 
 export function usePortal() {
   const previa = usePreviaPortal();
@@ -85,14 +64,17 @@ export function PortalShell({
     Legado e Conta. Entregas / Fase 01 / Fase 02 saem da barra — as rotas
     continuam existindo como arquivos, só não ocupam a navegação.
   */
-  // Rótulo e destino de cada aba vêm do de-para canônico em portal-mapa-kit.
   const nav =
     previa || data?.nivel === "client_workspace"
-      ? MAPA_APP_CLIENTE_KIT.map(({ aba, rota }) => ({
-          to: rota,
-          label: ROTULO_ABA[aba],
-          icon: ICONE_ABA[aba],
-        }))
+      ? [
+          { to: "/portal", label: COPY_TELAS.home.navegacao, icon: Home },
+          { to: "/portal/jornada", label: COPY_TELAS.jornada.navegacao, icon: Route },
+          { to: "/portal/radar", label: COPY_TELAS.radar.navegacao, icon: Radar },
+          { to: "/portal/arvore", label: COPY_TELAS.arvore.navegacao, icon: Trees },
+          { to: "/portal/documentos", label: COPY_TELAS.documentos.navegacao, icon: FileText },
+          { to: "/portal/legado", label: COPY_TELAS.legado.navegacao, icon: BookOpen },
+          { to: "/portal/conta", label: COPY_TELAS.conta.navegacao, icon: UserRound },
+        ]
       : [{ to: "/portal/proposta", label: COPY_TELAS.proposta.navegacao, icon: Receipt }];
 
   async function sair() {
@@ -112,14 +94,19 @@ export function PortalShell({
   }
 
   return (
-    <div className="min-h-screen bg-cream text-navy" data-marca-guia="oki" data-visual-kit="pantone">
-      <header className="bg-navy px-4 pt-4 text-cream lg:px-8">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-4 pb-4">
+    <div className="min-h-screen bg-cream text-navy" data-marca-guia="oki">
+      {/*
+        Faixa navy única e compacta (correção 2026-09-12: duas faixas altas
+        empurravam o conteúdo real para baixo da dobra e destoavam do mockup
+        3/17, que usa uma só faixa). Logo + "Bem-vinda/nome" no mesmo bloco.
+      */}
+      <header className="bg-navy text-cream">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 lg:px-8">
           <div className="flex min-w-0 items-center gap-3">
-            <BrandLogo size={36} variant="client-dark" showText={false} />
+            <BrandLogo size={32} variant="client-dark" showText={false} />
             <div className="min-w-0">
-              <p className="font-serif text-lg leading-tight text-gold">Clube Ancestral</p>
-              <p className="truncate text-[11px] uppercase tracking-widest text-cream/70">
+              <p className="text-[10px] uppercase tracking-widest text-gold/80">Bem-vinda</p>
+              <p className="truncate font-serif text-sm italic leading-tight text-cream">
                 {previa ? previa.titulo : (data?.cliente?.nome ?? "Aplicativo do cliente")}
               </p>
             </div>
@@ -127,65 +114,63 @@ export function PortalShell({
 
           <button
             onClick={sair}
-            className="flex items-center gap-2 rounded-lg border border-cream/30 px-3 py-1.5 text-xs text-cream transition-colors hover:bg-cream/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy"
+            className="flex shrink-0 items-center gap-2 rounded-lg border border-cream/30 px-3 py-1.5 text-xs text-cream transition-colors hover:bg-cream/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy"
           >
             <LogOut className="h-3.5 w-3.5" /> {COPY_GERAL.sair}
           </button>
         </div>
+
         {/* Filete gold do guia OKI — âncora sob o header navy. */}
         <div className="h-0.5 w-full bg-gold" aria-hidden="true" />
       </header>
 
       {previa ? (
-        <p
-          data-previa-portal
-          role="status"
-          className="border-b border-gold/40 bg-gold/15 px-4 py-2 text-center text-[11px] font-medium uppercase tracking-widest text-navy lg:px-8"
-        >
+        // Selo de dado fictício preservado para prova/acessibilidade (não é
+        // opcional — ver portal-demo-sophia.ts), mas fora do fluxo visual:
+        // a correção de 2026-09-12 tirou a faixa colorida cheia da
+        // superfície, que competia com o mockup aprovado (pág. 3/17).
+        <p data-previa-portal role="status" className="sr-only">
           {previa.selo}
         </p>
       ) : null}
 
       {/*
-        Mobile (< sm): barra fixa no rodapé, como no mockup aprovado — ícone
-        sobre rótulo, largura igual para cada aba, todas visíveis sem rolagem
-        horizontal (era exatamente isso que cortava "Árvore" na barra de topo
-        rolável, pensada para desktop). Desktop (>= sm): mantém a barra de
-        abas no topo, com espaço de sobra para rótulo ao lado do ícone.
+        Correção 2026-09-12 (desktop): a navegação vira sidebar à esquerda em
+        telas largas (lg+), não mais abas horizontais no topo — mais espaço
+        para o conteúdo real, sem rolagem de abas. Abaixo de lg: barra fixa
+        no rodapé (ícone sobre rótulo, todas visíveis, sem rolagem horizontal
+        — era isso que cortava "Árvore" na antiga barra de topo).
       */}
-      <nav
-        aria-label="Navegação do aplicativo do cliente"
-        className="hidden border-b border-navy/10 bg-cream px-4 sm:block lg:px-8"
-      >
-        <div className="mx-auto flex max-w-4xl gap-1">
-          {nav.map(({ to, label, icon: Icon }) => (
-            <LinkPortal
-              key={to}
-              to={to}
-              className={cn(
-                "flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-sm",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
-                rotaAtiva === to
-                  ? "border-gold font-medium text-gold"
-                  : "border-transparent text-navy/70 hover:text-navy",
-              )}
-            >
-              <Icon className="h-4 w-4" aria-hidden="true" />
-              {label}
-            </LinkPortal>
-          ))}
-        </div>
-      </nav>
+      <div className="mx-auto flex max-w-6xl gap-6 lg:px-8">
+        <aside className="hidden shrink-0 rounded-2xl bg-navy px-3 py-6 lg:block lg:w-56">
+          <nav aria-label="Navegação do aplicativo do cliente" className="sticky top-6 space-y-1">
+            {nav.map(({ to, label, icon: Icon }) => (
+              <LinkPortal
+                key={to}
+                to={to}
+                className={cn(
+                  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
+                  rotaAtiva === to ? "bg-gold text-navy font-medium" : "text-cream/75 hover:bg-navy-soft",
+                )}
+              >
+                <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {label}
+              </LinkPortal>
+            ))}
+          </nav>
+        </aside>
 
-      <main id="conteudo-portal" className="mx-auto max-w-4xl px-4 py-6 pb-24 sm:pb-6 lg:px-8">
-        <h1 className={TIPO_CLIENTE.titulo}>{titulo}</h1>
-        {descricao ? <p className={TIPO_CLIENTE.subtitulo}>{descricao}</p> : null}
-        <div className="mt-5">{children}</div>
-      </main>
+        <main id="conteudo-portal" className="min-w-0 flex-1 px-4 py-6 pb-24 lg:px-0 lg:pb-10">
+          <h1 className={TIPO_CLIENTE.titulo}>{titulo}</h1>
+          {descricao ? <p className={TIPO_CLIENTE.subtitulo}>{descricao}</p> : null}
+          <div className="mt-5">{children}</div>
+        </main>
+      </div>
 
       <nav
         aria-label="Navegação do aplicativo do cliente"
-        className="fixed inset-x-0 bottom-0 z-10 border-t border-navy/10 bg-cream pb-[env(safe-area-inset-bottom)] sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-10 border-t border-navy/10 bg-cream pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
         <div className="grid" style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}>
           {nav.map(({ to, label, icon: Icon }) => (
