@@ -129,6 +129,7 @@ export function SaasShell({
   const queryClient = useQueryClient();
   const rota = useRouterState({ select: (s) => s.location.pathname });
   const hash = useRouterState({ select: (s) => s.location.hash });
+  const usaMarcaGuia = rota === "/pesquisa" || rota.startsWith("/pesquisa/") || rota === "/evidencias" || rota.startsWith("/evidencias/");
   const [aberto, setAberto] = useState(false);
   const [abertosManuais, setAbertosManuais] = useState<Record<string, boolean>>({});
   const [desktop, setDesktop] = useState(false);
@@ -388,6 +389,7 @@ export function SaasShell({
         <main
           className="min-w-0 flex-1 p-4 pb-20 lg:p-8"
           data-desk-content=""
+          data-marca={usaMarcaGuia ? "guia" : undefined}
         >
           {children}
         </main>

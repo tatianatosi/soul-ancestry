@@ -17,4 +17,4 @@
 - [x] Validar visualmente as prévias atualizadas em desktop e mobile.
 - [x] Aplicar no Desk os modelos gráficos aprovados de família, marketing, comercial, pesquisa, acervo, financeiro e jurídico, sem alterar o App Cliente.
 - [x] Aplicar a moldura Pantone aprovada a todos os grupos e subabas autenticados do Desk.
-- [ ] Validar os 52 destinos reais do Desk em desktop e celular, registrando bloqueios de sessão ou dados sem mascará-los como vazio.
+- [ ] Validar os 52 destinos reais do Desk em desktop e celular. A varredura de 13/09/2026 confirmou compilação e cobertura estrutural do shell, mas a sessão local expirou e redirecionou as rotas protegidas para `/equipe/entrar`; nenhuma tela bloqueada foi registrada como aprovada.
