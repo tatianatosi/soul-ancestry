@@ -164,7 +164,7 @@ export function NucleoKitPessoa({ clienteId }: { clienteId: string }) {
 
   const documentos = dados.documentos.slice(0, 8).map((d) => ({
     id: String(d["id"]),
-    kind: "documento" as ContentKind,
+    kind: "Relatório" as ContentKind,
     title: texto(d["titulo"], "Documento sem título"),
     subtitle: dataBr(d["created_at"]),
     state: d["liberado_cliente"] ? "Liberado ao cliente" : texto(d["status"], "Interno"),
