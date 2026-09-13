@@ -161,6 +161,19 @@ export function RadarInternoIntegrado() {
               </dl>
             </section>
             <RadarInternoCaso
+              contexto={{
+                caseId: texto(caso["id"], ""),
+                status: texto(caso["status"]),
+                prioridade: ROTULO_SINAL[posicao.sinal],
+                urgencia: posicao.urgencia,
+                elegibilidade: posicao.elegibilidade,
+                responsavel: texto(caso["proxima_acao_responsavel"]),
+                prazo: dataPtBr(caso["prazo_proxima_acao"]),
+                proximaAcao: texto(caso["proxima_acao"] ?? caso["proxima_acao_codigo"]),
+                bloqueios: ficha.bloqueiosReais.length
+                  ? ficha.bloqueiosReais.map((b) => b.motivo).join(" · ")
+                  : "Nenhum bloqueio registrado",
+              }}
               eixos={radarInternoDoCaso({
                 caso,
                 nucleoCompletude: ficha.nucleoOk,

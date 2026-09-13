@@ -1,4 +1,19 @@
+import { Link } from "@tanstack/react-router";
+
+import { Button } from "@/components/ui/button";
 import { ESTADO_EIXO_LABEL, ESTADO_EIXO_TOM, type EixoRadar } from "@/lib/radar-eixos";
+
+export type ContextoRadarInterno = {
+  caseId: string;
+  status: string;
+  prioridade: string;
+  urgencia: string;
+  elegibilidade: string;
+  responsavel: string;
+  prazo: string;
+  proximaAcao: string;
+  bloqueios: string;
+};
 
 const NIVEL_ESTADO = {
   identificado: 92,
@@ -53,13 +68,46 @@ function GraficoRadarIndividual({ eixos }: { eixos: EixoRadar[] }) {
  * Radar Individual (micro) do caso — ver src/lib/radar-interno-caso.ts para
  * a taxonomia (mesmos 4 eixos do Radar do cliente) e a fonte de cada campo.
  */
-export function RadarInternoCaso({ eixos }: { eixos: EixoRadar[] }) {
+export function RadarInternoCaso({
+  eixos,
+  contexto,
+}: {
+  eixos: EixoRadar[];
+  contexto?: ContextoRadarInterno;
+}) {
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(260px,0.8fr)_minmax(0,1.2fr)]">
-      <GraficoRadarIndividual eixos={eixos} />
-      <div className="grid gap-3 sm:grid-cols-2">
-        {eixos.map((eixo) => (
-          <article key={eixo.id} className="rounded-lg border border-navy/10 bg-cream/50 p-4">
+    <div className="space-y-4">
+      {contexto ? (
+        <section className="rounded-lg border border-navy/10 bg-cream/50 p-4" aria-label="Status e ações do Radar Individual">
+          <dl className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+            <div><dt className="text-navy/50">Status do caso</dt><dd className="font-medium text-navy">{contexto.status}</dd></div>
+            <div><dt className="text-navy/50">Prioridade</dt><dd className="font-medium text-navy">{contexto.prioridade}</dd></div>
+            <div><dt className="text-navy/50">Urgência</dt><dd className="font-medium text-navy">{contexto.urgencia}</dd></div>
+            <div><dt className="text-navy/50">Elegibilidade</dt><dd className="font-medium text-navy">{contexto.elegibilidade}</dd></div>
+            <div><dt className="text-navy/50">Responsável</dt><dd className="font-medium text-navy">{contexto.responsavel}</dd></div>
+            <div><dt className="text-navy/50">Prazo</dt><dd className="font-medium text-navy">{contexto.prazo}</dd></div>
+            <div className="sm:col-span-2"><dt className="text-navy/50">Próxima ação</dt><dd className="font-medium text-navy">{contexto.proximaAcao}</dd></div>
+            <div className="sm:col-span-2 lg:col-span-4"><dt className="text-navy/50">Bloqueios reais</dt><dd className="font-medium text-navy">{contexto.bloqueios}</dd></div>
+          </dl>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button asChild size="sm">
+              <Link to="/casos/$caseId" params={{ caseId: contexto.caseId }} hash="secao-visao">
+                Abrir Caso 360
+              </Link>
+            </Button>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/casos/$caseId" params={{ caseId: contexto.caseId }} hash="secao-jornada">
+                Ver jornada e ações
+              </Link>
+            </Button>
+          </div>
+        </section>
+      ) : null}
+      <div className="grid gap-4 lg:grid-cols-[minmax(260px,0.8fr)_minmax(0,1.2fr)]">
+        <GraficoRadarIndividual eixos={eixos} />
+        <div className="grid gap-3 sm:grid-cols-2">
+          {eixos.map((eixo) => (
+            <article key={eixo.id} className="rounded-lg border border-navy/10 bg-cream/50 p-4">
           <div className="flex items-baseline justify-between gap-2">
             <h3 className="font-serif text-sm text-navy">{eixo.titulo}</h3>
             <span
@@ -81,8 +129,9 @@ export function RadarInternoCaso({ eixos }: { eixos: EixoRadar[] }) {
           ) : (
             <p className="mt-2 text-xs text-navy/50">{eixo.mensagemVazio}</p>
           )}
-          </article>
-        ))}
+            </article>
+          ))}
+        </div>
       </div>
     </div>
   );
