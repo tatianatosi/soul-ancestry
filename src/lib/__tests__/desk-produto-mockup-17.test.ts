@@ -97,7 +97,7 @@ describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas com
 
   it("Radar Interno hospeda a matriz; Casos 360 aponta para ela", () => {
     const qualidade = readFileSync("src/routes/_authenticated/qualidade.tsx", "utf8");
-    expect(qualidade).toContain("MatrizPrioridadesConectada");
+    expect(qualidade).toContain("RadarInternoIntegrado");
     const casos = readFileSync("src/routes/_authenticated/casos.index.tsx", "utf8");
     expect(casos).not.toContain("MatrizPrioridadesConectada");
     expect(casos).toContain('to="/qualidade"');

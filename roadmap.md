@@ -21,6 +21,7 @@
 - [ ] Unificar, na tela Radar Interno, a matriz geral e o Radar Individual por caso conforme a página 15 do mockup, validar em sessão autenticada e publicar para revisão.
 - [x] Conectar o Radar Individual de cada Caso 360 aos dados reais, com status e ações, atualizar o PDF comparativo anterior × atual e publicar ambos para revisão.
 - [x] Consolidar o Kit Visual de aprovação com a nova paleta, componentes TSX/CSS e 13 superfícies do Desk, sem backend ou publicação.
-- [ ] Gerar a exportação única final com 25 pranchas A3, componentes, tokens, logos, exemplos, mapas, licenças e checksums.
+- [x] Gerar a exportação única final com pranchas A3, componentes, tokens, logos, exemplos, mapas, licenças e checksums.
 - [x] Atualizar a prancha visual do Desk com o Radar Individual aprovado e a matriz nominal por urgência e elegibilidade.
 - [x] Gerar ZIP do Kit Visual do Desk e ZIP do Kit Visual do App Cliente (7 telas) para aprovação.
+- [x] Revisar o kit final contra o Radar atual, incluindo matriz nominal e Radar Individual operacional, sem alterar dados ou regras.

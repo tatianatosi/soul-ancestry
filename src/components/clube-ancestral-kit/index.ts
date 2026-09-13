@@ -6,6 +6,8 @@ export * from "./operacao";
 export * from "./conteudo";
 export * from "./kit-exportavel";
 export * from "./kit-app-cliente";
+export * from "./radar-operacional";
+export * from "./superficies-desk";
 
 export { BrandLogo } from "@/components/brand";
 export { Button, buttonVariants } from "@/components/ui/button";

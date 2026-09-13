@@ -9,7 +9,7 @@ import {
   ClienteHomeTemplate,
   ClienteJornadaTemplate,
   ClienteLegadoTemplate,
-  ClienteRadarTemplate,
+  ClienteRadarSeisDimensoes,
   ClienteTabBar,
   ClienteTopbar,
   type AbaKitAppCliente,
@@ -75,15 +75,8 @@ function PreviaKitAppCliente() {
             />
           ) : null}
           {aba === "radar" ? (
-            <ClienteRadarTemplate
-              eixos={[
-                { label: "Documentação", value: 62 },
-                { label: "Origem", value: 78 },
-                { label: "Conexões familiares", value: 55 },
-                { label: "Elegibilidade", value: 48 },
-                { label: "Memória", value: 70 },
-                { label: "Legado", value: 35 },
-              ]}
+            <ClienteRadarSeisDimensoes
+              valores={{ documentacao: 62, origem: 78, conexoes: 55, elegibilidade: 48, memoria: 70, legado: 35 }}
             />
           ) : null}
           {aba === "arvore" ? <ClienteArvoreTemplate pessoas={PESSOAS} destaque={PESSOAS[0]} /> : null}

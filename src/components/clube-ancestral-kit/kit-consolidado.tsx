@@ -1,10 +1,14 @@
 /**
- * Clube Ancestral — Kit visual único (componentes + tokens Pantone).
+ * Clube Ancestral — Kit visual único legado (componentes + tokens Pantone).
  *
  * Arquivo autocontido: cole no Soul Ancestry e importe.
  * Dependências: React + Tailwind (qualquer versão com valores arbitrários).
  * Não há dependência de shadcn, lucide, alias "@/" nem de config de tema:
  * as cores vêm das variáveis CSS injetadas por <KitTokens />.
+ *
+ * @deprecated Para a versão atual, importe o barrel `./index`, que inclui
+ * os templates do App Cliente, os seis grupos do Desk e o Radar operacional.
+ * Este arquivo autocontido é mantido apenas por compatibilidade visual.
  *
  * Nenhum dado real ou fictício vive aqui — todos os componentes recebem
  * conteúdo por propriedades. Sem conteúdo, cada um mostra estado vazio

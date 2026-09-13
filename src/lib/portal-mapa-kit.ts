@@ -1,6 +1,6 @@
 /**
  * De-para canônico: abas do App Cliente (mockup 17) → rotas reais do produto
- * → componentes do kit consolidado (`@/components/clube-ancestral-kit/kit-consolidado`).
+ * → componentes modulares do kit (`@/components/clube-ancestral-kit`).
  *
  * Isto NÃO cria aba, rota nem taxonomia nova: apenas declara, em um único
  * lugar, a correspondência entre as 7 abas aprovadas e as telas que já
@@ -38,7 +38,7 @@ export const MAPA_APP_CLIENTE_KIT: MapaAbaKit[] = [
     aba: "radar",
     rota: "/portal/radar",
     arquivo: "src/routes/portal/radar.tsx",
-    kit: ["RadarChart", "KpiCard", "KitCard"],
+    kit: ["ClienteRadarSeisDimensoes", "KpiCard", "KitCard"],
   },
   {
     aba: "arvore",
