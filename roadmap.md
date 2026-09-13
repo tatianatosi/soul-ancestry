@@ -22,3 +22,5 @@
 - [x] Conectar o Radar Individual de cada Caso 360 aos dados reais, com status e ações, atualizar o PDF comparativo anterior × atual e publicar ambos para revisão.
 - [x] Consolidar o Kit Visual de aprovação com a nova paleta, componentes TSX/CSS e 13 superfícies do Desk, sem backend ou publicação.
 - [ ] Após aprovação visual, gerar o ZIP final com componentes, tokens, logos, exemplos, dependências e README curto.
+- [ ] Atualizar a prancha visual do Desk com as mudanças aprovadas do Radar (matriz + radar individual).
+- [ ] Gerar ZIP do Kit Visual do Desk e ZIP do Kit Visual do App Cliente (7 telas) para aprovação.
