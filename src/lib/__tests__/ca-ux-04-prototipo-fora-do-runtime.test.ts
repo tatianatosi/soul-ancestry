@@ -69,8 +69,7 @@ describe("import graph do runtime", () => {
 
   it("nenhum arquivo de src/ importa o protótipo", () => {
     for (const arquivo of RUNTIME) {
-      // A rota de referencia /mockup pode importar os componentes de mockup.
-      if (arquivo === "src/routes/mockup.tsx" || arquivo.startsWith("src/components/mockup/")) continue;
+      // 13/09/2026: a rota /mockup e os componentes de mockup sairam de src/.
       const conteudo = readFileSync(arquivo, "utf8");
       for (const proibido of IMPORTS_PROIBIDOS) {
         expect(`${arquivo}:${conteudo.includes(proibido)}`).toBe(`${arquivo}:false`);

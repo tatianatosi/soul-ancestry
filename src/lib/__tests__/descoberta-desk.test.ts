@@ -107,7 +107,8 @@ describe("superfícies preservadas", () => {
     // Rota de referencia visual do mockup aprovado, isolada e sem dados.
     // Corte D (09/09/2026): movida para dentro de _authenticated — a rota
     // vivia fora de qualquer guard e era alcançável por visitante sem login.
-    expect(existsSync("src/routes/_authenticated/mockup.tsx")).toBe(true);
+    expect(existsSync("src/routes/_authenticated/mockup.tsx")).toBe(false);
+    expect(existsSync("archive/mockups/rotas/mockup-authenticated.tsx")).toBe(true);
     expect(existsSync("archive/mockups/componentes/desk-app.tsx")).toBe(true);
     expect(existsSync("archive/mockups/rotas/prototipo.tsx")).toBe(true);
   });
