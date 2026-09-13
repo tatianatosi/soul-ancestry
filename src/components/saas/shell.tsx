@@ -116,7 +116,7 @@ export function SaasShell({
   descricao,
   acoes,
   children,
-  visualKit = "pantone",
+  visualKit,
 }: {
   titulo: string;
   descricao?: string;
@@ -129,7 +129,6 @@ export function SaasShell({
   const queryClient = useQueryClient();
   const rota = useRouterState({ select: (s) => s.location.pathname });
   const hash = useRouterState({ select: (s) => s.location.hash });
-  const usaMarcaGuia = rota === "/pesquisa" || rota.startsWith("/pesquisa/") || rota === "/evidencias" || rota.startsWith("/evidencias/");
   const [aberto, setAberto] = useState(false);
   const [abertosManuais, setAbertosManuais] = useState<Record<string, boolean>>({});
   const [desktop, setDesktop] = useState(false);
@@ -206,7 +205,6 @@ export function SaasShell({
     ...item,
     sub: item.sub.filter((s) => !("to" in s) || !s.adminOnly || ehAdmin),
   }));
-  const grupoAtual = itens.find((item) => grupoNavAtivo(rota, hash, item));
 
   return (
     <div className="flex min-h-screen bg-cream text-navy" data-visual-kit={visualKit}>
@@ -361,12 +359,9 @@ export function SaasShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header
-          className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 border-b border-navy/10 bg-card px-4 py-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] lg:px-8 lg:py-5"
-          data-desk-decision-band=""
-        >
+        <header className="flex items-center gap-3 border-b border-navy/10 bg-cream px-4 py-4 lg:px-8">
           <button
-            className="shrink-0 lg:hidden"
+            className="lg:hidden"
             onClick={() => setAberto((v) => !v)}
             aria-label="Abrir navegação"
           >
@@ -379,24 +374,28 @@ export function SaasShell({
             className="shrink-0 lg:hidden"
           />
 
-          <div className="min-w-0">
-            <p data-desk-group-label="" className="mb-1 text-[11px] font-semibold uppercase tracking-widest">
-              Desk Intelligence{grupoAtual ? ` · ${grupoAtual.label}` : ""}
-            </p>
-            <h1 className="font-serif text-2xl leading-none text-navy lg:text-3xl">{titulo}</h1>
-            {descricao ? <p className="mt-1 max-w-3xl text-sm leading-relaxed text-navy/65">{descricao}</p> : null}
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate font-serif text-2xl">{titulo}</h1>
+            {descricao ? <p className="text-sm text-navy/60">{descricao}</p> : null}
           </div>
-          {acoes ? <div className="col-span-2 flex min-w-0 flex-wrap items-center gap-2 sm:col-auto sm:shrink-0">{acoes}</div> : null}
+          {acoes}
         </header>
         {contexto?.organizacao?.demo ? (
           <div className="border-b border-gold/40 bg-gold/15 px-4 py-2 text-xs font-medium uppercase tracking-wide text-navy lg:px-8">
             DEMO — não usar dados reais
           </div>
         ) : null}
+        {/* Identidade de marca aplicada em escopo isolado: somente a área de
+            Pesquisa / Gestão de Pesquisa (inclui /evidencias). Demais telas permanecem congeladas. */}
         <main
           className="min-w-0 flex-1 p-4 pb-20 lg:p-8"
-          data-desk-content=""
-          data-marca={usaMarcaGuia ? "guia" : undefined}
+          data-marca={
+            rota.startsWith("/pesquisa") ||
+            rota === "/evidencias" ||
+            rota.startsWith("/evidencias/")
+              ? "guia"
+              : undefined
+          }
         >
           {children}
         </main>

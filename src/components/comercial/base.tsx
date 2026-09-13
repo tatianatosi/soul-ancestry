@@ -72,7 +72,7 @@ export function Selo({ texto, tom = "neutro", title }: { texto: string; tom?: "n
       title={title}
       className={cn(
 
-        "inline-flex items-center rounded-full border border-transparent px-2 py-0.5 text-[11px] font-medium",
+        "inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium",
         tom === "ok" && "bg-gold/20 text-navy",
         tom === "alerta" && "bg-terracotta/15 text-terracotta",
         tom === "erro" && "bg-terracotta text-cream",
@@ -113,7 +113,7 @@ export function FiltroStatus({
 
 export function Painel({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
-    <section className="rounded-lg border border-navy/10 bg-card p-4 shadow-sm">
+    <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
       <h3 className="font-serif text-lg">{titulo}</h3>
       <div className="mt-3">{children}</div>
     </section>
@@ -166,10 +166,10 @@ export function Gaveta({
   children: ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-navy/50" role="presentation">
-      <div className="h-full w-full max-w-xl overflow-y-auto border-l border-navy/15 bg-card p-5 shadow-xl" role="dialog" aria-modal="true" aria-label={titulo}>
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
-          <h2 className="min-w-0 font-serif text-2xl">{titulo}</h2>
+    <div className="fixed inset-0 z-50 flex justify-end bg-navy/50">
+      <div className="h-full w-full max-w-xl overflow-y-auto bg-cream p-5">
+        <div className="flex items-start justify-between gap-4">
+          <h2 className="font-serif text-2xl">{titulo}</h2>
           <button onClick={aoFechar} className="rounded-lg border border-navy/20 px-3 py-1 text-sm">
             Fechar
           </button>
@@ -195,4 +195,4 @@ export function Campo({
   );
 }
 
-export const inputCls = "w-full rounded-lg border border-navy/20 bg-card px-3 py-2 text-sm text-navy outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/25";
+export const inputCls = "w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm";
