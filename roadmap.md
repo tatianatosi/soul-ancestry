@@ -19,3 +19,4 @@
 - [x] Gerar prancha visual das 15 superfícies do Desk e pacote reutilizável com tokens, gráficos, assets e instruções.
 - [x] Revisar App Cliente e Desk tela a tela contra o mockup de 17 páginas, validar os radares e entregar PDF comparativo da versão anterior versus publicação verificável.
 - [ ] Unificar, na tela Radar Interno, a matriz geral e o Radar Individual por caso conforme a página 15 do mockup, validar em sessão autenticada e publicar para revisão.
+- [x] Conectar o Radar Individual de cada Caso 360 aos dados reais, com status e ações, atualizar o PDF comparativo anterior × atual e publicar ambos para revisão.

@@ -14,7 +14,13 @@ import { MatrizPrioridades } from "@/components/desk/matriz-prioridades";
  * a matriz e a coluna de prioridade nunca discordarem. Registro demonstrativo
  * entra classificado como tal, e o motor decide o que fazer com isso.
  */
-export function MatrizPrioridadesConectada() {
+export function MatrizPrioridadesConectada({
+  casoSelecionado,
+  onSelecionarCaso,
+}: {
+  casoSelecionado?: string | null;
+  onSelecionarCaso?: (caseId: string) => void;
+}) {
   const carregar = useServerFn(listarRegistros);
   const q = useQuery({
     queryKey: ["saas", "crm_casos", false],
@@ -51,5 +57,11 @@ export function MatrizPrioridadesConectada() {
     );
   }
 
-  return <MatrizPrioridades casos={casos} />;
+  return (
+    <MatrizPrioridades
+      casos={casos}
+      casoSelecionado={casoSelecionado}
+      onSelecionarCaso={onSelecionarCaso}
+    />
+  );
 }
