@@ -206,6 +206,7 @@ export function SaasShell({
     ...item,
     sub: item.sub.filter((s) => !("to" in s) || !s.adminOnly || ehAdmin),
   }));
+  const grupoAtual = itens.find((item) => grupoNavAtivo(rota, hash, item));
 
   return (
     <div className="flex min-h-screen bg-cream text-navy" data-visual-kit={visualKit}>
@@ -360,7 +361,10 @@ export function SaasShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-navy/10 bg-card px-4 py-4 sm:flex lg:px-8">
+        <header
+          className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 border-b border-navy/10 bg-card px-4 py-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] lg:px-8 lg:py-5"
+          data-desk-decision-band=""
+        >
           <button
             className="shrink-0 lg:hidden"
             onClick={() => setAberto((v) => !v)}
@@ -375,9 +379,12 @@ export function SaasShell({
             className="shrink-0 lg:hidden"
           />
 
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate font-serif text-2xl">{titulo}</h1>
-            {descricao ? <p className="mt-0.5 text-sm text-navy/60">{descricao}</p> : null}
+          <div className="min-w-0">
+            <p data-desk-group-label="" className="mb-1 text-[11px] font-semibold uppercase tracking-widest">
+              Desk Intelligence{grupoAtual ? ` · ${grupoAtual.label}` : ""}
+            </p>
+            <h1 className="font-serif text-2xl leading-none text-navy lg:text-3xl">{titulo}</h1>
+            {descricao ? <p className="mt-1 max-w-3xl text-sm leading-relaxed text-navy/65">{descricao}</p> : null}
           </div>
           {acoes ? <div className="col-span-2 flex min-w-0 flex-wrap items-center gap-2 sm:col-auto sm:shrink-0">{acoes}</div> : null}
         </header>
