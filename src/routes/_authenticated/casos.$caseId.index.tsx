@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 
 import { SaasShell, useSaas, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
+import { ResumoKitCaso } from "@/components/desk/kit-conectado";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -705,6 +706,9 @@ function FichaCaso() {
           App Cliente.
         </p>
       ) : null}
+      <div className="mb-6">
+        <ResumoKitCaso caseId={String(caso["id"])} />
+      </div>
       <div className="mb-4" data-ordem2-identidade-desk>
         <ChipIdentidadeCaso
           superficie="Desk"

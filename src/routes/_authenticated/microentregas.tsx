@@ -8,6 +8,7 @@ import { BadgeDesk, CardIndicador, CarregandoDesk, SectionHeader, VazioDesk, typ
 import { Button } from "@/components/ui/button";
 import { listarFilaMicroentregas } from "@/lib/biblioteca-evidencias.functions";
 import { APROVACOES } from "@/lib/biblioteca-evidencias";
+import { FilaKitMicroentregas } from "@/components/desk/kit-conectado";
 
 export const Route = createFileRoute("/_authenticated/microentregas")({
   head: () => ({
@@ -84,6 +85,8 @@ function MicroentregasPage() {
             <CardIndicador key={item} rotulo={rotuloStatus(item)} valor={contagem(item)} apoio="Fila editorial real" tom={TOM_STATUS[item]} />
           ))}
         </div>
+
+        <FilaKitMicroentregas />
 
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-navy/10 bg-cream/60 p-2">
           <label htmlFor="status-micro" className="px-1 text-xs font-medium text-navy/60">Status</label>
