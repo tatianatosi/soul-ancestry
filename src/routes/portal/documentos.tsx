@@ -58,7 +58,8 @@ export function PortalDocumentos() {
     const liberados = docs.filter((d) => d.liberado_cliente);
     const enviados = docs.filter((d) => d.origem === "cliente");
     const casoCodigo = previa.identidade?.codigo ?? CASO_DEMO_CODIGO;
-    const proxima = vivo.data?.proximaAcao?.acao ?? null;
+    const proximaAcao = vivo.data?.proximaAcao ?? null;
+    const solicitado = proximaAcao?.destino === "/portal/documentos" ? proximaAcao.acao : null;
     return (
       <PortalShell titulo={COPY_TELAS.documentos.titulo} descricao={COPY_TELAS.documentos.descricao}>
         {vivo.isLoading ? (
@@ -97,19 +98,9 @@ export function PortalDocumentos() {
                 publicação real — sem inventar certidão.
               </p>
               {docs.length === 0 ? (
-                <div className="mt-4 space-y-3">
-                  <p className="rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center text-sm text-navy/65">
-                    Nenhum documento pedido ou liberado neste momento.
-                  </p>
-                  {proxima ? (
-                    <div className="rounded-xl border border-gold/35 bg-gold/10 px-4 py-3">
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
-                        Próxima ação publicada
-                      </p>
-                      <p className="mt-1 text-sm text-navy">{proxima}</p>
-                    </div>
-                  ) : null}
-                </div>
+                <p className="mt-4 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center text-sm text-navy/65">
+                  Nenhum documento liberado ou enviado neste momento.
+                </p>
               ) : (
                 <ul className="mt-4 space-y-2">
                   {liberados.map((d, i) => (
@@ -136,6 +127,17 @@ export function PortalDocumentos() {
                   ))}
                 </ul>
               )}
+              {/* Sinal real de pedido pendente (portal_document_requests, via proximaAcao) —
+                  mostrado independente de já haver liberado/enviado, para não esconder um
+                  pedido em aberto atrás de itens antigos já resolvidos. */}
+              {solicitado ? (
+                <div className="mt-3 rounded-xl border border-gold/35 bg-gold/10 px-4 py-3">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
+                    Solicitado pela equipe
+                  </p>
+                  <p className="mt-1 text-sm text-navy">{solicitado}</p>
+                </div>
+              ) : null}
             </section>
 
             <section data-documentos-preparado className="rounded-2xl border border-border bg-card p-5">
@@ -203,6 +205,8 @@ export function PortalDocumentos() {
               data?.entregas?.[0]?.caso ||
               data?.envios?.[0]?.caso ||
               "—";
+            const proximaAcao = vivo.data?.proximaAcao ?? null;
+            const solicitado = proximaAcao?.destino === "/portal/documentos" ? proximaAcao.acao : null;
             return (
         <div className="space-y-8" data-aba-documentos-vivo>
           <div
@@ -255,6 +259,17 @@ export function PortalDocumentos() {
                 ))}
               </ul>
             )}
+            {/* Sinal real de pedido pendente (portal_document_requests, via proximaAcao) —
+                mostrado independente de já haver entrega/envio, para não esconder um pedido
+                em aberto atrás de itens antigos já resolvidos. */}
+            {solicitado ? (
+              <div className="mt-3 rounded-xl border border-gold/35 bg-gold/10 px-4 py-3">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
+                  Solicitado pela equipe
+                </p>
+                <p className="mt-1 text-sm text-navy">{solicitado}</p>
+              </div>
+            ) : null}
           </section>
           <section>
             <h2 className="text-base font-semibold">Preparado para você</h2>

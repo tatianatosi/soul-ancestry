@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { CASO_DEMO_CODIGO, CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
-import { usePreviaPortal } from "@/components/portal/fonte-portal";
+import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { minhasFaturas } from "@/lib/portal-cliente.functions";
 
@@ -37,6 +37,7 @@ export function PortalConta() {
   const previa = usePreviaPortal();
   const { visibilidade, carregando } = useVisibilidade("conta");
   const { data } = usePortal();
+  const vivo = usePortalVivo();
   const carregarFaturas = useServerFn(minhasFaturas);
   const faturas = useQuery({
     queryKey: ["portal-conta-faturas"],
@@ -53,6 +54,19 @@ export function PortalConta() {
     casosPortal?.[0]?.codigo ?? (previa ? CASO_DEMO_CODIGO : null) ?? "—";
   const paisInteresse = data?.cliente?.pais_interesse ?? (previa ? "Itália" : null) ?? "—";
   const planoEstado = previa || data?.autorizado ? "Acompanhamento ativo" : "Aguardando publicação";
+
+  /**
+   * Alertas usa o mesmo `proximaAcao` já publicado para Home/Documentos —
+   * nunca uma fonte nova. Só vira alerta quando o motor sinaliza algo
+   * acionável (documento pendente ou pagamento em aberto); qualquer outro
+   * destino (jornada seguindo, caso encerrado/pausado) fica no "sem alerta".
+   */
+  const proximaAcao = vivo.data?.proximaAcao ?? null;
+  const alertaAcionavel =
+    proximaAcao &&
+    (proximaAcao.destino === "/portal/documentos" || proximaAcao.destino === "/portal/conta")
+      ? proximaAcao
+      : null;
 
   return (
     <PortalShell titulo={COPY_TELAS.conta.titulo} descricao={COPY_TELAS.conta.descricao}>
@@ -130,13 +144,30 @@ export function PortalConta() {
                   Pessoais do caso
                 </span>
               </div>
-              <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
-                <p className="text-sm text-navy/70">Sem alerta publicado no momento.</p>
-                <p className="mt-1 text-xs text-navy/50">
-                  Documentos pendentes e próximas ações do seu caso aparecem aqui quando a equipe
-                  publica um aviso sanitizado.
-                </p>
-              </div>
+              {alertaAcionavel ? (
+                <div className="mt-3 rounded-xl border border-gold/40 bg-gold/10 px-4 py-4">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
+                    {alertaAcionavel.destino === "/portal/conta" ? "Pagamento em aberto" : "Documento pendente"}
+                  </p>
+                  <p className="mt-1 text-sm text-navy">{alertaAcionavel.acao}</p>
+                  {alertaAcionavel.destino === "/portal/documentos" ? (
+                    <LinkPortal
+                      to="/portal/documentos"
+                      className="mt-2 inline-flex text-xs font-medium text-navy/70 underline hover:text-navy"
+                    >
+                      Ver documentos solicitados
+                    </LinkPortal>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
+                  <p className="text-sm text-navy/70">Sem alerta publicado no momento.</p>
+                  <p className="mt-1 text-xs text-navy/50">
+                    Documentos pendentes e próximas ações do seu caso aparecem aqui quando a equipe
+                    publica um aviso sanitizado.
+                  </p>
+                </div>
+              )}
             </section>
 
             <section data-conta-historico className="rounded-2xl border border-border bg-card p-5">
