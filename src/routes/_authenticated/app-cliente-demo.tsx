@@ -13,6 +13,10 @@ import { SessaoDemoAppCliente } from "@/components/portal/sessao-demo-app-client
  */
 
 export const Route = createFileRoute("/_authenticated/app-cliente-demo")({
+  /** Mesmo motivo de `previa-app-cliente.tsx`: `aba` via Router evita mismatch de hidratação. */
+  validateSearch: (search: Record<string, unknown>): { aba?: string } => ({
+    aba: typeof search.aba === "string" ? search.aba : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Sessão demo do App Cliente — Clube Ancestral" },
@@ -28,5 +32,6 @@ export const Route = createFileRoute("/_authenticated/app-cliente-demo")({
 });
 
 function AppClienteDemo() {
-  return <SessaoDemoAppCliente />;
+  const { aba } = Route.useSearch();
+  return <SessaoDemoAppCliente abaInicial={aba} />;
 }
