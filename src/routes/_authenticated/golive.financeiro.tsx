@@ -150,14 +150,9 @@ function FinanceiroGoLive() {
             ))}
           </ul>
         ) : (
-          <Vazio
-            cta={
-              <Link to="/financeiro">
-                <Button size="sm">Emitir fatura</Button>
-              </Link>
-            }
-          />
+          <Vazio cta={acaoFatura} />
         )}
+        {faturas.length ? <Acoes>{acaoFatura}</Acoes> : null}
       </Bloco>
 
       <Bloco titulo="Pagamentos">
@@ -172,14 +167,9 @@ function FinanceiroGoLive() {
             ))}
           </ul>
         ) : (
-          <Vazio
-            cta={
-              <Link to="/financeiro">
-                <Button size="sm">Registrar pagamento manual</Button>
-              </Link>
-            }
-          />
+          <Vazio cta={faturas.length ? acaoPagamento : <span className="text-xs text-navy/55">Emita uma fatura antes de registrar o pagamento.</span>} />
         )}
+        {pagas.length ? <Acoes>{acaoPagamento}</Acoes> : null}
       </Bloco>
 
       <Bloco titulo="Situação do caso">
