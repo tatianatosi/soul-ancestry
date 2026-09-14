@@ -257,11 +257,13 @@ function Etapa({
   itens,
   vazio,
   destino = "/golive/caso",
+  acao,
 }: {
   titulo: string;
   itens: ReactNode[];
   vazio: string;
   destino?: "/golive/caso" | "/golive/formalizacao";
+  acao?: ReactNode;
 }) {
   return (
     <Bloco titulo={titulo}>
@@ -270,12 +272,15 @@ function Etapa({
       ) : (
         <Vazio
           cta={
-            <Link to={destino}>
-              <Button size="sm">{vazio}</Button>
-            </Link>
+            acao ?? (
+              <Link to={destino}>
+                <Button size="sm">{vazio}</Button>
+              </Link>
+            )
           }
         />
       )}
+      {itens.length && acao ? <Acoes>{acao}</Acoes> : null}
     </Bloco>
   );
 }
