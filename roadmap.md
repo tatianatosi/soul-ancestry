@@ -29,3 +29,8 @@
 ## Kit visual ligado a dados reais (13/09/2026)
 - Caso 360, Pessoa, Microentregas e Radar usam componentes do kit lendo tabelas canônicas (crm_casos, clientes/nucleo_membros/documents, app_projections). Sem tabela nova.
 - Pendente: prova autenticada na UI pela Proprietária (sessão de teste do agente cai em /equipe/entrar por falta de acesso de equipe).
+
+## Limpeza do Desk publicado (14/09/2026)
+- [ ] Remover a montagem empilhada entre o kit visual novo e as telas antigas em Hoje, Comercial, Pesquisa/Biblioteca, Formalização & Financeiro e Governança.
+- [ ] Retirar da operação diária inventários técnicos, motores P0–P11, fases explicativas e mensagens antigas de bloqueio, preservando as ações e leituras reais.
+- [ ] Validar as cinco superfícies em celular e desktop, sem sobreposição, dados demonstrativos ou regressão de acesso.
