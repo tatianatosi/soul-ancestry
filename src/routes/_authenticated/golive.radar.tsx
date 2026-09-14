@@ -169,7 +169,7 @@ function Individual({ caso }: { caso: Caso }) {
   return (
     <Bloco titulo="Radar individual do caso">
       <div className="min-w-0 overflow-x-auto">
-        <svg viewBox="0 0 340 250" role="img" aria-label={`Radar do caso: ${eixos.map((e) => `${e.rotulo} ${e.valor ? "concluído" : "pendente"}`).join(", ")}.`} className="h-auto w-full min-w-[300px]">
+        <svg viewBox="0 0 340 250" role="img" aria-label={`Radar do caso: ${eixos.map((e) => `${e.rotulo} ${e.valor ? "concluído" : "pendente"}`).join(", ")}.`} className="mx-auto h-auto w-full min-w-[300px] max-w-[420px]">
           <polygon points={grade} fill="none" stroke="#2F4B6E" strokeOpacity="0.15" />
           <polygon
             points={eixos.map((_, i) => ponto(i, 0.5).join(",")).join(" ")}
