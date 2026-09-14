@@ -6,6 +6,15 @@ import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { registrarMembroNucleoGoLive } from "@/lib/golive-escritores.functions";
+import { Barras, Rede, Rosca } from "@/components/golive/graficos";
+import {
+  coberturaPorGeracao,
+  composicaoDoNucleo,
+  estadoDeConfirmacao,
+  pessoasDoNucleo,
+  relacoesAprovadas,
+  type PessoaCaso,
+} from "@/lib/golive-pessoas";
 import { humano } from "@/lib/rotulos-golive";
 import { Button } from "@/components/ui/button";
 
@@ -27,6 +36,19 @@ function PessoasGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
   const adicionarMembro = useServerFn(registrarMembroNucleoGoLive);
+
+  /* Fonte: nucleo_membros (núcleo do caso), case_members e case_dependents.
+     Geração e relação só saem de pai_id/mae_id gravados. */
+  const pessoasCaso: PessoaCaso[] = caso?.pessoas.length
+    ? (caso.pessoas as PessoaCaso[])
+    : pessoasDoNucleo(caso?.identidade.nucleoMembros ?? [], {
+        nome: caso?.identidade.pessoaPrincipal ?? null,
+        email: caso?.identidade.email ?? null,
+        telefone: caso?.identidade.telefone ?? null,
+      });
+  const geracoes = coberturaPorGeracao(pessoasCaso).filter((g) => g.valor > 0);
+  const composicao = composicaoDoNucleo(pessoasCaso, caso?.dependentes ?? []).filter((c) => c.valor > 0);
+  const relacoes = relacoesAprovadas(pessoasCaso);
 
   const membros = caso?.identidade.nucleoMembros ?? [];
   const titular = membros.find((m) => m.nome === caso?.identidade.pessoaPrincipal) ?? null;
@@ -154,12 +176,35 @@ function PessoasGoLive() {
             )}
           </Bloco>
 
-          <ArvoreAprovada
-            titular={titular ? titular.nome : caso.identidade.pessoaPrincipal}
-            relacoes={membros
-              .filter((m) => m !== titular && (m.papel ?? "").trim().length > 0)
-              .map((m) => ({ id: m.id, nome: m.nome, papel: m.papel as string }))}
-          />
+          <Bloco titulo="Cobertura por geração">
+            {geracoes.length ? (
+              <Barras dados={geracoes} titulo="Pessoas registradas por geração" />
+            ) : (
+              <Vazio
+                cta={
+                  <Link to="/golive/caso">
+                    <Button size="sm">Abrir Caso 360</Button>
+                  </Link>
+                }
+              />
+            )}
+          </Bloco>
+
+          <Bloco titulo="Composição do núcleo">
+            {composicao.length ? (
+              <Rosca dados={composicao} titulo="Titular, participantes e dependentes" />
+            ) : (
+              <Vazio
+                cta={
+                  <Link to="/nucleos">
+                    <Button size="sm">Criar núcleo</Button>
+                  </Link>
+                }
+              />
+            )}
+          </Bloco>
+
+          <ArvoreAprovada pessoas={pessoasCaso} relacoes={relacoes} />
         </>
       ) : null}
     </GoLiveShell>
@@ -189,29 +234,32 @@ function Pessoa({ nome, papel }: { nome: string; papel: string | null }) {
  * árvore — nada é inferido.
  */
 function ArvoreAprovada({
-  titular,
+  pessoas,
   relacoes,
 }: {
-  titular: string | null;
-  relacoes: { id: string; nome: string; papel: string }[];
+  pessoas: PessoaCaso[];
+  relacoes: { id: string; de: string; para: string; rotulo: string }[];
 }) {
   return (
     <Bloco titulo="Árvore — pessoas e relações aprovadas">
-      {titular && relacoes.length ? (
-        <div className="min-w-0 space-y-2">
-          <div className="inline-block rounded-xl border border-gold/60 bg-gold/15 px-3 py-2 text-sm font-semibold text-navy">
-            {titular}
-          </div>
-          <ul className="space-y-1 border-l-2 border-navy/15 pl-4">
-            {relacoes.map((r) => (
-              <li key={r.id} className="break-words text-sm text-navy">
-                {r.nome} <span className="text-navy/55">— {humano(r.papel)}</span>
+      {pessoas.length ? (
+        <div className="min-w-0 space-y-3">
+          {relacoes.length ? (
+            <Rede relacoes={relacoes} />
+          ) : (
+            <p className="text-xs text-navy/55">Nenhum parentesco declarado ainda — só o estado de cada pessoa.</p>
+          )}
+          <ul className="space-y-1">
+            {pessoas.map((p) => (
+              <li key={p.id} className="flex min-w-0 flex-wrap items-center gap-2 text-sm text-navy">
+                <span className="min-w-0 break-words">{p.nome}</span>
+                <span className="shrink-0 rounded-full border border-navy/15 px-2 py-0.5 text-[11px] text-navy/65">
+                  {estadoDeConfirmacao(p)}
+                </span>
               </li>
             ))}
           </ul>
-          <p className="text-xs text-navy/50">
-            Somente vínculos já aprovados no núcleo aparecem aqui.
-          </p>
+          <p className="text-xs text-navy/50">Somente vínculos já declarados no caso aparecem aqui.</p>
         </div>
       ) : (
         <Vazio

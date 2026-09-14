@@ -100,6 +100,8 @@ export const carregarGoLive = createServerFn({ method: "GET" })
       achadosBrutos,
       tarefasCaso,
       eventosCaso,
+      dependentesCaso,
+      consentimentosCaso,
     ] = await Promise.all([
       lista(supabase, "case_members", "case_id", casoId),
       lista(supabase, "documents", "case_id", casoId),
@@ -117,6 +119,8 @@ export const carregarGoLive = createServerFn({ method: "GET" })
       lista(supabase, "genealogical_findings", "case_id", casoId),
       lista(supabase, "tarefas", "caso_id", casoId),
       lista(supabase, "case_timeline_events", "case_id", casoId),
+      lista(supabase, "case_dependents", "case_id", casoId),
+      lista(supabase, "consent_records", "case_id", casoId),
     ]);
 
     /* Carteira da organização — só identificadores e estado, sem filtro por texto.
@@ -248,7 +252,13 @@ export const carregarGoLive = createServerFn({ method: "GET" })
     const nucleos = await lista(supabase, "nucleos_familiares", "case_id", casoId);
     const nucleo = nucleos[0] ?? null;
     const nucleoMembros = nucleo
-      ? await lista(supabase, "nucleo_membros", "nucleo_id", String(nucleo["id"]), "id,nome,papel,vinculo")
+      ? await lista(
+          supabase,
+          "nucleo_membros",
+          "nucleo_id",
+          String(nucleo["id"]),
+          "id,nome,papel,vinculo,cliente_id,papel_no_caso,representacao_necessaria,representacao_documentada,status_cadastral",
+        )
       : [];
 
     const [acessosPortal, emailsAutorizados] = await Promise.all([
@@ -274,7 +284,11 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         nucleoMembros: nucleoMembros.map((m) => ({
           id: String(m["id"]),
           nome: (m["nome"] as string) ?? "Pessoa sem nome registrado",
-          papel: (m["papel"] as string) ?? (m["vinculo"] as string) ?? null,
+          papel: (m["papel"] as string) ?? (m["vinculo"] as string) ?? (m["papel_no_caso"] as string) ?? null,
+          clienteId: (m["cliente_id"] as string) ?? null,
+          representacaoNecessaria: m["representacao_necessaria"] === true,
+          representacaoDocumentada: m["representacao_documentada"] === true,
+          statusCadastral: (m["status_cadastral"] as string) ?? null,
         })),
         responsavel: (caso.responsavel_principal as string) ?? null,
         status: (caso.status as string) ?? null,
@@ -306,10 +320,57 @@ export const carregarGoLive = createServerFn({ method: "GET" })
             proximaMicroentrega: (plano["proxima_microentrega"] as string) ?? null,
           }
         : null,
+      /* Pessoas do caso: só o que está gravado em case_members.
+         Vínculo é explícito (pai_id/mae_id); nada é deduzido por nome. */
       pessoas: limpar(membros).map((m) => ({
         id: String(m["id"]),
         nome: (m["nome"] as string) ?? "Pessoa sem nome registrado",
         papel: (m["papel_no_caso"] as string) ?? (m["parentesco"] as string) ?? null,
+        parentesco: (m["parentesco"] as string) ?? null,
+        clienteId: (m["representa_pessoa_id"] as string) ?? null,
+        paiId: (m["pai_id"] as string) ?? null,
+        maeId: (m["mae_id"] as string) ?? null,
+        requerente: m["requerente"] === true,
+        titular: m["titular"] === true,
+        contratante: m["contratante"] === true,
+        dependente: m["dependente"] === true,
+        statusCadastral: (m["status_cadastral"] as string) ?? null,
+        documentosPendentes: (m["documentos_pendentes"] as string) ?? null,
+        consentimentos: (m["consentimentos"] as string) ?? null,
+        verificadoEm: (m["data_verificacao_dado"] as string) ?? null,
+        fonte: (m["fonte_origem_dado"] as string) ?? null,
+        identidade: {
+          nascimento: (m["data_nascimento"] as string) ?? null,
+          localNascimento: (m["local_nascimento"] as string) ?? null,
+          nacionalidade: (m["nacionalidade"] as string) ?? null,
+          cpf: Boolean(m["cpf"]),
+          rg: Boolean(m["rg"]),
+          estadoCivil: (m["estado_civil"] as string) ?? null,
+        },
+        contato: {
+          email: Boolean(m["email"]),
+          telefone: Boolean(m["telefone"]),
+          endereco: Boolean(m["endereco"]),
+          cep: Boolean(m["cep"]),
+        },
+      })),
+      /** Dependentes declarados do caso, com estado de representação gravado. */
+      dependentes: limpar(dependentesCaso).map((d) => ({
+        id: String(d["id"]),
+        nome: (d["nome_completo"] as string) ?? "Dependente sem nome registrado",
+        vinculo: (d["vinculo_com_titular"] as string) ?? null,
+        statusRepresentacao: (d["status_representacao"] as string) ?? null,
+        participaContrato: d["participa_do_contrato"] === true,
+        pessoaId: (d["dependent_person_id"] as string) ?? null,
+      })),
+      /** Consentimentos registrados do caso — nunca inferidos. */
+      consentimentos: limpar(consentimentosCaso).map((c) => ({
+        id: String(c["id"]),
+        tipo: (c["tipo_consentimento"] as string) ?? null,
+        status: (c["status"] as string) ?? null,
+        clienteId: (c["client_id"] as string) ?? null,
+        coletadoEm: (c["coletado_em"] as string) ?? null,
+        revogadoEm: (c["revogado_em"] as string) ?? null,
       })),
       documentos: limpar(documentos).map((d) => ({
         id: String(d["id"]),
