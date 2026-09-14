@@ -10,6 +10,8 @@ import { useGoLive } from "@/components/golive/dados";
 import { publicarProjecaoApp } from "@/lib/portal-atendimento.functions";
 import { aprovarMicroentregaGoLive, criarMicroentregaGoLive } from "@/lib/golive-escritores.functions";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
+import { Barras, LinhaDoTempo } from "@/components/golive/graficos";
+import { origemDoSinal } from "@/lib/golive-operacao";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/caso")({
@@ -173,6 +175,36 @@ function CasoGoLive() {
               <p className="text-xs text-navy/55">
                 Marco atual: {humano(fase)} · Próximo marco: {proximoMarco ? proximoMarco.rotulo : "Sem itens nesta etapa"}
               </p>
+            </Bloco>
+          ) : null}
+
+          {aba === "Jornada" ? (
+            <Bloco titulo="Linha do tempo do caso">
+              {caso.eventos.length ? (
+                <LinhaDoTempo
+                  itens={[...caso.eventos]
+                    .sort((a, b) => (b.em ?? "").localeCompare(a.em ?? ""))
+                    .slice(0, 12)
+                    .map((e) => ({
+                      id: e.id,
+                      titulo: e.titulo,
+                      quando: dataHumana(e.em),
+                      detalhe: e.responsavel ?? humano(e.fase),
+                    }))}
+                />
+              ) : (
+                <Vazio cta={<Link to="/golive/kanban"><Button size="sm" variant="outline">Abrir Operação</Button></Link>} />
+              )}
+            </Bloco>
+          ) : null}
+
+          {aba === "Jornada" ? (
+            <Bloco titulo="Origem do sinal por área">
+              {origemDoSinal(caso.eventos).length ? (
+                <Barras titulo="Eventos registrados por área" dados={origemDoSinal(caso.eventos)} />
+              ) : (
+                <Vazio cta={<Link to="/golive/kanban"><Button size="sm" variant="outline">Abrir Operação</Button></Link>} />
+              )}
             </Bloco>
           ) : null}
 

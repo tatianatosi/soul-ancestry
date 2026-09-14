@@ -2,11 +2,18 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
-import { Escada } from "@/components/golive/graficos";
+import { Linha, Rosca } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import type { DadosGoLive } from "@/lib/golive.functions";
 import { definirProximaAcaoGoLive } from "@/lib/golive-escritores.functions";
+import { dataHumana, humano } from "@/lib/rotulos-golive";
+import {
+  kpisHoje,
+  prioridadeDaCarteira,
+  ritmoSemanal,
+  temRitmo,
+} from "@/lib/golive-operacao";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/")({
@@ -26,6 +33,12 @@ export const Route = createFileRoute("/_authenticated/golive/")({
 function HojeGoLive() {
   const { data, isPending, error } = useGoLive();
   const definir = useServerFn(definirProximaAcaoGoLive);
+  const caso = data?.encontrado ? data : null;
+
+  const kpis = caso ? kpisHoje(caso.carteira, caso.tarefas) : null;
+  const ritmo = caso ? ritmoSemanal(caso.microentregas, 7) : [];
+  const temSerie = caso ? temRitmo(caso.microentregas) : false;
+  const prioridades = caso ? prioridadeDaCarteira(caso.carteira) : [];
 
   const acaoPlanejador = (
     <Acao
@@ -59,40 +72,73 @@ function HojeGoLive() {
       {data && !data.encontrado ? (
         <Vazio cta={<span className="text-sm text-navy/60">O caso {data.codigo} não está disponível nesta conta.</span>} />
       ) : null}
-      {data?.encontrado ? (
+
+      {caso ? (
         <>
-          <Bloco titulo={data.caso.titulo}>
+          <Bloco titulo={caso.caso.titulo}>
             <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Item rotulo="Etapa" valor={data.plano?.fase ?? data.caso.fase} />
-              <Item rotulo="Responsável" valor={data.caso.responsavel} />
-              <Item rotulo="Próxima ação" valor={data.plano?.proximaAcao ?? data.caso.proximaAcao} />
-              <Item rotulo="Prazo" valor={data.plano?.prazo ?? data.caso.prazo} />
+              <Item rotulo="Etapa" valor={humano(caso.plano?.fase ?? caso.caso.fase)} />
+              <Item rotulo="Responsável" valor={caso.caso.responsavel} />
+              <Item rotulo="Próxima ação" valor={humano(caso.plano?.proximaAcao ?? caso.caso.proximaAcao)} />
+              <Item rotulo="Prazo" valor={dataHumana(caso.plano?.prazo ?? caso.caso.prazo)} />
             </dl>
             <Acoes>{acaoPlanejador}</Acoes>
           </Bloco>
 
-          <Bloco titulo="Cadeia do caso">
-            <Escada
-              etapas={[
-                { rotulo: "Caso", feito: true },
-                { rotulo: "Proposta", feito: data.propostas.length > 0 },
-                { rotulo: "Contrato", feito: data.caso.contratoAssinado },
-                { rotulo: "Pagamento", feito: data.caso.pagamentoConfirmado },
-                { rotulo: "Documentos", feito: data.caso.documentosMinimosOk },
-                { rotulo: "Pesquisa", feito: data.evidencias.length > 0 || data.achados.length > 0 },
-                { rotulo: "Publicação", feito: data.publicados.length > 0 },
-              ]}
-            />
+          {/* Bloco analítico 1 — KPIs da carteira e das ações. */}
+          <Bloco titulo="Situação de hoje">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <Kpi rotulo="Casos ativos" valor={kpis?.ativos ?? 0} />
+              <Kpi rotulo="Ações vencidas" valor={kpis?.vencidas ?? 0} alerta={(kpis?.vencidas ?? 0) > 0} />
+              <Kpi rotulo="Sem próxima ação" valor={kpis?.semProxima ?? 0} alerta={(kpis?.semProxima ?? 0) > 0} />
+              <Kpi rotulo="Aguardando externo" valor={kpis?.externo ?? 0} />
+            </div>
+          </Bloco>
+
+          {/* Bloco analítico 2 — ritmo de entrega por semana. */}
+          <Bloco titulo="Ritmo de entrega (7 semanas)">
+            {temSerie ? (
+              <Linha dados={ritmo} titulo="Microentregas aprovadas ou publicadas por semana" />
+            ) : (
+              <Vazio
+                cta={
+                  <Link to="/golive/caso">
+                    <Button size="sm" variant="outline">
+                      Abrir Caso 360
+                    </Button>
+                  </Link>
+                }
+              />
+            )}
+          </Bloco>
+
+          {/* Bloco analítico 3 — prioridade da carteira. */}
+          <Bloco titulo="Prioridade dos casos">
+            {prioridades.length ? (
+              <Rosca
+                dados={prioridades.map((p) => ({ rotulo: humano(p.rotulo) ?? p.rotulo, valor: p.valor }))}
+                titulo="Casos por prioridade"
+              />
+            ) : (
+              <Vazio
+                cta={
+                  <Link to="/golive/kanban">
+                    <Button size="sm" variant="outline">
+                      Abrir Operação
+                    </Button>
+                  </Link>
+                }
+              />
+            )}
           </Bloco>
 
           <Bloco titulo="Pendência principal">
-            {pendencia(data) ? (
-              <p className="text-sm text-navy/80">{pendencia(data)}</p>
+            {pendencia(caso) ? (
+              <p className="text-sm text-navy/80">{pendencia(caso)}</p>
             ) : (
               <Vazio cta={<Link to="/golive/caso"><Button size="sm">Abrir caso</Button></Link>} />
             )}
           </Bloco>
-
 
           <div>
             <Link to="/golive/caso">
@@ -110,6 +156,20 @@ function pendencia(data: Extract<DadosGoLive, { encontrado: true }>) {
   if (!data.caso.pagamentoConfirmado) return "Pagamento ainda não confirmado manualmente.";
   if (!data.caso.documentosMinimosOk) return "Documentos mínimos ainda não confirmados.";
   return null;
+}
+
+function Kpi({ rotulo, valor, alerta }: { rotulo: string; valor: number; alerta?: boolean }) {
+  return (
+    <div className="min-w-0 rounded-xl border border-navy/10 bg-cream px-3 py-2">
+      <p className="text-xs leading-tight text-navy/55">{rotulo}</p>
+      <p
+        className="font-serif text-2xl"
+        style={alerta ? { color: "var(--terracota, #9A3A2F)" } : { color: "#2F4B6E" }}
+      >
+        {valor}
+      </p>
+    </div>
+  );
 }
 
 function Item({ rotulo, valor }: { rotulo: string; valor: string | null | undefined }) {

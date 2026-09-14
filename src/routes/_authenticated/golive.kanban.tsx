@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
@@ -8,15 +9,22 @@ import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { definirProximaAcaoGoLive } from "@/lib/golive-escritores.functions";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
+import {
+  cargaPorResponsavel,
+  distribuicaoPorEtapa,
+  faixaDePrazo,
+  kpisPrazo,
+  type AcaoOperacional,
+} from "@/lib/golive-operacao";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/kanban")({
   head: () => ({
     meta: [
       { title: "Kanban — Go-live Clube Ancestral" },
-      { name: "description", content: "Microentregas do caso canônico organizadas por prazo e estado registrado." },
+      { name: "description", content: "Ações e microentregas do caso canônico organizadas por prazo e estado registrado." },
       { property: "og:title", content: "Kanban — Go-live Clube Ancestral" },
-      { property: "og:description", content: "Microentregas do caso canônico por prazo e estado real." },
+      { property: "og:description", content: "Ações do caso canônico por prazo e estado real." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -24,40 +32,41 @@ export const Route = createFileRoute("/_authenticated/golive/kanban")({
   component: KanbanGoLive,
 });
 
-const COLUNAS = ["Hoje", "Próximos 7 dias", "Aguardando externo", "Concluído"] as const;
+const COLUNAS = ["Vencida", "Hoje", "Próximos 7 dias", "Aguardando externo"] as const;
 type Coluna = (typeof COLUNAS)[number];
-
-type Cartao = { id: string; titulo: string; prazo: string | null; status: string | null; etiqueta: string };
-
-/** Classificação apenas de apresentação, pelo estado e pelo prazo já gravados. */
-function classificar(status: string | null, prazo: string | null): { coluna: Coluna; etiqueta: string } {
-  const s = (status ?? "").toLowerCase();
-  if (/public|conclu|entreg|aprovad|arquiv/.test(s)) return { coluna: "Concluído", etiqueta: "Concluída" };
-  if (/aguard|extern|pendente_cliente|espera/.test(s))
-    return { coluna: "Aguardando externo", etiqueta: "Aguardando externo" };
-
-  if (!prazo) return { coluna: "Próximos 7 dias", etiqueta: "Sem prazo" };
-  const d = new Date(prazo);
-  if (Number.isNaN(d.getTime())) return { coluna: "Próximos 7 dias", etiqueta: "Sem prazo" };
-  const hoje = new Date();
-  const dias = Math.floor((d.setHours(0, 0, 0, 0) - hoje.setHours(0, 0, 0, 0)) / 86400000);
-  if (dias < 0) return { coluna: "Hoje", etiqueta: "Vencida" };
-  if (dias === 0) return { coluna: "Hoje", etiqueta: "Hoje" };
-  if (dias <= 7) return { coluna: "Próximos 7 dias", etiqueta: "Futura" };
-  return { coluna: "Próximos 7 dias", etiqueta: "Futura" };
-}
 
 function KanbanGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
   const definir = useServerFn(definirProximaAcaoGoLive);
+  const [colunaMobile, setColunaMobile] = useState<Coluna>("Hoje");
 
-  const colunas = new Map<Coluna, Cartao[]>(COLUNAS.map((c) => [c, [] as Cartao[]]));
-  for (const m of caso?.microentregas ?? []) {
-    const { coluna, etiqueta } = classificar(m.status, m.prazo);
-    colunas.get(coluna)!.push({ id: m.id, titulo: m.titulo, prazo: m.prazo, status: m.status, etiqueta });
+  /* Fonte das colunas: ações do caso (tarefas) e microentregas em aberto,
+     classificadas somente pelo estado e pelo prazo já gravados. */
+  const itens: AcaoOperacional[] = caso
+    ? [
+        ...caso.tarefas,
+        ...caso.microentregas.map((m) => ({
+          id: m.id,
+          titulo: m.titulo,
+          status: m.status,
+          prazo: m.prazo,
+          bloqueio: false,
+          concluidaEm: m.concluidaEm,
+          responsavel: m.responsavel,
+        })),
+      ]
+    : [];
+
+  const colunas = new Map<Coluna, AcaoOperacional[]>(COLUNAS.map((c) => [c, [] as AcaoOperacional[]]));
+  for (const i of itens) {
+    const faixa = faixaDePrazo(i);
+    if ((COLUNAS as readonly string[]).includes(faixa)) colunas.get(faixa as Coluna)!.push(i);
   }
-  const total = [...colunas.values()].reduce((n, v) => n + v.length, 0);
+
+  const kpis = kpisPrazo(itens);
+  const etapas = caso ? distribuicaoPorEtapa(caso.microentregas) : [];
+  const carga = cargaPorResponsavel(itens);
 
   return (
     <GoLiveShell titulo="Operação" descricao="O trabalho do caso por prazo.">
@@ -72,50 +81,73 @@ function KanbanGoLive() {
         <>
           <FaixaIdentidade dados={caso} />
 
-          {total > 0 ? (
-            <Bloco titulo="Distribuição do trabalho">
-              <Barras
-                titulo="Microentregas por coluna"
-                dados={COLUNAS.map((c) => ({ rotulo: c, valor: colunas.get(c)!.length }))}
-              />
+          <Bloco titulo="Prazos em aberto">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <Kpi rotulo="Vencida" valor={kpis.vencida} alerta={kpis.vencida > 0} />
+              <Kpi rotulo="Hoje" valor={kpis.hoje} />
+              <Kpi rotulo="Próximos 7 dias" valor={kpis.proximos7} />
+              <Kpi rotulo="Aguardando externo" valor={kpis.externo} />
+            </div>
+          </Bloco>
+
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            <Bloco titulo="Distribuição por etapa">
+              {etapas.length ? (
+                <Barras
+                  titulo="Microentregas por etapa"
+                  dados={etapas.slice(0, 5).map((e) => ({ rotulo: humano(e.rotulo) ?? e.rotulo, valor: e.valor }))}
+                />
+              ) : (
+                <Vazio cta={<LinkCaso />} />
+              )}
             </Bloco>
-          ) : null}
 
+            <Bloco titulo="Carga por responsável">
+              {carga.length ? (
+                <Barras titulo="Itens em aberto por responsável" dados={carga.slice(0, 6)} />
+              ) : (
+                <Vazio cta={<LinkCaso />} />
+              )}
+            </Bloco>
+          </div>
 
+          {/* Mobile: uma coluna por vez, sem rolagem horizontal. */}
+          <div className="lg:hidden">
+            <nav aria-label="Colunas de prazo" className="min-w-0">
+              <ul className="flex flex-wrap gap-1.5">
+                {COLUNAS.map((c) => (
+                  <li key={c}>
+                    <button
+                      type="button"
+                      aria-current={c === colunaMobile ? "true" : undefined}
+                      onClick={() => setColunaMobile(c)}
+                      className={
+                        c === colunaMobile
+                          ? "rounded-full bg-gold/25 px-3 py-1.5 text-xs font-semibold text-navy"
+                          : "rounded-full border border-navy/15 px-3 py-1.5 text-xs text-navy/70"
+                      }
+                    >
+                      {c} ({colunas.get(c)!.length})
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            <div className="mt-3">
+              <ColunaKanban titulo={colunaMobile} itens={colunas.get(colunaMobile)!} />
+            </div>
+          </div>
 
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-4">
-            {COLUNAS.map((coluna) => {
-              const itens = colunas.get(coluna)!;
-              return (
-                <Bloco key={coluna} titulo={`${coluna} (${itens.length})`}>
-                  {itens.length ? (
-                    <ul className="space-y-2">
-                      {itens.map((i) => (
-                        <li key={i.id} className="min-w-0 rounded-xl border border-navy/10 bg-cream px-3 py-2">
-                          <p className="break-words text-sm text-navy">{i.titulo}</p>
-                          <p className="text-xs text-navy/55">
-                            {i.etiqueta} · {dataHumana(i.prazo)}
-                          </p>
-                          <p className="text-xs text-navy/45">{humano(i.status, "Sem estado registrado")}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div className="rounded-xl border border-dashed border-navy/20 bg-white/60 p-4 text-center">
-                      <p className="text-sm text-navy/70">Nenhum item nesta coluna</p>
-                      <Link to="/golive/caso" className="mt-2 inline-block text-sm text-navy underline decoration-gold underline-offset-4">
-                        Abrir Caso 360
-                      </Link>
-                    </div>
-                  )}
-                </Bloco>
-              );
-            })}
+          {/* Desktop: as quatro colunas lado a lado. */}
+          <div className="hidden gap-3 lg:grid lg:grid-cols-4">
+            {COLUNAS.map((c) => (
+              <ColunaKanban key={c} titulo={c} itens={colunas.get(c)!} />
+            ))}
           </div>
 
           <Bloco titulo="Próxima ação do caso">
             <p className="break-words text-sm text-navy">
-              {caso.plano?.proximaAcao ?? caso.caso.proximaAcao ?? "Sem itens nesta etapa"}
+              {humano(caso.plano?.proximaAcao ?? caso.caso.proximaAcao) ?? "Sem itens nesta etapa"}
               {caso.plano?.prazo ?? caso.caso.prazo ? (
                 <span className="text-navy/55"> · até {dataHumana(caso.plano?.prazo ?? caso.caso.prazo)}</span>
               ) : null}
@@ -143,14 +175,56 @@ function KanbanGoLive() {
               />
             </Acoes>
           </Bloco>
-
-          {total === 0 ? (
-            <p className="text-xs text-navy/55">
-              Nenhuma microentrega registrada até agora. Crie a primeira no Caso 360.
-            </p>
-          ) : null}
         </>
       ) : null}
     </GoLiveShell>
+  );
+}
+
+function LinkCaso() {
+  return (
+    <Link to="/golive/caso">
+      <Button size="sm" variant="outline">
+        Abrir Caso 360
+      </Button>
+    </Link>
+  );
+}
+
+function ColunaKanban({ titulo, itens }: { titulo: string; itens: AcaoOperacional[] }) {
+  return (
+    <Bloco titulo={`${titulo} (${itens.length})`}>
+      {itens.length ? (
+        <ul className="space-y-2">
+          {itens.map((i) => (
+            <li key={i.id} className="min-w-0 rounded-xl border border-navy/10 bg-cream px-3 py-2">
+              <p className="break-words text-sm text-navy">{i.titulo}</p>
+              <p className="text-xs text-navy/55">
+                {dataHumana(i.prazo)} · {humano(i.status, "Sem estado registrado")}
+              </p>
+              <p className="text-xs text-navy/45">{i.responsavel ?? "Sem responsável registrado"}</p>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="rounded-xl border border-dashed border-navy/20 bg-white/60 p-4 text-center">
+          <p className="text-sm text-navy/70">Sem itens nesta etapa</p>
+          <Link to="/golive/caso" className="mt-2 inline-block text-sm text-navy underline decoration-gold underline-offset-4">
+            Abrir Caso 360
+          </Link>
+        </div>
+      )}
+    </Bloco>
+  );
+}
+
+function Kpi({ rotulo, valor, alerta }: { rotulo: string; valor: number; alerta?: boolean }) {
+  return (
+    <div className="min-w-0 rounded-xl border border-navy/10 bg-cream px-3 py-2">
+      <p className="text-xs leading-tight text-navy/55">{rotulo}</p>
+      <p className="font-serif text-2xl" style={alerta ? { color: "var(--terracota, #9A3A2F)" } : { color: "#2F4B6E" }}>
+        {valor}
+      </p>
+    </div>
   );
 }
