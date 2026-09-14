@@ -7,6 +7,7 @@ import { useState } from "react";
 import { SaasShell } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
+import { FormalizacaoConectada } from "@/components/desk/superficies-kit-conectadas";
 import { criarInstrumento, listarContratos } from "@/lib/contratos.functions";
 import { listarCasosFicha } from "@/lib/caso-ficha.functions";
 import {
@@ -82,6 +83,10 @@ function ContratosPage() {
         )
       }
     >
+      <FormalizacaoConectada />
+      <details className="mt-6 rounded-lg border border-navy/15 bg-cream/40 p-4" open={novo}>
+        <summary className="cursor-pointer font-medium text-navy">Abrir gestão de contratos</summary>
+        <div className="mt-5 border-t border-navy/10 pt-5">
       <section className="mb-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
         <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="font-serif text-lg text-navy">Contrato de Estudo Genealógico v2 e anexos</h2>
@@ -245,6 +250,8 @@ function ContratosPage() {
         )}
       </EstadoDados>
       <PainelCatalogo />
+        </div>
+      </details>
     </SaasShell>
   );
 }

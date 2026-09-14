@@ -9,6 +9,7 @@ import { ManifestoResgate } from "@/components/governanca/manifesto";
 import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
 
 import { FilaPublicacaoReal } from "@/components/biblioteca/fila-publicacao-real";
+import { PesquisaConectada } from "@/components/desk/superficies-kit-conectadas";
 import { MAPA_CENTRO_INTELIGENCIA, SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
 import { rotuloFonteNegocio } from "@/lib/rotulo-negocio";
 import {
@@ -176,7 +177,10 @@ function BibliotecaPage() {
       descricao="Base operacional interna do Desk: referências estruturadas que alimentam pesquisa, relatórios e operação. Nada aqui é exposto ao App Cliente."
       visualKit="pantone"
     >
-      <div className="space-y-6">
+      <PesquisaConectada />
+      <details className="mt-6 rounded-lg border border-navy/15 bg-cream/40 p-4">
+        <summary className="cursor-pointer font-medium text-navy">Abrir gestão da Biblioteca</summary>
+        <div className="mt-5 space-y-6 border-t border-navy/10 pt-5">
         <FilaPublicacaoReal />
         <section className="rounded-xl border border-navy/10 bg-cream/50 p-4">
           <h2 className="font-serif text-lg text-navy">Centro de Inteligência</h2>
@@ -551,7 +555,8 @@ function BibliotecaPage() {
         )}
 
         {sub === "governanca" && <ManifestoResgate />}
-      </div>
+        </div>
+      </details>
     </SaasShell>
   );
 }

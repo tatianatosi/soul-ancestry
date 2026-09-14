@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { HojeConectado } from "@/components/desk/superficies-kit-conectadas";
 import { SaasShell } from "@/components/saas/shell";
 import { PainelDia } from "@/components/painel/painel-dia";
-import { CardsAlertasCentrais } from "@/components/painel/cards-alertas-centrais";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
@@ -26,18 +26,13 @@ function Painel() {
       descricao="O que está parado, vencido ou pede decisão — com ação e link para a aba dona."
       visualKit="pantone"
     >
-      <CardsAlertasCentrais />
-      <PainelDia />
-      {/*
-        08/09/2026 — correção de um erro meu de 07/09. Ao encontrar
-        /historico/painel-hoje e /historico/painel-desk-hoje sem nenhum link
-        de entrada, eu "resolvi as órfãs" criando links para elas aqui. Era
-        o conserto errado: as duas se declaravam legado ("preservado apenas
-        para consulta interna", "sem uso diário") e mostravam o mesmo dia de
-        trabalho que o PainelDia acima. Em vez de remover tela morta, eu a
-        tornei alcançável e somei mais um lugar para olhar. As duas rotas
-        foram arquivadas no git; os componentes seguem no histórico.
-      */}
+      <HojeConectado />
+      <details className="mt-6 rounded-lg border border-navy/15 bg-cream/40 p-4">
+        <summary className="cursor-pointer font-medium text-navy">Abrir fila operacional do dia</summary>
+        <div className="mt-5 border-t border-navy/10 pt-5">
+          <PainelDia />
+        </div>
+      </details>
     </SaasShell>
   );
 }
