@@ -40,6 +40,8 @@ type Aba = (typeof ABAS)[number];
 function CasoGoLive() {
   const { data, isPending, refetch } = useGoLive();
   const publicar = useServerFn(publicarProjecaoApp);
+  const criarMicroentrega = useServerFn(criarMicroentregaGoLive);
+  const aprovar = useServerFn(aprovarMicroentregaGoLive);
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [aba, setAba] = useState<Aba>("Resumo");
@@ -48,6 +50,25 @@ function CasoGoLive() {
   const fase = caso?.plano?.fase ?? caso?.caso.fase ?? null;
   const indiceMarco = MARCOS.findIndex((m) => m.chave === (fase ?? "").toLowerCase());
   const proximoMarco = indiceMarco >= 0 ? MARCOS[indiceMarco + 1] ?? null : null;
+
+  const acaoMicroentrega = (
+    <Acao
+      rotulo="Criar microentrega"
+      titulo="Nova microentrega do caso"
+      variante="outline"
+      campos={[
+        { nome: "titulo", rotulo: "Título", obrigatorio: true },
+        { nome: "descricao", rotulo: "Descrição interna", tipo: "area" },
+        { nome: "prazo", rotulo: "Prazo", tipo: "data" },
+      ]}
+      aoConfirmar={(v) =>
+        criarMicroentrega({
+          data: { titulo: v["titulo"] ?? "", descricao: v["descricao"] ?? "", prazo: v["prazo"] ?? "" },
+        })
+      }
+      confirmacao="Microentrega criada."
+    />
+  );
 
   async function publicarMicroentrega() {
     if (!caso) return;
