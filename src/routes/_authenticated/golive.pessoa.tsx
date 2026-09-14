@@ -3,6 +3,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
 import { useGoLive } from "@/components/golive/dados";
+import { BarrasPercentual, Estrelas, Rede } from "@/components/golive/graficos";
+import {
+  completudePorDominio,
+  confiancaDaPessoa,
+  pessoaPrincipalDoCaso,
+  relacoesAprovadas,
+} from "@/lib/golive-pessoas";
 import { humano } from "@/lib/rotulos-golive";
 import { Button } from "@/components/ui/button";
 
@@ -26,6 +33,16 @@ function PessoaGoLive() {
 
   const papelNoNucleo =
     caso?.identidade.nucleoMembros.find((m) => m.nome === caso.identidade.pessoaPrincipal)?.papel ?? null;
+
+  /* Fonte: case_members do caso canônico, consent_records do mesmo caso.
+     Vínculo só existe se pai_id/mae_id estiverem gravados. */
+  const pessoas = caso?.pessoas ?? [];
+  const principal = pessoaPrincipalDoCaso(pessoas);
+  const completude = completudePorDominio(principal, caso?.consentimentos ?? []);
+  const confianca = confiancaDaPessoa(principal, pessoas, caso?.consentimentos ?? []);
+  const relacoes = relacoesAprovadas(pessoas).filter(
+    (r) => !principal || r.de === principal.nome || r.para === principal.nome,
+  );
 
   return (
     <GoLiveShell titulo="Pessoa 360" descricao="A mesma pessoa, em uma leitura só.">
@@ -68,6 +85,52 @@ function PessoaGoLive() {
                 Ver árvore
               </Link>
             </div>
+          </Bloco>
+
+          <Bloco titulo="Completude do cadastro">
+            {completude.length ? (
+              <BarrasPercentual dados={completude} titulo="Completude por domínio" />
+            ) : (
+              <Vazio
+                cta={
+                  <Link to="/clientes">
+                    <Button size="sm">Buscar pessoa</Button>
+                  </Link>
+                }
+              />
+            )}
+          </Bloco>
+
+          <Bloco titulo="Confiança dos vínculos">
+            {confianca ? (
+              <Estrelas
+                estrelas={confianca.estrelas}
+                confirmados={confianca.confirmados}
+                pendentes={confianca.pendentes}
+              />
+            ) : (
+              <Vazio
+                cta={
+                  <Link to="/golive/pessoas">
+                    <Button size="sm">Abrir núcleo familiar</Button>
+                  </Link>
+                }
+              />
+            )}
+          </Bloco>
+
+          <Bloco titulo="Relações aprovadas">
+            {relacoes.length ? (
+              <Rede relacoes={relacoes} />
+            ) : (
+              <Vazio
+                cta={
+                  <Link to="/golive/pessoas">
+                    <Button size="sm">Abrir núcleo familiar</Button>
+                  </Link>
+                }
+              />
+            )}
           </Bloco>
 
           <Bloco titulo="Caso desta pessoa">

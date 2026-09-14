@@ -154,6 +154,81 @@ export function Linha({ dados, titulo }: { dados: Fatia[]; titulo: string }) {
   );
 }
 
+/** Barras de completude em porcentagem — escala fixa de 0 a 100. */
+export function BarrasPercentual({ dados, titulo }: { dados: Fatia[]; titulo: string }) {
+  return (
+    <div
+      className="min-w-0 space-y-2"
+      role="img"
+      aria-label={`${titulo}: ${dados.map((d) => `${d.rotulo} ${d.valor}%`).join(", ")}.`}
+    >
+      {dados.map((d) => (
+        <div key={d.rotulo} className="min-w-0">
+          <div className="flex items-baseline justify-between gap-2 text-xs text-navy/65">
+            <span className="truncate">{d.rotulo}</span>
+            <span className="shrink-0 font-semibold text-navy">{d.valor}%</span>
+          </div>
+          <div className="mt-1 h-2 w-full rounded-full bg-navy/10">
+            <div
+              className="h-2 rounded-full"
+              style={{ width: `${Math.max(0, Math.min(100, d.valor))}%`, background: d.valor ? NAVY : "transparent" }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Faixa de confiança em estrelas, com a contagem que a originou. */
+export function Estrelas({
+  estrelas,
+  confirmados,
+  pendentes,
+}: {
+  estrelas: number;
+  confirmados: number;
+  pendentes: number;
+}) {
+  return (
+    <div
+      className="min-w-0 space-y-1"
+      role="img"
+      aria-label={`Confiança ${estrelas} de 5. ${confirmados} itens confirmados e ${pendentes} pendentes.`}
+    >
+      <div className="flex items-center gap-1" aria-hidden>
+        {[1, 2, 3, 4, 5].map((n) => (
+          <span key={n} className="text-lg leading-none" style={{ color: n <= estrelas ? GOLD : "rgba(47,75,110,0.2)" }}>
+            ★
+          </span>
+        ))}
+      </div>
+      <p className="text-xs text-navy/60">
+        {confirmados} confirmado{confirmados === 1 ? "" : "s"} · {pendentes} pendente{pendentes === 1 ? "" : "s"}
+      </p>
+    </div>
+  );
+}
+
+/** Rede de relações aprovadas: uma linha por vínculo declarado. */
+export function Rede({ relacoes }: { relacoes: { id: string; de: string; para: string; rotulo: string }[] }) {
+  return (
+    <ul
+      className="min-w-0 space-y-2"
+      role="img"
+      aria-label={`Relações aprovadas: ${relacoes.map((r) => `${r.de} é ${r.rotulo} de ${r.para}`).join("; ")}.`}
+    >
+      {relacoes.map((r) => (
+        <li key={r.id} className="flex min-w-0 flex-wrap items-center gap-2 text-sm text-navy">
+          <span className="min-w-0 truncate rounded-lg border border-navy/15 bg-cream/70 px-2 py-1">{r.de}</span>
+          <span className="shrink-0 text-xs text-navy/55">— {r.rotulo} de →</span>
+          <span className="min-w-0 truncate rounded-lg border border-gold/50 bg-gold/15 px-2 py-1">{r.para}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /** Linha do tempo vertical: eventos já gravados, do mais recente ao mais antigo. */
 export function LinhaDoTempo({
   itens,
