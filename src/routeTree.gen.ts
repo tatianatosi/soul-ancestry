@@ -90,11 +90,14 @@ import { Route as AuthenticatedGoliveAppRouteImport } from './routes/_authentica
 import { Route as AuthenticatedGoliveCasoRouteImport } from './routes/_authenticated/golive.caso'
 import { Route as AuthenticatedGoliveComercialRouteImport } from './routes/_authenticated/golive.comercial'
 import { Route as AuthenticatedGoliveConfiguracoesRouteImport } from './routes/_authenticated/golive.configuracoes'
+import { Route as AuthenticatedGoliveFinanceiroRouteImport } from './routes/_authenticated/golive.financeiro'
 import { Route as AuthenticatedGoliveFormalizacaoRouteImport } from './routes/_authenticated/golive.formalizacao'
+import { Route as AuthenticatedGoliveJuridicoRouteImport } from './routes/_authenticated/golive.juridico'
 import { Route as AuthenticatedGoliveKanbanRouteImport } from './routes/_authenticated/golive.kanban'
 import { Route as AuthenticatedGolivePesquisaRouteImport } from './routes/_authenticated/golive.pesquisa'
 import { Route as AuthenticatedGolivePessoaRouteImport } from './routes/_authenticated/golive.pessoa'
 import { Route as AuthenticatedGolivePessoasRouteImport } from './routes/_authenticated/golive.pessoas'
+import { Route as AuthenticatedGolivePortalRouteImport } from './routes/_authenticated/golive.portal'
 import { Route as AuthenticatedGoliveRadarRouteImport } from './routes/_authenticated/golive.radar'
 import { Route as AuthenticatedGovernancaCatalogoOperacional30RouteImport } from './routes/_authenticated/governanca.catalogo-operacional-30'
 import { Route as AuthenticatedGovernancaContratoBaseRouteImport } from './routes/_authenticated/governanca.contrato-base'
@@ -557,10 +560,22 @@ const AuthenticatedGoliveConfiguracoesRoute =
     path: '/golive/configuracoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGoliveFinanceiroRoute =
+  AuthenticatedGoliveFinanceiroRouteImport.update({
+    id: '/golive/financeiro',
+    path: '/golive/financeiro',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGoliveFormalizacaoRoute =
   AuthenticatedGoliveFormalizacaoRouteImport.update({
     id: '/golive/formalizacao',
     path: '/golive/formalizacao',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGoliveJuridicoRoute =
+  AuthenticatedGoliveJuridicoRouteImport.update({
+    id: '/golive/juridico',
+    path: '/golive/juridico',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedGoliveKanbanRoute =
@@ -585,6 +600,12 @@ const AuthenticatedGolivePessoasRoute =
   AuthenticatedGolivePessoasRouteImport.update({
     id: '/golive/pessoas',
     path: '/golive/pessoas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGolivePortalRoute =
+  AuthenticatedGolivePortalRouteImport.update({
+    id: '/golive/portal',
+    path: '/golive/portal',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedGoliveRadarRoute =
@@ -822,11 +843,14 @@ export interface FileRoutesByFullPath {
   '/golive/caso': typeof AuthenticatedGoliveCasoRoute
   '/golive/comercial': typeof AuthenticatedGoliveComercialRoute
   '/golive/configuracoes': typeof AuthenticatedGoliveConfiguracoesRoute
+  '/golive/financeiro': typeof AuthenticatedGoliveFinanceiroRoute
   '/golive/formalizacao': typeof AuthenticatedGoliveFormalizacaoRoute
+  '/golive/juridico': typeof AuthenticatedGoliveJuridicoRoute
   '/golive/kanban': typeof AuthenticatedGoliveKanbanRoute
   '/golive/pesquisa': typeof AuthenticatedGolivePesquisaRoute
   '/golive/pessoa': typeof AuthenticatedGolivePessoaRoute
   '/golive/pessoas': typeof AuthenticatedGolivePessoasRoute
+  '/golive/portal': typeof AuthenticatedGolivePortalRoute
   '/golive/radar': typeof AuthenticatedGoliveRadarRoute
   '/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
@@ -935,11 +959,14 @@ export interface FileRoutesByTo {
   '/golive/caso': typeof AuthenticatedGoliveCasoRoute
   '/golive/comercial': typeof AuthenticatedGoliveComercialRoute
   '/golive/configuracoes': typeof AuthenticatedGoliveConfiguracoesRoute
+  '/golive/financeiro': typeof AuthenticatedGoliveFinanceiroRoute
   '/golive/formalizacao': typeof AuthenticatedGoliveFormalizacaoRoute
+  '/golive/juridico': typeof AuthenticatedGoliveJuridicoRoute
   '/golive/kanban': typeof AuthenticatedGoliveKanbanRoute
   '/golive/pesquisa': typeof AuthenticatedGolivePesquisaRoute
   '/golive/pessoa': typeof AuthenticatedGolivePessoaRoute
   '/golive/pessoas': typeof AuthenticatedGolivePessoasRoute
+  '/golive/portal': typeof AuthenticatedGolivePortalRoute
   '/golive/radar': typeof AuthenticatedGoliveRadarRoute
   '/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
@@ -1051,11 +1078,14 @@ export interface FileRoutesById {
   '/_authenticated/golive/caso': typeof AuthenticatedGoliveCasoRoute
   '/_authenticated/golive/comercial': typeof AuthenticatedGoliveComercialRoute
   '/_authenticated/golive/configuracoes': typeof AuthenticatedGoliveConfiguracoesRoute
+  '/_authenticated/golive/financeiro': typeof AuthenticatedGoliveFinanceiroRoute
   '/_authenticated/golive/formalizacao': typeof AuthenticatedGoliveFormalizacaoRoute
+  '/_authenticated/golive/juridico': typeof AuthenticatedGoliveJuridicoRoute
   '/_authenticated/golive/kanban': typeof AuthenticatedGoliveKanbanRoute
   '/_authenticated/golive/pesquisa': typeof AuthenticatedGolivePesquisaRoute
   '/_authenticated/golive/pessoa': typeof AuthenticatedGolivePessoaRoute
   '/_authenticated/golive/pessoas': typeof AuthenticatedGolivePessoasRoute
+  '/_authenticated/golive/portal': typeof AuthenticatedGolivePortalRoute
   '/_authenticated/golive/radar': typeof AuthenticatedGoliveRadarRoute
   '/_authenticated/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/_authenticated/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
@@ -1167,11 +1197,14 @@ export interface FileRouteTypes {
     | '/golive/caso'
     | '/golive/comercial'
     | '/golive/configuracoes'
+    | '/golive/financeiro'
     | '/golive/formalizacao'
+    | '/golive/juridico'
     | '/golive/kanban'
     | '/golive/pesquisa'
     | '/golive/pessoa'
     | '/golive/pessoas'
+    | '/golive/portal'
     | '/golive/radar'
     | '/governanca/catalogo-operacional-30'
     | '/governanca/contrato-base'
@@ -1280,11 +1313,14 @@ export interface FileRouteTypes {
     | '/golive/caso'
     | '/golive/comercial'
     | '/golive/configuracoes'
+    | '/golive/financeiro'
     | '/golive/formalizacao'
+    | '/golive/juridico'
     | '/golive/kanban'
     | '/golive/pesquisa'
     | '/golive/pessoa'
     | '/golive/pessoas'
+    | '/golive/portal'
     | '/golive/radar'
     | '/governanca/catalogo-operacional-30'
     | '/governanca/contrato-base'
@@ -1395,11 +1431,14 @@ export interface FileRouteTypes {
     | '/_authenticated/golive/caso'
     | '/_authenticated/golive/comercial'
     | '/_authenticated/golive/configuracoes'
+    | '/_authenticated/golive/financeiro'
     | '/_authenticated/golive/formalizacao'
+    | '/_authenticated/golive/juridico'
     | '/_authenticated/golive/kanban'
     | '/_authenticated/golive/pesquisa'
     | '/_authenticated/golive/pessoa'
     | '/_authenticated/golive/pessoas'
+    | '/_authenticated/golive/portal'
     | '/_authenticated/golive/radar'
     | '/_authenticated/governanca/catalogo-operacional-30'
     | '/_authenticated/governanca/contrato-base'
@@ -2021,11 +2060,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGoliveConfiguracoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/golive/financeiro': {
+      id: '/_authenticated/golive/financeiro'
+      path: '/golive/financeiro'
+      fullPath: '/golive/financeiro'
+      preLoaderRoute: typeof AuthenticatedGoliveFinanceiroRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/golive/formalizacao': {
       id: '/_authenticated/golive/formalizacao'
       path: '/golive/formalizacao'
       fullPath: '/golive/formalizacao'
       preLoaderRoute: typeof AuthenticatedGoliveFormalizacaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/golive/juridico': {
+      id: '/_authenticated/golive/juridico'
+      path: '/golive/juridico'
+      fullPath: '/golive/juridico'
+      preLoaderRoute: typeof AuthenticatedGoliveJuridicoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/golive/kanban': {
@@ -2054,6 +2107,13 @@ declare module '@tanstack/react-router' {
       path: '/golive/pessoas'
       fullPath: '/golive/pessoas'
       preLoaderRoute: typeof AuthenticatedGolivePessoasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/golive/portal': {
+      id: '/_authenticated/golive/portal'
+      path: '/golive/portal'
+      fullPath: '/golive/portal'
+      preLoaderRoute: typeof AuthenticatedGolivePortalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/golive/radar': {
@@ -2298,11 +2358,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGoliveCasoRoute: typeof AuthenticatedGoliveCasoRoute
   AuthenticatedGoliveComercialRoute: typeof AuthenticatedGoliveComercialRoute
   AuthenticatedGoliveConfiguracoesRoute: typeof AuthenticatedGoliveConfiguracoesRoute
+  AuthenticatedGoliveFinanceiroRoute: typeof AuthenticatedGoliveFinanceiroRoute
   AuthenticatedGoliveFormalizacaoRoute: typeof AuthenticatedGoliveFormalizacaoRoute
+  AuthenticatedGoliveJuridicoRoute: typeof AuthenticatedGoliveJuridicoRoute
   AuthenticatedGoliveKanbanRoute: typeof AuthenticatedGoliveKanbanRoute
   AuthenticatedGolivePesquisaRoute: typeof AuthenticatedGolivePesquisaRoute
   AuthenticatedGolivePessoaRoute: typeof AuthenticatedGolivePessoaRoute
   AuthenticatedGolivePessoasRoute: typeof AuthenticatedGolivePessoasRoute
+  AuthenticatedGolivePortalRoute: typeof AuthenticatedGolivePortalRoute
   AuthenticatedGoliveRadarRoute: typeof AuthenticatedGoliveRadarRoute
   AuthenticatedGovernancaCatalogoOperacional30Route: typeof AuthenticatedGovernancaCatalogoOperacional30Route
   AuthenticatedGovernancaContratoBaseRoute: typeof AuthenticatedGovernancaContratoBaseRoute
@@ -2386,11 +2449,14 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGoliveCasoRoute: AuthenticatedGoliveCasoRoute,
   AuthenticatedGoliveComercialRoute: AuthenticatedGoliveComercialRoute,
   AuthenticatedGoliveConfiguracoesRoute: AuthenticatedGoliveConfiguracoesRoute,
+  AuthenticatedGoliveFinanceiroRoute: AuthenticatedGoliveFinanceiroRoute,
   AuthenticatedGoliveFormalizacaoRoute: AuthenticatedGoliveFormalizacaoRoute,
+  AuthenticatedGoliveJuridicoRoute: AuthenticatedGoliveJuridicoRoute,
   AuthenticatedGoliveKanbanRoute: AuthenticatedGoliveKanbanRoute,
   AuthenticatedGolivePesquisaRoute: AuthenticatedGolivePesquisaRoute,
   AuthenticatedGolivePessoaRoute: AuthenticatedGolivePessoaRoute,
   AuthenticatedGolivePessoasRoute: AuthenticatedGolivePessoasRoute,
+  AuthenticatedGolivePortalRoute: AuthenticatedGolivePortalRoute,
   AuthenticatedGoliveRadarRoute: AuthenticatedGoliveRadarRoute,
   AuthenticatedGovernancaCatalogoOperacional30Route:
     AuthenticatedGovernancaCatalogoOperacional30Route,
