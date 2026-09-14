@@ -39,11 +39,17 @@
  *
  * Chave secreta e service role NUNCA entram aqui, e há teste para isso.
  */
+// 14/09/2026 — reinício controlado: o piloto integral roda no ambiente novo.
+// O projeto anterior (`zsxpdbhdvbuulwpepemd`) permanece intocado, como legado
+// de consulta: nada foi migrado, apagado ou sobrescrito.
 export const PROJETO_DECLARADO = {
-  ref: "zsxpdbhdvbuulwpepemd",
-  url: "https://zsxpdbhdvbuulwpepemd.supabase.co",
-  publishableKey: "sb_publishable_bZYXjDv7I7ypMUCDQpBIeA_oKxbGK8H",
+  ref: "liiqqibnirnpnvjmjrpj",
+  url: "https://liiqqibnirnpnvjmjrpj.supabase.co",
+  publishableKey: "sb_publishable_ZJlqScMiYsZHudNvBeA1KQ_B4ozV8kh",
 } as const;
+
+/** Ambiente anterior, mantido apenas como referência histórica. */
+export const PROJETO_LEGADO = { ref: "zsxpdbhdvbuulwpepemd" } as const;
 
 /**
  * A configuração do projeto declarado, só com o que a tela precisa.

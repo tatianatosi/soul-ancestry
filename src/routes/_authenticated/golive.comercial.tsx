@@ -1,10 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
 import { Escada } from "@/components/golive/graficos";
+import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
+import {
+  registrarCallGoLive,
+  registrarDiscoveryGoLive,
+  registrarLeadGoLive,
+} from "@/lib/golive-escritores.functions";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/comercial")({
@@ -27,19 +34,40 @@ export const Route = createFileRoute("/_authenticated/golive/comercial")({
 function ComercialGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
+  const novoLead = useServerFn(registrarLeadGoLive);
+  const discovery = useServerFn(registrarDiscoveryGoLive);
+  const call = useServerFn(registrarCallGoLive);
+  const leadId = caso?.lead?.id ?? null;
 
   return (
     <GoLiveShell titulo="Comercial" descricao="Entrada e seguimento até o caso aberto.">
       <FaixaFluxo atual="Lead" />
 
-      <div className="flex flex-wrap items-center gap-2">
-        <Link to="/leads">
-          <Button size="sm">Novo lead</Button>
-        </Link>
-        <Link to="/calls" className="text-sm text-navy underline decoration-gold underline-offset-4">
-          Registrar call
-        </Link>
-      </div>
+      <Acoes>
+        <Acao
+          rotulo="Novo lead"
+          titulo="Registrar lead"
+          campos={[
+            { nome: "nome", rotulo: "Nome", obrigatorio: true },
+            { nome: "email", rotulo: "E-mail" },
+            { nome: "telefone", rotulo: "Telefone" },
+            { nome: "origem", rotulo: "Origem" },
+            { nome: "objetivo", rotulo: "Objetivo", tipo: "area" },
+          ]}
+          aoConfirmar={(v) =>
+            novoLead({
+              data: {
+                nome: v["nome"] ?? "",
+                email: v["email"] ?? "",
+                telefone: v["telefone"] ?? "",
+                origem: v["origem"] ?? "",
+                objetivo: v["objetivo"] ?? "",
+              },
+            })
+          }
+          confirmacao="Lead registrado neste caso."
+        />
+      </Acoes>
 
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
       {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
@@ -83,6 +111,50 @@ function ComercialGoLive() {
                 <Campo rotulo="Call realizada" valor={dataHumana(caso.lead.callRealizada, "Sem call registrada")} />
                 <Campo rotulo="Resultado do Discovery" valor={humano(caso.lead.discoveryResultado)} />
               </dl>
+            ) : null}
+            {leadId ? (
+              <Acoes>
+                <Acao
+                  rotulo="Registrar Discovery"
+                  titulo="Resultado da Mesa de Discovery"
+                  variante="outline"
+                  campos={[
+                    {
+                      nome: "resultado",
+                      rotulo: "Resultado",
+                      tipo: "escolha",
+                      obrigatorio: true,
+                      opcoes: [
+                        { valor: "segue_para_proposta", rotulo: "Segue para proposta" },
+                        { valor: "em_avaliacao", rotulo: "Em avaliação" },
+                        { valor: "nao_elegivel", rotulo: "Não elegível" },
+                      ],
+                    },
+                    { nome: "resumo", rotulo: "Resumo interno", tipo: "area", obrigatorio: true },
+                  ]}
+                  aoConfirmar={(v) =>
+                    discovery({
+                      data: { leadId, resultado: v["resultado"] ?? "", resumo: v["resumo"] ?? "" },
+                    })
+                  }
+                  confirmacao="Discovery registrado."
+                />
+                <Acao
+                  rotulo="Registrar call"
+                  titulo="Call com a pessoa"
+                  variante="outline"
+                  campos={[
+                    { nome: "ocorridoEm", rotulo: "Data", tipo: "data" },
+                    { nome: "resumo", rotulo: "Resumo interno", tipo: "area", obrigatorio: true },
+                  ]}
+                  aoConfirmar={(v) =>
+                    call({
+                      data: { leadId, resumo: v["resumo"] ?? "", ocorridoEm: v["ocorridoEm"] ?? "" },
+                    })
+                  }
+                  confirmacao="Call registrada."
+                />
+              </Acoes>
             ) : (
               <>
                 <Vazio
