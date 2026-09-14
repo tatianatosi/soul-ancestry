@@ -133,7 +133,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
     /* Nomes de responsáveis: só para rotular carga; ausência vira "Sem responsável". */
     const idsResponsaveis = Array.from(
       new Set(
-        [...(tarefasCaso ?? []), ...([] as Linha[])]
+        [...(tarefasCaso ?? []), ...(microentregas ?? [])]
           .map((t) => t["responsavel_id"])
           .filter((v): v is string => typeof v === "string"),
       ),
