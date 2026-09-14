@@ -118,3 +118,64 @@ export function Rosca({ dados, titulo }: { dados: Fatia[]; titulo: string }) {
     </div>
   );
 }
+
+/** Linha de ritmo: série curta de contagens já apuradas, por período. */
+export function Linha({ dados, titulo }: { dados: Fatia[]; titulo: string }) {
+  const max = Math.max(1, ...dados.map((d) => d.valor));
+  const largura = 320;
+  const altura = 96;
+  const passo = dados.length > 1 ? largura / (dados.length - 1) : 0;
+  const pontos = dados.map((d, i) => [i * passo, altura - (d.valor / max) * (altura - 16) - 8] as const);
+  const caminho = pontos.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" ");
+
+  return (
+    <div className="min-w-0">
+      <svg
+        viewBox={`0 0 ${largura} ${altura}`}
+        className="h-24 w-full"
+        preserveAspectRatio="none"
+        role="img"
+        aria-label={`${titulo}: ${dados.map((d) => `${d.rotulo} ${d.valor}`).join(", ")}.`}
+      >
+        <path d={caminho} fill="none" stroke={NAVY} strokeWidth="2" vectorEffect="non-scaling-stroke" />
+        {pontos.map((p, i) => (
+          <circle key={i} cx={p[0]} cy={p[1]} r="3" fill={GOLD} />
+        ))}
+      </svg>
+      <ul className="mt-1 flex justify-between gap-1 text-[10px] text-navy/55">
+        {dados.map((d) => (
+          <li key={d.rotulo} className="min-w-0 truncate text-center">
+            {d.rotulo}
+            <span className="block font-semibold text-navy">{d.valor}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Linha do tempo vertical: eventos já gravados, do mais recente ao mais antigo. */
+export function LinhaDoTempo({
+  itens,
+}: {
+  itens: { id: string; titulo: string; quando: string; detalhe?: string | null }[];
+}) {
+  return (
+    <ol className="min-w-0 space-y-3 border-l border-navy/15 pl-4">
+      {itens.map((i) => (
+        <li key={i.id} className="relative min-w-0">
+          <span
+            className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full"
+            style={{ background: GOLD }}
+            aria-hidden
+          />
+          <p className="break-words text-sm text-navy">{i.titulo}</p>
+          <p className="text-xs text-navy/55">
+            {i.quando}
+            {i.detalhe ? ` · ${i.detalhe}` : ""}
+          </p>
+        </li>
+      ))}
+    </ol>
+  );
+}
