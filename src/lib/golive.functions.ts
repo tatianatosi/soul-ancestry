@@ -115,7 +115,33 @@ export const carregarGoLive = createServerFn({ method: "GET" })
       lista(supabase, "research_cases", "case_id", casoId),
       lista(supabase, "research_hypotheses", "case_id", casoId),
       lista(supabase, "genealogical_findings", "case_id", casoId),
+      lista(supabase, "tarefas", "caso_id", casoId),
+      lista(supabase, "case_timeline_events", "case_id", casoId),
     ]);
+
+    /* Carteira da organização — só identificadores e estado, sem filtro por texto.
+       Serve aos KPIs de Hoje (casos ativos, sem próxima ação) e à rosca de prioridade. */
+    const carteira = (
+      await supabase
+        .from("crm_casos")
+        .select("id,codigo,titulo,status,prioridade,proxima_acao,prazo_proxima_acao,demo")
+        .eq("organization_id", organizationId)
+        .is("archived_at", null)
+        .limit(500)
+    ).data as Linha[] | null;
+
+    /* Nomes de responsáveis: só para rotular carga; ausência vira "Sem responsável". */
+    const idsResponsaveis = Array.from(
+      new Set(
+        [...(tarefasCaso ?? []), ...([] as Linha[])]
+          .map((t) => t["responsavel_id"])
+          .filter((v): v is string => typeof v === "string"),
+      ),
+    );
+    const perfis = idsResponsaveis.length
+      ? (((await supabase.from("profiles").select("id,nome").in("id", idsResponsaveis)).data ?? []) as Linha[])
+      : [];
+    const nomePerfil = new Map(perfis.map((p) => [String(p["id"]), String(p["nome"] ?? "")]));
 
     const pesquisaId = pesquisas[0] ? String(pesquisas[0]["id"]) : null;
     const [fontes, evidenciasPesquisa, escopoItens] = await Promise.all([
