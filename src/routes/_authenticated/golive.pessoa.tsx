@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
 import { useGoLive } from "@/components/golive/dados";
+import { humano } from "@/lib/rotulos-golive";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/pessoa")({
@@ -23,31 +24,57 @@ function PessoaGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
 
+  const papelNoNucleo =
+    caso?.identidade.nucleoMembros.find((m) => m.nome === caso.identidade.pessoaPrincipal)?.papel ?? null;
+
   return (
     <GoLiveShell titulo="Pessoa 360" descricao="A mesma pessoa, em uma leitura só.">
       <FaixaFluxo atual="Pessoa" />
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
       {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
       {data && !data.encontrado ? (
-        <Vazio cta={<span className="text-sm text-navy/60">Nenhuma pessoa disponível nesta conta.</span>} />
+        <Bloco titulo="Pessoa">
+          <Vazio
+            cta={
+              <Link to="/clientes">
+                <Button size="sm">Buscar pessoa</Button>
+              </Link>
+            }
+          />
+          <p className="text-xs text-navy/55">Nenhuma pessoa selecionada.</p>
+        </Bloco>
       ) : null}
 
       {caso ? (
         <>
           <FaixaIdentidade dados={caso} />
 
-          <Bloco titulo="Contato">
+          <Bloco titulo="Identidade e contato">
             <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Campo rotulo="Papel no núcleo" valor={humano(papelNoNucleo, "Papel ainda não registrado")} />
+              <Campo rotulo="Núcleo" valor={caso.identidade.nucleo} />
               <Campo rotulo="E-mail" valor={caso.identidade.email} />
               <Campo rotulo="Telefone" valor={caso.identidade.telefone} />
             </dl>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link to="/golive/pessoas" className="text-sm text-navy underline decoration-gold underline-offset-4">
+                Ver núcleo familiar
+              </Link>
+              <Link
+                to="/pessoas-linhagens/$caseId"
+                params={{ caseId: caso.caso.id }}
+                className="text-sm text-navy underline decoration-gold underline-offset-4"
+              >
+                Ver árvore
+              </Link>
+            </div>
           </Bloco>
 
           <Bloco titulo="Caso desta pessoa">
             <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Campo rotulo="Caso" valor={`${caso.caso.codigo} — ${caso.caso.titulo}`} />
-              <Campo rotulo="Etapa" valor={caso.plano?.fase ?? caso.caso.fase} />
-              <Campo rotulo="Próxima ação" valor={caso.plano?.proximaAcao ?? caso.caso.proximaAcao} />
+              <Campo rotulo="Caso" valor={caso.caso.titulo} />
+              <Campo rotulo="Etapa" valor={humano(caso.plano?.fase ?? caso.caso.fase)} />
+              <Campo rotulo="Próxima ação" valor={humano(caso.plano?.proximaAcao ?? caso.caso.proximaAcao)} />
               <Campo rotulo="Responsável" valor={caso.caso.responsavel} />
             </dl>
             <Link to="/golive/caso">
@@ -60,7 +87,7 @@ function PessoaGoLive() {
               <ul className="space-y-1 text-sm text-navy">
                 {caso.documentos.map((d) => (
                   <li key={d.id} className="break-words">
-                    {d.titulo} {d.status ? <span className="text-navy/55">— {d.status}</span> : null}
+                    {d.titulo} {d.status ? <span className="text-navy/55">— {humano(d.status)}</span> : null}
                   </li>
                 ))}
               </ul>
@@ -72,20 +99,6 @@ function PessoaGoLive() {
                   </Link>
                 }
               />
-            )}
-          </Bloco>
-
-          <Bloco titulo="Registros antigos fora do piloto">
-            {caso.identidade.legado.length ? (
-              <ul className="space-y-1 text-sm text-navy/75">
-                {caso.identidade.legado.map((l) => (
-                  <li key={`${l.origem}-${l.id}`} className="break-words">
-                    {l.rotulo} <span className="text-navy/50">— {l.origem}: {l.motivo}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <Vazio cta={<span className="text-sm text-navy/60">Nenhum registro duplicado localizado.</span>} />
             )}
           </Bloco>
         </>
