@@ -82,6 +82,44 @@ function PessoasGoLive() {
               )}
             </Grupo>
 
+            <Acoes>
+              <Acao
+                rotulo="Adicionar pessoa ao núcleo"
+                titulo="Nova pessoa do núcleo familiar"
+                variante="outline"
+                campos={[
+                  { nome: "nome", rotulo: "Nome completo", obrigatorio: true },
+                  {
+                    nome: "papel",
+                    rotulo: "Papel",
+                    tipo: "escolha",
+                    obrigatorio: true,
+                    opcoes: [
+                      { valor: "contratante_signatario", rotulo: "Contratante / signatário" },
+                      { valor: "dependente", rotulo: "Dependente" },
+                    ],
+                  },
+                  {
+                    nome: "base",
+                    rotulo: "Base da relação",
+                    tipo: "area",
+                    obrigatorio: true,
+                    ajuda: "Documento, evidência ou decisão humana que sustenta o vínculo.",
+                  },
+                ]}
+                aoConfirmar={(v) =>
+                  adicionarMembro({
+                    data: {
+                      nome: v["nome"] ?? "",
+                      papel: (v["papel"] as "contratante_signatario" | "dependente") ?? "dependente",
+                      base: v["base"] ?? "",
+                    },
+                  })
+                }
+                confirmacao="Pessoa adicionada ao núcleo."
+              />
+            </Acoes>
+
             <div className="flex flex-wrap items-center gap-3 pt-1">
               <Link to="/golive/pessoa" className="text-sm text-navy underline decoration-gold underline-offset-4">
                 Abrir Pessoa 360
