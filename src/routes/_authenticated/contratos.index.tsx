@@ -94,6 +94,7 @@ function ContratosPage() {
         )
       }
     >
+      <FormalizacaoConectada />
       {pendenciaVinculo || !podeEscrever ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
           Pendência registrada:{" "}
