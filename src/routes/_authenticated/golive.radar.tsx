@@ -14,7 +14,7 @@ import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
-import { dataHumana } from "@/lib/rotulos-golive";
+import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/radar")({
   head: () => ({
