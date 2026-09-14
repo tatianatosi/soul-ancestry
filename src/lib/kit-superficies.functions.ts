@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
+import { ehRegistroDeTeste } from "@/lib/registros-teste";
 
 /**
  * Leitura real das cinco superfícies do kit visual (Hoje, Comercial,
@@ -82,7 +83,9 @@ export const carregarSuperficiesKit = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
 
     const casos = (data ?? []) as Linha[];
-    const reais = casos.filter((c) => c["demo"] !== true);
+    const reais = casos.filter(
+      (c) => c["demo"] !== true && !ehRegistroDeTeste({ codigo: c["codigo"], titulo: c["titulo"] }),
+    );
     const hoje = new Date();
 
     const vencidos = reais.filter((c) => {
