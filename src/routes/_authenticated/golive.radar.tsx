@@ -113,7 +113,7 @@ function Matriz({ caso }: { caso: Caso }) {
           <text x="165" y="246" fontSize="10" fill="#2F4B6E" textAnchor="middle">Prontidão do caso</text>
 
           <circle cx={x} cy={y} r="8" fill="#9A3A2F" />
-          <text x={x} cy={y} y={y + 3} textAnchor="middle" fontSize="8" fill="#fff" fontWeight="bold">1</text>
+          <text x={x} y={y + 3} textAnchor="middle" fontSize="8" fill="#fff" fontWeight="bold">1</text>
           <text
             x={x > 200 ? x - 12 : x + 12}
             y={y - 12}
