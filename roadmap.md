@@ -34,6 +34,7 @@
 - [x] Remover a montagem empilhada entre o kit visual novo e as telas antigas em Hoje, Comercial, Pesquisa/Biblioteca, Formalização & Financeiro e Governança.
 - [x] Retirar da operação diária inventários técnicos, motores P0–P11 e fases explicativas, preservando as ações e leituras reais.
 - [x] Substituir a primeira leitura das cinco superfícies pelo novo Desk conectado, deixando as rotinas reais em áreas operacionais recolhidas e sem sobreposição.
+- [x] Retirar do Hoje a composição histórica longa (`PainelDia`), que ainda podia reabrir Caso em destaque, Jornada, cadência, revisão jurídica e filas antigas abaixo da superfície nova.
 - [ ] Validar as cinco superfícies em celular e desktop, sem sobreposição, dados demonstrativos ou regressão de acesso.
 
 ## Patch global de responsividade do Desk (14/09/2026)
