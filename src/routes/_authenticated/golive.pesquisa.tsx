@@ -42,6 +42,81 @@ const ETAPAS = ["Pergunta", "Fonte", "Evidência", "Achado", "Proposta"] as cons
 function PesquisaGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
+  const novaFonte = useServerFn(registrarFonteGoLive);
+  const novaEvidencia = useServerFn(registrarEvidenciaGoLive);
+  const novoAchado = useServerFn(registrarAchadoGoLive);
+
+  const acaoFonte = (
+    <Acao
+      rotulo="Registrar fonte"
+      titulo="Fonte consultada"
+      variante="outline"
+      campos={[
+        { nome: "titulo", rotulo: "Fonte", obrigatorio: true },
+        { nome: "instituicao", rotulo: "Arquivo ou instituição" },
+        { nome: "tipo", rotulo: "Tipo", padrao: "registro_civil" },
+        { nome: "url", rotulo: "Endereço (se houver)" },
+      ]}
+      aoConfirmar={(v) =>
+        novaFonte({
+          data: {
+            titulo: v["titulo"] ?? "",
+            instituicao: v["instituicao"] ?? "",
+            tipo: v["tipo"] ?? "",
+            url: v["url"] ?? "",
+          },
+        })
+      }
+      confirmacao="Fonte registrada."
+    />
+  );
+
+  const acaoEvidencia = (
+    <Acao
+      rotulo="Anexar evidência"
+      titulo="Evidência coletada"
+      variante="outline"
+      campos={[
+        { nome: "titulo", rotulo: "Evidência", obrigatorio: true },
+        { nome: "tipo", rotulo: "Tipo", padrao: "documento" },
+        {
+          nome: "fonteId",
+          rotulo: "Fonte de origem",
+          tipo: "escolha",
+          opcoes: (caso?.fontes ?? []).map((f) => ({ valor: f.id, rotulo: f.titulo ?? "Fonte" })),
+        },
+        { nome: "descricao", rotulo: "Descrição interna", tipo: "area" },
+      ]}
+      aoConfirmar={(v) =>
+        novaEvidencia({
+          data: {
+            titulo: v["titulo"] ?? "",
+            tipo: v["tipo"] ?? "",
+            fonteId: v["fonteId"] ?? "",
+            descricao: v["descricao"] ?? "",
+          },
+        })
+      }
+      confirmacao="Evidência registrada para revisão."
+    />
+  );
+
+  const acaoAchado = (
+    <Acao
+      rotulo="Registrar achado"
+      titulo="Achado em revisão"
+      variante="outline"
+      campos={[
+        { nome: "titulo", rotulo: "Achado", obrigatorio: true },
+        { nome: "tipo", rotulo: "Tipo", padrao: "vinculo_familiar" },
+        { nome: "resumo", rotulo: "Resumo interno", tipo: "area" },
+      ]}
+      aoConfirmar={(v) =>
+        novoAchado({ data: { titulo: v["titulo"] ?? "", tipo: v["tipo"] ?? "", resumo: v["resumo"] ?? "" } })
+      }
+      confirmacao="Achado registrado como hipótese em revisão."
+    />
+  );
 
   const perguntas = caso
     ? [
