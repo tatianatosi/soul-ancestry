@@ -11,6 +11,7 @@ import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-supriment
 
 import { MotoresPrimordiais } from "@/components/biblioteca/motores-primordiais";
 import { FilaPublicacaoReal } from "@/components/biblioteca/fila-publicacao-real";
+import { PesquisaConectada } from "@/components/desk/superficies-kit-conectadas";
 import { MAPA_CENTRO_INTELIGENCIA, SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
 import { rotuloFonteNegocio } from "@/lib/rotulo-negocio";
 import {
@@ -186,6 +187,7 @@ function BibliotecaPage() {
       descricao="Base operacional interna do Desk: referências estruturadas que alimentam pesquisa, relatórios e operação. Nada aqui é exposto ao App Cliente."
       visualKit="pantone"
     >
+      <PesquisaConectada />
       {pendenciaVinculo || !podeEscrever ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
           Pendência registrada:{" "}

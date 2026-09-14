@@ -10,6 +10,7 @@ import { definirPapel, listarUsuarios, type Papel } from "@/lib/saas.functions";
 import { obterModoProprietaria, type EventoProprietaria } from "@/lib/modo-proprietaria.functions";
 import { CAPACIDADES_PROPRIETARIA, ROTULO_CAPACIDADE } from "@/lib/modo-proprietaria";
 import { KitBadge, KitCard, KpiCard } from "@/components/clube-ancestral-kit";
+import { GovernancaConectada } from "@/components/desk/superficies-kit-conectadas";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: () => ({
@@ -61,6 +62,7 @@ function ConfiguracoesPage() {
 
   return (
     <SaasShell titulo="Configuração & Acesso Master" descricao="Somente administradores da organização. Gestão de contas da equipe fica em Equipe e papéis." visualKit="pantone">
+      <GovernancaConectada />
       <section aria-label="Resumo de acesso master" className="mb-4 space-y-3">
         <div className="grid gap-3 sm:grid-cols-3">
           <KpiCard label="Membros" value={q.data?.length} detail="Contas vinculadas à organização" />

@@ -8,6 +8,7 @@ import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
+import { FormalizacaoConectada } from "@/components/desk/superficies-kit-conectadas";
 import { criarInstrumento, listarContratos, painelContratual } from "@/lib/contratos.functions";
 import { listarCasosFicha } from "@/lib/caso-ficha.functions";
 import {
@@ -93,6 +94,7 @@ function ContratosPage() {
         )
       }
     >
+      <FormalizacaoConectada />
       {pendenciaVinculo || !podeEscrever ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
           Pendência registrada:{" "}
