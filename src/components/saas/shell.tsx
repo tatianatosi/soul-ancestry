@@ -207,10 +207,22 @@ export function SaasShell({
   }));
 
   return (
-    <div className="flex min-h-screen bg-cream text-navy" data-visual-kit={visualKit}>
+    <div
+      className="flex min-h-svh w-full max-w-full overflow-x-clip bg-cream text-navy"
+      data-desk-shell="authenticated"
+      data-visual-kit={visualKit}
+    >
+      {aberto ? (
+        <button
+          type="button"
+          aria-label="Fechar navegação"
+          className="fixed inset-0 z-30 bg-navy/35 md:hidden"
+          onClick={() => setAberto(false)}
+        />
+      ) : null}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 shrink-0 flex-col overflow-y-auto border-r border-navy/20 bg-navy px-3 py-5 text-cream lg:static lg:flex",
+          "fixed inset-y-0 left-0 z-40 w-[min(18rem,calc(100vw-2rem))] max-w-full shrink-0 flex-col overflow-y-auto border-r border-navy/20 bg-navy px-3 py-5 text-cream md:static md:flex md:w-64",
           aberto ? "flex" : "hidden",
         )}
       >
@@ -358,10 +370,10 @@ export function SaasShell({
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b border-navy/10 bg-cream px-4 py-4 lg:px-8">
+      <div className="flex min-w-0 max-w-full flex-1 flex-col overflow-x-clip">
+        <header className="grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3 border-b border-navy/10 bg-cream px-4 py-4 md:flex md:px-8">
           <button
-            className="lg:hidden"
+            className="shrink-0 md:hidden"
             onClick={() => setAberto((v) => !v)}
             aria-label="Abrir navegação"
           >
@@ -371,14 +383,14 @@ export function SaasShell({
             size={30}
             showText={false}
             variant="client-light"
-            className="shrink-0 lg:hidden"
+            className="shrink-0 md:hidden"
           />
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 max-w-full flex-1">
             <h1 className="truncate font-serif text-2xl">{titulo}</h1>
-            {descricao ? <p className="text-sm text-navy/60">{descricao}</p> : null}
+            {descricao ? <p className="overflow-wrap-anywhere text-sm text-navy/60">{descricao}</p> : null}
           </div>
-          {acoes}
+          {acoes ? <div className="col-span-full min-w-0 max-w-full md:col-auto">{acoes}</div> : null}
         </header>
         {contexto?.organizacao?.demo ? (
           <div className="border-b border-gold/40 bg-gold/15 px-4 py-2 text-xs font-medium uppercase tracking-wide text-navy lg:px-8">
@@ -388,7 +400,8 @@ export function SaasShell({
         {/* Identidade de marca aplicada em escopo isolado: somente a área de
             Pesquisa / Gestão de Pesquisa (inclui /evidencias). Demais telas permanecem congeladas. */}
         <main
-          className="min-w-0 flex-1 p-4 pb-20 lg:p-8"
+          className="min-w-0 w-full max-w-full flex-1 overflow-x-clip p-4 pb-[calc(5rem+env(safe-area-inset-bottom))] md:p-8 md:pb-8"
+          data-desk-content="true"
           data-marca={
             rota.startsWith("/pesquisa") ||
             rota === "/evidencias" ||

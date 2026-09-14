@@ -29,7 +29,7 @@ export function KitBadge({ children, tone = "neutral" }: { children: ReactNode; 
 
 export function KitCard({ title, eyebrow, action, children, className }: { title?: string; eyebrow?: string; action?: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <section className={cn("rounded-lg border border-navy/10 bg-card p-4 shadow-sm", className)}>
+    <section className={cn("min-w-0 w-full max-w-full rounded-lg border border-navy/10 bg-card p-4 shadow-sm", className)}>
       {title || action ? <header className="mb-3 flex items-start justify-between gap-3"><div>{eyebrow ? <p className="text-[10px] font-semibold uppercase tracking-widest text-terracotta">{eyebrow}</p> : null}{title ? <h3 className="font-serif text-lg text-navy">{title}</h3> : null}</div>{action}</header> : null}
       {children}
     </section>
@@ -38,11 +38,11 @@ export function KitCard({ title, eyebrow, action, children, className }: { title
 
 export function KitField(props: InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string }) {
   const { label, hint, className, ...inputProps } = props;
-  return <label className="block text-sm text-navy"><span className="mb-1 block text-[11px] font-medium uppercase tracking-widest text-navy/55">{label}</span><input className={cn("w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-navy outline-none focus-visible:ring-2 focus-visible:ring-gold", className)} {...inputProps} />{hint ? <span className="mt-1 block text-xs text-navy/55">{hint}</span> : null}</label>;
+  return <label className="block min-w-0 w-full max-w-full text-sm text-navy"><span className="mb-1 block text-[11px] font-medium uppercase tracking-widest text-navy/55">{label}</span><input className={cn("min-w-0 w-full max-w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-navy outline-none focus-visible:ring-2 focus-visible:ring-gold", className)} {...inputProps} />{hint ? <span className="mt-1 block text-xs text-navy/55">{hint}</span> : null}</label>;
 }
 
 export function KitTable({ columns, rows, caption }: { columns: string[]; rows: ReactNode[][]; caption?: string }) {
-  return <div className="overflow-x-auto rounded-lg border border-navy/10 bg-card"><table className="w-full min-w-[36rem] text-left text-sm"><caption className="sr-only">{caption ?? "Tabela"}</caption><thead className="border-b border-navy/10 bg-cream/50"><tr>{columns.map((column) => <th key={column} className="px-3 py-2 text-[11px] font-semibold uppercase tracking-widest text-navy/60">{column}</th>)}</tr></thead><tbody className="divide-y divide-navy/5">{rows.map((row, rowIndex) => <tr key={rowIndex}>{row.map((cell, cellIndex) => <td key={cellIndex} className="px-3 py-2 text-navy/80">{cell}</td>)}</tr>)}</tbody></table></div>;
+  return <div className="min-w-0 w-full max-w-full overflow-x-auto rounded-lg border border-navy/10 bg-card"><table className="w-full min-w-[36rem] text-left text-sm"><caption className="sr-only">{caption ?? "Tabela"}</caption><thead className="border-b border-navy/10 bg-cream/50"><tr>{columns.map((column) => <th key={column} className="px-3 py-2 text-[11px] font-semibold uppercase tracking-widest text-navy/60">{column}</th>)}</tr></thead><tbody className="divide-y divide-navy/5">{rows.map((row, rowIndex) => <tr key={rowIndex}>{row.map((cell, cellIndex) => <td key={cellIndex} className="px-3 py-2 text-navy/80">{cell}</td>)}</tr>)}</tbody></table></div>;
 }
 
 export function KitEmptyState({ title, description, action }: { title: string; description: string; action?: ReactNode }) {

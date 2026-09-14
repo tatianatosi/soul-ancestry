@@ -42,12 +42,12 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <div className={cn("mb-6 flex flex-wrap items-end justify-between gap-3", className)}>
+    <div className={cn("mb-6 grid min-w-0 grid-cols-1 items-end gap-3 md:grid-cols-[minmax(0,1fr)_auto]", className)}>
       <div className="min-w-0">
-        <h2 className="font-serif text-2xl leading-tight text-navy">{titulo}</h2>
+        <h2 className="overflow-wrap-anywhere font-serif text-2xl leading-tight text-navy">{titulo}</h2>
         {subtitulo ? <p className="mt-1 max-w-2xl text-sm text-navy/65">{subtitulo}</p> : null}
       </div>
-      {acoes ? <div className="flex flex-wrap items-center gap-2">{acoes}</div> : null}
+      {acoes ? <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">{acoes}</div> : null}
     </div>
   );
 }
@@ -65,17 +65,17 @@ export function SectionHeader({
   etiqueta?: string;
 }) {
   return (
-    <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+    <div className="mb-3 grid min-w-0 grid-cols-1 items-end gap-2 md:grid-cols-[minmax(0,1fr)_auto]">
       <div className="min-w-0">
         {etiqueta ? (
           <p className="text-[11px] font-medium uppercase tracking-widest text-navy/55">
             {etiqueta}
           </p>
         ) : null}
-        <h3 className="font-serif text-lg leading-snug text-navy">{titulo}</h3>
+        <h3 className="overflow-wrap-anywhere font-serif text-lg leading-snug text-navy">{titulo}</h3>
         {descricao ? <p className="text-xs text-navy/60">{descricao}</p> : null}
       </div>
-      {acoes ? <div className="flex flex-wrap items-center gap-2">{acoes}</div> : null}
+      {acoes ? <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">{acoes}</div> : null}
     </div>
   );
 }
@@ -94,7 +94,7 @@ export function CardIndicador({
 }) {
   const temValor = valor !== null && valor !== undefined && valor !== "";
   return (
-    <div className="rounded-xl border border-navy/10 bg-cream/50 p-4 shadow-[0_1px_2px_rgba(16,16,16,0.04)]">
+    <div className="min-w-0 w-full max-w-full rounded-xl border border-navy/10 bg-cream/50 p-4 shadow-[0_1px_2px_rgba(16,16,16,0.04)]">
       <p className="text-[11px] font-medium uppercase tracking-widest text-navy/55">{rotulo}</p>
       <p
         className={cn(
@@ -148,7 +148,7 @@ export function BarraFiltros({ children, className }: { children: ReactNode; cla
   return (
     <div
       className={cn(
-        "mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-navy/10 bg-cream/60 p-2",
+        "mb-3 flex min-w-0 w-full max-w-full flex-wrap items-center gap-2 rounded-xl border border-navy/10 bg-cream/60 p-2",
         className,
       )}
     >
