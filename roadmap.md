@@ -47,3 +47,9 @@
 - [x] Shell novo `/golive` (Hoje, Caso Ana, Pesquisa, Formalização, Configurações, App Cliente) lendo só `CA-CID-AT-FAM-2026-001`
 - [x] Publicação manual de microentrega reaproveitando `publicarProjecaoApp`
 - [ ] Prova autenticada da Proprietária (prints inicial/ação/confirmação/releitura)
+
+## Mapa Ana: Lead → App Cliente (14/09/2026, somente leitura)
+- [ ] Mapear os 12 marcos (Lead → Portal/App) com rota, CTA entrada/saída, o que se vê, estado vazio, estado visual e print mobile.
+- [ ] Conferir as 11 superfícies do Desk e as 7 abas do App da prancha v3, marcando lacunas e telas com demo/teste/alerta técnico/catálogo/blocos repetidos.
+- [ ] Entregar `mapa-ana-lead-app-visual` (Markdown + PDF). Sem implementar, sem corrigir.
+- [ ] Revisar a proposta contra a prancha v3 (contrato): Desk cobre 11 contextos (Hoje, Comercial, Kanban, Caso 360, Pessoa 360, Radar, Pesquisa, Financeiro, Jurídico, Pessoas, Portal/Config Master) e App mantém 7 abas. Nada removido: Discovery/Calls, funil/handoff, Kanban, Pessoa 360, Pessoas/núcleos, Radar, Financeiro próprio, Jurídico completo e convite real do cliente.
