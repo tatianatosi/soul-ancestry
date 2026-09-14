@@ -223,8 +223,30 @@ function CasoGoLive() {
                     ))}
                   </ul>
                 ) : (
-                  <Vazio cta={<span className="text-sm text-navy/60">Publique uma atualização abaixo.</span>} />
+                  <Vazio cta={acaoMicroentrega} />
                 )}
+                {caso.microentregas.length ? (
+                  <Acoes>
+                    {acaoMicroentrega}
+                    <Acao
+                      rotulo="Aprovar microentrega"
+                      titulo="Revisão humana concluída"
+                      variante="outline"
+                      campos={[
+                        {
+                          nome: "id",
+                          rotulo: "Microentrega",
+                          tipo: "escolha",
+                          obrigatorio: true,
+                          opcoes: caso.microentregas.map((m) => ({ valor: m.id, rotulo: m.titulo })),
+                        },
+                        { nome: "evidencia", rotulo: "Evidência da revisão", tipo: "area" },
+                      ]}
+                      aoConfirmar={(v) => aprovar({ data: { id: v["id"] ?? "", evidencia: v["evidencia"] ?? "" } })}
+                      confirmacao="Microentrega aprovada."
+                    />
+                  </Acoes>
+                ) : null}
               </Bloco>
 
               <Bloco titulo="Publicar microentrega no App Cliente">
