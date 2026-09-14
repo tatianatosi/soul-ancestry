@@ -109,9 +109,40 @@ function KanbanGoLive() {
             })}
           </div>
 
+          <Bloco titulo="Próxima ação do caso">
+            <p className="break-words text-sm text-navy">
+              {caso.plano?.proximaAcao ?? caso.caso.proximaAcao ?? "Sem itens nesta etapa"}
+              {caso.plano?.prazo ?? caso.caso.prazo ? (
+                <span className="text-navy/55"> · até {dataHumana(caso.plano?.prazo ?? caso.caso.prazo)}</span>
+              ) : null}
+            </p>
+            <Acoes>
+              <Acao
+                rotulo="Definir próxima ação"
+                titulo="O que vem agora neste caso"
+                variante="outline"
+                campos={[
+                  { nome: "proximaAcao", rotulo: "Próxima ação", tipo: "area", obrigatorio: true },
+                  { nome: "responsavel", rotulo: "Responsável" },
+                  { nome: "prazo", rotulo: "Prazo", tipo: "data" },
+                ]}
+                aoConfirmar={(v) =>
+                  definir({
+                    data: {
+                      proximaAcao: v["proximaAcao"] ?? "",
+                      responsavel: v["responsavel"] ?? "",
+                      prazo: v["prazo"] ?? "",
+                    },
+                  })
+                }
+                confirmacao="Próxima ação registrada no planejador."
+              />
+            </Acoes>
+          </Bloco>
+
           {total === 0 ? (
             <p className="text-xs text-navy/55">
-              Nenhuma microentrega registrada até agora. A atualização de próxima ação continua no Caso 360.
+              Nenhuma microentrega registrada até agora. Crie a primeira no Caso 360.
             </p>
           ) : null}
         </>
