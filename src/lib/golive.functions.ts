@@ -134,6 +134,24 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         .limit(500)
     ).data as Linha[] | null;
 
+    /* Carteira comercial da organização (CRM vivo). Só leitura, sem writer novo:
+       etapa, origem, responsável, último toque e próximo passo já gravados no lead. */
+    const leadsOrg = (
+      await supabase
+        .from("leads")
+        .select(
+          "id,nome,estagio,eixo_comercial,origem,data_origin,responsavel_nome,proxima_acao,proxima_acao_em," +
+            "ultimo_followup_em,call_agendada_em,call_realizada_em,status_call,resumo_call,discovery_resultado," +
+            "objetivo,consentimento_status,consentimento_em,consentimento_canal,proposta_referencia_interna," +
+            "case_id,updated_at,created_at,demo,dados_teste",
+        )
+        .eq("organization_id", organizationId)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false })
+        .limit(200)
+    ).data as Linha[] | null;
+
+
     /* Nomes de responsáveis: só para rotular carga; ausência vira "Sem responsável". */
     const idsResponsaveis = Array.from(
       new Set(
