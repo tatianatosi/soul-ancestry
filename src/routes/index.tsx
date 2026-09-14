@@ -112,7 +112,14 @@ function Home() {
             >
               Acesso da equipe
             </Link>
+            <Link
+              to="/golive"
+              className="rounded-full border border-navy/25 px-6 py-3 font-medium text-navy hover:bg-cream"
+            >
+              Nova tela do Desk
+            </Link>
           </div>
+
         </section>
 
         <section className="border-y border-navy/10 bg-cream/60">
