@@ -203,6 +203,7 @@ function PesquisaGoLive() {
       <Etapa
         titulo="3. Evidências"
         vazio="Anexar evidência"
+        acao={acaoEvidencia}
         itens={evidencias.map((e) => (
           <li key={e.id} className="break-words">
             {e.titulo}
