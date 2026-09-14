@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
+import { Barras } from "@/components/golive/graficos";
 import { useGoLive } from "@/components/golive/dados";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import { Button } from "@/components/ui/button";
@@ -66,6 +67,17 @@ function KanbanGoLive() {
       {caso ? (
         <>
           <FaixaIdentidade dados={caso} />
+
+          {total > 0 ? (
+            <Bloco titulo="Distribuição do trabalho">
+              <Barras
+                titulo="Microentregas por coluna"
+                dados={COLUNAS.map((c) => ({ rotulo: c, valor: colunas.get(c)!.length }))}
+              />
+            </Bloco>
+          ) : null}
+
+
 
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-4">
             {COLUNAS.map((coluna) => {

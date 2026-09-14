@@ -45,8 +45,16 @@ function JuridicoGoLive() {
       {caso ? <FaixaIdentidade dados={caso} /> : null}
 
       <Bloco titulo="1. Proposta">
-        {caso?.plano?.marco ? (
-          <p className="break-words text-sm text-navy">{humano(caso.plano.marco)}</p>
+        {caso?.propostas.length ? (
+          <ul className="space-y-1 text-sm text-navy">
+            {caso.propostas.map((p) => (
+              <li key={p.id} className="break-words">
+                Versão {p.versao ?? 1} — {humano(p.status)}
+                {p.enviadaEm ? <span className="text-navy/55"> · enviada em {dataHumana(p.enviadaEm)}</span> : null}
+                {p.aprovadaEm ? <span className="text-navy/55"> · aprovada em {dataHumana(p.aprovadaEm)}</span> : null}
+              </li>
+            ))}
+          </ul>
         ) : (
           <Vazio
             cta={
@@ -57,6 +65,32 @@ function JuridicoGoLive() {
           />
         )}
       </Bloco>
+
+      <Bloco titulo="1b. Escopo acordado">
+        {caso?.escopo.length ? (
+          <ul className="space-y-1 text-sm text-navy">
+            {caso.escopo.map((i) => (
+              <li key={i.id} className="break-words">
+                {i.titulo}
+                <span className="text-navy/55">
+                  {" "}
+                  — {humano(i.status, "sem situação")}
+                  {i.exigeRevisaoHumana ? " · exige revisão humana" : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <Vazio
+            cta={
+              <Link to="/golive/formalizacao">
+                <Button size="sm">Abrir Formalização</Button>
+              </Link>
+            }
+          />
+        )}
+      </Bloco>
+
 
       <Bloco titulo="2. Escopo acordado">
         {caso?.caso.titulo ? (
