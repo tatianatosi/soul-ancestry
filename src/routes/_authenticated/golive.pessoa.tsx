@@ -8,6 +8,7 @@ import {
   completudePorDominio,
   confiancaDaPessoa,
   pessoaPrincipalDoCaso,
+  pessoasDoNucleo,
   relacoesAprovadas,
 } from "@/lib/golive-pessoas";
 import { humano } from "@/lib/rotulos-golive";

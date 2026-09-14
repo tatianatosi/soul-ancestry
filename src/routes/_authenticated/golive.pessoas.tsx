@@ -11,6 +11,7 @@ import {
   coberturaPorGeracao,
   composicaoDoNucleo,
   estadoDeConfirmacao,
+  pessoasDoNucleo,
   relacoesAprovadas,
   type PessoaCaso,
 } from "@/lib/golive-pessoas";
@@ -38,7 +39,13 @@ function PessoasGoLive() {
 
   /* Fonte: nucleo_membros (núcleo do caso), case_members e case_dependents.
      Geração e relação só saem de pai_id/mae_id gravados. */
-  const pessoasCaso = (caso?.pessoas ?? []) as PessoaCaso[];
+  const pessoasCaso: PessoaCaso[] = caso?.pessoas.length
+    ? (caso.pessoas as PessoaCaso[])
+    : pessoasDoNucleo(caso?.identidade.nucleoMembros ?? [], {
+        nome: caso?.identidade.pessoaPrincipal ?? null,
+        email: caso?.identidade.email ?? null,
+        telefone: caso?.identidade.telefone ?? null,
+      });
   const geracoes = coberturaPorGeracao(pessoasCaso).filter((g) => g.valor > 0);
   const composicao = composicaoDoNucleo(pessoasCaso, caso?.dependentes ?? []).filter((c) => c.valor > 0);
   const relacoes = relacoesAprovadas(pessoasCaso);
