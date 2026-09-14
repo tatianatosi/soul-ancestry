@@ -6,13 +6,16 @@
  * nada é estimado. Sem catálogo, SKU ou preço técnico.
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Rosca } from "@/components/golive/graficos";
+import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
+import { registrarFaturaGoLive, registrarPagamentoGoLive } from "@/lib/golive-escritores.functions";
 
 export const Route = createFileRoute("/_authenticated/golive/financeiro")({
   head: () => ({
