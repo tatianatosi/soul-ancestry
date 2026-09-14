@@ -2,8 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { SaasShell, useSaas } from "@/components/saas/shell";
-import { useAutoridade } from "@/components/saas/autoridade";
+import { SaasShell } from "@/components/saas/shell";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { ManifestoResgate } from "@/components/governanca/manifesto";
@@ -58,14 +57,6 @@ export const Route = createFileRoute("/_authenticated/biblioteca")({
 });
 
 function BibliotecaPage() {
-  const autoridade = useAutoridade();
-  const { podeEscrever: podeEscreverVinculo } = useSaas();
-  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
-  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
-  const podeEscrever = !autoridade.bloqueado({ capacidade: "editar_rascunho" });
-  const pendenciaVinculo = podeEscreverVinculo
-    ? null
-    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const [sub, setSub] = useState<SubareaBiblioteca>("acervo");
   const [busca, setBusca] = useState("");
   const [status, setStatus] = useState("");
@@ -185,13 +176,6 @@ function BibliotecaPage() {
       descricao="Base operacional interna do Desk: referências estruturadas que alimentam pesquisa, relatórios e operação. Nada aqui é exposto ao App Cliente."
       visualKit="pantone"
     >
-      {pendenciaVinculo || !podeEscrever ? (
-        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
-          Pendência registrada:{" "}
-          {pendenciaVinculo ??
-            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
-        </p>
-      ) : null}
       <div className="space-y-6">
         <FilaPublicacaoReal />
         <section className="rounded-xl border border-navy/10 bg-cream/50 p-4">
