@@ -88,6 +88,7 @@ import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenti
 import { Route as AuthenticatedGoliveIndexRouteImport } from './routes/_authenticated/golive.index'
 import { Route as AuthenticatedGoliveAppRouteImport } from './routes/_authenticated/golive.app'
 import { Route as AuthenticatedGoliveCasoRouteImport } from './routes/_authenticated/golive.caso'
+import { Route as AuthenticatedGoliveComercialRouteImport } from './routes/_authenticated/golive.comercial'
 import { Route as AuthenticatedGoliveConfiguracoesRouteImport } from './routes/_authenticated/golive.configuracoes'
 import { Route as AuthenticatedGoliveFormalizacaoRouteImport } from './routes/_authenticated/golive.formalizacao'
 import { Route as AuthenticatedGolivePesquisaRouteImport } from './routes/_authenticated/golive.pesquisa'
@@ -540,6 +541,12 @@ const AuthenticatedGoliveCasoRoute = AuthenticatedGoliveCasoRouteImport.update({
   path: '/golive/caso',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedGoliveComercialRoute =
+  AuthenticatedGoliveComercialRouteImport.update({
+    id: '/golive/comercial',
+    path: '/golive/comercial',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGoliveConfiguracoesRoute =
   AuthenticatedGoliveConfiguracoesRouteImport.update({
     id: '/golive/configuracoes',
@@ -785,6 +792,7 @@ export interface FileRoutesByFullPath {
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/golive/app': typeof AuthenticatedGoliveAppRoute
   '/golive/caso': typeof AuthenticatedGoliveCasoRoute
+  '/golive/comercial': typeof AuthenticatedGoliveComercialRoute
   '/golive/configuracoes': typeof AuthenticatedGoliveConfiguracoesRoute
   '/golive/formalizacao': typeof AuthenticatedGoliveFormalizacaoRoute
   '/golive/pesquisa': typeof AuthenticatedGolivePesquisaRoute
@@ -893,6 +901,7 @@ export interface FileRoutesByTo {
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/golive/app': typeof AuthenticatedGoliveAppRoute
   '/golive/caso': typeof AuthenticatedGoliveCasoRoute
+  '/golive/comercial': typeof AuthenticatedGoliveComercialRoute
   '/golive/configuracoes': typeof AuthenticatedGoliveConfiguracoesRoute
   '/golive/formalizacao': typeof AuthenticatedGoliveFormalizacaoRoute
   '/golive/pesquisa': typeof AuthenticatedGolivePesquisaRoute
@@ -1004,6 +1013,7 @@ export interface FileRoutesById {
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/_authenticated/golive/app': typeof AuthenticatedGoliveAppRoute
   '/_authenticated/golive/caso': typeof AuthenticatedGoliveCasoRoute
+  '/_authenticated/golive/comercial': typeof AuthenticatedGoliveComercialRoute
   '/_authenticated/golive/configuracoes': typeof AuthenticatedGoliveConfiguracoesRoute
   '/_authenticated/golive/formalizacao': typeof AuthenticatedGoliveFormalizacaoRoute
   '/_authenticated/golive/pesquisa': typeof AuthenticatedGolivePesquisaRoute
@@ -1115,6 +1125,7 @@ export interface FileRouteTypes {
     | '/contratos/$id'
     | '/golive/app'
     | '/golive/caso'
+    | '/golive/comercial'
     | '/golive/configuracoes'
     | '/golive/formalizacao'
     | '/golive/pesquisa'
@@ -1223,6 +1234,7 @@ export interface FileRouteTypes {
     | '/contratos/$id'
     | '/golive/app'
     | '/golive/caso'
+    | '/golive/comercial'
     | '/golive/configuracoes'
     | '/golive/formalizacao'
     | '/golive/pesquisa'
@@ -1333,6 +1345,7 @@ export interface FileRouteTypes {
     | '/_authenticated/contratos/$id'
     | '/_authenticated/golive/app'
     | '/_authenticated/golive/caso'
+    | '/_authenticated/golive/comercial'
     | '/_authenticated/golive/configuracoes'
     | '/_authenticated/golive/formalizacao'
     | '/_authenticated/golive/pesquisa'
@@ -1942,6 +1955,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGoliveCasoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/golive/comercial': {
+      id: '/_authenticated/golive/comercial'
+      path: '/golive/comercial'
+      fullPath: '/golive/comercial'
+      preLoaderRoute: typeof AuthenticatedGoliveComercialRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/golive/configuracoes': {
       id: '/_authenticated/golive/configuracoes'
       path: '/golive/configuracoes'
@@ -2196,6 +2216,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedContratosIdRoute: typeof AuthenticatedContratosIdRoute
   AuthenticatedGoliveAppRoute: typeof AuthenticatedGoliveAppRoute
   AuthenticatedGoliveCasoRoute: typeof AuthenticatedGoliveCasoRoute
+  AuthenticatedGoliveComercialRoute: typeof AuthenticatedGoliveComercialRoute
   AuthenticatedGoliveConfiguracoesRoute: typeof AuthenticatedGoliveConfiguracoesRoute
   AuthenticatedGoliveFormalizacaoRoute: typeof AuthenticatedGoliveFormalizacaoRoute
   AuthenticatedGolivePesquisaRoute: typeof AuthenticatedGolivePesquisaRoute
@@ -2279,6 +2300,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedContratosIdRoute: AuthenticatedContratosIdRoute,
   AuthenticatedGoliveAppRoute: AuthenticatedGoliveAppRoute,
   AuthenticatedGoliveCasoRoute: AuthenticatedGoliveCasoRoute,
+  AuthenticatedGoliveComercialRoute: AuthenticatedGoliveComercialRoute,
   AuthenticatedGoliveConfiguracoesRoute: AuthenticatedGoliveConfiguracoesRoute,
   AuthenticatedGoliveFormalizacaoRoute: AuthenticatedGoliveFormalizacaoRoute,
   AuthenticatedGolivePesquisaRoute: AuthenticatedGolivePesquisaRoute,
