@@ -6,12 +6,15 @@
  * publicação é disparada aqui e nenhum dado é criado.
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
+import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
+import { despublicarDoAppGoLive, publicarNoAppGoLive } from "@/lib/golive-escritores.functions";
 
 export const Route = createFileRoute("/_authenticated/golive/portal")({
   head: () => ({
@@ -31,6 +34,39 @@ function PortalGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
   const publicados = caso?.publicados ?? [];
+  const microentregas = caso?.microentregas ?? [];
+  const publicar = useServerFn(publicarNoAppGoLive);
+  const despublicar = useServerFn(despublicarDoAppGoLive);
+
+  const acaoPublicar = (
+    <Acao
+      rotulo="Publicar para a cliente"
+      titulo="Conteúdo que a família vai ler"
+      variante="outline"
+      campos={[
+        {
+          nome: "microentregaId",
+          rotulo: "Microentrega",
+          tipo: "escolha",
+          obrigatorio: true,
+          opcoes: microentregas.map((m) => ({ valor: m.id, rotulo: m.titulo })),
+        },
+        {
+          nome: "resumoSanitizado",
+          rotulo: "Texto para a cliente",
+          tipo: "area",
+          obrigatorio: true,
+          ajuda: "Sem nota interna, hipótese como fato, preço técnico ou dado de outro caso.",
+        },
+      ]}
+      aoConfirmar={(v) =>
+        publicar({
+          data: { microentregaId: v["microentregaId"] ?? "", resumoSanitizado: v["resumoSanitizado"] ?? "" },
+        })
+      }
+      confirmacao="Publicado no App, com autor e data."
+    />
+  );
 
   return (
     <GoLiveShell titulo="Portal do cliente" descricao="Acesso, equipe e o que o cliente já enxerga.">
