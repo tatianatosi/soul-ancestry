@@ -59,6 +59,11 @@ export function ItensDerivados({
           </Link>
         </li>
       ))}
+      {restante > 0 ? (
+        <li className="text-[11px] text-navy/55">
+          +{restante} item(ns) do mesmo tipo — abrir Casos 360 para a lista completa.
+        </li>
+      ) : null}
     </ul>
   );
 }
