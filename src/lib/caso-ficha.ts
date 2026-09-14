@@ -6,6 +6,8 @@
  */
 
 import { DIAS_CADENCIA_ATENCAO, DIAS_CADENCIA_CRITICA } from "@/lib/cadencia-limiares";
+import { ehRegistroDeTeste } from "@/lib/registros-teste";
+
 
 export type Opcao = { valor: string; rotulo: string };
 
@@ -530,8 +532,14 @@ export const SELO_PROXIMA_ACAO: Record<ProximaAcaoCanonica["origem"], string> = 
   manual: "Definida manualmente",
 };
 
-/** Papel do registro na lista: operacional, referência (piloto) ou demonstração. */
-export function papelDoRegistro(linha: { papel_registro?: unknown; demo?: unknown; piloto?: unknown }): {
+/** Papel do registro na lista: operacional, referência (piloto) ou demonstração/teste. */
+export function papelDoRegistro(linha: {
+  papel_registro?: unknown;
+  demo?: unknown;
+  piloto?: unknown;
+  codigo?: unknown;
+  titulo?: unknown;
+}): {
   valor: "operacional" | "referencia" | "demo";
   rotulo: string;
 } {
@@ -541,5 +549,11 @@ export function papelDoRegistro(linha: { papel_registro?: unknown; demo?: unknow
   if (linha.piloto === true || linha.papel_registro === "piloto_real") {
     return { valor: "referencia", rotulo: "Primeira cliente" };
   }
+  // 14/09/2026 — registros criados para teste/homologação saem das listas reais
+  // por padrão; continuam no banco e reaparecem com "mostrar registros de teste".
+  if (ehRegistroDeTeste({ codigo: linha.codigo, titulo: linha.titulo })) {
+    return { valor: "demo", rotulo: "Teste / homologação" };
+  }
   return { valor: "operacional", rotulo: "Operacional" };
 }
+

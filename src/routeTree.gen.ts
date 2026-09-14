@@ -85,6 +85,10 @@ import { Route as AuthenticatedContratoParametrosIndexRouteImport } from './rout
 import { Route as AuthenticatedContratoParametrosIdRouteImport } from './routes/_authenticated/contrato-parametros.$id'
 import { Route as AuthenticatedContratosIndexRouteImport } from './routes/_authenticated/contratos.index'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated/contratos.$id'
+import { Route as AuthenticatedGoliveIndexRouteImport } from './routes/_authenticated/golive.index'
+import { Route as AuthenticatedGoliveCasoRouteImport } from './routes/_authenticated/golive.caso'
+import { Route as AuthenticatedGoliveFormalizacaoRouteImport } from './routes/_authenticated/golive.formalizacao'
+import { Route as AuthenticatedGolivePesquisaRouteImport } from './routes/_authenticated/golive.pesquisa'
 import { Route as AuthenticatedGovernancaCatalogoOperacional30RouteImport } from './routes/_authenticated/governanca.catalogo-operacional-30'
 import { Route as AuthenticatedGovernancaContratoBaseRouteImport } from './routes/_authenticated/governanca.contrato-base'
 import { Route as AuthenticatedGovernancaDecisoesRouteImport } from './routes/_authenticated/governanca.decisoes'
@@ -518,6 +522,29 @@ const AuthenticatedContratosIdRoute =
     path: '/contratos/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGoliveIndexRoute =
+  AuthenticatedGoliveIndexRouteImport.update({
+    id: '/golive/',
+    path: '/golive/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGoliveCasoRoute = AuthenticatedGoliveCasoRouteImport.update({
+  id: '/golive/caso',
+  path: '/golive/caso',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedGoliveFormalizacaoRoute =
+  AuthenticatedGoliveFormalizacaoRouteImport.update({
+    id: '/golive/formalizacao',
+    path: '/golive/formalizacao',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGolivePesquisaRoute =
+  AuthenticatedGolivePesquisaRouteImport.update({
+    id: '/golive/pesquisa',
+    path: '/golive/pesquisa',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGovernancaCatalogoOperacional30Route =
   AuthenticatedGovernancaCatalogoOperacional30RouteImport.update({
     id: '/governanca/catalogo-operacional-30',
@@ -743,6 +770,9 @@ export interface FileRoutesByFullPath {
   '/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
   '/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
+  '/golive/caso': typeof AuthenticatedGoliveCasoRoute
+  '/golive/formalizacao': typeof AuthenticatedGoliveFormalizacaoRoute
+  '/golive/pesquisa': typeof AuthenticatedGolivePesquisaRoute
   '/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
@@ -765,6 +795,7 @@ export interface FileRoutesByFullPath {
   '/casos/': typeof AuthenticatedCasosIndexRoute
   '/contrato-parametros/': typeof AuthenticatedContratoParametrosIndexRoute
   '/contratos/': typeof AuthenticatedContratosIndexRoute
+  '/golive/': typeof AuthenticatedGoliveIndexRoute
   '/pesquisa-modulo/': typeof AuthenticatedPesquisaModuloIndexRoute
   '/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
   '/privacidade/': typeof AuthenticatedPrivacidadeIndexRoute
@@ -845,6 +876,9 @@ export interface FileRoutesByTo {
   '/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
   '/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
+  '/golive/caso': typeof AuthenticatedGoliveCasoRoute
+  '/golive/formalizacao': typeof AuthenticatedGoliveFormalizacaoRoute
+  '/golive/pesquisa': typeof AuthenticatedGolivePesquisaRoute
   '/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
@@ -867,6 +901,7 @@ export interface FileRoutesByTo {
   '/casos': typeof AuthenticatedCasosIndexRoute
   '/contrato-parametros': typeof AuthenticatedContratoParametrosIndexRoute
   '/contratos': typeof AuthenticatedContratosIndexRoute
+  '/golive': typeof AuthenticatedGoliveIndexRoute
   '/pesquisa-modulo': typeof AuthenticatedPesquisaModuloIndexRoute
   '/pesquisa': typeof AuthenticatedPesquisaIndexRoute
   '/privacidade': typeof AuthenticatedPrivacidadeIndexRoute
@@ -950,6 +985,9 @@ export interface FileRoutesById {
   '/_authenticated/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
   '/_authenticated/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
+  '/_authenticated/golive/caso': typeof AuthenticatedGoliveCasoRoute
+  '/_authenticated/golive/formalizacao': typeof AuthenticatedGoliveFormalizacaoRoute
+  '/_authenticated/golive/pesquisa': typeof AuthenticatedGolivePesquisaRoute
   '/_authenticated/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/_authenticated/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
   '/_authenticated/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
@@ -972,6 +1010,7 @@ export interface FileRoutesById {
   '/_authenticated/casos/': typeof AuthenticatedCasosIndexRoute
   '/_authenticated/contrato-parametros/': typeof AuthenticatedContratoParametrosIndexRoute
   '/_authenticated/contratos/': typeof AuthenticatedContratosIndexRoute
+  '/_authenticated/golive/': typeof AuthenticatedGoliveIndexRoute
   '/_authenticated/pesquisa-modulo/': typeof AuthenticatedPesquisaModuloIndexRoute
   '/_authenticated/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
   '/_authenticated/privacidade/': typeof AuthenticatedPrivacidadeIndexRoute
@@ -1055,6 +1094,9 @@ export interface FileRouteTypes {
     | '/biblioteca-evidencias/$caseId'
     | '/contrato-parametros/$id'
     | '/contratos/$id'
+    | '/golive/caso'
+    | '/golive/formalizacao'
+    | '/golive/pesquisa'
     | '/governanca/catalogo-operacional-30'
     | '/governanca/contrato-base'
     | '/governanca/decisoes'
@@ -1077,6 +1119,7 @@ export interface FileRouteTypes {
     | '/casos/'
     | '/contrato-parametros/'
     | '/contratos/'
+    | '/golive/'
     | '/pesquisa-modulo/'
     | '/pesquisa/'
     | '/privacidade/'
@@ -1157,6 +1200,9 @@ export interface FileRouteTypes {
     | '/biblioteca-evidencias/$caseId'
     | '/contrato-parametros/$id'
     | '/contratos/$id'
+    | '/golive/caso'
+    | '/golive/formalizacao'
+    | '/golive/pesquisa'
     | '/governanca/catalogo-operacional-30'
     | '/governanca/contrato-base'
     | '/governanca/decisoes'
@@ -1179,6 +1225,7 @@ export interface FileRouteTypes {
     | '/casos'
     | '/contrato-parametros'
     | '/contratos'
+    | '/golive'
     | '/pesquisa-modulo'
     | '/pesquisa'
     | '/privacidade'
@@ -1261,6 +1308,9 @@ export interface FileRouteTypes {
     | '/_authenticated/biblioteca-evidencias/$caseId'
     | '/_authenticated/contrato-parametros/$id'
     | '/_authenticated/contratos/$id'
+    | '/_authenticated/golive/caso'
+    | '/_authenticated/golive/formalizacao'
+    | '/_authenticated/golive/pesquisa'
     | '/_authenticated/governanca/catalogo-operacional-30'
     | '/_authenticated/governanca/contrato-base'
     | '/_authenticated/governanca/decisoes'
@@ -1283,6 +1333,7 @@ export interface FileRouteTypes {
     | '/_authenticated/casos/'
     | '/_authenticated/contrato-parametros/'
     | '/_authenticated/contratos/'
+    | '/_authenticated/golive/'
     | '/_authenticated/pesquisa-modulo/'
     | '/_authenticated/pesquisa/'
     | '/_authenticated/privacidade/'
@@ -1845,6 +1896,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContratosIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/golive/': {
+      id: '/_authenticated/golive/'
+      path: '/golive'
+      fullPath: '/golive/'
+      preLoaderRoute: typeof AuthenticatedGoliveIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/golive/caso': {
+      id: '/_authenticated/golive/caso'
+      path: '/golive/caso'
+      fullPath: '/golive/caso'
+      preLoaderRoute: typeof AuthenticatedGoliveCasoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/golive/formalizacao': {
+      id: '/_authenticated/golive/formalizacao'
+      path: '/golive/formalizacao'
+      fullPath: '/golive/formalizacao'
+      preLoaderRoute: typeof AuthenticatedGoliveFormalizacaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/golive/pesquisa': {
+      id: '/_authenticated/golive/pesquisa'
+      path: '/golive/pesquisa'
+      fullPath: '/golive/pesquisa'
+      preLoaderRoute: typeof AuthenticatedGolivePesquisaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/governanca/catalogo-operacional-30': {
       id: '/_authenticated/governanca/catalogo-operacional-30'
       path: '/governanca/catalogo-operacional-30'
@@ -2076,6 +2155,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBibliotecaEvidenciasCaseIdRoute: typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
   AuthenticatedContratoParametrosIdRoute: typeof AuthenticatedContratoParametrosIdRoute
   AuthenticatedContratosIdRoute: typeof AuthenticatedContratosIdRoute
+  AuthenticatedGoliveCasoRoute: typeof AuthenticatedGoliveCasoRoute
+  AuthenticatedGoliveFormalizacaoRoute: typeof AuthenticatedGoliveFormalizacaoRoute
+  AuthenticatedGolivePesquisaRoute: typeof AuthenticatedGolivePesquisaRoute
   AuthenticatedGovernancaCatalogoOperacional30Route: typeof AuthenticatedGovernancaCatalogoOperacional30Route
   AuthenticatedGovernancaContratoBaseRoute: typeof AuthenticatedGovernancaContratoBaseRoute
   AuthenticatedGovernancaDecisoesRoute: typeof AuthenticatedGovernancaDecisoesRoute
@@ -2096,6 +2178,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCasosIndexRoute: typeof AuthenticatedCasosIndexRoute
   AuthenticatedContratoParametrosIndexRoute: typeof AuthenticatedContratoParametrosIndexRoute
   AuthenticatedContratosIndexRoute: typeof AuthenticatedContratosIndexRoute
+  AuthenticatedGoliveIndexRoute: typeof AuthenticatedGoliveIndexRoute
   AuthenticatedPesquisaModuloIndexRoute: typeof AuthenticatedPesquisaModuloIndexRoute
   AuthenticatedPesquisaIndexRoute: typeof AuthenticatedPesquisaIndexRoute
   AuthenticatedPrivacidadeIndexRoute: typeof AuthenticatedPrivacidadeIndexRoute
@@ -2153,6 +2236,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedContratoParametrosIdRoute:
     AuthenticatedContratoParametrosIdRoute,
   AuthenticatedContratosIdRoute: AuthenticatedContratosIdRoute,
+  AuthenticatedGoliveCasoRoute: AuthenticatedGoliveCasoRoute,
+  AuthenticatedGoliveFormalizacaoRoute: AuthenticatedGoliveFormalizacaoRoute,
+  AuthenticatedGolivePesquisaRoute: AuthenticatedGolivePesquisaRoute,
   AuthenticatedGovernancaCatalogoOperacional30Route:
     AuthenticatedGovernancaCatalogoOperacional30Route,
   AuthenticatedGovernancaContratoBaseRoute:
@@ -2184,6 +2270,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedContratoParametrosIndexRoute:
     AuthenticatedContratoParametrosIndexRoute,
   AuthenticatedContratosIndexRoute: AuthenticatedContratosIndexRoute,
+  AuthenticatedGoliveIndexRoute: AuthenticatedGoliveIndexRoute,
   AuthenticatedPesquisaModuloIndexRoute: AuthenticatedPesquisaModuloIndexRoute,
   AuthenticatedPesquisaIndexRoute: AuthenticatedPesquisaIndexRoute,
   AuthenticatedPrivacidadeIndexRoute: AuthenticatedPrivacidadeIndexRoute,
