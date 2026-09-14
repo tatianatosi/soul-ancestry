@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
 import { useGoLive } from "@/components/golive/dados";
+import { humano } from "@/lib/rotulos-golive";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/comercial")({
@@ -27,12 +28,31 @@ function ComercialGoLive() {
   const caso = data?.encontrado ? data : null;
 
   return (
-    <GoLiveShell titulo="Comercial" descricao="Da entrada comercial até o caso aberto.">
-      <FaixaFluxo atual="Caso" />
+    <GoLiveShell titulo="Comercial" descricao="Entrada e seguimento até o caso aberto.">
+      <FaixaFluxo atual="Lead" />
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Link to="/leads">
+          <Button size="sm">Novo lead</Button>
+        </Link>
+        <Link to="/calls" className="text-sm text-navy underline decoration-gold underline-offset-4">
+          Registrar call
+        </Link>
+      </div>
+
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
       {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
       {data && !data.encontrado ? (
-        <Vazio cta={<span className="text-sm text-navy/60">Nenhuma entrada comercial disponível nesta conta.</span>} />
+        <Bloco titulo="Mesa de Discovery">
+          <Vazio
+            cta={
+              <Link to="/leads">
+                <Button size="sm">Novo lead</Button>
+              </Link>
+            }
+          />
+          <p className="text-xs text-navy/55">Nenhum lead nesta etapa.</p>
+        </Bloco>
       ) : null}
 
       {caso ? (
@@ -42,13 +62,13 @@ function ComercialGoLive() {
           <Bloco titulo="Mesa de Discovery">
             <Vazio
               cta={
-                <Link to="/golive/caso">
-                  <Button size="sm">Abrir o caso desta pessoa</Button>
+                <Link to="/leads">
+                  <Button size="sm">Novo lead</Button>
                 </Link>
               }
             />
             <p className="text-xs text-navy/55">
-              A entrada comercial desta pessoa já virou caso; nada mais está aberto na mesa.
+              Nenhum lead nesta etapa — a entrada comercial desta pessoa já virou caso.
             </p>
           </Bloco>
 
@@ -64,10 +84,19 @@ function ComercialGoLive() {
             </Link>
           </Bloco>
 
+          <Bloco titulo="Passagem para o caso">
+            <p className="text-sm text-navy/75">
+              Esta pessoa já foi convertida: a mesma pessoa, o mesmo núcleo e o mesmo caso seguem daqui para a operação.
+            </p>
+            <p className="text-xs text-navy/55">
+              A conversão de novos leads ainda é feita fora desta tela; nada é criado ou duplicado aqui.
+            </p>
+          </Bloco>
+
           <Bloco titulo="Caso aberto">
             <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Campo rotulo="Etapa" valor={caso.plano?.fase ?? caso.caso.fase} />
-              <Campo rotulo="Próxima ação" valor={caso.plano?.proximaAcao ?? caso.caso.proximaAcao} />
+              <Campo rotulo="Etapa" valor={humano(caso.plano?.fase ?? caso.caso.fase)} />
+              <Campo rotulo="Próxima ação" valor={humano(caso.plano?.proximaAcao ?? caso.caso.proximaAcao)} />
               <Campo rotulo="Responsável" valor={caso.caso.responsavel} />
               <Campo rotulo="Prazo" valor={caso.plano?.prazo ?? caso.caso.prazo} />
             </dl>
