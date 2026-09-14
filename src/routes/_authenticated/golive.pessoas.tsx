@@ -26,6 +26,7 @@ export const Route = createFileRoute("/_authenticated/golive/pessoas")({
 function PessoasGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
+  const adicionarMembro = useServerFn(registrarMembroNucleoGoLive);
 
   const membros = caso?.identidade.nucleoMembros ?? [];
   const titular = membros.find((m) => m.nome === caso?.identidade.pessoaPrincipal) ?? null;
