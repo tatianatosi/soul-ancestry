@@ -116,13 +116,7 @@ function FinanceiroGoLive() {
             {comValor.length === 1 ? "" : "s"}.
           </p>
         ) : (
-          <Vazio
-            cta={
-              <Link to="/financeiro">
-                <Button size="sm">Registrar valor e condição</Button>
-              </Link>
-            }
-          />
+          <Vazio cta={acaoFatura} />
         )}
       </Bloco>
 
