@@ -15,6 +15,7 @@ import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import { despublicarDoAppGoLive, publicarNoAppGoLive } from "@/lib/golive-escritores.functions";
+import { criarConvitePortal, registrarEmailAutorizado, validarEmailAutorizado } from "@/lib/portal.functions";
 
 export const Route = createFileRoute("/_authenticated/golive/portal")({
   head: () => ({
