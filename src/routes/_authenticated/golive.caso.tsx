@@ -49,7 +49,9 @@ function CasoGoLive() {
   }
 
   return (
-    <GoLiveShell titulo="Caso Ana" descricao="Pessoas, jornada, documentos e microentregas.">
+    <GoLiveShell titulo="Caso 360" descricao="Pessoas, jornada, documentos e microentregas.">
+      <FaixaFluxo atual="Caso" />
+
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
       {!caso && !isPending ? <Vazio cta={<Link to="/golive"><Button size="sm">Voltar para Hoje</Button></Link>} /> : null}
 
