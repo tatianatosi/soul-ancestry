@@ -323,7 +323,49 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         status: (m["status"] as string) ?? null,
         fase: (m["fase"] as string) ?? null,
         prazo: (m["prazo"] as string) ?? null,
+        prioridade: (m["prioridade"] as string) ?? null,
+        concluidaEm: (m["concluida_em"] as string) ?? null,
+        responsavel: m["responsavel_id"]
+          ? (nomePerfil.get(String(m["responsavel_id"])) || null)
+          : null,
       })),
+      /** Ações do caso: estado, prazo, responsável e espera externa já gravados. */
+      tarefas: limpar(tarefasCaso).map((t) => ({
+        id: String(t["id"]),
+        titulo: (t["titulo"] as string) ?? "Ação sem título",
+        status: (t["status"] as string) ?? null,
+        prazo: (t["prazo"] as string) ?? (t["sla_prazo_em"] as string) ?? null,
+        prioridade: (t["prioridade"] as string) ?? null,
+        bloqueio: t["bloqueio"] === true,
+        motivoBloqueio: (t["motivo_bloqueio"] as string) ?? null,
+        concluidaEm: (t["concluida_em"] as string) ?? null,
+        responsavel: t["responsavel_id"]
+          ? (nomePerfil.get(String(t["responsavel_id"])) || null)
+          : null,
+      })),
+      /** Linha do tempo do caso, como registrada. */
+      eventos: limpar(eventosCaso).map((e) => ({
+        id: String(e["id"]),
+        titulo: (e["title"] as string) ?? "Evento do caso",
+        tipo: (e["event_type"] as string) ?? null,
+        fase: (e["phase"] as string) ?? null,
+        status: (e["status"] as string) ?? null,
+        em: (e["occurred_at"] as string) ?? (e["created_at"] as string) ?? null,
+        origem: (e["source_entity_type"] as string) ?? null,
+        responsavel: (e["responsavel_nome"] as string) ?? null,
+        bloqueio: e["bloqueio"] === true,
+      })),
+      /** Carteira da organização: só estado e prioridade, para KPIs e rosca. */
+      carteira: (carteira ?? [])
+        .filter((c) => c["demo"] !== true)
+        .map((c) => ({
+          id: String(c["id"]),
+          codigo: (c["codigo"] as string) ?? null,
+          status: (c["status"] as string) ?? null,
+          prioridade: (c["prioridade"] as string) ?? null,
+          temProximaAcao: Boolean(c["proxima_acao"]),
+          prazoProximaAcao: (c["prazo_proxima_acao"] as string) ?? null,
+        })),
       publicados: limpar(projecoes)
         .filter((p) => ["published", "publicada", "aprovada", "approved"].includes(String(p["approval_status"])))
         .map((p) => ({
