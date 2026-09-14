@@ -95,6 +95,7 @@ import { Route as AuthenticatedGoliveKanbanRouteImport } from './routes/_authent
 import { Route as AuthenticatedGolivePesquisaRouteImport } from './routes/_authenticated/golive.pesquisa'
 import { Route as AuthenticatedGolivePessoaRouteImport } from './routes/_authenticated/golive.pessoa'
 import { Route as AuthenticatedGolivePessoasRouteImport } from './routes/_authenticated/golive.pessoas'
+import { Route as AuthenticatedGoliveRadarRouteImport } from './routes/_authenticated/golive.radar'
 import { Route as AuthenticatedGovernancaCatalogoOperacional30RouteImport } from './routes/_authenticated/governanca.catalogo-operacional-30'
 import { Route as AuthenticatedGovernancaContratoBaseRouteImport } from './routes/_authenticated/governanca.contrato-base'
 import { Route as AuthenticatedGovernancaDecisoesRouteImport } from './routes/_authenticated/governanca.decisoes'
@@ -586,6 +587,12 @@ const AuthenticatedGolivePessoasRoute =
     path: '/golive/pessoas',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGoliveRadarRoute =
+  AuthenticatedGoliveRadarRouteImport.update({
+    id: '/golive/radar',
+    path: '/golive/radar',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGovernancaCatalogoOperacional30Route =
   AuthenticatedGovernancaCatalogoOperacional30RouteImport.update({
     id: '/governanca/catalogo-operacional-30',
@@ -820,6 +827,7 @@ export interface FileRoutesByFullPath {
   '/golive/pesquisa': typeof AuthenticatedGolivePesquisaRoute
   '/golive/pessoa': typeof AuthenticatedGolivePessoaRoute
   '/golive/pessoas': typeof AuthenticatedGolivePessoasRoute
+  '/golive/radar': typeof AuthenticatedGoliveRadarRoute
   '/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
@@ -932,6 +940,7 @@ export interface FileRoutesByTo {
   '/golive/pesquisa': typeof AuthenticatedGolivePesquisaRoute
   '/golive/pessoa': typeof AuthenticatedGolivePessoaRoute
   '/golive/pessoas': typeof AuthenticatedGolivePessoasRoute
+  '/golive/radar': typeof AuthenticatedGoliveRadarRoute
   '/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
@@ -1047,6 +1056,7 @@ export interface FileRoutesById {
   '/_authenticated/golive/pesquisa': typeof AuthenticatedGolivePesquisaRoute
   '/_authenticated/golive/pessoa': typeof AuthenticatedGolivePessoaRoute
   '/_authenticated/golive/pessoas': typeof AuthenticatedGolivePessoasRoute
+  '/_authenticated/golive/radar': typeof AuthenticatedGoliveRadarRoute
   '/_authenticated/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/_authenticated/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
   '/_authenticated/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
@@ -1162,6 +1172,7 @@ export interface FileRouteTypes {
     | '/golive/pesquisa'
     | '/golive/pessoa'
     | '/golive/pessoas'
+    | '/golive/radar'
     | '/governanca/catalogo-operacional-30'
     | '/governanca/contrato-base'
     | '/governanca/decisoes'
@@ -1274,6 +1285,7 @@ export interface FileRouteTypes {
     | '/golive/pesquisa'
     | '/golive/pessoa'
     | '/golive/pessoas'
+    | '/golive/radar'
     | '/governanca/catalogo-operacional-30'
     | '/governanca/contrato-base'
     | '/governanca/decisoes'
@@ -1388,6 +1400,7 @@ export interface FileRouteTypes {
     | '/_authenticated/golive/pesquisa'
     | '/_authenticated/golive/pessoa'
     | '/_authenticated/golive/pessoas'
+    | '/_authenticated/golive/radar'
     | '/_authenticated/governanca/catalogo-operacional-30'
     | '/_authenticated/governanca/contrato-base'
     | '/_authenticated/governanca/decisoes'
@@ -2043,6 +2056,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGolivePessoasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/golive/radar': {
+      id: '/_authenticated/golive/radar'
+      path: '/golive/radar'
+      fullPath: '/golive/radar'
+      preLoaderRoute: typeof AuthenticatedGoliveRadarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/governanca/catalogo-operacional-30': {
       id: '/_authenticated/governanca/catalogo-operacional-30'
       path: '/governanca/catalogo-operacional-30'
@@ -2283,6 +2303,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGolivePesquisaRoute: typeof AuthenticatedGolivePesquisaRoute
   AuthenticatedGolivePessoaRoute: typeof AuthenticatedGolivePessoaRoute
   AuthenticatedGolivePessoasRoute: typeof AuthenticatedGolivePessoasRoute
+  AuthenticatedGoliveRadarRoute: typeof AuthenticatedGoliveRadarRoute
   AuthenticatedGovernancaCatalogoOperacional30Route: typeof AuthenticatedGovernancaCatalogoOperacional30Route
   AuthenticatedGovernancaContratoBaseRoute: typeof AuthenticatedGovernancaContratoBaseRoute
   AuthenticatedGovernancaDecisoesRoute: typeof AuthenticatedGovernancaDecisoesRoute
@@ -2370,6 +2391,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGolivePesquisaRoute: AuthenticatedGolivePesquisaRoute,
   AuthenticatedGolivePessoaRoute: AuthenticatedGolivePessoaRoute,
   AuthenticatedGolivePessoasRoute: AuthenticatedGolivePessoasRoute,
+  AuthenticatedGoliveRadarRoute: AuthenticatedGoliveRadarRoute,
   AuthenticatedGovernancaCatalogoOperacional30Route:
     AuthenticatedGovernancaCatalogoOperacional30Route,
   AuthenticatedGovernancaContratoBaseRoute:
