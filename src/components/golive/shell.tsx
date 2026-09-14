@@ -11,7 +11,11 @@ import { BrandLogo } from "@/components/brand";
 
 const TELAS = [
   { to: "/golive", rotulo: "Hoje" },
-  { to: "/golive/caso", rotulo: "Caso Ana" },
+  { to: "/golive/comercial", rotulo: "Comercial" },
+  { to: "/golive/kanban", rotulo: "Kanban" },
+  { to: "/golive/pessoa", rotulo: "Pessoa 360" },
+  { to: "/golive/pessoas", rotulo: "Pessoas & Famílias" },
+  { to: "/golive/caso", rotulo: "Caso 360" },
   { to: "/golive/pesquisa", rotulo: "Pesquisa" },
   { to: "/golive/formalizacao", rotulo: "Formalização" },
   { to: "/golive/configuracoes", rotulo: "Configurações" },
