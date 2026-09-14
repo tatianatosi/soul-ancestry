@@ -58,6 +58,62 @@ export type ConsentimentoCaso = {
 
 const pct = (feitos: number, total: number) => (total ? Math.round((feitos / total) * 100) : 0);
 
+export type MembroNucleo = {
+  id: string;
+  nome: string;
+  papel: string | null;
+  clienteId?: string | null;
+  representacaoNecessaria?: boolean;
+  representacaoDocumentada?: boolean;
+  statusCadastral?: string | null;
+};
+
+/**
+ * Adapta membros vivos do núcleo (nucleo_membros) ao formato de pessoa usado
+ * pelos cálculos. Papel vem do valor controlado gravado, não de texto livre;
+ * parentesco fica nulo porque o núcleo não grava pai/mãe — sem inferência.
+ */
+export function pessoasDoNucleo(
+  membros: readonly MembroNucleo[],
+  principal: { nome: string | null; email: string | null; telefone: string | null },
+): PessoaCaso[] {
+  return membros.map((m) => {
+    const papel = (m.papel ?? "").toLowerCase();
+    const ehPrincipal = Boolean(principal.nome && m.nome === principal.nome);
+    return {
+      id: m.id,
+      nome: m.nome,
+      papel: m.papel,
+      parentesco: m.papel,
+      paiId: null,
+      maeId: null,
+      requerente: false,
+      titular: ehPrincipal || papel.includes("contratante") || papel.includes("titular"),
+      contratante: papel.includes("contratante"),
+      dependente: papel.includes("depend"),
+      statusCadastral: m.statusCadastral ?? null,
+      documentosPendentes: null,
+      consentimentos: null,
+      verificadoEm: m.representacaoDocumentada ? "documentada" : null,
+      fonte: "nucleo_membros",
+      identidade: {
+        nascimento: null,
+        localNascimento: null,
+        nacionalidade: null,
+        cpf: false,
+        rg: false,
+        estadoCivil: null,
+      },
+      contato: {
+        email: ehPrincipal ? Boolean(principal.email) : false,
+        telefone: ehPrincipal ? Boolean(principal.telefone) : false,
+        endereco: false,
+        cep: false,
+      },
+    };
+  });
+}
+
 /** Pessoa principal do caso: titular/requerente/contratante já marcados. */
 export function pessoaPrincipalDoCaso(pessoas: readonly PessoaCaso[]): PessoaCaso | null {
   return (
