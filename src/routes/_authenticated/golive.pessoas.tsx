@@ -242,9 +242,13 @@ function ArvoreAprovada({
 }) {
   return (
     <Bloco titulo="Árvore — pessoas e relações aprovadas">
-      {relacoes.length ? (
+      {pessoas.length ? (
         <div className="min-w-0 space-y-3">
-          <Rede relacoes={relacoes} />
+          {relacoes.length ? (
+            <Rede relacoes={relacoes} />
+          ) : (
+            <p className="text-xs text-navy/55">Nenhum parentesco declarado ainda — só o estado de cada pessoa.</p>
+          )}
           <ul className="space-y-1">
             {pessoas.map((p) => (
               <li key={p.id} className="flex min-w-0 flex-wrap items-center gap-2 text-sm text-navy">
