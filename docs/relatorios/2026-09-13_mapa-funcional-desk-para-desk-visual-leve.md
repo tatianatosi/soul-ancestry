@@ -87,3 +87,25 @@ Não há RLS do tipo `USING (false)`. Gates cerimoniais já foram retirados do m
 - Classificação literal LEITURA_REAL / ESCRITA_REAL / CASCA por rota individual não foi fechada para as ~70 rotas; a inferência usa imports e o padrão compartilhado.
 - Tabela-alvo exata de cada escritor não foi extraída um a um.
 - RLS viva no banco não foi consultada; a leitura é das migrations versionadas.
+
+## 7. Atualização 2026-09-14 — 5 superfícies do kit conectadas a dados reais
+
+A seção "Ainda sem ponte" ficou obsoleta. As cinco superfícies do kit foram ligadas ao eixo `crm_casos` com autenticação e escopo de organização:
+
+| Superfície | Rota | Componente conectado | Leitura real |
+|---|---|---|---|
+| Hoje | `/painel` | `HojeConectado` | casos da org, prazos vencidos, sem próxima ação/responsável |
+| Comercial | `/calls` | `ComercialConectado` | funil real de leads + casos |
+| Pesquisa/Biblioteca | `/biblioteca` | `PesquisaConectada` | evidências, publicações, microentregas |
+| Formalização & Financeiro | `/contratos` | `FormalizacaoConectada` | contratos, faturas, sinais de formalização |
+| Governança | `/configuracoes` | `GovernancaConectada` | audit_logs, equipe, indicadores de governança |
+
+Implementação:
+- `src/lib/kit-superficies.functions.ts` — server function com `requireSupabaseAuth`, organização ativa via `organization_members`, casos não arquivados e sem demo; contagens tolerantes de `leads`, `evidences`, `app_projections`, `invoices`, `audit_logs`.
+- `src/components/desk/superficies-kit-conectadas.tsx` — cinco wrappers com estados de carregando/erro/vazio explícitos.
+
+Radar Interno (`/qualidade`):
+- Matriz usa `MatrizPrioridadeNominal` com casos reais nomeados via `matriz-prioridades-conectada.tsx`.
+- Radar individual usa `RadarIndividualOperacional` com contexto real: status, prioridade, urgência, elegibilidade, responsável, prazo, próxima ação e bloqueios (`radar-interno-integrado.tsx`).
+
+Sem tabelas novas, sem RLS nova, sem eixo paralelo. Nada foi declarado `COMPROVADO_EM_USO`: falta a prova autenticada da proprietária (conta de teste atual não tem acesso de equipe).
