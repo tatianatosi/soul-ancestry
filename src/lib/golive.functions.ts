@@ -194,6 +194,25 @@ export const carregarGoLive = createServerFn({ method: "GET" })
     return {
       encontrado: true as const,
       codigo: CODIGO_CASO_GO_LIVE,
+      identidade: {
+        pessoaPrincipal: nomeCanonico,
+        pessoaPrincipalId: String(clienteCanonico?.id ?? contratante?.["id"] ?? "") || null,
+        email: (clienteCanonico?.email as string) ?? (contratante?.["email"] as string) ?? null,
+        telefone: (clienteCanonico?.telefone as string) ?? (contratante?.["telefone"] as string) ?? null,
+        casoCanonico: CODIGO_CASO_GO_LIVE,
+        casoId,
+        nucleo: nucleo ? String(nucleo["nome"] ?? "Núcleo familiar") : null,
+        nucleoMembros: nucleoMembros.map((m) => ({
+          id: String(m["id"]),
+          nome: (m["nome"] as string) ?? "Pessoa sem nome registrado",
+          papel: (m["papel"] as string) ?? (m["vinculo"] as string) ?? null,
+        })),
+        responsavel: (caso.responsavel_principal as string) ?? null,
+        status: (caso.status as string) ?? null,
+        revisarIdentidade: motivosConflito.length > 0,
+        motivosConflito,
+        legado,
+      },
       caso: {
         id: casoId,
         codigo: String(caso.codigo ?? CODIGO_CASO_GO_LIVE),
