@@ -111,7 +111,7 @@ export function AssistenteLateral({ contexto }: { contexto: string }) {
         data-testid="assistente-lateral-botao"
         onClick={() => setAberto(true)}
         aria-label="Abrir assistente"
-        className="fixed bottom-24 right-4 z-40 flex items-center gap-2 rounded-full border border-gold/60 bg-navy px-4 py-3 text-xs font-semibold text-cream shadow-lg md:bottom-8"
+        className="fixed bottom-8 right-4 z-40 hidden items-center gap-2 rounded-full border border-gold/60 bg-navy px-4 py-3 text-xs font-semibold text-cream shadow-lg md:flex"
       >
         <Bot className="h-4 w-4 text-gold" /> Assistente
       </button>

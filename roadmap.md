@@ -35,3 +35,9 @@
 - [x] Retirar da operação diária inventários técnicos, motores P0–P11 e fases explicativas, preservando as ações e leituras reais.
 - [x] Substituir a primeira leitura das cinco superfícies pelo novo Desk conectado, deixando as rotinas reais em áreas operacionais recolhidas e sem sobreposição.
 - [ ] Validar as cinco superfícies em celular e desktop, sem sobreposição, dados demonstrativos ou regressão de acesso.
+
+## Patch global de responsividade do Desk (14/09/2026)
+- [x] Escopar contenção horizontal ao shell autenticado, sem alterar dados ou rotas.
+- [x] Manter sidebar em drawer fechado abaixo de 768px e ocultar launchers flutuantes no mobile.
+- [x] Tornar bases de cards, inputs, grids, filtros, textos longos e tabelas resilientes entre 320–430px.
+- [ ] Capturar e comparar as seis rotas autenticadas; bloqueado enquanto a sessão de teste redirecionar para `/equipe/entrar`.
