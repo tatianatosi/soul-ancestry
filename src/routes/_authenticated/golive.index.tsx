@@ -7,7 +7,7 @@ import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import type { DadosGoLive } from "@/lib/golive.functions";
 import { definirProximaAcaoGoLive } from "@/lib/golive-escritores.functions";
-import { humano } from "@/lib/rotulos-golive";
+import { dataHumana, humano } from "@/lib/rotulos-golive";
 import {
   kpisHoje,
   prioridadeDaCarteira,
@@ -80,7 +80,7 @@ function HojeGoLive() {
               <Item rotulo="Etapa" valor={humano(caso.plano?.fase ?? caso.caso.fase)} />
               <Item rotulo="Responsável" valor={caso.caso.responsavel} />
               <Item rotulo="Próxima ação" valor={humano(caso.plano?.proximaAcao ?? caso.caso.proximaAcao)} />
-              <Item rotulo="Prazo" valor={caso.plano?.prazo ?? caso.caso.prazo} />
+              <Item rotulo="Prazo" valor={dataHumana(caso.plano?.prazo ?? caso.caso.prazo)} />
             </dl>
             <Acoes>{acaoPlanejador}</Acoes>
           </Bloco>
@@ -115,7 +115,10 @@ function HojeGoLive() {
           {/* Bloco analítico 3 — prioridade da carteira. */}
           <Bloco titulo="Prioridade dos casos">
             {prioridades.length ? (
-              <Rosca dados={prioridades} titulo="Casos por prioridade" />
+              <Rosca
+                dados={prioridades.map((p) => ({ rotulo: humano(p.rotulo) ?? p.rotulo, valor: p.valor }))}
+                titulo="Casos por prioridade"
+              />
             ) : (
               <Vazio
                 cta={
