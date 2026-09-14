@@ -42,3 +42,8 @@
 - [x] Manter sidebar em drawer fechado abaixo de 768px e ocultar launchers flutuantes no mobile.
 - [x] Tornar bases de cards, inputs, grids, filtros, textos longos e tabelas resilientes entre 320–430px.
 - [ ] Capturar e comparar as seis rotas autenticadas; bloqueado enquanto a sessão de teste redirecionar para `/equipe/entrar`.
+
+## Superfície de go-live (14/09/2026)
+- [x] Shell novo `/golive` (Hoje, Caso Ana, Pesquisa, Formalização, Configurações, App Cliente) lendo só `CA-CID-AT-FAM-2026-001`
+- [x] Publicação manual de microentrega reaproveitando `publicarProjecaoApp`
+- [ ] Prova autenticada da Proprietária (prints inicial/ação/confirmação/releitura)
