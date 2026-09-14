@@ -15,6 +15,7 @@ import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import { despublicarDoAppGoLive, publicarNoAppGoLive } from "@/lib/golive-escritores.functions";
+import { criarConvitePortal, registrarEmailAutorizado, validarEmailAutorizado } from "@/lib/portal.functions";
 
 export const Route = createFileRoute("/_authenticated/golive/portal")({
   head: () => ({
@@ -37,6 +38,54 @@ function PortalGoLive() {
   const microentregas = caso?.microentregas ?? [];
   const publicar = useServerFn(publicarNoAppGoLive);
   const despublicar = useServerFn(despublicarDoAppGoLive);
+  const autorizarEmail = useServerFn(registrarEmailAutorizado);
+  const aprovarEmail = useServerFn(validarEmailAutorizado);
+  const convidar = useServerFn(criarConvitePortal);
+
+  const clienteId = caso?.identidade.pessoaPrincipalId ?? null;
+
+  const acaoConvite = clienteId ? (
+    <Acao
+      rotulo="Enviar link mágico"
+      titulo="Convidar a cliente para o App"
+      variante="outline"
+      campos={[
+        {
+          nome: "email",
+          rotulo: "E-mail da cliente",
+          obrigatorio: true,
+          padrao: caso?.identidade.email ?? "",
+        },
+        {
+          nome: "finalidade",
+          rotulo: "Finalidade do acesso",
+          obrigatorio: true,
+          padrao: "Acompanhar o próprio caso no App Cliente.",
+        },
+      ]}
+      aoConfirmar={async (v) => {
+        const autorizacao = await autorizarEmail({
+          data: {
+            clientId: clienteId,
+            casoId: caso?.caso.id ?? null,
+            email: v["email"] ?? "",
+            finalidade: v["finalidade"] ?? "",
+            nivel: "client_workspace",
+          },
+        });
+        await aprovarEmail({ data: { id: autorizacao.id, status: "aprovado" } });
+        await convidar({
+          data: {
+            clientId: clienteId,
+            autorizacaoId: autorizacao.id,
+            nivel: "client_workspace",
+            ...(caso?.caso.id ? { casoId: caso.caso.id } : {}),
+          },
+        });
+      }}
+      confirmacao="Convite enviado por link mágico para o e-mail autorizado."
+    />
+  ) : null;
 
   const acaoPublicar = (
     <Acao
@@ -81,10 +130,15 @@ function PortalGoLive() {
             <p className="break-words text-sm text-navy">
               {caso.identidade.pessoaPrincipal} · {caso.identidade.email}
             </p>
-            <Link to="/acessos-portal" className="text-sm text-navy underline decoration-gold underline-offset-4">
-              Gerenciar acesso e convite
-            </Link>
+            <Acoes>
+              {acaoConvite}
+              <Link to="/acessos-portal" className="text-sm text-navy underline decoration-gold underline-offset-4">
+                Gerenciar acesso e convite
+              </Link>
+            </Acoes>
           </div>
+        ) : acaoConvite ? (
+          <Vazio cta={acaoConvite} />
         ) : (
           <Vazio
             cta={

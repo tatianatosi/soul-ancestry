@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
 import { Barras } from "@/components/golive/graficos";
+import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
+import { definirProximaAcaoGoLive } from "@/lib/golive-escritores.functions";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import { Button } from "@/components/ui/button";
 
@@ -47,6 +50,7 @@ function classificar(status: string | null, prazo: string | null): { coluna: Col
 function KanbanGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
+  const definir = useServerFn(definirProximaAcaoGoLive);
 
   const colunas = new Map<Coluna, Cartao[]>(COLUNAS.map((c) => [c, [] as Cartao[]]));
   for (const m of caso?.microentregas ?? []) {
@@ -109,9 +113,40 @@ function KanbanGoLive() {
             })}
           </div>
 
+          <Bloco titulo="Próxima ação do caso">
+            <p className="break-words text-sm text-navy">
+              {caso.plano?.proximaAcao ?? caso.caso.proximaAcao ?? "Sem itens nesta etapa"}
+              {caso.plano?.prazo ?? caso.caso.prazo ? (
+                <span className="text-navy/55"> · até {dataHumana(caso.plano?.prazo ?? caso.caso.prazo)}</span>
+              ) : null}
+            </p>
+            <Acoes>
+              <Acao
+                rotulo="Definir próxima ação"
+                titulo="O que vem agora neste caso"
+                variante="outline"
+                campos={[
+                  { nome: "proximaAcao", rotulo: "Próxima ação", tipo: "area", obrigatorio: true },
+                  { nome: "responsavel", rotulo: "Responsável" },
+                  { nome: "prazo", rotulo: "Prazo", tipo: "data" },
+                ]}
+                aoConfirmar={(v) =>
+                  definir({
+                    data: {
+                      proximaAcao: v["proximaAcao"] ?? "",
+                      responsavel: v["responsavel"] ?? "",
+                      prazo: v["prazo"] ?? "",
+                    },
+                  })
+                }
+                confirmacao="Próxima ação registrada no planejador."
+              />
+            </Acoes>
+          </Bloco>
+
           {total === 0 ? (
             <p className="text-xs text-navy/55">
-              Nenhuma microentrega registrada até agora. A atualização de próxima ação continua no Caso 360.
+              Nenhuma microentrega registrada até agora. Crie a primeira no Caso 360.
             </p>
           ) : null}
         </>

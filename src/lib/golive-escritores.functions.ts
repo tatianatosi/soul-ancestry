@@ -708,3 +708,47 @@ export const despublicarDoAppGoLive = createServerFn({ method: "POST" })
     );
     return { ok: true };
   });
+
+/* ------------------------------------------------------------------ *
+ * 8. Planejador: próxima ação do caso
+ * ------------------------------------------------------------------ */
+
+/**
+ * Grava a próxima ação, o responsável e o prazo no planejador do caso.
+ * Atualiza o plano quando ele existe e sempre reflete no caso, que é a
+ * leitura de Hoje e do Kanban. Nada é inferido: tudo vem do formulário.
+ */
+export const definirProximaAcaoGoLive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { proximaAcao: string; responsavel?: string; prazo?: string; marco?: string }) => d)
+  .handler(async ({ data, context }) => {
+    semCache();
+    const s = context.supabase as any;
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    if (!texto(data.proximaAcao)) throw new Error("Descreva a próxima ação.");
+
+    const prazo = texto(data.prazo) || null;
+    const responsavel = texto(data.responsavel) || null;
+
+    const plano = await s
+      .from("case_plans")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .eq("case_id", casoId)
+      .is("archived_at", null)
+      .limit(1);
+
+    if (plano.data?.[0]?.id) {
+      const patch: Linha = { proxima_acao: texto(data.proximaAcao), updated_by: userId };
+      if (prazo) patch["prazo_proxima_acao"] = prazo;
+      if (texto(data.marco)) patch["marco_atual"] = texto(data.marco);
+      erro(await s.from("case_plans").update(patch).eq("id", plano.data[0].id).eq("organization_id", organizationId));
+    }
+
+    const patchCaso: Linha = { proxima_acao: texto(data.proximaAcao) };
+    if (prazo) patchCaso["prazo_proxima_acao"] = prazo;
+    if (responsavel) patchCaso["proxima_acao_responsavel"] = responsavel;
+    erro(await s.from("crm_casos").update(patchCaso).eq("id", casoId).eq("organization_id", organizationId));
+
+    return { ok: true };
+  });

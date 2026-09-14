@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { Escada } from "@/components/golive/graficos";
+import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import type { DadosGoLive } from "@/lib/golive.functions";
+import { definirProximaAcaoGoLive } from "@/lib/golive-escritores.functions";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/")({
@@ -22,6 +25,32 @@ export const Route = createFileRoute("/_authenticated/golive/")({
 
 function HojeGoLive() {
   const { data, isPending, error } = useGoLive();
+  const definir = useServerFn(definirProximaAcaoGoLive);
+
+  const acaoPlanejador = (
+    <Acao
+      rotulo="Definir próxima ação"
+      titulo="O que vem agora neste caso"
+      variante="outline"
+      campos={[
+        { nome: "proximaAcao", rotulo: "Próxima ação", tipo: "area", obrigatorio: true },
+        { nome: "responsavel", rotulo: "Responsável" },
+        { nome: "prazo", rotulo: "Prazo", tipo: "data" },
+        { nome: "marco", rotulo: "Marco do planejador" },
+      ]}
+      aoConfirmar={(v) =>
+        definir({
+          data: {
+            proximaAcao: v["proximaAcao"] ?? "",
+            responsavel: v["responsavel"] ?? "",
+            prazo: v["prazo"] ?? "",
+            marco: v["marco"] ?? "",
+          },
+        })
+      }
+      confirmacao="Próxima ação registrada no planejador."
+    />
+  );
 
   return (
     <GoLiveShell titulo="Hoje" descricao="Uma leitura: o caso, a etapa e a próxima ação.">
@@ -39,6 +68,7 @@ function HojeGoLive() {
               <Item rotulo="Próxima ação" valor={data.plano?.proximaAcao ?? data.caso.proximaAcao} />
               <Item rotulo="Prazo" valor={data.plano?.prazo ?? data.caso.prazo} />
             </dl>
+            <Acoes>{acaoPlanejador}</Acoes>
           </Bloco>
 
           <Bloco titulo="Cadeia do caso">
