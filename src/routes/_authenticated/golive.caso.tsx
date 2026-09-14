@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { FaixaFluxo } from "@/components/golive/identidade";
 import { useGoLive } from "@/components/golive/dados";
 import { publicarProjecaoApp } from "@/lib/portal-atendimento.functions";
 import { Button } from "@/components/ui/button";
