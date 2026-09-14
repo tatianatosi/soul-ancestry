@@ -18,8 +18,9 @@ const TELAS = [
   { to: "/golive/caso", rotulo: "Caso 360" },
   { to: "/golive/radar", rotulo: "Radar" },
   { to: "/golive/pesquisa", rotulo: "Pesquisa" },
-  { to: "/golive/formalizacao", rotulo: "Formalização" },
-  { to: "/golive/configuracoes", rotulo: "Configurações" },
+  { to: "/golive/juridico", rotulo: "Jurídico" },
+  { to: "/golive/financeiro", rotulo: "Financeiro" },
+  { to: "/golive/portal", rotulo: "Portal" },
   { to: "/golive/app", rotulo: "App Cliente" },
 ] as const;
 
