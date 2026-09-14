@@ -10,6 +10,8 @@ import { useGoLive } from "@/components/golive/dados";
 import { publicarProjecaoApp } from "@/lib/portal-atendimento.functions";
 import { aprovarMicroentregaGoLive, criarMicroentregaGoLive } from "@/lib/golive-escritores.functions";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
+import { Barras, LinhaDoTempo } from "@/components/golive/graficos";
+import { origemDoSinal } from "@/lib/golive-operacao";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/caso")({
