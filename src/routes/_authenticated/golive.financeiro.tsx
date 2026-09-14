@@ -42,6 +42,66 @@ function FinanceiroGoLive() {
   const total = comValor.reduce((s, f) => s + (f.valor as number), 0);
   const pagas = faturas.filter((f) => /pag|quitad|liquidad/i.test(f.status ?? ""));
 
+  const novaFatura = useServerFn(registrarFaturaGoLive);
+  const novoPagamento = useServerFn(registrarPagamentoGoLive);
+
+  const acaoFatura = (
+    <Acao
+      rotulo="Emitir fatura"
+      titulo="Cobrança do caso"
+      variante="outline"
+      campos={[
+        { nome: "numero", rotulo: "Número", obrigatorio: true },
+        { nome: "valor", rotulo: "Valor (R$)", tipo: "numero", obrigatorio: true },
+        { nome: "vencimento", rotulo: "Vencimento", tipo: "data" },
+        { nome: "descricao", rotulo: "Descrição" },
+      ]}
+      aoConfirmar={(v) =>
+        novaFatura({
+          data: {
+            numero: v["numero"] ?? "",
+            valor: Number(v["valor"] ?? 0),
+            vencimento: v["vencimento"] ?? "",
+            descricao: v["descricao"] ?? "",
+          },
+        })
+      }
+      confirmacao="Fatura registrada. Nenhuma cobrança foi enviada."
+    />
+  );
+
+  const acaoPagamento = (
+    <Acao
+      rotulo="Registrar pagamento manual"
+      titulo="Pagamento recebido"
+      variante="outline"
+      campos={[
+        {
+          nome: "faturaId",
+          rotulo: "Fatura",
+          tipo: "escolha",
+          obrigatorio: true,
+          opcoes: faturas.map((f) => ({ valor: f.id, rotulo: f.numero ?? "Cobrança" })),
+        },
+        { nome: "valor", rotulo: "Valor (R$)", tipo: "numero", obrigatorio: true },
+        { nome: "metodo", rotulo: "Forma de pagamento", padrao: "pix" },
+        { nome: "pagoEm", rotulo: "Data do pagamento", tipo: "data" },
+      ]}
+      aoConfirmar={(v) =>
+        novoPagamento({
+          data: {
+            faturaId: v["faturaId"] ?? "",
+            valor: Number(v["valor"] ?? 0),
+            metodo: v["metodo"] ?? "",
+            pagoEm: v["pagoEm"] ?? "",
+          },
+        })
+      }
+      confirmacao="Pagamento registrado à mão."
+    />
+  );
+
+
   return (
     <GoLiveShell titulo="Financeiro" descricao="Valor, condição, faturas e pagamentos — registro manual.">
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
