@@ -50,6 +50,7 @@ function classificar(status: string | null, prazo: string | null): { coluna: Col
 function KanbanGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
+  const definir = useServerFn(definirProximaAcaoGoLive);
 
   const colunas = new Map<Coluna, Cartao[]>(COLUNAS.map((c) => [c, [] as Cartao[]]));
   for (const m of caso?.microentregas ?? []) {
