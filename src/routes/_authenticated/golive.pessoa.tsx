@@ -36,7 +36,13 @@ function PessoaGoLive() {
 
   /* Fonte: case_members do caso canônico, consent_records do mesmo caso.
      Vínculo só existe se pai_id/mae_id estiverem gravados. */
-  const pessoas = caso?.pessoas ?? [];
+  const pessoas = caso?.pessoas.length
+    ? caso.pessoas
+    : pessoasDoNucleo(caso?.identidade.nucleoMembros ?? [], {
+        nome: caso?.identidade.pessoaPrincipal ?? null,
+        email: caso?.identidade.email ?? null,
+        telefone: caso?.identidade.telefone ?? null,
+      });
   const principal = pessoaPrincipalDoCaso(pessoas);
   const completude = completudePorDominio(principal, caso?.consentimentos ?? []);
   const confianca = confiancaDaPessoa(principal, pessoas, caso?.consentimentos ?? []);
