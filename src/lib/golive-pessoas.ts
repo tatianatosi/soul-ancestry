@@ -88,7 +88,7 @@ export function pessoasDoNucleo(
       paiId: null,
       maeId: null,
       requerente: false,
-      titular: ehPrincipal || papel.includes("contratante") || papel.includes("titular"),
+      titular: principal.nome ? ehPrincipal : papel.includes("contratante") || papel.includes("titular"),
       contratante: papel.includes("contratante"),
       dependente: papel.includes("depend"),
       statusCadastral: m.statusCadastral ?? null,
