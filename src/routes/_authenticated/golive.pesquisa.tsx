@@ -187,6 +187,7 @@ function PesquisaGoLive() {
       <Etapa
         titulo="2. Fontes"
         vazio="Registrar fonte"
+        acao={acaoFonte}
         itens={fontes.map((f) => (
           <li key={f.id} className="break-words">
             {f.titulo}
