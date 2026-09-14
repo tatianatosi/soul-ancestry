@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
+import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
+import { registrarMembroNucleoGoLive } from "@/lib/golive-escritores.functions";
 import { humano } from "@/lib/rotulos-golive";
 import { Button } from "@/components/ui/button";
 
