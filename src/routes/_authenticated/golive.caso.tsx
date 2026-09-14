@@ -178,6 +178,36 @@ function CasoGoLive() {
             </Bloco>
           ) : null}
 
+          {aba === "Jornada" ? (
+            <Bloco titulo="Linha do tempo do caso">
+              {caso.eventos.length ? (
+                <LinhaDoTempo
+                  itens={[...caso.eventos]
+                    .sort((a, b) => (b.em ?? "").localeCompare(a.em ?? ""))
+                    .slice(0, 12)
+                    .map((e) => ({
+                      id: e.id,
+                      titulo: e.titulo,
+                      quando: dataHumana(e.em),
+                      detalhe: e.responsavel ?? humano(e.fase),
+                    }))}
+                />
+              ) : (
+                <Vazio cta={<Link to="/golive/kanban"><Button size="sm" variant="outline">Abrir Operação</Button></Link>} />
+              )}
+            </Bloco>
+          ) : null}
+
+          {aba === "Jornada" ? (
+            <Bloco titulo="Origem do sinal por área">
+              {origemDoSinal(caso.eventos).length ? (
+                <Barras titulo="Eventos registrados por área" dados={origemDoSinal(caso.eventos)} />
+              ) : (
+                <Vazio cta={<Link to="/golive/kanban"><Button size="sm" variant="outline">Abrir Operação</Button></Link>} />
+              )}
+            </Bloco>
+          ) : null}
+
           {aba === "Pessoas" ? (
             <Bloco titulo="Pessoas">
               {caso.pessoas.length ? (
