@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
+import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
+import { registrarMembroNucleoGoLive } from "@/lib/golive-escritores.functions";
 import { humano } from "@/lib/rotulos-golive";
 import { Button } from "@/components/ui/button";
 
@@ -23,6 +26,7 @@ export const Route = createFileRoute("/_authenticated/golive/pessoas")({
 function PessoasGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
+  const adicionarMembro = useServerFn(registrarMembroNucleoGoLive);
 
   const membros = caso?.identidade.nucleoMembros ?? [];
   const titular = membros.find((m) => m.nome === caso?.identidade.pessoaPrincipal) ?? null;
@@ -81,6 +85,44 @@ function PessoasGoLive() {
                 <p className="text-sm text-navy/60">Sem itens nesta etapa</p>
               )}
             </Grupo>
+
+            <Acoes>
+              <Acao
+                rotulo="Adicionar pessoa ao núcleo"
+                titulo="Nova pessoa do núcleo familiar"
+                variante="outline"
+                campos={[
+                  { nome: "nome", rotulo: "Nome completo", obrigatorio: true },
+                  {
+                    nome: "papel",
+                    rotulo: "Papel",
+                    tipo: "escolha",
+                    obrigatorio: true,
+                    opcoes: [
+                      { valor: "contratante_signatario", rotulo: "Contratante / signatário" },
+                      { valor: "dependente", rotulo: "Dependente" },
+                    ],
+                  },
+                  {
+                    nome: "base",
+                    rotulo: "Base da relação",
+                    tipo: "area",
+                    obrigatorio: true,
+                    ajuda: "Documento, evidência ou decisão humana que sustenta o vínculo.",
+                  },
+                ]}
+                aoConfirmar={(v) =>
+                  adicionarMembro({
+                    data: {
+                      nome: v["nome"] ?? "",
+                      papel: (v["papel"] as "contratante_signatario" | "dependente") ?? "dependente",
+                      base: v["base"] ?? "",
+                    },
+                  })
+                }
+                confirmacao="Pessoa adicionada ao núcleo."
+              />
+            </Acoes>
 
             <div className="flex flex-wrap items-center gap-3 pt-1">
               <Link to="/golive/pessoa" className="text-sm text-navy underline decoration-gold underline-offset-4">

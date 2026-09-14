@@ -6,13 +6,21 @@
  * (`carregarGoLive`): nada é criado, estimado ou gravado aqui.
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Escada } from "@/components/golive/graficos";
+import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
+import {
+  adicionarItemEscopoGoLive,
+  criarPlanoOnboardingGoLive,
+  registrarOrdemServicoGoLive,
+  registrarPropostaCanva,
+} from "@/lib/golive-escritores.functions";
 
 export const Route = createFileRoute("/_authenticated/golive/formalizacao")({
   head: () => ({
@@ -40,6 +48,84 @@ function moeda(valor: number | null, sigla: string) {
 function FormalizacaoGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
+  const novaProposta = useServerFn(registrarPropostaCanva);
+  const novoEscopo = useServerFn(adicionarItemEscopoGoLive);
+  const novaOrdem = useServerFn(registrarOrdemServicoGoLive);
+  const novoPlano = useServerFn(criarPlanoOnboardingGoLive);
+
+  const acaoProposta = (
+    <Acao
+      rotulo="Registrar proposta Canva"
+      titulo="Proposta apresentada à família"
+      variante="outline"
+      campos={[
+        { nome: "link", rotulo: "Link da proposta", obrigatorio: true, ajuda: "O link é registrado à mão; nada é buscado no Canva." },
+        { nome: "versao", rotulo: "Versão", tipo: "numero", padrao: "1" },
+        { nome: "data", rotulo: "Data de envio", tipo: "data" },
+        { nome: "escopo", rotulo: "Escopo apresentado", tipo: "area", obrigatorio: true },
+        { nome: "partes", rotulo: "Partes" },
+        { nome: "entregas", rotulo: "Entregas" },
+        { nome: "condicao", rotulo: "Condição comercial" },
+        { nome: "valor", rotulo: "Valor (R$)", tipo: "numero" },
+      ]}
+      aoConfirmar={(v) =>
+        novaProposta({
+          data: {
+            link: v["link"] ?? "",
+            versao: Number(v["versao"] ?? 1) || 1,
+            data: v["data"] ?? "",
+            escopo: v["escopo"] ?? "",
+            partes: v["partes"] ?? "",
+            entregas: v["entregas"] ?? "",
+            condicao: v["condicao"] ?? "",
+            valor: v["valor"] ? Number(v["valor"]) : undefined,
+          },
+        })
+      }
+      confirmacao="Proposta registrada neste caso."
+    />
+  );
+
+  const acaoEscopo = (
+    <Acao
+      rotulo="Lançar item de escopo"
+      titulo="Item do escopo contratado"
+      variante="outline"
+      campos={[
+        { nome: "titulo", rotulo: "Item", obrigatorio: true },
+        {
+          nome: "categoria",
+          rotulo: "Tipo",
+          tipo: "escolha",
+          opcoes: [
+            { valor: "contracted_scope", rotulo: "Escopo contratado" },
+            { valor: "deliverable", rotulo: "Entrega" },
+            { valor: "exclusion", rotulo: "Exclusão" },
+            { valor: "customer_obligation", rotulo: "Obrigação do cliente" },
+          ],
+          padrao: "contracted_scope",
+        },
+      ]}
+      aoConfirmar={(v) =>
+        novoEscopo({ data: { titulo: v["titulo"] ?? "", categoria: v["categoria"] ?? "contracted_scope" } })
+      }
+      confirmacao="Item de escopo registrado."
+    />
+  );
+
+  const acaoOrdem = (
+    <Acao
+      rotulo="Abrir ordem de serviço"
+      titulo="Ordem de serviço do caso"
+      variante="outline"
+      campos={[
+        { nome: "numero", rotulo: "Número", obrigatorio: true },
+        { nome: "resumo", rotulo: "Resumo do serviço", tipo: "area" },
+      ]}
+      aoConfirmar={(v) => novaOrdem({ data: { numero: v["numero"] ?? "", resumo: v["resumo"] ?? "" } })}
+      confirmacao="Ordem de serviço registrada."
+    />
+  );
 
   return (
     <GoLiveShell titulo="Formalização" descricao="Proposta, escopo, contrato, ordem de serviço e publicação.">
@@ -75,8 +161,9 @@ function FormalizacaoGoLive() {
                 ))}
               </ul>
             ) : (
-              <Vazio cta={<Link to="/propostas"><Button size="sm">Registrar proposta</Button></Link>} />
+              <Vazio cta={acaoProposta} />
             )}
+            {caso.propostas.length ? <Acoes>{acaoProposta}</Acoes> : null}
           </Bloco>
 
           <Bloco titulo="2. Escopo aprovado">
@@ -93,8 +180,9 @@ function FormalizacaoGoLive() {
                 ))}
               </ul>
             ) : (
-              <Vazio cta={<Link to="/contratos"><Button size="sm">Definir escopo</Button></Link>} />
+              <Vazio cta={acaoEscopo} />
             )}
+            {caso.escopo.length ? <Acoes>{acaoEscopo}</Acoes> : null}
           </Bloco>
 
           <Bloco titulo="3. Contrato e anexos">
@@ -125,7 +213,30 @@ function FormalizacaoGoLive() {
                 ))}
               </ul>
             ) : (
-              <Vazio cta={<Link to="/ordens-servico" search={{ caseId: caso.caso.id }}><Button size="sm">Abrir ordem de serviço</Button></Link>} />
+              <Vazio cta={acaoOrdem} />
+            )}
+            {caso.ordensServico.length ? <Acoes>{acaoOrdem}</Acoes> : null}
+          </Bloco>
+
+          <Bloco titulo="5. Onboarding D0–D14">
+            {caso.plano ? (
+              <p className="text-sm text-navy">
+                {humano(caso.plano.fase)} · próxima ação: {humano(caso.plano.proximaAcao)}
+                {caso.plano.prazo ? <span className="text-navy/55"> · prazo {dataHumana(caso.plano.prazo)}</span> : null}
+              </p>
+            ) : (
+              <Vazio
+                cta={
+                  <Acao
+                    rotulo="Iniciar onboarding"
+                    titulo="Plano D0–D14"
+                    variante="outline"
+                    campos={[{ nome: "proximaAcao", rotulo: "Próxima ação", padrao: "Confirmar documentos do titular" }]}
+                    aoConfirmar={(v) => novoPlano({ data: { proximaAcao: v["proximaAcao"] ?? "" } })}
+                    confirmacao="Onboarding iniciado."
+                  />
+                }
+              />
             )}
           </Bloco>
 

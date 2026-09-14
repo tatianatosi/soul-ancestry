@@ -1,0 +1,151 @@
+/**
+ * Ações do shell de go-live.
+ *
+ * Um formulário curto por ação, sempre disparado por pessoa: nada acontece
+ * sozinho, nada é enviado para fora e nada é apagado. Ao salvar, a tela
+ * recarrega os dados do caso para a Proprietária conferir na hora.
+ */
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, type ReactNode } from "react";
+
+import { Button } from "@/components/ui/button";
+
+export type CampoAcao = {
+  nome: string;
+  rotulo: string;
+  tipo?: "texto" | "area" | "numero" | "data" | "escolha";
+  obrigatorio?: boolean;
+  opcoes?: { valor: string; rotulo: string }[];
+  ajuda?: string;
+  padrao?: string;
+};
+
+export type ValoresAcao = Record<string, string>;
+
+export function Acao({
+  rotulo,
+  titulo,
+  campos,
+  aoConfirmar,
+  confirmacao = "Salvo. Recarregue para conferir.",
+  variante = "default",
+}: {
+  rotulo: string;
+  titulo?: string;
+  campos: CampoAcao[];
+  aoConfirmar: (valores: ValoresAcao) => Promise<unknown>;
+  confirmacao?: string;
+  variante?: "default" | "outline";
+}) {
+  const [aberto, setAberto] = useState(false);
+  const [valores, setValores] = useState<ValoresAcao>(() =>
+    Object.fromEntries(campos.map((c) => [c.nome, c.padrao ?? ""])),
+  );
+  const [mensagem, setMensagem] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
+  const queryClient = useQueryClient();
+
+  const mutacao = useMutation({
+    mutationFn: aoConfirmar,
+    onSuccess: async () => {
+      setMensagem({ tipo: "ok", texto: confirmacao });
+      setValores(Object.fromEntries(campos.map((c) => [c.nome, c.padrao ?? ""])));
+      setAberto(false);
+      await queryClient.invalidateQueries({ queryKey: ["go-live"] });
+    },
+    onError: (e: unknown) => {
+      const texto = e instanceof Error ? e.message : "Não foi possível salvar agora.";
+      setMensagem({ tipo: "erro", texto });
+    },
+  });
+
+  return (
+    <div className="min-w-0">
+      <Button
+        size="sm"
+        variant={variante}
+        onClick={() => {
+          setMensagem(null);
+          setAberto((v) => !v);
+        }}
+        aria-expanded={aberto}
+      >
+        {rotulo}
+      </Button>
+
+      {aberto ? (
+        <form
+          className="mt-3 min-w-0 space-y-3 rounded-xl border border-navy/10 bg-white/80 p-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setMensagem(null);
+            mutacao.mutate(valores);
+          }}
+        >
+          {titulo ? <p className="font-serif text-sm text-navy">{titulo}</p> : null}
+          {campos.map((campo) => {
+            const id = `acao-${campo.nome}`;
+            const comum = {
+              id,
+              required: campo.obrigatorio,
+              value: valores[campo.nome] ?? "",
+              onChange: (
+                e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+              ) => setValores((v) => ({ ...v, [campo.nome]: e.target.value })),
+              className:
+                "w-full min-w-0 rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-navy/40",
+            };
+            return (
+              <div key={campo.nome} className="min-w-0">
+                <label htmlFor={id} className="mb-1 block text-xs uppercase tracking-wide text-navy/55">
+                  {campo.rotulo}
+                </label>
+                {campo.tipo === "area" ? (
+                  <textarea rows={3} {...comum} />
+                ) : campo.tipo === "escolha" ? (
+                  <select {...comum}>
+                    <option value="">Selecione</option>
+                    {(campo.opcoes ?? []).map((o) => (
+                      <option key={o.valor} value={o.valor}>
+                        {o.rotulo}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type={campo.tipo === "numero" ? "number" : campo.tipo === "data" ? "date" : "text"}
+                    step={campo.tipo === "numero" ? "0.01" : undefined}
+                    {...comum}
+                  />
+                )}
+                {campo.ajuda ? <p className="mt-1 text-[11px] text-navy/50">{campo.ajuda}</p> : null}
+              </div>
+            );
+          })}
+
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" type="submit" disabled={mutacao.isPending}>
+              {mutacao.isPending ? "Salvando…" : "Salvar"}
+            </Button>
+            <Button size="sm" type="button" variant="outline" onClick={() => setAberto(false)}>
+              Cancelar
+            </Button>
+          </div>
+        </form>
+      ) : null}
+
+      {mensagem ? (
+        <p
+          role="status"
+          className={`mt-2 text-xs ${mensagem.tipo === "ok" ? "text-navy/70" : "text-[var(--terracota,#9A3A2F)]"}`}
+        >
+          {mensagem.texto}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/** Linha de ações, sempre dentro do cartão. */
+export function Acoes({ children }: { children: ReactNode }) {
+  return <div className="flex min-w-0 flex-col gap-3">{children}</div>;
+}

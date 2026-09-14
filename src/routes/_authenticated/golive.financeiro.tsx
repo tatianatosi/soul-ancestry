@@ -6,13 +6,16 @@
  * nada é estimado. Sem catálogo, SKU ou preço técnico.
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Rosca } from "@/components/golive/graficos";
+import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
+import { registrarFaturaGoLive, registrarPagamentoGoLive } from "@/lib/golive-escritores.functions";
 
 export const Route = createFileRoute("/_authenticated/golive/financeiro")({
   head: () => ({
@@ -39,6 +42,66 @@ function FinanceiroGoLive() {
   const total = comValor.reduce((s, f) => s + (f.valor as number), 0);
   const pagas = faturas.filter((f) => /pag|quitad|liquidad/i.test(f.status ?? ""));
 
+  const novaFatura = useServerFn(registrarFaturaGoLive);
+  const novoPagamento = useServerFn(registrarPagamentoGoLive);
+
+  const acaoFatura = (
+    <Acao
+      rotulo="Emitir fatura"
+      titulo="Cobrança do caso"
+      variante="outline"
+      campos={[
+        { nome: "numero", rotulo: "Número", obrigatorio: true },
+        { nome: "valor", rotulo: "Valor (R$)", tipo: "numero", obrigatorio: true },
+        { nome: "vencimento", rotulo: "Vencimento", tipo: "data" },
+        { nome: "descricao", rotulo: "Descrição" },
+      ]}
+      aoConfirmar={(v) =>
+        novaFatura({
+          data: {
+            numero: v["numero"] ?? "",
+            valor: Number(v["valor"] ?? 0),
+            vencimento: v["vencimento"] ?? "",
+            descricao: v["descricao"] ?? "",
+          },
+        })
+      }
+      confirmacao="Fatura registrada. Nenhuma cobrança foi enviada."
+    />
+  );
+
+  const acaoPagamento = (
+    <Acao
+      rotulo="Registrar pagamento manual"
+      titulo="Pagamento recebido"
+      variante="outline"
+      campos={[
+        {
+          nome: "faturaId",
+          rotulo: "Fatura",
+          tipo: "escolha",
+          obrigatorio: true,
+          opcoes: faturas.map((f) => ({ valor: f.id, rotulo: f.numero ?? "Cobrança" })),
+        },
+        { nome: "valor", rotulo: "Valor (R$)", tipo: "numero", obrigatorio: true },
+        { nome: "metodo", rotulo: "Forma de pagamento", padrao: "pix" },
+        { nome: "pagoEm", rotulo: "Data do pagamento", tipo: "data" },
+      ]}
+      aoConfirmar={(v) =>
+        novoPagamento({
+          data: {
+            faturaId: v["faturaId"] ?? "",
+            valor: Number(v["valor"] ?? 0),
+            metodo: v["metodo"] ?? "",
+            pagoEm: v["pagoEm"] ?? "",
+          },
+        })
+      }
+      confirmacao="Pagamento registrado à mão."
+    />
+  );
+
+
   return (
     <GoLiveShell titulo="Financeiro" descricao="Valor, condição, faturas e pagamentos — registro manual.">
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
@@ -53,13 +116,7 @@ function FinanceiroGoLive() {
             {comValor.length === 1 ? "" : "s"}.
           </p>
         ) : (
-          <Vazio
-            cta={
-              <Link to="/financeiro">
-                <Button size="sm">Registrar valor e condição</Button>
-              </Link>
-            }
-          />
+          <Vazio cta={acaoFatura} />
         )}
       </Bloco>
 
@@ -93,14 +150,9 @@ function FinanceiroGoLive() {
             ))}
           </ul>
         ) : (
-          <Vazio
-            cta={
-              <Link to="/financeiro">
-                <Button size="sm">Emitir fatura</Button>
-              </Link>
-            }
-          />
+          <Vazio cta={acaoFatura} />
         )}
+        {faturas.length ? <Acoes>{acaoFatura}</Acoes> : null}
       </Bloco>
 
       <Bloco titulo="Pagamentos">
@@ -115,14 +167,9 @@ function FinanceiroGoLive() {
             ))}
           </ul>
         ) : (
-          <Vazio
-            cta={
-              <Link to="/financeiro">
-                <Button size="sm">Registrar pagamento manual</Button>
-              </Link>
-            }
-          />
+          <Vazio cta={faturas.length ? acaoPagamento : <span className="text-xs text-navy/55">Emita uma fatura antes de registrar o pagamento.</span>} />
         )}
+        {pagas.length ? <Acoes>{acaoPagamento}</Acoes> : null}
       </Bloco>
 
       <Bloco titulo="Situação do caso">

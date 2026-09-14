@@ -7,14 +7,21 @@
  * Sem histórico, catálogo, auditoria ou dado inventado.
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import type { ReactNode } from "react";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Barras } from "@/components/golive/graficos";
+import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
+import {
+  registrarAchadoGoLive,
+  registrarEvidenciaGoLive,
+  registrarFonteGoLive,
+} from "@/lib/golive-escritores.functions";
 
 export const Route = createFileRoute("/_authenticated/golive/pesquisa")({
   head: () => ({
@@ -35,6 +42,81 @@ const ETAPAS = ["Pergunta", "Fonte", "Evidência", "Achado", "Proposta"] as cons
 function PesquisaGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
+  const novaFonte = useServerFn(registrarFonteGoLive);
+  const novaEvidencia = useServerFn(registrarEvidenciaGoLive);
+  const novoAchado = useServerFn(registrarAchadoGoLive);
+
+  const acaoFonte = (
+    <Acao
+      rotulo="Registrar fonte"
+      titulo="Fonte consultada"
+      variante="outline"
+      campos={[
+        { nome: "titulo", rotulo: "Fonte", obrigatorio: true },
+        { nome: "instituicao", rotulo: "Arquivo ou instituição" },
+        { nome: "tipo", rotulo: "Tipo", padrao: "registro_civil" },
+        { nome: "url", rotulo: "Endereço (se houver)" },
+      ]}
+      aoConfirmar={(v) =>
+        novaFonte({
+          data: {
+            titulo: v["titulo"] ?? "",
+            instituicao: v["instituicao"] ?? "",
+            tipo: v["tipo"] ?? "",
+            url: v["url"] ?? "",
+          },
+        })
+      }
+      confirmacao="Fonte registrada."
+    />
+  );
+
+  const acaoEvidencia = (
+    <Acao
+      rotulo="Anexar evidência"
+      titulo="Evidência coletada"
+      variante="outline"
+      campos={[
+        { nome: "titulo", rotulo: "Evidência", obrigatorio: true },
+        { nome: "tipo", rotulo: "Tipo", padrao: "documento" },
+        {
+          nome: "fonteId",
+          rotulo: "Fonte de origem",
+          tipo: "escolha",
+          opcoes: (caso?.fontes ?? []).map((f) => ({ valor: f.id, rotulo: f.titulo ?? "Fonte" })),
+        },
+        { nome: "descricao", rotulo: "Descrição interna", tipo: "area" },
+      ]}
+      aoConfirmar={(v) =>
+        novaEvidencia({
+          data: {
+            titulo: v["titulo"] ?? "",
+            tipo: v["tipo"] ?? "",
+            fonteId: v["fonteId"] ?? "",
+            descricao: v["descricao"] ?? "",
+          },
+        })
+      }
+      confirmacao="Evidência registrada para revisão."
+    />
+  );
+
+  const acaoAchado = (
+    <Acao
+      rotulo="Registrar achado"
+      titulo="Achado em revisão"
+      variante="outline"
+      campos={[
+        { nome: "titulo", rotulo: "Achado", obrigatorio: true },
+        { nome: "tipo", rotulo: "Tipo", padrao: "vinculo_familiar" },
+        { nome: "resumo", rotulo: "Resumo interno", tipo: "area" },
+      ]}
+      aoConfirmar={(v) =>
+        novoAchado({ data: { titulo: v["titulo"] ?? "", tipo: v["tipo"] ?? "", resumo: v["resumo"] ?? "" } })
+      }
+      confirmacao="Achado registrado como hipótese em revisão."
+    />
+  );
 
   const perguntas = caso
     ? [
@@ -105,6 +187,7 @@ function PesquisaGoLive() {
       <Etapa
         titulo="2. Fontes"
         vazio="Registrar fonte"
+        acao={acaoFonte}
         itens={fontes.map((f) => (
           <li key={f.id} className="break-words">
             {f.titulo}
@@ -120,6 +203,7 @@ function PesquisaGoLive() {
       <Etapa
         titulo="3. Evidências"
         vazio="Anexar evidência"
+        acao={acaoEvidencia}
         itens={evidencias.map((e) => (
           <li key={e.id} className="break-words">
             {e.titulo}
@@ -134,6 +218,7 @@ function PesquisaGoLive() {
       <Etapa
         titulo="4. Achados"
         vazio="Registrar achado"
+        acao={acaoAchado}
         itens={achados.map((a) => (
           <li key={a.id} className="break-words">
             {a.titulo}
@@ -175,11 +260,13 @@ function Etapa({
   itens,
   vazio,
   destino = "/golive/caso",
+  acao,
 }: {
   titulo: string;
   itens: ReactNode[];
   vazio: string;
   destino?: "/golive/caso" | "/golive/formalizacao";
+  acao?: ReactNode;
 }) {
   return (
     <Bloco titulo={titulo}>
@@ -188,12 +275,15 @@ function Etapa({
       ) : (
         <Vazio
           cta={
-            <Link to={destino}>
-              <Button size="sm">{vazio}</Button>
-            </Link>
+            acao ?? (
+              <Link to={destino}>
+                <Button size="sm">{vazio}</Button>
+              </Link>
+            )
           }
         />
       )}
+      {itens.length && acao ? <Acoes>{acao}</Acoes> : null}
     </Bloco>
   );
 }
