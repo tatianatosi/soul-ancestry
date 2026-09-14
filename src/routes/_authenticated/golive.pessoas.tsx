@@ -111,6 +111,13 @@ function PessoasGoLive() {
               />
             )}
           </Bloco>
+
+          <ArvoreAprovada
+            titular={titular ? titular.nome : caso.identidade.pessoaPrincipal}
+            relacoes={membros
+              .filter((m) => m !== titular && (m.papel ?? "").trim().length > 0)
+              .map((m) => ({ id: m.id, nome: m.nome, papel: m.papel as string }))}
+          />
         </>
       ) : null}
     </GoLiveShell>
