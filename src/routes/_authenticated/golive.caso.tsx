@@ -54,6 +54,55 @@ function CasoGoLive() {
 
       {caso ? (
         <>
+          <Bloco titulo="Ficha do piloto">
+            <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Campo rotulo="Pessoa principal" valor={caso.identidade.pessoaPrincipal} />
+              <Campo rotulo="Caso" valor={`${caso.identidade.casoCanonico} — ${caso.caso.titulo}`} />
+              <Campo rotulo="Núcleo familiar" valor={caso.identidade.nucleo} />
+              <Campo rotulo="Responsável" valor={caso.identidade.responsavel} />
+              <Campo rotulo="Status atual" valor={caso.identidade.status} />
+            </dl>
+
+            {caso.identidade.nucleoMembros.length ? (
+              <ul className="space-y-1 text-sm text-navy">
+                {caso.identidade.nucleoMembros.map((m) => (
+                  <li key={m.id} className="break-words">
+                    {m.nome} {m.papel ? <span className="text-navy/55">— {m.papel}</span> : null}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
+            {caso.identidade.revisarIdentidade ? (
+              <div className="rounded-xl border border-[var(--terracota,#9A3A2F)]/40 bg-[var(--terracota,#9A3A2F)]/5 p-3">
+                <p className="text-sm font-semibold text-[var(--terracota,#9A3A2F)]">Revisar identidade</p>
+                <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-navy/80">
+                  {caso.identidade.motivosConflito.map((m) => (
+                    <li key={m} className="break-words">{m}</li>
+                  ))}
+                </ul>
+                <p className="mt-1 text-xs text-navy/55">Nada foi escolhido ou mesclado automaticamente.</p>
+              </div>
+            ) : (
+              <p className="text-xs text-navy/55">Identidade única confirmada para este piloto.</p>
+            )}
+          </Bloco>
+
+          <Bloco titulo="Registros antigos fora do piloto">
+            {caso.identidade.legado.length ? (
+              <ul className="space-y-1 text-sm text-navy/75">
+                {caso.identidade.legado.map((l) => (
+                  <li key={`${l.origem}-${l.id}`} className="break-words">
+                    {l.rotulo} <span className="text-navy/50">— {l.origem}: {l.motivo}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <Vazio cta={<span className="text-sm text-navy/60">Nenhum registro duplicado localizado.</span>} />
+            )}
+            <p className="text-xs text-navy/55">Preservados no banco; apenas não carregados nesta superfície.</p>
+          </Bloco>
+
           <Bloco titulo="Pessoas">
             {caso.pessoas.length ? (
               <ul className="space-y-1 text-sm text-navy">
