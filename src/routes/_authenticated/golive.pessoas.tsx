@@ -140,3 +140,46 @@ function Pessoa({ nome, papel }: { nome: string; papel: string | null }) {
     </p>
   );
 }
+
+/**
+ * Árvore: mostra somente pessoas e relações aprovadas, isto é, com vínculo
+ * registrado no núcleo. Quem está sem parentesco declarado não entra na
+ * árvore — nada é inferido.
+ */
+function ArvoreAprovada({
+  titular,
+  relacoes,
+}: {
+  titular: string | null;
+  relacoes: { id: string; nome: string; papel: string }[];
+}) {
+  return (
+    <Bloco titulo="Árvore — pessoas e relações aprovadas">
+      {titular && relacoes.length ? (
+        <div className="min-w-0 space-y-2">
+          <div className="inline-block rounded-xl border border-gold/60 bg-gold/15 px-3 py-2 text-sm font-semibold text-navy">
+            {titular}
+          </div>
+          <ul className="space-y-1 border-l-2 border-navy/15 pl-4">
+            {relacoes.map((r) => (
+              <li key={r.id} className="break-words text-sm text-navy">
+                {r.nome} <span className="text-navy/55">— {humano(r.papel)}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-navy/50">
+            Somente vínculos já aprovados no núcleo aparecem aqui.
+          </p>
+        </div>
+      ) : (
+        <Vazio
+          cta={
+            <Link to="/golive/caso">
+              <Button size="sm">Aprovar vínculos no caso</Button>
+            </Link>
+          }
+        />
+      )}
+    </Bloco>
+  );
+}
