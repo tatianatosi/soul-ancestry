@@ -180,3 +180,12 @@ function CasoGoLive() {
     </GoLiveShell>
   );
 }
+
+function Campo({ rotulo, valor }: { rotulo: string; valor: string | null }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-xs uppercase tracking-wide text-navy/50">{rotulo}</dt>
+      <dd className="break-words text-sm text-navy">{valor ?? "Sem itens nesta etapa"}</dd>
+    </div>
+  );
+}
