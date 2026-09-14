@@ -108,9 +108,111 @@ export const carregarGoLive = createServerFn({ method: "GET" })
 
     const plano = planos[0] ?? null;
 
+    /* ------------------------------------------------------------------
+     * Consolidação de referência da pessoa canônica (14/09/2026).
+     * Só leitura: nenhuma tabela nova, nenhuma mesclagem automática,
+     * nenhum registro apagado. Duplicidades ficam marcadas como legado
+     * fora do shell, e conflito vira "revisar identidade" para a
+     * Proprietária decidir — nunca escolha por inferência.
+     * ---------------------------------------------------------------- */
+    const normaliza = (v: unknown) =>
+      String(v ?? "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+
+    const clienteCanonico = caso.cliente_id
+      ? (await supabase.from("clientes").select("id,nome,email,telefone").eq("id", caso.cliente_id).maybeSingle()).data
+      : null;
+
+    const membrosVivos = limpar(membros);
+    const contratante =
+      membrosVivos.find((m) => m["contratante"] === true || normaliza(m["papel_no_caso"]) === "contratante") ?? null;
+
+    const nomeCanonico =
+      (clienteCanonico?.nome as string) ?? (contratante?.["nome"] as string) ?? null;
+
+    // Candidatos com o mesmo nome em outros cadastros (não são carregados no shell).
+    const [outrosClientes, outrosMembros, outrosContatos, aliases] = await Promise.all([
+      nomeCanonico
+        ? supabase.from("clientes").select("id,nome,email").ilike("nome", `%${nomeCanonico.split(" ")[0]}%`).is("archived_at", null)
+        : Promise.resolve({ data: [] }),
+      nomeCanonico
+        ? supabase.from("case_members").select("id,case_id,nome").ilike("nome", `%${nomeCanonico.split(" ")[0]}%`).is("archived_at", null)
+        : Promise.resolve({ data: [] }),
+      nomeCanonico
+        ? supabase.from("contacts").select("id,nome").ilike("nome", `%${nomeCanonico.split(" ")[0]}%`).is("archived_at", null)
+        : Promise.resolve({ data: [] }),
+      supabase.from("case_aliases").select("id,alias,alias_type").eq("case_id", casoId),
+    ]);
+
+    const alvo = normaliza(nomeCanonico);
+    const legado: { id: string; origem: string; rotulo: string; motivo: string }[] = [];
+
+    for (const c of ((outrosClientes as any)?.data ?? []) as Linha[]) {
+      if (String(c["id"]) === String(clienteCanonico?.id ?? "")) continue;
+      if (normaliza(c["nome"]) !== alvo) continue;
+      legado.push({ id: String(c["id"]), origem: "Cadastro de cliente", rotulo: String(c["nome"]), motivo: "Duplicidade mantida fora do piloto" });
+    }
+    for (const m of ((outrosMembros as any)?.data ?? []) as Linha[]) {
+      if (String(m["case_id"]) === casoId) continue;
+      if (normaliza(m["nome"]) !== alvo) continue;
+      legado.push({ id: String(m["id"]), origem: "Pessoa em outro caso", rotulo: String(m["nome"]), motivo: "Caso fora do piloto" });
+    }
+    for (const c of ((outrosContatos as any)?.data ?? []) as Linha[]) {
+      if (normaliza(c["nome"]) !== alvo) continue;
+      legado.push({ id: String(c["id"]), origem: "Contato", rotulo: String(c["nome"]), motivo: "Registro histórico" });
+    }
+    for (const a of (((aliases as any)?.data ?? []) as Linha[])) {
+      legado.push({
+        id: String(a["id"]),
+        origem: "Referência antiga do caso",
+        rotulo: String(a["alias"]),
+        motivo: "Resolve para o código canônico",
+      });
+    }
+
+    // Pessoas do caso com nome equivalente ao canônico, além da própria.
+    const duplicadasNoCaso = membrosVivos.filter(
+      (m) => normaliza(m["nome"]) === alvo && String(m["id"]) !== String(contratante?.["id"] ?? ""),
+    );
+
+    const motivosConflito: string[] = [];
+    if (!clienteCanonico && !contratante) motivosConflito.push("Nenhuma pessoa principal identificada no caso.");
+    if (clienteCanonico && contratante && normaliza(clienteCanonico.nome) !== normaliza(contratante["nome"]))
+      motivosConflito.push("Cliente do cadastro e contratante do caso têm nomes diferentes.");
+    if (duplicadasNoCaso.length > 0) motivosConflito.push("Há mais de uma pessoa com o mesmo nome dentro do caso.");
+
+    const nucleos = await lista(supabase, "nucleos_familiares", "case_id", casoId);
+    const nucleo = nucleos[0] ?? null;
+    const nucleoMembros = nucleo
+      ? await lista(supabase, "nucleo_membros", "nucleo_id", String(nucleo["id"]), "id,nome,papel,vinculo")
+      : [];
+
     return {
       encontrado: true as const,
       codigo: CODIGO_CASO_GO_LIVE,
+      identidade: {
+        pessoaPrincipal: nomeCanonico,
+        pessoaPrincipalId: String(clienteCanonico?.id ?? contratante?.["id"] ?? "") || null,
+        email: (clienteCanonico?.email as string) ?? (contratante?.["email"] as string) ?? null,
+        telefone: (clienteCanonico?.telefone as string) ?? (contratante?.["telefone"] as string) ?? null,
+        casoCanonico: CODIGO_CASO_GO_LIVE,
+        casoId,
+        nucleo: nucleo ? String(nucleo["nome"] ?? "Núcleo familiar") : null,
+        nucleoMembros: nucleoMembros.map((m) => ({
+          id: String(m["id"]),
+          nome: (m["nome"] as string) ?? "Pessoa sem nome registrado",
+          papel: (m["papel"] as string) ?? (m["vinculo"] as string) ?? null,
+        })),
+        responsavel: (caso.responsavel_principal as string) ?? null,
+        status: (caso.status as string) ?? null,
+        revisarIdentidade: motivosConflito.length > 0,
+        motivosConflito,
+        legado,
+      },
       caso: {
         id: casoId,
         codigo: String(caso.codigo ?? CODIGO_CASO_GO_LIVE),
