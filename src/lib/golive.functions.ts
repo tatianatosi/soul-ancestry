@@ -445,14 +445,38 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           temProximaAcao: Boolean(c["proxima_acao"]),
           prazoProximaAcao: (c["prazo_proxima_acao"] as string) ?? null,
         })),
-      publicados: limpar(projecoes)
-        .filter((p) => ["published", "publicada", "aprovada", "approved"].includes(String(p["approval_status"])))
-        .map((p) => ({
-          id: String(p["id"]),
-          tipo: (p["projection_type"] as string) ?? "conteúdo",
-          resumo: (p["content_sanitized"] as string) ?? null,
-          em: (p["approved_at"] as string) ?? (p["effective_from"] as string) ?? null,
+      /** Carteira comercial: um cartão por lead, só campos já gravados. */
+      leadsComerciais: (leadsOrg ?? [])
+        .filter((l) => l["demo"] !== true && l["dados_teste"] !== true && !ehRegistroDeTeste(l))
+        .map((l) => ({
+          id: String(l["id"]),
+          nome: (l["nome"] as string) ?? "Lead sem nome",
+          etapa: (l["eixo_comercial"] as string) ?? (l["estagio"] as string) ?? null,
+          estagio: (l["estagio"] as string) ?? null,
+          origem: (l["origem"] as string) ?? null,
+          canal: (l["data_origin"] as string) ?? null,
+          responsavel: (l["responsavel_nome"] as string) ?? null,
+          ultimoToque:
+            (l["ultimo_followup_em"] as string) ??
+            (l["call_realizada_em"] as string) ??
+            (l["updated_at"] as string) ??
+            null,
+          proximoPasso: (l["proxima_acao"] as string) ?? null,
+          proximoPassoEm: (l["proxima_acao_em"] as string) ?? null,
+          criadoEm: (l["created_at"] as string) ?? null,
+          callAgendada: (l["call_agendada_em"] as string) ?? null,
+          callRealizada: (l["call_realizada_em"] as string) ?? null,
+          statusCall: (l["status_call"] as string) ?? null,
+          resumoCall: (l["resumo_call"] as string) ?? null,
+          discoveryResultado: (l["discovery_resultado"] as string) ?? null,
+          objetivo: (l["objetivo"] as string) ?? null,
+          consentimento: (l["consentimento_status"] as string) ?? null,
+          consentimentoEm: (l["consentimento_em"] as string) ?? null,
+          consentimentoCanal: (l["consentimento_canal"] as string) ?? null,
+          propostaReferencia: (l["proposta_referencia_interna"] as string) ?? null,
+          casoId: (l["case_id"] as string) ?? null,
         })),
+
       contratos: limpar(contratos).map((c) => ({
         id: String(c["id"]),
         numero: (c["contract_number"] as string) ?? null,
