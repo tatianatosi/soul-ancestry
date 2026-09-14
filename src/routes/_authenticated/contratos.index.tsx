@@ -4,12 +4,10 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { SaasShell, useSaas } from "@/components/saas/shell";
-import { useAutoridade } from "@/components/saas/autoridade";
+import { SaasShell } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
-import { FormalizacaoConectada } from "@/components/desk/superficies-kit-conectadas";
-import { criarInstrumento, listarContratos, painelContratual } from "@/lib/contratos.functions";
+import { criarInstrumento, listarContratos } from "@/lib/contratos.functions";
 import { listarCasosFicha } from "@/lib/caso-ficha.functions";
 import {
   ROTULO_GATE_FINANCEIRO,
@@ -42,17 +40,8 @@ export const Route = createFileRoute("/_authenticated/contratos/")({
 });
 
 function ContratosPage() {
-  const autoridade = useAutoridade();
-  const { podeEscrever: podeEscreverVinculo } = useSaas();
-  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
-  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
-  const podeEscrever = !autoridade.bloqueado({ capacidade: "corrigir_os_anexos_previa" });
-  const pendenciaVinculo = podeEscreverVinculo
-    ? null
-    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const navigate = useNavigate();
   const listar = useServerFn(listarContratos);
-  const painel = useServerFn(painelContratual);
   const criar = useServerFn(criarInstrumento);
   const carregarCasos = useServerFn(listarCasosFicha);
 
@@ -66,7 +55,6 @@ function ContratosPage() {
     queryKey: ["contratos", tipo, status, busca],
     queryFn: () => listar({ data: { tipo: tipo || undefined, status: status || undefined, busca: busca || undefined } }),
   });
-  const qPainel = useQuery({ queryKey: ["contratos-painel"], queryFn: () => painel({}) });
   const qCasos = useQuery({ queryKey: ["casos-ficha-picker"], queryFn: () => carregarCasos() });
 
   const bases = (qLista.data?.contratos ?? []).filter((c: any) => c.contract_type === "contract_base");
@@ -94,39 +82,6 @@ function ContratosPage() {
         )
       }
     >
-      <FormalizacaoConectada />
-      {pendenciaVinculo || !podeEscrever ? (
-        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
-          Pendência registrada:{" "}
-          {pendenciaVinculo ??
-            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
-        </p>
-      ) : null}
-      {qPainel.isError ? (
-        <p className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
-          Não foi possível carregar os indicadores abaixo — os números não são zero, a leitura falhou.
-          <button
-            type="button"
-            onClick={() => void qPainel.refetch()}
-            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
-          >
-            Tentar novamente
-          </button>
-        </p>
-      ) : null}
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Cartao titulo="Bloqueios abertos" valor={qPainel.data?.bloqueios.length ?? 0} />
-        <Cartao titulo="Aguardando revisão humana" valor={qPainel.data?.revisaoPendente.length ?? 0} />
-        <Cartao titulo="Anexos obrigatórios ausentes" valor={qPainel.data?.anexosAusentes.length ?? 0} />
-        <Cartao titulo="OS impedidas por gate" valor={qPainel.data?.ordensImpedidas.length ?? 0} />
-      </div>
-
-      {qPainel.data?.excecoesExpiradas.length ? (
-        <p className="mb-4 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-navy">
-          {qPainel.data.excecoesExpiradas.length} exceção(ões) expirada(s) — os gates voltaram a bloquear.
-        </p>
-      ) : null}
-
       <section className="mb-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
         <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="font-serif text-lg text-navy">Contrato de Estudo Genealógico v2 e anexos</h2>
@@ -291,15 +246,6 @@ function ContratosPage() {
       </EstadoDados>
       <PainelCatalogo />
     </SaasShell>
-  );
-}
-
-function Cartao({ titulo, valor }: { titulo: string; valor: number }) {
-  return (
-    <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-      <p className="text-xs uppercase tracking-wide text-navy/60">{titulo}</p>
-      <p className="mt-1 font-serif text-3xl text-navy">{valor}</p>
-    </div>
   );
 }
 

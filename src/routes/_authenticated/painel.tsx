@@ -1,9 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
 import { PainelDia } from "@/components/painel/painel-dia";
 import { CardsAlertasCentrais } from "@/components/painel/cards-alertas-centrais";
-import { HojeConectado } from "@/components/desk/superficies-kit-conectadas";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
@@ -27,7 +26,6 @@ function Painel() {
       descricao="O que está parado, vencido ou pede decisão — com ação e link para a aba dona."
       visualKit="pantone"
     >
-      <HojeConectado />
       <CardsAlertasCentrais />
       <PainelDia />
       {/*

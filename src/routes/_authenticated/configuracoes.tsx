@@ -10,7 +10,6 @@ import { definirPapel, listarUsuarios, type Papel } from "@/lib/saas.functions";
 import { obterModoProprietaria, type EventoProprietaria } from "@/lib/modo-proprietaria.functions";
 import { CAPACIDADES_PROPRIETARIA, ROTULO_CAPACIDADE } from "@/lib/modo-proprietaria";
 import { KitBadge, KitCard, KpiCard } from "@/components/clube-ancestral-kit";
-import { GovernancaConectada } from "@/components/desk/superficies-kit-conectadas";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: () => ({
@@ -60,12 +59,16 @@ function ConfiguracoesPage() {
     onError: (e: Error) => toast.error(e.message || "Não foi possível atualizar o papel."),
   });
 
+  const usuariosOperacionais = q.data?.filter((usuario) => {
+    const email = usuario.email?.toLowerCase() ?? "";
+    return !email.endsWith(".test") && !email.includes("@exemplo.");
+  });
+
   return (
     <SaasShell titulo="Configuração & Acesso Master" descricao="Somente administradores da organização. Gestão de contas da equipe fica em Equipe e papéis." visualKit="pantone">
-      <GovernancaConectada />
       <section aria-label="Resumo de acesso master" className="mb-4 space-y-3">
         <div className="grid gap-3 sm:grid-cols-3">
-          <KpiCard label="Membros" value={q.data?.length} detail="Contas vinculadas à organização" />
+          <KpiCard label="Membros" value={usuariosOperacionais?.length} detail="Contas operacionais vinculadas" />
           <KpiCard label="Papéis disponíveis" value={PAPEIS.length} detail="Perfis internos controlados" />
           <KpiCard
             label="Modo Proprietária"
@@ -97,7 +100,7 @@ function ConfiguracoesPage() {
         <EstadoDados
           carregando={q.isLoading}
           erro={q.error}
-          dados={q.data}
+          dados={usuariosOperacionais}
           aoTentarNovamente={() => void q.refetch()}
           recurso="os membros da organização"
           vazio="Nenhum membro nesta organização ainda."
