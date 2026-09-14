@@ -116,8 +116,8 @@ function Matriz({ caso }: { caso: Caso }) {
           <circle cx={x} cy={y} r="8" fill="#9A3A2F" />
           <text x={x} y={y + 3} textAnchor="middle" fontSize="8" fill="#fff" fontWeight="bold">1</text>
           <text
-            x={x > 200 ? x - 12 : x + 12}
-            y={y - 12}
+            x={x > 200 ? Math.max(x - 12, 70) : Math.min(x + 12, 260)}
+            y={y < 80 ? y + 18 : y - 12}
             textAnchor={x > 200 ? "end" : "start"}
             fontSize="10"
             fill="#2F4B6E"
