@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/golive/app")({
   component: AppClienteGoLive,
 });
 
-const ABAS = ["Home", "Jornada", "Documentos", "Legado"] as const;
+const ABAS = ["Home", "Jornada", "Radar", "Árvore", "Documentos", "Legado", "Conta"] as const;
 
 function AppClienteGoLive() {
   const { data, isPending } = useGoLive();
