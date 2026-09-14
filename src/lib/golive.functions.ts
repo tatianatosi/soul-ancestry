@@ -476,6 +476,14 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           propostaReferencia: (l["proposta_referencia_interna"] as string) ?? null,
           casoId: (l["case_id"] as string) ?? null,
         })),
+      publicados: limpar(projecoes)
+        .filter((p) => ["published", "publicada", "aprovada", "approved"].includes(String(p["approval_status"])))
+        .map((p) => ({
+          id: String(p["id"]),
+          tipo: (p["projection_type"] as string) ?? "conteúdo",
+          resumo: (p["content_sanitized"] as string) ?? null,
+          em: (p["approved_at"] as string) ?? (p["effective_from"] as string) ?? null,
+        })),
 
       contratos: limpar(contratos).map((c) => ({
         id: String(c["id"]),
