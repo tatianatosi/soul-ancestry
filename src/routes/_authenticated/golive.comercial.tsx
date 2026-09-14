@@ -2,8 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
+import { Escada } from "@/components/golive/graficos";
 import { useGoLive } from "@/components/golive/dados";
-import { humano } from "@/lib/rotulos-golive";
+import { dataHumana, humano } from "@/lib/rotulos-golive";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/comercial")({
@@ -59,17 +60,43 @@ function ComercialGoLive() {
         <>
           <FaixaIdentidade dados={caso} />
 
-          <Bloco titulo="Mesa de Discovery">
-            <Vazio
-              cta={
-                <Link to="/leads">
-                  <Button size="sm">Novo lead</Button>
-                </Link>
-              }
+          <Bloco titulo="Cadeia comercial">
+            <Escada
+              etapas={[
+                { rotulo: "Lead", feito: Boolean(caso.lead) },
+                { rotulo: "Discovery", feito: Boolean(caso.lead?.discoveryResultado) },
+                { rotulo: "Call", feito: Boolean(caso.lead?.callRealizada) },
+                { rotulo: "Pessoa", feito: Boolean(caso.identidade.pessoaPrincipal) },
+                { rotulo: "Núcleo", feito: Boolean(caso.identidade.nucleo) },
+                { rotulo: "Caso", feito: true },
+              ]}
             />
-            <p className="text-xs text-navy/55">
-              Nenhum lead nesta etapa — a entrada comercial desta pessoa já virou caso.
-            </p>
+          </Bloco>
+
+          <Bloco titulo="Mesa de Discovery">
+            {caso.lead ? (
+              <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <Campo rotulo="Lead" valor={caso.lead.nome} />
+                <Campo rotulo="Estágio" valor={humano(caso.lead.estagio)} />
+                <Campo rotulo="Origem" valor={humano(caso.lead.origem)} />
+                <Campo rotulo="Objetivo" valor={caso.lead.objetivo} />
+                <Campo rotulo="Call realizada" valor={dataHumana(caso.lead.callRealizada, "Sem call registrada")} />
+                <Campo rotulo="Resultado do Discovery" valor={humano(caso.lead.discoveryResultado)} />
+              </dl>
+            ) : (
+              <>
+                <Vazio
+                  cta={
+                    <Link to="/leads">
+                      <Button size="sm">Novo lead</Button>
+                    </Link>
+                  }
+                />
+                <p className="text-xs text-navy/55">
+                  Nenhum lead vinculado a este caso — a entrada comercial desta pessoa não ficou registrada.
+                </p>
+              </>
+            )}
           </Bloco>
 
           <Bloco titulo="Pessoa e núcleo">
@@ -84,14 +111,15 @@ function ComercialGoLive() {
             </Link>
           </Bloco>
 
-          <Bloco titulo="Passagem para o caso">
+          <Bloco titulo="Passagem para a formalização">
             <p className="text-sm text-navy/75">
-              Esta pessoa já foi convertida: a mesma pessoa, o mesmo núcleo e o mesmo caso seguem daqui para a operação.
+              A mesma pessoa, o mesmo núcleo e o mesmo caso seguem daqui para proposta, contrato e ordem de serviço.
             </p>
-            <p className="text-xs text-navy/55">
-              A conversão de novos leads ainda é feita fora desta tela; nada é criado ou duplicado aqui.
-            </p>
+            <Link to="/golive/formalizacao">
+              <Button size="sm">Abrir Formalização</Button>
+            </Link>
           </Bloco>
+
 
           <Bloco titulo="Caso aberto">
             <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
