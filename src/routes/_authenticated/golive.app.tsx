@@ -122,6 +122,20 @@ function AppClienteGoLive() {
           <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando publicação da equipe</Button>} />
         </Bloco>
       ) : null}
+
+      {aba === "Conta" ? (
+        <Bloco titulo="Seus dados">
+          {caso?.identidade.pessoaPrincipal ? (
+            <div className="space-y-1 text-sm text-navy">
+              <p>{caso.identidade.pessoaPrincipal}</p>
+              {caso.identidade.email ? <p className="break-words text-navy/70">{caso.identidade.email}</p> : null}
+              {caso.identidade.telefone ? <p className="text-navy/70">{caso.identidade.telefone}</p> : null}
+            </div>
+          ) : (
+            <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando cadastro da equipe</Button>} />
+          )}
+        </Bloco>
+      ) : null}
     </GoLiveShell>
   );
 }
