@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { PainelCalls } from "@/components/crm/painel-calls";
+import { ComercialConectado } from "@/components/desk/superficies-kit-conectadas";
 import { ErroSuperficieDesk } from "@/components/saas/erro-superficie";
 import { SaasShell } from "@/components/saas/shell";
 
@@ -40,7 +41,13 @@ function CallsPage() {
       descricao="Entrada comercial: uma pergunta por vez, com origem e destino. O handoff cria pessoa e caso. O que está parado ou vencido aparece no Hoje."
       visualKit="pantone"
     >
-      <PainelCalls leadIdInicial={lead} />
+      <ComercialConectado />
+      <details className="mt-6 rounded-lg border border-navy/15 bg-cream/40 p-4" open={Boolean(lead)}>
+        <summary className="cursor-pointer font-medium text-navy">Abrir Mesa de Discovery</summary>
+        <div className="mt-5 border-t border-navy/10 pt-5">
+          <PainelCalls leadIdInicial={lead} />
+        </div>
+      </details>
     </SaasShell>
   );
 }
