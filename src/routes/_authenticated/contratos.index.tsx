@@ -249,10 +249,6 @@ function ContratosPage() {
   );
 }
 
-function Cartao({ titulo, valor }: { titulo: string; valor: number }) {
-  return null;
-}
-
 function FormNovo({
   bases,
   basesIndisponiveis,
