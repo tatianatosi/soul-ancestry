@@ -98,6 +98,8 @@ export const carregarGoLive = createServerFn({ method: "GET" })
       pesquisas,
       hipoteses,
       achadosBrutos,
+      tarefasCaso,
+      eventosCaso,
     ] = await Promise.all([
       lista(supabase, "case_members", "case_id", casoId),
       lista(supabase, "documents", "case_id", casoId),
