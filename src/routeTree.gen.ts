@@ -87,6 +87,7 @@ import { Route as AuthenticatedContratosIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated/contratos.$id'
 import { Route as AuthenticatedGoliveIndexRouteImport } from './routes/_authenticated/golive.index'
 import { Route as AuthenticatedGoliveCasoRouteImport } from './routes/_authenticated/golive.caso'
+import { Route as AuthenticatedGoliveConfiguracoesRouteImport } from './routes/_authenticated/golive.configuracoes'
 import { Route as AuthenticatedGoliveFormalizacaoRouteImport } from './routes/_authenticated/golive.formalizacao'
 import { Route as AuthenticatedGolivePesquisaRouteImport } from './routes/_authenticated/golive.pesquisa'
 import { Route as AuthenticatedGovernancaCatalogoOperacional30RouteImport } from './routes/_authenticated/governanca.catalogo-operacional-30'
@@ -533,6 +534,12 @@ const AuthenticatedGoliveCasoRoute = AuthenticatedGoliveCasoRouteImport.update({
   path: '/golive/caso',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedGoliveConfiguracoesRoute =
+  AuthenticatedGoliveConfiguracoesRouteImport.update({
+    id: '/golive/configuracoes',
+    path: '/golive/configuracoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGoliveFormalizacaoRoute =
   AuthenticatedGoliveFormalizacaoRouteImport.update({
     id: '/golive/formalizacao',
@@ -771,6 +778,7 @@ export interface FileRoutesByFullPath {
   '/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/golive/caso': typeof AuthenticatedGoliveCasoRoute
+  '/golive/configuracoes': typeof AuthenticatedGoliveConfiguracoesRoute
   '/golive/formalizacao': typeof AuthenticatedGoliveFormalizacaoRoute
   '/golive/pesquisa': typeof AuthenticatedGolivePesquisaRoute
   '/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
@@ -877,6 +885,7 @@ export interface FileRoutesByTo {
   '/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/golive/caso': typeof AuthenticatedGoliveCasoRoute
+  '/golive/configuracoes': typeof AuthenticatedGoliveConfiguracoesRoute
   '/golive/formalizacao': typeof AuthenticatedGoliveFormalizacaoRoute
   '/golive/pesquisa': typeof AuthenticatedGolivePesquisaRoute
   '/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
@@ -986,6 +995,7 @@ export interface FileRoutesById {
   '/_authenticated/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/_authenticated/golive/caso': typeof AuthenticatedGoliveCasoRoute
+  '/_authenticated/golive/configuracoes': typeof AuthenticatedGoliveConfiguracoesRoute
   '/_authenticated/golive/formalizacao': typeof AuthenticatedGoliveFormalizacaoRoute
   '/_authenticated/golive/pesquisa': typeof AuthenticatedGolivePesquisaRoute
   '/_authenticated/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
@@ -1095,6 +1105,7 @@ export interface FileRouteTypes {
     | '/contrato-parametros/$id'
     | '/contratos/$id'
     | '/golive/caso'
+    | '/golive/configuracoes'
     | '/golive/formalizacao'
     | '/golive/pesquisa'
     | '/governanca/catalogo-operacional-30'
@@ -1201,6 +1212,7 @@ export interface FileRouteTypes {
     | '/contrato-parametros/$id'
     | '/contratos/$id'
     | '/golive/caso'
+    | '/golive/configuracoes'
     | '/golive/formalizacao'
     | '/golive/pesquisa'
     | '/governanca/catalogo-operacional-30'
@@ -1309,6 +1321,7 @@ export interface FileRouteTypes {
     | '/_authenticated/contrato-parametros/$id'
     | '/_authenticated/contratos/$id'
     | '/_authenticated/golive/caso'
+    | '/_authenticated/golive/configuracoes'
     | '/_authenticated/golive/formalizacao'
     | '/_authenticated/golive/pesquisa'
     | '/_authenticated/governanca/catalogo-operacional-30'
@@ -1910,6 +1923,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGoliveCasoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/golive/configuracoes': {
+      id: '/_authenticated/golive/configuracoes'
+      path: '/golive/configuracoes'
+      fullPath: '/golive/configuracoes'
+      preLoaderRoute: typeof AuthenticatedGoliveConfiguracoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/golive/formalizacao': {
       id: '/_authenticated/golive/formalizacao'
       path: '/golive/formalizacao'
@@ -2156,6 +2176,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedContratoParametrosIdRoute: typeof AuthenticatedContratoParametrosIdRoute
   AuthenticatedContratosIdRoute: typeof AuthenticatedContratosIdRoute
   AuthenticatedGoliveCasoRoute: typeof AuthenticatedGoliveCasoRoute
+  AuthenticatedGoliveConfiguracoesRoute: typeof AuthenticatedGoliveConfiguracoesRoute
   AuthenticatedGoliveFormalizacaoRoute: typeof AuthenticatedGoliveFormalizacaoRoute
   AuthenticatedGolivePesquisaRoute: typeof AuthenticatedGolivePesquisaRoute
   AuthenticatedGovernancaCatalogoOperacional30Route: typeof AuthenticatedGovernancaCatalogoOperacional30Route
@@ -2237,6 +2258,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedContratoParametrosIdRoute,
   AuthenticatedContratosIdRoute: AuthenticatedContratosIdRoute,
   AuthenticatedGoliveCasoRoute: AuthenticatedGoliveCasoRoute,
+  AuthenticatedGoliveConfiguracoesRoute: AuthenticatedGoliveConfiguracoesRoute,
   AuthenticatedGoliveFormalizacaoRoute: AuthenticatedGoliveFormalizacaoRoute,
   AuthenticatedGolivePesquisaRoute: AuthenticatedGolivePesquisaRoute,
   AuthenticatedGovernancaCatalogoOperacional30Route:
