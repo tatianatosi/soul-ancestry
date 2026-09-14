@@ -73,6 +73,36 @@ function AppClienteGoLive() {
         </Bloco>
       ) : null}
 
+      {aba === "Radar" ? (
+        <Bloco titulo="Sua etapa atual">
+          {caso?.caso.fase ? (
+            <div className="space-y-1 text-sm text-navy">
+              <p>Etapa: {caso.caso.fase}</p>
+              {caso.plano?.marco ? <p className="text-navy/70">Marco: {caso.plano.marco}</p> : null}
+            </div>
+          ) : (
+            <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando publicação da equipe</Button>} />
+          )}
+        </Bloco>
+      ) : null}
+
+      {aba === "Árvore" ? (
+        <Bloco titulo="Sua família">
+          {caso?.identidade.nucleoMembros.length ? (
+            <ul className="space-y-1 text-sm text-navy">
+              {caso.identidade.nucleoMembros.map((m) => (
+                <li key={m.id} className="break-words">
+                  {m.nome}
+                  {m.papel ? <span className="text-navy/50"> — {m.papel}</span> : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando publicação da equipe</Button>} />
+          )}
+        </Bloco>
+      ) : null}
+
       {aba === "Documentos" ? (
         <Bloco titulo="Documentos disponíveis">
           {documentosLiberados.length ? (
