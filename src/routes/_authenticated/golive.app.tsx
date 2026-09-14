@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/golive/app")({
   component: AppClienteGoLive,
 });
 
-const ABAS = ["Home", "Jornada", "Documentos", "Legado"] as const;
+const ABAS = ["Home", "Jornada", "Radar", "Árvore", "Documentos", "Legado", "Conta"] as const;
 
 function AppClienteGoLive() {
   const { data, isPending } = useGoLive();
@@ -73,6 +73,36 @@ function AppClienteGoLive() {
         </Bloco>
       ) : null}
 
+      {aba === "Radar" ? (
+        <Bloco titulo="Sua etapa atual">
+          {caso?.caso.fase ? (
+            <div className="space-y-1 text-sm text-navy">
+              <p>Etapa: {caso.caso.fase}</p>
+              {caso.plano?.marco ? <p className="text-navy/70">Marco: {caso.plano.marco}</p> : null}
+            </div>
+          ) : (
+            <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando publicação da equipe</Button>} />
+          )}
+        </Bloco>
+      ) : null}
+
+      {aba === "Árvore" ? (
+        <Bloco titulo="Sua família">
+          {caso?.identidade.nucleoMembros.length ? (
+            <ul className="space-y-1 text-sm text-navy">
+              {caso.identidade.nucleoMembros.map((m) => (
+                <li key={m.id} className="break-words">
+                  {m.nome}
+                  {m.papel ? <span className="text-navy/50"> — {m.papel}</span> : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando publicação da equipe</Button>} />
+          )}
+        </Bloco>
+      ) : null}
+
       {aba === "Documentos" ? (
         <Bloco titulo="Documentos disponíveis">
           {documentosLiberados.length ? (
@@ -90,6 +120,20 @@ function AppClienteGoLive() {
       {aba === "Legado" ? (
         <Bloco titulo="Memória da família">
           <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando publicação da equipe</Button>} />
+        </Bloco>
+      ) : null}
+
+      {aba === "Conta" ? (
+        <Bloco titulo="Seus dados">
+          {caso?.identidade.pessoaPrincipal ? (
+            <div className="space-y-1 text-sm text-navy">
+              <p>{caso.identidade.pessoaPrincipal}</p>
+              {caso.identidade.email ? <p className="break-words text-navy/70">{caso.identidade.email}</p> : null}
+              {caso.identidade.telefone ? <p className="text-navy/70">{caso.identidade.telefone}</p> : null}
+            </div>
+          ) : (
+            <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando cadastro da equipe</Button>} />
+          )}
         </Bloco>
       ) : null}
     </GoLiveShell>
