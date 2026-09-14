@@ -83,17 +83,49 @@ export const carregarGoLive = createServerFn({ method: "GET" })
     }
 
     const casoId = String(caso.id);
-    const [membros, documentos, microentregas, projecoes, contratos, faturas, planos, equipe] =
-      await Promise.all([
-        lista(supabase, "case_members", "case_id", casoId),
-        lista(supabase, "documents", "case_id", casoId),
-        lista(supabase, "ops_microentregas", "caso_id", casoId),
-        lista(supabase, "app_projections", "case_id", casoId),
-        lista(supabase, "contracts", "case_id", casoId),
-        lista(supabase, "invoices", "case_id", casoId),
-        lista(supabase, "case_plans", "case_id", casoId),
-        lista(supabase, "organization_members", "organization_id", organizationId),
-      ]);
+    const [
+      membros,
+      documentos,
+      microentregas,
+      projecoes,
+      contratos,
+      faturas,
+      planos,
+      equipe,
+      leads,
+      propostas,
+      ordens,
+      pesquisas,
+      hipoteses,
+      achadosBrutos,
+    ] = await Promise.all([
+      lista(supabase, "case_members", "case_id", casoId),
+      lista(supabase, "documents", "case_id", casoId),
+      lista(supabase, "ops_microentregas", "caso_id", casoId),
+      lista(supabase, "app_projections", "case_id", casoId),
+      lista(supabase, "contracts", "case_id", casoId),
+      lista(supabase, "invoices", "case_id", casoId),
+      lista(supabase, "case_plans", "case_id", casoId),
+      lista(supabase, "organization_members", "organization_id", organizationId),
+      lista(supabase, "leads", "case_id", casoId),
+      lista(supabase, "proposals", "case_id", casoId),
+      lista(supabase, "service_orders", "case_id", casoId),
+      lista(supabase, "research_cases", "case_id", casoId),
+      lista(supabase, "research_hypotheses", "case_id", casoId),
+      lista(supabase, "genealogical_findings", "case_id", casoId),
+    ]);
+
+    const pesquisaId = pesquisas[0] ? String(pesquisas[0]["id"]) : null;
+    const [fontes, evidenciasPesquisa, escopoItens] = await Promise.all([
+      pesquisaId ? lista(supabase, "research_sources", "research_case_id", pesquisaId) : Promise.resolve([]),
+      pesquisaId ? lista(supabase, "research_evidence_items", "research_case_id", pesquisaId) : Promise.resolve([]),
+      contratos[0]
+        ? lista(supabase, "contract_scope_items", "contract_id", String(contratos[0]["id"]))
+        : propostas[0]
+          ? lista(supabase, "contract_scope_items", "proposal_id", String(propostas[0]["id"]))
+          : Promise.resolve([]),
+    ]);
+
 
     const limpar = (linhas: Linha[]) =>
       linhas.filter(
@@ -191,6 +223,15 @@ export const carregarGoLive = createServerFn({ method: "GET" })
       ? await lista(supabase, "nucleo_membros", "nucleo_id", String(nucleo["id"]), "id,nome,papel,vinculo")
       : [];
 
+    const [acessosPortal, emailsAutorizados] = await Promise.all([
+      clienteCanonico?.id
+        ? lista(supabase, "client_portal_access", "client_id", String(clienteCanonico.id))
+        : Promise.resolve([]),
+      lista(supabase, "authorized_portal_emails", "case_id", casoId),
+    ]);
+
+
+
     return {
       encontrado: true as const,
       codigo: CODIGO_CASO_GO_LIVE,
@@ -277,6 +318,99 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         status: (f["status"] as string) ?? null,
         vencimento: (f["vencimento"] as string) ?? null,
       })),
+      lead: (() => {
+        const l = limpar(leads)[0];
+        if (!l) return null;
+        return {
+          id: String(l["id"]),
+          nome: (l["nome"] as string) ?? null,
+          estagio: (l["estagio"] as string) ?? null,
+          origem: (l["origem"] as string) ?? (l["data_origin"] as string) ?? null,
+          callAgendada: (l["call_agendada_em"] as string) ?? null,
+          callRealizada: (l["call_realizada_em"] as string) ?? null,
+          discoveryResultado: (l["discovery_resultado"] as string) ?? null,
+          objetivo: (l["objetivo"] as string) ?? null,
+        };
+      })(),
+      propostas: limpar(propostas).map((p) => ({
+        id: String(p["id"]),
+        versao: (p["versao"] as number) ?? null,
+        status: (p["status"] as string) ?? null,
+        valor: (p["valor"] as number) ?? null,
+        moeda: (p["moeda"] as string) ?? "BRL",
+        escopo: (p["escopo"] as string) ?? null,
+        formaPagamento: (p["forma_pagamento"] as string) ?? null,
+        enviadaEm: (p["enviada_em"] as string) ?? null,
+        aprovadaEm: (p["aprovada_em"] as string) ?? null,
+      })),
+      escopo: escopoItens.map((i) => ({
+        id: String(i["id"]),
+        titulo: (i["title"] as string) ?? "Item de escopo",
+        categoria: (i["category"] as string) ?? null,
+        status: (i["status"] as string) ?? null,
+        exigeRevisaoHumana: i["requires_human_validation"] === true,
+      })),
+      ordensServico: limpar(ordens).map((o) => ({
+        id: String(o["id"]),
+        numero: (o["service_order_number"] as string) ?? null,
+        status: (o["status"] as string) ?? null,
+        resumo: (o["scope_summary"] as string) ?? (o["deliverable_summary"] as string) ?? null,
+        inicio: (o["start_date"] as string) ?? null,
+      })),
+      pesquisa: (() => {
+        const r = pesquisas[0];
+        if (!r) return null;
+        return {
+          id: String(r["id"]),
+          objetivo: (r["research_objective"] as string) ?? null,
+          proximaAcao: (r["next_research_action"] as string) ?? null,
+          prazo: (r["next_research_action_due_at"] as string) ?? null,
+          status: (r["status"] as string) ?? null,
+          confianca: (r["confidence_level"] as string) ?? null,
+        };
+      })(),
+      hipoteses: limpar(hipoteses).map((h) => ({
+        id: String(h["id"]),
+        titulo: (h["titulo"] as string) ?? "Pergunta de pesquisa",
+        status: (h["status"] as string) ?? null,
+        confianca: (h["grau_confianca"] as string) ?? null,
+      })),
+      fontes: fontes.map((f) => ({
+        id: String(f["id"]),
+        titulo: (f["title"] as string) ?? "Fonte sem título",
+        tipo: (f["source_type"] as string) ?? null,
+        status: (f["source_status"] as string) ?? null,
+        instituicao: (f["repository_or_institution"] as string) ?? null,
+      })),
+      evidencias: evidenciasPesquisa.map((e) => ({
+        id: String(e["id"]),
+        titulo: (e["title"] as string) ?? "Evidência sem título",
+        tipo: (e["evidence_type"] as string) ?? null,
+        status: (e["evidence_status"] as string) ?? null,
+        confianca: (e["confidence_level"] as string) ?? null,
+      })),
+      achados: limpar(achadosBrutos).map((a) => ({
+        id: String(a["id"]),
+        titulo: (a["title"] as string) ?? "Achado sem título",
+        confianca: (a["confidence"] as string) ?? null,
+        validacao: (a["validation_status"] as string) ?? null,
+        publicavel: a["eligible_for_client_deliverable"] === true,
+      })),
+      portal: {
+        acessos: limpar(acessosPortal).map((a) => ({
+          id: String(a["id"]),
+          email: (a["email"] as string) ?? null,
+          nivel: String(a["access_level"] ?? ""),
+          situacao: String(a["access_status"] ?? ""),
+          ultimoAcesso: (a["last_authenticated_at"] as string) ?? null,
+        })),
+        emailsAutorizados: limpar(emailsAutorizados).map((e) => ({
+          id: String(e["id"]),
+          email: (e["email"] as string) ?? null,
+          status: (e["status"] as string) ?? null,
+        })),
+      },
       equipeTotal: equipe.length,
     };
+
   });

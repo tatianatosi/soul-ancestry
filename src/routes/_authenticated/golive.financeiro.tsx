@@ -9,6 +9,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
+import { Rosca } from "@/components/golive/graficos";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
@@ -61,6 +62,21 @@ function FinanceiroGoLive() {
           />
         )}
       </Bloco>
+
+      {faturas.length ? (
+        <Bloco titulo="Situação das cobranças">
+          <Rosca
+            titulo="Situação das cobranças"
+            dados={Object.entries(
+              faturas.reduce<Record<string, number>>((acc, f) => {
+                const chave = humano(f.status, "Sem situação");
+                acc[chave] = (acc[chave] ?? 0) + 1;
+                return acc;
+              }, {}),
+            ).map(([rotulo, valor]) => ({ rotulo, valor }))}
+          />
+        </Bloco>
+      ) : null}
 
       <Bloco titulo="Faturas">
         {faturas.length ? (

@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Escada } from "@/components/golive/graficos";
 import { useGoLive } from "@/components/golive/dados";
 import type { DadosGoLive } from "@/lib/golive.functions";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,20 @@ function HojeGoLive() {
             </dl>
           </Bloco>
 
+          <Bloco titulo="Cadeia do caso">
+            <Escada
+              etapas={[
+                { rotulo: "Caso", feito: true },
+                { rotulo: "Proposta", feito: data.propostas.length > 0 },
+                { rotulo: "Contrato", feito: data.caso.contratoAssinado },
+                { rotulo: "Pagamento", feito: data.caso.pagamentoConfirmado },
+                { rotulo: "Documentos", feito: data.caso.documentosMinimosOk },
+                { rotulo: "Pesquisa", feito: data.evidencias.length > 0 || data.achados.length > 0 },
+                { rotulo: "Publicação", feito: data.publicados.length > 0 },
+              ]}
+            />
+          </Bloco>
+
           <Bloco titulo="Pendência principal">
             {pendencia(data) ? (
               <p className="text-sm text-navy/80">{pendencia(data)}</p>
@@ -47,6 +62,7 @@ function HojeGoLive() {
               <Vazio cta={<Link to="/golive/caso"><Button size="sm">Abrir caso</Button></Link>} />
             )}
           </Bloco>
+
 
           <div>
             <Link to="/golive/caso">
