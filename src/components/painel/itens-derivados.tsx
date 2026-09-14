@@ -28,9 +28,13 @@ export function ItensDerivados({
   if (itens.length === 0) {
     return <p className="text-xs text-navy/50">{vazio}</p>;
   }
+  // A lista repetia o mesmo aviso dezenas de vezes e criava rolagem sem fim.
+  // Mostra as 5 primeiras e declara o restante, sem esconder a contagem real.
+  const visiveis = itens.slice(0, 5);
+  const restante = itens.length - visiveis.length;
   return (
     <ul data-itens-derivados className="space-y-2 text-sm">
-      {itens.map((i) => (
+      {visiveis.map((i) => (
         <li
           key={i.chave}
           data-item-derivado={i.chave}
