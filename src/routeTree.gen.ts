@@ -90,6 +90,7 @@ import { Route as AuthenticatedGoliveAppRouteImport } from './routes/_authentica
 import { Route as AuthenticatedGoliveCasoRouteImport } from './routes/_authenticated/golive.caso'
 import { Route as AuthenticatedGoliveComercialRouteImport } from './routes/_authenticated/golive.comercial'
 import { Route as AuthenticatedGoliveConfiguracoesRouteImport } from './routes/_authenticated/golive.configuracoes'
+import { Route as AuthenticatedGoliveFinanceiroRouteImport } from './routes/_authenticated/golive.financeiro'
 import { Route as AuthenticatedGoliveFormalizacaoRouteImport } from './routes/_authenticated/golive.formalizacao'
 import { Route as AuthenticatedGoliveJuridicoRouteImport } from './routes/_authenticated/golive.juridico'
 import { Route as AuthenticatedGoliveKanbanRouteImport } from './routes/_authenticated/golive.kanban'
@@ -558,6 +559,12 @@ const AuthenticatedGoliveConfiguracoesRoute =
     path: '/golive/configuracoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGoliveFinanceiroRoute =
+  AuthenticatedGoliveFinanceiroRouteImport.update({
+    id: '/golive/financeiro',
+    path: '/golive/financeiro',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGoliveFormalizacaoRoute =
   AuthenticatedGoliveFormalizacaoRouteImport.update({
     id: '/golive/formalizacao',
@@ -829,6 +836,7 @@ export interface FileRoutesByFullPath {
   '/golive/caso': typeof AuthenticatedGoliveCasoRoute
   '/golive/comercial': typeof AuthenticatedGoliveComercialRoute
   '/golive/configuracoes': typeof AuthenticatedGoliveConfiguracoesRoute
+  '/golive/financeiro': typeof AuthenticatedGoliveFinanceiroRoute
   '/golive/formalizacao': typeof AuthenticatedGoliveFormalizacaoRoute
   '/golive/juridico': typeof AuthenticatedGoliveJuridicoRoute
   '/golive/kanban': typeof AuthenticatedGoliveKanbanRoute
@@ -943,6 +951,7 @@ export interface FileRoutesByTo {
   '/golive/caso': typeof AuthenticatedGoliveCasoRoute
   '/golive/comercial': typeof AuthenticatedGoliveComercialRoute
   '/golive/configuracoes': typeof AuthenticatedGoliveConfiguracoesRoute
+  '/golive/financeiro': typeof AuthenticatedGoliveFinanceiroRoute
   '/golive/formalizacao': typeof AuthenticatedGoliveFormalizacaoRoute
   '/golive/juridico': typeof AuthenticatedGoliveJuridicoRoute
   '/golive/kanban': typeof AuthenticatedGoliveKanbanRoute
@@ -1060,6 +1069,7 @@ export interface FileRoutesById {
   '/_authenticated/golive/caso': typeof AuthenticatedGoliveCasoRoute
   '/_authenticated/golive/comercial': typeof AuthenticatedGoliveComercialRoute
   '/_authenticated/golive/configuracoes': typeof AuthenticatedGoliveConfiguracoesRoute
+  '/_authenticated/golive/financeiro': typeof AuthenticatedGoliveFinanceiroRoute
   '/_authenticated/golive/formalizacao': typeof AuthenticatedGoliveFormalizacaoRoute
   '/_authenticated/golive/juridico': typeof AuthenticatedGoliveJuridicoRoute
   '/_authenticated/golive/kanban': typeof AuthenticatedGoliveKanbanRoute
@@ -1177,6 +1187,7 @@ export interface FileRouteTypes {
     | '/golive/caso'
     | '/golive/comercial'
     | '/golive/configuracoes'
+    | '/golive/financeiro'
     | '/golive/formalizacao'
     | '/golive/juridico'
     | '/golive/kanban'
@@ -1291,6 +1302,7 @@ export interface FileRouteTypes {
     | '/golive/caso'
     | '/golive/comercial'
     | '/golive/configuracoes'
+    | '/golive/financeiro'
     | '/golive/formalizacao'
     | '/golive/juridico'
     | '/golive/kanban'
@@ -1407,6 +1419,7 @@ export interface FileRouteTypes {
     | '/_authenticated/golive/caso'
     | '/_authenticated/golive/comercial'
     | '/_authenticated/golive/configuracoes'
+    | '/_authenticated/golive/financeiro'
     | '/_authenticated/golive/formalizacao'
     | '/_authenticated/golive/juridico'
     | '/_authenticated/golive/kanban'
@@ -2034,6 +2047,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGoliveConfiguracoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/golive/financeiro': {
+      id: '/_authenticated/golive/financeiro'
+      path: '/golive/financeiro'
+      fullPath: '/golive/financeiro'
+      preLoaderRoute: typeof AuthenticatedGoliveFinanceiroRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/golive/formalizacao': {
       id: '/_authenticated/golive/formalizacao'
       path: '/golive/formalizacao'
@@ -2318,6 +2338,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGoliveCasoRoute: typeof AuthenticatedGoliveCasoRoute
   AuthenticatedGoliveComercialRoute: typeof AuthenticatedGoliveComercialRoute
   AuthenticatedGoliveConfiguracoesRoute: typeof AuthenticatedGoliveConfiguracoesRoute
+  AuthenticatedGoliveFinanceiroRoute: typeof AuthenticatedGoliveFinanceiroRoute
   AuthenticatedGoliveFormalizacaoRoute: typeof AuthenticatedGoliveFormalizacaoRoute
   AuthenticatedGoliveJuridicoRoute: typeof AuthenticatedGoliveJuridicoRoute
   AuthenticatedGoliveKanbanRoute: typeof AuthenticatedGoliveKanbanRoute
@@ -2407,6 +2428,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGoliveCasoRoute: AuthenticatedGoliveCasoRoute,
   AuthenticatedGoliveComercialRoute: AuthenticatedGoliveComercialRoute,
   AuthenticatedGoliveConfiguracoesRoute: AuthenticatedGoliveConfiguracoesRoute,
+  AuthenticatedGoliveFinanceiroRoute: AuthenticatedGoliveFinanceiroRoute,
   AuthenticatedGoliveFormalizacaoRoute: AuthenticatedGoliveFormalizacaoRoute,
   AuthenticatedGoliveJuridicoRoute: AuthenticatedGoliveJuridicoRoute,
   AuthenticatedGoliveKanbanRoute: AuthenticatedGoliveKanbanRoute,
