@@ -218,6 +218,7 @@ function PesquisaGoLive() {
       <Etapa
         titulo="4. Achados"
         vazio="Registrar achado"
+        acao={acaoAchado}
         itens={achados.map((a) => (
           <li key={a.id} className="break-words">
             {a.titulo}
