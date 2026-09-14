@@ -54,13 +54,13 @@ function PortalGoLive() {
           nome: "email",
           rotulo: "E-mail da cliente",
           obrigatorio: true,
-          valorInicial: caso?.identidade.email ?? "",
+          padrao: caso?.identidade.email ?? "",
         },
         {
           nome: "finalidade",
           rotulo: "Finalidade do acesso",
           obrigatorio: true,
-          valorInicial: "Acompanhar o próprio caso no App Cliente.",
+          padrao: "Acompanhar o próprio caso no App Cliente.",
         },
       ]}
       aoConfirmar={async (v) => {
