@@ -9,6 +9,7 @@
  * "não aplicável". Nenhuma tabela, dado ou publicação é criada aqui.
  */
 import { contratoParaFamilia, financeiroParaFamilia } from "@/lib/golive-app";
+import { rotuloDaCall } from "@/lib/golive-comercial";
 import type { DadosGoLive } from "@/lib/golive.functions";
 
 export type Caso = Extract<DadosGoLive, { encontrado: true }>;
@@ -208,7 +209,7 @@ export function montarFicha(caso: Caso): LoteFicha[] {
     campo({
       chave: "call",
       rotulo: "Call realizada",
-      valor: lead?.callRealizada ?? null,
+      valor: lead?.callRealizada ?? (lead?.statusCall ? rotuloDaCall(lead.statusCall) : null),
       fonte: "Lead comercial",
       responsavel: resp,
       data: lead?.callRealizada ?? lead?.callAgendada ?? null,

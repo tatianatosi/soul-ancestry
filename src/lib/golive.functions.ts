@@ -692,6 +692,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           origem: (l["origem"] as string) ?? (l["data_origin"] as string) ?? null,
           callAgendada: (l["call_agendada_em"] as string) ?? null,
           callRealizada: (l["call_realizada_em"] as string) ?? null,
+          statusCall: (l["status_call"] as string) ?? null,
           discoveryResultado: (l["discovery_resultado"] as string) ?? null,
           objetivo: (l["objetivo"] as string) ?? null,
         };
