@@ -717,6 +717,8 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         vencimento: (f["vencimento"] as string) ?? null,
         emitidaEm: (f["emitida_em"] as string) ?? null,
         pagaEm: (f["paga_em"] as string) ?? null,
+        /* A autorização declarada no registro fica junto da condição combinada. */
+        descricao: (f["descricao"] as string) ?? null,
       })),
       /** Pagamentos confirmados, com data já gravada — base do recebimento por mês. */
       pagamentos: pagamentos.map((p) => ({
