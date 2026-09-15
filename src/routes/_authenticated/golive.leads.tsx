@@ -15,6 +15,7 @@ import { Barras, Escada } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
+import { AcaoAtendimento } from "@/components/golive/atendimento";
 import {
   COLUNAS_FUNIL,
   colunaDoLead,
@@ -23,7 +24,7 @@ import {
   type LeadComercial,
 } from "@/lib/golive-comercial";
 import { registrarAtendimentoGoLive, registrarLeadGoLive } from "@/lib/golive-escritores.functions";
-import { AcaoAtendimento } from "@/routes/_authenticated/golive.comercial";
+
 
 import { Button } from "@/components/ui/button";
 
