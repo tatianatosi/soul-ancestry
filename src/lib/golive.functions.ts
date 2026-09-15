@@ -548,11 +548,17 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           propostaReferencia: (l["proposta_referencia_interna"] as string) ?? null,
           casoId: (l["case_id"] as string) ?? null,
         })),
+      /**
+       * Só o que a família pode ler: aprovado ou publicado e destinado ao
+       * titular/núcleo. Conteúdo de uso interno da equipe nunca entra aqui.
+       */
       publicados: limpar(projecoes)
         .filter((p) => ["published", "publicada", "aprovada", "approved"].includes(String(p["approval_status"])))
+        .filter((p) => String(p["visibility_scope"] ?? "titular") !== "equipe_interna")
         .map((p) => ({
           id: String(p["id"]),
           tipo: (p["projection_type"] as string) ?? "conteúdo",
+          origem: (p["source_entity_type"] as string) ?? null,
           resumo: (p["content_sanitized"] as string) ?? null,
           em: (p["approved_at"] as string) ?? (p["effective_from"] as string) ?? null,
           criadoEm: (p["created_at"] as string) ?? null,
