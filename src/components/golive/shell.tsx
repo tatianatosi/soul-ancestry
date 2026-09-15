@@ -25,6 +25,7 @@ const TELAS = [
   { to: "/golive/financeiro", rotulo: "Financeiro" },
   { to: "/golive/microentregas", rotulo: "Microentregas" },
   { to: "/golive/portal", rotulo: "Portal" },
+  { to: "/golive/aprovacoes", rotulo: "Aprovações pendentes" },
   { to: "/golive/prontidao", rotulo: "Prontidão para o App" },
   { to: "/golive/app", rotulo: "App Cliente" },
   { to: "/golive/configuracoes", rotulo: "Configurações" },
