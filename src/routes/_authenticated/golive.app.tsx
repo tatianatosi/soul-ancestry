@@ -13,22 +13,21 @@ import { Barras, BarrasPercentual, Linha, LinhaDoTempo } from "@/components/goli
 import { useGoLive } from "@/components/golive/dados";
 import {
   ABAS_APP,
-  achadosParaFamilia,
   contratoParaFamilia,
   financeiroParaFamilia,
-  evidenciasParaFamilia,
-  fontesParaFamilia,
-  fontesPorInstituicao,
   marcosPublicados,
   parcelasEmFatias,
   parcelasPorVencimento,
   publicacoesDaAba,
   publicacoesPorAba,
   publicacoesPorMes,
+  radarDoApp,
+  radarSemConteudo,
   situacaoDocumentos,
   ultimaPublicacao,
   type AbaApp,
 } from "@/lib/golive-app";
+import { RadarSeisEixos } from "@/components/portal/radar-seis-eixos";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import { Button } from "@/components/ui/button";
 
@@ -99,10 +98,9 @@ function AppClienteGoLive() {
   const situacao = situacaoDocumentos(documentosLiberados);
   const acesso = caso?.portal.acessos[0] ?? null;
 
-  /* Pesquisa e Jurídico já gravados, filtrados para o que a família pode ver. */
-  const evidenciasFamilia = evidenciasParaFamilia(caso?.evidencias ?? []);
-  const fontesFamilia = fontesParaFamilia(caso?.fontes ?? []);
-  const achadosFamilia = achadosParaFamilia(caso?.achados ?? []);
+  /* Radar das seis dimensões: só publicações e documentos já liberados. */
+  const radar = radarDoApp(publicados, caso?.documentos ?? []);
+  const radarVazio = radarSemConteudo(radar);
   const titularId = caso?.identidade?.pessoaPrincipalId ?? null;
   const contrato = contratoParaFamilia(caso?.contratos ?? [], titularId);
   const financeiro = financeiroParaFamilia(caso?.faturas ?? [], titularId);
