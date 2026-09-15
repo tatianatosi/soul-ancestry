@@ -363,6 +363,8 @@ function MesaDeDiscovery({
   const passos = roteiroDiscovery(lead);
   const atual = passos[Math.min(indice, passos.length - 1)]!;
   const respondidas = passos.filter((p) => p.estado === "respondida").length;
+  const progresso = progressoRoteiro(lead);
+  const agenda = agendaDoLead(lead);
 
   return (
     <Bloco titulo="Mesa de Discovery">
