@@ -6,18 +6,14 @@
  * publicação é disparada aqui e nenhum dado é criado.
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
-import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { Barras, Rosca } from "@/components/golive/graficos";
 import { Button } from "@/components/ui/button";
 import { acessoAoPortal, coberturaDoApp, publicacaoPorEstado } from "@/lib/golive-portal";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
-import { despublicarDoAppGoLive, publicarNoAppGoLive } from "@/lib/golive-escritores.functions";
-import { criarConvitePortal, registrarEmailAutorizado, validarEmailAutorizado } from "@/lib/portal.functions";
 
 export const Route = createFileRoute("/_authenticated/golive/portal")({
   head: () => ({
