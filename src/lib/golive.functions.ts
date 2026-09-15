@@ -593,6 +593,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         tipo: (f["source_type"] as string) ?? null,
         status: (f["source_status"] as string) ?? null,
         instituicao: (f["repository_or_institution"] as string) ?? null,
+        registradaEm: (f["consulted_at"] as string) ?? (f["created_at"] as string) ?? null,
       })),
       evidencias: evidenciasPesquisa.map((e) => ({
         id: String(e["id"]),
@@ -600,6 +601,8 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         tipo: (e["evidence_type"] as string) ?? null,
         status: (e["evidence_status"] as string) ?? null,
         confianca: (e["confidence_level"] as string) ?? null,
+        registradaEm: (e["created_at"] as string) ?? null,
+        validadaEm: (e["validated_at"] as string) ?? null,
       })),
       achados: limpar(achadosBrutos).map((a) => ({
         id: String(a["id"]),
@@ -607,6 +610,8 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         confianca: (a["confidence"] as string) ?? null,
         validacao: (a["validation_status"] as string) ?? null,
         publicavel: a["eligible_for_client_deliverable"] === true,
+        registradoEm: (a["found_at"] as string) ?? (a["created_at"] as string) ?? null,
+        validadoEm: (a["validated_at"] as string) ?? null,
       })),
       portal: {
         acessos: limpar(acessosPortal).map((a) => ({
