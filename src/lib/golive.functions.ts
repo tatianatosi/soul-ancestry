@@ -213,6 +213,18 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           .filter((v): v is string => typeof v === "string"),
       ),
     );
+    /* Também os nomes de quem registrou a proposta e de quem revisa o contrato:
+       a cadeia da formalização precisa mostrar responsável e revisora. */
+    for (const p of propostas ?? []) {
+      const v = p["created_by"];
+      if (typeof v === "string" && !idsResponsaveis.includes(v)) idsResponsaveis.push(v);
+    }
+    for (const c of contratos ?? []) {
+      for (const campo of ["review_owner_user_id", "approved_for_send_by"]) {
+        const v = c[campo];
+        if (typeof v === "string" && !idsResponsaveis.includes(v)) idsResponsaveis.push(v);
+      }
+    }
     const perfis = idsResponsaveis.length
       ? (((await supabase.from("profiles").select("id,nome").in("id", idsResponsaveis)).data ?? []) as Linha[])
       : [];
