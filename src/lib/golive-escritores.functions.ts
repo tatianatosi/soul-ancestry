@@ -965,6 +965,15 @@ export const publicarInstrumentoNoAppGoLive = createServerFn({ method: "POST" })
 
     const resumo = [titulo, numero, situacao].filter(Boolean).join(" · ");
     const agora = new Date().toISOString();
+    // Republicar substitui o cartão anterior: o registro antigo é arquivado, nunca apagado.
+    const anterior = await s
+      .from("app_projections")
+      .update({ approval_status: "archived" })
+      .eq("organization_id", organizationId)
+      .eq("case_id", casoId)
+      .eq("projection_type", data.tipo)
+      .eq("approval_status", "published");
+    erro(anterior);
     const r = await s
       .from("app_projections")
       .insert({
