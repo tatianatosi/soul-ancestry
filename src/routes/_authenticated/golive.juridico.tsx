@@ -109,7 +109,7 @@ function JuridicoGoLive() {
         )}
       </Bloco>
 
-      <Bloco titulo="1b. Escopo acordado">
+      <Bloco titulo="2. Escopo acordado">
         {caso?.escopo.length ? (
           <ul className="space-y-1 text-sm text-navy">
             {caso.escopo.map((i) => (
