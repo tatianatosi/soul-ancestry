@@ -306,22 +306,20 @@ function AppClienteGoLive() {
               )}
             </Bloco>
             <Bloco titulo="Documentos disponíveis">
-              {documentosLiberados.length || evidenciasFamilia.length ? (
+              {documentosLiberados.length ? (
                 <ul className="space-y-1 text-sm text-navy">
                   {documentosLiberados.map((d) => (
                     <li key={d.id} className="break-words">
                       {d.titulo} <span className="text-navy/55">· {humano(d.status, "sem situação")}</span>
                     </li>
                   ))}
-                  {evidenciasFamilia.map((e) => (
-                    <li key={e.id} className="break-words">
-                      {e.titulo} <span className="text-navy/55">· {humano(e.status, "sem situação")}</span>
-                    </li>
-                  ))}
                 </ul>
               ) : (
-                <Vazio cta={<IrPara para="/golive/pesquisa" rotulo="Abrir Pesquisa" />} />
+                <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando liberação da equipe</Button>} />
               )}
+              <p className="mt-2 text-xs text-navy/55">
+                Só aparece aqui o documento que a equipe já liberou para você.
+              </p>
             </Bloco>
             <Bloco titulo="Entregas publicadas">
               {documentosPublicados.length ? (
