@@ -172,6 +172,14 @@ function FormalizacaoGoLive() {
                         Sem link/referência registrado — registre antes de aprovar o escopo.
                       </div>
                     )}
+                    {/* Responsável, objetivo e escopo incluído/excluído: só o que está gravado. */}
+                    <div className="mt-1 space-y-0.5 text-xs text-navy/70">
+                      <div>Responsável: {p.responsavel ?? "não registrado"}</div>
+                      <div>Objetivo: {caso.lead?.objetivo ?? "não registrado"}</div>
+                      <div>Escopo incluído: {p.escopo ?? "não registrado"}</div>
+                      <div>Escopo excluído: {p.exclusoes ?? "não registrado"}</div>
+                      {p.validade ? <div>Validade: {dataHumana(p.validade)}</div> : null}
+                    </div>
                     {!p.aprovadaEm && p.referencia ? (
                       <Acoes>
                         <Acao
