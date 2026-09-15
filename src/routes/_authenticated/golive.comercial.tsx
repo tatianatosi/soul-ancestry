@@ -19,6 +19,7 @@ import {
   porOrigem,
   porResultadoDiscovery,
   porSituacaoDaCall,
+  progressoRoteiro,
   roteiroDiscovery,
   rotuloDaCall,
   saudeDosLeads,
