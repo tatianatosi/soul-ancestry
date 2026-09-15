@@ -342,7 +342,7 @@ function Cartao({ lead }: { lead: LeadComercial }) {
   );
 }
 
-/** Mesa de Discovery: uma pergunta por vez, com origem, destino, contexto e consentimento. */
+/** Mesa de Discovery: uma pergunta por vez, com fonte e estado de cada resposta. */
 function MesaDeDiscovery({
   lead,
   leads,
@@ -355,46 +355,9 @@ function MesaDeDiscovery({
   acao: React.ReactNode;
 }) {
   const [indice, setIndice] = useState(0);
-
-  const perguntas = [
-    {
-      pergunta: "Qual é o objetivo da família?",
-      resposta: lead?.objetivo ?? null,
-      origem: "Entrada do lead",
-      destino: "Objetivo do caso",
-      contexto: "Define o que a pesquisa precisa provar.",
-    },
-    {
-      pergunta: "Por onde essa pessoa chegou?",
-      resposta: lead?.origem ?? null,
-      origem: "Origem registrada no lead",
-      destino: "Leitura de canais e origens",
-      contexto: "Sustenta a leitura de aquisição, sem estimativa.",
-    },
-    {
-      pergunta: "A call já aconteceu?",
-      resposta: lead?.callRealizada ? dataHumana(lead.callRealizada) : null,
-      origem: "Registro de call",
-      destino: "Etapa do funil",
-      contexto: "A call é o que move o lead de Discovery para Proposta.",
-    },
-    {
-      pergunta: "Qual foi o resultado do Discovery?",
-      resposta: lead?.discoveryResultado ? humano(lead.discoveryResultado) : null,
-      origem: "Mesa de Discovery",
-      destino: "Decisão de proposta",
-      contexto: "Resultado é registro humano, nunca inferência.",
-    },
-    {
-      pergunta: "Em que etapa o lead está agora?",
-      resposta: lead ? colunaDoLead(lead) : null,
-      origem: "Marcos já gravados do lead",
-      destino: "Funil e kanban",
-      contexto: "Derivado dos marcos, não digitado à parte.",
-    },
-  ];
-
-  const atual = perguntas[Math.min(indice, perguntas.length - 1)]!;
+  const passos = roteiroDiscovery(lead);
+  const atual = passos[Math.min(indice, passos.length - 1)]!;
+  const respondidas = passos.filter((p) => p.estado === "respondida").length;
 
   return (
     <Bloco titulo="Mesa de Discovery">
@@ -415,20 +378,16 @@ function MesaDeDiscovery({
             </select>
           </label>
           <p className="text-xs uppercase tracking-wide text-navy/50">
-            Pergunta {indice + 1} de {perguntas.length} · {lead.nome}
+            Pergunta {indice + 1} de {passos.length} · {respondidas} respondida(s) · {lead.nome}
           </p>
           <p className="text-base font-medium text-navy">{atual.pergunta}</p>
-          <p className="text-sm text-navy/80">{atual.resposta ?? "Sem resposta registrada"}</p>
-          <dl className="grid grid-cols-1 gap-2 text-xs text-navy/60 sm:grid-cols-3">
-            <div>Origem: {atual.origem}</div>
-            <div>Destino: {atual.destino}</div>
-            <div>Contexto: {atual.contexto}</div>
-          </dl>
-          <p className="text-xs text-navy/60">
-            Consentimento: {humano(lead.consentimento, "Não solicitado")}
-            {lead.consentimentoCanal ? ` · ${humano(lead.consentimentoCanal)}` : ""}
-            {lead.consentimentoEm ? ` · ${dataHumana(lead.consentimentoEm)}` : ""}
+          <p className="text-sm text-navy/80">
+            {atual.resposta ? humano(atual.resposta) : "Sem resposta registrada"}
           </p>
+          <dl className="grid grid-cols-1 gap-2 text-xs text-navy/60 sm:grid-cols-2">
+            <div>Fonte: {atual.fonte}</div>
+            <div>Estado: {atual.estado === "respondida" ? "Respondida" : "Pendente"}</div>
+          </dl>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" disabled={indice === 0} onClick={() => setIndice((i) => i - 1)}>
               Anterior
@@ -436,7 +395,7 @@ function MesaDeDiscovery({
             <Button
               size="sm"
               variant="outline"
-              disabled={indice >= perguntas.length - 1}
+              disabled={indice >= passos.length - 1}
               onClick={() => setIndice((i) => i + 1)}
             >
               Próxima
@@ -459,6 +418,60 @@ function MesaDeDiscovery({
     </Bloco>
   );
 }
+
+/** Formulário único de atendimento: Discovery e call gravados de uma vez só. */
+export function AcaoAtendimento({
+  leadId,
+  aoConfirmar,
+}: {
+  leadId: string;
+  aoConfirmar: (v: Record<string, string>) => Promise<unknown>;
+}) {
+  return (
+    <Acoes>
+      <Acao
+        rotulo="Registrar atendimento"
+        titulo="Discovery e call do lead"
+        variante="outline"
+        campos={[
+          {
+            nome: "situacaoCall",
+            rotulo: "Situação da call",
+            tipo: "escolha",
+            obrigatorio: true,
+            opcoes: SITUACOES_CALL.map((s) => ({ valor: s.valor, rotulo: s.rotulo })),
+          },
+          { nome: "callEm", rotulo: "Data da call", tipo: "data" },
+          {
+            nome: "resultado",
+            rotulo: "Resultado do Discovery",
+            tipo: "escolha",
+            opcoes: RESULTADOS_DISCOVERY.map((r) => ({ valor: r.valor, rotulo: r.rotulo })),
+            ajuda: "Sem resultado escolhido, a etapa do lead não muda.",
+          },
+          { nome: "resumo", rotulo: "Resumo interno", tipo: "area", obrigatorio: true },
+          { nome: "proximoPasso", rotulo: "Próxima ação", obrigatorio: true },
+          { nome: "proximoPassoEm", rotulo: "Próxima ação em", tipo: "data" },
+          { nome: "responsavel", rotulo: "Responsável" },
+        ]}
+        aoConfirmar={(v) =>
+          aoConfirmar({
+            leadId,
+            situacaoCall: v["situacaoCall"] ?? "",
+            callEm: v["callEm"] ?? "",
+            resultado: v["resultado"] ?? "",
+            resumo: v["resumo"] ?? "",
+            proximoPasso: v["proximoPasso"] ?? "",
+            proximoPassoEm: v["proximoPassoEm"] ?? "",
+            responsavel: v["responsavel"] ?? "",
+          })
+        }
+        confirmacao="Atendimento registrado. O lead já aparece atualizado no funil e no kanban."
+      />
+    </Acoes>
+  );
+}
+
 
 /** CTA sem escritor ligado: navega para a ação existente e diz que a conexão está pendente. */
 function Pendente({ destino, rotulo }: { destino: string; rotulo: string }) {
