@@ -37,14 +37,8 @@ function PortalGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
   const publicados = caso?.publicados ?? [];
-  const microentregas = caso?.microentregas ?? [];
-  const publicar = useServerFn(publicarNoAppGoLive);
-  const despublicar = useServerFn(despublicarDoAppGoLive);
-  const autorizarEmail = useServerFn(registrarEmailAutorizado);
-  const aprovarEmail = useServerFn(validarEmailAutorizado);
-  const convidar = useServerFn(criarConvitePortal);
 
-  const clienteId = caso?.identidade.pessoaPrincipalId ?? null;
+
 
   // Só contagem do que já está gravado: projeções, acessos e e-mails autorizados.
   const projecoes = caso?.projecoesEstados ?? [];
