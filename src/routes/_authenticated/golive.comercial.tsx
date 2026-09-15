@@ -8,17 +8,25 @@ import { Barras, Rosca } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
+import { AcaoAtendimento } from "@/components/golive/atendimento";
 import {
-  colunaDoLead,
+  estadoDaCall,
   funil,
   kanbanPorEtapa,
+  kanbanPorPrazo,
   noPeriodo,
   porOrigem,
+  porResultadoDiscovery,
+  porSituacaoDaCall,
+  roteiroDiscovery,
+  rotuloDaCall,
   saudeDosLeads,
   semDataDeEntrada,
   type LeadComercial,
 } from "@/lib/golive-comercial";
-import { registrarCallGoLive, registrarDiscoveryGoLive, registrarLeadGoLive } from "@/lib/golive-escritores.functions";
+import { registrarAtendimentoGoLive, registrarLeadGoLive } from "@/lib/golive-escritores.functions";
+
+
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/comercial")({
@@ -52,8 +60,8 @@ function ComercialGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
   const novoLead = useServerFn(registrarLeadGoLive);
-  const discovery = useServerFn(registrarDiscoveryGoLive);
-  const call = useServerFn(registrarCallGoLive);
+  const atendimento = useServerFn(registrarAtendimentoGoLive);
+
   const [periodo, setPeriodo] = useState<number | null>(90);
   const [escolhido, setEscolhido] = useState<string | null>(null);
   const todos = useMemo<LeadComercial[]>(() => (data?.leadsComerciais ?? []) as LeadComercial[], [data]);
@@ -235,40 +243,28 @@ function ComercialGoLive() {
         aoEscolher={setEscolhido}
         acao={
           leadDoCaso ? (
-            <Acoes>
-              <Acao
-                rotulo="Registrar Discovery"
-                titulo="Resultado da Mesa de Discovery"
-                variante="outline"
-                campos={[
-                  {
-                    nome: "resultado",
-                    rotulo: "Resultado",
-                    tipo: "escolha",
-                    obrigatorio: true,
-                    opcoes: [
-                      { valor: "segue_para_proposta", rotulo: "Segue para proposta" },
-                      { valor: "em_avaliacao", rotulo: "Em avaliação" },
-                      { valor: "nao_elegivel", rotulo: "Não elegível" },
-                    ],
-                  },
-                  { nome: "resumo", rotulo: "Resumo interno", tipo: "area", obrigatorio: true },
-                ]}
-                aoConfirmar={(v) =>
-                  discovery({
-                    data: { leadId: leadDoCaso, resultado: v["resultado"] ?? "", resumo: v["resumo"] ?? "" },
-                  })
-                }
-                confirmacao="Discovery registrado."
-              />
-            </Acoes>
+            <AcaoAtendimento
+              leadId={leadDoCaso}
+              aoConfirmar={(v) => atendimento({ data: v as Parameters<typeof atendimento>[0]["data"] })}
+            />
           ) : (
             <Pendente destino="/golive/leads" rotulo="Abrir entrada de leads" />
           )
         }
       />
 
-      <Bloco titulo="Calls">
+      <Bloco titulo="Calls e Discovery">
+        {leads.length ? (
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <Barras titulo="Situação das calls" dados={porSituacaoDaCall(leads)} />
+            <Rosca titulo="Resultado do Discovery" dados={porResultadoDiscovery(leads)} />
+          </div>
+        ) : (
+          <>
+            <Vazio cta={ctaNovoLead} />
+            <p className="text-xs text-navy/55">Nenhuma call nesta etapa.</p>
+          </>
+        )}
         {leads.some((l) => l.callAgendada || l.callRealizada) ? (
           <ul className="space-y-2">
             {leads
@@ -279,41 +275,42 @@ function ComercialGoLive() {
                   <p className="text-xs text-navy/65">
                     Data: {dataHumana(l.callRealizada ?? l.callAgendada, "Sem data registrada")}
                   </p>
-                  <p className="text-xs text-navy/65">
-                    Resultado: {humano(l.statusCall ?? l.discoveryResultado, "Sem resultado registrado")}
-                  </p>
+                  <p className="text-xs text-navy/65">Situação: {rotuloDaCall(estadoDaCall(l))}</p>
                   <p className="text-xs text-navy/65">
                     Próximo passo: {humano(l.proximoPasso, "Sem próximo passo registrado")}
                   </p>
                 </li>
               ))}
           </ul>
+        ) : null}
+      </Bloco>
+
+      <Bloco titulo="Próximas ações por prazo">
+        {leads.length ? (
+          <div className="flex snap-x gap-3 overflow-x-auto pb-2">
+            {kanbanPorPrazo(leads).map((coluna) => (
+              <div key={coluna.chave} className="w-[280px] shrink-0 snap-start rounded-lg bg-creme/60 p-3">
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-navy/60">
+                  {coluna.rotulo} · {coluna.leads.length}
+                </p>
+                <div className="space-y-2">
+                  {coluna.leads.length ? (
+                    coluna.leads.map((lead) => <Cartao key={lead.id} lead={lead} />)
+                  ) : (
+                    <p className="text-xs text-navy/55">Nenhum lead nesta etapa.</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
           <>
             <Vazio cta={ctaNovoLead} />
-            <p className="text-xs text-navy/55">Nenhuma call nesta etapa.</p>
+            <p className="text-xs text-navy/55">Nenhum lead nesta etapa.</p>
           </>
         )}
-        {leadDoCaso ? (
-          <Acoes>
-            <Acao
-              rotulo="Registrar call"
-              titulo="Call com a pessoa"
-              variante="outline"
-              campos={[
-                { nome: "ocorridoEm", rotulo: "Data", tipo: "data" },
-                { nome: "resumo", rotulo: "Resumo interno", tipo: "area", obrigatorio: true },
-              ]}
-              aoConfirmar={(v) =>
-                call({ data: { leadId: leadDoCaso, resumo: v["resumo"] ?? "", ocorridoEm: v["ocorridoEm"] ?? "" } })
-              }
-              confirmacao="Call registrada."
-            />
-          </Acoes>
-        ) : (
-          <Pendente destino="/golive/leads" rotulo="Abrir entrada de leads" />
-        )}
       </Bloco>
+
     </GoLiveShell>
   );
 }
@@ -342,7 +339,7 @@ function Cartao({ lead }: { lead: LeadComercial }) {
   );
 }
 
-/** Mesa de Discovery: uma pergunta por vez, com origem, destino, contexto e consentimento. */
+/** Mesa de Discovery: uma pergunta por vez, com fonte e estado de cada resposta. */
 function MesaDeDiscovery({
   lead,
   leads,
@@ -355,46 +352,9 @@ function MesaDeDiscovery({
   acao: React.ReactNode;
 }) {
   const [indice, setIndice] = useState(0);
-
-  const perguntas = [
-    {
-      pergunta: "Qual é o objetivo da família?",
-      resposta: lead?.objetivo ?? null,
-      origem: "Entrada do lead",
-      destino: "Objetivo do caso",
-      contexto: "Define o que a pesquisa precisa provar.",
-    },
-    {
-      pergunta: "Por onde essa pessoa chegou?",
-      resposta: lead?.origem ?? null,
-      origem: "Origem registrada no lead",
-      destino: "Leitura de canais e origens",
-      contexto: "Sustenta a leitura de aquisição, sem estimativa.",
-    },
-    {
-      pergunta: "A call já aconteceu?",
-      resposta: lead?.callRealizada ? dataHumana(lead.callRealizada) : null,
-      origem: "Registro de call",
-      destino: "Etapa do funil",
-      contexto: "A call é o que move o lead de Discovery para Proposta.",
-    },
-    {
-      pergunta: "Qual foi o resultado do Discovery?",
-      resposta: lead?.discoveryResultado ? humano(lead.discoveryResultado) : null,
-      origem: "Mesa de Discovery",
-      destino: "Decisão de proposta",
-      contexto: "Resultado é registro humano, nunca inferência.",
-    },
-    {
-      pergunta: "Em que etapa o lead está agora?",
-      resposta: lead ? colunaDoLead(lead) : null,
-      origem: "Marcos já gravados do lead",
-      destino: "Funil e kanban",
-      contexto: "Derivado dos marcos, não digitado à parte.",
-    },
-  ];
-
-  const atual = perguntas[Math.min(indice, perguntas.length - 1)]!;
+  const passos = roteiroDiscovery(lead);
+  const atual = passos[Math.min(indice, passos.length - 1)]!;
+  const respondidas = passos.filter((p) => p.estado === "respondida").length;
 
   return (
     <Bloco titulo="Mesa de Discovery">
@@ -415,20 +375,16 @@ function MesaDeDiscovery({
             </select>
           </label>
           <p className="text-xs uppercase tracking-wide text-navy/50">
-            Pergunta {indice + 1} de {perguntas.length} · {lead.nome}
+            Pergunta {indice + 1} de {passos.length} · {respondidas} respondida(s) · {lead.nome}
           </p>
           <p className="text-base font-medium text-navy">{atual.pergunta}</p>
-          <p className="text-sm text-navy/80">{atual.resposta ?? "Sem resposta registrada"}</p>
-          <dl className="grid grid-cols-1 gap-2 text-xs text-navy/60 sm:grid-cols-3">
-            <div>Origem: {atual.origem}</div>
-            <div>Destino: {atual.destino}</div>
-            <div>Contexto: {atual.contexto}</div>
-          </dl>
-          <p className="text-xs text-navy/60">
-            Consentimento: {humano(lead.consentimento, "Não solicitado")}
-            {lead.consentimentoCanal ? ` · ${humano(lead.consentimentoCanal)}` : ""}
-            {lead.consentimentoEm ? ` · ${dataHumana(lead.consentimentoEm)}` : ""}
+          <p className="text-sm text-navy/80">
+            {atual.resposta ? humano(atual.resposta) : "Sem resposta registrada"}
           </p>
+          <dl className="grid grid-cols-1 gap-2 text-xs text-navy/60 sm:grid-cols-2">
+            <div>Fonte: {atual.fonte}</div>
+            <div>Estado: {atual.estado === "respondida" ? "Respondida" : "Pendente"}</div>
+          </dl>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" disabled={indice === 0} onClick={() => setIndice((i) => i - 1)}>
               Anterior
@@ -436,7 +392,7 @@ function MesaDeDiscovery({
             <Button
               size="sm"
               variant="outline"
-              disabled={indice >= perguntas.length - 1}
+              disabled={indice >= passos.length - 1}
               onClick={() => setIndice((i) => i + 1)}
             >
               Próxima
@@ -459,6 +415,7 @@ function MesaDeDiscovery({
     </Bloco>
   );
 }
+
 
 /** CTA sem escritor ligado: navega para a ação existente e diz que a conexão está pendente. */
 function Pendente({ destino, rotulo }: { destino: string; rotulo: string }) {
