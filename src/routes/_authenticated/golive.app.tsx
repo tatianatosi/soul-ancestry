@@ -290,14 +290,17 @@ function AppClienteGoLive() {
         {aba === "Legado" ? (
           <>
             <Bloco titulo="Descobertas da família">
-              {legado.length ? (
+              {legado.length || achadosFamilia.length ? (
                 <ul className="space-y-2">
                   {legado.map((p) => (
                     <Publicado key={p.id} titulo={p.resumo ?? humano(p.tipo)} quando={p.em} />
                   ))}
+                  {achadosFamilia.map((a) => (
+                    <Publicado key={a.id} titulo={a.titulo} quando={a.validadoEm ?? null} />
+                  ))}
                 </ul>
               ) : (
-                <Vazio cta={Aguardando} />
+                <Vazio cta={<IrPara para="/golive/pesquisa" rotulo="Abrir Pesquisa" />} />
               )}
             </Bloco>
             <Bloco titulo="Publicado recentemente">
