@@ -1,30 +1,75 @@
-# Prova das 7 abas do App da Ana, sem criar dado
+# Proposta das seis decisões P0 — ficha da Ana (nada executado)
 
-## O que será feito
+Levantamento só de leitura do caso `CA-CID-AT-FAM-2026-001`. Nada foi criado, editado, arquivado, publicado ou enviado. Cada item abaixo mostra o valor de hoje, o efeito da mudança e o teste — para você escolher.
 
-Abrir o App logado no caso `CA-CID-AT-FAM-2026-001` e registrar, aba por aba, o que está na tela hoje:
+## P0.1 Papéis do núcleo
 
-Home · Jornada · Radar · Árvore · Documentos · Legado · Conta
+Hoje o núcleo "Silveira / Friedmann-Reimer" tem 5 pessoas ativas, e quatro delas estão com o mesmo papel:
 
-Para cada aba: print desktop e 375 px, o que aparece, de qual registro real veio, e o estado vazio quando não há nada publicado.
+| Pessoa | Papel hoje | Observação gravada |
+|---|---|---|
+| Maria Silveira Rodrigues | contratante_signatario | "Certidão de casamento Silveira 1912" (parece ser pessoa histórica, não contratante) |
+| Ana Luiza Gomes Silveira Rodrigues | contratante_signatario | "Titular adulta, contratante e signatária" |
+| Adair Pinto Silveira Júnior | contratante_signatario | "Adulto contratante e signatário" |
+| Alice Gomes Silveira | contratante_signatario | "Adulta contratante e signatária" |
+| Felipe | dependente | "Dependente/beneficiário menor vinculado a Ana Luiza" |
 
-## Estado atual já verificado
+Proposta: separar **papel operacional** (titular, participante, dependente, pessoa pesquisada) do parentesco, que continua em branco por falta de fonte. Depois: Ana = titular; Adair e Alice = participantes signatários; Felipe = dependente; Maria = decisão pendente (pessoa histórica ou participante?).
 
-O caso tem 2 microentregas (1 concluída), 9 marcos de linha do tempo, 3 fontes de pesquisa, 1 contrato e 10 anexos — mas **nenhuma projeção publicada** (as 3 existentes estão arquivadas do teste anterior) e nenhum documento liberado nem fatura.
+Efeito: só o rótulo mudaria em Pessoa 360, Pessoas & Famílias e Painel do caso. Nenhuma linha nova.
 
-Como esta rodada é sem criar dado, Home e Jornada vão aparecer com o estado vazio canônico. Isso é o resultado correto da prova, não uma falha. Se quiser conteúdo visível nas abas, a publicação da microentrega fica como passo seguinte, separado e aprovado à parte.
+**Decisão pendente:** confirmar os quatro papéis e o caso de Maria.
 
-## Verificações da prova
+## P0.2 Duplicidade "Prancha 1 — Linha materna Silveira"
 
-- as 7 abas existem, nesta ordem, e nenhuma aba extra
-- só conteúdo do mesmo caso e da mesma titular
-- nada interno: sem nota interna, hipótese como fato, preço técnico, catálogo, gate ou registro de teste
-- sem barra cortada, sem rolagem lateral em 375 px e sem erro no console
+| Campo | Registro A | Registro B |
+|---|---|---|
+| ID | b6705afb…81e52b | 64d7523e…e238ee |
+| Criado | 15/09 12:47 | 15/09 12:50 |
+| Estado | pendente | concluída em 15/09 12:51 |
+| Prazo | 30/09 | 30/09 |
+| Revisão registrada | nenhuma | "Revisão humana da Proprietária em 15/09/2026" |
 
-## Entrega
+Recomendação técnica: **B é canônico** (tem revisão e conclusão); A fica arquivado com motivo e apontando para B. Nada é apagado.
 
-Uma tabela com aba, abre/não abre, dado real ou vazio, fonte usada e observação, mais os prints salvos em Arquivos.
+## P0.3 Duplicidade "Vínculo materno Silveira documentado"
 
-## Limites
+| Campo | Registro A | Registro B |
+|---|---|---|
+| ID | f661b826…3f6 | cc39868d…91ee |
+| Criado | 15/09 12:43 | 15/09 12:45 |
+| Estado | em revisão | em revisão |
+| Evidência ligada | 0ed6bd91…4934 | 0ed6bd91…4934 (a mesma) |
+| Resumo interno | "Certidão localizada no arquivo municipal." | idêntico |
+| Projeção no App | não projetado | não projetado |
 
-Sem criar, editar, publicar, despublicar, convidar, enviar link mágico, alterar banco, RLS, migration ou publicar em produção.
+São idênticos, inclusive a evidência. Recomendação: manter **A** (o primeiro) como canônico e arquivar B como repetição. Ambos seguem "em revisão" — nenhum vai para o App.
+
+## P0.4 Próxima ação vencida
+
+Hoje: "Solicitar dados cadastrais", prazo 22/08/2026, responsável Tati Tosi, caso em rascunho/preparação.
+
+Recomendação: manter a vencida como histórico e criar uma sucessora datada. Modelo a preencher por você (não será criado agora): título humano, responsável, prazo, estado, dependência de terceiro e motivo.
+
+**Decisão pendente:** o texto verdadeiro da nova ação e o prazo.
+
+## P0.5 Acesso e primeira publicação (dois atos separados)
+
+Hoje: nenhum e-mail autorizado, nenhum acesso criado, nenhuma projeção publicada. Existem 3 projeções: 1 rascunho de 22/08 e 2 arquivadas dos testes de hoje.
+
+Sequência proposta, cada passo com confirmação sua:
+1. autorizar o e-mail da titular (já cadastrado no cliente) — sem enviar nada
+2. criar o acesso ligado só a este caso — sem link mágico
+3. preparar a projeção sanitizada da microentrega canônica — sem publicar
+4. publicar após sua revisão
+5. só depois, e em pedido separado, gerar e enviar o link mágico
+
+**Decisão pendente:** qual desses passos autorizar e o texto da primeira publicação.
+
+## P0.6 CTA "Ver proposta e escopo"
+
+Hoje o botão leva a uma rota de proposta e existe 1 proposta aprovada (17/08), sem liberação explícita para a família. Recomendação: no App real, estado vazio cliente-facing ("A proposta e o escopo aparecem aqui após a liberação da equipe"); o caminho para o conteúdo interno fica só na prévia administrativa, marcada como prévia.
+
+## Limites desta rodada
+
+Nada foi criado, editado, desarquivado, fundido, arquivado, publicado, despublicado, enviado ou convidado. Sem mudança de banco, RLS, migration, CTA ou deploy. As correções de fronteira entre App e Desk que você pediu antes continuam na fila, sem execução.
