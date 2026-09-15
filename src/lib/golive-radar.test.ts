@@ -23,7 +23,7 @@ function caso(p: Partial<CasoRadar> = {}): CasoRadar {
     risco: p.risco ?? null,
     prioridade: p.prioridade ?? null,
     responsavel: p.responsavel ?? null,
-    proximaAcao: p.proximaAcao ?? "Conferir documentos",
+    proximaAcao: "proximaAcao" in p ? (p.proximaAcao ?? null) : "Conferir documentos",
     prazoProximaAcao: p.prazoProximaAcao ?? null,
     contratoAssinado: p.contratoAssinado ?? false,
     pagamentoConfirmado: p.pagamentoConfirmado ?? false,
