@@ -181,3 +181,161 @@ export function kanbanPorEtapa(leads: LeadComercial[]): { etapa: string; leads: 
     .map(([etapa, itens]) => ({ etapa, leads: itens }))
     .sort((a, b) => b.leads.length - a.leads.length);
 }
+
+/* ------------------------------------------------------------------ *
+ * Atendimento: Discovery + call em um registro só
+ * ------------------------------------------------------------------ */
+
+/** Listas fechadas do atendimento. Nada de texto livre em situação/resultado. */
+export const SITUACOES_CALL = [
+  { valor: "agendada", rotulo: "Marcada" },
+  { valor: "confirmada", rotulo: "Confirmada" },
+  { valor: "realizada", rotulo: "Realizada" },
+  { valor: "remarcada", rotulo: "Remarcada" },
+  { valor: "no_show", rotulo: "Não compareceu" },
+  { valor: "cancelada_lead", rotulo: "Cancelada pela pessoa" },
+  { valor: "cancelada_clube", rotulo: "Cancelada pelo Clube" },
+] as const;
+
+export const RESULTADOS_DISCOVERY = [
+  { valor: "segue_para_proposta", rotulo: "Segue para proposta" },
+  { valor: "precisa_mais_informacao", rotulo: "Precisa de mais informação" },
+  { valor: "fora_de_perfil", rotulo: "Fora de perfil" },
+  { valor: "sem_resposta", rotulo: "Sem resposta" },
+] as const;
+
+/** Etapa gravável no lead a partir do resultado do Discovery. Sem resultado, nada muda. */
+export function etapaDoResultado(resultado: string | null | undefined): string | null {
+  switch (String(resultado ?? "").trim()) {
+    case "segue_para_proposta":
+      return "proposta_em_preparo";
+    case "precisa_mais_informacao":
+      return "qualificado";
+    case "fora_de_perfil":
+      return "perdido";
+    case "sem_resposta":
+      return "novo";
+    default:
+      return null;
+  }
+}
+
+const ROTULO_CALL = new Map<string, string>([
+  ...SITUACOES_CALL.map((s) => [s.valor, s.rotulo] as [string, string]),
+  ["sem_agenda", "Sem call marcada"],
+  ["cancelada", "Cancelada"],
+]);
+
+export function rotuloDaCall(estado: string): string {
+  return ROTULO_CALL.get(estado) ?? "Sem registro";
+}
+
+/** Distribuição das calls pelo estado gravado, do maior para o menor. */
+export function porSituacaoDaCall(leads: LeadComercial[]): { rotulo: string; valor: number }[] {
+  const contagem = new Map<string, number>();
+  for (const lead of leads) {
+    const chave = rotuloDaCall(estadoDaCall(lead));
+    contagem.set(chave, (contagem.get(chave) ?? 0) + 1);
+  }
+  return [...contagem.entries()].map(([rotulo, valor]) => ({ rotulo, valor })).sort((a, b) => b.valor - a.valor);
+}
+
+/** Resultado do Discovery gravado. Valor fora da lista vira "Outros/sem classificação". */
+export function porResultadoDiscovery(leads: LeadComercial[]): { rotulo: string; valor: number }[] {
+  const conhecidos = new Map(RESULTADOS_DISCOVERY.map((r) => [r.valor, r.rotulo]));
+  const contagem = new Map<string, number>();
+  for (const lead of leads) {
+    const bruto = String(lead.discoveryResultado ?? "").trim();
+    const chave = !bruto
+      ? "Sem Discovery registrado"
+      : (conhecidos.get(bruto) ?? "Outros/sem classificação");
+    contagem.set(chave, (contagem.get(chave) ?? 0) + 1);
+  }
+  return [...contagem.entries()].map(([rotulo, valor]) => ({ rotulo, valor })).sort((a, b) => b.valor - a.valor);
+}
+
+export type PrazoProximaAcao = "vencida" | "hoje" | "proximos_7" | "depois" | "sem_prazo";
+
+export const COLUNAS_PRAZO: { chave: PrazoProximaAcao; rotulo: string }[] = [
+  { chave: "vencida", rotulo: "Vencida" },
+  { chave: "hoje", rotulo: "Hoje" },
+  { chave: "proximos_7", rotulo: "Próximos 7 dias" },
+  { chave: "sem_prazo", rotulo: "Sem prazo" },
+];
+
+const DIA = 24 * 60 * 60 * 1000;
+const soDia = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+
+/** Prazo da próxima ação em dia local: vencida, hoje, próximos 7 dias, depois ou sem prazo. */
+export function prazoDaProximaAcao(lead: LeadComercial, hoje = new Date()): PrazoProximaAcao {
+  const prazo = lerData(lead.proximoPassoEm);
+  if (!prazo) return "sem_prazo";
+  const diff = Math.round((soDia(prazo) - soDia(hoje)) / DIA);
+  if (diff < 0) return "vencida";
+  if (diff === 0) return "hoje";
+  if (diff <= 7) return "proximos_7";
+  return "depois";
+}
+
+/** Kanban por prazo da próxima ação: quatro colunas fixas, sempre na mesma ordem. */
+export function kanbanPorPrazo(
+  leads: LeadComercial[],
+  hoje = new Date(),
+): { chave: PrazoProximaAcao; rotulo: string; leads: LeadComercial[] }[] {
+  return COLUNAS_PRAZO.map((coluna) => ({
+    ...coluna,
+    leads: leads.filter((l) => prazoDaProximaAcao(l, hoje) === coluna.chave),
+  }));
+}
+
+export type PassoRoteiro = {
+  pergunta: string;
+  resposta: string | null;
+  fonte: string;
+  estado: "respondida" | "pendente";
+};
+
+/**
+ * Roteiro progressivo do atendimento: uma pergunta por vez, com a fonte da
+ * resposta e o estado. Pergunta sem dado gravado fica pendente — nunca é
+ * preenchida por dedução.
+ */
+export function roteiroDiscovery(lead: LeadComercial | null): PassoRoteiro[] {
+  const passo = (pergunta: string, resposta: string | null, fonte: string): PassoRoteiro => ({
+    pergunta,
+    resposta: resposta && String(resposta).trim() ? String(resposta).trim() : null,
+    fonte,
+    estado: resposta && String(resposta).trim() ? "respondida" : "pendente",
+  });
+  const consentimento = lead?.consentimento
+    ? [lead.consentimento, lead.consentimentoCanal, lead.consentimentoEm].filter(Boolean).join(" · ")
+    : null;
+  return [
+    passo("Qual é o objetivo da família?", lead?.objetivo ?? null, "Entrada do lead"),
+    passo("Por onde essa pessoa chegou?", lead?.origem ?? null, "Origem registrada no lead"),
+    passo("Consentimento foi registrado?", consentimento, "Consentimento do lead"),
+    passo(
+      "Qual é a situação da call?",
+      lead ? rotuloDaCall(estadoDaCall(lead)) : null,
+      "Registro de call do lead",
+    ),
+    passo("Qual foi o resultado do Discovery?", lead?.discoveryResultado ?? null, "Mesa de Discovery"),
+    passo(
+      "Qual é a próxima ação?",
+      lead?.proximoPasso ? [lead.proximoPasso, lead.proximoPassoEm].filter(Boolean).join(" · ") : null,
+      "Próxima ação gravada no lead",
+    ),
+  ];
+}
+
+/** Leads sem próxima ação e calls vencidas, os dois contadores de atenção. */
+export function contadoresDeAtencao(
+  leads: LeadComercial[],
+  agora = new Date(),
+): { semProximaAcao: number; callVencida: number } {
+  return {
+    semProximaAcao: leads.filter((l) => !l.proximoPasso).length,
+    callVencida: leads.filter((l) => callVencidaDoLead(l, agora)).length,
+  };
+}
+
