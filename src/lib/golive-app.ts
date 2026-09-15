@@ -6,6 +6,9 @@
  * vazia — nunca preenchida com dado interno do Desk.
  */
 
+import { radarSeisDimensoes, type DimensaoRadar } from "@/lib/radar-seis-eixos";
+
+
 export type ProjecaoPublicada = {
   id: string;
   tipo: string;
