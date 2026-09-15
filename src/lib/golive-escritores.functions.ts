@@ -901,6 +901,25 @@ export const publicarNoAppGoLive = createServerFn({ method: "POST" })
  * situação. O texto é montado a partir do registro gravado, nunca digitado à
  * mão, e nenhum valor interno, cláusula ou preço técnico entra na projeção.
  */
+const SITUACAO_HUMANA: Record<string, string> = {
+  draft: "Em preparação",
+  rascunho: "Em preparação",
+  pending_data: "Aguardando dados",
+  pending_signature: "Aguardando assinatura",
+  aguardando_assinatura: "Aguardando assinatura",
+  active: "Ativo",
+  signed: "Assinado",
+  aprovada: "Aprovada",
+  em_analise: "Em análise",
+};
+
+/** Traduz a situação gravada para uma frase legível pela família. */
+function situacaoHumana(valor: unknown): string {
+  const chave = texto(valor);
+  if (!chave) return "Em preparação";
+  return SITUACAO_HUMANA[chave] ?? chave.replace(/_/g, " ");
+}
+
 export const publicarInstrumentoNoAppGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { tipo: "contrato" | "proposta"; id: string }) => d)
@@ -928,7 +947,7 @@ export const publicarInstrumentoNoAppGoLive = createServerFn({ method: "POST" })
       if (!r.data) throw new Error("Contrato não encontrado neste caso.");
       titulo = String(r.data.title ?? "Contrato");
       numero = String(r.data.contract_number ?? "");
-      situacao = r.data.signed_at ? "assinado" : String(r.data.status ?? "em preparação");
+      situacao = r.data.signed_at ? "Assinado" : situacaoHumana(r.data.status);
     } else {
       const r = await s
         .from("proposals")
@@ -941,7 +960,7 @@ export const publicarInstrumentoNoAppGoLive = createServerFn({ method: "POST" })
       if (!r.data) throw new Error("Proposta não encontrada neste caso.");
       titulo = "Proposta do estudo";
       numero = `Versão ${r.data.versao ?? 1}`;
-      situacao = r.data.aprovada_em ? "aprovada" : String(r.data.status ?? "em análise");
+      situacao = r.data.aprovada_em ? "Aprovada" : situacaoHumana(r.data.status);
     }
 
     const resumo = [titulo, numero, situacao].filter(Boolean).join(" · ");
