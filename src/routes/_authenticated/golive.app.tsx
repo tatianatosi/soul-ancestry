@@ -148,6 +148,13 @@ function AppClienteGoLive() {
                 <Vazio cta={Aguardando} />
               )}
             </Bloco>
+            <Bloco titulo="Conteúdo publicado para você">
+              {publicados.length ? (
+                <Barras titulo="Conteúdo publicado para você" dados={publicacoesPorAba(publicados)} />
+              ) : (
+                <Vazio cta={Aguardando} />
+              )}
+            </Bloco>
           </>
         ) : null}
 
