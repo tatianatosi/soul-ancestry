@@ -56,6 +56,7 @@ import { Route as AuthenticatedQualidadeRouteImport } from './routes/_authentica
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 import { Route as AuthenticatedStudioDevolutivasRouteImport } from './routes/_authenticated/studio-devolutivas'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
+import { Route as AcessoIndexRouteImport } from './routes/acesso.index'
 import { Route as AcessoConfirmarRouteImport } from './routes/acesso.confirmar'
 import { Route as AcessoSemPermissaoRouteImport } from './routes/acesso.sem-permissao'
 import { Route as ApiPesquisaAssistenteRouteImport } from './routes/api/pesquisa-assistente'
@@ -384,6 +385,11 @@ const AuthenticatedTarefasRoute = AuthenticatedTarefasRouteImport.update({
   id: '/tarefas',
   path: '/tarefas',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AcessoIndexRoute = AcessoIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AcessoRoute,
 } as any)
 const AcessoConfirmarRoute = AcessoConfirmarRouteImport.update({
   id: '/confirmar',
@@ -869,6 +875,7 @@ export interface FileRoutesByFullPath {
   '/portal/legado': typeof PortalLegadoRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/radar': typeof PortalRadarRoute
+  '/acesso/': typeof AcessoIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/achados/$caseId': typeof AuthenticatedAchadosCaseIdRoute
   '/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
@@ -925,7 +932,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
@@ -990,6 +996,7 @@ export interface FileRoutesByTo {
   '/portal/legado': typeof PortalLegadoRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/radar': typeof PortalRadarRoute
+  '/acesso': typeof AcessoIndexRoute
   '/portal': typeof PortalIndexRoute
   '/achados/$caseId': typeof AuthenticatedAchadosCaseIdRoute
   '/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
@@ -1114,6 +1121,7 @@ export interface FileRoutesById {
   '/portal/legado': typeof PortalLegadoRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/radar': typeof PortalRadarRoute
+  '/acesso/': typeof AcessoIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/_authenticated/achados/$caseId': typeof AuthenticatedAchadosCaseIdRoute
   '/_authenticated/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
@@ -1238,6 +1246,7 @@ export interface FileRouteTypes {
     | '/portal/legado'
     | '/portal/proposta'
     | '/portal/radar'
+    | '/acesso/'
     | '/portal/'
     | '/achados/$caseId'
     | '/biblioteca-evidencias/$caseId'
@@ -1294,7 +1303,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/acesso'
     | '/auth'
     | '/devolutiva'
     | '/acessos-portal'
@@ -1359,6 +1367,7 @@ export interface FileRouteTypes {
     | '/portal/legado'
     | '/portal/proposta'
     | '/portal/radar'
+    | '/acesso'
     | '/portal'
     | '/achados/$caseId'
     | '/biblioteca-evidencias/$caseId'
@@ -1482,6 +1491,7 @@ export interface FileRouteTypes {
     | '/portal/legado'
     | '/portal/proposta'
     | '/portal/radar'
+    | '/acesso/'
     | '/portal/'
     | '/_authenticated/achados/$caseId'
     | '/_authenticated/biblioteca-evidencias/$caseId'
@@ -1886,6 +1896,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/tarefas'
       preLoaderRoute: typeof AuthenticatedTarefasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/acesso/': {
+      id: '/acesso/'
+      path: '/'
+      fullPath: '/acesso/'
+      preLoaderRoute: typeof AcessoIndexRouteImport
+      parentRoute: typeof AcessoRoute
     }
     '/acesso/confirmar': {
       id: '/acesso/confirmar'
@@ -2652,11 +2669,13 @@ const PortalRouteRouteWithChildren = PortalRouteRoute._addFileChildren(
 interface AcessoRouteChildren {
   AcessoConfirmarRoute: typeof AcessoConfirmarRoute
   AcessoSemPermissaoRoute: typeof AcessoSemPermissaoRoute
+  AcessoIndexRoute: typeof AcessoIndexRoute
 }
 
 const AcessoRouteChildren: AcessoRouteChildren = {
   AcessoConfirmarRoute: AcessoConfirmarRoute,
   AcessoSemPermissaoRoute: AcessoSemPermissaoRoute,
+  AcessoIndexRoute: AcessoIndexRoute,
 }
 
 const AcessoRouteWithChildren =
