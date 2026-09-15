@@ -179,6 +179,78 @@ export const registrarCallGoLive = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Atendimento do lead: Discovery e call em um registro só.
+ *
+ * Grava no próprio lead (situação e data da call, resultado do Discovery,
+ * próxima ação com prazo e responsável) e deixa o histórico interno em
+ * `crm_interactions`. Não cria tabela, não move o lead sozinho para etapa
+ * fora da lista do banco e não envia nada para fora.
+ */
+export const registrarAtendimentoGoLive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (d: {
+      leadId: string;
+      situacaoCall: string;
+      callEm?: string;
+      resultado?: string;
+      resumo: string;
+      proximoPasso: string;
+      proximoPassoEm?: string;
+      responsavel?: string;
+    }) => d,
+  )
+  .handler(async ({ data, context }) => {
+    semCache();
+    const s = context.supabase as any;
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    if (!texto(data.leadId)) throw new Error("Lead é obrigatório.");
+    if (!texto(data.situacaoCall)) throw new Error("Situação da call é obrigatória.");
+    if (!texto(data.resumo)) throw new Error("Resumo interno é obrigatório.");
+    if (!texto(data.proximoPasso)) throw new Error("Próxima ação é obrigatória.");
+
+    const situacao = texto(data.situacaoCall);
+    const quando = texto(data.callEm) || null;
+    const resultado = texto(data.resultado) || null;
+    const etapa = etapaDoResultado(resultado);
+
+    const atualizacao: Linha = {
+      status_call: situacao,
+      resumo_call: texto(data.resumo),
+      proxima_acao: texto(data.proximoPasso),
+      proxima_acao_em: texto(data.proximoPassoEm) || null,
+      updated_by: userId,
+    };
+    if (resultado) atualizacao["discovery_resultado"] = resultado;
+    if (etapa) atualizacao["estagio"] = etapa;
+    if (texto(data.responsavel)) atualizacao["responsavel_nome"] = texto(data.responsavel);
+    if (situacao === "realizada") atualizacao["call_realizada_em"] = quando ?? new Date().toISOString();
+    else if (quando) atualizacao["call_agendada_em"] = quando;
+
+    erro(
+      await s.from("leads").update(atualizacao).eq("id", texto(data.leadId)).eq("organization_id", organizationId),
+    );
+
+    erro(
+      await s.from("crm_interactions").insert({
+        organization_id: organizationId,
+        case_id: casoId,
+        tipo: situacao === "realizada" ? "call" : "reuniao",
+        canal: "interno",
+        direcao: "saida",
+        resumo_interno: texto(data.resumo),
+        ocorrido_em: quando ?? new Date().toISOString(),
+        registrado_por: userId,
+        data_origin: "real",
+        visibilidade: "interna",
+      }),
+    );
+    return { ok: true };
+  });
+
+
+
 /* ------------------------------------------------------------------ *
  * 2. Proposta (Canva registrada à mão) e escopo
  * ------------------------------------------------------------------ */
