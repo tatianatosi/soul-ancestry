@@ -74,7 +74,7 @@ function ComercialGoLive() {
   const leadDoCaso = leadEmFoco?.id ?? null;
 
   const ctaNovoLead = (
-    <Link to="/leads">
+    <Link to="/golive/leads">
       <Button size="sm">Abrir entrada de leads</Button>
     </Link>
   );
@@ -263,7 +263,7 @@ function ComercialGoLive() {
               />
             </Acoes>
           ) : (
-            <Pendente destino="/leads" rotulo="Abrir entrada de leads" />
+            <Pendente destino="/golive/leads" rotulo="Abrir entrada de leads" />
           )
         }
       />
@@ -311,7 +311,7 @@ function ComercialGoLive() {
             />
           </Acoes>
         ) : (
-          <Pendente destino="/leads" rotulo="Abrir entrada de leads" />
+          <Pendente destino="/golive/leads" rotulo="Abrir entrada de leads" />
         )}
       </Bloco>
     </GoLiveShell>
@@ -448,7 +448,7 @@ function MesaDeDiscovery({
         <>
           <Vazio
             cta={
-              <Link to="/leads">
+              <Link to="/golive/leads">
                 <Button size="sm">Abrir entrada de leads</Button>
               </Link>
             }

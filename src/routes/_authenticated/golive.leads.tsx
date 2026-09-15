@@ -21,7 +21,11 @@ import {
   funil,
   type LeadComercial,
 } from "@/lib/golive-comercial";
-import { registrarCallGoLive, registrarDiscoveryGoLive } from "@/lib/golive-escritores.functions";
+import {
+  registrarCallGoLive,
+  registrarDiscoveryGoLive,
+  registrarLeadGoLive,
+} from "@/lib/golive-escritores.functions";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/leads")({
@@ -41,8 +45,13 @@ export const Route = createFileRoute("/_authenticated/golive/leads")({
   component: LeadsGoLive,
 });
 
+/** Listas fechadas: origem e etapa nunca entram como texto livre. */
+const ORIGENS = ["indicacao", "site", "instagram", "evento", "parceria", "outro"] as const;
+const ETAPAS = ["novo", "em_contato", "qualificado", "proposta", "encerrado"] as const;
+
 function LeadsGoLive() {
   const { data, isPending, error } = useGoLive();
+  const novoLead = useServerFn(registrarLeadGoLive);
   const discovery = useServerFn(registrarDiscoveryGoLive);
   const call = useServerFn(registrarCallGoLive);
   const [escolhido, setEscolhido] = useState<string | null>(null);
@@ -53,12 +62,61 @@ function LeadsGoLive() {
 
   const ctaCadastro = (
     <Link to="/golive/comercial">
-      <Button size="sm">Cadastrar lead no Comercial</Button>
+      <Button size="sm" variant="outline">
+        Ver painel comercial
+      </Button>
     </Link>
   );
 
   return (
     <GoLiveShell titulo="Leads" descricao="Do primeiro contato ao handoff, com as ações que já gravam.">
+      <Acoes>
+        <Acao
+          rotulo="Novo lead"
+          titulo="Cadastrar lead"
+          campos={[
+            { nome: "nome", rotulo: "Nome", obrigatorio: true },
+            {
+              nome: "origem",
+              rotulo: "Origem",
+              tipo: "escolha",
+              obrigatorio: true,
+              opcoes: ORIGENS.map((o) => ({ valor: o, rotulo: humano(o) })),
+            },
+            {
+              nome: "etapa",
+              rotulo: "Etapa",
+              tipo: "escolha",
+              obrigatorio: true,
+              padrao: "novo",
+              opcoes: ETAPAS.map((e) => ({ valor: e, rotulo: humano(e) })),
+            },
+            { nome: "responsavel", rotulo: "Responsável", obrigatorio: true },
+            { nome: "proximoPasso", rotulo: "Próximo passo", obrigatorio: true },
+            { nome: "proximoPassoEm", rotulo: "Próximo passo em", tipo: "data" },
+            { nome: "email", rotulo: "E-mail" },
+            { nome: "telefone", rotulo: "Telefone" },
+            { nome: "objetivo", rotulo: "Objetivo", tipo: "area" },
+          ]}
+          aoConfirmar={(v) =>
+            novoLead({
+              data: {
+                nome: v["nome"] ?? "",
+                email: v["email"] ?? "",
+                telefone: v["telefone"] ?? "",
+                origem: v["origem"] ?? "",
+                objetivo: v["objetivo"] ?? "",
+                etapa: v["etapa"] ?? "",
+                responsavel: v["responsavel"] ?? "",
+                proximoPasso: v["proximoPasso"] ?? "",
+                proximoPassoEm: v["proximoPassoEm"] ?? "",
+              },
+            })
+          }
+          confirmacao="Lead cadastrado. Ele já aparece aqui, no funil e no kanban do Comercial."
+        />
+      </Acoes>
+
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
       {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
 
