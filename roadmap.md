@@ -61,3 +61,9 @@
 ## Prova funcional + 7 abas do App (15/09/2026)
 - [ ] Prova Lead→App do caso Ana com antes/depois
 - [ ] Verificar e completar as 7 abas do App Cliente
+
+## Aceite P0 Comercial (2026-09-15)
+- [ ] Conferir diff e execução dos testes P0 no main
+- [ ] Testes extras P0: sobrenome legítimo com "Teste", call remarcada, no-show, call só com data (timezone da organização), proposta com contato anterior/posterior, aviso de limite 200
+- [ ] Prova controlada Novo Lead -> id -> reload -> Funil/Kanban/Discovery/Calls (requer autorização explícita; cria registro)
+- [ ] Depois da prova: patch Discovery + Call no mesmo lead (writer único, roteiro progressivo)
