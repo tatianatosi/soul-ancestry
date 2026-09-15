@@ -235,40 +235,28 @@ function ComercialGoLive() {
         aoEscolher={setEscolhido}
         acao={
           leadDoCaso ? (
-            <Acoes>
-              <Acao
-                rotulo="Registrar Discovery"
-                titulo="Resultado da Mesa de Discovery"
-                variante="outline"
-                campos={[
-                  {
-                    nome: "resultado",
-                    rotulo: "Resultado",
-                    tipo: "escolha",
-                    obrigatorio: true,
-                    opcoes: [
-                      { valor: "segue_para_proposta", rotulo: "Segue para proposta" },
-                      { valor: "em_avaliacao", rotulo: "Em avaliação" },
-                      { valor: "nao_elegivel", rotulo: "Não elegível" },
-                    ],
-                  },
-                  { nome: "resumo", rotulo: "Resumo interno", tipo: "area", obrigatorio: true },
-                ]}
-                aoConfirmar={(v) =>
-                  discovery({
-                    data: { leadId: leadDoCaso, resultado: v["resultado"] ?? "", resumo: v["resumo"] ?? "" },
-                  })
-                }
-                confirmacao="Discovery registrado."
-              />
-            </Acoes>
+            <AcaoAtendimento
+              leadId={leadDoCaso}
+              aoConfirmar={(v) => atendimento({ data: v as Parameters<typeof atendimento>[0]["data"] })}
+            />
           ) : (
             <Pendente destino="/golive/leads" rotulo="Abrir entrada de leads" />
           )
         }
       />
 
-      <Bloco titulo="Calls">
+      <Bloco titulo="Calls e Discovery">
+        {leads.length ? (
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <Barras titulo="Situação das calls" dados={porSituacaoDaCall(leads)} />
+            <Rosca titulo="Resultado do Discovery" dados={porResultadoDiscovery(leads)} />
+          </div>
+        ) : (
+          <>
+            <Vazio cta={ctaNovoLead} />
+            <p className="text-xs text-navy/55">Nenhuma call nesta etapa.</p>
+          </>
+        )}
         {leads.some((l) => l.callAgendada || l.callRealizada) ? (
           <ul className="space-y-2">
             {leads
@@ -279,41 +267,42 @@ function ComercialGoLive() {
                   <p className="text-xs text-navy/65">
                     Data: {dataHumana(l.callRealizada ?? l.callAgendada, "Sem data registrada")}
                   </p>
-                  <p className="text-xs text-navy/65">
-                    Resultado: {humano(l.statusCall ?? l.discoveryResultado, "Sem resultado registrado")}
-                  </p>
+                  <p className="text-xs text-navy/65">Situação: {rotuloDaCall(estadoDaCall(l))}</p>
                   <p className="text-xs text-navy/65">
                     Próximo passo: {humano(l.proximoPasso, "Sem próximo passo registrado")}
                   </p>
                 </li>
               ))}
           </ul>
+        ) : null}
+      </Bloco>
+
+      <Bloco titulo="Próximas ações por prazo">
+        {leads.length ? (
+          <div className="flex snap-x gap-3 overflow-x-auto pb-2">
+            {kanbanPorPrazo(leads).map((coluna) => (
+              <div key={coluna.chave} className="w-[280px] shrink-0 snap-start rounded-lg bg-creme/60 p-3">
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-navy/60">
+                  {coluna.rotulo} · {coluna.leads.length}
+                </p>
+                <div className="space-y-2">
+                  {coluna.leads.length ? (
+                    coluna.leads.map((lead) => <Cartao key={lead.id} lead={lead} />)
+                  ) : (
+                    <p className="text-xs text-navy/55">Nenhum lead nesta etapa.</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
           <>
             <Vazio cta={ctaNovoLead} />
-            <p className="text-xs text-navy/55">Nenhuma call nesta etapa.</p>
+            <p className="text-xs text-navy/55">Nenhum lead nesta etapa.</p>
           </>
         )}
-        {leadDoCaso ? (
-          <Acoes>
-            <Acao
-              rotulo="Registrar call"
-              titulo="Call com a pessoa"
-              variante="outline"
-              campos={[
-                { nome: "ocorridoEm", rotulo: "Data", tipo: "data" },
-                { nome: "resumo", rotulo: "Resumo interno", tipo: "area", obrigatorio: true },
-              ]}
-              aoConfirmar={(v) =>
-                call({ data: { leadId: leadDoCaso, resumo: v["resumo"] ?? "", ocorridoEm: v["ocorridoEm"] ?? "" } })
-              }
-              confirmacao="Call registrada."
-            />
-          </Acoes>
-        ) : (
-          <Pendente destino="/golive/leads" rotulo="Abrir entrada de leads" />
-        )}
       </Bloco>
+
     </GoLiveShell>
   );
 }
