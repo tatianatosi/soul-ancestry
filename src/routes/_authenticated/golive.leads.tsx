@@ -25,7 +25,11 @@ import {
   roteiroDiscovery,
   type LeadComercial,
 } from "@/lib/golive-comercial";
-import { registrarAtendimentoGoLive, registrarLeadGoLive } from "@/lib/golive-escritores.functions";
+import {
+  arquivarLeadGoLive,
+  registrarAtendimentoGoLive,
+  registrarLeadGoLive,
+} from "@/lib/golive-escritores.functions";
 
 
 import { Button } from "@/components/ui/button";
@@ -56,6 +60,7 @@ function LeadsGoLive() {
   const { data, isPending, error } = useGoLive();
   const novoLead = useServerFn(registrarLeadGoLive);
   const atendimento = useServerFn(registrarAtendimentoGoLive);
+  const arquivarLead = useServerFn(arquivarLeadGoLive);
 
   const [escolhido, setEscolhido] = useState<string | null>(null);
 
@@ -199,6 +204,13 @@ function LeadsGoLive() {
               <AcaoAgenda
                 leadId={emFoco.id}
                 aoConfirmar={(v) => atendimento({ data: v as Parameters<typeof atendimento>[0]["data"] })}
+              />
+              <Acao
+                rotulo="Arquivar lead"
+                titulo={`Arquivar ${emFoco.nome}`}
+                campos={[{ nome: "motivo", rotulo: "Motivo do arquivamento", tipo: "area", obrigatorio: true }]}
+                aoConfirmar={(v) => arquivarLead({ data: { leadId: emFoco.id, motivo: v["motivo"] ?? "" } })}
+                confirmacao="Lead arquivado. Sai das listas de trabalho e continua no histórico."
               />
             </div>
 
