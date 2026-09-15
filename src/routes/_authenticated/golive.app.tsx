@@ -319,7 +319,7 @@ function AppClienteGoLive() {
         aria-label="Abas do App Cliente"
         className="fixed inset-x-0 bottom-0 z-30 border-t border-navy/10 bg-cream/95 backdrop-blur sm:hidden"
       >
-        <ul className="flex w-full overflow-x-auto">
+        <ul className="flex w-full">
           {ABAS_APP.map((item) => (
             <li key={item} className="flex-1">
               <button
