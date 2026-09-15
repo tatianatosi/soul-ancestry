@@ -209,7 +209,9 @@ function ComercialGoLive() {
       </Bloco>
 
       <MesaDeDiscovery
-        lead={leads.find((l) => l.id === leadDoCaso) ?? leads[0] ?? null}
+        lead={leadEmFoco}
+        leads={leads}
+        aoEscolher={setEscolhido}
         acao={
           leadDoCaso ? (
             <Acoes>
