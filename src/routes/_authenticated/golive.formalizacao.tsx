@@ -230,6 +230,24 @@ function FormalizacaoGoLive() {
                     {c.numero ? `${c.numero} — ` : ""}
                     {c.titulo} <span className="text-navy/55">{humano(c.status)}</span>
                     {c.assinadoEm ? <span className="text-navy/55"> · assinado em {dataHumana(c.assinadoEm)}</span> : null}
+                    {/* Ato formal da assinatura: referência, forma e data gravadas. */}
+                    <div className="mt-1 space-y-0.5 text-xs text-navy/70">
+                      <div>Versão: {c.versao ?? "não registrada"}</div>
+                      <div>Revisora: {c.revisora ?? "não registrada"}</div>
+                      <div>
+                        Assinatura:{" "}
+                        {c.assinadoEm
+                          ? `assinado em ${dataHumana(c.assinadoEm)}${c.assinaturaReferencia ? ` · referência ${c.assinaturaReferencia}` : ""}${c.assinaturaOrigem ? ` · ${humano(c.assinaturaOrigem)}` : ""}`
+                          : "não assinado"}
+                      </div>
+                      {c.pendencias.length ? (
+                        <div className="text-[var(--terracota,#9A3A2F)]">
+                          Pendências: {c.pendencias.map((p) => humano(p)).join(" · ")}
+                        </div>
+                      ) : (
+                        <div>Sem pendências registradas</div>
+                      )}
+                    </div>
                     {!c.assinadoEm ? (
                       <Acoes>
                         <Acao
