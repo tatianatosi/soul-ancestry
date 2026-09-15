@@ -1180,11 +1180,22 @@ export const publicarInstrumentoNoAppGoLive = createServerFn({ method: "POST" })
     let titulo = "";
     let numero = "";
     let situacao = "";
+    /* Prazo e condição de parcelas só entram quando já estão gravados no
+       próprio instrumento. Nada é estimado, calculado ou completado aqui. */
+    let prazo = "";
+    let parcelas = "";
+
+    const diaBR = (v: unknown) => {
+      const t = texto(v);
+      if (!t) return "";
+      const d = new Date(t.length <= 10 ? `${t}T00:00:00` : t);
+      return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("pt-BR");
+    };
 
     if (data.tipo === "contrato") {
       const r = await s
         .from("contracts")
-        .select("id, title, contract_number, status, signed_at")
+        .select("id, title, contract_number, status, signed_at, effective_start_date, effective_end_date, proposal_id")
         .eq("id", id)
         .eq("organization_id", organizationId)
         .eq("case_id", casoId)
@@ -1194,10 +1205,24 @@ export const publicarInstrumentoNoAppGoLive = createServerFn({ method: "POST" })
       titulo = String(r.data.title ?? "Contrato");
       numero = String(r.data.contract_number ?? "");
       situacao = r.data.signed_at ? "Assinado" : situacaoHumana(r.data.status);
+      const inicio = diaBR(r.data.effective_start_date);
+      const fim = diaBR(r.data.effective_end_date);
+      if (inicio) prazo = fim ? `Vigência de ${inicio} a ${fim}` : `Vigência a partir de ${inicio}`;
+      /* Condição de parcelas: a combinada na proposta vinculada ao contrato. */
+      if (r.data.proposal_id) {
+        const p = await s
+          .from("proposals")
+          .select("forma_pagamento")
+          .eq("id", r.data.proposal_id)
+          .eq("organization_id", organizationId)
+          .maybeSingle();
+        erro(p);
+        parcelas = texto(p.data?.forma_pagamento) ? `Parcelas: ${texto(p.data.forma_pagamento)}` : "";
+      }
     } else {
       const r = await s
         .from("proposals")
-        .select("id, versao, status, aprovada_em")
+        .select("id, versao, status, aprovada_em, validade, forma_pagamento")
         .eq("id", id)
         .eq("organization_id", organizationId)
         .eq("case_id", casoId)
@@ -1207,9 +1232,12 @@ export const publicarInstrumentoNoAppGoLive = createServerFn({ method: "POST" })
       titulo = "Proposta do estudo";
       numero = `Versão ${r.data.versao ?? 1}`;
       situacao = r.data.aprovada_em ? "Aprovada" : situacaoHumana(r.data.status);
+      const validade = diaBR(r.data.validade);
+      if (validade) prazo = `Validade até ${validade}`;
+      parcelas = texto(r.data.forma_pagamento) ? `Parcelas: ${texto(r.data.forma_pagamento)}` : "";
     }
 
-    const resumo = [titulo, numero, situacao].filter(Boolean).join(" · ");
+    const resumo = [titulo, numero, situacao, prazo, parcelas].filter(Boolean).join(" · ");
     const agora = new Date().toISOString();
     // Republicar substitui o cartão anterior: o registro antigo é arquivado, nunca apagado.
     const anterior = await s
