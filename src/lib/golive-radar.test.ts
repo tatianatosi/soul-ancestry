@@ -145,3 +145,48 @@ describe("pontos da matriz", () => {
     expect(pontosDaMatriz([], AGORA)).toEqual([]);
   });
 });
+
+/* Casos pedidos na conferência: prazos, marcos, alerta e registro de teste. */
+describe("conferência de prazos e marcos", () => {
+  it("ordena hoje, +3, +7, +30 e sem prazo por urgência decrescente", () => {
+    const u = (p: string | null) => urgencia(caso({ prazoProximaAcao: p }), AGORA);
+    expect(u("2026-09-15")).toBeGreaterThan(u("2026-09-18"));
+    expect(u("2026-09-18")).toBeGreaterThan(u("2026-09-22"));
+    expect(u("2026-09-22")).toBeGreaterThan(u("2026-10-15"));
+    // Sem prazo, com próxima ação, fica em 0,5: a falta de prazo é lacuna, não folga.
+    expect(u(null)).toBe(0.5);
+  });
+
+  it("contrato não assinado e fatura em aberto mantêm prontidão baixa", () => {
+    expect(prontidao(caso({ contratoAssinado: false, pagamentoConfirmado: false }))).toBe(0);
+  });
+
+  it("pagamento confirmado soma um terço da prontidão", () => {
+    expect(prontidao(caso({ pagamentoConfirmado: true }))).toBeCloseTo(1 / 3);
+  });
+
+  it("checklist incompleto conta como pendente, nunca como estimativa", () => {
+    const eixos = eixosDoCaso(caso({ documentosMinimosOk: false }));
+    expect(eixos.find((e) => e.rotulo === "Documentos")?.valor).toBe(0);
+  });
+
+  it("alerta aberto sobe pontos sem inverter prazo vencido", () => {
+    const [primeiro, segundo] = ordemDeAtendimento(
+      [
+        caso({ id: "alerta", titulo: "Com alerta", alertasAbertos: 4 }),
+        caso({ id: "normal", titulo: "Sem alerta" }),
+      ],
+      AGORA,
+    );
+    expect(primeiro?.caso.id).toBe("alerta");
+    expect(segundo?.caso.id).toBe("normal");
+  });
+
+  it("empate de pontos é resolvido pelo título, de forma estável", () => {
+    const lista = ordemDeAtendimento(
+      [caso({ id: "b", titulo: "Bravo" }), caso({ id: "a", titulo: "Alfa" })],
+      AGORA,
+    );
+    expect(lista.map((l) => l.caso.id)).toEqual(["a", "b"]);
+  });
+});
