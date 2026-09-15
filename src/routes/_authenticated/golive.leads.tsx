@@ -19,13 +19,12 @@ import {
   COLUNAS_FUNIL,
   colunaDoLead,
   funil,
+  roteiroDiscovery,
   type LeadComercial,
 } from "@/lib/golive-comercial";
-import {
-  registrarCallGoLive,
-  registrarDiscoveryGoLive,
-  registrarLeadGoLive,
-} from "@/lib/golive-escritores.functions";
+import { registrarAtendimentoGoLive, registrarLeadGoLive } from "@/lib/golive-escritores.functions";
+import { AcaoAtendimento } from "@/routes/_authenticated/golive.comercial";
+
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/leads")({
