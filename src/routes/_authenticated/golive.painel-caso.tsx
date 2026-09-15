@@ -97,7 +97,7 @@ function PainelDoCaso() {
 
   return (
     <GoLiveShell titulo="Painel do caso" descricao="Pesquisa, árvore, documentos, publicações e conta em uma leitura.">
-      <FaixaIdentidade />
+      {caso ? <FaixaIdentidade dados={caso} /> : null}
 
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
       {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
@@ -107,7 +107,7 @@ function PainelDoCaso() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <Barras
               titulo="Evidência por fonte consultada"
-              dados={cobertura.map((c) => ({ rotulo: c.fonte, valor: c.evidencias }))}
+              dados={cobertura.map((c) => ({ rotulo: c.origem, valor: c.total }))}
             />
             <Linha titulo="Produção por semana" dados={producao} />
           </div>
