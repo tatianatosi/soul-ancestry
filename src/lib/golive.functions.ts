@@ -189,6 +189,14 @@ export const carregarGoLive = createServerFn({ method: "GET" })
       : [];
     const nomePerfil = new Map(perfis.map((p) => [String(p["id"]), String(p["nome"] ?? "")]));
 
+    /* Anexos do contrato — só leitura do que já existe em `contract_annexes`.
+       Registro marcado como teste sai da leitura; nada é criado ou assinado. */
+    const anexosContrato = (
+      contratos[0]
+        ? await lista(supabase, "contract_annexes", "contract_id", String(contratos[0]["id"]))
+        : await lista(supabase, "contract_annexes", "case_id", casoId)
+    ).filter((a) => a["is_test"] !== true);
+
     const pesquisaId = pesquisas[0] ? String(pesquisas[0]["id"]) : null;
     const [fontes, evidenciasPesquisa, escopoItens] = await Promise.all([
       pesquisaId ? lista(supabase, "research_sources", "research_case_id", pesquisaId) : Promise.resolve([]),
