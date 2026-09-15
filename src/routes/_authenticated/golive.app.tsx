@@ -242,6 +242,13 @@ function AppClienteGoLive() {
                 Pessoas e vínculos entram na árvore só depois de confirmados e liberados pela equipe.
               </p>
             </Bloco>
+            <Bloco titulo="Onde a equipe pesquisou">
+              {fontesFamilia.length ? (
+                <Barras titulo="Onde a equipe pesquisou" dados={fontesPorInstituicao(fontesFamilia)} />
+              ) : (
+                <Vazio cta={<IrPara para="/golive/pesquisa" rotulo="Abrir Pesquisa" />} />
+              )}
+            </Bloco>
           </>
         ) : null}
 
