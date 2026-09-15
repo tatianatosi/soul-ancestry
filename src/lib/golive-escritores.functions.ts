@@ -969,13 +969,28 @@ export const aprovarAchadoGoLive = createServerFn({ method: "POST" })
 
 export const registrarFaturaGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { numero: string; valor: number; vencimento?: string; descricao?: string }) => d)
+  .inputValidator(
+    (d: { numero: string; valor: number; vencimento?: string; descricao?: string; autorizacao?: string }) => d,
+  )
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
     const { organizationId, casoId, clienteId, userId } = await contexto(s, context.userId as string);
     if (!texto(data.numero)) throw new Error("Número da fatura é obrigatório.");
     if (!(Number(data.valor) > 0)) throw new Error("Informe um valor maior que zero.");
+    if (!texto(data.autorizacao))
+      throw new Error("A fatura só é registrada com a autorização declarada (quem autorizou e quando).");
+
+    const assinado = await s
+      .from("contracts")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .eq("case_id", casoId)
+      .eq("status", "signed")
+      .is("archived_at", null)
+      .limit(1);
+    if (!(assinado.data ?? []).length)
+      throw new Error("Registre a assinatura do contrato antes de emitir fatura deste caso.");
 
     const r = await s
       .from("invoices")
