@@ -115,10 +115,30 @@ function PesquisaGoLive() {
       campos={[
         { nome: "titulo", rotulo: "Achado", obrigatorio: true },
         { nome: "tipo", rotulo: "Tipo", padrao: "vinculo_familiar" },
+        {
+          nome: "evidenciaId",
+          rotulo: "Evidência que sustenta",
+          tipo: "escolha",
+          opcoes: (caso?.evidencias ?? []).map((e) => ({ valor: e.id, rotulo: e.titulo ?? "Evidência" })),
+        },
+        {
+          nome: "fonteId",
+          rotulo: "Fonte que sustenta",
+          tipo: "escolha",
+          opcoes: (caso?.fontes ?? []).map((f) => ({ valor: f.id, rotulo: f.titulo ?? "Fonte" })),
+        },
         { nome: "resumo", rotulo: "Resumo interno", tipo: "area" },
       ]}
       aoConfirmar={(v) =>
-        novoAchado({ data: { titulo: v["titulo"] ?? "", tipo: v["tipo"] ?? "", resumo: v["resumo"] ?? "" } })
+        novoAchado({
+          data: {
+            titulo: v["titulo"] ?? "",
+            tipo: v["tipo"] ?? "",
+            resumo: v["resumo"] ?? "",
+            evidenciaId: v["evidenciaId"] ?? "",
+            fonteId: v["fonteId"] ?? "",
+          },
+        })
       }
       confirmacao="Achado registrado como hipótese em revisão."
     />

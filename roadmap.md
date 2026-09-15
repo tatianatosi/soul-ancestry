@@ -57,3 +57,7 @@
 ## Pesquisa e Biblioteca (15/09/2026)
 - [ ] Pesquisa do caso: 3 blocos (cobertura por fonte, produção de evidência, fila editorial) na cadeia Pergunta → Fonte → Evidência → Achado → Revisão → Publicação
 - [ ] Biblioteca como acervo/fila editorial, nunca segundo motor de pesquisa
+
+## Prova funcional + 7 abas do App (15/09/2026)
+- [ ] Prova Lead→App do caso Ana com antes/depois
+- [ ] Verificar e completar as 7 abas do App Cliente
