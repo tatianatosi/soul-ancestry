@@ -18,7 +18,6 @@ const TELAS = [
   { to: "/golive/caso", rotulo: "Caso 360" },
   { to: "/golive/radar", rotulo: "Radar" },
   { to: "/golive/pesquisa", rotulo: "Pesquisa" },
-  { to: "/golive/biblioteca", rotulo: "Biblioteca" },
   { to: "/golive/formalizacao", rotulo: "Formalização" },
   { to: "/golive/juridico", rotulo: "Jurídico" },
   { to: "/golive/financeiro", rotulo: "Financeiro" },
@@ -92,10 +91,10 @@ export function GoLiveShell({
 }
 
 
-export function Vazio({ cta, texto = "Sem itens nesta etapa" }: { cta: ReactNode; texto?: string }) {
+export function Vazio({ cta }: { cta: ReactNode }) {
   return (
     <div className="rounded-2xl border border-dashed border-navy/20 bg-white/60 p-6 text-center">
-      <p className="text-sm text-navy/70">{texto}</p>
+      <p className="text-sm text-navy/70">Sem itens nesta etapa</p>
       <div className="mt-3 flex justify-center">{cta}</div>
     </div>
   );
