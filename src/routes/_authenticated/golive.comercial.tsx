@@ -9,16 +9,24 @@ import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import {
-  colunaDoLead,
+  estadoDaCall,
   funil,
   kanbanPorEtapa,
+  kanbanPorPrazo,
   noPeriodo,
   porOrigem,
+  porResultadoDiscovery,
+  porSituacaoDaCall,
+  roteiroDiscovery,
+  rotuloDaCall,
+  RESULTADOS_DISCOVERY,
+  SITUACOES_CALL,
   saudeDosLeads,
   semDataDeEntrada,
   type LeadComercial,
 } from "@/lib/golive-comercial";
-import { registrarCallGoLive, registrarDiscoveryGoLive, registrarLeadGoLive } from "@/lib/golive-escritores.functions";
+import { registrarAtendimentoGoLive, registrarLeadGoLive } from "@/lib/golive-escritores.functions";
+
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/comercial")({
