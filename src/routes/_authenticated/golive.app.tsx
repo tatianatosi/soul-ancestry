@@ -13,22 +13,21 @@ import { Barras, BarrasPercentual, Linha, LinhaDoTempo } from "@/components/goli
 import { useGoLive } from "@/components/golive/dados";
 import {
   ABAS_APP,
-  achadosParaFamilia,
   contratoParaFamilia,
   financeiroParaFamilia,
-  evidenciasParaFamilia,
-  fontesParaFamilia,
-  fontesPorInstituicao,
   marcosPublicados,
   parcelasEmFatias,
   parcelasPorVencimento,
   publicacoesDaAba,
   publicacoesPorAba,
   publicacoesPorMes,
+  radarDoApp,
+  radarSemConteudo,
   situacaoDocumentos,
   ultimaPublicacao,
   type AbaApp,
 } from "@/lib/golive-app";
+import { RadarSeisEixos } from "@/components/portal/radar-seis-eixos";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import { Button } from "@/components/ui/button";
 
@@ -99,10 +98,9 @@ function AppClienteGoLive() {
   const situacao = situacaoDocumentos(documentosLiberados);
   const acesso = caso?.portal.acessos[0] ?? null;
 
-  /* Pesquisa e Jurídico já gravados, filtrados para o que a família pode ver. */
-  const evidenciasFamilia = evidenciasParaFamilia(caso?.evidencias ?? []);
-  const fontesFamilia = fontesParaFamilia(caso?.fontes ?? []);
-  const achadosFamilia = achadosParaFamilia(caso?.achados ?? []);
+  /* Radar das seis dimensões: só publicações e documentos já liberados. */
+  const radar = radarDoApp(publicados, caso?.documentos ?? []);
+  const radarVazio = radarSemConteudo(radar);
   const titularId = caso?.identidade?.pessoaPrincipalId ?? null;
   const contrato = contratoParaFamilia(caso?.contratos ?? [], titularId);
   const financeiro = financeiroParaFamilia(caso?.faturas ?? [], titularId);
@@ -245,10 +243,28 @@ function AppClienteGoLive() {
 
         {aba === "Radar" ? (
           <Bloco titulo="Seu radar">
-            <Vazio cta={Aguardando} />
-            <p className="text-xs text-navy/55">
-              As seis dimensões aparecem aqui assim que a equipe publicar a leitura do seu caso.
-            </p>
+            {radarVazio ? (
+              <>
+                <Vazio cta={Aguardando} />
+                <p className="text-xs text-navy/55">
+                  As seis dimensões ganham forma assim que a equipe publicar conteúdo e liberar
+                  documentos do seu caso.
+                </p>
+              </>
+            ) : (
+              <>
+                <RadarSeisEixos dimensoes={radar} />
+                <ul className="mt-3 space-y-2 text-sm text-navy">
+                  {radar.map((d) => (
+                    <li key={d.id} className="break-words rounded-xl bg-white/70 p-3">
+                      <span className="font-medium">{d.titulo}</span>{" "}
+                      <span className="text-navy/70">· {d.rotuloNumero}</span>
+                      <span className="mt-1 block text-xs text-navy/55">{d.legenda}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
           </Bloco>
         ) : null}
 
@@ -264,30 +280,9 @@ function AppClienteGoLive() {
               ) : (
                 <Vazio cta={Aguardando} />
               )}
-            </Bloco>
-            <Bloco titulo="Fontes já consultadas">
-              {fontesFamilia.length ? (
-                <ul className="space-y-1 text-sm text-navy">
-                  {fontesFamilia.map((f) => (
-                    <li key={f.id} className="break-words">
-                      {f.titulo}
-                      {f.instituicao ? <span className="text-navy/55"> · {f.instituicao}</span> : null}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <Vazio cta={<IrPara para="/golive/pesquisa" rotulo="Abrir Pesquisa" />} />
-              )}
               <p className="mt-2 text-xs text-navy/55">
-                Pessoas e vínculos entram na árvore só depois de confirmados e liberados pela equipe.
+                Pessoas e vínculos entram na árvore só depois de confirmados e publicados pela equipe.
               </p>
-            </Bloco>
-            <Bloco titulo="Onde a equipe pesquisou">
-              {fontesFamilia.length ? (
-                <Barras titulo="Onde a equipe pesquisou" dados={fontesPorInstituicao(fontesFamilia)} />
-              ) : (
-                <Vazio cta={<IrPara para="/golive/pesquisa" rotulo="Abrir Pesquisa" />} />
-              )}
             </Bloco>
           </>
         ) : null}
@@ -309,22 +304,20 @@ function AppClienteGoLive() {
               )}
             </Bloco>
             <Bloco titulo="Documentos disponíveis">
-              {documentosLiberados.length || evidenciasFamilia.length ? (
+              {documentosLiberados.length ? (
                 <ul className="space-y-1 text-sm text-navy">
                   {documentosLiberados.map((d) => (
                     <li key={d.id} className="break-words">
                       {d.titulo} <span className="text-navy/55">· {humano(d.status, "sem situação")}</span>
                     </li>
                   ))}
-                  {evidenciasFamilia.map((e) => (
-                    <li key={e.id} className="break-words">
-                      {e.titulo} <span className="text-navy/55">· {humano(e.status, "sem situação")}</span>
-                    </li>
-                  ))}
                 </ul>
               ) : (
-                <Vazio cta={<IrPara para="/golive/pesquisa" rotulo="Abrir Pesquisa" />} />
+                <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando liberação da equipe</Button>} />
               )}
+              <p className="mt-2 text-xs text-navy/55">
+                Só aparece aqui o documento que a equipe já liberou para você.
+              </p>
             </Bloco>
             <Bloco titulo="Entregas publicadas">
               {documentosPublicados.length ? (
@@ -343,18 +336,18 @@ function AppClienteGoLive() {
         {aba === "Legado" ? (
           <>
             <Bloco titulo="Descobertas da família">
-              {legado.length || achadosFamilia.length ? (
+              {legado.length ? (
                 <ul className="space-y-2">
                   {legado.map((p) => (
                     <Publicado key={p.id} titulo={p.resumo ?? humano(p.tipo)} quando={p.em} />
                   ))}
-                  {achadosFamilia.map((a) => (
-                    <Publicado key={a.id} titulo={a.titulo} quando={a.validadoEm ?? null} />
-                  ))}
                 </ul>
               ) : (
-                <Vazio cta={<IrPara para="/golive/pesquisa" rotulo="Abrir Pesquisa" />} />
+                <Vazio cta={Aguardando} />
               )}
+              <p className="mt-2 text-xs text-navy/55">
+                Cada descoberta chega aqui depois de conferida e publicada pela equipe.
+              </p>
             </Bloco>
             <Bloco titulo="Publicado recentemente">
               {ultima ? (

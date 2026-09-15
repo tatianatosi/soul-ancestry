@@ -6,6 +6,9 @@
  * vazia — nunca preenchida com dado interno do Desk.
  */
 
+import { radarSeisDimensoes, type DimensaoRadar } from "@/lib/radar-seis-eixos";
+
+
 export type ProjecaoPublicada = {
   id: string;
   tipo: string;
@@ -270,4 +273,60 @@ export function parcelasEmFatias(situacao: SituacaoFinanceira): Fatia[] {
     { rotulo: "Pagas", valor: situacao.pagas },
     { rotulo: "Em aberto", valor: situacao.emAberto },
   ];
+}
+
+/* ------------------------------------------------------------------ *
+ * Radar Ancestral — seis dimensões do mockup, no espelho do App
+ * ------------------------------------------------------------------ */
+
+/**
+ * Reaproveita o cálculo já aprovado das seis dimensões (`radarSeisDimensoes`)
+ * com o conteúdo do go-live: só publicações que a equipe já liberou para a
+ * família e documentos já liberados. Nada é criado aqui — a classificação usa
+ * a mesma regra de aba (`abaDaPublicacao`), traduzida para o vocabulário do
+ * radar: árvore, achado (Legado) e marco (Jornada).
+ */
+export function radarDoApp(
+  publicados: readonly ProjecaoPublicada[],
+  documentos: readonly { id: string; liberadoCliente?: boolean | null }[],
+): DimensaoRadar[] {
+  const tipoRadar = (p: ProjecaoPublicada): string | null => {
+    switch (abaDaPublicacao(p)) {
+      case "Árvore":
+        return "arvore";
+      case "Legado":
+        return "achado";
+      case "Jornada":
+        return "marco";
+      default:
+        return null;
+    }
+  };
+
+  const projecoes = publicados
+    .map((p) => {
+      const tipo = tipoRadar(p);
+      if (!tipo) return null;
+      return {
+        id: p.id,
+        projection_type: tipo,
+        content_sanitized: p.resumo ?? p.tipo,
+        effective_from: p.em ?? null,
+      };
+    })
+    .filter((p): p is NonNullable<typeof p> => p !== null);
+
+  return radarSeisDimensoes({
+    projecoes,
+    documentos: documentos.map((d) => ({
+      id: d.id,
+      liberado_cliente: d.liberadoCliente === true,
+      is_demo: false,
+    })),
+  });
+}
+
+/** Verdadeiro quando ainda não há nada publicado ou liberado para o radar. */
+export function radarSemConteudo(dimensoes: readonly DimensaoRadar[]): boolean {
+  return dimensoes.every((d) => (d.percentual ?? 0) === 0);
 }
