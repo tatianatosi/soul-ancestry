@@ -17,7 +17,10 @@ import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import {
   adicionarItemEscopoGoLive,
+  aprovarEscopoPropostaGoLive,
   criarPlanoOnboardingGoLive,
+  enviarContratoParaRevisaoGoLive,
+  registrarAssinaturaContratoGoLive,
   registrarOrdemServicoGoLive,
   registrarPropostaCanva,
 } from "@/lib/golive-escritores.functions";
@@ -52,6 +55,9 @@ function FormalizacaoGoLive() {
   const novoEscopo = useServerFn(adicionarItemEscopoGoLive);
   const novaOrdem = useServerFn(registrarOrdemServicoGoLive);
   const novoPlano = useServerFn(criarPlanoOnboardingGoLive);
+  const aprovarEscopo = useServerFn(aprovarEscopoPropostaGoLive);
+  const contratoRevisao = useServerFn(enviarContratoParaRevisaoGoLive);
+  const registrarAssinatura = useServerFn(registrarAssinaturaContratoGoLive);
 
   const acaoProposta = (
     <Acao
@@ -157,6 +163,29 @@ function FormalizacaoGoLive() {
                     {moeda(p.valor, p.moeda) ? <span className="text-navy/60"> · {moeda(p.valor, p.moeda)}</span> : null}
                     {p.enviadaEm ? <span className="text-navy/55"> · enviada em {dataHumana(p.enviadaEm)}</span> : null}
                     {p.aprovadaEm ? <span className="text-navy/55"> · aprovada em {dataHumana(p.aprovadaEm)}</span> : null}
+                    {p.referencia ? (
+                      <div className="text-xs text-navy/55 break-all">
+                        Referência {p.origem === "canva" ? "Canva" : "registrada"}: {p.referencia}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-[var(--terracota,#9A3A2F)]">
+                        Sem link/referência registrado — registre antes de aprovar o escopo.
+                      </div>
+                    )}
+                    {!p.aprovadaEm && p.referencia ? (
+                      <Acoes>
+                        <Acao
+                          rotulo="Aprovar escopo"
+                          titulo={`Aprovar escopo da versão ${p.versao ?? 1}`}
+                          variante="outline"
+                          campos={[{ nome: "observacao", rotulo: "Quem aprovou e como", tipo: "area" }]}
+                          aoConfirmar={(v) =>
+                            aprovarEscopo({ data: { propostaId: p.id, observacao: v["observacao"] ?? "" } })
+                          }
+                          confirmacao="Escopo aprovado nesta proposta."
+                        />
+                      </Acoes>
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -193,6 +222,46 @@ function FormalizacaoGoLive() {
                     {c.numero ? `${c.numero} — ` : ""}
                     {c.titulo} <span className="text-navy/55">{humano(c.status)}</span>
                     {c.assinadoEm ? <span className="text-navy/55"> · assinado em {dataHumana(c.assinadoEm)}</span> : null}
+                    {!c.assinadoEm ? (
+                      <Acoes>
+                        <Acao
+                          rotulo="Enviar para revisão"
+                          titulo="Contrato em revisão humana"
+                          variante="outline"
+                          campos={[{ nome: "observacao", rotulo: "O que precisa ser conferido", tipo: "area" }]}
+                          aoConfirmar={(v) =>
+                            contratoRevisao({ data: { contratoId: c.id, observacao: v["observacao"] ?? "" } })
+                          }
+                          confirmacao="Contrato marcado como em revisão."
+                        />
+                        <Acao
+                          rotulo="Registrar assinatura"
+                          titulo="Assinatura com ato formal"
+                          variante="outline"
+                          campos={[
+                            {
+                              nome: "referencia",
+                              rotulo: "Referência do ato formal",
+                              obrigatorio: true,
+                              ajuda: "Protocolo, documento assinado ou ata. Nada é enviado para assinatura daqui.",
+                            },
+                            { nome: "assinadoEm", rotulo: "Data da assinatura", tipo: "data", obrigatorio: true },
+                            { nome: "forma", rotulo: "Forma da assinatura" },
+                          ]}
+                          aoConfirmar={(v) =>
+                            registrarAssinatura({
+                              data: {
+                                contratoId: c.id,
+                                referencia: v["referencia"] ?? "",
+                                assinadoEm: v["assinadoEm"] ?? "",
+                                forma: v["forma"] ?? "",
+                              },
+                            })
+                          }
+                          confirmacao="Assinatura registrada no contrato."
+                        />
+                      </Acoes>
+                    ) : null}
                   </li>
                 ))}
               </ul>

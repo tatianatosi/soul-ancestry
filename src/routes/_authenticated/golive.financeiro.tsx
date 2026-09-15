@@ -9,13 +9,16 @@
  * fictício. Nenhuma cobrança, assinatura ou envio externo é disparado aqui.
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Linha as LinhaSerie, Rosca } from "@/components/golive/graficos";
 import { recebimentoPorMes, situacaoDasFaturas, totaisFinanceiros } from "@/lib/golive-analitico";
 import { useGoLive } from "@/components/golive/dados";
+import { Acao, Acoes } from "@/components/golive/acoes";
 import { Button } from "@/components/ui/button";
+import { registrarFaturaGoLive } from "@/lib/golive-escritores.functions";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/financeiro")({
@@ -43,6 +46,41 @@ function FinanceiroGoLive() {
   const totais = totaisFinanceiros(faturas, pagamentos);
   const recebimento = recebimentoPorMes(faturas, pagamentos, 6);
   const situacao = situacaoDasFaturas(faturas);
+
+  const contratoAssinado = (caso?.contratos ?? []).some((c) => c.status === "signed" || Boolean(c.assinadoEm));
+  const novaFatura = useServerFn(registrarFaturaGoLive);
+
+  const acaoFatura = contratoAssinado ? (
+    <Acao
+      rotulo="Registrar fatura autorizada"
+      titulo="Fatura só com autorização"
+      variante="outline"
+      campos={[
+        { nome: "numero", rotulo: "Número da fatura", obrigatorio: true },
+        { nome: "valor", rotulo: "Valor (R$)", tipo: "numero", obrigatorio: true },
+        { nome: "vencimento", rotulo: "Vencimento", tipo: "data" },
+        { nome: "descricao", rotulo: "Condição combinada", tipo: "area" },
+        {
+          nome: "autorizacao",
+          rotulo: "Quem autorizou e quando",
+          obrigatorio: true,
+          ajuda: "Sem autorização declarada, a fatura não é registrada. Nada é cobrado automaticamente.",
+        },
+      ]}
+      aoConfirmar={(v) =>
+        novaFatura({
+          data: {
+            numero: v["numero"] ?? "",
+            valor: Number(v["valor"] ?? 0),
+            vencimento: v["vencimento"] ?? "",
+            descricao: v["descricao"] ?? "",
+            autorizacao: v["autorizacao"] ?? "",
+          },
+        })
+      }
+      confirmacao="Fatura registrada com a autorização declarada."
+    />
+  ) : null;
 
   const irParaContratos = (
     <Link to="/contratos">
@@ -97,6 +135,11 @@ function FinanceiroGoLive() {
       </Bloco>
 
       <Bloco titulo="Faturas">
+        {acaoFatura ? <Acoes>{acaoFatura}</Acoes> : (
+          <p className="text-xs text-navy/55">
+            A fatura só é registrada depois da assinatura do contrato e com autorização declarada.
+          </p>
+        )}
         {faturas.length ? (
           <ul className="space-y-1 text-sm text-navy">
             {faturas.map((f) => (

@@ -413,6 +413,170 @@ export const adicionarItemEscopoGoLive = createServerFn({ method: "POST" })
     return { id: String(r.data.id) };
   });
 
+/**
+ * Aprovação do escopo apresentado na proposta.
+ *
+ * Só aprova o que já tem referência e versão do Canva registradas à mão.
+ * Não assina nada, não cria contrato, não gera cobrança.
+ */
+export const aprovarEscopoPropostaGoLive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { propostaId: string; observacao?: string }) => d)
+  .handler(async ({ data, context }) => {
+    semCache();
+    const s = context.supabase as any;
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const propostaId = texto(data.propostaId);
+    if (!propostaId) throw new Error("Escolha a proposta que teve o escopo aprovado.");
+
+    const atual = await s
+      .from("proposals")
+      .select("id, status, versao, origem_referencia, deck_referencia_interna, escopo, archived_at, observacoes_internas")
+      .eq("id", propostaId)
+      .eq("organization_id", organizationId)
+      .eq("case_id", casoId)
+      .maybeSingle();
+    erro(atual);
+    const p = atual.data;
+    if (!p) throw new Error("Proposta não encontrada neste caso.");
+    if (p.archived_at) throw new Error("Proposta arquivada não pode ser aprovada.");
+    if (p.status === "aprovada") throw new Error("Esta proposta já está aprovada.");
+    if (!texto(p.origem_referencia) && !texto(p.deck_referencia_interna))
+      throw new Error("Registre o link/referência do Canva antes de aprovar o escopo.");
+    if (!(Number(p.versao) > 0)) throw new Error("Registre a versão do Canva antes de aprovar o escopo.");
+    if (!texto(p.escopo)) throw new Error("A proposta precisa do escopo apresentado antes da aprovação.");
+
+    const nota = texto(data.observacao);
+    const r = await s
+      .from("proposals")
+      .update({
+        status: "aprovada",
+        aprovada_em: new Date().toISOString(),
+        observacoes_internas:
+          [texto(p.observacoes_internas), nota && `Escopo aprovado: ${nota}`].filter(Boolean).join("\n") || null,
+        updated_by: userId,
+      })
+      .eq("id", propostaId)
+      .eq("organization_id", organizationId)
+      .eq("case_id", casoId)
+      .select("id, versao, status, aprovada_em")
+      .single();
+    erro(r);
+    return {
+      id: String(r.data.id),
+      versao: (r.data.versao as number) ?? null,
+      status: String(r.data.status ?? ""),
+      aprovadaEm: (r.data.aprovada_em as string) ?? null,
+    };
+  });
+
+/** Contrato entra em revisão humana. Não envia, não assina, não cobra. */
+export const enviarContratoParaRevisaoGoLive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { contratoId: string; observacao?: string }) => d)
+  .handler(async ({ data, context }) => {
+    semCache();
+    const s = context.supabase as any;
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const contratoId = texto(data.contratoId);
+    if (!contratoId) throw new Error("Escolha o contrato que vai para revisão.");
+
+    const atual = await s
+      .from("contracts")
+      .select("id, status, archived_at")
+      .eq("id", contratoId)
+      .eq("organization_id", organizationId)
+      .eq("case_id", casoId)
+      .maybeSingle();
+    erro(atual);
+    const c = atual.data;
+    if (!c) throw new Error("Contrato não encontrado neste caso.");
+    if (c.archived_at) throw new Error("Contrato arquivado não pode ir para revisão.");
+    if (c.status === "signed") throw new Error("Contrato já assinado não volta para revisão por aqui.");
+
+    const aprovada = await s
+      .from("proposals")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .eq("case_id", casoId)
+      .eq("status", "aprovada")
+      .is("archived_at", null)
+      .limit(1);
+    if (!(aprovada.data ?? []).length)
+      throw new Error("Aprove o escopo da proposta antes de mandar o contrato para revisão.");
+
+    const r = await s
+      .from("contracts")
+      .update({
+        status: "under_human_review",
+        internal_notes: texto(data.observacao) || null,
+        updated_by: userId,
+      })
+      .eq("id", contratoId)
+      .eq("organization_id", organizationId)
+      .eq("case_id", casoId)
+      .select("id, status")
+      .single();
+    erro(r);
+    return { id: String(r.data.id), status: String(r.data.status ?? "") };
+  });
+
+/**
+ * Assinatura registrada só quando existe ato formal.
+ *
+ * Exige referência do ato (protocolo, documento assinado, ata) e data.
+ * Nada é enviado a provedor externo daqui.
+ */
+export const registrarAssinaturaContratoGoLive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { contratoId: string; referencia: string; assinadoEm: string; forma?: string }) => d)
+  .handler(async ({ data, context }) => {
+    semCache();
+    const s = context.supabase as any;
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const contratoId = texto(data.contratoId);
+    if (!contratoId) throw new Error("Escolha o contrato assinado.");
+    if (!texto(data.referencia)) throw new Error("Informe a referência do ato formal de assinatura.");
+    if (!texto(data.assinadoEm)) throw new Error("Informe a data da assinatura.");
+
+    const atual = await s
+      .from("contracts")
+      .select("id, status, archived_at")
+      .eq("id", contratoId)
+      .eq("organization_id", organizationId)
+      .eq("case_id", casoId)
+      .maybeSingle();
+    erro(atual);
+    const c = atual.data;
+    if (!c) throw new Error("Contrato não encontrado neste caso.");
+    if (c.archived_at) throw new Error("Contrato arquivado não pode ser assinado.");
+    if (c.status === "signed") throw new Error("Este contrato já está assinado.");
+    if (!["under_human_review", "approved_for_send", "sent"].includes(String(c.status)))
+      throw new Error("Passe o contrato por revisão humana antes de registrar a assinatura.");
+
+    const r = await s
+      .from("contracts")
+      .update({
+        status: "signed",
+        signed_at: texto(data.assinadoEm),
+        signature_reference: texto(data.referencia),
+        signed_source: texto(data.forma) || "ato_formal_manual",
+        updated_by: userId,
+      })
+      .eq("id", contratoId)
+      .eq("organization_id", organizationId)
+      .eq("case_id", casoId)
+      .select("id, status, signed_at, signature_reference")
+      .single();
+    erro(r);
+    return {
+      id: String(r.data.id),
+      status: String(r.data.status ?? ""),
+      assinadoEm: (r.data.signed_at as string) ?? null,
+      referencia: (r.data.signature_reference as string) ?? null,
+    };
+  });
+
 /* ------------------------------------------------------------------ *
  * 3. Pessoa canônica
  * ------------------------------------------------------------------ */
@@ -805,13 +969,28 @@ export const aprovarAchadoGoLive = createServerFn({ method: "POST" })
 
 export const registrarFaturaGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { numero: string; valor: number; vencimento?: string; descricao?: string }) => d)
+  .inputValidator(
+    (d: { numero: string; valor: number; vencimento?: string; descricao?: string; autorizacao?: string }) => d,
+  )
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
     const { organizationId, casoId, clienteId, userId } = await contexto(s, context.userId as string);
     if (!texto(data.numero)) throw new Error("Número da fatura é obrigatório.");
     if (!(Number(data.valor) > 0)) throw new Error("Informe um valor maior que zero.");
+    if (!texto(data.autorizacao))
+      throw new Error("A fatura só é registrada com a autorização declarada (quem autorizou e quando).");
+
+    const assinado = await s
+      .from("contracts")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .eq("case_id", casoId)
+      .eq("status", "signed")
+      .is("archived_at", null)
+      .limit(1);
+    if (!(assinado.data ?? []).length)
+      throw new Error("Registre a assinatura do contrato antes de emitir fatura deste caso.");
 
     const r = await s
       .from("invoices")
@@ -823,7 +1002,8 @@ export const registrarFaturaGoLive = createServerFn({ method: "POST" })
         valor: Number(data.valor),
         moeda: "BRL",
         vencimento: texto(data.vencimento) || null,
-        descricao: texto(data.descricao) || null,
+        descricao:
+          [texto(data.descricao), `Autorização: ${texto(data.autorizacao)}`].filter(Boolean).join(" · ") || null,
         status: "emitida",
         emitida_em: new Date().toISOString(),
         created_by: userId,
