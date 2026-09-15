@@ -189,8 +189,21 @@ function FinanceiroGoLive() {
                 {typeof f.valor === "number" ? ` — ${MOEDA.format(f.valor)}` : ""}{" "}
                 <span className="text-navy/55">
                   · {humano(f.status, "sem situação registrada")}
-                  {f.vencimento ? ` · vence ${dataHumana(f.vencimento)}` : ""}
+                  {f.vencimento ? ` · vence ${dataHumana(f.vencimento)}` : "· sem vencimento registrado"}
                 </span>
+                {/* Autorização declarada no registro e pagamento só se confirmado. */}
+                <div className="mt-1 space-y-0.5 text-xs text-navy/70">
+                  <div>
+                    Autorização:{" "}
+                    {f.descricao?.match(/Autoriza[çc][ãa]o:\s*(.+)$/i)?.[1] ?? "não registrada"}
+                  </div>
+                  <div>
+                    Pagamento:{" "}
+                    {pagamentos.some((p) => p.faturaId === f.id && p.pagoEm)
+                      ? `confirmado em ${dataHumana(pagamentos.find((p) => p.faturaId === f.id && p.pagoEm)!.pagoEm)}`
+                      : "sem pagamento confirmado"}
+                  </div>
+                </div>
               </li>
             ))}
           </ul>

@@ -177,6 +177,25 @@ function JuridicoGoLive() {
                     ? ` · liberado para assinatura em ${dataHumana(c.liberadoParaEnvioEm)}`
                     : ""}
                 </span>
+                {/* Revisão em curso: revisora, versão e pendências já gravadas. */}
+                <div className="mt-1 space-y-0.5 text-xs text-navy/70">
+                  <div>Revisora: {c.revisora ?? "não registrada"}</div>
+                  <div>Versão: {c.versao ?? "não registrada"}</div>
+                  {c.objetivo ? <div>Objetivo: {c.objetivo}</div> : null}
+                  {c.pendencias.length ? (
+                    <div className="text-[var(--terracota,#9A3A2F)]">
+                      Pendências: {c.pendencias.map((p) => humano(p)).join(" · ")}
+                    </div>
+                  ) : (
+                    <div>Sem pendências registradas</div>
+                  )}
+                  <div>
+                    Assinatura:{" "}
+                    {c.assinadoEm
+                      ? `${dataHumana(c.assinadoEm)}${c.assinaturaReferencia ? ` · referência ${c.assinaturaReferencia}` : ""}`
+                      : "não assinada"}
+                  </div>
+                </div>
               </li>
             ))}
           </ul>

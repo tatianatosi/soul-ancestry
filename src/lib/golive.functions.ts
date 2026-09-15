@@ -213,6 +213,18 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           .filter((v): v is string => typeof v === "string"),
       ),
     );
+    /* Também os nomes de quem registrou a proposta e de quem revisa o contrato:
+       a cadeia da formalização precisa mostrar responsável e revisora. */
+    for (const p of propostas ?? []) {
+      const v = p["created_by"];
+      if (typeof v === "string" && !idsResponsaveis.includes(v)) idsResponsaveis.push(v);
+    }
+    for (const c of contratos ?? []) {
+      for (const campo of ["review_owner_user_id", "approved_for_send_by"]) {
+        const v = c[campo];
+        if (typeof v === "string" && !idsResponsaveis.includes(v)) idsResponsaveis.push(v);
+      }
+    }
     const perfis = idsResponsaveis.length
       ? (((await supabase.from("profiles").select("id,nome").in("id", idsResponsaveis)).data ?? []) as Linha[])
       : [];
@@ -251,6 +263,12 @@ export const carregarGoLive = createServerFn({ method: "GET" })
       anexosVistos.add(id);
       return true;
     });
+
+    /* Versões do contrato — só o número já gravado em `contract_versions`.
+       Nada é gerado aqui; versão ausente continua ausente na tela. */
+    const versoesContrato: Linha[] = contratos[0]
+      ? await lista(supabase, "contract_versions", "contract_id", String(contratos[0]["id"]))
+      : [];
 
     const pesquisaId = pesquisas[0] ? String(pesquisas[0]["id"]) : null;
     const [fontes, evidenciasPesquisa, escopoItens] = await Promise.all([
@@ -652,6 +670,32 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         liberadoParaEnvioEm: (c["approved_for_send_at"] as string) ?? null,
         vigenciaInicio: (c["effective_start_date"] as string) ?? null,
         vigenciaFim: (c["effective_end_date"] as string) ?? null,
+        /* Revisão: quem revisa e em que versão. Nada é deduzido. */
+        revisora: nomePerfil.get(String(c["review_owner_user_id"] ?? "")) || null,
+        versao:
+          (versoesContrato
+            .filter((v) => String(v["contract_id"]) === String(c["id"]))
+            .map((v) => Number(v["version_number"]))
+            .filter((n) => Number.isFinite(n))
+            .sort((a, b) => b - a)[0] as number | undefined) ?? null,
+        objetivo: (c["purpose_summary"] as string) ?? null,
+        escopoResumo: (c["scope_summary"] as string) ?? null,
+        exclusoes: (c["exclusions_summary"] as string) ?? null,
+        /* Assinatura como ato formal: referência, origem e data gravadas. */
+        assinaturaReferencia: (c["signature_reference"] as string) ?? null,
+        assinaturaOrigem: (c["signed_source"] as string) ?? null,
+        /* Pendências vindas dos estados já gravados no próprio contrato. */
+        pendencias: (
+          [
+            ["Privacidade", c["privacy_terms_status"]],
+            ["Financeiro", c["financial_gate_status"]],
+            ["Pesquisa", c["research_gate_status"]],
+            ["Despesas de terceiros", c["external_expense_status"]],
+            ["Alteração financeira", c["financial_change_status"]],
+          ] as const
+        )
+          .filter(([, v]) => typeof v === "string" && v !== "" && !/(ok|aprovad|concluid|concluíd|nao_aplicavel|not_applicable|liberad)/i.test(String(v)))
+          .map(([rotulo, v]) => `${rotulo}: ${String(v)}`),
       })),
       /** Anexos do contrato já registrados. Sem criação e sem assinatura. */
       anexos: limpar(anexosContrato).map((a) => ({
@@ -673,6 +717,8 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         vencimento: (f["vencimento"] as string) ?? null,
         emitidaEm: (f["emitida_em"] as string) ?? null,
         pagaEm: (f["paga_em"] as string) ?? null,
+        /* A autorização declarada no registro fica junto da condição combinada. */
+        descricao: (f["descricao"] as string) ?? null,
       })),
       /** Pagamentos confirmados, com data já gravada — base do recebimento por mês. */
       pagamentos: pagamentos.map((p) => ({
@@ -712,6 +758,10 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         aprovadaEm: (p["aprovada_em"] as string) ?? null,
         origem: (p["origem"] as string) ?? null,
         referencia: (p["origem_referencia"] as string) ?? (p["deck_referencia_interna"] as string) ?? null,
+        /* Escopo excluído e responsável já gravados na própria proposta. */
+        exclusoes: (p["exclusoes"] as string) ?? null,
+        validade: (p["validade"] as string) ?? null,
+        responsavel: nomePerfil.get(String(p["created_by"] ?? "")) || null,
       })),
       escopo: escopoItens.map((i) => ({
         id: String(i["id"]),
