@@ -350,6 +350,16 @@ function AppClienteGoLive() {
                   ) : (
                     <p className="text-navy/70">Contrato ainda não registrado para esta família.</p>
                   )}
+                  {financeiro.parcelas.length > 0 ? (
+                    <p className="text-navy/70">
+                      Parcelas: {financeiro.pagas} paga(s) · {financeiro.emAberto} em aberto
+                      {financeiro.proxima?.vencimento
+                        ? ` · próxima em ${dataHumana(financeiro.proxima.vencimento)}`
+                        : ""}
+                    </p>
+                  ) : (
+                    <p className="text-navy/70">Nenhuma parcela emitida para esta família.</p>
+                  )}
                   {acesso ? (
                     <p className="text-navy/70">
                       Acesso ao App: {humano(acesso.situacao, "sem situação registrada")}
@@ -360,9 +370,12 @@ function AppClienteGoLive() {
                   ) : (
                     <p className="text-navy/70">Convite do App ainda não enviado.</p>
                   )}
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <IrPara para="/golive/formalizacao" rotulo="Ver proposta e escopo" />
+                  </div>
                 </div>
               ) : (
-                <Vazio cta={<IrPara para="/golive/juridico" rotulo="Abrir Jurídico" />} />
+                <Vazio cta={<IrPara para="/golive/formalizacao" rotulo="Ver proposta e escopo" />} />
               )}
             </Bloco>
             <Bloco titulo="Avisos">

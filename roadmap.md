@@ -53,3 +53,7 @@
 - [ ] Conferir as 11 superfícies do Desk e as 7 abas do App da prancha v3, marcando lacunas e telas com demo/teste/alerta técnico/catálogo/blocos repetidos.
 - [ ] Entregar `mapa-ana-lead-app-visual` (Markdown + PDF). Sem implementar, sem corrigir.
 - [ ] Revisar a proposta contra a prancha v3 (contrato): Desk cobre 11 contextos (Hoje, Comercial, Kanban, Caso 360, Pessoa 360, Radar, Pesquisa, Financeiro, Jurídico, Pessoas, Portal/Config Master) e App mantém 7 abas. Nada removido: Discovery/Calls, funil/handoff, Kanban, Pessoa 360, Pessoas/núcleos, Radar, Financeiro próprio, Jurídico completo e convite real do cliente.
+
+## Pesquisa e Biblioteca (15/09/2026)
+- [ ] Pesquisa do caso: 3 blocos (cobertura por fonte, produção de evidência, fila editorial) na cadeia Pergunta → Fonte → Evidência → Achado → Revisão → Publicação
+- [ ] Biblioteca como acervo/fila editorial, nunca segundo motor de pesquisa

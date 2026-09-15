@@ -13,7 +13,12 @@ import type { ReactNode } from "react";
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Barras, Linha as LinhaSerie, Rosca } from "@/components/golive/graficos";
-import { contarPor, porSemana } from "@/lib/golive-analitico";
+import {
+  coberturaPorFonte,
+  filaEditorial,
+  filaEmSerie,
+  producaoPorSemana,
+} from "@/lib/golive-pesquisa";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
@@ -38,7 +43,7 @@ export const Route = createFileRoute("/_authenticated/golive/pesquisa")({
   component: PesquisaGoLive,
 });
 
-const ETAPAS = ["Pergunta", "Fonte", "Evidência", "Achado", "Proposta"] as const;
+const ETAPAS = ["Pergunta", "Fonte", "Evidência", "Achado", "Revisão", "Publicação"] as const;
 
 function PesquisaGoLive() {
   const { data, isPending, error } = useGoLive();
@@ -135,29 +140,18 @@ function PesquisaGoLive() {
   const achados = caso?.achados ?? [];
   const propostas = caso?.propostas ?? [];
 
-  const totais = [
-    { rotulo: "Perguntas", valor: perguntas.length },
-    { rotulo: "Fontes", valor: fontes.length },
-    { rotulo: "Evidências", valor: evidencias.length },
-    { rotulo: "Achados", valor: achados.length },
-  ];
-  const temAlgo = totais.some((t) => t.valor > 0);
-
-  // Cobertura, situação e validação: contagem do que já está gravado.
-  const coberturaFontes = contarPor(fontes, (f) => humano(f.tipo, ""), "Tipo não informado");
-  const evidenciasPorEstado = contarPor(evidencias, (e) => humano(e.status, ""), "Sem situação");
-  const achadosPorValidacao = contarPor(achados, (a) => humano(a.validacao, ""), "Sem validação");
-
-  // Ritmo: só entra o que tem data gravada; sem data, a linha não aparece.
-  const datados = [
-    ...fontes.map((f) => ({ em: f.registradaEm })),
-    ...evidencias.map((e) => ({ em: e.registradaEm })),
-    ...achados.map((a) => ({ em: a.registradoEm })),
-  ].filter((i) => Boolean(i.em));
-  const ritmo = datados.length ? porSemana(datados, (i) => i.em, 7) : [];
+  /* Três blocos analíticos, nada além disso:
+     1) cobertura por fonte, 2) produção de evidência, 3) fila editorial. */
+  const cobertura = coberturaPorFonte(evidencias, fontes);
+  const producao = producaoPorSemana(fontes, evidencias, achados);
+  const fila = filaEditorial(evidencias, achados);
+  const filaSerie = filaEmSerie(fila);
+  const temAcervo = evidencias.length + achados.length > 0;
+  const temLinhaAberta =
+    perguntas.length + fontes.length + evidencias.length + achados.length > 0;
 
   return (
-    <GoLiveShell titulo="Pesquisa" descricao="Pergunta › Fonte › Evidência › Achado › Proposta.">
+    <GoLiveShell titulo="Pesquisa" descricao="Pergunta › Fonte › Evidência › Achado › Revisão › Publicação.">
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
       {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
 
@@ -174,44 +168,61 @@ function PesquisaGoLive() {
         </p>
       </nav>
 
-      {caso?.pesquisa ? (
-        <Bloco titulo="Andamento da pesquisa">
-          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <Campo rotulo="Situação" valor={humano(caso.pesquisa.status)} />
-            <Campo rotulo="Confiança" valor={humano(caso.pesquisa.confianca)} />
-            <Campo rotulo="Próxima ação" valor={humano(caso.pesquisa.proximaAcao)} />
-          </dl>
-          {caso.pesquisa.prazo ? (
-            <p className="text-xs text-navy/55">Prazo da próxima ação: {dataHumana(caso.pesquisa.prazo)}</p>
-          ) : null}
-          {temAlgo ? <Barras titulo="Volume da cadeia de pesquisa" dados={totais} /> : null}
+      {!isPending && !temLinhaAberta ? (
+        <Bloco titulo="Pesquisa do caso">
+          <p className="text-sm text-navy/70">Nenhuma linha de pesquisa aberta</p>
+          <div className="pt-2">
+            <Link to="/golive/caso">
+              <Button size="sm">Abrir o caso</Button>
+            </Link>
+          </div>
         </Bloco>
       ) : null}
 
-      {fontes.length ? (
-        <Bloco titulo="Cobertura por tipo de fonte">
-          <Barras titulo="Cobertura por tipo de fonte" dados={coberturaFontes} />
-        </Bloco>
-      ) : null}
+      <Bloco titulo="1. Cobertura por fonte">
+        {cobertura.length ? (
+          <>
+            <Barras
+              titulo="Evidências por fonte de origem"
+              dados={cobertura.map((c) => ({ rotulo: c.origem, valor: c.total }))}
+            />
+            <ul className="space-y-1 text-xs text-navy/60">
+              {cobertura.map((c) => (
+                <li key={c.origem} className="break-words">
+                  {c.origem}: {c.validadas} validada(s) · {c.emRevisao} em revisão
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <Vazio cta={acaoFonte} />
+        )}
+      </Bloco>
 
-      {evidencias.length ? (
-        <Bloco titulo="Evidências por situação">
-          <Rosca titulo="Evidências por situação" dados={evidenciasPorEstado} />
-        </Bloco>
-      ) : null}
+      <Bloco titulo="2. Produção de evidência">
+        {producao.length ? (
+          <>
+            <LinhaSerie titulo="Fontes, evidências e achados por semana" dados={producao} />
+            <p className="text-xs text-navy/55">Só entra registro com data gravada.</p>
+          </>
+        ) : (
+          <Vazio cta={acaoEvidencia} />
+        )}
+      </Bloco>
 
-      {achados.length ? (
-        <Bloco titulo="Achados por validação">
-          <Barras titulo="Achados por validação" dados={achadosPorValidacao} />
-        </Bloco>
-      ) : null}
-
-      {ritmo.length ? (
-        <Bloco titulo="Ritmo da pesquisa por semana">
-          <LinhaSerie titulo="Registros de pesquisa por semana" dados={ritmo} />
-          <p className="text-xs text-navy/55">Fontes, evidências e achados com data registrada.</p>
-        </Bloco>
-      ) : null}
+      <Bloco titulo="3. Fila editorial da Biblioteca">
+        {temAcervo ? (
+          <>
+            <Rosca titulo="Acervo do caso por estado" dados={filaSerie} />
+            <p className="text-xs text-navy/55">
+              Rascunho {fila.rascunho} · Em revisão {fila.revisao} · Aprovado {fila.aprovado} · Publicado{" "}
+              {fila.publicado}. Achado aprovado não altera árvore nem App sozinho.
+            </p>
+          </>
+        ) : (
+          <Vazio cta={acaoAchado} />
+        )}
+      </Bloco>
 
       <Etapa
         titulo="1. Perguntas de pesquisa"
