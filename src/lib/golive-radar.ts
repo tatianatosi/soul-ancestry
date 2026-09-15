@@ -170,6 +170,8 @@ export type LeadRadar = {
   proximoPassoEm: string | null;
   callAgendada: string | null;
   callRealizada: string | null;
+  /** Situação gravada da call (`leads.status_call`), quando existir. */
+  statusCall?: string | null;
   propostaEm: string | null;
   casoId: string | null;
 };
