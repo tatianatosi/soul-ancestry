@@ -878,10 +878,10 @@ export const publicarNoAppGoLive = createServerFn({ method: "POST" })
       .insert({
         organization_id: organizationId,
         case_id: casoId,
-        source_entity_type: "ops_microentregas",
+        source_entity_type: "milestone",
         source_entity_id: data.microentregaId,
         projection_type: texto(data.tipo) || "microentrega",
-        destination: "app_cliente",
+        destination: "app",
         content_sanitized: texto(data.resumoSanitizado),
         approval_status: "published",
         approved_by: userId,
@@ -894,6 +894,107 @@ export const publicarNoAppGoLive = createServerFn({ method: "POST" })
       .single();
     erro(r);
     return { id: String(r.data.id) };
+  });
+
+/**
+ * Publica no App o cartão do contrato ou da proposta: só título, número e
+ * situação. O texto é montado a partir do registro gravado, nunca digitado à
+ * mão, e nenhum valor interno, cláusula ou preço técnico entra na projeção.
+ */
+const SITUACAO_HUMANA: Record<string, string> = {
+  draft: "Em preparação",
+  rascunho: "Em preparação",
+  pending_data: "Aguardando dados",
+  pending_signature: "Aguardando assinatura",
+  aguardando_assinatura: "Aguardando assinatura",
+  active: "Ativo",
+  signed: "Assinado",
+  aprovada: "Aprovada",
+  em_analise: "Em análise",
+};
+
+/** Traduz a situação gravada para uma frase legível pela família. */
+function situacaoHumana(valor: unknown): string {
+  const chave = texto(valor);
+  if (!chave) return "Em preparação";
+  return SITUACAO_HUMANA[chave] ?? chave.replace(/_/g, " ");
+}
+
+export const publicarInstrumentoNoAppGoLive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { tipo: "contrato" | "proposta"; id: string }) => d)
+  .handler(async ({ data, context }) => {
+    semCache();
+    const s = context.supabase as any;
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const id = texto(data.id);
+    if (!id) throw new Error("Escolha o contrato ou a proposta que será publicada.");
+    if (data.tipo !== "contrato" && data.tipo !== "proposta") throw new Error("Tipo inválido.");
+
+    let titulo = "";
+    let numero = "";
+    let situacao = "";
+
+    if (data.tipo === "contrato") {
+      const r = await s
+        .from("contracts")
+        .select("id, title, contract_number, status, signed_at")
+        .eq("id", id)
+        .eq("organization_id", organizationId)
+        .eq("case_id", casoId)
+        .maybeSingle();
+      erro(r);
+      if (!r.data) throw new Error("Contrato não encontrado neste caso.");
+      titulo = String(r.data.title ?? "Contrato");
+      numero = String(r.data.contract_number ?? "");
+      situacao = r.data.signed_at ? "Assinado" : situacaoHumana(r.data.status);
+    } else {
+      const r = await s
+        .from("proposals")
+        .select("id, versao, status, aprovada_em")
+        .eq("id", id)
+        .eq("organization_id", organizationId)
+        .eq("case_id", casoId)
+        .maybeSingle();
+      erro(r);
+      if (!r.data) throw new Error("Proposta não encontrada neste caso.");
+      titulo = "Proposta do estudo";
+      numero = `Versão ${r.data.versao ?? 1}`;
+      situacao = r.data.aprovada_em ? "Aprovada" : situacaoHumana(r.data.status);
+    }
+
+    const resumo = [titulo, numero, situacao].filter(Boolean).join(" · ");
+    const agora = new Date().toISOString();
+    // Republicar substitui o cartão anterior: o registro antigo é arquivado, nunca apagado.
+    const anterior = await s
+      .from("app_projections")
+      .update({ approval_status: "archived" })
+      .eq("organization_id", organizationId)
+      .eq("case_id", casoId)
+      .eq("projection_type", data.tipo)
+      .eq("approval_status", "published");
+    erro(anterior);
+    const r = await s
+      .from("app_projections")
+      .insert({
+        organization_id: organizationId,
+        case_id: casoId,
+        source_entity_type: "case",
+        source_entity_id: id,
+        projection_type: data.tipo,
+        destination: "app",
+        content_sanitized: resumo,
+        approval_status: "published",
+        approved_by: userId,
+        approved_at: agora,
+        effective_from: agora,
+        visibility_scope: "titular",
+        created_by: userId,
+      })
+      .select("id")
+      .single();
+    erro(r);
+    return { id: String(r.data.id), resumo };
   });
 
 /** Despublicar arquiva a projeção com motivo — o histórico permanece. */

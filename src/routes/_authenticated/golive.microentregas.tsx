@@ -1,0 +1,169 @@
+/**
+ * Microentregas no shell de go-live.
+ *
+ * Mesma fonte do restante do shell (`useGoLive`): o que já está gravado no
+ * caso canônico. Gráfico de prazo, lista ordenada por atraso e as ações de
+ * revisão que já existem — aprovar a microentrega e publicar no App.
+ * Nada é criado sozinho e nada é apagado.
+ */
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo } from "react";
+import { useServerFn } from "@tanstack/react-start";
+
+import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { FaixaIdentidade } from "@/components/golive/identidade";
+import { Acao } from "@/components/golive/acoes";
+import { useGoLive } from "@/components/golive/dados";
+import { Barras } from "@/components/golive/graficos";
+import { Button } from "@/components/ui/button";
+import {
+  aprovarMicroentregaGoLive,
+  criarMicroentregaGoLive,
+  publicarNoAppGoLive,
+} from "@/lib/golive-escritores.functions";
+import {
+  concluida,
+  ordenarMicroentregas,
+  prazoEmFatias,
+  type MicroentregaGoLive,
+} from "@/lib/golive-microentregas";
+import { dataHumana, humano } from "@/lib/rotulos-golive";
+
+export const Route = createFileRoute("/_authenticated/golive/microentregas")({
+  head: () => ({
+    meta: [
+      { title: "Microentregas — Go-live Clube Ancestral" },
+      { name: "description", content: "Prazo, revisão e publicação das microentregas do caso do piloto." },
+      { property: "og:title", content: "Microentregas — Go-live Clube Ancestral" },
+      { property: "og:description", content: "Prazo, revisão e publicação das microentregas do caso." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: MicroentregasGoLive,
+});
+
+function MicroentregasGoLive() {
+  const { data, isPending, error } = useGoLive();
+  const caso = data?.encontrado ? data : null;
+  const aprovar = useServerFn(aprovarMicroentregaGoLive);
+  const publicar = useServerFn(publicarNoAppGoLive);
+  const criar = useServerFn(criarMicroentregaGoLive);
+
+  const itens = useMemo<MicroentregaGoLive[]>(
+    () => (caso?.microentregas ?? []) as MicroentregaGoLive[],
+    [caso],
+  );
+  const ordenadas = useMemo(() => ordenarMicroentregas(itens), [itens]);
+  const fatias = useMemo(() => prazoEmFatias(itens), [itens]);
+  const publicadas = new Set(
+    (caso?.publicados ?? []).filter((p) => p.tipo === "microentrega").map((p) => p.id),
+  );
+
+  const acaoNova = (
+    <Acao
+      rotulo="Criar microentrega"
+      titulo="Nova microentrega do caso"
+      campos={[
+        { nome: "titulo", rotulo: "Título", obrigatorio: true },
+        { nome: "criterio", rotulo: "Critério de aceite", tipo: "area", obrigatorio: true },
+        { nome: "prazo", rotulo: "Prazo", tipo: "data" },
+        { nome: "descricao", rotulo: "Descrição", tipo: "area" },
+      ]}
+      aoConfirmar={(v) =>
+        criar({
+          data: {
+            titulo: v["titulo"] ?? "",
+            criterio: v["criterio"] ?? "",
+            prazo: v["prazo"] ?? "",
+            descricao: v["descricao"] ?? "",
+          },
+        })
+      }
+      confirmacao="Microentrega criada."
+    />
+  );
+
+  return (
+    <GoLiveShell
+      titulo="Microentregas"
+      descricao="Prazo, revisão humana e publicação para a família."
+    >
+      {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
+      {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
+
+      {caso ? <FaixaIdentidade dados={caso} /> : null}
+
+      <Bloco titulo="1. Prazo das microentregas">
+        {itens.length ? (
+          <>
+            <Barras titulo="Microentregas por situação de prazo" dados={fatias} />
+            <p className="text-xs text-navy/55">
+              O prazo vem do campo gravado. Microentrega sem prazo aparece como “sem prazo registrado”.
+            </p>
+          </>
+        ) : (
+          <Vazio cta={acaoNova} />
+        )}
+      </Bloco>
+
+      <Bloco titulo="2. Revisão e publicação">
+        {ordenadas.length ? (
+          <ul className="space-y-3 text-sm text-navy">
+            {ordenadas.map((m) => (
+              <li key={m.id} className="min-w-0 rounded-xl border border-navy/10 bg-cream/60 p-3">
+                <p className="break-words font-medium">{m.titulo}</p>
+                <p className="break-words text-navy/70">
+                  {humano(m.status, "sem situação registrada")}
+                  {m.fase ? ` · ${humano(m.fase)}` : ""}
+                  {m.responsavel ? ` · ${m.responsavel}` : ""}
+                </p>
+                <p className="break-words text-xs text-navy/55">
+                  {m.prazo ? `Prazo ${dataHumana(m.prazo)}` : "sem prazo registrado"}
+                  {m.concluidaEm ? ` · concluída em ${dataHumana(m.concluidaEm)}` : ""}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {concluida(m) ? (
+                    <Acao
+                      rotulo={publicadas.size ? "Publicar no App" : "Publicar no App"}
+                      titulo="Texto que a família vai ler"
+                      variante="outline"
+                      campos={[
+                        { nome: "resumo", rotulo: "Resumo para a família", tipo: "area", obrigatorio: true },
+                      ]}
+                      aoConfirmar={(v) =>
+                        publicar({
+                          data: {
+                            microentregaId: m.id,
+                            resumoSanitizado: v["resumo"] ?? "",
+                            tipo: "microentrega",
+                          },
+                        })
+                      }
+                      confirmacao="Publicado no App do cliente."
+                    />
+                  ) : (
+                    <Acao
+                      rotulo="Aprovar microentrega"
+                      titulo="Revisão humana da microentrega"
+                      campos={[{ nome: "evidencia", rotulo: "Evidência da revisão", tipo: "area" }]}
+                      aoConfirmar={(v) => aprovar({ data: { id: m.id, evidencia: v["evidencia"] ?? "" } })}
+                      confirmacao="Microentrega aprovada."
+                    />
+                  )}
+                  <Link to="/golive/caso">
+                    <Button size="sm" variant="outline">Abrir Caso 360</Button>
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <Vazio cta={acaoNova} />
+        )}
+      </Bloco>
+
+      <Bloco titulo="3. Nova microentrega">{acaoNova}</Bloco>
+    </GoLiveShell>
+  );
+}
