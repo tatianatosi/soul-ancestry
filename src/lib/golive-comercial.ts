@@ -242,7 +242,7 @@ export function porSituacaoDaCall(leads: LeadComercial[]): { rotulo: string; val
 
 /** Resultado do Discovery gravado. Valor fora da lista vira "Outros/sem classificação". */
 export function porResultadoDiscovery(leads: LeadComercial[]): { rotulo: string; valor: number }[] {
-  const conhecidos = new Map(RESULTADOS_DISCOVERY.map((r) => [r.valor, r.rotulo]));
+  const conhecidos = new Map<string, string>(RESULTADOS_DISCOVERY.map((r) => [r.valor, r.rotulo]));
   const contagem = new Map<string, number>();
   for (const lead of leads) {
     const bruto = String(lead.discoveryResultado ?? "").trim();
