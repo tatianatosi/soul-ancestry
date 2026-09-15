@@ -38,6 +38,28 @@ function JuridicoGoLive() {
   const assinado = contratos.filter((c) => Boolean(c.assinadoEm));
   const anexos = caso?.documentos.filter((d) => /anexo|ordem de serviço|os\b/i.test(d.titulo)) ?? [];
   const revisaoPendente = contratos.filter((c) => !c.assinadoEm);
+  const escopo = caso?.escopo ?? [];
+  const ordens = caso?.ordensServico ?? [];
+  const propostas = caso?.propostas ?? [];
+
+  // Pipeline e revisão: contagem do que já está gravado, sem prazo inventado.
+  const pipeline = escadaFormalizacao({
+    propostas: propostas.length,
+    escopo: escopo.length,
+    contratos: contratos.length,
+    assinados: assinado.length,
+    ordens: ordens.length,
+  });
+  const temPipeline = pipeline.some((p) => p.feito);
+  const escopoPorSituacao = contarPor(escopo, (i) => humano(i.status, ""), "Sem situação");
+  const revisaoHumana = [
+    { rotulo: "Exige revisão humana", valor: escopo.filter((i) => i.exigeRevisaoHumana).length },
+    { rotulo: "Sem exigência registrada", valor: escopo.filter((i) => !i.exigeRevisaoHumana).length },
+  ];
+  const instrumentos = [
+    { rotulo: "Assinados", valor: assinado.length },
+    { rotulo: "Pendentes", valor: revisaoPendente.length },
+  ];
 
   return (
     <GoLiveShell titulo="Jurídico" descricao="Proposta › Escopo › Contrato › Anexos/OS › Revisão humana.">
