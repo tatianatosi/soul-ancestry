@@ -9,6 +9,9 @@
  * hora preservam o fuso gravado. `agora` é injetável para teste determinístico.
  */
 
+import { estadoDaCall } from "./golive-comercial";
+
+
 export type CasoRadar = {
   id: string;
   codigo: string | null;
