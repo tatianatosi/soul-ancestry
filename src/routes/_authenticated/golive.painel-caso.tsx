@@ -107,7 +107,7 @@ function PainelDoCaso() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <Barras
               titulo="Evidência por fonte consultada"
-              dados={cobertura.map((c) => ({ rotulo: c.origem, valor: c.total }))}
+              dados={cobertura.map((c) => ({ rotulo: humano(c.origem), valor: c.total }))}
             />
             <Linha titulo="Produção por semana" dados={producao} />
           </div>
