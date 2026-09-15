@@ -50,8 +50,8 @@ function PortalGoLive() {
   const publicarInstrumento = useServerFn(publicarInstrumentoNoAppGoLive);
   const contrato = caso?.contratos?.[0] ?? null;
   const proposta = caso?.propostas?.[0] ?? null;
-  const contratoPublicado = publicados.some((p) => p.origem === "contracts");
-  const propostaPublicada = publicados.some((p) => p.origem === "proposals");
+  const contratoPublicado = publicados.some((p) => p.tipo === "contrato");
+  const propostaPublicada = publicados.some((p) => p.tipo === "proposta");
 
   return (
     <GoLiveShell titulo="Portal do cliente" descricao="Acesso, equipe e o que o cliente já enxerga.">

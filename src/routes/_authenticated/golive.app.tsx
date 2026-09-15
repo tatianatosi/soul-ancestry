@@ -92,7 +92,7 @@ function AppClienteGoLive() {
   const marcos = marcosPublicados(publicados);
   /** Proposta e contrato só aparecem quando a equipe publica a projeção. */
   const instrumentosPublicados = publicados.filter(
-    (p) => p.origem === "contracts" || p.origem === "proposals",
+    (p) => p.tipo === "contrato" || p.tipo === "proposta",
   );
 
   const documentosLiberados = (caso?.documentos ?? []).filter((d) => d.liberadoCliente);

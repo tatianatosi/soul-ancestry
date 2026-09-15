@@ -57,7 +57,7 @@ function MicroentregasGoLive() {
   const ordenadas = useMemo(() => ordenarMicroentregas(itens), [itens]);
   const fatias = useMemo(() => prazoEmFatias(itens), [itens]);
   const publicadas = new Set(
-    (caso?.publicados ?? []).filter((p) => p.origem === "ops_microentregas").map((p) => p.tipo),
+    (caso?.publicados ?? []).filter((p) => p.tipo === "microentrega").map((p) => p.id),
   );
 
   const acaoNova = (
