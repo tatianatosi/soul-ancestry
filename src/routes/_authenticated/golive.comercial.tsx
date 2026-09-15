@@ -43,6 +43,10 @@ const PERIODOS: { rotulo: string; dias: number | null }[] = [
   { rotulo: "Tudo", dias: null },
 ];
 
+/** Listas fechadas do cadastro: sem texto livre em origem e etapa. */
+const ORIGENS = ["indicacao", "site", "instagram", "evento", "parceria", "outro"] as const;
+const ETAPAS = ["novo", "em_contato", "qualificado", "proposta", "encerrado"] as const;
+
 function ComercialGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
