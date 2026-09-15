@@ -115,6 +115,25 @@ export function estaPaga(f: FaturaGoLive) {
   return Boolean(f.pagaEm) || PAGA.test(f.status ?? "");
 }
 
+const CANCELADA = /(cancel|dispens|estorn|anulad)/i;
+
+/** Situação da fatura: paga, cancelada/dispensada, vencida ou aberta. */
+export function situacaoDaFatura(f: FaturaGoLive, agora: Date = new Date()) {
+  if (CANCELADA.test(f.status ?? "")) return "Cancelada/dispensada";
+  if (estaPaga(f)) return "Paga";
+  const d = paraData(f.vencimento);
+  if (d && meiaNoite(d).getTime() < meiaNoite(agora).getTime()) return "Vencida";
+  return "Aberta";
+}
+
+/** Distribuição das faturas pelas quatro situações, omitindo fatia sem nenhum registro. */
+export function situacaoDasFaturas(faturas: readonly FaturaGoLive[], agora: Date = new Date()): Fatia[] {
+  const ordem = ["Aberta", "Vencida", "Paga", "Cancelada/dispensada"] as const;
+  return ordem
+    .map((rotulo) => ({ rotulo, valor: faturas.filter((f) => situacaoDaFatura(f, agora) === rotulo).length }))
+    .filter((i) => i.valor > 0);
+}
+
 /** Totais do caso: contratado, pago, em aberto e vencido — só do que está gravado. */
 export function totaisFinanceiros(
   faturas: readonly FaturaGoLive[],
