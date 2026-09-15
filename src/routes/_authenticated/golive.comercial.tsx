@@ -53,13 +53,21 @@ function ComercialGoLive() {
   const novoLead = useServerFn(registrarLeadGoLive);
   const discovery = useServerFn(registrarDiscoveryGoLive);
   const call = useServerFn(registrarCallGoLive);
-  const leadDoCaso = caso?.lead?.id ?? null;
-
   const [periodo, setPeriodo] = useState<number | null>(90);
+  const [escolhido, setEscolhido] = useState<string | null>(null);
   const todos = useMemo<LeadComercial[]>(() => (data?.leadsComerciais ?? []) as LeadComercial[], [data]);
   const leads = useMemo(() => noPeriodo(todos, periodo), [todos, periodo]);
   const saude = useMemo(() => saudeDosLeads(leads), [leads]);
   const colunas = useMemo(() => kanbanPorEtapa(leads), [leads]);
+
+  /* Lead em foco na Mesa e nas calls: o escolhido na lista, senão o do caso,
+     senão o mais recente. Nunca inventa lead. */
+  const leadEmFoco =
+    leads.find((l) => l.id === escolhido) ??
+    leads.find((l) => l.id === (caso?.lead?.id ?? "")) ??
+    leads[0] ??
+    null;
+  const leadDoCaso = leadEmFoco?.id ?? null;
 
   const ctaNovoLead = (
     <Link to="/leads">
