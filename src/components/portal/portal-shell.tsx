@@ -94,7 +94,7 @@ export function PortalShell({
   }
 
   return (
-    <div className="min-h-screen bg-cream text-navy" data-marca-guia="oki">
+    <div className="min-h-screen overflow-x-hidden bg-cream text-navy" data-marca-guia="oki" data-app-cliente="true">
       {/*
         Faixa navy única e compacta (correção 2026-09-12: duas faixas altas
         empurravam o conteúdo real para baixo da dobra e destoavam do mockup
@@ -141,33 +141,59 @@ export function PortalShell({
         no rodapé (ícone sobre rótulo, todas visíveis, sem rolagem horizontal
         — era isso que cortava "Árvore" na antiga barra de topo).
       */}
-      <div className="mx-auto max-w-6xl lg:px-8">
-        <aside className="px-4 pt-4 lg:px-0">
-          <nav aria-label="Navegação do aplicativo do cliente" className="grid grid-cols-2 gap-2">
+      <div className="mx-auto grid w-full max-w-6xl min-w-0 lg:grid-cols-[224px_minmax(0,1fr)] lg:gap-6 lg:px-8">
+        <aside className="hidden lg:block lg:py-0">
+          <nav
+            aria-label="Navegação do aplicativo do cliente"
+            className="sticky top-0 min-h-[calc(100vh-57px)] rounded-b-2xl bg-navy px-3 py-5"
+          >
+            <div className="space-y-1">
             {nav.map(({ to, label, icon: Icon }) => (
               <LinkPortal
                 key={to}
                 to={to}
                 className={cn(
-                   "flex min-w-0 items-center gap-2.5 rounded-lg border border-navy/10 px-3 py-2 text-sm transition-colors",
+                  "flex min-w-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
-                  rotaAtiva === to ? "bg-gold text-navy font-medium" : "text-cream/75 hover:bg-navy-soft",
+                  rotaAtiva === to ? "bg-gold font-medium text-navy" : "text-cream/75 hover:bg-cream/10 hover:text-cream",
                 )}
               >
                 <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                {label}
+                <span className="truncate">{label}</span>
               </LinkPortal>
             ))}
+            </div>
           </nav>
         </aside>
 
-         <main id="conteudo-portal" className="min-w-0 px-4 py-6 lg:px-0 lg:pb-10">
+        <main id="conteudo-portal" className="min-w-0 px-4 pb-24 pt-6 lg:px-0 lg:pb-10">
           <h1 className={TIPO_CLIENTE.titulo}>{titulo}</h1>
           {descricao ? <p className={TIPO_CLIENTE.subtitulo}>{descricao}</p> : null}
           <div className="mt-5">{children}</div>
         </main>
       </div>
 
+      <nav
+        aria-label="Navegação do aplicativo do cliente"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur lg:hidden"
+      >
+        <div className="mx-auto grid max-w-lg grid-cols-7 px-1 pb-[env(safe-area-inset-bottom)]">
+          {nav.map(({ to, label, icon: Icon }) => (
+            <LinkPortal
+              key={to}
+              to={to}
+              className={cn(
+                "flex min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 py-2 text-[9px] leading-tight",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
+                rotaAtiva === to ? "font-semibold text-gold" : "text-navy/65",
+              )}
+            >
+              <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span className="w-full truncate text-center">{label}</span>
+            </LinkPortal>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }
