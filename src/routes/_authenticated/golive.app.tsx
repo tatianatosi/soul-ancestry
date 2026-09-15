@@ -326,7 +326,7 @@ function AppClienteGoLive() {
                 type="button"
                 onClick={() => setAba(item)}
                 aria-current={aba === item}
-                className={`w-full whitespace-nowrap px-2 py-3 text-xs ${
+                className={`w-full truncate px-1 py-3 text-[10px] ${
                   aba === item ? "font-semibold text-navy" : "text-navy/55"
                 }`}
               >
