@@ -59,6 +59,8 @@ function ComercialGoLive() {
   const leads = useMemo(() => noPeriodo(todos, periodo), [todos, periodo]);
   const saude = useMemo(() => saudeDosLeads(leads), [leads]);
   const colunas = useMemo(() => kanbanPorEtapa(leads), [leads]);
+  const semData = useMemo(() => semDataDeEntrada(leads), [leads]);
+  const total = (data as { leadsComerciaisTotal?: number } | undefined)?.leadsComerciaisTotal ?? todos.length;
 
   /* Lead em foco na Mesa e nas calls: o escolhido na lista, senão o do caso,
      senão o mais recente. Nunca inventa lead. */
