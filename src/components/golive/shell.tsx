@@ -16,6 +16,7 @@ const TELAS = [
   { to: "/golive/kanban", rotulo: "Kanban" },
   { to: "/golive/pessoa", rotulo: "Pessoa 360" },
   { to: "/golive/pessoas", rotulo: "Pessoas & Famílias" },
+  { to: "/golive/painel-caso", rotulo: "Painel do caso" },
   { to: "/golive/caso", rotulo: "Caso 360" },
   { to: "/golive/radar", rotulo: "Radar" },
   { to: "/golive/pesquisa", rotulo: "Pesquisa" },
