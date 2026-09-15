@@ -14,6 +14,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
 import { CODIGO_CASO_GO_LIVE } from "@/lib/golive.functions";
+import { etapaDoResultado } from "@/lib/golive-comercial";
+
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
