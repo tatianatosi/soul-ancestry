@@ -245,10 +245,28 @@ function AppClienteGoLive() {
 
         {aba === "Radar" ? (
           <Bloco titulo="Seu radar">
-            <Vazio cta={Aguardando} />
-            <p className="text-xs text-navy/55">
-              As seis dimensões aparecem aqui assim que a equipe publicar a leitura do seu caso.
-            </p>
+            {radarVazio ? (
+              <>
+                <Vazio cta={Aguardando} />
+                <p className="text-xs text-navy/55">
+                  As seis dimensões ganham forma assim que a equipe publicar conteúdo e liberar
+                  documentos do seu caso.
+                </p>
+              </>
+            ) : (
+              <>
+                <RadarSeisEixos dimensoes={radar} />
+                <ul className="mt-3 space-y-2 text-sm text-navy">
+                  {radar.map((d) => (
+                    <li key={d.id} className="break-words rounded-xl bg-white/70 p-3">
+                      <span className="font-medium">{d.titulo}</span>{" "}
+                      <span className="text-navy/70">· {d.rotuloNumero}</span>
+                      <span className="mt-1 block text-xs text-navy/55">{d.legenda}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
           </Bloco>
         ) : null}
 
@@ -264,30 +282,9 @@ function AppClienteGoLive() {
               ) : (
                 <Vazio cta={Aguardando} />
               )}
-            </Bloco>
-            <Bloco titulo="Fontes já consultadas">
-              {fontesFamilia.length ? (
-                <ul className="space-y-1 text-sm text-navy">
-                  {fontesFamilia.map((f) => (
-                    <li key={f.id} className="break-words">
-                      {f.titulo}
-                      {f.instituicao ? <span className="text-navy/55"> · {f.instituicao}</span> : null}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <Vazio cta={<IrPara para="/golive/pesquisa" rotulo="Abrir Pesquisa" />} />
-              )}
               <p className="mt-2 text-xs text-navy/55">
-                Pessoas e vínculos entram na árvore só depois de confirmados e liberados pela equipe.
+                Pessoas e vínculos entram na árvore só depois de confirmados e publicados pela equipe.
               </p>
-            </Bloco>
-            <Bloco titulo="Onde a equipe pesquisou">
-              {fontesFamilia.length ? (
-                <Barras titulo="Onde a equipe pesquisou" dados={fontesPorInstituicao(fontesFamilia)} />
-              ) : (
-                <Vazio cta={<IrPara para="/golive/pesquisa" rotulo="Abrir Pesquisa" />} />
-              )}
             </Bloco>
           </>
         ) : null}
