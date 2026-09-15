@@ -509,7 +509,7 @@ export const enviarContratoParaRevisaoGoLive = createServerFn({ method: "POST" }
       .from("contracts")
       .update({
         status: "under_human_review",
-        human_review_notes: texto(data.observacao) || null,
+        internal_notes: texto(data.observacao) || null,
         updated_by: userId,
       })
       .eq("id", contratoId)
