@@ -13,7 +13,12 @@ import type { ReactNode } from "react";
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Barras, Linha as LinhaSerie, Rosca } from "@/components/golive/graficos";
-import { contarPor, porSemana } from "@/lib/golive-analitico";
+import {
+  coberturaPorFonte,
+  filaEditorial,
+  filaEmSerie,
+  producaoPorSemana,
+} from "@/lib/golive-pesquisa";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
@@ -146,7 +151,7 @@ function PesquisaGoLive() {
     perguntas.length + fontes.length + evidencias.length + achados.length > 0;
 
   return (
-    <GoLiveShell titulo="Pesquisa" descricao="Pergunta › Fonte › Evidência › Achado › Proposta.">
+    <GoLiveShell titulo="Pesquisa" descricao="Pergunta › Fonte › Evidência › Achado › Revisão › Publicação.">
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
       {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
 
