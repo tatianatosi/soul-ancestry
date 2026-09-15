@@ -49,6 +49,17 @@ const Aguardando = (
   </Button>
 );
 
+/** CTA de navegação do espelho interno: leva à superfície do Desk que trata o assunto. */
+function IrPara({ para, rotulo }: { para: string; rotulo: string }) {
+  return (
+    <Link to={para}>
+      <Button size="sm" variant="outline">
+        {rotulo}
+      </Button>
+    </Link>
+  );
+}
+
 /** Cartão curto de um conteúdo já publicado. */
 function Publicado({ titulo, quando }: { titulo: string; quando?: string | null }) {
   return (
