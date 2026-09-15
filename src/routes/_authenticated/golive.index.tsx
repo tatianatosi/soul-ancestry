@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Bloco, FaixaKpis, GoLiveShell, GradeDesk, Vazio } from "@/components/golive/shell";
 import { Linha, Rosca } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
@@ -75,6 +75,13 @@ function HojeGoLive() {
 
       {caso ? (
         <>
+          <FaixaKpis itens={[
+            { rotulo: "Ativos", valor: kpis?.ativos ?? 0, tom: "azul" },
+            { rotulo: "Vencidas", valor: kpis?.vencidas ?? 0, tom: (kpis?.vencidas ?? 0) > 0 ? "terracota" : "cinza" },
+            { rotulo: "Sem próxima ação", valor: kpis?.semProxima ?? 0, tom: (kpis?.semProxima ?? 0) > 0 ? "terracota" : "cinza" },
+            { rotulo: "Aguardando externo", valor: kpis?.externo ?? 0, tom: (kpis?.externo ?? 0) > 0 ? "dourado" : "cinza" },
+          ]} />
+          <GradeDesk>
           <Bloco titulo={caso.caso.titulo}>
             <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Item rotulo="Etapa" valor={humano(caso.plano?.fase ?? caso.caso.fase)} />
@@ -83,16 +90,6 @@ function HojeGoLive() {
               <Item rotulo="Prazo" valor={dataHumana(caso.plano?.prazo ?? caso.caso.prazo)} />
             </dl>
             <Acoes>{acaoPlanejador}</Acoes>
-          </Bloco>
-
-          {/* Bloco analítico 1 — KPIs da carteira e das ações. */}
-          <Bloco titulo="Situação de hoje">
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-              <Kpi rotulo="Casos ativos" valor={kpis?.ativos ?? 0} />
-              <Kpi rotulo="Ações vencidas" valor={kpis?.vencidas ?? 0} alerta={(kpis?.vencidas ?? 0) > 0} />
-              <Kpi rotulo="Sem próxima ação" valor={kpis?.semProxima ?? 0} alerta={(kpis?.semProxima ?? 0) > 0} />
-              <Kpi rotulo="Aguardando externo" valor={kpis?.externo ?? 0} />
-            </div>
           </Bloco>
 
           {/* Bloco analítico 2 — ritmo de entrega por semana. */}
@@ -139,6 +136,7 @@ function HojeGoLive() {
               <Vazio cta={<Link to="/golive/caso"><Button size="sm">Abrir caso</Button></Link>} />
             )}
           </Bloco>
+          </GradeDesk>
 
           <div>
             <Link to="/golive/caso">
@@ -156,20 +154,6 @@ function pendencia(data: Extract<DadosGoLive, { encontrado: true }>) {
   if (!data.caso.pagamentoConfirmado) return "Pagamento ainda não confirmado manualmente.";
   if (!data.caso.documentosMinimosOk) return "Documentos mínimos ainda não confirmados.";
   return null;
-}
-
-function Kpi({ rotulo, valor, alerta }: { rotulo: string; valor: number; alerta?: boolean }) {
-  return (
-    <div className="min-w-0 rounded-xl border border-navy/10 bg-cream px-3 py-2">
-      <p className="text-xs leading-tight text-navy/55">{rotulo}</p>
-      <p
-        className="font-serif text-2xl"
-        style={alerta ? { color: "var(--terracota, #9A3A2F)" } : { color: "#2F4B6E" }}
-      >
-        {valor}
-      </p>
-    </div>
-  );
 }
 
 function Item({ rotulo, valor }: { rotulo: string; valor: string | null | undefined }) {

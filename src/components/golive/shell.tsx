@@ -8,6 +8,7 @@ import { Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 
 import { BrandLogo } from "@/components/brand";
+import { cn } from "@/lib/utils";
 
 const TELAS = [
   { to: "/golive", rotulo: "Hoje" },
@@ -111,5 +112,56 @@ export function Bloco({ titulo, children }: { titulo: string; children: ReactNod
       <h2 className="mb-3 font-serif text-base text-navy">{titulo}</h2>
       <div className="min-w-0 space-y-2">{children}</div>
     </section>
+  );
+}
+
+export function GradeDesk({ children }: { children: ReactNode }) {
+  return <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">{children}</div>;
+}
+
+export function FaixaKpis({
+  itens,
+}: {
+  itens: Array<{ rotulo: string; valor: string | number; tom?: TomSelo }>;
+}) {
+  return (
+    <section aria-label="Resumo" className="grid min-w-0 grid-cols-2 gap-2 lg:grid-cols-4">
+      {itens.slice(0, 4).map((item) => (
+        <div key={item.rotulo} className="min-w-0 border-l-2 border-gold bg-white px-3 py-2 shadow-sm">
+          <p className="break-words text-[11px] uppercase text-navy/55">{item.rotulo}</p>
+          <p className="mt-1 break-words font-serif text-2xl leading-none text-navy">{item.valor}</p>
+          {item.tom ? <Selo tom={item.tom}>{rotuloTom(item.tom)}</Selo> : null}
+        </div>
+      ))}
+    </section>
+  );
+}
+
+export type TomSelo = "azul" | "dourado" | "verde" | "terracota" | "cinza";
+
+function rotuloTom(tom: TomSelo) {
+  return {
+    azul: "Em andamento",
+    dourado: "Aguardando decisão",
+    verde: "Concluído",
+    terracota: "Atenção",
+    cinza: "Sem registros",
+  }[tom];
+}
+
+export function Selo({ tom, children }: { tom: TomSelo; children: ReactNode }) {
+  return (
+    <span
+      className={cn(
+        "mt-2 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase",
+        tom === "azul" && "border-navy/20 bg-navy/10 text-navy",
+        tom === "dourado" && "border-gold/40 bg-gold/20 text-atencao",
+        tom === "verde" && "border-sucesso/25 bg-sucesso-suave text-sucesso",
+        tom === "terracota" && "border-terracotta/25 bg-critico-suave text-terracotta",
+        tom === "cinza" && "border-border bg-muted text-muted-foreground",
+      )}
+    >
+      {children}
+    </span>
   );
 }

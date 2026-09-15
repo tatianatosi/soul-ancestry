@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Bloco, FaixaKpis, GoLiveShell, GradeDesk, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
 import { Barras } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
@@ -80,17 +80,14 @@ function KanbanGoLive() {
       {caso ? (
         <>
           <FaixaIdentidade dados={caso} />
+          <FaixaKpis itens={[
+            { rotulo: "Vencidas", valor: kpis.vencida, tom: kpis.vencida ? "terracota" : "cinza" },
+            { rotulo: "Hoje", valor: kpis.hoje, tom: kpis.hoje ? "azul" : "cinza" },
+            { rotulo: "Próximos sete dias", valor: kpis.proximos7, tom: kpis.proximos7 ? "azul" : "cinza" },
+            { rotulo: "Aguardando externo", valor: kpis.externo, tom: kpis.externo ? "dourado" : "cinza" },
+          ]} />
 
-          <Bloco titulo="Prazos em aberto">
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-              <Kpi rotulo="Vencida" valor={kpis.vencida} alerta={kpis.vencida > 0} />
-              <Kpi rotulo="Hoje" valor={kpis.hoje} />
-              <Kpi rotulo="Próximos 7 dias" valor={kpis.proximos7} />
-              <Kpi rotulo="Aguardando externo" valor={kpis.externo} />
-            </div>
-          </Bloco>
-
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          <GradeDesk>
             <Bloco titulo="Distribuição por etapa">
               {etapas.length ? (
                 <Barras
@@ -109,7 +106,7 @@ function KanbanGoLive() {
                 <Vazio cta={<LinkCaso />} />
               )}
             </Bloco>
-          </div>
+          </GradeDesk>
 
           {/* Mobile: uma coluna por vez, sem rolagem horizontal. */}
           <div className="lg:hidden">
@@ -218,13 +215,3 @@ function ColunaKanban({ titulo, itens }: { titulo: string; itens: AcaoOperaciona
   );
 }
 
-function Kpi({ rotulo, valor, alerta }: { rotulo: string; valor: number; alerta?: boolean }) {
-  return (
-    <div className="min-w-0 rounded-xl border border-navy/10 bg-cream px-3 py-2">
-      <p className="text-xs leading-tight text-navy/55">{rotulo}</p>
-      <p className="font-serif text-2xl" style={alerta ? { color: "var(--terracota, #9A3A2F)" } : { color: "#2F4B6E" }}>
-        {valor}
-      </p>
-    </div>
-  );
-}

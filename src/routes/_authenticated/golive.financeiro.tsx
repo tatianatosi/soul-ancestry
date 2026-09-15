@@ -11,7 +11,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Bloco, FaixaKpis, GoLiveShell, GradeDesk, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Linha as LinhaSerie, Rosca } from "@/components/golive/graficos";
 import {
@@ -104,6 +104,14 @@ function FinanceiroGoLive() {
 
       {caso ? <FaixaIdentidade dados={caso} /> : null}
 
+      <FaixaKpis itens={[
+        { rotulo: "Contratado", valor: MOEDA.format(totais.contratado), tom: totais.contratado ? "azul" : "cinza" },
+        { rotulo: "Recebido confirmado", valor: MOEDA.format(totais.pago), tom: totais.pago ? "verde" : "cinza" },
+        { rotulo: "Em aberto", valor: MOEDA.format(totais.emAberto), tom: totais.emAberto ? "dourado" : "cinza" },
+        { rotulo: "Vencido", valor: MOEDA.format(totais.vencido), tom: totais.vencido ? "terracota" : "cinza" },
+      ]} />
+
+      <GradeDesk>
       <Bloco titulo="1. Valores do caso">
         {faturas.length ? (
           <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -134,7 +142,9 @@ function FinanceiroGoLive() {
           <Vazio cta={irParaContratos} />
         )}
       </Bloco>
+      </GradeDesk>
 
+      <GradeDesk>
       <Bloco titulo="3. Situação das faturas">
         {situacao.length ? (
           <Rosca titulo="Situação das faturas" dados={situacao} />
@@ -174,7 +184,9 @@ function FinanceiroGoLive() {
           <Vazio cta={irParaContratos} />
         )}
       </Bloco>
+      </GradeDesk>
 
+      <GradeDesk>
       <Bloco titulo="Faturas">
         {acaoFatura ? <Acoes>{acaoFatura}</Acoes> : (
           <p className="text-xs text-navy/55">
@@ -230,6 +242,7 @@ function FinanceiroGoLive() {
           <Vazio cta={irParaContratos} />
         )}
       </Bloco>
+      </GradeDesk>
     </GoLiveShell>
   );
 }

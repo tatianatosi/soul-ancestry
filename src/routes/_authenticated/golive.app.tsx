@@ -132,14 +132,14 @@ function AppClienteGoLive() {
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
 
       {/* Abas do topo no desktop; no celular a navegação fica fixa embaixo. */}
-      <div className="hidden flex-wrap gap-2 sm:flex">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {ABAS_APP.map((item) => (
           <button
             key={item}
             type="button"
             onClick={() => setAba(item)}
             aria-current={aba === item}
-            className={`rounded-full px-3 py-1.5 text-sm ${
+            className={`min-w-0 rounded-lg px-3 py-2 text-sm ${
               aba === item ? "bg-navy text-cream" : "border border-navy/15 text-navy/70"
             }`}
           >

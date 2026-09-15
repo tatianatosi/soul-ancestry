@@ -13,7 +13,7 @@
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Bloco, FaixaKpis, GoLiveShell, GradeDesk, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { useGoLive } from "@/components/golive/dados";
 import { Barras, BarrasPercentual, Escada } from "@/components/golive/graficos";
@@ -57,6 +57,10 @@ function JuridicoGoLive() {
   const pipeline = pipelineJuridico(instrumentos);
   const atual = etapaAtual(pipeline);
   const temDado = temInstrumento(instrumentos);
+  const emRevisao = contratos.filter((c) => /review|revis|pending/i.test(c.status ?? "")).length;
+  const pendenciasFormais = riscos.find((r) => r.rotulo === "Revisão pendente")?.valor ?? 0;
+  const assinados = contratos.filter((c) => Boolean(c.assinadoEm) || /signed|assinad/i.test(c.status ?? "")).length;
+  const anexosPendentes = riscos.find((r) => r.rotulo === "Anexo pendente")?.valor ?? 0;
 
   return (
     <GoLiveShell
@@ -68,6 +72,14 @@ function JuridicoGoLive() {
 
       {caso ? <FaixaIdentidade dados={caso} /> : null}
 
+      <FaixaKpis itens={[
+        { rotulo: "Em revisão", valor: emRevisao, tom: emRevisao ? "dourado" : "cinza" },
+        { rotulo: "Pendências formais", valor: pendenciasFormais, tom: pendenciasFormais ? "terracota" : "cinza" },
+        { rotulo: "Assinados", valor: assinados, tom: assinados ? "verde" : "cinza" },
+        { rotulo: "Anexos pendentes", valor: anexosPendentes, tom: anexosPendentes ? "terracota" : "cinza" },
+      ]} />
+
+      <GradeDesk>
       <Bloco titulo="1. Completude formal por instrumento">
         {temDado ? (
           <BarrasPercentual titulo="Completude formal" dados={completude} />
@@ -95,7 +107,9 @@ function JuridicoGoLive() {
           />
         )}
       </Bloco>
+      </GradeDesk>
 
+      <GradeDesk>
       <Bloco titulo="3. Pipeline do contrato">
         {temDado ? (
           <>
@@ -137,6 +151,7 @@ function JuridicoGoLive() {
           />
         )}
       </Bloco>
+      </GradeDesk>
 
       <Bloco titulo="Escopo aprovado">
         {escopo.length ? (
@@ -163,6 +178,7 @@ function JuridicoGoLive() {
         )}
       </Bloco>
 
+      <GradeDesk>
       <Bloco titulo="Contrato">
         {contratos.length ? (
           <ul className="space-y-1 text-sm text-navy">
@@ -245,6 +261,7 @@ function JuridicoGoLive() {
           />
         )}
       </Bloco>
+      </GradeDesk>
     </GoLiveShell>
   );
 }
