@@ -1002,7 +1002,8 @@ export const registrarFaturaGoLive = createServerFn({ method: "POST" })
         valor: Number(data.valor),
         moeda: "BRL",
         vencimento: texto(data.vencimento) || null,
-        descricao: texto(data.descricao) || null,
+        descricao:
+          [texto(data.descricao), `Autorização: ${texto(data.autorizacao)}`].filter(Boolean).join(" · ") || null,
         status: "emitida",
         emitida_em: new Date().toISOString(),
         created_by: userId,
