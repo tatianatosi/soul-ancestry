@@ -160,20 +160,49 @@ export const carregarGoLive = createServerFn({ method: "GET" })
 
     /* Carteira comercial da organização (CRM vivo). Só leitura, sem writer novo:
        etapa, origem, responsável, último toque e próximo passo já gravados no lead. */
-    const leadsOrg = (
+    const LIMITE_LEADS = 200;
+    const leadsResposta = await supabase
+      .from("leads")
+      .select(
+        "id,nome,estagio,eixo_comercial,origem,data_origin,responsavel_nome,proxima_acao,proxima_acao_em," +
+          "ultimo_followup_em,call_agendada_em,call_realizada_em,status_call,resumo_call,discovery_resultado," +
+          "objetivo,consentimento_status,consentimento_em,consentimento_canal,proposta_referencia_interna," +
+          "case_id,updated_at,created_at,demo,dados_teste",
+        { count: "exact" },
+      )
+      .eq("organization_id", organizationId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false, nullsFirst: false })
+      .limit(LIMITE_LEADS);
+    const leadsOrg = leadsResposta.data as Linha[] | null;
+    const leadsTotalOrg = typeof leadsResposta.count === "number" ? leadsResposta.count : (leadsOrg?.length ?? 0);
+
+    /* Interações do lead: fonte da data da proposta e do follow-up posterior.
+       Nunca `updated_at`, que muda por qualquer edição do registro. */
+    const interacoesLead = (
       await supabase
-        .from("leads")
-        .select(
-          "id,nome,estagio,eixo_comercial,origem,data_origin,responsavel_nome,proxima_acao,proxima_acao_em," +
-            "ultimo_followup_em,call_agendada_em,call_realizada_em,status_call,resumo_call,discovery_resultado," +
-            "objetivo,consentimento_status,consentimento_em,consentimento_canal,proposta_referencia_interna," +
-            "case_id,updated_at,created_at,demo,dados_teste",
-        )
+        .from("crm_interactions")
+        .select("id,origem,origem_id,tipo,resultado,ocorrido_em,created_at,corrige_interacao_id")
         .eq("organization_id", organizationId)
-        .is("archived_at", null)
-        .order("created_at", { ascending: false })
-        .limit(200)
+        .eq("origem", "lead")
+        .order("ocorrido_em", { ascending: false })
+        .limit(1000)
     ).data as Linha[] | null;
+
+    const propostaEmPorLead = new Map<string, string>();
+    const ultimaInteracaoPorLead = new Map<string, string>();
+    for (const i of interacoesLead ?? []) {
+      if (i["corrige_interacao_id"]) continue;
+      const lead = i["origem_id"] ? String(i["origem_id"]) : null;
+      if (!lead) continue;
+      const em = (i["ocorrido_em"] as string) ?? (i["created_at"] as string) ?? null;
+      if (!em) continue;
+      const ehProposta = /proposta/i.test(String(i["tipo"] ?? ""));
+      const alvo = ehProposta ? propostaEmPorLead : ultimaInteracaoPorLead;
+      const atual = alvo.get(lead);
+      if (!atual || new Date(em).getTime() > new Date(atual).getTime()) alvo.set(lead, em);
+    }
+
 
 
     /* Nomes de responsáveis: só para rotular carga; ausência vira "Sem responsável". */
