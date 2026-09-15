@@ -187,19 +187,35 @@ export type LinhaLeadRadar = {
 };
 
 /**
- * Etapa comercial e marco do lead vêm só de datas já gravadas — nunca de
- * texto livre ou inferência. O alerta usa o prazo do próximo passo.
+ * Etapa comercial e marco do lead vêm só de datas e da situação já gravadas —
+ * nunca de texto livre ou inferência. O alerta usa o prazo do próximo passo.
+ * Call cancelada ou sem comparecimento não conta como call de pé.
  */
 export function linhaDoLead(lead: LeadRadar, agora: Date = new Date()): LinhaLeadRadar {
+  const estado = estadoDaCall({
+    statusCall: lead.statusCall ?? null,
+    callAgendada: lead.callAgendada,
+    callRealizada: lead.callRealizada,
+  } as Parameters<typeof estadoDaCall>[0]);
+
+  const marcoDaCall =
+    estado === "realizada"
+      ? "Call realizada"
+      : estado === "cancelada"
+        ? "Call cancelada"
+        : estado === "no_show"
+          ? "Call sem comparecimento"
+          : estado === "remarcada"
+            ? "Call remarcada"
+            : estado === "agendada" || estado === "confirmada"
+              ? "Call agendada"
+              : null;
+
   const marco = lead.casoId
     ? "Caso aberto"
     : lead.propostaEm
       ? "Proposta registrada"
-      : lead.callRealizada
-        ? "Call realizada"
-        : lead.callAgendada
-          ? "Call agendada"
-          : "Lead registrado";
+      : (marcoDaCall ?? "Lead registrado");
 
   const dias = diasAte(lead.proximoPassoEm, agora);
   const alerta =
