@@ -189,6 +189,22 @@ export const carregarGoLive = createServerFn({ method: "GET" })
       : [];
     const nomePerfil = new Map(perfis.map((p) => [String(p["id"]), String(p["nome"] ?? "")]));
 
+    /* Projeções despublicadas: saíram do App, mas continuam no histórico com
+       motivo. Leitura à parte porque a leitura padrão ignora arquivados. */
+    const projecoesDespublicadas: Linha[] = await (async () => {
+      try {
+        const { data, error: erroDesp } = await supabase
+          .from("app_projections")
+          .select("*")
+          .eq("case_id", casoId)
+          .not("archived_at", "is", null)
+          .limit(50);
+        return erroDesp ? [] : ((data ?? []) as Linha[]);
+      } catch {
+        return [];
+      }
+    })();
+
     /* Anexos do contrato — só leitura do que já existe em `contract_annexes`.
        Registro marcado como teste sai da leitura; nada é criado ou assinado. */
     const anexosContrato = (
