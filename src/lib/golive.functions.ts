@@ -643,6 +643,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
 
       contratos: limpar(contratos).map((c) => ({
         id: String(c["id"]),
+        clienteId: (c["client_id"] as string) ?? null,
         numero: (c["contract_number"] as string) ?? null,
         titulo: (c["title"] as string) ?? "Instrumento sem título",
         status: (c["status"] as string) ?? null,
