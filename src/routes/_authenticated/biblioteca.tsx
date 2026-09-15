@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Archive, BookOpen, Bookmark, Database, FileText, Scale } from "lucide-react";
 
 import { SaasShell } from "@/components/saas/shell";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
@@ -69,6 +70,7 @@ function BibliotecaPage() {
   const [motivo, setMotivo] = useState("");
   const [erroArquivo, setErroArquivo] = useState<string | null>(null);
   const [erroVigencia, setErroVigencia] = useState<string | null>(null);
+  const [gestaoAberta, setGestaoAberta] = useState(false);
   const queryClient = useQueryClient();
 
   const geral = useQuery({ queryKey: ["biblioteca-mestre"], queryFn: () => listarBibliotecaMestre() });
@@ -170,6 +172,26 @@ function BibliotecaPage() {
    */
   const erroLeitura = geral.error ?? catalogo.error;
   const listaCarregada = geral.data && catalogo.data ? lista : undefined;
+  const entradas: Array<{
+    label: string;
+    descricao: string;
+    chave: SubareaBiblioteca;
+    Icone: typeof Archive;
+  }> = [
+    { label: "Acervo", descricao: "Materiais internos aprovados", chave: "acervo", Icone: Archive },
+    { label: "Bases Genealógicas", descricao: "Repositórios e arquivos", chave: "bases", Icone: Database },
+    { label: "Dicionários", descricao: "Termos e taxonomias", chave: "dicionarios", Icone: BookOpen },
+    { label: "Trilhas Jurídicas", descricao: "Regras versionadas", chave: "juridico", Icone: Scale },
+    { label: "Modelos", descricao: "Modelos F1 e F2", chave: "modelos", Icone: FileText },
+    { label: "Referências", descricao: "Referências do acervo", chave: "acervo", Icone: Bookmark },
+  ];
+
+  const abrirEntrada = (chave: SubareaBiblioteca) => {
+    setSub(chave);
+    setDetalhe(null);
+    setGestaoAberta(true);
+    window.requestAnimationFrame(() => document.getElementById("gestao-biblioteca")?.scrollIntoView({ behavior: "smooth" }));
+  };
 
   return (
     <SaasShell
@@ -178,7 +200,42 @@ function BibliotecaPage() {
       visualKit="pantone"
     >
       <PesquisaConectada />
-      <details className="mt-6 rounded-lg border border-navy/15 bg-cream/40 p-4">
+      <section className="mt-7" aria-labelledby="entradas-biblioteca">
+        <div className="mb-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-gold">Biblioteca Mestre</p>
+          <h2 id="entradas-biblioteca" className="mt-1 font-serif text-2xl text-navy">Entradas de referência</h2>
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {entradas.map(({ label, descricao, chave, Icone }) => {
+            const quantidade = contadores.get(chave);
+            return (
+              <button
+                key={label}
+                type="button"
+                onClick={() => abrirEntrada(chave)}
+                className="group grid min-h-32 grid-cols-[auto_minmax(0,1fr)] items-start gap-3 border-t-2 border-gold bg-background/60 p-4 text-left shadow-sm transition hover:bg-gold/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              >
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-navy text-cream">
+                  <Icone className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-serif text-lg leading-tight text-navy">{label}</span>
+                  <span className="mt-1 block text-xs leading-snug text-navy/60">{descricao}</span>
+                  <span className="mt-3 block text-xs font-semibold text-navy">
+                    {carregando ? "Carregando…" : erroLeitura ? "Leitura indisponível" : quantidade ? `${quantidade} ${quantidade === 1 ? "registro" : "registros"}` : "Sem registros"}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+      <details
+        id="gestao-biblioteca"
+        open={gestaoAberta}
+        onToggle={(evento) => setGestaoAberta(evento.currentTarget.open)}
+        className="mt-6 rounded-lg border border-navy/15 bg-cream/40 p-4"
+      >
         <summary className="cursor-pointer font-medium text-navy">Abrir gestão da Biblioteca</summary>
         <div className="mt-5 space-y-6 border-t border-navy/10 pt-5">
         <FilaPublicacaoReal />

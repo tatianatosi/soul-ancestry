@@ -222,7 +222,7 @@ export function SaasShell({
       ) : null}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-[min(18rem,calc(100vw-2rem))] max-w-full shrink-0 flex-col overflow-y-auto border-r border-navy/20 bg-navy px-3 py-5 text-cream md:static md:flex md:w-64",
+          "fixed inset-y-0 left-0 z-40 w-full max-w-full shrink-0 flex-col overflow-y-auto border-r border-navy/20 bg-navy px-3 py-5 text-cream md:static md:flex md:w-64",
           aberto ? "flex" : "hidden",
         )}
       >
@@ -235,13 +235,13 @@ export function SaasShell({
           <div className="mt-3 h-0.5 w-full bg-gold/80" aria-hidden="true" />
         </div>
 
-        <nav className="flex-1 space-y-1">
+        <nav className="grid flex-1 auto-rows-min grid-cols-2 content-start gap-2 md:block md:space-y-1">
           {itens.map((item) => {
             const { to, label, icon: Icon, sub, descricao: descricaoGrupo } = item;
             const ativo = grupoNavAtivo(rota, hash, item);
             const expandida = to in abertosManuais ? abertosManuais[to] : desktop && ativo;
             return (
-              <div key={to}>
+              <div key={to} className="min-w-0 rounded-lg border border-cream/10 md:border-0">
                 <button
                   type="button"
                   title={descricaoGrupo}
@@ -258,12 +258,12 @@ export function SaasShell({
                     setAberto(false);
                   }}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                    "grid min-h-16 w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors md:min-h-0 md:text-sm",
                     ativo ? "bg-gold text-navy font-medium" : "text-cream/80 hover:bg-cream/10",
                   )}
                 >
                   <Icon className="h-4 w-4" />
-                  <span className="flex-1">{label}</span>
+                  <span className="min-w-0 leading-tight">{label}</span>
                   {badgeDe(to) > 0 ? (
                     <span
                       title={`${badgeDe(to)} item(ns) com prazo vencido`}
@@ -277,7 +277,7 @@ export function SaasShell({
                   />
                 </button>
                 {expandida && sub.length ? (
-                  <div className="mb-1 ml-7 space-y-0.5 border-l border-cream/15 pl-3">
+                  <div className="mb-1 space-y-0.5 border-t border-cream/15 px-2 pb-2 pt-1 md:ml-7 md:border-l md:border-t-0 md:px-0 md:pb-0 md:pl-3 md:pt-0">
                     {sub.map((s, i) =>
                       "grupo" in s ? (
                         <p
@@ -371,7 +371,7 @@ export function SaasShell({
       </aside>
 
       <div className="flex min-w-0 max-w-full flex-1 flex-col overflow-x-clip">
-        <header className="grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3 border-b border-navy/10 bg-cream px-4 py-4 md:flex md:px-8">
+        <header className="grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3 border-b border-navy/10 bg-navy px-4 py-4 text-cream md:flex md:bg-cream md:px-8 md:text-navy">
           <button
             className="shrink-0 md:hidden"
             onClick={() => setAberto((v) => !v)}
@@ -382,13 +382,13 @@ export function SaasShell({
           <BrandLogo
             size={30}
             showText={false}
-            variant="client-light"
+            variant="client-dark"
             className="shrink-0 md:hidden"
           />
 
           <div className="min-w-0 max-w-full flex-1">
             <h1 className="truncate font-serif text-2xl">{titulo}</h1>
-            {descricao ? <p className="overflow-wrap-anywhere text-sm text-navy/60">{descricao}</p> : null}
+            {descricao ? <p className="overflow-wrap-anywhere text-sm text-cream/70 md:text-navy/60">{descricao}</p> : null}
           </div>
           {acoes ? <div className="col-span-full min-w-0 max-w-full md:col-auto">{acoes}</div> : null}
         </header>
