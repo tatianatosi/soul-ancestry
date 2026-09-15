@@ -29,6 +29,10 @@ export type LeadComercial = {
   consentimentoEm: string | null;
   consentimentoCanal: string | null;
   propostaReferencia: string | null;
+  /** Data da proposta registrada em interação; `null` = data não registrada. */
+  propostaEm: string | null;
+  /** Interação mais recente do lead que conta como follow-up. */
+  ultimaInteracaoEm: string | null;
   casoId: string | null;
 };
 
