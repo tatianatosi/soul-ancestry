@@ -60,6 +60,7 @@ function LeadsGoLive() {
   const { data, isPending, error } = useGoLive();
   const novoLead = useServerFn(registrarLeadGoLive);
   const atendimento = useServerFn(registrarAtendimentoGoLive);
+  const arquivarLead = useServerFn(arquivarLeadGoLive);
 
   const [escolhido, setEscolhido] = useState<string | null>(null);
 
