@@ -12,7 +12,9 @@ import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
+import { Barras, Linha as LinhaSerie, Rosca } from "@/components/golive/graficos";
 import { Button } from "@/components/ui/button";
+import { contarPor, estadoDaProjecao, porSemana } from "@/lib/golive-analitico";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import { despublicarDoAppGoLive, publicarNoAppGoLive } from "@/lib/golive-escritores.functions";
 import { criarConvitePortal, registrarEmailAutorizado, validarEmailAutorizado } from "@/lib/portal.functions";
@@ -43,6 +45,16 @@ function PortalGoLive() {
   const convidar = useServerFn(criarConvitePortal);
 
   const clienteId = caso?.identidade.pessoaPrincipalId ?? null;
+
+  // Só contagem do que já está gravado: projeções, acessos e e-mails autorizados.
+  const projecoes = caso?.projecoesEstados ?? [];
+  const acessos = caso?.portal.acessos ?? [];
+  const emails = caso?.portal.emailsAutorizados ?? [];
+  const publicacoesPorEstado = contarPor(projecoes, (p) => estadoDaProjecao(p.estado));
+  const acessosPorSituacao = contarPor(acessos, (a) => humano(a.situacao, ""), "Sem situação");
+  const emailsPorEstado = contarPor(emails, (e) => humano(e.status, ""), "Sem situação");
+  const datadas = publicados.filter((p) => Boolean(p.em));
+  const linhaPublicacoes = datadas.length ? porSemana(datadas, (p) => p.em, 7) : [];
 
   const acaoConvite = clienteId ? (
     <Acao
@@ -165,6 +177,26 @@ function PortalGoLive() {
           />
         )}
       </Bloco>
+
+      {projecoes.length ? (
+        <Bloco titulo="Publicações por situação">
+          <Rosca titulo="Publicações por situação" dados={publicacoesPorEstado} />
+        </Bloco>
+      ) : null}
+
+      {acessos.length || emails.length ? (
+        <Bloco titulo="Acessos e e-mails autorizados">
+          {acessos.length ? <Barras titulo="Acessos por situação" dados={acessosPorSituacao} /> : null}
+          {emails.length ? <Barras titulo="E-mails autorizados por situação" dados={emailsPorEstado} /> : null}
+        </Bloco>
+      ) : null}
+
+      {linhaPublicacoes.length ? (
+        <Bloco titulo="Publicações por semana">
+          <LinhaSerie titulo="Publicações por semana" dados={linhaPublicacoes} />
+          <p className="text-xs text-navy/55">Só publicações com data registrada.</p>
+        </Bloco>
+      ) : null}
 
       <Bloco titulo="Publicado para o cliente">
         {publicados.length ? (

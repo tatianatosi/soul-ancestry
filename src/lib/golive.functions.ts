@@ -279,6 +279,19 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         )
       : [];
 
+    /* Pagamentos confirmados das faturas do caso. Só leitura, sem tabela nova:
+       a data de confirmação já está gravada em `payments.pago_em`. */
+    const idsFaturas = faturas.map((f) => String(f["id"]));
+    const pagamentos = idsFaturas.length
+      ? (((
+          await supabase
+            .from("payments")
+            .select("id,invoice_id,valor,metodo,status,pago_em,dados_teste")
+            .in("invoice_id", idsFaturas)
+            .is("archived_at", null)
+        ).data ?? []) as Linha[]).filter((p) => p["dados_teste"] !== true)
+      : [];
+
     const [acessosPortal, emailsAutorizados] = await Promise.all([
       clienteCanonico?.id
         ? lista(supabase, "client_portal_access", "client_id", String(clienteCanonico.id))
@@ -483,7 +496,13 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           tipo: (p["projection_type"] as string) ?? "conteúdo",
           resumo: (p["content_sanitized"] as string) ?? null,
           em: (p["approved_at"] as string) ?? (p["effective_from"] as string) ?? null,
+          criadoEm: (p["created_at"] as string) ?? null,
         })),
+      /** Projeções ainda não publicadas — só estado, para a rosca do Portal. */
+      projecoesEstados: limpar(projecoes).map((p) => ({
+        id: String(p["id"]),
+        estado: String(p["approval_status"] ?? ""),
+      })),
 
       contratos: limpar(contratos).map((c) => ({
         id: String(c["id"]),
@@ -496,8 +515,20 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         id: String(f["id"]),
         numero: (f["numero"] as string) ?? null,
         valor: (f["valor"] as number) ?? null,
+        valorPago: (f["valor_pago"] as number) ?? null,
         status: (f["status"] as string) ?? null,
         vencimento: (f["vencimento"] as string) ?? null,
+        emitidaEm: (f["emitida_em"] as string) ?? null,
+        pagaEm: (f["paga_em"] as string) ?? null,
+      })),
+      /** Pagamentos confirmados, com data já gravada — base do recebimento por mês. */
+      pagamentos: pagamentos.map((p) => ({
+        id: String(p["id"]),
+        faturaId: String(p["invoice_id"]),
+        valor: (p["valor"] as number) ?? null,
+        metodo: (p["metodo"] as string) ?? null,
+        status: (p["status"] as string) ?? null,
+        pagoEm: (p["pago_em"] as string) ?? null,
       })),
       lead: (() => {
         const l = limpar(leads)[0];
@@ -562,6 +593,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         tipo: (f["source_type"] as string) ?? null,
         status: (f["source_status"] as string) ?? null,
         instituicao: (f["repository_or_institution"] as string) ?? null,
+        registradaEm: (f["consulted_at"] as string) ?? (f["created_at"] as string) ?? null,
       })),
       evidencias: evidenciasPesquisa.map((e) => ({
         id: String(e["id"]),
@@ -569,6 +601,8 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         tipo: (e["evidence_type"] as string) ?? null,
         status: (e["evidence_status"] as string) ?? null,
         confianca: (e["confidence_level"] as string) ?? null,
+        registradaEm: (e["created_at"] as string) ?? null,
+        validadaEm: (e["validated_at"] as string) ?? null,
       })),
       achados: limpar(achadosBrutos).map((a) => ({
         id: String(a["id"]),
@@ -576,6 +610,8 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         confianca: (a["confidence"] as string) ?? null,
         validacao: (a["validation_status"] as string) ?? null,
         publicavel: a["eligible_for_client_deliverable"] === true,
+        registradoEm: (a["found_at"] as string) ?? (a["created_at"] as string) ?? null,
+        validadoEm: (a["validated_at"] as string) ?? null,
       })),
       portal: {
         acessos: limpar(acessosPortal).map((a) => ({

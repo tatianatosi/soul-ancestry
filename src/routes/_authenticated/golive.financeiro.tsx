@@ -10,7 +10,8 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
-import { Rosca } from "@/components/golive/graficos";
+import { Linha as LinhaSerie, Rosca } from "@/components/golive/graficos";
+import { contarPor, estaPaga, recebimentoPorMes, totaisFinanceiros } from "@/lib/golive-analitico";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
@@ -38,9 +39,13 @@ function FinanceiroGoLive() {
   const caso = data?.encontrado ? data : null;
 
   const faturas = caso?.faturas ?? [];
+  const pagamentos = caso?.pagamentos ?? [];
   const comValor = faturas.filter((f) => typeof f.valor === "number");
   const total = comValor.reduce((s, f) => s + (f.valor as number), 0);
-  const pagas = faturas.filter((f) => /pag|quitad|liquidad/i.test(f.status ?? ""));
+  const pagas = faturas.filter(estaPaga);
+  const totais = totaisFinanceiros(faturas, pagamentos);
+  const recebimento = recebimentoPorMes(faturas, pagamentos, 6);
+  const situacao = contarPor(faturas, (f) => humano(f.status, ""), "Sem situação");
 
   const novaFatura = useServerFn(registrarFaturaGoLive);
   const novoPagamento = useServerFn(registrarPagamentoGoLive);
@@ -111,10 +116,25 @@ function FinanceiroGoLive() {
 
       <Bloco titulo="Valor e condição">
         {comValor.length ? (
-          <p className="text-sm text-navy">
-            {MOEDA.format(total)} em {comValor.length} cobrança{comValor.length === 1 ? "" : "s"} registrada
-            {comValor.length === 1 ? "" : "s"}.
-          </p>
+          <>
+            <p className="text-sm text-navy">
+              {MOEDA.format(total)} em {comValor.length} cobrança{comValor.length === 1 ? "" : "s"} registrada
+              {comValor.length === 1 ? "" : "s"}.
+            </p>
+            <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                { rotulo: "Contratado", valor: totais.contratado },
+                { rotulo: "Recebido", valor: totais.pago },
+                { rotulo: "Em aberto", valor: totais.emAberto },
+                { rotulo: "Vencido", valor: totais.vencido },
+              ].map((i) => (
+                <div key={i.rotulo} className="min-w-0 rounded-xl border border-navy/10 bg-cream/60 p-3">
+                  <dt className="text-[11px] uppercase tracking-wide text-navy/50">{i.rotulo}</dt>
+                  <dd className="break-words text-sm font-semibold text-navy">{MOEDA.format(i.valor)}</dd>
+                </div>
+              ))}
+            </dl>
+          </>
         ) : (
           <Vazio cta={acaoFatura} />
         )}
@@ -122,16 +142,14 @@ function FinanceiroGoLive() {
 
       {faturas.length ? (
         <Bloco titulo="Situação das cobranças">
-          <Rosca
-            titulo="Situação das cobranças"
-            dados={Object.entries(
-              faturas.reduce<Record<string, number>>((acc, f) => {
-                const chave = humano(f.status, "Sem situação");
-                acc[chave] = (acc[chave] ?? 0) + 1;
-                return acc;
-              }, {}),
-            ).map(([rotulo, valor]) => ({ rotulo, valor }))}
-          />
+          <Rosca titulo="Situação das cobranças" dados={situacao} />
+        </Bloco>
+      ) : null}
+
+      {recebimento.length ? (
+        <Bloco titulo="Recebimento por mês">
+          <LinhaSerie titulo="Recebimento por mês" dados={recebimento} />
+          <p className="text-xs text-navy/55">Só pagamentos com data de confirmação registrada.</p>
         </Bloco>
       ) : null}
 
@@ -156,20 +174,36 @@ function FinanceiroGoLive() {
       </Bloco>
 
       <Bloco titulo="Pagamentos">
-        {pagas.length ? (
+        {pagamentos.length ? (
+          <ul className="space-y-1 text-sm text-navy">
+            {pagamentos.map((p) => (
+              <li key={p.id} className="break-words">
+                {faturas.find((f) => f.id === p.faturaId)?.numero ?? "Cobrança"}
+                {typeof p.valor === "number" ? ` — ${MOEDA.format(p.valor)}` : ""}{" "}
+                <span className="text-navy/55">
+                  · {humano(p.metodo, "forma não informada")}
+                  {p.pagoEm ? ` · recebido em ${dataHumana(p.pagoEm)}` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : pagas.length ? (
           <ul className="space-y-1 text-sm text-navy">
             {pagas.map((f) => (
               <li key={f.id} className="break-words">
                 {f.numero ?? "Cobrança"}
                 {typeof f.valor === "number" ? ` — ${MOEDA.format(f.valor)}` : ""}{" "}
-                <span className="text-navy/55">· {humano(f.status)}</span>
+                <span className="text-navy/55">
+                  · {humano(f.status)}
+                  {f.pagaEm ? ` · recebido em ${dataHumana(f.pagaEm)}` : ""}
+                </span>
               </li>
             ))}
           </ul>
         ) : (
           <Vazio cta={faturas.length ? acaoPagamento : <span className="text-xs text-navy/55">Emita uma fatura antes de registrar o pagamento.</span>} />
         )}
-        {pagas.length ? <Acoes>{acaoPagamento}</Acoes> : null}
+        {pagamentos.length || pagas.length ? <Acoes>{acaoPagamento}</Acoes> : null}
       </Bloco>
 
       <Bloco titulo="Situação do caso">

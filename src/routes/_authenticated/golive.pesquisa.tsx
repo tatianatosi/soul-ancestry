@@ -12,7 +12,8 @@ import type { ReactNode } from "react";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
-import { Barras } from "@/components/golive/graficos";
+import { Barras, Linha as LinhaSerie, Rosca } from "@/components/golive/graficos";
+import { contarPor, porSemana } from "@/lib/golive-analitico";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
@@ -142,6 +143,19 @@ function PesquisaGoLive() {
   ];
   const temAlgo = totais.some((t) => t.valor > 0);
 
+  // Cobertura, situação e validação: contagem do que já está gravado.
+  const coberturaFontes = contarPor(fontes, (f) => humano(f.tipo, ""), "Tipo não informado");
+  const evidenciasPorEstado = contarPor(evidencias, (e) => humano(e.status, ""), "Sem situação");
+  const achadosPorValidacao = contarPor(achados, (a) => humano(a.validacao, ""), "Sem validação");
+
+  // Ritmo: só entra o que tem data gravada; sem data, a linha não aparece.
+  const datados = [
+    ...fontes.map((f) => ({ em: f.registradaEm })),
+    ...evidencias.map((e) => ({ em: e.registradaEm })),
+    ...achados.map((a) => ({ em: a.registradoEm })),
+  ].filter((i) => Boolean(i.em));
+  const ritmo = datados.length ? porSemana(datados, (i) => i.em, 7) : [];
+
   return (
     <GoLiveShell titulo="Pesquisa" descricao="Pergunta › Fonte › Evidência › Achado › Proposta.">
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
@@ -171,6 +185,31 @@ function PesquisaGoLive() {
             <p className="text-xs text-navy/55">Prazo da próxima ação: {dataHumana(caso.pesquisa.prazo)}</p>
           ) : null}
           {temAlgo ? <Barras titulo="Volume da cadeia de pesquisa" dados={totais} /> : null}
+        </Bloco>
+      ) : null}
+
+      {fontes.length ? (
+        <Bloco titulo="Cobertura por tipo de fonte">
+          <Barras titulo="Cobertura por tipo de fonte" dados={coberturaFontes} />
+        </Bloco>
+      ) : null}
+
+      {evidencias.length ? (
+        <Bloco titulo="Evidências por situação">
+          <Rosca titulo="Evidências por situação" dados={evidenciasPorEstado} />
+        </Bloco>
+      ) : null}
+
+      {achados.length ? (
+        <Bloco titulo="Achados por validação">
+          <Barras titulo="Achados por validação" dados={achadosPorValidacao} />
+        </Bloco>
+      ) : null}
+
+      {ritmo.length ? (
+        <Bloco titulo="Ritmo da pesquisa por semana">
+          <LinhaSerie titulo="Registros de pesquisa por semana" dados={ritmo} />
+          <p className="text-xs text-navy/55">Fontes, evidências e achados com data registrada.</p>
         </Bloco>
       ) : null}
 
