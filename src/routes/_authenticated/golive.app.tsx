@@ -332,14 +332,35 @@ function AppClienteGoLive() {
                 <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando cadastro da equipe</Button>} />
               )}
             </Bloco>
-            <Bloco titulo="Seu acompanhamento">
-              {acesso ? (
-                <p className="text-sm text-navy">
-                  Acesso ao App: {humano(acesso.situacao, "sem situação registrada")}
-                  {acesso.ultimoAcesso ? ` · última entrada em ${dataHumana(acesso.ultimoAcesso)}` : ""}
-                </p>
+            <Bloco titulo="Seu contrato e acesso">
+              {contrato || acesso ? (
+                <div className="space-y-1 text-sm text-navy">
+                  {contrato ? (
+                    <p className="break-words">
+                      {contrato.titulo}
+                      {contrato.numero ? ` · ${contrato.numero}` : ""}
+                      <span className="block text-xs text-navy/55">
+                        {contrato.assinadoEm
+                          ? `Assinado em ${dataHumana(contrato.assinadoEm)}`
+                          : humano(contrato.status, "sem situação registrada")}
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="text-navy/70">Contrato ainda não registrado para esta família.</p>
+                  )}
+                  {acesso ? (
+                    <p className="text-navy/70">
+                      Acesso ao App: {humano(acesso.situacao, "sem situação registrada")}
+                      {acesso.ultimoAcesso
+                        ? ` · última entrada em ${dataHumana(acesso.ultimoAcesso)}`
+                        : ""}
+                    </p>
+                  ) : (
+                    <p className="text-navy/70">Convite do App ainda não enviado.</p>
+                  )}
+                </div>
               ) : (
-                <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando convite da equipe</Button>} />
+                <Vazio cta={<IrPara para="/golive/juridico" rotulo="Abrir Jurídico" />} />
               )}
             </Bloco>
             <Bloco titulo="Avisos">
