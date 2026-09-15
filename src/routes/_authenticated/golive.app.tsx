@@ -1,18 +1,24 @@
 /**
- * Espelho interno do App Cliente.
+ * Espelho interno do App Cliente — sete abas exatas do mockup.
  *
- * Sete abas exatas do mockup. Só apresentação do que já está publicado ou
- * liberado para a família: nada é criado, estimado nem deduzido. Radar de seis
- * dimensões e gerações da árvore continuam vazios porque ainda não existem
- * como dado publicado.
+ * Só mostra o que a equipe já aprovou ou publicou para o titular deste caso.
+ * Nada de dado interno do Desk, preço, catálogo, nota de bastidor ou promessa.
+ * Sem publicação, a aba mostra o estado vazio canônico.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
-import { LinhaDoTempo, Rosca } from "@/components/golive/graficos";
+import { BarrasPercentual, LinhaDoTempo } from "@/components/golive/graficos";
 import { useGoLive } from "@/components/golive/dados";
-import { contarPor } from "@/lib/golive-analitico";
+import {
+  ABAS_APP,
+  marcosPublicados,
+  publicacoesDaAba,
+  situacaoDocumentos,
+  ultimaPublicacao,
+  type AbaApp,
+} from "@/lib/golive-app";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import { Button } from "@/components/ui/button";
 
@@ -20,9 +26,12 @@ export const Route = createFileRoute("/_authenticated/golive/app")({
   head: () => ({
     meta: [
       { title: "App Cliente — Go-live Clube Ancestral" },
-      { name: "description", content: "Prévia do App Cliente com Home, Jornada, Documentos e Legado publicados." },
+      {
+        name: "description",
+        content: "Espelho das sete abas do App Cliente com o conteúdo já publicado para a família.",
+      },
       { property: "og:title", content: "App Cliente — Go-live Clube Ancestral" },
-      { property: "og:description", content: "Prévia do App Cliente com conteúdos publicados." },
+      { property: "og:description", content: "Sete abas com o conteúdo publicado para a família." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -30,207 +39,303 @@ export const Route = createFileRoute("/_authenticated/golive/app")({
   component: AppClienteGoLive,
 });
 
-const ABAS = ["Home", "Jornada", "Radar", "Árvore", "Documentos", "Legado", "Conta"] as const;
+const Aguardando = (
+  <Button size="sm" variant="outline" disabled>
+    Aguardando publicação da equipe
+  </Button>
+);
 
-const Aguardando = <Button size="sm" variant="outline" disabled>Aguardando publicação da equipe</Button>;
+/** Cartão curto de um conteúdo já publicado. */
+function Publicado({ titulo, quando }: { titulo: string; quando?: string | null }) {
+  return (
+    <li className="break-words rounded-xl border border-navy/10 bg-white p-3 text-sm text-navy">
+      {titulo}
+      <span className="mt-1 block text-xs text-navy/55">
+        Publicado em {dataHumana(quando ?? null, "data não registrada")}
+      </span>
+    </li>
+  );
+}
 
 function AppClienteGoLive() {
   const { data, isPending } = useGoLive();
-  const [aba, setAba] = useState<(typeof ABAS)[number]>("Home");
+  const [aba, setAba] = useState<AbaApp>("Home");
   const caso = data?.encontrado ? data : null;
-  const publicados = caso?.publicados ?? [];
-  const documentos = caso?.documentos ?? [];
-  const documentosLiberados = documentos.filter((d) => d.liberadoCliente);
-  const achadosAprovados = (caso?.achados ?? []).filter((a) => a.publicavel);
-  const acessos = caso?.portal.acessos ?? [];
-  const emailsAutorizados = caso?.portal.emailsAutorizados ?? [];
 
-  const ultima = publicados.find((p) => p.em) ?? publicados[0] ?? null;
-  const documentosPorSituacao = contarPor(documentosLiberados, (d) => humano(d.status, ""), "Sem situação");
-  const linhaPublicacoes = publicados
-    .filter((p) => p.em)
-    .map((p) => ({
-      id: p.id,
-      titulo: p.resumo ?? humano(p.tipo),
-      quando: dataHumana(p.em, "data não registrada"),
-    }));
+  const publicados = caso?.publicados ?? [];
+  const ultima = ultimaPublicacao(publicados);
+  const jornada = publicacoesDaAba(publicados, "Jornada");
+  const arvore = publicacoesDaAba(publicados, "Árvore");
+  const legado = publicacoesDaAba(publicados, "Legado");
+  const documentosPublicados = publicacoesDaAba(publicados, "Documentos");
+  const marcos = marcosPublicados(publicados);
+
+  const documentosLiberados = (caso?.documentos ?? []).filter((d) => d.liberadoCliente);
+  const situacao = situacaoDocumentos(documentosLiberados);
+  const acesso = caso?.portal.acessos[0] ?? null;
 
   return (
-    <GoLiveShell titulo="App Cliente" descricao="Somente o que foi publicado para a cliente.">
+    <GoLiveShell titulo="App Cliente" descricao="Somente o que já foi publicado para a família.">
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
 
-      <div className="flex flex-wrap gap-2">
-        {ABAS.map((item) => (
+      {/* Abas do topo no desktop; no celular a navegação fica fixa embaixo. */}
+      <div className="hidden flex-wrap gap-2 sm:flex">
+        {ABAS_APP.map((item) => (
           <button
             key={item}
             type="button"
             onClick={() => setAba(item)}
             aria-current={aba === item}
-            className={`rounded-full px-3 py-1.5 text-sm ${aba === item ? "bg-navy text-cream" : "border border-navy/15 text-navy/70"}`}
+            className={`rounded-full px-3 py-1.5 text-sm ${
+              aba === item ? "bg-navy text-cream" : "border border-navy/15 text-navy/70"
+            }`}
           >
             {item}
           </button>
         ))}
       </div>
 
-      {aba === "Home" ? (
-        <Bloco titulo="Sua jornada">
-          {publicados.length || caso?.plano ? (
-            <div className="space-y-2 text-sm text-navy">
-              {caso?.caso.fase ? <p>Etapa atual: {humano(caso.caso.fase)}</p> : null}
-              {caso?.plano?.proximaAcao ? (
-                <p className="text-navy/70">Próximo passo: {caso.plano.proximaAcao}</p>
-              ) : null}
-              {ultima ? (
-                <p className="break-words rounded-xl border border-navy/10 bg-cream/70 p-3">
-                  {ultima.resumo ?? humano(ultima.tipo)}
-                  <span className="block text-xs text-navy/55">
-                    Última atualização em {dataHumana(ultima.em, "data não registrada")}
-                  </span>
-                </p>
-              ) : null}
-            </div>
-          ) : (
-            <Vazio cta={Aguardando} />
-          )}
-        </Bloco>
-      ) : null}
-
-      {aba === "Jornada" ? (
-        <>
-          <Bloco titulo="Marcos da sua jornada">
-            {caso?.plano?.marco || caso?.caso.fase ? (
-              <div className="space-y-1 text-sm text-navy">
-                {caso?.caso.fase ? <p>Etapa: {humano(caso.caso.fase)}</p> : null}
-                {caso?.plano?.marco ? <p className="text-navy/70">Marco atual: {caso.plano.marco}</p> : null}
-              </div>
-            ) : (
-              <Vazio cta={Aguardando} />
-            )}
-          </Bloco>
-          <Bloco titulo="Atualizações publicadas">
-            {linhaPublicacoes.length ? (
-              <LinhaDoTempo itens={linhaPublicacoes} />
-            ) : publicados.length ? (
-              <ul className="space-y-2 text-sm text-navy">
-                {publicados.map((p) => (
-                  <li key={p.id} className="break-words rounded-xl border border-navy/10 bg-white p-3">
-                    {p.resumo ?? humano(p.tipo)}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <Vazio cta={Aguardando} />
-            )}
-          </Bloco>
-        </>
-      ) : null}
-
-      {aba === "Radar" ? (
-        <Bloco titulo="Sua etapa atual">
-          {caso?.caso.fase ? (
-            <div className="space-y-1 text-sm text-navy">
-              <p>Etapa: {humano(caso.caso.fase)}</p>
-              {caso.plano?.marco ? <p className="text-navy/70">Marco: {caso.plano.marco}</p> : null}
-            </div>
-          ) : (
-            <Vazio cta={Aguardando} />
-          )}
-        </Bloco>
-      ) : null}
-
-      {aba === "Árvore" ? (
-        <Bloco titulo="Sua família">
-          {caso?.identidade.nucleoMembros.length ? (
-            <ul className="space-y-1 text-sm text-navy">
-              {caso.identidade.nucleoMembros.map((m) => (
-                <li key={m.id} className="break-words">
-                  {m.nome}
-                  {m.papel ? <span className="text-navy/50"> — {humano(m.papel)}</span> : null}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <Vazio cta={Aguardando} />
-          )}
-        </Bloco>
-      ) : null}
-
-      {aba === "Documentos" ? (
-        <>
-          {documentosLiberados.length ? (
-            <Bloco titulo="Situação dos seus documentos">
-              <Rosca titulo="Situação dos seus documentos" dados={documentosPorSituacao} />
+      <div className="space-y-4 pb-24 sm:pb-0">
+        {aba === "Home" ? (
+          <>
+            <Bloco titulo="Sua etapa">
+              {caso?.caso.fase ? (
+                <p className="text-sm text-navy">{humano(caso.caso.fase)}</p>
+              ) : (
+                <Vazio cta={Aguardando} />
+              )}
             </Bloco>
-          ) : null}
-          <Bloco titulo="Documentos disponíveis">
-            {documentosLiberados.length ? (
-              <ul className="space-y-1 text-sm text-navy">
-                {documentosLiberados.map((d) => (
-                  <li key={d.id} className="break-words">
-                    {d.titulo} <span className="text-navy/55">· {humano(d.status, "sem situação")}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando liberação da equipe</Button>} />
-            )}
-          </Bloco>
-        </>
-      ) : null}
+            <Bloco titulo="Próximo passo">
+              {jornada[0]?.resumo ? (
+                <p className="break-words text-sm text-navy">{jornada[0].resumo}</p>
+              ) : (
+                <Vazio cta={Aguardando} />
+              )}
+            </Bloco>
+            <Bloco titulo="Última entrega">
+              {ultima ? (
+                <ul className="space-y-2">
+                  <Publicado titulo={ultima.resumo ?? humano(ultima.tipo)} quando={ultima.em} />
+                </ul>
+              ) : (
+                <Vazio cta={Aguardando} />
+              )}
+            </Bloco>
+          </>
+        ) : null}
 
-      {aba === "Legado" ? (
-        <Bloco titulo="Memória da família">
-          {achadosAprovados.length || publicados.length ? (
-            <ul className="space-y-1 text-sm text-navy">
-              {achadosAprovados.map((a) => (
-                <li key={a.id} className="break-words">
-                  {a.titulo}
-                </li>
-              ))}
-              {publicados.map((p) => (
-                <li key={p.id} className="break-words text-navy/75">
-                  {p.resumo ?? humano(p.tipo)}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <Vazio cta={Aguardando} />
-          )}
-        </Bloco>
-      ) : null}
-
-      {aba === "Conta" ? (
-        <Bloco titulo="Seus dados">
-          {caso?.identidade.pessoaPrincipal ? (
-            <div className="space-y-2 text-sm text-navy">
-              <p>{caso.identidade.pessoaPrincipal}</p>
-              {caso.identidade.email ? <p className="break-words text-navy/70">{caso.identidade.email}</p> : null}
-              {caso.identidade.telefone ? <p className="text-navy/70">{caso.identidade.telefone}</p> : null}
-              {acessos.length ? (
-                <p className="text-navy/70">
-                  Acesso ao App: {humano(acessos[0]?.situacao, "sem situação registrada")}
-                  {acessos[0]?.ultimoAcesso ? ` · última entrada em ${dataHumana(acessos[0].ultimoAcesso)}` : ""}
+        {aba === "Jornada" ? (
+          <>
+            <Bloco titulo="Seus marcos">
+              {marcos.length ? (
+                <ol className="space-y-2 text-sm">
+                  {marcos.map((m) => (
+                    <li key={m.id} className="flex items-start gap-2">
+                      <span
+                        aria-hidden
+                        className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${
+                          m.atual ? "bg-gold" : "bg-navy/30"
+                        }`}
+                      />
+                      <span className="min-w-0 break-words text-navy">
+                        {m.titulo}
+                        <span className="block text-xs text-navy/55">
+                          {m.atual ? "Etapa atual · " : ""}
+                          {dataHumana(m.quando, "data não registrada")}
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <Vazio cta={Aguardando} />
+              )}
+            </Bloco>
+            <Bloco titulo="Linha do tempo">
+              {jornada.length ? (
+                <LinhaDoTempo
+                  itens={jornada.map((p) => ({
+                    id: p.id,
+                    titulo: p.resumo ?? humano(p.tipo),
+                    quando: dataHumana(p.em ?? null, "data não registrada"),
+                  }))}
+                />
+              ) : (
+                <Vazio cta={Aguardando} />
+              )}
+            </Bloco>
+            <Bloco titulo="Próxima atualização">
+              {jornada[0] ? (
+                <p className="break-words text-sm text-navy">
+                  {jornada[0].resumo ?? humano(jornada[0].tipo)}
                 </p>
-              ) : null}
-              {emailsAutorizados.length ? (
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-navy/50">Pessoas autorizadas</p>
-                  <ul className="space-y-1 text-navy/75">
-                    {emailsAutorizados.map((e) => (
-                      <li key={e.id} className="break-words">
-                        {e.email} <span className="text-navy/55">· {humano(e.status, "sem situação")}</span>
-                      </li>
-                    ))}
-                  </ul>
+              ) : (
+                <Vazio cta={Aguardando} />
+              )}
+            </Bloco>
+          </>
+        ) : null}
+
+        {aba === "Radar" ? (
+          <Bloco titulo="Seu radar">
+            <Vazio cta={Aguardando} />
+            <p className="text-xs text-navy/55">
+              As seis dimensões aparecem aqui assim que a equipe publicar a leitura do seu caso.
+            </p>
+          </Bloco>
+        ) : null}
+
+        {aba === "Árvore" ? (
+          <>
+            <Bloco titulo="Sua árvore">
+              {arvore.length ? (
+                <ul className="space-y-2">
+                  {arvore.map((p) => (
+                    <Publicado key={p.id} titulo={p.resumo ?? humano(p.tipo)} quando={p.em} />
+                  ))}
+                </ul>
+              ) : (
+                <Vazio cta={Aguardando} />
+              )}
+            </Bloco>
+            <Bloco titulo="Em pesquisa">
+              <p className="text-sm text-navy/70">
+                Pessoas e vínculos entram na árvore só depois de confirmados e liberados pela equipe.
+              </p>
+            </Bloco>
+          </>
+        ) : null}
+
+        {aba === "Documentos" ? (
+          <>
+            <Bloco titulo="Situação dos seus documentos">
+              {documentosLiberados.length ? (
+                <BarrasPercentual
+                  titulo="Situação dos seus documentos"
+                  dados={[
+                    { rotulo: "Solicitados", valor: situacao.solicitados },
+                    { rotulo: "Em conferência", valor: situacao.emRevisao },
+                    { rotulo: "Liberados", valor: situacao.liberados },
+                  ]}
+                />
+              ) : (
+                <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando liberação da equipe</Button>} />
+              )}
+            </Bloco>
+            <Bloco titulo="Documentos disponíveis">
+              {documentosLiberados.length ? (
+                <ul className="space-y-1 text-sm text-navy">
+                  {documentosLiberados.map((d) => (
+                    <li key={d.id} className="break-words">
+                      {d.titulo} <span className="text-navy/55">· {humano(d.status, "sem situação")}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando liberação da equipe</Button>} />
+              )}
+            </Bloco>
+            <Bloco titulo="Entregas publicadas">
+              {documentosPublicados.length ? (
+                <ul className="space-y-2">
+                  {documentosPublicados.map((p) => (
+                    <Publicado key={p.id} titulo={p.resumo ?? humano(p.tipo)} quando={p.em} />
+                  ))}
+                </ul>
+              ) : (
+                <Vazio cta={Aguardando} />
+              )}
+            </Bloco>
+          </>
+        ) : null}
+
+        {aba === "Legado" ? (
+          <>
+            <Bloco titulo="Descobertas da família">
+              {legado.length ? (
+                <ul className="space-y-2">
+                  {legado.map((p) => (
+                    <Publicado key={p.id} titulo={p.resumo ?? humano(p.tipo)} quando={p.em} />
+                  ))}
+                </ul>
+              ) : (
+                <Vazio cta={Aguardando} />
+              )}
+            </Bloco>
+            <Bloco titulo="Publicado recentemente">
+              {ultima ? (
+                <ul className="space-y-2">
+                  <Publicado titulo={ultima.resumo ?? humano(ultima.tipo)} quando={ultima.em} />
+                </ul>
+              ) : (
+                <Vazio cta={Aguardando} />
+              )}
+            </Bloco>
+          </>
+        ) : null}
+
+        {aba === "Conta" ? (
+          <>
+            <Bloco titulo="Seus dados">
+              {caso?.identidade.pessoaPrincipal ? (
+                <div className="space-y-1 text-sm text-navy">
+                  <p className="break-words">{caso.identidade.pessoaPrincipal}</p>
+                  {caso.identidade.email ? (
+                    <p className="break-words text-navy/70">{caso.identidade.email}</p>
+                  ) : null}
+                  {caso.identidade.telefone ? (
+                    <p className="text-navy/70">{caso.identidade.telefone}</p>
+                  ) : null}
                 </div>
-              ) : null}
-            </div>
-          ) : (
-            <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando cadastro da equipe</Button>} />
-          )}
-        </Bloco>
-      ) : null}
+              ) : (
+                <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando cadastro da equipe</Button>} />
+              )}
+            </Bloco>
+            <Bloco titulo="Seu acompanhamento">
+              {acesso ? (
+                <p className="text-sm text-navy">
+                  Acesso ao App: {humano(acesso.situacao, "sem situação registrada")}
+                  {acesso.ultimoAcesso ? ` · última entrada em ${dataHumana(acesso.ultimoAcesso)}` : ""}
+                </p>
+              ) : (
+                <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando convite da equipe</Button>} />
+              )}
+            </Bloco>
+            <Bloco titulo="Avisos">
+              {ultima ? (
+                <p className="break-words text-sm text-navy">
+                  Última novidade em {dataHumana(ultima.em ?? null, "data não registrada")}.
+                </p>
+              ) : (
+                <Vazio cta={Aguardando} />
+              )}
+            </Bloco>
+          </>
+        ) : null}
+      </div>
+
+      {/* Navegação inferior do celular: sete abas, rolagem só dentro da barra. */}
+      <nav
+        aria-label="Abas do App Cliente"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-navy/10 bg-cream/95 backdrop-blur sm:hidden"
+      >
+        <ul className="flex w-full overflow-x-auto">
+          {ABAS_APP.map((item) => (
+            <li key={item} className="flex-1">
+              <button
+                type="button"
+                onClick={() => setAba(item)}
+                aria-current={aba === item}
+                className={`w-full whitespace-nowrap px-2 py-3 text-xs ${
+                  aba === item ? "font-semibold text-navy" : "text-navy/55"
+                }`}
+              >
+                {item}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </GoLiveShell>
   );
 }
