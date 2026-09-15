@@ -43,19 +43,31 @@ const PERIODOS: { rotulo: string; dias: number | null }[] = [
   { rotulo: "Tudo", dias: null },
 ];
 
+/** Listas fechadas do cadastro: sem texto livre em origem e etapa. */
+const ORIGENS = ["indicacao", "site", "instagram", "evento", "parceria", "outro"] as const;
+const ETAPAS = ["novo", "em_contato", "qualificado", "proposta", "encerrado"] as const;
+
 function ComercialGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
   const novoLead = useServerFn(registrarLeadGoLive);
   const discovery = useServerFn(registrarDiscoveryGoLive);
   const call = useServerFn(registrarCallGoLive);
-  const leadDoCaso = caso?.lead?.id ?? null;
-
   const [periodo, setPeriodo] = useState<number | null>(90);
+  const [escolhido, setEscolhido] = useState<string | null>(null);
   const todos = useMemo<LeadComercial[]>(() => (data?.leadsComerciais ?? []) as LeadComercial[], [data]);
   const leads = useMemo(() => noPeriodo(todos, periodo), [todos, periodo]);
   const saude = useMemo(() => saudeDosLeads(leads), [leads]);
   const colunas = useMemo(() => kanbanPorEtapa(leads), [leads]);
+
+  /* Lead em foco na Mesa e nas calls: o escolhido na lista, senão o do caso,
+     senão o mais recente. Nunca inventa lead. */
+  const leadEmFoco =
+    leads.find((l) => l.id === escolhido) ??
+    leads.find((l) => l.id === (caso?.lead?.id ?? "")) ??
+    leads[0] ??
+    null;
+  const leadDoCaso = leadEmFoco?.id ?? null;
 
   const ctaNovoLead = (
     <Link to="/leads">
@@ -70,12 +82,29 @@ function ComercialGoLive() {
       <Acoes>
         <Acao
           rotulo="Novo lead"
-          titulo="Registrar lead"
+          titulo="Cadastrar lead"
           campos={[
             { nome: "nome", rotulo: "Nome", obrigatorio: true },
+            {
+              nome: "origem",
+              rotulo: "Origem",
+              tipo: "escolha",
+              obrigatorio: true,
+              opcoes: ORIGENS.map((o) => ({ valor: o, rotulo: humano(o) })),
+            },
+            {
+              nome: "etapa",
+              rotulo: "Etapa",
+              tipo: "escolha",
+              obrigatorio: true,
+              padrao: "novo",
+              opcoes: ETAPAS.map((e) => ({ valor: e, rotulo: humano(e) })),
+            },
+            { nome: "responsavel", rotulo: "Responsável", obrigatorio: true },
+            { nome: "proximoPasso", rotulo: "Próximo passo", obrigatorio: true },
+            { nome: "proximoPassoEm", rotulo: "Próximo passo em", tipo: "data" },
             { nome: "email", rotulo: "E-mail" },
             { nome: "telefone", rotulo: "Telefone" },
-            { nome: "origem", rotulo: "Origem" },
             { nome: "objetivo", rotulo: "Objetivo", tipo: "area" },
           ]}
           aoConfirmar={(v) =>
@@ -86,10 +115,14 @@ function ComercialGoLive() {
                 telefone: v["telefone"] ?? "",
                 origem: v["origem"] ?? "",
                 objetivo: v["objetivo"] ?? "",
+                etapa: v["etapa"] ?? "",
+                responsavel: v["responsavel"] ?? "",
+                proximoPasso: v["proximoPasso"] ?? "",
+                proximoPassoEm: v["proximoPassoEm"] ?? "",
               },
             })
           }
-          confirmacao="Lead registrado."
+          confirmacao="Lead cadastrado. Ele já aparece no funil, no kanban e na Mesa de Discovery."
         />
       </Acoes>
 
@@ -176,7 +209,9 @@ function ComercialGoLive() {
       </Bloco>
 
       <MesaDeDiscovery
-        lead={leads.find((l) => l.id === leadDoCaso) ?? leads[0] ?? null}
+        lead={leadEmFoco}
+        leads={leads}
+        aoEscolher={setEscolhido}
         acao={
           leadDoCaso ? (
             <Acoes>
@@ -287,7 +322,17 @@ function Cartao({ lead }: { lead: LeadComercial }) {
 }
 
 /** Mesa de Discovery: uma pergunta por vez, com origem, destino, contexto e consentimento. */
-function MesaDeDiscovery({ lead, acao }: { lead: LeadComercial | null; acao: React.ReactNode }) {
+function MesaDeDiscovery({
+  lead,
+  leads,
+  aoEscolher,
+  acao,
+}: {
+  lead: LeadComercial | null;
+  leads: LeadComercial[];
+  aoEscolher: (id: string) => void;
+  acao: React.ReactNode;
+}) {
   const [indice, setIndice] = useState(0);
 
   const perguntas = [
@@ -334,6 +379,20 @@ function MesaDeDiscovery({ lead, acao }: { lead: LeadComercial | null; acao: Rea
     <Bloco titulo="Mesa de Discovery">
       {lead ? (
         <>
+          <label className="block text-xs text-navy/60">
+            Lead em atendimento
+            <select
+              className="mt-1 w-full max-w-full rounded-md border border-border bg-background px-2 py-1 text-sm text-navy"
+              value={lead.id}
+              onChange={(e) => aoEscolher(e.target.value)}
+            >
+              {leads.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.nome}
+                </option>
+              ))}
+            </select>
+          </label>
           <p className="text-xs uppercase tracking-wide text-navy/50">
             Pergunta {indice + 1} de {perguntas.length} · {lead.nome}
           </p>
