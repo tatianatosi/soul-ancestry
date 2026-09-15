@@ -135,26 +135,15 @@ function PesquisaGoLive() {
   const achados = caso?.achados ?? [];
   const propostas = caso?.propostas ?? [];
 
-  const totais = [
-    { rotulo: "Perguntas", valor: perguntas.length },
-    { rotulo: "Fontes", valor: fontes.length },
-    { rotulo: "Evidências", valor: evidencias.length },
-    { rotulo: "Achados", valor: achados.length },
-  ];
-  const temAlgo = totais.some((t) => t.valor > 0);
-
-  // Cobertura, situação e validação: contagem do que já está gravado.
-  const coberturaFontes = contarPor(fontes, (f) => humano(f.tipo, ""), "Tipo não informado");
-  const evidenciasPorEstado = contarPor(evidencias, (e) => humano(e.status, ""), "Sem situação");
-  const achadosPorValidacao = contarPor(achados, (a) => humano(a.validacao, ""), "Sem validação");
-
-  // Ritmo: só entra o que tem data gravada; sem data, a linha não aparece.
-  const datados = [
-    ...fontes.map((f) => ({ em: f.registradaEm })),
-    ...evidencias.map((e) => ({ em: e.registradaEm })),
-    ...achados.map((a) => ({ em: a.registradoEm })),
-  ].filter((i) => Boolean(i.em));
-  const ritmo = datados.length ? porSemana(datados, (i) => i.em, 7) : [];
+  /* Três blocos analíticos, nada além disso:
+     1) cobertura por fonte, 2) produção de evidência, 3) fila editorial. */
+  const cobertura = coberturaPorFonte(evidencias, fontes);
+  const producao = producaoPorSemana(fontes, evidencias, achados);
+  const fila = filaEditorial(evidencias, achados);
+  const filaSerie = filaEmSerie(fila);
+  const temAcervo = evidencias.length + achados.length > 0;
+  const temLinhaAberta =
+    perguntas.length + fontes.length + evidencias.length + achados.length > 0;
 
   return (
     <GoLiveShell titulo="Pesquisa" descricao="Pergunta › Fonte › Evidência › Achado › Proposta.">
