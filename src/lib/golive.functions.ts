@@ -553,6 +553,19 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         titulo: (c["title"] as string) ?? "Instrumento sem título",
         status: (c["status"] as string) ?? null,
         assinadoEm: (c["signed_at"] as string) ?? null,
+        liberadoParaEnvioEm: (c["approved_for_send_at"] as string) ?? null,
+        vigenciaInicio: (c["effective_start_date"] as string) ?? null,
+        vigenciaFim: (c["effective_end_date"] as string) ?? null,
+      })),
+      /** Anexos do contrato já registrados. Sem criação e sem assinatura. */
+      anexos: limpar(anexosContrato).map((a) => ({
+        id: String(a["id"]),
+        codigo: (a["annex_code"] as string) ?? null,
+        titulo: (a["title"] as string) ?? "Anexo sem título",
+        tipo: (a["annex_type"] as string) ?? null,
+        status: (a["status"] as string) ?? null,
+        obrigatorio: a["required_for_contract"] === true,
+        revisadoEm: (a["reviewed_at"] as string) ?? null,
       })),
       faturas: limpar(faturas).map((f) => ({
         id: String(f["id"]),
