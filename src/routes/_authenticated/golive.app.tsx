@@ -9,7 +9,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
-import { BarrasPercentual, LinhaDoTempo } from "@/components/golive/graficos";
+import { Barras, BarrasPercentual, Linha, LinhaDoTempo } from "@/components/golive/graficos";
 import { useGoLive } from "@/components/golive/dados";
 import {
   ABAS_APP,
@@ -18,8 +18,12 @@ import {
   financeiroParaFamilia,
   evidenciasParaFamilia,
   fontesParaFamilia,
+  fontesPorInstituicao,
   marcosPublicados,
+  parcelasEmFatias,
   publicacoesDaAba,
+  publicacoesPorAba,
+  publicacoesPorMes,
   situacaoDocumentos,
   ultimaPublicacao,
   type AbaApp,
