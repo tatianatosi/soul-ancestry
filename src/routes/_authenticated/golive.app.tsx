@@ -89,6 +89,12 @@ function AppClienteGoLive() {
   const situacao = situacaoDocumentos(documentosLiberados);
   const acesso = caso?.portal.acessos[0] ?? null;
 
+  /* Pesquisa e Jurídico já gravados, filtrados para o que a família pode ver. */
+  const evidenciasFamilia = evidenciasParaFamilia(caso?.evidencias ?? []);
+  const fontesFamilia = fontesParaFamilia(caso?.fontes ?? []);
+  const achadosFamilia = achadosParaFamilia(caso?.achados ?? []);
+  const contrato = contratoParaFamilia(caso?.contratos ?? []);
+
   return (
     <GoLiveShell titulo="App Cliente" descricao="Somente o que já foi publicado para a família.">
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
