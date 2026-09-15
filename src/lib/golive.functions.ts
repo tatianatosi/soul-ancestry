@@ -664,6 +664,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
       })),
       faturas: limpar(faturas).map((f) => ({
         id: String(f["id"]),
+        clienteId: (f["client_id"] as string) ?? null,
         numero: (f["numero"] as string) ?? null,
         valor: (f["valor"] as number) ?? null,
         valorPago: (f["valor_pago"] as number) ?? null,
