@@ -61,6 +61,8 @@ function LeadsGoLive() {
   const leads = useMemo<LeadComercial[]>(() => (data?.leadsComerciais ?? []) as LeadComercial[], [data]);
   const emFoco = leads.find((l) => l.id === escolhido) ?? leads[0] ?? null;
   const etapaAtual = emFoco ? colunaDoLead(emFoco) : null;
+  const progresso = useMemo(() => progressoRoteiro(emFoco), [emFoco]);
+  const agenda = useMemo(() => agendaDoLead(emFoco), [emFoco]);
 
   const ctaCadastro = (
     <Link to="/golive/comercial">
