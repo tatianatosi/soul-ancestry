@@ -6,6 +6,7 @@ import { Archive, BookOpen, Bookmark, Database, FileText, Scale } from "lucide-r
 import { SaasShell } from "@/components/saas/shell";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { Button } from "@/components/ui/button";
 import { ManifestoResgate } from "@/components/governanca/manifesto";
 import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
 
@@ -209,11 +210,12 @@ function BibliotecaPage() {
           {entradas.map(({ label, descricao, chave, Icone }) => {
             const quantidade = contadores.get(chave);
             return (
-              <button
+              <Button
                 key={label}
                 type="button"
+                variant="ghost"
                 onClick={() => abrirEntrada(chave)}
-                className="group grid min-h-32 grid-cols-[auto_minmax(0,1fr)] items-start gap-3 border-t-2 border-gold bg-background/60 p-4 text-left shadow-sm transition hover:bg-gold/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                className="group grid h-auto min-h-32 grid-cols-[auto_minmax(0,1fr)] items-start gap-3 whitespace-normal rounded-none border-t-2 border-gold bg-background/60 p-4 text-left shadow-sm transition hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold"
               >
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-navy text-cream">
                   <Icone className="h-5 w-5" aria-hidden="true" />
@@ -225,7 +227,7 @@ function BibliotecaPage() {
                     {carregando ? "Carregando…" : erroLeitura ? "Leitura indisponível" : quantidade ? `${quantidade} ${quantidade === 1 ? "registro" : "registros"}` : "Sem registros"}
                   </span>
                 </span>
-              </button>
+              </Button>
             );
           })}
         </div>

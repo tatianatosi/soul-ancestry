@@ -85,7 +85,7 @@
 - [ ] Conferir o App Cliente contra a prancha visual e o mockup mobile.
 
 ## Desk — Hoje, navegação e Biblioteca (15/09/2026)
-- [ ] Consolidar em Hoje os quatro KPIs reais de Hoje, Comercial, Kanban, Pesquisa, Financeiro, Jurídico e Portal.
-- [ ] Aplicar cabeçalho navy e menu móvel dos seis grupos em duas colunas, preservando permissões e subitens.
-- [ ] Criar as seis entradas da Biblioteca Mestre com contagens reais ou vazio honesto: Acervo, Bases Genealógicas, Dicionários, Trilhas Jurídicas, Modelos e Referências.
-- [ ] Validar `/painel` e `/biblioteca` em desktop e 375 px, sem rolagem horizontal.
+- [x] Consolidar em Hoje os quatro KPIs reais de Hoje, Comercial, Kanban, Pesquisa, Financeiro, Jurídico e Portal.
+- [x] Aplicar cabeçalho navy e menu móvel dos seis grupos em duas colunas, preservando permissões e subitens.
+- [x] Criar as seis entradas da Biblioteca Mestre com contagens reais ou vazio honesto: Acervo, Bases Genealógicas, Dicionários, Trilhas Jurídicas, Modelos e Referências.
+- [ ] Validar `/painel` e `/biblioteca` em desktop e 375 px, sem rolagem horizontal — bloqueado temporariamente pela manutenção do acesso autenticado.
