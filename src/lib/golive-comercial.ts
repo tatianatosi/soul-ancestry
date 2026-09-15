@@ -339,3 +339,56 @@ export function contadoresDeAtencao(
   };
 }
 
+
+/* ------------------------------------------------------------------ *
+ * Roteiro progressivo e agenda do lead
+ * ------------------------------------------------------------------ */
+
+export type ProgressoRoteiro = {
+  respondidas: number;
+  total: number;
+  percentual: number;
+  /** Primeira pergunta ainda sem resposta gravada; `null` quando completo. */
+  proxima: PassoRoteiro | null;
+};
+
+/**
+ * Roteiro progressivo: quanto do Discovery já está gravado e qual é a próxima
+ * pergunta a fazer. Nada é inferido — só conta resposta que existe no lead.
+ */
+export function progressoRoteiro(lead: LeadComercial | null): ProgressoRoteiro {
+  const passos = roteiroDiscovery(lead);
+  const respondidas = passos.filter((p) => p.estado === "respondida").length;
+  return {
+    respondidas,
+    total: passos.length,
+    percentual: passos.length ? Math.round((respondidas / passos.length) * 100) : 0,
+    proxima: passos.find((p) => p.estado === "pendente") ?? null,
+  };
+}
+
+export type AgendaLead = {
+  estado: EstadoCallLead;
+  rotulo: string;
+  /** Data gravada da call: realizada quando houver, senão agendada. */
+  quando: string | null;
+  vencida: boolean;
+  proximaAcao: string | null;
+  proximaAcaoEm: string | null;
+  prazo: PrazoProximaAcao;
+};
+
+/** Agenda do lead: situação da call gravada, data e próxima ação com prazo. */
+export function agendaDoLead(lead: LeadComercial | null, agora = new Date()): AgendaLead | null {
+  if (!lead) return null;
+  const estado = estadoDaCall(lead);
+  return {
+    estado,
+    rotulo: rotuloDaCall(estado),
+    quando: lead.callRealizada ?? lead.callAgendada ?? null,
+    vencida: callVencidaDoLead(lead, agora),
+    proximaAcao: lead.proximoPasso ?? null,
+    proximaAcaoEm: lead.proximoPassoEm ?? null,
+    prazo: prazoDaProximaAcao(lead, agora),
+  };
+}
