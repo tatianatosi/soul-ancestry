@@ -624,6 +624,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         status: (o["status"] as string) ?? null,
         resumo: (o["scope_summary"] as string) ?? (o["deliverable_summary"] as string) ?? null,
         inicio: (o["start_date"] as string) ?? null,
+        fim: (o["end_date"] as string) ?? null,
       })),
       pesquisa: (() => {
         const r = pesquisas[0];
