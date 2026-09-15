@@ -338,18 +338,18 @@ function AppClienteGoLive() {
         {aba === "Legado" ? (
           <>
             <Bloco titulo="Descobertas da família">
-              {legado.length || achadosFamilia.length ? (
+              {legado.length ? (
                 <ul className="space-y-2">
                   {legado.map((p) => (
                     <Publicado key={p.id} titulo={p.resumo ?? humano(p.tipo)} quando={p.em} />
                   ))}
-                  {achadosFamilia.map((a) => (
-                    <Publicado key={a.id} titulo={a.titulo} quando={a.validadoEm ?? null} />
-                  ))}
                 </ul>
               ) : (
-                <Vazio cta={<IrPara para="/golive/pesquisa" rotulo="Abrir Pesquisa" />} />
+                <Vazio cta={Aguardando} />
               )}
+              <p className="mt-2 text-xs text-navy/55">
+                Cada descoberta chega aqui depois de conferida e publicada pela equipe.
+              </p>
             </Bloco>
             <Bloco titulo="Publicado recentemente">
               {ultima ? (
