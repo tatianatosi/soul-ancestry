@@ -14,7 +14,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
 import { CODIGO_CASO_GO_LIVE } from "@/lib/golive.functions";
-import { etapaDoResultado } from "@/lib/golive-comercial";
+import { etapaDoResultado, passoDeEtapa } from "@/lib/golive-comercial";
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -69,6 +69,7 @@ export const registrarLeadGoLive = createServerFn({ method: "POST" })
       origem?: string;
       objetivo?: string;
       etapa?: string;
+      area?: string;
       responsavel?: string;
       proximoPasso?: string;
       proximoPassoEm?: string;
@@ -84,6 +85,9 @@ export const registrarLeadGoLive = createServerFn({ method: "POST" })
     if (!texto(data.origem)) throw new Error("Origem é obrigatória.");
     if (!texto(data.responsavel)) throw new Error("Responsável é obrigatório.");
     if (!texto(data.proximoPasso)) throw new Error("Próximo passo é obrigatório.");
+    // Regra do banco para lead ativo: área responsável e data da próxima ação.
+    if (!texto(data.area)) throw new Error("Área responsável é obrigatória.");
+    if (!texto(data.proximoPassoEm)) throw new Error("Data do próximo passo é obrigatória.");
 
     const r = await s
       .from("leads")
@@ -96,9 +100,11 @@ export const registrarLeadGoLive = createServerFn({ method: "POST" })
         objetivo: texto(data.objetivo) || null,
         estagio: texto(data.etapa) || "novo",
         eixo_comercial: texto(data.etapa) || null,
+        area_responsavel: texto(data.area),
         responsavel_nome: texto(data.responsavel),
         proxima_acao: texto(data.proximoPasso),
-        proxima_acao_em: texto(data.proximoPassoEm) || null,
+        proxima_acao_em: texto(data.proximoPassoEm),
+
         data_origin: "real",
         created_by: userId,
       })
@@ -215,7 +221,15 @@ export const registrarAtendimentoGoLive = createServerFn({ method: "POST" })
     const situacao = texto(data.situacaoCall);
     const quando = texto(data.callEm) || null;
     const resultado = texto(data.resultado) || null;
-    const etapa = etapaDoResultado(resultado);
+    const atualLead = await s
+      .from("leads")
+      .select("estagio")
+      .eq("id", texto(data.leadId))
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    erro(atualLead);
+    // Respeita a máquina de estados do banco: só grava um passo válido por vez.
+    const etapa = passoDeEtapa(atualLead?.data?.estagio, etapaDoResultado(resultado));
 
     const atualizacao: Linha = {
       status_call: situacao,
@@ -227,7 +241,13 @@ export const registrarAtendimentoGoLive = createServerFn({ method: "POST" })
     if (resultado) atualizacao["discovery_resultado"] = resultado;
     if (etapa) atualizacao["estagio"] = etapa;
     if (texto(data.responsavel)) atualizacao["responsavel_nome"] = texto(data.responsavel);
-    if (situacao === "realizada") atualizacao["call_realizada_em"] = quando ?? new Date().toISOString();
+    if (situacao === "realizada") {
+      // Regra do banco: call realizada exige resumo validado, resultado e prazo.
+      if (!resultado) throw new Error("Call realizada exige o resultado do Discovery.");
+      if (!texto(data.proximoPassoEm)) throw new Error("Call realizada exige prazo da próxima ação.");
+      atualizacao["resumo_validado"] = true;
+      atualizacao["call_realizada_em"] = quando ?? new Date().toISOString();
+    }
     else if (quando) atualizacao["call_agendada_em"] = quando;
 
     erro(

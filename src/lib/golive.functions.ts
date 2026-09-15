@@ -573,7 +573,8 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         .map((l) => ({
           id: String(l["id"]),
           nome: (l["nome"] as string) ?? "Lead sem nome",
-          etapa: (l["eixo_comercial"] as string) ?? (l["estagio"] as string) ?? null,
+          // Etapa gravada e guardada pela máquina de estados do lead; eixo só como reserva.
+          etapa: (l["estagio"] as string) ?? (l["eixo_comercial"] as string) ?? null,
           estagio: (l["estagio"] as string) ?? null,
           origem: (l["origem"] as string) ?? null,
           canal: (l["data_origin"] as string) ?? null,
