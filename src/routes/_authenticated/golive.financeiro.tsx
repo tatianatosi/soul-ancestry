@@ -174,13 +174,29 @@ function FinanceiroGoLive() {
       </Bloco>
 
       <Bloco titulo="Pagamentos">
-        {pagas.length ? (
+        {pagamentos.length ? (
+          <ul className="space-y-1 text-sm text-navy">
+            {pagamentos.map((p) => (
+              <li key={p.id} className="break-words">
+                {faturas.find((f) => f.id === p.faturaId)?.numero ?? "Cobrança"}
+                {typeof p.valor === "number" ? ` — ${MOEDA.format(p.valor)}` : ""}{" "}
+                <span className="text-navy/55">
+                  · {humano(p.metodo, "forma não informada")}
+                  {p.pagoEm ? ` · recebido em ${dataHumana(p.pagoEm)}` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : pagas.length ? (
           <ul className="space-y-1 text-sm text-navy">
             {pagas.map((f) => (
               <li key={f.id} className="break-words">
                 {f.numero ?? "Cobrança"}
                 {typeof f.valor === "number" ? ` — ${MOEDA.format(f.valor)}` : ""}{" "}
-                <span className="text-navy/55">· {humano(f.status)}</span>
+                <span className="text-navy/55">
+                  · {humano(f.status)}
+                  {f.pagaEm ? ` · recebido em ${dataHumana(f.pagaEm)}` : ""}
+                </span>
               </li>
             ))}
           </ul>
