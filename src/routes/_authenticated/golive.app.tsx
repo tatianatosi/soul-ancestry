@@ -15,6 +15,7 @@ import {
   ABAS_APP,
   achadosParaFamilia,
   contratoParaFamilia,
+  financeiroParaFamilia,
   evidenciasParaFamilia,
   fontesParaFamilia,
   marcosPublicados,
