@@ -220,6 +220,33 @@ export function etapaDoResultado(resultado: string | null | undefined): string |
   }
 }
 
+/** Espelho da máquina de estados do banco (transicao_permitida, entidade 'lead'). */
+export const TRANSICOES_LEAD: Record<string, readonly string[]> = {
+  novo: ["qualificado", "perdido", "arquivado"],
+  qualificado: ["proposta_em_preparo", "perdido", "arquivado"],
+  proposta_em_preparo: ["proposta_enviada", "perdido", "arquivado"],
+  proposta_enviada: ["ganho", "perdido", "arquivado"],
+  ganho: ["arquivado"],
+  perdido: ["novo", "qualificado", "arquivado"],
+};
+
+/**
+ * Próxima etapa gravável rumo ao alvo, respeitando a máquina de estados.
+ * Devolve o alvo quando é transição direta, um passo intermediário válido
+ * quando o alvo está a dois passos, e null quando nada pode ser gravado.
+ */
+export function passoDeEtapa(atual: string | null | undefined, alvo: string | null | undefined): string | null {
+  const de = String(atual ?? "").trim();
+  const para = String(alvo ?? "").trim();
+  if (!para || !de || de === para) return null;
+  const diretos = TRANSICOES_LEAD[de] ?? [];
+  if (diretos.includes(para)) return para;
+  for (const meio of diretos) {
+    if ((TRANSICOES_LEAD[meio] ?? []).includes(para)) return meio;
+  }
+  return null;
+}
+
 const ROTULO_CALL = new Map<string, string>([
   ...SITUACOES_CALL.map((s) => [s.valor, s.rotulo] as [string, string]),
   ["sem_agenda", "Sem call marcada"],

@@ -49,6 +49,7 @@ export const Route = createFileRoute("/_authenticated/golive/leads")({
 
 /** Listas fechadas: origem e etapa nunca entram como texto livre. */
 const ORIGENS = ["indicacao", "site", "instagram", "evento", "parceria", "outro"] as const;
+const AREAS = ["comercial", "operacoes", "pesquisa"] as const;
 const ETAPAS = ["novo", "em_contato", "qualificado", "proposta", "encerrado"] as const;
 
 function LeadsGoLive() {
@@ -95,9 +96,16 @@ function LeadsGoLive() {
               padrao: "novo",
               opcoes: ETAPAS.map((e) => ({ valor: e, rotulo: humano(e) })),
             },
+            {
+              nome: "area",
+              rotulo: "Área responsável",
+              tipo: "escolha",
+              obrigatorio: true,
+              opcoes: AREAS.map((a) => ({ valor: a, rotulo: humano(a) })),
+            },
             { nome: "responsavel", rotulo: "Responsável", obrigatorio: true },
             { nome: "proximoPasso", rotulo: "Próximo passo", obrigatorio: true },
-            { nome: "proximoPassoEm", rotulo: "Próximo passo em", tipo: "data" },
+            { nome: "proximoPassoEm", rotulo: "Próximo passo em", tipo: "data", obrigatorio: true },
             { nome: "email", rotulo: "E-mail" },
             { nome: "telefone", rotulo: "Telefone" },
             { nome: "objetivo", rotulo: "Objetivo", tipo: "area" },
@@ -111,6 +119,7 @@ function LeadsGoLive() {
                 origem: v["origem"] ?? "",
                 objetivo: v["objetivo"] ?? "",
                 etapa: v["etapa"] ?? "",
+                area: v["area"] ?? "",
                 responsavel: v["responsavel"] ?? "",
                 proximoPasso: v["proximoPasso"] ?? "",
                 proximoPassoEm: v["proximoPassoEm"] ?? "",
