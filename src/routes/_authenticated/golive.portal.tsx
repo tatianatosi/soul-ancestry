@@ -46,6 +46,16 @@ function PortalGoLive() {
 
   const clienteId = caso?.identidade.pessoaPrincipalId ?? null;
 
+  // Só contagem do que já está gravado: projeções, acessos e e-mails autorizados.
+  const projecoes = caso?.projecoesEstados ?? [];
+  const acessos = caso?.portal.acessos ?? [];
+  const emails = caso?.portal.emailsAutorizados ?? [];
+  const publicacoesPorEstado = contarPor(projecoes, (p) => estadoDaProjecao(p.estado));
+  const acessosPorSituacao = contarPor(acessos, (a) => humano(a.situacao, ""), "Sem situação");
+  const emailsPorEstado = contarPor(emails, (e) => humano(e.status, ""), "Sem situação");
+  const datadas = publicados.filter((p) => Boolean(p.em));
+  const linhaPublicacoes = datadas.length ? porSemana(datadas, (p) => p.em, 7) : [];
+
   const acaoConvite = clienteId ? (
     <Acao
       rotulo="Enviar link mágico"
