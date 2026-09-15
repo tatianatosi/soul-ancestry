@@ -67,3 +67,8 @@
 - [ ] Testes extras P0: sobrenome legítimo com "Teste", call remarcada, no-show, call só com data (timezone da organização), proposta com contato anterior/posterior, aviso de limite 200
 - [ ] Prova controlada Novo Lead -> id -> reload -> Funil/Kanban/Discovery/Calls (requer autorização explícita; cria registro)
 - [ ] Depois da prova: patch Discovery + Call no mesmo lead (writer único, roteiro progressivo)
+
+## App Cliente — fidelidade à prancha aprovada (2026-09-15)
+- [ ] Revisar cor e layout do App Cliente (desktop e mobile) contra a prancha "Prancha de aceite · App Cliente" (7 telas canônicas)
+- [ ] Cabeçalho navy com marca, subtítulo "Aplicativo da família" e título/descrição por aba
+- [ ] Cartões creme com rótulo dourado em maiúsculas e títulos em serifa
