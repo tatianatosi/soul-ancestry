@@ -190,9 +190,9 @@ function ComercialGoLive() {
                 {semData.length} lead(s) sem data de entrada continuam na lista, fora do recorte por período.
               </p>
             ) : null}
-            {total > todos.length ? (
+            {total > limite ? (
               <p className="text-xs text-navy/55">
-                Mostrando os {todos.length} leads mais recentes de {total}. Os demais ficam fora desta leitura.
+                A organização tem {total} leads ativos; esta leitura traz os {limite} mais recentes.
               </p>
             ) : null}
           </>
