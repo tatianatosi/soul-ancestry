@@ -7,6 +7,7 @@
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { BookOpen, FileText, Home, Radar, Route as RouteIcon, Trees, UserRound } from "lucide-react";
 
 import { Bloco, Vazio } from "@/components/golive/shell";
 import { BrandLogo } from "@/components/brand";
@@ -55,6 +56,26 @@ const Aguardando = (
     Aguardando publicação da equipe
   </Button>
 );
+
+const ICONES_APP = {
+  Home,
+  Jornada: RouteIcon,
+  Radar,
+  Árvore: Trees,
+  Documentos: FileText,
+  Legado: BookOpen,
+  Conta: UserRound,
+} satisfies Record<AbaApp, typeof Home>;
+
+const ABERTURA_APP: Record<AbaApp, { titulo: string; descricao: string }> = {
+  Home: { titulo: "Sua jornada", descricao: "Acompanhe o que já foi publicado e o que vem a seguir." },
+  Jornada: { titulo: "Jornada", descricao: "Linha do tempo do seu acompanhamento." },
+  Radar: { titulo: "Radar Ancestral", descricao: "Uma leitura simples das seis dimensões da sua jornada." },
+  Árvore: { titulo: "Árvore", descricao: "Gerações e conexões liberadas para a família." },
+  Documentos: { titulo: "Documentos", descricao: "Pedidos, recebimentos e materiais liberados em um só lugar." },
+  Legado: { titulo: "Legado", descricao: "Conteúdos publicados para preservar e compartilhar em família." },
+  Conta: { titulo: "Conta", descricao: "Seu perfil, acompanhamento e histórico disponível." },
+};
 
 /** CTA de navegação do espelho interno: leva à superfície do Desk que trata o assunto. */
 function IrPara({ para, rotulo }: { para: string; rotulo: string }) {
@@ -129,7 +150,7 @@ function AppClienteGoLive() {
   );
 
   return (
-    <div className="min-h-dvh overflow-x-hidden bg-cream text-navy">
+    <div className="min-h-dvh overflow-x-hidden bg-cream text-navy" data-app-cliente="true">
       <header className="bg-navy text-cream">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 lg:px-8">
           <BrandLogo size={32} variant="client-dark" showText={false} />
@@ -140,24 +161,36 @@ function AppClienteGoLive() {
         </div>
         <div className="h-0.5 bg-gold" aria-hidden="true" />
       </header>
-      <main className="mx-auto w-full max-w-6xl space-y-5 px-4 pb-12 pt-4 lg:px-8">
+      <div className="mx-auto grid w-full max-w-6xl min-w-0 lg:grid-cols-[224px_minmax(0,1fr)] lg:gap-6 lg:px-8">
+        <aside className="hidden lg:block">
+          <nav aria-label="Abas do App Cliente" className="sticky top-0 min-h-[calc(100vh-57px)] rounded-b-2xl bg-navy px-3 py-5">
+            <div className="space-y-1">
+              {ABAS_APP.map((item) => {
+                const Icon = ICONES_APP[item];
+                return (
+                  <Button
+                    key={item}
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setAba(item)}
+                    aria-current={aba === item}
+                    className={`w-full justify-start gap-2.5 px-3 py-2.5 text-sm ${
+                      aba === item ? "bg-gold text-navy hover:bg-gold/90" : "text-cream/75 hover:bg-cream/10 hover:text-cream"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <span className="truncate">{item}</span>
+                  </Button>
+                );
+              })}
+            </div>
+          </nav>
+        </aside>
+        <main className="min-w-0 space-y-5 px-4 pb-24 pt-6 lg:px-0 lg:pb-12">
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
-
-      {/* Abas do topo no desktop; no celular a navegação fica fixa embaixo. */}
-      <div className="grid grid-cols-2 gap-2">
-        {ABAS_APP.map((item) => (
-          <button
-            key={item}
-            type="button"
-            onClick={() => setAba(item)}
-            aria-current={aba === item}
-            className={`min-w-0 rounded-lg px-3 py-2 text-sm ${
-              aba === item ? "bg-navy text-cream" : "border border-navy/15 text-navy/70"
-            }`}
-          >
-            {item}
-          </button>
-        ))}
+      <div>
+        <h1 className="font-serif text-2xl font-semibold leading-tight text-navy">{ABERTURA_APP[aba].titulo}</h1>
+        <p className="mt-1 text-sm text-navy/70">{ABERTURA_APP[aba].descricao}</p>
       </div>
 
       <div className="space-y-4">
@@ -523,7 +556,30 @@ function AppClienteGoLive() {
         ) : null}
       </div>
 
-      </main>
+        </main>
+      </div>
+      <nav aria-label="Abas do App Cliente" className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur lg:hidden">
+        <div className="mx-auto grid max-w-lg grid-cols-7 px-1 pb-[env(safe-area-inset-bottom)]">
+          {ABAS_APP.map((item) => {
+            const Icon = ICONES_APP[item];
+            return (
+              <Button
+                key={item}
+                type="button"
+                variant="ghost"
+                onClick={() => setAba(item)}
+                aria-current={aba === item}
+                className={`h-auto min-w-0 flex-col gap-0.5 rounded-none px-0.5 py-2 text-[8px] leading-tight ${
+                  aba === item ? "font-semibold text-gold hover:text-gold" : "text-navy/65 hover:text-navy"
+                }`}
+              >
+                <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span className="w-full text-center">{item}</span>
+              </Button>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }
