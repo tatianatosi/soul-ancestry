@@ -62,12 +62,24 @@ function CasoGoLive() {
       variante="outline"
       campos={[
         { nome: "titulo", rotulo: "Título", obrigatorio: true },
+        {
+          nome: "criterio",
+          rotulo: "Critério de aceite",
+          tipo: "area",
+          obrigatorio: true,
+          ajuda: "O que precisa estar pronto para esta entrega ser considerada concluída.",
+        },
         { nome: "descricao", rotulo: "Descrição interna", tipo: "area" },
         { nome: "prazo", rotulo: "Prazo", tipo: "data" },
       ]}
       aoConfirmar={(v) =>
         criarMicroentrega({
-          data: { titulo: v["titulo"] ?? "", descricao: v["descricao"] ?? "", prazo: v["prazo"] ?? "" },
+          data: {
+            titulo: v["titulo"] ?? "",
+            descricao: v["descricao"] ?? "",
+            prazo: v["prazo"] ?? "",
+            criterio: v["criterio"] ?? "",
+          },
         })
       }
       confirmacao="Microentrega criada."

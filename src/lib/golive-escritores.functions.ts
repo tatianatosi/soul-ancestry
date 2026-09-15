@@ -674,12 +674,13 @@ export const registrarPagamentoGoLive = createServerFn({ method: "POST" })
 
 export const criarMicroentregaGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { titulo: string; fase?: string; prazo?: string; descricao?: string }) => d)
+  .inputValidator((d: { titulo: string; fase?: string; prazo?: string; descricao?: string; criterio?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
     const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
     if (!texto(data.titulo)) throw new Error("Título da microentrega é obrigatório.");
+    if (!texto(data.criterio)) throw new Error("Escreva o critério de aceite da microentrega.");
 
     const r = await s
       .from("ops_microentregas")
@@ -689,6 +690,7 @@ export const criarMicroentregaGoLive = createServerFn({ method: "POST" })
         titulo: texto(data.titulo),
         descricao: texto(data.descricao) || null,
         fase: texto(data.fase) || "pesquisa_inicial",
+        criterio_aceite: texto(data.criterio) || null,
         prazo: texto(data.prazo) || null,
         status: "pendente",
         created_by: userId,
