@@ -12,7 +12,8 @@ import type { ReactNode } from "react";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
-import { Barras } from "@/components/golive/graficos";
+import { Barras, Linha as LinhaSerie, Rosca } from "@/components/golive/graficos";
+import { contarPor, porSemana } from "@/lib/golive-analitico";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
@@ -141,6 +142,19 @@ function PesquisaGoLive() {
     { rotulo: "Achados", valor: achados.length },
   ];
   const temAlgo = totais.some((t) => t.valor > 0);
+
+  // Cobertura, situação e validação: contagem do que já está gravado.
+  const coberturaFontes = contarPor(fontes, (f) => humano(f.tipo, ""), "Tipo não informado");
+  const evidenciasPorEstado = contarPor(evidencias, (e) => humano(e.status, ""), "Sem situação");
+  const achadosPorValidacao = contarPor(achados, (a) => humano(a.validacao, ""), "Sem validação");
+
+  // Ritmo: só entra o que tem data gravada; sem data, a linha não aparece.
+  const datados = [
+    ...fontes.map((f) => ({ em: f.registradaEm })),
+    ...evidencias.map((e) => ({ em: e.registradaEm })),
+    ...achados.map((a) => ({ em: a.registradoEm })),
+  ].filter((i) => Boolean(i.em));
+  const ritmo = datados.length ? porSemana(datados, (i) => i.em, 7) : [];
 
   return (
     <GoLiveShell titulo="Pesquisa" descricao="Pergunta › Fonte › Evidência › Achado › Proposta.">
