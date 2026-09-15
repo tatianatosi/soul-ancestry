@@ -183,13 +183,13 @@ export function PortalShell({
               key={to}
               to={to}
               className={cn(
-                "flex min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 py-2 text-[9px] leading-tight",
+                "flex min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 py-2 text-[8px] leading-tight",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
                 rotaAtiva === to ? "font-semibold text-gold" : "text-navy/65",
               )}
             >
               <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span className="w-full truncate text-center">{label}</span>
+              <span className="w-full text-center">{label}</span>
             </LinkPortal>
           ))}
         </div>

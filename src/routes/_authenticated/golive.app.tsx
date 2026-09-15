@@ -569,12 +569,12 @@ function AppClienteGoLive() {
                 variant="ghost"
                 onClick={() => setAba(item)}
                 aria-current={aba === item}
-                className={`h-auto min-w-0 flex-col gap-0.5 rounded-none px-0.5 py-2 text-[9px] leading-tight ${
+                className={`h-auto min-w-0 flex-col gap-0.5 rounded-none px-0.5 py-2 text-[8px] leading-tight ${
                   aba === item ? "font-semibold text-gold hover:text-gold" : "text-navy/65 hover:text-navy"
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <span className="w-full truncate text-center">{item}</span>
+                <span className="w-full text-center">{item}</span>
               </Button>
             );
           })}
