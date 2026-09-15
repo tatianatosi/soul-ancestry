@@ -758,6 +758,10 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         aprovadaEm: (p["aprovada_em"] as string) ?? null,
         origem: (p["origem"] as string) ?? null,
         referencia: (p["origem_referencia"] as string) ?? (p["deck_referencia_interna"] as string) ?? null,
+        /* Escopo excluído e responsável já gravados na própria proposta. */
+        exclusoes: (p["exclusoes"] as string) ?? null,
+        validade: (p["validade"] as string) ?? null,
+        responsavel: nomePerfil.get(String(p["created_by"] ?? "")) || null,
       })),
       escopo: escopoItens.map((i) => ({
         id: String(i["id"]),
