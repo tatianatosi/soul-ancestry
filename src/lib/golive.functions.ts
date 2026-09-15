@@ -695,6 +695,8 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           callRealizada: (l["call_realizada_em"] as string) ?? null,
           statusCall: (l["status_call"] as string) ?? null,
           discoveryResultado: (l["discovery_resultado"] as string) ?? null,
+          resumoCall: (l["resumo_call"] as string) ?? null,
+          pagamentoPrevistoEm: (l["pagamento_previsto_em"] as string) ?? null,
           objetivo: (l["objetivo"] as string) ?? null,
         };
       })(),

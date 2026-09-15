@@ -14,7 +14,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Linha as LinhaSerie, Rosca } from "@/components/golive/graficos";
-import { recebimentoPorMes, situacaoDasFaturas, totaisFinanceiros } from "@/lib/golive-analitico";
+import {
+  origemDaCondicao,
+  planoDeParcelas,
+  recebimentoPorMes,
+  situacaoDasFaturas,
+  totaisFinanceiros,
+} from "@/lib/golive-analitico";
 import { useGoLive } from "@/components/golive/dados";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { Button } from "@/components/ui/button";
@@ -46,6 +52,9 @@ function FinanceiroGoLive() {
   const totais = totaisFinanceiros(faturas, pagamentos);
   const recebimento = recebimentoPorMes(faturas, pagamentos, 6);
   const situacao = situacaoDasFaturas(faturas);
+  /* Origem da condição: call realizada gravada no lead do próprio caso. */
+  const origem = origemDaCondicao(caso?.lead ?? null);
+  const parcelas = planoDeParcelas(faturas, caso?.lead ?? null);
 
   const contratoAssinado = (caso?.contratos ?? []).some((c) => c.status === "signed" || Boolean(c.assinadoEm));
   const novaFatura = useServerFn(registrarFaturaGoLive);
@@ -129,6 +138,38 @@ function FinanceiroGoLive() {
       <Bloco titulo="3. Situação das faturas">
         {situacao.length ? (
           <Rosca titulo="Situação das faturas" dados={situacao} />
+        ) : (
+          <Vazio cta={irParaContratos} />
+        )}
+      </Bloco>
+
+      <Bloco titulo="Plano de parcelas e a conversa que originou">
+        {origem ? (
+          <p className="text-sm text-navy">
+            Conversa de descoberta realizada em {dataHumana(origem.callEm)}
+            {origem.resultado ? ` · resultado: ${humano(origem.resultado, "sem resultado registrado")}` : ""}
+            {origem.status ? ` · ${humano(origem.status, "")}` : ""}
+            {origem.resumo ? <span className="block text-navy/70">{origem.resumo}</span> : null}
+          </p>
+        ) : (
+          <p className="text-xs text-navy/55">
+            Este caso ainda não tem uma conversa de descoberta registrada com data e resultado.
+          </p>
+        )}
+        {parcelas.length ? (
+          <ul className="mt-3 space-y-1 text-sm text-navy">
+            {parcelas.map((p, i) => (
+              <li key={p.id} className="break-words">
+                Parcela {i + 1}
+                {p.numero ? ` · ${p.numero}` : ""}
+                {typeof p.valor === "number" ? ` — ${MOEDA.format(p.valor)}` : ""}{" "}
+                <span className="text-navy/55">
+                  · {p.vencimento ? `vence ${dataHumana(p.vencimento)}` : "sem vencimento registrado"} · {p.situacao}
+                  {p.diasAposCall !== null ? ` · ${p.diasAposCall} dias após a conversa` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
         ) : (
           <Vazio cta={irParaContratos} />
         )}
