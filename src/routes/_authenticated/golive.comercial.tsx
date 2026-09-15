@@ -62,6 +62,7 @@ function ComercialGoLive() {
   const colunas = useMemo(() => kanbanPorEtapa(leads), [leads]);
   const semData = useMemo(() => semDataDeEntrada(leads), [leads]);
   const total = (data as { leadsComerciaisTotal?: number } | undefined)?.leadsComerciaisTotal ?? todos.length;
+  const limite = (data as { leadsComerciaisLimite?: number } | undefined)?.leadsComerciaisLimite ?? 200;
 
   /* Lead em foco na Mesa e nas calls: o escolhido na lista, senão o do caso,
      senão o mais recente. Nunca inventa lead. */
