@@ -573,6 +573,15 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         despublicadaEm: (p["archived_at"] as string) ?? null,
         motivoDespublicacao: (p["archived_reason"] as string) ?? null,
       })),
+      /** Saíram do App, mas seguem no histórico: nada é apagado. */
+      projecoesDespublicadas: projecoesDespublicadas.map((p) => ({
+        id: String(p["id"]),
+        estado: String(p["approval_status"] ?? ""),
+        tipo: (p["projection_type"] as string) ?? null,
+        origem: (p["source_entity_type"] as string) ?? null,
+        despublicadaEm: (p["archived_at"] as string) ?? null,
+        motivoDespublicacao: (p["archived_reason"] as string) ?? null,
+      })),
 
       contratos: limpar(contratos).map((c) => ({
         id: String(c["id"]),
@@ -703,12 +712,18 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           email: (a["email"] as string) ?? null,
           nivel: String(a["access_level"] ?? ""),
           situacao: String(a["access_status"] ?? ""),
+          convidadoEm: (a["invited_at"] as string) ?? null,
+          primeiroAcesso: (a["first_authenticated_at"] as string) ?? null,
           ultimoAcesso: (a["last_authenticated_at"] as string) ?? null,
+          revogadoEm: (a["revoked_at"] as string) ?? null,
+          suspensoEm: (a["suspended_at"] as string) ?? null,
         })),
         emailsAutorizados: limpar(emailsAutorizados).map((e) => ({
           id: String(e["id"]),
           email: (e["email"] as string) ?? null,
           status: (e["status"] as string) ?? null,
+          validadoEm: (e["validado_em"] as string) ?? null,
+          criadoEm: (e["created_at"] as string) ?? null,
         })),
       },
       equipeTotal: equipe.length,
