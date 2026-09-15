@@ -471,16 +471,27 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         responsavel: (e["responsavel_nome"] as string) ?? null,
         bloqueio: e["bloqueio"] === true,
       })),
-      /** Carteira da organização: só estado e prioridade, para KPIs e rosca. */
+      /** Carteira da organização: estado, marcos e prazo, para KPIs, rosca e Radar. */
       carteira: (carteira ?? [])
-        .filter((c) => c["demo"] !== true)
+        .filter((c) => c["demo"] !== true && c["dados_teste"] !== true && !ehRegistroDeTeste(c))
         .map((c) => ({
           id: String(c["id"]),
           codigo: (c["codigo"] as string) ?? null,
+          titulo: (c["titulo"] as string) ?? null,
           status: (c["status"] as string) ?? null,
+          fase: (c["fase"] as string) ?? null,
+          ativo: c["ativo"] === true,
+          risco: (c["risco"] as string) ?? null,
           prioridade: (c["prioridade"] as string) ?? null,
+          responsavel: (c["responsavel_principal"] as string) ?? null,
+          proximaAcao: (c["proxima_acao"] as string) ?? null,
           temProximaAcao: Boolean(c["proxima_acao"]),
           prazoProximaAcao: (c["prazo_proxima_acao"] as string) ?? null,
+          contratoAssinado: c["contrato_assinado"] === true,
+          pagamentoConfirmado: c["pagamento_confirmado"] === true,
+          documentosMinimosOk: c["documentos_minimos_ok"] === true,
+          aguardandoExterno: c["aguardando_instituicao_externa"] === true,
+          alertasAbertos: alertasPorCaso.get(String(c["id"])) ?? 0,
         })),
       /** Carteira comercial: um cartão por lead, só campos já gravados. */
       leadsComerciais: (leadsOrg ?? [])
