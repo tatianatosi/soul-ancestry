@@ -9,6 +9,7 @@
  * "não aplicável". Nenhuma tabela, dado ou publicação é criada aqui.
  */
 import { contratoParaFamilia, financeiroParaFamilia } from "@/lib/golive-app";
+import { rotuloDaCall } from "@/lib/golive-comercial";
 import type { DadosGoLive } from "@/lib/golive.functions";
 
 export type Caso = Extract<DadosGoLive, { encontrado: true }>;
