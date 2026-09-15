@@ -178,46 +178,21 @@ function LeadsGoLive() {
                 feito: i <= COLUNAS_FUNIL.indexOf(etapaAtual ?? "Lead"),
               }))}
             />
-            <Acoes>
-              <Acao
-                rotulo="Registrar Discovery"
-                titulo="Resultado da Mesa de Discovery"
-                variante="outline"
-                campos={[
-                  {
-                    nome: "resultado",
-                    rotulo: "Resultado",
-                    tipo: "escolha",
-                    obrigatorio: true,
-                    opcoes: [
-                      { valor: "segue_para_proposta", rotulo: "Segue para proposta" },
-                      { valor: "em_avaliacao", rotulo: "Em avaliação" },
-                      { valor: "nao_elegivel", rotulo: "Não elegível" },
-                    ],
-                  },
-                  { nome: "resumo", rotulo: "Resumo interno", tipo: "area", obrigatorio: true },
-                ]}
-                aoConfirmar={(v) =>
-                  discovery({
-                    data: { leadId: emFoco.id, resultado: v["resultado"] ?? "", resumo: v["resumo"] ?? "" },
-                  })
-                }
-                confirmacao="Discovery registrado no histórico do lead."
-              />
-              <Acao
-                rotulo="Registrar call"
-                titulo="Call com a pessoa"
-                variante="outline"
-                campos={[
-                  { nome: "ocorridoEm", rotulo: "Data", tipo: "data" },
-                  { nome: "resumo", rotulo: "Resumo interno", tipo: "area", obrigatorio: true },
-                ]}
-                aoConfirmar={(v) =>
-                  call({ data: { leadId: emFoco.id, resumo: v["resumo"] ?? "", ocorridoEm: v["ocorridoEm"] ?? "" } })
-                }
-                confirmacao="Call registrada no histórico do lead."
-              />
-            </Acoes>
+            <AcaoAtendimento
+              leadId={emFoco.id}
+              aoConfirmar={(v) => atendimento({ data: v as Parameters<typeof atendimento>[0]["data"] })}
+            />
+            <ul className="space-y-1 pt-1 text-xs text-navy/65">
+              {roteiroDiscovery(emFoco).map((passo) => (
+                <li key={passo.pergunta}>
+                  {passo.estado === "respondida" ? "✓" : "•"} {passo.pergunta}{" "}
+                  <span className="text-navy/50">
+                    — {passo.resposta ? humano(passo.resposta) : "pendente"} · fonte: {passo.fonte}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
             <div className="flex flex-wrap gap-2 pt-1">
               <Link to="/golive/formalizacao">
                 <Button size="sm" variant="outline">
