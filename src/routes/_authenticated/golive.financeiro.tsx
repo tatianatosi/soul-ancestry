@@ -1,30 +1,30 @@
 /**
  * Financeiro no shell de go-live.
  *
- * Valor e condição são registro manual; faturas, pagamentos e situação vêm
- * do que já está gravado no caso canônico. Nada é cobrado, nada é integrado,
- * nada é estimado. Sem catálogo, SKU ou preço técnico.
+ * Três blocos analíticos da prancha v3: valores contratado/recebido/a
+ * receber/vencido, recebimento mensal confirmado e situação das faturas.
+ *
+ * Só leitura do que já está gravado no caso canônico. Nada é cobrado,
+ * integrado ou estimado; sem catálogo, SKU, preço provisório ou dado
+ * fictício. Nenhuma cobrança, assinatura ou envio externo é disparado aqui.
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Linha as LinhaSerie, Rosca } from "@/components/golive/graficos";
-import { contarPor, estaPaga, recebimentoPorMes, totaisFinanceiros } from "@/lib/golive-analitico";
-import { Acao, Acoes } from "@/components/golive/acoes";
+import { recebimentoPorMes, situacaoDasFaturas, totaisFinanceiros } from "@/lib/golive-analitico";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
-import { registrarFaturaGoLive, registrarPagamentoGoLive } from "@/lib/golive-escritores.functions";
 
 export const Route = createFileRoute("/_authenticated/golive/financeiro")({
   head: () => ({
     meta: [
       { title: "Financeiro — Go-live Clube Ancestral" },
-      { name: "description", content: "Valor, condição, faturas e pagamentos registrados do caso do piloto." },
+      { name: "description", content: "Valores, recebimentos confirmados e situação das faturas do caso do piloto." },
       { property: "og:title", content: "Financeiro — Go-live Clube Ancestral" },
-      { property: "og:description", content: "Valor, condição, faturas e pagamentos do caso do piloto." },
+      { property: "og:description", content: "Faturas, pagamentos e recebimento mensal do caso do piloto." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -40,118 +40,61 @@ function FinanceiroGoLive() {
 
   const faturas = caso?.faturas ?? [];
   const pagamentos = caso?.pagamentos ?? [];
-  const comValor = faturas.filter((f) => typeof f.valor === "number");
-  const total = comValor.reduce((s, f) => s + (f.valor as number), 0);
-  const pagas = faturas.filter(estaPaga);
   const totais = totaisFinanceiros(faturas, pagamentos);
   const recebimento = recebimentoPorMes(faturas, pagamentos, 6);
-  const situacao = contarPor(faturas, (f) => humano(f.status, ""), "Sem situação");
+  const situacao = situacaoDasFaturas(faturas);
 
-  const novaFatura = useServerFn(registrarFaturaGoLive);
-  const novoPagamento = useServerFn(registrarPagamentoGoLive);
-
-  const acaoFatura = (
-    <Acao
-      rotulo="Emitir fatura"
-      titulo="Cobrança do caso"
-      variante="outline"
-      campos={[
-        { nome: "numero", rotulo: "Número", obrigatorio: true },
-        { nome: "valor", rotulo: "Valor (R$)", tipo: "numero", obrigatorio: true },
-        { nome: "vencimento", rotulo: "Vencimento", tipo: "data" },
-        { nome: "descricao", rotulo: "Descrição" },
-      ]}
-      aoConfirmar={(v) =>
-        novaFatura({
-          data: {
-            numero: v["numero"] ?? "",
-            valor: Number(v["valor"] ?? 0),
-            vencimento: v["vencimento"] ?? "",
-            descricao: v["descricao"] ?? "",
-          },
-        })
-      }
-      confirmacao="Fatura registrada. Nenhuma cobrança foi enviada."
-    />
+  const irParaContratos = (
+    <Link to="/contratos">
+      <Button size="sm">Abrir contratos</Button>
+    </Link>
   );
-
-  const acaoPagamento = (
-    <Acao
-      rotulo="Registrar pagamento manual"
-      titulo="Pagamento recebido"
-      variante="outline"
-      campos={[
-        {
-          nome: "faturaId",
-          rotulo: "Fatura",
-          tipo: "escolha",
-          obrigatorio: true,
-          opcoes: faturas.map((f) => ({ valor: f.id, rotulo: f.numero ?? "Cobrança" })),
-        },
-        { nome: "valor", rotulo: "Valor (R$)", tipo: "numero", obrigatorio: true },
-        { nome: "metodo", rotulo: "Forma de pagamento", padrao: "pix" },
-        { nome: "pagoEm", rotulo: "Data do pagamento", tipo: "data" },
-      ]}
-      aoConfirmar={(v) =>
-        novoPagamento({
-          data: {
-            faturaId: v["faturaId"] ?? "",
-            valor: Number(v["valor"] ?? 0),
-            metodo: v["metodo"] ?? "",
-            pagoEm: v["pagoEm"] ?? "",
-          },
-        })
-      }
-      confirmacao="Pagamento registrado à mão."
-    />
-  );
-
 
   return (
-    <GoLiveShell titulo="Financeiro" descricao="Valor, condição, faturas e pagamentos — registro manual.">
+    <GoLiveShell titulo="Financeiro" descricao="Valores, recebimentos confirmados e situação das faturas.">
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
       {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
 
       {caso ? <FaixaIdentidade dados={caso} /> : null}
 
-      <Bloco titulo="Valor e condição">
-        {comValor.length ? (
-          <>
-            <p className="text-sm text-navy">
-              {MOEDA.format(total)} em {comValor.length} cobrança{comValor.length === 1 ? "" : "s"} registrada
-              {comValor.length === 1 ? "" : "s"}.
-            </p>
-            <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {[
-                { rotulo: "Contratado", valor: totais.contratado },
-                { rotulo: "Recebido", valor: totais.pago },
-                { rotulo: "Em aberto", valor: totais.emAberto },
-                { rotulo: "Vencido", valor: totais.vencido },
-              ].map((i) => (
-                <div key={i.rotulo} className="min-w-0 rounded-xl border border-navy/10 bg-cream/60 p-3">
-                  <dt className="text-[11px] uppercase tracking-wide text-navy/50">{i.rotulo}</dt>
-                  <dd className="break-words text-sm font-semibold text-navy">{MOEDA.format(i.valor)}</dd>
-                </div>
-              ))}
-            </dl>
-          </>
+      <Bloco titulo="1. Valores do caso">
+        {faturas.length ? (
+          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { rotulo: "Contratado", valor: totais.contratado },
+              { rotulo: "Recebido", valor: totais.pago },
+              { rotulo: "A receber", valor: totais.emAberto },
+              { rotulo: "Vencido", valor: totais.vencido },
+            ].map((i) => (
+              <div key={i.rotulo} className="min-w-0 rounded-xl border border-navy/10 bg-cream/60 p-3">
+                <dt className="text-[11px] uppercase tracking-wide text-navy/50">{i.rotulo}</dt>
+                <dd className="break-words text-sm font-semibold text-navy">{MOEDA.format(i.valor)}</dd>
+              </div>
+            ))}
+          </dl>
         ) : (
-          <Vazio cta={acaoFatura} />
+          <Vazio cta={irParaContratos} />
         )}
       </Bloco>
 
-      {faturas.length ? (
-        <Bloco titulo="Situação das cobranças">
-          <Rosca titulo="Situação das cobranças" dados={situacao} />
-        </Bloco>
-      ) : null}
+      <Bloco titulo="2. Recebimento por mês">
+        {recebimento.length ? (
+          <>
+            <LinhaSerie titulo="Recebimento confirmado" dados={recebimento} />
+            <p className="text-xs text-navy/55">Só pagamentos com data de confirmação registrada.</p>
+          </>
+        ) : (
+          <Vazio cta={irParaContratos} />
+        )}
+      </Bloco>
 
-      {recebimento.length ? (
-        <Bloco titulo="Recebimento por mês">
-          <LinhaSerie titulo="Recebimento por mês" dados={recebimento} />
-          <p className="text-xs text-navy/55">Só pagamentos com data de confirmação registrada.</p>
-        </Bloco>
-      ) : null}
+      <Bloco titulo="3. Situação das faturas">
+        {situacao.length ? (
+          <Rosca titulo="Situação das faturas" dados={situacao} />
+        ) : (
+          <Vazio cta={irParaContratos} />
+        )}
+      </Bloco>
 
       <Bloco titulo="Faturas">
         {faturas.length ? (
@@ -168,9 +111,8 @@ function FinanceiroGoLive() {
             ))}
           </ul>
         ) : (
-          <Vazio cta={acaoFatura} />
+          <Vazio cta={irParaContratos} />
         )}
-        {faturas.length ? <Acoes>{acaoFatura}</Acoes> : null}
       </Bloco>
 
       <Bloco titulo="Pagamentos">
@@ -187,40 +129,9 @@ function FinanceiroGoLive() {
               </li>
             ))}
           </ul>
-        ) : pagas.length ? (
-          <ul className="space-y-1 text-sm text-navy">
-            {pagas.map((f) => (
-              <li key={f.id} className="break-words">
-                {f.numero ?? "Cobrança"}
-                {typeof f.valor === "number" ? ` — ${MOEDA.format(f.valor)}` : ""}{" "}
-                <span className="text-navy/55">
-                  · {humano(f.status)}
-                  {f.pagaEm ? ` · recebido em ${dataHumana(f.pagaEm)}` : ""}
-                </span>
-              </li>
-            ))}
-          </ul>
         ) : (
-          <Vazio cta={faturas.length ? acaoPagamento : <span className="text-xs text-navy/55">Emita uma fatura antes de registrar o pagamento.</span>} />
+          <Vazio cta={irParaContratos} />
         )}
-        {pagamentos.length || pagas.length ? <Acoes>{acaoPagamento}</Acoes> : null}
-      </Bloco>
-
-      <Bloco titulo="Situação do caso">
-        <ul className="space-y-1 text-sm text-navy">
-          <li>
-            Contrato assinado:{" "}
-            <span className={caso?.caso.contratoAssinado ? "text-navy/70" : "text-[var(--terracota,#9A3A2F)]"}>
-              {caso?.caso.contratoAssinado ? "sim" : "ainda não"}
-            </span>
-          </li>
-          <li>
-            Pagamento confirmado:{" "}
-            <span className={caso?.caso.pagamentoConfirmado ? "text-navy/70" : "text-[var(--terracota,#9A3A2F)]"}>
-              {caso?.caso.pagamentoConfirmado ? "sim" : "ainda não"}
-            </span>
-          </li>
-        </ul>
       </Bloco>
     </GoLiveShell>
   );
