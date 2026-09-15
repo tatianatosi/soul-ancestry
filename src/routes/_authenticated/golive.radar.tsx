@@ -145,7 +145,7 @@ function Matriz({
   aoSelecionar: (id: string) => void;
 }) {
   // Margem interna para o ponto não encostar nas bordas da matriz.
-  const MARGEM = 18;
+  const MARGEM = 30;
   const posicao = (x: number, y: number) => ({
     cx: 60 + MARGEM + x * (210 - 2 * MARGEM),
     cy: 220 - MARGEM - y * (190 - 2 * MARGEM),
