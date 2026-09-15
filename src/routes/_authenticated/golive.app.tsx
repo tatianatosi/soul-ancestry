@@ -292,6 +292,7 @@ function AppClienteGoLive() {
 
         {aba === "Árvore" ? (
           <>
+            {Familia}
             <Bloco titulo="Sua árvore">
               {arvore.length ? (
                 <ul className="space-y-2">
@@ -311,6 +312,7 @@ function AppClienteGoLive() {
 
         {aba === "Documentos" ? (
           <>
+            {Familia}
             <Bloco titulo="Situação dos seus documentos">
               {documentosLiberados.length ? (
                 <BarrasPercentual
@@ -357,6 +359,7 @@ function AppClienteGoLive() {
 
         {aba === "Legado" ? (
           <>
+            {Familia}
             <Bloco titulo="Descobertas da família">
               {legado.length ? (
                 <ul className="space-y-2">
@@ -385,6 +388,7 @@ function AppClienteGoLive() {
 
         {aba === "Conta" ? (
           <>
+            {Familia}
             <Bloco titulo="Seus dados">
               {caso?.identidade.pessoaPrincipal ? (
                 <div className="space-y-1 text-sm text-navy">
