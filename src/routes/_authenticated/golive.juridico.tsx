@@ -11,7 +11,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { useGoLive } from "@/components/golive/dados";
+import { Barras, Escada, Rosca } from "@/components/golive/graficos";
 import { Button } from "@/components/ui/button";
+import { contarPor, escadaFormalizacao } from "@/lib/golive-analitico";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/juridico")({
