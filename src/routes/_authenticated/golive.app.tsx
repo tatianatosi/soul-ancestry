@@ -94,6 +94,7 @@ function AppClienteGoLive() {
   const fontesFamilia = fontesParaFamilia(caso?.fontes ?? []);
   const achadosFamilia = achadosParaFamilia(caso?.achados ?? []);
   const contrato = contratoParaFamilia(caso?.contratos ?? []);
+  const financeiro = financeiroParaFamilia(caso?.faturas ?? []);
 
   return (
     <GoLiveShell titulo="App Cliente" descricao="Somente o que já foi publicado para a família.">
