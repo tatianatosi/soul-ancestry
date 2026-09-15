@@ -68,6 +68,25 @@ function JuridicoGoLive() {
 
       {caso ? <FaixaIdentidade dados={caso} /> : null}
 
+      {temPipeline ? (
+        <Bloco titulo="Andamento da formalização">
+          <Escada etapas={pipeline} />
+        </Bloco>
+      ) : null}
+
+      {contratos.length ? (
+        <Bloco titulo="Instrumentos assinados e pendentes">
+          <Rosca titulo="Instrumentos assinados e pendentes" dados={instrumentos} />
+        </Bloco>
+      ) : null}
+
+      {escopo.length ? (
+        <Bloco titulo="Escopo por situação e revisão">
+          <Barras titulo="Escopo por situação" dados={escopoPorSituacao} />
+          <Barras titulo="Itens que exigem revisão humana" dados={revisaoHumana} />
+        </Bloco>
+      ) : null}
+
       <Bloco titulo="1. Proposta">
         {caso?.propostas.length ? (
           <ul className="space-y-1 text-sm text-navy">
