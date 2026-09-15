@@ -257,7 +257,7 @@ function Individual({ caso }: { caso: CasoRadar }) {
           <li key={e.rotulo}>
             <span className="font-medium">{e.rotulo}:</span>{" "}
             <span className={e.valor ? "text-navy/70" : "text-[var(--terracota,#9A3A2F)]"}>
-              {e.valor ? "concluído" : "pendente"}
+              {e.valor ? (e.rotulo === "Próxima ação" ? "registrada" : "concluído") : "pendente"}
             </span>
           </li>
         ))}
