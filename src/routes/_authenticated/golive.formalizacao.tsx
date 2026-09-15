@@ -17,7 +17,10 @@ import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import {
   adicionarItemEscopoGoLive,
+  aprovarEscopoPropostaGoLive,
   criarPlanoOnboardingGoLive,
+  enviarContratoParaRevisaoGoLive,
+  registrarAssinaturaContratoGoLive,
   registrarOrdemServicoGoLive,
   registrarPropostaCanva,
 } from "@/lib/golive-escritores.functions";
