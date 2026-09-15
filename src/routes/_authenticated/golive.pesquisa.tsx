@@ -10,7 +10,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import type { ReactNode } from "react";
 
-import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Bloco, FaixaKpis, GoLiveShell, GradeDesk, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Barras, Linha as LinhaSerie, Rosca } from "@/components/golive/graficos";
 import {
@@ -214,6 +214,8 @@ function PesquisaGoLive() {
   const temAcervo = evidencias.length + achados.length > 0;
   const temLinhaAberta =
     perguntas.length + fontes.length + evidencias.length + achados.length > 0;
+  const evidenciasEmRevisao = evidencias.filter((e) => /revis/i.test(e.status ?? "")).length;
+  const achadosAprovados = achados.filter((a) => /validado|aprovad/i.test(a.validacao ?? "")).length;
 
   return (
     <GoLiveShell titulo="Pesquisa" descricao="Pergunta › Fonte › Evidência › Achado › Revisão › Publicação.">
@@ -221,6 +223,13 @@ function PesquisaGoLive() {
       {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
 
       {caso ? <FaixaIdentidade dados={caso} /> : null}
+
+      <FaixaKpis itens={[
+        { rotulo: "Perguntas abertas", valor: perguntas.length, tom: perguntas.length ? "azul" : "cinza" },
+        { rotulo: "Fontes", valor: fontes.length, tom: fontes.length ? "azul" : "cinza" },
+        { rotulo: "Evidências em revisão", valor: evidenciasEmRevisao, tom: evidenciasEmRevisao ? "dourado" : "cinza" },
+        { rotulo: "Achados aprovados", valor: achadosAprovados, tom: achadosAprovados ? "verde" : "cinza" },
+      ]} />
 
       <nav aria-label="Etapas da pesquisa" className="min-w-0">
         <p className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-[11px] leading-tight text-navy/45">
@@ -244,6 +253,7 @@ function PesquisaGoLive() {
         </Bloco>
       ) : null}
 
+      <GradeDesk>
       <Bloco titulo="1. Cobertura por fonte">
         {cobertura.length ? (
           <>
@@ -277,8 +287,10 @@ function PesquisaGoLive() {
           <Vazio cta={acaoEvidencia} />
         )}
       </Bloco>
+      </GradeDesk>
 
-      <Bloco titulo="3. Fila editorial da Biblioteca">
+      <GradeDesk>
+      <Bloco titulo="3. Fila editorial">
         {temAcervo ? (
           <>
             <Rosca titulo="Acervo do caso por estado" dados={filaSerie} />
@@ -301,6 +313,7 @@ function PesquisaGoLive() {
           </li>
         ))}
       />
+      </GradeDesk>
 
       <Etapa
         titulo="2. Fontes"

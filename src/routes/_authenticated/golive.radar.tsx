@@ -13,7 +13,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Bloco, GoLiveShell } from "@/components/golive/shell";
+import { Bloco, FaixaKpis, GoLiveShell, GradeDesk } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
@@ -75,6 +75,9 @@ function RadarGoLive() {
     carteira.find((c) => c.id === caso?.caso.id) ??
     ordem[0]?.caso ??
     null;
+  const vencidos = ordem.filter((linha) => linha.dias !== null && linha.dias < 0).length;
+  const semProxima = carteira.filter((item) => !item.proximaAcao).length;
+  const externos = carteira.filter((item) => item.aguardandoExterno).length;
 
   return (
     <GoLiveShell titulo="Radar interno" descricao="Quem precisa de atenção primeiro — e por quê.">
@@ -83,6 +86,14 @@ function RadarGoLive() {
 
       {caso ? <FaixaIdentidade dados={caso} /> : null}
 
+      <FaixaKpis itens={[
+        { rotulo: "Carteira", valor: carteira.length, tom: carteira.length ? "azul" : "cinza" },
+        { rotulo: "Vencidos", valor: vencidos, tom: vencidos ? "terracota" : "cinza" },
+        { rotulo: "Sem próxima ação", valor: semProxima, tom: semProxima ? "terracota" : "cinza" },
+        { rotulo: "Aguardando externo", valor: externos, tom: externos ? "dourado" : "cinza" },
+      ]} />
+
+      <GradeDesk>
       <Bloco titulo="1. Matriz de atenção — urgência × prontidão">
         {pontos.length ? (
           <Matriz pontos={pontos} selecionadoId={selecionado?.id ?? null} aoSelecionar={setSelecionadoId} />
@@ -94,7 +105,9 @@ function RadarGoLive() {
       <Bloco titulo="2. Radar do caso selecionado">
         {selecionado ? <Individual caso={selecionado} /> : <SemDado />}
       </Bloco>
+      </GradeDesk>
 
+      <GradeDesk>
       <Bloco titulo="3. Pesquisa aprovada no caso">
         {(() => {
           const impacto = impactoNaArvore(caso?.achados ?? []);
@@ -159,6 +172,7 @@ function RadarGoLive() {
           <SemDado />
         )}
       </Bloco>
+      </GradeDesk>
 
       <Bloco titulo="5. Leads em atenção">
         {leads.length ? (

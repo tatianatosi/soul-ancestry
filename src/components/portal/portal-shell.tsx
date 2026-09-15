@@ -141,15 +141,15 @@ export function PortalShell({
         no rodapé (ícone sobre rótulo, todas visíveis, sem rolagem horizontal
         — era isso que cortava "Árvore" na antiga barra de topo).
       */}
-      <div className="mx-auto flex max-w-6xl gap-6 lg:px-8">
-        <aside className="hidden shrink-0 rounded-2xl bg-navy px-3 py-6 lg:block lg:w-56">
-          <nav aria-label="Navegação do aplicativo do cliente" className="sticky top-6 space-y-1">
+      <div className="mx-auto max-w-6xl lg:px-8">
+        <aside className="px-4 pt-4 lg:px-0">
+          <nav aria-label="Navegação do aplicativo do cliente" className="grid grid-cols-2 gap-2">
             {nav.map(({ to, label, icon: Icon }) => (
               <LinkPortal
                 key={to}
                 to={to}
                 className={cn(
-                  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                   "flex min-w-0 items-center gap-2.5 rounded-lg border border-navy/10 px-3 py-2 text-sm transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
                   rotaAtiva === to ? "bg-gold text-navy font-medium" : "text-cream/75 hover:bg-navy-soft",
                 )}
@@ -161,34 +161,13 @@ export function PortalShell({
           </nav>
         </aside>
 
-        <main id="conteudo-portal" className="min-w-0 flex-1 px-4 py-6 pb-24 lg:px-0 lg:pb-10">
+         <main id="conteudo-portal" className="min-w-0 px-4 py-6 lg:px-0 lg:pb-10">
           <h1 className={TIPO_CLIENTE.titulo}>{titulo}</h1>
           {descricao ? <p className={TIPO_CLIENTE.subtitulo}>{descricao}</p> : null}
           <div className="mt-5">{children}</div>
         </main>
       </div>
 
-      <nav
-        aria-label="Navegação do aplicativo do cliente"
-        className="fixed inset-x-0 bottom-0 z-10 border-t border-navy/10 bg-cream pb-[env(safe-area-inset-bottom)] lg:hidden"
-      >
-        <div className="grid" style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}>
-          {nav.map(({ to, label, icon: Icon }) => (
-            <LinkPortal
-              key={to}
-              to={to}
-              className={cn(
-                "flex flex-col items-center gap-0.5 px-1 py-2 text-[10px] leading-tight",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
-                rotaAtiva === to ? "font-medium text-gold" : "text-navy/60",
-              )}
-            >
-              <Icon className="h-5 w-5" aria-hidden="true" />
-              <span className="truncate">{label}</span>
-            </LinkPortal>
-          ))}
-        </div>
-      </nav>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Bloco, FaixaKpis, GoLiveShell, GradeDesk, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo } from "@/components/golive/identidade";
 import { Barras, Rosca } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
@@ -93,6 +93,13 @@ function ComercialGoLive() {
     <GoLiveShell titulo="Comercial" descricao="CRM vivo, Mesa de Discovery e calls.">
       <FaixaFluxo atual="Lead" />
 
+      <FaixaKpis itens={[
+        { rotulo: "Leads ativos", valor: leads.length, tom: leads.length ? "azul" : "cinza" },
+        { rotulo: "Sem próxima ação", valor: saude.semProximaAcao.length, tom: saude.semProximaAcao.length ? "terracota" : "cinza" },
+        { rotulo: "Calls vencidas", valor: saude.callVencida.length, tom: saude.callVencida.length ? "terracota" : "cinza" },
+        { rotulo: "Propostas sem follow-up", valor: saude.propostaSemFollowUp.length, tom: saude.propostaSemFollowUp.length ? "dourado" : "cinza" },
+      ]} />
+
       <Acoes>
         <Acao
           rotulo="Novo lead"
@@ -157,6 +164,7 @@ function ComercialGoLive() {
         ))}
       </div>
 
+      <GradeDesk>
       <Bloco titulo="Funil comercial">
         {leads.length ? (
           <Barras titulo="Leads por etapa do funil" dados={funil(leads)} />
@@ -181,6 +189,7 @@ function ComercialGoLive() {
           </>
         )}
       </Bloco>
+      </GradeDesk>
 
       <Bloco titulo="Saúde do lead">
         {leads.length ? (
@@ -215,6 +224,7 @@ function ComercialGoLive() {
         )}
       </Bloco>
 
+      <GradeDesk>
       <Bloco titulo="Kanban comercial">
         {colunas.length ? (
           <div className="flex snap-x gap-3 overflow-x-auto pb-2">
@@ -260,7 +270,9 @@ function ComercialGoLive() {
           )
         }
       />
+      </GradeDesk>
 
+      <GradeDesk>
       <Bloco titulo="Calls e Discovery">
         {leads.length ? (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -318,6 +330,7 @@ function ComercialGoLive() {
           </>
         )}
       </Bloco>
+      </GradeDesk>
 
     </GoLiveShell>
   );

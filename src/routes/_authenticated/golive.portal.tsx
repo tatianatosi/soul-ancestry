@@ -8,7 +8,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Bloco, FaixaKpis, GoLiveShell, GradeDesk, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Acao } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
@@ -52,6 +52,9 @@ function PortalGoLive() {
   const proposta = caso?.propostas?.[0] ?? null;
   const contratoPublicado = publicados.some((p) => p.tipo === "contrato");
   const propostaPublicada = publicados.some((p) => p.tipo === "proposta");
+  const rascunhos = porEstado.find((i) => i.rotulo === "Rascunho")?.valor ?? 0;
+  const emRevisao = porEstado.find((i) => i.rotulo === "Em revisão")?.valor ?? 0;
+  const publicadosTotal = porEstado.find((i) => i.rotulo === "Publicada")?.valor ?? 0;
 
   return (
     <GoLiveShell titulo="Portal do cliente" descricao="Acesso, equipe e o que o cliente já enxerga.">
@@ -60,6 +63,14 @@ function PortalGoLive() {
 
       {caso ? <FaixaIdentidade dados={caso} /> : null}
 
+      <FaixaKpis itens={[
+        { rotulo: "Rascunhos", valor: rascunhos, tom: rascunhos ? "azul" : "cinza" },
+        { rotulo: "Em revisão", valor: emRevisao, tom: emRevisao ? "dourado" : "cinza" },
+        { rotulo: "Publicados", valor: publicadosTotal, tom: publicadosTotal ? "verde" : "cinza" },
+        { rotulo: "Acessos ativos", valor: resumoAcesso.ativos, tom: resumoAcesso.ativos ? "verde" : "cinza" },
+      ]} />
+
+      <GradeDesk>
       <Bloco titulo="Acesso do cliente">
         {caso?.identidade.email ? (
           <div className="space-y-2">
@@ -96,7 +107,9 @@ function PortalGoLive() {
           />
         )}
       </Bloco>
+      </GradeDesk>
 
+      <GradeDesk>
       <Bloco titulo="1. Publicação por estado">
         {projecoes.length ? (
           <>
@@ -148,6 +161,7 @@ function PortalGoLive() {
           />
         )}
       </Bloco>
+      </GradeDesk>
 
       <Bloco titulo="3. Cobertura do App">
         <Barras titulo="Conteúdo publicado por aba" dados={cobertura} />
@@ -156,6 +170,7 @@ function PortalGoLive() {
         </p>
       </Bloco>
 
+      <GradeDesk>
       <Bloco titulo="Publicar proposta e contrato no App">
         <p className="mb-3 text-sm text-navy/70">
           A família vê apenas título, número e situação. Valores, cláusulas e observações internas não são publicados.
@@ -258,6 +273,7 @@ function PortalGoLive() {
         )}
         <p className="text-xs text-navy/55">Toda publicação guarda autor e data.</p>
       </Bloco>
+      </GradeDesk>
 
       <Bloco titulo="Espelho interno do App">
         <p className="text-sm text-navy/70">
