@@ -72,3 +72,9 @@
 - [ ] Revisar cor e layout do App Cliente (desktop e mobile) contra a prancha "Prancha de aceite · App Cliente" (7 telas canônicas)
 - [ ] Cabeçalho navy com marca, subtítulo "Aplicativo da família" e título/descrição por aba
 - [ ] Cartões creme com rótulo dourado em maiúsculas e títulos em serifa
+
+## Ficha Ana — papéis, duplicidades e próxima ação (2026-09-15)
+- [ ] Papéis operacionais do núcleo (titular, participantes signatários, dependente, pessoa em revisão) — sem inferir parentesco genealógico
+- [ ] Duplicidades: mostrar IDs e fontes de Prancha 1 e Vínculo materno Silveira ANTES de arquivar
+- [ ] Próxima ação sucessora da vencida em 22/08 — aguardando título, responsável, prazo e estado
+- [ ] Acesso/primeira projeção — aguardando escolha de autorização (nenhuma caixa marcada)
