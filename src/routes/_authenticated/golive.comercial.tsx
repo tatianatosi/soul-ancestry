@@ -8,8 +8,9 @@ import { Barras, Rosca } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
-import { AcaoAtendimento } from "@/components/golive/atendimento";
+import { AcaoAgenda, AcaoAtendimento } from "@/components/golive/atendimento";
 import {
+  agendaDoLead,
   estadoDaCall,
   funil,
   kanbanPorEtapa,
@@ -18,6 +19,7 @@ import {
   porOrigem,
   porResultadoDiscovery,
   porSituacaoDaCall,
+  progressoRoteiro,
   roteiroDiscovery,
   rotuloDaCall,
   saudeDosLeads,
@@ -243,10 +245,16 @@ function ComercialGoLive() {
         aoEscolher={setEscolhido}
         acao={
           leadDoCaso ? (
-            <AcaoAtendimento
-              leadId={leadDoCaso}
-              aoConfirmar={(v) => atendimento({ data: v as Parameters<typeof atendimento>[0]["data"] })}
-            />
+            <div className="flex flex-wrap gap-2">
+              <AcaoAtendimento
+                leadId={leadDoCaso}
+                aoConfirmar={(v) => atendimento({ data: v as Parameters<typeof atendimento>[0]["data"] })}
+              />
+              <AcaoAgenda
+                leadId={leadDoCaso}
+                aoConfirmar={(v) => atendimento({ data: v as Parameters<typeof atendimento>[0]["data"] })}
+              />
+            </div>
           ) : (
             <Pendente destino="/golive/leads" rotulo="Abrir entrada de leads" />
           )
@@ -355,6 +363,8 @@ function MesaDeDiscovery({
   const passos = roteiroDiscovery(lead);
   const atual = passos[Math.min(indice, passos.length - 1)]!;
   const respondidas = passos.filter((p) => p.estado === "respondida").length;
+  const progresso = progressoRoteiro(lead);
+  const agenda = agendaDoLead(lead);
 
   return (
     <Bloco titulo="Mesa de Discovery">
@@ -374,6 +384,35 @@ function MesaDeDiscovery({
               ))}
             </select>
           </label>
+          {agenda ? (
+            <div className="rounded-lg bg-creme/60 p-3 text-xs text-navy/70">
+              <span className="block font-medium text-navy">Agenda deste lead</span>
+              <span className="block">
+                Call: {agenda.rotulo} · {dataHumana(agenda.quando, "sem data registrada")}
+                {agenda.vencida ? " · horário já passou" : ""}
+              </span>
+              <span className="block">
+                Próxima ação: {humano(agenda.proximaAcao, "não registrada")} ·{" "}
+                {dataHumana(agenda.proximaAcaoEm, "sem prazo")}
+              </span>
+            </div>
+          ) : null}
+
+          <div className="space-y-1 text-xs text-navy/65">
+            <p className="font-medium text-navy">
+              Roteiro do Discovery: {progresso.respondidas} de {progresso.total} respondidas (
+              {progresso.percentual}%)
+            </p>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-navy/10">
+              <div className="h-full rounded-full bg-gold" style={{ width: `${progresso.percentual}%` }} />
+            </div>
+            <p>
+              {progresso.proxima
+                ? `Próxima pergunta: ${progresso.proxima.pergunta}`
+                : "Roteiro completo com o que está gravado no lead."}
+            </p>
+          </div>
+
           <p className="text-xs uppercase tracking-wide text-navy/50">
             Pergunta {indice + 1} de {passos.length} · {respondidas} respondida(s) · {lead.nome}
           </p>
