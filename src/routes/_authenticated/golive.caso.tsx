@@ -8,7 +8,11 @@ import { FaixaFluxo } from "@/components/golive/identidade";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { publicarProjecaoApp } from "@/lib/portal-atendimento.functions";
-import { aprovarMicroentregaGoLive, criarMicroentregaGoLive } from "@/lib/golive-escritores.functions";
+import {
+  aprovarMicroentregaGoLive,
+  criarMicroentregaGoLive,
+  despublicarDoAppGoLive,
+} from "@/lib/golive-escritores.functions";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import { Barras, LinhaDoTempo } from "@/components/golive/graficos";
 import { origemDoSinal } from "@/lib/golive-operacao";
@@ -46,6 +50,7 @@ function CasoGoLive() {
   const publicar = useServerFn(publicarProjecaoApp);
   const criarMicroentrega = useServerFn(criarMicroentregaGoLive);
   const aprovar = useServerFn(aprovarMicroentregaGoLive);
+  const despublicar = useServerFn(despublicarDoAppGoLive);
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [aba, setAba] = useState<Aba>("Resumo");
@@ -335,6 +340,30 @@ function CasoGoLive() {
                   Publicados até agora: {caso.publicados.length}.{" "}
                   <Link to="/golive/app" className="underline">Ver no App Cliente</Link>
                 </p>
+                {caso.publicados.length > 0 ? (
+                  <Acoes>
+                    <Acao
+                      rotulo="Despublicar do App"
+                      titulo="Retirar conteúdo do App Cliente"
+                      variante="outline"
+                      campos={[
+                        {
+                          nome: "id",
+                          rotulo: "Conteúdo publicado",
+                          tipo: "escolha",
+                          obrigatorio: true,
+                          opcoes: caso.publicados.map((p) => ({
+                            valor: p.id,
+                            rotulo: (p.texto ?? "Conteúdo").slice(0, 70),
+                          })),
+                        },
+                        { nome: "motivo", rotulo: "Motivo", tipo: "area", obrigatorio: true },
+                      ]}
+                      aoConfirmar={(v) => despublicar({ data: { id: v["id"] ?? "", motivo: v["motivo"] ?? "" } })}
+                      confirmacao="Conteúdo retirado do App. O registro interno permanece."
+                    />
+                  </Acoes>
+                ) : null}
               </Bloco>
             </>
           ) : null}
