@@ -70,12 +70,29 @@ function ComercialGoLive() {
       <Acoes>
         <Acao
           rotulo="Novo lead"
-          titulo="Registrar lead"
+          titulo="Cadastrar lead"
           campos={[
             { nome: "nome", rotulo: "Nome", obrigatorio: true },
+            {
+              nome: "origem",
+              rotulo: "Origem",
+              tipo: "escolha",
+              obrigatorio: true,
+              opcoes: ORIGENS.map((o) => ({ valor: o, rotulo: humano(o) })),
+            },
+            {
+              nome: "etapa",
+              rotulo: "Etapa",
+              tipo: "escolha",
+              obrigatorio: true,
+              padrao: "novo",
+              opcoes: ETAPAS.map((e) => ({ valor: e, rotulo: humano(e) })),
+            },
+            { nome: "responsavel", rotulo: "Responsável", obrigatorio: true },
+            { nome: "proximoPasso", rotulo: "Próximo passo", obrigatorio: true },
+            { nome: "proximoPassoEm", rotulo: "Próximo passo em", tipo: "data" },
             { nome: "email", rotulo: "E-mail" },
             { nome: "telefone", rotulo: "Telefone" },
-            { nome: "origem", rotulo: "Origem" },
             { nome: "objetivo", rotulo: "Objetivo", tipo: "area" },
           ]}
           aoConfirmar={(v) =>
@@ -86,10 +103,14 @@ function ComercialGoLive() {
                 telefone: v["telefone"] ?? "",
                 origem: v["origem"] ?? "",
                 objetivo: v["objetivo"] ?? "",
+                etapa: v["etapa"] ?? "",
+                responsavel: v["responsavel"] ?? "",
+                proximoPasso: v["proximoPasso"] ?? "",
+                proximoPassoEm: v["proximoPassoEm"] ?? "",
               },
             })
           }
-          confirmacao="Lead registrado."
+          confirmacao="Lead cadastrado. Ele já aparece no funil, no kanban e na Mesa de Discovery."
         />
       </Acoes>
 
