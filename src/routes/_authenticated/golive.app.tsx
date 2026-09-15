@@ -14,6 +14,7 @@ import { useGoLive } from "@/components/golive/dados";
 import {
   ABAS_APP,
   contratoParaFamilia,
+  familiaParaApp,
   financeiroParaFamilia,
   marcosPublicados,
   parcelasEmFatias,
