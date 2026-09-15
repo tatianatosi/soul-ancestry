@@ -541,10 +541,21 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           em: (p["approved_at"] as string) ?? (p["effective_from"] as string) ?? null,
           criadoEm: (p["created_at"] as string) ?? null,
         })),
-      /** Projeções ainda não publicadas — só estado, para a rosca do Portal. */
+      /**
+       * Projeções do caso em qualquer situação — inclusive despublicadas,
+       * que continuam no histórico com motivo. Só leitura.
+       */
       projecoesEstados: limpar(projecoes).map((p) => ({
         id: String(p["id"]),
         estado: String(p["approval_status"] ?? ""),
+        tipo: (p["projection_type"] as string) ?? null,
+        origem: (p["source_entity_type"] as string) ?? null,
+        visibilidade: (p["visibility_scope"] as string) ?? null,
+        aprovadoPor: (p["approved_by"] as string) ?? null,
+        aprovadaEm: (p["approved_at"] as string) ?? null,
+        vigenteDe: (p["effective_from"] as string) ?? null,
+        despublicadaEm: (p["archived_at"] as string) ?? null,
+        motivoDespublicacao: (p["archived_reason"] as string) ?? null,
       })),
 
       contratos: limpar(contratos).map((c) => ({
