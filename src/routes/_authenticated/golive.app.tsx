@@ -90,6 +90,10 @@ function AppClienteGoLive() {
   const legado = publicacoesDaAba(publicados, "Legado");
   const documentosPublicados = publicacoesDaAba(publicados, "Documentos");
   const marcos = marcosPublicados(publicados);
+  /** Proposta e contrato só aparecem quando a equipe publica a projeção. */
+  const instrumentosPublicados = publicados.filter(
+    (p) => p.origem === "contracts" || p.origem === "proposals",
+  );
 
   const documentosLiberados = (caso?.documentos ?? []).filter((d) => d.liberadoCliente);
   const situacao = situacaoDocumentos(documentosLiberados);
@@ -379,6 +383,29 @@ function AppClienteGoLive() {
                 </div>
               ) : (
                 <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando cadastro da equipe</Button>} />
+              )}
+            </Bloco>
+            <Bloco titulo="Proposta e contrato publicados">
+              {instrumentosPublicados.length ? (
+                <ul className="space-y-2 text-sm text-navy">
+                  {instrumentosPublicados.map((p) => {
+                    const partes = (p.resumo ?? "").split("·").map((t) => t.trim()).filter(Boolean);
+                    return (
+                      <li key={p.id} className="break-words rounded-xl border border-navy/10 bg-cream/70 p-3">
+                        <p className="font-medium">{partes[0] ?? humano(p.tipo)}</p>
+                        <p className="text-xs text-navy/65">
+                          {partes[1] ? `${partes[1]} · ` : ""}
+                          {humano(partes[2] ?? "", "sem situação registrada")}
+                        </p>
+                        <p className="mt-1 text-xs text-navy/55">
+                          Publicado em {dataHumana(p.em, "data não registrada")}
+                        </p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando liberação da equipe</Button>} />
               )}
             </Bloco>
             <Bloco titulo="Seu contrato e pagamentos">

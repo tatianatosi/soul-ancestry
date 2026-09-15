@@ -20,9 +20,11 @@ import { Button } from "@/components/ui/button";
 import {
   diasAte,
   eixosDoCaso,
+  leadsNoRadar,
   ordemDeAtendimento,
   pontosDaMatriz,
   type CasoRadar,
+  type LeadRadar,
 } from "@/lib/golive-radar";
 import { impactoNaArvore } from "@/lib/golive-pesquisa";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
@@ -62,6 +64,11 @@ function RadarGoLive() {
 
   const pontos = useMemo(() => pontosDaMatriz(carteira), [carteira]);
   const ordem = useMemo(() => ordemDeAtendimento(carteira), [carteira]);
+  /** Mesma fonte do Comercial: leads já gravados da organização. */
+  const leads = useMemo(
+    () => leadsNoRadar((caso?.leadsComerciais ?? []) as LeadRadar[]),
+    [caso],
+  );
 
   const selecionado =
     carteira.find((c) => c.id === selecionadoId) ??
@@ -150,6 +157,43 @@ function RadarGoLive() {
           </>
         ) : (
           <SemDado />
+        )}
+      </Bloco>
+
+      <Bloco titulo="5. Leads em atenção">
+        {leads.length ? (
+          <ul className="space-y-2 text-sm text-navy">
+            {leads.map((l) => (
+              <li key={l.id} className="min-w-0 rounded-xl border border-navy/10 bg-cream/60 p-3">
+                <p className="break-words font-medium">{l.nome}</p>
+                <p className="break-words text-navy/70">
+                  Etapa: {humano(l.etapa)} · Marco: {l.marco}
+                </p>
+                <p className="break-words text-xs text-navy/55">
+                  {l.prazo
+                    ? `Prazo ${dataHumana(l.prazo)}${
+                        l.dias === null ? "" : l.dias < 0 ? " (vencido)" : l.dias === 0 ? " (hoje)" : ` (em ${l.dias} dias)`
+                      }`
+                    : "sem prazo registrado"}
+                </p>
+                {l.alerta ? (
+                  <p className="mt-1 break-words text-xs text-[var(--terracota,#9A3A2F)]">{l.alerta}</p>
+                ) : null}
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Link to="/golive/leads">
+                    <Button size="sm" variant="outline">Abrir lead</Button>
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-navy/60">Sem itens nesta etapa.</p>
+            <Link to="/golive/leads">
+              <Button size="sm">Registrar lead</Button>
+            </Link>
+          </div>
         )}
       </Bloco>
     </GoLiveShell>

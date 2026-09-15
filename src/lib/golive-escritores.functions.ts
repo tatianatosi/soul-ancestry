@@ -896,6 +896,79 @@ export const publicarNoAppGoLive = createServerFn({ method: "POST" })
     return { id: String(r.data.id) };
   });
 
+/**
+ * Publica no App o cartão do contrato ou da proposta: só título, número e
+ * situação. O texto é montado a partir do registro gravado, nunca digitado à
+ * mão, e nenhum valor interno, cláusula ou preço técnico entra na projeção.
+ */
+export const publicarInstrumentoNoAppGoLive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { tipo: "contrato" | "proposta"; id: string }) => d)
+  .handler(async ({ data, context }) => {
+    semCache();
+    const s = context.supabase as any;
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const id = texto(data.id);
+    if (!id) throw new Error("Escolha o contrato ou a proposta que será publicada.");
+    if (data.tipo !== "contrato" && data.tipo !== "proposta") throw new Error("Tipo inválido.");
+
+    let titulo = "";
+    let numero = "";
+    let situacao = "";
+
+    if (data.tipo === "contrato") {
+      const r = await s
+        .from("contracts")
+        .select("id, title, contract_number, status, signed_at")
+        .eq("id", id)
+        .eq("organization_id", organizationId)
+        .eq("case_id", casoId)
+        .maybeSingle();
+      erro(r);
+      if (!r.data) throw new Error("Contrato não encontrado neste caso.");
+      titulo = String(r.data.title ?? "Contrato");
+      numero = String(r.data.contract_number ?? "");
+      situacao = r.data.signed_at ? "assinado" : String(r.data.status ?? "em preparação");
+    } else {
+      const r = await s
+        .from("proposals")
+        .select("id, versao, status, aprovada_em")
+        .eq("id", id)
+        .eq("organization_id", organizationId)
+        .eq("case_id", casoId)
+        .maybeSingle();
+      erro(r);
+      if (!r.data) throw new Error("Proposta não encontrada neste caso.");
+      titulo = "Proposta do estudo";
+      numero = `Versão ${r.data.versao ?? 1}`;
+      situacao = r.data.aprovada_em ? "aprovada" : String(r.data.status ?? "em análise");
+    }
+
+    const resumo = [titulo, numero, situacao].filter(Boolean).join(" · ");
+    const agora = new Date().toISOString();
+    const r = await s
+      .from("app_projections")
+      .insert({
+        organization_id: organizationId,
+        case_id: casoId,
+        source_entity_type: data.tipo === "contrato" ? "contracts" : "proposals",
+        source_entity_id: id,
+        projection_type: data.tipo,
+        destination: "app_cliente",
+        content_sanitized: resumo,
+        approval_status: "published",
+        approved_by: userId,
+        approved_at: agora,
+        effective_from: agora,
+        visibility_scope: "titular",
+        created_by: userId,
+      })
+      .select("id")
+      .single();
+    erro(r);
+    return { id: String(r.data.id), resumo };
+  });
+
 /** Despublicar arquiva a projeção com motivo — o histórico permanece. */
 export const despublicarDoAppGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

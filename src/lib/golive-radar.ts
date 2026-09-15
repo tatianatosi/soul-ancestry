@@ -156,3 +156,81 @@ export function pontosDaMatriz(
   }
   return usados;
 }
+
+/* ------------------------------------------------------------------ *
+ * Leads no Radar
+ * ------------------------------------------------------------------ */
+
+export type LeadRadar = {
+  id: string;
+  nome: string;
+  etapa: string | null;
+  estagio: string | null;
+  proximoPasso: string | null;
+  proximoPassoEm: string | null;
+  callAgendada: string | null;
+  callRealizada: string | null;
+  propostaEm: string | null;
+  casoId: string | null;
+};
+
+export type LinhaLeadRadar = {
+  id: string;
+  nome: string;
+  etapa: string;
+  marco: string;
+  prazo: string | null;
+  dias: number | null;
+  alerta: string | null;
+};
+
+/**
+ * Etapa comercial e marco do lead vêm só de datas já gravadas — nunca de
+ * texto livre ou inferência. O alerta usa o prazo do próximo passo.
+ */
+export function linhaDoLead(lead: LeadRadar, agora: Date = new Date()): LinhaLeadRadar {
+  const marco = lead.casoId
+    ? "Caso aberto"
+    : lead.propostaEm
+      ? "Proposta registrada"
+      : lead.callRealizada
+        ? "Call realizada"
+        : lead.callAgendada
+          ? "Call agendada"
+          : "Lead registrado";
+
+  const dias = diasAte(lead.proximoPassoEm, agora);
+  const alerta =
+    dias === null
+      ? lead.proximoPasso
+        ? "Próximo passo sem prazo"
+        : "Sem próximo passo definido"
+      : dias < 0
+        ? `Prazo vencido há ${Math.abs(dias)} dia(s)`
+        : dias === 0
+          ? "Prazo vence hoje"
+          : null;
+
+  return {
+    id: lead.id,
+    nome: lead.nome,
+    etapa: lead.etapa ?? lead.estagio ?? "sem etapa registrada",
+    marco,
+    prazo: lead.proximoPassoEm,
+    dias,
+    alerta,
+  };
+}
+
+/** Leads em atenção primeiro: vencidos, depois sem prazo, depois por prazo. */
+export function leadsNoRadar(leads: LeadRadar[], agora: Date = new Date()): LinhaLeadRadar[] {
+  return leads
+    .map((l) => linhaDoLead(l, agora))
+    .sort((a, b) => {
+      const peso = (x: LinhaLeadRadar) => (x.dias !== null && x.dias < 0 ? 0 : x.dias === null ? 1 : 2);
+      const d = peso(a) - peso(b);
+      if (d !== 0) return d;
+      if (a.dias !== null && b.dias !== null && a.dias !== b.dias) return a.dias - b.dias;
+      return a.nome.localeCompare(b.nome, "pt-BR");
+    });
+}

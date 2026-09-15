@@ -6,12 +6,15 @@
  * publicação é disparada aqui e nenhum dado é criado.
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
+import { Acao } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { Barras, Rosca } from "@/components/golive/graficos";
 import { Button } from "@/components/ui/button";
+import { publicarInstrumentoNoAppGoLive } from "@/lib/golive-escritores.functions";
 import { acessoAoPortal, coberturaDoApp, publicacaoPorEstado } from "@/lib/golive-portal";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
@@ -44,6 +47,11 @@ function PortalGoLive() {
   const porEstado = publicacaoPorEstado(projecoes);
   const resumoAcesso = acessoAoPortal(acessos, emails);
   const cobertura = coberturaDoApp(projecoes);
+  const publicarInstrumento = useServerFn(publicarInstrumentoNoAppGoLive);
+  const contrato = caso?.contratos?.[0] ?? null;
+  const proposta = caso?.propostas?.[0] ?? null;
+  const contratoPublicado = publicados.some((p) => p.origem === "contracts");
+  const propostaPublicada = publicados.some((p) => p.origem === "proposals");
 
   return (
     <GoLiveShell titulo="Portal do cliente" descricao="Acesso, equipe e o que o cliente já enxerga.">
@@ -146,6 +154,75 @@ function PortalGoLive() {
         <p className="text-xs text-navy/55">
           Cada aba mostra só o conteúdo já publicado e aprovado para a cliente.
         </p>
+      </Bloco>
+
+      <Bloco titulo="Publicar proposta e contrato no App">
+        <p className="mb-3 text-sm text-navy/70">
+          A família vê apenas título, número e situação. Valores, cláusulas e observações internas não são publicados.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="min-w-0 rounded-xl border border-navy/10 bg-white/70 p-3">
+            <p className="text-sm font-medium text-navy">Proposta</p>
+            {proposta ? (
+              <>
+                <p className="mb-2 text-xs text-navy/65">
+                  Versão {proposta.versao ?? 1} · {humano(proposta.status, "sem situação")}
+                </p>
+                <Acao
+                  rotulo={propostaPublicada ? "Publicar novamente" : "Publicar proposta"}
+                  titulo="Publicar proposta no App"
+                  variante="outline"
+                  campos={[
+                    {
+                      nome: "confirmar",
+                      rotulo: "Digite PUBLICAR para confirmar",
+                      obrigatorio: true,
+                    },
+                  ]}
+                  aoConfirmar={async (v) => {
+                    if ((v["confirmar"] ?? "").trim().toUpperCase() !== "PUBLICAR")
+                      throw new Error("Digite PUBLICAR para confirmar.");
+                    return publicarInstrumento({ data: { tipo: "proposta", id: proposta.id } });
+                  }}
+                  confirmacao="Proposta publicada no App."
+                />
+              </>
+            ) : (
+              <p className="text-xs text-navy/60">Nenhuma proposta registrada neste caso.</p>
+            )}
+          </div>
+
+          <div className="min-w-0 rounded-xl border border-navy/10 bg-white/70 p-3">
+            <p className="text-sm font-medium text-navy">Contrato</p>
+            {contrato ? (
+              <>
+                <p className="mb-2 text-xs text-navy/65">
+                  {contrato.numero ?? "sem número"} · {humano(contrato.status, "sem situação")}
+                </p>
+                <Acao
+                  rotulo={contratoPublicado ? "Publicar novamente" : "Publicar contrato"}
+                  titulo="Publicar contrato no App"
+                  variante="outline"
+                  campos={[
+                    {
+                      nome: "confirmar",
+                      rotulo: "Digite PUBLICAR para confirmar",
+                      obrigatorio: true,
+                    },
+                  ]}
+                  aoConfirmar={async (v) => {
+                    if ((v["confirmar"] ?? "").trim().toUpperCase() !== "PUBLICAR")
+                      throw new Error("Digite PUBLICAR para confirmar.");
+                    return publicarInstrumento({ data: { tipo: "contrato", id: contrato.id } });
+                  }}
+                  confirmacao="Contrato publicado no App."
+                />
+              </>
+            ) : (
+              <p className="text-xs text-navy/60">Nenhum contrato registrado neste caso.</p>
+            )}
+          </div>
+        </div>
       </Bloco>
 
       <Bloco titulo="Publicado para o cliente">
