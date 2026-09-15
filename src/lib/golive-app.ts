@@ -159,3 +159,40 @@ export function contratoParaFamilia(
   if (assinado) return assinado;
   return contratos.find((c) => /assinad|vigente|ativo/i.test(String(c.status ?? ""))) ?? null;
 }
+
+export type ParcelaCliente = {
+  id: string;
+  numero?: string | null;
+  valor?: number | null;
+  status?: string | null;
+  vencimento?: string | null;
+  pagaEm?: string | null;
+};
+
+export type SituacaoFinanceira = {
+  parcelas: ParcelaCliente[];
+  pagas: number;
+  emAberto: number;
+  proxima: ParcelaCliente | null;
+};
+
+/**
+ * Financeiro na leitura da família: só parcela já emitida para o cliente.
+ * Rascunho e cancelamento não aparecem; nenhum valor é calculado aqui.
+ */
+export function financeiroParaFamilia(
+  faturas: readonly ParcelaCliente[],
+): SituacaoFinanceira {
+  const parcelas = faturas
+    .filter((f) => !/rascunho|draft|cancelad/i.test(String(f.status ?? "")))
+    .slice()
+    .sort((a, b) => String(a.vencimento ?? "").localeCompare(String(b.vencimento ?? "")));
+  const paga = (p: ParcelaCliente) => Boolean(p.pagaEm) || /pag|quitad|liquidad/i.test(String(p.status ?? ""));
+  const emAberto = parcelas.filter((p) => !paga(p));
+  return {
+    parcelas,
+    pagas: parcelas.length - emAberto.length,
+    emAberto: emAberto.length,
+    proxima: emAberto[0] ?? null,
+  };
+}
