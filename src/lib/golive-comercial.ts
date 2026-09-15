@@ -29,6 +29,10 @@ export type LeadComercial = {
   consentimentoEm: string | null;
   consentimentoCanal: string | null;
   propostaReferencia: string | null;
+  /** Data da proposta registrada em interação; `null` = data não registrada. */
+  propostaEm: string | null;
+  /** Interação mais recente do lead que conta como follow-up. */
+  ultimaInteracaoEm: string | null;
   casoId: string | null;
 };
 
@@ -77,14 +81,64 @@ export function porOrigem(
     .sort((a, b) => b.valor - a.valor);
 }
 
-/** Recorte por período de entrada do lead, em dias. `null` = tudo. */
+/**
+ * Recorte por período de entrada do lead, em dias. `null` = tudo.
+ * Lead sem data de entrada nunca é escondido: fica sempre no recorte e é
+ * contado à parte por `semDataDeEntrada`.
+ */
 export function noPeriodo(leads: LeadComercial[], dias: number | null, agora = new Date()): LeadComercial[] {
   if (dias === null) return leads;
   const limite = agora.getTime() - dias * 24 * 60 * 60 * 1000;
   return leads.filter((l) => {
     const d = lerData(l.criadoEm);
-    return d ? d.getTime() >= limite : false;
+    return d ? d.getTime() >= limite : true;
   });
+}
+
+/** Leads sem data de entrada gravada — declarados, nunca omitidos. */
+export function semDataDeEntrada(leads: LeadComercial[]): LeadComercial[] {
+  return leads.filter((l) => lerData(l.criadoEm) === null);
+}
+
+export type EstadoCallLead =
+  | "sem_agenda"
+  | "agendada"
+  | "confirmada"
+  | "realizada"
+  | "remarcada"
+  | "no_show"
+  | "cancelada";
+
+/** Estado da call a partir do status gravado; datas só completam o que falta. */
+export function estadoDaCall(lead: LeadComercial): EstadoCallLead {
+  const s = String(lead.statusCall ?? "").trim();
+  if (s === "cancelada_lead" || s === "cancelada_clube") return "cancelada";
+  if (s === "realizada") return "realizada";
+  if (s === "no_show") return "no_show";
+  if (s === "remarcada") return "remarcada";
+  if (s === "confirmada") return "confirmada";
+  if (s === "agendada") return "agendada";
+  if (lead.callRealizada) return "realizada";
+  if (lead.callAgendada) return "agendada";
+  return "sem_agenda";
+}
+
+/**
+ * Call vencida só quando continua de pé (agendada/confirmada), não foi
+ * realizada e o horário já passou. Data sem hora só vence no fim do dia,
+ * nunca pela manhã. Cancelada, remarcada, no-show e realizada não vencem.
+ */
+export function callVencidaDoLead(lead: LeadComercial, agora = new Date()): boolean {
+  const estado = estadoDaCall(lead);
+  if (estado !== "agendada" && estado !== "confirmada") return false;
+  if (lead.callRealizada) return false;
+  const agendada = lerData(lead.callAgendada);
+  if (!agendada) return false;
+  const apenasDia = /^\d{4}-\d{2}-\d{2}$/.test(String(lead.callAgendada));
+  const limite = apenasDia
+    ? new Date(agendada.getFullYear(), agendada.getMonth(), agendada.getDate(), 23, 59, 59, 999)
+    : agendada;
+  return limite.getTime() < agora.getTime();
 }
 
 export type SaudeLead = {
@@ -92,21 +146,28 @@ export type SaudeLead = {
   semResponsavel: LeadComercial[];
   callVencida: LeadComercial[];
   propostaSemFollowUp: LeadComercial[];
+  /** Proposta registrada sem data: não dá para medir follow-up — lacuna declarada. */
+  propostaSemData: LeadComercial[];
 };
 
 /**
- * Call vencida = call agendada no passado sem call realizada.
- * Proposta sem follow-up = referência de proposta gravada e nenhum toque posterior a ela.
+ * Call vencida conforme `callVencidaDoLead`.
+ * Proposta sem follow-up = data da proposta gravada e nenhuma interação
+ * elegível posterior a ela (não usa `updated_at`).
  */
 export function saudeDosLeads(leads: LeadComercial[], agora = new Date()): SaudeLead {
   const semProximaAcao = leads.filter((l) => !l.proximoPasso);
   const semResponsavel = leads.filter((l) => !l.responsavel);
-  const callVencida = leads.filter((l) => {
-    const agendada = lerData(l.callAgendada);
-    return Boolean(agendada && !l.callRealizada && agendada.getTime() < agora.getTime());
+  const callVencida = leads.filter((l) => callVencidaDoLead(l, agora));
+  const comProposta = leads.filter((l) => Boolean(l.propostaReferencia) || Boolean(l.propostaEm));
+  const propostaSemData = comProposta.filter((l) => lerData(l.propostaEm) === null);
+  const propostaSemFollowUp = comProposta.filter((l) => {
+    const proposta = lerData(l.propostaEm);
+    if (!proposta) return false;
+    const toque = lerData(l.ultimaInteracaoEm);
+    return !toque || toque.getTime() <= proposta.getTime();
   });
-  const propostaSemFollowUp = leads.filter((l) => Boolean(l.propostaReferencia) && !l.ultimoToque);
-  return { semProximaAcao, semResponsavel, callVencida, propostaSemFollowUp };
+  return { semProximaAcao, semResponsavel, callVencida, propostaSemFollowUp, propostaSemData };
 }
 
 /** Agrupa os cartões por etapa comercial gravada, para o kanban. */

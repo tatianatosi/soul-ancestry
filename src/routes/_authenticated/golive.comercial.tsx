@@ -15,6 +15,7 @@ import {
   noPeriodo,
   porOrigem,
   saudeDosLeads,
+  semDataDeEntrada,
   type LeadComercial,
 } from "@/lib/golive-comercial";
 import { registrarCallGoLive, registrarDiscoveryGoLive, registrarLeadGoLive } from "@/lib/golive-escritores.functions";
@@ -59,6 +60,9 @@ function ComercialGoLive() {
   const leads = useMemo(() => noPeriodo(todos, periodo), [todos, periodo]);
   const saude = useMemo(() => saudeDosLeads(leads), [leads]);
   const colunas = useMemo(() => kanbanPorEtapa(leads), [leads]);
+  const semData = useMemo(() => semDataDeEntrada(leads), [leads]);
+  const total = (data as { leadsComerciaisTotal?: number } | undefined)?.leadsComerciaisTotal ?? todos.length;
+  const limite = (data as { leadsComerciaisLimite?: number } | undefined)?.leadsComerciaisLimite ?? 200;
 
   /* Lead em foco na Mesa e nas calls: o escolhido na lista, senão o do caso,
      senão o mais recente. Nunca inventa lead. */
@@ -170,12 +174,29 @@ function ComercialGoLive() {
 
       <Bloco titulo="Saúde do lead">
         {leads.length ? (
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Indicador rotulo="Sem próxima ação" valor={saude.semProximaAcao.length} />
-            <Indicador rotulo="Sem responsável" valor={saude.semResponsavel.length} />
-            <Indicador rotulo="Call vencida" valor={saude.callVencida.length} />
-            <Indicador rotulo="Proposta sem follow-up" valor={saude.propostaSemFollowUp.length} />
-          </div>
+          <>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <Indicador rotulo="Sem próxima ação" valor={saude.semProximaAcao.length} />
+              <Indicador rotulo="Sem responsável" valor={saude.semResponsavel.length} />
+              <Indicador rotulo="Call vencida" valor={saude.callVencida.length} />
+              <Indicador rotulo="Proposta sem follow-up" valor={saude.propostaSemFollowUp.length} />
+            </div>
+            {saude.propostaSemData.length ? (
+              <p className="text-xs text-navy/55">
+                {saude.propostaSemData.length} proposta(s) sem data registrada: o follow-up não pode ser medido.
+              </p>
+            ) : null}
+            {semData.length ? (
+              <p className="text-xs text-navy/55">
+                {semData.length} lead(s) sem data de entrada continuam na lista, fora do recorte por período.
+              </p>
+            ) : null}
+            {total > limite ? (
+              <p className="text-xs text-navy/55">
+                A organização tem {total} leads ativos; esta leitura traz os {limite} mais recentes.
+              </p>
+            ) : null}
+          </>
         ) : (
           <>
             <Vazio cta={ctaNovoLead} />
