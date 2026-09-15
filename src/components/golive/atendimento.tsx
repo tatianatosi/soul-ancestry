@@ -58,3 +58,55 @@ export function AcaoAtendimento({
     </Acoes>
   );
 }
+
+/**
+ * Agenda da call: grava situação e data no mesmo lead, pelo escritor que já
+ * existe. Sem convite, sem envio externo, sem tabela nova.
+ */
+export function AcaoAgenda({
+  leadId,
+  aoConfirmar,
+}: {
+  leadId: string;
+  aoConfirmar: (v: Record<string, string>) => Promise<unknown>;
+}) {
+  return (
+    <Acoes>
+      <Acao
+        rotulo="Agendar call"
+        titulo="Agenda da call"
+        variante="outline"
+        campos={[
+          {
+            nome: "situacaoCall",
+            rotulo: "Situação",
+            tipo: "escolha",
+            obrigatorio: true,
+            padrao: "agendada",
+            opcoes: SITUACOES_CALL.filter((s) => s.valor !== "realizada").map((s) => ({
+              valor: s.valor,
+              rotulo: s.rotulo,
+            })),
+          },
+          { nome: "callEm", rotulo: "Data e hora", tipo: "data", obrigatorio: true },
+          { nome: "resumo", rotulo: "Combinado interno", tipo: "area", obrigatorio: true },
+          { nome: "proximoPasso", rotulo: "Próxima ação", obrigatorio: true },
+          { nome: "proximoPassoEm", rotulo: "Próxima ação em", tipo: "data" },
+          { nome: "responsavel", rotulo: "Responsável" },
+        ]}
+        aoConfirmar={(v) =>
+          aoConfirmar({
+            leadId,
+            situacaoCall: v["situacaoCall"] ?? "agendada",
+            callEm: v["callEm"] ?? "",
+            resumo: v["resumo"] ?? "",
+            proximoPasso: v["proximoPasso"] ?? "",
+            proximoPassoEm: v["proximoPassoEm"] ?? "",
+            responsavel: v["responsavel"] ?? "",
+          })
+        }
+        confirmacao="Agenda registrada. A call aparece no funil, no kanban e na próxima ação do lead."
+      />
+    </Acoes>
+  );
+}
