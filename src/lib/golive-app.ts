@@ -145,23 +145,33 @@ export function achadosParaFamilia(achados: readonly AchadoPesquisa[]): AchadoPe
 
 export type ContratoCliente = {
   id: string;
+  clienteId?: string | null;
   titulo: string;
   numero?: string | null;
   status?: string | null;
   assinadoEm?: string | null;
 };
 
-/** Instrumento que a família pode ver: assinado, ou já liberado para envio. */
+/**
+ * Instrumento que a família pode ver: assinado, ou já liberado para envio.
+ * Sempre filtrado pelo titular quando o contrato registra o cliente — o App
+ * nunca lê instrumento de outra pessoa, mesmo dentro do mesmo caso.
+ */
 export function contratoParaFamilia(
   contratos: readonly ContratoCliente[],
+  titularId?: string | null,
 ): ContratoCliente | null {
-  const assinado = contratos.find((c) => Boolean(c.assinadoEm));
+  const doTitular = titularId
+    ? contratos.filter((c) => !c.clienteId || c.clienteId === titularId)
+    : contratos;
+  const assinado = doTitular.find((c) => Boolean(c.assinadoEm));
   if (assinado) return assinado;
-  return contratos.find((c) => /assinad|vigente|ativo/i.test(String(c.status ?? ""))) ?? null;
+  return doTitular.find((c) => /assinad|vigente|ativo/i.test(String(c.status ?? ""))) ?? null;
 }
 
 export type ParcelaCliente = {
   id: string;
+  clienteId?: string | null;
   numero?: string | null;
   valor?: number | null;
   status?: string | null;
@@ -182,8 +192,10 @@ export type SituacaoFinanceira = {
  */
 export function financeiroParaFamilia(
   faturas: readonly ParcelaCliente[],
+  titularId?: string | null,
 ): SituacaoFinanceira {
   const parcelas = faturas
+    .filter((f) => (titularId ? !f.clienteId || f.clienteId === titularId : true))
     .filter((f) => !/rascunho|draft|cancelad/i.test(String(f.status ?? "")))
     .slice()
     .sort((a, b) => String(a.vencimento ?? "").localeCompare(String(b.vencimento ?? "")));

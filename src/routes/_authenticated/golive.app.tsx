@@ -98,8 +98,9 @@ function AppClienteGoLive() {
   const evidenciasFamilia = evidenciasParaFamilia(caso?.evidencias ?? []);
   const fontesFamilia = fontesParaFamilia(caso?.fontes ?? []);
   const achadosFamilia = achadosParaFamilia(caso?.achados ?? []);
-  const contrato = contratoParaFamilia(caso?.contratos ?? []);
-  const financeiro = financeiroParaFamilia(caso?.faturas ?? []);
+  const titularId = caso?.identidade?.pessoaPrincipalId ?? null;
+  const contrato = contratoParaFamilia(caso?.contratos ?? [], titularId);
+  const financeiro = financeiroParaFamilia(caso?.faturas ?? [], titularId);
 
   return (
     <GoLiveShell titulo="App Cliente" descricao="Somente o que já foi publicado para a família.">
@@ -409,16 +410,14 @@ function AppClienteGoLive() {
                     <p className="text-navy/70">Convite do App ainda não enviado.</p>
                   )}
                   <div className="flex flex-wrap gap-2 pt-1">
-                    <IrPara para="/golive/formalizacao" rotulo="Ver proposta" />
-                    <IrPara para="/golive/juridico" rotulo="Ver escopo e contrato" />
+                    <IrPara para="/portal/proposta" rotulo="Ver proposta e escopo" />
                   </div>
                 </div>
               ) : (
                 <Vazio
                   cta={
                     <div className="flex flex-wrap gap-2">
-                      <IrPara para="/golive/formalizacao" rotulo="Ver proposta" />
-                      <IrPara para="/golive/juridico" rotulo="Ver escopo e contrato" />
+                      <IrPara para="/portal/proposta" rotulo="Ver proposta e escopo" />
                     </div>
                   }
                 />

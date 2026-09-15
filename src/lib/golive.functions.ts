@@ -643,6 +643,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
 
       contratos: limpar(contratos).map((c) => ({
         id: String(c["id"]),
+        clienteId: (c["client_id"] as string) ?? null,
         numero: (c["contract_number"] as string) ?? null,
         titulo: (c["title"] as string) ?? "Instrumento sem título",
         status: (c["status"] as string) ?? null,
@@ -663,6 +664,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
       })),
       faturas: limpar(faturas).map((f) => ({
         id: String(f["id"]),
+        clienteId: (f["client_id"] as string) ?? null,
         numero: (f["numero"] as string) ?? null,
         valor: (f["valor"] as number) ?? null,
         valorPago: (f["valor_pago"] as number) ?? null,
