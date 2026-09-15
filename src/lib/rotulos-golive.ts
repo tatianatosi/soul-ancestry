@@ -32,6 +32,19 @@ const DICIONARIO: Record<string, string> = {
   signatario: "Signatário",
   acompanhante: "Acompanhante",
   titular: "Titular",
+  // Situação de anexo e instrumento jurídico, como está gravada hoje
+  missing: "Ausente",
+  not_applicable: "Não aplicável",
+  "not applicable": "Não aplicável",
+  drafting: "Em elaboração",
+  pending_data: "Aguardando dados",
+  "pending data": "Aguardando dados",
+  draft: "Rascunho",
+  in_review: "Em revisão",
+  approved: "Aprovado",
+  signed: "Assinado",
+  aprovada: "Aprovada",
+  emitida: "Emitida",
 };
 
 /** Devolve o texto legível de um valor técnico; `null` vira o vazio canônico. */

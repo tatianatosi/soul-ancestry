@@ -206,12 +206,22 @@ export const carregarGoLive = createServerFn({ method: "GET" })
     })();
 
     /* Anexos do contrato — só leitura do que já existe em `contract_annexes`.
-       Registro marcado como teste sai da leitura; nada é criado ou assinado. */
-    const anexosContrato = (
+       Parte dos anexos está ligada ao contrato e parte só ao caso, por isso as
+       duas leituras somam sem repetir. Registro de teste sai; nada é criado. */
+    const [anexosPorContrato, anexosPorCaso] = await Promise.all([
       contratos[0]
-        ? await lista(supabase, "contract_annexes", "contract_id", String(contratos[0]["id"]))
-        : await lista(supabase, "contract_annexes", "case_id", casoId)
-    ).filter((a) => a["is_test"] !== true);
+        ? lista(supabase, "contract_annexes", "contract_id", String(contratos[0]["id"]))
+        : Promise.resolve([] as Linha[]),
+      lista(supabase, "contract_annexes", "case_id", casoId),
+    ]);
+    const anexosVistos = new Set<string>();
+    const anexosContrato = [...anexosPorContrato, ...anexosPorCaso].filter((a) => {
+      if (a["is_test"] === true) return false;
+      const id = String(a["id"]);
+      if (anexosVistos.has(id)) return false;
+      anexosVistos.add(id);
+      return true;
+    });
 
     const pesquisaId = pesquisas[0] ? String(pesquisas[0]["id"]) : null;
     const [fontes, evidenciasPesquisa, escopoItens] = await Promise.all([
