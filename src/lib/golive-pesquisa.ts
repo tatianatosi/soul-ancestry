@@ -30,6 +30,8 @@ export type AchadoPesquisaCaso = {
   validacao?: string | null;
   publicavel?: boolean;
   registradoEm?: string | null;
+  validadoEm?: string | null;
+  impactoArvore?: string | null;
 };
 
 export type CoberturaFonte = {
@@ -140,4 +142,40 @@ export function filaEmSerie(fila: FilaEditorial): PontoProducao[] {
     { rotulo: "Aprovado", valor: fila.aprovado },
     { rotulo: "Publicado", valor: fila.publicado },
   ];
+}
+
+export type ImpactoArvore = {
+  validados: number;
+  aplicados: number;
+  propostos: number;
+  semImpacto: number;
+  emRevisao: number;
+  itens: { id: string; titulo: string; impacto: string; validadoEm: string | null }[];
+};
+
+/**
+ * Impacto dos achados aprovados na árvore interna.
+ *
+ * Só conta o que está gravado: achado validado internamente e o impacto
+ * declarado no próprio achado. Aprovação interna não publica nada para a
+ * família e não cria vínculo sozinha.
+ */
+export function impactoNaArvore(achados: readonly AchadoPesquisaCaso[]): ImpactoArvore {
+  const validados = achados.filter((a) => String(a.validacao ?? "") === "validado_internamente");
+  const impactoDe = (a: AchadoPesquisaCaso) => String(a.impactoArvore ?? "nenhum");
+  return {
+    validados: validados.length,
+    aplicados: validados.filter((a) => impactoDe(a) === "aplicado").length,
+    propostos: validados.filter((a) => impactoDe(a) === "proposto").length,
+    semImpacto: validados.filter((a) => impactoDe(a) === "nenhum").length,
+    emRevisao: achados.length - validados.length,
+    itens: validados
+      .filter((a) => impactoDe(a) !== "nenhum")
+      .map((a) => ({
+        id: a.id,
+        titulo: a.titulo ?? "Achado sem título",
+        impacto: impactoDe(a),
+        validadoEm: a.validadoEm ?? null,
+      })),
+  };
 }

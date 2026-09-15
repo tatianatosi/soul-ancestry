@@ -57,3 +57,26 @@ describe("fila editorial", () => {
     expect(filaEditorial([], [])).toEqual({ rascunho: 0, revisao: 0, aprovado: 0, publicado: 0 });
   });
 });
+
+describe("impactoNaArvore", () => {
+  it("conta só achado validado internamente e separa por impacto", () => {
+    const r = impactoNaArvore([
+      { id: "1", titulo: "A", validacao: "validado_internamente", impactoArvore: "aplicado", validadoEm: "2026-09-15T12:00:00Z" },
+      { id: "2", titulo: "B", validacao: "validado_internamente", impactoArvore: "proposto" },
+      { id: "3", titulo: "C", validacao: "validado_internamente", impactoArvore: "nenhum" },
+      { id: "4", titulo: "D", validacao: "em_revisao", impactoArvore: "nenhum" },
+    ]);
+    expect(r.validados).toBe(3);
+    expect(r.aplicados).toBe(1);
+    expect(r.propostos).toBe(1);
+    expect(r.semImpacto).toBe(1);
+    expect(r.emRevisao).toBe(1);
+    expect(r.itens.map((i) => i.id)).toEqual(["1", "2"]);
+  });
+
+  it("sem achado, devolve tudo zerado e nenhum item", () => {
+    const r = impactoNaArvore([]);
+    expect(r).toMatchObject({ validados: 0, aplicados: 0, propostos: 0, emRevisao: 0 });
+    expect(r.itens).toEqual([]);
+  });
+});
