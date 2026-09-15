@@ -708,6 +708,8 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         formaPagamento: (p["forma_pagamento"] as string) ?? null,
         enviadaEm: (p["enviada_em"] as string) ?? null,
         aprovadaEm: (p["aprovada_em"] as string) ?? null,
+        origem: (p["origem"] as string) ?? null,
+        referencia: (p["origem_referencia"] as string) ?? (p["deck_referencia_interna"] as string) ?? null,
       })),
       escopo: escopoItens.map((i) => ({
         id: String(i["id"]),
