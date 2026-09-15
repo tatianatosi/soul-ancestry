@@ -245,10 +245,16 @@ function ComercialGoLive() {
         aoEscolher={setEscolhido}
         acao={
           leadDoCaso ? (
-            <AcaoAtendimento
-              leadId={leadDoCaso}
-              aoConfirmar={(v) => atendimento({ data: v as Parameters<typeof atendimento>[0]["data"] })}
-            />
+            <div className="flex flex-wrap gap-2">
+              <AcaoAtendimento
+                leadId={leadDoCaso}
+                aoConfirmar={(v) => atendimento({ data: v as Parameters<typeof atendimento>[0]["data"] })}
+              />
+              <AcaoAgenda
+                leadId={leadDoCaso}
+                aoConfirmar={(v) => atendimento({ data: v as Parameters<typeof atendimento>[0]["data"] })}
+              />
+            </div>
           ) : (
             <Pendente destino="/golive/leads" rotulo="Abrir entrada de leads" />
           )
