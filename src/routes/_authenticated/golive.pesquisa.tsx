@@ -223,7 +223,10 @@ function PesquisaGoLive() {
         {producao.length ? (
           <>
             <LinhaSerie titulo="Fontes, evidências e achados por semana" dados={producao} />
-            <p className="text-xs text-navy/55">Só entra registro com data gravada.</p>
+            <p className="text-xs text-navy/55">
+              No período: {fontes.length} fonte(s), {evidencias.length} evidência(s) e {achados.length} achado(s).
+              Só entra registro com data gravada.
+            </p>
           </>
         ) : (
           <Vazio cta={acaoEvidencia} />
