@@ -178,6 +178,26 @@ function PortalGoLive() {
         )}
       </Bloco>
 
+      {projecoes.length ? (
+        <Bloco titulo="Publicações por situação">
+          <Rosca titulo="Publicações por situação" dados={publicacoesPorEstado} />
+        </Bloco>
+      ) : null}
+
+      {acessos.length || emails.length ? (
+        <Bloco titulo="Acessos e e-mails autorizados">
+          {acessos.length ? <Barras titulo="Acessos por situação" dados={acessosPorSituacao} /> : null}
+          {emails.length ? <Barras titulo="E-mails autorizados por situação" dados={emailsPorEstado} /> : null}
+        </Bloco>
+      ) : null}
+
+      {linhaPublicacoes.length ? (
+        <Bloco titulo="Publicações por semana">
+          <LinhaSerie titulo="Publicações por semana" dados={linhaPublicacoes} />
+          <p className="text-xs text-navy/55">Só publicações com data registrada.</p>
+        </Bloco>
+      ) : null}
+
       <Bloco titulo="Publicado para o cliente">
         {publicados.length ? (
           <>
