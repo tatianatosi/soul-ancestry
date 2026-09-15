@@ -596,6 +596,8 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           consentimentoEm: (l["consentimento_em"] as string) ?? null,
           consentimentoCanal: (l["consentimento_canal"] as string) ?? null,
           propostaReferencia: (l["proposta_referencia_interna"] as string) ?? null,
+          propostaEm: propostaEmPorLead.get(String(l["id"])) ?? null,
+          ultimaInteracaoEm: ultimaInteracaoPorLead.get(String(l["id"])) ?? null,
           casoId: (l["case_id"] as string) ?? null,
         })),
       /**
