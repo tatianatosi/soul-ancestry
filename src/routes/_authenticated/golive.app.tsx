@@ -351,12 +351,23 @@ function AppClienteGoLive() {
                     <p className="text-navy/70">Contrato ainda não registrado para esta família.</p>
                   )}
                   {financeiro.parcelas.length > 0 ? (
-                    <p className="text-navy/70">
-                      Parcelas: {financeiro.pagas} paga(s) · {financeiro.emAberto} em aberto
-                      {financeiro.proxima?.vencimento
-                        ? ` · próxima em ${dataHumana(financeiro.proxima.vencimento)}`
-                        : ""}
-                    </p>
+                    <>
+                      <p className="text-navy/70">
+                        Parcelas: {financeiro.pagas} paga(s) · {financeiro.emAberto} em aberto
+                        {financeiro.proxima?.vencimento
+                          ? ` · próxima em ${dataHumana(financeiro.proxima.vencimento)}`
+                          : ""}
+                      </p>
+                      <ul className="space-y-1">
+                        {financeiro.parcelas.map((p) => (
+                          <li key={p.id} className="break-words text-navy/70">
+                            {p.numero ? `Parcela ${p.numero}` : "Parcela"} ·{" "}
+                            {p.vencimento ? `vence em ${dataHumana(p.vencimento)}` : "sem vencimento registrado"} ·{" "}
+                            {p.pagaEm ? `paga em ${dataHumana(p.pagaEm)}` : humano(p.status, "em aberto")}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
                   ) : (
                     <p className="text-navy/70">Nenhuma parcela emitida para esta família.</p>
                   )}
@@ -371,11 +382,19 @@ function AppClienteGoLive() {
                     <p className="text-navy/70">Convite do App ainda não enviado.</p>
                   )}
                   <div className="flex flex-wrap gap-2 pt-1">
-                    <IrPara para="/golive/formalizacao" rotulo="Ver proposta e escopo" />
+                    <IrPara para="/golive/formalizacao" rotulo="Ver proposta" />
+                    <IrPara para="/golive/juridico" rotulo="Ver escopo e contrato" />
                   </div>
                 </div>
               ) : (
-                <Vazio cta={<IrPara para="/golive/formalizacao" rotulo="Ver proposta e escopo" />} />
+                <Vazio
+                  cta={
+                    <div className="flex flex-wrap gap-2">
+                      <IrPara para="/golive/formalizacao" rotulo="Ver proposta" />
+                      <IrPara para="/golive/juridico" rotulo="Ver escopo e contrato" />
+                    </div>
+                  }
+                />
               )}
             </Bloco>
             <Bloco titulo="Avisos">
