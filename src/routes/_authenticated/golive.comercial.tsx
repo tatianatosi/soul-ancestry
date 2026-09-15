@@ -60,8 +60,8 @@ function ComercialGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
   const novoLead = useServerFn(registrarLeadGoLive);
-  const discovery = useServerFn(registrarDiscoveryGoLive);
-  const call = useServerFn(registrarCallGoLive);
+  const atendimento = useServerFn(registrarAtendimentoGoLive);
+
   const [periodo, setPeriodo] = useState<number | null>(90);
   const [escolhido, setEscolhido] = useState<string | null>(null);
   const todos = useMemo<LeadComercial[]>(() => (data?.leadsComerciais ?? []) as LeadComercial[], [data]);
