@@ -134,6 +134,24 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         .limit(500)
     ).data as Linha[] | null;
 
+    /* Carteira comercial da organização (CRM vivo). Só leitura, sem writer novo:
+       etapa, origem, responsável, último toque e próximo passo já gravados no lead. */
+    const leadsOrg = (
+      await supabase
+        .from("leads")
+        .select(
+          "id,nome,estagio,eixo_comercial,origem,data_origin,responsavel_nome,proxima_acao,proxima_acao_em," +
+            "ultimo_followup_em,call_agendada_em,call_realizada_em,status_call,resumo_call,discovery_resultado," +
+            "objetivo,consentimento_status,consentimento_em,consentimento_canal,proposta_referencia_interna," +
+            "case_id,updated_at,created_at,demo,dados_teste",
+        )
+        .eq("organization_id", organizationId)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false })
+        .limit(200)
+    ).data as Linha[] | null;
+
+
     /* Nomes de responsáveis: só para rotular carga; ausência vira "Sem responsável". */
     const idsResponsaveis = Array.from(
       new Set(
@@ -427,6 +445,37 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           temProximaAcao: Boolean(c["proxima_acao"]),
           prazoProximaAcao: (c["prazo_proxima_acao"] as string) ?? null,
         })),
+      /** Carteira comercial: um cartão por lead, só campos já gravados. */
+      leadsComerciais: (leadsOrg ?? [])
+        .filter((l) => l["demo"] !== true && l["dados_teste"] !== true && !ehRegistroDeTeste(l))
+        .map((l) => ({
+          id: String(l["id"]),
+          nome: (l["nome"] as string) ?? "Lead sem nome",
+          etapa: (l["eixo_comercial"] as string) ?? (l["estagio"] as string) ?? null,
+          estagio: (l["estagio"] as string) ?? null,
+          origem: (l["origem"] as string) ?? null,
+          canal: (l["data_origin"] as string) ?? null,
+          responsavel: (l["responsavel_nome"] as string) ?? null,
+          ultimoToque:
+            (l["ultimo_followup_em"] as string) ??
+            (l["call_realizada_em"] as string) ??
+            (l["updated_at"] as string) ??
+            null,
+          proximoPasso: (l["proxima_acao"] as string) ?? null,
+          proximoPassoEm: (l["proxima_acao_em"] as string) ?? null,
+          criadoEm: (l["created_at"] as string) ?? null,
+          callAgendada: (l["call_agendada_em"] as string) ?? null,
+          callRealizada: (l["call_realizada_em"] as string) ?? null,
+          statusCall: (l["status_call"] as string) ?? null,
+          resumoCall: (l["resumo_call"] as string) ?? null,
+          discoveryResultado: (l["discovery_resultado"] as string) ?? null,
+          objetivo: (l["objetivo"] as string) ?? null,
+          consentimento: (l["consentimento_status"] as string) ?? null,
+          consentimentoEm: (l["consentimento_em"] as string) ?? null,
+          consentimentoCanal: (l["consentimento_canal"] as string) ?? null,
+          propostaReferencia: (l["proposta_referencia_interna"] as string) ?? null,
+          casoId: (l["case_id"] as string) ?? null,
+        })),
       publicados: limpar(projecoes)
         .filter((p) => ["published", "publicada", "aprovada", "approved"].includes(String(p["approval_status"])))
         .map((p) => ({
@@ -435,6 +484,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           resumo: (p["content_sanitized"] as string) ?? null,
           em: (p["approved_at"] as string) ?? (p["effective_from"] as string) ?? null,
         })),
+
       contratos: limpar(contratos).map((c) => ({
         id: String(c["id"]),
         numero: (c["contract_number"] as string) ?? null,
