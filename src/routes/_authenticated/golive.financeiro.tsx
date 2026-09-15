@@ -10,7 +10,8 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
-import { Rosca } from "@/components/golive/graficos";
+import { Linha as LinhaSerie, Rosca } from "@/components/golive/graficos";
+import { contarPor, estaPaga, recebimentoPorMes, totaisFinanceiros } from "@/lib/golive-analitico";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
@@ -38,9 +39,13 @@ function FinanceiroGoLive() {
   const caso = data?.encontrado ? data : null;
 
   const faturas = caso?.faturas ?? [];
+  const pagamentos = caso?.pagamentos ?? [];
   const comValor = faturas.filter((f) => typeof f.valor === "number");
   const total = comValor.reduce((s, f) => s + (f.valor as number), 0);
-  const pagas = faturas.filter((f) => /pag|quitad|liquidad/i.test(f.status ?? ""));
+  const pagas = faturas.filter(estaPaga);
+  const totais = totaisFinanceiros(faturas, pagamentos);
+  const recebimento = recebimentoPorMes(faturas, pagamentos, 6);
+  const situacao = contarPor(faturas, (f) => humano(f.status, ""), "Sem situação");
 
   const novaFatura = useServerFn(registrarFaturaGoLive);
   const novoPagamento = useServerFn(registrarPagamentoGoLive);
