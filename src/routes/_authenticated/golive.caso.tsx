@@ -354,7 +354,7 @@ function CasoGoLive() {
                           obrigatorio: true,
                           opcoes: caso.publicados.map((p) => ({
                             valor: p.id,
-                            rotulo: (p.texto ?? "Conteúdo").slice(0, 70),
+                            rotulo: (p.resumo ?? "Conteúdo").slice(0, 70),
                           })),
                         },
                         { nome: "motivo", rotulo: "Motivo", tipo: "area", obrigatorio: true },
