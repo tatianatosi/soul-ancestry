@@ -38,7 +38,7 @@ export const Route = createFileRoute("/_authenticated/golive/pesquisa")({
   component: PesquisaGoLive,
 });
 
-const ETAPAS = ["Pergunta", "Fonte", "Evidência", "Achado", "Proposta"] as const;
+const ETAPAS = ["Pergunta", "Fonte", "Evidência", "Achado", "Revisão", "Publicação"] as const;
 
 function PesquisaGoLive() {
   const { data, isPending, error } = useGoLive();
