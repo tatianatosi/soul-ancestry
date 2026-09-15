@@ -100,6 +100,7 @@ import { Route as AuthenticatedGolivePesquisaRouteImport } from './routes/_authe
 import { Route as AuthenticatedGolivePessoaRouteImport } from './routes/_authenticated/golive.pessoa'
 import { Route as AuthenticatedGolivePessoasRouteImport } from './routes/_authenticated/golive.pessoas'
 import { Route as AuthenticatedGolivePortalRouteImport } from './routes/_authenticated/golive.portal'
+import { Route as AuthenticatedGoliveProntidaoRouteImport } from './routes/_authenticated/golive.prontidao'
 import { Route as AuthenticatedGoliveRadarRouteImport } from './routes/_authenticated/golive.radar'
 import { Route as AuthenticatedGovernancaCatalogoOperacional30RouteImport } from './routes/_authenticated/governanca.catalogo-operacional-30'
 import { Route as AuthenticatedGovernancaContratoBaseRouteImport } from './routes/_authenticated/governanca.contrato-base'
@@ -622,6 +623,12 @@ const AuthenticatedGolivePortalRoute =
     path: '/golive/portal',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGoliveProntidaoRoute =
+  AuthenticatedGoliveProntidaoRouteImport.update({
+    id: '/golive/prontidao',
+    path: '/golive/prontidao',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGoliveRadarRoute =
   AuthenticatedGoliveRadarRouteImport.update({
     id: '/golive/radar',
@@ -867,6 +874,7 @@ export interface FileRoutesByFullPath {
   '/golive/pessoa': typeof AuthenticatedGolivePessoaRoute
   '/golive/pessoas': typeof AuthenticatedGolivePessoasRoute
   '/golive/portal': typeof AuthenticatedGolivePortalRoute
+  '/golive/prontidao': typeof AuthenticatedGoliveProntidaoRoute
   '/golive/radar': typeof AuthenticatedGoliveRadarRoute
   '/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
@@ -985,6 +993,7 @@ export interface FileRoutesByTo {
   '/golive/pessoa': typeof AuthenticatedGolivePessoaRoute
   '/golive/pessoas': typeof AuthenticatedGolivePessoasRoute
   '/golive/portal': typeof AuthenticatedGolivePortalRoute
+  '/golive/prontidao': typeof AuthenticatedGoliveProntidaoRoute
   '/golive/radar': typeof AuthenticatedGoliveRadarRoute
   '/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
@@ -1106,6 +1115,7 @@ export interface FileRoutesById {
   '/_authenticated/golive/pessoa': typeof AuthenticatedGolivePessoaRoute
   '/_authenticated/golive/pessoas': typeof AuthenticatedGolivePessoasRoute
   '/_authenticated/golive/portal': typeof AuthenticatedGolivePortalRoute
+  '/_authenticated/golive/prontidao': typeof AuthenticatedGoliveProntidaoRoute
   '/_authenticated/golive/radar': typeof AuthenticatedGoliveRadarRoute
   '/_authenticated/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/_authenticated/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
@@ -1227,6 +1237,7 @@ export interface FileRouteTypes {
     | '/golive/pessoa'
     | '/golive/pessoas'
     | '/golive/portal'
+    | '/golive/prontidao'
     | '/golive/radar'
     | '/governanca/catalogo-operacional-30'
     | '/governanca/contrato-base'
@@ -1345,6 +1356,7 @@ export interface FileRouteTypes {
     | '/golive/pessoa'
     | '/golive/pessoas'
     | '/golive/portal'
+    | '/golive/prontidao'
     | '/golive/radar'
     | '/governanca/catalogo-operacional-30'
     | '/governanca/contrato-base'
@@ -1465,6 +1477,7 @@ export interface FileRouteTypes {
     | '/_authenticated/golive/pessoa'
     | '/_authenticated/golive/pessoas'
     | '/_authenticated/golive/portal'
+    | '/_authenticated/golive/prontidao'
     | '/_authenticated/golive/radar'
     | '/_authenticated/governanca/catalogo-operacional-30'
     | '/_authenticated/governanca/contrato-base'
@@ -2156,6 +2169,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGolivePortalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/golive/prontidao': {
+      id: '/_authenticated/golive/prontidao'
+      path: '/golive/prontidao'
+      fullPath: '/golive/prontidao'
+      preLoaderRoute: typeof AuthenticatedGoliveProntidaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/golive/radar': {
       id: '/_authenticated/golive/radar'
       path: '/golive/radar'
@@ -2408,6 +2428,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGolivePessoaRoute: typeof AuthenticatedGolivePessoaRoute
   AuthenticatedGolivePessoasRoute: typeof AuthenticatedGolivePessoasRoute
   AuthenticatedGolivePortalRoute: typeof AuthenticatedGolivePortalRoute
+  AuthenticatedGoliveProntidaoRoute: typeof AuthenticatedGoliveProntidaoRoute
   AuthenticatedGoliveRadarRoute: typeof AuthenticatedGoliveRadarRoute
   AuthenticatedGovernancaCatalogoOperacional30Route: typeof AuthenticatedGovernancaCatalogoOperacional30Route
   AuthenticatedGovernancaContratoBaseRoute: typeof AuthenticatedGovernancaContratoBaseRoute
@@ -2501,6 +2522,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGolivePessoaRoute: AuthenticatedGolivePessoaRoute,
   AuthenticatedGolivePessoasRoute: AuthenticatedGolivePessoasRoute,
   AuthenticatedGolivePortalRoute: AuthenticatedGolivePortalRoute,
+  AuthenticatedGoliveProntidaoRoute: AuthenticatedGoliveProntidaoRoute,
   AuthenticatedGoliveRadarRoute: AuthenticatedGoliveRadarRoute,
   AuthenticatedGovernancaCatalogoOperacional30Route:
     AuthenticatedGovernancaCatalogoOperacional30Route,
