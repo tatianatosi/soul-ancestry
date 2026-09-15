@@ -6,6 +6,7 @@
  * filtram por texto livre: a exclusão de registros de teste acontece na
  * leitura, por sinalizador do próprio registro.
  */
+import { dataHumana } from "@/lib/rotulos-golive";
 
 export type LeadComercial = {
   id: string;
@@ -349,7 +350,11 @@ export function roteiroDiscovery(lead: LeadComercial | null): PassoRoteiro[] {
     passo("Qual foi o resultado do Discovery?", lead?.discoveryResultado ?? null, "Mesa de Discovery"),
     passo(
       "Qual é a próxima ação?",
-      lead?.proximoPasso ? [lead.proximoPasso, lead.proximoPassoEm].filter(Boolean).join(" · ") : null,
+      lead?.proximoPasso
+        ? [lead.proximoPasso, lead.proximoPassoEm ? dataHumana(lead.proximoPassoEm, "") : null]
+            .filter(Boolean)
+            .join(" · ")
+        : null,
       "Próxima ação gravada no lead",
     ),
   ];
