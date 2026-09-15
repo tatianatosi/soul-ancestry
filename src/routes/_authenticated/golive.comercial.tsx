@@ -322,7 +322,17 @@ function Cartao({ lead }: { lead: LeadComercial }) {
 }
 
 /** Mesa de Discovery: uma pergunta por vez, com origem, destino, contexto e consentimento. */
-function MesaDeDiscovery({ lead, acao }: { lead: LeadComercial | null; acao: React.ReactNode }) {
+function MesaDeDiscovery({
+  lead,
+  leads,
+  aoEscolher,
+  acao,
+}: {
+  lead: LeadComercial | null;
+  leads: LeadComercial[];
+  aoEscolher: (id: string) => void;
+  acao: React.ReactNode;
+}) {
   const [indice, setIndice] = useState(0);
 
   const perguntas = [
