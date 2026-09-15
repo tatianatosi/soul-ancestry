@@ -334,8 +334,8 @@ function AppClienteGoLive() {
                 <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando cadastro da equipe</Button>} />
               )}
             </Bloco>
-            <Bloco titulo="Seu contrato e acesso">
-              {contrato || acesso ? (
+            <Bloco titulo="Seu contrato e pagamentos">
+              {contrato || acesso || financeiro.parcelas.length > 0 ? (
                 <div className="space-y-1 text-sm text-navy">
                   {contrato ? (
                     <p className="break-words">
