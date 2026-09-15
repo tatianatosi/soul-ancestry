@@ -12,11 +12,12 @@ const base: LeadComercial = {
 describe("roteiro progressivo e agenda", () => {
   it("conta apenas respostas gravadas e aponta a próxima pergunta", () => {
     const vazio = progressoRoteiro(base);
-    expect(vazio.respondidas).toBe(0);
+    // situação da call sempre tem rótulo gravado ("sem agenda")
+    expect(vazio.respondidas).toBe(1);
     expect(vazio.proxima?.pergunta).toBe("Qual é o objetivo da família?");
 
     const comObjetivo = progressoRoteiro({ ...base, objetivo: "Cidadania italiana" });
-    expect(comObjetivo.respondidas).toBe(1);
+    expect(comObjetivo.respondidas).toBe(2);
     expect(comObjetivo.percentual).toBeGreaterThan(0);
     expect(comObjetivo.proxima?.pergunta).not.toBe("Qual é o objetivo da família?");
   });
