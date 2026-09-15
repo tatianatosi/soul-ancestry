@@ -670,6 +670,32 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         liberadoParaEnvioEm: (c["approved_for_send_at"] as string) ?? null,
         vigenciaInicio: (c["effective_start_date"] as string) ?? null,
         vigenciaFim: (c["effective_end_date"] as string) ?? null,
+        /* Revisão: quem revisa e em que versão. Nada é deduzido. */
+        revisora: nomePerfil.get(String(c["review_owner_user_id"] ?? "")) || null,
+        versao:
+          (versoesContrato
+            .filter((v) => String(v["contract_id"]) === String(c["id"]))
+            .map((v) => Number(v["version_number"]))
+            .filter((n) => Number.isFinite(n))
+            .sort((a, b) => b - a)[0] as number | undefined) ?? null,
+        objetivo: (c["purpose_summary"] as string) ?? null,
+        escopoResumo: (c["scope_summary"] as string) ?? null,
+        exclusoes: (c["exclusions_summary"] as string) ?? null,
+        /* Assinatura como ato formal: referência, origem e data gravadas. */
+        assinaturaReferencia: (c["signature_reference"] as string) ?? null,
+        assinaturaOrigem: (c["signed_source"] as string) ?? null,
+        /* Pendências vindas dos estados já gravados no próprio contrato. */
+        pendencias: (
+          [
+            ["Privacidade", c["privacy_terms_status"]],
+            ["Financeiro", c["financial_gate_status"]],
+            ["Pesquisa", c["research_gate_status"]],
+            ["Despesas de terceiros", c["external_expense_status"]],
+            ["Alteração financeira", c["financial_change_status"]],
+          ] as const
+        )
+          .filter(([, v]) => typeof v === "string" && v !== "" && !/(ok|aprovad|concluid|concluíd|nao_aplicavel|not_applicable|liberad)/i.test(String(v)))
+          .map(([rotulo, v]) => `${rotulo}: ${String(v)}`),
       })),
       /** Anexos do contrato já registrados. Sem criação e sem assinatura. */
       anexos: limpar(anexosContrato).map((a) => ({
