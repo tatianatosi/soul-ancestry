@@ -379,6 +379,20 @@ function MesaDeDiscovery({
     <Bloco titulo="Mesa de Discovery">
       {lead ? (
         <>
+          <label className="block text-xs text-navy/60">
+            Lead em atendimento
+            <select
+              className="mt-1 w-full max-w-full rounded-md border border-border bg-background px-2 py-1 text-sm text-navy"
+              value={lead.id}
+              onChange={(e) => aoEscolher(e.target.value)}
+            >
+              {leads.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.nome}
+                </option>
+              ))}
+            </select>
+          </label>
           <p className="text-xs uppercase tracking-wide text-navy/50">
             Pergunta {indice + 1} de {perguntas.length} · {lead.nome}
           </p>
