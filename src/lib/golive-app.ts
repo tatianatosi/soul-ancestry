@@ -196,3 +196,50 @@ export function financeiroParaFamilia(
     proxima: emAberto[0] ?? null,
   };
 }
+
+/* ------------------------------------------------------------------ *
+ * Gráficos das abas — só contagem do que já está publicado
+ * ------------------------------------------------------------------ */
+
+export type Fatia = { rotulo: string; valor: number };
+
+/** Quanto já foi publicado em cada aba de conteúdo. Zero fica visível. */
+export function publicacoesPorAba(publicados: readonly ProjecaoPublicada[]): Fatia[] {
+  const abas: AbaApp[] = ["Jornada", "Árvore", "Documentos", "Legado"];
+  return abas.map((aba) => ({ rotulo: aba, valor: publicacoesDaAba(publicados, aba).length }));
+}
+
+/** Mês a mês das publicações, na data local registrada. Sem data não entra. */
+export function publicacoesPorMes(publicados: readonly ProjecaoPublicada[]): Fatia[] {
+  const contas = new Map<string, number>();
+  for (const p of publicados) {
+    const em = p.em ? String(p.em).slice(0, 7) : null;
+    if (!em) continue;
+    contas.set(em, (contas.get(em) ?? 0) + 1);
+  }
+  return [...contas.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .slice(-6)
+    .map(([mes, valor]) => ({ rotulo: mes.split("-").reverse().join("/"), valor }));
+}
+
+/** Fontes já consultadas, agrupadas pela instituição declarada. */
+export function fontesPorInstituicao(fontes: readonly FontePesquisa[]): Fatia[] {
+  const contas = new Map<string, number>();
+  for (const f of fontes) {
+    const chave = f.instituicao?.trim() || "Sem instituição registrada";
+    contas.set(chave, (contas.get(chave) ?? 0) + 1);
+  }
+  return [...contas.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([rotulo, valor]) => ({ rotulo, valor }));
+}
+
+/** Parcelas pagas x em aberto, para a leitura da família. */
+export function parcelasEmFatias(situacao: SituacaoFinanceira): Fatia[] {
+  return [
+    { rotulo: "Pagas", valor: situacao.pagas },
+    { rotulo: "Em aberto", valor: situacao.emAberto },
+  ];
+}

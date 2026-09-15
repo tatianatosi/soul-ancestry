@@ -9,7 +9,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
-import { BarrasPercentual, LinhaDoTempo } from "@/components/golive/graficos";
+import { Barras, BarrasPercentual, Linha, LinhaDoTempo } from "@/components/golive/graficos";
 import { useGoLive } from "@/components/golive/dados";
 import {
   ABAS_APP,
@@ -18,8 +18,12 @@ import {
   financeiroParaFamilia,
   evidenciasParaFamilia,
   fontesParaFamilia,
+  fontesPorInstituicao,
   marcosPublicados,
+  parcelasEmFatias,
   publicacoesDaAba,
+  publicacoesPorAba,
+  publicacoesPorMes,
   situacaoDocumentos,
   ultimaPublicacao,
   type AbaApp,
@@ -144,6 +148,13 @@ function AppClienteGoLive() {
                 <Vazio cta={Aguardando} />
               )}
             </Bloco>
+            <Bloco titulo="Conteúdo publicado para você">
+              {publicados.length ? (
+                <Barras titulo="Conteúdo publicado para você" dados={publicacoesPorAba(publicados)} />
+              ) : (
+                <Vazio cta={Aguardando} />
+              )}
+            </Bloco>
           </>
         ) : null}
 
@@ -183,6 +194,13 @@ function AppClienteGoLive() {
                     quando: dataHumana(p.em ?? null, "data não registrada"),
                   }))}
                 />
+              ) : (
+                <Vazio cta={Aguardando} />
+              )}
+            </Bloco>
+            <Bloco titulo="Publicações por mês">
+              {publicacoesPorMes(publicados).length ? (
+                <Linha titulo="Publicações por mês" dados={publicacoesPorMes(publicados)} />
               ) : (
                 <Vazio cta={Aguardando} />
               )}
@@ -237,6 +255,13 @@ function AppClienteGoLive() {
               <p className="mt-2 text-xs text-navy/55">
                 Pessoas e vínculos entram na árvore só depois de confirmados e liberados pela equipe.
               </p>
+            </Bloco>
+            <Bloco titulo="Onde a equipe pesquisou">
+              {fontesFamilia.length ? (
+                <Barras titulo="Onde a equipe pesquisou" dados={fontesPorInstituicao(fontesFamilia)} />
+              ) : (
+                <Vazio cta={<IrPara para="/golive/pesquisa" rotulo="Abrir Pesquisa" />} />
+              )}
             </Bloco>
           </>
         ) : null}
@@ -367,7 +392,9 @@ function AppClienteGoLive() {
                           </li>
                         ))}
                       </ul>
+                      <BarrasPercentual titulo="Suas parcelas" dados={parcelasEmFatias(financeiro)} />
                     </>
+
                   ) : (
                     <p className="text-navy/70">Nenhuma parcela emitida para esta família.</p>
                   )}
