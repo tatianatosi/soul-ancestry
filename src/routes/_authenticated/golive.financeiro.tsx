@@ -14,7 +14,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Linha as LinhaSerie, Rosca } from "@/components/golive/graficos";
-import { recebimentoPorMes, situacaoDasFaturas, totaisFinanceiros } from "@/lib/golive-analitico";
+import {
+  origemDaCondicao,
+  planoDeParcelas,
+  recebimentoPorMes,
+  situacaoDasFaturas,
+  totaisFinanceiros,
+} from "@/lib/golive-analitico";
 import { useGoLive } from "@/components/golive/dados";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { Button } from "@/components/ui/button";
