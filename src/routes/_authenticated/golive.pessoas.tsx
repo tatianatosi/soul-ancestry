@@ -15,7 +15,8 @@ import {
   relacoesAprovadas,
   type PessoaCaso,
 } from "@/lib/golive-pessoas";
-import { humano } from "@/lib/rotulos-golive";
+import { impactoNaArvore } from "@/lib/golive-pesquisa";
+import { dataHumana, humano } from "@/lib/rotulos-golive";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/pessoas")({
@@ -205,9 +206,57 @@ function PessoasGoLive() {
           </Bloco>
 
           <ArvoreAprovada pessoas={pessoasCaso} relacoes={relacoes} />
+
+          <ImpactoDaPesquisa achados={caso.achados} />
         </>
       ) : null}
     </GoLiveShell>
+  );
+}
+
+/**
+ * Impacto interno da pesquisa na árvore: só achado já aprovado internamente.
+ * Aprovação não publica nada para a família e não cria vínculo sozinha.
+ */
+function ImpactoDaPesquisa({
+  achados,
+}: {
+  achados: { id: string; titulo?: string | null; validacao?: string | null; validadoEm?: string | null; impactoArvore?: string | null }[];
+}) {
+  const impacto = impactoNaArvore(achados);
+  return (
+    <Bloco titulo="Impacto da pesquisa aprovada na árvore">
+      {impacto.validados ? (
+        <div className="min-w-0 space-y-2">
+          <p className="text-sm text-navy">
+            {impacto.validados} achado(s) aprovado(s) internamente · {impacto.aplicados} aplicado(s) e{" "}
+            {impacto.propostos} proposto(s) na árvore.
+          </p>
+          <ul className="space-y-1 text-sm text-navy">
+            {impacto.itens.map((i) => (
+              <li key={i.id} className="break-words">
+                {i.titulo}{" "}
+                <span className="text-navy/55">
+                  — {humano(i.impacto)}
+                  {i.validadoEm ? ` · aprovado em ${dataHumana(i.validadoEm)}` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-navy/50">
+            Aprovação interna não publica nada para a família. {impacto.emRevisao} achado(s) ainda em revisão.
+          </p>
+        </div>
+      ) : (
+        <Vazio
+          cta={
+            <Link to="/golive/pesquisa">
+              <Button size="sm">Aprovar achado na Pesquisa</Button>
+            </Link>
+          }
+        />
+      )}
+    </Bloco>
   );
 }
 
