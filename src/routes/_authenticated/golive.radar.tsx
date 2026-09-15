@@ -24,6 +24,7 @@ import {
   pontosDaMatriz,
   type CasoRadar,
 } from "@/lib/golive-radar";
+import { impactoNaArvore } from "@/lib/golive-pesquisa";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/radar")({
@@ -87,7 +88,27 @@ function RadarGoLive() {
         {selecionado ? <Individual caso={selecionado} /> : <SemDado />}
       </Bloco>
 
-      <Bloco titulo="3. Ordem de atendimento">
+      <Bloco titulo="3. Pesquisa aprovada no caso">
+        {(() => {
+          const impacto = impactoNaArvore(caso?.achados ?? []);
+          if (!caso) return <SemDado />;
+          return impacto.validados ? (
+            <p className="text-sm text-navy">
+              {impacto.validados} achado(s) aprovado(s) internamente · {impacto.aplicados} aplicado(s) e{" "}
+              {impacto.propostos} proposto(s) na árvore. Aprovação interna não altera prazo nem publica para a família.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-navy/60">Nenhum achado aprovado internamente ainda.</p>
+              <Link to="/golive/pesquisa">
+                <Button size="sm">Abrir Pesquisa</Button>
+              </Link>
+            </div>
+          );
+        })()}
+      </Bloco>
+
+      <Bloco titulo="4. Ordem de atendimento">
         {ordem.length ? (
           <>
             <p className="text-xs text-navy/55">

@@ -671,6 +671,68 @@ export const registrarAchadoGoLive = createServerFn({ method: "POST" })
     return { id: String(r.data.id) };
   });
 
+/**
+ * Aprovação interna do achado — escrita real, sem publicar nada para a família.
+ *
+ * Grava `validation_status = validado_internamente` e o impacto declarado na
+ * árvore ("proposto" ou "aplicado"). Não mexe em elegibilidade de entrega, não
+ * cria projeção, não publica e não envia nada. Hipótese de pesquisa continua
+ * bloqueada pela regra do banco.
+ */
+export const aprovarAchadoGoLive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { achadoId: string; impactoArvore?: string; observacao?: string }) => d)
+  .handler(async ({ data, context }) => {
+    semCache();
+    const s = context.supabase as any;
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const achadoId = texto(data.achadoId);
+    if (!achadoId) throw new Error("Escolha o achado que será aprovado.");
+
+    const impacto = texto(data.impactoArvore) || "proposto";
+    if (!["nenhum", "proposto", "aplicado"].includes(impacto))
+      throw new Error("Impacto na árvore inválido.");
+
+    const atual = await s
+      .from("genealogical_findings")
+      .select("id, title, finding_type, validation_status, internal_notes, archived_at")
+      .eq("id", achadoId)
+      .eq("organization_id", organizationId)
+      .eq("case_id", casoId)
+      .maybeSingle();
+    erro(atual);
+    const achado = atual.data;
+    if (!achado) throw new Error("Achado não encontrado neste caso.");
+    if (achado.archived_at) throw new Error("Achado arquivado não pode ser aprovado.");
+    if (achado.finding_type === "hipotese_pesquisa")
+      throw new Error("Hipótese de pesquisa não pode ser validada; converta o tipo quando houver documento.");
+
+    const nota = texto(data.observacao);
+    const historico = [texto(achado.internal_notes as string), nota].filter(Boolean).join("\n");
+
+    const r = await s
+      .from("genealogical_findings")
+      .update({
+        validation_status: "validado_internamente",
+        tree_impact: impacto,
+        responsible_user_id: userId,
+        internal_notes: historico || null,
+      })
+      .eq("id", achadoId)
+      .eq("organization_id", organizationId)
+      .eq("case_id", casoId)
+      .select("id, title, validation_status, tree_impact, validated_at")
+      .single();
+    erro(r);
+    return {
+      id: String(r.data.id),
+      titulo: String(r.data.title ?? ""),
+      validacao: String(r.data.validation_status ?? ""),
+      impactoArvore: String(r.data.tree_impact ?? "nenhum"),
+      validadoEm: (r.data.validated_at as string) ?? null,
+    };
+  });
+
 /* ------------------------------------------------------------------ *
  * 6. Financeiro manual
  * ------------------------------------------------------------------ */

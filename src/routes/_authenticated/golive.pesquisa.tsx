@@ -24,6 +24,7 @@ import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import {
+  aprovarAchadoGoLive,
   registrarAchadoGoLive,
   registrarEvidenciaGoLive,
   registrarFonteGoLive,
@@ -51,6 +52,7 @@ function PesquisaGoLive() {
   const novaFonte = useServerFn(registrarFonteGoLive);
   const novaEvidencia = useServerFn(registrarEvidenciaGoLive);
   const novoAchado = useServerFn(registrarAchadoGoLive);
+  const aprovarAchado = useServerFn(aprovarAchadoGoLive);
 
   const acaoFonte = (
     <Acao
@@ -141,6 +143,49 @@ function PesquisaGoLive() {
         })
       }
       confirmacao="Achado registrado como hipótese em revisão."
+    />
+  );
+
+  /* Aprovação interna: grava o achado como validado e declara o impacto na
+     árvore. Não publica nada para a família e não cria vínculo sozinho. */
+  const acaoAprovar = (
+    <Acao
+      rotulo="Aprovar achado"
+      titulo="Aprovação interna do achado"
+      variante="outline"
+      campos={[
+        {
+          nome: "achadoId",
+          rotulo: "Achado em revisão",
+          tipo: "escolha",
+          obrigatorio: true,
+          opcoes: (caso?.achados ?? [])
+            .filter((a) => a.validacao !== "validado_internamente")
+            .map((a) => ({ valor: a.id, rotulo: a.titulo ?? "Achado" })),
+        },
+        {
+          nome: "impactoArvore",
+          rotulo: "Impacto na árvore",
+          tipo: "escolha",
+          padrao: "proposto",
+          opcoes: [
+            { valor: "proposto", rotulo: "Proposto — entra como sugestão na árvore interna" },
+            { valor: "aplicado", rotulo: "Aplicado — vínculo confirmado na árvore interna" },
+            { valor: "nenhum", rotulo: "Sem impacto na árvore" },
+          ],
+        },
+        { nome: "observacao", rotulo: "Observação interna", tipo: "area" },
+      ]}
+      aoConfirmar={(v) =>
+        aprovarAchado({
+          data: {
+            achadoId: v["achadoId"] ?? "",
+            impactoArvore: v["impactoArvore"] ?? "proposto",
+            observacao: v["observacao"] ?? "",
+          },
+        })
+      }
+      confirmacao="Achado aprovado internamente. Nada foi publicado para a família."
     />
   );
 
@@ -291,13 +336,19 @@ function PesquisaGoLive() {
       <Etapa
         titulo="4. Achados"
         vazio="Registrar achado"
-        acao={acaoAchado}
+        acao={
+          <>
+            {acaoAchado}
+            {achados.length ? acaoAprovar : null}
+          </>
+        }
         itens={achados.map((a) => (
           <li key={a.id} className="break-words">
             {a.titulo}
             <span className="text-navy/55">
               {" "}
               — {humano(a.validacao, "sem validação")} · confiança {humano(a.confianca, "não informada")}
+              {a.impactoArvore && a.impactoArvore !== "nenhum" ? ` · árvore: ${humano(a.impactoArvore)}` : ""}
               {a.publicavel ? " · pode ir para a família" : ""}
             </span>
           </li>
