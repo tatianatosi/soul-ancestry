@@ -46,6 +46,9 @@ function FinanceiroGoLive() {
   const totais = totaisFinanceiros(faturas, pagamentos);
   const recebimento = recebimentoPorMes(faturas, pagamentos, 6);
   const situacao = situacaoDasFaturas(faturas);
+  /* Origem da condição: call realizada gravada no lead do próprio caso. */
+  const origem = origemDaCondicao(caso?.lead ?? null);
+  const parcelas = planoDeParcelas(faturas, caso?.lead ?? null);
 
   const contratoAssinado = (caso?.contratos ?? []).some((c) => c.status === "signed" || Boolean(c.assinadoEm));
   const novaFatura = useServerFn(registrarFaturaGoLive);
