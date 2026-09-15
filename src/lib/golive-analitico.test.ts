@@ -8,6 +8,7 @@ import {
   porMes,
   porSemana,
   recebimentoPorMes,
+  situacaoDasFaturas,
   totaisFinanceiros,
 } from "./golive-analitico";
 
