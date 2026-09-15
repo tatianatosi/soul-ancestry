@@ -224,7 +224,7 @@ function LeadsGoLive() {
                   Proposta
                 </Button>
               </Link>
-              <Button size="sm" variant="outline" disabled>
+              <Button size="sm" variant="outline" disabled className="h-auto whitespace-normal py-1.5 text-left">
                 Handoff para o caso — aguardando vínculo da equipe
               </Button>
             </div>
