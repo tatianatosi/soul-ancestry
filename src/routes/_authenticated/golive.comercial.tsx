@@ -8,6 +8,7 @@ import { Barras, Rosca } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
+import { AcaoAtendimento } from "@/components/golive/atendimento";
 import {
   estadoDaCall,
   funil,
@@ -19,13 +20,12 @@ import {
   porSituacaoDaCall,
   roteiroDiscovery,
   rotuloDaCall,
-  RESULTADOS_DISCOVERY,
-  SITUACOES_CALL,
   saudeDosLeads,
   semDataDeEntrada,
   type LeadComercial,
 } from "@/lib/golive-comercial";
 import { registrarAtendimentoGoLive, registrarLeadGoLive } from "@/lib/golive-escritores.functions";
+
 
 import { Button } from "@/components/ui/button";
 
