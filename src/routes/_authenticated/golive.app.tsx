@@ -67,6 +67,16 @@ const ICONES_APP = {
   Conta: UserRound,
 } satisfies Record<AbaApp, typeof Home>;
 
+const ABERTURA_APP: Record<AbaApp, { titulo: string; descricao: string }> = {
+  Home: { titulo: "Sua jornada", descricao: "Acompanhe o que já foi publicado e o que vem a seguir." },
+  Jornada: { titulo: "Jornada", descricao: "Linha do tempo do seu acompanhamento." },
+  Radar: { titulo: "Radar Ancestral", descricao: "Uma leitura simples das seis dimensões da sua jornada." },
+  Árvore: { titulo: "Árvore", descricao: "Gerações e conexões liberadas para a família." },
+  Documentos: { titulo: "Documentos", descricao: "Pedidos, recebimentos e materiais liberados em um só lugar." },
+  Legado: { titulo: "Legado", descricao: "Conteúdos publicados para preservar e compartilhar em família." },
+  Conta: { titulo: "Conta", descricao: "Seu perfil, acompanhamento e histórico disponível." },
+};
+
 /** CTA de navegação do espelho interno: leva à superfície do Desk que trata o assunto. */
 function IrPara({ para, rotulo }: { para: string; rotulo: string }) {
   return (
@@ -178,6 +188,10 @@ function AppClienteGoLive() {
         </aside>
         <main className="min-w-0 space-y-5 px-4 pb-24 pt-6 lg:px-0 lg:pb-12">
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
+      <div>
+        <h1 className="font-serif text-2xl font-semibold leading-tight text-navy">{ABERTURA_APP[aba].titulo}</h1>
+        <p className="mt-1 text-sm text-navy/70">{ABERTURA_APP[aba].descricao}</p>
+      </div>
 
       <div className="space-y-4">
         {aba === "Home" ? (
