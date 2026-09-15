@@ -416,6 +416,11 @@ function AppClienteGoLive() {
                           {partes[1] ? `${partes[1]} · ` : ""}
                           {humano(partes[2] ?? "", "sem situação registrada")}
                         </p>
+                        {partes.slice(3).map((linha) => (
+                          <p key={linha} className="mt-1 break-words text-xs text-navy/70">
+                            {linha}
+                          </p>
+                        ))}
                         <p className="mt-1 text-xs text-navy/55">
                           Publicado em {dataHumana(p.em, "data não registrada")}
                         </p>
