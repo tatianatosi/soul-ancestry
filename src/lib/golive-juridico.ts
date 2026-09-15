@@ -33,6 +33,13 @@ export type Fatia = { rotulo: string; valor: number };
 
 const COMPLETO = /(aprovad|assinad|concluid|concluíd|vigente|ativo|registrad|final|pronto|aceito)/i;
 
+/** "Não aplicável" é decisão gravada: não conta como pendência nem como feito. */
+const NAO_APLICAVEL = /(not.?applicable|nao.?aplicavel|não.?aplicável|inaplicavel|inaplicável)/i;
+
+export function naoAplicavel(status: string | null): boolean {
+  return NAO_APLICAVEL.test(status ?? "");
+}
+
 function completos<T extends { status: string | null }>(itens: readonly T[], extra?: (i: T) => boolean) {
   return itens.filter((i) => COMPLETO.test(i.status ?? "") || (extra?.(i) ?? false)).length;
 }
@@ -53,7 +60,14 @@ export function completudeFormal(d: InstrumentosJur): Fatia[] {
       rotulo: "Contrato",
       valor: percentual(completos(d.contratos, (c) => Boolean(c.assinadoEm)), d.contratos.length),
     },
-    { rotulo: "Anexos", valor: percentual(completos(d.anexos, (a) => Boolean(a.revisadoEm)), d.anexos.length) },
+    (() => {
+      // Anexo marcado como não aplicável sai da conta, em cima e embaixo.
+      const exigidos = d.anexos.filter((a) => !naoAplicavel(a.status));
+      return {
+        rotulo: "Anexos",
+        valor: percentual(completos(exigidos, (a) => Boolean(a.revisadoEm)), exigidos.length),
+      };
+    })(),
     { rotulo: "OS", valor: percentual(completos(d.ordens), d.ordens.length) },
   ];
 }
@@ -79,13 +93,17 @@ function diasAte(valor: string | null, agora: Date) {
  * prazo próximo (vigência de contrato ou janela de OS dentro de `janelaDias`).
  */
 export function riscosEPrazos(d: InstrumentosJur, agora: Date = new Date(), janelaDias = 15): Fatia[] {
+  const anexosExigidos = d.anexos.filter((a) => !naoAplicavel(a.status));
+
   const revisaoPendente =
     d.escopo.filter((i) => i.exigeRevisaoHumana && !COMPLETO.test(i.status ?? "")).length +
-    d.anexos.filter((a) => a.obrigatorio && !a.revisadoEm).length;
+    anexosExigidos.filter((a) => a.obrigatorio && !a.revisadoEm).length;
 
   const assinaturaPendente = d.contratos.filter((c) => !c.assinadoEm).length;
 
-  const anexoPendente = d.anexos.filter((a) => !COMPLETO.test(a.status ?? "") && !a.revisadoEm).length;
+  const anexoPendente = anexosExigidos.filter(
+    (a) => !COMPLETO.test(a.status ?? "") && !a.revisadoEm,
+  ).length;
 
   const datas = [
     ...d.contratos.flatMap((c) => [c.vigenciaInicio, c.vigenciaFim]),
