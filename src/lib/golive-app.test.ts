@@ -6,6 +6,7 @@ import {
   publicacoesDaAba,
   situacaoDocumentos,
   ultimaPublicacao,
+  familiaParaApp,
 } from "./golive-app";
 
 describe("distribuição por aba", () => {
@@ -68,5 +69,34 @@ describe("situação dos documentos", () => {
 
   it("lista vazia zera tudo", () => {
     expect(situacaoDocumentos([])).toEqual({ solicitados: 0, emRevisao: 0, liberados: 0 });
+  });
+});
+
+describe("papéis da família no App", () => {
+  const membros = [
+    { id: "m0", nome: "Maria Silveira Rodrigues", papel: "contratante_signatario", clienteId: null },
+    { id: "m1", nome: "Ana Luiza Gomes Silveira Rodrigues", papel: "contratante_signatario", clienteId: "c1" },
+    { id: "m2", nome: "Adair Pinto Silveira Júnior", papel: "contratante_signatario", clienteId: "c3" },
+    { id: "m3", nome: "Alice Gomes Silveira", papel: "contratante_signatario", clienteId: "c4" },
+    { id: "m4", nome: "Felipe", papel: "dependente", clienteId: null },
+  ];
+
+  it("traduz titular, participantes e dependente", () => {
+    const familia = familiaParaApp(membros, "Ana Luiza Gomes Silveira Rodrigues");
+    expect(familia.map((p) => `${p.nome}: ${p.papel}`)).toEqual([
+      "Ana Luiza Gomes Silveira Rodrigues: Titular do estudo",
+      "Adair Pinto Silveira Júnior: Participante do estudo",
+      "Alice Gomes Silveira: Participante do estudo",
+      "Felipe: Dependente",
+    ]);
+  });
+
+  it("não expõe pessoa de núcleo sem cadastro nem papel de dependente", () => {
+    const nomes = familiaParaApp(membros, null).map((p) => p.nome);
+    expect(nomes).not.toContain("Maria Silveira Rodrigues");
+  });
+
+  it("sem núcleo, a lista fica vazia", () => {
+    expect(familiaParaApp([], "Ana")).toEqual([]);
   });
 });
