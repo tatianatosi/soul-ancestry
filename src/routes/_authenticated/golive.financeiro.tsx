@@ -203,7 +203,7 @@ function FinanceiroGoLive() {
         ) : (
           <Vazio cta={faturas.length ? acaoPagamento : <span className="text-xs text-navy/55">Emita uma fatura antes de registrar o pagamento.</span>} />
         )}
-        {pagas.length ? <Acoes>{acaoPagamento}</Acoes> : null}
+        {pagamentos.length || pagas.length ? <Acoes>{acaoPagamento}</Acoes> : null}
       </Bloco>
 
       <Bloco titulo="Situação do caso">
