@@ -251,32 +251,13 @@ function PortalGoLive() {
                 </li>
               ))}
             </ul>
-            <Acoes>
-              {microentregas.length ? acaoPublicar : null}
-              <Acao
-                rotulo="Despublicar"
-                titulo="Tirar do App sem apagar"
-                variante="outline"
-                campos={[
-                  {
-                    nome: "id",
-                    rotulo: "Publicação",
-                    tipo: "escolha",
-                    obrigatorio: true,
-                    opcoes: publicados.map((p) => ({
-                      valor: p.id,
-                      rotulo: `${humano(p.tipo)} · ${dataHumana(p.em, "sem data")}`,
-                    })),
-                  },
-                  { nome: "motivo", rotulo: "Motivo", obrigatorio: true },
-                ]}
-                aoConfirmar={(v) => despublicar({ data: { id: v["id"] ?? "", motivo: v["motivo"] ?? "" } })}
-                confirmacao="Conteúdo saiu do App. O registro continua no histórico."
-              />
-            </Acoes>
+            <Link
+              to="/golive/caso"
+              className="text-sm text-navy underline decoration-gold underline-offset-4"
+            >
+              Publicar ou tirar do ar no Caso 360
+            </Link>
           </>
-        ) : microentregas.length ? (
-          <Vazio cta={acaoPublicar} />
         ) : (
           <Vazio
             cta={
