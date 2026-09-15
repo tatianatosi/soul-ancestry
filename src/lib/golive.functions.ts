@@ -515,8 +515,20 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         id: String(f["id"]),
         numero: (f["numero"] as string) ?? null,
         valor: (f["valor"] as number) ?? null,
+        valorPago: (f["valor_pago"] as number) ?? null,
         status: (f["status"] as string) ?? null,
         vencimento: (f["vencimento"] as string) ?? null,
+        emitidaEm: (f["emitida_em"] as string) ?? null,
+        pagaEm: (f["paga_em"] as string) ?? null,
+      })),
+      /** Pagamentos confirmados, com data já gravada — base do recebimento por mês. */
+      pagamentos: pagamentos.map((p) => ({
+        id: String(p["id"]),
+        faturaId: String(p["invoice_id"]),
+        valor: (p["valor"] as number) ?? null,
+        metodo: (p["metodo"] as string) ?? null,
+        status: (p["status"] as string) ?? null,
+        pagoEm: (p["pago_em"] as string) ?? null,
       })),
       lead: (() => {
         const l = limpar(leads)[0];
