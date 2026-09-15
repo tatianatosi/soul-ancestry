@@ -8,6 +8,7 @@ import {
   porMes,
   porSemana,
   recebimentoPorMes,
+  situacaoDasFaturas,
   totaisFinanceiros,
 } from "./golive-analitico";
 
@@ -123,5 +124,29 @@ describe("formalização e portal", () => {
     expect(estadoDaProjecao("published")).toBe("Publicado");
     expect(estadoDaProjecao("draft")).toBe("Rascunho");
     expect(estadoDaProjecao("outro_estado")).toBe("Sem situação");
+  });
+});
+
+describe("situação das faturas", () => {
+  it("separa aberta, vencida, paga e cancelada", () => {
+    const s = situacaoDasFaturas(
+      [
+        fatura({ id: "a", vencimento: "2026-10-10" }),
+        fatura({ id: "b", vencimento: "2026-09-01" }),
+        fatura({ id: "c", status: "paga", pagaEm: "2026-09-02" }),
+        fatura({ id: "d", status: "cancelada", vencimento: "2026-08-01" }),
+      ],
+      AGORA,
+    );
+    expect(s).toEqual([
+      { rotulo: "Aberta", valor: 1 },
+      { rotulo: "Vencida", valor: 1 },
+      { rotulo: "Paga", valor: 1 },
+      { rotulo: "Cancelada/dispensada", valor: 1 },
+    ]);
+  });
+
+  it("sem fatura não devolve fatia alguma", () => {
+    expect(situacaoDasFaturas([], AGORA)).toEqual([]);
   });
 });
