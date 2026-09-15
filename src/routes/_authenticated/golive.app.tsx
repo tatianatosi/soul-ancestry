@@ -5,7 +5,7 @@
  * Nada de dado interno do Desk, preço, catálogo, nota de bastidor ou promessa.
  * Sem publicação, a aba mostra o estado vazio canônico.
  */
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
@@ -13,6 +13,10 @@ import { BarrasPercentual, LinhaDoTempo } from "@/components/golive/graficos";
 import { useGoLive } from "@/components/golive/dados";
 import {
   ABAS_APP,
+  achadosParaFamilia,
+  contratoParaFamilia,
+  evidenciasParaFamilia,
+  fontesParaFamilia,
   marcosPublicados,
   publicacoesDaAba,
   situacaoDocumentos,
@@ -45,6 +49,17 @@ const Aguardando = (
   </Button>
 );
 
+/** CTA de navegação do espelho interno: leva à superfície do Desk que trata o assunto. */
+function IrPara({ para, rotulo }: { para: string; rotulo: string }) {
+  return (
+    <Link to={para}>
+      <Button size="sm" variant="outline">
+        {rotulo}
+      </Button>
+    </Link>
+  );
+}
+
 /** Cartão curto de um conteúdo já publicado. */
 function Publicado({ titulo, quando }: { titulo: string; quando?: string | null }) {
   return (
@@ -73,6 +88,12 @@ function AppClienteGoLive() {
   const documentosLiberados = (caso?.documentos ?? []).filter((d) => d.liberadoCliente);
   const situacao = situacaoDocumentos(documentosLiberados);
   const acesso = caso?.portal.acessos[0] ?? null;
+
+  /* Pesquisa e Jurídico já gravados, filtrados para o que a família pode ver. */
+  const evidenciasFamilia = evidenciasParaFamilia(caso?.evidencias ?? []);
+  const fontesFamilia = fontesParaFamilia(caso?.fontes ?? []);
+  const achadosFamilia = achadosParaFamilia(caso?.achados ?? []);
+  const contrato = contratoParaFamilia(caso?.contratos ?? []);
 
   return (
     <GoLiveShell titulo="App Cliente" descricao="Somente o que já foi publicado para a família.">
@@ -198,8 +219,20 @@ function AppClienteGoLive() {
                 <Vazio cta={Aguardando} />
               )}
             </Bloco>
-            <Bloco titulo="Em pesquisa">
-              <p className="text-sm text-navy/70">
+            <Bloco titulo="Fontes já consultadas">
+              {fontesFamilia.length ? (
+                <ul className="space-y-1 text-sm text-navy">
+                  {fontesFamilia.map((f) => (
+                    <li key={f.id} className="break-words">
+                      {f.titulo}
+                      {f.instituicao ? <span className="text-navy/55"> · {f.instituicao}</span> : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <Vazio cta={<IrPara para="/golive/pesquisa" rotulo="Abrir Pesquisa" />} />
+              )}
+              <p className="mt-2 text-xs text-navy/55">
                 Pessoas e vínculos entram na árvore só depois de confirmados e liberados pela equipe.
               </p>
             </Bloco>
@@ -223,16 +256,21 @@ function AppClienteGoLive() {
               )}
             </Bloco>
             <Bloco titulo="Documentos disponíveis">
-              {documentosLiberados.length ? (
+              {documentosLiberados.length || evidenciasFamilia.length ? (
                 <ul className="space-y-1 text-sm text-navy">
                   {documentosLiberados.map((d) => (
                     <li key={d.id} className="break-words">
                       {d.titulo} <span className="text-navy/55">· {humano(d.status, "sem situação")}</span>
                     </li>
                   ))}
+                  {evidenciasFamilia.map((e) => (
+                    <li key={e.id} className="break-words">
+                      {e.titulo} <span className="text-navy/55">· {humano(e.status, "sem situação")}</span>
+                    </li>
+                  ))}
                 </ul>
               ) : (
-                <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando liberação da equipe</Button>} />
+                <Vazio cta={<IrPara para="/golive/pesquisa" rotulo="Abrir Pesquisa" />} />
               )}
             </Bloco>
             <Bloco titulo="Entregas publicadas">
@@ -252,14 +290,17 @@ function AppClienteGoLive() {
         {aba === "Legado" ? (
           <>
             <Bloco titulo="Descobertas da família">
-              {legado.length ? (
+              {legado.length || achadosFamilia.length ? (
                 <ul className="space-y-2">
                   {legado.map((p) => (
                     <Publicado key={p.id} titulo={p.resumo ?? humano(p.tipo)} quando={p.em} />
                   ))}
+                  {achadosFamilia.map((a) => (
+                    <Publicado key={a.id} titulo={a.titulo} quando={a.validadoEm ?? null} />
+                  ))}
                 </ul>
               ) : (
-                <Vazio cta={Aguardando} />
+                <Vazio cta={<IrPara para="/golive/pesquisa" rotulo="Abrir Pesquisa" />} />
               )}
             </Bloco>
             <Bloco titulo="Publicado recentemente">
@@ -291,14 +332,35 @@ function AppClienteGoLive() {
                 <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando cadastro da equipe</Button>} />
               )}
             </Bloco>
-            <Bloco titulo="Seu acompanhamento">
-              {acesso ? (
-                <p className="text-sm text-navy">
-                  Acesso ao App: {humano(acesso.situacao, "sem situação registrada")}
-                  {acesso.ultimoAcesso ? ` · última entrada em ${dataHumana(acesso.ultimoAcesso)}` : ""}
-                </p>
+            <Bloco titulo="Seu contrato e acesso">
+              {contrato || acesso ? (
+                <div className="space-y-1 text-sm text-navy">
+                  {contrato ? (
+                    <p className="break-words">
+                      {contrato.titulo}
+                      {contrato.numero ? ` · ${contrato.numero}` : ""}
+                      <span className="block text-xs text-navy/55">
+                        {contrato.assinadoEm
+                          ? `Assinado em ${dataHumana(contrato.assinadoEm)}`
+                          : humano(contrato.status, "sem situação registrada")}
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="text-navy/70">Contrato ainda não registrado para esta família.</p>
+                  )}
+                  {acesso ? (
+                    <p className="text-navy/70">
+                      Acesso ao App: {humano(acesso.situacao, "sem situação registrada")}
+                      {acesso.ultimoAcesso
+                        ? ` · última entrada em ${dataHumana(acesso.ultimoAcesso)}`
+                        : ""}
+                    </p>
+                  ) : (
+                    <p className="text-navy/70">Convite do App ainda não enviado.</p>
+                  )}
+                </div>
               ) : (
-                <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando convite da equipe</Button>} />
+                <Vazio cta={<IrPara para="/golive/juridico" rotulo="Abrir Jurídico" />} />
               )}
             </Bloco>
             <Bloco titulo="Avisos">

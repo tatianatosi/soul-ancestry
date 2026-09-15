@@ -88,3 +88,74 @@ export function situacaoDocumentos(
     liberados: documentos.filter((d) => combina(d, /liberad|entregue|aprovad|public/i)).length,
   };
 }
+
+/* ------------------------------------------------------------------ *
+ * Pesquisa e Jurídico já gravados, na leitura da família
+ * ------------------------------------------------------------------ */
+
+export type EvidenciaPesquisa = {
+  id: string;
+  titulo: string;
+  status?: string | null;
+  validadaEm?: string | null;
+  registradaEm?: string | null;
+};
+
+/**
+ * Evidência só chega à família quando a equipe já a marcou como aprovada
+ * para entrega ou publicada. Nenhum outro estado aparece no App.
+ */
+export function evidenciasParaFamilia(
+  evidencias: readonly EvidenciaPesquisa[],
+): EvidenciaPesquisa[] {
+  return evidencias
+    .filter((e) => /aprovada_para_entrega|publicada/.test(String(e.status ?? "")))
+    .slice()
+    .sort((a, b) =>
+      String(b.validadaEm ?? b.registradaEm ?? "").localeCompare(
+        String(a.validadaEm ?? a.registradaEm ?? ""),
+      ),
+    );
+}
+
+export type FontePesquisa = { id: string; titulo: string; instituicao?: string | null };
+
+/** Fontes já consultadas, sem interpretação nem juízo sobre o caso. */
+export function fontesParaFamilia(fontes: readonly FontePesquisa[]): FontePesquisa[] {
+  return fontes.slice(0, 8);
+}
+
+export type AchadoPesquisa = {
+  id: string;
+  titulo: string;
+  publicavel?: boolean;
+  validacao?: string | null;
+  validadoEm?: string | null;
+};
+
+/**
+ * Achado só entra no Legado quando é elegível para entrega e já foi validado.
+ * Hipótese nunca aparece como fato.
+ */
+export function achadosParaFamilia(achados: readonly AchadoPesquisa[]): AchadoPesquisa[] {
+  return achados.filter(
+    (a) => a.publicavel === true && /confirmad|validad|aprovad/i.test(String(a.validacao ?? "")),
+  );
+}
+
+export type ContratoCliente = {
+  id: string;
+  titulo: string;
+  numero?: string | null;
+  status?: string | null;
+  assinadoEm?: string | null;
+};
+
+/** Instrumento que a família pode ver: assinado, ou já liberado para envio. */
+export function contratoParaFamilia(
+  contratos: readonly ContratoCliente[],
+): ContratoCliente | null {
+  const assinado = contratos.find((c) => Boolean(c.assinadoEm));
+  if (assinado) return assinado;
+  return contratos.find((c) => /assinad|vigente|ativo/i.test(String(c.status ?? ""))) ?? null;
+}
