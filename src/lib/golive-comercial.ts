@@ -167,7 +167,7 @@ export function saudeDosLeads(leads: LeadComercial[], agora = new Date()): Saude
     const toque = lerData(l.ultimaInteracaoEm);
     return !toque || toque.getTime() <= proposta.getTime();
   });
-  return { semProximaAcao, semResponsavel, callVencida, propostaSemFollowUp };
+  return { semProximaAcao, semResponsavel, callVencida, propostaSemFollowUp, propostaSemData };
 }
 
 /** Agrupa os cartões por etapa comercial gravada, para o kanban. */
