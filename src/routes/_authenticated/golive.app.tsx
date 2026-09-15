@@ -371,7 +371,9 @@ function AppClienteGoLive() {
                           </li>
                         ))}
                       </ul>
+                      <BarrasPercentual titulo="Suas parcelas" dados={parcelasEmFatias(financeiro)} />
                     </>
+
                   ) : (
                     <p className="text-navy/70">Nenhuma parcela emitida para esta família.</p>
                   )}
