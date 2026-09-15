@@ -191,6 +191,13 @@ function AppClienteGoLive() {
                 <Vazio cta={Aguardando} />
               )}
             </Bloco>
+            <Bloco titulo="Publicações por mês">
+              {publicacoesPorMes(publicados).length ? (
+                <Linha titulo="Publicações por mês" dados={publicacoesPorMes(publicados)} />
+              ) : (
+                <Vazio cta={Aguardando} />
+              )}
+            </Bloco>
             <Bloco titulo="Próxima atualização">
               {jornada[0] ? (
                 <p className="break-words text-sm text-navy">
