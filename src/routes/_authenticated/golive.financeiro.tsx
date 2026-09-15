@@ -134,6 +134,38 @@ function FinanceiroGoLive() {
         )}
       </Bloco>
 
+      <Bloco titulo="Plano de parcelas e a conversa que originou">
+        {origem ? (
+          <p className="text-sm text-navy">
+            Conversa de descoberta realizada em {dataHumana(origem.callEm)}
+            {origem.resultado ? ` · resultado: ${humano(origem.resultado, "sem resultado registrado")}` : ""}
+            {origem.status ? ` · ${humano(origem.status, "")}` : ""}
+            {origem.resumo ? <span className="block text-navy/70">{origem.resumo}</span> : null}
+          </p>
+        ) : (
+          <p className="text-xs text-navy/55">
+            Este caso ainda não tem uma conversa de descoberta registrada com data e resultado.
+          </p>
+        )}
+        {parcelas.length ? (
+          <ul className="mt-3 space-y-1 text-sm text-navy">
+            {parcelas.map((p, i) => (
+              <li key={p.id} className="break-words">
+                Parcela {i + 1}
+                {p.numero ? ` · ${p.numero}` : ""}
+                {typeof p.valor === "number" ? ` — ${MOEDA.format(p.valor)}` : ""}{" "}
+                <span className="text-navy/55">
+                  · {p.vencimento ? `vence ${dataHumana(p.vencimento)}` : "sem vencimento registrado"} · {p.situacao}
+                  {p.diasAposCall !== null ? ` · ${p.diasAposCall} dias após a conversa` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <Vazio cta={irParaContratos} />
+        )}
+      </Bloco>
+
       <Bloco titulo="Faturas">
         {acaoFatura ? <Acoes>{acaoFatura}</Acoes> : (
           <p className="text-xs text-navy/55">
