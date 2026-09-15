@@ -14,6 +14,7 @@ import { useGoLive } from "@/components/golive/dados";
 import {
   ABAS_APP,
   contratoParaFamilia,
+  familiaParaApp,
   financeiroParaFamilia,
   marcosPublicados,
   parcelasEmFatias,
@@ -104,6 +105,27 @@ function AppClienteGoLive() {
   const titularId = caso?.identidade?.pessoaPrincipalId ?? null;
   const contrato = contratoParaFamilia(caso?.contratos ?? [], titularId);
   const financeiro = financeiroParaFamilia(caso?.faturas ?? [], titularId);
+  /* Papéis da família, já traduzidos e sem vocabulário interno. */
+  const familia = familiaParaApp(
+    caso?.identidade?.nucleoMembros ?? [],
+    caso?.identidade?.pessoaPrincipal ?? null,
+  );
+
+  const Familia = (
+    <Bloco titulo="Quem faz parte do estudo">
+      {familia.length ? (
+        <ul className="space-y-1 text-sm text-navy">
+          {familia.map((p) => (
+            <li key={p.id} className="break-words">
+              {p.nome} <span className="text-navy/55">· {p.papel}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <Vazio cta={<Button size="sm" variant="outline" disabled>Aguardando cadastro da equipe</Button>} />
+      )}
+    </Bloco>
+  );
 
   return (
     <GoLiveShell titulo="App Cliente" descricao="Somente o que já foi publicado para a família.">
@@ -270,6 +292,7 @@ function AppClienteGoLive() {
 
         {aba === "Árvore" ? (
           <>
+            {Familia}
             <Bloco titulo="Sua árvore">
               {arvore.length ? (
                 <ul className="space-y-2">
@@ -289,6 +312,7 @@ function AppClienteGoLive() {
 
         {aba === "Documentos" ? (
           <>
+            {Familia}
             <Bloco titulo="Situação dos seus documentos">
               {documentosLiberados.length ? (
                 <BarrasPercentual
@@ -335,6 +359,7 @@ function AppClienteGoLive() {
 
         {aba === "Legado" ? (
           <>
+            {Familia}
             <Bloco titulo="Descobertas da família">
               {legado.length ? (
                 <ul className="space-y-2">
@@ -363,6 +388,7 @@ function AppClienteGoLive() {
 
         {aba === "Conta" ? (
           <>
+            {Familia}
             <Bloco titulo="Seus dados">
               {caso?.identidade.pessoaPrincipal ? (
                 <div className="space-y-1 text-sm text-navy">

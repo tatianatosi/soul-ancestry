@@ -213,6 +213,50 @@ export function financeiroParaFamilia(
 }
 
 /* ------------------------------------------------------------------ *
+ * Família na leitura do cliente
+ * ------------------------------------------------------------------ */
+
+export type MembroNucleoApp = {
+  id: string;
+  nome: string;
+  papel: string | null;
+  clienteId?: string | null;
+};
+
+export type PessoaDaFamiliaApp = { id: string; nome: string; papel: string };
+
+/**
+ * Papéis do núcleo traduzidos para a leitura da família, sem inferir
+ * parentesco e sem expor vocabulário interno.
+ *
+ * Entram apenas pessoas com papel estruturado: quem assina o estudo e tem
+ * cadastro próprio (`cliente_id`), e quem está registrado como dependente.
+ * Pessoa de núcleo sem cadastro e sem papel de dependente (ancestral citada
+ * em fonte, por exemplo) não é membro contratante e fica fora do App.
+ */
+export function familiaParaApp(
+  membros: readonly MembroNucleoApp[],
+  titularNome?: string | null,
+): PessoaDaFamiliaApp[] {
+  const out: PessoaDaFamiliaApp[] = [];
+  for (const m of membros) {
+    const papel = String(m.papel ?? "").toLowerCase();
+    if (/depend/.test(papel)) {
+      out.push({ id: m.id, nome: m.nome, papel: "Dependente" });
+      continue;
+    }
+    if (!/contratante|signat|titular/.test(papel) || !m.clienteId) continue;
+    const ehTitular = Boolean(titularNome) && m.nome === titularNome;
+    out.push({
+      id: m.id,
+      nome: m.nome,
+      papel: ehTitular ? "Titular do estudo" : "Participante do estudo",
+    });
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------------ *
  * Gráficos das abas — só contagem do que já está publicado
  * ------------------------------------------------------------------ */
 

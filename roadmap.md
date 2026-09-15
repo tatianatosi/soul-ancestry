@@ -78,3 +78,8 @@
 - [ ] Duplicidades: mostrar IDs e fontes de Prancha 1 e Vínculo materno Silveira ANTES de arquivar
 - [ ] Próxima ação sucessora da vencida em 22/08 — aguardando título, responsável, prazo e estado
 - [ ] Acesso/primeira projeção — aguardando escolha de autorização (nenhuma caixa marcada)
+
+## Papéis do núcleo e duplicados (15/09/2026)
+- [ ] Atualizar papéis de Ana, Adair, Alice e Felipe no App e mostrar Árvore, Documentos e Legado.
+- [ ] Comparar os dois registros "Prancha 1" e os dois "Vínculo materno Silveira" com IDs, fontes e recomendação de arquivar/manter.
+- [ ] Conferir o App Cliente contra a prancha visual e o mockup mobile.
