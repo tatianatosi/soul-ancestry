@@ -5,7 +5,7 @@
  * Nada de dado interno do Desk, preço, catálogo, nota de bastidor ou promessa.
  * Sem publicação, a aba mostra o estado vazio canônico.
  */
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
@@ -13,6 +13,10 @@ import { BarrasPercentual, LinhaDoTempo } from "@/components/golive/graficos";
 import { useGoLive } from "@/components/golive/dados";
 import {
   ABAS_APP,
+  achadosParaFamilia,
+  contratoParaFamilia,
+  evidenciasParaFamilia,
+  fontesParaFamilia,
   marcosPublicados,
   publicacoesDaAba,
   situacaoDocumentos,
