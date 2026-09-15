@@ -52,8 +52,8 @@ const ETAPAS = ["novo", "em_contato", "qualificado", "proposta", "encerrado"] as
 function LeadsGoLive() {
   const { data, isPending, error } = useGoLive();
   const novoLead = useServerFn(registrarLeadGoLive);
-  const discovery = useServerFn(registrarDiscoveryGoLive);
-  const call = useServerFn(registrarCallGoLive);
+  const atendimento = useServerFn(registrarAtendimentoGoLive);
+
   const [escolhido, setEscolhido] = useState<string | null>(null);
 
   const leads = useMemo<LeadComercial[]>(() => (data?.leadsComerciais ?? []) as LeadComercial[], [data]);
