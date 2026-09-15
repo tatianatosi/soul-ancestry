@@ -143,7 +143,7 @@ export function PortalShell({
       */}
       <div className="mx-auto max-w-6xl lg:px-8">
         <aside className="px-4 pt-4 lg:px-0">
-          <nav aria-label="Navegação do aplicativo do cliente" className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+          <nav aria-label="Navegação do aplicativo do cliente" className="grid grid-cols-2 gap-2">
             {nav.map(({ to, label, icon: Icon }) => (
               <LinkPortal
                 key={to}

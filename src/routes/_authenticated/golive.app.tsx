@@ -144,7 +144,7 @@ function AppClienteGoLive() {
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
 
       {/* Abas do topo no desktop; no celular a navegação fica fixa embaixo. */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2">
         {ABAS_APP.map((item) => (
           <button
             key={item}
