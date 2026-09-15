@@ -23,6 +23,7 @@ const TELAS = [
   { to: "/golive/formalizacao", rotulo: "Formalização" },
   { to: "/golive/juridico", rotulo: "Jurídico" },
   { to: "/golive/financeiro", rotulo: "Financeiro" },
+  { to: "/golive/microentregas", rotulo: "Microentregas" },
   { to: "/golive/portal", rotulo: "Portal" },
   { to: "/golive/prontidao", rotulo: "Prontidão para o App" },
   { to: "/golive/app", rotulo: "App Cliente" },
