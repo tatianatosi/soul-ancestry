@@ -60,7 +60,14 @@ export function completudeFormal(d: InstrumentosJur): Fatia[] {
       rotulo: "Contrato",
       valor: percentual(completos(d.contratos, (c) => Boolean(c.assinadoEm)), d.contratos.length),
     },
-    { rotulo: "Anexos", valor: percentual(completos(d.anexos, (a) => Boolean(a.revisadoEm)), d.anexos.length) },
+    (() => {
+      // Anexo marcado como não aplicável sai da conta, em cima e embaixo.
+      const exigidos = d.anexos.filter((a) => !naoAplicavel(a.status));
+      return {
+        rotulo: "Anexos",
+        valor: percentual(completos(exigidos, (a) => Boolean(a.revisadoEm)), exigidos.length),
+      };
+    })(),
     { rotulo: "OS", valor: percentual(completos(d.ordens), d.ordens.length) },
   ];
 }
