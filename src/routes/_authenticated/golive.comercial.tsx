@@ -170,12 +170,29 @@ function ComercialGoLive() {
 
       <Bloco titulo="Saúde do lead">
         {leads.length ? (
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Indicador rotulo="Sem próxima ação" valor={saude.semProximaAcao.length} />
-            <Indicador rotulo="Sem responsável" valor={saude.semResponsavel.length} />
-            <Indicador rotulo="Call vencida" valor={saude.callVencida.length} />
-            <Indicador rotulo="Proposta sem follow-up" valor={saude.propostaSemFollowUp.length} />
-          </div>
+          <>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <Indicador rotulo="Sem próxima ação" valor={saude.semProximaAcao.length} />
+              <Indicador rotulo="Sem responsável" valor={saude.semResponsavel.length} />
+              <Indicador rotulo="Call vencida" valor={saude.callVencida.length} />
+              <Indicador rotulo="Proposta sem follow-up" valor={saude.propostaSemFollowUp.length} />
+            </div>
+            {saude.propostaSemData.length ? (
+              <p className="text-xs text-navy/55">
+                {saude.propostaSemData.length} proposta(s) sem data registrada: o follow-up não pode ser medido.
+              </p>
+            ) : null}
+            {semData.length ? (
+              <p className="text-xs text-navy/55">
+                {semData.length} lead(s) sem data de entrada continuam na lista, fora do recorte por período.
+              </p>
+            ) : null}
+            {total > todos.length ? (
+              <p className="text-xs text-navy/55">
+                Mostrando os {todos.length} leads mais recentes de {total}. Os demais ficam fora desta leitura.
+              </p>
+            ) : null}
+          </>
         ) : (
           <>
             <Vazio cta={ctaNovoLead} />
