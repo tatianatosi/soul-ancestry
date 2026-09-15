@@ -21,6 +21,7 @@ import {
   fontesPorInstituicao,
   marcosPublicados,
   parcelasEmFatias,
+  parcelasPorVencimento,
   publicacoesDaAba,
   publicacoesPorAba,
   publicacoesPorMes,
@@ -394,6 +395,9 @@ function AppClienteGoLive() {
                         ))}
                       </ul>
                       <BarrasPercentual titulo="Suas parcelas" dados={parcelasEmFatias(financeiro)} />
+                      {parcelasPorVencimento(financeiro).length ? (
+                        <Barras titulo="Parcelas por mês de vencimento" dados={parcelasPorVencimento(financeiro)} />
+                      ) : null}
                     </>
 
                   ) : (

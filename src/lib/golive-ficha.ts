@@ -8,6 +8,7 @@
  * aparece como "ausente", "solicitado", "em revisão", "hipótese" ou
  * "não aplicável". Nenhuma tabela, dado ou publicação é criada aqui.
  */
+import { contratoParaFamilia, financeiroParaFamilia } from "@/lib/golive-app";
 import type { DadosGoLive } from "@/lib/golive.functions";
 
 export type Caso = Extract<DadosGoLive, { encontrado: true }>;
@@ -69,7 +70,10 @@ export function montarFicha(caso: Caso): LoteFicha[] {
   const plano = caso.plano;
   const lead = caso.lead;
   const pesquisa = caso.pesquisa;
-  const contrato = caso.contratos[0] ?? null;
+  const titularId = caso.identidade.pessoaPrincipalId;
+  // Instrumento do titular: assinado primeiro, depois vigente; senão o primeiro registrado.
+  const contrato = contratoParaFamilia(caso.contratos, titularId) ?? caso.contratos[0] ?? null;
+  const financeiro = financeiroParaFamilia(caso.faturas, titularId);
   const proposta = caso.propostas[0] ?? null;
   const ordem = caso.ordensServico[0] ?? null;
   const titular = caso.identidade.pessoaPrincipal;
@@ -447,6 +451,33 @@ export function montarFicha(caso: Caso): LoteFicha[] {
       fonte: "Faturas do caso",
       responsavel: resp,
       data: caso.faturas[0]?.vencimento ?? null,
+      visibilidade: "cliente",
+      vinculo: id,
+      telaDona: "/golive/financeiro",
+      destinoApp: "Conta",
+    }),
+    campo({
+      chave: "parcelas",
+      rotulo: "Parcelas em aberto",
+      valor: financeiro.parcelas.length
+        ? `${financeiro.pagas} paga(s) e ${financeiro.emAberto} em aberto`
+        : null,
+      fonte: "Faturas do caso e do titular",
+      responsavel: resp,
+      data: financeiro.proxima?.vencimento ?? null,
+      visibilidade: "cliente",
+      vinculo: id,
+      telaDona: "/golive/financeiro",
+      destinoApp: "Conta",
+      ausente: "ausente",
+    }),
+    campo({
+      chave: "proximo_vencimento",
+      rotulo: "Próximo vencimento",
+      valor: financeiro.proxima?.vencimento ?? null,
+      fonte: "Faturas do caso e do titular",
+      responsavel: resp,
+      data: financeiro.proxima?.vencimento ?? null,
       visibilidade: "cliente",
       vinculo: id,
       telaDona: "/golive/financeiro",

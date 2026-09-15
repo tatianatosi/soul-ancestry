@@ -248,6 +248,22 @@ export function fontesPorInstituicao(fontes: readonly FontePesquisa[]): Fatia[] 
     .map(([rotulo, valor]) => ({ rotulo, valor }));
 }
 
+/**
+ * Parcelas por mês de vencimento, só com fatura real já emitida.
+ * Parcela sem vencimento gravado não entra e nada é estimado.
+ */
+export function parcelasPorVencimento(situacao: SituacaoFinanceira): Fatia[] {
+  const contas = new Map<string, number>();
+  for (const p of situacao.parcelas) {
+    const mes = p.vencimento ? String(p.vencimento).slice(0, 7) : null;
+    if (!mes) continue;
+    contas.set(mes, (contas.get(mes) ?? 0) + 1);
+  }
+  return [...contas.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([mes, valor]) => ({ rotulo: mes.split("-").reverse().join("/"), valor }));
+}
+
 /** Parcelas pagas x em aberto, para a leitura da família. */
 export function parcelasEmFatias(situacao: SituacaoFinanceira): Fatia[] {
   return [
