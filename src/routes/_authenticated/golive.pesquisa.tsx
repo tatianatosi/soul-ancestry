@@ -188,6 +188,31 @@ function PesquisaGoLive() {
         </Bloco>
       ) : null}
 
+      {fontes.length ? (
+        <Bloco titulo="Cobertura por tipo de fonte">
+          <Barras titulo="Cobertura por tipo de fonte" dados={coberturaFontes} />
+        </Bloco>
+      ) : null}
+
+      {evidencias.length ? (
+        <Bloco titulo="Evidências por situação">
+          <Rosca titulo="Evidências por situação" dados={evidenciasPorEstado} />
+        </Bloco>
+      ) : null}
+
+      {achados.length ? (
+        <Bloco titulo="Achados por validação">
+          <Barras titulo="Achados por validação" dados={achadosPorValidacao} />
+        </Bloco>
+      ) : null}
+
+      {ritmo.length ? (
+        <Bloco titulo="Ritmo da pesquisa por semana">
+          <LinhaSerie titulo="Registros de pesquisa por semana" dados={ritmo} />
+          <p className="text-xs text-navy/55">Fontes, evidências e achados com data registrada.</p>
+        </Bloco>
+      ) : null}
+
       <Etapa
         titulo="1. Perguntas de pesquisa"
         vazio="Registrar pergunta"
