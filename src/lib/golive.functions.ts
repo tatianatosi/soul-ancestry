@@ -279,6 +279,19 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         )
       : [];
 
+    /* Pagamentos confirmados das faturas do caso. Só leitura, sem tabela nova:
+       a data de confirmação já está gravada em `payments.pago_em`. */
+    const idsFaturas = faturas.map((f) => String(f["id"]));
+    const pagamentos = idsFaturas.length
+      ? (((
+          await supabase
+            .from("payments")
+            .select("id,invoice_id,valor,metodo,status,pago_em,dados_teste")
+            .in("invoice_id", idsFaturas)
+            .is("archived_at", null)
+        ).data ?? []) as Linha[]).filter((p) => p["dados_teste"] !== true)
+      : [];
+
     const [acessosPortal, emailsAutorizados] = await Promise.all([
       clienteCanonico?.id
         ? lista(supabase, "client_portal_access", "client_id", String(clienteCanonico.id))
@@ -483,7 +496,13 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           tipo: (p["projection_type"] as string) ?? "conteúdo",
           resumo: (p["content_sanitized"] as string) ?? null,
           em: (p["approved_at"] as string) ?? (p["effective_from"] as string) ?? null,
+          criadoEm: (p["created_at"] as string) ?? null,
         })),
+      /** Projeções ainda não publicadas — só estado, para a rosca do Portal. */
+      projecoesEstados: limpar(projecoes).map((p) => ({
+        id: String(p["id"]),
+        estado: String(p["approval_status"] ?? ""),
+      })),
 
       contratos: limpar(contratos).map((c) => ({
         id: String(c["id"]),
