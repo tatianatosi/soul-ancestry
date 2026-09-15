@@ -1,32 +1,30 @@
-# Ficha da Ana com fontes reais e uma microentrega publicada
+# Prova das 7 abas do App da Ana, sem criar dado
 
-## 1. Ficha por lotes — ligar tudo que já está gravado
+## O que será feito
 
-Conferência campo a campo dos lotes A–D contra o registro real do caso `CA-CID-AT-FAM-2026-001`, sem digitar valor novo e sem deduzir:
+Abrir o App logado no caso `CA-CID-AT-FAM-2026-001` e registrar, aba por aba, o que está na tela hoje:
 
-- A (pessoa, núcleo, caso): titular, núcleo Silveira / Friedmann-Reimer, participantes e dependentes, responsável, fase e próxima ação
-- B (pesquisa): pergunta, 3 fontes consultadas, 1 evidência, 2 achados e estado de validação
-- C (formalização e financeiro): proposta, escopo, contrato 2026-CB-0001, assinatura pendente, 10 anexos, OS e faturas
-- D (entrega e acesso): microentregas, revisão, projeções, publicado/despublicado, e-mail autorizado e acesso ao App
+Home · Jornada · Radar · Árvore · Documentos · Legado · Conta
 
-Cada campo continua mostrando fonte, responsável, data, visibilidade e tela dona. Onde não existe registro (faturas, OS, relações aprovadas, acesso da cliente), fica "ausente" — nada de preenchimento estimado.
+Para cada aba: print desktop e 375 px, o que aparece, de qual registro real veio, e o estado vazio quando não há nada publicado.
 
-Se algum campo aparecer como "ausente" mesmo havendo registro, a correção é só na leitura (ligação com a tabela certa), nunca criando dado.
+## Estado atual já verificado
 
-## 2. Microentrega publicada e prova em Home e Jornada
+O caso tem 2 microentregas (1 concluída), 9 marcos de linha do tempo, 3 fontes de pesquisa, 1 contrato e 10 anexos — mas **nenhuma projeção publicada** (as 3 existentes estão arquivadas do teste anterior) e nenhum documento liberado nem fatura.
 
-Usando um marco real já gravado da Ana (a confirmação formal de 14/08/2026), pelos caminhos que já existem:
+Como esta rodada é sem criar dado, Home e Jornada vão aparecer com o estado vazio canônico. Isso é o resultado correto da prova, não uma falha. Se quiser conteúdo visível nas abas, a publicação da microentrega fica como passo seguinte, separado e aprovado à parte.
 
-1. criar a microentrega no Caso 360
-2. aprovar na revisão
-3. publicar para a família, com autor e data
-4. abrir o App e conferir que ela aparece em Home ("Última entrega" e resumo) e em Jornada ("Seus marcos")
+## Verificações da prova
 
-Registro antes/depois com prints desktop e 375 px. Nada é enviado para a cliente: não há convite, e-mail nem link mágico nesta etapa.
+- as 7 abas existem, nesta ordem, e nenhuma aba extra
+- só conteúdo do mesmo caso e da mesma titular
+- nada interno: sem nota interna, hipótese como fato, preço técnico, catálogo, gate ou registro de teste
+- sem barra cortada, sem rolagem lateral em 375 px e sem erro no console
 
-## Detalhes técnicos
+## Entrega
 
-- Leitura da ficha em `src/lib/golive-ficha.ts`, sem alterar as fontes.
-- Escritores já existentes: `criarMicroentregaGoLive`, `aprovarMicroentregaGoLive`, `publicarNoAppGoLive` (e `despublicarDoAppGoLive` se você quiser reverter).
-- Sem tabela nova, sem migration, sem RLS, sem exclusão, sem envio externo e sem deploy de produção.
-- Prova autenticada na prévia, com prints salvos em Arquivos.
+Uma tabela com aba, abre/não abre, dado real ou vazio, fonte usada e observação, mais os prints salvos em Arquivos.
+
+## Limites
+
+Sem criar, editar, publicar, despublicar, convidar, enviar link mágico, alterar banco, RLS, migration ou publicar em produção.
