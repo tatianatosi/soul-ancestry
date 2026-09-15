@@ -116,10 +116,25 @@ function FinanceiroGoLive() {
 
       <Bloco titulo="Valor e condição">
         {comValor.length ? (
-          <p className="text-sm text-navy">
-            {MOEDA.format(total)} em {comValor.length} cobrança{comValor.length === 1 ? "" : "s"} registrada
-            {comValor.length === 1 ? "" : "s"}.
-          </p>
+          <>
+            <p className="text-sm text-navy">
+              {MOEDA.format(total)} em {comValor.length} cobrança{comValor.length === 1 ? "" : "s"} registrada
+              {comValor.length === 1 ? "" : "s"}.
+            </p>
+            <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                { rotulo: "Contratado", valor: totais.contratado },
+                { rotulo: "Recebido", valor: totais.pago },
+                { rotulo: "Em aberto", valor: totais.emAberto },
+                { rotulo: "Vencido", valor: totais.vencido },
+              ].map((i) => (
+                <div key={i.rotulo} className="min-w-0 rounded-xl border border-navy/10 bg-cream/60 p-3">
+                  <dt className="text-[11px] uppercase tracking-wide text-navy/50">{i.rotulo}</dt>
+                  <dd className="break-words text-sm font-semibold text-navy">{MOEDA.format(i.valor)}</dd>
+                </div>
+              ))}
+            </dl>
+          </>
         ) : (
           <Vazio cta={acaoFatura} />
         )}
@@ -127,16 +142,14 @@ function FinanceiroGoLive() {
 
       {faturas.length ? (
         <Bloco titulo="Situação das cobranças">
-          <Rosca
-            titulo="Situação das cobranças"
-            dados={Object.entries(
-              faturas.reduce<Record<string, number>>((acc, f) => {
-                const chave = humano(f.status, "Sem situação");
-                acc[chave] = (acc[chave] ?? 0) + 1;
-                return acc;
-              }, {}),
-            ).map(([rotulo, valor]) => ({ rotulo, valor }))}
-          />
+          <Rosca titulo="Situação das cobranças" dados={situacao} />
+        </Bloco>
+      ) : null}
+
+      {recebimento.length ? (
+        <Bloco titulo="Recebimento por mês">
+          <LinhaSerie titulo="Recebimento por mês" dados={recebimento} />
+          <p className="text-xs text-navy/55">Só pagamentos com data de confirmação registrada.</p>
         </Bloco>
       ) : null}
 
