@@ -15,11 +15,13 @@ import { Barras, Escada } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
-import { AcaoAtendimento } from "@/components/golive/atendimento";
+import { AcaoAgenda, AcaoAtendimento } from "@/components/golive/atendimento";
 import {
   COLUNAS_FUNIL,
+  agendaDoLead,
   colunaDoLead,
   funil,
+  progressoRoteiro,
   roteiroDiscovery,
   type LeadComercial,
 } from "@/lib/golive-comercial";
