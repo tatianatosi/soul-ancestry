@@ -8,7 +8,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 
-import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Bloco, Vazio } from "@/components/golive/shell";
+import { BrandLogo } from "@/components/brand";
 import { Barras, BarrasPercentual, Linha, LinhaDoTempo } from "@/components/golive/graficos";
 import { useGoLive } from "@/components/golive/dados";
 import {
@@ -128,7 +129,18 @@ function AppClienteGoLive() {
   );
 
   return (
-    <GoLiveShell titulo="App Cliente" descricao="Somente o que já foi publicado para a família.">
+    <div className="min-h-dvh overflow-x-hidden bg-cream text-navy">
+      <header className="bg-navy text-cream">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 lg:px-8">
+          <BrandLogo size={32} variant="client-dark" showText={false} />
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase text-gold/80">Clube Ancestral</p>
+            <h1 className="truncate font-serif text-lg leading-tight text-cream">App Cliente</h1>
+          </div>
+        </div>
+        <div className="h-0.5 bg-gold" aria-hidden="true" />
+      </header>
+      <main className="mx-auto w-full max-w-6xl space-y-5 px-4 pb-12 pt-4 lg:px-8">
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
 
       {/* Abas do topo no desktop; no celular a navegação fica fixa embaixo. */}
@@ -148,7 +160,7 @@ function AppClienteGoLive() {
         ))}
       </div>
 
-      <div className="space-y-4 pb-24 sm:pb-0">
+      <div className="space-y-4">
         {aba === "Home" ? (
           <>
             <Bloco titulo="Sua etapa">
@@ -511,28 +523,7 @@ function AppClienteGoLive() {
         ) : null}
       </div>
 
-      {/* Navegação inferior do celular: sete abas, rolagem só dentro da barra. */}
-      <nav
-        aria-label="Abas do App Cliente"
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-navy/10 bg-cream/95 backdrop-blur sm:hidden"
-      >
-        <ul className="flex w-full">
-          {ABAS_APP.map((item) => (
-            <li key={item} className="flex-1">
-              <button
-                type="button"
-                onClick={() => setAba(item)}
-                aria-current={aba === item}
-                className={`w-full truncate px-1 py-3 text-[10px] ${
-                  aba === item ? "font-semibold text-navy" : "text-navy/55"
-                }`}
-              >
-                {item}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </GoLiveShell>
+      </main>
+    </div>
   );
 }
