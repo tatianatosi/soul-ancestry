@@ -15,11 +15,13 @@ import { Barras, Escada } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
-import { AcaoAtendimento } from "@/components/golive/atendimento";
+import { AcaoAgenda, AcaoAtendimento } from "@/components/golive/atendimento";
 import {
   COLUNAS_FUNIL,
+  agendaDoLead,
   colunaDoLead,
   funil,
+  progressoRoteiro,
   roteiroDiscovery,
   type LeadComercial,
 } from "@/lib/golive-comercial";
@@ -59,6 +61,8 @@ function LeadsGoLive() {
   const leads = useMemo<LeadComercial[]>(() => (data?.leadsComerciais ?? []) as LeadComercial[], [data]);
   const emFoco = leads.find((l) => l.id === escolhido) ?? leads[0] ?? null;
   const etapaAtual = emFoco ? colunaDoLead(emFoco) : null;
+  const progresso = useMemo(() => progressoRoteiro(emFoco), [emFoco]);
+  const agenda = useMemo(() => agendaDoLead(emFoco), [emFoco]);
 
   const ctaCadastro = (
     <Link to="/golive/comercial">
@@ -178,20 +182,59 @@ function LeadsGoLive() {
                 feito: i <= COLUNAS_FUNIL.indexOf(etapaAtual ?? "Lead"),
               }))}
             />
-            <AcaoAtendimento
-              leadId={emFoco.id}
-              aoConfirmar={(v) => atendimento({ data: v as Parameters<typeof atendimento>[0]["data"] })}
-            />
-            <ul className="space-y-1 pt-1 text-xs text-navy/65">
-              {roteiroDiscovery(emFoco).map((passo) => (
-                <li key={passo.pergunta}>
-                  {passo.estado === "respondida" ? "✓" : "•"} {passo.pergunta}{" "}
-                  <span className="text-navy/50">
-                    — {passo.resposta ? humano(passo.resposta) : "pendente"} · fonte: {passo.fonte}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <div className="flex flex-wrap gap-2">
+              <AcaoAtendimento
+                leadId={emFoco.id}
+                aoConfirmar={(v) => atendimento({ data: v as Parameters<typeof atendimento>[0]["data"] })}
+              />
+              <AcaoAgenda
+                leadId={emFoco.id}
+                aoConfirmar={(v) => atendimento({ data: v as Parameters<typeof atendimento>[0]["data"] })}
+              />
+            </div>
+
+            {agenda ? (
+              <div className="rounded-lg bg-creme/60 p-3 text-xs text-navy/70">
+                <span className="block font-medium text-navy">Agenda</span>
+                <span className="block">
+                  Call: {agenda.rotulo} · {dataHumana(agenda.quando, "sem data registrada")}
+                  {agenda.vencida ? " · horário já passou" : ""}
+                </span>
+                <span className="block">
+                  Próxima ação: {humano(agenda.proximaAcao, "não registrada")} ·{" "}
+                  {dataHumana(agenda.proximaAcaoEm, "sem prazo")}
+                </span>
+              </div>
+            ) : null}
+
+            <div className="space-y-1 pt-1 text-xs text-navy/65">
+              <p className="font-medium text-navy">
+                Roteiro do Discovery: {progresso.respondidas} de {progresso.total} respondidas (
+                {progresso.percentual}%)
+              </p>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-navy/10">
+                <div className="h-full rounded-full bg-gold" style={{ width: `${progresso.percentual}%` }} />
+              </div>
+              <p>
+                {progresso.proxima
+                  ? `Próxima pergunta: ${progresso.proxima.pergunta}`
+                  : "Roteiro completo com o que está gravado no lead."}
+              </p>
+              <ul className="space-y-1">
+                {roteiroDiscovery(emFoco).map((passo) => (
+                  <li
+                    key={passo.pergunta}
+                    className={passo.pergunta === progresso.proxima?.pergunta ? "font-medium text-navy" : ""}
+                  >
+                    {passo.estado === "respondida" ? "✓" : "•"} {passo.pergunta}{" "}
+                    <span className="text-navy/50">
+                      — {passo.resposta ? humano(passo.resposta) : "pendente"} · fonte: {passo.fonte}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
 
             <div className="flex flex-wrap gap-2 pt-1">
               <Link to="/golive/formalizacao">
