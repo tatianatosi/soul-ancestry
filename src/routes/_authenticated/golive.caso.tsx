@@ -408,7 +408,7 @@ function LinhaCampo({ campo }: { campo: CampoFicha }) {
         </span>
       </div>
       <p className="mt-1 break-words text-sm">
-        {campo.valor ? humano(campo.valor) : "Sem registro — preencher na tela dona."}
+        {campo.valor ?? "Sem registro — preencher na tela dona."}
       </p>
       <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-navy/60 sm:grid-cols-4">
         <Meta rotulo="Fonte" valor={campo.fonte} />
