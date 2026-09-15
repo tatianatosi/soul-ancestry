@@ -219,8 +219,20 @@ function AppClienteGoLive() {
                 <Vazio cta={Aguardando} />
               )}
             </Bloco>
-            <Bloco titulo="Em pesquisa">
-              <p className="text-sm text-navy/70">
+            <Bloco titulo="Fontes já consultadas">
+              {fontesFamilia.length ? (
+                <ul className="space-y-1 text-sm text-navy">
+                  {fontesFamilia.map((f) => (
+                    <li key={f.id} className="break-words">
+                      {f.titulo}
+                      {f.instituicao ? <span className="text-navy/55"> · {f.instituicao}</span> : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <Vazio cta={<IrPara para="/golive/pesquisa" rotulo="Abrir Pesquisa" />} />
+              )}
+              <p className="mt-2 text-xs text-navy/55">
                 Pessoas e vínculos entram na árvore só depois de confirmados e liberados pela equipe.
               </p>
             </Bloco>
