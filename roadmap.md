@@ -82,3 +82,4 @@
 ## Papéis do núcleo e duplicados (15/09/2026)
 - [ ] Atualizar papéis de Ana, Adair, Alice e Felipe no App e mostrar Árvore, Documentos e Legado.
 - [ ] Comparar os dois registros "Prancha 1" e os dois "Vínculo materno Silveira" com IDs, fontes e recomendação de arquivar/manter.
+- [ ] Conferir o App Cliente contra a prancha visual e o mockup mobile.
