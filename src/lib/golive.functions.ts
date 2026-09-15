@@ -189,6 +189,22 @@ export const carregarGoLive = createServerFn({ method: "GET" })
       : [];
     const nomePerfil = new Map(perfis.map((p) => [String(p["id"]), String(p["nome"] ?? "")]));
 
+    /* Projeções despublicadas: saíram do App, mas continuam no histórico com
+       motivo. Leitura à parte porque a leitura padrão ignora arquivados. */
+    const projecoesDespublicadas: Linha[] = await (async () => {
+      try {
+        const { data, error: erroDesp } = await supabase
+          .from("app_projections")
+          .select("*")
+          .eq("case_id", casoId)
+          .not("archived_at", "is", null)
+          .limit(50);
+        return erroDesp ? [] : ((data ?? []) as Linha[]);
+      } catch {
+        return [];
+      }
+    })();
+
     /* Anexos do contrato — só leitura do que já existe em `contract_annexes`.
        Registro marcado como teste sai da leitura; nada é criado ou assinado. */
     const anexosContrato = (
@@ -541,10 +557,30 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           em: (p["approved_at"] as string) ?? (p["effective_from"] as string) ?? null,
           criadoEm: (p["created_at"] as string) ?? null,
         })),
-      /** Projeções ainda não publicadas — só estado, para a rosca do Portal. */
+      /**
+       * Projeções do caso em qualquer situação — inclusive despublicadas,
+       * que continuam no histórico com motivo. Só leitura.
+       */
       projecoesEstados: limpar(projecoes).map((p) => ({
         id: String(p["id"]),
         estado: String(p["approval_status"] ?? ""),
+        tipo: (p["projection_type"] as string) ?? null,
+        origem: (p["source_entity_type"] as string) ?? null,
+        visibilidade: (p["visibility_scope"] as string) ?? null,
+        aprovadoPor: (p["approved_by"] as string) ?? null,
+        aprovadaEm: (p["approved_at"] as string) ?? null,
+        vigenteDe: (p["effective_from"] as string) ?? null,
+        despublicadaEm: (p["archived_at"] as string) ?? null,
+        motivoDespublicacao: (p["archived_reason"] as string) ?? null,
+      })),
+      /** Saíram do App, mas seguem no histórico: nada é apagado. */
+      projecoesDespublicadas: projecoesDespublicadas.map((p) => ({
+        id: String(p["id"]),
+        estado: String(p["approval_status"] ?? ""),
+        tipo: (p["projection_type"] as string) ?? null,
+        origem: (p["source_entity_type"] as string) ?? null,
+        despublicadaEm: (p["archived_at"] as string) ?? null,
+        motivoDespublicacao: (p["archived_reason"] as string) ?? null,
       })),
 
       contratos: limpar(contratos).map((c) => ({
@@ -676,12 +712,18 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           email: (a["email"] as string) ?? null,
           nivel: String(a["access_level"] ?? ""),
           situacao: String(a["access_status"] ?? ""),
+          convidadoEm: (a["invited_at"] as string) ?? null,
+          primeiroAcesso: (a["first_authenticated_at"] as string) ?? null,
           ultimoAcesso: (a["last_authenticated_at"] as string) ?? null,
+          revogadoEm: (a["revoked_at"] as string) ?? null,
+          suspensoEm: (a["suspended_at"] as string) ?? null,
         })),
         emailsAutorizados: limpar(emailsAutorizados).map((e) => ({
           id: String(e["id"]),
           email: (e["email"] as string) ?? null,
           status: (e["status"] as string) ?? null,
+          validadoEm: (e["validado_em"] as string) ?? null,
+          criadoEm: (e["created_at"] as string) ?? null,
         })),
       },
       equipeTotal: equipe.length,

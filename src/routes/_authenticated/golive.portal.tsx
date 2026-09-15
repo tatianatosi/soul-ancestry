@@ -6,18 +6,14 @@
  * publicação é disparada aqui e nenhum dado é criado.
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
-import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
-import { Barras, Linha as LinhaSerie, Rosca } from "@/components/golive/graficos";
+import { Barras, Rosca } from "@/components/golive/graficos";
 import { Button } from "@/components/ui/button";
-import { contarPor, estadoDaProjecao, porSemana } from "@/lib/golive-analitico";
+import { acessoAoPortal, coberturaDoApp, publicacaoPorEstado } from "@/lib/golive-portal";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
-import { despublicarDoAppGoLive, publicarNoAppGoLive } from "@/lib/golive-escritores.functions";
-import { criarConvitePortal, registrarEmailAutorizado, validarEmailAutorizado } from "@/lib/portal.functions";
 
 export const Route = createFileRoute("/_authenticated/golive/portal")({
   head: () => ({
@@ -37,97 +33,17 @@ function PortalGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
   const publicados = caso?.publicados ?? [];
-  const microentregas = caso?.microentregas ?? [];
-  const publicar = useServerFn(publicarNoAppGoLive);
-  const despublicar = useServerFn(despublicarDoAppGoLive);
-  const autorizarEmail = useServerFn(registrarEmailAutorizado);
-  const aprovarEmail = useServerFn(validarEmailAutorizado);
-  const convidar = useServerFn(criarConvitePortal);
 
-  const clienteId = caso?.identidade.pessoaPrincipalId ?? null;
+
 
   // Só contagem do que já está gravado: projeções, acessos e e-mails autorizados.
   const projecoes = caso?.projecoesEstados ?? [];
+  const despublicadas = caso?.projecoesDespublicadas ?? [];
   const acessos = caso?.portal.acessos ?? [];
   const emails = caso?.portal.emailsAutorizados ?? [];
-  const publicacoesPorEstado = contarPor(projecoes, (p) => estadoDaProjecao(p.estado));
-  const acessosPorSituacao = contarPor(acessos, (a) => humano(a.situacao, ""), "Sem situação");
-  const emailsPorEstado = contarPor(emails, (e) => humano(e.status, ""), "Sem situação");
-  const datadas = publicados.filter((p) => Boolean(p.em));
-  const linhaPublicacoes = datadas.length ? porSemana(datadas, (p) => p.em, 7) : [];
-
-  const acaoConvite = clienteId ? (
-    <Acao
-      rotulo="Enviar link mágico"
-      titulo="Convidar a cliente para o App"
-      variante="outline"
-      campos={[
-        {
-          nome: "email",
-          rotulo: "E-mail da cliente",
-          obrigatorio: true,
-          padrao: caso?.identidade.email ?? "",
-        },
-        {
-          nome: "finalidade",
-          rotulo: "Finalidade do acesso",
-          obrigatorio: true,
-          padrao: "Acompanhar o próprio caso no App Cliente.",
-        },
-      ]}
-      aoConfirmar={async (v) => {
-        const autorizacao = await autorizarEmail({
-          data: {
-            clientId: clienteId,
-            casoId: caso?.caso.id ?? null,
-            email: v["email"] ?? "",
-            finalidade: v["finalidade"] ?? "",
-            nivel: "client_workspace",
-          },
-        });
-        await aprovarEmail({ data: { id: autorizacao.id, status: "aprovado" } });
-        await convidar({
-          data: {
-            clientId: clienteId,
-            autorizacaoId: autorizacao.id,
-            nivel: "client_workspace",
-            ...(caso?.caso.id ? { casoId: caso.caso.id } : {}),
-          },
-        });
-      }}
-      confirmacao="Convite enviado por link mágico para o e-mail autorizado."
-    />
-  ) : null;
-
-  const acaoPublicar = (
-    <Acao
-      rotulo="Publicar para a cliente"
-      titulo="Conteúdo que a família vai ler"
-      variante="outline"
-      campos={[
-        {
-          nome: "microentregaId",
-          rotulo: "Microentrega",
-          tipo: "escolha",
-          obrigatorio: true,
-          opcoes: microentregas.map((m) => ({ valor: m.id, rotulo: m.titulo })),
-        },
-        {
-          nome: "resumoSanitizado",
-          rotulo: "Texto para a cliente",
-          tipo: "area",
-          obrigatorio: true,
-          ajuda: "Sem nota interna, hipótese como fato, preço técnico ou dado de outro caso.",
-        },
-      ]}
-      aoConfirmar={(v) =>
-        publicar({
-          data: { microentregaId: v["microentregaId"] ?? "", resumoSanitizado: v["resumoSanitizado"] ?? "" },
-        })
-      }
-      confirmacao="Publicado no App, com autor e data."
-    />
-  );
+  const porEstado = publicacaoPorEstado(projecoes);
+  const resumoAcesso = acessoAoPortal(acessos, emails);
+  const cobertura = coberturaDoApp(projecoes);
 
   return (
     <GoLiveShell titulo="Portal do cliente" descricao="Acesso, equipe e o que o cliente já enxerga.">
@@ -142,15 +58,10 @@ function PortalGoLive() {
             <p className="break-words text-sm text-navy">
               {caso.identidade.pessoaPrincipal} · {caso.identidade.email}
             </p>
-            <Acoes>
-              {acaoConvite}
-              <Link to="/acessos-portal" className="text-sm text-navy underline decoration-gold underline-offset-4">
-                Gerenciar acesso e convite
-              </Link>
-            </Acoes>
+            <Link to="/acessos-portal" className="text-sm text-navy underline decoration-gold underline-offset-4">
+              Gerenciar acesso e convite
+            </Link>
           </div>
-        ) : acaoConvite ? (
-          <Vazio cta={acaoConvite} />
         ) : (
           <Vazio
             cta={
@@ -178,25 +89,64 @@ function PortalGoLive() {
         )}
       </Bloco>
 
-      {projecoes.length ? (
-        <Bloco titulo="Publicações por situação">
-          <Rosca titulo="Publicações por situação" dados={publicacoesPorEstado} />
-        </Bloco>
-      ) : null}
+      <Bloco titulo="1. Publicação por estado">
+        {projecoes.length ? (
+          <>
+            <Rosca titulo="Publicação por estado" dados={porEstado} />
+            {despublicadas.length ? (
+              <ul className="space-y-1 text-xs text-navy/60">
+                {despublicadas.map((d) => (
+                  <li key={d.id} className="break-words">
+                    Despublicado em {dataHumana(d.despublicadaEm, "data não registrada")}
+                    {d.motivoDespublicacao ? ` · ${d.motivoDespublicacao}` : ""} — continua no histórico.
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </>
+        ) : (
+          <Vazio
+            cta={
+              <Link to="/golive/caso">
+                <Button size="sm">Abrir Caso 360</Button>
+              </Link>
+            }
+          />
+        )}
+      </Bloco>
 
-      {acessos.length || emails.length ? (
-        <Bloco titulo="Acessos e e-mails autorizados">
-          {acessos.length ? <Barras titulo="Acessos por situação" dados={acessosPorSituacao} /> : null}
-          {emails.length ? <Barras titulo="E-mails autorizados por situação" dados={emailsPorEstado} /> : null}
-        </Bloco>
-      ) : null}
+      <Bloco titulo="2. Acesso ao portal">
+        {resumoAcesso.total || emails.length ? (
+          <>
+            <Barras
+              titulo="Situação do acesso"
+              dados={[
+                { rotulo: "Convites autorizados", valor: resumoAcesso.convitesAutorizados },
+                { rotulo: "Acesso ativo", valor: resumoAcesso.ativos },
+                { rotulo: "Revogado", valor: resumoAcesso.revogados },
+              ]}
+            />
+            <p className="text-xs text-navy/55">
+              Último acesso: {dataHumana(resumoAcesso.ultimoAcesso, "nenhum acesso registrado")}.
+            </p>
+          </>
+        ) : (
+          <Vazio
+            cta={
+              <Link to="/acessos-portal">
+                <Button size="sm">Gerenciar acesso e convite</Button>
+              </Link>
+            }
+          />
+        )}
+      </Bloco>
 
-      {linhaPublicacoes.length ? (
-        <Bloco titulo="Publicações por semana">
-          <LinhaSerie titulo="Publicações por semana" dados={linhaPublicacoes} />
-          <p className="text-xs text-navy/55">Só publicações com data registrada.</p>
-        </Bloco>
-      ) : null}
+      <Bloco titulo="3. Cobertura do App">
+        <Barras titulo="Conteúdo publicado por aba" dados={cobertura} />
+        <p className="text-xs text-navy/55">
+          Cada aba mostra só o conteúdo já publicado e aprovado para a cliente.
+        </p>
+      </Bloco>
 
       <Bloco titulo="Publicado para o cliente">
         {publicados.length ? (
@@ -213,32 +163,13 @@ function PortalGoLive() {
                 </li>
               ))}
             </ul>
-            <Acoes>
-              {microentregas.length ? acaoPublicar : null}
-              <Acao
-                rotulo="Despublicar"
-                titulo="Tirar do App sem apagar"
-                variante="outline"
-                campos={[
-                  {
-                    nome: "id",
-                    rotulo: "Publicação",
-                    tipo: "escolha",
-                    obrigatorio: true,
-                    opcoes: publicados.map((p) => ({
-                      valor: p.id,
-                      rotulo: `${humano(p.tipo)} · ${dataHumana(p.em, "sem data")}`,
-                    })),
-                  },
-                  { nome: "motivo", rotulo: "Motivo", obrigatorio: true },
-                ]}
-                aoConfirmar={(v) => despublicar({ data: { id: v["id"] ?? "", motivo: v["motivo"] ?? "" } })}
-                confirmacao="Conteúdo saiu do App. O registro continua no histórico."
-              />
-            </Acoes>
+            <Link
+              to="/golive/caso"
+              className="text-sm text-navy underline decoration-gold underline-offset-4"
+            >
+              Publicar ou tirar do ar no Caso 360
+            </Link>
           </>
-        ) : microentregas.length ? (
-          <Vazio cta={acaoPublicar} />
         ) : (
           <Vazio
             cta={
