@@ -62,15 +62,10 @@ function PortalGoLive() {
             <p className="break-words text-sm text-navy">
               {caso.identidade.pessoaPrincipal} · {caso.identidade.email}
             </p>
-            <Acoes>
-              {acaoConvite}
-              <Link to="/acessos-portal" className="text-sm text-navy underline decoration-gold underline-offset-4">
-                Gerenciar acesso e convite
-              </Link>
-            </Acoes>
+            <Link to="/acessos-portal" className="text-sm text-navy underline decoration-gold underline-offset-4">
+              Gerenciar acesso e convite
+            </Link>
           </div>
-        ) : acaoConvite ? (
-          <Vazio cta={acaoConvite} />
         ) : (
           <Vazio
             cta={
