@@ -252,6 +252,12 @@ export const carregarGoLive = createServerFn({ method: "GET" })
       return true;
     });
 
+    /* Versões do contrato — só o número já gravado em `contract_versions`.
+       Nada é gerado aqui; versão ausente continua ausente na tela. */
+    const versoesContrato: Linha[] = contratos[0]
+      ? await lista(supabase, "contract_versions", "contract_id", String(contratos[0]["id"]))
+      : [];
+
     const pesquisaId = pesquisas[0] ? String(pesquisas[0]["id"]) : null;
     const [fontes, evidenciasPesquisa, escopoItens] = await Promise.all([
       pesquisaId ? lista(supabase, "research_sources", "research_case_id", pesquisaId) : Promise.resolve([]),
