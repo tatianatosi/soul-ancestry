@@ -557,8 +557,19 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           alertasAbertos: alertasPorCaso.get(String(c["id"])) ?? 0,
         })),
       /** Carteira comercial: um cartão por lead, só campos já gravados. */
+      /* Limite e leads sem data de entrada ficam declarados na tela. */
+      leadsComerciaisLimite: LIMITE_LEADS,
+      leadsComerciaisTotal: leadsTotalOrg,
       leadsComerciais: (leadsOrg ?? [])
-        .filter((l) => l["demo"] !== true && l["dados_teste"] !== true && !ehRegistroDeTeste(l))
+        /* Exclusão só por sinalizador estruturado do próprio registro:
+           arquivamento (na consulta), demo, dados_teste e data_origin.
+           Nenhum filtro por nome ou texto livre. */
+        .filter(
+          (l) =>
+            l["demo"] !== true &&
+            l["dados_teste"] !== true &&
+            !["demo", "teste", "homologacao", "sintetico"].includes(String(l["data_origin"] ?? "real").toLowerCase()),
+        )
         .map((l) => ({
           id: String(l["id"]),
           nome: (l["nome"] as string) ?? "Lead sem nome",
