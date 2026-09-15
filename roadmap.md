@@ -83,3 +83,9 @@
 - [ ] Atualizar papéis de Ana, Adair, Alice e Felipe no App e mostrar Árvore, Documentos e Legado.
 - [ ] Comparar os dois registros "Prancha 1" e os dois "Vínculo materno Silveira" com IDs, fontes e recomendação de arquivar/manter.
 - [ ] Conferir o App Cliente contra a prancha visual e o mockup mobile.
+
+## Desk — Hoje, navegação e Biblioteca (15/09/2026)
+- [ ] Consolidar em Hoje os quatro KPIs reais de Hoje, Comercial, Kanban, Pesquisa, Financeiro, Jurídico e Portal.
+- [ ] Aplicar cabeçalho navy e menu móvel dos seis grupos em duas colunas, preservando permissões e subitens.
+- [ ] Criar as seis entradas da Biblioteca Mestre com contagens reais ou vazio honesto: Acervo, Bases Genealógicas, Dicionários, Trilhas Jurídicas, Modelos e Referências.
+- [ ] Validar `/painel` e `/biblioteca` em desktop e 375 px, sem rolagem horizontal.
