@@ -465,6 +465,49 @@ async function pesquisaDoCaso(s: any, organizationId: string, casoId: string) {
   return id;
 }
 
+/** De-para dos rótulos do formulário para o vocabulário aceito pelo banco. */
+const TIPO_FONTE: Record<string, string> = {
+  registro_civil: "civil_record",
+  civil_record: "civil_record",
+  registro_religioso: "religious_record",
+  religious_record: "religious_record",
+  arquivo_publico: "public_archive",
+  public_archive: "public_archive",
+  documento_familiar: "family_document",
+  family_document: "family_document",
+  entrevista: "interview",
+  interview: "interview",
+  outro: "other",
+  other: "other",
+};
+
+const TIPO_EVIDENCIA: Record<string, string> = {
+  documento: "document",
+  document: "document",
+  registro: "registry_entry",
+  registry_entry: "registry_entry",
+  foto: "photo",
+  photo: "photo",
+  trecho: "record_excerpt",
+  record_excerpt: "record_excerpt",
+  referencia_arquivo: "archive_reference",
+  archive_reference: "archive_reference",
+  outro: "other",
+  other: "other",
+};
+
+const TIPO_ACHADO: Record<string, string> = {
+  vinculo_familiar: "estrutura_familiar",
+  estrutura_familiar: "estrutura_familiar",
+  registro_civil: "registro_civil",
+  registro_religioso: "registro_religioso",
+  migracao: "migracao",
+  linha_do_tempo: "linha_do_tempo",
+  hipotese: "hipotese_pesquisa",
+  hipotese_pesquisa: "hipotese_pesquisa",
+  outro: "outro",
+};
+
 export const registrarFonteGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { titulo: string; instituicao?: string; tipo?: string; url?: string }) => d)
@@ -482,7 +525,7 @@ export const registrarFonteGoLive = createServerFn({ method: "POST" })
         research_case_id: pesquisaId,
         title: texto(data.titulo),
         repository_or_institution: texto(data.instituicao) || null,
-        source_type: texto(data.tipo) || "registro_civil",
+        source_type: TIPO_FONTE[texto(data.tipo)] ?? "civil_record",
         url: texto(data.url) || null,
         source_status: "referenced",
         created_by: userId,
@@ -509,11 +552,11 @@ export const registrarEvidenciaGoLive = createServerFn({ method: "POST" })
         organization_id: organizationId,
         research_case_id: pesquisaId,
         title: texto(data.titulo),
-        evidence_type: texto(data.tipo) || "documento",
+        evidence_type: TIPO_EVIDENCIA[texto(data.tipo)] ?? "document",
         description: texto(data.descricao) || null,
         source_id: texto(data.fonteId) || null,
         evidence_status: "collected",
-        client_visibility: "interna",
+        client_visibility: "never",
         created_by: userId,
       })
       .select("id")
@@ -524,12 +567,14 @@ export const registrarEvidenciaGoLive = createServerFn({ method: "POST" })
 
 export const registrarAchadoGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { titulo: string; tipo?: string; resumo?: string }) => d)
+  .inputValidator((d: { titulo: string; tipo?: string; resumo?: string; evidenciaId?: string; fonteId?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
     const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
     if (!texto(data.titulo)) throw new Error("Título do achado é obrigatório.");
+    if (!texto(data.evidenciaId) && !texto(data.fonteId))
+      throw new Error("Escolha a evidência ou a fonte que sustenta o achado.");
 
     const r = await s
       .from("genealogical_findings")
@@ -537,8 +582,10 @@ export const registrarAchadoGoLive = createServerFn({ method: "POST" })
         organization_id: organizationId,
         case_id: casoId,
         title: texto(data.titulo),
-        finding_type: texto(data.tipo) || "vinculo_familiar",
+        finding_type: TIPO_ACHADO[texto(data.tipo)] ?? "estrutura_familiar",
         internal_summary: texto(data.resumo) || null,
+        evidence_links: texto(data.evidenciaId) ? [texto(data.evidenciaId)] : [],
+        source_links: texto(data.fonteId) ? [texto(data.fonteId)] : [],
         validation_status: "em_revisao",
         eligible_for_client_deliverable: false,
         responsible_user_id: userId,
@@ -627,12 +674,13 @@ export const registrarPagamentoGoLive = createServerFn({ method: "POST" })
 
 export const criarMicroentregaGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { titulo: string; fase?: string; prazo?: string; descricao?: string }) => d)
+  .inputValidator((d: { titulo: string; fase?: string; prazo?: string; descricao?: string; criterio?: string }) => d)
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
     const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
     if (!texto(data.titulo)) throw new Error("Título da microentrega é obrigatório.");
+    if (!texto(data.criterio)) throw new Error("Escreva o critério de aceite da microentrega.");
 
     const r = await s
       .from("ops_microentregas")
@@ -642,6 +690,7 @@ export const criarMicroentregaGoLive = createServerFn({ method: "POST" })
         titulo: texto(data.titulo),
         descricao: texto(data.descricao) || null,
         fase: texto(data.fase) || "pesquisa_inicial",
+        criterio_aceite: texto(data.criterio) || null,
         prazo: texto(data.prazo) || null,
         status: "pendente",
         created_by: userId,
