@@ -163,44 +163,61 @@ function PesquisaGoLive() {
         </p>
       </nav>
 
-      {caso?.pesquisa ? (
-        <Bloco titulo="Andamento da pesquisa">
-          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <Campo rotulo="Situação" valor={humano(caso.pesquisa.status)} />
-            <Campo rotulo="Confiança" valor={humano(caso.pesquisa.confianca)} />
-            <Campo rotulo="Próxima ação" valor={humano(caso.pesquisa.proximaAcao)} />
-          </dl>
-          {caso.pesquisa.prazo ? (
-            <p className="text-xs text-navy/55">Prazo da próxima ação: {dataHumana(caso.pesquisa.prazo)}</p>
-          ) : null}
-          {temAlgo ? <Barras titulo="Volume da cadeia de pesquisa" dados={totais} /> : null}
+      {!isPending && !temLinhaAberta ? (
+        <Bloco titulo="Pesquisa do caso">
+          <p className="text-sm text-navy/70">Nenhuma linha de pesquisa aberta</p>
+          <div className="pt-2">
+            <Link to="/golive/caso">
+              <Button size="sm">Abrir o caso</Button>
+            </Link>
+          </div>
         </Bloco>
       ) : null}
 
-      {fontes.length ? (
-        <Bloco titulo="Cobertura por tipo de fonte">
-          <Barras titulo="Cobertura por tipo de fonte" dados={coberturaFontes} />
-        </Bloco>
-      ) : null}
+      <Bloco titulo="1. Cobertura por fonte">
+        {cobertura.length ? (
+          <>
+            <Barras
+              titulo="Evidências por fonte de origem"
+              dados={cobertura.map((c) => ({ rotulo: c.origem, valor: c.total }))}
+            />
+            <ul className="space-y-1 text-xs text-navy/60">
+              {cobertura.map((c) => (
+                <li key={c.origem} className="break-words">
+                  {c.origem}: {c.validadas} validada(s) · {c.emRevisao} em revisão
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <Vazio cta={acaoFonte} />
+        )}
+      </Bloco>
 
-      {evidencias.length ? (
-        <Bloco titulo="Evidências por situação">
-          <Rosca titulo="Evidências por situação" dados={evidenciasPorEstado} />
-        </Bloco>
-      ) : null}
+      <Bloco titulo="2. Produção de evidência">
+        {producao.length ? (
+          <>
+            <LinhaSerie titulo="Fontes, evidências e achados por semana" dados={producao} />
+            <p className="text-xs text-navy/55">Só entra registro com data gravada.</p>
+          </>
+        ) : (
+          <Vazio cta={acaoEvidencia} />
+        )}
+      </Bloco>
 
-      {achados.length ? (
-        <Bloco titulo="Achados por validação">
-          <Barras titulo="Achados por validação" dados={achadosPorValidacao} />
-        </Bloco>
-      ) : null}
-
-      {ritmo.length ? (
-        <Bloco titulo="Ritmo da pesquisa por semana">
-          <LinhaSerie titulo="Registros de pesquisa por semana" dados={ritmo} />
-          <p className="text-xs text-navy/55">Fontes, evidências e achados com data registrada.</p>
-        </Bloco>
-      ) : null}
+      <Bloco titulo="3. Fila editorial da Biblioteca">
+        {temAcervo ? (
+          <>
+            <Rosca titulo="Acervo do caso por estado" dados={filaSerie} />
+            <p className="text-xs text-navy/55">
+              Rascunho {fila.rascunho} · Em revisão {fila.revisao} · Aprovado {fila.aprovado} · Publicado{" "}
+              {fila.publicado}. Achado aprovado não altera árvore nem App sozinho.
+            </p>
+          </>
+        ) : (
+          <Vazio cta={acaoAchado} />
+        )}
+      </Bloco>
 
       <Etapa
         titulo="1. Perguntas de pesquisa"
