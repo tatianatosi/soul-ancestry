@@ -50,26 +50,53 @@ const texto = (v: unknown) => String(v ?? "").trim();
  * 1. Lead, Discovery e Call
  * ------------------------------------------------------------------ */
 
+/**
+ * Entrada real de lead no Comercial.
+ *
+ * O lead nasce sem caso vinculado: o vínculo com o caso é o handoff, que
+ * acontece depois. Por isso o cartão aparece na coluna Lead do funil, no
+ * kanban da etapa escolhida e na Mesa de Discovery.
+ */
 export const registrarLeadGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { nome: string; email?: string; telefone?: string; origem?: string; objetivo?: string }) => d)
+  .inputValidator(
+    (d: {
+      nome: string;
+      email?: string;
+      telefone?: string;
+      origem?: string;
+      objetivo?: string;
+      etapa?: string;
+      responsavel?: string;
+      proximoPasso?: string;
+      proximoPassoEm?: string;
+    }) => d,
+  )
   .handler(async ({ data, context }) => {
     semCache();
     const s = context.supabase as any;
-    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
-    if (!texto(data.nome)) throw new Error("Nome é obrigatório.");
+    const { organizationId, userId } = await contexto(s, context.userId as string);
+    const nome = texto(data.nome);
+    if (!nome) throw new Error("Nome é obrigatório.");
+    if (nome.length > 160) throw new Error("Nome muito longo.");
+    if (!texto(data.origem)) throw new Error("Origem é obrigatória.");
+    if (!texto(data.responsavel)) throw new Error("Responsável é obrigatório.");
+    if (!texto(data.proximoPasso)) throw new Error("Próximo passo é obrigatório.");
 
     const r = await s
       .from("leads")
       .insert({
         organization_id: organizationId,
-        case_id: casoId,
-        nome: texto(data.nome),
+        nome,
         email: texto(data.email) || null,
         telefone: texto(data.telefone) || null,
-        origem: texto(data.origem) || null,
+        origem: texto(data.origem),
         objetivo: texto(data.objetivo) || null,
-        estagio: "novo",
+        estagio: texto(data.etapa) || "novo",
+        eixo_comercial: texto(data.etapa) || null,
+        responsavel_nome: texto(data.responsavel),
+        proxima_acao: texto(data.proximoPasso),
+        proxima_acao_em: texto(data.proximoPassoEm) || null,
         data_origin: "real",
         created_by: userId,
       })
