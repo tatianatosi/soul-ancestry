@@ -15,6 +15,7 @@ import {
   noPeriodo,
   porOrigem,
   saudeDosLeads,
+  semDataDeEntrada,
   type LeadComercial,
 } from "@/lib/golive-comercial";
 import { registrarCallGoLive, registrarDiscoveryGoLive, registrarLeadGoLive } from "@/lib/golive-escritores.functions";
