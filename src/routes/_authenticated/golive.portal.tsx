@@ -177,25 +177,64 @@ function PortalGoLive() {
         )}
       </Bloco>
 
-      {projecoes.length ? (
-        <Bloco titulo="Publicações por situação">
-          <Rosca titulo="Publicações por situação" dados={publicacoesPorEstado} />
-        </Bloco>
-      ) : null}
+      <Bloco titulo="1. Publicação por estado">
+        {projecoes.length ? (
+          <>
+            <Rosca titulo="Publicação por estado" dados={porEstado} />
+            {despublicadas.length ? (
+              <ul className="space-y-1 text-xs text-navy/60">
+                {despublicadas.map((d) => (
+                  <li key={d.id} className="break-words">
+                    Despublicado em {dataHumana(d.despublicadaEm, "data não registrada")}
+                    {d.motivoDespublicacao ? ` · ${d.motivoDespublicacao}` : ""} — continua no histórico.
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </>
+        ) : (
+          <Vazio
+            cta={
+              <Link to="/golive/caso">
+                <Button size="sm">Abrir Caso 360</Button>
+              </Link>
+            }
+          />
+        )}
+      </Bloco>
 
-      {acessos.length || emails.length ? (
-        <Bloco titulo="Acessos e e-mails autorizados">
-          {acessos.length ? <Barras titulo="Acessos por situação" dados={acessosPorSituacao} /> : null}
-          {emails.length ? <Barras titulo="E-mails autorizados por situação" dados={emailsPorEstado} /> : null}
-        </Bloco>
-      ) : null}
+      <Bloco titulo="2. Acesso ao portal">
+        {resumoAcesso.total || emails.length ? (
+          <>
+            <Barras
+              titulo="Situação do acesso"
+              dados={[
+                { rotulo: "Convites autorizados", valor: resumoAcesso.convitesAutorizados },
+                { rotulo: "Acesso ativo", valor: resumoAcesso.ativos },
+                { rotulo: "Revogado", valor: resumoAcesso.revogados },
+              ]}
+            />
+            <p className="text-xs text-navy/55">
+              Último acesso: {dataHumana(resumoAcesso.ultimoAcesso, "nenhum acesso registrado")}.
+            </p>
+          </>
+        ) : (
+          <Vazio
+            cta={
+              <Link to="/acessos-portal">
+                <Button size="sm">Gerenciar acesso e convite</Button>
+              </Link>
+            }
+          />
+        )}
+      </Bloco>
 
-      {linhaPublicacoes.length ? (
-        <Bloco titulo="Publicações por semana">
-          <LinhaSerie titulo="Publicações por semana" dados={linhaPublicacoes} />
-          <p className="text-xs text-navy/55">Só publicações com data registrada.</p>
-        </Bloco>
-      ) : null}
+      <Bloco titulo="3. Cobertura do App">
+        <Barras titulo="Conteúdo publicado por aba" dados={cobertura} />
+        <p className="text-xs text-navy/55">
+          Cada aba mostra só o conteúdo já publicado e aprovado para a cliente.
+        </p>
+      </Bloco>
 
       <Bloco titulo="Publicado para o cliente">
         {publicados.length ? (
