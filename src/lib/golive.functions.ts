@@ -151,6 +151,42 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         .limit(200)
     ).data as Linha[] | null;
 
+    /* Biblioteca = acervo da organização + fila editorial.
+       Leitura por organization_id; NÃO é segundo motor de pesquisa:
+       não há filtro por caso nem cadeia de achado aqui. */
+    const [acervoBruto, editorialBruto, vinculosEditoriais] = await Promise.all([
+      (async () => {
+        const { data } = await supabase
+          .from("master_library_items")
+          .select("id,titulo,categoria,status,vigencia_estado,versao,owner,updated_at")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null)
+          .limit(200);
+        return (data ?? []) as Linha[];
+      })(),
+      (async () => {
+        const { data } = await supabase
+          .from("editorial_content_items")
+          .select("id,title,content_type,status,theme,owner_id,planned_for,published_at,approval_at,updated_at,is_demo")
+          .eq("organization_id", organizationId)
+          .eq("is_demo", false)
+          .is("archived_at", null)
+          .limit(200);
+        return (data ?? []) as Linha[];
+      })(),
+      /* Vínculo explícito conteúdo ↔ caso: só por identificador, nunca por texto. */
+      (async () => {
+        const { data } = await supabase
+          .from("editorial_content_links")
+          .select("editorial_content_item_id,linked_entity_type,linked_entity_id")
+          .eq("organization_id", organizationId)
+          .eq("linked_entity_id", casoId)
+          .is("archived_at", null)
+          .limit(200);
+        return (data ?? []) as Linha[];
+      })(),
+    ]);
+
 
     /* Nomes de responsáveis: só para rotular carga; ausência vira "Sem responsável". */
     const idsResponsaveis = Array.from(
@@ -176,6 +212,19 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           : Promise.resolve([]),
     ]);
 
+    /* Responsáveis de evidência e de pauta editorial entram no mesmo mapa de nomes. */
+    const idsExtras = Array.from(
+      new Set(
+        [
+          ...evidenciasPesquisa.map((e) => e["responsible_user_id"]),
+          ...editorialBruto.map((i) => i["owner_id"]),
+        ].filter((v): v is string => typeof v === "string" && !nomePerfil.has(v)),
+      ),
+    );
+    if (idsExtras.length) {
+      const extras = ((await supabase.from("profiles").select("id,nome").in("id", idsExtras)).data ?? []) as Linha[];
+      for (const p of extras) nomePerfil.set(String(p["id"]), String(p["nome"] ?? ""));
+    }
 
     const limpar = (linhas: Linha[]) =>
       linhas.filter(
@@ -562,6 +611,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         tipo: (f["source_type"] as string) ?? null,
         status: (f["source_status"] as string) ?? null,
         instituicao: (f["repository_or_institution"] as string) ?? null,
+        criadaEm: (f["created_at"] as string) ?? null,
       })),
       evidencias: evidenciasPesquisa.map((e) => ({
         id: String(e["id"]),
@@ -569,6 +619,13 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         tipo: (e["evidence_type"] as string) ?? null,
         status: (e["evidence_status"] as string) ?? null,
         confianca: (e["confidence_level"] as string) ?? null,
+        fonteId: (e["source_id"] as string) ?? null,
+        responsavel: nomePerfil.get(String(e["responsible_user_id"] ?? "")) ?? null,
+        criadaEm: (e["created_at"] as string) ?? null,
+        revisadaEm: (e["reviewed_at"] as string) ?? null,
+        validadaEm: (e["validated_at"] as string) ?? null,
+        fornecidaPeloCliente: e["fornecida_pelo_cliente"] === true,
+        origemExterna: e["origem_externa"] === true,
       })),
       achados: limpar(achadosBrutos).map((a) => ({
         id: String(a["id"]),
@@ -576,7 +633,31 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         confianca: (a["confidence"] as string) ?? null,
         validacao: (a["validation_status"] as string) ?? null,
         publicavel: a["eligible_for_client_deliverable"] === true,
+        criadoEm: (a["created_at"] as string) ?? null,
       })),
+      biblioteca: {
+        acervo: acervoBruto.map((i) => ({
+          id: String(i["id"]),
+          titulo: (i["titulo"] as string) ?? "Item sem título",
+          categoria: (i["categoria"] as string) ?? null,
+          status: (i["status"] as string) ?? null,
+          vigencia: (i["vigencia_estado"] as string) ?? null,
+          versao: (i["versao"] as string) ?? null,
+          responsavel: (i["owner"] as string) ?? null,
+        })),
+        editorial: editorialBruto.map((i) => ({
+          id: String(i["id"]),
+          titulo: (i["title"] as string) ?? "Conteúdo sem título",
+          tipo: (i["content_type"] as string) ?? null,
+          status: (i["status"] as string) ?? null,
+          tema: (i["theme"] as string) ?? null,
+          responsavel: nomePerfil.get(String(i["owner_id"] ?? "")) ?? null,
+          previstoPara: (i["planned_for"] as string) ?? null,
+          publicadoEm: (i["published_at"] as string) ?? null,
+          aprovadoEm: (i["approval_at"] as string) ?? null,
+          doCaso: vinculosEditoriais.some((v) => String(v["editorial_content_item_id"]) === String(i["id"])),
+        })),
+      },
       portal: {
         acessos: limpar(acessosPortal).map((a) => ({
           id: String(a["id"]),

@@ -1,10 +1,10 @@
 /**
- * Pesquisa no shell de go-live.
+ * Pesquisa do caso no shell de go-live.
  *
- * Ordem obrigatória da prancha v3: pergunta → fonte → evidência → achado →
- * proposta de entrega. Só apresentação: lê o que o motor aprovado devolve
- * para o caso canônico (pesquisa, hipóteses, fontes, evidências, achados).
- * Sem histórico, catálogo, auditoria ou dado inventado.
+ * Cadeia obrigatória: pergunta → fonte → evidência → achado → revisão →
+ * publicação. Só apresentação: lê o que o motor aprovado devolve para o caso
+ * canônico. Achado NÃO atualiza árvore nem App: fica como hipótese até
+ * revisão humana. Sem histórico, catálogo, auditoria ou dado inventado.
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -12,11 +12,17 @@ import type { ReactNode } from "react";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
-import { Barras } from "@/components/golive/graficos";
+import { Barras, Linha as GraficoLinha } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
+import {
+  cadeiaPesquisa,
+  coberturaPorFonte,
+  filaEditorial,
+  producaoSemanal,
+} from "@/lib/golive-pesquisa";
 import {
   registrarAchadoGoLive,
   registrarEvidenciaGoLive,
@@ -27,9 +33,12 @@ export const Route = createFileRoute("/_authenticated/golive/pesquisa")({
   head: () => ({
     meta: [
       { title: "Pesquisa — Go-live Clube Ancestral" },
-      { name: "description", content: "Pergunta, fonte, evidência, achado e proposta de entrega do caso do piloto." },
+      {
+        name: "description",
+        content: "Pergunta, fonte, evidência, achado, revisão e publicação da pesquisa do caso do piloto.",
+      },
       { property: "og:title", content: "Pesquisa — Go-live Clube Ancestral" },
-      { property: "og:description", content: "Pergunta, fonte, evidência, achado e proposta de entrega." },
+      { property: "og:description", content: "Cadeia de pesquisa do caso: da pergunta à publicação." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -37,7 +46,7 @@ export const Route = createFileRoute("/_authenticated/golive/pesquisa")({
   component: PesquisaGoLive,
 });
 
-const ETAPAS = ["Pergunta", "Fonte", "Evidência", "Achado", "Proposta"] as const;
+const VAZIO_PESQUISA = "Nenhuma linha de pesquisa aberta";
 
 function PesquisaGoLive() {
   const { data, isPending, error } = useGoLive();
@@ -45,6 +54,36 @@ function PesquisaGoLive() {
   const novaFonte = useServerFn(registrarFonteGoLive);
   const novaEvidencia = useServerFn(registrarEvidenciaGoLive);
   const novoAchado = useServerFn(registrarAchadoGoLive);
+
+  const fontes = caso?.fontes ?? [];
+  const evidencias = caso?.evidencias ?? [];
+  const achados = caso?.achados ?? [];
+  const editorialDoCaso = (caso?.biblioteca?.editorial ?? []).filter((i) => i.doCaso);
+
+  const perguntas = caso
+    ? [
+        ...(caso.pesquisa?.objetivo
+          ? [{ id: "obj", texto: caso.pesquisa.objetivo, detalhe: "Objetivo da pesquisa" }]
+          : []),
+        ...caso.hipoteses.map((h) => ({
+          id: h.id,
+          texto: h.titulo,
+          detalhe: `${humano(h.status, "sem situação")} · confiança ${humano(h.confianca, "não informada")}`,
+        })),
+      ]
+    : [];
+
+  const cadeia = cadeiaPesquisa({
+    perguntas: perguntas.length,
+    fontes,
+    evidencias,
+    achados,
+    editorial: editorialDoCaso,
+  });
+  const cobertura = coberturaPorFonte(evidencias);
+  const producao = producaoSemanal({ fontes, evidencias, achados });
+  const fila = filaEditorial(editorialDoCaso);
+  const tituloFonte = new Map(fontes.map((f) => [f.id, f.titulo]));
 
   const acaoFonte = (
     <Acao
@@ -83,7 +122,7 @@ function PesquisaGoLive() {
           nome: "fonteId",
           rotulo: "Fonte de origem",
           tipo: "escolha",
-          opcoes: (caso?.fontes ?? []).map((f) => ({ valor: f.id, rotulo: f.titulo ?? "Fonte" })),
+          opcoes: fontes.map((f) => ({ valor: f.id, rotulo: f.titulo ?? "Fonte" })),
         },
         { nome: "descricao", rotulo: "Descrição interna", tipo: "area" },
       ]}
@@ -118,46 +157,33 @@ function PesquisaGoLive() {
     />
   );
 
-  const perguntas = caso
-    ? [
-        ...(caso.pesquisa?.objetivo ? [{ id: "obj", texto: caso.pesquisa.objetivo, detalhe: "Objetivo da pesquisa" }] : []),
-        ...caso.hipoteses.map((h) => ({
-          id: h.id,
-          texto: h.titulo,
-          detalhe: `${humano(h.status, "sem situação")} · confiança ${humano(h.confianca, "não informada")}`,
-        })),
-      ]
-    : [];
-
-  const fontes = caso?.fontes ?? [];
-  const evidencias = caso?.evidencias ?? [];
-  const achados = caso?.achados ?? [];
-  const propostas = caso?.propostas ?? [];
-
-  const totais = [
-    { rotulo: "Perguntas", valor: perguntas.length },
-    { rotulo: "Fontes", valor: fontes.length },
-    { rotulo: "Evidências", valor: evidencias.length },
-    { rotulo: "Achados", valor: achados.length },
-  ];
-  const temAlgo = totais.some((t) => t.valor > 0);
-
   return (
-    <GoLiveShell titulo="Pesquisa" descricao="Pergunta › Fonte › Evidência › Achado › Proposta.">
+    <GoLiveShell
+      titulo="Pesquisa do caso"
+      descricao="Pergunta › Fonte › Evidência › Achado › Revisão › Publicação."
+    >
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
       {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
 
       {caso ? <FaixaIdentidade dados={caso} /> : null}
 
-      <nav aria-label="Etapas da pesquisa" className="min-w-0">
-        <p className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-[11px] leading-tight text-navy/45">
-          {ETAPAS.map((e, i) => (
-            <span key={e} className="flex items-center gap-1">
-              <span>{e}</span>
-              {i < ETAPAS.length - 1 ? <span aria-hidden>›</span> : null}
-            </span>
+      <nav aria-label="Cadeia da pesquisa" className="min-w-0">
+        <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] leading-tight">
+          {cadeia.map((p, i) => (
+            <li key={p.rotulo} className="flex items-center gap-1.5">
+              <span
+                className={
+                  p.feito
+                    ? "rounded-full bg-navy/10 px-2 py-0.5 font-medium text-navy"
+                    : "rounded-full border border-dashed border-navy/20 px-2 py-0.5 text-navy/45"
+                }
+              >
+                {p.rotulo} <span className="tabular-nums">{p.quantidade}</span>
+              </span>
+              {i < cadeia.length - 1 ? <span aria-hidden className="text-navy/30">›</span> : null}
+            </li>
           ))}
-        </p>
+        </ol>
       </nav>
 
       {caso?.pesquisa ? (
@@ -170,13 +196,103 @@ function PesquisaGoLive() {
           {caso.pesquisa.prazo ? (
             <p className="text-xs text-navy/55">Prazo da próxima ação: {dataHumana(caso.pesquisa.prazo)}</p>
           ) : null}
-          {temAlgo ? <Barras titulo="Volume da cadeia de pesquisa" dados={totais} /> : null}
         </Bloco>
       ) : null}
 
+      {/* 1 — Cobertura por fonte */}
+      <Bloco titulo="Cobertura por fonte">
+        {cobertura.length ? (
+          <>
+            <Barras titulo="Evidências por tipo de fonte" dados={cobertura.map((c) => ({ rotulo: c.rotulo, valor: c.total }))} />
+            <ul className="space-y-1 text-xs text-navy/65">
+              {cobertura.map((c) => (
+                <li key={c.rotulo} className="break-words">
+                  {c.rotulo}: {c.validadas} validada(s) · {c.emRevisao} em revisão
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <Vazio
+            texto={VAZIO_PESQUISA}
+            cta={
+              <Link to="/golive/caso">
+                <Button size="sm">Abrir Caso 360</Button>
+              </Link>
+            }
+          />
+        )}
+      </Bloco>
+
+      {/* 2 — Produção de evidência */}
+      <Bloco titulo="Produção de evidência (7 semanas)">
+        {producao.some((s) => s.total > 0) ? (
+          <>
+            <GraficoLinha
+              titulo="Fontes, evidências e achados registrados por semana"
+              dados={producao.map((s) => ({ rotulo: s.rotulo, valor: s.total }))}
+            />
+            <ul className="space-y-1 text-xs text-navy/65">
+              {producao
+                .filter((s) => s.total > 0)
+                .map((s) => (
+                  <li key={s.chave}>
+                    Semana de {s.rotulo}: {s.fontes} fonte(s) · {s.evidencias} evidência(s) · {s.achados} achado(s)
+                  </li>
+                ))}
+            </ul>
+          </>
+        ) : (
+          <Vazio
+            texto={VAZIO_PESQUISA}
+            cta={
+              <Link to="/golive/caso">
+                <Button size="sm">Abrir Caso 360</Button>
+              </Link>
+            }
+          />
+        )}
+      </Bloco>
+
+      {/* 3 — Fila editorial do caso */}
+      <Bloco titulo="Fila editorial do caso">
+        {editorialDoCaso.length ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {fila.map((coluna) => (
+              <div key={coluna.etapa} className="min-w-0 rounded-xl border border-navy/10 bg-white/60 p-3">
+                <p className="text-[11px] uppercase tracking-wide text-navy/50">
+                  {coluna.rotulo} · {coluna.itens.length}
+                </p>
+                <ul className="mt-2 space-y-1 text-sm text-navy">
+                  {coluna.itens.length ? (
+                    coluna.itens.map((i) => (
+                      <li key={i.id} className="break-words">
+                        {i.titulo}
+                        <span className="text-navy/55"> — {humano(i.tipo, "tipo não informado")}</span>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-xs text-navy/45">Sem itens nesta etapa</li>
+                  )}
+                </ul>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <Vazio
+            texto={VAZIO_PESQUISA}
+            cta={
+              <Link to="/golive/biblioteca">
+                <Button size="sm">Abrir Biblioteca</Button>
+              </Link>
+            }
+          />
+        )}
+      </Bloco>
+
       <Etapa
         titulo="1. Perguntas de pesquisa"
-        vazio="Registrar pergunta"
+        vazio="Abrir Caso 360"
         itens={perguntas.map((p) => (
           <li key={p.id} className="break-words">
             {p.texto} <span className="text-navy/55">— {p.detalhe}</span>
@@ -209,14 +325,16 @@ function PesquisaGoLive() {
             {e.titulo}
             <span className="text-navy/55">
               {" "}
-              — {humano(e.status, "sem situação")} · confiança {humano(e.confianca, "não informada")}
+              — {humano(e.status, "sem situação")} · confiança {humano(e.confianca, "não informada")} ·{" "}
+              {e.responsavel ? e.responsavel : "sem responsável"}
+              {e.fonteId && tituloFonte.get(e.fonteId) ? ` · fonte: ${tituloFonte.get(e.fonteId)}` : ""}
             </span>
           </li>
         ))}
       />
 
       <Etapa
-        titulo="4. Achados"
+        titulo="4. Achados (hipótese até revisão)"
         vazio="Registrar achado"
         acao={acaoAchado}
         itens={achados.map((a) => (
@@ -225,23 +343,14 @@ function PesquisaGoLive() {
             <span className="text-navy/55">
               {" "}
               — {humano(a.validacao, "sem validação")} · confiança {humano(a.confianca, "não informada")}
-              {a.publicavel ? " · pode ir para a família" : ""}
             </span>
           </li>
         ))}
       />
 
-      <Etapa
-        titulo="5. Proposta de entrega"
-        vazio="Abrir Formalização"
-        destino="/golive/formalizacao"
-        itens={propostas.map((p) => (
-          <li key={p.id} className="break-words">
-            Versão {p.versao ?? 1} — {humano(p.status)}
-            {p.escopo ? <span className="text-navy/60"> · {p.escopo}</span> : null}
-          </li>
-        ))}
-      />
+      <p className="text-xs text-navy/55">
+        Achado registrado aqui não altera a árvore nem o App do cliente: a publicação depende de revisão humana.
+      </p>
     </GoLiveShell>
   );
 }
@@ -259,13 +368,11 @@ function Etapa({
   titulo,
   itens,
   vazio,
-  destino = "/golive/caso",
   acao,
 }: {
   titulo: string;
   itens: ReactNode[];
   vazio: string;
-  destino?: "/golive/caso" | "/golive/formalizacao";
   acao?: ReactNode;
 }) {
   return (
@@ -274,9 +381,10 @@ function Etapa({
         <ul className="space-y-1 text-sm text-navy">{itens}</ul>
       ) : (
         <Vazio
+          texto={VAZIO_PESQUISA}
           cta={
             acao ?? (
-              <Link to={destino}>
+              <Link to="/golive/caso">
                 <Button size="sm">{vazio}</Button>
               </Link>
             )
