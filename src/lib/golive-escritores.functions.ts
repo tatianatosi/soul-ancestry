@@ -273,6 +273,52 @@ export const registrarAtendimentoGoLive = createServerFn({ method: "POST" })
 
 
 
+/**
+ * Arquivamento lógico do lead.
+ *
+ * Nada é apagado: o lead recebe etapa `arquivado`, motivo, autor e data.
+ * Sai das listas de trabalho (funil, kanban e mesa) e continua consultável
+ * no histórico. Exige motivo escrito.
+ */
+export const arquivarLeadGoLive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { leadId: string; motivo: string }) => d)
+  .handler(async ({ data, context }) => {
+    semCache();
+    const s = context.supabase as any;
+    const { organizationId, userId } = await contexto(s, context.userId as string);
+    if (!texto(data.leadId)) throw new Error("Lead é obrigatório.");
+    if (!texto(data.motivo)) throw new Error("Motivo do arquivamento é obrigatório.");
+
+    const atual = await s
+      .from("leads")
+      .select("id, estagio, archived_at")
+      .eq("id", texto(data.leadId))
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    erro(atual);
+    if (!atual?.data) throw new Error("Lead não encontrado nesta organização.");
+    if (atual.data.archived_at) throw new Error("Lead já está arquivado.");
+
+    // Respeita a máquina de estados: um passo por vez até `arquivado`.
+    const etapa = passoDeEtapa(atual.data.estagio, "arquivado") ?? "arquivado";
+    const agora = new Date().toISOString();
+    erro(
+      await s
+        .from("leads")
+        .update({
+          estagio: etapa,
+          archive_motivo: texto(data.motivo),
+          archived_at: agora,
+          archived_by: userId,
+          updated_by: userId,
+        })
+        .eq("id", texto(data.leadId))
+        .eq("organization_id", organizationId),
+    );
+    return { ok: true, etapa, arquivadoEm: agora };
+  });
+
 /* ------------------------------------------------------------------ *
  * 2. Proposta (Canva registrada à mão) e escopo
  * ------------------------------------------------------------------ */
