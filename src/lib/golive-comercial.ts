@@ -6,6 +6,7 @@
  * filtram por texto livre: a exclusão de registros de teste acontece na
  * leitura, por sinalizador do próprio registro.
  */
+import { dataHumana } from "@/lib/rotulos-golive";
 
 export type LeadComercial = {
   id: string;
