@@ -208,7 +208,7 @@ export function montarFicha(caso: Caso): LoteFicha[] {
     campo({
       chave: "call",
       rotulo: "Call realizada",
-      valor: lead?.callRealizada ?? null,
+      valor: lead?.callRealizada ?? (lead?.statusCall ? rotuloDaCall(lead.statusCall) : null),
       fonte: "Lead comercial",
       responsavel: resp,
       data: lead?.callRealizada ?? lead?.callAgendada ?? null,
