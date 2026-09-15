@@ -170,6 +170,66 @@ export function recebimentoPorMes(
   return porMes(quitadas, (f) => f.pagaEm, (f) => f.valorPago ?? f.valor, meses, agora);
 }
 
+/**
+ * Call de descoberta do lead ligado ao caso — origem gravada da condição
+ * combinada. Sem call realizada gravada, devolve nulo (nada é inferido).
+ */
+export type CallDoLead = {
+  callRealizada?: string | null;
+  statusCall?: string | null;
+  discoveryResultado?: string | null;
+  resumoCall?: string | null;
+} | null;
+
+export type ParcelaDoPlano = {
+  id: string;
+  numero: string | null;
+  valor: number | null;
+  vencimento: string | null;
+  situacao: string;
+  /** Dias entre a call realizada e o vencimento; nulo sem uma das datas. */
+  diasAposCall: number | null;
+};
+
+export function origemDaCondicao(lead: CallDoLead) {
+  if (!lead?.callRealizada) return null;
+  return {
+    callEm: lead.callRealizada,
+    status: lead.statusCall ?? null,
+    resultado: lead.discoveryResultado ?? null,
+    resumo: lead.resumoCall ?? null,
+  };
+}
+
+/**
+ * Plano de parcelas do caso ancorado na data da call: ordena pelo vencimento
+ * gravado e calcula a distância em dias da call realizada. Faturas sem
+ * vencimento ficam no fim, com distância nula.
+ */
+export function planoDeParcelas(
+  faturas: readonly (FaturaGoLive & { numero?: string | null })[],
+  lead: CallDoLead,
+  agora: Date = new Date(),
+): ParcelaDoPlano[] {
+  const call = paraData(lead?.callRealizada ?? null);
+  return faturas
+    .map((f) => {
+      const venc = paraData(f.vencimento);
+      return {
+        id: f.id,
+        numero: f.numero ?? null,
+        valor: f.valor ?? null,
+        vencimento: f.vencimento ?? null,
+        situacao: situacaoDaFatura(f, agora),
+        diasAposCall:
+          call && venc ? Math.round((meiaNoite(venc).getTime() - meiaNoite(call).getTime()) / DIA) : null,
+        _ordem: venc ? meiaNoite(venc).getTime() : Number.POSITIVE_INFINITY,
+      };
+    })
+    .sort((a, b) => a._ordem - b._ordem || a.id.localeCompare(b.id))
+    .map(({ _ordem, ...p }) => p);
+}
+
 /* ------------------------------ Jurídico ------------------------------ */
 
 export type PipelineFormalizacao = {
