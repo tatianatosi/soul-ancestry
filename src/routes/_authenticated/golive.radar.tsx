@@ -1,28 +1,38 @@
 /**
  * Radar interno do shell de go-live.
  *
- * Só apresentação: lê o que o motor aprovado (`carregarGoLive`) já devolve
- * para o caso canônico do piloto (Ana Luiza). Não cria dado, não infere
- * número, não grava e não mostra histórico, teste, catálogo ou auditoria.
+ * Só apresentação: lê a carteira autorizada que o motor aprovado
+ * (`carregarGoLive`) já devolve por organização, sem criar dado, sem inferir
+ * elegibilidade e sem percentual jurídico. Registros arquivados, demo e de
+ * teste ficam fora da leitura.
  *
- * Matriz: urgência × prontidão, com o caso identificado pelo nome.
- * Radar individual: quatro eixos, rótulos fora do desenho para não sobrepor.
+ * Três blocos: matriz urgência × prontidão (um ponto por caso, com legenda
+ * numerada fora do desenho), radar individual de quatro eixos do caso
+ * selecionado e ordem de atendimento com a regra escrita na tela.
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 
-import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Bloco, GoLiveShell } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
+import {
+  diasAte,
+  eixosDoCaso,
+  ordemDeAtendimento,
+  pontosDaMatriz,
+  type CasoRadar,
+} from "@/lib/golive-radar";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/radar")({
   head: () => ({
     meta: [
       { title: "Radar interno — Go-live Clube Ancestral" },
-      { name: "description", content: "Matriz de urgência e prontidão e radar individual do caso do piloto." },
+      { name: "description", content: "Matriz de urgência e prontidão, radar de quatro eixos e ordem de atendimento." },
       { property: "og:title", content: "Radar interno — Go-live Clube Ancestral" },
-      { property: "og:description", content: "Matriz de urgência e prontidão e radar individual do caso." },
+      { property: "og:description", content: "Matriz de atenção e ordem de atendimento da carteira." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -30,77 +40,126 @@ export const Route = createFileRoute("/_authenticated/golive/radar")({
   component: RadarGoLive,
 });
 
-function diasAte(prazo: string | null): number | null {
-  if (!prazo) return null;
-  const alvo = new Date(prazo);
-  if (Number.isNaN(alvo.getTime())) return null;
-  return Math.round((alvo.getTime() - Date.now()) / 86_400_000);
+const SEM_DADO = "Dados insuficientes para radar.";
+
+function SemDado() {
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-navy/60">{SEM_DADO}</p>
+      <Link to="/golive/caso">
+        <Button size="sm">Abrir Caso 360</Button>
+      </Link>
+    </div>
+  );
 }
 
 function RadarGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
+  const carteira = useMemo<CasoRadar[]>(() => (caso?.carteira ?? []) as CasoRadar[], [caso]);
+  const [selecionadoId, setSelecionadoId] = useState<string | null>(null);
+
+  const pontos = useMemo(() => pontosDaMatriz(carteira), [carteira]);
+  const ordem = useMemo(() => ordemDeAtendimento(carteira), [carteira]);
+
+  const selecionado =
+    carteira.find((c) => c.id === selecionadoId) ??
+    carteira.find((c) => c.id === caso?.caso.id) ??
+    ordem[0]?.caso ??
+    null;
 
   return (
     <GoLiveShell titulo="Radar interno" descricao="Quem precisa de atenção primeiro — e por quê.">
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
       {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
 
-      {data && !data.encontrado ? (
-        <Bloco titulo="Matriz de atenção">
-          <Vazio
-            cta={
-              <Link to="/golive/caso">
-                <Button size="sm">Abrir Caso 360</Button>
-              </Link>
-            }
-          />
-        </Bloco>
-      ) : null}
+      {caso ? <FaixaIdentidade dados={caso} /> : null}
 
-      {caso ? (
-        <>
-          <FaixaIdentidade dados={caso} />
-          <Matriz caso={caso} />
-          <Individual caso={caso} />
-        </>
-      ) : null}
+      <Bloco titulo="1. Matriz de atenção — urgência × prontidão">
+        {pontos.length ? (
+          <Matriz pontos={pontos} selecionadoId={selecionado?.id ?? null} aoSelecionar={setSelecionadoId} />
+        ) : (
+          <SemDado />
+        )}
+      </Bloco>
+
+      <Bloco titulo="2. Radar do caso selecionado">
+        {selecionado ? <Individual caso={selecionado} /> : <SemDado />}
+      </Bloco>
+
+      <Bloco titulo="3. Ordem de atendimento">
+        {ordem.length ? (
+          <>
+            <p className="text-xs text-navy/55">
+              Regra: prazo vencido primeiro, depois prioridade registrada, depois caso sem próxima ação e, por fim,
+              espera externa.
+            </p>
+            <ol className="space-y-2 text-sm text-navy">
+              {ordem.map((linha, i) => (
+                <li key={linha.caso.id} className="min-w-0 rounded-xl border border-navy/10 bg-cream/60 p-3">
+                  <p className="break-words font-medium">
+                    {i + 1}. {linha.caso.titulo ?? linha.caso.codigo ?? "Caso sem título"}
+                  </p>
+                  <p className="text-navy/70">{linha.motivo}</p>
+                  <p className="break-words text-xs text-navy/55">
+                    {linha.caso.responsavel ? `Responsável: ${linha.caso.responsavel}` : "Sem responsável registrado"}
+                    {" · "}
+                    {linha.caso.prazoProximaAcao
+                      ? `prazo ${dataHumana(linha.caso.prazoProximaAcao)}${
+                          linha.dias === null ? "" : linha.dias < 0 ? " (vencido)" : linha.dias === 0 ? " (hoje)" : ` (em ${linha.dias} dias)`
+                        }`
+                      : "sem prazo registrado"}
+                    {" · "}
+                    {linha.caso.proximaAcao ? humano(linha.caso.proximaAcao) : "sem próxima ação"}
+                    {linha.caso.alertasAbertos
+                      ? ` · ${linha.caso.alertasAbertos} alerta${linha.caso.alertasAbertos === 1 ? "" : "s"} aberto${linha.caso.alertasAbertos === 1 ? "" : "s"}`
+                      : ""}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" onClick={() => setSelecionadoId(linha.caso.id)}>
+                      Ver no radar
+                    </Button>
+                    <Link to="/golive/caso">
+                      <Button size="sm">Abrir Caso 360</Button>
+                    </Link>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </>
+        ) : (
+          <SemDado />
+        )}
+      </Bloco>
     </GoLiveShell>
   );
 }
 
-type Caso = NonNullable<ReturnType<typeof useGoLive>["data"] & { encontrado: true }>;
-
-function prontidao(caso: Caso) {
-  const marcos = [caso.caso.contratoAssinado, caso.caso.pagamentoConfirmado, caso.caso.documentosMinimosOk];
-  return marcos.filter(Boolean).length / marcos.length;
-}
-
-function urgencia(caso: Caso) {
-  const dias = diasAte(caso.caso.prazo);
-  if (dias === null) return caso.caso.proximaAcao ? 0.5 : 0.2;
-  if (dias < 0) return 1;
-  if (dias <= 3) return 0.85;
-  if (dias <= 7) return 0.65;
-  if (dias <= 30) return 0.4;
-  return 0.2;
-}
-
-function Matriz({ caso }: { caso: Caso }) {
-  const u = urgencia(caso);
-  const p = prontidao(caso);
-  const nome = caso.identidade.pessoaPrincipal ?? "Caso do piloto";
-  const dias = diasAte(caso.caso.prazo);
-
+function Matriz({
+  pontos,
+  selecionadoId,
+  aoSelecionar,
+}: {
+  pontos: ReturnType<typeof pontosDaMatriz>;
+  selecionadoId: string | null;
+  aoSelecionar: (id: string) => void;
+}) {
   // Margem interna para o ponto não encostar nas bordas da matriz.
-  const MARGEM = 18;
-  const x = 60 + MARGEM + p * (210 - 2 * MARGEM);
-  const y = 220 - MARGEM - u * (190 - 2 * MARGEM);
+  const MARGEM = 30;
+  const posicao = (x: number, y: number) => ({
+    cx: 60 + MARGEM + x * (210 - 2 * MARGEM),
+    cy: 220 - MARGEM - y * (190 - 2 * MARGEM),
+  });
 
   return (
-    <Bloco titulo="Matriz de atenção — urgência × prontidão">
+    <>
       <div className="min-w-0 overflow-x-auto">
-        <svg viewBox="0 0 340 260" role="img" aria-label={`Matriz de atenção. ${nome} com urgência ${Math.round(u * 100)}% e prontidão ${Math.round(p * 100)}%.`} className="mx-auto h-auto w-full min-w-[300px] max-w-[420px]">
+        <svg
+          viewBox="0 0 340 260"
+          role="img"
+          aria-label={`Matriz de atenção com ${pontos.length} caso${pontos.length === 1 ? "" : "s"}.`}
+          className="mx-auto h-auto w-full min-w-[300px] max-w-[440px]"
+        >
           <rect x="60" y="30" width="210" height="190" fill="#fff" stroke="#2F4B6E" strokeOpacity="0.18" />
           <line x1="165" y1="30" x2="165" y2="220" stroke="#2F4B6E" strokeOpacity="0.12" />
           <line x1="60" y1="125" x2="270" y2="125" stroke="#2F4B6E" strokeOpacity="0.12" />
@@ -113,47 +172,42 @@ function Matriz({ caso }: { caso: Caso }) {
           <text x="14" y="125" fontSize="10" fill="#2F4B6E" transform="rotate(-90 14 125)" textAnchor="middle">Urgência</text>
           <text x="165" y="246" fontSize="10" fill="#2F4B6E" textAnchor="middle">Prontidão do caso</text>
 
-          <circle cx={x} cy={y} r="8" fill="#9A3A2F" />
-          <text x={x} y={y + 3} textAnchor="middle" fontSize="8" fill="#fff" fontWeight="bold">1</text>
-          <text
-            x={x > 200 ? Math.max(x - 12, 70) : Math.min(x + 12, 260)}
-            y={y < 80 ? y + 18 : y - 12}
-            textAnchor={x > 200 ? "end" : "start"}
-            fontSize="10"
-            fill="#2F4B6E"
-            fontWeight="600"
-          >
-            1. {nome}
-          </text>
+          {pontos.map((p) => {
+            const { cx, cy } = posicao(p.x, p.y);
+            const ativo = p.id === selecionadoId;
+            return (
+              <g key={p.id} onClick={() => aoSelecionar(p.id)} style={{ cursor: "pointer" }}>
+                <circle cx={cx} cy={cy} r={ativo ? 9 : 7} fill={ativo ? "#9A3A2F" : "#2F4B6E"} />
+                <text x={cx} y={cy + 3} textAnchor="middle" fontSize="8" fill="#fff" fontWeight="bold">
+                  {p.indice}
+                </text>
+              </g>
+            );
+          })}
         </svg>
       </div>
 
+      {/* Nome fora do desenho: numeração no ponto, identificação na legenda. */}
       <ol className="space-y-1 text-sm text-navy">
-        <li className="break-words">
-          <span className="font-semibold">1. {nome}</span>
-          {caso.caso.proximaAcao ? <> — {humano(caso.caso.proximaAcao)}</> : <> — Sem próxima ação registrada</>}
-          {dias !== null ? (
-            <span className="text-navy/55">
-              {" "}
-              · prazo {dataHumana(caso.caso.prazo)}
-              {dias < 0 ? " (vencido)" : dias === 0 ? " (hoje)" : ` (em ${dias} dias)`}
-            </span>
-          ) : (
-            <span className="text-navy/55"> · sem prazo registrado</span>
-          )}
-        </li>
+        {pontos.map((p) => (
+          <li key={p.id}>
+            <button
+              type="button"
+              onClick={() => aoSelecionar(p.id)}
+              className={`break-words text-left ${p.id === selecionadoId ? "font-semibold text-navy" : "text-navy/75"}`}
+            >
+              {p.indice}. {p.rotulo}
+            </button>
+          </li>
+        ))}
       </ol>
-    </Bloco>
+    </>
   );
 }
 
-function Individual({ caso }: { caso: Caso }) {
-  const eixos = [
-    { rotulo: "Formalização", valor: caso.caso.contratoAssinado ? 1 : 0 },
-    { rotulo: "Pagamento", valor: caso.caso.pagamentoConfirmado ? 1 : 0 },
-    { rotulo: "Documentos", valor: caso.caso.documentosMinimosOk ? 1 : 0 },
-    { rotulo: "Próxima ação", valor: caso.caso.proximaAcao ? 1 : 0 },
-  ];
+function Individual({ caso }: { caso: CasoRadar }) {
+  const eixos = eixosDoCaso(caso);
+  const dias = diasAte(caso.prazoProximaAcao);
 
   const cx = 170;
   const cy = 120;
@@ -167,16 +221,18 @@ function Individual({ caso }: { caso: Caso }) {
   const grade = eixos.map((_, i) => ponto(i, 1).join(",")).join(" ");
 
   return (
-    <Bloco titulo="Radar individual do caso">
+    <div className="space-y-3">
+      <p className="break-words text-sm font-medium text-navy">{caso.titulo ?? caso.codigo ?? "Caso sem título"}</p>
+
       <div className="min-w-0 overflow-x-auto">
-        <svg viewBox="0 0 340 250" role="img" aria-label={`Radar do caso: ${eixos.map((e) => `${e.rotulo} ${e.valor ? "concluído" : "pendente"}`).join(", ")}.`} className="mx-auto h-auto w-full min-w-[300px] max-w-[420px]">
+        <svg
+          viewBox="0 0 340 250"
+          role="img"
+          aria-label={`Radar do caso: ${eixos.map((e) => `${e.rotulo} ${e.valor ? "concluído" : "pendente"}`).join(", ")}.`}
+          className="mx-auto h-auto w-full min-w-[300px] max-w-[420px]"
+        >
           <polygon points={grade} fill="none" stroke="#2F4B6E" strokeOpacity="0.15" />
-          <polygon
-            points={eixos.map((_, i) => ponto(i, 0.5).join(",")).join(" ")}
-            fill="none"
-            stroke="#2F4B6E"
-            strokeOpacity="0.1"
-          />
+          <polygon points={eixos.map((_, i) => ponto(i, 0.5).join(",")).join(" ")} fill="none" stroke="#2F4B6E" strokeOpacity="0.1" />
           {eixos.map((_, i) => {
             const [px, py] = ponto(i, 1);
             return <line key={i} x1={cx} y1={cy} x2={px} y2={py} stroke="#2F4B6E" strokeOpacity="0.12" />;
@@ -201,17 +257,26 @@ function Individual({ caso }: { caso: Caso }) {
           <li key={e.rotulo}>
             <span className="font-medium">{e.rotulo}:</span>{" "}
             <span className={e.valor ? "text-navy/70" : "text-[var(--terracota,#9A3A2F)]"}>
-              {e.valor ? "concluído" : "pendente"}
+              {e.valor ? (e.rotulo === "Próxima ação" ? "registrada" : "concluído") : "pendente"}
             </span>
           </li>
         ))}
       </ul>
+
+      <p className="break-words text-xs text-navy/55">
+        {caso.responsavel ? `Responsável: ${caso.responsavel}` : "Sem responsável registrado"}
+        {" · "}
+        {caso.prazoProximaAcao
+          ? `prazo ${dataHumana(caso.prazoProximaAcao)}${dias === null ? "" : dias < 0 ? " (vencido)" : dias === 0 ? " (hoje)" : ` (em ${dias} dias)`}`
+          : "sem prazo registrado"}
+        {caso.aguardandoExterno ? " · aguardando instituição externa" : ""}
+      </p>
 
       <div className="pt-1">
         <Link to="/golive/caso" className="text-sm text-navy underline decoration-gold underline-offset-4">
           Abrir Caso 360
         </Link>
       </div>
-    </Bloco>
+    </div>
   );
 }

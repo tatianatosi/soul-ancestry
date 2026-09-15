@@ -128,11 +128,35 @@ export const carregarGoLive = createServerFn({ method: "GET" })
     const carteira = (
       await supabase
         .from("crm_casos")
-        .select("id,codigo,titulo,status,prioridade,proxima_acao,prazo_proxima_acao,demo")
+        .select(
+          "id,codigo,titulo,status,fase,ativo,risco,prioridade,responsavel_principal,proxima_acao," +
+            "prazo_proxima_acao,contrato_assinado,pagamento_confirmado,documentos_minimos_ok," +
+            "aguardando_instituicao_externa,demo",
+        )
         .eq("organization_id", organizationId)
         .is("archived_at", null)
         .limit(500)
     ).data as Linha[] | null;
+
+    /* Alertas abertos por caso da carteira. Só contagem do que já está gravado
+       em `case_alerts`; sem criar, resolver ou disparar nada. */
+    const idsCarteira = (carteira ?? []).map((c) => String(c["id"]));
+    const alertasCarteira = idsCarteira.length
+      ? (
+          await supabase
+            .from("case_alerts")
+            .select("id,case_id,status")
+            .in("case_id", idsCarteira.slice(0, 200))
+            .limit(1000)
+        ).data as Linha[] | null
+      : null;
+    const alertasPorCaso = new Map<string, number>();
+    for (const a of alertasCarteira ?? []) {
+      const estado = String(a["status"] ?? "").toLowerCase();
+      if (/resolv|fechad|conclu|cancel/.test(estado)) continue;
+      const chave = String(a["case_id"]);
+      alertasPorCaso.set(chave, (alertasPorCaso.get(chave) ?? 0) + 1);
+    }
 
     /* Carteira comercial da organização (CRM vivo). Só leitura, sem writer novo:
        etapa, origem, responsável, último toque e próximo passo já gravados no lead. */
@@ -447,16 +471,27 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         responsavel: (e["responsavel_nome"] as string) ?? null,
         bloqueio: e["bloqueio"] === true,
       })),
-      /** Carteira da organização: só estado e prioridade, para KPIs e rosca. */
+      /** Carteira da organização: estado, marcos e prazo, para KPIs, rosca e Radar. */
       carteira: (carteira ?? [])
-        .filter((c) => c["demo"] !== true)
+        .filter((c) => c["demo"] !== true && c["dados_teste"] !== true && !ehRegistroDeTeste(c))
         .map((c) => ({
           id: String(c["id"]),
           codigo: (c["codigo"] as string) ?? null,
+          titulo: (c["titulo"] as string) ?? null,
           status: (c["status"] as string) ?? null,
+          fase: (c["fase"] as string) ?? null,
+          ativo: c["ativo"] === true,
+          risco: (c["risco"] as string) ?? null,
           prioridade: (c["prioridade"] as string) ?? null,
+          responsavel: (c["responsavel_principal"] as string) ?? null,
+          proximaAcao: (c["proxima_acao"] as string) ?? null,
           temProximaAcao: Boolean(c["proxima_acao"]),
           prazoProximaAcao: (c["prazo_proxima_acao"] as string) ?? null,
+          contratoAssinado: c["contrato_assinado"] === true,
+          pagamentoConfirmado: c["pagamento_confirmado"] === true,
+          documentosMinimosOk: c["documentos_minimos_ok"] === true,
+          aguardandoExterno: c["aguardando_instituicao_externa"] === true,
+          alertasAbertos: alertasPorCaso.get(String(c["id"])) ?? 0,
         })),
       /** Carteira comercial: um cartão por lead, só campos já gravados. */
       leadsComerciais: (leadsOrg ?? [])
