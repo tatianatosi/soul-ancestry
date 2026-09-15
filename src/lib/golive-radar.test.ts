@@ -153,7 +153,8 @@ describe("conferência de prazos e marcos", () => {
     expect(u("2026-09-15")).toBeGreaterThan(u("2026-09-18"));
     expect(u("2026-09-18")).toBeGreaterThan(u("2026-09-22"));
     expect(u("2026-09-22")).toBeGreaterThan(u("2026-10-15"));
-    expect(u("2026-10-15")).toBeGreaterThanOrEqual(u(null));
+    // Sem prazo, com próxima ação, fica em 0,5: a falta de prazo é lacuna, não folga.
+    expect(u(null)).toBe(0.5);
   });
 
   it("contrato não assinado e fatura em aberto mantêm prontidão baixa", () => {
