@@ -765,6 +765,9 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         publicavel: a["eligible_for_client_deliverable"] === true,
         registradoEm: (a["found_at"] as string) ?? (a["created_at"] as string) ?? null,
         validadoEm: (a["validated_at"] as string) ?? null,
+        tipo: (a["finding_type"] as string) ?? null,
+        impactoArvore: (a["tree_impact"] as string) ?? "nenhum",
+        impactoLinhaTempo: (a["timeline_impact"] as string) ?? "nenhum",
       })),
       portal: {
         acessos: limpar(acessosPortal).map((a) => ({
