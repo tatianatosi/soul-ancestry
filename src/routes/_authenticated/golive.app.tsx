@@ -152,7 +152,27 @@ function AppClienteGoLive() {
             </Bloco>
             <Bloco titulo="Conteúdo publicado para você">
               {publicados.length ? (
-                <Barras titulo="Conteúdo publicado para você" dados={publicacoesPorAba(publicados)} />
+                <>
+                  <Barras titulo="Conteúdo publicado para você" dados={publicacoesPorAba(publicados)} />
+                  {/* Resumo só com o que já foi aprovado e publicado para a família. */}
+                  <ul className="mt-2 grid grid-cols-3 gap-2 text-center text-xs text-navy/70">
+                    <li className="rounded-xl bg-white/70 p-2">
+                      <strong className="block text-base text-navy">{marcos.length}</strong>
+                      marcos
+                    </li>
+                    <li className="rounded-xl bg-white/70 p-2">
+                      <strong className="block text-base text-navy">{situacao.liberados}</strong>
+                      documentos
+                    </li>
+                    <li className="rounded-xl bg-white/70 p-2">
+                      <strong className="block text-base text-navy">{publicados.length}</strong>
+                      publicações
+                    </li>
+                  </ul>
+                  {publicacoesPorMes(publicados).length > 1 ? (
+                    <Linha titulo="Entregas por mês" dados={publicacoesPorMes(publicados)} />
+                  ) : null}
+                </>
               ) : (
                 <Vazio cta={Aguardando} />
               )}
