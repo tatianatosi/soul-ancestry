@@ -135,7 +135,7 @@ function JuridicoGoLive() {
       </Bloco>
 
 
-      <Bloco titulo="2. Escopo acordado">
+      <Bloco titulo="2b. Objeto do caso">
         {caso?.caso.titulo ? (
           <p className="break-words text-sm text-navy">
             {caso.caso.titulo}
