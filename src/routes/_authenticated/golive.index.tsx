@@ -138,11 +138,65 @@ function HojeGoLive() {
           </Bloco>
           </GradeDesk>
 
+          {/* Cards de leitura rápida: mesma fonte já carregada, sem novo motor. */}
+          <GradeDesk>
+            <Bloco titulo="Formalização">
+              <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <Item rotulo="Proposta" valor={proposta ? `${humano(proposta.status)} · v${proposta.versao ?? 1}` : null} />
+                <Item rotulo="Contrato" valor={contrato ? `${contrato.numero ?? "Sem número"} · ${humano(contrato.status)}` : null} />
+                <Item rotulo="Assinatura" valor={contrato?.assinadoEm ? dataHumana(contrato.assinadoEm) : "Não registrada"} />
+                <Item rotulo="Anexos" valor={String(caso.anexos.length)} />
+              </dl>
+              <Acoes>
+                <Link to="/golive/juridico"><Button size="sm" variant="outline">Abrir Jurídico</Button></Link>
+              </Acoes>
+            </Bloco>
+
+            <Bloco titulo="Pesquisa">
+              <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <Item rotulo="Perguntas" valor={String(caso.hipoteses.length)} />
+                <Item rotulo="Fontes" valor={String(caso.fontes.length)} />
+                <Item rotulo="Evidências" valor={String(caso.evidencias.length)} />
+                <Item rotulo="Achados" valor={String(caso.achados.length)} />
+              </dl>
+              <Acoes>
+                <Link to="/golive/pesquisa"><Button size="sm" variant="outline">Abrir Pesquisa</Button></Link>
+              </Acoes>
+            </Bloco>
+          </GradeDesk>
+
+          <GradeDesk>
+            <Bloco titulo="Entrega ao cliente">
+              <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <Item rotulo="Publicados" valor={String(caso.publicados.length)} />
+                <Item rotulo="Microentregas" valor={String(caso.microentregas.length)} />
+                <Item rotulo="Documentos" valor={String(caso.documentos.length)} />
+                <Item rotulo="Acessos ativos" valor={String(acessosAtivos)} />
+              </dl>
+              <Acoes>
+                <Link to="/golive/portal"><Button size="sm" variant="outline">Abrir Portal</Button></Link>
+              </Acoes>
+            </Bloco>
+
+            <Bloco titulo="Núcleo do caso">
+              <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <Item rotulo="Pessoas" valor={String(caso.pessoas.length)} />
+                <Item rotulo="Dependentes" valor={String(caso.dependentes.length)} />
+                <Item rotulo="Núcleo" valor={caso.identidade.nucleo} />
+                <Item rotulo="Identidade" valor={caso.identidade.revisarIdentidade ? "Revisar identidade" : "Sem conflito registrado"} />
+              </dl>
+              <Acoes>
+                <Link to="/golive/pessoas"><Button size="sm" variant="outline">Abrir Pessoas & Famílias</Button></Link>
+              </Acoes>
+            </Bloco>
+          </GradeDesk>
+
           <div>
             <Link to="/golive/caso">
               <Button>Abrir Caso Ana</Button>
             </Link>
           </div>
+
         </>
       ) : null}
     </GoLiveShell>
