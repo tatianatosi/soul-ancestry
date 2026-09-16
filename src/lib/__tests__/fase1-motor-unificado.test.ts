@@ -11,11 +11,14 @@ describe("Fase 1 — motor unificado (corte vertical, sem apagar peças)", () =>
     expect(ler("src/components/caso/abrir-caso-motor.tsx")).toContain("abrirCasoOperacional");
   });
 
-  it("ficha do caso tem formulário de tarefa, planejador e não usa tipo caso", () => {
+  it("ficha do caso tem formulário de tarefa e planejador; tarefa não carrega tipo do caso", () => {
     const ficha = ler("src/routes/_authenticated/casos.$caseId.index.tsx");
     expect(ficha).toContain("FormularioTarefaCaso");
     expect(ficha).toContain("PlanejadorOperacional");
-    expect(ficha).not.toMatch(/tipo:\s*"caso"/);
+    // `tipo: "caso"` só é legítimo ao posicionar o Radar Individual deste caso.
+    const usosTipoCaso = ficha.match(/tipo:\s*"caso"/g) ?? [];
+    expect(usosTipoCaso).toHaveLength(1);
+    expect(ficha).toMatch(/posicionar\(\{\s*\n?\s*tipo:\s*"caso"/);
     const form = ler("src/components/caso/formulario-tarefa-caso.tsx");
     expect(form).toContain("salvarTarefa");
     expect(form).toContain("responsavel_id");
