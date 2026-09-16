@@ -29,19 +29,15 @@ function AcessoPage() {
   const [email, setEmail] = useState("");
   const [enviado, setEnviado] = useState(false);
   const [carregando, setCarregando] = useState(false);
-  const [erro, setErro] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setCarregando(true);
-    setErro(null);
     try {
       await enviar({ data: { email } });
-      setEnviado(true);
-    } catch {
-      setErro("O link não pôde ser enviado agora. Tente novamente em alguns minutos.");
     } finally {
       setCarregando(false);
+      setEnviado(true);
     }
   }
 
@@ -57,11 +53,7 @@ function AcessoPage() {
           própria: o e-mail precisa ter sido autorizado previamente pela nossa equipe.
         </p>
 
-        {erro ? (
-          <div role="alert" className="mt-6 rounded-xl border border-terracotta/40 bg-terracotta/10 p-4 text-sm text-navy">
-            {erro}
-          </div>
-        ) : enviado ? (
+        {enviado ? (
           <div className="mt-6 rounded-xl border border-gold/50 bg-gold/10 p-4 text-sm text-navy">
             Se este e-mail estiver autorizado, enviamos um link de acesso. Verifique sua caixa de entrada e o spam.
           </div>

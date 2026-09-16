@@ -112,13 +112,10 @@ export async function garantirUsuarioAuth(email: string): Promise<string | null>
 /** Envia o link mágico. Nunca revela se o e-mail existe. */
 export async function enviarLinkMagico(email: string, redirectTo: string) {
   const publico = clientePublico();
-  const { error } = await publico.auth.signInWithOtp({
+  await publico.auth.signInWithOtp({
     email,
     options: { shouldCreateUser: false, emailRedirectTo: redirectTo },
   });
-  if (error) {
-    throw new Error("Não foi possível enviar o link de acesso agora.");
-  }
 }
 
 export async function acessoPorEmail(email: string) {

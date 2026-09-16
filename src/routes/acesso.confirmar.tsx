@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { BrandLogo } from "@/components/brand";
@@ -74,8 +74,11 @@ function ConfirmarPage() {
   const confirmar = useServerFn(confirmarAcessoPortal);
   const [estado, setEstado] = useState<"validando" | "negado">("validando");
   const [motivo, setMotivo] = useState<string>(MOTIVOS["falha"]!);
+  const rodou = useRef(false);
 
   useEffect(() => {
+    if (rodou.current) return;
+    rodou.current = true;
     let cancelado = false;
 
     (async () => {
