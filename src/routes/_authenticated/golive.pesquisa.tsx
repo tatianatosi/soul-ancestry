@@ -304,6 +304,21 @@ function PesquisaGoLive() {
         )}
       </Bloco>
 
+      <Bloco titulo="Linha de pesquisa">
+        {caso?.pesquisa ? (
+          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <CampoPesquisa rotulo="Objetivo" valor={caso.pesquisa.objetivo} />
+            <CampoPesquisa rotulo="Situação" valor={humano(caso.pesquisa.status)} />
+            <CampoPesquisa rotulo="Próxima ação" valor={humano(caso.pesquisa.proximaAcao)} />
+            <CampoPesquisa rotulo="Prazo" valor={caso.pesquisa.prazo ? dataHumana(caso.pesquisa.prazo) : null} />
+          </dl>
+        ) : (
+          <Vazio cta={acaoFonte} />
+        )}
+      </Bloco>
+
+
+
       <Etapa
         titulo="1. Perguntas de pesquisa"
         vazio="Registrar pergunta"

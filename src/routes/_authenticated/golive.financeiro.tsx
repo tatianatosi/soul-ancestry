@@ -280,3 +280,12 @@ function FinanceiroGoLive() {
     </GoLiveShell>
   );
 }
+
+function Campo({ rotulo, valor }: { rotulo: string; valor: string | null | undefined }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-xs uppercase tracking-wide text-navy/50">{rotulo}</dt>
+      <dd className="text-sm break-words text-navy">{valor ?? "Sem itens nesta etapa"}</dd>
+    </div>
+  );
+}
