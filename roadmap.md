@@ -101,3 +101,12 @@
 - [x] Consolidar a Biblioteca Mestre em seis entradas, declarando vazios e fontes compartilhadas sem criar coleções.
 - [x] Converter o contrato em superfície única e sequencial, preservando dados e ações existentes.
 - [x] Validar as 15 superfícies autenticadas em desktop, 390 px e 375 px, sem overflow nem erros de console.
+
+## Acesso App Cliente (16/09/2026)
+- [ ] Corrigir `/acesso/confirmar` preso em “Validando seu acesso” após autenticação e comprovar abertura dos dados.
+
+## P0-1B — callback/sessão/elegibilidade (16/09/2026)
+- [x] Auditar, somente leitura, Site URL e Redirect URLs autorizadas para o preview e `/acesso/confirmar`.
+- [x] Mapear parâmetros do callback, criação da sessão, timeout, elegibilidade, consulta pendente e falhas engolidas.
+- [x] Entregar logs seguros e mascarados com domínio, path, presença de parâmetro, sessão, usuário, elegibilidade e destino.
+- [ ] Parar para aprovação antes de nova alteração, configuração Auth, RLS, dados, permissões, convite ou magic link.
