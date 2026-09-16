@@ -161,7 +161,7 @@ function PesquisaIndex() {
             );
           })}
           {casosVisiveis.length === 0 ? (
-            <VazioDesk
+            <VazioCA
               titulo="Nenhum caso em pesquisa"
               descricao="Quando um caso for habilitado para pesquisa, ele aparece aqui com fontes, evidências e próximos passos."
             />
