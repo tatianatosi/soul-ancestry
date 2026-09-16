@@ -91,9 +91,19 @@ function PesquisaIndex() {
           <p className="mt-1 text-sm font-medium text-navy">Ver contagem em Casos 360</p>
           <p className="mt-0.5 text-xs text-navy/55">Ativação canônica — não reconta status de pesquisa</p>
         </Link>
-        <CardIndicador rotulo="Sem via jurídica definida" valor={semVia} tom={semVia ? "atencao" : "neutro"} />
-        <CardIndicador rotulo="Sem país definido" valor={semPais} tom={semPais ? "atencao" : "neutro"} />
-      </div>
+        <IndicadorCA
+          rotulo="Sem via jurídica definida"
+          valor={semVia}
+          fonte="Casos em pesquisa — leitura atual"
+          estado={semVia ? "aguardando" : "ausente"}
+        />
+        <IndicadorCA
+          rotulo="Sem país definido"
+          valor={semPais}
+          fonte="Casos em pesquisa — leitura atual"
+          estado={semPais ? "aguardando" : "ausente"}
+        />
+      </FaixaIndicadoresCA>
 
       {q.isLoading ? <CarregandoDesk linhas={4} rotulo="Carregando casos de pesquisa" /> : null}
 
