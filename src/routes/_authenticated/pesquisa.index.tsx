@@ -130,9 +130,9 @@ function PesquisaIndex() {
               <div className="flex flex-wrap items-center gap-2">
                 <strong className="font-sans text-sm text-navy">{c["codigo"] as string}</strong>
                 <span className="font-serif text-lg leading-tight text-navy">{c["titulo"] as string}</span>
-                <BadgeDesk
+                <SeloCA
                   texto={String(c["status"] ?? "—")}
-                  tom={c["status"] === "ativo" ? "sucesso" : "neutro"}
+                  estado={c["status"] === "ativo" ? "concluido" : "ausente"}
                 />
               </div>
               <p className="mt-1 text-xs text-navy/55">
