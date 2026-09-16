@@ -185,11 +185,15 @@ export function PortalShell({
         </main>
       </div>
 
+      {nav.length > 0 ? (
       <nav
         aria-label="Navegação do aplicativo do cliente"
         className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur lg:hidden"
       >
-        <div className="mx-auto grid max-w-lg grid-cols-7 px-1 pb-[env(safe-area-inset-bottom)]">
+        <div
+          className="mx-auto grid max-w-lg px-1 pb-[env(safe-area-inset-bottom)]"
+          style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}
+        >
           {nav.map(({ to, label, icon: Icon }) => (
             <LinkPortal
               key={to}
