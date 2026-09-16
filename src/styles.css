@@ -1,6 +1,9 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+/* Fonte canônica de tokens do Design System (Corte 1).
+   Declara apenas tokens semânticos `--ca-*`; não sobrescreve nada abaixo. */
+@import "./styles/tokens-clube-ancestral.css";
 
 @custom-variant dark (&:is(.dark *));
 
