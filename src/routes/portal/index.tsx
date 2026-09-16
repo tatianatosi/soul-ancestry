@@ -278,7 +278,7 @@ function PainelHomeMockup({
             {statusRotulo}
           </span>
         </div>
-        {statusTexto ? <p className="mt-1.5 text-xs text-cream/70">{statusTexto}</p> : null}
+        {statusTexto ? <p className="mt-2 text-sm text-cream/75">{statusTexto}</p> : null}
 
         {identidade ? (
           <div className="sr-only">
@@ -335,18 +335,20 @@ function PainelHomeMockup({
               Assim que a equipe publicar um achado ou atualização, ele aparece aqui.
             </p>
           ) : (
-            <div className="space-y-2">
+            /* Linha do tempo enxuta: uma linha por achado, sem competir com o
+               cartão do processo. */
+            <div className="space-y-1.5">
               {achados.map((a) => (
                 <LinkPortal key={a.id} to={a.destino} className="block">
-                  <CaCard className="flex items-start justify-between gap-2 border-l-4 border-l-gold p-3 transition-colors hover:border-gold">
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-0.5 flex items-center gap-1.5">
-                        <Search className="h-3 w-3 text-gold" aria-hidden="true" />
-                        <span className="text-[10px] font-medium uppercase tracking-widest text-gold">{a.tipo}</span>
-                      </div>
-                      <p className="line-clamp-2 text-sm text-navy/85">{a.texto}</p>
+                  <CaCard className="flex items-center justify-between gap-2 border-l-2 border-l-gold p-2.5 transition-colors hover:border-gold">
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                      <Search className="h-3 w-3 shrink-0 text-gold" aria-hidden="true" />
+                      <span className="shrink-0 text-[10px] font-medium uppercase tracking-widest text-gold">
+                        {a.tipo}
+                      </span>
+                      <p className="line-clamp-1 text-xs text-navy/80">{a.texto}</p>
                     </div>
-                    <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-navy/40" aria-hidden="true" />
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0 text-navy/40" aria-hidden="true" />
                   </CaCard>
                 </LinkPortal>
               ))}
