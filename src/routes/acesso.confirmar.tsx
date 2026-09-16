@@ -99,7 +99,9 @@ function ConfirmarPage() {
           navigate({ to: r.destino, replace: true });
           return;
         }
-        setMotivo(MOTIVOS[String(r.motivo ?? "falha")] ?? MOTIVOS["falha"]!);
+        const cod = String(r.motivo ?? "falha");
+        setCodigo(cod);
+        setMotivo(MOTIVOS[cod] ?? MOTIVOS["falha"]!);
         setEstado("negado");
       } catch {
         if (cancelado) return;
