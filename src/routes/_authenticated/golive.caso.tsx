@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Bloco, FaixaKpis, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo } from "@/components/golive/identidade";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
@@ -126,6 +126,18 @@ function CasoGoLive() {
               <Campo rotulo="Prazo" valor={dataHumana(caso.plano?.prazo ?? caso.caso.prazo)} />
             </dl>
           </section>
+          <FaixaKpis itens={lotes.map((item) => {
+            const resumo = resumoLote(item);
+            return {
+              rotulo: item.titulo,
+              valor: `${resumo.registrados}/${resumo.total}`,
+              tom: resumo.registrados === resumo.total ? "verde" as const : resumo.registrados ? "azul" as const : "cinza" as const,
+              fonte: "Ficha canônica do caso",
+              formula: "Campos registrados ÷ campos previstos no lote",
+              periodo: "Estado atual",
+              estado: resumo.registrados === resumo.total ? "Concluído" : resumo.registrados ? "Em andamento" : "Sem registros",
+            };
+          })} />
 
           <nav aria-label="Lotes da ficha" className="min-w-0 overflow-x-auto">
             <ul className="flex min-w-0 flex-wrap gap-1.5">

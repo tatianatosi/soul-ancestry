@@ -6,7 +6,7 @@
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Bloco, FaixaKpis, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
@@ -33,6 +33,12 @@ function ConfiguracoesGoLive() {
     <GoLiveShell titulo="Configurações" descricao="Acesso da família, equipe e organização.">
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
       {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
+      <FaixaKpis itens={[
+        { rotulo: "Acessos da família", valor: caso?.portal.acessos.length ?? 0, tom: caso?.portal.acessos.length ? "azul" : "cinza", fonte: "Acessos do portal deste caso", formula: "Contagem dos acessos registrados", periodo: "Estado atual" },
+        { rotulo: "E-mails autorizados", valor: caso?.portal.emailsAutorizados.length ?? 0, tom: caso?.portal.emailsAutorizados.length ? "azul" : "cinza", fonte: "E-mails autorizados do caso", formula: "Contagem dos e-mails autorizados", periodo: "Estado atual" },
+        { rotulo: "Equipe", valor: caso?.equipeTotal ?? 0, tom: caso?.equipeTotal ? "verde" : "cinza", fonte: "Equipe da organização", formula: "Pessoas com acesso interno na organização", periodo: "Estado atual" },
+        { rotulo: "Acessos ativos", valor: caso?.portal.acessos.filter((a) => a.situacao === "active").length ?? 0, tom: caso?.portal.acessos.some((a) => a.situacao === "active") ? "verde" : "cinza", fonte: "Situação dos acessos do portal", formula: "Acessos com situação ativa", periodo: "Estado atual" },
+      ]} />
 
       <Bloco titulo="Acesso da família ao App">
         {caso?.portal.acessos.length ? (

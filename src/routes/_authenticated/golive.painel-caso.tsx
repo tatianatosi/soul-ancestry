@@ -8,16 +8,12 @@
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Bloco, FaixaKpis, GoLiveShell, GradeDesk, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
-import { Barras, Linha, Rosca } from "@/components/golive/graficos";
 import { useGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
-import { coberturaPorFonte, producaoPorSemana } from "@/lib/golive-pesquisa";
 import {
-  coberturaPorGeracao,
-  composicaoDoNucleo,
   pessoasDoNucleo,
   relacoesAprovadas,
   type PessoaCaso,
@@ -25,10 +21,6 @@ import {
 import {
   contratoParaFamilia,
   financeiroParaFamilia,
-  parcelasEmFatias,
-  parcelasPorVencimento,
-  publicacoesPorAba,
-  publicacoesPorMes,
   situacaoDocumentos,
 } from "@/lib/golive-app";
 
@@ -56,8 +48,6 @@ function PainelDoCaso() {
   const fontes = caso?.fontes ?? [];
   const evidencias = caso?.evidencias ?? [];
   const achados = caso?.achados ?? [];
-  const cobertura = coberturaPorFonte(evidencias, fontes);
-  const producao = producaoPorSemana(fontes, evidencias, achados);
 
   const pessoas: PessoaCaso[] = caso?.pessoas.length
     ? (caso.pessoas as PessoaCaso[])
@@ -66,26 +56,17 @@ function PainelDoCaso() {
         email: caso?.identidade.email ?? null,
         telefone: caso?.identidade.telefone ?? null,
       });
-  const geracoes = coberturaPorGeracao(pessoas).filter((g) => g.valor > 0);
-  const composicao = composicaoDoNucleo(pessoas, caso?.dependentes ?? []).filter((c) => c.valor > 0);
   const relacoes = relacoesAprovadas(pessoas);
 
   const documentos = caso?.documentos ?? [];
   const situacao = situacaoDocumentos(documentos.filter((d) => d.liberadoCliente));
-  const docsFatias = [
-    { rotulo: "Solicitados", valor: situacao.solicitados },
-    { rotulo: "Em revisão", valor: situacao.emRevisao },
-    { rotulo: "Liberados", valor: situacao.liberados },
-  ].filter((f) => f.valor > 0);
 
   const publicados = caso?.publicados ?? [];
-  const porAba = publicacoesPorAba(publicados);
-  const porMes = publicacoesPorMes(publicados);
 
   const titularId = caso?.identidade.pessoaPrincipalId ?? null;
   const contrato = contratoParaFamilia(caso?.contratos ?? [], titularId) ?? caso?.contratos[0] ?? null;
   const financeiro = financeiroParaFamilia(caso?.faturas ?? [], titularId);
-  const porVencimento = parcelasPorVencimento(financeiro);
+  const parcelasEmAberto = financeiro.parcelas.filter((parcela) => parcela.situacao !== "paga").length;
 
   const cta = (destino: string, rotulo: string) => (
     <Link to={destino}>
@@ -98,19 +79,20 @@ function PainelDoCaso() {
   return (
     <GoLiveShell titulo="Painel do caso" descricao="Pesquisa, árvore, documentos, publicações e conta em uma leitura.">
       {caso ? <FaixaIdentidade dados={caso} /> : null}
+      <FaixaKpis itens={[
+        { rotulo: "Pesquisa", valor: fontes.length + evidencias.length + achados.length, tom: fontes.length + evidencias.length + achados.length ? "azul" : "cinza", fonte: "Fontes, evidências e achados do caso", formula: "Soma dos registros da cadeia de pesquisa", periodo: "Histórico do caso" },
+        { rotulo: "Relações aprovadas", valor: relacoes.length, tom: relacoes.length ? "verde" : "cinza", fonte: "Relações explícitas do núcleo", formula: "Contagem de relações aprovadas", periodo: "Estado atual" },
+        { rotulo: "Documentos liberados", valor: situacao.liberados, tom: situacao.liberados ? "verde" : "cinza", fonte: "Documentos do caso", formula: "Documentos marcados como liberados ao cliente", periodo: "Estado atual" },
+        { rotulo: "Publicados", valor: publicados.length, tom: publicados.length ? "verde" : "cinza", fonte: "Projeções publicadas do caso", formula: "Contagem de conteúdos publicados", periodo: "Estado atual" },
+      ]} />
 
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
       {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
 
+      <GradeDesk>
       <Bloco titulo="Pesquisa">
         {fontes.length + evidencias.length + achados.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <Barras
-              titulo="Evidência por fonte consultada"
-              dados={cobertura.map((c) => ({ rotulo: humano(c.origem), valor: c.total }))}
-            />
-            <Linha titulo="Produção por semana" dados={producao} />
-          </div>
+          <p className="text-sm text-navy">{fontes.length} fonte(s) · {evidencias.length} evidência(s) · {achados.length} achado(s).</p>
         ) : (
           <>
             <Vazio cta={cta("/golive/pesquisa", "Abrir Pesquisa")} />
@@ -120,12 +102,9 @@ function PainelDoCaso() {
       </Bloco>
 
       <Bloco titulo="Árvore e núcleo">
-        {geracoes.length || composicao.length ? (
+        {pessoas.length ? (
           <>
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              {geracoes.length ? <Barras titulo="Pessoas por geração" dados={geracoes} /> : null}
-              {composicao.length ? <Rosca titulo="Composição do núcleo" dados={composicao} /> : null}
-            </div>
+            <p className="text-sm text-navy">{pessoas.length} pessoa(s) no caso · {relacoes.length} relação(ões) aprovada(s).</p>
             <p className="text-xs text-navy/55">
               Relações aprovadas: {relacoes.length}. Só entra na árvore o vínculo confirmado pela equipe.
             </p>
@@ -137,10 +116,12 @@ function PainelDoCaso() {
           </>
         )}
       </Bloco>
+      </GradeDesk>
 
+      <GradeDesk>
       <Bloco titulo="Documentos">
         {docsFatias.length ? (
-          <Rosca titulo="Situação dos documentos liberados" dados={docsFatias} />
+          <p className="text-sm text-navy">{situacao.solicitados} solicitado(s) · {situacao.emRevisao} em revisão · {situacao.liberados} liberado(s).</p>
         ) : (
           <>
             <Vazio cta={cta("/golive/caso", "Abrir Caso 360")} />
@@ -151,10 +132,7 @@ function PainelDoCaso() {
 
       <Bloco titulo="Publicações e legado">
         {publicados.length ? (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <Barras titulo="Publicado por aba do App" dados={porAba} />
-            {porMes.length ? <Linha titulo="Publicações por mês" dados={porMes} /> : null}
-          </div>
+          <p className="text-sm text-navy">{publicados.length} conteúdo(s) publicado(s) para a família.</p>
         ) : (
           <>
             <Vazio cta={cta("/golive/caso", "Publicar no Caso 360")} />
@@ -162,6 +140,7 @@ function PainelDoCaso() {
           </>
         )}
       </Bloco>
+      </GradeDesk>
 
       <Bloco titulo="Conta: contrato e parcelas">
         {contrato || financeiro.parcelas.length ? (
@@ -178,10 +157,7 @@ function PainelDoCaso() {
               </p>
             ) : null}
             {financeiro.parcelas.length ? (
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <Rosca titulo="Parcelas pagas e em aberto" dados={parcelasEmFatias(financeiro)} />
-                {porVencimento.length ? <Barras titulo="Parcelas por mês de vencimento" dados={porVencimento} /> : null}
-              </div>
+              <p className="text-sm text-navy">{financeiro.parcelas.length} parcela(s) · {parcelasEmAberto} em aberto.</p>
             ) : (
               <p className="text-xs text-navy/55">Nenhuma fatura emitida para esta família.</p>
             )}
