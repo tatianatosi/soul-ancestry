@@ -27,7 +27,7 @@ export function Acao({
   titulo,
   campos,
   aoConfirmar,
-  confirmacao = "Salvo. Recarregue para conferir.",
+  confirmacao = "Salvo e conferido no servidor.",
   variante = "default",
 }: {
   rotulo: string;
@@ -44,13 +44,26 @@ export function Acao({
   const [mensagem, setMensagem] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
   const queryClient = useQueryClient();
 
+  /*
+   * 16/09/2026 — a confirmação aparecia antes da releitura, e pedia
+   * "recarregue para conferir". Agora a tela só diz que salvou depois de
+   * reler o caso no servidor; se a releitura falhar, isso é dito em vez de
+   * fingir sucesso.
+   */
   const mutacao = useMutation({
     mutationFn: aoConfirmar,
     onSuccess: async () => {
-      setMensagem({ tipo: "ok", texto: confirmacao });
       setValores(Object.fromEntries(campos.map((c) => [c.nome, c.padrao ?? ""])));
       setAberto(false);
-      await queryClient.invalidateQueries({ queryKey: ["go-live"] });
+      try {
+        await queryClient.refetchQueries({ queryKey: ["go-live"] });
+        setMensagem({ tipo: "ok", texto: confirmacao });
+      } catch {
+        setMensagem({
+          tipo: "erro",
+          texto: "Salvamos, mas não foi possível reler agora. Atualize a página para conferir.",
+        });
+      }
     },
     onError: (e: unknown) => {
       const texto = e instanceof Error ? e.message : "Não foi possível salvar agora.";
