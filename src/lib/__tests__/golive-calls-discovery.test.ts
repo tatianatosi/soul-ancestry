@@ -80,8 +80,12 @@ describe("App Cliente não recebe conteúdo comercial", () => {
   it("não menciona lead, call, Discovery nem funil", () => {
     for (const caminho of arquivos) {
       const texto = readFileSync(caminho, "utf8").toLowerCase();
-      for (const termo of ["lead", "call", "discovery", "funil", "origem do lead"]) {
-        expect(texto.includes(termo), `${caminho} menciona "${termo}"`).toBe(false);
+      // Palavra inteira: "truncate"/"leading"/"className" contêm "call" ou
+      // "lead" por acaso e faziam a guarda acusar conteúdo comercial que não
+      // existe. O que importa é o termo isolado.
+      for (const termo of ["lead", "leads", "call", "calls", "discovery", "funil"]) {
+        const isolado = new RegExp(`\\b${termo}\\b`);
+        expect(isolado.test(texto), `${caminho} menciona "${termo}"`).toBe(false);
       }
     }
   });

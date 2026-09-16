@@ -5,7 +5,7 @@ import { useEffect, type ReactNode } from "react";
 import {
   Home,
   FileText,
-  Receipt,
+  
   LogOut,
   Route,
   Radar,
@@ -64,18 +64,25 @@ export function PortalShell({
     Legado e Conta. Entregas / Fase 01 / Fase 02 saem da barra — as rotas
     continuam existindo como arquivos, só não ocupam a navegação.
   */
-  const nav =
-    previa || data?.nivel === "client_workspace"
-      ? [
-          { to: "/portal", label: COPY_TELAS.home.navegacao, icon: Home },
-          { to: "/portal/jornada", label: COPY_TELAS.jornada.navegacao, icon: Route },
-          { to: "/portal/radar", label: COPY_TELAS.radar.navegacao, icon: Radar },
-          { to: "/portal/arvore", label: COPY_TELAS.arvore.navegacao, icon: Trees },
-          { to: "/portal/documentos", label: COPY_TELAS.documentos.navegacao, icon: FileText },
-          { to: "/portal/legado", label: COPY_TELAS.legado.navegacao, icon: BookOpen },
-          { to: "/portal/conta", label: COPY_TELAS.conta.navegacao, icon: UserRound },
-        ]
-      : [{ to: "/portal/proposta", label: COPY_TELAS.proposta.navegacao, icon: Receipt }];
+  const acessoCompleto = Boolean(previa) || data?.nivel === "client_workspace";
+
+  /*
+     16/09/2026 — quando o acesso é só de proposta, a barra mostrava um único
+     item "Proposta": uma 8ª aba fora da taxonomia. Agora esse nível não tem
+     barra alguma (é uma leitura única), e a barra, quando existe, é sempre
+     igual às sete abas aprovadas.
+  */
+  const nav = acessoCompleto
+    ? [
+        { to: "/portal", label: COPY_TELAS.home.navegacao, icon: Home },
+        { to: "/portal/jornada", label: COPY_TELAS.jornada.navegacao, icon: Route },
+        { to: "/portal/radar", label: COPY_TELAS.radar.navegacao, icon: Radar },
+        { to: "/portal/arvore", label: COPY_TELAS.arvore.navegacao, icon: Trees },
+        { to: "/portal/documentos", label: COPY_TELAS.documentos.navegacao, icon: FileText },
+        { to: "/portal/legado", label: COPY_TELAS.legado.navegacao, icon: BookOpen },
+        { to: "/portal/conta", label: COPY_TELAS.conta.navegacao, icon: UserRound },
+      ]
+    : [];
 
   async function sair() {
     // Em prévia quem está logado é a equipe, no Desk. Encerrar a sessão aqui
@@ -141,8 +148,13 @@ export function PortalShell({
         no rodapé (ícone sobre rótulo, todas visíveis, sem rolagem horizontal
         — era isso que cortava "Árvore" na antiga barra de topo).
       */}
-      <div className="mx-auto grid w-full max-w-6xl min-w-0 lg:grid-cols-[224px_minmax(0,1fr)] lg:gap-6 lg:px-8">
-        <aside className="hidden lg:block lg:py-0">
+      <div
+        className={cn(
+          "mx-auto grid w-full max-w-6xl min-w-0 lg:gap-6 lg:px-8",
+          nav.length > 0 && "lg:grid-cols-[224px_minmax(0,1fr)]",
+        )}
+      >
+        <aside className={cn("hidden lg:py-0", nav.length > 0 && "lg:block")}>
           <nav
             aria-label="Navegação do aplicativo do cliente"
             className="sticky top-0 min-h-[calc(100vh-57px)] rounded-b-2xl bg-navy px-3 py-5"
@@ -173,11 +185,15 @@ export function PortalShell({
         </main>
       </div>
 
+      {nav.length > 0 ? (
       <nav
         aria-label="Navegação do aplicativo do cliente"
         className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur lg:hidden"
       >
-        <div className="mx-auto grid max-w-lg grid-cols-7 px-1 pb-[env(safe-area-inset-bottom)]">
+        <div
+          className="mx-auto grid max-w-lg px-1 pb-[env(safe-area-inset-bottom)]"
+          style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}
+        >
           {nav.map(({ to, label, icon: Icon }) => (
             <LinkPortal
               key={to}
@@ -194,6 +210,7 @@ export function PortalShell({
           ))}
         </div>
       </nav>
+      ) : null}
     </div>
   );
 }

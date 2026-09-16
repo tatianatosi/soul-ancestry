@@ -28,6 +28,8 @@ const MOTIVOS: Record<string, string> = {
   esgotado: "Este link já foi usado. Peça um novo na tela de acesso.",
   indisponivel: "Seu acesso não está liberado no momento. Fale com a equipe.",
   sem_autorizacao: "Este e-mail ainda não está liberado pela equipe.",
+  sem_caso: "Seu acesso está ativo, mas nenhum caso foi liberado ainda. A equipe precisa liberar o seu caso.",
+  pendente: "Seu acesso ainda está em preparação pela equipe.",
   sem_sessao: "Não conseguimos validar o link neste navegador. Peça um novo link e abra-o no mesmo aparelho.",
   falha: "Tivemos um problema ao validar seu acesso. Tente novamente em instantes.",
 };
