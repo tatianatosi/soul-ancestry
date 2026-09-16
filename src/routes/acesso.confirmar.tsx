@@ -127,17 +127,21 @@ function ConfirmarPage() {
           </>
         ) : (
           <>
-            <h1 className="font-serif text-2xl text-navy">Não foi possível liberar o acesso</h1>
+            <h1 className="font-serif text-2xl text-navy">
+              {codigo === "sem_caso" ? "Acesso confirmado" : "Não foi possível liberar o acesso"}
+            </h1>
             <p className="mt-2 text-sm text-navy/70">{motivo}</p>
-            <button
-              onClick={async () => {
-                await supabase.auth.signOut();
-                navigate({ to: "/acesso", replace: true });
-              }}
-              className="mt-5 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream"
-            >
-              Solicitar novo link
-            </button>
+            {codigo === "sem_caso" ? null : (
+              <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  navigate({ to: "/acesso", replace: true });
+                }}
+                className="mt-5 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream"
+              >
+                Solicitar novo link
+              </button>
+            )}
           </>
         )}
       </div>
