@@ -68,7 +68,7 @@ function PesquisaIndex() {
         <span className="font-medium">legado</span> na Biblioteca de evidências do caso.
       </p>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <FaixaIndicadoresCA>
         {/*
           Casos em pesquisa / Casos ativos: contagens canônicas em
           /pesquisa-modulo e /casos. Aqui só etiqueta (CA-UX-03 dedup global).
