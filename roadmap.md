@@ -101,3 +101,6 @@
 - [x] Consolidar a Biblioteca Mestre em seis entradas, declarando vazios e fontes compartilhadas sem criar coleções.
 - [x] Converter o contrato em superfície única e sequencial, preservando dados e ações existentes.
 - [x] Validar as 15 superfícies autenticadas em desktop, 390 px e 375 px, sem overflow nem erros de console.
+
+## Acesso App Cliente (16/09/2026)
+- [ ] Corrigir `/acesso/confirmar` preso em “Validando seu acesso” após autenticação e comprovar abertura dos dados.
