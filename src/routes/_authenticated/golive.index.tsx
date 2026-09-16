@@ -43,8 +43,9 @@ function HojeGoLive() {
   const proposta = caso?.propostas[0] ?? null;
   const contrato = caso?.contratos[0] ?? null;
   const acessosAtivos = caso
-    ? caso.portal.acessos.filter((a) => a.situacao === "active" && !a.revokedEmSubstituto).length
+    ? caso.portal.acessos.filter((a) => a.situacao === "active").length
     : 0;
+
 
 
 
