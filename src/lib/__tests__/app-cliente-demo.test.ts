@@ -5,9 +5,7 @@ import { GRUPOS_DESK, MENU_CONTA } from "@/lib/navegacao-desk";
 
 const ler = (p: string) => readFileSync(p, "utf8");
 
-const rota =
-  ler("src/routes/_authenticated/app-cliente-demo.tsx") +
-  ler("src/components/portal/sessao-demo-app-cliente.tsx");
+const rota = ler("src/routes/_authenticated/app-cliente-demo.tsx");
 const abas = ler("src/components/portal/abas-app-cliente.tsx");
 const shell = ler("src/components/portal/portal-shell.tsx");
 const fonte = ler("src/components/portal/fonte-portal.tsx");

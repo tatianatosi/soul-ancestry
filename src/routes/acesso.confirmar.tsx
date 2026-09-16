@@ -28,8 +28,6 @@ const MOTIVOS: Record<string, string> = {
   esgotado: "Este link já foi usado. Peça um novo na tela de acesso.",
   indisponivel: "Seu acesso não está liberado no momento. Fale com a equipe.",
   sem_autorizacao: "Este e-mail ainda não está liberado pela equipe.",
-  sem_caso:
-    "Seu acesso está ativo, mas nenhum caso foi liberado para você ainda. A equipe libera assim que o acompanhamento começar.",
   sem_sessao: "Não conseguimos validar o link neste navegador. Peça um novo link e abra-o no mesmo aparelho.",
   falha: "Tivemos um problema ao validar seu acesso. Tente novamente em instantes.",
 };
@@ -75,7 +73,6 @@ function ConfirmarPage() {
   const navigate = useNavigate();
   const confirmar = useServerFn(confirmarAcessoPortal);
   const [estado, setEstado] = useState<"validando" | "negado">("validando");
-  const [codigo, setCodigo] = useState<string>("falha");
   const [motivo, setMotivo] = useState<string>(MOTIVOS["falha"]!);
   const rodou = useRef(false);
 
@@ -99,9 +96,7 @@ function ConfirmarPage() {
           navigate({ to: r.destino, replace: true });
           return;
         }
-        const cod = String(r.motivo ?? "falha");
-        setCodigo(cod);
-        setMotivo(MOTIVOS[cod] ?? MOTIVOS["falha"]!);
+        setMotivo(MOTIVOS[String(r.motivo ?? "falha")] ?? MOTIVOS["falha"]!);
         setEstado("negado");
       } catch {
         if (cancelado) return;
@@ -127,21 +122,17 @@ function ConfirmarPage() {
           </>
         ) : (
           <>
-            <h1 className="font-serif text-2xl text-navy">
-              {codigo === "sem_caso" ? "Acesso confirmado" : "Não foi possível liberar o acesso"}
-            </h1>
+            <h1 className="font-serif text-2xl text-navy">Não foi possível liberar o acesso</h1>
             <p className="mt-2 text-sm text-navy/70">{motivo}</p>
-            {codigo === "sem_caso" ? null : (
-              <button
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  navigate({ to: "/acesso", replace: true });
-                }}
-                className="mt-5 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream"
-              >
-                Solicitar novo link
-              </button>
-            )}
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate({ to: "/acesso", replace: true });
+              }}
+              className="mt-5 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream"
+            >
+              Solicitar novo link
+            </button>
           </>
         )}
       </div>

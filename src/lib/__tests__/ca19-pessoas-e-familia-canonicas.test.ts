@@ -26,11 +26,6 @@ const PERMITIDOS: { arquivo: string; motivo: string }[] = [
   { arquivo: "caso-canonico.functions.ts", motivo: "reconciliação case_members × nucleo_membros (grava o que falta, não é leitura de exibição)" },
   { arquivo: "cadastro-checklist.functions.ts", motivo: "escreve cliente_id de volta em case_members (não é leitura crua para exibição)" },
   {
-    arquivo: "golive.functions.ts",
-    motivo:
-      "camada go-live: lê case_members escopado por case_id para a ficha canônica, sem criar tabela nem escritor novo",
-  },
-  {
     arquivo: "caso-ficha.functions.ts",
     motivo:
       "lê case_members só para decidir se precisa do fallback (mesma regra interna de pessoasDoCasoComFallbackNucleo, reimplementada aqui para reaproveitar o Promise.all da ficha)",

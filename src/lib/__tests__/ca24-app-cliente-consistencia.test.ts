@@ -74,7 +74,7 @@ describe("CA24 — navegação do App Cliente não tem link morto", () => {
 describe("CA24 — mobile já resolvido no shell do App Cliente (regressão)", () => {
   it("barra de navegação mobile usa grid com largura igual, sem rolagem horizontal", () => {
     const shell = readFileSync("src/components/portal/portal-shell.tsx", "utf8");
-    expect(shell).toMatch(/gridTemplateColumns|grid-cols-7/);
-    expect(shell).toContain("min-w-0");
+    expect(shell).toContain("gridTemplateColumns");
+    expect(shell).toContain("minmax(0, 1fr)");
   });
 });

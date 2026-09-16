@@ -32,7 +32,7 @@ describe("nomenclatura humana", () => {
       'titulo="Radar Interno"',
     );
     expect(readFileSync("src/routes/_authenticated/matriz-juridica.tsx", "utf8")).toContain(
-      'titulo="Validação Jurídica da Trilha"',
+      'titulo="Validação Jurídica"',
     );
   });
 });

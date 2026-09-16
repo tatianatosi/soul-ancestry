@@ -60,7 +60,7 @@ describe("Motores primordiais P0–P11", () => {
     const biblio = readFileSync("src/routes/_authenticated/biblioteca.tsx", "utf8");
     const componente = readFileSync("src/components/biblioteca/motores-primordiais.tsx", "utf8");
     const pagina = readFileSync("src/routes/_authenticated/casos.$caseId.index.tsx", "utf8");
-    expect(biblio + componente).toContain("MotoresPrimordiais");
+    expect(biblio).toContain("MotoresPrimordiais");
     expect(componente).toContain("Abrir no Desk");
     expect(componente).toContain("Link");
     expect(pagina).toContain("FasesMotorCidadania");

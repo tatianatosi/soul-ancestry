@@ -12,7 +12,6 @@ import { rotulo } from "@/components/pesquisa/modulo-campos";
 import { criarPesquisaParaCaso, painelPesquisaModulo, rodarScanPesquisa } from "@/lib/pesquisa-modulo.functions";
 import { filtrarPorBusca } from "@/lib/rotulo-negocio";
 import { CardIndicador } from "@/components/desk/ui-desk";
-import { PesquisaGoLive } from "@/components/golive/superficies/pesquisa";
 
 export const Route = createFileRoute("/_authenticated/pesquisa-modulo/")({
   head: () => ({
@@ -99,10 +98,6 @@ function Index() {
             "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
         </p>
       ) : null}
-      <PesquisaGoLive />
-      <details className="my-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
-        <summary className="cursor-pointer font-serif text-base text-navy">Todas as pesquisas do Desk</summary>
-        <div className="mt-4 space-y-4">
       {q.isLoading && <p className="text-sm text-navy/60">Carregando painel…</p>}
       {q.error ? (
         <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
@@ -247,8 +242,6 @@ function Index() {
           </Painel>
         </div>
       )}
-        </div>
-      </details>
     </SaasShell>
   );
 }

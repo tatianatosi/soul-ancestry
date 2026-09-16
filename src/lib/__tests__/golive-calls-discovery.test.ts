@@ -81,8 +81,7 @@ describe("App Cliente não recebe conteúdo comercial", () => {
     for (const caminho of arquivos) {
       const texto = readFileSync(caminho, "utf8").toLowerCase();
       for (const termo of ["lead", "call", "discovery", "funil", "origem do lead"]) {
-        const palavraInteira = new RegExp(`\\b${termo}\\b`);
-        expect(palavraInteira.test(texto), `${caminho} menciona "${termo}"`).toBe(false);
+        expect(texto.includes(termo), `${caminho} menciona "${termo}"`).toBe(false);
       }
     }
   });

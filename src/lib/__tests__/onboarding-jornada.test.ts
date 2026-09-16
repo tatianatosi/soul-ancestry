@@ -40,10 +40,9 @@ const ctxCompleto = {
 };
 
 describe("checklist padrão", () => {
-  it("tem 15 itens; só o responsável principal não é obrigatório (derivado do caso)", () => {
+  it("tem 15 itens obrigatórios", () => {
     expect(CHECKLIST_ONBOARDING_PADRAO).toHaveLength(15);
-    const opcionais = CHECKLIST_ONBOARDING_PADRAO.filter((i) => !i.obrigatorio).map((i) => i.item_codigo);
-    expect(opcionais).toEqual(["responsavel_principal"]);
+    expect(CHECKLIST_ONBOARDING_PADRAO.every((i) => i.obrigatorio)).toBe(true);
   });
 });
 

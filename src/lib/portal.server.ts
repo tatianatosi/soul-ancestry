@@ -109,30 +109,13 @@ export async function garantirUsuarioAuth(email: string): Promise<string | null>
   return achado?.id ?? null;
 }
 
-/**
- * Envia o link mágico. Nunca revela se o e-mail existe.
- *
- * 16/09/2026 — a falha do provedor era silenciada e a tela dizia "enviado"
- * mesmo quando nenhum e-mail saía. Agora a falha sobe para quem chamou.
- */
+/** Envia o link mágico. Nunca revela se o e-mail existe. */
 export async function enviarLinkMagico(email: string, redirectTo: string) {
   const publico = clientePublico();
-  const { error } = await publico.auth.signInWithOtp({
+  await publico.auth.signInWithOtp({
     email,
     options: { shouldCreateUser: false, emailRedirectTo: redirectTo },
   });
-  if (error) throw new Error(error.message);
-}
-
-/** Casos efetivamente liberados para um acesso do portal. */
-export async function casosLiberados(acessoId: string): Promise<number> {
-  const { data } = await admin
-    .from("client_portal_case_access")
-    .select("id")
-    .eq("client_portal_access_id", acessoId)
-    .is("revoked_at", null)
-    .eq("access_status", "active");
-  return (data ?? []).length;
 }
 
 export async function acessoPorEmail(email: string) {
