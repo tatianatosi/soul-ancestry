@@ -111,23 +111,27 @@ export function CardIndicador({
   apoio?: string;
   tom?: TomEstado;
 }) {
-  const temValor = valor !== null && valor !== undefined && valor !== "";
-  return (
-    <div className="min-w-0 w-full max-w-full rounded-xl border border-navy/10 bg-cream/50 p-4 shadow-[0_1px_2px_rgba(16,16,16,0.04)]">
-      <p className="text-[11px] font-medium uppercase tracking-widest text-navy/55">{rotulo}</p>
-      <p
-        className={cn(
-          "mt-1 font-serif text-3xl leading-none tabular-nums",
-          temValor ? TOM_TEXTO[tom] : "text-navy/40",
-        )}
-      >
-        {temValor ? valor : "—"}
-      </p>
-      <p className="mt-1 text-xs text-navy/55">
-        {temValor ? (apoio ?? "") : "Sem dados suficientes"}
-      </p>
-    </div>
-  );
+  // Corte 2: wrapper de compatibilidade sobre a primitiva canônica.
+  if (tom === "bloqueio") {
+    const temValor = valor !== null && valor !== undefined && valor !== "";
+    return (
+      <CartaoCA>
+        <p className="text-[11px] font-medium uppercase tracking-widest text-navy/55">{rotulo}</p>
+        <p
+          className={cn(
+            "mt-1 font-serif text-3xl leading-none tabular-nums",
+            temValor ? TOM_TEXTO.bloqueio : "text-navy/40",
+          )}
+        >
+          {temValor ? valor : "—"}
+        </p>
+        <p className="mt-1 text-xs text-navy/55">
+          {temValor ? (apoio ?? "") : "Sem dados suficientes"}
+        </p>
+      </CartaoCA>
+    );
+  }
+  return <IndicadorCA rotulo={rotulo} valor={valor} fonte={apoio} estado={TOM_PARA_ESTADO[tom]} />;
 }
 
 /** Alerta de estado. Informa; nunca dispara ação externa. */
