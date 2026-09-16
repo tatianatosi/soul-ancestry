@@ -1,0 +1,121 @@
+/* =====================================================================
+   TOKENS CANÔNICOS — CLUBE ANCESTRAL (Design System, Corte 1)
+   ---------------------------------------------------------------------
+   Fonte única de valores aprovados (prancha App v4 + prancha Desk v6 +
+   Guia de Marca). Este arquivo NÃO altera a aparência atual: ele declara
+   tokens semânticos `--ca-*` em :root, sem sobrescrever os tokens
+   existentes de `src/styles.css`.
+
+   Regras:
+   - Nenhuma cor literal em componente: usar sempre token.
+   - `src/styles.css`, `src/lib/marca.ts` e
+     `src/components/clube-ancestral-kit/tokens.css` referenciam estes
+     mesmos valores. A migração de usos acontece em cortes futuros
+     (ver docs/design-system/README.md).
+   - Valores legados (#2F4B6E, #FCB73A, #F7F1E7, #ECDFCD, cores manuais de
+     cadência/gráficos/fichas) estão documentados em
+     docs/design-system/tokens.md e permanecem no repositório até o corte
+     de migração correspondente.
+   ===================================================================== */
+
+:root {
+  /* ---------- MARCA ---------- */
+  --ca-navy: #13294b;          /* navy estrutural — sidebar/topbar */
+  --ca-navy-hero: #1b365d;     /* navy topo/hero */
+  --ca-gold: #c2a84d;          /* dourado — destaque/progresso */
+  --ca-ink: #28334a;           /* texto e ícones */
+  --ca-cream: #f0eee9;         /* fundo */
+  --ca-terracotta: #9a3a2f;    /* alerta/atenção crítica */
+  --ca-white: #ffffff;
+
+  /* ---------- SUPERFÍCIE ---------- */
+  --ca-surface-base: var(--ca-cream);       /* fundo de página */
+  --ca-surface-raised: var(--ca-white);     /* card elevado, input, modal */
+  --ca-surface-sunken: color-mix(in srgb, var(--ca-ink) 8%, var(--ca-cream));
+  --ca-surface-inverse: var(--ca-navy);     /* sidebar, topbar, hero */
+  --ca-surface-accent: color-mix(in srgb, var(--ca-gold) 18%, var(--ca-cream));
+
+  /* ---------- TEXTO ---------- */
+  --ca-text: var(--ca-ink);
+  --ca-text-muted: color-mix(in srgb, var(--ca-ink) 70%, var(--ca-cream));
+  --ca-text-inverse: var(--ca-white);
+  --ca-text-accent: var(--ca-navy-hero);
+
+  /* ---------- ESTADOS SEMÂNTICOS (selo sempre com texto) ----------
+     andamento = azul · aguardando = dourado · concluído = verde
+     vencido/atenção = terracota · ausente = cinza                    */
+  --ca-estado-andamento: #1b365d;
+  --ca-estado-andamento-suave: #e4e9f1;
+  --ca-estado-aguardando: #8a5a08;
+  --ca-estado-aguardando-suave: #fdf0d6;
+  --ca-estado-concluido: #3f5a34;
+  --ca-estado-concluido-suave: #e6ede1;
+  --ca-estado-vencido: #9a3a2f;
+  --ca-estado-vencido-suave: #f7e4e0;
+  --ca-estado-ausente: #6b6558;
+  --ca-estado-ausente-suave: #ece9e2;
+
+  /* ---------- TIPOGRAFIA ---------- */
+  --ca-font-title: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --ca-font-body: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+
+  --ca-text-xs: 0.75rem;    /* 12px — legenda, etiqueta */
+  --ca-text-sm: 0.875rem;   /* 14px — corpo secundário */
+  --ca-text-md: 1rem;       /* 16px — corpo */
+  --ca-text-lg: 1.125rem;   /* 18px — subtítulo */
+  --ca-text-xl: 1.375rem;   /* 22px — título de seção */
+  --ca-text-2xl: 1.75rem;   /* 28px — título de superfície */
+  --ca-text-3xl: 2.25rem;   /* 36px — hero */
+
+  --ca-leading-tight: 1.2;
+  --ca-leading-normal: 1.5;
+  --ca-leading-relaxed: 1.7;  /* leitura contínua: contrato, ficha */
+
+  --ca-weight-regular: 400;
+  --ca-weight-medium: 500;
+  --ca-weight-semibold: 600;
+  --ca-weight-bold: 700;
+
+  --ca-tracking-wide: 0.08em; /* etiquetas em caixa alta */
+
+  /* ---------- ESPAÇAMENTO (escala de 4px) ---------- */
+  --ca-space-1: 0.25rem;
+  --ca-space-2: 0.5rem;
+  --ca-space-3: 0.75rem;
+  --ca-space-4: 1rem;
+  --ca-space-5: 1.5rem;
+  --ca-space-6: 2rem;
+  --ca-space-7: 3rem;
+  --ca-space-8: 4rem;
+
+  /* ---------- RAIO, BORDA, SOMBRA ---------- */
+  --ca-radius-sm: 6px;
+  --ca-radius-md: 8px;
+  --ca-radius-lg: 12px;
+  --ca-radius-xl: 16px;
+  --ca-radius-pill: 999px;
+
+  --ca-border-width: 1px;
+  --ca-border: color-mix(in srgb, var(--ca-ink) 18%, var(--ca-cream));
+  --ca-border-strong: color-mix(in srgb, var(--ca-ink) 32%, var(--ca-cream));
+  --ca-border-inverse: color-mix(in srgb, var(--ca-white) 22%, transparent);
+  --ca-focus-ring: var(--ca-gold);
+
+  --ca-shadow-sm: 0 1px 2px rgba(19, 41, 75, 0.06);
+  --ca-shadow-md: 0 2px 8px rgba(19, 41, 75, 0.08);
+  --ca-shadow-lg: 0 8px 24px rgba(19, 41, 75, 0.12);
+
+  /* ---------- BREAKPOINTS (referência; use em @media manualmente) ---------- */
+  --ca-bp-sm: 375px;   /* piso mobile obrigatório — uma coluna */
+  --ca-bp-md: 768px;
+  --ca-bp-lg: 1024px;
+  --ca-bp-xl: 1440px;
+
+  /* ---------- ÁREA SEGURA MOBILE ---------- */
+  --ca-safe-top: env(safe-area-inset-top, 0px);
+  --ca-safe-right: env(safe-area-inset-right, 0px);
+  --ca-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --ca-safe-left: env(safe-area-inset-left, 0px);
+  --ca-appbar-height: 56px;      /* barra móvel do App Cliente (7 abas) */
+  --ca-touch-target: 44px;       /* alvo mínimo de toque */
+}
