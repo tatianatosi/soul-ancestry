@@ -19,7 +19,7 @@ export const Route = createFileRoute("/portal")({
       const { data: sessao } = await supabase.auth.getSession();
       usuario = sessao.session?.user ?? null;
     }
-    if (!usuario) throw redirect({ to: "/acesso", search: { motivo: "sessao" } });
+    if (!usuario) throw redirect({ to: "/acesso" });
     return { user: usuario };
   },
   component: () => <Outlet />,
