@@ -32,7 +32,29 @@ export const MOTIVOS: Record<string, string> = {
   pendente: "Seu acesso ainda está em preparação pela equipe.",
   sem_sessao: "Não conseguimos validar o link neste navegador. Peça um novo link e abra-o no mesmo aparelho.",
   falha: "Tivemos um problema ao validar seu acesso. Tente novamente em instantes.",
+  tempo_esgotado:
+    "A validação demorou mais que o esperado. Sua sessão pode estar ativa — use Verificar novamente.",
 };
+
+/** Teto global da validação: passando disto, a tela sempre mostra um estado final. */
+export const TIMEOUT_CONFIRMACAO_MS = 12_000;
+/** Teto de cada leitura de sessão, para nenhuma chamada ficar pendente para sempre. */
+const TIMEOUT_LEITURA_MS = 4_000;
+
+/** Envolve uma promessa com prazo. Nunca deixa a tela presa no carregamento. */
+async function comPrazo<T>(p: Promise<T>, ms: number, aoEstourar: T): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      p,
+      new Promise<T>((resolve) => {
+        timer = setTimeout(() => resolve(aoEstourar), ms);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
 
 /**
  * Troca o material do link por sessão e só então confirma a autorização.
