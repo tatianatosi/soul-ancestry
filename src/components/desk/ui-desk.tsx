@@ -9,9 +9,28 @@
  */
 import type { ReactNode } from "react";
 
+import {
+  CartaoCA,
+  IndicadorCA,
+  SeloCA,
+  VazioCA,
+  type EstadoCA,
+} from "@/components/clube-ancestral-kit/primitivos";
 import { cn } from "@/lib/utils";
 
 export type TomEstado = "neutro" | "critico" | "atencao" | "sucesso" | "bloqueio";
+
+/**
+ * Corte 2 do Design System: de-para do vocabulário antigo do Desk para os
+ * estados canônicos das primitivas. `bloqueio` não tem estado canônico
+ * equivalente e continua com o tratamento local até os Cortes 3–6.
+ */
+const TOM_PARA_ESTADO: Record<Exclude<TomEstado, "bloqueio">, EstadoCA> = {
+  neutro: "ausente",
+  critico: "atencao",
+  atencao: "aguardando",
+  sucesso: "concluido",
+};
 
 const TOM_TEXTO: Record<TomEstado, string> = {
   neutro: "text-navy",
