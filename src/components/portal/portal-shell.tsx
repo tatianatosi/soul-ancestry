@@ -210,6 +210,7 @@ export function PortalShell({
           ))}
         </div>
       </nav>
+      ) : null}
     </div>
   );
 }
