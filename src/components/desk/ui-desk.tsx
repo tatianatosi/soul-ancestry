@@ -227,13 +227,8 @@ export function VazioDesk({
   descricao?: string;
   acao?: ReactNode;
 }) {
-  return (
-    <div className="rounded-xl border border-dashed border-navy/20 bg-cream/40 p-8 text-center">
-      <p className="font-serif text-lg text-navy">{titulo}</p>
-      {descricao ? <p className="mx-auto mt-1 max-w-md text-sm text-navy/60">{descricao}</p> : null}
-      {acao ? <div className="mt-3 flex justify-center">{acao}</div> : null}
-    </div>
-  );
+  // Corte 2: wrapper de compatibilidade sobre a primitiva canônica.
+  return <VazioCA titulo={titulo} descricao={descricao} acao={acao} />;
 }
 
 /** Estado de carregamento com skeleton — sem texto que sugira dado existente. */
