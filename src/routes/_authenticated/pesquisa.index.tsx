@@ -5,13 +5,15 @@ import { useMemo, useState } from "react";
 
 import { SaasShell } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { CarregandoDesk, PageHeader } from "@/components/desk/ui-desk";
+// Corte 2 do Design System — superfície piloto: Cartão, Selo, KPI e Estado vazio.
 import {
-  BadgeDesk,
-  CardIndicador,
-  CarregandoDesk,
-  PageHeader,
-  VazioDesk,
-} from "@/components/desk/ui-desk";
+  FaixaIndicadoresCA,
+  IndicadorCA,
+  SeloCA,
+  VazioCA,
+  classesCartaoCA,
+} from "@/components/clube-ancestral-kit/primitivos";
 import { listarCasosPesquisa } from "@/lib/pesquisa.functions";
 import { filtrarPorBusca } from "@/lib/rotulo-negocio";
 import { PendenciasCriticasPesquisa } from "@/components/painel/pendencias-criticas-pesquisa";
