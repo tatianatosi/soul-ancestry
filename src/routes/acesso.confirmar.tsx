@@ -23,7 +23,7 @@ export const Route = createFileRoute("/acesso/confirmar")({
 });
 
 /** Motivos em linguagem da família — nunca o código cru do sistema. */
-const MOTIVOS: Record<string, string> = {
+export const MOTIVOS: Record<string, string> = {
   expirado: "Este link já passou da validade. Peça um novo na tela de acesso.",
   esgotado: "Este link já foi usado. Peça um novo na tela de acesso.",
   indisponivel: "Seu acesso não está liberado no momento. Fale com a equipe.",
