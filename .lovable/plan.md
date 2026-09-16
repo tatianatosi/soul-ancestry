@@ -24,6 +24,18 @@ Leitura dirigida, sem alteração, de: navegação e rotas autenticadas; módulo
 - Marketing, Campanhas, Conteúdo e Biblioteca Mestre permanecem explícitos, com fronteira Marketing/Comercial/Conteúdo declarada.
 - Máximo de 4 KPIs por tela, cada um com pergunta, fonte, filtro, fórmula, vazio e drill-down. Sem fonte: `Dados insuficientes`.
 
+## Arquitetura mais leve do Desk
+
+A revisão também propõe, em wireframe, uma arquitetura mais leve para todas as telas, usando somente os elementos visuais já aprovados (cartões, selos com texto, faixas de indicadores, listas curtas, estados vazios canônicos):
+
+- primeira dobra com contexto, decisão, no máximo três blocos e um CTA principal;
+- cartões curtos e comparáveis no lugar de mosaicos densos; detalhe vai para aba, acordeão ou "ver todos";
+- fichas, contrato, texto jurídico, Pessoa 360 e Caso 360 mantêm leitura sequencial, com coluna lateral apenas para contexto curto;
+- remoção de repetição entre telas vizinhas (Comercial/Leads, Caso/Painel, Formalização/Jurídico);
+- gráfico só quando responde a uma decisão e tem dado real; em 375 px, uma coluna, sem corte, sem hover obrigatório.
+
+Nenhum token, cor ou tipografia é alterado: a proposta usa a paleta e a tipografia já aceitas.
+
 ## Entregáveis
 
 1. `revisao-desk-13-quadros.md` — matriz quadro a quadro: prancha, rota/aba atual, dados/função leitora, KPI/CTA exigido, estado (aderente, parcial, ausente, não aplicável), lacuna, duplicação, decisão de wireframe e prioridade.
