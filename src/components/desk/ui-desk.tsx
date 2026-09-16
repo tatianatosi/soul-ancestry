@@ -154,16 +154,20 @@ export function AlertaDesk({
 
 /** Etiqueta curta de estado. */
 export function BadgeDesk({ texto, tom = "neutro" }: { texto: string; tom?: TomEstado }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium",
-        TOM_CLASSE[tom],
-      )}
-    >
-      {texto}
-    </span>
-  );
+  // Corte 2: wrapper de compatibilidade sobre a primitiva canônica.
+  if (tom === "bloqueio") {
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium",
+          TOM_CLASSE.bloqueio,
+        )}
+      >
+        {texto}
+      </span>
+    );
+  }
+  return <SeloCA texto={texto} estado={TOM_PARA_ESTADO[tom]} />;
 }
 
 /** Barra de filtros: agrupa controles com respiro consistente. */
