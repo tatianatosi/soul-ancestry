@@ -3,6 +3,35 @@
 **Versão:** Corte 1 (2026-09-16) · **Escopo:** somente tokens e documentação.
 **Projeto canônico:** `tatianatosi/soul-ancestry`. Lançamento: Lovable.
 
+## Status do Corte 1 — APROVADO
+
+Aprovado pela Proprietária em 2026-09-16. Commit automático da plataforma
+mantido: `079c236d` ("Criou Design System no GitHub" — 8 arquivos,
++342/−2). Registro da aprovação em 2026-09-16.
+
+Evidência da validação (2026-09-16):
+
+- `tsgo --noEmit` sem erros; `bun run build` limpo (1,58s, sem avisos CSS);
+- 2.331/2.338 testes aprovados; as 7 falhas são preexistentes e sem relação
+  com tokens/estilos (alertas, App demo, `case_members`, tipo `"caso"`,
+  mapa de motores da Biblioteca, checklist de onboarding);
+- import de `src/styles/tokens-clube-ancestral.css` em `src/styles.css`
+  resolve (tokens `--ca-navy-hero`, `--ca-estado-aguardando`,
+  `--ca-safe-bottom`, `--ca-cream` presentes no bundle final);
+- aliases do kit sem ciclo; telas idênticas antes/depois em desktop e 375 px;
+- zero overflow horizontal e zero erro de console;
+- nenhum dado, rota, permissão, RLS, migration ou integração alterado.
+
+Regra de governança aplicada: commit automático da plataforma NÃO equivale à
+aprovação da Proprietária. Depois de cada edição: parar, apresentar lista de
+arquivos, diff resumido, testes/build, screenshots desktop e 375 px quando
+houver UI, e o hash do commit automático — e aguardar decisão explícita.
+
+Próximos cortes (2 em diante) e a Fase B (Centro de Pesquisa / Pessoa
+Unificada) permanecem NÃO iniciados, dependendo de autorização explícita.
+A próxima tarefa autorizada é somente a validação P0 de acesso e do modo
+master do App Cliente.
+
 ## O que o Corte 1 faz
 
 - Cria `src/styles/tokens-clube-ancestral.css` como **fonte única** de valores
