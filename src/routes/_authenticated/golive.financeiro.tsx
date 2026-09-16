@@ -243,6 +243,36 @@ function FinanceiroGoLive() {
         )}
       </Bloco>
       </GradeDesk>
+
+      {/* Cards de contexto: mesma leitura já carregada, sem novo cálculo. */}
+      <GradeDesk>
+        <Bloco titulo="Proposta aprovada">
+          {proposta ? (
+            <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Campo rotulo="Situação" valor={humano(proposta.status)} />
+              <Campo rotulo="Valor" valor={typeof proposta.valor === "number" ? MOEDA.format(proposta.valor) : null} />
+              <Campo rotulo="Aprovada em" valor={proposta.aprovadaEm ? dataHumana(proposta.aprovadaEm) : null} />
+              <Campo rotulo="Forma de pagamento" valor={humano(proposta.formaPagamento)} />
+            </dl>
+          ) : (
+            <Vazio cta={irParaContratos} />
+          )}
+        </Bloco>
+
+        <Bloco titulo="Contrato vinculado">
+          {contrato ? (
+            <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Campo rotulo="Número" valor={contrato.numero} />
+              <Campo rotulo="Situação" valor={humano(contrato.status)} />
+              <Campo rotulo="Assinatura" valor={contrato.assinadoEm ? dataHumana(contrato.assinadoEm) : "Não registrada"} />
+              <Campo rotulo="Versão" valor={contrato.versao ? `v${contrato.versao}` : null} />
+            </dl>
+          ) : (
+            <Vazio cta={irParaContratos} />
+          )}
+        </Bloco>
+      </GradeDesk>
+
     </GoLiveShell>
   );
 }
