@@ -101,18 +101,33 @@ export const confirmarAcessoPortal = createServerFn({ method: "POST" })
       return { autorizado: false as const, destino: null, motivo: "sem_autorizacao" };
     }
 
-    // Link mágico de uso controlado: expirado ou já consumido não libera acesso.
-    const { estadoDoLink } = await import("./portal-elegibilidade");
-    const estado = estadoDoLink(acesso);
-    if (estado !== "valido") {
-      await helpers.registrarEvento({
-        organizationId: acesso.organization_id,
-        acessoId: acesso.id,
-        authUserId: context.userId as string,
-        tipo: "session_expired",
-        metadata: { estado },
-      });
-      return { autorizado: false as const, destino: null, motivo: estado };
+    /*
+     * 16/09/2026 — F5 na confirmação queimava o link.
+     *
+     * Cada confirmação somava um uso, e o máximo é 1. Ao recarregar a página
+     * (ou voltar a /acesso/confirmar com a MESMA sessão já criada), a segunda
+     * leitura encontrava o link "esgotado" e expulsava a pessoa para /acesso.
+     *
+     * Consumir o link é um ato único: acontece quando esta sessão ainda não
+     * está vinculada ao acesso. Se o vínculo já existe e o acesso está ativo,
+     * isto é apenas uma releitura da mesma sessão — não consome nada.
+     */
+    const mesmaSessaoJaVinculada =
+      acesso.auth_user_id === context.userId && acesso.access_status === "active";
+
+    if (!mesmaSessaoJaVinculada) {
+      const { estadoDoLink } = await import("./portal-elegibilidade");
+      const estado = estadoDoLink(acesso);
+      if (estado !== "valido") {
+        await helpers.registrarEvento({
+          organizationId: acesso.organization_id,
+          acessoId: acesso.id,
+          authUserId: context.userId as string,
+          tipo: "session_expired",
+          metadata: { estado },
+        });
+        return { autorizado: false as const, destino: null, motivo: estado };
+      }
     }
 
     const agora = new Date().toISOString();
@@ -123,9 +138,12 @@ export const confirmarAcessoPortal = createServerFn({ method: "POST" })
         access_status: "active",
         first_authenticated_at: acesso.first_authenticated_at ?? agora,
         last_authenticated_at: agora,
-        magic_link_uses: (acesso.magic_link_uses ?? 0) + 1,
+        magic_link_uses: mesmaSessaoJaVinculada
+          ? (acesso.magic_link_uses ?? 0)
+          : (acesso.magic_link_uses ?? 0) + 1,
       })
       .eq("id", acesso.id);
+
 
 
     await helpers.registrarEvento({

@@ -169,13 +169,26 @@ function FormalizacaoGoLive() {
                     {moeda(p.valor, p.moeda) ? <span className="text-navy/60"> · {moeda(p.valor, p.moeda)}</span> : null}
                     {p.enviadaEm ? <span className="text-navy/55"> · enviada em {dataHumana(p.enviadaEm)}</span> : null}
                     {p.aprovadaEm ? <span className="text-navy/55"> · aprovada em {dataHumana(p.aprovadaEm)}</span> : null}
+                    {/* 16/09/2026 — quando a referência é um endereço, vira
+                        botão de abrir; nunca inventamos um link que não existe. */}
                     {p.referencia ? (
-                      <div className="text-xs text-navy/55 break-all">
-                        Referência {p.origem === "canva" ? "Canva" : "registrada"}: {p.referencia}
-                      </div>
+                      /^https?:\/\//i.test(p.referencia) ? (
+                        <a
+                          href={p.referencia}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className="mt-1 inline-flex rounded-md border border-navy/20 px-2.5 py-1 text-xs font-medium text-navy hover:bg-navy/5"
+                        >
+                          {p.origem === "canva" ? "Abrir proposta no Canva" : "Abrir proposta"}
+                        </a>
+                      ) : (
+                        <div className="text-xs text-navy/55 break-all">
+                          Referência {p.origem === "canva" ? "Canva" : "registrada"}: {p.referencia}
+                        </div>
+                      )
                     ) : (
                       <div className="text-xs text-[var(--terracota,#9A3A2F)]">
-                        Sem link/referência registrado — registre antes de aprovar o escopo.
+                        Link do Canva não registrado — registre antes de aprovar o escopo.
                       </div>
                     )}
                     {/* Responsável, objetivo e escopo incluído/excluído: só o que está gravado. */}

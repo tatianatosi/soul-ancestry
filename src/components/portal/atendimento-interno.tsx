@@ -132,16 +132,26 @@ export function AtendimentoInterno() {
     queryFn: () => carregar({ data: casoId ? { casoId } : {} }),
   });
 
-  function recarregar() {
-    queryClient.invalidateQueries({ queryKey: ["atendimento"] });
+  /*
+   * 16/09/2026 — a mensagem de sucesso aparecia antes de reler o servidor, e
+   * um erro antigo continuava na tela depois de uma ação que deu certo.
+   * Agora: relê primeiro, confirma depois, e diz quando a releitura falha.
+   */
+  async function recarregar() {
+    await queryClient.refetchQueries({ queryKey: ["atendimento"] });
   }
   function falhar(e: unknown) {
-    setErro((e as Error).message);
+    setErro((e as Error).message ?? "Não foi possível salvar agora.");
   }
   function confirmar(mensagem: string) {
-    return () => {
-      toast.success(mensagem);
-      recarregar();
+    return async () => {
+      setErro(null);
+      try {
+        await recarregar();
+        toast.success(mensagem);
+      } catch {
+        setErro("Salvamos, mas não foi possível reler agora. Atualize a página para conferir.");
+      }
     };
   }
 

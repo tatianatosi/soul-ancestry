@@ -1,6 +1,10 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-/** Rota legada: o login interno vive em /equipe/entrar. */
+/**
+ * Endereço legado. Não é uma entrada própria: a única porta interna é
+ * /equipe/entrar (e-mail e senha da equipe). Mantido apenas para não quebrar
+ * links antigos guardados no navegador.
+ */
 export const Route = createFileRoute("/auth")({
   beforeLoad: () => {
     throw redirect({ to: "/equipe/entrar", replace: true });

@@ -266,17 +266,19 @@ function PainelHomeMockup({
         identidade do caso continua no DOM para prova App↔Desk, só não
         aparece mais visualmente aqui).
       */}
-      <section className="rounded-2xl bg-navy-800 p-4 text-cream sm:p-5">
-        <div className="flex items-start justify-between gap-2">
+      {/* 16/09/2026 — primeira dobra: o cartão do processo é o elemento
+          principal (maior), e a linha do tempo abaixo fica discreta. */}
+      <section className="rounded-2xl bg-navy-800 p-5 text-cream sm:p-7">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-widest text-gold/80">Seu caso</p>
-            <h2 className="font-serif text-lg text-cream">{tituloCaso}</h2>
+            <h2 className="font-serif text-2xl leading-tight text-cream sm:text-3xl">{tituloCaso}</h2>
           </div>
-          <span className="shrink-0 rounded-full bg-gold px-2.5 py-1 text-[10px] font-semibold text-navy">
+          <span className="shrink-0 rounded-full bg-gold px-3 py-1 text-[11px] font-semibold text-navy">
             {statusRotulo}
           </span>
         </div>
-        {statusTexto ? <p className="mt-1.5 text-xs text-cream/70">{statusTexto}</p> : null}
+        {statusTexto ? <p className="mt-2 text-sm text-cream/75">{statusTexto}</p> : null}
 
         {identidade ? (
           <div className="sr-only">
@@ -333,18 +335,20 @@ function PainelHomeMockup({
               Assim que a equipe publicar um achado ou atualização, ele aparece aqui.
             </p>
           ) : (
-            <div className="space-y-2">
+            /* Linha do tempo enxuta: uma linha por achado, sem competir com o
+               cartão do processo. */
+            <div className="space-y-1.5">
               {achados.map((a) => (
                 <LinkPortal key={a.id} to={a.destino} className="block">
-                  <CaCard className="flex items-start justify-between gap-2 border-l-4 border-l-gold p-3 transition-colors hover:border-gold">
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-0.5 flex items-center gap-1.5">
-                        <Search className="h-3 w-3 text-gold" aria-hidden="true" />
-                        <span className="text-[10px] font-medium uppercase tracking-widest text-gold">{a.tipo}</span>
-                      </div>
-                      <p className="line-clamp-2 text-sm text-navy/85">{a.texto}</p>
+                  <CaCard className="flex items-center justify-between gap-2 border-l-2 border-l-gold p-2.5 transition-colors hover:border-gold">
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                      <Search className="h-3 w-3 shrink-0 text-gold" aria-hidden="true" />
+                      <span className="shrink-0 text-[10px] font-medium uppercase tracking-widest text-gold">
+                        {a.tipo}
+                      </span>
+                      <p className="line-clamp-1 text-xs text-navy/80">{a.texto}</p>
                     </div>
-                    <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-navy/40" aria-hidden="true" />
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0 text-navy/40" aria-hidden="true" />
                   </CaCard>
                 </LinkPortal>
               ))}
