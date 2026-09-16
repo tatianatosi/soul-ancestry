@@ -5,7 +5,7 @@ import { useEffect, type ReactNode } from "react";
 import {
   Home,
   FileText,
-  Receipt,
+  
   LogOut,
   Route,
   Radar,
