@@ -83,12 +83,7 @@ export function CartaoCA({
 } & Record<string, unknown>) {
   return (
     <Tag
-      className={cn(
-        "min-w-0 w-full max-w-full rounded-xl border border-navy/10 bg-cream/50 p-4 shadow-[0_1px_2px_rgba(16,16,16,0.04)]",
-        interativo &&
-          "transition-colors hover:border-navy/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2",
-        className,
-      )}
+      className={classesCartaoCA({ interativo, className })}
       {...rest}
     >
       {children}
