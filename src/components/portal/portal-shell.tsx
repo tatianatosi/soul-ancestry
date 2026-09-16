@@ -148,8 +148,13 @@ export function PortalShell({
         no rodapé (ícone sobre rótulo, todas visíveis, sem rolagem horizontal
         — era isso que cortava "Árvore" na antiga barra de topo).
       */}
-      <div className="mx-auto grid w-full max-w-6xl min-w-0 lg:grid-cols-[224px_minmax(0,1fr)] lg:gap-6 lg:px-8">
-        <aside className="hidden lg:block lg:py-0">
+      <div
+        className={cn(
+          "mx-auto grid w-full max-w-6xl min-w-0 lg:gap-6 lg:px-8",
+          nav.length > 0 && "lg:grid-cols-[224px_minmax(0,1fr)]",
+        )}
+      >
+        <aside className={cn("hidden lg:py-0", nav.length > 0 && "lg:block")}>
           <nav
             aria-label="Navegação do aplicativo do cliente"
             className="sticky top-0 min-h-[calc(100vh-57px)] rounded-b-2xl bg-navy px-3 py-5"
