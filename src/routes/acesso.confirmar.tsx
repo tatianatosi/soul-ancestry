@@ -64,12 +64,19 @@ async function comPrazo<T>(p: Promise<T>, ms: number, aoEstourar: T): Promise<T>
  * fazia a troca, a sessão nunca aparecia e a pessoa voltava para /acesso sem
  * explicação. Agora: troca explícita, espera com releituras e motivo visível.
  */
-async function obterSessao(): Promise<boolean> {
+async function temSessaoAgora(): Promise<boolean> {
+  const r = await comPrazo(supabase.auth.getSession(), TIMEOUT_LEITURA_MS, {
+    data: { session: null },
+  } as Awaited<ReturnType<typeof supabase.auth.getSession>>);
+  return Boolean(r.data.session);
+}
+
+async function obterSessao(ate: number): Promise<boolean> {
   const url = new URL(window.location.href);
   const tokenHash = url.searchParams.get("token_hash");
   const code = url.searchParams.get("code");
 
-  if ((await supabase.auth.getSession()).data.session) return true;
+  if (await temSessaoAgora()) return true;
 
   if (tokenHash) {
     const tipo = (url.searchParams.get("type") ?? "magiclink") as
@@ -77,18 +84,28 @@ async function obterSessao(): Promise<boolean> {
       | "email"
       | "recovery"
       | "invite";
-    const { error } = await supabase.auth.verifyOtp({ type: tipo, token_hash: tokenHash });
-    if (!error) return true;
+    const r = await comPrazo(
+      supabase.auth.verifyOtp({ type: tipo, token_hash: tokenHash }),
+      TIMEOUT_LEITURA_MS,
+      { error: new Error("tempo_esgotado") } as Awaited<ReturnType<typeof supabase.auth.verifyOtp>>,
+    );
+    if (!r.error) return true;
   } else if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return true;
+    const r = await comPrazo(
+      supabase.auth.exchangeCodeForSession(code),
+      TIMEOUT_LEITURA_MS,
+      { error: new Error("tempo_esgotado") } as Awaited<
+        ReturnType<typeof supabase.auth.exchangeCodeForSession>
+      >,
+    );
+    if (!r.error) return true;
   }
 
   // Link no formato de fragmento: o cliente processa sozinho, mas leva alguns
-  // instantes. Releituras curtas em vez de uma espera fixa.
-  for (let i = 0; i < 10; i += 1) {
+  // instantes. Releituras curtas, sempre dentro do teto global.
+  while (Date.now() < ate) {
     await new Promise((r) => setTimeout(r, 300));
-    if ((await supabase.auth.getSession()).data.session) return true;
+    if (await temSessaoAgora()) return true;
   }
   return false;
 }
