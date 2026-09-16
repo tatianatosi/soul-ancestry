@@ -10,8 +10,8 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
-import { Barras, Escada } from "@/components/golive/graficos";
+import { Bloco, FaixaKpis, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Escada } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
@@ -20,7 +20,6 @@ import {
   COLUNAS_FUNIL,
   agendaDoLead,
   colunaDoLead,
-  funil,
   progressoRoteiro,
   roteiroDiscovery,
   type LeadComercial,
@@ -69,6 +68,9 @@ function LeadsGoLive() {
   const etapaAtual = emFoco ? colunaDoLead(emFoco) : null;
   const progresso = useMemo(() => progressoRoteiro(emFoco), [emFoco]);
   const agenda = useMemo(() => agendaDoLead(emFoco), [emFoco]);
+  const semProximoPasso = leads.filter((lead) => !lead.proximoPasso).length;
+  const semResponsavel = leads.filter((lead) => !lead.responsavel).length;
+  const callsVencidas = leads.filter((lead) => agendaDoLead(lead)?.vencida).length;
 
   const ctaCadastro = (
     <Link to="/golive/comercial">
@@ -80,6 +82,12 @@ function LeadsGoLive() {
 
   return (
     <GoLiveShell titulo="Leads" descricao="Do primeiro contato ao handoff, com as ações que já gravam.">
+      <FaixaKpis itens={[
+        { rotulo: "Leads registrados", valor: leads.length, tom: leads.length ? "azul" : "cinza", fonte: "Leads ativos da organização", formula: "Contagem dos leads retornados", periodo: "Carteira atual" },
+        { rotulo: "Sem próximo passo", valor: semProximoPasso, tom: semProximoPasso ? "terracota" : "cinza", fonte: "Próximo passo do lead", formula: "Leads sem próximo passo registrado", periodo: "Carteira atual" },
+        { rotulo: "Calls vencidas", valor: callsVencidas, tom: callsVencidas ? "terracota" : "cinza", fonte: "Agenda do lead", formula: "Calls cujo horário registrado já passou", periodo: "Até agora" },
+        { rotulo: "Sem responsável", valor: semResponsavel, tom: semResponsavel ? "dourado" : "cinza", fonte: "Responsável do lead", formula: "Leads sem responsável registrado", periodo: "Carteira atual" },
+      ]} />
       <Acoes>
         <Acao
           rotulo="Novo lead"
@@ -137,17 +145,6 @@ function LeadsGoLive() {
 
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
       {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
-
-      <Bloco titulo="Leads por etapa">
-        {leads.length ? (
-          <Barras titulo="Etapas do fluxo comercial" dados={funil(leads)} />
-        ) : (
-          <>
-            <Vazio cta={ctaCadastro} />
-            <p className="text-xs text-navy/55">Nenhum lead nesta etapa.</p>
-          </>
-        )}
-      </Bloco>
 
       <Bloco titulo="Leads registrados">
         {leads.length ? (

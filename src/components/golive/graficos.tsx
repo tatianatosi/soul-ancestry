@@ -6,9 +6,9 @@
  * nenhum valor, quem chama mostra o estado vazio canônico.
  */
 
-const NAVY = "#2F4B6E";
-const GOLD = "#C9A84C";
-const TERRA = "#9A3A2F";
+const NAVY = "var(--navy)";
+const GOLD = "var(--gold)";
+const TERRA = "var(--terracotta)";
 
 export type Fatia = { rotulo: string; valor: number };
 

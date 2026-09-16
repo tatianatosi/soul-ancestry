@@ -8,7 +8,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Bloco, FaixaKpis, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Escada } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
@@ -141,6 +141,12 @@ function FormalizacaoGoLive() {
       {caso ? (
         <>
           <FaixaIdentidade dados={caso} />
+          <FaixaKpis itens={[
+            { rotulo: "Propostas", valor: caso.propostas.length, tom: caso.propostas.length ? "azul" : "cinza", fonte: "Propostas vinculadas ao caso", formula: "Contagem de propostas não arquivadas", periodo: "Histórico do caso" },
+            { rotulo: "Itens de escopo", valor: caso.escopo.length, tom: caso.escopo.length ? "azul" : "cinza", fonte: "Escopo aprovado do caso", formula: "Contagem dos itens de escopo registrados", periodo: "Versão atual" },
+            { rotulo: "Contratos assinados", valor: caso.contratos.filter((c) => Boolean(c.assinadoEm)).length, tom: caso.contratos.some((c) => Boolean(c.assinadoEm)) ? "verde" : "cinza", fonte: "Contratos vinculados ao caso", formula: "Contratos com data de assinatura", periodo: "Histórico do caso" },
+            { rotulo: "Publicados", valor: caso.publicados.length, tom: caso.publicados.length ? "verde" : "cinza", fonte: "Publicações aprovadas do caso", formula: "Contagem das projeções publicadas", periodo: "Estado atual" },
+          ]} />
 
           <Bloco titulo="Cadeia da formalização">
             <Escada
@@ -335,7 +341,7 @@ function FormalizacaoGoLive() {
             )}
           </Bloco>
 
-          <Bloco titulo="5. Publicação para a família">
+          <Bloco titulo="6. Publicação para a família">
             {caso.publicados.length ? (
               <ul className="space-y-1 text-sm text-navy">
                 {caso.publicados.map((p) => (

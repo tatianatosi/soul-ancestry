@@ -2,16 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { Bloco, FaixaKpis, GoLiveShell, GradeDesk, Vazio } from "@/components/golive/shell";
+import { Bloco, FaixaKpis, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
-import { Barras } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { definirProximaAcaoGoLive } from "@/lib/golive-escritores.functions";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import {
-  cargaPorResponsavel,
-  distribuicaoPorEtapa,
   faixaDePrazo,
   kpisPrazo,
   type AcaoOperacional,
@@ -65,11 +62,8 @@ function KanbanGoLive() {
   }
 
   const kpis = kpisPrazo(itens);
-  const etapas = caso ? distribuicaoPorEtapa(caso.microentregas) : [];
-  const carga = cargaPorResponsavel(itens);
-
   return (
-    <GoLiveShell titulo="Operação" descricao="O trabalho do caso por prazo.">
+    <GoLiveShell titulo="Kanban" descricao="O trabalho do caso organizado por prazo.">
       <FaixaFluxo atual="Caso" />
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
       {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
@@ -86,27 +80,6 @@ function KanbanGoLive() {
             { rotulo: "Próximos sete dias", valor: kpis.proximos7, tom: kpis.proximos7 ? "azul" : "cinza" },
             { rotulo: "Aguardando externo", valor: kpis.externo, tom: kpis.externo ? "dourado" : "cinza" },
           ]} />
-
-          <GradeDesk>
-            <Bloco titulo="Distribuição por etapa">
-              {etapas.length ? (
-                <Barras
-                  titulo="Microentregas por etapa"
-                  dados={etapas.slice(0, 5).map((e) => ({ rotulo: humano(e.rotulo) ?? e.rotulo, valor: e.valor }))}
-                />
-              ) : (
-                <Vazio cta={<LinkCaso />} />
-              )}
-            </Bloco>
-
-            <Bloco titulo="Carga por responsável">
-              {carga.length ? (
-                <Barras titulo="Itens em aberto por responsável" dados={carga.slice(0, 6)} />
-              ) : (
-                <Vazio cta={<LinkCaso />} />
-              )}
-            </Bloco>
-          </GradeDesk>
 
           {/* Mobile: uma coluna por vez, sem rolagem horizontal. */}
           <div className="lg:hidden">
