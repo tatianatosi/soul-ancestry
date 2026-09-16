@@ -10,7 +10,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Bloco, FaixaKpis, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Acao } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
@@ -59,6 +59,9 @@ function MicroentregasGoLive() {
   const publicadas = new Set(
     (caso?.publicados ?? []).filter((p) => p.tipo === "microentrega").map((p) => p.id),
   );
+  const concluidas = itens.filter(concluida).length;
+  const semPrazo = itens.filter((item) => !item.prazo).length;
+  const aguardandoRevisao = itens.filter((item) => !concluida(item)).length;
 
   const acaoNova = (
     <Acao
@@ -93,6 +96,12 @@ function MicroentregasGoLive() {
       {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
 
       {caso ? <FaixaIdentidade dados={caso} /> : null}
+      <FaixaKpis itens={[
+        { rotulo: "Microentregas", valor: itens.length, tom: itens.length ? "azul" : "cinza", fonte: "Microentregas vinculadas ao caso", formula: "Contagem dos registros não arquivados", periodo: "Histórico do caso" },
+        { rotulo: "Aguardando revisão", valor: aguardandoRevisao, tom: aguardandoRevisao ? "dourado" : "cinza", fonte: "Estado das microentregas", formula: "Itens ainda não concluídos", periodo: "Estado atual" },
+        { rotulo: "Concluídas", valor: concluidas, tom: concluidas ? "verde" : "cinza", fonte: "Conclusão das microentregas", formula: "Itens com estado ou data de conclusão", periodo: "Histórico do caso" },
+        { rotulo: "Sem prazo", valor: semPrazo, tom: semPrazo ? "terracota" : "cinza", fonte: "Prazo das microentregas", formula: "Itens sem prazo registrado", periodo: "Estado atual" },
+      ]} />
 
       <Bloco titulo="1. Prazo das microentregas">
         {itens.length ? (
