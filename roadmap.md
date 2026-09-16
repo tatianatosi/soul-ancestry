@@ -91,6 +91,6 @@
 - [ ] Validar `/painel` e `/biblioteca` em desktop e 375 px, sem rolagem horizontal — bloqueado temporariamente pela manutenção do acesso autenticado.
 
 ## Desk — mais cards, padrão aprovado (16/09/2026)
-- [ ] Manter o shell e o padrão visual já aprovados do Desk; nenhuma troca de grade global.
-- [ ] Acrescentar apenas cards, com fonte real e vazio honesto, nas telas Hoje, Comercial, Pesquisa e Financeiro.
-- [ ] Entregar antes/depois em desktop, 390 px e 375 px.
+- [x] Manter o shell e o padrão visual já aprovados do Desk; nenhuma troca de grade global.
+- [x] Acrescentar apenas cards, com fonte real e vazio honesto, em Hoje, Pesquisa e Financeiro (Comercial já tinha oito cards).
+- [x] Entregar antes/depois em desktop, 390 px e 375 px.
