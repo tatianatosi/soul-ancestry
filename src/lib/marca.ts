@@ -37,6 +37,12 @@ export const MARCA_GUIA_PATH_LEGADO =
 /**
  * Paleta Pantone do mockup (decisão aprovada da Proprietária, 12/09/2026).
  * Substitui integralmente a paleta OKI anterior — ver AZUIS_RETIRADOS.
+ *
+ * FONTE CANÔNICA: `src/styles/tokens-clube-ancestral.css`
+ * (--ca-navy, --ca-navy-hero, --ca-gold, --ca-cream, --ca-terracotta, --ca-ink).
+ * Estes literais existem só para saídas que não aceitam CSS custom property
+ * (e-mail transacional, PDF, SVG gerado). Em tela, usar token — nunca daqui.
+ * Qualquer divergência de valor é bug: alinhar pelo arquivo de tokens.
  */
 export const MARCA_CORES = {
   /** Navy estrutural (sidebar/topbar) — Pantone 2767 C. */
