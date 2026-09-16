@@ -266,13 +266,15 @@ function PainelHomeMockup({
         identidade do caso continua no DOM para prova App↔Desk, só não
         aparece mais visualmente aqui).
       */}
-      <section className="rounded-2xl bg-navy-800 p-4 text-cream sm:p-5">
-        <div className="flex items-start justify-between gap-2">
+      {/* 16/09/2026 — primeira dobra: o cartão do processo é o elemento
+          principal (maior), e a linha do tempo abaixo fica discreta. */}
+      <section className="rounded-2xl bg-navy-800 p-5 text-cream sm:p-7">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-widest text-gold/80">Seu caso</p>
-            <h2 className="font-serif text-lg text-cream">{tituloCaso}</h2>
+            <h2 className="font-serif text-2xl leading-tight text-cream sm:text-3xl">{tituloCaso}</h2>
           </div>
-          <span className="shrink-0 rounded-full bg-gold px-2.5 py-1 text-[10px] font-semibold text-navy">
+          <span className="shrink-0 rounded-full bg-gold px-3 py-1 text-[11px] font-semibold text-navy">
             {statusRotulo}
           </span>
         </div>
