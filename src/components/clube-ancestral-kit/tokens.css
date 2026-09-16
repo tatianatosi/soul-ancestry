@@ -1,10 +1,14 @@
+/* Aliases locais do kit. Fonte canônica: src/styles/tokens-clube-ancestral.css.
+   Os fallbacks repetem os hex aprovados apenas para o kit funcionar isolado
+   (prancha/exportação), sem criar segunda autoridade de cor. */
 [data-clube-ancestral-kit="visual"] {
-  --ca-navy-950: #13294b;
-  --ca-navy-800: #1b365d;
-  --ca-cream: #f0eee9;
-  --ca-gold: #c2a84d;
-  --ca-ink: #28334a;
-  --ca-white: #ffffff;
+  --ca-navy-950: var(--ca-navy, #13294b);
+  --ca-navy-800: var(--ca-navy-hero, #1b365d);
+  --ca-cream: var(--ca-cream, #f0eee9);
+  --ca-gold: var(--ca-gold, #c2a84d);
+  --ca-ink: var(--ca-ink, #28334a);
+  --ca-white: var(--ca-white, #ffffff);
+
 
   --ca-background: var(--ca-cream);
   --ca-surface: var(--ca-white);
