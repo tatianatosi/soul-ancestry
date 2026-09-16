@@ -66,7 +66,7 @@ function PainelDoCaso() {
   const titularId = caso?.identidade.pessoaPrincipalId ?? null;
   const contrato = contratoParaFamilia(caso?.contratos ?? [], titularId) ?? caso?.contratos[0] ?? null;
   const financeiro = financeiroParaFamilia(caso?.faturas ?? [], titularId);
-  const parcelasEmAberto = financeiro.parcelas.filter((parcela) => parcela.situacao !== "paga").length;
+  const parcelasEmAberto = financeiro.parcelas.length - financeiro.pagas;
 
   const cta = (destino: string, rotulo: string) => (
     <Link to={destino}>
@@ -120,7 +120,7 @@ function PainelDoCaso() {
 
       <GradeDesk>
       <Bloco titulo="Documentos">
-        {docsFatias.length ? (
+        {documentos.length ? (
           <p className="text-sm text-navy">{situacao.solicitados} solicitado(s) · {situacao.emRevisao} em revisão · {situacao.liberados} liberado(s).</p>
         ) : (
           <>
