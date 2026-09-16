@@ -1,0 +1,276 @@
+import { SuperficieGoLive } from "@/components/golive/superficie";
+/**
+ * Portal / Configuração Master no shell de go-live.
+ *
+ * Acesso do cliente, equipe/organização, publicação com autor e data e o
+ * espelho interno do que o cliente enxerga. Só apresentação: nenhuma
+ * publicação é disparada aqui e nenhum dado é criado.
+ */
+import { Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+
+import { Bloco, FaixaKpis, GradeDesk, Vazio } from "@/components/golive/shell";
+import { FaixaIdentidade } from "@/components/golive/identidade";
+import { Acao } from "@/components/golive/acoes";
+import { useGoLive } from "@/components/golive/dados";
+import { Barras, Rosca } from "@/components/golive/graficos";
+import { Button } from "@/components/ui/button";
+import { publicarInstrumentoNoAppGoLive } from "@/lib/golive-escritores.functions";
+import { acessoAoPortal, coberturaDoApp, publicacaoPorEstado } from "@/lib/golive-portal";
+import { dataHumana, humano } from "@/lib/rotulos-golive";
+
+
+export function PortalGoLive() {
+  const { data, isPending, error } = useGoLive();
+  const caso = data?.encontrado ? data : null;
+  const publicados = caso?.publicados ?? [];
+
+
+
+  // Só contagem do que já está gravado: projeções, acessos e e-mails autorizados.
+  const projecoes = caso?.projecoesEstados ?? [];
+  const despublicadas = caso?.projecoesDespublicadas ?? [];
+  const acessos = caso?.portal.acessos ?? [];
+  const emails = caso?.portal.emailsAutorizados ?? [];
+  const porEstado = publicacaoPorEstado(projecoes);
+  const resumoAcesso = acessoAoPortal(acessos, emails);
+  const cobertura = coberturaDoApp(projecoes);
+  const publicarInstrumento = useServerFn(publicarInstrumentoNoAppGoLive);
+  const contrato = caso?.contratos?.[0] ?? null;
+  const proposta = caso?.propostas?.[0] ?? null;
+  const contratoPublicado = publicados.some((p) => p.tipo === "contrato");
+  const propostaPublicada = publicados.some((p) => p.tipo === "proposta");
+  const rascunhos = porEstado.find((i) => i.rotulo === "Rascunho")?.valor ?? 0;
+  const emRevisao = porEstado.find((i) => i.rotulo === "Em revisão")?.valor ?? 0;
+  const publicadosTotal = porEstado.find((i) => i.rotulo === "Publicada")?.valor ?? 0;
+
+  return (
+    <SuperficieGoLive titulo="Portal do cliente" descricao="Acesso, equipe e o que o cliente já enxerga.">
+      {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
+      {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}
+
+      {caso ? <FaixaIdentidade dados={caso} /> : null}
+
+      <FaixaKpis itens={[
+        { rotulo: "Rascunhos", valor: rascunhos, tom: rascunhos ? "azul" : "cinza" },
+        { rotulo: "Em revisão", valor: emRevisao, tom: emRevisao ? "dourado" : "cinza" },
+        { rotulo: "Publicados", valor: publicadosTotal, tom: publicadosTotal ? "verde" : "cinza" },
+        { rotulo: "Acessos ativos", valor: resumoAcesso.ativos, tom: resumoAcesso.ativos ? "verde" : "cinza" },
+      ]} />
+
+      <GradeDesk>
+      <Bloco titulo="Acesso do cliente">
+        {caso?.identidade.email ? (
+          <div className="space-y-2">
+            <p className="break-words text-sm text-navy">
+              {caso.identidade.pessoaPrincipal} · {caso.identidade.email}
+            </p>
+            <Link to="/acessos-portal" className="text-sm text-navy underline decoration-gold underline-offset-4">
+              Gerenciar acesso e convite
+            </Link>
+          </div>
+        ) : (
+          <Vazio
+            cta={
+              <Link to="/acessos-portal">
+                <Button size="sm">Autorizar e-mail do cliente</Button>
+              </Link>
+            }
+          />
+        )}
+      </Bloco>
+
+      <Bloco titulo="Equipe e organização">
+        {caso && caso.equipeTotal > 0 ? (
+          <p className="text-sm text-navy">
+            Clube Ancestral · {caso.equipeTotal} pessoa{caso.equipeTotal === 1 ? "" : "s"} com acesso interno.
+          </p>
+        ) : (
+          <Vazio
+            cta={
+              <Link to="/acessos-portal">
+                <Button size="sm">Gerenciar equipe</Button>
+              </Link>
+            }
+          />
+        )}
+      </Bloco>
+      </GradeDesk>
+
+      <GradeDesk>
+      <Bloco titulo="1. Publicação por estado">
+        {projecoes.length ? (
+          <>
+            <Rosca titulo="Publicação por estado" dados={porEstado} />
+            {despublicadas.length ? (
+              <ul className="space-y-1 text-xs text-navy/60">
+                {despublicadas.map((d) => (
+                  <li key={d.id} className="break-words">
+                    Despublicado em {dataHumana(d.despublicadaEm, "data não registrada")}
+                    {d.motivoDespublicacao ? ` · ${d.motivoDespublicacao}` : ""} — continua no histórico.
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </>
+        ) : (
+          <Vazio
+            cta={
+              <Link to="/golive/caso">
+                <Button size="sm">Abrir Caso 360</Button>
+              </Link>
+            }
+          />
+        )}
+      </Bloco>
+
+      <Bloco titulo="2. Acesso ao portal">
+        {resumoAcesso.total || emails.length ? (
+          <>
+            <Barras
+              titulo="Situação do acesso"
+              dados={[
+                { rotulo: "Convites autorizados", valor: resumoAcesso.convitesAutorizados },
+                { rotulo: "Acesso ativo", valor: resumoAcesso.ativos },
+                { rotulo: "Revogado", valor: resumoAcesso.revogados },
+              ]}
+            />
+            <p className="text-xs text-navy/55">
+              Último acesso: {dataHumana(resumoAcesso.ultimoAcesso, "nenhum acesso registrado")}.
+            </p>
+          </>
+        ) : (
+          <Vazio
+            cta={
+              <Link to="/acessos-portal">
+                <Button size="sm">Gerenciar acesso e convite</Button>
+              </Link>
+            }
+          />
+        )}
+      </Bloco>
+      </GradeDesk>
+
+      <Bloco titulo="3. Cobertura do App">
+        <Barras titulo="Conteúdo publicado por aba" dados={cobertura} />
+        <p className="text-xs text-navy/55">
+          Cada aba mostra só o conteúdo já publicado e aprovado para a cliente.
+        </p>
+      </Bloco>
+
+      <GradeDesk>
+      <Bloco titulo="Publicar proposta e contrato no App">
+        <p className="mb-3 text-sm text-navy/70">
+          A família vê apenas título, número e situação. Valores, cláusulas e observações internas não são publicados.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="min-w-0 rounded-xl border border-navy/10 bg-white/70 p-3">
+            <p className="text-sm font-medium text-navy">Proposta</p>
+            {proposta ? (
+              <>
+                <p className="mb-2 text-xs text-navy/65">
+                  Versão {proposta.versao ?? 1} · {humano(proposta.status, "sem situação")}
+                </p>
+                <Acao
+                  rotulo={propostaPublicada ? "Publicar novamente" : "Publicar proposta"}
+                  titulo="Publicar proposta no App"
+                  variante="outline"
+                  campos={[
+                    {
+                      nome: "confirmar",
+                      rotulo: "Digite PUBLICAR para confirmar",
+                      obrigatorio: true,
+                    },
+                  ]}
+                  aoConfirmar={async (v) => {
+                    if ((v["confirmar"] ?? "").trim().toUpperCase() !== "PUBLICAR")
+                      throw new Error("Digite PUBLICAR para confirmar.");
+                    return publicarInstrumento({ data: { tipo: "proposta", id: proposta.id } });
+                  }}
+                  confirmacao="Proposta publicada no App."
+                />
+              </>
+            ) : (
+              <p className="text-xs text-navy/60">Nenhuma proposta registrada neste caso.</p>
+            )}
+          </div>
+
+          <div className="min-w-0 rounded-xl border border-navy/10 bg-white/70 p-3">
+            <p className="text-sm font-medium text-navy">Contrato</p>
+            {contrato ? (
+              <>
+                <p className="mb-2 text-xs text-navy/65">
+                  {contrato.numero ?? "sem número"} · {humano(contrato.status, "sem situação")}
+                </p>
+                <Acao
+                  rotulo={contratoPublicado ? "Publicar novamente" : "Publicar contrato"}
+                  titulo="Publicar contrato no App"
+                  variante="outline"
+                  campos={[
+                    {
+                      nome: "confirmar",
+                      rotulo: "Digite PUBLICAR para confirmar",
+                      obrigatorio: true,
+                    },
+                  ]}
+                  aoConfirmar={async (v) => {
+                    if ((v["confirmar"] ?? "").trim().toUpperCase() !== "PUBLICAR")
+                      throw new Error("Digite PUBLICAR para confirmar.");
+                    return publicarInstrumento({ data: { tipo: "contrato", id: contrato.id } });
+                  }}
+                  confirmacao="Contrato publicado no App."
+                />
+              </>
+            ) : (
+              <p className="text-xs text-navy/60">Nenhum contrato registrado neste caso.</p>
+            )}
+          </div>
+        </div>
+      </Bloco>
+
+      <Bloco titulo="Publicado para o cliente">
+        {publicados.length ? (
+          <>
+            <ul className="space-y-2 text-sm text-navy">
+              {publicados.map((p) => (
+                <li key={p.id} className="break-words rounded-xl border border-navy/10 bg-cream/70 p-3">
+                  <p className="font-medium">{humano(p.tipo)}</p>
+                  {p.resumo ? <p className="text-navy/75">{p.resumo}</p> : null}
+                  <p className="mt-1 text-xs text-navy/55">
+                    Publicado em {dataHumana(p.em, "data não registrada")}
+                    {caso?.identidade.responsavel ? ` · por ${caso.identidade.responsavel}` : ""}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            <Link
+              to="/golive/caso"
+              className="text-sm text-navy underline decoration-gold underline-offset-4"
+            >
+              Publicar ou tirar do ar no Caso 360
+            </Link>
+          </>
+        ) : (
+          <Vazio
+            cta={
+              <Link to="/golive/caso">
+                <Button size="sm">Criar microentrega</Button>
+              </Link>
+            }
+          />
+        )}
+        <p className="text-xs text-navy/55">Toda publicação guarda autor e data.</p>
+      </Bloco>
+      </GradeDesk>
+
+      <Bloco titulo="Espelho interno do App">
+        <p className="text-sm text-navy/70">
+          Veja exatamente o que o cliente enxerga hoje, sem entrar na conta dele.
+        </p>
+        <Link to="/golive/app" className="text-sm text-navy underline decoration-gold underline-offset-4">
+          Abrir espelho do App Cliente
+        </Link>
+      </Bloco>
+    </SuperficieGoLive>
+  );
+}

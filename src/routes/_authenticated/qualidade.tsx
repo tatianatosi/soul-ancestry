@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SaasShell } from "@/components/saas/shell";
 import { PainelQualidade } from "@/components/qualidade/painel";
 import { RadarInternoIntegrado } from "@/components/desk/radar-interno-integrado";
+import { RadarGoLive } from "@/components/golive/superficies/radar";
 import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos";
 
 export const Route = createFileRoute("/_authenticated/qualidade")({
@@ -39,13 +40,14 @@ function QualidadePage() {
         bloqueios do mesmo registro. Dados ausentes permanecem declarados, nunca inferidos.
       </p>
       <div className="mb-6">
-        <RadarInternoIntegrado />
+        <RadarGoLive />
       </div>
       <details className="mb-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
         <summary className="cursor-pointer font-serif text-base text-navy">
           Qualidade, checklists e exportação
         </summary>
         <div className="mt-4">
+          <RadarInternoIntegrado />
           <EixosCanonicosInternos />
           <PainelQualidade />
         </div>

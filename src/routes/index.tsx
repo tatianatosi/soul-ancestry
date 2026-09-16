@@ -113,7 +113,7 @@ function Home() {
               Acesso da equipe
             </Link>
             <Link
-              to="/golive"
+              to="/painel"
               className="rounded-full border border-navy/25 px-6 py-3 font-medium text-navy hover:bg-cream"
             >
               Nova tela do Desk

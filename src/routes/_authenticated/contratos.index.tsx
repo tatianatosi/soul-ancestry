@@ -7,7 +7,7 @@ import { useState } from "react";
 import { SaasShell } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
-import { FormalizacaoConectada } from "@/components/desk/superficies-kit-conectadas";
+import { FormalizacaoGoLive } from "@/components/golive/superficies/formalizacao";
 import { criarInstrumento, listarContratos } from "@/lib/contratos.functions";
 import { listarCasosFicha } from "@/lib/caso-ficha.functions";
 import {
@@ -83,7 +83,7 @@ function ContratosPage() {
         )
       }
     >
-      <FormalizacaoConectada />
+      <FormalizacaoGoLive />
       <details className="mt-6 rounded-lg border border-navy/15 bg-cream/40 p-4" open={novo}>
         <summary className="cursor-pointer font-medium text-navy">Abrir gestão de contratos</summary>
         <div className="mt-5 border-t border-navy/10 pt-5">
