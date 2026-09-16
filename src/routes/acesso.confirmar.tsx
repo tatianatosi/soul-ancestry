@@ -75,6 +75,7 @@ function ConfirmarPage() {
   const navigate = useNavigate();
   const confirmar = useServerFn(confirmarAcessoPortal);
   const [estado, setEstado] = useState<"validando" | "negado">("validando");
+  const [codigo, setCodigo] = useState<string>("falha");
   const [motivo, setMotivo] = useState<string>(MOTIVOS["falha"]!);
   const rodou = useRef(false);
 
