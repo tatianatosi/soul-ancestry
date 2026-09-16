@@ -154,6 +154,15 @@ export const confirmarAcessoPortal = createServerFn({ method: "POST" })
       metadata: { nivel: acesso.access_level },
     });
 
+    // Acesso ativo não é conteúdo liberado: sem caso vinculado, dizer isso em
+    // vez de abrir um App vazio e sem explicação.
+    if (acesso.access_level === "client_workspace") {
+      const liberados = await helpers.casosLiberados(acesso.id);
+      if (liberados === 0) {
+        return { autorizado: false as const, destino: null, motivo: "sem_caso" };
+      }
+    }
+
     return {
       autorizado: true as const,
       destino: acesso.access_level === "client_workspace" ? "/portal" : "/portal/proposta",
