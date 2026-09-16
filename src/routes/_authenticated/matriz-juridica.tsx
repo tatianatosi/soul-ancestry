@@ -12,13 +12,14 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { consolidarMatrizJuridica, listarMatrizJuridica, registrarDecisaoTema } from "@/lib/crm-desk.functions";
 import { STATUS_TEMA, rotuloStatusTema, temasBloqueantesPendentes, type LinhaMatriz } from "@/lib/matriz-juridica";
 import { separarNotaTecnica } from "@/lib/rotulo-negocio";
+import { JuridicoGoLive } from "@/components/golive/superficies/juridico";
 
 export const Route = createFileRoute("/_authenticated/matriz-juridica")({
   head: () => ({
     meta: [
-      { title: "Validação Jurídica — Clube Ancestral" },
+      { title: "Validação Jurídica da Trilha — Clube Ancestral" },
       { name: "description", content: "Temas contratuais pendentes de revisão jurídica, sem redação de cláusula." },
-      { property: "og:title", content: "Validação Jurídica — Clube Ancestral" },
+      { property: "og:title", content: "Validação Jurídica da Trilha — Clube Ancestral" },
       { property: "og:description", content: "Decisões jurídicas normativas do Clube Ancestral." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -69,10 +70,11 @@ function MatrizPage() {
 
   return (
     <SaasShell
-      titulo="Validação Jurídica"
+      titulo="Validação Jurídica da Trilha"
       descricao="Registro de decisão por tema. Esta tela não guarda redação de cláusula e nenhum conteúdo público é versão vigente."
     >
-      <div className="mb-4 rounded-xl border border-navy/10 bg-cream/50 p-4 text-sm text-navy">
+      <JuridicoGoLive />
+      <div className="mb-4 mt-6 rounded-xl border border-navy/10 bg-cream/50 p-4 text-sm text-navy">
         {pendentes.length
           ? `${pendentes.length} tema(s) bloqueante(s) sem decisão: assinatura fica como pendência.`
           : "Nenhum tema bloqueante pendente."}

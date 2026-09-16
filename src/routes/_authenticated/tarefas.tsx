@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useAutoridade } from "@/components/saas/autoridade";
 
 import { EntidadeCrud } from "@/components/saas/entidade-crud";
+import { KanbanGoLive } from "@/components/golive/superficies/kanban";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { ESTADOS, PRIORIDADES, rotuloEstado } from "@/lib/estados";
 
@@ -36,6 +37,10 @@ function TarefasPage() {
           Pendência registrada: {pendenciaVinculo}
         </p>
       ) : null}
+      <KanbanGoLive />
+      <details className="mt-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
+        <summary className="cursor-pointer font-serif text-base text-navy">Lista completa de tarefas</summary>
+        <div className="mt-4">
       <EntidadeCrud
         entidade="tarefas"
         titulo="Checklist"
@@ -88,7 +93,8 @@ function TarefasPage() {
           { chave: "prazo", rotulo: "Prazo", tipo: "data" },
         ]}
       />
-
+        </div>
+      </details>
     </SaasShell>
   );
 }

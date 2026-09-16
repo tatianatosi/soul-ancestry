@@ -60,7 +60,7 @@ describe("De-para de nomenclatura — cabeçalhos das telas batem com o rótulo 
     ["src/routes/_authenticated/painel.tsx", 'titulo="Visão Geral"'],
     ["src/routes/_authenticated/casos.index.tsx", 'titulo="Casos 360"'],
     ["src/routes/_authenticated/tarefas.tsx", 'titulo="Checklist"'],
-    ["src/routes/_authenticated/matriz-juridica.tsx", 'titulo="Validação Jurídica"'],
+    ["src/routes/_authenticated/matriz-juridica.tsx", 'titulo="Validação Jurídica da Trilha"'],
     ["src/routes/_authenticated/qualidade.tsx", 'titulo="Radar Interno"'],
     ["src/routes/_authenticated/alertas.tsx", 'titulo="Alertas"'],
     ["src/routes/_authenticated/biblioteca.tsx", 'titulo="Biblioteca Mestre"'],
