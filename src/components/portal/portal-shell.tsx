@@ -64,18 +64,25 @@ export function PortalShell({
     Legado e Conta. Entregas / Fase 01 / Fase 02 saem da barra — as rotas
     continuam existindo como arquivos, só não ocupam a navegação.
   */
-  const nav =
-    previa || data?.nivel === "client_workspace"
-      ? [
-          { to: "/portal", label: COPY_TELAS.home.navegacao, icon: Home },
-          { to: "/portal/jornada", label: COPY_TELAS.jornada.navegacao, icon: Route },
-          { to: "/portal/radar", label: COPY_TELAS.radar.navegacao, icon: Radar },
-          { to: "/portal/arvore", label: COPY_TELAS.arvore.navegacao, icon: Trees },
-          { to: "/portal/documentos", label: COPY_TELAS.documentos.navegacao, icon: FileText },
-          { to: "/portal/legado", label: COPY_TELAS.legado.navegacao, icon: BookOpen },
-          { to: "/portal/conta", label: COPY_TELAS.conta.navegacao, icon: UserRound },
-        ]
-      : [{ to: "/portal/proposta", label: COPY_TELAS.proposta.navegacao, icon: Receipt }];
+  const acessoCompleto = Boolean(previa) || data?.nivel === "client_workspace";
+
+  /*
+     16/09/2026 — quando o acesso é só de proposta, a barra mostrava um único
+     item "Proposta": uma 8ª aba fora da taxonomia. Agora esse nível não tem
+     barra alguma (é uma leitura única), e a barra, quando existe, é sempre
+     igual às sete abas aprovadas.
+  */
+  const nav = acessoCompleto
+    ? [
+        { to: "/portal", label: COPY_TELAS.home.navegacao, icon: Home },
+        { to: "/portal/jornada", label: COPY_TELAS.jornada.navegacao, icon: Route },
+        { to: "/portal/radar", label: COPY_TELAS.radar.navegacao, icon: Radar },
+        { to: "/portal/arvore", label: COPY_TELAS.arvore.navegacao, icon: Trees },
+        { to: "/portal/documentos", label: COPY_TELAS.documentos.navegacao, icon: FileText },
+        { to: "/portal/legado", label: COPY_TELAS.legado.navegacao, icon: BookOpen },
+        { to: "/portal/conta", label: COPY_TELAS.conta.navegacao, icon: UserRound },
+      ]
+    : [];
 
   async function sair() {
     // Em prévia quem está logado é a equipe, no Desk. Encerrar a sessão aqui

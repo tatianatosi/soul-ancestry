@@ -154,6 +154,23 @@ export const confirmarAcessoPortal = createServerFn({ method: "POST" })
       metadata: { nivel: acesso.access_level },
     });
 
+    /*
+     * 16/09/2026 — autenticar, autorizar e ter caso liberado são três coisas.
+     * Sem nenhum caso liberado o App abriria vazio e sem explicação. Aqui o
+     * estado vira explícito, em vez de silencioso.
+     */
+    if (acesso.access_level === "client_workspace") {
+      const casos = await helpers.adminClient
+        .from("client_portal_case_access")
+        .select("id")
+        .eq("client_portal_access_id", acesso.id)
+        .eq("access_status", "active")
+        .limit(1);
+      if (!casos.data || casos.data.length === 0) {
+        return { autorizado: false as const, destino: null, motivo: "sem_caso" };
+      }
+    }
+
     return {
       autorizado: true as const,
       destino: acesso.access_level === "client_workspace" ? "/portal" : "/portal/proposta",
