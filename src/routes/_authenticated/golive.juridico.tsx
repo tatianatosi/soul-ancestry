@@ -1,5 +1,5 @@
 /**
- * Jurídico & Contratos no shell de go-live.
+ * Validação jurídica da trilha no shell de go-live.
  *
  * Três blocos analíticos da prancha v3: completude formal por instrumento,
  * riscos/prazos e pipeline proposta → escopo → rascunho → revisão humana →

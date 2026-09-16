@@ -316,7 +316,7 @@ function Individual({ caso }: { caso: CasoRadar }) {
             const [px, py] = ponto(i, 1);
             return <line key={i} x1={cx} y1={cy} x2={px} y2={py} stroke="#2F4B6E" strokeOpacity="0.12" />;
           })}
-          <polygon points={area} fill="#C9A84C" fillOpacity="0.35" stroke="#C9A84C" strokeWidth="2" />
+          <polygon points={area} fill="var(--gold)" fillOpacity="0.35" stroke="var(--gold)" strokeWidth="2" />
 
           {eixos.map((e, i) => {
             const [px, py] = ponto(i, 1.22);
