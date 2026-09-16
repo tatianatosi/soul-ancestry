@@ -89,3 +89,8 @@
 - [x] Aplicar cabeçalho navy e menu móvel dos seis grupos em duas colunas, preservando permissões e subitens.
 - [x] Criar as seis entradas da Biblioteca Mestre com contagens reais ou vazio honesto: Acervo, Bases Genealógicas, Dicionários, Trilhas Jurídicas, Modelos e Referências.
 - [ ] Validar `/painel` e `/biblioteca` em desktop e 375 px, sem rolagem horizontal — bloqueado temporariamente pela manutenção do acesso autenticado.
+
+## Desk — mais cards, padrão aprovado (16/09/2026)
+- [x] Manter o shell e o padrão visual já aprovados do Desk; nenhuma troca de grade global.
+- [x] Acrescentar apenas cards, com fonte real e vazio honesto, em Hoje, Pesquisa e Financeiro (Comercial já tinha oito cards).
+- [x] Entregar antes/depois em desktop, 390 px e 375 px.
