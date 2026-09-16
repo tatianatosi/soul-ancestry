@@ -52,6 +52,19 @@ const ESTADO_TEXTO: Record<EstadoCA, string> = {
  * ------------------------------------------------------------------ */
 
 /**
+ * Classes da moldura canônica. Exposta para elementos que já são outra tag
+ * (ex.: `Link`), evitando cartão dentro de cartão.
+ */
+export function classesCartaoCA(opts?: { interativo?: boolean; className?: string }) {
+  return cn(
+    "min-w-0 w-full max-w-full rounded-xl border border-navy/10 bg-cream/50 p-4 shadow-[0_1px_2px_rgba(16,16,16,0.04)]",
+    opts?.interativo &&
+      "transition-colors hover:border-navy/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2",
+    opts?.className,
+  );
+}
+
+/**
  * Moldura única de conteúdo. Reproduz o recorte já em uso (raio, borda 1px,
  * fundo creme, sombra mínima) — não introduz nova hierarquia visual.
  * `interativo` apenas acrescenta foco/hover para cartões clicáveis.
