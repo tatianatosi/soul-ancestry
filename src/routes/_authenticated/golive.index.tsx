@@ -39,6 +39,14 @@ function HojeGoLive() {
   const ritmo = caso ? ritmoSemanal(caso.microentregas, 7) : [];
   const temSerie = caso ? temRitmo(caso.microentregas) : false;
   const prioridades = caso ? prioridadeDaCarteira(caso.carteira) : [];
+  /* Leituras já carregadas, apenas resumidas em cards. */
+  const proposta = caso?.propostas[0] ?? null;
+  const contrato = caso?.contratos[0] ?? null;
+  const acessosAtivos = caso
+    ? caso.portal.acessos.filter((a) => a.situacao === "active" && !a.revokedEmSubstituto).length
+    : 0;
+
+
 
   const acaoPlanejador = (
     <Acao
