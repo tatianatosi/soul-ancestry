@@ -21,10 +21,17 @@ import { ehTransicaoDeIdentidade } from "../lib/guarda-sessao";
 /**
  * Reencaminha links oficiais de convite/definição de senha que aterrissam na
  * home (fallback do provedor) para a rota pública correta, sem tocar no token.
+ *
+ * 16/09/2026 — não interferir dentro do App do cliente nem do Desk: ali a
+ * sessão já está sendo montada e um redirecionamento global no meio do
+ * caminho descartava o material do link.
  */
+const AREAS_COM_SESSAO = ["/portal", "/painel", "/acesso/confirmar"];
+
 function CapturaLinkAuth() {
   useEffect(() => {
     const { pathname, search, hash } = window.location;
+    if (AREAS_COM_SESSAO.some((p) => pathname.startsWith(p))) return;
     const destino = destinoLinkAuth(pathname, search, hash);
     if (destino) window.location.replace(destino);
   }, []);
