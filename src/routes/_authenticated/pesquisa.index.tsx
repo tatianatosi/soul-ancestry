@@ -5,13 +5,15 @@ import { useMemo, useState } from "react";
 
 import { SaasShell } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { CarregandoDesk, PageHeader } from "@/components/desk/ui-desk";
+// Corte 2 do Design System — superfície piloto: Cartão, Selo, KPI e Estado vazio.
 import {
-  BadgeDesk,
-  CardIndicador,
-  CarregandoDesk,
-  PageHeader,
-  VazioDesk,
-} from "@/components/desk/ui-desk";
+  FaixaIndicadoresCA,
+  IndicadorCA,
+  SeloCA,
+  VazioCA,
+  classesCartaoCA,
+} from "@/components/clube-ancestral-kit/primitivos";
 import { listarCasosPesquisa } from "@/lib/pesquisa.functions";
 import { filtrarPorBusca } from "@/lib/rotulo-negocio";
 import { PendenciasCriticasPesquisa } from "@/components/painel/pendencias-criticas-pesquisa";
@@ -66,7 +68,7 @@ function PesquisaIndex() {
         <span className="font-medium">legado</span> na Biblioteca de evidências do caso.
       </p>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <FaixaIndicadoresCA>
         {/*
           Casos em pesquisa / Casos ativos: contagens canônicas em
           /pesquisa-modulo e /casos. Aqui só etiqueta (CA-UX-03 dedup global).
@@ -89,9 +91,19 @@ function PesquisaIndex() {
           <p className="mt-1 text-sm font-medium text-navy">Ver contagem em Casos 360</p>
           <p className="mt-0.5 text-xs text-navy/55">Ativação canônica — não reconta status de pesquisa</p>
         </Link>
-        <CardIndicador rotulo="Sem via jurídica definida" valor={semVia} tom={semVia ? "atencao" : "neutro"} />
-        <CardIndicador rotulo="Sem país definido" valor={semPais} tom={semPais ? "atencao" : "neutro"} />
-      </div>
+        <IndicadorCA
+          rotulo="Sem via jurídica definida"
+          valor={semVia}
+          fonte="Casos em pesquisa — leitura atual"
+          estado={semVia ? "aguardando" : "ausente"}
+        />
+        <IndicadorCA
+          rotulo="Sem país definido"
+          valor={semPais}
+          fonte="Casos em pesquisa — leitura atual"
+          estado={semPais ? "aguardando" : "ausente"}
+        />
+      </FaixaIndicadoresCA>
 
       {q.isLoading ? <CarregandoDesk linhas={4} rotulo="Carregando casos de pesquisa" /> : null}
 
@@ -112,16 +124,15 @@ function PesquisaIndex() {
             className="w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm"
           />
           {casosVisiveis.map((c) => {
-            const classe =
-              "block rounded-xl border border-navy/10 bg-cream/40 p-4 transition-colors hover:border-navy/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2";
+            const classe = classesCartaoCA({ interativo: true, className: "block" });
             const corpo = (
               <>
               <div className="flex flex-wrap items-center gap-2">
                 <strong className="font-sans text-sm text-navy">{c["codigo"] as string}</strong>
                 <span className="font-serif text-lg leading-tight text-navy">{c["titulo"] as string}</span>
-                <BadgeDesk
+                <SeloCA
                   texto={String(c["status"] ?? "—")}
-                  tom={c["status"] === "ativo" ? "sucesso" : "neutro"}
+                  estado={c["status"] === "ativo" ? "concluido" : "ausente"}
                 />
               </div>
               <p className="mt-1 text-xs text-navy/55">
@@ -150,7 +161,7 @@ function PesquisaIndex() {
             );
           })}
           {casosVisiveis.length === 0 ? (
-            <VazioDesk
+            <VazioCA
               titulo="Nenhum caso em pesquisa"
               descricao="Quando um caso for habilitado para pesquisa, ele aparece aqui com fontes, evidências e próximos passos."
             />
