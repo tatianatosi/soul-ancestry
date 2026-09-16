@@ -94,3 +94,10 @@
 - [x] Manter o shell e o padrão visual já aprovados do Desk; nenhuma troca de grade global.
 - [x] Acrescentar apenas cards, com fonte real e vazio honesto, em Hoje, Pesquisa e Financeiro (Comercial já tinha oito cards).
 - [x] Entregar antes/depois em desktop, 390 px e 375 px.
+
+## Desk — correção integral da prancha v6 (16/09/2026)
+- [x] Aplicar faixas de até quatro KPIs nas 15 superfícies, com fonte, fórmula, período e estado recolhidos.
+- [x] Remover gráficos indevidos e duplicações entre telas donas; corrigir Radar, nomenclatura jurídica e numeração da Formalização.
+- [x] Consolidar a Biblioteca Mestre em seis entradas, declarando vazios e fontes compartilhadas sem criar coleções.
+- [x] Converter o contrato em superfície única e sequencial, preservando dados e ações existentes.
+- [x] Validar as 15 superfícies autenticadas em desktop, 390 px e 375 px, sem overflow nem erros de console.

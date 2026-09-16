@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Bloco, FaixaKpis, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
 import { useGoLive } from "@/components/golive/dados";
 import { BarrasPercentual, Estrelas, Rede } from "@/components/golive/graficos";
@@ -50,6 +50,9 @@ function PessoaGoLive() {
   const relacoes = relacoesAprovadas(pessoas).filter(
     (r) => !principal || r.de === principal.nome || r.para === principal.nome,
   );
+  const completudeMedia = completude.length
+    ? Math.round(completude.reduce((total, item) => total + item.valor, 0) / completude.length)
+    : 0;
 
   return (
     <GoLiveShell titulo="Pessoa 360" descricao="A mesma pessoa, em uma leitura só.">
@@ -72,8 +75,14 @@ function PessoaGoLive() {
       {caso ? (
         <>
           <FaixaIdentidade dados={caso} />
+          <FaixaKpis itens={[
+            { rotulo: "Completude", valor: `${completudeMedia}%`, tom: completudeMedia === 100 ? "verde" : completudeMedia ? "azul" : "cinza", fonte: "Cadastro e consentimentos da pessoa", formula: "Média da completude dos domínios cadastrados", periodo: "Estado atual" },
+            { rotulo: "Confiança", valor: confianca ? `${confianca.estrelas}/5` : "Sem registros", tom: confianca ? "dourado" : "cinza", fonte: "Vínculos e consentimentos registrados", formula: "Faixa de confiança calculada pelo motor de pessoas", periodo: "Estado atual" },
+            { rotulo: "Relações aprovadas", valor: relacoes.length, tom: relacoes.length ? "verde" : "cinza", fonte: "Relações explícitas da pessoa", formula: "Contagem de vínculos aprovados envolvendo a pessoa", periodo: "Estado atual" },
+            { rotulo: "Documentos", valor: caso.documentos.length, tom: caso.documentos.length ? "azul" : "cinza", fonte: "Documentos vinculados ao caso", formula: "Contagem de documentos da ficha", periodo: "Histórico do caso" },
+          ]} />
 
-          <Bloco titulo="Identidade e contato">
+           <Bloco titulo="Pessoa individual — identidade e contato">
             <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Campo rotulo="Papel no núcleo" valor={humano(papelNoNucleo, "Papel ainda não registrado")} />
               <Campo rotulo="Núcleo" valor={caso.identidade.nucleo} />

@@ -294,46 +294,24 @@ function ContratoDetalhe() {
         />
       </div>
 
-      <nav className="mt-6 flex flex-wrap items-center gap-1 overflow-x-auto border-b border-navy/10">
-        {ABAS_PRINCIPAIS.map((a) => (
-          <button
-            key={a}
-            onClick={() => setAba(a)}
-            className={`shrink-0 rounded-t-lg px-3 py-2 text-sm ${aba === a ? "bg-cream/40 font-medium text-navy" : "text-navy/60 hover:text-navy"}`}
-          >
-            {a}
-          </button>
+      <nav className="sticky top-0 z-10 mt-6 flex gap-1 overflow-x-auto border-y border-navy/10 bg-background/95 py-2 backdrop-blur" aria-label="Seções do contrato">
+        {[...ABAS_PRINCIPAIS, ...ABAS_AVANCADAS].map((secao) => (
+          <a key={secao} href={`#contrato-${secao.toLowerCase()}`} className="shrink-0 px-3 py-2 text-sm text-navy/65 hover:text-navy">
+            {secao}
+          </a>
         ))}
-        <details className="relative ml-auto shrink-0">
-          <summary className="cursor-pointer list-none rounded-t-lg px-3 py-2 text-sm text-navy/50 hover:text-navy/70">
-            Dados técnicos ▾
-          </summary>
-          <div className="absolute right-0 z-10 flex flex-col rounded-lg border border-navy/10 bg-cream/40 p-1 shadow-lg">
-            {ABAS_AVANCADAS.map((a) => (
-              <button
-                key={a}
-                onClick={() => setAba(a)}
-                className={`rounded-md px-3 py-2 text-left text-sm ${aba === a ? "bg-navy/5 font-medium text-navy" : "text-navy/60 hover:bg-navy/5"}`}
-              >
-                {a}
-              </button>
-            ))}
-          </div>
-        </details>
       </nav>
 
-      <div className="rounded-b-xl rounded-tr-xl border border-navy/10 bg-cream/40 p-4">
-        {aba === "Resumo" ? <Resumo dados={d} onSalvo={recarregar} /> : null}
-        {aba === "Partes" ? <Partes dados={d} contratoId={id} onSalvo={recarregar} /> : null}
-        {aba === "Escopo" ? <Escopo dados={d} contratoId={id} onSalvo={recarregar} /> : null}
-        {aba === "Cláusulas" ? <Clausulas dados={d} contratoId={id} onSalvo={recarregar} /> : null}
-        {aba === "Anexos" ? <Anexos dados={d} contratoId={id} onSalvo={recarregar} /> : null}
-        {aba === "Fontes" ? <Fontes dados={d} contratoId={id} onSalvo={recarregar} /> : null}
-        {aba === "Validações" ? <Validacoes dados={d} /> : null}
-        {aba === "Versões" ? <Versoes dados={d} contratoId={id} /> : null}
-        {aba === "Revisão" ? (
-          <Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} />
-        ) : null}
+      <div className="mt-4 space-y-5">
+        <section id="contrato-resumo" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Resumo</h2><Resumo dados={d} onSalvo={recarregar} /></section>
+        <section id="contrato-partes" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Partes</h2><Partes dados={d} contratoId={id} onSalvo={recarregar} /></section>
+        <section id="contrato-escopo" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Escopo e condição comercial</h2><Escopo dados={d} contratoId={id} onSalvo={recarregar} /></section>
+        <section id="contrato-cláusulas" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Texto do contrato</h2><Clausulas dados={d} contratoId={id} onSalvo={recarregar} /></section>
+        <section id="contrato-anexos" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Anexos e ordem de serviço</h2><Anexos dados={d} contratoId={id} onSalvo={recarregar} /></section>
+        <details id="contrato-fontes" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><summary className="cursor-pointer font-serif text-xl text-navy">Fontes</summary><div className="mt-4"><Fontes dados={d} contratoId={id} onSalvo={recarregar} /></div></details>
+        <section id="contrato-validações" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Validação jurídica da trilha</h2><Validacoes dados={d} /></section>
+        <details id="contrato-versões" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><summary className="cursor-pointer font-serif text-xl text-navy">Versões e histórico</summary><div className="mt-4"><Versoes dados={d} contratoId={id} /></div></details>
+        <section id="contrato-revisão" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Revisão e assinatura</h2><Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} /></section>
       </div>
     </SaasShell>
   );

@@ -122,7 +122,15 @@ export function GradeDesk({ children }: { children: ReactNode }) {
 export function FaixaKpis({
   itens,
 }: {
-  itens: Array<{ rotulo: string; valor: string | number; tom?: TomSelo }>;
+  itens: Array<{
+    rotulo: string;
+    valor: string | number;
+    tom?: TomSelo;
+    fonte?: string;
+    formula?: string;
+    periodo?: string;
+    estado?: string;
+  }>;
 }) {
   return (
     <section aria-label="Resumo" className="grid min-w-0 grid-cols-2 gap-2 lg:grid-cols-4">
@@ -131,6 +139,15 @@ export function FaixaKpis({
           <p className="break-words text-[11px] uppercase text-navy/55">{item.rotulo}</p>
           <p className="mt-1 break-words font-serif text-2xl leading-none text-navy">{item.valor}</p>
           {item.tom ? <Selo tom={item.tom}>{rotuloTom(item.tom)}</Selo> : null}
+          <details className="mt-2 border-t border-navy/10 pt-1.5 text-left">
+            <summary className="cursor-pointer text-[10px] font-medium text-navy/55">Fonte e cálculo</summary>
+            <dl className="mt-1.5 space-y-1 text-[10px] leading-snug text-navy/65">
+              <div><dt className="inline font-semibold text-navy">Fonte: </dt><dd className="inline">{item.fonte ?? "Registros reais desta superfície"}</dd></div>
+              <div><dt className="inline font-semibold text-navy">Fórmula: </dt><dd className="inline">{item.formula ?? `Contagem dos registros classificados como “${item.rotulo}”`}</dd></div>
+              <div><dt className="inline font-semibold text-navy">Período: </dt><dd className="inline">{item.periodo ?? "Estado atual"}</dd></div>
+              <div><dt className="inline font-semibold text-navy">Estado: </dt><dd className="inline">{item.estado ?? (item.tom === "cinza" ? "Sem registros" : rotuloTom(item.tom ?? "azul"))}</dd></div>
+            </dl>
+          </details>
         </div>
       ))}
     </section>

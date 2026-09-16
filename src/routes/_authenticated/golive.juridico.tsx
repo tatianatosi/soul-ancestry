@@ -1,5 +1,5 @@
 /**
- * Jurídico & Contratos no shell de go-live.
+ * Validação jurídica da trilha no shell de go-live.
  *
  * Três blocos analíticos da prancha v3: completude formal por instrumento,
  * riscos/prazos e pipeline proposta → escopo → rascunho → revisão humana →
@@ -30,9 +30,9 @@ import { dataHumana, humano } from "@/lib/rotulos-golive";
 export const Route = createFileRoute("/_authenticated/golive/juridico")({
   head: () => ({
     meta: [
-      { title: "Jurídico & Contratos — Go-live Clube Ancestral" },
+      { title: "Validação jurídica da trilha — Go-live Clube Ancestral" },
       { name: "description", content: "Completude formal, riscos e pipeline de contrato do caso do piloto." },
-      { property: "og:title", content: "Jurídico & Contratos — Go-live Clube Ancestral" },
+      { property: "og:title", content: "Validação jurídica da trilha — Go-live Clube Ancestral" },
       { property: "og:description", content: "Proposta, escopo, contrato, anexos e OS do caso do piloto." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -64,8 +64,8 @@ function JuridicoGoLive() {
 
   return (
     <GoLiveShell
-      titulo="Jurídico & Contratos"
-      descricao="Proposta › Escopo › Contrato › Anexos/OS › Revisão humana."
+      titulo="Validação jurídica da trilha"
+      descricao="Conferência, riscos e validação humana dos instrumentos."
     >
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
       {error ? <p className="text-sm text-[var(--terracota,#9A3A2F)]">Não foi possível carregar agora.</p> : null}

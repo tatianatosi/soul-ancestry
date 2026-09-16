@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
+import { Bloco, FaixaKpis, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
@@ -77,8 +77,14 @@ function PessoasGoLive() {
       {caso ? (
         <>
           <FaixaIdentidade dados={caso} />
+          <FaixaKpis itens={[
+            { rotulo: "Pessoas no núcleo", valor: membros.length, tom: membros.length ? "azul" : "cinza", fonte: "Núcleo familiar do caso", formula: "Contagem dos membros vinculados ao núcleo", periodo: "Estado atual" },
+            { rotulo: "Participantes", valor: participantes.length, tom: participantes.length ? "azul" : "cinza", fonte: "Papéis do núcleo", formula: "Membros exceto titular e dependentes", periodo: "Estado atual" },
+            { rotulo: "Dependentes", valor: dependentes.length, tom: dependentes.length ? "dourado" : "cinza", fonte: "Papéis do núcleo", formula: "Membros com papel de dependente registrado", periodo: "Estado atual" },
+            { rotulo: "Relações aprovadas", valor: relacoes.length, tom: relacoes.length ? "verde" : "cinza", fonte: "Relações genealógicas explícitas", formula: "Contagem de vínculos aprovados, sem inferência", periodo: "Estado atual" },
+          ]} />
 
-          <Bloco titulo={caso.identidade.nucleo ?? "Núcleo familiar"}>
+          <Bloco titulo={`Núcleo familiar — ${caso.identidade.nucleo ?? "não registrado"}`}>
             <p className="text-sm text-navy/70">
               {membros.length} pessoa{membros.length === 1 ? "" : "s"} no núcleo · {dependentes.length} dependente
               {dependentes.length === 1 ? "" : "s"} · {caso.pessoas.length} pessoa
@@ -171,20 +177,6 @@ function PessoasGoLive() {
                 cta={
                   <Link to="/golive/pessoa">
                     <Button size="sm">Abrir Pessoa 360</Button>
-                  </Link>
-                }
-              />
-            )}
-          </Bloco>
-
-          <Bloco titulo="Cobertura por geração">
-            {geracoes.length ? (
-              <Barras dados={geracoes} titulo="Pessoas registradas por geração" />
-            ) : (
-              <Vazio
-                cta={
-                  <Link to="/golive/caso">
-                    <Button size="sm">Abrir Caso 360</Button>
                   </Link>
                 }
               />

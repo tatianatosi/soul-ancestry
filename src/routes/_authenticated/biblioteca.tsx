@@ -183,8 +183,8 @@ function BibliotecaPage() {
     { label: "Bases Genealógicas", descricao: "Repositórios e arquivos", chave: "bases", Icone: Database },
     { label: "Dicionários", descricao: "Termos e taxonomias", chave: "dicionarios", Icone: BookOpen },
     { label: "Trilhas Jurídicas", descricao: "Regras versionadas", chave: "juridico", Icone: Scale },
-    { label: "Modelos", descricao: "Modelos F1 e F2", chave: "modelos", Icone: FileText },
-    { label: "Referências", descricao: "Referências do acervo", chave: "acervo", Icone: Bookmark },
+    { label: "Modelos", descricao: "Sem fonte própria; leitura da categoria Modelos do acervo", chave: "modelos", Icone: FileText },
+    { label: "Referências", descricao: "Entrada de consulta do mesmo acervo, sem coleção paralela", chave: "acervo", Icone: Bookmark },
   ];
 
   const abrirEntrada = (chave: SubareaBiblioteca) => {
@@ -226,6 +226,9 @@ function BibliotecaPage() {
                   <span className="mt-3 block text-xs font-semibold text-navy">
                     {carregando ? "Carregando…" : erroLeitura ? "Leitura indisponível" : quantidade ? `${quantidade} ${quantidade === 1 ? "registro" : "registros"}` : "Sem registros"}
                   </span>
+                  {label === "Modelos" || label === "Referências" ? (
+                    <span className="mt-1 block text-[11px] text-navy/50">Fonte compartilhada declarada</span>
+                  ) : null}
                 </span>
               </Button>
             );
