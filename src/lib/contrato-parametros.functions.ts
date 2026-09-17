@@ -1371,10 +1371,10 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       contratoId = novo.id as string;
 
-      await supabase.from("contract_parties").insert({
+      const { error: erroParteContratante } = await supabase.from("contract_parties").insert({
         organization_id: registro.organization_id,
         contract_id: contratoId,
-        role: "contratante",
+        role: "contracting_client",
         client_id: caso?.cliente_id ?? null,
         person_name: pegar("contratante_nome") ?? "",
         document_number: pegar("contratante_documento"),
@@ -1383,6 +1383,9 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
         created_by: context.userId,
         updated_by: context.userId,
       });
+      if (erroParteContratante) {
+        throw new Error(`Falha ao registrar a parte contratante do contrato ${contratoId}: ${erroParteContratante.message}`);
+      }
 
       const escopo = [
         { category: "included", title: "Serviços incluídos", description: pegar("servicos_incluidos") },
