@@ -454,7 +454,7 @@ function LeadsPage() {
             <div className="grid gap-3 md:grid-cols-2">
               <Texto label="Nome" valor={campo("nome")} onChange={set("nome")} />
               <Texto label="Código" valor={String(editado.codigo ?? "gerado ao salvar")} onChange={() => {}} desabilitado />
-              <Texto label="E-mail" valor={campo("email")} onChange={set("email")} />
+              <Texto label="E-mail" tipo="email" valor={campo("email")} onChange={set("email")} />
               <Texto
                 label="Telefone"
                 valor={campo("telefone")}

@@ -7,6 +7,7 @@ import { useSaas } from "@/components/saas/shell";
 import { criarLeadManual, type PossivelDuplicidade } from "@/lib/crm-desk.functions";
 import { OBJETIVOS, ORIGENS_LEAD, PROXIMAS_ACOES } from "@/lib/crm-desk";
 import { hojeISO } from "@/lib/painel-dia";
+import { formatarTelefone } from "@/lib/validacao-pessoa";
 
 type Props = {
   aberto: boolean;
@@ -96,8 +97,12 @@ export function NovoLeadDialog({ aberto, onFechar, onCriado }: Props) {
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           <Texto label="Nome completo *" valor={form.nome} onChange={set("nome")} />
           <Texto label="Indicado por (opcional)" valor={form.indicado_por} onChange={set("indicado_por")} />
-          <Texto label="E-mail (e-mail ou telefone obrigatório)" valor={form.email} onChange={set("email")} />
-          <Texto label="Telefone (e-mail ou telefone obrigatório)" valor={form.telefone} onChange={set("telefone")} />
+          <Texto label="E-mail (e-mail ou telefone obrigatório)" tipo="email" valor={form.email} onChange={set("email")} />
+          <Texto
+            label="Telefone (e-mail ou telefone obrigatório)"
+            valor={form.telefone}
+            onChange={(v) => set("telefone")(formatarTelefone(v))}
+          />
           <Selecao label="Origem *" valor={form.origem} opcoes={ORIGENS_LEAD} onChange={set("origem")} />
           <Selecao label="Interesse inicial *" valor={form.objetivo} opcoes={OBJETIVOS} onChange={set("objetivo")} />
           <Texto label="Responsável *" valor={form.responsavel_nome} onChange={set("responsavel_nome")} />
