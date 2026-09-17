@@ -32,6 +32,7 @@ import {
 
 import { rotuloEstado } from "@/lib/estados";
 import { cn } from "@/lib/utils";
+import { formatarTelefone } from "@/lib/validacao-pessoa";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
   head: () => ({
@@ -594,16 +595,22 @@ function ClientesPage() {
             </p>
             <div className="mt-3 space-y-2">
               {[
-                { chave: "nome", rotulo: "Nome" },
-                { chave: "email", rotulo: "E-mail" },
-                { chave: "telefone", rotulo: "Telefone" },
+                { chave: "nome", rotulo: "Nome", tipo: "text" },
+                { chave: "email", rotulo: "E-mail", tipo: "email" },
+                { chave: "telefone", rotulo: "Telefone", tipo: "tel" },
               ].map((c) => (
                 <label key={c.chave} className="block text-xs text-navy/65">
                   {c.rotulo}
                   <input
+                    type={c.tipo}
                     className="mt-1 w-full rounded-md border border-navy/15 bg-background p-2 text-sm text-foreground"
                     value={novo[c.chave] ?? ""}
-                    onChange={(e) => setNovo({ ...novo, [c.chave]: e.target.value })}
+                    onChange={(e) =>
+                      setNovo({
+                        ...novo,
+                        [c.chave]: c.chave === "telefone" ? formatarTelefone(e.target.value) : e.target.value,
+                      })
+                    }
                   />
                 </label>
               ))}
