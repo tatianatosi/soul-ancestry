@@ -12,6 +12,8 @@ import {
 } from "@/components/portal/abas-app-cliente";
 import { listarCasosFicha } from "@/lib/caso-ficha.functions";
 import { dadosVivosDoPortalComoAdmin } from "@/lib/app-cliente-como-pessoa.functions";
+import { identidadeDeCrmCaso } from "@/lib/caso-compartilhado";
+
 
 /**
  * Acesso master ao App Cliente com dado real de um caso.
