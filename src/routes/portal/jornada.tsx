@@ -312,10 +312,13 @@ export function PortalJornada() {
                   : jornada.ritmo === "atencao"
                     ? "Próxima atualização em preparação"
                     : "Atualização em revisão";
-            const passoAtualIndice = previa ? PASSO_CASO_ATUAL_DEMO_SOPHIA_INDICE : null;
+            // Prévia não é sinônimo de demonstração: o acesso master abre caso
+            // real. Roteiro editorial e passo fixo pertencem só ao caso demo.
+            const ehDemo = Boolean(previa) && (previa?.identidade?.fonte ?? "demo") === "demo";
+            const passoAtualIndice = ehDemo ? PASSO_CASO_ATUAL_DEMO_SOPHIA_INDICE : null;
 
             // Monta os nós: roteiro editorial na demo, ordem cronológica real no cliente real.
-            const nos: No[] = previa
+            const nos: No[] = ehDemo
               ? ORDEM_NARRATIVA_DEMO_SOPHIA.map((id) => jornada.linha.find((item) => item.id === id))
                   .filter((item): item is PublicacaoCliente => Boolean(item))
                   .map(noDemoDeItem)
@@ -328,7 +331,7 @@ export function PortalJornada() {
             const temCaso = jornada.linha.some((i) => i.id === UNIAO_DE_RAMOS_DEMO_SOPHIA.casoProjecaoId);
             if (temHistoria && temCaso) {
               const ponte: No = { tipo: "ponte", texto: UNIAO_DE_RAMOS_DEMO_SOPHIA.legenda };
-              if (previa) {
+              if (ehDemo) {
                 // Roteiro editorial: a ponte entra após o 3º evento (posição 4 do roteiro).
                 nos.splice(3, 0, ponte);
               } else {
@@ -338,6 +341,7 @@ export function PortalJornada() {
                 if (idx !== -1) nos.splice(idx + 1, 0, ponte);
               }
             }
+
 
             // Nó final: próxima ação publicada, sempre presente (real ou demo).
             // Ajuste 2026-09-12: CTA nomeia a rota real em vez de "Abrir" genérico.
