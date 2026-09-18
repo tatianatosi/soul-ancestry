@@ -12,6 +12,8 @@ import {
 } from "@/components/portal/abas-app-cliente";
 import { listarCasosFicha } from "@/lib/caso-ficha.functions";
 import { dadosVivosDoPortalComoAdmin } from "@/lib/app-cliente-como-pessoa.functions";
+import { identidadeDeCrmCaso } from "@/lib/caso-compartilhado";
+
 
 /**
  * Acesso master ao App Cliente com dado real de um caso.
@@ -130,9 +132,23 @@ function AppClienteComoPessoa() {
           Escolha um caso acima para abrir o App Cliente dele.
         </p>
       ) : dados.isError ? (
-        <p className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-5 text-sm text-terracotta">
-          {(dados.error as Error)?.message ?? "Não foi possível carregar este caso."}
-        </p>
+        // Falha de leitura não é "nada publicado": as sete abas continuam na
+        // barra acima, mas aqui dizemos o motivo real e oferecemos releitura.
+        <div className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-5 text-sm text-terracotta">
+          <p className="font-medium">Não foi possível ler as publicações deste caso.</p>
+          <p className="mt-1 text-terracotta/85">
+            {(dados.error as Error)?.message ?? "Erro de leitura."} Isto é falha de leitura, não
+            ausência de conteúdo publicado.
+          </p>
+          <button
+            type="button"
+            onClick={() => void dados.refetch()}
+            className="mt-3 rounded-md border border-terracotta/50 px-3 py-1.5 text-xs font-medium text-terracotta"
+          >
+            Tentar novamente
+          </button>
+        </div>
+
       ) : (
         <div className="overflow-hidden rounded-xl border border-navy/15">
           <FontePortalProvider
@@ -148,7 +164,19 @@ function AppClienteComoPessoa() {
                 titulo: casoEscolhido
                   ? `${String(casoEscolhido["codigo"])} — ${String(casoEscolhido["titulo"])}`
                   : "Carregando caso…",
+                // Identidade real: sem ela as telas caíam no código e no
+                // progresso do caso de demonstração.
+                ...(casoEscolhido
+                  ? {
+                      identidade: identidadeDeCrmCaso({
+                        id: String(casoEscolhido["id"]),
+                        codigo: casoEscolhido["codigo"] as string | null,
+                        titulo: casoEscolhido["titulo"] as string | null,
+                      }),
+                    }
+                  : {}),
               },
+
             }}
           >
             <Tela />
