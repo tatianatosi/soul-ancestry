@@ -14,6 +14,7 @@ import {
   type EventoSnapshot,
 } from "@/lib/contrato-parametros.server";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import {
   CLAUSULAS_FIXAS,
   CONTRATO_BASE_ID,
@@ -1420,15 +1421,34 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
     return { contratoId };
   });
 
-/** Registro humano da assinatura externa — reusa as partes já aprovadas. */
+/**
+ * Registro humano da assinatura externa — reusa as partes já aprovadas.
+ *
+ * P0-ASSINATURA-REVISAO-HUMANA (18/09/2026): as três escritas abaixo não são
+ * uma transação — se uma etapa posterior falhar, as anteriores já foram
+ * gravadas. Por isso cada etapa verifica `error` e linha afetada e, ao
+ * falhar, interrompe imediatamente com uma mensagem que diz exatamente até
+ * onde a gravação chegou, para revisão humana antes de repetir a ação. Não
+ * há compensação/rollback automático — decisão de escopo explícita.
+ */
 export const registrarAssinatura = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string; dataAssinatura: string; origemExterna: string; referencia: string }) => d)
+  .inputValidator(
+    (d: { id: string; dataAssinatura: string; origemExterna: string; referencia: string; motivo?: string }) => d,
+  )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
     const dataAssinatura = exigirTexto(data.dataAssinatura, "data da assinatura", 40);
     const origem = exigirTexto(data.origemExterna, "origem externa da assinatura", 200);
     const referencia = exigirTexto(data.referencia, "referência da assinatura", 200);
+    // P0-ASSINATURA-REVISAO-HUMANA: motivo é obrigatório no fluxo confirmado
+    // (casos.$caseId.contrato.preparar.tsx, via AcaoOperacional). Opcional
+    // aqui só para não quebrar o outro chamador existente
+    // (contrato-parametros.$id.tsx), que ainda não tem confirmação humana —
+    // dívida declarada, fora do escopo deste corte (limite de três arquivos).
+    const motivo = data.motivo
+      ? exigirTexto(data.motivo, "motivo da confirmação", 2000)
+      : "Motivo não informado (fluxo sem confirmação humana explícita).";
 
     const { data: registro } = await supabase
       .from("contract_case_parameters")
@@ -1450,7 +1470,7 @@ export const registrarAssinatura = createServerFn({ method: "POST" })
       .eq("signature_required", true);
     if (!count) throw new Error("Não há partes signatárias qualificadas no contrato.");
 
-    const { error } = await supabase
+    const contratoRes = await supabase
       .from("contracts")
       .update({
         status: "signed",
@@ -1459,15 +1479,52 @@ export const registrarAssinatura = createServerFn({ method: "POST" })
         signature_reference: referencia,
         updated_by: context.userId,
       })
-      .eq("id", registro.contract_id);
-    if (error) throw new Error(error.message);
+      .eq("id", registro.contract_id)
+      .select("id");
+    if (contratoRes.error) throw new Error(contratoRes.error.message);
+    if (!contratoRes.data?.length) {
+      throw new Error("Contrato não encontrado ao registrar assinatura — nada foi alterado.");
+    }
 
-    await supabase.from("contract_case_parameters").update({ status: "assinado" }).eq("id", data.id);
+    const parametrosRes = await supabase
+      .from("contract_case_parameters")
+      .update({ status: "assinado" })
+      .eq("id", data.id)
+      .select("id");
+    if (parametrosRes.error || !parametrosRes.data?.length) {
+      throw new Error(
+        `Contrato marcado como assinado, mas os parâmetros do contrato não foram atualizados` +
+          `${parametrosRes.error ? `: ${parametrosRes.error.message}` : " (nenhuma linha afetada)"}.` +
+          " Estado parcial — revisão humana necessária antes de repetir a ação.",
+      );
+    }
 
     // Propaga a assinatura para o campo que o gate de acesso ao App Cliente
     // de fato verifica (portal-elegibilidade.ts/fn_portal_case_access_guard).
     // Sem isto, o contrato fica "assinado" no motor novo sem nunca liberar o portal.
-    await supabase.from("crm_casos").update({ contrato_assinado: true }).eq("id", registro.case_id);
+    const casoRes = await supabase
+      .from("crm_casos")
+      .update({ contrato_assinado: true })
+      .eq("id", registro.case_id)
+      .select("id");
+    if (casoRes.error || !casoRes.data?.length) {
+      throw new Error(
+        `Contrato e parâmetros atualizados, mas o caso não foi atualizado` +
+          `${casoRes.error ? `: ${casoRes.error.message}` : " (nenhuma linha afetada)"}.` +
+          " Estado parcial — revisão humana necessária antes de repetir a ação; o acesso ao Portal pode não refletir a assinatura.",
+      );
+    }
+
+    await registrarTimelineCaso(supabase, {
+      organizationId: registro.organization_id,
+      caseId: registro.case_id,
+      eventType: "caso",
+      title: "Assinatura externa registrada",
+      summaryInternal: `Origem: ${origem}. Referência: ${referencia}. Data: ${dataAssinatura}. Motivo: ${motivo}`,
+      sourceEntityType: "contracts",
+      sourceEntityId: registro.contract_id,
+      userId: context.userId as string,
+    });
 
     return { ok: true };
   });

@@ -282,7 +282,7 @@ function Pagina() {
     onError: (e: Error) => toast.error(e.message),
   });
   const mAssinar = useMutation({
-    mutationFn: () => assinar({ data: { id: registroId as string, ...assinatura } }),
+    mutationFn: (motivo: string) => assinar({ data: { id: registroId as string, ...assinatura, motivo } }),
     onSuccess: () => {
       toast.success("Assinatura externa registrada. Gates de financeiro e ativação seguem próprios.");
       invalidar();
@@ -961,20 +961,29 @@ function Pagina() {
                     value={assinatura.referencia}
                     onChange={(e) => setAssinatura({ ...assinatura, referencia: e.target.value })}
                   />
-                  <button
-                    onClick={() => mAssinar.mutate()}
-                    disabled={mAssinar.isPending}
+                  <AcaoOperacional
+                    rotulo="Registrar assinatura externa"
+                    acaoExterna="registrar_assinatura_externa"
+                    validacaoFormulario={
+                      !assinatura.dataAssinatura || !assinatura.origemExterna || !assinatura.referencia
+                        ? "Preencha data, origem externa e referência da assinatura antes de confirmar."
+                        : null
+                    }
+                    efeito="Marca o contrato como assinado e atualiza o caso. Esse estado passa a atender uma condição usada na liberação de acesso ao Portal do Cliente — não publica conteúdo, não envia mensagem, não gera cobrança e não concede acesso automaticamente."
                     className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80"
-                  >
-                    Registrar assinatura externa
-                  </button>
+                    onConfirmar={(motivo) => {
+                      if (mAssinar.isPending) return;
+                      mAssinar.mutate(motivo);
+                    }}
+                  />
                 </div>
               )}
             </div>
           </div>
           <p className="mt-2 text-xs text-navy/60">
-            Assinatura registrada não cria cobrança, não libera portal e não inicia pesquisa externa: financeiro e ativação continuam
-            sujeitos aos gates próprios.
+            Ao confirmar, o contrato será registrado como assinado e o caso será atualizado. Esse estado passa a atender uma condição
+            usada na liberação de acesso ao Portal, mas não publica conteúdo, não envia mensagem, não gera cobrança e não concede
+            acesso automaticamente. Financeiro e ativação continuam sujeitos aos gates próprios.
           </p>
           {ultimaFinal && !ultimaFinal.aprovado_em && (
             <p className="mt-1 text-xs text-terracotta">Versão final gerada aguardando aprovação de revisão humana.</p>
