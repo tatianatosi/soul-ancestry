@@ -162,7 +162,19 @@ function AppClienteComoPessoa() {
                 titulo: casoEscolhido
                   ? `${String(casoEscolhido["codigo"])} — ${String(casoEscolhido["titulo"])}`
                   : "Carregando caso…",
+                // Identidade real: sem ela as telas caíam no código e no
+                // progresso do caso de demonstração.
+                ...(casoEscolhido
+                  ? {
+                      identidade: identidadeDeCrmCaso({
+                        id: String(casoEscolhido["id"]),
+                        codigo: casoEscolhido["codigo"] as string | null,
+                        titulo: casoEscolhido["titulo"] as string | null,
+                      }),
+                    }
+                  : {}),
               },
+
             }}
           >
             <Tela />
