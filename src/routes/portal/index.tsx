@@ -94,11 +94,18 @@ export function PortalHome() {
               destino: destinoPorTipo(item.tipo),
               texto: item.conteudo,
             }))}
-            fase={{
-              rotulos: FASES_JORNADA_DEMO,
-              indice: FASE_ATUAL_DEMO_SOPHIA_INDICE,
-              percentual: FASE_ATUAL_DEMO_SOPHIA_PERCENTUAL,
-            }}
+            fase={
+              // Progresso fixo pertence só ao caso de demonstração. Num caso
+              // real aberto pelo acesso master, inventar fase seria dado falso.
+              previa.identidade && previa.identidade.fonte !== "demo"
+                ? null
+                : {
+                    rotulos: FASES_JORNADA_DEMO,
+                    indice: FASE_ATUAL_DEMO_SOPHIA_INDICE,
+                    percentual: FASE_ATUAL_DEMO_SOPHIA_PERCENTUAL,
+                  }
+            }
+
           />
         )}
       </PortalShell>
