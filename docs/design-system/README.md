@@ -1,83 +1,49 @@
 # Design System — Clube Ancestral
 
-**Versão:** Corte 1 (2026-09-16) · **Escopo:** somente tokens e documentação.
-**Projeto canônico:** `tatianatosi/soul-ancestry`. Lançamento: Lovable.
+**Status:** em revisão  
+**Versão:** v1.1  
+**Data:** 2026-09-18  
+**Responsável pela decisão:** Proprietária do Clube Ancestral  
+**Fonte:** mockups aprovados do App Cliente e Desk Intelligence; contratos e regras deste diretório.
 
-## Status do Corte 1 — APROVADO
+Este diretório reúne contratos de marca, interface, conteúdo, comportamento e prova. Documentação não substitui execução: uma interface só é aceita com fonte real, comportamento verificável, prova visual e F5 quando aplicável.
 
-Aprovado pela Proprietária em 2026-09-16. Commit automático da plataforma
-mantido: `079c236d` ("Criou Design System no GitHub" — 8 arquivos,
-+342/−2). Registro da aprovação em 2026-09-16.
+## Contratos canônicos
 
-Evidência da validação (2026-09-16):
+| Documento | Função |
+|---|---|
+| `tokens.md` | paleta, tipografia, breakpoints e estados semânticos |
+| `componentes.md` | papéis de componentes, cópias e roteiro de consolidação |
+| `regras-de-uso.md` | regras de cor, KPI, selo, vazio, CTA e navegação |
+| `taxonomia-canonica.md` | Pessoa Unificada e vocabulário de interface |
+| `mascaras-e-validadores.md` | formatos, validação e entrada de pessoa |
+| `visibilidade-e-sanitizacao.md` | projeção autorizada para o App Cliente |
+| `de-para-pessoa-unificada.md` | de-para e roteiro de evolução da pessoa |
+| `contrato-interface-app-cliente.md` | contrato de layout, conteúdo e estados das 7 abas do App |
+| `contrato-interface-desk.md` | contrato das 7 telas e 6 grupos internos do Desk |
+| `contrato-cta-contexto-e-prova.md` | CTAs, `case_id`, persistência, histórico, fila, F5 e prova visual |
 
-- `tsgo --noEmit` sem erros; `bun run build` limpo (1,58s, sem avisos CSS);
-- 2.331/2.338 testes aprovados; as 7 falhas são preexistentes e sem relação
-  com tokens/estilos (alertas, App demo, `case_members`, tipo `"caso"`,
-  mapa de motores da Biblioteca, checklist de onboarding);
-- import de `src/styles/tokens-clube-ancestral.css` em `src/styles.css`
-  resolve (tokens `--ca-navy-hero`, `--ca-estado-aguardando`,
-  `--ca-safe-bottom`, `--ca-cream` presentes no bundle final);
-- aliases do kit sem ciclo; telas idênticas antes/depois em desktop e 375 px;
-- zero overflow horizontal e zero erro de console;
-- nenhum dado, rota, permissão, RLS, migration ou integração alterado.
+## Navegação imutável
 
-Regra de governança aplicada: commit automático da plataforma NÃO equivale à
-aprovação da Proprietária. Depois de cada edição: parar, apresentar lista de
-arquivos, diff resumido, testes/build, screenshots desktop e 375 px quando
-houver UI, e o hash do commit automático — e aguardar decisão explícita.
+```text
+App Cliente: Home → Jornada → Radar → Árvore → Documentos → Legado → Conta
 
-Próximos cortes (2 em diante) e a Fase B (Centro de Pesquisa / Pessoa
-Unificada) permanecem NÃO iniciados, dependendo de autorização explícita.
-A próxima tarefa autorizada é somente a validação P0 de acesso e do modo
-master do App Cliente.
+Desk: Visão Geral → Casos 360 → Checklist → Validação Jurídica → Radar Interno → Alertas → Biblioteca Mestre
 
-## O que o Corte 1 faz
+Grupos internos Desk: Hoje · Comercial · Casos & Pessoas · Pesquisa · Formalização · Governança
+```
 
-- Cria `src/styles/tokens-clube-ancestral.css` como **fonte única** de valores
-  aprovados (cor, tipografia, escala, espaçamento, raio, borda, sombra,
-  breakpoints, área segura).
-- Faz `src/styles.css` importar esse arquivo.
-- Documenta tokens, componentes duplicados e regras de uso.
+Os grupos internos são contexto/filtro/submenu, não uma segunda navegação.
 
-## O que o Corte 1 NÃO faz
+## Ordem de aplicação
 
-- Não migra telas, não altera aparência, não renomeia classes.
-- Não apaga nenhum arquivo ou componente existente.
-- Não cria novas versões de Cartão, Selo, KPI, Vazio, Tabela, Gráfico ou Timeline.
-- Não toca em dados, RLS, migrations, acessos, contratos, publicações ou deploy.
+1. Tokens e componentes base em consumidor real.
+2. Regras de uso, estado vazio, CTA e responsividade no mesmo consumidor.
+3. Pessoa Unificada e validadores antes de persistir.
+4. Persistência → histórico → fila/estado → F5.
+5. Interface App/Desk contra mockups aprovados, uma tela por vez.
+6. Prova visual desktop e 375 px; aceite da Proprietária.
 
-## Três autoridades de cor — plano de convergência
+## Regra de mudança
 
-| Arquivo | Papel hoje | Papel após migração |
-| --- | --- | --- |
-| `src/styles/tokens-clube-ancestral.css` | novo | **fonte canônica única** |
-| `src/styles.css` | tokens Tailwind/shadcn (`--navy`, `--gold`, …) | mapeia para `--ca-*` |
-| `src/lib/marca.ts` | valores literais para e-mail/PDF/SVG | permanece, espelhando os mesmos hex, documentado como saída não-CSS |
-| `src/components/clube-ancestral-kit/tokens.css` | `--ca-*` locais em `[data-clube-ancestral-kit]` | passa a herdar de `:root` |
-
-Sequência segura (um corte por vez, com screenshot antes/depois e F5):
-
-1. **Corte 1 (este):** criar tokens + docs + import. Zero mudança visual.
-2. **Corte 2:** `clube-ancestral-kit/tokens.css` deixa de redeclarar hex e
-   referencia `var(--ca-navy)` etc. Piloto visual: **Pesquisa do Desk**.
-3. **Corte 3:** `src/styles.css` (`:root` e `[data-marca="guia"]`) passa a
-   `--navy: var(--ca-navy)` etc., eliminando a duplicação de hex.
-4. **Corte 4:** consolidação de componentes (ver `componentes.md`).
-5. **Corte 5:** varredura de cores literais em telas (cadência, gráficos, fichas).
-6. **Corte 6:** legados de e-mail/PDF avaliados separadamente.
-
-Nenhum corte avança sem aprovação explícita da Proprietária.
-
-## Documentos
-
-- [`tokens.md`](./tokens.md) — tabela aprovado × atual × legado.
-- [`componentes.md`](./componentes.md) — catálogo e cópias a consolidar.
-- [`regras-de-uso.md`](./regras-de-uso.md) — regras fixas e anti-padrões.
-
-## Design System Enterprise
-
-Não existe registro Enterprise ativo. A fonte de verdade é este repositório
-(`src/styles/tokens-clube-ancestral.css` + `docs/design-system/`) mais o
-Project Knowledge. Caso a Proprietária aprove um registro externo depois,
-ele deve **importar** destes arquivos, nunca ser uma segunda autoridade.
+Não renomear, fundir, expandir ou substituir telas, taxonomias, cores, estados, CTAs ou política de visibilidade sem decisão explícita da Proprietária. Não usar dados demo como preenchimento real.
