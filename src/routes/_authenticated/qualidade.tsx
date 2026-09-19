@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { SaasShell } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { PainelQualidade } from "@/components/qualidade/painel";
 import { RadarInternoIntegrado } from "@/components/desk/radar-interno-integrado";
+import { CaCard } from "@/components/ui/ca-card";
+import { Selo } from "@/components/comercial/base";
 import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos";
 
 export const Route = createFileRoute("/_authenticated/qualidade")({
@@ -57,24 +59,42 @@ function QualidadePage() {
 /**
  * Radar Interno (Desk) usa os quatro eixos da jornada (radar-eixos.ts).
  * Distinto das seis dimensões do App Cliente (radar-seis-eixos.ts). Sem eixo extra aqui.
+ *
+ * DSA-1-BASE-TOKENS-CARDS (19/09/2026): primeiro consumidor do Desk a usar
+ * `CaCard` (até então só no App Cliente, `routes/portal/index.tsx`) — mesmos
+ * tokens (`bg-card`/`border-border`), sem hex novo. `garantirEixosCanonicos`
+ * já filtra pela lista fixa de 4 IDs; o ramo de Estado Vazio é defensivo
+ * (hoje inatingível com a lista atual), não um estado fabricado.
  */
 function EixosCanonicosInternos() {
   const eixos = garantirEixosCanonicos(EIXOS_RADAR_CANONICOS);
 
+  if (eixos.length === 0) {
+    return (
+      <EstadoVazio mensagem="Nenhum eixo canônico configurado em radar-eixos.ts — verifique a fonte antes de prosseguir." />
+    );
+  }
+
   return (
-    <section className="mb-4 rounded-lg border border-navy/10 bg-cream/50 p-4">
-      <h2 className="font-serif text-base text-navy">Eixos canônicos da leitura</h2>
-      <p className="mt-1 text-xs text-navy/60">
+    <CaCard titulo="Eixos canônicos da leitura" eyebrow="Radar Interno · 4 eixos" className="mb-4">
+      <p className="text-xs text-navy/60">
         Radar Interno do Desk — quatro eixos da jornada (radar-eixos.ts), compartilhados com a leitura de progresso do cliente. Distinto das 6 dimensões do App (radar-seis-eixos.ts). Nenhum eixo extra aqui.
       </p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {eixos.map((eixo) => (
-          <article key={eixo.id} className="rounded-md border border-navy/10 bg-cream/60 p-3">
-            <h3 className="text-sm font-medium text-navy">{eixo.titulo}</h3>
+          <article key={eixo.id} className="rounded-md border border-border bg-cream/60 p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-sm font-medium text-navy">{eixo.titulo}</h3>
+              <Selo
+                texto="Compartilhado com o Radar do Cliente"
+                tom="neutro"
+                title="Fonte: src/lib/radar-eixos.ts — mesma leitura usada no Radar do App Cliente."
+              />
+            </div>
             <p className="mt-1 text-xs text-navy/60">{eixo.resumo}</p>
           </article>
         ))}
       </div>
-    </section>
+    </CaCard>
   );
 }
