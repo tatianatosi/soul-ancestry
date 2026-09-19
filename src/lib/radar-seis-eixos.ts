@@ -144,20 +144,24 @@ export function radarSeisDimensoes(entrada: {
     rotuloNumero: marcos.length > 0 ? `${marcos.length} marco(s)` : "Nenhum ainda",
   };
 
-  // Elegibilidade = média dos outros 5 eixos já calculados. Nunca lê parecer
-  // jurídico (sem fonte com RLS de portal): é só "quanto do resto da
-  // jornada já está pronto", reaproveitando número que já existe.
+  // RADAR-APP-SEMANTICA-PROGRESSO (18/09/2026): este eixo é a média dos
+  // outros 5 já calculados. Decisão canônica da Proprietária: os percentuais
+  // do Radar Ancestral representam progresso/andamento das seis dimensões da
+  // jornada — nunca elegibilidade jurídica, chance, probabilidade, parecer
+  // ou resultado conclusivo. "Elegibilidade" como rótulo induzia exatamente
+  // essa leitura errada; o cálculo continua o mesmo, só o título e a legenda
+  // mudaram. Nunca lê parecer jurídico (sem fonte com RLS de portal).
   const outros = [documentacao, origem, conexoes, memoria, legado];
   const mediaOutros = Math.round(
     outros.reduce((soma, d) => soma + (d.percentual ?? 0), 0) / outros.length,
   );
   const elegibilidade: DimensaoRadar = {
     id: "elegibilidade",
-    titulo: "Elegibilidade",
+    titulo: "Progresso Geral",
     estado: "percentual",
     percentual: mediaOutros,
     legenda:
-      "Média de completude dos outros 5 eixos — não é parecer jurídico nem promessa de resultado.",
+      "Andamento médio dos outros 5 eixos da sua jornada — acompanhamento de progresso, não parecer jurídico, chance ou resultado.",
     rotuloNumero: `${mediaOutros}%`,
   };
 

@@ -65,8 +65,11 @@ export const COPY_TELAS = {
   radar: {
     navegacao: "Radar",
     titulo: "Radar",
-    descricao: "Radar de elegibilidade em 6 eixos",
-    vazio: "Estas leituras aparecem assim que houver material preparado para compartilhar.",
+    // RADAR-APP-SEMANTICA-PROGRESSO (18/09/2026): "elegibilidade" induzia
+    // leitura de parecer jurídico/chance. Percentuais são progresso/andamento
+    // das seis dimensões da jornada, nunca resultado conclusivo.
+    descricao: "Progresso em 6 dimensões da sua jornada",
+    vazio: "Radar ainda não publicado. Estas leituras aparecem assim que houver material preparado para compartilhar.",
   },
   arvore: {
     navegacao: "Árvore",

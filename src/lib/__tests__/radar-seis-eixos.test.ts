@@ -52,6 +52,25 @@ describe("radarSeisDimensoes", () => {
     expect(dimensoes.find((d) => d.id === "elegibilidade")!.percentual).toBe(0);
   });
 
+  it("RADAR-APP-SEMANTICA-PROGRESSO: título do eixo 'elegibilidade' não usa o termo, e a legenda afirma progresso, não conclusão jurídica", () => {
+    const dimensoes = radarSeisDimensoes({ projecoes: [], documentos: [] });
+    const eixo = dimensoes.find((d) => d.id === "elegibilidade")!;
+    expect(eixo.titulo).not.toMatch(/elegib/i);
+    // A legenda pode mencionar "parecer jurídico"/"chance"/"resultado" só para
+    // negá-los explicitamente — nunca afirmá-los. Checa a negação literal, não
+    // a mera ausência da palavra.
+    expect(eixo.legenda).toContain("não parecer jurídico");
+    expect(eixo.legenda).toMatch(/progresso|andamento/i);
+  });
+
+  it("RADAR-APP-SEMANTICA-PROGRESSO: nenhum título dos 6 eixos usa vocabulário jurídico/conclusivo", () => {
+    const dimensoes = radarSeisDimensoes({ projecoes: [], documentos: [] });
+    for (const d of dimensoes) {
+      expect(d.titulo).not.toMatch(/elegib|chance|probabilidade|parecer/i);
+    }
+    expect(dimensoes).toHaveLength(6);
+  });
+
   it("documentação é a proporção real de documentos liberados, ignorando demo", () => {
     const documentos: DocumentoPortal[] = [
       { id: "1", liberado_cliente: true },

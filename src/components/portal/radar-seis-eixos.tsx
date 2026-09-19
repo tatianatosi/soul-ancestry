@@ -26,7 +26,10 @@ function anelDeFundo(fracao: number, chave: string) {
 
 /**
  * Radar Ancestral — gráfico de teia das 6 dimensões (mockup pág. 3/7).
- * Dimensão sem percentual (elegibilidade, por decisão institucional) fica no
+ *
+ * RADAR-APP-SEMANTICA-PROGRESSO (18/09/2026): todos os 6 eixos, inclusive o
+ * de progresso geral, representam andamento da jornada — nunca elegibilidade
+ * jurídica, chance ou parecer. Dimensão sem percentual publicado fica no
  * centro do polígono — nunca inventa posição.
  */
 export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
@@ -43,8 +46,8 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
     <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
       {!comProgresso ? (
         <p className="mb-3 rounded-lg border border-border bg-cream/70 px-3 py-2 text-center text-xs text-navy/65">
-          O radar ganha forma conforme a equipe publica documentação e achados. Enquanto isso, a teia permanece
-          no centro — sem inventar percentual.
+          Radar ainda não publicado. Ele ganha forma conforme a equipe publica documentação e achados — a teia
+          permanece no centro até lá, sem inventar percentual.
         </p>
       ) : null}
       <svg

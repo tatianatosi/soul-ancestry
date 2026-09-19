@@ -48,11 +48,22 @@ export function PortalConta() {
   const temFatura = (faturas.data?.length ?? 0) > 0;
   const falhaFaturas = faturas.isError;
 
-  const titular = data?.cliente?.nome ?? (previa ? CLIENTE_DEMO_NOME : null) ?? "—";
+  /**
+   * APP-CASE-ID-CONTA-RADAR (19/09/2026): `previa` cobre dois casos distintos
+   * — Acesso Master de um caso real (`identidade.fonte !== "demo"`, ver
+   * `app-cliente-como-pessoa.tsx`) e a demo institucional (`fonte === "demo"`,
+   * `sessao-demo-app-cliente.tsx`). Antes, qualquer `previa` caía direto nos
+   * valores fixos de Sophia — em prévia real de outro caso, a Conta mostrava
+   * o titular/país errados (os da demo). `radar.tsx` já prioriza
+   * `previa.identidade.codigo`; aqui replica o mesmo padrão e usa `fonte`
+   * para nunca fabricar titular/país fora da demo de verdade.
+   */
+  const previaDemo = previa?.identidade?.fonte === "demo" || (Boolean(previa) && !previa?.identidade);
+  const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null) ?? "—";
   const casosPortal = (data as { casos?: { codigo?: string | null }[] } | null)?.casos;
   const casoCodigo =
-    casosPortal?.[0]?.codigo ?? (previa ? CASO_DEMO_CODIGO : null) ?? "—";
-  const paisInteresse = data?.cliente?.pais_interesse ?? (previa ? "Itália" : null) ?? "—";
+    previa?.identidade?.codigo ?? casosPortal?.[0]?.codigo ?? (previaDemo ? CASO_DEMO_CODIGO : null) ?? "—";
+  const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null) ?? "—";
   const planoEstado = previa || data?.autorizado ? "Acompanhamento ativo" : "Aguardando publicação";
 
   /**
@@ -133,7 +144,8 @@ export function PortalConta() {
               {/* Acabamento 2026-09-13 (referência Lovable): texto corrido no lugar
                   de grade de 3 crachás — mesmos três dados reais, leitura mais serena. */}
               <p className="mt-3 text-xs text-navy/55">
-                Publicação: {previa ? "Demo" : "Quando a equipe publica"} · Escopo: Caso vinculado
+                Publicação: {previaDemo ? "Demo" : previa ? "Prévia da equipe (caso real)" : "Quando a equipe publica"} ·
+                Escopo: Caso vinculado
               </p>
             </section>
 
