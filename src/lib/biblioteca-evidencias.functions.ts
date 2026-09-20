@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { conteudoProjetavel } from "@/lib/biblioteca-evidencias";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -429,6 +430,7 @@ export const aprovarProjecao = createServerFn({ method: "POST" })
       .from("app_projections")
       .select("content_sanitized,case_id,projection_type")
       .eq("id", data.id)
+      .eq("organization_id", organizationId)
       .maybeSingle();
     if (atual.error) throw new Error(atual.error.message);
     if (!atual.data) throw new Error("Projeção não encontrada ou sem permissão de acesso.");
@@ -445,10 +447,29 @@ export const aprovarProjecao = createServerFn({ method: "POST" })
         effective_from: data.publicar ? agora : null,
       })
       .eq("id", data.id)
+      .eq("organization_id", organizationId)
       .select("id")
       .maybeSingle();
     if (r.error) throw new Error(r.error.message);
     if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+
+    // MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA: publicar/aprovar já checava erro e
+    // linha afetada, mas não deixava evento no histórico do caso.
+    const caseId = atual.data["case_id"] as string | null | undefined;
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: data.publicar
+          ? "Achado publicado no App Cliente"
+          : "Achado aprovado (aguardando publicação)",
+        summaryInternal: String(atual.data["projection_type"] ?? ""),
+        sourceEntityType: "app_projections",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
 
     // CA06-APP-NO-DESK — aprovada mas ainda não publicada é "pronta para
     // liberação": o Desk vê em /alertas sem precisar abrir a Biblioteca.
@@ -543,15 +564,33 @@ export const despublicarProjecao = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
-    await autorizarEscrita(supabase, context.userId as string);
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
+    // MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA: faltava o filtro de organização
+    // (organizationId era resolvido e descartado) e o evento de histórico.
     const r = await supabase
       .from("app_projections")
       .update({ approval_status: "approved", effective_from: null })
       .eq("id", data.id)
-      .select("id")
+      .eq("organization_id", organizationId)
+      .select("id,case_id,projection_type")
       .maybeSingle();
     if (r.error) throw new Error(r.error.message);
     if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+
+    const caseId = r.data["case_id"] as string | null | undefined;
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: "Achado despublicado do App Cliente",
+        summaryInternal: String(r.data["projection_type"] ?? ""),
+        sourceEntityType: "app_projections",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
+
     return { ok: true };
   });
 
