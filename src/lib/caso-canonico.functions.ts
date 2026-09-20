@@ -11,6 +11,7 @@ import { construirMapaProdutoPaiPorCodigo, produtoPaiDoCodigo } from "@/lib/plan
 /** Catálogos, serviços, etiquetas, alertas, comunicação e onboarding do caso. */
 import { exigirGate } from "@/lib/escopo-conferencia.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { exigirProximaAcaoOperavel } from "@/lib/proxima-acao-startup";
 import { proprietariaOperando } from "@/lib/autoridade.server";
 import { nomeResponsavelSessao } from "@/lib/cadeia-operacional.server";
@@ -385,6 +386,19 @@ export const atualizarAlerta = createServerFn({ method: "POST" })
       patch["acknowledged_by"] = context.userId;
     }
     if (data.status === "completed") patch["completed_at"] = new Date().toISOString();
+
+    // MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA (Lote 1): reconhecer/reprogramar
+    // gravava com gravarComVerificacao (erro/linha afetada já cobertos), mas
+    // nunca deixava evento no histórico do caso — mesmo padrão já usado em
+    // moverTarefa.
+    const atual = await supabase
+      .from("case_alerts")
+      .select("case_id,titulo")
+      .eq("id", data.id)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (atual.error) throw new Error(atual.error.message);
+
     const r = await gravarComVerificacao({
       supabase,
       tabela: "case_alerts",
@@ -394,6 +408,29 @@ export const atualizarAlerta = createServerFn({ method: "POST" })
       payload,
       derivados: patch,
     });
+
+    if (atual.data?.case_id) {
+      const reprogramada = data.dueAt !== undefined;
+      const titulo =
+        data.status === "acknowledged"
+          ? "Alerta reconhecido"
+          : data.status === "completed"
+            ? "Alerta concluído"
+            : reprogramada
+              ? "Alerta reprogramado"
+              : "Alerta atualizado";
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: atual.data.case_id as string,
+        eventType: "caso",
+        title: titulo,
+        summaryInternal: String(atual.data.titulo ?? ""),
+        sourceEntityType: "case_alerts",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
+
     return { ok: true, salvoEm: r.salvoEm };
   });
 
