@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { diasDesde, rotuloIdade, tomIdade } from "@/lib/idade-registro";
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import {
   Campo,
@@ -123,7 +124,7 @@ function FinanceiroPage() {
     onError: (e: Error) => setErro(e.message),
   });
   const mConciliar = useMutation({
-    mutationFn: (v: { id: string; pago_em: string; valor: number; referencia_externa: string }) =>
+    mutationFn: (v: { id: string; pago_em: string; valor: number; referencia_externa: string; motivo: string }) =>
       conciliar({ data: v }),
     onSuccess: () => {
       setErro(null);
@@ -702,20 +703,27 @@ function FinanceiroPage() {
                   />
                 </Campo>
               </div>
-              <button
-                disabled={mConciliar.isPending}
-                onClick={() =>
+              <AcaoOperacional
+                rotulo="Conciliar"
+                className="mt-3 rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
+                acaoExterna="conciliar_pagamento"
+                validacaoFormulario={
+                  !conc.data || !conc.valor || !conc.referencia
+                    ? "Preencha data, valor e referência antes de confirmar a conciliação."
+                    : null
+                }
+                efeito="Marca o pagamento como confirmado e, quando a fatura estiver vinculada a um caso, libera o campo que o gate de acesso ao Portal do Cliente verifica. Não envia mensagem nem publica conteúdo."
+                onConfirmar={(motivo) => {
+                  if (mConciliar.isPending) return;
                   mConciliar.mutate({
                     id: String(detalhe["id"]),
                     pago_em: conc.data,
                     valor: Number(conc.valor),
                     referencia_externa: conc.referencia,
-                  })
-                }
-                className="mt-3 rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
-              >
-                Conciliar
-              </button>
+                    motivo,
+                  });
+                }}
+              />
             </Painel>
           )}
 

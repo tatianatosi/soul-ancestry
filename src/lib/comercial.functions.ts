@@ -15,6 +15,7 @@ import {
   type Sb,
 } from "@/lib/comercial.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { calcularResumoFinanceiroCaso, type ResumoFinanceiroCaso } from "@/lib/financeiro-caso";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -590,13 +591,13 @@ export const salvarPagamento = createServerFn({ method: "POST" })
 /** Conciliação manual: exige data, valor e referência; divergência é marcada pelo banco. */
 export const conciliarPagamento = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string; pago_em: string; valor: number; referencia_externa: string }) => {
+  .inputValidator((data: { id: string; pago_em: string; valor: number; referencia_externa: string; motivo?: string }) => {
     if (!data.pago_em) throw new Error("Conciliação exige data do pagamento.");
     if (!Number.isFinite(Number(data.valor)) || Number(data.valor) <= 0) throw new Error("Conciliação exige valor do pagamento.");
     if (!data.referencia_externa || !data.referencia_externa.trim()) {
       throw new Error("Conciliação exige referência externa.");
     }
-    return data;
+    return { ...data, motivo: data.motivo?.trim() || "Motivo não informado (fluxo sem confirmação humana explícita)." };
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
@@ -623,16 +624,42 @@ export const conciliarPagamento = createServerFn({ method: "POST" })
     // contrato-parametros.functions.ts (registrarAssinatura). Sem isto, um
     // pagamento conciliado aqui nunca libera o portal — mesma lacuna, campo
     // diferente. Só propaga quando a fatura está de fato vinculada a um caso.
+    // MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA (Lote 1): esta escrita era feita
+    // sem checar erro nem linha afetada — igual ao bug já corrigido em
+    // assinatura, só que aqui nem usava gravarComVerificacao. Também não
+    // deixava evento de histórico no caso.
     const invoiceId = r.registro["invoice_id"] as string | null | undefined;
     if (invoiceId) {
-      const { data: fatura } = await supabase
+      const { data: fatura, error: erroFatura } = await supabase
         .from("invoices")
         .select("case_id")
         .eq("id", invoiceId)
         .eq("organization_id", organizationId)
         .maybeSingle();
+      if (erroFatura) throw new Error(erroFatura.message);
       if (fatura?.case_id) {
-        await supabase.from("crm_casos").update({ pagamento_confirmado: true }).eq("id", fatura.case_id);
+        const casoRes = await supabase
+          .from("crm_casos")
+          .update({ pagamento_confirmado: true })
+          .eq("id", fatura.case_id)
+          .eq("organization_id", organizationId)
+          .select("id");
+        if (casoRes.error) throw new Error(casoRes.error.message);
+        if (!casoRes.data?.length) {
+          throw new Error(
+            "NENHUMA_LINHA_AFETADA: pagamento conciliado, mas o caso não foi marcado — revisão humana necessária antes de repetir a ação.",
+          );
+        }
+        await registrarTimelineCaso(supabase, {
+          organizationId,
+          caseId: fatura.case_id as string,
+          eventType: "caso",
+          title: "Pagamento conciliado",
+          summaryInternal: `Referência ${data.referencia_externa.trim()} — ${data.motivo}`,
+          sourceEntityType: "payments",
+          sourceEntityId: data.id,
+          userId: context.userId as string,
+        });
       }
     }
 
