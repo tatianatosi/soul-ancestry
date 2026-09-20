@@ -254,14 +254,25 @@ export const salvarEvidencia = createServerFn({ method: "POST" })
     const valores = filtrar(CAMPOS_EVIDENCIA, data.valores);
 
     const r = data.id
-      ? await supabase.from("evidences").update(valores).eq("id", data.id).select("id").maybeSingle()
+      ? await supabase.from("evidences").update(valores).eq("id", data.id).select("id,case_id").maybeSingle()
       : await supabase
           .from("evidences")
           .insert({ ...valores, organization_id: organizationId })
-          .select("id")
+          .select("id,case_id")
           .maybeSingle();
     if (r.error) throw new Error(r.error.message);
     if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+    if (r.data.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.data.case_id as string,
+        eventType: "caso",
+        title: data.id ? "Evidência atualizada" : "Evidência registrada",
+        sourceEntityType: "evidences",
+        sourceEntityId: r.data.id as string,
+        userId: context.userId as string,
+      });
+    }
     return { id: r.data.id as string };
   });
 
@@ -286,7 +297,7 @@ export const registrarValidacaoEvidencia = createServerFn({ method: "POST" })
 
     const atual = await supabase
       .from("evidences")
-      .select("id,epistemic_validation_status,confidence_level")
+      .select("id,epistemic_validation_status,confidence_level,case_id")
       .eq("id", data.evidenceId)
       .maybeSingle();
     if (atual.error) throw new Error(atual.error.message);
@@ -319,6 +330,18 @@ export const registrarValidacaoEvidencia = createServerFn({ method: "POST" })
         reviewed_at: agora,
       },
     });
+    if (atual.data.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: atual.data.case_id as string,
+        eventType: "caso",
+        title: `Validação da evidência: ${atual.data.epistemic_validation_status} → ${data.estadoNovo}`,
+        summaryInternal: justificativa,
+        sourceEntityType: "evidences",
+        sourceEntityId: data.evidenceId,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 
@@ -336,14 +359,25 @@ export const salvarProjecao = createServerFn({ method: "POST" })
     }
 
     const r = data.id
-      ? await supabase.from("app_projections").update(valores).eq("id", data.id).select("id").maybeSingle()
+      ? await supabase.from("app_projections").update(valores).eq("id", data.id).select("id,case_id").maybeSingle()
       : await supabase
           .from("app_projections")
           .insert({ ...valores, organization_id: organizationId })
-          .select("id")
+          .select("id,case_id")
           .maybeSingle();
     if (r.error) throw new Error(r.error.message);
     if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+    if (r.data.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.data.case_id as string,
+        eventType: "caso",
+        title: data.id ? "Projeção de conteúdo atualizada" : "Projeção de conteúdo criada",
+        sourceEntityType: "app_projections",
+        sourceEntityId: r.data.id as string,
+        userId: context.userId as string,
+      });
+    }
     return { id: r.data.id as string };
   });
 
@@ -551,6 +585,19 @@ export const revisarProjecao = createServerFn({ method: "POST" })
       titulo: `Projeção "${String(r.data["projection_type"])}" pronta para revisão`,
     });
 
+    if (r.data["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.data["case_id"] as string,
+        eventType: "caso",
+        title: "Projeção enviada para revisão",
+        summaryInternal: String(r.data["projection_type"] ?? ""),
+        sourceEntityType: "app_projections",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
+
     return { ok: true };
   });
 
@@ -627,7 +674,7 @@ export const arquivarRegistroG03 = createServerFn({ method: "POST" })
       archived_reason: motivo,
     };
     if (data.tabela === "app_projections") patch["approval_status"] = "archived";
-    await gravarComVerificacao({
+    const r = await gravarComVerificacao({
       supabase,
       tabela: data.tabela,
       id: data.id,
@@ -635,6 +682,18 @@ export const arquivarRegistroG03 = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: patch,
     });
+    if (r.registro["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.registro["case_id"] as string,
+        eventType: "caso",
+        title: `Registro arquivado: ${data.tabela === "evidences" ? "evidência" : "projeção"}`,
+        summaryInternal: motivo,
+        sourceEntityType: data.tabela,
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 
