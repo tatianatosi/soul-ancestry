@@ -9,7 +9,13 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { arquivarRegistro, criarRegistro } from "@/lib/saas.functions";
-import { ativarCliente, listarPessoasCliente, reclassificarPessoa } from "@/lib/clientes.functions";
+import {
+  ativarCliente,
+  listarPessoasCliente,
+  reclassificarPessoa,
+  verificarDuplicidadeCliente,
+  type PossivelDuplicidadeCliente,
+} from "@/lib/clientes.functions";
 import {
   CAMADAS,
   CLASSIFICACOES,
@@ -104,6 +110,7 @@ function ClientesPage() {
   const reclassificar = useServerFn(reclassificarPessoa);
   const arquivar = useServerFn(arquivarRegistro);
   const criar = useServerFn(criarRegistro);
+  const verificarDuplicidade = useServerFn(verificarDuplicidadeCliente);
 
   const [filtros, setFiltros] = useState<Filtros>(FILTROS_PADRAO);
   const [erro, setErro] = useState<string | null>(null);
@@ -116,6 +123,8 @@ function ClientesPage() {
     null,
   );
   const [novo, setNovo] = useState<Record<string, string> | null>(null);
+  const [duplicidadesNovo, setDuplicidadesNovo] = useState<PossivelDuplicidadeCliente[]>([]);
+  const [verificandoDuplicidade, setVerificandoDuplicidade] = useState(false);
 
   const q = useQuery({ queryKey: ["clientes-pessoas"], queryFn: () => carregar() });
   const pessoas = q.data ?? [];
@@ -671,29 +680,78 @@ function ClientesPage() {
                 </select>
               </label>
             </div>
+
+            {duplicidadesNovo.length ? (
+              <div className="mt-3 rounded-lg border border-terracotta/40 bg-terracotta/5 p-3">
+                <p className="text-xs font-medium text-terracotta">Possíveis duplicidades</p>
+                <ul className="mt-2 space-y-1 text-xs text-navy/70">
+                  {duplicidadesNovo.map((d) => (
+                    <li key={d.id}>
+                      <strong>{d.nome}</strong> · {d.email ?? "sem e-mail"} · {d.telefone ?? "sem telefone"} —{" "}
+                      {d.motivo}
+                      <Link
+                        to="/pessoas/$clienteId"
+                        params={{ clienteId: d.id }}
+                        className="ml-2 underline"
+                        onClick={() => {
+                          setNovo(null);
+                          setDuplicidadesNovo([]);
+                        }}
+                      >
+                        abrir ficha existente
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-[11px] text-navy/50">
+                  Cadastrar de novo grava mesmo assim, como pessoa diferente.
+                </p>
+              </div>
+            ) : null}
+
             <div className="mt-3 flex justify-end gap-2">
               <button
                 type="button"
                 className="rounded-md border border-navy/15 px-3 py-1.5 text-sm"
-                onClick={() => setNovo(null)}
+                onClick={() => {
+                  setNovo(null);
+                  setDuplicidadesNovo([]);
+                }}
               >
                 Cancelar
               </button>
               <button
                 type="button"
-                className="rounded-md bg-navy px-3 py-1.5 text-sm text-cream"
-                onClick={() => {
+                disabled={verificandoDuplicidade}
+                className="rounded-md bg-navy px-3 py-1.5 text-sm text-cream disabled:opacity-60"
+                onClick={async () => {
+                  if (!novo) return;
                   const dados = {
                     ...novo,
                     status: "pre_onboarding",
                     classificacao: novo["classificacao"] ?? "pre_cliente",
                   };
-                  void executar(() => criar({ data: { entidade: "clientes", dados } })).then(() =>
-                    setNovo(null),
-                  );
+                  if (!duplicidadesNovo.length) {
+                    setVerificandoDuplicidade(true);
+                    try {
+                      const { duplicidades } = await verificarDuplicidade({
+                        data: { nome: novo.nome ?? "", email: novo.email, telefone: novo.telefone },
+                      });
+                      if (duplicidades.length) {
+                        setDuplicidadesNovo(duplicidades);
+                        return;
+                      }
+                    } finally {
+                      setVerificandoDuplicidade(false);
+                    }
+                  }
+                  void executar(() => criar({ data: { entidade: "clientes", dados } })).then(() => {
+                    setNovo(null);
+                    setDuplicidadesNovo([]);
+                  });
                 }}
               >
-                Cadastrar
+                {duplicidadesNovo.length ? "Cadastrar mesmo assim" : "Cadastrar"}
               </button>
             </div>
           </div>

@@ -129,6 +129,65 @@ export const ativarCliente = createServerFn({ method: "POST" })
     return { ok: true, salvoEm: r.salvoEm };
   });
 
+const soDigitos = (v: string) => v.replace(/\D+/g, "");
+const normalizarNome = (v: string) =>
+  v
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+
+export type PossivelDuplicidadeCliente = {
+  id: string;
+  nome: string;
+  email: string | null;
+  telefone: string | null;
+  classificacao: string | null;
+  motivo: string;
+};
+
+/**
+ * Cadastro de cliente (clientes.tsx) não tinha nenhuma checagem de
+ * duplicidade — mesmo padrão que já existe para lead (`buscarDuplicidades`
+ * em crm-desk.functions.ts), aqui restrito à mesma organização e a
+ * registros não arquivados. Não usa CPF: `clientes` não tem coluna de
+ * documento validada (ver `docs/design-system/mascaras-e-validadores.md`,
+ * "CPF" é dona de `case_members.cpf", não de `clientes`) — checagem por
+ * e-mail/telefone/nome, igual ao lead.
+ */
+export const verificarDuplicidadeCliente = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { nome: string; email?: string | null; telefone?: string | null }) => d)
+  .handler(async ({ data, context }): Promise<{ duplicidades: PossivelDuplicidadeCliente[] }> => {
+    semCache();
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+
+    const { data: linhas } = await supabase
+      .from("clientes")
+      .select("id, nome, email, telefone, classificacao")
+      .eq("organization_id", organizationId)
+      .is("archived_at", null)
+      .limit(2000);
+
+    const email = (data.email ?? "").trim().toLowerCase();
+    const tel = soDigitos(data.telefone ?? "");
+    const telChave = tel.length >= 8 ? tel.slice(-8) : "";
+    const nome = normalizarNome(data.nome ?? "");
+
+    const achados: PossivelDuplicidadeCliente[] = [];
+    for (const l of (linhas ?? []) as PossivelDuplicidadeCliente[]) {
+      const motivos: string[] = [];
+      if (email && (l.email ?? "").trim().toLowerCase() === email) motivos.push("mesmo e-mail");
+      const lTel = soDigitos(l.telefone ?? "");
+      if (telChave && lTel.length >= 8 && lTel.slice(-8) === telChave) motivos.push("mesmo telefone");
+      if (nome && normalizarNome(l.nome ?? "") === nome) motivos.push("mesmo nome");
+      if (motivos.length) achados.push({ ...l, motivo: motivos.join(" + ") });
+    }
+    return { duplicidades: achados };
+  });
+
 /** Reclassifica a pessoa (pré-cliente ou participante do núcleo), sem exclusão física. */
 export const reclassificarPessoa = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
