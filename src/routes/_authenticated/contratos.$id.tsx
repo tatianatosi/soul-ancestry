@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { SaasShell, useSaas } from "@/components/saas/shell";
@@ -624,6 +624,23 @@ function Escopo({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
   const [titulo, setTitulo] = useState("");
   const [categoria, setCategoria] = useState("contracted_scope");
   const [status, setStatus] = useState("included");
+
+  // P0-2: "Adicionar item" só grava ao clicar — diferente de Resumo (Campo
+  // autosalva por campo, onBlur/onChange). Aqui um título digitado e ainda
+  // não confirmado se perde silenciosamente ao sair/recarregar. Mesmo
+  // padrão de aviso já usado em casos.$caseId.index.tsx (beforeunload),
+  // sem criar hook novo — só o alcance mínimo (rascunho não confirmado
+  // deste item), sem tocar cláusula, anexo ou assinatura.
+  useEffect(() => {
+    if (!titulo.trim()) return;
+    const h = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", h);
+    return () => window.removeEventListener("beforeunload", h);
+  }, [titulo]);
+
   return (
     <div className="space-y-4">
       {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
