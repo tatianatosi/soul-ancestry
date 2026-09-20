@@ -14,6 +14,7 @@ import {
 } from "@/lib/pesquisa.server";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -153,6 +154,15 @@ export const salvarPesquisa = createServerFn({ method: "POST" })
         userId,
         payload: dados,
       });
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.casoId,
+        eventType: "caso",
+        title: `Pesquisa (${data.bloco}) atualizada`,
+        sourceEntityType: alvo.nome,
+        sourceEntityId: data.id,
+        userId,
+      });
       return { id: data.id };
     }
 
@@ -187,7 +197,17 @@ export const salvarPesquisa = createServerFn({ method: "POST" })
       .select("id")
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return { id: linha?.id as string };
+    if (!linha?.id) throw new Error("NENHUMA_LINHA_AFETADA: registro de pesquisa não foi criado.");
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.casoId,
+      eventType: "caso",
+      title: `Pesquisa (${data.bloco}) registrada`,
+      sourceEntityType: alvo.nome,
+      sourceEntityId: linha.id as string,
+      userId,
+    });
+    return { id: linha.id as string };
   });
 
 /** Arquivamento com motivo: nunca há exclusão física. */
@@ -203,6 +223,7 @@ export const arquivarPesquisa = createServerFn({ method: "POST" })
     const { organizationId, papel } = await contextoPesquisa(supabase, userId);
     await exigirPesquisaNoCaso(supabase, organizationId, papel, userId, data.casoId);
     const alvo = TABELA[data.bloco];
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
     await gravarComVerificacao({
       supabase,
       tabela: alvo.nome,
@@ -212,8 +233,18 @@ export const arquivarPesquisa = createServerFn({ method: "POST" })
       payload: {
         archived_at: new Date().toISOString(),
         archived_by: userId,
-        archive_motivo: (data.motivo ?? "").trim() || "Sem motivo informado.",
+        archive_motivo: motivo,
       },
+    });
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.casoId,
+      eventType: "caso",
+      title: `Registro de pesquisa (${data.bloco}) arquivado`,
+      summaryInternal: motivo,
+      sourceEntityType: alvo.nome,
+      sourceEntityId: data.id,
+      userId,
     });
     return { ok: true };
   });

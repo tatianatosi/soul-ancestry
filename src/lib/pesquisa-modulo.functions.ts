@@ -14,6 +14,7 @@ import {
   type Sb,
 } from "@/lib/pesquisa-modulo.server";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -121,7 +122,18 @@ export const criarPesquisaParaCaso = createServerFn({ method: "POST" })
       .select("id")
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return { id: linha?.id as string, jaExistia: false };
+    if (!linha?.id) throw new Error("NENHUMA_LINHA_AFETADA: pesquisa não foi criada para o caso.");
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.casoId,
+      eventType: "caso",
+      title: "Pesquisa aberta para o caso",
+      summaryInternal: data.objetivo.trim(),
+      sourceEntityType: "research_cases",
+      sourceEntityId: linha.id as string,
+      userId,
+    });
+    return { id: linha.id as string, jaExistia: false };
   });
 
 /** Dossiê completo de uma pesquisa, com gate externo e auditoria. */
@@ -284,7 +296,7 @@ export const salvarBlocoPesquisa = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const userId = context.userId as string;
     const { organizationId, papel } = await contextoRg(supabase, userId);
-    const { podeEditar } = await pesquisaAutorizada(supabase, organizationId, papel, userId, data.researchCaseId);
+    const { podeEditar, pesquisa } = await pesquisaAutorizada(supabase, organizationId, papel, userId, data.researchCaseId);
     exigirEdicao(podeEditar);
 
     const alvo = BLOCOS[data.bloco];
@@ -301,6 +313,8 @@ export const salvarBlocoPesquisa = createServerFn({ method: "POST" })
       dados["reviewed_at"] = new Date().toISOString();
     }
 
+    const caseId = pesquisa["case_id"] as string | null | undefined;
+
     if (data.id) {
       await gravarComVerificacao({
         supabase,
@@ -310,6 +324,17 @@ export const salvarBlocoPesquisa = createServerFn({ method: "POST" })
         userId,
         payload: dados,
       });
+      if (caseId) {
+        await registrarTimelineCaso(supabase, {
+          organizationId,
+          caseId,
+          eventType: "caso",
+          title: `Pesquisa (${data.bloco}) atualizada`,
+          sourceEntityType: alvo.tabela,
+          sourceEntityId: data.id,
+          userId,
+        });
+      }
       return { id: data.id };
     }
 
@@ -318,7 +343,19 @@ export const salvarBlocoPesquisa = createServerFn({ method: "POST" })
 
     const { data: linha, error } = await supabase.from(alvo.tabela).insert(insercao).select("id").maybeSingle();
     if (error) throw new Error(error.message);
-    return { id: linha?.id as string };
+    if (!linha?.id) throw new Error("NENHUMA_LINHA_AFETADA: registro de pesquisa não foi criado.");
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: `Pesquisa (${data.bloco}) registrada`,
+        sourceEntityType: alvo.tabela,
+        sourceEntityId: linha.id as string,
+        userId,
+      });
+    }
+    return { id: linha.id as string };
   });
 
 /** Arquivamento com motivo. Nunca há exclusão física. */
@@ -332,7 +369,7 @@ export const arquivarRegistroPesquisa = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const userId = context.userId as string;
     const { organizationId, papel } = await contextoRg(supabase, userId);
-    const { podeEditar } = await pesquisaAutorizada(supabase, organizationId, papel, userId, data.researchCaseId);
+    const { podeEditar, pesquisa } = await pesquisaAutorizada(supabase, organizationId, papel, userId, data.researchCaseId);
     exigirEdicao(podeEditar);
 
     await gravarComVerificacao({
@@ -347,6 +384,18 @@ export const arquivarRegistroPesquisa = createServerFn({ method: "POST" })
         archive_reason: data.motivo.trim(),
       },
     });
+    if (pesquisa["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: pesquisa["case_id"] as string,
+        eventType: "caso",
+        title: `Registro de pesquisa (${data.bloco}) arquivado`,
+        summaryInternal: data.motivo.trim(),
+        sourceEntityType: BLOCOS[data.bloco].tabela,
+        sourceEntityId: data.id,
+        userId,
+      });
+    }
     return { ok: true };
   });
 
@@ -391,7 +440,7 @@ export const resolverPendenciaPesquisa = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const userId = context.userId as string;
     const { organizationId, papel } = await contextoRg(supabase, userId);
-    const { podeEditar } = await pesquisaAutorizada(supabase, organizationId, papel, userId, data.researchCaseId);
+    const { podeEditar, pesquisa } = await pesquisaAutorizada(supabase, organizationId, papel, userId, data.researchCaseId);
     exigirEdicao(podeEditar);
 
     await gravarComVerificacao({
@@ -407,6 +456,18 @@ export const resolverPendenciaPesquisa = createServerFn({ method: "POST" })
         resolved_at: new Date().toISOString(),
       },
     });
+    if (pesquisa["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: pesquisa["case_id"] as string,
+        eventType: "caso",
+        title: "Pendência de pesquisa resolvida",
+        summaryInternal: data.nota.trim(),
+        sourceEntityType: "research_pending_items",
+        sourceEntityId: data.id,
+        userId,
+      });
+    }
     return { ok: true };
   });
 
@@ -604,6 +665,19 @@ export const registrarLiberacaoExterna = createServerFn({ method: "POST" })
       event_type: "status_changed",
       metadata: { liberacao_externa: true, justificativa: data.justificativa.trim().slice(0, 300) },
     });
+
+    if ((rc as any)?.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: (rc as any).case_id as string,
+        eventType: "caso",
+        title: "Liberação de pesquisa externa registrada",
+        summaryInternal: data.justificativa.trim(),
+        sourceEntityType: "research_cases",
+        sourceEntityId: data.researchCaseId,
+        userId,
+      });
+    }
 
     return { ok: true };
   });
