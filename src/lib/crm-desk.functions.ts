@@ -17,6 +17,7 @@ import { TEMAS_JURIDICOS, avaliarAssinaturaPelaMatriz, canonicalizarTemaCodigo, 
 import { avaliarValidacaoJuridicaCaso } from "@/lib/validacao-juridica-caso";
 import type { Dependente } from "@/lib/dependentes";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { proprietariaOperando } from "@/lib/autoridade.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -235,7 +236,11 @@ export const arquivarLeadDesk = createServerFn({ method: "POST" })
     const supabase = (context as any).supabase;
     const userId = (context as any).userId as string;
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
-    const { data: lead } = await supabase.from("leads").select("organization_id").eq("id", data.id).maybeSingle();
+    const { data: lead } = await supabase
+      .from("leads")
+      .select("organization_id,case_id")
+      .eq("id", data.id)
+      .maybeSingle();
     if (!lead) throw new Error("Lead não encontrado nesta organização.");
     await gravarComVerificacao({
       supabase,
@@ -245,6 +250,18 @@ export const arquivarLeadDesk = createServerFn({ method: "POST" })
       userId,
       payload: { archived_at: new Date().toISOString(), archived_by: userId, archive_motivo: motivo },
     });
+    if (lead.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId: lead.organization_id as string,
+        caseId: lead.case_id as string,
+        eventType: "caso",
+        title: "Lead arquivado",
+        summaryInternal: motivo,
+        sourceEntityType: "leads",
+        sourceEntityId: data.id,
+        userId,
+      });
+    }
     return { ok: true };
   });
 

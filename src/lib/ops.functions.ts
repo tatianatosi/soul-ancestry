@@ -341,6 +341,15 @@ export const salvarMicroentrega = createServerFn({ method: "POST" })
         userId: context.userId as string,
         payload: valores,
       });
+      await registrarTimelineCaso(supabase, {
+        organizationId: ctx.organizationId,
+        caseId: valores["caso_id"] as string,
+        eventType: "caso",
+        title: "Micro-entrega atualizada",
+        sourceEntityType: "ops_microentregas",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
       return { id: data.id };
     }
 
@@ -350,6 +359,15 @@ export const salvarMicroentrega = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
+    await registrarTimelineCaso(supabase, {
+      organizationId: ctx.organizationId,
+      caseId: valores["caso_id"] as string,
+      eventType: "caso",
+      title: "Micro-entrega registrada",
+      sourceEntityType: "ops_microentregas",
+      sourceEntityId: novo.id as string,
+      userId: context.userId as string,
+    });
     return { id: novo.id as string };
   });
 
@@ -369,7 +387,8 @@ export const arquivarOps = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoOps(supabase, context.userId as string);
     exigirEscrita(ctx);
-    await gravarComVerificacao({
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
+    const r = await gravarComVerificacao({
       supabase,
       tabela: data.tabela,
       id: data.id,
@@ -378,9 +397,21 @@ export const arquivarOps = createServerFn({ method: "POST" })
       payload: {
         archived_at: new Date().toISOString(),
         archived_by: context.userId,
-        archive_motivo: (data.motivo ?? "").trim() || "Sem motivo informado.",
+        archive_motivo: motivo,
       },
     });
+    if (r.registro["caso_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId: ctx.organizationId,
+        caseId: r.registro["caso_id"] as string,
+        eventType: "caso",
+        title: `Registro operacional (${data.tabela}) arquivado`,
+        summaryInternal: motivo,
+        sourceEntityType: data.tabela,
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 
@@ -457,15 +488,20 @@ export const registrarExcecao = createServerFn({ method: "POST" })
     const ctx = await contextoOps(supabase, context.userId as string);
     if (!ctx.ehAdmin) throw new Error("Somente administração registra exceções operacionais.");
 
-    const { error } = await supabase.from("ops_excecoes").insert({
-      organization_id: ctx.organizationId,
-      caso_id: data.casoId || null,
-      tipo: data.tipo,
-      motivo: (data.motivo ?? "").trim() || "Sem motivo informado.",
-      referencia_id: data.referenciaId || null,
-      valido_ate: data.validoAte ? new Date(data.validoAte).toISOString() : validadeSugerida(data.tipo),
-      autorizado_por: context.userId,
-    });
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
+    const { data: linha, error } = await supabase
+      .from("ops_excecoes")
+      .insert({
+        organization_id: ctx.organizationId,
+        caso_id: data.casoId || null,
+        tipo: data.tipo,
+        motivo,
+        referencia_id: data.referenciaId || null,
+        valido_ate: data.validoAte ? new Date(data.validoAte).toISOString() : validadeSugerida(data.tipo),
+        autorizado_por: context.userId,
+      })
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
 
     await supabase.from("audit_logs").insert({
@@ -475,6 +511,19 @@ export const registrarExcecao = createServerFn({ method: "POST" })
       entidade: "ops_excecoes",
       valores_posteriores: { tipo: data.tipo, motivo: data.motivo, caso_id: data.casoId ?? null },
     });
+
+    if (data.casoId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId: ctx.organizationId,
+        caseId: data.casoId,
+        eventType: "caso",
+        title: `Exceção operacional registrada (${TIPOS_EXCECAO_ROTULOS[data.tipo]})`,
+        summaryInternal: motivo,
+        sourceEntityType: "ops_excecoes",
+        sourceEntityId: linha?.id as string,
+        userId: context.userId as string,
+      });
+    }
 
     return { ok: true };
   });

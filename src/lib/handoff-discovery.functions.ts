@@ -242,6 +242,17 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
         },
       });
 
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: casoExistente.id as string,
+        eventType: "caso",
+        title: "Handoff Discovery reaproveitou caso já existente",
+        summaryInternal: (casoExistente.codigo as string | null) ?? undefined,
+        sourceEntityType: "leads",
+        sourceEntityId: data.leadId,
+        userId,
+      });
+
       return {
         ok: true,
         clienteId: String(casoExistente.cliente_id),

@@ -7,6 +7,7 @@ import {
   paraCsv,
   type Sb,
 } from "@/lib/qualidade.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -100,10 +101,22 @@ export const tratarInconsistencia = createServerFn({ method: "POST" })
       })
       .eq("id", data.id)
       .eq("organization_id", ctx.organizationId)
-      .select("id,status")
+      .select("id,status,case_id,titulo")
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!linha) throw new Error("Inconsistência não encontrada nesta organização.");
+    if (linha.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId: ctx.organizationId,
+        caseId: linha.case_id as string,
+        eventType: "caso",
+        title: `Inconsistência de qualidade: ${status}`,
+        summaryInternal: `${String(linha.titulo ?? "")} — ${comentario}`,
+        sourceEntityType: "quality_issues",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     return linha as Record<string, any>;
   });
 
@@ -212,10 +225,22 @@ export const marcarItemChecklist = createServerFn({ method: "POST" })
       })
       .eq("id", data.id)
       .eq("organization_id", ctx.organizationId)
-      .select("id")
+      .select("id,case_id")
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!linhaAtualizada?.id) throw new Error("NENHUMA_LINHA_AFETADA: item de checklist não encontrado nesta organização.");
+    if (linhaAtualizada.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId: ctx.organizationId,
+        caseId: linhaAtualizada.case_id as string,
+        eventType: "caso",
+        title: `Item de checklist: ${data.status}`,
+        summaryInternal: observacao ?? undefined,
+        sourceEntityType: "case_checklist_items",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 

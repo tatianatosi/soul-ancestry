@@ -790,7 +790,10 @@ export const alterarStatusAcessoPortal = createServerFn({ method: "POST" })
 
 export const definirCasoDoAcesso = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { acessoId: string; casoId: string; conceder: boolean; motivo?: string }) => data)
+  .inputValidator((data: { acessoId: string; casoId: string; conceder: boolean; motivo?: string }) => ({
+    ...data,
+    motivo: data.motivo?.trim() || "Motivo não informado (fluxo sem confirmação humana explícita).",
+  }))
   .handler(async ({ data, context }) => {
     const helpers = await import("./portal.server");
     const supabase = context.supabase as any;
@@ -875,6 +878,16 @@ export const definirCasoDoAcesso = createServerFn({ method: "POST" })
       acao: data.conceder ? "acesso_portal_caso_concedido" : "acesso_portal_caso_revogado",
       entidadeId: data.acessoId,
       metadados: { caso_id: data.casoId },
+    });
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.casoId,
+      eventType: "caso",
+      title: data.conceder ? "Caso vinculado ao acesso do cliente ao portal" : "Caso revogado do acesso do cliente ao portal",
+      summaryInternal: data.motivo,
+      sourceEntityType: "client_portal_case_access",
+      sourceEntityId: data.acessoId,
+      userId: context.userId as string,
     });
     return { ok: true };
   });

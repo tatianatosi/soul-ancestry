@@ -680,10 +680,12 @@ function AcessosPortalPage() {
                                         }}
                                       />
                                       {v.access_status === "active" ? (
-                                        <button
-                                          onClick={async () => {
-                                            const motivo = window.prompt("Motivo da revogação do caso (opcional):");
-                                            if (motivo === null) return;
+                                        <AcaoOperacional
+                                          rotulo="Revogar caso"
+                                          className="rounded-lg border border-terracotta/40 px-2.5 py-1 text-xs text-terracotta"
+                                          acaoExterna="revogar_caso_do_acesso_portal"
+                                          efeito="Revoga o vínculo deste caso ao acesso do cliente — o cliente deixa de ver este caso no portal."
+                                          onConfirmar={async (motivo) => {
                                             try {
                                               await definirCaso({
                                                 data: { acessoId: a.id, casoId: v.case_id, conceder: false, motivo },
@@ -693,13 +695,14 @@ function AcessosPortalPage() {
                                               setErro((e as Error).message);
                                             }
                                           }}
-                                          className="rounded-lg border border-terracotta/40 px-2.5 py-1 text-xs text-terracotta"
-                                        >
-                                          Revogar caso
-                                        </button>
+                                        />
                                       ) : (
-                                        <button
-                                          onClick={async () => {
+                                        <AcaoOperacional
+                                          rotulo="Reativar caso"
+                                          className="rounded-lg border border-navy/20 px-2.5 py-1 text-xs"
+                                          acaoExterna="reativar_caso_do_acesso_portal"
+                                          efeito="Reativa o vínculo deste caso ao acesso do cliente — o cliente volta a ver este caso no portal."
+                                          onConfirmar={async () => {
                                             try {
                                               await definirCaso({
                                                 data: { acessoId: a.id, casoId: v.case_id, conceder: true },
@@ -709,10 +712,7 @@ function AcessosPortalPage() {
                                               setErro((e as Error).message);
                                             }
                                           }}
-                                          className="rounded-lg border border-navy/20 px-2.5 py-1 text-xs"
-                                        >
-                                          Reativar caso
-                                        </button>
+                                        />
                                       )}
                                     </span>
                                   </li>
