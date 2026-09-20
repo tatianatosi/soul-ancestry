@@ -11,6 +11,7 @@ import {
   type NucleoParaComparar,
 } from "@/lib/nucleo-duplicidade";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -333,6 +334,19 @@ export const executarUnificacaoNucleo = createServerFn({ method: "POST" })
         confirmacao: CONFIRMACAO_UNIFICAR,
       },
     });
+
+    if (plano.caso.caseIdFinal) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: plano.caso.caseIdFinal,
+        eventType: "caso",
+        title: "Núcleos familiares unificados",
+        summaryInternal: `Canônico "${canonico.nome}" absorveu "${origem.nome}" — ${plano.membros.filter((m) => m.acao === "mover").length} membro(s) movido(s), ${plano.membros.filter((m) => m.acao === "arquivar_por_conflito").length} arquivado(s) por conflito.`,
+        sourceEntityType: "nucleos_familiares",
+        sourceEntityId: data.canonicoId,
+        userId,
+      });
+    }
 
     return {
       ok: true as const,

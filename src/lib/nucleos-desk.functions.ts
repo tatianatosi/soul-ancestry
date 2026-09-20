@@ -8,6 +8,7 @@ import {
   ESTRUTURA_PADRAO_DOSSIE,
   type StatusFilaDrive,
 } from "@/lib/drive-provisioning";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -151,6 +152,18 @@ export const criarNucleo = createServerFn({ method: "POST" })
       .select("*")
       .single();
     if (error) throw new Error(error.message);
+    if (data.caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId: organization_id,
+        caseId: data.caseId,
+        eventType: "caso",
+        title: "Núcleo familiar criado",
+        summaryInternal: data.nome.trim(),
+        sourceEntityType: "nucleos_familiares",
+        sourceEntityId: criado.id as string,
+        userId,
+      });
+    }
     return criado;
   });
 
@@ -197,7 +210,7 @@ export const salvarDossieNucleo = createServerFn({ method: "POST" })
       .from("nucleos_familiares")
       .update(patch)
       .eq("id", data.nucleoId)
-      .select("id,dossie_mae,ambiente,nivel_acesso,link_interno,responsavel_nome,dossie_status")
+      .select("id,dossie_mae,ambiente,nivel_acesso,link_interno,responsavel_nome,dossie_status,case_id,organization_id")
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!salvo) throw new Error("Núcleo não encontrado ou sem permissão de escrita.");
@@ -207,6 +220,17 @@ export const salvarDossieNucleo = createServerFn({ method: "POST" })
       if ((salvo as any)[campo] !== valor) {
         throw new Error(`O campo ${campo} não foi persistido. Nenhuma alteração foi confirmada.`);
       }
+    }
+    if (salvo.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId: salvo.organization_id,
+        caseId: salvo.case_id,
+        eventType: "caso",
+        title: "Dossiê do núcleo familiar atualizado",
+        sourceEntityType: "nucleos_familiares",
+        sourceEntityId: data.nucleoId,
+        userId: (context as any).userId as string,
+      });
     }
     return salvo;
   });
@@ -244,7 +268,7 @@ export const salvarMembroNucleo = createServerFn({ method: "POST" })
       .from("nucleo_membros")
       .update(patch)
       .eq("id", data.membroId)
-      .select("id,nome,vinculo,processo,cliente_id")
+      .select("id,nome,vinculo,processo,cliente_id,nucleo_id,organization_id")
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!salvo) throw new Error("Requerente não encontrado ou sem permissão de escrita.");
@@ -253,6 +277,24 @@ export const salvarMembroNucleo = createServerFn({ method: "POST" })
       if ((salvo as any)[campo] !== valor) {
         throw new Error(`O campo ${campo} não foi persistido. Nenhuma alteração foi confirmada.`);
       }
+    }
+
+    const { data: nucleo } = await supabase
+      .from("nucleos_familiares")
+      .select("case_id")
+      .eq("id", salvo.nucleo_id)
+      .maybeSingle();
+    if (nucleo?.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId: salvo.organization_id,
+        caseId: nucleo.case_id,
+        eventType: "caso",
+        title: "Requerente do núcleo familiar atualizado",
+        summaryInternal: patch.nome,
+        sourceEntityType: "nucleo_membros",
+        sourceEntityId: data.membroId,
+        userId: (context as any).userId as string,
+      });
     }
     return salvo;
   });
@@ -329,6 +371,16 @@ export const encaminharFilaDrive = createServerFn({ method: "POST" })
         .select("id,status")
         .maybeSingle();
       if (insErr) throw new Error(insErr.message);
+      await registrarTimelineCaso(supabase, {
+        organizationId: caso.organization_id,
+        caseId: caso.id,
+        eventType: "caso",
+        title: `Núcleo encaminhado à fila do Drive (${criado?.status ?? avaliacao.status})`,
+        summaryInternal: avaliacao.motivos.join(" "),
+        sourceEntityType: "drive_provisioning_queue",
+        sourceEntityId: criado?.id as string,
+        userId: (context as any).userId as string,
+      });
       return { status: (criado?.status ?? avaliacao.status) as StatusFilaDrive, motivos: avaliacao.motivos };
     }
 
@@ -350,5 +402,15 @@ export const encaminharFilaDrive = createServerFn({ method: "POST" })
       .select("id,status")
       .maybeSingle();
     if (updErr) throw new Error(updErr.message);
+    await registrarTimelineCaso(supabase, {
+      organizationId: caso.organization_id,
+      caseId: caso.id,
+      eventType: "caso",
+      title: `Núcleo saiu da fila do Drive: ${existente.status} → ${atualizado?.status ?? avaliacao.status}`,
+      summaryInternal: avaliacao.motivos.join(" "),
+      sourceEntityType: "drive_provisioning_queue",
+      sourceEntityId: existente.id as string,
+      userId: (context as any).userId as string,
+    });
     return { status: (atualizado?.status ?? avaliacao.status) as StatusFilaDrive, motivos: avaliacao.motivos };
   });

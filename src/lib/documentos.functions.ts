@@ -16,6 +16,7 @@ import {
   type Sb,
 } from "@/lib/documentos.server";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -135,7 +136,7 @@ export const salvarDocumento = createServerFn({ method: "POST" })
     }
 
     if (data.id) {
-      await gravarComVerificacao({
+      const r = await gravarComVerificacao({
         supabase,
         tabela: "documents",
         id: data.id,
@@ -143,6 +144,18 @@ export const salvarDocumento = createServerFn({ method: "POST" })
         userId,
         payload: corpo,
       });
+      if (r.registro["case_id"]) {
+        await registrarTimelineCaso(supabase, {
+          organizationId,
+          caseId: r.registro["case_id"] as string,
+          eventType: "caso",
+          title: "Documento atualizado",
+          summaryInternal: corpo.titulo as string,
+          sourceEntityType: "documents",
+          sourceEntityId: data.id,
+          userId,
+        });
+      }
       return { id: data.id };
     }
 
@@ -158,7 +171,20 @@ export const salvarDocumento = createServerFn({ method: "POST" })
       .select("id")
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return { id: linha?.id as string };
+    if (!linha?.id) throw new Error("NENHUMA_LINHA_AFETADA: documento não foi criado.");
+    if (data.casoId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.casoId,
+        eventType: "caso",
+        title: "Documento registrado",
+        summaryInternal: corpo.titulo as string,
+        sourceEntityType: "documents",
+        sourceEntityId: linha.id as string,
+        userId,
+      });
+    }
+    return { id: linha.id as string };
   });
 
 /** Link temporário para download, sempre registrado em auditoria. */
@@ -220,7 +246,7 @@ export const arquivarDocumento = createServerFn({ method: "POST" })
     const { organizationId, papel } = await contextoDocumentos(supabase, userId);
     if (!PAPEIS_UPLOAD.includes(papel)) throw new Error("Seu papel não permite arquivar documentos.");
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
-    await gravarComVerificacao({
+    const r = await gravarComVerificacao({
       supabase,
       tabela: "documents",
       id: data.id,
@@ -228,6 +254,18 @@ export const arquivarDocumento = createServerFn({ method: "POST" })
       userId,
       payload: { archived_at: new Date().toISOString(), archive_motivo: motivo, status: "arquivado" },
     });
+    if (r.registro["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.registro["case_id"] as string,
+        eventType: "caso",
+        title: "Documento arquivado",
+        summaryInternal: motivo,
+        sourceEntityType: "documents",
+        sourceEntityId: data.id,
+        userId,
+      });
+    }
     return { ok: true };
   });
 
@@ -276,20 +314,35 @@ export const registrarConsentimento = createServerFn({ method: "POST" })
     if (!["admin", "operacoes", "comercial"].includes(papel)) {
       throw new Error("Somente administração, operações ou comercial registram consentimentos.");
     }
-    const { error } = await supabase.from("consent_records").insert({
-      organization_id: organizationId,
-      client_id: data.clienteId,
-      case_id: data.casoId ?? null,
-      tipo_consentimento: data.tipo,
-      versao_texto: data.versaoTexto.trim().slice(0, 120),
-      texto_aceito: limparTexto(data.textoAceito, 8000),
-      metodo_coleta: data.metodoColeta,
-      escopo_compartilhamento: limparTexto(data.escopoCompartilhamento),
-      evidencia_consentimento: limparTexto(data.evidenciaConsentimento, 500),
-      coletado_em: data.coletadoEm ? new Date(data.coletadoEm).toISOString() : new Date().toISOString(),
-      status: "coletado",
-    });
+    const { data: linha, error } = await supabase
+      .from("consent_records")
+      .insert({
+        organization_id: organizationId,
+        client_id: data.clienteId,
+        case_id: data.casoId ?? null,
+        tipo_consentimento: data.tipo,
+        versao_texto: data.versaoTexto.trim().slice(0, 120),
+        texto_aceito: limparTexto(data.textoAceito, 8000),
+        metodo_coleta: data.metodoColeta,
+        escopo_compartilhamento: limparTexto(data.escopoCompartilhamento),
+        evidencia_consentimento: limparTexto(data.evidenciaConsentimento, 500),
+        coletado_em: data.coletadoEm ? new Date(data.coletadoEm).toISOString() : new Date().toISOString(),
+        status: "coletado",
+      })
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (data.casoId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.casoId,
+        eventType: "caso",
+        title: `Consentimento registrado (${data.tipo})`,
+        sourceEntityType: "consent_records",
+        sourceEntityId: linha?.id as string,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 
@@ -307,7 +360,7 @@ export const revogarConsentimento = createServerFn({ method: "POST" })
       throw new Error("Somente administração ou operações revogam consentimentos.");
     }
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
-    await gravarComVerificacao({
+    const r = await gravarComVerificacao({
       supabase,
       tabela: "consent_records",
       id: data.id,
@@ -319,6 +372,18 @@ export const revogarConsentimento = createServerFn({ method: "POST" })
         revogacao_motivo: motivo.slice(0, 1000),
       },
     });
+    if (r.registro["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.registro["case_id"] as string,
+        eventType: "caso",
+        title: "Consentimento revogado",
+        summaryInternal: motivo,
+        sourceEntityType: "consent_records",
+        sourceEntityId: data.id,
+        userId,
+      });
+    }
     return { ok: true };
   });
 
@@ -335,15 +400,31 @@ export const registrarExcecaoConsentimento = createServerFn({ method: "POST" })
     const { organizationId, papel } = await contextoDocumentos(supabase, userId);
     if (papel !== "admin") throw new Error("Somente administração registra exceções formais.");
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
-    const { error } = await supabase.from("consent_exceptions").insert({
-      organization_id: organizationId,
-      case_id: data.casoId ?? null,
-      client_id: data.clienteId ?? null,
-      motivo: motivo.slice(0, 1000),
-      valido_ate: data.validoAte || null,
-      aprovado_por: userId,
-    });
+    const { data: linha, error } = await supabase
+      .from("consent_exceptions")
+      .insert({
+        organization_id: organizationId,
+        case_id: data.casoId ?? null,
+        client_id: data.clienteId ?? null,
+        motivo: motivo.slice(0, 1000),
+        valido_ate: data.validoAte || null,
+        aprovado_por: userId,
+      })
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (data.casoId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.casoId,
+        eventType: "caso",
+        title: "Exceção de consentimento registrada",
+        summaryInternal: motivo,
+        sourceEntityType: "consent_exceptions",
+        sourceEntityId: linha?.id as string,
+        userId,
+      });
+    }
     return { ok: true };
   });
 
