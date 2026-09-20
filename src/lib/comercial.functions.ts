@@ -558,6 +558,24 @@ export const listarAjustes = createServerFn({ method: "GET" })
     return (data ?? []) as Record<string, any>[];
   });
 
+/**
+ * MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA: mesma busca já usada em
+ * conciliarPagamento para achar o caso de uma fatura, extraída aqui para
+ * também ser reaproveitada por salvarPagamento — sem tabela nova, sem
+ * segundo escritor.
+ */
+async function casoDaFatura(supabase: Sb, organizationId: string, invoiceId: string | null | undefined) {
+  if (!invoiceId) return null;
+  const { data: fatura, error } = await supabase
+    .from("invoices")
+    .select("case_id")
+    .eq("id", invoiceId)
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return (fatura?.case_id as string | undefined) ?? null;
+}
+
 export const salvarPagamento = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { id?: string; dados: Record<string, unknown> }) => data)
@@ -567,7 +585,7 @@ export const salvarPagamento = createServerFn({ method: "POST" })
     exigirPapel(papel, PAPEIS_FINANCEIRO, "Alteração financeira exige papel financeiro ou admin.");
     const dados = limpar("payments", data.dados);
     if (data.id) {
-      await gravarComVerificacao({
+      const r = await gravarComVerificacao({
         supabase,
         tabela: "payments",
         id: data.id,
@@ -575,6 +593,19 @@ export const salvarPagamento = createServerFn({ method: "POST" })
         userId: context.userId as string,
         payload: dados,
       });
+      const caseId = await casoDaFatura(supabase, organizationId, r.registro["invoice_id"] as string | null | undefined);
+      if (caseId) {
+        await registrarTimelineCaso(supabase, {
+          organizationId,
+          caseId,
+          eventType: "caso",
+          title: "Pagamento atualizado",
+          summaryInternal: `Status: ${String(r.registro["status"] ?? "")}`,
+          sourceEntityType: "payments",
+          sourceEntityId: data.id,
+          userId: context.userId as string,
+        });
+      }
       return { id: data.id };
     }
     if (!dados["invoice_id"]) throw new Error("Vincule o pagamento a uma fatura.");
@@ -585,6 +616,19 @@ export const salvarPagamento = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: { ...dados, status: dados["status"] ?? "pendente" },
     });
+    const caseId = await casoDaFatura(supabase, organizationId, linha.registro["invoice_id"] as string | null | undefined);
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: "Pagamento registrado",
+        summaryInternal: `Status: ${String(linha.registro["status"] ?? "")}`,
+        sourceEntityType: "payments",
+        sourceEntityId: linha.id,
+        userId: context.userId as string,
+      });
+    }
     return { id: linha.id };
   });
 
