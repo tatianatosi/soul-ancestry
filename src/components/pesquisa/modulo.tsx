@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo, useState } from "react";
 import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -237,20 +238,17 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
 
   const linhaAcoes = (bloco: BlocoRg, item: Record<string, any>) =>
     podeEditar ? (
-      <div className="flex gap-2 text-[11px]">
+      <div className="flex items-center gap-2 text-[11px]">
         <button className="text-navy/60 underline" onClick={() => setEditando({ bloco, id: item["id"] })}>
           Editar
         </button>
-        <button
-          className="text-terracotta underline"
-          onClick={() => {
-            const motivo = window.prompt("Motivo do arquivamento (opcional, não há exclusão física):");
-            if (motivo === null) return;
-            acao.mutate(() => arquivar({ data: { researchCaseId, bloco, id: item["id"], motivo } }));
-          }}
-        >
-          Arquivar
-        </button>
+        <AcaoOperacional
+          rotulo="Arquivar"
+          className="h-auto rounded-none border-0 bg-transparent p-0 text-[11px] text-terracotta underline hover:bg-transparent"
+          acaoExterna="arquivar_registro_pesquisa"
+          efeito="Arquiva o registro com motivo — não há exclusão física, o dado continua auditável."
+          onConfirmar={(motivo) => acao.mutate(() => arquivar({ data: { researchCaseId, bloco, id: item["id"], motivo } }))}
+        />
       </div>
     ) : null;
 
@@ -309,16 +307,13 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
           </p>
         )}
         {podeEditar && gate?.elegivel && d.pesquisa["external_research_gate_status"] !== "released_by_authorized_user" && (
-          <button
+          <AcaoOperacional
+            rotulo="Registrar liberação humana da pesquisa externa"
             className="mt-2 rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
-            onClick={() => {
-              const j = window.prompt("Justificativa da liberação da pesquisa externa:");
-              if (!j) return;
-              acao.mutate(() => liberar({ data: { researchCaseId, justificativa: j } }));
-            }}
-          >
-            Registrar liberação humana da pesquisa externa
-          </button>
+            acaoExterna="liberar_pesquisa_externa"
+            efeito="Libera a pesquisa externa (nominal) para este caso. Nenhuma ação externa é executada automaticamente — só registra a decisão humana."
+            onConfirmar={(justificativa) => acao.mutate(() => liberar({ data: { researchCaseId, justificativa } }))}
+          />
         )}
       </Painel>
 
@@ -648,16 +643,13 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
                       >
                         Criar tarefa no Desk
                       </button>
-                      <button
-                        className="text-navy/60 underline"
-                        onClick={() => {
-                          const nota = window.prompt("Como a pendência foi resolvida? (opcional)");
-                          if (nota === null) return;
-                          acao.mutate(() => resolver({ data: { researchCaseId, id: p["id"], nota } }));
-                        }}
-                      >
-                        Resolver
-                      </button>
+                      <AcaoOperacional
+                        rotulo="Resolver"
+                        className="h-auto rounded-none border-0 bg-transparent p-0 text-[11px] text-navy/60 underline hover:bg-transparent"
+                        acaoExterna="resolver_pendencia_pesquisa"
+                        efeito="Marca a pendência como resolvida, com a nota registrada."
+                        onConfirmar={(nota) => acao.mutate(() => resolver({ data: { researchCaseId, id: p["id"], nota } }))}
+                      />
                     </div>
                   )}
                   {linhaAcoes("pendencias", p)}
