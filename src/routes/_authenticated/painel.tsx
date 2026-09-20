@@ -2,8 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { HojeConectado } from "@/components/desk/superficies-kit-conectadas";
 import { useGoLive } from "@/components/golive/dados";
-import { SaasShell } from "@/components/saas/shell";
+import { EstadoVazio, SaasShell } from "@/components/saas/shell";
 import { Button } from "@/components/ui/button";
+import { CaCard } from "@/components/ui/ca-card";
 import { totaisFinanceiros } from "@/lib/golive-analitico";
 import { saudeDosLeads, type LeadComercial } from "@/lib/golive-comercial";
 import { riscosEPrazos } from "@/lib/golive-juridico";
@@ -49,7 +50,7 @@ function PainelConsolidado() {
 
   if (isPending) return <p className="mt-8 text-sm text-navy/60">Carregando indicadores consolidados…</p>;
   if (error) return <p className="mt-8 text-sm text-terracotta">Não foi possível carregar os indicadores consolidados.</p>;
-  if (!caso) return <p className="mt-8 text-sm text-navy/60">Sem registros para consolidar.</p>;
+  if (!caso) return <EstadoVazio mensagem="Sem registros para consolidar — nenhuma organização com dados suficientes foi encontrada." />;
 
   const hoje = kpisHoje(caso.carteira, caso.tarefas);
   const leads = caso.leadsComerciais as LeadComercial[];
@@ -124,15 +125,17 @@ function PainelConsolidado() {
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         {secoes.map((secao) => (
-          <article key={secao.titulo} className="min-w-0 border-t-2 border-gold bg-background/55 p-4 shadow-sm">
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-              <div className="min-w-0">
-                <h3 className="font-serif text-xl text-navy">{secao.titulo}</h3>
-                <p className="text-xs text-navy/55">Escopo: {secao.escopo}</p>
-              </div>
-              <Button asChild size="sm" variant="outline"><Link to={secao.to}>Abrir</Link></Button>
-            </div>
-            <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+          <CaCard
+            key={secao.titulo}
+            titulo={secao.titulo}
+            eyebrow={`Escopo: ${secao.escopo}`}
+            acao={
+              <Button asChild size="sm" variant="outline">
+                <Link to={secao.to}>Abrir</Link>
+              </Button>
+            }
+          >
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
               {secao.indicadores.map((item) => (
                 <div key={item.rotulo} className="min-w-0 border-l border-navy/15 pl-3">
                   <dd className="break-words text-lg font-semibold text-navy">{item.valor}</dd>
@@ -140,7 +143,7 @@ function PainelConsolidado() {
                 </div>
               ))}
             </dl>
-          </article>
+          </CaCard>
         ))}
       </div>
     </section>
