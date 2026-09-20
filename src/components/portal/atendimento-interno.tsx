@@ -264,13 +264,13 @@ export function AtendimentoInterno() {
   });
 
   const confirmarDocumentos = useMutation({
-    mutationFn: (p: { caseId: string; motivo?: string }) => confirmarDocsMinimos({ data: p }),
+    mutationFn: (p: { caseId: string; motivo: string }) => confirmarDocsMinimos({ data: p }),
     onSuccess: confirmar("Documentos mínimos confirmados."),
     onError: falhar,
   });
 
   const publicar = useMutation({
-    mutationFn: (p: { caseId: string; tipo: "marco" | "arvore"; conteudo: string }) => publicarProjecao({ data: p }),
+    mutationFn: (p: { caseId: string; tipo: "marco" | "arvore"; conteudo: string; motivo: string }) => publicarProjecao({ data: p }),
     onSuccess: () => {
       setPublicacaoTexto("");
       toast.success("Projeção publicada.");
@@ -391,14 +391,16 @@ export function AtendimentoInterno() {
         </div>
         {bloqueioSelecionado ? <Pendencia motivos={bloqueioSelecionado.motivos} /> : null}
         {casoSelecionado && casoSelecionado.documentos_minimos_ok !== true ? (
-          <button
-            type="button"
-            disabled={confirmarDocumentos.isPending}
-            onClick={() => confirmarDocumentos.mutate({ caseId: casoSelecionado.id })}
+          <AcaoOperacional
+            rotulo={confirmarDocumentos.isPending ? "Confirmando…" : "Confirmar documentos mínimos deste caso"}
             className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5 disabled:opacity-50"
-          >
-            {confirmarDocumentos.isPending ? "Confirmando…" : "Confirmar documentos mínimos deste caso"}
-          </button>
+            acaoExterna="confirmar_documentos_minimos"
+            efeito="Destrava uma das quatro condições exigidas para liberar o App Cliente deste caso."
+            onConfirmar={(motivo) => {
+              if (confirmarDocumentos.isPending) return;
+              confirmarDocumentos.mutate({ caseId: casoSelecionado.id, motivo });
+            }}
+          />
         ) : null}
         {casoSelecionado ? (
           <div id="publicacao" className="rounded-lg border border-navy/15 bg-cream/40 p-3 scroll-mt-24">
@@ -427,14 +429,17 @@ export function AtendimentoInterno() {
                 rows={2}
                 className="min-w-[16rem] flex-1 rounded border border-navy/20 px-2 py-1.5 text-xs"
               />
-              <button
-                type="button"
-                disabled={publicar.isPending || !publicacaoTexto.trim()}
-                onClick={() => publicar.mutate({ caseId: casoSelecionado.id, tipo: publicacaoTipo, conteudo: publicacaoTexto })}
+              <AcaoOperacional
+                rotulo={publicar.isPending ? "Publicando…" : "Publicar"}
                 className="rounded-lg bg-navy px-3 py-1.5 text-xs font-medium text-cream hover:bg-navy/90 disabled:opacity-50"
-              >
-                {publicar.isPending ? "Publicando…" : "Publicar"}
-              </button>
+                acaoExterna="publicar_projecao_app_cliente"
+                validacaoFormulario={!publicacaoTexto.trim() ? "Escreva o conteúdo antes de publicar." : null}
+                efeito="Publica imediatamente no App Cliente — o cliente vê ao recarregar."
+                onConfirmar={(motivo) => {
+                  if (publicar.isPending) return;
+                  publicar.mutate({ caseId: casoSelecionado.id, tipo: publicacaoTipo, conteudo: publicacaoTexto, motivo });
+                }}
+              />
             </div>
             {publicar.isSuccess ? <p className="mt-1 text-[11px] text-navy/60">Publicado.</p> : null}
           </div>

@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoDocumentos, type Sb } from "@/lib/documentos.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { contemConteudoInterno } from "@/lib/onboarding-jornada";
 import {
   CLASSIFICACAO_ENTREGA,
@@ -277,6 +278,16 @@ export const criarSolicitacaoDocumento = createServerFn({ method: "POST" })
       prazo: data.prazo,
       responsavel_id: data.responsavelId,
     });
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.casoId,
+      eventType: "caso",
+      title: "Documento solicitado ao cliente",
+      summaryInternal: titulo,
+      sourceEntityType: "portal_document_requests",
+      sourceEntityId: r.data?.id as string,
+      userId: context.userId as string,
+    });
     return { ok: true };
   });
 
@@ -287,7 +298,7 @@ export const cancelarSolicitacaoDocumento = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const { organizationId } = await contextoDocumentos(supabase, context.userId as string);
     const motivo = texto(data.motivo, 400) ?? "Sem motivo informado.";
-    await gravarComVerificacao({
+    const r = await gravarComVerificacao({
       supabase,
       tabela: "portal_document_requests",
       id: data.solicitacaoId,
@@ -298,6 +309,19 @@ export const cancelarSolicitacaoDocumento = createServerFn({ method: "POST" })
     await auditar(organizationId, context.userId as string, "solicitacao_documento_cancelada", "portal_document_requests", data.solicitacaoId, {
       motivo,
     });
+    const caseId = r.registro["case_id"] as string | undefined;
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: "Solicitação de documento cancelada",
+        summaryInternal: motivo,
+        sourceEntityType: "portal_document_requests",
+        sourceEntityId: data.solicitacaoId,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 
@@ -364,6 +388,16 @@ export const revisarEnvioCliente = createServerFn({ method: "POST" })
       data.documentoId,
       { case_id: doc.data.case_id, papel, motivo: data.decisao === "recusado" ? motivo : null },
     );
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: doc.data.case_id as string,
+      eventType: "caso",
+      title: data.decisao === "aceito" ? "Envio do cliente aceito" : "Reenvio solicitado ao cliente",
+      summaryInternal: motivo ?? undefined,
+      sourceEntityType: "documents",
+      sourceEntityId: data.documentoId,
+      userId: context.userId as string,
+    });
     return { ok: true };
   });
 
@@ -481,6 +515,16 @@ export const liberarEntregaCliente = createServerFn({ method: "POST" })
       await negar(erro instanceof Error ? erro.message : "Não foi possível gravar a entrega.", "bloqueado");
     }
     await auditar(organizationId, userId, "entrega_cliente_publicacao", "documents", data.documentoId, metadados);
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: doc.data.case_id as string,
+      eventType: "caso",
+      title: data.liberar ? "Entrega liberada ao cliente" : "Entrega recolhida do cliente",
+      summaryInternal: String(metadados["motivo"] ?? metadados["versao"] ?? ""),
+      sourceEntityType: "documents",
+      sourceEntityId: data.documentoId,
+      userId,
+    });
     return { ok: true };
   });
 
@@ -569,6 +613,16 @@ export const liberarFaturaCliente = createServerFn({ method: "POST" })
       resultado: data.liberar ? "liberado" : "recolhido",
       motivo: texto(data.motivo ?? null, 400),
     });
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: fatura.data.case_id as string,
+      eventType: "caso",
+      title: data.liberar ? "Fatura liberada ao cliente" : "Fatura recolhida do cliente",
+      summaryInternal: texto(data.motivo ?? null, 400) ?? undefined,
+      sourceEntityType: "invoices",
+      sourceEntityId: data.faturaId,
+      userId,
+    });
     return { ok: true };
   });
 
@@ -618,10 +672,21 @@ export const confirmarDocumentosMinimos = createServerFn({ method: "POST" })
       throw new Error(erro instanceof Error ? erro.message : "Não foi possível confirmar os documentos mínimos.");
     }
 
+    const motivo = texto(data.motivo ?? null, 600) ?? "Confirmado pela equipe sem observação adicional.";
     await auditar(organizationId, userId, "documentos_minimos_confirmados", "crm_casos", data.caseId, {
       quando: new Date().toISOString(),
       papel,
-      motivo: texto(data.motivo ?? null, 600) ?? "Confirmado pela equipe sem observação adicional.",
+      motivo,
+    });
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.caseId,
+      eventType: "caso",
+      title: "Documentos mínimos confirmados",
+      summaryInternal: motivo,
+      sourceEntityType: "crm_casos",
+      sourceEntityId: data.caseId,
+      userId,
     });
     return { ok: true };
   });
@@ -639,7 +704,10 @@ export const confirmarDocumentosMinimos = createServerFn({ method: "POST" })
  */
 export const publicarProjecaoApp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { caseId: string; tipo: "marco" | "arvore"; conteudo: string }) => data)
+  .inputValidator((data: { caseId: string; tipo: "marco" | "arvore"; conteudo: string; motivo?: string }) => ({
+    ...data,
+    motivo: data.motivo?.trim() || "Motivo não informado (fluxo sem confirmação humana explícita).",
+  }))
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoDocumentos(supabase, context.userId as string);
@@ -688,6 +756,17 @@ export const publicarProjecaoApp = createServerFn({ method: "POST" })
       tipo: data.tipo,
       papel,
       quando: agora,
+      motivo: data.motivo,
+    });
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.caseId,
+      eventType: "caso",
+      title: "Conteúdo publicado no App Cliente",
+      summaryInternal: `${data.tipo} — ${data.motivo}`,
+      sourceEntityType: "app_projections",
+      sourceEntityId: resultado.id as string,
+      userId,
     });
     return { ok: true, id: resultado.id };
   });
@@ -703,18 +782,32 @@ export const despublicarProjecaoApp = createServerFn({ method: "POST" })
     if (!PAPEIS_ENTREGA.includes(papel)) {
       throw new Error("Apenas admin e operações despublicam conteúdo do App Cliente.");
     }
-    await gravarComVerificacao({
+    const motivo = texto(data.motivo ?? null, 600) ?? "Despublicado pela equipe.";
+    const r = await gravarComVerificacao({
       supabase,
       tabela: "app_projections",
       id: data.projecaoId,
       organizationId,
       userId,
-      payload: { archived_at: new Date().toISOString(), archived_reason: texto(data.motivo ?? null, 600) ?? "Despublicado pela equipe." },
+      payload: { archived_at: new Date().toISOString(), archived_reason: motivo },
     });
     await auditar(organizationId, userId, "projecao_app_despublicada", "app_projections", data.projecaoId, {
       papel,
       quando: new Date().toISOString(),
     });
+    const caseId = r.registro["case_id"] as string | undefined;
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: "Conteúdo despublicado do App Cliente",
+        summaryInternal: motivo,
+        sourceEntityType: "app_projections",
+        sourceEntityId: data.projecaoId,
+        userId,
+      });
+    }
     return { ok: true };
   });
 
@@ -813,6 +906,18 @@ export const responderTicketEquipe = createServerFn({ method: "POST" })
       data.ticketId,
       { case_id: ticket.data.case_id, visivel_cliente: !data.interna },
     );
+    if (ticket.data.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: ticket.data.case_id as string,
+        eventType: "caso",
+        title: data.interna ? "Nota interna registrada no atendimento" : "Resposta enviada ao cliente no atendimento",
+        summaryInternal: corpo,
+        sourceEntityType: "portal_tickets",
+        sourceEntityId: data.ticketId,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 
@@ -826,7 +931,7 @@ export const atualizarStatusTicket = createServerFn({ method: "POST" })
     if (!permitidos.includes(data.status)) throw new Error("Situação inválida.");
     const patch: Record<string, unknown> = { status: data.status };
     if (data.responsavelId !== undefined) patch['responsavel_id'] = data.responsavelId || null;
-    await gravarComVerificacao({
+    const r = await gravarComVerificacao({
       supabase,
       tabela: "portal_tickets",
       id: data.ticketId,
@@ -834,5 +939,18 @@ export const atualizarStatusTicket = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: patch,
     });
+    const caseId = r.registro["case_id"] as string | undefined;
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: "Status do ticket de atendimento atualizado",
+        summaryInternal: `Status: ${data.status}`,
+        sourceEntityType: "portal_tickets",
+        sourceEntityId: data.ticketId,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
