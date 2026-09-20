@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { EstadoVazio, PAPEL_LABEL, SaasShell } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { definirPapel, listarUsuarios, type Papel } from "@/lib/saas.functions";
 import { obterModoProprietaria, type EventoProprietaria } from "@/lib/modo-proprietaria.functions";
@@ -48,7 +49,7 @@ function ConfiguracoesPage() {
   });
 
   const m = useMutation({
-    mutationFn: (v: { userId: string; papel: Papel; conceder: boolean }) => definir({ data: v }),
+    mutationFn: (v: { userId: string; papel: Papel; conceder: boolean; motivo: string }) => definir({ data: v }),
     onSuccess: (_r, variaveis) => {
       toast.success(
         variaveis.conceder
@@ -125,17 +126,25 @@ function ConfiguracoesPage() {
                 {PAPEIS.map((papel) => {
                   const ativo = u.papeis.includes(papel);
                   return (
-                    <button
+                    <AcaoOperacional
                       key={papel}
-                      onClick={() => m.mutate({ userId: u.userId, papel, conceder: !ativo })}
+                      rotulo={PAPEL_LABEL[papel]}
+                      acaoExterna="definir_papel_membro"
+                      efeito={
+                        ativo
+                          ? `Remove o papel ${PAPEL_LABEL[papel]} deste membro.`
+                          : `Concede o papel ${PAPEL_LABEL[papel]} a este membro — inclui acesso administrativo quando aplicável.`
+                      }
                       className={
                         ativo
                           ? "rounded-full bg-navy px-3 py-1 text-xs text-cream"
                           : "rounded-full border border-navy/20 px-3 py-1 text-xs text-navy/60 hover:bg-navy/5"
                       }
-                    >
-                      {PAPEL_LABEL[papel]}
-                    </button>
+                      onConfirmar={(motivo) => {
+                        if (m.isPending) return;
+                        m.mutate({ userId: u.userId, papel, conceder: !ativo, motivo });
+                      }}
+                    />
                   );
                 })}
               </div>

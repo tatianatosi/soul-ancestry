@@ -652,8 +652,16 @@ function AcessosPortalPage() {
                                       </span>
                                     </span>
                                     <span className="flex gap-2">
-                                      <button
-                                        onClick={async () => {
+                                      <AcaoOperacional
+                                        rotulo={caso?.app_access_status === "liberado" ? "Bloquear no app" : "Liberar no app"}
+                                        className="rounded-lg border border-navy/20 px-2.5 py-1 text-xs"
+                                        acaoExterna="liberar_acesso_app_cliente"
+                                        efeito={
+                                          caso?.app_access_status === "liberado"
+                                            ? "Bloqueia o acesso deste caso no App Cliente — o cliente deixa de ver o caso no portal."
+                                            : "Libera o acesso deste caso no App Cliente — o cliente passa a ver o caso no portal."
+                                        }
+                                        onConfirmar={async (motivo) => {
                                           try {
                                             await liberar({
                                               data: {
@@ -662,6 +670,7 @@ function AcessosPortalPage() {
                                                 nivel: "workspace",
                                                 consentimento: true,
                                                 infoLiberada: true,
+                                                motivo,
                                               },
                                             });
                                             invalidar();
@@ -669,10 +678,7 @@ function AcessosPortalPage() {
                                             setErro((e as Error).message);
                                           }
                                         }}
-                                        className="rounded-lg border border-navy/20 px-2.5 py-1 text-xs"
-                                      >
-                                        {caso?.app_access_status === "liberado" ? "Bloquear no app" : "Liberar no app"}
-                                      </button>
+                                      />
                                       {v.access_status === "active" ? (
                                         <button
                                           onClick={async () => {

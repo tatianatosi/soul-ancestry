@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -885,7 +886,8 @@ export const definirLiberacaoCaso = createServerFn({ method: "POST" })
       nivel?: "nenhum" | "workspace" | "completo";
       consentimento?: boolean;
       infoLiberada?: boolean;
-    }) => data,
+      motivo?: string;
+    }) => ({ ...data, motivo: data.motivo?.trim() || "Motivo não informado (fluxo sem confirmação humana explícita)." }),
   )
   .handler(async ({ data, context }) => {
     const helpers = await import("./portal.server");
@@ -913,5 +915,20 @@ export const definirLiberacaoCaso = createServerFn({ method: "POST" })
       entidadeId: data.casoId,
       metadados: { nivel: data.nivel ?? null },
     });
+
+    // MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA (Lote 2): esta é a ação mais
+    // sensível de /acessos-portal — libera/bloqueia acesso do cliente ao
+    // App — e não deixava evento no histórico do caso.
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.casoId,
+      eventType: "caso",
+      title: data.liberado ? "Acesso ao App Cliente liberado" : "Acesso ao App Cliente bloqueado",
+      summaryInternal: data.motivo,
+      sourceEntityType: "crm_casos",
+      sourceEntityId: data.casoId,
+      userId: context.userId as string,
+    });
+
     return { ok: true };
   });

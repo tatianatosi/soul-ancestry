@@ -279,7 +279,10 @@ export const convidarMembroEquipe = createServerFn({ method: "POST" })
 
 export const alterarPapelMembro = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string; papel: string }) => data)
+  .inputValidator((data: { id: string; papel: string; motivo?: string }) => ({
+    ...data,
+    motivo: data.motivo?.trim() || "Motivo não informado (fluxo sem confirmação humana explícita).",
+  }))
   .handler(async ({ data, context }) => {
     const h = await import("./equipe.server");
     const gestor = await h.exigirAdminEquipe(context.userId as string);
@@ -297,8 +300,10 @@ export const alterarPapelMembro = createServerFn({ method: "POST" })
       .from("staff_access")
       .update({ role: data.papel, updated_by: context.userId })
       .eq("id", data.id)
-      .eq("organization_id", gestor.organization_id);
+      .eq("organization_id", gestor.organization_id)
+      .select("id");
     if (atualizado.error) throw new Error(atualizado.error.message);
+    if (!atualizado.data?.length) throw new Error("NENHUMA_LINHA_AFETADA: papel do membro não foi alterado.");
 
     if (alvo.data.auth_user_id && alvo.data.status === "active") {
       await h.sincronizarVinculo({ ...alvo.data, role: data.papel, email: null, full_name: null }, alvo.data.auth_user_id);
@@ -309,7 +314,7 @@ export const alterarPapelMembro = createServerFn({ method: "POST" })
       userId: context.userId as string,
       acao: "equipe_papel_alterado",
       entidadeId: data.id,
-      metadados: { de: alvo.data.role, para: data.papel },
+      metadados: { de: alvo.data.role, para: data.papel, motivo: data.motivo },
     });
     return { ok: true };
   });
@@ -355,12 +360,14 @@ export const alterarStatusMembro = createServerFn({ method: "POST" })
       patch["activated_at"] = alvo.data.status === "invited" ? agora : undefined;
     }
 
-    const { error } = await h.adminClient
+    const { data: linhaStatus, error } = await h.adminClient
       .from("staff_access")
       .update(patch)
       .eq("id", data.id)
-      .eq("organization_id", gestor.organization_id);
+      .eq("organization_id", gestor.organization_id)
+      .select("id");
     if (error) throw new Error(error.message);
+    if (!linhaStatus?.length) throw new Error("NENHUMA_LINHA_AFETADA: status do membro não foi alterado.");
 
     if (data.status === "active" && alvo.data.auth_user_id) {
       await h.sincronizarVinculo({ ...alvo.data, email: null, full_name: null }, alvo.data.auth_user_id);
@@ -394,7 +401,7 @@ export const arquivarMembroEquipe = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!alvo.data) throw new Error("Membro não encontrado.");
 
-    const { error } = await h.adminClient
+    const { data: linhaArquivada, error } = await h.adminClient
       .from("staff_access")
       .update({
         status: "revoked",
@@ -404,8 +411,10 @@ export const arquivarMembroEquipe = createServerFn({ method: "POST" })
         updated_by: context.userId,
       })
       .eq("id", data.id)
-      .eq("organization_id", gestor.organization_id);
+      .eq("organization_id", gestor.organization_id)
+      .select("id");
     if (error) throw new Error(error.message);
+    if (!linhaArquivada?.length) throw new Error("NENHUMA_LINHA_AFETADA: membro não foi arquivado.");
 
     await h.revogarVinculo(alvo.data);
     await h.registrarAuditoria({

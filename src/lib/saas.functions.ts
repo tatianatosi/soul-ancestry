@@ -914,31 +914,39 @@ export const listarUsuarios = createServerFn({ method: "GET" })
 
 export const definirPapel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { userId: string; papel: Papel; conceder: boolean }) => data)
+  .inputValidator((data: { userId: string; papel: Papel; conceder: boolean; motivo?: string }) => ({
+    ...data,
+    motivo: data.motivo?.trim() || "Motivo não informado (fluxo sem confirmação humana explícita).",
+  }))
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     if (data.conceder) {
-      const { error } = await supabase
+      const { data: linha, error } = await supabase
         .from("user_roles")
-        .insert({ organization_id: organizationId, user_id: data.userId, role: data.papel });
+        .insert({ organization_id: organizationId, user_id: data.userId, role: data.papel })
+        .select("id");
       if (error && !error.message.includes("duplicate")) throw new Error(error.message);
+      if (!error && !linha?.length) throw new Error("NENHUMA_LINHA_AFETADA: papel não foi concedido.");
     } else {
       // papéis não são apagados fisicamente aqui: a remoção só é permitida ao admin via política
-      const { error } = await supabase
+      const { data: linha, error } = await supabase
         .from("user_roles")
         .delete()
         .eq("organization_id", organizationId)
         .eq("user_id", data.userId)
-        .eq("role", data.papel);
+        .eq("role", data.papel)
+        .select("id");
       if (error) throw new Error("Remoção de papel indisponível: registre a alteração com um admin.");
+      if (!linha?.length) throw new Error("NENHUMA_LINHA_AFETADA: papel não foi removido — verifique se ele existia.");
     }
-    await supabase.from("audit_logs").insert({
+    const auditRes = await supabase.from("audit_logs").insert({
       organization_id: organizationId,
       user_id: context.userId,
       acao: data.conceder ? "papel_concedido" : "papel_removido",
       entidade: "user_roles",
-      metadados: { alvo: data.userId, papel: data.papel },
+      metadados: { alvo: data.userId, papel: data.papel, motivo: data.motivo },
     });
+    if (auditRes.error) throw new Error(auditRes.error.message);
     return { ok: true };
   });

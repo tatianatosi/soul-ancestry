@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { EstadoVazio, PAPEL_LABEL, SaasShell } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { StatusEnvioRecuperacao } from "@/components/equipe/status-envio-recuperacao";
 import {
@@ -39,6 +40,115 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 const PAPEIS = ["admin", "operacoes", "pesquisador", "comercial", "financeiro", "leitura"] as const;
+
+type MembroEquipe = {
+  id: string;
+  role: string;
+  status: string;
+  full_name?: string | null;
+  demo?: boolean;
+  email?: string | null;
+  last_login_at?: string | null;
+  reason?: string | null;
+};
+
+/**
+ * MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA (Lote 2): trocar papel (inclusive
+ * admin) e suspender/revogar/arquivar exigiam só um clique ou um
+ * window.prompt com motivo opcional. Agora tudo passa por AcaoOperacional
+ * (motivo obrigatório, efeito explícito) — mesmo padrão do resto do Desk.
+ */
+function LinhaMembro({
+  m,
+  executar,
+  mudarPapel,
+  mudarStatus,
+  arquivar,
+}: {
+  m: MembroEquipe;
+  executar: (fn: () => Promise<unknown>) => Promise<void>;
+  mudarPapel: (args: { data: { id: string; papel: string; motivo: string } }) => Promise<unknown>;
+  mudarStatus: (args: { data: { id: string; status: "active" | "suspended" | "revoked"; motivo?: string } }) => Promise<unknown>;
+  arquivar: (args: { data: { id: string; motivo: string } }) => Promise<unknown>;
+}) {
+  const [papelEscolhido, setPapelEscolhido] = useState(m.role);
+
+  return (
+    <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-medium">
+            {m.full_name ?? "—"}
+            {m.demo ? <span className="ml-2 text-xs uppercase text-gold">DEMO</span> : null}
+          </p>
+          <p className="text-sm text-navy/60">{m.email}</p>
+          <p className="mt-1 text-xs uppercase tracking-wide text-navy/50">
+            {PAPEL_LABEL[m.role as keyof typeof PAPEL_LABEL]} · {STATUS_LABEL[m.status]}
+            {m.last_login_at ? ` · último acesso ${new Date(m.last_login_at).toLocaleString("pt-BR")}` : ""}
+          </p>
+          {m.reason ? <p className="mt-1 text-xs text-navy/50">Motivo: {m.reason}</p> : null}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={papelEscolhido}
+            onChange={(e) => setPapelEscolhido(e.target.value)}
+            className="rounded-lg border border-navy/20 px-2 py-1.5 text-xs"
+          >
+            {PAPEIS.map((p) => (
+              <option key={p} value={p}>
+                {PAPEL_LABEL[p]}
+              </option>
+            ))}
+          </select>
+          <AcaoOperacional
+            rotulo="Aplicar papel"
+            size="sm"
+            className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
+            acaoExterna="alterar_papel_membro"
+            validacaoFormulario={papelEscolhido === m.role ? "Escolha um papel diferente do atual antes de aplicar." : null}
+            efeito={`Altera o papel deste membro de ${PAPEL_LABEL[m.role as keyof typeof PAPEL_LABEL]} para ${PAPEL_LABEL[papelEscolhido as keyof typeof PAPEL_LABEL]} — inclui acesso administrativo quando aplicável.`}
+            onConfirmar={(motivo) => executar(() => mudarPapel({ data: { id: m.id, papel: papelEscolhido, motivo } }))}
+          />
+          {m.status !== "active" ? (
+            <AcaoOperacional
+              rotulo="Reativar"
+              size="sm"
+              className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
+              acaoExterna="reativar_membro_equipe"
+              efeito="Reativa o acesso deste membro à organização."
+              onConfirmar={(motivo) => executar(() => mudarStatus({ data: { id: m.id, status: "active", motivo } }))}
+            />
+          ) : (
+            <AcaoOperacional
+              rotulo="Suspender"
+              size="sm"
+              className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
+              acaoExterna="suspender_membro_equipe"
+              efeito="Suspende o acesso deste membro até ser reativado."
+              onConfirmar={(motivo) => executar(() => mudarStatus({ data: { id: m.id, status: "suspended", motivo } }))}
+            />
+          )}
+          <AcaoOperacional
+            rotulo="Revogar"
+            size="sm"
+            className="rounded-lg border border-terracotta/40 px-3 py-1.5 text-xs text-terracotta"
+            acaoExterna="revogar_membro_equipe"
+            efeito="Revoga o acesso deste membro à organização."
+            onConfirmar={(motivo) => executar(() => mudarStatus({ data: { id: m.id, status: "revoked", motivo } }))}
+          />
+          <AcaoOperacional
+            rotulo="Arquivar"
+            size="sm"
+            className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
+            acaoExterna="arquivar_membro_equipe"
+            efeito="Arquiva este membro — acesso revogado e registro preservado com motivo e responsável."
+            onConfirmar={(motivo) => executar(() => arquivar({ data: { id: m.id, motivo } }))}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function EquipePage() {
   const autoridade = useAutoridade();
@@ -193,76 +303,14 @@ function EquipePage() {
               {(listaMembros) => (
               <div className="mt-3 space-y-3">
                 {listaMembros.map((m) => (
-                  <div key={m.id} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-medium">
-                          {m.full_name ?? "—"}
-                          {m.demo ? <span className="ml-2 text-xs uppercase text-gold">DEMO</span> : null}
-                        </p>
-                        <p className="text-sm text-navy/60">{m.email}</p>
-                        <p className="mt-1 text-xs uppercase tracking-wide text-navy/50">
-                          {PAPEL_LABEL[m.role as keyof typeof PAPEL_LABEL]} · {STATUS_LABEL[m.status]}
-                          {m.last_login_at
-                            ? ` · último acesso ${new Date(m.last_login_at).toLocaleString("pt-BR")}`
-                            : ""}
-                        </p>
-                        {m.reason ? <p className="mt-1 text-xs text-navy/50">Motivo: {m.reason}</p> : null}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <select
-                          value={m.role}
-                          onChange={(e) => executar(() => mudarPapel({ data: { id: m.id, papel: e.target.value } }))}
-                          className="rounded-lg border border-navy/20 px-2 py-1.5 text-xs"
-                        >
-                          {PAPEIS.map((p) => (
-                            <option key={p} value={p}>
-                              {PAPEL_LABEL[p]}
-                            </option>
-                          ))}
-                        </select>
-                        {m.status !== "active" ? (
-                          <button
-                            onClick={() => executar(() => mudarStatus({ data: { id: m.id, status: "active" } }))}
-                            className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
-                          >
-                            Reativar
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              const motivo = window.prompt("Motivo da suspensão (opcional):");
-                              if (motivo === null) return;
-                              executar(() => mudarStatus({ data: { id: m.id, status: "suspended", motivo } }));
-                            }}
-                            className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
-                          >
-                            Suspender
-                          </button>
-                        )}
-                        <button
-                          onClick={() => {
-                            const motivo = window.prompt("Motivo da revogação (opcional):");
-                            if (motivo === null) return;
-                            executar(() => mudarStatus({ data: { id: m.id, status: "revoked", motivo } }));
-                          }}
-                          className="rounded-lg border border-terracotta/40 px-3 py-1.5 text-xs text-terracotta"
-                        >
-                          Revogar
-                        </button>
-                        <button
-                          onClick={() => {
-                            const motivo = window.prompt("Motivo do arquivamento (opcional):");
-                            if (motivo === null) return;
-                            executar(() => arquivar({ data: { id: m.id, motivo } }));
-                          }}
-                          className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
-                        >
-                          Arquivar
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                  <LinhaMembro
+                    key={m.id}
+                    m={m}
+                    executar={executar}
+                    mudarPapel={mudarPapel}
+                    mudarStatus={mudarStatus}
+                    arquivar={arquivar}
+                  />
                 ))}
               </div>
               )}
