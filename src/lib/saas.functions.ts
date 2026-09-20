@@ -754,6 +754,7 @@ export const arquivarRegistro = createServerFn({ method: "POST" })
       archived_by: context.userId,
       archive_motivo: data.motivo.trim(),
     };
+    let caseId: string | null = null;
     // eventos_financeiros não tem coluna updated_by (ver atualizarRegistro).
     if (data.entidade === "eventos_financeiros") {
       const { data: linhaAtualizada, error } = await supabase
@@ -761,12 +762,13 @@ export const arquivarRegistro = createServerFn({ method: "POST" })
         .update(payload)
         .eq("id", data.id)
         .eq("organization_id", organizationId)
-        .select("id")
+        .select("id,caso_id")
         .maybeSingle();
       if (error) throw new Error(error.message);
       if (!linhaAtualizada?.id) throw new Error("NENHUMA_LINHA_AFETADA: nada foi gravado.");
+      caseId = ((linhaAtualizada as Linha)?.caso_id as string | undefined) ?? null;
     } else {
-      await gravarComVerificacao({
+      const r = await gravarComVerificacao({
         supabase: supabase as never,
         tabela: data.entidade,
         id: data.id,
@@ -774,7 +776,50 @@ export const arquivarRegistro = createServerFn({ method: "POST" })
         userId: context.userId as string,
         payload,
       });
+      const registro = r.registro as Linha;
+      // MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA: arquivamento é irreversível
+      // pela tela, então precisa deixar rastro no histórico do caso quando
+      // a entidade for case-scoped. Cada tabela usa um nome de coluna
+      // diferente (case_id vs. caso_id) e payments só chega ao caso via
+      // invoice_id — leads/clientes/client_contacts não têm caso ainda.
+      if (data.entidade === "crm_casos") {
+        caseId = data.id;
+      } else if (data.entidade === "evidencias" || data.entidade === "tarefas") {
+        caseId = (registro?.["caso_id"] as string | undefined) ?? null;
+      } else if (data.entidade === "payments") {
+        const invoiceId = registro?.["invoice_id"] as string | undefined;
+        if (invoiceId) {
+          const { data: fatura } = await supabase
+            .from("invoices")
+            .select("case_id")
+            .eq("id", invoiceId)
+            .maybeSingle();
+          caseId = ((fatura as Linha | null)?.["case_id"] as string | undefined) ?? null;
+        }
+      } else if (
+        data.entidade === "case_members" ||
+        data.entidade === "documents" ||
+        data.entidade === "consent_records" ||
+        data.entidade === "proposals" ||
+        data.entidade === "invoices"
+      ) {
+        caseId = (registro?.["case_id"] as string | undefined) ?? null;
+      }
     }
+
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: `Registro arquivado: ${data.entidade}`,
+        summaryInternal: data.motivo.trim(),
+        sourceEntityType: data.entidade,
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
+
     return { ok: true };
   });
 

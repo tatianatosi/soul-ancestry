@@ -121,6 +121,16 @@ export const salvarCaseService = createServerFn({ method: "POST" })
         userId: context.userId as string,
         payload,
       });
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.caseId,
+        eventType: "caso",
+        title: "Serviço do caso atualizado",
+        summaryInternal: `Produto-pai/trilha atualizados`,
+        sourceEntityType: "case_services",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
       return { id: data.id, salvoEm: r.salvoEm };
     }
 
@@ -130,6 +140,15 @@ export const salvarCaseService = createServerFn({ method: "POST" })
       organizationId,
       userId: context.userId as string,
       payload: { ...payload, case_id: data.caseId },
+    });
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.caseId,
+      eventType: "caso",
+      title: "Serviço do caso criado",
+      sourceEntityType: "case_services",
+      sourceEntityId: r.id,
+      userId: context.userId as string,
     });
     return { id: r.id, salvoEm: r.salvoEm };
   });
@@ -162,6 +181,17 @@ export const aplicarEtiqueta = createServerFn({ method: "POST" })
         source: "desk_manual",
       },
     });
+    if (data.entityType === "case") {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.entityId,
+        eventType: "caso",
+        title: "Etiqueta aplicada ao caso",
+        sourceEntityType: "entity_labels",
+        sourceEntityId: r.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true, id: r.id, salvoEm: r.salvoEm };
   });
 
@@ -181,6 +211,17 @@ export const removerEtiqueta = createServerFn({ method: "POST" })
       payload: {},
       derivados: { removed_at: removidoEm, removed_by: context.userId },
     });
+    if (r.registro["entity_type"] === "case") {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.registro["entity_id"] as string,
+        eventType: "caso",
+        title: "Etiqueta removida do caso",
+        sourceEntityType: "entity_labels",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true, salvoEm: r.salvoEm };
   });
 
@@ -344,6 +385,15 @@ export const voltarProximaAcaoAoAutomatico = createServerFn({ method: "POST" })
         proxima_acao_justificativa: null,
       },
     });
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.caseId,
+      eventType: "caso",
+      title: "Próxima ação revertida ao cálculo automático",
+      sourceEntityType: "crm_casos",
+      sourceEntityId: data.caseId,
+      userId: context.userId as string,
+    });
     return { ok: true };
   });
 
@@ -369,6 +419,15 @@ export const marcarSemNovaAcaoNecessaria = createServerFn({ method: "POST" })
         proxima_acao_codigo: "sem_nova_acao_necessaria",
         proxima_acao_justificativa: null,
       },
+    });
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.caseId,
+      eventType: "caso",
+      title: "Marcado: sem nova ação necessária",
+      sourceEntityType: "crm_casos",
+      sourceEntityId: data.caseId,
+      userId: context.userId as string,
     });
     return { ok: true };
   });
@@ -454,6 +513,17 @@ export const aprovarRascunho = createServerFn({ method: "POST" })
       payload: data.corpo === undefined ? { status: "approved" } : { corpo_rascunho: data.corpo, status: "approved" },
       derivados: { approved_at: new Date().toISOString(), approved_by: context.userId },
     });
+    if (r.registro["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.registro["case_id"] as string,
+        eventType: "caso",
+        title: "Rascunho de comunicação aprovado",
+        sourceEntityType: "communication_queue",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true, enviado: false, salvoEm: r.salvoEm };
   });
 
@@ -491,6 +561,18 @@ export const atualizarItemOnboarding = createServerFn({ method: "POST" })
         concluido_por: data.status === "concluido" ? context.userId : null,
       },
     });
+    if (item.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: item.case_id as string,
+        eventType: "caso",
+        title: `Item de onboarding atualizado: ${data.status}`,
+        summaryInternal: String(item.item_code ?? ""),
+        sourceEntityType: "onboarding_checklist",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true, salvoEm: r.salvoEm };
   });
 
@@ -598,6 +680,19 @@ export const sincronizarMembrosDoCaso = createServerFn({ method: "POST" })
       user_id: context.userId as string,
       metadados: { case_id: data.caseId, plano, criados },
     });
+
+    if (criados > 0) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.caseId,
+        eventType: "caso",
+        title: "Membros do caso sincronizados a partir do núcleo",
+        summaryInternal: `${criados} membro(s) criado(s) em case_members a partir de nucleo_membros.`,
+        sourceEntityType: "case_members",
+        sourceEntityId: data.caseId,
+        userId: context.userId as string,
+      });
+    }
 
     return { simulado: false, plano, criados };
   });
