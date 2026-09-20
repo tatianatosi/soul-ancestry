@@ -426,10 +426,16 @@ function FichaCaso() {
   const salvarFaturaFn = useServerFn(salvarFatura);
 
   const mRegistrarPagamento = useMutation({
-    mutationFn: async (v: { invoiceId: string; valor: number; pagoEm: string; referenciaExterna: string }) => {
+    mutationFn: async (v: { invoiceId: string; valor: number; pagoEm: string; referenciaExterna: string; motivo: string }) => {
       const criado = await salvarPagamentoFn({ data: { dados: { invoice_id: v.invoiceId, valor: v.valor } } });
       return conciliarPagamentoFn({
-        data: { id: criado.id, pago_em: v.pagoEm, valor: v.valor, referencia_externa: v.referenciaExterna },
+        data: {
+          id: criado.id,
+          pago_em: v.pagoEm,
+          valor: v.valor,
+          referencia_externa: v.referenciaExterna,
+          motivo: v.motivo,
+        },
       });
     },
     onSuccess: () => {
@@ -462,6 +468,18 @@ function FichaCaso() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  // MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA (Lote 3 — confirmação humana): os
+  // dois botões abaixo pediam os dados via window.prompt() encadeado, sem
+  // nenhuma confirmação estruturada. Os dados continuam num rascunho local
+  // (igual ao padrão já usado em financeiro.tsx "Conciliar pagamento"); só
+  // o motivo final passa a vir do modal do AcaoOperacional.
+  const [rascunhoPagamento, setRascunhoPagamento] = useState<{ valor: string; pagoEm: string; referencia: string } | null>(
+    null,
+  );
+  const [rascunhoCobranca, setRascunhoCobranca] = useState<{ valor: string; vencimento: string; descricao: string } | null>(
+    null,
+  );
 
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [salvoEm, setSalvoEm] = useState<string | null>(null);
@@ -1071,21 +1089,13 @@ function FichaCaso() {
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   type="button"
-                  disabled={mRegistrarPagamento.isPending || !qFinanceiro.data?.proximaParcela}
+                  disabled={!qFinanceiro.data?.proximaParcela || Boolean(rascunhoPagamento)}
                   onClick={() => {
                     const parcela = qFinanceiro.data?.proximaParcela;
-                    if (!parcela) return;
-                    const valorStr = prompt("Valor pago:", String(parcela.valor));
-                    if (!valorStr?.trim()) return;
-                    const pagoEm = prompt("Data do pagamento (AAAA-MM-DD):", new Date().toISOString().slice(0, 10));
-                    if (!pagoEm?.trim()) return;
-                    const referencia = prompt("Referência externa do pagamento (comprovante/transação):");
-                    if (!referencia?.trim()) return;
-                    mRegistrarPagamento.mutate({
-                      invoiceId: parcela.faturaId,
-                      valor: Number(valorStr),
-                      pagoEm: pagoEm.trim(),
-                      referenciaExterna: referencia.trim(),
+                    setRascunhoPagamento({
+                      valor: parcela ? String(parcela.valor) : "",
+                      pagoEm: new Date().toISOString().slice(0, 10),
+                      referencia: "",
                     });
                   }}
                   className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
@@ -1093,27 +1103,25 @@ function FichaCaso() {
                 >
                   Registrar pagamento
                 </button>
-                <button
-                  type="button"
-                  disabled={mPrepararCobranca.isPending}
-                  onClick={() => {
+                <AcaoOperacional
+                  rotulo="Preparar cobrança"
+                  className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
+                  acaoExterna={qFinanceiro.data?.faturaRascunhoAberta ? "preparar_cobranca_caso" : undefined}
+                  validacaoFormulario={rascunhoCobranca ? "O formulário de nova cobrança já está aberto." : null}
+                  efeito={
+                    qFinanceiro.data?.faturaRascunhoAberta
+                      ? "Emite a fatura em rascunho já existente para este caso. Só prepara internamente."
+                      : undefined
+                  }
+                  onConfirmar={() => {
                     const rascunho = qFinanceiro.data?.faturaRascunhoAberta;
                     if (rascunho) {
                       mPrepararCobranca.mutate({ faturaId: rascunho.faturaId });
                       return;
                     }
-                    const valorStr = prompt("Valor da cobrança a preparar:");
-                    if (!valorStr?.trim()) return;
-                    const vencimento = prompt("Vencimento (AAAA-MM-DD):");
-                    if (!vencimento?.trim()) return;
-                    const descricao = prompt("Descrição interna da cobrança:") ?? "";
-                    mPrepararCobranca.mutate({ valor: Number(valorStr), vencimento: vencimento.trim(), descricao });
+                    setRascunhoCobranca({ valor: "", vencimento: "", descricao: "" });
                   }}
-                  className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
-                  title="Só prepara internamente. Nenhum link, mensagem ou cobrança é enviado ao cliente."
-                >
-                  Preparar cobrança
-                </button>
+                />
               </div>
             </>
           )}
@@ -1121,6 +1129,125 @@ function FichaCaso() {
       </div>
 
       {/* No máximo: três tarefas, três atualizações, documentos prioritários, microentregas recentes e alertas críticos. */}
+      {rascunhoPagamento ? (
+        <div className="mb-6 flex flex-wrap items-end gap-2 rounded-lg border border-navy/15 bg-cream/40 p-3">
+          <p className="w-full text-xs text-navy/60">Registrar pagamento</p>
+          <label className="text-xs text-navy/60">
+            Valor pago
+            <input
+              type="number"
+              className={inputCls + " mt-1 w-28"}
+              value={rascunhoPagamento.valor}
+              onChange={(e) => setRascunhoPagamento({ ...rascunhoPagamento, valor: e.target.value })}
+            />
+          </label>
+          <label className="text-xs text-navy/60">
+            Data do pagamento
+            <input
+              type="date"
+              className={inputCls + " mt-1"}
+              value={rascunhoPagamento.pagoEm}
+              onChange={(e) => setRascunhoPagamento({ ...rascunhoPagamento, pagoEm: e.target.value })}
+            />
+          </label>
+          <label className="text-xs text-navy/60">
+            Referência externa
+            <input
+              className={inputCls + " mt-1"}
+              value={rascunhoPagamento.referencia}
+              onChange={(e) => setRascunhoPagamento({ ...rascunhoPagamento, referencia: e.target.value })}
+            />
+          </label>
+          <AcaoOperacional
+            rotulo="Confirmar pagamento"
+            className="rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
+            acaoExterna="registrar_pagamento_caso"
+            validacaoFormulario={
+              !rascunhoPagamento.valor || !rascunhoPagamento.pagoEm || !rascunhoPagamento.referencia
+                ? "Preencha valor, data e referência antes de confirmar."
+                : null
+            }
+            efeito="Registra o pagamento como confirmado e propaga para o campo que libera o acesso do caso ao Portal do Cliente."
+            onConfirmar={(motivo) => {
+              const parcela = qFinanceiro.data?.proximaParcela;
+              if (!parcela || mRegistrarPagamento.isPending) return;
+              mRegistrarPagamento.mutate({
+                invoiceId: parcela.faturaId,
+                valor: Number(rascunhoPagamento.valor),
+                pagoEm: rascunhoPagamento.pagoEm,
+                referenciaExterna: rascunhoPagamento.referencia,
+                motivo,
+              });
+              setRascunhoPagamento(null);
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => setRascunhoPagamento(null)}
+            className="rounded-lg px-3 py-2 text-sm text-navy/60 hover:bg-navy/5"
+          >
+            Cancelar
+          </button>
+        </div>
+      ) : null}
+      {rascunhoCobranca ? (
+        <div className="mb-6 flex flex-wrap items-end gap-2 rounded-lg border border-navy/15 bg-cream/40 p-3">
+          <p className="w-full text-xs text-navy/60">Preparar cobrança</p>
+          <label className="text-xs text-navy/60">
+            Valor da cobrança
+            <input
+              type="number"
+              className={inputCls + " mt-1 w-28"}
+              value={rascunhoCobranca.valor}
+              onChange={(e) => setRascunhoCobranca({ ...rascunhoCobranca, valor: e.target.value })}
+            />
+          </label>
+          <label className="text-xs text-navy/60">
+            Vencimento
+            <input
+              type="date"
+              className={inputCls + " mt-1"}
+              value={rascunhoCobranca.vencimento}
+              onChange={(e) => setRascunhoCobranca({ ...rascunhoCobranca, vencimento: e.target.value })}
+            />
+          </label>
+          <label className="text-xs text-navy/60">
+            Descrição interna
+            <input
+              className={inputCls + " mt-1"}
+              value={rascunhoCobranca.descricao}
+              onChange={(e) => setRascunhoCobranca({ ...rascunhoCobranca, descricao: e.target.value })}
+            />
+          </label>
+          <AcaoOperacional
+            rotulo="Confirmar preparação"
+            className="rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
+            acaoExterna="preparar_cobranca_caso"
+            validacaoFormulario={
+              !rascunhoCobranca.valor || !rascunhoCobranca.vencimento
+                ? "Preencha valor e vencimento antes de confirmar."
+                : null
+            }
+            efeito="Só prepara internamente. Nenhum link, mensagem ou cobrança é enviado ao cliente."
+            onConfirmar={() => {
+              if (mPrepararCobranca.isPending) return;
+              mPrepararCobranca.mutate({
+                valor: Number(rascunhoCobranca.valor),
+                vencimento: rascunhoCobranca.vencimento,
+                descricao: rascunhoCobranca.descricao,
+              });
+              setRascunhoCobranca(null);
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => setRascunhoCobranca(null)}
+            className="rounded-lg px-3 py-2 text-sm text-navy/60 hover:bg-navy/5"
+          >
+            Cancelar
+          </button>
+        </div>
+      ) : null}
       <div className="mb-6 grid gap-3 lg:grid-cols-2">
         <div className="rounded-xl border border-navy/10 bg-cream/50 p-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Tarefas</p>

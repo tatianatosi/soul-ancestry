@@ -78,7 +78,7 @@ function FinanceiroPage() {
   const [detalhe, setDetalhe] = useState<Linha | null>(null);
   const [form, setForm] = useState<Record<string, string> | null>(null);
   const [erro, setErro] = useState<string | null>(null);
-  const [ajuste, setAjuste] = useState({ valor: "", motivo: "" });
+  const [ajuste, setAjuste] = useState({ valor: "" });
   const [conc, setConc] = useState({ data: "", valor: "", referencia: "" });
   const [realidadeAberta, setRealidadeAberta] = useState(true);
   const [incluirDemos, setIncluirDemos] = useState(false);
@@ -138,7 +138,7 @@ function FinanceiroPage() {
     mutationFn: (v: { invoice_id: string; valor: number; motivo: string }) => ajustar({ data: v }),
     onSuccess: () => {
       setErro(null);
-      setAjuste({ valor: "", motivo: "" });
+      setAjuste({ valor: "" });
       recarregar();
     },
     onError: (e: Error) => setErro(e.message),
@@ -601,16 +601,17 @@ function FinanceiroPage() {
               <Painel titulo="Mover status">
                 <div className="flex flex-wrap gap-2">
                   {(FLUXO["invoices"]?.[String(detalhe["status"])] ?? []).map((destino) => (
-                    <button
+                    <AcaoOperacional
                       key={destino}
-                      disabled={mSalvar.isPending}
-                      onClick={() =>
-                        mSalvar.mutate({ id: String(detalhe["id"]), dados: { status: destino } })
-                      }
-                      className="rounded-lg border border-navy/20 px-3 py-2 text-sm hover:bg-navy/5"
-                    >
-                      {ROTULO_FATURA[destino] ?? destino}
-                    </button>
+                      rotulo={ROTULO_FATURA[destino] ?? destino}
+                      className="rounded-lg border border-navy/20 px-3 py-2 text-sm hover:bg-navy/5 disabled:opacity-60"
+                      acaoExterna="mudar_status_fatura"
+                      efeito={`Move a fatura de "${ROTULO_FATURA[String(detalhe["status"])] ?? String(detalhe["status"])}" para "${ROTULO_FATURA[destino] ?? destino}".`}
+                      onConfirmar={() => {
+                        if (mSalvar.isPending) return;
+                        mSalvar.mutate({ id: String(detalhe["id"]), dados: { status: destino } });
+                      }}
+                    />
                   ))}
                 </div>
               </Painel>
@@ -628,27 +629,22 @@ function FinanceiroPage() {
                       onChange={(e) => setAjuste({ ...ajuste, valor: e.target.value })}
                     />
                   </Campo>
-                  <Campo rotulo="Motivo">
-                    <input
-                      className={inputCls}
-                      value={ajuste.motivo}
-                      onChange={(e) => setAjuste({ ...ajuste, motivo: e.target.value })}
-                    />
-                  </Campo>
                 </div>
-                <button
-                  disabled={mAjuste.isPending}
-                  onClick={() =>
+                <AcaoOperacional
+                  rotulo="Registrar ajuste"
+                  className="mt-3 rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
+                  acaoExterna="registrar_ajuste_fatura"
+                  validacaoFormulario={!ajuste.valor ? "Informe o valor do ajuste antes de confirmar." : null}
+                  efeito="Registra um ajuste financeiro na fatura, com autoria e motivo — não altera o valor original da fatura."
+                  onConfirmar={(motivo) => {
+                    if (mAjuste.isPending) return;
                     mAjuste.mutate({
                       invoice_id: String(detalhe["id"]),
                       valor: Number(ajuste.valor),
-                      motivo: ajuste.motivo,
-                    })
-                  }
-                  className="mt-3 rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
-                >
-                  Registrar ajuste
-                </button>
+                      motivo,
+                    });
+                  }}
+                />
                 <EstadoDados
                   carregando={qAjustes.isLoading}
                   erro={qAjustes.error}
@@ -842,16 +838,21 @@ function FinanceiroPage() {
               </Campo>
             </div>
           )}
-          <button
-            disabled={mSalvar.isPending}
-            onClick={() => {
+          <AcaoOperacional
+            rotulo="Salvar"
+            className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-60"
+            acaoExterna={aba === "faturas" ? "salvar_fatura" : "salvar_pagamento"}
+            efeito={
+              aba === "faturas"
+                ? "Cria ou atualiza uma fatura. Fatura paga não pode ter o valor editado por aqui."
+                : "Cria ou atualiza um pagamento vinculado a uma fatura."
+            }
+            onConfirmar={() => {
+              if (mSalvar.isPending || !form) return;
               const { id, ...dados } = form;
               mSalvar.mutate({ id: id || undefined, dados });
             }}
-            className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-60"
-          >
-            Salvar
-          </button>
+          />
         </Gaveta>
       ) : null}
     </SaasShell>
