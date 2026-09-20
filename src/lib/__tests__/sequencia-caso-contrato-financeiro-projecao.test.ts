@@ -11,6 +11,7 @@ import { readFileSync } from "node:fs";
 
 const funcoes = readFileSync("src/lib/contrato-parametros.functions.ts", "utf8");
 const rota = readFileSync("src/routes/_authenticated/casos.$caseId.contrato.preparar.tsx", "utf8");
+const rotaSegundoConsumidor = readFileSync("src/routes/_authenticated/contrato-parametros.$id.tsx", "utf8");
 
 const trechoRegistrarAssinatura = funcoes.slice(
   funcoes.indexOf("export const registrarAssinatura"),
@@ -98,6 +99,39 @@ describe("P0-ASSINATURA-REVISAO-HUMANA — interface exige confirmação humana 
     expect(rota).not.toContain("não cria cobrança, não libera portal e não inicia pesquisa externa");
     expect(rota).toContain("liberação de acesso ao Portal");
     expect(rota).toMatch(/não publica conteúdo, não envia mensagem, não gera\s*\n?\s*cobrança e não concede\s*\n?\s*acesso automaticamente/);
+  });
+});
+
+describe("P0B-ASSINATURA-SEGUNDO-CONSUMIDOR — mesmo padrão em contrato-parametros.$id.tsx", () => {
+  it("'Registrar assinatura' não é mais um botão cru — está dentro de AcaoOperacional com acaoExterna", () => {
+    const idx = rotaSegundoConsumidor.indexOf('rotulo="Registrar assinatura"');
+    expect(idx).toBeGreaterThan(-1);
+    const trecho = rotaSegundoConsumidor.slice(Math.max(0, idx - 200), idx + 700);
+    expect(trecho).toContain("<AcaoOperacional");
+    expect(trecho).toContain('acaoExterna="registrar_assinatura_externa"');
+  });
+
+  it("bloqueia confirmação sem os três campos preenchidos (data, origem, referência)", () => {
+    const idx = rotaSegundoConsumidor.indexOf('rotulo="Registrar assinatura"');
+    const trecho = rotaSegundoConsumidor.slice(idx, idx + 700);
+    expect(trecho).toContain("validacaoFormulario={");
+    expect(trecho).toContain("assinatura.dataAssinatura");
+    expect(trecho).toContain("assinatura.origemExterna");
+    expect(trecho).toContain("assinatura.referencia");
+  });
+
+  it("motivo digitado na confirmação é repassado ao servidor, não descartado", () => {
+    expect(rotaSegundoConsumidor).toContain("onConfirmar={(motivo) => {");
+    expect(rotaSegundoConsumidor).toContain("mAssinar.mutate(motivo)");
+    expect(rotaSegundoConsumidor).toContain(
+      "mutationFn: (motivo: string) => assinar({ data: { id, ...assinatura, motivo } })",
+    );
+  });
+
+  it("reaproveita a mesma função de servidor já corrigida — não duplica lógica", () => {
+    expect(rotaSegundoConsumidor).toMatch(/import\s*\{[^}]*\bregistrarAssinatura\b[^}]*\}\s*from\s*"@\/lib\/contrato-parametros\.functions"/);
+    expect(rotaSegundoConsumidor).toContain("const assinar = useServerFn(registrarAssinatura);");
+    expect(rotaSegundoConsumidor).not.toContain("export const registrarAssinatura");
   });
 });
 

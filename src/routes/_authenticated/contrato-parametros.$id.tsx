@@ -117,7 +117,7 @@ function Pagina() {
     onError: (e: Error) => toast.error(e.message),
   });
   const mAssinar = useMutation({
-    mutationFn: () => assinar({ data: { id, ...assinatura } }),
+    mutationFn: (motivo: string) => assinar({ data: { id, ...assinatura, motivo } }),
     onSuccess: () => {
       toast.success("Assinatura registrada. Cobrança liberada pelo gate.");
       invalidar();
@@ -357,14 +357,21 @@ function Pagina() {
                 variant="outline"
                 size="sm"
                 capacidade="aprovar_proposta_os_anexo_previa"
+                acaoExterna="registrar_assinatura_externa"
                 pendenciaGate={
                   ultimaFinal?.aprovado_em
                     ? null
                     : "Nenhuma prévia final aprovada ainda. A assinatura será registrada sobre parâmetros não aprovados."
                 }
+                validacaoFormulario={
+                  !assinatura.dataAssinatura || !assinatura.origemExterna || !assinatura.referencia
+                    ? "Preencha data, origem externa e referência da assinatura antes de confirmar."
+                    : null
+                }
                 efeito="Registra a assinatura do contrato e libera o gate de cobrança."
-                onConfirmar={async () => {
-                  await mAssinar.mutateAsync();
+                onConfirmar={(motivo) => {
+                  if (mAssinar.isPending) return;
+                  mAssinar.mutate(motivo);
                 }}
               />
             </div>
