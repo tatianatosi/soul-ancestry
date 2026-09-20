@@ -364,7 +364,7 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       const revogado = !camposHomologados.has(v.campo);
       const incoerente = Boolean(qualificador) && !textoCompativel(v.valor, qualificador!.sigla);
       if (!revogado && !incoerente) continue;
-      const { error } = await supabase
+      const { data: linhaLimpa, error } = await supabase
         .from("contract_parameter_values")
         .update({
           valor: "",
@@ -376,15 +376,15 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
             ? `Parâmetro revogado na convenção homologada ${planejador.convencao?.prefixo} (${planejador.versao}): valor anterior removido e devolvido a pendência.`
             : `Valor incoerente com o qualificador de país do código canônico (${qualificador?.pais}): removido e devolvido a pendência.`,
         })
-        .eq("id", v.id);
+        .eq("id", v.id)
+        .select("id");
+      if (error) throw new Error(error.message);
+      if (!linhaLimpa?.length) throw new Error("NENHUMA_LINHA_AFETADA: parâmetro não foi limpo.");
 
-      if (!error) {
-        limpos.push({ campo: v.campo, valor: v.valor });
-        v.valor = "";
-        v.status = "vazio";
-        v.origem = null;
-      }
-
+      limpos.push({ campo: v.campo, valor: v.valor });
+      v.valor = "";
+      v.status = "vazio";
+      v.origem = null;
     }
 
 
@@ -400,7 +400,7 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       // Coerência com o qualificador de país do código canônico.
       if (qualificador && !textoCompativel(texto, qualificador.sigla)) {
         incoerentes.push({ campo: c.campo, valor: texto, esperado: qualificador.pais });
-        await supabase
+        const rIncoerente = await supabase
           .from("contract_parameter_values")
           .update({
             conflito: [
@@ -414,7 +414,10 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
               },
             ],
           })
-          .eq("id", atual.id);
+          .eq("id", atual.id)
+          .select("id");
+        if (rIncoerente.error) throw new Error(rIncoerente.error.message);
+        if (!rIncoerente.data?.length) throw new Error("NENHUMA_LINHA_AFETADA: conflito de país não foi registrado.");
         continue;
       }
 
@@ -422,14 +425,17 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
         // Mesmo valor, origem diferente: a ficha passa a registrar a proposta
         // aprovada como fonte, preservando a origem anterior na auditoria.
         if (c.origem === "proposta" && atual.origem !== "proposta" && atual.status !== "validado") {
-          await supabase
+          const rOrigem = await supabase
             .from("contract_parameter_values")
             .update({
               origem: "proposta",
               origem_detalhe: c.detalhe,
               justificativa: `Origem corrigida para proposta aprovada após conferência; origem anterior: ${atual.origem ?? "não informada"}.`,
             })
-            .eq("id", atual.id);
+            .eq("id", atual.id)
+            .select("id");
+          if (rOrigem.error) throw new Error(rOrigem.error.message);
+          if (!rOrigem.data?.length) throw new Error("NENHUMA_LINHA_AFETADA: origem do parâmetro não foi corrigida.");
           atual.origem = "proposta";
         }
         continue;
@@ -450,16 +456,19 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
           candidato: texto,
           origem_candidata: c.origem,
         });
-        await supabase
+        const rConflito = await supabase
           .from("contract_parameter_values")
           .update({
             conflito: [{ origem: c.origem, detalhe: c.detalhe, valor: texto, detectado_em: new Date().toISOString() }],
           })
-          .eq("id", atual.id);
+          .eq("id", atual.id)
+          .select("id");
+        if (rConflito.error) throw new Error(rConflito.error.message);
+        if (!rConflito.data?.length) throw new Error("NENHUMA_LINHA_AFETADA: conflito de parâmetro não foi registrado.");
         continue;
       }
 
-      const { error } = await supabase
+      const { data: linhaImportada, error } = await supabase
         .from("contract_parameter_values")
         .update({
           valor: texto,
@@ -467,15 +476,16 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
           origem_detalhe: c.detalhe,
           status: "importado_a_confirmar",
         })
-        .eq("id", atual.id);
-      if (!error) {
-        importados += 1;
-        // mantém o estado local coerente para os próximos candidatos do mesmo campo
-        atual.valor = texto;
-        atual.origem = c.origem;
-        atual.origem_detalhe = c.detalhe;
-        atual.status = "importado_a_confirmar";
-      }
+        .eq("id", atual.id)
+        .select("id");
+      if (error) throw new Error(error.message);
+      if (!linhaImportada?.length) throw new Error("NENHUMA_LINHA_AFETADA: parâmetro não foi importado.");
+      importados += 1;
+      // mantém o estado local coerente para os próximos candidatos do mesmo campo
+      atual.valor = texto;
+      atual.origem = c.origem;
+      atual.origem_detalhe = c.detalhe;
+      atual.status = "importado_a_confirmar";
     }
 
     // Divergência proposta × Planejador: o Planejador já venceu na pré-carga acima
@@ -487,7 +497,7 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
     for (const cp of conflitosProposta) {
       const atual = valores.find((v: any) => v.campo === cp.campo);
       if (!atual) continue;
-      await supabase
+      const rConflitoProposta = await supabase
         .from("contract_parameter_values")
         .update({
           conflito: [
@@ -501,7 +511,12 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
             },
           ],
         })
-        .eq("id", atual.id);
+        .eq("id", atual.id)
+        .select("id");
+      if (rConflitoProposta.error) throw new Error(rConflitoProposta.error.message);
+      if (!rConflitoProposta.data?.length) {
+        throw new Error("NENHUMA_LINHA_AFETADA: conflito proposta×planejador não foi registrado.");
+      }
     }
 
     return {
@@ -1288,14 +1303,16 @@ export const aprovarParametros = createServerFn({ method: "POST" })
       organizationId: registroAprovacao.organization_id,
     });
 
-    const { error: e1 } = await supabase
+    const { data: linhaPrevia, error: e1 } = await supabase
       .from("contract_parameter_previews")
       .update({ aprovado_por: context.userId, aprovado_em: new Date().toISOString() })
-      .eq("id", data.previaId);
+      .eq("id", data.previaId)
+      .select("id");
     if (e1) throw new Error(e1.message);
+    if (!linhaPrevia?.length) throw new Error("NENHUMA_LINHA_AFETADA: prévia não foi aprovada.");
 
     const agora = new Date().toISOString();
-    const { error: e2 } = await supabase
+    const { data: linhaParametros, error: e2 } = await supabase
       .from("contract_case_parameters")
       .update({
         status: "aprovado",
@@ -1304,8 +1321,10 @@ export const aprovarParametros = createServerFn({ method: "POST" })
         aprovado_por: context.userId,
         aprovado_em: agora,
       })
-      .eq("id", data.id);
+      .eq("id", data.id)
+      .select("id");
     if (e2) throw new Error(e2.message);
+    if (!linhaParametros?.length) throw new Error("NENHUMA_LINHA_AFETADA: parâmetros do caso não foram aprovados.");
 
     return { ok: true };
   });
@@ -1394,7 +1413,7 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
         { category: "deliverable", title: "Fases e entregas", description: pegar("fases_entregas") },
       ].filter((s) => s.description);
       if (escopo.length) {
-        await supabase.from("contract_scope_items").insert(
+        const { error: erroEscopo } = await supabase.from("contract_scope_items").insert(
           escopo.map((s, i) => ({
             organization_id: registro.organization_id,
             contract_id: contratoId,
@@ -1409,14 +1428,19 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
             updated_by: context.userId,
           })),
         );
+        if (erroEscopo) {
+          throw new Error(`Falha ao registrar o escopo do contrato ${contratoId}: ${erroEscopo.message}`);
+        }
       }
     }
 
-    const { error: e2 } = await supabase
+    const { data: linhaEnvio, error: e2 } = await supabase
       .from("contract_case_parameters")
       .update({ contract_id: contratoId, status: "enviado_assinatura" })
-      .eq("id", data.id);
+      .eq("id", data.id)
+      .select("id");
     if (e2) throw new Error(e2.message);
+    if (!linhaEnvio?.length) throw new Error("NENHUMA_LINHA_AFETADA: envio para assinatura não foi registrado.");
 
     return { contratoId };
   });
@@ -1629,7 +1653,7 @@ export const corrigirParametroPlanejador = createServerFn({ method: "POST" })
     }
 
     const agora = new Date().toISOString();
-    const { error } = await supabase
+    const { data: linhaCorrigida, error } = await supabase
       .from("contract_parameter_values")
       .update({
         valor: novoValor,
@@ -1639,8 +1663,10 @@ export const corrigirParametroPlanejador = createServerFn({ method: "POST" })
         status: "validado",
         conflito: [],
       })
-      .eq("id", valor.id);
+      .eq("id", valor.id)
+      .select("id");
     if (error) throw new Error(error.message);
+    if (!linhaCorrigida?.length) throw new Error("NENHUMA_LINHA_AFETADA: parâmetro não foi corrigido.");
 
     await supabase.from("audit_logs").insert({
       organization_id: registro.organization_id,

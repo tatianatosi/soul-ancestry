@@ -220,6 +220,7 @@ export const salvarLeadDesk = createServerFn({ method: "POST" })
       .select("*")
       .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!row) throw new Error("NENHUMA_LINHA_AFETADA: lead não foi criado.");
     return { ok: true as const, erros: [], lead: row as LeadDesk };
   });
 

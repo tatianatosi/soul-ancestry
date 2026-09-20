@@ -256,9 +256,13 @@ export const registrarProximaAcao = createServerFn({ method: "POST" })
       .limit(1)
       .maybeSingle();
     if (alertaExistente?.id) {
-      await supabase.from("case_alerts").update(alertaPayload).eq("id", alertaExistente.id);
+      const r = await supabase.from("case_alerts").update(alertaPayload).eq("id", alertaExistente.id).select("id");
+      if (r.error) throw new Error(r.error.message);
+      if (!r.data?.length) throw new Error("NENHUMA_LINHA_AFETADA: alerta de próxima ação não foi atualizado.");
     } else {
-      await supabase.from("case_alerts").insert(alertaPayload);
+      const r = await supabase.from("case_alerts").insert(alertaPayload).select("id");
+      if (r.error) throw new Error(r.error.message);
+      if (!r.data?.length) throw new Error("NENHUMA_LINHA_AFETADA: alerta de próxima ação não foi criado.");
     }
 
     let comunicacaoId: string | null = null;

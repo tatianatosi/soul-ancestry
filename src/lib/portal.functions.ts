@@ -392,7 +392,7 @@ export const validarEmailAutorizado = createServerFn({ method: "POST" })
     const { organizationId } = await helpers.exigirGestor(supabase, context.userId as string);
     const motivo = data.status === "aprovado" ? null : (data.motivo ?? "").trim() || "Sem motivo informado.";
 
-    const { error } = await supabase
+    const { data: linha, error } = await supabase
       .from("authorized_portal_emails")
       .update({
         status: data.status,
@@ -402,12 +402,14 @@ export const validarEmailAutorizado = createServerFn({ method: "POST" })
         updated_by: context.userId,
       })
       .eq("id", data.id)
-      .eq("organization_id", organizationId);
+      .eq("organization_id", organizationId)
+      .select("id");
     if (error) throw new Error(error.message);
+    if (!linha?.length) throw new Error("NENHUMA_LINHA_AFETADA: autorização de e-mail não foi atualizada.");
 
     if (data.status === "revogado") {
       // revogar acessos vivos originados desta autorização
-      await supabase
+      const cascata = await supabase
         .from("client_portal_access")
         .update({
           access_status: "revoked",
@@ -417,6 +419,7 @@ export const validarEmailAutorizado = createServerFn({ method: "POST" })
         })
         .eq("authorized_email_id", data.id)
         .eq("organization_id", organizationId);
+      if (cascata.error) throw new Error(cascata.error.message);
     }
 
     await helpers.registrarAuditoria({

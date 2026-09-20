@@ -416,10 +416,12 @@ export const salvarRegraSla = createServerFn({ method: "POST" })
       ativo: data.ativo ?? true,
       observacoes: data.observacoes?.trim() || null,
     };
-    const { error } = await supabase
+    const { data: linhaGravada, error } = await supabase
       .from("ops_sla_regras")
-      .upsert(linha, { onConflict: "organization_id,tipo_tarefa,prioridade" });
+      .upsert(linha, { onConflict: "organization_id,tipo_tarefa,prioridade" })
+      .select("id");
     if (error) throw new Error(error.message);
+    if (!linhaGravada?.length) throw new Error("NENHUMA_LINHA_AFETADA: regra de SLA não foi gravada.");
     return { ok: true };
   });
 
