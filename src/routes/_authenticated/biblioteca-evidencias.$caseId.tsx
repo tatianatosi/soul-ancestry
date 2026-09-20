@@ -312,16 +312,13 @@ function Pagina() {
                 >
                   Registrar validação
                 </button>
-                <button
-                  className="underline decoration-terracotta text-terracotta"
-                  onClick={() => {
-                    const motivo = window.prompt("Motivo do arquivamento (opcional):");
-                    if (motivo !== null)
-                      mArquivar.mutate({ tabela: "evidences", id: String(e["id"]), motivo });
-                  }}
-                >
-                  Arquivar
-                </button>
+                <AcaoOperacional
+                  rotulo="Arquivar"
+                  className="h-auto rounded-none border-0 bg-transparent p-0 text-[11px] text-terracotta underline decoration-terracotta hover:bg-transparent"
+                  acaoExterna="arquivar_evidencia"
+                  efeito="Arquiva a evidência com motivo — não há exclusão física."
+                  onConfirmar={(motivo) => mArquivar.mutate({ tabela: "evidences", id: String(e["id"]), motivo })}
+                />
               </div>
             </article>
           ))}
@@ -426,16 +423,13 @@ function Pagina() {
                   ) : null}
                 </div>
                 {String(p["approval_status"]) !== "archived" ? (
-                  <button
-                    className="mt-2 block text-[11px] text-terracotta underline"
-                    onClick={() => {
-                      const motivo = window.prompt("Motivo do arquivamento (opcional):");
-                      if (motivo !== null)
-                        mArquivar.mutate({ tabela: "app_projections", id: String(p["id"]), motivo });
-                    }}
-                  >
-                    Arquivar projeção
-                  </button>
+                  <AcaoOperacional
+                    rotulo="Arquivar projeção"
+                    className="mt-2 h-auto rounded-none border-0 bg-transparent p-0 text-[11px] text-terracotta underline hover:bg-transparent"
+                    acaoExterna="arquivar_projecao_app_cliente"
+                    efeito="Arquiva a projeção com motivo — não há exclusão física."
+                    onConfirmar={(motivo) => mArquivar.mutate({ tabela: "app_projections", id: String(p["id"]), motivo })}
+                  />
                 ) : null}
               </article>
               );

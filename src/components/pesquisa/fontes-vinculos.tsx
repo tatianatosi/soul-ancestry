@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -134,17 +135,13 @@ export function VinculosDoDocumento({
                   {TIPOS_VINCULO.find((t) => t.id === v["tipo_vinculo"])?.rotulo ?? String(v["tipo_vinculo"])}
                 </span>
                 {podeEditarAutoridade && (
-                  <button
-                    type="button"
-                    className="text-terracotta underline"
-                    onClick={() => {
-                      const motivo = window.prompt("Motivo do desvínculo (opcional):");
-                      if (motivo === null) return;
-                      desvincular.mutate({ vinculoId: String(v["id"]), motivo });
-                    }}
-                  >
-                    Desvincular
-                  </button>
+                  <AcaoOperacional
+                    rotulo="Desvincular"
+                    className="h-auto rounded-none border-0 bg-transparent p-0 text-xs text-terracotta underline hover:bg-transparent"
+                    acaoExterna="desvincular_fonte_pesquisa"
+                    efeito="Desfaz o vínculo de forma lógica, com motivo registrado — não apaga o documento nem o alvo."
+                    onConfirmar={(motivo) => desvincular.mutate({ vinculoId: String(v["id"]), motivo })}
+                  />
                 )}
               </li>
             );

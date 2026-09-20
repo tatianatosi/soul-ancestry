@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -391,17 +392,13 @@ export function SecaoFontesDocumentos({ caseId }: { caseId: string }) {
                         >
                           Editar
                         </button>
-                        <button
-                          type="button"
-                          className="text-terracotta underline"
-                          onClick={() => {
-                            const motivo = window.prompt("Motivo do arquivamento (opcional):");
-                            if (motivo === null) return;
-                            arquivar.mutate({ id: l.id, motivo });
-                          }}
-                        >
-                          Arquivar
-                        </button>
+                        <AcaoOperacional
+                          rotulo="Arquivar"
+                          className="h-auto rounded-none border-0 bg-transparent p-0 text-sm text-terracotta underline hover:bg-transparent"
+                          acaoExterna="arquivar_fonte_documento"
+                          efeito="Arquiva o documento-fonte com motivo — não há exclusão física."
+                          onConfirmar={(motivo) => arquivar.mutate({ id: l.id, motivo })}
+                        />
                       </>
                     )}
                   </div>

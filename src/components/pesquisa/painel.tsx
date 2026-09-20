@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -223,11 +224,6 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
   const nomePessoa = (id: unknown) => pessoas.find((p) => p.id === id)?.nome ?? "—";
   const tituloHipotese = (id: unknown) => hipoteses.find((h) => h.id === id)?.titulo ?? "—";
 
-  const pedirArquivar = (bloco: Bloco, id: string) => {
-    const motivo = window.prompt("Motivo do arquivamento (opcional):");
-    if (motivo !== null) arquivarMut.mutate({ bloco, id, motivo });
-  };
-
   const BotaoNovo = ({ bloco }: { bloco: Bloco }) =>
     podeEditar ? (
       <button
@@ -247,12 +243,13 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
         >
           Editar
         </button>
-        <button
-          onClick={() => pedirArquivar(bloco, linha.id)}
+        <AcaoOperacional
+          rotulo="Arquivar"
           className="rounded-lg border border-terracotta/40 px-2 py-1 text-[11px] text-terracotta"
-        >
-          Arquivar
-        </button>
+          acaoExterna="arquivar_registro_pesquisa"
+          efeito="Arquiva o registro com motivo — não há exclusão física, o dado continua auditável."
+          onConfirmar={(motivo) => arquivarMut.mutate({ bloco, id: linha.id, motivo })}
+        />
       </div>
     ) : null;
 

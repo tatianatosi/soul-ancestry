@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -777,16 +778,13 @@ function AreaPesquisaEvidencias() {
                               >
                                 editar
                               </button>{" "}
-                              <button
-                                type="button"
-                                className="underline decoration-terracotta underline-offset-4"
-                                onClick={() => {
-                                  const motivo = window.prompt("Motivo do arquivamento (opcional):");
-                                  if (motivo !== null) arquivar.mutate({ id: s.id, motivo });
-                                }}
-                              >
-                                arquivar
-                              </button>
+                              <AcaoOperacional
+                                rotulo="arquivar"
+                                className="h-auto rounded-none border-0 bg-transparent p-0 text-sm underline decoration-terracotta underline-offset-4 hover:bg-transparent"
+                                acaoExterna="arquivar_solicitacao_documental"
+                                efeito="Arquiva a solicitação de documento com motivo — não há exclusão física."
+                                onConfirmar={(motivo) => arquivar.mutate({ id: s.id, motivo })}
+                              />
                             </>
                           )}
                           {s.archived_at && <span className="text-navy/50">arquivada</span>}
