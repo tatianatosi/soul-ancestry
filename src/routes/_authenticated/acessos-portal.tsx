@@ -332,10 +332,12 @@ function AcessosPortalPage() {
                           </button>
                         ) : null}
                         {a.status !== "recusado" && a.status !== "revogado" ? (
-                          <button
-                            onClick={async () => {
-                              const motivo = window.prompt("Motivo da recusa/revogação (opcional):");
-                              if (motivo === null) return;
+                          <AcaoOperacional
+                            rotulo={a.status === "aprovado" ? "Revogar" : "Recusar"}
+                            className="rounded-lg border border-terracotta/40 px-2.5 py-1 text-xs text-terracotta"
+                            acaoExterna="revogar_ou_recusar_email_autorizado"
+                            efeito="Revoga/recusa a autorização deste e-mail ao Portal do Cliente."
+                            onConfirmar={async (motivo) => {
                               try {
                                 await validarEmail({
                                   data: { id: a.id, status: a.status === "aprovado" ? "revogado" : "recusado", motivo },
@@ -345,10 +347,7 @@ function AcessosPortalPage() {
                                 setErro((e as Error).message);
                               }
                             }}
-                            className="rounded-lg border border-terracotta/40 px-2.5 py-1 text-xs text-terracotta"
-                          >
-                            {a.status === "aprovado" ? "Revogar" : "Recusar"}
-                          </button>
+                          />
                         ) : null}
                       </span>
                     </li>
@@ -580,10 +579,12 @@ function AcessosPortalPage() {
                             Reenviar link
                           </button>
                           {a.access_status !== "suspended" ? (
-                            <button
-                              onClick={async () => {
-                                const motivo = window.prompt("Motivo da suspensão (opcional):");
-                                if (motivo === null) return;
+                            <AcaoOperacional
+                              rotulo="Suspender"
+                              className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
+                              acaoExterna="suspender_acesso_portal"
+                              efeito="Suspende o acesso deste cliente ao Portal — ele deixa de conseguir entrar até ser reativado."
+                              onConfirmar={async (motivo) => {
                                 try {
                                   await alterar({ data: { acessoId: a.id, status: "suspended", motivo } });
                                   invalidar();
@@ -591,28 +592,29 @@ function AcessosPortalPage() {
                                   setErro((e as Error).message);
                                 }
                               }}
-                              className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
-                            >
-                              Suspender
-                            </button>
+                            />
                           ) : (
-                            <button
-                              onClick={async () => {
-                                const motivo = window.prompt("Motivo da reativação (opcional):");
-                                if (motivo === null) return;
-                                await alterar({ data: { acessoId: a.id, status: "active", motivo } });
-                                invalidar();
-                              }}
-
+                            <AcaoOperacional
+                              rotulo="Reativar"
                               className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
-                            >
-                              Reativar
-                            </button>
+                              acaoExterna="reativar_acesso_portal"
+                              efeito="Reativa o acesso deste cliente ao Portal, revalidando elegibilidade e invalidando qualquer link mágico anterior."
+                              onConfirmar={async (motivo) => {
+                                try {
+                                  await alterar({ data: { acessoId: a.id, status: "active", motivo } });
+                                  invalidar();
+                                } catch (e) {
+                                  setErro((e as Error).message);
+                                }
+                              }}
+                            />
                           )}
-                          <button
-                            onClick={async () => {
-                              const motivo = window.prompt("Motivo da revogação (opcional):");
-                              if (motivo === null) return;
+                          <AcaoOperacional
+                            rotulo="Revogar"
+                            className="rounded-lg border border-terracotta/40 px-3 py-1.5 text-xs text-terracotta"
+                            acaoExterna="revogar_acesso_portal"
+                            efeito="Revoga definitivamente o acesso deste cliente ao Portal."
+                            onConfirmar={async (motivo) => {
                               try {
                                 await alterar({ data: { acessoId: a.id, status: "revoked", motivo } });
                                 invalidar();
@@ -620,10 +622,7 @@ function AcessosPortalPage() {
                                 setErro((e as Error).message);
                               }
                             }}
-                            className="rounded-lg border border-terracotta/40 px-3 py-1.5 text-xs text-terracotta"
-                          >
-                            Revogar
-                          </button>
+                          />
                           <button
                             onClick={() => setDetalhe(detalhe === a.id ? null : a.id)}
                             className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs"

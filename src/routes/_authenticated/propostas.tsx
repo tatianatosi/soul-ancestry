@@ -506,27 +506,21 @@ function PropostasPage() {
                 >
                   Editar campos
                 </button>
-                <button
-                  onClick={() => {
-                    const motivo = window.prompt(
-                      `Motivo do arquivamento (opcional). Sugestões: ${CAT_MOTIVO_ARQUIVAMENTO.map((m) => m.rotulo).join(" · ")}`,
-                    );
-                    if (motivo !== null) mArquivar.mutate({ id: String(detalhe["id"]), motivo });
-                  }}
+                <AcaoOperacional
+                  rotulo="Arquivar"
                   className="ml-2 rounded-lg border border-navy/20 px-3 py-2 text-sm"
-                >
-                  Arquivar
-                </button>
+                  acaoExterna="arquivar_proposta"
+                  efeito={`Arquiva a proposta com motivo — não há exclusão física. Sugestões: ${CAT_MOTIVO_ARQUIVAMENTO.map((m) => m.rotulo).join(" · ")}`}
+                  onConfirmar={(motivo) => mArquivar.mutate({ id: String(detalhe["id"]), motivo })}
+                />
                 {detalhe["archived_at"] ? (
-                  <button
-                    onClick={() => {
-                      const motivo = window.prompt("Motivo da restauração (opcional)");
-                      if (motivo !== null) mRestaurar.mutate({ id: String(detalhe["id"]), motivo });
-                    }}
+                  <AcaoOperacional
+                    rotulo="Restaurar"
                     className="ml-2 rounded-lg border border-gold/60 px-3 py-2 text-sm text-navy"
-                  >
-                    Restaurar
-                  </button>
+                    acaoExterna="restaurar_proposta"
+                    efeito="Restaura a proposta arquivada, com motivo rastreável."
+                    onConfirmar={(motivo) => mRestaurar.mutate({ id: String(detalhe["id"]), motivo })}
+                  />
                 ) : null}
               </Painel>
 

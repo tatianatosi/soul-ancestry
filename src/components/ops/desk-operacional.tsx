@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -152,20 +153,16 @@ export function DeskOperacional() {
     return [...mapa.entries()].sort((a, b) => a[0].localeCompare(b[0]));
   }, [tarefas, microentregas]);
 
-  function pedirStatus(t: Linha, status: string) {
-    if (status === "bloqueada") {
-      const motivo = window.prompt("Motivo do bloqueio (opcional):");
-      if (motivo === null) return;
-      mover.mutate({ id: t["id"], status, motivoBloqueio: motivo });
-      return;
-    }
+  // MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA: bloquear/desbloquear uma tarefa
+  // exige confirmação com motivo (AcaoOperacional); as demais transições de
+  // status não são irreversíveis/externas e continuam com um clique.
+  function tipoConfirmacaoStatus(t: Linha, status: string): "bloqueio" | "desbloqueio" | null {
+    if (status === "bloqueada") return "bloqueio";
     const precisaDesbloqueio = t["status"] === "bloqueada" || (status === "concluida" && t["bloqueado_em"]);
-    if (precisaDesbloqueio) {
-      const just = window.prompt("Justificativa do desbloqueio (opcional):");
-      if (just === null) return;
-      mover.mutate({ id: t["id"], status, desbloqueioJustificativa: just });
-      return;
-    }
+    return precisaDesbloqueio ? "desbloqueio" : null;
+  }
+
+  function pedirStatus(t: Linha, status: string) {
     mover.mutate({ id: t["id"], status });
   }
 
@@ -379,19 +376,46 @@ export function DeskOperacional() {
                 )}
                 {podeEscrever && (
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {STATUS_TAREFA.filter((s) => s !== t["status"]).map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => pedirStatus(t, s)}
-                        className="rounded-lg border border-navy/20 px-2 py-1 text-[11px]"
-                      >
-                        {ROTULO_TAREFA[s]}
-                      </button>
-                    ))}
-                    <button
-                      onClick={async () => {
-                        const motivo = window.prompt("Motivo do arquivamento (opcional):");
-                        if (motivo === null) return;
+                    {STATUS_TAREFA.filter((s) => s !== t["status"]).map((s) => {
+                      const tipo = tipoConfirmacaoStatus(t, s);
+                      if (!tipo) {
+                        return (
+                          <button
+                            key={s}
+                            onClick={() => pedirStatus(t, s)}
+                            className="rounded-lg border border-navy/20 px-2 py-1 text-[11px]"
+                          >
+                            {ROTULO_TAREFA[s]}
+                          </button>
+                        );
+                      }
+                      return (
+                        <AcaoOperacional
+                          key={s}
+                          rotulo={ROTULO_TAREFA[s]}
+                          className="rounded-lg border border-navy/20 px-2 py-1 text-[11px]"
+                          acaoExterna={tipo === "bloqueio" ? "bloquear_tarefa" : "desbloquear_tarefa"}
+                          efeito={
+                            tipo === "bloqueio"
+                              ? "Bloqueia a tarefa com motivo registrado."
+                              : "Desbloqueia a tarefa (ou conclui uma tarefa que já esteve bloqueada) com justificativa registrada."
+                          }
+                          onConfirmar={(texto) =>
+                            mover.mutate(
+                              tipo === "bloqueio"
+                                ? { id: t["id"], status: s, motivoBloqueio: texto }
+                                : { id: t["id"], status: s, desbloqueioJustificativa: texto },
+                            )
+                          }
+                        />
+                      );
+                    })}
+                    <AcaoOperacional
+                      rotulo="Arquivar"
+                      className="rounded-lg border border-terracotta/40 px-2 py-1 text-[11px] text-terracotta"
+                      acaoExterna="arquivar_ops"
+                      efeito="Arquiva a tarefa com motivo — não há exclusão física."
+                      onConfirmar={async (motivo) => {
                         try {
                           await fnArquivar({ data: { tabela: "tarefas", id: t["id"], motivo } });
                           toast.success("Tarefa arquivada.");
@@ -400,10 +424,7 @@ export function DeskOperacional() {
                           toast.error((e as Error).message);
                         }
                       }}
-                      className="rounded-lg border border-terracotta/40 px-2 py-1 text-[11px] text-terracotta"
-                    >
-                      Arquivar
-                    </button>
+                    />
                   </div>
                 )}
               </div>
@@ -438,18 +459,28 @@ export function DeskOperacional() {
                       </p>
                       <p className="text-navy/50">Prazo {dataBr(t["prazo"])}</p>
                       {podeEscrever && (
-                        <select
-                          className="mt-1 w-full rounded border border-navy/20 px-1 py-0.5 text-[11px]"
-                          value=""
-                          onChange={(e) => e.target.value && pedirStatus(t, e.target.value)}
-                        >
-                          <option value="">Mover para…</option>
-                          {STATUS_TAREFA.filter((s) => s !== coluna).map((s) => (
-                            <option key={s} value={s}>
-                              {ROTULO_TAREFA[s]}
-                            </option>
-                          ))}
-                        </select>
+                        <>
+                          <select
+                            className="mt-1 w-full rounded border border-navy/20 px-1 py-0.5 text-[11px]"
+                            value=""
+                            onChange={(e) => e.target.value && pedirStatus(t, e.target.value)}
+                          >
+                            <option value="">Mover para…</option>
+                            {/* Bloquear/desbloquear exigem motivo confirmado — só
+                                disponíveis na aba Lista, onde o AcaoOperacional
+                                cabe por linha; aqui ficam só as transições diretas. */}
+                            {STATUS_TAREFA.filter((s) => s !== coluna && !tipoConfirmacaoStatus(t, s)).map((s) => (
+                              <option key={s} value={s}>
+                                {ROTULO_TAREFA[s]}
+                              </option>
+                            ))}
+                          </select>
+                          {STATUS_TAREFA.some((s) => s !== coluna && tipoConfirmacaoStatus(t, s)) ? (
+                            <p className="mt-1 text-[10px] text-navy/45">
+                              Bloquear/desbloquear: use a aba Lista (exige motivo).
+                            </p>
+                          ) : null}
+                        </>
                       )}
                     </div>
                   ))}

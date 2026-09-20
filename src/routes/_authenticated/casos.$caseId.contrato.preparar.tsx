@@ -922,36 +922,28 @@ function Pagina() {
                         : "Rascunho salvo."
                       : "Nenhum rascunho salvo ainda."}
                 </span>
-                <button
-                  onClick={() => {
-                    const motivo = window.prompt("Motivo do retorno para ajuste (opcional)");
-                    if (motivo !== null) mCongelar.mutate({ evento: "retorno_ajuste", motivo });
-                  }}
-                  disabled={mCongelar.isPending}
-                  title={
+                <AcaoOperacional
+                  rotulo="Congelar retorno para ajuste"
+                  className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50"
+                  acaoExterna="congelar_retorno_ajuste"
+                  efeito={
                     rascunhoAtual
-                      ? "Congela o rascunho atual como retorno para ajuste."
+                      ? "Congela o rascunho atual como retorno para ajuste — vira versão imutável no histórico."
                       : "Nenhum rascunho editável no momento — a pendência fica registrada."
                   }
-                  className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50"
-                >
-                  Congelar retorno para ajuste
-                </button>
-                <button
-                  onClick={() => {
-                    const motivo = window.prompt("Motivo da versão final (opcional)");
-                    if (motivo !== null) mCongelar.mutate({ evento: "aprovacao", motivo });
-                  }}
-                  disabled={mCongelar.isPending}
-                  title={
+                  onConfirmar={(motivo) => mCongelar.mutate({ evento: "retorno_ajuste", motivo })}
+                />
+                <AcaoOperacional
+                  rotulo="Congelar versão final"
+                  className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
+                  acaoExterna="congelar_versao_final"
+                  efeito={
                     bloqueios.some((b) => b.chave !== "revisao_humana")
                       ? "Há bloqueios acionáveis abertos — ver seção abaixo. É possível prosseguir; a pendência fica registrada."
-                      : undefined
+                      : "Congela a versão final do contrato — vira versão imutável no histórico."
                   }
-                  className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
-                >
-                  Congelar versão final
-                </button>
+                  onConfirmar={(motivo) => mCongelar.mutate({ evento: "aprovacao", motivo })}
+                />
               </div>
               <p className="mt-2 text-xs text-navy/60">
                 Um único rascunho editável por caso + modelo ativo: salvar atualiza esse rascunho e conteúdo idêntico não vira versão nova.

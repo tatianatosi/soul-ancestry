@@ -785,6 +785,35 @@ export const alterarStatusAcessoPortal = createServerFn({ method: "POST" })
       entidadeId: data.acessoId,
       metadados: { motivo },
     });
+
+    // MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA: suspender/reativar/revogar acesso
+    // ao Portal muda o que o cliente vê do caso — precisa aparecer no
+    // histórico de cada caso vinculado, não só no log de auditoria do acesso.
+    const casosVinculados = await supabase
+      .from("client_portal_case_access")
+      .select("case_id")
+      .eq("client_portal_access_id", data.acessoId)
+      .eq("organization_id", organizationId);
+    const titulo =
+      data.status === "revoked"
+        ? "Acesso ao Portal do Cliente revogado"
+        : data.status === "suspended"
+          ? "Acesso ao Portal do Cliente suspenso"
+          : "Acesso ao Portal do Cliente reativado";
+    for (const linha of (casosVinculados.data ?? []) as { case_id: string }[]) {
+      if (!linha.case_id) continue;
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: linha.case_id,
+        eventType: "caso",
+        title: titulo,
+        summaryInternal: motivo,
+        sourceEntityType: "client_portal_access",
+        sourceEntityId: data.acessoId,
+        userId: context.userId as string,
+      });
+    }
+
     return { ok: true };
   });
 
