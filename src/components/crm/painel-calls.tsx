@@ -270,6 +270,11 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
   const leadBase = visiveis.find((l) => l.id === selecionado) ?? null;
   const lead = leadBase ? ({ ...leadBase, ...rascunho } as LeadDesk) : null;
   const avaliacao = lead ? avaliarHandoffCall(lead) : null;
+  // MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA: "Usar esta pessoa"/"Criar pessoa
+  // nova" chamam a mesma mutation (mutarHandoff) que "Concluir handoff",
+  // mas disparavam sem a checagem de capacidade/gate que este só tem —
+  // as três portas para a mesma escrita externa precisam do mesmo guard.
+  const gateHandoff = lead ? podeExecutarHandoffDiscovery(lead) : { ok: false, motivo: "Selecione um lead" };
 
   const opcoesTrilhas: Opcao[] = trilhas.map((t: any) => ({
     valor: t.id,
@@ -841,26 +846,26 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                           <strong>{c.nome}</strong>
                           <span className="ml-2 text-xs text-navy/55">{c.motivo}</span>
                         </span>
-                        <button
-                          type="button"
-                          disabled={mutarHandoff.isPending}
-                          onClick={() => mutarHandoff.mutate({ clienteIdConfirmado: c.id })}
+                        <AcaoOperacional
+                          rotulo="Usar esta pessoa"
                           className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy hover:bg-navy/5 disabled:opacity-40"
-                        >
-                          Usar esta pessoa
-                        </button>
+                          capacidade="avancar_caso_planejador_tarefa"
+                          pendenciaGate={gateHandoff.ok ? null : gateHandoff.motivo}
+                          efeito="Cria ou reutiliza o caso vinculado a esta pessoa e leva a próxima ação — sem envio externo."
+                          onConfirmar={(motivo) => mutarHandoff.mutate({ clienteIdConfirmado: c.id, motivoOverride: motivo || null })}
+                        />
                       </li>
                     ))}
                   </ul>
                   <div className="flex flex-wrap gap-2 pt-1">
-                    <button
-                      type="button"
-                      disabled={mutarHandoff.isPending}
-                      onClick={() => mutarHandoff.mutate({ forcarCriarCliente: true })}
+                    <AcaoOperacional
+                      rotulo="Criar pessoa nova"
                       className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
-                    >
-                      Criar pessoa nova
-                    </button>
+                      capacidade="avancar_caso_planejador_tarefa"
+                      pendenciaGate={gateHandoff.ok ? null : gateHandoff.motivo}
+                      efeito="Cria uma pessoa nova (sem fundir com o candidato listado), cria ou reutiliza o caso e leva a próxima ação."
+                      onConfirmar={(motivo) => mutarHandoff.mutate({ forcarCriarCliente: true, motivoOverride: motivo || null })}
+                    />
                     <button
                       type="button"
                       onClick={() => setCandidatosCliente([])}
@@ -881,20 +886,15 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 >
                   Gravar registro da call
                 </button>
-                {(() => {
-                  const gateHandoff = lead ? podeExecutarHandoffDiscovery(lead) : { ok: false, motivo: "Selecione um lead" };
-                  return (
-                    <AcaoOperacional
-                      rotulo="Concluir handoff para pessoa e caso"
-                      capacidade="avancar_caso_planejador_tarefa"
-                      pendenciaGate={gateHandoff.ok ? null : gateHandoff.motivo}
-                      validacaoFormulario={!selecionado ? "Selecione um lead na Mesa" : null}
-                      efeito="Cria ou reutiliza pessoa e caso, grava o vínculo no lead e leva a próxima ação — sem envio externo."
-                      onConfirmar={(motivo) => mutarHandoff.mutate({ motivoOverride: motivo || null })}
-                      className="rounded-lg border border-gold bg-gold/15 px-4 py-2 text-sm text-navy"
-                    />
-                  );
-                })()}
+                <AcaoOperacional
+                  rotulo="Concluir handoff para pessoa e caso"
+                  capacidade="avancar_caso_planejador_tarefa"
+                  pendenciaGate={gateHandoff.ok ? null : gateHandoff.motivo}
+                  validacaoFormulario={!selecionado ? "Selecione um lead na Mesa" : null}
+                  efeito="Cria ou reutiliza pessoa e caso, grava o vínculo no lead e leva a próxima ação — sem envio externo."
+                  onConfirmar={(motivo) => mutarHandoff.mutate({ motivoOverride: motivo || null })}
+                  className="rounded-lg border border-gold bg-gold/15 px-4 py-2 text-sm text-navy"
+                />
                 {rascunho && Object.keys(rascunho).length ? (
                   <button
                     type="button"

@@ -570,12 +570,9 @@ function Decisoes({
                   size="sm"
                   variant="outline"
                   rotulo="Arquivar decisão"
-                  capacidade="editar_rascunho"
+                  acaoExterna="arquivar_decisao_governanca"
                   efeito="Arquiva a decisão sem exclusão: ela continua no histórico de governança."
-                  onConfirmar={(motivo) => {
-                    const texto = motivo.trim() || window.prompt("Motivo do arquivamento da decisão:")?.trim();
-                    if (texto) onArquivar(d.id, texto);
-                  }}
+                  onConfirmar={(motivo) => onArquivar(d.id, motivo)}
                 >
                   <span className="inline-flex items-center gap-2">
                     <Archive className="h-3.5 w-3.5" /> Arquivar
