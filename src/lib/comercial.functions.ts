@@ -221,7 +221,7 @@ export const salvarProposta = createServerFn({ method: "POST" })
         .maybeSingle();
       if (!atual.data) throw new Error("Proposta não encontrada nesta organização.");
       delete dados["status"];
-      await gravarComVerificacao({
+      const r = await gravarComVerificacao({
         supabase,
         tabela: "proposals",
         id: data.id,
@@ -229,6 +229,17 @@ export const salvarProposta = createServerFn({ method: "POST" })
         userId: context.userId as string,
         payload: dados,
       });
+      if (r.registro["case_id"]) {
+        await registrarTimelineCaso(supabase, {
+          organizationId,
+          caseId: r.registro["case_id"] as string,
+          eventType: "caso",
+          title: "Proposta atualizada",
+          sourceEntityType: "proposals",
+          sourceEntityId: data.id,
+          userId: context.userId as string,
+        });
+      }
       return { id: data.id };
     }
     const proximaVersao = await supabase
@@ -246,6 +257,17 @@ export const salvarProposta = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: { ...dados, status: "rascunho", versao: Number(proximaVersao.data?.versao ?? 0) + 1 },
     });
+    if (r.registro["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.registro["case_id"] as string,
+        eventType: "caso",
+        title: "Proposta criada",
+        sourceEntityType: "proposals",
+        sourceEntityId: r.id,
+        userId: context.userId as string,
+      });
+    }
     return { id: r.id };
   });
 
@@ -258,7 +280,7 @@ export const mudarStatusProposta = createServerFn({ method: "POST" })
     exigirPapel(papel, PAPEIS_COMERCIAL, "Somente comercial, operações ou admin movem propostas.");
     const atual = await supabase
       .from("proposals")
-      .select("status,validade,validade_renovada_em")
+      .select("status,validade,validade_renovada_em,case_id")
       .eq("id", data.id)
       .eq("organization_id", organizationId)
       .maybeSingle();
@@ -272,6 +294,17 @@ export const mudarStatusProposta = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: { status: data.status },
     });
+    if (atual.data.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: atual.data.case_id as string,
+        eventType: "caso",
+        title: `Proposta: status alterado para ${data.status}`,
+        sourceEntityType: "proposals",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 
@@ -285,7 +318,7 @@ export const renovarValidadeProposta = createServerFn({ method: "POST" })
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
     exigirPapel(papel, PAPEIS_COMERCIAL, "Somente comercial, operações ou admin renovam validade.");
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
-    await gravarComVerificacao({
+    const r = await gravarComVerificacao({
       supabase,
       tabela: "proposals",
       id: data.id,
@@ -293,6 +326,18 @@ export const renovarValidadeProposta = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: { validade: data.validade, validade_renovada_motivo: motivo },
     });
+    if (r.registro["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.registro["case_id"] as string,
+        eventType: "caso",
+        title: "Validade da proposta renovada",
+        summaryInternal: motivo,
+        sourceEntityType: "proposals",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 
@@ -361,6 +406,19 @@ export const criarVersaoAjusteProposta = createServerFn({ method: "POST" })
       });
     }
 
+    if (atual.data.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: atual.data.case_id as string,
+        eventType: "caso",
+        title: "Versão de ajuste da proposta criada",
+        summaryInternal: `Versão ${nova.registro["versao"]}${permiteSubstituir ? " — substitui a anterior" : ""}`,
+        sourceEntityType: "proposals",
+        sourceEntityId: nova.id,
+        userId: context.userId as string,
+      });
+    }
+
     return { id: nova.id, versao: nova.registro["versao"] as number, substituiu: permiteSubstituir };
   });
 
@@ -373,7 +431,7 @@ export const restaurarProposta = createServerFn({ method: "POST" })
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
     exigirPapel(papel, PAPEIS_COMERCIAL, "Somente comercial, operações ou admin restauram propostas.");
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
-    await gravarComVerificacao({
+    const r = await gravarComVerificacao({
       supabase,
       tabela: "proposals",
       id: data.id,
@@ -387,6 +445,18 @@ export const restaurarProposta = createServerFn({ method: "POST" })
         restauracao_motivo: motivo,
       },
     });
+    if (r.registro["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.registro["case_id"] as string,
+        eventType: "caso",
+        title: "Proposta restaurada",
+        summaryInternal: motivo,
+        sourceEntityType: "proposals",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 
@@ -417,6 +487,15 @@ export const criarOrdemServico = createServerFn({ method: "POST" })
         service_order_number: "pendente",
       },
     });
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.case_id,
+      eventType: "caso",
+      title: "Ordem de serviço criada",
+      sourceEntityType: "service_orders",
+      sourceEntityId: linha.id,
+      userId: context.userId as string,
+    });
     return { id: linha.id };
   });
 
@@ -443,6 +522,17 @@ export const atualizarObservacaoOrdem = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: patch,
     });
+    if (r.registro["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.registro["case_id"] as string,
+        eventType: "caso",
+        title: "Observação/escopo da ordem de serviço atualizado",
+        sourceEntityType: "service_orders",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true, salvoEm: r.salvoEm };
   });
 
@@ -455,7 +545,7 @@ export const mudarStatusOrdem = createServerFn({ method: "POST" })
     exigirPapel(papel, PAPEIS_COMERCIAL, "Somente operações, comercial ou admin movem ordens de serviço.");
     const atual = await supabase
       .from("service_orders")
-      .select("status")
+      .select("status,case_id")
       .eq("id", data.id)
       .eq("organization_id", organizationId)
       .maybeSingle();
@@ -469,6 +559,17 @@ export const mudarStatusOrdem = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: { status: data.status },
     });
+    if (atual.data.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: atual.data.case_id as string,
+        eventType: "caso",
+        title: `Ordem de serviço: status alterado para ${data.status}`,
+        sourceEntityType: "service_orders",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 
@@ -496,7 +597,7 @@ export const salvarFatura = createServerFn({ method: "POST" })
       if (atual.data.status === "paga" && Number(dados["valor"]) !== Number(atual.data.valor)) {
         throw new Error("Fatura paga não pode ter o valor editado. Registre um ajuste de fatura.");
       }
-      await gravarComVerificacao({
+      const r = await gravarComVerificacao({
         supabase,
         tabela: "invoices",
         id: data.id,
@@ -504,6 +605,17 @@ export const salvarFatura = createServerFn({ method: "POST" })
         userId: context.userId as string,
         payload: dados,
       });
+      if (r.registro["case_id"]) {
+        await registrarTimelineCaso(supabase, {
+          organizationId,
+          caseId: r.registro["case_id"] as string,
+          eventType: "caso",
+          title: "Fatura atualizada",
+          sourceEntityType: "invoices",
+          sourceEntityId: data.id,
+          userId: context.userId as string,
+        });
+      }
       return { id: data.id };
     }
     const linha = await inserirComVerificacao({
@@ -513,6 +625,17 @@ export const salvarFatura = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: { ...dados, status: dados["status"] ?? "rascunho" },
     });
+    if (linha.registro["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: linha.registro["case_id"] as string,
+        eventType: "caso",
+        title: "Fatura criada",
+        sourceEntityType: "invoices",
+        sourceEntityId: linha.id,
+        userId: context.userId as string,
+      });
+    }
     return { id: linha.id };
   });
 
@@ -528,7 +651,7 @@ export const registrarAjusteFatura = createServerFn({ method: "POST" })
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
     exigirPapel(papel, PAPEIS_FINANCEIRO, "Ajuste de fatura exige papel financeiro ou admin.");
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
-    await inserirComVerificacao({
+    const linha = await inserirComVerificacao({
       supabase,
       tabela: "invoice_adjustments",
       organizationId,
@@ -540,6 +663,19 @@ export const registrarAjusteFatura = createServerFn({ method: "POST" })
         referencia_externa: data.referencia_externa || null,
       },
     });
+    const caseId = await casoDaFatura(supabase, organizationId, data.invoice_id);
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: "Ajuste de fatura registrado",
+        summaryInternal: `Valor: ${data.valor} — ${motivo}`,
+        sourceEntityType: "invoice_adjustments",
+        sourceEntityId: linha.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 
@@ -730,7 +866,7 @@ export const arquivarComercial = createServerFn({ method: "POST" })
       archived_by: context.userId,
     };
     payload[usaReason ? "archive_reason" : "archive_motivo"] = (data.motivo ?? "").trim() || "Sem motivo informado.";
-    await gravarComVerificacao({
+    const r = await gravarComVerificacao({
       supabase,
       tabela: data.recurso,
       id: data.id,
@@ -738,6 +874,25 @@ export const arquivarComercial = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload,
     });
+    // MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA: arquivamento comercial/financeiro
+    // é irreversível pela tela e nunca deixava rastro no histórico do caso.
+    // payments só chega ao caso indiretamente via invoice_id.
+    const caseId =
+      data.recurso === "payments"
+        ? await casoDaFatura(supabase, organizationId, r.registro["invoice_id"] as string | null | undefined)
+        : ((r.registro["case_id"] as string | undefined) ?? null);
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: `Registro comercial arquivado: ${data.recurso}`,
+        summaryInternal: String(payload[usaReason ? "archive_reason" : "archive_motivo"]),
+        sourceEntityType: data.recurso,
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 
