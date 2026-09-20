@@ -165,18 +165,13 @@ export function AbaProdutoTrilha({
           />
           <Texto label="Observação interna" valor={v("observacao_interna")} onChange={(x) => set("observacao_interna", x)} area />
         </div>
-        <div className="mt-4 flex items-center gap-3">
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <AcaoDeEscrita
             rotulo={
               m.isPending ? "Salvando…" : servico ? "Salvar serviço do caso" : "Criar serviço do caso"
             }
             faltando={sujo ? null : "Nenhuma alteração para salvar."}
             capacidade="corrigir_proposta_escopo_preco"
-            pendenciaGate={
-              produto && produto.status_homologacao !== "homologado"
-                ? "Produto-pai selecionado ainda não está homologado no catálogo."
-                : null
-            }
             efeito="Grava o serviço do caso com o produto-pai e a trilha técnica escolhidos."
             className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
             onConfirmar={() => {
@@ -187,6 +182,15 @@ export function AbaProdutoTrilha({
           <span className="text-xs text-navy/55">
             {m.isPending ? "Salvando…" : sujo ? "Alterações não salvas" : salvoEm ? `Salvo às ${salvoEm}` : ""}
           </span>
+          {/* SKU/produto-pai é contexto comercial e legado — nunca bloqueia
+              salvar o serviço do caso (decisão da Proprietária). Antes era
+              pendenciaGate, que bloqueava a equipe (só não bloqueava a
+              Proprietária — ver autoridade-operacional.ts). */}
+          {produto && produto.status_homologacao !== "homologado" ? (
+            <span className="text-xs text-navy/55">
+              Produto-pai selecionado ainda não está homologado no catálogo (contexto, não impede salvar).
+            </span>
+          ) : null}
         </div>
       </Secao>
 
