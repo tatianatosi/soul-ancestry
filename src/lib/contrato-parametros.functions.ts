@@ -62,6 +62,18 @@ async function orgDoUsuario(supabase: Sb, userId: string) {
   return org;
 }
 
+// MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA: contract_parameter_values só tem
+// parameters_id (aponta para contract_case_parameters, o registro mestre) —
+// resolve o case_id por lá para poder registrar no histórico do caso.
+async function casoDoRegistroParametros(supabase: Sb, parametersId: string) {
+  const { data } = await supabase
+    .from("contract_case_parameters")
+    .select("case_id")
+    .eq("id", parametersId)
+    .maybeSingle();
+  return (data?.case_id as string | undefined) ?? null;
+}
+
 function exigirTexto(v: unknown, campo: string, max = 4000) {
   const s = String(v ?? "").trim();
   if (!s) throw new Error(`Campo obrigatório: ${campo}.`);
@@ -157,6 +169,15 @@ export const garantirParametros = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
+    await registrarTimelineCaso(supabase, {
+      organizationId: org,
+      caseId: data.caseId,
+      eventType: "caso",
+      title: "Parâmetros contratuais inicializados",
+      sourceEntityType: "contract_case_parameters",
+      sourceEntityId: novo.id as string,
+      userId: context.userId as string,
+    });
     return { id: novo.id as string, criado: true };
   });
 
@@ -558,7 +579,7 @@ export const salvarParametro = createServerFn({ method: "POST" })
 
     const { data: linha } = await supabase
       .from("contract_parameter_values")
-      .select("id,campo,valor,origem,status,organization_id")
+      .select("id,campo,valor,origem,status,organization_id,parameters_id")
       .eq("id", data.id)
       .maybeSingle();
     if (!linha) throw new Error("Parâmetro não encontrado.");
@@ -594,6 +615,18 @@ export const salvarParametro = createServerFn({ method: "POST" })
         conflito: [],
       },
     });
+    const caseId = await casoDoRegistroParametros(supabase, linha.parameters_id as string);
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId: linha.organization_id as string,
+        caseId,
+        eventType: "caso",
+        title: `Parâmetro contratual (${linha.campo}) atualizado`,
+        sourceEntityType: "contract_parameter_values",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true, salvoEm: r.salvoEm };
   });
 
@@ -677,6 +710,19 @@ export const definirStatusParametro = createServerFn({ method: "POST" })
         conflito: data.status === "validado" ? [] : atual.conflito,
       },
     });
+    const caseId = await casoDoRegistroParametros(supabase, atual.parameters_id as string);
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId: atual.organization_id as string,
+        caseId,
+        eventType: "caso",
+        title: `Parâmetro contratual (${atual.campo}): status alterado para ${data.status}`,
+        summaryInternal: pendenciasAssumidas.length ? pendenciasAssumidas.join(" ") : undefined,
+        sourceEntityType: "contract_parameter_values",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true, salvoEm: r.salvoEm };
   });
 
@@ -1213,6 +1259,19 @@ export const congelarPrevia = createServerFn({ method: "POST" })
       anexosInternos,
     });
     await atualizarCompletude(supabase, data.id);
+
+    if (registro.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId: registro.organization_id,
+        caseId: registro.case_id,
+        eventType: "caso",
+        title: `Prévia contratual congelada (${data.evento}, versão ${nova.versao})`,
+        summaryInternal: motivo,
+        sourceEntityType: "contract_parameter_previews",
+        sourceEntityId: nova.id as string,
+        userId: context.userId as string,
+      });
+    }
 
     // Liberar não é apagar: a pendência assumida fica registrada na auditoria
     // do próprio congelamento.

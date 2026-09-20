@@ -2,6 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 // Alias obrigatório: este arquivo já usa `linhas` como variável local.
 import { linhas as linhasDe } from "@/lib/linhas";
 
@@ -58,6 +59,22 @@ async function evento(
     event_type: tipo,
     metadata,
   });
+}
+
+// MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA: contract_review_events (acima) é a
+// trilha interna do instrumento, nunca aparece no histórico do Caso 360.
+// Blocos filhos (partes, escopo, cláusulas, anexos, fontes, exceções) só têm
+// contract_id, não case_id — resolve pelo contrato para poder registrar em
+// case_timeline_events também.
+async function casoDoContrato(supabase: Sb, organizationId: string, contractId: string) {
+  const { data, error } = await supabase
+    .from("contracts")
+    .select("case_id")
+    .eq("id", contractId)
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return (data?.case_id as string | undefined) ?? null;
 }
 
 /* ============================ LEITURA ============================ */
@@ -325,6 +342,18 @@ export const criarInstrumento = createServerFn({ method: "POST" })
     }
 
     await evento(supabase, organizationId, novo.id, "created", { tipo: data.contract_type });
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: "Instrumento contratual criado",
+        summaryInternal: `${data.contract_type} — ${data.title}`,
+        sourceEntityType: "contracts",
+        sourceEntityId: novo.id as string,
+        userId: context.userId as string,
+      });
+    }
     return novo as { id: string; contract_number: string };
   });
 
@@ -374,7 +403,7 @@ export const atualizarContrato = createServerFn({ method: "POST" })
     }
     if (!Object.keys(patch).length) return { ok: true };
 
-    await gravarComVerificacao({
+    const r = await gravarComVerificacao({
       supabase,
       tabela: "contracts",
       id: data.id,
@@ -388,6 +417,17 @@ export const atualizarContrato = createServerFn({ method: "POST" })
         .update({ contract_id: data.id, updated_by: context.userId })
         .eq("case_id", patch.case_id)
         .is("contract_id", null);
+    }
+    if (r.registro["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.registro["case_id"] as string,
+        eventType: "caso",
+        title: "Contrato atualizado",
+        sourceEntityType: "contracts",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
     }
     return { ok: true };
   });
@@ -490,6 +530,18 @@ export const salvarItemContrato = createServerFn({ method: "POST" })
       bloco: data.tabela,
       operacao: data.id ? "atualizado" : "criado",
     });
+    const caseId = await casoDoContrato(supabase, organizationId, data.contract_id);
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: `Item do contrato (${data.tabela}) ${data.id ? "atualizado" : "criado"}`,
+        sourceEntityType: data.tabela,
+        sourceEntityId: data.id ?? data.contract_id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 
@@ -593,6 +645,19 @@ export const arquivarItemContrato = createServerFn({ method: "POST" })
       payload: { archived_at: new Date().toISOString(), archive_reason: data.motivo },
     });
     await evento(supabase, organizationId, data.contract_id, "archived", { bloco: data.tabela });
+    const caseId = await casoDoContrato(supabase, organizationId, data.contract_id);
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: `Item do contrato (${data.tabela}) arquivado`,
+        summaryInternal: data.motivo,
+        sourceEntityType: data.tabela,
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 
@@ -787,6 +852,19 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
       userId: context.userId as string,
     });
 
+    if (contrato.data.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: contrato.data.case_id as string,
+        eventType: "caso",
+        title: `Rascunho interno do contrato gerado (versão ${versao.version_number})`,
+        summaryInternal: falha ? `Falha na renderização: ${falha}` : undefined,
+        sourceEntityType: "contract_versions",
+        sourceEntityId: versao.id as string,
+        userId: context.userId as string,
+      });
+    }
+
     return {
       versionId: versao.id as string,
       versao: versao.version_number as number,
@@ -835,7 +913,7 @@ export const solicitarRevisaoHumana = createServerFn({ method: "POST" })
       return { ok: false, bloqueios: bloqueios.map((b) => b.label as string) };
     }
 
-    await gravarComVerificacao({
+    const r = await gravarComVerificacao({
       supabase,
       tabela: "contracts",
       id: data.contract_id,
@@ -844,6 +922,17 @@ export const solicitarRevisaoHumana = createServerFn({ method: "POST" })
       payload: { status: "ready_for_review" },
     });
     await evento(supabase, organizationId, data.contract_id, "review_requested", {});
+    if (r.registro["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.registro["case_id"] as string,
+        eventType: "caso",
+        title: "Revisão humana do contrato solicitada",
+        sourceEntityType: "contracts",
+        sourceEntityId: data.contract_id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true, bloqueios: [] as string[] };
   });
 
@@ -876,7 +965,7 @@ export const registrarDecisaoRevisao = createServerFn({ method: "POST" })
 
     const status =
       data.decisao === "approved" ? "under_human_review" : data.decisao === "rejected" ? "rejected" : "pending_data";
-    await gravarComVerificacao({
+    const r = await gravarComVerificacao({
       supabase,
       tabela: "contracts",
       id: data.contract_id,
@@ -893,6 +982,18 @@ export const registrarDecisaoRevisao = createServerFn({ method: "POST" })
       { decisao: data.decisao },
       data.version_id,
     );
+    if (r.registro["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.registro["case_id"] as string,
+        eventType: "caso",
+        title: `Decisão de revisão do contrato: ${data.decisao}`,
+        summaryInternal: data.notas,
+        sourceEntityType: "contract_versions",
+        sourceEntityId: data.version_id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 
@@ -955,7 +1056,7 @@ export const aprovarParaEnvio = createServerFn({ method: "POST" })
       payload: { status: "approved_for_send", frozen_at: agora, frozen_by: context.userId, approved_at: agora, approved_by: context.userId },
     });
 
-    await gravarComVerificacao({
+    const r = await gravarComVerificacao({
       supabase,
       tabela: "contracts",
       id: data.contract_id,
@@ -964,6 +1065,17 @@ export const aprovarParaEnvio = createServerFn({ method: "POST" })
       payload: { status: "approved_for_send", approved_for_send_by: context.userId, approved_for_send_at: agora },
     });
     await evento(supabase, organizationId, data.contract_id, "approved_for_send", {}, data.version_id);
+    if (r.registro["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.registro["case_id"] as string,
+        eventType: "caso",
+        title: "Contrato aprovado para envio",
+        sourceEntityType: "contracts",
+        sourceEntityId: data.contract_id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true, impedimentos: [] as string[] };
   });
 
@@ -991,7 +1103,7 @@ export const arquivarContrato = createServerFn({ method: "POST" })
     exigir(papel, ["admin", "operacoes"], "Seu papel não permite arquivar instrumentos.");
     if (!data.motivo?.trim()) throw new Error("Arquivamento exige motivo.");
 
-    await gravarComVerificacao({
+    const r = await gravarComVerificacao({
       supabase,
       tabela: "contracts",
       id: data.contract_id,
@@ -1000,6 +1112,18 @@ export const arquivarContrato = createServerFn({ method: "POST" })
       payload: { status: "archived", archived_at: new Date().toISOString(), archive_reason: data.motivo },
     });
     await evento(supabase, organizationId, data.contract_id, "archived", {});
+    if (r.registro["case_id"]) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: r.registro["case_id"] as string,
+        eventType: "caso",
+        title: "Contrato arquivado",
+        summaryInternal: data.motivo,
+        sourceEntityType: "contracts",
+        sourceEntityId: data.contract_id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 
@@ -1116,6 +1240,19 @@ export const criarExcecao = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
     await evento(supabase, organizationId, data.contract_id, "exception_created", { escopo: data.scope });
+    const caseId = await casoDoContrato(supabase, organizationId, data.contract_id);
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: `Exceção contratual registrada (${data.scope})`,
+        summaryInternal: `${data.reason} — impacto: ${data.impact}`,
+        sourceEntityType: "contract_exceptions",
+        sourceEntityId: data.contract_id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });
 
