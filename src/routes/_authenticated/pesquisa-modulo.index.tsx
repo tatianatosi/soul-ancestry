@@ -5,13 +5,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { SaasShell, useSaas } from "@/components/saas/shell";
+import { EstadoVazio, SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { Painel, Selo } from "@/components/comercial/base";
 import { rotulo } from "@/components/pesquisa/modulo-campos";
 import { criarPesquisaParaCaso, painelPesquisaModulo, rodarScanPesquisa } from "@/lib/pesquisa-modulo.functions";
 import { filtrarPorBusca } from "@/lib/rotulo-negocio";
 import { CardIndicador } from "@/components/desk/ui-desk";
+import { CaCard } from "@/components/ui/ca-card";
 
 export const Route = createFileRoute("/_authenticated/pesquisa-modulo/")({
   head: () => ({
@@ -229,17 +230,28 @@ function Index() {
             </form>
           </Painel>
 
-          <Painel titulo="Inconsistências de pesquisa em aberto">
-            {d.inconsistencias.length === 0 && <p className="text-sm text-navy/60">Nenhuma inconsistência aberta.</p>}
-            <ul className="space-y-1 text-sm text-navy/70">
-              {d.inconsistencias.map((i: any) => (
-                <li key={i["id"]}>
-                  <Selo texto={String(i["severidade"])} tom={i["severidade"] === "critica" ? "erro" : "alerta"} />{" "}
-                  {String(i["titulo"])}
-                </li>
-              ))}
-            </ul>
-          </Painel>
+          {/*
+            DSA-3-CENTRO-INTELIGENCIA (21/09/2026): terceiro consumidor do
+            Desk a usar `CaCard`/`EstadoVazio` (após DSA-1 em qualidade.tsx e
+            DSA-2 em painel.tsx), mesmos tokens, sem hex novo. Troca só o
+            invólucro deste bloco (antes `Painel`); dado, mutation e demais
+            blocos da tela (Painel "Pesquisas em andamento" / "Abrir
+            pesquisa") permanecem intocados.
+          */}
+          <CaCard titulo="Inconsistências de pesquisa em aberto" eyebrow="Pesquisa Genealógica · Centro de Inteligência">
+            {d.inconsistencias.length === 0 ? (
+              <EstadoVazio mensagem="Nenhuma inconsistência aberta." />
+            ) : (
+              <ul className="space-y-1 text-sm text-navy/70">
+                {d.inconsistencias.map((i: any) => (
+                  <li key={i["id"]}>
+                    <Selo texto={String(i["severidade"])} tom={i["severidade"] === "critica" ? "erro" : "alerta"} />{" "}
+                    {String(i["titulo"])}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CaCard>
         </div>
       )}
     </SaasShell>
