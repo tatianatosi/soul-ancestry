@@ -26,6 +26,7 @@ import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions";
 import { conferirDivergenciaCpfMembrosCaso } from "@/lib/caso-canonico.functions";
 import { ReconciliarCpfMembrosCaso } from "@/components/caso/reconciliar-cpf-membros-caso";
+import { GrupoComunicacaoCaso } from "@/components/caso/grupo-comunicacao-caso";
 import { listarFilaOps } from "@/lib/ops.functions";
 import { listarDocumentos } from "@/lib/documentos.functions";
 import { resumoVisaoClienteCaso } from "@/lib/app-cliente-como-pessoa.functions";
@@ -2236,6 +2237,7 @@ function AbaPessoas({
           onVerificar={() => mReconciliarCpfMembros.mutate(false)}
           onSincronizar={() => mReconciliarCpfMembros.mutate(true)}
         />
+        <GrupoComunicacaoCaso caseId={casoId} />
         <PessoasDoNucleo caseId={casoId} />
       </div>
     );
@@ -2265,6 +2267,7 @@ function AbaPessoas({
         onVerificar={() => mReconciliarCpfMembros.mutate(false)}
         onSincronizar={() => mReconciliarCpfMembros.mutate(true)}
       />
+      <GrupoComunicacaoCaso caseId={casoId} />
       <Secao
         titulo="Pessoas do caso"
         descricao="Registro de pessoa é distinto do caso e da família. Menor de idade nunca é signatário: exige representante legal."

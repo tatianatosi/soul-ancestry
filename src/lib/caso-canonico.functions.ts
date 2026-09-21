@@ -802,3 +802,115 @@ export const carregarMapaEtiquetas = createServerFn({ method: "GET" })
       taxonomia: linhas<Linha>(taxonomia, "taxonomia de etiquetas").map((l) => ({ ...l, aplicacoes: uso.get(l.id) ?? 0 })),
     };
   });
+
+/**
+ * §5 do "Prompt de Implantação — Política Unificada de Casos Familiares"
+ * (21/09/2026): o grupo familiar/WhatsApp é um canal de coordenação
+ * humana, não um banco de dados nem uma automação. Estas três funções só
+ * REGISTRAM a existência/propósito/status de um grupo no Caso 360 —
+ * nunca criam nem integram nada no WhatsApp real. "A criação externa é
+ * feita pela proprietária quando decidir" (texto do documento-fonte).
+ */
+export const listarGruposComunicacaoCaso = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string }) => data)
+  .handler(async ({ data, context }) => {
+    semCache();
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    const { data: grupos, error } = await supabase
+      .from("case_grupos_comunicacao")
+      .select("id,canal,nome_grupo,referencia_externa,proposito,status,contato_principal_membro_id,created_at,activated_at,archived_at")
+      .eq("case_id", data.caseId)
+      .eq("organization_id", organizationId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return { grupos: linhas<Linha>(grupos, "grupos de comunicação do caso") };
+  });
+
+export const registrarGrupoComunicacaoCaso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: {
+      caseId: string;
+      canal?: string;
+      nomeGrupo?: string;
+      proposito: string;
+      contatoPrincipalMembroId?: string;
+    }) => data,
+  )
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    if (!data.proposito.trim()) throw new Error("Informe o propósito do grupo antes de registrar.");
+
+    const inserido = await inserirComVerificacao({
+      supabase,
+      tabela: "case_grupos_comunicacao",
+      organizationId,
+      userId: context.userId as string,
+      payload: {
+        case_id: data.caseId,
+        canal: data.canal ?? "whatsapp",
+        nome_grupo: data.nomeGrupo ?? null,
+        proposito: data.proposito.trim(),
+        contato_principal_membro_id: data.contatoPrincipalMembroId ?? null,
+      },
+    });
+
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.caseId,
+      eventType: "caso",
+      title: "Grupo de comunicação registrado",
+      summaryInternal: data.proposito.trim(),
+      sourceEntityType: "case_grupos_comunicacao",
+      sourceEntityId: inserido.id,
+      userId: context.userId as string,
+    });
+
+    return { ok: true, id: inserido.id };
+  });
+
+export const atualizarGrupoComunicacaoCaso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: {
+      id: string;
+      caseId: string;
+      status?: "planejado" | "ativo" | "arquivado";
+      referenciaExterna?: string;
+    }) => data,
+  )
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+
+    const payload: Record<string, unknown> = {};
+    if (data.status !== undefined) payload.status = data.status;
+    if (data.referenciaExterna !== undefined) payload.referencia_externa = data.referenciaExterna;
+
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "case_grupos_comunicacao",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload,
+    });
+
+    if (data.status) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.caseId,
+        eventType: "caso",
+        title: `Grupo de comunicação: status atualizado para ${data.status}`,
+        sourceEntityType: "case_grupos_comunicacao",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
+
+    return { ok: true, salvoEm: r.salvoEm };
+  });
