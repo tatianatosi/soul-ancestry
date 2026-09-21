@@ -192,6 +192,7 @@ export function PortalDocumentos() {
         <PortalCarregando />
       ) : (
         <EstadoDados
+          superficie="app"
           erro={erroLeitura}
           dados={data ? [data] : null}
           aoTentarNovamente={() => void refetch()}

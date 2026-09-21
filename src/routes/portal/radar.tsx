@@ -52,6 +52,7 @@ export function PortalRadar() {
         <PortalCarregando />
       ) : (
         <EstadoDados
+          superficie="app"
           carregando={isLoading}
           erro={isError ? (error ?? true) : null}
           dados={data ? [data] : null}
@@ -64,7 +65,6 @@ export function PortalRadar() {
               documentos: vivo.documentos,
             });
             const casoCodigo = previa?.identidade?.codigo ?? (previa ? CASO_DEMO_CODIGO : "—");
-            const comPercentual = dimensoes.filter((d) => d.estado === "percentual").length;
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-6" data-aba-radar>
@@ -74,14 +74,6 @@ export function PortalRadar() {
                   >
                     <ChipMeta rotulo="Caso" valor={casoCodigo} />
                     <ChipMeta rotulo="Eixos" valor="6 dimensões" />
-                  </div>
-                  {/* Prova de auditoria App↔Desk (não visual): mantém a comparação técnica
-                      fora da superfície do cliente, sem apagar o dado do DOM. */}
-                  <div className="sr-only">
-                    <span>Desk usa 4 eixos, diferentes dos 6 do App.</span>
-                    <span>
-                      {comPercentual === 0 ? "Nenhuma dimensão com percentual inventado." : `${comPercentual} de 6 dimensões com percentual real.`}
-                    </span>
                   </div>
                   <RadarSeisEixos dimensoes={dimensoes} />
 

@@ -13,6 +13,7 @@
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { mensagemDeFalha } from "@/lib/portal-linguagem-viva";
 
 export type EstadoDadosProps<T> = {
   /** Consulta em andamento. */
@@ -27,6 +28,18 @@ export type EstadoDadosProps<T> = {
   vazio?: string;
   /** Nome legível do que se está carregando, usado nas mensagens. */
   recurso?: string;
+  /**
+   * Em qual superfície o estado é renderizado.
+   *
+   * 21/09/2026 — este componente é usado nas duas superfícies, e no App
+   * Cliente ele vazava dois tipos de texto interno: a mensagem crua do erro
+   * (nome de policy, tabela e coluna do Postgres) e o caminho de correção
+   * "Administração → Equipe", que é rota do Desk. O cliente nunca deve ver
+   * nenhum dos dois. Com `"app"`, o erro vira a mensagem neutra de cliente e
+   * o caminho de correção é omitido. O padrão continua `"desk"`, então
+   * nenhuma tela interna muda de comportamento.
+   */
+  superficie?: "desk" | "app";
   children: (dados: T[]) => ReactNode;
 };
 
@@ -60,6 +73,7 @@ export function EstadoDados<T>({
   aoTentarNovamente,
   vazio,
   recurso = "os dados",
+  superficie = "desk",
   children,
 }: EstadoDadosProps<T>) {
   if (carregando) {
@@ -73,10 +87,13 @@ export function EstadoDados<T>({
   const semContrato = !erro && (dados === undefined || dados === null);
 
   if (erro || semContrato) {
-    const detalhe = erro
-      ? mensagemDeErro(erro)
-      : `A consulta de ${recurso} não retornou resultado nem erro. Isso é uma falha de carga, não uma base vazia.`;
-    const correcao = caminhoDeCorrecao(erro);
+    const noApp = superficie === "app";
+    const detalhe = noApp
+      ? mensagemDeFalha(erro)
+      : erro
+        ? mensagemDeErro(erro)
+        : `A consulta de ${recurso} não retornou resultado nem erro. Isso é uma falha de carga, não uma base vazia.`;
+    const correcao = noApp ? null : caminhoDeCorrecao(erro);
     return (
       <div
         role="alert"

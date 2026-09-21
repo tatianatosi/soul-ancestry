@@ -115,6 +115,7 @@ export function PortalHome() {
   return (
     <PortalShell titulo={COPY_TELAS.home.titulo} descricao={COPY_TELAS.home.descricao}>
       <EstadoDados
+          superficie="app"
         carregando={isLoading || vivo.isLoading}
         erro={error}
         dados={data}

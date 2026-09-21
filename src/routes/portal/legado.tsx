@@ -81,6 +81,7 @@ export function PortalLegado() {
         <PortalCarregando />
       ) : (
         <EstadoDados
+          superficie="app"
           carregando={isLoading}
           erro={isError ? (error ?? true) : null}
           dados={data ? [data] : null}

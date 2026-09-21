@@ -39,6 +39,7 @@ function PropostaPage() {
         <PortalCarregando />
       ) : (
         <EstadoDados
+          superficie="app"
           erro={error}
           dados={data ? [data] : null}
           aoTentarNovamente={() => void refetch()}
