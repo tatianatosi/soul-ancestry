@@ -123,6 +123,46 @@ function PainelConsolidado() {
         <p className="text-xs font-semibold uppercase tracking-widest text-gold">Painel consolidado</p>
         <h2 id="painel-consolidado-titulo" className="mt-1 font-serif text-2xl text-navy">Indicadores por frente</h2>
       </div>
+
+      {/*
+        Faixa de 4 indicadores do Hoje, na composição da prancha aprovada
+        (01-hoje.tsx do kit v4 · §11 do De-Para).
+
+        Dois têm regra publicada e saem da fonte real; dois não têm, e por
+        isso aparecem como "Não registrado" em vez de número inventado:
+
+        - "Decisões do dia" não tem definição publicada — não há fila de
+          decisão no modelo de dados que diga o que conta como decisão de
+          hoje.
+        - "Microentregas para revisão" esbarra no vocabulário: o estado de
+          microentrega vai a `concluida`/`aprovada`, sem estado de revisão
+          pendente. A fila existe em /microentregas, com outra fonte.
+
+        Regra da casa: ausência é explícita, nunca preenchida por dedução.
+      */}
+      <dl className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-hoje-indicadores>
+        {[
+          { rotulo: "Decisões do dia", valor: null, apoio: "sem regra publicada" },
+          { rotulo: "Cadências vencidas", valor: hoje.vencidas, apoio: "pedem retomada" },
+          { rotulo: "Casos sem próxima ação", valor: hoje.semProxima, apoio: "precisam de decisão" },
+          { rotulo: "Microentregas para revisão", valor: null, apoio: "sem estado de revisão no modelo" },
+        ].map((k) => (
+          <div key={k.rotulo} className="rounded-xl border border-navy/15 bg-cream/40 px-4 py-3">
+            <dd
+              className={
+                k.valor === null
+                  ? "text-sm font-medium text-navy/50"
+                  : "font-serif text-2xl text-navy"
+              }
+            >
+              {k.valor === null ? "Não registrado" : k.valor}
+            </dd>
+            <dt className="mt-0.5 text-xs text-navy/70">{k.rotulo}</dt>
+            <p className="text-[11px] text-navy/45">{k.apoio}</p>
+          </div>
+        ))}
+      </dl>
+
       <div className="grid gap-4 lg:grid-cols-2">
         {secoes.map((secao) => (
           <CaCard
