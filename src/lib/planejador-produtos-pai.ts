@@ -16,7 +16,7 @@ export type ProdutoPai = {
 };
 
 /** Ordem e rótulos canônicos — seção 1 do Motor do Planejador (04/09, v1.1). */
-export const PRODUTOS_PAI_CANONICOS: ProdutoPai[] = [
+export const PRODUTOS_PAI_CANONICOS = [
   { id: "PP-01", nome: "Diagnóstico Familiar Multipaís", faseDaVida: "Descoberta" },
   { id: "PP-02", nome: "Diagnóstico de Cidadania por Etapas", faseDaVida: "Diagnóstico" },
   { id: "PP-03", nome: "Pesquisa Genealógica por Ramo Familiar", faseDaVida: "Prova e pesquisa" },
@@ -26,7 +26,24 @@ export const PRODUTOS_PAI_CANONICOS: ProdutoPai[] = [
   { id: "PP-07", nome: "Regularização e Vida Civil Pós-Reconhecimento", faseDaVida: "Pós-reconhecimento" },
   { id: "PP-08", nome: "História de Família, Memória e Legado", faseDaVida: "Memória e legado" },
   { id: "PP-09", nome: "Continuidade e Acervo Familiar", faseDaVida: "Continuidade" },
-];
+] as const satisfies readonly ProdutoPai[];
+
+/**
+ * Código canônico do produto-pai, como gravado em `case_plans.produto_pai_id`.
+ *
+ * 21/09/2026 (regra de autoridade 2): o produto-pai deixou de ser só
+ * agrupamento de catálogo e passou a governar a jornada do caso. O código
+ * abaixo é a chave persistida — o CHECK da migration
+ * `20260921150000_case_plans_produto_pai.sql` espelha exatamente esta lista,
+ * e um teste falha se as duas divergirem.
+ */
+export type ProdutoPaiId = (typeof PRODUTOS_PAI_CANONICOS)[number]["id"];
+
+/** O produto-pai canônico de um código, ou null se fora do catálogo. */
+export function produtoPaiPorId(id: string | null | undefined): ProdutoPai | null {
+  if (!id) return null;
+  return PRODUTOS_PAI_CANONICOS.find((p) => p.id === id) ?? null;
+}
 
 export type GrupoProdutoPai = {
   produtoPai: ProdutoPai | null;

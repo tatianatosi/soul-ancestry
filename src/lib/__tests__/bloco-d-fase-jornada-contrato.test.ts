@@ -36,6 +36,7 @@ const entradaMinima = (): EntradaPlanejador => ({
   proximaAcao: null,
   prazoProximaAcao: null,
   faseJornada: null,
+  produtoPaiId: null,
   checklist: [],
   perguntas: [],
   marcos: [],

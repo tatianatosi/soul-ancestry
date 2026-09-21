@@ -921,6 +921,7 @@ function FichaCaso() {
             ? {
                 etapa: qCadeia.data.planejador.etapa ?? null,
                 faseJornada: qCadeia.data.planejador.fase_jornada ?? null,
+                produtoPaiId: qCadeia.data.planejador.produto_pai_id ?? null,
                 rotaConfirmada: qCadeia.data.planejador.rotaConfirmada ?? null,
                 marcos: qCadeia.data.planejador.marcos ?? [],
               }

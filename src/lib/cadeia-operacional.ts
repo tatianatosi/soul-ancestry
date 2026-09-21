@@ -12,6 +12,7 @@
  */
 
 import type { FaseJornada } from "@/lib/onboarding-jornada";
+import type { ProdutoPaiId } from "@/lib/planejador-produtos-pai";
 
 export const CADEIA_OPERACIONAL_VERSAO = "CADEIA-OPERACIONAL-v1.0";
 
@@ -37,6 +38,14 @@ export type EntradaPlanejador = {
   proximaAcao: string | null;
   prazoProximaAcao: string | null;
   faseJornada: FaseJornada | null;
+  /**
+   * Produto-Pai canônico do caso (PP-01..PP-09).
+   *
+   * 21/09/2026 (regra de autoridade 2): governa jornada, marcos e ligação
+   * multipaís. Nulo é estado legítimo — "ainda não definido" —, nunca
+   * inferido do catálogo/SKU legado (regra 4).
+   */
+  produtoPaiId: ProdutoPaiId | null;
   checklist: string[];
   perguntas: string[];
   marcos: string[];
@@ -62,6 +71,8 @@ export const FASE_JORNADA_PADRAO: FaseJornada = "aceite_e_formalizacao";
 export type SaidaPlanejador = {
   /** Nunca nulo: a coluna é NOT NULL com CHECK. Ver `FASE_JORNADA_PADRAO`. */
   fase_jornada: FaseJornada;
+  /** Nulo é legítimo: coluna nullable, "produto-pai ainda não definido". */
+  produto_pai_id: ProdutoPaiId | null;
   checklist_aplicavel: string[];
   perguntas: string[];
   dependencias_cliente: string[];
@@ -125,6 +136,7 @@ export function avaliarPlanejador(e: EntradaPlanejador): SaidaPlanejador {
 
   const saida: Omit<SaidaPlanejador, "hash"> = {
     fase_jornada: e.faseJornada ?? FASE_JORNADA_PADRAO,
+    produto_pai_id: e.produtoPaiId ?? null,
     checklist_aplicavel: checklist,
     perguntas: limpar(e.perguntas),
     dependencias_cliente: limpar(e.dependenciasCliente),

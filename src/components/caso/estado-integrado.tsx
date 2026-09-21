@@ -9,6 +9,8 @@
  */
 import { Link } from "@tanstack/react-router";
 
+import { produtoPaiPorId } from "@/lib/planejador-produtos-pai";
+
 type Linha = Record<string, any>;
 
 function Item({
@@ -75,6 +77,7 @@ export function EstadoIntegradoCaso({
     etapa: string | null;
     faseJornada: string | null;
     rotaConfirmada: string | null;
+    produtoPaiId: string | null;
     marcos: unknown[];
   } | null;
   onboarding: Linha[];
@@ -87,9 +90,19 @@ export function EstadoIntegradoCaso({
   const produtoDoServico = servicoAtual
     ? produtos.find((p) => p["id"] === servicoAtual["product_catalog_id"])
     : null;
-  const produtoPai = (produtoDoServico?.["produto_pai"] as string | null) ?? null;
 
-  const marcosConcluidos = planejador ? (planejador.marcos ?? []).length : 0;
+  /*
+    21/09/2026 (regra de autoridade 2): o produto-pai passou a ser dado
+    persistido no plano (`case_plans.produto_pai_id`), com código canônico
+    PP-01..PP-09. Antes este bloco exibia `produto_pai` do catálogo — texto
+    derivado em runtime por match de nome contra a lista-alimento legada,
+    que a regra 4 proíbe como definidor de produto/jornada. O catálogo segue
+    visível, mas como referência secundária, nunca como a fonte.
+  */
+  const produtoPaiCanonico = produtoPaiPorId(planejador?.produtoPaiId ?? null);
+  const produtoPaiCatalogo = (produtoDoServico?.["produto_pai"] as string | null) ?? null;
+
+  const marcos = (planejador?.marcos ?? []).map((m) => String(m)).filter(Boolean);
 
   return (
     <section className="mb-6 rounded-xl border border-navy/15 bg-cream/40 p-4">
@@ -119,7 +132,13 @@ export function EstadoIntegradoCaso({
         />
         <Item
           rotulo="Produto-pai / trilha"
-          valor={produtoPai ?? (servicoAtual ? "Produto vinculado sem produto-pai mapeado" : "Nenhum produto-pai vinculado")}
+          valor={
+            produtoPaiCanonico
+              ? `${produtoPaiCanonico.id} — ${produtoPaiCanonico.nome} · ${produtoPaiCanonico.faseDaVida}`
+              : produtoPaiCatalogo
+                ? `Sem produto-pai definido no plano (catálogo sugere: ${produtoPaiCatalogo})`
+                : "Nenhum produto-pai definido no plano"
+          }
           linkTo="#secao-jornada"
           linkTexto="Produto-pai e trilha →"
         />
@@ -136,7 +155,13 @@ export function EstadoIntegradoCaso({
         />
         <Item
           rotulo="Marcos do planejador"
-          valor={planejador ? `${marcosConcluidos} marco(s) declarado(s)` : "Sem planejador persistido"}
+          valor={
+            !planejador
+              ? "Sem planejador persistido"
+              : marcos.length === 0
+                ? "Nenhum marco declarado"
+                : marcos.join(" · ")
+          }
           linkTo="/casos/$caseId/contrato/preparar"
           linkParams={{ caseId }}
           linkTexto="Cadeia operacional →"

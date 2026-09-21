@@ -38,6 +38,9 @@ const planoCompleto = (): EntradaPlanejador => ({
   // fixture (estudo genealógico, confirmar linha materna) é pesquisa e
   // validação.
   faseJornada: "pesquisa_e_validacao",
+  // Corte 3 (21/09/2026): produto-pai passou a ser dado persistido do plano.
+  // O cenário deste fixture é pesquisa genealógica por ramo familiar.
+  produtoPaiId: "PP-03",
   checklist: ["conferir nomes"],
   perguntas: ["há registro civil?"],
   marcos: ["linha confirmada"],

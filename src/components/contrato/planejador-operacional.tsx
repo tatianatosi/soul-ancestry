@@ -9,6 +9,7 @@ import { CaCard } from "@/components/ui/ca-card";
 import { COMPOSICOES, type Composicao, type EntradaPlanejador } from "@/lib/cadeia-operacional";
 import { listarSkusPlanejador, salvarPlanejadorOperacional } from "@/lib/cadeia-operacional.functions";
 import { FASES_JORNADA, type FaseJornada } from "@/lib/onboarding-jornada";
+import { PRODUTOS_PAI_CANONICOS, type ProdutoPaiId } from "@/lib/planejador-produtos-pai";
 
 const ROTULO_COMPOSICAO: Record<Composicao, string> = {
   individual: "Individual",
@@ -26,6 +27,7 @@ type Estado = {
   objetivo: string;
   etapa: string;
   faseJornada: FaseJornada | "";
+  produtoPaiId: ProdutoPaiId | "";
   composicao: Composicao | "";
   rotaConfirmada: string;
   produtoSkuCodigo: string;
@@ -44,6 +46,7 @@ const VAZIO: Estado = {
   objetivo: "",
   etapa: "",
   faseJornada: "",
+  produtoPaiId: "",
   composicao: "",
   rotaConfirmada: "",
   produtoSkuCodigo: "",
@@ -117,6 +120,7 @@ export function PlanejadorOperacional({
       proximaAcao: estado.proximaAcao.trim() || null,
       prazoProximaAcao: estado.prazoProximaAcao || null,
       faseJornada: estado.faseJornada || null,
+      produtoPaiId: estado.produtoPaiId || null,
       checklist: linhas(estado.checklist),
       perguntas: linhas(estado.perguntas),
       marcos: linhas(estado.marcos),
@@ -208,6 +212,24 @@ export function PlanejadorOperacional({
           ) : null}
         </label>
         {campo("rotaConfirmada", "País/rota confirmado", "Só se já confirmado — o motor não infere")}
+        <label className="block">
+          <span className="text-[11px] font-medium uppercase tracking-wide text-navy/50">Produto-Pai</span>
+          <select
+            value={estado.produtoPaiId}
+            onChange={(e) => setEstado((s) => ({ ...s, produtoPaiId: e.target.value as ProdutoPaiId | "" }))}
+            className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+          >
+            <option value="">Ainda não definido</option>
+            {PRODUTOS_PAI_CANONICOS.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.id} — {p.nome}
+              </option>
+            ))}
+          </select>
+          <span className="mt-1 block text-[11px] text-navy/50">
+            Governa jornada, marcos e ligação multipaís. Não é derivado do SKU.
+          </span>
+        </label>
         <label className="block">
           <span className="text-[11px] font-medium uppercase tracking-wide text-navy/50">Fase da jornada</span>
           <select
