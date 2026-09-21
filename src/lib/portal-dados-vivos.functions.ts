@@ -2,7 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
-import type { DocumentoPortal } from "@/lib/portal-dados-vivos";
+import type { DocumentoPortal, EtapaCliente } from "@/lib/portal-dados-vivos";
+import { composicaoDoCasoCliente, etapaDoCasoCliente } from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 import { projetarProximaAcaoCliente, sinaisDoCasoPortal, type ProximaAcaoCliente } from "@/lib/motor-caso";
 
@@ -36,19 +37,36 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
     proximaAcao: ProximaAcaoCliente | null;
     /** Qual caso a leitura de fato usou. Nulo quando nenhum está disponível. */
     casoAtivoId: string | null;
+    /**
+     * Etapa e composição do caso ativo, já sanitizadas. Vêm da view
+     * `portal_casos`, que projeta `case_plans.fase_jornada`/`composicao` do
+     * plano ativo — nenhuma outra coluna do plano cruza a fronteira.
+     */
+    etapa: EtapaCliente | null;
+    composicao: string | null;
   }> => {
     semCache();
     const supabase = context.supabase as any;
 
-    const casos = await supabase.from("portal_casos").select("id, status, ativo, suspenso_em");
-    const permitidos = ((casos.data ?? []) as { id: string; status?: string; ativo?: boolean; suspenso_em?: string | null }[]);
+    const casos = await supabase
+      .from("portal_casos")
+      .select("id, status, ativo, suspenso_em, fase_jornada, composicao");
+    const permitidos = ((casos.data ?? []) as {
+      id: string;
+      status?: string;
+      ativo?: boolean;
+      suspenso_em?: string | null;
+      fase_jornada?: string | null;
+      composicao?: string | null;
+    }[]);
 
     // Um caso por leitura. Pedido explícito só vale se estiver entre os
     // autorizados; sem pedido, o primeiro. Nunca o conjunto inteiro.
     const casoAtivo = data.casoId
       ? (permitidos.find((c) => String(c.id) === data.casoId) ?? null)
       : (permitidos[0] ?? null);
-    if (!casoAtivo) return { projecoes: [], documentos: [], proximaAcao: null, casoAtivoId: null };
+    if (!casoAtivo)
+      return { projecoes: [], documentos: [], proximaAcao: null, casoAtivoId: null, etapa: null, composicao: null };
     const alvo = [String(casoAtivo.id)];
 
     const [proj, docs, pendencias, faturas] = await Promise.all([
@@ -81,5 +99,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       documentos: (docs.data ?? []) as DocumentoPortal[],
       proximaAcao,
       casoAtivoId: String(casoAtivo.id),
+      etapa: etapaDoCasoCliente(casoAtivo.fase_jornada),
+      composicao: composicaoDoCasoCliente(casoAtivo.composicao),
     };
   });

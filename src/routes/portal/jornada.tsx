@@ -10,7 +10,7 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { LinkPortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
+import { jornadaSanitizada, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
 import type { PublicacaoCliente } from "@/lib/projecoes-cliente";
 import { cn } from "@/lib/utils";
 
@@ -131,11 +131,32 @@ function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
   );
 }
 
-function TrilhaCompacta({ passoAtualIndice }: { passoAtualIndice: number | null }) {
+/**
+ * A linha do processo da Jornada (mockup 2/7, De-Para §4 linha 2).
+ *
+ * 21/09/2026: `passos` passou a ser parâmetro. Antes era sempre a lista fixa
+ * `PASSOS_CASO`, e `passoAtualIndice` era nulo para todo cliente real — a
+ * linha existia sem etapa ativa nenhuma, porque a fase do caso não chegava ao
+ * App. Agora um caso real usa as 8 fases canônicas com rótulo de cliente; a
+ * demo continua com o roteiro editorial dela.
+ *
+ * DIVERGÊNCIA REGISTRADA (§29): o mockup nomeia cinco passos (Kickoff, Coleta
+ * inicial, Reconstrução de linhagem, Validação consular, Requerimento final),
+ * o De-Para §4 nomeia quatro (Início, Pesquisa, Conferência, Entrega) e o dado
+ * real tem oito fases. Nenhum de-para 8→5 ou 8→4 foi aprovado, então a linha
+ * usa a fase real em vez de escolher uma das três listas por conta própria.
+ */
+function TrilhaCompacta({
+  passos,
+  passoAtualIndice,
+}: {
+  passos: readonly string[];
+  passoAtualIndice: number | null;
+}) {
   return (
     <div className="rounded-xl border border-border bg-card px-3 py-2.5">
       <div className="flex items-center">
-        {PASSOS_CASO.map((passo, i) => {
+        {passos.map((passo, i) => {
           const concluido = passoAtualIndice !== null && i < passoAtualIndice;
           const atual = passoAtualIndice !== null && i === passoAtualIndice;
           return (
@@ -150,13 +171,13 @@ function TrilhaCompacta({ passoAtualIndice }: { passoAtualIndice: number | null 
               >
                 {i + 1}
               </span>
-              {i < PASSOS_CASO.length - 1 ? <span className="mx-1 h-px flex-1 bg-navy/10" aria-hidden="true" /> : null}
+              {i < passos.length - 1 ? <span className="mx-1 h-px flex-1 bg-navy/10" aria-hidden="true" /> : null}
             </div>
           );
         })}
       </div>
       <div className="mt-1 flex">
-        {PASSOS_CASO.map((passo, i) => {
+        {passos.map((passo, i) => {
           const atual = passoAtualIndice !== null && i === passoAtualIndice;
           return (
             <span
@@ -174,7 +195,7 @@ function TrilhaCompacta({ passoAtualIndice }: { passoAtualIndice: number | null 
       {/* Ajuste 2026-09-12: microtexto explícito — o dourado sozinho não deixava claro que é a etapa atual. */}
       {passoAtualIndice !== null ? (
         <p className="mt-2 text-center text-[10px] text-navy/55">
-          Você está aqui: <span className="font-semibold text-navy">{PASSOS_CASO[passoAtualIndice]}</span>
+          Você está aqui: <span className="font-semibold text-navy">{passos[passoAtualIndice]}</span>
         </p>
       ) : null}
     </div>
@@ -316,7 +337,15 @@ export function PortalJornada() {
             // Prévia não é sinônimo de demonstração: o acesso master abre caso
             // real. Roteiro editorial e passo fixo pertencem só ao caso demo.
             const ehDemo = Boolean(previa) && (previa?.identidade?.fonte ?? "demo") === "demo";
-            const passoAtualIndice = ehDemo ? PASSO_CASO_ATUAL_DEMO_SOPHIA_INDICE : null;
+            // Caso real: a etapa vem de `case_plans.fase_jornada` pela view
+            // `portal_casos`. Sem plano ativo, segue sem etapa destacada — o
+            // estado honesto, nunca um passo escolhido a esmo.
+            const passos = ehDemo ? PASSOS_CASO : ROTULOS_ETAPA_CLIENTE;
+            const passoAtualIndice = ehDemo
+              ? PASSO_CASO_ATUAL_DEMO_SOPHIA_INDICE
+              : vivo.etapa
+                ? vivo.etapa.posicao - 1
+                : null;
 
             // Monta os nós: roteiro editorial na demo, ordem cronológica real no cliente real.
             const nos: No[] = ehDemo
@@ -374,7 +403,7 @@ export function PortalJornada() {
                     />
                   </div>
 
-                  <TrilhaCompacta passoAtualIndice={passoAtualIndice} />
+                  <TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} />
 
                   {jornada.linha.length === 0 ? (
                     <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">

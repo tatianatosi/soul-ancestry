@@ -13,7 +13,7 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
+import { jornadaSanitizada, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
 import { ChipIdentidadeCaso } from "@/components/caso/chip-identidade-caso";
 import { identidadeDePortalCaso } from "@/lib/caso-compartilhado";
 import { cn } from "@/lib/utils";
@@ -64,6 +64,7 @@ export function PortalHome() {
   // Qual caso a leitura de fato usou — o servidor decide (pedido da URL, ou o
   // primeiro autorizado), e a Home segue essa decisão em vez de recalcular.
   const casoIdAtivo = vivo.data?.casoAtivoId ?? null;
+  const etapa = vivo.data?.etapa ?? null;
   const carregar = useServerFn(meusCasos);
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["portal-meus-casos"],
@@ -106,6 +107,7 @@ export function PortalHome() {
                     rotulos: FASES_JORNADA_DEMO,
                     indice: FASE_ATUAL_DEMO_SOPHIA_INDICE,
                     percentual: FASE_ATUAL_DEMO_SOPHIA_PERCENTUAL,
+                    valor: `${FASE_ATUAL_DEMO_SOPHIA_PERCENTUAL}%`,
                   }
             }
 
@@ -160,6 +162,24 @@ export function PortalHome() {
                   destino: destinoPorTipo(item.tipo),
                   texto: item.conteudo,
                 }))}
+                composicao={vivo.data?.composicao ?? null}
+                fase={
+                  /*
+                    Etapa real do caso, vinda de `case_plans.fase_jornada` pela
+                    view `portal_casos`. Sem plano ativo, `etapa` é nula e o
+                    cartão volta à contagem de marcos publicados — o estado
+                    honesto de antes, nunca uma etapa inventada.
+                  */
+                  etapa
+                    ? {
+                        rotulos: ROTULOS_ETAPA_CLIENTE,
+                        indice: etapa.posicao - 1,
+                        percentual: Math.round(etapa.fracao * 100),
+                        valor: `Etapa ${etapa.posicao} de ${etapa.total}`,
+                        compacto: true,
+                      }
+                    : null
+                }
               />
               {outros.length > 0 ? (
                 <section className="space-y-2">
@@ -197,17 +217,31 @@ function EstepeJornada({
   rotulos,
   indice,
   percentual,
+  valor,
+  compacto = false,
 }: {
   rotulos: readonly string[];
   indice: number;
   percentual: number;
+  /**
+   * O que aparece à direita de "Progresso da jornada". A demo mostra o
+   * percentual do mockup; um caso real mostra a posição no catálogo de fases,
+   * porque o De-Para §3 ("o que fica oculto") veda percentual inferido.
+   */
+  valor: string;
+  /**
+   * Caso real: 8 fases não cabem com rótulo embaixo de cada passo a 375px.
+   * Os passos viram só números e o nome da etapa atual sobe para uma linha
+   * própria — mesma composição do mockup, legível no telefone.
+   */
+  compacto?: boolean;
 }) {
   const rotuloAtual = rotulos[indice];
   return (
     <div className="mt-4">
       <div className="mb-1.5 flex items-center justify-between text-xs text-cream/70">
         <span>Progresso da jornada</span>
-        <span className="font-semibold text-gold">{percentual}%</span>
+        <span className="font-semibold text-gold">{valor}</span>
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-navy-soft">
         <div
@@ -232,15 +266,20 @@ function EstepeJornada({
               >
                 {concluida ? <CheckCircle2 className="h-3 w-3" /> : i + 1}
               </div>
-              <span className={cn("text-center text-[8px] leading-tight", atual ? "text-gold" : "text-cream/50")}>
-                {rotulo}
-              </span>
+              {compacto ? null : (
+                <span className={cn("text-center text-[8px] leading-tight", atual ? "text-gold" : "text-cream/50")}>
+                  {rotulo}
+                </span>
+              )}
             </div>
           );
         })}
       </div>
       {rotuloAtual ? (
-        <p className="sr-only">Etapa atual: {rotuloAtual}</p>
+        <p className={compacto ? "mt-2 text-sm text-cream" : "sr-only"}>
+          {compacto ? <span className="text-cream/60">Etapa atual: </span> : "Etapa atual: "}
+          {rotuloAtual}
+        </p>
       ) : null}
     </div>
   );
@@ -258,6 +297,7 @@ function PainelHomeMockup({
   identidade,
   achados,
   fase,
+  composicao,
 }: {
   tituloCaso: string;
   statusRotulo: string;
@@ -274,8 +314,24 @@ function PainelHomeMockup({
     destino: "/portal/jornada" | "/portal/arvore" | "/portal/documentos" | "/portal/legado";
     texto: string;
   }>;
-  /** Só preenchido na demo — não existe policy de portal para fase real do caso ainda. */
-  fase?: { rotulos: readonly string[]; indice: number; percentual: number } | null;
+  /**
+   * 21/09/2026: deixou de ser exclusivo da demo. A view `portal_casos` passou
+   * a projetar `case_plans.fase_jornada`, então um caso real tem etapa de
+   * verdade — antes, a única fase possível era a fixa do caso de exemplo.
+   */
+  fase?: {
+    rotulos: readonly string[];
+    indice: number;
+    percentual: number;
+    valor: string;
+    compacto?: boolean;
+  } | null;
+  /**
+   * "Caso individual" / "Caso do casal" / "Caso da família". O caso é do
+   * titular, do casal ou do núcleo, e o cliente lê isso no próprio cartão em
+   * vez de deduzir pelo título. Vazio quando o plano ainda não declarou.
+   */
+  composicao?: string | null;
 }) {
   const proximaCurta =
     proximoPasso.length > 64 ? `${proximoPasso.slice(0, 61).trimEnd()}…` : proximoPasso;
@@ -295,9 +351,16 @@ function PainelHomeMockup({
             <p className="text-[10px] uppercase tracking-widest text-gold/80">Seu caso</p>
             <h2 className="font-serif text-2xl leading-tight text-cream sm:text-3xl">{tituloCaso}</h2>
           </div>
-          <span className="shrink-0 rounded-full bg-gold px-3 py-1 text-[11px] font-semibold text-navy">
-            {statusRotulo}
-          </span>
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+            {composicao ? (
+              <span className="rounded-full border border-cream/30 px-3 py-1 text-[11px] font-medium text-cream/85">
+                {composicao}
+              </span>
+            ) : null}
+            <span className="rounded-full bg-gold px-3 py-1 text-[11px] font-semibold text-navy">
+              {statusRotulo}
+            </span>
+          </div>
         </div>
         {statusTexto ? <p className="mt-2 text-sm text-cream/75">{statusTexto}</p> : null}
 
@@ -308,7 +371,13 @@ function PainelHomeMockup({
         ) : null}
 
         {fase ? (
-          <EstepeJornada rotulos={fase.rotulos} indice={fase.indice} percentual={fase.percentual} />
+          <EstepeJornada
+            rotulos={fase.rotulos}
+            indice={fase.indice}
+            percentual={fase.percentual}
+            valor={fase.valor}
+            compacto={fase.compacto ?? false}
+          />
         ) : (
           <p className="mt-3 text-xs text-cream/60">
             {marcos === 0

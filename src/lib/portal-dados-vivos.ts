@@ -16,7 +16,7 @@
  * `saudeDoPlano` de `onboarding-jornada.ts` (mesma régua da equipe), sem
  * expor alerta interno, gate, responsável ou SLA técnico.
  */
-import { diasEntre, saudeDoPlano, contemConteudoInterno } from "@/lib/onboarding-jornada";
+import { diasEntre, saudeDoPlano, contemConteudoInterno, FASES_JORNADA } from "@/lib/onboarding-jornada";
 import { publicacoesParaCliente, type ProjecaoBruta, type PublicacaoCliente } from "@/lib/projecoes-cliente";
 import type { EixoRadar } from "@/lib/radar-eixos";
 import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos";
@@ -262,3 +262,79 @@ export function partirJornadaEmDuasLinhas(
     uniaoDeRamos: historia.length > 0 && seuCaso.length > 0,
   };
 }
+
+/* ------------------------------------------------- etapa e composição do caso */
+
+/**
+ * A etapa da jornada que o cliente lê, derivada de `case_plans.fase_jornada`
+ * (CHECK de 8 valores) e projetada pela view `portal_casos`.
+ *
+ * DIVERGÊNCIA REGISTRADA (§29 do De-Para), não resolvida por invenção:
+ * - o mockup 1/7 mostra "Progresso da jornada 65%" e um stepper de 5 passos
+ *   (Diagnóstico → Pesquisa → Reconstrução → Validação → Entrega);
+ * - o De-Para §3 (linha 2) pede "barra de progresso" e nome da etapa, e §4
+ *   (linha 2) pede uma linha de 4 passos (Início, Pesquisa, Conferência,
+ *   Entrega);
+ * - o dado real tem 8 fases canônicas.
+ *
+ * Três leituras, nenhuma arquivável. O que esta função faz é o que as três
+ * têm em comum e o que o dado sustenta: a posição real do caso no catálogo de
+ * 8 fases. A barra é preenchida por essa posição — não por estimativa. E
+ * `posicao`/`total` são expostos no lugar de um percentual fabricado, porque
+ * a própria seção §3 ("o que fica oculto") proíbe "progresso em percentuais
+ * inferidos ou estimados". Um stepper de 5 ou 4 passos exigiria um de-para
+ * 8→5 ou 8→4 que ninguém aprovou.
+ */
+export type EtapaCliente = {
+  /** Rótulo voltado ao cliente, do próprio catálogo de fases. */
+  rotulo: string;
+  /** 1-based, dentro das 8 fases canônicas. */
+  posicao: number;
+  total: number;
+  /** 0..1 — fração das fases já percorridas, incluindo a atual. */
+  fracao: number;
+};
+
+export function etapaDoCasoCliente(
+  faseJornada: string | null | undefined,
+): EtapaCliente | null {
+  if (!faseJornada) return null;
+  const alvo = faseJornada.trim().toLowerCase().replace(/_e_/g, "_");
+  const indice = FASES_JORNADA.findIndex(
+    (f) => f.id.toLowerCase().replace(/_e_/g, "_") === alvo,
+  );
+  // Fase fora do catálogo não vira etapa inventada: a tela cai no estado
+  // vazio honesto em vez de mostrar uma posição que não existe.
+  if (indice < 0) return null;
+  const total = FASES_JORNADA.length;
+  return {
+    rotulo: FASES_JORNADA[indice]!.cliente,
+    posicao: indice + 1,
+    total,
+    fracao: (indice + 1) / total,
+  };
+}
+
+/**
+ * Como o cliente lê a composição do caso (`case_plans.composicao`): o caso é
+ * dele, do casal ou da família. Vocabulário fechado em `COMPOSICOES`
+ * (`cadeia-operacional.ts`); valor fora dele não vira rótulo inventado.
+ */
+const ROTULO_COMPOSICAO: Record<string, string> = {
+  individual: "Caso individual",
+  casal: "Caso do casal",
+  nucleo_familiar: "Caso da família",
+};
+
+export function composicaoDoCasoCliente(
+  composicao: string | null | undefined,
+): string | null {
+  if (!composicao) return null;
+  return ROTULO_COMPOSICAO[composicao.trim().toLowerCase()] ?? null;
+}
+
+/**
+ * Os 8 rótulos de etapa que o cliente lê, na ordem do catálogo. É a única
+ * lista que o App usa para desenhar a jornada — não uma cópia editável.
+ */
+export const ROTULOS_ETAPA_CLIENTE: readonly string[] = FASES_JORNADA.map((f) => f.cliente);
