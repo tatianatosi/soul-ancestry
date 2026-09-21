@@ -60,6 +60,8 @@ import {
 } from "@/lib/contrato-parametros.functions";
 import { MaterializarRevisados } from "@/components/contrato/materializar-revisados";
 import { RessincronizarAnexos } from "@/components/contrato/ressincronizar-anexos";
+import { ReconciliarCpfPartes } from "@/components/contrato/reconciliar-cpf-partes";
+import { sincronizarPessoaDoCaso } from "@/lib/contratos.functions";
 import type { ItemPlanoMaterializacao } from "@/lib/anexos-materializacao";
 
 import { abrirPreparacaoContrato, auditoriaPreparacao, solicitarRevisaoHumana } from "@/lib/contrato-preparar.functions";
@@ -229,6 +231,28 @@ function Pagina() {
         r.materializados
           ? `${r.materializados} anexo(s) sincronizado(s) a partir da ficha atual.`
           : "Nada a sincronizar: os anexos já refletem a ficha atual.",
+      );
+      invalidar();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const reconciliarCpf = useServerFn(sincronizarPessoaDoCaso);
+  const [planoReconciliacaoCpf, setPlanoReconciliacaoCpf] = useState<any[] | null>(null);
+  const [contratoAssinadoReconciliacao, setContratoAssinadoReconciliacao] = useState(false);
+  const mReconciliarCpf = useMutation({
+    mutationFn: (confirmar: boolean) => reconciliarCpf({ data: { caseId, confirmar } }),
+    onSuccess: (r: any) => {
+      setPlanoReconciliacaoCpf(listaOpcional(r.plano) as any);
+      setContratoAssinadoReconciliacao(Boolean(r.contratoAssinado));
+      if (r.simulado) {
+        toast.info("Prévia da conferência de CPF: nada foi gravado ainda.");
+        return;
+      }
+      toast.success(
+        r.atualizados
+          ? `${r.atualizados} CPF(s) preenchido(s) a partir do cadastro canônico.`
+          : "Nada a preencher: nenhuma parte estava com CPF vazio.",
       );
       invalidar();
     },
@@ -766,6 +790,15 @@ function Pagina() {
                       ocupado={mRessincronizar.isPending}
                       onVerificar={() => mRessincronizar.mutate(false)}
                       onSincronizar={() => mRessincronizar.mutate(true)}
+                    />
+                  </div>
+                  <div className="mt-2">
+                    <ReconciliarCpfPartes
+                      plano={planoReconciliacaoCpf}
+                      contratoAssinado={contratoAssinadoReconciliacao}
+                      ocupado={mReconciliarCpf.isPending}
+                      onVerificar={() => mReconciliarCpf.mutate(false)}
+                      onSincronizar={() => mReconciliarCpf.mutate(true)}
                     />
                   </div>
                 </div>
