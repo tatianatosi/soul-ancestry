@@ -11,6 +11,8 @@
  * ausente. Ausência de fonte vira pendência explícita; conflito vira bloqueio.
  */
 
+import type { FaseJornada } from "@/lib/onboarding-jornada";
+
 export const CADEIA_OPERACIONAL_VERSAO = "CADEIA-OPERACIONAL-v1.0";
 
 export const COMPOSICOES = ["individual", "casal", "nucleo_familiar"] as const;
@@ -34,7 +36,7 @@ export type EntradaPlanejador = {
   responsavelUserId: string | null;
   proximaAcao: string | null;
   prazoProximaAcao: string | null;
-  faseJornada: string | null;
+  faseJornada: FaseJornada | null;
   checklist: string[];
   perguntas: string[];
   marcos: string[];
@@ -43,8 +45,23 @@ export type EntradaPlanejador = {
   regrasAnexos: string[];
 };
 
+/**
+ * Fase usada quando o planejador é salvo sem fase escolhida.
+ *
+ * 21/09/2026 — `case_plans.fase_jornada` é `text NOT NULL DEFAULT
+ * 'aceite_e_formalizacao'` com CHECK de 8 valores (migration
+ * `20260821123530`). O motor emitia `null` aqui, e `sincronizarPlanejador`
+ * mandava esse `null` explícito no payload: em Postgres, NULL explícito NÃO
+ * cai no DEFAULT — viola o NOT NULL. O default passa a ser explícito no
+ * motor, com o mesmo valor da coluna, para que o contrato feche dos dois
+ * lados. Isto não escolhe fase por ninguém: é o mesmo estado inicial que o
+ * banco já assumiria.
+ */
+export const FASE_JORNADA_PADRAO: FaseJornada = "aceite_e_formalizacao";
+
 export type SaidaPlanejador = {
-  fase_jornada: string | null;
+  /** Nunca nulo: a coluna é NOT NULL com CHECK. Ver `FASE_JORNADA_PADRAO`. */
+  fase_jornada: FaseJornada;
   checklist_aplicavel: string[];
   perguntas: string[];
   dependencias_cliente: string[];
@@ -107,7 +124,7 @@ export function avaliarPlanejador(e: EntradaPlanejador): SaidaPlanejador {
   }
 
   const saida: Omit<SaidaPlanejador, "hash"> = {
-    fase_jornada: e.faseJornada ?? null,
+    fase_jornada: e.faseJornada ?? FASE_JORNADA_PADRAO,
     checklist_aplicavel: checklist,
     perguntas: limpar(e.perguntas),
     dependencias_cliente: limpar(e.dependenciasCliente),

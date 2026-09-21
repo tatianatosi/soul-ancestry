@@ -33,7 +33,11 @@ const planoCompleto = (): EntradaPlanejador => ({
   responsavelUserId: "user-1",
   proximaAcao: "Confirmar linha materna",
   prazoProximaAcao: "2026-03-10",
-  faseJornada: "fase_2",
+  // 21/09/2026: era "fase_2", valor que o CHECK de `case_plans.fase_jornada`
+  // recusa. Passava porque o tipo era `string | null`. O cenário deste
+  // fixture (estudo genealógico, confirmar linha materna) é pesquisa e
+  // validação.
+  faseJornada: "pesquisa_e_validacao",
   checklist: ["conferir nomes"],
   perguntas: ["há registro civil?"],
   marcos: ["linha confirmada"],

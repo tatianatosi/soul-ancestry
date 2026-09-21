@@ -8,6 +8,7 @@ import { Painel } from "@/components/comercial/base";
 import { CaCard } from "@/components/ui/ca-card";
 import { COMPOSICOES, type Composicao, type EntradaPlanejador } from "@/lib/cadeia-operacional";
 import { listarSkusPlanejador, salvarPlanejadorOperacional } from "@/lib/cadeia-operacional.functions";
+import { FASES_JORNADA, type FaseJornada } from "@/lib/onboarding-jornada";
 
 const ROTULO_COMPOSICAO: Record<Composicao, string> = {
   individual: "Individual",
@@ -24,6 +25,7 @@ const linhas = (texto: string): string[] =>
 type Estado = {
   objetivo: string;
   etapa: string;
+  faseJornada: FaseJornada | "";
   composicao: Composicao | "";
   rotaConfirmada: string;
   produtoSkuCodigo: string;
@@ -41,6 +43,7 @@ type Estado = {
 const VAZIO: Estado = {
   objetivo: "",
   etapa: "",
+  faseJornada: "",
   composicao: "",
   rotaConfirmada: "",
   produtoSkuCodigo: "",
@@ -113,7 +116,7 @@ export function PlanejadorOperacional({
       responsavelUserId: null,
       proximaAcao: estado.proximaAcao.trim() || null,
       prazoProximaAcao: estado.prazoProximaAcao || null,
-      faseJornada: null,
+      faseJornada: estado.faseJornada || null,
       checklist: linhas(estado.checklist),
       perguntas: linhas(estado.perguntas),
       marcos: linhas(estado.marcos),
@@ -205,6 +208,24 @@ export function PlanejadorOperacional({
           ) : null}
         </label>
         {campo("rotaConfirmada", "País/rota confirmado", "Só se já confirmado — o motor não infere")}
+        <label className="block">
+          <span className="text-[11px] font-medium uppercase tracking-wide text-navy/50">Fase da jornada</span>
+          <select
+            value={estado.faseJornada}
+            onChange={(e) => setEstado((s) => ({ ...s, faseJornada: e.target.value as FaseJornada | "" }))}
+            className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+          >
+            <option value="">Aceite e formalização (padrão)</option>
+            {FASES_JORNADA.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.rotulo}
+              </option>
+            ))}
+          </select>
+          <span className="mt-1 block text-[11px] text-navy/50">
+            Sem escolha, o caso fica na fase inicial — é o mesmo estado que o banco já assumia.
+          </span>
+        </label>
         <label className="block">
           <span className="text-[11px] font-medium uppercase tracking-wide text-navy/50">SKU do catálogo</span>
           <select
