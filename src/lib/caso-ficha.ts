@@ -134,11 +134,24 @@ export const PROXIMAS_ACOES: Opcao[] = [
   { valor: "outro_justificar", rotulo: "Outro — justificar" },
 ];
 
+// Corte R4 (de-para-pessoa-unificada.md / auditoria de reconciliação,
+// 21/09/2026): `nucleo_membros.papel_no_caso` já tem um CHECK fechado com
+// 5 valores (migration 20260821135341): contratante/titular/dependente/
+// representante/interlocutor_externo. `case_members.papel_no_caso` (mesmo
+// conceito, tabela irmã) não tinha CHECK nenhum e esta lista só oferecia 4
+// valores, com "interlocutor" em vez de "interlocutor_externo" e sem
+// "representante" — dois vocabulários de papel que não se falavam.
+// Decisão: o vocabulário de `nucleo_membros` (já fechado por CHECK) é o
+// canônico. "interlocutor" continua na lista, rotulado como variante
+// legada, para não invalidar nenhuma linha já gravada com esse valor —
+// nunca reescrever dado existente.
 export const PAPEIS_PESSOA: Opcao[] = [
   { valor: "contratante", rotulo: "Contratante" },
   { valor: "titular", rotulo: "Titular" },
   { valor: "dependente", rotulo: "Dependente" },
-  { valor: "interlocutor", rotulo: "Interlocutor (fora do núcleo contratual)" },
+  { valor: "representante", rotulo: "Representante" },
+  { valor: "interlocutor_externo", rotulo: "Interlocutor externo (fora do núcleo contratual)" },
+  { valor: "interlocutor", rotulo: "Interlocutor (variante legada — preferir Interlocutor externo)" },
 ];
 
 export const STATUS_CADASTRAL: Opcao[] = [
