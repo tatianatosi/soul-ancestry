@@ -6,6 +6,7 @@ import { EstadoVazio, SaasShell } from "@/components/saas/shell";
 import { Button } from "@/components/ui/button";
 import { CaCard } from "@/components/ui/ca-card";
 import { totaisFinanceiros } from "@/lib/golive-analitico";
+import { filaDeAprovacoes, resumoAprovacoes, type ItemAprovacao } from "@/lib/golive-aprovacoes";
 import { saudeDosLeads, type LeadComercial } from "@/lib/golive-comercial";
 import { riscosEPrazos } from "@/lib/golive-juridico";
 import { concluida } from "@/lib/golive-microentregas";
@@ -42,6 +43,34 @@ function Painel() {
 
 const MOEDA = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
+/**
+ * O que cada linha pede da equipe — nome do que a ação faz de fato, não do
+ * exemplo do De-Para que ela lembra.
+ *
+ * §11 linha 3 exemplifica quatro decisões. Duas têm correspondência exata na
+ * fila: "Aprovar escopo" é `aprovar_escopo`; "Rever proposta" é a proposta
+ * ainda não aprovada, que aparece aqui como escopo pendente. As outras duas
+ * NÃO estão nesta fila, e não vou renomear ação alheia para fingir que estão:
+ *
+ *  - "Liberar pesquisa" é liberação externa (`registrarLiberacaoExterna`, em
+ *    `pesquisa/modulo.tsx`), não a aprovação interna do achado. Aprovar um
+ *    achado é decisão de pesquisa; liberar é decisão de publicação.
+ *  - "Confirmar documento mínimo" é `confirmarDocumentosMinimos`
+ *    (`crm_casos.documentos_minimos_ok`, o gate que o portal consulta), e a
+ *    fila de aprovações não a enxerga.
+ *
+ * Dívida declarada: as duas ficam de fora da contagem até entrarem na fila
+ * pela função pura, e não por um número somado à mão na tela.
+ */
+const ROTULO_DECISAO: Record<ItemAprovacao["acao"], string> = {
+  aprovar_achado: "Aprovar achado",
+  aprovar_escopo: "Aprovar escopo",
+  enviar_revisao: "Enviar contrato para revisão",
+  registrar_assinatura: "Registrar assinatura",
+  publicar: "Publicar no App",
+  nenhuma: "Completar dado antes de decidir",
+};
+
 type Indicador = { rotulo: string; valor: string | number };
 type Secao = { titulo: string; escopo: string; to: string; indicadores: Indicador[] };
 
@@ -61,6 +90,22 @@ function PainelConsolidado() {
     regra mudar, os dois números mudam juntos.
   */
   const microentregasAguardandoRevisao = caso.microentregas.filter((m) => !concluida(m)).length;
+  /*
+    "Decisões do dia" (§11 linha 2) tem fonte: é a mesma fila que
+    /golive/aprovacoes publica, pela mesma função pura e sobre os mesmos
+    campos do caso. §11 exige contagem "reconciliada com as listas abaixo" —
+    e o card "Decisões prioritárias" (§11 linha 3) logo abaixo lista
+    exatamente os itens que compõem este número. Reconciliado por construção,
+    não por coincidência: se um deles mudar, os dois mudam.
+  */
+  const filaDecisoes = filaDeAprovacoes({
+    achados: caso.achados,
+    propostas: caso.propostas,
+    contratos: caso.contratos,
+    projecoes: caso.projecoesEstados,
+  });
+  const decisoesPendentes = filaDecisoes.filter((i) => i.situacao === "pendente");
+  const decisoesDoDia = resumoAprovacoes(filaDecisoes).pendentes;
   const leads = caso.leadsComerciais as LeadComercial[];
   const saude = saudeDosLeads(leads);
   const itensKanban: AcaoOperacional[] = [
@@ -139,14 +184,21 @@ function PainelConsolidado() {
         reconcilie com ela. Cada número aqui abre a tela onde a mesma conta
         é feita, da mesma fonte — não uma lista parecida.
 
-        "Decisões do dia" segue sem número: não há regra publicada que diga
-        o que conta como decisão de hoje. Zero seria pior que ausência —
-        diria "não há decisões" quando o certo é "não existe regra". Sem
-        regra, também não há lista para abrir, então não vira link.
+        21/09/2026: "Decisões do dia" deixou de ser "Não registrado". A regra
+        existe e já estava no repositório — `filaDeAprovacoes` classifica
+        achado, proposta e contrato em pendente/pronto, e "Aprovar escopo",
+        um dos quatro exemplos da linha 3 do De-Para, é literalmente uma das
+        suas ações. O que faltava era a Visão Geral usar a mesma função da
+        tela que já a usava, em vez de um número próprio.
       */}
       <dl className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-hoje-indicadores>
         {[
-          { rotulo: "Decisões do dia", valor: null, apoio: "sem regra publicada", to: null },
+          {
+            rotulo: "Decisões do dia",
+            valor: decisoesDoDia,
+            apoio: "aguardam decisão da equipe",
+            to: "/golive/aprovacoes",
+          },
           { rotulo: "Cadências vencidas", valor: hoje.vencidas, apoio: "pedem retomada", to: "/golive" },
           { rotulo: "Casos sem próxima ação", valor: hoje.semProxima, apoio: "precisam de decisão", to: "/golive" },
           {
@@ -158,15 +210,9 @@ function PainelConsolidado() {
         ].map((k) => {
           const conteudo = (
             <>
-              <dd
-                className={
-                  k.valor === null
-                    ? "text-sm font-medium text-navy/50"
-                    : "font-serif text-2xl text-navy"
-                }
-              >
-                {k.valor === null ? "Não registrado" : k.valor}
-              </dd>
+              {/* Os quatro têm número agora; o ramo de ausência saiu junto
+                  com o último "Não registrado". */}
+              <dd className="font-serif text-2xl text-navy">{k.valor}</dd>
               <dt className="mt-0.5 text-xs text-navy/70">{k.rotulo}</dt>
               <p className="text-[11px] text-navy/45">{k.apoio}</p>
             </>
@@ -183,6 +229,52 @@ function PainelConsolidado() {
           );
         })}
       </dl>
+
+      {/*
+        §11 linha 3 — "Decisões prioritárias". Cada linha precisa abrir
+        contexto e ação possível, então mostra o que está pendente, por quê, e
+        leva à tela onde a decisão é tomada. A lista é o mesmo array que gera
+        o número de "Decisões do dia" acima: nenhum dos dois pode divergir do
+        outro sem divergir de si mesmo.
+      */}
+      <div className="mb-6">
+        <CaCard
+          titulo="Decisões prioritárias"
+          eyebrow={`Fonte: fila de aprovações · ${decisoesDoDia} pendente(s)`}
+          acao={
+            <Button asChild size="sm" variant="outline">
+              <Link to="/golive/aprovacoes">Abrir</Link>
+            </Button>
+          }
+        >
+          {decisoesPendentes.length === 0 ? (
+            <EstadoVazio mensagem="Nenhuma decisão pendente de achado, proposta ou contrato neste caso." />
+          ) : (
+            <ul className="divide-y divide-navy/10">
+              {decisoesPendentes.slice(0, 6).map((item: ItemAprovacao) => (
+                <li key={`${item.grupo}-${item.id}`} className="py-2">
+                  <Link
+                    to="/golive/aprovacoes"
+                    className="block rounded-lg px-2 py-1 hover:bg-cream/50"
+                  >
+                    <p className="text-sm font-medium text-navy">
+                      {ROTULO_DECISAO[item.acao]} — {item.titulo}
+                    </p>
+                    <p className="text-[11px] text-navy/55">
+                      {item.grupo} · {item.motivo}
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+          {decisoesPendentes.length > 6 ? (
+            <p className="mt-2 text-[11px] text-navy/50">
+              e mais {decisoesPendentes.length - 6} na fila completa.
+            </p>
+          ) : null}
+        </CaCard>
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         {secoes.map((secao) => (

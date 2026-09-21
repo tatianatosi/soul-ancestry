@@ -47,15 +47,45 @@ describe("microentregas para revisão passou a ter número real", () => {
   });
 });
 
-describe("o que não tem regra continua sem número e sem link", () => {
-  it("decisões do dia segue como ausência explícita", () => {
-    expect(painel).toContain('rotulo: "Decisões do dia", valor: null');
-    expect(painel).toContain('apoio: "sem regra publicada", to: null');
+describe("decisões do dia passou a ter fonte", () => {
+  /*
+    Segunda correção de rumo no mesmo painel, pelo mesmo motivo da primeira:
+    eu tinha declarado "sem regra publicada". A regra existia —
+    `filaDeAprovacoes` já classificava achado, proposta e contrato em
+    pendente/pronto, e /golive/aprovacoes já a usava. O que faltava era a
+    Visão Geral chamar a mesma função em vez de inventar a própria conta.
+  */
+  it("usa a mesma função pura da tela de aprovações", () => {
+    expect(painel).toContain('from "@/lib/golive-aprovacoes"');
+    expect(painel).toContain("filaDeAprovacoes({");
+    expect(painel).toContain("resumoAprovacoes(filaDecisoes).pendentes");
   });
 
-  it("sem regra não há lista para abrir, então não vira link", () => {
-    // Linkar para uma lista que não corresponde ao número seria pior que
-    // não linkar: daria a impressão de reconciliação que não existe.
-    expect(painel).toContain('"Não registrado"');
+  it("a contagem abre a fila de onde ela sai", () => {
+    expect(painel).toContain("valor: decisoesDoDia");
+    expect(painel).toContain('to: "/golive/aprovacoes"');
+    expect(painel).not.toContain('rotulo: "Decisões do dia", valor: null');
+  });
+
+  it("o card Decisões prioritárias lista o que compõe o número", () => {
+    // §11 linha 3: cada linha abre contexto e ação possível. A lista sai do
+    // MESMO array que gera a contagem — reconciliação por construção.
+    expect(painel).toContain('titulo="Decisões prioritárias"');
+    expect(painel).toContain('filaDecisoes.filter((i) => i.situacao === "pendente")');
+    expect(painel).toContain("decisoesPendentes.slice(0, 6)");
+    expect(painel).toContain("ROTULO_DECISAO[item.acao]");
+  });
+
+  it("nenhuma ação é renomeada para caber num exemplo do De-Para", () => {
+    // "Liberar pesquisa" é liberação externa e "Confirmar documento mínimo"
+    // é o gate de documentos — nenhuma das duas está nesta fila. Rotular
+    // `aprovar_achado` como "Liberar pesquisa" fingiria cobertura.
+    expect(painel).toContain('aprovar_achado: "Aprovar achado"');
+    expect(painel).not.toContain('aprovar_achado: "Liberar pesquisa"');
+    expect(painel).not.toContain('enviar_revisao: "Rever proposta"');
+  });
+
+  it("fila vazia diz que está vazia, em vez de sumir", () => {
+    expect(painel).toContain("Nenhuma decisão pendente de achado, proposta ou contrato");
   });
 });

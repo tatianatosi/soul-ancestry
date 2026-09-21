@@ -37,12 +37,22 @@ describe("número só onde existe regra", () => {
     expect(painel).toContain("valor: hoje.semProxima");
   });
 
-  it("o que não tem regra publicada não recebe número inventado", () => {
-    // 21/09/2026 — este teste travava DOIS ausentes. Eu havia concluído que
-    // "Microentregas para revisão" não tinha estado de revisão no modelo.
-    // Estava errado: /golive/microentregas já publica "Aguardando revisão"
-    // com fonte e fórmula. Só "Decisões do dia" segue sem regra.
-    expect(painel).toContain('rotulo: "Decisões do dia", valor: null');
+  it("todos os quatro têm número, nenhum inventado", () => {
+    /*
+      21/09/2026 — este teste já travou DOIS ausentes que eu havia declarado
+      sem regra, e os dois estavam errados. Primeiro "Microentregas para
+      revisão": /golive/microentregas já publicava a conta. Agora "Decisões
+      do dia": `filaDeAprovacoes` já classificava o que pede decisão, e
+      /golive/aprovacoes já a usava. Em ambos, a regra existia e era eu que
+      não tinha procurado o suficiente.
+
+      A trava muda de alvo, não de propósito: nenhum dos quatro pode ganhar
+      número que não venha de uma função canônica já consumida por outra
+      tela.
+    */
+    expect(painel).not.toContain("valor: null");
+    expect(painel).toContain("valor: decisoesDoDia");
+    expect(painel).toContain("valor: microentregasAguardandoRevisao");
   });
 
   it("microentregas para revisão tem número real, da função canônica", () => {
@@ -50,18 +60,28 @@ describe("número só onde existe regra", () => {
     expect(painel).toContain('import { concluida } from "@/lib/golive-microentregas"');
   });
 
-  it("a ausência que resta diz o motivo", () => {
-    expect(painel).toContain("sem regra publicada");
+  it("decisões do dia tem número real, da mesma função de /golive/aprovacoes", () => {
+    expect(painel).toContain('from "@/lib/golive-aprovacoes"');
+    expect(painel).toContain("resumoAprovacoes(filaDecisoes).pendentes");
   });
 
-  it("ausência aparece como texto explícito, não como zero", () => {
-    // Zero seria mentira: diria "não há decisões hoje" quando o certo é
-    // "não existe regra que defina isso".
-    expect(painel).toContain('"Não registrado"');
+  it("o ramo de ausência saiu com o último ausente", () => {
+    // Enquanto havia KPI sem regra, "Não registrado" era o texto honesto.
+    // Com os quatro numerados, virou ramo morto — e ramo morto num painel é
+    // convite a voltar a exibir ausência onde já existe número.
+    // Precisão importa: o texto ainda aparece nos comentários que contam a
+    // história. O que não pode voltar é o RAMO que o renderiza.
+    expect(painel).not.toContain('k.valor === null ? "Não registrado"');
+    expect(painel).not.toContain("k.valor === null");
+    expect(painel).toContain('<dd className="font-serif text-2xl text-navy">{k.valor}</dd>');
   });
 
-  it("cada ausência diz o motivo", () => {
-    expect(painel).toContain("sem regra publicada");
+  it("os quatro abrem a lista que os reconcilia", () => {
+    // §11 linha 2: contagem clicável e reconciliada. Nenhum dos quatro pode
+    // ser um número que não abre nada.
+    expect(painel).toContain('to: "/golive/aprovacoes"');
+    expect(painel).toContain('to: "/golive/microentregas"');
+    expect(painel).toContain('to: "/golive"');
   });
 });
 
