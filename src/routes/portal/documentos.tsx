@@ -9,6 +9,7 @@ import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
 import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
 import { usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { EnviarDocumento } from "@/components/portal/enviar-documento";
 import { baixarEntrega, minhasEntregas } from "@/lib/portal-cliente.functions";
 import { mensagemDeFalha, rotuloEstadoVivo, textoParaCliente } from "@/lib/portal-linguagem-viva";
 
@@ -223,8 +224,11 @@ export function PortalDocumentos() {
             <ChipMeta rotulo="Enviados" valor={String(enviados)} />
           </div>
           <p className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-navy/65">
-            Envio de arquivo acontece quando a equipe solicita — não inventamos upload nem status de certidão nesta tela.
+            Enviar um arquivo aqui não valida nem libera o documento: ele entra como recebido e
+            aguarda a conferência da equipe.
           </p>
+          {/* Ordem do mockup 5/7: caixa de envio antes do checklist. */}
+          <EnviarDocumento casoId={vivo.data?.casoAtivoId ?? null} />
           <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <h2 className="text-base font-semibold text-navy">Checklist do caso</h2>
             <p className="mt-1 text-sm text-navy/60">

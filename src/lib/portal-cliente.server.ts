@@ -9,6 +9,8 @@
  * - linguagem simples: nada de jargão interno, nenhuma promessa de resultado.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { erroDoArquivoCliente } from "@/lib/portal-envio-arquivo";
+
 export type Sb = any;
 
 export const BUCKET_DOCUMENTOS = "documentos";
@@ -75,17 +77,12 @@ export const STATUS_FATURA_SIMPLES: Record<string, string> = {
   cancelada: "Cancelada",
 };
 
-const EXTENSOES_PERMITIDAS = ["pdf", "jpg", "jpeg", "png", "heic", "webp", "doc", "docx"];
-const TAMANHO_MAXIMO = 25 * 1024 * 1024;
-
 export function validarArquivoCliente(nome: string, tamanho: number) {
-  const ext = String(nome).split(".").pop()?.toLowerCase() ?? "";
-  if (!EXTENSOES_PERMITIDAS.includes(ext)) {
-    throw new Error("Formato não aceito. Envie PDF, imagem (JPG, PNG, HEIC, WEBP) ou documento Word.");
-  }
-  if (!Number.isFinite(tamanho) || tamanho <= 0 || tamanho > TAMANHO_MAXIMO) {
-    throw new Error("Arquivo acima do limite de 25 MB.");
-  }
+  // Regra em `portal-envio-arquivo.ts` para que a tela do cliente use
+  // exatamente o mesmo critério antes de subir o arquivo. O servidor
+  // continua sendo quem recusa.
+  const erro = erroDoArquivoCliente(nome, tamanho);
+  if (erro) throw new Error(erro);
 }
 
 export function texto(valor: unknown, max = 2000) {
