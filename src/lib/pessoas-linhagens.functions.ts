@@ -7,6 +7,7 @@ import { MODULOS_HISTORICOS } from "@/lib/genealogia-modulos";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { normalizarNome } from "@/lib/pessoa-identidade";
+import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -42,6 +43,11 @@ const CAMPOS_PERFIL = [
   "morte_precisao",
   "responsible_user_id",
   "client_visibility",
+  // Corte U2 (docs/design-system/de-para-pessoa-unificada.md): vínculo com a
+  // Pessoa Canônica (clientes). Coluna nullable, já existe no banco desde a
+  // migration 20260906134500 — nunca gravada automaticamente, só quando um
+  // humano escolhe explicitamente "vincular a pessoa já cadastrada" na tela.
+  "client_id",
 ];
 
 const CAMPOS_VARIANTE = [
@@ -296,8 +302,25 @@ export const painelPessoasLinhagens = createServerFn({ method: "GET" })
       }),
     );
 
+    /*
+     * Corte U2 — candidatos para o seletor "Vincular a pessoa já cadastrada
+     * (opcional)": reaproveita a função canônica pessoasDoCasoComFallbackNucleo
+     * (mesma usada por Caso 360, Pesquisa e Documentos — CA19) em vez de ler
+     * case_members cru, para não recriar um 5º leitor da tabela. Só pessoas
+     * já ligadas a este caso (com fallback de núcleo), nunca a organização
+     * inteira. Sugestão, não fusão — o vínculo em
+     * genealogical_person_profiles.client_id só é gravado se um humano
+     * escolher explicitamente.
+     */
+    const membrosDoCaso = await pessoasDoCasoComFallbackNucleo(supabase, data.caseId);
+    const clienteIdsVistos = new Set<string>();
+    const clientesDoCaso = membrosDoCaso
+      .filter((m: any) => m.cliente_id && !clienteIdsVistos.has(m.cliente_id) && clienteIdsVistos.add(m.cliente_id))
+      .map((m: any) => ({ id: m.cliente_id as string, nome: m.nome as string }));
+
     return {
       podeEditar,
+      clientesDoCaso,
       modulos: Object.fromEntries(modulos) as Record<string, any[]>,
       caso: (caso as any).data ?? null,
       pesquisas: linhas<any>(pesquisas, "pesquisas do caso"),

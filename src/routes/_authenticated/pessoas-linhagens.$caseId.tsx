@@ -211,6 +211,7 @@ function Pagina() {
   // Aqui a ausência do payload é tratada adiante como erro de carga, nunca como
   // base vazia (ver o bloco `semPayload` antes do render).
   const perfis = (data ? data.perfis : []) as unknown as Perfil[];
+  const clientesDoCaso = (data ? data.clientesDoCaso : []) as unknown as { id: string; nome: string }[];
   const variantes = (data ? data.variantes : []) as unknown as Variante[];
   const relacoes = (data ? data.relacoes : []) as unknown as Relacao[];
   const eventos = (data ? data.eventos : []) as unknown as Evento[];
@@ -436,6 +437,7 @@ function Pagina() {
             eventos={eventos}
             relacoes={relacoes}
             evidencias={evidenciaOpcoes}
+            clientesDoCaso={clientesDoCaso}
             pendenciaGate={pendenciaPerfis}
             onCriar={(valores) => criarPessoa.mutate({ pesquisaId, valores })}
             onSalvar={(id, valores) => salvar.mutate({ tabela: "genealogical_person_profiles", id, valores })}
@@ -560,6 +562,7 @@ function AbaPerfis({
   eventos,
   relacoes,
   evidencias,
+  clientesDoCaso,
   pendenciaGate,
   onCriar,
   onSalvar,
@@ -570,6 +573,8 @@ function AbaPerfis({
   eventos: Evento[];
   relacoes: Relacao[];
   evidencias: { id: string; rotulo: string }[];
+  /** Candidatos ao vínculo de pessoa (Corte U2) — só clientes já ligados a este caso. */
+  clientesDoCaso: { id: string; nome: string }[];
   /** Pendência de domínio: fica visível e pede motivo, nunca desabilita. */
   pendenciaGate: string | null;
   onCriar: (valores: Record<string, unknown>) => void;
@@ -638,6 +643,7 @@ function AbaPerfis({
             status_verificacao: e.status_verificacao,
             evidence_id: e.evidence_id,
             internal_notes: e.internal_notes,
+            client_id: e.client_id,
           });
         };
         const minhasVariantes = variantes.filter((v) => v.person_id === p.research_person_id && !v.archived_at);
@@ -698,6 +704,17 @@ function AbaPerfis({
               </Campo>
               <Campo label="Evidência de suporte" ajuda="Obrigatória para status confirmado.">
                 <Selecao valor={e.evidence_id ?? ""} onChange={(v) => set("evidence_id", v)} opcoes={evidencias} vazio="Sem evidência vinculada" />
+              </Campo>
+              <Campo
+                label="Vincular a pessoa já cadastrada (opcional)"
+                ajuda="Nunca automático — só grava se você escolher explicitamente. Lista só os clientes já ligados a este caso."
+              >
+                <Selecao
+                  valor={e.client_id ?? ""}
+                  onChange={(v) => set("client_id", v || null)}
+                  opcoes={clientesDoCaso.map((c) => ({ id: c.id, rotulo: c.nome }))}
+                  vazio="Sem vínculo com pessoa cadastrada"
+                />
               </Campo>
               <div className="md:col-span-2">
                 <Campo label="Notas internas" ajuda="Nunca exibidas ao cliente.">

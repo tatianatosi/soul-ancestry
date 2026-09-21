@@ -147,6 +147,13 @@ export type Perfil = {
   verified_at: string | null;
   internal_notes: string | null;
   archived_at?: string | null;
+  /**
+   * Vínculo opcional com a Pessoa Canônica (`clientes.id`). Corte U2
+   * (docs/design-system/de-para-pessoa-unificada.md) — só gravado quando um
+   * humano escolhe explicitamente "vincular a pessoa já cadastrada"; nunca
+   * fusão automática.
+   */
+  client_id?: string | null;
 };
 
 export type Variante = {
