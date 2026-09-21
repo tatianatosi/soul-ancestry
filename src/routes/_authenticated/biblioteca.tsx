@@ -7,6 +7,7 @@ import { SaasShell } from "@/components/saas/shell";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { Button } from "@/components/ui/button";
+import { CaCard } from "@/components/ui/ca-card";
 import { ManifestoResgate } from "@/components/governanca/manifesto";
 import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
 
@@ -244,8 +245,15 @@ function BibliotecaPage() {
         <summary className="cursor-pointer font-medium text-navy">Abrir gestão da Biblioteca</summary>
         <div className="mt-5 space-y-6 border-t border-navy/10 pt-5">
         <FilaPublicacaoReal />
-        <section className="rounded-xl border border-navy/10 bg-cream/50 p-4">
-          <h2 className="font-serif text-lg text-navy">Centro de Inteligência</h2>
+        {/*
+          DSA-6-BIBLIOTECA (21/09/2026): sexto consumidor do Desk a usar
+          `CaCard` (após DSA-1 a DSA-5), aplicado a este mapa read-only do
+          Centro de Inteligência. Só o invólucro muda, de <section> cru para
+          CaCard; a tabela, os demais blocos da gestão ("Da Biblioteca até o
+          App Cliente", fila de publicação, entradas de referência) e toda
+          mutation continuam intocados.
+        */}
+        <CaCard titulo="Centro de Inteligência" eyebrow="Biblioteca Mestre">
           <p className="mb-3 mt-1 text-sm text-navy/65">
             As nove áreas do Centro de Inteligência e onde cada uma mora hoje. Nenhum dado é movido ou copiado por
             este mapa: ele só declara a casa de cada núcleo e nomeia a fonte concorrente onde ela existe de fato.
@@ -280,7 +288,7 @@ function BibliotecaPage() {
               </tbody>
             </table>
           </div>
-        </section>
+        </CaCard>
 
         <section className="rounded-xl border border-navy/10 bg-cream/50 p-4">
           <h2 className="font-serif text-lg text-navy">Da Biblioteca até o App Cliente</h2>
