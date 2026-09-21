@@ -61,6 +61,9 @@ export const Route = createFileRoute("/portal/")({
 export function PortalHome() {
   const previa = usePreviaPortal();
   const vivo = usePortalVivo();
+  // Qual caso a leitura de fato usou — o servidor decide (pedido da URL, ou o
+  // primeiro autorizado), e a Home segue essa decisão em vez de recalcular.
+  const casoIdAtivo = vivo.data?.casoAtivoId ?? null;
   const carregar = useServerFn(meusCasos);
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["portal-meus-casos"],
@@ -124,7 +127,14 @@ export function PortalHome() {
         vazio={COPY_TELAS.home.vazio}
       >
         {(casos) => {
-          const principal = casos[0];
+          /*
+            21/09/2026 — era `casos[0]`: o cliente com mais de um caso via
+            sempre o primeiro, sem escolha e sem como trocar. O caso ativo
+            agora vem da URL; sem parâmetro, o primeiro continua sendo o
+            padrão, mas agora é uma escolha visível e trocável.
+          */
+          const principal = casos.find((c) => c.id === casoIdAtivo) ?? casos[0];
+          const outros = casos.filter((c) => c.id !== principal?.id);
           if (!principal) {
             return <p className="text-sm text-navy/70">{COPY_TELAS.home.vazio}</p>;
           }
@@ -151,21 +161,24 @@ export function PortalHome() {
                   texto: item.conteudo,
                 }))}
               />
-              {casos.length > 1 ? (
+              {outros.length > 0 ? (
                 <section className="space-y-2">
                   <h2 className="text-xs font-medium uppercase tracking-wide text-navy/50">
                     Outros acompanhamentos
                   </h2>
                   <ul className="space-y-2">
-                    {casos.slice(1).map((c) => (
+                    {outros.map((c) => (
                       <li key={c.id}>
+                        {/* Troca o caso ativo de todo o App, em vez de abrir
+                            uma rota profunda: é daqui que o cliente escolhe
+                            qual acompanhamento as 7 abas mostram. */}
                         <Link
-                          to="/portal/casos/$id"
-                          params={{ id: c.id }}
+                          to="/portal"
+                          search={{ casoId: c.id }}
                           className="block rounded-xl border border-navy/10 bg-cream/50 px-4 py-3 hover:border-gold"
                         >
                           <p className="font-serif text-base text-navy">{c.titulo}</p>
-                          <p className="text-xs text-navy/60">{c.statusRotulo}</p>
+                          <p className="text-xs text-navy/60">{c.statusRotulo} · ver este acompanhamento</p>
                         </Link>
                       </li>
                     ))}

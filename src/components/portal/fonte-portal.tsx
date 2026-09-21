@@ -1,5 +1,5 @@
 import { createContext, useContext, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useSearch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -40,6 +40,8 @@ export type DadosPortal = {
   documentos: DocumentoPortal[];
   /** Mesma próxima ação do motor, quando a fonte já a calculou. */
   proximaAcao?: ProximaAcaoCliente | null;
+  /** Caso que a leitura usou. A visão Master injeta o caso escolhido no Desk. */
+  casoAtivoId?: string | null;
 };
 
 /**
@@ -104,9 +106,18 @@ export function useFontePortal(): FontePortal | null {
 export function usePortalVivo() {
   const externa = useContext(FontePortalContext);
   const carregar = useServerFn(dadosVivosDoPortal);
+  /*
+    `strict: false` porque este hook também roda fora da árvore de /portal
+    (visão Master do Desk), onde a consulta fica desabilitada de qualquer
+    forma. Ler de modo estrito ali lançaria.
+  */
+  const busca = useSearch({ strict: false }) as { casoId?: string };
+  const casoId = busca?.casoId;
   const consulta = useQuery({
-    queryKey: ["portal-dados-vivos"],
-    queryFn: () => carregar({ data: {} }),
+    // O caso entra na chave: sem isso, trocar de caso devolveria o conteúdo
+    // do caso anterior servido pelo cache.
+    queryKey: ["portal-dados-vivos", casoId ?? "padrao"],
+    queryFn: () => carregar({ data: casoId ? { casoId } : {} }),
     enabled: externa === null,
   });
 

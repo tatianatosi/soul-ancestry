@@ -12,6 +12,18 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export const Route = createFileRoute("/portal")({
   ssr: false,
+  /**
+   * Caso ativo na URL, não em estado local.
+   *
+   * 21/09/2026 — o App não tinha nenhuma noção de caso ativo: as telas usavam
+   * `casos[0]` e a leitura somava todos os casos autorizados. A URL é o lugar
+   * certo para essa escolha: sobrevive ao F5, é compartilhável e não precisa
+   * de storage. Mesmo padrão já usado na visão Master do Desk
+   * (`app-cliente-como-pessoa.tsx`). Como esta é a rota de layout das 7 abas,
+   * o parâmetro vale para todas elas.
+   */
+  validateSearch: (search: Record<string, unknown>): { casoId?: string } =>
+    typeof search["casoId"] === "string" && search["casoId"] ? { casoId: search["casoId"] } : {},
   beforeLoad: async () => {
     const { data, error } = await supabase.auth.getUser();
     let usuario = !error && data.user ? data.user : null;

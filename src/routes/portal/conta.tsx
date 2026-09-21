@@ -60,9 +60,13 @@ export function PortalConta() {
    */
   const previaDemo = previa?.identidade?.fonte === "demo" || (Boolean(previa) && !previa?.identidade);
   const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null) ?? "—";
-  const casosPortal = (data as { casos?: { codigo?: string | null }[] } | null)?.casos;
+  const casosPortal = (data as { casos?: { id?: string; codigo?: string | null }[] } | null)?.casos;
+  // Segue o caso que a leitura de fato usou, em vez de fixar o primeiro —
+  // senão o chip "Caso" da Conta contradiz o conteúdo das outras abas.
+  const casoDoPortal =
+    casosPortal?.find((c) => c.id && c.id === vivo.data?.casoAtivoId) ?? casosPortal?.[0];
   const casoCodigo =
-    previa?.identidade?.codigo ?? casosPortal?.[0]?.codigo ?? (previaDemo ? CASO_DEMO_CODIGO : null) ?? "—";
+    previa?.identidade?.codigo ?? casoDoPortal?.codigo ?? (previaDemo ? CASO_DEMO_CODIGO : null) ?? "—";
   const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null) ?? "—";
   const planoEstado = previa || data?.autorizado ? "Acompanhamento ativo" : "Aguardando publicação";
 

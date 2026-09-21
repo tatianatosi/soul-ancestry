@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -39,6 +39,7 @@ export const Route = createFileRoute("/_authenticated/app-cliente-como-pessoa")(
 
 function AppClienteComoPessoa() {
   const { casoId: casoIdDaUrl } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   const [casoId, setCasoId] = useState<string>(casoIdDaUrl ?? "");
   const [rotaInterna, setRotaInterna] = useState("/portal");
   const Tela = TELAS_INTERNAS_PORTAL[rotaInterna] ?? TELAS_INTERNAS_PORTAL["/portal"]!;
@@ -89,8 +90,15 @@ function AppClienteComoPessoa() {
                 <select
                   value={casoId}
                   onChange={(e) => {
-                    setCasoId(e.target.value);
+                    const escolhido = e.target.value;
+                    setCasoId(escolhido);
                     setRotaInterna("/portal");
+                    // A rota já lia `?casoId=`, mas ninguém escrevia: o F5
+                    // devolvia a tela em branco. A URL passa a ser a fonte.
+                    void navigate({
+                      search: { casoId: escolhido || undefined },
+                      replace: true,
+                    });
                   }}
                   className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
                 >
