@@ -76,10 +76,25 @@ export function normalizarNome(valor: unknown): string | null {
   return v || null;
 }
 
+/**
+ * CPF comparável: só os 11 dígitos. Documento é identidade — mesmo CPF é
+ * prova mais forte que e-mail (que pode ser compartilhado num núcleo
+ * familiar por conveniência; CPF, não). Ordem P1 (21/09/2026, "Uma
+ * identidade operacional do Lead ao Caso"): lead nunca tem CPF (só é
+ * coletado depois de virar cliente), então este sinal só entra em jogo ao
+ * comparar `clientes` entre si — é aí que o gap real estava.
+ */
+export function normalizarCpf(valor: unknown): string | null {
+  if (typeof valor !== "string") return null;
+  const digitos = valor.replace(/\D/g, "");
+  return digitos.length === 11 ? digitos : null;
+}
+
 export type RegistroDePessoa = {
   nome?: string | null;
   email?: string | null;
   telefone?: string | null;
+  cpf?: string | null;
 };
 
 /**
@@ -93,6 +108,12 @@ export function evidenciaDeMesmaPessoa(
   a: RegistroDePessoa,
   b: RegistroDePessoa,
 ): EvidenciaDeElo | null {
+  const cpfA = normalizarCpf(a.cpf);
+  const cpfB = normalizarCpf(b.cpf);
+  if (cpfA && cpfB && cpfA === cpfB) {
+    return { forca: "confirmado", motivo: "mesmo CPF" };
+  }
+
   const emailA = normalizarEmail(a.email);
   const emailB = normalizarEmail(b.email);
   if (emailA && emailB && emailA === emailB) {

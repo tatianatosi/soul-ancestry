@@ -36,18 +36,30 @@ describe("Corte U1 — Novo lead (novo-lead.tsx)", () => {
 });
 
 describe("Corte U1 — Cliente/Pessoa 360, modal Novo cadastro (clientes.tsx)", () => {
-  it("importa formatarTelefone de @/lib/validacao-pessoa", () => {
-    expect(clientesTsx).toContain('import { formatarTelefone } from "@/lib/validacao-pessoa"');
+  // A ordem P1 (21/09/2026) acrescentou o campo CPF opcional a este mesmo
+  // modal, com `formatarCpf`. As asserções abaixo continuam travando o que o
+  // Corte U1 garantia — telefone mascarado, nome/e-mail intocados — sem
+  // proibir a máscara nova.
+  it("importa as máscaras de @/lib/validacao-pessoa", () => {
+    expect(clientesTsx).toContain('from "@/lib/validacao-pessoa"');
+    expect(clientesTsx).toContain("formatarTelefone");
+    expect(clientesTsx).toContain("formatarCpf");
   });
 
-  it("os 3 campos do modal declaram tipo (text/email/tel) em vez de <input> cru sem type", () => {
+  it("os campos do modal declaram tipo (text/email/tel) em vez de <input> cru sem type", () => {
     expect(clientesTsx).toContain('{ chave: "nome", rotulo: "Nome", tipo: "text" }');
     expect(clientesTsx).toContain('{ chave: "email", rotulo: "E-mail", tipo: "email" }');
     expect(clientesTsx).toContain('{ chave: "telefone", rotulo: "Telefone", tipo: "tel" }');
   });
 
-  it("telefone é formatado antes de entrar no estado; nome/e-mail não são alterados no onChange", () => {
-    expect(clientesTsx).toContain('c.chave === "telefone" ? formatarTelefone(e.target.value) : e.target.value');
+  it("telefone e CPF são formatados antes de entrar no estado; nome/e-mail não são alterados no onChange", () => {
+    expect(clientesTsx).toContain('c.chave === "telefone"');
+    expect(clientesTsx).toContain("formatarTelefone(e.target.value)");
+    expect(clientesTsx).toContain('c.chave === "cpf"');
+    expect(clientesTsx).toContain("formatarCpf(e.target.value)");
+    // O ramo final continua devolvendo o valor cru — nome e e-mail seguem
+    // sem transformação no onChange, como o Corte U1 fixou.
+    expect(clientesTsx).toContain(": e.target.value,");
   });
 });
 

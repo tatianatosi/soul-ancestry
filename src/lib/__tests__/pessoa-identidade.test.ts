@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   evidenciaDeMesmaPessoa,
   montarLinhaDoTempoDaPessoa,
+  normalizarCpf,
   normalizarEmail,
   normalizarNome,
   normalizarTelefone,
@@ -39,6 +40,21 @@ describe("normalizar o que identifica", () => {
     expect(normalizarNome("Ana Luiza (dado de teste)")).toBe("ana luiza");
     expect(normalizarNome("ANA LUÍZA")).toBe("ana luiza");
     expect(normalizarNome("Ana  Luiza ")).toBe("ana luiza");
+  });
+
+  // Ordem P1 (21/09/2026, "Uma identidade operacional do Lead ao Caso"):
+  // busca preventiva por e-mail/telefone/CPF — CPF era o único sinal
+  // ausente. Lead nunca tem CPF (só é coletado depois de virar cliente); o
+  // sinal importa ao comparar `clientes` entre si.
+  it("compara CPF só pelos 11 dígitos", () => {
+    expect(normalizarCpf("123.456.789-01")).toBe("12345678901");
+    expect(normalizarCpf("12345678901")).toBe("12345678901");
+  });
+
+  it("recusa CPF com contagem de dígitos errada", () => {
+    expect(normalizarCpf("123.456.789-0")).toBeNull();
+    expect(normalizarCpf("")).toBeNull();
+    expect(normalizarCpf(null)).toBeNull();
   });
 });
 
@@ -82,6 +98,27 @@ describe("evidência de mesma pessoa", () => {
     expect(
       evidenciaDeMesmaPessoa({ nome: "Ana", email: "a@a.com" }, { nome: "João", email: "j@j.com" }),
     ).toBeNull();
+  });
+
+  it("CPF idêntico confirma, mesmo com nomes e e-mails diferentes", () => {
+    const e = evidenciaDeMesmaPessoa(
+      { nome: "Ana Luiza", cpf: "123.456.789-01", email: "a@a.com" },
+      { nome: "A. L. G. S. Rodrigues", cpf: "12345678901", email: "b@b.com" },
+    );
+    expect(e?.forca).toBe("confirmado");
+    expect(e?.motivo).toBe("mesmo CPF");
+    expect(podeTratarComoMesmaPessoa(e)).toBe(true);
+  });
+
+  it("CPF é checado antes do e-mail — não muda o resultado quando os dois confirmam, mas é o sinal mais forte disponível", () => {
+    const e = evidenciaDeMesmaPessoa(
+      { nome: "Ana Luiza", cpf: "12345678901", email: "a@a.com" },
+      { nome: "Ana Luiza", cpf: "99999999999", email: "a@a.com" },
+    );
+    // CPF diverge — mas o e-mail idêntico ainda confirma (nenhum sinal vira
+    // bloqueio; divergência de CPF aqui não é perseguida por este teste,
+    // é responsabilidade de reconciliação de dado, não desta função).
+    expect(e?.forca).toBe("confirmado");
   });
 
   it("o lead-fixture da Ana Luiza não casa com a cliente real", () => {

@@ -7,6 +7,7 @@ import { contextoInterno } from "@/lib/comercial.server";
 import { elegibilidadeAtivacao, type Classificacao, type PessoaLista } from "@/lib/clientes-lista";
 import { semCache } from "@/lib/no-store";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { normalizarCpf } from "@/lib/pessoa-identidade";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -143,6 +144,7 @@ export type PossivelDuplicidadeCliente = {
   nome: string;
   email: string | null;
   telefone: string | null;
+  cpf: string | null;
   classificacao: string | null;
   motivo: string;
 };
@@ -151,14 +153,26 @@ export type PossivelDuplicidadeCliente = {
  * Cadastro de cliente (clientes.tsx) não tinha nenhuma checagem de
  * duplicidade — mesmo padrão que já existe para lead (`buscarDuplicidades`
  * em crm-desk.functions.ts), aqui restrito à mesma organização e a
- * registros não arquivados. Não usa CPF: `clientes` não tem coluna de
- * documento validada (ver `docs/design-system/mascaras-e-validadores.md`,
- * "CPF" é dona de `case_members.cpf", não de `clientes`) — checagem por
- * e-mail/telefone/nome, igual ao lead.
+ * registros não arquivados.
+ *
+ * Ordem P1 (21/09/2026): CPF entra como sinal preventivo "quando
+ * disponível". O comentário anterior desta função afirmava que `clientes`
+ * não tinha coluna de documento e que CPF era de `case_members` — errado:
+ * `clientes.cpf` existe desde a migration `20260902144855_pessoa_canonica_
+ * extensao_clientes.sql` ("Pessoa Canônica — campo próprio"), e é a coluna
+ * que `sincronizarPessoaDoCaso` já usa como valor canônico. A ausência em
+ * `src/integrations/supabase/types.ts` é drift de tipo, não de schema.
+ *
+ * CPF é o sinal mais forte (documento não se compartilha; e-mail e telefone
+ * de família, sim) — por isso vem primeiro no motivo. A normalização vem de
+ * `pessoa-identidade.ts`, a mesma usada por `evidenciaDeMesmaPessoa`, para
+ * não criar uma terceira regra paralela de comparação de CPF.
  */
 export const verificarDuplicidadeCliente = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { nome: string; email?: string | null; telefone?: string | null }) => d)
+  .inputValidator(
+    (d: { nome: string; email?: string | null; telefone?: string | null; cpf?: string | null }) => d,
+  )
   .handler(async ({ data, context }): Promise<{ duplicidades: PossivelDuplicidadeCliente[] }> => {
     semCache();
     const supabase = context.supabase as any;
@@ -166,7 +180,7 @@ export const verificarDuplicidadeCliente = createServerFn({ method: "POST" })
 
     const { data: linhas } = await supabase
       .from("clientes")
-      .select("id, nome, email, telefone, classificacao")
+      .select("id, nome, email, telefone, cpf, classificacao")
       .eq("organization_id", organizationId)
       .is("archived_at", null)
       .limit(2000);
@@ -175,10 +189,12 @@ export const verificarDuplicidadeCliente = createServerFn({ method: "POST" })
     const tel = soDigitos(data.telefone ?? "");
     const telChave = tel.length >= 8 ? tel.slice(-8) : "";
     const nome = normalizarNome(data.nome ?? "");
+    const cpf = normalizarCpf(data.cpf ?? null);
 
     const achados: PossivelDuplicidadeCliente[] = [];
     for (const l of (linhas ?? []) as PossivelDuplicidadeCliente[]) {
       const motivos: string[] = [];
+      if (cpf && normalizarCpf(l.cpf) === cpf) motivos.push("mesmo CPF");
       if (email && (l.email ?? "").trim().toLowerCase() === email) motivos.push("mesmo e-mail");
       const lTel = soDigitos(l.telefone ?? "");
       if (telChave && lTel.length >= 8 && lTel.slice(-8) === telChave) motivos.push("mesmo telefone");

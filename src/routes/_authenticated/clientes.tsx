@@ -38,7 +38,7 @@ import {
 
 import { rotuloEstado } from "@/lib/estados";
 import { cn } from "@/lib/utils";
-import { formatarTelefone } from "@/lib/validacao-pessoa";
+import { formatarCpf, formatarTelefone } from "@/lib/validacao-pessoa";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
   head: () => ({
@@ -607,6 +607,7 @@ function ClientesPage() {
                 { chave: "nome", rotulo: "Nome", tipo: "text" },
                 { chave: "email", rotulo: "E-mail", tipo: "email" },
                 { chave: "telefone", rotulo: "Telefone", tipo: "tel" },
+                { chave: "cpf", rotulo: "CPF (opcional)", tipo: "text" },
               ].map((c) => (
                 <label key={c.chave} className="block text-xs text-navy/65">
                   {c.rotulo}
@@ -617,7 +618,12 @@ function ClientesPage() {
                     onChange={(e) =>
                       setNovo({
                         ...novo,
-                        [c.chave]: c.chave === "telefone" ? formatarTelefone(e.target.value) : e.target.value,
+                        [c.chave]:
+                          c.chave === "telefone"
+                            ? formatarTelefone(e.target.value)
+                            : c.chave === "cpf"
+                              ? formatarCpf(e.target.value)
+                              : e.target.value,
                       })
                     }
                   />
@@ -687,8 +693,8 @@ function ClientesPage() {
                 <ul className="mt-2 space-y-1 text-xs text-navy/70">
                   {duplicidadesNovo.map((d) => (
                     <li key={d.id}>
-                      <strong>{d.nome}</strong> · {d.email ?? "sem e-mail"} · {d.telefone ?? "sem telefone"} —{" "}
-                      {d.motivo}
+                      <strong>{d.nome}</strong> · {d.email ?? "sem e-mail"} · {d.telefone ?? "sem telefone"}
+                      {d.cpf ? ` · CPF ${d.cpf}` : ""} — {d.motivo}
                       <Link
                         to="/pessoas/$clienteId"
                         params={{ clienteId: d.id }}
@@ -735,7 +741,12 @@ function ClientesPage() {
                     setVerificandoDuplicidade(true);
                     try {
                       const { duplicidades } = await verificarDuplicidade({
-                        data: { nome: novo.nome ?? "", email: novo.email, telefone: novo.telefone },
+                        data: {
+                          nome: novo.nome ?? "",
+                          email: novo.email,
+                          telefone: novo.telefone,
+                          cpf: novo.cpf,
+                        },
                       });
                       if (duplicidades.length) {
                         setDuplicidadesNovo(duplicidades);
