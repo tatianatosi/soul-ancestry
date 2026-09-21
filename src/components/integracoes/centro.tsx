@@ -5,6 +5,7 @@ import { AlertTriangle, PlayCircle, Plug, ShieldCheck, TestTube2 } from "lucide-
 import { toast } from "sonner";
 
 import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import {
   CAMPOS_DESTINO,
   CATEGORIAS_INTEGRACAO,
@@ -190,15 +191,13 @@ export function CentroIntegracoes() {
                 <p className="text-xs text-navy/50">
                   {r.tentativas} tentativas · {new Date(r.created_at).toLocaleString("pt-BR")}
                 </p>
-                <button
-                  onClick={() => {
-                    const t = window.prompt("O que foi corrigido? (mínimo 10 caracteres)") ?? "";
-                    if (t.trim()) mResolver.mutate({ id: r.id, resolucao: t });
-                  }}
+                <AcaoOperacional
+                  rotulo="Resolver e desligar"
                   className="mt-2 rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
-                >
-                  Resolver e desligar
-                </button>
+                  acaoExterna="resolver_revisao_integracao"
+                  efeito="Marca a revisão como resolvida e mantém a integração desligada; religar continua exigindo decisão humana à parte. Descreva o que foi corrigido (mínimo 10 caracteres)."
+                  onConfirmar={(motivo) => mResolver.mutate({ id: r.id, resolucao: motivo })}
+                />
               </li>
             ))}
           </ul>
@@ -375,16 +374,14 @@ export function CentroIntegracoes() {
                   >
                     Desligar
                   </button>
-                  <button
-                    onClick={() => {
-                      const m = window.prompt("Motivo da pausa") ?? "";
-                      if (m.trim()) mSituacao.mutate({ status: "pausada", motivo: m });
-                    }}
-                    disabled={!podeConfigurar}
+                  <AcaoOperacional
+                    rotulo="Pausar"
+                    validacaoFormulario={!podeConfigurar ? "Somente admin/operações pode alterar integrações." : null}
                     className="rounded-lg border border-navy/20 px-3 py-2 text-sm disabled:opacity-60"
-                  >
-                    Pausar
-                  </button>
+                    acaoExterna="pausar_integracao"
+                    efeito="Pausa a integração com motivo registrado."
+                    onConfirmar={(motivo) => mSituacao.mutate({ status: "pausada", motivo })}
+                  />
                   <button
                     onClick={() => setModalAtivar(true)}
                     disabled={!podeAtivar || atual.status === "ativa"}

@@ -194,7 +194,20 @@ export const sincronizarChecklist = createServerFn({ method: "POST" })
     if (!ctx.podeTratar) throw new Error("Somente admin e operações geram checklists.");
     const { data: n, error } = await supabase.rpc("quality_sync_checklist", { _case: data.casoId });
     if (error) throw new Error(error.message);
-    return { criados: Number(n ?? 0) };
+    const criados = Number(n ?? 0);
+    if (criados > 0) {
+      await registrarTimelineCaso(supabase, {
+        organizationId: ctx.organizationId,
+        caseId: data.casoId,
+        eventType: "caso",
+        title: "Checklist de qualidade sincronizado",
+        summaryInternal: `${criados} item(ns) gerado(s) a partir do modelo do serviço/fase.`,
+        sourceEntityType: "quality_checklist_items",
+        sourceEntityId: data.casoId,
+        userId: context.userId as string,
+      });
+    }
+    return { criados };
   });
 
 /** Atualiza um item de checklist (o banco exige justificativa em "não aplicável"). */

@@ -210,17 +210,12 @@ export function VinculosDoDocumento({
             >
               Vincular
             </button>
-            <button
-              type="button"
-              disabled={criarEvidencia.isPending}
-              onClick={() => {
-                if (!window.confirm("Criar uma evidência em rascunho a partir deste documento? Nada será publicado nem avançado.")) return;
-                criarEvidencia.mutate();
-              }}
+            <AcaoOperacional
+              rotulo={criarEvidencia.isPending ? "Criando…" : "Criar evidência em rascunho a partir deste documento"}
               className="rounded-full border border-navy/20 px-4 py-2 text-xs text-navy disabled:opacity-50"
-            >
-              Criar evidência em rascunho a partir deste documento
-            </button>
+              efeito="Cria uma evidência em rascunho a partir deste documento. Nada será publicado nem avançado."
+              onConfirmar={() => criarEvidencia.mutate()}
+            />
           </div>
           <p className="text-[11px] text-navy/55 md:col-span-4">
             Vincular é ato humano registrado. A evidência criada nasce em rascunho, com confiança mínima e sem validação
