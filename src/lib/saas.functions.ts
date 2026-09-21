@@ -823,6 +823,119 @@ export const arquivarRegistro = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Mesma exigência de motivo de `arquivarRegistro`: desfazer também se justifica. */
+export function validarEntradaRestauracao(data: { entidade: Entidade; id: string; motivo: string }) {
+  if (!ENTIDADES.includes(data.entidade)) throw new Error("Entidade inválida.");
+  return { ...data, motivo: data.motivo?.trim() || "Motivo não informado." };
+}
+
+/**
+ * Par genérico de `arquivarRegistro`: arquivamento é lógico, então desfazê-lo
+ * também exige motivo rastreável, organização derivada da sessão e rastro no
+ * histórico do caso. Corpo exposto como função simples porque o encadeamento
+ * de `createServerFn` é reescrito no build e não é chamável em teste.
+ */
+export async function restaurarRegistroNaOrganizacao(
+  supabase: SupabaseCliente,
+  entrada: { entidade: Entidade; id: string; motivo: string; userId: string },
+) {
+  const organizationId = await resolverOrganizacao(supabase, entrada.userId);
+
+  // Releitura antes de gravar: gravarComVerificacao confirma linha afetada,
+  // mas não distingue registro ativo de registro arquivado — restaurar o que
+  // nunca foi arquivado não mudaria nada e devolveria sucesso falso.
+  const leitura = await supabase
+    .from(entrada.entidade)
+    .select("*")
+    .eq("id", entrada.id)
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+  if (leitura.error) throw new Error(leitura.error.message);
+  const atual = (leitura.data ?? null) as Linha | null;
+  if (!atual) throw new Error("Registro não encontrado nesta organização.");
+  if (!atual["archived_at"]) throw new Error("Registro não está arquivado: não há o que restaurar.");
+
+  const payload = { archived_at: null, archived_by: null, archive_motivo: null };
+  // eventos_financeiros não tem coluna updated_by (ver atualizarRegistro).
+  if (entrada.entidade === "eventos_financeiros") {
+    const { data: linhaAtualizada, error } = await supabase
+      .from(entrada.entidade)
+      .update(payload)
+      .eq("id", entrada.id)
+      .eq("organization_id", organizationId)
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!(linhaAtualizada as Linha | null)?.["id"]) throw new Error("NENHUMA_LINHA_AFETADA: nada foi gravado.");
+  } else {
+    await gravarComVerificacao({
+      supabase: supabase as never,
+      tabela: entrada.entidade,
+      id: entrada.id,
+      organizationId,
+      userId: entrada.userId,
+      payload,
+    });
+  }
+
+  // Mesmo mapa de caso usado em arquivarRegistro: cada tabela nomeia a coluna
+  // de forma diferente (case_id vs. caso_id) e payments só chega ao caso via
+  // invoice_id — leads/clientes/client_contacts não têm caso.
+  let caseId: string | null = null;
+  if (entrada.entidade === "crm_casos") {
+    caseId = entrada.id;
+  } else if (
+    entrada.entidade === "evidencias" ||
+    entrada.entidade === "tarefas" ||
+    entrada.entidade === "eventos_financeiros"
+  ) {
+    caseId = (atual["caso_id"] as string | undefined) ?? null;
+  } else if (entrada.entidade === "payments") {
+    const invoiceId = atual["invoice_id"] as string | undefined;
+    if (invoiceId) {
+      const { data: fatura } = await supabase
+        .from("invoices")
+        .select("case_id")
+        .eq("id", invoiceId)
+        .maybeSingle();
+      caseId = ((fatura as Linha | null)?.["case_id"] as string | undefined) ?? null;
+    }
+  } else if (
+    entrada.entidade === "case_members" ||
+    entrada.entidade === "documents" ||
+    entrada.entidade === "consent_records" ||
+    entrada.entidade === "proposals" ||
+    entrada.entidade === "invoices"
+  ) {
+    caseId = (atual["case_id"] as string | undefined) ?? null;
+  }
+
+  if (caseId) {
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId,
+      eventType: "caso",
+      title: `Registro restaurado: ${entrada.entidade}`,
+      summaryInternal: entrada.motivo.trim(),
+      sourceEntityType: entrada.entidade,
+      sourceEntityId: entrada.id,
+      userId: entrada.userId,
+    });
+  }
+
+  return { ok: true };
+}
+
+export const restaurarRegistro = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(validarEntradaRestauracao)
+  .handler(async ({ data, context }) =>
+    restaurarRegistroNaOrganizacao(context.supabase as unknown as SupabaseCliente, {
+      ...data,
+      userId: context.userId as string,
+    }),
+  );
+
 /** Verificação servidor-side das condições obrigatórias de ativação. */
 export const verificarCondicoesCaso = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
