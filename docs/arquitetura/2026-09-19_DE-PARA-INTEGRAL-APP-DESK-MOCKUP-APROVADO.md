@@ -1,5 +1,15 @@
 # De-para integral — App Cliente × Desk × mockup aprovado
 
+> **Correção de autoridade (21/09/2026).** Este documento foi escrito tratando
+> o PDF de 17 páginas como contrato de composição. A Proprietária corrigiu:
+> **o PDF não é regra nem limite** — foi gerado pelo Lovable para mostrar que
+> os elementos existem, e o go-live são as páginas vivas, mais atualizadas.
+>
+> O que segue continua válido como **medição do código real** (rotas, writers,
+> fronteira de sanitização, gaps). O que não vale é ler as comparações abaixo
+> como "a tela precisa ficar igual ao PDF". Especificação e critério de aceite
+> vigentes: `docs/politicas/DE-PARA-COMPLETO-APP-DESK-2026-09-21.md`.
+
 - Status: rascunho
 - Versão: v1.0
 - Data: 2026-09-21 (nome do arquivo mantém 2026-09-19, data da ordem)
