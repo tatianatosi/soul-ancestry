@@ -1,15 +1,37 @@
 # Sistema de Produto Canônico
 
 - Status: rascunho
-- Versão: v1.1
-- Data: 2026-09-19
+- Versão: v1.2
+- Data: 2026-09-21
 - Responsável pela decisão: Proprietária do Clube Ancestral
-- Fonte(s) de evidência: os 11 arquivos de `docs/design-system/` listados na seção 8.1 (SHA por arquivo ali); mais, confirmados por `git ls-tree origin/main` no commit `06477fe26bdb17a0ffc75e7e09626495077344ff` (2026-09-19), fora de `docs/design-system/`: os arquivos de `docs/arquitetura/` e `.lovable/plan/` listados na seção 8.3. **Nota de proveniência desta versão**: um documento chamado `2026-09-19-validacao-inventario-fontes-documentais.md` foi citado como fonte [1] no pedido que motivou esta revisão; verificado por `git ls-tree -r origin/main | grep` nesta sessão e **não encontrado** em nenhum caminho de `origin/main`, nem anexado à conversa — não é tratado como fonte. As reclassificações desta versão se apoiam apenas na verificação independente já registrada nas seções 8.1 e 8.3.
+- Fonte(s) de evidência: os 12 arquivos de `docs/design-system/` listados na seção 8.1 (este documento incluso, já publicado desde a v1.1), confirmados por `git ls-tree origin/main` no commit `248291d8825dc0b82f12e91adf2fd4d2a8d758d5` (2026-09-21, Fase 1 desta revisão); fora de `docs/design-system/`, os arquivos de `docs/arquitetura/` e `.lovable/plan/` listados na seção 8.3 (existência não reverificada nesta rodada — sem mudança de escopo desde a v1.1). **Nota de proveniência desta versão**: revisão pedida pela Proprietária para executar de fato as 4 fases do protocolo (git real, leitura controlada, escrita do arquivo, parar antes de publicar) em vez de só planejar — ver seção 0 abaixo para o que mudou desde a v1.1.
 - Escopo: instrumento de leitura que localiza e relaciona a documentação canônica de identidade/pessoas, casos/pesquisa, contrato, CRM, produtos/jornadas, cobrança, App do Cliente, Desk, CTAs, máscaras, validações, visibilidade, sanitização e auditoria — sem inventar regra nova.
 - Premissas: fonte canônica é o que está publicado em `origin/main` ou fornecido integralmente pela Proprietária nesta conversa; arquivo presente só em worktree/branch local não publicado não tem status canônico, ainda que tecnicamente correto.
 - Limites: não altera código, schema, migration, RLS, dado, rota, componente, teste, variável de ambiente ou documento-fonte. Não aprova arquitetura, regra jurídica ou publicação. A única escrita realizada é este próprio arquivo, no worktree onde a tarefa foi executada.
-- Próximos passos: revisão pela Proprietária; decisão sobre publicar (ou não) o conteúdo hoje preso em `docs/design-system/` não versionado neste branch local (seção 8.2); resolução das pendências da seção 9 caso a caso, com dono e prazo.
+- Próximos passos: revisão pela Proprietária; decisão sobre publicar (ou não) o conteúdo hoje preso em `docs/design-system/` não versionado neste branch local (seção 8.2, ainda não resolvida na v1.2); resolução das pendências da seção 9 caso a caso, com dono e prazo; decisão sobre o novo domínio "Grupo familiar/comunicação" sem documento dedicado (seção 0.2).
 - Critério de aceite: ver seção 10.
+
+## 0. O que mudou desde a v1.1 (2026-09-19 → 2026-09-21)
+
+Verificado agora por `git ls-tree`/`git log` reais contra `origin/main` (`248291d8`), não por memória de sessão — 9 commits de código publicados desde a v1.1, todos já com teste focado, `tsc`, `vitest` na baseline estável e `vite build` confirmados no momento de cada publicação:
+
+### 0.1 — Pendências da v1.1 que avançaram
+
+- **de-para-pessoa-unificada.md, Corte U2** (item citado na seção 8.1 da v1.1 como "roteiro de evolução"): **executado e publicado** (`f1bbf536`) — `genealogical_person_profiles.client_id` agora editável via `salvarRegistroG02`, com seletor de confirmação humana explícita na ficha de perfil. Corte U1 confirmado já publicado antes da v1.1 (PR #128).
+- **9.4 (risco de `enviarParaAssinatura` gravar `role` fora do CHECK)**: continua **não re-verificado** — nenhum commit desde a v1.1 tocou esse caminho. Pendência mantida como estava.
+
+### 0.2 — Achado novo: domínio sem documento dedicado
+
+**Grupo familiar / comunicação** (`case_grupos_comunicacao`, migration `20260921110000`, commit `248291d8`) — nova tabela que registra existência/propósito/status de um grupo de coordenação (WhatsApp), sem nunca criar ou integrar nada externamente. Implementa o §5 de `Prompt_Implantacao_Politica_Unificada_Casos_Familiares.md` (documento fornecido pela Proprietária nesta sessão, fora de `docs/design-system/`). **Não existe, em `docs/design-system/` de `origin/main`, nenhum documento que governe este domínio** — mesma situação já registrada em 9.3 para o modelo fino de contrato/cobrança. Registrado aqui como gap novo, não como pendência resolvida.
+
+### 0.3 — Correções de dado/vocabulário publicadas (avançam `mascaras-e-validadores.md` e `taxonomia-canonica.md` na prática, sem alterar o texto desses documentos)
+
+- CPF e CEP agora validados (não só mascarados) em Pessoa 360 e Caso 360 — `cpfValido`/`cepValido` (`validacao-pessoa.ts`) tinham zero call sites antes desta sessão.
+- `case_members`: e-mail ganhou verificação nativa (`type="email"`, mesmo mecanismo do Corte U1), estado civil virou lista fechada (mesmos 5 valores de `clientes`).
+- Vocabulário de `papel_no_caso` alinhado entre `nucleo_membros` (já tinha CHECK de 5 valores) e `case_members` (não tinha CHECK nenhum, só 4 valores na UI) — migration `20260921100000` fecha o mesmo CHECK nos dois lados, mantendo o valor legado `interlocutor` aceito para não invalidar dado já gravado.
+- Detecção de divergência de CPF entre `clientes` e as tabelas satélite: já existia pronta em `sincronizarPessoaDoCaso` (`contract_parties`) desde antes da v1.1, mas **órfã, sem nenhuma tela chamando**; conectada a um painel em `casos.$caseId.contrato.preparar.tsx` (`f5800fe2`). A mesma detecção foi estendida para `case_members` (`conferirDivergenciaCpfMembrosCaso`, `aab3e514`) — não existia antes.
+
+Nenhum destes achados contradiz `mascaras-e-validadores.md`/`taxonomia-canonica.md` — são execução do que os documentos já especificavam, não mudança de regra. Não requerem edição do texto desses dois arquivos.
 
 ---
 
@@ -122,7 +144,7 @@ Catálogo não é exaustivo: qualquer CTA fora desta lista deve ser verificado c
 | `docs/design-system/tokens.md` | Sim | `4272151b` (2026-09-16) | Tokens de marca, estado semântico, valores legados | Lido integralmente | Nenhuma |
 | `docs/design-system/regras-de-uso.md` | Sim | `4272151b` (2026-09-16) | Regras obrigatórias de cor, KPI, selo, vazio, CTA, navegação | Lido integralmente | Nenhuma |
 | `docs/design-system/de-para-pessoa-unificada.md` | Sim | `aab3a58c` (2026-09-16) | De-para e roteiro de evolução da Pessoa Unificada | Confirmado presente; conteúdo já verificado em rodada anterior desta mesma sessão (spot-check ainda válido) | Nenhuma nesta verificação |
-| `docs/design-system/SISTEMA-DE-PRODUTO-CANONICO.md` | **Não** | — | — | — | Este próprio documento não existe em `origin/main`; existe apenas como rascunho local nesta tarefa, com status `RASCUNHO_LOCAL` até publicação e aprovação |
+| `docs/design-system/SISTEMA-DE-PRODUTO-CANONICO.md` | Sim (v1.1) | — (esta v1.2 ainda não publicada) | Este próprio documento | Publicado desde a v1.1; esta v1.2 é edição local, não commitada — ver seção 0 e Fase 4 | Continua `Status: rascunho` até critérios da seção 10 serem cumpridos |
 
 ### 8.3 Confirmadas em `origin/main`, fora do caminho canônico `docs/design-system/`
 
@@ -176,6 +198,7 @@ Também presentes no `git status --short` do checkout, sem relação com esta ta
 | 9.8 | **Product Knowledge do workspace Lovable** — `FONTE AUXILIAR EXTERNA AO GIT`: localização é o workspace Lovable (`Ancestral Canvas`); não verificável por este repositório nesta sessão (sem acesso à ferramenta Lovable). Uso permitido: contexto auxiliar. Uso proibido: declará-la política versionada ou decisão canônica sem registro explícito | Proprietária | Se necessário como fonte formal, registrar seu conteúdo relevante em documento versionado de `origin/main` |
 | 9.9 | Matriz "papel × superfície × ação permitida" no Desk não está consolidada em nenhum documento de `origin/main` lido nesta tarefa | Proprietária | Pedido futuro específico, se a Proprietária considerar prioritário |
 | 9.10 | O documento `2026-09-19-validacao-inventario-fontes-documentais.md`, citado como fonte [1] no pedido que motivou a v1.1 deste documento, não foi localizado em `origin/main` (`git ls-tree` sem resultado) nem anexado à conversa | Proprietária | Fornecer o caminho exato ou o conteúdo integral, se o documento existir fora do que foi verificável nesta sessão |
+| 9.11 | **Novo (v1.2)**: `case_grupos_comunicacao` (grupo familiar/WhatsApp, §5 da política unificada de casos familiares, migration `20260921110000`) não tem nenhum documento dedicado em `docs/design-system/` — mesma lacuna estrutural de 9.3 (contrato/cobrança), agora também no domínio "comunicação e coordenação familiar" | Proprietária | Decidir se merece documento próprio ou uma seção dentro de um documento já existente (ex.: `contrato-interface-desk.md`) |
 
 Nenhuma divergência de regra (conteúdo contraditório entre dois documentos de `origin/main`) foi encontrada nesta leitura — as divergências acima são todas de proveniência (local × remoto) ou de lacuna (documento inexistente), não de conflito de conteúdo entre fontes aprovadas.
 
