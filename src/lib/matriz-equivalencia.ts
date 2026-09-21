@@ -133,7 +133,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
       { mockup: "Catálogo comercial", rota: "/catalogo", dado: "product_catalog, sku_catalog", estado: "implementado" },
       { mockup: "Validação jurídica", rota: "/matriz-juridica", dado: "legal_clause_matrix, versioned_legal_rules, legal_reference_milestones", estado: "parcial", nota: "Marcos, trilhas e casos impactados ainda com fonte a confirmar." },
       { mockup: "Auditoria e decisões", rota: "/governanca/decisoes · /auditoria", dado: "decisions, audit_logs, change_log", estado: "implementado" },
-      { mockup: "Inventário e completude", rota: "/governanca/inventario-patrimonial · /governanca/varredura-completude", dado: "artifact_register, derivações de varredura", estado: "implementado" },
+      { mockup: "Inventário e completude", rota: "—", dado: "artifact_register, derivações de varredura", estado: "a_confirmar", nota: "Declarava 'implementado' apontando para /governanca/inventario-patrimonial e /governanca/varredura-completude: nenhuma das duas rotas existe. Os módulos de dados existem em src/lib e têm teste; falta a tela. Corrigido em 21/09/2026 junto com a remoção dos componentes órfãos (docs/legacy-inventory.md)." },
       { mockup: "Integrações", rota: "/integracoes", dado: "integrations, integration_runs", estado: "a_confirmar", nota: "E-mail bloqueado por DNS; assinatura e cobrança sem credencial." },
     ],
   },
