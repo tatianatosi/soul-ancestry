@@ -13,7 +13,7 @@
  * deixe a decisão aqui.
  */
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 
 import {
   AlertDialog,
@@ -66,16 +66,31 @@ export function AcaoOperacional({
   const [aberto, setAberto] = useState(false);
   const [motivo, setMotivo] = useState("");
   const [executando, setExecutando] = useState(false);
+  /**
+   * Trava de reentrada independente do estado do React.
+   *
+   * 21/09/2026 — `executando` sozinho não impedia duplo submit quando
+   * `onConfirmar` é síncrono (várias telas passam `m.mutate()`, que devolve
+   * void): `await undefined` resolve no microtask seguinte, e o par
+   * true/false colapsa no mesmo lote de render — o botão nunca chega a ficar
+   * desabilitado, e dois cliques rápidos disparam duas escritas. O ref muda
+   * na hora, antes de qualquer render, então barra a segunda entrada sem
+   * depender de batching.
+   */
+  const emVoo = useRef(false);
 
   const motivoInsuficiente = decisao.exigeMotivo && motivo.trim().length < MOTIVO_MINIMO;
 
   async function executar(texto: string) {
+    if (emVoo.current) return;
+    emVoo.current = true;
     setExecutando(true);
     try {
       await onConfirmar(texto);
       setAberto(false);
       setMotivo("");
     } finally {
+      emVoo.current = false;
       setExecutando(false);
     }
   }
