@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { Campo, Gaveta, Painel, Selo, inputCls } from "@/components/comercial/base";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { supabase } from "@/integrations/supabase/client";
 import {
   arquivarDocumento,
@@ -303,10 +304,12 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
                       Baixar (registra auditoria)
                     </button>
                   )}
-                  <button
-                    onClick={async () => {
-                      const motivo = window.prompt("Motivo do arquivamento (opcional):");
-                      if (motivo === null) return;
+                  <AcaoOperacional
+                    rotulo="Arquivar"
+                    className="rounded-lg border border-terracotta/40 px-2 py-1 text-[11px] text-terracotta"
+                    acaoExterna="arquivar_documento"
+                    efeito="Arquiva o documento com motivo — não há exclusão física, o histórico é preservado."
+                    onConfirmar={async (motivo) => {
                       try {
                         await arquivar({ data: { id: d["id"], motivo } });
                         toast.success("Documento arquivado; histórico preservado.");
@@ -315,10 +318,7 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
                         toast.error((e as Error).message);
                       }
                     }}
-                    className="rounded-lg border border-terracotta/40 px-2 py-1 text-[11px] text-terracotta"
-                  >
-                    Arquivar
-                  </button>
+                  />
                 </div>
               </div>
             ))}
@@ -368,15 +368,13 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
                       Revogado em {dataHora(c["revogado_em"])} · motivo: {c["revogacao_motivo"] ?? "—"}
                     </p>
                   ) : (
-                    <button
-                      onClick={() => {
-                        const motivo = window.prompt("Motivo da revogação (opcional):");
-                        if (motivo !== null) mutRevogar.mutate({ id: c["id"], motivo });
-                      }}
+                    <AcaoOperacional
+                      rotulo="Revogar consentimento"
                       className="mt-2 rounded-lg border border-terracotta/40 px-2 py-1 text-[11px] text-terracotta"
-                    >
-                      Revogar consentimento
-                    </button>
+                      acaoExterna="revogar_consentimento"
+                      efeito="Revoga o consentimento com motivo registrado."
+                      onConfirmar={(motivo) => mutRevogar.mutate({ id: c["id"], motivo })}
+                    />
                   )}
                 </div>
               ))}

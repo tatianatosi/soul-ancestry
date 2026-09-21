@@ -604,15 +604,13 @@ export function AtendimentoInterno() {
                   <div className="flex items-center gap-2">
                     <Selo texto={STATUS_SOLICITACAO[s.status] ?? s.status} />
                     {["pendente", "recusado"].includes(s.status) ? (
-                      <button
-                        onClick={() => {
-                          const motivo = window.prompt("Motivo do cancelamento (opcional):");
-                          if (motivo !== null) cancelarSolic.mutate({ solicitacaoId: s.id, motivo });
-                        }}
+                      <AcaoOperacional
+                        rotulo="Cancelar"
                         className="rounded-lg border border-navy/20 px-2.5 py-1 text-xs"
-                      >
-                        Cancelar
-                      </button>
+                        acaoExterna="cancelar_solicitacao_documental"
+                        efeito="Cancela a solicitação documental; o histórico é preservado."
+                        onConfirmar={(motivo) => cancelarSolic.mutate({ solicitacaoId: s.id, motivo })}
+                      />
                     ) : null}
                   </div>
                 </div>
@@ -666,15 +664,15 @@ export function AtendimentoInterno() {
                   >
                     <Check className="h-3.5 w-3.5" /> Aceitar recebimento
                   </button>
-                  <button
-                    onClick={() => {
-                      const motivo = window.prompt("O que o cliente precisa reenviar? (orientação objetiva)") ?? "";
-                      if (motivo.trim()) revisarEnvio.mutate({ documentoId: d.id, decisao: "recusado", motivo });
-                    }}
+                  <AcaoOperacional
+                    rotulo="Pedir reenvio"
                     className="inline-flex items-center gap-1 rounded-lg border border-terracotta/40 px-3 py-1.5 text-xs text-terracotta"
+                    acaoExterna="pedir_reenvio_documento_cliente"
+                    efeito="Recusa o envio e pede ao cliente que reenvie, com orientação objetiva registrada."
+                    onConfirmar={(motivo) => revisarEnvio.mutate({ documentoId: d.id, decisao: "recusado", motivo })}
                   >
                     <X className="h-3.5 w-3.5" /> Pedir reenvio
-                  </button>
+                  </AcaoOperacional>
                 </div>
               ) : null}
             </li>

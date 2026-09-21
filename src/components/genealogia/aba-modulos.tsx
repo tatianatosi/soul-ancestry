@@ -231,16 +231,13 @@ export function AbaModulos({
               {r.localidade ? ` · ${r.localidade}` : ""}
             </p>
             {r.descricao_interna ? <p className="mt-1 text-xs text-navy/70">{r.descricao_interna}</p> : null}
-            <button
-              type="button"
+            <AcaoOperacional
+              rotulo="Arquivar (sem exclusão física)"
               className="mt-2 text-[11px] text-terracotta underline"
-              onClick={() => {
-                const motivo = window.prompt("Motivo do arquivamento (opcional):");
-                if (motivo !== null) onArquivar(tabela, r.id, motivo);
-              }}
-            >
-              Arquivar (sem exclusão física)
-            </button>
+              acaoExterna="arquivar_modulo_genealogico"
+              efeito="Arquiva o registro do módulo sem exclusão; o histórico é preservado."
+              onConfirmar={(motivo) => onArquivar(tabela, r.id, motivo)}
+            />
           </li>
         ))}
         {registros.length === 0 ? <p className="text-sm text-navy/60">Nenhum registro neste módulo.</p> : null}

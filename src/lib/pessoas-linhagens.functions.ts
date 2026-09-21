@@ -7,6 +7,7 @@ import { MODULOS_HISTORICOS } from "@/lib/genealogia-modulos";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { normalizarNome } from "@/lib/pessoa-identidade";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -453,17 +454,31 @@ export const arquivarRegistroG02 = createServerFn({ method: "POST" })
   .inputValidator((d: { tabela: TabelaG02; id: string; motivo: string }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
-    await autorizarEscrita(supabase, context.userId as string);
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
     if (!TABELAS[data.tabela]) throw new Error("Entidade não reconhecida na ficha genealógica.");
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
+    const temCaseId = (TABELAS[data.tabela] as string[]).includes("case_id");
     const r = await supabase
       .from(data.tabela)
       .update({ archived_at: new Date().toISOString(), archive_reason: motivo })
       .eq("id", data.id)
-      .select("id")
+      .select(temCaseId ? "id, case_id" : "id")
       .maybeSingle();
     if (r.error) throw new Error(r.error.message);
     if (!r.data)
       throw new Error("Nada foi gravado: registro fora da sua organização ou sem permissão.");
+    const caseId = temCaseId ? ((r.data as { case_id?: string }).case_id ?? null) : null;
+    if (caseId) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: `Registro arquivado (${data.tabela})`,
+        summaryInternal: motivo,
+        sourceEntityType: data.tabela,
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     return { ok: true };
   });

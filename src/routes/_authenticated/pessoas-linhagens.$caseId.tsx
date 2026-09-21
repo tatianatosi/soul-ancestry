@@ -710,16 +710,13 @@ function AbaPerfis({
               <button type="button" className={btnCls} onClick={salvar}>
                 Salvar perfil
               </button>
-              <button
-                type="button"
+              <AcaoOperacional
+                rotulo="Arquivar"
                 className="rounded-lg border border-terracotta/40 px-3 py-2 text-xs font-semibold text-terracotta"
-                onClick={() => {
-                  const motivo = window.prompt("Motivo do arquivamento (opcional):");
-                  if (motivo !== null) onArquivar(p.id, motivo);
-                }}
-              >
-                Arquivar
-              </button>
+                acaoExterna="arquivar_pessoa_perfil_360"
+                efeito="Arquiva o perfil sem exclusão; o histórico é preservado."
+                onConfirmar={(motivo) => onArquivar(p.id, motivo)}
+              />
             </div>
           </article>
         );
@@ -858,16 +855,13 @@ function AbaRelacoes({
             tom={r.status_pesquisa === "confirmado" ? "ok" : "alerta"}
           />
           {r.locality ? <span className="text-xs text-navy/60">{r.locality}</span> : null}
-          <button
-            type="button"
+          <AcaoOperacional
+            rotulo="Arquivar"
             className="ml-auto text-xs text-terracotta underline"
-            onClick={() => {
-              const motivo = window.prompt("Motivo do arquivamento (opcional):");
-              if (motivo !== null) onArquivar(r.id, motivo);
-            }}
-          >
-            Arquivar
-          </button>
+            acaoExterna="arquivar_relacao_genealogica"
+            efeito="Arquiva a relação sem exclusão; o histórico é preservado."
+            onConfirmar={(motivo) => onArquivar(r.id, motivo)}
+          />
         </div>
       ))}
       {relacoes.length === 0 ? <p className="text-sm text-navy/60">Nenhuma relação registrada.</p> : null}

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -410,12 +411,13 @@ function AbaChecklists() {
                       >
                         Cumprido
                       </button>
-                      <button
-                        onClick={() => marcar(i, "nao_aplicavel")}
+                      <AcaoOperacional
+                        rotulo="Não aplicável"
                         className="rounded-lg border border-navy/20 px-3 py-1 text-xs"
-                      >
-                        Não aplicável
-                      </button>
+                        acaoExterna="marcar_item_checklist_nao_aplicavel"
+                        efeito="Marca o item como não aplicável, com justificativa registrada."
+                        onConfirmar={(justificativa) => marcar(i, "nao_aplicavel", justificativa)}
+                      />
                       <button
                         onClick={() => marcar(i, "pendente")}
                         className="rounded-lg border border-navy/20 px-3 py-1 text-xs"
@@ -432,13 +434,8 @@ function AbaChecklists() {
     </div>
   );
 
-  async function marcar(item: Linha, status: string) {
-    let observacao = item["observacao"] ?? "";
-    if (status === "nao_aplicavel") {
-      const texto = window.prompt("Justifique por que o item não se aplica (opcional):", "");
-      if (texto === null) return;
-      observacao = texto;
-    }
+  async function marcar(item: Linha, status: string, justificativa?: string) {
+    const observacao = status === "nao_aplicavel" ? (justificativa ?? "") : (item["observacao"] ?? "");
     try {
       await fnMarcar({ data: { id: item["id"], status, observacao } });
       toast.success("Item atualizado.");
