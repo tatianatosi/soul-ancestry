@@ -24,6 +24,8 @@ import { pendenciaPesquisaAberta } from "@/lib/rotulo-negocio";
 import { ROTULO_ATO_FORMAL } from "@/lib/validacao-juridica-caso";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions";
+import { conferirDivergenciaCpfMembrosCaso } from "@/lib/caso-canonico.functions";
+import { ReconciliarCpfMembrosCaso } from "@/components/caso/reconciliar-cpf-membros-caso";
 import { listarFilaOps } from "@/lib/ops.functions";
 import { listarDocumentos } from "@/lib/documentos.functions";
 import { resumoVisaoClienteCaso } from "@/lib/app-cliente-como-pessoa.functions";
@@ -2203,8 +2205,41 @@ function AbaPessoas({
     onError: (e: unknown) => setErro(e instanceof Error ? e.message : "Falha ao criar pessoa."),
   });
 
+  const reconciliarCpfMembros = useServerFn(conferirDivergenciaCpfMembrosCaso);
+  const [planoReconciliacaoCpfMembros, setPlanoReconciliacaoCpfMembros] = useState<any[] | null>(null);
+  const mReconciliarCpfMembros = useMutation({
+    mutationFn: (confirmar: boolean) => reconciliarCpfMembros({ data: { caseId: casoId, confirmar } }),
+    onSuccess: (r: any) => {
+      setPlanoReconciliacaoCpfMembros(Array.isArray(r.plano) ? r.plano : []);
+      if (r.simulado) {
+        toast.info("Prévia da conferência de CPF: nada foi gravado ainda.");
+        return;
+      }
+      toast.success(
+        r.atualizados
+          ? `${r.atualizados} CPF(s) preenchido(s) a partir do cadastro canônico.`
+          : "Nada a preencher: nenhum membro estava com CPF vazio.",
+      );
+      onMudou();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   // Caso com núcleo vinculado: a composição familiar é somente leitura, projetada de Núcleos e dossiês.
-  if (temNucleo) return <PessoasDoNucleo caseId={casoId} />;
+  // A conferência de CPF vale independentemente do núcleo (opera sobre case_members).
+  if (temNucleo) {
+    return (
+      <div className="space-y-5">
+        <ReconciliarCpfMembrosCaso
+          plano={planoReconciliacaoCpfMembros}
+          ocupado={mReconciliarCpfMembros.isPending}
+          onVerificar={() => mReconciliarCpfMembros.mutate(false)}
+          onSincronizar={() => mReconciliarCpfMembros.mutate(true)}
+        />
+        <PessoasDoNucleo caseId={casoId} />
+      </div>
+    );
+  }
 
   // Sem a lista de núcleos não se sabe qual painel vale: mostra a falha em vez de
   // supor "caso sem núcleo".
@@ -2224,6 +2259,12 @@ function AbaPessoas({
 
   return (
     <div className="space-y-5">
+      <ReconciliarCpfMembrosCaso
+        plano={planoReconciliacaoCpfMembros}
+        ocupado={mReconciliarCpfMembros.isPending}
+        onVerificar={() => mReconciliarCpfMembros.mutate(false)}
+        onSincronizar={() => mReconciliarCpfMembros.mutate(true)}
+      />
       <Secao
         titulo="Pessoas do caso"
         descricao="Registro de pessoa é distinto do caso e da família. Menor de idade nunca é signatário: exige representante legal."

@@ -697,7 +697,95 @@ export const sincronizarMembrosDoCaso = createServerFn({ method: "POST" })
     return { simulado: false, plano, criados };
   });
 
-/** Taxonomia completa + mapa de equivalência com o Meta Agent (sem sincronizar). */
+/**
+ * Corte R2 (de-para-pessoa-unificada.md / auditoria de reconciliação,
+ * 21/09/2026): `sincronizarMembrosDoCaso` (acima) só cria membros que
+ * faltam em `case_members` — nunca revisita um membro já vinculado a
+ * `cliente_id` para conferir se o CPF ainda bate com o cadastro canônico
+ * (`clientes.cpf`). Mesmo padrão de `sincronizarPessoaDoCaso`
+ * (contratos.functions.ts): só preenche o que está vazio; um CPF já
+ * gravado que diverge nunca é sobrescrito automaticamente — vira
+ * `conflito`, para decisão humana. Mesma guarda "dependente nunca herda
+ * documento do responsável" (achado real do Felipe, caso Ana Luiza).
+ */
+export const conferirDivergenciaCpfMembrosCaso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string; confirmar?: boolean }) => data)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+
+    const { data: membros } = await supabase
+      .from("case_members")
+      .select("id,nome,cpf,cliente_id,dependente")
+      .eq("case_id", data.caseId)
+      .eq("organization_id", organizationId)
+      .is("archived_at", null)
+      .not("cliente_id", "is", null);
+
+    const membrosLinha = (membros ?? []) as Linha[];
+    const clienteIds = Array.from(new Set(membrosLinha.map((m) => m.cliente_id).filter(Boolean)));
+    const { data: clientesRaw } = clienteIds.length
+      ? await supabase.from("clientes").select("id,cpf").in("id", clienteIds)
+      : { data: [] };
+    const clientePorId = new Map(((clientesRaw ?? []) as Linha[]).map((c) => [c.id, c]));
+    const normalizar = (s: string) => s.replace(/\D/g, "");
+
+    const plano = membrosLinha.map((m) => {
+      if (m.dependente) {
+        return { membroId: m.id, nome: m.nome, acao: "dependente_nao_sincronizado" as const };
+      }
+      const cliente = clientePorId.get(m.cliente_id as string);
+      if (!cliente?.cpf) {
+        return { membroId: m.id, nome: m.nome, acao: "sem_dado_canonico" as const };
+      }
+      if (m.cpf) {
+        return normalizar(String(m.cpf)) !== normalizar(String(cliente.cpf))
+          ? { membroId: m.id, nome: m.nome, acao: "conflito" as const, atual: m.cpf, canonico: cliente.cpf }
+          : { membroId: m.id, nome: m.nome, acao: "ja_sincronizado" as const };
+      }
+      return { membroId: m.id, nome: m.nome, acao: "preencher" as const, cpf: cliente.cpf as string };
+    });
+
+    if (!data.confirmar) return { simulado: true, plano };
+
+    let atualizados = 0;
+    for (const item of plano) {
+      if (item.acao !== "preencher") continue;
+      const { error } = await supabase
+        .from("case_members")
+        .update({ cpf: item.cpf, status_cadastral: "completo" })
+        .eq("id", item.membroId);
+      if (error) throw new Error(`Membro do caso (${item.nome}): ${error.message}`);
+      atualizados++;
+    }
+
+    await supabase.from("audit_logs").insert({
+      organization_id: organizationId,
+      entidade: "case_members",
+      entidade_id: data.caseId,
+      acao: "cpf_conferido_contra_cadastro_canonico",
+      user_id: context.userId as string,
+      metadados: { case_id: data.caseId, plano, atualizados },
+    });
+
+    if (atualizados > 0) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.caseId,
+        eventType: "caso",
+        title: "CPF de membro(s) do caso preenchido a partir do cadastro canônico",
+        summaryInternal: `${atualizados} membro(s) tiveram CPF preenchido a partir de clientes.cpf.`,
+        sourceEntityType: "case_members",
+        sourceEntityId: data.caseId,
+        userId: context.userId as string,
+      });
+    }
+
+    return { simulado: false, plano, atualizados };
+  });
+
+
 export const carregarMapaEtiquetas = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
