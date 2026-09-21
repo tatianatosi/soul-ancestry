@@ -57,7 +57,7 @@ import { PessoasDoNucleo } from "@/components/caso/pessoas-do-nucleo";
 import { listarNucleos } from "@/lib/nucleos-desk.functions";
 import { ehFixture, ROTULO_FIXTURE } from "@/lib/identificadores-norma";
 import { ehFixtureLinha, ROTULO_DEMONSTRACAO } from "@/lib/fixtures";
-import { classificarErroPersistencia } from "@/lib/persistencia-erros";
+import { classificarErroPersistencia, ESTADOS_SALVAMENTO } from "@/lib/persistencia-erros";
 import { toast } from "sonner";
 import { MapaPersistenciaCaso } from "@/components/caso/mapa-persistencia";
 import { estadoDerivadoPorGates } from "@/lib/gates-ativacao-ficha";
@@ -712,14 +712,14 @@ function FichaCaso() {
               também no hero — duplicava a mesma ação. Só no hero agora. */}
           <span className="text-xs text-navy/60">
             {mSalvar.isPending
-              ? "Salvando…"
+              ? ESTADOS_SALVAMENTO.salvando
               : erro
                 ? "Não salvo"
                 : sujo
-                  ? "Alterações não salvas"
+                  ? ESTADOS_SALVAMENTO.sujo
                   : salvoEm
-                    ? `Salvo às ${salvoEm}`
-                    : "Sem alterações pendentes"}
+                    ? ESTADOS_SALVAMENTO.salvo(salvoEm)
+                    : ESTADOS_SALVAMENTO.limpo}
           </span>
           <AcaoOperacional
             rotulo="Salvar alterações"
@@ -2202,7 +2202,7 @@ function FichaCaso() {
               }}
               className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream disabled:opacity-40"
             >
-              {mSalvar.isPending ? "Salvando…" : "Salvar e sair"}
+              {mSalvar.isPending ? ESTADOS_SALVAMENTO.salvando : "Salvar e sair"}
             </button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -2533,11 +2533,11 @@ function CartaoPessoa({
         </button>
         <span className="text-xs text-navy/55">
           {m.isPending
-            ? "Salvando…"
+            ? ESTADOS_SALVAMENTO.salvando
             : sujo
-              ? "Alterações não salvas"
+              ? ESTADOS_SALVAMENTO.sujo
               : salvo
-                ? `Salvo às ${salvo}`
+                ? ESTADOS_SALVAMENTO.salvo(salvo)
                 : ""}
         </span>
       </div>
