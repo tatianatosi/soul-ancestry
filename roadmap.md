@@ -110,3 +110,11 @@
 - [x] Mapear parâmetros do callback, criação da sessão, timeout, elegibilidade, consulta pendente e falhas engolidas.
 - [x] Entregar logs seguros e mascarados com domínio, path, presença de parâmetro, sessão, usuário, elegibilidade e destino.
 - [ ] Parar para aprovação antes de nova alteração, configuração Auth, RLS, dados, permissões, convite ou magic link.
+
+## Sistema único: matrizes, App e jornada da Ana (21/09/2026)
+- [ ] Consolidar matrizes únicas App e Desk no Design System com referências visuais aprovadas.
+- [ ] Alinhar Home, Jornada e Radar às páginas aprovadas sem alterar dados reais.
+- [ ] Corrigir e validar Jornada, Radar, Árvore, Legado e Conta no caso real.
+- [ ] Fechar a jornada da Ana na superfície contratual contínua, com efeitos separados.
+- [ ] Gerar wireframes desktop e 375 px do contrato com inventário real.
+- [ ] Validar tipos, testes, build, console e overflow; parar antes de versionar/publicar.
