@@ -80,6 +80,8 @@ function ContratoDetalhe() {
   const q = useQuery({ queryKey: ["contrato", id], queryFn: () => obter({ data: { id } }) });
   const [aba, setAba] = useState<(typeof ABAS)[number]>("Resumo");
   const [aviso, setAviso] = useState<string | null>(null);
+  const [resumoVersao, setResumoVersao] = useState("");
+  const [tituloTarefa, setTituloTarefa] = useState("");
 
   const recarregar = () => q.refetch();
 
@@ -102,6 +104,7 @@ function ContratoDetalhe() {
             ? `Versão ${r.versao} gerada como rascunho interno. Pendente para envio (não impede o rascunho): ${r.pendenciasConciliacao.join(" · ")}`
             : `Versão ${r.versao} gerada como rascunho interno.`,
       );
+      setResumoVersao("");
       recarregar();
     },
     onError: (e: Error) => setAviso(e.message),
@@ -241,19 +244,34 @@ function ContratoDetalhe() {
         acessível pela nav.
       */}
       <div className="mt-4 flex flex-wrap items-start gap-2">
+        {(d.versoes as any[]).length ? (
+          <input
+            value={resumoVersao}
+            onChange={(e) => setResumoVersao(e.target.value)}
+            placeholder="Resumo das alterações desta versão (opcional)"
+            className="rounded-lg border border-navy/20 px-3 py-2 text-sm md:w-64"
+          />
+        ) : null}
         <button
-          onClick={() => mGerar.mutate((d.versoes as any[]).length ? prompt("Resumo das alterações desta versão:") ?? "" : undefined)}
+          onClick={() => mGerar.mutate((d.versoes as any[]).length ? resumoVersao : undefined)}
           className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90"
         >
           Salvar rascunho
         </button>
+        <input
+          value={tituloTarefa}
+          onChange={(e) => setTituloTarefa(e.target.value)}
+          placeholder="Título da tarefa"
+          className="rounded-lg border border-navy/20 px-3 py-2 text-sm md:w-56"
+        />
         <button
           onClick={() => {
-            const titulo = prompt("Título da tarefa:");
-            if (!titulo?.trim()) return;
-            mTarefa.mutate({ titulo: titulo.trim(), caso_id: (c.case_id as string | null) ?? null });
+            const titulo = tituloTarefa.trim();
+            if (!titulo) return;
+            mTarefa.mutate({ titulo, caso_id: (c.case_id as string | null) ?? null });
+            setTituloTarefa("");
           }}
-          disabled={mTarefa.isPending}
+          disabled={mTarefa.isPending || !tituloTarefa.trim()}
           className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90 disabled:opacity-60"
         >
           Criar tarefa

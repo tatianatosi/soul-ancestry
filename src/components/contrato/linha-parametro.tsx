@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { Selo, inputCls } from "@/components/comercial/base";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { ORIGENS_PARAM } from "@/lib/contrato-parametros.server";
 import { definirStatusParametro, salvarParametro } from "@/lib/contrato-parametros.functions";
 import { CAT_ORIGEM, CAT_STATUS_PARAMETRO } from "@/lib/parametros-catalogos";
@@ -48,8 +49,8 @@ export function LinhaParametro({ valor, aoMudar }: { valor: any; aoMudar: () => 
     onError: (e: Error) => toast.error(e.message),
   });
   const mStatus = useMutation({
-    mutationFn: (status: "validado" | "bloqueado" | "importado_a_confirmar") =>
-      definir({ data: { id: valor.id, status, justificativa } }),
+    mutationFn: (v: { status: "validado" | "bloqueado" | "importado_a_confirmar"; motivo?: string }) =>
+      definir({ data: { id: valor.id, status: v.status, justificativa: v.motivo ?? justificativa } }),
     onSuccess: () => {
       toast.success("Situação atualizada.");
       aoMudar();
@@ -151,21 +152,21 @@ export function LinhaParametro({ valor, aoMudar }: { valor: any; aoMudar: () => 
           Salvar
         </button>
         <button
-          onClick={() => mStatus.mutate("validado")}
+          onClick={() => mStatus.mutate({ status: "validado" })}
           disabled={mStatus.isPending || !valor.valor}
           title={AJUDA_STATUS["validado"]}
           className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50"
         >
           Confirmar
         </button>
-        <button
-          onClick={() => mStatus.mutate("bloqueado")}
-          disabled={mStatus.isPending}
+        <AcaoOperacional
+          rotulo="Bloquear"
           title={AJUDA_STATUS["bloqueado"]}
           className="rounded-lg border border-terracotta/40 px-3 py-1.5 text-xs text-terracotta"
-        >
-          Bloquear
-        </button>
+          acaoExterna="bloquear_parametro_contratual"
+          efeito="Bloqueia o parâmetro com justificativa registrada no histórico do caso."
+          onConfirmar={(motivo) => mStatus.mutate({ status: "bloqueado", motivo })}
+        />
       </div>
     </div>
   );

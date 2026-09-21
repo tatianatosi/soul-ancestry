@@ -6,6 +6,7 @@ import type { ConferenciaPreco } from "@/lib/precos-sku";
 import { validarExcecaoComercial } from "@/lib/precos-sku";
 import { construirMapaProdutoPaiPorCodigo, produtoPaiDoCodigo } from "@/lib/planejador-produtos-pai";
 import { conflitoPlanejadorProposta } from "@/lib/perfil-institucional";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -204,6 +205,17 @@ export const registrarExcecaoComercial = createServerFn({ method: "POST" })
       .select("id,sku,status,valido_ate")
       .single();
     if (error) throw new Error(error.message);
+
+    await registrarTimelineCaso(supabase, {
+      organizationId: org,
+      caseId: data.caseId,
+      eventType: "caso",
+      title: `Exceção comercial aprovada (${row.sku})`,
+      summaryInternal: data.motivo.trim(),
+      sourceEntityType: "sku_price_exceptions",
+      sourceEntityId: row.id as string,
+      userId,
+    });
 
     return { registrada: true, excecaoId: row.id as string, sku: row.sku as string, validoAte: row.valido_ate as string };
   });

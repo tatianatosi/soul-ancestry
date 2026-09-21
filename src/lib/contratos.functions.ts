@@ -1160,11 +1160,22 @@ export const salvarOrdemServico = createServerFn({ method: "POST" })
         .update(corpo)
         .eq("organization_id", organizationId)
         .eq("id", data.id)
-        .select("id")
+        .select("id,case_id")
         .maybeSingle();
       if (error) return { ok: false, mensagem: error.message };
       if (!linhaAtualizada?.id) {
         return { ok: false, mensagem: "Nada foi gravado: ordem de serviço não encontrada nesta organização." };
+      }
+      if (data.status === "active" && linhaAtualizada.case_id) {
+        await registrarTimelineCaso(supabase, {
+          organizationId,
+          caseId: linhaAtualizada.case_id as string,
+          eventType: "caso",
+          title: "Ordem de serviço ativada",
+          sourceEntityType: "service_orders",
+          sourceEntityId: data.id,
+          userId: context.userId as string,
+        });
       }
       return { ok: true, mensagem: "Ordem de serviço registrada." };
     }
