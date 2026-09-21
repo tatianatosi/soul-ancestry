@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
 import { HandoffLead } from "@/components/crm/handoff-lead";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { CaCard } from "@/components/ui/ca-card";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { executarHandoffDiscovery } from "@/lib/handoff-discovery.functions";
 import { podeExecutarHandoffDiscovery } from "@/lib/handoff-discovery";
@@ -580,6 +581,15 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
         titulo="Mesa de Discovery"
         descricao="Aqui a entrada comercial funciona: varredura, uma pergunta SPIN por vez, próxima ação e handoff. Os KPIs do que está parado ou vencido ficam no Hoje. Toda triagem é sinal interno — não conclui elegibilidade nem envia proposta."
       >
+        {/*
+          DSA-4-CRM-VIVO (21/09/2026): quarto consumidor do Desk a usar
+          `CaCard` (após DSA-1 qualidade.tsx, DSA-2 painel.tsx, DSA-3
+          pesquisa-modulo.index.tsx), sem título/eyebrow para não duplicar o
+          cabeçalho que `Secao` já fornece — só o contêiner de cartão dos
+          cinco números-resumo. Nenhum dado, mutation ou o Kanban abaixo
+          (clube-ancestral-kit, fora deste corte) foi tocado.
+        */}
+        <CaCard className="p-3 sm:p-4">
         <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {[
             ["Calls de hoje", resumo.hoje],
@@ -594,6 +604,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
             </div>
           ))}
         </div>
+        </CaCard>
         <label className="mt-3 flex items-center gap-2 text-xs text-navy/70">
           <input
             type="checkbox"
