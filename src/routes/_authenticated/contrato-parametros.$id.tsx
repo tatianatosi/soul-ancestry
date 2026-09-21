@@ -14,6 +14,7 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { GRUPOS } from "@/lib/contrato-parametros.server";
 import {
   aprovarParametros,
+  congelarPrevia,
   destinosParametros,
   enviarParaAssinatura,
   gerarPrevia,
@@ -67,6 +68,7 @@ function Pagina() {
   const carregarDestinos = useServerFn(destinosParametros);
   const importar = useServerFn(preencherDeOrigens);
   const gerar = useServerFn(gerarPrevia);
+  const congelar = useServerFn(congelarPrevia);
   const aprovar = useServerFn(aprovarParametros);
   const enviar = useServerFn(enviarParaAssinatura);
   const assinar = useServerFn(registrarAssinatura);
@@ -92,9 +94,17 @@ function Pagina() {
     onError: (e: Error) => toast.error(e.message),
   });
   const mGerar = useMutation({
-    mutationFn: (tipo: "rascunho" | "final") => gerar({ data: { id, tipo } }),
+    mutationFn: () => gerar({ data: { id, tipo: "rascunho" } }),
     onSuccess: (r: any) => {
-      toast.success(`Prévia v${r.versao} congelada.`);
+      toast.success(`Rascunho v${r.versao} salvo.`);
+      invalidar();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const mCongelar = useMutation({
+    mutationFn: (v: { evento: "aprovacao"; motivo: string }) => congelar({ data: { id, ...v } }),
+    onSuccess: (r: any) => {
+      toast.success(r.duplicada ? `Conteúdo idêntico à v${r.versao}: versão reaproveitada.` : `Versão v${r.versao} congelada.`);
       invalidar();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -195,19 +205,23 @@ function Pagina() {
               Pré-carregar do Planejador homologado
             </button>
             <button
-              onClick={() => mGerar.mutate("rascunho")}
+              onClick={() => mGerar.mutate()}
               disabled={mGerar.isPending}
               className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80"
             >
               Gerar prévia de rascunho
             </button>
-            <button
-              onClick={() => mGerar.mutate("final")}
-              disabled={mGerar.isPending}
+            <AcaoOperacional
+              rotulo="Gerar versão final"
               className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream"
-            >
-              Gerar versão final
-            </button>
+              acaoExterna="congelar_versao_final_parametros"
+              efeito={
+                pendencias.length > 0
+                  ? `Há ${pendencias.length} pendência(s) no checklist abaixo — é possível prosseguir; a pendência fica registrada.`
+                  : "Congela a versão final do contrato — vira versão imutável no histórico."
+              }
+              onConfirmar={(motivo) => mCongelar.mutate({ evento: "aprovacao", motivo })}
+            />
           </div>
         </Painel>
 
