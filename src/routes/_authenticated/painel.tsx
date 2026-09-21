@@ -8,6 +8,7 @@ import { CaCard } from "@/components/ui/ca-card";
 import { totaisFinanceiros } from "@/lib/golive-analitico";
 import { saudeDosLeads, type LeadComercial } from "@/lib/golive-comercial";
 import { riscosEPrazos } from "@/lib/golive-juridico";
+import { concluida } from "@/lib/golive-microentregas";
 import { faixaDePrazo, kpisHoje, kpisPrazo, type AcaoOperacional } from "@/lib/golive-operacao";
 import { acessoAoPortal, publicacaoPorEstado } from "@/lib/golive-portal";
 
@@ -53,6 +54,13 @@ function PainelConsolidado() {
   if (!caso) return <EstadoVazio mensagem="Sem registros para consolidar — nenhuma organização com dados suficientes foi encontrada." />;
 
   const hoje = kpisHoje(caso.carteira, caso.tarefas);
+  /*
+    Mesma conta que /golive/microentregas publica como "Aguardando revisão",
+    com fonte e fórmula declaradas lá ("Itens ainda não concluídos"). Reusa
+    `concluida` do módulo canônico em vez de reimplementar o critério — se a
+    regra mudar, os dois números mudam juntos.
+  */
+  const microentregasAguardandoRevisao = caso.microentregas.filter((m) => !concluida(m)).length;
   const leads = caso.leadsComerciais as LeadComercial[];
   const saude = saudeDosLeads(leads);
   const itensKanban: AcaoOperacional[] = [
@@ -125,42 +133,55 @@ function PainelConsolidado() {
       </div>
 
       {/*
-        Faixa de 4 indicadores do Hoje, na composição da prancha aprovada
-        (01-hoje.tsx do kit v4 · §11 do De-Para).
+        Faixa de 4 indicadores do Hoje (§11 do De-Para).
 
-        Dois têm regra publicada e saem da fonte real; dois não têm, e por
-        isso aparecem como "Não registrado" em vez de número inventado:
+        §11 e §26 exigem contagem CLICÁVEL, que abra a lista de origem e
+        reconcilie com ela. Cada número aqui abre a tela onde a mesma conta
+        é feita, da mesma fonte — não uma lista parecida.
 
-        - "Decisões do dia" não tem definição publicada — não há fila de
-          decisão no modelo de dados que diga o que conta como decisão de
-          hoje.
-        - "Microentregas para revisão" esbarra no vocabulário: o estado de
-          microentrega vai a `concluida`/`aprovada`, sem estado de revisão
-          pendente. A fila existe em /microentregas, com outra fonte.
-
-        Regra da casa: ausência é explícita, nunca preenchida por dedução.
+        "Decisões do dia" segue sem número: não há regra publicada que diga
+        o que conta como decisão de hoje. Zero seria pior que ausência —
+        diria "não há decisões" quando o certo é "não existe regra". Sem
+        regra, também não há lista para abrir, então não vira link.
       */}
       <dl className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-hoje-indicadores>
         {[
-          { rotulo: "Decisões do dia", valor: null, apoio: "sem regra publicada" },
-          { rotulo: "Cadências vencidas", valor: hoje.vencidas, apoio: "pedem retomada" },
-          { rotulo: "Casos sem próxima ação", valor: hoje.semProxima, apoio: "precisam de decisão" },
-          { rotulo: "Microentregas para revisão", valor: null, apoio: "sem estado de revisão no modelo" },
-        ].map((k) => (
-          <div key={k.rotulo} className="rounded-xl border border-navy/15 bg-cream/40 px-4 py-3">
-            <dd
-              className={
-                k.valor === null
-                  ? "text-sm font-medium text-navy/50"
-                  : "font-serif text-2xl text-navy"
-              }
-            >
-              {k.valor === null ? "Não registrado" : k.valor}
-            </dd>
-            <dt className="mt-0.5 text-xs text-navy/70">{k.rotulo}</dt>
-            <p className="text-[11px] text-navy/45">{k.apoio}</p>
-          </div>
-        ))}
+          { rotulo: "Decisões do dia", valor: null, apoio: "sem regra publicada", to: null },
+          { rotulo: "Cadências vencidas", valor: hoje.vencidas, apoio: "pedem retomada", to: "/golive" },
+          { rotulo: "Casos sem próxima ação", valor: hoje.semProxima, apoio: "precisam de decisão", to: "/golive" },
+          {
+            rotulo: "Microentregas para revisão",
+            valor: microentregasAguardandoRevisao,
+            apoio: "aguardando revisão humana",
+            to: "/golive/microentregas",
+          },
+        ].map((k) => {
+          const conteudo = (
+            <>
+              <dd
+                className={
+                  k.valor === null
+                    ? "text-sm font-medium text-navy/50"
+                    : "font-serif text-2xl text-navy"
+                }
+              >
+                {k.valor === null ? "Não registrado" : k.valor}
+              </dd>
+              <dt className="mt-0.5 text-xs text-navy/70">{k.rotulo}</dt>
+              <p className="text-[11px] text-navy/45">{k.apoio}</p>
+            </>
+          );
+          const classe = "block rounded-xl border border-navy/15 bg-cream/40 px-4 py-3 text-left";
+          return k.to ? (
+            <Link key={k.rotulo} to={k.to} className={`${classe} hover:border-gold`}>
+              {conteudo}
+            </Link>
+          ) : (
+            <div key={k.rotulo} className={classe}>
+              {conteudo}
+            </div>
+          );
+        })}
       </dl>
 
       <div className="grid gap-4 lg:grid-cols-2">

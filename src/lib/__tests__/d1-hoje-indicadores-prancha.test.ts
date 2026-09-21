@@ -37,9 +37,21 @@ describe("número só onde existe regra", () => {
     expect(painel).toContain("valor: hoje.semProxima");
   });
 
-  it("os dois sem regra publicada não recebem número inventado", () => {
+  it("o que não tem regra publicada não recebe número inventado", () => {
+    // 21/09/2026 — este teste travava DOIS ausentes. Eu havia concluído que
+    // "Microentregas para revisão" não tinha estado de revisão no modelo.
+    // Estava errado: /golive/microentregas já publica "Aguardando revisão"
+    // com fonte e fórmula. Só "Decisões do dia" segue sem regra.
     expect(painel).toContain('rotulo: "Decisões do dia", valor: null');
-    expect(painel).toContain('rotulo: "Microentregas para revisão", valor: null');
+  });
+
+  it("microentregas para revisão tem número real, da função canônica", () => {
+    expect(painel).toContain("valor: microentregasAguardandoRevisao");
+    expect(painel).toContain('import { concluida } from "@/lib/golive-microentregas"');
+  });
+
+  it("a ausência que resta diz o motivo", () => {
+    expect(painel).toContain("sem regra publicada");
   });
 
   it("ausência aparece como texto explícito, não como zero", () => {
@@ -50,7 +62,6 @@ describe("número só onde existe regra", () => {
 
   it("cada ausência diz o motivo", () => {
     expect(painel).toContain("sem regra publicada");
-    expect(painel).toContain("sem estado de revisão no modelo");
   });
 });
 

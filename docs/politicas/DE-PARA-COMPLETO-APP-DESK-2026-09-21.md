@@ -2,20 +2,27 @@
 
 > **Autoridade, fixada pela Proprietária em 21/09/2026 — leia antes do resto.**
 >
-> O PDF de 17 páginas **não é regra nem limite**. Ele foi gerado pelo Lovable e
-> serve para mostrar que os elementos existem. O go-live são **as páginas
-> vivas**, que estão mais atualizadas que o PDF.
+> **O mockup rege, e é regra, tanto para o App quanto para o Desk.** Ele é o
+> contrato de composição, hierarquia, conteúdo e navegação das duas
+> superfícies.
 >
-> Consequência prática, e ela inverte o que eu havia assumido antes: **não se
-> reconstrói tela para "ficar igual ao PDF"**. A base é a página viva; este
-> documento diz o que manter, sobrepor, ocultar e arquivar em cima dela. Onde
-> o PDF mostrar algo que a página viva já resolve melhor ou mais atual, vale a
-> página viva.
+> Duas ressalvas dela, e só duas:
 >
-> Isso também reposiciona a §29 ("Nota de governança") no fim deste arquivo:
-> ela continua valendo para o que é **cálculo** — regra de negócio aprovada
-> manda no número, e divergência se registra em vez de inventar terceira
-> interpretação. O que não vale é ler o §29 como "o PDF governa a composição".
+> 1. **Bom senso resolve alguns detalhes.** O PDF foi gerado pelo Lovable e
+>    mostra que os elementos existem; onde ele for literal demais ou estiver
+>    atrás das páginas vivas — que são mais atualizadas —, aplica-se bom
+>    senso em vez de cópia cega. Exemplo real desta rodada: o mockup escreve
+>    "até 10 MB" na caixa de envio, e a regra aprovada no servidor aceita
+>    25 MB e mais formatos. Anunciar 10 MB faria a tela recusar o que o
+>    servidor aceita — vale o limite real.
+> 2. **Número tem dono.** A §29, no fim deste arquivo, continua valendo para
+>    cálculo: regra de negócio aprovada manda no valor, e divergência se
+>    registra em vez de inventar terceira interpretação.
+>
+> Registro de uma correção minha: numa versão anterior deste cabeçalho
+> escrevi que "o PDF não é regra nem limite". Foi extrapolação — a
+> Proprietária disse que o mockup rege e que bom senso ajuda em alguns
+> pontos, não que o mockup deixou de valer.
 >
 > Camadas, como a Proprietária fixou:
 >
