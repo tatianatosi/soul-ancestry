@@ -56,7 +56,7 @@ import { classificarErroPersistencia } from "@/lib/persistencia-erros";
 import { toast } from "sonner";
 import { MapaPersistenciaCaso } from "@/components/caso/mapa-persistencia";
 import { estadoDerivadoPorGates } from "@/lib/gates-ativacao-ficha";
-import { formatarCep, formatarCpf, formatarTelefone } from "@/lib/validacao-pessoa";
+import { cepValido, cpfValido, formatarCep, formatarCpf, formatarTelefone } from "@/lib/validacao-pessoa";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -2290,6 +2290,24 @@ function CartaoPessoa({
   };
   const set = (k: string, valor: unknown) => setForm((f) => ({ ...f, [k]: valor }));
 
+  // CA-VALIDACAO-CPF-CEP (21/09/2026): mesma checagem de `pessoas.$clienteId.tsx`
+  // — a máscara já existia, mas nunca havia validação de dígito/tamanho antes
+  // de gravar. Reusa `cpfValido`/`cepValido` (validacao-pessoa.ts). Campo
+  // vazio continua permitido; só bloqueia valor preenchido e inválido.
+  const salvarComValidacao = () => {
+    const cpf = v("cpf");
+    if (cpf.trim() && !cpfValido(cpf)) {
+      setErro("CPF inválido — confira os números digitados.");
+      return;
+    }
+    const cep = v("cep");
+    if (cep.trim() && !cepValido(cep)) {
+      setErro("CEP inválido — precisa ter 8 dígitos.");
+      return;
+    }
+    m.mutate();
+  };
+
   const m = useMutation({
     mutationFn: () =>
       atualizar({ data: { entidade: "case_members", id: String(pessoa["id"]), dados: form } }),
@@ -2409,7 +2427,7 @@ function CartaoPessoa({
       </div>
       <div className="mt-4 flex items-center gap-3">
         <button
-          onClick={() => m.mutate()}
+          onClick={salvarComValidacao}
           disabled={!sujo || m.isPending}
           className="rounded-lg border border-navy/20 px-3 py-1.5 text-sm text-navy disabled:opacity-40"
         >

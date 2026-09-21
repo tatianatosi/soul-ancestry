@@ -14,7 +14,7 @@ import {
   montarLinhaDoTempoDaPessoa,
   type EvidenciaDeElo,
 } from "@/lib/pessoa-identidade";
-import { formatarCep, formatarCpf, formatarTelefone, UFS_BRASIL } from "@/lib/validacao-pessoa";
+import { cepValido, cpfValido, formatarCep, formatarCpf, formatarTelefone, UFS_BRASIL } from "@/lib/validacao-pessoa";
 import { rotuloFase } from "@/lib/fase-rotulo";
 import { obterProximaAcaoCanonica, SELO_PROXIMA_ACAO } from "@/lib/caso-ficha";
 import { NOME_RESPONSAVEL_PADRAO } from "@/lib/responsavel-padrao";
@@ -177,6 +177,24 @@ function Pessoa() {
   const [erroVinculo, setErroVinculo] = useState<string | null>(null);
   const [decisaoAposSalvar, setDecisaoAposSalvar] = useState(false);
 
+  // CA-VALIDACAO-CPF-CEP (21/09/2026): a máscara já existia, mas nunca havia
+  // checagem de dígito/tamanho antes de gravar — dava para salvar um CPF ou
+  // CEP com o formato certo e o conteúdo errado. Reusa `cpfValido`/`cepValido`
+  // (validacao-pessoa.ts), já existentes e sem uso até agora. Campo vazio
+  // continua permitido (o dado é opcional); só bloqueia valor preenchido e
+  // inválido.
+  const salvarComValidacao = () => {
+    if (form.cpf && form.cpf.trim() && !cpfValido(form.cpf)) {
+      setErroSalvar("CPF inválido — confira os números digitados.");
+      return;
+    }
+    if (form.endereco_cep && form.endereco_cep.trim() && !cepValido(form.endereco_cep)) {
+      setErroSalvar("CEP inválido — precisa ter 8 dígitos.");
+      return;
+    }
+    mSalvar.mutate(form);
+  };
+
   const mSalvar = useMutation({
     mutationFn: (campos: Partial<CamposPessoa>) => salvar({ data: { clienteId, campos } }),
     onSuccess: () => {
@@ -295,7 +313,7 @@ function Pessoa() {
                 <button
                   type="button"
                   disabled={mSalvar.isPending}
-                  onClick={() => mSalvar.mutate(form)}
+                  onClick={salvarComValidacao}
                   className="rounded-md bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
                 >
                   {mSalvar.isPending ? "Salvando…" : "Salvar"}
