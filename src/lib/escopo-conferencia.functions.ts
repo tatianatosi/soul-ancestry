@@ -7,6 +7,7 @@ import { auditoriaSanitizada } from "@/lib/escopo-conferencia";
 import { montarConferencia } from "@/lib/escopo-conferencia.server";
 import { ACOES_GATEADAS_INTERNAS, type AcaoGateada } from "@/lib/gates-formalizacao";
 import { ACAO_REVALIDAR, detalheAcaoRevalidar } from "@/lib/proposta-saneamento";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -184,6 +185,17 @@ export const registrarOverrideGateInterno = createServerFn({ method: "POST" })
       .select("id,created_at")
       .single();
     if (error) throw new Error(error.message);
+
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.caseId,
+      eventType: "caso",
+      title: `Override interno da proprietária (${data.acao})`,
+      summaryInternal: motivo,
+      sourceEntityType: "owner_override_events",
+      sourceEntityId: row.id as string,
+      userId: actorId,
+    });
 
     return { registrado: true, eventoId: row.id as string, criadoEm: row.created_at as string };
   });

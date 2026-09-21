@@ -1,7 +1,7 @@
 import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 // Alias obrigatório: este arquivo já usa `linhas` como variável local.
 import { linhas as linhasDe } from "@/lib/linhas";
@@ -509,6 +509,7 @@ export const salvarItemContrato = createServerFn({ method: "POST" })
     exigir(papel, PAPEIS_FILHO[data.tabela], "Seu papel não permite alterar este bloco do instrumento.");
 
     const dados = sanitizarFilho(data.tabela, data.dados);
+    let idGravado = data.id;
     if (data.id) {
       await gravarComVerificacao({
         supabase,
@@ -519,12 +520,14 @@ export const salvarItemContrato = createServerFn({ method: "POST" })
         payload: dados,
       });
     } else {
-      const { error } = await supabase.from(data.tabela).insert({
-        ...dados,
-        organization_id: organizationId,
-        contract_id: data.contract_id,
+      const inserido = await inserirComVerificacao({
+        supabase,
+        tabela: data.tabela,
+        organizationId,
+        userId: context.userId as string,
+        payload: { ...dados, contract_id: data.contract_id },
       });
-      if (error) throw new Error(error.message);
+      idGravado = inserido.id;
     }
     await evento(supabase, organizationId, data.contract_id, "version_created", {
       bloco: data.tabela,
@@ -538,7 +541,7 @@ export const salvarItemContrato = createServerFn({ method: "POST" })
         eventType: "caso",
         title: `Item do contrato (${data.tabela}) ${data.id ? "atualizado" : "criado"}`,
         sourceEntityType: data.tabela,
-        sourceEntityId: data.id ?? data.contract_id,
+        sourceEntityId: idGravado ?? data.contract_id,
         userId: context.userId as string,
       });
     }
