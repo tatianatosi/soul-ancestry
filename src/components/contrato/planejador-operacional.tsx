@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { Painel } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { COMPOSICOES, type Composicao, type EntradaPlanejador } from "@/lib/cadeia-operacional";
 import { listarSkusPlanejador, salvarPlanejadorOperacional } from "@/lib/cadeia-operacional.functions";
 
@@ -124,8 +125,13 @@ export function PlanejadorOperacional({
   );
 
   if (!aberto) {
+    // DSA-5-PLANEJADOR (21/09/2026): quinto consumidor do Desk a usar
+    // `CaCard` (após DSA-1 a DSA-4). Só o estado "fechado" (resumo +
+    // convite a preencher) trocou de Painel para CaCard; o formulário do
+    // estado "aberto", abaixo, continua com Painel — corte aditivo, não
+    // reescrita do componente.
     return (
-      <Painel titulo="Planejador do caso">
+      <CaCard titulo="Planejador do caso" eyebrow="Cadeia Operacional · Elo 1">
         <p className="text-xs text-navy/60">
           Elo 1 da cadeia operacional. Sem planejador persistido, proposta, condição comercial e OS ficam
           bloqueadas em cascata.
@@ -137,7 +143,7 @@ export function PlanejadorOperacional({
         >
           Preencher planejador
         </button>
-      </Painel>
+      </CaCard>
     );
   }
 
