@@ -75,6 +75,7 @@ import {
   PROXIMAS_ACOES,
   REVISAO_JURIDICA,
   RISCOS,
+  ESTADO_CIVIL,
   STATUS_CADASTRAL,
   STATUS_DERIVADO,
   STATUS_RADAR,
@@ -2383,9 +2384,10 @@ function CartaoPessoa({
           valor={v("rg")}
           onChange={(x) => set("rg", x)}
         />
-        <Texto
+        <Selecao
           label="Estado civil"
           valor={v("estado_civil")}
+          opcoes={ESTADO_CIVIL}
           onChange={(x) => set("estado_civil", x)}
         />
         <Texto
@@ -2401,6 +2403,7 @@ function CartaoPessoa({
         />
         <Texto
           label="E-mail"
+          tipo="email"
           valor={v("email")}
           onChange={(x) => set("email", x)}
         />

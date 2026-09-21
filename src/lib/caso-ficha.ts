@@ -147,6 +147,21 @@ export const STATUS_CADASTRAL: Opcao[] = [
   { valor: "completo", rotulo: "Completo" },
 ];
 
+// De-para Pessoa Unificada (docs/design-system/de-para-pessoa-unificada.md,
+// item 4 "case_members"): "estado civil cru" na ficha do caso, mesmo
+// conceito já é lista fechada em `clientes` (check `clientes_estado_civil`,
+// migration 20260902144855). `case_members.estado_civil` não tem check no
+// banco — continua texto livre na coluna — mas a UI passa a oferecer só os
+// mesmos 5 valores já usados em `pessoas.$clienteId.tsx`, sem inventar
+// vocabulário novo nem adicionar constraint.
+export const ESTADO_CIVIL: Opcao[] = [
+  { valor: "solteiro", rotulo: "Solteiro(a)" },
+  { valor: "casado", rotulo: "Casado(a)" },
+  { valor: "divorciado", rotulo: "Divorciado(a)" },
+  { valor: "viuvo", rotulo: "Viúvo(a)" },
+  { valor: "uniao_estavel", rotulo: "União estável" },
+];
+
 export function rotulo(lista: Opcao[], valor: unknown): string {
   const v = typeof valor === "string" ? valor : "";
   return lista.find((o) => o.valor === v)?.rotulo ?? (v || "—");
