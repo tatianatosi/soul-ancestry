@@ -25,6 +25,8 @@ import { ROTULO_ATO_FORMAL } from "@/lib/validacao-juridica-caso";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions";
 import { conferirDivergenciaCpfMembrosCaso } from "@/lib/caso-canonico.functions";
+import { lerCadeiaOperacional } from "@/lib/cadeia-operacional.functions";
+import { EstadoIntegradoCaso } from "@/components/caso/estado-integrado";
 import { ReconciliarCpfMembrosCaso } from "@/components/caso/reconciliar-cpf-membros-caso";
 import { GrupoComunicacaoCaso } from "@/components/caso/grupo-comunicacao-caso";
 import { listarFilaOps } from "@/lib/ops.functions";
@@ -411,6 +413,17 @@ function FichaCaso() {
   const qPesquisa = useQuery({
     queryKey: ["ficha-caso-pesquisa", id],
     queryFn: () => carregarPesquisaFn({ data: { caseId: id } }),
+    retry: false,
+  });
+
+  // Ordem P0 (21/09/2026, "Sistema Único Transversal"): única leitura nova
+  // — lerCadeiaOperacional já existe (usada em casos.$caseId.contrato.
+  // preparar.tsx), nunca tinha sido chamada dentro do Caso 360. Traz
+  // etapa/rota/marcos de `case_plans`, que hoje só aparecem lá.
+  const carregarCadeiaFn = useServerFn(lerCadeiaOperacional);
+  const qCadeia = useQuery({
+    queryKey: ["ficha-caso-cadeia-operacional", id],
+    queryFn: () => carregarCadeiaFn({ data: { caseId: id } }),
     retry: false,
   });
 
@@ -890,6 +903,43 @@ function FichaCaso() {
           <BotaoTentarNovamente aoClicar={() => void qc2.refetch()} />
         </div>
       ) : null}
+
+      {/* Ordem P0 (21/09/2026) — Estado Integrado do Caso: consolida os
+          domínios transversais num só bloco, só leitura, sem duplicar
+          nenhuma das queries já feitas acima. */}
+      <EstadoIntegradoCaso
+        caseId={id}
+        caso={caso}
+        cliente={(q.data?.cliente as Record<string, any> | null) ?? null}
+        clienteId={clienteId ?? null}
+        membros={(q.data?.membros ?? []) as Record<string, any>[]}
+        nucleos={(q.data?.nucleos ?? []) as Record<string, any>[]}
+        servicos={(qc2.data?.servicos ?? []) as Record<string, any>[]}
+        produtos={(qc2.data?.produtos ?? []) as Record<string, any>[]}
+        planejador={
+          qCadeia.data?.planejador
+            ? {
+                etapa: qCadeia.data.planejador.etapa ?? null,
+                faseJornada: qCadeia.data.planejador.fase_jornada ?? null,
+                rotaConfirmada: qCadeia.data.planejador.rotaConfirmada ?? null,
+                marcos: qCadeia.data.planejador.marcos ?? [],
+              }
+            : null
+        }
+        onboarding={(qc2.data?.onboarding ?? []) as Record<string, any>[]}
+        ultimaEntrega={((qc2.data?.entregas ?? []) as Record<string, any>[])[0] ?? null}
+        timelineUltimoEvento={((q.data?.timeline ?? []) as Record<string, any>[])[0] ?? null}
+        contratoStatus={rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao"))}
+        acessoApp={
+          qVisaoCliente.data
+            ? {
+                liberado: Boolean(qVisaoCliente.data.acesso?.liberado),
+                statusAcesso: qVisaoCliente.data.acesso?.statusAcesso ?? null,
+                ultimoAcessoEm: (qVisaoCliente.data.acesso as any)?.ultimoAcessoEm ?? null,
+              }
+            : null
+        }
+      />
 
       {/* Quatro resumos acionáveis — cada um leva à seção completa, já preservada abaixo. */}
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

@@ -945,7 +945,8 @@ export async function estadoCadeiaOperacional(
     : null;
   const sku = skuCanonico(skuRow);
 
-  const saidaPlano = plano ? avaliarPlanejador(entradaDoPlano(plano, caso.id, sku?.code ?? null)) : null;
+  const entradaPlano = plano ? entradaDoPlano(plano, caso.id, sku?.code ?? null) : null;
+  const saidaPlano = entradaPlano ? avaliarPlanejador(entradaPlano) : null;
   const propostaCanon = proposta ? propostaCanonica(proposta) : null;
 
   const motivos: Record<ChaveEloOperacional, { motivos: string[]; fonte?: string | null; versao?: string | null }> = {
@@ -1018,7 +1019,18 @@ export async function estadoCadeiaOperacional(
   return {
     caso: { id: caso.id, codigo: caso.codigo, titulo: caso.titulo, dados_teste: caso.dados_teste === true },
     ...cadeia,
-    planejador: saidaPlano,
+    // Ordem P0 (21/09/2026, "Sistema Único Transversal"): etapa/rota/SKU já
+    // eram calculados em entradaDoPlano só para avaliar bloqueios/pendências
+    // — nunca chegavam ao chamador. Adição aditiva (3 campos a mais no
+    // objeto já retornado), nenhum campo existente mudou de nome ou valor.
+    planejador: saidaPlano
+      ? {
+          ...saidaPlano,
+          etapa: entradaPlano?.etapa ?? null,
+          rotaConfirmada: entradaPlano?.rotaConfirmada ?? null,
+          produtoSkuCodigo: entradaPlano?.produtoSkuCodigo ?? null,
+        }
+      : null,
     proposta: propostaCanon,
     condicaoId: condicao?.id ?? null,
     osId: os?.id ?? null,
