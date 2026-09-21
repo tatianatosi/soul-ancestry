@@ -178,7 +178,7 @@ Declarado, não omitido: as 78 rotas do Desk fora das 12 de §3 e as 8 rotas do 
 | 7 | Produto-Pai ligado ao caso por string, não persistido | §6.2 | P1 |
 | 8 | `case_plans.marcos[]`/`microentregas[]` escritos e nunca relidos | §5 | P1 |
 | 9 | Microentregas em 4 fontes paralelas | §6 | P2 |
-| 10 | Drift de coluna `archive_reason` × `archive_motivo` | `cadeia-operacional.server.ts:651` | P2 |
+| 10 | ~~Drift de coluna `archive_reason` × `archive_motivo`~~ — **erro meu, retirado**: `contract_scope_items` tem `archive_reason` na própria DDL (migration `20260816155807`, linhas 85 e 144). As duas convenções coexistem por tabela (PT-BR usa `archive_motivo`, EN usa `archive_reason`); não há drift nem `RENAME COLUMN` em migration nenhuma | `cadeia-operacional.server.ts:651` | — |
 
 ## 11. O que esta execução NÃO fez
 

@@ -93,7 +93,7 @@ Isso é uma **segunda migration**, distinta da autorizada nesta rodada (que era 
 | Conversão | Converter em cliente canônico | `clientes` + `crm_casos` | PERSISTE | `executarHandoffDiscovery`; caso só após cliente definido | — |
 | Membro do caso | Reconciliar CPF | `case_members` | PERSISTE | conflito nunca sobrescrito | — |
 | Perfil genealógico | Vincular a pessoa | `genealogical_person_profiles.client_id` | PERSISTE | opt-in humano | — |
-| Arquivamento | Arquivar | `archived_at`/`archive_motivo` | PERSISTE | `archive_reason` em `cadeia-operacional.server.ts:651` é **DIVERGENTE** | P2 |
+| Arquivamento | Arquivar | `archived_at`/`archive_motivo` | PERSISTE | `archive_reason` em `cadeia-operacional.server.ts:651` **não é drift** — ver nota abaixo | — |
 | Restauração | Restaurar | vários | **DIVERGENTE** | sem função genérica; 3 implementações dispersas | P2 |
 
 ## 6. Estados de UI — lacuna transversal
@@ -119,7 +119,8 @@ Isso é uma **segunda migration**, distinta da autorizada nesta rodada (que era 
 7. **P1** — relê `marcos[]`/`microentregas[]` ou parar de gravá-los. **EXIGE_DECISÃO**.
 8. **P1** — persistir Produto-Pai no caso. **EXIGE_MIGRATION** ou **EXIGE_DECISÃO**.
 9. **P2** — unificar microentregas (4 fontes). **EXIGE_DECISÃO**.
-10. **P2** — `archive_reason` × `archive_motivo`; `restaurarRegistro` genérico.
+10. ~~**P2** — `archive_reason` × `archive_motivo`~~ **retirado: era erro meu.** `contract_scope_items` declara `archive_reason` na própria DDL (`20260816155807`, linhas 85 e 144), e nenhuma migration renomeia coluna de arquivamento. As duas convenções coexistem por tabela — `archive_motivo` nas tabelas de nome PT-BR, `archive_reason` nas de nome EN. Não é divergência a corrigir; "uniformizar" quebraria escrita que funciona. Fica como nota de leitura, para ninguém repetir o diagnóstico.
+11. **P2** — `restaurarRegistro` genérico: **feito**, par de `arquivarRegistro` em `saas.functions.ts`. Os três call-sites antigos seguem com implementação própria (não refatorados: funcionam e trocá-los sem necessidade objetiva é risco sem ganho). Dívida registrada: `restaurarProposta` grava `restaurado_em`/`restaurado_por`/`restauracao_motivo`, colunas que só existem em `proposals`.
 
 Itens 7, 8 e 9 **não serão executados sem autorização específica** — envolvem migration ou decisão de modelo, e a ordem proíbe ambos sem proposta aprovada. Os demais são executáveis com o schema atual.
 
