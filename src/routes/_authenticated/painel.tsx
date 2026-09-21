@@ -7,10 +7,18 @@ import { Button } from "@/components/ui/button";
 import { CaCard } from "@/components/ui/ca-card";
 import { totaisFinanceiros } from "@/lib/golive-analitico";
 import { filaDeAprovacoes, resumoAprovacoes, type ItemAprovacao } from "@/lib/golive-aprovacoes";
-import { saudeDosLeads, type LeadComercial } from "@/lib/golive-comercial";
+import { kanbanPorEtapa, saudeDosLeads, type LeadComercial } from "@/lib/golive-comercial";
 import { riscosEPrazos } from "@/lib/golive-juridico";
 import { concluida } from "@/lib/golive-microentregas";
-import { faixaDePrazo, kpisHoje, kpisPrazo, type AcaoOperacional } from "@/lib/golive-operacao";
+import {
+  faixaDePrazo,
+  kpisHoje,
+  kpisPrazo,
+  prioridadeDaCarteira,
+  ritmoSemanal,
+  temRitmo,
+  type AcaoOperacional,
+} from "@/lib/golive-operacao";
 import { acessoAoPortal, publicacaoPorEstado } from "@/lib/golive-portal";
 
 export const Route = createFileRoute("/_authenticated/painel")({
@@ -62,6 +70,21 @@ const MOEDA = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL
  * Dívida declarada: as duas ficam de fora da contagem até entrarem na fila
  * pela função pura, e não por um número somado à mão na tela.
  */
+/**
+ * Etapas comerciais gravadas em `leads.etapa`, com o nome que a prancha usa
+ * (§11 linha 8: "Novos leads, Discovery, Diagnóstico, Cliente"). Etapa fora
+ * desta tabela aparece com o valor cru — esconder seria perder o dado.
+ */
+const ROTULO_ETAPA: Record<string, string> = {
+  novo: "Novos leads",
+  novo_lead: "Novos leads",
+  discovery: "Discovery",
+  diagnostico: "Diagnóstico",
+  proposta: "Proposta",
+  cliente: "Cliente",
+  sem_etapa: "Sem etapa registrada",
+};
+
 const ROTULO_DECISAO: Record<ItemAprovacao["acao"], string> = {
   aprovar_achado: "Aprovar achado",
   aprovar_escopo: "Aprovar escopo",
@@ -106,8 +129,27 @@ function PainelConsolidado() {
   });
   const decisoesPendentes = filaDecisoes.filter((i) => i.situacao === "pendente");
   const decisoesDoDia = resumoAprovacoes(filaDecisoes).pendentes;
+  /*
+    §11 linhas 8, 10 e 11. As três contas já existiam como função pura em
+    `golive-operacao`/`golive-comercial`, consumidas pelas telas de /golive —
+    o que faltava era o Hoje chamar as mesmas, em vez de somar por conta
+    própria. §11 linha 11 exige que os valores "batam com a fonte de
+    tarefas/casos": `prioridadeDaCarteira` usa exatamente a carteira ativa
+    dos KPIs acima, e caso encerrado não entra.
+
+    O ritmo vem em 6 semanas, como a prancha pede (a função aceita 7 por
+    padrão), e só aparece quando há microentrega concluída com data — sem
+    isso a linha seria uma régua de zeros fingindo série histórica.
+  */
+  const ritmo = temRitmo(caso.microentregas) ? ritmoSemanal(caso.microentregas, 6) : [];
+  const prioridades = prioridadeDaCarteira(caso.carteira);
   const leads = caso.leadsComerciais as LeadComercial[];
   const saude = saudeDosLeads(leads);
+  // §11 linha 8 — funil por etapa comercial gravada. Sem período definido no
+  // dado: a prancha pede "30 dias quando houver período definido", e não há.
+  const funilLeads = kanbanPorEtapa(leads)
+    .map((g) => ({ etapa: g.etapa, total: g.leads.length }))
+    .sort((a, b) => b.total - a.total);
   const itensKanban: AcaoOperacional[] = [
     ...caso.tarefas,
     ...caso.microentregas.map((m) => ({
@@ -273,6 +315,86 @@ function PainelConsolidado() {
               e mais {decisoesPendentes.length - 6} na fila completa.
             </p>
           ) : null}
+        </CaCard>
+      </div>
+
+      {/* §11 linhas 8, 10 e 11 — funil, ritmo e prioridades, cada um sobre a
+          função canônica que a tela de /golive já usa. */}
+      <div className="mb-6 grid gap-4 lg:grid-cols-3">
+        <CaCard titulo="Funil de leads" eyebrow="Fonte: etapa comercial gravada">
+          {funilLeads.length === 0 ? (
+            <EstadoVazio mensagem="Nenhum lead com etapa registrada." />
+          ) : (
+            <>
+              <dl className="space-y-1.5">
+                {funilLeads.map((f) => (
+                  <div key={f.etapa} className="flex items-baseline justify-between gap-3">
+                    <dt className="truncate text-xs text-navy/70">{ROTULO_ETAPA[f.etapa] ?? f.etapa}</dt>
+                    <dd className="font-serif text-lg text-navy">{f.total}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="mt-2 text-[11px] text-navy/45">
+                Sem recorte de período: nenhum está definido na fonte.
+              </p>
+            </>
+          )}
+        </CaCard>
+
+        <CaCard titulo="Ritmo operacional" eyebrow="6 semanas">
+          {ritmo.length === 0 ? (
+            <EstadoVazio mensagem="Nenhuma microentrega concluída com data — sem série para mostrar." />
+          ) : (
+            <>
+              <div className="flex items-end gap-1.5" aria-hidden="true">
+                {ritmo.map((semana) => {
+                  const teto = Math.max(...ritmo.map((r) => r.valor), 1);
+                  return (
+                    <div key={semana.rotulo} className="flex flex-1 flex-col items-center gap-1">
+                      <div
+                        className="w-full rounded-t bg-gold/70"
+                        style={{ height: `${8 + (semana.valor / teto) * 44}px` }}
+                      />
+                      <span className="text-[9px] text-navy/50">{semana.rotulo}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <dl className="sr-only">
+                {ritmo.map((semana) => (
+                  <div key={semana.rotulo}>
+                    <dt>Semana de {semana.rotulo}</dt>
+                    <dd>{semana.valor} microentrega(s) concluída(s)</dd>
+                  </div>
+                ))}
+              </dl>
+              {/* §11 linha 10: métrica e unidade explicitadas em produção. */}
+              <p className="mt-2 text-[11px] text-navy/45">
+                Microentregas concluídas por semana, da segunda ao domingo.
+              </p>
+            </>
+          )}
+        </CaCard>
+
+        <CaCard titulo="Distribuição das prioridades" eyebrow="Mesma carteira ativa dos KPIs">
+          {prioridades.length === 0 ? (
+            <EstadoVazio mensagem="Nenhum caso ativo com prioridade registrada." />
+          ) : (
+            <>
+              <dl className="space-y-1.5">
+                {prioridades.map((p) => (
+                  <div key={p.rotulo} className="flex items-baseline justify-between gap-3">
+                    <dt className="truncate text-xs text-navy/70">{p.rotulo}</dt>
+                    <dd className="font-serif text-lg text-navy">{p.valor}</dd>
+                  </div>
+                ))}
+              </dl>
+              {/* Caso encerrado não entra, mesmo com prioridade alta gravada. */}
+              <p className="mt-2 text-[11px] text-navy/45">
+                Só casos ativos; encerrado não conta como prioridade aberta.
+              </p>
+            </>
+          )}
         </CaCard>
       </div>
 
