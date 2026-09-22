@@ -5,6 +5,7 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
 import { painelArvoreGeracoes, type GeracaoArvore } from "@/lib/portal-arvore-geracoes";
+import { TETO_ANCESTRAIS_G1_G5 } from "@/lib/radar-seis-eixos";
 import { LinkPortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { cn } from "@/lib/utils";
@@ -119,6 +120,17 @@ export function PortalArvore() {
                   >
                     <ChipMeta rotulo="Caso" valor={casoCodigo} />
                     <ChipMeta rotulo="Estrutura" valor="G1–G5" />
+                    {/*
+                      Prancha 4/7 (mockup): "12 pessoas conectadas de um
+                      universo de 31 possíveis". A conta vem de
+                      TETO_ANCESTRAIS_G1_G5 (1+2+4+8+16 = 31) — mesma constante
+                      que o Radar já usa; não é número novo. `itens.length`
+                      conta a árvore sanitizada que a tela já mostra.
+                    */}
+                    <ChipMeta
+                      rotulo="Conectadas"
+                      valor={`${itens.length} de ${TETO_ANCESTRAIS_G1_G5}`}
+                    />
                     <ChipMeta
                       rotulo="Publicações"
                       valor={
