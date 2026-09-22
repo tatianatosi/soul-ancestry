@@ -14,6 +14,7 @@ import {
   faixaDePrazo,
   kpisHoje,
   kpisPrazo,
+  origemDoSinal,
   prioridadeDaCarteira,
   ritmoSemanal,
   temRitmo,
@@ -150,6 +151,27 @@ function PainelConsolidado() {
   const funilLeads = kanbanPorEtapa(leads)
     .map((g) => ({ etapa: g.etapa, total: g.leads.length }))
     .sort((a, b) => b.total - a.total);
+  /*
+    §11 linhas 5, 6, 7 e 9 — as quatro contas que faltavam. Todas vêm de
+    função canônica já usada por outra tela — o Hoje passa a chamar a mesma,
+    para os números não divergirem. Onde a fonte não sustenta um recorte que
+    a prancha nomeia (ex.: "encerrado no mês"), o card mostra o que existe e
+    declara o corte, em vez de inventar data.
+  */
+  // §11 linha 5 — cadência dos casos: KPIs de prazo já calculados sobre o
+  // MESMO array de tarefas visíveis (`kpisPrazo`).
+  const cadencia = kpisPrazo(caso.tarefas);
+  // §11 linha 6 — casos sem próxima ação, com quebra por natureza.
+  const semAcao = {
+    parados: caso.carteira.filter((c) => !c.temProximaAcao && (c.status ?? "").toLowerCase() !== "encerrado").length,
+    encerrados: caso.carteira.filter((c) => (c.status ?? "").toLowerCase() === "encerrado").length,
+  };
+  // §11 linha 7 — microentregas prontas para revisão (já calculado acima).
+  // Reusa `microentregasAguardandoRevisao` — sem duplicar critério.
+  // §11 linha 9 — alertas centralizados por origem, do mesmo `origemDoSinal`
+  // que /golive já usa. `caso.eventos` pode vir vazio; nesse caso o card
+  // exibe estado vazio explícito.
+  const alertasPorOrigem = origemDoSinal(caso.eventos ?? []);
   const itensKanban: AcaoOperacional[] = [
     ...caso.tarefas,
     ...caso.microentregas.map((m) => ({
@@ -412,6 +434,82 @@ function PainelConsolidado() {
                 Só casos ativos; encerrado não conta como prioridade aberta.
               </p>
             </>
+          )}
+        </CaCard>
+      </div>
+
+      {/*
+        §11 linhas 5, 6, 7 e 9 — as quatro contas que a prancha ainda pedia.
+        Todas vêm de função canônica já usada por outra tela (kpisPrazo,
+        origemDoSinal), reusadas para os números não divergirem.
+      */}
+      <div className="mb-6 grid gap-4 lg:grid-cols-4">
+        <CaCard titulo="Cadência dos casos" eyebrow="Faixa de prazo das tarefas">
+          <dl className="space-y-1.5">
+            {[
+              ["Em dia", cadencia.hoje + cadencia.proximos7, "hoje ou próximos 7 dias"],
+              ["Atrasadas", cadencia.vencida, "prazo já vencido"],
+              ["Aguardando externo", cadencia.externo, "instituição terceira"],
+            ].map(([r, v, apoio]) => (
+              <div key={String(r)} className="flex items-baseline justify-between gap-3">
+                <div>
+                  <dt className="text-xs text-navy/70">{r}</dt>
+                  <p className="text-[10px] text-navy/45">{apoio}</p>
+                </div>
+                <dd className="font-serif text-lg text-navy">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </CaCard>
+
+        <CaCard titulo="Casos sem próxima ação" eyebrow="Por natureza">
+          {/*
+            §11 linha 6: "Não tratar encerrado como falha". A prancha mostra
+            "Encerrado no mês 5" — a fonte não tem data de encerramento, então
+            declaro só o total encerrado, sem inventar recorte de janela.
+          */}
+          <dl className="space-y-1.5">
+            <div className="flex items-baseline justify-between gap-3">
+              <dt className="text-xs text-navy/70">Parados</dt>
+              <dd className="font-serif text-lg text-navy">{semAcao.parados}</dd>
+            </div>
+            <div className="flex items-baseline justify-between gap-3">
+              <div>
+                <dt className="text-xs text-navy/70">Encerrados</dt>
+                <p className="text-[10px] text-navy/45">estado normal, não falha</p>
+              </div>
+              <dd className="font-serif text-lg text-navy/70">{semAcao.encerrados}</dd>
+            </div>
+          </dl>
+        </CaCard>
+
+        <CaCard titulo="Microentregas para revisão" eyebrow="Aguardando aprovação">
+          <p className="font-serif text-3xl text-navy">{microentregasAguardandoRevisao}</p>
+          <p className="mt-1 text-[11px] text-navy/55">
+            Mesma fonte de /golive/microentregas — <em>concluída === false</em>.
+          </p>
+          <Link
+            to="/golive/microentregas"
+            className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-2"
+          >
+            Abrir fila de revisão
+          </Link>
+        </CaCard>
+
+        <CaCard titulo="Alertas por origem" eyebrow="Onde o sinal começou">
+          {alertasPorOrigem.length === 0 ? (
+            <EstadoVazio mensagem="Nenhum evento classificável na janela atual." />
+          ) : (
+            <dl className="space-y-1.5">
+              {alertasPorOrigem
+                .filter((a) => a.valor > 0)
+                .map((a) => (
+                  <div key={a.rotulo} className="flex items-baseline justify-between gap-3">
+                    <dt className="text-xs text-navy/70">{a.rotulo}</dt>
+                    <dd className="font-serif text-lg text-navy">{a.valor}</dd>
+                  </div>
+                ))}
+            </dl>
           )}
         </CaCard>
       </div>
