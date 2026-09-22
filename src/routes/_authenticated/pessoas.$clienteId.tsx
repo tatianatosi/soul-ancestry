@@ -18,6 +18,7 @@ import { cepValido, cpfValido, formatarCep, formatarCpf, formatarTelefone, UFS_B
 import { rotuloFase } from "@/lib/fase-rotulo";
 import { obterProximaAcaoCanonica, SELO_PROXIMA_ACAO } from "@/lib/caso-ficha";
 import { NOME_RESPONSAVEL_PADRAO } from "@/lib/responsavel-padrao";
+import { ordenarPorPrioridade, sinaisDaPessoa, type PrioridadeSinal } from "@/lib/pessoa-sinais";
 
 /**
  * A página de uma pessoa.
@@ -44,6 +45,20 @@ const FORCA_ROTULO: Record<EvidenciaDeElo["forca"], string> = {
   confirmado: "Mesma pessoa",
   provavel: "Provavelmente a mesma pessoa",
   apenas_indicio: "Só um indício",
+};
+
+const ROTULO_PRIORIDADE: Record<PrioridadeSinal, string> = {
+  critica: "Crítica",
+  alta: "Alta",
+  media: "Média",
+  baixa: "Baixa",
+};
+
+const CLASSE_PRIORIDADE: Record<PrioridadeSinal, string> = {
+  critica: "border-terracotta",
+  alta: "border-gold",
+  media: "border-navy/40",
+  baixa: "border-navy/15",
 };
 
 // CA03-PESSOA-UNICA-VINCULOS (09/09/2026): esta lista de UFs vivia
@@ -291,6 +306,39 @@ function Pessoa() {
     .filter((x): x is { lead: typeof x.lead; evidencia: EvidenciaDeElo } => x.evidencia !== null)
     .sort((a, b) => ordemDaForca(a.evidencia.forca) - ordemDaForca(b.evidencia.forca));
 
+  // §15 do De-Para (Pessoa 360, linha Sinais): duplicidade, conflito, lacuna
+  // documental, consentimento — cada sinal com prioridade e ação recomendada.
+  // Duplicidades vêm de `candidatos` (evidência já calculada acima); os outros
+  // três tipos saem da própria pessoa/leads/casos, sem nova query.
+  const sinais = ordenarPorPrioridade(
+    sinaisDaPessoa({
+      cliente: {
+        id: cliente.id ? String(cliente.id) : null,
+        nome: cliente.nome as string | null | undefined,
+        cpf: cliente.cpf as string | null | undefined,
+        email: cliente.email as string | null | undefined,
+        telefone: cliente.telefone as string | null | undefined,
+        data_nascimento: cliente.data_nascimento as string | null | undefined,
+      },
+      leads: leads.map((l) => ({
+        id: l.id ? String(l.id) : null,
+        nome: l.nome as string | null | undefined,
+        cliente_id: (l as { cliente_id?: string | null }).cliente_id ?? null,
+        consentimento_status: (l as { consentimento_status?: string | null }).consentimento_status ?? null,
+      })),
+      casos: casos.map((c) => ({
+        id: c.id ? String(c.id) : null,
+        status: (c as { status?: string | null }).status ?? null,
+        ativo: c.ativo ?? null,
+      })),
+      possiveisDuplicidades: candidatos.map((c) => ({
+        id: String(c.lead.id),
+        nome: (c.lead.nome as string | null) ?? "Sem nome",
+        motivo: FORCA_ROTULO[c.evidencia.forca],
+      })),
+    }),
+  );
+
   const nome = (cliente.nome_social || cliente.nome || "Sem nome").trim();
 
   return (
@@ -493,6 +541,50 @@ function Pessoa() {
               {cliente.procurador_escopo ? ` · ${cliente.procurador_escopo}` : ""}
             </p>
           ) : null}
+        </section>
+
+        <section
+          className="rounded-xl border border-navy/10 bg-cream/50 p-5"
+          data-pessoa360-sinais
+        >
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-serif text-lg text-navy">Sinais</h2>
+            <p className="text-xs text-navy/55">
+              {sinais.length === 0 ? "Nenhum sinal aberto" : `${sinais.length} sinal(is)`}
+            </p>
+          </div>
+          <p className="mt-1 text-xs text-navy/55">
+            Duplicidade, conflito, lacuna documental e consentimento — cada um com prioridade
+            e ação recomendada. Nada aqui funde pessoa sozinho.
+          </p>
+          {sinais.length === 0 ? (
+            <p className="mt-3 text-sm text-navy/60">
+              Nenhum sinal aberto para esta pessoa. Dado canônico completo, sem duplicidade
+              ou conflito detectado.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {sinais.map((s, idx) => (
+                <li
+                  key={`${s.tipo}-${idx}`}
+                  data-pessoa360-sinal-prioridade={s.prioridade}
+                  className={
+                    "flex flex-col gap-1 rounded-lg border-l-4 bg-white/60 p-3 text-sm " +
+                    CLASSE_PRIORIDADE[s.prioridade]
+                  }
+                >
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <p className="font-medium text-navy">{s.titulo}</p>
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-navy/60">
+                      {ROTULO_PRIORIDADE[s.prioridade]}
+                    </span>
+                  </div>
+                  <p className="text-xs text-navy/70">{s.detalhe}</p>
+                  <p className="text-xs font-medium text-navy">→ {s.acaoRecomendada}</p>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
