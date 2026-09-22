@@ -424,3 +424,21 @@ export function agendaDoLead(lead: LeadComercial | null, agora = new Date()): Ag
     prazo: prazoDaProximaAcao(lead, agora),
   };
 }
+
+/**
+ * A etapa comercial de uma linha crua de `leads`, como o Desk a lê.
+ *
+ * 22/09/2026: extraída de `golive.functions.ts`, onde vivia inline dentro do
+ * normalizador de `leadsComerciais`. Duas superfícies precisam da mesma
+ * definição — o funil do /golive/comercial e o pipeline do Comercial/CRM Vivo
+ * (§12 do De-Para) — e duas cópias divergiriam no primeiro ajuste. A regra é a
+ * que já estava lá: vale a etapa gravada pela máquina de estados do lead
+ * (`estagio`); o eixo comercial é só reserva.
+ */
+export function etapaComercialDoLead(linha: Record<string, unknown>): string | null {
+  const estagio = linha["estagio"];
+  if (typeof estagio === "string" && estagio.trim()) return estagio;
+  const eixo = linha["eixo_comercial"];
+  if (typeof eixo === "string" && eixo.trim()) return eixo;
+  return null;
+}

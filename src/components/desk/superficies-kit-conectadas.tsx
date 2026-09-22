@@ -20,6 +20,8 @@ import {
   type KanbanItem,
 } from "@/components/clube-ancestral-kit";
 import { carregarSuperficiesKit, type SuperficiesKit } from "@/lib/kit-superficies.functions";
+import { listarLeadsDesk } from "@/lib/crm-desk.functions";
+import { etapaComercialDoLead } from "@/lib/golive-comercial";
 
 function Falha({ mensagem }: { mensagem: string }) {
   return (
@@ -31,6 +33,18 @@ function Falha({ mensagem }: { mensagem: string }) {
 
 function Carregando({ rotulo }: { rotulo: string }) {
   return <p className="rounded-xl border border-navy/10 bg-cream/40 p-4 text-sm text-navy/60">{rotulo}…</p>;
+}
+
+function useLeadsDesk() {
+  const carregar = useServerFn(listarLeadsDesk);
+  return useQuery({
+    // A MESMA chave do PainelCalls (`crm/painel-calls.tsx`): as duas
+    // superfícies vivem em /calls e compartilham o cache em vez de buscar
+    // duas vezes a mesma lista.
+    queryKey: ["leads-desk"],
+    queryFn: () => carregar(),
+    retry: false,
+  });
 }
 
 function useSuperficies() {
@@ -58,6 +72,53 @@ function dataBr(valor: string | null) {
   return Number.isNaN(d.getTime()) ? valor : d.toLocaleDateString("pt-BR");
 }
 
+/**
+ * Pipeline do Comercial / CRM Vivo — colunas por ETAPA COMERCIAL (§12).
+ *
+ * 22/09/2026: antes o pipeline desta superfície vinha de `colunasPorFase`, que
+ * percorre `dados.destaques` — CASOS — e agrupa por `caso.fase`. §12 pede
+ * lead, responsável, origem, próxima ação, data e bloqueio, e a sua própria
+ * seção "Legado" nomeia o que existia: "Pipeline que mistura prospect, caso
+ * ativo e cliente já encerrado sem estado explícito".
+ *
+ * A etapa vem de `etapaComercialDoLead`, a mesma regra que o funil do
+ * /golive/comercial usa — uma definição, não duas.
+ *
+ * §12 também manda não deixar passar "cards de lead sem próxima ação/
+ * responsável". Aqui isso não é omissão: vira `alert` visível no cartão.
+ */
+function colunasPorEtapaComercial(
+  leads: readonly Record<string, unknown>[],
+): { id: string; title: string; items: KanbanItem[] }[] {
+  const texto = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+  const mapa = new Map<string, KanbanItem[]>();
+  for (const lead of leads) {
+    const chave = etapaComercialDoLead(lead) ?? "Sem etapa registrada";
+    const responsavel = texto(lead["responsavel_nome"]);
+    const proximaAcao = texto(lead["proxima_acao"]);
+    const faltando = [
+      responsavel ? null : "responsável",
+      proximaAcao ? null : "próxima ação",
+    ].filter(Boolean);
+    const item: KanbanItem = {
+      id: String(lead["id"]),
+      title: texto(lead["nome"]) ?? "Lead sem nome registrado",
+      context: texto(lead["origem"]) ?? undefined,
+      owner: responsavel ?? undefined,
+      due: dataBr(texto(lead["proxima_acao_em"])),
+      nextAction: proximaAcao ?? "Sem próxima ação registrada",
+      ...(faltando.length ? { alert: `Sem ${faltando.join(" e ")}` } : {}),
+    };
+    mapa.set(chave, [...(mapa.get(chave) ?? []), item]);
+  }
+  return [...mapa.entries()].map(([title, items]) => ({ id: title, title, items }));
+}
+
+/**
+ * Casos agrupados por fase. Deixou de alimentar o Comercial (§12 quer leads),
+ * mas continua sendo a leitura certa para superfícies de caso — não é peça
+ * morta, é peça no lugar errado que voltou para o seu lugar.
+ */
 function colunasPorFase(dados: SuperficiesKit): { id: string; title: string; items: KanbanItem[] }[] {
   const mapa = new Map<string, KanbanItem[]>();
   for (const caso of dados.destaques) {
@@ -104,14 +165,18 @@ export function HojeConectado() {
 /** Grupo 2 · Marketing & Comercial, funil e CRM lidos do eixo real. */
 export function ComercialConectado() {
   const q = useSuperficies();
-  if (q.isLoading) return <Carregando rotulo="Carregando o funil comercial" />;
+  // Mesma queryKey do PainelCalls, que roda na MESMA rota /calls: uma busca de
+  // leads para as duas superfícies, não duas.
+  const leads = useLeadsDesk();
+  if (q.isLoading || leads.isLoading) return <Carregando rotulo="Carregando o funil comercial" />;
   if (q.isError || !q.data) return <Falha mensagem="A leitura do funil falhou. Isto é erro de leitura, não funil vazio." />;
+  if (leads.isError) return <Falha mensagem="A leitura dos leads falhou. Isto é erro de leitura, não pipeline vazio." />;
   const d = q.data;
 
   return (
     <ComercialTemplate
       funnel={barras(d.porEixoComercial, d.totalCasos, "gold")}
-      columns={colunasPorFase(d)}
+      columns={colunasPorEtapaComercial(leads.data ?? [])}
     />
   );
 }

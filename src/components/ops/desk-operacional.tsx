@@ -129,6 +129,36 @@ export function DeskOperacional() {
     alertas.isError ? "alertas operacionais" : null,
   ].filter(Boolean) as string[];
   const tarefas = (fila.data?.tarefas ?? []) as Linha[];
+  /*
+    §13 linha 2 — contagens derivadas dos cards mostrados, não de um agregado
+    paralelo. Contam sobre `tarefas`, o mesmo array das colunas: filtro ativo
+    muda os dois juntos, que é o que "reconciliada" significa.
+  */
+  const kpisKanban = useMemo(() => {
+    const aberta = (t: Linha) => !["concluida", "cancelada"].includes(String(t["status"]));
+    return [
+      {
+        rotulo: "Pendente crítico",
+        valor: tarefas.filter((t) => aberta(t) && ["urgente", "alta"].includes(String(t["prioridade"]))).length,
+        apoio: "urgente ou alta, ainda em aberto",
+      },
+      {
+        rotulo: "SLA em risco",
+        valor: tarefas.filter((t) => t["sla_status"] === "em_risco").length,
+        apoio: "prazo de SLA se aproximando",
+      },
+      {
+        rotulo: "Atrasadas",
+        valor: tarefas.filter((t) => t["sla_status"] === "atrasada").length,
+        apoio: "SLA já vencido",
+      },
+      {
+        rotulo: "Bloqueadas",
+        valor: tarefas.filter((t) => t["status"] === "bloqueada").length,
+        apoio: "com motivo registrado",
+      },
+    ];
+  }, [tarefas]);
   const microentregas = (micro.data?.microentregas ?? []) as Linha[];
 
   const nomePessoa = (id: unknown) =>
@@ -434,6 +464,33 @@ export function DeskOperacional() {
       )}
 
       {aba === "kanban" && (
+        <>
+          {/*
+            §13 linha 2 do De-Para: quatro contagens cujo total "deriva dos
+            cards mostrados e dos filtros ativos". Por isso elas contam sobre
+            o MESMO array `tarefas` que alimenta as colunas abaixo — e não
+            sobre o agregado do servidor da aba Painel, que ignora filtro.
+
+            DIVERGÊNCIA REGISTRADA (§29): a prancha nomeia "Confirmar" e "Em
+            revisão". Nenhum dos dois existe no vocabulário real —
+            STATUS_TAREFA tem cinco valores (nao_iniciada, em_andamento,
+            bloqueada, concluida, cancelada) e STATUS_MICRO tem quatro
+            (pendente, em_andamento, concluida, cancelada). Inventar um
+            estado de revisão para caber na prancha criaria vocabulário fora
+            do CHECK. As duas contagens que a prancha nomeia e o dado
+            sustenta — "Pendente crítico" e "SLA em risco" — estão aqui; as
+            outras duas viraram bloqueio e atraso, que são os estados de
+            risco que o modelo tem de verdade.
+          */}
+          <dl className="mb-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-kanban-indicadores>
+            {kpisKanban.map((k) => (
+              <div key={k.rotulo} className="rounded-xl border border-navy/10 bg-cream/40 px-4 py-3">
+                <dd className="font-serif text-2xl text-navy">{k.valor}</dd>
+                <dt className="text-xs text-navy/70">{k.rotulo}</dt>
+                <p className="text-[11px] text-navy/45">{k.apoio}</p>
+              </div>
+            ))}
+          </dl>
         <div className="grid gap-3 lg:grid-cols-5">
           {STATUS_TAREFA.map((coluna) => (
             <div key={coluna} className="rounded-xl border border-navy/10 bg-cream/40 p-3">
@@ -454,10 +511,31 @@ export function DeskOperacional() {
                       )}
                     >
                       <p className="font-medium">{t["titulo"]}</p>
-                      <p className="text-navy/50">
+                      {/*
+                        21/09/2026 — o cartão comunicava SLA e bloqueio APENAS
+                        pela cor da borda acima. §13 linha 5 manda não esconder
+                        bloqueio nem prazo crítico, e a regra de interface do
+                        projeto é que status nunca é só cor: quem não distingue
+                        terracota de dourado não via risco nenhum. A borda
+                        continua, agora com o selo textual ao lado — mesmo
+                        vocabulário da aba Lista, que já fazia certo.
+                      */}
+                      <div className="mt-1 flex flex-wrap items-center gap-1">
+                        <Selo
+                          texto={ROTULO_SLA[t["sla_status"]] ?? t["sla_status"]}
+                          tom={tomSla(t["sla_status"])}
+                        />
+                        <Selo texto={ROTULO_PRIORIDADE[t["prioridade"]] ?? t["prioridade"]} />
+                      </div>
+                      <p className="mt-1 text-navy/50">
                         {t["caso_codigo"] ?? "sem caso"} · {nomePessoa(t["responsavel_id"])}
                       </p>
                       <p className="text-navy/50">Prazo {dataBr(t["prazo"])}</p>
+                      {t["status"] === "bloqueada" ? (
+                        <p className="mt-1 text-terracotta">
+                          Bloqueada: {t["motivo_bloqueio"] || "motivo não registrado"}
+                        </p>
+                      ) : null}
                       {podeEscrever && (
                         <>
                           <select
@@ -488,6 +566,7 @@ export function DeskOperacional() {
             </div>
           ))}
         </div>
+        </>
       )}
 
       {aba === "micro" && (

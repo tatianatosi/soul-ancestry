@@ -16,6 +16,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { etapaComercialDoLead } from "@/lib/golive-comercial";
 import { semCache } from "@/lib/no-store";
 import { ehRegistroDeTeste } from "@/lib/registros-teste";
 
@@ -591,8 +592,10 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         .map((l) => ({
           id: String(l["id"]),
           nome: (l["nome"] as string) ?? "Lead sem nome",
-          // Etapa gravada e guardada pela máquina de estados do lead; eixo só como reserva.
-          etapa: (l["estagio"] as string) ?? (l["eixo_comercial"] as string) ?? null,
+          // Etapa gravada e guardada pela máquina de estados do lead; eixo só
+          // como reserva. A regra vive em `etapaComercialDoLead` porque o
+          // pipeline do Comercial/CRM Vivo lê a mesma coisa (§12).
+          etapa: etapaComercialDoLead(l as Record<string, unknown>),
           estagio: (l["estagio"] as string) ?? null,
           origem: (l["origem"] as string) ?? null,
           canal: (l["data_origin"] as string) ?? null,
