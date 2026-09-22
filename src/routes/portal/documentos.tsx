@@ -199,17 +199,20 @@ export function PortalDocumentos() {
           recurso="os seus documentos"
         >
           {() => {
-            const liberados = data?.entregas?.length ?? 0;
-            const enviados = data?.envios?.length ?? 0;
+            /* Caso ativo único: todas as abas leem o mesmo caso da URL. */
+            const casoAtivo = vivo.data?.casoAtivoId ?? null;
+            const noCaso = <T extends { caseId?: string | null }>(l: T[] | undefined) =>
+              (l ?? []).filter((d) => !casoAtivo || !d.caseId || d.caseId === casoAtivo);
+            const entregas = noCaso(data?.entregas);
+            const recebidos = noCaso(data?.envios);
+            const liberados = entregas.length;
+            const enviados = recebidos.length;
             const checklist = liberados + enviados;
-            const casoCodigo =
-              data?.entregas?.[0]?.caso ||
-              data?.envios?.[0]?.caso ||
-              "—";
+            const casoCodigo = entregas[0]?.caso || recebidos[0]?.caso || "—";
             const proximaAcao = vivo.data?.proximaAcao ?? null;
             const solicitado = proximaAcao?.destino === "/portal/documentos" ? proximaAcao.acao : null;
             return (
-        <div className="space-y-8" data-aba-documentos-vivo>
+        <div className="space-y-6" data-aba-documentos-vivo>
           <div
             data-documentos-meta
             className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
@@ -222,40 +225,60 @@ export function PortalDocumentos() {
             <ChipMeta rotulo="Liberados" valor={String(liberados)} />
             <ChipMeta rotulo="Enviados" valor={String(enviados)} />
           </div>
-          <p className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-navy/65">
-            Enviar um arquivo aqui não valida nem libera o documento: ele entra como recebido e
-            aguarda a conferência da equipe.
-          </p>
-          {/* Ordem do mockup 5/7: caixa de envio antes do checklist. */}
-          <EnviarDocumento casoId={vivo.data?.casoAtivoId ?? null} />
-          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <h2 className="text-base font-semibold text-navy">Checklist do caso</h2>
+
+          {/* 1. Solicitados — o que a equipe pediu. */}
+          <section data-documentos-solicitados className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <h2 className="text-base font-semibold text-navy">Solicitados</h2>
+              <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
+                Pedido da equipe
+              </span>
+            </div>
+            {solicitado ? (
+              <div className="mt-3 rounded-xl border border-gold/35 bg-gold/10 px-4 py-3">
+                <p className="text-sm text-navy">{solicitado}</p>
+              </div>
+            ) : (
+              <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
+                Nenhum documento solicitado no momento.
+              </p>
+            )}
+            <div className="mt-4">
+              <EnviarDocumento casoId={casoAtivo} />
+            </div>
+          </section>
+
+          {/* 2. Recebidos — chegou, mas ainda não foi conferido. */}
+          <section data-documentos-recebidos className="rounded-2xl border border-border bg-card p-5">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <h2 className="text-base font-semibold text-navy">Recebidos</h2>
+              <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
+                Aguardam conferência
+              </span>
+            </div>
             <p className="mt-1 text-sm text-navy/60">
-              Situação a partir dos documentos já pedidos ou liberados — sem inventar itens.
+              Receber não é conferir: cada envio passa pela equipe antes de virar parte do caso.
             </p>
-            {!data || (data.entregas.length === 0 && data.envios.length === 0) ? (
-              <p className="mt-4 rounded-lg border border-dashed border-navy/20 bg-cream/50 px-3 py-4 text-center text-sm text-navy/60">
-                Quando a equipe pedir ou liberar um documento, a situação aparece aqui.
+            {recebidos.length === 0 ? (
+              <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
+                Você ainda não compartilhou documentos conosco.
               </p>
             ) : (
-              <ul className="mt-4 space-y-2">
-                {data.entregas.map((d) => (
+              <ul className="mt-3 space-y-2">
+                {recebidos.map((d) => (
                   <li
-                    key={`ent-${d.id}`}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2.5"
+                    key={`rec-${d.id}`}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-4"
                   >
-                    <span className="text-sm text-navy/85">{textoParaCliente(d.titulo)}</span>
-                    <span className="rounded-full border border-navy/15 bg-cream/40 px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
-                      Liberado para você
-                    </span>
-                  </li>
-                ))}
-                {data.envios.map((d) => (
-                  <li
-                    key={`env-${d.id}`}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2.5"
-                  >
-                    <span className="text-sm text-navy/85">{textoParaCliente(d.titulo)}</span>
+                    <div className="min-w-0">
+                      <p className="font-medium text-navy">{textoParaCliente(d.titulo)}</p>
+                      <p className="text-xs text-navy/50">
+                        enviado em {new Date(d.enviadoEm).toLocaleDateString("pt-BR")}
+                      </p>
+                      {textoParaCliente(d.motivo) ? (
+                        <p className="mt-1 text-sm text-navy/70">{textoParaCliente(d.motivo)}</p>
+                      ) : null}
+                    </div>
                     <span className="rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
                       {rotuloEstadoVivo(d.statusRotulo)}
                     </span>
@@ -263,38 +286,34 @@ export function PortalDocumentos() {
                 ))}
               </ul>
             )}
-            {/* Sinal real de pedido pendente (portal_document_requests, via proximaAcao) —
-                mostrado independente de já haver entrega/envio, para não esconder um pedido
-                em aberto atrás de itens antigos já resolvidos. */}
-            {solicitado ? (
-              <div className="mt-3 rounded-xl border border-gold/35 bg-gold/10 px-4 py-3">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
-                  Solicitado pela equipe
-                </p>
-                <p className="mt-1 text-sm text-navy">{solicitado}</p>
-              </div>
-            ) : null}
           </section>
-          <section>
-            <h2 className="text-base font-semibold">Preparado para você</h2>
-            {!data || data.entregas.length === 0 ? (
-              <div className="mt-3">
-                <PortalVazio mensagem={COPY_TELAS.documentos.vazio} />
-              </div>
+
+          {/* 3. Liberados — conferidos e abertos para a família. */}
+          <section data-documentos-liberados className="rounded-2xl border border-border bg-card p-5">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <h2 className="text-base font-semibold text-navy">Liberados</h2>
+              <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
+                Abertos para você
+              </span>
+            </div>
+            {entregas.length === 0 ? (
+              <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
+                {COPY_TELAS.documentos.vazio}
+              </p>
             ) : (
               <ul className="mt-3 space-y-2">
-                {data.entregas.map((d) => (
+                {entregas.map((d) => (
                   <li
                     key={d.id}
                     className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-4"
                   >
-                    <div>
-                      <p className="font-medium">{textoParaCliente(d.titulo)}</p>
+                    <div className="min-w-0">
+                      <p className="font-medium text-navy">{textoParaCliente(d.titulo)}</p>
                       <p className="text-xs text-navy/50">{textoParaCliente(d.caso)}</p>
                     </div>
                     <button
                       onClick={() => abrir(d.id)}
-                      className="inline-flex items-center gap-2 rounded-lg border border-navy/20 px-3 py-2 text-sm"
+                      className="inline-flex items-center gap-2 rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy"
                     >
                       <Download className="h-4 w-4" /> Baixar
                     </button>
@@ -304,35 +323,17 @@ export function PortalDocumentos() {
             )}
           </section>
 
-          <section>
-            <h2 className="text-base font-semibold">O que você compartilhou</h2>
-            {!data || data.envios.length === 0 ? (
-              <div className="mt-3">
-                <PortalVazio mensagem="Você ainda não compartilhou documentos conosco." />
-              </div>
-            ) : (
-              <ul className="mt-3 space-y-2">
-                {data.envios.map((d) => (
-                  <li
-                    key={d.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-4"
-                  >
-                    <div>
-                      <p className="font-medium">{textoParaCliente(d.titulo)}</p>
-                      <p className="text-xs text-navy/50">
-                        {textoParaCliente(d.caso)} · enviado em {new Date(d.enviadoEm).toLocaleDateString("pt-BR")}
-                      </p>
-                      {textoParaCliente(d.motivo) ? (
-                        <p className="mt-1 text-sm text-navy/70">{textoParaCliente(d.motivo)}</p>
-                      ) : null}
-                    </div>
-                    <span className="rounded-full border border-navy/15 bg-cream px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
-                      {rotuloEstadoVivo(d.statusRotulo)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
+          {/* 4. Entregas — material editorial publicado, quando houver. */}
+          <section data-documentos-entregas className="rounded-2xl border border-border bg-card p-5">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <h2 className="text-base font-semibold text-navy">Entregas</h2>
+              <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
+                Publicação da equipe
+              </span>
+            </div>
+            <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
+              Cadernos, relatórios e narrativas publicados ficam na aba Legado.
+            </p>
           </section>
         </div>
           );
