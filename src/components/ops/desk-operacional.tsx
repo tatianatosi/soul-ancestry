@@ -321,6 +321,21 @@ export function DeskOperacional() {
           <button onClick={() => setFiltros({})} className="rounded-lg border border-navy/20 px-3 py-1 text-xs">
             Limpar filtros
           </button>
+          {/*
+            §13 do De-Para: "Faixa Trabalho dos casos; filtros; ação Nova
+            tarefa" — regra: "Um único ponto de criação". Antes só existia
+            dentro da aba Fila; agora vive na faixa compartilhada Kanban +
+            Fila, para não haver dois botões nem duas rotas de criação.
+          */}
+          {podeEscrever && (
+            <button
+              data-nova-tarefa-faixa
+              onClick={() => setNovaTarefa(true)}
+              className="rounded-lg bg-navy px-3 py-1.5 text-xs font-medium text-cream hover:bg-navy/90"
+            >
+              + Nova tarefa
+            </button>
+          )}
         </div>
       )}
 
@@ -376,14 +391,8 @@ export function DeskOperacional() {
 
       {aba === "fila" && (
         <Painel titulo="Fila de trabalho">
-          {podeEscrever && (
-            <button
-              onClick={() => setNovaTarefa(true)}
-              className="mb-3 rounded-lg bg-navy px-3 py-1.5 text-xs text-cream"
-            >
-              Nova tarefa
-            </button>
-          )}
+          {/* Nova tarefa: agora na faixa compartilhada acima; um único ponto
+              de criação, como §13 pede. Sem botão duplicado aqui. */}
           <div className="space-y-2">
             {tarefas.length === 0 && <p className="text-sm text-navy/60">Nenhuma tarefa com esses filtros.</p>}
             {tarefas.map((t) => (
