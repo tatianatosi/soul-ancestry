@@ -5,7 +5,7 @@ import { Download } from "lucide-react";
 import { useState } from "react";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
-import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
+import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { EnviarDocumento } from "@/components/portal/enviar-documento";
