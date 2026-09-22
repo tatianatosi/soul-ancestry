@@ -148,7 +148,8 @@ export function PortalConta() {
               {/* Acabamento 2026-09-13 (referência Lovable): texto corrido no lugar
                   de grade de 3 crachás — mesmos três dados reais, leitura mais serena. */}
               <p className="mt-3 text-xs text-navy/55">
-                Escopo: o caso vinculado a você. Novidades aparecem quando a equipe publica.
+                Escopo: o caso vinculado a você. Publicação:{" "}
+                {previaDemo ? "Demo" : previa ? "Prévia da equipe (caso real)" : "Quando a equipe publica"}.
               </p>
             </section>
 

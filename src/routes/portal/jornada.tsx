@@ -394,6 +394,15 @@ export function PortalJornada() {
                     className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
                   >
                     <ChipMeta rotulo="Caso" valor={casoCodigo} />
+                    {/*
+                      22/09/2026 — a composição já chegava à Home e faltava
+                      aqui. O caso é do titular, do casal ou da família, e a
+                      Jornada é onde o cliente acompanha o processo: ler isso
+                      nas duas telas é a mesma informação, com o mesmo
+                      vocabulário. Sem composição declarada no plano, o chip
+                      não aparece — nada de rótulo inventado.
+                    */}
+                    {vivo.composicao ? <ChipMeta rotulo="Composição" valor={vivo.composicao} /> : null}
                     <ChipMeta rotulo="Marcos" valor={String(jornada.marcosPublicados)} />
                     <ChipMeta rotulo="Ritmo" valor={ritmoRotulo} />
                     <ChipMeta

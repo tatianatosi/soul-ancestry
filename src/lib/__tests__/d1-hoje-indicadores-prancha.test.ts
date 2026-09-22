@@ -9,7 +9,9 @@ import { describe, expect, it } from "vitest";
  * O ponto deste corte não é "ter quatro números". É que dois dos quatro
  * indicadores do mockup NÃO têm regra publicada no modelo de dados, e a
  * regra da casa manda tornar a ausência explícita em vez de preencher por
- * dedução. Então dois saem da fonte real e dois dizem "Não registrado".
+ * dedução. Os quatro têm fonte canônica desde 21/09/2026: cadências e
+ * casos sem próxima ação vêm de `kpisHoje`, microentregas de `concluida`,
+ * e decisões do dia de `filaDeAprovacoes`. Nenhum é "Não registrado".
  *
  * Este teste existe para impedir as duas regressões opostas: alguém
  * inventar número para os que não têm regra, e alguém trocar os que têm

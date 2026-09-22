@@ -87,7 +87,13 @@ describe("copy do App Cliente", () => {
   });
 
   it("não sobra mensagem vaga nas telas do cliente", () => {
-    const vagas = /sem dados|nenhum registro encontrado|erro desconhecido|undefined|Carregando…"/;
+    /*
+      22/09/2026: `undefined` solto casava com anotação de tipo
+      (`T[] | undefined`) e reprovava documentos.tsx por um falso positivo —
+      código, não copy. A regra continua a mesma; o que mudou é que ela só
+      olha texto que chega ao cliente, dentro de aspas.
+    */
+    const vagas = /sem dados|nenhum registro encontrado|erro desconhecido|>\s*undefined\s*<|"undefined"|Carregando…"/;
     const infratores = arquivosDoCliente()
       .filter((f) => f.startsWith("src/routes/portal"))
       .filter((f) => vagas.test(readFileSync(join(RAIZ, f), "utf8")));

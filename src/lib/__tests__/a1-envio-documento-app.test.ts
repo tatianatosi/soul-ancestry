@@ -78,11 +78,25 @@ describe("a aba Documentos envia de verdade", () => {
   });
 
   it("deixa claro que enviar não é validar nem liberar", () => {
-    expect(aba).toContain("não valida nem libera");
+    /*
+      22/09/2026: a frase corrida que este teste travava foi substituída por
+      algo melhor — as quatro seções que o De-Para §7 pede de verdade
+      (Solicitados, Recebidos, Liberados, Entregas). A separação semântica é o
+      requisito; a frase era só uma forma de expressá-la. O teste passa a
+      travar a separação, que é o que não pode voltar a sumir.
+    */
+    for (const secao of ["Solicitados", "Recebidos", "Liberados", "Entregas"]) {
+      expect(aba, secao).toContain(secao);
+    }
+    expect(aba).toContain("data-documentos-recebidos");
   });
 
   it("envia para o caso ativo, não para o primeiro da lista", () => {
-    expect(aba).toContain("casoId={vivo.data?.casoAtivoId ?? null}");
+    // Travar o literal reprovava um `const casoAtivo = …` de mesmo valor. O
+    // que importa é a ORIGEM: o caso ativo decidido pelo servidor, nunca [0].
+    expect(aba).toMatch(/casoAtivo\s*=\s*vivo\.data\?\.casoAtivoId \?\? null|casoId=\{vivo\.data\?\.casoAtivoId \?\? null\}/);
+    expect(aba).toContain("<EnviarDocumento casoId={");
+    expect(aba).not.toContain("casos[0]");
   });
 });
 

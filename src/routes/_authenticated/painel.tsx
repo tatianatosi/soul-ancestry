@@ -315,6 +315,24 @@ function PainelConsolidado() {
               e mais {decisoesPendentes.length - 6} na fila completa.
             </p>
           ) : null}
+          {/*
+            Decisão da Proprietária (22/09/2026): as duas decisões de §11 que
+            esta fila não enxerga ficam FORA do KPI e explícitas na tela, em
+            vez de renomeadas para fingir cobertura. Só entrariam na contagem
+            com uma união canônica por tipo/origem/ação — que não existe.
+          */}
+          <p className="mt-3 border-t border-navy/10 pt-2 text-[11px] text-navy/55">
+            Fora desta contagem, por não passarem pela fila de aprovações:{" "}
+            <Link to="/pesquisa-modulo" className="underline decoration-gold underline-offset-2">
+              liberar pesquisa
+            </Link>{" "}
+            e{" "}
+            <Link to="/casos" className="underline decoration-gold underline-offset-2">
+              confirmar documento mínimo
+            </Link>
+            . São decisões reais, com escritor próprio — não estão escondidas nem
+            somadas aqui.
+          </p>
         </CaCard>
       </div>
 
