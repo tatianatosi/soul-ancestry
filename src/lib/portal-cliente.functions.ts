@@ -483,11 +483,12 @@ export const minhasEntregas = createServerFn({ method: "GET" })
     return {
       entregas: lista
         .filter((d) => d.liberado_cliente === true)
-        .map((d) => ({ id: d.id, titulo: d.titulo, caso: nome.get(d.case_id) ?? "", liberadoEm: d.liberado_em })),
+        .map((d) => ({ id: d.id, caseId: d.case_id as string | null, titulo: d.titulo, caso: nome.get(d.case_id) ?? "", liberadoEm: d.liberado_em })),
       envios: lista
         .filter((d) => d.origem === "cliente")
         .map((d) => ({
           id: d.id,
+          caseId: d.case_id as string | null,
           titulo: d.titulo,
           caso: nome.get(d.case_id) ?? "",
           enviadoEm: d.created_at,
