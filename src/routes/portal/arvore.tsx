@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
-import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
@@ -110,7 +109,7 @@ export function PortalArvore() {
           {([vivo]) => {
             const itens = arvoreSanitizada(vivo.projecoes);
             const painel = painelArvoreGeracoes(itens);
-            const casoCodigo = previa?.identidade?.codigo ?? (previa ? CASO_DEMO_CODIGO : "—");
+            const casoCodigo = previa?.identidade?.codigo ?? "—";
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-arvore>

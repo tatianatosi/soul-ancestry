@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
-import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
@@ -91,7 +90,7 @@ export function PortalLegado() {
           {([vivo]) => {
             const entregas = legadoSanitizado(vivo.projecoes);
             const premium = entregas.length > 0;
-            const casoCodigo = previa?.identidade?.codigo ?? (previa ? CASO_DEMO_CODIGO : "—");
+            const casoCodigo = previa?.identidade?.codigo ?? "—";
             const porPrateleira = Object.fromEntries(
               PRATELEIRAS.map((p) => [p.id, entregas.filter((e) => prateleiraDe(e) === p.id)]),
             ) as Record<PrateleiraId, PublicacaoCliente[]>;

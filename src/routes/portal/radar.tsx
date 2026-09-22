@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
-import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { radarSeisDimensoes } from "@/lib/radar-seis-eixos";
@@ -64,7 +63,7 @@ export function PortalRadar() {
               projecoes: vivo.projecoes,
               documentos: vivo.documentos,
             });
-            const casoCodigo = previa?.identidade?.codigo ?? (previa ? CASO_DEMO_CODIGO : "—");
+            const casoCodigo = previa?.identidade?.codigo ?? "—";
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-6" data-aba-radar>

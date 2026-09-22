@@ -5,7 +5,6 @@ import { Download } from "lucide-react";
 import { useState } from "react";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
-import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
 import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
 import { usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -58,7 +57,7 @@ export function PortalDocumentos() {
     const docs = (vivo.data?.documentos ?? []).filter((d) => d.is_demo !== true);
     const liberados = docs.filter((d) => d.liberado_cliente);
     const enviados = docs.filter((d) => d.origem === "cliente");
-    const casoCodigo = previa.identidade?.codigo ?? CASO_DEMO_CODIGO;
+    const casoCodigo = previa.identidade?.codigo ?? "—";
     const proximaAcao = vivo.data?.proximaAcao ?? null;
     const solicitado = proximaAcao?.destino === "/portal/documentos" ? proximaAcao.acao : null;
     return (

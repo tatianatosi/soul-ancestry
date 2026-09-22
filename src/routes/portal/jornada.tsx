@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { COPY_TELAS } from "@/lib/portal-copy";
 import {
-  CASO_DEMO_CODIGO,
   ORDEM_NARRATIVA_DEMO_SOPHIA,
   PASSO_CASO_ATUAL_DEMO_SOPHIA_INDICE,
   UNIAO_DE_RAMOS_DEMO_SOPHIA,
@@ -325,7 +324,7 @@ export function PortalJornada() {
           {([vivo]) => {
             const jornada = jornadaSanitizada(vivo.projecoes, new Date(), vivo.proximaAcao);
             const destino = vivo.proximaAcao?.destino ?? null;
-            const casoCodigo = previa?.identidade?.codigo ?? (previa ? CASO_DEMO_CODIGO : "—");
+            const casoCodigo = previa?.identidade?.codigo ?? "—";
             const ritmoRotulo =
               jornada.ritmo === "sem_publicacao"
                 ? "Aguardando primeira publicação"
