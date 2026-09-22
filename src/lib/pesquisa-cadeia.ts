@@ -355,3 +355,49 @@ export function validarTransicaoEvidencia(entrada: {
   }
   return { ok: true };
 }
+
+/**
+ * §14 do De-Para (Caso 360, linha 6): "Estado do dossiê — Confirmados,
+ * Em revisão, Pendentes; donut; deve reconciliar com o dossiê real".
+ *
+ * Reconciliação por construção: os três totais SOMAM o comprimento do array
+ * de evidências recebido. Não há classe "outros" invisível.
+ *
+ * - Confirmados: aprovada_para_entrega ou publicada — `evidenciaComprovada`.
+ * - Em revisão: em_revisao, divergente, insuficiente
+ *   (validation without release).
+ * - Pendentes: qualquer outro estado do CHECK, ou status desconhecido/nulo
+ *   (evidência criada mas ainda não classificada).
+ */
+export type EstadoDossie = {
+  confirmados: number;
+  emRevisao: number;
+  pendentes: number;
+  total: number;
+};
+
+export function estadoDossieDoCaso(
+  evidencias: readonly { workflow_status?: unknown }[],
+): EstadoDossie {
+  let confirmados = 0;
+  let emRevisao = 0;
+  let pendentes = 0;
+  for (const ev of evidencias) {
+    const canonico = statusEvidenciaCanonico(ev.workflow_status);
+    if (canonico === "aprovada_para_entrega" || canonico === "publicada") {
+      confirmados += 1;
+    } else if (
+      canonico === "em_revisao" ||
+      canonico === "divergente" ||
+      canonico === "insuficiente"
+    ) {
+      emRevisao += 1;
+    } else {
+      // Cobertura fechada: status vazio, nulo, desconhecido ou qualquer
+      // outro do CHECK que não seja comprovado ou em validação vira
+      // "pendente" — nunca "outros" invisível.
+      pendentes += 1;
+    }
+  }
+  return { confirmados, emRevisao, pendentes, total: evidencias.length };
+}

@@ -19,7 +19,7 @@ import {
 import { ROTULO_STATUS_FINANCEIRO_CASO } from "@/lib/financeiro-caso";
 import { validacaoJuridicaCaso } from "@/lib/crm-desk.functions";
 import { cadeiaPesquisaDoCaso } from "@/lib/pesquisa-cadeia.functions";
-import { evidenciaComprovada } from "@/lib/pesquisa-cadeia";
+import { estadoDossieDoCaso } from "@/lib/pesquisa-cadeia";
 import { pendenciaPesquisaAberta } from "@/lib/rotulo-negocio";
 import { ROTULO_ATO_FORMAL } from "@/lib/validacao-juridica-caso";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
@@ -983,14 +983,54 @@ function FichaCaso() {
             (() => {
               const c = qPesquisa.data;
               const evidencias = c?.evidencias ?? [];
-              const comprovadas = evidencias.filter((e: any) => evidenciaComprovada(e.workflow_status)).length;
+              /*
+                §14 linha 6 do De-Para: "Estado do dossiê — Confirmados N,
+                Em revisão N, Pendentes N; donut; reconciliar com o dossiê
+                real". estadoDossieDoCaso classifica cada evidência em
+                exatamente UM dos três buckets (soma = total). Ver
+                pesquisa-cadeia.ts para a fonte canônica.
+              */
+              const dossie = estadoDossieDoCaso(evidencias);
               const pendencias = (c?.pendencias ?? []).filter((p: any) => p.status !== "resolvido" && pendenciaPesquisaAberta(p.status)).length;
               const achados = c?.achados?.length ?? 0;
+              // Micro-donut acessível: três segmentos proporcionais.
+              const donut = (() => {
+                if (dossie.total === 0) return null;
+                const c1 = (dossie.confirmados / dossie.total) * 100;
+                const c2 = (dossie.emRevisao / dossie.total) * 100;
+                const c3 = (dossie.pendentes / dossie.total) * 100;
+                return (
+                  <div
+                    role="img"
+                    aria-label={`Dossiê: ${dossie.confirmados} confirmados, ${dossie.emRevisao} em revisão, ${dossie.pendentes} pendentes`}
+                    className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-navy/10"
+                    data-caso360-dossie-donut
+                  >
+                    <div className="flex h-full">
+                      <div className="bg-emerald-600" style={{ width: `${c1}%` }} />
+                      <div className="bg-gold" style={{ width: `${c2}%` }} />
+                      <div className="bg-terracotta/70" style={{ width: `${c3}%` }} />
+                    </div>
+                  </div>
+                );
+              })();
               return (
-                <p className="mt-1 text-xs text-navy/70">
-                  {evidencias.length} evidência(s) · {comprovadas} comprovada(s) · {pendencias} pendência(s)/lacuna(s)
-                  aberta(s) · {achados} achado(s)
-                </p>
+                <>
+                  <p className="mt-1 text-xs text-navy/70">
+                    <span className="font-semibold text-emerald-700">{dossie.confirmados} confirmados</span>
+                    {" · "}
+                    <span className="font-semibold text-navy/80">{dossie.emRevisao} em revisão</span>
+                    {" · "}
+                    <span className="font-semibold text-terracotta">{dossie.pendentes} pendentes</span>
+                    {" · "}
+                    {achados} achado(s)
+                    {pendencias > 0 ? ` · ${pendencias} pendência(s) de pesquisa` : ""}
+                  </p>
+                  {donut}
+                  <p className="mt-1 text-[10px] text-navy/45">
+                    Soma bate com o dossiê real ({dossie.total} evidência(s) no caso).
+                  </p>
+                </>
               );
             })()
           )}

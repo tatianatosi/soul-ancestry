@@ -23,23 +23,30 @@ describe("CA20 — Caso 360 resume Pesquisa com a mesma fonte de /pesquisa-evide
     expect(pesquisaEvidencias).toContain("cadeiaPesquisaDoCaso");
   });
 
-  it("o card Pesquisa/entregas calcula evidências, comprovadas, pendências abertas e achados", () => {
-    const bloco = arquivo.slice(arquivo.indexOf("Pesquisa/entregas"), arquivo.indexOf("Pesquisa/entregas") + 1600);
+  it("o card Pesquisa/entregas calcula estado do dossiê, pendências abertas e achados", () => {
+    /*
+      22/09/2026: o bloco cresceu com §14 linha 6 (Estado do dossiê:
+      Confirmados/Em revisão/Pendentes; donut; reconciliar). A slice foi
+      ampliada para 3200 chars para caber o donut, e a asserção passou a
+      travar o novo contrato canônico (estadoDossieDoCaso) — que é
+      superset de evidenciaComprovada e sustenta a mesma leitura.
+    */
+    const bloco = arquivo.slice(arquivo.indexOf("Pesquisa/entregas"), arquivo.indexOf("Pesquisa/entregas") + 3200);
     expect(bloco).toContain("qPesquisa.isLoading");
     expect(bloco).toContain("qPesquisa.isError");
-    expect(bloco).toContain("evidenciaComprovada(e.workflow_status)");
+    expect(bloco).toContain("estadoDossieDoCaso(evidencias)");
     expect(bloco).toContain('p.status !== "resolvido"');
     expect(bloco).toContain("achados");
   });
 
   it("não introduz conclusão automática de cidadania/linhagem nem lista genérica fixa", () => {
-    const bloco = arquivo.slice(arquivo.indexOf("Pesquisa/entregas"), arquivo.indexOf("Pesquisa/entregas") + 1600);
+    const bloco = arquivo.slice(arquivo.indexOf("Pesquisa/entregas"), arquivo.indexOf("Pesquisa/entregas") + 3200);
     expect(bloco).not.toMatch(/cidadania (confirmada|reconhecida|aprovada)/i);
     expect(bloco).not.toMatch(/linhagem (confirmada|comprovada)/i);
   });
 
   it("mantém os 7 links pré-existentes do card (nenhum removido)", () => {
-    const bloco = arquivo.slice(arquivo.indexOf("Pesquisa/entregas"), arquivo.indexOf("Pesquisa/entregas") + 2600);
+    const bloco = arquivo.slice(arquivo.indexOf("Pesquisa/entregas"), arquivo.indexOf("Pesquisa/entregas") + 4200);
     for (const rota of [
       "/achados/$caseId",
       "/biblioteca-evidencias/$caseId",
