@@ -58,7 +58,7 @@ export function PortalConta() {
    * `previa.identidade.codigo`; aqui replica o mesmo padrão e usa `fonte`
    * para nunca fabricar titular/país fora da demo de verdade.
    */
-  const previaDemo = previa?.identidade?.fonte === "demo" || (Boolean(previa) && !previa?.identidade);
+  const previaDemo = previa?.identidade?.fonte === "demo";
   const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null) ?? "—";
   const casosPortal = (data as { casos?: { id?: string; codigo?: string | null }[] } | null)?.casos;
   // Segue o caso que a leitura de fato usou, em vez de fixar o primeiro —
@@ -142,14 +142,13 @@ export function PortalConta() {
                 </span>
               </div>
               <p className="mt-2 text-sm text-navy/75">
-                Acompanhamento do reconhecimento — SKU, preço técnico e gates internos não aparecem
-                nesta tela. Detalhes do plano publicado pela equipe ficam neste bloco.
+                Acompanhamento do seu caso. Os detalhes do plano aparecem aqui quando a equipe os
+                publica para você.
               </p>
               {/* Acabamento 2026-09-13 (referência Lovable): texto corrido no lugar
                   de grade de 3 crachás — mesmos três dados reais, leitura mais serena. */}
               <p className="mt-3 text-xs text-navy/55">
-                Publicação: {previaDemo ? "Demo" : previa ? "Prévia da equipe (caso real)" : "Quando a equipe publica"} ·
-                Escopo: Caso vinculado
+                Escopo: o caso vinculado a você. Novidades aparecem quando a equipe publica.
               </p>
             </section>
 
