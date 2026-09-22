@@ -31,7 +31,9 @@ describe("a etapa comercial tem uma definição só", () => {
 
 describe("o pipeline do Comercial é de leads, não de casos", () => {
   it("as colunas saem de etapa comercial, não de fase do caso", () => {
-    expect(comercial).toContain("columns={colunasPorEtapaComercial(leads.data ?? [])}");
+    // 22/09/2026: `listaLeads` foi extraído como intermediário para
+    // que o chip de qualidade e o pipeline compartilhem o mesmo array.
+    expect(comercial).toMatch(/columns=\{colunasPorEtapaComercial\((listaLeads|leads\.data \?\? \[\])\)\}/);
     expect(comercial).not.toContain("columns={colunasPorFase(d)}");
   });
 
@@ -47,9 +49,12 @@ describe("o pipeline do Comercial é de leads, não de casos", () => {
 
   it("lead sem responsável ou sem próxima ação avisa em vez de omitir", () => {
     // §12 "Legado": cards de lead sem próxima ação/responsável não podem
-    // passar silenciosamente.
-    expect(comercial).toContain('alert: `Sem ${faltando.join(" e ")}`');
+    // passar silenciosamente. 22/09/2026: alerta agora prioriza bloqueio
+    // real (discovery sem_aderencia, consentimento recusado) e cai para o
+    // aviso de faltando quando não há bloqueio.
+    expect(comercial).toContain('Sem ${faltando.join(" e ")}');
     expect(comercial).toContain('"Sem próxima ação registrada"');
+    expect(comercial).toContain("Bloqueado:");
   });
 
   it("compartilha o cache de leads com o PainelCalls da mesma rota", () => {

@@ -96,10 +96,27 @@ function colunasPorEtapaComercial(
     const chave = etapaComercialDoLead(lead) ?? "Sem etapa registrada";
     const responsavel = texto(lead["responsavel_nome"]);
     const proximaAcao = texto(lead["proxima_acao"]);
+    /*
+      §12 pede o campo `bloqueio` no card do pipeline. Não existe coluna
+      "bloqueio" em `leads`, mas existem vocabulários fechados que
+      significam bloqueio de progresso comercial (RESULTADOS_DISCOVERY e
+      CONSENTIMENTO_STATUS em crm-desk.ts). O bloqueio é derivado deles
+      — nada inventado, tudo do enum canônico.
+    */
+    const bloqueios: string[] = [];
+    if (lead["discovery_resultado"] === "sem_aderencia") bloqueios.push("sem aderência");
+    if (lead["consentimento_status"] === "recusado") bloqueios.push("consentimento recusado");
     const faltando = [
       responsavel ? null : "responsável",
       proximaAcao ? null : "próxima ação",
     ].filter(Boolean);
+    // Alerta prioriza bloqueio real do dado — falta de responsável/ação
+    // fica em segundo plano se já houver bloqueio identificado.
+    const alertText = bloqueios.length
+      ? `Bloqueado: ${bloqueios.join(" · ")}`
+      : faltando.length
+        ? `Sem ${faltando.join(" e ")}`
+        : null;
     const item: KanbanItem = {
       id: String(lead["id"]),
       title: texto(lead["nome"]) ?? "Lead sem nome registrado",
@@ -107,7 +124,8 @@ function colunasPorEtapaComercial(
       owner: responsavel ?? undefined,
       due: dataBr(texto(lead["proxima_acao_em"])),
       nextAction: proximaAcao ?? "Sem próxima ação registrada",
-      ...(faltando.length ? { alert: `Sem ${faltando.join(" e ")}` } : {}),
+      ...(alertText ? { alert: alertText } : {}),
+      ...(bloqueios.length ? { tone: "attention" as const } : {}),
     };
     mapa.set(chave, [...(mapa.get(chave) ?? []), item]);
   }
@@ -173,11 +191,44 @@ export function ComercialConectado() {
   if (leads.isError) return <Falha mensagem="A leitura dos leads falhou. Isto é erro de leitura, não pipeline vazio." />;
   const d = q.data;
 
+  /*
+    §12 pede "chip de qualidade de dados" no cabeçalho: mostra se o pipeline
+    está com dado real e quando foi a última atualização. `demo/dados_teste`
+    já filtrados no server, então "com dado real" é qualquer lead que passou
+    pelo filtro; a última atualização vem do maior `updated_at` recebido.
+  */
+  const listaLeads = (leads.data ?? []) as Array<Record<string, unknown>>;
+  const qualquerAtualizacao = listaLeads
+    .map((l) => (typeof l["updated_at"] === "string" ? Date.parse(l["updated_at"] as string) : NaN))
+    .filter((t) => Number.isFinite(t));
+  const ultimaAtualizacao = qualquerAtualizacao.length
+    ? new Date(Math.max(...qualquerAtualizacao))
+    : null;
+  const chipQualidade =
+    listaLeads.length === 0
+      ? { texto: "Sem leads reais", tom: "attention" as const }
+      : ultimaAtualizacao
+        ? { texto: `Atualizado em ${ultimaAtualizacao.toLocaleDateString("pt-BR")}`, tom: "neutral" as const }
+        : { texto: `${listaLeads.length} leads · sem data de atualização`, tom: "attention" as const };
+
   return (
     <ComercialTemplate
       funnel={barras(d.porEixoComercial, d.totalCasos, "gold")}
-      columns={colunasPorEtapaComercial(leads.data ?? [])}
-    />
+      columns={colunasPorEtapaComercial(listaLeads)}
+    >
+      <div
+        data-crm-chip-qualidade
+        className={
+          "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium " +
+          (chipQualidade.tom === "attention"
+            ? "border-atencao/40 bg-atencao-suave text-atencao"
+            : "border-navy/15 bg-cream/60 text-navy/70")
+        }
+      >
+        <span aria-hidden="true">●</span>
+        {chipQualidade.texto}
+      </div>
+    </ComercialTemplate>
   );
 }
 

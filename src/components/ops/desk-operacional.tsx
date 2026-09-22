@@ -527,6 +527,19 @@ export function DeskOperacional() {
                         />
                         <Selo texto={ROTULO_PRIORIDADE[t["prioridade"]] ?? t["prioridade"]} />
                       </div>
+                      {/*
+                        §13 linha 5: "próximo passo legível" no card. A
+                        tabela `tarefas` (migration 20260816151056:195) tem
+                        `titulo` (o que fazer) e `descricao` (detalhe / passo
+                        seguinte). O detalhe passa a aparecer no card quando
+                        registrado — sem inventar campo, sem esconder em
+                        tooltip.
+                      */}
+                      {t["descricao"] ? (
+                        <p className="mt-1 border-t border-navy/5 pt-1 text-[11px] text-navy/70">
+                          {String(t["descricao"]).trim()}
+                        </p>
+                      ) : null}
                       <p className="mt-1 text-navy/50">
                         {t["caso_codigo"] ?? "sem caso"} · {nomePessoa(t["responsavel_id"])}
                       </p>
