@@ -6,7 +6,7 @@ import { useState } from "react";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
-import { usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
+import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { EnviarDocumento } from "@/components/portal/enviar-documento";
 import { baixarEntrega, minhasEntregas } from "@/lib/portal-cliente.functions";
@@ -203,12 +203,28 @@ export function PortalDocumentos() {
             const casoAtivo = vivo.data?.casoAtivoId ?? null;
             const noCaso = <T extends { caseId?: string | null }>(l: T[] | undefined) =>
               (l ?? []).filter((d) => !casoAtivo || !d.caseId || d.caseId === casoAtivo);
-            const entregas = noCaso(data?.entregas);
+            /*
+              §7 do De-Para separa quatro estados que nunca podem se
+              misturar. Cada seção lê a fonte exata do seu estado — nada de
+              somar duas listas para forjar contagem.
+
+              Solicitados  → proximaAcao com destino /portal/documentos
+              Recebidos    → envios (documents.origem === 'cliente')
+              Liberados    → entregas (documents.liberado_cliente === true)
+              Entregas     → material editorial (cadernos/relatórios/narrativas)
+                             — só chega ao portal via portal_projecoes,
+                             consumida pela aba Legado. Como a rota Documentos
+                             não tem fonte própria para essa lista, a caixa
+                             vira atalho para Legado até haver uma fonte
+                             sanitizada por caso. Bloqueio catalogado em
+                             portal-dados-vivos.ts (BLOQUEIOS_CA_PORTAL_02).
+            */
+            const liberados_lista = noCaso(data?.entregas);
             const recebidos = noCaso(data?.envios);
-            const liberados = entregas.length;
+            const liberados = liberados_lista.length;
             const enviados = recebidos.length;
             const checklist = liberados + enviados;
-            const casoCodigo = entregas[0]?.caso || recebidos[0]?.caso || "—";
+            const casoCodigo = liberados_lista[0]?.caso || recebidos[0]?.caso || "—";
             const proximaAcao = vivo.data?.proximaAcao ?? null;
             const solicitado = proximaAcao?.destino === "/portal/documentos" ? proximaAcao.acao : null;
             return (
@@ -296,13 +312,13 @@ export function PortalDocumentos() {
                 Abertos para você
               </span>
             </div>
-            {entregas.length === 0 ? (
+            {liberados_lista.length === 0 ? (
               <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
                 {COPY_TELAS.documentos.vazio}
               </p>
             ) : (
               <ul className="mt-3 space-y-2">
-                {entregas.map((d) => (
+                {liberados_lista.map((d) => (
                   <li
                     key={d.id}
                     className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-4"
@@ -323,17 +339,34 @@ export function PortalDocumentos() {
             )}
           </section>
 
-          {/* 4. Entregas — material editorial publicado, quando houver. */}
+          {/*
+            4. Entregas — material editorial publicado.
+
+            §7 do De-Para: "Entregas" contém somente material final para
+            consulta/download. Hoje esse material vive em portal_projecoes
+            (fonte SANITIZADA que a aba Legado consome via
+            legadoSanitizado). A aba Documentos NÃO tem fonte por caso
+            para essa lista — a alternativa seria duplicar Legado, o que
+            criaria duas fontes de verdade. A caixa vira atalho canônico
+            para Legado. Bloqueio catalogado em portal-dados-vivos.ts.
+          */}
           <section data-documentos-entregas className="rounded-2xl border border-border bg-card p-5">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <h2 className="text-base font-semibold text-navy">Entregas</h2>
               <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
-                Publicação da equipe
+                Cadernos, relatórios e narrativas
               </span>
             </div>
-            <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
-              Cadernos, relatórios e narrativas publicados ficam na aba Legado.
+            <p className="mt-3 text-sm text-navy/70">
+              As entregas editoriais publicadas pela equipe ficam organizadas
+              por coleção na aba Legado.
             </p>
+            <LinkPortal
+              to="/portal/legado"
+              className="mt-3 inline-flex items-center gap-2 rounded-lg border border-navy/20 px-3 py-2 text-sm font-medium text-navy hover:border-gold"
+            >
+              Ver material publicado no Legado
+            </LinkPortal>
           </section>
         </div>
           );
