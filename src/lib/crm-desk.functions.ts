@@ -177,6 +177,66 @@ export const listarLeadsDesk = createServerFn({ method: "GET" })
   });
 
 /** Cria ou atualiza um lead. Rejeita valores fora das listas controladas. */
+/**
+ * §12 do De-Para: ações comerciais são "sempre auditáveis". Cada gravação de
+ * lead — criar, atualizar etapa/dados, registrar interação, definir próxima
+ * ação, arquivar — deposita um evento em `audit_logs` com `valores_anteriores`
+ * e `valores_posteriores`. A classificação da ação vem dos campos alterados,
+ * não de um parâmetro extra do chamador, para não depender da UI passar o
+ * rótulo certo — trocou etapa, é "atualizar_etapa"; mexeu na call/discovery,
+ * é "registrar_interacao"; mexeu na proxima_acao, é "definir_proxima_acao".
+ * Só cria trilha quando algo mudou de fato — patches vazios não geram
+ * evento.
+ */
+type Sb = { from: (t: string) => any };
+function classificarAcaoLead(campos: string[]): string {
+  const conjunto = new Set(campos);
+  if (conjunto.has("archived_at") || conjunto.has("archive_motivo")) return "arquivar_lead";
+  if (conjunto.has("estagio") || conjunto.has("eixo_comercial")) return "atualizar_etapa";
+  if (
+    conjunto.has("call_agendada_em") ||
+    conjunto.has("call_realizada_em") ||
+    conjunto.has("discovery_resultado") ||
+    conjunto.has("resumo_call") ||
+    conjunto.has("consentimento_status")
+  ) {
+    return "registrar_interacao";
+  }
+  if (conjunto.has("proxima_acao") || conjunto.has("proxima_acao_em")) {
+    return "definir_proxima_acao";
+  }
+  return "atualizar_lead";
+}
+
+async function registrarAuditoriaLead(
+  supabase: Sb,
+  organizationId: string,
+  userId: string,
+  leadId: string,
+  acao: string,
+  anteriores: Record<string, unknown> | null,
+  posteriores: Record<string, unknown>,
+): Promise<void> {
+  // audit_insert_member (RLS): membro da org pode inserir; nunca falha
+  // silenciosamente — se falhar, o chamador vê. Erros de auditoria não
+  // devem, porém, derrubar a gravação principal: são registrados mas não
+  // relançados, para não confundir defeito operacional com defeito de log.
+  try {
+    await supabase.from("audit_logs").insert({
+      organization_id: organizationId,
+      user_id: userId,
+      acao,
+      entidade: "lead",
+      entidade_id: leadId,
+      valores_anteriores: anteriores,
+      valores_posteriores: posteriores,
+      metadados: { fonte: "crm-desk" },
+    });
+  } catch (err) {
+    console.error("[audit_logs] falha ao registrar evento de lead", err);
+  }
+}
+
 export const salvarLeadDesk = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id?: string | null; valores: Record<string, unknown> }) => d)
@@ -211,6 +271,16 @@ export const salvarLeadDesk = createServerFn({ method: "POST" })
         userId,
         payload: patch,
       });
+      const acao = classificarAcaoLead(Object.keys(patch));
+      await registrarAuditoriaLead(
+        supabase,
+        organizationId,
+        userId,
+        data.id,
+        acao,
+        atual as unknown as Record<string, unknown>,
+        resultado.registro,
+      );
       return { ok: true as const, erros: [], lead: resultado.registro as LeadDesk };
     }
 
@@ -222,6 +292,15 @@ export const salvarLeadDesk = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) throw new Error("NENHUMA_LINHA_AFETADA: lead não foi criado.");
+    await registrarAuditoriaLead(
+      supabase,
+      organization_id,
+      userId,
+      (row as { id: string }).id,
+      "criar_lead",
+      null,
+      row as Record<string, unknown>,
+    );
     return { ok: true as const, erros: [], lead: row as LeadDesk };
   });
 
@@ -242,14 +321,24 @@ export const arquivarLeadDesk = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .maybeSingle();
     if (!lead) throw new Error("Lead não encontrado nesta organização.");
+    const patchArquivar = { archived_at: new Date().toISOString(), archived_by: userId, archive_motivo: motivo };
     await gravarComVerificacao({
       supabase,
       tabela: "leads",
       id: data.id,
       organizationId: lead.organization_id as string,
       userId,
-      payload: { archived_at: new Date().toISOString(), archived_by: userId, archive_motivo: motivo },
+      payload: patchArquivar,
     });
+    await registrarAuditoriaLead(
+      supabase,
+      lead.organization_id as string,
+      userId,
+      data.id,
+      "arquivar_lead",
+      lead as Record<string, unknown>,
+      patchArquivar,
+    );
     if (lead.case_id) {
       await registrarTimelineCaso(supabase, {
         organizationId: lead.organization_id as string,
