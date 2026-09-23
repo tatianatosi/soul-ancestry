@@ -1060,14 +1060,14 @@ function FichaCaso() {
                   <div
                     role="img"
                     aria-label={`Dossiê: ${dossie.confirmados} confirmados, ${dossie.emRevisao} em revisão, ${dossie.pendentes} pendentes`}
-                    className="relative h-24 w-24 shrink-0 rounded-full"
+                    className="relative h-20 w-20 shrink-0 rounded-full"
                     data-caso360-dossie-donut
                     style={{
                       background: `conic-gradient(var(--color-emerald-600) 0deg ${g1}deg, var(--gold) ${g1}deg ${g2}deg, color-mix(in srgb, var(--terracotta) 70%, transparent) ${g2}deg 360deg)`,
                     }}
                   >
-                    <div className="absolute inset-[9px] grid place-items-center rounded-full bg-card">
-                      <span className="font-serif text-xl leading-none text-navy">{dossie.total}</span>
+                    <div className="absolute inset-[8px] grid place-items-center rounded-full bg-card">
+                      <span className="font-serif text-lg leading-none text-navy">{dossie.total}</span>
                       <span className="text-[9px] uppercase tracking-wide text-navy/50">evidências</span>
                     </div>
                   </div>
