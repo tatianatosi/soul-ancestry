@@ -65,7 +65,7 @@ export function PortalDocumentos() {
         {vivo.isLoading ? (
           <PortalCarregando />
         ) : (
-          <div className="space-y-6" data-aba-documentos>
+          <div className="space-y-5" data-aba-documentos>
             <div
               data-documentos-meta
               className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
@@ -82,86 +82,69 @@ export function PortalDocumentos() {
               Envio de arquivo acontece quando a equipe solicita — sem inventar upload nem status de certidão nesta tela.
             </p>
 
-            {/* Checklist só com itens reais — nunca inventar estado de certidão. */}
+            {/* 1. Solicitados — só o pedido real da equipe. */}
             <section
+              data-documentos-solicitados
               data-documentos-checklist
-              className="rounded-2xl border border-border bg-card p-5 shadow-sm"
+              className="overflow-hidden rounded-lg border border-border bg-card shadow-sm"
             >
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="text-base font-semibold text-navy">Checklist do caso</h2>
+              <div className="h-1 bg-gold" aria-hidden="true" />
+              <div className="p-5">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                <h2 className="font-serif text-xl text-navy">Solicitados</h2>
                 <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
-                  Só publicações reais
+                  Ação da família
                 </span>
-              </div>
-              <p className="mt-1 text-sm text-navy/60">
-                Situação a partir do que a equipe pediu ou liberou. Arquivos e status só aparecem com
-                publicação real — sem inventar certidão.
-              </p>
-              {docs.length === 0 ? (
-                <p className="mt-4 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center text-sm text-navy/65">
-                  Nenhum documento liberado ou enviado neste momento.
-                </p>
-              ) : (
-                <ul className="mt-4 space-y-2">
-                  {liberados.map((d, i) => (
-                    <li
-                      key={d.id ?? `lib-${i}`}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2.5"
-                    >
-                      <span className="text-sm text-navy/85">Documento liberado</span>
-                      <span className="rounded-full border border-navy/15 bg-cream/40 px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
-                        Liberado para você
-                      </span>
-                    </li>
-                  ))}
-                  {enviados.map((d, i) => (
-                    <li
-                      key={d.id ?? `env-${i}`}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2.5"
-                    >
-                      <span className="text-sm text-navy/85">Envio seu</span>
-                      <span className="rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
-                        Compartilhado
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {/* Sinal real de pedido pendente (portal_document_requests, via proximaAcao) —
-                  mostrado independente de já haver liberado/enviado, para não esconder um
-                  pedido em aberto atrás de itens antigos já resolvidos. */}
-              {solicitado ? (
-                <div className="mt-3 rounded-xl border border-gold/35 bg-gold/10 px-4 py-3">
-                  <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
-                    Solicitado pela equipe
-                  </p>
-                  <p className="mt-1 text-sm text-navy">{solicitado}</p>
                 </div>
-              ) : null}
-            </section>
-
-            <section data-documentos-preparado className="rounded-2xl border border-border bg-card p-5">
-              <h2 className="text-base font-semibold text-navy">Preparado para você</h2>
-              {liberados.length === 0 ? (
-                <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
-                  {COPY_TELAS.documentos.vazio}
-                </p>
+              {solicitado ? (
+                <div className="mt-3 rounded-lg border border-gold/35 bg-gold/10 px-4 py-3 text-sm text-navy">{solicitado}</div>
               ) : (
-                <p className="mt-3 text-sm text-navy/70">
-                  {liberados.length} documento(s) liberado(s) neste caso.
+                <p className="mt-4 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center text-sm text-navy/65">
+                  Nenhum documento solicitado no momento.
                 </p>
               )}
+              </div>
             </section>
 
-            <section data-documentos-enviados className="rounded-2xl border border-border bg-card p-5">
-              <h2 className="text-base font-semibold text-navy">O que você compartilhou</h2>
+            {/* 2. Recebidos — enviar nunca comunica validação automática. */}
+            <section data-documentos-recebidos data-documentos-enviados className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+              <div className="h-1 bg-navy" aria-hidden="true" />
+              <div className="p-5">
+              <div className="flex flex-wrap items-start justify-between gap-2"><h2 className="font-serif text-xl text-navy">Recebidos</h2><span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">Aguardam conferência</span></div>
+              <p className="mt-1 text-sm text-navy/60">Receber não é validar: cada envio passa pela equipe.</p>
               {enviados.length === 0 ? (
                 <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
                   Você ainda não compartilhou documentos conosco.
                 </p>
               ) : (
-                <p className="mt-3 text-sm text-navy/70">{enviados.length} envio(s) neste caso.</p>
+                <p className="mt-3 text-sm text-navy/70">{enviados.length} envio(s) recebido(s) e aguardando conferência.</p>
               )}
+              </div>
+            </section>
+
+            {/* 3. Liberados — somente publicações reais. */}
+            <section data-documentos-liberados data-documentos-preparado className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+              <div className="h-1 bg-gold" aria-hidden="true" />
+              <div className="p-5">
+              <div className="flex flex-wrap items-start justify-between gap-2"><h2 className="font-serif text-xl text-navy">Liberados</h2><span className="rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/65">Abertos para você</span></div>
+              {liberados.length === 0 ? (
+                <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
+                  {COPY_TELAS.documentos.vazio}
+                </p>
+              ) : (
+                <p className="mt-3 text-sm text-navy/70">{liberados.length} documento(s) revisado(s) e liberado(s) neste caso.</p>
+              )}
+              </div>
+            </section>
+
+            {/* 4. Entregas — atalho contextual; a lista editorial continua em Legado. */}
+            <section data-documentos-entregas className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+              <div className="h-1 bg-navy" aria-hidden="true" />
+              <div className="p-5">
+                <h2 className="font-serif text-xl text-navy">Entregas</h2>
+                <p className="mt-2 text-sm text-navy/70">Os materiais publicados pela equipe ficam organizados na aba Legado.</p>
+                <LinkPortal to="/portal/legado" className="mt-3 inline-flex min-h-11 items-center rounded-lg border border-navy/20 px-3 py-2 text-sm font-medium text-navy hover:border-gold">Ver material publicado no Legado</LinkPortal>
+              </div>
             </section>
           </div>
         )}
@@ -228,7 +211,7 @@ export function PortalDocumentos() {
             const proximaAcao = vivo.data?.proximaAcao ?? null;
             const solicitado = proximaAcao?.destino === "/portal/documentos" ? proximaAcao.acao : null;
             return (
-        <div className="space-y-6" data-aba-documentos-vivo>
+        <div className="space-y-5" data-aba-documentos-vivo>
           <div
             data-documentos-meta
             className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
@@ -243,9 +226,11 @@ export function PortalDocumentos() {
           </div>
 
           {/* 1. Solicitados — o que a equipe pediu. */}
-          <section data-documentos-solicitados className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <section data-documentos-solicitados className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+            <div className="h-1 bg-gold" aria-hidden="true" />
+            <div className="p-5">
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <h2 className="text-base font-semibold text-navy">Solicitados</h2>
+              <h2 className="font-serif text-xl text-navy">Solicitados</h2>
               <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
                 Pedido da equipe
               </span>
@@ -262,12 +247,15 @@ export function PortalDocumentos() {
             <div className="mt-4">
               <EnviarDocumento casoId={casoAtivo} />
             </div>
+            </div>
           </section>
 
           {/* 2. Recebidos — chegou, mas ainda não foi conferido. */}
-          <section data-documentos-recebidos className="rounded-2xl border border-border bg-card p-5">
+          <section data-documentos-recebidos className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+            <div className="h-1 bg-navy" aria-hidden="true" />
+            <div className="p-5">
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <h2 className="text-base font-semibold text-navy">Recebidos</h2>
+              <h2 className="font-serif text-xl text-navy">Recebidos</h2>
               <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
                 Aguardam conferência
               </span>
@@ -302,12 +290,15 @@ export function PortalDocumentos() {
                 ))}
               </ul>
             )}
+            </div>
           </section>
 
           {/* 3. Liberados — conferidos e abertos para a família. */}
-          <section data-documentos-liberados className="rounded-2xl border border-border bg-card p-5">
+          <section data-documentos-liberados className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+            <div className="h-1 bg-gold" aria-hidden="true" />
+            <div className="p-5">
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <h2 className="text-base font-semibold text-navy">Liberados</h2>
+              <h2 className="font-serif text-xl text-navy">Liberados</h2>
               <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
                 Abertos para você
               </span>
@@ -337,6 +328,7 @@ export function PortalDocumentos() {
                 ))}
               </ul>
             )}
+            </div>
           </section>
 
           {/*
@@ -350,9 +342,11 @@ export function PortalDocumentos() {
             criaria duas fontes de verdade. A caixa vira atalho canônico
             para Legado. Bloqueio catalogado em portal-dados-vivos.ts.
           */}
-          <section data-documentos-entregas className="rounded-2xl border border-border bg-card p-5">
+          <section data-documentos-entregas className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+            <div className="h-1 bg-navy" aria-hidden="true" />
+            <div className="p-5">
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <h2 className="text-base font-semibold text-navy">Entregas</h2>
+              <h2 className="font-serif text-xl text-navy">Entregas</h2>
               <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
                 Cadernos, relatórios e narrativas
               </span>
@@ -367,6 +361,7 @@ export function PortalDocumentos() {
             >
               Ver material publicado no Legado
             </LinkPortal>
+            </div>
           </section>
         </div>
           );
