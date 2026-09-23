@@ -6,7 +6,7 @@ import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-v
 import { usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { legadoSanitizado } from "@/lib/portal-dados-vivos";
-import type { PublicacaoCliente } from "@/lib/projecoes-cliente";
+import { PRATELEIRAS, prateleiraDe, type PrateleiraId, type PublicacaoCliente } from "@/lib/projecoes-cliente";
 
 export const Route = createFileRoute("/portal/legado")({
   head: () => ({
@@ -23,42 +23,9 @@ export const Route = createFileRoute("/portal/legado")({
   component: PortalLegado,
 });
 
-/** Prateleiras do mockup 17 (Legado) — taxonomia de conteúdo, não abas. */
-const PRATELEIRAS = [
-  {
-    id: "cadernos",
-    rotulo: "Cadernos",
-    dica: "Cadernos e reunões documentais preparados para a família.",
-    match: /caderno|certid|batismo|registro/i,
-  },
-  {
-    id: "relatorios",
-    rotulo: "Relatórios",
-    dica: "Relatórios e sínteses liberadas pela equipe.",
-    match: /relat[oó]rio|s[ií]ntese|parecer/i,
-  },
-  {
-    id: "narrativas",
-    rotulo: "Narrativas",
-    dica: "Linha do tempo e narrativas familiares publicadas.",
-    match: /narrativa|hist[oó]ria|linha do tempo|mem[oó]ria familiar/i,
-  },
-  {
-    id: "memoria",
-    rotulo: "Memória",
-    dica: "Materiais de memória e legado familiar.",
-    match: /mem[oó]ria|legado|fam[ií]lia/i,
-  },
-] as const;
-
-type PrateleiraId = (typeof PRATELEIRAS)[number]["id"];
-
-function prateleiraDe(item: PublicacaoCliente): PrateleiraId {
-  for (const p of PRATELEIRAS) {
-    if (p.match.test(item.conteudo) || p.match.test(item.tipoRotulo)) return p.id;
-  }
-  return "cadernos";
-}
+/* PRATELEIRAS/PrateleiraId/prateleiraDe agora vivem em @/lib/projecoes-cliente
+   — mesma classificação usada pela Biblioteca Mestre (Desk, §18), para as
+   duas telas nunca divergirem sobre em qual coleção um item cai. */
 
 function Chip({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (

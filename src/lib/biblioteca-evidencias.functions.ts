@@ -233,6 +233,10 @@ export const listarFilaMicroentregas = createServerFn({ method: "GET" })
         descricao: p["content_sanitized"] as string,
         status: p["approval_status"] as string,
         prazo: (p["due_at"] ?? null) as string | null,
+        // §18 do De-Para (Biblioteca Mestre) pede "versão e data" na Lista de
+        // conteúdo — app_projections não tem coluna de versão (divergência
+        // registrada, não inventada); a data real é a última atualização.
+        atualizadoEm: (p["updated_at"] ?? null) as string | null,
         responsavel: responsavel?.["full_name"] ?? responsavel?.["email"] ?? null,
         origemTipo: p["source_entity_type"] as string,
         origemId: p["source_entity_id"] as string,

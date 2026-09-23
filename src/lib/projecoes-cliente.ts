@@ -77,6 +77,49 @@ export function publicacoesParaCliente(linhas: ProjecaoBruta[]): PublicacaoClien
     .sort((a, b) => String(b.publicadoEm ?? "").localeCompare(String(a.publicadoEm ?? "")));
 }
 
+/** Coleções do mockup 17 (Legado, App) e §18 do De-Para (Biblioteca Mestre, Desk). */
+export const PRATELEIRAS = [
+  {
+    id: "cadernos",
+    rotulo: "Cadernos",
+    dica: "Cadernos e reunões documentais preparados para a família.",
+    match: /caderno|certid|batismo|registro/i,
+  },
+  {
+    id: "relatorios",
+    rotulo: "Relatórios",
+    dica: "Relatórios e sínteses liberadas pela equipe.",
+    match: /relat[oó]rio|s[ií]ntese|parecer/i,
+  },
+  {
+    id: "narrativas",
+    rotulo: "Narrativas",
+    dica: "Linha do tempo e narrativas familiares publicadas.",
+    match: /narrativa|hist[oó]ria|linha do tempo|mem[oó]ria familiar/i,
+  },
+  {
+    id: "memoria",
+    rotulo: "Memória",
+    dica: "Materiais de memória e legado familiar.",
+    match: /mem[oó]ria|legado|fam[ií]lia/i,
+  },
+] as const;
+
+export type PrateleiraId = (typeof PRATELEIRAS)[number]["id"];
+
+/**
+ * Classifica uma publicação numa coleção (§18 "Coleções": Cadernos,
+ * Relatórios, Narrativas...). Mesma função para App (Legado) e Desk
+ * (Biblioteca Mestre) — as duas telas nunca podem divergir sobre em qual
+ * coleção um item cai.
+ */
+export function prateleiraDe(item: Pick<PublicacaoCliente, "conteudo" | "tipoRotulo">): PrateleiraId {
+  for (const p of PRATELEIRAS) {
+    if (p.match.test(item.conteudo) || p.match.test(item.tipoRotulo)) return p.id;
+  }
+  return "cadernos";
+}
+
 /** Quantidade de publicações por caso, para os cartões da lista de casos. */
 export function contarPublicacoesPorCaso(linhas: ProjecaoBruta[]): Map<string, number> {
   const mapa = new Map<string, number>();

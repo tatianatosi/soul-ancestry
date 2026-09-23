@@ -12,6 +12,7 @@ import { ManifestoResgate } from "@/components/governanca/manifesto";
 import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
 
 import { FilaPublicacaoReal } from "@/components/biblioteca/fila-publicacao-real";
+import { ConteudoEditorialConectado } from "@/components/biblioteca/conteudo-editorial-conectado";
 import { PesquisaConectada } from "@/components/desk/superficies-kit-conectadas";
 import { MAPA_CENTRO_INTELIGENCIA, SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
 import { rotuloFonteNegocio } from "@/lib/rotulo-negocio";
@@ -245,6 +246,7 @@ function BibliotecaPage() {
         <summary className="cursor-pointer font-medium text-navy">Abrir gestão da Biblioteca</summary>
         <div className="mt-5 space-y-6 border-t border-navy/10 pt-5">
         <FilaPublicacaoReal />
+        <ConteudoEditorialConectado />
         {/*
           DSA-6-BIBLIOTECA (21/09/2026): sexto consumidor do Desk a usar
           `CaCard` (após DSA-1 a DSA-5), aplicado a este mapa read-only do
