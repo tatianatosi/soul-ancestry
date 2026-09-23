@@ -69,6 +69,11 @@ export function pessoaDoCasoAPartirDoNucleo(m: MembroNucleoBruto, ordemMinimaCon
     data_nascimento: null as string | null,
     representante_legal: null as string | null,
     status_cadastral: "pendente" as string,
+    // nucleo_membros não grava parentesco por pai_id/mae_id — só case_members
+    // grava (migration 20260816201830). Fallback nunca inventa o vínculo.
+    pai_id: null as string | null,
+    mae_id: null as string | null,
+    data_verificacao_dado: null as string | null,
   };
 }
 
@@ -95,7 +100,7 @@ export async function pessoasDoCasoComFallbackNucleo(
 ): Promise<PessoaDoCaso[]> {
   const { data: membrosCaso } = await supabase
     .from("case_members")
-    .select("id,nome,papel_no_caso,titular,contratante,dependente,cpf,data_nascimento,representante_legal,status_cadastral,parentesco,requerente,nacionalidade,cliente_id")
+    .select("id,nome,papel_no_caso,titular,contratante,dependente,cpf,data_nascimento,representante_legal,status_cadastral,parentesco,requerente,nacionalidade,cliente_id,pai_id,mae_id,data_verificacao_dado")
     .eq("case_id", caseId)
     .is("archived_at", null)
     .order("created_at", { ascending: true });

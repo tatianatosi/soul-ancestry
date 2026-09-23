@@ -19,6 +19,7 @@ import { rotuloFase } from "@/lib/fase-rotulo";
 import { obterProximaAcaoCanonica, SELO_PROXIMA_ACAO } from "@/lib/caso-ficha";
 import { NOME_RESPONSAVEL_PADRAO } from "@/lib/responsavel-padrao";
 import { ordenarPorPrioridade, sinaisDaPessoa, type PrioridadeSinal } from "@/lib/pessoa-sinais";
+import { relacoesAprovadas, estadoDeConfirmacao } from "@/lib/golive-pessoas";
 
 /**
  * A página de uma pessoa.
@@ -290,6 +291,7 @@ function Pessoa() {
     perfisGenealogicos,
     fichaGenealogica,
     fichaGenealogicaEquipe,
+    caseMembers,
   } = q.data;
 
   const linha = montarLinhaDoTempoDaPessoa(
@@ -299,6 +301,39 @@ function Pessoa() {
       eventos: eventos.filter((e) => e.case_id === c.id),
     })),
   );
+
+  /*
+    §15 do De-Para (Pessoa 360, zona "Relações"): tipo de vínculo e grau de
+    confirmação. `case_members.pai_id/mae_id` (migration 20260816201830) já
+    grava isso — o motor aprovado, não pesquisa genealógica — e
+    `relacoesAprovadas`/`estadoDeConfirmacao` (golive-pessoas.ts) já sabem
+    calcular a partir daí; só nunca tinham sido chamadas por esta rota.
+  */
+  const membrosDosCasos = caseMembers.map((m) => ({
+    id: String(m.id),
+    nome: (m.nome as string) ?? "Pessoa sem nome registrado",
+    paiId: m.pai_id ? String(m.pai_id) : null,
+    maeId: m.mae_id ? String(m.mae_id) : null,
+    titular: m.titular === true,
+    requerente: m.requerente === true,
+    contratante: m.contratante === true,
+    verificadoEm: (m.data_verificacao_dado as string) ?? null,
+    statusCadastral: (m.status_cadastral as string) ?? null,
+  }));
+  const nomeComparavel = (cliente.nome_social || cliente.nome || "").trim().toLowerCase();
+  const relacoesFamiliaresDestaPessoa = relacoesAprovadas(membrosDosCasos).filter(
+    (r) => r.de.trim().toLowerCase() === nomeComparavel || r.para.trim().toLowerCase() === nomeComparavel,
+  );
+  const meusRegistrosDeCaso = caseMembers.filter((m) => m.cliente_id === cliente.id);
+  const grausDeConfirmacao = meusRegistrosDeCaso.map((m) => ({
+    casoId: m.case_id as string,
+    estado: estadoDeConfirmacao({
+      verificadoEm: (m.data_verificacao_dado as string) ?? null,
+      statusCadastral: (m.status_cadastral as string) ?? null,
+      paiId: m.pai_id ? String(m.pai_id) : null,
+      maeId: m.mae_id ? String(m.mae_id) : null,
+    }),
+  }));
 
   // Leads que podem ser esta mesma pessoa, com a evidência à vista.
   const candidatos = leads
@@ -719,6 +754,39 @@ function Pessoa() {
               ))}
             </ul>
           )}
+        </section>
+
+        <section className="rounded-xl border border-navy/10 bg-cream/50 p-5" data-relacoes-familiares-caso>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-serif text-lg text-navy">Vínculos familiares do caso</h2>
+            <p className="text-xs text-navy/55">{grausDeConfirmacao.length} registro(s)</p>
+          </div>
+          <p className="mt-1 text-xs text-navy/55">
+            Parentesco gravado em case_members (pai/mãe), nunca deduzido por nome — distinto da pesquisa
+            genealógica interna.
+          </p>
+          {relacoesFamiliaresDestaPessoa.length === 0 ? (
+            <p className="mt-2 text-sm text-navy/60">
+              Nenhum vínculo de pai/mãe gravado para esta pessoa nos casos onde ela participa.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-1">
+              {relacoesFamiliaresDestaPessoa.map((r) => (
+                <li key={r.id} className="text-sm text-navy/80">
+                  {r.de} é {r.rotulo} de {r.para}
+                </li>
+              ))}
+            </ul>
+          )}
+          {grausDeConfirmacao.length > 0 ? (
+            <ul className="mt-3 space-y-1 border-t border-navy/10 pt-2">
+              {grausDeConfirmacao.map((g, i) => (
+                <li key={i} className="text-xs text-navy/60">
+                  Grau de confirmação: <span className="font-medium text-navy">{g.estado}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </section>
 
         <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">

@@ -2,6 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -225,6 +226,22 @@ export const carregarPessoa = createServerFn({ method: "GET" })
         : { data: [] },
     ]);
 
+    /*
+      22/09/2026 — achado real: case_members.pai_id/mae_id (migration
+      20260816201830) já grava parentesco administrativo do caso — mesma
+      coluna que /golive/pessoas já lê. A zona "Relações" de Pessoa 360
+      nunca tinha buscado isso. Usa a função canônica (CA19 trava leitor cru
+      de case_members fora dela) por caso, para resolver os nomes nas duas
+      pontas de cada vínculo mesmo quando o caso já migrou para Núcleos.
+    */
+    const membrosPorCaso = await Promise.all(
+      ids.map(async (caseId) => {
+        const membros = await pessoasDoCasoComFallbackNucleo(supabase, String(caseId));
+        return membros.map((m) => ({ ...m, case_id: String(caseId) }));
+      }),
+    );
+    const caseMembers = membrosPorCaso.flat();
+
     const idsPesquisaDoCaso = (pesquisaCasos.data ?? []).map((p: Linha) => p.id as string);
     const { data: fichaGenealogica } = idsPesquisaDoCaso.length
       ? await supabase
@@ -265,6 +282,7 @@ export const carregarPessoa = createServerFn({ method: "GET" })
       perfisGenealogicos: (perfisGenealogicos.data ?? []) as Linha[],
       fichaGenealogica: fichaDestaPessoa,
       fichaGenealogicaEquipe: outrosDaMesmaPesquisa,
+      caseMembers: caseMembers as Linha[],
     };
   });
 

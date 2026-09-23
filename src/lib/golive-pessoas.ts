@@ -195,7 +195,9 @@ export function confiancaDaPessoa(
 export type Relacao = { id: string; de: string; para: string; rotulo: string };
 
 /** Relações aprovadas: só arestas pai/mãe gravadas entre pessoas do caso. */
-export function relacoesAprovadas(pessoas: readonly PessoaCaso[]): Relacao[] {
+export function relacoesAprovadas(
+  pessoas: readonly Pick<PessoaCaso, "id" | "nome" | "paiId" | "maeId">[],
+): Relacao[] {
   const porId = new Map(pessoas.map((p) => [p.id, p]));
   const out: Relacao[] = [];
   for (const p of pessoas) {
@@ -262,7 +264,9 @@ export function composicaoDoNucleo(
 }
 
 /** Estado de confirmação de cada pessoa, pelo que está gravado. */
-export function estadoDeConfirmacao(p: PessoaCaso): "Confirmada" | "Em revisão" | "Pendente" {
+export function estadoDeConfirmacao(
+  p: Pick<PessoaCaso, "verificadoEm" | "statusCadastral" | "paiId" | "maeId">,
+): "Confirmada" | "Em revisão" | "Pendente" {
   if (p.verificadoEm && (p.paiId || p.maeId)) return "Confirmada";
   if (p.statusCadastral && /(complet|valid|confirm|ok)/i.test(p.statusCadastral)) return "Confirmada";
   if (p.paiId || p.maeId || p.statusCadastral) return "Em revisão";
