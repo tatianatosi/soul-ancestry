@@ -816,7 +816,7 @@ export const validacaoJuridicaCaso = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false })
         .limit(1),
       supabase.from("legal_clause_matrix").select("*").is("archived_at", null),
-      supabase.from("case_dependents").select("nome,participa_do_contrato,status_representacao").eq("case_id", data.caseId).is("archived_at", null),
+      supabase.from("case_dependents").select("nome:nome_completo,participa_do_contrato,status_representacao").eq("case_id", data.caseId).is("archived_at", null),
     ]);
 
     const trackId = linhasDe<any>(servRes, "case services do caso")[0]?.citizenship_track_id as string | undefined;
