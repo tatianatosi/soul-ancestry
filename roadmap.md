@@ -118,3 +118,11 @@
 - [ ] Fechar a jornada da Ana na superfície contratual contínua, com efeitos separados.
 - [ ] Gerar wireframes desktop e 375 px do contrato com inventário real.
 - [ ] Validar tipos, testes, build, console e overflow; parar antes de versionar/publicar.
+
+## Corte visual — prancha v4, mockup 17 páginas e contrato Ana (23/09/2026)
+- [ ] Gerar nova proposta do wireframe completo da Ana, mais arejada, em desktop e 375 px, sem alterar produto ou dados.
+- [ ] Aplicar a prancha visual v4 ao shell e às superfícies oficiais do Desk, preservando seis grupos e toda a lógica existente.
+- [ ] Aplicar o mockup aprovado de 17 páginas às rotas oficiais do App, preservando sete abas, estado real e vazios honestos.
+- [ ] Começar o acabamento do App por Home e Radar e completar as demais superfícies representadas nas 17 páginas, sem novas rotas.
+- [ ] Validar Home, Jornada, Radar, Árvore, Documentos e Conta em desktop e 375 px com sessão master, sem overflow ou erros de console.
+- [ ] Registrar cada seção do wireframe completo da Ana em desktop e 375 px, somente leitura.
