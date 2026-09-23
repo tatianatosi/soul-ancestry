@@ -14,6 +14,93 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_projection_shares: {
+        Row: {
+          autorizado_em: string
+          autorizado_por: string
+          autorizado_por_user_id: string | null
+          compartilhado_com_client_id: string
+          created_at: string
+          escopo: string
+          id: string
+          organization_id: string
+          projection_id: string
+          revogado_em: string | null
+          revogado_motivo: string | null
+          revogado_por_user_id: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          autorizado_em?: string
+          autorizado_por: string
+          autorizado_por_user_id?: string | null
+          compartilhado_com_client_id: string
+          created_at?: string
+          escopo?: string
+          id?: string
+          organization_id: string
+          projection_id: string
+          revogado_em?: string | null
+          revogado_motivo?: string | null
+          revogado_por_user_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          autorizado_em?: string
+          autorizado_por?: string
+          autorizado_por_user_id?: string | null
+          compartilhado_com_client_id?: string
+          created_at?: string
+          escopo?: string
+          id?: string
+          organization_id?: string
+          projection_id?: string
+          revogado_em?: string | null
+          revogado_motivo?: string | null
+          revogado_por_user_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_projection_shares_compartilhado_com_client_id_fkey"
+            columns: ["compartilhado_com_client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_projection_shares_compartilhado_com_client_id_fkey"
+            columns: ["compartilhado_com_client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_projection_shares_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_projection_shares_projection_id_fkey"
+            columns: ["projection_id"]
+            isOneToOne: false
+            referencedRelation: "app_projections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_projection_shares_projection_id_fkey"
+            columns: ["projection_id"]
+            isOneToOne: false
+            referencedRelation: "portal_projecoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_projections: {
         Row: {
           approval_status: string
@@ -26,12 +113,15 @@ export type Database = {
           created_at: string
           created_by: string | null
           destination: string
+          due_at: string | null
           effective_from: string | null
           id: string
           organization_id: string
+          pessoa_id: string | null
           projection_type: string
           source_entity_id: string
           source_entity_type: string
+          titular_client_id: string | null
           updated_at: string
           updated_by: string | null
           visibility_scope: string
@@ -47,12 +137,15 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           destination: string
+          due_at?: string | null
           effective_from?: string | null
           id?: string
           organization_id: string
+          pessoa_id?: string | null
           projection_type: string
           source_entity_id: string
           source_entity_type: string
+          titular_client_id?: string | null
           updated_at?: string
           updated_by?: string | null
           visibility_scope?: string
@@ -68,12 +161,15 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           destination?: string
+          due_at?: string | null
           effective_from?: string | null
           id?: string
           organization_id?: string
+          pessoa_id?: string | null
           projection_type?: string
           source_entity_id?: string
           source_entity_type?: string
+          titular_client_id?: string | null
           updated_at?: string
           updated_by?: string | null
           visibility_scope?: string
@@ -91,6 +187,27 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_projections_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_projections_titular_client_id_fkey"
+            columns: ["titular_client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_projections_titular_client_id_fkey"
+            columns: ["titular_client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
             referencedColumns: ["id"]
           },
         ]
@@ -1485,6 +1602,98 @@ export type Database = {
           },
         ]
       }
+      case_grupos_comunicacao: {
+        Row: {
+          activated_at: string | null
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          canal: string
+          case_id: string
+          contato_principal_membro_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          nome_grupo: string | null
+          observacao_interna: string | null
+          organization_id: string
+          proposito: string
+          referencia_externa: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          activated_at?: string | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          canal?: string
+          case_id: string
+          contato_principal_membro_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nome_grupo?: string | null
+          observacao_interna?: string | null
+          organization_id: string
+          proposito: string
+          referencia_externa?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          activated_at?: string | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          canal?: string
+          case_id?: string
+          contato_principal_membro_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nome_grupo?: string | null
+          observacao_interna?: string | null
+          organization_id?: string
+          proposito?: string
+          referencia_externa?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_grupos_comunicacao_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_grupos_comunicacao_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_grupos_comunicacao_contato_principal_membro_id_fkey"
+            columns: ["contato_principal_membro_id"]
+            isOneToOne: false
+            referencedRelation: "case_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_grupos_comunicacao_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_members: {
         Row: {
           archive_motivo: string | null
@@ -1492,6 +1701,7 @@ export type Database = {
           archived_by: string | null
           case_id: string
           cep: string | null
+          cliente_id: string | null
           consentimentos: string | null
           contratante: boolean
           cpf: string | null
@@ -1534,6 +1744,7 @@ export type Database = {
           archived_by?: string | null
           case_id: string
           cep?: string | null
+          cliente_id?: string | null
           consentimentos?: string | null
           contratante?: boolean
           cpf?: string | null
@@ -1576,6 +1787,7 @@ export type Database = {
           archived_by?: string | null
           case_id?: string
           cep?: string | null
+          cliente_id?: string | null
           consentimentos?: string | null
           contratante?: boolean
           cpf?: string | null
@@ -1628,6 +1840,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "case_members_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_members_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "case_members_mae_id_fkey"
             columns: ["mae_id"]
             isOneToOne: false
@@ -1646,6 +1872,51 @@ export type Database = {
             columns: ["pai_id"]
             isOneToOne: false
             referencedRelation: "case_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      case_phase_history: {
+        Row: {
+          case_id: string
+          changed_at: string
+          changed_by: string | null
+          fase_anterior: string | null
+          fase_nova: string
+          id: string
+          organization_id: string
+        }
+        Insert: {
+          case_id: string
+          changed_at?: string
+          changed_by?: string | null
+          fase_anterior?: string | null
+          fase_nova: string
+          id?: string
+          organization_id: string
+        }
+        Update: {
+          case_id?: string
+          changed_at?: string
+          changed_by?: string | null
+          fase_anterior?: string | null
+          fase_nova?: string
+          id?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_phase_history_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_phase_history_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
             referencedColumns: ["id"]
           },
         ]
@@ -1684,6 +1955,7 @@ export type Database = {
           plano_hash: string | null
           prazo_proxima_acao: string | null
           product_catalog_id: string | null
+          produto_pai_id: string | null
           proxima_acao: string | null
           proxima_atualizacao_limite_em: string | null
           proxima_microentrega: string | null
@@ -1731,6 +2003,7 @@ export type Database = {
           plano_hash?: string | null
           prazo_proxima_acao?: string | null
           product_catalog_id?: string | null
+          produto_pai_id?: string | null
           proxima_acao?: string | null
           proxima_atualizacao_limite_em?: string | null
           proxima_microentrega?: string | null
@@ -1778,6 +2051,7 @@ export type Database = {
           plano_hash?: string | null
           prazo_proxima_acao?: string | null
           product_catalog_id?: string | null
+          produto_pai_id?: string | null
           proxima_acao?: string | null
           proxima_atualizacao_limite_em?: string | null
           proxima_microentrega?: string | null
@@ -3643,21 +3917,43 @@ export type Database = {
           ativacao_decidida_em: string | null
           ativacao_decidida_por: string | null
           ativacao_justificativa: string | null
+          cidade_nascimento: string | null
           classificacao: string
+          cpf: string | null
           created_at: string
           created_by: string | null
+          data_nascimento: string | null
           data_origin: string
           demo: boolean
           documento: string | null
           email: string | null
+          endereco_bairro: string | null
+          endereco_cep: string | null
+          endereco_cidade: string | null
+          endereco_complemento: string | null
+          endereco_logradouro: string | null
+          endereco_numero: string | null
+          endereco_pais: string | null
+          endereco_uf: string | null
+          estado_civil: string | null
           id: string
           is_demo: boolean
+          nacionalidade: string | null
           nome: string
+          nome_conjuge: string | null
+          nome_mae: string | null
+          nome_pai: string | null
           nome_social: string | null
           observacoes: string | null
           organization_id: string
           origem: string | null
           pais_interesse: string | null
+          procurador_cliente_id: string | null
+          procurador_escopo: string | null
+          profissao: string | null
+          rg_numero: string | null
+          rg_orgao_uf: string | null
+          sexo: string | null
           status: string
           status_comercial: string | null
           telefone: string | null
@@ -3671,21 +3967,43 @@ export type Database = {
           ativacao_decidida_em?: string | null
           ativacao_decidida_por?: string | null
           ativacao_justificativa?: string | null
+          cidade_nascimento?: string | null
           classificacao?: string
+          cpf?: string | null
           created_at?: string
           created_by?: string | null
+          data_nascimento?: string | null
           data_origin?: string
           demo?: boolean
           documento?: string | null
           email?: string | null
+          endereco_bairro?: string | null
+          endereco_cep?: string | null
+          endereco_cidade?: string | null
+          endereco_complemento?: string | null
+          endereco_logradouro?: string | null
+          endereco_numero?: string | null
+          endereco_pais?: string | null
+          endereco_uf?: string | null
+          estado_civil?: string | null
           id?: string
           is_demo?: boolean
+          nacionalidade?: string | null
           nome: string
+          nome_conjuge?: string | null
+          nome_mae?: string | null
+          nome_pai?: string | null
           nome_social?: string | null
           observacoes?: string | null
           organization_id: string
           origem?: string | null
           pais_interesse?: string | null
+          procurador_cliente_id?: string | null
+          procurador_escopo?: string | null
+          profissao?: string | null
+          rg_numero?: string | null
+          rg_orgao_uf?: string | null
+          sexo?: string | null
           status?: string
           status_comercial?: string | null
           telefone?: string | null
@@ -3699,21 +4017,43 @@ export type Database = {
           ativacao_decidida_em?: string | null
           ativacao_decidida_por?: string | null
           ativacao_justificativa?: string | null
+          cidade_nascimento?: string | null
           classificacao?: string
+          cpf?: string | null
           created_at?: string
           created_by?: string | null
+          data_nascimento?: string | null
           data_origin?: string
           demo?: boolean
           documento?: string | null
           email?: string | null
+          endereco_bairro?: string | null
+          endereco_cep?: string | null
+          endereco_cidade?: string | null
+          endereco_complemento?: string | null
+          endereco_logradouro?: string | null
+          endereco_numero?: string | null
+          endereco_pais?: string | null
+          endereco_uf?: string | null
+          estado_civil?: string | null
           id?: string
           is_demo?: boolean
+          nacionalidade?: string | null
           nome?: string
+          nome_conjuge?: string | null
+          nome_mae?: string | null
+          nome_pai?: string | null
           nome_social?: string | null
           observacoes?: string | null
           organization_id?: string
           origem?: string | null
           pais_interesse?: string | null
+          procurador_cliente_id?: string | null
+          procurador_escopo?: string | null
+          profissao?: string | null
+          rg_numero?: string | null
+          rg_orgao_uf?: string | null
+          sexo?: string | null
           status?: string
           status_comercial?: string | null
           telefone?: string | null
@@ -3726,6 +4066,20 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clientes_procurador_cliente_id_fkey"
+            columns: ["procurador_cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clientes_procurador_cliente_id_fkey"
+            columns: ["procurador_cliente_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
             referencedColumns: ["id"]
           },
         ]
@@ -7300,6 +7654,7 @@ export type Database = {
           entrega_responsavel_id: string | null
           entrega_versao: string | null
           file_hash: string | null
+          finalidade: string | null
           id: string
           liberado_cliente: boolean
           liberado_em: string | null
@@ -7344,6 +7699,7 @@ export type Database = {
           entrega_responsavel_id?: string | null
           entrega_versao?: string | null
           file_hash?: string | null
+          finalidade?: string | null
           id?: string
           liberado_cliente?: boolean
           liberado_em?: string | null
@@ -7388,6 +7744,7 @@ export type Database = {
           entrega_responsavel_id?: string | null
           entrega_versao?: string | null
           file_hash?: string | null
+          finalidade?: string | null
           id?: string
           liberado_cliente?: boolean
           liberado_em?: string | null
@@ -8814,6 +9171,7 @@ export type Database = {
           archived_by: string | null
           case_id: string | null
           causa_morte: string | null
+          client_id: string | null
           client_visibility: string
           created_at: string
           created_by: string | null
@@ -8848,6 +9206,7 @@ export type Database = {
           archived_by?: string | null
           case_id?: string | null
           causa_morte?: string | null
+          client_id?: string | null
           client_visibility?: string
           created_at?: string
           created_by?: string | null
@@ -8882,6 +9241,7 @@ export type Database = {
           archived_by?: string | null
           case_id?: string | null
           causa_morte?: string | null
+          client_id?: string | null
           client_visibility?: string
           created_at?: string
           created_by?: string | null
@@ -8926,6 +9286,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "genealogical_person_profiles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_person_profiles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "genealogical_person_profiles_evidence_id_fkey"
             columns: ["evidence_id"]
             isOneToOne: false
@@ -8962,8 +9336,10 @@ export type Database = {
           archived_by: string | null
           case_id: string | null
           client_visibility: string
+          confidence_level: string
           created_at: string
           created_by: string | null
+          directionality: string
           evidence_id: string | null
           id: string
           internal_notes: string | null
@@ -8975,7 +9351,9 @@ export type Database = {
           relation_date_aproximada: string | null
           relation_type: string
           source_id: string | null
+          status: string
           status_pesquisa: string
+          supporting_evidence_count: number
           updated_at: string
           updated_by: string | null
         }
@@ -8985,8 +9363,10 @@ export type Database = {
           archived_by?: string | null
           case_id?: string | null
           client_visibility?: string
+          confidence_level?: string
           created_at?: string
           created_by?: string | null
+          directionality?: string
           evidence_id?: string | null
           id?: string
           internal_notes?: string | null
@@ -8998,7 +9378,9 @@ export type Database = {
           relation_date_aproximada?: string | null
           relation_type: string
           source_id?: string | null
+          status?: string
           status_pesquisa?: string
+          supporting_evidence_count?: number
           updated_at?: string
           updated_by?: string | null
         }
@@ -9008,8 +9390,10 @@ export type Database = {
           archived_by?: string | null
           case_id?: string | null
           client_visibility?: string
+          confidence_level?: string
           created_at?: string
           created_by?: string | null
+          directionality?: string
           evidence_id?: string | null
           id?: string
           internal_notes?: string | null
@@ -9021,7 +9405,9 @@ export type Database = {
           relation_date_aproximada?: string | null
           relation_type?: string
           source_id?: string | null
+          status?: string
           status_pesquisa?: string
+          supporting_evidence_count?: number
           updated_at?: string
           updated_by?: string | null
         }
@@ -13698,6 +14084,92 @@ export type Database = {
           },
         ]
       }
+      planner_catalog_feed: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          commercial_model: string | null
+          country_scope: string[]
+          created_at: string
+          created_by: string | null
+          id: string
+          item_id: string
+          journey_phase_default: string | null
+          legacy_aliases: string[]
+          name: string
+          organization_id: string
+          prefix: string
+          price_status: string | null
+          product_parent: string | null
+          reconciliation_note: string | null
+          requires_case_gate: boolean
+          source_artifact: string
+          source_version: string
+          status_dictionary: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          commercial_model?: string | null
+          country_scope?: string[]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          item_id: string
+          journey_phase_default?: string | null
+          legacy_aliases?: string[]
+          name: string
+          organization_id: string
+          prefix: string
+          price_status?: string | null
+          product_parent?: string | null
+          reconciliation_note?: string | null
+          requires_case_gate?: boolean
+          source_artifact: string
+          source_version: string
+          status_dictionary: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          commercial_model?: string | null
+          country_scope?: string[]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          item_id?: string
+          journey_phase_default?: string | null
+          legacy_aliases?: string[]
+          name?: string
+          organization_id?: string
+          prefix?: string
+          price_status?: string | null
+          product_parent?: string | null
+          reconciliation_note?: string | null
+          requires_case_gate?: boolean
+          source_artifact?: string
+          source_version?: string
+          status_dictionary?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planner_catalog_feed_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       planner_tarefas: {
         Row: {
           caso_id: string
@@ -14177,6 +14649,86 @@ export type Database = {
             columns: ["source_id"]
             isOneToOne: false
             referencedRelation: "research_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      price_catalog_rescued: {
+        Row: {
+          amount: number | null
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_only: boolean
+          country_code: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          effective_from: string | null
+          effective_to: string | null
+          id: string
+          item_id: string | null
+          notes: string | null
+          organization_id: string
+          phase: string | null
+          price_component: string
+          price_status: string
+          source_date: string | null
+          source_reference: string
+          source_type: string
+        }
+        Insert: {
+          amount?: number | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_only?: boolean
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          item_id?: string | null
+          notes?: string | null
+          organization_id: string
+          phase?: string | null
+          price_component: string
+          price_status: string
+          source_date?: string | null
+          source_reference: string
+          source_type: string
+        }
+        Update: {
+          amount?: number | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_only?: boolean
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          item_id?: string | null
+          notes?: string | null
+          organization_id?: string
+          phase?: string | null
+          price_component?: string
+          price_status?: string
+          source_date?: string | null
+          source_reference?: string
+          source_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_catalog_rescued_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -17311,6 +17863,7 @@ export type Database = {
           id: string
           internal_notes: string | null
           organization_id: string
+          origem: string | null
           previous_version_id: string | null
           proposal_id: string | null
           responsible_user_id: string | null
@@ -17344,6 +17897,7 @@ export type Database = {
           id?: string
           internal_notes?: string | null
           organization_id: string
+          origem?: string | null
           previous_version_id?: string | null
           proposal_id?: string | null
           responsible_user_id?: string | null
@@ -17377,6 +17931,7 @@ export type Database = {
           id?: string
           internal_notes?: string | null
           organization_id?: string
+          origem?: string | null
           previous_version_id?: string | null
           proposal_id?: string | null
           responsible_user_id?: string | null
@@ -18587,8 +19142,11 @@ export type Database = {
           ativo: boolean | null
           cliente_id: string | null
           codigo: string | null
+          composicao: string | null
           created_at: string | null
+          fase_jornada: string | null
           id: string | null
+          onboarding_iniciado_em: string | null
           organization_id: string | null
           pais: string | null
           status: string | null
@@ -18596,36 +19154,6 @@ export type Database = {
           titulo: string | null
           updated_at: string | null
           via: string | null
-        }
-        Insert: {
-          app_access_status?: string | null
-          ativo?: boolean | null
-          cliente_id?: string | null
-          codigo?: string | null
-          created_at?: string | null
-          id?: string | null
-          organization_id?: string | null
-          pais?: string | null
-          status?: string | null
-          suspenso_em?: string | null
-          titulo?: string | null
-          updated_at?: string | null
-          via?: string | null
-        }
-        Update: {
-          app_access_status?: string | null
-          ativo?: boolean | null
-          cliente_id?: string | null
-          codigo?: string | null
-          created_at?: string | null
-          id?: string | null
-          organization_id?: string | null
-          pais?: string | null
-          status?: string | null
-          suspenso_em?: string | null
-          titulo?: string | null
-          updated_at?: string | null
-          via?: string | null
         }
         Relationships: [
           {
@@ -18923,6 +19451,21 @@ export type Database = {
           motivo: string
         }[]
       }
+      case_ativacao_bloqueios_reais: {
+        Args: { _case: string }
+        Returns: {
+          cta_tela: string
+          dominio: string
+          motivo: string
+          regra: string
+          tabela_campo: string
+          valor_atual: string
+        }[]
+      }
+      case_gate_satisfeito_por_dado: {
+        Args: { _case: string; _check_key: string }
+        Returns: boolean
+      }
       caso_saude_cadencia: {
         Args: { _case: string }
         Returns: {
@@ -18966,7 +19509,30 @@ export type Database = {
       contract_pode_financeiro: { Args: { _org: string }; Returns: boolean }
       contract_pode_ler: { Args: { _org: string }; Returns: boolean }
       contract_pode_preparar: { Args: { _org: string }; Returns: boolean }
+      fn_app_projection_compartilhada_com_cliente: {
+        Args: { p_client_id: string; p_projection_id: string }
+        Returns: boolean
+      }
+      fn_app_projection_org_bate: {
+        Args: { p_organization_id: string; p_projection_id: string }
+        Returns: boolean
+      }
+      fn_decisao_proprietaria_ativa: {
+        Args: {
+          p_entidade: string
+          p_entidade_id: string
+          p_janela?: string
+          p_org: string
+        }
+        Returns: boolean
+      }
+      fn_eh_proprietaria_ativa: { Args: { p_org: string }; Returns: boolean }
       fn_linguagem_proibida: { Args: { _txt: string }; Returns: string }
+      fn_proprietaria_operando: { Args: never; Returns: boolean }
+      fn_sou_titular_app_projection: {
+        Args: { p_projection_id: string }
+        Returns: boolean
+      }
       fn_validar_uso_template: {
         Args: {
           _actor_id?: string
@@ -19014,6 +19580,27 @@ export type Database = {
         Returns: Database["public"]["Enums"]["portal_access_level"]
       }
       portal_minha_org: { Args: never; Returns: string }
+      proxima_acao_prioritaria: {
+        Args: { _case: string }
+        Returns: {
+          motivo: string
+          nivel: number
+          origem_id: string
+          origem_tabela: string
+          prazo: string
+        }[]
+      }
+      proxima_acao_prioritaria_lote: {
+        Args: { _cases: string[] }
+        Returns: {
+          case_id: string
+          motivo: string
+          nivel: number
+          origem_id: string
+          origem_tabela: string
+          prazo: string
+        }[]
+      }
       quality_relatorio_semanal: {
         Args: { _inicio?: string; _org: string }
         Returns: Json
