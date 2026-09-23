@@ -295,15 +295,17 @@ function TimelineVertical({
 function MomentosDeUniao({ pontes }: { pontes: NoPonte[] }) {
   if (pontes.length === 0) return null;
   return (
-    <div className="my-5 rounded-xl border border-gold/40 bg-linear-to-r from-gold/10 to-navy/5 px-4 py-4 sm:my-0 sm:self-center">
+    <div className="relative rounded-2xl border border-gold/45 bg-linear-to-r from-gold/12 to-navy/5 px-4 py-4">
+      <span className="mx-auto mb-2 block h-5 w-px bg-gold/50 sm:hidden" aria-hidden="true" />
       <p className="text-[10px] font-semibold uppercase tracking-widest text-navy/60">Momentos de União</p>
-      <ul className="mt-1 space-y-1">
+      <ul className="mt-1.5 space-y-1.5">
         {pontes.map((p, i) => (
-          <li key={i} className="text-xs text-navy/70">
+          <li key={i} className="text-xs leading-relaxed text-navy/75">
             {p.texto}
           </li>
         ))}
       </ul>
+      <span className="mx-auto mt-2 block h-5 w-px bg-navy/25 sm:hidden" aria-hidden="true" />
     </div>
   );
 }
