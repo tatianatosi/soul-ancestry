@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { listarRegistros } from "@/lib/saas.functions";
 import { papelDoRegistro } from "@/lib/caso-ficha";
@@ -77,8 +77,15 @@ function paraPontosDoKit(casos: readonly CasoPosicionado[]): PontoMatrizPriorida
  * Liga a matriz aos casos reais.
  *
  * Alimenta o motor com os MESMOS campos que a lista de Casos 360 já usa, para
- * a matriz e a coluna de prioridade nunca discordarem. Registro demonstrativo
- * entra classificado como tal, e o motor decide o que fazer com isso.
+ * a matriz e a coluna de prioridade nunca discordarem.
+ *
+ * BUG-MATRIZ-DEMO-VAZA (2026-09-23): `posicionar()` já calcula `origemNaoReal`
+ * internamente (via `calcularPrioridade`), mas `CasoPosicionado` nunca expôs
+ * esse campo — então nenhum caso demo era excluído da matriz, violando a
+ * regra do projeto ("registros com selo DEMO nunca entram em indicadores").
+ * Corrigido filtrando ANTES de chamar `posicionar`, com o mesmo padrão de
+ * checkbox "Incluir demonstrações" já usado em financeiro.tsx — oculto por
+ * padrão, nunca escondido silenciosamente sem explicar.
  */
 export function MatrizPrioridadesConectada({
   casoSelecionado,
@@ -93,9 +100,15 @@ export function MatrizPrioridadesConectada({
     queryFn: () => carregar({ data: { entidade: "crm_casos", incluirArquivados: false } }),
     retry: false,
   });
+  const [incluirDemos, setIncluirDemos] = useState(false);
+
+  const linhasTodas = (q.data ?? []) as Record<string, unknown>[];
+  const linhasDemo = linhasTodas.filter((l) => papelDoRegistro(l).valor === "demo").length;
 
   const casos = useMemo(() => {
-    const linhas = (q.data ?? []) as Record<string, unknown>[];
+    const linhas = incluirDemos
+      ? linhasTodas
+      : linhasTodas.filter((l) => papelDoRegistro(l).valor !== "demo");
     return linhas.map((l) =>
       posicionar({
         tipo: "caso",
@@ -109,7 +122,7 @@ export function MatrizPrioridadesConectada({
         origem: papelDoRegistro(l).valor === "demo" ? "demo" : "real",
       }),
     );
-  }, [q.data]);
+  }, [linhasTodas, incluirDemos]);
 
   if (q.isLoading) return <p className="text-sm text-navy/50">Carregando matriz de prioridades…</p>;
   if (q.isError) {
@@ -129,6 +142,18 @@ export function MatrizPrioridadesConectada({
 
   return (
     <div className="space-y-6">
+      {linhasDemo > 0 ? (
+        <label className="flex items-center gap-2 text-xs text-navy/60" data-matriz-toggle-demo>
+          <input
+            type="checkbox"
+            checked={incluirDemos}
+            onChange={(e) => setIncluirDemos(e.target.checked)}
+            className="h-3.5 w-3.5 accent-navy"
+          />
+          Incluir demonstrações ({linhasDemo} oculta{linhasDemo === 1 ? "" : "s"} por padrão; nunca entram em
+          indicadores/contagem sem esta marcação)
+        </label>
+      ) : null}
       <div
         className="flex flex-wrap items-center gap-2 rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-xs text-navy/70"
         data-radar-legenda-ordem
