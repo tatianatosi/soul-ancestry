@@ -213,68 +213,86 @@ function corDoNo(no: NoEvento, ultimo: boolean): string {
   return ultimo ? "var(--navy)" : "var(--navy-800)";
 }
 
-function TimelineVertical({ nos }: { nos: No[] }) {
-  const paradas = nos
-    .map((no, i) => ({ no, i }))
-    .filter((x): x is { no: NoEvento; i: number } => x.no.tipo === "evento")
-    .map(({ no, i }) => {
-      const pct = nos.length > 1 ? (i / (nos.length - 1)) * 100 : 0;
-      return `${corDoNo(no, i === nos.length - 1)} ${pct}%`;
-    });
+/**
+ * Uma coluna da timeline (só eventos, sem ponte — a ponte agora é o
+ * conector "MOMENTOS DE UNIÃO" entre as duas colunas, não um item
+ * misturado na mesma lista).
+ */
+function TimelineVertical({ eventos, eyebrow }: { eventos: NoEvento[]; eyebrow: string }) {
+  const paradas = eventos.map((no, i) => {
+    const pct = eventos.length > 1 ? (i / (eventos.length - 1)) * 100 : 0;
+    return `${corDoNo(no, i === eventos.length - 1)} ${pct}%`;
+  });
   const gradiente = `linear-gradient(to bottom, ${paradas.join(", ")})`;
 
   return (
-    <div className="relative mx-auto max-w-[820px]">
-      {/* Linha única contínua por trás dos marcadores — sem segmentos soltos. */}
-      <div className="absolute inset-y-0 left-0 w-0.5 rounded-full" style={{ background: gradiente }} aria-hidden="true" />
-      <ol className="relative">
-      {nos.map((no, i) =>
-        no.tipo === "ponte" ? (
-          <li key={`ponte-${i}`} className="relative py-3 pl-5">
-            <span
-              className="absolute -left-[7px] top-4 h-3.5 w-3.5 rounded-full border-2 border-navy-800 bg-gold"
-              aria-hidden="true"
-            />
-            <p className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gradient-to-r from-gold/15 to-navy/10 px-3 py-1 text-[11px] font-semibold text-navy">
-              União de Ramos
-            </p>
-            <p className="mt-1 text-xs text-navy/70">{no.texto}</p>
-          </li>
-        ) : (
-          <li key={no.id} className="relative py-4 pl-5 last:pb-0 lg:py-6">
-            <span
-              className={cn(
-                "absolute -left-[5px] top-5 h-2.5 w-2.5 rounded-full",
-                no.categoria === "gold" && "bg-gold",
-                no.categoria === "gold-soft" && "bg-gold/50",
-                no.categoria === "navy" && (no.id === "__agora__" ? "bg-navy" : "bg-navy-800"),
-              )}
-              aria-hidden="true"
-            />
-            <p
-              className={cn(
-                "text-[10px] font-medium uppercase tracking-wide",
-                no.categoria === "navy" ? "text-navy/60" : "text-gold",
-              )}
-            >
-              {no.rotuloCategoria}
-              {no.dataPrincipal ? ` · ${no.dataPrincipal}` : ""}
-            </p>
-            <p className="text-sm font-medium text-navy">{no.titulo}</p>
-            <p className="mt-0.5 text-sm text-navy/70">{no.conteudo}</p>
-            {no.dataSecundaria ? <p className="mt-0.5 text-[10px] text-navy/40">{no.dataSecundaria}</p> : null}
-            {no.destino ? (
-              <LinkPortal
-                to={no.destino}
-                className="mt-1 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
-              >
-                {no.rotuloCta ?? "Ver próxima ação"}
-              </LinkPortal>
-            ) : null}
-          </li>
-        ),
+    <div className="min-w-0">
+      <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-navy/50">{eyebrow}</p>
+      {eventos.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-navy/15 bg-cream/50 px-3 py-4 text-center text-xs text-navy/50">
+          Nada publicado nesta linha ainda.
+        </p>
+      ) : (
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 w-0.5 rounded-full" style={{ background: gradiente }} aria-hidden="true" />
+          <ol className="relative">
+            {eventos.map((no, i) => (
+              <li key={no.id} className="relative py-4 pl-5 last:pb-0 lg:py-6">
+                <span
+                  className={cn(
+                    "absolute -left-[5px] top-5 h-2.5 w-2.5 rounded-full",
+                    no.categoria === "gold" && "bg-gold",
+                    no.categoria === "gold-soft" && "bg-gold/50",
+                    no.categoria === "navy" && (no.id === "__agora__" ? "bg-navy" : "bg-navy-800"),
+                  )}
+                  aria-hidden="true"
+                />
+                <p
+                  className={cn(
+                    "text-[10px] font-medium uppercase tracking-wide",
+                    no.categoria === "navy" ? "text-navy/60" : "text-gold",
+                  )}
+                >
+                  {no.rotuloCategoria}
+                  {no.dataPrincipal ? ` · ${no.dataPrincipal}` : ""}
+                </p>
+                <p className="text-sm font-medium text-navy">{no.titulo}</p>
+                <p className="mt-0.5 text-sm text-navy/70">{no.conteudo}</p>
+                {no.dataSecundaria ? <p className="mt-0.5 text-[10px] text-navy/40">{no.dataSecundaria}</p> : null}
+                {no.destino ? (
+                  <LinkPortal
+                    to={no.destino}
+                    className="mt-1 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
+                  >
+                    {no.rotuloCta ?? "Ver próxima ação"}
+                  </LinkPortal>
+                ) : null}
+              </li>
+            ))}
+          </ol>
+        </div>
       )}
-      </ol>
+    </div>
+  );
+}
+
+/**
+ * "MOMENTOS DE UNIÃO" (mockup 2/7) — conector explícito entre LINHA
+ * ANCESTRAL e LINHA DO PROCESSO, em vez de um item misturado na mesma
+ * lista (era o nó tipo "ponte" antes desta composição em duas colunas).
+ */
+function MomentosDeUniao({ pontes }: { pontes: NoPonte[] }) {
+  if (pontes.length === 0) return null;
+  return (
+    <div className="my-4 rounded-xl border border-gold/40 bg-gradient-to-r from-gold/10 to-navy/5 px-4 py-3 sm:my-0 sm:self-center">
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-navy/60">Momentos de União</p>
+      <ul className="mt-1 space-y-1">
+        {pontes.map((p, i) => (
+          <li key={i} className="text-xs text-navy/70">
+            {p.texto}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -386,6 +404,24 @@ export function PortalJornada() {
               rotuloCta: destino?.includes("documentos") ? "Ver documentos solicitados" : "Ver próxima ação",
             });
 
+            /*
+              A2-JORNADA-DUAS-LINHAS (2026-09-23): mockup 2/7 mostra duas
+              colunas paralelas — LINHA ANCESTRAL (história, dourado) ×
+              LINHA DO PROCESSO (presente, navy) — com "MOMENTOS DE UNIÃO"
+              como conector explícito entre as duas, não um item misturado
+              na mesma lista cronológica única. A classificação por
+              categoria (gold/gold-soft = história, navy = processo) já
+              existia em `noRealDeItem`/`noDemoDeItem`; aqui só se separa
+              o array único em três, sem recalcular nada.
+            */
+            const linhaAncestral = nos.filter(
+              (n): n is NoEvento => n.tipo === "evento" && n.categoria !== "navy",
+            );
+            const linhaProcesso = nos.filter(
+              (n): n is NoEvento => n.tipo === "evento" && n.categoria === "navy",
+            );
+            const pontes = nos.filter((n): n is NoPonte => n.tipo === "ponte");
+
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-4 pb-6 lg:pb-0" data-aba-jornada>
@@ -418,7 +454,13 @@ export function PortalJornada() {
                       {COPY_TELAS.jornada.vazio}
                     </p>
                   ) : (
-                    <TimelineVertical nos={nos} />
+                    <div data-jornada-duas-linhas>
+                      <MomentosDeUniao pontes={pontes} />
+                      <div className="grid gap-6 sm:grid-cols-2">
+                        <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" />
+                        <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" />
+                      </div>
+                    </div>
                   )}
 
                   {(abreJornada(entrega.visibilidade) ||
