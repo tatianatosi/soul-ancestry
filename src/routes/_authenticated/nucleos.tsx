@@ -82,6 +82,7 @@ type Nucleo = {
   } | null;
   filaDrive: { id: string; status: string; stage_trigger: string; observacao_interna: string | null } | null;
   membros: Membro[];
+  coberturaGeracoes: { rotulo: string; valor: number }[];
 };
 
 type Rascunho = {
@@ -593,6 +594,26 @@ function NucleosPage() {
                               ) : null}
                             </div>
                           ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                <div className="mt-3" data-nucleo-cobertura-geracoes>
+                  <p className="text-[11px] uppercase tracking-wide text-navy/45">Cobertura por geração</p>
+                  {n.coberturaGeracoes.length === 0 || n.coberturaGeracoes.every((g) => g.valor === 0) ? (
+                    <p className="text-xs text-navy/50">
+                      Nenhum parentesco (pai/mãe) gravado neste caso ainda — a cobertura não é estimada.
+                    </p>
+                  ) : (
+                    <ul className="mt-1 flex flex-wrap gap-2">
+                      {n.coberturaGeracoes.map((g) => (
+                        <li
+                          key={g.rotulo}
+                          className="rounded-md border border-navy/12 bg-cream/25 px-2 py-1 text-xs text-navy/70"
+                        >
+                          {g.rotulo}: {g.valor}
                         </li>
                       ))}
                     </ul>

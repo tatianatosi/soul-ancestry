@@ -9,6 +9,8 @@ import {
   type StatusFilaDrive,
 } from "@/lib/drive-provisioning";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
+import { coberturaPorGeracao } from "@/lib/golive-pessoas";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -84,10 +86,40 @@ export const listarNucleos = createServerFn({ method: "GET" })
       if (!porFila.has(f.family_id)) porFila.set(f.family_id, f);
     }
 
+    /*
+      §21 do De-Para (Pessoas & Famílias, "gerações reais") — achado real:
+      case_members.pai_id/mae_id (migration 20260816201830) já grava
+      parentesco administrativo do caso, e coberturaPorGeracao
+      (golive-pessoas.ts) já sabe contar G1-G5 a partir daí. Não é dado de
+      pesquisa nem estimativa: quando o caso não tem pai_id/mae_id gravado
+      (ou já migrou para Núcleos, que não tem esse conceito), a cobertura
+      fica vazia — nunca inventada.
+    */
+    const membrosPorCaso = await Promise.all(
+      caseIds.map(async (caseId) => {
+        const membros = await pessoasDoCasoComFallbackNucleo(supabase, String(caseId));
+        return [
+          caseId,
+          membros.map((m) => ({
+            id: m.id,
+            paiId: m.pai_id,
+            maeId: m.mae_id,
+            titular: m.titular,
+            requerente: m.requerente,
+            contratante: m.contratante,
+          })),
+        ] as const;
+      }),
+    );
+    const coberturaPorCaso = new Map(
+      membrosPorCaso.map(([caseId, membros]) => [caseId, coberturaPorGeracao(membros)]),
+    );
+
     return (nucleos ?? []).map((n: any) => ({
       ...n,
       caso: n.case_id ? (porCaso.get(n.case_id) ?? null) : null,
       filaDrive: porFila.get(n.id) ?? null,
+      coberturaGeracoes: n.case_id ? (coberturaPorCaso.get(n.case_id) ?? []) : [],
       membros: (membros ?? []).filter((m: any) => m.nucleo_id === n.id),
     }));
   });

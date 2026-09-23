@@ -115,7 +115,9 @@ export function pessoasDoNucleo(
 }
 
 /** Pessoa principal do caso: titular/requerente/contratante já marcados. */
-export function pessoaPrincipalDoCaso(pessoas: readonly PessoaCaso[]): PessoaCaso | null {
+export function pessoaPrincipalDoCaso<
+  T extends Pick<PessoaCaso, "titular" | "requerente" | "contratante">,
+>(pessoas: readonly T[]): T | null {
   return (
     pessoas.find((p) => p.titular) ??
     pessoas.find((p) => p.requerente) ??
@@ -215,16 +217,18 @@ export function relacoesAprovadas(
  * Cobertura por geração G1–G5, contada a partir da pessoa principal pelas
  * arestas pai/mãe gravadas. Quem não tem caminho declarado não entra.
  */
-export function coberturaPorGeracao(pessoas: readonly PessoaCaso[]): { rotulo: string; valor: number }[] {
+export function coberturaPorGeracao<
+  T extends Pick<PessoaCaso, "id" | "paiId" | "maeId" | "titular" | "requerente" | "contratante">,
+>(pessoas: readonly T[]): { rotulo: string; valor: number }[] {
   const raiz = pessoaPrincipalDoCaso(pessoas);
   if (!raiz) return [];
   const porId = new Map(pessoas.map((p) => [p.id, p]));
   const contagem = [0, 0, 0, 0, 0];
   const visto = new Set<string>();
-  let nivel: PessoaCaso[] = [raiz];
+  let nivel: T[] = [raiz];
 
   for (let g = 0; g < 5 && nivel.length; g++) {
-    const proximo: PessoaCaso[] = [];
+    const proximo: T[] = [];
     for (const p of nivel) {
       if (visto.has(p.id)) continue;
       visto.add(p.id);
