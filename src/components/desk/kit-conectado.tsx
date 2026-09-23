@@ -115,8 +115,8 @@ export function ResumoKitCaso({ caseId }: { caseId: string }) {
       {ficha.bloqueiosReais.length ? (
         <KitCard title="Bloqueios reais do caso" eyebrow="Fonte canônica">
           <ul className="space-y-2 text-sm text-navy/80">
-            {ficha.bloqueiosReais.map((b) => (
-              <li key={`${b.regra}-${b.tabela_campo}`} className="border-t border-navy/10 pt-2 first:border-0 first:pt-0">
+            {ficha.bloqueiosReais.map((b, index) => (
+              <li key={`${b.regra}-${b.tabela_campo}-${index}`} className="border-t border-navy/10 pt-2 first:border-0 first:pt-0">
                 <strong className="text-navy">{b.motivo}</strong>
                 <span className="block text-xs text-navy/55">{b.dominio}</span>
               </li>

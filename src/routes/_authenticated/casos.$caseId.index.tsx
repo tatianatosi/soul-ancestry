@@ -1010,11 +1010,13 @@ function FichaCaso() {
             <p className="mt-1 text-xs text-navy/60">{sugestoes[0].titulo}</p>
           ) : null}
         </a>
-        <a href="#secao-pessoas" className="rounded-xl border border-navy/10 bg-cream/50 p-4 hover:border-gold/60">
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Pessoas/família</p>
-          <p className="mt-1 text-sm font-medium text-navy">
-            {(q.data?.membros ?? []).length} pessoa(s) no caso
-          </p>
+        <div className="rounded-xl border border-navy/10 bg-cream/50 p-4 hover:border-gold/60">
+          <a href="#secao-pessoas" className="block rounded-sm focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold">
+            <p className="text-[11px] uppercase tracking-wide text-navy/50">Pessoas/família</p>
+            <p className="mt-1 text-sm font-medium text-navy">
+              {(q.data?.membros ?? []).length} pessoa(s) no caso
+            </p>
+          </a>
           <VinculoNucleo
             caseId={String(caso["id"])}
             codigoCaso={(caso["codigo"] as string | null) ?? null}
@@ -1022,7 +1024,7 @@ function FichaCaso() {
             finalidade={(caso["finalidade_registro"] as string | null) ?? null}
             estadoDerivado={(caso["status_caso_derivado"] as string | null) ?? null}
           />
-        </a>
+        </div>
         <a href="#secao-comercial" className="rounded-xl border border-navy/10 bg-cream/50 p-4 hover:border-gold/60">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Contrato</p>
           <p className="mt-1 text-sm font-medium text-navy">{rotulo(EIXO_COMERCIAL, v("eixo_comercial"))}</p>

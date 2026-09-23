@@ -107,8 +107,8 @@ export function PortalShell({
         empurravam o conteúdo real para baixo da dobra e destoavam do mockup
         3/17, que usa uma só faixa). Logo + "Bem-vinda/nome" no mesmo bloco.
       */}
-      <header className="bg-navy text-cream">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 lg:px-8">
+      <header className="bg-navy text-cream shadow-sm">
+        <div className="mx-auto grid min-h-16 max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 lg:px-8">
           <div className="flex min-w-0 items-center gap-3">
             <BrandLogo size={32} variant="client-dark" showText={false} />
             <div className="min-w-0">
@@ -121,7 +121,7 @@ export function PortalShell({
 
           <button
             onClick={sair}
-            className="flex shrink-0 items-center gap-2 rounded-lg border border-cream/30 px-3 py-1.5 text-xs text-cream transition-colors hover:bg-cream/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy"
+            className="flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-cream/30 px-3 py-2 text-xs text-cream transition-colors hover:bg-cream/10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy"
           >
             <LogOut className="h-3.5 w-3.5" /> {COPY_GERAL.sair}
           </button>
@@ -157,7 +157,7 @@ export function PortalShell({
         <aside className={cn("hidden lg:py-0", nav.length > 0 && "lg:block")}>
           <nav
             aria-label="Navegação do aplicativo do cliente"
-            className="sticky top-0 min-h-[calc(100vh-57px)] rounded-b-2xl bg-navy px-3 py-5"
+            className="sticky top-0 min-h-[calc(100vh-65px)] border-x border-navy/20 bg-navy px-3 py-6 shadow-sm"
           >
             <div className="space-y-1">
             {nav.map(({ to, label, icon: Icon }) => (
@@ -165,8 +165,8 @@ export function PortalShell({
                 key={to}
                 to={to}
                 className={cn(
-                  "flex min-w-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm transition-colors",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
+                  "flex min-h-11 min-w-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm transition-colors",
+                  "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
                   rotaAtiva === to ? "bg-gold font-medium text-navy" : "text-cream/75 hover:bg-cream/10 hover:text-cream",
                 )}
               >
@@ -178,17 +178,19 @@ export function PortalShell({
           </nav>
         </aside>
 
-        <main id="conteudo-portal" className="min-w-0 px-4 pb-24 pt-6 lg:px-0 lg:pb-10">
-          <h1 className={TIPO_CLIENTE.titulo}>{titulo}</h1>
-          {descricao ? <p className={TIPO_CLIENTE.subtitulo}>{descricao}</p> : null}
-          <div className="mt-5">{children}</div>
+        <main id="conteudo-portal" className="min-w-0 px-4 pb-28 pt-7 sm:px-6 lg:px-0 lg:pb-14 lg:pt-10">
+          <header className="border-b border-navy/10 pb-5">
+            <h1 className={TIPO_CLIENTE.titulo}>{titulo}</h1>
+            {descricao ? <p className={`${TIPO_CLIENTE.subtitulo} mt-1 max-w-2xl`}>{descricao}</p> : null}
+          </header>
+          <div className="mt-7">{children}</div>
         </main>
       </div>
 
       {nav.length > 0 ? (
       <nav
         aria-label="Navegação do aplicativo do cliente"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-gold/60 bg-card/95 shadow-[0_-4px_16px_color-mix(in_srgb,var(--navy)_10%,transparent)] backdrop-blur lg:hidden"
       >
         <div
           className="mx-auto grid max-w-lg px-1 pb-[env(safe-area-inset-bottom)]"
@@ -199,9 +201,9 @@ export function PortalShell({
               key={to}
               to={to}
               className={cn(
-                "flex min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 py-2 text-[8px] leading-tight",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
-                rotaAtiva === to ? "font-semibold text-gold" : "text-navy/65",
+                "relative flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[8px] leading-tight",
+                "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
+                rotaAtiva === to ? "bg-gold/10 font-semibold text-navy" : "text-navy/65",
               )}
             >
               <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />

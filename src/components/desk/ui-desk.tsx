@@ -61,9 +61,9 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <div className={cn("mb-6 grid min-w-0 grid-cols-1 items-end gap-3 md:grid-cols-[minmax(0,1fr)_auto]", className)}>
+    <div className={cn("mb-8 grid min-w-0 grid-cols-1 items-end gap-4 border-b border-navy/10 pb-5 md:grid-cols-[minmax(0,1fr)_auto]", className)}>
       <div className="min-w-0">
-        <h2 className="overflow-wrap-anywhere font-serif text-2xl leading-tight text-navy">{titulo}</h2>
+        <h2 className="overflow-wrap-anywhere font-serif text-3xl leading-tight text-navy">{titulo}</h2>
         {subtitulo ? <p className="mt-1 max-w-2xl text-sm text-navy/65">{subtitulo}</p> : null}
       </div>
       {acoes ? <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">{acoes}</div> : null}
