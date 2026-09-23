@@ -69,9 +69,6 @@ function ConfiguracoesPage() {
   return (
     <SaasShell titulo="Configuração & Acesso Master" descricao="Somente administradores da organização. Gestão de contas da equipe fica em Equipe e papéis." visualKit="pantone">
       <GovernancaConectada />
-      <details className="mt-6 rounded-lg border border-navy/15 bg-cream/40 p-4">
-        <summary className="cursor-pointer font-medium text-navy">Abrir gestão de acesso</summary>
-        <div className="mt-5 border-t border-navy/10 pt-5">
       <section aria-label="Resumo de acesso master" className="mb-4 space-y-3">
         <div className="grid gap-3 sm:grid-cols-3">
           <KpiCard label="Membros" value={usuariosOperacionais?.length} detail="Contas operacionais vinculadas" />
@@ -99,6 +96,10 @@ function ConfiguracoesPage() {
         erro={qModo.error}
         aoTentarNovamente={() => void qModo.refetch()}
       />
+
+      <details className="mt-6 rounded-lg border border-navy/15 bg-card p-4">
+        <summary className="cursor-pointer font-medium text-navy">Abrir gestão detalhada de membros e permissões</summary>
+        <div className="mt-5 border-t border-navy/10 pt-5">
 
       {!liberado ? (
         <EstadoVazio mensagem={decisao.motivo} />

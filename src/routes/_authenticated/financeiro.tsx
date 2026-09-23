@@ -81,7 +81,7 @@ function FinanceiroPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [ajuste, setAjuste] = useState({ valor: "" });
   const [conc, setConc] = useState({ data: "", valor: "", referencia: "" });
-  const [realidadeAberta, setRealidadeAberta] = useState(true);
+  const [realidadeAberta, setRealidadeAberta] = useState(false);
   const [incluirDemos, setIncluirDemos] = useState(false);
 
   const recurso = aba === "faturas" ? "invoices" : "payments";
@@ -276,9 +276,10 @@ function FinanceiroPage() {
           crio uma nova consulta org-wide sem fonte já pronta e sem mutation
           nesta rodada. Estado honesto em vez de número inventado.
         */}
-        <CaCard titulo="Obrigações" eyebrow="Financeiro · Custos e fornecedores" data-financeiro-obrigacoes>
-          <EstadoVazio mensagem="Sem agregação por organização ainda: despesas de terceiro (custos, repasse, fornecedor) são lidas por caso, na aba Financeiro do Caso 360 de cada caso — abra um caso para ver as despesas dele." />
-        </CaCard>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <CaCard titulo="Obrigações e parcelas" eyebrow="Financeiro · Custos e fornecedores" data-financeiro-obrigacoes>
+            <EstadoVazio mensagem="Sem agregação por organização ainda: despesas e parcelas continuam disponíveis por caso, sem estimativa nesta leitura." />
+          </CaCard>
 
         {/*
           §19 do De-Para, zona "Gráficos — evolução e composição, com
@@ -288,9 +289,14 @@ function FinanceiroPage() {
           não agregada por mês), um gráfico aqui seria decoração, não dado.
           Estado honesto em vez de forjar uma série temporal.
         */}
-        <CaCard titulo="Evolução" eyebrow="Financeiro · Série mensal" data-financeiro-evolucao>
-          <EstadoVazio mensagem="Sem consulta de série mensal ainda: os totais acima (Resumo do período) são o dado real disponível hoje. Um gráfico de evolução exige uma agregação por mês que ainda não existe — não vou desenhar uma série sem essa fonte." />
-        </CaCard>
+          <CaCard titulo="Recebimentos e reconciliação" eyebrow="Financeiro · Evolução" data-financeiro-evolucao>
+            <EstadoVazio mensagem="Sem série mensal consolidada. Os totais reais permanecem no resumo; nenhum gráfico é desenhado sem fonte." />
+          </CaCard>
+        </div>
+
+        <details className="rounded-lg border border-navy/15 bg-card p-4">
+          <summary className="cursor-pointer text-sm font-medium text-navy">Abrir gestão financeira completa</summary>
+          <div className="mt-5 space-y-4 border-t border-navy/10 pt-5">
 
         <div className="flex gap-2">
           {(["faturas", "pagamentos"] as Aba[]).map((a) => (
@@ -632,6 +638,8 @@ function FinanceiroPage() {
         )
           }
         </EstadoDados>
+          </div>
+        </details>
       </div>
 
       {detalhe ? (
