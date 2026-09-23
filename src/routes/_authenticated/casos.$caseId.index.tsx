@@ -1050,44 +1050,59 @@ function FichaCaso() {
               const dossie = estadoDossieDoCaso(evidencias);
               const pendencias = (c?.pendencias ?? []).filter((p: any) => p.status !== "resolvido" && pendenciaPesquisaAberta(p.status)).length;
               const achados = c?.achados?.length ?? 0;
-              // Micro-donut acessível: três segmentos proporcionais.
+              // Donut acessível: três segmentos proporcionais, com legenda
+              // textual (status nunca só por cor).
               const donut = (() => {
                 if (dossie.total === 0) return null;
-                const c1 = (dossie.confirmados / dossie.total) * 100;
-                const c2 = (dossie.emRevisao / dossie.total) * 100;
-                const c3 = (dossie.pendentes / dossie.total) * 100;
+                const g1 = (dossie.confirmados / dossie.total) * 360;
+                const g2 = g1 + (dossie.emRevisao / dossie.total) * 360;
                 return (
                   <div
                     role="img"
                     aria-label={`Dossiê: ${dossie.confirmados} confirmados, ${dossie.emRevisao} em revisão, ${dossie.pendentes} pendentes`}
-                    className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-navy/10"
+                    className="relative h-24 w-24 shrink-0 rounded-full"
                     data-caso360-dossie-donut
+                    style={{
+                      background: `conic-gradient(var(--color-emerald-600) 0deg ${g1}deg, var(--gold) ${g1}deg ${g2}deg, color-mix(in srgb, var(--terracotta) 70%, transparent) ${g2}deg 360deg)`,
+                    }}
                   >
-                    <div className="flex h-full">
-                      <div className="bg-emerald-600" style={{ width: `${c1}%` }} />
-                      <div className="bg-gold" style={{ width: `${c2}%` }} />
-                      <div className="bg-terracotta/70" style={{ width: `${c3}%` }} />
+                    <div className="absolute inset-[9px] grid place-items-center rounded-full bg-card">
+                      <span className="font-serif text-xl leading-none text-navy">{dossie.total}</span>
+                      <span className="text-[9px] uppercase tracking-wide text-navy/50">evidências</span>
                     </div>
                   </div>
                 );
               })();
               return (
-                <>
-                  <p className="mt-1 text-xs text-navy/70">
-                    <span className="font-semibold text-emerald-700">{dossie.confirmados} confirmados</span>
-                    {" · "}
-                    <span className="font-semibold text-navy/80">{dossie.emRevisao} em revisão</span>
-                    {" · "}
-                    <span className="font-semibold text-terracotta">{dossie.pendentes} pendentes</span>
-                    {" · "}
-                    {achados} achado(s)
-                    {pendencias > 0 ? ` · ${pendencias} pendência(s) de pesquisa` : ""}
-                  </p>
+                <div className="mt-3 flex flex-wrap items-center gap-4">
                   {donut}
-                  <p className="mt-1 text-[10px] text-navy/45">
-                    Soma bate com o dossiê real ({dossie.total} evidência(s) no caso).
-                  </p>
-                </>
+                  <div className="min-w-0 flex-1">
+                    <ul className="space-y-1 text-xs">
+                      <li className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-600" aria-hidden="true" />
+                        <span className="font-semibold text-emerald-700">{dossie.confirmados}</span>
+                        <span className="text-navy/70">confirmados</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-gold" aria-hidden="true" />
+                        <span className="font-semibold text-navy/80">{dossie.emRevisao}</span>
+                        <span className="text-navy/70">em revisão</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-terracotta/70" aria-hidden="true" />
+                        <span className="font-semibold text-terracotta">{dossie.pendentes}</span>
+                        <span className="text-navy/70">pendentes</span>
+                      </li>
+                    </ul>
+                    <p className="mt-1.5 text-[11px] text-navy/60">
+                      {achados} achado(s)
+                      {pendencias > 0 ? ` · ${pendencias} pendência(s) de pesquisa` : ""}
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-navy/45">
+                      Soma bate com o dossiê real ({dossie.total} evidência(s) no caso).
+                    </p>
+                  </div>
+                </div>
               );
             })()
           )}
