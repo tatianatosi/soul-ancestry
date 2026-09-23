@@ -21,7 +21,7 @@ import {
 } from "@/components/clube-ancestral-kit";
 import { carregarSuperficiesKit, type SuperficiesKit } from "@/lib/kit-superficies.functions";
 import { listarLeadsDesk } from "@/lib/crm-desk.functions";
-import { etapaComercialDoLead, porEtapaComercial } from "@/lib/golive-comercial";
+import { etapaComercialDoLead, porEtapaComercial, rotuloEtapaComercial } from "@/lib/golive-comercial";
 
 function Falha({ mensagem }: { mensagem: string }) {
   return (
@@ -134,7 +134,11 @@ function colunasPorEtapaComercial(
     };
     mapa.set(chave, [...(mapa.get(chave) ?? []), item]);
   }
-  return [...mapa.entries()].map(([title, items]) => ({ id: title, title, items }));
+  return [...mapa.entries()].map(([chave, items]) => ({
+    id: chave,
+    title: chave === "Sem etapa registrada" ? chave : rotuloEtapaComercial(chave),
+    items,
+  }));
 }
 
 /**

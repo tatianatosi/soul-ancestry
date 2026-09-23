@@ -12,9 +12,18 @@ const golive = readFileSync("src/lib/golive.functions.ts", "utf8");
 /* ------------------------------------------------- D4 · §12 Comercial */
 
 describe("a etapa comercial tem uma definição só", () => {
-  it("vale o estágio gravado; o eixo é reserva", () => {
-    expect(etapaComercialDoLead({ estagio: "discovery", eixo_comercial: "lead" })).toBe("discovery");
-    expect(etapaComercialDoLead({ eixo_comercial: "lead" })).toBe("lead");
+  /*
+    23/09/2026 — achado real, corrigido: `estagio` tem DEFAULT 'novo' no
+    banco e não está entre os campos editáveis do Desk (CAMPOS_LEAD); só
+    muda via a trilha de handoff ou escritores de piloto/integração.
+    `eixo_comercial` é o campo que /leads e /calls realmente editam todo
+    dia. A prioridade antiga (estagio primeiro) escondia a progressão real
+    da equipe atrás do valor default — corrigida: eixo_comercial primeiro,
+    estagio só como reserva quando o eixo estiver vazio.
+  */
+  it("vale o eixo comercial gravado; o estágio é reserva", () => {
+    expect(etapaComercialDoLead({ estagio: "discovery", eixo_comercial: "lead" })).toBe("lead");
+    expect(etapaComercialDoLead({ estagio: "discovery" })).toBe("discovery");
   });
 
   it("vazio e espaço em branco não viram etapa", () => {

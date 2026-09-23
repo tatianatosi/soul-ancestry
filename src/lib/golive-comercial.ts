@@ -6,7 +6,8 @@
  * filtram por texto livre: a exclusão de registros de teste acontece na
  * leitura, por sinalizador do próprio registro.
  */
-import { dataHumana } from "@/lib/rotulos-golive";
+import { dataHumana, humano } from "@/lib/rotulos-golive";
+import { EIXO_COMERCIAL } from "@/lib/crm-desk";
 
 export type LeadComercial = {
   id: string;
@@ -97,7 +98,7 @@ export function porEtapaComercial(
     contagem.set(chave, (contagem.get(chave) ?? 0) + 1);
   }
   return [...contagem.entries()]
-    .map(([label, value]) => ({ label, value }))
+    .map(([chave, value]) => ({ label: chave === "Sem etapa registrada" ? chave : rotuloEtapaComercial(chave), value }))
     .sort((a, b) => b.value - a.value);
 }
 
@@ -447,17 +448,30 @@ export function agendaDoLead(lead: LeadComercial | null, agora = new Date()): Ag
 /**
  * A etapa comercial de uma linha crua de `leads`, como o Desk a lê.
  *
- * 22/09/2026: extraída de `golive.functions.ts`, onde vivia inline dentro do
- * normalizador de `leadsComerciais`. Duas superfícies precisam da mesma
- * definição — o funil do /golive/comercial e o pipeline do Comercial/CRM Vivo
- * (§12 do De-Para) — e duas cópias divergiriam no primeiro ajuste. A regra é a
- * que já estava lá: vale a etapa gravada pela máquina de estados do lead
- * (`estagio`); o eixo comercial é só reserva.
+ * 22/09/2026: extraída de `golive.functions.ts`. 23/09/2026 — achado real,
+ * corrigido: a prioridade antiga (`estagio` primeiro, `eixo_comercial` só
+ * como reserva) fazia o funil e o pipeline mostrarem quase todo lead ativo
+ * bunched em "novo" — `estagio` tem `DEFAULT 'novo'` e **não está** na lista
+ * de campos editáveis do Desk (`CAMPOS_LEAD`, crm-desk.functions.ts); só
+ * muda via a trilha de handoff (`handoff-discovery.functions.ts`, que o
+ * empurra até "ganho" na conversão) ou escritores de pilotos/integrações.
+ * `eixo_comercial` é o campo que `/leads` e `/calls` realmente editam (12
+ * valores reais — ver `EIXO_COMERCIAL`, crm-desk.ts — que batem com a
+ * progressão do §12: novo lead → discovery → diagnóstico → proposta →
+ * negociação). Prioridade corrigida: `eixo_comercial` primeiro; `estagio`
+ * só quando o eixo estiver vazio (lead muito antigo, sem eixo gravado).
  */
 export function etapaComercialDoLead(linha: Record<string, unknown>): string | null {
-  const estagio = linha["estagio"];
-  if (typeof estagio === "string" && estagio.trim()) return estagio;
   const eixo = linha["eixo_comercial"];
   if (typeof eixo === "string" && eixo.trim()) return eixo;
+  const estagio = linha["estagio"];
+  if (typeof estagio === "string" && estagio.trim()) return estagio;
   return null;
+}
+
+const ROTULO_EIXO_COMERCIAL = new Map(EIXO_COMERCIAL.map((o) => [o.valor, o.rotulo]));
+
+/** Rótulo legível da etapa comercial — vocabulário fechado primeiro, humanização genérica só de reserva. */
+export function rotuloEtapaComercial(chave: string): string {
+  return ROTULO_EIXO_COMERCIAL.get(chave) ?? humano(chave, chave);
 }

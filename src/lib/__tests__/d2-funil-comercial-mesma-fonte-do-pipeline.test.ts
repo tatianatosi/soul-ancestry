@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 
 import { describe, it, expect } from "vitest";
 
-import { porEtapaComercial, etapaComercialDoLead } from "@/lib/golive-comercial";
+import { porEtapaComercial, etapaComercialDoLead, rotuloEtapaComercial } from "@/lib/golive-comercial";
 
 /**
  * D2 Comercial/CRM Vivo (§12) — achado real: o funil da superfície vinha de
@@ -15,7 +15,7 @@ import { porEtapaComercial, etapaComercialDoLead } from "@/lib/golive-comercial"
  * alimentam o pipeline, para que os dois nunca divirjam.
  */
 describe("porEtapaComercial — função pura", () => {
-  it("agrupa leads pela mesma etapa que o pipeline usa (estagio > eixo_comercial > sem etapa)", () => {
+  it("agrupa leads pela mesma etapa que o pipeline usa", () => {
     const leads = [
       { estagio: "Discovery" },
       { estagio: "Discovery" },
@@ -65,6 +65,7 @@ describe("D2 · ComercialConectado usa a mesma fonte para funil e pipeline", () 
   });
 
   it("importa porEtapaComercial do módulo canônico de leads", () => {
-    expect(arquivo).toMatch(/import \{ etapaComercialDoLead, porEtapaComercial \} from "@\/lib\/golive-comercial"/);
+    expect(arquivo).toMatch(/from "@\/lib\/golive-comercial"/);
+    expect(arquivo).toContain("porEtapaComercial");
   });
 });
