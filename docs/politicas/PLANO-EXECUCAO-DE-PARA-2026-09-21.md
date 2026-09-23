@@ -13,12 +13,34 @@ que não autoriza redesenhar navegação, inventar número nem criar terceira
 interpretação. Divergência entre mockup, De-Para e dado real se **registra**,
 não se resolve por conta própria.
 
+### Correção de rumo — 23/09/2026 (autorização explícita da Proprietária)
+
+Três fatos corrigidos neste documento, por instrução direta:
+
+1. **A2 Jornada já tem as duas colunas paralelas** (LINHA ANCESTRAL × LINHA
+   DO PROCESSO, com "Momentos de União"), commit `435f8c74`. A linha
+   "Jornada — linha do processo" na tabela de divergências abaixo descrevia
+   um estado anterior (linha única de 8 fases) — **não reimplementar**; ver
+   correção na própria linha.
+2. **Auditoria jurídica não é reaberta**: contratos vigentes e os 8 temas
+   jurídicos aprovados (migration `20260909001500_popula_regras_juridicas_pdf_marcos_juridicos.sql`,
+   reconstruída/reaplicada em 23/09) estão fechados. D11 (Jurídico &
+   Contrato) é tratado como publicado nesta revisão — não é escopo de novo
+   corte sem autorização específica e nova.
+3. **A numeração D8/D9/D10/D11 (e qualquer Dn neste ou em outro documento)
+   nunca é fonte de verdade.** Ela é só índice de leitura desta tabela —
+   documentos diferentes desta mesma sessão já numeraram o mesmo módulo com
+   números diferentes (ex.: "Financeiro" apareceu como D9 em um relatório e
+   D10 aqui; "Pessoas & Famílias" apareceu como D10 em um e D12 aqui). Onde
+   a numeração conflitar com o **nome do módulo** ou a **rota real**, o nome
+   e a rota vencem, sempre.
+
 ## Divergências registradas nesta rodada
 
 | Onde | Mockup 17p | De-Para | Dado real | O que foi feito |
 |---|---|---|---|---|
 | Home — progresso | "Progresso da jornada 65%" + stepper de 5 (Diagnóstico→Pesquisa→Reconstrução→Validação→Entrega) | §3 linha 2: barra de progresso + nome da etapa; "o que fica oculto": veda percentual inferido | 8 fases no CHECK `case_plans_fase_chk` | Barra preenchida pela posição real; valor à direita é "Etapa N de 8", não percentual. Nenhum de-para 8→5 foi inventado |
-| Jornada — linha do processo | duas colunas: LINHA ANCESTRAL × LINHA DO PROCESSO (Kickoff→Requerimento final) | §4 linha 2: linha horizontal de 4 (Início, Pesquisa, Conferência, Entrega) | as mesmas 8 fases | Linha usa as 8 fases com rótulo de cliente; demo mantém o roteiro editorial dela |
+| Jornada — linha do processo | duas colunas: LINHA ANCESTRAL × LINHA DO PROCESSO (Kickoff→Requerimento final) | §4 linha 2: linha horizontal de 4 (Início, Pesquisa, Conferência, Entrega) | as mesmas 8 fases | **Corrigido em 23/09 (`435f8c74`)**: o mockup visual vence o texto do §4 — duas colunas paralelas reais (histórico × processo), "Momentos de União" como conector. Não é mais linha única; não reabrir |
 | Hoje — Decisões do dia | 6 (demonstrativo) | §11 linha 2: contagem clicável e reconciliada; linha 3 exemplifica 4 decisões | `filaDeAprovacoes` classifica achado/proposta/contrato | Número = pendentes da fila; card "Decisões prioritárias" lista os mesmos itens |
 
 ### Dívida declarada, não escondida
@@ -48,7 +70,7 @@ não se resolve por conta própria.
 | A4 | Árvore — G1–G5, teto 31 | **Publicado**; estrutura G1–G5 presente, sem inventar pessoas | — |
 | A5 | Radar — 6 dimensões com percentual | **Publicado**; o cálculo por dimensão já existia (`rotuloNumero`), e a frase "Desk usa 4 eixos" saiu do DOM do cliente | `3dde5575` |
 | A6 | Home — etapa atual e barra de progresso | **Publicado** — destravado pela extensão autorizada de `portal_casos` | `3ba7a0ca` |
-| A7 | Jornada — linha do processo com etapa ativa | **Publicado** no mesmo corte | `3ba7a0ca` |
+| A7 | Jornada — linha do processo com etapa ativa | **Publicado**; substituído por duas colunas paralelas (Ancestral × Processo) por correção de rumo direta da Proprietária, 23/09 | `3ba7a0ca` → `435f8c74` |
 
 **Composição do caso** (individual / casal / núcleo familiar) entrou na Home
 com A6: `case_plans.composicao` chega sanitizado como "Caso individual" /
@@ -63,17 +85,17 @@ Nenhum destes cria aba. São views dentro de `GRUPOS_DESK`.
 |---|---|---|---|---|
 | D1 | Hoje — 4 KPIs clicáveis | `/painel` | §11 | **Publicado** (`3dde5575`) |
 | D2 | Hoje — Decisões do dia + Decisões prioritárias | `/painel` → `/golive/aprovacoes` | §11 linhas 2-3 | **Publicado** (`0b606d16`) |
-| D3 | Hoje — cadência, funil, alertas, ritmo, prioridades | `/painel` | §11 linhas 5-11 | A executar |
-| D4 | Comercial / CRM Vivo | `/calls`, `/leads` | §12 | A executar |
-| D5 | Kanban operacional | `/ops` | §13 | A executar |
-| D6 | Caso 360 | `/casos/$caseId` | §14 | Parcial — Estado Integrado publicado |
-| D7 | Pessoas 360 | `/pessoas/$clienteId` | §15 | A executar |
-| D8 | Radar & Matrizes — 4 eixos internos | `/qualidade` | §16 | A executar |
-| D9 | Pesquisa + Biblioteca Mestre | `/pesquisa-modulo`, `/biblioteca` | §17-18 | A executar |
-| D10 | Financeiro | `/financeiro` | §19 | A executar |
-| D11 | Jurídico & Contrato | `/contratos`, `/matriz-juridica` | §20 | A executar |
-| D12 | Pessoas & Famílias | `/nucleos` | §21 | A executar |
-| D13 | Portal interno + Configuração/Acesso | `/acessos-portal`, `/configuracoes` | §22-23 | A executar |
+| D3 | Hoje — cadência, funil, alertas, ritmo, prioridades | `/painel` | §11 linhas 5-11 | **Publicado** (`270e16f0`) |
+| D4 | Comercial / CRM Vivo | `/calls`, `/leads` | §12 | **Publicado** (`666eef36`, `3f812483`) |
+| D5 | Kanban operacional | `/ops` | §13 | **Publicado** (`82ffdaf9`) |
+| D6 | Caso 360 | `/casos/$caseId` | §14 | **Publicado** — Estado Integrado + Cadência (`784002a1`) |
+| D7 | Pessoas 360 | `/pessoas/$clienteId` | §15 | **Publicado** (`44df0a4b`) |
+| D8 | Radar & Matrizes — 4 eixos internos | `/qualidade` | §16 | **Publicado** — rename (`d997c80b`) + Lista de situação (`784002a1`) |
+| D9 | Pesquisa + Biblioteca Mestre | `/pesquisa-modulo`, `/biblioteca` | §17-18 | **Publicado** (`e21d09b9`, `9280aa09`) |
+| D10 | Financeiro | `/financeiro` | §19 | **Publicado** (23/09) — Resumo do período, Obrigações e Evolução com EstadoVazio honesto onde a fonte não sustenta |
+| D11 | Jurídico & Contrato | `/contratos`, `/matriz-juridica` | §20 | **Publicado** (batches 17-20) — contratos vigentes e 8 temas jurídicos aprovados; **não reabrir auditoria jurídica** |
+| D12 | Pessoas & Famílias | `/nucleos` | §21 | **Publicado** (`22a4d7bd`) |
+| D13 | Portal interno + Configuração/Acesso | `/acessos-portal`, `/configuracoes` | §22-23 | **Publicado** — Fila editorial em Portal interno (`784002a1`) + as 5 zonas de Configuração & Acesso em `/equipe` (23/09) |
 
 **Os dois radares não se misturam**: Desk usa 4 eixos internos (prioridade,
 urgência, elegibilidade, sinais); App usa 6 dimensões públicas. §16 e o kit
