@@ -1066,9 +1066,9 @@ function FichaCaso() {
                       background: `conic-gradient(var(--color-emerald-600) 0deg ${g1}deg, var(--gold) ${g1}deg ${g2}deg, color-mix(in srgb, var(--terracotta) 70%, transparent) ${g2}deg 360deg)`,
                     }}
                   >
-                    <div className="absolute inset-[8px] grid place-items-center rounded-full bg-card">
+                    <div className="absolute inset-[9px] grid place-items-center rounded-full bg-card text-center">
                       <span className="font-serif text-lg leading-none text-navy">{dossie.total}</span>
-                      <span className="text-[9px] uppercase tracking-wide text-navy/50">evidências</span>
+                      <span className="text-[8px] uppercase leading-none tracking-wide text-navy/50">evid.</span>
                     </div>
                   </div>
                 );
