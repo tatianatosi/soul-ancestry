@@ -798,13 +798,28 @@ function FichaCaso() {
             <p className="text-[11px] uppercase tracking-wide text-navy/55">Motivo</p>
             <p className="mt-0.5 text-sm text-navy/85">{derivado.motivo}</p>
           </div>
-          <div>
+          <div data-caso360-impacto>
             <p className="text-[11px] uppercase tracking-wide text-navy/55">Impacto</p>
             <p className="mt-0.5 text-sm text-navy/85">
               {bloqueiosReais.length === 0
                 ? "Nenhum bloqueio real — elegível para ativação"
                 : `Ativação bloqueada — ${bloqueiosReais.length} pendência(s), primeiro: ${bloqueiosReais[0]?.motivo ?? "—"}`}
             </p>
+            {/*
+              FIDELIDADE-VISUAL-2026-09-23: único link de resolução do
+              bloqueio prioritário na visão geral — os demais pontos da
+              página (KPI "Jornada/onboarding" e o checklist de gates em
+              Fechamento) deixam de repetir esta mesma frase; cada um leva
+              aqui em vez de reafirmar a contagem.
+            */}
+            {bloqueiosReais.length > 0 && bloqueiosReais[0]?.cta_tela ? (
+              <a
+                href={bloqueiosReais[0].cta_tela}
+                className="mt-1 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-2"
+              >
+                Resolver bloqueio
+              </a>
+            ) : null}
           </div>
         </div>
 
@@ -1071,20 +1086,21 @@ function FichaCaso() {
         </section>
       </div>
 
-      {/* Resumos operacionais continuam acessíveis, fora da primeira leitura editorial. */}
+      {/* Quatro resumos acionáveis — cada um leva à seção completa, já preservada abaixo. */}
       <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
         <summary className="cursor-pointer text-sm font-medium text-navy">Abrir resumos operacionais do caso</summary>
       <div className="mt-4 grid gap-3 border-t border-navy/10 pt-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/*
+          FIDELIDADE-VISUAL-2026-09-23: a contagem de bloqueio já está no
+          campo "Impacto" do hero, com o link de resolução — este resumo não
+          repete o mesmo número, só aponta para a seção onde onboarding e
+          fechamento acontecem.
+        */}
         <a href="#secao-jornada" className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)] hover:border-gold/60">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Jornada/onboarding</p>
           <p className="mt-1 text-sm font-medium text-navy">
-            {bloqueiosReais.length === 0
-              ? "Elegível — onboarding liberado"
-              : `${bloqueiosReais.length} bloqueio(s) de ativação`}
+            {sugestoes.length ? sugestoes[0].titulo : "Ver jornada, onboarding e fechamento"}
           </p>
-          {sugestoes.length ? (
-            <p className="mt-1 text-xs text-navy/60">{sugestoes[0].titulo}</p>
-          ) : null}
         </a>
         <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)] hover:border-gold/60">
           <a href="#secao-pessoas" className="block rounded-sm focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold">

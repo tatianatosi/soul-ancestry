@@ -29,7 +29,13 @@ describe("DSA-2 — CaCard e EstadoVazio aplicados ao Painel Hoje", () => {
   });
 
   it("CTA \"Abrir\" de cada seção continua indo para a rota certa (acao do CaCard)", () => {
+    // FIDELIDADE-VISUAL-2026-09-23: a grade genérica de 7 seções
+    // (`secoes.map`) que gerava este CTA dinamicamente foi removida — era o
+    // segundo dashboard legado que competia com o cockpit oficial. O padrão
+    // "acao do CaCard → Abrir" continua vivo nos cards do cockpit, cada um
+    // com rota fixa e declarada, em vez de um array genérico.
     expect(ARQUIVO).toMatch(/acao=\{/);
-    expect(ARQUIVO).toMatch(/<Link to=\{secao\.to\}>Abrir<\/Link>/);
+    expect(ARQUIVO).toMatch(/<Link to="\/tarefas">Abrir<\/Link>/);
+    expect(ARQUIVO).toMatch(/<Link to="\/golive\/aprovacoes">Abrir<\/Link>/);
   });
 });

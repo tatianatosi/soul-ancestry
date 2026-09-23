@@ -12,15 +12,6 @@ import { EnviarDocumento } from "@/components/portal/enviar-documento";
 import { baixarEntrega, minhasEntregas } from "@/lib/portal-cliente.functions";
 import { mensagemDeFalha, rotuloEstadoVivo, textoParaCliente } from "@/lib/portal-linguagem-viva";
 
-function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div className="rounded-lg border border-border bg-card px-3 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
-      <p className="mt-0.5 text-sm text-navy">{valor}</p>
-    </div>
-  );
-}
-
 export const Route = createFileRoute("/portal/documentos")({
   head: () => ({
     meta: [
@@ -57,7 +48,6 @@ export function PortalDocumentos() {
     const docs = (vivo.data?.documentos ?? []).filter((d) => d.is_demo !== true);
     const liberados = docs.filter((d) => d.liberado_cliente);
     const enviados = docs.filter((d) => d.origem === "cliente");
-    const casoCodigo = previa.identidade?.codigo ?? "—";
     const proximaAcao = vivo.data?.proximaAcao ?? null;
     const solicitado = proximaAcao?.destino === "/portal/documentos" ? proximaAcao.acao : null;
     return (
@@ -66,23 +56,7 @@ export function PortalDocumentos() {
           <PortalCarregando />
         ) : (
           <div className="space-y-5" data-aba-documentos>
-            <div
-              data-documentos-meta
-              className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
-            >
-              <ChipMeta rotulo="Caso" valor={casoCodigo} />
-              <ChipMeta
-                rotulo="Checklist"
-                valor={docs.length === 0 ? "Aguardando pedidos" : `${docs.length} item(ns)`}
-              />
-              <ChipMeta rotulo="Liberados" valor={String(liberados.length)} />
-              <ChipMeta rotulo="Enviados" valor={String(enviados.length)} />
-            </div>
-            <p className="rounded-xl border border-gold/30 bg-gold/10 px-4 py-3 text-sm text-navy/65">
-              Envio de arquivo acontece quando a equipe solicita — sem inventar upload nem status de certidão nesta tela.
-            </p>
-
-            {/* 1. Solicitados — só o pedido real da equipe. */}
+            {/* 1. Solicitados — só o pedido real da equipe, com a instrução de envio integrada ao card. */}
             <section
               data-documentos-solicitados
               data-documentos-checklist
@@ -103,6 +77,9 @@ export function PortalDocumentos() {
                   Nenhum documento solicitado no momento.
                 </p>
               )}
+              <p className="mt-3 text-xs text-navy/50">
+                Envio de arquivo acontece quando a equipe solicita — sem inventar upload nem status de certidão nesta tela.
+              </p>
               </div>
             </section>
 
@@ -207,25 +184,11 @@ export function PortalDocumentos() {
             const liberados = liberados_lista.length;
             const enviados = recebidos.length;
             const checklist = liberados + enviados;
-            const casoCodigo = liberados_lista[0]?.caso || recebidos[0]?.caso || "—";
             const proximaAcao = vivo.data?.proximaAcao ?? null;
             const solicitado = proximaAcao?.destino === "/portal/documentos" ? proximaAcao.acao : null;
             return (
         <div className="space-y-5" data-aba-documentos-vivo>
-          <div
-            data-documentos-meta
-            className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
-          >
-            <ChipMeta rotulo="Caso" valor={String(casoCodigo)} />
-            <ChipMeta
-              rotulo="Checklist"
-              valor={checklist === 0 ? "Aguardando pedidos" : `${checklist} item(ns)`}
-            />
-            <ChipMeta rotulo="Liberados" valor={String(liberados)} />
-            <ChipMeta rotulo="Enviados" valor={String(enviados)} />
-          </div>
-
-          {/* 1. Solicitados — o que a equipe pediu. */}
+          {/* 1. Solicitados — o que a equipe pediu, com a instrução de envio integrada ao card. */}
           <section data-documentos-solicitados className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
             <div className="h-1 bg-gold" aria-hidden="true" />
             <div className="p-5">

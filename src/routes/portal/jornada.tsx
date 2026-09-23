@@ -438,61 +438,79 @@ export function PortalJornada() {
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-6 pb-6 lg:pb-0" data-aba-jornada>
-                  <div
-                    data-jornada-meta
-                    className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
-                  >
-                    <ChipMeta rotulo="Caso" valor={casoCodigo} />
-                    {/*
-                      22/09/2026 — a composição já chegava à Home e faltava
-                      aqui. O caso é do titular, do casal ou da família, e a
-                      Jornada é onde o cliente acompanha o processo: ler isso
-                      nas duas telas é a mesma informação, com o mesmo
-                      vocabulário. Sem composição declarada no plano, o chip
-                      não aparece — nada de rótulo inventado.
-                    */}
-                    {vivo.composicao ? <ChipMeta rotulo="Composição" valor={vivo.composicao} /> : null}
-                    <ChipMeta rotulo="Marcos" valor={String(jornada.marcosPublicados)} />
-                    <ChipMeta rotulo="Ritmo" valor={ritmoRotulo} />
-                    <ChipMeta
-                      rotulo="Atualizações"
-                      valor={jornada.linha.length === 0 ? "Nenhuma ainda" : `${jornada.linha.length} publicadas`}
-                    />
-                  </div>
-
-                  <TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} />
-
                   {jornada.linha.length === 0 ? (
-                    <div data-jornada-duas-linhas className="grid gap-4">
-                      <section className="rounded-xl border border-gold/35 bg-card p-5 shadow-sm">
-                        <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Linha Ancestral</p>
-                        <p className="mt-2 text-sm leading-relaxed text-navy/60">
-                          Ainda não há marcos ancestrais publicados para esta família.
-                        </p>
-                      </section>
-                      <div className="relative rounded-xl border border-dashed border-gold/45 bg-gold/5 px-4 py-4 text-center">
-                        <p className="text-[10px] font-semibold uppercase tracking-widest text-navy/55">Momentos de União</p>
-                        <p className="mt-1 text-xs leading-relaxed text-navy/60">
-                          As conexões entre história familiar e processo aparecem aqui após publicação da equipe.
-                        </p>
+                    /*
+                      FIDELIDADE-VISUAL-2026-09-23: estado vazio não mostra o
+                      painel administrativo (Caso/Composição/Marcos/Ritmo/
+                      Atualizações) nem a trilha de 8 bolhas sem rótulo — só o
+                      bloco narrativo aprovado: etapa, próxima atualização e o
+                      estado vazio de publicação por linha.
+                    */
+                    <div data-jornada-vazio className="space-y-4">
+                      <div
+                        data-jornada-narrativa-vazia
+                        className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
+                      >
+                        <ChipMeta
+                          rotulo="Etapa"
+                          valor={passoAtualIndice !== null ? passos[passoAtualIndice]! : "Sem etapa registrada"}
+                        />
+                        <ChipMeta rotulo="Próxima atualização" valor={ritmoRotulo} />
                       </div>
-                      <section className="rounded-xl border border-navy/20 bg-card p-5 shadow-sm">
-                        <p className="text-[10px] font-semibold uppercase tracking-widest text-navy/55">Linha do Processo</p>
-                        <p className="mt-2 text-sm leading-relaxed text-navy/60">{COPY_TELAS.jornada.vazio}</p>
-                      </section>
+                      <div data-jornada-duas-linhas className="grid gap-4">
+                        <section className="rounded-xl border border-gold/35 bg-card p-5 shadow-sm">
+                          <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Linha Ancestral</p>
+                          <p className="mt-2 text-sm leading-relaxed text-navy/60">
+                            Ainda não há marcos ancestrais publicados para esta família.
+                          </p>
+                        </section>
+                        <div className="relative rounded-xl border border-dashed border-gold/45 bg-gold/5 px-4 py-4 text-center">
+                          <p className="text-[10px] font-semibold uppercase tracking-widest text-navy/55">Momentos de União</p>
+                          <p className="mt-1 text-xs leading-relaxed text-navy/60">
+                            As conexões entre história familiar e processo aparecem aqui após publicação da equipe.
+                          </p>
+                        </div>
+                        <section className="rounded-xl border border-navy/20 bg-card p-5 shadow-sm">
+                          <p className="text-[10px] font-semibold uppercase tracking-widest text-navy/55">Linha do Processo</p>
+                          <p className="mt-2 text-sm leading-relaxed text-navy/60">{COPY_TELAS.jornada.vazio}</p>
+                        </section>
+                      </div>
                     </div>
                   ) : (
-                    <div data-jornada-duas-linhas className="grid gap-5 sm:grid-cols-2 sm:gap-6">
-                      <div className="order-2 sm:order-1 sm:col-span-2">
-                        <MomentosDeUniao pontes={pontes} />
+                    <>
+                      <div
+                        data-jornada-meta
+                        className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
+                      >
+                        <ChipMeta rotulo="Caso" valor={casoCodigo} />
+                        {/*
+                          22/09/2026 — a composição já chegava à Home e faltava
+                          aqui. O caso é do titular, do casal ou da família, e a
+                          Jornada é onde o cliente acompanha o processo: ler isso
+                          nas duas telas é a mesma informação, com o mesmo
+                          vocabulário. Sem composição declarada no plano, o chip
+                          não aparece — nada de rótulo inventado.
+                        */}
+                        {vivo.composicao ? <ChipMeta rotulo="Composição" valor={vivo.composicao} /> : null}
+                        <ChipMeta rotulo="Marcos" valor={String(jornada.marcosPublicados)} />
+                        <ChipMeta rotulo="Ritmo" valor={ritmoRotulo} />
+                        <ChipMeta rotulo="Atualizações" valor={`${jornada.linha.length} publicadas`} />
                       </div>
-                      <div className="order-1 min-w-0 sm:order-2">
-                        <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" variante="gold" />
+
+                      <TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} />
+
+                      <div data-jornada-duas-linhas className="grid gap-5 sm:grid-cols-2 sm:gap-6">
+                        <div className="order-2 sm:order-1 sm:col-span-2">
+                          <MomentosDeUniao pontes={pontes} />
+                        </div>
+                        <div className="order-1 min-w-0 sm:order-2">
+                          <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" variante="gold" />
+                        </div>
+                        <div className="order-3 min-w-0">
+                          <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" />
+                        </div>
                       </div>
-                      <div className="order-3 min-w-0">
-                        <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" />
-                      </div>
-                    </div>
+                    </>
                   )}
 
                   {(abreJornada(entrega.visibilidade) ||
