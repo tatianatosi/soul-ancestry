@@ -105,7 +105,7 @@ export function PortalConta() {
               className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm"
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="text-sm font-semibold text-navy">Perfil</h2>
+                <h2 className="font-serif text-xl text-navy">Dados da conta</h2>
                 <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
                   Dados pessoais
                 </span>
@@ -136,7 +136,7 @@ export function PortalConta() {
 
             <section data-conta-plano className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="text-sm font-semibold text-navy">Plano</h2>
+                <h2 className="font-serif text-xl text-navy">Acompanhamento</h2>
                 <span className="rounded-full border border-gold/40 bg-gold/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-navy">
                   {planoEstado}
                 </span>
@@ -155,7 +155,7 @@ export function PortalConta() {
 
             <section data-conta-alertas className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="text-sm font-semibold text-navy">Alertas</h2>
+                <h2 className="font-serif text-xl text-navy">Atualizações para você</h2>
                 <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
                   Pessoais do caso
                 </span>
@@ -176,7 +176,7 @@ export function PortalConta() {
                   ) : null}
                 </div>
               ) : (
-                <div className="mt-3 rounded-xl bg-cream/60 px-4 py-5 text-center">
+                  <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
                   <p className="text-sm text-navy/70">Sem alerta publicado no momento.</p>
                   <p className="mt-1 text-xs text-navy/50">
                     Documentos pendentes e próximas ações do seu caso aparecem aqui quando a equipe
@@ -188,7 +188,7 @@ export function PortalConta() {
 
             <section data-conta-historico className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="text-sm font-semibold text-navy">Histórico</h2>
+                <h2 className="font-serif text-xl text-navy">Movimentos disponíveis</h2>
                 <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
                   Pagamentos · acessos
                 </span>
@@ -215,7 +215,7 @@ export function PortalConta() {
                   </Link>
                 </div>
               ) : (
-                <div className="mt-3 rounded-xl bg-cream/60 px-4 py-5 text-center">
+                <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
                   <p className="text-sm text-navy/70">Nenhum pagamento ou movimento listado ainda.</p>
                   <p className="mt-1 text-xs text-navy/50">
                     Histórico de acessos e faturas publicadas para você aparece neste bloco — sem

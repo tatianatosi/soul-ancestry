@@ -189,7 +189,7 @@ export function PortalArvore() {
                   */}
                   <section aria-label="Ligação com a jornada" className="space-y-3" data-arvore-ligacao-jornada>
                     <div className="flex items-center justify-between gap-2">
-                      <h2 className="text-sm font-semibold text-navy">Ligação com a Jornada</h2>
+                      <h2 className="font-serif text-xl text-navy">Ligação com a Jornada</h2>
                       {painel.notasPublicadas.length > 0 ? (
                         <LinkPortal to="/portal/jornada" className="text-xs font-medium text-navy/60 hover:text-navy">
                           Ver na Jornada
@@ -197,7 +197,7 @@ export function PortalArvore() {
                       ) : null}
                     </div>
                     {painel.notasPublicadas.length === 0 ? (
-                      <p className="rounded-lg border border-dashed border-border bg-card/50 p-3 text-sm text-navy/60">
+                      <p className="rounded-xl border border-dashed border-navy/20 bg-cream/60 p-4 text-sm text-navy/60">
                         Nenhuma atualização da árvore publicada ainda. Assim que a equipe publicar uma conexão, ela
                         aparece aqui e na Jornada.
                       </p>
