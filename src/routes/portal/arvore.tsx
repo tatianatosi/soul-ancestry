@@ -178,15 +178,30 @@ export function PortalArvore() {
                     </div>
                   </section>
 
-                  {painel.notasPublicadas.length > 0 ? (
-                    <section aria-label="Atualizações publicadas da árvore" className="space-y-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <h2 className="text-sm font-semibold text-navy">Atualizações publicadas</h2>
-                        {/* Só linka para a Jornada quando há evento real publicado para ver lá. */}
+                  {/*
+                    §6 linha 4 do De-Para ("LIGAÇÃO COM A JORNADA"; "Próxima
+                    atualização"; "Próxima conexão liberada ou estado vazio").
+                    Antes esta seção só existia com `notasPublicadas.length >
+                    0` — sem publicação, ela desaparecia por inteiro. O
+                    wireframe pede o card sempre presente, com estado vazio
+                    honesto quando não há nada ainda (mesmo padrão do card
+                    Microentrega da Home).
+                  */}
+                  <section aria-label="Ligação com a jornada" className="space-y-3" data-arvore-ligacao-jornada>
+                    <div className="flex items-center justify-between gap-2">
+                      <h2 className="text-sm font-semibold text-navy">Ligação com a Jornada</h2>
+                      {painel.notasPublicadas.length > 0 ? (
                         <LinkPortal to="/portal/jornada" className="text-xs font-medium text-navy/60 hover:text-navy">
                           Ver na Jornada
                         </LinkPortal>
-                      </div>
+                      ) : null}
+                    </div>
+                    {painel.notasPublicadas.length === 0 ? (
+                      <p className="rounded-lg border border-dashed border-border bg-card/50 p-3 text-sm text-navy/60">
+                        Nenhuma atualização da árvore publicada ainda. Assim que a equipe publicar uma conexão, ela
+                        aparece aqui e na Jornada.
+                      </p>
+                    ) : (
                       <ul className="space-y-3">
                         {painel.notasPublicadas.map((item) => (
                           <li
@@ -200,8 +215,8 @@ export function PortalArvore() {
                           </li>
                         ))}
                       </ul>
-                    </section>
-                  ) : null}
+                    )}
+                  </section>
                 </div>
               </BlocoVisibilidade>
             );
