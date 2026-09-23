@@ -313,10 +313,6 @@
   box-shadow: 0 1px 2px color-mix(in srgb, var(--navy) 12%, transparent);
 }
 
-[data-app-cliente="true"] :where(h1, h2, h3) {
-  color: var(--navy);
-}
-
 /* App Cliente — composição comum da prancha aprovada. As regras são apenas
    visuais e se apoiam nos marcadores já existentes em cada uma das 7 abas. */
 [data-app-cliente="true"] :where([data-aba-home], [data-aba-jornada], [data-aba-radar], [data-aba-arvore], [data-aba-documentos], [data-aba-documentos-vivo], [data-aba-legado], [data-aba-conta]) {
