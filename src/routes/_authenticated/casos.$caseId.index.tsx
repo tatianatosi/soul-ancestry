@@ -1050,7 +1050,7 @@ function FichaCaso() {
             const dossie = estadoDossieDoCaso(qPesquisa.data?.evidencias ?? []);
             return (
               <dl className="mt-3 grid grid-cols-3 gap-3 text-center">
-                <div><dd className="font-serif text-2xl text-navy">{dossie.confirmadas}</dd><dt className="text-[10px] text-navy/55">Confirmados</dt></div>
+                <div><dd className="font-serif text-2xl text-navy">{dossie.confirmados}</dd><dt className="text-[10px] text-navy/55">Confirmados</dt></div>
                 <div><dd className="font-serif text-2xl text-navy">{dossie.emRevisao}</dd><dt className="text-[10px] text-navy/55">Em revisão</dt></div>
                 <div><dd className="font-serif text-2xl text-navy">{dossie.pendentes}</dd><dt className="text-[10px] text-navy/55">Pendentes</dt></div>
               </dl>
