@@ -13,8 +13,7 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { jornadaSanitizada, microentregaPublicada, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
-import type { PublicacaoCliente } from "@/lib/projecoes-cliente";
+import { jornadaSanitizada, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
 import { ChipIdentidadeCaso } from "@/components/caso/chip-identidade-caso";
 import { identidadeDePortalCaso } from "@/lib/caso-compartilhado";
 import { cn } from "@/lib/utils";
@@ -78,11 +77,6 @@ export function PortalHome() {
     new Date(),
     vivo.data?.proximaAcao,
   );
-  // §3 linha 5 do De-Para ("MICROENTREGA... última microentrega publicada
-  // ou vazio honesto"): `microentregaPublicada` já existia e já era
-  // testada em portal-dados-vivos.ts, mas nenhuma tela a consumia — reusa
-  // a mesma `projecoes` já carregada, sem query nova.
-  const microentrega = microentregaPublicada(vivo.data?.projecoes ?? []);
 
   if (previa) {
     return (
@@ -104,7 +98,6 @@ export function PortalHome() {
               destino: destinoPorTipo(item.tipo),
               texto: item.conteudo,
             }))}
-            microentrega={microentrega}
             fase={
               // Progresso fixo pertence só ao caso de demonstração. Num caso
               // real aberto pelo acesso master, inventar fase seria dado falso.
@@ -169,7 +162,6 @@ export function PortalHome() {
                   destino: destinoPorTipo(item.tipo),
                   texto: item.conteudo,
                 }))}
-                microentrega={microentrega}
                 composicao={vivo.data?.composicao ?? null}
                 fase={
                   /*
@@ -304,7 +296,6 @@ function PainelHomeMockup({
   casoId,
   identidade,
   achados,
-  microentrega,
   fase,
   composicao,
 }: {
@@ -323,14 +314,6 @@ function PainelHomeMockup({
     destino: "/portal/jornada" | "/portal/arvore" | "/portal/documentos" | "/portal/legado";
     texto: string;
   }>;
-  /**
-   * §3 linha 5 do De-Para ("MICROENTREGA"; "Nenhuma publicação nova";
-   * texto de expectativa | Última microentrega publicada ou vazio
-   * honesto). Distinto de `achados`: achados é uma lista curta de
-   * publicações recentes de qualquer tipo; microentrega é a última
-   * publicação de entrega especificamente, com destaque próprio.
-   */
-  microentrega?: PublicacaoCliente | null;
   /**
    * 21/09/2026: deixou de ser exclusivo da demo. A view `portal_casos` passou
    * a projetar `case_plans.fase_jornada`, então um caso real tem etapa de
@@ -463,30 +446,6 @@ function PainelHomeMockup({
           )}
         </section>
       </div>
-
-      {/*
-        §3 linha 5 do De-Para: card "MICROENTREGA" próprio, distinto de
-        Achados. Última microentrega publicada ou estado vazio honesto —
-        nunca "Nenhuma publicação nova" some ou vira lista duplicada.
-      */}
-      <section data-microentrega-home>
-        <h3 className="mb-2 text-sm font-semibold text-navy">Microentrega</h3>
-        {microentrega ? (
-          <CaCard className="border-l-2 border-l-gold p-3">
-            <span className="text-[10px] font-medium uppercase tracking-widest text-gold">
-              {microentrega.tipoRotulo}
-            </span>
-            <p className="mt-1 text-sm text-navy/80">{microentrega.conteudo}</p>
-          </CaCard>
-        ) : (
-          <CaCard className="p-3">
-            <p className="text-sm font-medium text-navy">Nenhuma publicação nova</p>
-            <p className="mt-1 text-xs text-navy/60">
-              Assim que a equipe publicar uma nova entrega, ela aparece aqui.
-            </p>
-          </CaCard>
-        )}
-      </section>
     </div>
   );
 }
