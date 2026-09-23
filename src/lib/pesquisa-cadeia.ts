@@ -401,3 +401,49 @@ export function estadoDossieDoCaso(
   }
   return { confirmados, emRevisao, pendentes, total: evidencias.length };
 }
+
+/**
+ * §17 do De-Para (Desk — Pesquisa), linha 6: "Faixa de processo: Pergunta →
+ * Fonte → Evidência → Achado → Microentrega → Pronta para revisão... Cada
+ * etapa precisa ter artefato/estado".
+ *
+ * DIVERGÊNCIA REGISTRADA (§29): a prancha nomeia 6 estágios com vocabulário
+ * próprio (Pergunta/Microentrega/Pronta para revisão); a cadeia canônica já
+ * implementada e testada é `CADEIA_PESQUISA` (ficha → fonte → evidencia →
+ * validacao → achado → relatorio → app), usada por `/pesquisa-evidencias`.
+ * Reaproveito o vocabulário real em vez de inventar um segundo, e mapeio
+ * por conceito: ficha≈pergunta, relatorio≈microentrega. A etapa "app" fica
+ * de fora deste stepper interno — pertence à fronteira sanitizada do App
+ * Cliente (`app_projections`), fora dos dados que o dossiê de pesquisa
+ * carrega aqui.
+ */
+export type EstagioComArtefato = {
+  etapa: Exclude<EtapaCadeia, "app">;
+  rotulo: string;
+  produz: string;
+  temArtefato: boolean;
+};
+
+export function estagiosCadeiaPesquisa(entrada: {
+  pessoas: number;
+  fontes: number;
+  evidencias: number;
+  evidenciasValidadas: number;
+  hipotesesComResultado: number;
+  relatorios: number;
+}): EstagioComArtefato[] {
+  const contagemPorEtapa: Record<Exclude<EtapaCadeia, "app">, number> = {
+    ficha: entrada.pessoas,
+    fonte: entrada.fontes,
+    evidencia: entrada.evidencias,
+    validacao: entrada.evidenciasValidadas,
+    achado: entrada.hipotesesComResultado,
+    relatorio: entrada.relatorios,
+  };
+  return CADEIA_PESQUISA.filter((e) => e.etapa !== "app").map((e) => ({
+    etapa: e.etapa as Exclude<EtapaCadeia, "app">,
+    rotulo: e.rotulo,
+    produz: e.produz,
+    temArtefato: (contagemPorEtapa[e.etapa as Exclude<EtapaCadeia, "app">] ?? 0) > 0,
+  }));
+}

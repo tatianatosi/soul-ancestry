@@ -19,6 +19,7 @@ import {
   salvarBlocoPesquisa,
 } from "@/lib/pesquisa-modulo.functions";
 import type { BlocoRg } from "@/lib/pesquisa-modulo.server";
+import { estagiosCadeiaPesquisa } from "@/lib/pesquisa-cadeia";
 import { cn } from "@/lib/utils";
 
 type Dados = Awaited<ReturnType<typeof carregarPesquisaModulo>>;
@@ -55,6 +56,49 @@ function Aviso({ tom, children }: { tom: "info" | "bloqueio"; children: React.Re
     >
       {children}
     </p>
+  );
+}
+
+/**
+ * §17 do De-Para, linha 6 — "Faixa de processo... Cada etapa precisa ter
+ * artefato/estado". Deriva de `estagiosCadeiaPesquisa` (pesquisa-cadeia.ts),
+ * sem nenhuma query nova: reusa os mesmos arrays que as abas Fontes/
+ * Evidências/Hipóteses/Relatórios internos já carregam.
+ */
+function EstagiosDaCadeia({ dados }: { dados: Dados }) {
+  const estagios = estagiosCadeiaPesquisa({
+    pessoas: dados.pessoas.length,
+    fontes: dados.fontes.length,
+    evidencias: dados.evidencias.length,
+    evidenciasValidadas: dados.evidencias.filter((e) => e["evidence_status"] === "validated").length,
+    hipotesesComResultado: dados.hipoteses.filter((h) =>
+      ["supported", "not_supported"].includes(String(h["status"])),
+    ).length,
+    relatorios: dados.relatorios.length,
+  });
+  return (
+    <div
+      data-pesquisa-cadeia-estagios
+      className="flex flex-nowrap gap-2 overflow-x-auto rounded-xl border border-navy/10 bg-cream/30 p-3"
+      aria-label="Faixa de processo da pesquisa"
+    >
+      {estagios.map((e, i) => (
+        <div
+          key={e.etapa}
+          data-pesquisa-cadeia-estagio={e.etapa}
+          data-pesquisa-cadeia-tem-artefato={e.temArtefato}
+          className={cn(
+            "flex min-w-[9rem] flex-col gap-0.5 rounded-lg border px-2.5 py-1.5 text-xs",
+            e.temArtefato ? "border-navy/25 bg-cream/70 text-navy" : "border-dashed border-navy/15 text-navy/45",
+          )}
+          title={e.produz}
+        >
+          <span className="text-[10px] uppercase tracking-wide text-navy/40">{i + 1}</span>
+          <span className="font-medium">{e.rotulo}</span>
+          <span>{e.temArtefato ? "Com artefato" : "Sem artefato ainda"}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -316,6 +360,8 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
           />
         )}
       </Painel>
+
+      <EstagiosDaCadeia dados={d} />
 
       <div className="flex flex-nowrap gap-2 overflow-x-auto">
         {ABAS.map((a) => (
