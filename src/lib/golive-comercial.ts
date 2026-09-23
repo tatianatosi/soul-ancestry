@@ -83,6 +83,25 @@ export function porOrigem(
 }
 
 /**
+ * Funil do Comercial/CRM Vivo (§12) contado sobre o MESMO array de leads que
+ * alimenta o pipeline abaixo dele, com a mesma classificação de etapa
+ * (`etapaComercialDoLead`) usada nas colunas — nunca sobre `crm_casos`
+ * (entidade diferente, sem relação garantida com os leads mostrados).
+ */
+export function porEtapaComercial(
+  leads: readonly Record<string, unknown>[],
+): { label: string; value: number }[] {
+  const contagem = new Map<string, number>();
+  for (const lead of leads) {
+    const chave = etapaComercialDoLead(lead) ?? "Sem etapa registrada";
+    contagem.set(chave, (contagem.get(chave) ?? 0) + 1);
+  }
+  return [...contagem.entries()]
+    .map(([label, value]) => ({ label, value }))
+    .sort((a, b) => b.value - a.value);
+}
+
+/**
  * Recorte por período de entrada do lead, em dias. `null` = tudo.
  * Lead sem data de entrada nunca é escondido: fica sempre no recorte e é
  * contado à parte por `semDataDeEntrada`.

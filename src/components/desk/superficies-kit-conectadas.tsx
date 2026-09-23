@@ -21,7 +21,7 @@ import {
 } from "@/components/clube-ancestral-kit";
 import { carregarSuperficiesKit, type SuperficiesKit } from "@/lib/kit-superficies.functions";
 import { listarLeadsDesk } from "@/lib/crm-desk.functions";
-import { etapaComercialDoLead } from "@/lib/golive-comercial";
+import { etapaComercialDoLead, porEtapaComercial } from "@/lib/golive-comercial";
 
 function Falha({ mensagem }: { mensagem: string }) {
   return (
@@ -56,12 +56,17 @@ function useSuperficies() {
   });
 }
 
-function barras(itens: { label: string; value: number }[], total: number, tone: BarDatum["tone"]): BarDatum[] {
+function barras(
+  itens: { label: string; value: number }[],
+  total: number,
+  tone: BarDatum["tone"],
+  unidade: "caso" | "lead" = "caso",
+): BarDatum[] {
   if (!itens.length) return [];
   return itens.slice(0, 6).map((item) => ({
     label: item.label,
     value: total > 0 ? Math.round((item.value / total) * 100) : 0,
-    detail: `${item.value} caso${item.value === 1 ? "" : "s"}`,
+    detail: `${item.value} ${unidade}${item.value === 1 ? "" : "s"}`,
     tone,
   }));
 }
@@ -211,9 +216,16 @@ export function ComercialConectado() {
         ? { texto: `Atualizado em ${ultimaAtualizacao.toLocaleDateString("pt-BR")}`, tom: "neutral" as const }
         : { texto: `${listaLeads.length} leads · sem data de atualização`, tom: "attention" as const };
 
+  /*
+    22/09/2026 — achado real: o funil vinha do agregado de casos por eixo
+    comercial (`crm_casos`), enquanto o pipeline logo abaixo é `listaLeads`
+    (leads) — duas entidades diferentes na mesma superfície, sem garantia de
+    correspondência. Corrigido para contar sobre o MESMO array e a MESMA
+    classificação de etapa que alimentam o pipeline.
+  */
   return (
     <ComercialTemplate
-      funnel={barras(d.porEixoComercial, d.totalCasos, "gold")}
+      funnel={barras(porEtapaComercial(listaLeads), listaLeads.length, "gold", "lead")}
       columns={colunasPorEtapaComercial(listaLeads)}
     >
       <div
