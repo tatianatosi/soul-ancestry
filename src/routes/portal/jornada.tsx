@@ -467,11 +467,15 @@ export function PortalJornada() {
                       {COPY_TELAS.jornada.vazio}
                     </p>
                   ) : (
-                    <div data-jornada-duas-linhas>
-                      <MomentosDeUniao pontes={pontes} />
-                      <div className="grid gap-6 sm:grid-cols-2">
-                        <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" />
-                        <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" />
+                    <div data-jornada-duas-linhas className="grid gap-5 sm:grid-cols-2 sm:gap-6">
+                      <div className="order-2 sm:order-1 sm:col-span-2">
+                        <MomentosDeUniao pontes={pontes} />
+                      </div>
+                      <div className="order-1 min-w-0 sm:order-2">
+                        <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" variante="gold" />
+                      </div>
+                      <div className="order-3 min-w-0">
+                        <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" />
                       </div>
                     </div>
                   )}
