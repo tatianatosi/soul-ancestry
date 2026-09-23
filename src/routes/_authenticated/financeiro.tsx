@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -23,6 +23,7 @@ import {
   inputCls,
   moeda,
 } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { FLUXO } from "@/lib/comercial-fluxo";
 import {
   formatarIndicador,
@@ -158,6 +159,12 @@ function FinanceiroPage() {
   const faturas = (qFaturas.data ?? []) as Linha[];
   const linhas = (q.data ?? []) as Linha[];
   const nomeCliente = (id: unknown) => clientes.find((c) => c.id === id)?.nome ?? "—";
+  // §19 zona 5 do De-Para: "Relação com caso — vínculo financeiro ao
+  // caso/contrato". `invoices.case_id` já existe e já é gravado na criação
+  // (form abaixo), mas nunca era exibido depois — a fatura "esquecia" a
+  // qual caso pertencia. `casos` já vem carregado por `qv` (mesmos dados do
+  // formulário de criação), sem query nova.
+  const casoDoId = (id: unknown) => casos.find((c) => c.id === id);
   const ehDemo = (l: Linha) =>
     l["dados_teste"] === true ||
     (clientes.find((c) => c.id === l["client_id"]) as { is_demo?: boolean } | undefined)?.is_demo === true;
@@ -560,7 +567,13 @@ function FinanceiroPage() {
 
       {detalhe ? (
         <Gaveta titulo={aba === "faturas" ? "Fatura" : "Pagamento"} aoFechar={() => setDetalhe(null)}>
-          <Painel titulo="Resumo">
+          {/*
+            DSA-7-FINANCEIRO (2026-09-23): sétimo consumidor do Desk a usar
+            `CaCard` (após DSA-1 a DSA-6), mesmos tokens, sem hex novo. Troca
+            só o invólucro deste bloco de resumo — dado, mutation e os
+            demais blocos da Gaveta permanecem intocados.
+          */}
+          <CaCard titulo="Resumo" eyebrow="Financeiro · Detalhe">
             <dl className="grid gap-2 text-sm sm:grid-cols-2">
               <div>
                 <dt className="text-navy/60">Valor</dt>
@@ -580,6 +593,24 @@ function FinanceiroPage() {
                     <dt className="text-navy/60">Valor já pago</dt>
                     <dd>{moeda(detalhe["valor_pago"] ?? 0, detalhe["moeda"])}</dd>
                   </div>
+                  <div data-financeiro-vinculo-caso>
+                    <dt className="text-navy/60">Caso vinculado</dt>
+                    <dd>
+                      {(() => {
+                        const caso = casoDoId(detalhe["case_id"]);
+                        if (!caso) return "Sem caso vinculado";
+                        return (
+                          <Link
+                            to="/casos/$caseId"
+                            params={{ caseId: caso.id }}
+                            className="text-navy underline underline-offset-4"
+                          >
+                            {caso.codigo ?? caso.titulo}
+                          </Link>
+                        );
+                      })()}
+                    </dd>
+                  </div>
                 </>
               ) : (
                 <>
@@ -594,7 +625,7 @@ function FinanceiroPage() {
                 </>
               )}
             </dl>
-          </Painel>
+          </CaCard>
 
           {aba === "faturas" ? (
             <>
