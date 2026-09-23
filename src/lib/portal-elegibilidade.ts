@@ -77,8 +77,59 @@ export type CasoPortal = {
   demo: boolean | null;
 };
 
-export type ProjecaoPortal = { case_id: string | null; approval_status: string | null; archived_at: string | null };
+export type ProjecaoPortal = {
+  case_id: string | null;
+  approval_status: string | null;
+  archived_at: string | null;
+  projection_type?: string | null;
+  source_entity_type?: string | null;
+  created_by?: string | null;
+  updated_by?: string | null;
+  effective_from?: string | null;
+  created_at?: string | null;
+};
 export type ResumoPublicacaoCaso = { publicadas: number; pendentes: number; arquivadas: number };
+
+export type ItemFilaEditorial = {
+  id: string;
+  caseId: string;
+  familia: string;
+  tipo: string;
+  origem: string;
+  responsavel: string | null;
+  prazo: string | null;
+  status: string;
+};
+
+const STATUS_EM_REVISAO = new Set(["draft", "in_review", "approved"]);
+
+/**
+ * §22 do De-Para (Desk — Portal do Cliente, zona "Fila editorial — itens
+ * para revisar e publicar: tipo de conteúdo, família, origem, responsável,
+ * prazo"). Lê os itens de `app_projections` ainda não publicados nem
+ * arquivados — mesma fonte de `resumoPublicacaoPorCaso`, aqui detalhada por
+ * item em vez de agregada. `responsavel` fica `null` quando a coluna não
+ * traz autor (nunca inventa nome); `prazo` usa `effective_from` quando
+ * definido, senão fica `null` (também nunca inferido).
+ */
+export function filaEditorialPortal(
+  projecoes: readonly (ProjecaoPortal & { id?: string })[],
+  casos: readonly { id: string; codigo?: string | null; titulo?: string | null }[],
+): ItemFilaEditorial[] {
+  const nomeDoCaso = new Map(casos.map((c) => [c.id, c.codigo ?? c.titulo ?? c.id]));
+  return projecoes
+    .filter((p) => p.case_id && STATUS_EM_REVISAO.has(String(p.approval_status)) && !p.archived_at)
+    .map((p, indice) => ({
+      id: p.id ?? `${p.case_id}:${indice}`,
+      caseId: String(p.case_id),
+      familia: nomeDoCaso.get(String(p.case_id)) ?? String(p.case_id),
+      tipo: p.projection_type ?? p.source_entity_type ?? "não informado",
+      origem: p.source_entity_type ?? "não informado",
+      responsavel: p.updated_by ?? p.created_by ?? null,
+      prazo: p.effective_from ?? null,
+      status: String(p.approval_status),
+    }));
+}
 
 /**
  * §22 do De-Para (Desk — Portal do Cliente, zona "Resumo por família/caso

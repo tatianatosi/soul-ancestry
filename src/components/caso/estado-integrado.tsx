@@ -10,6 +10,7 @@
 import { Link } from "@tanstack/react-router";
 
 import { produtoPaiPorId } from "@/lib/planejador-produtos-pai";
+import { calcularCadencia } from "@/lib/jornada-cliente";
 
 type Linha = Record<string, any>;
 
@@ -104,6 +105,25 @@ export function EstadoIntegradoCaso({
 
   const marcos = (planejador?.marcos ?? []).map((m) => String(m)).filter(Boolean);
 
+  /*
+    §14 linha 7 do De-Para: "Jornada D0–D365 — etapa atual; cadência Em dia;
+    próxima ação; microentrega; alertas." Etapa, marcos, última microentrega
+    e alertas já eram exibidos; a cadência (mesmo motor de `calcularCadencia`
+    já usado pelo Painel Hoje e pelo Fechamento) nunca era lida aqui — mesmo
+    caso já disponível em `caso`, sem query nova.
+  */
+  const cadencia = calcularCadencia({
+    hoje: new Date().toISOString(),
+    ultimoTouchpointEm: (caso["ultimo_touchpoint_em"] as string | null) ?? (caso["created_at"] as string | null) ?? null,
+    aguardandoInstituicaoExterna: Boolean(caso["aguardando_instituicao_externa"]),
+    motivoEsperaExterna: (caso["motivo_espera_externa"] as string | null) ?? null,
+  });
+  const ROTULO_CADENCIA: Record<string, string> = {
+    regular: "Em dia",
+    atencao: "Atenção",
+    critico: "Crítico",
+  };
+
   return (
     <section className="mb-6 rounded-xl border border-navy/15 bg-cream/40 p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -152,6 +172,12 @@ export function EstadoIntegradoCaso({
           linkTo="/casos/$caseId/contrato/preparar"
           linkParams={{ caseId }}
           linkTexto="Cadeia operacional →"
+        />
+        <Item
+          rotulo="Cadência"
+          valor={`${ROTULO_CADENCIA[cadencia.status]} · ${cadencia.diasSemTouchpoint} dia(s) sem touchpoint — ${cadencia.motivo}`}
+          linkTo="#secao-visao"
+          linkTexto="Registrar touchpoint →"
         />
         <Item
           rotulo="Marcos do planejador"

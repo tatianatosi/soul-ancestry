@@ -325,9 +325,15 @@ export const listarAcessosPortal = createServerFn({ method: "GET" })
       // status geral de publicação do App"): mesma fonte que
       // `resumoVisaoClienteCaso` já usa por caso, aqui por organização
       // inteira, para agregar sem N+1 query por caso.
+      // §22 do De-Para (Portal do Cliente, zona "Fila editorial — itens para
+      // revisar e publicar: tipo de conteúdo, família, origem, responsável,
+      // prazo"): mesma consulta, campos adicionais já existentes na tabela
+      // (nenhuma coluna nova).
       leitorProjecoes
         .from("app_projections")
-        .select("case_id, approval_status, archived_at")
+        .select(
+          "id, case_id, approval_status, archived_at, projection_type, source_entity_type, created_by, updated_by, effective_from, created_at",
+        )
         .eq("organization_id", organizationId),
     ]);
     return {

@@ -35,6 +35,16 @@ export const ELEGIBILIDADE_ORDEM: readonly EixoElegibilidade[] = [
   "nao_avaliada",
 ] as const;
 
+/** Rótulo humano por hipótese de elegibilidade — fonte única, reaproveitada pela grade e pela lista de situação. */
+export const ROTULO_ELEGIBILIDADE: Record<EixoElegibilidade, string> = {
+  forte: "Forte",
+  provavel: "Provável",
+  possivel_com_pesquisa: "Possível com pesquisa",
+  baixa: "Baixa",
+  inconclusiva: "Inconclusiva",
+  nao_avaliada: "Não avaliada",
+};
+
 /** As quatro faixas de urgência, da mais fria para a mais quente. */
 export const FAIXAS_URGENCIA = [
   { id: "sem_base", rotulo: "Sem base" },
@@ -43,6 +53,11 @@ export const FAIXAS_URGENCIA = [
   { id: "vencida", rotulo: "Vencida" },
 ] as const;
 export type FaixaUrgencia = (typeof FAIXAS_URGENCIA)[number]["id"];
+
+/** Rótulo humano por faixa de urgência — fonte única, reaproveitada pela grade e pela lista de situação. */
+export const ROTULO_URGENCIA: Record<FaixaUrgencia, string> = Object.fromEntries(
+  FAIXAS_URGENCIA.map((f) => [f.id, f.rotulo]),
+) as Record<FaixaUrgencia, string>;
 
 export type CasoPosicionado = {
   id: string;

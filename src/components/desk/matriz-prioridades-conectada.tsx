@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 
 import { listarRegistros } from "@/lib/saas.functions";
 import { papelDoRegistro } from "@/lib/caso-ficha";
-import { posicionar } from "@/lib/matriz-posicionamento";
+import { posicionar, ROTULO_ELEGIBILIDADE, ROTULO_URGENCIA } from "@/lib/matriz-posicionamento";
 import { MatrizPrioridades } from "@/components/desk/matriz-prioridades";
 import { MatrizPrioridadeNominal, type PontoMatrizPrioridade } from "@/components/clube-ancestral-kit";
 import type { CasoPosicionado } from "@/lib/matriz-posicionamento";
@@ -124,6 +124,17 @@ export function MatrizPrioridadesConectada({
     );
   }, [linhasTodas, incluirDemos]);
 
+  // §16 linha 7 do De-Para (Radar & Matrizes, "Lista de situação" — Situação,
+  // Prioridade, Urgência, Elegibilidade, Responsável): `status` e
+  // `proxima_acao_responsavel` não fazem parte de `CasoPosicionado`, então
+  // são lidos aqui direto da linha crua já carregada (mesma `linhasTodas`),
+  // sem query nova.
+  const mapaLinhas = useMemo(() => {
+    const mapa = new Map<string, Record<string, unknown>>();
+    for (const l of linhasTodas) mapa.set(String(l["id"]), l);
+    return mapa;
+  }, [linhasTodas]);
+
   if (q.isLoading) return <p className="text-sm text-navy/50">Carregando matriz de prioridades…</p>;
   if (q.isError) {
     // Sem fonte, a matriz não desenha nada: quadrante vazio por falha de
@@ -190,6 +201,61 @@ export function MatrizPrioridadesConectada({
         casoSelecionado={casoSelecionado}
         onSelecionarCaso={onSelecionarCaso}
       />
+      <section data-radar-lista-situacao className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+        <p className="mb-2 text-sm font-medium text-navy">Lista de situação</p>
+        {casos.length === 0 ? (
+          <p className="text-xs text-navy/50">Nenhum caso com posição calculada.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-wide text-navy/50">
+                  <th className="py-1 pr-3">Caso</th>
+                  <th className="py-1 pr-3">Situação</th>
+                  <th className="py-1 pr-3">Prioridade</th>
+                  <th className="py-1 pr-3">Urgência</th>
+                  <th className="py-1 pr-3">Elegibilidade</th>
+                  <th className="py-1 pr-3">Responsável</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...casos]
+                  .sort(
+                    (a, b) =>
+                      PESO_SINAL[a.sinal] - PESO_SINAL[b.sinal] ||
+                      ESCALA_URGENCIA[b.urgencia] - ESCALA_URGENCIA[a.urgencia],
+                  )
+                  .map((caso) => {
+                    const bruto = mapaLinhas.get(caso.id);
+                    const situacao = String(bruto?.["status"] ?? "—");
+                    const responsavel = String(bruto?.["proxima_acao_responsavel"] ?? "—");
+                    return (
+                      <tr
+                        key={caso.id}
+                        data-radar-lista-item={caso.id}
+                        className={`border-t border-navy/10 ${onSelecionarCaso ? "cursor-pointer hover:bg-navy/5" : ""} ${
+                          casoSelecionado === caso.id ? "bg-navy/5" : ""
+                        }`}
+                        onClick={onSelecionarCaso ? () => onSelecionarCaso(caso.id) : undefined}
+                      >
+                        <td className="py-1.5 pr-3 font-medium text-navy">{caso.rotulo}</td>
+                        <td className="py-1.5 pr-3 text-navy/70">{situacao}</td>
+                        <td className="py-1.5 pr-3">
+                          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${CHIP_SINAL[caso.sinal]}`}>
+                            {ROTULO_SINAL[caso.sinal]}
+                          </span>
+                        </td>
+                        <td className="py-1.5 pr-3 text-navy/70">{ROTULO_URGENCIA[caso.urgencia]}</td>
+                        <td className="py-1.5 pr-3 text-navy/70">{ROTULO_ELEGIBILIDADE[caso.elegibilidade]}</td>
+                        <td className="py-1.5 pr-3 text-navy/70">{responsavel}</td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
       <details className="rounded-xl border border-navy/10 bg-cream/40 p-4">
         <summary className="cursor-pointer text-sm font-medium text-navy">
           Grade completa por faixa de elegibilidade e urgência

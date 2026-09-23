@@ -1,29 +1,15 @@
 import { Link } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
-import { ROTULO_SINAL, type EixoElegibilidade } from "@/lib/prioridade-matriz";
+import { ROTULO_SINAL } from "@/lib/prioridade-matriz";
 import {
   ELEGIBILIDADE_ORDEM,
   montarMatriz,
+  ROTULO_ELEGIBILIDADE,
+  ROTULO_URGENCIA as ROTULO_FAIXA,
   semPosicaoConfiavel,
   type CasoPosicionado,
 } from "@/lib/matriz-posicionamento";
-
-const ROTULO_ELEGIBILIDADE: Record<EixoElegibilidade, string> = {
-  forte: "Forte",
-  provavel: "Provável",
-  possivel_com_pesquisa: "Possível com pesquisa",
-  baixa: "Baixa",
-  inconclusiva: "Inconclusiva",
-  nao_avaliada: "Não avaliada",
-};
-
-const ROTULO_FAIXA: Record<string, string> = {
-  vencida: "Vencida",
-  aproximando: "Aproximando",
-  em_dia: "Em dia",
-  sem_base: "Sem base",
-};
 
 /** Tom da célula pela faixa de urgência. Uma matiz, mais quente para cima. */
 const TOM_FAIXA: Record<string, string> = {

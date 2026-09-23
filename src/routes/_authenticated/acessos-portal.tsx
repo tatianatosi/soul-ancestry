@@ -26,6 +26,7 @@ import {
   emailsElegiveis,
   estadoDoLink,
   EVENTO_LABEL,
+  filaEditorialPortal,
   MOTIVO_GATES,
   NIVEL_DESCRICAO,
   NIVEL_LABEL,
@@ -36,6 +37,7 @@ import {
   type CasoPortal,
   type NivelPortal,
   type PessoaPortal,
+  type ProjecaoPortal,
   type PropostaPortal,
 } from "@/lib/portal-elegibilidade";
 
@@ -104,8 +106,11 @@ function AcessosPortalPage() {
   const casos = (q.data?.casos ?? []) as CasoPortal[];
   const autorizacoes = (q.data?.autorizacoes ?? []) as AutorizacaoEmail[];
   const propostas = (q.data?.propostas ?? []) as PropostaPortal[];
-  const projecoes = (q.data?.projecoes ?? []) as { case_id: string | null; approval_status: string | null; archived_at: string | null }[];
+  const projecoes = (q.data?.projecoes ?? []) as ProjecaoPortal[];
   const resumoPublicacao = resumoPublicacaoPorCaso(projecoes);
+  // §22 do De-Para (Portal do Cliente, zona "Fila editorial — itens para
+  // revisar e publicar"): mesma `projecoes` já carregada, sem query nova.
+  const filaEditorial = filaEditorialPortal(projecoes, casos);
   // Último acesso do cliente por caso: caso → client_portal_case_access →
   // client_portal_access.last_authenticated_at (o mais recente, quando há
   // mais de um vínculo de acesso para o mesmo caso).
@@ -267,6 +272,52 @@ function AcessosPortalPage() {
                         </tr>
                       );
                     })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
+          {/*
+            §22 do De-Para (Portal do Cliente — visão interna, zona "Fila
+            editorial — itens para revisar e publicar": tipo de conteúdo,
+            família, origem, responsável, prazo). Mesma fonte de
+            `resumoPublicacaoPorCaso` (app_projections), aqui item a item em
+            vez de agregada por caso. `responsavel`/`prazo` ficam "—" quando
+            a linha não traz autor/data — nunca inferidos.
+          */}
+          <section className="rounded-xl border border-navy/10 bg-cream/40 p-5" data-fila-editorial-portal>
+            <h2 className="font-serif text-xl">Fila editorial</h2>
+            <p className="mt-1 text-sm text-navy/60">
+              Itens em rascunho, revisão ou aprovados aguardando publicação no App Cliente — antes de sair da fila,
+              cada um passa por revisão humana na Biblioteca de evidências do caso.
+            </p>
+            {filaEditorial.length === 0 ? (
+              <p className="mt-3 text-sm text-navy/60">Nenhum item aguardando revisão ou publicação agora.</p>
+            ) : (
+              <div className="mt-3 overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="text-[11px] uppercase tracking-wide text-navy/50">
+                      <th className="pb-2 pr-3">Família / caso</th>
+                      <th className="pb-2 pr-3">Tipo</th>
+                      <th className="pb-2 pr-3">Origem</th>
+                      <th className="pb-2 pr-3">Estado</th>
+                      <th className="pb-2 pr-3">Responsável</th>
+                      <th className="pb-2">Prazo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filaEditorial.map((item) => (
+                      <tr key={item.id} className="border-t border-navy/10" data-fila-editorial-item={item.id}>
+                        <td className="py-2 pr-3">{item.familia}</td>
+                        <td className="py-2 pr-3 text-navy/70">{item.tipo}</td>
+                        <td className="py-2 pr-3 text-navy/70">{item.origem}</td>
+                        <td className="py-2 pr-3 text-navy/70">{item.status}</td>
+                        <td className="py-2 pr-3 text-navy/70">{item.responsavel ?? "—"}</td>
+                        <td className="py-2 text-navy/70">{item.prazo ? new Date(item.prazo).toLocaleDateString("pt-BR") : "—"}</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
