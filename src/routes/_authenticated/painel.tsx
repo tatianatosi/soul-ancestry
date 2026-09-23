@@ -547,29 +547,32 @@ function PainelConsolidado() {
         </CaCard>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        {secoes.map((secao) => (
-          <CaCard
-            key={secao.titulo}
-            titulo={secao.titulo}
-            eyebrow={`Escopo: ${secao.escopo}`}
-            acao={
-              <Button asChild size="sm" variant="outline">
-                <Link to={secao.to}>Abrir</Link>
-              </Button>
-            }
-          >
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
-              {secao.indicadores.map((item) => (
-                <div key={item.rotulo} className="min-w-0 border-l border-navy/15 pl-3">
-                  <dd className="break-words text-lg font-semibold text-navy">{item.valor}</dd>
-                  <dt className="text-[11px] leading-tight text-navy/60">{item.rotulo}</dt>
-                </div>
-              ))}
-            </dl>
-          </CaCard>
-        ))}
-      </div>
+      <details className="rounded-lg border border-navy/15 bg-card p-4">
+        <summary className="cursor-pointer text-sm font-medium text-navy">Abrir leituras completas por área</summary>
+        <div className="mt-5 grid gap-4 border-t border-navy/10 pt-5 lg:grid-cols-2">
+          {secoes.map((secao) => (
+            <CaCard
+              key={secao.titulo}
+              titulo={secao.titulo}
+              eyebrow={`Escopo: ${secao.escopo}`}
+              acao={
+                <Button asChild size="sm" variant="outline">
+                  <Link to={secao.to}>Abrir</Link>
+                </Button>
+              }
+            >
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+                {secao.indicadores.map((item) => (
+                  <div key={item.rotulo} className="min-w-0 border-l border-navy/15 pl-3">
+                    <dd className="break-words text-lg font-semibold text-navy">{item.valor}</dd>
+                    <dt className="text-[11px] leading-tight text-navy/60">{item.rotulo}</dt>
+                  </div>
+                ))}
+              </dl>
+            </CaCard>
+          ))}
+        </div>
+      </details>
     </section>
   );
 }

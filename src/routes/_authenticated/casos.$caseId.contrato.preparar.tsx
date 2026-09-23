@@ -559,7 +559,9 @@ function Pagina() {
           estado, responsável humano e próxima ação; nada é marcado
           concluído sem evidência real.
         */}
-        <div className="space-y-4" data-checklist-pre-contrato>
+        <details className="rounded-lg border border-navy/15 bg-card p-4">
+          <summary className="cursor-pointer text-sm font-medium text-navy">Abrir checklist operacional de pré-contrato</summary>
+          <div className="mt-4 space-y-4 border-t border-navy/10 pt-4" data-checklist-pre-contrato>
           <Painel titulo="Checklist operacional — pré-contrato">
             <ul className="space-y-2">
               {checklistPre.map((item) => (
@@ -582,7 +584,8 @@ function Pagina() {
               ))}
             </ul>
           </Painel>
-        </div>
+          </div>
+        </details>
 
         {/* ===================== DECISÃO HUMANA (sempre aberta, elevada) ===================== */}
         <div className="space-y-4 rounded-2xl border-2 border-navy/15 bg-cream/40 p-4">

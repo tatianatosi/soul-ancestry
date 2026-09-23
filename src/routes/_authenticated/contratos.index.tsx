@@ -84,8 +84,8 @@ function ContratosPage() {
       }
     >
       <FormalizacaoConectada />
-      <details className="mt-6 rounded-lg border border-navy/15 bg-cream/40 p-4" open={novo}>
-        <summary className="cursor-pointer font-medium text-navy">Abrir gestão de contratos</summary>
+      <details className="mt-6 rounded-lg border border-navy/15 bg-card p-4" open={novo}>
+        <summary className="cursor-pointer font-medium text-navy">Abrir instrumentos, inventário e gestão contratual</summary>
         <div className="mt-5 border-t border-navy/10 pt-5">
       <section className="mb-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
         <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">

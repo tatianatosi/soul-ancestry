@@ -324,6 +324,11 @@ function AcessosPortalPage() {
             )}
           </section>
 
+          <details className="rounded-lg border border-navy/15 bg-card p-4">
+            <summary className="cursor-pointer text-sm font-medium text-navy">
+              Abrir gestão de acessos, autorizações e convites
+            </summary>
+            <div className="mt-5 space-y-8 border-t border-navy/10 pt-5">
           <section className="grid gap-3 md:grid-cols-2">
             {(["proposal_portal", "client_workspace"] as NivelPortal[]).map((n) => (
               <div key={n} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
@@ -872,6 +877,8 @@ function AcessosPortalPage() {
               </div>
             )}
           </section>
+            </div>
+          </details>
         </div>
         )}
       </EstadoDados>

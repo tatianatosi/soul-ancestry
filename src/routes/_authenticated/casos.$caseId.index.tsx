@@ -741,9 +741,14 @@ function FichaCaso() {
           App Cliente.
         </p>
       ) : null}
-      <div className="mb-6">
-        <ResumoKitCaso caseId={String(caso["id"])} />
-      </div>
+      <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
+        <summary className="cursor-pointer text-sm font-medium text-navy">
+          Abrir requisitos de ativação e bloqueios
+        </summary>
+        <div className="mt-4 border-t border-navy/10 pt-4">
+          <ResumoKitCaso caseId={String(caso["id"])} />
+        </div>
+      </details>
       <div className="mb-4" data-ordem2-identidade-desk>
         <ChipIdentidadeCaso
           superficie="Desk"
@@ -907,6 +912,9 @@ function FichaCaso() {
       {/* Ordem P0 (21/09/2026) — Estado Integrado do Caso: consolida os
           domínios transversais num só bloco, só leitura, sem duplicar
           nenhuma das queries já feitas acima. */}
+      <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
+        <summary className="cursor-pointer text-sm font-medium text-navy">Abrir estado integrado e fontes do caso</summary>
+        <div className="mt-4 border-t border-navy/10 pt-4">
       <EstadoIntegradoCaso
         caseId={id}
         caso={caso}
@@ -941,6 +949,8 @@ function FichaCaso() {
             : null
         }
       />
+        </div>
+      </details>
 
       {/*
         §14 linha 5 do De-Para: "Progresso por frente — Formalização,
@@ -997,8 +1007,74 @@ function FichaCaso() {
         );
       })()}
 
-      {/* Quatro resumos acionáveis — cada um leva à seção completa, já preservada abaixo. */}
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 grid gap-4 lg:grid-cols-2" data-caso360-resumo-v4>
+        <section className="rounded-xl border border-navy/10 bg-card p-4">
+          <p className="font-serif text-lg text-navy">Linha do tempo</p>
+          {((q.data?.timeline ?? []) as any[]).length ? (
+            <ol className="mt-3 space-y-2">
+              {((q.data?.timeline ?? []) as any[]).slice(0, 4).map((evento) => (
+                <li key={evento.id} className="border-l-2 border-gold/60 pl-3 text-xs text-navy/70">
+                  <span className="font-medium text-navy">{evento.title ?? "Evento registrado"}</span>
+                  <span className="block text-[10px] text-navy/50">
+                    {evento.occurred_at || evento.created_at
+                      ? new Date(String(evento.occurred_at ?? evento.created_at)).toLocaleDateString("pt-BR")
+                      : "Data não registrada"}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="mt-3 text-sm text-navy/50">Nenhum evento registrado.</p>
+          )}
+        </section>
+
+        <section className="rounded-xl border border-navy/10 bg-card p-4">
+          <p className="font-serif text-lg text-navy">Participantes</p>
+          {((q.data?.membros ?? []) as any[]).length ? (
+            <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+              {((q.data?.membros ?? []) as any[]).slice(0, 4).map((membro) => (
+                <li key={membro.id} className="rounded-lg bg-cream/50 px-3 py-2 text-xs text-navy/70">
+                  <span className="block font-medium text-navy">{membro.nome ?? membro.nome_completo ?? "Pessoa sem nome registrado"}</span>
+                  {membro.papel ? <span>{membro.papel}</span> : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm text-navy/50">Nenhum participante registrado.</p>
+          )}
+        </section>
+
+        <section className="rounded-xl border border-navy/10 bg-card p-4">
+          <p className="font-serif text-lg text-navy">Estado do dossiê</p>
+          {(() => {
+            const dossie = estadoDossieDoCaso(qPesquisa.data?.evidencias ?? []);
+            return (
+              <dl className="mt-3 grid grid-cols-3 gap-3 text-center">
+                <div><dd className="font-serif text-2xl text-navy">{dossie.confirmados}</dd><dt className="text-[10px] text-navy/55">Confirmados</dt></div>
+                <div><dd className="font-serif text-2xl text-navy">{dossie.emRevisao}</dd><dt className="text-[10px] text-navy/55">Em revisão</dt></div>
+                <div><dd className="font-serif text-2xl text-navy">{dossie.pendentes}</dd><dt className="text-[10px] text-navy/55">Pendentes</dt></div>
+              </dl>
+            );
+          })()}
+        </section>
+
+        <section className="rounded-xl border border-navy/10 bg-card p-4">
+          <p className="font-serif text-lg text-navy">Jornada D0–D365</p>
+          <p className="mt-3 text-sm font-medium text-navy">
+            {qCadeia.data?.planejador?.fase_jornada ?? qCadeia.data?.planejador?.etapa ?? "Etapa não registrada"}
+          </p>
+          <p className="mt-1 text-xs text-navy/55">
+            {(qCadeia.data?.planejador?.marcos ?? []).length
+              ? `${qCadeia.data?.planejador?.marcos.length} marco(s) registrado(s) no planejador.`
+              : "Nenhum marco registrado no planejador."}
+          </p>
+        </section>
+      </div>
+
+      {/* Resumos operacionais continuam acessíveis, fora da primeira leitura editorial. */}
+      <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
+        <summary className="cursor-pointer text-sm font-medium text-navy">Abrir resumos operacionais do caso</summary>
+      <div className="mt-4 grid gap-3 border-t border-navy/10 pt-4 sm:grid-cols-2 lg:grid-cols-4">
         <a href="#secao-jornada" className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)] hover:border-gold/60">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Jornada/onboarding</p>
           <p className="mt-1 text-sm font-medium text-navy">
@@ -1294,7 +1370,11 @@ function FichaCaso() {
           )}
         </div>
       </div>
+      </details>
 
+      <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
+        <summary className="cursor-pointer text-sm font-medium text-navy">Abrir trabalho, documentos e alertas do caso</summary>
+        <div className="mt-4 border-t border-navy/10 pt-4">
       {/* No máximo: três tarefas, três atualizações, documentos prioritários, microentregas recentes e alertas críticos. */}
       {rascunhoPagamento ? (
         <div className="mb-6 flex flex-wrap items-end gap-2 rounded-lg border border-navy/15 bg-cream/40 p-3">
@@ -1480,6 +1560,8 @@ function FichaCaso() {
           </ul>
         </div>
       </div>
+        </div>
+      </details>
 
       {/* Índice: âncoras fixas; seções fora de foco ficam no DOM com hidden. */}
       <nav
@@ -1515,7 +1597,9 @@ function FichaCaso() {
         </button>
       </nav>
 
-      <div className="space-y-8">
+      <details open={secaoFoco !== "visao"} className="rounded-lg border border-navy/15 bg-card p-4">
+        <summary className="cursor-pointer text-sm font-medium text-navy">Abrir ficha operacional completa</summary>
+      <div className="mt-5 space-y-8 border-t border-navy/10 pt-5">
         <SecaoAncora id="visao" titulo="Indicadores" hidden={secaoFoco !== null && secaoFoco !== "visao"}>
           <EstadoDados
             carregando={q.isLoading}
@@ -2276,6 +2360,7 @@ function FichaCaso() {
           </div>
         </details>
       </div>
+      </details>
 
       <AlertDialog open={bloqueio.status === "blocked"}>
         <AlertDialogContent>
