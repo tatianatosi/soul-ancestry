@@ -119,7 +119,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
     const { data: caso } = await supabase
       .from("crm_casos")
       .select(
-        "id,codigo,titulo,pais,via,status,demo,cliente_id,organization_id,contrato_assinado,archived_at,codigos_legados",
+        "id,codigo,titulo,pais,via,status,demo,cliente_id,organization_id,contrato_assinado,archived_at,codigos_legados,documentos_minimos_ok",
       )
       .eq("id", idCanonico)
       .maybeSingle();
@@ -380,6 +380,12 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
         status: caso.status,
         contrato_assinado: caso.contrato_assinado,
         codigos_legados: caso.codigos_legados ?? [],
+        // §20 do De-Para (Jurídico & Contrato, zona 4 "Validação
+        // jurídica"): "cadeia documental completa validada" — já existia
+        // como o gate real que o portal consulta
+        // (AGENTS.md: confirmarDocumentosMinimos), mas nunca era exibido
+        // nesta tela de contrato do mesmo caso.
+        documentos_minimos_ok: caso.documentos_minimos_ok,
       },
       aliasDe,
       cliente: cliente ? { id: cliente.id, nome: cliente.nome, email: cliente.email, telefone: cliente.telefone } : null,

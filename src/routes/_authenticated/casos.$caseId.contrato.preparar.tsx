@@ -494,6 +494,16 @@ function Pagina() {
               <Selo texto={`Modelo: ${d.modelo?.code ?? "não localizado"}`} tom={d.modelo ? "ok" : "erro"} />
               <Selo texto={`Base: ${d.base?.code ?? "não localizada"}`} tom={d.base ? "ok" : "erro"} />
               {d.contrato && <Selo texto={`Contrato ${d.contrato.contract_number} · ${d.contrato.status}`} tom="neutro" />}
+              <span data-contrato-validacao-documental>
+                <Selo
+                  texto={
+                    d.caso.documentos_minimos_ok
+                      ? "Validação jurídica: cadeia documental completa"
+                      : "Validação jurídica: documentos mínimos pendentes"
+                  }
+                  tom={d.caso.documentos_minimos_ok ? "ok" : "alerta"}
+                />
+              </span>
             </div>
             {d.aliasDe && (
               <p className="mt-2 rounded border border-gold/50 bg-gold/10 p-2 text-xs text-navy">
