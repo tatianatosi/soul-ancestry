@@ -4,6 +4,7 @@ import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { organizacaoDo } from "@/lib/caso-canonico.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -288,7 +289,13 @@ export const listarAcessosPortal = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const [acessos, casosAcesso, clientes, casos, autorizacoes, propostas] = await Promise.all([
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    // Mesma ponte admin de `resumoVisaoClienteCaso` (evita recursão RLS em
+    // app_projections). Filtro explícito de organização porque o admin
+    // não passa por RLS.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const leitorProjecoes = supabaseAdmin as typeof supabase;
+    const [acessos, casosAcesso, clientes, casos, autorizacoes, propostas, projecoes] = await Promise.all([
       supabase
         .from("client_portal_access")
         .select(
@@ -314,6 +321,14 @@ export const listarAcessosPortal = createServerFn({ method: "GET" })
         .is("archived_at", null)
         .order("created_at", { ascending: false }),
       supabase.from("proposals").select("id, client_id, case_id, status, archived_at").is("archived_at", null),
+      // §22 do De-Para (Portal do Cliente, zona "Resumo por família/caso —
+      // status geral de publicação do App"): mesma fonte que
+      // `resumoVisaoClienteCaso` já usa por caso, aqui por organização
+      // inteira, para agregar sem N+1 query por caso.
+      leitorProjecoes
+        .from("app_projections")
+        .select("case_id, approval_status, archived_at")
+        .eq("organization_id", organizationId),
     ]);
     return {
       acessos: (acessos.data ?? []) as any[],
@@ -322,6 +337,7 @@ export const listarAcessosPortal = createServerFn({ method: "GET" })
       casos: (casos.data ?? []) as any[],
       autorizacoes: (autorizacoes.data ?? []) as any[],
       propostas: (propostas.data ?? []) as any[],
+      projecoes: (projecoes.data ?? []) as any[],
     };
   });
 

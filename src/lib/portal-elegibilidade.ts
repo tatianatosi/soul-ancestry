@@ -77,6 +77,46 @@ export type CasoPortal = {
   demo: boolean | null;
 };
 
+export type ProjecaoPortal = { case_id: string | null; approval_status: string | null; archived_at: string | null };
+export type ResumoPublicacaoCaso = { publicadas: number; pendentes: number; arquivadas: number };
+
+/**
+ * §22 do De-Para (Desk — Portal do Cliente, zona "Resumo por família/caso
+ * — status geral de publicação do App"): módulos publicados, pendentes,
+ * última atualização.
+ *
+ * DIVERGÊNCIA REGISTRADA (§29): a prancha nomeia uma "Matriz de módulos"
+ * (uma linha por aba do App — Home/Jornada/Radar/Árvore/Documentos/
+ * Legado/Conta — cada uma com estado próprio de visível/oculto/rascunho/
+ * publicado). Isso não existe no modelo de dado: `app_projections` grava
+ * estado de aprovação por ITEM de conteúdo (achado, marco, relatório...),
+ * não por aba — as 7 abas do App são sempre visíveis e mostram o que
+ * estiver publicado dentro delas, sem estado de publicação próprio por
+ * aba. Em vez de inventar 7 linhas fictícias, agrego o que o dado
+ * realmente sustenta: contagem de itens publicados/pendentes/arquivados
+ * por caso — mesma classificação que `resumoVisaoClienteCaso` já usa
+ * para um caso só (Caso 360 → "Visão do cliente"), aqui para todos de
+ * uma vez, sem N+1 query.
+ */
+export function resumoPublicacaoPorCaso(
+  projecoes: readonly ProjecaoPortal[],
+): Map<string, ResumoPublicacaoCaso> {
+  const mapa = new Map<string, ResumoPublicacaoCaso>();
+  for (const p of projecoes) {
+    if (!p.case_id) continue;
+    const atual = mapa.get(p.case_id) ?? { publicadas: 0, pendentes: 0, arquivadas: 0 };
+    if (p.approval_status === "published" && !p.archived_at) {
+      atual.publicadas += 1;
+    } else if (p.approval_status === "archived" || p.archived_at) {
+      atual.arquivadas += 1;
+    } else if (["draft", "in_review", "approved"].includes(String(p.approval_status))) {
+      atual.pendentes += 1;
+    }
+    mapa.set(p.case_id, atual);
+  }
+  return mapa;
+}
+
 export type PessoaPortal = {
   id: string;
   nome: string;

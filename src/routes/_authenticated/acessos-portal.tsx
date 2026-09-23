@@ -29,6 +29,7 @@ import {
   MOTIVO_GATES,
   NIVEL_DESCRICAO,
   NIVEL_LABEL,
+  resumoPublicacaoPorCaso,
   STATUS_ACESSO_LABEL,
   STATUS_AUTORIZACAO_LABEL,
   type AutorizacaoEmail,
@@ -103,6 +104,23 @@ function AcessosPortalPage() {
   const casos = (q.data?.casos ?? []) as CasoPortal[];
   const autorizacoes = (q.data?.autorizacoes ?? []) as AutorizacaoEmail[];
   const propostas = (q.data?.propostas ?? []) as PropostaPortal[];
+  const projecoes = (q.data?.projecoes ?? []) as { case_id: string | null; approval_status: string | null; archived_at: string | null }[];
+  const resumoPublicacao = resumoPublicacaoPorCaso(projecoes);
+  // Último acesso do cliente por caso: caso → client_portal_case_access →
+  // client_portal_access.last_authenticated_at (o mais recente, quando há
+  // mais de um vínculo de acesso para o mesmo caso).
+  const ultimoAcessoPorCaso = new Map<string, string | null>();
+  for (const vinculo of q.data?.casosAcesso ?? []) {
+    const acesso = (q.data?.acessos ?? []).find((a) => a.id === vinculo.client_portal_access_id);
+    const atual = ultimoAcessoPorCaso.get(vinculo.case_id);
+    const candidato = acesso?.last_authenticated_at ?? null;
+    if (candidato && (!atual || candidato > atual)) ultimoAcessoPorCaso.set(vinculo.case_id, candidato);
+    else if (!ultimoAcessoPorCaso.has(vinculo.case_id)) ultimoAcessoPorCaso.set(vinculo.case_id, candidato);
+  }
+  // Só casos genuinamente conectados ao App (têm vínculo de acesso ao
+  // portal) entram no resumo — carteira inteira da organização seria
+  // ruído, a maioria nunca usa o App.
+  const casosComAcessoPortal = casos.filter((c) => (q.data?.casosAcesso ?? []).some((v) => v.case_id === c.id));
 
   const mAutorizacao = useMutation({
     mutationFn: () =>
@@ -203,6 +221,57 @@ function AcessosPortalPage() {
             />
             <CardIndicador rotulo="Acessos suspensos ou revogados" valor={acessosSuspensos} apoio="Sem acesso ativo" tom="critico" />
           </div>
+
+          {/*
+            §22 do De-Para (Portal do Cliente — visão interna): "Resumo por
+            família/caso — status geral de publicação do App". Divergência
+            de vocabulário registrada no comentário de `resumoPublicacaoPorCaso`
+            (portal-elegibilidade.ts) — não é a "matriz de módulos" literal
+            da prancha, é a contagem real que o dado sustenta.
+          */}
+          <section className="rounded-xl border border-navy/10 bg-cream/40 p-5" data-resumo-publicacao-por-caso>
+            <h2 className="font-serif text-xl">Publicação por caso</h2>
+            <p className="mt-1 text-sm text-navy/60">
+              Itens publicados, pendentes e arquivados no App Cliente, e último acesso do cliente — só casos com
+              vínculo de acesso ao portal.
+            </p>
+            {casosComAcessoPortal.length === 0 ? (
+              <p className="mt-3 text-sm text-navy/60">Nenhum caso com acesso ao portal configurado ainda.</p>
+            ) : (
+              <div className="mt-3 overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="text-[11px] uppercase tracking-wide text-navy/50">
+                      <th className="pb-2 pr-3">Caso</th>
+                      <th className="pb-2 pr-3">Publicadas</th>
+                      <th className="pb-2 pr-3">Pendentes</th>
+                      <th className="pb-2 pr-3">Arquivadas</th>
+                      <th className="pb-2">Último acesso do cliente</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {casosComAcessoPortal.map((c) => {
+                      const resumo = resumoPublicacao.get(c.id) ?? { publicadas: 0, pendentes: 0, arquivadas: 0 };
+                      const ultimoAcesso = ultimoAcessoPorCaso.get(c.id) ?? null;
+                      return (
+                        <tr key={c.id} className="border-t border-navy/10">
+                          <td className="py-2 pr-3">
+                            {c.codigo ?? c.titulo ?? c.id}
+                          </td>
+                          <td className="py-2 pr-3">{resumo.publicadas}</td>
+                          <td className="py-2 pr-3">{resumo.pendentes}</td>
+                          <td className="py-2 pr-3">{resumo.arquivadas}</td>
+                          <td className="py-2 text-navy/70">
+                            {ultimoAcesso ? new Date(ultimoAcesso).toLocaleString("pt-BR") : "Nunca acessou"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
 
           <section className="grid gap-3 md:grid-cols-2">
             {(["proposal_portal", "client_workspace"] as NivelPortal[]).map((n) => (
