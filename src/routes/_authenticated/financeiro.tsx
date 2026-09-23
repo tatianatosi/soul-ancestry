@@ -223,6 +223,75 @@ function FinanceiroPage() {
             </button>
           </p>
         ) : null}
+        {/*
+          §19 do De-Para (Desk — Financeiro, zona "Resumo — visão financeira
+          do período: previsto, recebido, vencido, em atraso, saldo").
+          DIVERGÊNCIA REGISTRADA (§29): o wireframe nomeia "vencido" e "em
+          atraso" como dois indicadores; o vocabulário real de
+          `invoices.status` só sustenta um estado equivalente (`vencida`) —
+          não crio uma segunda contagem inventada por dias de atraso sem
+          fonte. Reaproveita `contratada`/`recebida`/`vencidas` já
+          calculados acima (mesmos dados de `qFaturas`/`qPagamentos`, sem
+          query nova) — cada indicador muda a aba/filtro para a lista real
+          que o sustenta, nenhum é decorativo.
+        */}
+        <CaCard titulo="Resumo do período" eyebrow="Financeiro · Faturas e pagamentos reais" data-financeiro-resumo-periodo>
+          {qFaturas.isLoading || qPagamentos.isLoading ? (
+            <p className="text-sm text-navy/50">Carregando…</p>
+          ) : (
+            <dl className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+              {(
+                [
+                  { chave: "previsto", rotulo: "Previsto", valor: contratada, aba: "faturas" as Aba, status: "" },
+                  { chave: "recebido", rotulo: "Recebido", valor: recebida, aba: "pagamentos" as Aba, status: "confirmado" },
+                  { chave: "vencido", rotulo: "Vencido", valor: vencidas, aba: "faturas" as Aba, status: "vencida" },
+                  { chave: "saldo", rotulo: "Saldo em aberto", valor: Math.max(contratada - recebida, 0), aba: "faturas" as Aba, status: "" },
+                ] as const
+              ).map((item) => (
+                <button
+                  key={item.chave}
+                  type="button"
+                  data-financeiro-indicador={item.chave}
+                  onClick={() => {
+                    setAba(item.aba);
+                    setStatus(item.status);
+                    setDetalhe(null);
+                  }}
+                  className="rounded-lg border border-navy/10 bg-cream/60 p-3 text-left hover:bg-navy/5"
+                >
+                  <dt className="text-[11px] uppercase tracking-wide text-navy/50">{item.rotulo}</dt>
+                  <dd className="mt-1 font-serif text-lg text-navy">{moeda(item.valor, "BRL")}</dd>
+                  <span className="text-[11px] text-navy/45">Ver lista →</span>
+                </button>
+              ))}
+            </dl>
+          )}
+        </CaCard>
+
+        {/*
+          §19 do De-Para, zona "Obrigações — custos/repasse/fornecedores
+          quando aplicável". DIVERGÊNCIA REGISTRADA (§29): `third_party_expenses`
+          existe e já é lido em Caso 360 (visao-geral.tsx), sempre por caso —
+          não existe hoje uma agregação por organização/período, e eu não
+          crio uma nova consulta org-wide sem fonte já pronta e sem mutation
+          nesta rodada. Estado honesto em vez de número inventado.
+        */}
+        <CaCard titulo="Obrigações" eyebrow="Financeiro · Custos e fornecedores" data-financeiro-obrigacoes>
+          <EstadoVazio mensagem="Sem agregação por organização ainda: despesas de terceiro (custos, repasse, fornecedor) são lidas por caso, na aba Financeiro do Caso 360 de cada caso — abra um caso para ver as despesas dele." />
+        </CaCard>
+
+        {/*
+          §19 do De-Para, zona "Gráficos — evolução e composição, com
+          período, unidade monetária e fonte". A regra do próprio corte
+          proíbe gráfico decorativo: sem uma consulta de série mensal real
+          (não existe hoje — `qFaturas`/`qPagamentos` trazem a lista crua,
+          não agregada por mês), um gráfico aqui seria decoração, não dado.
+          Estado honesto em vez de forjar uma série temporal.
+        */}
+        <CaCard titulo="Evolução" eyebrow="Financeiro · Série mensal" data-financeiro-evolucao>
+          <EstadoVazio mensagem="Sem consulta de série mensal ainda: os totais acima (Resumo do período) são o dado real disponível hoje. Um gráfico de evolução exige uma agregação por mês que ainda não existe — não vou desenhar uma série sem essa fonte." />
+        </CaCard>
+
         <div className="flex gap-2">
           {(["faturas", "pagamentos"] as Aba[]).map((a) => (
             <button
