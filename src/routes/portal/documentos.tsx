@@ -78,7 +78,7 @@ export function PortalDocumentos() {
               <ChipMeta rotulo="Liberados" valor={String(liberados.length)} />
               <ChipMeta rotulo="Enviados" valor={String(enviados.length)} />
             </div>
-            <p className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-navy/65">
+            <p className="rounded-xl border border-gold/30 bg-gold/10 px-4 py-3 text-sm text-navy/65">
               Envio de arquivo acontece quando a equipe solicita — sem inventar upload nem status de certidão nesta tela.
             </p>
 
@@ -86,7 +86,7 @@ export function PortalDocumentos() {
             <section
               data-documentos-solicitados
               data-documentos-checklist
-              className="overflow-hidden rounded-lg border border-border bg-card shadow-sm"
+              className="overflow-hidden rounded-xl border border-border bg-card shadow-sm"
             >
               <div className="h-1 bg-gold" aria-hidden="true" />
               <div className="p-5">
@@ -107,7 +107,7 @@ export function PortalDocumentos() {
             </section>
 
             {/* 2. Recebidos — enviar nunca comunica validação automática. */}
-            <section data-documentos-recebidos data-documentos-enviados className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+            <section data-documentos-recebidos data-documentos-enviados className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
               <div className="h-1 bg-navy" aria-hidden="true" />
               <div className="p-5">
               <div className="flex flex-wrap items-start justify-between gap-2"><h2 className="font-serif text-xl text-navy">Recebidos</h2><span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">Aguardam conferência</span></div>
@@ -123,7 +123,7 @@ export function PortalDocumentos() {
             </section>
 
             {/* 3. Liberados — somente publicações reais. */}
-            <section data-documentos-liberados data-documentos-preparado className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+            <section data-documentos-liberados data-documentos-preparado className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
               <div className="h-1 bg-gold" aria-hidden="true" />
               <div className="p-5">
               <div className="flex flex-wrap items-start justify-between gap-2"><h2 className="font-serif text-xl text-navy">Liberados</h2><span className="rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/65">Abertos para você</span></div>
@@ -138,7 +138,7 @@ export function PortalDocumentos() {
             </section>
 
             {/* 4. Entregas — atalho contextual; a lista editorial continua em Legado. */}
-            <section data-documentos-entregas className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+            <section data-documentos-entregas className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
               <div className="h-1 bg-navy" aria-hidden="true" />
               <div className="p-5">
                 <h2 className="font-serif text-xl text-navy">Entregas</h2>
@@ -226,7 +226,7 @@ export function PortalDocumentos() {
           </div>
 
           {/* 1. Solicitados — o que a equipe pediu. */}
-          <section data-documentos-solicitados className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+          <section data-documentos-solicitados className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
             <div className="h-1 bg-gold" aria-hidden="true" />
             <div className="p-5">
             <div className="flex flex-wrap items-start justify-between gap-2">
@@ -251,7 +251,7 @@ export function PortalDocumentos() {
           </section>
 
           {/* 2. Recebidos — chegou, mas ainda não foi conferido. */}
-          <section data-documentos-recebidos className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+          <section data-documentos-recebidos className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
             <div className="h-1 bg-navy" aria-hidden="true" />
             <div className="p-5">
             <div className="flex flex-wrap items-start justify-between gap-2">
@@ -294,7 +294,7 @@ export function PortalDocumentos() {
           </section>
 
           {/* 3. Liberados — conferidos e abertos para a família. */}
-          <section data-documentos-liberados className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+          <section data-documentos-liberados className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
             <div className="h-1 bg-gold" aria-hidden="true" />
             <div className="p-5">
             <div className="flex flex-wrap items-start justify-between gap-2">
@@ -342,7 +342,7 @@ export function PortalDocumentos() {
             criaria duas fontes de verdade. A caixa vira atalho canônico
             para Legado. Bloqueio catalogado em portal-dados-vivos.ts.
           */}
-          <section data-documentos-entregas className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+          <section data-documentos-entregas className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
             <div className="h-1 bg-navy" aria-hidden="true" />
             <div className="p-5">
             <div className="flex flex-wrap items-start justify-between gap-2">

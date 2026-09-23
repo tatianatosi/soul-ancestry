@@ -89,7 +89,7 @@ export function PortalConta() {
         <PortalCarregando />
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>
-          <div className="space-y-4" data-aba-conta>
+          <div className="space-y-5" data-aba-conta>
             <div
               data-conta-meta
               className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
@@ -102,7 +102,7 @@ export function PortalConta() {
 
             <section
               data-conta-perfil
-              className="rounded-2xl border border-border bg-card p-5 shadow-sm"
+              className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm"
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="text-sm font-semibold text-navy">Perfil</h2>
@@ -134,7 +134,7 @@ export function PortalConta() {
               </p>
             </section>
 
-            <section data-conta-plano className="rounded-2xl border border-border bg-card p-5">
+            <section data-conta-plano className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="text-sm font-semibold text-navy">Plano</h2>
                 <span className="rounded-full border border-gold/40 bg-gold/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-navy">
@@ -153,7 +153,7 @@ export function PortalConta() {
               </p>
             </section>
 
-            <section data-conta-alertas className="rounded-2xl border border-border bg-card p-5">
+            <section data-conta-alertas className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="text-sm font-semibold text-navy">Alertas</h2>
                 <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
@@ -186,7 +186,7 @@ export function PortalConta() {
               )}
             </section>
 
-            <section data-conta-historico className="rounded-2xl border border-border bg-card p-5">
+            <section data-conta-historico className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="text-sm font-semibold text-navy">Histórico</h2>
                 <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">

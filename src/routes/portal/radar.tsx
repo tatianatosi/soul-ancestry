@@ -66,7 +66,7 @@ export function PortalRadar() {
             const casoCodigo = previa?.identidade?.codigo ?? "—";
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
-                <div className="space-y-6" data-aba-radar>
+                <div className="space-y-5" data-aba-radar>
                   <div
                     data-radar-meta
                     className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
@@ -77,7 +77,7 @@ export function PortalRadar() {
                   <RadarSeisEixos dimensoes={dimensoes} />
 
                   {/* Próximo passo real (mesma fonte de Home/Jornada) — nunca um passo por eixo inventado. */}
-                  <section className="rounded-2xl border-l-4 border-l-navy-800 bg-card p-4">
+                  <section className="rounded-xl border border-navy/10 border-l-4 border-l-navy bg-card p-4 shadow-sm">
                     <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">
                       Seu próximo passo
                     </p>
@@ -96,24 +96,26 @@ export function PortalRadar() {
                     ) : null}
                   </section>
 
-                  {/* Acabamento 2026-09-13 (referência Lovable): leitura mais leve —
-                      lista numerada com selo suave no lugar de 6 cartões com barra de
-                      progresso. Mesmos dados (titulo/legenda/rotuloNumero), sem
-                      recalcular nada. */}
-                  <section className="rounded-2xl border border-border bg-card p-2 sm:p-3">
-                    <ul className="divide-y divide-border">
+                  <section aria-label="Dimensões do Radar">
+                    <ul className="grid grid-cols-2 gap-3">
                       {dimensoes.map((d, i) => (
-                        <li key={d.id} className="flex items-start gap-3 px-3 py-3">
-                          <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-gold/15 text-[11px] font-semibold text-navy">
-                            {i + 1}
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <h2 className="text-sm font-semibold text-navy">{d.titulo}</h2>
-                            <p className="mt-0.5 text-xs text-navy/60">{d.legenda}</p>
+                        <li key={d.id} className="min-w-0 rounded-xl border border-border bg-card p-3.5 shadow-sm">
+                          <div className="flex min-w-0 items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="text-[9px] font-semibold uppercase tracking-widest text-navy/45">
+                                Dimensão {i + 1}
+                              </p>
+                              <h2 className="mt-0.5 text-xs font-semibold leading-tight text-navy">{d.titulo}</h2>
+                            </div>
+                            <span className="shrink-0 font-serif text-base text-navy">{d.rotuloNumero}</span>
                           </div>
-                          <span className="shrink-0 rounded-full bg-cream px-2.5 py-1 text-[11px] font-medium text-navy/75">
-                            {d.rotuloNumero}
-                          </span>
+                          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-cream" aria-hidden="true">
+                            <div
+                              className="h-full rounded-full bg-gold"
+                              style={{ width: `${d.estado === "percentual" ? (d.percentual ?? 0) : 0}%` }}
+                            />
+                          </div>
+                          <p className="mt-2 text-[10px] leading-relaxed text-navy/55">{d.legenda}</p>
                         </li>
                       ))}
                     </ul>

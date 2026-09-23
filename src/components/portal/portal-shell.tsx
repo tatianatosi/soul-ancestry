@@ -107,7 +107,7 @@ export function PortalShell({
         empurravam o conteúdo real para baixo da dobra e destoavam do mockup
         3/17, que usa uma só faixa). Logo + "Bem-vinda/nome" no mesmo bloco.
       */}
-      <header className="bg-navy text-cream shadow-sm">
+      <header className="bg-navy text-cream shadow-sm" data-app-cabecalho>
         <div className="mx-auto grid min-h-16 max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 lg:px-8">
           <div className="flex min-w-0 items-center gap-3">
             <BrandLogo size={32} variant="client-dark" showText={false} />

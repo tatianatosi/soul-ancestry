@@ -340,6 +340,39 @@
   box-shadow: var(--ca-shadow-sm);
 }
 
+[data-app-cliente="true"] main > header {
+  position: relative;
+}
+
+[data-app-cliente="true"] main > header::after {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 3rem;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--gold);
+  content: "";
+}
+
+[data-app-cliente="true"] :where([data-aba-radar], [data-aba-documentos], [data-aba-documentos-vivo]) > :first-child {
+  margin-top: 0;
+}
+
+@media (max-width: 639px) {
+  [data-app-cliente="true"] [data-app-cabecalho] > div:first-child {
+    min-height: 4.75rem;
+  }
+
+  [data-app-cliente="true"] :where([data-jornada-meta], [data-radar-meta], [data-arvore-meta], [data-documentos-meta], [data-legado-meta], [data-conta-meta]) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  [data-app-cliente="true"] :where([data-jornada-meta], [data-radar-meta], [data-arvore-meta], [data-documentos-meta], [data-legado-meta], [data-conta-meta]) > * {
+    min-width: 0;
+  }
+}
+
 [data-app-cliente="true"] :where(button, a) {
   text-underline-offset: 3px;
 }

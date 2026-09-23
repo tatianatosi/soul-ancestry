@@ -43,16 +43,20 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
   );
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm" data-radar-grafico>
+      <div className="border-b border-navy/10 px-5 py-4">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Visão das seis dimensões</p>
+        <h2 className="mt-0.5 font-serif text-xl text-navy">Radar Ancestral</h2>
+      </div>
       {!comProgresso ? (
-        <p className="mb-3 rounded-lg border border-border bg-cream/70 px-3 py-2 text-center text-xs text-navy/65">
+        <p className="mx-4 mt-4 rounded-lg border border-border bg-cream/70 px-3 py-2 text-center text-xs text-navy/65">
           Radar ainda não publicado. Ele ganha forma conforme a equipe publica documentação e achados — a teia
           permanece no centro até lá, sem inventar percentual.
         </p>
       ) : null}
       <svg
         viewBox="-90 -30 400 300"
-        className="mx-auto w-full max-w-sm"
+        className="mx-auto w-full max-w-md px-2 pb-2"
         role="img"
         aria-label="Radar das 6 dimensões da sua jornada"
       >

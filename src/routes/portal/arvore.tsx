@@ -113,7 +113,7 @@ export function PortalArvore() {
             const casoCodigo = previa?.identidade?.codigo ?? "—";
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
-                <div className="space-y-6" data-aba-arvore>
+                <div className="space-y-5" data-aba-arvore>
                   <div
                     data-arvore-meta
                     className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
@@ -144,7 +144,7 @@ export function PortalArvore() {
                   {/* Estrutura G1–G5 do mockup — chrome visual, sem inventar pessoas. */}
                   <section
                     aria-label="Gerações G1 a G5"
-                    className="rounded-2xl border border-border bg-card p-5 shadow-sm"
+                    className="overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm"
                   >
                     <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">
                       Árvore genealógica G1–G5
