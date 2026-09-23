@@ -8,6 +8,7 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { CardIndicador } from "@/components/desk/ui-desk";
+import { CaCard } from "@/components/ui/ca-card";
 import {
   alterarStatusAcessoPortal,
   criarConvitePortal,
@@ -234,14 +235,15 @@ function AcessosPortalPage() {
             (portal-elegibilidade.ts) — não é a "matriz de módulos" literal
             da prancha, é a contagem real que o dado sustenta.
           */}
-          <section className="rounded-xl border border-navy/10 bg-cream/40 p-5" data-resumo-publicacao-por-caso>
-            <h2 className="font-serif text-xl">Publicação por caso</h2>
-            <p className="mt-1 text-sm text-navy/60">
+          <CaCard titulo="Publicação por caso" data-resumo-publicacao-por-caso>
+            <p className="text-sm text-navy/60">
               Itens publicados, pendentes e arquivados no App Cliente, e último acesso do cliente — só casos com
               vínculo de acesso ao portal.
             </p>
             {casosComAcessoPortal.length === 0 ? (
-              <p className="mt-3 text-sm text-navy/60">Nenhum caso com acesso ao portal configurado ainda.</p>
+              <div className="mt-3">
+                <EstadoVazio mensagem="Nenhum caso com acesso ao portal configurado ainda." />
+              </div>
             ) : (
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full text-left text-sm">
@@ -276,7 +278,7 @@ function AcessosPortalPage() {
                 </table>
               </div>
             )}
-          </section>
+          </CaCard>
 
           {/*
             §22 do De-Para (Portal do Cliente — visão interna, zona "Fila
@@ -286,14 +288,15 @@ function AcessosPortalPage() {
             vez de agregada por caso. `responsavel`/`prazo` ficam "—" quando
             a linha não traz autor/data — nunca inferidos.
           */}
-          <section className="rounded-xl border border-navy/10 bg-cream/40 p-5" data-fila-editorial-portal>
-            <h2 className="font-serif text-xl">Fila editorial</h2>
-            <p className="mt-1 text-sm text-navy/60">
+          <CaCard titulo="Fila editorial" data-fila-editorial-portal>
+            <p className="text-sm text-navy/60">
               Itens em rascunho, revisão ou aprovados aguardando publicação no App Cliente — antes de sair da fila,
               cada um passa por revisão humana na Biblioteca de evidências do caso.
             </p>
             {filaEditorial.length === 0 ? (
-              <p className="mt-3 text-sm text-navy/60">Nenhum item aguardando revisão ou publicação agora.</p>
+              <div className="mt-3">
+                <EstadoVazio mensagem="Nenhum item aguardando revisão ou publicação agora." />
+              </div>
             ) : (
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full text-left text-sm">
@@ -322,7 +325,7 @@ function AcessosPortalPage() {
                 </table>
               </div>
             )}
-          </section>
+          </CaCard>
 
           <details className="rounded-lg border border-navy/15 bg-card p-4">
             <summary className="cursor-pointer text-sm font-medium text-navy">
@@ -338,9 +341,8 @@ function AcessosPortalPage() {
             ))}
           </section>
 
-          <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
-            <h2 className="font-serif text-xl">E-mails autorizados</h2>
-            <p className="mt-1 text-sm text-navy/60">
+          <CaCard titulo="E-mails autorizados">
+            <p className="text-sm text-navy/60">
               Sem senha e sem autocadastro. Todo e-mail precisa de finalidade registrada e validação humana antes de
               qualquer convite. Participante do núcleo familiar não recebe acesso apenas por pertencer ao núcleo.
             </p>
@@ -480,11 +482,10 @@ function AcessosPortalPage() {
                 })
               )}
             </ul>
-          </section>
+          </CaCard>
 
-          <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
-            <h2 className="font-serif text-xl">Novo convite</h2>
-            <p className="mt-1 text-sm text-navy/60">
+          <CaCard titulo="Novo convite">
+            <p className="text-sm text-navy/60">
               O seletor de pessoa lista somente quem é elegível ao nível escolhido. Registros bloqueados ficam fora da
               lista por padrão e, quando exibidos, aparecem desabilitados com o motivo. Demonstrações ficam isoladas e
               não entram nas métricas de clientes reais.
@@ -646,11 +647,9 @@ function AcessosPortalPage() {
             </div>
             {msg ? <p className="mt-3 text-sm text-green-700">{msg}</p> : null}
             {erro ? <p className="mt-3 text-sm text-terracotta">{erro}</p> : null}
-          </section>
+          </CaCard>
 
-
-          <section>
-            <h2 className="font-serif text-xl">Acessos</h2>
+          <CaCard titulo="Acessos">
             {!incluirDemo && acessosDemoOcultos > 0 ? (
               <p className="mt-1 text-sm text-navy/60">
                 {acessosDemoOcultos} acesso(s) de demonstração ocultos do painel operacional e das métricas de clientes
@@ -876,7 +875,7 @@ function AcessosPortalPage() {
                 })}
               </div>
             )}
-          </section>
+          </CaCard>
             </div>
           </details>
         </div>
