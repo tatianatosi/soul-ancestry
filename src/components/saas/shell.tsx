@@ -13,6 +13,7 @@ import {
   Menu,
   ChevronDown,
   ShieldCheck,
+  Search,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -371,7 +372,11 @@ export function SaasShell({
       </aside>
 
       <div className="flex min-w-0 max-w-full flex-1 flex-col overflow-x-clip">
-        <header className="grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3 border-b border-navy/10 border-t-4 border-t-gold bg-navy px-4 py-4 text-cream shadow-sm md:flex md:bg-card md:px-8 md:text-navy">
+        <div className="hidden min-h-8 items-center justify-between bg-navy px-8 text-[10px] font-semibold uppercase tracking-widest text-cream/70 md:flex">
+          <span>Clube Ancestral · Desk Intelligence</span>
+          <span>Genealogia profissional e história familiar</span>
+        </div>
+        <header className="grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3 border-b border-navy/10 border-t-4 border-t-gold bg-navy px-4 py-4 text-cream shadow-sm md:grid-cols-[minmax(0,1fr)_minmax(16rem,28rem)_auto] md:bg-card md:px-8 md:text-navy">
           <button
             className="shrink-0 md:hidden"
             onClick={() => setAberto((v) => !v)}
@@ -390,7 +395,18 @@ export function SaasShell({
             <h1 className="truncate font-serif text-2xl">{titulo}</h1>
             {descricao ? <p className="overflow-wrap-anywhere text-sm text-cream/70 md:text-navy/60">{descricao}</p> : null}
           </div>
-          {acoes ? <div className="col-span-full min-w-0 max-w-full md:col-auto">{acoes}</div> : null}
+          <div className="hidden min-w-0 items-center gap-2 rounded-md border border-input bg-cream/40 px-3 py-2.5 md:flex" aria-label="Busca no Desk">
+            <Search className="h-4 w-4 shrink-0 text-navy/45" aria-hidden="true" />
+            <span className="truncate text-xs text-navy/50">Buscar caso, pessoa ou documento</span>
+          </div>
+          {acoes ? (
+            <div className="col-span-full min-w-0 max-w-full md:col-auto">{acoes}</div>
+          ) : (
+            <div className="hidden min-w-0 rounded-md border border-navy/10 bg-cream/40 px-3 py-2 md:block">
+              <p className="max-w-44 truncate text-xs font-medium text-navy">{contexto?.perfil?.email ?? "Conta"}</p>
+              <p className="max-w-44 truncate text-[10px] text-navy/50">{contexto?.organizacao?.nome ?? "Clube Ancestral"}</p>
+            </div>
+          )}
         </header>
         {contexto?.organizacao?.demo ? (
           <div className="border-b border-gold/40 bg-gold/15 px-4 py-2 text-xs font-medium uppercase tracking-wide text-navy lg:px-8">

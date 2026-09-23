@@ -21,6 +21,7 @@ import {
   type AcaoOperacional,
 } from "@/lib/golive-operacao";
 import { acessoAoPortal, publicacaoPorEstado } from "@/lib/golive-portal";
+import { GRUPOS_DESK } from "@/lib/navegacao-desk";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
@@ -40,12 +41,14 @@ export const Route = createFileRoute("/_authenticated/painel")({
 function Painel() {
   return (
     <SaasShell
-      titulo="Visão Geral"
+      titulo="Hoje"
       descricao="O que está parado, vencido ou pede decisão — com ação e link para a aba dona."
       visualKit="pantone"
     >
-      <HojeConectado />
       <PainelConsolidado />
+      <div className="mt-8 border-t border-navy/10 pt-6">
+        <HojeConectado />
+      </div>
     </SaasShell>
   );
 }
@@ -235,10 +238,25 @@ function PainelConsolidado() {
   ];
 
   return (
-    <section className="mt-10 border-t border-navy/15 pt-7" aria-labelledby="painel-consolidado-titulo">
-      <div className="mb-5">
-        <p className="text-xs font-semibold uppercase tracking-widest text-gold">Painel consolidado</p>
-        <h2 id="painel-consolidado-titulo" className="mt-1 font-serif text-2xl text-navy">Indicadores por frente</h2>
+    <section aria-labelledby="painel-consolidado-titulo">
+      <nav aria-label="Módulos do Desk" className="mb-7 flex min-w-0 gap-1 overflow-x-auto border-b border-navy/10 pb-2">
+        {GRUPOS_DESK.map((grupo) => (
+          <Link
+            key={grupo.to}
+            to={grupo.to}
+            className={grupo.to === "/painel" ? "shrink-0 border-b-2 border-gold px-3 py-2 text-xs font-semibold text-navy" : "shrink-0 border-b-2 border-transparent px-3 py-2 text-xs text-navy/60 hover:text-navy"}
+          >
+            {grupo.label}
+          </Link>
+        ))}
+      </nav>
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-gold">Desk Intelligence</p>
+          <h2 id="painel-consolidado-titulo" className="mt-1 font-serif text-3xl text-navy">Hoje</h2>
+          <p className="mt-1 text-sm text-navy/60">Decisões, prazos e sinais que pedem atenção agora.</p>
+        </div>
+        <span className="rounded-full border border-navy/15 bg-card px-3 py-1 text-[11px] font-medium text-navy/65">Dados conectados</span>
       </div>
 
       {/*
@@ -281,7 +299,7 @@ function PainelConsolidado() {
               <p className="text-[11px] text-navy/45">{k.apoio}</p>
             </>
           );
-          const classe = "block rounded-xl border border-navy/15 bg-cream/40 px-4 py-3 text-left";
+          const classe = "block min-h-28 rounded-lg border border-border bg-card px-5 py-4 text-left shadow-sm transition-colors";
           return k.to ? (
             <Link key={k.rotulo} to={k.to} className={`${classe} hover:border-gold`}>
               {conteudo}
@@ -293,6 +311,37 @@ function PainelConsolidado() {
           );
         })}
       </dl>
+
+      <div className="mb-6">
+        <CaCard
+          titulo="Tarefas e microentregas"
+          eyebrow="Prazos e responsáveis registrados"
+          acao={
+            <Button asChild size="sm" variant="outline">
+              <Link to="/tarefas">Abrir</Link>
+            </Button>
+          }
+        >
+          {itensKanban.length === 0 ? (
+            <EstadoVazio mensagem="Nenhuma tarefa ou microentrega registrada para esta leitura." />
+          ) : (
+            <ul className="grid gap-2 md:grid-cols-2">
+              {itensKanban.slice(0, 6).map((item) => {
+                const faixa = faixaDePrazo(item);
+                return (
+                  <li key={item.id} className="flex min-w-0 items-start justify-between gap-3 rounded-lg border border-navy/10 bg-cream/35 px-3 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-navy">{item.titulo}</p>
+                      <p className="mt-0.5 truncate text-[11px] text-navy/55">{item.responsavel || "Responsável não registrado"}</p>
+                    </div>
+                    <span className="shrink-0 rounded-full border border-navy/15 bg-card px-2 py-0.5 text-[10px] font-medium text-navy/65">{faixa}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </CaCard>
+      </div>
 
       {/*
         §11 linha 3 — "Decisões prioritárias". Cada linha precisa abrir

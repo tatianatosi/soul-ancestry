@@ -112,7 +112,7 @@ export function PortalShell({
           <div className="flex min-w-0 items-center gap-3">
             <BrandLogo size={32} variant="client-dark" showText={false} />
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-widest text-gold/80">Bem-vinda</p>
+              <p className="text-[10px] uppercase tracking-widest text-gold/80">Aplicativo da família</p>
               <p className="truncate font-serif text-sm italic leading-tight text-cream">
                 {previa ? previa.titulo : (data?.cliente?.nome ?? "Aplicativo do cliente")}
               </p>
