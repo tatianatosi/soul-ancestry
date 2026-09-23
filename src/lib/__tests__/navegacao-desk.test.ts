@@ -83,7 +83,7 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     expect(rotas).not.toContain("/crm-mestre");
   });
 
-  it("Validação Jurídica mora na Inteligência; Radar Interno mora em Pessoas & Casos", () => {
+  it("Validação Jurídica mora na Inteligência; Radar & Matrizes mora em Pessoas & Casos", () => {
     const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
     const casos = GRUPOS_DESK.find((g) => g.id === "casos")!;
     expect(pesquisa.sub.some((s) => "to" in s && s.to === "/matriz-juridica")).toBe(true);
@@ -97,7 +97,7 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
       label: string;
     }[];
     expect(
-      todos.some((s) => s.to === "/qualidade" && s.label === "Radar Interno e Qualidade"),
+      todos.some((s) => s.to === "/qualidade" && s.label === "Radar & Matrizes"),
     ).toBe(true);
     expect(todos.some((s) => s.to === "/matriz-juridica" && s.label === "Validação Jurídica")).toBe(
       true,

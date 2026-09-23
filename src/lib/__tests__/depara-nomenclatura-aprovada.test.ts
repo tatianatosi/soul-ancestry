@@ -5,7 +5,8 @@ import { GRUPOS_DESK, LINKS_CONTEXTUAIS } from "@/lib/navegacao-desk";
 /*
  * RESGATE DAS NOMENCLATURAS APROVADAS (09/09/2026) — de-para obrigatório:
  * Hoje → Visão Geral; Casos → Casos 360; Governança → Biblioteca Mestre.
- * Validação Jurídica, Radar Interno, Alertas já batiam com o aprovado.
+ * Validação Jurídica, Alertas já batiam com o aprovado. Radar Interno →
+ * Radar & Matrizes renomeado em 23/09/2026 (D6, §16 do De-Para).
  * Os 8 grupos operacionais reais (Hoje/Visão Geral, Marketing, Comercial,
  * Casos/Casos 360, Pesquisa, Contratos e financeiro, Cliente, Biblioteca/
  * Governança) continuam existindo e com as mesmas rotas — só o rótulo de
@@ -61,7 +62,7 @@ describe("De-para de nomenclatura — cabeçalhos das telas batem com o rótulo 
     ["src/routes/_authenticated/casos.index.tsx", 'titulo="Casos 360"'],
     ["src/routes/_authenticated/tarefas.tsx", 'titulo="Checklist"'],
     ["src/routes/_authenticated/matriz-juridica.tsx", 'titulo="Validação Jurídica"'],
-    ["src/routes/_authenticated/qualidade.tsx", 'titulo="Radar Interno"'],
+    ["src/routes/_authenticated/qualidade.tsx", 'titulo="Radar & Matrizes"'],
     ["src/routes/_authenticated/alertas.tsx", 'titulo="Alertas"'],
     ["src/routes/_authenticated/biblioteca.tsx", 'titulo="Biblioteca Mestre"'],
   ] as const;

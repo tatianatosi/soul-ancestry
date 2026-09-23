@@ -11,7 +11,7 @@ import { grupoDonoDaRota } from "@/lib/navegacao-desk";
 
 /** Rótulo humano exibido na navegação e no cabeçalho, sem mudar a URL. */
 export const ROTULOS_HUMANOS: Record<string, string> = {
-  "/qualidade": "Radar Interno",
+  "/qualidade": "Radar & Matrizes",
   "/matriz-juridica": "Validação Jurídica",
   "/pesquisa-modulo": "Pesquisa Genealógica",
   "/integracoes": "Integrações",
@@ -41,7 +41,7 @@ function atalho(rota: string, rotulo: string): AtalhoDescoberta {
 }
 
 export const ATALHOS_DESCOBERTA: readonly AtalhoDescoberta[] = [
-  atalho("/qualidade", "Radar Interno"),
+  atalho("/qualidade", "Radar & Matrizes"),
   atalho("/matriz-juridica", "Validação Jurídica"),
   atalho("/casos", ROTULO_PRIORIDADE),
   atalho("/pesquisa-modulo", "Pesquisa Genealógica"),

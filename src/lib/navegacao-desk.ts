@@ -128,7 +128,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/tarefas", label: "Checklist (tarefas e entregas internas)" },
       { to: "/ops", label: "Operação" },
       { to: "/ops-excecoes", label: "Exceções operacionais" },
-      { to: "/qualidade", label: "Radar Interno e Qualidade" },
+      { to: "/qualidade", label: "Radar & Matrizes" },
       { to: "/casos", hash: "jornada", label: "Fechamento e ativação do caso" },
       { grupo: "Portal" },
       { to: "/acessos-portal", label: "Acessos ao portal e App Cliente" },

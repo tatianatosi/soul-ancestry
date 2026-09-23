@@ -98,7 +98,7 @@ export function RadarInternoIntegrado() {
 
   return (
     <Tabs value={modo} onValueChange={(valor) => setModo(valor as ModoRadar)}>
-      <TabsList aria-label="Modo do Radar Interno" className="h-auto bg-navy/5">
+      <TabsList aria-label="Modo do Radar & Matrizes" className="h-auto bg-navy/5">
         <TabsTrigger value="matriz">Matriz de Prioridade</TabsTrigger>
         <TabsTrigger value="individual">Radar Individual</TabsTrigger>
       </TabsList>

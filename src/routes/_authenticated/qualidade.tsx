@@ -10,13 +10,13 @@ import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos
 export const Route = createFileRoute("/_authenticated/qualidade")({
   head: () => ({
     meta: [
-      { title: "Radar Interno — Clube Ancestral" },
+      { title: "Radar & Matrizes — Clube Ancestral" },
       {
         name: "description",
         content:
           "Matriz de prioridade e Radar Individual sincronizados por caso; checklists e exportação em painel colapsado.",
       },
-      { property: "og:title", content: "Radar Interno — Clube Ancestral" },
+      { property: "og:title", content: "Radar & Matrizes — Clube Ancestral" },
       {
         property: "og:description",
         content: "Radar & Matrizes do Desk — leitura interna por organização.",
@@ -29,14 +29,16 @@ export const Route = createFileRoute("/_authenticated/qualidade")({
   component: QualidadePage,
 });
 
-// §16 do De-Para pede "Radar & Matrizes" no título; nomenclatura canônica atual
-// (`depara-nomenclatura-aprovada.test.ts`, `descoberta-desk.test.ts`, nav e
-// `rotulo-humano`) fixa "Radar Interno". Rename precisaria propagar pelas 4
-// superfícies num corte próprio — mantido como "Radar Interno" até lá.
+// D6 (23/09/2026, autorização explícita da Proprietária): renomeado
+// "Radar Interno" → "Radar & Matrizes" (§16 do De-Para) nas 4 fontes
+// canônicas — navegação (navegacao-desk.ts), rótulos humanos e
+// descoberta/rota (descoberta-desk.ts) e aqui, o título/taxonomia da
+// própria rota. Eixos, cálculos e a separação Radar Desk (4 eixos) ×
+// Radar App (6 dimensões) não mudam — só o nome.
 function QualidadePage() {
   return (
     <SaasShell
-      titulo="Radar Interno"
+      titulo="Radar & Matrizes"
       descricao="Matriz de elegibilidade × urgência e Radar Individual sincronizados; leitura interna por caso."
     >
       <p className="mb-4 text-sm text-navy/70">
@@ -61,7 +63,7 @@ function QualidadePage() {
 }
 
 /**
- * Radar Interno (Desk) usa os quatro eixos da jornada (radar-eixos.ts).
+ * Radar & Matrizes (Desk) usa os quatro eixos da jornada (radar-eixos.ts).
  * Distinto das seis dimensões do App Cliente (radar-seis-eixos.ts). Sem eixo extra aqui.
  *
  * DSA-1-BASE-TOKENS-CARDS (19/09/2026): primeiro consumidor do Desk a usar
@@ -80,9 +82,9 @@ function EixosCanonicosInternos() {
   }
 
   return (
-    <CaCard titulo="Eixos canônicos da leitura" eyebrow="Radar Interno · 4 eixos" className="mb-4">
+    <CaCard titulo="Eixos canônicos da leitura" eyebrow="Radar & Matrizes · 4 eixos" className="mb-4">
       <p className="text-xs text-navy/60">
-        Radar Interno do Desk — quatro eixos da jornada (radar-eixos.ts), compartilhados com a leitura de progresso do cliente. Distinto das 6 dimensões do App (radar-seis-eixos.ts). Nenhum eixo extra aqui.
+        Radar & Matrizes do Desk — quatro eixos da jornada (radar-eixos.ts), compartilhados com a leitura de progresso do cliente. Distinto das 6 dimensões do App (radar-seis-eixos.ts). Nenhum eixo extra aqui.
       </p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {eixos.map((eixo) => (

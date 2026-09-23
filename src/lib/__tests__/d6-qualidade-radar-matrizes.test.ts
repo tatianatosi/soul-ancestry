@@ -21,13 +21,9 @@ const RADAR = resolve(__dirname, "../../components/desk/radar-interno-integrado.
 describe("D6 Radar & Matrizes — descrição da rota alinhada ao De-Para §16", () => {
   const rota = readFileSync(ROTA, "utf8");
 
-  it("mantém título canônico Radar Interno (dívida de rename para corte próprio)", () => {
-    // §16 pede "Radar & Matrizes"; nomenclatura canônica atual fixa "Radar
-    // Interno" (depara-nomenclatura-aprovada.test.ts, descoberta-desk.test.ts,
-    // navegacao-desk, rotulo-humano). Rename precisa propagar pelas 4
-    // superfícies num corte próprio — declarado no comentário da rota.
-    expect(rota).toMatch(/titulo="Radar Interno"/);
-    expect(rota).toMatch(/nomenclatura canônica/);
+  it("título renomeado para Radar & Matrizes nas 4 fontes canônicas (D6, 23/09/2026)", () => {
+    expect(rota).toMatch(/titulo="Radar & Matrizes"/);
+    expect(rota).not.toContain('titulo="Radar Interno"');
   });
 
   it("descreve a sincronização matriz × radar individual, sem inventar promessa", () => {

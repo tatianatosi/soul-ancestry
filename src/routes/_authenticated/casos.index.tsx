@@ -239,14 +239,15 @@ function CasosPage() {
       ) : null}
 
       {/*
-        A matriz Urgência × Elegibilidade é a tela Radar Interno do mockup.
-        Em Casos 360 a saúde aparece por linha da carteira; o mapa da carteira
-        inteira abre aqui.
+        A matriz Urgência × Elegibilidade é a tela Radar & Matrizes do mockup
+        (D6, renomeado de "Radar Interno" em 23/09/2026). Em Casos 360 a
+        saúde aparece por linha da carteira; o mapa da carteira inteira
+        abre aqui.
       */}
       <p className="mb-4 rounded-lg border border-navy/10 bg-cream/50 px-4 py-3 text-sm text-navy/70">
         A matriz de prioridade da carteira (Agir agora / Avaliar / Monitorar / Cultivar) está no{" "}
         <Link to="/qualidade" className="font-medium text-navy underline">
-          Radar Interno
+          Radar & Matrizes
         </Link>
         . Nesta lista, a coluna de saúde e a próxima ação vêm do mesmo planejador da ficha.
       </p>

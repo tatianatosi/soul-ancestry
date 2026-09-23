@@ -7,7 +7,7 @@ const rotaQualidade = readFileSync(
   "utf8",
 );
 
-describe("DSA-1-BASE-TOKENS-CARDS: qualidade.tsx (Radar Interno)", () => {
+describe("DSA-1-BASE-TOKENS-CARDS: qualidade.tsx (Radar & Matrizes)", () => {
   it("usa o Card canônico (CaCard) para os eixos internos, não uma <section> ad-hoc", () => {
     expect(rotaQualidade).toContain('import { CaCard } from "@/components/ui/ca-card"');
     expect(rotaQualidade).toMatch(/<CaCard\s+titulo="Eixos canônicos da leitura"/);
@@ -29,8 +29,8 @@ describe("DSA-1-BASE-TOKENS-CARDS: qualidade.tsx (Radar Interno)", () => {
     expect(rotaQualidade).not.toMatch(/#[0-9A-Fa-f]{6}/);
   });
 
-  it("declara e preserva os 4 eixos do Radar Interno (nenhum eixo extra)", () => {
-    expect(rotaQualidade).toContain("Radar Interno · 4 eixos");
+  it("declara e preserva os 4 eixos do Radar & Matrizes (nenhum eixo extra)", () => {
+    expect(rotaQualidade).toContain("Radar & Matrizes · 4 eixos");
     expect(rotaQualidade).toContain("EIXOS_RADAR_CANONICOS");
     expect(rotaQualidade).toContain("garantirEixosCanonicos");
   });

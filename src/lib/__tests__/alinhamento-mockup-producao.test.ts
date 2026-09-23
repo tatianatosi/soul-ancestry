@@ -100,7 +100,7 @@ describe("regressão das distorções P0/P1 no código", () => {
     expect(src).not.toContain('titulo="Conversão — funil por eventos"');
   });
 
-  it("Radar Interno não carrega frase histórica no subtítulo", () => {
+  it("Radar & Matrizes não carrega frase histórica no subtítulo", () => {
     const src = readFileSync("src/routes/_authenticated/qualidade.tsx", "utf8");
     expect(src).not.toContain("Antes chamado Qualidade");
   });

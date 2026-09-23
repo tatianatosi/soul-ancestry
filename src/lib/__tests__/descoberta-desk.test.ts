@@ -16,20 +16,20 @@ const painel = readFileSync("src/components/painel/painel-dia.tsx", "utf8");
 
 describe("nomenclatura humana", () => {
   it("mapeia rotas técnicas para rótulos humanos sem mudar a URL", () => {
-    expect(rotuloHumano("/qualidade")).toBe("Radar Interno");
+    expect(rotuloHumano("/qualidade")).toBe("Radar & Matrizes");
     expect(rotuloHumano("/matriz-juridica")).toBe("Validação Jurídica");
     expect(ROTULO_PRIORIDADE).toBe("Prioridade dos casos");
     expect(Object.keys(ROTULOS_HUMANOS).every((r) => r.startsWith("/"))).toBe(true);
   });
 
   it("exibe os rótulos na navegação do Desk real", () => {
-    expect(navegacao).toContain('{ to: "/qualidade", label: "Radar Interno e Qualidade" }');
+    expect(navegacao).toContain('{ to: "/qualidade", label: "Radar & Matrizes" }');
     expect(navegacao).toContain('{ to: "/matriz-juridica", label: "Validação Jurídica" }');
   });
 
   it("mantém os cabeçalhos das telas alinhados ao rótulo humano", () => {
     expect(readFileSync("src/routes/_authenticated/qualidade.tsx", "utf8")).toContain(
-      'titulo="Radar Interno"',
+      'titulo="Radar & Matrizes"',
     );
     expect(readFileSync("src/routes/_authenticated/matriz-juridica.tsx", "utf8")).toContain(
       'titulo="Validação Jurídica"',

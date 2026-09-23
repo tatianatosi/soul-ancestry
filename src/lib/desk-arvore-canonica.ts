@@ -164,7 +164,7 @@ export const ARVORE_DESK: AbaDesk[] = [
   },
   {
     chave: "radar",
-    nome: "Radar Interno",
+    nome: "Radar & Matrizes",
     conteudos: [
       { nome: "Matriz de prioridade" },
       { nome: "Saúde do caso" },
