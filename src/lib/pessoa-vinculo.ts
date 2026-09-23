@@ -74,6 +74,10 @@ export function pessoaDoCasoAPartirDoNucleo(m: MembroNucleoBruto, ordemMinimaCon
     pai_id: null as string | null,
     mae_id: null as string | null,
     data_verificacao_dado: null as string | null,
+    // Idem para representação legal — só case_members grava
+    // representacao_necessaria/representacao_documentada.
+    representacao_necessaria: null as boolean | null,
+    representacao_documentada: null as boolean | null,
   };
 }
 
@@ -100,7 +104,7 @@ export async function pessoasDoCasoComFallbackNucleo(
 ): Promise<PessoaDoCaso[]> {
   const { data: membrosCaso } = await supabase
     .from("case_members")
-    .select("id,nome,papel_no_caso,titular,contratante,dependente,cpf,data_nascimento,representante_legal,status_cadastral,parentesco,requerente,nacionalidade,cliente_id,pai_id,mae_id,data_verificacao_dado")
+    .select("id,nome,papel_no_caso,titular,contratante,dependente,cpf,data_nascimento,representante_legal,status_cadastral,parentesco,requerente,nacionalidade,cliente_id,pai_id,mae_id,data_verificacao_dado,representacao_necessaria,representacao_documentada")
     .eq("case_id", caseId)
     .is("archived_at", null)
     .order("created_at", { ascending: true });

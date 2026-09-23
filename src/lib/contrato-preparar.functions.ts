@@ -138,7 +138,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       : null;
     if (cliente?.demo) throw new Error("Cliente de demonstração não pode alimentar o contrato real.");
 
-    const [{ data: proposta }, { data: modelo }, { data: base }, { data: membros }] = await Promise.all([
+    const [{ data: proposta }, { data: modelo }, { data: base }, { data: membros }, { data: planoAtivo }, { data: faturas }] = await Promise.all([
       supabase
         .from("proposals")
         .select(
@@ -164,6 +164,23 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
         .eq("status", "active")
         .maybeSingle(),
       pessoasDoCasoComFallbackNucleo(supabase, caso.id).then((data) => ({ data })),
+      // Checklist pré-contrato (item 5, corte 2026-09-23): produto-pai já
+      // persistido em case_plans (Corte 3, 21/09/2026) — mesmo padrão de
+      // leitura usado em Caso 360 (qCadeia.data.planejador.produto_pai_id).
+      supabase
+        .from("case_plans")
+        .select("id,produto_pai_id")
+        .eq("case_id", caso.id)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("invoices")
+        .select("id,status,valor_pago,paga_em,referencia_externa,created_at")
+        .eq("case_id", caso.id)
+        .is("archived_at", null)
+        .order("created_at", { ascending: true }),
     ]);
 
     /*
@@ -402,6 +419,8 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       pendencias: (pendencias as any).data ?? [],
       bloqueios,
       coerencia,
+      produtoPaiId: planoAtivo?.produto_pai_id ?? null,
+      faturas: faturas ?? [],
       escopo: { validade: validadeEscopo, cobertura, conflitos: conflitosEscopo.length },
       revisaoAprovadaEm: finalAprovada?.aprovado_em ?? null,
     };

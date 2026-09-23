@@ -65,6 +65,7 @@ import { sincronizarPessoaDoCaso } from "@/lib/contratos.functions";
 import type { ItemPlanoMaterializacao } from "@/lib/anexos-materializacao";
 
 import { abrirPreparacaoContrato, auditoriaPreparacao, solicitarRevisaoHumana } from "@/lib/contrato-preparar.functions";
+import { checklistPreContrato, type EstadoChecklistItem } from "@/lib/contrato-checklist-pre";
 
 const TITULO = "Preparar contrato do caso | Clube Ancestral";
 const DESCRICAO = "Ficha única parametrizável e prévia contratual do caso, reaproveitando proposta, modelo ativo e anexos existentes.";
@@ -113,6 +114,17 @@ const CARTOES = [
   "auditoria",
 ] as const;
 type ChaveCartao = (typeof CARTOES)[number];
+
+const TOM_ESTADO_CHECKLIST: Record<EstadoChecklistItem, "ok" | "alerta" | "erro"> = {
+  concluido: "ok",
+  pendente: "alerta",
+  bloqueado: "erro",
+};
+const ROTULO_ESTADO_CHECKLIST: Record<EstadoChecklistItem, string> = {
+  concluido: "Concluído",
+  pendente: "Pendente",
+  bloqueado: "Bloqueado",
+};
 
 function Pagina() {
   const autoridade = useAutoridade();
@@ -373,6 +385,19 @@ function Pagina() {
 
   const d = q.data as any;
   const bloqueios = d.bloqueios as { chave: string; motivo: string }[];
+  // Item 5 (autorização explícita da Proprietária, 2026-09-23): checklist
+  // operacional real de pré-contrato. Reusa dado já carregado por esta
+  // mesma tela (produtoPaiId, membros, bloqueios, contrato, faturas) —
+  // nenhuma query nova além das duas adicionadas em abrirPreparacaoContrato
+  // (case_plans, invoices).
+  const checklistPre = checklistPreContrato({
+    produtoPaiId: d.produtoPaiId ?? null,
+    membros: listaOpcional(d.membros),
+    bloqueios,
+    registroStatus: d.registro?.status ?? null,
+    contrato: d.contrato ?? null,
+    faturas: listaOpcional(d.faturas),
+  });
   const bloqueado = bloqueios.length > 0;
   const resolutivos = bloqueiosResolutivos(bloqueios, listaOpcional(d.valores) as any);
   const impeditivos = resolutivos.filter((b) => b.impeditivo);
@@ -522,6 +547,40 @@ function Pagina() {
               Somente dados deste caseId. Nenhum dado DEMO, de outro caso, placeholder automático ou inferência é utilizado; campo sem
               informação real permanece vazio.
             </p>
+          </Painel>
+        </div>
+
+        {/*
+          ===================== CHECKLIST PRÉ-CONTRATO (sempre aberto) =====================
+          Item 5 (autorização explícita da Proprietária, 2026-09-23): estado
+          real de 7 frentes antes de gerar/assinar/cobrar — produto-pai,
+          partes/dados, representação de dependente, contrato a preparar,
+          assinatura, cobrança e pagamento inicial. Cada item mostra fonte,
+          estado, responsável humano e próxima ação; nada é marcado
+          concluído sem evidência real.
+        */}
+        <div className="space-y-4" data-checklist-pre-contrato>
+          <Painel titulo="Checklist operacional — pré-contrato">
+            <ul className="space-y-2">
+              {checklistPre.map((item) => (
+                <li
+                  key={item.chave}
+                  className="rounded-lg border border-navy/10 bg-cream/40 p-3 text-sm"
+                  data-checklist-item={item.chave}
+                  data-checklist-estado={item.estado}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-medium text-navy">{item.rotulo}</p>
+                    <Selo texto={ROTULO_ESTADO_CHECKLIST[item.estado]} tom={TOM_ESTADO_CHECKLIST[item.estado]} />
+                  </div>
+                  <p className="mt-1 text-xs text-navy/70">{item.estadoTexto}</p>
+                  <p className="mt-1 text-[11px] text-navy/45">Fonte: {item.fonte} · Responsável: {item.responsavel}</p>
+                  {item.proximaAcao ? (
+                    <p className="mt-1 text-xs font-medium text-navy/80">Próxima ação: {item.proximaAcao}</p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
           </Painel>
         </div>
 
