@@ -24,24 +24,10 @@ import {
   OBJETIVOS,
   ORIGENS_LEAD,
   PROXIMAS_ACOES,
-  RESULTADOS_DISCOVERY,
   SERVICOS_INICIAIS,
-  STATUS_CALL,
   STATUS_VIA,
   AMBIENTES_DOSSIE,
   NIVEIS_ACESSO_DOSSIE,
-  ELEGIBILIDADE_PRELIMINAR,
-  CONFIANCA_TRIAGEM,
-  GERACOES_ASCENDENTE,
-  LINHAS_TRANSMISSAO,
-  RISCOS_RUPTURA,
-  COMPLEXIDADE_DOCUMENTAL,
-  ESTADO_DOCUMENTAL_INICIAL,
-  PENDENCIAS_DOCUMENTAIS,
-  EXIGE_IDIOMA_ENTREVISTA,
-  ESTRUTURAS_FAMILIARES,
-  OBJECOES,
-  NIVEIS_INTENCAO,
   PRODUTOS_RECOMENDADOS,
   DESPESAS_TERCEIROS_STATUS,
   DESPESAS_TERCEIROS_REGRA,
@@ -525,65 +511,48 @@ function LeadsPage() {
             </div>
           </Secao>
 
-          <Secao titulo="Discovery" descricao="Call realizada exige resultado, resumo validado e próxima ação datada.">
-            <div className="grid gap-3 md:grid-cols-2">
-              <Texto
-                label="Call agendada em"
-                tipo="datetime-local"
-                valor={String(editado.call_agendada_em ?? "").slice(0, 16)}
-                onChange={set("call_agendada_em")}
-              />
-              <Texto
-                label="Call realizada em"
-                tipo="datetime-local"
-                valor={String(editado.call_realizada_em ?? "").slice(0, 16)}
-                onChange={set("call_realizada_em")}
-              />
-              <Selecao
-                label="Resultado da Discovery"
-                valor={campo("discovery_resultado")}
-                opcoes={RESULTADOS_DISCOVERY}
-                onChange={set("discovery_resultado")}
-              />
-              <label className="flex items-end gap-2 text-sm text-navy">
-                <input
-                  type="checkbox"
-                  checked={bool("resumo_validado")}
-                  onChange={(e) => set("resumo_validado")(e.target.checked)}
-                />
-                Resumo da call validado
-              </label>
-              <div className="md:col-span-2">
-                <Texto
-                  label="Resumo da call (texto livre)"
-                  area
-                  valor={campo("resumo_call")}
-                  onChange={set("resumo_call")}
-                />
-              </div>
-            </div>
-          </Secao>
-
+          {/*
+            23/09/2026 — R3 (autorização explícita da Proprietária):
+            /calls vira a única superfície editável de call, Discovery,
+            triagem e elegibilidade preliminar. Os dois formulários que
+            viviam aqui (Discovery, Triagem preliminar) tinham o único
+            writer destes campos, mas nunca eram a tela usada durante a
+            call — mesmo defeito já corrigido para SPIN em 09/09/2026
+            (ver bloco "SPIN e Mesa de Discovery" acima). Nenhum dado é
+            apagado: os campos e o histórico continuam os mesmos em
+            `leads`, só o formulário de edição muda de tela.
+          */}
           <Secao
-            titulo="Triagem preliminar (Discovery)"
-            descricao="Leitura comercial/técnica preliminar. Não é decisão jurídica final nem promessa de resultado."
+            titulo="Discovery e triagem preliminar"
+            descricao="Edição concentrada no Painel de Calls — aqui só o resumo derivado, sem formulário duplicado."
           >
             <div className="grid gap-3 md:grid-cols-2">
-              <Selecao label="Status da call" valor={campo("status_call")} opcoes={STATUS_CALL} onChange={set("status_call")} />
-              <Selecao label="Elegibilidade preliminar" valor={campo("elegibilidade_preliminar")} opcoes={ELEGIBILIDADE_PRELIMINAR} onChange={set("elegibilidade_preliminar")} />
-              <Selecao label="Confiança da triagem" valor={campo("confianca_triagem")} opcoes={CONFIANCA_TRIAGEM} onChange={set("confianca_triagem")} />
-              <Selecao label="Geração do ascendente" valor={campo("geracao_ascendente")} opcoes={GERACOES_ASCENDENTE} onChange={set("geracao_ascendente")} />
-              <Selecao label="Linha de transmissão" valor={campo("linha_transmissao")} opcoes={LINHAS_TRANSMISSAO} onChange={set("linha_transmissao")} />
-              <Selecao label="Risco de ruptura" valor={campo("risco_ruptura")} opcoes={RISCOS_RUPTURA} onChange={set("risco_ruptura")} />
-              <Selecao label="Complexidade documental" valor={campo("complexidade_documental")} opcoes={COMPLEXIDADE_DOCUMENTAL} onChange={set("complexidade_documental")} />
-              <Selecao label="Estado documental inicial" valor={campo("estado_documental_inicial")} opcoes={ESTADO_DOCUMENTAL_INICIAL} onChange={set("estado_documental_inicial")} />
-              <Selecao label="Pendência documental prioritária" valor={campo("pendencia_documental_prioritaria")} opcoes={PENDENCIAS_DOCUMENTAIS} onChange={set("pendencia_documental_prioritaria")} />
-              <Selecao label="Exige idioma/entrevista" valor={campo("exige_idioma_entrevista")} opcoes={EXIGE_IDIOMA_ENTREVISTA} onChange={set("exige_idioma_entrevista")} />
-              <Texto label="Requerentes potenciais" tipo="number" valor={campo("requerentes_potenciais")} onChange={(v) => set("requerentes_potenciais")(v === "" ? null : Number(v))} />
-              <Selecao label="Estrutura familiar" valor={campo("estrutura_familiar")} opcoes={ESTRUTURAS_FAMILIARES} onChange={set("estrutura_familiar")} />
-              <Selecao label="Objeção predominante" valor={campo("objecao_predominante")} opcoes={OBJECOES} onChange={set("objecao_predominante")} />
-              <Selecao label="Nível de intenção" valor={campo("nivel_intencao")} opcoes={NIVEIS_INTENCAO} onChange={set("nivel_intencao")} />
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-navy/50">Status da call</p>
+                <p className="text-sm text-navy">{rotulo("status_call", editado.status_call)}</p>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-navy/50">Resultado da Discovery</p>
+                <p className="text-sm text-navy">{rotulo("discovery_resultado", editado.discovery_resultado)}</p>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-navy/50">Call agendada em</p>
+                <p className="text-sm text-navy">
+                  {editado.call_agendada_em ? String(editado.call_agendada_em).slice(0, 16).replace("T", " ") : "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-navy/50">Elegibilidade preliminar</p>
+                <p className="text-sm text-navy">
+                  {rotulo("elegibilidade_preliminar", editado.elegibilidade_preliminar)}
+                </p>
+              </div>
             </div>
+            <p className="mt-3 text-xs">
+              <Link to="/calls" className="text-navy underline underline-offset-2">
+                Abrir Discovery e triagem no Painel de Calls
+              </Link>
+            </p>
           </Secao>
 
           <Secao

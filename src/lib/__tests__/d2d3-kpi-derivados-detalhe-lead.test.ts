@@ -72,14 +72,19 @@ describe("D2 · §12 zona 4 — Detalhe do lead expõe 4 blocos canônicos", () 
     expect(leads).toMatch(/label="Data da próxima ação"/);
   });
 
-  it("Discovery: call agendada + realizada + resultado", () => {
-    expect(leads).toMatch(/label="Call agendada em"/);
-    expect(leads).toMatch(/label="Call realizada em"/);
-    expect(leads).toMatch(/valor=\{campo\("discovery_resultado"\)\}/);
+  it("Discovery: R3 (23/09/2026) moveu a edição para /calls — /leads mostra resumo real e link", () => {
+    // Achado do R3: /leads tinha o único writer de call_agendada_em/
+    // discovery_resultado, mas nunca era a tela usada durante a call.
+    // Mesmo padrão já usado para SPIN em 09/09/2026 — edição concentrada
+    // em /calls, /leads vira leitura + link.
+    expect(leads).not.toMatch(/onChange=\{set\("call_agendada_em"\)\}/);
+    expect(leads).not.toMatch(/onChange=\{set\("discovery_resultado"\)\}/);
+    expect(leads).toMatch(/rotulo\("discovery_resultado", editado\.discovery_resultado\)/);
+    expect(leads).toMatch(/to="\/calls"/);
   });
 
-  it("Resumo da call (interação recente) é campo editável, não só metadata", () => {
-    expect(leads).toMatch(/valor=\{campo\("resumo_call"\)\}/);
+  it("Resumo da call: edição concentrada em /calls (R3), /leads não duplica o writer", () => {
+    expect(leads).not.toMatch(/onChange=\{set\("resumo_call"\)\}/);
   });
 
   it("Consentimento: status + data + canal + versão do aviso, todos editáveis", () => {
