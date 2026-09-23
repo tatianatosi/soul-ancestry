@@ -585,3 +585,73 @@ export function papelDoRegistro(linha: {
   return { valor: "operacional", rotulo: "Operacional" };
 }
 
+export type EstadoFrente = "concluida" | "em_andamento" | "em_coleta" | "inicial";
+
+export type ProgressoFrentes = {
+  formalizacao: EstadoFrente;
+  pesquisa: EstadoFrente;
+  documentos: EstadoFrente;
+  publicacao: EstadoFrente;
+};
+
+export const ROTULO_FRENTE: Record<EstadoFrente, string> = {
+  concluida: "Concluída",
+  em_andamento: "Em andamento",
+  em_coleta: "Em coleta",
+  inicial: "Inicial",
+};
+
+/**
+ * §14 do De-Para (Caso 360, zona 5 — "Progresso por frente": Formalização,
+ * Pesquisa, Documentos, Publicação | concluída / em andamento / em coleta
+ * / inicial. "Não usar percentual sem fórmula documentada.").
+ *
+ * Cada frente deriva de dado JÁ canônico e já usado em outro card do
+ * próprio Caso 360 — nenhuma fonte nova, nenhum percentual inventado:
+ * - Formalização: `crm_casos.contrato_assinado` — mesmo campo do cabeçalho.
+ * - Pesquisa: saída de `estadoDossieDoCaso` (pesquisa-cadeia.ts) — mesma
+ *   função do card "Estado do dossiê".
+ * - Documentos: `crm_casos.documentos_minimos_ok` — mesmo gate que o
+ *   portal consulta (AGENTS.md: escritor `confirmarDocumentosMinimos`).
+ * - Publicação: `estadoPublicacao` de `resumoVisaoClienteCaso` — mesmo
+ *   dado do bloco "Visão do cliente" já existente nesta tela.
+ *
+ * Fórmula documentada aqui, não escondida: cada frente só tem os estados
+ * que o dado realmente sustenta (Documentos nunca usa "em_andamento" —
+ * o gate é um booleano só, sem estado intermediário rastreável).
+ */
+export function progressoPorFrente(input: {
+  contratoAssinado: boolean | null | undefined;
+  dossie: { confirmados: number; emRevisao: number; pendentes: number; total: number };
+  documentosMinimosOk: boolean | null | undefined;
+  documentosRegistrados: number;
+  publicacao: { publicadas: number; pendentes: number; arquivadas: number };
+}): ProgressoFrentes {
+  const formalizacao: EstadoFrente = input.contratoAssinado ? "concluida" : "inicial";
+
+  const pesquisa: EstadoFrente =
+    input.dossie.total === 0
+      ? "inicial"
+      : input.dossie.confirmados === input.dossie.total
+        ? "concluida"
+        : input.dossie.confirmados === 0 && input.dossie.emRevisao === 0
+          ? "em_coleta"
+          : "em_andamento";
+
+  const documentos: EstadoFrente = input.documentosMinimosOk
+    ? "concluida"
+    : input.documentosRegistrados === 0
+      ? "inicial"
+      : "em_coleta";
+
+  const totalPublicacao = input.publicacao.publicadas + input.publicacao.pendentes + input.publicacao.arquivadas;
+  const publicacao: EstadoFrente =
+    totalPublicacao === 0
+      ? "inicial"
+      : input.publicacao.pendentes > 0
+        ? "em_andamento"
+        : "concluida";
+
+  return { formalizacao, pesquisa, documentos, publicacao };
+}
+

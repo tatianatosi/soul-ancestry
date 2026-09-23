@@ -40,7 +40,7 @@ import { RadarInternoCaso } from "@/components/caso/radar-interno";
 import { ChipIdentidadeCaso } from "@/components/caso/chip-identidade-caso";
 import { identidadeDeCrmCaso } from "@/lib/caso-compartilhado";
 import { radarInternoDoCaso } from "@/lib/radar-interno-caso";
-import { papelDoRegistro } from "@/lib/caso-ficha";
+import { papelDoRegistro, progressoPorFrente, ROTULO_FRENTE } from "@/lib/caso-ficha";
 import { posicionar } from "@/lib/matriz-posicionamento";
 import { ROTULO_SINAL } from "@/lib/prioridade-matriz";
 import { AbaProdutoTrilha } from "@/components/caso/produto-trilha";
@@ -941,6 +941,61 @@ function FichaCaso() {
             : null
         }
       />
+
+      {/*
+        §14 linha 5 do De-Para: "Progresso por frente — Formalização,
+        Pesquisa, Documentos, Publicação | concluída / em andamento / em
+        coleta / inicial. Não usar percentual sem fórmula documentada."
+        `progressoPorFrente` (caso-ficha.ts) deriva cada frente de dado JÁ
+        carregado nesta mesma tela (contrato_assinado, dossiê de pesquisa,
+        documentos_minimos_ok, estado de publicação) — sem query nova.
+      */}
+      {(() => {
+        const dossieResumo = estadoDossieDoCaso(qPesquisa.data?.evidencias ?? []);
+        const progresso = progressoPorFrente({
+          contratoAssinado: Boolean(caso["contrato_assinado"]),
+          dossie: dossieResumo,
+          documentosMinimosOk: Boolean(caso["documentos_minimos_ok"]),
+          documentosRegistrados: ((qDocumentos.data ?? []) as unknown[]).length,
+          publicacao: {
+            publicadas: qVisaoCliente.data?.estadoPublicacao?.publicadas ?? 0,
+            pendentes: qVisaoCliente.data?.estadoPublicacao?.pendentes ?? 0,
+            arquivadas: qVisaoCliente.data?.estadoPublicacao?.arquivadas ?? 0,
+          },
+        });
+        const CHIP_FRENTE: Record<string, string> = {
+          concluida: "border-emerald-500/40 bg-emerald-50 text-emerald-800",
+          em_andamento: "border-gold/60 bg-gold/10 text-navy",
+          em_coleta: "border-navy/20 bg-navy/5 text-navy/70",
+          inicial: "border-navy/15 bg-cream text-navy/50",
+        };
+        return (
+          <div
+            className="mb-6 flex flex-wrap items-center gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+            data-caso360-progresso-frente
+          >
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-navy/50">
+              Progresso por frente ·
+            </span>
+            {(
+              [
+                ["formalizacao", "Formalização"],
+                ["pesquisa", "Pesquisa"],
+                ["documentos", "Documentos"],
+                ["publicacao", "Publicação"],
+              ] as const
+            ).map(([chave, rotulo]) => (
+              <span
+                key={chave}
+                data-caso360-frente={chave}
+                className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${CHIP_FRENTE[progresso[chave]]}`}
+              >
+                {rotulo}: {ROTULO_FRENTE[progresso[chave]]}
+              </span>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* Quatro resumos acionáveis — cada um leva à seção completa, já preservada abaixo. */}
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
