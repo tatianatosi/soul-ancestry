@@ -463,9 +463,24 @@ export function PortalJornada() {
                   <TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} />
 
                   {jornada.linha.length === 0 ? (
-                    <p className="rounded-xl border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
-                      {COPY_TELAS.jornada.vazio}
-                    </p>
+                    <div data-jornada-duas-linhas className="grid gap-4">
+                      <section className="rounded-xl border border-gold/35 bg-card p-5 shadow-sm">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Linha Ancestral</p>
+                        <p className="mt-2 text-sm leading-relaxed text-navy/60">
+                          Ainda não há marcos ancestrais publicados para esta família.
+                        </p>
+                      </section>
+                      <div className="relative rounded-xl border border-dashed border-gold/45 bg-gold/5 px-4 py-4 text-center">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-navy/55">Momentos de União</p>
+                        <p className="mt-1 text-xs leading-relaxed text-navy/60">
+                          As conexões entre história familiar e processo aparecem aqui após publicação da equipe.
+                        </p>
+                      </div>
+                      <section className="rounded-xl border border-navy/20 bg-card p-5 shadow-sm">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-navy/55">Linha do Processo</p>
+                        <p className="mt-2 text-sm leading-relaxed text-navy/60">{COPY_TELAS.jornada.vazio}</p>
+                      </section>
+                    </div>
                   ) : (
                     <div data-jornada-duas-linhas className="grid gap-5 sm:grid-cols-2 sm:gap-6">
                       <div className="order-2 sm:order-1 sm:col-span-2">
