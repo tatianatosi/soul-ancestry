@@ -345,13 +345,13 @@ function PainelHomeMockup({
       */}
       {/* 16/09/2026 — primeira dobra: o cartão do processo é o elemento
           principal (maior), e a linha do tempo abaixo fica discreta. */}
-      <section className="rounded-2xl bg-navy-800 p-5 text-cream sm:p-7">
-        <div className="flex items-start justify-between gap-3">
+      <section className="rounded-xl bg-navy-800 p-5 text-cream shadow-md sm:p-7">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-widest text-gold/80">Seu caso</p>
             <h2 className="font-serif text-2xl leading-tight text-cream sm:text-3xl">{tituloCaso}</h2>
           </div>
-          <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+          <div className="flex max-w-36 shrink-0 flex-wrap items-center justify-end gap-1.5 sm:max-w-none">
             {composicao ? (
               <span className="rounded-full border border-cream/30 px-3 py-1 text-[11px] font-medium text-cream/85">
                 {composicao}
@@ -388,7 +388,7 @@ function PainelHomeMockup({
       </section>
 
       {/* Correção 2026-09-12: grade em telas largas (sidebar liberou espaço horizontal); CTA lilás removido (fora do guia oficial de marca — só 5 cores). */}
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <section>
           <h3 className="mb-2 text-sm font-semibold text-navy">Próximos passos</h3>
           {/* Acabamento 2026-09-13 (referência Lovable): título editorial em

@@ -175,7 +175,7 @@ function TrilhaCompacta({
           );
         })}
       </div>
-      <div className="mt-1 flex">
+      <div className="mt-1 hidden sm:flex">
         {passos.map((passo, i) => {
           const atual = passoAtualIndice !== null && i === passoAtualIndice;
           return (
@@ -284,7 +284,7 @@ function TimelineVertical({ eventos, eyebrow }: { eventos: NoEvento[]; eyebrow: 
 function MomentosDeUniao({ pontes }: { pontes: NoPonte[] }) {
   if (pontes.length === 0) return null;
   return (
-    <div className="my-4 rounded-xl border border-gold/40 bg-gradient-to-r from-gold/10 to-navy/5 px-4 py-3 sm:my-0 sm:self-center">
+    <div className="my-5 rounded-xl border border-gold/40 bg-linear-to-r from-gold/10 to-navy/5 px-4 py-4 sm:my-0 sm:self-center">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-navy/60">Momentos de União</p>
       <ul className="mt-1 space-y-1">
         {pontes.map((p, i) => (
@@ -424,7 +424,7 @@ export function PortalJornada() {
 
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
-                <div className="space-y-4 pb-6 lg:pb-0" data-aba-jornada>
+                <div className="space-y-6 pb-6 lg:pb-0" data-aba-jornada>
                   <div
                     data-jornada-meta
                     className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"

@@ -24,13 +24,13 @@ const toneClasses: Record<KitTone, string> = {
 };
 
 export function KitBadge({ children, tone = "neutral" }: { children: ReactNode; tone?: KitTone }) {
-  return <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium", toneClasses[tone])}>{children}</span>;
+  return <span className={cn("inline-flex min-h-6 items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium", toneClasses[tone])}>{children}</span>;
 }
 
 export function KitCard({ title, eyebrow, action, children, className }: { title?: string; eyebrow?: string; action?: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <section className={cn("min-w-0 w-full max-w-full rounded-lg border border-navy/10 bg-card p-4 shadow-sm", className)}>
-      {title || action ? <header className="mb-3 flex items-start justify-between gap-3"><div>{eyebrow ? <p className="text-[10px] font-semibold uppercase tracking-widest text-terracotta">{eyebrow}</p> : null}{title ? <h3 className="font-serif text-lg text-navy">{title}</h3> : null}</div>{action}</header> : null}
+    <section className={cn("min-w-0 w-full max-w-full rounded-lg border border-navy/10 bg-card p-5 shadow-sm", className)}>
+      {title || action ? <header className="mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3"><div className="min-w-0">{eyebrow ? <p className="text-[10px] font-semibold uppercase tracking-widest text-terracotta">{eyebrow}</p> : null}{title ? <h3 className="font-serif text-xl leading-tight text-navy">{title}</h3> : null}</div>{action ? <div className="shrink-0">{action}</div> : null}</header> : null}
       {children}
     </section>
   );
@@ -54,7 +54,7 @@ export function KitModal({ trigger, title, description, children }: { trigger: R
 }
 
 export function DeskTopbar({ title, accountLabel = "Conta", action }: { title: string; accountLabel?: string; action?: ReactNode }) {
-  return <header className="flex items-center gap-3 border-b border-navy/10 bg-card px-4 py-3"><div className="flex min-w-0 flex-1 items-center gap-2 rounded-md border border-input bg-cream/40 px-3 py-2"><Search className="h-4 w-4 text-navy/45" aria-hidden /><span className="truncate text-xs text-navy/50">Buscar caso, pessoa ou documento</span></div><span className="hidden font-serif text-lg text-navy lg:block">{title}</span>{action ?? <KitBadge tone="gold">{accountLabel}</KitBadge>}</header>;
+  return <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-navy/10 border-t-4 border-t-gold bg-card px-5 py-4 shadow-sm"><div className="flex min-w-0 items-center gap-2 rounded-md border border-input bg-cream/40 px-3 py-2.5"><Search className="h-4 w-4 shrink-0 text-navy/45" aria-hidden /><span className="truncate text-xs text-navy/50">Buscar caso, pessoa ou documento</span></div><span className="hidden font-serif text-xl text-navy xl:block">{title}</span>{action ?? <KitBadge tone="gold">{accountLabel}</KitBadge>}</header>;
 }
 
 export type DeskSidebarItem = { id: string; label: string; icon?: ReactNode; group?: false } | { id: string; label: string; group: true };

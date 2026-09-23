@@ -42,7 +42,7 @@ function NoArvore({
     <div
       className={cn(
         "flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-lg border text-center shadow-sm",
-        ehG1 ? "border-2 border-navy bg-navy font-semibold text-cream shadow" : "border-gold/40 bg-white text-navy/55",
+        ehG1 ? "border-2 border-navy bg-navy font-semibold text-cream shadow-sm" : "border-gold/40 bg-card text-navy/55",
       )}
       title={ehG1 ? "Você (G1)" : rotuloEstado}
     >
@@ -113,7 +113,7 @@ export function PortalArvore() {
             const casoCodigo = previa?.identidade?.codigo ?? "—";
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
-                <div className="space-y-5" data-aba-arvore>
+                <div className="space-y-6" data-aba-arvore>
                   <div
                     data-arvore-meta
                     className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"

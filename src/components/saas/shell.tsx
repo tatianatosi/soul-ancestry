@@ -210,7 +210,7 @@ export function SaasShell({
     <div
       className="flex min-h-svh w-full max-w-full overflow-x-clip bg-cream text-navy"
       data-desk-shell="authenticated"
-      data-visual-kit={visualKit}
+      data-visual-kit={visualKit ?? "pantone"}
     >
       {aberto ? (
         <button
@@ -371,7 +371,7 @@ export function SaasShell({
       </aside>
 
       <div className="flex min-w-0 max-w-full flex-1 flex-col overflow-x-clip">
-        <header className="grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3 border-b border-navy/10 bg-navy px-4 py-4 text-cream md:flex md:bg-cream md:px-8 md:text-navy">
+        <header className="grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3 border-b border-navy/10 border-t-4 border-t-gold bg-navy px-4 py-4 text-cream shadow-sm md:flex md:bg-card md:px-8 md:text-navy">
           <button
             className="shrink-0 md:hidden"
             onClick={() => setAberto((v) => !v)}
@@ -402,13 +402,7 @@ export function SaasShell({
         <main
           className="min-w-0 w-full max-w-full flex-1 overflow-x-clip p-4 pb-[calc(5rem+env(safe-area-inset-bottom))] md:p-8 md:pb-8"
           data-desk-content="true"
-          data-marca={
-            rota.startsWith("/pesquisa") ||
-            rota === "/evidencias" ||
-            rota.startsWith("/evidencias/")
-              ? "guia"
-              : undefined
-          }
+          data-marca="guia"
         >
           {children}
         </main>

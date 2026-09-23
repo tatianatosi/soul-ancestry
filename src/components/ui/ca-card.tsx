@@ -21,7 +21,7 @@ export function CaCard({
   className?: string;
 }) {
   return (
-    <section className={cn("rounded-2xl border border-border bg-card p-4 sm:p-5", className)}>
+    <section className={cn("rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5", className)}>
       {(titulo || acao) && (
         <header className="mb-3 flex items-start justify-between gap-3">
           <div className="min-w-0">
