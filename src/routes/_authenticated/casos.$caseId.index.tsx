@@ -741,9 +741,14 @@ function FichaCaso() {
           App Cliente.
         </p>
       ) : null}
-      <div className="mb-6">
-        <ResumoKitCaso caseId={String(caso["id"])} />
-      </div>
+      <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
+        <summary className="cursor-pointer text-sm font-medium text-navy">
+          Abrir requisitos de ativação e bloqueios
+        </summary>
+        <div className="mt-4 border-t border-navy/10 pt-4">
+          <ResumoKitCaso caseId={String(caso["id"])} />
+        </div>
+      </details>
       <div className="mb-4" data-ordem2-identidade-desk>
         <ChipIdentidadeCaso
           superficie="Desk"
@@ -907,6 +912,9 @@ function FichaCaso() {
       {/* Ordem P0 (21/09/2026) — Estado Integrado do Caso: consolida os
           domínios transversais num só bloco, só leitura, sem duplicar
           nenhuma das queries já feitas acima. */}
+      <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
+        <summary className="cursor-pointer text-sm font-medium text-navy">Abrir estado integrado e fontes do caso</summary>
+        <div className="mt-4 border-t border-navy/10 pt-4">
       <EstadoIntegradoCaso
         caseId={id}
         caso={caso}
@@ -941,6 +949,8 @@ function FichaCaso() {
             : null
         }
       />
+        </div>
+      </details>
 
       {/*
         §14 linha 5 do De-Para: "Progresso por frente — Formalização,
@@ -997,8 +1007,10 @@ function FichaCaso() {
         );
       })()}
 
-      {/* Quatro resumos acionáveis — cada um leva à seção completa, já preservada abaixo. */}
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Resumos operacionais continuam acessíveis, fora da primeira leitura editorial. */}
+      <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
+        <summary className="cursor-pointer text-sm font-medium text-navy">Abrir resumos operacionais do caso</summary>
+      <div className="mt-4 grid gap-3 border-t border-navy/10 pt-4 sm:grid-cols-2 lg:grid-cols-4">
         <a href="#secao-jornada" className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)] hover:border-gold/60">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Jornada/onboarding</p>
           <p className="mt-1 text-sm font-medium text-navy">
@@ -1294,7 +1306,11 @@ function FichaCaso() {
           )}
         </div>
       </div>
+      </details>
 
+      <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
+        <summary className="cursor-pointer text-sm font-medium text-navy">Abrir trabalho, documentos e alertas do caso</summary>
+        <div className="mt-4 border-t border-navy/10 pt-4">
       {/* No máximo: três tarefas, três atualizações, documentos prioritários, microentregas recentes e alertas críticos. */}
       {rascunhoPagamento ? (
         <div className="mb-6 flex flex-wrap items-end gap-2 rounded-lg border border-navy/15 bg-cream/40 p-3">
@@ -1480,6 +1496,8 @@ function FichaCaso() {
           </ul>
         </div>
       </div>
+        </div>
+      </details>
 
       {/* Índice: âncoras fixas; seções fora de foco ficam no DOM com hidden. */}
       <nav
