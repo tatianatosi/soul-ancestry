@@ -185,7 +185,16 @@ export function RadarInternoIntegrado() {
                   actions={
                     idDoCaso ? (
                       <>
-                        <Button asChild size="sm">
+                        <Button asChild size="sm" data-radar-abrir-proxima-acao>
+                          <Link
+                            to="/casos/$caseId"
+                            params={{ caseId: idDoCaso }}
+                            hash="proxima-acao"
+                          >
+                            Abrir próxima ação
+                          </Link>
+                        </Button>
+                        <Button asChild size="sm" variant="outline">
                           <Link to="/casos/$caseId" params={{ caseId: idDoCaso }} hash="secao-visao">
                             Abrir Caso 360
                           </Link>

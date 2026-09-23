@@ -14,12 +14,12 @@ export const Route = createFileRoute("/_authenticated/qualidade")({
       {
         name: "description",
         content:
-          "Checklists por fase, inconsistências por severidade, relatório operacional semanal e exportação CSV auditada.",
+          "Matriz de prioridade e Radar Individual sincronizados por caso; checklists e exportação em painel colapsado.",
       },
       { property: "og:title", content: "Radar Interno — Clube Ancestral" },
       {
         property: "og:description",
-        content: "Controles de qualidade e relatórios internos por organização.",
+        content: "Radar & Matrizes do Desk — leitura interna por organização.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -29,11 +29,15 @@ export const Route = createFileRoute("/_authenticated/qualidade")({
   component: QualidadePage,
 });
 
+// §16 do De-Para pede "Radar & Matrizes" no título; nomenclatura canônica atual
+// (`depara-nomenclatura-aprovada.test.ts`, `descoberta-desk.test.ts`, nav e
+// `rotulo-humano`) fixa "Radar Interno". Rename precisaria propagar pelas 4
+// superfícies num corte próprio — mantido como "Radar Interno" até lá.
 function QualidadePage() {
   return (
     <SaasShell
       titulo="Radar Interno"
-      descricao="Matriz de prioridade da carteira e leitura de qualidade por caso."
+      descricao="Matriz de elegibilidade × urgência e Radar Individual sincronizados; leitura interna por caso."
     >
       <p className="mb-4 text-sm text-navy/70">
         Alterne entre a carteira completa e a leitura de um caso. A matriz usa urgência e hipótese de

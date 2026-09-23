@@ -8,6 +8,7 @@ import { posicionar } from "@/lib/matriz-posicionamento";
 import { MatrizPrioridades } from "@/components/desk/matriz-prioridades";
 import { MatrizPrioridadeNominal, type PontoMatrizPrioridade } from "@/components/clube-ancestral-kit";
 import type { CasoPosicionado } from "@/lib/matriz-posicionamento";
+import { ROTULO_SINAL, type SinalPrioridade } from "@/lib/prioridade-matriz";
 
 /*
   13/09/2026 — a matriz do kit visual passa a ler os MESMOS casos reais já
@@ -36,6 +37,24 @@ const PESO_SINAL: Record<CasoPosicionado["sinal"], number> = {
   acompanhada: 2,
   sem_dados: 3,
 };
+
+const CHIP_SINAL: Record<SinalPrioridade, string> = {
+  critica: "border-terracotta/40 bg-terracotta/10 text-terracotta",
+  atencao: "border-gold/60 bg-gold/10 text-navy",
+  acompanhada: "border-emerald-500/40 bg-emerald-50 text-emerald-800",
+  sem_dados: "border-navy/15 bg-cream text-navy/60",
+};
+
+function contarPorSinal(casos: readonly CasoPosicionado[]): Record<SinalPrioridade, number> {
+  const total: Record<SinalPrioridade, number> = {
+    critica: 0,
+    atencao: 0,
+    acompanhada: 0,
+    sem_dados: 0,
+  };
+  for (const caso of casos) total[caso.sinal] += 1;
+  return total;
+}
 
 function paraPontosDoKit(casos: readonly CasoPosicionado[]): PontoMatrizPrioridade[] {
   return [...casos]
@@ -104,8 +123,43 @@ export function MatrizPrioridadesConectada({
     );
   }
 
+  const contagem = contarPorSinal(casos);
+  const semDadosReais = casos.length === 0;
+  const ordem: SinalPrioridade[] = ["critica", "atencao", "acompanhada", "sem_dados"];
+
   return (
     <div className="space-y-6">
+      <div
+        className="flex flex-wrap items-center gap-2 rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-xs text-navy/70"
+        data-radar-legenda-ordem
+        aria-label="Ordem de atendimento por sinal de prioridade"
+      >
+        <span className="mr-1 text-[10px] font-semibold uppercase tracking-wide text-navy/50">
+          Ordem de atendimento ·
+        </span>
+        {semDadosReais ? (
+          <span
+            className="rounded-full border border-navy/15 bg-cream px-2 py-0.5 text-[11px] text-navy/60"
+            data-radar-chip-sem-dados
+          >
+            Sem dados reais
+          </span>
+        ) : (
+          ordem.map((sinal) => (
+            <span
+              key={sinal}
+              data-radar-chip-sinal={sinal}
+              className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${CHIP_SINAL[sinal]}`}
+              title={`${ROTULO_SINAL[sinal]} · fonte: prioridade-matriz.ts`}
+            >
+              {ROTULO_SINAL[sinal]}: {contagem[sinal]}
+            </span>
+          ))
+        )}
+        <span className="ml-auto text-[10px] text-navy/45">
+          Total: {casos.length} caso(s) · matriz e Radar Individual sincronizam pelo caso escolhido.
+        </span>
+      </div>
       <MatrizPrioridadeNominal
         casos={paraPontosDoKit(casos)}
         casoSelecionado={casoSelecionado}
