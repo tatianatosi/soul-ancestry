@@ -89,7 +89,7 @@ export const MARCA_TIPOGRAFIA = {
  * mesmo peso visual em todas as superfícies do cliente.
  */
 export const TIPO_CLIENTE = {
-  titulo: "text-2xl font-semibold leading-tight text-navy",
+  titulo: "font-serif text-2xl font-medium leading-tight text-navy",
   subtitulo: "mt-1 text-sm text-navy/70",
   secao: "font-serif text-xl text-navy",
   corpo: "text-sm text-navy/80",
@@ -99,6 +99,6 @@ export const TIPO_CLIENTE = {
     "inline-flex items-center gap-2 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-navy-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-cream",
   botaoDiscreto:
     "inline-flex items-center gap-2 rounded-lg border border-navy/20 px-3 py-1.5 text-sm text-navy transition-colors hover:bg-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2",
-  cartao: "rounded-xl border border-navy/10 bg-cream/50 p-5 shadow-[0_1px_2px_rgba(16,16,16,0.04)]",
+  cartao: "rounded-xl border border-border bg-card p-5 shadow-sm",
   aviso: "rounded-lg border border-navy/10 bg-cream/70 p-3 text-sm text-navy/80",
 } as const;

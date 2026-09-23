@@ -108,23 +108,25 @@ export function PortalShell({
         3/17, que usa uma só faixa). Logo + "Bem-vinda/nome" no mesmo bloco.
       */}
       <header className="bg-navy text-cream shadow-sm" data-app-cabecalho>
-        <div className="mx-auto grid min-h-16 max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 lg:px-8">
-          <div className="flex min-w-0 items-center gap-3">
-            <BrandLogo size={32} variant="client-dark" showText={false} />
-            <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-widest text-gold/80">Aplicativo da família</p>
-              <p className="truncate font-serif text-sm italic leading-tight text-cream">
-                {previa ? previa.titulo : (data?.cliente?.nome ?? "Aplicativo do cliente")}
-              </p>
-            </div>
-          </div>
+        <div className="mx-auto max-w-6xl px-4 pb-5 pt-3 lg:px-8 lg:pb-7 lg:pt-4">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+            <BrandLogo size={30} variant="client-dark" showText />
 
           <button
             onClick={sair}
-            className="flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-cream/30 px-3 py-2 text-xs text-cream transition-colors hover:bg-cream/10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy"
+            aria-label={COPY_GERAL.sair}
+            title={COPY_GERAL.sair}
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-gold/60 text-gold transition-colors hover:bg-cream/10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy lg:flex lg:h-10 lg:w-auto lg:gap-2 lg:rounded-lg lg:px-3 lg:text-cream"
           >
-            <LogOut className="h-3.5 w-3.5" /> {COPY_GERAL.sair}
+            <LogOut className="h-3.5 w-3.5" /> <span className="hidden text-xs lg:inline">{COPY_GERAL.sair}</span>
           </button>
+          </div>
+
+          <div className="mt-5 max-w-2xl">
+            <p className="text-[9px] font-semibold uppercase tracking-widest text-gold">Aplicativo da família</p>
+            <h1 className="mt-1 font-serif text-[1.7rem] font-medium leading-none text-cream sm:text-3xl">{titulo}</h1>
+            {descricao ? <p className="mt-1.5 text-xs leading-relaxed text-cream/70 sm:text-sm">{descricao}</p> : null}
+          </div>
         </div>
 
         {/* Filete gold do guia OKI — âncora sob o header navy. */}
@@ -178,12 +180,8 @@ export function PortalShell({
           </nav>
         </aside>
 
-        <main id="conteudo-portal" className="min-w-0 px-4 pb-28 pt-7 sm:px-6 lg:px-0 lg:pb-14 lg:pt-10">
-          <header className="border-b border-navy/10 pb-5">
-            <h1 className={TIPO_CLIENTE.titulo}>{titulo}</h1>
-            {descricao ? <p className={`${TIPO_CLIENTE.subtitulo} mt-1 max-w-2xl`}>{descricao}</p> : null}
-          </header>
-          <div className="mt-7">{children}</div>
+        <main id="conteudo-portal" className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-0 lg:pb-14 lg:pt-7">
+          <div>{children}</div>
         </main>
       </div>
 
@@ -201,12 +199,12 @@ export function PortalShell({
               key={to}
               to={to}
               className={cn(
-                "relative flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[8px] leading-tight",
+                "relative flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[9px] leading-tight",
                 "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
-                rotaAtiva === to ? "bg-gold/10 font-semibold text-navy" : "text-navy/65",
+                rotaAtiva === to ? "font-semibold text-gold" : "text-navy/55",
               )}
             >
-              <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <Icon className="h-[17px] w-[17px] shrink-0" aria-hidden="true" />
               <span className="w-full text-center">{label}</span>
             </LinkPortal>
           ))}

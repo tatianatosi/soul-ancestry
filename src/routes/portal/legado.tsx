@@ -96,7 +96,7 @@ export function PortalLegado() {
                     <p className="text-[10px] uppercase tracking-widest text-gold/80">
                       Biblioteca da família
                     </p>
-                    <h2 className="mt-1 font-serif text-lg text-cream">
+                    <h2 className="mt-1 font-serif text-xl text-cream">
                       Seu legado, organizado por coleção
                     </h2>
                     <p className="mt-2 text-sm text-cream/70">
@@ -119,7 +119,7 @@ export function PortalLegado() {
                               <p className="text-[10px] font-medium uppercase tracking-widest text-gold/70">
                                 Coleção
                               </p>
-                              <h2 className="mt-0.5 text-sm font-semibold text-navy">{p.rotulo}</h2>
+                              <h2 className="mt-0.5 font-serif text-xl text-navy">{p.rotulo}</h2>
                               <p className="mt-0.5 text-xs text-navy/55">{p.dica}</p>
                             </div>
                             <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
@@ -158,7 +158,7 @@ export function PortalLegado() {
                   </div>
 
                   {entregas.length === 0 ? (
-                    <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-4 text-center text-sm text-navy/60">
+                    <p className="rounded-xl border border-dashed border-navy/20 bg-cream/60 p-4 text-center text-sm text-navy/60">
                       {COPY_TELAS.legado.vazio}
                     </p>
                   ) : null}

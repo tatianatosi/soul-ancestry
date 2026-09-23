@@ -234,10 +234,10 @@ function TimelineVertical({
   const gradiente = `linear-gradient(to bottom, ${paradas.join(", ")})`;
 
   return (
-    <div className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
+    <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
       <div className={cn("h-1 w-full", variante === "gold" ? "bg-gold" : "bg-navy")} aria-hidden="true" />
       <div className="px-4 py-5 sm:px-5">
-      <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-navy/55">{eyebrow}</p>
+      <h2 className="mb-3 font-serif text-xl text-navy">{eyebrow}</h2>
       {eventos.length === 0 ? (
         <p className="rounded-lg border border-dashed border-navy/15 bg-cream/50 px-3 py-4 text-center text-xs text-navy/50">
           Nada publicado nesta linha ainda.
@@ -463,7 +463,7 @@ export function PortalJornada() {
                   <TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} />
 
                   {jornada.linha.length === 0 ? (
-                    <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
+                    <p className="rounded-xl border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
                       {COPY_TELAS.jornada.vazio}
                     </p>
                   ) : (
