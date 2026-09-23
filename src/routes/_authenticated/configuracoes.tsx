@@ -238,10 +238,10 @@ function PainelModoProprietaria({
         </ul>
       </details>
 
-      <div className="mt-3 border-t border-gold/30 pt-3">
-        <p className="text-xs font-medium uppercase tracking-wide text-navy/60">
+      <details className="mt-3 border-t border-gold/30 pt-3">
+        <summary className="cursor-pointer text-xs font-medium uppercase tracking-wide text-navy/60">
           Últimas decisões registradas ({dados.ultimosEventos.length})
-        </p>
+        </summary>
         {dados.ultimosEventos.length === 0 ? (
           <p className="mt-1 text-xs text-navy/55">
             Nenhuma pendência precisou ser superada por decisão sua ainda — não é ausência de registro.
@@ -259,7 +259,7 @@ function PainelModoProprietaria({
             ))}
           </ul>
         )}
-      </div>
+      </details>
     </section>
   );
 }
