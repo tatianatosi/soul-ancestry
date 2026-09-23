@@ -218,7 +218,15 @@ function corDoNo(no: NoEvento, ultimo: boolean): string {
  * conector "MOMENTOS DE UNIÃO" entre as duas colunas, não um item
  * misturado na mesma lista).
  */
-function TimelineVertical({ eventos, eyebrow }: { eventos: NoEvento[]; eyebrow: string }) {
+function TimelineVertical({
+  eventos,
+  eyebrow,
+  variante = "navy",
+}: {
+  eventos: NoEvento[];
+  eyebrow: string;
+  variante?: "gold" | "navy";
+}) {
   const paradas = eventos.map((no, i) => {
     const pct = eventos.length > 1 ? (i / (eventos.length - 1)) * 100 : 0;
     return `${corDoNo(no, i === eventos.length - 1)} ${pct}%`;
@@ -226,8 +234,10 @@ function TimelineVertical({ eventos, eyebrow }: { eventos: NoEvento[]; eyebrow: 
   const gradiente = `linear-gradient(to bottom, ${paradas.join(", ")})`;
 
   return (
-    <div className="min-w-0">
-      <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-navy/50">{eyebrow}</p>
+    <div className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
+      <div className={cn("h-1 w-full", variante === "gold" ? "bg-gold" : "bg-navy")} aria-hidden="true" />
+      <div className="px-4 py-5 sm:px-5">
+      <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-navy/55">{eyebrow}</p>
       {eventos.length === 0 ? (
         <p className="rounded-lg border border-dashed border-navy/15 bg-cream/50 px-3 py-4 text-center text-xs text-navy/50">
           Nada publicado nesta linha ainda.
@@ -272,6 +282,7 @@ function TimelineVertical({ eventos, eyebrow }: { eventos: NoEvento[]; eyebrow: 
           </ol>
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -284,15 +295,17 @@ function TimelineVertical({ eventos, eyebrow }: { eventos: NoEvento[]; eyebrow: 
 function MomentosDeUniao({ pontes }: { pontes: NoPonte[] }) {
   if (pontes.length === 0) return null;
   return (
-    <div className="my-5 rounded-xl border border-gold/40 bg-linear-to-r from-gold/10 to-navy/5 px-4 py-4 sm:my-0 sm:self-center">
+    <div className="relative rounded-2xl border border-gold/45 bg-linear-to-r from-gold/12 to-navy/5 px-4 py-4">
+      <span className="mx-auto mb-2 block h-5 w-px bg-gold/50 sm:hidden" aria-hidden="true" />
       <p className="text-[10px] font-semibold uppercase tracking-widest text-navy/60">Momentos de União</p>
-      <ul className="mt-1 space-y-1">
+      <ul className="mt-1.5 space-y-1.5">
         {pontes.map((p, i) => (
-          <li key={i} className="text-xs text-navy/70">
+          <li key={i} className="text-xs leading-relaxed text-navy/75">
             {p.texto}
           </li>
         ))}
       </ul>
+      <span className="mx-auto mt-2 block h-5 w-px bg-navy/25 sm:hidden" aria-hidden="true" />
     </div>
   );
 }
@@ -454,11 +467,15 @@ export function PortalJornada() {
                       {COPY_TELAS.jornada.vazio}
                     </p>
                   ) : (
-                    <div data-jornada-duas-linhas>
-                      <MomentosDeUniao pontes={pontes} />
-                      <div className="grid gap-6 sm:grid-cols-2">
-                        <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" />
-                        <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" />
+                    <div data-jornada-duas-linhas className="grid gap-5 sm:grid-cols-2 sm:gap-6">
+                      <div className="order-2 sm:order-1 sm:col-span-2">
+                        <MomentosDeUniao pontes={pontes} />
+                      </div>
+                      <div className="order-1 min-w-0 sm:order-2">
+                        <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" variante="gold" />
+                      </div>
+                      <div className="order-3 min-w-0">
+                        <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" />
                       </div>
                     </div>
                   )}

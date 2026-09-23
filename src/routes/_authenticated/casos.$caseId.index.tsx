@@ -300,7 +300,7 @@ function Secao({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
+    <section className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
       <h2 className="font-serif text-lg text-navy">{titulo}</h2>
       {descricao ? (
         <p className="mb-4 mt-1 text-xs text-navy/55">{descricao}</p>
@@ -999,7 +999,7 @@ function FichaCaso() {
 
       {/* Quatro resumos acionáveis — cada um leva à seção completa, já preservada abaixo. */}
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <a href="#secao-jornada" className="rounded-xl border border-navy/10 bg-cream/50 p-4 hover:border-gold/60">
+        <a href="#secao-jornada" className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)] hover:border-gold/60">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Jornada/onboarding</p>
           <p className="mt-1 text-sm font-medium text-navy">
             {bloqueiosReais.length === 0
@@ -1010,7 +1010,7 @@ function FichaCaso() {
             <p className="mt-1 text-xs text-navy/60">{sugestoes[0].titulo}</p>
           ) : null}
         </a>
-        <div className="rounded-xl border border-navy/10 bg-cream/50 p-4 hover:border-gold/60">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)] hover:border-gold/60">
           <a href="#secao-pessoas" className="block rounded-sm focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold">
             <p className="text-[11px] uppercase tracking-wide text-navy/50">Pessoas/família</p>
             <p className="mt-1 text-sm font-medium text-navy">
@@ -1025,12 +1025,12 @@ function FichaCaso() {
             estadoDerivado={(caso["status_caso_derivado"] as string | null) ?? null}
           />
         </div>
-        <a href="#secao-comercial" className="rounded-xl border border-navy/10 bg-cream/50 p-4 hover:border-gold/60">
+        <a href="#secao-comercial" className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)] hover:border-gold/60">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Contrato</p>
           <p className="mt-1 text-sm font-medium text-navy">{rotulo(EIXO_COMERCIAL, v("eixo_comercial"))}</p>
           <p className="text-xs text-navy/60">{rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao"))}</p>
         </a>
-        <div className="rounded-xl border border-navy/10 bg-cream/50 p-4">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Pesquisa/entregas</p>
           {qPesquisa.isLoading ? (
             <p className="mt-1 text-xs text-navy/50">Carregando resumo de pesquisa…</p>
@@ -1050,44 +1050,59 @@ function FichaCaso() {
               const dossie = estadoDossieDoCaso(evidencias);
               const pendencias = (c?.pendencias ?? []).filter((p: any) => p.status !== "resolvido" && pendenciaPesquisaAberta(p.status)).length;
               const achados = c?.achados?.length ?? 0;
-              // Micro-donut acessível: três segmentos proporcionais.
+              // Donut acessível: três segmentos proporcionais, com legenda
+              // textual (status nunca só por cor).
               const donut = (() => {
                 if (dossie.total === 0) return null;
-                const c1 = (dossie.confirmados / dossie.total) * 100;
-                const c2 = (dossie.emRevisao / dossie.total) * 100;
-                const c3 = (dossie.pendentes / dossie.total) * 100;
+                const g1 = (dossie.confirmados / dossie.total) * 360;
+                const g2 = g1 + (dossie.emRevisao / dossie.total) * 360;
                 return (
                   <div
                     role="img"
                     aria-label={`Dossiê: ${dossie.confirmados} confirmados, ${dossie.emRevisao} em revisão, ${dossie.pendentes} pendentes`}
-                    className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-navy/10"
+                    className="relative h-20 w-20 shrink-0 rounded-full"
                     data-caso360-dossie-donut
+                    style={{
+                      background: `conic-gradient(var(--color-emerald-600) 0deg ${g1}deg, var(--gold) ${g1}deg ${g2}deg, color-mix(in srgb, var(--terracotta) 70%, transparent) ${g2}deg 360deg)`,
+                    }}
                   >
-                    <div className="flex h-full">
-                      <div className="bg-emerald-600" style={{ width: `${c1}%` }} />
-                      <div className="bg-gold" style={{ width: `${c2}%` }} />
-                      <div className="bg-terracotta/70" style={{ width: `${c3}%` }} />
+                    <div className="absolute inset-[9px] grid place-items-center rounded-full bg-card text-center">
+                      <span className="font-serif text-lg leading-none text-navy">{dossie.total}</span>
+                      <span className="text-[8px] uppercase leading-none tracking-wide text-navy/50">evid.</span>
                     </div>
                   </div>
                 );
               })();
               return (
-                <>
-                  <p className="mt-1 text-xs text-navy/70">
-                    <span className="font-semibold text-emerald-700">{dossie.confirmados} confirmados</span>
-                    {" · "}
-                    <span className="font-semibold text-navy/80">{dossie.emRevisao} em revisão</span>
-                    {" · "}
-                    <span className="font-semibold text-terracotta">{dossie.pendentes} pendentes</span>
-                    {" · "}
-                    {achados} achado(s)
-                    {pendencias > 0 ? ` · ${pendencias} pendência(s) de pesquisa` : ""}
-                  </p>
+                <div className="mt-3 flex flex-wrap items-center gap-4">
                   {donut}
-                  <p className="mt-1 text-[10px] text-navy/45">
-                    Soma bate com o dossiê real ({dossie.total} evidência(s) no caso).
-                  </p>
-                </>
+                  <div className="min-w-0 flex-1">
+                    <ul className="space-y-1 text-xs">
+                      <li className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-600" aria-hidden="true" />
+                        <span className="font-semibold text-emerald-700">{dossie.confirmados}</span>
+                        <span className="text-navy/70">confirmados</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-gold" aria-hidden="true" />
+                        <span className="font-semibold text-navy/80">{dossie.emRevisao}</span>
+                        <span className="text-navy/70">em revisão</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-terracotta/70" aria-hidden="true" />
+                        <span className="font-semibold text-terracotta">{dossie.pendentes}</span>
+                        <span className="text-navy/70">pendentes</span>
+                      </li>
+                    </ul>
+                    <p className="mt-1.5 text-[11px] text-navy/60">
+                      {achados} achado(s)
+                      {pendencias > 0 ? ` · ${pendencias} pendência(s) de pesquisa` : ""}
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-navy/45">
+                      Soma bate com o dossiê real ({dossie.total} evidência(s) no caso).
+                    </p>
+                  </div>
+                </div>
               );
             })()
           )}
@@ -1129,7 +1144,7 @@ function FichaCaso() {
             </li>
           </ul>
         </div>
-        <div id="resumo-visao-cliente" className="rounded-xl border border-navy/10 bg-cream/50 p-4">
+        <div id="resumo-visao-cliente" className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Visão do cliente</p>
           <p className="mt-1 text-xs text-navy/60">O que o App Cliente mostra hoje — nunca produção interna.</p>
           {qVisaoCliente.isLoading ? (
@@ -1168,7 +1183,7 @@ function FichaCaso() {
             Preparar, revisar, aprovar, liberar ou despublicar →
           </Link>
         </div>
-        <div id="resumo-financeiro" className="rounded-xl border border-navy/10 bg-cream/50 p-4 sm:col-span-2 lg:col-span-4">
+        <div id="resumo-financeiro" className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)] sm:col-span-2 lg:col-span-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Financeiro</p>
           {qFinanceiro.isLoading ? (
             <p className="mt-2 text-xs text-navy/50">Carregando…</p>
@@ -1401,7 +1416,7 @@ function FichaCaso() {
         </div>
       ) : null}
       <div className="mb-6 grid gap-3 lg:grid-cols-2">
-        <div className="rounded-xl border border-navy/10 bg-cream/50 p-4">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Tarefas</p>
           <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
             {(qTarefas.data?.tarefas ?? []).slice(0, 3).map((t: any) => (
@@ -1413,7 +1428,7 @@ function FichaCaso() {
           </ul>
           <FormularioTarefaCaso caseId={id} onCriada={recarregarTarefas} />
         </div>
-        <div className="rounded-xl border border-navy/10 bg-cream/50 p-4">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Atualizações recentes</p>
           <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
             {((q.data?.timeline ?? []) as any[]).slice(0, 3).map((e) => (
@@ -1427,7 +1442,7 @@ function FichaCaso() {
             {!((q.data?.timeline ?? []) as any[]).length ? <li className="text-navy/50">Nenhuma atualização registrada.</li> : null}
           </ul>
         </div>
-        <div className="rounded-xl border border-navy/10 bg-cream/50 p-4">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Documentos prioritários</p>
           <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
             {((qDocumentos.data ?? []) as any[])
@@ -1441,7 +1456,7 @@ function FichaCaso() {
             {!((qDocumentos.data ?? []) as any[]).length ? <li className="text-navy/50">Nenhum documento registrado.</li> : null}
           </ul>
         </div>
-        <div className="rounded-xl border border-navy/10 bg-cream/50 p-4">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Microentregas recentes</p>
           <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
             {((qc2.data?.entregas ?? []) as any[]).slice(0, 3).map((m) => (
@@ -2171,7 +2186,7 @@ function FichaCaso() {
           de persistência campo→tabela) recolhidos por padrão — nada foi
           apagado, "secao-log" continua sendo o alvo do índice fixo.
         */}
-        <details id="secao-log" hidden={secaoFoco !== null && secaoFoco !== "log"} className="scroll-mt-16 rounded-xl border border-navy/10 bg-cream/50 p-5">
+        <details id="secao-log" hidden={secaoFoco !== null && secaoFoco !== "log"} className="scroll-mt-16 rounded-xl border border-border bg-card p-5 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
           <summary className="cursor-pointer font-serif text-lg text-navy">
             Dados técnicos e validações
           </summary>
