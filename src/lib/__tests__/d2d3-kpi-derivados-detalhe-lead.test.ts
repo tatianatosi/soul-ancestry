@@ -1,0 +1,95 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+import { describe, it, expect } from "vitest";
+
+/**
+ * D2 (§12) e D3 (§13) — travas de comportamento canônico que ainda não
+ * existiam. Implementação já publicada nos SHAs:
+ *
+ *   D2 pipeline (bloqueio + chip qualidade): `666eef36`
+ *   D2 auditoria de leads (audit_logs):        `00dbfce4`
+ *   D3 card com próximo passo:                  `666eef36`
+ *   D3 "Nova tarefa" único ponto:               `82ffdaf9`
+ *
+ * Este teste trava dois gaps ainda não cobertos:
+ *
+ * §13 linha 2 — "Cada total deriva dos cards mostrados e dos filtros
+ *               ativos". `kpisKanban` do Desk Operacional precisa contar
+ *               sobre o mesmo array `tarefas` que alimenta as colunas,
+ *               nunca sobre um agregado paralelo do servidor (`painel`).
+ *
+ * §12 zona 4 — "Detalhe de lead: Dados essenciais + interação recente +
+ *               próxima ação; consentimento". A rota /leads precisa expor
+ *               os 4 blocos canônicos: próxima ação, discovery/interação,
+ *               resumo da call, consentimento — sem esconder atrás de
+ *               tooltip nem substituir por texto genérico.
+ */
+
+const KANBAN = resolve(__dirname, "../../components/ops/desk-operacional.tsx");
+const LEADS = resolve(__dirname, "../../routes/_authenticated/leads.tsx");
+
+describe("D3 · §13 linha 2 — KPIs do Kanban derivam do array de cards visíveis", () => {
+  const kanban = readFileSync(KANBAN, "utf8");
+
+  it("kpisKanban é useMemo cuja dependência é `tarefas` (mesmo array das colunas)", () => {
+    expect(kanban).toMatch(/const kpisKanban = useMemo\(/);
+    expect(kanban).toMatch(/\}, \[tarefas\]\);/);
+  });
+
+  it("cada KPI é uma contagem sobre `tarefas.filter`, não sobre um agregado paralelo do servidor", () => {
+    const trecho = kanban.slice(
+      kanban.indexOf("const kpisKanban = useMemo("),
+      kanban.indexOf("}, [tarefas]);"),
+    );
+    // as 4 linhas de KPI todas passam por tarefas.filter(...)
+    const contagens = trecho.match(/tarefas\.filter\(/g) ?? [];
+    expect(contagens.length).toBeGreaterThanOrEqual(4);
+    // e nenhum KPI usa o agregado do servidor `p[...]` (que ignora filtro)
+    expect(trecho).not.toMatch(/p\[".*?"\]/);
+  });
+
+  it("os 4 rótulos canônicos aparecem — sem inventar KPI fora do §13", () => {
+    // §13 nomeia Confirmar/Em revisão/Pendente crítico/SLA em risco;
+    // vocabulário real do CHECK cobre "Pendente crítico" e "SLA em risco"
+    // literalmente; a divergência de "Confirmar/Em revisão" está declarada
+    // no próprio arquivo (comentário §29) e implementada com os rótulos
+    // que o CHECK sustenta: "Atrasadas" e "Bloqueadas".
+    expect(kanban).toMatch(/rotulo: "Pendente crítico"/);
+    expect(kanban).toMatch(/rotulo: "SLA em risco"/);
+    expect(kanban).toMatch(/rotulo: "Atrasadas"/);
+    expect(kanban).toMatch(/rotulo: "Bloqueadas"/);
+    expect(kanban).toMatch(/DIVERGÊNCIA REGISTRADA \(§29\)/);
+  });
+});
+
+describe("D2 · §12 zona 4 — Detalhe do lead expõe 4 blocos canônicos", () => {
+  const leads = readFileSync(LEADS, "utf8");
+
+  it("Próxima ação: select de PROXIMAS_ACOES + data separada", () => {
+    expect(leads).toMatch(/label="Próxima ação"/);
+    expect(leads).toMatch(/opcoes=\{PROXIMAS_ACOES\}/);
+    expect(leads).toMatch(/label="Data da próxima ação"/);
+  });
+
+  it("Discovery: call agendada + realizada + resultado", () => {
+    expect(leads).toMatch(/label="Call agendada em"/);
+    expect(leads).toMatch(/label="Call realizada em"/);
+    expect(leads).toMatch(/valor=\{campo\("discovery_resultado"\)\}/);
+  });
+
+  it("Resumo da call (interação recente) é campo editável, não só metadata", () => {
+    expect(leads).toMatch(/valor=\{campo\("resumo_call"\)\}/);
+  });
+
+  it("Consentimento: status + data + canal + versão do aviso, todos editáveis", () => {
+    expect(leads).toMatch(/valor=\{campo\("consentimento_status"\)\}/);
+    expect(leads).toMatch(/valor=\{campo\("consentimento_canal"\)\}/);
+    expect(leads).toMatch(/valor=\{campo\("consentimento_versao_aviso"\)\}/);
+    expect(leads).toMatch(/consentimento_em/);
+  });
+
+  it("Consentimento não-concedido gera pendência visível (não silencia)", () => {
+    expect(leads).toMatch(/consentimento ainda não consta como concedido/i);
+  });
+});
