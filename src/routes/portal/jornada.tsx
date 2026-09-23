@@ -218,7 +218,15 @@ function corDoNo(no: NoEvento, ultimo: boolean): string {
  * conector "MOMENTOS DE UNIÃO" entre as duas colunas, não um item
  * misturado na mesma lista).
  */
-function TimelineVertical({ eventos, eyebrow }: { eventos: NoEvento[]; eyebrow: string }) {
+function TimelineVertical({
+  eventos,
+  eyebrow,
+  variante = "navy",
+}: {
+  eventos: NoEvento[];
+  eyebrow: string;
+  variante?: "gold" | "navy";
+}) {
   const paradas = eventos.map((no, i) => {
     const pct = eventos.length > 1 ? (i / (eventos.length - 1)) * 100 : 0;
     return `${corDoNo(no, i === eventos.length - 1)} ${pct}%`;
@@ -226,8 +234,10 @@ function TimelineVertical({ eventos, eyebrow }: { eventos: NoEvento[]; eyebrow: 
   const gradiente = `linear-gradient(to bottom, ${paradas.join(", ")})`;
 
   return (
-    <div className="min-w-0">
-      <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-navy/50">{eyebrow}</p>
+    <div className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
+      <div className={cn("h-1 w-full", variante === "gold" ? "bg-gold" : "bg-navy")} aria-hidden="true" />
+      <div className="px-4 py-5 sm:px-5">
+      <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-navy/55">{eyebrow}</p>
       {eventos.length === 0 ? (
         <p className="rounded-lg border border-dashed border-navy/15 bg-cream/50 px-3 py-4 text-center text-xs text-navy/50">
           Nada publicado nesta linha ainda.
