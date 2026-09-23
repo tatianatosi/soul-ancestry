@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
+import { Link } from "@tanstack/react-router";
+
 import { EstadoVazio, PAPEL_LABEL, SaasShell } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
@@ -16,6 +18,8 @@ import {
   listarEquipe,
 } from "@/lib/equipe.functions";
 import { KitBadge, KitCard, KpiCard } from "@/components/clube-ancestral-kit";
+import { CaCard } from "@/components/ui/ca-card";
+import { CAPACIDADES_PROPRIETARIA, ROTULO_CAPACIDADE } from "@/lib/modo-proprietaria";
 
 export const Route = createFileRoute("/_authenticated/equipe")({
   head: () => ({
@@ -289,6 +293,87 @@ function EquipePage() {
             {msg ? <p className="mt-3 text-sm text-green-700">{msg}</p> : null}
             {erro ? <p className="mt-3 text-sm text-terracotta">{erro}</p> : null}
           </KitCard>
+
+          {/*
+            §23 do De-Para (Desk — Configuração & Acesso): 5 zonas.
+            "Usuários" já existia (cards acima + lista de membros). As
+            outras 4 são adicionadas aqui, ligando para a superfície
+            canônica real de cada uma em vez de duplicar estado (regra do
+            próprio §23, "Legado": "Configurações duplicadas que alteram o
+            mesmo estado em lugares diferentes" — /acessos-portal,
+            /configuracoes e /integracoes já são essas fontes; não crio uma
+            segunda tela para o mesmo dado).
+          */}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <CaCard titulo="Papéis" eyebrow="Configuração & Acesso · Permissões" data-config-papeis>
+              <p className="text-sm text-navy/70">
+                {PAPEIS.length} papéis internos reais: {PAPEIS.map((p) => PAPEL_LABEL[p]).join(", ")}.
+              </p>
+              {/*
+                DIVERGÊNCIA REGISTRADA (§29): o wireframe pede uma matriz de
+                permissões por domínio (leitura/edição/publicação/
+                administração) por papel. O único conjunto de permissões
+                documentado em código hoje é binário — admin (Modo
+                Proprietária Administradora) tem as capacidades abaixo; os
+                outros 5 papéis são verificados caso a caso, espalhados em
+                cada tela (`autoridade.decidir`), sem matriz central. Listar
+                um "sim/não" por domínio para cada papel aqui seria inventar
+                dado que o código não garante — mostro a fonte real e
+                declaro a lacuna, não finjo a matriz.
+              */}
+              <p className="mt-3 text-xs uppercase tracking-wide text-navy/50">
+                Capacidades exclusivas do papel admin ({CAPACIDADES_PROPRIETARIA.length})
+              </p>
+              <ul className="mt-1 space-y-1 text-xs text-navy/70">
+                {CAPACIDADES_PROPRIETARIA.slice(0, 6).map((c) => (
+                  <li key={c}>• {ROTULO_CAPACIDADE[c]}</li>
+                ))}
+              </ul>
+              <p className="mt-3 text-xs text-navy/50">
+                Sem matriz central por domínio para os outros 5 papéis ainda — cada tela do Desk decide por
+                capacidade própria (`autoridade.decidir`), não por uma tabela de permissões versionada.
+              </p>
+            </CaCard>
+
+            <CaCard titulo="Acessos por família/caso" eyebrow="Configuração & Acesso · Escopo e validade" data-config-acessos>
+              <p className="text-sm text-navy/70">
+                Acesso do cliente ao App (link mágico, caso autorizado, revogação) é gerido em Acessos ao portal —
+                mesma fonte usada pelo Caso 360, sem duplicar aqui.
+              </p>
+              <Link
+                to="/acessos-portal"
+                className="mt-3 inline-block text-sm text-navy underline decoration-gold underline-offset-4"
+              >
+                Abrir Acessos ao portal →
+              </Link>
+            </CaCard>
+
+            <CaCard titulo="Parâmetros" eyebrow="Configuração & Acesso · Taxonomias e cadências" data-config-parametros>
+              <p className="text-sm text-navy/70">
+                Taxonomias, estados e regras de alerta são versionados em Configurações — mesma fonte, sem cópia
+                paralela aqui.
+              </p>
+              <Link
+                to="/configuracoes"
+                className="mt-3 inline-block text-sm text-navy underline decoration-gold underline-offset-4"
+              >
+                Abrir Configurações →
+              </Link>
+            </CaCard>
+
+            <CaCard titulo="Integrações/auditoria" eyebrow="Configuração & Acesso · Saúde e registro" data-config-integracoes>
+              <p className="text-sm text-navy/70">
+                Integrações habilitadas, saúde e última sincronização vivem no Centro de Integrações; eventos
+                críticos e ações administrativas entram em audit_logs.
+              </p>
+              <Link
+                to="/integracoes"
+                className="mt-3 inline-block text-sm text-navy underline decoration-gold underline-offset-4"
+              >
+                Abrir Integrações →
+              </Link>
+            </CaCard>
+          </div>
 
           <section>
             <h2 className="font-serif text-xl">Membros</h2>
