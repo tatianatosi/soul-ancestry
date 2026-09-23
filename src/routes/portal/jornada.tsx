@@ -282,6 +282,7 @@ function TimelineVertical({
           </ol>
         </div>
       )}
+      </div>
     </div>
   );
 }
