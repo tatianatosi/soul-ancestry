@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { HojeConectado } from "@/components/desk/superficies-kit-conectadas";
 import { useGoLive } from "@/components/golive/dados";
 import { EstadoVazio, SaasShell } from "@/components/saas/shell";
 import { Button } from "@/components/ui/button";
@@ -21,7 +20,6 @@ import {
   type AcaoOperacional,
 } from "@/lib/golive-operacao";
 import { acessoAoPortal, publicacaoPorEstado } from "@/lib/golive-portal";
-import { GRUPOS_DESK } from "@/lib/navegacao-desk";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
@@ -46,9 +44,6 @@ function Painel() {
       visualKit="pantone"
     >
       <PainelConsolidado />
-      <div className="mt-8 border-t border-navy/10 pt-6">
-        <HojeConectado />
-      </div>
     </SaasShell>
   );
 }
@@ -239,17 +234,6 @@ function PainelConsolidado() {
 
   return (
     <section aria-labelledby="painel-consolidado-titulo">
-      <nav aria-label="Módulos do Desk" className="mb-7 flex min-w-0 gap-1 overflow-x-auto border-b border-navy/10 pb-2">
-        {GRUPOS_DESK.map((grupo) => (
-          <Link
-            key={grupo.to}
-            to={grupo.to}
-            className={grupo.to === "/painel" ? "shrink-0 border-b-2 border-gold px-3 py-2 text-xs font-semibold text-navy" : "shrink-0 border-b-2 border-transparent px-3 py-2 text-xs text-navy/60 hover:text-navy"}
-          >
-            {grupo.label}
-          </Link>
-        ))}
-      </nav>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-gold">Desk Intelligence</p>

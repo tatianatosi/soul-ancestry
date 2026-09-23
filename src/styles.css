@@ -321,7 +321,15 @@
 }
 
 [data-app-cliente="true"] :where([data-jornada-meta], [data-radar-meta], [data-arvore-meta], [data-documentos-meta], [data-legado-meta], [data-conta-meta]) {
-  display: grid;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--ca-space-2);
   border-radius: var(--ca-radius-md);

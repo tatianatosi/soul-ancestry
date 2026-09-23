@@ -408,6 +408,28 @@ export function SaasShell({
             </div>
           )}
         </header>
+        <nav
+          aria-label="Módulos do Desk"
+          className="hidden min-w-0 items-stretch gap-1 overflow-x-auto border-b border-navy/10 bg-card px-8 md:flex"
+        >
+          {itens.map((item) => {
+            const ativo = grupoNavAtivo(rota, hash, item);
+            return (
+              <Link
+                key={`modulo-${item.to}`}
+                to={item.to}
+                className={cn(
+                  "shrink-0 border-b-2 px-3 py-3 text-xs transition-colors",
+                  ativo
+                    ? "border-gold font-semibold text-navy"
+                    : "border-transparent text-navy/55 hover:text-navy",
+                )}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
         {contexto?.organizacao?.demo ? (
           <div className="border-b border-gold/40 bg-gold/15 px-4 py-2 text-xs font-medium uppercase tracking-wide text-navy lg:px-8">
             DEMO — não usar dados reais

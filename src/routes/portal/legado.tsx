@@ -106,8 +106,10 @@ export function PortalLegado() {
                   </section>
 
                   <div className="space-y-3" data-legado-prateleiras>
-                    {PRATELEIRAS.map((p) => {
-                      const itens = porPrateleira[p.id];
+                    {PRATELEIRAS.filter((p) => p.id !== "memoria").map((p) => {
+                      const itens = p.id === "narrativas"
+                        ? [...porPrateleira.narrativas, ...porPrateleira.memoria]
+                        : porPrateleira[p.id];
                       return (
                         <section
                           key={p.id}

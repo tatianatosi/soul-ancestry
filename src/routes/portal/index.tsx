@@ -390,7 +390,7 @@ function PainelHomeMockup({
       {/* Correção 2026-09-12: grade em telas largas (sidebar liberou espaço horizontal); CTA lilás removido (fora do guia oficial de marca — só 5 cores). */}
       <div className="grid gap-6 lg:grid-cols-2">
         <section>
-          <h3 className="mb-2 text-sm font-semibold text-navy">Próximos passos</h3>
+          <h3 className="mb-2 text-sm font-semibold text-navy">Próxima ação</h3>
           {/* Acabamento 2026-09-13 (referência Lovable): título editorial em
               vez de crachá numerado — mesma frase real, leitura mais serena. */}
           <CaCard titulo={proximaCurta}>

@@ -1,12 +1,10 @@
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, type ReactNode } from "react";
 import {
   Home,
   FileText,
-  
-  LogOut,
   Route,
   Radar,
   Trees,
@@ -14,12 +12,10 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { supabase } from "@/integrations/supabase/client";
 import { BrandLogo } from "@/components/brand";
 import { LinkPortal, useFontePortal, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { portalContexto } from "@/lib/portal.functions";
 import { cn } from "@/lib/utils";
-import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { TIPO_CLIENTE } from "@/lib/marca";
 import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
 
@@ -43,7 +39,6 @@ export function PortalShell({
   children: ReactNode;
 }) {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const rota = useRouterState({ select: (s) => s.location.pathname });
   const { data, isSuccess } = usePortal();
   const previa = usePreviaPortal();
@@ -84,22 +79,6 @@ export function PortalShell({
       ]
     : [];
 
-  async function sair() {
-    // Em prévia quem está logado é a equipe, no Desk. Encerrar a sessão aqui
-    // deslogaria a Proprietária do próprio Desk — o botão apenas fecha a
-    // prévia e volta para a superfície interna.
-    if (previa) {
-      const destino = previa.destinoSair ?? "/acessos-portal";
-      void navigate({ to: destino, replace: true });
-      return;
-    }
-    await queryClient.cancelQueries();
-    queryClient.clear();
-    await supabase.auth.signOut();
-    limparArmazenamentoDaSessao();
-    navigate({ to: "/acesso", replace: true });
-  }
-
   return (
     <div className="min-h-screen overflow-x-hidden bg-cream text-navy" data-marca-guia="oki" data-app-cliente="true">
       {/*
@@ -109,17 +88,8 @@ export function PortalShell({
       */}
       <header className="bg-navy text-cream shadow-sm" data-app-cabecalho>
         <div className="mx-auto max-w-6xl px-4 pb-5 pt-3 lg:px-8 lg:pb-7 lg:pt-4">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+          <div className="flex items-center">
             <BrandLogo size={30} variant="client-dark" showText />
-
-          <button
-            onClick={sair}
-            aria-label={COPY_GERAL.sair}
-            title={COPY_GERAL.sair}
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-gold/60 text-gold transition-colors hover:bg-cream/10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy lg:flex lg:h-10 lg:w-auto lg:gap-2 lg:rounded-lg lg:px-3 lg:text-cream"
-          >
-            <LogOut className="h-3.5 w-3.5" /> <span className="hidden text-xs lg:inline">{COPY_GERAL.sair}</span>
-          </button>
           </div>
 
           <div className="mt-5 max-w-2xl">
