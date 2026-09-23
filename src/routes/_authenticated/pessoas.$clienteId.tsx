@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { SaasShell, useSaas } from "@/components/saas/shell";
+import { SaasShell, useSaas, EstadoVazio } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
 import { NucleoKitPessoa } from "@/components/desk/kit-conectado";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { atualizarPessoa, carregarPessoa } from "@/lib/pessoa.functions";
@@ -381,10 +382,10 @@ function Pessoa() {
       <div className="space-y-6">
         <NucleoKitPessoa clienteId={String(cliente.id)} />
 
-        <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-serif text-lg text-navy">Quem é</h2>
-            {editando ? (
+        <CaCard
+          titulo="Quem é"
+          acao={
+            editando ? (
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -444,9 +445,9 @@ function Pessoa() {
               >
                 Editar
               </button>
-            )}
-          </div>
-
+            )
+          }
+        >
           {erroSalvar ? (
             <p className="mt-2 rounded-md border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-xs text-terracotta">
               {erroSalvar}
@@ -576,27 +577,25 @@ function Pessoa() {
               {cliente.procurador_escopo ? ` · ${cliente.procurador_escopo}` : ""}
             </p>
           ) : null}
-        </section>
+        </CaCard>
 
-        <section
-          className="rounded-xl border border-navy/10 bg-cream/50 p-5"
+        <CaCard
+          titulo="Sinais"
           data-pessoa360-sinais
-        >
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="font-serif text-lg text-navy">Sinais</h2>
+          acao={
             <p className="text-xs text-navy/55">
               {sinais.length === 0 ? "Nenhum sinal aberto" : `${sinais.length} sinal(is)`}
             </p>
-          </div>
-          <p className="mt-1 text-xs text-navy/55">
+          }
+        >
+          <p className="text-xs text-navy/55">
             Duplicidade, conflito, lacuna documental e consentimento — cada um com prioridade
             e ação recomendada. Nada aqui funde pessoa sozinho.
           </p>
           {sinais.length === 0 ? (
-            <p className="mt-3 text-sm text-navy/60">
-              Nenhum sinal aberto para esta pessoa. Dado canônico completo, sem duplicidade
-              ou conflito detectado.
-            </p>
+            <div className="mt-3">
+              <EstadoVazio mensagem="Nenhum sinal aberto para esta pessoa. Dado canônico completo, sem duplicidade ou conflito detectado." />
+            </div>
           ) : (
             <ul className="mt-3 space-y-2">
               {sinais.map((s, idx) => (
@@ -620,19 +619,17 @@ function Pessoa() {
               ))}
             </ul>
           )}
-        </section>
+        </CaCard>
 
-        <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="font-serif text-lg text-navy">Casos</h2>
-            <p className="text-xs text-navy/55">{casos.length} caso(s)</p>
-          </div>
-          <p className="mt-1 text-xs text-navy/55">
+        <CaCard titulo="Casos" acao={<p className="text-xs text-navy/55">{casos.length} caso(s)</p>}>
+          <p className="text-xs text-navy/55">
             Próxima ação vem do mesmo planejador da ficha do caso (RPC). Responsável padrão da operação:{" "}
             {NOME_RESPONSAVEL_PADRAO}.
           </p>
           {casos.length === 0 ? (
-            <p className="mt-2 text-sm text-navy/60">Nenhum caso aberto para esta pessoa.</p>
+            <div className="mt-2">
+              <EstadoVazio mensagem="Nenhum caso aberto para esta pessoa." />
+            </div>
           ) : (
             <ul className="mt-3 grid gap-3 sm:grid-cols-2">
               {casos.map((c) => {
@@ -728,19 +725,16 @@ function Pessoa() {
               })}
             </ul>
           )}
-        </section>
+        </CaCard>
 
-        <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="font-serif text-lg text-navy">Núcleo familiar e papéis</h2>
-            <p className="text-xs text-navy/55">{nucleoMembros.length} vínculo(s)</p>
-          </div>
+        <CaCard
+          titulo="Núcleo familiar e papéis"
+          acao={<p className="text-xs text-navy/55">{nucleoMembros.length} vínculo(s)</p>}
+        >
           {nucleoMembros.length === 0 ? (
-            <p className="mt-2 text-sm text-navy/60">
-              Esta pessoa não está vinculada a nenhum núcleo familiar.
-            </p>
+            <EstadoVazio mensagem="Esta pessoa não está vinculada a nenhum núcleo familiar." />
           ) : (
-            <ul className="mt-3 space-y-2">
+            <ul className="space-y-2">
               {nucleoMembros.map((m) => (
                 <li key={m.id} className="rounded-lg border border-navy/12 bg-cream/25 p-3">
                   <p className="text-sm font-medium text-navy">
@@ -754,21 +748,21 @@ function Pessoa() {
               ))}
             </ul>
           )}
-        </section>
+        </CaCard>
 
-        <section className="rounded-xl border border-navy/10 bg-cream/50 p-5" data-relacoes-familiares-caso>
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="font-serif text-lg text-navy">Vínculos familiares do caso</h2>
-            <p className="text-xs text-navy/55">{grausDeConfirmacao.length} registro(s)</p>
-          </div>
-          <p className="mt-1 text-xs text-navy/55">
+        <CaCard
+          titulo="Vínculos familiares do caso"
+          data-relacoes-familiares-caso
+          acao={<p className="text-xs text-navy/55">{grausDeConfirmacao.length} registro(s)</p>}
+        >
+          <p className="text-xs text-navy/55">
             Parentesco gravado em case_members (pai/mãe), nunca deduzido por nome — distinto da pesquisa
             genealógica interna.
           </p>
           {relacoesFamiliaresDestaPessoa.length === 0 ? (
-            <p className="mt-2 text-sm text-navy/60">
-              Nenhum vínculo de pai/mãe gravado para esta pessoa nos casos onde ela participa.
-            </p>
+            <div className="mt-2">
+              <EstadoVazio mensagem="Nenhum vínculo de pai/mãe gravado para esta pessoa nos casos onde ela participa." />
+            </div>
           ) : (
             <ul className="mt-3 space-y-1">
               {relacoesFamiliaresDestaPessoa.map((r) => (
@@ -787,14 +781,10 @@ function Pessoa() {
               ))}
             </ul>
           ) : null}
-        </section>
+        </CaCard>
 
-        <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
-          <h2 className="font-serif text-lg text-navy">Propostas, contratos e documentos</h2>
-          <p className="mt-1 text-xs text-navy/55">
-            Status aqui; edição e formalização nas rotas de origem (sem formulário duplicado).
-          </p>
-          <div className="mt-3 grid gap-4 sm:grid-cols-3">
+        <CaCard titulo="Propostas, contratos e documentos" eyebrow="Status aqui; edição e formalização nas rotas de origem (sem formulário duplicado)">
+          <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
                 Propostas
@@ -917,19 +907,16 @@ function Pessoa() {
               </Link>
             </div>
           </div>
-        </section>
+        </CaCard>
 
-        <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="font-serif text-lg text-navy">Conteúdo publicado para o App Cliente</h2>
-            <p className="text-xs text-navy/55">{projecoesPublicadas.length} projeção(ões)</p>
-          </div>
+        <CaCard
+          titulo="Conteúdo publicado para o App Cliente"
+          acao={<p className="text-xs text-navy/55">{projecoesPublicadas.length} projeção(ões)</p>}
+        >
           {projecoesPublicadas.length === 0 ? (
-            <p className="mt-2 text-sm text-navy/60">
-              Nada foi publicado para o App Cliente nos casos desta pessoa ainda.
-            </p>
+            <EstadoVazio mensagem="Nada foi publicado para o App Cliente nos casos desta pessoa ainda." />
           ) : (
-            <ul className="mt-3 space-y-2">
+            <ul className="space-y-2">
               {projecoesPublicadas.map((p) => (
                 <li
                   key={p.id}
@@ -949,7 +936,7 @@ function Pessoa() {
               ))}
             </ul>
           )}
-        </section>
+        </CaCard>
 
         {/*
           05/09/2026 — achado real reportado pela Proprietária: esta seção só
@@ -962,12 +949,11 @@ function Pessoa() {
         {fichaGenealogica.length > 0 ||
         fichaGenealogicaEquipe.length > 0 ||
         perfisGenealogicos.length > 0 ? (
-          <section className="rounded-xl border border-dashed border-navy/20 bg-cream/20 p-5">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="font-serif text-lg text-navy">
-                Pesquisa genealógica interna (restrita ao Desk)
-              </h2>
-              {casos[0] ? (
+          <CaCard
+            titulo="Pesquisa genealógica interna (restrita ao Desk)"
+            className="border-dashed border-navy/20 bg-cream/20"
+            acao={
+              casos[0] ? (
                 <Link
                   to="/pessoas-linhagens/$caseId"
                   params={{ caseId: casos[0].id }}
@@ -975,9 +961,10 @@ function Pessoa() {
                 >
                   Abrir ficha completa
                 </Link>
-              ) : null}
-            </div>
-            <p className="mt-1 text-xs text-navy/55">
+              ) : null
+            }
+          >
+            <p className="text-xs text-navy/55">
               Vínculo pelo caso, não por nome — esta camada nunca é exposta ao App Cliente.
             </p>
 
@@ -1022,7 +1009,7 @@ function Pessoa() {
                   .join(", ")}
               </p>
             ) : null}
-          </section>
+          </CaCard>
         ) : null}
 
         {/*
@@ -1033,17 +1020,16 @@ function Pessoa() {
           09/09/2026). Nome sozinho nunca é motivo suficiente — por isso o
           botão exige escolher o caso, mesmo quando a evidência já é forte.
         */}
-        <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
-          <h2 className="font-serif text-lg text-navy">Antes de virar cliente</h2>
+        <CaCard titulo="Antes de virar cliente">
           {erroVinculo ? <p className="mt-2 text-xs text-terracotta">{erroVinculo}</p> : null}
           {candidatos.length === 0 ? (
-            <p className="mt-2 text-sm text-navy/65">
+            <p className="text-sm text-navy/65">
               Nenhum lead desta organização tem e-mail, telefone ou nome que bata com esta pessoa.
               Ela não entrou por lead — a origem registrada é{" "}
               <span className="font-medium">{cliente.origem || "não informada"}</span>.
             </p>
           ) : (
-            <ul className="mt-3 space-y-2">
+            <ul className="space-y-2">
               {candidatos.map(({ lead, evidencia }) => (
                 <li
                   key={lead.id}
@@ -1107,28 +1093,26 @@ function Pessoa() {
               ))}
             </ul>
           )}
-        </section>
+        </CaCard>
 
-        <section className="rounded-xl border border-navy/10 bg-cream/50 p-5">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="font-serif text-lg text-navy">Linha do tempo</h2>
+        <CaCard
+          titulo="Linha do tempo"
+          acao={
             <p className="text-xs text-navy/55">
               {linha.eventos.length} fato(s)
               {linha.de ? ` · de ${formatarDia(linha.de)} a ${formatarDia(linha.ate!)}` : ""}
               {linha.casos > 1 ? ` · ${linha.casos} casos` : ""}
             </p>
-          </div>
-
+          }
+        >
           {linha.semData > 0 ? (
-            <p className="mt-2 text-xs text-navy/50">
+            <p className="text-xs text-navy/50">
               {linha.semData} registro(s) sem data utilizável ficaram fora da ordem cronológica.
             </p>
           ) : null}
 
           {linha.eventos.length === 0 ? (
-            <p className="mt-2 text-sm text-navy/60">
-              Ainda não há fatos registrados na linha do tempo dos casos desta pessoa.
-            </p>
+            <EstadoVazio mensagem="Ainda não há fatos registrados na linha do tempo dos casos desta pessoa." />
           ) : (
             <ol className="mt-4 space-y-0 border-l border-navy/15 pl-5">
               {linha.eventos.map((e, i) => (
@@ -1165,7 +1149,7 @@ function Pessoa() {
               ))}
             </ol>
           )}
-        </section>
+        </CaCard>
       </div>
     </SaasShell>
   );
