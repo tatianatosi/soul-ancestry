@@ -64,51 +64,76 @@ describe("migration — case_plans ganha o gate de onboarding", () => {
   });
 });
 
-describe("integrations/supabase/types.ts — case_plans reflete as 7 colunas novas", () => {
+/*
+ * 24/09/2026 — a migration NÃO foi aplicada no banco conectado (decisão da
+ * Proprietária: só com nova autorização de banco). types.ts é gerado do
+ * banco, então ele diz em que estado estamos. O teste antigo exigia as 7
+ * colunas (assumia pós-migration) e falhava; agora afirma o estado real e o
+ * que precisa valer em cada um — sem pular nenhum dos dois.
+ */
+const COLUNAS_GATE = [
+  "ambiente_autorizado",
+  "dossie_mae_referencia",
+  "dossie_mae_status",
+  "grupo_familiar_status",
+  "inicio_previsto",
+  "motivos_bloqueio",
+  "nivel_acesso",
+];
+
+describe("integrations/supabase/types.ts — estado da migration no banco conectado", () => {
   const types = readFileSync("src/integrations/supabase/types.ts", "utf8");
   const inicio = types.indexOf("case_plans: {");
   const fim = types.indexOf("case_source_documents", inicio) > -1 ? types.indexOf("case_source_documents", inicio) : inicio + 6000;
   const bloco = types.slice(inicio, fim);
+  const presentes = COLUNAS_GATE.filter((c) => (bloco.match(new RegExp(`${c}\\??: `, "g"))?.length ?? 0) >= 3);
+  const estado = presentes.length === 0 ? "pre_migration" : presentes.length === COLUNAS_GATE.length ? "pos_migration" : "parcial";
 
-  it("Row/Insert/Update têm os 7 campos novos", () => {
-    for (const campo of [
-      "ambiente_autorizado",
-      "dossie_mae_referencia",
-      "dossie_mae_status",
-      "grupo_familiar_status",
-      "inicio_previsto",
-      "motivos_bloqueio",
-      "nivel_acesso",
-    ]) {
+  it("o banco está em um estado coerente: todas as 7 colunas ou nenhuma", () => {
+    expect(estado).not.toBe("parcial");
+  });
+
+  it("pré-migration: nenhum código lê as colunas pelo tipo gerado sem tratar a ausência", () => {
+    if (estado !== "pre_migration") return;
+    for (const arquivo of ["src/lib/fechamento-caso.functions.ts", "src/lib/case-service-consolidacao.functions.ts"]) {
+      const src = readFileSync(arquivo, "utf8");
+      expect(src, arquivo).toContain("lerGateCasePlans(");
+      expect(src, arquivo).toContain("motivosDaLeitura(gateCasePlans)");
+    }
+    const backfill = readFileSync("src/lib/onboarding-gate-backfill.functions.ts", "utf8");
+    expect(backfill).toContain("colunaAusenteNoBanco(erroAlvos)");
+  });
+
+  it("pós-migration: Row/Insert/Update têm os 7 campos", () => {
+    if (estado !== "pos_migration") return;
+    for (const campo of COLUNAS_GATE) {
       expect(bloco.match(new RegExp(`${campo}\\??: `, "g"))?.length).toBeGreaterThanOrEqual(3);
     }
   });
 });
 
-describe("onboarding-plano.functions.ts — espelhamento best-effort", () => {
+describe("espelhamento em case_plans — best-effort, mas nunca mudo", () => {
   const fn = readFileSync("src/lib/onboarding-plano.functions.ts", "utf8");
+  const modulo = readFileSync("src/lib/gate-onboarding-case-plans.ts", "utf8");
+  const corpo = modulo.slice(modulo.indexOf("export async function espelharMotivosBloqueioEmCasePlans"));
 
   it("chama o espelhamento nos dois caminhos de escrita (criar e recalcular)", () => {
-    expect(fn.match(/espelharMotivosBloqueioEmCasePlans\(/g)?.length).toBe(3); // 1 definição + 2 chamadas
+    expect(fn.match(/espelharMotivosBloqueioEmCasePlans\(/g)?.length).toBe(2);
+    expect(fn).toContain("espelhoCasePlans");
   });
 
-  it("o espelhamento nunca falha a escrita real de onboarding_planos (try/catch silencioso e documentado)", () => {
-    const corpo = fn.slice(
-      fn.indexOf("async function espelharMotivosBloqueioEmCasePlans"),
-      fn.indexOf("/** Plano de onboarding do caso: leitura."),
-    );
-    expect(corpo).toContain("try {");
-    expect(corpo).toContain("} catch {");
+  it("não engole o erro: sem try/catch vazio, devolve o estado", () => {
+    expect(corpo).not.toContain("} catch {");
+    expect(corpo).toContain('estado: "pre_migration"');
+    expect(corpo).toContain('estado: "sem_linha_case_plans"');
+    expect(corpo).toContain('estado: "erro"');
     expect(corpo).toContain('.eq("fase_jornada", "onboarding")');
   });
 
-  it("nunca cria linha de case_plans — só faz UPDATE", () => {
-    const corpo = fn.slice(
-      fn.indexOf("async function espelharMotivosBloqueioEmCasePlans"),
-      fn.indexOf("/** Plano de onboarding do caso: leitura."),
-    );
+  it("nunca cria linha de case_plans nem grava em outra tabela — só UPDATE em case_plans", () => {
     expect(corpo).toContain(".update(");
     expect(corpo).not.toContain(".insert(");
+    expect(corpo.match(/\.from\("([a-z_]+)"\)/g)).toEqual(['.from("case_plans")']);
   });
 });
 

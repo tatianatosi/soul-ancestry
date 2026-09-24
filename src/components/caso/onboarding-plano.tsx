@@ -32,13 +32,16 @@ export function PainelPlanoOnboarding({ caseId }: { caseId: string }) {
 
   const m = useMutation({
     mutationFn: () => recalcular({ data: { caseId } }),
-    onSuccess: (r: { tarefas?: { criada: boolean }[] }) => {
+    onSuccess: (r: { tarefas?: { criada: boolean }[]; espelhoCasePlans?: { estado: string; aviso: string | null } }) => {
       const novas = (r.tarefas ?? []).filter((t) => t.criada).length;
       toast.success(
         novas > 0
           ? `Plano gravado. ${novas} tarefa(s) de gate criada(s) na fila.`
           : "Plano gravado. Checklist e gates atualizados — cliente não ativado.",
       );
+      // Espelho em case_plans não aplicado (migration pendente, sem linha
+      // ou erro): dito na tela, não escondido.
+      if (r.espelhoCasePlans?.aviso) toast.info(r.espelhoCasePlans.aviso);
       q.refetch();
     },
     onError: (e: Error) => toast.error(e.message || "Não foi possível recalcular o estado."),

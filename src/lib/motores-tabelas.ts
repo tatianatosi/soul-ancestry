@@ -17,18 +17,23 @@
  * planta) misturava código, teste, rota com dado e fluxo real. Agora:
  *
  * - IMPLEMENTADO_EM_FLUXO_REAL: só com os 7 elementos verificáveis —
- *   writer, tabela, reader, releitura, permissão, rota oficial e teste.
- *   O teste motores-classificacao-honesta-2026-09-24 confere no disco.
+ *   writer, tabela, reader, releitura, permissão, rota oficial e teste —
+ *   E prova autenticada da Proprietária registrada em docs/provas/
+ *   (`provaAutenticada`). Teste de disco, fixture ou build não promovem
+ *   (decisão de 24/09/2026). Hoje nenhum item tem prova: os que têm os 7
+ *   elos técnicos ficam em CODIGO_E_TESTE_SEM_HOMOLOGACAO até o roteiro
+ *   docs/relatorios/2026-09-24_roteiro-homologacao-pessoa-unificada.md
+ *   ser executado com login real.
  * - IMPLEMENTADO_SOMENTE_LEITURA: lê dado real, não grava.
- * - CODIGO_E_TESTE_SEM_HOMOLOGACAO: código e teste existem, mas falta
- *   algum elo (ex.: releitura) para chamar de fluxo real.
+ * - CODIGO_E_TESTE_SEM_HOMOLOGACAO: código e teste existem; falta a prova
+ *   autenticada (e, em alguns, também um elo técnico, ex.: releitura).
  * - REFERENCIA_LEGADA: ponteiro/tela antiga só como fallback rotulado.
  * - NAO_IMPLEMENTADO: não existe no código.
  *
  * Nenhum motor tem homologação da Proprietária (prints autenticados:
  * inicial, ação, confirmação, releitura, integração). Por isso
- * `homologacaoProprietaria` é "pendente" em todos — FLUXO_REAL aqui não
- * é COMPROVADO_EM_USO.
+ * `homologacaoProprietaria` é "pendente" e `provaAutenticada` é null em
+ * todos.
  */
 export type EstadoMotor =
   | "IMPLEMENTADO_EM_FLUXO_REAL"
@@ -54,12 +59,14 @@ export type EvidenciaMotor = {
 
 const PERMISSAO_ORG = "organization_id na escrita e na leitura + RLS por organização";
 const HOMOLOGACAO_PENDENTE = "pendente" as const;
+const LACUNA_SEM_PROVA =
+  "Sem prova autenticada da Proprietária (inicial, ação, confirmação, releitura, integração) — ver roteiro de homologação.";
 
 export const MOTORES_TABELAS = [
   {
     id: "P0",
     motor: "P0 — Autoridade operacional e persistência",
-    estado: "IMPLEMENTADO_EM_FLUXO_REAL" as EstadoMotor,
+    estado: "CODIGO_E_TESTE_SEM_HOMOLOGACAO" as EstadoMotor,
     prs: ["#31", "#34", "#39", "#44"],
     tabelas: ["crm_casos", "clientes", "tarefas", "contracts", "proposals"] as const,
     naoCriar: [] as const,
@@ -74,13 +81,14 @@ export const MOTORES_TABELAS = [
       rota: "/pessoas/$clienteId",
       teste: "src/lib/__tests__/persistencia-aba-casos.test.ts",
     } as EvidenciaMotor,
-    lacunas: [] as string[],
+    lacunas: [LACUNA_SEM_PROVA] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
   {
     id: "P1",
     motor: "P1 — Caso canônico, núcleo e participantes",
-    estado: "IMPLEMENTADO_EM_FLUXO_REAL" as EstadoMotor,
+    estado: "CODIGO_E_TESTE_SEM_HOMOLOGACAO" as EstadoMotor,
     prs: ["#30", "#32", "#36", "#51", "#64"],
     tabelas: [
       "crm_casos",
@@ -104,15 +112,17 @@ export const MOTORES_TABELAS = [
       teste: "src/lib/__tests__/nucleo-dossie-mae-canonico-2026-09-24.test.ts",
     } as EvidenciaMotor,
     lacunas: [
+      LACUNA_SEM_PROVA,
       "Fusão de pessoas duplicadas continua decisão humana em /nucleos-duplicidades — nunca automática.",
       "crm_casos.dossie_mae_referencia segue como ponteiro legado (fallback rotulado).",
     ] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
   {
     id: "P2",
     motor: "P2 — Contrato, proposta e Ordem de Serviço",
-    estado: "IMPLEMENTADO_EM_FLUXO_REAL" as EstadoMotor,
+    estado: "CODIGO_E_TESTE_SEM_HOMOLOGACAO" as EstadoMotor,
     prs: ["#35", "#40", "#41", "#53"],
     tabelas: [
       "contracts",
@@ -134,13 +144,14 @@ export const MOTORES_TABELAS = [
       rota: "/casos/$caseId/contrato/preparar",
       teste: "src/lib/__tests__/motor-lote2-batch8-contratos.test.ts",
     } as EvidenciaMotor,
-    lacunas: ["Dependências entre OS sem campo estruturado (declarado, sem migration)."] as string[],
+    lacunas: [LACUNA_SEM_PROVA, "Dependências entre OS sem campo estruturado (declarado, sem migration)."] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
   {
     id: "P3",
     motor: "P3 — Tarefa, próxima ação e cadência",
-    estado: "IMPLEMENTADO_EM_FLUXO_REAL" as EstadoMotor,
+    estado: "CODIGO_E_TESTE_SEM_HOMOLOGACAO" as EstadoMotor,
     prs: ["#32", "#75", "#76", "#80"],
     tabelas: ["tarefas", "crm_casos", "case_plans", "case_alerts"] as const,
     naoCriar: ["cadence_runs"] as const,
@@ -156,8 +167,9 @@ export const MOTORES_TABELAS = [
       rota: "/tarefas",
       teste: "src/lib/__tests__/ca18-proxima-acao-canonica.test.ts",
     } as EvidenciaMotor,
-    lacunas: ["Cadência só alerta (somente leitura); nenhum envio automático, por decisão."] as string[],
+    lacunas: [LACUNA_SEM_PROVA, "Cadência só alerta (somente leitura); nenhum envio automático, por decisão."] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
   {
     id: "P4",
@@ -179,15 +191,17 @@ export const MOTORES_TABELAS = [
       teste: "src/lib/__tests__/d7-microentrega-real-2026-09-24.test.ts",
     } as EvidenciaMotor,
     lacunas: [
+      LACUNA_SEM_PROVA,
       "Escrita confirma só a linha afetada (select id); não relê nem compara o checklist gravado.",
       "Migration 20260924190000 (7 colunas de gate em case_plans) versionada mas não aplicada no banco conectado — types.ts regenerado sem elas.",
     ] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
   {
     id: "P5",
     motor: "P5 — Pesquisa, documentos e evidências",
-    estado: "IMPLEMENTADO_EM_FLUXO_REAL" as EstadoMotor,
+    estado: "CODIGO_E_TESTE_SEM_HOMOLOGACAO" as EstadoMotor,
     prs: ["#84"],
     tabelas: [
       "research_cases",
@@ -214,10 +228,12 @@ export const MOTORES_TABELAS = [
       teste: "src/lib/__tests__/achado-microentrega-2026-09-24.test.ts",
     } as EvidenciaMotor,
     lacunas: [
+      LACUNA_SEM_PROVA,
       "/pesquisa legado segue desconectado (referência legada, não reativar).",
       "Varredura em Drive/Dropbox bloqueada por decisão — sem integração contratada.",
     ] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
   {
     id: "P6",
@@ -238,15 +254,17 @@ export const MOTORES_TABELAS = [
       teste: "src/lib/__tests__/ca05-cadencia-microentregas.test.ts",
     } as EvidenciaMotor,
     lacunas: [
+      LACUNA_SEM_PROVA,
       "criarMicroentregaCliente insere sem inserirComVerificacao (devolve a linha, sem comparar).",
       "Isolamento cliente A × cliente B nunca provado com dois logins reais.",
     ] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
   {
     id: "P7",
     motor: "P7 — Comercial, financeiro e catálogo",
-    estado: "IMPLEMENTADO_EM_FLUXO_REAL" as EstadoMotor,
+    estado: "CODIGO_E_TESTE_SEM_HOMOLOGACAO" as EstadoMotor,
     prs: ["#50", "#59", "#61", "#62", "#63", "#68", "#79", "#82"],
     tabelas: [
       "product_catalog",
@@ -270,13 +288,14 @@ export const MOTORES_TABELAS = [
       rota: "/financeiro",
       teste: "src/lib/__tests__/gate-financeiro-os-2026-09-24.test.ts",
     } as EvidenciaMotor,
-    lacunas: ["Nenhuma integração Asaas aprovada — conciliação é manual."] as string[],
+    lacunas: [LACUNA_SEM_PROVA, "Nenhuma integração Asaas aprovada — conciliação é manual."] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
   {
     id: "P8",
     motor: "P8 — Marketing, conteúdos e conversão",
-    estado: "IMPLEMENTADO_EM_FLUXO_REAL" as EstadoMotor,
+    estado: "CODIGO_E_TESTE_SEM_HOMOLOGACAO" as EstadoMotor,
     prs: ["#48", "#54", "#56", "#58"],
     tabelas: ["leads", "crm_casos"] as const,
     naoCriar: [] as const,
@@ -291,8 +310,9 @@ export const MOTORES_TABELAS = [
       rota: "/calls",
       teste: "src/lib/__tests__/painel-calls-roteiro-vivo.test.ts",
     } as EvidenciaMotor,
-    lacunas: [] as string[],
+    lacunas: [LACUNA_SEM_PROVA] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
   {
     id: "P9",
@@ -314,6 +334,7 @@ export const MOTORES_TABELAS = [
     } as EvidenciaMotor,
     lacunas: ["Cockpit é leitura por desenho; a escrita mora nos motores de origem."] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
   {
     id: "P10",
@@ -335,6 +356,7 @@ export const MOTORES_TABELAS = [
     } as EvidenciaMotor,
     lacunas: ["Integração externa depende de decisão e contratação (credenciais, escopo)."] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
   {
     id: "P11",
@@ -354,8 +376,9 @@ export const MOTORES_TABELAS = [
       rota: "/biblioteca",
       teste: "src/lib/__tests__/dsa8-pessoa360-cacard.test.ts",
     } as EvidenciaMotor,
-    lacunas: ["Fidelidade ao mockup de 17 páginas só se prova com print autenticado."] as string[],
+    lacunas: [LACUNA_SEM_PROVA, "Fidelidade ao mockup de 17 páginas só se prova com print autenticado."] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
 ] as const;
 
@@ -366,9 +389,10 @@ export const MOTORES_TABELAS = [
 export const FLUXOS_PESSOA_UNIFICADA = [
   {
     id: "R2-CPF",
+    roteiroHomologacao: "docs/relatorios/2026-09-24_roteiro-homologacao-pessoa-unificada.md#r2",
     motor: "P1",
     fluxo: "CPF dos membros do caso conferido contra o cadastro canônico",
-    estado: "IMPLEMENTADO_EM_FLUXO_REAL" as EstadoMotor,
+    estado: "CODIGO_E_TESTE_SEM_HOMOLOGACAO" as EstadoMotor,
     evidencia: {
       writer: "src/lib/caso-canonico.functions.ts#conferirDivergenciaCpfMembrosCaso",
       tabela: "case_members",
@@ -378,14 +402,16 @@ export const FLUXOS_PESSOA_UNIFICADA = [
       rota: "/casos/$caseId",
       teste: "src/lib/__tests__/r2-cpf-canonico-comportamento-2026-09-24.test.ts",
     } as EvidenciaMotor,
-    lacunas: [] as string[],
+    lacunas: [LACUNA_SEM_PROVA] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
   {
     id: "NUCLEO-DOSSIE",
+    roteiroHomologacao: "docs/relatorios/2026-09-24_roteiro-homologacao-pessoa-unificada.md#nucleo",
     motor: "P1",
     fluxo: "Núcleo com membros e um dossiê-mãe ativo por núcleo",
-    estado: "IMPLEMENTADO_EM_FLUXO_REAL" as EstadoMotor,
+    estado: "CODIGO_E_TESTE_SEM_HOMOLOGACAO" as EstadoMotor,
     evidencia: {
       writer: "src/lib/nucleos-desk.functions.ts#salvarDossieNucleo",
       tabela: "nucleos_familiares",
@@ -395,8 +421,9 @@ export const FLUXOS_PESSOA_UNIFICADA = [
       rota: "/nucleos",
       teste: "src/lib/__tests__/nucleo-dossie-mae-canonico-2026-09-24.test.ts",
     } as EvidenciaMotor,
-    lacunas: [] as string[],
+    lacunas: [LACUNA_SEM_PROVA] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
   {
     id: "DOSSIE-LEGADO-CASO",
@@ -414,6 +441,7 @@ export const FLUXOS_PESSOA_UNIFICADA = [
     } as EvidenciaMotor,
     lacunas: ["Só lido como fallback rotulado \"legado\"; nunca ativa o gate de dossiê-mãe."] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
   {
     id: "INVENTARIO-PESSOA",
@@ -431,12 +459,14 @@ export const FLUXOS_PESSOA_UNIFICADA = [
     } as EvidenciaMotor,
     lacunas: ["Documentos são catalogados em /pesquisa-evidencias/$caseId; Pessoa 360 só agrega."] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
   {
     id: "PERFIL-VINCULADO",
+    roteiroHomologacao: "docs/relatorios/2026-09-24_roteiro-homologacao-pessoa-unificada.md#perfil",
     motor: "P5",
     fluxo: "Perfil genealógico vinculado à pessoa por escolha humana",
-    estado: "IMPLEMENTADO_EM_FLUXO_REAL" as EstadoMotor,
+    estado: "CODIGO_E_TESTE_SEM_HOMOLOGACAO" as EstadoMotor,
     evidencia: {
       writer: "src/lib/pessoas-linhagens.functions.ts#salvarRegistroG02",
       tabela: "genealogical_person_profiles",
@@ -446,11 +476,13 @@ export const FLUXOS_PESSOA_UNIFICADA = [
       rota: "/pessoas-linhagens/$caseId",
       teste: "src/lib/__tests__/perfil-genealogico-vinculo-2026-09-24.test.ts",
     } as EvidenciaMotor,
-    lacunas: [] as string[],
+    lacunas: [LACUNA_SEM_PROVA] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
   {
     id: "D7",
+    roteiroHomologacao: "docs/relatorios/2026-09-24_roteiro-homologacao-pessoa-unificada.md#d7",
     motor: "P4",
     fluxo: "Primeira micro-entrega D7 derivada de ops_microentregas",
     estado: "CODIGO_E_TESTE_SEM_HOMOLOGACAO" as EstadoMotor,
@@ -463,8 +495,9 @@ export const FLUXOS_PESSOA_UNIFICADA = [
       rota: "/casos/$caseId",
       teste: "src/lib/__tests__/d7-microentrega-real-2026-09-24.test.ts",
     } as EvidenciaMotor,
-    lacunas: ["Criação da micro-entrega confirma só o id inserido; não usa inserirComVerificacao."] as string[],
+    lacunas: [LACUNA_SEM_PROVA, "Criação da micro-entrega confirma só o id inserido; não usa inserirComVerificacao."] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
+    provaAutenticada: null as string | null,
   },
 ] as const;
 
@@ -487,7 +520,7 @@ export const ORDEM_MOTORES_PRIMORDIAIS = [
 ] as const;
 
 export const ROTULO_ESTADO_MOTOR: Record<EstadoMotor, string> = {
-  IMPLEMENTADO_EM_FLUXO_REAL: "Fluxo real (sem homologação)",
+  IMPLEMENTADO_EM_FLUXO_REAL: "Fluxo real homologado",
   IMPLEMENTADO_SOMENTE_LEITURA: "Somente leitura",
   CODIGO_E_TESTE_SEM_HOMOLOGACAO: "Código e teste, sem homologação",
   REFERENCIA_LEGADA: "Referência legada",

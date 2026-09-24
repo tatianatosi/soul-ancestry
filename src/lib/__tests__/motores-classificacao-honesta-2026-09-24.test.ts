@@ -36,7 +36,14 @@ function rotaExiste(rota: string): boolean {
   return existsSync(`${base}.tsx`) || existsSync(`${base}.index.tsx`);
 }
 
-const todos: { id: string; estado: string; evidencia: EvidenciaMotor; lacunas: readonly string[]; homologacaoProprietaria: string }[] = [
+const todos: {
+  id: string;
+  estado: string;
+  evidencia: EvidenciaMotor;
+  lacunas: readonly string[];
+  homologacaoProprietaria: string;
+  provaAutenticada: string | null;
+}[] = [
   ...MOTORES_TABELAS,
   ...FLUXOS_PESSOA_UNIFICADA,
 ];
@@ -64,16 +71,34 @@ describe("vocabulário honesto", () => {
   });
 });
 
-describe("IMPLEMENTADO_EM_FLUXO_REAL — os 7 elos, conferidos no disco", () => {
-  const reais = todos.filter((m) => m.estado === "IMPLEMENTADO_EM_FLUXO_REAL");
-  it("há fluxos reais declarados", () => {
-    expect(reais.length).toBeGreaterThan(0);
-  });
-  for (const m of reais) {
-    it(`${m.id}: nenhum elo ausente`, () => {
+/*
+ * 24/09/2026 — decisão da Proprietária: teste de disco, fixture ou build
+ * NÃO promovem. FLUXO_REAL exige os 7 elos E prova autenticada em
+ * docs/provas/. Os elos técnicos continuam conferidos no disco para quem os
+ * declara completos — mas isso só sustenta CODIGO_E_TESTE_SEM_HOMOLOGACAO.
+ */
+describe("IMPLEMENTADO_EM_FLUXO_REAL — só com prova autenticada", () => {
+  it("nenhum item é fluxo real sem provaAutenticada existente em docs/provas/", () => {
+    for (const m of todos.filter((x) => x.estado === "IMPLEMENTADO_EM_FLUXO_REAL")) {
+      expect(m.provaAutenticada, m.id).toBeTruthy();
+      expect(m.provaAutenticada!.startsWith("docs/provas/"), m.id).toBe(true);
+      expect(existsSync(m.provaAutenticada!), m.id).toBe(true);
       expect(elosAusentes(m.evidencia), m.id).toEqual([]);
-      expect(ELOS_FLUXO_REAL).toHaveLength(7);
-    });
+    }
+  });
+  it("hoje nenhum item tem prova autenticada — portanto nenhum é fluxo real", () => {
+    for (const m of todos) expect(m.provaAutenticada, m.id).toBeNull();
+    expect(todos.filter((m) => m.estado === "IMPLEMENTADO_EM_FLUXO_REAL")).toEqual([]);
+  });
+});
+
+describe("elos técnicos completos — conferidos no disco (não promovem)", () => {
+  const completos = todos.filter((m) => elosAusentes(m.evidencia).length === 0);
+  it("há itens com os 7 elos técnicos", () => {
+    expect(completos.length).toBeGreaterThan(0);
+    expect(ELOS_FLUXO_REAL).toHaveLength(7);
+  });
+  for (const m of completos) {
     it(`${m.id}: writer e reader existem como export; tabela, rota e teste existem`, () => {
       expect(funcaoExiste(m.evidencia.writer!), `writer ${m.evidencia.writer}`).toBe(true);
       expect(funcaoExiste(m.evidencia.reader!), `reader ${m.evidencia.reader}`).toBe(true);
@@ -98,9 +123,9 @@ describe("demais estados declaram a lacuna", () => {
       expect(m.lacunas.length, m.id).toBeGreaterThan(0);
     });
   }
-  it("CODIGO_E_TESTE_SEM_HOMOLOGACAO não pode ter todos os elos (senão seria fluxo real)", () => {
-    for (const m of todos.filter((x) => x.estado === "CODIGO_E_TESTE_SEM_HOMOLOGACAO" && x.evidencia.writer)) {
-      expect(elosAusentes(m.evidencia).length, m.id).toBeGreaterThan(0);
+  it("todo CODIGO_E_TESTE_SEM_HOMOLOGACAO declara a falta de prova autenticada", () => {
+    for (const m of todos.filter((x) => x.estado === "CODIGO_E_TESTE_SEM_HOMOLOGACAO")) {
+      expect(m.lacunas.some((l) => l.includes("Sem prova autenticada")), m.id).toBe(true);
     }
   });
   it("somente leitura não declara writer", () => {
@@ -113,15 +138,25 @@ describe("demais estados declaram a lacuna", () => {
 
 describe("cadeia Pessoa Unificada reclassificada", () => {
   const porId = Object.fromEntries(FLUXOS_PESSOA_UNIFICADA.map((f) => [f.id, f.estado]));
-  it("R2, núcleo/dossiê e perfil vinculado = fluxo real; inventário = leitura; D7 sem releitura; ponteiro de caso = legado", () => {
+  it("R2, núcleo/dossiê, perfil e D7 ficam sem homologação até a prova autenticada", () => {
     expect(porId).toEqual({
-      "R2-CPF": "IMPLEMENTADO_EM_FLUXO_REAL",
-      "NUCLEO-DOSSIE": "IMPLEMENTADO_EM_FLUXO_REAL",
+      "R2-CPF": "CODIGO_E_TESTE_SEM_HOMOLOGACAO",
+      "NUCLEO-DOSSIE": "CODIGO_E_TESTE_SEM_HOMOLOGACAO",
       "DOSSIE-LEGADO-CASO": "REFERENCIA_LEGADA",
       "INVENTARIO-PESSOA": "IMPLEMENTADO_SOMENTE_LEITURA",
-      "PERFIL-VINCULADO": "IMPLEMENTADO_EM_FLUXO_REAL",
+      "PERFIL-VINCULADO": "CODIGO_E_TESTE_SEM_HOMOLOGACAO",
       D7: "CODIGO_E_TESTE_SEM_HOMOLOGACAO",
     });
+  });
+  it("os 4 fluxos a homologar apontam para uma seção existente do roteiro", () => {
+    for (const f of FLUXOS_PESSOA_UNIFICADA) {
+      const roteiro = (f as { roteiroHomologacao?: string }).roteiroHomologacao;
+      if (!["R2-CPF", "NUCLEO-DOSSIE", "PERFIL-VINCULADO", "D7"].includes(f.id)) continue;
+      expect(roteiro, f.id).toBeTruthy();
+      const [arquivo, ancora] = roteiro!.split("#");
+      expect(existsSync(arquivo!), f.id).toBe(true);
+      expect(readFileSync(arquivo!, "utf8"), f.id).toContain(`<a id="${ancora}"></a>`);
+    }
   });
   it("cada fluxo mora num motor P existente — não há 13º motor", () => {
     const ids = MOTORES_TABELAS.map((m) => m.id as string);

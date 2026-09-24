@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo } from "@/lib/caso-canonico.server";
+import { AVISO_PRE_MIGRATION_GATE, colunaAusenteNoBanco } from "@/lib/gate-onboarding-case-plans";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -29,23 +30,33 @@ export const backfillGateOnboardingEmCasePlans = createServerFn({ method: "POST"
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
 
-    const { data: planos } = await supabase
+    const { data: planos, error: erroPlanos } = await supabase
       .from("onboarding_planos")
       .select("case_id,motivos_bloqueio")
       .eq("organization_id", organizationId)
       .is("archived_at", null);
+    if (erroPlanos) throw new Error(`Não foi possível ler onboarding_planos: ${erroPlanos.message}`);
 
     const lista = (planos ?? []) as { case_id: string; motivos_bloqueio: unknown }[];
     if (!lista.length) return { simulado: !data.confirmar, plano: [], sincronizados: 0 };
 
     const caseIds = lista.map((p) => p.case_id);
-    const { data: alvos } = await supabase
+    const { data: alvos, error: erroAlvos } = await supabase
       .from("case_plans")
       .select("id,case_id,motivos_bloqueio")
       .eq("organization_id", organizationId)
       .eq("fase_jornada", "onboarding")
       .is("archived_at", null)
       .in("case_id", caseIds);
+    /*
+      24/09/2026 — pré-migration: sem a coluna, antes todo caso virava
+      "sem_alvo" (mentira silenciosa). Agora para aqui, antes de qualquer
+      gravação, e diz por quê. A migration não é aplicada por este código.
+    */
+    if (colunaAusenteNoBanco(erroAlvos)) {
+      return { simulado: !data.confirmar, plano: [], sincronizados: 0, schemaPendente: true, aviso: AVISO_PRE_MIGRATION_GATE };
+    }
+    if (erroAlvos) throw new Error(`Não foi possível ler case_plans: ${erroAlvos.message}`);
 
     const alvoPorCaso = new Map<string, { id: string; motivos_bloqueio: unknown }>();
     for (const a of (alvos ?? []) as any[]) alvoPorCaso.set(a.case_id, a);
@@ -60,6 +71,7 @@ export const backfillGateOnboardingEmCasePlans = createServerFn({ method: "POST"
     if (!data.confirmar) return { simulado: true, plano, sincronizados: 0 };
 
     let sincronizados = 0;
+    const falhas: { caseId: string; motivo: string }[] = [];
     for (const item of plano) {
       if (item.acao !== "sincronizar") continue;
       const p = lista.find((x) => x.case_id === item.caseId)!;
@@ -70,8 +82,9 @@ export const backfillGateOnboardingEmCasePlans = createServerFn({ method: "POST"
         .eq("case_id", item.caseId)
         .eq("fase_jornada", "onboarding")
         .is("archived_at", null);
-      if (!error) sincronizados += 1;
+      if (error) falhas.push({ caseId: item.caseId, motivo: error.message });
+      else sincronizados += 1;
     }
 
-    return { simulado: false, plano, sincronizados };
+    return { simulado: false, plano, sincronizados, falhas };
   });

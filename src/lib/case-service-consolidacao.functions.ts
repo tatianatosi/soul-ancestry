@@ -11,6 +11,7 @@ import {
 } from "@/lib/case-service-consolidacao";
 import { montarConferencia } from "@/lib/escopo-conferencia.server";
 import { onboardingLiberadoDoCaso } from "@/lib/onboarding-plano";
+import { lerGateCasePlans, motivosDaLeitura } from "@/lib/gate-onboarding-case-plans";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import {
   avaliarCondicao,
@@ -182,16 +183,19 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
       .eq("case_id", data.caseId)
       .is("archived_at", null)
       .maybeSingle();
-    const { data: planoCasePlans } = await supabase
+    const leituraCasePlans = await supabase
       .from("case_plans")
       .select("motivos_bloqueio")
       .eq("case_id", data.caseId)
       .eq("fase_jornada", "onboarding")
       .is("archived_at", null)
       .maybeSingle();
+    // Pré-migration (coluna ausente) cai para onboarding_planos com aviso
+    // explícito; outro erro de leitura interrompe com mensagem clara.
+    const gateCasePlans = lerGateCasePlans(leituraCasePlans as any);
 
     const onboardingLiberado = onboardingLiberadoDoCaso({
-      motivosBloqueioCasePlans: (planoCasePlans as any)?.motivos_bloqueio,
+      motivosBloqueioCasePlans: motivosDaLeitura(gateCasePlans),
       estadoOnboardingPlanos: plano?.estado ?? null,
     });
     const planoInicial = avaliarPlanoInicial({
@@ -213,6 +217,10 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
 
     return {
       caso: c,
+      schemaGateOnboarding: {
+        estado: gateCasePlans.estado,
+        aviso: gateCasePlans.estado === "pre_migration" ? gateCasePlans.aviso : null,
+      },
       servico,
       catalogo: catalogo ?? null,
       trilha: trilha ?? null,

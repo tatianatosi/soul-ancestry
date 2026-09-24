@@ -8,6 +8,7 @@ import { avaliarFechamento, DEFINICOES_FECHAMENTO, type GateFechamento } from "@
 import { calcularCadencia } from "@/lib/jornada-cliente";
 import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
 import { onboardingLiberadoDoCaso } from "@/lib/onboarding-plano";
+import { lerGateCasePlans, motivosDaLeitura } from "@/lib/gate-onboarding-case-plans";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -108,8 +109,11 @@ export const carregarFechamentoCaso = createServerFn({ method: "GET" })
     );
 
     const plano = linhas<any>(planos, "planos de onboarding do caso")[0] as any | undefined;
+    // Pré-migration (coluna ausente) cai para onboarding_planos com aviso
+    // explícito; outro erro de leitura interrompe com mensagem clara.
+    const gateCasePlans = lerGateCasePlans(planoCasePlans as any);
     const onboardingIniciado = onboardingLiberadoDoCaso({
-      motivosBloqueioCasePlans: (planoCasePlans.data as any)?.motivos_bloqueio,
+      motivosBloqueioCasePlans: motivosDaLeitura(gateCasePlans),
       estadoOnboardingPlanos: plano?.estado ?? null,
     });
     /*
@@ -182,6 +186,10 @@ export const carregarFechamentoCaso = createServerFn({ method: "GET" })
       estado,
       fechamento,
       cadencia,
+      schemaGateOnboarding: {
+        estado: gateCasePlans.estado,
+        aviso: gateCasePlans.estado === "pre_migration" ? gateCasePlans.aviso : null,
+      },
       evidencias: {
         cadastroPendentes: pendentesCadastro,
         cadastroTotal: obrigatorios.length,

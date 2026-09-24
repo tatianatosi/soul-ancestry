@@ -32,10 +32,17 @@ const ROTULO_ACAO: Record<ItemPlano["acao"], string> = {
 function MigracaoOnboardingGatePage() {
   const backfill = useServerFn(backfillGateOnboardingEmCasePlans);
   const [plano, setPlano] = useState<ItemPlano[] | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
+  const [falhas, setFalhas] = useState<{ caseId: string; motivo: string }[]>([]);
 
   const m = useMutation({
     mutationFn: (confirmar: boolean) => backfill({ data: { confirmar } }),
-    onSuccess: (r: any) => setPlano(r.plano ?? []),
+    onSuccess: (r: any) => {
+      setPlano(r.plano ?? []);
+      // Migration pendente no banco conectado: dito aqui, nada é gravado.
+      setAviso(r.schemaPendente ? (r.aviso ?? null) : null);
+      setFalhas(r.falhas ?? []);
+    },
   });
 
   const pendentes = plano ? plano.filter((p) => p.acao === "sincronizar").length : 0;
@@ -66,7 +73,23 @@ function MigracaoOnboardingGatePage() {
           </button>
         </div>
 
-        {plano && (
+        {aviso ? (
+          <p className="mt-3 rounded border border-terracotta/30 bg-terracotta/5 p-2 text-xs text-terracotta" data-migracao-schema-pendente>
+            {aviso}
+          </p>
+        ) : null}
+
+        {falhas.length > 0 ? (
+          <ul className="mt-3 space-y-1 text-xs text-terracotta">
+            {falhas.map((f) => (
+              <li key={f.caseId}>
+                <span className="font-mono">{f.caseId}</span> — não sincronizado: {f.motivo}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        {plano && !aviso && (
           <p className="mt-3 text-xs text-navy/70">
             {plano.length} caso(s) com onboarding_planos · {pendentes} a sincronizar · {semAlvo} sem case_plans(onboarding).
           </p>
