@@ -267,6 +267,27 @@ export const carregarPessoa = createServerFn({ method: "GET" })
       (p) => !fichaDestaPessoa.some((f) => f["id"] === p["id"]),
     );
 
+    /*
+      24/09/2026 — decisão explícita da Proprietária: agregar achados de
+      pesquisa (genealogical_findings) nesta ficha. O schema já tem a chave
+      pronta (primary_research_person_id → research_people.id) desde a
+      migration 20260816201830; só faltava alguém consultar o vínculo que já
+      existia. Mesmo isolamento das linhas acima: camada de pesquisa, nunca
+      vai ao App Cliente por aqui.
+    */
+    const idsPessoaPesquisa = fichaDestaPessoa.map((p) => p["id"] as string);
+    const { data: achadosDaPessoa } = idsPessoaPesquisa.length
+      ? await supabase
+          .from("genealogical_findings")
+          .select(
+            "id, case_id, title, finding_type, validation_status, relevance, found_at, internal_summary, confirmed_facts, tree_impact, eligible_for_client_deliverable",
+          )
+          .eq("organization_id", organizationId)
+          .in("primary_research_person_id", idsPessoaPesquisa)
+          .is("archived_at", null)
+          .order("found_at", { ascending: false })
+      : { data: [] as Linha[] };
+
     return {
       encontrada: true as const,
       cliente: cliente as Linha,
@@ -283,6 +304,7 @@ export const carregarPessoa = createServerFn({ method: "GET" })
       fichaGenealogica: fichaDestaPessoa,
       fichaGenealogicaEquipe: outrosDaMesmaPesquisa,
       caseMembers: caseMembers as Linha[],
+      achadosPesquisa: (achadosDaPessoa ?? []) as Linha[],
     };
   });
 

@@ -21,6 +21,10 @@ import { obterProximaAcaoCanonica, SELO_PROXIMA_ACAO } from "@/lib/caso-ficha";
 import { NOME_RESPONSAVEL_PADRAO } from "@/lib/responsavel-padrao";
 import { ordenarPorPrioridade, sinaisDaPessoa, type PrioridadeSinal } from "@/lib/pessoa-sinais";
 import { relacoesAprovadas, estadoDeConfirmacao } from "@/lib/golive-pessoas";
+import { RELEVANCIAS, STATUS_VALIDACAO, TIPOS_ACHADO } from "@/lib/achados-genealogicos";
+
+const rotulo = (lista: { id: string; rotulo: string }[], id: unknown) =>
+  lista.find((x) => x.id === id)?.rotulo ?? String(id ?? "—");
 
 /**
  * A página de uma pessoa.
@@ -293,6 +297,7 @@ function Pessoa() {
     fichaGenealogica,
     fichaGenealogicaEquipe,
     caseMembers,
+    achadosPesquisa,
   } = q.data;
 
   const linha = montarLinhaDoTempoDaPessoa(
@@ -1009,6 +1014,51 @@ function Pessoa() {
                   .join(", ")}
               </p>
             ) : null}
+          </CaCard>
+        ) : null}
+
+        {/*
+          24/09/2026 — decisão explícita da Proprietária: achados de pesquisa
+          (genealogical_findings) passam a aparecer também na ficha da
+          pessoa, não só por caso em /achados/$caseId. Mesmo isolamento das
+          seções acima — camada de pesquisa, nunca vai ao App Cliente por
+          aqui. O vínculo (primary_research_person_id → research_people.id)
+          já existia no schema; só faltava esta tela consultá-lo.
+        */}
+        {achadosPesquisa.length > 0 ? (
+          <CaCard
+            titulo="Achados de pesquisa"
+            className="border-dashed border-navy/20 bg-cream/20"
+            acao={
+              casos[0] ? (
+                <Link
+                  to="/achados/$caseId"
+                  params={{ caseId: casos[0].id }}
+                  className="text-xs text-navy underline underline-offset-4"
+                >
+                  Abrir achados do caso
+                </Link>
+              ) : null
+            }
+          >
+            <p className="text-xs text-navy/55">
+              Vínculo pela ficha genealógica desta pessoa — esta camada nunca é exposta ao App
+              Cliente aqui.
+            </p>
+            <ul className="mt-3 space-y-2">
+              {achadosPesquisa.map((a) => (
+                <li key={a.id} className="rounded-lg border border-navy/10 bg-white/40 p-2">
+                  <p className="text-sm font-medium text-navy/85">{a.title}</p>
+                  <p className="text-[11px] text-navy/50">
+                    {rotulo(TIPOS_ACHADO, a.finding_type)} · relevância{" "}
+                    {rotulo(RELEVANCIAS, a.relevance)} · {rotulo(STATUS_VALIDACAO, a.validation_status)}
+                  </p>
+                  {a.internal_summary ? (
+                    <p className="mt-1 text-xs text-navy/65">{a.internal_summary}</p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
           </CaCard>
         ) : null}
 
