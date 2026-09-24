@@ -866,6 +866,47 @@ export const conciliarPagamento = createServerFn({ method: "POST" })
           sourceEntityId: data.id,
           userId: context.userId as string,
         });
+
+        /*
+          CA-GATE-FINANCEIRO-OS (24/09/2026) — achado real: `contracts.
+          financial_gate_status` é o campo que a trigger de banco
+          `fn_service_orders_guard` exige em ('confirmed','not_applicable')
+          para uma Ordem de Serviço poder sair de "approved" para "active" —
+          e nada nesta função (nem em nenhuma outra) o propagava. Um
+          pagamento conciliado aqui de verdade deixava a OS do mesmo caso
+          bloqueada até um humano visitar /contratos/$id e escolher
+          manualmente no dropdown, sem nenhuma pista na tela de que o
+          pagamento já tinha acontecido.
+
+          Só propaga quando existe exatamente UM contrato assinado para o
+          caso — um caso pode ter contrato base + complementos/aditivos, e
+          decidir por adivinhação qual deles receber a confirmação seria o
+          mesmo erro que este projeto já evita em outros pontos (nunca
+          fundir/adivinhar vínculo). Com mais de um ou nenhum contrato
+          assinado, o dropdown manual em /contratos/$id continua sendo o
+          caminho — nada quebra, só deixa de ganhar o atalho automático.
+        */
+        const { data: contratosAssinados, error: erroContratos } = await supabase
+          .from("contracts")
+          .select("id, financial_gate_status")
+          .eq("case_id", fatura.case_id)
+          .eq("organization_id", organizationId)
+          .eq("status", "signed")
+          .is("archived_at", null);
+        if (erroContratos) throw new Error(erroContratos.message);
+        if (contratosAssinados?.length === 1) {
+          const contrato = contratosAssinados[0];
+          if (contrato.financial_gate_status !== "confirmed") {
+            await gravarComVerificacao({
+              supabase,
+              tabela: "contracts",
+              id: contrato.id as string,
+              organizationId,
+              userId: context.userId as string,
+              payload: { financial_gate_status: "confirmed" },
+            });
+          }
+        }
       }
     }
 
