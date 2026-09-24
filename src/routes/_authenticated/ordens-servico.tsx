@@ -6,12 +6,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { CaCard } from "@/components/ui/ca-card";
 import {
   Campo,
   FiltroStatus,
   Gaveta,
   Historico,
-  Painel,
   ROTULO_ORDEM,
   Selo,
   dataBr,
@@ -261,7 +261,7 @@ function OrdensPage() {
 
       {detalhe ? (
         <Gaveta titulo={`OS ${String(detalhe["service_order_number"] ?? "")}`} aoFechar={() => setDetalhe(null)}>
-          <Painel titulo="Resumo">
+          <CaCard variante="compacto" titulo="Resumo">
             <dl className="grid gap-2 text-sm sm:grid-cols-2">
               <div>
                 <dt className="text-navy/60">Caso</dt>
@@ -276,10 +276,10 @@ function OrdensPage() {
                 <dd>{String(detalhe["start_condition_status"] ?? "—")}</dd>
               </div>
             </dl>
-          </Painel>
+          </CaCard>
 
           {(
-            <Painel titulo="Escopo / observação">
+            <CaCard variante="compacto" titulo="Escopo / observação">
               <textarea
                 rows={4}
                 className={inputCls}
@@ -299,11 +299,11 @@ function OrdensPage() {
                 </button>
                 {salvo ? <span className="text-xs text-navy/60">Salvo.</span> : null}
               </div>
-            </Painel>
+            </CaCard>
           )}
 
           {(
-            <Painel titulo="Planejamento (responsável, início, prazo)">
+            <CaCard variante="compacto" titulo="Planejamento (responsável, início, prazo)">
               <div className="grid gap-2 sm:grid-cols-3">
                 <label className="text-xs text-navy/60">
                   Responsável
@@ -369,11 +369,11 @@ function OrdensPage() {
                 Dependências entre ordens de serviço ainda não existem como campo estruturado — dívida declarada,
                 não inventada aqui.
               </p>
-            </Painel>
+            </CaCard>
           )}
 
           {(
-            <Painel titulo="Mover status">
+            <CaCard variante="compacto" titulo="Mover status">
               <div className="flex flex-wrap gap-2">
                 {(FLUXO["service_orders"]?.[String(detalhe["status"])] ?? []).map((destino) => (
                   <button
@@ -389,12 +389,12 @@ function OrdensPage() {
               <p className="mt-3 text-xs text-navy/60">
                 O banco recusa a execução sem contrato assinado ou exceção vigente e sem caso vinculado.
               </p>
-            </Painel>
+            </CaCard>
           )}
 
-          <Painel titulo="Histórico">
+          <CaCard variante="compacto" titulo="Histórico">
             <Historico entidade="service_orders" id={String(detalhe["id"])} />
-          </Painel>
+          </CaCard>
         </Gaveta>
       ) : null}
 
