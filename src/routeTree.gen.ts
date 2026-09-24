@@ -109,6 +109,7 @@ import { Route as AuthenticatedGovernancaCatalogoOperacional30RouteImport } from
 import { Route as AuthenticatedGovernancaContratoBaseRouteImport } from './routes/_authenticated/governanca.contrato-base'
 import { Route as AuthenticatedGovernancaDecisoesRouteImport } from './routes/_authenticated/governanca.decisoes'
 import { Route as AuthenticatedGovernancaDicionarioCallsCrmRouteImport } from './routes/_authenticated/governanca.dicionario-calls-crm'
+import { Route as AuthenticatedGovernancaMigracaoOnboardingGateRouteImport } from './routes/_authenticated/governanca.migracao-onboarding-gate'
 import { Route as AuthenticatedGovernancaModeloFamiliarCasalRouteImport } from './routes/_authenticated/governanca.modelo-familiar-casal'
 import { Route as AuthenticatedGovernancaModeloIndividualRouteImport } from './routes/_authenticated/governanca.modelo-individual'
 import { Route as AuthenticatedGovernancaModelosContratuaisRouteImport } from './routes/_authenticated/governanca.modelos-contratuais'
@@ -679,6 +680,12 @@ const AuthenticatedGovernancaDicionarioCallsCrmRoute =
     path: '/governanca/dicionario-calls-crm',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGovernancaMigracaoOnboardingGateRoute =
+  AuthenticatedGovernancaMigracaoOnboardingGateRouteImport.update({
+    id: '/governanca/migracao-onboarding-gate',
+    path: '/governanca/migracao-onboarding-gate',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGovernancaModeloFamiliarCasalRoute =
   AuthenticatedGovernancaModeloFamiliarCasalRouteImport.update({
     id: '/governanca/modelo-familiar-casal',
@@ -903,6 +910,7 @@ export interface FileRoutesByFullPath {
   '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/governanca/dicionario-calls-crm': typeof AuthenticatedGovernancaDicionarioCallsCrmRoute
+  '/governanca/migracao-onboarding-gate': typeof AuthenticatedGovernancaMigracaoOnboardingGateRoute
   '/governanca/modelo-familiar-casal': typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
   '/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
   '/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
@@ -1024,6 +1032,7 @@ export interface FileRoutesByTo {
   '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/governanca/dicionario-calls-crm': typeof AuthenticatedGovernancaDicionarioCallsCrmRoute
+  '/governanca/migracao-onboarding-gate': typeof AuthenticatedGovernancaMigracaoOnboardingGateRoute
   '/governanca/modelo-familiar-casal': typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
   '/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
   '/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
@@ -1149,6 +1158,7 @@ export interface FileRoutesById {
   '/_authenticated/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
   '/_authenticated/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/_authenticated/governanca/dicionario-calls-crm': typeof AuthenticatedGovernancaDicionarioCallsCrmRoute
+  '/_authenticated/governanca/migracao-onboarding-gate': typeof AuthenticatedGovernancaMigracaoOnboardingGateRoute
   '/_authenticated/governanca/modelo-familiar-casal': typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
   '/_authenticated/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
   '/_authenticated/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
@@ -1274,6 +1284,7 @@ export interface FileRouteTypes {
     | '/governanca/contrato-base'
     | '/governanca/decisoes'
     | '/governanca/dicionario-calls-crm'
+    | '/governanca/migracao-onboarding-gate'
     | '/governanca/modelo-familiar-casal'
     | '/governanca/modelo-individual'
     | '/governanca/modelos-contratuais'
@@ -1395,6 +1406,7 @@ export interface FileRouteTypes {
     | '/governanca/contrato-base'
     | '/governanca/decisoes'
     | '/governanca/dicionario-calls-crm'
+    | '/governanca/migracao-onboarding-gate'
     | '/governanca/modelo-familiar-casal'
     | '/governanca/modelo-individual'
     | '/governanca/modelos-contratuais'
@@ -1519,6 +1531,7 @@ export interface FileRouteTypes {
     | '/_authenticated/governanca/contrato-base'
     | '/_authenticated/governanca/decisoes'
     | '/_authenticated/governanca/dicionario-calls-crm'
+    | '/_authenticated/governanca/migracao-onboarding-gate'
     | '/_authenticated/governanca/modelo-familiar-casal'
     | '/_authenticated/governanca/modelo-individual'
     | '/_authenticated/governanca/modelos-contratuais'
@@ -2268,6 +2281,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGovernancaDicionarioCallsCrmRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/governanca/migracao-onboarding-gate': {
+      id: '/_authenticated/governanca/migracao-onboarding-gate'
+      path: '/governanca/migracao-onboarding-gate'
+      fullPath: '/governanca/migracao-onboarding-gate'
+      preLoaderRoute: typeof AuthenticatedGovernancaMigracaoOnboardingGateRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/governanca/modelo-familiar-casal': {
       id: '/_authenticated/governanca/modelo-familiar-casal'
       path: '/governanca/modelo-familiar-casal'
@@ -2493,6 +2513,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGovernancaContratoBaseRoute: typeof AuthenticatedGovernancaContratoBaseRoute
   AuthenticatedGovernancaDecisoesRoute: typeof AuthenticatedGovernancaDecisoesRoute
   AuthenticatedGovernancaDicionarioCallsCrmRoute: typeof AuthenticatedGovernancaDicionarioCallsCrmRoute
+  AuthenticatedGovernancaMigracaoOnboardingGateRoute: typeof AuthenticatedGovernancaMigracaoOnboardingGateRoute
   AuthenticatedGovernancaModeloFamiliarCasalRoute: typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
   AuthenticatedGovernancaModeloIndividualRoute: typeof AuthenticatedGovernancaModeloIndividualRoute
   AuthenticatedGovernancaModelosContratuaisRoute: typeof AuthenticatedGovernancaModelosContratuaisRoute
@@ -2592,6 +2613,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGovernancaDecisoesRoute: AuthenticatedGovernancaDecisoesRoute,
   AuthenticatedGovernancaDicionarioCallsCrmRoute:
     AuthenticatedGovernancaDicionarioCallsCrmRoute,
+  AuthenticatedGovernancaMigracaoOnboardingGateRoute:
+    AuthenticatedGovernancaMigracaoOnboardingGateRoute,
   AuthenticatedGovernancaModeloFamiliarCasalRoute:
     AuthenticatedGovernancaModeloFamiliarCasalRoute,
   AuthenticatedGovernancaModeloIndividualRoute:

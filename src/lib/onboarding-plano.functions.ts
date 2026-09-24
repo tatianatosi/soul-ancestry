@@ -69,11 +69,51 @@ async function garantirPlanoOnboarding(
     .select("*")
     .maybeSingle();
 
-  if (criado) return criado as Record<string, any>;
+  if (criado) {
+    await espelharMotivosBloqueioEmCasePlans(supabase, {
+      organizationId: input.organizationId,
+      caseId: input.caseId,
+      motivos,
+      userId: input.userId,
+    });
+    return criado as Record<string, any>;
+  }
 
   const corrida = await lerPlanoOnboarding(supabase, input.organizationId, input.caseId);
   if (corrida.data) return corrida.data as Record<string, any>;
   throw new Error(error?.message ?? "NENHUMA_LINHA_AFETADA: não foi possível criar o plano de onboarding.");
+}
+
+/**
+ * Espelha `motivos_bloqueio` (o único campo do gate que este escritor de
+ * fato grava, entre os que a migration 2026-09-24 replicou em case_plans)
+ * para a linha de case_plans com fase_jornada = 'onboarding', quando ela já
+ * existe. Decisão da Proprietária (2026-09-24, opção "migrar case_plans"):
+ * case_plans passa a também carregar o gate, mas os leitores
+ * (fechamento-caso.functions.ts, case-service-consolidacao.functions.ts,
+ * cadencia-onboarding.ts) continuam em onboarding_planos até um corte
+ * seguinte confirmar o backfill histórico — por isso este espelhamento é
+ * best-effort e nunca derruba a escrita real em onboarding_planos: se a
+ * linha de case_plans daquela fase ainda não existe (ela é criada por
+ * outros motores, não por este), não cria uma aqui, só não espelha ainda.
+ */
+async function espelharMotivosBloqueioEmCasePlans(
+  supabase: any,
+  input: { organizationId: string; caseId: string; motivos: string[]; userId: string },
+) {
+  try {
+    await supabase
+      .from("case_plans")
+      .update({ motivos_bloqueio: input.motivos, updated_by: input.userId })
+      .eq("organization_id", input.organizationId)
+      .eq("case_id", input.caseId)
+      .eq("fase_jornada", "onboarding")
+      .is("archived_at", null);
+  } catch {
+    // Best-effort: onboarding_planos continua sendo a fonte real até o
+    // corte de corte dos leitores. Uma falha aqui nunca deve invalidar a
+    // escrita do gate de onboarding em si.
+  }
 }
 
 /** Plano de onboarding do caso: leitura. Nunca ativa cliente. */
@@ -181,6 +221,13 @@ export const recalcularPlanoOnboarding = createServerFn({ method: "POST" })
     if (!linhaAtualizada?.id) {
       throw new Error("NENHUMA_LINHA_AFETADA: plano de onboarding não encontrado nesta organização.");
     }
+
+    await espelharMotivosBloqueioEmCasePlans(supabase, {
+      organizationId,
+      caseId: data.caseId,
+      motivos,
+      userId: context.userId as string,
+    });
 
     const tarefas: { id: string; titulo: string; criada: boolean }[] = [];
     for (const titulo of titulosTarefasDosGates(gates)) {
