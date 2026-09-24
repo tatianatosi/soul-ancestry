@@ -1027,21 +1027,41 @@ export const listarAcessosEvidencia = createServerFn({ method: "GET" })
     return (linhas ?? []) as { id: string; acao: string; user_id: string | null; created_at: string }[];
   });
 
-/** Somente admin: a política de RLS já bloqueia os demais papéis. */
+/**
+ * Somente admin: a política de RLS já bloqueia os demais papéis.
+ *
+ * 24/09/2026 — achado real: esta função já existia, já lia audit_logs com o
+ * diff completo (valores_anteriores/valores_posteriores), mas não tinha
+ * nenhum consumidor em toda a base (nenhuma rota, componente ou teste a
+ * chamava) — a trilha administrativa geral do motor de Governança ficava
+ * sem tela, mesmo com o resto do motor (escritores, RLS) já real. Resolve
+ * o autor pelo mesmo padrão já usado em listarUsuarios (join com profiles),
+ * senão a lista só mostraria UUID cru.
+ */
 export const listarAuditoria = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     semCache();
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
-    const { data, error } = await supabase
-      .from("audit_logs")
-      .select("id,acao,entidade,entidade_id,user_id,created_at,valores_anteriores,valores_posteriores")
-      .eq("organization_id", organizationId)
-      .order("created_at", { ascending: false })
-      .limit(200);
-    if (error) throw new Error(error.message);
-    return (data ?? []) as Linha[];
+    const [logs, perfis] = await Promise.all([
+      supabase
+        .from("audit_logs")
+        .select("id,acao,entidade,entidade_id,user_id,created_at,valores_anteriores,valores_posteriores")
+        .eq("organization_id", organizationId)
+        .order("created_at", { ascending: false })
+        .limit(200),
+      supabase.from("profiles").select("id,nome,email"),
+    ]);
+    if (logs.error) throw new Error(logs.error.message);
+    const perfilPorId = new Map(
+      ((perfis.data ?? []) as { id: string; nome: string | null; email: string | null }[]).map((p) => [p.id, p]),
+    );
+    return ((logs.data ?? []) as Linha[]).map((l) => ({
+      ...l,
+      autorNome: (l["user_id"] ? perfilPorId.get(l["user_id"] as string)?.nome : null) ?? null,
+      autorEmail: (l["user_id"] ? perfilPorId.get(l["user_id"] as string)?.email : null) ?? null,
+    }));
   });
 
 export const listarUsuarios = createServerFn({ method: "GET" })

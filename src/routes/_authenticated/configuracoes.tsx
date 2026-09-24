@@ -7,7 +7,7 @@ import { EstadoVazio, PAPEL_LABEL, SaasShell } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { definirPapel, listarUsuarios, type Papel } from "@/lib/saas.functions";
+import { definirPapel, listarAuditoria, listarUsuarios, type Papel } from "@/lib/saas.functions";
 import { obterModoProprietaria, type EventoProprietaria } from "@/lib/modo-proprietaria.functions";
 import { CAPACIDADES_PROPRIETARIA, ROTULO_CAPACIDADE } from "@/lib/modo-proprietaria";
 import { KitBadge, KitCard, KpiCard } from "@/components/clube-ancestral-kit";
@@ -41,6 +41,13 @@ function ConfiguracoesPage() {
 
   const carregarModo = useServerFn(obterModoProprietaria);
   const qModo = useQuery({ queryKey: ["modo-proprietaria"], queryFn: () => carregarModo() });
+
+  const carregarAuditoria = useServerFn(listarAuditoria);
+  const qAuditoria = useQuery({
+    queryKey: ["saas", "auditoria"],
+    queryFn: () => carregarAuditoria(),
+    enabled: liberado,
+  });
 
   const q = useQuery({
     queryKey: ["saas", "usuarios"],
@@ -157,7 +164,64 @@ function ConfiguracoesPage() {
       )}
         </div>
       </details>
+
+      <details className="mt-4 rounded-lg border border-navy/15 bg-card p-4">
+        <summary className="cursor-pointer font-medium text-navy">Abrir trilha de auditoria</summary>
+        <div className="mt-5 border-t border-navy/10 pt-5">
+          {!liberado ? (
+            <EstadoVazio mensagem={decisao.motivo} />
+          ) : (
+            <EstadoDados
+              carregando={qAuditoria.isLoading}
+              erro={qAuditoria.error}
+              dados={qAuditoria.data}
+              aoTentarNovamente={() => void qAuditoria.refetch()}
+              recurso="a trilha de auditoria"
+              vazio="Nenhum evento de auditoria registrado nesta organização ainda."
+            >
+              {(eventos) => <TrilhaAuditoria eventos={eventos} />}
+            </EstadoDados>
+          )}
+        </div>
+      </details>
     </SaasShell>
+  );
+}
+
+/**
+ * 24/09/2026 — achado real: `listarAuditoria` já existia (lê audit_logs com
+ * diff completo, RLS admin-only), mas nenhuma tela a consumia — a trilha
+ * administrativa geral do motor de Governança ficava sem tela, mesmo com o
+ * resto do motor (escritores em ~30 módulos, RLS real) já pronto. Reaproveita
+ * `EstadoDados`/`SaasShell` já usados no resto desta página.
+ */
+function TrilhaAuditoria({ eventos }: { eventos: Record<string, unknown>[] }) {
+  return (
+    <ul className="space-y-1.5 text-xs text-navy/70">
+      {eventos.map((e) => {
+        const valoresAntes = e["valores_anteriores"];
+        const valoresDepois = e["valores_posteriores"];
+        const temDiff = valoresAntes != null || valoresDepois != null;
+        return (
+          <li key={String(e["id"])} className="rounded-md bg-cream/60 px-2 py-1.5">
+            <span className="font-medium text-navy">{rotuloAcaoEvento(String(e["acao"]))}</span>
+            {e["entidade"] ? ` · ${String(e["entidade"])}` : ""}
+            {" · "}
+            {String(e["autorNome"] ?? e["autorEmail"] ?? "Autor não identificado")}
+            {" · "}
+            {new Date(String(e["created_at"])).toLocaleString("pt-BR")}
+            {temDiff ? (
+              <details className="mt-1">
+                <summary className="cursor-pointer text-navy/50">Ver antes/depois</summary>
+                <pre className="mt-1 overflow-x-auto rounded bg-navy/5 p-2 text-[11px] text-navy/70">
+                  {JSON.stringify({ antes: valoresAntes ?? null, depois: valoresDepois ?? null }, null, 2)}
+                </pre>
+              </details>
+            ) : null}
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
