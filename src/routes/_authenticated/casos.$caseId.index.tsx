@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useBlocker, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect, useBlocker, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
@@ -96,6 +96,22 @@ import {
 } from "@/lib/caso-ficha";
 
 export const Route = createFileRoute("/_authenticated/casos/$caseId/")({
+  // URL com código canônico (ex.: CA-CID-AT-FAM-2026-001) → resolve para o UUID
+  // persistido em crm_casos.codigo (leitura sob RLS) antes de qualquer consulta.
+  beforeLoad: async ({ params }) => {
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (uuid.test(params.caseId)) return;
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data } = await supabase
+      .from("crm_casos")
+      .select("id")
+      .eq("codigo", params.caseId)
+      .maybeSingle();
+    if (data?.id) {
+      throw redirect({ to: "/casos/$caseId", params: { caseId: data.id }, replace: true });
+    }
+    throw notFound();
+  },
   head: () => ({
     meta: [
       { title: "Ficha operacional do caso — Clube Ancestral" },
