@@ -5,7 +5,10 @@ import { GRUPOS_DESK, MENU_CONTA } from "@/lib/navegacao-desk";
 
 const ler = (p: string) => readFileSync(p, "utf8");
 
-const rota = ler("src/routes/_authenticated/app-cliente-demo.tsx");
+const rotaArquivo = ler("src/routes/_authenticated/app-cliente-demo.tsx");
+// A rota delega a composição a `SessaoDemoAppCliente` (mesmos componentes reais do portal).
+const sessaoDemo = ler("src/components/portal/sessao-demo-app-cliente.tsx");
+const rota = rotaArquivo + "\n" + sessaoDemo;
 const abas = ler("src/components/portal/abas-app-cliente.tsx");
 const shell = ler("src/components/portal/portal-shell.tsx");
 const fonte = ler("src/components/portal/fonte-portal.tsx");
@@ -60,16 +63,10 @@ describe("guardas do modo de prévia", () => {
   });
 
   it("sair da prévia não encerra a sessão do Desk", () => {
-    // O botão do App Cliente chama signOut(); em prévia isso deslogaria a
-    // Proprietária do Desk inteiro.
-    const corpoSair = shell.slice(
-      shell.indexOf("async function sair()"),
-      shell.indexOf("return (", shell.indexOf("async function sair()")),
-    );
-    const saidaAntecipada = corpoSair.indexOf("if (previa)");
-    const signOut = corpoSair.indexOf("signOut()");
-    expect(saidaAntecipada).toBeGreaterThan(-1);
-    expect(signOut).toBeGreaterThan(saidaAntecipada);
+    // Contrato visual de 24/09/2026: o shell do App não tem mais botão Sair.
+    // Logo, nenhuma chamada de signOut() pode existir no shell — em prévia
+    // ela deslogaria a Proprietária do Desk inteiro.
+    expect(shell).not.toContain("signOut(");
   });
 
   it("o selo de dado fictício continua no DOM sempre que há prévia (correção 2026-09-12: sem faixa colorida visível, que destoava do mockup 3/17)", () => {
@@ -79,7 +76,11 @@ describe("guardas do modo de prévia", () => {
   });
 
   it("em prévia o cabeçalho mostra a origem, não o nome de um cliente", () => {
-    expect(shell).toContain("previa ? previa.titulo :");
+    // O cabeçalho renderiza só o título da tela (prop `titulo`), nunca o nome
+    // de um cliente; a origem da prévia fica no selo `data-previa-portal`.
+    expect(shell).toContain("{titulo}</h1>");
+    expect(shell).toContain("data-previa-portal");
+    expect(shell).toContain("{previa.selo}");
   });
 });
 
