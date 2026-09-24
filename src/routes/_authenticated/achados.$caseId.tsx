@@ -19,6 +19,7 @@ import {
   validarEncontro,
 } from "@/lib/achados-genealogicos";
 import { arquivarRegistroG06, painelAchados, salvarAchado, salvarEncontro } from "@/lib/achados-genealogicos.functions";
+import { criarMicroentregaCliente } from "@/lib/jornada-cliente.functions";
 import { SaasShell } from "@/components/saas/shell";
 
 export const Route = createFileRoute("/_authenticated/achados/$caseId")({
@@ -107,6 +108,111 @@ function Bloqueios({ lista }: { lista: { codigo: string; mensagem: string }[] })
         </li>
       ))}
     </ul>
+  );
+}
+
+/**
+ * CA-ACHADO-MICROENTREGA (24/09/2026) — achado real: um achado marcado
+ * elegível para entrega abria um alerta interno (`case_alerts`, via
+ * `prepararConsequenciaAchado`) e parava aí. Não existia nenhum caminho de
+ * UI que criasse a microentrega e gravasse `client_deliverable_id` de
+ * volta — o campo já era gravável, só faltava quem preenchesse. O alerta
+ * nunca se resolvia sozinho; dependia de alguém lembrar de ir a outra tela.
+ *
+ * Fecha o elo sem tabela/rota nova: cria a microentrega em rascunho
+ * (`criarMicroentregaCliente`, publicação continua passo humano separado)
+ * e, no sucesso, vincula o achado a ela — o que já dispara
+ * `prepararConsequenciaAchado` de novo e resolve o alerta sozinho.
+ */
+function PainelMicroentregaAchado({
+  achado,
+  caseId,
+  podeEditar,
+  onCriada,
+}: {
+  achado: Record<string, unknown>;
+  caseId: string;
+  podeEditar: boolean;
+  onCriada: () => void;
+}) {
+  const [aberto, setAberto] = useState(false);
+  const [titulo, setTitulo] = useState(String(achado["title"] ?? ""));
+  const [resumo, setResumo] = useState(
+    String(achado["confirmed_facts"] ?? achado["internal_summary"] ?? ""),
+  );
+  const criarEntrega = useServerFn(criarMicroentregaCliente);
+  const vincularAchado = useServerFn(salvarAchado);
+
+  const mCriar = useMutation({
+    mutationFn: async () => {
+      const entrega = await criarEntrega({
+        data: {
+          casoId: caseId,
+          tipo: "documento_localizado",
+          tituloCliente: titulo.trim(),
+          resumoAprovado: resumo.trim(),
+          referenciaInterna: `achado:${String(achado["id"])}`,
+        },
+      });
+      await vincularAchado({
+        data: { id: String(achado["id"]), valores: { client_deliverable_id: entrega.id } },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Micro-entrega criada em rascunho e vinculada ao achado. Publicação continua manual.");
+      setAberto(false);
+      onCriada();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (achado["archived_at"] || !achado["eligible_for_client_deliverable"]) return null;
+  if (achado["client_deliverable_id"]) {
+    return <p className="text-xs text-navy/50">Micro-entrega vinculada.</p>;
+  }
+  if (!podeEditar) return null;
+
+  if (!aberto) {
+    return (
+      <button
+        type="button"
+        onClick={() => setAberto(true)}
+        className="text-xs text-navy underline underline-offset-4"
+      >
+        Criar micro-entrega a partir deste achado
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-2 space-y-2 rounded-lg border border-gold/40 bg-gold/5 p-2">
+      <p className="text-xs text-navy/60">
+        Cria uma micro-entrega em rascunho (nunca publica sozinho) e vincula este achado a ela.
+      </p>
+      <Campo label="Título ao cliente">
+        <input className={inputCls} value={titulo} onChange={(e) => setTitulo(e.target.value)} />
+      </Campo>
+      <Campo label="Resumo aprovado (revise antes de salvar — nada interno deve vazar)">
+        <textarea className={inputCls} rows={3} value={resumo} onChange={(e) => setResumo(e.target.value)} />
+      </Campo>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          disabled={mCriar.isPending || !titulo.trim() || !resumo.trim()}
+          onClick={() => mCriar.mutate()}
+          className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
+        >
+          Criar micro-entrega
+        </button>
+        <button
+          type="button"
+          onClick={() => setAberto(false)}
+          className="text-xs text-navy/60 hover:underline"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -419,6 +525,12 @@ function Pagina() {
                     {((a["source_links"] as string[]) ?? []).length} · Árvore {rotulo(IMPACTOS, a["tree_impact"])} · Timeline{" "}
                     {rotulo(IMPACTOS, a["timeline_impact"])}
                   </p>
+                  <PainelMicroentregaAchado
+                    achado={a}
+                    caseId={caseId}
+                    podeEditar={podeEditar}
+                    onCriada={invalidar}
+                  />
                   {a["archived_at"] ? (
                     <p className="text-xs text-navy/50">Arquivado.</p>
                   ) : podeEditar ? (
