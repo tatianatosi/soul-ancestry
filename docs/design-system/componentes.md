@@ -104,11 +104,16 @@ iniciativa **Painel → Cartão Canônico**:
   registrados, Exceções formais, Matriz de permissões deste caso,
   Eventos recentes) e `privacidade.index.tsx` (1 bloco: Casos). Visual
   idêntico.
+- **Família Ops migrada** (2026-09-24): `src/components/ops/
+  desk-operacional.tsx` (5 blocos: Carga por responsável, Fila de
+  trabalho, Micro-entregas, Calendário de prazos, SLA por tipo de
+  tarefa e prioridade) — `ops-excecoes.tsx` já migrado antes. Visual
+  idêntico. Ops está completa.
 - **Famílias ainda pendentes** (continuam em `Painel`, sem tocar neste
   corte): CRM/Comercial (demais rotas do módulo), Pesquisa (`pesquisa/
   painel.tsx`, `pesquisa/modulo.tsx`, `pesquisa/assistente.tsx`,
-  `pesquisa-modulo.index.tsx`), Ops (`ops/desk-operacional.tsx`),
-  Financeiro (parcial — já usa `CaCard` `padrao` em blocos próprios
-  desde DSA-7), e dois arquivos avulsos ainda não classificados
-  (`contrato-parametros.index.tsx`, `escopo-origem.tsx`). Cada família
-  migra em corte próprio, com aprovação visual antes do merge.
+  `pesquisa-modulo.index.tsx`), Financeiro (parcial — já usa `CaCard`
+  `padrao` em blocos próprios desde DSA-7), e dois arquivos avulsos
+  ainda não classificados (`contrato-parametros.index.tsx`,
+  `escopo-origem.tsx`). Cada família migra em corte próprio, com
+  aprovação visual antes do merge.

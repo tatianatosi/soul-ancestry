@@ -5,7 +5,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { Campo, Gaveta, Painel, Selo, inputCls } from "@/components/comercial/base";
+import { Campo, Gaveta, Selo, inputCls } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import {
   alertasOps,
   arquivarOps,
@@ -357,7 +358,7 @@ export function DeskOperacional() {
               </div>
             ))}
           </div>
-          <Painel titulo="Carga por responsável">
+          <CaCard variante="compacto" titulo="Carga por responsável">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
@@ -385,12 +386,12 @@ export function DeskOperacional() {
             <p className="mt-2 text-xs text-navy/50">
               Indicadores e SLA são calculados no banco de dados, não pela cor da tela.
             </p>
-          </Painel>
+          </CaCard>
         </div>
       )}
 
       {aba === "fila" && (
-        <Painel titulo="Fila de trabalho">
+        <CaCard variante="compacto" titulo="Fila de trabalho">
           {/* Nova tarefa: agora na faixa compartilhada acima; um único ponto
               de criação, como §13 pede. Sem botão duplicado aqui. */}
           <div className="space-y-2">
@@ -469,7 +470,7 @@ export function DeskOperacional() {
               </div>
             ))}
           </div>
-        </Painel>
+        </CaCard>
       )}
 
       {aba === "kanban" && (
@@ -592,7 +593,7 @@ export function DeskOperacional() {
       )}
 
       {aba === "micro" && (
-        <Painel titulo="Micro-entregas">
+        <CaCard variante="compacto" titulo="Micro-entregas">
           {podeEscrever && (
             <button
               onClick={() => setNovaMicro(true)}
@@ -628,11 +629,11 @@ export function DeskOperacional() {
               </div>
             ))}
           </div>
-        </Painel>
+        </CaCard>
       )}
 
       {aba === "calendario" && (
-        <Painel titulo="Calendário de prazos">
+        <CaCard variante="compacto" titulo="Calendário de prazos">
           {calendario.length === 0 && <p className="text-sm text-navy/60">Nenhum prazo agendado.</p>}
           <div className="space-y-3">
             {calendario.map(([dia, itens]) => (
@@ -653,11 +654,11 @@ export function DeskOperacional() {
               </div>
             ))}
           </div>
-        </Painel>
+        </CaCard>
       )}
 
       {aba === "sla" && (
-        <Painel titulo="SLA por tipo de tarefa e prioridade">
+        <CaCard variante="compacto" titulo="SLA por tipo de tarefa e prioridade">
           <form
             onSubmit={async (ev) => {
               ev.preventDefault();
@@ -723,7 +724,7 @@ export function DeskOperacional() {
               ))}
             </tbody>
           </table>
-        </Painel>
+        </CaCard>
       )}
 
       {novaTarefa && (
