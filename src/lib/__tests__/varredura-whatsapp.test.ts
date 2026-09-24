@@ -56,6 +56,45 @@ describe("ler o dump", () => {
   });
 });
 
+/** Transcrição de call: uma fala por linha, sem data/hora do WhatsApp. */
+const TRANSCRICAO_CALL = `Consultor: Oi! Me conta um pouco da sua história familiar.
+Cliente: Meu bisavô era italiano, veio da Itália.
+Ele desembarcou aqui pelo lado do meu pai.
+Cliente: Tenho a certidão de nascimento dele.
+Consultor: Você tem passaporte italiano de alguém da família?
+Cliente: Não. Quanto custa mais ou menos?`;
+
+describe("lê transcrição de call sem data/hora", () => {
+  it("reconhece 'Fulano: texto' por linha quando não há formato do WhatsApp", () => {
+    const m = lerConversa(TRANSCRICAO_CALL);
+    expect(m).toHaveLength(5);
+    expect(m[0].autor).toBe("Consultor");
+    expect(m[0].quando).toBeNull();
+  });
+
+  it("junta a quebra de linha à fala anterior", () => {
+    const m = lerConversa(TRANSCRICAO_CALL);
+    const segunda = m[1];
+    expect(segunda.texto).toContain("bisavô");
+    expect(segunda.texto).toContain("desembarcou");
+  });
+
+  it("um dump de WhatsApp real nunca cai na leitura genérica", () => {
+    // Confirma que a leitura genérica só entra em ação quando nenhuma linha
+    // bate com o formato do WhatsApp — não é uma segunda tentativa paralela.
+    expect(lerConversa(DUMP_IOS)).toHaveLength(6);
+  });
+
+  it("a varredura encontra achados também na transcrição de call", () => {
+    const r = varrerConversa(TRANSCRICAO_CALL, { autoresDaCasa: ["Consultor"] });
+    const valores = (campo: string) =>
+      r.achados.filter((a) => a.campo === campo).map((a) => a.valor);
+    expect(valores("nacionalidades_interesse")).toContain("Itália");
+    expect(valores("documentos_chave")).toContain("certidão de nascimento");
+    expect(r.achados.map((a) => a.valor)).not.toContain("passaporte");
+  });
+});
+
 describe("varrer a conversa da Ana Luiza", () => {
   const r = varrerConversa(DUMP_IOS, { autoresDaCasa: ["Tatiana"] });
   const valores = (campo: string) => r.achados.filter((a) => a.campo === campo).map((a) => a.valor);

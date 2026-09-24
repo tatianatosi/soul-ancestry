@@ -55,15 +55,7 @@ function quatroDigitos(ano: string): number {
   return n < 100 ? 2000 + n : n;
 }
 
-/**
- * Lê o dump linha a linha.
- *
- * Linha que não casa com nenhum padrão é continuação da mensagem anterior —
- * mensagem com quebra de linha é comum, e descartá-la perderia justamente as
- * respostas longas, que são as que interessam.
- */
-export function lerConversa(bruto: string): MensagemWhatsApp[] {
-  const linhas = String(bruto ?? "").split(/\r?\n/);
+function lerConversaWhatsApp(linhas: string[]): MensagemWhatsApp[] {
   const mensagens: MensagemWhatsApp[] = [];
 
   for (const linha of linhas) {
@@ -97,6 +89,55 @@ export function lerConversa(bruto: string): MensagemWhatsApp[] {
   }
 
   return mensagens;
+}
+
+/**
+ * Transcrição de call, sem cabeçalho de data/hora do WhatsApp — uma fala por
+ * linha, no formato "Fulano: texto". É o outro material que a Proprietária
+ * citou ("dump do WhatsApp OU texto de call"): a call não tem exportação com
+ * timestamp, só a fala de cada lado.
+ */
+const PADRAO_TRANSCRICAO: RegExp = /^([^:]{1,80}?):\s*([\s\S]*)$/;
+
+function lerTranscricaoGenerica(linhas: string[]): MensagemWhatsApp[] {
+  const mensagens: MensagemWhatsApp[] = [];
+
+  for (const linha of linhas) {
+    const l = linha.trim();
+    const m = PADRAO_TRANSCRICAO.exec(l);
+    if (m) {
+      const [, autor, texto] = m;
+      mensagens.push({
+        quando: null,
+        autor: autor.trim() || null,
+        texto: texto.trim(),
+        ordem: mensagens.length,
+      });
+      continue;
+    }
+    if (mensagens.length && l) {
+      // Continuação: a fala anterior tinha quebra de linha.
+      mensagens[mensagens.length - 1].texto += `\n${l}`;
+    }
+  }
+
+  return mensagens;
+}
+
+/**
+ * Lê o dump linha a linha.
+ *
+ * Tenta primeiro o formato do WhatsApp (tem data/hora, é o mais específico).
+ * Se nenhuma linha do dump bater com esse formato, o material não é um dump
+ * de WhatsApp — cai para a leitura genérica de transcrição de call
+ * ("Fulano: texto" por linha, sem data). Um dump de WhatsApp real sempre bate
+ * com o primeiro formato e nunca chega a esta segunda tentativa.
+ */
+export function lerConversa(bruto: string): MensagemWhatsApp[] {
+  const linhas = String(bruto ?? "").split(/\r?\n/);
+  const doWhatsApp = lerConversaWhatsApp(linhas);
+  if (doWhatsApp.length > 0) return doWhatsApp;
+  return lerTranscricaoGenerica(linhas);
 }
 
 /** Campos do roteiro de Discovery que esta varredura sabe procurar. */
