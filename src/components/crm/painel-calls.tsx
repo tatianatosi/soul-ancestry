@@ -313,9 +313,32 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
   const aplicarAchado = (campo: string, valor: string, multi: boolean) => {
     const codigo = codigoLeadDoAchado({ campo: campo as Achado["campo"], valor }) ?? valor;
     setRascunho((r) => {
-      if (!multi) return { ...r, [campo]: codigo };
-      const atual = ((r[campo] as string[] | undefined) ?? (lead as any)?.[campo] ?? []) as string[];
-      return atual.includes(codigo) ? r : { ...r, [campo]: [...atual, codigo] };
+      const atualizado = !multi
+        ? { ...r, [campo]: codigo }
+        : (() => {
+            const atual = ((r[campo] as string[] | undefined) ?? (lead as any)?.[campo] ?? []) as string[];
+            return atual.includes(codigo) ? r : { ...r, [campo]: [...atual, codigo] };
+          })();
+      /*
+        CA-JURIDICO-MESA-DISCOVERY (24/09/2026) — pedido explícito da
+        Proprietária: o contexto jurídico por país (citizenship_tracks, já
+        carregado acima em `trilhas` para o campo "Trilha jurídica de
+        referência") deve complementar a Mesa Discovery. A varredura já
+        aponta o país (ex.: "Itália"); a trilha correspondente já existe e
+        já é exibida nesta mesma tela — só nunca era ligada automaticamente,
+        obrigando reescolher o mesmo país num segundo dropdown. Só sugere
+        quando o lead ainda não tem trilha escolhida — nunca sobrescreve
+        uma escolha humana anterior.
+      */
+      if (
+        campo === "nacionalidades_interesse" &&
+        !atualizado["trilha_referencia_id"] &&
+        !(lead as any)?.trilha_referencia_id
+      ) {
+        const trilha = trilhas.find((t: any) => t.pais === valor);
+        if (trilha) return { ...atualizado, trilha_referencia_id: trilha.id };
+      }
+      return atualizado;
     });
     setHipoteses((s) => {
       const n = new Set(s);
