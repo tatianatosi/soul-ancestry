@@ -105,14 +105,14 @@ export const listarComercial = createServerFn({ method: "GET" })
 
 
 
-/** Catálogos auxiliares (clientes, casos, contratos, faturas) para vínculos e rótulos. */
+/** Catálogos auxiliares (clientes, casos, contratos, faturas, equipe ativa) para vínculos e rótulos. */
 export const listarVinculos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId } = await contextoInterno(supabase, context.userId as string);
-    const [clientes, casos, contratos, faturas, propostas] = await Promise.all([
+    const [clientes, casos, contratos, faturas, propostas, equipe] = await Promise.all([
       supabase.from("clientes").select("id,nome,is_demo").eq("organization_id", organizationId).is("archived_at", null),
       supabase.from("crm_casos").select("id,codigo,titulo").eq("organization_id", organizationId).is("archived_at", null),
       supabase
@@ -130,6 +130,13 @@ export const listarVinculos = createServerFn({ method: "GET" })
         .select("id,versao,status,client_id")
         .eq("organization_id", organizationId)
         .is("archived_at", null),
+      // Só para popular o seletor de responsável (ex.: ordens de serviço) —
+      // reusa staff_access, não é gestão de equipe (isso continua em equipe.functions.ts).
+      supabase
+        .from("staff_access")
+        .select("auth_user_id,full_name,email")
+        .eq("status", "active")
+        .is("archived_at", null),
     ]);
     return {
       clientes: (clientes.data ?? []) as { id: string; nome: string }[],
@@ -137,6 +144,9 @@ export const listarVinculos = createServerFn({ method: "GET" })
       contratos: (contratos.data ?? []) as { id: string; contract_number: string; title: string; status: string }[],
       faturas: (faturas.data ?? []) as { id: string; numero: string | null; valor: number; moeda: string; status: string }[],
       propostas: (propostas.data ?? []) as { id: string; versao: number; status: string; client_id: string | null }[],
+      equipe: ((equipe.data ?? []) as { auth_user_id: string | null; full_name: string | null; email: string }[])
+        .filter((m) => m.auth_user_id)
+        .map((m) => ({ authUserId: m.auth_user_id as string, nome: m.full_name ?? m.email })),
     };
   });
 
@@ -500,13 +510,26 @@ export const criarOrdemServico = createServerFn({ method: "POST" })
   });
 
 /**
- * Edita observação/escopo de uma ordem de serviço já existente, em qualquer status.
- * Não é transição de status (isso é `mudarStatusOrdem`) e não exige nenhum gate,
- * validação ou aprovação — só grava o texto e atualiza `updated_at`.
+ * Edita observação/escopo/planejamento (responsável, início, prazo) de uma
+ * ordem de serviço já existente, em qualquer status. Não é transição de
+ * status (isso é `mudarStatusOrdem`) e não exige nenhum gate, validação ou
+ * aprovação — só grava os campos informados e atualiza `updated_at`.
+ * `responsible_user_id`/`start_date`/`end_date` já existiam na tabela
+ * `service_orders` sem escritor exposto na tela (Contrato de Uma Hora,
+ * autorização 2026-09-24, item "OS real").
  */
 export const atualizarObservacaoOrdem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string; scope_summary?: string; internal_notes?: string }) => data)
+  .inputValidator(
+    (data: {
+      id: string;
+      scope_summary?: string;
+      internal_notes?: string;
+      responsible_user_id?: string | null;
+      start_date?: string | null;
+      end_date?: string | null;
+    }) => data,
+  )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
@@ -514,6 +537,9 @@ export const atualizarObservacaoOrdem = createServerFn({ method: "POST" })
     const patch: Record<string, unknown> = {};
     if (data.scope_summary !== undefined) patch.scope_summary = data.scope_summary;
     if (data.internal_notes !== undefined) patch.internal_notes = data.internal_notes;
+    if (data.responsible_user_id !== undefined) patch.responsible_user_id = data.responsible_user_id || null;
+    if (data.start_date !== undefined) patch.start_date = data.start_date || null;
+    if (data.end_date !== undefined) patch.end_date = data.end_date || null;
     const r = await gravarComVerificacao({
       supabase,
       tabela: "service_orders",
@@ -527,7 +553,7 @@ export const atualizarObservacaoOrdem = createServerFn({ method: "POST" })
         organizationId,
         caseId: r.registro["case_id"] as string,
         eventType: "caso",
-        title: "Observação/escopo da ordem de serviço atualizado",
+        title: "Observação/escopo/planejamento da ordem de serviço atualizado",
         sourceEntityType: "service_orders",
         sourceEntityId: data.id,
         userId: context.userId as string,

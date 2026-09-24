@@ -69,7 +69,11 @@ function OrdensPage() {
   const [status, setStatus] = useState("");
   const [detalhe, setDetalhe] = useState<Linha | null>(null);
   const [observacao, setObservacao] = useState("");
+  const [responsavel, setResponsavel] = useState("");
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim] = useState("");
   const [salvo, setSalvo] = useState(false);
+  const [salvoPlanejamento, setSalvoPlanejamento] = useState(false);
   const [form, setForm] = useState<Record<string, string> | null>(caseId ? { case_id: caseId } : null);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -112,9 +116,21 @@ function OrdensPage() {
     },
     onError: (e: Error) => setErro(e.message),
   });
+  const mPlanejamento = useMutation({
+    mutationFn: (v: { id: string; responsible_user_id: string | null; start_date: string | null; end_date: string | null }) =>
+      atualizarObservacao({ data: v }),
+    onSuccess: () => {
+      setErro(null);
+      setSalvoPlanejamento(true);
+      recarregar();
+    },
+    onError: (e: Error) => setErro(e.message),
+  });
 
   const contratos = qv.data?.contratos ?? [];
   const casos = qv.data?.casos ?? [];
+  const equipe = qv.data?.equipe ?? [];
+  const rotuloResponsavel = (id: unknown) => equipe.find((m) => m.authUserId === id)?.nome ?? "—";
   const vinculosIndisponiveis = !qv.isLoading && (Boolean(qv.error) || qv.data === undefined);
   const linhas = linhasDoCase ?? ((q.data ?? []) as Linha[]);
   const rotuloCaso = (id: unknown) => {
@@ -197,6 +213,7 @@ function OrdensPage() {
                   <th className="px-4 py-3 font-medium">Caso</th>
                   <th className="px-4 py-3 font-medium">Contrato</th>
                   <th className="px-4 py-3 font-medium">Início</th>
+                  <th className="px-4 py-3 font-medium">Responsável</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3" />
                 </tr>
@@ -208,6 +225,7 @@ function OrdensPage() {
                     <td className="px-4 py-3">{rotuloCaso(l["case_id"])}</td>
                     <td className="px-4 py-3">{rotuloContrato(l["contract_id"])}</td>
                     <td className="px-4 py-3">{dataBr(l["start_date"])}</td>
+                    <td className="px-4 py-3">{rotuloResponsavel(l["responsible_user_id"])}</td>
                     <td className="px-4 py-3">
                       <Selo
                         texto={ROTULO_ORDEM[String(l["status"])] ?? String(l["status"])}
@@ -219,7 +237,11 @@ function OrdensPage() {
                         onClick={() => {
                           setErro(null);
                           setSalvo(false);
+                          setSalvoPlanejamento(false);
                           setObservacao(String(l["scope_summary"] ?? ""));
+                          setResponsavel(String(l["responsible_user_id"] ?? ""));
+                          setDataInicio(String(l["start_date"] ?? "").slice(0, 10));
+                          setDataFim(String(l["end_date"] ?? "").slice(0, 10));
                           setDetalhe(l);
                         }}
                         className="rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/70 hover:bg-navy/5"
@@ -277,6 +299,76 @@ function OrdensPage() {
                 </button>
                 {salvo ? <span className="text-xs text-navy/60">Salvo.</span> : null}
               </div>
+            </Painel>
+          )}
+
+          {(
+            <Painel titulo="Planejamento (responsável, início, prazo)">
+              <div className="grid gap-2 sm:grid-cols-3">
+                <label className="text-xs text-navy/60">
+                  Responsável
+                  <select
+                    className={inputCls}
+                    value={responsavel}
+                    onChange={(e) => {
+                      setResponsavel(e.target.value);
+                      setSalvoPlanejamento(false);
+                    }}
+                  >
+                    <option value="">Sem responsável definido</option>
+                    {equipe.map((m) => (
+                      <option key={m.authUserId} value={m.authUserId}>
+                        {m.nome}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-xs text-navy/60">
+                  Início
+                  <input
+                    type="date"
+                    className={inputCls}
+                    value={dataInicio}
+                    onChange={(e) => {
+                      setDataInicio(e.target.value);
+                      setSalvoPlanejamento(false);
+                    }}
+                  />
+                </label>
+                <label className="text-xs text-navy/60">
+                  Prazo
+                  <input
+                    type="date"
+                    className={inputCls}
+                    value={dataFim}
+                    onChange={(e) => {
+                      setDataFim(e.target.value);
+                      setSalvoPlanejamento(false);
+                    }}
+                  />
+                </label>
+              </div>
+              <div className="mt-2 flex items-center gap-3">
+                <button
+                  disabled={mPlanejamento.isPending}
+                  onClick={() =>
+                    mPlanejamento.mutate({
+                      id: String(detalhe["id"]),
+                      responsible_user_id: responsavel || null,
+                      start_date: dataInicio || null,
+                      end_date: dataFim || null,
+                    })
+                  }
+                  className="rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
+                >
+                  Salvar
+                </button>
+                {salvoPlanejamento ? <span className="text-xs text-navy/60">Salvo.</span> : null}
+              </div>
+              <p className="mt-2 text-xs text-navy/50">
+                Dependências entre ordens de serviço ainda não existem como campo estruturado — dívida declarada,
+                não inventada aqui.
+              </p>
             </Painel>
           )}
 
