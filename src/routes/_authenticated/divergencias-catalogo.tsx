@@ -8,7 +8,8 @@ import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
-import { Painel, Selo, inputCls, dataBr } from "@/components/comercial/base";
+import { Selo, inputCls, dataBr } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import {
   anotarResolucaoDivergencia,
   listarDivergenciasCatalogo,
@@ -107,7 +108,7 @@ function DivergenciasCatalogoPage() {
         </p>
       ) : null}
       <div className="space-y-6">
-        <Painel titulo="Filtros">
+        <CaCard variante="compacto" titulo="Filtros">
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="text-sm">
               <span className="mb-1 block text-navy/70">SKU</span>
@@ -149,9 +150,9 @@ function DivergenciasCatalogoPage() {
               {resumo.resolvidas} resolvida(s).
             </p>
           ) : null}
-        </Painel>
+        </CaCard>
 
-        <Painel titulo={`Divergências (${linhas.length})`}>
+        <CaCard variante="compacto" titulo={`Divergências (${linhas.length})`}>
           <EstadoDados
             carregando={q.isLoading}
             erro={q.error}
@@ -222,7 +223,7 @@ function DivergenciasCatalogoPage() {
               )
             }
           </EstadoDados>
-        </Painel>
+        </CaCard>
       </div>
     </SaasShell>
   );
