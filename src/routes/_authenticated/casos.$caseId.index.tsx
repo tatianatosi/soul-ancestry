@@ -1046,7 +1046,7 @@ function FichaCaso() {
 
       <div className="mb-6 grid gap-4 lg:grid-cols-2" data-caso360-resumo-v4>
         <section className="rounded-xl border border-navy/10 bg-card p-4">
-          <p className="font-serif text-lg text-navy">Linha do tempo</p>
+          <p className="font-serif text-lg text-navy">Linha do tempo do caso</p>
           {((q.data?.timeline ?? []) as any[]).length ? (
             <ol className="mt-3 space-y-2">
               {((q.data?.timeline ?? []) as any[]).slice(0, 4).map((evento) => (

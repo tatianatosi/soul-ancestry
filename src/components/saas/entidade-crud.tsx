@@ -51,6 +51,7 @@ export function EntidadeCrud({
   larguraMinima = 720,
   apresentacao = "tabela",
   renderCard,
+  semCriacao,
 }: {
   entidade: Entidade;
   titulo: string;
@@ -71,6 +72,11 @@ export function EntidadeCrud({
   classeLinha?: (linha: Record<string, unknown>) => string | undefined;
   /** Controles extras exibidos acima da tabela. */
   topo?: React.ReactNode;
+  /**
+   * Lista legado (fontes-pesquisa-canonicas.ts): sem registro novo; o texto
+   * diz onde criar. Edição e arquivamento do que existe continuam.
+   */
+  semCriacao?: string;
   /** Largura mínima da tabela em px — evita colunas espremidas quando há muitos eixos. */
   larguraMinima?: number;
   /** `cards` = carteira em cartões (Casos 360); `tabela` = grade clássica. */
@@ -207,16 +213,22 @@ export function EntidadeCrud({
           Autoridade operacional: criar registro renderiza sempre. O aviso de
           "papel leitura" que substituía o botão foi removido.
         */}
-        <button
-          onClick={() => {
-            setEditandoId(null);
-            setErro(null);
-            setForm({});
-          }}
-          className="inline-flex items-center gap-2 rounded-lg bg-navy px-3 py-2 text-sm text-cream hover:bg-navy-soft"
-        >
-          <Plus className="h-4 w-4" /> Novo registro
-        </button>
+        {semCriacao ? (
+          <p className="max-w-md text-xs text-navy/70" data-lista-legado>
+            {semCriacao}
+          </p>
+        ) : (
+          <button
+            onClick={() => {
+              setEditandoId(null);
+              setErro(null);
+              setForm({});
+            }}
+            className="inline-flex items-center gap-2 rounded-lg bg-navy px-3 py-2 text-sm text-cream hover:bg-navy-soft"
+          >
+            <Plus className="h-4 w-4" /> Novo registro
+          </button>
+        )}
       </div>
 
       {erro ? (

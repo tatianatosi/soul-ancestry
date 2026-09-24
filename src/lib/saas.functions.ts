@@ -10,6 +10,7 @@ import { proprietariaOperando } from "@/lib/autoridade.server";
 import { nomeResponsavelSessao } from "@/lib/cadeia-operacional.server";
 import { nomeResponsavelPadrao } from "@/lib/responsavel-padrao";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { mensagemLegadoSemCriacao } from "@/lib/fontes-pesquisa-canonicas";
 import {
   validarEstadoInicial,
   validarRegrasNegocio,
@@ -462,6 +463,9 @@ export const criarRegistro = createServerFn({ method: "POST" })
     return data;
   })
   .handler(async ({ data, context }) => {
+    // 24/09/2026 — `evidencias` é legado (fontes-pesquisa-canonicas.ts):
+    // a lista /evidencias só edita e arquiva o que já existe.
+    if (data.entidade === "evidencias") throw new Error(mensagemLegadoSemCriacao("evidencia"));
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const livre = await proprietariaOperando(supabase, context.userId as string);

@@ -13,6 +13,7 @@ import {
   type BlocoRg,
   type Sb,
 } from "@/lib/pesquisa-modulo.server";
+import { mensagemLegadoSemCriacao } from "@/lib/fontes-pesquisa-canonicas";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
@@ -300,6 +301,11 @@ export const salvarBlocoPesquisa = createServerFn({ method: "POST" })
     exigirEdicao(podeEditar);
 
     const alvo = BLOCOS[data.bloco];
+    // 24/09/2026 — relações e eventos deste módulo são legado; a casa
+    // canônica é a ficha genealógica (fontes-pesquisa-canonicas.ts).
+    if (!data.id && (data.bloco === "relacoes" || data.bloco === "eventos")) {
+      throw new Error(mensagemLegadoSemCriacao(data.bloco === "relacoes" ? "relacao" : "evento"));
+    }
     const dados = limparCamposRg(alvo.campos, data.dados);
 
     if (data.bloco === "pedidos") {

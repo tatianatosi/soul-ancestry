@@ -12,6 +12,7 @@ import {
   limparCampos,
   type Sb,
 } from "@/lib/pesquisa.server";
+import { mensagemLegadoSemCriacao } from "@/lib/fontes-pesquisa-canonicas";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
@@ -139,6 +140,11 @@ export const salvarPesquisa = createServerFn({ method: "POST" })
     await exigirPesquisaNoCaso(supabase, organizationId, papel, userId, data.casoId);
 
     const alvo = TABELA[data.bloco];
+    // 24/09/2026 — evidências e eventos do dossiê antigo são legado
+    // (fontes-pesquisa-canonicas.ts): só edição/arquivamento do que existe.
+    if (!data.id && (data.bloco === "evidencias" || data.bloco === "eventos")) {
+      throw new Error(mensagemLegadoSemCriacao(data.bloco === "evidencias" ? "evidencia" : "evento"));
+    }
     const dados = limparCampos(alvo.campos, data.dados);
     if (data.bloco === "evidencias" && !dados["pesquisador_id"]) {
       // O responsável pela evidência é sempre quem registra, exigência da trava do banco.

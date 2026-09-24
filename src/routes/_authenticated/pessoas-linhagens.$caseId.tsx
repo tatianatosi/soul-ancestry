@@ -136,7 +136,7 @@ function Selo({ texto, tom }: { texto: string; tom: "ok" | "alerta" | "neutro" }
 const ABAS = [
   { id: "perfis", rotulo: "Perfil 360°" },
   { id: "arvore", rotulo: "Árvore interna" },
-  { id: "timeline", rotulo: "Linha do tempo" },
+  { id: "timeline", rotulo: "Linha do tempo genealógica" },
   { id: "relacoes", rotulo: "Relações" },
   { id: "variantes", rotulo: "Variantes de nome" },
   { id: "linhagens", rotulo: "Linhagens" },

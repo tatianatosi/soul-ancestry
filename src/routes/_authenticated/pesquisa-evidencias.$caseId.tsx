@@ -401,7 +401,9 @@ function AreaPesquisaEvidencias() {
             </Link>
           </Bloco>
 
-          <Bloco titulo="Timeline interna derivada">
+          {/* 24/09/2026 — fatos genealógicos; a linha do tempo operacional
+              do caso (o que a equipe fez) fica no Caso 360. */}
+          <Bloco titulo="Linha do tempo genealógica">
             {(c?.eventos.length ?? 0) === 0 ? (
               <p className="text-sm text-navy/60">Nenhum evento registrado. Nada é inferido automaticamente.</p>
             ) : (
@@ -415,6 +417,7 @@ function AreaPesquisaEvidencias() {
                       {e.titulo ? `: ${e.titulo}` : ""} {e.local ? `· ${e.local}` : ""}
                       <span className="ml-2 text-xs text-navy/60">
                         {e.confirmado ? "confirmado por evidência" : "hipótese interna"}
+                        {e.legado ? " · legado, ainda não copiado para a ficha genealógica" : ""}
                       </span>
                     </li>
                   ))}
@@ -422,7 +425,7 @@ function AreaPesquisaEvidencias() {
             )}
           </Bloco>
 
-          <Bloco titulo="Árvore interna derivada (relações)">
+          <Bloco titulo="Relações genealógicas">
             {(c?.relacoes.length ?? 0) === 0 ? (
               <p className="text-sm text-navy/60">Nenhuma relação registrada.</p>
             ) : (
@@ -435,6 +438,7 @@ function AreaPesquisaEvidencias() {
                       {a} → <em>{r.relationship_type}</em> → {b}
                       <span className="ml-2 text-xs text-navy/60">
                         confiança {r.confidence_level} · {r.supporting_evidence_count ?? 0} evidência(s)
+                        {r.legado ? " · legado, ainda não copiada para a ficha genealógica" : ""}
                       </span>
                     </li>
                   );

@@ -22,6 +22,7 @@ import {
 import type { BlocoRg } from "@/lib/pesquisa-modulo.server";
 import { estagiosCadeiaPesquisa } from "@/lib/pesquisa-cadeia";
 import { cn } from "@/lib/utils";
+import { mensagemLegadoSemCriacao } from "@/lib/fontes-pesquisa-canonicas";
 
 type Dados = Awaited<ReturnType<typeof carregarPesquisaModulo>>;
 
@@ -300,10 +301,18 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
   const cabecalhoBloco = (bloco: BlocoRg, titulo: string) => (
     <div className="mb-3 flex items-center justify-between">
       <h3 className="font-serif text-lg">{titulo}</h3>
-      {podeEditar && (
-        <button onClick={() => abrirNovo(bloco)} className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream">
-          Adicionar
-        </button>
+      {/* 24/09/2026 — relações e eventos deste módulo são legado
+          (fontes-pesquisa-canonicas.ts): a casa é a ficha genealógica. */}
+      {bloco === "relacoes" || bloco === "eventos" ? (
+        <p className="max-w-sm text-right text-xs text-navy/70" data-lista-legado>
+          {mensagemLegadoSemCriacao(bloco === "relacoes" ? "relacao" : "evento")}
+        </p>
+      ) : (
+        podeEditar && (
+          <button onClick={() => abrirNovo(bloco)} className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream">
+            Adicionar
+          </button>
+        )
       )}
     </div>
   );

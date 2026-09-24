@@ -17,6 +17,7 @@ import {
 } from "@/lib/pesquisa.functions";
 import { gerarRelatorioPesquisa, periodoEvento } from "@/lib/relatorio-pesquisa";
 import { cn } from "@/lib/utils";
+import { mensagemLegadoSemCriacao } from "@/lib/fontes-pesquisa-canonicas";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
@@ -225,8 +226,14 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
   const nomePessoa = (id: unknown) => pessoas.find((p) => p.id === id)?.nome ?? "—";
   const tituloHipotese = (id: unknown) => hipoteses.find((h) => h.id === id)?.titulo ?? "—";
 
+  // 24/09/2026 — evidências e eventos deste dossiê são legado
+  // (fontes-pesquisa-canonicas.ts): sem registro novo, só edição/arquivo.
   const BotaoNovo = ({ bloco }: { bloco: Bloco }) =>
-    podeEditar ? (
+    bloco === "evidencias" || bloco === "eventos" ? (
+      <p className="max-w-md text-xs text-navy/70" data-lista-legado>
+        {mensagemLegadoSemCriacao(bloco === "evidencias" ? "evidencia" : "evento")}
+      </p>
+    ) : podeEditar ? (
       <button
         onClick={() => setEdicao({ bloco, linha: null })}
         className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream"
@@ -434,7 +441,7 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
       )}
 
       {aba === "linha" && (
-        <CaCard variante="compacto" titulo="Linha do tempo">
+        <CaCard variante="compacto" titulo="Linha do tempo do dossiê (legado)">
           <div className="mb-3">
             <BotaoNovo bloco="eventos" />
           </div>

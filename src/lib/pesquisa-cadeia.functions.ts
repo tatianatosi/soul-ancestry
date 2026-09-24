@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 import { statusEvidenciaCanonico, statusPesquisaCanonico, validarTransicaoEvidencia } from "@/lib/pesquisa-cadeia";
 import { workflowStatusDeEvidenciaModulo } from "@/lib/rotulo-negocio";
+import { idsJaCopiados } from "@/lib/fontes-pesquisa-canonicas";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -41,7 +42,7 @@ export const cadeiaPesquisaDoCaso = createServerFn({ method: "GET" })
 
     const researchCaseId = (pesquisa.data as any)?.id ?? null;
 
-    const [pessoas, relacoes, eventos, eventosModulo, linhagens, fontes, evidencias, evidenciasModulo, achados, relatorios, pendencias] =
+    const [pessoas, relacoes, eventos, eventosModulo, linhagens, fontes, evidencias, evidenciasModulo, achados, relatorios, pendencias, relacoesGen, eventosGen] =
       await Promise.all([
         researchCaseId
           ? supabase
@@ -127,6 +128,19 @@ export const cadeiaPesquisaDoCaso = createServerFn({ method: "GET" })
           .eq("organization_id", organizationId)
           .eq("research_case_id", researchCaseId ?? VAZIO_UUID)
           .is("archived_at", null),
+        // 24/09/2026 — camada genealógica canônica (fontes-pesquisa-canonicas.ts).
+        supabase
+          .from("genealogical_relationships")
+          .select("id,relation_type,person_from_id,person_to_id,confidence_level,status,supporting_evidence_count,internal_notes")
+          .eq("organization_id", organizationId)
+          .eq("case_id", data.caseId)
+          .is("archived_at", null),
+        supabase
+          .from("genealogical_events")
+          .select("id,event_type,start_date,locality,person_id,validation_status,evidence_id,description_internal")
+          .eq("organization_id", organizationId)
+          .eq("case_id", data.caseId)
+          .is("archived_at", null),
       ]);
 
     const pessoasLista = ((pessoas as any).data ?? []) as any[];
@@ -145,13 +159,49 @@ export const cadeiaPesquisaDoCaso = createServerFn({ method: "GET" })
       title_internal: e.title ?? e.title_internal,
       workflow_status: workflowStatusDeEvidenciaModulo(e.evidence_status),
     }));
-    const eventosCadeia = ((eventos as any).data ?? []) as any[];
-    const eventosDoModulo = (((eventosModulo as any).data ?? []) as any[]).map((e) => ({
-      ...e,
-      tipo: e.event_type ?? e.tipo,
-      titulo: e.event_type ?? e.titulo,
-      data_inicio: e.event_date ?? e.data_inicio,
-      local: e.location_text ?? e.local,
+    /*
+      24/09/2026 — canônica primeiro: genealogical_events / _relationships.
+      Legado (research_events, research_case_events, research_relationships)
+      só aparece enquanto não foi copiado pela ponte, marcado como legado.
+    */
+    const eventosCanonicos = (((eventosGen as any).data ?? []) as any[]).map((e) => ({
+      id: e.id,
+      tipo: e.event_type,
+      titulo: e.event_type,
+      data_inicio: e.start_date,
+      local: e.locality,
+      person_id: e.person_id,
+      confirmado: e.validation_status === "confirmado",
+      legado: false,
+    }));
+    const eventosModuloCopiados = idsJaCopiados(
+      (((eventosGen as any).data ?? []) as any[]).map((e) => e.description_internal),
+      "research_case_events",
+    );
+    const eventosCadeia = (((eventos as any).data ?? []) as any[]).map((e) => ({ ...e, legado: true }));
+    const eventosDoModulo = (((eventosModulo as any).data ?? []) as any[])
+      .filter((e) => !eventosModuloCopiados.has(String(e.id).toLowerCase()))
+      .map((e) => ({
+        ...e,
+        tipo: e.event_type ?? e.tipo,
+        titulo: e.event_type ?? e.titulo,
+        data_inicio: e.event_date ?? e.data_inicio,
+        local: e.location_text ?? e.local,
+        legado: true,
+      }));
+    const relacoesCopiadas = idsJaCopiados(
+      (((relacoesGen as any).data ?? []) as any[]).map((r) => r.internal_notes),
+      "research_relationships",
+    );
+    const relacoesCanonicas = (((relacoesGen as any).data ?? []) as any[]).map((r) => ({
+      id: r.id,
+      relationship_type: r.relation_type,
+      person_a_id: r.person_from_id,
+      person_b_id: r.person_to_id,
+      confidence_level: r.confidence_level,
+      status: r.status,
+      supporting_evidence_count: r.supporting_evidence_count,
+      legado: false,
     }));
 
     return {
@@ -160,8 +210,13 @@ export const cadeiaPesquisaDoCaso = createServerFn({ method: "GET" })
       pesquisa: (pesquisa.data ?? null) as any,
       pessoas: pessoasLista,
       variantes: (((variantes as any).data ?? []) as any[]).filter((v) => idsPessoas.has(v.person_id)),
-      relacoes: ((relacoes as any).data ?? []) as any[],
-      eventos: [...eventosCadeia, ...eventosDoModulo],
+      relacoes: [
+        ...relacoesCanonicas,
+        ...(((relacoes as any).data ?? []) as any[])
+          .filter((r) => !relacoesCopiadas.has(String(r.id).toLowerCase()))
+          .map((r) => ({ ...r, legado: true })),
+      ],
+      eventos: [...eventosCanonicos, ...eventosCadeia, ...eventosDoModulo],
       linhagens: ((linhagens as any).data ?? []) as any[],
       fontes: ((fontes as any).data ?? []) as any[],
       evidencias: [...evidenciasCadeia, ...evidenciasDoModulo],

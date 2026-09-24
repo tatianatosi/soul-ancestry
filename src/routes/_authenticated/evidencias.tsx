@@ -12,6 +12,7 @@ import { PageHeader, SectionHeader } from "@/components/desk/ui-desk";
 import { listarAcessosEvidencia, registrarAcessoEvidencia } from "@/lib/saas.functions";
 import { ESTADOS, rotuloEstado } from "@/lib/estados";
 import { KitBadge, KitCard } from "@/components/clube-ancestral-kit";
+import { mensagemLegadoSemCriacao } from "@/lib/fontes-pesquisa-canonicas";
 
 export const Route = createFileRoute("/_authenticated/evidencias")({
   head: () => ({
@@ -82,6 +83,7 @@ function EvidenciasPage() {
       <EntidadeCrud
         entidade="evidencias"
         titulo="Evidências"
+        semCriacao={mensagemLegadoSemCriacao("evidencia")}
 
         podeEscrever={podeEscrever}
         dominio="evidencia"

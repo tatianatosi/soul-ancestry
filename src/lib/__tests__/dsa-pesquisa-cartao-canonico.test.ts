@@ -60,7 +60,8 @@ describe("preserva os rótulos de cada bloco migrado", () => {
       "Hipóteses de parentesco",
       "Linha familiar",
       "Evidências",
-      "Linha do tempo",
+      // 24/09/2026 — eventos do dossiê antigo são legado; o rótulo diz isso.
+      "Linha do tempo do dossiê (legado)",
       "Pendências de pesquisa",
       "Relatório interno de andamento",
     ]) {

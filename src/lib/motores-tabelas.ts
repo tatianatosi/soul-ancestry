@@ -229,6 +229,7 @@ export const MOTORES_TABELAS = [
     lacunas: [
       LACUNA_SEM_PROVA,
       "/pesquisa legado segue desconectado (referência legada, não reativar).",
+      "Fontes concorrentes com responsabilidade definida (fontes-pesquisa-canonicas.ts); ponte de relações/eventos para a ficha genealógica aguarda execução na tela de migrações; papel de evidences aguarda decisão.",
       "Varredura em Drive/Dropbox bloqueada por decisão — sem integração contratada.",
     ] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
