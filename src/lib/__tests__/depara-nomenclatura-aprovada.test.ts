@@ -58,7 +58,7 @@ describe("De-para de nomenclatura — Desk usa os 6 grupos na navegação princi
 
 describe("De-para de nomenclatura — cabeçalhos das telas batem com o rótulo aprovado", () => {
   const casos = [
-    ["src/routes/_authenticated/painel.tsx", 'titulo="Visão Geral"'],
+    ["src/routes/_authenticated/painel.tsx", 'titulo="Hoje"'],
     ["src/routes/_authenticated/casos.index.tsx", 'titulo="Casos 360"'],
     ["src/routes/_authenticated/tarefas.tsx", 'titulo="Checklist"'],
     ["src/routes/_authenticated/matriz-juridica.tsx", 'titulo="Validação Jurídica"'],

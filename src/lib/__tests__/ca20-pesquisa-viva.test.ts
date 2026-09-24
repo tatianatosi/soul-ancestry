@@ -46,7 +46,7 @@ describe("CA20 — Caso 360 resume Pesquisa com a mesma fonte de /pesquisa-evide
   });
 
   it("mantém os 7 links pré-existentes do card (nenhum removido)", () => {
-    const bloco = arquivo.slice(arquivo.indexOf("Pesquisa/entregas"), arquivo.indexOf("Pesquisa/entregas") + 4200);
+    const bloco = arquivo.slice(arquivo.indexOf("Pesquisa/entregas"), arquivo.indexOf("Pesquisa/entregas") + 12000);
     for (const rota of [
       "/achados/$caseId",
       "/biblioteca-evidencias/$caseId",

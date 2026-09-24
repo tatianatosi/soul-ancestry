@@ -91,7 +91,7 @@ describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)"
     // Nada saiu: histórico de fases, registro de alterações e o mapa de
     // persistência continuam todos dentro do details.
     const inicio = pagina.indexOf('<details id="secao-log"');
-    const fim = pagina.indexOf("</details>");
+    const fim = pagina.indexOf("</details>", pagina.indexOf("<MapaPersistenciaCaso", inicio));
     const bloco = pagina.slice(inicio, fim);
     expect(bloco).toContain("Histórico de fases do caso");
     expect(bloco).toContain("Registro de alterações");

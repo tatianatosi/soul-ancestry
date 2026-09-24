@@ -93,7 +93,8 @@ describe("a fonte dos números que existem não foi trocada", () => {
   });
 
   it("os indicadores por frente seguem de pé", () => {
-    expect(painel).toContain("Indicadores por frente");
+    // v4: o título "Indicadores por frente" deu lugar à navegação dos módulos; a seção e as fontes seguem.
+    expect(painel).toContain('aria-labelledby="painel-consolidado-titulo"');
     expect(painel).toContain("<CaCard");
   });
 });
