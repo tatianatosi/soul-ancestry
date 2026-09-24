@@ -27,14 +27,15 @@ describe("Motores primordiais P0–P11", () => {
   it("lista os 12 motores na ordem do prompt-mestre e cada um aponta para uma rota do Desk", () => {
     expect(MOTORES_TABELAS.map((m) => m.id)).toEqual([...ORDEM_MOTORES_PRIMORDIAIS]);
     expect(MOTORES_TABELAS).toHaveLength(12);
-    expect(MOTORES_TABELAS[0]?.estado).toBe("operando");
-    expect(MOTORES_TABELAS.find((m) => m.id === "P10")?.estado).toBe("planta");
+    // Corte E (24/09/2026): vocabulário honesto de 5 estados.
+    expect(MOTORES_TABELAS[0]?.estado).toBe("IMPLEMENTADO_EM_FLUXO_REAL");
+    expect(MOTORES_TABELAS.find((m) => m.id === "P10")?.estado).toBe("NAO_IMPLEMENTADO");
     for (const m of MOTORES_TABELAS) {
       expect(m.rotaDesk.startsWith("/")).toBe(true);
       expect(m.oQueJaEscreve.length).toBeGreaterThan(10);
     }
     const p1 = MOTORES_TABELAS.find((m) => m.id === "P1");
-    expect(p1?.estado).toBe("parcial");
+    expect(p1?.estado).toBe("IMPLEMENTADO_EM_FLUXO_REAL");
     expect(p1?.oQueJaEscreve).toMatch(/archived_at/);
   });
 

@@ -9,8 +9,8 @@ import {
 import { rotuloTabela } from "@/lib/rotulo-negocio";
 
 function classeEstado(estado: string) {
-  if (estado === "operando" || estado === "com_dado") return "bg-gold/15 text-navy";
-  if (estado === "planta") return "bg-navy/5 text-navy/55";
+  if (estado === "IMPLEMENTADO_EM_FLUXO_REAL" || estado === "com_dado") return "bg-gold/15 text-navy";
+  if (estado === "NAO_IMPLEMENTADO" || estado === "REFERENCIA_LEGADA") return "bg-navy/5 text-navy/55";
   return "bg-terracotta/10 text-terracotta";
 }
 
@@ -44,6 +44,16 @@ export function MotoresPrimordiais() {
                   <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${classeEstado(m.estado)}`}>
                     {ROTULO_ESTADO_MOTOR[m.estado]}
                   </span>
+                  <p className="mt-1 text-[10px] text-navy/60">
+                    Homologação da Proprietária: {m.homologacaoProprietaria}
+                  </p>
+                  {m.lacunas.length ? (
+                    <ul className="mt-1 list-disc pl-4 text-[10px] text-navy/60">
+                      {m.lacunas.map((l) => (
+                        <li key={l}>{l}</li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </td>
                 <td className="py-2 pr-3 text-navy/65">
                   <Link to={m.rotaDesk} className="font-medium text-navy underline underline-offset-2">
