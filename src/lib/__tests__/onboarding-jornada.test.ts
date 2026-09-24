@@ -40,9 +40,29 @@ const ctxCompleto = {
 };
 
 describe("checklist padrão", () => {
-  it("tem 15 itens obrigatórios", () => {
+  /*
+    Autorização explícita da Proprietária (24/09/2026): a regra real é 15
+    itens no checklist, mas `responsavel_principal` é derivado do caso
+    (padrão Tatiana) e não exige tick manual — por desenho, não por bug.
+    O teste antigo exigia `obrigatorio` em todos os 15, o que contradizia a
+    própria descrição do item ("Sem tick manual."). Corrigido para validar
+    os dois fatos reais: 15 itens totais, 14 de confirmação manual — sem
+    tornar o campo derivado obrigatório artificialmente.
+  */
+  it("tem 15 itens no total", () => {
     expect(CHECKLIST_ONBOARDING_PADRAO).toHaveLength(15);
-    expect(CHECKLIST_ONBOARDING_PADRAO.every((i) => i.obrigatorio)).toBe(true);
+  });
+
+  it("tem 14 itens de confirmação manual (obrigatorio=true)", () => {
+    const manuais = CHECKLIST_ONBOARDING_PADRAO.filter((i) => i.obrigatorio);
+    expect(manuais).toHaveLength(14);
+  });
+
+  it("responsavel_principal é o único item derivado, sem tick manual — não é bug", () => {
+    const derivados = CHECKLIST_ONBOARDING_PADRAO.filter((i) => !i.obrigatorio);
+    expect(derivados).toHaveLength(1);
+    expect(derivados[0]!.item_codigo).toBe("responsavel_principal");
+    expect(derivados[0]!.descricao_interna).toContain("Sem tick manual");
   });
 });
 

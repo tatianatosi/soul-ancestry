@@ -3,6 +3,12 @@
  * Somente planejamento interno: não cria pasta, documento, cobrança ou mensagem externa.
  */
 
+import {
+  DIAS_CADENCIA_ATENCAO,
+  DIAS_CADENCIA_CRITICA,
+  DIAS_PRIMEIRA_MICROENTREGA,
+} from "@/lib/cadencia-limiares";
+
 export const TEMPLATE_ONBOARDING_CODIGO = "ONB-PADRAO";
 export const TEMPLATE_ONBOARDING_VERSAO = "v1";
 
@@ -52,9 +58,15 @@ export const REGRA_VALOR_PERCEBIDO = [
   "Conteúdo do App Cliente sai apenas de entregas aprovadas e sanitizadas.",
 ];
 
-export const LIMITE_ALERTA_DIAS = 10;
-export const LIMITE_CRITICO_DIAS = 14;
-export const LIMITE_PRIMEIRA_ENTREGA_DIAS = 7;
+/*
+  Alias da régua única de cadência (cadencia-limiares.ts) — não redeclarar
+  números. Nenhum consumidor externo importava estes três nomes até
+  23/09/2026 (dead export); mantidos como reexport para não quebrar quem
+  vier a importar por este nome histórico.
+*/
+export const LIMITE_ALERTA_DIAS = DIAS_CADENCIA_ATENCAO;
+export const LIMITE_CRITICO_DIAS = DIAS_CADENCIA_CRITICA;
+export const LIMITE_PRIMEIRA_ENTREGA_DIAS = DIAS_PRIMEIRA_MICROENTREGA;
 
 export function diasDesde(data?: string | null): number | null {
   if (!data) return null;

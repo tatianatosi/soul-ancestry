@@ -1,4 +1,5 @@
-import { Painel, Selo } from "@/components/comercial/base";
+import { Selo } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import {
   MAPEAMENTO_ANEXOS_PAGINAS,
   PROTECOES_ESCOPO,
@@ -34,7 +35,7 @@ export function EscopoProposta({
   const paginas = proposta?.paginas_registradas ?? [];
 
   return (
-    <Painel titulo="Escopo — proposta Canva vigente aprovada (páginas 1–7)">
+    <CaCard variante="compacto" titulo="Escopo — proposta Canva vigente aprovada (páginas 1–7)">
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <Selo
           tom={dados.validade.valida ? "ok" : "alerta"}
@@ -113,6 +114,6 @@ export function EscopoProposta({
           </ul>
         </div>
       </div>
-    </Painel>
+    </CaCard>
   );
 }

@@ -2,7 +2,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Painel, Selo } from "@/components/comercial/base";
+import { Selo } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { diagnosticoInstrumentos } from "@/lib/crm-desk.functions";
 import { rotuloStatusTema, type LinhaMatriz } from "@/lib/matriz-juridica";
 
@@ -26,15 +27,15 @@ export function MatrizJuridicaPreparacao({ caseId }: { caseId: string }) {
     retry: false,
   });
 
-  if (q.isLoading) return <Painel titulo="Matriz jurídica — preparação">Carregando diagnóstico…</Painel>;
-  if (q.error) return <Painel titulo="Matriz jurídica — preparação">{(q.error as any)?.message}</Painel>;
+  if (q.isLoading) return <CaCard variante="compacto" titulo="Matriz jurídica — preparação">Carregando diagnóstico…</CaCard>;
+  if (q.error) return <CaCard variante="compacto" titulo="Matriz jurídica — preparação">{(q.error as any)?.message}</CaCard>;
 
   const d = q.data as any;
   const linhas = (d.linhas ?? []) as LinhaMatriz[];
   const bloqueios = (d.bloqueios ?? []) as { origem: string; detalhe: string }[];
 
   return (
-    <Painel titulo="Matriz jurídica — preparação de instrumentos">
+    <CaCard variante="compacto" titulo="Matriz jurídica — preparação de instrumentos">
       <div className="space-y-3 text-xs text-navy/80">
         <p className="rounded border border-navy/15 bg-cream/40 p-2">
           {d.assinatura?.liberada
@@ -91,6 +92,6 @@ export function MatrizJuridicaPreparacao({ caseId }: { caseId: string }) {
           )}
         </section>
       </div>
-    </Painel>
+    </CaCard>
   );
 }

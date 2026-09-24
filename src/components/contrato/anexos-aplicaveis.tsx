@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Painel, Selo } from "@/components/comercial/base";
+import { Selo } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { ROTULO_ESTADO_ANEXO, dicionarioAnexos, type EstadoAnexo } from "@/lib/anexos-dicionario";
 
 const TOM: Record<EstadoAnexo, "ok" | "alerta" | "neutro" | "erro"> = {
@@ -39,7 +40,7 @@ export function AnexosAplicaveis({
   const gerados = new Set(anexosGerados.map((a) => a.codigo));
 
   return (
-    <Painel titulo="Anexos aplicáveis e por quê">
+    <CaCard variante="compacto" titulo="Anexos aplicáveis e por quê">
       <p className="mb-2 text-xs text-navy/60">
         O modelo jurídico-base é versionado e restrito (MODELO-ESTUDO + BASE-GEN-V2). A regra de aplicabilidade seleciona os anexos, e cada
         anexo vira uma instância parametrizada deste caso — visualizar a instância nunca edita o modelo-base.
@@ -107,6 +108,6 @@ export function AnexosAplicaveis({
           </div>
         ))}
       </div>
-    </Painel>
+    </CaCard>
   );
 }

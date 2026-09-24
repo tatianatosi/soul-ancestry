@@ -7,6 +7,12 @@
  * cria pasta ou grupo externo.
  */
 
+import {
+  DIAS_CADENCIA_ATENCAO,
+  DIAS_CADENCIA_CRITICA,
+  DIAS_PRIMEIRA_MICROENTREGA,
+} from "@/lib/cadencia-limiares";
+
 export type GatesPlano = {
   contrato_assinado?: boolean | null;
   pagamento_confirmado?: boolean | null;
@@ -54,10 +60,15 @@ export function podeAtivarCliente(): false {
 
 export type Touchpoint = { marco: string; descricao: string; status: string };
 
+/*
+  Marcos derivados da régua única de cadência (cadencia-limiares.ts) — o
+  rótulo "D7"/"D10"/"D14" nunca é digitado à mão, para não divergir se o
+  limiar mudar.
+*/
 export const TOUCHPOINTS_PADRAO: Touchpoint[] = [
-  { marco: "D7", descricao: "Primeira micro-entrega planejada", status: "planejado" },
-  { marco: "D10", descricao: "Touchpoint de acompanhamento contextualizado", status: "planejado" },
-  { marco: "D14", descricao: "Limite de atualização contextualizada ao cliente", status: "planejado" },
+  { marco: `D${DIAS_PRIMEIRA_MICROENTREGA}`, descricao: "Primeira micro-entrega planejada", status: "planejado" },
+  { marco: `D${DIAS_CADENCIA_ATENCAO}`, descricao: "Touchpoint de acompanhamento contextualizado", status: "planejado" },
+  { marco: `D${DIAS_CADENCIA_CRITICA}`, descricao: "Limite de atualização contextualizada ao cliente", status: "planejado" },
 ];
 
 export type ItemChecklistOnboarding = { item: string; responsavel: string; status: string };

@@ -5,7 +5,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { Painel, Selo, inputCls } from "@/components/comercial/base";
+import { Selo, inputCls } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { LinhaParametro } from "@/components/contrato/linha-parametro";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -180,7 +181,7 @@ function Pagina() {
         </p>
       ) : null}
       <div className="space-y-4">
-        <Painel titulo="Fluxo: Caso → Contrato → Dados → Validar → Prévia → Aprovar → Assinatura → Financeiro">
+        <CaCard variante="compacto" titulo="Fluxo: Caso → Contrato → Dados → Validar → Prévia → Aprovar → Assinatura → Financeiro">
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <Selo texto={`Caso ${caso?.codigo}`} tom="neutro" />
             <Selo texto={`Cliente: ${cliente?.nome ?? "não vinculado"}`} tom="neutro" />
@@ -223,9 +224,9 @@ function Pagina() {
               onConfirmar={(motivo) => mCongelar.mutate({ evento: "aprovacao", motivo })}
             />
           </div>
-        </Painel>
+        </CaCard>
 
-        <Painel titulo={`Checklist de pendências (${pendencias.length})`}>
+        <CaCard variante="compacto" titulo={`Checklist de pendências (${pendencias.length})`}>
           {pendencias.length === 0 ? (
             <p className="text-sm text-navy/70">Todos os parâmetros obrigatórios estão validados.</p>
           ) : (
@@ -237,13 +238,13 @@ function Pagina() {
               ))}
             </ul>
           )}
-        </Painel>
+        </CaCard>
 
         {GRUPOS.map((g) => {
           const itens = (valores as any[]).filter((v) => v.grupo === g.chave);
           const grupoInfo = completude?.por_grupo?.[g.chave];
           return (
-            <Painel
+            <CaCard variante="compacto"
               key={g.chave}
               titulo={`${g.titulo} — ${grupoInfo?.validados ?? 0}/${grupoInfo?.total ?? itens.length} confirmados`}
             >
@@ -252,11 +253,11 @@ function Pagina() {
                   <LinhaParametro key={v.id} valor={v} aoMudar={invalidar} />
                 ))}
               </div>
-            </Painel>
+            </CaCard>
           );
         })}
 
-        <Painel titulo="Prévias versionadas e anexos aplicáveis">
+        <CaCard variante="compacto" titulo="Prévias versionadas e anexos aplicáveis">
           <div className="space-y-2">
             {(previas as any[]).map((p) => (
               <div key={p.id} className="rounded-lg border border-navy/15 bg-cream/40 p-3">
@@ -305,9 +306,9 @@ function Pagina() {
           {html && (
             <iframe title="Prévia do instrumento" srcDoc={html} sandbox="" className="mt-3 h-[520px] w-full rounded-lg border border-navy/15 bg-cream/40" />
           )}
-        </Painel>
+        </CaCard>
 
-        <Painel titulo="Destinos que reutilizam os parâmetros aprovados">
+        <CaCard variante="compacto" titulo="Destinos que reutilizam os parâmetros aprovados">
           <EstadoDados
             carregando={qd.isLoading}
             erro={qd.error}
@@ -390,7 +391,7 @@ function Pagina() {
               />
             </div>
           }
-        </Painel>
+        </CaCard>
       </div>
     </SaasShell>
   );

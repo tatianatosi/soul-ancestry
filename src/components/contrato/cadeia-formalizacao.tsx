@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { Painel, Selo } from "@/components/comercial/base";
+import { Selo } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { BloqueioEmissaoOS } from "@/components/contrato/bloqueio-emissao-os";
 import { carregarCadeiaFormalizacao, derivarAnexoIDaProposta } from "@/lib/cadeia-formalizacao.functions";
 
@@ -39,16 +40,16 @@ export function CadeiaFormalizacao({ caseId, podeEscrever }: { caseId: string; p
 
   if (q.isLoading) {
     return (
-      <Painel titulo="Cadeia de formalização">
+      <CaCard variante="compacto" titulo="Cadeia de formalização">
         <p className="text-sm text-navy/60">Avaliando a cadeia…</p>
-      </Painel>
+      </CaCard>
     );
   }
   if (q.error || !q.data) {
     return (
-      <Painel titulo="Cadeia de formalização">
+      <CaCard variante="compacto" titulo="Cadeia de formalização">
         <p className="text-sm text-terracotta">{(q.error as Error)?.message ?? "Cadeia indisponível para este caso."}</p>
-      </Painel>
+      </CaCard>
     );
   }
 
@@ -60,7 +61,7 @@ export function CadeiaFormalizacao({ caseId, podeEscrever }: { caseId: string; p
   };
 
   return (
-    <Painel titulo={`Cadeia de formalização — proposta/OS aprovada até assinatura (${d.versao})`}>
+    <CaCard variante="compacto" titulo={`Cadeia de formalização — proposta/OS aprovada até assinatura (${d.versao})`}>
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <Selo texto={`Próximo elo: ${d.proximoElo ?? "nenhum pendente"}`} tom={d.proximoElo ? "alerta" : "ok"} />
         <Selo texto={d.assinaturaLiberada ? "Assinatura liberada pelos elos" : "Assinatura bloqueada"} tom={d.assinaturaLiberada ? "ok" : "erro"} />
@@ -128,6 +129,6 @@ export function CadeiaFormalizacao({ caseId, podeEscrever }: { caseId: string; p
       </div>
 
       <BloqueioEmissaoOS proposalId={d.proposta?.id ?? null} ativo={d.proposta?.status === "aprovada"} />
-    </Painel>
+    </CaCard>
   );
 }

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import { historicoRegistro } from "@/lib/comercial.functions";
 import { cn } from "@/lib/utils";
+import { CaCard } from "@/components/ui/ca-card";
 
 export const ROTULO_PROPOSTA: Record<string, string> = {
   rascunho: "Rascunho",
@@ -111,12 +112,19 @@ export function FiltroStatus({
   );
 }
 
+/**
+ * DSA-10 (iniciativa Painel → Cartão Canônico, 2026-09-23): `Painel` deixou
+ * de ter markup próprio e passa a ser um adapter fino sobre `CaCard`
+ * (@/components/ui/ca-card), variante "compacto" — mesma borda navy suave,
+ * fundo creme, sem sombra, que `Painel` sempre teve. API e renderização
+ * preservadas para os consumidores ainda não migrados (~30 arquivos, fora
+ * da família contratual já migrada nesta rodada); nenhum import quebra.
+ */
 export function Painel({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
-    <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-      <h3 className="font-serif text-lg">{titulo}</h3>
-      <div className="mt-3">{children}</div>
-    </section>
+    <CaCard titulo={titulo} variante="compacto">
+      {children}
+    </CaCard>
   );
 }
 

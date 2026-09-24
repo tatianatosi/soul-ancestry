@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { Painel } from "@/components/comercial/base";
 import { CaCard } from "@/components/ui/ca-card";
 import { COMPOSICOES, type Composicao, type EntradaPlanejador } from "@/lib/cadeia-operacional";
 import { listarSkusPlanejador, salvarPlanejadorOperacional } from "@/lib/cadeia-operacional.functions";
@@ -134,9 +133,9 @@ export function PlanejadorOperacional({
   if (!aberto) {
     // DSA-5-PLANEJADOR (21/09/2026): quinto consumidor do Desk a usar
     // `CaCard` (após DSA-1 a DSA-4). Só o estado "fechado" (resumo +
-    // convite a preencher) trocou de Painel para CaCard; o formulário do
-    // estado "aberto", abaixo, continua com Painel — corte aditivo, não
-    // reescrita do componente.
+    // convite a preencher) trocou para o visual `padrao`; o formulário do
+    // estado "aberto", abaixo, migrou depois (DSA-10) para
+    // `variante="compacto"`, preservando o visual que tinha como `Painel`.
     return (
       <CaCard titulo="Planejador do caso" eyebrow="Cadeia Operacional · Elo 1">
         <p className="text-xs text-navy/60">
@@ -182,7 +181,7 @@ export function PlanejadorOperacional({
   );
 
   return (
-    <Painel titulo="Planejador do caso">
+    <CaCard variante="compacto" titulo="Planejador do caso">
       <p className="text-xs text-navy/60">
         O motor nunca infere: campo sem dado real fica pendente e aparece na cadeia. Preencha só o que já é
         confirmado para este caso.
@@ -302,6 +301,6 @@ export function PlanejadorOperacional({
           Cancelar
         </button>
       </div>
-    </Painel>
+    </CaCard>
   );
 }

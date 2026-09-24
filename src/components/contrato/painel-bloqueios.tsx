@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Painel, Selo } from "@/components/comercial/base";
+import { Selo } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { bloqueiosResolutivos } from "@/lib/bloqueios-dicionario";
 
 function irPara(id: string) {
@@ -24,7 +25,7 @@ export function PainelBloqueios({
   const impeditivos = lista.filter((b) => b.impeditivo).length;
 
   return (
-    <Painel titulo={`Bloqueios acionáveis (${lista.length} · ${impeditivos} impeditivo(s))`}>
+    <CaCard variante="compacto" titulo={`Bloqueios acionáveis (${lista.length} · ${impeditivos} impeditivo(s))`}>
       {lista.length > 0 && (
         <p className="mb-3 rounded-lg border border-gold/40 bg-gold/5 p-3 text-xs text-navy/80">
           A edição continua liberada: você pode salvar rascunho, corrigir campo, registrar fonte, conflito ou “não localizado na
@@ -81,6 +82,6 @@ export function PainelBloqueios({
           ))}
         </ul>
       )}
-    </Painel>
+    </CaCard>
   );
 }

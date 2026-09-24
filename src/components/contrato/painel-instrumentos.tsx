@@ -2,7 +2,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Painel, Selo } from "@/components/comercial/base";
+import { Selo } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { lerPreparacaoInstrumentos } from "@/lib/instrumentos-preparacao.functions";
 import type { LinhaRequisito, ResultadoPreparacao } from "@/lib/instrumentos-preparacao";
 
@@ -49,15 +50,15 @@ export function PainelInstrumentos({ caseId }: { caseId: string }) {
     retry: false,
   });
 
-  if (q.isLoading) return <Painel titulo="Preparação de instrumentos">Carregando diagnóstico…</Painel>;
-  if (q.error) return <Painel titulo="Preparação de instrumentos">{(q.error as any)?.message}</Painel>;
+  if (q.isLoading) return <CaCard variante="compacto" titulo="Preparação de instrumentos">Carregando diagnóstico…</CaCard>;
+  if (q.error) return <CaCard variante="compacto" titulo="Preparação de instrumentos">{(q.error as any)?.message}</CaCard>;
 
   const d = q.data as any;
   const r = d.resultado as ResultadoPreparacao;
   const e = d.entrada;
 
   return (
-    <Painel titulo="Preparação de instrumentos (interna)">
+    <CaCard variante="compacto" titulo="Preparação de instrumentos (interna)">
       <div className="space-y-3 text-xs text-navy/80">
         <div className="flex flex-wrap items-center gap-2">
           <Selo tom={TOM[r.status] ?? "neutro"} texto={ROTULO_STATUS[r.status] ?? r.status} />
@@ -161,6 +162,6 @@ export function PainelInstrumentos({ caseId }: { caseId: string }) {
           )}
         </section>
       </div>
-    </Painel>
+    </CaCard>
   );
 }

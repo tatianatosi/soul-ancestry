@@ -5,7 +5,8 @@ import { toast } from "sonner";
 
 import { useState } from "react";
 
-import { Painel, Selo, moeda } from "@/components/comercial/base";
+import { Selo, moeda } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { useAutoridade } from "@/components/saas/autoridade";
 import {
   conferirEscopoProposta,
@@ -172,8 +173,8 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
     onError: (e: any) => toast.error(e?.message ?? "Não foi possível registrar a ação interna."),
   });
 
-  if (q.isLoading) return <Painel titulo="Preparação contratual">Carregando conferência…</Painel>;
-  if (q.error) return <Painel titulo="Preparação contratual">{(q.error as any)?.message}</Painel>;
+  if (q.isLoading) return <CaCard variante="compacto" titulo="Preparação contratual">Carregando conferência…</CaCard>;
+  if (q.error) return <CaCard variante="compacto" titulo="Preparação contratual">{(q.error as any)?.message}</CaCard>;
 
   const d = q.data as any;
   const r = d.resultado;
@@ -182,7 +183,7 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
   const liberadas = ACOES_GATEADAS.filter((a) => podeExecutar(a, contexto, papel));
 
   return (
-    <Painel titulo="Preparação contratual — conferência e gates">
+    <CaCard variante="compacto" titulo="Preparação contratual — conferência e gates">
       <div className="flex flex-wrap items-center gap-2">
         <Selo
           texto={ROTULO_STATUS[r.status] ?? r.status}
@@ -412,6 +413,6 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
         </Bloco>
       </div>
 
-    </Painel>
+    </CaCard>
   );
 }

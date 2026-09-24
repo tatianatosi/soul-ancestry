@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Painel } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { ESTRUTURA_FAMILIAR } from "@/lib/decisoes-operacionais";
 import { conferirEstruturaFamiliar } from "@/lib/nucleo-familiar.functions";
 
@@ -24,7 +24,7 @@ export function EstruturaFamiliar({ codigoCaso, caseId }: { codigoCaso?: string 
 
 
   return (
-    <Painel titulo="Estrutura familiar do caso (CA-DEC-2026-08-17-01)">
+    <CaCard variante="compacto" titulo="Estrutura familiar do caso (CA-DEC-2026-08-17-01)">
       <div className="grid gap-3 text-sm text-navy/80 md:grid-cols-2">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-navy/50">Como o caso é modelado</p>
@@ -100,6 +100,6 @@ export function EstruturaFamiliar({ codigoCaso, caseId }: { codigoCaso?: string 
       {q.isError && (
         <p className="mt-3 text-xs text-terracotta">Não foi possível conferir a estrutura familiar deste caso agora.</p>
       )}
-    </Painel>
+    </CaCard>
   );
 }

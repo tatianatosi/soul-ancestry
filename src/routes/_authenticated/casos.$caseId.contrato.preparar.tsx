@@ -5,7 +5,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { Painel, Selo, inputCls, moeda } from "@/components/comercial/base";
+import { Selo, inputCls, moeda } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { AnexosAplicaveis } from "@/components/contrato/anexos-aplicaveis";
 import { CadeiaFormalizacao } from "@/components/contrato/cadeia-formalizacao";
 import { CadeiaOperacional } from "@/components/contrato/cadeia-operacional";
@@ -365,7 +366,7 @@ function Pagina() {
   if (q.error || !q.data) {
     return (
       <SaasShell titulo="Preparar contrato">
-        <Painel titulo="Preparação bloqueada">
+        <CaCard variante="compacto" titulo="Preparação bloqueada">
           <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
             {(q.error as Error)?.message ?? "Caso indisponível para esta organização."}
             {q.error ? (
@@ -378,7 +379,7 @@ function Pagina() {
               </button>
             ) : null}
           </p>
-        </Painel>
+        </CaCard>
       </SaasShell>
     );
   }
@@ -512,7 +513,7 @@ function Pagina() {
               Caso 360
             </Link>
           </p>
-          <Painel titulo={`Caso em preparação: ${d.caso.codigo} — ${d.cliente?.nome ?? "cliente não vinculado"}`}>
+          <CaCard variante="compacto" titulo={`Caso em preparação: ${d.caso.codigo} — ${d.cliente?.nome ?? "cliente não vinculado"}`}>
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <Selo texto={`Situação da ficha: ${d.registro.status}`} tom={d.registro.status === "assinado" ? "ok" : "alerta"} />
               <Selo texto={`Completude ${d.completude?.pct ?? 0}%`} tom={(d.completude?.pct ?? 0) === 100 ? "ok" : "alerta"} />
@@ -547,7 +548,7 @@ function Pagina() {
               Somente dados deste caseId. Nenhum dado DEMO, de outro caso, placeholder automático ou inferência é utilizado; campo sem
               informação real permanece vazio.
             </p>
-          </Painel>
+          </CaCard>
         </div>
 
         {/*
@@ -562,7 +563,7 @@ function Pagina() {
         <details className="rounded-lg border border-navy/15 bg-card p-4">
           <summary className="cursor-pointer text-sm font-medium text-navy">Abrir checklist operacional de pré-contrato</summary>
           <div className="mt-4 space-y-4 border-t border-navy/10 pt-4" data-checklist-pre-contrato>
-          <Painel titulo="Checklist operacional — pré-contrato">
+          <CaCard variante="compacto" titulo="Checklist operacional — pré-contrato">
             <ul className="space-y-2">
               {checklistPre.map((item) => (
                 <li
@@ -583,7 +584,7 @@ function Pagina() {
                 </li>
               ))}
             </ul>
-          </Painel>
+          </CaCard>
           </div>
         </details>
 
@@ -610,7 +611,7 @@ function Pagina() {
             </ul>
           </div>
 
-          <Painel titulo="Revisão humana e assinatura">
+          <CaCard variante="compacto" titulo="Revisão humana e assinatura">
             <div className="space-y-4">
               <div className="space-y-2">
                 <p className="text-sm text-navy/70">
@@ -719,7 +720,7 @@ function Pagina() {
             {ultimaFinal && !ultimaFinal.aprovado_em && (
               <p className="mt-1 text-xs text-terracotta">Versão final gerada aguardando aprovação de revisão humana.</p>
             )}
-          </Painel>
+          </CaCard>
         </div>
 
         {/* ===================== CARDS (fecham por padrão) ===================== */}
@@ -745,7 +746,7 @@ function Pagina() {
 
             <RegraComercial caseId={caseId} />
 
-            <Painel titulo="Entidades reaproveitadas (nada é duplicado)">
+            <CaCard variante="compacto" titulo="Entidades reaproveitadas (nada é duplicado)">
               <ul className="space-y-1 text-sm text-navy/80">
                 <li>
                   <strong>Proposta:</strong>{" "}
@@ -805,7 +806,7 @@ function Pagina() {
                   sempre como “importado — a confirmar”. Datas de vencimento nunca são inferidas: dependem de condição formal registrada.
                 </p>
               </div>
-            </Painel>
+            </CaCard>
           </CartaoDetalhe>
 
           <CartaoDetalhe
@@ -829,7 +830,7 @@ function Pagina() {
                 }}
               />
 
-              <Painel titulo="Anexos I–V governados">
+              <CaCard variante="compacto" titulo="Anexos I–V governados">
                 <p className="mb-2 text-xs text-navy/60">
                   Derivados da ficha parametrizável e da proposta/OS vinculada. Somente leitura: o template-base não é editável pelo caso e
                   nenhum campo é preenchido por inferência.
@@ -879,7 +880,7 @@ function Pagina() {
                 <div className="mt-3">
                   <PainelPendenciasContratuais anexos={anexosGovernados} gates={gatesContratuais} />
                 </div>
-              </Painel>
+              </CaCard>
             </div>
           </CartaoDetalhe>
 
@@ -889,7 +890,7 @@ function Pagina() {
             aberto={cartoesAbertos.clausulas}
             aoAlternar={() => alternarCartao("clausulas")}
           >
-            <Painel titulo="Perfil institucional e matriz de cláusulas A–P">
+            <CaCard variante="compacto" titulo="Perfil institucional e matriz de cláusulas A–P">
               <p className="mb-2 text-[11px] text-navy/60">
                 Texto jurídico fixo não é editável por caso.{" "}
                 <Link to="/governanca/contrato-base" className="text-terracotta underline">
@@ -938,7 +939,7 @@ function Pagina() {
                 <MatrizClausulas linhas={clausulasAvaliadas} />
                 <MatrizAceiteTabela blocos={blocosCaso} />
               </div>
-            </Painel>
+            </CaCard>
           </CartaoDetalhe>
 
           <CartaoDetalhe
@@ -953,7 +954,7 @@ function Pagina() {
             <div id="ficha" className="space-y-4">
               <GovernancaFicha />
               {BLOCOS_FICHA.map((s) => (
-                <Painel key={s.chave} titulo={s.titulo}>
+                <CaCard variante="compacto" key={s.chave} titulo={s.titulo}>
                   <CabecalhoBloco bloco={s} estado={estadoDoBloco(listaOpcional(d.valores) as any[], s.grupos)} />
                   <div className="space-y-3">
                     {s.grupos.flatMap((g) => {
@@ -967,7 +968,7 @@ function Pagina() {
                       ];
                     })}
                   </div>
-                </Painel>
+                </CaCard>
               ))}
             </div>
           </CartaoDetalhe>
@@ -1002,7 +1003,7 @@ function Pagina() {
             aberto={cartoesAbertos.previas}
             aoAlternar={() => alternarCartao("previas")}
           >
-            <Painel titulo="Prévia contratual versionada">
+            <CaCard variante="compacto" titulo="Prévia contratual versionada">
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => mGerar.mutate("rascunho")}
@@ -1104,7 +1105,7 @@ function Pagina() {
                   className="mt-3 h-[520px] w-full rounded-lg border border-navy/15 bg-cream/40"
                 />
               )}
-            </Painel>
+            </CaCard>
           </CartaoDetalhe>
 
           <CartaoDetalhe
@@ -1113,7 +1114,7 @@ function Pagina() {
             aberto={cartoesAbertos.auditoria}
             aoAlternar={() => alternarCartao("auditoria")}
           >
-            <Painel titulo="Auditoria da preparação (sem dados sensíveis completos)">
+            <CaCard variante="compacto" titulo="Auditoria da preparação (sem dados sensíveis completos)">
               {qa.isError ? (
                 <p className="mb-2 flex flex-wrap items-center gap-3 text-xs text-terracotta">
                   Não foi possível carregar a auditoria.
@@ -1138,7 +1139,7 @@ function Pagina() {
                 ))}
                 {eventos.length === 0 && <li>Sem eventos registrados ainda.</li>}
               </ul>
-            </Painel>
+            </CaCard>
           </CartaoDetalhe>
         </div>
       </div>

@@ -32,6 +32,7 @@ que existe e a sequência segura de consolidação.
 | `clube-ancestral-kit/visualizacao.tsx` | gráficos e timeline | sobrepõe `golive/graficos.tsx` |
 | `clube-ancestral-kit/jornada.tsx` | timeline de jornada | sobrepõe timeline do Desk |
 | componentes de cadência (D0–D365) | selos e cores manuais | maior concentração de cor literal |
+| `comercial/base.tsx` (`Painel`) | cartão (título + conteúdo) | **em migração (DSA-10, 23/09/2026)** — ver seção D |
 
 ## C. Sequência segura de consolidação (cortes futuros, cada um com aprovação)
 
@@ -41,7 +42,8 @@ que existe e a sequência segura de consolidação.
    Demais arquivos passam a reexportar.
 3. **KPI** — unificar, exigindo props `fonte`, `formula`, `periodo`, `vazio`.
 4. **Estado vazio** — unificar, exigindo frase e no máximo uma ação.
-5. **Cartão / Tabela** — unificar após os três acima.
+5. **Cartão / Tabela** — unificar após os três acima. **Etapa iniciada em
+   23/09/2026 (DSA-10)** — ver seção D para o estado real.
 6. **Gráfico** — unificar `golive/graficos.tsx` + `kit/visualizacao.tsx`,
    bloqueando render sem dado real.
 7. **Timeline** — unificar `kit/jornada.tsx` + timeline do Desk.
@@ -49,3 +51,36 @@ que existe e a sequência segura de consolidação.
    arquivo é o último passo, nunca o primeiro.
 
 Reexportação é obrigatória em cada passo: nenhum import existente pode quebrar.
+
+## D. Cartão — estado real da consolidação (DSA-10, 23/09/2026)
+
+Autorização explícita da Proprietária: não trocar `Painel` por `CaCard` como
+swap isolado de um arquivo — `Painel` tem ~30 consumidores e é a linguagem
+visual do fluxo contratual/operacional. Executar como primeira etapa real da
+iniciativa **Painel → Cartão Canônico**:
+
+- **Componente canônico definido**: `CaCard` (`@/components/ui/ca-card`)
+  ganha `variante?: "padrao" | "compacto"`. `padrao` é o visual que `CaCard`
+  já tinha (inalterado). `compacto` reproduz exatamente o visual que
+  `Painel` sempre teve (borda navy suave, fundo creme, sem sombra) — mesmos
+  slots (`titulo`, `eyebrow`, `acao`, `className`, `children`).
+- **`Painel` em compatibilidade**: `@/components/comercial/base` mantém
+  `Painel` exportado com a mesma assinatura (`{ titulo, children }`); por
+  dentro, delega para `<CaCard variante="compacto">`. Nenhum dos ~30
+  imports existentes quebra.
+- **Família Contrato migrada** (chamam `CaCard` diretamente, não mais
+  `Painel`): `contrato-parametros.$id.tsx`, `casos.$caseId.contrato.
+  preparar.tsx`, e os 13 componentes `contrato/*` que essas duas telas
+  compõem e que usavam `Painel` como wrapper de seção (`anexos-aplicaveis`,
+  `cadeia-operacional`, `cadeia-formalizacao`, `ficha-governanca`,
+  `planejador-operacional`, `matriz-juridica-preparacao`,
+  `conflito-coerencia`, `painel-instrumentos`, `estrutura-familiar`,
+  `regra-comercial`, `painel-bloqueios`, `escopo-proposta`,
+  `painel-preparacao`). Visual idêntico ao anterior (`variante="compacto"`)
+  — a migração troca a superfície de chamada, não a aparência.
+- **Famílias ainda pendentes** (continuam em `Painel`, sem tocar neste
+  corte): CRM/Comercial, Pesquisa, Privacidade, Ops, Financeiro (parcial —
+  já usa `CaCard` `padrao` em blocos próprios desde DSA-7) e demais rotas
+  isoladas (`propostas.tsx`, `ordens-servico.tsx`, `divergencias-catalogo.
+  tsx`, `conciliacao-catalogo.tsx`, `qualidade.tsx`, `ops-excecoes.tsx`).
+  Cada família migra em corte próprio, com aprovação visual antes do merge.

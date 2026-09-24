@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { Painel, Selo } from "@/components/comercial/base";
+import { Selo } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { BloqueioEmissaoOS } from "@/components/contrato/bloqueio-emissao-os";
 import {
   aprovarPropostaCadeia,
@@ -76,17 +77,17 @@ export function CadeiaOperacional({ caseId, podeEscrever }: { caseId: string; po
 
   if (q.isLoading) {
     return (
-      <Painel titulo="Cadeia operacional">
+      <CaCard variante="compacto" titulo="Cadeia operacional">
         <p className="text-sm text-navy/60">Carregando cadeia…</p>
-      </Painel>
+      </CaCard>
     );
   }
 
   if (q.isError) {
     return (
-      <Painel titulo="Cadeia operacional">
+      <CaCard variante="compacto" titulo="Cadeia operacional">
         <p className="text-sm text-terracotta">{(q.error as Error).message}</p>
-      </Painel>
+      </CaCard>
     );
   }
 
@@ -96,7 +97,7 @@ export function CadeiaOperacional({ caseId, podeEscrever }: { caseId: string; po
   const ocupado = mGerar.isPending || mAprovar.isPending || mEmitir.isPending;
 
   return (
-    <Painel titulo="Cadeia operacional">
+    <CaCard variante="compacto" titulo="Cadeia operacional">
       <div className="mb-2">
         <Selo texto={d.versao} tom="neutro" />
       </div>
@@ -171,6 +172,6 @@ export function CadeiaOperacional({ caseId, podeEscrever }: { caseId: string; po
       )}
 
       <BloqueioEmissaoOS proposalId={proposalId} ativo={statusProposta === "aprovada"} />
-    </Painel>
+    </CaCard>
   );
 }

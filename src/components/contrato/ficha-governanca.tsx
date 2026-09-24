@@ -1,4 +1,5 @@
-import { Painel, Selo } from "@/components/comercial/base";
+import { Selo } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import {
   REGRAS_ORIGEM,
   REGRAS_PROJECAO,
@@ -35,7 +36,7 @@ export function CabecalhoBloco({ bloco, estado }: { bloco: BlocoFicha; estado: E
 /** Painel-legenda da decisão CA-DEC-2026-08-17-02. */
 export function GovernancaFicha() {
   return (
-    <Painel titulo="Ficha familiar interna — origem, projeção e versionamento (CA-DEC-2026-08-17-02)">
+    <CaCard variante="compacto" titulo="Ficha familiar interna — origem, projeção e versionamento (CA-DEC-2026-08-17-02)">
       <p className="text-xs text-navy/70">
         Ficha única de trabalho por caso, adaptada do modelo piloto para organizar Painel de Calls, Brief de Discovery,
         transcrição, WhatsApp, Planejador, proposta e documentos. Não substitui CRM, Desk, motor contratual, pesquisa nem
@@ -83,6 +84,6 @@ export function GovernancaFicha() {
           </ul>
         </div>
       </div>
-    </Painel>
+    </CaCard>
   );
 }

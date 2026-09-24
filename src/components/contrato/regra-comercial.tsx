@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Painel, Selo, moeda } from "@/components/comercial/base";
+import { Selo, moeda } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import {
   CLAUSULA_DESPESAS_TERCEIROS,
   REGRAS_DESPESAS_TERCEIROS,
@@ -67,7 +68,7 @@ export function RegraComercial({ caseId }: { caseId: string }) {
 
   return (
     <div className="space-y-4">
-      <Painel titulo="Despesas de terceiros — cláusula institucional">
+      <CaCard variante="compacto" titulo="Despesas de terceiros — cláusula institucional">
         <p className="rounded border border-navy/20 bg-cream p-3 text-sm text-navy">{CLAUSULA_DESPESAS_TERCEIROS}</p>
         <p className="mt-2 text-xs text-navy/60">
           Aplicada automaticamente em <strong>ANX-COMERCIAL</strong> para todos os novos contratos, salvo exceção formal
@@ -127,9 +128,9 @@ export function RegraComercial({ caseId }: { caseId: string }) {
             );
           })}
         </div>
-      </Painel>
+      </CaCard>
 
-      <Painel titulo="Preço e condição do SKU — catálogo homologado">
+      <CaCard variante="compacto" titulo="Preço e condição do SKU — catálogo homologado">
         {isLoading && <p className="text-sm text-navy/60">Conferindo…</p>}
         {!isLoading && (
           <div className="space-y-2 text-sm text-navy/80">
@@ -279,7 +280,7 @@ export function RegraComercial({ caseId }: { caseId: string }) {
             )}
           </div>
         )}
-      </Painel>
+      </CaCard>
     </div>
   );
 }

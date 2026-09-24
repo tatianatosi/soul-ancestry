@@ -4,7 +4,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { Painel, inputCls } from "@/components/comercial/base";
+import { inputCls } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { CONFLITO_PAIS_ROTA } from "@/lib/coerencia-caso";
 import { corrigirParametroPlanejador } from "@/lib/contrato-parametros.functions";
 
@@ -51,7 +52,7 @@ export function ConflitoCoerencia({
   if (!coerencia?.conflitos?.length) return null;
 
   return (
-    <Painel titulo={`Conflito crítico — ${CONFLITO_PAIS_ROTA}`}>
+    <CaCard variante="compacto" titulo={`Conflito crítico — ${CONFLITO_PAIS_ROTA}`}>
       <div className="rounded-lg border-2 border-terracotta bg-terracotta/5 p-3">
         <ul className="space-y-1 text-sm text-terracotta">
           {coerencia.conflitos.map((c: any, i: number) => (
@@ -103,6 +104,6 @@ export function ConflitoCoerencia({
       ) : (
         <p className="mt-3 text-xs text-navy/70">Parâmetro país/rota ainda não existe na ficha: pré-carregue antes de corrigir.</p>
       )}
-    </Painel>
+    </CaCard>
   );
 }
