@@ -97,12 +97,17 @@ function ConfiguracoesPage() {
           </p>
         </KitCard>
       </section>
-      <PainelModoProprietaria
-        dados={qModo.data}
-        carregando={qModo.isLoading}
-        erro={qModo.error}
-        aoTentarNovamente={() => void qModo.refetch()}
-      />
+      <details className="mt-4 rounded-lg border border-navy/15 bg-card p-4">
+        <summary className="cursor-pointer font-medium text-navy">Abrir Modo Proprietária</summary>
+        <div className="mt-5 border-t border-navy/10 pt-5">
+          <PainelModoProprietaria
+            dados={qModo.data}
+            carregando={qModo.isLoading}
+            erro={qModo.error}
+            aoTentarNovamente={() => void qModo.refetch()}
+          />
+        </div>
+      </details>
 
       <details className="mt-6 rounded-lg border border-navy/15 bg-card p-4">
         <summary className="cursor-pointer font-medium text-navy">Abrir gestão detalhada de membros e permissões</summary>

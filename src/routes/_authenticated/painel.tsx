@@ -237,6 +237,11 @@ function PainelConsolidado() {
         })}
       </dl>
 
+      <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
+        <summary className="cursor-pointer text-sm font-medium text-navy">
+          Abrir operação detalhada do dia
+        </summary>
+        <div className="mt-5 border-t border-navy/10 pt-5">
       <div className="mb-6">
         <CaCard
           titulo="Tarefas e microentregas"
@@ -487,6 +492,8 @@ function PainelConsolidado() {
           )}
         </CaCard>
       </div>
+        </div>
+      </details>
     </section>
   );
 }
