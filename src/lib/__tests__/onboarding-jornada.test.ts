@@ -29,6 +29,8 @@ const ctxCompleto = {
   representacaoOk: true,
   escopoAprovado: true,
   checklistDocumentalCriado: true,
+  // Corte D (24/09/2026): D7 só é atendido por micro-entrega real.
+  primeiraMicroentregaReal: true,
   plano: {
     status: "ativo",
     responsavel_user_id: "u1",

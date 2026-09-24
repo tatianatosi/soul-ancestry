@@ -9,12 +9,15 @@ import {
   estadoDoPlano,
   motivosBloqueio,
   planoAcaoDosTouchpoints,
+  primeiraMicroentregaReal,
   titulosTarefasDosGates,
   TITULO_PRIMEIRA_MICROENTREGA,
   TOUCHPOINTS_PADRAO,
+  type DerivadosChecklist,
   type GatesPlano,
   type ItemChecklistOnboarding,
 } from "@/lib/onboarding-plano";
+import { dossieMaeDoCaso } from "@/lib/nucleo-completude";
 import { garantirTarefaAberta } from "@/lib/tarefa-garantida.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -116,6 +119,43 @@ async function espelharMotivosBloqueioEmCasePlans(
   }
 }
 
+/**
+ * 24/09/2026 — corte D: os itens "Dossiê-mãe identificado" e "Primeira
+ * micro-entrega planejada" do checklist passam a vir do dado real (núcleo
+ * do caso e ops_microentregas), nunca de marcação manual.
+ */
+async function derivadosDoCaso(
+  supabase: any,
+  organizationId: string,
+  caseId: string,
+): Promise<DerivadosChecklist> {
+  const [micro, nucleo, caso] = await Promise.all([
+    supabase
+      .from("ops_microentregas")
+      .select("id,status,archived_at")
+      .eq("organization_id", organizationId)
+      .eq("caso_id", caseId)
+      .is("archived_at", null),
+    supabase
+      .from("nucleos_familiares")
+      .select("id,dossie_mae,dossie_status")
+      .eq("organization_id", organizationId)
+      .eq("case_id", caseId)
+      .is("archived_at", null)
+      .maybeSingle(),
+    supabase
+      .from("crm_casos")
+      .select("dossie_mae_referencia")
+      .eq("organization_id", organizationId)
+      .eq("id", caseId)
+      .maybeSingle(),
+  ]);
+  return {
+    primeiraMicroentrega: primeiraMicroentregaReal(micro.data ?? []),
+    dossieMaeAtivo: dossieMaeDoCaso(nucleo.data ?? null, caso.data?.dossie_mae_referencia ?? null).ativo,
+  };
+}
+
 /** Plano de onboarding do caso: leitura. Nunca ativa cliente. */
 export const carregarPlanoOnboarding = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -198,6 +238,7 @@ export const recalcularPlanoOnboarding = createServerFn({ method: "POST" })
     const checklist = checklistComGates(
       gates,
       Array.isArray(plano.checklist_inicial) ? (plano.checklist_inicial as ItemChecklistOnboarding[]) : null,
+      await derivadosDoCaso(supabase, organizationId, data.caseId),
     );
     const planoAcao =
       Array.isArray(plano.plano_acao) && plano.plano_acao.length > 0
@@ -294,5 +335,31 @@ export const criarPrimeiraMicroentregaOnboarding = createServerFn({ method: "POS
       .single();
     if (error) throw new Error(error.message);
     if (!nova?.id) throw new Error("NENHUMA_LINHA_AFETADA: a micro-entrega não foi criada.");
+
+    // O item "Primeira micro-entrega planejada" do plano reflete a linha
+    // recém-gravada (não um tick). Se o plano ainda não existe, o próximo
+    // recálculo o cria já com o item derivado.
+    const plano = await lerPlanoOnboarding(supabase, organizationId, data.caseId);
+    if (plano.data && Array.isArray(plano.data.checklist_inicial)) {
+      const caso2 = await supabase
+        .from("crm_casos")
+        .select("contrato_assinado,pagamento_confirmado")
+        .eq("organization_id", organizationId)
+        .eq("id", data.caseId)
+        .maybeSingle();
+      const checklist = checklistComGates(
+        {
+          contrato_assinado: Boolean(caso2.data?.contrato_assinado),
+          pagamento_confirmado: Boolean(caso2.data?.pagamento_confirmado),
+        },
+        plano.data.checklist_inicial as ItemChecklistOnboarding[],
+        await derivadosDoCaso(supabase, organizationId, data.caseId),
+      );
+      await supabase
+        .from("onboarding_planos")
+        .update({ checklist_inicial: checklist, updated_by: userId })
+        .eq("organization_id", organizationId)
+        .eq("case_id", data.caseId);
+    }
     return { id: nova.id as string, reaproveitada: false, clienteAtivado: false };
   });

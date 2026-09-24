@@ -172,6 +172,12 @@ export type ContextoDiagnostico = {
   nucleoValidado?: boolean;
   /** Dossiê-mãe canônico (núcleo do caso) — ver dossieMaeDoCaso em nucleo-completude.ts. */
   dossieMae?: { ativo: boolean; fonte: "nucleo" | "legado_caso" | "ausente" } | null;
+  /**
+   * D7 derivado de dado real: existe micro-entrega em ops_microentregas do
+   * caso (não arquivada, não cancelada) — ver primeiraMicroentregaReal em
+   * onboarding-plano.ts. Texto livre e checkbox manual não contam.
+   */
+  primeiraMicroentregaReal?: boolean;
   participantesVinculados?: boolean;
   representacaoOk?: boolean;
   escopoAprovado?: boolean;
@@ -237,7 +243,10 @@ export function diagnosticarOnboarding(caso: CasoDiagnostico, ctx: ContextoDiagn
         concluido("proxima_acao_inicial"),
       "Próxima ação, responsável ou prazo ausentes.",
     ),
-    g("primeira_microentrega", "Primeira microentrega planejada", Boolean(planoAtivo?.proxima_microentrega?.trim()) || concluido("primeira_microentrega"), "Primeira microentrega não planejada."),
+    // 24/09/2026 — corte D: só micro-entrega real (ops_microentregas) aprova
+    // o D7. Antes bastava texto em case_plans.proxima_microentrega ou marcar
+    // o item à mão no checklist — nenhum dos dois prova que ela existe.
+    g("primeira_microentrega", "Primeira microentrega planejada", ctx.primeiraMicroentregaReal === true, "Nenhuma micro-entrega registrada para o caso (ops_microentregas)."),
     g("limite_atualizacao", "Data-limite de atualização definida", Boolean(planoAtivo?.proxima_atualizacao_limite_em) || concluido("limite_atualizacao"), "Data-limite de atualização contextualizada não definida."),
   ];
 

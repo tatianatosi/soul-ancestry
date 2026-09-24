@@ -9,6 +9,7 @@ import {
 } from "@/lib/onboarding-jornada";
 import { obterProximaAcaoCanonica } from "@/lib/caso-ficha";
 import { dossieMaeDoCaso } from "@/lib/nucleo-completude";
+import { primeiraMicroentregaReal } from "@/lib/onboarding-plano";
 
 /*
  * 09/09/2026 — consolidação de redundâncias (docs/relatorios/
@@ -44,7 +45,7 @@ export const obterPainelJornada = createServerFn({ method: "GET" })
     const supabase = context.supabase as unknown as Cliente;
     const org = await resolverOrg(supabase, context.userId as string);
 
-    const [casos, planos, checklist, entregas, esperas, nucleos] = await Promise.all([
+    const [casos, planos, checklist, entregas, esperas, nucleos, microentregas] = await Promise.all([
       supabase.from("crm_casos").select("*").eq("organization_id", org).is("archived_at", null),
       supabase.from("case_plans").select("*").eq("organization_id", org).is("archived_at", null),
       supabase.from("onboarding_checklist").select("*").eq("organization_id", org),
@@ -55,7 +56,18 @@ export const obterPainelJornada = createServerFn({ method: "GET" })
         .select("id,case_id,dossie_mae,dossie_status")
         .eq("organization_id", org)
         .is("archived_at", null),
+      // 24/09/2026 — corte D: D7 e "sem micro-entrega" leem a linha real.
+      supabase
+        .from("ops_microentregas")
+        .select("id,caso_id,status,archived_at")
+        .eq("organization_id", org)
+        .is("archived_at", null),
     ]);
+    const microPorCaso = new Map<string, Record<string, any>[]>();
+    for (const m of (microentregas.data ?? []) as Record<string, any>[]) {
+      const k = String(m["caso_id"]);
+      microPorCaso.set(k, [...(microPorCaso.get(k) ?? []), m]);
+    }
     const nucleoPorCaso = new Map(
       ((nucleos.data ?? []) as Record<string, any>[]).filter((n) => n["case_id"]).map((n) => [String(n["case_id"]), n]),
     );
@@ -114,11 +126,17 @@ export const obterPainelJornada = createServerFn({ method: "GET" })
         (nucleoPorCaso.get(String(caso["id"])) as never) ?? null,
         caso["dossie_mae_referencia"] ?? null,
       );
-      const diag = diagnosticarOnboarding(caso as never, { checklist: itens as never, plano: plano as never, dossieMae });
+      const temMicroentrega = primeiraMicroentregaReal(microPorCaso.get(String(caso["id"])) as never);
+      const diag = diagnosticarOnboarding(caso as never, {
+        checklist: itens as never,
+        plano: plano as never,
+        dossieMae,
+        primeiraMicroentregaReal: temMicroentrega,
+      });
       const estado = derivarEstadoCaso(caso as never, diag, { plano: plano as never });
       const cadencia = avaliarCadencia({
         onboardingIniciadoEm: caso["onboarding_iniciado_em"] ?? null,
-        primeiraMicroentregaPlanejada: Boolean(plano?.["proxima_microentrega"]),
+        primeiraMicroentregaPlanejada: temMicroentrega,
         ultimoTouchpointEm: plano?.["ultima_atualizacao_cliente_em"] ?? caso["onboarding_iniciado_em"] ?? null,
         ultimaAtualizacaoClienteEm: plano?.["ultima_atualizacao_cliente_em"] ?? null,
         esperaExternaAtiva: Boolean(esperaAtiva),
@@ -126,7 +144,7 @@ export const obterPainelJornada = createServerFn({ method: "GET" })
 
       if (diag.bloqueios.length) bloqueados += 1;
       if (!plano?.["proxima_acao"] && !caso["proxima_acao"]) semProximaAcao += 1;
-      if (!plano?.["proxima_microentrega"]) semMicroentrega += 1;
+      if (!temMicroentrega) semMicroentrega += 1;
       if (cadencia.some((a) => a.regra === "D10")) semTouchpoint10 += 1;
       if (cadencia.some((a) => a.regra === "D14")) semAtualizacao14 += 1;
 

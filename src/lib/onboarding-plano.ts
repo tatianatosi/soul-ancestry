@@ -101,10 +101,32 @@ export const CHECKLIST_INICIAL_PADRAO: ItemChecklistOnboarding[] = [
   { item: "Primeira micro-entrega planejada", responsavel: "Operações", status: "pendente" },
 ];
 
+/**
+ * Sinais derivados de dado real (nunca de checkbox): existe micro-entrega em
+ * ops_microentregas e o dossiê-mãe do núcleo está ativo (dossieMaeDoCaso).
+ * Campo ausente = "não calculado aqui", o item fica como está.
+ */
+export type DerivadosChecklist = {
+  primeiraMicroentrega?: boolean;
+  dossieMaeAtivo?: boolean;
+};
+
+/**
+ * D7: há micro-entrega real do caso? Conta qualquer linha de
+ * ops_microentregas não arquivada e não cancelada — planejada já basta
+ * (o marco é "planejada até D7", não "concluída").
+ */
+export function primeiraMicroentregaReal(
+  microentregas: { status?: string | null; archived_at?: string | null }[] | null | undefined,
+): boolean {
+  return (microentregas ?? []).some((m) => !m.archived_at && m.status !== "cancelada");
+}
+
 /** Atualiza o checklist pelos gates reais; não inventa item novo se já houver lista. */
 export function checklistComGates(
   gates: GatesPlano,
   atual: ItemChecklistOnboarding[] | null | undefined,
+  derivados: DerivadosChecklist = {},
 ): ItemChecklistOnboarding[] {
   const base = atual && atual.length > 0 ? atual : CHECKLIST_INICIAL_PADRAO;
   return base.map((item) => {
@@ -113,6 +135,12 @@ export function checklistComGates(
     }
     if (/pagamento inicial/i.test(item.item) && gates.pagamento_confirmado) {
       return { ...item, status: "ok" };
+    }
+    if (/dossi[êe]-m[ãa]e/i.test(item.item) && derivados.dossieMaeAtivo !== undefined) {
+      return { ...item, status: derivados.dossieMaeAtivo ? "ok" : "pendente" };
+    }
+    if (/primeira micro-?entrega/i.test(item.item) && derivados.primeiraMicroentrega !== undefined) {
+      return { ...item, status: derivados.primeiraMicroentrega ? "ok" : "pendente" };
     }
     return item;
   });
