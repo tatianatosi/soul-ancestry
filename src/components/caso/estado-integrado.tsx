@@ -11,6 +11,14 @@ import { Link } from "@tanstack/react-router";
 
 import { produtoPaiPorId } from "@/lib/planejador-produtos-pai";
 import { calcularCadencia } from "@/lib/jornada-cliente";
+import {
+  textoLeadOrigem,
+  textoPaisVia,
+  textoPesquisa,
+  textoProximoPasso,
+  type ProximoPasso,
+  type ResumoPesquisa,
+} from "@/lib/estado-integrado-caso";
 
 type Linha = Record<string, any>;
 
@@ -65,6 +73,9 @@ export function EstadoIntegradoCaso({
   timelineUltimoEvento,
   contratoStatus,
   acessoApp,
+  leadOrigem = null,
+  pesquisa = null,
+  proximoPasso = null,
 }: {
   caseId: string;
   caso: Linha;
@@ -86,6 +97,12 @@ export function EstadoIntegradoCaso({
   timelineUltimoEvento: Linha | null;
   contratoStatus: string | null;
   acessoApp: { liberado: boolean; statusAcesso: string | null; ultimoAcessoEm: string | null } | null;
+  /** Lead de origem (`leads.case_id`, gravado no handoff). */
+  leadOrigem?: Linha | null;
+  /** Resumo da pesquisa já lido pela rota (cadeiaPesquisaDoCaso). */
+  pesquisa?: ResumoPesquisa | null;
+  /** Próxima ação canônica (RPC proxima_acao_prioritaria) e bloqueios reais. */
+  proximoPasso?: ProximoPasso | null;
 }) {
   const servicoAtual = servicos.find((s) => !s["archived_at"]) ?? servicos[0] ?? null;
   const produtoDoServico = servicoAtual
@@ -140,6 +157,13 @@ export function EstadoIntegradoCaso({
           linkParams={clienteId ? { clienteId } : undefined}
           linkTexto="Pessoa 360 →"
         />
+        {/* 24/09/2026 — ordem P0 transversal: origem comercial do caso. */}
+        <Item
+          rotulo="Lead / origem"
+          valor={textoLeadOrigem(leadOrigem)}
+          linkTo={leadOrigem ? "/leads" : undefined}
+          linkTexto="CRM Vivo →"
+        />
         <Item
           rotulo="Família / núcleo"
           valor={
@@ -161,6 +185,12 @@ export function EstadoIntegradoCaso({
           }
           linkTo="#secao-jornada"
           linkTexto="Produto-pai e trilha →"
+        />
+        <Item
+          rotulo="País / via"
+          valor={textoPaisVia(caso)}
+          linkTo="#secao-comercial"
+          linkTexto="Validação jurídica →"
         />
         <Item
           rotulo="Etapa / rota da jornada"
@@ -191,6 +221,19 @@ export function EstadoIntegradoCaso({
           linkTo="/casos/$caseId/contrato/preparar"
           linkParams={{ caseId }}
           linkTexto="Cadeia operacional →"
+        />
+        <Item
+          rotulo="Pesquisa e evidências"
+          valor={textoPesquisa(pesquisa)}
+          linkTo="/pesquisa-evidencias/$caseId"
+          linkParams={{ caseId }}
+          linkTexto="Pesquisa do caso →"
+        />
+        <Item
+          rotulo="Próximo passo / bloqueio"
+          valor={textoProximoPasso(proximoPasso)}
+          linkTo="#secao-visao"
+          linkTexto="Próxima ação →"
         />
         <Item
           rotulo="Onboarding"

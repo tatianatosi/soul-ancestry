@@ -976,6 +976,29 @@ function FichaCaso() {
         ultimaEntrega={((qc2.data?.entregas ?? []) as Record<string, any>[])[0] ?? null}
         timelineUltimoEvento={((q.data?.timeline ?? []) as Record<string, any>[])[0] ?? null}
         contratoStatus={rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao"))}
+        leadOrigem={((q.data as any)?.leadOrigem ?? null) as Record<string, any> | null}
+        pesquisa={
+          qPesquisa.data
+            ? {
+                pessoas: ((qPesquisa.data as any).pessoas ?? []).length,
+                relacoes: ((qPesquisa.data as any).relacoes ?? []).length,
+                evidencias: ((qPesquisa.data as any).evidencias ?? []).length,
+                confirmadas: estadoDossieDoCaso((qPesquisa.data as any).evidencias ?? []).confirmados,
+                achados: ((qPesquisa.data as any).achados ?? []).length,
+              }
+            : null
+        }
+        proximoPasso={
+          canonica
+            ? {
+                acao: canonica.acao ?? null,
+                responsavel: (canonica as any).responsavel ?? null,
+                prazo: (canonica as any).prazo ?? null,
+                bloqueios: bloqueiosReais.length,
+                primeiroBloqueio: bloqueiosReais[0]?.motivo ?? null,
+              }
+            : null
+        }
         acessoApp={
           qVisaoCliente.data
             ? {

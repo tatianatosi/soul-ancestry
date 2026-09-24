@@ -105,6 +105,22 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
       _case: data.id,
     });
 
+    /*
+      24/09/2026 — ordem P0 "Sistema Único Transversal": lead de origem do
+      caso para o Estado Integrado. Vínculo real `leads.case_id` (gravado no
+      handoff); só leitura, filtrada por organização e caso — nenhum dado do
+      lead é copiado para o caso.
+    */
+    const { data: leadOrigem } = await supabase
+      .from("leads")
+      .select("id, nome, origem, estagio, created_at")
+      .eq("organization_id", organizationId)
+      .eq("case_id", data.id)
+      .is("archived_at", null)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
     // Completude do núcleo por critérios persistidos (ANA-B-01), nunca por existência de linha.
     const { data: completude } = await supabase.rpc("nucleo_completude", { _case: data.id });
     const nucleoCompletude = (completude ?? { nucleo_id: null, itens: [], completo: false }) as {
@@ -118,6 +134,7 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
       membros: membrosComFallback as Linha[],
       log: (log.data ?? []) as Linha[],
       cliente: (cliente as any)?.data ?? null,
+      leadOrigem: (leadOrigem ?? null) as Linha | null,
       nucleos: (nucleos.data ?? []) as Linha[],
       nucleoCompletude,
       nucleoCriterios: nucleoCompletude.itens,
