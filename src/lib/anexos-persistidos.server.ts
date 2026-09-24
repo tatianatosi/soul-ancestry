@@ -68,6 +68,19 @@ export function tipoAnexoPersistido(codigo: string): TipoAnexoPersistido {
   return TIPO_POR_CODIGO[codigo] ?? "other";
 }
 
+/**
+ * Um anexo dispensado à mão (`dispensarAnexoManualmente`) fica marcado com
+ * `structured_data.overrideManual`. Enquanto essa marca existir, a
+ * ressincronização/auto-cura preserva a decisão humana em vez de recalcular
+ * o estado pela regra — mesma lógica de "valor já registrado não é
+ * sobrescrito sozinho" usada na reconciliação de CPF.
+ */
+export function anexoDispensadoManualmente(row: { status?: string | null; structured_data?: unknown } | null | undefined): boolean {
+  if (!row) return false;
+  const dados = (row.structured_data ?? {}) as Record<string, unknown>;
+  return row.status === "not_applicable" && dados.overrideManual === true;
+}
+
 export type InstanciaAnexo = {
   annex_code: string;
   title: string;
@@ -151,10 +164,11 @@ export async function sincronizarAnexosPersistidos(
     isTest?: boolean;
   },
   instancias: InstanciaAnexo[],
+  opcoes?: { ignorarOverrideParaCodigos?: string[] },
 ) {
   const { data: existentes } = await supabase
     .from("contract_annexes")
-    .select("id,annex_code,annex_version,file_hash,status")
+    .select("id,annex_code,annex_version,file_hash,status,structured_data")
     .eq("organization_id", ctx.organizationId)
     .eq("case_id", ctx.caseId)
     .is("archived_at", null);
@@ -165,12 +179,18 @@ export async function sincronizarAnexosPersistidos(
     if (!atual || linha.annex_version > atual.annex_version) vigentePorCodigo.set(linha.annex_code, linha);
   }
 
+  const ignorarOverride = new Set(opcoes?.ignorarOverrideParaCodigos ?? []);
   let novas = 0;
   let mantidas = 0;
+  let dispensadosPreservados = 0;
 
   for (const inst of instancias) {
-    const hash = hashConteudo({ d: inst.structured_data, s: inst.status, m: inst.model_version });
     const vigente = vigentePorCodigo.get(inst.annex_code);
+    if (vigente && anexoDispensadoManualmente(vigente) && !ignorarOverride.has(inst.annex_code)) {
+      dispensadosPreservados += 1;
+      continue;
+    }
+    const hash = hashConteudo({ d: inst.structured_data, s: inst.status, m: inst.model_version });
     if (vigente && vigente.file_hash === hash) {
       mantidas += 1;
       continue;
@@ -204,7 +224,134 @@ export async function sincronizarAnexosPersistidos(
     novas += 1;
   }
 
-  return { novas, mantidas, total: instancias.length };
+  return { novas, mantidas, total: instancias.length, dispensadosPreservados };
+}
+
+const STATUS_ANEXO_CONGELADO = ["attached", "signed_with_contract", "archived"];
+
+/**
+ * Dispensa manual de um anexo (governado ou interno) com motivo humano —
+ * decisão operacional, não jurídica: nunca reescreve cláusula, nunca toca
+ * instância já anexada/assinada/arquivada. Sempre nasce como versão nova
+ * (a vigente nunca é editada em lugar), marcada como override manual para a
+ * auto-cura (`sincronizarAnexosPersistidos`) preservar a decisão em vez de
+ * recalcular pela regra a cada resync.
+ */
+export async function dispensarAnexoManualmente(
+  supabase: Sb,
+  ctx: {
+    organizationId: string;
+    caseId: string;
+    parametersId: string;
+    contractId: string | null;
+    userId: string;
+    annexCode: string;
+    motivo: string;
+  },
+) {
+  const motivo = ctx.motivo.trim();
+  if (!motivo) throw new Error("Descreva o motivo da dispensa.");
+  if (motivo.length > 500) throw new Error("O motivo da dispensa excede 500 caracteres.");
+
+  const { data: vigente } = await supabase
+    .from("contract_annexes")
+    .select("*")
+    .eq("organization_id", ctx.organizationId)
+    .eq("case_id", ctx.caseId)
+    .eq("annex_code", ctx.annexCode)
+    .is("archived_at", null)
+    .order("annex_version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!vigente) throw new Error("Anexo ainda não sincronizado para este caso — sincronize antes de dispensar.");
+  if (STATUS_ANEXO_CONGELADO.includes(String(vigente.status)))
+    throw new Error(`Anexo em estado "${vigente.status}" não pode ser dispensado.`);
+
+  const structuredData = {
+    ...((vigente.structured_data as Record<string, unknown>) ?? {}),
+    overrideManual: true,
+    overrideMotivo: motivo,
+    overrideUserId: ctx.userId,
+    overrideAt: new Date().toISOString(),
+  };
+  const hash = hashConteudo({ d: structuredData, s: "not_applicable", m: vigente.model_version });
+
+  const { error } = await supabase.from("contract_annexes").insert({
+    organization_id: ctx.organizationId,
+    case_id: ctx.caseId,
+    parameters_id: ctx.parametersId,
+    preview_id: vigente.preview_id ?? null,
+    contract_id: ctx.contractId,
+    annex_code: vigente.annex_code,
+    title: vigente.title,
+    annex_type: vigente.annex_type,
+    applicability_rule: vigente.applicability_rule,
+    source: vigente.source,
+    source_reference: vigente.source_reference,
+    model_version: vigente.model_version,
+    annex_version: Number(vigente.annex_version ?? 0) + 1,
+    required_for_contract: false,
+    status: "not_applicable",
+    structured_data: structuredData,
+    rendered_html: vigente.rendered_html,
+    reason_not_applicable: motivo,
+    file_hash: hash,
+    is_test: Boolean(vigente.is_test),
+    prepared_by: ctx.userId,
+    created_by: ctx.userId,
+    updated_by: ctx.userId,
+  });
+  if (error) throw new Error(`Falha ao dispensar ${ctx.annexCode}: ${error.message}`);
+
+  return { ok: true as const, annexCode: ctx.annexCode, annexVersion: Number(vigente.annex_version ?? 0) + 1 };
+}
+
+/**
+ * Reverte uma dispensa manual, recalculando o anexo pela regra vigente
+ * (sempre cria versão nova). Não-op se o anexo não estiver dispensado.
+ */
+export async function reativarAnexoManual(
+  supabase: Sb,
+  ctx: {
+    organizationId: string;
+    caseId: string;
+    parametersId: string;
+    previaId: string | null;
+    contractId: string | null;
+    userId: string;
+  },
+  instanciaAtual: InstanciaAnexo,
+) {
+  const { data: vigente } = await supabase
+    .from("contract_annexes")
+    .select("status,structured_data")
+    .eq("organization_id", ctx.organizationId)
+    .eq("case_id", ctx.caseId)
+    .eq("annex_code", instanciaAtual.annex_code)
+    .is("archived_at", null)
+    .order("annex_version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!anexoDispensadoManualmente(vigente)) {
+    return { ok: true as const, jaAtivo: true, annexCode: instanciaAtual.annex_code, versoesNovas: 0 };
+  }
+
+  const resultado = await sincronizarAnexosPersistidos(
+    supabase,
+    {
+      organizationId: ctx.organizationId,
+      caseId: ctx.caseId,
+      parametersId: ctx.parametersId,
+      previaId: ctx.previaId,
+      contractId: ctx.contractId,
+      userId: ctx.userId,
+    },
+    [instanciaAtual],
+    { ignorarOverrideParaCodigos: [instanciaAtual.annex_code] },
+  );
+
+  return { ok: true as const, jaAtivo: false, annexCode: instanciaAtual.annex_code, versoesNovas: resultado.novas };
 }
 
 /* ---------------- proposta/OS aprovada → condição comercial ---------------- */

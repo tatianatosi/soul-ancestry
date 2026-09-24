@@ -28,7 +28,9 @@ import {
 } from "@/lib/contrato-base-consolidado";
 import { renderCorpoContratual } from "@/lib/contrato-corpo.server";
 import {
+  dispensarAnexoManualmente,
   instanciasDeAnexos,
+  reativarAnexoManual,
   sincronizarAnexosPersistidos,
   sincronizarComercialDaProposta,
 } from "@/lib/anexos-persistidos.server";
@@ -1016,6 +1018,100 @@ export const ressincronizarAnexosDoCaso = createServerFn({ method: "POST" })
     });
 
     return { simulado: false, plano, materializados: resultado.novas, mantidas: resultado.mantidas };
+  });
+
+/**
+ * Dispensa um anexo (governado I–V ou interno) com motivo humano — decisão
+ * operacional, não jurídica. Nunca reescreve cláusula, nunca toca instância
+ * já anexada/assinada/arquivada. A auto-cura (`ressincronizarAnexosDoCaso`)
+ * passa a preservar esta decisão em vez de recalcular pela regra.
+ */
+export const dispensarAnexoComMotivo = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; annexCode: string; motivo: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as Sb;
+    const userId = context.userId as string;
+    const { registro } = await montarDoRegistro(supabase, data.id, "rascunho");
+
+    const resultado = await dispensarAnexoManualmente(supabase, {
+      organizationId: registro.organization_id,
+      caseId: registro.case_id,
+      parametersId: registro.id,
+      contractId: registro.contract_id ?? null,
+      userId,
+      annexCode: data.annexCode,
+      motivo: data.motivo,
+    });
+
+    await supabase.from("audit_logs").insert({
+      organization_id: registro.organization_id,
+      entidade: "contract_annexes",
+      entidade_id: registro.case_id,
+      acao: "anexo_dispensado_com_motivo",
+      user_id: userId,
+      metadados: { parameters_id: registro.id, annex_code: data.annexCode, motivo: data.motivo },
+    });
+    await registrarTimelineCaso(supabase, {
+      organizationId: registro.organization_id,
+      caseId: registro.case_id,
+      eventType: "caso",
+      title: `Anexo ${data.annexCode} dispensado: ${data.motivo}`,
+      sourceEntityType: "contract_annexes",
+      sourceEntityId: registro.case_id,
+      userId,
+    });
+
+    return resultado;
+  });
+
+/** Reverte a dispensa manual de um anexo, recalculando-o pela regra vigente. Não-op se já ativo. */
+export const reativarAnexoDispensado = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; annexCode: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as Sb;
+    const userId = context.userId as string;
+    const { registro, corpo, anexosInternos } = await montarDoRegistro(supabase, data.id, "rascunho");
+
+    const todasAsInstancias = instanciasDeAnexos({ anexos: corpo.anexos, internos: anexosInternos as any });
+    const instanciaAtual = todasAsInstancias.find((i) => i.annex_code === data.annexCode);
+    if (!instanciaAtual) throw new Error("Regra atual não reconhece mais este código de anexo.");
+
+    const { data: previa } = await supabase
+      .from("contract_parameter_previews")
+      .select("id")
+      .eq("parameters_id", registro.id)
+      .is("archived_at", null)
+      .order("versao", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const resultado = await reativarAnexoManual(
+      supabase,
+      {
+        organizationId: registro.organization_id,
+        caseId: registro.case_id,
+        parametersId: registro.id,
+        previaId: (previa?.id as string) ?? null,
+        contractId: registro.contract_id ?? null,
+        userId,
+      },
+      instanciaAtual,
+    );
+
+    if (!resultado.jaAtivo) {
+      await supabase.from("audit_logs").insert({
+        organization_id: registro.organization_id,
+        entidade: "contract_annexes",
+        entidade_id: registro.case_id,
+        acao: "anexo_dispensa_revertida",
+        user_id: userId,
+        metadados: { parameters_id: registro.id, annex_code: data.annexCode },
+      });
+    }
+
+    return resultado;
   });
 
 /**

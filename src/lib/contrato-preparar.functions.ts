@@ -239,7 +239,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       registro = resultado.registro;
     }
 
-    const [{ data: valores }, { data: previas }, completude, pendencias] = await Promise.all([
+    const [{ data: valores }, { data: previas }, completude, pendencias, { data: anexosPersistidosRaw }] = await Promise.all([
       supabase
         .from("contract_parameter_values")
         .select("id,grupo,campo,label,obrigatorio,ordem,valor,origem,origem_detalhe,status,conflito,justificativa")
@@ -258,7 +258,30 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
         .order("versao", { ascending: false }),
       supabase.rpc("contract_parameters_completude", { _id: registro.id }),
       supabase.rpc("contract_parameters_pendencias", { _id: registro.id }),
+      // Estado real persistido dos anexos (id, versão vigente, dispensa manual
+      // com motivo) — a leitura em `d.anexos` abaixo é a regra computada,
+      // somente-leitura; esta é a instância gravada em `contract_annexes`,
+      // necessária para a tela oferecer "dispensar com motivo"/"reativar".
+      supabase
+        .from("contract_annexes")
+        .select("id,annex_code,annex_version,status,reason_not_applicable,structured_data")
+        .eq("organization_id", org)
+        .eq("case_id", caso.id)
+        .is("archived_at", null)
+        .order("annex_version", { ascending: false }),
     ]);
+    const anexosPersistidosPorCodigo = new Map<string, any>();
+    for (const l of (anexosPersistidosRaw ?? []) as any[]) {
+      if (!anexosPersistidosPorCodigo.has(l.annex_code)) anexosPersistidosPorCodigo.set(l.annex_code, l);
+    }
+    const anexosPersistidos = [...anexosPersistidosPorCodigo.values()].map((l) => ({
+      id: l.id as string,
+      annexCode: l.annex_code as string,
+      annexVersion: Number(l.annex_version ?? 0),
+      status: l.status as string,
+      reasonNotApplicable: (l.reason_not_applicable ?? null) as string | null,
+      overrideManual: (l.structured_data as any)?.overrideManual === true,
+    }));
 
     const contrato = registro.contract_id
       ? (
@@ -415,6 +438,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       valores: lista,
       previas: previas ?? [],
       anexos,
+      anexosPersistidos,
       completude: (completude as any).data ?? null,
       pendencias: (pendencias as any).data ?? [],
       bloqueios,

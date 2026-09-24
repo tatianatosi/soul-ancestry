@@ -51,10 +51,12 @@ import {
 import {
   aprovarParametros,
   congelarPrevia,
+  dispensarAnexoComMotivo,
   enviarParaAssinatura,
   gerarPrevia,
   lerPrevia,
   materializarAnexosRevisados,
+  reativarAnexoDispensado,
   ressincronizarAnexosDoCaso,
   preencherDeOrigens,
   registrarAssinatura,
@@ -250,6 +252,27 @@ function Pagina() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const dispensarAnexo = useServerFn(dispensarAnexoComMotivo);
+  const mDispensarAnexo = useMutation({
+    mutationFn: (v: { annexCode: string; motivo: string }) =>
+      dispensarAnexo({ data: { id: registroId as string, annexCode: v.annexCode, motivo: v.motivo } }),
+    onSuccess: (r: any) => {
+      toast.success(`Anexo ${r.annexCode} dispensado com motivo.`);
+      invalidar();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const reativarAnexo = useServerFn(reativarAnexoDispensado);
+  const mReativarAnexo = useMutation({
+    mutationFn: (v: { annexCode: string }) => reativarAnexo({ data: { id: registroId as string, annexCode: v.annexCode } }),
+    onSuccess: (r: any) => {
+      toast.success(r.jaAtivo ? `Anexo ${r.annexCode} já seguia pela regra vigente.` : `Anexo ${r.annexCode} voltou a seguir a regra vigente.`);
+      invalidar();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const reconciliarCpf = useServerFn(sincronizarPessoaDoCaso);
   const [planoReconciliacaoCpf, setPlanoReconciliacaoCpf] = useState<any[] | null>(null);
   const [contratoAssinadoReconciliacao, setContratoAssinadoReconciliacao] = useState(false);
@@ -423,6 +446,9 @@ function Pagina() {
     valores: listaOpcional(d.valores) as any[],
   });
   const anexosGovernados = anexosIaV(entradaAnexos);
+  const anexosPersistidosPorCodigo = Object.fromEntries(
+    listaOpcional<any>(d.anexosPersistidos).map((p) => [p.annexCode, p]),
+  );
   const perfilInstitucional = perfilInstitucionalRenderizado(perfilStatusPersistido);
   const gatesContratuais = gatesBloqueados({
     anexos: anexosGovernados,
@@ -876,7 +902,34 @@ function Pagina() {
                   </div>
                 </div>
 
-                <AnexosIaV anexos={anexosGovernados} entrada={entradaAnexos} />
+                <AnexosIaV
+                  anexos={anexosGovernados}
+                  entrada={entradaAnexos}
+                  persistidos={anexosPersistidosPorCodigo}
+                  renderAcoes={
+                    podeEscrever
+                      ? (a, persistido) =>
+                          persistido?.overrideManual ? (
+                            <AcaoOperacional
+                              rotulo="Reativar regra do anexo"
+                              acaoExterna="reativar_anexo_dispensado"
+                              efeito={`Volta o anexo ${a.codigo} a seguir a regra vigente, desfazendo a dispensa manual registrada.`}
+                              className="rounded border border-navy/20 px-2 py-1 text-[11px] text-navy/80"
+                              onConfirmar={() => mReativarAnexo.mutate({ annexCode: a.codigo })}
+                            />
+                          ) : (
+                            <AcaoOperacional
+                              rotulo="Dispensar anexo com motivo"
+                              acaoExterna="dispensar_anexo_com_motivo"
+                              pendenciaGate={persistido ? null : "Anexo ainda não sincronizado — sincronize antes de dispensar."}
+                              efeito={`Marca o anexo ${a.codigo} como não aplicável a este caso por decisão humana, com motivo registrado. Não altera cláusula nem toca instância já anexada/assinada.`}
+                              className="rounded border border-terracotta/40 px-2 py-1 text-[11px] text-terracotta"
+                              onConfirmar={(motivo) => mDispensarAnexo.mutate({ annexCode: a.codigo, motivo })}
+                            />
+                          )
+                      : undefined
+                  }
+                />
                 <div className="mt-3">
                   <PainelPendenciasContratuais anexos={anexosGovernados} gates={gatesContratuais} />
                 </div>

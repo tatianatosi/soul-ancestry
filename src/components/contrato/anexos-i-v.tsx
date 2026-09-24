@@ -1,7 +1,14 @@
 /**
- * Renderização somente-leitura dos Anexos I–V governados:
- * campos com fonte, pendências agrupadas e gates bloqueados.
+ * Renderização dos Anexos I–V governados: campos com fonte, pendências
+ * agrupadas e gates bloqueados. A leitura da regra em si continua
+ * somente-leitura (nada aqui grava sozinho); `persistidos`/`renderAcoes`
+ * são opcionais e só aparecem quando o chamador (a tela de preparação do
+ * contrato) passa a instância persistida real e a ação de dispensar/
+ * reativar com motivo — sem isso o componente se comporta exatamente como
+ * antes (usado assim em `governanca.contrato-base.tsx`).
  */
+
+import type { ReactNode } from "react";
 
 import { ROTULO_ESTADO_ANEXO } from "@/lib/anexos-dicionario";
 import { documentoDoAnexo } from "@/lib/anexos-documento";
@@ -26,10 +33,33 @@ import {
   type GateContratual,
 } from "@/lib/anexos-i-v";
 
-export function AnexosIaV({ anexos, entrada }: { anexos: AnexoGovernado[]; entrada?: EntradaAnexosIaV }) {
+export type AnexoPersistidoResumo = {
+  id: string;
+  annexCode: string;
+  annexVersion: number;
+  status: string;
+  reasonNotApplicable: string | null;
+  overrideManual: boolean;
+};
+
+export function AnexosIaV({
+  anexos,
+  entrada,
+  persistidos,
+  renderAcoes,
+}: {
+  anexos: AnexoGovernado[];
+  entrada?: EntradaAnexosIaV;
+  /** Instância realmente persistida em `contract_annexes` (id, versão, dispensa), por código. */
+  persistidos?: Record<string, AnexoPersistidoResumo>;
+  /** Slot da tela chamadora para os controles de dispensar/reativar deste anexo. */
+  renderAcoes?: (anexo: AnexoGovernado, persistido: AnexoPersistidoResumo | undefined) => ReactNode;
+}) {
   return (
     <div className="space-y-3">
-      {anexos.map((a) => (
+      {anexos.map((a) => {
+        const persistido = persistidos?.[a.codigo];
+        return (
         <article key={a.codigo} id={`anexo-${a.codigo}`} className="rounded-lg border border-navy/15 bg-cream/40 p-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="text-sm font-medium text-navy">{a.titulo}</p>
@@ -38,6 +68,11 @@ export function AnexosIaV({ anexos, entrada }: { anexos: AnexoGovernado[]; entra
               {a.condicional ? " · condicional" : ""}
             </span>
           </div>
+          {persistido?.overrideManual && (
+            <p className="mt-1 rounded border border-terracotta/30 bg-terracotta/5 p-2 text-[11px] text-navy/75">
+              Dispensado manualmente (versão {persistido.annexVersion}): {persistido.reasonNotApplicable}
+            </p>
+          )}
           <p className="mt-1 text-xs text-navy/65">{a.finalidade}</p>
           <p className="mt-0.5 text-[11px] text-navy/50">Regra: {a.regra}</p>
           {a.codigo === "ANEXO_III_AUTORIZACAO_PESQUISA" && (
@@ -127,8 +162,10 @@ export function AnexosIaV({ anexos, entrada }: { anexos: AnexoGovernado[]; entra
               const doc = documentoDoAnexo(a, entrada);
               return doc ? <AnexoDocumento documento={doc} /> : null;
             })()}
+          {renderAcoes && <div className="mt-2 flex flex-wrap gap-2">{renderAcoes(a, persistido)}</div>}
         </article>
-      ))}
+        );
+      })}
     </div>
   );
 }
