@@ -53,6 +53,27 @@ export function estadoDoPlano(gates: GatesPlano, estadoAtual?: string | null): s
   return "liberado_preparacao";
 }
 
+/**
+ * O gate de onboarding está liberado (`estado !== "bloqueado"`)?
+ *
+ * `onboarding_planos.estado` é derivado só disto: `estadoDoPlano` acima
+ * nunca grava outro valor além de "bloqueado"/"liberado_preparacao" pela
+ * aplicação. Por isso `estado !== "bloqueado"` é matematicamente igual a
+ * `motivos_bloqueio.length === 0` — e `case_plans.motivos_bloqueio`
+ * (espelhado desde a migration 2026-09-24) é a fonte preferida, com
+ * `onboarding_planos.estado` como fallback enquanto a linha de case_plans
+ * daquela fase não existir. Usado por fechamento-caso.functions.ts
+ * (onboardingIniciado) e case-service-consolidacao.functions.ts
+ * (onboardingLiberado) — mesma regra, um só lugar.
+ */
+export function onboardingLiberadoDoCaso(input: {
+  motivosBloqueioCasePlans?: unknown;
+  estadoOnboardingPlanos?: string | null;
+}): boolean {
+  if (Array.isArray(input.motivosBloqueioCasePlans)) return input.motivosBloqueioCasePlans.length === 0;
+  return input.estadoOnboardingPlanos != null && input.estadoOnboardingPlanos !== "bloqueado";
+}
+
 /** Onboarding preparado nunca ativa o caso nem abre pesquisa externa. */
 export function podeAtivarCliente(): false {
   return false;

@@ -7,6 +7,7 @@ import { contextoOps, exigirEscrita, type Sb } from "@/lib/ops.server";
 import { avaliarFechamento, DEFINICOES_FECHAMENTO, type GateFechamento } from "@/lib/fechamento-caso";
 import { calcularCadencia } from "@/lib/jornada-cliente";
 import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
+import { onboardingLiberadoDoCaso } from "@/lib/onboarding-plano";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -32,7 +33,7 @@ export const carregarFechamentoCaso = createServerFn({ method: "GET" })
     if (!caso) throw new Error("Caso não encontrado.");
     const c = caso as any;
 
-    const [checklist, contratos, faturas, nucleos, consentimentos, planos, tarefasAbertas, servicos, entregas, alertasCriticos] =
+    const [checklist, contratos, faturas, nucleos, consentimentos, planos, tarefasAbertas, servicos, entregas, alertasCriticos, planoCasePlans] =
       await Promise.all([
         supabase.from("checklist_cadastral").select("status,obrigatorio").eq("case_id", data.casoId).is("archived_at", null),
         supabase.from("contracts").select("id,status,signed_at,signature_reference").eq("case_id", data.casoId).is("archived_at", null),
@@ -53,6 +54,22 @@ export const carregarFechamentoCaso = createServerFn({ method: "GET" })
           .eq("case_id", data.casoId)
           .eq("criticidade", "critico")
           .eq("status", "pending"),
+        /*
+         * case_plans.motivos_bloqueio (migration 2026-09-24) é espelhado a
+         * partir do mesmo cálculo que grava onboarding_planos.estado
+         * ("bloqueado" ⟺ motivos_bloqueio.length > 0 — ver
+         * estadoDoPlano em onboarding-plano.ts). Fonte preferida de
+         * onboardingIniciado logo abaixo, com onboarding_planos.estado
+         * como fallback quando a linha de case_plans daquela fase ainda
+         * não existir.
+         */
+        supabase
+          .from("case_plans")
+          .select("motivos_bloqueio")
+          .eq("case_id", data.casoId)
+          .eq("fase_jornada", "onboarding")
+          .is("archived_at", null)
+          .maybeSingle(),
       ]);
 
     const itens = linhas<any>(checklist, "checklist de cadastro do caso");
@@ -91,9 +108,24 @@ export const carregarFechamentoCaso = createServerFn({ method: "GET" })
     );
 
     const plano = linhas<any>(planos, "planos de onboarding do caso")[0] as any | undefined;
-    const onboardingIniciado = !!plano && plano.estado !== "bloqueado" && plano.estado !== "nao_iniciado";
+    const onboardingIniciado = onboardingLiberadoDoCaso({
+      motivosBloqueioCasePlans: (planoCasePlans.data as any)?.motivos_bloqueio,
+      estadoOnboardingPlanos: plano?.estado ?? null,
+    });
+    /*
+     * Dívida pré-existente, não introduzida por este corte: o checklist de
+     * onboarding (CHECKLIST_INICIAL_PADRAO) só marca "ok" os 2 itens
+     * ligados aos gates (contrato/pagamento) — "Dossiê-mãe identificado" e
+     * "Primeira micro-entrega planejada" nunca são atualizados por nenhum
+     * escritor, e por isso o estado "concluido"/"em_andamento" nunca chega
+     * a ser gravado pela aplicação hoje. Corrigido aqui só o valor morto
+     * do domínio ("ativo"/"em_execucao" nunca existiram no CHECK de
+     * onboarding_planos.estado — só "em_andamento" existe); a flag
+     * continua raramente verdadeira até haver escritor real para os
+     * outros 2 itens do checklist, o que é decisão de produto separada.
+     */
     const onboardingMinimoConcluido =
-      !!plano && ["concluido", "ativo", "em_execucao"].includes(String(plano.estado ?? "")) && !!plano.plano_acao;
+      !!plano && ["concluido", "em_andamento"].includes(String(plano.estado ?? "")) && !!plano.plano_acao;
 
     const servicosLista = linhas<any>(servicos, "serviços do caso");
     const produtoServicoReconciliado = servicosLista.some(

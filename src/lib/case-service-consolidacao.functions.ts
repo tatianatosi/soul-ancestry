@@ -10,6 +10,7 @@ import {
   type ItemCriterio,
 } from "@/lib/case-service-consolidacao";
 import { montarConferencia } from "@/lib/escopo-conferencia.server";
+import { onboardingLiberadoDoCaso } from "@/lib/onboarding-plano";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import {
   avaliarCondicao,
@@ -181,8 +182,18 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
       .eq("case_id", data.caseId)
       .is("archived_at", null)
       .maybeSingle();
+    const { data: planoCasePlans } = await supabase
+      .from("case_plans")
+      .select("motivos_bloqueio")
+      .eq("case_id", data.caseId)
+      .eq("fase_jornada", "onboarding")
+      .is("archived_at", null)
+      .maybeSingle();
 
-    const onboardingLiberado = Boolean(plano && plano.estado !== "bloqueado");
+    const onboardingLiberado = onboardingLiberadoDoCaso({
+      motivosBloqueioCasePlans: (planoCasePlans as any)?.motivos_bloqueio,
+      estadoOnboardingPlanos: plano?.estado ?? null,
+    });
     const planoInicial = avaliarPlanoInicial({
       responsavelUserId: casoFicha?.responsavel_id ?? servico?.responsavel_id ?? null,
       caseServiceStatusPermitido: promocao.statusPermitido,
