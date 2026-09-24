@@ -32,7 +32,7 @@ import { CabecalhoBloco, GovernancaFicha } from "@/components/contrato/ficha-gov
 import { agruparAuditoria, bloqueiosResolutivos, temBloqueioImpeditivo } from "@/lib/bloqueios-dicionario";
 import { GRUPOS, ROTULO_EVENTO_PREVIA } from "@/lib/contrato-parametros.server";
 import { BLOCOS_FICHA, estadoDoBloco } from "@/lib/ficha-familiar";
-import { anexosIaV, entradaDeValores, gatesBloqueados } from "@/lib/anexos-i-v";
+import { anexosIaV, entradaDeValores, gatesBloqueados, pendenciasDosAnexos } from "@/lib/anexos-i-v";
 import { conferirInstancias, statusTelaDeAnexo } from "@/lib/anexos-instancia";
 import { instanciasDocumentaisDoCaso } from "@/lib/anexos-instancia.functions";
 import { InstanciaDocumental } from "@/components/contrato/instancia-documental";
@@ -459,6 +459,13 @@ function Pagina() {
   const anexosPersistidosPorCodigo = Object.fromEntries(
     listaOpcional<any>(d.anexosPersistidos).map((p) => [p.annexCode, p]),
   );
+  // Fila única de pendências (item 5, autorização "Contrato de Uma Hora",
+  // 2026-09-24): soma o que já existe em três lugares distintos e conceitualmente
+  // diferentes (checklist de prontidão, bloqueios de gate, pendências de anexo)
+  // sem fundi-los numa entidade nova — cada contagem ainda aponta para a seção real.
+  const pendenciasChecklist = checklistPre.filter((i) => i.estado !== "concluido").length;
+  const pendenciasAnexos = pendenciasDosAnexos(anexosGovernados).length;
+  const totalPendenciasFicha = pendenciasChecklist + bloqueios.length + pendenciasAnexos;
   const perfilInstitucional = perfilInstitucionalRenderizado(perfilStatusPersistido);
   const gatesContratuais = gatesBloqueados({
     anexos: anexosGovernados,
@@ -575,6 +582,39 @@ function Pagina() {
                 />
               </span>
             </div>
+            <p className="mt-2 text-xs text-navy/70" data-fila-pendencias-ficha>
+              {totalPendenciasFicha === 0 ? (
+                "Sem pendência aberta nesta ficha."
+              ) : (
+                <>
+                  <strong>{totalPendenciasFicha} pendência(s) aberta(s) nesta ficha:</strong>{" "}
+                  {[
+                    pendenciasChecklist ? (
+                      <a key="checklist" href="#checklist-pre-contrato" className="underline underline-offset-2">
+                        {pendenciasChecklist} no checklist pré-contrato
+                      </a>
+                    ) : null,
+                    bloqueios.length ? (
+                      <a key="bloqueios" href="#decisao-humana" className="underline underline-offset-2">
+                        {bloqueios.length} bloqueio(s) de gate
+                      </a>
+                    ) : null,
+                    pendenciasAnexos ? (
+                      <a key="anexos" href="#anexos" className="underline underline-offset-2">
+                        {pendenciasAnexos} em Anexos I–V
+                      </a>
+                    ) : null,
+                  ]
+                    .filter(Boolean)
+                    .map((el, i, arr) => (
+                      <span key={i}>
+                        {el}
+                        {i < arr.length - 1 ? " · " : ""}
+                      </span>
+                    ))}
+                </>
+              )}
+            </p>
             {d.aliasDe && (
               <p className="mt-2 rounded border border-gold/50 bg-gold/10 p-2 text-xs text-navy">
                 Referência legada/interna corrigida. Este fluxo opera no caso <strong>{d.caso.codigo}</strong>. A referência{" "}
@@ -604,7 +644,7 @@ function Pagina() {
           estado, responsável humano e próxima ação; nada é marcado
           concluído sem evidência real.
         */}
-        <details className="rounded-lg border border-navy/15 bg-card p-4">
+        <details id="checklist-pre-contrato" className="rounded-lg border border-navy/15 bg-card p-4">
           <summary className="cursor-pointer text-sm font-medium text-navy">Abrir checklist operacional de pré-contrato</summary>
           <div className="mt-4 space-y-4 border-t border-navy/10 pt-4" data-checklist-pre-contrato>
           <CaCard variante="compacto" titulo="Checklist operacional — pré-contrato">
@@ -633,7 +673,7 @@ function Pagina() {
         </details>
 
         {/* ===================== DECISÃO HUMANA (sempre aberta, elevada) ===================== */}
-        <div className="space-y-4 rounded-2xl border-2 border-navy/15 bg-cream/40 p-4">
+        <div id="decisao-humana" className="space-y-4 rounded-2xl border-2 border-navy/15 bg-cream/40 p-4">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-navy/50">Decisão humana</p>
 
           <div id="bloqueios">
