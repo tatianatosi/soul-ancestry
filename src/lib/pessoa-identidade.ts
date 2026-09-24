@@ -240,3 +240,70 @@ export function montarLinhaDoTempoDaPessoa(
     semData,
   };
 }
+
+export type MaterialDoDossie = {
+  id: string;
+  titulo: string;
+  tipo: string | null;
+  origem: string | null;
+  status: string | null;
+  data: string | null;
+  instituicaoEmissora: string | null;
+};
+
+export type InventarioDossie = {
+  itens: MaterialDoDossie[];
+  /** Tipos-chave (mesmo vocabulário de `TIPOS_DOCUMENTO`) sem nenhum item catalogado. Dito, não omitido. */
+  lacunas: string[];
+};
+
+/**
+ * Tipos-chave para uma pesquisa de cidadania — os mesmos códigos de
+ * `TIPOS_DOCUMENTO` (`fontes-documentos.ts`), não um vocabulário novo.
+ * Cobre só o núcleo documental que quase todo caso precisa; documentos mais
+ * específicos (militar, notarial etc.) não entram na lacuna por padrão —
+ * listar todos os 28 tipos como "lacuna" tornaria o aviso inútil.
+ */
+const TIPOS_CHAVE_DOSSIE = [
+  "certidao_nascimento",
+  "certidao_casamento",
+  "certidao_obito",
+  "naturalizacao",
+  "passaporte",
+] as const;
+
+/**
+ * Inventário do "dossiê mãe" de uma pessoa (24/09/2026, pedido explícito da
+ * Proprietária: "Pessoa 360... aqui está o dossiê mãe de cada pessoa").
+ *
+ * Varredura de dossiê, com escopo deliberadamente interno: agrega o que já
+ * está catalogado em `case_source_documents` para esta pessoa (nunca busca
+ * fonte externa — Drive/Dropbox não têm integração real neste produto).
+ * Ordena cronologicamente pela data do documento (quando existir) e aponta,
+ * sem confirmar nada sozinho, quais tipos-chave ainda não têm nenhum item —
+ * a lacuna é dita, nunca inferida como "documento não existe".
+ */
+export function inventarioDossieDaPessoa(documentos: Record<string, unknown>[]): InventarioDossie {
+  const itens: MaterialDoDossie[] = documentos
+    .map((d) => ({
+      id: String(d["id"]),
+      titulo: String(d["titulo_interno"] ?? d["nome_arquivo"] ?? "Documento sem título").trim(),
+      tipo: (d["tipo_documento"] as string | null) ?? null,
+      origem: (d["origem_documento"] as string | null) ?? null,
+      status: (d["status"] as string | null) ?? null,
+      data: soData(d["data_documento"]) ?? null,
+      instituicaoEmissora: (d["instituicao_emissora"] as string | null) ?? null,
+    }))
+    .sort((a, b) => {
+      // Sem data vai por último — não empurra o item pra "mais antigo".
+      if (!a.data && !b.data) return 0;
+      if (!a.data) return 1;
+      if (!b.data) return -1;
+      return a.data.localeCompare(b.data);
+    });
+
+  const tiposPresentes = new Set(itens.map((i) => i.tipo).filter((t): t is string => !!t));
+  const lacunas = TIPOS_CHAVE_DOSSIE.filter((t) => !tiposPresentes.has(t));
+
+  return { itens, lacunas };
+}

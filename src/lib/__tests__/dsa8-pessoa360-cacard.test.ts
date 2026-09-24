@@ -17,14 +17,15 @@ describe("DSA-8 — CaCard e EstadoVazio aplicados à Pessoa 360", () => {
   });
 
   it("nenhuma seção usa mais <section> ad-hoc — todas são CaCard", () => {
-    // Onze desde 24/09/2026: "Achados de pesquisa" (genealogical_findings)
-    // entrou como 11ª seção — ainda CaCard, nunca <section> ad-hoc de volta.
+    // Doze desde 24/09/2026: "Achados de pesquisa" (11ª, genealogical_findings)
+    // e "Inventário do dossiê" (12ª, case_source_documents) — ainda CaCard,
+    // nunca <section> ad-hoc de volta.
     expect(ARQUIVO).not.toMatch(/<section/);
     expect(ARQUIVO).not.toMatch(/<\/section>/);
     const abertas = ARQUIVO.match(/<CaCard/g) ?? [];
     const fechadas = ARQUIVO.match(/<\/CaCard>/g) ?? [];
-    expect(abertas.length).toBe(11);
-    expect(fechadas.length).toBe(11);
+    expect(abertas.length).toBe(12);
+    expect(fechadas.length).toBe(12);
   });
 
   it("os data-attributes exigidos por outros testes continuam presentes", () => {

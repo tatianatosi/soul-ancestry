@@ -12,9 +12,11 @@ import { salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { DecisaoAposSalvarPessoa } from "@/components/pessoa/decisao-apos-salvar";
 import {
   evidenciaDeMesmaPessoa,
+  inventarioDossieDaPessoa,
   montarLinhaDoTempoDaPessoa,
   type EvidenciaDeElo,
 } from "@/lib/pessoa-identidade";
+import { TIPOS_DOCUMENTO } from "@/lib/fontes-documentos";
 import { cepValido, cpfValido, formatarCep, formatarCpf, formatarTelefone, UFS_BRASIL } from "@/lib/validacao-pessoa";
 import { rotuloFase } from "@/lib/fase-rotulo";
 import { obterProximaAcaoCanonica, SELO_PROXIMA_ACAO } from "@/lib/caso-ficha";
@@ -197,6 +199,7 @@ function Pessoa() {
   const [casoEscolhido, setCasoEscolhido] = useState<Record<string, string>>({});
   const [erroVinculo, setErroVinculo] = useState<string | null>(null);
   const [decisaoAposSalvar, setDecisaoAposSalvar] = useState(false);
+  const [buscaDossie, setBuscaDossie] = useState("");
 
   // CA-VALIDACAO-CPF-CEP (21/09/2026): a máscara já existia, mas nunca havia
   // checagem de dígito/tamanho antes de gravar — dava para salvar um CPF ou
@@ -298,6 +301,7 @@ function Pessoa() {
     fichaGenealogicaEquipe,
     caseMembers,
     achadosPesquisa,
+    materiaisDossie,
   } = q.data;
 
   const linha = montarLinhaDoTempoDaPessoa(
@@ -1061,6 +1065,70 @@ function Pessoa() {
             </ul>
           </CaCard>
         ) : null}
+
+        {/*
+          24/09/2026 — decisão explícita da Proprietária: "Pessoa 360...
+          aqui está o dossiê mãe de cada pessoa". Varredura de dossiê com
+          escopo interno — agrega case_source_documents já catalogados
+          para esta pessoa (nunca Drive/Dropbox, sem integração real neste
+          produto), cronologicamente, com busca por palavra-chave e as
+          lacunas ditas explicitamente. Nunca confirma nem publica nada
+          sozinho; é inventário, a decisão de vincular continua humana.
+        */}
+        <CaCard titulo="Inventário do dossiê" className="border-dashed border-navy/20 bg-cream/20">
+          <p className="text-xs text-navy/55">
+            O que já está catalogado para esta pessoa (nunca busca fonte externa) — a decisão de
+            usar cada material continua humana.
+          </p>
+          {(() => {
+            const inventario = inventarioDossieDaPessoa(materiaisDossie);
+            const filtro = buscaDossie.trim().toLowerCase();
+            const itensFiltrados = filtro
+              ? inventario.itens.filter((i) =>
+                  [i.titulo, rotulo(TIPOS_DOCUMENTO, i.tipo), i.origem, i.instituicaoEmissora]
+                    .filter(Boolean)
+                    .some((campo) => String(campo).toLowerCase().includes(filtro)),
+                )
+              : inventario.itens;
+            return (
+              <>
+                <input
+                  type="search"
+                  value={buscaDossie}
+                  onChange={(e) => setBuscaDossie(e.target.value)}
+                  placeholder="Buscar por título, tipo, origem ou instituição"
+                  className="mt-3 w-full rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                />
+                {inventario.itens.length === 0 ? (
+                  <EstadoVazio mensagem="Nenhum material catalogado para esta pessoa ainda." />
+                ) : itensFiltrados.length === 0 ? (
+                  <p className="mt-2 text-sm text-navy/60">Nenhum material bate com a busca.</p>
+                ) : (
+                  <ul className="mt-3 space-y-2">
+                    {itensFiltrados.map((i) => (
+                      <li key={i.id} className="rounded-lg border border-navy/10 bg-white/40 p-2">
+                        <p className="text-sm font-medium text-navy/85">{i.titulo}</p>
+                        <p className="text-[11px] text-navy/50">
+                          {rotulo(TIPOS_DOCUMENTO, i.tipo)}
+                          {i.origem ? ` · ${i.origem}` : ""}
+                          {i.instituicaoEmissora ? ` · ${i.instituicaoEmissora}` : ""}
+                          {i.data ? ` · ${i.data}` : " · sem data"}
+                          {i.status ? ` · ${i.status}` : ""}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {inventario.lacunas.length > 0 ? (
+                  <p className="mt-3 text-xs text-navy/55">
+                    Ainda sem nenhum material catalogado:{" "}
+                    {inventario.lacunas.map((t) => rotulo(TIPOS_DOCUMENTO, t)).join(", ")}.
+                  </p>
+                ) : null}
+              </>
+            );
+          })()}
+        </CaCard>
 
         {/*
           O elo com o lead. `leads.case_id` era nulo em todo o banco por falta

@@ -288,6 +288,32 @@ export const carregarPessoa = createServerFn({ method: "GET" })
           .order("found_at", { ascending: false })
       : { data: [] as Linha[] };
 
+    /*
+      24/09/2026 — decisão explícita da Proprietária: "Pessoa 360... aqui
+      está o dossiê mãe de cada pessoa" — varredura de dossiê com escopo
+      interno (nunca Drive/Dropbox, sem integração real neste produto).
+      `case_source_documents.pessoa_ref_id` já aponta tanto para
+      case_members.id quanto para research_people.id (mesmo par que
+      fontes-documentos.functions.ts já combina) — só nunca tinha sido
+      agregado na ficha da pessoa.
+    */
+    const idsPessoaRef = [
+      ...new Set([
+        ...caseMembers.filter((m) => m["cliente_id"] === cliente.id).map((m) => m["id"] as string),
+        ...idsPessoaPesquisa,
+      ]),
+    ];
+    const { data: materiaisCatalogados } = idsPessoaRef.length
+      ? await supabase
+          .from("case_source_documents")
+          .select(
+            "id, case_id, titulo_interno, nome_arquivo, tipo_documento, origem_documento, status, data_documento, instituicao_emissora",
+          )
+          .eq("organization_id", organizationId)
+          .in("pessoa_ref_id", idsPessoaRef)
+          .is("archived_at", null)
+      : { data: [] as Linha[] };
+
     return {
       encontrada: true as const,
       cliente: cliente as Linha,
@@ -305,6 +331,7 @@ export const carregarPessoa = createServerFn({ method: "GET" })
       fichaGenealogicaEquipe: outrosDaMesmaPesquisa,
       caseMembers: caseMembers as Linha[],
       achadosPesquisa: (achadosDaPessoa ?? []) as Linha[],
+      materiaisDossie: (materiaisCatalogados ?? []) as Linha[],
     };
   });
 
