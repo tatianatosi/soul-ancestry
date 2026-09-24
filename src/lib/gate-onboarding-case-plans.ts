@@ -1,11 +1,11 @@
 /**
  * Gate de onboarding em case_plans — convivência pré/pós migration.
  *
- * A migration `20260924190000_case_plans_gate_onboarding` está versionada,
- * mas NÃO foi aplicada no banco conectado (decisão da Proprietária,
- * 24/09/2026: não aplicar sem nova autorização de banco). Enquanto isso,
- * qualquer leitura ou escrita dessas colunas precisa dizer o que aconteceu
- * em vez de engolir o erro:
+ * A migration `20260924190000_case_plans_gate_onboarding` foi aplicada em
+ * 24/09/2026 (autorização da Proprietária) e os tipos gerados já trazem as
+ * 7 colunas. A convivência pré-migration permanece como defesa: se algum
+ * ambiente ainda não tiver as colunas, leitura e escrita dizem o que
+ * aconteceu em vez de engolir o erro:
  *
  * - leitura pré-migration: usa onboarding_planos (fonte real do gate) e
  *   devolve o aviso — nunca finge que leu case_plans;

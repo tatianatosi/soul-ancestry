@@ -93,6 +93,10 @@ describe("integrations/supabase/types.ts — estado da migration no banco conect
     expect(estado).not.toBe("parcial");
   });
 
+  it("migration aplicada em 24/09/2026: tipos gerados trazem as 7 colunas (pós-migration)", () => {
+    expect(estado).toBe("pos_migration");
+  });
+
   it("pré-migration: nenhum código lê as colunas pelo tipo gerado sem tratar a ausência", () => {
     if (estado !== "pre_migration") return;
     for (const arquivo of ["src/lib/fechamento-caso.functions.ts", "src/lib/case-service-consolidacao.functions.ts"]) {
