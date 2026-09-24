@@ -208,14 +208,19 @@ export const carregarPessoa = createServerFn({ method: "GET" })
           o registro real dela está em outra tabela e vinculado pelo caso,
           não pelo texto do nome. Trocado para o vínculo real.
         */
-      ids.length
-        ? supabase
-            .from("genealogical_person_profiles")
-            .select("id, nome_completo, status_verificacao, case_id")
-            .eq("organization_id", organizationId)
-            .in("case_id", ids)
-            .is("archived_at", null)
-        : { data: [] },
+      /*
+        24/09/2026 — Pessoa Unificada, corte C: o perfil genealógico só
+        aparece aqui quando alguém o VINCULOU a esta pessoa (client_id,
+        escolha humana em /pessoas-linhagens/$caseId). Antes a consulta
+        trazia todos os perfis do caso — o perfil do avô aparecia na ficha
+        da neta. Nunca por nome, nunca por caso inteiro, nunca fusão.
+      */
+      supabase
+        .from("genealogical_person_profiles")
+        .select("id, nome_completo, status_verificacao, case_id")
+        .eq("organization_id", organizationId)
+        .eq("client_id", data.clienteId)
+        .is("archived_at", null),
       ids.length
         ? supabase
             .from("research_cases")

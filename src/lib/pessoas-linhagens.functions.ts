@@ -7,7 +7,7 @@ import { MODULOS_HISTORICOS } from "@/lib/genealogia-modulos";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { normalizarNome } from "@/lib/pessoa-identidade";
-import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
+import { clienteElegivelParaPerfil, pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -449,6 +449,63 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
     if (data.caseId && (TABELAS[data.tabela] as string[]).includes("case_id"))
       valores["case_id"] = data.caseId;
 
+    /*
+      24/09/2026 — Perfil genealógico é separado e opcional; o vínculo com a
+      Pessoa Canônica só vale para quem já está no caso (antes a regra só
+      existia no seletor da tela). Nunca funde: grava só o ponteiro
+      client_id, e vincular/desvincular fica auditado.
+    */
+    const mexeNoVinculo = data.tabela === "genealogical_person_profiles" && "client_id" in valores;
+    let clienteAnterior: string | null = null;
+    let caseDoPerfil: string | null = (data.caseId as string | undefined) ?? null;
+    if (mexeNoVinculo) {
+      if (data.id) {
+        const { data: atual } = await supabase
+          .from("genealogical_person_profiles")
+          .select("client_id, case_id")
+          .eq("id", data.id)
+          .eq("organization_id", organizationId)
+          .maybeSingle();
+        clienteAnterior = ((atual as any)?.client_id as string | null) ?? null;
+        caseDoPerfil = caseDoPerfil ?? (((atual as any)?.case_id as string | null) ?? null);
+      }
+      const novoCliente = (valores["client_id"] as string | null) || null;
+      valores["client_id"] = novoCliente;
+      if (novoCliente) {
+        if (!caseDoPerfil) throw new Error("Perfil sem caso: não há como conferir se a pessoa pertence a ele.");
+        const pessoas = await pessoasDoCasoComFallbackNucleo(supabase, caseDoPerfil);
+        if (!clienteElegivelParaPerfil(novoCliente, pessoas)) {
+          throw new Error("Só é possível vincular o perfil a uma pessoa cadastrada que já faz parte deste caso.");
+        }
+      }
+    }
+
+    const registrarVinculo = async (perfilId: string) => {
+      if (!mexeNoVinculo) return;
+      const novo = (valores["client_id"] as string | null) ?? null;
+      if (novo === clienteAnterior) return;
+      await supabase.from("audit_logs").insert({
+        organization_id: organizationId,
+        entidade: "genealogical_person_profiles",
+        entidade_id: perfilId,
+        acao: novo ? "perfil_genealogico_vinculado_a_pessoa" : "perfil_genealogico_desvinculado",
+        user_id: context.userId as string,
+        valores_anteriores: { client_id: clienteAnterior },
+        valores_posteriores: { client_id: novo },
+      });
+      if (caseDoPerfil) {
+        await registrarTimelineCaso(supabase, {
+          organizationId,
+          caseId: caseDoPerfil,
+          eventType: "caso",
+          title: novo ? "Perfil genealógico vinculado à pessoa cadastrada" : "Perfil genealógico desvinculado da pessoa",
+          sourceEntityType: "genealogical_person_profiles",
+          sourceEntityId: perfilId,
+          userId: context.userId as string,
+        });
+      }
+    };
+
     if (data.id) {
       const r = await gravarComVerificacao({
         supabase,
@@ -458,6 +515,7 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
         userId: context.userId as string,
         payload: valores,
       });
+      await registrarVinculo(data.id);
       return { registro: r.registro } as any;
     }
 
@@ -468,6 +526,7 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: valores,
     });
+    await registrarVinculo(r.id);
     return { registro: r.registro } as any;
   });
 

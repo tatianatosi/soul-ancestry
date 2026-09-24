@@ -34,7 +34,7 @@ describe("pessoas-linhagens.functions.ts — client_id editável e candidatos do
   });
 
   it("importa pessoasDoCasoComFallbackNucleo de @/lib/pessoa-vinculo (função canônica já usada por Caso 360/Pesquisa/Documentos)", () => {
-    expect(funcoes).toContain('import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";');
+    expect(funcoes).toMatch(/import \{[^}]*\bpessoasDoCasoComFallbackNucleo\b[^}]*\} from "@\/lib\/pessoa-vinculo";/);
   });
 });
 

@@ -182,3 +182,14 @@ export function sinalCpfDaPessoaPorCaso(
   }
   return saida;
 }
+
+/**
+ * Perfil genealógico só se vincula a uma Pessoa Canônica que já faz parte
+ * do caso (case_members ou núcleo com cliente_id). Nunca por nome.
+ */
+export function clienteElegivelParaPerfil(
+  clienteId: string,
+  pessoasDoCaso: { cliente_id?: string | null }[],
+): boolean {
+  return pessoasDoCaso.some((p) => p.cliente_id === clienteId);
+}

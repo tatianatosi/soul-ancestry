@@ -1036,12 +1036,33 @@ function Pessoa() {
               </p>
             )}
 
+            {/*
+              24/09/2026 — corte C: só perfis VINCULADOS a esta pessoa por
+              escolha humana (genealogical_person_profiles.client_id). O
+              vínculo e o desvínculo acontecem na ficha genealógica do caso,
+              nunca aqui e nunca por fusão automática.
+            */}
             {perfisGenealogicos.length > 0 ? (
-              <ul className="mt-3 space-y-1 border-t border-navy/10 pt-2">
+              <ul
+                className="mt-3 space-y-1 border-t border-navy/10 pt-2"
+                data-pessoa360-perfil-vinculado
+              >
                 {perfisGenealogicos.map((p) => (
                   <li key={p.id} className="text-sm text-navy/80">
-                    Perfil 360°: {p.nome_completo}{" "}
+                    Perfil genealógico vinculado: {p.nome_completo}{" "}
                     <span className="text-[11px] text-navy/50">· {p.status_verificacao}</span>
+                    {p.case_id ? (
+                      <>
+                        {" "}
+                        <Link
+                          to="/pessoas-linhagens/$caseId"
+                          params={{ caseId: String(p.case_id) }}
+                          className="text-xs text-navy underline underline-offset-4"
+                        >
+                          Conferir vínculo
+                        </Link>
+                      </>
+                    ) : null}
                   </li>
                 ))}
               </ul>
