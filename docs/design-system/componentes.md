@@ -90,9 +90,13 @@ iniciativa **Painel → Cartão Canônico**:
 - **`conciliacao-catalogo.tsx` migrado** (2026-09-24, mesmo mecanismo):
   os 2 blocos (Síntese da conciliação, um por proposta na lista) viram
   `<CaCard variante="compacto">`. Visual idêntico.
+- **`qualidade.tsx` migrado** (2026-09-24) — correção de escopo: a rota
+  em si nunca usava `Painel` (o `<PainelQualidade>` era um falso
+  positivo de grep, componente próprio); o uso real estava em
+  `src/components/qualidade/painel.tsx` (o componente `PainelQualidade`),
+  6 blocos migrados para `<CaCard variante="compacto">`. Visual idêntico.
 - **Famílias ainda pendentes** (continuam em `Painel`, sem tocar neste
   corte): CRM/Comercial (demais rotas do módulo), Pesquisa, Privacidade,
   Ops, Financeiro (parcial — já usa `CaCard` `padrao` em blocos próprios
-  desde DSA-7) e demais rotas isoladas (`qualidade.tsx`,
-  `ops-excecoes.tsx`). Cada família migra em corte próprio, com
-  aprovação visual antes do merge.
+  desde DSA-7) e a rota isolada `ops-excecoes.tsx`. Cada família migra em
+  corte próprio, com aprovação visual antes do merge.

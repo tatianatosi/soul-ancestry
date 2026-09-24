@@ -5,7 +5,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { Campo, Gaveta, Painel, Selo, inputCls } from "@/components/comercial/base";
+import { Campo, Gaveta, Selo, inputCls } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import {
   exportarCsv,
   listarChecklists,
@@ -370,7 +371,7 @@ function AbaChecklists() {
       </div>
 
       {!casoId && (
-        <Painel titulo="Modelos por tipo de serviço e fase">
+        <CaCard variante="compacto" titulo="Modelos por tipo de serviço e fase">
           <div className="space-y-2">
             {modelos.map((m: Linha) => (
               <div key={m["id"]} className="flex flex-wrap items-center gap-2 border-b border-navy/5 pb-2 text-sm">
@@ -382,12 +383,12 @@ function AbaChecklists() {
               </div>
             ))}
           </div>
-        </Painel>
+        </CaCard>
       )}
 
       {casoId &&
         Object.entries(porFase).map(([fase, lista]) => (
-          <Painel key={fase} titulo={`Fase: ${fase}`}>
+          <CaCard variante="compacto" key={fase} titulo={`Fase: ${fase}`}>
             <div className="space-y-2">
               {lista.map((i) => (
                 <div key={i["id"]} className="rounded-lg border border-navy/10 p-3">
@@ -429,7 +430,7 @@ function AbaChecklists() {
                 </div>
               ))}
             </div>
-          </Painel>
+          </CaCard>
         ))}
     </div>
   );
@@ -495,15 +496,15 @@ function AbaSemanal() {
         ))}
       </div>
 
-      <Painel titulo="Inconsistências em aberto por severidade">
+      <CaCard variante="compacto" titulo="Inconsistências em aberto por severidade">
         <div className="flex flex-wrap gap-2">
           {SEVERIDADES.map((s) => (
             <Selo key={s} texto={`${ROTULO_SEVERIDADE[s]}: ${inconsistencias[s] ?? 0}`} tom={TOM_SEVERIDADE[s]} />
           ))}
         </div>
-      </Painel>
+      </CaCard>
 
-      <Painel titulo="Carga por responsável">
+      <CaCard variante="compacto" titulo="Carga por responsável">
         {carga.length === 0 && <p className="text-sm text-navy/60">Sem tarefas abertas na semana.</p>}
         <ul className="space-y-1 text-sm">
           {carga.map((c) => (
@@ -513,7 +514,7 @@ function AbaSemanal() {
             </li>
           ))}
         </ul>
-      </Painel>
+      </CaCard>
     </div>
   );
 }
@@ -545,7 +546,7 @@ function AbaExportacao() {
 
   return (
     <div className="space-y-4">
-      <Painel titulo="Exportar em CSV">
+      <CaCard variante="compacto" titulo="Exportar em CSV">
         {pendenciaExportacao ? (
           <p className="mb-3 rounded-lg border border-navy/15 bg-navy/5 p-3 text-xs text-navy/70">
             Pendência registrada: {pendenciaExportacao}
@@ -570,9 +571,9 @@ function AbaExportacao() {
         >
           Revisar campos e exportar
         </button>
-      </Painel>
+      </CaCard>
 
-      <Painel titulo="Histórico de exportações">
+      <CaCard variante="compacto" titulo="Histórico de exportações">
         {historico.isError ? (
           <p role="alert" className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
             Não foi possível carregar o histórico de exportações — a lista está vazia por falha de consulta.
@@ -596,7 +597,7 @@ function AbaExportacao() {
             </li>
           ))}
         </ul>
-      </Painel>
+      </CaCard>
 
       {confirmando && (
         <Gaveta titulo="Confirmar exportação" aoFechar={() => setConfirmando(false)}>
