@@ -78,9 +78,13 @@ iniciativa **Painel → Cartão Canônico**:
   `regra-comercial`, `painel-bloqueios`, `escopo-proposta`,
   `painel-preparacao`). Visual idêntico ao anterior (`variante="compacto"`)
   — a migração troca a superfície de chamada, não a aparência.
+- **`propostas.tsx` migrado** (2026-09-24, mesmo mecanismo): os 6 blocos
+  (Resumo, Mover status, Renovar validade, Editar, Criar versão para
+  ajuste, Histórico) viram `<CaCard variante="compacto">`. Visual idêntico.
 - **Famílias ainda pendentes** (continuam em `Painel`, sem tocar neste
-  corte): CRM/Comercial, Pesquisa, Privacidade, Ops, Financeiro (parcial —
-  já usa `CaCard` `padrao` em blocos próprios desde DSA-7) e demais rotas
-  isoladas (`propostas.tsx`, `ordens-servico.tsx`, `divergencias-catalogo.
-  tsx`, `conciliacao-catalogo.tsx`, `qualidade.tsx`, `ops-excecoes.tsx`).
-  Cada família migra em corte próprio, com aprovação visual antes do merge.
+  corte): CRM/Comercial (demais rotas do módulo), Pesquisa, Privacidade,
+  Ops, Financeiro (parcial — já usa `CaCard` `padrao` em blocos próprios
+  desde DSA-7) e demais rotas isoladas (`ordens-servico.tsx`,
+  `divergencias-catalogo.tsx`, `conciliacao-catalogo.tsx`, `qualidade.tsx`,
+  `ops-excecoes.tsx`). Cada família migra em corte próprio, com aprovação
+  visual antes do merge.

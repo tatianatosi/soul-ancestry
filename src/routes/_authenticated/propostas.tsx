@@ -9,12 +9,12 @@ import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { CaCard } from "@/components/ui/ca-card";
 import {
   Campo,
   FiltroStatus,
   Gaveta,
   Historico,
-  Painel,
   ROTULO_PROPOSTA,
   Selo,
   dataBr,
@@ -353,7 +353,7 @@ function PropostasPage() {
 
       {detalhe ? (
         <Gaveta titulo={`Proposta v${String(detalhe["versao"] ?? 1)}`} aoFechar={() => setDetalhe(null)}>
-          <Painel titulo="Resumo">
+          <CaCard variante="compacto" titulo="Resumo">
             <dl className="grid gap-2 text-sm sm:grid-cols-2">
               <div>
                 <dt className="text-navy/60">Cliente</dt>
@@ -399,7 +399,7 @@ function PropostasPage() {
                 <dd className="whitespace-pre-wrap">{String(detalhe["observacoes_internas"] ?? "—")}</dd>
               </div>
             </dl>
-          </Painel>
+          </CaCard>
 
           {detalhe["case_id"] ? (
             <details className="rounded-xl border border-navy/15 bg-cream/40 p-3">
@@ -428,7 +428,7 @@ function PropostasPage() {
 
           {(
             <>
-              <Painel titulo="Mover status">
+              <CaCard variante="compacto" titulo="Mover status">
                 <div className="flex flex-wrap gap-2">
                   {(FLUXO["proposals"]?.[String(detalhe["status"])] ?? []).map((destino) => (
                     <button
@@ -449,9 +449,9 @@ function PropostasPage() {
                   Proposta vencida não pode ser aprovada sem renovação de validade registrada, e aprovar substitui
                   automaticamente a proposta aprovada anterior do mesmo cliente.
                 </p>
-              </Painel>
+              </CaCard>
 
-              <Painel titulo="Renovar validade">
+              <CaCard variante="compacto" titulo="Renovar validade">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Campo rotulo="Nova validade">
                     <input
@@ -482,9 +482,9 @@ function PropostasPage() {
                 >
                   Registrar renovação
                 </button>
-              </Painel>
+              </CaCard>
 
-              <Painel titulo="Editar">
+              <CaCard variante="compacto" titulo="Editar">
                 <button
                   onClick={() => {
                     setForm({
@@ -522,9 +522,9 @@ function PropostasPage() {
                     onConfirmar={(motivo) => mRestaurar.mutate({ id: String(detalhe["id"]), motivo })}
                   />
                 ) : null}
-              </Painel>
+              </CaCard>
 
-              <Painel titulo="Criar versão para ajuste">
+              <CaCard variante="compacto" titulo="Criar versão para ajuste">
                 <p className="text-sm text-navy/70">
                   Duplica esta proposta como rascunho editável. Nada é excluído: a versão anterior permanece no histórico e deixa de
                   valer para gerar contrato.
@@ -548,13 +548,13 @@ function PropostasPage() {
                     }}
                   />
                 </div>
-              </Painel>
+              </CaCard>
             </>
           )}
 
-          <Painel titulo="Histórico">
+          <CaCard variante="compacto" titulo="Histórico">
             <Historico entidade="proposals" id={String(detalhe["id"])} />
-          </Painel>
+          </CaCard>
         </Gaveta>
       ) : null}
 
