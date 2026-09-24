@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
 import { publicacoesParaCliente } from "@/lib/projecoes-cliente";
+import { entregasLiberadasParaCliente } from "@/lib/portal-entregas";
 import { ehFixtureLinha, semFixtures } from "@/lib/fixtures";
 import { projetarProximaAcaoCliente, sinaisDoCasoPortal } from "@/lib/motor-caso";
 
@@ -481,9 +482,7 @@ export const minhasEntregas = createServerFn({ method: "GET" })
     const nome = new Map(((casos.data ?? []) as any[]).map((c) => [c.id, c.titulo]));
     const lista = semFixtures((docs.data ?? []) as any[]);
     return {
-      entregas: lista
-        .filter((d) => d.liberado_cliente === true)
-        .map((d) => ({ id: d.id, caseId: d.case_id as string | null, titulo: d.titulo, caso: nome.get(d.case_id) ?? "", liberadoEm: d.liberado_em })),
+      entregas: entregasLiberadasParaCliente(lista, nome),
       envios: lista
         .filter((d) => d.origem === "cliente")
         .map((d) => ({

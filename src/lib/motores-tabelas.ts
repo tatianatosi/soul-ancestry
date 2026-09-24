@@ -193,7 +193,7 @@ export const MOTORES_TABELAS = [
     lacunas: [
       LACUNA_SEM_PROVA,
       "Escrita confirma só a linha afetada (select id); não relê nem compara o checklist gravado.",
-      "Migration 20260924190000 (7 colunas de gate em case_plans) versionada mas não aplicada no banco conectado — types.ts regenerado sem elas.",
+      "Migration 20260924190000 aplicada em 24/09/2026 (autorização da Proprietária); espelho de motivos_bloqueio em case_plans ainda depende do backfill pela tela /governanca/migracao-onboarding-gate.",
     ] as string[],
     homologacaoProprietaria: HOMOLOGACAO_PENDENTE,
     provaAutenticada: null as string | null,

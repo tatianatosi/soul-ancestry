@@ -125,17 +125,25 @@ Motor P4 · Writer `criarPrimeiraMicroentregaOnboarding` (`src/lib/onboarding-pl
 | Isolamento | Com um segundo cliente de H2, nada de H1 aparece. Isolamento A×B só vale com os dois logins. |
 | Resultado | ☐ |
 
-## Migration de onboarding (não aplicar sem autorização)
+<a id="migration"></a>
+## Migration de onboarding — aplicada em 2026-09-24
 
-A migration `20260924190000_case_plans_gate_onboarding` está versionada e
-**não aplicada** no banco conectado. Enquanto isso:
+A migration `20260924190000_case_plans_gate_onboarding` foi aplicada no banco
+conectado em 2026-09-24, com autorização explícita da Proprietária ("Pode
+efetivar a migração"): 7 colunas nullable em `case_plans`
+(`motivos_bloqueio` com default `[]`), 2 CHECKs, registro em
+`supabase_migrations.schema_migrations`. Nenhum dado foi alterado; sem
+backfill.
 
-- `/governanca/migracao-onboarding-gate` → **Ver o que será feito** mostra o
-  aviso de colunas ausentes e não grava nada;
-- **Recalcular gates, checklist e tarefas** grava em `onboarding_planos` e
-  mostra um aviso informando que o espelho em `case_plans` não foi aplicado;
-- o fechamento do caso e a consolidação do case_service leem o gate de
-  `onboarding_planos` e devolvem o aviso.
+Regra de leitura: com `case_plans` (fase onboarding) e `onboarding_planos`
+presentes, o gate só é considerado liberado quando **as duas** dizem
+liberado — um `[]` ainda não espelhado não libera nada.
 
-Registrar esse aviso num print é suficiente para `BLOQUEADO_POR_DECISAO`
-neste item até a autorização de banco.
+| Passo | Conteúdo |
+|---|---|
+| URL | `/governanca/migracao-onboarding-gate` |
+| Ação 1 | **Ver o que será feito**. Esperado: nenhum aviso de coluna ausente; lista de casos com "Vai sincronizar", "Já sincronizado" ou "Sem case_plans (fase onboarding)". No dia da aplicação havia 1 plano de onboarding e nenhuma linha de `case_plans` na fase onboarding → 1 caso "sem case_plans". |
+| Ação 2 | Se houver "Vai sincronizar": **Sincronizar agora**, recarregar e repetir a prévia (deve virar "Já sincronizado"). |
+| Integração | No Caso 360 do caso, **Recalcular gates, checklist e tarefas** não mostra mais aviso de migration pendente (pode mostrar "o caso ainda não tem plano de jornada na fase de onboarding"). |
+| Permissão | Escrita na organização. |
+| Resultado | ☐ |

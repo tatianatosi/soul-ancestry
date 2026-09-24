@@ -5,6 +5,9 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { organizacaoDo } from "@/lib/caso-canonico.server";
+import { ehFixtureLinha, semFixtures } from "@/lib/fixtures";
+import { entregasLiberadasParaCliente } from "@/lib/portal-entregas";
+import { publicacoesParaCliente, type ProjecaoBruta, type PublicacaoCliente } from "@/lib/projecoes-cliente";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -213,25 +216,23 @@ export const portalContexto = createServerFn({ method: "GET" })
     };
   });
 
+/*
+ * 24/09/2026 — reader sanitizado (decisão da Proprietária). Estas duas
+ * funções liam `evidencias` (tabela interna; só a RLS `liberada_cliente`
+ * separava o cliente do conteúdo de pesquisa). Agora usam as mesmas fontes
+ * publicadas do App: `portal_casos` + `portal_projecoes` (conteúdo já
+ * sanitizado, via publicacoesParaCliente) e `documents` liberados (mesma
+ * regra da aba Documentos). Nenhuma evidência interna cruza a fronteira.
+ */
 export const portalCaso = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { id: string }) => data)
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const [caso, evidencias] = await Promise.all([
-      supabase
-        .from("portal_casos")
-        .select("id, codigo, titulo, pais, via, status, ativo, updated_at")
-        .eq("id", data.id)
-        .maybeSingle(),
-      supabase
-        .from("evidencias")
-        .select("id, titulo, tipo, status, descricao, updated_at")
-        .eq("caso_id", data.id)
-        .order("updated_at", { ascending: false }),
-    ]);
-    if (!caso.data) {
+    const h = await import("./portal-cliente.server");
+    const caso = await h.casoAutorizado(supabase, data.id);
+    if (!caso || ehFixtureLinha(caso as any)) {
       // Acesso indevido a um caso não autorizado: registrar evento de auditoria
       // sem gravar identificador de caso nem dado pessoal nos metadados.
       const helpers = await import("./portal.server");
@@ -240,7 +241,7 @@ export const portalCaso = createServerFn({ method: "GET" })
         .select("id, organization_id")
         .eq("auth_user_id", context.userId)
         .maybeSingle();
-      if (acesso.data) {
+      if (acesso.data && !caso) {
         await helpers.registrarEvento({
           organizationId: acesso.data.organization_id,
           acessoId: acesso.data.id,
@@ -249,22 +250,41 @@ export const portalCaso = createServerFn({ method: "GET" })
           metadata: { motivo: "caso_nao_autorizado", superficie: "portal_caso" },
         });
       }
-      return { caso: null, evidencias: [] };
+      return { caso: null, publicacoes: [] as PublicacaoCliente[] };
     }
-    return { caso: caso.data as any, evidencias: (evidencias.data ?? []) as any[] };
+    const { data: projecoes } = await supabase
+      .from("portal_projecoes")
+      .select("id, case_id, projection_type, content_sanitized, effective_from, updated_at")
+      .eq("case_id", data.id);
+    return {
+      caso: {
+        id: caso.id as string,
+        codigo: (caso.codigo as string | null) ?? null,
+        titulo: caso.titulo as string,
+        pais: (caso.pais as string | null) ?? null,
+        via: (caso.via as string | null) ?? null,
+        status: (caso.status as string | null) ?? null,
+        ativo: (caso.ativo as boolean | null) ?? null,
+        updated_at: (caso.updated_at as string | null) ?? null,
+      },
+      publicacoes: publicacoesParaCliente((projecoes ?? []) as ProjecaoBruta[]),
+    };
   });
-
 
 export const portalDocumentos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const { data } = await supabase
-      .from("evidencias")
-      .select("id, caso_id, titulo, tipo, status, descricao, updated_at")
-      .order("updated_at", { ascending: false });
-    return (data ?? []) as any[];
+    const [docs, casos] = await Promise.all([
+      supabase
+        .from("documents")
+        .select("id, case_id, titulo, liberado_cliente, liberado_em, is_demo")
+        .order("created_at", { ascending: false }),
+      supabase.from("portal_casos").select("id, titulo"),
+    ]);
+    const nome = new Map(((casos.data ?? []) as any[]).map((c) => [c.id, c.titulo]));
+    return entregasLiberadasParaCliente(semFixtures((docs.data ?? []) as any[]), nome);
   });
 
 export const portalProposta = createServerFn({ method: "GET" })

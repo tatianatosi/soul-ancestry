@@ -65,6 +65,9 @@ const TABELAS_PROIBIDAS = [
   "case_plans",
   "research_people",
   "evidences",
+  // 24/09/2026 — portalCaso/portalDocumentos passaram a reader sanitizado;
+  // nenhuma leitura de evidência interna no caminho do App.
+  "evidencias",
 ];
 
 const MODULOS_DESK_PROIBIDOS = [
@@ -150,11 +153,43 @@ describe("App Cliente — telas não citam os campos internos", () => {
   );
 });
 
-describe("dívida declarada — leitores órfãos de evidencias no portal", () => {
-  it("portalCaso e portalDocumentos não são usados por nenhuma tela do App", () => {
-    for (const [arquivo, imps] of alcancados) {
-      if (!imps.includes("@/lib/portal.functions")) continue;
-      expect(readFileSync(arquivo, "utf8"), arquivo).not.toMatch(/\bportal(Caso|Documentos)\b/);
-    }
+describe("reader sanitizado — portalCaso e portalDocumentos", () => {
+  const portal = readFileSync("src/lib/portal.functions.ts", "utf8");
+  const trecho = portal.slice(portal.indexOf("export const portalCaso"), portal.indexOf("export const portalProposta"));
+
+  it("leem só fontes publicadas: portal_casos, portal_projecoes e documents liberados", () => {
+    expect(trecho).not.toContain('.from("evidencias")');
+    expect(trecho).toContain("h.casoAutorizado(supabase, data.id)");
+    expect(trecho).toContain('.from("portal_projecoes")');
+    expect(trecho).toContain("publicacoesParaCliente(");
+    expect(trecho).toContain("entregasLiberadasParaCliente(semFixtures(");
+  });
+
+  it("caso não autorizado continua registrando access_denied e não devolve conteúdo", () => {
+    expect(trecho).toContain('tipo: "access_denied"');
+    expect(trecho).toContain("return { caso: null, publicacoes: [] as PublicacaoCliente[] }");
+  });
+
+  it("a aba Documentos e portalDocumentos usam a mesma regra de entrega", () => {
+    const cliente = readFileSync("src/lib/portal-cliente.functions.ts", "utf8");
+    expect(cliente).toContain("entregas: entregasLiberadasParaCliente(lista, nome)");
+  });
+});
+
+describe("entregasLiberadasParaCliente — só documento liberado", () => {
+  it("descarta o que não foi liberado e resolve o nome do caso", async () => {
+    const { entregasLiberadasParaCliente } = await import("@/lib/portal-entregas");
+    const nome = new Map([["c1", "Caso da família"]]);
+    const r = entregasLiberadasParaCliente(
+      [
+        { id: "d1", case_id: "c1", titulo: "Certidão publicada", liberado_cliente: true, liberado_em: "2026-09-20" },
+        { id: "d2", case_id: "c1", titulo: "Rascunho interno", liberado_cliente: false },
+        { id: "d3", case_id: "c1", titulo: "Sem decisão", liberado_cliente: null },
+      ],
+      nome,
+    );
+    expect(r).toEqual([
+      { id: "d1", caseId: "c1", titulo: "Certidão publicada", caso: "Caso da família", liberadoEm: "2026-09-20" },
+    ]);
   });
 });

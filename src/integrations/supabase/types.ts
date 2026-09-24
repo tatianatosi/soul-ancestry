@@ -1923,6 +1923,7 @@ export type Database = {
       }
       case_plans: {
         Row: {
+          ambiente_autorizado: string | null
           archive_motivo: string | null
           archived_at: string | null
           archived_by: string | null
@@ -1936,16 +1937,22 @@ export type Database = {
           dependencias_cliente: string[]
           dependencias_terceiros: string[]
           dias_sem_touchpoint: number
+          dossie_mae_referencia: string | null
+          dossie_mae_status: string | null
           entrega_robusta_atual: string | null
           entregas: string[]
           etapa: string | null
           family_id: string | null
           fase_jornada: string
           fontes: Json
+          grupo_familiar_status: string | null
           id: string
+          inicio_previsto: string | null
           marco_atual: string | null
           marcos: string[]
           microentregas: string[]
+          motivos_bloqueio: Json
+          nivel_acesso: string | null
           objetivo: string | null
           observacao_interna: string | null
           organization_id: string
@@ -1971,6 +1978,7 @@ export type Database = {
           versao: number
         }
         Insert: {
+          ambiente_autorizado?: string | null
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -1984,16 +1992,22 @@ export type Database = {
           dependencias_cliente?: string[]
           dependencias_terceiros?: string[]
           dias_sem_touchpoint?: number
+          dossie_mae_referencia?: string | null
+          dossie_mae_status?: string | null
           entrega_robusta_atual?: string | null
           entregas?: string[]
           etapa?: string | null
           family_id?: string | null
           fase_jornada?: string
           fontes?: Json
+          grupo_familiar_status?: string | null
           id?: string
+          inicio_previsto?: string | null
           marco_atual?: string | null
           marcos?: string[]
           microentregas?: string[]
+          motivos_bloqueio?: Json
+          nivel_acesso?: string | null
           objetivo?: string | null
           observacao_interna?: string | null
           organization_id: string
@@ -2019,6 +2033,7 @@ export type Database = {
           versao?: number
         }
         Update: {
+          ambiente_autorizado?: string | null
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -2032,16 +2047,22 @@ export type Database = {
           dependencias_cliente?: string[]
           dependencias_terceiros?: string[]
           dias_sem_touchpoint?: number
+          dossie_mae_referencia?: string | null
+          dossie_mae_status?: string | null
           entrega_robusta_atual?: string | null
           entregas?: string[]
           etapa?: string | null
           family_id?: string | null
           fase_jornada?: string
           fontes?: Json
+          grupo_familiar_status?: string | null
           id?: string
+          inicio_previsto?: string | null
           marco_atual?: string | null
           marcos?: string[]
           microentregas?: string[]
+          motivos_bloqueio?: Json
+          nivel_acesso?: string | null
           objetivo?: string | null
           observacao_interna?: string | null
           organization_id?: string

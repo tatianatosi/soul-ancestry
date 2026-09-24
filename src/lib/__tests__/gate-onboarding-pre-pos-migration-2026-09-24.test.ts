@@ -90,8 +90,12 @@ describe("PÓS-migration", () => {
   it("leitura: usa case_plans.motivos_bloqueio", () => {
     const l = lerGateCasePlans({ data: { motivos_bloqueio: [] }, error: null });
     expect(l.estado).toBe("pos_migration");
+    expect(
+      onboardingLiberadoDoCaso({ motivosBloqueioCasePlans: motivosDaLeitura(l), estadoOnboardingPlanos: "liberado_preparacao" }),
+    ).toBe(true);
+    // Default [] ainda não espelhado não libera o que onboarding_planos bloqueia.
     expect(onboardingLiberadoDoCaso({ motivosBloqueioCasePlans: motivosDaLeitura(l), estadoOnboardingPlanos: "bloqueado" })).toBe(
-      true,
+      false,
     );
   });
   it("leitura sem linha de case_plans cai para onboarding_planos pela regra existente", () => {

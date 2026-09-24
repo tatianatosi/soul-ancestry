@@ -18,11 +18,24 @@ import { onboardingLiberadoDoCaso } from "@/lib/onboarding-plano";
  */
 
 describe("onboardingLiberadoDoCaso", () => {
-  it("prefere case_plans.motivos_bloqueio quando é um array (mesmo vazio)", () => {
-    expect(onboardingLiberadoDoCaso({ motivosBloqueioCasePlans: [], estadoOnboardingPlanos: "bloqueado" })).toBe(true);
+  it("usa case_plans.motivos_bloqueio quando é a única fonte", () => {
+    expect(onboardingLiberadoDoCaso({ motivosBloqueioCasePlans: [], estadoOnboardingPlanos: null })).toBe(true);
     expect(
       onboardingLiberadoDoCaso({ motivosBloqueioCasePlans: ["Pagamento inicial confirmado pendente."], estadoOnboardingPlanos: null }),
     ).toBe(false);
+  });
+
+  /*
+   * 24/09/2026 — regra conservadora antes de efetivar a migration: o
+   * default de case_plans.motivos_bloqueio é []. Linha não espelhada ainda
+   * não pode liberar um gate que onboarding_planos diz estar bloqueado.
+   */
+  it("com as duas fontes, divergência bloqueia; só libera quando ambas dizem liberado", () => {
+    expect(onboardingLiberadoDoCaso({ motivosBloqueioCasePlans: [], estadoOnboardingPlanos: "bloqueado" })).toBe(false);
+    expect(
+      onboardingLiberadoDoCaso({ motivosBloqueioCasePlans: ["Contrato assinado pendente."], estadoOnboardingPlanos: "liberado_preparacao" }),
+    ).toBe(false);
+    expect(onboardingLiberadoDoCaso({ motivosBloqueioCasePlans: [], estadoOnboardingPlanos: "liberado_preparacao" })).toBe(true);
   });
 
   it("cai para onboarding_planos.estado quando case_plans não tem a linha (fase onboarding) ainda", () => {

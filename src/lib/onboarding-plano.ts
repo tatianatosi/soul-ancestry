@@ -65,13 +65,25 @@ export function estadoDoPlano(gates: GatesPlano, estadoAtual?: string | null): s
  * daquela fase não existir. Usado por fechamento-caso.functions.ts
  * (onboardingIniciado) e case-service-consolidacao.functions.ts
  * (onboardingLiberado) — mesma regra, um só lugar.
+ *
+ * 24/09/2026 — regra conservadora, aplicada antes de efetivar a migration:
+ * `case_plans.motivos_bloqueio` nasce `[]` por default. Uma linha de
+ * case_plans (fase onboarding) criada por outro motor e ainda não
+ * espelhada diria "liberado" enquanto onboarding_planos diz "bloqueado".
+ * Por isso, com as duas fontes presentes, só libera se AMBAS disserem
+ * liberado; divergência = bloqueado até o espelho/backfill alinhar.
  */
 export function onboardingLiberadoDoCaso(input: {
   motivosBloqueioCasePlans?: unknown;
   estadoOnboardingPlanos?: string | null;
 }): boolean {
-  if (Array.isArray(input.motivosBloqueioCasePlans)) return input.motivosBloqueioCasePlans.length === 0;
-  return input.estadoOnboardingPlanos != null && input.estadoOnboardingPlanos !== "bloqueado";
+  const temEstado = input.estadoOnboardingPlanos != null;
+  const liberadoPorEstado = temEstado && input.estadoOnboardingPlanos !== "bloqueado";
+  if (Array.isArray(input.motivosBloqueioCasePlans)) {
+    const liberadoPorCasePlans = input.motivosBloqueioCasePlans.length === 0;
+    return temEstado ? liberadoPorCasePlans && liberadoPorEstado : liberadoPorCasePlans;
+  }
+  return liberadoPorEstado;
 }
 
 /** Onboarding preparado nunca ativa o caso nem abre pesquisa externa. */
