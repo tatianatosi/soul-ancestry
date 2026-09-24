@@ -12,7 +12,7 @@ import { salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { DecisaoAposSalvarPessoa } from "@/components/pessoa/decisao-apos-salvar";
 import {
   evidenciaDeMesmaPessoa,
-  inventarioDossieDaPessoa,
+  inventarioDocumentalDaPessoa,
   montarLinhaDoTempoDaPessoa,
   type EvidenciaDeElo,
 } from "@/lib/pessoa-identidade";
@@ -24,6 +24,7 @@ import { NOME_RESPONSAVEL_PADRAO } from "@/lib/responsavel-padrao";
 import { ordenarPorPrioridade, sinaisDaPessoa, type PrioridadeSinal } from "@/lib/pessoa-sinais";
 import { relacoesAprovadas, estadoDeConfirmacao } from "@/lib/golive-pessoas";
 import { sinalCpfDaPessoaPorCaso } from "@/lib/pessoa-vinculo";
+import { dossieMaeDoCaso } from "@/lib/nucleo-completude";
 import { RELEVANCIAS, STATUS_VALIDACAO, TIPOS_ACHADO } from "@/lib/achados-genealogicos";
 
 const rotulo = (lista: { id: string; rotulo: string }[], id: unknown) =>
@@ -303,6 +304,7 @@ function Pessoa() {
     caseMembers,
     achadosPesquisa,
     materiaisDossie,
+    nucleos,
   } = q.data;
 
   // R2 — mesma regra do servidor (estadoCpfMembroCaso); só sinaliza, nunca grava aqui.
@@ -766,17 +768,31 @@ function Pessoa() {
             <EstadoVazio mensagem="Esta pessoa não está vinculada a nenhum núcleo familiar." />
           ) : (
             <ul className="space-y-2">
-              {nucleoMembros.map((m) => (
-                <li key={m.id} className="rounded-lg border border-navy/12 bg-cream/25 p-3">
-                  <p className="text-sm font-medium text-navy">
-                    {m.papel === "dependente" ? "Dependente" : "Contratante/signatária"}
-                  </p>
-                  <p className="mt-0.5 text-xs text-navy/60">
-                    {m.vinculo}
-                    {m.processo ? ` · ${m.processo}` : ""}
-                  </p>
-                </li>
-              ))}
+              {nucleoMembros.map((m) => {
+                const nucleo = nucleos.find((n) => n.id === m.nucleo_id) ?? null;
+                const dossie = dossieMaeDoCaso(nucleo as { id: string; dossie_mae?: string | null; dossie_status?: string | null } | null);
+                return (
+                  <li key={m.id} className="rounded-lg border border-navy/12 bg-cream/25 p-3">
+                    <p className="text-sm font-medium text-navy">
+                      {m.papel === "dependente" ? "Dependente" : "Contratante/signatária"}
+                      {nucleo?.nome ? <span className="font-normal text-navy/60"> · {nucleo.nome}</span> : null}
+                    </p>
+                    <p className="mt-0.5 text-xs text-navy/60">
+                      {m.vinculo}
+                      {m.processo ? ` · ${m.processo}` : ""}
+                    </p>
+                    <p className="mt-1 text-xs text-navy/70" data-pessoa360-dossie-mae>
+                      Dossiê-mãe do núcleo:{" "}
+                      {dossie.fonte === "nucleo"
+                        ? `${dossie.referencia} (${dossie.ativo ? "ativo" : (dossie.status ?? "sem situação")})`
+                        : "ainda não cadastrado no núcleo"}{" "}
+                      <Link to="/nucleos" className="font-medium text-navy underline underline-offset-4">
+                        Abrir em Núcleos
+                      </Link>
+                    </p>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </CaCard>
@@ -1089,21 +1105,19 @@ function Pessoa() {
         ) : null}
 
         {/*
-          24/09/2026 — decisão explícita da Proprietária: "Pessoa 360...
-          aqui está o dossiê mãe de cada pessoa". Varredura de dossiê com
-          escopo interno — agrega case_source_documents já catalogados
-          para esta pessoa (nunca Drive/Dropbox, sem integração real neste
-          produto), cronologicamente, com busca por palavra-chave e as
-          lacunas ditas explicitamente. Nunca confirma nem publica nada
-          sozinho; é inventário, a decisão de vincular continua humana.
+          24/09/2026 — Inventário documental da pessoa: leitura agregada de
+          case_source_documents já catalogados para esta pessoa (nunca
+          Drive/Dropbox), cronológica, com busca por palavra-chave e lacunas
+          ditas. Não é o Dossiê-mãe — esse é do núcleo familiar (decisão da
+          Proprietária); aqui nada é confirmado nem publicado sozinho.
         */}
-        <CaCard titulo="Inventário do dossiê" className="border-dashed border-navy/20 bg-cream/20">
+        <CaCard titulo="Inventário documental da pessoa" className="border-dashed border-navy/20 bg-cream/20">
           <p className="text-xs text-navy/55">
             O que já está catalogado para esta pessoa (nunca busca fonte externa) — a decisão de
             usar cada material continua humana.
           </p>
           {(() => {
-            const inventario = inventarioDossieDaPessoa(materiaisDossie);
+            const inventario = inventarioDocumentalDaPessoa(materiaisDossie);
             const filtro = buscaDossie.trim().toLowerCase();
             const itensFiltrados = filtro
               ? inventario.itens.filter((i) =>

@@ -273,8 +273,9 @@ const TIPOS_CHAVE_DOSSIE = [
 ] as const;
 
 /**
- * Inventário do "dossiê mãe" de uma pessoa (24/09/2026, pedido explícito da
- * Proprietária: "Pessoa 360... aqui está o dossiê mãe de cada pessoa").
+ * Inventário documental da pessoa (24/09/2026). Não é o Dossiê-mãe: por
+ * decisão da Proprietária, "Dossiê-mãe" é só o do núcleo familiar
+ * (nucleos_familiares.dossie_mae); isto é leitura agregada por pessoa.
  *
  * Varredura de dossiê, com escopo deliberadamente interno: agrega o que já
  * está catalogado em `case_source_documents` para esta pessoa (nunca busca
@@ -283,7 +284,7 @@ const TIPOS_CHAVE_DOSSIE = [
  * sem confirmar nada sozinho, quais tipos-chave ainda não têm nenhum item —
  * a lacuna é dita, nunca inferida como "documento não existe".
  */
-export function inventarioDossieDaPessoa(documentos: Record<string, unknown>[]): InventarioDossie {
+export function inventarioDocumentalDaPessoa(documentos: Record<string, unknown>[]): InventarioDossie {
   const itens: MaterialDoDossie[] = documentos
     .map((d) => ({
       id: String(d["id"]),

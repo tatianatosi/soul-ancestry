@@ -289,9 +289,9 @@ export const carregarPessoa = createServerFn({ method: "GET" })
       : { data: [] as Linha[] };
 
     /*
-      24/09/2026 — decisão explícita da Proprietária: "Pessoa 360... aqui
-      está o dossiê mãe de cada pessoa" — varredura de dossiê com escopo
-      interno (nunca Drive/Dropbox, sem integração real neste produto).
+      24/09/2026 — Inventário documental da pessoa (não é o Dossiê-mãe, que
+      é do núcleo): varredura com escopo interno (nunca Drive/Dropbox, sem
+      integração real neste produto).
       `case_source_documents.pessoa_ref_id` já aponta tanto para
       case_members.id quanto para research_people.id (mesmo par que
       fontes-documentos.functions.ts já combina) — só nunca tinha sido
@@ -314,6 +314,23 @@ export const carregarPessoa = createServerFn({ method: "GET" })
           .is("archived_at", null)
       : { data: [] as Linha[] };
 
+    /*
+      24/09/2026 — Dossiê-mãe é do NÚCLEO (decisão da Proprietária). A pessoa
+      lê o dossiê-mãe dos núcleos a que pertence, da mesma fonte que
+      /nucleos e o gate de ativação usam — nunca uma cópia própria.
+    */
+    const idsNucleos = [
+      ...new Set(((nucleoMembros.data ?? []) as Linha[]).map((m) => m["nucleo_id"] as string).filter(Boolean)),
+    ];
+    const { data: nucleosDaPessoa } = idsNucleos.length
+      ? await supabase
+          .from("nucleos_familiares")
+          .select("id, nome, case_id, dossie_mae, dossie_status")
+          .eq("organization_id", organizationId)
+          .in("id", idsNucleos)
+          .is("archived_at", null)
+      : { data: [] as Linha[] };
+
     return {
       encontrada: true as const,
       cliente: cliente as Linha,
@@ -332,6 +349,7 @@ export const carregarPessoa = createServerFn({ method: "GET" })
       caseMembers: caseMembers as Linha[],
       achadosPesquisa: (achadosDaPessoa ?? []) as Linha[],
       materiaisDossie: (materiaisCatalogados ?? []) as Linha[],
+      nucleos: (nucleosDaPessoa ?? []) as Linha[],
     };
   });
 

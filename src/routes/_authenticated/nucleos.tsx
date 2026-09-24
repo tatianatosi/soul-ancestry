@@ -14,12 +14,14 @@ import {
   NUCLEO_DOSSIE_STATUS,
   NUCLEO_NIVEIS_ACESSO,
   NUCLEO_PAPEIS,
+  PAPEIS_GRAVAVEIS_MEMBRO,
   criarNucleo,
   encaminharFilaDrive,
   listarClientesParaVinculo,
   listarNucleos,
   salvarDossieNucleo,
   salvarMembroNucleo,
+  adicionarMembroNucleo,
 } from "@/lib/nucleos-desk.functions";
 import { STATUS_FILA_DRIVE } from "@/lib/drive-provisioning";
 import { salvarTarefa } from "@/lib/ops.functions";
@@ -110,6 +112,25 @@ function NucleosPage() {
   const criar = useServerFn(criarNucleo);
   const salvar = useServerFn(salvarDossieNucleo);
   const salvarMembro = useServerFn(salvarMembroNucleo);
+  const adicionarMembro = useServerFn(adicionarMembroNucleo);
+  const [adicionandoEm, setAdicionandoEm] = useState<string | null>(null);
+  const [novoMembro, setNovoMembro] = useState({ nome: "", papel: "dependente", vinculo: "", clienteId: "" });
+  const [erroNovoMembro, setErroNovoMembro] = useState<string | null>(null);
+  const mAdicionarMembro = useMutation({
+    mutationFn: (v: { nucleoId: string; nome: string; papel: string; vinculo: string; clienteId: string }) =>
+      adicionarMembro({
+        data: { nucleoId: v.nucleoId, nome: v.nome, papel: v.papel, vinculo: v.vinculo, clienteId: v.clienteId || null },
+      }),
+    onSuccess: async () => {
+      setAdicionandoEm(null);
+      setNovoMembro({ nome: "", papel: "dependente", vinculo: "", clienteId: "" });
+      setErroNovoMembro(null);
+      // Releitura do servidor: a lista mostra o que foi gravado, não o rascunho.
+      await qc.invalidateQueries({ queryKey: ["nucleos-desk"] });
+      toast.success("Membro adicionado ao núcleo e registrado no histórico.");
+    },
+    onError: (e: Error) => setErroNovoMembro(e.message),
+  });
   const encaminhar = useServerFn(encaminharFilaDrive);
   const criarTarefa = useServerFn(salvarTarefa);
   const qc = useQueryClient();
@@ -598,6 +619,68 @@ function NucleosPage() {
                       ))}
                     </ul>
                   )}
+                  {adicionandoEm === n.id ? (
+                    <div className="mt-2 space-y-1.5 rounded-lg border border-gold/40 bg-gold/5 p-2 text-xs" data-nucleo-novo-membro>
+                      <Texto label="Nome" valor={novoMembro.nome} onChange={(v) => setNovoMembro({ ...novoMembro, nome: v })} />
+                      <Selecao
+                        label="Papel no núcleo"
+                        valor={novoMembro.papel}
+                        opcoes={PAPEIS_GRAVAVEIS_MEMBRO.map((p) => ({ valor: p, rotulo: rotulo(p) }))}
+                        onChange={(v) => setNovoMembro({ ...novoMembro, papel: v || "dependente" })}
+                      />
+                      <Texto label="Vínculo (ex.: filho, cônjuge)" valor={novoMembro.vinculo} onChange={(v) => setNovoMembro({ ...novoMembro, vinculo: v })} />
+                      <EstadoDados
+                        carregando={qClientes.isLoading}
+                        erro={qClientes.error}
+                        dados={qClientes.data}
+                        aoTentarNovamente={() => void qClientes.refetch()}
+                        recurso="as pessoas cadastradas"
+                        vazio="Nenhuma pessoa cadastrada ainda — o membro entra sem vínculo e pode ser vinculado depois."
+                      >
+                        {(clientes) => (
+                          <Selecao
+                            label="Vincular a pessoa cadastrada (opcional)"
+                            ajuda="Só por escolha sua — nunca por coincidência de nome."
+                            valor={novoMembro.clienteId}
+                            opcoes={clientes.map((c) => ({ valor: c.id, rotulo: c.nome }))}
+                            onChange={(v) => setNovoMembro({ ...novoMembro, clienteId: v })}
+                          />
+                        )}
+                      </EstadoDados>
+                      {erroNovoMembro ? <p className="text-red-700">{erroNovoMembro}</p> : null}
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          type="button"
+                          disabled={mAdicionarMembro.isPending || !novoMembro.nome.trim()}
+                          onClick={() => mAdicionarMembro.mutate({ nucleoId: n.id, ...novoMembro })}
+                          className="rounded-md bg-navy px-2 py-1 text-cream disabled:opacity-50"
+                        >
+                          {mAdicionarMembro.isPending ? "Gravando…" : "Adicionar membro"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAdicionandoEm(null);
+                            setErroNovoMembro(null);
+                          }}
+                          className="rounded-md border border-navy/15 px-2 py-1"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : podeEscrever ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAdicionandoEm(n.id);
+                        setErroNovoMembro(null);
+                      }}
+                      className="mt-2 rounded-md border border-navy/15 px-2 py-1 text-xs text-navy hover:border-gold"
+                    >
+                      + Adicionar membro ao núcleo
+                    </button>
+                  ) : null}
                 </div>
 
                 <div className="mt-3" data-nucleo-cobertura-geracoes>

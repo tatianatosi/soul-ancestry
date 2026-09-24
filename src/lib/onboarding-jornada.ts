@@ -170,6 +170,8 @@ export type ContextoDiagnostico = {
     archived_at?: string | null;
   } | null;
   nucleoValidado?: boolean;
+  /** Dossiê-mãe canônico (núcleo do caso) — ver dossieMaeDoCaso em nucleo-completude.ts. */
+  dossieMae?: { ativo: boolean; fonte: "nucleo" | "legado_caso" | "ausente" } | null;
   participantesVinculados?: boolean;
   representacaoOk?: boolean;
   escopoAprovado?: boolean;
@@ -210,7 +212,18 @@ export function diagnosticarOnboarding(caso: CasoDiagnostico, ctx: ContextoDiagn
     g("nucleo_familiar", "Núcleo familiar validado", ctx.nucleoValidado === true || concluido("nucleo_familiar"), "Núcleo familiar não validado."),
     g("participantes", "Participantes vinculados", ctx.participantesVinculados === true || concluido("participantes"), "Contratante e participantes não identificados."),
     g("representacao_menor", "Representação legal documentada", ctx.representacaoOk === true || concluido("representacao_menor"), "Representação de menor ou dependente não documentada."),
-    g("dossie_mae", "Dossiê-mãe criado ou vinculado", Boolean(caso.dossie_mae_referencia?.trim()) || concluido("dossie_mae"), "Dossiê-mãe ausente."),
+    // Dossiê-mãe é do núcleo: com leitura canônica disponível, só o núcleo
+    // com dossiê "ativo" libera; o ponteiro antigo do caso vira "legado".
+    g(
+      "dossie_mae",
+      "Dossiê-mãe ativo no núcleo",
+      (ctx.dossieMae ? ctx.dossieMae.ativo : Boolean(caso.dossie_mae_referencia?.trim())) || concluido("dossie_mae"),
+      ctx.dossieMae?.fonte === "legado_caso"
+        ? "Dossiê-mãe só no registro antigo do caso — cadastre-o no núcleo familiar."
+        : ctx.dossieMae?.fonte === "nucleo"
+          ? "Dossiê-mãe do núcleo ainda não está ativo."
+          : "Dossiê-mãe ausente.",
+    ),
     g("ambiente_acesso", "Ambiente e nível de acesso definidos", Boolean(caso.app_visibility_level?.trim()) || concluido("ambiente_acesso"), "Ambiente e nível de acesso não definidos."),
     g("case_service", "Produto/case_service consolidado", Boolean(caso.case_service_id) || concluido("case_service"), "case_service não consolidado."),
     g("escopo_aprovado", "Escopo aprovado", ctx.escopoAprovado === true || concluido("escopo_aprovado"), "Escopo não aprovado."),

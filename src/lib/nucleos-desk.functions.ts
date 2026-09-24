@@ -11,6 +11,8 @@ import {
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import { coberturaPorGeracao } from "@/lib/golive-pessoas";
+import { inserirComVerificacao } from "@/lib/persistencia.server";
+import { motivosDossieMaeNaoAtivavel, nucleoComMesmoDossieAtivo } from "@/lib/nucleo-completude";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -25,6 +27,9 @@ export const NUCLEO_AMBIENTES = [
 export const NUCLEO_NIVEIS_ACESSO = ["restrito", "equipe", "coordenacao"] as const;
 
 export const NUCLEO_DOSSIE_STATUS = ["nao_iniciado", "em_preparacao", "ativo", "arquivado"] as const;
+
+/** Papéis que o CHECK de `nucleo_membros.papel` aceita gravar. */
+export const PAPEIS_GRAVAVEIS_MEMBRO = ["contratante_signatario", "dependente"] as const;
 
 export const NUCLEO_PAPEIS = [
   "contratante_signatario",
@@ -228,6 +233,29 @@ export const salvarDossieNucleo = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const supabase = (context as any).supabase;
+    const organization_id = await orgDoUsuario(supabase, (context as any).userId as string);
+
+    // Dossiê-mãe é do núcleo e é único: "ativo" exige os metadados e nenhum
+    // outro núcleo com a mesma referência ativa (regra canônica, servidor).
+    const faltas = motivosDossieMaeNaoAtivavel(data);
+    if (faltas.length > 0) {
+      throw new Error(`Dossiê-mãe só fica ativo com: ${faltas.join(", ")}. Salve como "em preparação" até completar.`);
+    }
+    if (data.dossie_status === "ativo") {
+      const { data: outros, error: erroOutros } = await supabase
+        .from("nucleos_familiares")
+        .select("id,nome,dossie_mae,dossie_status,archived_at")
+        .eq("organization_id", organization_id)
+        .eq("dossie_status", "ativo")
+        .is("archived_at", null);
+      if (erroOutros) throw new Error(erroOutros.message);
+      const conflito = nucleoComMesmoDossieAtivo(data.nucleoId, data, (outros ?? []) as any[]);
+      if (conflito) {
+        throw new Error(
+          `A referência "${data.dossie_mae.trim()}" já é o dossiê-mãe ativo do núcleo "${conflito.nome ?? conflito.id}". Um dossiê-mãe pertence a um único núcleo — use a unificação de núcleos se for a mesma família.`,
+        );
+      }
+    }
 
     const patch = {
       dossie_mae: data.dossie_mae?.trim() || null,
@@ -242,6 +270,7 @@ export const salvarDossieNucleo = createServerFn({ method: "POST" })
       .from("nucleos_familiares")
       .update(patch)
       .eq("id", data.nucleoId)
+      .eq("organization_id", organization_id)
       .select("id,dossie_mae,ambiente,nivel_acesso,link_interno,responsavel_nome,dossie_status,case_id,organization_id")
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -329,6 +358,82 @@ export const salvarMembroNucleo = createServerFn({ method: "POST" })
       });
     }
     return salvo;
+  });
+
+/**
+ * Adiciona um membro/requerente ao núcleo. Até 24/09/2026 só existia edição
+ * de membro já cadastrado (ou criação via piloto) — a Proprietária não tinha
+ * como incluir uma pessoa na família pela tela. Papel dentro do CHECK real
+ * (`contratante_signatario`/`dependente`); vínculo à Pessoa Canônica é
+ * opcional e só por escolha humana — nunca por correspondência de nome.
+ */
+export const adicionarMembroNucleo = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: { nucleoId: string; nome: string; papel: string; vinculo?: string; clienteId?: string | null }) => {
+      if (!UUID.test(data?.nucleoId ?? "")) throw new Error("Núcleo inválido.");
+      if (!data.nome?.trim()) throw new Error("Informe o nome do membro.");
+      if (!PAPEIS_GRAVAVEIS_MEMBRO.includes(data.papel as (typeof PAPEIS_GRAVAVEIS_MEMBRO)[number])) {
+        throw new Error("Papel fora da lista aceita pelo banco (contratante/signatário ou dependente).");
+      }
+      if (data.clienteId && !UUID.test(data.clienteId)) throw new Error("Pessoa vinculada inválida.");
+      return data;
+    },
+  )
+  .handler(async ({ data, context }) => {
+    const supabase = (context as any).supabase;
+    const userId = (context as any).userId as string;
+    const organization_id = await orgDoUsuario(supabase, userId);
+
+    const { data: nucleo, error: erroNucleo } = await supabase
+      .from("nucleos_familiares")
+      .select("id,case_id")
+      .eq("id", data.nucleoId)
+      .eq("organization_id", organization_id)
+      .is("archived_at", null)
+      .maybeSingle();
+    if (erroNucleo) throw new Error(erroNucleo.message);
+    if (!nucleo) throw new Error("Núcleo não encontrado nesta organização.");
+
+    const { data: membros } = await supabase
+      .from("nucleo_membros")
+      .select("nome,ordem")
+      .eq("nucleo_id", data.nucleoId)
+      .is("archived_at", null);
+    const nome = data.nome.trim();
+    if (((membros ?? []) as any[]).some((m) => String(m.nome).trim().toLowerCase() === nome.toLowerCase())) {
+      throw new Error(`"${nome}" já é membro deste núcleo — edite o registro existente em vez de duplicar a pessoa.`);
+    }
+    const ordem = Math.max(0, ...((membros ?? []) as any[]).map((m) => Number(m.ordem) || 0)) + 1;
+
+    const r = await inserirComVerificacao({
+      supabase,
+      tabela: "nucleo_membros",
+      organizationId: organization_id,
+      userId,
+      payload: {
+        nucleo_id: data.nucleoId,
+        nome,
+        papel: data.papel,
+        vinculo: data.vinculo?.trim() || null,
+        cliente_id: data.clienteId || null,
+        ordem,
+      },
+    });
+
+    if (nucleo.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId: organization_id,
+        caseId: nucleo.case_id,
+        eventType: "caso",
+        title: "Membro adicionado ao núcleo familiar",
+        summaryInternal: nome,
+        sourceEntityType: "nucleo_membros",
+        sourceEntityId: r.id,
+        userId,
+      });
+    }
+    return { id: r.id, salvoEm: r.salvoEm };
   });
 
 /**

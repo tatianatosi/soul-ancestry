@@ -8,6 +8,7 @@ import {
   esperaExternaSuspendeAlerta,
 } from "@/lib/onboarding-jornada";
 import { obterProximaAcaoCanonica } from "@/lib/caso-ficha";
+import { dossieMaeDoCaso } from "@/lib/nucleo-completude";
 
 /*
  * 09/09/2026 — consolidação de redundâncias (docs/relatorios/
@@ -43,13 +44,21 @@ export const obterPainelJornada = createServerFn({ method: "GET" })
     const supabase = context.supabase as unknown as Cliente;
     const org = await resolverOrg(supabase, context.userId as string);
 
-    const [casos, planos, checklist, entregas, esperas] = await Promise.all([
+    const [casos, planos, checklist, entregas, esperas, nucleos] = await Promise.all([
       supabase.from("crm_casos").select("*").eq("organization_id", org).is("archived_at", null),
       supabase.from("case_plans").select("*").eq("organization_id", org).is("archived_at", null),
       supabase.from("onboarding_checklist").select("*").eq("organization_id", org),
       supabase.from("client_deliverables").select("*").eq("organization_id", org),
       supabase.from("case_espera_externa").select("*").eq("organization_id", org).is("archived_at", null),
+      supabase
+        .from("nucleos_familiares")
+        .select("id,case_id,dossie_mae,dossie_status")
+        .eq("organization_id", org)
+        .is("archived_at", null),
     ]);
+    const nucleoPorCaso = new Map(
+      ((nucleos.data ?? []) as Record<string, any>[]).filter((n) => n["case_id"]).map((n) => [String(n["case_id"]), n]),
+    );
 
     const listaCasos = (casos.data ?? []) as Record<string, any>[];
     const listaPlanos = (planos.data ?? []) as Record<string, any>[];
@@ -101,7 +110,11 @@ export const obterPainelJornada = createServerFn({ method: "GET" })
           (e) => e["case_id"] === caso["id"] && esperaExternaSuspendeAlerta(e),
         ) ?? null;
       const itens = listaChecklist.filter((c) => c["case_id"] === caso["id"]);
-      const diag = diagnosticarOnboarding(caso as never, { checklist: itens as never, plano: plano as never });
+      const dossieMae = dossieMaeDoCaso(
+        (nucleoPorCaso.get(String(caso["id"])) as never) ?? null,
+        caso["dossie_mae_referencia"] ?? null,
+      );
+      const diag = diagnosticarOnboarding(caso as never, { checklist: itens as never, plano: plano as never, dossieMae });
       const estado = derivarEstadoCaso(caso as never, diag, { plano: plano as never });
       const cadencia = avaliarCadencia({
         onboardingIniciadoEm: caso["onboarding_iniciado_em"] ?? null,
