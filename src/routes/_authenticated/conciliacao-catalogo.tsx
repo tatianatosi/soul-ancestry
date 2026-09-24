@@ -5,7 +5,8 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { Painel, Selo, inputCls } from "@/components/comercial/base";
+import { Selo, inputCls } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { varreduraConciliacaoCatalogo } from "@/lib/conciliacao-catalogo.functions";
 
 export const Route = createFileRoute("/_authenticated/conciliacao-catalogo")({
@@ -62,7 +63,7 @@ function ConciliacaoCatalogoPage() {
     >
       <div className="space-y-4">
         {resumo ? (
-          <Painel titulo="Síntese da conciliação (sem DEMO/TESTE)">
+          <CaCard variante="compacto" titulo="Síntese da conciliação (sem DEMO/TESTE)">
             <div className="grid gap-3 sm:grid-cols-4">
               <div className="rounded-lg border border-navy/10 p-3">
                 <div className="text-2xl font-serif text-navy">{resumo.total}</div>
@@ -81,7 +82,7 @@ function ConciliacaoCatalogoPage() {
                 <div className="text-xs text-navy/60">liberadas com pontos de atenção</div>
               </div>
             </div>
-          </Painel>
+          </CaCard>
         ) : null}
 
         <div className="flex flex-wrap items-center gap-3">
@@ -115,7 +116,7 @@ function ConciliacaoCatalogoPage() {
             ) : (
           <div className="space-y-3">
             {linhas.map((l) => (
-              <Painel key={l.proposalId} titulo={`${l.caso} — proposta v${l.versao ?? "—"}`}>
+              <CaCard variante="compacto" key={l.proposalId} titulo={`${l.caso} — proposta v${l.versao ?? "—"}`}>
                 <div className="flex flex-wrap items-center gap-2 text-sm text-navy/70">
                   <Selo texto={`SKU ${l.sku ?? "não declarado"}`} tom={l.sku ? "neutro" : "erro"} />
                   <Selo texto={`Preço homologado ${moeda(l.preco_homologado)}`} tom="neutro" />
@@ -155,7 +156,7 @@ function ConciliacaoCatalogoPage() {
                     Sem divergência: SKU, preço, condição e escopo batem com o catálogo homologado.
                   </p>
                 )}
-              </Painel>
+              </CaCard>
             ))}
           </div>
             )

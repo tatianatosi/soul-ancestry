@@ -87,9 +87,12 @@ iniciativa **Painel → Cartão Canônico**:
 - **`divergencias-catalogo.tsx` migrado** (2026-09-24, mesmo mecanismo):
   os 2 blocos (Filtros, Divergências (N)) viram `<CaCard
   variante="compacto">`. Visual idêntico.
+- **`conciliacao-catalogo.tsx` migrado** (2026-09-24, mesmo mecanismo):
+  os 2 blocos (Síntese da conciliação, um por proposta na lista) viram
+  `<CaCard variante="compacto">`. Visual idêntico.
 - **Famílias ainda pendentes** (continuam em `Painel`, sem tocar neste
   corte): CRM/Comercial (demais rotas do módulo), Pesquisa, Privacidade,
   Ops, Financeiro (parcial — já usa `CaCard` `padrao` em blocos próprios
-  desde DSA-7) e demais rotas isoladas (`conciliacao-catalogo.tsx`,
-  `qualidade.tsx`, `ops-excecoes.tsx`). Cada família migra em corte
-  próprio, com aprovação visual antes do merge.
+  desde DSA-7) e demais rotas isoladas (`qualidade.tsx`,
+  `ops-excecoes.tsx`). Cada família migra em corte próprio, com
+  aprovação visual antes do merge.
