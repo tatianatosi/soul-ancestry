@@ -22,6 +22,7 @@ Este diretório reúne contratos de marca, interface, conteúdo, comportamento e
 | `contrato-interface-app-cliente.md` | contrato de layout, conteúdo e estados das 7 abas do App |
 | `contrato-interface-desk.md` | contrato das 7 telas e 6 grupos internos do Desk |
 | `contrato-cta-contexto-e-prova.md` | CTAs, `case_id`, persistência, histórico, fila, F5 e prova visual |
+| `contrato-entre-agentes.md` | como um pedido da Proprietária vira trabalho publicado: aprovação, execução corte a corte, publicação em `main` e prova visual no Lovable |
 
 ## Navegação imutável
 
