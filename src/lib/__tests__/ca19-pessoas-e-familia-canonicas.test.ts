@@ -30,6 +30,10 @@ const PERMITIDOS: { arquivo: string; motivo: string }[] = [
     motivo:
       "lê case_members só para decidir se precisa do fallback (mesma regra interna de pessoasDoCasoComFallbackNucleo, reimplementada aqui para reaproveitar o Promise.all da ficha)",
   },
+  {
+    arquivo: "golive.functions.ts",
+    motivo: "busca candidatos homônimos em case_members para revisão humana de duplicidade (não exibe pessoas do caso)",
+  },
 ];
 
 function arquivosTs(dir: string): string[] {
