@@ -29,6 +29,9 @@ describe("APP-CASE-ID-CONTA-RADAR: portal/conta.tsx nunca mostra Sophia/demo em 
   });
 
   it('rótulo de publicação não chama prévia de caso real de "Demo"', () => {
-    expect(rotaConta).toMatch(/previaDemo \? "Demo" : previa \? "Prévia da equipe \(caso real\)"/);
+    // Contrato visual de 24/09/2026: a Conta deixou de exibir rótulo de
+    // publicação (metadado técnico). Garantia equivalente: nenhum rótulo
+    // "Demo" literal pode aparecer na tela, em prévia real ou não.
+    expect(rotaConta).not.toMatch(/"Demo"|>\s*Demo\s*</);
   });
 });

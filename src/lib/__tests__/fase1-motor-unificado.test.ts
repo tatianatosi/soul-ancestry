@@ -15,7 +15,8 @@ describe("Fase 1 — motor unificado (corte vertical, sem apagar peças)", () =>
     const ficha = ler("src/routes/_authenticated/casos.$caseId.index.tsx");
     expect(ficha).toContain("FormularioTarefaCaso");
     expect(ficha).toContain("PlanejadorOperacional");
-    expect(ficha).not.toMatch(/tipo:\s*"caso"/);
+    // Radar Individual usa `posicionar({ tipo: "caso" })` (eixo do radar, não tipo de tarefa).
+    expect(ficha.replace(/posicionar\(\{\s*tipo:\s*"caso"/g, "posicionar({")).not.toMatch(/tipo:\s*"caso"/);
     const form = ler("src/components/caso/formulario-tarefa-caso.tsx");
     expect(form).toContain("salvarTarefa");
     expect(form).toContain("responsavel_id");

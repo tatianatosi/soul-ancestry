@@ -22,7 +22,9 @@ describe("CA-CORTE-ALERTAS-ROTA-CANONICA", () => {
 
   it("Painel Hoje e a rota Alertas chamam a mesma função de leitura", () => {
     expect(painel).toContain('import { listarAlertas } from "@/lib/alertas.functions"');
-    expect(rota).toContain('import { listarAlertas, type LinhaAlerta } from "@/lib/alertas.functions"');
+    // A rota também importa a leitura central (listarAlertasCentrais) — mesma fonte.
+    expect(rota).toMatch(/import \{[^}]*\blistarAlertas\b[^}]*\} from "@\/lib\/alertas\.functions"/);
+    expect(rota).toMatch(/type LinhaAlerta/);
   });
 
   it("Painel Hoje pede só o subconjunto pendente e limitado; a rota Alertas não força status nem limite", () => {
