@@ -22,7 +22,8 @@ const codigo = readFileSync(ROTA, "utf8");
 
 describe("A2 Jornada — duas colunas paralelas (mockup 2/7)", () => {
   it("TimelineVertical recebe eventos já filtrados por linha, não a lista mista", () => {
-    expect(codigo).toMatch(/function TimelineVertical\(\{ eventos, eyebrow \}: \{ eventos: NoEvento\[\]; eyebrow: string \}\)/);
+    // Assinatura ganhou `variante` (gold = Linha Ancestral, navy = Processo) no contrato visual v4.
+    expect(codigo).toMatch(/function TimelineVertical\(\{\s*eventos,\s*eyebrow,[\s\S]*?\}: \{\s*eventos: NoEvento\[\];\s*eyebrow: string;/);
   });
 
   it("separa linhaAncestral (categoria !== navy) de linhaProcesso (categoria === navy) a partir do mesmo array `nos`", () => {
@@ -45,7 +46,7 @@ describe("A2 Jornada — duas colunas paralelas (mockup 2/7)", () => {
 
   it("as duas colunas ficam lado a lado a partir de sm (paralelas), empilhando em mobile estreito", () => {
     expect(codigo).toMatch(/data-jornada-duas-linhas/);
-    expect(codigo).toMatch(/className="grid gap-6 sm:grid-cols-2"/);
+    expect(codigo).toMatch(/data-jornada-duas-linhas className="grid gap-5 sm:grid-cols-2 sm:gap-6"/);
   });
 
   it("marca cada coluna com estado vazio honesto, sem inventar item", () => {
