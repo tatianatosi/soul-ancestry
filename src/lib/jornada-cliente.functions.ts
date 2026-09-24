@@ -9,7 +9,7 @@ import {
   validarTouchpoint,
   type StatusAprovacao,
 } from "@/lib/jornada-cliente";
-import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -193,10 +193,13 @@ export const criarMicroentregaCliente = createServerFn({ method: "POST" })
     const ctx = await contextoOps(supabase, context.userId as string);
     exigirEscrita(ctx);
 
-    const { data: criada, error } = await supabase
-      .from("client_deliverables")
-      .insert({
-        organization_id: ctx.organizationId,
+    // 24/09/2026 — insere, relê e compara (antes devolvia a linha sem comparar).
+    const criada = await inserirComVerificacao({
+      supabase,
+      tabela: "client_deliverables",
+      organizationId: ctx.organizationId,
+      userId: context.userId as string,
+      payload: {
         case_id: data.casoId,
         client_id: data.clienteId ?? null,
         deliverable_type: data.tipo,
@@ -208,12 +211,9 @@ export const criarMicroentregaCliente = createServerFn({ method: "POST" })
         priority: data.prioridade ?? "normal",
         approval_status: "rascunho",
         responsible_user_id: context.userId as string,
-        created_by: context.userId as string,
-      })
-      .select("*")
-      .single();
-    if (error) throw new Error(error.message);
-    return criada as Record<string, any>;
+      },
+    });
+    return criada.registro as Record<string, any>;
   });
 
 /** Move a micro-entrega no fluxo de aprovação. Só "publicado" chega ao App Cliente. */

@@ -20,6 +20,7 @@ import {
 import { dossieMaeDoCaso } from "@/lib/nucleo-completude";
 import { espelharMotivosBloqueioEmCasePlans } from "@/lib/gate-onboarding-case-plans";
 import { garantirTarefaAberta } from "@/lib/tarefa-garantida.server";
+import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -214,23 +215,20 @@ export const recalcularPlanoOnboarding = createServerFn({ method: "POST" })
         ? plano.plano_acao
         : planoAcaoDosTouchpoints();
 
-    const { data: linhaAtualizada, error } = await supabase
-      .from("onboarding_planos")
-      .update({
+    // 24/09/2026 — grava, relê e compara (antes só conferia o id afetado).
+    await gravarComVerificacao({
+      supabase,
+      tabela: "onboarding_planos",
+      id: String(plano.id),
+      organizationId,
+      userId: context.userId as string,
+      payload: {
         estado,
         motivos_bloqueio: motivos,
         checklist_inicial: checklist,
         plano_acao: planoAcao,
-        updated_by: context.userId,
-      })
-      .eq("organization_id", organizationId)
-      .eq("case_id", data.caseId)
-      .select("id")
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!linhaAtualizada?.id) {
-      throw new Error("NENHUMA_LINHA_AFETADA: plano de onboarding não encontrado nesta organização.");
-    }
+      },
+    });
 
     // Espelho em case_plans: devolve o estado (pré-migration, sem linha,
     // erro) em vez de engolir — a escrita real acima já valeu.
@@ -288,10 +286,13 @@ export const criarPrimeiraMicroentregaOnboarding = createServerFn({ method: "POS
     if (existente?.id) return { id: existente.id as string, reaproveitada: true, clienteAtivado: false };
 
     const prazo = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
-    const { data: nova, error } = await supabase
-      .from("ops_microentregas")
-      .insert({
-        organization_id: organizationId,
+    // 24/09/2026 — insere, relê e compara (antes só conferia o id devolvido).
+    const nova = await inserirComVerificacao({
+      supabase,
+      tabela: "ops_microentregas",
+      organizationId,
+      userId,
+      payload: {
         caso_id: data.caseId,
         titulo: TITULO_PRIMEIRA_MICROENTREGA,
         descricao: "Rascunho interno do onboarding. Não publicado no App Cliente.",
@@ -299,13 +300,8 @@ export const criarPrimeiraMicroentregaOnboarding = createServerFn({ method: "POS
         status: "pendente",
         prioridade: "media",
         prazo,
-        created_by: userId,
-        updated_by: userId,
-      })
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-    if (!nova?.id) throw new Error("NENHUMA_LINHA_AFETADA: a micro-entrega não foi criada.");
+      },
+    });
 
     // O item "Primeira micro-entrega planejada" do plano reflete a linha
     // recém-gravada (não um tick). Se o plano ainda não existe, o próximo
@@ -326,11 +322,14 @@ export const criarPrimeiraMicroentregaOnboarding = createServerFn({ method: "POS
         plano.data.checklist_inicial as ItemChecklistOnboarding[],
         await derivadosDoCaso(supabase, organizationId, data.caseId),
       );
-      await supabase
-        .from("onboarding_planos")
-        .update({ checklist_inicial: checklist, updated_by: userId })
-        .eq("organization_id", organizationId)
-        .eq("case_id", data.caseId);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "onboarding_planos",
+        id: String(plano.data.id),
+        organizationId,
+        userId,
+        payload: { checklist_inicial: checklist },
+      });
     }
-    return { id: nova.id as string, reaproveitada: false, clienteAtivado: false };
+    return { id: nova.id, reaproveitada: false, clienteAtivado: false };
   });

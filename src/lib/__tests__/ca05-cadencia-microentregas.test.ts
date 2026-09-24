@@ -74,7 +74,10 @@ describe("CA05-CADENCIA-MICROENTREGAS — revisão/liberação persistem; microe
       jornadaFn.indexOf("export const criarMicroentregaCliente"),
       jornadaFn.indexOf("export const transicionarMicroentrega"),
     );
-    expect(trecho).toContain('.from("client_deliverables")');
+    // 24/09/2026 — a escrita passou a inserirComVerificacao (insere, relê e
+    // compara); a tabela continua sendo só client_deliverables.
+    expect(trecho).toContain('tabela: "client_deliverables"');
+    expect(trecho).toContain("inserirComVerificacao(");
     expect(trecho).not.toMatch(/\.from\("crm_casos"\)|\.from\("tarefas"\)|responsavel_principal|prazo_proxima_acao/);
   });
 

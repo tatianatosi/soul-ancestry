@@ -15,13 +15,33 @@ export type Divergencia = {
 const DATA_ISO = /^\d{4}-\d{2}-\d{2}$/;
 const TIMESTAMP_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
 
+/*
+ * 24/09/2026 — o Postgres devolve jsonb com as chaves reordenadas (por
+ * tamanho e depois alfabética). Comparar objeto com JSON.stringify cru dava
+ * DIVERGENCIA_PERSISTENCIA falsa em qualquer coluna jsonb de objetos (ex.:
+ * onboarding_planos.checklist_inicial) — por isso o recálculo do plano de
+ * onboarding nunca usou gravarComVerificacao. Ordenar as chaves só tira o
+ * falso positivo de ordem; valor diferente continua divergindo.
+ */
+function comChavesOrdenadas(valor: unknown): unknown {
+  if (Array.isArray(valor)) return valor.map(comChavesOrdenadas);
+  if (valor && typeof valor === "object") {
+    return Object.fromEntries(
+      Object.keys(valor as Record<string, unknown>)
+        .sort()
+        .map((k) => [k, comChavesOrdenadas((valor as Record<string, unknown>)[k])]),
+    );
+  }
+  return valor;
+}
+
 /** Normaliza para comparação tolerante a tipo de coluna (data, número, texto, lista). */
 export function normalizarValor(valor: unknown): string {
   if (valor === null || valor === undefined || valor === "") return "";
   if (Array.isArray(valor)) return JSON.stringify(valor.map((v) => normalizarValor(v)));
   if (typeof valor === "boolean") return valor ? "true" : "false";
   if (typeof valor === "number") return String(valor);
-  if (typeof valor === "object") return JSON.stringify(valor);
+  if (typeof valor === "object") return JSON.stringify(comChavesOrdenadas(valor));
   return String(valor).trim();
 }
 

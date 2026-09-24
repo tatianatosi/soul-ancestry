@@ -106,7 +106,7 @@ Motor P4 · Writer `criarPrimeiraMicroentregaOnboarding` (`src/lib/onboarding-pl
 | Ação 1 | No plano de onboarding de H1, clicar **Criar primeira micro-entrega (rascunho interno)**; depois **Recalcular gates, checklist e tarefas**. |
 | Esperado 1 | Micro-entrega aparece na lista do plano como "Pendente". Item "Primeira micro-entrega planejada" do checklist fica ok sem nenhum clique no item. |
 | Dado relido | Recarregar: micro-entrega e item ok continuam. Em `/ops`, o contador **Sem microentrega planejada** diminui em 1 e o alerta D7 some da linha de H1. |
-| Ação 2 — concluir | Em `/ops`, editar a micro-entrega, status **Concluída** (com evidência ou justificativa), salvar. Recarregar. |
+| Ação 2 — concluir | Em `/ops`, editar a micro-entrega, preencher **critério de aceite** (mín. 5 caracteres) e evidência ou justificativa (o banco recusa concluir sem isso), status **Concluída**, salvar. Recarregar. |
 | Esperado 2 | Status "Concluída" nas duas telas; o D7 continua atendido. |
 | Ação 3 — cancelar | Mudar o status para **Cancelada**, salvar, recarregar `/ops` e recalcular o plano. |
 | Esperado 3 | O contador **Sem microentrega planejada** volta a incluir H1; o item do checklist volta a pendente. Prova de que o D7 lê o dado, não um tick. |
@@ -122,7 +122,7 @@ Motor P4 · Writer `criarPrimeiraMicroentregaOnboarding` (`src/lib/onboarding-pl
 | URL | `/portal` com login de **cliente** de homologação ligado a H1 (fluxo oficial: convite/magic link, sem staff) |
 | Ação | Percorrer as 7 abas: Home, Jornada, Radar, Árvore, Documentos, Legado, Conta. |
 | Esperado | Nenhuma aba mostra CPF, dossiê-mãe, inventário documental interno, perfil genealógico, alerta interno, micro-entrega interna, conflito/reconciliação de CPF. Só aparece o que foi publicado. |
-| Isolamento | Com um segundo cliente de H2, nada de H1 aparece. Isolamento A×B só vale com os dois logins. |
+| Isolamento | Com um segundo cliente de H2, nada de H1 aparece. Isolamento A×B só vale com os dois logins. A parte estrutural (RLS) já foi conferida: `docs/auditorias/2026-09-24_rls-estrutural-app-cliente.md`. |
 | Resultado | ☐ |
 
 <a id="migration"></a>
@@ -147,3 +147,28 @@ liberado — um `[]` ainda não espelhado não libera nada.
 | Integração | No Caso 360 do caso, **Recalcular gates, checklist e tarefas** não mostra mais aviso de migration pendente (pode mostrar "o caso ainda não tem plano de jornada na fase de onboarding"). |
 | Permissão | Escrita na organização. |
 | Resultado | ☐ |
+
+Verificação por SQL de leitura em 2026-09-24, depois da migration: 1 plano de
+onboarding, 0 linhas de `case_plans` na fase onboarding → 1 "sem case_plans",
+0 a sincronizar. Não há backfill a gravar hoje; a prévia na tela deve mostrar
+exatamente isso.
+
+<a id="visual"></a>
+## Pendências visuais para o Lovable (o resto já está fechado em código)
+
+Tudo abaixo exige tela, login real ou print — nada disso pode ser feito
+nesta sessão. O que é técnico (writers com releitura, fronteira do App,
+migration, RLS estrutural, backfill) já está fechado e testado.
+
+| # | Onde | O que conferir | Seção |
+|---|---|---|---|
+| 1 | `/casos/<H1>#pessoas` | Resolver conflito de CPF com motivo; reload; trilha de auditoria e linha do tempo; outros membros intactos | [R2](#r2) |
+| 2 | `/nucleos`, Caso 360, `/pessoas/<P1>`, `/clientes` | Adicionar membro; dossiê em preparação → ativo; segundo ativo recusado; leitores mostram o mesmo dossiê | [Núcleo](#nucleo) |
+| 3 | `/pessoas-linhagens/<H1>`, `/pessoas/<P1>`, `/pessoas/<P2>` | Vincular, reler, desvincular; pessoa de outro caso não aparece no seletor | [Perfil](#perfil) |
+| 4 | Caso 360 (Jornada) e `/ops` | Criar micro-entrega; contador e alerta D7; concluir; cancelar e ver o D7 voltar | [D7](#d7) |
+| 5 | `/portal` com 2 logins de cliente | 7 abas sem dado interno; cliente A não vê nada de B | [App](#app) |
+| 6 | `/governanca/migracao-onboarding-gate` | "Ver o que será feito" sem aviso de coluna ausente; 1 "sem case_plans" | [Migration](#migration) |
+
+Cada item: prints inicial, ação, confirmação, releitura e integração em
+`docs/provas/`, resultado no registro vivo. Só depois disso um fluxo pode ter
+`provaAutenticada` preenchida em `src/lib/motores-tabelas.ts`.
