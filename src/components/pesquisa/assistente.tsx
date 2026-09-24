@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { Painel } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -151,7 +151,7 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
       .join(" ") || null;
 
   return (
-    <Painel titulo="Assistente de pesquisa genealógica">
+    <CaCard variante="compacto" titulo="Assistente de pesquisa genealógica">
       <p className="mb-3 text-xs text-navy/60">
         Analisa exclusivamente o dossiê registrado neste caso. Se faltarem dados obrigatórios, a análise é bloqueada —
         nenhum outro caso é usado como substituto e nenhum campo é preenchido por inferência.
@@ -313,6 +313,6 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
           </pre>
         </>
       )}
-    </Painel>
+    </CaCard>
   );
 }

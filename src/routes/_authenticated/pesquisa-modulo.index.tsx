@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import { EstadoVazio, SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
-import { Painel, Selo } from "@/components/comercial/base";
+import { Selo } from "@/components/comercial/base";
 import { rotulo } from "@/components/pesquisa/modulo-campos";
 import { criarPesquisaParaCaso, painelPesquisaModulo, rodarScanPesquisa } from "@/lib/pesquisa-modulo.functions";
 import { filtrarPorBusca } from "@/lib/rotulo-negocio";
@@ -142,7 +142,7 @@ function Index() {
             />
           </div>
 
-          <Painel titulo="Pesquisas em andamento">
+          <CaCard variante="compacto" titulo="Pesquisas em andamento">
             <button
               className="mb-3 rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
               onClick={() => mScan.mutate()}
@@ -183,9 +183,9 @@ function Index() {
               ))}
               {pesquisasFiltradas.length === 0 && <p className="text-sm text-navy/60">Nenhuma pesquisa criada ainda.</p>}
             </div>
-          </Painel>
+          </CaCard>
 
-          <Painel titulo="Abrir pesquisa para um caso existente">
+          <CaCard variante="compacto" titulo="Abrir pesquisa para um caso existente">
             <form
               className="grid gap-3 md:grid-cols-2"
               onSubmit={(e) => {
@@ -228,7 +228,7 @@ function Index() {
                 </button>
               </div>
             </form>
-          </Painel>
+          </CaCard>
 
           {/*
             DSA-3-CENTRO-INTELIGENCIA (21/09/2026): terceiro consumidor do

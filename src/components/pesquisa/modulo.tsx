@@ -6,7 +6,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { Painel, Selo, dataBr } from "@/components/comercial/base";
+import { Selo, dataBr } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { CAMPOS, rotulo, type Campo } from "@/components/pesquisa/modulo-campos";
 import {
   arquivarRegistroPesquisa,
@@ -261,12 +262,12 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
 
   if (!d.detalhado) {
     return (
-      <Painel titulo="Pesquisa genealógica">
+      <CaCard variante="compacto" titulo="Pesquisa genealógica">
         <Aviso tom="info">
           Seu papel acessa apenas o resumo desta pesquisa: situação <strong>{rotulo(d.pesquisa["status"])}</strong>.
           Pessoas, evidências e notas internas não são exibidas.
         </Aviso>
-      </Painel>
+      </CaCard>
     );
   }
 
@@ -331,7 +332,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
 
   return (
     <div className="space-y-4">
-      <Painel titulo={`Pesquisa · ${String(d.caso["codigo"] ?? "caso")}`}>
+      <CaCard variante="compacto" titulo={`Pesquisa · ${String(d.caso["codigo"] ?? "caso")}`}>
         <div className="flex flex-wrap items-center gap-2">
           <Selo texto={rotulo(d.pesquisa["status"])} tom="neutro" />
           <Selo
@@ -359,7 +360,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
             onConfirmar={(justificativa) => acao.mutate(() => liberar({ data: { researchCaseId, justificativa } }))}
           />
         )}
-      </Painel>
+      </CaCard>
 
       <EstagiosDaCadeia dados={d} />
 
@@ -383,7 +384,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
 
       {aba === "visao" && (
         <div className="grid gap-4 md:grid-cols-2">
-          <Painel titulo="Situação da pesquisa">
+          <CaCard variante="compacto" titulo="Situação da pesquisa">
             <ul className="space-y-1 text-sm text-navy/70">
               <li>Pessoas mapeadas: {d.pessoas.length}</li>
               <li>Relações: {d.relacoes.length} (validadas: {d.relacoes.filter((r) => r["status"] === "validated").length})</li>
@@ -394,8 +395,8 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
             <Aviso tom="info">
               Hipótese não é conclusão. Nada aqui constitui parecer jurídico ou promessa de resultado.
             </Aviso>
-          </Painel>
-          <Painel titulo="Inconsistências detectadas">
+          </CaCard>
+          <CaCard variante="compacto" titulo="Inconsistências detectadas">
             {d.inconsistencias.length === 0 && <p className="text-sm text-navy/60">Nenhuma inconsistência aberta.</p>}
             <ul className="space-y-2">
               {d.inconsistencias.map((i) => (
@@ -413,7 +414,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
                 Rodar verificação de qualidade da pesquisa
               </button>
             )}
-          </Painel>
+          </CaCard>
         </div>
       )}
 
@@ -770,7 +771,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
       )}
 
       {aba === "auditoria" && (
-        <Painel titulo="Trilha de auditoria da pesquisa">
+        <CaCard variante="compacto" titulo="Trilha de auditoria da pesquisa">
           <ol className="space-y-2 border-l border-navy/15 pl-4">
             {d.auditoria.map((a) => (
               <li key={a["id"]} className="text-sm">
@@ -780,7 +781,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
             ))}
             {d.auditoria.length === 0 && <p className="text-sm text-navy/60">Sem eventos registrados.</p>}
           </ol>
-        </Painel>
+        </CaCard>
       )}
     </div>
   );

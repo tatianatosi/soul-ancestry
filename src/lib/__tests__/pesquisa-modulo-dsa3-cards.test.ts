@@ -6,10 +6,16 @@ import { readFileSync } from "node:fs";
  * real do Design System no Desk (DSA-1 = qualidade.tsx, DSA-2 = painel.tsx).
  * Mesma regra: não cria componente novo, só aplica CaCard/EstadoVazio já
  * existentes ao bloco "Inconsistências de pesquisa em aberto" do módulo de
- * Pesquisa Genealógica e Evidências. Os demais blocos da tela (Painel
- * "Pesquisas em andamento" / "Abrir pesquisa para um caso existente")
- * continuam com o Painel/CardIndicador de sempre — troca é aditiva, não
- * uma reescrita da tela.
+ * Pesquisa Genealógica e Evidências.
+ *
+ * 2026-09-24 — família Pesquisa migrada por completo (DSA-10, Painel →
+ * CaCard canônico): os blocos "Pesquisas em andamento" / "Abrir pesquisa
+ * para um caso existente", que na época deste teste ainda usavam `Painel`
+ * de propósito ("troca é aditiva, não reescrita"), passaram a usar
+ * `<CaCard variante="compacto">` — mesmo mecanismo já aplicado a toda a
+ * família contratual e a outras 6 famílias nesta mesma migração. Não é
+ * reversão da decisão original, é a continuação dela: o Painel genérico
+ * está sendo unificado em CaCard em todo o Desk.
  */
 const ARQUIVO = readFileSync("src/routes/_authenticated/pesquisa-modulo.index.tsx", "utf8");
 
@@ -27,9 +33,9 @@ describe("DSA-3 — CaCard e EstadoVazio aplicados ao Centro de Inteligência (P
     expect(ARQUIVO).toMatch(/<EstadoVazio mensagem="Nenhuma inconsistência aberta\."\s*\/>/);
   });
 
-  it("os demais blocos da tela continuam com Painel (troca é aditiva, não reescrita)", () => {
-    expect(ARQUIVO).toMatch(/<Painel titulo="Pesquisas em andamento">/);
-    expect(ARQUIVO).toMatch(/<Painel titulo="Abrir pesquisa para um caso existente">/);
+  it("os demais blocos da tela migraram para CaCard variante compacto (DSA-10, 2026-09-24) — mesmo visual do Painel anterior", () => {
+    expect(ARQUIVO).toMatch(/<CaCard variante="compacto" titulo="Pesquisas em andamento">/);
+    expect(ARQUIVO).toMatch(/<CaCard variante="compacto" titulo="Abrir pesquisa para um caso existente">/);
   });
 
   it("nenhum hex literal foi introduzido (regra 1 de regras-de-uso.md)", () => {

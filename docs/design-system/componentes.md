@@ -109,11 +109,18 @@ iniciativa **Painel → Cartão Canônico**:
   trabalho, Micro-entregas, Calendário de prazos, SLA por tipo de
   tarefa e prioridade) — `ops-excecoes.tsx` já migrado antes. Visual
   idêntico. Ops está completa.
+- **Família Pesquisa migrada** (2026-09-24, a maior família): `pesquisa/
+  painel.tsx` (8 blocos), `pesquisa/modulo.tsx` (5 blocos, incluindo um
+  título dinâmico), `pesquisa/assistente.tsx` (1 bloco) e
+  `pesquisa-modulo.index.tsx` (2 dos 3 `CaCard` da tela — o terceiro,
+  "Inconsistências de pesquisa em aberto", já era `CaCard` `padrao`
+  desde DSA-3 e não foi tocado). O teste `pesquisa-modulo-dsa3-cards.
+  test.ts`, que travava o estado anterior ("os demais blocos continuam
+  com Painel — troca é aditiva") foi atualizado para refletir a
+  migração, não revertido. Visual idêntico. Pesquisa está completa.
 - **Famílias ainda pendentes** (continuam em `Painel`, sem tocar neste
-  corte): CRM/Comercial (demais rotas do módulo), Pesquisa (`pesquisa/
-  painel.tsx`, `pesquisa/modulo.tsx`, `pesquisa/assistente.tsx`,
-  `pesquisa-modulo.index.tsx`), Financeiro (parcial — já usa `CaCard`
-  `padrao` em blocos próprios desde DSA-7), e dois arquivos avulsos
-  ainda não classificados (`contrato-parametros.index.tsx`,
-  `escopo-origem.tsx`). Cada família migra em corte próprio, com
-  aprovação visual antes do merge.
+  corte): CRM/Comercial (demais rotas do módulo), Financeiro (parcial —
+  já usa `CaCard` `padrao` em blocos próprios desde DSA-7), e dois
+  arquivos avulsos ainda não classificados
+  (`contrato-parametros.index.tsx`, `escopo-origem.tsx`). Cada família
+  migra em corte próprio, com aprovação visual antes do merge.

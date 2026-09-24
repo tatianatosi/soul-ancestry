@@ -5,7 +5,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { Campo, Gaveta, Painel, Selo, inputCls } from "@/components/comercial/base";
+import { Campo, Gaveta, Selo, inputCls } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { AssistentePesquisa } from "@/components/pesquisa/assistente";
 
 import {
@@ -285,7 +286,7 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
 
       {aba === "visao" && (
         <div className="grid gap-4 md:grid-cols-2">
-          <Painel titulo="Situação da pesquisa">
+          <CaCard variante="compacto" titulo="Situação da pesquisa">
             <ul className="space-y-1 text-sm text-navy/70">
               <li>Pessoas mapeadas: {pessoas.length}</li>
               <li>
@@ -302,17 +303,17 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
                 {pendencias.filter((p) => p.status !== "concluida" && p.status !== "cancelada").length}
               </li>
             </ul>
-          </Painel>
-          <Painel titulo="Legenda visual">
+          </CaCard>
+          <CaCard variante="compacto" titulo="Legenda visual">
             <div className="space-y-2 text-xs">
               <div className={molduraPor("validado")}>Fato apoiado por evidência validada</div>
               <div className={molduraPor("hipotese")}>Hipótese ainda não confirmada</div>
               <div className={molduraPor("inconclusivo")}>Item inconclusivo ou em análise</div>
               <div className={molduraPor("pendencia")}>Pendência de pesquisa</div>
             </div>
-          </Painel>
+          </CaCard>
           <div className="md:col-span-2">
-            <Painel titulo="Hipóteses de parentesco">
+            <CaCard variante="compacto" titulo="Hipóteses de parentesco">
               <div className="mb-3">
                 <BotaoNovo bloco="hipoteses" />
               </div>
@@ -337,13 +338,13 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
                   </div>
                 ))}
               </div>
-            </Painel>
+            </CaCard>
           </div>
         </div>
       )}
 
       {aba === "pessoas" && (
-        <Painel titulo="Linha familiar">
+        <CaCard variante="compacto" titulo="Linha familiar">
           <div className="mb-3">
             <BotaoNovo bloco="pessoas" />
           </div>
@@ -369,11 +370,11 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
               </div>
             ))}
           </div>
-        </Painel>
+        </CaCard>
       )}
 
       {aba === "evidencias" && (
-        <Painel titulo="Evidências">
+        <CaCard variante="compacto" titulo="Evidências">
           <div className="mb-3">
             <BotaoNovo bloco="evidencias" />
           </div>
@@ -429,11 +430,11 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
               </div>
             ))}
           </div>
-        </Painel>
+        </CaCard>
       )}
 
       {aba === "linha" && (
-        <Painel titulo="Linha do tempo">
+        <CaCard variante="compacto" titulo="Linha do tempo">
           <div className="mb-3">
             <BotaoNovo bloco="eventos" />
           </div>
@@ -455,11 +456,11 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
                 </li>
               ))}
           </ol>
-        </Painel>
+        </CaCard>
       )}
 
       {aba === "pendencias" && (
-        <Painel titulo="Pendências de pesquisa">
+        <CaCard variante="compacto" titulo="Pendências de pesquisa">
           <div className="mb-3">
             <BotaoNovo bloco="pendencias" />
           </div>
@@ -482,14 +483,14 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
               </div>
             ))}
           </div>
-        </Painel>
+        </CaCard>
       )}
 
       {aba === "assistente" && <AssistentePesquisa casoId={casoId} />}
 
       {aba === "relatorio" && (
 
-        <Painel titulo="Relatório interno de andamento">
+        <CaCard variante="compacto" titulo="Relatório interno de andamento">
           <p className="mb-2 text-xs text-navy/60">
             Gerado a partir dos registros atuais. Não é enviado ao cliente automaticamente.
           </p>
@@ -505,7 +506,7 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
               Copiar texto
             </button>
           </div>
-        </Painel>
+        </CaCard>
       )}
 
       {edicao && (
