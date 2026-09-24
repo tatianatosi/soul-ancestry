@@ -1613,7 +1613,7 @@ function FichaCaso() {
         </button>
       </nav>
 
-      <details open={secaoFoco !== "visao"} className="rounded-lg border border-navy/15 bg-card p-4">
+      <details open={secaoFoco !== null && secaoFoco !== "visao"} className="rounded-lg border border-navy/15 bg-card p-4">
         <summary className="cursor-pointer text-sm font-medium text-navy">Abrir ficha operacional completa</summary>
       <div className="mt-5 space-y-8 border-t border-navy/10 pt-5">
         <SecaoAncora id="visao" titulo="Indicadores" hidden={secaoFoco !== null && secaoFoco !== "visao"}>
