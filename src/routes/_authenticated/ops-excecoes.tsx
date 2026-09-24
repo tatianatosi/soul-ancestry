@@ -5,7 +5,8 @@ import { toast } from "sonner";
 
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { SaasShell } from "@/components/saas/shell";
-import { Campo, Painel, Selo, inputCls } from "@/components/comercial/base";
+import { Campo, Selo, inputCls } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { listarExcecoes, referenciasOps, registrarExcecao } from "@/lib/ops.functions";
 import { TIPOS_EXCECAO } from "@/lib/ops.server";
 import { cn } from "@/lib/utils";
@@ -81,7 +82,7 @@ function ExcecoesPage() {
             </button>
           </p>
         ) : null}
-        <Painel titulo="Registrar exceção">
+        <CaCard variante="compacto" titulo="Registrar exceção">
           <form
             onSubmit={async (ev) => {
               ev.preventDefault();
@@ -133,9 +134,9 @@ function ExcecoesPage() {
             </Campo>
             <button className="rounded-lg bg-navy px-4 py-2 text-sm text-cream">Autorizar exceção</button>
           </form>
-        </Painel>
+        </CaCard>
 
-        <Painel titulo="Histórico de exceções">
+        <CaCard variante="compacto" titulo="Histórico de exceções">
           <EstadoDados
             carregando={lista.isLoading}
             erro={lista.error}
@@ -167,7 +168,7 @@ function ExcecoesPage() {
               </div>
             )}
           </EstadoDados>
-        </Painel>
+        </CaCard>
       </div>
     </SaasShell>
   );

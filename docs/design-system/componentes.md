@@ -95,8 +95,12 @@ iniciativa **Painel → Cartão Canônico**:
   positivo de grep, componente próprio); o uso real estava em
   `src/components/qualidade/painel.tsx` (o componente `PainelQualidade`),
   6 blocos migrados para `<CaCard variante="compacto">`. Visual idêntico.
+- **`ops-excecoes.tsx` migrado** (2026-09-24, mesmo mecanismo): os 2
+  blocos (Registrar exceção, Histórico de exceções) viram `<CaCard
+  variante="compacto">`. Visual idêntico. **Com isto, todas as rotas
+  isoladas listadas nesta seção estão migradas.**
 - **Famílias ainda pendentes** (continuam em `Painel`, sem tocar neste
   corte): CRM/Comercial (demais rotas do módulo), Pesquisa, Privacidade,
   Ops, Financeiro (parcial — já usa `CaCard` `padrao` em blocos próprios
-  desde DSA-7) e a rota isolada `ops-excecoes.tsx`. Cada família migra em
-  corte próprio, com aprovação visual antes do merge.
+  desde DSA-7). Cada família migra em corte próprio, com aprovação
+  visual antes do merge.
