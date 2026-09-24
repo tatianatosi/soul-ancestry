@@ -5,7 +5,8 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { Painel, Selo, inputCls } from "@/components/comercial/base";
+import { Selo, inputCls } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { origemEscopoContratual } from "@/lib/escopo-origem.functions";
 import {
   EIXOS,
@@ -99,7 +100,7 @@ function OrigemEscopoPage() {
     >
       <div className="space-y-4">
         {resumo ? (
-          <Painel titulo="Síntese da cadeia (sem DEMO/TESTE)">
+          <CaCard variante="compacto" titulo="Síntese da cadeia (sem DEMO/TESTE)">
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="rounded-lg border border-navy/10 p-3">
                 <div className="text-2xl font-serif text-navy">{resumo.total}</div>
@@ -140,7 +141,7 @@ function OrigemEscopoPage() {
                 </tbody>
               </table>
             </div>
-          </Painel>
+          </CaCard>
         ) : null}
 
         <div className="flex flex-wrap items-center gap-3 rounded-xl border border-navy/10 bg-cream/40 p-3 text-sm">

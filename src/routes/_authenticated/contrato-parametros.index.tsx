@@ -4,7 +4,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { Painel, Selo } from "@/components/comercial/base";
+import { Selo } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -58,15 +59,15 @@ function Pagina() {
             "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
         </p>
       ) : null}
-      <Painel titulo="Como funciona">
+      <CaCard variante="compacto" titulo="Como funciona">
         <p className="text-sm text-navy/75">
           Cada caso real tem um único registro mestre. Os parâmetros são preenchidos uma vez, com origem declarada, e
           alimentam contrato, anexos, assinatura, financeiro e ativação. Nenhum destino pede redigitação e nenhum dado de
           outro caso ou de demonstração é usado como preenchimento.
         </p>
-      </Painel>
+      </CaCard>
 
-      <Painel titulo="Casos reais">
+      <CaCard variante="compacto" titulo="Casos reais">
         <EstadoDados
           carregando={q.isLoading}
           erro={q.error}
@@ -115,7 +116,7 @@ function Pagina() {
         </div>
           )}
         </EstadoDados>
-      </Painel>
+      </CaCard>
     </SaasShell>
   );
 }

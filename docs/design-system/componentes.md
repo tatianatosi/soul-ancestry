@@ -118,9 +118,13 @@ iniciativa **Painel → Cartão Canônico**:
   test.ts`, que travava o estado anterior ("os demais blocos continuam
   com Painel — troca é aditiva") foi atualizado para refletir a
   migração, não revertido. Visual idêntico. Pesquisa está completa.
-- **Famílias ainda pendentes** (continuam em `Painel`, sem tocar neste
-  corte): CRM/Comercial (demais rotas do módulo), Financeiro (parcial —
-  já usa `CaCard` `padrao` em blocos próprios desde DSA-7), e dois
-  arquivos avulsos ainda não classificados
-  (`contrato-parametros.index.tsx`, `escopo-origem.tsx`). Cada família
-  migra em corte próprio, com aprovação visual antes do merge.
+- **Arquivos avulsos migrados** (2026-09-24):
+  `contrato-parametros.index.tsx` (2 blocos: Como funciona, Casos
+  reais) e `escopo-origem.tsx` (1 bloco: Síntese da cadeia). Visual
+  idêntico.
+- **Único ponto restante, deliberadamente intocado**: `financeiro.tsx`
+  continua usando `Painel` e `CaCard` lado a lado por decisão explícita
+  (DSA-7-FINANCEIRO, 23/09/2026) — não é dívida esquecida, é escolha
+  registrada; não mexer sem reconfirmar essa decisão primeiro. Com isto,
+  a migração `Painel` → `CaCard` canônico (DSA-10) está completa em
+  todo o resto do Desk.
