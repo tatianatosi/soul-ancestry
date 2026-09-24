@@ -1,3 +1,5 @@
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+
 /**
  * Corte R2 — mesma ideia de `ReconciliarCpfPartes`
  * (src/components/contrato/reconciliar-cpf-partes.tsx), mas para membros já
@@ -37,11 +39,14 @@ export function ReconciliarCpfMembrosCaso({
   ocupado,
   onVerificar,
   onSincronizar,
+  onResolverConflito,
 }: {
   plano: ItemPlanoReconciliacaoMembro[] | null;
   ocupado?: boolean;
   onVerificar: () => void;
   onSincronizar: () => void;
+  /** Conflito só se resolve membro a membro, com confirmação e motivo. */
+  onResolverConflito?: (membroId: string, motivo: string) => void;
 }) {
   const preencher = plano ? plano.filter((p) => p.acao === "preencher").length : 0;
   const conflitos = plano ? plano.filter((p) => p.acao === "conflito").length : 0;
@@ -95,9 +100,21 @@ export function ReconciliarCpfMembrosCaso({
                 <span className="text-[10px] uppercase tracking-wide">{ROTULO_ACAO_MEMBRO[p.acao]}</span>
               </div>
               {p.acao === "conflito" ? (
-                <p className="mt-1 text-[11px]">
-                  No caso: {p.atual} · No cadastro canônico: {p.canonico}
-                </p>
+                <div className="mt-1 space-y-1">
+                  <p className="text-[11px]">
+                    No caso: {p.atual} · No cadastro canônico: {p.canonico}
+                  </p>
+                  {onResolverConflito ? (
+                    <AcaoOperacional
+                      size="sm"
+                      variant="outline"
+                      rotulo="Usar o CPF do cadastro canônico"
+                      acaoExterna="resolver_conflito_cpf_membro"
+                      efeito={`Substitui o CPF ${p.atual} deste membro no caso pelo CPF ${p.canonico} do cadastro canônico. Não funde pessoas; fica registrado no histórico e na auditoria.`}
+                      onConfirmar={(motivo) => onResolverConflito(p.membroId, motivo)}
+                    />
+                  ) : null}
+                </div>
               ) : null}
             </li>
           ))}

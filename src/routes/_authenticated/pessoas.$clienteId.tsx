@@ -23,6 +23,7 @@ import { obterProximaAcaoCanonica, SELO_PROXIMA_ACAO } from "@/lib/caso-ficha";
 import { NOME_RESPONSAVEL_PADRAO } from "@/lib/responsavel-padrao";
 import { ordenarPorPrioridade, sinaisDaPessoa, type PrioridadeSinal } from "@/lib/pessoa-sinais";
 import { relacoesAprovadas, estadoDeConfirmacao } from "@/lib/golive-pessoas";
+import { sinalCpfDaPessoaPorCaso } from "@/lib/pessoa-vinculo";
 import { RELEVANCIAS, STATUS_VALIDACAO, TIPOS_ACHADO } from "@/lib/achados-genealogicos";
 
 const rotulo = (lista: { id: string; rotulo: string }[], id: unknown) =>
@@ -303,6 +304,9 @@ function Pessoa() {
     achadosPesquisa,
     materiaisDossie,
   } = q.data;
+
+  // R2 — mesma regra do servidor (estadoCpfMembroCaso); só sinaliza, nunca grava aqui.
+  const sinalCpf = sinalCpfDaPessoaPorCaso(caseMembers, cliente.id as string, (cliente.cpf as string | null) ?? null);
 
   const linha = montarLinhaDoTempoDaPessoa(
     casos.map((c) => ({
@@ -698,6 +702,24 @@ function Pessoa() {
                         </dd>
                       </div>
                     </dl>
+                    {sinalCpf[c.id] ? (
+                      <p
+                        data-pessoa360-sinal-cpf
+                        className="mt-2 rounded-md border border-terracotta/30 bg-terracotta/5 px-2 py-1 text-[11px] text-navy/80"
+                      >
+                        {sinalCpf[c.id].conflito > 0
+                          ? `CPF deste registro no caso diverge do cadastro da pessoa (${sinalCpf[c.id].conflito}).`
+                          : `CPF deste registro no caso ainda vazio (${sinalCpf[c.id].preencher}).`}{" "}
+                        <Link
+                          to="/casos/$caseId"
+                          params={{ caseId: c.id }}
+                          hash="pessoas"
+                          className="font-medium text-navy underline underline-offset-4"
+                        >
+                          Conferir
+                        </Link>
+                      </p>
+                    ) : null}
                     <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs font-medium">
                       <Link
                         to="/casos/$caseId"

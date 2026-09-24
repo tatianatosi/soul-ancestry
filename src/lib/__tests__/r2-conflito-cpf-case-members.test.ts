@@ -20,9 +20,9 @@ describe("conferirDivergenciaCpfMembrosCaso (caso-canonico.functions.ts)", () =>
     expect(funcoes).toContain('if (item.acao !== "preencher") continue;');
   });
 
-  it("nunca sincroniza CPF de dependente (guarda já usada em sincronizarMembrosDoCaso)", () => {
-    expect(funcoes).toContain('if (m.dependente) {');
-    expect(funcoes).toContain('acao: "dependente_nao_sincronizado" as const');
+  it("nunca sincroniza CPF de dependente — a guarda mora na regra canônica estadoCpfMembroCaso (pessoa-vinculo.ts)", () => {
+    expect(funcoes).toContain("estadoCpfMembroCaso(m, cliente?.cpf ?? null)");
+    expect(funcoes).toContain('import { estadoCpfMembroCaso } from "@/lib/pessoa-vinculo";');
   });
 
   it("só considera membros já vinculados a um cliente_id", () => {

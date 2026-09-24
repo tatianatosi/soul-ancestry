@@ -12,6 +12,7 @@ import { construirMapaProdutoPaiPorCodigo, produtoPaiDoCodigo } from "@/lib/plan
 import { exigirGate } from "@/lib/escopo-conferencia.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { estadoCpfMembroCaso } from "@/lib/pessoa-vinculo";
 import { exigirProximaAcaoOperavel } from "@/lib/proxima-acao-startup";
 import { proprietariaOperando } from "@/lib/autoridade.server";
 import { nomeResponsavelSessao } from "@/lib/cadeia-operacional.server";
@@ -710,10 +711,20 @@ export const sincronizarMembrosDoCaso = createServerFn({ method: "POST" })
  */
 export const conferirDivergenciaCpfMembrosCaso = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { caseId: string; confirmar?: boolean }) => data)
+  .inputValidator(
+    (data: { caseId: string; confirmar?: boolean; resolverMembroId?: string; motivo?: string }) => {
+      // Resolver um conflito é sobrescrever um CPF já gravado: só com motivo
+      // explícito de quem decidiu (confirmação humana, nunca automática).
+      if (data.resolverMembroId && !(data.motivo ?? "").trim()) {
+        throw new Error("Resolver conflito de CPF exige o motivo da decisão.");
+      }
+      return data;
+    },
+  )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
+    const userId = context.userId as string;
 
     const { data: membros } = await supabase
       .from("case_members")
@@ -726,37 +737,72 @@ export const conferirDivergenciaCpfMembrosCaso = createServerFn({ method: "POST"
     const membrosLinha = (membros ?? []) as Linha[];
     const clienteIds = Array.from(new Set(membrosLinha.map((m) => m.cliente_id).filter(Boolean)));
     const { data: clientesRaw } = clienteIds.length
-      ? await supabase.from("clientes").select("id,cpf").in("id", clienteIds)
+      ? await supabase.from("clientes").select("id,cpf").eq("organization_id", organizationId).in("id", clienteIds)
       : { data: [] };
     const clientePorId = new Map(((clientesRaw ?? []) as Linha[]).map((c) => [c.id, c]));
-    const normalizar = (s: string) => s.replace(/\D/g, "");
 
+    // Regra única (pessoa-vinculo.ts) — a mesma que o sinal da Pessoa 360 usa.
     const plano = membrosLinha.map((m) => {
-      if (m.dependente) {
-        return { membroId: m.id, nome: m.nome, acao: "dependente_nao_sincronizado" as const };
-      }
       const cliente = clientePorId.get(m.cliente_id as string);
-      if (!cliente?.cpf) {
-        return { membroId: m.id, nome: m.nome, acao: "sem_dado_canonico" as const };
+      const acao = estadoCpfMembroCaso(m, cliente?.cpf ?? null);
+      if (acao === "conflito") {
+        return { membroId: m.id, nome: m.nome, acao, atual: m.cpf, canonico: cliente?.cpf as string };
       }
-      if (m.cpf) {
-        return normalizar(String(m.cpf)) !== normalizar(String(cliente.cpf))
-          ? { membroId: m.id, nome: m.nome, acao: "conflito" as const, atual: m.cpf, canonico: cliente.cpf }
-          : { membroId: m.id, nome: m.nome, acao: "ja_sincronizado" as const };
-      }
-      return { membroId: m.id, nome: m.nome, acao: "preencher" as const, cpf: cliente.cpf as string };
+      if (acao === "preencher") return { membroId: m.id, nome: m.nome, acao, cpf: cliente?.cpf as string };
+      return { membroId: m.id, nome: m.nome, acao };
     });
+
+    if (data.resolverMembroId) {
+      const alvo = plano.find((p) => p.membroId === data.resolverMembroId);
+      if (!alvo || alvo.acao !== "conflito") {
+        throw new Error("Este membro não está em conflito de CPF com o cadastro canônico — nada a resolver.");
+      }
+      const canonico = (alvo as { canonico: string }).canonico;
+      const r = await gravarComVerificacao({
+        supabase,
+        tabela: "case_members",
+        id: alvo.membroId,
+        organizationId,
+        userId,
+        payload: { cpf: canonico },
+      });
+      await supabase.from("audit_logs").insert({
+        organization_id: organizationId,
+        entidade: "case_members",
+        entidade_id: alvo.membroId,
+        acao: "cpf_conflito_resolvido_pelo_canonico",
+        user_id: userId,
+        valores_anteriores: { cpf: (alvo as { atual: string }).atual },
+        valores_posteriores: { cpf: canonico },
+        metadados: { case_id: data.caseId, motivo: data.motivo?.trim() },
+      });
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.caseId,
+        eventType: "caso",
+        title: `CPF de ${alvo.nome} alinhado ao cadastro canônico`,
+        summaryInternal: `Conflito resolvido por decisão humana — ${data.motivo?.trim()}`,
+        sourceEntityType: "case_members",
+        sourceEntityId: alvo.membroId,
+        userId,
+      });
+      return { simulado: false, plano, atualizados: 1, resolvido: alvo.membroId, salvoEm: r.salvoEm };
+    }
 
     if (!data.confirmar) return { simulado: true, plano };
 
     let atualizados = 0;
     for (const item of plano) {
       if (item.acao !== "preencher") continue;
-      const { error } = await supabase
-        .from("case_members")
-        .update({ cpf: item.cpf, status_cadastral: "completo" })
-        .eq("id", item.membroId);
-      if (error) throw new Error(`Membro do caso (${item.nome}): ${error.message}`);
+      // Grava, relê e compara — nunca devolve sucesso sem confirmar a linha.
+      await gravarComVerificacao({
+        supabase,
+        tabela: "case_members",
+        id: item.membroId,
+        organizationId,
+        userId,
+        payload: { cpf: (item as { cpf: string }).cpf, status_cadastral: "completo" },
+      });
       atualizados++;
     }
 
@@ -765,7 +811,7 @@ export const conferirDivergenciaCpfMembrosCaso = createServerFn({ method: "POST"
       entidade: "case_members",
       entidade_id: data.caseId,
       acao: "cpf_conferido_contra_cadastro_canonico",
-      user_id: context.userId as string,
+      user_id: userId,
       metadados: { case_id: data.caseId, plano, atualizados },
     });
 
@@ -778,7 +824,7 @@ export const conferirDivergenciaCpfMembrosCaso = createServerFn({ method: "POST"
         summaryInternal: `${atualizados} membro(s) tiveram CPF preenchido a partir de clientes.cpf.`,
         sourceEntityType: "case_members",
         sourceEntityId: data.caseId,
-        userId: context.userId as string,
+        userId,
       });
     }
 

@@ -444,6 +444,12 @@ function FichaCaso() {
   });
 
   const [secaoFoco, setSecaoFoco] = useState<(typeof SECOES)[number]["id"] | null>(SECOES[0].id);
+  // Link contextual vindo de outra tela (ex.: Pessoa 360 → "Conferir", #pessoas).
+  useEffect(() => {
+    const alvo = window.location.hash.replace("#", "");
+    const secao = SECOES.find((x) => x.id === alvo);
+    if (secao) setSecaoFoco(secao.id);
+  }, []);
 
   // CA08-JURIDICO-PROPORCIONAL (09/09/2026): fontes já existentes
   // (citizenship_tracks, versioned_legal_rules, legal_reference_milestones,
@@ -2506,6 +2512,19 @@ function AbaPessoas({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // R2: conflito de CPF só se resolve membro a membro, com motivo; depois
+  // relê o plano no servidor para mostrar o estado gravado, não o otimista.
+  const mResolverConflitoCpf = useMutation({
+    mutationFn: (v: { membroId: string; motivo: string }) =>
+      reconciliarCpfMembros({ data: { caseId: casoId, resolverMembroId: v.membroId, motivo: v.motivo } }),
+    onSuccess: () => {
+      toast.success("CPF alinhado ao cadastro canônico e registrado no histórico.");
+      mReconciliarCpfMembros.mutate(false);
+      onMudou();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   // Caso com núcleo vinculado: a composição familiar é somente leitura, projetada de Núcleos e dossiês.
   // A conferência de CPF vale independentemente do núcleo (opera sobre case_members).
   if (temNucleo) {
@@ -2516,6 +2535,7 @@ function AbaPessoas({
           ocupado={mReconciliarCpfMembros.isPending}
           onVerificar={() => mReconciliarCpfMembros.mutate(false)}
           onSincronizar={() => mReconciliarCpfMembros.mutate(true)}
+          onResolverConflito={(membroId, motivo) => mResolverConflitoCpf.mutate({ membroId, motivo })}
         />
         <GrupoComunicacaoCaso caseId={casoId} />
         <PessoasDoNucleo caseId={casoId} />
@@ -2546,6 +2566,7 @@ function AbaPessoas({
         ocupado={mReconciliarCpfMembros.isPending}
         onVerificar={() => mReconciliarCpfMembros.mutate(false)}
         onSincronizar={() => mReconciliarCpfMembros.mutate(true)}
+        onResolverConflito={(membroId, motivo) => mResolverConflitoCpf.mutate({ membroId, motivo })}
       />
       <GrupoComunicacaoCaso caseId={casoId} />
       <Secao

@@ -132,3 +132,53 @@ export async function pessoasDoCasoComFallbackNucleo(
   const ordemMinima = ordemDoContratantePrincipal(lista);
   return lista.map((m) => pessoaDoCasoAPartirDoNucleo(m, ordemMinima));
 }
+
+/**
+ * R2 — estado do CPF de um membro do caso já vinculado à Pessoa Canônica
+ * (`clientes`). Regra única: o servidor (conferirDivergenciaCpfMembrosCaso)
+ * e o sinal da Pessoa 360 usam esta mesma função, para nunca divergirem.
+ * Nunca decide sozinho: "conflito" e "preencher" só viram escrita com
+ * confirmação humana; dependente nunca herda documento do responsável.
+ */
+export type EstadoCpfMembro =
+  | "preencher"
+  | "conflito"
+  | "ja_sincronizado"
+  | "sem_dado_canonico"
+  | "dependente_nao_sincronizado";
+
+const soDigitosCpf = (s: string) => s.replace(/\D/g, "");
+
+export function estadoCpfMembroCaso(
+  membro: { cpf?: string | null; dependente?: boolean | null },
+  cpfCanonico: string | null | undefined,
+): EstadoCpfMembro {
+  if (membro.dependente) return "dependente_nao_sincronizado";
+  if (!cpfCanonico || !soDigitosCpf(cpfCanonico)) return "sem_dado_canonico";
+  if (membro.cpf && soDigitosCpf(membro.cpf)) {
+    return soDigitosCpf(membro.cpf) === soDigitosCpf(cpfCanonico) ? "ja_sincronizado" : "conflito";
+  }
+  return "preencher";
+}
+
+/**
+ * Sinal da Pessoa 360: para cada caso, quantos registros desta pessoa em
+ * `case_members` estão em conflito ou a preencher. Só leitura — a ação
+ * ("Conferir") mora no Caso 360, com confirmação humana.
+ */
+export function sinalCpfDaPessoaPorCaso(
+  membros: { case_id?: string | null; cliente_id?: string | null; cpf?: string | null; dependente?: boolean | null; origem?: string }[],
+  clienteId: string,
+  cpfCanonico: string | null | undefined,
+): Record<string, { conflito: number; preencher: number }> {
+  const saida: Record<string, { conflito: number; preencher: number }> = {};
+  for (const m of membros) {
+    // Só case_members guarda CPF; membro projetado de Núcleos não tem o campo.
+    if (m.origem === "nucleo" || m.cliente_id !== clienteId || !m.case_id) continue;
+    const estado = estadoCpfMembroCaso(m, cpfCanonico);
+    if (estado !== "conflito" && estado !== "preencher") continue;
+    const alvo = (saida[m.case_id] ??= { conflito: 0, preencher: 0 });
+    alvo[estado] += 1;
+  }
+  return saida;
+}
