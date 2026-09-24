@@ -156,6 +156,16 @@ function Pagina() {
   });
   const alternarCartao = (chave: ChaveCartao) =>
     setCartoesAbertos((v) => ({ ...v, [chave]: !v[chave] }));
+
+  /**
+   * Dois modos da mesma ficha (autorização da Proprietária, 2026-09-24):
+   * "Preparar contrato" é o trabalho de dado (Planejador & Comercial,
+   * Formalização & Anexos, Estrutura Familiar & Ficha); "Revisar prévia" é
+   * a leitura de conferência (Cláusulas & Perfil Institucional, Coerência &
+   * Instrumentos, Prévia & Versões, Auditoria). Nenhum card foi removido —
+   * só passou a aparecer sob o modo certo, ainda colapsável como antes.
+   */
+  const [modo, setModo] = useState<"preparar" | "revisar">("preparar");
   const abrirCartao = (chave: ChaveCartao) =>
     setCartoesAbertos((v) => ({ ...v, [chave]: true }));
 
@@ -545,7 +555,15 @@ function Pagina() {
               <Selo texto={`Completude ${d.completude?.pct ?? 0}%`} tom={(d.completude?.pct ?? 0) === 100 ? "ok" : "alerta"} />
               <Selo texto={`Modelo: ${d.modelo?.code ?? "não localizado"}`} tom={d.modelo ? "ok" : "erro"} />
               <Selo texto={`Base: ${d.base?.code ?? "não localizada"}`} tom={d.base ? "ok" : "erro"} />
-              {d.contrato && <Selo texto={`Contrato ${d.contrato.contract_number} · ${d.contrato.status}`} tom="neutro" />}
+              {d.contrato && (
+                <Link
+                  to="/contratos/$id"
+                  params={{ id: d.contrato.id }}
+                  title="Abrir Partes, Escopo, Cláusulas e Anexos do instrumento registrado"
+                >
+                  <Selo texto={`Contrato ${d.contrato.contract_number} · ${d.contrato.status} · abrir instrumento →`} tom="neutro" />
+                </Link>
+              )}
               <span data-contrato-validacao-documental>
                 <Selo
                   texto={
@@ -749,8 +767,34 @@ function Pagina() {
           </CaCard>
         </div>
 
+        <div className="flex flex-wrap gap-2" role="tablist" aria-label="Modo de trabalho da ficha">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={modo === "preparar"}
+            onClick={() => setModo("preparar")}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
+              modo === "preparar" ? "bg-navy text-cream" : "border border-navy/20 text-navy/70"
+            }`}
+          >
+            Preparar contrato
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={modo === "revisar"}
+            onClick={() => setModo("revisar")}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
+              modo === "revisar" ? "bg-navy text-cream" : "border border-navy/20 text-navy/70"
+            }`}
+          >
+            Revisar prévia
+          </button>
+        </div>
+
         {/* ===================== CARDS (fecham por padrão) ===================== */}
         <div className="space-y-3">
+          {modo === "preparar" && <>
           <CartaoDetalhe
             titulo="1. Planejador & Comercial"
             resumo={
@@ -936,7 +980,9 @@ function Pagina() {
               </CaCard>
             </div>
           </CartaoDetalhe>
+          </>}
 
+          {modo === "revisar" && (
           <CartaoDetalhe
             titulo="3. Cláusulas & Perfil Institucional"
             resumo={`Prévia final ${previaFinalCaso.liberada ? "liberada" : "bloqueada"}`}
@@ -994,7 +1040,9 @@ function Pagina() {
               </div>
             </CaCard>
           </CartaoDetalhe>
+          )}
 
+          {modo === "preparar" && (
           <CartaoDetalhe
             titulo="4. Estrutura Familiar & Ficha"
             resumo={`${d.membros.length} membro(s) no caso`}
@@ -1025,7 +1073,9 @@ function Pagina() {
               ))}
             </div>
           </CartaoDetalhe>
+          )}
 
+          {modo === "revisar" && <>
           <CartaoDetalhe
             titulo="5. Coerência & Instrumentos"
             aberto={cartoesAbertos.coerencia}
@@ -1194,6 +1244,7 @@ function Pagina() {
               </ul>
             </CaCard>
           </CartaoDetalhe>
+          </>}
         </div>
       </div>
     </SaasShell>
