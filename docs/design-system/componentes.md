@@ -97,10 +97,18 @@ iniciativa **Painel → Cartão Canônico**:
   6 blocos migrados para `<CaCard variante="compacto">`. Visual idêntico.
 - **`ops-excecoes.tsx` migrado** (2026-09-24, mesmo mecanismo): os 2
   blocos (Registrar exceção, Histórico de exceções) viram `<CaCard
-  variante="compacto">`. Visual idêntico. **Com isto, todas as rotas
-  isoladas listadas nesta seção estão migradas.**
+  variante="compacto">`. Visual idêntico. Com isto, todas as rotas
+  isoladas listadas nesta seção estão migradas.
+- **Família Privacidade migrada** (2026-09-24): `src/components/
+  privacidade/painel.tsx` (5 blocos: Documentos do caso, Consentimentos
+  registrados, Exceções formais, Matriz de permissões deste caso,
+  Eventos recentes) e `privacidade.index.tsx` (1 bloco: Casos). Visual
+  idêntico.
 - **Famílias ainda pendentes** (continuam em `Painel`, sem tocar neste
-  corte): CRM/Comercial (demais rotas do módulo), Pesquisa, Privacidade,
-  Ops, Financeiro (parcial — já usa `CaCard` `padrao` em blocos próprios
-  desde DSA-7). Cada família migra em corte próprio, com aprovação
-  visual antes do merge.
+  corte): CRM/Comercial (demais rotas do módulo), Pesquisa (`pesquisa/
+  painel.tsx`, `pesquisa/modulo.tsx`, `pesquisa/assistente.tsx`,
+  `pesquisa-modulo.index.tsx`), Ops (`ops/desk-operacional.tsx`),
+  Financeiro (parcial — já usa `CaCard` `padrao` em blocos próprios
+  desde DSA-7), e dois arquivos avulsos ainda não classificados
+  (`contrato-parametros.index.tsx`, `escopo-origem.tsx`). Cada família
+  migra em corte próprio, com aprovação visual antes do merge.

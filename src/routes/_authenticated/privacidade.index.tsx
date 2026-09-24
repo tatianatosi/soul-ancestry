@@ -4,7 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { SaasShell } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { Painel, Selo } from "@/components/comercial/base";
+import { Selo } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { listarClientesECasos } from "@/lib/documentos.functions";
 
 export const Route = createFileRoute("/_authenticated/privacidade/")({
@@ -30,7 +31,7 @@ function PrivacidadeIndex() {
       titulo="Privacidade e documentos"
       descricao="Escolha um caso para gerir documentos, consentimentos e permissões."
     >
-      <Painel titulo="Casos">
+      <CaCard variante="compacto" titulo="Casos">
         <EstadoDados
           carregando={q.isLoading}
           erro={q.error}
@@ -80,7 +81,7 @@ function PrivacidadeIndex() {
         </div>
           )}
         </EstadoDados>
-      </Painel>
+      </CaCard>
     </SaasShell>
   );
 }

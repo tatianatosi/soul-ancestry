@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { Campo, Gaveta, Painel, Selo, inputCls } from "@/components/comercial/base";
+import { Campo, Gaveta, Selo, inputCls } from "@/components/comercial/base";
+import { CaCard } from "@/components/ui/ca-card";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -239,7 +240,7 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
       </nav>
 
       {aba === "documentos" && (
-        <Painel titulo="Documentos do caso">
+        <CaCard variante="compacto" titulo="Documentos do caso">
           <div className="mb-3 flex flex-wrap gap-2">
             <button onClick={() => setNovoDoc(true)} className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream">
               Enviar documento
@@ -323,12 +324,12 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
               </div>
             ))}
           </div>
-        </Painel>
+        </CaCard>
       )}
 
       {aba === "consentimentos" && (
         <div className="space-y-4">
-          <Painel titulo="Consentimentos registrados">
+          <CaCard variante="compacto" titulo="Consentimentos registrados">
             <div className="mb-3 flex flex-wrap gap-2">
               <button onClick={() => setNovoConsent(true)} className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream">
                 Registrar consentimento
@@ -379,9 +380,9 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
                 </div>
               ))}
             </div>
-          </Painel>
+          </CaCard>
 
-          <Painel titulo="Exceções formais">
+          <CaCard variante="compacto" titulo="Exceções formais">
             {p.excecoes.length === 0 && <p className="text-sm text-navy/60">Nenhuma exceção registrada.</p>}
             <ul className="space-y-2">
               {p.excecoes.map((e: Linha) => (
@@ -393,12 +394,12 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
                 </li>
               ))}
             </ul>
-          </Painel>
+          </CaCard>
         </div>
       )}
 
       {aba === "matriz" && (
-        <Painel titulo="Matriz de permissões deste caso">
+        <CaCard variante="compacto" titulo="Matriz de permissões deste caso">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
@@ -432,11 +433,11 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
           <p className="mt-2 text-xs text-navy/60">
             Acessos do cliente ao caso pelo portal: {p.acessosCliente.length} registro(s).
           </p>
-        </Painel>
+        </CaCard>
       )}
 
       {aba === "eventos" && (
-        <Painel titulo="Eventos recentes de documentos e consentimentos">
+        <CaCard variante="compacto" titulo="Eventos recentes de documentos e consentimentos">
           <ol className="space-y-2 border-l border-navy/15 pl-4">
             {p.eventos.length === 0 && <p className="text-sm text-navy/60">Sem eventos registrados.</p>}
             {p.eventos.map((ev: Linha) => (
@@ -445,7 +446,7 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
               </li>
             ))}
           </ol>
-        </Painel>
+        </CaCard>
       )}
 
       {novoDoc && (
