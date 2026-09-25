@@ -87,7 +87,7 @@ export function PortalShell({
         3/17, que usa uma só faixa). Logo + "Bem-vinda/nome" no mesmo bloco.
       */}
       <header className="bg-navy text-cream shadow-sm" data-app-cabecalho>
-        <div className="mx-auto max-w-6xl px-4 pb-4 pt-3 lg:px-8 lg:pb-7 lg:pt-4">
+        <div className="mx-auto max-w-3xl px-4 pb-4 pt-3 sm:px-6 lg:pb-7 lg:pt-5">
           <div className="flex items-center">
             <BrandLogo size={28} variant="client-dark" showText />
           </div>
