@@ -44,11 +44,15 @@ describe("writers com releitura", () => {
   });
 
   it("D7: criarPrimeiraMicroentregaOnboarding insere com inserirComVerificacao e atualiza o checklist com releitura", () => {
+    // P3 (25/09/2026): a escrita mora no reconciliador único do D7.
     const trecho = plano.slice(plano.indexOf("export const criarPrimeiraMicroentregaOnboarding"));
-    expect(trecho).toContain("inserirComVerificacao({");
-    expect(trecho).toContain('tabela: "ops_microentregas"');
-    expect(trecho).toContain("gravarComVerificacao({");
+    expect(trecho).toContain("reconciliarD7Caso(supabase, {");
     expect(trecho).not.toMatch(/\.insert\(|\.update\(/);
+    const reconciliador = readFileSync("src/lib/d7-microentrega.server.ts", "utf8");
+    expect(reconciliador).toContain("inserirComVerificacao({");
+    expect(reconciliador).toContain('tabela: "ops_microentregas"');
+    expect(reconciliador).toContain("gravarComVerificacao({");
+    expect(reconciliador).not.toMatch(/\.from\("ops_microentregas"\)\s*\.(insert|update)\(/);
   });
 
   it("P6: criarMicroentregaCliente insere com inserirComVerificacao e devolve o registro relido", () => {

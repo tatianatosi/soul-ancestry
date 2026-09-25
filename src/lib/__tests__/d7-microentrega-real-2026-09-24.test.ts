@@ -97,9 +97,13 @@ describe("writers e leitor ligados à mesma fonte", () => {
     expect(plano).toContain("async function derivadosDoCaso(");
     expect(plano).toContain('.from("ops_microentregas")');
     expect(plano).toContain("dossieMaeDoCaso(");
+    // P3 (25/09/2026): criar micro-entrega passa pelo reconciliador único,
+    // que recalcula o checklist do plano pelo mesmo dado real.
     const criar = plano.slice(plano.indexOf("export const criarPrimeiraMicroentregaOnboarding"));
-    expect(criar).toContain("await derivadosDoCaso(supabase, organizationId, data.caseId)");
-    expect(criar).toContain("checklist_inicial: checklist");
+    expect(criar).toContain("reconciliarD7Caso(supabase, {");
+    const reconciliador = readFileSync("src/lib/d7-microentrega.server.ts", "utf8");
+    expect(reconciliador).toContain("dossieMaeDoCaso(");
+    expect(reconciliador).toContain("payload: { checklist_inicial: checklist }");
   });
   it("painel de jornada usa ops_microentregas para D7, cadência e contador", () => {
     expect(painel).toContain('.from("ops_microentregas")');

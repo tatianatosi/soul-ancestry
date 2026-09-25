@@ -1,6 +1,8 @@
 import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { recusaTickManualD7 } from "@/lib/d7-microentrega";
+import { tratarTickManualD7 } from "@/lib/d7-microentrega.server";
 import {
   meusPapeis,
   podeAtivar,
@@ -176,11 +178,22 @@ export const atualizarItemChecklistOnboarding = createServerFn({ method: "POST" 
 
     const { data: atual } = await supabase
       .from("onboarding_checklist")
-      .select("id,case_id,label")
+      .select("id,case_id,label,item_code")
       .eq("id", data.itemId)
       .eq("organization_id", organizationId)
       .maybeSingle();
     if (!atual) return { ok: false, erro: "Item não encontrado." };
+
+    // P3 (25/09/2026): o D7 não é caixinha — segue a micro-entrega real.
+    if (recusaTickManualD7(atual.item_code as string, data.status)) {
+      const r = await tratarTickManualD7(supabase, {
+        organizationId,
+        caseId: atual.case_id as string,
+        userId: context.userId as string,
+        status: data.status,
+      });
+      return { ok: r.ok, erro: r.erro };
+    }
 
     const { data: linhaAtualizada, error } = await supabase
       .from("onboarding_checklist")

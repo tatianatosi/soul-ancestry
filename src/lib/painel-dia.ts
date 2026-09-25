@@ -374,7 +374,7 @@ export const CARDS_HOJE: { chave: string; rotulo: string; leitura: string }[] = 
  */
 export function cardsHoje(
   filas: Fila[],
-  opcoes?: { incluirDemo?: boolean; itens?: ItemDia[] },
+  opcoes?: { incluirDemo?: boolean; itens?: ItemDia[]; slaEmRisco?: number | null },
 ): CardHoje[] {
   const incluirDemo = opcoes?.incluirDemo ?? false;
   const itens = opcoes?.itens ?? consolidarDia(filas);
@@ -395,10 +395,10 @@ export function cardsHoje(
     acoes_hoje: daFila("acoes_hoje"),
     sem_responsavel: visiveis(itens.filter((i) => i.semResponsavel)).length,
     excecoes_criticas: criticos.size,
-    // CA-UX-02 §7 pede SLA em risco. A fonte é tarefas.sla_status /
-    // ops_microentregas.prazo_status, que a consulta do Painel Hoje ainda não
-    // carrega. Sem a fonte, o cartão declara ausência — nunca zero.
-    sla_em_risco: null,
+    // CA-UX-02 §7 pede SLA em risco. Fonte: v_ops_tarefas.sla_status +
+    // v_ops_microentregas.prazo_status (painelHojeDesk, P3 25/09/2026).
+    // Sem a fonte (falha de leitura), o cartão declara ausência — nunca zero.
+    sla_em_risco: opcoes?.slaEmRisco ?? null,
   };
 
   return CARDS_HOJE.map((c) => {

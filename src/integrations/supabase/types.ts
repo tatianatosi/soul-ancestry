@@ -19170,6 +19170,7 @@ export type Database = {
           onboarding_iniciado_em: string | null
           organization_id: string | null
           pais: string | null
+          proxima_entrega_prevista_em: string | null
           status: string | null
           suspenso_em: string | null
           titulo: string | null

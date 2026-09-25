@@ -375,7 +375,11 @@ export function PainelDia() {
   const itens = consolidarDia(filas, { incluirDemo });
   // Precedência exclusiva: fila priorizada → exceções → comercial. Um registro só aparece uma vez.
   const priorizada = filaPriorizada(itens, hoje);
-  const cards = cardsHoje(filas, { incluirDemo, itens });
+  const cards = cardsHoje(filas, {
+    incluirDemo,
+    itens,
+    slaEmRisco: (qDesk.data as { slaEmRisco?: { total: number } | null }).slaEmRisco?.total ?? null,
+  });
   const casoDestaque = escolherCasoDestaque(itens, { incluirDemo });
   const opcoes = opcoesFiltroDia(itens);
   const priorizadaVisivel = priorizada.map((f) => ({

@@ -417,6 +417,21 @@ export function PortalJornada() {
               rotuloCta: destino?.includes("documentos") ? "Ver documentos solicitados" : "Ver próxima ação",
             });
 
+            // P3 (25/09/2026): próxima entrega — só a data sanitizada que a
+            // view portal_casos projeta; nenhum título ou detalhe interno.
+            if (vivo.proximaEntrega) {
+              nos.push({
+                tipo: "evento",
+                id: "__proxima_entrega__",
+                categoria: "navy",
+                rotuloCategoria: "Próxima entrega",
+                dataPrincipal: vivo.proximaEntrega.data.split("-").reverse().join("/"),
+                titulo: "Próxima entrega",
+                conteudo: vivo.proximaEntrega.texto,
+                destino: null,
+              });
+            }
+
             /*
               A2-JORNADA-DUAS-LINHAS (2026-09-23): mockup 2/7 mostra duas
               colunas paralelas — LINHA ANCESTRAL (história, dourado) ×

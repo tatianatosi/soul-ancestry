@@ -89,6 +89,7 @@ export function PortalHome() {
             statusRotulo="Acompanhamento ativo"
             proximoPasso={jornada.proximoPasso}
             proximoPassoDestino={vivo.data?.proximaAcao?.destino ?? null}
+            proximaEntrega={vivo.data?.proximaEntrega?.texto ?? null}
             marcos={jornada.marcosPublicados}
             casoCodigo={previa.identidade?.codigo ?? CASO_DEMO_CODIGO}
             identidade={previa.identidade}
@@ -148,6 +149,7 @@ export function PortalHome() {
                 statusTexto={principal.statusTexto}
                 proximoPasso={principal.proximoPasso || jornada.proximoPasso}
                 proximoPassoDestino={principal.proximoPassoDestino}
+                proximaEntrega={vivo.data?.proximaEntrega?.texto ?? null}
                 marcos={jornada.marcosPublicados}
                 casoCodigo={principal.codigo ?? "—"}
                 casoId={principal.id}
@@ -291,6 +293,7 @@ function PainelHomeMockup({
   statusTexto,
   proximoPasso,
   proximoPassoDestino,
+  proximaEntrega,
   marcos,
   casoCodigo,
   casoId,
@@ -304,6 +307,8 @@ function PainelHomeMockup({
   statusTexto?: string;
   proximoPasso: string;
   proximoPassoDestino?: string | null;
+  /** P3: só a data sanitizada da próxima entrega (portal_casos). */
+  proximaEntrega?: string | null;
   marcos: number;
   casoCodigo: string;
   casoId?: string;
@@ -394,6 +399,11 @@ function PainelHomeMockup({
           {/* Acabamento 2026-09-13 (referência Lovable): título editorial em
               vez de crachá numerado — mesma frase real, leitura mais serena. */}
           <CaCard titulo={proximaCurta}>
+            {proximaEntrega ? (
+              <p className="mb-2 text-xs text-navy/70" data-proxima-entrega>
+                {proximaEntrega}
+              </p>
+            ) : null}
             {proximoPassoDestino ? (
               <LinkPortal
                 to={proximoPassoDestino}

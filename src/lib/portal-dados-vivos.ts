@@ -338,3 +338,19 @@ export function composicaoDoCasoCliente(
  * lista que o App usa para desenhar a jornada — não uma cópia editável.
  */
 export const ROTULOS_ETAPA_CLIENTE: readonly string[] = FASES_JORNADA.map((f) => f.cliente);
+
+/**
+ * P3 (25/09/2026) — a única coisa da operação interna de micro-entregas que
+ * chega ao cliente: a DATA da próxima entrega prevista (coluna
+ * `portal_casos.proxima_entrega_prevista_em`). Sem título, responsável,
+ * status ou SLA. Data inválida vira `null` (nada inventado).
+ */
+export function proximaEntregaCliente(
+  data: string | null | undefined,
+): { data: string; texto: string } | null {
+  if (!data) return null;
+  const iso = String(data).slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+  const [ano, mes, dia] = iso.split("-");
+  return { data: iso, texto: `Próxima entrega prevista para ${dia}/${mes}/${ano}.` };
+}

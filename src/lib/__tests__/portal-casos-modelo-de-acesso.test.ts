@@ -117,6 +117,15 @@ describe("nenhuma migration posterior volta a ligar security_invoker nesta view"
   it("a fixação é a última palavra sobre portal_casos", () => {
     const arquivos = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort();
     const tocam = arquivos.filter((f) => readFileSync(`${dir}/${f}`, "utf8").includes("public.portal_casos"));
-    expect(tocam[tocam.length - 1]).toBe("20260922120000_portal_casos_fixar_modelo_de_acesso.sql");
+    // P3 (25/09/2026): 20260925120000 recria a view para projetar só a data da
+    // próxima entrega. A regra continua: toda migration posterior à fixação
+    // que toca a view repete as duas reloptions e nunca liga security_invoker.
+    const fixacao = tocam.indexOf("20260922120000_portal_casos_fixar_modelo_de_acesso.sql");
+    expect(fixacao).toBeGreaterThanOrEqual(0);
+    for (const f of tocam.slice(fixacao + 1)) {
+      const sql = readFileSync(`${dir}/${f}`, "utf8");
+      expect(sql, f).toContain("with (security_barrier = true, security_invoker = false)");
+      expect(sql, f).not.toMatch(/security_invoker\s*=\s*true/);
+    }
   });
 });

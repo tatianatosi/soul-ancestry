@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
 import type { DocumentoPortal, EtapaCliente } from "@/lib/portal-dados-vivos";
-import { composicaoDoCasoCliente, etapaDoCasoCliente } from "@/lib/portal-dados-vivos";
+import { composicaoDoCasoCliente, etapaDoCasoCliente, proximaEntregaCliente } from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 import { projetarProximaAcaoCliente, sinaisDoCasoPortal, type ProximaAcaoCliente } from "@/lib/motor-caso";
 
@@ -44,13 +44,20 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
      */
     etapa: EtapaCliente | null;
     composicao: string | null;
+    /** P3: só a data da próxima micro-entrega aberta, já em texto de cliente. */
+    proximaEntrega: { data: string; texto: string } | null;
   }> => {
     semCache();
     const supabase = context.supabase as any;
 
-    const casos = await supabase
-      .from("portal_casos")
-      .select("id, status, ativo, suspenso_em, fase_jornada, composicao");
+    // P3 (25/09/2026): proxima_entrega_prevista_em vem da migration
+    // 20260925120000. Se o banco conectado ainda não a tem, relê sem ela
+    // (o App segue igual, sem a linha da próxima entrega).
+    const COLUNAS = "id, status, ativo, suspenso_em, fase_jornada, composicao";
+    let casos = await supabase.from("portal_casos").select(`${COLUNAS}, proxima_entrega_prevista_em`);
+    if (casos.error && /proxima_entrega_prevista_em/.test(String(casos.error.message ?? ""))) {
+      casos = await supabase.from("portal_casos").select(COLUNAS);
+    }
     const permitidos = ((casos.data ?? []) as {
       id: string;
       status?: string;
@@ -58,6 +65,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       suspenso_em?: string | null;
       fase_jornada?: string | null;
       composicao?: string | null;
+      proxima_entrega_prevista_em?: string | null;
     }[]);
 
     // Um caso por leitura. Pedido explícito só vale se estiver entre os
@@ -66,7 +74,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       ? (permitidos.find((c) => String(c.id) === data.casoId) ?? null)
       : (permitidos[0] ?? null);
     if (!casoAtivo)
-      return { projecoes: [], documentos: [], proximaAcao: null, casoAtivoId: null, etapa: null, composicao: null };
+      return { projecoes: [], documentos: [], proximaAcao: null, casoAtivoId: null, etapa: null, composicao: null, proximaEntrega: null };
     const alvo = [String(casoAtivo.id)];
 
     const [proj, docs, pendencias, faturas] = await Promise.all([
@@ -101,5 +109,6 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       casoAtivoId: String(casoAtivo.id),
       etapa: etapaDoCasoCliente(casoAtivo.fase_jornada),
       composicao: composicaoDoCasoCliente(casoAtivo.composicao),
+      proximaEntrega: proximaEntregaCliente(casoAtivo.proxima_entrega_prevista_em),
     };
   });

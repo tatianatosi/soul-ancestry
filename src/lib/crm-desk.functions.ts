@@ -19,6 +19,7 @@ import type { Dependente } from "@/lib/dependentes";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { proprietariaOperando } from "@/lib/autoridade.server";
+import { contarSlaEmRisco } from "@/lib/d7-microentrega";
 import {
   eventosDeCall,
   exigeMotivoDeCall,
@@ -490,9 +491,29 @@ export const painelHojeDesk = createServerFn({ method: "GET" })
         };
       }
     }
+    // P3 (25/09/2026): cartão "SLA em risco" com a fonte canônica
+    // (v_ops_tarefas.sla_status + v_ops_microentregas.prazo_status), só dos
+    // casos visíveis. Falha de leitura = null (ausência declarada, nunca zero).
+    const [slaTarefas, slaMicro] = await Promise.all([
+      supabase.from("v_ops_tarefas").select("caso_id,sla_status").eq("organization_id", org).is("archived_at", null),
+      supabase
+        .from("v_ops_microentregas")
+        .select("caso_id,prazo_status")
+        .eq("organization_id", org)
+        .is("archived_at", null),
+    ]);
+    const slaEmRisco =
+      slaTarefas.error || slaMicro.error
+        ? null
+        : contarSlaEmRisco({
+            tarefas: (slaTarefas.data ?? []) as any[],
+            microentregas: (slaMicro.data ?? []) as any[],
+            casosVisiveis: new Set(listaCasos.map((c) => String(c.id))),
+          });
     return {
       filas: montarFilasHoje({ leads: listaLeads, casos: listaCasos, cadeia, proximasAcoes }),
       metricas: calcularMetricasCrm({ leads: listaLeads, casos: listaCasos }),
+      slaEmRisco,
     };
   });
 

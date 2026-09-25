@@ -12,6 +12,8 @@ import { construirMapaProdutoPaiPorCodigo, produtoPaiDoCodigo } from "@/lib/plan
 import { exigirGate } from "@/lib/escopo-conferencia.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { recusaTickManualD7 } from "@/lib/d7-microentrega";
+import { tratarTickManualD7 } from "@/lib/d7-microentrega.server";
 import { estadoCpfMembroCaso } from "@/lib/pessoa-vinculo";
 import { exigirProximaAcaoOperavel } from "@/lib/proxima-acao-startup";
 import { proprietariaOperando } from "@/lib/autoridade.server";
@@ -541,6 +543,17 @@ export const atualizarItemOnboarding = createServerFn({ method: "POST" })
       .eq("organization_id", organizationId)
       .maybeSingle();
     if (!item) throw new Error("Item de onboarding não encontrado.");
+    // P3 (25/09/2026): o D7 não é caixinha — segue a micro-entrega real.
+    if (recusaTickManualD7(String(item.item_code ?? ""), data.status)) {
+      const r = await tratarTickManualD7(supabase, {
+        organizationId,
+        caseId: item.case_id as string,
+        userId: context.userId as string,
+        status: data.status,
+      });
+      if (!r.ok) throw new Error(r.erro);
+      return { ok: true, salvoEm: new Date().toISOString() };
+    }
     if (data.status === "concluido" && ["liberacao_onboarding", "onboarding_liberado"].includes(String(item.item_code))) {
       await exigirGate(supabase, {
         caseId: item.case_id,

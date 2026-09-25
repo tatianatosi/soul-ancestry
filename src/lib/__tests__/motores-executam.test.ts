@@ -61,7 +61,8 @@ describe("P4 — onboarding vira checklist, tarefa e micro-entrega", () => {
     expect(fn).toContain("clienteAtivado: false");
     expect(fn).not.toMatch(/onboarding_runs/);
     const ui = readFileSync("src/components/caso/onboarding-plano.tsx", "utf8");
-    expect(ui).toContain("Criar primeira micro-entrega");
+    // P3 (25/09/2026): o CTA virou idempotente (cria ou reconcilia o D7).
+    expect(ui).toContain("Criar ou reconciliar micro-entrega D7");
     expect(TITULO_PRIMEIRA_MICROENTREGA).toMatch(/micro-entrega/i);
   });
 });

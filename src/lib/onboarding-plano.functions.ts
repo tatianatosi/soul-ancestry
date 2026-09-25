@@ -11,7 +11,6 @@ import {
   planoAcaoDosTouchpoints,
   primeiraMicroentregaReal,
   titulosTarefasDosGates,
-  TITULO_PRIMEIRA_MICROENTREGA,
   TOUCHPOINTS_PADRAO,
   type DerivadosChecklist,
   type GatesPlano,
@@ -20,7 +19,9 @@ import {
 import { dossieMaeDoCaso } from "@/lib/nucleo-completude";
 import { espelharMotivosBloqueioEmCasePlans } from "@/lib/gate-onboarding-case-plans";
 import { garantirTarefaAberta } from "@/lib/tarefa-garantida.server";
-import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { reconciliarD7Caso } from "@/lib/d7-microentrega.server";
+import { ITEM_CODE_D7, lacunasD7, microentregaD7, proximaAcaoD7, type MicroD7 } from "@/lib/d7-microentrega";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -152,7 +153,7 @@ export const carregarPlanoOnboarding = createServerFn({ method: "GET" })
         .order("created_at", { ascending: true }),
       supabase
         .from("v_ops_microentregas")
-        .select("id,titulo,fase,status,prazo,concluida_em,prazo_status,evidencia_url")
+        .select("id,titulo,fase,status,prazo,concluida_em,prazo_status,evidencia_url,responsavel_id,created_at")
         .eq("organization_id", organizationId)
         .eq("caso_id", data.caseId)
         .is("archived_at", null)
@@ -164,7 +165,36 @@ export const carregarPlanoOnboarding = createServerFn({ method: "GET" })
       pagamento_confirmado: Boolean(caso.data?.pagamento_confirmado),
     };
 
+    // P3 (25/09/2026): resumo do D7 lido da micro-entrega real + espelho.
+    const listaMicro = (microentregas.data ?? []) as Record<string, any>[];
+    const micro = microentregaD7(listaMicro as MicroD7[]) as Record<string, any> | null;
+    const [itemD7, responsavel] = await Promise.all([
+      supabase
+        .from("onboarding_checklist")
+        .select("status,observacao")
+        .eq("organization_id", organizationId)
+        .eq("case_id", data.caseId)
+        .eq("item_code", ITEM_CODE_D7)
+        .is("archived_at", null)
+        .maybeSingle(),
+      micro?.responsavel_id
+        ? supabase.from("profiles").select("id,nome").eq("id", micro.responsavel_id).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
+    const d7 = {
+      microentregaId: (micro?.id as string | undefined) ?? null,
+      titulo: (micro?.titulo as string | undefined) ?? null,
+      prazo: (micro?.prazo as string | undefined) ?? null,
+      prazoStatus: (micro?.prazo_status as string | undefined) ?? null,
+      status: (micro?.status as string | undefined) ?? null,
+      responsavel: micro?.responsavel_id ? ((responsavel.data?.nome as string | undefined) ?? "Responsável definido") : null,
+      lacunas: lacunasD7(micro as MicroD7 | null),
+      proximaAcao: proximaAcaoD7(micro as MicroD7 | null),
+      checklist: (itemD7.data?.status as string | undefined) ?? null,
+    };
+
     return {
+      d7,
       plano: (plano.data ?? null) as Record<string, any> | null,
       gates,
       motivos: motivosBloqueio(gates),
@@ -252,12 +282,23 @@ export const recalcularPlanoOnboarding = createServerFn({ method: "POST" })
       tarefas.push({ id: t.id, titulo, criada: t.criada });
     }
 
-    return { ok: true, estado, motivos, clienteAtivado: false, tarefas, espelhoCasePlans };
+    // P3: o D7 segue a micro-entrega real (sem criar nada aqui).
+    const d7 = await reconciliarD7Caso(supabase, {
+      organizationId,
+      caseId: data.caseId,
+      userId: context.userId as string,
+      criarSeFaltar: false,
+    });
+
+    return { ok: true, estado, motivos, clienteAtivado: false, tarefas, espelhoCasePlans, d7 };
   });
 
 /**
- * Cria a primeira micro-entrega interna do caso (ops_microentregas).
- * Não publica no App Cliente, não envia mensagem, não ativa o caso.
+ * Cria ou reconcilia a micro-entrega D7 do caso (ops_microentregas).
+ * P3 (25/09/2026): passa pelo reconciliador único (d7-microentrega.server.ts):
+ * reaproveita qualquer micro-entrega ativa do caso (não só a de título fixo),
+ * completa responsável/prazo vazios, espelha o item D7 do checklist, o plano
+ * e o alerta. Não publica no App Cliente, não envia mensagem, não ativa o caso.
  */
 export const criarPrimeiraMicroentregaOnboarding = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -265,71 +306,11 @@ export const criarPrimeiraMicroentregaOnboarding = createServerFn({ method: "POS
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
-    const userId = context.userId as string;
-
-    const caso = await supabase
-      .from("crm_casos")
-      .select("id")
-      .eq("organization_id", organizationId)
-      .eq("id", data.caseId)
-      .maybeSingle();
-    if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
-
-    const { data: existente } = await supabase
-      .from("ops_microentregas")
-      .select("id")
-      .eq("organization_id", organizationId)
-      .eq("caso_id", data.caseId)
-      .eq("titulo", TITULO_PRIMEIRA_MICROENTREGA)
-      .is("archived_at", null)
-      .maybeSingle();
-    if (existente?.id) return { id: existente.id as string, reaproveitada: true, clienteAtivado: false };
-
-    const prazo = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
-    // 24/09/2026 — insere, relê e compara (antes só conferia o id devolvido).
-    const nova = await inserirComVerificacao({
-      supabase,
-      tabela: "ops_microentregas",
+    const d7 = await reconciliarD7Caso(supabase, {
       organizationId,
-      userId,
-      payload: {
-        caso_id: data.caseId,
-        titulo: TITULO_PRIMEIRA_MICROENTREGA,
-        descricao: "Rascunho interno do onboarding. Não publicado no App Cliente.",
-        fase: "onboarding",
-        status: "pendente",
-        prioridade: "media",
-        prazo,
-      },
+      caseId: data.caseId,
+      userId: context.userId as string,
+      criarSeFaltar: true,
     });
-
-    // O item "Primeira micro-entrega planejada" do plano reflete a linha
-    // recém-gravada (não um tick). Se o plano ainda não existe, o próximo
-    // recálculo o cria já com o item derivado.
-    const plano = await lerPlanoOnboarding(supabase, organizationId, data.caseId);
-    if (plano.data && Array.isArray(plano.data.checklist_inicial)) {
-      const caso2 = await supabase
-        .from("crm_casos")
-        .select("contrato_assinado,pagamento_confirmado")
-        .eq("organization_id", organizationId)
-        .eq("id", data.caseId)
-        .maybeSingle();
-      const checklist = checklistComGates(
-        {
-          contrato_assinado: Boolean(caso2.data?.contrato_assinado),
-          pagamento_confirmado: Boolean(caso2.data?.pagamento_confirmado),
-        },
-        plano.data.checklist_inicial as ItemChecklistOnboarding[],
-        await derivadosDoCaso(supabase, organizationId, data.caseId),
-      );
-      await gravarComVerificacao({
-        supabase,
-        tabela: "onboarding_planos",
-        id: String(plano.data.id),
-        organizationId,
-        userId,
-        payload: { checklist_inicial: checklist },
-      });
-    }
-    return { id: nova.id, reaproveitada: false, clienteAtivado: false };
+    return { id: d7.microentregaId, reaproveitada: !d7.criada, clienteAtivado: false, d7 };
   });

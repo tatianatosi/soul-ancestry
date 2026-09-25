@@ -486,10 +486,11 @@ export const FLUXOS_PESSOA_UNIFICADA = [
     fluxo: "Primeira micro-entrega D7 derivada de ops_microentregas",
     estado: "CODIGO_E_TESTE_SEM_HOMOLOGACAO" as EstadoMotor,
     evidencia: {
-      writer: "src/lib/onboarding-plano.functions.ts#criarPrimeiraMicroentregaOnboarding",
+      writer: "src/lib/d7-microentrega.server.ts#reconciliarD7Caso",
       tabela: "ops_microentregas",
       reader: "src/lib/onboarding-jornada.functions.ts#obterPainelJornada",
-      releitura: "inserirComVerificacao na micro-entrega; gravarComVerificacao no checklist do plano",
+      releitura:
+        "reconciliador único (d7-microentrega.server.ts#reconciliarD7Caso): inserirComVerificacao/gravarComVerificacao na micro-entrega e nos espelhos (checklist D7 de ativação, checklist do plano, case_plans)",
       permissao: PERMISSAO_ORG,
       rota: "/casos/$caseId",
       teste: "src/lib/__tests__/d7-microentrega-real-2026-09-24.test.ts",

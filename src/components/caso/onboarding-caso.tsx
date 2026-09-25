@@ -6,6 +6,7 @@ import { AcaoDeEscrita, Secao, Selecao, inputCls } from "@/components/caso/campo
 import { PainelJornadaPosGates } from "@/components/caso/jornada-pos-gates";
 import { PainelPlanoOnboarding } from "@/components/caso/onboarding-plano";
 import { atualizarItemOnboarding } from "@/lib/caso-canonico.functions";
+import { ITEM_CODE_D7 } from "@/lib/d7-microentrega";
 import { STATUS_ONBOARDING_ITEM, gatesClienteAtivo, rotulo } from "@/lib/caso-ficha";
 
 
@@ -155,6 +156,12 @@ function ItemOnboarding({
         </p>
         <span className="text-[11px] uppercase tracking-wide text-navy/50">{rotulo(STATUS_ONBOARDING_ITEM, item.status)}</span>
       </div>
+      {item.item_code === ITEM_CODE_D7 ? (
+        <p className="mt-1 text-xs text-navy/60" data-d7-derivado>
+          Concluído ou pendente segue a micro-entrega real (Ops) — use “Criar ou reconciliar
+          micro-entrega D7” no plano de onboarding. Aqui só cabe “não aplicável” com observação.
+        </p>
+      ) : null}
       {erro ? <p className="mt-2 text-xs text-terracotta">{erro}</p> : null}
       <div className="mt-2 grid gap-3 sm:grid-cols-2">
         <Selecao label="Status" valor={status} opcoes={STATUS_ONBOARDING_ITEM} onChange={setStatus} />

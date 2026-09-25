@@ -15,6 +15,17 @@ import { ESTADO_PLANO, STATUS_DOSSIE, STATUS_GRUPO_FAMILIAR } from "@/lib/onboar
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
+type ResumoD7 = {
+  microentregaId: string | null;
+  titulo: string | null;
+  prazo: string | null;
+  prazoStatus: string | null;
+  status: string | null;
+  responsavel: string | null;
+  lacunas: string[];
+  proximaAcao: string;
+  checklist: string | null;
+};
 
 /**
  * Plano de onboarding preparado — nunca ativa o cliente.
@@ -49,12 +60,15 @@ export function PainelPlanoOnboarding({ caseId }: { caseId: string }) {
 
   const mMicro = useMutation({
     mutationFn: () => criarMicro({ data: { caseId } }),
-    onSuccess: (r: { reaproveitada?: boolean }) => {
-      toast.success(
+    onSuccess: (r: { reaproveitada?: boolean; d7?: { completou?: string[]; checklistD7?: string } }) => {
+      const partes = [
         r.reaproveitada
-          ? "A primeira micro-entrega já existia neste caso."
-          : "Micro-entrega criada em Ops — não publicada no App Cliente.",
-      );
+          ? "D7 reconciliado com a micro-entrega que já existia"
+          : "Micro-entrega D7 criada em Ops — não publicada no App Cliente",
+        r.d7?.completou?.length ? `completado: ${r.d7.completou.join(", ")}` : null,
+        r.d7?.checklistD7 === "concluido" ? "checklist D7 marcado pelo dado real" : null,
+      ].filter(Boolean);
+      toast.success(`${partes.join(" · ")}.`);
       q.refetch();
     },
     onError: (e: Error) => toast.error(e.message || "Não foi possível criar a micro-entrega."),
@@ -108,6 +122,7 @@ export function PainelPlanoOnboarding({ caseId }: { caseId: string }) {
   const touchpoints: Linha[] = Array.isArray(plano.touchpoints) ? plano.touchpoints : [];
   const rascunhos: Linha[] = (q.data?.rascunhos ?? []) as Linha[];
   const microentregas: Linha[] = (q.data?.microentregas ?? []) as Linha[];
+  const d7 = (q.data as { d7?: ResumoD7 } | undefined)?.d7 ?? null;
 
   return (
     <div className="space-y-5">
@@ -213,21 +228,58 @@ export function PainelPlanoOnboarding({ caseId }: { caseId: string }) {
         titulo="Micro-entregas reais deste caso"
         descricao="Registro vivo (o mesmo que soma no Painel Hoje) — diferente da intenção do plano acima."
       >
-        {microentregas.length === 0 ? (
-          <div className="space-y-2">
-            <p className="text-sm text-terracotta">
-              Nenhuma micro-entrega registrada para este caso. A intenção do plano (acima) ainda não
-              virou nenhum item real.
-            </p>
+        {/*
+          P3 (25/09/2026): D7 = a micro-entrega real. O botão é idempotente:
+          cria se falta, completa responsável/prazo vazios e espelha o item
+          D7 do checklist de ativação — nunca duplica.
+        */}
+        <div data-d7-microentrega className="mb-3 rounded-lg border border-navy/15 bg-cream/40 p-3 text-sm">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-navy/55">D7 — primeira micro-entrega</p>
+          {d7?.microentregaId ? (
+            <dl className="mt-2 grid gap-x-4 gap-y-1 text-xs text-navy/80 sm:grid-cols-2">
+              <div><dt className="inline text-navy/50">Micro-entrega: </dt><dd className="inline font-medium text-navy">{d7.titulo}</dd></div>
+              <div><dt className="inline text-navy/50">Prazo: </dt><dd className="inline">{d7.prazo ? String(d7.prazo).slice(0, 10) : "sem prazo"}</dd></div>
+              <div><dt className="inline text-navy/50">Responsável: </dt><dd className="inline">{d7.responsavel ?? "sem responsável"}</dd></div>
+              <div><dt className="inline text-navy/50">Estado: </dt><dd className="inline">{d7.status ?? "—"}{d7.prazoStatus === "atrasada" ? " · atrasada" : d7.prazoStatus === "em_risco" ? " · vence em breve" : ""}</dd></div>
+            </dl>
+          ) : (
+            <p className="mt-2 text-sm text-terracotta">Nenhuma micro-entrega real neste caso — o D7 está pendente.</p>
+          )}
+          <p className="mt-2 text-xs text-navy">
+            <span className="text-navy/50">Próxima ação: </span>
+            {d7?.proximaAcao ?? "Criar a primeira micro-entrega do caso (D7)."}
+          </p>
+          {d7?.lacunas?.length ? (
+            <p className="mt-1 text-xs text-terracotta">Falta: {d7.lacunas.join(", ")}.</p>
+          ) : null}
+          <p className="mt-1 text-[11px] text-navy/55">
+            Item D7 do checklist de ativação:{" "}
+            {d7?.checklist === "concluido"
+              ? "concluído pelo dado real"
+              : d7?.checklist === "nao_aplicavel"
+                ? "não aplicável (decisão registrada)"
+                : d7?.checklist === "pendente"
+                  ? "pendente"
+                  : "sem item neste caso"}
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={() => mMicro.mutate()}
               disabled={mMicro.isPending}
               className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy disabled:opacity-40"
             >
-              {mMicro.isPending ? "Criando…" : "Criar primeira micro-entrega (rascunho interno)"}
+              {mMicro.isPending ? "Reconciliando…" : "Criar ou reconciliar micro-entrega D7"}
             </button>
+            {d7?.microentregaId ? (
+              <a href={`/ops?microentrega=${d7.microentregaId}`} className="text-xs text-navy/70 underline">
+                Abrir em Ops
+              </a>
+            ) : null}
           </div>
+        </div>
+        {microentregas.length === 0 ? (
+          <p className="text-sm text-navy/55">Nenhuma micro-entrega registrada para este caso.</p>
         ) : (
           <ul className="space-y-2">
             {microentregas.map((m) => (

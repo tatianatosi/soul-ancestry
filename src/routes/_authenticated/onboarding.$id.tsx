@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { ITEM_CODE_D7 } from "@/lib/d7-microentrega";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -395,6 +396,12 @@ function OnboardingPage() {
                 >
                   <div className="min-w-[200px]">
                     <p className="text-sm font-medium text-navy">{item.label}</p>
+                    {item.item_code === ITEM_CODE_D7 ? (
+                      <p className="mt-0.5 text-xs text-navy/60" data-d7-derivado>
+                        Segue a micro-entrega real do caso (Ops). Para criar ou reconciliar, use o
+                        Caso 360, aba Onboarding — “Criar ou reconciliar micro-entrega D7”.
+                      </p>
+                    ) : null}
                     {item.observacao ? (
                       <p className="mt-0.5 whitespace-pre-line text-xs text-navy/55">
                         {item.observacao}
@@ -422,7 +429,7 @@ function OnboardingPage() {
                           ? "Não aplicável"
                           : "Pendente"}
                     </span>
-                    {item.status !== "concluido" ? (
+                    {item.status !== "concluido" && item.item_code !== ITEM_CODE_D7 ? (
                       <button
                         onClick={() => {
                           setItemOnboardingDe({
@@ -452,7 +459,7 @@ function OnboardingPage() {
                         Não aplicável
                       </button>
                     ) : null}
-                    {item.status !== "pendente" ? (
+                    {item.status !== "pendente" && item.item_code !== ITEM_CODE_D7 ? (
                       <button
                         onClick={() =>
                           mAtualizarOnboarding.mutate({ itemId: item.id, status: "pendente" })

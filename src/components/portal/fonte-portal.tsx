@@ -46,6 +46,8 @@ export type DadosPortal = {
   etapa?: EtapaCliente | null;
   /** "Caso individual" / "Caso do casal" / "Caso da família", ou nulo. */
   composicao?: string | null;
+  /** P3: só a data da próxima micro-entrega aberta, em texto de cliente. */
+  proximaEntrega?: { data: string; texto: string } | null;
 };
 
 /**

@@ -12,6 +12,7 @@ import {
 import { TIPOS_EXCECAO_ROTULOS, validadeSugerida } from "@/lib/varredura-autorizacoes";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { reconciliarD7Caso } from "@/lib/d7-microentrega.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -350,7 +351,14 @@ export const salvarMicroentrega = createServerFn({ method: "POST" })
         sourceEntityId: data.id,
         userId: context.userId as string,
       });
-      return { id: data.id };
+      // P3: o D7 do caso acompanha a micro-entrega real (cancelar volta o D7).
+      const d7 = await reconciliarD7Caso(supabase, {
+        organizationId: ctx.organizationId,
+        caseId: valores["caso_id"] as string,
+        userId: context.userId as string,
+        criarSeFaltar: false,
+      });
+      return { id: data.id, d7 };
     }
 
     const { data: novo, error } = await supabase
@@ -368,7 +376,13 @@ export const salvarMicroentrega = createServerFn({ method: "POST" })
       sourceEntityId: novo.id as string,
       userId: context.userId as string,
     });
-    return { id: novo.id as string };
+    const d7 = await reconciliarD7Caso(supabase, {
+      organizationId: ctx.organizationId,
+      caseId: valores["caso_id"] as string,
+      userId: context.userId as string,
+      criarSeFaltar: false,
+    });
+    return { id: novo.id as string, d7 };
   });
 
 /** Arquivamento com motivo (sem exclusão física). */
@@ -411,6 +425,15 @@ export const arquivarOps = createServerFn({ method: "POST" })
         sourceEntityId: data.id,
         userId: context.userId as string,
       });
+      if (data.tabela === "ops_microentregas") {
+        // P3: arquivar a micro-entrega D7 devolve o D7 a pendente se não houver outra.
+        await reconciliarD7Caso(supabase, {
+          organizationId: ctx.organizationId,
+          caseId: r.registro["caso_id"] as string,
+          userId: context.userId as string,
+          criarSeFaltar: false,
+        });
+      }
     }
     return { ok: true };
   });
