@@ -3,6 +3,11 @@
  * Caso 360. `case_plans` continua sendo gravada em cheio só por
  * `sincronizarPlanejador` (elo 1 da cadeia, hash + versão); esta escrita
  * pontual nunca cria linha nem toca `plano_hash`/`versao`/`status`.
+ *
+ * P5 (25/09/2026) — a RPC canônica `proxima_acao_prioritaria` (nível 8,
+ * `supabase/migrations/20260905130000_proxima_acao_prioritaria_caso.sql`)
+ * só lê `crm_casos.proxima_acao`/`prazo_proxima_acao` — nunca `case_plans`.
+ * Sem espelho, preencher a jornada não move nada em Painel Hoje/Ficha.
  */
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
@@ -69,6 +74,48 @@ export async function lerJornadaDoCaso(supabase: any, organizationId: string, ca
 }
 
 /**
+ * P5 (25/09/2026) — espelho da próxima ação em `crm_casos`. A RPC canônica
+ * `proxima_acao_prioritaria` (nível 8) só lê `crm_casos.proxima_acao`/
+ * `prazo_proxima_acao` — nunca `case_plans`. Sem este espelho, preencher a
+ * jornada não move nada em Painel Hoje/Ficha/Lista de Casos. Nunca apaga um
+ * valor existente: só espelha o campo que veio com valor novo (mesmo
+ * cuidado defensivo do espelhamento de `motivos_bloqueio` já em produção).
+ */
+async function espelharProximaAcaoNoCaso(
+  supabase: any,
+  input: { organizationId: string; caseId: string; userId: string; patch: Record<string, unknown> },
+): Promise<void> {
+  const { patch } = input;
+  const patchCaso: Record<string, unknown> = {};
+
+  if ("proxima_acao" in patch && patch.proxima_acao) {
+    patchCaso.proxima_acao = patch.proxima_acao;
+  }
+  if ("prazo_proxima_acao" in patch && patch.prazo_proxima_acao) {
+    patchCaso.prazo_proxima_acao = patch.prazo_proxima_acao;
+  }
+  if ("responsavel_user_id" in patch && patch.responsavel_user_id) {
+    const { data: perfil } = await supabase
+      .from("profiles")
+      .select("nome")
+      .eq("id", patch.responsavel_user_id as string)
+      .maybeSingle();
+    if (perfil?.nome) patchCaso.proxima_acao_responsavel = perfil.nome as string;
+  }
+
+  if (Object.keys(patchCaso).length === 0) return;
+
+  await gravarComVerificacao({
+    supabase,
+    tabela: "crm_casos",
+    id: input.caseId,
+    organizationId: input.organizationId,
+    userId: input.userId,
+    payload: patchCaso,
+  });
+}
+
+/**
  * Edição pontual dos campos da jornada. Nunca cria a linha (o formulário
  * grande — "Preencher planejador" — é quem cria); recusa com mensagem clara
  * se ainda não há plano, em vez de fingir persistência. O payload gravado
@@ -102,6 +149,13 @@ export async function salvarJornadaDoCaso(
     organizationId: input.organizationId,
     userId: input.userId,
     payload: patch,
+  });
+
+  await espelharProximaAcaoNoCaso(supabase, {
+    organizationId: input.organizationId,
+    caseId: input.caseId,
+    userId: input.userId,
+    patch,
   });
 
   await registrarTimelineCaso(supabase, {
