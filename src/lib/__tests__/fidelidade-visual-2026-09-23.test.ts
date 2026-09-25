@@ -70,7 +70,7 @@ describe("3. Documentos — 4 cards, envio integrado a Solicitados, sem KPI/pain
   });
 
   it("a instrução de envio está integrada ao card Solicitados nos dois modos (prévia e real)", () => {
-    expect(documentos).toContain("Envio de arquivo acontece quando a equipe solicita");
+    expect(documentos).toContain("Quando houver um pedido, você poderá enviar o arquivo por aqui.");
     expect(documentos).toContain("<EnviarDocumento casoId={casoAtivo} />");
     const secaoSolicitadosReal = documentos.slice(
       documentos.indexOf('data-documentos-solicitados className="overflow-hidden'),

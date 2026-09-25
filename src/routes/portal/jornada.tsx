@@ -121,15 +121,6 @@ function noDemoDeItem(item: PublicacaoCliente): NoEvento {
   }
 }
 
-function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div className="rounded-lg border border-border bg-card px-3 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
-      <p className="mt-0.5 text-sm text-navy">{valor}</p>
-    </div>
-  );
-}
-
 /**
  * A linha do processo da Jornada (mockup 2/7, De-Para §4 linha 2).
  *

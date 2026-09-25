@@ -60,7 +60,7 @@ export function PortalConta() {
   const casoCodigo =
     previa?.identidade?.codigo ?? casoDoPortal?.codigo ?? (previaDemo ? CASO_DEMO_CODIGO : null) ?? "—";
   const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null) ?? "—";
-  const planoEstado = previa || data?.autorizado ? "Acompanhamento ativo" : "Aguardando publicação";
+  const planoEstado = previa || data?.autorizado ? "Em acompanhamento" : "Aguardando novidades";
 
   /**
    * Alertas usa o mesmo `proximaAcao` já publicado para Home/Documentos —
