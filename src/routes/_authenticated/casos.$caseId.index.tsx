@@ -2050,6 +2050,47 @@ function FichaCaso() {
                   ))}
                 </ul>
               )}
+
+              {qJuridico.data?.raciocinioFase ? (
+                <div className="mt-4 rounded-lg border border-gold/40 bg-gold/5 p-3 text-xs">
+                  <p className="font-medium text-navy">
+                    Contexto jurídico × jornada — fase atual: {qJuridico.data.raciocinioFase.faseRotulo}
+                  </p>
+                  {qJuridico.data.raciocinioFase.focoJuridico ? (
+                    <>
+                      <p className="mt-1 text-navy/70">{qJuridico.data.raciocinioFase.focoJuridico.foco}</p>
+                      <p className="mt-0.5 text-navy/40">Fonte: {qJuridico.data.raciocinioFase.focoJuridico.fonte}</p>
+                    </>
+                  ) : (
+                    <p className="mt-1 text-navy/60">
+                      Sem fase da jornada registrada no Planejador — o foco jurídico por fase aparece assim que a
+                      jornada for preenchida.
+                    </p>
+                  )}
+                  {qJuridico.data.raciocinioFase.alertaInternoPais ? (
+                    <p className="mt-2 text-navy/70">
+                      <span className="font-medium text-navy">Alerta interno do país:</span>{" "}
+                      {qJuridico.data.raciocinioFase.alertaInternoPais}
+                    </p>
+                  ) : null}
+                  {qJuridico.data.raciocinioFase.pendenciasDaFase.length ? (
+                    <p className="mt-2 text-terracotta">
+                      {qJuridico.data.raciocinioFase.pendenciasDaFase.length} pendência(s) jurídica(s) ligada(s) ao ato
+                      formal típico desta fase (destacadas acima).
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-navy/60">
+                      Nenhuma pendência ligada ao ato formal típico desta fase no momento.
+                    </p>
+                  )}
+                  {qJuridico.data.raciocinioFase.pendenciasDeOutrasFases.length ? (
+                    <p className="mt-1 text-navy/40">
+                      {qJuridico.data.raciocinioFase.pendenciasDeOutrasFases.length} pendência(s) ligada(s) a atos
+                      formais de outras fases da jornada — não bloqueiam esta fase, mas seguem em aberto.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
             </Secao>
 
             <Secao

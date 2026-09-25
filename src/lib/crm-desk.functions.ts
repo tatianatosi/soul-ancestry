@@ -15,6 +15,7 @@ import {
 import { sincronizarParametroDependentes } from "@/lib/dependentes.server";
 import { TEMAS_JURIDICOS, avaliarAssinaturaPelaMatriz, canonicalizarTemaCodigo, type LinhaMatriz } from "@/lib/matriz-juridica";
 import { avaliarValidacaoJuridicaCaso } from "@/lib/validacao-juridica-caso";
+import { raciocinarJuridicoPorFase } from "@/lib/raciocinio-juridico-jornada";
 import type { Dependente } from "@/lib/dependentes";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
@@ -917,7 +918,7 @@ export const validacaoJuridicaCaso = createServerFn({ method: "GET" })
     semCache();
     const supabase = (context as any).supabase;
 
-    const [servRes, matrizRes, depRes] = await Promise.all([
+    const [servRes, matrizRes, depRes, planoRes] = await Promise.all([
       supabase
         .from("case_services")
         .select("citizenship_track_id")
@@ -928,6 +929,14 @@ export const validacaoJuridicaCaso = createServerFn({ method: "GET" })
         .limit(1),
       supabase.from("legal_clause_matrix").select("*").is("archived_at", null),
       supabase.from("case_dependents").select("nome:nome_completo,participa_do_contrato,status_representacao").eq("case_id", data.caseId).is("archived_at", null),
+      supabase
+        .from("case_plans")
+        .select("fase_jornada")
+        .eq("case_id", data.caseId)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
 
     const trackId = linhasDe<any>(servRes, "case services do caso")[0]?.citizenship_track_id as string | undefined;
@@ -966,13 +975,22 @@ export const validacaoJuridicaCaso = createServerFn({ method: "GET" })
       };
     });
 
-    return avaliarValidacaoJuridicaCaso({
+    const resultado = avaliarValidacaoJuridicaCaso({
       track,
       marcos: ((marcosRes as any).data ?? []) as any[],
       regras: ((regrasRes as any).data ?? []) as any[],
       temasMatriz,
       dependentes: linhasDe<any>(depRes, "dependentes do caso"),
     });
+
+    const faseJornada = ((planoRes as any).data?.fase_jornada as string | null | undefined) ?? null;
+    const raciocinioFase = raciocinarJuridicoPorFase({
+      faseJornada,
+      validacao: resultado,
+      alertaInternoPais: (trackRow?.riscos_internos as string | null | undefined) ?? null,
+    });
+
+    return { ...resultado, raciocinioFase };
   });
 
 /* ————— Cadastro manual de lead (Comercial → Leads → Novo lead) ————— */
