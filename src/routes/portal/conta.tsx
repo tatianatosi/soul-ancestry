@@ -24,14 +24,6 @@ export const Route = createFileRoute("/portal/conta")({
   component: PortalConta,
 });
 
-function Chip({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div className="rounded-lg border border-border bg-card px-3 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
-      <p className="mt-0.5 text-sm text-navy">{valor}</p>
-    </div>
-  );
-}
 
 export function PortalConta() {
   const previa = usePreviaPortal();
