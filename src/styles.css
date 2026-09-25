@@ -331,22 +331,6 @@
   max-width: 54rem;
 }
 
-[data-app-cliente="true"] :where([data-jornada-meta], [data-radar-meta], [data-arvore-meta], [data-documentos-meta], [data-legado-meta], [data-conta-meta]) {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--ca-space-2);
-  border-radius: var(--ca-radius-md);
-  box-shadow: var(--ca-shadow-sm);
-}
-
 [data-app-cliente="true"] :where([data-aba-jornada], [data-aba-radar], [data-aba-arvore], [data-aba-documentos], [data-aba-documentos-vivo], [data-aba-legado], [data-aba-conta]) > section {
   border-radius: var(--ca-radius-lg);
 }
@@ -407,13 +391,6 @@
     padding: 1rem;
   }
 
-  [data-app-cliente="true"] :where([data-jornada-meta], [data-radar-meta], [data-arvore-meta], [data-documentos-meta], [data-legado-meta], [data-conta-meta]) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  [data-app-cliente="true"] :where([data-jornada-meta], [data-radar-meta], [data-arvore-meta], [data-documentos-meta], [data-legado-meta], [data-conta-meta]) > * {
-    min-width: 0;
-  }
 }
 
 [data-app-cliente="true"] :where(button, a) {
@@ -433,12 +410,6 @@
 
 [data-desk-shell="authenticated"] [data-desk-content="true"] :where(h2, h3) {
   line-height: var(--ca-leading-tight);
-}
-
-@media (min-width: 640px) {
-  [data-app-cliente="true"] :where([data-jornada-meta], [data-radar-meta], [data-arvore-meta], [data-documentos-meta], [data-legado-meta], [data-conta-meta]) {
-    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  }
 }
 
 /* ---- Versão print-friendly do Relatório Visual ---- */

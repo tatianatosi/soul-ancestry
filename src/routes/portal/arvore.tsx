@@ -5,8 +5,7 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
 import { painelArvoreGeracoes, type GeracaoArvore } from "@/lib/portal-arvore-geracoes";
-import { TETO_ANCESTRAIS_G1_G5 } from "@/lib/radar-seis-eixos";
-import { LinkPortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
+import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { cn } from "@/lib/utils";
 import { Search, Clock } from "lucide-react";
@@ -65,15 +64,6 @@ function NoArvore({
   );
 }
 
-function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div className="rounded-lg border border-border bg-card px-3 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
-      <p className="mt-0.5 text-sm text-navy">{valor}</p>
-    </div>
-  );
-}
-
 export const Route = createFileRoute("/portal/arvore")({
   head: () => ({
     meta: [
@@ -90,7 +80,6 @@ export const Route = createFileRoute("/portal/arvore")({
 });
 
 export function PortalArvore() {
-  const previa = usePreviaPortal();
   const { visibilidade, carregando } = useVisibilidade("arvore");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
 
@@ -110,37 +99,9 @@ export function PortalArvore() {
           {([vivo]) => {
             const itens = arvoreSanitizada(vivo.projecoes);
             const painel = painelArvoreGeracoes(itens);
-            const casoCodigo = previa?.identidade?.codigo ?? "—";
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-arvore>
-                  <div
-                    data-arvore-meta
-                    className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
-                  >
-                    <ChipMeta rotulo="Caso" valor={casoCodigo} />
-                    <ChipMeta rotulo="Estrutura" valor="G1–G5" />
-                    {/*
-                      Prancha 4/7 (mockup): "12 pessoas conectadas de um
-                      universo de 31 possíveis". A conta vem de
-                      TETO_ANCESTRAIS_G1_G5 (1+2+4+8+16 = 31) — mesma constante
-                      que o Radar já usa; não é número novo. `itens.length`
-                      conta a árvore sanitizada que a tela já mostra.
-                    */}
-                    <ChipMeta
-                      rotulo="Conectadas"
-                      valor={`${itens.length} de ${TETO_ANCESTRAIS_G1_G5}`}
-                    />
-                    <ChipMeta
-                      rotulo="Publicações"
-                      valor={
-                        painel.notasPublicadas.length === 0
-                          ? "Nenhuma ainda"
-                          : `${painel.notasPublicadas.length}`
-                      }
-                    />
-                    <ChipMeta rotulo="Nomes" valor="Só quando liberados" />
-                  </div>
                   {/* Estrutura G1–G5 do mockup — chrome visual, sem inventar pessoas. */}
                   <section
                     aria-label="Gerações G1 a G5"
@@ -154,6 +115,11 @@ export function PortalArvore() {
                         ? "A estrutura abaixo acompanha o que a equipe já publicou para você. Nomes só aparecem quando liberados."
                         : COPY_TELAS.arvore.vazio}
                     </p>
+                    {itens.length > 0 ? (
+                      <p className="mt-2 text-xs text-navy/50">
+                        {itens.length} {itens.length === 1 ? "pessoa conectada" : "pessoas conectadas"} na história publicada da família.
+                      </p>
+                    ) : null}
                     <div className="mt-5 space-y-1">
                       {painel.geracoes.map((geracao: GeracaoArvore, gi) => (
                         <div key={geracao.id}>

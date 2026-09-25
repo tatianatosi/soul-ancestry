@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
-import { usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
+import { usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { legadoSanitizado } from "@/lib/portal-dados-vivos";
 import { PRATELEIRAS, prateleiraDe, type PrateleiraId, type PublicacaoCliente } from "@/lib/projecoes-cliente";
@@ -27,17 +27,7 @@ export const Route = createFileRoute("/portal/legado")({
    — mesma classificação usada pela Biblioteca Mestre (Desk, §18), para as
    duas telas nunca divergirem sobre em qual coleção um item cai. */
 
-function Chip({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div className="rounded-lg border border-border bg-card px-3 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
-      <p className="mt-0.5 text-sm text-navy">{valor}</p>
-    </div>
-  );
-}
-
 export function PortalLegado() {
-  const previa = usePreviaPortal();
   const { visibilidade, carregando } = useVisibilidade("biblio");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
 
@@ -56,8 +46,6 @@ export function PortalLegado() {
         >
           {([vivo]) => {
             const entregas = legadoSanitizado(vivo.projecoes);
-            const premium = entregas.length > 0;
-            const casoCodigo = previa?.identidade?.codigo ?? "—";
             const porPrateleira = Object.fromEntries(
               PRATELEIRAS.map((p) => [p.id, entregas.filter((e) => prateleiraDe(e) === p.id)]),
             ) as Record<PrateleiraId, PublicacaoCliente[]>;
@@ -65,30 +53,6 @@ export function PortalLegado() {
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-legado>
-                  <div
-                    data-legado-meta
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3"
-                  >
-                    <div className="flex flex-wrap gap-2">
-                      <Chip rotulo="Biblioteca" valor="Legado familiar" />
-                      <Chip rotulo="Caso" valor={casoCodigo} />
-                      <Chip
-                        rotulo="Publicados"
-                        valor={
-                          entregas.length === 0
-                            ? "Nenhum ainda"
-                            : `${entregas.length} material${entregas.length === 1 ? "" : "is"}`
-                        }
-                      />
-                      <Chip rotulo="Nível" valor={premium ? "Premium" : "Biblioteca"} />
-                    </div>
-                    {premium ? (
-                      <span className="rounded-full border border-gold/50 bg-gold/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-navy">
-                        Premium
-                      </span>
-                    ) : null}
-                  </div>
-
                   {/* Acabamento 2026-09-13 (referência Lovable): card editorial de
                       abertura, mesmo texto que já existia (movido para cá, não
                       duplicado), no padrão navy já usado no hero da Home. */}
@@ -101,7 +65,7 @@ export function PortalLegado() {
                     </h2>
                     <p className="mt-2 text-sm text-cream/70">
                       Cadernos, relatórios, narrativas e memória — só o que a equipe publica para
-                      ficar com a sua família. Sem inventar material.
+                      ficar com a sua família.
                     </p>
                   </section>
 

@@ -5,17 +5,8 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { radarSeisDimensoes } from "@/lib/radar-seis-eixos";
 import { RadarSeisEixos } from "@/components/portal/radar-seis-eixos";
-import { LinkPortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
+import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
-
-function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div className="rounded-lg border border-border bg-card px-3 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
-      <p className="mt-0.5 text-sm text-navy">{valor}</p>
-    </div>
-  );
-}
 
 export const Route = createFileRoute("/portal/radar")({
   head: () => ({
@@ -41,7 +32,6 @@ export const Route = createFileRoute("/portal/radar")({
  * Elegibilidade continua sem percentual (decisão institucional, não esquecimento).
  */
 export function PortalRadar() {
-  const previa = usePreviaPortal();
   const { visibilidade, carregando } = useVisibilidade("radar");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
 
@@ -63,17 +53,9 @@ export function PortalRadar() {
               projecoes: vivo.projecoes,
               documentos: vivo.documentos,
             });
-            const casoCodigo = previa?.identidade?.codigo ?? "—";
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-radar>
-                  <div
-                    data-radar-meta
-                    className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
-                  >
-                    <ChipMeta rotulo="Caso" valor={casoCodigo} />
-                    <ChipMeta rotulo="Eixos" valor="6 dimensões" />
-                  </div>
                   <RadarSeisEixos dimensoes={dimensoes} />
 
                   {/* Próximo passo real (mesma fonte de Home/Jornada) — nunca um passo por eixo inventado. */}

@@ -177,14 +177,11 @@ export function PortalConta() {
 
             <section data-conta-historico className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-xl text-navy">Movimentos disponíveis</h2>
-                <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
-                  Pagamentos · acessos
-                </span>
+                <h2 className="font-serif text-xl text-navy">Histórico</h2>
               </div>
               {falhaFaturas ? (
                 <p className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
-                  Não conseguimos abrir o seu histórico de pagamentos agora.
+                  Não conseguimos abrir o seu histórico agora.
                   <button
                     type="button"
                     onClick={() => void faturas.refetch()}
@@ -195,7 +192,7 @@ export function PortalConta() {
                 </p>
               ) : temFatura && !previa ? (
                 <div className="mt-3 space-y-2">
-                  <p className="text-sm text-navy/75">Há movimentos disponíveis para consulta.</p>
+                  <p className="text-sm text-navy/75">Há registros disponíveis para consulta.</p>
                   <Link
                     to="/portal/faturas"
                     className="inline-flex rounded-lg border border-navy/15 bg-cream/60 px-3 py-1.5 text-xs text-navy hover:bg-cream"
@@ -205,10 +202,9 @@ export function PortalConta() {
                 </div>
               ) : (
                 <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
-                  <p className="text-sm text-navy/70">Nenhum pagamento ou movimento listado ainda.</p>
+                  <p className="text-sm text-navy/70">Nenhum movimento listado ainda.</p>
                   <p className="mt-1 text-xs text-navy/50">
-                    Histórico de acessos e faturas publicadas para você aparece neste bloco — sem
-                    inventar lançamento.
+                    Os registros compartilhados com você aparecem neste bloco.
                   </p>
                 </div>
               )}

@@ -77,9 +77,7 @@ export function PortalDocumentos() {
                   Nenhum documento solicitado no momento.
                 </p>
               )}
-              <p className="mt-3 text-xs text-navy/50">
-                Envio de arquivo acontece quando a equipe solicita — sem inventar upload nem status de certidão nesta tela.
-              </p>
+              <p className="mt-3 text-xs text-navy/50">Quando houver um pedido, você poderá enviar o arquivo por aqui.</p>
               </div>
             </section>
 
@@ -88,7 +86,7 @@ export function PortalDocumentos() {
               <div className="h-1 bg-navy" aria-hidden="true" />
               <div className="p-5">
               <div className="flex flex-wrap items-start justify-between gap-2"><h2 className="font-serif text-xl text-navy">Recebidos</h2><span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">Aguardam conferência</span></div>
-              <p className="mt-1 text-sm text-navy/60">Receber não é validar: cada envio passa pela equipe.</p>
+              <p className="mt-1 text-sm text-navy/60">Seus arquivos recebidos ficam aqui enquanto nossa equipe cuida da conferência.</p>
               {enviados.length === 0 ? (
                 <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
                   Você ainda não compartilhou documentos conosco.
@@ -224,7 +222,7 @@ export function PortalDocumentos() {
               </span>
             </div>
             <p className="mt-1 text-sm text-navy/60">
-              Receber não é conferir: cada envio passa pela equipe antes de virar parte do caso.
+              Seus arquivos chegaram e estão sendo cuidados pela nossa equipe antes de fazerem parte da história.
             </p>
             {recebidos.length === 0 ? (
               <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
