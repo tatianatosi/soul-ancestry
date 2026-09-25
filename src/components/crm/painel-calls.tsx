@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
 import { HandoffLead } from "@/components/crm/handoff-lead";
+import { TriagemAncestralScanDoLead } from "@/components/crm/triagem-ancestralscan";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { CaCard } from "@/components/ui/ca-card";
@@ -1111,6 +1112,13 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 {aviso ? <span className="text-xs text-navy/70">{aviso}</span> : null}
               </div>
 
+              {lead.id ? (
+                <TriagemAncestralScanDoLead
+                  leadId={lead.id}
+                  trilhasAtivas={trilhas}
+                  trilhaJaEscolhida={Boolean(lead.trilha_referencia_id)}
+                />
+              ) : null}
               {lead.id ? <TrilhaDoLead leadId={lead.id} /> : null}
 
             </>
