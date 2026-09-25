@@ -90,15 +90,12 @@ export function PortalConta() {
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>
           <div className="space-y-5" data-aba-conta>
-            <div
-              data-conta-meta
-              className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
-            >
-              <Chip rotulo="Titular" valor={titular} />
-              <Chip rotulo="Caso" valor={casoCodigo} />
-              <Chip rotulo="Interesse" valor={paisInteresse} />
-              <Chip rotulo="Acesso" valor="App Cliente" />
-            </div>
+            {/*
+              25/09/2026 — a faixa de crachás no topo (código do caso, canal
+              de acesso) era leitura técnica; os mesmos dados humanos seguem
+              no cartão "Dados da conta" logo abaixo.
+            */}
+
 
             <section
               data-conta-perfil
