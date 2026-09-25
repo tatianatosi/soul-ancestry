@@ -5,8 +5,7 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
 import { painelArvoreGeracoes, type GeracaoArvore } from "@/lib/portal-arvore-geracoes";
-import { TETO_ANCESTRAIS_G1_G5 } from "@/lib/radar-seis-eixos";
-import { LinkPortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
+import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { cn } from "@/lib/utils";
 import { Search, Clock } from "lucide-react";
@@ -65,15 +64,6 @@ function NoArvore({
   );
 }
 
-function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div className="rounded-lg border border-border bg-card px-3 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
-      <p className="mt-0.5 text-sm text-navy">{valor}</p>
-    </div>
-  );
-}
-
 export const Route = createFileRoute("/portal/arvore")({
   head: () => ({
     meta: [
@@ -90,7 +80,6 @@ export const Route = createFileRoute("/portal/arvore")({
 });
 
 export function PortalArvore() {
-  const previa = usePreviaPortal();
   const { visibilidade, carregando } = useVisibilidade("arvore");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
 
@@ -110,7 +99,6 @@ export function PortalArvore() {
           {([vivo]) => {
             const itens = arvoreSanitizada(vivo.projecoes);
             const painel = painelArvoreGeracoes(itens);
-            const casoCodigo = previa?.identidade?.codigo ?? "—";
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-arvore>
@@ -127,9 +115,11 @@ export function PortalArvore() {
                         ? "A estrutura abaixo acompanha o que a equipe já publicou para você. Nomes só aparecem quando liberados."
                         : COPY_TELAS.arvore.vazio}
                     </p>
-                    <p className="mt-1 text-xs text-navy/55" data-arvore-conectadas>
-                      {`${itens.length} de ${TETO_ANCESTRAIS_G1_G5} pessoas possíveis já conectadas`}
-                    </p>
+                    {itens.length > 0 ? (
+                      <p className="mt-2 text-xs text-navy/50">
+                        {itens.length} {itens.length === 1 ? "pessoa conectada" : "pessoas conectadas"} na história publicada da família.
+                      </p>
+                    ) : null}
                     <div className="mt-5 space-y-1">
                       {painel.geracoes.map((geracao: GeracaoArvore, gi) => (
                         <div key={geracao.id}>

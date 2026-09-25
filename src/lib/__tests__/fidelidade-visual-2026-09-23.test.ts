@@ -31,17 +31,16 @@ describe("1. App shell — sem master/demo/seletor/chips/Sair no shell cliente",
 describe("2. Jornada — estado vazio sem painel administrativo nem 8 bolhas sem rótulo", () => {
   const jornada = readFileSync("src/routes/portal/jornada.tsx", "utf8");
 
-  it("estado vazio isola o bloco narrativo (etapa + próxima atualização + estado vazio de publicação)", () => {
+  it("estado vazio isola o bloco narrativo e os vazios das duas linhas", () => {
     expect(jornada).toContain("data-jornada-vazio");
     expect(jornada).toContain("data-jornada-narrativa-vazia");
-    expect(jornada).toContain('rotulo="Etapa"');
-    expect(jornada).toContain('rotulo="Próxima atualização"');
+    expect(jornada).toContain("Nossa jornada");
+    expect(jornada).toContain("Uma história começando a ganhar forma");
   });
 
-  it("o painel Caso/Composição/Marcos/Ritmo/Atualizações só existe fora do estado vazio", () => {
-    const antesDoTernario = jornada.slice(0, jornada.indexOf("jornada.linha.length === 0 ? ("));
-    expect(antesDoTernario).not.toContain("data-jornada-meta");
-    expect(jornada).toContain("data-jornada-meta");
+  it("não renderiza painel de Caso/Marcos/Ritmo/Atualizações", () => {
+    expect(jornada).not.toContain("data-jornada-meta");
+    expect(jornada).not.toContain('<ChipMeta rotulo="Caso"');
   });
 
   it("a trilha de passos (TrilhaCompacta) só renderiza fora do estado vazio", () => {
@@ -71,7 +70,7 @@ describe("3. Documentos — 4 cards, envio integrado a Solicitados, sem KPI/pain
   });
 
   it("a instrução de envio está integrada ao card Solicitados nos dois modos (prévia e real)", () => {
-    expect(documentos).toContain("Envio de arquivo acontece quando a equipe solicita");
+    expect(documentos).toContain("Quando houver um pedido, você poderá enviar o arquivo por aqui.");
     expect(documentos).toContain("<EnviarDocumento casoId={casoAtivo} />");
     const secaoSolicitadosReal = documentos.slice(
       documentos.indexOf('data-documentos-solicitados className="overflow-hidden'),

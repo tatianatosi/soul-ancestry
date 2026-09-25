@@ -49,8 +49,7 @@ describe("Radar do cliente não carrega comparação interna", () => {
     // técnico nunca seja confundida com mexer no Radar.
     expect(radar).toContain("radarSeisDimensoes");
     expect(radar).toContain("<RadarSeisEixos");
-    // 25/09/2026: crachás técnicos (Caso/Eixos) saíram; o gráfico é soberano.
-    expect(radar).not.toContain("data-radar-meta");
+    expect(radar).toContain('valor="6 dimensões"');
   });
 });
 

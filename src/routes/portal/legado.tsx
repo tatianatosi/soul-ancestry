@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
-import { usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
+import { usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { legadoSanitizado } from "@/lib/portal-dados-vivos";
 import { PRATELEIRAS, prateleiraDe, type PrateleiraId, type PublicacaoCliente } from "@/lib/projecoes-cliente";
@@ -23,21 +23,17 @@ export const Route = createFileRoute("/portal/legado")({
   component: PortalLegado,
 });
 
+function dataPublicacao(iso: string): string {
+  const data = new Date(iso);
+  if (Number.isNaN(data.getTime())) return "";
+  return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+}
+
 /* PRATELEIRAS/PrateleiraId/prateleiraDe agora vivem em @/lib/projecoes-cliente
    — mesma classificação usada pela Biblioteca Mestre (Desk, §18), para as
    duas telas nunca divergirem sobre em qual coleção um item cai. */
 
-function Chip({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div className="rounded-lg border border-border bg-card px-3 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
-      <p className="mt-0.5 text-sm text-navy">{valor}</p>
-    </div>
-  );
-}
-
 export function PortalLegado() {
-  const previa = usePreviaPortal();
   const { visibilidade, carregando } = useVisibilidade("biblio");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
 
@@ -56,8 +52,6 @@ export function PortalLegado() {
         >
           {([vivo]) => {
             const entregas = legadoSanitizado(vivo.projecoes);
-            const premium = entregas.length > 0;
-            const casoCodigo = previa?.identidade?.codigo ?? "—";
             const porPrateleira = Object.fromEntries(
               PRATELEIRAS.map((p) => [p.id, entregas.filter((e) => prateleiraDe(e) === p.id)]),
             ) as Record<PrateleiraId, PublicacaoCliente[]>;
@@ -65,7 +59,6 @@ export function PortalLegado() {
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-legado>
-
                   {/* Acabamento 2026-09-13 (referência Lovable): card editorial de
                       abertura, mesmo texto que já existia (movido para cá, não
                       duplicado), no padrão navy já usado no hero da Home. */}
@@ -78,7 +71,7 @@ export function PortalLegado() {
                     </h2>
                     <p className="mt-2 text-sm text-cream/70">
                       Cadernos, relatórios, narrativas e memória — só o que a equipe publica para
-                      ficar com a sua família. Sem inventar material.
+                      ficar com a sua família.
                     </p>
                   </section>
 
@@ -122,9 +115,9 @@ export function PortalLegado() {
                                   <p className="mt-1 whitespace-pre-line text-sm text-navy/85">
                                     {item.conteudo}
                                   </p>
-                                  {item.publicadoEm ? (
-                                    <p className="mt-2 font-mono text-[11px] text-navy/45">
-                                      {item.publicadoEm}
+                                  {item.publicadoEm && dataPublicacao(item.publicadoEm) ? (
+                                    <p className="mt-2 text-[11px] text-navy/45">
+                                      Publicado em {dataPublicacao(item.publicadoEm)}
                                     </p>
                                   ) : null}
                                 </li>

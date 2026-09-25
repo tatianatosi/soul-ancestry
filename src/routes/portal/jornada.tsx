@@ -121,15 +121,6 @@ function noDemoDeItem(item: PublicacaoCliente): NoEvento {
   }
 }
 
-function ChipMeta({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div className="rounded-lg border border-border bg-card px-3 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
-      <p className="mt-0.5 text-sm text-navy">{valor}</p>
-    </div>
-  );
-}
-
 /**
  * A linha do processo da Jornada (mockup 2/7, De-Para §4 linha 2).
  *
@@ -355,7 +346,6 @@ export function PortalJornada() {
           {([vivo]) => {
             const jornada = jornadaSanitizada(vivo.projecoes, new Date(), vivo.proximaAcao);
             const destino = vivo.proximaAcao?.destino ?? null;
-            const casoCodigo = previa?.identidade?.codigo ?? "—";
             const ritmoRotulo =
               jornada.ritmo === "sem_publicacao"
                 ? "Aguardando primeira publicação"
@@ -462,15 +452,12 @@ export function PortalJornada() {
                       estado vazio de publicação por linha.
                     */
                     <div data-jornada-vazio className="space-y-4">
-                      <div
-                        data-jornada-narrativa-vazia
-                        className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
-                      >
-                        <ChipMeta
-                          rotulo="Etapa"
-                          valor={passoAtualIndice !== null ? passos[passoAtualIndice]! : "Sem etapa registrada"}
-                        />
-                        <ChipMeta rotulo="Próxima atualização" valor={ritmoRotulo} />
+                      <div data-jornada-narrativa-vazia className="rounded-xl bg-navy-800 px-5 py-5 text-cream shadow-sm">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Nossa jornada</p>
+                        <h2 className="mt-1 font-serif text-xl text-cream">
+                          {passoAtualIndice !== null ? passos[passoAtualIndice] : "Uma história começando a ganhar forma"}
+                        </h2>
+                        <p className="mt-2 text-sm text-cream/70">{ritmoRotulo}</p>
                       </div>
                       <div data-jornada-duas-linhas className="grid gap-4">
                         <section className="rounded-xl border border-gold/35 bg-card p-5 shadow-sm">
@@ -493,23 +480,12 @@ export function PortalJornada() {
                     </div>
                   ) : (
                     <>
-                      <div
-                        data-jornada-meta
-                        className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
-                      >
-                        <ChipMeta rotulo="Caso" valor={casoCodigo} />
-                        {/*
-                          22/09/2026 — a composição já chegava à Home e faltava
-                          aqui. O caso é do titular, do casal ou da família, e a
-                          Jornada é onde o cliente acompanha o processo: ler isso
-                          nas duas telas é a mesma informação, com o mesmo
-                          vocabulário. Sem composição declarada no plano, o chip
-                          não aparece — nada de rótulo inventado.
-                        */}
-                        {vivo.composicao ? <ChipMeta rotulo="Composição" valor={vivo.composicao} /> : null}
-                        <ChipMeta rotulo="Marcos" valor={String(jornada.marcosPublicados)} />
-                        <ChipMeta rotulo="Ritmo" valor={ritmoRotulo} />
-                        <ChipMeta rotulo="Atualizações" valor={`${jornada.linha.length} publicadas`} />
+                      <div className="rounded-xl bg-navy-800 px-5 py-5 text-cream shadow-sm">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Nossa jornada</p>
+                        <h2 className="mt-1 font-serif text-xl text-cream">
+                          {vivo.composicao ?? "A história da sua família"}
+                        </h2>
+                        <p className="mt-2 text-sm text-cream/70">{ritmoRotulo}</p>
                       </div>
 
                       <TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} />

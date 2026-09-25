@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
-import { CASO_DEMO_CODIGO, CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
+import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
@@ -52,15 +52,8 @@ export function PortalConta() {
    */
   const previaDemo = previa?.identidade?.fonte === "demo";
   const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null) ?? "—";
-  const casosPortal = (data as { casos?: { id?: string; codigo?: string | null }[] } | null)?.casos;
-  // Segue o caso que a leitura de fato usou, em vez de fixar o primeiro —
-  // senão o chip "Caso" da Conta contradiz o conteúdo das outras abas.
-  const casoDoPortal =
-    casosPortal?.find((c) => c.id && c.id === vivo.data?.casoAtivoId) ?? casosPortal?.[0];
-  const casoCodigo =
-    previa?.identidade?.codigo ?? casoDoPortal?.codigo ?? (previaDemo ? CASO_DEMO_CODIGO : null) ?? "—";
   const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null) ?? "—";
-  const planoEstado = previa || data?.autorizado ? "Acompanhamento ativo" : "Aguardando publicação";
+  const planoEstado = previa || data?.autorizado ? "Em acompanhamento" : "Aguardando novidades";
 
   /**
    * Alertas usa o mesmo `proximaAcao` já publicado para Home/Documentos —
@@ -104,11 +97,6 @@ export function PortalConta() {
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>
                   <dd className="text-sm text-navy">{titular}</dd>
                 </div>
-                <div className="sr-only">
-                  <dt>Caso vinculado</dt>
-                  <dd>{casoCodigo}</dd>
-                </div>
-
                 <div className="rounded-lg border border-border bg-card p-3">
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Preferência</dt>
                   <dd className="text-sm text-navy">{paisInteresse}</dd>
@@ -177,14 +165,11 @@ export function PortalConta() {
 
             <section data-conta-historico className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-xl text-navy">Movimentos disponíveis</h2>
-                <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
-                  Pagamentos · acessos
-                </span>
+                <h2 className="font-serif text-xl text-navy">Histórico</h2>
               </div>
               {falhaFaturas ? (
                 <p className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
-                  Não conseguimos abrir o seu histórico de pagamentos agora.
+                  Não conseguimos abrir o seu histórico agora.
                   <button
                     type="button"
                     onClick={() => void faturas.refetch()}
@@ -195,7 +180,7 @@ export function PortalConta() {
                 </p>
               ) : temFatura && !previa ? (
                 <div className="mt-3 space-y-2">
-                  <p className="text-sm text-navy/75">Há movimentos disponíveis para consulta.</p>
+                  <p className="text-sm text-navy/75">Há registros disponíveis para consulta.</p>
                   <Link
                     to="/portal/faturas"
                     className="inline-flex rounded-lg border border-navy/15 bg-cream/60 px-3 py-1.5 text-xs text-navy hover:bg-cream"
@@ -205,10 +190,9 @@ export function PortalConta() {
                 </div>
               ) : (
                 <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
-                  <p className="text-sm text-navy/70">Nenhum pagamento ou movimento listado ainda.</p>
+                  <p className="text-sm text-navy/70">Nenhum movimento listado ainda.</p>
                   <p className="mt-1 text-xs text-navy/50">
-                    Histórico de acessos e faturas publicadas para você aparece neste bloco — sem
-                    inventar lançamento.
+                    Os registros compartilhados com você aparecem neste bloco.
                   </p>
                 </div>
               )}

@@ -4,7 +4,6 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import {
-  CASO_DEMO_CODIGO,
   FASES_JORNADA_DEMO,
   FASE_ATUAL_DEMO_SOPHIA_INDICE,
   FASE_ATUAL_DEMO_SOPHIA_PERCENTUAL,
@@ -86,12 +85,10 @@ export function PortalHome() {
         ) : (
           <PainelHomeMockup
             tituloCaso={previa.titulo}
-            statusRotulo="Acompanhamento ativo"
             proximoPasso={jornada.proximoPasso}
             proximoPassoDestino={vivo.data?.proximaAcao?.destino ?? null}
             proximaEntrega={vivo.data?.proximaEntrega?.texto ?? null}
             marcos={jornada.marcosPublicados}
-            casoCodigo={previa.identidade?.codigo ?? CASO_DEMO_CODIGO}
             identidade={previa.identidade}
             achados={jornada.linha.slice(0, 3).map((item) => ({
               id: item.id,
@@ -145,13 +142,11 @@ export function PortalHome() {
             <div className="space-y-4">
               <PainelHomeMockup
                 tituloCaso={principal.titulo}
-                statusRotulo={principal.statusRotulo}
                 statusTexto={principal.statusTexto}
                 proximoPasso={principal.proximoPasso || jornada.proximoPasso}
                 proximoPassoDestino={principal.proximoPassoDestino}
                 proximaEntrega={vivo.data?.proximaEntrega?.texto ?? null}
                 marcos={jornada.marcosPublicados}
-                casoCodigo={principal.codigo ?? "—"}
                 casoId={principal.id}
                 identidade={identidadeDePortalCaso({
                   id: principal.id,
@@ -289,13 +284,11 @@ function EstepeJornada({
 
 function PainelHomeMockup({
   tituloCaso,
-  statusRotulo,
   statusTexto,
   proximoPasso,
   proximoPassoDestino,
   proximaEntrega,
   marcos,
-  casoCodigo,
   casoId,
   identidade,
   achados,
@@ -303,14 +296,12 @@ function PainelHomeMockup({
   composicao,
 }: {
   tituloCaso: string;
-  statusRotulo: string;
   statusTexto?: string;
   proximoPasso: string;
   proximoPassoDestino?: string | null;
   /** P3: só a data sanitizada da próxima entrega (portal_casos). */
   proximaEntrega?: string | null;
   marcos: number;
-  casoCodigo: string;
   casoId?: string;
   identidade?: import("@/lib/caso-compartilhado").IdentidadeCaso;
   achados: Array<{
@@ -351,21 +342,10 @@ function PainelHomeMockup({
       {/* 16/09/2026 — primeira dobra: o cartão do processo é o elemento
           principal (maior), e a linha do tempo abaixo fica discreta. */}
       <section className="rounded-xl bg-navy-800 p-5 text-cream shadow-md sm:p-7">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-          <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-widest text-gold/80">Uma história em construção</p>
-            <h2 className="font-serif text-2xl leading-tight text-cream sm:text-3xl">{tituloCaso}</h2>
-          </div>
-          <div className="flex max-w-36 shrink-0 flex-wrap items-center justify-end gap-1.5 sm:max-w-none">
-            {composicao ? (
-              <span className="rounded-full border border-cream/30 px-3 py-1 text-[11px] font-medium text-cream/85">
-                {composicao}
-              </span>
-            ) : null}
-            <span className="rounded-full bg-gold px-3 py-1 text-[11px] font-semibold text-navy">
-              {statusRotulo}
-            </span>
-          </div>
+        <div className="min-w-0">
+          <p className="text-[10px] uppercase tracking-widest text-gold/80">Uma história em construção</p>
+          <h2 className="font-serif text-2xl leading-tight text-cream sm:text-3xl">{tituloCaso}</h2>
+          {composicao ? <p className="mt-1 text-xs text-cream/65">{composicao}</p> : null}
         </div>
         {statusTexto ? <p className="mt-2 text-sm text-cream/75">{statusTexto}</p> : null}
 
@@ -387,7 +367,7 @@ function PainelHomeMockup({
           <p className="mt-3 text-xs text-cream/60">
             {marcos === 0
               ? "Aguardando primeira publicação"
-              : `${marcos} marcos já compartilhados com você — sem % inventado`}
+              : `${marcos} marcos já compartilhados com você`}
           </p>
         )}
       </section>

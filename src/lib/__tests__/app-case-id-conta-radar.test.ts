@@ -9,18 +9,13 @@ describe("APP-CASE-ID-CONTA-RADAR: portal/conta.tsx nunca mostra Sophia/demo em 
     expect(rotaConta).toMatch(/previa\?\.identidade\?\.fonte === "demo"/);
   });
 
-  it("prioriza o código do caso real (previa.identidade.codigo) antes de qualquer fallback de demo", () => {
-    // 21/09/2026 — o termo do meio deixou de ser `casosPortal?.[0]?.codigo`
-    // (primeiro caso da lista) e passou a ser o caso ATIVO, resolvido por
-    // `casoDoPortal`. A ordem que este teste protege é a mesma: caso real
-    // primeiro, demo só no fim.
-    expect(rotaConta).toMatch(
-      /const casoCodigo =\s*\n?\s*previa\?\.identidade\?\.codigo \?\? casoDoPortal\?\.codigo \?\? \(previaDemo \? CASO_DEMO_CODIGO/,
-    );
+  it("não expõe código do caso nem mesmo como conteúdo oculto", () => {
+    expect(rotaConta).not.toContain("casoCodigo");
+    expect(rotaConta).not.toContain("Caso vinculado");
   });
 
-  it("o caso exibido na Conta é o caso ativo, não o primeiro da lista", () => {
-    expect(rotaConta).toContain("c.id === vivo.data?.casoAtivoId");
+  it("continua usando o caso ativo somente para os avisos sanitizados", () => {
+    expect(rotaConta).toContain("vivo.data?.proximaAcao");
   });
 
   it("titular e país só caem no valor fixo de demo quando previaDemo é verdadeiro, nunca em prévia real", () => {
