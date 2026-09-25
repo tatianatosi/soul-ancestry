@@ -112,10 +112,11 @@ export function PortalConta() {
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>
                   <dd className="text-sm text-navy">{titular}</dd>
                 </div>
-                <div className="rounded-lg border border-border bg-card p-3">
-                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">Caso vinculado</dt>
-                  <dd className="font-mono text-sm text-navy">{casoCodigo}</dd>
+                <div className="sr-only">
+                  <dt>Caso vinculado</dt>
+                  <dd>{casoCodigo}</dd>
                 </div>
+
                 <div className="rounded-lg border border-border bg-card p-3">
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Preferência</dt>
                   <dd className="text-sm text-navy">{paisInteresse}</dd>
