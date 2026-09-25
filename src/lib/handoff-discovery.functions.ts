@@ -98,6 +98,52 @@ export type ResultadoHandoffDiscovery =
       candidatos: Array<{ id: string; nome: string; motivo: string }>;
     };
 
+/**
+ * P2 CRM Vivo (24/09/2026): o handoff e a conversão ficam na trilha do
+ * próprio lead (audit_logs, entidade "lead"), ao lado dos eventos da call.
+ * O lead não é apagado nem copiado — só ganha o vínculo com pessoa e caso.
+ */
+async function registrarHandoffNaTrilhaDoLead(
+  supabase: any,
+  args: {
+    organizationId: string;
+    userId: string;
+    leadId: string;
+    clienteId: string;
+    casoId: string;
+    codigoCaso: string | null;
+    clienteCriado: boolean;
+    casoCriado: boolean;
+  },
+): Promise<void> {
+  const base = {
+    organization_id: args.organizationId,
+    user_id: args.userId,
+    entidade: "lead",
+    entidade_id: args.leadId,
+  };
+  const vinculo = {
+    fonte: "crm-vivo",
+    cliente_id: args.clienteId,
+    case_id: args.casoId,
+    codigo_caso: args.codigoCaso,
+    cliente_criado: args.clienteCriado,
+    caso_criado: args.casoCriado,
+  };
+  try {
+    await supabase.from("audit_logs").insert([
+      { ...base, acao: "handoff_concluido", metadados: { ...vinculo, evento: "Handoff concluído" } },
+      {
+        ...base,
+        acao: "lead_convertido",
+        metadados: { ...vinculo, evento: "Conversão em pessoa canônica e caso" },
+      },
+    ]);
+  } catch (err) {
+    console.error("[audit_logs] falha ao registrar handoff na trilha do lead", err);
+  }
+}
+
 export const executarHandoffDiscovery = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
@@ -251,6 +297,17 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
         sourceEntityType: "leads",
         sourceEntityId: data.leadId,
         userId,
+      });
+
+      await registrarHandoffNaTrilhaDoLead(supabase, {
+        organizationId,
+        userId,
+        leadId: data.leadId,
+        clienteId: String(casoExistente.cliente_id),
+        casoId: casoExistente.id as string,
+        codigoCaso: (casoExistente.codigo as string | null) ?? null,
+        clienteCriado: false,
+        casoCriado: false,
       });
 
       return {
@@ -425,6 +482,17 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
       caseId: casoId,
       userId,
       temResponsavel: true,
+    });
+
+    await registrarHandoffNaTrilhaDoLead(supabase, {
+      organizationId,
+      userId,
+      leadId: data.leadId,
+      clienteId,
+      casoId,
+      codigoCaso,
+      clienteCriado,
+      casoCriado,
     });
 
     return {

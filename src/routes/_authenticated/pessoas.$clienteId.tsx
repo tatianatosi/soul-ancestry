@@ -10,6 +10,7 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { atualizarPessoa, carregarPessoa } from "@/lib/pessoa.functions";
 import { salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { DecisaoAposSalvarPessoa } from "@/components/pessoa/decisao-apos-salvar";
+import { ContatosDaPessoa } from "@/components/pessoa/contatos-pessoa";
 import {
   evidenciaDeMesmaPessoa,
   inventarioDocumentalDaPessoa,
@@ -305,6 +306,7 @@ function Pessoa() {
     achadosPesquisa,
     materiaisDossie,
     nucleos,
+    contatos,
   } = q.data;
 
   // R2 — mesma regra do servidor (estadoCpfMembroCaso); só sinaliza, nunca grava aqui.
@@ -1186,6 +1188,13 @@ function Pessoa() {
             );
           })()}
         </CaCard>
+
+        <ContatosDaPessoa
+          clienteId={cliente.id as string}
+          contatos={(contatos ?? []) as any[]}
+          podeEscrever={podeEscrever}
+          pendencia={pendenciaVinculo}
+        />
 
         {/*
           O elo com o lead. `leads.case_id` era nulo em todo o banco por falta

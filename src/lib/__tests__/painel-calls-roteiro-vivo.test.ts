@@ -29,7 +29,9 @@ describe("Painel de Calls — mesa de Discovery (CA02-CRM-VIVO-PAINEL-CALLS)", (
   });
 
   it("gravar rascunho da call não exige o roteiro inteiro (mesma trava de sempre)", () => {
-    expect(painel).toContain("disabled={mutar.isPending || !Object.keys(rascunho).length}");
+    // P2 (24/09/2026): a trava ganhou só o motivo de no-show/cancelamento;
+    // continua sem exigir o roteiro inteiro.
+    expect(painel).toContain("disabled={mutar.isPending || !Object.keys(rascunho).length || faltaMotivo}");
   });
 
   it("achado de WhatsApp chega ao card da pergunta certa, não fica solto", () => {

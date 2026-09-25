@@ -6,8 +6,9 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
 import { HandoffLead } from "@/components/crm/handoff-lead";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { CaCard } from "@/components/ui/ca-card";
-import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
+import { listarLeadsDesk, salvarLeadDesk, trilhaDoLead } from "@/lib/crm-desk.functions";
 import { executarHandoffDiscovery } from "@/lib/handoff-discovery.functions";
 import { podeExecutarHandoffDiscovery } from "@/lib/handoff-discovery";
 import { salvarTarefa } from "@/lib/ops.functions";
@@ -65,6 +66,7 @@ import {
 import { VarreduraWhatsApp } from "@/components/crm/varredura-whatsapp";
 import { CrmKanban } from "@/components/clube-ancestral-kit";
 import { CAMPO_LEAD_POR_VARREDURA, codigoLeadDoAchado, type Achado } from "@/lib/varredura-whatsapp";
+import { filaCrmVivo, statusPedeMotivo } from "@/lib/crm-vivo";
 
 /** Catálogos de seleção múltipla — não vivem em CATALOGOS (só campo único). */
 const CATALOGO_MULTI: Record<string, Opcao[]> = {
@@ -231,12 +233,58 @@ function MesaDiscovery({
   );
 }
 
+/**
+ * P2 CRM Vivo: trilha do lead (call agendada/realizada, no-show, cancelada,
+ * discovery concluída, handoff, conversão), lida de audit_logs. A RLS de
+ * auditoria só deixa administrador ler; lista vazia para os demais é dita.
+ */
+function TrilhaDoLead({ leadId }: { leadId: string }) {
+  const carregar = useServerFn(trilhaDoLead);
+  const q = useQuery({
+    queryKey: ["trilha-lead", leadId],
+    queryFn: () => carregar({ data: { leadId } }),
+  });
+  const linhas = q.data ?? [];
+  return (
+    <div className={CARTAO} data-trilha-lead>
+      <p className="text-xs font-medium uppercase tracking-wide text-navy/60">Trilha do lead</p>
+      {q.isLoading ? (
+        <p className="mt-2 text-xs text-navy/60">Carregando trilha…</p>
+      ) : q.isError ? (
+        <p role="alert" className="mt-2 flex flex-wrap items-center gap-2 text-xs text-terracotta">
+          Não foi possível ler a trilha. Isto é falha de leitura, não ausência de eventos.
+          <button type="button" onClick={() => void q.refetch()} className="underline">
+            Tentar novamente
+          </button>
+        </p>
+      ) : !linhas.length ? (
+        <p className="mt-2 text-xs text-navy/60">
+          Nenhum evento visível. A trilha de auditoria só é lida por administradores da organização;
+          os eventos continuam sendo gravados.
+        </p>
+      ) : (
+        <ol className="mt-2 space-y-1 border-l border-navy/15 pl-3">
+          {linhas.map((l) => (
+            <li key={l.id} className="text-xs text-navy">
+              <span className="text-navy/50">{new Date(l.created_at).toLocaleString("pt-BR")}</span> — {l.rotulo}
+              {l.motivo ? ` · motivo: ${l.motivo}` : ""}
+              {l.motivoPendente ? " · motivo pendente" : ""}
+              {l.codigoCaso ? ` · caso ${l.codigoCaso}` : ""}
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  );
+}
+
 export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) {
   const carregar = useServerFn(listarLeadsDesk);
   const salvar = useServerFn(salvarLeadDesk);
   const handoffFn = useServerFn(executarHandoffDiscovery);
   const navegar = useNavigate();
   const qc = useQueryClient();
+  const autoridade = useAutoridade();
 
   const {
     data: leads = [],
@@ -251,6 +299,9 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
   const [selecionado, setSelecionado] = useState<string | null>(leadIdInicial ?? null);
   const [rascunho, setRascunho] = useState<Record<string, unknown>>({});
   const [aviso, setAviso] = useState<string | null>(null);
+  // P2 CRM Vivo (24/09/2026): no-show e cancelamento exigem motivo, gravado
+  // na trilha do lead (audit_logs) junto com o evento nomeado da call.
+  const [motivoCall, setMotivoCall] = useState("");
   const [candidatosCliente, setCandidatosCliente] = useState<
     Array<{ id: string; nome: string; motivo: string }>
   >([]);
@@ -279,6 +330,8 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
   );
   const filas = useMemo(() => filasCalls(visiveis, hoje), [visiveis, hoje]);
   const resumo = useMemo(() => resumoCalls(visiveis, hoje), [visiveis, hoje]);
+  // P2: as sete filas do CRM Vivo derivadas do mesmo lead (sem cópia).
+  const filasVivo = useMemo(() => filaCrmVivo(visiveis, hoje), [visiveis, hoje]);
 
   const leadBase = visiveis.find((l) => l.id === selecionado) ?? null;
   const lead = leadBase ? ({ ...leadBase, ...rascunho } as LeadDesk) : null;
@@ -288,6 +341,15 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
   // mas disparavam sem a checagem de capacidade/gate que este só tem —
   // as três portas para a mesma escrita externa precisam do mesmo guard.
   const gateHandoff = lead ? podeExecutarHandoffDiscovery(lead) : { ok: false, motivo: "Selecione um lead" };
+  // P2: o motivo só é exigido quando o status muda para no-show/cancelada
+  // neste rascunho (mesma regra do servidor: só mudança vira evento).
+  const statusNoRascunho = rascunho.status_call as string | null | undefined;
+  const motivoExigido =
+    statusNoRascunho !== undefined &&
+    statusPedeMotivo(statusNoRascunho) &&
+    statusNoRascunho !== (leadBase?.status_call ?? null);
+  // Proprietária: pendência informa, não impede (o servidor faz o mesmo).
+  const faltaMotivo = motivoExigido && !motivoCall.trim() && !autoridade.proprietaria;
 
   const opcoesTrilhas: Opcao[] = trilhas.map((t: any) => ({
     valor: t.id,
@@ -365,7 +427,11 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
     mutationFn: (valores: Record<string, unknown>) => {
       const merged = { ...(lead ?? {}), ...valores } as LeadDesk;
       return salvar({
-        data: { id: selecionado, valores: { ...valores, ...spinDerivadoDoLead(merged) } },
+        data: {
+          id: selecionado,
+          valores: { ...valores, ...spinDerivadoDoLead(merged) },
+          motivoCall: motivoCall.trim() || null,
+        },
       });
     },
     onSuccess: (r: any) => {
@@ -377,7 +443,9 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
       }
       setAviso("Registro gravado no lead canônico com auditoria.");
       setRascunho({});
+      setMotivoCall("");
       void qc.invalidateQueries({ queryKey: ["leads-desk"] });
+      void qc.invalidateQueries({ queryKey: ["trilha-lead"] });
       void qc.invalidateQueries({ queryKey: ["painel-desk-hoje"] });
       void qc.invalidateQueries({ queryKey: ["painel-cadencia"] });
       void refetch();
@@ -426,6 +494,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
       void qc.invalidateQueries({ queryKey: ["painel-desk-hoje"] });
       void qc.invalidateQueries({ queryKey: ["painel-cadencia"] });
       void refetch();
+      void qc.invalidateQueries({ queryKey: ["trilha-lead"] });
       void navegar({ to: "/propostas" });
     },
     onError: (e: Error) => setAviso(e.message),
@@ -648,6 +717,46 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
           />
           Exibir registros de teste/demonstração (fora das métricas reais)
         </label>
+        {/*
+          P2 CRM VIVO (24/09/2026): as sete pendências do CRM Vivo, derivadas
+          das mesmas linhas de `leads` que /leads edita (filaCrmVivo). Não é
+          aba nova nem kanban paralelo: cada nome abre o registro nesta Mesa.
+        */}
+        <div aria-label="Fila CRM Vivo" data-fila-crm-vivo className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {filasVivo.map((f) => (
+            <div key={f.chave} className="rounded-lg border border-navy/10 bg-cream/40 px-3 py-2">
+              <p className="text-[11px] uppercase tracking-wide text-navy/60">
+                {f.rotulo} · <span className="font-semibold text-navy">{f.leads.length}</span>
+              </p>
+              {f.leads.length ? (
+                <ul className="mt-1 space-y-0.5">
+                  {f.leads.slice(0, 5).map((l) => (
+                    <li key={l.id}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelecionado(l.id ?? null);
+                          setRascunho({});
+                          setMotivoCall("");
+                          setAviso(null);
+                          setIndicePergunta(indicePrimeiraPerguntaPendente(l));
+                        }}
+                        className="text-left text-xs text-navy underline decoration-gold/60 underline-offset-2 hover:decoration-gold"
+                      >
+                        {l.nome || "Lead sem nome"}
+                      </button>
+                    </li>
+                  ))}
+                  {f.leads.length > 5 ? (
+                    <li className="text-[11px] text-navy/50">+{f.leads.length - 5} nesta fila</li>
+                  ) : null}
+                </ul>
+              ) : (
+                <p className="mt-1 text-[11px] text-navy/45">Nada pendente.</p>
+              )}
+            </div>
+          ))}
+        </div>
         <p className="mt-2 text-xs text-navy/60">
           Regras do CRM:{" "}
           <Link to="/crm-mestre" className="underline decoration-gold underline-offset-2">
@@ -707,6 +816,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                       onClick={() => {
                         setSelecionado(l.id ?? null);
                         setRascunho({});
+                        setMotivoCall("");
                         setAviso(null);
                         setIndicePergunta(indicePrimeiraPerguntaPendente(l));
                       }}
@@ -762,6 +872,20 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                     opcoes={STATUS_CALL}
                     onChange={set("status_call")}
                   />
+                  {statusPedeMotivo(campo("status_call")) ? (
+                    <Texto
+                      label="Motivo do no-show ou cancelamento"
+                      valor={motivoCall}
+                      onChange={(v) => setMotivoCall(String(v))}
+                      ajuda={
+                        motivoExigido && autoridade.proprietaria
+                          ? "Fica na trilha do lead. Sem motivo, a gravação segue e o motivo fica como pendência."
+                          : motivoExigido
+                          ? "Obrigatório para gravar: fica na trilha do lead junto com o evento da call."
+                          : "Já registrado na trilha do lead. Preencha só se o status mudar de novo."
+                      }
+                    />
+                  ) : null}
                   <Selecao
                     label="Resultado da Discovery"
                     valor={campo("discovery_resultado")}
@@ -954,12 +1078,15 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
               <div className={`${CARTAO} flex flex-wrap items-center gap-3`}>
                 <button
                   type="button"
-                  disabled={mutar.isPending || !Object.keys(rascunho).length}
+                  disabled={mutar.isPending || !Object.keys(rascunho).length || faltaMotivo}
                   onClick={() => mutar.mutate({ ...rascunho, ...spinDerivadoDoLead(lead) })}
                   className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
                 >
-                  Gravar registro da call
+                  {mutar.isPending ? "Gravando…" : "Gravar registro da call"}
                 </button>
+                {faltaMotivo ? (
+                  <span className="text-xs text-terracotta">Informe o motivo do no-show ou cancelamento.</span>
+                ) : null}
                 <AcaoOperacional
                   rotulo="Converter em cliente/pessoa canônica e abrir o caso"
                   capacidade="avancar_caso_planejador_tarefa"
@@ -972,7 +1099,10 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 {rascunho && Object.keys(rascunho).length ? (
                   <button
                     type="button"
-                    onClick={() => setRascunho({})}
+                    onClick={() => {
+                      setRascunho({});
+                      setMotivoCall("");
+                    }}
                     className="text-xs text-navy/60 underline"
                   >
                     Descartar alterações
@@ -980,6 +1110,8 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 ) : null}
                 {aviso ? <span className="text-xs text-navy/70">{aviso}</span> : null}
               </div>
+
+              {lead.id ? <TrilhaDoLead leadId={lead.id} /> : null}
 
             </>
           )}

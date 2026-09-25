@@ -19,6 +19,13 @@ import type { Dependente } from "@/lib/dependentes";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { proprietariaOperando } from "@/lib/autoridade.server";
+import {
+  eventosDeCall,
+  exigeMotivoDeCall,
+  ROTULO_EVENTO_CALL,
+  rotuloTrilhaLead,
+  type EventoCall,
+} from "@/lib/crm-vivo";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -208,6 +215,43 @@ function classificarAcaoLead(campos: string[]): string {
   return "atualizar_lead";
 }
 
+/**
+ * P2 (24/09/2026): eventos nomeados da call na trilha do lead — call
+ * agendada, realizada, no-show, cancelada, discovery concluída. Um registro
+ * por evento; o motivo de no-show/cancelamento vai nos metadados.
+ */
+async function registrarEventosCall(
+  supabase: Sb,
+  organizationId: string,
+  userId: string,
+  leadId: string,
+  eventos: EventoCall[],
+  motivo: string | null,
+): Promise<void> {
+  for (const evento of eventos) {
+    try {
+      await supabase.from("audit_logs").insert({
+        organization_id: organizationId,
+        user_id: userId,
+        acao: evento,
+        entidade: "lead",
+        entidade_id: leadId,
+        metadados: {
+          fonte: "crm-vivo",
+          evento: ROTULO_EVENTO_CALL[evento],
+          ...(evento === "call_no_show" || evento === "call_cancelada"
+            ? motivo
+              ? { motivo }
+              : { motivo_pendente: true }
+            : {}),
+        },
+      });
+    } catch (err) {
+      console.error("[audit_logs] falha ao registrar evento de call", err);
+    }
+  }
+}
+
 async function registrarAuditoriaLead(
   supabase: Sb,
   organizationId: string,
@@ -239,11 +283,12 @@ async function registrarAuditoriaLead(
 
 export const salvarLeadDesk = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id?: string | null; valores: Record<string, unknown> }) => d)
+  .inputValidator((d: { id?: string | null; valores: Record<string, unknown>; motivoCall?: string | null }) => d)
   .handler(async ({ data, context }) => {
     const supabase = (context as any).supabase;
     const userId = (context as any).userId as string;
     const patch = limpar(data.valores ?? {});
+    const motivoCall = String(data.motivoCall ?? "").trim() || null;
 
     let atual: LeadDesk | null = null;
     if (data.id) {
@@ -257,6 +302,14 @@ export const salvarLeadDesk = createServerFn({ method: "POST" })
     const candidato = { ...(atual ?? { nome: "" }), ...patch } as LeadDesk;
     const livre = await proprietariaOperando(supabase, userId);
     const erros = errosBloqueantesAlteracao(atual, candidato, Object.keys(patch), livre);
+    // P2 (24/09/2026): no-show e cancelamento de call exigem motivo, que fica
+    // na trilha do lead (audit_logs) — sem coluna nova. Proprietária operando:
+    // pendência informa, não impede (política de autoridade operacional) —
+    // o evento fica com o motivo marcado como pendente.
+    const eventosCall = eventosDeCall(atual, candidato);
+    if (exigeMotivoDeCall(eventosCall) && !motivoCall && !livre) {
+      erros.push({ campo: "status_call", motivo: "No-show ou cancelamento de call exige o motivo." });
+    }
     if (erros.length) {
       return { ok: false as const, erros, lead: atual };
     }
@@ -281,6 +334,7 @@ export const salvarLeadDesk = createServerFn({ method: "POST" })
         atual as unknown as Record<string, unknown>,
         resultado.registro,
       );
+      await registrarEventosCall(supabase, organizationId, userId, data.id, eventosCall, motivoCall);
       return { ok: true as const, erros: [], lead: resultado.registro as LeadDesk };
     }
 
@@ -301,7 +355,43 @@ export const salvarLeadDesk = createServerFn({ method: "POST" })
       null,
       row as Record<string, unknown>,
     );
+    await registrarEventosCall(supabase, organization_id, userId, (row as { id: string }).id, eventosCall, motivoCall);
     return { ok: true as const, erros: [], lead: row as LeadDesk };
+  });
+
+/**
+ * P2 CRM Vivo (24/09/2026): trilha do lead — call criada, realizada,
+ * no-show, discovery concluída, handoff e conversão, lidos da mesma
+ * `audit_logs` (entidade "lead"), filtrados pela organização do usuário.
+ * RLS vigente (`audit_select_admin`): só administrador lê a trilha; para
+ * os demais a lista volta vazia e a tela diz isso — não é "sem eventos".
+ */
+export const trilhaDoLead = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { leadId: string }) => d)
+  .handler(async ({ data, context }) => {
+    semCache();
+    const supabase = (context as any).supabase;
+    const userId = (context as any).userId as string;
+    const organizationId = await orgDoUsuario(supabase, userId);
+    const { data: linhas, error } = await supabase
+      .from("audit_logs")
+      .select("id,acao,created_at,user_id,metadados")
+      .eq("organization_id", organizationId)
+      .eq("entidade", "lead")
+      .eq("entidade_id", data.leadId)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (error) throw new Error(error.message);
+    return ((linhas ?? []) as Array<Record<string, any>>).map((l) => ({
+      id: String(l.id),
+      acao: String(l.acao),
+      rotulo: rotuloTrilhaLead(String(l.acao)),
+      created_at: String(l.created_at),
+      motivo: (l.metadados?.motivo ?? null) as string | null,
+      motivoPendente: l.metadados?.motivo_pendente === true,
+      codigoCaso: (l.metadados?.codigo_caso ?? null) as string | null,
+    }));
   });
 
 /** Arquiva um lead. Nunca há exclusão física. */

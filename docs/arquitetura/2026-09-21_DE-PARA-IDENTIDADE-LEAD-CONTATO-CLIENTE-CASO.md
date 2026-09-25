@@ -1,7 +1,7 @@
 # De-para — Uma identidade operacional do Lead ao Caso
 
 - Status: rascunho
-- Versão: v1.1 (reaberta em 2026-09-24)
+- Versão: v1.2 (P2 CRM Vivo em 2026-09-24)
 - Data: 2026-09-21
 - Responsável pela decisão: Proprietária do Clube Ancestral
 - Fonte de evidência: leitura direta de código em `origin/main` (`04384d28`), via worktree isolado (`p1-identidade-lead-caso`). Toda citação é arquivo:linha real.
@@ -90,3 +90,11 @@ Observação: antes de pedir a confirmação, a Mesa salva o rascunho que a
 equipe digitou na ficha do lead (dados da call). Isso é gravação do próprio
 lead, não conversão — nenhuma identidade, caso ou vínculo nasce antes da
 escolha humana.
+
+## P2 CRM Vivo (v1.2, 24/09/2026)
+
+Contato passou a ter tela: card "Contatos" na Pessoa 360, gravando em
+`client_contacts` (vínculo `client_id` da pessoa canônica). Contato que já é
+a própria pessoa ou outra pessoa canônica é recusado e aponta para a Pessoa
+360 — nunca vira cópia de identidade. Detalhes, trilha do lead e fila CRM
+Vivo: `docs/arquitetura/2026-09-24_P2-CRM-VIVO-PAINEL-CALLS.md`.

@@ -1,7 +1,8 @@
 import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { avaliarNovoContato } from "@/lib/crm-vivo";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -336,6 +337,17 @@ export const carregarPessoa = createServerFn({ method: "GET" })
           .is("archived_at", null)
       : { data: [] as Linha[] };
 
+    // P2 CRM Vivo (24/09/2026): contatos são vínculos da Pessoa Canônica
+    // (client_contacts.client_id), nunca um segundo cadastro de pessoa.
+    const { data: contatos } = await supabase
+      .from("client_contacts")
+      .select("id, nome, relacao, email, telefone, principal, observacoes, created_at")
+      .eq("organization_id", organizationId)
+      .eq("client_id", cliente.id)
+      .is("archived_at", null)
+      .order("principal", { ascending: false })
+      .order("created_at", { ascending: true });
+
     return {
       encontrada: true as const,
       cliente: cliente as Linha,
@@ -355,6 +367,7 @@ export const carregarPessoa = createServerFn({ method: "GET" })
       achadosPesquisa: (achadosDaPessoa ?? []) as Linha[],
       materiaisDossie: (materiaisCatalogados ?? []) as Linha[],
       nucleos: (nucleosDaPessoa ?? []) as Linha[],
+      contatos: (contatos ?? []) as Linha[],
     };
   });
 
@@ -416,4 +429,104 @@ export const atualizarPessoa = createServerFn({ method: "POST" })
     });
 
     return { ok: true, registro: resultado.registro as Linha };
+  });
+
+/**
+ * P2 CRM Vivo (24/09/2026): adiciona contato como vínculo da Pessoa Canônica.
+ * Recusa (sem fundir) quando o contato é a própria pessoa, outra pessoa
+ * canônica ou um contato já registrado — regra única em `avaliarNovoContato`.
+ * Grava e relê; auditoria pelo gatilho `fn_audit` da tabela.
+ */
+export const adicionarContatoPessoa = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: {
+      clienteId: string;
+      nome: string;
+      relacao?: string | null;
+      email?: string | null;
+      telefone?: string | null;
+      principal?: boolean;
+      observacoes?: string | null;
+    }) => data,
+  )
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const userId = context.userId as string;
+    const organizationId = await organizacaoDo(supabase, userId);
+
+    const { data: pessoa } = await supabase
+      .from("clientes")
+      .select("id, nome, email, telefone")
+      .eq("id", data.clienteId)
+      .eq("organization_id", organizationId)
+      .is("archived_at", null)
+      .maybeSingle();
+    if (!pessoa) throw new Error("Pessoa não encontrada nesta organização.");
+
+    const [{ data: outras }, { data: existentes }] = await Promise.all([
+      supabase
+        .from("clientes")
+        .select("id, nome, email, telefone")
+        .eq("organization_id", organizationId)
+        .is("archived_at", null)
+        .limit(5000),
+      supabase
+        .from("client_contacts")
+        .select("id, nome, email, telefone")
+        .eq("organization_id", organizationId)
+        .eq("client_id", pessoa.id)
+        .is("archived_at", null),
+    ]);
+
+    const texto = (v: unknown) => (typeof v === "string" ? v.trim() || null : null);
+    const contato = {
+      nome: texto(data.nome),
+      email: texto(data.email),
+      telefone: texto(data.telefone),
+    };
+    const avaliacao = avaliarNovoContato(contato, {
+      pessoa: pessoa as Linha as { id: string; nome: string },
+      outrasPessoas: (outras ?? []) as Array<{ id: string; nome: string }>,
+      contatosExistentes: (existentes ?? []) as Array<{ id: string; nome: string }>,
+    });
+    if (!avaliacao.ok) return avaliacao;
+
+    const criado = await inserirComVerificacao({
+      supabase,
+      tabela: "client_contacts",
+      organizationId,
+      userId,
+      payload: {
+        client_id: pessoa.id,
+        nome: contato.nome,
+        relacao: texto(data.relacao),
+        email: contato.email,
+        telefone: contato.telefone,
+        principal: data.principal === true,
+        observacoes: texto(data.observacoes),
+      },
+    });
+    return { ok: true as const, contato: criado.registro as Linha };
+  });
+
+/** Arquiva o vínculo de contato (sem exclusão física), com motivo. */
+export const arquivarContatoPessoa = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { contatoId: string; motivo: string }) => data)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const userId = context.userId as string;
+    const organizationId = await organizacaoDo(supabase, userId);
+    const motivo = String(data.motivo ?? "").trim();
+    if (!motivo) throw new Error("Informe o motivo para arquivar o contato.");
+    await gravarComVerificacao({
+      supabase,
+      tabela: "client_contacts",
+      id: data.contatoId,
+      organizationId,
+      userId,
+      payload: { archived_at: new Date().toISOString(), archived_by: userId, archive_motivo: motivo },
+    });
+    return { ok: true as const };
   });
