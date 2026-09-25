@@ -1,5 +1,30 @@
 # P10 — Motor de Triagem AncestralScan → CRM Vivo/Mesa Discovery → Planejador
 
+## Adendo (P11, 25/09/2026) — contexto histórico real do AncestralScan
+
+A Proprietária confirmou: o AncestralScan é parte real do Clube
+Ancestral, mas hospedado num projeto Lovable de terceiro (quem construiu
+o site institucional) — sem acesso às tabelas dele nesta sessão. Reli o
+histórico recuperado (`docs/evolucao/recuperados/fontes-primarias/02_AUDITORIA_MAE_Clube_Ancestral.md`,
+`docs/evolucao/recuperados/prompts-lovable-2026-08-31/CLUBE_ANCESTRAL_PRODUCTS_SKU.md`)
+para enriquecer o contexto, sem mudar o desenho já publicado:
+
+- AncestralScan™ é real, público, ~5 minutos, 10 países, gratuito
+  ("CAMADA 1: ENTRADA" da arquitetura mapeada em 18/08/2026).
+- **Achado que valida o desenho conservador do P10**: o histórico descreve
+  que a ferramenta pública, hoje, "calcula radar de elegibilidade... e
+  exibe limite geracional, via administrativa/judicial e prazo médio"
+  diretamente ao visitante — mais do que as regras internas do Clube
+  Ancestral permitiriam fazer aqui dentro (nunca prazo automático, nunca
+  elegibilidade confirmada). Por isso `PayloadTriagemAncestralScan`
+  guarda qualquer score do Scan só em `scoresOrientativos` — nunca em
+  `elegibilidade_preliminar` ou qualquer campo que o Desk trate como
+  fato. O Clube Ancestral não controla nem endossa o cálculo que a
+  ferramenta de terceiro exibe publicamente.
+
+Nenhuma mudança de código decorre deste adendo — é confirmação de que o
+contrato já publicado (Camada A) estava correto.
+
 ## Autorização
 
 Autorização explícita da Proprietária, 25/09/2026: "EXECUTE EM MAIN".
