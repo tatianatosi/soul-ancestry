@@ -35,6 +35,7 @@ import { resumoVisaoClienteCaso } from "@/lib/app-cliente-como-pessoa.functions"
 import { FasesMotorCidadania } from "@/components/caso/fases-motor-cidadania";
 import { FormularioTarefaCaso } from "@/components/caso/formulario-tarefa-caso";
 import { PlanejadorOperacional } from "@/components/contrato/planejador-operacional";
+import { PainelJornadaPlanejador } from "@/components/caso/jornada-planejador";
 import { AbaVisaoGeral } from "@/components/caso/visao-geral";
 import { RadarInternoCaso } from "@/components/caso/radar-interno";
 import { ChipIdentidadeCaso } from "@/components/caso/chip-identidade-caso";
@@ -2276,6 +2277,14 @@ function FichaCaso() {
             propriamente dita, como moldura de tudo isso.
           */}
           <div className="space-y-8">
+            {/*
+              P4 (25/09/2026) — a jornada persistida do plano (Produto-Pai,
+              país/via, etapa, marco, responsável, bloqueio, próxima ação,
+              micro-entrega) mora aqui, ANTES do formulário grande: mostra o
+              que já está gravado e deixa editar campo a campo, sem entrar
+              na versão/hash do formulário abaixo.
+            */}
+            <PainelJornadaPlanejador caseId={id} />
             <PlanejadorOperacional caseId={id} podeEscrever={!bloqueado} inicialAberto />
             <AbaJornadaCliente casoId={id} bloqueado={bloqueado} />
 

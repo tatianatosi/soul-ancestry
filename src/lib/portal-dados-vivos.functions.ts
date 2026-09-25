@@ -50,12 +50,19 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
     semCache();
     const supabase = context.supabase as any;
 
-    // P3 (25/09/2026): proxima_entrega_prevista_em vem da migration
-    // 20260925120000. Se o banco conectado ainda não a tem, relê sem ela
-    // (o App segue igual, sem a linha da próxima entrega).
+    // P3 (25/09/2026) `proxima_entrega_prevista_em` e P4 (25/09/2026)
+    // `pendencia_cliente_pendente` vêm de migrations aditivas na view
+    // portal_casos. Se o banco conectado ainda não tiver uma delas (ou as
+    // duas), relê sem a coluna ausente — o App segue igual, só sem aquele
+    // sinal, nunca finge o dado.
     const COLUNAS = "id, status, ativo, suspenso_em, fase_jornada, composicao";
-    let casos = await supabase.from("portal_casos").select(`${COLUNAS}, proxima_entrega_prevista_em`);
-    if (casos.error && /proxima_entrega_prevista_em/.test(String(casos.error.message ?? ""))) {
+    const COL_ENTREGA = "proxima_entrega_prevista_em";
+    const COL_PENDENCIA = "pendencia_cliente_pendente";
+    let casos = await supabase.from("portal_casos").select(`${COLUNAS}, ${COL_ENTREGA}, ${COL_PENDENCIA}`);
+    if (casos.error && new RegExp(COL_PENDENCIA).test(String(casos.error.message ?? ""))) {
+      casos = await supabase.from("portal_casos").select(`${COLUNAS}, ${COL_ENTREGA}`);
+    }
+    if (casos.error && new RegExp(COL_ENTREGA).test(String(casos.error.message ?? ""))) {
       casos = await supabase.from("portal_casos").select(COLUNAS);
     }
     const permitidos = ((casos.data ?? []) as {
@@ -66,6 +73,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       fase_jornada?: string | null;
       composicao?: string | null;
       proxima_entrega_prevista_em?: string | null;
+      pendencia_cliente_pendente?: boolean | null;
     }[]);
 
     // Um caso por leitura. Pedido explícito só vale se estiver entre os
@@ -99,6 +107,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         suspensoEm: casoAtivo.suspenso_em,
         documentosPendentes,
         pagamentoPendente,
+        pendenciaClientePendente: casoAtivo.pendencia_cliente_pendente === true,
       }),
     );
 

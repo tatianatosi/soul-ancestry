@@ -83,6 +83,13 @@ export const ENTIDADES_HIPOTETICAS_NAO_CRIAR = [
 export type SinalClienteProximaAcao = {
   documentosPendentes: number;
   pagamentoPendente: boolean;
+  /**
+   * P4 (25/09/2026) — booleano sanitizado (`portal_casos.pendencia_cliente_pendente`):
+   * o plano ativo do caso tem alguma dependência do cliente registrada.
+   * Nunca o texto da dependência — só o sinal, mesmo padrão de
+   * `documentosPendentes`/`pagamentoPendente`.
+   */
+  pendenciaClientePendente: boolean;
   casoAtivo: boolean;
   casoEncerrado: boolean;
   casoPausado: boolean;
@@ -134,6 +141,13 @@ export function projetarProximaAcaoCliente(s: SinalClienteProximaAcao): ProximaA
       destino: "/portal/conta",
     };
   }
+  if (s.pendenciaClientePendente) {
+    return {
+      acao: "Há uma pendência que depende de você — a equipe vai detalhar no próximo contato.",
+      nivelEquivalente: 9,
+      destino: "/portal/jornada",
+    };
+  }
   if (s.casoAtivo) {
     return {
       acao: "A equipe está avançando no seu acompanhamento.",
@@ -155,6 +169,7 @@ export function sinaisDoCasoPortal(input: {
   suspensoEm?: unknown;
   documentosPendentes: number;
   pagamentoPendente: boolean;
+  pendenciaClientePendente?: boolean;
 }): SinalClienteProximaAcao {
   const bruto = String(input.status ?? "").toLowerCase();
   const pausado = ["pausado", "suspenso", "em_pausa"].includes(bruto) || Boolean(input.suspensoEm);
@@ -166,6 +181,7 @@ export function sinaisDoCasoPortal(input: {
   return {
     documentosPendentes: input.documentosPendentes,
     pagamentoPendente: input.pagamentoPendente,
+    pendenciaClientePendente: input.pendenciaClientePendente === true,
     casoAtivo: ativo,
     casoEncerrado: encerrado,
     casoPausado: pausado,

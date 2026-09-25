@@ -86,6 +86,7 @@ describe("projeção autorizada no App Cliente (mesma ordem da RPC)", () => {
     const p = projetarProximaAcaoCliente({
       documentosPendentes: 2,
       pagamentoPendente: true,
+      pendenciaClientePendente: false,
       casoAtivo: true,
       casoEncerrado: false,
       casoPausado: false,
@@ -99,6 +100,7 @@ describe("projeção autorizada no App Cliente (mesma ordem da RPC)", () => {
     const p = projetarProximaAcaoCliente({
       documentosPendentes: 0,
       pagamentoPendente: true,
+      pendenciaClientePendente: false,
       casoAtivo: true,
       casoEncerrado: false,
       casoPausado: false,
@@ -116,6 +118,7 @@ describe("projeção autorizada no App Cliente (mesma ordem da RPC)", () => {
         ativo: true,
         documentosPendentes: 0,
         pagamentoPendente: false,
+      pendenciaClientePendente: false,
       }),
     );
     expect(cliente.acao).not.toMatch(/tarefa|gate|SKU|CRM/i);
@@ -127,6 +130,7 @@ describe("projeção autorizada no App Cliente (mesma ordem da RPC)", () => {
       projetarProximaAcaoCliente({
         documentosPendentes: 0,
         pagamentoPendente: false,
+      pendenciaClientePendente: false,
         casoAtivo: false,
         casoEncerrado: true,
         casoPausado: false,
@@ -136,6 +140,7 @@ describe("projeção autorizada no App Cliente (mesma ordem da RPC)", () => {
       projetarProximaAcaoCliente({
         documentosPendentes: 1,
         pagamentoPendente: false,
+      pendenciaClientePendente: false,
         casoAtivo: false,
         casoEncerrado: false,
         casoPausado: true,
