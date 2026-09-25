@@ -40,7 +40,9 @@ describe("painel-calls.tsx — as três portas para mutarHandoff usam o mesmo gu
   });
 
   it("'Concluir handoff' continua com o mesmo gate (reusa a mesma variável, não regrediu)", () => {
-    const idx = painelCalls.indexOf('rotulo="Concluir handoff para pessoa e caso"');
+    // 24/09/2026 (P1): a ação passou a ter o nome da ordem — mesmo botão, mesmo gate.
+    const idx = painelCalls.indexOf('rotulo="Converter em cliente/pessoa canônica e abrir o caso"');
+    expect(idx).toBeGreaterThan(-1);
     const trecho = painelCalls.slice(idx, idx + 500);
     expect(trecho).toContain("pendenciaGate={gateHandoff.ok ? null : gateHandoff.motivo}");
   });

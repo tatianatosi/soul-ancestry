@@ -961,7 +961,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                   Gravar registro da call
                 </button>
                 <AcaoOperacional
-                  rotulo="Concluir handoff para pessoa e caso"
+                  rotulo="Converter em cliente/pessoa canônica e abrir o caso"
                   capacidade="avancar_caso_planejador_tarefa"
                   pendenciaGate={gateHandoff.ok ? null : gateHandoff.motivo}
                   validacaoFormulario={!selecionado ? "Selecione um lead na Mesa" : null}

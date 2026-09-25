@@ -549,10 +549,41 @@ function LeadsPage() {
               </div>
             </div>
             <p className="mt-3 text-xs">
-              <Link to="/calls" className="text-navy underline underline-offset-2">
+              <Link
+                to="/calls"
+                search={editado.id ? { lead: editado.id } : {}}
+                className="text-navy underline underline-offset-2"
+              >
                 Abrir Discovery e triagem no Painel de Calls
               </Link>
             </p>
+            {/*
+              24/09/2026 (P1 — uma identidade do lead ao caso): a conversão
+              é uma ação só, executarHandoffDiscovery, na Mesa de Discovery.
+              Daqui ela abre já com este lead; nenhum segundo writer. Com caso
+              já vinculado, mostra o caso em vez de oferecer nova conversão.
+            */}
+            {editado.id ? (
+              <p className="mt-2 text-xs" data-lead-conversao>
+                {editado.case_id ? (
+                  <Link
+                    to="/casos/$caseId"
+                    params={{ caseId: String(editado.case_id) }}
+                    className="font-medium text-navy underline underline-offset-2"
+                  >
+                    Convertido: abrir o caso vinculado
+                  </Link>
+                ) : (
+                  <Link
+                    to="/calls"
+                    search={{ lead: editado.id }}
+                    className="font-medium text-navy underline underline-offset-2"
+                  >
+                    Converter em cliente/pessoa canônica
+                  </Link>
+                )}
+              </p>
+            ) : null}
           </Secao>
 
           <Secao

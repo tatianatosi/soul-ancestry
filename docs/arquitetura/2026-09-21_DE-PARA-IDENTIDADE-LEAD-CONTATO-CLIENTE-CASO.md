@@ -1,7 +1,7 @@
 # De-para — Uma identidade operacional do Lead ao Caso
 
 - Status: rascunho
-- Versão: v1.0
+- Versão: v1.1 (reaberta em 2026-09-24)
 - Data: 2026-09-21
 - Responsável pela decisão: Proprietária do Clube Ancestral
 - Fonte de evidência: leitura direta de código em `origin/main` (`04384d28`), via worktree isolado (`p1-identidade-lead-caso`). Toda citação é arquivo:linha real.
@@ -73,3 +73,20 @@ Nada de fusão automática foi introduzido: CPF igual **mostra** o candidato e o
 - `src/lib/__tests__/p1-identidade-conversao-lead-cliente.test.ts` (novo, 19 casos) — duplicidade preventiva por CPF na coluna canônica, reuso da normalização única, preservação dos três sinais antigos, isolamento por `organization_id` e exclusão de arquivados, coleta/envio do CPF no cadastro, gate de segundo clique, trava de duplo submit, link para ficha existente; conversão para cliente existente por e-mail e por CPF, recusa de conversão automática por telefone e por nome, dois confirmados pedindo decisão humana, criação de pessoa nova sem elo, confirmação humana explícita; caso só depois do cliente canônico, preservação do lead e registro no histórico; writer único de lead entre `/calls` e `/leads`.
 - `src/lib/__tests__/pessoa-identidade.test.ts` — 4 casos novos: CPF normalizado corretamente, CPF com contagem errada de dígitos recusado, CPF idêntico confirma mesmo com nome/e-mail diferentes, CPF é checado antes do e-mail sem quebrar o caso onde os dois confirmam.
 - Cobertura pré-existente reaproveitada, não reescrita: `src/lib/__tests__/circuito-abas-mesa-kpis.test.ts` (linha 58: "e-mail confirmado reusa cliente; telefone pede confirmação; sem elo cria").
+
+## Execução de 24/09/2026 (v1.1)
+
+A ordem P1 foi reaberta. O que já estava feito (seções 1–5) foi conferido
+contra o código e mantido. Lacunas reais fechadas:
+
+| Lacuna | O que mudou | Onde |
+|---|---|---|
+| A ação não tinha o nome pedido | O botão da Mesa passou a "Converter em cliente/pessoa canônica e abrir o caso" — mesma mutation (`executarHandoffDiscovery`), mesmo gate | `src/components/crm/painel-calls.tsx` |
+| `/leads` não alcançava a conversão | A ficha do lead em `/leads` mostra "Converter em cliente/pessoa canônica", que abre a Mesa já com o lead (`/calls?lead=`); lead já convertido mostra "Convertido: abrir o caso vinculado". Nenhum segundo writer | `src/routes/_authenticated/leads.tsx` |
+| Sem teste de cancelamento | Provado que, com candidatos ambíguos, nada é criado (pessoa, caso, vínculo, estágio) antes da escolha humana; "Cancelar" só fecha a escolha | `src/lib/__tests__/p1-identidade-lacunas-2026-09-24.test.ts` |
+| Sem teste de releitura | Escritas do handoff com releitura (`gravarComVerificacao`/`inserirComVerificacao`); leitura de leads sem cache | mesmo teste |
+
+Observação: antes de pedir a confirmação, a Mesa salva o rascunho que a
+equipe digitou na ficha do lead (dados da call). Isso é gravação do próprio
+lead, não conversão — nenhuma identidade, caso ou vínculo nasce antes da
+escolha humana.
