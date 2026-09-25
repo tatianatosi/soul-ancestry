@@ -81,20 +81,20 @@ export function publicacoesParaCliente(linhas: ProjecaoBruta[]): PublicacaoClien
 export const PRATELEIRAS = [
   {
     id: "cadernos",
-    rotulo: "Cadernos",
-    dica: "Cadernos e reunões documentais preparados para a família.",
+    rotulo: "Cadernos de Família",
+    dica: "Documentos e cadernos preparados para contar a história da família.",
     match: /caderno|certid|batismo|registro/i,
   },
   {
     id: "relatorios",
-    rotulo: "Relatórios",
-    dica: "Relatórios e sínteses liberadas pela equipe.",
+    rotulo: "Dossiês e Relatórios",
+    dica: "Sínteses da pesquisa preparadas para a sua família.",
     match: /relat[oó]rio|s[ií]ntese|parecer/i,
   },
   {
     id: "narrativas",
-    rotulo: "Narrativas",
-    dica: "Linha do tempo e narrativas familiares publicadas.",
+    rotulo: "Narrativas de Origem",
+    dica: "Histórias e linhas do tempo que aproximam passado e presente.",
     match: /narrativa|hist[oó]ria|linha do tempo|mem[oó]ria familiar/i,
   },
   {

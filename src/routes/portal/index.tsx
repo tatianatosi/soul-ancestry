@@ -13,8 +13,6 @@ import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/
 import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
-import { ChipIdentidadeCaso } from "@/components/caso/chip-identidade-caso";
-import { identidadeDePortalCaso } from "@/lib/caso-compartilhado";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Search, ArrowRight } from "lucide-react";
 import { CaCard } from "@/components/ui/ca-card";
@@ -148,11 +146,6 @@ export function PortalHome() {
                 proximaEntrega={vivo.data?.proximaEntrega?.texto ?? null}
                 marcos={jornada.marcosPublicados}
                 casoId={principal.id}
-                identidade={identidadeDePortalCaso({
-                  id: principal.id,
-                  codigo: principal.codigo ?? null,
-                  titulo: principal.titulo,
-                })}
                 achados={jornada.linha.slice(0, 3).map((item) => ({
                   id: item.id,
                   tipo: item.tipoRotulo,
@@ -290,7 +283,6 @@ function PainelHomeMockup({
   proximaEntrega,
   marcos,
   casoId,
-  identidade,
   achados,
   fase,
   composicao,
@@ -303,7 +295,6 @@ function PainelHomeMockup({
   proximaEntrega?: string | null;
   marcos: number;
   casoId?: string;
-  identidade?: import("@/lib/caso-compartilhado").IdentidadeCaso;
   achados: Array<{
     id: string;
     tipo: string;
@@ -349,12 +340,6 @@ function PainelHomeMockup({
         </div>
         {statusTexto ? <p className="mt-2 text-sm text-cream/75">{statusTexto}</p> : null}
 
-        {identidade ? (
-          <div className="sr-only">
-            <ChipIdentidadeCaso identidade={identidade} superficie="App Cliente" />
-          </div>
-        ) : null}
-
         {fase ? (
           <EstepeJornada
             rotulos={fase.rotulos}
@@ -375,7 +360,7 @@ function PainelHomeMockup({
       {/* Correção 2026-09-12: grade em telas largas (sidebar liberou espaço horizontal); CTA lilás removido (fora do guia oficial de marca — só 5 cores). */}
       <div className="grid gap-6 lg:grid-cols-2">
         <section>
-          <h3 className="mb-2 text-sm font-semibold text-navy">Próxima ação</h3>
+          <h3 className="mb-2 font-serif text-xl text-navy">Seu próximo passo</h3>
           {/* Acabamento 2026-09-13 (referência Lovable): título editorial em
               vez de crachá numerado — mesma frase real, leitura mais serena. */}
           <CaCard titulo={proximaCurta}>
@@ -405,14 +390,14 @@ function PainelHomeMockup({
 
         <section>
           <div className="mb-2 flex items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold text-navy">Achados recentes</h3>
+            <h3 className="font-serif text-xl text-navy">Descobertas compartilhadas</h3>
             <LinkPortal to="/portal/jornada" className="text-xs font-medium text-navy/60 hover:text-navy">
               Ver Jornada
             </LinkPortal>
           </div>
           {achados.length === 0 ? (
             <p className="text-sm text-navy/60">
-              Assim que a equipe publicar um achado ou atualização, ele aparece aqui.
+              As descobertas confirmadas pela equipe aparecerão aqui, com todo o cuidado que a sua história merece.
             </p>
           ) : (
             /* Linha do tempo enxuta: uma linha por achado, sem competir com o

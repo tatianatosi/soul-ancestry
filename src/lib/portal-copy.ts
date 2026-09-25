@@ -53,14 +53,14 @@ export const COPY_TELAS = {
   home: {
     navegacao: "Home",
     titulo: "Home",
-    descricao: "Painel do caso, progresso e achados recentes",
+    descricao: "Um olhar sereno sobre a história que estamos construindo juntos",
     vazio: "Assim que houver algo preparado para você, ele aparece aqui.",
   },
   jornada: {
     navegacao: "Jornada",
     titulo: "Jornada",
-    descricao: "Linha do tempo ancestral 1820–2024",
-    vazio: "Ainda não há atualizações publicadas. Este espaço é atualizado a cada nova etapa concluída.",
+    descricao: "Os caminhos da família, do passado aos próximos passos",
+    vazio: "Sua jornada está começando. Novas etapas aparecerão aqui quando estiverem prontas para você.",
   },
   radar: {
     navegacao: "Radar",
@@ -68,20 +68,20 @@ export const COPY_TELAS = {
     // RADAR-APP-SEMANTICA-PROGRESSO (18/09/2026): "elegibilidade" induzia
     // leitura de parecer jurídico/chance. Percentuais são progresso/andamento
     // das seis dimensões da jornada, nunca resultado conclusivo.
-    descricao: "Progresso em 6 dimensões da sua jornada",
-    vazio: "Radar ainda não publicado. Estas leituras aparecem assim que houver material preparado para compartilhar.",
+    descricao: "Seis dimensões que ganham forma ao longo da pesquisa",
+    vazio: "O Radar ganhará forma à medida que novas descobertas forem compartilhadas com você.",
   },
   arvore: {
     navegacao: "Árvore",
     titulo: "Árvore",
-    descricao: "Árvore genealógica G1–G5",
-    vazio: "Nenhuma pessoa ou ligação familiar foi publicada até agora.",
+    descricao: "As gerações e os vínculos que formam a sua história",
+    vazio: "A árvore da família começa por você e cresce quando novos vínculos são confirmados.",
   },
   documentos: {
     navegacao: "Documentos",
     titulo: "Documentos",
-    descricao: "Upload, checklist e entregas do caso",
-    vazio: "Ainda não há documentos preparados para você neste momento.",
+    descricao: "Documentos compartilhados ao longo da jornada",
+    vazio: "Ainda não há documentos liberados para você neste momento.",
   },
   entregas: {
     navegacao: "Materiais",
@@ -104,13 +104,13 @@ export const COPY_TELAS = {
   legado: {
     navegacao: "Legado",
     titulo: "Legado",
-    descricao: "Biblioteca de conteúdo e nível premium",
+    descricao: "O acervo preparado para permanecer com a sua família",
     vazio: "Este espaço vai reunir o que for preparado para ficar com a sua família.",
   },
   conta: {
     navegacao: "Conta",
     titulo: "Conta",
-    descricao: "Perfil, plano, alertas e histórico",
+    descricao: "Seus dados, avisos e contato com a equipe de pesquisa",
     vazio: "As informações do seu acesso aparecem aqui.",
   },
   faturas: {
