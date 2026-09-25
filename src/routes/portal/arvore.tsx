@@ -114,33 +114,6 @@ export function PortalArvore() {
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-arvore>
-                  <div
-                    data-arvore-meta
-                    className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
-                  >
-                    <ChipMeta rotulo="Caso" valor={casoCodigo} />
-                    <ChipMeta rotulo="Estrutura" valor="G1–G5" />
-                    {/*
-                      Prancha 4/7 (mockup): "12 pessoas conectadas de um
-                      universo de 31 possíveis". A conta vem de
-                      TETO_ANCESTRAIS_G1_G5 (1+2+4+8+16 = 31) — mesma constante
-                      que o Radar já usa; não é número novo. `itens.length`
-                      conta a árvore sanitizada que a tela já mostra.
-                    */}
-                    <ChipMeta
-                      rotulo="Conectadas"
-                      valor={`${itens.length} de ${TETO_ANCESTRAIS_G1_G5}`}
-                    />
-                    <ChipMeta
-                      rotulo="Publicações"
-                      valor={
-                        painel.notasPublicadas.length === 0
-                          ? "Nenhuma ainda"
-                          : `${painel.notasPublicadas.length}`
-                      }
-                    />
-                    <ChipMeta rotulo="Nomes" valor="Só quando liberados" />
-                  </div>
                   {/* Estrutura G1–G5 do mockup — chrome visual, sem inventar pessoas. */}
                   <section
                     aria-label="Gerações G1 a G5"

@@ -88,7 +88,7 @@ export function PortalDocumentos() {
               <div className="h-1 bg-navy" aria-hidden="true" />
               <div className="p-5">
               <div className="flex flex-wrap items-start justify-between gap-2"><h2 className="font-serif text-xl text-navy">Recebidos</h2><span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">Aguardam conferência</span></div>
-              <p className="mt-1 text-sm text-navy/60">Receber não é validar: cada envio passa pela equipe.</p>
+              <p className="mt-1 text-sm text-navy/60">Recebemos com carinho. A equipe confere cada envio e avisa aqui.</p>
               {enviados.length === 0 ? (
                 <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
                   Você ainda não compartilhou documentos conosco.

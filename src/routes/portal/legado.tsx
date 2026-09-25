@@ -65,29 +65,6 @@ export function PortalLegado() {
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-legado>
-                  <div
-                    data-legado-meta
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3"
-                  >
-                    <div className="flex flex-wrap gap-2">
-                      <Chip rotulo="Biblioteca" valor="Legado familiar" />
-                      <Chip rotulo="Caso" valor={casoCodigo} />
-                      <Chip
-                        rotulo="Publicados"
-                        valor={
-                          entregas.length === 0
-                            ? "Nenhum ainda"
-                            : `${entregas.length} material${entregas.length === 1 ? "" : "is"}`
-                        }
-                      />
-                      <Chip rotulo="Nível" valor={premium ? "Premium" : "Biblioteca"} />
-                    </div>
-                    {premium ? (
-                      <span className="rounded-full border border-gold/50 bg-gold/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-navy">
-                        Premium
-                      </span>
-                    ) : null}
-                  </div>
 
                   {/* Acabamento 2026-09-13 (referência Lovable): card editorial de
                       abertura, mesmo texto que já existia (movido para cá, não

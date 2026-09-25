@@ -67,13 +67,6 @@ export function PortalRadar() {
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-radar>
-                  <div
-                    data-radar-meta
-                    className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
-                  >
-                    <ChipMeta rotulo="Caso" valor={casoCodigo} />
-                    <ChipMeta rotulo="Eixos" valor="6 dimensões" />
-                  </div>
                   <RadarSeisEixos dimensoes={dimensoes} />
 
                   {/* Próximo passo real (mesma fonte de Home/Jornada) — nunca um passo por eixo inventado. */}
