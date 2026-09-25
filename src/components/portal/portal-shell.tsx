@@ -87,15 +87,15 @@ export function PortalShell({
         3/17, que usa uma só faixa). Logo + "Bem-vinda/nome" no mesmo bloco.
       */}
       <header className="bg-navy text-cream shadow-sm" data-app-cabecalho>
-        <div className="mx-auto max-w-6xl px-4 pb-5 pt-3 lg:px-8 lg:pb-7 lg:pt-4">
+        <div className="mx-auto max-w-6xl px-4 pb-4 pt-3 lg:px-8 lg:pb-7 lg:pt-4">
           <div className="flex items-center">
-            <BrandLogo size={30} variant="client-dark" showText />
+            <BrandLogo size={28} variant="client-dark" showText />
           </div>
 
-          <div className="mt-5 max-w-2xl">
+          <div className="mt-4 max-w-2xl">
             <p className="text-[9px] font-semibold uppercase tracking-widest text-gold">Aplicativo da família</p>
-            <h1 className="mt-1 font-serif text-[1.7rem] font-medium leading-none text-cream sm:text-3xl">{titulo}</h1>
-            {descricao ? <p className="mt-1.5 text-xs leading-relaxed text-cream/70 sm:text-sm">{descricao}</p> : null}
+            <h1 className="mt-1 font-serif text-[1.75rem] font-medium leading-none text-cream sm:text-3xl">{titulo}</h1>
+            {descricao ? <p className="mt-1.5 max-w-[32rem] text-[11px] leading-relaxed text-cream/70 sm:text-sm">{descricao}</p> : null}
           </div>
         </div>
 
@@ -150,7 +150,7 @@ export function PortalShell({
           </nav>
         </aside>
 
-        <main id="conteudo-portal" className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:px-0 lg:pb-14 lg:pt-7">
+        <main id="conteudo-portal" className="min-w-0 px-4 pb-24 pt-5 sm:px-6 lg:px-0 lg:pb-14 lg:pt-7">
           <div>{children}</div>
         </main>
       </div>
@@ -158,7 +158,7 @@ export function PortalShell({
       {nav.length > 0 ? (
       <nav
         aria-label="Navegação do aplicativo do cliente"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-gold/60 bg-card/95 shadow-[0_-4px_16px_color-mix(in_srgb,var(--navy)_10%,transparent)] backdrop-blur lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-gold/40 bg-card/95 shadow-[0_-4px_16px_color-mix(in_srgb,var(--navy)_10%,transparent)] backdrop-blur lg:hidden"
       >
         <div
           className="mx-auto grid max-w-lg px-1 pb-[env(safe-area-inset-bottom)]"
@@ -169,9 +169,11 @@ export function PortalShell({
               key={to}
               to={to}
               className={cn(
-                "relative flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[9px] leading-tight",
+                "relative flex min-h-[3.75rem] min-w-0 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[9px] leading-tight",
                 "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
-                rotaAtiva === to ? "font-semibold text-gold" : "text-navy/55",
+                rotaAtiva === to
+                  ? "after:absolute after:inset-x-2 after:top-0 after:h-0.5 after:bg-gold font-semibold text-gold"
+                  : "text-navy/55",
               )}
             >
               <Icon className="h-[17px] w-[17px] shrink-0" aria-hidden="true" />

@@ -41,13 +41,13 @@ function NoArvore({
   return (
     <div
       className={cn(
-        "flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-lg border text-center shadow-sm",
+        "flex h-9 w-9 flex-col items-center justify-center gap-0.5 rounded-md border text-center shadow-sm sm:h-14 sm:w-14 sm:rounded-lg",
         ehG1 ? "border-2 border-navy bg-navy font-semibold text-cream shadow-sm" : "border-gold/40 bg-card text-navy/55",
       )}
       title={ehG1 ? "Você (G1)" : rotuloEstado}
     >
       {ehG1 ? (
-        <span className="text-[10px]">Você</span>
+          <span className="text-[8px] sm:text-[10px]">Você</span>
       ) : (
         <>
           {/* Ajuste 2026-09-12 (opcional, pedido da Proprietária): no desktop,
@@ -58,7 +58,7 @@ function NoArvore({
           ) : (
             <Clock className="hidden h-3.5 w-3.5 text-navy/40 lg:block" aria-hidden="true" />
           )}
-          <span className="text-[8px] leading-tight lg:hidden">{rotuloEstado}</span>
+          <span className="sr-only lg:not-sr-only lg:text-[8px] lg:leading-tight">{rotuloEstado}</span>
         </>
       )}
     </div>

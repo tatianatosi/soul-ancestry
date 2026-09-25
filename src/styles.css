@@ -307,10 +307,21 @@
   --radius: 0.75rem;
   background-color: var(--cream);
   color: var(--navy);
+  font-family: var(--font-sans);
 }
 
 [data-app-cliente="true"] :where(.bg-card, section.bg-white) {
   box-shadow: 0 1px 2px color-mix(in srgb, var(--navy) 12%, transparent);
+}
+
+[data-app-cliente="true"] :where(h1, h2) {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+[data-app-cliente="true"] :where(p, li, dd, dt, a, button, span) {
+  letter-spacing: 0;
 }
 
 /* App Cliente — composição comum da prancha aprovada. As regras são apenas
@@ -349,6 +360,53 @@
 }
 
 @media (max-width: 639px) {
+  [data-app-cliente="true"] [data-app-cabecalho] {
+    border-bottom-color: color-mix(in srgb, var(--gold) 72%, transparent);
+  }
+
+  [data-app-cliente="true"] :where([data-aba-home], [data-aba-jornada], [data-aba-radar], [data-aba-arvore], [data-aba-documentos], [data-aba-documentos-vivo], [data-aba-legado], [data-aba-conta]) {
+    font-size: 0.875rem;
+  }
+
+  [data-app-cliente="true"] :where([data-aba-home], [data-aba-jornada], [data-aba-radar], [data-aba-arvore], [data-aba-documentos], [data-aba-documentos-vivo], [data-aba-legado], [data-aba-conta]) > * + * {
+    margin-top: 1rem;
+  }
+
+  [data-app-cliente="true"] :where([data-aba-jornada], [data-aba-radar], [data-aba-arvore], [data-aba-documentos], [data-aba-documentos-vivo], [data-aba-legado], [data-aba-conta]) > section,
+  [data-app-cliente="true"] :where([data-documentos-solicitados], [data-documentos-recebidos], [data-documentos-liberados], [data-documentos-entregas]) {
+    border-radius: 0.625rem;
+  }
+
+  [data-app-cliente="true"] :where([data-documentos-solicitados], [data-documentos-recebidos], [data-documentos-liberados], [data-documentos-entregas]) > div:last-child {
+    padding: 1rem;
+  }
+
+  [data-app-cliente="true"] :where([data-documentos-solicitados], [data-documentos-recebidos], [data-documentos-liberados], [data-documentos-entregas]) h2 {
+    font-size: 1.25rem;
+    line-height: 1.15;
+  }
+
+  [data-app-cliente="true"] [data-radar-grafico] svg {
+    min-height: 18rem;
+  }
+
+  [data-app-cliente="true"] [data-radar-grafico] > div:first-child {
+    padding: 0.875rem 1rem;
+  }
+
+  [data-app-cliente="true"] [data-aba-arvore] [aria-label="Gerações G1 a G5"] {
+    padding: 1rem;
+  }
+
+  [data-app-cliente="true"] [data-aba-arvore] [aria-label="Gerações G1 a G5"] > div:last-child {
+    margin-top: 1rem;
+  }
+
+  [data-app-cliente="true"] [data-aba-conta] > section,
+  [data-app-cliente="true"] [data-legado-prateleira] {
+    padding: 1rem;
+  }
+
   [data-app-cliente="true"] :where([data-jornada-meta], [data-radar-meta], [data-arvore-meta], [data-documentos-meta], [data-legado-meta], [data-conta-meta]) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
