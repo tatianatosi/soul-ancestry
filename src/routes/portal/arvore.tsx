@@ -127,6 +127,9 @@ export function PortalArvore() {
                         ? "A estrutura abaixo acompanha o que a equipe já publicou para você. Nomes só aparecem quando liberados."
                         : COPY_TELAS.arvore.vazio}
                     </p>
+                    <p className="mt-1 text-xs text-navy/55" data-arvore-conectadas>
+                      {`${itens.length} de ${TETO_ANCESTRAIS_G1_G5} pessoas possíveis já conectadas`}
+                    </p>
                     <div className="mt-5 space-y-1">
                       {painel.geracoes.map((geracao: GeracaoArvore, gi) => (
                         <div key={geracao.id}>

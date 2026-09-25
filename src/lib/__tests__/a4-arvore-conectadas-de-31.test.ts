@@ -26,6 +26,6 @@ describe("chip Conectadas usa a mesma constante do Radar", () => {
   });
 
   it("N vem da árvore sanitizada que a tela já mostra", () => {
-    expect(arvore).toContain("valor={`${itens.length} de ${TETO_ANCESTRAIS_G1_G5}`}");
+    expect(arvore).toContain("`${itens.length} de ${TETO_ANCESTRAIS_G1_G5} pessoas possíveis já conectadas`");
   });
 });
