@@ -50,8 +50,7 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
       </div>
       {!comProgresso ? (
         <p className="mx-4 mt-4 rounded-lg border border-border bg-cream/70 px-3 py-2 text-center text-xs text-navy/65">
-          Radar ainda não publicado. Ele ganha forma conforme a equipe publica documentação e achados — a teia
-          permanece no centro até lá, sem inventar percentual.
+          Este desenho ganhará forma conforme documentos e descobertas forem compartilhados com você.
         </p>
       ) : null}
       <svg

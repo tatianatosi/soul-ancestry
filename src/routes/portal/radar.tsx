@@ -61,7 +61,7 @@ export function PortalRadar() {
                   {/* Próximo passo real (mesma fonte de Home/Jornada) — nunca um passo por eixo inventado. */}
                   <section className="rounded-xl border border-navy/10 border-l-4 border-l-navy bg-card p-4 shadow-sm">
                     <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">
-                      Seu próximo passo
+                      Um passo de cada vez
                     </p>
                     <p className="mt-1 text-sm text-navy/80">
                       {vivo.proximaAcao?.acao ?? "Assim que a equipe publicar a próxima ação, ela aparece aqui."}
@@ -79,14 +79,14 @@ export function PortalRadar() {
                   </section>
 
                   <section aria-label="Dimensões do Radar">
-                    <h2 className="mb-3 font-serif text-xl text-navy">Suas seis dimensões</h2>
+                    <h2 className="mb-3 font-serif text-xl text-navy">A história em seis dimensões</h2>
                     <ul className="grid grid-cols-2 gap-2.5 sm:gap-3">
                       {dimensoes.map((d, i) => (
                         <li key={d.id} className="min-w-0 rounded-xl border border-border bg-card p-3.5 shadow-sm sm:p-4">
                           <div className="min-w-0 sm:flex sm:items-start sm:justify-between sm:gap-2">
                             <div className="min-w-0">
                               <p className="text-[9px] font-semibold uppercase tracking-widest text-navy/45">
-                                Dimensão {i + 1}
+                                Parte {i + 1} de 6
                               </p>
                               <h3 className="mt-0.5 text-xs font-semibold leading-tight text-navy">{d.titulo}</h3>
                             </div>

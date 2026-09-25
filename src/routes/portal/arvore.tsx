@@ -108,11 +108,11 @@ export function PortalArvore() {
                     className="overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm"
                   >
                     <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">
-                      Árvore genealógica G1–G5
+                      Cinco gerações da sua família
                     </p>
                     <p className="mt-1 text-sm text-navy/65">
                       {painel.temPublicacao
-                        ? "A estrutura abaixo acompanha o que a equipe já publicou para você. Nomes só aparecem quando liberados."
+                        ? "A árvore reúne as pessoas e os vínculos já confirmados e compartilhados com você."
                         : COPY_TELAS.arvore.vazio}
                     </p>
                     {itens.length > 0 ? (
@@ -155,7 +155,7 @@ export function PortalArvore() {
                   */}
                   <section aria-label="Ligação com a jornada" className="space-y-3" data-arvore-ligacao-jornada>
                     <div className="flex items-center justify-between gap-2">
-                      <h2 className="font-serif text-xl text-navy">Ligação com a Jornada</h2>
+                       <h2 className="font-serif text-xl text-navy">Próxima atualização da árvore</h2>
                       {painel.notasPublicadas.length > 0 ? (
                         <LinkPortal to="/portal/jornada" className="text-xs font-medium text-navy/60 hover:text-navy">
                           Ver na Jornada
@@ -164,8 +164,7 @@ export function PortalArvore() {
                     </div>
                     {painel.notasPublicadas.length === 0 ? (
                       <p className="rounded-xl border border-dashed border-navy/20 bg-cream/60 p-4 text-sm text-navy/60">
-                        Nenhuma atualização da árvore publicada ainda. Assim que a equipe publicar uma conexão, ela
-                        aparece aqui e na Jornada.
+                        A equipe está cuidando das próximas conexões. Quando uma delas estiver confirmada, aparecerá aqui e na Jornada.
                       </p>
                     ) : (
                       <ul className="space-y-3">
