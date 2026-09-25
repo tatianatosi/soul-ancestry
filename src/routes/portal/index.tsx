@@ -348,7 +348,7 @@ function PainelHomeMockup({
       <section className="rounded-xl bg-navy-800 p-5 text-cream shadow-md sm:p-7">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
           <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-widest text-gold/80">Seu caso</p>
+            <p className="text-[10px] uppercase tracking-widest text-gold/80">Uma história em construção</p>
             <h2 className="font-serif text-2xl leading-tight text-cream sm:text-3xl">{tituloCaso}</h2>
           </div>
           <div className="flex max-w-36 shrink-0 flex-wrap items-center justify-end gap-1.5 sm:max-w-none">

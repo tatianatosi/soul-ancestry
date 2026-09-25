@@ -24,14 +24,6 @@ export const Route = createFileRoute("/portal/conta")({
   component: PortalConta,
 });
 
-function Chip({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div className="rounded-lg border border-border bg-card px-3 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">{rotulo}</p>
-      <p className="mt-0.5 text-sm text-navy">{valor}</p>
-    </div>
-  );
-}
 
 export function PortalConta() {
   const previa = usePreviaPortal();
@@ -90,15 +82,12 @@ export function PortalConta() {
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>
           <div className="space-y-5" data-aba-conta>
-            <div
-              data-conta-meta
-              className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-4 py-3"
-            >
-              <Chip rotulo="Titular" valor={titular} />
-              <Chip rotulo="Caso" valor={casoCodigo} />
-              <Chip rotulo="Interesse" valor={paisInteresse} />
-              <Chip rotulo="Acesso" valor="App Cliente" />
-            </div>
+            {/*
+              25/09/2026 — a faixa de crachás no topo (código do caso, canal
+              de acesso) era leitura técnica; os mesmos dados humanos seguem
+              no cartão "Dados da conta" logo abaixo.
+            */}
+
 
             <section
               data-conta-perfil
@@ -115,10 +104,11 @@ export function PortalConta() {
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>
                   <dd className="text-sm text-navy">{titular}</dd>
                 </div>
-                <div className="rounded-lg border border-border bg-card p-3">
-                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">Caso vinculado</dt>
-                  <dd className="font-mono text-sm text-navy">{casoCodigo}</dd>
+                <div className="sr-only">
+                  <dt>Caso vinculado</dt>
+                  <dd>{casoCodigo}</dd>
                 </div>
+
                 <div className="rounded-lg border border-border bg-card p-3">
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Preferência</dt>
                   <dd className="text-sm text-navy">{paisInteresse}</dd>

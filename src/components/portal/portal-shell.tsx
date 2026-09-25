@@ -87,7 +87,7 @@ export function PortalShell({
         3/17, que usa uma só faixa). Logo + "Bem-vinda/nome" no mesmo bloco.
       */}
       <header className="bg-navy text-cream shadow-sm" data-app-cabecalho>
-        <div className="mx-auto max-w-6xl px-4 pb-4 pt-3 lg:px-8 lg:pb-7 lg:pt-4">
+        <div className="mx-auto max-w-3xl px-4 pb-4 pt-3 sm:px-6 lg:pb-7 lg:pt-5">
           <div className="flex items-center">
             <BrandLogo size={28} variant="client-dark" showText />
           </div>
@@ -114,43 +114,13 @@ export function PortalShell({
       ) : null}
 
       {/*
-        Correção 2026-09-12 (desktop): a navegação vira sidebar à esquerda em
-        telas largas (lg+), não mais abas horizontais no topo — mais espaço
-        para o conteúdo real, sem rolagem de abas. Abaixo de lg: barra fixa
-        no rodapé (ícone sobre rótulo, todas visíveis, sem rolagem horizontal
-        — era isso que cortava "Árvore" na antiga barra de topo).
+        25/09/2026 — mesma experiência em qualquer largura (mockup de 17
+        páginas): o App do cliente não tem barra lateral, topo administrativo
+        nem painel. Em telas largas a leitura só fica mais ampla e centrada,
+        e a navegação das 7 abas continua sendo o rodapé único.
       */}
-      <div
-        className={cn(
-          "mx-auto grid w-full max-w-6xl min-w-0 lg:gap-6 lg:px-8",
-          nav.length > 0 && "lg:grid-cols-[224px_minmax(0,1fr)]",
-        )}
-      >
-        <aside className={cn("hidden lg:py-0", nav.length > 0 && "lg:block")}>
-          <nav
-            aria-label="Navegação do aplicativo do cliente"
-            className="sticky top-0 min-h-[calc(100vh-65px)] border-x border-navy/20 bg-navy px-3 py-6 shadow-sm"
-          >
-            <div className="space-y-1">
-            {nav.map(({ to, label, icon: Icon }) => (
-              <LinkPortal
-                key={to}
-                to={to}
-                className={cn(
-                  "flex min-h-11 min-w-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm transition-colors",
-                  "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
-                  rotaAtiva === to ? "bg-gold font-medium text-navy" : "text-cream/75 hover:bg-cream/10 hover:text-cream",
-                )}
-              >
-                <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <span className="truncate">{label}</span>
-              </LinkPortal>
-            ))}
-            </div>
-          </nav>
-        </aside>
-
-        <main id="conteudo-portal" className="min-w-0 px-4 pb-24 pt-5 sm:px-6 lg:px-0 lg:pb-14 lg:pt-7">
+      <div className="mx-auto w-full min-w-0 max-w-3xl">
+        <main id="conteudo-portal" className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:pb-32 lg:pt-8">
           <div>{children}</div>
         </main>
       </div>
@@ -158,7 +128,7 @@ export function PortalShell({
       {nav.length > 0 ? (
       <nav
         aria-label="Navegação do aplicativo do cliente"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-gold/40 bg-card/95 shadow-[0_-4px_16px_color-mix(in_srgb,var(--navy)_10%,transparent)] backdrop-blur lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-gold/40 bg-card/95 shadow-[0_-4px_16px_color-mix(in_srgb,var(--navy)_10%,transparent)] backdrop-blur"
       >
         <div
           className="mx-auto grid max-w-lg px-1 pb-[env(safe-area-inset-bottom)]"
@@ -169,20 +139,21 @@ export function PortalShell({
               key={to}
               to={to}
               className={cn(
-                "relative flex min-h-[3.75rem] min-w-0 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[8px] leading-tight sm:text-[9px]",
+                "relative flex min-h-[3.75rem] min-w-0 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[8px] leading-tight sm:text-[10px]",
                 "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
                 rotaAtiva === to
                   ? "after:absolute after:inset-x-2 after:top-0 after:h-0.5 after:bg-gold font-semibold text-gold"
                   : "text-navy/55",
               )}
             >
-              <Icon className="h-[17px] w-[17px] shrink-0" aria-hidden="true" />
+              <Icon className="h-[17px] w-[17px] shrink-0 sm:h-[19px] sm:w-[19px]" aria-hidden="true" />
               <span className="w-full text-center">{label}</span>
             </LinkPortal>
           ))}
         </div>
       </nav>
       ) : null}
+
     </div>
   );
 }
