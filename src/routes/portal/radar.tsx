@@ -88,7 +88,7 @@ export function PortalRadar() {
                               <p className="text-[9px] font-semibold uppercase tracking-widest text-navy/45">
                                 Dimensão {i + 1}
                               </p>
-                              <h2 className="mt-0.5 text-xs font-semibold leading-tight text-navy">{d.titulo}</h2>
+                              <h3 className="mt-0.5 text-xs font-semibold leading-tight text-navy">{d.titulo}</h3>
                             </div>
                             <span className="mt-2 block font-serif text-xl leading-none text-navy sm:mt-0 sm:shrink-0 sm:text-base">
                               {d.rotuloNumero}

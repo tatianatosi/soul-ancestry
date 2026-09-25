@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
-import { CASO_DEMO_CODIGO, CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
+import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
@@ -52,13 +52,6 @@ export function PortalConta() {
    */
   const previaDemo = previa?.identidade?.fonte === "demo";
   const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null) ?? "—";
-  const casosPortal = (data as { casos?: { id?: string; codigo?: string | null }[] } | null)?.casos;
-  // Segue o caso que a leitura de fato usou, em vez de fixar o primeiro —
-  // senão o chip "Caso" da Conta contradiz o conteúdo das outras abas.
-  const casoDoPortal =
-    casosPortal?.find((c) => c.id && c.id === vivo.data?.casoAtivoId) ?? casosPortal?.[0];
-  const casoCodigo =
-    previa?.identidade?.codigo ?? casoDoPortal?.codigo ?? (previaDemo ? CASO_DEMO_CODIGO : null) ?? "—";
   const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null) ?? "—";
   const planoEstado = previa || data?.autorizado ? "Em acompanhamento" : "Aguardando novidades";
 
@@ -104,11 +97,6 @@ export function PortalConta() {
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>
                   <dd className="text-sm text-navy">{titular}</dd>
                 </div>
-                <div className="sr-only">
-                  <dt>Caso vinculado</dt>
-                  <dd>{casoCodigo}</dd>
-                </div>
-
                 <div className="rounded-lg border border-border bg-card p-3">
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Preferência</dt>
                   <dd className="text-sm text-navy">{paisInteresse}</dd>

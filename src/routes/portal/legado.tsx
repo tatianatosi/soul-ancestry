@@ -23,6 +23,12 @@ export const Route = createFileRoute("/portal/legado")({
   component: PortalLegado,
 });
 
+function dataPublicacao(iso: string): string {
+  const data = new Date(iso);
+  if (Number.isNaN(data.getTime())) return "";
+  return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+}
+
 /* PRATELEIRAS/PrateleiraId/prateleiraDe agora vivem em @/lib/projecoes-cliente
    — mesma classificação usada pela Biblioteca Mestre (Desk, §18), para as
    duas telas nunca divergirem sobre em qual coleção um item cai. */
@@ -109,9 +115,9 @@ export function PortalLegado() {
                                   <p className="mt-1 whitespace-pre-line text-sm text-navy/85">
                                     {item.conteudo}
                                   </p>
-                                  {item.publicadoEm ? (
-                                    <p className="mt-2 font-mono text-[11px] text-navy/45">
-                                      {item.publicadoEm}
+                                  {item.publicadoEm && dataPublicacao(item.publicadoEm) ? (
+                                    <p className="mt-2 text-[11px] text-navy/45">
+                                      Publicado em {dataPublicacao(item.publicadoEm)}
                                     </p>
                                   ) : null}
                                 </li>
