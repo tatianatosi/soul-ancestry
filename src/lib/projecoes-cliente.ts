@@ -37,6 +37,9 @@ export const TIPO_PROJECAO_ROTULO: Record<string, string> = {
   resumo: "Resumo do acompanhamento",
   atualizacao: "Atualização da equipe",
   legado: "Entrega de legado",
+  // P5 (26/09/2026) — ponte real Relatório de fase → App (Estágio 5 da
+  // cadeia de pesquisa), mesmo padrão de `projetarMicroentregaParaApp`.
+  relatorio_fase: "Relatório da fase",
 };
 
 export function rotuloTipoProjecao(tipo: string | null | undefined): string {

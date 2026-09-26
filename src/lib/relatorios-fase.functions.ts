@@ -4,6 +4,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { conteudoProjetavel } from "@/lib/biblioteca-evidencias";
+import { projetarParaApp, visivelNoApp } from "@/lib/relatorios-fase";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -127,7 +130,104 @@ export const salvarRelatorioFase = createServerFn({ method: "POST" })
       return String(enviado) !== String((r.data as any)[k] ?? "");
     });
 
+    // P5 (26/09/2026) — Estágio 5 (Relatório) nunca deixava rastro em
+    // `case_timeline_events` (criar/editar ficavam sem histórico, diferente
+    // de evidência/projeção).
+    const registro = r.data as any;
+    if (registro.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: String(registro.case_id),
+        eventType: "caso",
+        title: data.id ? `Relatório de fase atualizado — ${registro.report_type}` : `Relatório de fase criado — ${registro.report_type}`,
+        summaryInternal: `Situação: ${registro.report_status}`,
+        sourceEntityType: "case_reports",
+        sourceEntityId: registro.id as string,
+        userId: context.userId as string,
+      });
+    }
+
     return { id: r.data.id as string, registro: r.data as any, divergentes };
+  });
+
+/**
+ * P5 (26/09/2026) — fecha o gap mais concreto encontrado na auditoria da
+ * cadeia de pesquisa: `case_reports.publicado_no_app` tinha validação real
+ * (`visivelNoApp`) mas nenhuma rota do Portal lia `case_reports` — marcar um
+ * relatório como "publicado no App" nunca tinha consequência visível para o
+ * cliente. Mesmo padrão já testado de `projetarMicroentregaParaApp`
+ * (biblioteca-evidencias.functions.ts): cria a projeção em RASCUNHO — a
+ * publicação de fato continua exigindo a mesma revisão/aprovação humana da
+ * Biblioteca Mestre (aprovarProjecao), nunca automática. Dedup por origem:
+ * um relatório nunca gera duas projeções.
+ */
+export const projetarRelatorioParaApp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { reportId: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
+    if (!PAPEIS_EDITA.includes(papel)) throw new Error("Seu papel não pode projetar relatórios para o App.");
+
+    const relatorio = await supabase
+      .from("case_reports")
+      .select("id,case_id,report_type,report_status,resumo_aprovado_cliente,publicado_no_app,fase_jornada,data_entrega,organization_id")
+      .eq("id", data.reportId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (!relatorio.data) throw new Error("Relatório não encontrado nesta organização.");
+    if (!visivelNoApp(relatorio.data as any)) {
+      throw new Error(
+        "Relatório ainda não está pronto para o App: precisa estar entregue, marcado como publicado no App e com resumo aprovado.",
+      );
+    }
+
+    const existente = await supabase
+      .from("app_projections")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .eq("source_entity_type", "case_report")
+      .eq("source_entity_id", data.reportId)
+      .is("archived_at", null)
+      .maybeSingle();
+    if (existente.data?.id) return { id: existente.data.id as string, criado: false };
+
+    const projecao = projetarParaApp(relatorio.data as any);
+    if (!projecao) throw new Error("Relatório ainda não está pronto para o App.");
+
+    const checagem = conteudoProjetavel(projecao.resumo);
+    if (!checagem.ok) throw new Error(checagem.erros.join(" "));
+
+    const r = await supabase
+      .from("app_projections")
+      .insert({
+        organization_id: organizationId,
+        source_entity_type: "case_report",
+        source_entity_id: data.reportId,
+        case_id: relatorio.data["case_id"],
+        projection_type: "relatorio_fase",
+        destination: "app",
+        content_sanitized: projecao.resumo,
+        approval_status: "draft",
+        visibility_scope: "titular",
+      })
+      .select("id")
+      .maybeSingle();
+    if (r.error) throw new Error(r.error.message);
+    if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: String(relatorio.data["case_id"]),
+      eventType: "caso",
+      title: "Relatório de fase projetado para o App (rascunho)",
+      summaryInternal: "Ainda exige aprovação e publicação na Biblioteca Mestre.",
+      sourceEntityType: "app_projections",
+      sourceEntityId: r.data.id as string,
+      userId: context.userId as string,
+    });
+
+    return { id: r.data.id as string, criado: true };
   });
 
 /** Vincula evidência ao relatório sem duplicar (uma evidência por relatório). */

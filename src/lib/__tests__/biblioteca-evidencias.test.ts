@@ -99,6 +99,15 @@ describe("G-03 — evidências", () => {
     );
   });
 
+  it("4b. P5 (26/09/2026) — CPF nunca compõe projeção, mesmo sem filtro humano", () => {
+    expect(conteudoProjetavel("Documento de Ana Luiza, CPF 111.444.777-35, localizado.").ok).toBe(false);
+    expect(conteudoProjetavel("Documento localizado, CPF 11144477735.").ok).toBe(false);
+    // 11 dígitos que NÃO formam um CPF real (dígito verificador não bate)
+    // não é falso positivo — é só um número de 11 dígitos qualquer.
+    expect(conteudoProjetavel("Registro nº 12345678901 localizado no arquivo.").ok).toBe(true);
+    expect(conteudoProjetavel("Registro de nascimento localizado no arquivo paroquial.").ok).toBe(true);
+  });
+
   it("5. evidência restrita não é projetável", () => {
     expect(evidenciaProjetavel({ ...evidenciaBase, access_level: "restrito" }).ok).toBe(false);
     expect(evidenciaProjetavel({ ...evidenciaBase, workflow_status: "em_revisao" }).ok).toBe(false);

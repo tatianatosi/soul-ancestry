@@ -454,7 +454,7 @@ export const projetarMicroentregaParaApp = createServerFn({ method: "POST" })
 /** Aprovação humana explícita: sem aprovação automática e sem publicação silenciosa. */
 export const aprovarProjecao = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string; publicar: boolean }) => d)
+  .inputValidator((d: { id: string; publicar: boolean; motivo?: string }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
@@ -493,6 +493,10 @@ export const aprovarProjecao = createServerFn({ method: "POST" })
 
     // MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA: publicar/aprovar já checava erro e
     // linha afetada, mas não deixava evento no histórico do caso.
+    // P5 (26/09/2026) — o motivo digitado na confirmação da UI (`AcaoOperacional`,
+    // `acaoExterna="publicar_no_app_cliente"`) era descartado: o dialog exigia o
+    // campo mas nada o gravava. Agora persiste em audit_logs e no próprio evento.
+    const motivo = (data.motivo ?? "").trim();
     const caseId = atual.data["case_id"] as string | null | undefined;
     if (caseId) {
       await registrarTimelineCaso(supabase, {
@@ -502,12 +506,22 @@ export const aprovarProjecao = createServerFn({ method: "POST" })
         title: data.publicar
           ? "Achado publicado no App Cliente"
           : "Achado aprovado (aguardando publicação)",
-        summaryInternal: String(atual.data["projection_type"] ?? ""),
+        summaryInternal: [String(atual.data["projection_type"] ?? ""), motivo ? `Motivo: ${motivo}` : null]
+          .filter(Boolean)
+          .join(" — "),
         sourceEntityType: "app_projections",
         sourceEntityId: data.id,
         userId: context.userId as string,
       });
     }
+    await supabase.from("audit_logs").insert({
+      organization_id: organizationId,
+      entidade: "app_projections",
+      entidade_id: data.id,
+      acao: data.publicar ? "achado_publicado_no_app" : "achado_aprovado_aguardando_publicacao",
+      user_id: context.userId as string,
+      metadados: { case_id: caseId, motivo: motivo || null },
+    });
 
     // CA06-APP-NO-DESK — aprovada mas ainda não publicada é "pronta para
     // liberação": o Desk vê em /alertas sem precisar abrir a Biblioteca.
@@ -612,7 +626,7 @@ export const revisarProjecao = createServerFn({ method: "POST" })
  */
 export const despublicarProjecao = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string }) => d)
+  .inputValidator((d: { id: string; motivo?: string }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
@@ -628,6 +642,8 @@ export const despublicarProjecao = createServerFn({ method: "POST" })
     if (r.error) throw new Error(r.error.message);
     if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
 
+    // P5 (26/09/2026) — mesmo motivo antes descartado em aprovarProjecao.
+    const motivo = (data.motivo ?? "").trim();
     const caseId = r.data["case_id"] as string | null | undefined;
     if (caseId) {
       await registrarTimelineCaso(supabase, {
@@ -635,12 +651,22 @@ export const despublicarProjecao = createServerFn({ method: "POST" })
         caseId,
         eventType: "caso",
         title: "Achado despublicado do App Cliente",
-        summaryInternal: String(r.data["projection_type"] ?? ""),
+        summaryInternal: [String(r.data["projection_type"] ?? ""), motivo ? `Motivo: ${motivo}` : null]
+          .filter(Boolean)
+          .join(" — "),
         sourceEntityType: "app_projections",
         sourceEntityId: data.id,
         userId: context.userId as string,
       });
     }
+    await supabase.from("audit_logs").insert({
+      organization_id: organizationId,
+      entidade: "app_projections",
+      entidade_id: data.id,
+      acao: "achado_despublicado_do_app",
+      user_id: context.userId as string,
+      metadados: { case_id: caseId, motivo: motivo || null },
+    });
 
     return { ok: true };
   });

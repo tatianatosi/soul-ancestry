@@ -19,6 +19,7 @@ import {
 import {
   arquivarRelatorioFase,
   painelRelatoriosFase,
+  projetarRelatorioParaApp,
   salvarRelatorioFase,
   vincularEvidenciaRelatorio,
   vincularMicroentregaRelatorio,
@@ -113,6 +114,20 @@ function RelatoriosFase() {
     onSuccess: () => {
       toast.success("Relatório arquivado.");
       invalidar();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // P5 (26/09/2026) — ponte Relatório → App: cria a projeção em rascunho na
+  // Biblioteca Mestre; publicar de fato continua exigindo aprovação humana lá.
+  const projetar = useMutation({
+    mutationFn: (v: { reportId: string }) => projetarRelatorioParaApp({ data: v }),
+    onSuccess: (r) => {
+      toast.success(
+        r.criado
+          ? "Projeção criada em rascunho — abra a Biblioteca Mestre para revisar e publicar."
+          : "Este relatório já tem uma projeção — confira na Biblioteca Mestre.",
+      );
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -435,6 +450,19 @@ function RelatoriosFase() {
                   >
                     Editar
                   </button>
+                  {visivelNoApp(r) ? (
+                    <AcaoOperacional
+                      rotulo="Projetar para o App"
+                      capacidade="avancar_pesquisa_evidencia_microentrega"
+                      pendenciaGate={pendenciaPapel}
+                      efeito="Cria (ou reaproveita) uma projeção em rascunho na Biblioteca Mestre a partir do resumo aprovado deste relatório. Não publica sozinho — a aprovação/publicação continua humana, na Biblioteca Mestre."
+                      variant="outline"
+                      size="sm"
+                      onConfirmar={async () => {
+                        await projetar.mutateAsync({ reportId: r.id });
+                      }}
+                    />
+                  ) : null}
                   <AcaoOperacional
                     rotulo="Arquivar"
                     acaoExterna="excluir_registro_ou_versao"

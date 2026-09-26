@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
-import { usePortalVivo } from "@/components/portal/fonte-portal";
+import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { legadoSanitizado } from "@/lib/portal-dados-vivos";
 import { PRATELEIRAS, prateleiraDe, type PrateleiraId, type PublicacaoCliente } from "@/lib/projecoes-cliente";
@@ -73,6 +73,35 @@ export function PortalLegado() {
                         Um lugar para reunir as histórias e os materiais preparados para permanecer com a sua família.
                     </p>
                   </section>
+
+                  {/*
+                    P5 (26/09/2026) — mockup de 17 páginas, tela 6 (Legado):
+                    "biblioteca da jornada... continuidade da jornada", card
+                    que a auditoria tela-a-tela de 12/09 (p. 10, 33) já
+                    apontava como faltante aqui (`docs/relatorios/
+                    2026-09-12_verificacao-tela-a-tela-mockup17-auditoria47.md`).
+                    Reaproveita `vivo.proximaAcao` — a mesma projeção sanitizada
+                    que a Home já usa, nenhum dado novo.
+                  */}
+                  {vivo.proximaAcao?.acao ? (
+                    <section
+                      data-legado-continuidade
+                      className="rounded-xl border border-border bg-card p-4 shadow-sm"
+                    >
+                      <p className="text-[10px] font-medium uppercase tracking-widest text-gold/70">
+                        Continuidade da jornada
+                      </p>
+                      <p className="mt-1 text-sm text-navy/85">{vivo.proximaAcao.acao}</p>
+                      {vivo.proximaAcao.destino ? (
+                        <LinkPortal
+                          to={vivo.proximaAcao.destino}
+                          className="mt-2 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+                        >
+                          Ver próxima etapa
+                        </LinkPortal>
+                      ) : null}
+                    </section>
+                  ) : null}
 
                   <div className="space-y-3" data-legado-prateleiras>
                     {PRATELEIRAS.filter((p) => p.id !== "memoria").map((p) => {

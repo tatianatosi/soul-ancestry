@@ -4,6 +4,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -181,6 +182,7 @@ export const salvarAchado = createServerFn({ method: "POST" })
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     const valores = filtrar(CAMPOS_ACHADO, data.valores);
 
+    const criando = !data.id;
     let registro: Record<string, any>;
     if (data.id) {
       const r = await gravarComVerificacao({
@@ -201,6 +203,23 @@ export const salvarAchado = createServerFn({ method: "POST" })
         payload: valores,
       });
       registro = r.registro;
+    }
+
+    // P5 (26/09/2026) — Estágio 4 (Achado) nunca deixava evento em
+    // `case_timeline_events`; só existia o alerta operacional de
+    // `prepararConsequenciaAchado` (outra coisa — consequência, não histórico
+    // de mudança do próprio achado).
+    if (registro.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: String(registro.case_id),
+        eventType: "caso",
+        title: criando ? `Achado registrado — ${registro.title ?? "sem título"}` : `Achado atualizado — ${registro.title ?? "sem título"}`,
+        summaryInternal: `Status de validação: ${String(registro.validation_status ?? "não informado")}`,
+        sourceEntityType: "genealogical_findings",
+        sourceEntityId: String(registro.id),
+        userId: context.userId as string,
+      });
     }
 
     await prepararConsequenciaAchado(supabase, organizationId, registro);
@@ -251,6 +270,18 @@ export const arquivarRegistroG06 = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: { archived_at: new Date().toISOString(), archive_motivo: data.motivo },
     });
+    if (r.registro.case_id) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: String(r.registro.case_id),
+        eventType: "caso",
+        title: data.tabela === "genealogical_findings" ? "Achado arquivado" : "Encontro de linhagem arquivado",
+        summaryInternal: data.motivo,
+        sourceEntityType: data.tabela,
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+      });
+    }
     if (data.tabela === "genealogical_findings") {
       await prepararConsequenciaAchado(supabase, organizationId, r.registro);
     }

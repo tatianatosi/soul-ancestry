@@ -145,7 +145,7 @@ function Pagina() {
     onError: erro,
   });
   const mAprovar = useMutation({
-    mutationFn: (v: { id: string; publicar: boolean }) => aprovarProj({ data: v }),
+    mutationFn: (v: { id: string; publicar: boolean; motivo?: string }) => aprovarProj({ data: v }),
     onSuccess: () => {
       toast.success("Projeção atualizada.");
       invalidar();
@@ -161,7 +161,7 @@ function Pagina() {
     onError: erro,
   });
   const mDespublicar = useMutation({
-    mutationFn: (v: { id: string }) => despublicarProj({ data: v }),
+    mutationFn: (v: { id: string; motivo?: string }) => despublicarProj({ data: v }),
     onSuccess: () => {
       toast.success("Projeção despublicada — some do App Cliente, continua aprovada.");
       invalidar();
@@ -381,7 +381,7 @@ function Pagina() {
                         capacidade="aprovar_projecao_app_cliente"
                         pendenciaGate={pendenciaVinculo}
                         efeito="Aprova a projeção internamente. Nada é publicado no App Cliente por esta ação."
-                        onConfirmar={() => mAprovar.mutate({ id: String(p["id"]), publicar: false })}
+                        onConfirmar={(motivo) => mAprovar.mutate({ id: String(p["id"]), publicar: false, motivo })}
                       />
                       <AcaoOperacional
                         rotulo="Aprovar e publicar"
@@ -391,7 +391,7 @@ function Pagina() {
                         acaoExterna="publicar_no_app_cliente"
                         pendenciaGate={pendenciaVinculo}
                         efeito="Aprova e publica esta projeção no App Cliente. Ação voltada ao cliente: exige confirmação com motivo registrado."
-                        onConfirmar={() => mAprovar.mutate({ id: String(p["id"]), publicar: true })}
+                        onConfirmar={(motivo) => mAprovar.mutate({ id: String(p["id"]), publicar: true, motivo })}
                       />
                     </>
                   ) : null}
@@ -404,7 +404,7 @@ function Pagina() {
                       acaoExterna="despublicar_no_app_cliente"
                       pendenciaGate={pendenciaVinculo}
                       efeito="Remove a projeção do App Cliente imediatamente. A projeção continua aprovada, editável e pode ser republicada."
-                      onConfirmar={() => mDespublicar.mutate({ id: String(p["id"]) })}
+                      onConfirmar={(motivo) => mDespublicar.mutate({ id: String(p["id"]), motivo })}
                     />
                   ) : null}
                   {estado !== "arquivada" ? (

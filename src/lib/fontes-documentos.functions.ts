@@ -4,6 +4,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
+import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import {
   CONFIDENCIALIDADE,
   MIMES_ACEITOS,
@@ -216,23 +218,41 @@ export const registrarFonteDocumento = createServerFn({ method: "POST" })
       if (!pessoas.some((p) => p.id === String(valores["pessoa_ref_id"]))) throw new Error("PESSOA_NAO_PERTENCE_AO_CASO");
     }
 
-    const r = await supabase
-      .from("case_source_documents")
-      .insert({
+    // P5 (26/09/2026) — "corrigir writers/readers e feedback de persistência na
+    // cadeia": este escritor só conferia `r.data?.id`, sem releitura campo a
+    // campo (mais fraco que o padrão de evidência/achado/projeção). Passa a
+    // gravar+reler com `inserirComVerificacao`.
+    const r = await inserirComVerificacao({
+      supabase,
+      tabela: "case_source_documents",
+      organizationId,
+      userId: context.userId as string,
+      payload: {
         ...valores,
         status: "pendente_revisao",
-        organization_id: organizationId,
         case_id: data.caseId,
         storage_path: data.storagePath,
         nome_arquivo: data.nomeArquivo.slice(0, 200),
         mime_type: data.mimeType ?? null,
         tamanho_bytes: data.tamanhoBytes ?? null,
-      })
-      .select("id,status")
-      .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
-    if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão do caso.");
-    return { id: r.data.id as string, status: r.data.status as string };
+      },
+    });
+
+    // P5 (26/09/2026) — Estágio 1 (Fonte/Documento) nunca deixava rastro em
+    // `case_timeline_events` (criar/editar/arquivar ficavam sem histórico,
+    // diferente de evidência/achado/projeção). Fecha essa lacuna.
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.caseId,
+      eventType: "caso",
+      title: `Fonte documental registrada — ${data.nomeArquivo}`,
+      summaryInternal: `Tipo: ${String(valores["tipo_documento"] ?? "não informado")}`,
+      sourceEntityType: "case_source_documents",
+      sourceEntityId: r.id,
+      userId: context.userId as string,
+    });
+
+    return { id: r.id, status: (r.registro["status"] as string) ?? "pendente_revisao" };
   });
 
 /** Edição de metadados, auditada pelo banco. O arquivo em si nunca é trocado. */
@@ -251,17 +271,26 @@ export const editarMetadadosFonte = createServerFn({ method: "POST" })
       if (!pessoas.some((p) => p.id === String(valores["pessoa_ref_id"]))) throw new Error("PESSOA_NAO_PERTENCE_AO_CASO");
     }
 
-    const r = await supabase
-      .from("case_source_documents")
-      .update(valores)
-      .eq("id", data.id)
-      .eq("organization_id", organizationId)
-      .eq("case_id", data.caseId)
-      .select("id")
-      .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
-    if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
-    return { id: r.data.id as string };
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "case_source_documents",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: valores,
+    });
+
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.caseId,
+      eventType: "caso",
+      title: "Metadados da fonte documental atualizados",
+      sourceEntityType: "case_source_documents",
+      sourceEntityId: data.id,
+      userId: context.userId as string,
+    });
+
+    return { id: data.id, salvoEm: r.salvoEm };
   });
 
 /** Arquivamento lógico com motivo. Não existe exclusão física. */
@@ -274,16 +303,26 @@ export const arquivarFonteDocumento = createServerFn({ method: "POST" })
     if (!PAPEIS_EDITA.includes(papel)) throw new Error("Seu papel não pode arquivar fontes documentais.");
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
 
-    const r = await supabase
-      .from("case_source_documents")
-      .update({ archived_at: new Date().toISOString(), archive_motivo: motivo, status: "arquivado" })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId)
-      .eq("case_id", data.caseId)
-      .select("id")
-      .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
-    if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+    await gravarComVerificacao({
+      supabase,
+      tabela: "case_source_documents",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { archived_at: new Date().toISOString(), archive_motivo: motivo, status: "arquivado" },
+    });
+
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.caseId,
+      eventType: "caso",
+      title: "Fonte documental arquivada",
+      summaryInternal: motivo,
+      sourceEntityType: "case_source_documents",
+      sourceEntityId: data.id,
+      userId: context.userId as string,
+    });
+
     return { ok: true };
   });
 

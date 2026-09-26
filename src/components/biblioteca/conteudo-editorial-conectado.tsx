@@ -54,11 +54,11 @@ export function ConteudoEditorialConectado() {
 
   const invalidar = () => qc.invalidateQueries({ queryKey: ["fila-microentregas"] });
   const mAprovar = useMutation({
-    mutationFn: (v: { id: string; publicar: boolean }) => aprovarProj({ data: v }),
+    mutationFn: (v: { id: string; publicar: boolean; motivo?: string }) => aprovarProj({ data: v }),
     onSuccess: invalidar,
   });
   const mDespublicar = useMutation({
-    mutationFn: (v: { id: string }) => despublicarProj({ data: v }),
+    mutationFn: (v: { id: string; motivo?: string }) => despublicarProj({ data: v }),
     onSuccess: invalidar,
   });
   const mArquivar = useMutation({
@@ -167,7 +167,7 @@ export function ConteudoEditorialConectado() {
                         capacidade="aprovar_projecao_app_cliente"
                         acaoExterna="publicar_no_app_cliente"
                         efeito="Aprova e publica esta projeção no App Cliente. Ação voltada ao cliente: exige confirmação com motivo registrado."
-                        onConfirmar={() => mAprovar.mutate({ id: item.id, publicar: true })}
+                        onConfirmar={(motivo) => mAprovar.mutate({ id: item.id, publicar: true, motivo })}
                       />
                     ) : null}
                     {item.status === "published" ? (
@@ -179,7 +179,7 @@ export function ConteudoEditorialConectado() {
                         capacidade="aprovar_projecao_app_cliente"
                         acaoExterna="despublicar_no_app_cliente"
                         efeito="Remove a projeção do App Cliente imediatamente. Continua aprovada, editável e pode ser republicada."
-                        onConfirmar={() => mDespublicar.mutate({ id: item.id })}
+                        onConfirmar={(motivo) => mDespublicar.mutate({ id: item.id, motivo })}
                       />
                     ) : null}
                     <AcaoOperacional
