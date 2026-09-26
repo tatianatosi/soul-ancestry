@@ -343,17 +343,23 @@ function Secao({
  * empilhadas e alcançáveis por um índice fixo, em vez de escondidas atrás de
  * um clique que faz o resto sumir.
  */
+// P24 (2026-09-26) — taxonomia fixada pela Proprietária: Visão · Jornada ·
+// Pessoas · Pesquisa · Documentos · Formalização · Financeiro · Histórico.
+// Os rótulos "visao" e "log" estavam trocados entre si (bug encontrado nesta
+// rodada: "visao" dizia "Histórico" e "log" — que É o histórico real de
+// fases/alterações — dizia "Dados técnicos e validações"). "comercial" e
+// "tecnico" foram renomeados para o nome que já descrevia seu conteúdo real
+// (formalização/eixo comercial; país-via/hipótese/pesquisa preliminar),
+// nenhuma seção foi removida ou fundida.
 const SECOES = [
-  { id: "visao", rotulo: "Histórico" },
-  { id: "comercial", rotulo: "Jurídico" },
-  { id: "tecnico", rotulo: "Técnico e riscos" },
-  { id: "pessoas", rotulo: "Pessoa e família" },
+  { id: "visao", rotulo: "Visão" },
   { id: "jornada", rotulo: "Jornada" },
-  // CA04-CASO360-SIMPLES (09/09/2026): rótulo atualizado para o conteúdo que
-  // passou a viver aqui (histórico de fases, registro de alterações e mapa de
-  // persistência) — a seção em si não foi removida nem fundida, só recolhida
-  // por padrão.
-  { id: "log", rotulo: "Dados técnicos e validações" },
+  { id: "pessoas", rotulo: "Pessoa e família" },
+  { id: "tecnico", rotulo: "Pesquisa" },
+  { id: "documentos", rotulo: "Documentos" },
+  { id: "comercial", rotulo: "Formalização" },
+  { id: "financeiro", rotulo: "Financeiro" },
+  { id: "log", rotulo: "Histórico" },
 ] as const;
 
 function FichaCaso() {
@@ -1929,7 +1935,7 @@ function FichaCaso() {
           </div>
         </SecaoAncora>
 
-        <SecaoAncora id="comercial" titulo="Jurídico" hidden={secaoFoco !== null && secaoFoco !== "comercial"}>
+        <SecaoAncora id="comercial" titulo="Formalização" hidden={secaoFoco !== null && secaoFoco !== "comercial"}>
           {/*
             27/08/2026 — decisão da Proprietária, com cautela deliberada: o
             motor e a matriz de contrato já moram em /contratos e
@@ -2129,7 +2135,7 @@ function FichaCaso() {
           </div>
         </SecaoAncora>
 
-        <SecaoAncora id="tecnico" titulo="Técnico e riscos" hidden={secaoFoco !== null && secaoFoco !== "tecnico"}>
+        <SecaoAncora id="tecnico" titulo="Pesquisa" hidden={secaoFoco !== null && secaoFoco !== "tecnico"}>
           <div className="grid gap-5 lg:grid-cols-2">
             <Secao
               titulo="País e via"
@@ -2376,6 +2382,113 @@ function FichaCaso() {
         </SecaoAncora>
 
         {/*
+          P24 (26/09/2026) — Documentos e Financeiro adicionados como seções
+          próprias e endereçáveis do Caso 360, a pedido explícito da
+          Proprietária. Leitura pura do mesmo dado já carregado nesta mesma
+          tela (qDocumentos/qFinanceiro) — nenhuma query nova, nenhum
+          escritor novo, nenhum botão duplicado: as ações de registrar
+          pagamento/preparar cobrança continuam só no resumo executivo, no
+          topo da página ("Abrir ficha operacional completa"), para não
+          criar uma segunda CTA para a mesma função.
+        */}
+        <SecaoAncora id="documentos" titulo="Documentos" hidden={secaoFoco !== null && secaoFoco !== "documentos"}>
+          <Secao
+            titulo="Documentos do caso"
+            descricao="Gestão completa (upload, categoria, visibilidade, liberação ao cliente) fica em Pesquisa e documentos — aqui é o resumo endereçável do caso."
+          >
+            <EstadoDados
+              carregando={qDocumentos.isLoading}
+              erro={qDocumentos.error}
+              dados={qDocumentos.data as Record<string, unknown>[] | undefined}
+              aoTentarNovamente={() => void qDocumentos.refetch()}
+              recurso="os documentos do caso"
+              vazio="Nenhum documento registrado ainda."
+            >
+              {(docs) => (
+                <ul className="space-y-2 text-sm">
+                  {docs.map((d) => (
+                    <li key={String(d["id"])} className="rounded-lg border border-navy/10 p-3">
+                      <p className="font-medium text-navy">{String(d["titulo"] ?? "Documento sem título")}</p>
+                      <p className="mt-0.5 text-xs text-navy/60">
+                        {String(d["categoria"] ?? "categoria não informada")} · status: {String(d["status"] ?? "—")}
+                        {d["created_at"] ? ` · ${new Date(String(d["created_at"])).toLocaleDateString("pt-BR")}` : ""}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </EstadoDados>
+            <Link
+              to="/pesquisa-evidencias/$caseId"
+              params={{ caseId: id }}
+              className="mt-3 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+            >
+              Abrir fontes e documentos (upload, categoria, liberação ao cliente) →
+            </Link>
+          </Secao>
+        </SecaoAncora>
+
+        <SecaoAncora id="financeiro" titulo="Financeiro" hidden={secaoFoco !== null && secaoFoco !== "financeiro"}>
+          <Secao
+            titulo="Resumo financeiro do caso"
+            descricao="Registrar pagamento e preparar cobrança ficam no resumo executivo, no topo da página — aqui é só o estado, para consulta rápida."
+          >
+            {qFinanceiro.isLoading ? (
+              <p className="text-xs text-navy/50">Carregando…</p>
+            ) : qFinanceiro.isError ? (
+              <p className="text-xs text-terracotta">Não foi possível carregar o financeiro deste caso.</p>
+            ) : (
+              <dl className="grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                  <dt className="text-navy/50">Valor contratado</dt>
+                  <dd className="mt-0.5 text-sm text-navy">
+                    {qFinanceiro.data?.valorContratado == null
+                      ? "Sem dados suficientes"
+                      : `${qFinanceiro.data.moeda} ${qFinanceiro.data.valorContratado.toFixed(2)}`}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-navy/50">Valor recebido</dt>
+                  <dd className="mt-0.5 text-sm text-navy">
+                    {qFinanceiro.data?.moeda} {qFinanceiro.data?.valorRecebido.toFixed(2)}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-navy/50">Saldo aberto</dt>
+                  <dd className="mt-0.5 text-sm text-navy">
+                    {qFinanceiro.data?.saldoAberto == null
+                      ? "Sem dados suficientes"
+                      : `${qFinanceiro.data.moeda} ${qFinanceiro.data.saldoAberto.toFixed(2)}`}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-navy/50">Próxima parcela</dt>
+                  <dd className="mt-0.5 text-sm text-navy">
+                    {qFinanceiro.data?.proximaParcela
+                      ? `${qFinanceiro.data.moeda} ${qFinanceiro.data.proximaParcela.valor.toFixed(2)} — ${qFinanceiro.data.proximaParcela.vencimento}`
+                      : "Sem dados suficientes"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-navy/50">Status</dt>
+                  <dd className="mt-0.5 text-sm text-navy">
+                    {qFinanceiro.data ? ROTULO_STATUS_FINANCEIRO_CASO[qFinanceiro.data.status] : "—"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-navy/50">Condição comercial</dt>
+                  <dd className="mt-0.5 text-sm text-navy">{qFinanceiro.data?.condicaoComercial ?? "Sem dados suficientes"}</dd>
+                </div>
+                <div>
+                  <dt className="text-navy/50">Próxima ação financeira</dt>
+                  <dd className="mt-0.5 text-sm text-navy">{qFinanceiro.data?.proximaAcaoFinanceira}</dd>
+                </div>
+              </dl>
+            )}
+          </Secao>
+        </SecaoAncora>
+
+        {/*
           CA04-CASO360-SIMPLES (09/09/2026): gates, auditoria, logs, versões e
           diagnósticos (histórico de fases, registro de alterações e o mapa
           de persistência campo→tabela) recolhidos por padrão — nada foi
@@ -2383,7 +2496,7 @@ function FichaCaso() {
         */}
         <details id="secao-log" hidden={secaoFoco !== null && secaoFoco !== "log"} className="scroll-mt-16 rounded-xl border border-border bg-card p-5 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
           <summary className="cursor-pointer font-serif text-lg text-navy">
-            Dados técnicos e validações
+            Histórico
           </summary>
           <div className="mt-4 space-y-5">
           {/*

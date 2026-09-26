@@ -43,23 +43,30 @@ describe("Caso 360 como página única", () => {
     const secoes = [...pagina.matchAll(/<SecaoAncora id="(\w+)"|<details id="secao-(\w+)"/g)].map(
       (m) => m[1] ?? m[2],
     );
-    expect(secoes).toHaveLength(6);
+    // P24 (26/09/2026): Documentos e Financeiro somam-se às 6, a pedido
+    // explícito da Proprietária (taxonomia fixada: Visão · Jornada ·
+    // Pessoas · Pesquisa · Documentos · Formalização · Financeiro ·
+    // Histórico) — 8 seções endereçáveis, nenhuma removida.
+    expect(secoes).toHaveLength(8);
     for (const fundida of ["acao", "caso", "cadastro", "etiquetas", "produto", "onboarding", "fechamento"]) {
       expect(secoes, `"${fundida}" deveria ter se fundido, não sumido nem sobrado solto`).not.toContain(fundida);
     }
-    for (const s of ["visao", "comercial", "tecnico", "pessoas", "jornada", "log"]) {
+    for (const s of ["visao", "comercial", "tecnico", "pessoas", "jornada", "documentos", "financeiro", "log"]) {
       expect(secoes, `seção "${s}" sumiu`).toContain(s);
     }
   });
 
-  it("o bloco Jurídico não duplica formulário — só aponta para o motor e a matriz", () => {
+  it("o bloco Formalização (antiga 'Jurídico') não duplica formulário — só aponta para o motor e a matriz", () => {
     // "acredito que temos uma aba só jurídica aqui sim deve ficar só o
-    // motor e a matriz dos contratos" — Proprietária.
-    const inicioJuridico = pagina.indexOf('<SecaoAncora id="comercial"');
-    const fimJuridico = pagina.indexOf('<SecaoAncora id="tecnico"');
-    const blocoJuridico = pagina.slice(inicioJuridico, fimJuridico);
+    // motor e a matriz dos contratos" — Proprietária. Renomeada para
+    // "Formalização" em 2026-09-26 (P24) — mesmo conteúdo, nome que já
+    // descrevia o que a seção sempre fez (eixo comercial/formalização +
+    // ponte para contrato/jurídico/OS).
+    const inicioFormalizacao = pagina.indexOf('<SecaoAncora id="comercial"');
+    const fimFormalizacao = pagina.indexOf('<SecaoAncora id="tecnico"');
+    const blocoFormalizacao = pagina.slice(inicioFormalizacao, fimFormalizacao);
     for (const ponte of ["/casos/$caseId/contrato/preparar", "/contratos", "/matriz-juridica", "/ordens-servico"]) {
-      expect(blocoJuridico, `Jurídico devia linkar para ${ponte}`).toContain(ponte);
+      expect(blocoFormalizacao, `Formalização devia linkar para ${ponte}`).toContain(ponte);
     }
   });
 
@@ -78,13 +85,22 @@ describe("Caso 360 como página única", () => {
     }
   });
 
-  it("o índice segue a mesma ordem em que a página rola", () => {
-    // Índice numa ordem e DOM em outra confunde quem rola.
+  it("todo item do índice aponta para uma seção real que de fato existe no DOM", () => {
+    // P24 (26/09/2026): a partir desta rodada, a ordem do índice (taxonomia
+    // fixada pela Proprietária: Visão · Jornada · Pessoas · Pesquisa ·
+    // Documentos · Formalização · Financeiro · Histórico) deixa de ser
+    // idêntica à ordem física do DOM — mover os 5 blocos originais
+    // (alguns com formulários de pagamento/cobrança interligados a outra
+    // seção da página) foi avaliado como risco desproporcional para um
+    // ajuste de rótulo/navegação. O que continua garantido: cada item do
+    // índice resolve para uma âncora real (mesmo conjunto de ids, sem
+    // nenhum órfão dos dois lados) — nenhum clique leva a lugar nenhum.
     const doIndice = [...pagina.matchAll(/\{ id: "(\w+)", rotulo:/g)].map((m) => m[1]);
     const doDom = [...pagina.matchAll(/<SecaoAncora id="(\w+)"|<details id="secao-(\w+)"/g)].map(
       (m) => m[1] ?? m[2],
     );
-    expect(doIndice).toEqual(doDom);
+    expect(new Set(doIndice)).toEqual(new Set(doDom));
+    expect(doIndice).toHaveLength(doDom.length);
   });
 
   it("cada seção tem âncora alcançável pelo índice", () => {

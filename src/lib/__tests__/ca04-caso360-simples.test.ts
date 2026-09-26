@@ -84,10 +84,10 @@ describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)"
     expect(trechoMutacoes).toContain('queryKey: ["ficha-caso-tarefas", id]');
   });
 
-  it("dados técnicos e validações ficam recolhidos por padrão (details/summary nativos, sem apagar conteúdo)", () => {
+  it("histórico fica recolhido por padrão (details/summary nativos, sem apagar conteúdo)", () => {
     expect(pagina).toContain('<details id="secao-log"');
     expect(pagina).toContain("<summary");
-    expect(pagina).toContain("Dados técnicos e validações");
+    expect(pagina).toContain("Histórico");
     // Nada saiu: histórico de fases, registro de alterações e o mapa de
     // persistência continuam todos dentro do details.
     const inicio = pagina.indexOf('<details id="secao-log"');
@@ -98,11 +98,13 @@ describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)"
     expect(bloco).toContain("<MapaPersistenciaCaso");
   });
 
-  it("nenhuma seção das seis foi removida ou fundida — só recolhida", () => {
+  it("nenhuma seção original foi removida ou fundida — só recolhida; Documentos e Financeiro somam-se (P24)", () => {
     const secoes = [...pagina.matchAll(/<SecaoAncora id="(\w+)"|<details id="secao-(\w+)"/g)].map(
       (m) => m[1] ?? m[2],
     );
-    expect(secoes).toEqual(["visao", "comercial", "tecnico", "pessoas", "jornada", "log"]);
+    expect(secoes).toEqual([
+      "visao", "comercial", "tecnico", "pessoas", "jornada", "documentos", "financeiro", "log",
+    ]);
   });
 
   it("nenhum card repetido: 'Abrir visão do cliente' aparece uma única vez na página", () => {

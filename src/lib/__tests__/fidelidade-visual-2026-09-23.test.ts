@@ -117,11 +117,13 @@ describe("5. Caso 360 — visão geral não repete o mesmo bloqueio em banner e 
     expect(pagina).not.toContain("bloqueio(s) de ativação");
   });
 
-  it("as seis seções continuam intactas — nenhuma aba nova foi criada", () => {
+  it("as seis seções originais continuam intactas — Documentos e Financeiro somaram-se (P24, 2026-09-26)", () => {
     const secoes = [...pagina.matchAll(/<SecaoAncora id="(\w+)"|<details id="secao-(\w+)"/g)].map(
       (m) => m[1] ?? m[2],
     );
-    expect(secoes).toEqual(["visao", "comercial", "tecnico", "pessoas", "jornada", "log"]);
+    expect(secoes).toEqual([
+      "visao", "comercial", "tecnico", "pessoas", "jornada", "documentos", "financeiro", "log",
+    ]);
   });
 
   it("o checklist de gates (Fechamento) continua consumido dentro de Jornada, não numa aba nova", () => {
