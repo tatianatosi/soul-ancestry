@@ -22,7 +22,8 @@ describe("conferirDivergenciaCpfMembrosCaso (caso-canonico.functions.ts)", () =>
 
   it("nunca sincroniza CPF de dependente — a guarda mora na regra canônica estadoCpfMembroCaso (pessoa-vinculo.ts)", () => {
     expect(funcoes).toContain("estadoCpfMembroCaso(m, cliente?.cpf ?? null)");
-    expect(funcoes).toContain('import { estadoCpfMembroCaso } from "@/lib/pessoa-vinculo";');
+    // P28 (26/09/2026): import combinado com estadoTelefoneMembroCaso, mesmo módulo.
+    expect(funcoes).toContain('import { estadoCpfMembroCaso, estadoTelefoneMembroCaso } from "@/lib/pessoa-vinculo";');
   });
 
   it("só considera membros já vinculados a um cliente_id", () => {

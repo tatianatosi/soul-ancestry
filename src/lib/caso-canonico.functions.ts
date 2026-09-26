@@ -14,7 +14,7 @@ import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { recusaTickManualD7 } from "@/lib/d7-microentrega";
 import { tratarTickManualD7 } from "@/lib/d7-microentrega.server";
-import { estadoCpfMembroCaso } from "@/lib/pessoa-vinculo";
+import { estadoCpfMembroCaso, estadoTelefoneMembroCaso } from "@/lib/pessoa-vinculo";
 import { exigirProximaAcaoOperavel } from "@/lib/proxima-acao-startup";
 import { proprietariaOperando } from "@/lib/autoridade.server";
 import { nomeResponsavelSessao } from "@/lib/cadeia-operacional.server";
@@ -835,6 +835,131 @@ export const conferirDivergenciaCpfMembrosCaso = createServerFn({ method: "POST"
         eventType: "caso",
         title: "CPF de membro(s) do caso preenchido a partir do cadastro canônico",
         summaryInternal: `${atualizados} membro(s) tiveram CPF preenchido a partir de clientes.cpf.`,
+        sourceEntityType: "case_members",
+        sourceEntityId: data.caseId,
+        userId,
+      });
+    }
+
+    return { simulado: false, plano, atualizados };
+  });
+
+/**
+ * P28 (26/09/2026) — mesmo padrão de `conferirDivergenciaCpfMembrosCaso`
+ * acima, para telefone (gap declarado em `mascaras-e-validadores.md` §3.2:
+ * 5 grafias, "Ação futura: Consolidar em Pessoa"). Só preenche telefone
+ * vazio a partir de `clientes.telefone`; um valor já gravado que diverge
+ * nunca é sobrescrito — vira conflito, para decisão humana.
+ */
+export const conferirDivergenciaTelefoneMembrosCaso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: { caseId: string; confirmar?: boolean; resolverMembroId?: string; motivo?: string }) => {
+      if (data.resolverMembroId && !(data.motivo ?? "").trim()) {
+        throw new Error("Resolver conflito de telefone exige o motivo da decisão.");
+      }
+      return data;
+    },
+  )
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    const userId = context.userId as string;
+
+    const { data: membros } = await supabase
+      .from("case_members")
+      .select("id,nome,telefone,cliente_id,dependente")
+      .eq("case_id", data.caseId)
+      .eq("organization_id", organizationId)
+      .is("archived_at", null)
+      .not("cliente_id", "is", null);
+
+    const membrosLinha = (membros ?? []) as Linha[];
+    const clienteIds = Array.from(new Set(membrosLinha.map((m) => m.cliente_id).filter(Boolean)));
+    const { data: clientesRaw } = clienteIds.length
+      ? await supabase.from("clientes").select("id,telefone").eq("organization_id", organizationId).in("id", clienteIds)
+      : { data: [] };
+    const clientePorId = new Map(((clientesRaw ?? []) as Linha[]).map((c) => [c.id, c]));
+
+    const plano = membrosLinha.map((m) => {
+      const cliente = clientePorId.get(m.cliente_id as string);
+      const acao = estadoTelefoneMembroCaso(m, cliente?.telefone ?? null);
+      if (acao === "conflito") {
+        return { membroId: m.id, nome: m.nome, acao, atual: m.telefone, canonico: cliente?.telefone as string };
+      }
+      if (acao === "preencher") return { membroId: m.id, nome: m.nome, acao, telefone: cliente?.telefone as string };
+      return { membroId: m.id, nome: m.nome, acao };
+    });
+
+    if (data.resolverMembroId) {
+      const alvo = plano.find((p) => p.membroId === data.resolverMembroId);
+      if (!alvo || alvo.acao !== "conflito") {
+        throw new Error("Este membro não está em conflito de telefone com o cadastro canônico — nada a resolver.");
+      }
+      const canonico = (alvo as { canonico: string }).canonico;
+      const r = await gravarComVerificacao({
+        supabase,
+        tabela: "case_members",
+        id: alvo.membroId,
+        organizationId,
+        userId,
+        payload: { telefone: canonico },
+      });
+      await supabase.from("audit_logs").insert({
+        organization_id: organizationId,
+        entidade: "case_members",
+        entidade_id: alvo.membroId,
+        acao: "telefone_conflito_resolvido_pelo_canonico",
+        user_id: userId,
+        valores_anteriores: { telefone: (alvo as { atual: string }).atual },
+        valores_posteriores: { telefone: canonico },
+        metadados: { case_id: data.caseId, motivo: data.motivo?.trim() },
+      });
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.caseId,
+        eventType: "caso",
+        title: `Telefone de ${alvo.nome} alinhado ao cadastro canônico`,
+        summaryInternal: `Conflito resolvido por decisão humana — ${data.motivo?.trim()}`,
+        sourceEntityType: "case_members",
+        sourceEntityId: alvo.membroId,
+        userId,
+      });
+      return { simulado: false, plano, atualizados: 1, resolvido: alvo.membroId, salvoEm: r.salvoEm };
+    }
+
+    if (!data.confirmar) return { simulado: true, plano };
+
+    let atualizados = 0;
+    for (const item of plano) {
+      if (item.acao !== "preencher") continue;
+      await gravarComVerificacao({
+        supabase,
+        tabela: "case_members",
+        id: item.membroId,
+        organizationId,
+        userId,
+        payload: { telefone: (item as { telefone: string }).telefone },
+      });
+      atualizados++;
+    }
+
+    await supabase.from("audit_logs").insert({
+      organization_id: organizationId,
+      entidade: "case_members",
+      entidade_id: data.caseId,
+      acao: "telefone_conferido_contra_cadastro_canonico",
+      user_id: userId,
+      metadados: { case_id: data.caseId, plano, atualizados },
+    });
+
+    if (atualizados > 0) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.caseId,
+        eventType: "caso",
+        title: "Telefone de membro(s) do caso preenchido a partir do cadastro canônico",
+        summaryInternal: `${atualizados} membro(s) tiveram telefone preenchido a partir de clientes.telefone.`,
         sourceEntityType: "case_members",
         sourceEntityId: data.caseId,
         userId,

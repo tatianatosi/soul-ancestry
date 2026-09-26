@@ -25,7 +25,7 @@ import { resumoVisaoClienteCaso } from "@/lib/app-cliente-como-pessoa.functions"
 import { NOME_RESPONSAVEL_PADRAO } from "@/lib/responsavel-padrao";
 import { ordenarPorPrioridade, sinaisDaPessoa, type PrioridadeSinal } from "@/lib/pessoa-sinais";
 import { relacoesAprovadas, estadoDeConfirmacao } from "@/lib/golive-pessoas";
-import { sinalCpfDaPessoaPorCaso } from "@/lib/pessoa-vinculo";
+import { sinalCpfDaPessoaPorCaso, sinalTelefoneDaPessoaPorCaso } from "@/lib/pessoa-vinculo";
 import { dossieMaeDoCaso } from "@/lib/nucleo-completude";
 import { RELEVANCIAS, STATUS_VALIDACAO, TIPOS_ACHADO } from "@/lib/achados-genealogicos";
 
@@ -312,6 +312,13 @@ function Pessoa() {
 
   // R2 — mesma regra do servidor (estadoCpfMembroCaso); só sinaliza, nunca grava aqui.
   const sinalCpf = sinalCpfDaPessoaPorCaso(caseMembers, cliente.id as string, (cliente.cpf as string | null) ?? null);
+  // P28 (26/09/2026): mesmo sinal do CPF, agora também para telefone
+  // (mascaras-e-validadores.md §3.2 — "Consolidar em Pessoa").
+  const sinalTelefone = sinalTelefoneDaPessoaPorCaso(
+    caseMembers,
+    cliente.id as string,
+    (cliente.telefone as string | null) ?? null,
+  );
 
   const linha = montarLinhaDoTempoDaPessoa(
     casos.map((c) => ({
@@ -715,6 +722,24 @@ function Pessoa() {
                         {sinalCpf[c.id].conflito > 0
                           ? `CPF deste registro no caso diverge do cadastro da pessoa (${sinalCpf[c.id].conflito}).`
                           : `CPF deste registro no caso ainda vazio (${sinalCpf[c.id].preencher}).`}{" "}
+                        <Link
+                          to="/casos/$caseId"
+                          params={{ caseId: c.id }}
+                          hash="pessoas"
+                          className="font-medium text-navy underline underline-offset-4"
+                        >
+                          Conferir
+                        </Link>
+                      </p>
+                    ) : null}
+                    {sinalTelefone[c.id] ? (
+                      <p
+                        data-pessoa360-sinal-telefone
+                        className="mt-2 rounded-md border border-terracotta/30 bg-terracotta/5 px-2 py-1 text-[11px] text-navy/80"
+                      >
+                        {sinalTelefone[c.id].conflito > 0
+                          ? `Telefone deste registro no caso diverge do cadastro da pessoa (${sinalTelefone[c.id].conflito}).`
+                          : `Telefone deste registro no caso ainda vazio (${sinalTelefone[c.id].preencher}).`}{" "}
                         <Link
                           to="/casos/$caseId"
                           params={{ caseId: c.id }}

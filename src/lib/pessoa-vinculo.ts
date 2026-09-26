@@ -66,6 +66,7 @@ export function pessoaDoCasoAPartirDoNucleo(m: MembroNucleoBruto, ordemMinimaCon
     requerente: false,
     nacionalidade: null as string | null,
     cpf: null as string | null,
+    telefone: null as string | null,
     data_nascimento: null as string | null,
     representante_legal: null as string | null,
     status_cadastral: "pendente" as string,
@@ -104,7 +105,7 @@ export async function pessoasDoCasoComFallbackNucleo(
 ): Promise<PessoaDoCaso[]> {
   const { data: membrosCaso } = await supabase
     .from("case_members")
-    .select("id,nome,papel_no_caso,titular,contratante,dependente,cpf,data_nascimento,representante_legal,status_cadastral,parentesco,requerente,nacionalidade,cliente_id,pai_id,mae_id,data_verificacao_dado,representacao_necessaria,representacao_documentada")
+    .select("id,nome,papel_no_caso,titular,contratante,dependente,cpf,telefone,data_nascimento,representante_legal,status_cadastral,parentesco,requerente,nacionalidade,cliente_id,pai_id,mae_id,data_verificacao_dado,representacao_necessaria,representacao_documentada")
     .eq("case_id", caseId)
     .is("archived_at", null)
     .order("created_at", { ascending: true });
@@ -176,6 +177,58 @@ export function sinalCpfDaPessoaPorCaso(
     // Só case_members guarda CPF; membro projetado de Núcleos não tem o campo.
     if (m.origem === "nucleo" || m.cliente_id !== clienteId || !m.case_id) continue;
     const estado = estadoCpfMembroCaso(m, cpfCanonico);
+    if (estado !== "conflito" && estado !== "preencher") continue;
+    const alvo = (saida[m.case_id] ??= { conflito: 0, preencher: 0 });
+    alvo[estado] += 1;
+  }
+  return saida;
+}
+
+/**
+ * P28 (26/09/2026) — "de-para e retire sobreposições entre ficha
+ * operacional" (Proprietária). `mascaras-e-validadores.md` §3.2 já
+ * apontava telefone com 5 grafias e "Ação futura: Consolidar em Pessoa" —
+ * mesma classe de gap que o CPF (R2) já resolve. Mesmo padrão exato,
+ * mesmas garantias: nunca funde automaticamente, nunca sobrescreve valor
+ * já preenchido, dependente nunca herda do responsável.
+ */
+export type EstadoTelefoneMembro =
+  | "preencher"
+  | "conflito"
+  | "ja_sincronizado"
+  | "sem_dado_canonico"
+  | "dependente_nao_sincronizado";
+
+const soDigitosTelefone = (s: string) => s.replace(/\D/g, "");
+
+export function estadoTelefoneMembroCaso(
+  membro: { telefone?: string | null; dependente?: boolean | null },
+  telefoneCanonico: string | null | undefined,
+): EstadoTelefoneMembro {
+  if (membro.dependente) return "dependente_nao_sincronizado";
+  if (!telefoneCanonico || !soDigitosTelefone(telefoneCanonico)) return "sem_dado_canonico";
+  if (membro.telefone && soDigitosTelefone(membro.telefone)) {
+    return soDigitosTelefone(membro.telefone) === soDigitosTelefone(telefoneCanonico) ? "ja_sincronizado" : "conflito";
+  }
+  return "preencher";
+}
+
+/** Sinal da Pessoa 360 para telefone — mesmo formato do sinal de CPF. */
+export function sinalTelefoneDaPessoaPorCaso(
+  membros: {
+    case_id?: string | null;
+    cliente_id?: string | null;
+    telefone?: string | null;
+    dependente?: boolean | null;
+    origem?: string;
+  }[],
+  clienteId: string,
+  telefoneCanonico: string | null | undefined,
+): Record<string, { conflito: number; preencher: number }> {
+  const saida: Record<string, { conflito: number; preencher: number }> = {};
+  for (const m of membros) {
+    if (m.origem === "nucleo" || m.cliente_id !== clienteId || !m.case_id) continue;
+    const estado = estadoTelefoneMembroCaso(m, telefoneCanonico);
     if (estado !== "conflito" && estado !== "preencher") continue;
     const alvo = (saida[m.case_id] ??= { conflito: 0, preencher: 0 });
     alvo[estado] += 1;

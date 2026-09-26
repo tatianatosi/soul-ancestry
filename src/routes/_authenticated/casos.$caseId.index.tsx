@@ -24,10 +24,11 @@ import { pendenciaPesquisaAberta } from "@/lib/rotulo-negocio";
 import { ROTULO_ATO_FORMAL } from "@/lib/validacao-juridica-caso";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions";
-import { conferirDivergenciaCpfMembrosCaso } from "@/lib/caso-canonico.functions";
+import { conferirDivergenciaCpfMembrosCaso, conferirDivergenciaTelefoneMembrosCaso } from "@/lib/caso-canonico.functions";
 import { lerCadeiaOperacional } from "@/lib/cadeia-operacional.functions";
 import { EstadoIntegradoCaso } from "@/components/caso/estado-integrado";
 import { ReconciliarCpfMembrosCaso } from "@/components/caso/reconciliar-cpf-membros-caso";
+import { ReconciliarTelefoneMembrosCaso } from "@/components/caso/reconciliar-telefone-membros-caso";
 import { GrupoComunicacaoCaso } from "@/components/caso/grupo-comunicacao-caso";
 import { listarFilaOps } from "@/lib/ops.functions";
 import { listarDocumentos } from "@/lib/documentos.functions";
@@ -2753,8 +2754,40 @@ function AbaPessoas({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const reconciliarTelefoneMembros = useServerFn(conferirDivergenciaTelefoneMembrosCaso);
+  const [planoReconciliacaoTelefoneMembros, setPlanoReconciliacaoTelefoneMembros] = useState<any[] | null>(null);
+  const mReconciliarTelefoneMembros = useMutation({
+    mutationFn: (confirmar: boolean) => reconciliarTelefoneMembros({ data: { caseId: casoId, confirmar } }),
+    onSuccess: (r: any) => {
+      setPlanoReconciliacaoTelefoneMembros(Array.isArray(r.plano) ? r.plano : []);
+      if (r.simulado) {
+        toast.info("Prévia da conferência de telefone: nada foi gravado ainda.");
+        return;
+      }
+      toast.success(
+        r.atualizados
+          ? `${r.atualizados} telefone(s) preenchido(s) a partir do cadastro canônico.`
+          : "Nada a preencher: nenhum membro estava com telefone vazio.",
+      );
+      onMudou();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // P28: mesmo padrão do CPF — conflito só se resolve membro a membro, com motivo.
+  const mResolverConflitoTelefone = useMutation({
+    mutationFn: (v: { membroId: string; motivo: string }) =>
+      reconciliarTelefoneMembros({ data: { caseId: casoId, resolverMembroId: v.membroId, motivo: v.motivo } }),
+    onSuccess: () => {
+      toast.success("Telefone alinhado ao cadastro canônico e registrado no histórico.");
+      mReconciliarTelefoneMembros.mutate(false);
+      onMudou();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   // Caso com núcleo vinculado: a composição familiar é somente leitura, projetada de Núcleos e dossiês.
-  // A conferência de CPF vale independentemente do núcleo (opera sobre case_members).
+  // A conferência de CPF/telefone vale independentemente do núcleo (opera sobre case_members).
   if (temNucleo) {
     return (
       <div className="space-y-5">
@@ -2764,6 +2797,13 @@ function AbaPessoas({
           onVerificar={() => mReconciliarCpfMembros.mutate(false)}
           onSincronizar={() => mReconciliarCpfMembros.mutate(true)}
           onResolverConflito={(membroId, motivo) => mResolverConflitoCpf.mutate({ membroId, motivo })}
+        />
+        <ReconciliarTelefoneMembrosCaso
+          plano={planoReconciliacaoTelefoneMembros}
+          ocupado={mReconciliarTelefoneMembros.isPending}
+          onVerificar={() => mReconciliarTelefoneMembros.mutate(false)}
+          onSincronizar={() => mReconciliarTelefoneMembros.mutate(true)}
+          onResolverConflito={(membroId, motivo) => mResolverConflitoTelefone.mutate({ membroId, motivo })}
         />
         <GrupoComunicacaoCaso caseId={casoId} />
         <PessoasDoNucleo caseId={casoId} />
@@ -2795,6 +2835,13 @@ function AbaPessoas({
         onVerificar={() => mReconciliarCpfMembros.mutate(false)}
         onSincronizar={() => mReconciliarCpfMembros.mutate(true)}
         onResolverConflito={(membroId, motivo) => mResolverConflitoCpf.mutate({ membroId, motivo })}
+      />
+      <ReconciliarTelefoneMembrosCaso
+        plano={planoReconciliacaoTelefoneMembros}
+        ocupado={mReconciliarTelefoneMembros.isPending}
+        onVerificar={() => mReconciliarTelefoneMembros.mutate(false)}
+        onSincronizar={() => mReconciliarTelefoneMembros.mutate(true)}
+        onResolverConflito={(membroId, motivo) => mResolverConflitoTelefone.mutate({ membroId, motivo })}
       />
       <GrupoComunicacaoCaso caseId={casoId} />
       <Secao
