@@ -52,6 +52,8 @@ export type CasoCarteira = {
   prioridade: string | null;
   temProximaAcao: boolean;
   prazoProximaAcao: string | null;
+  pais?: string | null;
+  via?: string | null;
 };
 
 const DIA = 86_400_000;
@@ -209,6 +211,25 @@ export function prioridadeDaCarteira(carteira: readonly CasoCarteira[]) {
     mapa.set(c.prioridade, (mapa.get(c.prioridade) ?? 0) + 1);
   }
   return [...mapa.entries()].map(([rotulo, valor]) => ({ rotulo, valor }));
+}
+
+/**
+ * Casos ativos por país e via — mesma carteira ativa dos KPIs, agrupada por
+ * `pais`/`via` já gravados em `crm_casos` (P25, 2026-09-26, pedido explícito
+ * da Proprietária: "Casos ativos por fase, país, responsável e saúde" no
+ * Painel Hoje). Caso sem país registrado não some — vira "Sem país
+ * registrado", pendência explícita, nunca omitida da contagem.
+ */
+export function casosPorPaisVia(carteira: readonly CasoCarteira[]) {
+  const mapa = new Map<string, number>();
+  for (const c of carteira) {
+    if (!casoAtivo(c)) continue;
+    const chave = `${c.pais?.trim() || "Sem país registrado"}${c.via?.trim() ? ` · ${c.via.trim()}` : ""}`;
+    mapa.set(chave, (mapa.get(chave) ?? 0) + 1);
+  }
+  return [...mapa.entries()]
+    .map(([rotulo, valor]) => ({ rotulo, valor }))
+    .sort((a, b) => b.valor - a.valor);
 }
 
 /** Contagem por faixa de prazo, para os KPIs do Kanban. */

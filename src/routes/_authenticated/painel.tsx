@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 
 import { useGoLive } from "@/components/golive/dados";
 import { EstadoVazio, SaasShell } from "@/components/saas/shell";
@@ -8,6 +10,7 @@ import { filaDeAprovacoes, resumoAprovacoes, type ItemAprovacao } from "@/lib/go
 import { kanbanPorEtapa, type LeadComercial } from "@/lib/golive-comercial";
 import { concluida } from "@/lib/golive-microentregas";
 import {
+  casosPorPaisVia,
   faixaDePrazo,
   kpisHoje,
   kpisPrazo,
@@ -17,6 +20,7 @@ import {
   temRitmo,
   type AcaoOperacional,
 } from "@/lib/golive-operacao";
+import { radarMarcosJuridicosDoPainel } from "@/lib/radar-marcos-juridicos.functions";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
@@ -91,6 +95,16 @@ const ROTULO_DECISAO: Record<ItemAprovacao["acao"], string> = {
 function PainelConsolidado() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
+  // P25 (26/09/2026) — "Radar de marcos jurídicos e casos impactados",
+  // pedido explícito da Proprietária. Consulta própria (dado que
+  // useGoLive não carrega marcos jurídicos): junção trilha × marco × caso
+  // ligado, feita no servidor, sem tabela nova.
+  const carregarRadarJuridico = useServerFn(radarMarcosJuridicosDoPainel);
+  const qRadarJuridico = useQuery({
+    queryKey: ["painel-radar-marcos-juridicos"],
+    queryFn: () => carregarRadarJuridico(),
+    retry: false,
+  });
 
   if (isPending) return <p className="mt-8 text-sm text-navy/60">Carregando indicadores consolidados…</p>;
   if (error) return <p className="mt-8 text-sm text-terracotta">Não foi possível carregar os indicadores consolidados.</p>;
@@ -134,6 +148,10 @@ function PainelConsolidado() {
   */
   const ritmo = temRitmo(caso.microentregas) ? ritmoSemanal(caso.microentregas, 6) : [];
   const prioridades = prioridadeDaCarteira(caso.carteira);
+  // P25 (26/09/2026) — "Casos ativos por fase, país, responsável e saúde",
+  // pedido explícito da Proprietária. Mesma carteira ativa já usada acima
+  // (país/via reais de crm_casos, sem query nova).
+  const porPaisVia = casosPorPaisVia(caso.carteira);
   const leads = caso.leadsComerciais as LeadComercial[];
   // §11 linha 8 — funil por etapa comercial gravada. Sem período definido no
   // dado: a prancha pede "30 dias quando houver período definido", e não há.
@@ -413,6 +431,81 @@ function PainelConsolidado() {
                 Só casos ativos; encerrado não conta como prioridade aberta.
               </p>
             </>
+          )}
+        </CaCard>
+      </div>
+
+      {/*
+        P25 (26/09/2026) — "Casos ativos por fase, país, responsável e
+        saúde" (Painel Hoje/CRM Vivo), pedido explícito da Proprietária.
+        Mesma carteira ativa dos KPIs acima; fase/responsável já aparecem
+        por caso em /casos — aqui é a agregação por país/via que faltava.
+      */}
+      <div className="mb-6">
+        <CaCard titulo="Casos por país e via" eyebrow="Mesma carteira ativa — trilha jurídica de referência">
+          {porPaisVia.length === 0 ? (
+            <EstadoVazio mensagem="Nenhum caso ativo com país registrado." />
+          ) : (
+            <dl className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
+              {porPaisVia.map((p) => (
+                <div key={p.rotulo} className="flex items-baseline justify-between gap-3 rounded-lg border border-navy/10 bg-cream/35 px-3 py-2">
+                  <dt className="truncate text-xs text-navy/70">{p.rotulo}</dt>
+                  <dd className="font-serif text-lg text-navy">{p.valor}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </CaCard>
+      </div>
+
+      {/*
+        P25 (26/09/2026) — "Radar de marcos jurídicos e casos impactados",
+        pedido explícito da Proprietária. Cada marco jurídico real
+        (legal_reference_milestones) com a contagem de casos ativos
+        realmente ligados àquela trilha (crm_casos.citizenship_track_id) —
+        nunca inventa impacto: sem caso ligado, mostra 0.
+      */}
+      <div className="mb-6">
+        <CaCard
+          titulo="Radar de marcos jurídicos"
+          eyebrow="Marcos jurídicos por trilha × casos realmente ligados"
+          acao={
+            <Button asChild size="sm" variant="outline">
+              <Link to="/matriz-juridica">Validação jurídica</Link>
+            </Button>
+          }
+        >
+          {qRadarJuridico.isLoading ? (
+            <p className="text-xs text-navy/50">Carregando…</p>
+          ) : qRadarJuridico.isError ? (
+            <p className="text-xs text-terracotta">Não foi possível carregar o radar de marcos jurídicos.</p>
+          ) : !qRadarJuridico.data?.length ? (
+            <EstadoVazio mensagem="Nenhum marco jurídico registrado ainda." />
+          ) : (
+            <ul className="divide-y divide-navy/10">
+              {qRadarJuridico.data.slice(0, 8).map((r) => (
+                <li key={r.marcoId} className="flex items-center justify-between gap-3 py-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-navy">
+                      {r.pais} — {r.marco}
+                    </p>
+                    <p className="text-[11px] text-navy/55">
+                      {r.trilhaCode} · status: {r.statusMarco}
+                      {r.revisaoObrigatoria ? " · revisão obrigatória" : ""}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
+                      r.casosAfetados > 0
+                        ? "border-gold/60 bg-gold/10 text-navy"
+                        : "border-navy/15 bg-cream text-navy/50"
+                    }`}
+                  >
+                    {r.casosAfetados} caso(s) afetado(s)
+                  </span>
+                </li>
+              ))}
+            </ul>
           )}
         </CaCard>
       </div>

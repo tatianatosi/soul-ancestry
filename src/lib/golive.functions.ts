@@ -132,7 +132,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         .select(
           "id,codigo,titulo,status,fase,ativo,risco,prioridade,responsavel_principal,proxima_acao," +
             "prazo_proxima_acao,contrato_assinado,pagamento_confirmado,documentos_minimos_ok," +
-            "aguardando_instituicao_externa,demo",
+            "aguardando_instituicao_externa,demo,pais,via",
         )
         .eq("organization_id", organizationId)
         .is("archived_at", null)
@@ -564,6 +564,8 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           fase: (c["fase"] as string) ?? null,
           ativo: c["ativo"] === true,
           risco: (c["risco"] as string) ?? null,
+          pais: (c["pais"] as string) ?? null,
+          via: (c["via"] as string) ?? null,
           prioridade: (c["prioridade"] as string) ?? null,
           responsavel: (c["responsavel_principal"] as string) ?? null,
           proximaAcao: (c["proxima_acao"] as string) ?? null,

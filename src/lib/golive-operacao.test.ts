@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   SEM_CLASSIFICACAO,
   cargaPorResponsavel,
+  casosPorPaisVia,
   diasAte,
   distribuicaoPorEtapa,
   faixaDePrazo,
@@ -112,6 +113,21 @@ describe("KPIs", () => {
 
   it("KPIs de prazo do Kanban", () => {
     expect(kpisPrazo(acoes, AGORA)).toEqual({ vencida: 1, hoje: 1, proximos7: 0, externo: 1 });
+  });
+
+  // P25 (26/09/2026) — "Casos ativos por fase, país, responsável e saúde",
+  // pedido explícito da Proprietária no Painel Hoje.
+  it("casosPorPaisVia agrupa só a carteira ativa, por país + via", () => {
+    const comPaisVia: CasoCarteira[] = [
+      { id: "1", status: "ativo", prioridade: "alta", temProximaAcao: true, prazoProximaAcao: null, pais: "Áustria", via: "§58c StbG" },
+      { id: "2", status: "ativo", prioridade: "media", temProximaAcao: false, prazoProximaAcao: null, pais: "Áustria", via: "§58c StbG" },
+      { id: "3", status: "ativo", prioridade: "alta", temProximaAcao: false, prazoProximaAcao: null, pais: null, via: null },
+      { id: "4", status: "encerrado", prioridade: "alta", temProximaAcao: false, prazoProximaAcao: null, pais: "Itália", via: "Lei 91/1992" },
+    ];
+    expect(casosPorPaisVia(comPaisVia)).toEqual([
+      { rotulo: "Áustria · §58c StbG", valor: 2 },
+      { rotulo: "Sem país registrado", valor: 1 },
+    ]);
   });
 });
 
