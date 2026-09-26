@@ -35,7 +35,15 @@ import { resumoVisaoClienteCaso } from "@/lib/app-cliente-como-pessoa.functions"
 import { NOME_RESPONSAVEL_PADRAO } from "@/lib/responsavel-padrao";
 import { ordenarPorPrioridade, sinaisDaPessoa, type PrioridadeSinal } from "@/lib/pessoa-sinais";
 import { relacoesAprovadas, estadoDeConfirmacao } from "@/lib/golive-pessoas";
-import { sinalCepDaPessoaPorCaso, sinalCpfDaPessoaPorCaso, sinalTelefoneDaPessoaPorCaso } from "@/lib/pessoa-vinculo";
+import {
+  CAMPOS_CIVIS_RECONCILIAVEIS,
+  COLUNA_CLIENTE_CIVIL,
+  ROTULO_CAMPO_CIVIL,
+  sinalCampoCivilDaPessoaPorCaso,
+  sinalCepDaPessoaPorCaso,
+  sinalCpfDaPessoaPorCaso,
+  sinalTelefoneDaPessoaPorCaso,
+} from "@/lib/pessoa-vinculo";
 import { dossieMaeDoCaso } from "@/lib/nucleo-completude";
 import { RELEVANCIAS, STATUS_VALIDACAO, TIPOS_ACHADO } from "@/lib/achados-genealogicos";
 
@@ -417,6 +425,19 @@ function Pessoa() {
     cliente.id as string,
     (cliente.endereco_cep as string | null) ?? null,
   );
+  // P32 (26/09/2026) — mesmo sinal do CPF/telefone/CEP, agora para os 6
+  // campos civis (e-mail, RG, nacionalidade, data de nascimento, profissão,
+  // estado civil) que a auditoria confirmou duplicados sem reconciliação.
+  const sinaisCivis = CAMPOS_CIVIS_RECONCILIAVEIS.map((campo) => ({
+    campo,
+    rotulo: ROTULO_CAMPO_CIVIL[campo],
+    sinal: sinalCampoCivilDaPessoaPorCaso(
+      campo,
+      caseMembers,
+      cliente.id as string,
+      (cliente[COLUNA_CLIENTE_CIVIL[campo]] as string | null) ?? null,
+    ),
+  }));
 
   const linha = montarLinhaDoTempoDaPessoa(
     casos.map((c) => ({
@@ -950,6 +971,32 @@ function Pessoa() {
                         </Link>
                       </p>
                     ) : null}
+                    {(() => {
+                      const pendentes = sinaisCivis.filter((s) => s.sinal[c.id]);
+                      if (pendentes.length === 0) return null;
+                      return (
+                        <p
+                          data-pessoa360-sinal-civil
+                          className="mt-2 rounded-md border border-terracotta/30 bg-terracotta/5 px-2 py-1 text-[11px] text-navy/80"
+                        >
+                          {pendentes
+                            .map((s) =>
+                              s.sinal[c.id].conflito > 0
+                                ? `${s.rotulo} diverge do cadastro da pessoa`
+                                : `${s.rotulo} ainda vazio no caso`,
+                            )
+                            .join(" · ")}{" "}
+                          <Link
+                            to="/casos/$caseId"
+                            params={{ caseId: c.id }}
+                            hash="pessoas"
+                            className="font-medium text-navy underline underline-offset-4"
+                          >
+                            Conferir
+                          </Link>
+                        </p>
+                      );
+                    })()}
                     <ExperienciaNoApp caseId={c.id} />
                     <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs font-medium">
                       <Link
@@ -1279,7 +1326,15 @@ function Pessoa() {
                 {perfisGenealogicos.map((p) => (
                   <li key={p.id} className="text-sm text-navy/80">
                     Perfil genealógico vinculado: {p.nome_completo}{" "}
-                    <span className="text-[11px] text-navy/50">· {p.status_verificacao}</span>
+                    <span className="text-[11px] text-navy/50">
+                      · {p.status_verificacao}
+                      {p.nascimento_data || p.nascimento_localidade
+                        ? ` · nasc. ${[formatarDia(p.nascimento_data), p.nascimento_localidade].filter(Boolean).join(" em ")}`
+                        : ""}
+                      {p.morte_data || p.morte_localidade
+                        ? ` · falec. ${[formatarDia(p.morte_data), p.morte_localidade].filter(Boolean).join(" em ")}`
+                        : ""}
+                    </span>
                     {p.case_id ? (
                       <>
                         {" "}

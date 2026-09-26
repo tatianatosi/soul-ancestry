@@ -30,6 +30,7 @@ import { EstadoIntegradoCaso } from "@/components/caso/estado-integrado";
 import { ReconciliarCpfMembrosCaso } from "@/components/caso/reconciliar-cpf-membros-caso";
 import { ReconciliarTelefoneMembrosCaso } from "@/components/caso/reconciliar-telefone-membros-caso";
 import { ReconciliarCepMembrosCaso } from "@/components/caso/reconciliar-cep-membros-caso";
+import { PainelDadosCivisMembrosCaso } from "@/components/caso/reconciliar-dados-civis-membros-caso";
 import { GrupoComunicacaoCaso } from "@/components/caso/grupo-comunicacao-caso";
 import { listarFilaOps } from "@/lib/ops.functions";
 import { listarDocumentos } from "@/lib/documentos.functions";
@@ -2846,6 +2847,7 @@ function AbaPessoas({
           onSincronizar={() => mReconciliarCepMembros.mutate(true)}
           onResolverConflito={(membroId, motivo) => mResolverConflitoCep.mutate({ membroId, motivo })}
         />
+        <PainelDadosCivisMembrosCaso caseId={casoId} onMudou={onMudou} />
         <GrupoComunicacaoCaso caseId={casoId} />
         <PessoasDoNucleo caseId={casoId} />
       </div>
@@ -2891,6 +2893,7 @@ function AbaPessoas({
         onSincronizar={() => mReconciliarCepMembros.mutate(true)}
         onResolverConflito={(membroId, motivo) => mResolverConflitoCep.mutate({ membroId, motivo })}
       />
+      <PainelDadosCivisMembrosCaso caseId={casoId} onMudou={onMudou} />
       <GrupoComunicacaoCaso caseId={casoId} />
       <Secao
         titulo="Pessoas do caso"

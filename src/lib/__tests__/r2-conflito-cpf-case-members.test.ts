@@ -23,10 +23,11 @@ describe("conferirDivergenciaCpfMembrosCaso (caso-canonico.functions.ts)", () =>
   it("nunca sincroniza CPF de dependente — a guarda mora na regra canônica estadoCpfMembroCaso (pessoa-vinculo.ts)", () => {
     expect(funcoes).toContain("estadoCpfMembroCaso(m, cliente?.cpf ?? null)");
     // P28 (26/09/2026): import combinado com estadoTelefoneMembroCaso; P31 (26/09/2026)
-    // acrescenta estadoCepMembroCaso ao mesmo import, mesmo módulo.
-    expect(funcoes).toContain(
-      'import { estadoCepMembroCaso, estadoCpfMembroCaso, estadoTelefoneMembroCaso } from "@/lib/pessoa-vinculo";',
-    );
+    // acrescenta estadoCepMembroCaso; P32 (26/09/2026) o import vira multi-linha
+    // (mecanismo genérico dos 6 campos civis) — confere os nomes, não mais a
+    // linha exata de import.
+    expect(funcoes).toMatch(/estadoCepMembroCaso,\s*\n?\s*estadoCpfMembroCaso,\s*\n?\s*estadoTelefoneMembroCaso/);
+    expect(funcoes).toContain('from "@/lib/pessoa-vinculo"');
   });
 
   it("só considera membros já vinculados a um cliente_id", () => {

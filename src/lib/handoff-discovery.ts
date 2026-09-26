@@ -187,6 +187,20 @@ export type PayloadClienteDoLead = {
 };
 
 export function payloadClienteDoLead(lead: LeadDesk): PayloadClienteDoLead {
+  // P32 (26/09/2026) — achado real (auditoria "cadastro único que só ganha
+  // campos"): `clientes` não tem coluna para múltiplos países de interesse
+  // (só `pais_interesse`, singular) — `leads.nacionalidades_interesse` (array)
+  // já ia para o resumo do CASO (`resumoHandoffDoLead` → `crm_casos.resumo`),
+  // mas nunca para o registro da PESSOA. Não é dado perdido (está no caso),
+  // mas não aparecia em Pessoa 360. Acrescenta aqui, sem coluna nova.
+  const nacionalidades = (lead.nacionalidades_interesse ?? []).filter(Boolean);
+  const observacoes = [
+    lead.resumo_call?.trim() || null,
+    nacionalidades.length > 1 ? `Nacionalidades de interesse (Discovery): ${nacionalidades.join(", ")}.` : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return {
     nome: String(lead.nome ?? "").trim(),
     email: lead.email?.trim() || null,
@@ -195,6 +209,6 @@ export function payloadClienteDoLead(lead: LeadDesk): PayloadClienteDoLead {
     pais_interesse: lead.pais_linha_prioritaria?.trim() || lead.nacionalidade?.trim() || null,
     classificacao: "pre_cliente",
     status: "pre_onboarding",
-    observacoes: lead.resumo_call?.trim() || null,
+    observacoes: observacoes || null,
   };
 }

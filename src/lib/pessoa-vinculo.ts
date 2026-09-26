@@ -292,6 +292,127 @@ export function sinalCepDaPessoaPorCaso(
 }
 
 /**
+ * P32 (26/09/2026) — pedido direto da Proprietária: "verifique quais deles
+ * podem ser validados em todos os campos... o que se repete e o que é
+ * redundante na pessoa canônica". Achado real (auditoria de código): CPF,
+ * telefone e CEP já têm reconciliação `case_members` × `clientes`; email, RG,
+ * nacionalidade, data de nascimento, profissão e estado civil NÃO têm —
+ * mesmo conceito duplicado em duas tabelas, nunca comparado.
+ *
+ * Em vez de copiar o padrão `estadoCpfMembroCaso`/`estadoTelefoneMembroCaso`/
+ * `estadoCepMembroCaso` mais 6 vezes (exatamente o problema de "forms
+ * infinitos" que a Proprietária está apontando), esta é a versão genérica:
+ * um único mecanismo, parametrizado pelo campo, usado pelos 6 casos restantes.
+ * Os três primeiros (CPF/telefone/CEP) continuam como estão — já testados e
+ * em produção; não foram reescritos para não arriscar regressão.
+ */
+export type CampoCivilReconciliavel =
+  | "email"
+  | "rg"
+  | "nacionalidade"
+  | "data_nascimento"
+  | "profissao"
+  | "estado_civil";
+
+export const CAMPOS_CIVIS_RECONCILIAVEIS: readonly CampoCivilReconciliavel[] = [
+  "email",
+  "rg",
+  "nacionalidade",
+  "data_nascimento",
+  "profissao",
+  "estado_civil",
+];
+
+export const ROTULO_CAMPO_CIVIL: Record<CampoCivilReconciliavel, string> = {
+  email: "E-mail",
+  rg: "RG",
+  nacionalidade: "Nacionalidade",
+  data_nascimento: "Data de nascimento",
+  profissao: "Profissão",
+  estado_civil: "Estado civil",
+};
+
+/** Nome da coluna em `case_members` para cada campo (só "rg" difere do nome canônico). */
+export const COLUNA_MEMBRO_CIVIL: Record<CampoCivilReconciliavel, string> = {
+  email: "email",
+  rg: "rg",
+  nacionalidade: "nacionalidade",
+  data_nascimento: "data_nascimento",
+  profissao: "profissao",
+  estado_civil: "estado_civil",
+};
+
+/** Nome da coluna em `clientes` para cada campo (RG é `rg_numero`, os demais mantêm o nome). */
+export const COLUNA_CLIENTE_CIVIL: Record<CampoCivilReconciliavel, string> = {
+  email: "email",
+  rg: "rg_numero",
+  nacionalidade: "nacionalidade",
+  data_nascimento: "data_nascimento",
+  profissao: "profissao",
+  estado_civil: "estado_civil",
+};
+
+const NORMALIZADOR_CIVIL: Record<CampoCivilReconciliavel, (s: string) => string> = {
+  email: (s) => s.trim().toLowerCase(),
+  // RG não tem dígito nacional único (por isso não existe formatarRg); compara
+  // por dígitos/letras, ignorando pontuação, espaço e caixa.
+  rg: (s) => s.replace(/[^a-z0-9]/gi, "").toLowerCase(),
+  nacionalidade: (s) => s.trim().toLowerCase(),
+  // Datas vêm do Postgres como string ISO (YYYY-MM-DD ou com hora); os 10
+  // primeiros caracteres bastam para comparar só a data, nunca a hora.
+  data_nascimento: (s) => s.trim().slice(0, 10),
+  profissao: (s) => s.trim().toLowerCase(),
+  estado_civil: (s) => s.trim().toLowerCase(),
+};
+
+export type EstadoCampoCivilMembro =
+  | "preencher"
+  | "conflito"
+  | "ja_sincronizado"
+  | "sem_dado_canonico"
+  | "dependente_nao_sincronizado";
+
+/** Mesmo mecanismo de estadoCpfMembroCaso/estadoTelefoneMembroCaso/estadoCepMembroCaso, genérico por campo. */
+export function estadoCampoCivilMembroCaso(
+  campo: CampoCivilReconciliavel,
+  membro: { valor?: string | null; dependente?: boolean | null },
+  valorCanonico: string | null | undefined,
+): EstadoCampoCivilMembro {
+  if (membro.dependente) return "dependente_nao_sincronizado";
+  const normalizar = NORMALIZADOR_CIVIL[campo];
+  const canonico = valorCanonico && String(valorCanonico).trim() ? normalizar(String(valorCanonico)) : "";
+  if (!canonico) return "sem_dado_canonico";
+  const atual = membro.valor && String(membro.valor).trim() ? normalizar(String(membro.valor)) : "";
+  if (atual) return atual === canonico ? "ja_sincronizado" : "conflito";
+  return "preencher";
+}
+
+/** Sinal da Pessoa 360 para qualquer um dos 6 campos civis — mesmo formato do sinal de CPF/telefone/CEP. */
+export function sinalCampoCivilDaPessoaPorCaso(
+  campo: CampoCivilReconciliavel,
+  membros: {
+    case_id?: string | null;
+    cliente_id?: string | null;
+    dependente?: boolean | null;
+    origem?: string;
+    [coluna: string]: unknown;
+  }[],
+  clienteId: string,
+  valorCanonico: string | null | undefined,
+): Record<string, { conflito: number; preencher: number }> {
+  const coluna = COLUNA_MEMBRO_CIVIL[campo];
+  const saida: Record<string, { conflito: number; preencher: number }> = {};
+  for (const m of membros) {
+    if (m.origem === "nucleo" || m.cliente_id !== clienteId || !m.case_id) continue;
+    const estado = estadoCampoCivilMembroCaso(campo, { valor: m[coluna] as string | null, dependente: m.dependente }, valorCanonico);
+    if (estado !== "conflito" && estado !== "preencher") continue;
+    const alvo = (saida[m.case_id] ??= { conflito: 0, preencher: 0 });
+    alvo[estado] += 1;
+  }
+  return saida;
+}
+
+/**
  * Perfil genealógico só se vincula a uma Pessoa Canônica que já faz parte
  * do caso (case_members ou núcleo com cliente_id). Nunca por nome.
  */

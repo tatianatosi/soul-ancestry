@@ -14,7 +14,17 @@ import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { recusaTickManualD7 } from "@/lib/d7-microentrega";
 import { tratarTickManualD7 } from "@/lib/d7-microentrega.server";
-import { estadoCepMembroCaso, estadoCpfMembroCaso, estadoTelefoneMembroCaso } from "@/lib/pessoa-vinculo";
+import {
+  CAMPOS_CIVIS_RECONCILIAVEIS,
+  COLUNA_CLIENTE_CIVIL,
+  COLUNA_MEMBRO_CIVIL,
+  ROTULO_CAMPO_CIVIL,
+  estadoCampoCivilMembroCaso,
+  estadoCepMembroCaso,
+  estadoCpfMembroCaso,
+  estadoTelefoneMembroCaso,
+  type CampoCivilReconciliavel,
+} from "@/lib/pessoa-vinculo";
 import { exigirProximaAcaoOperavel } from "@/lib/proxima-acao-startup";
 import { proprietariaOperando } from "@/lib/autoridade.server";
 import { nomeResponsavelSessao } from "@/lib/cadeia-operacional.server";
@@ -1086,6 +1096,146 @@ export const conferirDivergenciaCepMembrosCaso = createServerFn({ method: "POST"
         eventType: "caso",
         title: "CEP de membro(s) do caso preenchido a partir do cadastro canônico",
         summaryInternal: `${atualizados} membro(s) tiveram CEP preenchido a partir de clientes.endereco_cep.`,
+        sourceEntityType: "case_members",
+        sourceEntityId: data.caseId,
+        userId,
+      });
+    }
+
+    return { simulado: false, plano, atualizados };
+  });
+
+/**
+ * P32 (26/09/2026) — mesmo padrão de `conferirDivergenciaCpfMembrosCaso`/
+ * `conferirDivergenciaTelefoneMembrosCaso`/`conferirDivergenciaCepMembrosCaso`,
+ * mas genérico por campo — cobre os 6 campos civis que a auditoria confirmou
+ * duplicados sem reconciliação (email, RG, nacionalidade, data de nascimento,
+ * profissão, estado civil). Um único escritor em vez de 6 cópias quase
+ * idênticas — pedido direto: "algo simples... sem forms infinitos".
+ */
+export const conferirDivergenciaCampoCivilMembrosCaso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: {
+      caseId: string;
+      campo: CampoCivilReconciliavel;
+      confirmar?: boolean;
+      resolverMembroId?: string;
+      motivo?: string;
+    }) => {
+      if (!CAMPOS_CIVIS_RECONCILIAVEIS.includes(data.campo)) {
+        throw new Error("CAMPO_NAO_RECONCILIAVEL: campo civil desconhecido.");
+      }
+      if (data.resolverMembroId && !(data.motivo ?? "").trim()) {
+        throw new Error(`Resolver conflito de ${ROTULO_CAMPO_CIVIL[data.campo]} exige o motivo da decisão.`);
+      }
+      return data;
+    },
+  )
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    const userId = context.userId as string;
+    const campo = data.campo;
+    const colunaMembro = COLUNA_MEMBRO_CIVIL[campo];
+    const colunaCliente = COLUNA_CLIENTE_CIVIL[campo];
+    const rotulo = ROTULO_CAMPO_CIVIL[campo];
+
+    const { data: membros } = await supabase
+      .from("case_members")
+      .select(`id,nome,${colunaMembro},cliente_id,dependente`)
+      .eq("case_id", data.caseId)
+      .eq("organization_id", organizationId)
+      .is("archived_at", null)
+      .not("cliente_id", "is", null);
+
+    const membrosLinha = (membros ?? []) as Linha[];
+    const clienteIds = Array.from(new Set(membrosLinha.map((m) => m.cliente_id).filter(Boolean)));
+    const { data: clientesRaw } = clienteIds.length
+      ? await supabase.from("clientes").select(`id,${colunaCliente}`).eq("organization_id", organizationId).in("id", clienteIds)
+      : { data: [] };
+    const clientePorId = new Map(((clientesRaw ?? []) as Linha[]).map((c) => [c.id, c]));
+
+    const plano = membrosLinha.map((m) => {
+      const cliente = clientePorId.get(m.cliente_id as string);
+      const valorCanonico = cliente?.[colunaCliente] ?? null;
+      const acao = estadoCampoCivilMembroCaso(campo, { valor: m[colunaMembro], dependente: m.dependente }, valorCanonico);
+      if (acao === "conflito") {
+        return { membroId: m.id, nome: m.nome, acao, atual: m[colunaMembro], canonico: valorCanonico as string };
+      }
+      if (acao === "preencher") return { membroId: m.id, nome: m.nome, acao, valor: valorCanonico as string };
+      return { membroId: m.id, nome: m.nome, acao };
+    });
+
+    if (data.resolverMembroId) {
+      const alvo = plano.find((p) => p.membroId === data.resolverMembroId);
+      if (!alvo || alvo.acao !== "conflito") {
+        throw new Error(`Este membro não está em conflito de ${rotulo} com o cadastro canônico — nada a resolver.`);
+      }
+      const canonico = (alvo as { canonico: string }).canonico;
+      const r = await gravarComVerificacao({
+        supabase,
+        tabela: "case_members",
+        id: alvo.membroId,
+        organizationId,
+        userId,
+        payload: { [colunaMembro]: canonico },
+      });
+      await supabase.from("audit_logs").insert({
+        organization_id: organizationId,
+        entidade: "case_members",
+        entidade_id: alvo.membroId,
+        acao: `${campo}_conflito_resolvido_pelo_canonico`,
+        user_id: userId,
+        valores_anteriores: { [colunaMembro]: (alvo as { atual: string }).atual },
+        valores_posteriores: { [colunaMembro]: canonico },
+        metadados: { case_id: data.caseId, motivo: data.motivo?.trim() },
+      });
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.caseId,
+        eventType: "caso",
+        title: `${rotulo} de ${alvo.nome} alinhado ao cadastro canônico`,
+        summaryInternal: `Conflito resolvido por decisão humana — ${data.motivo?.trim()}`,
+        sourceEntityType: "case_members",
+        sourceEntityId: alvo.membroId,
+        userId,
+      });
+      return { simulado: false, plano, atualizados: 1, resolvido: alvo.membroId, salvoEm: r.salvoEm };
+    }
+
+    if (!data.confirmar) return { simulado: true, plano };
+
+    let atualizados = 0;
+    for (const item of plano) {
+      if (item.acao !== "preencher") continue;
+      await gravarComVerificacao({
+        supabase,
+        tabela: "case_members",
+        id: item.membroId,
+        organizationId,
+        userId,
+        payload: { [colunaMembro]: (item as { valor: string }).valor },
+      });
+      atualizados++;
+    }
+
+    await supabase.from("audit_logs").insert({
+      organization_id: organizationId,
+      entidade: "case_members",
+      entidade_id: data.caseId,
+      acao: `${campo}_conferido_contra_cadastro_canonico`,
+      user_id: userId,
+      metadados: { case_id: data.caseId, plano, atualizados },
+    });
+
+    if (atualizados > 0) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.caseId,
+        eventType: "caso",
+        title: `${rotulo} de membro(s) do caso preenchido a partir do cadastro canônico`,
+        summaryInternal: `${atualizados} membro(s) tiveram ${rotulo.toLowerCase()} preenchido a partir de clientes.${colunaCliente}.`,
         sourceEntityType: "case_members",
         sourceEntityId: data.caseId,
         userId,

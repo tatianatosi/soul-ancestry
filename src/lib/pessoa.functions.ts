@@ -222,7 +222,15 @@ export const carregarPessoa = createServerFn({ method: "GET" })
       */
       supabase
         .from("genealogical_person_profiles")
-        .select("id, nome_completo, status_verificacao, case_id")
+        // P32 (26/09/2026) — achado real: research_people.birth_date/birth_place
+        // (lidas mais abaixo em `fichaGenealogica`) nunca são gravadas por
+        // nenhum escritor do repo — sempre nulas. O dado de nascimento/óbito
+        // que a pesquisa de fato preenche mora aqui, em
+        // genealogical_person_profiles, só nunca tinha sido lido para a Pessoa
+        // 360 (que só usava nome_completo/status_verificacao).
+        .select(
+          "id, nome_completo, status_verificacao, case_id, nascimento_data, nascimento_localidade, morte_data, morte_localidade",
+        )
         .eq("organization_id", organizationId)
         .eq("client_id", data.clienteId)
         .is("archived_at", null),
