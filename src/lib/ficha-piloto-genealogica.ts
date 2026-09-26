@@ -114,3 +114,35 @@ export function planoDeAcaoAberto(ctx: ContextoPesquisa): boolean {
 export function podeMarcarConfirmado(evidencias: number): boolean {
   return evidencias > 0;
 }
+
+/**
+ * P32b (26/09/2026) — pedido direto e reiterado da Proprietária: "entre
+ * ficha piloto e ficha genealógica prevalece a mais completa". Achado real:
+ * `research_people` (o que a Ficha Piloto lista) só grava identidade mínima
+ * (nome/status); `genealogical_person_profiles` (research_person_id
+ * obrigatório — FK direta para a mesma pessoa) é onde a Ficha Genealógica de
+ * fato registra nascimento, óbito e sexo. A Ficha Piloto nunca lia esse
+ * perfil — mostrava só a versão mais pobre. Esta função só decide o que
+ * MOSTRAR (nunca escreve de volta em `research_people`): quando existe
+ * perfil vinculado, seus campos preenchidos prevalecem.
+ */
+export type PerfilMaisCompleto = {
+  research_person_id: string;
+  nascimento_data?: string | null;
+  nascimento_localidade?: string | null;
+  morte_data?: string | null;
+  morte_localidade?: string | null;
+  sexo?: string | null;
+};
+
+export function pessoaComPerfilMaisCompleto<T extends { id: string }>(pessoa: T, perfil: PerfilMaisCompleto | undefined) {
+  return {
+    ...pessoa,
+    nascimento_data: perfil?.nascimento_data ?? null,
+    nascimento_localidade: perfil?.nascimento_localidade ?? null,
+    morte_data: perfil?.morte_data ?? null,
+    morte_localidade: perfil?.morte_localidade ?? null,
+    sexo: perfil?.sexo ?? null,
+    tem_perfil_mais_completo: Boolean(perfil),
+  };
+}

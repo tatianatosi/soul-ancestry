@@ -97,6 +97,17 @@ export function PainelFichaPiloto({ caseId }: { caseId: string }) {
               • {x.canonical_name} — <span className="text-xs text-navy/55">
                 {STATUS_PESSOA[String(x.person_status)]} · identidade {STATUS_IDENTIDADE[String(x.identity_status)]?.toLowerCase()}
                 {x.is_minor ? " · menor" : ""}
+                {/* P32b (26/09/2026): "entre ficha piloto e ficha genealógica
+                    prevalece a mais completa" — quando existe perfil vinculado
+                    (genealogical_person_profiles), o nascimento/óbito de lá
+                    aparece aqui também, em vez de a Ficha Piloto ficar sempre
+                    sem esse dado. */}
+                {x.nascimento_data || x.nascimento_localidade
+                  ? ` · nasc. ${[x.nascimento_data, x.nascimento_localidade].filter(Boolean).join(" em ")}`
+                  : ""}
+                {x.morte_data || x.morte_localidade
+                  ? ` · falec. ${[x.morte_data, x.morte_localidade].filter(Boolean).join(" em ")}`
+                  : ""}
               </span>
             </li>
           ))}

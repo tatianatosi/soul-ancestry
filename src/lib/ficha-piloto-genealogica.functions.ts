@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo } from "@/lib/caso-canonico.server";
-import { bloqueiosPesquisaExterna, planoDeAcaoAberto } from "@/lib/ficha-piloto-genealogica";
+import { bloqueiosPesquisaExterna, pessoaComPerfilMaisCompleto, planoDeAcaoAberto } from "@/lib/ficha-piloto-genealogica";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -37,7 +37,7 @@ export const carregarFichaPiloto = createServerFn({ method: "GET" })
     }
     const rid = pesquisa.data.id as string;
 
-    const [pessoas, vinculos, hipoteses, lacunas, fontes, solicitacoes] = await Promise.all([
+    const [pessoasRaw, vinculos, hipoteses, lacunas, fontes, solicitacoes] = await Promise.all([
       supabase.from("research_people").select("*").eq("research_case_id", rid).is("archived_at", null).order("created_at"),
       /*
        * 04/09/2026 — reapontado de research_relationships (ficha piloto, só
@@ -65,9 +65,33 @@ export const carregarFichaPiloto = createServerFn({ method: "GET" })
       pagamento_confirmado: Boolean(caso.data?.pagamento_confirmado),
     };
 
+    // P32b (26/09/2026) — "entre ficha piloto e ficha genealógica prevalece
+    // a mais completa": genealogical_person_profiles.research_person_id é FK
+    // obrigatória para a mesma linha de research_people que esta ficha lista.
+    // A Ficha Piloto nunca lia esse perfil — mostrava só a identidade mínima
+    // que ela mesma grava. Busca os perfis das pessoas já carregadas e deixa
+    // o dado mais completo (nascimento/óbito/sexo) prevalecer na exibição,
+    // sem nunca escrever de volta em research_people.
+    const pessoasBrutas = (pessoasRaw.data ?? []) as Record<string, any>[];
+    const idsPessoas = pessoasBrutas.map((p) => p.id as string);
+    const { data: perfisRaw } = idsPessoas.length
+      ? await supabase
+          .from("genealogical_person_profiles")
+          .select("research_person_id, nascimento_data, nascimento_localidade, morte_data, morte_localidade, sexo")
+          .eq("organization_id", organizationId)
+          .in("research_person_id", idsPessoas)
+          .is("archived_at", null)
+      : { data: [] };
+    const perfilPorPessoaId = new Map<string, { research_person_id: string; [k: string]: any }>(
+      ((perfisRaw ?? []) as Record<string, any>[]).map((p) => [p.research_person_id as string, p as any]),
+    );
+    const pessoas = pessoasBrutas.map((p) =>
+      pessoaComPerfilMaisCompleto(p as Record<string, any> & { id: string }, perfilPorPessoaId.get(p.id as string)),
+    );
+
     return {
       pesquisa: pesquisa.data as Record<string, any>,
-      pessoas: (pessoas.data ?? []) as Record<string, any>[],
+      pessoas: pessoas as Record<string, any>[],
       vinculos: (vinculos.data ?? []) as Record<string, any>[],
       hipoteses: (hipoteses.data ?? []) as Record<string, any>[],
       lacunas: (lacunas.data ?? []) as Record<string, any>[],

@@ -47,17 +47,30 @@ describe("R3 · /leads não edita mais call_agendada_em, discovery_resultado, el
 });
 
 describe("R3 · /calls edita todos os campos de Discovery e Triagem preliminar", () => {
-  it("call_agendada_em, discovery_resultado e elegibilidade_preliminar têm onChange={set(...)} em painel-calls.tsx", () => {
+  it("call_agendada_em e discovery_resultado têm onChange={set(...)} no card 'Registro da call'", () => {
     expect(calls).toMatch(/onChange=\{set\("call_agendada_em"\)\}/);
     expect(calls).toMatch(/onChange=\{set\("discovery_resultado"\)\}/);
-    expect(calls).toMatch(/onChange=\{set\("elegibilidade_preliminar"\)\}/);
   });
 
-  it("os 11 campos de triagem que só existiam em /leads agora têm writer em /calls", () => {
-    const idx = calls.indexOf('titulo="Triagem preliminar (Discovery)"');
-    expect(idx).toBeGreaterThan(-1);
-    const trecho = calls.slice(idx, idx + 3000);
+  /**
+   * P32b/painel-calls (26/09/2026) — correção direta ao feedback da
+   * Proprietária: "está errado em dizer que usa spin no painel de calls
+   * até hoje é um infinito de forms que não se conversam... cada pergunta
+   * do spin deve ser respondida e deve ser orgânico". A seção plana
+   * "Triagem preliminar (Discovery)" duplicava, em grade sem contexto, os
+   * mesmos campos que o card SPIN (`renderCampoRoteiro`) já edita — foi
+   * removida. Estes 13 campos passam a ter UMA única superfície editável:
+   * o card SPIN, via `onChange={set(campoId)}` genérico (não mais um
+   * literal por campo).
+   */
+  it("a seção plana duplicada 'Triagem preliminar (Discovery)' foi removida — não existe mais", () => {
+    expect(calls).not.toContain('titulo="Triagem preliminar (Discovery)"');
+  });
+
+  it("os 13 campos de triagem são cobertos pelo roteiro SPIN genérico (META_CAMPO_ROTEIRO), não por controle duplicado", () => {
+    const roteiro = readFileSync(resolve(__dirname, "../discovery-roteiro.ts"), "utf8");
     for (const campo of [
+      "elegibilidade_preliminar",
       "confianca_triagem",
       "geracao_ascendente",
       "linha_transmissao",
@@ -71,7 +84,11 @@ describe("R3 · /calls edita todos os campos de Discovery e Triagem preliminar",
       "objecao_predominante",
       "nivel_intencao",
     ]) {
-      expect(trecho).toContain(`set("${campo}")`);
+      expect(roteiro).toContain(`${campo}: {`);
+      // nenhum literal onChange={set("<campo>")} duplicado fora do card SPIN
+      // genérico — o único onChange para estes campos é set(campoId).
+      expect(calls).not.toMatch(new RegExp(`onChange=\\{set\\("${campo}"\\)\\}`));
     }
+    expect(calls).toContain("onChange={set(campoId)}");
   });
 });

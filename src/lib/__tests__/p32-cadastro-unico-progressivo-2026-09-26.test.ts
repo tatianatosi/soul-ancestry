@@ -127,10 +127,12 @@ describe("P32 — um único escritor genérico, não 6 cópias (caso-canonico.fu
     expect(trecho).toContain("CAMPO_NAO_RECONCILIAVEL");
   });
 
-  it("nunca sobrescreve conflito sem motivo, para qualquer campo", () => {
+  it("P32b (26/09/2026): sem dedup — nenhuma ação de resolver conflito com motivo, conflito é só sinal", () => {
     const inicio = arquivo.indexOf("export const conferirDivergenciaCampoCivilMembrosCaso");
-    const trecho = arquivo.slice(inicio, inicio + 1200);
-    expect(trecho).toContain("exige o motivo da decisão");
+    const fim = arquivo.indexOf("\n  });", inicio);
+    const trecho = arquivo.slice(inicio, fim);
+    expect(trecho).not.toContain("resolverMembroId");
+    expect(trecho).not.toContain("mResolver");
   });
 
   it("só preenche vazio em lote, nunca sobrescreve valor já gravado", () => {

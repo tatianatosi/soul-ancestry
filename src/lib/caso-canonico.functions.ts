@@ -1120,14 +1120,9 @@ export const conferirDivergenciaCampoCivilMembrosCaso = createServerFn({ method:
       caseId: string;
       campo: CampoCivilReconciliavel;
       confirmar?: boolean;
-      resolverMembroId?: string;
-      motivo?: string;
     }) => {
       if (!CAMPOS_CIVIS_RECONCILIAVEIS.includes(data.campo)) {
         throw new Error("CAMPO_NAO_RECONCILIAVEL: campo civil desconhecido.");
-      }
-      if (data.resolverMembroId && !(data.motivo ?? "").trim()) {
-        throw new Error(`Resolver conflito de ${ROTULO_CAMPO_CIVIL[data.campo]} exige o motivo da decisão.`);
       }
       return data;
     },
@@ -1167,43 +1162,13 @@ export const conferirDivergenciaCampoCivilMembrosCaso = createServerFn({ method:
       return { membroId: m.id, nome: m.nome, acao };
     });
 
-    if (data.resolverMembroId) {
-      const alvo = plano.find((p) => p.membroId === data.resolverMembroId);
-      if (!alvo || alvo.acao !== "conflito") {
-        throw new Error(`Este membro não está em conflito de ${rotulo} com o cadastro canônico — nada a resolver.`);
-      }
-      const canonico = (alvo as { canonico: string }).canonico;
-      const r = await gravarComVerificacao({
-        supabase,
-        tabela: "case_members",
-        id: alvo.membroId,
-        organizationId,
-        userId,
-        payload: { [colunaMembro]: canonico },
-      });
-      await supabase.from("audit_logs").insert({
-        organization_id: organizationId,
-        entidade: "case_members",
-        entidade_id: alvo.membroId,
-        acao: `${campo}_conflito_resolvido_pelo_canonico`,
-        user_id: userId,
-        valores_anteriores: { [colunaMembro]: (alvo as { atual: string }).atual },
-        valores_posteriores: { [colunaMembro]: canonico },
-        metadados: { case_id: data.caseId, motivo: data.motivo?.trim() },
-      });
-      await registrarTimelineCaso(supabase, {
-        organizationId,
-        caseId: data.caseId,
-        eventType: "caso",
-        title: `${rotulo} de ${alvo.nome} alinhado ao cadastro canônico`,
-        summaryInternal: `Conflito resolvido por decisão humana — ${data.motivo?.trim()}`,
-        sourceEntityType: "case_members",
-        sourceEntityId: alvo.membroId,
-        userId,
-      });
-      return { simulado: false, plano, atualizados: 1, resolvido: alvo.membroId, salvoEm: r.salvoEm };
-    }
-
+    // P32b (26/09/2026) — correção direta ao feedback da Proprietária: "só
+    // deixar o cadastro mais completo sem dedup e somente adicionando dado
+    // de acordo com o avanço do lead". Removida a ação de "resolver
+    // conflito" (sobrescrever o valor do caso pelo canônico com motivo) —
+    // conflito passa a ser só sinal informativo (abaixo, no plano), nunca
+    // uma escrita disparada por botão. Só preenchimento aditivo de campo
+    // vazio continua existindo.
     if (!data.confirmar) return { simulado: true, plano };
 
     let atualizados = 0;

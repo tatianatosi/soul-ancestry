@@ -23,18 +23,6 @@ import {
   PESQUISA_PREVIA_ESCOPO,
   RESULTADOS_DISCOVERY,
   STATUS_CALL,
-  ELEGIBILIDADE_PRELIMINAR,
-  CONFIANCA_TRIAGEM,
-  GERACOES_ASCENDENTE,
-  LINHAS_TRANSMISSAO,
-  RISCOS_RUPTURA,
-  COMPLEXIDADE_DOCUMENTAL,
-  ESTADO_DOCUMENTAL_INICIAL,
-  PENDENCIAS_DOCUMENTAIS,
-  EXIGE_IDIOMA_ENTREVISTA,
-  ESTRUTURAS_FAMILIARES,
-  OBJECOES,
-  NIVEIS_INTENCAO,
   rotulo,
   type LeadDesk,
   type Opcao,
@@ -949,33 +937,19 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
               </Secao>
 
               {/*
-                23/09/2026 — R3: /calls vira a única superfície editável de
-                Discovery/Triagem. Esta seção movida de /leads (que tinha o
-                único writer destes campos, mas nunca era a tela usada
-                durante a call) — nenhum campo novo, mesmo vocabulário
-                fechado (crm-desk.ts), mesmo padrão campo/set já usado acima.
+                26/09/2026 — correção direta ao feedback da Proprietária:
+                "está errado em dizer que usa spin no painel de calls até
+                hoje é um infinito de forms que não se conversam... cada
+                pergunta do spin deve ser respondida e deve ser orgânico
+                dentro do Crm vivo". A seção "Triagem preliminar (Discovery)"
+                que existia aqui (movida de /leads em 23/09) duplicava, em
+                grade plana e sem contexto, os MESMOS 13 campos que o card
+                SPIN abaixo (`renderCampoRoteiro`, via `MesaDiscovery`) já
+                edita um a um — com o porquê, o achado da varredura de
+                WhatsApp e o destino de cada resposta. Removida: cada campo
+                passa a ter uma única superfície editável (o card SPIN),
+                nunca duas.
               */}
-              <Secao
-                titulo="Triagem preliminar (Discovery)"
-                descricao="Leitura comercial/técnica preliminar. Não é decisão jurídica final nem promessa de resultado."
-              >
-                <div className="grid gap-3 md:grid-cols-2">
-                  <Selecao label="Elegibilidade preliminar" valor={campo("elegibilidade_preliminar")} opcoes={ELEGIBILIDADE_PRELIMINAR} onChange={set("elegibilidade_preliminar")} />
-                  <Selecao label="Confiança da triagem" valor={campo("confianca_triagem")} opcoes={CONFIANCA_TRIAGEM} onChange={set("confianca_triagem")} />
-                  <Selecao label="Geração do ascendente" valor={campo("geracao_ascendente")} opcoes={GERACOES_ASCENDENTE} onChange={set("geracao_ascendente")} />
-                  <Selecao label="Linha de transmissão" valor={campo("linha_transmissao")} opcoes={LINHAS_TRANSMISSAO} onChange={set("linha_transmissao")} />
-                  <Selecao label="Risco de ruptura" valor={campo("risco_ruptura")} opcoes={RISCOS_RUPTURA} onChange={set("risco_ruptura")} />
-                  <Selecao label="Complexidade documental" valor={campo("complexidade_documental")} opcoes={COMPLEXIDADE_DOCUMENTAL} onChange={set("complexidade_documental")} />
-                  <Selecao label="Estado documental inicial" valor={campo("estado_documental_inicial")} opcoes={ESTADO_DOCUMENTAL_INICIAL} onChange={set("estado_documental_inicial")} />
-                  <Selecao label="Pendência documental prioritária" valor={campo("pendencia_documental_prioritaria")} opcoes={PENDENCIAS_DOCUMENTAIS} onChange={set("pendencia_documental_prioritaria")} />
-                  <Selecao label="Exige idioma/entrevista" valor={campo("exige_idioma_entrevista")} opcoes={EXIGE_IDIOMA_ENTREVISTA} onChange={set("exige_idioma_entrevista")} />
-                  <Texto label="Requerentes potenciais" tipo="number" valor={campo("requerentes_potenciais")} onChange={set("requerentes_potenciais")} />
-                  <Selecao label="Estrutura familiar" valor={campo("estrutura_familiar")} opcoes={ESTRUTURAS_FAMILIARES} onChange={set("estrutura_familiar")} />
-                  <Selecao label="Objeção predominante" valor={campo("objecao_predominante")} opcoes={OBJECOES} onChange={set("objecao_predominante")} />
-                  <Selecao label="Nível de intenção" valor={campo("nivel_intencao")} opcoes={NIVEIS_INTENCAO} onChange={set("nivel_intencao")} />
-                </div>
-              </Secao>
-
               <MesaDiscovery
                 lead={lead}
                 indice={indicePergunta}
