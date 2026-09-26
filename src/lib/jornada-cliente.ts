@@ -12,6 +12,7 @@
  */
 
 import { DIAS_CADENCIA_ATENCAO, DIAS_CADENCIA_CRITICA } from "@/lib/cadencia-limiares";
+import { contemCpf } from "@/lib/validacao-pessoa";
 
 /* ----------------------------- Fases ----------------------------- */
 
@@ -126,6 +127,9 @@ export function entregasParaAppCliente(itens: MicroentregaBruta[]): Microentrega
     .filter((i) => i.approval_status === "publicado")
     .filter((i) => !!(i.title_client ?? "").trim() && !!(i.summary_approved ?? "").trim())
     .filter((i) => !TERMOS_PROIBIDOS.test(`${i.title_client ?? ""} ${i.summary_approved ?? ""}`))
+    // P5 (26/09/2026) — filtro de CPF reaproveitado (validacao-pessoa.ts):
+    // esta era uma das entregas cliente-facing sem nenhuma proteção contra CPF.
+    .filter((i) => !contemCpf(`${i.title_client ?? ""} ${i.summary_approved ?? ""}`))
     .map((i) => ({
       id: i.id,
       tipo: i.deliverable_type ?? "outro_aprovado",

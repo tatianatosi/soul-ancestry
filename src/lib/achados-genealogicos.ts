@@ -8,6 +8,8 @@
  * publica no App Cliente, envia mensagem ou afirma relação familiar.
  */
 
+import { contemCpf } from "@/lib/validacao-pessoa";
+
 export type Relevancia = "baixa" | "media" | "alta" | "critica";
 export type ValidacaoStatus = "rascunho" | "em_revisao" | "validado_internamente" | "divergente" | "arquivado";
 export type Impacto = "nenhum" | "proposto" | "aplicado";
@@ -119,7 +121,14 @@ const semAcento = (t: string) =>
 export function termoProibido(texto: string | null | undefined): string | null {
   if (!texto || !texto.trim()) return null;
   const t = semAcento(texto);
-  return TERMOS_PROIBIDOS.find((termo) => t.includes(termo)) ?? null;
+  const termo = TERMOS_PROIBIDOS.find((termo) => t.includes(termo));
+  if (termo) return termo;
+  // P5 (26/09/2026) — filtro de CPF reaproveitado de `validacao-pessoa.ts`
+  // (fonte única); este gate protege title_client/resumo_aprovado_cliente/
+  // repertorios_narrativos/memoria_familiar em `validarAchado`/`validarEncontro`
+  // e a projeção final em `projetarEncontroParaCliente`.
+  if (contemCpf(texto)) return "CPF";
+  return null;
 }
 
 export type AchadoEntrada = {

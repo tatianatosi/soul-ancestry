@@ -18,6 +18,7 @@
 
 import { limparCopy } from "@/lib/client-copy";
 import { contemTermoProibido } from "@/lib/portal-copy";
+import { contemCpf } from "@/lib/validacao-pessoa";
 
 /* ------------------------------------------------- remoção de marcas técnicas */
 
@@ -48,6 +49,12 @@ export function textoParaCliente(valor: unknown): string {
   s = limparCopy(s);
   if (!s) return "";
   if (contemTermoProibido(s)) return "";
+  // P5 (26/09/2026) — esta é a camada mais reutilizada de todas (cadência,
+  // pesquisa, documentos, entregas, fases e legado atravessam por aqui);
+  // era a que tinha o maior raio de exposição e nenhuma proteção contra CPF.
+  // Reaproveita o mesmo detector (validacao-pessoa.ts) usado nos demais
+  // filtros cliente-facing, em vez de duplicar regex.
+  if (contemCpf(s)) return "";
   // Sobra sem palavra (números, pontuação) é resíduo técnico, não conteúdo.
   if (!/[a-zà-ú]{2,}/i.test(s)) return "";
   return s;

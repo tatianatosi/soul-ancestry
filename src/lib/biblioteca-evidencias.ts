@@ -9,7 +9,7 @@
  * externa, publica no App Cliente ou cria documento externo.
  */
 
-import { cpfValido } from "@/lib/validacao-pessoa";
+import { contemCpf } from "@/lib/validacao-pessoa";
 
 export type NivelAcesso = "restrito" | "equipe_do_caso" | "cliente_autorizado";
 export type Confianca = "INICIAL" | "BAIXO" | "MEDIO" | "ALTO";
@@ -180,19 +180,10 @@ export function validarElevacaoConfianca(entrada: {
 const PADRAO_TECNICO = /(https?:\/\/|www\.|drive\.google|storage\/|\/storage|s3:\/\/|supabase\.co|\.pdf|\.jpg|\.png)/i;
 const PADRAO_INTERNO =
   /(hipótese|hipotese|risco|suspeita|transcri|nota interna|uso interno|confidencial|probabilidade|chance de êxito|chance de exito|garantid|parecer jurídico|parecer juridico)/i;
-// P5 (26/09/2026) — achado real da auditoria da cadeia de pesquisa: nenhum
-// filtro automático detectava CPF em texto de projeção; a proteção dependia
-// inteiramente de o humano não digitar isso. Formato pontuado é
-// inconfundível (000.000.000-00); 11 dígitos crus só viram erro quando
-// passam no dígito verificador real (evita falso positivo em telefone/CEP
-// concatenados, que não formam CPF válido).
-const PADRAO_CPF_PONTUADO = /\d{3}\.\d{3}\.\d{3}-\d{2}/;
-
-function contemCpf(texto: string): boolean {
-  if (PADRAO_CPF_PONTUADO.test(texto)) return true;
-  const sequenciasDe11 = texto.match(/\d{11}/g) ?? [];
-  return sequenciasDe11.some((seq) => cpfValido(seq));
-}
+// P5 (26/09/2026) — `contemCpf` agora mora em `validacao-pessoa.ts` (fonte
+// única, reutilizada também por `achados-genealogicos.ts`, `jornada-cliente.ts`,
+// `onboarding-jornada.ts` e `portal-linguagem-viva.ts` — ver corte "quais
+// filtros podem ser reutilizáveis entre as abas e o app").
 
 /** Conteúdo cru, URL interna, transcrição, risco, hipótese, CPF ou dado de terceiro nunca chegam ao App. */
 export function conteudoProjetavel(texto: string): ResultadoValidacao {

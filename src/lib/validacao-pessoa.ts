@@ -185,3 +185,31 @@ export function rgOrgaoUfValido(valor: string): boolean {
   if (!m) return true;
   return ufValida(m[1]);
 }
+
+/* ------------------------------------------------------------------ */
+/* Detecção de CPF em texto livre — reutilizável entre filtros          */
+/* ------------------------------------------------------------------ */
+
+const PADRAO_CPF_PONTUADO = /\d{3}\.\d{3}\.\d{3}-\d{2}/;
+
+/**
+ * P5 (26/09/2026) — pedido direto da Proprietária: "verifique quais outros
+ * filtros automáticos podem ser reutilizáveis entre as abas e o app". Achado
+ * real: existiam ~10 filtros de "termo proibido em texto cliente-facing"
+ * espalhados por módulos diferentes (`biblioteca-evidencias.ts`,
+ * `achados-genealogicos.ts`, `jornada-cliente.ts`, `onboarding-jornada.ts`,
+ * `portal-linguagem-viva.ts`, `fila-comunicacao.ts`, `templates-whatsapp.ts`,
+ * `portal-copy.ts`, `ca04-crm-mestre.ts`), cada um com sua própria lista de
+ * palavras — e só `biblioteca-evidencias.ts` (corte anterior) e
+ * `templates-whatsapp.ts` (busca pela palavra literal "cpf", não pelo
+ * formato do número) tinham qualquer proteção contra CPF. Esta função vira a
+ * fonte única: detecta formato pontuado (inconfundível) e sequências de 11
+ * dígitos crus que batem o dígito verificador real (evita falso positivo em
+ * outro número de 11 dígitos que não é CPF).
+ */
+export function contemCpf(texto: string): boolean {
+  if (!texto) return false;
+  if (PADRAO_CPF_PONTUADO.test(texto)) return true;
+  const sequenciasDe11 = texto.match(/\d{11}/g) ?? [];
+  return sequenciasDe11.some((seq) => cpfValido(seq));
+}

@@ -13,6 +13,7 @@ import {
   DIAS_CADENCIA_CRITICA,
   DIAS_PRIMEIRA_MICROENTREGA,
 } from "@/lib/cadencia-limiares";
+import { contemCpf } from "@/lib/validacao-pessoa";
 
 /* ---------------------------------------------------------------- estados */
 
@@ -431,7 +432,10 @@ const TERMOS_PROIBIDOS = [
 /** Verdadeiro quando o texto contém conteúdo que não pode chegar ao cliente. */
 export function contemConteudoInterno(texto?: string | null): boolean {
   const t = String(texto ?? "").toLowerCase();
-  return TERMOS_PROIBIDOS.some((p) => t.includes(p));
+  // P5 (26/09/2026) — filtro de CPF reaproveitado (validacao-pessoa.ts):
+  // este gate cobre entregas de onboarding cliente-facing (portal-dados-vivos.ts,
+  // portal-atendimento.functions.ts) que também não tinham proteção contra CPF.
+  return TERMOS_PROIBIDOS.some((p) => t.includes(p)) || contemCpf(String(texto ?? ""));
 }
 
 export type EntregaBruta = {
