@@ -24,9 +24,16 @@
 export type ForcaDoElo =
   /** E-mail idêntico depois de normalizado. Documento ou e-mail é identidade. */
   | "confirmado"
-  /** Telefone idêntico. Forte, mas telefone é compartilhado em família. */
+  /**
+   * Telefone ou nome idênticos (P29, 26/09/2026: nome exato subiu deste
+   * nível de `apenas_indicio` — decisão explícita da Proprietária). Nunca
+   * funde sozinho — telefone é compartilhado em família, nome tem homônimo
+   * (a própria Ana Luiza é o exemplo real). Sempre exige confirmação humana.
+   */
   | "provavel"
-  /** Só o nome coincide. NUNCA é vínculo — só pista para um humano olhar. */
+  /** Reservado para evidência mais fraca que nome/telefone; hoje nenhuma
+   * regra devolve este nível — `evidenciaDeMesmaPessoa` nunca funde sozinho
+   * abaixo de `confirmado`. */
   | "apenas_indicio";
 
 export type EvidenciaDeElo = {
@@ -132,9 +139,23 @@ export function evidenciaDeMesmaPessoa(
   const nomeA = normalizarNome(a.nome);
   const nomeB = normalizarNome(b.nome);
   if (nomeA && nomeB && nomeA === nomeB) {
+    /*
+     * P29 (26/09/2026) — decisão explícita da Proprietária: "Pode fundir
+     * caso seja nome exato". Antes disto, nome idêntico caía em
+     * `apenas_indicio` — a camada mais fraca, que `decidirClienteDoHandoff`
+     * nem chega a surfacear como pendência (só `provavel`/`confirmado`
+     * disparam o fluxo de confirmação) — na prática, um lead com nome
+     * IDÊNTICO a um cliente já cadastrado virava um cliente novo, duplicado,
+     * em silêncio. Subir para `provavel` corrige esse vazamento real sem
+     * remover a salvaguarda de homônimo que o comentário desta função já
+     * documentava (a própria Ana Luiza como exemplo de nome comum):
+     * `podeTratarComoMesmaPessoa` continua exigindo `confirmado` para fundir
+     * sem pergunta — nome exato passa a abrir o mesmo prompt de confirmação
+     * humana que telefone já abre, nunca fusão silenciosa.
+     */
     return {
-      forca: "apenas_indicio",
-      motivo: "só o nome coincide — não é vínculo, é pista para conferir",
+      forca: "provavel",
+      motivo: "nome idêntico — confirme, porque duas pessoas podem ter o mesmo nome",
     };
   }
 

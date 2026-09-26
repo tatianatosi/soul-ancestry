@@ -528,7 +528,10 @@ function Pessoa() {
             <>
               <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
                 <Campo rotulo="E-mail" valor={cliente.email?.trim()} />
-                <Campo rotulo="Telefone" valor={cliente.telefone} />
+                {/* P29 (26/09/2026): leitura mostrava telefone/CPF cru — a máscara só era
+                    aplicada no modo Editar. mascaras-e-validadores.md exige que a máscara
+                    se reutilize também na exibição, não só na digitação. */}
+                <Campo rotulo="Telefone" valor={cliente.telefone ? formatarTelefone(String(cliente.telefone)) : cliente.telefone} />
                 <Campo rotulo="Como entrou" valor={cliente.origem} />
                 <Campo rotulo="Na carteira desde" valor={formatarDia(cliente.created_at)} />
               </dl>
@@ -549,7 +552,7 @@ function Pessoa() {
                 <Campo rotulo="Nacionalidade" valor={cliente.nacionalidade} />
                 <Campo rotulo="Profissão" valor={cliente.profissao} />
                 <Campo rotulo="Data de nascimento" valor={formatarDia(cliente.data_nascimento)} />
-                <Campo rotulo="CPF" valor={cliente.cpf} />
+                <Campo rotulo="CPF" valor={cliente.cpf ? formatarCpf(String(cliente.cpf)) : cliente.cpf} />
                 <Campo
                   rotulo="RG"
                   valor={

@@ -79,10 +79,15 @@ describe("evidência de mesma pessoa", () => {
     expect(e?.motivo).toMatch(/família/);
   });
 
-  it("nome igual NUNCA é vínculo", () => {
-    // Fundir duas pessoas diferentes é pior que deixar duas fichas separadas.
+  it("nome igual nunca funde sozinho, mas P29 (26/09/2026) passou a exigir confirmação humana em vez de ignorar em silêncio", () => {
+    // Fundir duas pessoas diferentes é pior que deixar duas fichas separadas —
+    // "provavel" nunca funde sozinho (podeTratarComoMesmaPessoa exige
+    // "confirmado"); decisão da Proprietária foi só parar de tratar nome
+    // exato como pista invisível (apenas_indicio, que nem chegava a
+    // decidirClienteDoHandoff) e passar a perguntar, como já fazia com
+    // telefone.
     const e = evidenciaDeMesmaPessoa({ nome: "Ana Luiza" }, { nome: "Ana Luiza" });
-    expect(e?.forca).toBe("apenas_indicio");
+    expect(e?.forca).toBe("provavel");
     expect(podeTratarComoMesmaPessoa(e)).toBe(false);
   });
 

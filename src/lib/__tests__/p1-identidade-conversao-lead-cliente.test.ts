@@ -111,9 +111,18 @@ describe("conversão do lead em cliente canônico", () => {
     expect(d.acao).toBe("criar");
   });
 
-  it("nome igual sozinho não converte — homônimo não é vínculo", () => {
+  it("nome igual sozinho nunca funde automaticamente — P29 (26/09/2026) pede confirmação em vez de criar duplicata em silêncio", () => {
+    // Antes: nome igual caía em apenas_indicio, decidirClienteDoHandoff nem
+    // via isso como pendência e criava um cliente novo duplicado sem avisar.
+    // Decisão da Proprietária ("pode fundir caso seja nome exato"): nome
+    // exato passa a abrir o mesmo prompt de confirmação humana que telefone
+    // já abre — nunca fusão automática sem confirmação (continua exigindo
+    // confirmado, que só CPF/e-mail dão).
     const d = decidirClienteDoHandoff({ nome: "Ana Luiza" }, [{ id: "c6", nome: "Ana Luiza" }]);
-    expect(d.acao).toBe("criar");
+    expect(d.acao).toBe("confirmar");
+    if (d.acao === "confirmar") {
+      expect(d.candidatos).toEqual([expect.objectContaining({ id: "c6" })]);
+    }
   });
 
   it("confirmação humana explícita vence e registra o motivo do elo", () => {
