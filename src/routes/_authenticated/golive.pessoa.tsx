@@ -13,6 +13,7 @@ import {
 } from "@/lib/golive-pessoas";
 import { humano } from "@/lib/rotulos-golive";
 import { Button } from "@/components/ui/button";
+import { formatarTelefone } from "@/lib/validacao-pessoa";
 
 export const Route = createFileRoute("/_authenticated/golive/pessoa")({
   head: () => ({
@@ -87,7 +88,7 @@ function PessoaGoLive() {
               <Campo rotulo="Papel no núcleo" valor={humano(papelNoNucleo, "Papel ainda não registrado")} />
               <Campo rotulo="Núcleo" valor={caso.identidade.nucleo} />
               <Campo rotulo="E-mail" valor={caso.identidade.email} />
-              <Campo rotulo="Telefone" valor={caso.identidade.telefone} />
+              <Campo rotulo="Telefone" valor={caso.identidade.telefone ? formatarTelefone(String(caso.identidade.telefone)) : caso.identidade.telefone} />
             </dl>
             <div className="flex flex-wrap items-center gap-3">
               <Link to="/golive/pessoas" className="text-sm text-navy underline decoration-gold underline-offset-4">

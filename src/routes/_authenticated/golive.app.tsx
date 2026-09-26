@@ -33,6 +33,7 @@ import {
 import { RadarSeisEixos } from "@/components/portal/radar-seis-eixos";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import { Button } from "@/components/ui/button";
+import { formatarTelefone } from "@/lib/validacao-pessoa";
 
 export const Route = createFileRoute("/_authenticated/golive/app")({
   head: () => ({
@@ -442,7 +443,7 @@ function AppClienteGoLive() {
                     <p className="break-words text-navy/70">{caso.identidade.email}</p>
                   ) : null}
                   {caso.identidade.telefone ? (
-                    <p className="text-navy/70">{caso.identidade.telefone}</p>
+                    <p className="text-navy/70">{formatarTelefone(String(caso.identidade.telefone))}</p>
                   ) : null}
                 </div>
               ) : (

@@ -79,16 +79,16 @@ describe("evidência de mesma pessoa", () => {
     expect(e?.motivo).toMatch(/família/);
   });
 
-  it("nome igual nunca funde sozinho, mas P29 (26/09/2026) passou a exigir confirmação humana em vez de ignorar em silêncio", () => {
-    // Fundir duas pessoas diferentes é pior que deixar duas fichas separadas —
-    // "provavel" nunca funde sozinho (podeTratarComoMesmaPessoa exige
-    // "confirmado"); decisão da Proprietária foi só parar de tratar nome
-    // exato como pista invisível (apenas_indicio, que nem chegava a
-    // decidirClienteDoHandoff) e passar a perguntar, como já fazia com
-    // telefone.
+  it("nome igual funde como CPF/e-mail — decisão explícita e reiterada da Proprietária (P30, 26/09/2026)", () => {
+    // "Pode fundir caso seja nome exato" / "homônimos irão sempre existir na
+    // face da terra": nome idêntico normalizado agora é "confirmado", igual
+    // CPF/e-mail. A proteção contra homônimo não é mais recusar a fusão — é
+    // a mesma regra de ambiguidade que já protegia CPF/e-mail (2+ candidatos
+    // com o mesmo dado = confirmar, nunca escolha ao acaso), testada em
+    // decidirClienteDoHandoff (p1-identidade-conversao-lead-cliente.test.ts).
     const e = evidenciaDeMesmaPessoa({ nome: "Ana Luiza" }, { nome: "Ana Luiza" });
-    expect(e?.forca).toBe("provavel");
-    expect(podeTratarComoMesmaPessoa(e)).toBe(false);
+    expect(e?.forca).toBe("confirmado");
+    expect(podeTratarComoMesmaPessoa(e)).toBe(true);
   });
 
   it("o e-mail vence o nome divergente", () => {

@@ -581,7 +581,7 @@ function Pessoa() {
                       cliente.endereco_complemento,
                       cliente.endereco_bairro,
                       [cliente.endereco_cidade, cliente.endereco_uf].filter(Boolean).join(" - "),
-                      cliente.endereco_cep,
+                      cliente.endereco_cep ? formatarCep(String(cliente.endereco_cep)) : cliente.endereco_cep,
                       cliente.endereco_pais,
                     ]
                       .filter(Boolean)

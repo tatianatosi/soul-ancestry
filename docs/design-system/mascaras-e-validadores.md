@@ -24,6 +24,21 @@ Anti-padrões proibidos: `replace(/\D/g,'')` solto dentro de um componente;
 validação apenas no cliente para campo que o servidor grava; validador de CPF
 copiado para um segundo arquivo.
 
+**P30 (26/09/2026) — varredura confirmada, não presumida.** Pedido direto da
+Proprietária ("máscaras que devem ser aplicadas em cada aba"): varredura por
+código (não por amostragem) de toda interpolação direta de `cpf`/`telefone`/
+`cep` em `.tsx` sem passar por `formatarCpf`/`formatarTelefone`/`formatarCep`.
+Encontradas e corrigidas 7 ocorrências em 6 arquivos que a rodada anterior
+(P29, só Pessoa 360) tinha deixado de fora: alerta de duplicidade em
+`/clientes`; telefone da identidade em `golive.pessoa.tsx` e no preview "Seus
+dados" de `golive.app.tsx`; telefone de Contatos em `fluxo-canonico.tsx`
+(CRM Vivo) sem máscara nenhuma no digitar; CEP na linha de endereço
+concatenada de Pessoa 360 (leitura, distinta do card de edição já corrigido
+em P29); e os dois lados do conflito (`atual`/`canonico`) nos três painéis de
+reconciliação (`reconciliar-cpf-partes.tsx`, `reconciliar-cpf-membros-caso.tsx`,
+`reconciliar-telefone-membros-caso.tsx`). Nenhuma máscara nova foi criada —
+todas reaproveitam os mesmos módulos desta seção.
+
 ## 2. Como ler a matriz
 
 - **Dona**: única entidade que pode gravar o campo.
@@ -40,7 +55,7 @@ copiado para um segundo arquivo.
 
 | Campo | Máscara / validador | Dona | Espelhos | Origem | Atualização | Visibilidade | Telas | Duplicidade | Ação futura |
 |---|---|---|---|---|---|---|---|---|---|
-| Nome civil | Texto obrigatório, sem máscara | `case_members.nome` | `leads.nome`, `contacts.nome`, `clientes.nome`, `nucleo_membros.nome`, `contract_parties.person_name` | Declarado pela família | Equipe, com registro | sanitizada | Ficha do caso, Contrato, App Conta | 6 grafias | **P29 (26/09/2026): decisão da Proprietária ("pode fundir caso seja nome exato") executada com salvaguarda** — `evidenciaDeMesmaPessoa` (`pessoa-identidade.ts`) sobe nome idêntico (normalizado) de `apenas_indicio` para `provavel`, mesma camada de telefone: nunca funde sozinho (`podeTratarComoMesmaPessoa` exige `confirmado`, só CPF/e-mail), mas agora sempre abre confirmação humana — antes, um lead com nome idêntico a um cliente virava cliente novo duplicado em silêncio. Eleger `case_members` como dona única continua Corte 6/7 do plano de `de-para-pessoa-unificada.md`, não autorizado |
+| Nome civil | Texto obrigatório, sem máscara | `case_members.nome` | `leads.nome`, `contacts.nome`, `clientes.nome`, `nucleo_membros.nome`, `contract_parties.person_name` | Declarado pela família | Equipe, com registro | sanitizada | Ficha do caso, Contrato, App Conta | 6 grafias | **P30 (26/09/2026): decisão explícita e reiterada da Proprietária ("pode fundir caso seja nome exato" / "homônimos irão sempre existir na face da terra") executada por completo** — `evidenciaDeMesmaPessoa` (`pessoa-identidade.ts`) trata nome idêntico normalizado como `confirmado`, igual CPF/e-mail: funde sozinho quando há exatamente um candidato; 2+ candidatos com o mesmo nome (ambiguidade real, duas pessoas) continuam caindo em confirmação humana — mesma regra que já protegia CPF/e-mail, não uma exceção nova. Eleger `case_members` como dona única (fundir o dado em si, não só a decisão de qual registro é a mesma pessoa) continua Corte 6/7 do plano de `de-para-pessoa-unificada.md`, não autorizado |
 | Nome social | Texto | `clientes.nome_social` | `contract_parties.preferred_name` | Declarado | Equipe | sanitizada | Cliente, Contrato | 2 | Refletir também na ficha do caso |
 | Nome de nascimento | Texto | `genealogical_person_profiles.nome_nascimento` | — | Pesquisa com evidência | Pesquisa, com revisão | interna até aprovação | Pesquisa, Árvore | — | Projeção sanitizada para a Árvore |
 | Nome canônico de pesquisa | Texto | `research_people.canonical_name` | `preferred_display_name` | Pesquisa | Pesquisa | interna | Pesquisa | — | Não confundir com nome civil |

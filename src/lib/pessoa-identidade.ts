@@ -16,24 +16,25 @@
  * pessoa, diz QUAL evidência encontrou e com que confiança, e deixa a decisão
  * para um humano. Nada aqui grava, funde ou arquiva registro.
  *
- * A regra que governa o desenho: fundir duas pessoas diferentes é pior do que
- * deixar duas fichas separadas. Por isso nome nunca basta — homônimo existe, e
- * "Ana Luiza" é dos nomes mais comuns do país.
+ * P30 (26/09/2026) — decisão explícita e reiterada da Proprietária: nome
+ * idêntico funde como CPF/e-mail quando há exatamente um candidato com
+ * aquele nome na organização ("pode fundir caso seja nome exato" /
+ * "homônimos irão sempre existir na face da terra"). Duas pessoas
+ * DIFERENTES com o mesmo nome continuam distinguidas pela mesma regra de
+ * ambiguidade que já protege CPF/e-mail: mais de um candidato = confirmar,
+ * nunca escolha ao acaso.
  */
 
 export type ForcaDoElo =
-  /** E-mail idêntico depois de normalizado. Documento ou e-mail é identidade. */
+  /** CPF, e-mail ou nome idênticos (todos normalizados). Funde sozinho
+   * quando há exatamente um candidato; ambíguo (2+ candidatos) cai em
+   * "confirmar" — nunca escolhe ao acaso. */
   | "confirmado"
-  /**
-   * Telefone ou nome idênticos (P29, 26/09/2026: nome exato subiu deste
-   * nível de `apenas_indicio` — decisão explícita da Proprietária). Nunca
-   * funde sozinho — telefone é compartilhado em família, nome tem homônimo
-   * (a própria Ana Luiza é o exemplo real). Sempre exige confirmação humana.
-   */
+  /** Telefone idêntico — família costuma compartilhar número, por isso
+   * nunca funde sozinho; sempre exige confirmação humana. */
   | "provavel"
-  /** Reservado para evidência mais fraca que nome/telefone; hoje nenhuma
-   * regra devolve este nível — `evidenciaDeMesmaPessoa` nunca funde sozinho
-   * abaixo de `confirmado`. */
+  /** Reservado para evidência mais fraca que telefone; hoje nenhuma regra
+   * devolve este nível. */
   | "apenas_indicio";
 
 export type EvidenciaDeElo = {
@@ -140,23 +141,16 @@ export function evidenciaDeMesmaPessoa(
   const nomeB = normalizarNome(b.nome);
   if (nomeA && nomeB && nomeA === nomeB) {
     /*
-     * P29 (26/09/2026) — decisão explícita da Proprietária: "Pode fundir
-     * caso seja nome exato". Antes disto, nome idêntico caía em
-     * `apenas_indicio` — a camada mais fraca, que `decidirClienteDoHandoff`
-     * nem chega a surfacear como pendência (só `provavel`/`confirmado`
-     * disparam o fluxo de confirmação) — na prática, um lead com nome
-     * IDÊNTICO a um cliente já cadastrado virava um cliente novo, duplicado,
-     * em silêncio. Subir para `provavel` corrige esse vazamento real sem
-     * remover a salvaguarda de homônimo que o comentário desta função já
-     * documentava (a própria Ana Luiza como exemplo de nome comum):
-     * `podeTratarComoMesmaPessoa` continua exigindo `confirmado` para fundir
-     * sem pergunta — nome exato passa a abrir o mesmo prompt de confirmação
-     * humana que telefone já abre, nunca fusão silenciosa.
+     * P30 (26/09/2026) — decisão explícita e reiterada da Proprietária:
+     * "Pode fundir caso seja nome exato" / "homônimos irão sempre existir
+     * na face da terra". Nome idêntico (normalizado) funde como CPF/e-mail:
+     * quando há exatamente um candidato com esse nome, a fusão é automática
+     * (decidirClienteDoHandoff → "reusar"); quando há mais de um candidato
+     * com o mesmo nome, a ambiguidade real (duas pessoas, não uma) ainda
+     * cai em "confirmar" — a mesma lógica de desempate que já existe para
+     * CPF/e-mail, não uma regra nova.
      */
-    return {
-      forca: "provavel",
-      motivo: "nome idêntico — confirme, porque duas pessoas podem ter o mesmo nome",
-    };
+    return { forca: "confirmado", motivo: "mesmo nome" };
   }
 
   return null;

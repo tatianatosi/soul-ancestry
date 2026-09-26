@@ -1,4 +1,5 @@
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { formatarCpf } from "@/lib/validacao-pessoa";
 
 /**
  * Corte R2 — mesma ideia de `ReconciliarCpfPartes`
@@ -102,7 +103,8 @@ export function ReconciliarCpfMembrosCaso({
               {p.acao === "conflito" ? (
                 <div className="mt-1 space-y-1">
                   <p className="text-[11px]">
-                    No caso: {p.atual} · No cadastro canônico: {p.canonico}
+                    No caso: {p.atual ? formatarCpf(p.atual) : p.atual} · No cadastro canônico:{" "}
+                    {p.canonico ? formatarCpf(p.canonico) : p.canonico}
                   </p>
                   {onResolverConflito ? (
                     <AcaoOperacional

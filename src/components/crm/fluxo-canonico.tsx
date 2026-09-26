@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { formatarTelefone } from "@/lib/validacao-pessoa";
 import {
   DIRECOES_INTERACAO,
   ETAPAS_COMERCIAIS,
@@ -199,7 +200,11 @@ function ConteudoFluxoCanonico({ dados }: { dados: DadosFluxo }) {
             <div className="grid gap-3">
               <Texto label="Nome" valor={contato.nome} onChange={(v) => setContato((c) => ({ ...c, nome: v }))} />
               <Texto label="E-mail" valor={contato.email} onChange={(v) => setContato((c) => ({ ...c, email: v }))} />
-              <Texto label="Telefone" valor={contato.telefone} onChange={(v) => setContato((c) => ({ ...c, telefone: v }))} />
+              <Texto
+                label="Telefone"
+                valor={contato.telefone}
+                onChange={(v) => setContato((c) => ({ ...c, telefone: formatarTelefone(v) }))}
+              />
               <Selecao label="Origem" valor={contato.origem} opcoes={op(ORIGENS_CONTATO)} onChange={(v) => setContato((c) => ({ ...c, origem: v }))} />
               <button
                 type="button"

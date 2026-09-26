@@ -1,4 +1,5 @@
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { formatarTelefone } from "@/lib/validacao-pessoa";
 
 /**
  * P28 (26/09/2026) — mesmo padrão de `ReconciliarCpfMembrosCaso`
@@ -100,7 +101,8 @@ export function ReconciliarTelefoneMembrosCaso({
               {p.acao === "conflito" ? (
                 <div className="mt-1 space-y-1">
                   <p className="text-[11px]">
-                    No caso: {p.atual} · No cadastro canônico: {p.canonico}
+                    No caso: {p.atual ? formatarTelefone(p.atual) : p.atual} · No cadastro canônico:{" "}
+                    {p.canonico ? formatarTelefone(p.canonico) : p.canonico}
                   </p>
                   {onResolverConflito ? (
                     <AcaoOperacional

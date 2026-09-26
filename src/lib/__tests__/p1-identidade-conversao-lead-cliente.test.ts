@@ -111,17 +111,27 @@ describe("conversão do lead em cliente canônico", () => {
     expect(d.acao).toBe("criar");
   });
 
-  it("nome igual sozinho nunca funde automaticamente — P29 (26/09/2026) pede confirmação em vez de criar duplicata em silêncio", () => {
+  it("nome igual com um único candidato funde automaticamente — decisão explícita e reiterada da Proprietária (P30, 26/09/2026)", () => {
     // Antes: nome igual caía em apenas_indicio, decidirClienteDoHandoff nem
-    // via isso como pendência e criava um cliente novo duplicado sem avisar.
-    // Decisão da Proprietária ("pode fundir caso seja nome exato"): nome
-    // exato passa a abrir o mesmo prompt de confirmação humana que telefone
-    // já abre — nunca fusão automática sem confirmação (continua exigindo
-    // confirmado, que só CPF/e-mail dão).
+    // via isso como pendência e criava um cliente novo duplicado sem avisar
+    // — o vazamento real. "Pode fundir caso seja nome exato" / "homônimos
+    // irão sempre existir na face da terra": nome exato agora funde igual
+    // CPF/e-mail quando há exatamente um candidato.
     const d = decidirClienteDoHandoff({ nome: "Ana Luiza" }, [{ id: "c6", nome: "Ana Luiza" }]);
+    expect(d).toMatchObject({ acao: "reusar", clienteId: "c6" });
+  });
+
+  it("nome igual com dois candidatos continua pedindo escolha — ambiguidade real (duas pessoas), não homônimo negado", () => {
+    const d = decidirClienteDoHandoff(
+      { nome: "Ana Luiza" },
+      [
+        { id: "c6", nome: "Ana Luiza" },
+        { id: "c8", nome: "Ana Luiza" },
+      ],
+    );
     expect(d.acao).toBe("confirmar");
     if (d.acao === "confirmar") {
-      expect(d.candidatos).toEqual([expect.objectContaining({ id: "c6" })]);
+      expect(d.candidatos.map((c) => c.id).sort()).toEqual(["c6", "c8"]);
     }
   });
 

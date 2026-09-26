@@ -693,8 +693,9 @@ function ClientesPage() {
                 <ul className="mt-2 space-y-1 text-xs text-navy/70">
                   {duplicidadesNovo.map((d) => (
                     <li key={d.id}>
-                      <strong>{d.nome}</strong> · {d.email ?? "sem e-mail"} · {d.telefone ?? "sem telefone"}
-                      {d.cpf ? ` · CPF ${d.cpf}` : ""} — {d.motivo}
+                      <strong>{d.nome}</strong> · {d.email ?? "sem e-mail"} ·{" "}
+                      {d.telefone ? formatarTelefone(d.telefone) : "sem telefone"}
+                      {d.cpf ? ` · CPF ${formatarCpf(d.cpf)}` : ""} — {d.motivo}
                       <Link
                         to="/pessoas/$clienteId"
                         params={{ clienteId: d.id }}

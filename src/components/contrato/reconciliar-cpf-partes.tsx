@@ -9,6 +9,8 @@
  * informativo, para decisão humana fora desta tela.
  */
 
+import { formatarCpf } from "@/lib/validacao-pessoa";
+
 type ItemPlanoReconciliacao = {
   parte: string;
   id: string;
@@ -106,7 +108,8 @@ export function ReconciliarCpfPartes({
               </div>
               {p.acao === "conflito" ? (
                 <p className="mt-1 text-[11px]">
-                  Na parte do contrato: {p.atual} · No cadastro canônico: {p.canonico}
+                  Na parte do contrato: {p.atual ? formatarCpf(p.atual) : p.atual} · No cadastro canônico:{" "}
+                  {p.canonico ? formatarCpf(p.canonico) : p.canonico}
                 </p>
               ) : null}
             </li>
