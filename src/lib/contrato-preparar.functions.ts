@@ -2,12 +2,13 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { CONFLITO_PAIS_ROTA } from "@/lib/coerencia-caso";
+import { CONFLITO_PAIS_ROTA, qualificadorPaisDoCodigo } from "@/lib/coerencia-caso";
 import { conflitosCoerenciaDoRegistro, exigirCoerencia } from "@/lib/coerencia-caso.server";
 import { PLACEHOLDER_PARAM, anexosPorRegra } from "@/lib/contrato-parametros.server";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { skuHomologadoParaCaso } from "@/lib/catalogo-sku.server";
 import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
+import { referenciaFinanceiraDoCaso } from "@/lib/financeiro-referencia.server";
 import {
   bloqueiosDeEscopo,
   extrairEscopoDaProposta,
@@ -295,9 +296,13 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
 
     let lista = (valores ?? []) as any[];
     const skuHomologado = await skuHomologadoParaCaso(supabase, org, caso.codigo);
-    // LEGADO: parametrosDoPlanejador lê src/data/casos.ts. Só preenche campo
-    // ainda vazio — valor já persistido (incluindo case_plans / edição humana) prevalece.
-    const planejador = parametrosDoPlanejador(caso.codigo, skuHomologado);
+    const paisCodigo = qualificadorPaisDoCodigo(caso.codigo)?.sigla ?? null;
+    const referenciaFinanceira = await referenciaFinanceiraDoCaso(supabase, org, caso.id, paisCodigo);
+    // Só preenche campo ainda vazio — valor já persistido (incluindo
+    // case_plans / edição humana) prevalece. Parâmetro financeiro vem de
+    // dado vivo (condição do caso ou referência do país), nunca do lookup
+    // estático legado (P22, 2026-09-26).
+    const planejador = parametrosDoPlanejador(caso.codigo, skuHomologado, referenciaFinanceira);
     for (const c of planejador.parametros) {
       const atual = lista.find((v) => v.campo === c.campo);
       if (!atual || String(atual.valor ?? "").trim()) continue;

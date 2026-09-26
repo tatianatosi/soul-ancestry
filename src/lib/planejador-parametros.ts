@@ -1,13 +1,22 @@
 /**
- * LEGADO — dump homologado do Planejador Universal (planilha / src/data/casos.ts).
+ * LEGADO — dump homologado do Planejador Universal (cadastro de partes e
+ * convenção de ID — planilha / src/data/casos.ts).
  *
  * NÃO é a fonte da operação ativa. O planejador operacional vivo é `case_plans`
  * via `salvarPlanejadorOperacional`. Este módulo só preenche parâmetro contratual
  * VAZIO (nunca sobrescreve valor já persistido) e não dirige status, prioridade,
  * próxima ação, tarefa ou dashboard.
+ *
+ * O parâmetro FINANCEIRO (parcelas/despesas externas) não lê mais o lookup
+ * estático `PARAMETROS` de `src/data/casos.ts` (2026-09-26, P22 — decisão
+ * explícita da Proprietária: "o ideal é deixar tudo remetendo aos dados
+ * atuais"). Quem chama esta função resolve a referência financeira contra
+ * dado vivo (`referenciaFinanceiraDoCaso`, `financeiro-referencia.server.ts`
+ * — condição comercial do caso ou referência resgatada do país) e passa o
+ * resultado já pronto — este módulo permanece puro, sem acesso a banco.
  */
 
-import { PARAMETROS } from "@/data/casos";
+import { paramsDaReferenciaFinanceira, type ReferenciaFinanceira } from "@/lib/financeiro-referencia";
 
 export const PLANEJADOR_VERSAO = "planejador-universal-v2026.08";
 export const PLANEJADOR_HOMOLOGADO_EM = "2026-08-14";
@@ -196,6 +205,7 @@ export function skuVivoDoCatalogo(
 export function parametrosDoPlanejador(
   codigoCaso?: string | null,
   skuHomologado?: SkuHomologadoAtivo | null,
+  referenciaFinanceira?: ReferenciaFinanceira,
 ): {
   convencao: ConvencaoPlanejador | null;
   versao: string;
@@ -207,7 +217,6 @@ export function parametrosDoPlanejador(
     return { convencao: null, versao: PLANEJADOR_VERSAO, homologadoEm: PLANEJADOR_HOMOLOGADO_EM, parametros: [] };
   }
 
-  const financeiro = PARAMETROS[convencao.tipoProcesso];
   const detalhe = `Planejador Universal ${PLANEJADOR_VERSAO} · homologado em ${PLANEJADOR_HOMOLOGADO_EM} · convenção ${convencao.prefixo}`;
 
   const parametros: ParamPlanejador[] = [
@@ -262,19 +271,10 @@ export function parametrosDoPlanejador(
     );
   }
 
-  // Parâmetro financeiro zerado no Planejador = "preencher manualmente": não é valor homologado.
-  if (financeiro && (financeiro.despesas > 0 || financeiro.taxas > 0 || financeiro.honorarios > 0)) {
-    parametros.push({
-      campo: "parcelas",
-      valor: `${financeiro.parcelas}x`,
-      detalhe: `${detalhe} · parâmetro financeiro homologado`,
-    });
-    parametros.push({
-      campo: "despesas_externas",
-      valor: `Despesas previstas BRL ${financeiro.despesas} · taxas previstas BRL ${financeiro.taxas} (reembolsáveis conforme comprovação)`,
-      detalhe: `${detalhe} · parâmetro financeiro homologado`,
-    });
-  }
+  // Parâmetro financeiro: dado vivo (condição do caso ou referência do
+  // país), resolvido pelo chamador. Sem nenhuma das duas fontes, não
+  // fabrica nada — fica pendência, como sempre foi.
+  parametros.push(...paramsDaReferenciaFinanceira(referenciaFinanceira ?? null, detalhe));
 
 
   return { convencao, versao: PLANEJADOR_VERSAO, homologadoEm: PLANEJADOR_HOMOLOGADO_EM, parametros };
