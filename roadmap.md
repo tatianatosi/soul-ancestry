@@ -1,5 +1,9 @@
 # Roadmap
 
+## Revisão textual e capturas do App Cliente (26/09/2026)
+- [ ] Comparar textos das sete telas com o roteiro aprovado e ajustar cartões narrativos sem alterar fontes ou permissões.
+- [ ] Capturar sete telas em 375 px e desktop com sessão real, distinguindo conteúdo publicado de estados vazios, e entregar imagens para aprovação.
+
 - [x] Consolidar o kit visual exportável aprovado, com tokens Pantone isolados e componentes reutilizáveis.
 - [x] Preservar as 15 prévias e as 7 telas canônicas do App Cliente.
 - [x] Conectar Hoje, CRM, Caso 360, Pesquisa, Biblioteca, Financeiro e Jurídico aos dados reais existentes, sem criar registros fictícios.

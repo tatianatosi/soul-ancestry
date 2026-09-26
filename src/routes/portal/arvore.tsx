@@ -164,7 +164,7 @@ export function PortalArvore() {
                     </div>
                     {painel.notasPublicadas.length === 0 ? (
                       <p className="rounded-xl border border-dashed border-navy/20 bg-cream/60 p-4 text-sm text-navy/60">
-                        A equipe está cuidando das próximas conexões. Quando uma delas estiver confirmada, aparecerá aqui e na Jornada.
+                         Quando um novo vínculo estiver confirmado e pronto para compartilhar, você poderá encontrá-lo aqui e na Jornada.
                       </p>
                     ) : (
                       <ul className="space-y-3">
