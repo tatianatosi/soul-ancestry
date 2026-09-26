@@ -24,11 +24,12 @@ import { pendenciaPesquisaAberta } from "@/lib/rotulo-negocio";
 import { ROTULO_ATO_FORMAL } from "@/lib/validacao-juridica-caso";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions";
-import { conferirDivergenciaCpfMembrosCaso, conferirDivergenciaTelefoneMembrosCaso } from "@/lib/caso-canonico.functions";
+import { conferirDivergenciaCepMembrosCaso, conferirDivergenciaCpfMembrosCaso, conferirDivergenciaTelefoneMembrosCaso } from "@/lib/caso-canonico.functions";
 import { lerCadeiaOperacional } from "@/lib/cadeia-operacional.functions";
 import { EstadoIntegradoCaso } from "@/components/caso/estado-integrado";
 import { ReconciliarCpfMembrosCaso } from "@/components/caso/reconciliar-cpf-membros-caso";
 import { ReconciliarTelefoneMembrosCaso } from "@/components/caso/reconciliar-telefone-membros-caso";
+import { ReconciliarCepMembrosCaso } from "@/components/caso/reconciliar-cep-membros-caso";
 import { GrupoComunicacaoCaso } from "@/components/caso/grupo-comunicacao-caso";
 import { listarFilaOps } from "@/lib/ops.functions";
 import { listarDocumentos } from "@/lib/documentos.functions";
@@ -63,7 +64,7 @@ import { classificarErroPersistencia, ESTADOS_SALVAMENTO } from "@/lib/persisten
 import { toast } from "sonner";
 import { MapaPersistenciaCaso } from "@/components/caso/mapa-persistencia";
 import { estadoDerivadoPorGates } from "@/lib/gates-ativacao-ficha";
-import { cepValido, cpfValido, formatarCep, formatarCpf, formatarTelefone } from "@/lib/validacao-pessoa";
+import { cepValido, cpfValido, emailValido, formatarCep, formatarCpf, formatarTelefone, telefoneValido } from "@/lib/validacao-pessoa";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -2786,6 +2787,39 @@ function AbaPessoas({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // P31: mesmo padrão do CPF/telefone, para CEP (pedido direto da
+  // Proprietária: unificar em vez de conferir 3 vezes o mesmo dado).
+  const reconciliarCepMembros = useServerFn(conferirDivergenciaCepMembrosCaso);
+  const [planoReconciliacaoCepMembros, setPlanoReconciliacaoCepMembros] = useState<any[] | null>(null);
+  const mReconciliarCepMembros = useMutation({
+    mutationFn: (confirmar: boolean) => reconciliarCepMembros({ data: { caseId: casoId, confirmar } }),
+    onSuccess: (r: any) => {
+      setPlanoReconciliacaoCepMembros(Array.isArray(r.plano) ? r.plano : []);
+      if (r.simulado) {
+        toast.info("Prévia da conferência de CEP: nada foi gravado ainda.");
+        return;
+      }
+      toast.success(
+        r.atualizados
+          ? `${r.atualizados} CEP(s) preenchido(s) a partir do cadastro canônico.`
+          : "Nada a preencher: nenhum membro estava com CEP vazio.",
+      );
+      onMudou();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const mResolverConflitoCep = useMutation({
+    mutationFn: (v: { membroId: string; motivo: string }) =>
+      reconciliarCepMembros({ data: { caseId: casoId, resolverMembroId: v.membroId, motivo: v.motivo } }),
+    onSuccess: () => {
+      toast.success("CEP alinhado ao cadastro canônico e registrado no histórico.");
+      mReconciliarCepMembros.mutate(false);
+      onMudou();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   // Caso com núcleo vinculado: a composição familiar é somente leitura, projetada de Núcleos e dossiês.
   // A conferência de CPF/telefone vale independentemente do núcleo (opera sobre case_members).
   if (temNucleo) {
@@ -2804,6 +2838,13 @@ function AbaPessoas({
           onVerificar={() => mReconciliarTelefoneMembros.mutate(false)}
           onSincronizar={() => mReconciliarTelefoneMembros.mutate(true)}
           onResolverConflito={(membroId, motivo) => mResolverConflitoTelefone.mutate({ membroId, motivo })}
+        />
+        <ReconciliarCepMembrosCaso
+          plano={planoReconciliacaoCepMembros}
+          ocupado={mReconciliarCepMembros.isPending}
+          onVerificar={() => mReconciliarCepMembros.mutate(false)}
+          onSincronizar={() => mReconciliarCepMembros.mutate(true)}
+          onResolverConflito={(membroId, motivo) => mResolverConflitoCep.mutate({ membroId, motivo })}
         />
         <GrupoComunicacaoCaso caseId={casoId} />
         <PessoasDoNucleo caseId={casoId} />
@@ -2842,6 +2883,13 @@ function AbaPessoas({
         onVerificar={() => mReconciliarTelefoneMembros.mutate(false)}
         onSincronizar={() => mReconciliarTelefoneMembros.mutate(true)}
         onResolverConflito={(membroId, motivo) => mResolverConflitoTelefone.mutate({ membroId, motivo })}
+      />
+      <ReconciliarCepMembrosCaso
+        plano={planoReconciliacaoCepMembros}
+        ocupado={mReconciliarCepMembros.isPending}
+        onVerificar={() => mReconciliarCepMembros.mutate(false)}
+        onSincronizar={() => mReconciliarCepMembros.mutate(true)}
+        onResolverConflito={(membroId, motivo) => mResolverConflitoCep.mutate({ membroId, motivo })}
       />
       <GrupoComunicacaoCaso caseId={casoId} />
       <Secao
@@ -2924,6 +2972,16 @@ function CartaoPessoa({
     const cep = v("cep");
     if (cep.trim() && !cepValido(cep)) {
       setErro("CEP inválido — precisa ter 8 dígitos.");
+      return;
+    }
+    const email = v("email");
+    if (email.trim() && !emailValido(email)) {
+      setErro("E-mail inválido — confira o endereço digitado.");
+      return;
+    }
+    const telefone = v("telefone");
+    if (telefone.trim() && !telefoneValido(telefone)) {
+      setErro("Telefone inválido — confira o DDD e o número digitados.");
       return;
     }
     m.mutate();
@@ -3020,6 +3078,15 @@ function CartaoPessoa({
           valor={v("telefone")}
           onChange={(x) => set("telefone", formatarTelefone(x))}
           ajuda="Máscara de Brasil (DDD) por padrão. Pessoa morando fora: comece digitando + e o DDI."
+        />
+        <Selecao
+          label="É WhatsApp?"
+          valor={v("telefone_whatsapp") === "true" ? "true" : v("telefone_whatsapp") === "false" ? "false" : ""}
+          opcoes={[
+            { valor: "true", rotulo: "Sim" },
+            { valor: "false", rotulo: "Não" },
+          ]}
+          onChange={(x) => set("telefone_whatsapp", x === "true" ? true : x === "false" ? false : null)}
         />
         <Texto
           label="E-mail"

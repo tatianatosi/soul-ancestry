@@ -188,6 +188,7 @@ const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
     "cpf",
     "rg",
     "telefone",
+    "telefone_whatsapp",
     "email",
     "endereco",
     "cep",

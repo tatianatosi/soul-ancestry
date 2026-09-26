@@ -1818,6 +1818,7 @@ export type Database = {
           rg: string | null
           status_cadastral: string
           telefone: string | null
+          telefone_whatsapp: boolean | null
           titular: boolean
           updated_at: string
           updated_by: string | null
@@ -1861,6 +1862,7 @@ export type Database = {
           rg?: string | null
           status_cadastral?: string
           telefone?: string | null
+          telefone_whatsapp?: boolean | null
           titular?: boolean
           updated_at?: string
           updated_by?: string | null
@@ -1904,6 +1906,7 @@ export type Database = {
           rg?: string | null
           status_cadastral?: string
           telefone?: string | null
+          telefone_whatsapp?: boolean | null
           titular?: boolean
           updated_at?: string
           updated_by?: string | null
@@ -4062,6 +4065,7 @@ export type Database = {
           status: string
           status_comercial: string | null
           telefone: string | null
+          telefone_whatsapp: boolean | null
           updated_at: string
           updated_by: string | null
         }
@@ -4112,6 +4116,7 @@ export type Database = {
           status?: string
           status_comercial?: string | null
           telefone?: string | null
+          telefone_whatsapp?: boolean | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -4162,6 +4167,7 @@ export type Database = {
           status?: string
           status_comercial?: string | null
           telefone?: string | null
+          telefone_whatsapp?: boolean | null
           updated_at?: string
           updated_by?: string | null
         }

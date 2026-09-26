@@ -67,6 +67,7 @@ export function pessoaDoCasoAPartirDoNucleo(m: MembroNucleoBruto, ordemMinimaCon
     nacionalidade: null as string | null,
     cpf: null as string | null,
     telefone: null as string | null,
+    cep: null as string | null,
     data_nascimento: null as string | null,
     representante_legal: null as string | null,
     status_cadastral: "pendente" as string,
@@ -105,7 +106,7 @@ export async function pessoasDoCasoComFallbackNucleo(
 ): Promise<PessoaDoCaso[]> {
   const { data: membrosCaso } = await supabase
     .from("case_members")
-    .select("id,nome,papel_no_caso,titular,contratante,dependente,cpf,telefone,data_nascimento,representante_legal,status_cadastral,parentesco,requerente,nacionalidade,cliente_id,pai_id,mae_id,data_verificacao_dado,representacao_necessaria,representacao_documentada")
+    .select("id,nome,papel_no_caso,titular,contratante,dependente,cpf,telefone,cep,data_nascimento,representante_legal,status_cadastral,parentesco,requerente,nacionalidade,cliente_id,pai_id,mae_id,data_verificacao_dado,representacao_necessaria,representacao_documentada")
     .eq("case_id", caseId)
     .is("archived_at", null)
     .order("created_at", { ascending: true });
@@ -229,6 +230,60 @@ export function sinalTelefoneDaPessoaPorCaso(
   for (const m of membros) {
     if (m.origem === "nucleo" || m.cliente_id !== clienteId || !m.case_id) continue;
     const estado = estadoTelefoneMembroCaso(m, telefoneCanonico);
+    if (estado !== "conflito" && estado !== "preencher") continue;
+    const alvo = (saida[m.case_id] ??= { conflito: 0, preencher: 0 });
+    alvo[estado] += 1;
+  }
+  return saida;
+}
+
+/**
+ * P31 (26/09/2026) — pedido direto da Proprietária: "cep conferência será
+ * mesmo necessário verificar três vezes o mesmo dado?". Achado real: CEP
+ * (e endereço) existem em 3 lugares sem nunca terem sido reconciliados —
+ * `clientes.endereco_cep` (canônico), `case_members.cep` (por membro do
+ * caso) e o próprio `case_members.endereco` (texto livre). Mesmo padrão
+ * exato de `estadoCpfMembroCaso`/`estadoTelefoneMembroCaso`: nunca funde
+ * automaticamente, nunca sobrescreve valor já gravado, dependente nunca
+ * herda do responsável.
+ */
+export type EstadoCepMembro =
+  | "preencher"
+  | "conflito"
+  | "ja_sincronizado"
+  | "sem_dado_canonico"
+  | "dependente_nao_sincronizado";
+
+const soDigitosCep = (s: string) => s.replace(/\D/g, "");
+
+export function estadoCepMembroCaso(
+  membro: { cep?: string | null; dependente?: boolean | null },
+  cepCanonico: string | null | undefined,
+): EstadoCepMembro {
+  if (membro.dependente) return "dependente_nao_sincronizado";
+  if (!cepCanonico || !soDigitosCep(cepCanonico)) return "sem_dado_canonico";
+  if (membro.cep && soDigitosCep(membro.cep)) {
+    return soDigitosCep(membro.cep) === soDigitosCep(cepCanonico) ? "ja_sincronizado" : "conflito";
+  }
+  return "preencher";
+}
+
+/** Sinal da Pessoa 360 para CEP — mesmo formato do sinal de CPF/telefone. */
+export function sinalCepDaPessoaPorCaso(
+  membros: {
+    case_id?: string | null;
+    cliente_id?: string | null;
+    cep?: string | null;
+    dependente?: boolean | null;
+    origem?: string;
+  }[],
+  clienteId: string,
+  cepCanonico: string | null | undefined,
+): Record<string, { conflito: number; preencher: number }> {
+  const saida: Record<string, { conflito: number; preencher: number }> = {};
+  for (const m of membros) {
+    if (m.origem === "nucleo" || m.cliente_id !== clienteId || !m.case_id) continue;
+    const estado = estadoCepMembroCaso(m, cepCanonico);
     if (estado !== "conflito" && estado !== "preencher") continue;
     const alvo = (saida[m.case_id] ??= { conflito: 0, preencher: 0 });
     alvo[estado] += 1;

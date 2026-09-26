@@ -46,10 +46,17 @@ Nenhuma máscara nova — todas reaproveitam `formatarCpf`/`formatarTelefone`/`f
 
 ## O que ainda não foi varrido (declarado, não escondido)
 
-Esta rodada cobriu CPF/telefone/CEP — os três campos com máscara canônica hoje. RG (número/órgão/
-UF) não tem máscara própria porque a coluna de órgão/UF não existe (já declarado como lacuna em
-P28); endereço estruturado tem o mesmo problema (texto corrido). Ambos exigem decisão de schema,
-não são "máscara não aplicada" — são "máscara que ainda não existe".
+Esta rodada cobriu CPF/telefone/CEP — os três campos com máscara canônica hoje.
+
+**Correção (P31, 26/09/2026): o parágrafo original aqui estava errado.** Ele afirmava que RG
+(número/órgão/UF) "não tem máscara própria porque a coluna de órgão/UF não existe" e que
+"endereço estruturado tem o mesmo problema (texto corrido)" — nenhuma das duas afirmações era
+verdadeira. Consulta direta ao banco (`information_schema.columns`, não a este documento)
+confirmou que `clientes.rg_numero`/`clientes.rg_orgao_uf` já existiam antes desta sessão, e que
+`clientes.endereco_logradouro/numero/complemento/bairro/cidade/uf/pais` já são campos estruturados
+e editáveis em Pessoa 360 desde antes de P28. O erro real não era "coluna ausente" — era eu não
+ter reconferido o schema real antes de repetir a mesma frase entre P28→P29→P30. P31 fechou a
+validação que genuinamente faltava (UF do órgão emissor do RG) sem precisar de nenhuma migration.
 
 ## Verificação
 

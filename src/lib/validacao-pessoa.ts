@@ -144,3 +144,44 @@ export function telefoneValido(valor: string, pais?: PaisTelefone): boolean {
   const d = apenasDigitos(valor);
   return d.length === 10 || d.length === 11;
 }
+
+/* ------------------------------------------------------------------ */
+/* E-mail                                                               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Validação estrutural simples (não confirma entrega/existência da caixa,
+ * só a forma `algo@dominio.tld`). P31 (26/09/2026): pedido direto da
+ * Proprietária ("e-mail... deve ser estruturado com máscaras e
+ * validações") — até aqui o campo só tinha `type="email"` do navegador,
+ * nunca checagem própria antes de gravar.
+ */
+export function emailValido(valor: string): boolean {
+  const v = valor.trim();
+  if (!v) return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+
+/* ------------------------------------------------------------------ */
+/* RG — número e órgão emissor/UF                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * O RG não tem dígito verificador nem tamanho nacional único (cada estado
+ * emite no seu próprio formato) — por isso não existe "formatarRg" como
+ * existe `formatarCpf`. O que dá para validar de forma real é a UF do
+ * órgão emissor (ex.: "SSP/SP", "SSP-SP", "SESP MT"): extrai o par de
+ * letras no fim do texto e confere contra `UFS_BRASIL`. Texto sem UF
+ * reconhecível (RG estrangeiro, órgão sem UF) não é tratado como erro —
+ * só quando há um par de letras no fim que NÃO é uma UF válida.
+ */
+export function rgOrgaoUfValido(valor: string): boolean {
+  const v = valor.trim();
+  if (!v) return true;
+  // Só reconhece UF quando vem em maiúsculas e separada por "/", "-" ou
+  // espaço (ex.: "SSP/SP", "SSP-MT", "SESP SP") — nunca confunde com o fim
+  // de uma palavra do nome do órgão (ex.: "...Pública" não vira "ca").
+  const m = v.match(/(?:^|[/\-\s])([A-Z]{2})$/);
+  if (!m) return true;
+  return ufValida(m[1]);
+}

@@ -51,11 +51,15 @@ export const carregarPessoa = createServerFn({ method: "GET" })
     const { data: cliente } = await supabase
       .from("clientes")
       .select(
-        "id, nome, nome_social, email, telefone, documento, origem, pais_interesse, status_comercial, created_at," +
+        "id, nome, nome_social, email, telefone, telefone_whatsapp, documento, origem, pais_interesse, status_comercial, created_at," +
           " sexo, nacionalidade, profissao, cpf, rg_numero, rg_orgao_uf," +
           " endereco_logradouro, endereco_numero, endereco_complemento, endereco_bairro, endereco_cidade, endereco_uf, endereco_cep, endereco_pais," +
           " estado_civil, nome_conjuge, procurador_cliente_id, procurador_escopo," +
-          " data_nascimento, nome_pai, nome_mae, cidade_nascimento",
+          " data_nascimento, nome_pai, nome_mae, cidade_nascimento," +
+          // P31 (26/09/2026): campos comerciais já existem em `clientes` desde
+          // sempre, mas nunca tinham leitor/tela — pedido direto de "executar
+          // comercial" em Pessoa 360.
+          " classificacao, data_origin, ativacao_decidida_em, ativacao_justificativa",
       )
       .eq("id", data.clienteId)
       .eq("organization_id", organizationId)
@@ -348,6 +352,24 @@ export const carregarPessoa = createServerFn({ method: "GET" })
       .order("principal", { ascending: false })
       .order("created_at", { ascending: true });
 
+    /*
+      P31 (26/09/2026) — pedido direto: "Consentimentos da pessoa 360".
+      `consent_records` já é fonte real e estruturada (client_id, case_id,
+      tipo_consentimento, status, escopo_compartilhamento, coletado_em,
+      revogado_em/por/motivo) — já é uma das entidades genéricas de
+      criar/atualizar em `saas.functions.ts`. Nunca tinha leitor agregado
+      por pessoa; só existia por caso, disperso.
+    */
+    const { data: consentimentos } = await supabase
+      .from("consent_records")
+      .select(
+        "id, case_id, tipo_consentimento, status, escopo_compartilhamento, coletado_em, metodo_coleta, versao_texto, revogado_em, revogacao_motivo",
+      )
+      .eq("organization_id", organizationId)
+      .eq("client_id", cliente.id)
+      .is("archived_at", null)
+      .order("coletado_em", { ascending: false });
+
     return {
       encontrada: true as const,
       cliente: cliente as Linha,
@@ -368,6 +390,7 @@ export const carregarPessoa = createServerFn({ method: "GET" })
       materiaisDossie: (materiaisCatalogados ?? []) as Linha[],
       nucleos: (nucleosDaPessoa ?? []) as Linha[],
       contatos: (contatos ?? []) as Linha[],
+      consentimentos: (consentimentos ?? []) as Linha[],
     };
   });
 
@@ -376,6 +399,7 @@ const CAMPOS_EDITAVEIS = [
   "nome_social",
   "email",
   "telefone",
+  "telefone_whatsapp",
   "sexo",
   "nacionalidade",
   "profissao",
@@ -401,20 +425,29 @@ const CAMPOS_EDITAVEIS = [
 type CampoEditavel = (typeof CAMPOS_EDITAVEIS)[number];
 
 /** Edita os dados da Pessoa Canônica. Grava e relê para confirmar — nunca assume sucesso. */
+// P31 (26/09/2026): telefone_whatsapp é o único campo booleano desta lista
+// (sim/não/não informado) — os demais continuam texto. Trata os dois tipos
+// sem converter boolean em null por engano.
+const CAMPOS_BOOLEANOS: readonly CampoEditavel[] = ["telefone_whatsapp"] as const;
+
 export const atualizarPessoa = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (data: { clienteId: string; campos: Partial<Record<CampoEditavel, string | null>> }) => data,
+    (data: { clienteId: string; campos: Partial<Record<CampoEditavel, string | boolean | null>> }) => data,
   )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
 
-    const payload: Record<string, string | null> = {};
+    const payload: Record<string, string | boolean | null> = {};
     for (const chave of CAMPOS_EDITAVEIS) {
       if (chave in data.campos) {
         const v = data.campos[chave];
-        payload[chave] = typeof v === "string" ? v.trim() || null : null;
+        if ((CAMPOS_BOOLEANOS as readonly string[]).includes(chave)) {
+          payload[chave] = typeof v === "boolean" ? v : null;
+        } else {
+          payload[chave] = typeof v === "string" ? v.trim() || null : null;
+        }
       }
     }
     if (Object.keys(payload).length === 0) throw new Error("Nenhum campo para gravar.");

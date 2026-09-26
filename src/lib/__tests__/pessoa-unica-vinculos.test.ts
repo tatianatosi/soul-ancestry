@@ -61,7 +61,11 @@ describe("leitor único de pessoas do caso (Núcleo/Participante) já convergido
 
 describe("máscaras existentes reusadas no formulário ativo de Pessoa (item 7)", () => {
   it("UF do endereço reusa a lista canônica (UFS_BRASIL), não uma lista duplicada à mão", () => {
-    expect(pessoaRota).toContain("formatarCep, formatarCpf, formatarTelefone, UFS_BRASIL }");
+    // P31 (26/09/2026): import de validacao-pessoa passou a multi-linha (mais
+    // nomes: emailValido, rgOrgaoUfValido, telefoneValido) — confere os
+    // nomes, não mais a linha exata de import.
+    expect(pessoaRota).toMatch(/formatarCep,?\s*\n?\s*formatarCpf/);
+    expect(pessoaRota).toContain("UFS_BRASIL");
     expect(pessoaRota).toContain("const UFS = UFS_BRASIL.map((u) => u.sigla)");
   });
 

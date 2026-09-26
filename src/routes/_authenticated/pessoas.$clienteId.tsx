@@ -18,14 +18,24 @@ import {
   type EvidenciaDeElo,
 } from "@/lib/pessoa-identidade";
 import { TIPOS_DOCUMENTO } from "@/lib/fontes-documentos";
-import { cepValido, cpfValido, formatarCep, formatarCpf, formatarTelefone, UFS_BRASIL } from "@/lib/validacao-pessoa";
+import {
+  cepValido,
+  cpfValido,
+  emailValido,
+  formatarCep,
+  formatarCpf,
+  formatarTelefone,
+  rgOrgaoUfValido,
+  telefoneValido,
+  UFS_BRASIL,
+} from "@/lib/validacao-pessoa";
 import { rotuloFase } from "@/lib/fase-rotulo";
 import { obterProximaAcaoCanonica, SELO_PROXIMA_ACAO } from "@/lib/caso-ficha";
 import { resumoVisaoClienteCaso } from "@/lib/app-cliente-como-pessoa.functions";
 import { NOME_RESPONSAVEL_PADRAO } from "@/lib/responsavel-padrao";
 import { ordenarPorPrioridade, sinaisDaPessoa, type PrioridadeSinal } from "@/lib/pessoa-sinais";
 import { relacoesAprovadas, estadoDeConfirmacao } from "@/lib/golive-pessoas";
-import { sinalCpfDaPessoaPorCaso, sinalTelefoneDaPessoaPorCaso } from "@/lib/pessoa-vinculo";
+import { sinalCepDaPessoaPorCaso, sinalCpfDaPessoaPorCaso, sinalTelefoneDaPessoaPorCaso } from "@/lib/pessoa-vinculo";
 import { dossieMaeDoCaso } from "@/lib/nucleo-completude";
 import { RELEVANCIAS, STATUS_VALIDACAO, TIPOS_ACHADO } from "@/lib/achados-genealogicos";
 
@@ -73,6 +83,48 @@ const CLASSE_PRIORIDADE: Record<PrioridadeSinal, string> = {
   baixa: "border-navy/15",
 };
 
+// P31 (26/09/2026) — "Comercial" e "Consentimentos" da Pessoa 360.
+// Vocabulário fechado real (CHECK de `clientes.classificacao`, migration
+// 20260821184733; CHECK de `consent_records.tipo_consentimento`/`status`,
+// migration 20260816202602) — nunca inventado.
+const ROTULO_CLASSIFICACAO: Record<string, string> = {
+  pre_cliente: "Pré-cliente",
+  cliente_ativo: "Cliente ativo",
+  participante_familiar: "Participante familiar",
+};
+
+// status_comercial é texto livre no schema, mas só 6 valores aparecem no
+// código real (trigger fn_cliente_classificacao_guard, mensagem de erro de
+// "origem inválida" cita exatamente estes 6 como status comercial válido).
+const ROTULO_STATUS_COMERCIAL: Record<string, string> = {
+  proposta_enviada: "Proposta enviada",
+  proposta_aprovada: "Proposta aprovada",
+  aceite_verbal: "Aceite verbal",
+  contrato_assinado: "Contrato assinado",
+  pagamento_confirmado: "Pagamento confirmado",
+  onboarding: "Onboarding",
+};
+
+const ROTULO_TIPO_CONSENTIMENTO: Record<string, string> = {
+  tratamento_dados: "Tratamento de dados",
+  compartilhamento_terceiros: "Compartilhamento com terceiros",
+  comunicacoes: "Comunicações",
+};
+
+const ROTULO_STATUS_CONSENTIMENTO: Record<string, string> = {
+  coletado: "Coletado",
+  ativo: "Ativo",
+  revogado: "Revogado",
+  expirado: "Expirado",
+};
+
+const ESTILO_STATUS_CONSENTIMENTO: Record<string, string> = {
+  coletado: "border-navy/20 bg-cream/40 text-navy/70",
+  ativo: "border-gold/50 bg-gold/10 text-navy/80",
+  revogado: "border-terracotta/40 bg-terracotta/10 text-terracotta",
+  expirado: "border-terracotta/30 bg-terracotta/5 text-terracotta/80",
+};
+
 // CA03-PESSOA-UNICA-VINCULOS (09/09/2026): esta lista de UFs vivia
 // hard-coded aqui, separada de `UFS_BRASIL` (validacao-pessoa.ts) — duas
 // fontes da mesma taxonomia fechada, podendo divergir em silêncio. Reusa a
@@ -101,6 +153,18 @@ const CAMPOS_FORM: {
   { chave: "nome_social", rotulo: "Nome social (se diferente)" },
   { chave: "email", rotulo: "E-mail" },
   { chave: "telefone", rotulo: "Telefone", mascara: formatarTelefone },
+  {
+    // P31 (26/09/2026): pedido direto — "telefone 55 11 também aplicar se é
+    // o WhatsApp ou não". Coluna nova (telefone_whatsapp, migration
+    // 20260926190000); três estados, nunca inferido sozinho.
+    chave: "telefone_whatsapp",
+    rotulo: "É WhatsApp?",
+    tipo: "select",
+    opcoes: [
+      { valor: "true", rotulo: "Sim" },
+      { valor: "false", rotulo: "Não" },
+    ],
+  },
   {
     chave: "sexo",
     rotulo: "Sexo",
@@ -153,6 +217,10 @@ type CamposPessoa = {
   nome_social: string | null;
   email: string | null;
   telefone: string | null;
+  // UI-only: representa o boolean real (clientes.telefone_whatsapp) como
+  // "true"/"false"/"" no <select> genérico; convertido de volta antes de
+  // gravar (ver salvarComValidacao).
+  telefone_whatsapp: string | null;
   sexo: string | null;
   nacionalidade: string | null;
   profissao: string | null;
@@ -211,6 +279,10 @@ function Pessoa() {
   // (validacao-pessoa.ts), já existentes e sem uso até agora. Campo vazio
   // continua permitido (o dado é opcional); só bloqueia valor preenchido e
   // inválido.
+  // P31 (26/09/2026): "aplique e unifique... revise mais uma vez" — CPF/CEP
+  // já validavam antes de gravar; e-mail, telefone e UF do órgão emissor do
+  // RG tinham máscara/select mas nunca checagem de conteúdo. Mesmo padrão:
+  // campo vazio continua permitido; só bloqueia valor preenchido e inválido.
   const salvarComValidacao = () => {
     if (form.cpf && form.cpf.trim() && !cpfValido(form.cpf)) {
       setErroSalvar("CPF inválido — confira os números digitados.");
@@ -220,7 +292,25 @@ function Pessoa() {
       setErroSalvar("CEP inválido — precisa ter 8 dígitos.");
       return;
     }
-    mSalvar.mutate(form);
+    if (form.email && form.email.trim() && !emailValido(form.email)) {
+      setErroSalvar("E-mail inválido — confira o endereço digitado.");
+      return;
+    }
+    if (form.telefone && form.telefone.trim() && !telefoneValido(form.telefone)) {
+      setErroSalvar("Telefone inválido — confira o DDD e o número digitados.");
+      return;
+    }
+    if (form.rg_orgao_uf && form.rg_orgao_uf.trim() && !rgOrgaoUfValido(form.rg_orgao_uf)) {
+      setErroSalvar("UF do órgão emissor do RG inválida — confira a sigla do estado.");
+      return;
+    }
+    // telefone_whatsapp é boolean no banco; o <select> genérico só trabalha
+    // com string — converte aqui, no único ponto de saída do formulário.
+    const payload: Record<string, unknown> = { ...form };
+    if ("telefone_whatsapp" in payload) {
+      payload.telefone_whatsapp = payload.telefone_whatsapp === "true" ? true : payload.telefone_whatsapp === "false" ? false : null;
+    }
+    mSalvar.mutate(payload as Partial<CamposPessoa>);
   };
 
   const mSalvar = useMutation({
@@ -308,6 +398,7 @@ function Pessoa() {
     materiaisDossie,
     nucleos,
     contatos,
+    consentimentos,
   } = q.data;
 
   // R2 — mesma regra do servidor (estadoCpfMembroCaso); só sinaliza, nunca grava aqui.
@@ -318,6 +409,13 @@ function Pessoa() {
     caseMembers,
     cliente.id as string,
     (cliente.telefone as string | null) ?? null,
+  );
+  // P31 (26/09/2026): mesmo sinal do CPF/telefone, agora também para CEP —
+  // pedido direto da Proprietária para não conferir o mesmo dado 3 vezes.
+  const sinalCep = sinalCepDaPessoaPorCaso(
+    caseMembers,
+    cliente.id as string,
+    (cliente.endereco_cep as string | null) ?? null,
   );
 
   const linha = montarLinhaDoTempoDaPessoa(
@@ -442,6 +540,8 @@ function Pessoa() {
                     nome_social: cliente.nome_social ?? "",
                     email: cliente.email ?? "",
                     telefone: cliente.telefone ?? "",
+                    telefone_whatsapp:
+                      cliente.telefone_whatsapp === true ? "true" : cliente.telefone_whatsapp === false ? "false" : "",
                     sexo: cliente.sexo ?? "",
                     nacionalidade: cliente.nacionalidade ?? "",
                     profissao: cliente.profissao ?? "",
@@ -532,6 +632,10 @@ function Pessoa() {
                     aplicada no modo Editar. mascaras-e-validadores.md exige que a máscara
                     se reutilize também na exibição, não só na digitação. */}
                 <Campo rotulo="Telefone" valor={cliente.telefone ? formatarTelefone(String(cliente.telefone)) : cliente.telefone} />
+                <Campo
+                  rotulo="É WhatsApp?"
+                  valor={cliente.telefone_whatsapp === true ? "Sim" : cliente.telefone_whatsapp === false ? "Não" : null}
+                />
                 <Campo rotulo="Como entrou" valor={cliente.origem} />
                 <Campo rotulo="Na carteira desde" valor={formatarDia(cliente.created_at)} />
               </dl>
@@ -605,6 +709,81 @@ function Pessoa() {
               {cliente.procurador_escopo ? ` · ${cliente.procurador_escopo}` : ""}
             </p>
           ) : null}
+        </CaCard>
+
+        <CaCard titulo="Comercial">
+          <p className="text-xs text-navy/55">
+            Classificação e status comerciais já existiam em `clientes` sem nenhuma tela — esta
+            seção só lê o que já é gravado por outras rotas (Mesa Discovery, conversão de lead,
+            ativação de cliente); não duplica CRM Vivo nem cria um segundo controle.
+          </p>
+          <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+            <Campo
+              rotulo="Classificação"
+              valor={
+                cliente.classificacao
+                  ? (ROTULO_CLASSIFICACAO[String(cliente.classificacao)] ?? String(cliente.classificacao))
+                  : null
+              }
+            />
+            <Campo
+              rotulo="Status comercial"
+              valor={
+                cliente.status_comercial
+                  ? (ROTULO_STATUS_COMERCIAL[String(cliente.status_comercial)] ?? String(cliente.status_comercial))
+                  : null
+              }
+            />
+            <Campo rotulo="Como entrou" valor={cliente.origem} />
+            <Campo rotulo="Origem do dado" valor={cliente.data_origin} />
+            <Campo rotulo="Ativação decidida em" valor={formatarDia(cliente.ativacao_decidida_em)} />
+            <Campo rotulo="Justificativa da ativação" valor={cliente.ativacao_justificativa} />
+          </dl>
+        </CaCard>
+
+        <CaCard
+          titulo="Consentimentos"
+          acao={<p className="text-xs text-navy/55">{consentimentos.length} registro(s)</p>}
+        >
+          <p className="text-xs text-navy/55">
+            LGPD — `consent_records`, por pessoa (`client_id`), já reaproveitado do mesmo escritor
+            genérico que Caso 360 usa. Nunca infere consentimento; só mostra o que já foi coletado
+            ou revogado.
+          </p>
+          {consentimentos.length === 0 ? (
+            <div className="mt-3">
+              <EstadoVazio mensagem="Nenhum consentimento registrado para esta pessoa ainda." />
+            </div>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {consentimentos.map((c: Record<string, unknown>) => (
+                <li
+                  key={String(c.id)}
+                  className={`rounded-lg border p-2 text-xs ${ESTILO_STATUS_CONSENTIMENTO[String(c.status)] ?? "border-navy/15 bg-white/60 text-navy/80"}`}
+                >
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <p className="font-medium text-navy">
+                      {ROTULO_TIPO_CONSENTIMENTO[String(c.tipo_consentimento)] ?? String(c.tipo_consentimento)}
+                    </p>
+                    <span className="text-[10px] font-semibold uppercase tracking-wide">
+                      {ROTULO_STATUS_CONSENTIMENTO[String(c.status)] ?? String(c.status)}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-navy/70">
+                    {c.escopo_compartilhamento ? `Escopo: ${c.escopo_compartilhamento} · ` : ""}
+                    {c.coletado_em ? `Coletado em ${formatarDia(c.coletado_em as string)}` : "Sem data de coleta"}
+                    {c.metodo_coleta ? ` · ${c.metodo_coleta}` : ""}
+                  </p>
+                  {c.status === "revogado" && c.revogado_em ? (
+                    <p className="mt-1 text-terracotta">
+                      Revogado em {formatarDia(c.revogado_em as string)}
+                      {c.revogacao_motivo ? ` — ${c.revogacao_motivo}` : ""}
+                    </p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
         </CaCard>
 
         <CaCard
@@ -743,6 +922,24 @@ function Pessoa() {
                         {sinalTelefone[c.id].conflito > 0
                           ? `Telefone deste registro no caso diverge do cadastro da pessoa (${sinalTelefone[c.id].conflito}).`
                           : `Telefone deste registro no caso ainda vazio (${sinalTelefone[c.id].preencher}).`}{" "}
+                        <Link
+                          to="/casos/$caseId"
+                          params={{ caseId: c.id }}
+                          hash="pessoas"
+                          className="font-medium text-navy underline underline-offset-4"
+                        >
+                          Conferir
+                        </Link>
+                      </p>
+                    ) : null}
+                    {sinalCep[c.id] ? (
+                      <p
+                        data-pessoa360-sinal-cep
+                        className="mt-2 rounded-md border border-terracotta/30 bg-terracotta/5 px-2 py-1 text-[11px] text-navy/80"
+                      >
+                        {sinalCep[c.id].conflito > 0
+                          ? `CEP deste registro no caso diverge do cadastro da pessoa (${sinalCep[c.id].conflito}).`
+                          : `CEP deste registro no caso ainda vazio (${sinalCep[c.id].preencher}).`}{" "}
                         <Link
                           to="/casos/$caseId"
                           params={{ caseId: c.id }}

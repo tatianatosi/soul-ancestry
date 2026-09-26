@@ -4,9 +4,11 @@ import {
   UFS_BRASIL,
   cepValido,
   cpfValido,
+  emailValido,
   formatarCep,
   formatarCpf,
   formatarTelefone,
+  rgOrgaoUfValido,
   telefoneValido,
   ufValida,
 } from "@/lib/validacao-pessoa";
@@ -103,5 +105,44 @@ describe("formatarTelefone / telefoneValido — exterior", () => {
 
   it("sem +, mesmo campo continua tratando como Brasil", () => {
     expect(formatarTelefone("62981584015")).toBe("(62) 98158-4015");
+  });
+});
+
+describe("emailValido (P31, 26/09/2026)", () => {
+  it("aceita formato algo@dominio.tld", () => {
+    expect(emailValido("tati@pluggedresearch.com")).toBe(true);
+    expect(emailValido("  ana.luiza@clubeancestral.com.br ")).toBe(true);
+  });
+
+  it("rejeita sem @ ou sem domínio", () => {
+    expect(emailValido("tati.pluggedresearch.com")).toBe(false);
+    expect(emailValido("tati@")).toBe(false);
+    expect(emailValido("")).toBe(false);
+  });
+});
+
+describe("rgOrgaoUfValido (P31, 26/09/2026)", () => {
+  it("aceita vazio (campo opcional)", () => {
+    expect(rgOrgaoUfValido("")).toBe(true);
+    expect(rgOrgaoUfValido("   ")).toBe(true);
+  });
+
+  it("aceita UF real separada por /, - ou espaço", () => {
+    expect(rgOrgaoUfValido("SSP/SP")).toBe(true);
+    expect(rgOrgaoUfValido("SSP-MT")).toBe(true);
+    expect(rgOrgaoUfValido("SESP SP")).toBe(true);
+  });
+
+  it("rejeita UF inventada no mesmo formato", () => {
+    expect(rgOrgaoUfValido("SSP/XX")).toBe(false);
+  });
+
+  it("não confunde o fim de uma palavra do nome do órgão com uma UF", () => {
+    // "...Pública" termina em minúsculas — nunca é lido como sigla de UF.
+    expect(rgOrgaoUfValido("Secretaria de Segurança Pública")).toBe(true);
+  });
+
+  it("órgão sem UF reconhecível não é erro (ex.: RG estrangeiro)", () => {
+    expect(rgOrgaoUfValido("Polizia di Stato")).toBe(true);
   });
 });

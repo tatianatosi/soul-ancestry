@@ -14,7 +14,7 @@ import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { recusaTickManualD7 } from "@/lib/d7-microentrega";
 import { tratarTickManualD7 } from "@/lib/d7-microentrega.server";
-import { estadoCpfMembroCaso, estadoTelefoneMembroCaso } from "@/lib/pessoa-vinculo";
+import { estadoCepMembroCaso, estadoCpfMembroCaso, estadoTelefoneMembroCaso } from "@/lib/pessoa-vinculo";
 import { exigirProximaAcaoOperavel } from "@/lib/proxima-acao-startup";
 import { proprietariaOperando } from "@/lib/autoridade.server";
 import { nomeResponsavelSessao } from "@/lib/cadeia-operacional.server";
@@ -960,6 +960,132 @@ export const conferirDivergenciaTelefoneMembrosCaso = createServerFn({ method: "
         eventType: "caso",
         title: "Telefone de membro(s) do caso preenchido a partir do cadastro canônico",
         summaryInternal: `${atualizados} membro(s) tiveram telefone preenchido a partir de clientes.telefone.`,
+        sourceEntityType: "case_members",
+        sourceEntityId: data.caseId,
+        userId,
+      });
+    }
+
+    return { simulado: false, plano, atualizados };
+  });
+
+/**
+ * P31 (26/09/2026) — mesmo padrão de `conferirDivergenciaCpfMembrosCaso`/
+ * `conferirDivergenciaTelefoneMembrosCaso` acima, para CEP (pedido direto
+ * da Proprietária: unificar em vez de conferir o mesmo dado em 3 lugares).
+ * Só preenche CEP vazio a partir de `clientes.endereco_cep`; um valor já
+ * gravado que diverge nunca é sobrescrito — vira conflito, para decisão
+ * humana.
+ */
+export const conferirDivergenciaCepMembrosCaso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: { caseId: string; confirmar?: boolean; resolverMembroId?: string; motivo?: string }) => {
+      if (data.resolverMembroId && !(data.motivo ?? "").trim()) {
+        throw new Error("Resolver conflito de CEP exige o motivo da decisão.");
+      }
+      return data;
+    },
+  )
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    const userId = context.userId as string;
+
+    const { data: membros } = await supabase
+      .from("case_members")
+      .select("id,nome,cep,cliente_id,dependente")
+      .eq("case_id", data.caseId)
+      .eq("organization_id", organizationId)
+      .is("archived_at", null)
+      .not("cliente_id", "is", null);
+
+    const membrosLinha = (membros ?? []) as Linha[];
+    const clienteIds = Array.from(new Set(membrosLinha.map((m) => m.cliente_id).filter(Boolean)));
+    const { data: clientesRaw } = clienteIds.length
+      ? await supabase.from("clientes").select("id,endereco_cep").eq("organization_id", organizationId).in("id", clienteIds)
+      : { data: [] };
+    const clientePorId = new Map(((clientesRaw ?? []) as Linha[]).map((c) => [c.id, c]));
+
+    const plano = membrosLinha.map((m) => {
+      const cliente = clientePorId.get(m.cliente_id as string);
+      const acao = estadoCepMembroCaso(m, cliente?.endereco_cep ?? null);
+      if (acao === "conflito") {
+        return { membroId: m.id, nome: m.nome, acao, atual: m.cep, canonico: cliente?.endereco_cep as string };
+      }
+      if (acao === "preencher") return { membroId: m.id, nome: m.nome, acao, cep: cliente?.endereco_cep as string };
+      return { membroId: m.id, nome: m.nome, acao };
+    });
+
+    if (data.resolverMembroId) {
+      const alvo = plano.find((p) => p.membroId === data.resolverMembroId);
+      if (!alvo || alvo.acao !== "conflito") {
+        throw new Error("Este membro não está em conflito de CEP com o cadastro canônico — nada a resolver.");
+      }
+      const canonico = (alvo as { canonico: string }).canonico;
+      const r = await gravarComVerificacao({
+        supabase,
+        tabela: "case_members",
+        id: alvo.membroId,
+        organizationId,
+        userId,
+        payload: { cep: canonico },
+      });
+      await supabase.from("audit_logs").insert({
+        organization_id: organizationId,
+        entidade: "case_members",
+        entidade_id: alvo.membroId,
+        acao: "cep_conflito_resolvido_pelo_canonico",
+        user_id: userId,
+        valores_anteriores: { cep: (alvo as { atual: string }).atual },
+        valores_posteriores: { cep: canonico },
+        metadados: { case_id: data.caseId, motivo: data.motivo?.trim() },
+      });
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.caseId,
+        eventType: "caso",
+        title: `CEP de ${alvo.nome} alinhado ao cadastro canônico`,
+        summaryInternal: `Conflito resolvido por decisão humana — ${data.motivo?.trim()}`,
+        sourceEntityType: "case_members",
+        sourceEntityId: alvo.membroId,
+        userId,
+      });
+      return { simulado: false, plano, atualizados: 1, resolvido: alvo.membroId, salvoEm: r.salvoEm };
+    }
+
+    if (!data.confirmar) return { simulado: true, plano };
+
+    let atualizados = 0;
+    for (const item of plano) {
+      if (item.acao !== "preencher") continue;
+      await gravarComVerificacao({
+        supabase,
+        tabela: "case_members",
+        id: item.membroId,
+        organizationId,
+        userId,
+        payload: { cep: (item as { cep: string }).cep },
+      });
+      atualizados++;
+    }
+
+    await supabase.from("audit_logs").insert({
+      organization_id: organizationId,
+      entidade: "case_members",
+      entidade_id: data.caseId,
+      acao: "cep_conferido_contra_cadastro_canonico",
+      user_id: userId,
+      metadados: { case_id: data.caseId, plano, atualizados },
+    });
+
+    if (atualizados > 0) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.caseId,
+        eventType: "caso",
+        title: "CEP de membro(s) do caso preenchido a partir do cadastro canônico",
+        summaryInternal: `${atualizados} membro(s) tiveram CEP preenchido a partir de clientes.endereco_cep.`,
         sourceEntityType: "case_members",
         sourceEntityId: data.caseId,
         userId,

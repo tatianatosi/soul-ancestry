@@ -39,6 +39,45 @@ reconciliação (`reconciliar-cpf-partes.tsx`, `reconciliar-cpf-membros-caso.tsx
 `reconciliar-telefone-membros-caso.tsx`). Nenhuma máscara nova foi criada —
 todas reaproveitam os mesmos módulos desta seção.
 
+**P31 (26/09/2026) — correção de uma lacuna declarada que já não existia, e
+3 lacunas genuínas fechadas.** A Proprietária pediu, pela sétima vez,
+verificação minuciosa de RG/CPF/passaporte/endereço/telefone+WhatsApp/e-mail/
+comprovante de residência — "não presuma que já fez quando não fez". Duas
+correções distintas nesta rodada:
+
+1. **Claim falsa corrigida** (não era lacuna de máscara, era leitura errada
+   de schema): as linhas 79-81 desta tabela ("Órgão e UF não existem hoje")
+   afirmavam que `clientes` não tinha órgão/UF do RG — falso, confirmado por
+   consulta direta ao banco (`information_schema.columns`):
+   `clientes.rg_numero`/`clientes.rg_orgao_uf` já existem desde antes desta
+   sessão e já são editáveis em Pessoa 360 (`CAMPOS_FORM`). O que faltava de
+   verdade era validação: `rgOrgaoUfValido` (`validacao-pessoa.ts`) extrai a
+   UF do fim do texto do órgão emissor (ex.: "SSP/SP") e confere contra
+   `UFS_BRASIL` — reaproveita `ufValida`, não cria validador novo. Aplicado em
+   Pessoa 360.
+2. **E-mail e telefone nunca tinham validação de conteúdo** (só máscara/
+   `type="email"`): `emailValido` (novo, formato `algo@dominio.tld`) e
+   `telefoneValido` (já existia, nunca era chamado antes de gravar) agora
+   bloqueiam valor preenchido e inválido em Pessoa 360 e no formulário de
+   pessoa do Caso 360 — mesmo padrão de "campo vazio é permitido, só valor
+   errado bloqueia" já usado por CPF/CEP.
+3. **CEP verificado 3 vezes, sem nunca ter sido unificado** (pedido direto:
+   "será mesmo necessário verificar três vezes o mesmo dado?"): CEP existe em
+   `clientes.endereco_cep` (canônico), `case_members.cep` (por membro do
+   caso) e o texto livre de `case_members.endereco` — nunca reconciliados.
+   Mesmo padrão exato de R2 (CPF)/P28 (telefone): `estadoCepMembroCaso`/
+   `sinalCepDaPessoaPorCaso` (`pessoa-vinculo.ts`) +
+   `conferirDivergenciaCepMembrosCaso` (`caso-canonico.functions.ts`) +
+   painel `ReconciliarCepMembrosCaso` em Caso 360 — nunca funde, só sinaliza
+   e oferece preencher/resolver com confirmação humana.
+4. **WhatsApp — lacuna genuína, fechada com migration aditiva** (linha 72
+   desta tabela estava certa: não havia campo). Migration
+   `20260926190000_telefone_whatsapp_flag.sql` adiciona
+   `clientes.telefone_whatsapp`/`case_members.telefone_whatsapp` (boolean,
+   nullable — três estados: sim/não/não informado, nunca inferido
+   automaticamente). Select em Pessoa 360 e Caso 360, ao lado do campo
+   Telefone.
+
 ## 2. Como ler a matriz
 
 - **Dona**: única entidade que pode gravar o campo.
@@ -65,28 +104,29 @@ todas reaproveitam os mesmos módulos desta seção.
 
 | Campo | Máscara / validador | Dona | Espelhos | Origem | Atualização | Visibilidade | Telas | Duplicidade | Ação futura |
 |---|---|---|---|---|---|---|---|---|---|
-| E-mail de contato | Trim, minúscula, formato de e-mail, até 255 | `contacts.email` | `leads.email`, `clientes.email`, `case_members.email`, `contract_parties.email` | Declarado | Equipe | sanitizada | Pessoa, Cliente, Contrato | 5 | Consolidar em Pessoa |
+| E-mail de contato | `emailValido` (formato `algo@dominio.tld`) | `contacts.email` | `leads.email`, `clientes.email`, `case_members.email`, `contract_parties.email` | Declarado | Equipe | sanitizada | Pessoa, Cliente, Contrato | 5 | **P31 (26/09/2026): validação de conteúdo executada** — antes só existia `type="email"` do navegador, nunca checagem própria antes de gravar; aplicado em Pessoa 360 e no formulário de pessoa do Caso 360. Consolidar em Pessoa (dona única) continua não autorizado |
 | E-mail de acesso | Igual acima, normalizado | `authorized_portal_emails.email` | `client_portal_access.email` | Autorização da equipe | Somente fluxo de autorização | protegida | Portal, Acesso | 2 | Nunca editar junto do contato |
-| Telefone | `formatarTelefone` + `telefoneValido` com `PaisTelefone` | `contacts.telefone` | `leads.telefone`, `clientes.telefone`, `case_members.telefone`, `contract_parties.phone` | Declarado | Equipe | sanitizada | Pessoa, Contrato | 5 | **P28 (26/09/2026): Corte 2 executado** — `estadoTelefoneMembroCaso`/`sinalTelefoneDaPessoaPorCaso` (`pessoa-vinculo.ts`) e `conferirDivergenciaTelefoneMembrosCaso` (`caso-canonico.functions.ts`) detectam divergência `case_members.telefone` × `clientes.telefone` e oferecem reconciliação humana em Caso 360/sinal em Pessoa 360 — mesmo padrão do CPF (R2). Consolidação plena (dona única) continua Corte 3+ do plano de `de-para-pessoa-unificada.md`, não autorizada |
+| Telefone | `formatarTelefone` + `telefoneValido` com `PaisTelefone` | `contacts.telefone` | `leads.telefone`, `clientes.telefone`, `case_members.telefone`, `contract_parties.phone` | Declarado | Equipe | sanitizada | Pessoa, Contrato | 5 | **P28 (26/09/2026): Corte 2 executado** — `estadoTelefoneMembroCaso`/`sinalTelefoneDaPessoaPorCaso` (`pessoa-vinculo.ts`) e `conferirDivergenciaTelefoneMembrosCaso` (`caso-canonico.functions.ts`) detectam divergência `case_members.telefone` × `clientes.telefone` e oferecem reconciliação humana em Caso 360/sinal em Pessoa 360 — mesmo padrão do CPF (R2). **P31 (26/09/2026): `telefoneValido` passou a bloquear valor preenchido e inválido antes de gravar** (existia desde antes, nunca era chamado). Consolidação plena (dona única) continua Corte 3+ do plano de `de-para-pessoa-unificada.md`, não autorizada |
 | DDD | Derivado do telefone, não campo próprio | — | — | — | — | — | — | — | Manter derivado; não criar coluna |
-| WhatsApp | Sem campo dedicado hoje | Não registrado | — | — | — | — | Atendimento | Lacuna | Se criado, sinalizador sobre o telefone, nunca segundo número |
+| WhatsApp | Selecionador Sim/Não/Não informado | `clientes.telefone_whatsapp` | `case_members.telefone_whatsapp` | Declarado | Equipe | sanitizada | Pessoa, Ficha do caso | 2 | **P31 (26/09/2026): executado** — migration `20260926190000` (boolean, nullable, nunca inferido). Reconciliação R2-like ainda não construída para este campo (fora do pedido desta rodada) |
 
 ### 3.3 Documentos civis
 
 | Campo | Máscara / validador | Dona | Espelhos | Origem | Atualização | Visibilidade | Telas | Duplicidade | Ação futura |
 |---|---|---|---|---|---|---|---|---|---|
 | CPF | `formatarCpf` + `cpfValido` | `case_members.cpf` | `clientes.documento`, `contract_parties.document_number` | Documento apresentado | Equipe, com fonte | protegida (mascarada em log) | Ficha, Contrato | 3 | `clientes.documento` é genérico e não valida tipo |
-| RG | Texto livre; sem dígito nacional | `case_members.rg` | `contract_parties.document_number` | Documento | Equipe | protegida | Ficha | 2 | Órgão e UF não existem hoje |
-| Órgão emissor | Não registrado | — | — | — | — | — | — | Lacuna | Campo futuro junto ao RG |
-| UF emissora | `ufValida` / `UFS_BRASIL` | Não registrado | — | — | — | — | — | Lacuna | Reutilizar o validador existente |
+| RG | Texto livre; sem dígito nacional (não existe padrão de RG único no Brasil) | `clientes.rg_numero` | `case_members.rg` (campo genérico "RG/documento", não estruturado), `contract_parties.document_number` | Documento | Equipe | protegida | Pessoa 360, Ficha | 3 | **P31 (26/09/2026): claim de "não existem hoje" era falsa — corrigida.** `clientes.rg_numero`/`rg_orgao_uf` já existem e já são editáveis em Pessoa 360 desde antes desta rodada. Unificar `case_members.rg` com `clientes.rg_numero` (reconciliação R2-like) não foi pedido nesta rodada |
+| Órgão emissor | Texto livre | `clientes.rg_orgao_uf` | — | Documento | Equipe | protegida | Pessoa 360 | — | Um só campo para órgão+UF combinados (ex.: "SSP/SP"), não dois campos separados |
+| UF emissora (dentro do órgão) | `rgOrgaoUfValido` (extrai a UF do fim do texto, reusa `ufValida`/`UFS_BRASIL`) | `clientes.rg_orgao_uf` | — | Documento | Equipe | protegida | Pessoa 360 | — | **P31 (26/09/2026): executado** — validação nova em `validacao-pessoa.ts`, aplicada em Pessoa 360 |
 | Tipo de documento | Lista fechada | `contract_parties.document_type` | — | Contrato | Equipe | interna | Contrato | — | Aplicar a mesma lista à ficha |
 
 ### 3.4 Endereço
 
 | Campo | Máscara / validador | Dona | Espelhos | Origem | Atualização | Visibilidade | Telas | Duplicidade | Ação futura |
 |---|---|---|---|---|---|---|---|---|---|
-| CEP | `formatarCep` + `cepValido` | `case_members.cep` | — | Declarado | Equipe | protegida | Ficha | — | — |
-| Endereço | Texto único | `case_members.endereco` | `contract_parties.address` | Declarado | Equipe | protegida | Ficha, Contrato | 2 | Endereço é texto corrido, sem partes separadas |
+| CEP | `formatarCep` + `cepValido` | `clientes.endereco_cep` | `case_members.cep` | Declarado | Equipe | protegida | Pessoa 360, Ficha | 2 | **P31 (26/09/2026): executado** — pedido direto ("será mesmo necessário verificar três vezes o mesmo dado?"). `estadoCepMembroCaso`/`sinalCepDaPessoaPorCaso` + `conferirDivergenciaCepMembrosCaso` + painel `ReconciliarCepMembrosCaso` (Caso 360), mesmo padrão de CPF (R2)/telefone (P28) |
+| Endereço estruturado | `UFS_BRASIL` (select) + demais campos texto | `clientes.endereco_logradouro/numero/complemento/bairro/cidade/uf/pais` | — | Declarado | Equipe | protegida | Pessoa 360 | — | Já estruturado e editável em Pessoa 360 desde antes desta rodada — nunca foi lacuna |
+| Endereço (ficha do caso) | Texto único | `case_members.endereco` | `contract_parties.address` | Declarado | Equipe | protegida | Ficha, Contrato | 2 | Endereço é texto corrido, sem partes separadas — diferente do endereço estruturado de `clientes` |
 
 ### 3.5 Nascimento, óbito e precisão
 
