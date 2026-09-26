@@ -75,7 +75,7 @@ export function PortalConta() {
               className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm"
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-xl text-navy">Dados da conta</h2>
+                <h2 className="font-serif text-xl text-navy">Sobre você e sua família</h2>
                 <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
                    Sua família
                 </span>
@@ -91,27 +91,27 @@ export function PortalConta() {
                 </div>
               </dl>
               <p className="mt-3 text-xs text-navy/55">
-                 Se algum dado precisar ser atualizado, fale com a equipe pelos canais já combinados.
+                  Se alguma informação mudar, conte à equipe pelos canais de contato já combinados.
               </p>
             </section>
 
             <section data-conta-plano className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-xl text-navy">Contato com a equipe</h2>
+                <h2 className="font-serif text-xl text-navy">Estamos por perto</h2>
               </div>
               <p className="mt-2 text-sm text-navy/75">
                  {acompanhamento}
               </p>
               <p className="mt-3 text-xs text-navy/55">
-                 Você pode usar os canais de contato já combinados para conversar sobre documentos, etapas e novas atualizações.
+                  Para conversar sobre documentos ou sobre a sua jornada, use os canais de contato já combinados com a equipe.
               </p>
             </section>
 
             <section data-conta-alertas className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-xl text-navy">Atualizações para você</h2>
+                <h2 className="font-serif text-xl text-navy">Novidades para você</h2>
                 <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
-                  Pessoais do caso
+                  Da sua jornada
                 </span>
               </div>
               {alertaAcionavel ? (
@@ -131,7 +131,7 @@ export function PortalConta() {
                 </div>
               ) : (
                   <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
-                  <p className="text-sm text-navy/70">Sem alerta publicado no momento.</p>
+                   <p className="text-sm text-navy/70">Nenhum recado novo por enquanto.</p>
                   <p className="mt-1 text-xs text-navy/50">
                      Pedidos de documentos e outras novidades importantes aparecerão aqui.
                   </p>
@@ -141,11 +141,11 @@ export function PortalConta() {
 
             <section data-conta-historico className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-xl text-navy">Histórico</h2>
+                <h2 className="font-serif text-xl text-navy">Nossas conversas</h2>
               </div>
               <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
-                <p className="text-sm text-navy/70">Ainda não há interações compartilhadas aqui.</p>
-                <p className="mt-1 text-xs text-navy/50">As conversas e atualizações da equipe aparecerão neste espaço.</p>
+                <p className="text-sm text-navy/70">Ainda não há conversas disponíveis neste espaço.</p>
+                <p className="mt-1 text-xs text-navy/50">Quando houver uma conversa para compartilhar, você poderá encontrá-la aqui.</p>
               </div>
             </section>
           </div>

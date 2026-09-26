@@ -64,7 +64,7 @@ export function PortalRadar() {
                       Um passo de cada vez
                     </p>
                     <p className="mt-1 text-sm text-navy/80">
-                      {vivo.proximaAcao?.acao ?? "Assim que a equipe publicar a próxima ação, ela aparece aqui."}
+                       {vivo.proximaAcao?.acao ?? "O próximo passo aparecerá aqui quando estiver pronto para você."}
                     </p>
                     {vivo.proximaAcao?.destino ? (
                       <LinkPortal

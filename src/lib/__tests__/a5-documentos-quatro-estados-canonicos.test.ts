@@ -31,7 +31,7 @@ describe("cada caixa lê a fonte do seu estado, sem fundir", () => {
 
   it("Recebidos vem de envios (documents.origem = cliente)", () => {
     expect(arquivo).toContain("noCaso(data?.envios)");
-    expect(arquivo).toContain("estão sendo cuidados pela nossa equipe");
+    expect(arquivo).toContain("enquanto a equipe os confere");
   });
 
   it("Liberados vem de entregas (documents.liberado_cliente = true)", () => {
@@ -85,7 +85,7 @@ describe("a decisão de linkar Entregas para Legado vem de bloqueio real, não e
 
 describe("regras semânticas de §7 continuam explícitas na copy", () => {
   it("Recebido comunica conferência sem tom de erro", () => {
-    expect(arquivo).toContain("estão sendo cuidados pela nossa equipe");
+    expect(arquivo).toContain("enquanto a equipe os confere");
   });
 
   it("Envio não desaparece do fluxo depois do post — o card mostra estado", () => {

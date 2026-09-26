@@ -14,6 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      ancestralscan_triagens: {
+        Row: {
+          alertas_publicos: string[]
+          consentimento_em: string | null
+          consentimento_status: string
+          consentimento_versao_aviso: string | null
+          created_at: string
+          created_by: string | null
+          documentos_declarados: string[]
+          geracao_declarada: string | null
+          id: string
+          lead_id: string | null
+          localidade_ascendente_declarada: string | null
+          organization_id: string
+          origem_campanha: string | null
+          paises_declarados: string[]
+          respondido_em: string
+          respostas_publicas: Json
+          scores_orientativos: Json
+          updated_at: string
+          updated_by: string | null
+          versao_scan: string
+        }
+        Insert: {
+          alertas_publicos?: string[]
+          consentimento_em?: string | null
+          consentimento_status?: string
+          consentimento_versao_aviso?: string | null
+          created_at?: string
+          created_by?: string | null
+          documentos_declarados?: string[]
+          geracao_declarada?: string | null
+          id?: string
+          lead_id?: string | null
+          localidade_ascendente_declarada?: string | null
+          organization_id: string
+          origem_campanha?: string | null
+          paises_declarados?: string[]
+          respondido_em: string
+          respostas_publicas?: Json
+          scores_orientativos?: Json
+          updated_at?: string
+          updated_by?: string | null
+          versao_scan: string
+        }
+        Update: {
+          alertas_publicos?: string[]
+          consentimento_em?: string | null
+          consentimento_status?: string
+          consentimento_versao_aviso?: string | null
+          created_at?: string
+          created_by?: string | null
+          documentos_declarados?: string[]
+          geracao_declarada?: string | null
+          id?: string
+          lead_id?: string | null
+          localidade_ascendente_declarada?: string | null
+          organization_id?: string
+          origem_campanha?: string | null
+          paises_declarados?: string[]
+          respondido_em?: string
+          respostas_publicas?: Json
+          scores_orientativos?: Json
+          updated_at?: string
+          updated_by?: string | null
+          versao_scan?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ancestralscan_triagens_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ancestralscan_triagens_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_projection_shares: {
         Row: {
           autorizado_em: string
@@ -10766,6 +10850,7 @@ export type Database = {
           resumo_call: string | null
           resumo_validado: boolean
           risco_ruptura: string | null
+          scan_triagem_id: string | null
           servico_inicial_aprovado: string | null
           sku_referencia: string | null
           spin_implicacao: boolean
@@ -10861,6 +10946,7 @@ export type Database = {
           resumo_call?: string | null
           resumo_validado?: boolean
           risco_ruptura?: string | null
+          scan_triagem_id?: string | null
           servico_inicial_aprovado?: string | null
           sku_referencia?: string | null
           spin_implicacao?: boolean
@@ -10956,6 +11042,7 @@ export type Database = {
           resumo_call?: string | null
           resumo_validado?: boolean
           risco_ruptura?: string | null
+          scan_triagem_id?: string | null
           servico_inicial_aprovado?: string | null
           sku_referencia?: string | null
           spin_implicacao?: boolean
@@ -11005,6 +11092,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_scan_triagem_id_fkey"
+            columns: ["scan_triagem_id"]
+            isOneToOne: false
+            referencedRelation: "ancestralscan_triagens"
             referencedColumns: ["id"]
           },
           {

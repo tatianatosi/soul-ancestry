@@ -231,7 +231,7 @@ function TimelineVertical({
       <h2 className="mb-3 font-serif text-xl text-navy">{eyebrow}</h2>
       {eventos.length === 0 ? (
         <p className="rounded-lg border border-dashed border-navy/15 bg-cream/50 px-3 py-4 text-center text-xs text-navy/50">
-          Nada publicado nesta linha ainda.
+           Esta parte da história será preenchida quando houver algo pronto para compartilhar.
         </p>
       ) : (
         <div className="relative">
@@ -348,7 +348,7 @@ export function PortalJornada() {
             const destino = vivo.proximaAcao?.destino ?? null;
             const ritmoRotulo =
               jornada.ritmo === "sem_publicacao"
-                ? "Aguardando primeira publicação"
+                 ? "Estamos preparando os primeiros passos para compartilhar com você"
                 : jornada.ritmo === "regular"
                   ? "Ritmo em dia"
                   : jornada.ritmo === "atencao"
@@ -463,13 +463,13 @@ export function PortalJornada() {
                         <section className="rounded-xl border border-gold/35 bg-card p-5 shadow-sm">
                           <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Linha Ancestral</p>
                           <p className="mt-2 text-sm leading-relaxed text-navy/60">
-                            Ainda não há marcos ancestrais publicados para esta família.
+                           As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.
                           </p>
                         </section>
                         <div className="relative rounded-xl border border-dashed border-gold/45 bg-gold/5 px-4 py-4 text-center">
                           <p className="text-[10px] font-semibold uppercase tracking-widest text-navy/55">Momentos de União</p>
                           <p className="mt-1 text-xs leading-relaxed text-navy/60">
-                            As conexões entre história familiar e processo aparecem aqui após publicação da equipe.
+                             Aqui se encontram os caminhos da família e os passos de hoje, quando houver uma conexão para compartilhar.
                           </p>
                         </div>
                         <section className="rounded-xl border border-navy/20 bg-card p-5 shadow-sm">

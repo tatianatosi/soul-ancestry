@@ -67,17 +67,17 @@ export function PortalDocumentos() {
                 <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="font-serif text-xl text-navy">Solicitados</h2>
                 <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
-                  Ação da família
+                   Quando precisarmos de você
                 </span>
                 </div>
               {solicitado ? (
                 <div className="mt-3 rounded-lg border border-gold/35 bg-gold/10 px-4 py-3 text-sm text-navy">{solicitado}</div>
               ) : (
                 <p className="mt-4 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center text-sm text-navy/65">
-                  Nenhum documento solicitado no momento.
+                   Por enquanto, não precisamos de nenhum documento seu.
                 </p>
               )}
-              <p className="mt-3 text-xs text-navy/50">Quando houver um pedido, você poderá enviar o arquivo por aqui.</p>
+              <p className="mt-3 text-xs text-navy/50">Se precisarmos de algo, o pedido e a orientação para enviar aparecerão aqui.</p>
               </div>
             </section>
 
@@ -86,13 +86,13 @@ export function PortalDocumentos() {
               <div className="h-1 bg-navy" aria-hidden="true" />
               <div className="p-5">
               <div className="flex flex-wrap items-start justify-between gap-2"><h2 className="font-serif text-xl text-navy">Recebidos</h2><span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">Aguardam conferência</span></div>
-              <p className="mt-1 text-sm text-navy/60">Seus arquivos recebidos ficam aqui enquanto nossa equipe cuida da conferência.</p>
+              <p className="mt-1 text-sm text-navy/60">Os documentos que você nos enviar ficam aqui enquanto a equipe os confere.</p>
               {enviados.length === 0 ? (
                 <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
-                  Você ainda não compartilhou documentos conosco.
+                  Quando você compartilhar um documento, poderá acompanhá-lo aqui.
                 </p>
               ) : (
-                <p className="mt-3 text-sm text-navy/70">{enviados.length} envio(s) recebido(s) e aguardando conferência.</p>
+                <p className="mt-3 text-sm text-navy/70">{enviados.length} {enviados.length === 1 ? "documento recebido" : "documentos recebidos"} para conferência.</p>
               )}
               </div>
             </section>
@@ -107,7 +107,7 @@ export function PortalDocumentos() {
                   {COPY_TELAS.documentos.vazio}
                 </p>
               ) : (
-                <p className="mt-3 text-sm text-navy/70">{liberados.length} documento(s) revisado(s) e liberado(s) neste caso.</p>
+                <p className="mt-3 text-sm text-navy/70">{liberados.length} {liberados.length === 1 ? "documento disponível" : "documentos disponíveis"} para você consultar.</p>
               )}
               </div>
             </section>
@@ -116,9 +116,9 @@ export function PortalDocumentos() {
             <section data-documentos-entregas className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
               <div className="h-1 bg-navy" aria-hidden="true" />
               <div className="p-5">
-                <h2 className="font-serif text-xl text-navy">Entregas</h2>
-                <p className="mt-2 text-sm text-navy/70">Os materiais publicados pela equipe ficam organizados na aba Legado.</p>
-                <LinkPortal to="/portal/legado" className="mt-3 inline-flex min-h-11 items-center rounded-lg border border-navy/20 px-3 py-2 text-sm font-medium text-navy hover:border-gold">Ver material publicado no Legado</LinkPortal>
+                <h2 className="font-serif text-xl text-navy">Entregas do Legado</h2>
+                <p className="mt-2 text-sm text-navy/70">As histórias e os materiais preparados para a sua família ficam reunidos no Legado, quando estiverem disponíveis.</p>
+                <LinkPortal to="/portal/legado" className="mt-3 inline-flex min-h-11 items-center rounded-lg border border-navy/20 px-3 py-2 text-sm font-medium text-navy hover:border-gold">Conhecer o Legado</LinkPortal>
               </div>
             </section>
           </div>
@@ -202,7 +202,7 @@ export function PortalDocumentos() {
               </div>
             ) : (
               <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
-                Nenhum documento solicitado no momento.
+                 Por enquanto, não precisamos de nenhum documento seu.
               </p>
             )}
             <div className="mt-4">
@@ -222,11 +222,11 @@ export function PortalDocumentos() {
               </span>
             </div>
             <p className="mt-1 text-sm text-navy/60">
-              Seus arquivos chegaram e estão sendo cuidados pela nossa equipe antes de fazerem parte da história.
+              Os documentos que você nos enviar ficam aqui enquanto a equipe os confere.
             </p>
             {recebidos.length === 0 ? (
               <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
-                Você ainda não compartilhou documentos conosco.
+                 Quando você compartilhar um documento, poderá acompanhá-lo aqui.
               </p>
             ) : (
               <ul className="mt-3 space-y-2">
@@ -307,20 +307,19 @@ export function PortalDocumentos() {
             <div className="h-1 bg-navy" aria-hidden="true" />
             <div className="p-5">
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <h2 className="font-serif text-xl text-navy">Entregas</h2>
+               <h2 className="font-serif text-xl text-navy">Entregas do Legado</h2>
               <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
                 Cadernos, relatórios e narrativas
               </span>
             </div>
             <p className="mt-3 text-sm text-navy/70">
-              As entregas editoriais publicadas pela equipe ficam organizadas
-              por coleção na aba Legado.
+               As histórias e os materiais preparados para a sua família ficam reunidos no Legado, quando estiverem disponíveis.
             </p>
             <LinkPortal
               to="/portal/legado"
               className="mt-3 inline-flex items-center gap-2 rounded-lg border border-navy/20 px-3 py-2 text-sm font-medium text-navy hover:border-gold"
             >
-              Ver material publicado no Legado
+               Conhecer o Legado
             </LinkPortal>
             </div>
           </section>

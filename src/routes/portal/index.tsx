@@ -87,7 +87,6 @@ export function PortalHome() {
             proximoPassoDestino={vivo.data?.proximaAcao?.destino ?? null}
             proximaEntrega={vivo.data?.proximaEntrega?.texto ?? null}
             marcos={jornada.marcosPublicados}
-            identidade={previa.identidade}
             achados={jornada.linha.slice(0, 3).map((item) => ({
               id: item.id,
               tipo: item.tipoRotulo,
@@ -320,8 +319,6 @@ function PainelHomeMockup({
    */
   composicao?: string | null;
 }) {
-  const proximaCurta =
-    proximoPasso.length > 64 ? `${proximoPasso.slice(0, 61).trimEnd()}…` : proximoPasso;
   return (
     <div className="space-y-4" data-aba-home>
       {/*
@@ -351,8 +348,8 @@ function PainelHomeMockup({
         ) : (
           <p className="mt-3 text-xs text-cream/60">
             {marcos === 0
-              ? "Aguardando primeira publicação"
-              : `${marcos} marcos já compartilhados com você`}
+              ? "A história da sua família está sendo preparada para ser compartilhada."
+              : `${marcos} ${marcos === 1 ? "momento já compartilhado" : "momentos já compartilhados"} com você`}
           </p>
         )}
       </section>
@@ -360,10 +357,11 @@ function PainelHomeMockup({
       {/* Correção 2026-09-12: grade em telas largas (sidebar liberou espaço horizontal); CTA lilás removido (fora do guia oficial de marca — só 5 cores). */}
       <div className="grid gap-6 lg:grid-cols-2">
         <section>
-          <h3 className="mb-2 font-serif text-xl text-navy">Seu próximo passo</h3>
+          <h3 className="mb-2 font-serif text-xl text-navy">Próxima ação</h3>
           {/* Acabamento 2026-09-13 (referência Lovable): título editorial em
               vez de crachá numerado — mesma frase real, leitura mais serena. */}
-          <CaCard titulo={proximaCurta}>
+          <CaCard titulo="O que vem agora">
+            <p className="mb-3 whitespace-pre-line text-sm leading-relaxed text-navy/75">{proximoPasso}</p>
             {proximaEntrega ? (
               <p className="mb-2 text-xs text-navy/70" data-proxima-entrega>
                 {proximaEntrega}
@@ -382,7 +380,7 @@ function PainelHomeMockup({
                 params={{ id: casoId }}
                 className="inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
               >
-                Ver detalhes do caso
+                Acompanhar sua jornada
               </Link>
             ) : null}
           </CaCard>
@@ -390,7 +388,7 @@ function PainelHomeMockup({
 
         <section>
           <div className="mb-2 flex items-center justify-between gap-2">
-            <h3 className="font-serif text-xl text-navy">Descobertas compartilhadas</h3>
+            <h3 className="font-serif text-xl text-navy">Achados da sua história</h3>
             <LinkPortal to="/portal/jornada" className="text-xs font-medium text-navy/60 hover:text-navy">
               Ver Jornada
             </LinkPortal>

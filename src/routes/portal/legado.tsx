@@ -70,7 +70,7 @@ export function PortalLegado() {
                        Histórias para guardar e compartilhar
                     </h2>
                     <p className="mt-2 text-sm text-cream/70">
-                       Cadernos, dossiês e narrativas preparados com cuidado para permanecer com a sua família.
+                        Um lugar para reunir as histórias e os materiais preparados para permanecer com a sua família.
                     </p>
                   </section>
 
@@ -94,12 +94,12 @@ export function PortalLegado() {
                               <p className="mt-0.5 text-xs text-navy/55">{p.dica}</p>
                             </div>
                             <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
-                               {itens.length === 0 ? "Aguardando histórias" : `${itens.length}`}
+                                {itens.length === 0 ? "Ainda sem histórias" : `${itens.length} ${itens.length === 1 ? "história" : "histórias"}`}
                             </span>
                           </div>
                           {itens.length === 0 ? (
                             <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
-                               Esta coleção receberá novos materiais quando estiverem prontos para a família.
+                                Quando houver algo desta coleção pronto para compartilhar, você encontrará aqui.
                             </p>
                           ) : (
                             <ul className="mt-3 space-y-2">
