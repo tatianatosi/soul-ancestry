@@ -11,7 +11,7 @@
 
 # Clube Ancestral — memória permanente para agentes
 
-Documento normativo da proprietária (Tatiana, tati@pluggedresearch.com), destilado em 2026-09-10. Texto completo arquivado em `docs/politicas/MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Regra Cursor espelhada em `.cursor/rules/clube-ancestral.mdc`.
+Documento normativo da proprietária (Tatiana, tati@pluggedresearch.com), destilado em 2026-09-10. Texto completo arquivado em `docs/politicas/MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Regra Cursor espelhada em `.cursor/rules/clube-ancestral.mdc`. Pente-fino dos 3 documentos de redesenho do Desk (v1.0/v2.0/Pacote de Instruções) e contratos rescatados: `docs/politicas/ADENDO-CONTRATOS-3-DOCUMENTOS-REDESENHO-DESK-2026-09-26.md` (2026-09-26).
 
 Isto **não** autoriza redesenho de navegação, vocabulário novo (incluindo taxonomia “CHECK-*”) nem tabelas hipotéticas de prompts antigos. Antes de implementar, confirmar o schema real e as decisões já vigentes.
 
@@ -194,6 +194,26 @@ Preservar o escritor `confirmarDocumentosMinimos` → `crm_casos.documentos_mini
 Acesso cliente: fluxo oficial (e-mail autorizado, convite/magic link, login sem staff). Nunca colar ou pedir `service_role` em chat/GitHub/artefato. Isolamento A×B só é SIM com dois clientes/logins; prova estrutural de RLS ≠ prova de UI. Homologação: dado sintético reversível, nunca dado real.
 
 Merge/deploy irreversível só com autorização explícita da Proprietária, informando branch, SHA e se o merge dispara produção. Sem essa resposta, não mesclar.
+
+### Adendo 2026-09-26 — Caso 360, Visão Administrativa do Cliente, sobreposição de Painel Hoje
+
+Confirmado por leitura direta do código (detalhe completo no adendo citado no topo deste
+arquivo):
+
+- **Caso 360 tem 8 seções endereçáveis**, nesta ordem: Visão · Jornada · Pessoas e família ·
+  Pesquisa · Documentos · Formalização · Financeiro · Histórico (`SECOES` em
+  `casos.$caseId.index.tsx`). Não renomear/remover/acrescentar sem decisão explícita.
+- **Admin já tem "Visão Administrativa do Cliente"** sem token/senha do cliente:
+  `/app-cliente-como-pessoa?casoId=` (`app-cliente-como-pessoa.functions.ts`), linkada em Caso 360
+  e Pessoa 360. Reaproveitar sempre esta rota — nunca criar um segundo mecanismo nem
+  impersonação/login real do cliente.
+- **Sobreposição real encontrada, não resolvida**: `src/components/painel/painel-dia.tsx` é
+  coberto por 13 arquivos de teste como se fosse a fonte viva do Painel Hoje, mas a rota real
+  `/painel` roda uma implementação diferente (`golive-*.ts`). Diferente de
+  `painel-desk-hoje.tsx`/`painel-hoje.tsx` (esses SIM são legado deliberado, registrados em
+  `PAINEIS_HISTORICOS`, **não apagar**), `painel-dia.tsx` não tem decisão registrada nenhuma —
+  aguardando a Proprietária escolher qual é a fonte de verdade antes de qualquer agente tocar
+  nos dois arquivos.
 
 ### Proteções (todos os artefatos)
 
