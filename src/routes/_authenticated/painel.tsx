@@ -16,6 +16,7 @@ import {
   kpisPrazo,
   origemDoSinal,
   prioridadeDaCarteira,
+  propostasAguardandoResposta,
   ritmoSemanal,
   temRitmo,
   type AcaoOperacional,
@@ -152,6 +153,11 @@ function PainelConsolidado() {
   // pedido explícito da Proprietária. Mesma carteira ativa já usada acima
   // (país/via reais de crm_casos, sem query nova).
   const porPaisVia = casosPorPaisVia(caso.carteira);
+  // P27 (26/09/2026) — "Propostas aguardando resposta"/"Contratos aguardando
+  // assinatura"/"Pagamentos pendentes/vencidos" (Pacote de Instruções, bloco
+  // Painel Hoje). Mesma carteira ativa (eixo_comercial) + contratos/faturas
+  // já carregados pela mesma função de go-live — nenhuma consulta nova aqui.
+  const propostasSemResposta = propostasAguardandoResposta(caso.carteira);
   const leads = caso.leadsComerciais as LeadComercial[];
   // §11 linha 8 — funil por etapa comercial gravada. Sem período definido no
   // dado: a prancha pede "30 dias quando houver período definido", e não há.
@@ -502,6 +508,67 @@ function PainelConsolidado() {
                     }`}
                   >
                     {r.casosAfetados} caso(s) afetado(s)
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CaCard>
+      </div>
+
+      {/*
+        P27 (26/09/2026) — "Propostas aguardando resposta", "Contratos
+        aguardando assinatura" e "Pagamentos pendentes/vencidos" (Pacote de
+        Instruções, blocos obrigatórios do Painel Hoje). Ação direta abre o
+        caso em /casos/$caseId — nunca uma lista desconectada.
+      */}
+      <div className="mb-6 grid gap-4 lg:grid-cols-3">
+        <CaCard titulo="Propostas aguardando resposta" eyebrow="Eixo comercial: proposta enviada">
+          {propostasSemResposta.length === 0 ? (
+            <EstadoVazio mensagem="Nenhuma proposta aguardando resposta." />
+          ) : (
+            <ul className="divide-y divide-navy/10">
+              {propostasSemResposta.slice(0, 8).map((p) => (
+                <li key={p.id} className="py-1.5">
+                  <Link to="/casos/$caseId" params={{ caseId: p.id }} className="text-sm text-navy underline underline-offset-4">
+                    {p.rotulo}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CaCard>
+        <CaCard titulo="Contratos aguardando assinatura" eyebrow="contracts.status = sent">
+          {caso.contratosAguardandoAssinatura.length === 0 ? (
+            <EstadoVazio mensagem="Nenhum contrato aguardando assinatura." />
+          ) : (
+            <ul className="divide-y divide-navy/10">
+              {caso.contratosAguardandoAssinatura.slice(0, 8).map((c) => (
+                <li key={c.id} className="py-1.5">
+                  <Link to="/casos/$caseId" params={{ caseId: c.caseId }} className="text-sm text-navy underline underline-offset-4">
+                    {c.numero || `Contrato ${c.id.slice(0, 8)}`}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CaCard>
+        <CaCard titulo="Pagamentos pendentes/vencidos" eyebrow="invoices.status: aberta ou vencida">
+          {caso.pagamentosPendentes.length === 0 ? (
+            <EstadoVazio mensagem="Nenhum pagamento pendente ou vencido." />
+          ) : (
+            <ul className="divide-y divide-navy/10">
+              {caso.pagamentosPendentes.slice(0, 8).map((f) => (
+                <li key={f.id} className="flex items-center justify-between gap-2 py-1.5 text-sm">
+                  {f.caseId ? (
+                    <Link to="/casos/$caseId" params={{ caseId: f.caseId }} className="text-navy underline underline-offset-4">
+                      {f.numero || `Fatura ${f.id.slice(0, 8)}`}
+                    </Link>
+                  ) : (
+                    <span className="text-navy/70">{f.numero || `Fatura ${f.id.slice(0, 8)}`}</span>
+                  )}
+                  <span className="text-navy/55">
+                    {f.moeda} {f.valor.toFixed(2)}
                   </span>
                 </li>
               ))}

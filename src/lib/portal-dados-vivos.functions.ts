@@ -92,7 +92,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         .in("case_id", alvo),
       supabase.from("documents").select("id, liberado_cliente, origem, is_demo").in("case_id", alvo),
       supabase.from("portal_document_requests").select("case_id, status").in("case_id", alvo).in("status", ["aguardando", "recusado"]),
-      supabase.from("invoices").select("case_id, status").in("case_id", alvo).in("status", ["pendente", "vencida"]),
+      supabase.from("invoices").select("case_id, status").in("case_id", alvo).in("status", ["aberta", "vencida"]),
     ]);
 
     const documentosPendentes = ((pendencias.data ?? []) as { case_id: string }[]).length;

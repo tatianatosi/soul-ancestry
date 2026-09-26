@@ -341,23 +341,24 @@ export const salvarLeadDesk = createServerFn({ method: "POST" })
     }
 
     const organization_id = await orgDoUsuario(supabase, userId);
-    const { data: row, error } = await supabase
-      .from("leads")
-      .insert({ ...patch, organization_id, created_by: userId, updated_by: userId })
-      .select("*")
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!row) throw new Error("NENHUMA_LINHA_AFETADA: lead não foi criado.");
+    const resultadoInsert = await inserirComVerificacao({
+      supabase,
+      tabela: "leads",
+      organizationId: organization_id,
+      userId,
+      payload: patch,
+    });
+    const row = resultadoInsert.registro;
     await registrarAuditoriaLead(
       supabase,
       organization_id,
       userId,
-      (row as { id: string }).id,
+      resultadoInsert.id,
       "criar_lead",
       null,
-      row as Record<string, unknown>,
+      row,
     );
-    await registrarEventosCall(supabase, organization_id, userId, (row as { id: string }).id, eventosCall, motivoCall);
+    await registrarEventosCall(supabase, organization_id, userId, resultadoInsert.id, eventosCall, motivoCall);
     return { ok: true as const, erros: [], lead: row as LeadDesk };
   });
 

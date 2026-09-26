@@ -21,6 +21,7 @@ import { TIPOS_DOCUMENTO } from "@/lib/fontes-documentos";
 import { cepValido, cpfValido, formatarCep, formatarCpf, formatarTelefone, UFS_BRASIL } from "@/lib/validacao-pessoa";
 import { rotuloFase } from "@/lib/fase-rotulo";
 import { obterProximaAcaoCanonica, SELO_PROXIMA_ACAO } from "@/lib/caso-ficha";
+import { resumoVisaoClienteCaso } from "@/lib/app-cliente-como-pessoa.functions";
 import { NOME_RESPONSAVEL_PADRAO } from "@/lib/responsavel-padrao";
 import { ordenarPorPrioridade, sinaisDaPessoa, type PrioridadeSinal } from "@/lib/pessoa-sinais";
 import { relacoesAprovadas, estadoDeConfirmacao } from "@/lib/golive-pessoas";
@@ -724,6 +725,7 @@ function Pessoa() {
                         </Link>
                       </p>
                     ) : null}
+                    <ExperienciaNoApp caseId={c.id} />
                     <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs font-medium">
                       <Link
                         to="/casos/$caseId"
@@ -752,7 +754,7 @@ function Pessoa() {
                         search={{ casoId: c.id }}
                         className="text-navy underline underline-offset-4"
                       >
-                        Visão do cliente
+                        Abrir Visão Administrativa do Cliente
                       </Link>
                     </div>
                   </li>
@@ -1341,6 +1343,32 @@ function Pessoa() {
 
 function ordemDaForca(f: EvidenciaDeElo["forca"]): number {
   return f === "confirmado" ? 0 : f === "provavel" ? 1 : 2;
+}
+
+/**
+ * P27 (26/09/2026): "Experiência no App" pedido pelo Pacote de Instruções
+ * dentro de Pessoa 360 — reaproveita o mesmo resumoVisaoClienteCaso já usado
+ * em Caso 360 (nenhum escritor/consulta novo além do que a função já faz).
+ */
+function ExperienciaNoApp({ caseId }: { caseId: string }) {
+  const carregarFn = useServerFn(resumoVisaoClienteCaso);
+  const q = useQuery({
+    queryKey: ["ficha-caso-visao-cliente", caseId],
+    queryFn: () => carregarFn({ data: { casoId: caseId } }),
+    retry: false,
+  });
+  if (q.isLoading) return <p className="mt-2 text-[11px] text-navy/50">Carregando experiência no App…</p>;
+  if (q.isError) return <p className="mt-2 text-[11px] text-terracotta">Não foi possível carregar a experiência no App.</p>;
+  const d = q.data;
+  return (
+    <div className="mt-2 rounded-md border border-navy/10 bg-navy/[0.02] p-2 text-[11px] text-navy/75">
+      <p className="font-medium text-navy/60">Experiência no App</p>
+      <p>Acesso: {d?.acesso.liberado ? "liberado" : "não liberado"}</p>
+      <p>Próximo passo publicado: {d?.proximaAcao?.acao ?? "Sem dados suficientes"}</p>
+      <p>Documentos disponíveis: {d?.documentosDisponiveis ?? 0}</p>
+      <p>Último acesso do cliente: {d?.acesso.ultimoAcessoEm ? String(d.acesso.ultimoAcessoEm).slice(0, 10) : "sem acesso registrado"}</p>
+    </div>
+  );
 }
 
 function Campo({ rotulo, valor }: { rotulo: string; valor?: string | null }) {

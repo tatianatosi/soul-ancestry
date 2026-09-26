@@ -97,7 +97,7 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
         .select("id, status")
         .eq("organization_id", organizationId)
         .eq("case_id", data.casoId)
-        .in("status", ["pendente", "vencida"]),
+        .in("status", ["aberta", "vencida"]),
     ]);
 
     const projecoes = linhasDe<ProjecaoBruta>(proj, "as publicações do App Cliente");
@@ -141,6 +141,7 @@ export type ResumoVisaoCliente = {
     liberado: boolean;
   };
   ultimaAtualizacaoLiberada: { tipo: string; em: string } | null;
+  proximaAcao: ProximaAcaoCliente | null;
   microentregasProntasParaRevisao: number;
   producaoInternaEmRevisao: number;
   documentosDisponiveis: number;
@@ -171,7 +172,9 @@ export const resumoVisaoClienteCaso = createServerFn({ method: "GET" })
 
     const caso = await supabase
       .from("crm_casos")
-      .select("id,app_access_status,app_visibility_level,consentimento_compartilhamento,info_cliente_liberada")
+      .select(
+        "id,status,ativo,suspenso_em,app_access_status,app_visibility_level,consentimento_compartilhamento,info_cliente_liberada",
+      )
       .eq("id", data.casoId)
       .eq("organization_id", organizationId)
       .maybeSingle();
@@ -181,7 +184,7 @@ export const resumoVisaoClienteCaso = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const leitorProjecoes = supabaseAdmin as typeof supabase;
 
-    const [acessoCaso, projecoes, entregas, documentos] = await Promise.all([
+    const [acessoCaso, projecoes, entregas, documentos, pendencias, faturas] = await Promise.all([
       supabase
         .from("client_portal_case_access")
         .select("access_status,revoked_at,client_portal_access:client_portal_access_id(access_status,last_authenticated_at)")
@@ -207,6 +210,22 @@ export const resumoVisaoClienteCaso = createServerFn({ method: "GET" })
         .select("id", { count: "exact", head: true })
         .eq("case_id", data.casoId)
         .eq("liberado_cliente", true),
+      // P27 (26/09/2026): "próximo passo publicado" pedido pelo Pacote de
+      // Instruções — mesmas 2 consultas de dadosVivosDoPortalComoAdmin
+      // acima, para alimentar projetarProximaAcaoCliente sem tabela nova.
+      supabase
+        .from("portal_document_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", organizationId)
+        .eq("case_id", data.casoId)
+        .in("status", ["aguardando", "recusado"])
+        .is("archived_at", null),
+      supabase
+        .from("invoices")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", organizationId)
+        .eq("case_id", data.casoId)
+        .in("status", ["aberta", "vencida"]),
     ]);
 
     const listaProjecoes = (projecoes.data ?? []) as Record<string, any>[];
@@ -221,6 +240,16 @@ export const resumoVisaoClienteCaso = createServerFn({ method: "GET" })
 
     const acessoLinha = acessoCaso.data as Record<string, any> | null;
     const acessoCliente = acessoLinha?.["client_portal_access"] as Record<string, any> | null;
+
+    const proximaAcao = projetarProximaAcaoCliente(
+      sinaisDoCasoPortal({
+        status: caso.data["status"] ?? null,
+        ativo: caso.data["ativo"] ?? null,
+        suspensoEm: caso.data["suspenso_em"] ?? null,
+        documentosPendentes: pendencias.count ?? 0,
+        pagamentoPendente: (faturas.count ?? 0) > 0,
+      }),
+    );
 
     return {
       acesso: {
@@ -238,6 +267,7 @@ export const resumoVisaoClienteCaso = createServerFn({ method: "GET" })
       ultimaAtualizacaoLiberada: ultimaPublicada
         ? { tipo: String(ultimaPublicada["projection_type"] ?? ""), em: String(ultimaPublicada["effective_from"]) }
         : null,
+      proximaAcao,
       microentregasProntasParaRevisao: pendentes.length,
       producaoInternaEmRevisao: entregas.count ?? 0,
       documentosDisponiveis: documentos.count ?? 0,

@@ -30,7 +30,7 @@ export const meusCasos = createServerFn({ method: "GET" })
         .select("id, codigo, titulo, pais, via, status, ativo, suspenso_em, updated_at")
         .order("updated_at", { ascending: false }),
       supabase.from("portal_document_requests").select("case_id, status").in("status", ["aguardando", "recusado"]),
-      supabase.from("invoices").select("case_id, status").in("status", ["pendente", "vencida"]),
+      supabase.from("invoices").select("case_id, status").in("status", ["aberta", "vencida"]),
     ]);
 
     const porCaso = new Map<string, number>();
@@ -131,7 +131,7 @@ export const meuCaso = createServerFn({ method: "GET" })
     const listaSolicitacoes = (solicitacoes.data ?? []) as any[];
     const listaFaturas = semFixtures((faturas.data ?? []) as any[]);
     const pendentes = listaSolicitacoes.filter((s) => ["aguardando", "recusado"].includes(s.status)).length;
-    const pagamentoPendente = listaFaturas.some((f) => ["pendente", "vencida"].includes(String(f.status)));
+    const pagamentoPendente = listaFaturas.some((f) => ["aberta", "vencida"].includes(String(f.status)));
     const s = h.statusSimples(caso, pendentes);
     const proxima = projetarProximaAcaoCliente(
       sinaisDoCasoPortal({

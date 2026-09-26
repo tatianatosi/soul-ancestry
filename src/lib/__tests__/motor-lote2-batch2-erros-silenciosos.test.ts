@@ -15,8 +15,12 @@ const contratoParametros = readFileSync("src/lib/contrato-parametros.functions.t
 
 describe("salvarLeadDesk — insert de lead novo checa linha afetada", () => {
   const trecho = crmDesk.slice(crmDesk.indexOf("export const salvarLeadDesk"));
-  it("lança erro explícito se o insert não retornar linha", () => {
-    expect(trecho).toContain('NENHUMA_LINHA_AFETADA: lead não foi criado.');
+  // P27 (26/09/2026): o insert manual com checagem de `error` foi substituído
+  // por inserirComVerificacao (grava → relê pelo id → compara payload) — o
+  // gap apontado no adendo de 31/08/2026 (Painel de Calls) está fechado.
+  it("usa inserirComVerificacao, que lança erro explícito se o insert não retornar linha", () => {
+    expect(trecho).toContain('tabela: "leads"');
+    expect(trecho).toContain("await inserirComVerificacao(");
   });
 });
 

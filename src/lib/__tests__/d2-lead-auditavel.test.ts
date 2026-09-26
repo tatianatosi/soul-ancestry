@@ -28,7 +28,11 @@ describe("cada mutation de lead grava evento em audit_logs", () => {
       arquivo.indexOf("const organization_id = await orgDoUsuario"),
       arquivo.indexOf("Arquiva um lead"),
     );
-    expect(bloco).toContain(".from(\"leads\")");
+    // P27 (26/09/2026): insert de lead passou a usar inserirComVerificacao
+    // (grava → relê → confere), mesmo padrão do update — nunca mais insert
+    // cru sem releitura de verificação.
+    expect(bloco).toContain('tabela: "leads"');
+    expect(bloco).toContain("await inserirComVerificacao(");
     expect(bloco).toContain("await registrarAuditoriaLead(");
     expect(bloco).toContain('"criar_lead"');
   });

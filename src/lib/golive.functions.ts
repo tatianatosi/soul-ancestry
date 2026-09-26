@@ -132,12 +132,37 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         .select(
           "id,codigo,titulo,status,fase,ativo,risco,prioridade,responsavel_principal,proxima_acao," +
             "prazo_proxima_acao,contrato_assinado,pagamento_confirmado,documentos_minimos_ok," +
-            "aguardando_instituicao_externa,demo,pais,via",
+            "aguardando_instituicao_externa,demo,pais,via,eixo_comercial",
         )
         .eq("organization_id", organizationId)
         .is("archived_at", null)
         .limit(500)
     ).data as Linha[] | null;
+
+    /* P27 (26/09/2026): "Contratos aguardando assinatura" e "Pagamentos
+       pendentes/vencidos" pedidos pelo Pacote de Instruções no Painel Hoje —
+       mesmas tabelas já usadas no financeiro do caso único, agora por
+       organização inteira, sem tabela nova. */
+    const [contratosPendentesResp, faturasPendentesResp] = await Promise.all([
+      supabase
+        .from("contracts")
+        .select("id,case_id,contract_number,status,updated_at")
+        .eq("organization_id", organizationId)
+        .eq("status", "sent")
+        .is("archived_at", null)
+        .order("updated_at", { ascending: false })
+        .limit(50),
+      supabase
+        .from("invoices")
+        .select("id,case_id,numero,valor,moeda,vencimento,status")
+        .eq("organization_id", organizationId)
+        .in("status", ["aberta", "vencida"])
+        .is("archived_at", null)
+        .order("vencimento", { ascending: true })
+        .limit(50),
+    ]);
+    const contratosPendentesAssinatura = (contratosPendentesResp.data ?? []) as Linha[];
+    const faturasPendentesOrg = (faturasPendentesResp.data ?? []) as Linha[];
 
     /* Alertas abertos por caso da carteira. Só contagem do que já está gravado
        em `case_alerts`; sem criar, resolver ou disparar nada. */
@@ -576,7 +601,27 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           documentosMinimosOk: c["documentos_minimos_ok"] === true,
           aguardandoExterno: c["aguardando_instituicao_externa"] === true,
           alertasAbertos: alertasPorCaso.get(String(c["id"])) ?? 0,
+          eixoComercial: (c["eixo_comercial"] as string) ?? null,
         })),
+      /** Contratos enviados, ainda sem assinatura — Formalização & Financeiro. */
+      contratosAguardandoAssinatura: contratosPendentesAssinatura
+        .filter((c) => c["case_id"] !== null && c["case_id"] !== undefined)
+        .map((c) => ({
+          id: String(c["id"]),
+          caseId: String(c["case_id"]),
+          numero: (c["contract_number"] as string) ?? null,
+          atualizadoEm: (c["updated_at"] as string) ?? null,
+        })),
+      /** Faturas abertas ou vencidas — Financeiro. */
+      pagamentosPendentes: faturasPendentesOrg.map((f) => ({
+        id: String(f["id"]),
+        caseId: f["case_id"] ? String(f["case_id"]) : null,
+        numero: (f["numero"] as string) ?? null,
+        valor: typeof f["valor"] === "number" ? f["valor"] : Number(f["valor"] ?? 0),
+        moeda: (f["moeda"] as string) ?? "BRL",
+        vencimento: (f["vencimento"] as string) ?? null,
+        status: (f["status"] as string) ?? null,
+      })),
       /** Carteira comercial: um cartão por lead, só campos já gravados. */
       /* Limite e leads sem data de entrada ficam declarados na tela. */
       leadsComerciaisLimite: LIMITE_LEADS,

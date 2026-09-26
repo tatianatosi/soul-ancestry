@@ -54,6 +54,9 @@ export type CasoCarteira = {
   prazoProximaAcao: string | null;
   pais?: string | null;
   via?: string | null;
+  eixoComercial?: string | null;
+  titulo?: string | null;
+  codigo?: string | null;
 };
 
 const DIA = 86_400_000;
@@ -230,6 +233,17 @@ export function casosPorPaisVia(carteira: readonly CasoCarteira[]) {
   return [...mapa.entries()]
     .map(([rotulo, valor]) => ({ rotulo, valor }))
     .sort((a, b) => b.valor - a.valor);
+}
+
+/**
+ * P27 (26/09/2026): "Propostas aguardando resposta" pedido pelo Pacote de
+ * Instruções no Painel Hoje — mesmo campo `eixo_comercial` já gravado na
+ * carteira ativa, nenhuma consulta nova.
+ */
+export function propostasAguardandoResposta(carteira: readonly CasoCarteira[]) {
+  return carteira
+    .filter((c) => casoAtivo(c) && c.eixoComercial === "proposta_enviada")
+    .map((c) => ({ id: c.id, rotulo: c.titulo || c.codigo || c.id }));
 }
 
 /** Contagem por faixa de prazo, para os KPIs do Kanban. */

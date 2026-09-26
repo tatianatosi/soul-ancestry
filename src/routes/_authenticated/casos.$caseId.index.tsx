@@ -617,6 +617,19 @@ function FichaCaso() {
     onError: (e: Error) => toast.error("Não foi possível reprogramar", { description: e.message }),
   });
 
+  // P27 (26/09/2026): "Mover fase" pedido pelo Pacote de Instruções como CTA
+  // do cabeçalho — antes só existia o dropdown genérico "Etapa comercial" na
+  // seção Formalização (mesmo campo, mesmo escritor, sem CTA de um clique).
+  const mMoverFase = useMutation({
+    mutationFn: (novaFase: string) =>
+      atualizar({ data: { entidade: "crm_casos", id, dados: { eixo_comercial: novaFase } } }),
+    onSuccess: () => {
+      toast.success("Fase comercial movida.");
+      recarregar();
+    },
+    onError: (e: Error) => toast.error("Não foi possível mover a fase", { description: e.message }),
+  });
+
   const mRegistrarAtualizacao = useMutation({
     mutationFn: (texto: string) => {
       const anterior = String(caso?.["resumo_interno"] ?? "").trim();
@@ -882,6 +895,28 @@ function FichaCaso() {
           >
             Criar tarefa
           </button>
+          <label className="flex items-center rounded-lg border border-navy/20 px-1 text-sm text-navy hover:bg-navy/5">
+            <select
+              aria-label="Mover fase"
+              className="bg-transparent py-2 pl-2 pr-1 text-sm text-navy outline-none disabled:opacity-40"
+              value=""
+              disabled={mMoverFase.isPending}
+              title="Move a fase comercial deste caso (mesmo campo do dropdown 'Etapa comercial' em Formalização)."
+              onChange={(e) => {
+                const valor = e.target.value;
+                if (!valor) return;
+                mMoverFase.mutate(valor);
+                e.target.value = "";
+              }}
+            >
+              <option value="">Mover fase…</option>
+              {EIXO_COMERCIAL.map((o) => (
+                <option key={o.valor} value={o.valor}>
+                  {o.rotulo}
+                </option>
+              ))}
+            </select>
+          </label>
           <button
             type="button"
             disabled={mRegistrarAtualizacao.isPending}
@@ -906,7 +941,7 @@ function FichaCaso() {
             search={{ casoId: String(caso["id"]) }}
             className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5"
           >
-            Abrir visão do cliente
+            Abrir Visão Administrativa do Cliente
           </Link>
           {clienteId ? (
             <Link
@@ -1301,6 +1336,13 @@ function FichaCaso() {
                 Acesso: {qVisaoCliente.data?.acesso.liberado ? "liberado" : "não liberado"}
                 {qVisaoCliente.data?.acesso.statusAcesso ? ` (${qVisaoCliente.data.acesso.statusAcesso})` : ""}
               </li>
+              <li>
+                Último acesso do cliente:{" "}
+                {qVisaoCliente.data?.acesso.ultimoAcessoEm
+                  ? String(qVisaoCliente.data.acesso.ultimoAcessoEm).slice(0, 10)
+                  : "sem acesso registrado"}
+              </li>
+              <li>Próximo passo publicado ao cliente: {qVisaoCliente.data?.proximaAcao?.acao ?? "Sem dados suficientes"}</li>
               <li>
                 Última atualização liberada:{" "}
                 {qVisaoCliente.data?.ultimaAtualizacaoLiberada

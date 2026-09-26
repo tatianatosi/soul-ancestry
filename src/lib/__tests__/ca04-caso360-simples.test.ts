@@ -17,7 +17,7 @@ describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)"
     const inicioHero = pagina.indexOf('<p className="text-[11px] uppercase tracking-wide text-navy/55">Situação hoje</p>');
     const fimHero = pagina.indexOf("{erro ? (");
     const hero = pagina.slice(inicioHero, fimHero);
-    for (const cta of ["Concluir", "Reprogramar", "Criar tarefa", "Registrar atualização", "Preparar microentrega", "Abrir visão do cliente"]) {
+    for (const cta of ["Concluir", "Reprogramar", "Criar tarefa", "Registrar atualização", "Preparar microentrega", "Abrir Visão Administrativa do Cliente"]) {
       expect(hero, `CTA ausente no hero: ${cta}`).toContain(cta);
     }
   });
@@ -107,8 +107,8 @@ describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)"
     ]);
   });
 
-  it("nenhum card repetido: 'Abrir visão do cliente' aparece uma única vez na página", () => {
-    const ocorrencias = pagina.match(/Abrir visão do cliente/g) ?? [];
+  it("nenhum card repetido: 'Abrir Visão Administrativa do Cliente' aparece uma única vez na página", () => {
+    const ocorrencias = pagina.match(/Abrir Visão Administrativa do Cliente/g) ?? [];
     expect(ocorrencias.length).toBe(1);
   });
 
