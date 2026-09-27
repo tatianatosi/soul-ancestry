@@ -113,7 +113,7 @@ export function PortalLegado() {
                           key={p.id}
                           data-legado-prateleira={p.id}
                           className={`overflow-hidden rounded-xl border border-border border-t-4 bg-card p-4 shadow-sm ${
-                            ["border-t-gold", "border-t-navy", "border-t-terracotta"][prateleiras.indexOf(p) % 3]
+                            ["border-t-gold", "border-t-navy", "border-t-terracotta"][PRATELEIRAS.indexOf(p) % 3]
                           }`}
                         >
                           <div className="flex flex-wrap items-start justify-between gap-2">

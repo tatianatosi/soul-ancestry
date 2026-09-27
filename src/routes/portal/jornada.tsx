@@ -459,8 +459,9 @@ export function PortalJornada() {
                         </h2>
                         <p className="mt-2 text-sm text-cream/70">{ritmoRotulo}</p>
                       </div>
-                      <div data-jornada-duas-linhas className="grid gap-4">
-                        <section className="rounded-xl border border-gold/35 bg-card p-5 shadow-sm">
+                      <div data-jornada-duas-linhas className="relative grid gap-4 pl-5">
+                        <span aria-hidden="true" className="absolute bottom-4 left-1.5 top-4 w-px bg-gold/60" />
+                        <section className="relative rounded-xl border border-gold/35 bg-card p-5 shadow-sm">
                           <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Linha Ancestral</p>
                           <p className="mt-2 text-sm leading-relaxed text-navy/60">
                            As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.
