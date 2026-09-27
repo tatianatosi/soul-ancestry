@@ -15,6 +15,7 @@ import {
   NUCLEO_NIVEIS_ACESSO,
   NUCLEO_PAPEIS,
   PAPEIS_GRAVAVEIS_MEMBRO,
+  PAPEIS_NO_CASO_GRAVAVEIS_NUCLEO,
   criarNucleo,
   encaminharFilaDrive,
   listarClientesParaVinculo,
@@ -23,6 +24,7 @@ import {
   salvarMembroNucleo,
   adicionarMembroNucleo,
 } from "@/lib/nucleos-desk.functions";
+import { PAPEIS_PESSOA } from "@/lib/caso-ficha";
 import { STATUS_FILA_DRIVE } from "@/lib/drive-provisioning";
 import { salvarTarefa } from "@/lib/ops.functions";
 
@@ -60,9 +62,14 @@ type Membro = {
   id: string;
   nome: string;
   papel: string;
+  /** Coluna real e canônica (CHECK de 5 valores) — ver `pessoaDoCasoAPartirDoNucleo`. */
+  papel_no_caso: string;
   vinculo: string | null;
   processo: string | null;
   cliente_id: string | null;
+  /** Fase 2 (27/09/2026) — só preenchido quando o caso ainda tem case_members real. */
+  representacaoNecessaria: boolean | null;
+  representacaoDocumentada: boolean | null;
 };
 type Nucleo = {
   id: string;
@@ -149,6 +156,7 @@ function NucleosPage() {
     vinculo: string;
     processo: string;
     clienteId: string;
+    papelNoCaso: string;
   } | null>(null);
   const [erroMembro, setErroMembro] = useState<string | null>(null);
   const [novoNucleoAberto, setNovoNucleoAberto] = useState(false);
@@ -237,6 +245,7 @@ function NucleosPage() {
       vinculo: string;
       processo: string;
       clienteId: string;
+      papelNoCaso: string;
       caseId: string | null;
     }) =>
       salvarMembro({
@@ -246,6 +255,7 @@ function NucleosPage() {
           vinculo: data.vinculo,
           processo: data.processo,
           clienteId: data.clienteId || null,
+          papelNoCaso: data.papelNoCaso || null,
         },
       }),
     onSuccess: async (_r, variaveis) => {
@@ -480,6 +490,17 @@ function NucleosPage() {
                                 valor={rascunhoMembro.processo}
                                 onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, processo: v })}
                               />
+                              <Selecao
+                                label="Papel no caso"
+                                ajuda="Mesmo vocabulário usado em Caso 360 e Pessoa 360 — nunca um rótulo próprio desta tela."
+                                valor={rascunhoMembro.papelNoCaso}
+                                opcoes={
+                                  rascunhoMembro.papelNoCaso === "interlocutor"
+                                    ? [...PAPEIS_NO_CASO_GRAVAVEIS_NUCLEO, { valor: "interlocutor", rotulo: "Interlocutor (variante legada — mantido)" }]
+                                    : [...PAPEIS_NO_CASO_GRAVAVEIS_NUCLEO]
+                                }
+                                onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, papelNoCaso: v })}
+                              />
                               <EstadoDados
                                 carregando={qClientes.isLoading}
                                 erro={qClientes.error}
@@ -528,8 +549,14 @@ function NucleosPage() {
                               <div>
                                 <span className="font-medium text-navy">{m2.nome}</span>{" "}
                                 <span className="text-navy/55">
-                                  ({(NUCLEO_PAPEIS as readonly string[]).includes(m2.papel) ? rotulo(m2.papel) : m2.papel})
+                                  ({PAPEIS_PESSOA.find((o) => o.valor === m2.papel_no_caso)?.rotulo
+                                    ?? (m2.papel_no_caso || ((NUCLEO_PAPEIS as readonly string[]).includes(m2.papel) ? rotulo(m2.papel) : m2.papel))})
                                 </span>
+                                {m2.representacaoNecessaria ? (
+                                  <span className="ml-1 rounded-full border border-gold/50 bg-gold/10 px-1.5 py-0.5 text-[10px] text-navy">
+                                    Representação {m2.representacaoDocumentada ? "documentada" : "pendente"}
+                                  </span>
+                                ) : null}
                                 {m2.vinculo ? <p className="text-navy/55">{m2.vinculo}</p> : null}
                                 {m2.processo ? <p className="text-navy/45">{m2.processo}</p> : null}
                               </div>
@@ -564,6 +591,7 @@ function NucleosPage() {
                                         vinculo: m2.vinculo ?? "",
                                         processo: m2.processo ?? "",
                                         clienteId: m2.cliente_id ?? "",
+                                        papelNoCaso: m2.papel_no_caso ?? "",
                                       });
                                       setErroMembro(null);
                                     }}

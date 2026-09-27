@@ -9,10 +9,16 @@ import {
   type StatusFilaDrive,
 } from "@/lib/drive-provisioning";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
-import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
+import {
+  ordemDoContratantePrincipal,
+  pessoaDoCasoAPartirDoNucleo,
+  pessoasDoCasoComFallbackNucleo,
+  type MembroNucleoBruto,
+} from "@/lib/pessoa-vinculo";
 import { coberturaPorGeracao } from "@/lib/golive-pessoas";
 import { inserirComVerificacao } from "@/lib/persistencia.server";
 import { motivosDossieMaeNaoAtivavel, nucleoComMesmoDossieAtivo } from "@/lib/nucleo-completude";
+import { PAPEIS_PESSOA } from "@/lib/caso-ficha";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -38,6 +44,18 @@ export const NUCLEO_PAPEIS = [
   "referencia_genealogica",
 ] as const;
 
+/**
+ * P32c/Fase 2 (27/09/2026) — `PAPEIS_PESSOA` (caso-ficha.ts) inclui
+ * "interlocutor" como variante LEGADA (nunca invalidar linha já gravada),
+ * mas o CHECK real de `nucleo_membros.papel_no_caso`
+ * (migration 20260821135341) só aceita 5 valores — sem "interlocutor". Uma
+ * gravação nova com esse valor passaria na validação do app e quebraria no
+ * banco com um erro cru. Lista de gravação nova = PAPEIS_PESSOA sem a
+ * variante legada; leitura/exibição continua usando PAPEIS_PESSOA inteiro
+ * (uma linha antiga com "interlocutor" nunca fica sem rótulo).
+ */
+export const PAPEIS_NO_CASO_GRAVAVEIS_NUCLEO = PAPEIS_PESSOA.filter((o) => o.valor !== "interlocutor");
+
 /** Lista os núcleos familiares da organização com requerentes vinculados. */
 export const listarNucleos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -61,7 +79,7 @@ export const listarNucleos = createServerFn({ method: "GET" })
       ids.length
         ? supabase
             .from("nucleo_membros")
-            .select("id,nucleo_id,nome,papel,vinculo,processo,ordem,cliente_id")
+            .select("id,nucleo_id,nome,papel,papel_no_caso,vinculo,processo,ordem,cliente_id")
             .in("nucleo_id", ids)
             .is("archived_at", null)
             .order("ordem")
@@ -107,11 +125,15 @@ export const listarNucleos = createServerFn({ method: "GET" })
           caseId,
           membros.map((m) => ({
             id: m.id,
+            nome: m.nome,
+            origem: m.origem,
             paiId: m.pai_id,
             maeId: m.mae_id,
             titular: m.titular,
             requerente: m.requerente,
             contratante: m.contratante,
+            representacaoNecessaria: m.representacao_necessaria,
+            representacaoDocumentada: m.representacao_documentada,
           })),
         ] as const;
       }),
@@ -119,14 +141,60 @@ export const listarNucleos = createServerFn({ method: "GET" })
     const coberturaPorCaso = new Map(
       membrosPorCaso.map(([caseId, membros]) => [caseId, coberturaPorGeracao(membros)]),
     );
+    /*
+     * Fase 2 (27/09/2026) — "representação de menor... como leitura/vínculo
+     * ao membro/caso existente, sem criar ficha paralela": `nucleo_membros`
+     * não grava representacao_necessaria/documentada (só case_members
+     * grava). Quando o caso ainda tem case_members ativo (fonte real,
+     * `origem === "case_members"`), a mesma pessoa aparece aqui por nome
+     * normalizado — nunca inventa dado quando a fonte é o fallback de
+     * núcleo (representação continua nula, como já era).
+     */
+    const normalizarNome = (s: string) => s.trim().toLowerCase();
+    const representacaoPorCaso = new Map(
+      membrosPorCaso.map(([caseId, membros]) => {
+        const porNome = new Map<string, { necessaria: boolean | null; documentada: boolean | null }>();
+        for (const m of membros) {
+          if (m.origem !== "case_members") continue;
+          porNome.set(normalizarNome(m.nome), {
+            necessaria: m.representacaoNecessaria,
+            documentada: m.representacaoDocumentada,
+          });
+        }
+        return [caseId, porNome] as const;
+      }),
+    );
 
-    return (nucleos ?? []).map((n: any) => ({
-      ...n,
-      caso: n.case_id ? (porCaso.get(n.case_id) ?? null) : null,
-      filaDrive: porFila.get(n.id) ?? null,
-      coberturaGeracoes: n.case_id ? (coberturaPorCaso.get(n.case_id) ?? []) : [],
-      membros: (membros ?? []).filter((m: any) => m.nucleo_id === n.id),
-    }));
+    return (nucleos ?? []).map((n: any) => {
+      // P32c (26/09/2026) — "a mesma pessoa não pode aparecer com rótulo
+      // diferente em telas diferentes": esta tela lia `nucleo_membros.papel`
+      // cru (contratante_signatario/dependente/referencia_genealogica/
+      // requerente — vocabulário de escrita), enquanto Caso 360 já tinha um
+      // rótulo próprio (PessoasDoNucleo) e `case_members.papel_no_caso` já
+      // é a coluna real e canônica (CHECK de 5 valores, R4 21/09/2026:
+      // contratante/titular/dependente/representante/interlocutor_externo).
+      // `pessoaDoCasoAPartirDoNucleo` agora prefere o `papel_no_caso` real
+      // de `nucleo_membros` quando gravado, com a mesma função usada aqui,
+      // em Caso 360 e em Pessoa 360 — nunca mais um rótulo próprio por tela.
+      const membrosDoNucleo = ((membros ?? []) as MembroNucleoBruto[]).filter((m) => m.nucleo_id === n.id);
+      const ordemMinima = ordemDoContratantePrincipal(membrosDoNucleo);
+      const representacaoDoCaso = n.case_id ? representacaoPorCaso.get(n.case_id) : undefined;
+      return {
+        ...n,
+        caso: n.case_id ? (porCaso.get(n.case_id) ?? null) : null,
+        filaDrive: porFila.get(n.id) ?? null,
+        coberturaGeracoes: n.case_id ? (coberturaPorCaso.get(n.case_id) ?? []) : [],
+        membros: membrosDoNucleo.map((m) => {
+          const rep = representacaoDoCaso?.get(normalizarNome(m.nome));
+          return {
+            ...m,
+            ...pessoaDoCasoAPartirDoNucleo(m, ordemMinima),
+            representacaoNecessaria: rep?.necessaria ?? null,
+            representacaoDocumentada: rep?.documentada ?? null,
+          };
+        }),
+      };
+    });
   });
 
 /**
@@ -297,39 +365,74 @@ export const salvarDossieNucleo = createServerFn({ method: "POST" })
   });
 
 /**
- * Edita os dados de um requerente/membro já cadastrado no núcleo (nome, vínculo, processo).
+ * Edita os dados de um requerente/membro já cadastrado no núcleo (nome, vínculo, processo,
+ * papel no caso).
  *
  * Existia leitura (`listarNucleos`) e criação (só via materialização do piloto), mas nenhuma
  * edição: a ficha do Caso linkava para cá dizendo "Editar em Núcleos e dossiês", e esta tela
  * só editava o dossiê-mãe — nunca a pessoa em si. Resultado real, confirmado em produção:
  * dado digitado para editar um requerente não tinha para onde ir.
  *
- * O papel não é editável aqui: a constraint do banco só aceita
- * `contratante_signatario`/`dependente`, mais estreita que a lista usada na tela — mudar de
- * papel é decisão que merece tela própria, não um campo de texto livre.
+ * P32c (26/09/2026) — o papel de ESCRITA original (`papel`, contratante_signatario/dependente)
+ * continua imutável aqui (é o que sustenta a aproximação de titular/contratante por ordem em
+ * `pessoaDoCasoAPartirDoNucleo`). O que passa a ser editável é `papel_no_caso` — a coluna
+ * canônica e já fechada por CHECK (R4, 21/09/2026: contratante/titular/dependente/
+ * representante/interlocutor_externo, mesmo vocabulário de `case_members.papel_no_caso` e de
+ * `PAPEIS_PESSOA`) — o mesmo rótulo que Caso 360 e Pessoa 360 já usam para a pessoa canônica.
  */
 export const salvarMembroNucleo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { membroId: string; nome: string; vinculo: string; processo: string; clienteId?: string | null }) => {
-    if (!UUID.test(data?.membroId ?? "")) throw new Error("Requerente inválido.");
-    if (data.clienteId && !UUID.test(data.clienteId)) throw new Error("Pessoa vinculada inválida.");
-    return data;
-  })
+  .inputValidator(
+    (data: {
+      membroId: string;
+      nome: string;
+      vinculo: string;
+      processo: string;
+      clienteId?: string | null;
+      papelNoCaso?: string | null;
+    }) => {
+      if (!UUID.test(data?.membroId ?? "")) throw new Error("Requerente inválido.");
+      if (data.clienteId && !UUID.test(data.clienteId)) throw new Error("Pessoa vinculada inválida.");
+      if (data.papelNoCaso && !PAPEIS_PESSOA.some((o) => o.valor === data.papelNoCaso)) {
+        throw new Error("Papel no caso fora da lista controlada.");
+      }
+      return data;
+    },
+  )
   .handler(async ({ data, context }) => {
     const supabase = (context as any).supabase;
+
+    // P32c/Fase 2 (27/09/2026) — "interlocutor" é variante legada: só pode
+    // permanecer numa linha que já a tinha, nunca ser escolhida de novo
+    // (o CHECK real do banco só aceita 5 valores, sem "interlocutor" — ver
+    // PAPEIS_NO_CASO_GRAVAVEIS_NUCLEO). Checa o valor atual antes de gravar
+    // para dar um erro claro em vez do erro cru do banco.
+    if (data.papelNoCaso === "interlocutor") {
+      const { data: atual } = await supabase
+        .from("nucleo_membros")
+        .select("papel_no_caso")
+        .eq("id", data.membroId)
+        .maybeSingle();
+      if (atual?.papel_no_caso !== "interlocutor") {
+        throw new Error(
+          'Papel "Interlocutor (variante legada)" só permanece em linhas que já o tinham — use "Interlocutor externo" para uma escolha nova.',
+        );
+      }
+    }
 
     const patch = {
       nome: data.nome.trim(),
       vinculo: data.vinculo?.trim() || null,
       processo: data.processo?.trim() || null,
       cliente_id: data.clienteId || null,
+      papel_no_caso: data.papelNoCaso || null,
     };
 
     const { data: salvo, error } = await supabase
       .from("nucleo_membros")
       .update(patch)
       .eq("id", data.membroId)
-      .select("id,nome,vinculo,processo,cliente_id,nucleo_id,organization_id")
+      .select("id,nome,vinculo,processo,cliente_id,papel_no_caso,nucleo_id,organization_id")
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!salvo) throw new Error("Requerente não encontrado ou sem permissão de escrita.");

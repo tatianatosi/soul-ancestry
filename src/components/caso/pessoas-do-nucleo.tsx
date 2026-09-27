@@ -3,11 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { listarNucleos } from "@/lib/nucleos-desk.functions";
+import { PAPEIS_PESSOA } from "@/lib/caso-ficha";
 
 type MembroNucleo = {
   id: string;
   nome: string;
   papel: string;
+  /** Coluna real e canônica (CHECK de 5 valores) — mesma fonte de /nucleos e Pessoa 360. */
+  papel_no_caso: string;
   vinculo: string | null;
   processo: string | null;
   cliente_id: string | null;
@@ -20,11 +23,15 @@ type NucleoLinha = {
   membros?: MembroNucleo[];
 };
 
-const ROTULO_PAPEL: Record<string, string> = {
-  contratante_signatario: "Contratante signatário",
-  dependente: "Dependente",
-  participante: "Participante",
-};
+/**
+ * P32c/Fase 2 (27/09/2026) — este componente tinha seu PRÓPRIO rótulo de
+ * papel (`contratante_signatario/dependente/participante`, o último nem
+ * sequer um valor real), diferente do que `/nucleos` e Pessoa 360 mostram
+ * para a mesma pessoa. Unificado: `papel_no_caso` (PAPEIS_PESSOA) prevalece;
+ * o `papel` cru só é mostrado como último recurso, para uma linha ainda não
+ * migrada — nunca mais um rótulo próprio por tela.
+ */
+const rotuloPapel = (m: MembroNucleo) => PAPEIS_PESSOA.find((o) => o.valor === m.papel_no_caso)?.rotulo ?? (m.papel_no_caso || m.papel);
 
 /**
  * Projeção somente leitura da composição familiar na ficha do Caso.
@@ -86,7 +93,7 @@ export function PessoasDoNucleo({ caseId }: { caseId: string }) {
                 <div className="flex flex-wrap items-baseline gap-2">
                   <span className="font-medium text-navy">{m.nome}</span>
                   <span className="rounded-full border border-navy/15 bg-cream/60 px-2 py-0.5 text-[11px] uppercase tracking-wide text-navy/65">
-                    {ROTULO_PAPEL[m.papel] ?? m.papel}
+                    {rotuloPapel(m)}
                   </span>
                   {m.cliente_id ? (
                     <Link

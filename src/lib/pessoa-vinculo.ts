@@ -23,6 +23,16 @@ export type MembroNucleoBruto = {
   id: string;
   nome: string;
   papel: string | null;
+  /** Coluna presente apenas quando a linha é lida por núcleo (ex.: `listarNucleos`). */
+  nucleo_id?: string;
+  /**
+   * P32c (26/09/2026) — coluna real de `nucleo_membros`, já fechada por CHECK
+   * de 5 valores canônicos (migration 20260821135341): contratante/titular/
+   * dependente/representante/interlocutor_externo (mais "interlocutor" como
+   * variante legada — ver `PAPEIS_PESSOA` em caso-ficha.ts). Quando gravada,
+   * prevalece sobre o papel derivado de `papel` (que só distingue 3 valores).
+   */
+  papel_no_caso?: string | null;
   vinculo: string | null;
   processo: string | null;
   ordem: number | null;
@@ -50,15 +60,27 @@ export type MembroNucleoBruto = {
  * Núcleos (eram nulos em `case_members` também, então não há retrocesso).
  */
 export function pessoaDoCasoAPartirDoNucleo(m: MembroNucleoBruto, ordemMinimaContratante: number) {
-  const titular = m.papel === "contratante_signatario";
-  const dependente = m.papel === "dependente";
-  const contratante = titular && (m.ordem ?? Infinity) <= ordemMinimaContratante;
+  const derivadoTitular = m.papel === "contratante_signatario";
+  const derivadoDependente = m.papel === "dependente";
+  const derivadoContratante = derivadoTitular && (m.ordem ?? Infinity) <= ordemMinimaContratante;
+  // P32c (26/09/2026) — quando o papel real (papel_no_caso, CHECK de 5
+  // valores: contratante/titular/dependente/representante/
+  // interlocutor_externo) já foi gravado, ele prevalece sobre a aproximação
+  // derivada de `papel`+`ordem` — nunca o contrário. representante e
+  // interlocutor_externo não são titular/contratante/dependente de geração
+  // familiar (são papéis de representação/contato externo), então os 3
+  // booleanos ficam falsos para esses dois casos.
+  const papelReal = m.papel_no_caso ?? null;
+  const papel_no_caso = papelReal ?? (derivadoContratante ? "contratante" : derivadoTitular ? "titular" : "dependente");
+  const titular = papelReal ? papelReal === "titular" || papelReal === "contratante" : derivadoTitular;
+  const contratante = papelReal ? papelReal === "contratante" : derivadoContratante;
+  const dependente = papelReal ? papelReal === "dependente" : derivadoDependente;
   return {
     origem: "nucleo" as const,
     id: m.id,
     nome: m.nome,
     cliente_id: m.cliente_id,
-    papel_no_caso: contratante ? "contratante" : titular ? "titular" : "dependente",
+    papel_no_caso,
     titular,
     contratante,
     dependente,
