@@ -36,6 +36,7 @@ import { listarFilaOps } from "@/lib/ops.functions";
 import { listarDocumentos } from "@/lib/documentos.functions";
 import { resumoVisaoClienteCaso } from "@/lib/app-cliente-como-pessoa.functions";
 import { FasesMotorCidadania } from "@/components/caso/fases-motor-cidadania";
+import { CadeiaCaso360 } from "@/components/caso/cadeia-caso-360";
 import { FormularioTarefaCaso } from "@/components/caso/formulario-tarefa-caso";
 import { PlanejadorOperacional } from "@/components/contrato/planejador-operacional";
 import { PainelJornadaPlanejador } from "@/components/caso/jornada-planejador";
@@ -1783,6 +1784,7 @@ function FichaCaso() {
                   })()}
                 </div>
                 <FasesMotorCidadania caseId={id} />
+                <CadeiaCaso360 caseId={id} />
               </>
             )}
           </EstadoDados>
