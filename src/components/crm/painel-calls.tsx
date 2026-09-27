@@ -37,6 +37,7 @@ import {
   indicePrimeiraPerguntaPendente,
   perguntaDaMesaPorCampo,
   progressoSpin,
+  sinaisQualidadeLead,
   spinDerivadoDoLead,
   type EstadoRespostaRoteiro,
 } from "@/lib/discovery-roteiro";
@@ -348,6 +349,15 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
     .filter((m: any) => !lead?.trilha_referencia_id || m.track_id === lead.trilha_referencia_id)
     .map((m: any) => ({ valor: m.id, rotulo: `${m.label} — ${rotulo("status_marco", m.status)}` }));
   const trilhaSelecionada = trilhas.find((t: any) => t.id === lead?.trilha_referencia_id) ?? null;
+  // Fase 4 (27/09/2026) — "Prompt Canônicos": síntese de Discovery. A mesma
+  // função já existia e já era calculada em /leads — nunca em /calls, onde
+  // a call de fato acontece. Mesmo cálculo, mesmo contexto de trilha/marco.
+  const sinaisQualidade = lead
+    ? sinaisQualidadeLead(lead, {
+        status_via: trilhaSelecionada?.status_via ?? lead.status_via ?? null,
+        status_marco: marcos.find((m: any) => m.id === lead.marco_referencia_id)?.status ?? null,
+      })
+    : [];
 
   /** Achados de WhatsApp ainda não aplicados a este campo, deste lead. */
   const achadosDoCampo = (campo: string): Achado[] => {
@@ -850,6 +860,64 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
             </p>
           ) : (
             <>
+              {/*
+                Fase 4 (27/09/2026) — "Prompt Canônicos": bloco 1 (contexto
+                do lead), como abertura — antes a tela abria direto na
+                varredura/formulário, sem nenhum resumo de origem/interesse/
+                responsável/estágio/próxima ação.
+              */}
+              <div className={`${CARTAO} grid gap-2 sm:grid-cols-2 lg:grid-cols-4`}>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide text-navy/45">Origem</p>
+                  <p className="text-sm text-navy">{lead.origem ? rotulo("origem", lead.origem) : "—"}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide text-navy/45">País/linha de interesse</p>
+                  <p className="text-sm text-navy">
+                    {lead.pais_linha_prioritaria ? rotulo("pais_linha_prioritaria", lead.pais_linha_prioritaria) : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide text-navy/45">Responsável · estágio</p>
+                  <p className="text-sm text-navy">
+                    {lead.responsavel_nome || "a definir"} · {lead.eixo_comercial ? rotulo("eixo_comercial", lead.eixo_comercial) : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide text-navy/45">Próxima ação atual</p>
+                  <p className="text-sm text-navy">
+                    {lead.proxima_acao ? rotulo("proxima_acao", lead.proxima_acao) : "não definida"}
+                    {lead.proxima_acao_em ? ` · ${String(lead.proxima_acao_em).slice(0, 10)}` : ""}
+                  </p>
+                </div>
+              </div>
+
+              <Secao
+                titulo="Preparação pré-call"
+                descricao="Consentimento de gravação antes de qualquer transcrição — verificado antes da conversa, não misturado ao registro dela."
+              >
+                <div className="grid gap-3 md:grid-cols-3">
+                  <Selecao
+                    label="Consentimento de gravação"
+                    valor={campo("consentimento_status")}
+                    opcoes={CONSENTIMENTO_STATUS}
+                    onChange={set("consentimento_status")}
+                  />
+                  <Selecao
+                    label="Canal do consentimento"
+                    valor={campo("consentimento_canal")}
+                    opcoes={CANAIS_CONSENTIMENTO}
+                    onChange={set("consentimento_canal")}
+                  />
+                  <Texto
+                    label="Consentimento registrado em"
+                    tipo="datetime-local"
+                    valor={campo("consentimento_em").slice(0, 16)}
+                    onChange={set("consentimento_em")}
+                  />
+                </div>
+              </Secao>
+
               <Secao
                 titulo={`Registro da call — ${lead.nome}`}
                 descricao="Grava no lead canônico do CRM. Não cria ficha paralela. Próxima ação e prazo ficam no roteiro abaixo, no card 'Decisão e próximo passo'."
@@ -892,24 +960,6 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                     tipo="datetime-local"
                     valor={campo("call_realizada_em").slice(0, 16)}
                     onChange={set("call_realizada_em")}
-                  />
-                  <Selecao
-                    label="Consentimento de gravação"
-                    valor={campo("consentimento_status")}
-                    opcoes={CONSENTIMENTO_STATUS}
-                    onChange={set("consentimento_status")}
-                  />
-                  <Selecao
-                    label="Canal do consentimento"
-                    valor={campo("consentimento_canal")}
-                    opcoes={CANAIS_CONSENTIMENTO}
-                    onChange={set("consentimento_canal")}
-                  />
-                  <Texto
-                    label="Consentimento registrado em"
-                    tipo="datetime-local"
-                    valor={campo("consentimento_em").slice(0, 16)}
-                    onChange={set("consentimento_em")}
                   />
                 </div>
                 <div className="mt-3">
@@ -965,8 +1015,28 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 />
               </div>
 
+              {/*
+                Fase 4 (27/09/2026) — "Prompt Canônicos": bloco 5 (síntese de
+                Discovery), consolidado num único lugar, na tela onde a call
+                de fato acontece — antes só existia em /leads.
+              */}
               <Secao
-                titulo="Handoff da Discovery"
+                titulo="Síntese de Discovery"
+                descricao="O que falta para este lead avançar — consolidado num só lugar, sem abrir outra tela."
+              >
+                {sinaisQualidade.length === 0 ? (
+                  <p className="text-xs text-navy/60">Nenhuma pendência de qualidade neste lead.</p>
+                ) : (
+                  <ul className="space-y-1 text-xs text-terracotta">
+                    {sinaisQualidade.map((s) => (
+                      <li key={s.chave}>○ {s.rotulo} — {s.motivo}</li>
+                    ))}
+                  </ul>
+                )}
+              </Secao>
+
+              <Secao
+                titulo="Decisão e handoff"
                 descricao="O handoff só é liberado com registro completo, qualificação registrada e responsável, próxima ação e prazo definidos."
               >
                 <p className="text-xs text-navy/65">
@@ -985,6 +1055,12 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                   {lead.discovery_resultado
                     ? rotulo("discovery_resultado", lead.discovery_resultado)
                     : "não registrado"}
+                </p>
+                <p className="mt-1 text-xs text-navy/65">
+                  Próxima ação:{" "}
+                  <strong>{lead.proxima_acao ? rotulo("proxima_acao", lead.proxima_acao) : "não definida"}</strong>
+                  {lead.proxima_acao_em ? ` · prazo ${String(lead.proxima_acao_em).slice(0, 10)}` : ""}
+                  {" · "}Responsável: {lead.responsavel_nome || "a definir"}
                 </p>
                 <div className="mt-3">
                   <Pendencias titulo="Bloqueios do handoff" itens={avaliacao?.handoff ?? []} />
