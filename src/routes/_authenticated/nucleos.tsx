@@ -170,7 +170,17 @@ function NucleosPage() {
       setNovoNucleoNome("");
       setErroNovoNucleo(null);
       await qc.invalidateQueries({ queryKey: ["nucleos-desk"] });
-      setSelecionado((criado as { id: string }).id);
+      // Corte 1 (27/09/2026): núcleo novo abre com rascunho próprio e vazio —
+      // antes herdava o dossiê-mãe e o membro em edição do núcleo anterior.
+      const id = (criado as { id: string }).id;
+      const recarregado = (qc.getQueryData(["nucleos-desk"]) as Nucleo[] | undefined)?.find((n) => n.id === id);
+      if (recarregado) abrir(recarregado);
+      else {
+        setSelecionado(id);
+        setRascunho(null);
+        setRascunhoMembro(null);
+        setNovoMembro({ nome: "", papel: "dependente", vinculo: "", clienteId: "" });
+      }
       toast.success("Núcleo criado.");
     },
     onError: (e: Error) => setErroNovoNucleo(e.message),
@@ -211,10 +221,13 @@ function NucleosPage() {
   );
 
 
-  const abrir = (n: Nucleo) => {
+  function abrir(n: Nucleo) {
     setSelecionado(n.id);
     setErro(null);
     setOk(null);
+    setRascunhoMembro(null);
+    setErroMembro(null);
+    setNovoMembro({ nome: "", papel: "dependente", vinculo: "", clienteId: "" });
     setRascunho({
       dossie_mae: n.dossie_mae ?? "",
       ambiente: n.ambiente ?? "",
@@ -223,7 +236,7 @@ function NucleosPage() {
       responsavel_nome: n.responsavel_nome ?? "",
       dossie_status: n.dossie_status ?? "nao_iniciado",
     });
-  };
+  }
 
   const m = useMutation({
     mutationFn: (data: Rascunho & { nucleoId: string }) => salvar({ data }),

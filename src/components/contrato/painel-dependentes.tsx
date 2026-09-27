@@ -35,10 +35,16 @@ export function PainelDependentes({ caseId, podeEscrever }: { caseId: string; po
 
   const mut = useMutation({
     mutationFn: (p: { id?: string | null; valores: Record<string, unknown> }) => salvar({ data: { ...p, caseId } }),
-    onSuccess: () => {
+    onSuccess: (_r, p) => {
       toast.success("Dependente salvo.");
-      setNovo(null);
-      setEdicao({});
+      // Corte 1 (27/09/2026): limpa só o que foi salvo — antes, salvar um
+      // dependente apagava a edição em andamento de todos os outros.
+      if (p.id) {
+        setEdicao((e) => {
+          const { [p.id as string]: _salvo, ...resto } = e;
+          return resto;
+        });
+      } else setNovo(null);
       void qc.invalidateQueries({ queryKey: ["dependentes", caseId] });
       // Resgate Ana: a decisão sobre o dependente precisa limpar a pendência
       // humana da tela de contrato sem exigir recarregar a página.

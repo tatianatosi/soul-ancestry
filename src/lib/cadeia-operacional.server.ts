@@ -166,8 +166,16 @@ export async function sincronizarPlanejador(
   payload.versao = versao;
 
   if (planId) {
-    const { error } = await supabase.from("case_plans").update(payload).eq("id", planId);
-    if (error) throw new Error(error.message);
+    // Corte 1 (27/09/2026): grava, relê e compara — "Planejador salvo" só
+    // aparece se o banco devolveu o mesmo valor (org-scoped).
+    await gravarComVerificacao({
+      supabase,
+      tabela: "case_plans",
+      id: planId,
+      organizationId: input.org,
+      userId: input.userId,
+      payload,
+    });
   } else {
     versao = 1;
     payload.versao = 1;

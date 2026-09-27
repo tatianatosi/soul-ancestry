@@ -401,6 +401,8 @@ export const salvarMembroNucleo = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const supabase = (context as any).supabase;
+    // Corte 1 (27/09/2026): escrita sempre restrita à organização da sessão.
+    const organization_id = await orgDoUsuario(supabase, (context as any).userId as string);
 
     // P32c/Fase 2 (27/09/2026) — "interlocutor" é variante legada: só pode
     // permanecer numa linha que já a tinha, nunca ser escolhida de novo
@@ -412,6 +414,7 @@ export const salvarMembroNucleo = createServerFn({ method: "POST" })
         .from("nucleo_membros")
         .select("papel_no_caso")
         .eq("id", data.membroId)
+        .eq("organization_id", organization_id)
         .maybeSingle();
       if (atual?.papel_no_caso !== "interlocutor") {
         throw new Error(
@@ -432,6 +435,7 @@ export const salvarMembroNucleo = createServerFn({ method: "POST" })
       .from("nucleo_membros")
       .update(patch)
       .eq("id", data.membroId)
+      .eq("organization_id", organization_id)
       .select("id,nome,vinculo,processo,cliente_id,papel_no_caso,nucleo_id,organization_id")
       .maybeSingle();
     if (error) throw new Error(error.message);

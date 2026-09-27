@@ -432,3 +432,10 @@ export function validarValorCampo(input: {
 
   return { ok: true };
 }
+
+/**
+ * Corte 1 (27/09/2026): `origem_detalhe` de um parâmetro que a equipe
+ * esvaziou de propósito. A pré-carga automática (Planejador/proposta) nunca
+ * repreenche uma linha com esta marca.
+ */
+export const MARCA_ESVAZIADO_PELA_EQUIPE = "Esvaziado pela equipe";

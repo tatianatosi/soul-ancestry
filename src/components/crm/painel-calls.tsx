@@ -296,8 +296,31 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
     Array<{ id: string; nome: string; motivo: string }>
   >([]);
 
+  // Corte 1 (27/09/2026): trocar de lead (clique ou link vindo de Hoje)
+  // sempre zera o rascunho — antes, o rascunho de um lead era aplicado e
+  // salvo no lead seguinte. Com edição pendente, pede confirmação antes.
+  const [leadPendente, setLeadPendente] = useState<LeadDesk | null>(null);
+  const trocarLead = (l: LeadDesk | { id?: string | null } | null, confirmar = true) => {
+    const novo = l?.id ?? null;
+    if (novo === selecionado) return;
+    if (confirmar && Object.keys(rascunho).length > 0) {
+      setLeadPendente(l as LeadDesk);
+      return;
+    }
+    setLeadPendente(null);
+    setSelecionado(novo);
+    setRascunho({});
+    setMotivoCall("");
+    setAviso(null);
+    if (l && "nome" in l) setIndicePergunta(indicePrimeiraPerguntaPendente(l as LeadDesk));
+  };
+
   useEffect(() => {
-    if (leadIdInicial) setSelecionado(leadIdInicial);
+    if (!leadIdInicial) return;
+    setSelecionado(leadIdInicial);
+    setRascunho({});
+    setMotivoCall("");
+    setAviso(null);
   }, [leadIdInicial]);
   // CA02-CRM-VIVO-PAINEL-CALLS (09/09/2026): achados da varredura de
   // WhatsApp, vivos só nesta tela (a conversa nunca é persistida). Hipótese
@@ -646,6 +669,17 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
 
   return (
     <div className="space-y-4">
+      {leadPendente ? (
+        <div role="alert" className="flex flex-wrap items-center gap-2 rounded-lg border border-terracotta/30 bg-terracotta/10 px-3 py-2 text-xs text-terracotta">
+          Há alterações não salvas neste lead.
+          <button type="button" className="rounded-md border border-terracotta/40 px-2 py-1" onClick={() => trocarLead(leadPendente, false)}>
+            Descartar e abrir {leadPendente.nome || "o outro lead"}
+          </button>
+          <button type="button" className="underline" onClick={() => setLeadPendente(null)}>
+            Continuar editando
+          </button>
+        </div>
+      ) : null}
       {/*
         26/08/2026 — o Painel pedia campos estruturados e a Proprietária
         descreveu o que acontece de verdade: ela cola o dump do WhatsApp do
@@ -734,11 +768,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                       <button
                         type="button"
                         onClick={() => {
-                          setSelecionado(l.id ?? null);
-                          setRascunho({});
-                          setMotivoCall("");
-                          setAviso(null);
-                          setIndicePergunta(indicePrimeiraPerguntaPendente(l));
+                          trocarLead(l);
                         }}
                         className="text-left text-xs text-navy underline decoration-gold/60 underline-offset-2 hover:decoration-gold"
                       >
@@ -813,11 +843,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                     <button
                       type="button"
                       onClick={() => {
-                        setSelecionado(l.id ?? null);
-                        setRascunho({});
-                        setMotivoCall("");
-                        setAviso(null);
-                        setIndicePergunta(indicePrimeiraPerguntaPendente(l));
+                        trocarLead(l);
                       }}
                       className={`w-full rounded-lg border px-3 py-2 text-left text-xs ${
                         selecionado === l.id

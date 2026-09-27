@@ -314,6 +314,8 @@ function sanitizar(entidade: Entidade, dados: Record<string, unknown>) {
   const permitidos = CAMPOS_PERMITIDOS[entidade];
   const saida: Record<string, unknown> = {};
   const ignorados: string[] = [];
+  /** Campo obrigatório (NOT NULL) que a tela tentou esvaziar. */
+  const recusados: string[] = [];
 
   for (const chave of Object.keys(dados)) {
     if (dados[chave] === undefined) continue;
@@ -326,7 +328,10 @@ function sanitizar(entidade: Entidade, dados: Record<string, unknown>) {
     if (valor === undefined) continue;
     // Campo esvaziado precisa gravar null — antes a alteração era descartada em silêncio.
     if (valor === "" || valor === null) {
-      if (NAO_NULAVEIS.has(chave)) continue;
+      if (NAO_NULAVEIS.has(chave)) {
+        recusados.push(chave);
+        continue;
+      }
       saida[chave] = null;
       continue;
     }
@@ -345,7 +350,7 @@ function sanitizar(entidade: Entidade, dados: Record<string, unknown>) {
     }
     saida[chave] = valor.trim();
   }
-  return { saida, ignorados };
+  return { saida, ignorados, recusados };
 }
 
 
@@ -583,7 +588,14 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
     if (!atual.data) throw new Error("Registro não encontrado nesta organização.");
     if (atual.data["archived_at"]) throw new Error("Registro arquivado não pode ser editado.");
 
-    const { saida: alteracoesBrutas, ignorados } = sanitizar(data.entidade, data.dados);
+    const { saida: alteracoesBrutas, ignorados, recusados } = sanitizar(data.entidade, data.dados);
+    // Corte 1 (27/09/2026): esvaziar campo obrigatório era descartado em
+    // silêncio e a tela dizia "Salvo" com o valor antigo de volta.
+    if (recusados.length > 0) {
+      throw new Error(
+        `CAMPO_OBRIGATORIO_VAZIO: nada foi gravado. Estes campos não podem ficar vazios — escolha um valor: ${recusados.join(", ")}.`,
+      );
+    }
     const alteracoes = { ...alteracoesBrutas } as Record<string, unknown>;
     const anterior = atual.data as Record<string, unknown>;
     let combinado = { ...anterior, ...alteracoes };
@@ -622,6 +634,9 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
     // Próxima ação: proprietária recebe defaults de startup; equipe segue regra completa.
     if (data.entidade === "crm_casos" && CAMPOS_PROXIMA_ACAO.some((c) => c in alteracoes)) {
       if (livre) {
+        // Corte 1: o default de startup só preenche o que a pessoa NÃO enviou.
+        // Campo limpo de propósito não volta preenchido (+7 dias) em silêncio.
+        const enviadosPelaTela = new Set(Object.keys(alteracoesBrutas));
         const { estado, pendenciasAssumidas } = exigirProximaAcaoOperavel(combinado, {
           livreProprietaria: true,
           responsavelPreferido: responsavelNome,
@@ -633,6 +648,7 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
           "visibility",
           "suggested_channel",
         ] as const) {
+          if (enviadosPelaTela.has(k)) continue;
           if (estado[k] !== undefined && estado[k] !== combinado[k]) {
             alteracoes[k] = estado[k];
           }

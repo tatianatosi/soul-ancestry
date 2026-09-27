@@ -82,3 +82,39 @@ export function origemJornada(input: {
   const quem = input.atualizadoPorNome ?? "responsável não identificado";
   return { texto: `Atualizado por ${quem} em ${data} (versão ${input.versao}).`, versao: input.versao };
 }
+
+/** Rascunho da tela Jornada do planejador (strings; "" = vazio). */
+export type RascunhoJornada = {
+  etapa: string;
+  rotaConfirmada: string;
+  produtoPaiId: string;
+  marcoAtual: string;
+  responsavelUserId: string;
+  proximaAcao: string;
+  prazoProximaAcao: string;
+};
+
+/** Corte 1: só o que difere do plano relido vai para o servidor. */
+export function camposAlterados(
+  r: RascunhoJornada,
+  plano: {
+    etapa?: string | null;
+    rotaConfirmada?: string | null;
+    produtoPaiId?: string | null;
+    marcoAtual?: string | null;
+    responsavelUserId?: string | null;
+    proximaAcao?: string | null;
+    prazoProximaAcao?: string | null;
+  } | null,
+): CamposJornada {
+  const c: CamposJornada = {};
+  const p = plano ?? {};
+  if (r.etapa !== (p.etapa ?? "")) c.etapa = r.etapa;
+  if (r.rotaConfirmada !== (p.rotaConfirmada ?? "")) c.rota_confirmada = r.rotaConfirmada;
+  if (r.produtoPaiId !== (p.produtoPaiId ?? "")) c.produto_pai_id = (r.produtoPaiId || null) as never;
+  if (r.marcoAtual !== (p.marcoAtual ?? "")) c.marco_atual = r.marcoAtual;
+  if (r.responsavelUserId !== (p.responsavelUserId ?? "")) c.responsavel_user_id = r.responsavelUserId || null;
+  if (r.proximaAcao !== (p.proximaAcao ?? "")) c.proxima_acao = r.proximaAcao;
+  if (r.prazoProximaAcao !== (p.prazoProximaAcao ?? "")) c.prazo_proxima_acao = r.prazoProximaAcao || null;
+  return c;
+}

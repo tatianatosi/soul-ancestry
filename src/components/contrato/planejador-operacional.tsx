@@ -1,12 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { CaCard } from "@/components/ui/ca-card";
 import { COMPOSICOES, type Composicao, type EntradaPlanejador } from "@/lib/cadeia-operacional";
-import { listarSkusPlanejador, salvarPlanejadorOperacional } from "@/lib/cadeia-operacional.functions";
+import { lerPlanejadorSalvo, listarSkusPlanejador, salvarPlanejadorOperacional } from "@/lib/cadeia-operacional.functions";
+import {
+  FORMULARIO_PLANEJADOR_VAZIO,
+  formularioDoPlanoSalvo,
+  preservadoDoPlanoSalvo,
+  type FormularioPlanejador,
+} from "@/lib/planejador-salvo";
 import { FASES_JORNADA, type FaseJornada } from "@/lib/onboarding-jornada";
 import { PRODUTOS_PAI_CANONICOS, type ProdutoPaiId } from "@/lib/planejador-produtos-pai";
 
@@ -22,43 +28,9 @@ const linhas = (texto: string): string[] =>
     .map((t) => t.trim())
     .filter(Boolean);
 
-type Estado = {
-  objetivo: string;
-  etapa: string;
-  faseJornada: FaseJornada | "";
-  produtoPaiId: ProdutoPaiId | "";
-  composicao: Composicao | "";
-  rotaConfirmada: string;
-  produtoSkuCodigo: string;
-  proximaAcao: string;
-  prazoProximaAcao: string;
-  entregas: string;
-  microentregas: string;
-  marcos: string;
-  checklist: string;
-  perguntas: string;
-  dependenciasCliente: string;
-  dependenciasTerceiros: string;
-};
+type Estado = FormularioPlanejador;
 
-const VAZIO: Estado = {
-  objetivo: "",
-  etapa: "",
-  faseJornada: "",
-  produtoPaiId: "",
-  composicao: "",
-  rotaConfirmada: "",
-  produtoSkuCodigo: "",
-  proximaAcao: "",
-  prazoProximaAcao: "",
-  entregas: "",
-  microentregas: "",
-  marcos: "",
-  checklist: "",
-  perguntas: "",
-  dependenciasCliente: "",
-  dependenciasTerceiros: "",
-};
+const VAZIO: Estado = FORMULARIO_PLANEJADOR_VAZIO;
 
 /**
  * 28/08/2026 — a Cadeia operacional (`CadeiaOperacional`) só tinha ações para
@@ -80,6 +52,28 @@ export function PlanejadorOperacional({
   const qc = useQueryClient();
   const [aberto, setAberto] = useState(inicialAberto);
   const [estado, setEstado] = useState<Estado>(VAZIO);
+  // Corte 1 (27/09/2026): o formulário abre com o plano salvo e só é
+  // sobrescrito pela releitura enquanto a pessoa não editou nada.
+  const [editado, setEditado] = useState(false);
+  const editar = (fn: (s: Estado) => Estado) => {
+    setEditado(true);
+    setEstado(fn);
+  };
+
+  const carregarSalvo = useServerFn(lerPlanejadorSalvo);
+  const salvo = useQuery({
+    queryKey: ["planejador-salvo", caseId],
+    queryFn: () => carregarSalvo({ data: { caseId } }),
+    retry: false,
+  });
+  const planoSalvo = (salvo.data?.plano ?? null) as Record<string, unknown> | null;
+  const preservado = useMemo(() => preservadoDoPlanoSalvo(planoSalvo), [planoSalvo]);
+  const versaoSalva = planoSalvo ? `${planoSalvo["versao"] ?? ""}:${planoSalvo["updated_at"] ?? ""}` : "";
+
+  useEffect(() => {
+    if (!editado) setEstado(formularioDoPlanoSalvo(planoSalvo, salvo.data?.skuCodigo ?? null));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [versaoSalva, salvo.data?.skuCodigo]);
 
   const carregarSkus = useServerFn(listarSkusPlanejador);
   const skus = useQuery({ queryKey: ["skus-planejador"], queryFn: () => carregarSkus(), enabled: aberto });
@@ -93,10 +87,17 @@ export function PlanejadorOperacional({
           ? "Planejador já refletia esses dados."
           : `Planejador salvo (v${r.versao}).${r.saida?.pendencias?.length ? ` ${r.saida.pendencias.length} pendência(s) restante(s) — a cadeia mostra quais.` : ""}`,
       );
-      qc.invalidateQueries({ queryKey: ["cadeia-operacional", caseId] });
-      qc.invalidateQueries({ queryKey: ["contrato-preparar", caseId] });
-      qc.invalidateQueries({ queryKey: ["ficha-caso", caseId] });
-      qc.invalidateQueries({ queryKey: ["caso-canonico", caseId] });
+      setEditado(false);
+      for (const chave of [
+        "planejador-salvo",
+        "jornada-planejador",
+        "cadeia-operacional",
+        "ficha-caso-cadeia-operacional",
+        "contrato-preparar",
+        "ficha-caso",
+        "caso-canonico",
+      ])
+        qc.invalidateQueries({ queryKey: [chave, caseId] });
       setAberto(false);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -113,7 +114,8 @@ export function PlanejadorOperacional({
       dadosDisponiveis: [],
       dependenciasCliente: linhas(estado.dependenciasCliente),
       dependenciasTerceiros: linhas(estado.dependenciasTerceiros),
-      fontes: [],
+      // Fontes e regras de anexos já salvas voltam intactas — o formulário não as edita.
+      fontes: preservado.fontes,
       // Resolvido no servidor a partir da sessão autenticada — nunca enviado pelo cliente.
       responsavelUserId: null,
       proximaAcao: estado.proximaAcao.trim() || null,
@@ -125,9 +127,9 @@ export function PlanejadorOperacional({
       marcos: linhas(estado.marcos),
       entregas: linhas(estado.entregas),
       microentregas: linhas(estado.microentregas),
-      regrasAnexos: [],
+      regrasAnexos: preservado.regrasAnexos,
     }),
-    [caseId, estado],
+    [caseId, estado, preservado],
   );
 
   if (!aberto) {
@@ -138,16 +140,28 @@ export function PlanejadorOperacional({
     // `variante="compacto"`, preservando o visual que tinha como `Painel`.
     return (
       <CaCard titulo="Planejador do caso" eyebrow="Cadeia Operacional · Elo 1">
-        <p className="text-xs text-navy/60">
-          Elo 1 da cadeia operacional. Sem planejador persistido, proposta, condição comercial e OS ficam
-          bloqueadas em cascata.
-        </p>
+        {planoSalvo ? (
+          <p className="text-xs text-navy/70" data-planejador-salvo>
+            Plano salvo (versão {String(planoSalvo["versao"] ?? "—")}). Abrir mostra o que está gravado; só muda o que
+            você editar.
+          </p>
+        ) : (
+          <p className="text-xs text-navy/60">
+            Elo 1 da cadeia operacional. Sem planejador persistido, proposta, condição comercial e OS ficam
+            bloqueadas em cascata.
+          </p>
+        )}
+        {salvo.error ? (
+          <p role="alert" className="mt-1 text-[11px] text-terracotta">
+            Não foi possível ler o plano salvo: {(salvo.error as Error).message}
+          </p>
+        ) : null}
         <button
           type="button"
           onClick={() => setAberto(true)}
           className="mt-3 rounded-md border border-navy/20 px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5"
         >
-          Preencher planejador
+          {planoSalvo ? "Revisar planejador" : "Preencher planejador"}
         </button>
       </CaCard>
     );
@@ -159,7 +173,7 @@ export function PlanejadorOperacional({
       <input
         type="text"
         value={estado[chave]}
-        onChange={(e) => setEstado((s) => ({ ...s, [chave]: e.target.value }))}
+        onChange={(e) => editar((s) => ({ ...s, [chave]: e.target.value }))}
         placeholder={placeholder}
         className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
       />
@@ -171,7 +185,7 @@ export function PlanejadorOperacional({
       <span className="text-[11px] font-medium uppercase tracking-wide text-navy/50">{rotulo}</span>
       <textarea
         value={estado[chave]}
-        onChange={(e) => setEstado((s) => ({ ...s, [chave]: e.target.value }))}
+        onChange={(e) => editar((s) => ({ ...s, [chave]: e.target.value }))}
         placeholder={dica}
         rows={3}
         className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
@@ -193,7 +207,7 @@ export function PlanejadorOperacional({
           <span className="text-[11px] font-medium uppercase tracking-wide text-navy/50">Composição</span>
           <select
             value={estado.composicao}
-            onChange={(e) => setEstado((s) => ({ ...s, composicao: e.target.value as Composicao | "" }))}
+            onChange={(e) => editar((s) => ({ ...s, composicao: e.target.value as Composicao | "" }))}
             className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
           >
             <option value="">Selecione…</option>
@@ -215,7 +229,7 @@ export function PlanejadorOperacional({
           <span className="text-[11px] font-medium uppercase tracking-wide text-navy/50">Produto-Pai</span>
           <select
             value={estado.produtoPaiId}
-            onChange={(e) => setEstado((s) => ({ ...s, produtoPaiId: e.target.value as ProdutoPaiId | "" }))}
+            onChange={(e) => editar((s) => ({ ...s, produtoPaiId: e.target.value as ProdutoPaiId | "" }))}
             className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
           >
             <option value="">Ainda não definido</option>
@@ -233,7 +247,7 @@ export function PlanejadorOperacional({
           <span className="text-[11px] font-medium uppercase tracking-wide text-navy/50">Fase da jornada</span>
           <select
             value={estado.faseJornada}
-            onChange={(e) => setEstado((s) => ({ ...s, faseJornada: e.target.value as FaseJornada | "" }))}
+            onChange={(e) => editar((s) => ({ ...s, faseJornada: e.target.value as FaseJornada | "" }))}
             className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
           >
             <option value="">Aceite e formalização (padrão)</option>
@@ -251,7 +265,7 @@ export function PlanejadorOperacional({
           <span className="text-[11px] font-medium uppercase tracking-wide text-navy/50">SKU do catálogo</span>
           <select
             value={estado.produtoSkuCodigo}
-            onChange={(e) => setEstado((s) => ({ ...s, produtoSkuCodigo: e.target.value }))}
+            onChange={(e) => editar((s) => ({ ...s, produtoSkuCodigo: e.target.value }))}
             className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
           >
             <option value="">Selecione…</option>
@@ -268,7 +282,7 @@ export function PlanejadorOperacional({
           <input
             type="date"
             value={estado.prazoProximaAcao}
-            onChange={(e) => setEstado((s) => ({ ...s, prazoProximaAcao: e.target.value }))}
+            onChange={(e) => editar((s) => ({ ...s, prazoProximaAcao: e.target.value }))}
             className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
           />
         </label>
@@ -295,7 +309,12 @@ export function PlanejadorOperacional({
         </button>
         <button
           type="button"
-          onClick={() => setAberto(false)}
+          onClick={() => {
+            // Descartar volta ao que está gravado — nunca a um formulário em branco.
+            setEditado(false);
+            setEstado(formularioDoPlanoSalvo(planoSalvo, salvo.data?.skuCodigo ?? null));
+            setAberto(false);
+          }}
           className="rounded-md px-3 py-1.5 text-xs font-medium text-navy/60 hover:bg-navy/5"
         >
           Cancelar

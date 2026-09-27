@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { CONFLITO_PAIS_ROTA, qualificadorPaisDoCodigo } from "@/lib/coerencia-caso";
 import { conflitosCoerenciaDoRegistro, exigirCoerencia } from "@/lib/coerencia-caso.server";
 import { PLACEHOLDER_PARAM, anexosPorRegra } from "@/lib/contrato-parametros.server";
+import { MARCA_ESVAZIADO_PELA_EQUIPE } from "@/lib/parametros-dicionario";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { skuHomologadoParaCaso } from "@/lib/catalogo-sku.server";
 import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
@@ -368,6 +369,8 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
     for (const c of planejador.parametros) {
       const atual = lista.find((v) => v.campo === c.campo);
       if (!atual || String(atual.valor ?? "").trim()) continue;
+      // Corte 1: linha esvaziada pela equipe não volta preenchida sozinha.
+      if (atual.origem_detalhe === MARCA_ESVAZIADO_PELA_EQUIPE) continue;
       const texto = String(c.valor ?? "").trim();
       if (!texto || PLACEHOLDER_PARAM.test(texto)) continue;
       const { data: atualizado, error } = await supabase
@@ -385,7 +388,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
     }
     const escopoProposta = String(propostaEfetiva?.escopo ?? "").trim();
     const linhaEscopo = lista.find((v) => v.campo === "escopo_resumo");
-    if (linhaEscopo && !String(linhaEscopo.valor ?? "").trim() && escopoProposta && !PLACEHOLDER_PARAM.test(escopoProposta)) {
+    if (linhaEscopo && !String(linhaEscopo.valor ?? "").trim() && linhaEscopo.origem_detalhe !== MARCA_ESVAZIADO_PELA_EQUIPE && escopoProposta && !PLACEHOLDER_PARAM.test(escopoProposta)) {
       const { data: atualizado, error } = await supabase
         .from("contract_parameter_values")
         .update({

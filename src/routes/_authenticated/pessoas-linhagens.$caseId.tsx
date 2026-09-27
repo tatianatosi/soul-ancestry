@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { AbaModulos } from "@/components/genealogia/aba-modulos";
@@ -163,6 +163,9 @@ function Pagina() {
   const chave = ["g02", caseId];
   const { data, isLoading, isError, refetch } = useQuery({ queryKey: chave, queryFn: () => buscar({ data: { caseId } }) });
   const [aba, setAba] = useState<AbaId>("perfis");
+  // Corte 1 (27/09/2026): trocar de aba com perfil editado e não salvo pede confirmação.
+  const [perfisSujos, setPerfisSujos] = useState(false);
+  const [abaPendente, setAbaPendente] = useState<AbaId | null>(null);
   const [decisaoAposPerfil, setDecisaoAposPerfil] = useState(false);
 
   const salvarFn = useServerFn(salvarRegistroG02);
@@ -412,7 +415,14 @@ function Pagina() {
           <button
             key={a.id}
             type="button"
-            onClick={() => setAba(a.id)}
+            onClick={() => {
+              if (a.id === aba) return;
+              if (perfisSujos) {
+                setAbaPendente(a.id);
+                return;
+              }
+              setAba(a.id);
+            }}
             className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium ${
               aba === a.id ? "bg-navy text-cream" : "bg-navy/10 text-navy/70"
             }`}
@@ -421,6 +431,25 @@ function Pagina() {
           </button>
         ))}
       </nav>
+      {abaPendente ? (
+        <div role="alert" className="flex flex-wrap items-center gap-2 rounded-lg border border-terracotta/30 bg-terracotta/10 px-3 py-2 text-xs text-terracotta">
+          Há alterações não salvas no Perfil 360°.
+          <button
+            type="button"
+            className="rounded-md border border-terracotta/40 px-2 py-1"
+            onClick={() => {
+              setPerfisSujos(false);
+              setAba(abaPendente);
+              setAbaPendente(null);
+            }}
+          >
+            Descartar e abrir {ABAS.find((x) => x.id === abaPendente)?.rotulo}
+          </button>
+          <button type="button" className="underline" onClick={() => setAbaPendente(null)}>
+            Continuar editando
+          </button>
+        </div>
+      ) : null}
 
       {aba === "perfis" ? (
         <div>
@@ -440,7 +469,10 @@ function Pagina() {
             clientesDoCaso={clientesDoCaso}
             pendenciaGate={pendenciaPerfis}
             onCriar={(valores) => criarPessoa.mutate({ pesquisaId, valores })}
-            onSalvar={(id, valores) => salvar.mutate({ tabela: "genealogical_person_profiles", id, valores })}
+            onSalvar={(id, valores, aoSalvar) =>
+              salvar.mutate({ tabela: "genealogical_person_profiles", id, valores }, { onSuccess: () => aoSalvar?.() })
+            }
+            onSujo={setPerfisSujos}
             onArquivar={(id, motivo) => arquivar.mutate({ tabela: "genealogical_person_profiles", id, motivo })}
           />
         </div>
@@ -567,6 +599,7 @@ function AbaPerfis({
   onCriar,
   onSalvar,
   onArquivar,
+  onSujo,
 }: {
   perfis: Perfil[];
   variantes: Variante[];
@@ -578,11 +611,16 @@ function AbaPerfis({
   /** Pendência de domínio: fica visível e pede motivo, nunca desabilita. */
   pendenciaGate: string | null;
   onCriar: (valores: Record<string, unknown>) => void;
-  onSalvar: (id: string, valores: Record<string, unknown>) => void;
+  onSalvar: (id: string, valores: Record<string, unknown>, aoSalvar?: () => void) => void;
   onArquivar: (id: string, motivo: string) => void;
+  onSujo?: (sujo: boolean) => void;
 }) {
   const [novo, setNovo] = useState({ nome_completo: "", nome_nascimento: "", sexo: "", nascimento_data: "" });
   const [edicao, setEdicao] = useState<Record<string, Partial<Perfil>>>({});
+  const temEdicao = Object.values(edicao).some((e) => Object.keys(e).length > 0);
+  useEffect(() => {
+    onSujo?.(temEdicao);
+  }, [temEdicao]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const criar = () => {
     const erros = validarPerfil(novo as Partial<Perfil>);
@@ -644,7 +682,14 @@ function AbaPerfis({
             evidence_id: e.evidence_id,
             internal_notes: e.internal_notes,
             client_id: e.client_id,
-          });
+          }, () =>
+            // Salvo e relido: a edição local deste perfil sai; o valor exibido
+            // passa a ser o persistido. Em erro, a edição fica para corrigir.
+            setEdicao((a) => {
+              const { [p.id]: _salvo, ...resto } = a;
+              return resto;
+            }),
+          );
         };
         const minhasVariantes = variantes.filter((v) => v.person_id === p.research_person_id && !v.archived_at);
         const meusEventos = eventos.filter((ev) => ev.person_id === p.research_person_id && !ev.archived_at);

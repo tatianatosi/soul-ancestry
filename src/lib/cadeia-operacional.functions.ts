@@ -17,6 +17,40 @@ export const lerCadeiaOperacional = createServerFn({ method: "GET" })
     return estadoCadeiaOperacional(supabase, org, data.caseId, { userId: context.userId as string });
   });
 
+/**
+ * Corte 1 (27/09/2026): último plano salvo do caso, para o formulário do
+ * Planejador abrir preenchido em vez de em branco (e não apagar o que já
+ * estava gravado ao salvar de novo).
+ */
+export const lerPlanejadorSalvo = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { caseId: string }) => ({ caseId: String(d.caseId) }))
+  .handler(async ({ data, context }) => {
+    semCache();
+    const { orgDoUsuario } = await import("@/lib/cadeia-operacional.server");
+    const supabase = (context as any).supabase;
+    const org = await orgDoUsuario(supabase, context.userId as string);
+    const { data: linha, error } = await supabase
+      .from("case_plans")
+      .select(
+        "id,versao,updated_at,objetivo,etapa,fase_jornada,produto_pai_id,composicao,rota_confirmada,product_catalog_id,proxima_acao,prazo_proxima_acao,entregas,microentregas,marcos,checklist_aplicavel,perguntas,dependencias_cliente,dependencias_terceiros,fontes,regras_anexos",
+      )
+      .eq("organization_id", org)
+      .eq("case_id", data.caseId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!linha) return { plano: null as Record<string, any> | null, skuCodigo: null as string | null };
+    let skuCodigo: string | null = null;
+    if (linha.product_catalog_id) {
+      const { data: sku } = await supabase.from("product_catalog").select("code").eq("id", linha.product_catalog_id).maybeSingle();
+      skuCodigo = sku?.code ?? null;
+    }
+    return { plano: linha as Record<string, any> | null, skuCodigo };
+  });
+
 /** Persiste o planejador do caso (idempotente por hash). */
 export const salvarPlanejadorOperacional = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

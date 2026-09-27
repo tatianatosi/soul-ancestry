@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Selecao, Texto } from "@/components/caso/campos";
 import { CaCard } from "@/components/ui/ca-card";
 import { lerJornadaPlanejador, atualizarJornadaPlanejador } from "@/lib/jornada-planejador.functions";
-import { origemJornada } from "@/lib/jornada-planejador";
+import { camposAlterados, origemJornada } from "@/lib/jornada-planejador";
 import { listarUsuarios } from "@/lib/saas.functions";
 import { PRODUTOS_PAI_CANONICOS } from "@/lib/planejador-produtos-pai";
 
@@ -53,12 +53,19 @@ export function PainelJornadaPlanejador({ caseId }: { caseId: string }) {
 
   const [rascunho, setRascunho] = useState<Rascunho>(VAZIO);
   const [aviso, setAviso] = useState<string | null>(null);
+  // Corte 1 (27/09/2026): enquanto houver edição local, uma releitura vinda de
+  // outro painel não apaga o que a pessoa digitou.
+  const [editado, setEditado] = useState(false);
+  const editarRascunho = (fn: (r: Rascunho) => Rascunho) => {
+    setEditado(true);
+    setRascunho(fn);
+  };
 
   const plano = q.data?.existe ? q.data : null;
 
   // Rascunho reflete o dado relido sempre que ele muda (inclui após salvar).
   useEffect(() => {
-    if (!plano) return;
+    if (!plano || editado) return;
     setRascunho({
       etapa: plano.etapa ?? "",
       rotaConfirmada: plano.rotaConfirmada ?? "",
@@ -88,15 +95,9 @@ export function PainelJornadaPlanejador({ caseId }: { caseId: string }) {
       salvar({
         data: {
           caseId,
-          campos: {
-            etapa: rascunho.etapa,
-            rota_confirmada: rascunho.rotaConfirmada,
-            produto_pai_id: (rascunho.produtoPaiId || null) as never,
-            marco_atual: rascunho.marcoAtual,
-            responsavel_user_id: rascunho.responsavelUserId || null,
-            proxima_acao: rascunho.proximaAcao,
-            prazo_proxima_acao: rascunho.prazoProximaAcao || null,
-          },
+          // Só os campos que mudaram — um campo não tocado nunca é regravado
+          // com o valor antigo por cima de uma escrita feita em outro painel.
+          campos: camposAlterados(rascunho, plano),
         },
       }),
     onSuccess: (r) => {
@@ -105,7 +106,9 @@ export function PainelJornadaPlanejador({ caseId }: { caseId: string }) {
         return;
       }
       setAviso(r.mudou ? "Jornada atualizada." : "Nenhuma mudança para gravar.");
-      void qc.invalidateQueries({ queryKey: ["jornada-planejador", caseId] });
+      setEditado(false);
+      for (const chave of ["jornada-planejador", "planejador-salvo", "ficha-caso-cadeia-operacional", "ficha-caso", "caso-canonico"])
+        void qc.invalidateQueries({ queryKey: [chave, caseId] });
       void q.refetch();
     },
     onError: (e: Error) => setAviso(e.message),
@@ -158,7 +161,7 @@ export function PainelJornadaPlanejador({ caseId }: { caseId: string }) {
           <select
             className="w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
             value={rascunho.produtoPaiId}
-            onChange={(e) => setRascunho((r) => ({ ...r, produtoPaiId: e.target.value }))}
+            onChange={(e) => editarRascunho((r) => ({ ...r, produtoPaiId: e.target.value }))}
           >
             <option value="">Ainda não definido</option>
             {PRODUTOS_PAI_CANONICOS.map((p) => (
@@ -169,8 +172,8 @@ export function PainelJornadaPlanejador({ caseId }: { caseId: string }) {
           </select>
         </label>
 
-        <Texto label="País/via confirmado" valor={rascunho.rotaConfirmada} onChange={(v) => setRascunho((r) => ({ ...r, rotaConfirmada: v }))} />
-        <Texto label="Etapa atual" valor={rascunho.etapa} onChange={(v) => setRascunho((r) => ({ ...r, etapa: v }))} />
+        <Texto label="País/via confirmado" valor={rascunho.rotaConfirmada} onChange={(v) => editarRascunho((r) => ({ ...r, rotaConfirmada: v }))} />
+        <Texto label="Etapa atual" valor={rascunho.etapa} onChange={(v) => editarRascunho((r) => ({ ...r, etapa: v }))} />
 
         <label className="block">
           <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-navy/50">Marco atual</span>
@@ -178,7 +181,7 @@ export function PainelJornadaPlanejador({ caseId }: { caseId: string }) {
             list="marcos-do-plano"
             className="w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
             value={rascunho.marcoAtual}
-            onChange={(e) => setRascunho((r) => ({ ...r, marcoAtual: e.target.value }))}
+            onChange={(e) => editarRascunho((r) => ({ ...r, marcoAtual: e.target.value }))}
             placeholder="Ex.: Assinatura do contrato"
           />
           <datalist id="marcos-do-plano">
@@ -193,14 +196,14 @@ export function PainelJornadaPlanejador({ caseId }: { caseId: string }) {
           label="Responsável"
           valor={rascunho.responsavelUserId}
           opcoes={opcoesResponsavel}
-          onChange={(v) => setRascunho((r) => ({ ...r, responsavelUserId: v }))}
+          onChange={(v) => editarRascunho((r) => ({ ...r, responsavelUserId: v }))}
         />
-        <Texto label="Próxima ação" valor={rascunho.proximaAcao} onChange={(v) => setRascunho((r) => ({ ...r, proximaAcao: v }))} />
+        <Texto label="Próxima ação" valor={rascunho.proximaAcao} onChange={(v) => editarRascunho((r) => ({ ...r, proximaAcao: v }))} />
         <Texto
           label="Prazo da próxima ação"
           tipo="date"
           valor={rascunho.prazoProximaAcao}
-          onChange={(v) => setRascunho((r) => ({ ...r, prazoProximaAcao: v }))}
+          onChange={(v) => editarRascunho((r) => ({ ...r, prazoProximaAcao: v }))}
         />
       </div>
 
@@ -244,7 +247,7 @@ export function PainelJornadaPlanejador({ caseId }: { caseId: string }) {
           {m.isPending ? "Gravando…" : "Gravar jornada"}
         </button>
         {sujo ? (
-          <button type="button" onClick={() => setRascunho({
+          <button type="button" onClick={() => { setEditado(false); setRascunho({
             etapa: plano.etapa ?? "",
             rotaConfirmada: plano.rotaConfirmada ?? "",
             produtoPaiId: plano.produtoPaiId ?? "",
@@ -252,7 +255,7 @@ export function PainelJornadaPlanejador({ caseId }: { caseId: string }) {
             responsavelUserId: plano.responsavelUserId ?? "",
             proximaAcao: plano.proximaAcao ?? "",
             prazoProximaAcao: plano.prazoProximaAcao ?? "",
-          })} className="text-xs text-navy/60 underline">
+          }); }} className="text-xs text-navy/60 underline">
             Descartar alterações
           </button>
         ) : null}

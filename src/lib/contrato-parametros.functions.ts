@@ -43,7 +43,7 @@ import { referenciaFinanceiraDoCaso } from "@/lib/financeiro-referencia.server";
 import { CONFLITO_PAIS_ROTA, textoCompativel, qualificadorPaisDoCodigo } from "@/lib/coerencia-caso";
 import { MARCA_CORRECAO_PLANEJADOR, exigirCoerencia, temCorrecaoHomologada } from "@/lib/coerencia-caso.server";
 import { exigirGate } from "@/lib/escopo-conferencia.server";
-import { definicaoCampo, validarValorCampo } from "@/lib/parametros-dicionario";
+import { MARCA_ESVAZIADO_PELA_EQUIPE, definicaoCampo, validarValorCampo } from "@/lib/parametros-dicionario";
 import { candidatosComerciaisDaProposta, propostaAptaParaPrecarga } from "@/lib/proposta-comercial";
 
 /** Chave de conflito por campo quando a proposta aprovada diverge do valor homologado no Planejador. */
@@ -615,7 +615,9 @@ export const salvarParametro = createServerFn({ method: "POST" })
       payload: {
         valor: valor || null,
         origem: valor ? data.origem : null,
-        origem_detalhe: valor ? (data.origemDetalhe ?? "").slice(0, 300) : null,
+        // Corte 1 (27/09/2026): esvaziar de propósito fica marcado, para a
+        // pré-carga ao abrir a preparação não devolver o valor apagado.
+        origem_detalhe: valor ? (data.origemDetalhe ?? "").slice(0, 300) : MARCA_ESVAZIADO_PELA_EQUIPE,
         justificativa: (data.justificativa ?? "").slice(0, 500) || null,
         status: statusFinal,
         conflito: [],

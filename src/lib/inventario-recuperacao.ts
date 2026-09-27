@@ -234,7 +234,7 @@ export const ATIVOS: Ativo[] = [
     id: "Componentes de CRM/Desk históricos (arquivados)",
     dominio: "CRM",
     tipo: "componente",
-    local: "arquivo histórico fora de src/ (ver docs/historico/mockups) e src/components/desk-crm.tsx, desk-go-live.tsx",
+    local: "arquivo histórico fora de src/ (ver docs/historico/mockups) e src/components/desk-go-live.tsx (desk-crm.tsx removido em 27/09/2026: alterava registros via supabaseAdmin sem login)",
     consumidor: "nenhum: arquivo histórico sem rota ativa (CA-UX-04)",
     dependencias: ["src/lib/caseAdapter.ts", "src/types/case.ts"],
     dados: "Histórico navegável sem backend",

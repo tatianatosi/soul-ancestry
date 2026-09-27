@@ -91,6 +91,7 @@ function LeadsPage() {
   });
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const [rascunho, setRascunho] = useState<Record<string, unknown>>({});
+  const [leadPendente, setLeadPendente] = useState<string | null>(null);
   const [filtroEixo, setFiltroEixo] = useState("");
   const [filtroArea, setFiltroArea] = useState("");
   // CA10-MARKETING-CONTEUDO-VIVO (09/09/2026): filtro de origem já existia
@@ -152,9 +153,10 @@ function LeadsPage() {
         return;
       }
       setMsg("Registro gravado.");
-      setRascunho({});
       setSelecionado(r.lead?.id ?? null);
-      void qc.invalidateQueries({ queryKey: ["leads-desk"] });
+      // Corte 1 (27/09/2026): relê antes de limpar o rascunho — sem voltar
+      // a mostrar o valor antigo por um instante depois de "gravado".
+      void qc.invalidateQueries({ queryKey: ["leads-desk"] }).then(() => setRascunho({}));
     },
     onError: (e: Error) => setMsg(e.message),
   });
@@ -184,6 +186,26 @@ function LeadsPage() {
 
   return (
     <SaasShell titulo="CRM Vivo — Leads e triagem" descricao="Comercial → CRM Vivo: entrada, Discovery, contatos e conversas, proposta e handoff.">
+      {leadPendente ? (
+        <div role="alert" className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-terracotta/30 bg-terracotta/10 px-3 py-2 text-xs text-terracotta">
+          Há alterações não salvas neste lead.
+          <button
+            type="button"
+            className="rounded-md border border-terracotta/40 px-2 py-1"
+            onClick={() => {
+              setSelecionado(leadPendente);
+              setRascunho({});
+              setMsg(null);
+              setLeadPendente(null);
+            }}
+          >
+            Descartar e abrir o outro lead
+          </button>
+          <button type="button" className="underline" onClick={() => setLeadPendente(null)}>
+            Continuar editando
+          </button>
+        </div>
+      ) : null}
       {pendenciaVinculo || !podeEscrever ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
           Pendência registrada:{" "}
@@ -242,6 +264,12 @@ function LeadsPage() {
                   <button
                     type="button"
                     onClick={() => {
+                      if (l.id === selecionado) return;
+                      // Corte 1: trocar de lead com edição pendente pede confirmação.
+                      if (Object.keys(rascunho).length > 0) {
+                        setLeadPendente(l.id ?? null);
+                        return;
+                      }
                       setSelecionado(l.id ?? null);
                       setRascunho({});
                       setMsg(null);

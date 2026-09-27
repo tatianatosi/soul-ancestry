@@ -574,7 +574,7 @@ export const salvarDependente = createServerFn({ method: "POST" })
         userId,
         payload: patch,
       });
-      await sincronizarParametroDependentes(supabase, data.caseId);
+      await sincronizarParametroDependentes(supabase, data.caseId, caso.organization_id as string);
       return { ok: true };
     }
     await inserirComVerificacao({
@@ -584,7 +584,7 @@ export const salvarDependente = createServerFn({ method: "POST" })
       userId,
       payload: { ...patch, case_id: data.caseId },
     });
-    await sincronizarParametroDependentes(supabase, data.caseId);
+    await sincronizarParametroDependentes(supabase, data.caseId, caso.organization_id as string);
     return { ok: true };
   });
 

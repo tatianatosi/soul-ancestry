@@ -539,9 +539,12 @@ function FichaCaso() {
 
   const caso = q.data?.caso;
 
+  // Corte 1 (27/09/2026): antes, qualquer escrita de outro painel mudava
+  // `updated_at` e apagava a edição ainda não salva deste formulário. Agora o
+  // rascunho só é zerado ao trocar de caso ou depois do próprio salvar.
   useEffect(() => {
-    if (caso) setForm({});
-  }, [caso?.["updated_at"]]);
+    setForm({});
+  }, [id]);
 
   const sujo = Object.keys(form).length > 0;
 
@@ -579,8 +582,12 @@ function FichaCaso() {
       setErro(null);
       setSalvoEm(new Date().toLocaleTimeString("pt-BR"));
       setCamposSalvos(Array.isArray(r?.alterados) ? (r.alterados as string[]) : []);
+      // Relê primeiro e só então limpa o rascunho — sem "piscar" o valor antigo.
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["ficha-caso", id] }),
+        qc.invalidateQueries({ queryKey: ["caso-canonico", id] }),
+      ]);
       setForm({});
-      await qc.invalidateQueries({ queryKey: ["ficha-caso", id] });
       toast.success(
         `Salvo e conferido no banco${Array.isArray(r?.alterados) && r.alterados.length ? ` — ${r.alterados.length} campo(s)` : ""}.`,
       );

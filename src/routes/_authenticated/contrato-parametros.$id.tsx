@@ -250,7 +250,8 @@ function Pagina() {
             >
               <div className="space-y-3">
                 {itens.map((v) => (
-                  <LinhaParametro key={v.id} valor={v} aoMudar={invalidar} />
+                  // Corte 1 (27/09/2026): remonta com o valor persistido depois de salvar e reler.
+                  <LinhaParametro key={`${v.id}:${v.valor ?? ""}:${v.status ?? ""}`} valor={v} aoMudar={invalidar} />
                 ))}
               </div>
             </CaCard>
