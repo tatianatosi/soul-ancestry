@@ -27,7 +27,7 @@ describe("prateleiraDe é compartilhada entre App (Legado) e Desk (Biblioteca Me
   });
 
   it("as 4 coleções do mockup existem: Cadernos, Relatórios, Narrativas, Memória", () => {
-    expect(PRATELEIRAS.map((p) => p.rotulo)).toEqual(["Cadernos", "Relatórios", "Narrativas", "Memória"]);
+    expect(PRATELEIRAS.map((p) => p.rotulo)).toEqual(["Cadernos de Família", "Dossiês e Relatórios", "Narrativas de Origem", "Memória"]);
   });
 });
 

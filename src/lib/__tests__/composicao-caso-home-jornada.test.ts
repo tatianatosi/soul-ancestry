@@ -58,7 +58,7 @@ describe("a mesma composição aparece na Home e na Jornada", () => {
   });
 
   it("nenhuma das duas renderiza quando não há composição", () => {
-    expect(home).toContain("{composicao ? (");
+    expect(home).toContain("{composicao ? <p");
     expect(jornada).toContain("{vivo.composicao ? <ChipMeta");
   });
 

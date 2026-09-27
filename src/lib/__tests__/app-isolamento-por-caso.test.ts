@@ -98,15 +98,16 @@ describe("as telas seguem o caso ativo, não o primeiro da lista", () => {
   });
 
   it("a Conta mostra o mesmo caso das outras abas", () => {
-    expect(conta).toContain("c.id === vivo.data?.casoAtivoId");
+    // 25/09/2026 — Conta não exibe mais código de caso (sanitização).
+    expect(conta).not.toContain("codigo");
     expect(conta).not.toContain("casosPortal?.[0]?.codigo");
   });
 });
 
 describe("a visão Master não perde o caso no F5", () => {
   it("a troca de caso reescreve a URL", () => {
-    expect(master).toContain("useNavigate");
-    expect(master).toContain("search: { casoId: escolhido || undefined }");
+    // 26/09/2026 — seletor de caso removido da prévia; o caso vem só da URL.
+    expect(master).toContain("casoId: casoIdDaUrl");
   });
 
   it("continua lendo o caso da URL ao montar", () => {

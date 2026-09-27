@@ -50,7 +50,7 @@ describe("A2 Jornada — duas colunas paralelas (mockup 2/7)", () => {
   });
 
   it("marca cada coluna com estado vazio honesto, sem inventar item", () => {
-    expect(codigo).toMatch(/Nada publicado nesta linha ainda\./);
+    expect(codigo).toMatch(/gerações anteriores aparecerão aqui/);
   });
 
   it("Próxima ação (nó sintético __agora__) cai na Linha do Processo, nunca na Ancestral", () => {

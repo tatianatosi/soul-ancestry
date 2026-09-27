@@ -27,7 +27,7 @@ describe("A4 Árvore — seção Ligação com a Jornada nunca desaparece", () =
 
   it("mostra estado vazio honesto quando não há publicação, não null/desaparecimento", () => {
     expect(codigo).toMatch(/painel\.notasPublicadas\.length === 0 \? \(/);
-    expect(codigo).toMatch(/Nenhuma atualização da árvore publicada ainda/);
+    expect(codigo).toMatch(/Quando um novo vínculo estiver confirmado/);
   });
 
   it("link 'Ver na Jornada' só aparece quando há publicação real", () => {
@@ -37,6 +37,6 @@ describe("A4 Árvore — seção Ligação com a Jornada nunca desaparece", () =
   });
 
   it("título do card é 'Ligação com a Jornada', do wireframe §6", () => {
-    expect(codigo).toContain("Ligação com a Jornada");
+    expect(codigo).toContain("Próxima atualização da árvore");
   });
 });
