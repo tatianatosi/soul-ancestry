@@ -55,7 +55,7 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
       ) : null}
       <svg
         viewBox="-90 -30 400 300"
-        className="mx-auto w-full max-w-md px-2 pb-2"
+        className="mx-auto w-full max-w-lg px-2 pb-2"
         role="img"
         aria-label="Radar das 6 dimensões da sua jornada"
       >

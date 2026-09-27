@@ -145,7 +145,7 @@ export function PortalConta() {
               </div>
               <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
                 <p className="text-sm text-navy/70">Ainda não há conversas disponíveis neste espaço.</p>
-                <p className="mt-1 text-xs text-navy/50">Quando houver uma conversa para compartilhar, você poderá encontrá-la aqui.</p>
+                <p className="mt-1 text-xs text-navy/50">Ainda não há conversas disponíveis neste espaço.</p>
               </div>
             </section>
           </div>

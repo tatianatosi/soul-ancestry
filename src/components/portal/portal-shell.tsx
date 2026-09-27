@@ -87,7 +87,7 @@ export function PortalShell({
         3/17, que usa uma só faixa). Logo + "Bem-vinda/nome" no mesmo bloco.
       */}
       <header className="bg-navy text-cream shadow-sm" data-app-cabecalho>
-        <div className="mx-auto max-w-3xl px-4 pb-4 pt-3 sm:px-6 lg:pb-7 lg:pt-5">
+        <div className="mx-auto max-w-[740px] px-4 pb-4 pt-3 sm:px-6 lg:pb-7 lg:pt-5">
           <div className="flex items-center">
             <BrandLogo size={28} variant="client-dark" showText />
           </div>
@@ -119,7 +119,7 @@ export function PortalShell({
         nem painel. Em telas largas a leitura só fica mais ampla e centrada,
         e a navegação das 7 abas continua sendo o rodapé único.
       */}
-      <div className="mx-auto w-full min-w-0 max-w-3xl">
+      <div className="mx-auto w-full min-w-0 max-w-[740px]">
         <main id="conteudo-portal" className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:pb-32 lg:pt-8">
           <div>{children}</div>
         </main>
