@@ -1,5 +1,5 @@
 export const ROTULO_TIPO_INSTRUMENTO: Record<string, string> = {
-  contract_base: "Contrato-base",
+  contract_base: "Contrato de Estudo Genealógico v2",
   contract_complement: "Contrato complementar",
   amendment: "Aditivo",
 };

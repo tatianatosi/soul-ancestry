@@ -148,7 +148,7 @@ export function renderCorpoContratual(e: EntradaCorpo): CorpoContratual {
   const anexos = anexosDoCaso(e);
   const blocos = blocosRenderizados(anexos);
 
-  const html = `<section class="base"><h2>Contrato-base versionado</h2>
+  const html = `<section class="base"><h2>Contrato de Estudo Genealógico v2</h2>
 <p><strong>Identificador:</strong> ${esc(CONTRATO_BASE_ID)}</p>
 <p><strong>Versão:</strong> ${esc(CONTRATO_BASE_VERSAO)} · <strong>Modelo:</strong> ${esc(CONTRATO_BASE_MODELO)} · <strong>Estado:</strong> ${esc(
     CONTRATO_BASE_STATUS,

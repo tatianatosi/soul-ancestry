@@ -90,7 +90,7 @@ describe("prévia com corpo contratual", () => {
     expect(previa.corpoContratual).toBe(true);
     expect((previa.conteudo as any).corpo.clausulas).toBe(16);
     expect((previa.conteudo as any).blocos).toHaveLength(16);
-    expect(previa.html).toContain("Contrato-base versionado");
+    expect(previa.html).toContain("Contrato de Estudo Genealógico v2");
   });
 
   it("prévia sem corpo continua marcada como sem corpo contratual", () => {

@@ -1439,7 +1439,9 @@ export const aprovarParaEnvio = createServerFn({ method: "POST" })
         org: organizationId,
         contractId: data.contract_id,
       });
-      if (conc) for (const b of conc.bloqueios) impedimentos.push(`Conciliação de catálogo: ${b}`);
+      // Caso governado pelo Planejador: bloqueios já vêm como "Proposta Canva: …" — nunca catálogo.
+      const governado = conc && "governanca" in conc;
+      if (conc) for (const b of conc.bloqueios) impedimentos.push(governado ? b : `Conciliação de catálogo: ${b}`);
     }
 
     if (impedimentos.length) {

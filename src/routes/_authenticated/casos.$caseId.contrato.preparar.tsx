@@ -167,8 +167,6 @@ function Pagina() {
    * só passou a aparecer sob o modo certo, ainda colapsável como antes.
    */
   const [modo, setModo] = useState<"preparar" | "revisar">("preparar");
-  const abrirCartao = (chave: ChaveCartao) =>
-    setCartoesAbertos((v) => ({ ...v, [chave]: true }));
 
   const abrir = useServerFn(abrirPreparacaoContrato);
   const importar = useServerFn(preencherDeOrigens);
@@ -551,8 +549,38 @@ function Pagina() {
     bloqueiosGates: gatesContratuais,
   });
 
+  /*
+    Resgate Ana (autorização da Proprietária, 27/09/2026): a tela é o fluxo de
+    revisão de uma hora do Contrato de Estudo Genealógico v2. Preparar:
+    Proposta → Partes → Escopo → Condição particular → OS/Anexos → Pendências →
+    Salvar. Revisar: Contrato v2 completo → Anexo I/OS e anexos → histórico →
+    solicitar revisão. Matriz técnica, gates, fontes, auditoria e inventários
+    ficam recolhidos em "Detalhes internos" — nada foi apagado.
+  */
+  const pendenciasHumanas = listaOpcional<any>(d.pendenciasHumanas);
+  const instrumento = String(d.instrumento ?? "Contrato de Estudo Genealógico v2");
+  const condicao = d.condicaoParticular ?? null;
+  const planejadorCaso = d.planejador ?? null;
+  const governado = Boolean(d.governadoPeloPlanejador);
+  const gruposFicha = (grupos: string[]) =>
+    grupos.flatMap((g) => {
+      const itens = listaOpcional<any>(d.valores).filter((v) => v.grupo === g);
+      if (!itens.length) return [];
+      const titulo = GRUPOS.find((x) => x.chave === g)?.titulo ?? g;
+      return [
+        <p key={`t-${g}`} className="text-xs uppercase tracking-wide text-navy/50">
+          {titulo}
+        </p>,
+        // A chave inclui valor/status: depois de salvar e reler, a linha
+        // remonta com o valor persistido (nunca um rascunho só do navegador).
+        ...itens.map((v) => (
+          <LinhaParametro key={`${v.id}:${v.valor ?? ""}:${v.status ?? ""}`} valor={v} aoMudar={invalidar} />
+        )),
+      ];
+    });
+
   return (
-    <SaasShell titulo={`Preparar contrato — ${d.caso.codigo}`}>
+    <SaasShell titulo={`${instrumento} — ${d.caso.codigo}`}>
       {pendenciaVinculo || !podeEscrever ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
           Pendência registrada:{" "}
@@ -561,11 +589,53 @@ function Pagina() {
         </p>
       ) : null}
       <div className="space-y-6">
-        {/* ===================== RESUMO (sempre aberto) ===================== */}
-        <div className="space-y-4">
-          <p className="rounded-lg border border-gold/40 bg-gold/5 px-4 py-3 text-sm text-navy/80">
-            Motor contratual parametrizado por cliente: dados e anexos (escopo, entregas) vêm do Canva da
-            proposta. A timeline da jornada da pessoa fica na Pessoa 360 — aqui só formalização.{" "}
+        {/* ===================== CABEÇALHO ===================== */}
+        <CaCard
+          variante="compacto"
+          titulo={`${instrumento} — ${d.caso.codigo} — ${d.cliente?.nome ?? "cliente não vinculado"}`}
+        >
+          <div className="flex flex-wrap items-center gap-2 text-xs" data-instrumento-contrato>
+            <Selo texto={`Situação da ficha: ${d.registro.status}`} tom={d.registro.status === "assinado" ? "ok" : "alerta"} />
+            {governado ? (
+              <Selo texto="Governado pelo Planejador + proposta Canva" tom="ok" />
+            ) : null}
+            <span data-contrato-validacao-documental>
+              <Selo
+                texto={
+                  d.caso.documentos_minimos_ok
+                    ? "Validação jurídica: cadeia documental completa"
+                    : "Validação jurídica: documentos mínimos pendentes"
+                }
+                tom={d.caso.documentos_minimos_ok ? "ok" : "alerta"}
+              />
+            </span>
+            {d.contrato && (
+              <Link
+                to="/contratos/$id"
+                params={{ id: d.contrato.id }}
+                title="Abrir Partes, Escopo, Cláusulas e Anexos do instrumento registrado"
+              >
+                <Selo texto={`Contrato ${d.contrato.contract_number} · ${d.contrato.status} · abrir instrumento →`} tom="neutro" />
+              </Link>
+            )}
+          </div>
+          <p className="mt-2 text-xs text-navy/70" data-fila-pendencias-ficha>
+            {pendenciasHumanas.length === 0 ? (
+              "Nenhuma pendência humana aberta."
+            ) : (
+              <a href="#pendencias" className="underline underline-offset-2">
+                <strong>{pendenciasHumanas.length} pendência(s) humana(s)</strong> — ver lista única
+              </a>
+            )}
+          </p>
+          {d.aliasDe && (
+            <p className="mt-2 rounded border border-gold/50 bg-gold/10 p-2 text-xs text-navy">
+              Referência legada/interna corrigida. Este fluxo opera no caso <strong>{d.caso.codigo}</strong>. A referência{" "}
+              <strong>{d.aliasDe}</strong> é interna incorreta: preservada apenas como histórico, sem criar, contratar, assinar,
+              cobrar, pesquisar ou operar por ela — nada foi copiado nem duplicado.
+            </p>
+          )}
+          <p className="mt-2 text-xs text-navy/60">
             {d.cliente?.id ? (
               <Link
                 to="/pessoas/$clienteId"
@@ -582,256 +652,7 @@ function Pagina() {
               Caso 360
             </Link>
           </p>
-          <CaCard variante="compacto" titulo={`Caso em preparação: ${d.caso.codigo} — ${d.cliente?.nome ?? "cliente não vinculado"}`}>
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <Selo texto={`Situação da ficha: ${d.registro.status}`} tom={d.registro.status === "assinado" ? "ok" : "alerta"} />
-              <Selo texto={`Completude ${d.completude?.pct ?? 0}%`} tom={(d.completude?.pct ?? 0) === 100 ? "ok" : "alerta"} />
-              <Selo texto={`Modelo: ${d.modelo?.code ?? "não localizado"}`} tom={d.modelo ? "ok" : "erro"} />
-              <Selo texto={`Base: ${d.base?.code ?? "não localizada"}`} tom={d.base ? "ok" : "erro"} />
-              {d.contrato && (
-                <Link
-                  to="/contratos/$id"
-                  params={{ id: d.contrato.id }}
-                  title="Abrir Partes, Escopo, Cláusulas e Anexos do instrumento registrado"
-                >
-                  <Selo texto={`Contrato ${d.contrato.contract_number} · ${d.contrato.status} · abrir instrumento →`} tom="neutro" />
-                </Link>
-              )}
-              <span data-contrato-validacao-documental>
-                <Selo
-                  texto={
-                    d.caso.documentos_minimos_ok
-                      ? "Validação jurídica: cadeia documental completa"
-                      : "Validação jurídica: documentos mínimos pendentes"
-                  }
-                  tom={d.caso.documentos_minimos_ok ? "ok" : "alerta"}
-                />
-              </span>
-            </div>
-            <p className="mt-2 text-xs text-navy/70" data-fila-pendencias-ficha>
-              {totalPendenciasFicha === 0 ? (
-                "Sem pendência aberta nesta ficha."
-              ) : (
-                <>
-                  <strong>{totalPendenciasFicha} pendência(s) aberta(s) nesta ficha:</strong>{" "}
-                  {[
-                    pendenciasChecklist ? (
-                      <a key="checklist" href="#checklist-pre-contrato" className="underline underline-offset-2">
-                        {pendenciasChecklist} no checklist pré-contrato
-                      </a>
-                    ) : null,
-                    bloqueios.length ? (
-                      <a key="bloqueios" href="#decisao-humana" className="underline underline-offset-2">
-                        {bloqueios.length} bloqueio(s) de gate
-                      </a>
-                    ) : null,
-                    pendenciasAnexos ? (
-                      <a key="anexos" href="#anexos" className="underline underline-offset-2">
-                        {pendenciasAnexos} em Anexos I–V
-                      </a>
-                    ) : null,
-                  ]
-                    .filter(Boolean)
-                    .map((el, i, arr) => (
-                      <span key={i}>
-                        {el}
-                        {i < arr.length - 1 ? " · " : ""}
-                      </span>
-                    ))}
-                </>
-              )}
-            </p>
-            {d.aliasDe && (
-              <p className="mt-2 rounded border border-gold/50 bg-gold/10 p-2 text-xs text-navy">
-                Referência legada/interna corrigida. Este fluxo opera no caso <strong>{d.caso.codigo}</strong>. A referência{" "}
-                <strong>{d.aliasDe}</strong> é interna incorreta: preservada apenas como histórico, sem criar, contratar, assinar,
-                cobrar, pesquisar ou operar por ela — nada foi copiado nem duplicado.
-              </p>
-            )}
-
-            {d.caso.codigos_legados?.length > 0 && (
-              <p className="mt-2 text-xs text-navy/60">
-                Códigos legados registrados (somente referência): {d.caso.codigos_legados.join(", ")}
-              </p>
-            )}
-            <p className="mt-2 text-xs text-navy/60">
-              Somente dados deste caseId. Nenhum dado DEMO, de outro caso, placeholder automático ou inferência é utilizado; campo sem
-              informação real permanece vazio.
-            </p>
-          </CaCard>
-        </div>
-
-        {/*
-          ===================== CHECKLIST PRÉ-CONTRATO (sempre aberto) =====================
-          Item 5 (autorização explícita da Proprietária, 2026-09-23): estado
-          real de 7 frentes antes de gerar/assinar/cobrar — produto-pai,
-          partes/dados, representação de dependente, contrato a preparar,
-          assinatura, cobrança e pagamento inicial. Cada item mostra fonte,
-          estado, responsável humano e próxima ação; nada é marcado
-          concluído sem evidência real.
-        */}
-        <details id="checklist-pre-contrato" className="rounded-lg border border-navy/15 bg-card p-4">
-          <summary className="cursor-pointer text-sm font-medium text-navy">Abrir checklist operacional de pré-contrato</summary>
-          <div className="mt-4 space-y-4 border-t border-navy/10 pt-4" data-checklist-pre-contrato>
-          <CaCard variante="compacto" titulo="Checklist operacional — pré-contrato">
-            <ul className="space-y-2">
-              {checklistPre.map((item) => (
-                <li
-                  key={item.chave}
-                  className="rounded-lg border border-navy/10 bg-cream/40 p-3 text-sm"
-                  data-checklist-item={item.chave}
-                  data-checklist-estado={item.estado}
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-medium text-navy">{item.rotulo}</p>
-                    <Selo texto={ROTULO_ESTADO_CHECKLIST[item.estado]} tom={TOM_ESTADO_CHECKLIST[item.estado]} />
-                  </div>
-                  <p className="mt-1 text-xs text-navy/70">{item.estadoTexto}</p>
-                  <p className="mt-1 text-[11px] text-navy/45">Fonte: {item.fonte} · Responsável: {item.responsavel}</p>
-                  {item.proximaAcao ? (
-                    <p className="mt-1 text-xs font-medium text-navy/80">Próxima ação: {item.proximaAcao}</p>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          </CaCard>
-          </div>
-        </details>
-
-        {/* ===================== DECISÃO HUMANA (sempre aberta, elevada) ===================== */}
-        <div id="decisao-humana" className="space-y-4 rounded-2xl border-2 border-navy/15 bg-cream/40 p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-navy/50">Decisão humana</p>
-
-          <div id="bloqueios">
-            <PainelBloqueios
-              bloqueios={bloqueios}
-              valores={listaOpcional(d.valores)}
-              pendencias={listaOpcional(d.pendencias)}
-            />
-          </div>
-
-          <div className="rounded-lg border border-navy/10 bg-cream/60 p-3 text-xs text-navy/70">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
-              Prévia final — {previaFinalCaso.liberada ? "liberada" : "bloqueada"}
-            </p>
-            <ul className="mt-1 space-y-1">
-              {previaFinalCaso.motivos.map((m) => (
-                <li key={m}>• {m}</li>
-              ))}
-            </ul>
-          </div>
-
-          <CaCard variante="compacto" titulo="Revisão humana e assinatura">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <p className="text-sm text-navy/70">
-                  {pendenciaBloqueios
-                    ? "Há bloqueios de gate abertos. Eles ficam registrados e visíveis, mas não travam a operação: registre o pedido de revisão humana ou prossiga assumindo a decisão."
-                    : "Registre o pedido de revisão humana em auditoria."}
-                </p>
-                <div className="flex flex-wrap items-center gap-2">
-                  <input
-                    className={`${inputCls} md:w-1/2`}
-                    value={nota}
-                    maxLength={500}
-                    onChange={(e) => setNota(e.target.value)}
-                    placeholder="O que precisa de revisão humana"
-                  />
-                  <button
-                    onClick={() => mRevisar.mutate()}
-                    disabled={mRevisar.isPending || !nota.trim()}
-                    title={
-                      revisaoTravada
-                        ? `${impeditivos.length} bloqueio(s) ainda aberto(s) — ${impeditivos
-                            .map((b) => b.titulo)
-                            .join("; ")}. Pode prosseguir mesmo assim; a pendência fica registrada.`
-                        : "Registra o pedido de revisão humana em auditoria."
-                    }
-                    className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
-                  >
-                    Solicitar revisão humana
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-3 border-t border-navy/10 pt-3">
-                <p className="text-sm text-navy/70">
-                  {d.revisaoAprovadaEm
-                    ? `Revisão humana aprovada em ${new Date(d.revisaoAprovadaEm).toLocaleString("pt-BR")} — criação da solicitação de assinatura liberada, com registro de template, versão e aprovador.`
-                    : "Revisão humana ainda não aprovada. A criação da solicitação de assinatura segue disponível por decisão sua, com a pendência registrada."}
-                </p>
-                <AcaoOperacional
-                  rotulo="Criar solicitação de assinatura"
-                  acaoExterna="solicitar_assinatura"
-                  pendenciaGate={
-                    [
-                      pendenciaBloqueios,
-                      d.revisaoAprovadaEm ? null : "Revisão humana ainda não aprovada.",
-                      ["aprovado", "validado"].includes(d.registro.status)
-                        ? null
-                        : `Registro do contrato está em "${d.registro.status}", não em aprovado nem validado.`,
-                    ]
-                      .filter(Boolean)
-                      .join(" ") || null
-                  }
-                  efeito="Cria a solicitação de assinatura do contrato, registrando template, versão e aprovador."
-                  className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
-                  onConfirmar={() => {
-                    if (mEnviar.isPending) return;
-                    mEnviar.mutate();
-                  }}
-                />
-                {finalAprovada && d.registro.contract_id && (
-                  <div className="grid gap-2 md:grid-cols-4">
-                    <input
-                      className={inputCls}
-                      type="date"
-                      value={assinatura.dataAssinatura}
-                      onChange={(e) => setAssinatura({ ...assinatura, dataAssinatura: e.target.value })}
-                    />
-                    <input
-                      className={inputCls}
-                      placeholder="Origem externa da assinatura"
-                      maxLength={200}
-                      value={assinatura.origemExterna}
-                      onChange={(e) => setAssinatura({ ...assinatura, origemExterna: e.target.value })}
-                    />
-                    <input
-                      className={inputCls}
-                      placeholder="Referência / comprovante"
-                      maxLength={200}
-                      value={assinatura.referencia}
-                      onChange={(e) => setAssinatura({ ...assinatura, referencia: e.target.value })}
-                    />
-                    <AcaoOperacional
-                      rotulo="Registrar assinatura externa"
-                      acaoExterna="registrar_assinatura_externa"
-                      validacaoFormulario={
-                        !assinatura.dataAssinatura || !assinatura.origemExterna || !assinatura.referencia
-                          ? "Preencha data, origem externa e referência da assinatura antes de confirmar."
-                          : null
-                      }
-                      efeito="Marca o contrato como assinado e atualiza o caso. Esse estado passa a atender uma condição usada na liberação de acesso ao Portal do Cliente — não publica conteúdo, não envia mensagem, não gera cobrança e não concede acesso automaticamente."
-                      className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80"
-                      onConfirmar={(motivo) => {
-                        if (mAssinar.isPending) return;
-                        mAssinar.mutate(motivo);
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-            <p className="mt-2 text-xs text-navy/60">
-              Ao confirmar, o contrato será registrado como assinado e o caso será atualizado. Esse estado passa a atender uma condição
-              usada na liberação de acesso ao Portal, mas não publica conteúdo, não envia mensagem, não gera cobrança e não concede
-              acesso automaticamente. Financeiro e ativação continuam sujeitos aos gates próprios.
-            </p>
-            {ultimaFinal && !ultimaFinal.aprovado_em && (
-              <p className="mt-1 text-xs text-terracotta">Versão final gerada aguardando aprovação de revisão humana.</p>
-            )}
-          </CaCard>
-        </div>
+        </CaCard>
 
         <div className="flex flex-wrap gap-2" role="tablist" aria-label="Modo de trabalho da ficha">
           <button
@@ -858,76 +679,45 @@ function Pagina() {
           </button>
         </div>
 
-        {/* ===================== CARDS (fecham por padrão) ===================== */}
-        <div className="space-y-3">
-          {modo === "preparar" && <>
-          <CartaoDetalhe
-            titulo="1. Planejador & Comercial"
-            resumo={
-              d.proposta
-                ? `Proposta v${d.proposta.versao} · ${d.proposta.status} · ${d.membros.length} membro(s)`
-                : `${d.membros.length} membro(s) · proposta não localizada`
-            }
-            aberto={cartoesAbertos.planejador}
-            aoAlternar={() => alternarCartao("planejador")}
-          >
-            <PlanejadorOperacional caseId={caseId} podeEscrever={podeEscrever} />
-            <CadeiaOperacional caseId={caseId} podeEscrever={podeEscrever} />
-
-            <div id="canva">
-              <CompletudeCanva caseId={caseId} proposalId={(d.proposta as any)?.id ?? null} podeEscrever={podeEscrever} />
-            </div>
-
-            <EscopoProposta dados={(d as any).escopo} proposta={d.proposta as any} />
-
-            <RegraComercial caseId={caseId} />
-
-            <CaCard variante="compacto" titulo="Entidades reaproveitadas (nada é duplicado)">
+        {/* ===================== PREPARAR CONTRATO ===================== */}
+        {modo === "preparar" && (
+          <div className="space-y-4" data-modo-preparar>
+            <CaCard titulo="1. Proposta aprovada">
               <ul className="space-y-1 text-sm text-navy/80">
                 <li>
                   <strong>Proposta:</strong>{" "}
                   {d.proposta ? (
                     <>
-                      v{d.proposta.versao} · {d.proposta.status} · {moeda(d.proposta.valor, d.proposta.moeda)} ·{" "}
-                      {d.proposta.forma_pagamento ?? "condição não informada"}
+                      v{d.proposta.versao} · {d.proposta.status}
+                      {d.proposta.origem === "canva" ? " · Canva" : ""} · {moeda(d.proposta.valor, d.proposta.moeda)}
                     </>
                   ) : (
                     <span className="text-terracotta">não localizada</span>
                   )}
                 </li>
                 <li>
-                  <strong>Ficha de parâmetros:</strong> única por caso (reaproveitada quando já existe)
+                  <strong>Planejador:</strong>{" "}
+                  {planejadorCaso
+                    ? [
+                        planejadorCaso.produtoPaiId ? `Produto-Pai ${planejadorCaso.produtoPaiId}` : "Produto-Pai não definido",
+                        planejadorCaso.rota ? `rota ${planejadorCaso.rota}` : null,
+                        planejadorCaso.fase ? `fase ${planejadorCaso.fase}` : null,
+                        planejadorCaso.marco ? `marco ${planejadorCaso.marco}` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")
+                    : "sem plano ativo"}
                 </li>
                 <li>
-                  <strong>Template ativo:</strong> {d.modelo ? `${d.modelo.name} v${d.modelo.template_version}` : "—"} +{" "}
-                  {d.base ? `${d.base.name} v${d.base.template_version}` : "—"}
-                </li>
-                <li>
-                  <strong>Membros/beneficiários do caso ({d.membros.length}):</strong>{" "}
+                  <strong>Composição ({d.membros.length}):</strong>{" "}
                   {d.membros.length
-                    ? d.membros.map((m: any) => `${m.nome}${m.requerente ? " (requerente)" : ""} — ${m.parentesco ?? "—"}`).join(" · ")
-                    : "nenhum vinculado"}
-                </li>
-                <li>
-                  <strong>Anexos pelas regras existentes:</strong> {d.anexos.map((a: any) => a.codigo).join(", ") || "—"}
-                </li>
-                <li>
-                  <strong>Composição contratual (matriz aplicável):</strong>{" "}
-                  {composicaoCaso.estado === "sem_dados" ? (
-                    <span className="text-terracotta">Sem dados suficientes — {composicaoCaso.motivo}</span>
-                  ) : (
-                    <>
-                      {composicaoCaso.modelo.nome} — {composicaoCaso.motivo}
-                      <span className="ml-2 text-navy/50">
-                        Anexos aplicáveis: {composicaoCaso.modelo.anexos.map((a) => a.codigo).join(", ")}
-                      </span>
-                    </>
-                  )}
-                </li>
-                <li>
-                  <strong>Cadastro CRM:</strong> {d.cliente ? [d.cliente.email, d.cliente.telefone].filter(Boolean).join(" · ") || "sem contato" : "—"}
+                    ? d.membros.map((m: any) => `${m.nome}${m.requerente ? " (requerente)" : ""}`).join(" · ")
+                    : "nenhum membro vinculado"}
                 </li>
               </ul>
+              <div id="canva" className="mt-3">
+                <CompletudeCanva caseId={caseId} proposalId={(d.proposta as any)?.id ?? null} podeEscrever={podeEscrever} />
+              </div>
               <div className="mt-3">
                 <button
                   onClick={() => mImportar.mutate()}
@@ -936,24 +726,187 @@ function Pagina() {
                 >
                   Pré-carregar do Planejador homologado (sem redigitação)
                 </button>
-                <p className="mt-2 text-xs text-navy/60">
-                  O Planejador continua sendo a fonte de maior precedência. Quando não há parâmetro financeiro homologado para a rota, os
-                  campos comerciais (valor total, forma de pagamento, parcelas e despesas externas) vêm da proposta aprovada vinculada,
-                  sempre como “importado — a confirmar”. Datas de vencimento nunca são inferidas: dependem de condição formal registrada.
-                </p>
               </div>
             </CaCard>
-          </CartaoDetalhe>
 
-          <CartaoDetalhe
-            titulo="2. Formalização & Anexos"
-            resumo={`${d.anexos.length} anexo(s) pelas regras existentes`}
-            aberto={cartoesAbertos.formalizacao}
-            aoAlternar={() => alternarCartao("formalizacao")}
-          >
-            <CadeiaFormalizacao caseId={caseId} podeEscrever={podeEscrever} />
+            <div id="partes">
+              <CaCard titulo="2. Partes e representação">
+                <div className="space-y-3">
+                  <EstruturaFamiliar codigoCaso={d.caso?.codigo} caseId={caseId} />
+                  <ReconciliarContatoPartesContrato
+                    caseId={caseId}
+                    contratoAssinado={contratoAssinadoReconciliacao}
+                    onMudou={invalidar}
+                  />
+                  <ReconciliarCpfPartes
+                    plano={planoReconciliacaoCpf}
+                    contratoAssinado={contratoAssinadoReconciliacao}
+                    ocupado={mReconciliarCpf.isPending || mResolverConflitoCpf.isPending}
+                    onVerificar={() => mReconciliarCpf.mutate(false)}
+                    onSincronizar={() => mReconciliarCpf.mutate(true)}
+                    onResolverConflito={(id, decisao, motivo) =>
+                      mResolverConflitoCpf.mutate({ id, decisao, motivo })
+                    }
+                  />
+                  <div id="dependentes">
+                    <PainelDependentes caseId={caseId} podeEscrever={podeEscrever} />
+                  </div>
+                  <div id="ficha" className="space-y-3">{gruposFicha(["partes", "membros"])}</div>
+                </div>
+              </CaCard>
+            </div>
 
-            <div id="anexos" className="space-y-4">
+            <CaCard titulo="3. Escopo e entregas">
+              <EscopoProposta dados={(d as any).escopo} proposta={d.proposta as any} />
+              <div className="mt-3 space-y-3">{gruposFicha(["objeto", "servicos"])}</div>
+            </CaCard>
+
+            <CaCard titulo="4. Condição particular do caso">
+              <div data-condicao-particular className="space-y-1 text-sm text-navy/80">
+                <p>
+                  <strong>Valor:</strong> {condicao?.valor != null ? moeda(condicao.valor, "BRL") : "não registrado"}
+                </p>
+                <p>
+                  <strong>Condição:</strong> {condicao?.condicao ?? "não registrada"}
+                </p>
+                {condicao?.composicao ? (
+                  <p>
+                    <strong>Composição familiar:</strong> {condicao.composicao}
+                  </p>
+                ) : null}
+                <p className="text-[11px] text-navy/50">Fonte: {condicao?.fonte ?? "—"}. Sem SKU técnico nem catálogo.</p>
+              </div>
+              <div className="mt-3 space-y-3">{gruposFicha(["comerciais"])}</div>
+            </CaCard>
+
+            <div id="anexos">
+              <CaCard titulo="5. Ordem de Serviço (Anexo I) e anexos">
+                <CadeiaFormalizacao caseId={caseId} podeEscrever={podeEscrever} governadoPeloPlanejador={governado} />
+                <div className="mt-3">
+                  <AnexosIaV
+                    anexos={anexosGovernados}
+                    entrada={entradaAnexos}
+                    persistidos={anexosPersistidosPorCodigo}
+                    renderAcoes={
+                      podeEscrever
+                        ? (a, persistido) =>
+                            persistido?.overrideManual ? (
+                              <AcaoOperacional
+                                rotulo="Reativar regra do anexo"
+                                acaoExterna="reativar_anexo_dispensado"
+                                efeito={`Volta o anexo ${a.codigo} a seguir a regra vigente, desfazendo a dispensa manual registrada.`}
+                                className="rounded border border-navy/20 px-2 py-1 text-[11px] text-navy/80"
+                                onConfirmar={() => mReativarAnexo.mutate({ annexCode: a.codigo })}
+                              />
+                            ) : (
+                              <AcaoOperacional
+                                rotulo="Dispensar anexo com motivo"
+                                acaoExterna="dispensar_anexo_com_motivo"
+                                pendenciaGate={persistido ? null : "Anexo ainda não sincronizado — sincronize antes de dispensar."}
+                                efeito={`Marca o anexo ${a.codigo} como não aplicável a este caso por decisão humana, com motivo registrado. Não altera cláusula nem toca instância já anexada/assinada.`}
+                                className="rounded border border-terracotta/40 px-2 py-1 text-[11px] text-terracotta"
+                                onConfirmar={(motivo) => mDispensarAnexo.mutate({ annexCode: a.codigo, motivo })}
+                              />
+                            )
+                        : undefined
+                    }
+                  />
+                </div>
+              </CaCard>
+            </div>
+
+            <div id="pendencias">
+              <CaCard titulo="6. Pendências humanas">
+                {pendenciasHumanas.length === 0 ? (
+                  <p className="text-sm text-navy/60" data-pendencias-humanas>
+                    Nenhuma pendência humana aberta.
+                  </p>
+                ) : (
+                  <ul className="space-y-2" data-pendencias-humanas>
+                    {pendenciasHumanas.map((p: any) => (
+                      <li key={p.chave} className="rounded-lg border border-terracotta/30 bg-terracotta/5 p-3">
+                        <p className="text-sm font-medium text-navy">{p.titulo}</p>
+                        <p className="mt-0.5 text-xs text-navy/70">{p.detalhe}</p>
+                        <a
+                          href={p.ancora === "revisar" ? undefined : `#${p.ancora}`}
+                          onClick={p.ancora === "revisar" ? () => setModo("revisar") : undefined}
+                          className="mt-1 inline-block cursor-pointer text-xs font-medium text-navy underline underline-offset-2"
+                        >
+                          {p.ancora === "revisar" ? "Ir para Revisar prévia" : "Resolver agora"}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CaCard>
+            </div>
+
+            <CaCard titulo="7. Salvar rascunho">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => mGerar.mutate("rascunho")}
+                  disabled={mGerar.isPending}
+                  className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
+                >
+                  Salvar rascunho
+                </button>
+                <span className="text-[11px] text-navy/60" data-estado-rascunho>
+                  {mGerar.isPending
+                    ? "Salvando rascunho…"
+                    : rascunhoAtual
+                      ? `Rascunho salvo em ${new Date(rascunhoAtual.created_at).toLocaleString("pt-BR")} (relido do servidor).`
+                      : "Nenhum rascunho salvo ainda."}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-navy/60">
+                Salvar grava e relê o rascunho único deste caso. Nada é criado, enviado, assinado, cobrado ou publicado
+                externamente a partir daqui.
+              </p>
+            </CaCard>
+          </div>
+        )}
+
+        {/* ===================== REVISAR PRÉVIA ===================== */}
+        {modo === "revisar" && (
+          <div className="space-y-4" data-modo-revisar>
+            <div id="previas">
+              <CaCard titulo={`1. ${instrumento} — prévia completa`}>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => mGerar.mutate("rascunho")}
+                    disabled={mGerar.isPending}
+                    className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80"
+                  >
+                    Salvar rascunho de trabalho
+                  </button>
+                  {(rascunhoAtual ?? listaOpcional<any>(d.previas)[0]) && (
+                    <button
+                      onClick={() => mVer.mutate((rascunhoAtual ?? listaOpcional<any>(d.previas)[0]).id)}
+                      className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream"
+                    >
+                      Ver prévia do contrato completo
+                    </button>
+                  )}
+                  <span className="self-center text-[11px] text-navy/60">
+                    {mGerar.isPending
+                      ? "Salvando rascunho…"
+                      : rascunhoAtual
+                        ? "Rascunho salvo."
+                        : "Nenhum rascunho salvo ainda."}
+                  </span>
+                </div>
+                {html && (
+                  <iframe
+                    title="Prévia do instrumento"
+                    srcDoc={html}
+                    sandbox=""
+                    className="mt-3 h-[640px] w-full rounded-lg border border-navy/15 bg-cream/40"
+                  />
+                )}
+              </CaCard>
+            </div>
+
+            <CaCard titulo="2. Anexo I (Ordem de Serviço) e anexos aplicáveis">
               <AnexosAplicaveis
                 valores={listaOpcional(d.valores)}
                 anexosGerados={listaOpcional(d.anexos)}
@@ -961,306 +914,27 @@ function Pagina() {
                   const alvo = rascunhoAtual ?? listaOpcional<any>(d.previas)[0];
                   if (alvo) mVer.mutate(alvo.id);
                   else toast.info(`Gere o rascunho de trabalho para visualizar a instância de ${codigo}.`);
-                  abrirCartao("previas");
                   document.getElementById("previas")?.scrollIntoView({ behavior: "smooth", block: "start" });
                 }}
               />
-
-              <CaCard variante="compacto" titulo="Anexos I–V governados">
-                <p className="mb-2 text-xs text-navy/60">
-                  Derivados da ficha parametrizável e da proposta/OS vinculada. Somente leitura: o template-base não é editável pelo caso e
-                  nenhum campo é preenchido por inferência.
-                </p>
-                <div className="mb-3">
-                  {qi.isError ? (
-                    <p className="mb-2 flex flex-wrap items-center gap-3 text-xs text-terracotta">
-                      Não foi possível carregar os anexos.
-                      <button
-                        type="button"
-                        onClick={() => void qi.refetch()}
-                        className="rounded-md border border-terracotta/50 px-2 py-1 text-[11px] font-medium text-terracotta hover:bg-terracotta/10"
-                      >
-                        Tentar novamente
-                      </button>
-                    </p>
-                  ) : null}
-                  <InstanciaDocumental linhas={linhasInstancia} carregando={qi.isLoading} />
-                  <div className="mt-2">
-                    <MaterializarRevisados
-                      plano={planoRevisados}
-                      ocupado={mMaterializar.isPending}
-                      onVerificar={() => mMaterializar.mutate(false)}
-                      onMaterializar={() => mMaterializar.mutate(true)}
-                    />
-                  </div>
-                  <div className="mt-2">
-                    <RessincronizarAnexos
-                      plano={planoRessincronizacao}
-                      ocupado={mRessincronizar.isPending}
-                      onVerificar={() => mRessincronizar.mutate(false)}
-                      onSincronizar={() => mRessincronizar.mutate(true)}
-                    />
-                  </div>
-                  <div className="mt-2">
-                    <ReconciliarCpfPartes
-                      plano={planoReconciliacaoCpf}
-                      contratoAssinado={contratoAssinadoReconciliacao}
-                      ocupado={mReconciliarCpf.isPending || mResolverConflitoCpf.isPending}
-                      onVerificar={() => mReconciliarCpf.mutate(false)}
-                      onSincronizar={() => mReconciliarCpf.mutate(true)}
-                      onResolverConflito={(id, decisao, motivo) =>
-                        mResolverConflitoCpf.mutate({ id, decisao, motivo })
-                      }
-                    />
-                  </div>
-                  <div className="mt-2">
-                    <ReconciliarContatoPartesContrato
-                      caseId={caseId}
-                      contratoAssinado={contratoAssinadoReconciliacao}
-                      onMudou={invalidar}
-                    />
-                  </div>
-                </div>
-
-                <AnexosIaV
-                  anexos={anexosGovernados}
-                  entrada={entradaAnexos}
-                  persistidos={anexosPersistidosPorCodigo}
-                  renderAcoes={
-                    podeEscrever
-                      ? (a, persistido) =>
-                          persistido?.overrideManual ? (
-                            <AcaoOperacional
-                              rotulo="Reativar regra do anexo"
-                              acaoExterna="reativar_anexo_dispensado"
-                              efeito={`Volta o anexo ${a.codigo} a seguir a regra vigente, desfazendo a dispensa manual registrada.`}
-                              className="rounded border border-navy/20 px-2 py-1 text-[11px] text-navy/80"
-                              onConfirmar={() => mReativarAnexo.mutate({ annexCode: a.codigo })}
-                            />
-                          ) : (
-                            <AcaoOperacional
-                              rotulo="Dispensar anexo com motivo"
-                              acaoExterna="dispensar_anexo_com_motivo"
-                              pendenciaGate={persistido ? null : "Anexo ainda não sincronizado — sincronize antes de dispensar."}
-                              efeito={`Marca o anexo ${a.codigo} como não aplicável a este caso por decisão humana, com motivo registrado. Não altera cláusula nem toca instância já anexada/assinada.`}
-                              className="rounded border border-terracotta/40 px-2 py-1 text-[11px] text-terracotta"
-                              onConfirmar={(motivo) => mDispensarAnexo.mutate({ annexCode: a.codigo, motivo })}
-                            />
-                          )
-                      : undefined
-                  }
-                />
-                <div className="mt-3">
-                  <PainelPendenciasContratuais anexos={anexosGovernados} gates={gatesContratuais} />
-                </div>
-              </CaCard>
-            </div>
-          </CartaoDetalhe>
-          </>}
-
-          {modo === "revisar" && (
-          <CartaoDetalhe
-            titulo="3. Cláusulas & Perfil Institucional"
-            resumo={`Prévia final ${previaFinalCaso.liberada ? "liberada" : "bloqueada"}`}
-            aberto={cartoesAbertos.clausulas}
-            aoAlternar={() => alternarCartao("clausulas")}
-          >
-            <CaCard variante="compacto" titulo="Perfil institucional e matriz de cláusulas A–P">
-              <p className="mb-2 text-[11px] text-navy/60">
-                Texto jurídico fixo não é editável por caso.{" "}
-                <Link to="/governanca/contrato-base" className="text-terracotta underline">
-                  Ver contrato-base
-                </Link>
-              </p>
-              {qPerfilPersistido.data && (
-                <div
-                  className={
-                    qPerfilPersistido.data.persistido
-                      ? "mb-2 rounded-lg border border-navy/10 bg-cream/40 p-2 text-[11px] text-navy/70"
-                      : "mb-2 rounded-lg border border-terracotta/40 bg-terracotta/5 p-2 text-[11px] text-terracotta"
-                  }
-                >
-                  {qPerfilPersistido.data.persistido ? (
-                    <p>
-                      Fonte viva confirmada: perfil institucional persistido (versão{" "}
-                      {qPerfilPersistido.data.payload.versao}) nesta organização.
-                    </p>
-                  ) : (
-                    <>
-                      <p>
-                        Pendência: perfil institucional ainda não registrado como fonte viva nesta organização — a
-                        prévia usa a versão de referência do contrato-base até o registro.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => mGarantirPerfil.mutate()}
-                        disabled={mGarantirPerfil.isPending}
-                        className="mt-1 rounded border border-terracotta/50 px-2 py-1 disabled:opacity-60"
-                      >
-                        {mGarantirPerfil.isPending ? "Registrando…" : "Registrar perfil institucional desta organização"}
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
-              <PerfilInstitucionalBloco
-                campos={perfilInstitucional.campos}
-                versao={perfilInstitucional.versao}
-                status={perfilInstitucional.status}
-                pendencias={perfilInstitucional.pendencias}
-              />
-
-              <div className="mt-3 space-y-3">
-                <MatrizClausulas linhas={clausulasAvaliadas} />
-                <MatrizAceiteTabela blocos={blocosCaso} />
-              </div>
             </CaCard>
-          </CartaoDetalhe>
-          )}
 
-          {modo === "preparar" && (
-          <CartaoDetalhe
-            titulo="4. Estrutura Familiar & Ficha"
-            resumo={`${d.membros.length} membro(s) no caso`}
-            aberto={cartoesAbertos.familia}
-            aoAlternar={() => alternarCartao("familia")}
-          >
-            <EstruturaFamiliar codigoCaso={d.caso?.codigo} caseId={caseId} />
-            <PainelDependentes caseId={caseId} podeEscrever={podeEscrever} />
-
-            <div id="ficha" className="space-y-4">
-              <GovernancaFicha />
-              {BLOCOS_FICHA.map((s) => (
-                <CaCard variante="compacto" key={s.chave} titulo={s.titulo}>
-                  <CabecalhoBloco bloco={s} estado={estadoDoBloco(listaOpcional(d.valores) as any[], s.grupos)} />
-                  <div className="space-y-3">
-                    {s.grupos.flatMap((g) => {
-                      const itens = (d.valores as any[]).filter((v) => v.grupo === g);
-                      const titulo = GRUPOS.find((x) => x.chave === g)?.titulo ?? g;
-                      return [
-                        <p key={`t-${g}`} className="text-xs uppercase tracking-wide text-navy/50">
-                          {titulo}
-                        </p>,
-                        ...itens.map((v) => <LinhaParametro key={v.id} valor={v} aoMudar={invalidar} />),
-                      ];
-                    })}
-                  </div>
-                </CaCard>
-              ))}
-            </div>
-          </CartaoDetalhe>
-          )}
-
-          {modo === "revisar" && <>
-          <CartaoDetalhe
-            titulo="5. Coerência & Instrumentos"
-            aberto={cartoesAbertos.coerencia}
-            aoAlternar={() => alternarCartao("coerencia")}
-          >
-            <div id="coerencia">
-              <ConflitoCoerencia
-                coerencia={d.coerencia}
-                valorPaisRota={listaOpcional<any>(d.valores).find((v) => v.campo === "pais_rota") ?? null}
-                aoCorrigir={invalidar}
-              />
-            </div>
-            <PainelInstrumentos caseId={caseId} />
-            <MatrizJuridicaPreparacao caseId={caseId} />
-            <PainelPreparacao caseId={caseId} />
-          </CartaoDetalhe>
-
-          <CartaoDetalhe
-            id="previas"
-            titulo="6. Prévia & Versões"
-            resumo={
-              rascunhoAtual
-                ? "Rascunho de trabalho salvo"
-                : d.previas.length
-                  ? `${d.previas.length} versão(ões) registrada(s)`
-                  : "Nenhuma prévia gerada ainda"
-            }
-            aberto={cartoesAbertos.previas}
-            aoAlternar={() => alternarCartao("previas")}
-          >
-            <CaCard variante="compacto" titulo="Prévia contratual versionada">
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => mGerar.mutate("rascunho")}
-                  disabled={mGerar.isPending}
-                  className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80"
-                >
-                  Salvar rascunho de trabalho
-                </button>
-                <button
-                  onClick={() => mGerar.mutate("rascunho")}
-                  disabled={mGerar.isPending}
-                  className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50"
-                >
-                  Salvar e continuar depois
-                </button>
-                <span className="self-center text-[11px] text-navy/60">
-                  {mGerar.isPending
-                    ? "Salvando rascunho…"
-                    : rascunhoAtual
-                      ? bloqueado
-                        ? "Rascunho salvo. A formalização permanece bloqueada — veja “Bloqueios acionáveis”."
-                        : "Rascunho salvo."
-                      : "Nenhum rascunho salvo ainda."}
-                </span>
-                <AcaoOperacional
-                  rotulo="Congelar retorno para ajuste"
-                  className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50"
-                  acaoExterna="congelar_retorno_ajuste"
-                  efeito={
-                    rascunhoAtual
-                      ? "Congela o rascunho atual como retorno para ajuste — vira versão imutável no histórico."
-                      : "Nenhum rascunho editável no momento — a pendência fica registrada."
-                  }
-                  onConfirmar={(motivo) => mCongelar.mutate({ evento: "retorno_ajuste", motivo })}
-                />
-                <AcaoOperacional
-                  rotulo="Congelar versão final"
-                  className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
-                  acaoExterna="congelar_versao_final"
-                  efeito={
-                    bloqueios.some((b) => b.chave !== "revisao_humana")
-                      ? "Há bloqueios acionáveis abertos — ver seção abaixo. É possível prosseguir; a pendência fica registrada."
-                      : "Congela a versão final do contrato — vira versão imutável no histórico."
-                  }
-                  onConfirmar={(motivo) => mCongelar.mutate({ evento: "aprovacao", motivo })}
-                />
-              </div>
-              <p className="mt-2 text-xs text-navy/60">
-                Um único rascunho editável por caso + modelo ativo: salvar atualiza esse rascunho e conteúdo idêntico não vira versão nova.
-                Versão imutável só nasce em evento de governança — pedido de revisão, retorno para ajuste, aprovação, envio para assinatura e
-                assinatura registrada. Nada é excluído: todo o histórico permanece.
-              </p>
-              <div className="mt-3 space-y-2">
+            <CaCard titulo="3. Versões e histórico">
+              <div className="space-y-2">
                 {(d.previas as any[]).map((p) => (
                   <div key={p.id} className="rounded-lg border border-navy/15 bg-cream/40 p-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
                         <p className="text-sm text-navy">
-                          {p.estado === "rascunho_editavel" ? "Rascunho de trabalho (editável)" : `Versão v${p.versao} (congelada)`} ·{" "}
-                          {p.template_code} v{p.template_version} · caso {d.caso.codigo} · proposta{" "}
-                          {d.registro.proposal_id ? "vinculada" : "ausente"}
+                          {p.estado === "rascunho_editavel" ? "Rascunho de trabalho (editável)" : `Versão v${p.versao} (congelada)`}
                         </p>
                         <p className="text-xs text-navy/60">
                           {ROTULO_EVENTO_PREVIA[p.evento ?? ""] ?? "Evento não registrado"} ·{" "}
-                          {new Date(p.congelado_em ?? p.created_at).toLocaleString("pt-BR")} · autor {p.gerado_por ? "registrado" : "—"} ·{" "}
-                          {listaOpcional(p.anexos).length} anexo(s) · {listaOpcional(p.conteudo?.valores).length} parâmetro(s)
+                          {new Date(p.congelado_em ?? p.created_at).toLocaleString("pt-BR")}
                         </p>
                         {p.motivo && <p className="text-xs text-navy/60">Motivo: {p.motivo}</p>}
                       </div>
                       <div className="flex items-center gap-2">
-                        <Selo
-                          texto={
-                            listaOpcional(p.placeholders_pendentes).length
-                              ? `${p.placeholders_pendentes.length} pendência(s)`
-                              : "Sem placeholders"
-                          }
-                          tom={listaOpcional(p.placeholders_pendentes).length ? "erro" : "ok"}
-                        />
                         <button onClick={() => mVer.mutate(p.id)} className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80">
                           Ver prévia
                         </button>
@@ -1276,52 +950,385 @@ function Pagina() {
                 ))}
                 {d.previas.length === 0 && <p className="text-sm text-navy/60">Nenhuma prévia gerada ainda.</p>}
               </div>
-              {html && (
-                <iframe
-                  title="Prévia do instrumento"
-                  srcDoc={html}
-                  sandbox=""
-                  className="mt-3 h-[520px] w-full rounded-lg border border-navy/15 bg-cream/40"
-                />
-              )}
             </CaCard>
-          </CartaoDetalhe>
 
-          <CartaoDetalhe
-            titulo="7. Auditoria"
-            resumo={`${eventos.length} evento(s) registrados`}
-            aberto={cartoesAbertos.auditoria}
-            aoAlternar={() => alternarCartao("auditoria")}
-          >
-            <CaCard variante="compacto" titulo="Auditoria da preparação (sem dados sensíveis completos)">
-              {qa.isError ? (
+            <div id="decisao-humana">
+              <CaCard titulo="4. Solicitar revisão, aprovar e preparar assinatura">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <input
+                        className={`${inputCls} md:w-1/2`}
+                        value={nota}
+                        maxLength={500}
+                        onChange={(e) => setNota(e.target.value)}
+                        placeholder="O que precisa de revisão humana"
+                      />
+                      <button
+                        onClick={() => mRevisar.mutate()}
+                        disabled={mRevisar.isPending || !nota.trim()}
+                        title={
+                          revisaoTravada
+                            ? `${impeditivos.length} bloqueio(s) ainda aberto(s) — ${impeditivos
+                                .map((b) => b.titulo)
+                                .join("; ")}. Pode prosseguir mesmo assim; a pendência fica registrada.`
+                            : "Registra o pedido de revisão humana em auditoria."
+                        }
+                        className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
+                      >
+                        Solicitar revisão humana
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <AcaoOperacional
+                        rotulo="Congelar retorno para ajuste"
+                        className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50"
+                        acaoExterna="congelar_retorno_ajuste"
+                        efeito={
+                          rascunhoAtual
+                            ? "Congela o rascunho atual como retorno para ajuste — vira versão imutável no histórico."
+                            : "Nenhum rascunho editável no momento — a pendência fica registrada."
+                        }
+                        onConfirmar={(motivo) => mCongelar.mutate({ evento: "retorno_ajuste", motivo })}
+                      />
+                      <AcaoOperacional
+                        rotulo="Congelar versão final"
+                        className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
+                        acaoExterna="congelar_versao_final"
+                        efeito={
+                          pendenciasHumanas.some((p: any) => p.chave !== "revisao_previa")
+                            ? "Ainda há pendência humana aberta — é possível prosseguir; a pendência fica registrada."
+                            : "Congela a versão final do contrato — vira versão imutável no histórico."
+                        }
+                        onConfirmar={(motivo) => mCongelar.mutate({ evento: "aprovacao", motivo })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 border-t border-navy/10 pt-3">
+                    <p className="text-sm text-navy/70">
+                      {d.revisaoAprovadaEm
+                        ? `Revisão humana aprovada em ${new Date(d.revisaoAprovadaEm).toLocaleString("pt-BR")}.`
+                        : "Revisão humana ainda não aprovada. Assinatura e cobrança são atos externos posteriores."}
+                    </p>
+                    <AcaoOperacional
+                      rotulo="Criar solicitação de assinatura"
+                      acaoExterna="solicitar_assinatura"
+                      pendenciaGate={
+                        [
+                          pendenciaBloqueios,
+                          d.revisaoAprovadaEm ? null : "Revisão humana ainda não aprovada.",
+                          ["aprovado", "validado"].includes(d.registro.status)
+                            ? null
+                            : `Registro do contrato está em "${d.registro.status}", não em aprovado nem validado.`,
+                        ]
+                          .filter(Boolean)
+                          .join(" ") || null
+                      }
+                      efeito="Cria a solicitação de assinatura do contrato, registrando template, versão e aprovador."
+                      className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
+                      onConfirmar={() => {
+                        if (mEnviar.isPending) return;
+                        mEnviar.mutate();
+                      }}
+                    />
+                    {finalAprovada && d.registro.contract_id && (
+                      <div className="grid gap-2 md:grid-cols-4">
+                        <input
+                          className={inputCls}
+                          type="date"
+                          value={assinatura.dataAssinatura}
+                          onChange={(e) => setAssinatura({ ...assinatura, dataAssinatura: e.target.value })}
+                        />
+                        <input
+                          className={inputCls}
+                          placeholder="Origem externa da assinatura"
+                          maxLength={200}
+                          value={assinatura.origemExterna}
+                          onChange={(e) => setAssinatura({ ...assinatura, origemExterna: e.target.value })}
+                        />
+                        <input
+                          className={inputCls}
+                          placeholder="Referência / comprovante"
+                          maxLength={200}
+                          value={assinatura.referencia}
+                          onChange={(e) => setAssinatura({ ...assinatura, referencia: e.target.value })}
+                        />
+                        <AcaoOperacional
+                          rotulo="Registrar assinatura externa"
+                          acaoExterna="registrar_assinatura_externa"
+                          validacaoFormulario={
+                            !assinatura.dataAssinatura || !assinatura.origemExterna || !assinatura.referencia
+                              ? "Preencha data, origem externa e referência da assinatura antes de confirmar."
+                              : null
+                          }
+                          efeito="Marca o contrato como assinado e atualiza o caso. Esse estado passa a atender uma condição usada na liberação de acesso ao Portal do Cliente — não publica conteúdo, não envia mensagem, não gera cobrança e não concede acesso automaticamente."
+                          className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80"
+                          onConfirmar={(motivo) => {
+                            if (mAssinar.isPending) return;
+                            mAssinar.mutate(motivo);
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {ultimaFinal && !ultimaFinal.aprovado_em && (
+                  <p className="mt-1 text-xs text-terracotta">Versão final gerada aguardando aprovação de revisão humana.</p>
+                )}
+              </CaCard>
+            </div>
+          </div>
+        )}
+
+        {/* ===================== DETALHES INTERNOS (recolhidos) ===================== */}
+        <details id="detalhes-internos" className="rounded-lg border border-navy/15 bg-card p-4">
+          <summary className="cursor-pointer text-sm font-medium text-navy/70">
+            Detalhes internos (matriz técnica, gates, fontes, auditoria e inventários)
+          </summary>
+          <div className="mt-4 space-y-4 border-t border-navy/10 pt-4">
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <Selo texto={`Completude ${d.completude?.pct ?? 0}%`} tom={(d.completude?.pct ?? 0) === 100 ? "ok" : "alerta"} />
+              <Selo texto={`Modelo: ${d.modelo?.code ?? "não localizado"}`} tom={d.modelo ? "ok" : "erro"} />
+              <Selo texto={`Base: ${d.base?.code ?? "não localizada"}`} tom={d.base ? "ok" : "erro"} />
+              <span className="text-navy/60">
+                {totalPendenciasFicha} marcador(es) técnico(s): {pendenciasChecklist} checklist · {bloqueios.length} gate(s) ·{" "}
+                {pendenciasAnexos} anexo(s)
+              </span>
+            </div>
+            {d.caso.codigos_legados?.length > 0 && (
+              <p className="text-xs text-navy/60">
+                Códigos legados registrados (somente referência): {d.caso.codigos_legados.join(", ")}
+              </p>
+            )}
+
+            <div id="checklist-pre-contrato" data-checklist-pre-contrato>
+              <CaCard variante="compacto" titulo="Checklist operacional — pré-contrato">
+                <ul className="space-y-2">
+                  {checklistPre.map((item) => (
+                    <li
+                      key={item.chave}
+                      className="rounded-lg border border-navy/10 bg-cream/40 p-3 text-sm"
+                      data-checklist-item={item.chave}
+                      data-checklist-estado={item.estado}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="font-medium text-navy">{item.rotulo}</p>
+                        <Selo texto={ROTULO_ESTADO_CHECKLIST[item.estado]} tom={TOM_ESTADO_CHECKLIST[item.estado]} />
+                      </div>
+                      <p className="mt-1 text-xs text-navy/70">{item.estadoTexto}</p>
+                      <p className="mt-1 text-[11px] text-navy/45">Fonte: {item.fonte} · Responsável: {item.responsavel}</p>
+                      {item.proximaAcao ? (
+                        <p className="mt-1 text-xs font-medium text-navy/80">Próxima ação: {item.proximaAcao}</p>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </CaCard>
+            </div>
+
+            <div id="bloqueios">
+              <PainelBloqueios bloqueios={bloqueios} valores={listaOpcional(d.valores)} pendencias={listaOpcional(d.pendencias)} />
+            </div>
+            <div className="rounded-lg border border-navy/10 bg-cream/60 p-3 text-xs text-navy/70">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
+                Prévia final — {previaFinalCaso.liberada ? "liberada" : "bloqueada"}
+              </p>
+              <ul className="mt-1 space-y-1">
+                {previaFinalCaso.motivos.map((m) => (
+                  <li key={m}>• {m}</li>
+                ))}
+              </ul>
+            </div>
+
+            <CartaoDetalhe
+              titulo="Planejador & Comercial (fontes)"
+              aberto={cartoesAbertos.planejador}
+              aoAlternar={() => alternarCartao("planejador")}
+            >
+              <PlanejadorOperacional caseId={caseId} podeEscrever={podeEscrever} />
+              <CadeiaOperacional caseId={caseId} podeEscrever={podeEscrever} />
+              <RegraComercial caseId={caseId} />
+              <CaCard variante="compacto" titulo="Entidades reaproveitadas (nada é duplicado)">
+                <ul className="space-y-1 text-sm text-navy/80">
+                  <li>
+                    <strong>Ficha de parâmetros:</strong> única por caso (reaproveitada quando já existe)
+                  </li>
+                  <li>
+                    <strong>Template ativo:</strong> {d.modelo ? `${d.modelo.name} v${d.modelo.template_version}` : "—"} +{" "}
+                    {d.base ? `${d.base.name} v${d.base.template_version}` : "—"}
+                  </li>
+                  <li>
+                    <strong>Anexos pelas regras existentes:</strong> {d.anexos.map((a: any) => a.codigo).join(", ") || "—"}
+                  </li>
+                  <li>
+                    <strong>Composição contratual (matriz aplicável):</strong>{" "}
+                    {composicaoCaso.estado === "sem_dados" ? (
+                      <span className="text-terracotta">Sem dados suficientes — {composicaoCaso.motivo}</span>
+                    ) : (
+                      <>
+                        {composicaoCaso.modelo.nome} — {composicaoCaso.motivo}
+                        <span className="ml-2 text-navy/50">
+                          Anexos aplicáveis: {composicaoCaso.modelo.anexos.map((a) => a.codigo).join(", ")}
+                        </span>
+                      </>
+                    )}
+                  </li>
+                  <li>
+                    <strong>Cadastro CRM:</strong>{" "}
+                    {d.cliente ? [d.cliente.email, d.cliente.telefone].filter(Boolean).join(" · ") || "sem contato" : "—"}
+                  </li>
+                </ul>
+              </CaCard>
+            </CartaoDetalhe>
+
+            <CartaoDetalhe
+              titulo="Instâncias documentais dos anexos"
+              aberto={cartoesAbertos.formalizacao}
+              aoAlternar={() => alternarCartao("formalizacao")}
+            >
+              {qi.isError ? (
                 <p className="mb-2 flex flex-wrap items-center gap-3 text-xs text-terracotta">
-                  Não foi possível carregar a auditoria.
+                  Não foi possível carregar os anexos.
                   <button
                     type="button"
-                    onClick={() => void qa.refetch()}
+                    onClick={() => void qi.refetch()}
                     className="rounded-md border border-terracotta/50 px-2 py-1 text-[11px] font-medium text-terracotta hover:bg-terracotta/10"
                   >
                     Tentar novamente
                   </button>
                 </p>
               ) : null}
-              <ul className="space-y-1 text-xs text-navy/70">
-                {eventos.map((e) => (
-                  <li key={e.id}>
-                    {new Date(e.created_at).toLocaleString("pt-BR")} — <strong>{e.acao}</strong>
-                    {e.ocorrencias > 1
-                      ? ` · ${e.ocorrencias}x em até 30 min (último às ${new Date(e.ultimo_em).toLocaleTimeString("pt-BR")})`
-                      : ""}
-                    {e.metadados?.bloqueios?.length ? ` · bloqueios: ${e.metadados.bloqueios.join(", ")}` : ""}
-                  </li>
-                ))}
-                {eventos.length === 0 && <li>Sem eventos registrados ainda.</li>}
-              </ul>
-            </CaCard>
-          </CartaoDetalhe>
-          </>}
-        </div>
+              <InstanciaDocumental linhas={linhasInstancia} carregando={qi.isLoading} />
+              <div className="mt-2">
+                <MaterializarRevisados
+                  plano={planoRevisados}
+                  ocupado={mMaterializar.isPending}
+                  onVerificar={() => mMaterializar.mutate(false)}
+                  onMaterializar={() => mMaterializar.mutate(true)}
+                />
+              </div>
+              <div className="mt-2">
+                <RessincronizarAnexos
+                  plano={planoRessincronizacao}
+                  ocupado={mRessincronizar.isPending}
+                  onVerificar={() => mRessincronizar.mutate(false)}
+                  onSincronizar={() => mRessincronizar.mutate(true)}
+                />
+              </div>
+              <div className="mt-3">
+                <PainelPendenciasContratuais anexos={anexosGovernados} gates={gatesContratuais} />
+              </div>
+            </CartaoDetalhe>
+
+            <CartaoDetalhe
+              titulo="Cláusulas & Perfil Institucional"
+              resumo={`Prévia final ${previaFinalCaso.liberada ? "liberada" : "bloqueada"}`}
+              aberto={cartoesAbertos.clausulas}
+              aoAlternar={() => alternarCartao("clausulas")}
+            >
+              <CaCard variante="compacto" titulo="Perfil institucional e matriz de cláusulas A–P">
+                <p className="mb-2 text-[11px] text-navy/60">
+                  Texto jurídico fixo não é editável por caso.{" "}
+                  <Link to="/governanca/contrato-base" className="text-terracotta underline">
+                    Ver contrato-base
+                  </Link>
+                </p>
+                {qPerfilPersistido.data && !qPerfilPersistido.data.persistido && (
+                  <div className="mb-2 rounded-lg border border-terracotta/40 bg-terracotta/5 p-2 text-[11px] text-terracotta">
+                    <p>
+                      Pendência: perfil institucional ainda não registrado como fonte viva nesta organização — a prévia usa a
+                      versão de referência do contrato-base até o registro.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => mGarantirPerfil.mutate()}
+                      disabled={mGarantirPerfil.isPending}
+                      className="mt-1 rounded border border-terracotta/50 px-2 py-1 disabled:opacity-60"
+                    >
+                      {mGarantirPerfil.isPending ? "Registrando…" : "Registrar perfil institucional desta organização"}
+                    </button>
+                  </div>
+                )}
+                <PerfilInstitucionalBloco
+                  campos={perfilInstitucional.campos}
+                  versao={perfilInstitucional.versao}
+                  status={perfilInstitucional.status}
+                  pendencias={perfilInstitucional.pendencias}
+                />
+                <div className="mt-3 space-y-3">
+                  <MatrizClausulas linhas={clausulasAvaliadas} />
+                  <MatrizAceiteTabela blocos={blocosCaso} />
+                </div>
+              </CaCard>
+            </CartaoDetalhe>
+
+            <CartaoDetalhe
+              titulo="Coerência & Instrumentos"
+              aberto={cartoesAbertos.coerencia}
+              aoAlternar={() => alternarCartao("coerencia")}
+            >
+              <div id="coerencia">
+                <ConflitoCoerencia
+                  coerencia={d.coerencia}
+                  valorPaisRota={listaOpcional<any>(d.valores).find((v) => v.campo === "pais_rota") ?? null}
+                  aoCorrigir={invalidar}
+                />
+              </div>
+              <PainelInstrumentos caseId={caseId} />
+              <MatrizJuridicaPreparacao caseId={caseId} />
+              <PainelPreparacao caseId={caseId} />
+            </CartaoDetalhe>
+
+            <CartaoDetalhe
+              titulo="Ficha — assinatura e governança"
+              aberto={cartoesAbertos.familia}
+              aoAlternar={() => alternarCartao("familia")}
+            >
+              <GovernancaFicha />
+              {BLOCOS_FICHA.map((s) => (
+                <CaCard variante="compacto" key={s.chave} titulo={s.titulo}>
+                  <CabecalhoBloco bloco={s} estado={estadoDoBloco(listaOpcional(d.valores) as any[], s.grupos)} />
+                </CaCard>
+              ))}
+              <div className="space-y-3">{gruposFicha(["assinatura"])}</div>
+            </CartaoDetalhe>
+
+            <CartaoDetalhe
+              titulo="Auditoria"
+              resumo={`${eventos.length} evento(s) registrados`}
+              aberto={cartoesAbertos.auditoria}
+              aoAlternar={() => alternarCartao("auditoria")}
+            >
+              <CaCard variante="compacto" titulo="Auditoria da preparação (sem dados sensíveis completos)">
+                {qa.isError ? (
+                  <p className="mb-2 flex flex-wrap items-center gap-3 text-xs text-terracotta">
+                    Não foi possível carregar a auditoria.
+                    <button
+                      type="button"
+                      onClick={() => void qa.refetch()}
+                      className="rounded-md border border-terracotta/50 px-2 py-1 text-[11px] font-medium text-terracotta hover:bg-terracotta/10"
+                    >
+                      Tentar novamente
+                    </button>
+                  </p>
+                ) : null}
+                <ul className="space-y-1 text-xs text-navy/70">
+                  {eventos.map((e) => (
+                    <li key={e.id}>
+                      {new Date(e.created_at).toLocaleString("pt-BR")} — <strong>{e.acao}</strong>
+                      {e.ocorrencias > 1
+                        ? ` · ${e.ocorrencias}x em até 30 min (último às ${new Date(e.ultimo_em).toLocaleTimeString("pt-BR")})`
+                        : ""}
+                      {e.metadados?.bloqueios?.length ? ` · bloqueios: ${e.metadados.bloqueios.join(", ")}` : ""}
+                    </li>
+                  ))}
+                  {eventos.length === 0 && <li>Sem eventos registrados ainda.</li>}
+                </ul>
+              </CaCard>
+            </CartaoDetalhe>
+          </div>
+        </details>
       </div>
     </SaasShell>
   );

@@ -20,7 +20,20 @@ const ROTULO_ESTADO: Record<string, string> = {
   bloqueado: "Bloqueado pelo elo anterior",
 };
 
-export function CadeiaFormalizacao({ caseId, podeEscrever }: { caseId: string; podeEscrever: boolean }) {
+/**
+ * `governadoPeloPlanejador` (Resgate Ana, 27/09/2026): caso governado por
+ * Planejador + proposta Canva nunca mostra a conciliação de catálogo como
+ * bloqueio de OS — o Anexo I/OS nasce da proposta Canva aprovada.
+ */
+export function CadeiaFormalizacao({
+  caseId,
+  podeEscrever,
+  governadoPeloPlanejador = false,
+}: {
+  caseId: string;
+  podeEscrever: boolean;
+  governadoPeloPlanejador?: boolean;
+}) {
   const qc = useQueryClient();
   const carregar = useServerFn(carregarCadeiaFormalizacao);
   const derivar = useServerFn(derivarAnexoIDaProposta);
@@ -128,7 +141,13 @@ export function CadeiaFormalizacao({ caseId, podeEscrever }: { caseId: string; p
         </span>
       </div>
 
-      <BloqueioEmissaoOS proposalId={d.proposta?.id ?? null} ativo={d.proposta?.status === "aprovada"} />
+      {governadoPeloPlanejador ? (
+        <p className="mt-3 text-xs text-navy/60" data-os-governada-planejador>
+          Anexo I/OS preparado a partir da proposta Canva aprovada e do Planejador — sem SKU técnico nem catálogo como gate.
+        </p>
+      ) : (
+        <BloqueioEmissaoOS proposalId={d.proposta?.id ?? null} ativo={d.proposta?.status === "aprovada"} />
+      )}
     </CaCard>
   );
 }

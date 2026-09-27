@@ -201,7 +201,8 @@ h3{font-size:13px;margin-top:16px}table{width:100%;border-collapse:collapse;font
 th,td{border:1px solid #2F4B6E22;padding:4px 6px;text-align:left;vertical-align:top}
 .orig{font-family:system-ui;font-size:11px;color:#2F4B6E99}.pend{color:#9A3A2F;font-style:italic}</style></head><body>
 <div class="selo">${esc(selo)}</div>
-<h1>${esc(caso?.titulo ?? "Instrumento contratual")}</h1>
+<h1>Contrato de Estudo Genealógico v2</h1>
+<p><strong>${esc(caso?.titulo ?? "Instrumento contratual")}</strong></p>
 <p><strong>Caso:</strong> ${esc(caso?.codigo)} · <strong>Cliente:</strong> ${esc(cliente?.nome ?? "não vinculado")}</p>
 <p><strong>Modelo:</strong> ${esc(templateCode)}${templateVersion ? ` v${templateVersion}` : ""}</p>
 ${corpo?.html ?? ""}

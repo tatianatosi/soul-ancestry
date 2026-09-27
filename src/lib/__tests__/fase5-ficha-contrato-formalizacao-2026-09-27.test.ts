@@ -23,56 +23,59 @@ describe("Fase 5 — Canva (proposal_canva_pages) já é fonte mandatória 1-7",
     expect(crmDesk).toContain('.from("proposal_canva_pages")');
   });
 
-  it("CompletudeCanva está montado no card 1 (Planejador & Comercial)", () => {
-    const inicioCard1 = pagina.indexOf('titulo="1. Planejador & Comercial"');
-    const inicioCard2 = pagina.indexOf('titulo="2. Formalização & Anexos"');
+  // Resgate Ana (27/09/2026): Canva é a fonte do card "1. Proposta aprovada".
+  it("CompletudeCanva está montado no card 1 (Proposta aprovada)", () => {
+    const inicioCard1 = pagina.indexOf('titulo="1. Proposta aprovada"');
+    const inicioCard2 = pagina.indexOf('titulo="2. Partes e representação"');
     const trecho = pagina.slice(inicioCard1, inicioCard2);
     expect(trecho).toContain("<CompletudeCanva");
   });
 });
 
-describe("Fase 5 — sequência real dos 7 cards não foi alterada sem necessidade genuína", () => {
+/*
+ * Resgate Ana (autorização da Proprietária, 27/09/2026) substituiu a
+ * sequência dos 7 cards técnicos pela ordem de trabalho Proposta → Partes →
+ * Escopo → Condição particular → OS/Anexos → Pendências → Salvar. Estes
+ * testes travam a nova ordem; os cards técnicos continuam existindo em
+ * "Detalhes internos".
+ */
+describe("Fase 5 — ordem de trabalho do Resgate Ana", () => {
   const pagina = readFileSync("src/routes/_authenticated/casos.$caseId.contrato.preparar.tsx", "utf8");
+  const trecho = (de: string, ate: string) => pagina.slice(pagina.indexOf(de), pagina.indexOf(ate));
 
-  it("card 1 traz escopo aprovado e condição comercial", () => {
-    const inicio = pagina.indexOf('titulo="1. Planejador & Comercial"');
-    const fim = pagina.indexOf('titulo="2. Formalização & Anexos"');
-    const trecho = pagina.slice(inicio, fim);
-    expect(trecho).toContain("<EscopoProposta");
-    expect(trecho).toContain("<RegraComercial");
+  it("escopo vem da proposta (card 3) e a condição particular não usa catálogo (card 4)", () => {
+    expect(trecho('titulo="3. Escopo e entregas"', 'titulo="4. Condição particular do caso"')).toContain("<EscopoProposta");
+    const card4 = trecho('titulo="4. Condição particular do caso"', 'titulo="5. Ordem de Serviço (Anexo I) e anexos"');
+    expect(card4).toContain("data-condicao-particular");
+    expect(card4).not.toContain("<RegraComercial");
   });
 
-  it("card 2 traz OS (BloqueioEmissaoOS via CadeiaFormalizacao) antes dos Anexos I-V", () => {
-    const inicio = pagina.indexOf('titulo="2. Formalização & Anexos"');
-    const fim = pagina.indexOf('titulo="3. Cláusulas & Perfil Institucional"');
-    const trecho = pagina.slice(inicio, fim);
-    const posCadeia = trecho.indexOf("<CadeiaFormalizacao");
-    const posAnexos = trecho.indexOf("<AnexosIaV");
+  it("card 5 traz a OS (CadeiaFormalizacao governada pelo Planejador) antes dos Anexos I-V", () => {
+    const card5 = trecho('titulo="5. Ordem de Serviço (Anexo I) e anexos"', 'titulo="6. Pendências humanas"');
+    const posCadeia = card5.indexOf("<CadeiaFormalizacao");
+    const posAnexos = card5.indexOf("<AnexosIaV");
     expect(posCadeia).toBeGreaterThan(-1);
-    expect(posAnexos).toBeGreaterThan(-1);
+    expect(card5).toContain("governadoPeloPlanejador={governado}");
     expect(posCadeia).toBeLessThan(posAnexos);
   });
 
-  it("reconciliação de contato das partes (Fase 0) está no card 2, antes do card 6 (Prévia & Versões)", () => {
-    const posReconciliar = pagina.indexOf("<ReconciliarContatoPartesContrato");
-    const posPrevias = pagina.indexOf('titulo="6. Prévia & Versões"');
-    expect(posReconciliar).toBeGreaterThan(-1);
-    expect(posPrevias).toBeGreaterThan(-1);
-    expect(posReconciliar).toBeLessThan(posPrevias);
+  it("reconciliação de contato e CPF das partes está no card 2 (Partes), antes das Pendências", () => {
+    const card2 = trecho('titulo="2. Partes e representação"', 'titulo="3. Escopo e entregas"');
+    expect(card2).toContain("<ReconciliarContatoPartesContrato");
+    expect(card2).toContain("<ReconciliarCpfPartes");
+    expect(card2).toContain("<PainelDependentes");
   });
 
-  it("assinatura e bloqueios continuam elevados em 'Decisão humana', fora dos cards (decisão de 19/09/2026, não revertida)", () => {
-    const posDecisaoHumana = pagina.indexOf('id="decisao-humana"');
-    const posCard1 = pagina.indexOf('titulo="1. Planejador & Comercial"');
-    expect(posDecisaoHumana).toBeGreaterThan(-1);
-    expect(posDecisaoHumana).toBeLessThan(posCard1);
-    const trechoDecisao = pagina.slice(posDecisaoHumana, posCard1);
+  it("assinatura fica no último passo de Revisar prévia (id decisao-humana), depois da prévia do contrato", () => {
+    const posDecisao = pagina.indexOf('id="decisao-humana"');
+    expect(posDecisao).toBeGreaterThan(pagina.indexOf("1. ${instrumento} — prévia completa"));
+    const trechoDecisao = pagina.slice(posDecisao, pagina.indexOf('<details id="detalhes-internos"'));
     expect(trechoDecisao).toContain("Criar solicitação de assinatura");
     expect(trechoDecisao).toContain("Registrar assinatura externa");
   });
 
-  it("card 7 (Auditoria) continua sendo o histórico, por último no modo Revisar", () => {
-    expect(pagina).toContain('titulo="7. Auditoria"');
+  it("Auditoria continua existindo, recolhida em Detalhes internos", () => {
+    expect(pagina.indexOf('titulo="Auditoria"')).toBeGreaterThan(pagina.indexOf('<details id="detalhes-internos"'));
   });
 });
 

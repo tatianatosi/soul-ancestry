@@ -28,39 +28,52 @@ describe("Contrato de Uma Hora — dois modos (Preparar contrato / Revisar prév
     expect(rota).toContain('setModo("revisar")');
   });
 
-  it("mantém os 7 CartaoDetalhe originais — nenhum foi removido", () => {
-    for (const titulo of [
-      "1. Planejador & Comercial",
-      "2. Formalização & Anexos",
-      "3. Cláusulas & Perfil Institucional",
-      "4. Estrutura Familiar & Ficha",
-      "5. Coerência & Instrumentos",
-      "6. Prévia & Versões",
-      "7. Auditoria",
-    ]) {
-      expect(rota).toContain(titulo);
-    }
+  /*
+   * Resgate Ana (autorização da Proprietária, 27/09/2026): a ordem passou a
+   * ser Preparar = Proposta → Partes → Escopo → Condição particular →
+   * OS/Anexos → Pendências → Salvar; Revisar = Contrato v2 completo → Anexo
+   * I/OS e anexos → versões/histórico → solicitar revisão. Os antigos 7
+   * cartões técnicos continuam na página, recolhidos em "Detalhes internos".
+   */
+  it("Preparar segue a ordem Proposta → Partes → Escopo → Condição → OS/Anexos → Pendências → Salvar", () => {
+    const ordem = [
+      'titulo="1. Proposta aprovada"',
+      'titulo="2. Partes e representação"',
+      'titulo="3. Escopo e entregas"',
+      'titulo="4. Condição particular do caso"',
+      'titulo="5. Ordem de Serviço (Anexo I) e anexos"',
+      'titulo="6. Pendências humanas"',
+      'titulo="7. Salvar rascunho"',
+    ].map((t) => rota.indexOf(t));
+    for (const i of ordem) expect(i).toBeGreaterThan(-1);
+    expect([...ordem].sort((a, b) => a - b)).toEqual(ordem);
+    const guarda = rota.lastIndexOf('modo === "preparar"', ordem[0]);
+    expect(guarda).toBeGreaterThan(-1);
+    expect(rota.indexOf('modo === "revisar"', guarda)).toBeGreaterThan(ordem[6]);
   });
 
-  it('cards de trabalho de dado (1, 2, 4) ficam sob modo === "preparar"', () => {
-    const idx1 = rota.indexOf('titulo="1. Planejador & Comercial"');
-    const idx2 = rota.indexOf('titulo="2. Formalização & Anexos"');
-    const idx4 = rota.indexOf('titulo="4. Estrutura Familiar & Ficha"');
-    const guardaPreparar = rota.lastIndexOf('modo === "preparar"', idx1);
-    expect(guardaPreparar).toBeGreaterThan(-1);
-    expect(rota.lastIndexOf('modo === "preparar"', idx2)).toBeGreaterThan(-1);
-    expect(rota.lastIndexOf('modo === "preparar"', idx4)).toBeGreaterThan(-1);
+  it("Revisar segue a ordem Contrato v2 completo → Anexo I/OS → versões → solicitar revisão", () => {
+    const ordem = [
+      "1. ${instrumento} — prévia completa",
+      'titulo="2. Anexo I (Ordem de Serviço) e anexos aplicáveis"',
+      'titulo="3. Versões e histórico"',
+      'titulo="4. Solicitar revisão, aprovar e preparar assinatura"',
+    ].map((t) => rota.indexOf(t));
+    for (const i of ordem) expect(i).toBeGreaterThan(-1);
+    expect([...ordem].sort((a, b) => a - b)).toEqual(ordem);
+    expect(rota.lastIndexOf('modo === "revisar"', ordem[0])).toBeGreaterThan(-1);
   });
 
-  it('cards de conferência (3, 5, 6, 7) ficam sob modo === "revisar"', () => {
+  it("matriz técnica, gates, fontes e auditoria ficam recolhidos em Detalhes internos, depois dos dois modos", () => {
+    const detalhes = rota.indexOf('<details id="detalhes-internos"');
+    expect(detalhes).toBeGreaterThan(rota.indexOf('titulo="4. Solicitar revisão, aprovar e preparar assinatura"'));
     for (const titulo of [
-      "3. Cláusulas & Perfil Institucional",
-      "5. Coerência & Instrumentos",
-      "6. Prévia & Versões",
-      "7. Auditoria",
+      "Cláusulas & Perfil Institucional",
+      "Coerência & Instrumentos",
+      "Auditoria",
+      "Checklist operacional — pré-contrato",
     ]) {
-      const idx = rota.indexOf(`titulo="${titulo}"`);
-      expect(rota.lastIndexOf('modo === "revisar"', idx)).toBeGreaterThan(-1);
+      expect(rota.indexOf(titulo, detalhes)).toBeGreaterThan(detalhes);
     }
   });
 

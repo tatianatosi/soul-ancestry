@@ -136,7 +136,7 @@ h1{font-size:22px}h2{font-size:15px;text-transform:uppercase;letter-spacing:.06e
 .pend{color:#9A3A2F;font-style:italic}</style></head><body>
 ${selos.map((s) => `<div class="selo">${esc(s)}</div>`).join("")}
 <h1>${esc(contrato.title)}</h1>
-<p><strong>Instrumento:</strong> ${esc(contrato.contract_number)} · ${esc(contrato.contract_type)}</p>
+<p><strong>Instrumento:</strong> ${esc(contrato.contract_number)} · ${esc(contrato.contract_type === "contract_base" ? "Contrato de Estudo Genealógico v2" : contrato.contract_type)}</p>
 ${
   contratoBase
     ? `<p><strong>Contrato-base referenciado:</strong> ${esc(contratoBase.contract_number)} — ${esc(

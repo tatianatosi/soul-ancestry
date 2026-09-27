@@ -14,6 +14,13 @@ import {
   type Dependente,
 } from "@/lib/dependentes";
 
+/** Mesmo CHECK real (pendente/documentada/nao_aplicavel), rótulo da decisão contratual. */
+const ROTULO_DECISAO_CONTRATO: Record<string, string> = {
+  pendente: "Pendente — decisão não tomada",
+  documentada: "Dependente representado (documento de representação registrado)",
+  nao_aplicavel: "Fora deste contrato (não aplicável)",
+};
+
 /**
  * Parâmetro `dependentes`: dependente não é signatário automático, não gera
  * cobrança própria e não recebe acesso ao App sem representação documentada.
@@ -33,6 +40,9 @@ export function PainelDependentes({ caseId, podeEscrever }: { caseId: string; po
       setNovo(null);
       setEdicao({});
       void qc.invalidateQueries({ queryKey: ["dependentes", caseId] });
+      // Resgate Ana: a decisão sobre o dependente precisa limpar a pendência
+      // humana da tela de contrato sem exigir recarregar a página.
+      void qc.invalidateQueries({ queryKey: ["contrato-preparar", caseId] });
     },
     onError: (e: Error) => toast.error(e.message || "Não foi possível salvar o dependente."),
   });
@@ -58,7 +68,7 @@ export function PainelDependentes({ caseId, podeEscrever }: { caseId: string; po
       <Selecao
         label="Status da representação"
         valor={String(valores.status_representacao ?? "")}
-        opcoes={STATUS_REPRESENTACAO.map((s) => ({ valor: s.valor, rotulo: s.rotulo }))}
+        opcoes={STATUS_REPRESENTACAO.map((s) => ({ valor: s.valor, rotulo: ROTULO_DECISAO_CONTRATO[s.valor] ?? s.rotulo }))}
         onChange={(v) => onChange("status_representacao", v)}
       />
       <Texto

@@ -14,6 +14,8 @@ import {
   type ProdutoHomologado,
   type ResultadoConciliacao,
 } from "@/lib/conciliacao-catalogo";
+import { propostaComPaginasCanva, validarPropostaCanva } from "@/lib/escopo-proposta";
+import { casoGovernadoPeloPlanejador } from "@/lib/resgate-contrato-planejador";
 
 type Sb = any;
 
@@ -450,7 +452,71 @@ export async function conciliacaoDoContrato(
   }
   if (!proposalId) return null;
 
+  const governado = await governancaPlanejadorCanva(supabase, {
+    org: input.org,
+    caseId: contrato.case_id ?? null,
+    proposalId,
+    hoje: input.hoje,
+  });
+  if (governado) return governado;
+
   return conciliarPropostaComCatalogo(supabase, { org: input.org, proposalId, hoje: input.hoje });
+}
+
+/**
+ * Resgate Ana (autorização da Proprietária, 27/09/2026): caso com Produto-Pai
+ * no Planejador e proposta de origem Canva é governado por Planejador +
+ * proposta Canva aprovada — o catálogo (`product_catalog`/SKU) NUNCA é gate de
+ * escopo, OS ou envio. O único gate real é a própria proposta Canva
+ * (aprovada, vinculada ao caso, páginas 1–7). Devolve null quando o caso não
+ * é governado assim (a conciliação de catálogo continua valendo para os demais).
+ */
+export async function governancaPlanejadorCanva(
+  supabase: Sb,
+  input: { org: string; caseId: string | null; proposalId: string; hoje?: Date },
+): Promise<(ResultadoConciliacao & { proposalId: string; governanca: "planejador_canva" }) | null> {
+  if (!input.caseId) return null;
+  const [{ data: plano }, { data: proposta }] = await Promise.all([
+    supabase
+      .from("case_plans")
+      .select("produto_pai_id")
+      .eq("case_id", input.caseId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("proposals")
+      .select(
+        "id,case_id,organization_id,versao,status,archived_at,substituida_em,substituida_por_id,recusada_em,validade,origem,origem_referencia,paginas_registradas,escopo_paginas,escopo",
+      )
+      .eq("id", input.proposalId)
+      .maybeSingle(),
+  ]);
+  if (!proposta || proposta.organization_id !== input.org) return null;
+  if (!casoGovernadoPeloPlanejador({ produtoPaiId: plano?.produto_pai_id, origemProposta: proposta.origem })) return null;
+
+  const { data: paginas } = await supabase
+    .from("proposal_canva_pages")
+    .select("page_number,extracao_status,page_content_structured")
+    .eq("proposal_id", proposta.id)
+    .is("archived_at", null);
+  const validade = validarPropostaCanva(propostaComPaginasCanva(proposta, (paginas ?? []) as any[]), input.caseId, input.hoje);
+  const bloqueios = validade.motivos.map((m) => `Proposta Canva: ${m}`);
+  return {
+    caseId: input.caseId,
+    sku: null,
+    fonte: null,
+    preco_homologado: null,
+    condicao_homologada: null,
+    divergencias: [],
+    bloqueios,
+    pode_gerar_os: bloqueios.length === 0,
+    pode_gerar_contrato: bloqueios.length === 0,
+    conciliado_em: (input.hoje ?? new Date()).toISOString(),
+    proposalId: proposta.id,
+    governanca: "planejador_canva",
+  };
 }
 
 /** Varredura de todas as propostas vivas contra o catálogo homologado. */

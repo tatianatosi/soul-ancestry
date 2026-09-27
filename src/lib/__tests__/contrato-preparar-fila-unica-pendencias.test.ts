@@ -23,10 +23,12 @@ describe("Contrato de Uma Hora — fila única de pendências (resumo agregado)"
     expect(rota).toContain("const totalPendenciasFicha = pendenciasChecklist + bloqueios.length + pendenciasAnexos");
   });
 
-  it("linka cada contagem para a seção real correspondente, não duplica a UI", () => {
-    expect(rota).toContain('href="#checklist-pre-contrato"');
-    expect(rota).toContain('href="#decisao-humana"');
-    expect(rota).toContain('href="#anexos"');
+  // Resgate Ana (27/09/2026): o cabeçalho aponta para UMA lista de
+  // pendências humanas; as contagens técnicas ficam só em Detalhes internos.
+  it("o cabeçalho linka para a lista única de pendências humanas, não duplica a UI", () => {
+    expect(rota).toContain('href="#pendencias"');
+    expect(rota).toContain('id="pendencias"');
+    expect(rota.match(/data-pendencias-humanas/g)?.length).toBe(2);
   });
 
   it("os três alvos de âncora existem de fato na página", () => {
@@ -36,6 +38,6 @@ describe("Contrato de Uma Hora — fila única de pendências (resumo agregado)"
   });
 
   it('mostra "sem pendência" quando o total é zero, em vez de esconder o bloco', () => {
-    expect(rota).toContain("Sem pendência aberta nesta ficha.");
+    expect(rota).toContain("Nenhuma pendência humana aberta.");
   });
 });

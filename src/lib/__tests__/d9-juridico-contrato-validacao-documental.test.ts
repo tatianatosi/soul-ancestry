@@ -44,7 +44,8 @@ describe("D9 · rota exibe estado de validação documental, nunca oculto", () =
   });
 
   it("está na faixa de status do cabeçalho, ao lado de Completude/Modelo/Base — não escondido em aba secundária", () => {
-    const idxCabecalho = rota.indexOf("Caso em preparação:");
+    // Resgate Ana (27/09/2026): o cabeçalho passou a ser a faixa do instrumento.
+    const idxCabecalho = rota.indexOf("data-instrumento-contrato");
     const idxValidacao = rota.indexOf("data-contrato-validacao-documental");
     const idxFimFaixa = rota.indexOf("</div>", idxValidacao);
     expect(idxCabecalho).toBeGreaterThan(0);

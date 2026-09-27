@@ -17,6 +17,14 @@ import {
   validarPropostaCanva,
 } from "@/lib/escopo-proposta";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
+import {
+  NOME_INSTRUMENTO,
+  casoGovernadoPeloPlanejador,
+  condicaoParticularDoCaso,
+  pendenciasHumanasDoContrato,
+  type DependenteContrato,
+  type ParteContrato,
+} from "@/lib/resgate-contrato-planejador";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -170,7 +178,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       // leitura usado em Caso 360 (qCadeia.data.planejador.produto_pai_id).
       supabase
         .from("case_plans")
-        .select("id,produto_pai_id")
+        .select("id,produto_pai_id,rota_confirmada,fase_jornada,marco_atual")
         .eq("case_id", caso.id)
         .is("archived_at", null)
         .order("created_at", { ascending: false })
@@ -288,11 +296,65 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       ? (
           await supabase
             .from("contracts")
-            .select("id,contract_number,status,signed_at,signature_reference,signed_source")
+            .select("id,contract_number,title,status,signed_at,signature_reference,signed_source")
             .eq("id", registro.contract_id)
             .maybeSingle()
         ).data
       : null;
+
+    /*
+      Resgate Ana (27/09/2026): a tela só mostra fatos humanos reais, uma vez
+      cada — calculados das partes do instrumento, dos dependentes e da
+      revisão. Leitura pura; nenhuma escrita aqui.
+    */
+    const [{ data: partesRaw }, { data: dependentesRaw }, { data: servicoRaw }, { data: aceitosRaw }] = await Promise.all([
+      contrato?.id
+        ? supabase
+            .from("contract_parties")
+            .select("id,person_name,role,phone,document_number,signature_required,client_id")
+            .eq("contract_id", contrato.id)
+            .is("archived_at", null)
+            .order("display_order", { ascending: true })
+        : { data: [] as any[] },
+      supabase
+        .from("case_dependents")
+        .select("id,nome_completo,status_representacao,participa_do_contrato")
+        .eq("case_id", caso.id)
+        .is("archived_at", null),
+      supabase
+        .from("case_services")
+        .select("condicao_comercial_aprovada,preco_acordado,composicao_familiar,escopo_aprovado")
+        .eq("case_id", caso.id)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      contrato?.id
+        ? supabase
+            .from("contract_review_events")
+            .select("metadata")
+            .eq("organization_id", org)
+            .eq("contract_id", contrato.id)
+            .eq("event_type", "conflito_mantido_com_motivo")
+            .limit(100)
+        : { data: [] as any[] },
+    ]);
+    const partesContrato = (partesRaw ?? []) as ParteContrato[];
+    const idsClientesPartes = [...new Set(partesContrato.map((p) => p.client_id).filter(Boolean))] as string[];
+    const { data: clientesPartes } = idsClientesPartes.length
+      ? await supabase.from("clientes").select("id,telefone").eq("organization_id", org).in("id", idsClientesPartes)
+      : { data: [] as any[] };
+    const telefonesCanonicos: Record<string, string | null> = Object.fromEntries(
+      ((clientesPartes ?? []) as any[]).map((c) => [c.id, c.telefone ?? null]),
+    );
+    const aceitos = new Set<string>();
+    for (const ev of (aceitosRaw ?? []) as { metadata: Record<string, unknown> }[]) {
+      const m = ev.metadata ?? {};
+      const parte = partesContrato.find((p) => p.id === m["itemId"]);
+      if (m["campo"] !== "telefone" || !parte?.client_id) continue;
+      if (String(m["atual"] ?? "") === String(parte.phone ?? "") && String(m["canonico"] ?? "") === String(telefonesCanonicos[parte.client_id] ?? ""))
+        aceitos.add(`telefone:${parte.id}`);
+    }
 
     let lista = (valores ?? []) as any[];
     const skuHomologado = await skuHomologadoParaCaso(supabase, org, caso.codigo);
@@ -449,6 +511,29 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       bloqueios,
       coerencia,
       produtoPaiId: planoAtivo?.produto_pai_id ?? null,
+      planejador: planoAtivo
+        ? {
+            produtoPaiId: planoAtivo.produto_pai_id ?? null,
+            rota: planoAtivo.rota_confirmada ?? null,
+            fase: planoAtivo.fase_jornada ?? null,
+            marco: planoAtivo.marco_atual ?? null,
+          }
+        : null,
+      governadoPeloPlanejador: casoGovernadoPeloPlanejador({
+        produtoPaiId: planoAtivo?.produto_pai_id,
+        origemProposta: (proposta as any)?.origem,
+      }),
+      instrumento: NOME_INSTRUMENTO,
+      partesContrato,
+      dependentes: dependentesRaw ?? [],
+      condicaoParticular: condicaoParticularDoCaso((servicoRaw as any) ?? null, (proposta as any) ?? null),
+      pendenciasHumanas: pendenciasHumanasDoContrato({
+        partes: partesContrato,
+        telefonesCanonicos,
+        aceitos,
+        dependentes: (dependentesRaw ?? []) as DependenteContrato[],
+        revisaoAprovada: Boolean(finalAprovada),
+      }),
       faturas: faturas ?? [],
       escopo: { validade: validadeEscopo, cobertura, conflitos: conflitosEscopo.length },
       revisaoAprovadaEm: finalAprovada?.aprovado_em ?? null,
