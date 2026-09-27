@@ -9909,6 +9909,88 @@ export type Database = {
         }
         Relationships: []
       }
+      incremental_scope: {
+        Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          incremental_reason: string
+          item_id: string
+          organization_id: string
+          quantity: number
+          reference_price_id: string | null
+          track_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          incremental_reason: string
+          item_id: string
+          organization_id: string
+          quantity?: number
+          reference_price_id?: string | null
+          track_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          incremental_reason?: string
+          item_id?: string
+          organization_id?: string
+          quantity?: number
+          reference_price_id?: string | null
+          track_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incremental_scope_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incremental_scope_reference_price_id_fkey"
+            columns: ["reference_price_id"]
+            isOneToOne: false
+            referencedRelation: "price_catalog_rescued"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incremental_scope_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "citizenship_tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       institutional_profile_events: {
         Row: {
           created_at: string
@@ -11112,6 +11194,84 @@ export type Database = {
             columns: ["trilha_referencia_id"]
             isOneToOne: false
             referencedRelation: "citizenship_tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legacy_catalog_import: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          imported_at: string
+          integrity_hash: string
+          legacy_link: string | null
+          legacy_name: string | null
+          legacy_price: number | null
+          legacy_sku: string
+          organization_id: string
+          price_catalog_rescued_id: string | null
+          reconciliation_status: string
+          source_artifact: string
+          source_line: string | null
+          source_version: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          imported_at?: string
+          integrity_hash: string
+          legacy_link?: string | null
+          legacy_name?: string | null
+          legacy_price?: number | null
+          legacy_sku: string
+          organization_id: string
+          price_catalog_rescued_id?: string | null
+          reconciliation_status?: string
+          source_artifact: string
+          source_line?: string | null
+          source_version?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          imported_at?: string
+          integrity_hash?: string
+          legacy_link?: string | null
+          legacy_name?: string | null
+          legacy_price?: number | null
+          legacy_sku?: string
+          organization_id?: string
+          price_catalog_rescued_id?: string | null
+          reconciliation_status?: string
+          source_artifact?: string
+          source_line?: string | null
+          source_version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legacy_catalog_import_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "legacy_catalog_import_price_catalog_rescued_id_fkey"
+            columns: ["price_catalog_rescued_id"]
+            isOneToOne: false
+            referencedRelation: "price_catalog_rescued"
             referencedColumns: ["id"]
           },
         ]
