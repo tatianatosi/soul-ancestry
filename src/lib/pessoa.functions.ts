@@ -231,7 +231,7 @@ export const carregarPessoa = createServerFn({ method: "GET" })
         // genealogical_person_profiles, só nunca tinha sido lido para a Pessoa
         // 360 (que só usava nome_completo/status_verificacao).
         .select(
-          "id, nome_completo, status_verificacao, case_id, nascimento_data, nascimento_localidade, morte_data, morte_localidade",
+          "id, nome_completo, status_verificacao, case_id, nascimento_data, nascimento_localidade, morte_data, morte_localidade, research_person_id",
         )
         .eq("organization_id", organizationId)
         .eq("client_id", data.clienteId)
@@ -274,17 +274,26 @@ export const carregarPessoa = createServerFn({ method: "GET" })
           .is("archived_at", null)
       : { data: [] as Linha[] };
 
-    const nomeDaPessoa = (cliente.nome_social || cliente.nome || "").trim().toLowerCase();
-    const fichaDestaPessoa = ((fichaGenealogica ?? []) as Linha[]).filter((p) => {
-      const nome = String(p["canonical_name"] ?? p["preferred_display_name"] ?? "").toLowerCase();
-      return (
-        nome &&
-        nomeDaPessoa &&
-        (nome === nomeDaPessoa || nomeDaPessoa.includes(nome) || nome.includes(nomeDaPessoa))
-      );
-    });
+    /*
+      Fase D (27/09/2026) — achado real: este filtro comparava
+      research_people.canonical_name contra o nome da Pessoa Canônica em
+      texto (igualdade ou inclusão parcial) — exatamente o tipo de fusão
+      automática por nome que a "REGRA ABSOLUTA" desta sessão proíbe (nome
+      é sinal, nunca vínculo). O vínculo real e já auditado é
+      genealogical_person_profiles.client_id (Corte C/pessoas-linhagens),
+      e todo perfil tem research_person_id obrigatório apontando para o
+      research_people correspondente — usa essa cadeia, nunca o nome.
+    */
+    const idsResearchPeopleVinculados = new Set(
+      ((perfisGenealogicos.data ?? []) as Linha[])
+        .map((p) => p["research_person_id"] as string | null)
+        .filter((id): id is string => Boolean(id)),
+    );
+    const fichaDestaPessoa = ((fichaGenealogica ?? []) as Linha[]).filter((p) =>
+      idsResearchPeopleVinculados.has(p["id"] as string),
+    );
     const outrosDaMesmaPesquisa = ((fichaGenealogica ?? []) as Linha[]).filter(
-      (p) => !fichaDestaPessoa.some((f) => f["id"] === p["id"]),
+      (p) => !idsResearchPeopleVinculados.has(p["id"] as string),
     );
 
     /*
