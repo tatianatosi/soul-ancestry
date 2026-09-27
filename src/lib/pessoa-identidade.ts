@@ -141,16 +141,21 @@ export function evidenciaDeMesmaPessoa(
   const nomeB = normalizarNome(b.nome);
   if (nomeA && nomeB && nomeA === nomeB) {
     /*
-     * P30 (26/09/2026) — decisão explícita e reiterada da Proprietária:
-     * "Pode fundir caso seja nome exato" / "homônimos irão sempre existir
-     * na face da terra". Nome idêntico (normalizado) funde como CPF/e-mail:
-     * quando há exatamente um candidato com esse nome, a fusão é automática
-     * (decidirClienteDoHandoff → "reusar"); quando há mais de um candidato
-     * com o mesmo nome, a ambiguidade real (duas pessoas, não uma) ainda
-     * cai em "confirmar" — a mesma lógica de desempate que já existe para
-     * CPF/e-mail, não uma regra nova.
+     * Fase 0 (27/09/2026) — "Prompt Canônicos": revoga a decisão "P30"
+     * (26/09/2026, que tratava nome exato como "confirmado", fundindo
+     * automaticamente quando havia um único candidato). Nova regra
+     * explícita e vigente: "nome exato nunca é suficiente para fundir
+     * Pessoa, Lead, Contato, Membro de Caso ou Perfil Genealógico" — nome
+     * normalizado vira só sinal de possível duplicidade (mesma força que
+     * telefone), sempre exigindo confirmação humana em
+     * `decidirClienteDoHandoff`. CPF e e-mail continuam "confirmado" — a
+     * revogação é só do nome. Restaura o que o próprio comentário da
+     * função (linhas 111-113) já dizia antes do P30 ter contradito.
      */
-    return { forca: "confirmado", motivo: "mesmo nome" };
+    return {
+      forca: "provavel",
+      motivo: "mesmo nome — confirme, porque homônimos existem",
+    };
   }
 
   return null;

@@ -64,6 +64,7 @@ import {
 import { MaterializarRevisados } from "@/components/contrato/materializar-revisados";
 import { RessincronizarAnexos } from "@/components/contrato/ressincronizar-anexos";
 import { ReconciliarCpfPartes } from "@/components/contrato/reconciliar-cpf-partes";
+import { ReconciliarContatoPartesContrato } from "@/components/contrato/reconciliar-contato-partes";
 import { sincronizarPessoaDoCaso } from "@/lib/contratos.functions";
 import type { ItemPlanoMaterializacao } from "@/lib/anexos-materializacao";
 
@@ -982,6 +983,13 @@ function Pagina() {
                       ocupado={mReconciliarCpf.isPending}
                       onVerificar={() => mReconciliarCpf.mutate(false)}
                       onSincronizar={() => mReconciliarCpf.mutate(true)}
+                    />
+                  </div>
+                  <div className="mt-2">
+                    <ReconciliarContatoPartesContrato
+                      caseId={caseId}
+                      contratoAssinado={contratoAssinadoReconciliacao}
+                      onMudou={invalidar}
                     />
                   </div>
                 </div>

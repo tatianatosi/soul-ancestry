@@ -111,14 +111,15 @@ describe("conversão do lead em cliente canônico", () => {
     expect(d.acao).toBe("criar");
   });
 
-  it("nome igual com um único candidato funde automaticamente — decisão explícita e reiterada da Proprietária (P30, 26/09/2026)", () => {
-    // Antes: nome igual caía em apenas_indicio, decidirClienteDoHandoff nem
-    // via isso como pendência e criava um cliente novo duplicado sem avisar
-    // — o vazamento real. "Pode fundir caso seja nome exato" / "homônimos
-    // irão sempre existir na face da terra": nome exato agora funde igual
-    // CPF/e-mail quando há exatamente um candidato.
+  it("nome igual com um único candidato pede confirmação humana — P30 revogado na Fase 0 (27/09/2026)", () => {
+    // P30 (26/09/2026) tratava nome exato como fusão automática. Revogado:
+    // "nome exato nunca é suficiente para fundir Pessoa, Lead, Contato,
+    // Membro de Caso ou Perfil Genealógico" — nome vira só sinal de
+    // possível duplicidade, mesma força de telefone, sempre exige
+    // confirmação humana, mesmo com um único candidato.
     const d = decidirClienteDoHandoff({ nome: "Ana Luiza" }, [{ id: "c6", nome: "Ana Luiza" }]);
-    expect(d).toMatchObject({ acao: "reusar", clienteId: "c6" });
+    expect(d.acao).toBe("confirmar");
+    if (d.acao === "confirmar") expect(d.candidatos.map((c) => c.id)).toEqual(["c6"]);
   });
 
   it("nome igual com dois candidatos continua pedindo escolha — ambiguidade real (duas pessoas), não homônimo negado", () => {

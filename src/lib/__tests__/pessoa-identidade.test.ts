@@ -79,16 +79,17 @@ describe("evidência de mesma pessoa", () => {
     expect(e?.motivo).toMatch(/família/);
   });
 
-  it("nome igual funde como CPF/e-mail — decisão explícita e reiterada da Proprietária (P30, 26/09/2026)", () => {
-    // "Pode fundir caso seja nome exato" / "homônimos irão sempre existir na
-    // face da terra": nome idêntico normalizado agora é "confirmado", igual
-    // CPF/e-mail. A proteção contra homônimo não é mais recusar a fusão — é
-    // a mesma regra de ambiguidade que já protegia CPF/e-mail (2+ candidatos
-    // com o mesmo dado = confirmar, nunca escolha ao acaso), testada em
-    // decidirClienteDoHandoff (p1-identidade-conversao-lead-cliente.test.ts).
+  it("nome igual é só sinal de possível duplicidade, nunca 'confirmado' — P30 revogado na Fase 0 (27/09/2026)", () => {
+    // P30 (26/09/2026) tinha tratado nome exato como "confirmado", igual
+    // CPF/e-mail. Revogado por decisão explícita da Proprietária: "nome
+    // exato nunca é suficiente para fundir Pessoa, Lead, Contato, Membro de
+    // Caso ou Perfil Genealógico". Nome volta a ter a mesma força que
+    // telefone ("provavel") — nunca funde sozinho, sempre exige confirmação
+    // humana (ver decidirClienteDoHandoff em
+    // p1-identidade-conversao-lead-cliente.test.ts).
     const e = evidenciaDeMesmaPessoa({ nome: "Ana Luiza" }, { nome: "Ana Luiza" });
-    expect(e?.forca).toBe("confirmado");
-    expect(podeTratarComoMesmaPessoa(e)).toBe(true);
+    expect(e?.forca).toBe("provavel");
+    expect(podeTratarComoMesmaPessoa(e)).toBe(false);
   });
 
   it("o e-mail vence o nome divergente", () => {

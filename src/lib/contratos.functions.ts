@@ -630,6 +630,126 @@ export const sincronizarPessoaDoCaso = createServerFn({ method: "POST" })
     return { simulado: false, plano, atualizados };
   });
 
+/**
+ * Fase 0 (27/09/2026) — "Prompt Canônicos": `contract_parties` é snapshot
+ * documental de uma versão, nunca fonte mestre de pessoa. `sincronizarPessoaDoCaso`
+ * (acima) já resolvia isso para CPF; generaliza-se aqui para nome/e-mail/
+ * telefone — mesma filosofia sem dedup já decidida para os campos civis de
+ * `case_members` (P32b, 26/09/2026): só preenche o que está vazio; um valor
+ * já preenchido e divergente vira só sinal passivo, nunca um botão de
+ * sobrescrever. Endereço fica FORA desta reconciliação: `clientes` grava
+ * endereço estruturado (logradouro/número/bairro/cidade/UF/CEP), `contract_parties.
+ * address` é texto livre — comparar os dois produziria falso "conflito" por
+ * formatação, não por dado realmente divergente; declarado, não construído.
+ */
+export type CampoContatoParte = "nome" | "email" | "telefone";
+export const CAMPOS_CONTATO_PARTE_RECONCILIAVEIS: readonly CampoContatoParte[] = ["nome", "email", "telefone"];
+export const ROTULO_CAMPO_CONTATO_PARTE: Record<CampoContatoParte, string> = {
+  nome: "Nome",
+  email: "E-mail",
+  telefone: "Telefone",
+};
+const COLUNA_PARTE_CONTATO: Record<CampoContatoParte, string> = {
+  nome: "person_name",
+  email: "email",
+  telefone: "phone",
+};
+const COLUNA_CLIENTE_CONTATO: Record<CampoContatoParte, string> = {
+  nome: "nome",
+  email: "email",
+  telefone: "telefone",
+};
+const NORMALIZAR_CONTATO_PARTE: Record<CampoContatoParte, (s: string) => string> = {
+  nome: (s) => s.trim().toLowerCase(),
+  email: (s) => s.trim().toLowerCase(),
+  telefone: (s) => s.replace(/\D/g, ""),
+};
+
+export const sincronizarContatoPartesDoCaso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { caseId: string; campo: CampoContatoParte; confirmar?: boolean }) => {
+    if (!CAMPOS_CONTATO_PARTE_RECONCILIAVEIS.includes(d.campo)) {
+      throw new Error("Campo fora da lista controlada.");
+    }
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId } = await contexto(supabase, context.userId as string);
+    const campo = data.campo;
+    const colunaParte = COLUNA_PARTE_CONTATO[campo];
+    const colunaCliente = COLUNA_CLIENTE_CONTATO[campo];
+    const normalizar = NORMALIZAR_CONTATO_PARTE[campo];
+    const rotulo = ROTULO_CAMPO_CONTATO_PARTE[campo];
+
+    const { data: contrato } = await supabase
+      .from("contracts")
+      .select("id,signed_at")
+      .eq("case_id", data.caseId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!contrato?.id) throw new Error("Nenhum contrato vinculado a este caso.");
+
+    const colunasParte = Array.from(new Set(["id", "role", "client_id", "person_name", colunaParte]));
+    const { data: partes } = await supabase
+      .from("contract_parties")
+      .select(colunasParte.join(","))
+      .eq("contract_id", contrato.id)
+      .is("archived_at", null);
+
+    const clientIds = Array.from(new Set(((partes ?? []) as any[]).map((p) => p.client_id).filter(Boolean)));
+    const colunasCliente = Array.from(new Set(["id", colunaCliente]));
+    const { data: clientesRaw } = clientIds.length
+      ? await supabase.from("clientes").select(colunasCliente.join(",")).in("id", clientIds)
+      : { data: [] as any[] };
+    const clientePorId = new Map(((clientesRaw ?? []) as any[]).map((c) => [c.id, c]));
+
+    const plano = ((partes ?? []) as any[]).map((p) => {
+      if (p.role === "dependent") {
+        return { parte: p.person_name, id: p.id, acao: "dependente_nao_sincronizado" as const };
+      }
+      const cliente = p.client_id ? clientePorId.get(p.client_id) : null;
+      const valorCanonico = cliente?.[colunaCliente] ?? null;
+      if (!valorCanonico || !String(valorCanonico).trim()) {
+        return { parte: p.person_name, id: p.id, acao: "sem_dado_canonico" as const };
+      }
+      const atual = p[colunaParte];
+      if (atual && String(atual).trim()) {
+        return normalizar(String(atual)) !== normalizar(String(valorCanonico))
+          ? { parte: p.person_name, id: p.id, acao: "conflito" as const, atual, canonico: valorCanonico as string }
+          : { parte: p.person_name, id: p.id, acao: "ja_sincronizado" as const };
+      }
+      return { parte: p.person_name, id: p.id, acao: "preencher" as const, valor: valorCanonico as string };
+    });
+
+    if (!data.confirmar) return { simulado: true, plano, contratoAssinado: Boolean(contrato.signed_at) };
+    if (contrato.signed_at) throw new Error("Contrato já assinado: partes não podem ser alteradas.");
+
+    let atualizados = 0;
+    for (const item of plano) {
+      if (item.acao !== "preencher") continue;
+      const { error } = await supabase
+        .from("contract_parties")
+        .update({ [colunaParte]: (item as { valor: string }).valor })
+        .eq("id", item.id);
+      if (error) throw new Error(error.message);
+      atualizados++;
+    }
+
+    await supabase.from("audit_logs").insert({
+      organization_id: organizationId,
+      entidade: "contract_parties",
+      entidade_id: contrato.id,
+      acao: `${campo}_parte_sincronizado_do_cadastro_canonico`,
+      user_id: context.userId as string,
+      metadados: { case_id: data.caseId, campo: rotulo, plano, atualizados },
+    });
+
+    return { simulado: false, plano, atualizados };
+  });
+
 export const arquivarItemContrato = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { tabela: Filho; contract_id: string; id: string; motivo: string }) => data)
