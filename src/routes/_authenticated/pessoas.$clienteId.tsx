@@ -30,7 +30,7 @@ import {
   UFS_BRASIL,
 } from "@/lib/validacao-pessoa";
 import { rotuloFase } from "@/lib/fase-rotulo";
-import { obterProximaAcaoCanonica, SELO_PROXIMA_ACAO } from "@/lib/caso-ficha";
+import { obterProximaAcaoCanonica, SELO_PROXIMA_ACAO, PAPEIS_PESSOA, EIXO_FORMALIZACAO } from "@/lib/caso-ficha";
 import { resumoVisaoClienteCaso } from "@/lib/app-cliente-como-pessoa.functions";
 import { NOME_RESPONSAVEL_PADRAO } from "@/lib/responsavel-padrao";
 import { ordenarPorPrioridade, sinaisDaPessoa, type PrioridadeSinal } from "@/lib/pessoa-sinais";
@@ -916,6 +916,14 @@ function Pessoa() {
                               : "—"}
                         </dd>
                       </div>
+                      {c.eixo_formalizacao ? (
+                        <div data-pessoa360-onboarding>
+                          <dt className="text-[10px] uppercase tracking-wide text-navy/45">Onboarding</dt>
+                          <dd className="font-medium text-navy">
+                            {EIXO_FORMALIZACAO.find((o) => o.valor === c.eixo_formalizacao)?.rotulo ?? String(c.eixo_formalizacao)}
+                          </dd>
+                        </div>
+                      ) : null}
                     </dl>
                     {sinalCpf[c.id] ? (
                       <p
@@ -1050,7 +1058,8 @@ function Pessoa() {
                 return (
                   <li key={m.id} className="rounded-lg border border-navy/12 bg-cream/25 p-3">
                     <p className="text-sm font-medium text-navy">
-                      {m.papel === "dependente" ? "Dependente" : "Contratante/signatária"}
+                      {PAPEIS_PESSOA.find((o) => o.valor === m.papel_no_caso)?.rotulo
+                        ?? (m.papel_no_caso || (m.papel === "dependente" ? "Dependente" : "Contratante/signatária"))}
                       {nucleo?.nome ? <span className="font-normal text-navy/60"> · {nucleo.nome}</span> : null}
                     </p>
                     <p className="mt-0.5 text-xs text-navy/60">

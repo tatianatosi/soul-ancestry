@@ -159,7 +159,7 @@ export const carregarPessoa = createServerFn({ method: "GET" })
     ] = await Promise.all([
       supabase
         .from("nucleo_membros")
-        .select("id, nucleo_id, nome, papel, vinculo, processo, ordem")
+        .select("id, nucleo_id, nome, papel, papel_no_caso, vinculo, processo, ordem")
         .eq("cliente_id", cliente.id)
         .is("archived_at", null),
       supabase
