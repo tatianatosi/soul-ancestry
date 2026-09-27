@@ -112,7 +112,9 @@ export function PortalLegado() {
                         <section
                           key={p.id}
                           data-legado-prateleira={p.id}
-                          className="overflow-hidden rounded-xl border border-border bg-card p-4 shadow-sm"
+                          className={`overflow-hidden rounded-xl border border-border border-t-4 bg-card p-4 shadow-sm ${
+                            ["border-t-gold", "border-t-navy", "border-t-terracotta"][prateleiras.indexOf(p) % 3]
+                          }`}
                         >
                           <div className="flex flex-wrap items-start justify-between gap-2">
                             <div>
@@ -128,7 +130,7 @@ export function PortalLegado() {
                           </div>
                           {itens.length === 0 ? (
                             <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
-                                Quando houver algo desta coleção pronto para compartilhar, você encontrará aqui.
+                                {`Quando houver algo em ${p.rotulo} pronto para compartilhar, você encontrará aqui.`}
                             </p>
                           ) : (
                             <ul className="mt-3 space-y-2">
