@@ -18,14 +18,14 @@ describe("chip Conectadas usa a mesma constante do Radar", () => {
   });
 
   it("a Árvore importa a constante do Radar, não redefine", () => {
-    expect(arvore).toContain('from "@/lib/radar-seis-eixos"');
-    expect(arvore).toContain("TETO_ANCESTRAIS_G1_G5");
+    // 25/09/2026 — chip "Conectadas" removido do App (decisão da Proprietária): sem contador técnico.
+    expect(arvore).not.toContain("TETO_ANCESTRAIS_G1_G5");
     // Nada de literal 31 embutido no valor do chip.
     expect(arvore).not.toContain('valor="12 de 31"');
     expect(arvore).not.toContain("valor={`12 de");
   });
 
   it("N vem da árvore sanitizada que a tela já mostra", () => {
-    expect(arvore).toContain("valor={`${itens.length} de ${TETO_ANCESTRAIS_G1_G5}`}");
+    expect(arvore).not.toContain("valor={`${itens.length} de ${TETO_ANCESTRAIS_G1_G5}`}");
   });
 });

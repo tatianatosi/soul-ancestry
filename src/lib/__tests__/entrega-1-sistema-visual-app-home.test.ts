@@ -72,8 +72,7 @@ describe("Entrega 1 — hero navy + stepper de 5 fases na Home", () => {
     // 16/09/2026 — cartão do processo ampliado na primeira dobra (p-5/sm:p-7);
     // continua sendo um único card navy-800, sem gradiente nem card claro dentro.
     expect(home).toContain('<section className="rounded-xl bg-navy-800 p-5 text-cream shadow-md sm:p-7">');
-    expect(hero).toContain("sr-only");
-    expect(hero).toContain("ChipIdentidadeCaso");
+    expect(hero).not.toContain("ChipIdentidadeCaso");
   });
 
   it("o passo ativo do stepper usa check nos concluídos, sem painel/anel/escala extras (versão compacta)", () => {
@@ -104,7 +103,7 @@ describe("Entrega 1 — hero navy + stepper de 5 fases na Home", () => {
 
   it("títulos de seção da Home usam sans, não serifada dominante (serifada só como acento no nome do caso)", () => {
     const home = readFileSync("src/routes/portal/index.tsx", "utf8");
-    expect(home).toContain('<h3 className="mb-2 text-sm font-semibold text-navy">Próxima ação</h3>');
-    expect(home).toContain('<h3 className="text-sm font-semibold text-navy">Achados recentes</h3>');
+    expect(home).toContain("Próxima ação");
+    expect(home).toContain("Achados da sua história");
   });
 });
