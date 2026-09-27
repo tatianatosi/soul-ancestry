@@ -74,11 +74,17 @@ export function PortalConta() {
               data-conta-perfil
               className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm"
             >
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-xl text-navy">Sobre você e sua família</h2>
-                <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
-                   Sua família
+              <div className="flex min-w-0 items-center gap-3">
+                <span
+                  aria-hidden="true"
+                  className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-gold/60 bg-navy font-serif text-xl text-gold"
+                >
+                  {titular && titular !== "—" ? titular.trim().charAt(0).toUpperCase() : "✦"}
                 </span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Sua família</p>
+                  <h2 className="font-serif text-xl text-navy">Sobre você e sua família</h2>
+                </div>
               </div>
               <dl className="mt-3 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-lg border border-border bg-card p-3">
