@@ -757,6 +757,12 @@ function Pessoa() {
             />
             <Campo rotulo="Como entrou" valor={cliente.origem} />
             <Campo rotulo="Origem do dado" valor={cliente.data_origin} />
+            {/* Corte A (27/09/2026): lead_id — rastreabilidade até o lead de
+                origem, gravado só na criação pelo handoff Discovery. */}
+            <Campo
+              rotulo="Lead de origem"
+              valor={cliente.lead_id ? `Vinculado (#${String(cliente.lead_id).slice(0, 8)})` : "Sem lead de origem registrado"}
+            />
             <Campo rotulo="Ativação decidida em" valor={formatarDia(cliente.ativacao_decidida_em)} />
             <Campo rotulo="Justificativa da ativação" valor={cliente.ativacao_justificativa} />
           </dl>

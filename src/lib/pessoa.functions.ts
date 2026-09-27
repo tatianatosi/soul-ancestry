@@ -59,7 +59,9 @@ export const carregarPessoa = createServerFn({ method: "GET" })
           // P31 (26/09/2026): campos comerciais já existem em `clientes` desde
           // sempre, mas nunca tinham leitor/tela — pedido direto de "executar
           // comercial" em Pessoa 360.
-          " classificacao, data_origin, ativacao_decidida_em, ativacao_justificativa",
+          " classificacao, data_origin, ativacao_decidida_em, ativacao_justificativa," +
+          // Corte A (27/09/2026): lead_id — rastreabilidade até o lead de origem.
+          " lead_id",
       )
       .eq("id", data.clienteId)
       .eq("organization_id", organizationId)

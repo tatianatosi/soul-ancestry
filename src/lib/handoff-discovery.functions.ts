@@ -368,6 +368,11 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
           classificacao: payload.classificacao,
           status: payload.status,
           observacoes: payload.observacoes,
+          // Corte A (27/09/2026): lead_id só é gravado aqui — criação
+          // nova de pessoa. Reuso de cliente existente (decisao.acao ===
+          // "reusar") nunca sobrescreve o lead_id de uma pessoa já ligada
+          // a outro lead.
+          lead_id: data.leadId,
         },
       });
       clienteId = criado.id;
@@ -413,6 +418,9 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
           responsavel_id: userId,
           created_by: userId,
           updated_by: userId,
+          // Corte A (27/09/2026): todo caso aberto por este handoff nasce
+          // deste lead — sempre gravado na criação.
+          lead_id: data.leadId,
         })
         .select("id,codigo,titulo,cliente_id,tipo_servico,proxima_acao")
         .single();
