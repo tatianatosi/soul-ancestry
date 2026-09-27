@@ -21,6 +21,7 @@ import { publicacoesParaCliente, type ProjecaoBruta, type PublicacaoCliente } fr
 import type { EixoRadar } from "@/lib/radar-eixos";
 import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos";
 import type { ProximaAcaoCliente } from "@/lib/motor-caso";
+import { textoParaCliente } from "@/lib/portal-linguagem-viva";
 
 export type BloqueioFonte = {
   tela: string;
@@ -353,4 +354,101 @@ export function proximaEntregaCliente(
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
   const [ano, mes, dia] = iso.split("-");
   return { data: iso, texto: `Próxima entrega prevista para ${dia}/${mes}/${ano}.` };
+}
+
+/* ------------------------------------------------ documentos solicitados */
+
+export type SolicitacaoDocumentoBruta = {
+  id: string;
+  titulo?: string | null;
+  descricao?: string | null;
+  prazo?: string | null;
+  status?: string | null;
+  motivo_recusa?: string | null;
+};
+
+export type SolicitacaoDocumentoCliente = {
+  id: string;
+  titulo: string;
+  descricao: string | null;
+  prazo: string | null;
+  recusado: boolean;
+  motivoRecusa: string | null;
+};
+
+/**
+ * REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026) — Ficha Piloto campos #6
+ * ("Documento foco") e #28 ("Pendência principal"). A aba Documentos só
+ * mostrava a frase genérica do motor ("Há 1 documento para você enviar.") —
+ * nunca QUAL documento. `portal_document_requests.titulo/descricao/prazo`
+ * já é lido pelo cliente na rota profunda `/portal/casos/$id`
+ * (`components/portal/caso-detalhe.tsx`), com a policy `pdr_sel_portal`: é
+ * conteúdo escrito pela equipe PARA o cliente, não dado interno. Só as
+ * abertas (aguardando/recusado), com título; texto passa por
+ * `textoParaCliente` como o resto do App.
+ */
+export function solicitacoesAbertasCliente(
+  linhas: SolicitacaoDocumentoBruta[],
+): SolicitacaoDocumentoCliente[] {
+  return linhas
+    .filter((l) => l.status === "aguardando" || l.status === "recusado")
+    .map((l) => ({
+      id: String(l.id),
+      titulo: textoParaCliente(l.titulo ?? "").trim(),
+      descricao: textoParaCliente(l.descricao ?? "").trim() || null,
+      prazo: l.prazo ? String(l.prazo).slice(0, 10) : null,
+      recusado: l.status === "recusado",
+      motivoRecusa: l.status === "recusado" ? textoParaCliente(l.motivo_recusa ?? "").trim() || null : null,
+    }))
+    .filter((s) => s.titulo.length > 0);
+}
+
+/* ---------------------------------------------------------------- histórico */
+
+export type EventoTimelinePortal = {
+  id: string;
+  summary_client_approved?: string | null;
+  occurred_at?: string | null;
+  created_at?: string | null;
+  visibility?: string | null;
+};
+
+export type MarcoHistoricoCliente = {
+  id: string;
+  /** Só o texto aprovado explicitamente para a família — nunca o `title` interno. */
+  texto: string;
+  data: string | null;
+};
+
+/**
+ * REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026) — "Histórico (3 marcos)" da
+ * Ficha Piloto da Giovanna (campos #47-49). A tabela `case_timeline_events`,
+ * a coluna `summary_client_approved` e a policy de portal `cte_select_portal`
+ * já existiam (migration 20260910184500); nenhum escritor jamais gravava
+ * `visibility = 'cliente_aprovado'`, então a aba Conta nunca teve o que
+ * mostrar e usava um texto fixo duplicado no lugar (não era um estado vazio
+ * honesto: era o mesmo texto repetido duas vezes, sem nenhuma consulta).
+ *
+ * Nunca expõe `title`/`event_type`/`source_entity_*` (jargão interno) — só o
+ * resumo que a equipe escreveu explicitamente para a família, na aprovação
+ * (`aprovarEventoTimelineParaCliente`). Defesa em profundidade: a RLS já
+ * filtra por `visibility = 'cliente_aprovado'`, este filtro repete a regra no
+ * app para nunca depender só do banco.
+ */
+export function historicoSanitizado(
+  eventos: EventoTimelinePortal[],
+  limite = 3,
+): MarcoHistoricoCliente[] {
+  return eventos
+    .filter((e) => e.visibility === "cliente_aprovado" && Boolean(e.summary_client_approved?.trim()))
+    // Mesma fronteira de toda publicação do App: termo interno não atravessa.
+    .filter((e) => !contemConteudoInterno(e.summary_client_approved))
+    .map((e) => ({
+      id: String(e.id),
+      texto: textoParaCliente(String(e.summary_client_approved)).trim(),
+      data: e.occurred_at ?? e.created_at ?? null,
+    }))
+    .filter((m) => m.texto.length > 0)
+    .sort((a, b) => String(b.data ?? "").localeCompare(String(a.data ?? "")))
+    .slice(0, limite);
 }

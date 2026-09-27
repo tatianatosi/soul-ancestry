@@ -65,6 +65,7 @@ import { ehFixtureLinha, ROTULO_DEMONSTRACAO } from "@/lib/fixtures";
 import { classificarErroPersistencia, ESTADOS_SALVAMENTO } from "@/lib/persistencia-erros";
 import { toast } from "sonner";
 import { MapaPersistenciaCaso } from "@/components/caso/mapa-persistencia";
+import { aprovarEventoTimelineParaCliente, revogarEventoTimelineDoCliente } from "@/lib/timeline-caso.functions";
 import { estadoDerivadoPorGates } from "@/lib/gates-ativacao-ficha";
 import { cepValido, cpfValido, emailValido, formatarCep, formatarCpf, formatarTelefone, telefoneValido } from "@/lib/validacao-pessoa";
 import {
@@ -646,6 +647,29 @@ function FichaCaso() {
       recarregar();
     },
     onError: (e: Error) => toast.error("Não foi possível registrar", { description: e.message }),
+  });
+
+  // REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026): escritor real para
+  // `case_timeline_events.visibility = 'cliente_aprovado'` — antes só existia
+  // a policy de portal e o filtro de leitura, sem nenhum caminho de escrita.
+  const aprovarEvento = useServerFn(aprovarEventoTimelineParaCliente);
+  const revogarEvento = useServerFn(revogarEventoTimelineDoCliente);
+  const [resumoClientePorEvento, setResumoClientePorEvento] = useState<Record<string, string>>({});
+  const mAprovarEvento = useMutation({
+    mutationFn: (v: { eventoId: string; resumoCliente: string }) => aprovarEvento({ data: v }),
+    onSuccess: () => {
+      toast.success("Marco aprovado — a família já pode vê-lo na aba Conta do App.");
+      recarregar();
+    },
+    onError: (e: Error) => toast.error("Não foi possível aprovar", { description: e.message }),
+  });
+  const mRevogarEvento = useMutation({
+    mutationFn: (v: { eventoId: string }) => revogarEvento({ data: v }),
+    onSuccess: () => {
+      toast.success("Aprovação revogada — o evento voltou a ser só interno.");
+      recarregar();
+    },
+    onError: (e: Error) => toast.error("Não foi possível revogar", { description: e.message }),
   });
 
   const recarregarTarefas = () => {
@@ -2576,6 +2600,99 @@ function FichaCaso() {
                       </p>
                     </li>
                   ))}
+                </ul>
+              )}
+            </EstadoDados>
+          </Secao>
+
+          {/*
+            REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026) — Ficha Piloto da
+            Giovanna, campos #47-49 ("Conta > Histórico", 3 marcos). A
+            `case_timeline_events` já vinha lida em `q.data.timeline`
+            (usada acima em "Linha do tempo do caso"); faltava o botão que
+            aprova um evento para a família ver no App Cliente
+            (`visibility: 'cliente_aprovado'` + `summary_client_approved`,
+            policy `cte_select_portal` já vigente). Reaproveita a mesma
+            leitura, sem consulta nova.
+          */}
+          <Secao
+            titulo="Marcos aprovados para o App Cliente"
+            descricao="Aprovar exige escrever o texto que a família vai ler — o título interno do evento nunca atravessa para o App."
+          >
+            <EstadoDados
+              carregando={q.isLoading}
+              erro={q.error}
+              dados={q.data?.timeline as Record<string, unknown>[] | undefined}
+              aoTentarNovamente={() => void q.refetch()}
+              recurso="os eventos da linha do tempo"
+              vazio="Nenhum evento registrado ainda."
+            >
+              {(eventos) => (
+                <ul className="space-y-2 text-sm">
+                  {eventos.slice(0, 20).map((evento) => {
+                    const eventoId = String(evento["id"]);
+                    const aprovado = evento["visibility"] === "cliente_aprovado";
+                    const resumoAprovado = String(evento["summary_client_approved"] ?? "").trim();
+                    return (
+                      <li key={eventoId} className="rounded-lg border border-navy/10 p-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-navy">
+                            <span className="font-medium">{String(evento["title"] ?? "Evento registrado")}</span>{" "}
+                            <span className="text-xs text-navy/50">
+                              ({evento["occurred_at"] ? new Date(String(evento["occurred_at"])).toLocaleDateString("pt-BR") : "sem data"})
+                            </span>
+                          </p>
+                          {aprovado ? (
+                            <div className="flex items-center gap-2">
+                              <span className="rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[11px] text-navy/70">
+                                Visível no App
+                              </span>
+                              {podeEscrever ? (
+                                <button
+                                  type="button"
+                                  className="text-xs text-navy/60 underline hover:text-navy disabled:opacity-50"
+                                  disabled={mRevogarEvento.isPending}
+                                  onClick={() => mRevogarEvento.mutate({ eventoId })}
+                                >
+                                  Revogar
+                                </button>
+                              ) : null}
+                            </div>
+                          ) : (
+                            <span className="rounded-full border border-navy/15 px-2 py-0.5 text-[11px] text-navy/50">Só interno</span>
+                          )}
+                        </div>
+                        {aprovado ? (
+                          <p className="mt-1 text-xs text-navy/60">Texto para a família: “{resumoAprovado}”</p>
+                        ) : podeEscrever ? (
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
+                            <input
+                              type="text"
+                              placeholder="Texto que a família vai ler…"
+                              value={resumoClientePorEvento[eventoId] ?? ""}
+                              onChange={(e) =>
+                                setResumoClientePorEvento((s) => ({ ...s, [eventoId]: e.target.value }))
+                              }
+                              className="min-w-[16rem] flex-1 rounded-lg border border-navy/15 px-2 py-1 text-xs text-navy"
+                            />
+                            <button
+                              type="button"
+                              className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
+                              disabled={mAprovarEvento.isPending || !(resumoClientePorEvento[eventoId] ?? "").trim()}
+                              onClick={() =>
+                                mAprovarEvento.mutate({
+                                  eventoId,
+                                  resumoCliente: resumoClientePorEvento[eventoId] ?? "",
+                                })
+                              }
+                            >
+                              Aprovar para o cliente
+                            </button>
+                          </div>
+                        ) : null}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </EstadoDados>

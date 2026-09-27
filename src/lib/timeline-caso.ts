@@ -115,3 +115,26 @@ export function montarLinhaDoTempo(eventos: EventoTimeline[], hoje: Date = new D
 export function eventosVisiveisAoCliente(eventos: EventoTimeline[]): EventoTimeline[] {
   return eventos.filter((e) => e.visibility === "cliente_aprovado" && Boolean(e.summary_client_approved?.trim()));
 }
+
+/**
+ * REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026) — a policy `cte_select_portal`
+ * (migration 20260910184500) e `eventosVisiveisAoCliente` acima já existiam;
+ * nenhum escritor jamais gravou `visibility = 'cliente_aprovado'` em
+ * `case_timeline_events` (todo escritor real usa `visibility: "interno"` fixo
+ * — ver `timeline-operacional.server.ts`). Peça órfã: policy + filtro sem
+ * escritor nem consumidor. Esta validação é o único portão antes de gravar —
+ * exige o texto que a família vai ler, nunca aprova em branco.
+ */
+export function validarAprovacaoEventoCliente(resumoCliente: string | null | undefined): {
+  valido: boolean;
+  motivo: string | null;
+} {
+  const texto = (resumoCliente ?? "").trim();
+  if (!texto) {
+    return { valido: false, motivo: "Escreva o resumo que a família vai ler antes de aprovar." };
+  }
+  if (texto.length < 8) {
+    return { valido: false, motivo: "O resumo para a família é curto demais para ser um marco compreensível." };
+  }
+  return { valido: true, motivo: null };
+}

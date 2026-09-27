@@ -4,7 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { dadosVivosDoPortal } from "@/lib/portal-dados-vivos.functions";
-import type { DocumentoPortal, EtapaCliente } from "@/lib/portal-dados-vivos";
+import type {
+  DocumentoPortal,
+  EtapaCliente,
+  MarcoHistoricoCliente,
+  SolicitacaoDocumentoCliente,
+} from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 import type { ProximaAcaoCliente } from "@/lib/motor-caso";
 import type { EscopoCliente } from "@/lib/app-visibilidade";
@@ -48,6 +53,10 @@ export type DadosPortal = {
   composicao?: string | null;
   /** P3: só a data da próxima micro-entrega aberta, em texto de cliente. */
   proximaEntrega?: { data: string; texto: string } | null;
+  /** Marcos da jornada aprovados explicitamente para a família (aba Conta). */
+  historico?: MarcoHistoricoCliente[];
+  /** Documentos pedidos pela equipe e ainda abertos, nomeados (aba Documentos). */
+  solicitacoes?: SolicitacaoDocumentoCliente[];
 };
 
 /**
