@@ -57,11 +57,10 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
             .is("archived_at", null)
             .order("created_at", { ascending: true });
 
-        const [caso, pessoas, hipoteses, evidencias, eventos, pendencias] = await Promise.all([
+        const [caso, pessoas, researchCase, eventos, pendencias] = await Promise.all([
           supabase.from("crm_casos").select("*").eq("id", body.casoId).maybeSingle(),
           lista("case_members", "case_id"),
-          lista("research_hypotheses", "case_id"),
-          lista("evidencias", "caso_id"),
+          supabase.from("research_cases").select("id").eq("case_id", body.casoId).maybeSingle(),
           lista("research_events", "case_id"),
           lista("tarefas", "caso_id"),
         ]);
@@ -75,7 +74,36 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
           ORIENTACAO_DADOS_INSUFICIENTES,
           avaliarSuficiencia,
           montarDossie,
+          mapearHipoteseEstruturada,
+          mapearEvidenciaEstruturada,
         } = await import("@/lib/pesquisa-ia.server");
+
+        /*
+         * Achado da auditoria (27/09/2026): esta rota lia `research_hypotheses`/
+         * `evidencias` — tabelas legadas/vazias, nunca escritas pelo fluxo real
+         * de pesquisa. O CRUD real (`/pesquisa-modulo/$id`) grava em
+         * `research_case_hypotheses`/`research_evidence_items`, chaveadas por
+         * `research_case_id` (não `case_id` direto) — resolvido via
+         * `research_cases.case_id`. Corrige a fiação, sem mudar schema nem
+         * criar segunda fonte.
+         */
+        const researchCaseId = (researchCase.data?.["id"] as string | undefined) ?? null;
+        const listaPorResearchCase = (tabela: string) =>
+          researchCaseId
+            ? supabase
+                .from(tabela)
+                .select("*")
+                .eq("research_case_id", researchCaseId)
+                .is("archived_at", null)
+                .order("created_at", { ascending: true })
+            : Promise.resolve({ data: [] as Record<string, unknown>[] });
+
+        const [hipotesesEstruturadas, evidenciasEstruturadas] = await Promise.all([
+          listaPorResearchCase("research_case_hypotheses"),
+          listaPorResearchCase("research_evidence_items"),
+        ]);
+        const hipoteses = { data: (hipotesesEstruturadas.data ?? []).map(mapearHipoteseEstruturada) };
+        const evidencias = { data: (evidenciasEstruturadas.data ?? []).map(mapearEvidenciaEstruturada) };
 
         // Nome do cliente do PRÓPRIO caso; nenhuma outra origem é consultada.
         let nomeCliente = "Cliente não vinculado";

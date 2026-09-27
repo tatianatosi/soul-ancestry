@@ -64,6 +64,45 @@ FORMATO DE SAÍDA OBRIGATÓRIO (markdown, exatamente estas seções e tabelas)
 INSTRUÇÃO FINAL
 Se a informação disponível não permitir confirmar uma pessoa ou vínculo, declare expressamente que não há confirmação suficiente. Ofereça hipóteses e documentos prioritários, mas nunca apresente hipótese como fato. Toda conclusão aponta a evidência que a sustenta; toda ausência de prova é tratada como pendência. Use somente os dados do dossiê e do complemento informado pela equipe — não use conhecimento externo como se fosse fonte do caso. Escreva em português do Brasil.`;
 
+/**
+ * Fiação (27/09/2026): traduz as colunas reais de `research_case_hypotheses`/
+ * `research_evidence_items` (o CRUD estruturado real, chaveado por
+ * research_case_id) para o formato que `montarDossie` já espera — sem mudar
+ * `montarDossie` nem inventar uma terceira forma de dossiê.
+ */
+export function mapearHipoteseEstruturada(h: Record<string, any>) {
+  return {
+    id: h["id"],
+    titulo: h["title"],
+    status: h["status"],
+    grau_confianca: h["confidence_level"],
+    person_id: h["related_person_id"],
+    descricao: h["statement"],
+    justificativa: null,
+  };
+}
+
+export function mapearEvidenciaEstruturada(e: Record<string, any>) {
+  return {
+    id: e["id"],
+    titulo: e["title"],
+    tipo: e["evidence_type"],
+    status: e["evidence_status"],
+    grau_confianca: e["confidence_level"],
+    fonte: e["external_reference"],
+    url: null,
+    person_id: e["person_id"],
+    hypothesis_id: null,
+    local_relacionado: null,
+    periodo: null,
+    data_inicio: null,
+    data_fim: null,
+    descricao: e["description"],
+    relacao_hipotese: null,
+    observacao: e["validation_rationale"],
+  };
+}
+
 function linha(rotulo: string, valor: unknown) {
   if (valor === null || valor === undefined || valor === "") return null;
   return `${rotulo}: ${String(valor)}`;
