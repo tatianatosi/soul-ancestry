@@ -36,7 +36,8 @@ describe("Painel de Calls — mesa de Discovery (CA02-CRM-VIVO-PAINEL-CALLS)", (
 
   it("achado de WhatsApp chega ao card da pergunta certa, não fica solto", () => {
     expect(varredura).toContain("onAchadosMudaram");
-    expect(painel).toContain("onAchadosMudaram={setAchados}");
+    // Mesa Discovery viva (27/09/2026): os achados seguem para os cards junto com a fonte da conversa.
+    expect(painel).toMatch(/onAchadosMudaram=\{\(lista, fonte\) => \{\s*setAchados\(lista\);/);
     expect(painel).toContain("achadosDoCampo");
   });
 

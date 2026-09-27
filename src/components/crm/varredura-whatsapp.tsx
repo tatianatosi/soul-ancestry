@@ -18,6 +18,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ROTULO_CAMPO,
   codigoLeadDoAchado,
+  formatoDaConversa,
   varrerConversa,
   type Achado,
   type CampoVarrido,
@@ -37,16 +38,33 @@ export function VarreduraWhatsApp({
   onAchadosMudaram,
   leadNome,
   onAplicar,
+  onRejeitar,
+  decididos,
+  bloqueio,
+  autoresDaCasaPadrao,
 }: {
-  onAchadosMudaram?: (achados: Achado[]) => void;
+  onAchadosMudaram?: (achados: Achado[], fonte: "whatsapp" | "transcricao") => void;
   leadNome?: string | null;
-  onAplicar?: (achado: Achado, codigo: string) => void;
+  /** Mesa Discovery viva: aceitar grava na hora, com a origem (fonte, autor, trecho, data). */
+  onAplicar?: (achado: Achado, codigo: string, fonte: "whatsapp" | "transcricao") => void;
+  onRejeitar?: (achado: Achado, fonte: "whatsapp" | "transcricao") => void;
+  /** Decisões já gravadas no lead (`campoVarrido::valor` → decisão), relidas do servidor. */
+  decididos?: ReadonlyMap<string, string>;
+  /** Consentimento/lead ausente: a varredura não roda. */
+  bloqueio?: string | null;
+  /** Nomes da equipe já conhecidos (responsável do lead, quem está logado). */
+  autoresDaCasaPadrao?: readonly string[];
 }) {
   const [bruto, setBruto] = useState("");
   const [casa, setCasa] = useState("");
   const [avisoArquivo, setAvisoArquivo] = useState<string | null>(null);
-  const [aplicados, setAplicados] = useState<Set<string>>(new Set());
-  useEffect(() => setAplicados(new Set()), [leadNome]);
+  // Trocar de lead zera a conversa colada: o texto de um lead nunca vaza para outro.
+  useEffect(() => setBruto(""), [leadNome]);
+  useEffect(() => {
+    if (!casa.trim() && autoresDaCasaPadrao?.length) setCasa(autoresDaCasaPadrao.join(", "));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoresDaCasaPadrao?.join(",")]);
+  const fonte = useMemo(() => formatoDaConversa(bruto), [bruto]);
 
   const carregarArquivo = (arquivo: File | undefined) => {
     if (!arquivo) return;
@@ -88,7 +106,7 @@ export function VarreduraWhatsApp({
   }, [resultado]);
 
   useEffect(() => {
-    onAchadosMudaram?.(resultado?.achados ?? []);
+    onAchadosMudaram?.(resultado?.achados ?? [], fonte);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resultado]);
 
@@ -103,9 +121,15 @@ export function VarreduraWhatsApp({
         ) : (
           " Selecione um lead no Painel de Calls para poder usar um achado no rascunho."
         )}{" "}
-        Só o sinal (não o trecho da conversa) pode virar rascunho, e só quando você clicar.
+        Aceitar grava só o sinal no lead, com a origem (quem disse, trecho e data); rejeitar também fica
+        registrado. A conversa inteira nunca é gravada.
       </p>
 
+      {bloqueio ? (
+        <p role="alert" data-varredura-bloqueada className="mt-3 rounded-lg border border-terracotta/30 bg-terracotta/10 px-3 py-2 text-xs text-terracotta">
+          {bloqueio}
+        </p>
+      ) : (
       <div className="mt-4 grid gap-3">
         <label className="block">
           <span className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
@@ -118,7 +142,8 @@ export function VarreduraWhatsApp({
             className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold"
           />
           <span className="mt-1 block text-[11px] text-navy/45">
-            As mensagens da equipe ficam de fora: pergunta não é resposta.
+            As mensagens da equipe ficam de fora: pergunta não é resposta. Falas marcadas como Consultor,
+            Atendente ou Equipe são sempre da casa.
           </span>
         </label>
 
@@ -154,8 +179,9 @@ export function VarreduraWhatsApp({
           />
         </label>
       </div>
+      )}
 
-      {resultado ? (
+      {resultado && !bloqueio ? (
         resultado.mensagens === 0 ? (
           <p className="mt-4 rounded-lg bg-cream/60 px-3 py-2 text-sm text-navy/70">
             Não reconheci nenhuma mensagem nesse texto. O dump costuma vir como{" "}
@@ -185,7 +211,7 @@ export function VarreduraWhatsApp({
                     {achados.map((a) => {
                       const codigo = codigoLeadDoAchado(a);
                       const chave = `${a.campo}::${a.valor}`;
-                      const usado = aplicados.has(chave);
+                      const decisao = decididos?.get(chave) ?? null;
                       return (
                         <li
                           key={chave}
@@ -198,18 +224,31 @@ export function VarreduraWhatsApp({
                                 citado {a.ocorrencias}×
                               </span>
                             ) : null}
-                            {codigo && onAplicar && leadNome ? (
-                              <button
-                                type="button"
-                                disabled={usado}
-                                onClick={() => {
-                                  onAplicar(a, codigo);
-                                  setAplicados((s) => new Set(s).add(chave));
-                                }}
-                                className="ml-auto rounded-md border border-gold/50 bg-gold/10 px-2 py-0.5 text-[11px] text-navy hover:bg-gold/20 disabled:cursor-default disabled:opacity-50"
-                              >
-                                {usado ? "Usado no lead ✓" : "Usar no lead"}
-                              </button>
+                            {decisao ? (
+                              <span data-decisao-sugestao={decisao} className="ml-auto text-[11px] text-navy/60">
+                                {decisao === "aceita" ? "Aceita ✓" : decisao === "rejeitada" ? "Rejeitada" : "Hipótese"}
+                              </span>
+                            ) : leadNome && !bloqueio ? (
+                              <span className="ml-auto flex gap-1">
+                                {codigo && onAplicar ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => onAplicar(a, codigo, fonte)}
+                                    className="rounded-md border border-gold/50 bg-gold/10 px-2 py-0.5 text-[11px] text-navy hover:bg-gold/20"
+                                  >
+                                    Aceitar
+                                  </button>
+                                ) : null}
+                                {onRejeitar ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => onRejeitar(a, fonte)}
+                                    className="rounded-md border border-navy/20 px-2 py-0.5 text-[11px] text-navy/70 hover:bg-navy/5"
+                                  >
+                                    Rejeitar
+                                  </button>
+                                ) : null}
+                              </span>
                             ) : null}
                           </div>
                           {/* A evidência viaja junto: sem trecho, é palpite. */}
@@ -244,8 +283,8 @@ export function VarreduraWhatsApp({
             ) : null}
 
             <p className="text-[11px] text-navy/45">
-              Tudo acima é candidato, não conclusão. Nada foi gravado, e a varredura não conclui
-              elegibilidade, via jurídica, prazo nem preço.
+              Tudo acima é candidato, não conclusão. Só o que você aceita ou rejeita é gravado no lead;
+              a varredura não cria caso, pesquisa, hipótese jurídica, produto, preço nem proposta.
             </p>
           </div>
         )

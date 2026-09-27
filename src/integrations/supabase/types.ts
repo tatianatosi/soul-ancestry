@@ -10884,6 +10884,7 @@ export type Database = {
           despesas_terceiros_faixa: string | null
           despesas_terceiros_regra: string | null
           despesas_terceiros_status: string | null
+          discovery_registro: Json
           discovery_resultado: string | null
           documentos_chave: string[]
           dossie_ambiente: string | null
@@ -10980,6 +10981,7 @@ export type Database = {
           despesas_terceiros_faixa?: string | null
           despesas_terceiros_regra?: string | null
           despesas_terceiros_status?: string | null
+          discovery_registro?: Json
           discovery_resultado?: string | null
           documentos_chave?: string[]
           dossie_ambiente?: string | null
@@ -11076,6 +11078,7 @@ export type Database = {
           despesas_terceiros_faixa?: string | null
           despesas_terceiros_regra?: string | null
           despesas_terceiros_status?: string | null
+          discovery_registro?: Json
           discovery_resultado?: string | null
           documentos_chave?: string[]
           dossie_ambiente?: string | null

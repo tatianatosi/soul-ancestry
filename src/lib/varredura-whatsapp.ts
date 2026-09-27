@@ -133,6 +133,11 @@ function lerTranscricaoGenerica(linhas: string[]): MensagemWhatsApp[] {
  * ("Fulano: texto" por linha, sem data). Um dump de WhatsApp real sempre bate
  * com o primeiro formato e nunca chega a esta segunda tentativa.
  */
+/** De onde veio o texto colado: export do WhatsApp ou transcrição "Pessoa: texto". */
+export function formatoDaConversa(bruto: string): "whatsapp" | "transcricao" {
+  return lerConversaWhatsApp(String(bruto ?? "").split(/\r?\n/)).length > 0 ? "whatsapp" : "transcricao";
+}
+
 export function lerConversa(bruto: string): MensagemWhatsApp[] {
   const linhas = String(bruto ?? "").split(/\r?\n/);
   const doWhatsApp = lerConversaWhatsApp(linhas);
@@ -300,11 +305,42 @@ const REGRAS: Regra[] = [
   },
 ];
 
+/**
+ * Mesa Discovery viva (27/09/2026): rótulos de papel que são sempre da casa,
+ * mesmo sem ninguém digitar nomes — é o formato típico de transcrição
+ * ("Consultor: …", "Atendente: …"). Fala do consultor nunca vira achado.
+ */
+export const ROTULOS_DA_CASA = [
+  "consultor",
+  "consultora",
+  "atendente",
+  "atendimento",
+  "assessor",
+  "assessora",
+  "comercial",
+  "equipe",
+  "clube ancestral",
+  "entrevistador",
+  "entrevistadora",
+] as const;
+
+const semAcento = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+/** Autor é da casa: rótulo de papel conhecido ou nome informado como da casa. */
+export function autorEhDaCasa(autor: string | null | undefined, autoresDaCasa: readonly string[] = []): boolean {
+  if (!autor) return false;
+  const a = semAcento(autor);
+  if (ROTULOS_DA_CASA.some((r) => a === r || a.startsWith(`${r} `) || a.startsWith(`${r}(`) || a.endsWith(` ${r}`))) return true;
+  return autoresDaCasa.some((casa) => {
+    const c = semAcento(casa);
+    return c.length > 0 && a.includes(c);
+  });
+}
+
 /** Só o que o prospect disse conta para o Discovery — não o que a equipe disse. */
 function ehDoProspect(m: MensagemWhatsApp, autoresDaCasa: string[]): boolean {
   if (!m.autor) return true;
-  const a = m.autor.trim().toLowerCase();
-  return !autoresDaCasa.some((casa) => a.includes(casa.trim().toLowerCase()));
+  return !autorEhDaCasa(m.autor, autoresDaCasa);
 }
 
 function recortar(texto: string, padrao: RegExp): string {

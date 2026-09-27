@@ -9,7 +9,8 @@ import { TriagemAncestralScanDoLead } from "@/components/crm/triagem-ancestralsc
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { CaCard } from "@/components/ui/ca-card";
-import { listarLeadsDesk, salvarLeadDesk, trilhaDoLead } from "@/lib/crm-desk.functions";
+import { decidirSugestaoDiscovery, listarLeadsDesk, salvarLeadDesk, trilhaDoLead } from "@/lib/crm-desk.functions";
+import { consentimentoTranscricao, normalizarRegistro, type DecisaoSugestao } from "@/lib/discovery-registro";
 import { executarHandoffDiscovery } from "@/lib/handoff-discovery.functions";
 import { podeExecutarHandoffDiscovery } from "@/lib/handoff-discovery";
 import { salvarTarefa } from "@/lib/ops.functions";
@@ -445,6 +446,40 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
       return n;
     });
 
+  // Mesa Discovery viva (27/09/2026): aceitar/rejeitar uma sugestão da
+  // varredura grava na hora no lead canônico, com a origem, e fica na trilha.
+  const [fonteConversa, setFonteConversa] = useState<"whatsapp" | "transcricao">("whatsapp");
+  const decidirFn = useServerFn(decidirSugestaoDiscovery);
+  const mDecidir = useMutation({
+    mutationFn: (p: { achado: Achado; campo: string; valor: string; decisao: DecisaoSugestao; fonte: "whatsapp" | "transcricao" }) =>
+      decidirFn({
+        data: {
+          leadId: selecionado as string,
+          campo: p.campo,
+          valor: p.valor,
+          decisao: p.decisao,
+          origem: { fonte: p.fonte, autor: p.achado.autor, trecho: p.achado.trecho, data: p.achado.quando },
+        },
+      }),
+    onSuccess: (r: any, p) => {
+      if (r?.ok === false) {
+        setAviso(r.erros?.map((e: any) => e.motivo).join(" · ") ?? "Sugestão não aceita pelas validações.");
+        return;
+      }
+      setAviso(p.decisao === "rejeitada" ? "Sugestão rejeitada e registrada no lead." : "Sugestão gravada no lead, com a origem.");
+      void qc.invalidateQueries({ queryKey: ["leads-desk"] });
+      void qc.invalidateQueries({ queryKey: ["trilha-lead"] });
+    },
+    onError: (e: Error) => setAviso(e.message),
+  });
+  const registroDiscovery = normalizarRegistro(leadBase?.discovery_registro);
+  const decididosVarredura = new Map<string, string>();
+  for (const sug of registroDiscovery.sugestoes) {
+    const origemCampo = Object.entries(CAMPO_LEAD_POR_VARREDURA).find(([, d]) => d?.campoLead === sug.campo)?.[0];
+    if (origemCampo) decididosVarredura.set(`${origemCampo}::${sug.valor}`, sug.decisao);
+  }
+  const consentimento = consentimentoTranscricao(leadBase);
+
   const mutar = useMutation({
     mutationFn: (valores: Record<string, unknown>) => {
       const merged = { ...(lead ?? {}), ...valores } as LeadDesk;
@@ -687,14 +722,31 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
         material para preenchê-lo.
       */}
       <VarreduraWhatsApp
-        onAchadosMudaram={setAchados}
+        onAchadosMudaram={(lista, fonte) => {
+          setAchados(lista);
+          setFonteConversa(fonte);
+        }}
         leadNome={lead?.nome}
-        onAplicar={(a) => {
+        bloqueio={consentimento.motivo}
+        decididos={decididosVarredura}
+        autoresDaCasaPadrao={leadBase?.responsavel_nome ? [leadBase.responsavel_nome] : []}
+        onAplicar={(a, codigo, fonte) => {
           const dest = CAMPO_LEAD_POR_VARREDURA[a.campo];
-          if (!dest) return;
-          aplicarAchado(dest.campoLead, a.valor, dest.multi);
+          if (!dest || !selecionado) return;
+          // Grava a decisão e o valor no lead, com a origem — não só no rascunho.
+          mDecidir.mutate({ achado: a, campo: dest.campoLead, valor: codigo, decisao: "aceita", fonte });
+          // País aceito sugere a trilha jurídica correspondente (rascunho, a confirmar) — nunca sobrescreve escolha humana.
+          if (dest.campoLead === "nacionalidades_interesse" && !lead?.trilha_referencia_id) {
+            const trilha = trilhas.find((t: any) => t.pais === a.valor);
+            if (trilha) setRascunho((r) => ({ ...r, trilha_referencia_id: trilha.id }));
+          }
           const p = perguntaDaMesaPorCampo(dest.campoLead);
           if (p) setIndicePergunta(PERGUNTAS_MESA.findIndex((x) => x.id === p.id));
+        }}
+        onRejeitar={(a, fonte) => {
+          const dest = CAMPO_LEAD_POR_VARREDURA[a.campo];
+          if (!dest || !selecionado) return;
+          mDecidir.mutate({ achado: a, campo: dest.campoLead, valor: codigoLeadDoAchado(a) ?? a.valor, decisao: "rejeitada", fonte });
         }}
       />
 

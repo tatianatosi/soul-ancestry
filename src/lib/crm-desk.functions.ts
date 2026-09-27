@@ -22,6 +22,14 @@ import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { proprietariaOperando } from "@/lib/autoridade.server";
 import { contarSlaEmRisco } from "@/lib/d7-microentrega";
 import {
+  normalizarRegistro,
+  registrarBloco,
+  registrarSugestao,
+  type DecisaoSugestao,
+  type OrigemSugestao,
+} from "@/lib/discovery-registro";
+import type { EtapaSpin } from "@/lib/discovery-roteiro";
+import {
   eventosDeCall,
   exigeMotivoDeCall,
   ROTULO_EVENTO_CALL,
@@ -360,6 +368,127 @@ export const salvarLeadDesk = createServerFn({ method: "POST" })
     );
     await registrarEventosCall(supabase, organization_id, userId, resultadoInsert.id, eventosCall, motivoCall);
     return { ok: true as const, erros: [], lead: row as LeadDesk };
+  });
+
+/* ------------------------------------------------------------------ */
+/* Mesa Discovery viva (autorização explícita, 27/09/2026)             */
+/* ------------------------------------------------------------------ */
+
+async function leadParaDiscovery(supabase: Sb, leadId: string) {
+  exigirUuid(leadId, "leadId");
+  const { data: row } = await supabase.from("leads").select("*").eq("id", leadId).maybeSingle();
+  if (!row) throw new Error("Lead não encontrado nesta organização.");
+  if (row.archived_at) throw new Error("Lead arquivado: edição bloqueada.");
+  return row as LeadDesk & { organization_id: string; discovery_registro?: unknown };
+}
+
+async function auditarDiscovery(
+  supabase: Sb,
+  organizationId: string,
+  userId: string,
+  leadId: string,
+  acao: string,
+  metadados: Record<string, unknown>,
+) {
+  try {
+    await supabase.from("audit_logs").insert({
+      organization_id: organizationId,
+      user_id: userId,
+      acao,
+      entidade: "lead",
+      entidade_id: leadId,
+      metadados: { fonte: "mesa-discovery", ...metadados },
+    });
+  } catch (err) {
+    console.error("[audit_logs] falha ao registrar evento da Mesa Discovery", err);
+  }
+}
+
+/** Nota opcional e/ou dispensa com motivo de um bloco SPIN. Grava e relê. */
+export const registrarBlocoDiscovery = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (d: { leadId: string; bloco: EtapaSpin; nota?: string | null; dispensado?: boolean; motivo?: string | null }) => d,
+  )
+  .handler(async ({ data, context }) => {
+    const supabase = (context as any).supabase;
+    const userId = (context as any).userId as string;
+    const lead = await leadParaDiscovery(supabase, data.leadId);
+    const r = registrarBloco(
+      normalizarRegistro(lead.discovery_registro),
+      data.bloco,
+      { nota: data.nota, dispensado: data.dispensado, motivo: data.motivo },
+      { em: new Date().toISOString(), por: userId },
+    );
+    if (!r.ok) return { ok: false as const, erro: r.erro };
+    const resultado = await gravarComVerificacao({
+      supabase,
+      tabela: "leads",
+      id: data.leadId,
+      organizationId: lead.organization_id,
+      userId,
+      payload: { discovery_registro: r.registro },
+    });
+    const b = r.registro.blocos[data.bloco]!;
+    await auditarDiscovery(supabase, lead.organization_id, userId, data.leadId, b.dispensado ? "discovery_bloco_dispensado" : "discovery_bloco_nota", {
+      bloco: data.bloco,
+      motivo: b.motivo_dispensa,
+      tem_nota: Boolean(b.nota),
+    });
+    return { ok: true as const, lead: resultado.registro as LeadDesk };
+  });
+
+/**
+ * Decisão humana sobre uma sugestão da varredura/transcrição. Aceitar grava o
+ * valor no campo do lead (mesma validação de `salvarLeadDesk`); rejeitar e
+ * "virar hipótese" só registram a decisão. Sempre com origem e auditoria.
+ * Nunca cria caso, pesquisa, hipótese jurídica, produto/SKU ou preço.
+ */
+export const decidirSugestaoDiscovery = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (d: { leadId: string; campo: string; valor: string; decisao: DecisaoSugestao; origem: OrigemSugestao }) => d,
+  )
+  .handler(async ({ data, context }) => {
+    const supabase = (context as any).supabase;
+    const userId = (context as any).userId as string;
+    const lead = await leadParaDiscovery(supabase, data.leadId);
+    const r = registrarSugestao(
+      normalizarRegistro(lead.discovery_registro),
+      { campo: data.campo, valor: data.valor, decisao: data.decisao, origem: data.origem },
+      { em: new Date().toISOString(), por: userId },
+    );
+    if (!r.ok) return { ok: false as const, erros: [{ campo: data.campo, motivo: r.erro }] };
+
+    let patchCampo: Record<string, unknown> = {};
+    if (data.decisao === "aceita" || data.decisao === "hipotese") {
+      const atualCampo = (lead as unknown as Record<string, unknown>)[data.campo];
+      const valorCampo = Array.isArray(atualCampo)
+        ? Array.from(new Set([...(atualCampo as string[]), data.valor]))
+        : data.valor;
+      patchCampo = limpar({ [data.campo]: valorCampo });
+      if (!(data.campo in patchCampo)) {
+        return { ok: false as const, erros: [{ campo: data.campo, motivo: "Campo fora da ficha do lead." }] };
+      }
+      const candidato = { ...lead, ...patchCampo } as LeadDesk;
+      const livre = await proprietariaOperando(supabase, userId);
+      const erros = errosBloqueantesAlteracao(lead, candidato, Object.keys(patchCampo), livre);
+      if (erros.length) return { ok: false as const, erros };
+    }
+    const resultado = await gravarComVerificacao({
+      supabase,
+      tabela: "leads",
+      id: data.leadId,
+      organizationId: lead.organization_id,
+      userId,
+      payload: { ...patchCampo, discovery_registro: r.registro },
+    });
+    await auditarDiscovery(supabase, lead.organization_id, userId, data.leadId, `discovery_sugestao_${data.decisao}`, {
+      campo: r.sugestao.campo,
+      valor: r.sugestao.valor,
+      origem: r.sugestao.origem,
+    });
+    return { ok: true as const, erros: [], lead: resultado.registro as LeadDesk };
   });
 
 /**

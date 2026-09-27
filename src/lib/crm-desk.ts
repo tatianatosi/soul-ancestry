@@ -565,6 +565,9 @@ export type LeadDesk = {
   consentimento_em?: string | null;
   consentimento_canal?: string | null;
   consentimento_versao_aviso?: string | null;
+  /** Mesa Discovery viva (27/09/2026): blocos SPIN e decisões sobre sugestões — ver `discovery-registro.ts`. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  discovery_registro?: Record<string, any> | null;
   nacionalidades_interesse?: string[] | null;
   pais_linha_prioritaria?: string | null;
   localidades_conhecidas?: string | null;
@@ -1269,4 +1272,53 @@ export function calcularMetricasCrm(input: {
       (c) => c.responsavel_principal ?? "sem responsável",
     ),
   };
+}
+
+
+/* ------------------------------------------------------------------ */
+/* CRM Vivo — pipeline canônico (autorização explícita, 27/09/2026)    */
+/* ------------------------------------------------------------------ */
+
+/** Pipeline comercial: Leads → Discovery → Diagnóstico → Proposta → Contrato. */
+export const ETAPAS_PIPELINE = ["leads", "discovery", "diagnostico", "proposta", "contrato"] as const;
+export type EtapaPipeline = (typeof ETAPAS_PIPELINE)[number];
+export const ROTULO_ETAPA_PIPELINE: Record<EtapaPipeline, string> = {
+  leads: "Leads",
+  discovery: "Discovery",
+  diagnostico: "Diagnóstico",
+  proposta: "Proposta",
+  contrato: "Contrato",
+};
+
+const FORMALIZACAO_CONVERTIDA = new Set(["contrato_assinado", "pagamento_inicial_confirmado", "cliente_ativo", "onboarding_iniciado", "caso_ativo"]);
+
+/**
+ * Lead que já virou caso (ou cliente) ou foi encerrado sai do pipeline: dali
+ * em diante quem governa é o Caso 360 / Planejador de Cidadania.
+ */
+export function leadForaDoPipeline(l: Pick<LeadDesk, "case_id" | "eixo_comercial" | "eixo_formalizacao"> & { archived_at?: string | null }): boolean {
+  if (l.archived_at) return true;
+  if (l.case_id) return true;
+  if (l.eixo_comercial === "perdido" || l.eixo_comercial === "encerrado_sem_aderencia") return true;
+  return FORMALIZACAO_CONVERTIDA.has(String(l.eixo_formalizacao ?? ""));
+}
+
+/** Etapa do pipeline derivada dos dois eixos já existentes — sem coluna nova. */
+export function etapaPipeline(l: Pick<LeadDesk, "eixo_comercial" | "eixo_formalizacao">): EtapaPipeline {
+  const f = String(l.eixo_formalizacao ?? "");
+  if (f === "formalizacao_em_preparacao" || f === "contrato_enviado" || FORMALIZACAO_CONVERTIDA.has(f)) return "contrato";
+  switch (l.eixo_comercial) {
+    case "proposta_enviada":
+    case "negociacao":
+    case "aceite_verbal":
+    case "confirmacao_formal_recebida":
+      return l.eixo_comercial === "confirmacao_formal_recebida" ? "contrato" : "proposta";
+    case "diagnostico_em_elaboracao":
+      return "diagnostico";
+    case "discovery_agendada":
+    case "discovery_realizada":
+      return "discovery";
+    default:
+      return "leads";
+  }
 }
