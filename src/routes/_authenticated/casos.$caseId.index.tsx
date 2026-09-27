@@ -2731,8 +2731,14 @@ function AbaPessoas({
     mutationFn: (confirmar: boolean) => reconciliarCpfMembros({ data: { caseId: casoId, confirmar } }),
     onSuccess: (r: any) => {
       setPlanoReconciliacaoCpfMembros(Array.isArray(r.plano) ? r.plano : []);
+      // Fase C (27/09/2026): preenchimento de campo vazio é automático —
+      // não espera um segundo clique em "Preencher CPFs pendentes".
       if (r.simulado) {
-        toast.info("Prévia da conferência de CPF: nada foi gravado ainda.");
+        if (Array.isArray(r.plano) && r.plano.some((p: any) => p.acao === "preencher")) {
+          mReconciliarCpfMembros.mutate(true);
+        } else {
+          toast.info("Prévia da conferência de CPF: nada foi gravado ainda.");
+        }
         return;
       }
       toast.success(
@@ -2764,8 +2770,13 @@ function AbaPessoas({
     mutationFn: (confirmar: boolean) => reconciliarTelefoneMembros({ data: { caseId: casoId, confirmar } }),
     onSuccess: (r: any) => {
       setPlanoReconciliacaoTelefoneMembros(Array.isArray(r.plano) ? r.plano : []);
+      // Fase C (27/09/2026): preenchimento automático, sem segundo clique.
       if (r.simulado) {
-        toast.info("Prévia da conferência de telefone: nada foi gravado ainda.");
+        if (Array.isArray(r.plano) && r.plano.some((p: any) => p.acao === "preencher")) {
+          mReconciliarTelefoneMembros.mutate(true);
+        } else {
+          toast.info("Prévia da conferência de telefone: nada foi gravado ainda.");
+        }
         return;
       }
       toast.success(
@@ -2798,8 +2809,13 @@ function AbaPessoas({
     mutationFn: (confirmar: boolean) => reconciliarCepMembros({ data: { caseId: casoId, confirmar } }),
     onSuccess: (r: any) => {
       setPlanoReconciliacaoCepMembros(Array.isArray(r.plano) ? r.plano : []);
+      // Fase C (27/09/2026): preenchimento automático, sem segundo clique.
       if (r.simulado) {
-        toast.info("Prévia da conferência de CEP: nada foi gravado ainda.");
+        if (Array.isArray(r.plano) && r.plano.some((p: any) => p.acao === "preencher")) {
+          mReconciliarCepMembros.mutate(true);
+        } else {
+          toast.info("Prévia da conferência de CEP: nada foi gravado ainda.");
+        }
         return;
       }
       toast.success(

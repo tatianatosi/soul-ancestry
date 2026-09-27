@@ -25,6 +25,7 @@ import {
   estadoTelefoneMembroCaso,
   type CampoCivilReconciliavel,
 } from "@/lib/pessoa-vinculo";
+import { COLUNAS_CLIENTE_ENDERECO, montarEnderecoCanonico } from "@/lib/contratos.functions";
 import { exigirProximaAcaoOperavel } from "@/lib/proxima-acao-startup";
 import { proprietariaOperando } from "@/lib/autoridade.server";
 import { nomeResponsavelSessao } from "@/lib/cadeia-operacional.server";
@@ -1146,14 +1147,18 @@ export const conferirDivergenciaCampoCivilMembrosCaso = createServerFn({ method:
 
     const membrosLinha = (membros ?? []) as Linha[];
     const clienteIds = Array.from(new Set(membrosLinha.map((m) => m.cliente_id).filter(Boolean)));
+    // Fase C (27/09/2026): "endereco" não tem coluna única em `clientes` —
+    // é composto a partir do endereço estruturado, mesmo mecanismo de
+    // `montarEnderecoCanonico` já usado para contract_parties (Corte 4).
+    const colunasCliente = campo === "endereco" ? ["id", ...COLUNAS_CLIENTE_ENDERECO] : ["id", colunaCliente];
     const { data: clientesRaw } = clienteIds.length
-      ? await supabase.from("clientes").select(`id,${colunaCliente}`).eq("organization_id", organizationId).in("id", clienteIds)
+      ? await supabase.from("clientes").select(Array.from(new Set(colunasCliente)).join(",")).eq("organization_id", organizationId).in("id", clienteIds)
       : { data: [] };
     const clientePorId = new Map(((clientesRaw ?? []) as Linha[]).map((c) => [c.id, c]));
 
     const plano = membrosLinha.map((m) => {
       const cliente = clientePorId.get(m.cliente_id as string);
-      const valorCanonico = cliente?.[colunaCliente] ?? null;
+      const valorCanonico = campo === "endereco" ? montarEnderecoCanonico(cliente ?? null) : (cliente?.[colunaCliente] ?? null);
       const acao = estadoCampoCivilMembroCaso(campo, { valor: m[colunaMembro], dependente: m.dependente }, valorCanonico);
       if (acao === "conflito") {
         return { membroId: m.id, nome: m.nome, acao, atual: m[colunaMembro], canonico: valorCanonico as string };

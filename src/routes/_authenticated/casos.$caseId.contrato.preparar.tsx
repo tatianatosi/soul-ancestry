@@ -290,10 +290,17 @@ function Pagina() {
   const mReconciliarCpf = useMutation({
     mutationFn: (confirmar: boolean) => reconciliarCpf({ data: { caseId, confirmar } }),
     onSuccess: (r: any) => {
-      setPlanoReconciliacaoCpf(listaOpcional(r.plano) as any);
+      const plano = listaOpcional(r.plano) as any[];
+      setPlanoReconciliacaoCpf(plano as any);
       setContratoAssinadoReconciliacao(Boolean(r.contratoAssinado));
+      // Fase C (27/09/2026): preenchimento automático de campo vazio, sem
+      // segundo clique — nunca dispara em contrato já assinado.
       if (r.simulado) {
-        toast.info("Prévia da conferência de CPF: nada foi gravado ainda.");
+        if (!r.contratoAssinado && plano.some((p: any) => p.acao === "preencher")) {
+          mReconciliarCpf.mutate(true);
+        } else {
+          toast.info("Prévia da conferência de CPF: nada foi gravado ainda.");
+        }
         return;
       }
       toast.success(

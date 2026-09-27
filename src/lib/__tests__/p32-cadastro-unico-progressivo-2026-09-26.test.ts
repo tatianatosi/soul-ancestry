@@ -27,15 +27,17 @@ import {
   sinalCampoCivilDaPessoaPorCaso,
 } from "@/lib/pessoa-vinculo";
 
-describe("P32 — estadoCampoCivilMembroCaso é genérico, cobre os 6 campos civis", () => {
-  it("cobre exatamente email, rg, nacionalidade, data_nascimento, profissao, estado_civil", () => {
+describe("P32 — estadoCampoCivilMembroCaso é genérico, cobre os campos civis (6 + nome/endereço no Corte Fase C, 27/09/2026)", () => {
+  it("cobre email, rg, nacionalidade, data_nascimento, profissao, estado_civil, e agora nome e endereco", () => {
     expect(CAMPOS_CIVIS_RECONCILIAVEIS).toEqual([
+      "nome",
       "email",
       "rg",
       "nacionalidade",
       "data_nascimento",
       "profissao",
       "estado_civil",
+      "endereco",
     ]);
   });
 
@@ -100,11 +102,11 @@ describe("P32 — sinalCampoCivilDaPessoaPorCaso agrega por caso, ignora núcleo
   });
 });
 
-describe("P32 — colunas: só RG difere de nome entre case_members e clientes", () => {
-  it("rg → rg_numero em clientes; os demais mantêm o mesmo nome", () => {
+describe("P32 — colunas: RG e endereço divergem de nome entre case_members e clientes", () => {
+  it("rg → rg_numero em clientes; endereco é composto (placeholder, nunca lido direto); os demais mantêm o mesmo nome", () => {
     expect(COLUNA_CLIENTE_CIVIL.rg).toBe("rg_numero");
     expect(COLUNA_MEMBRO_CIVIL.rg).toBe("rg");
-    for (const campo of CAMPOS_CIVIS_RECONCILIAVEIS.filter((c) => c !== "rg")) {
+    for (const campo of CAMPOS_CIVIS_RECONCILIAVEIS.filter((c) => c !== "rg" && c !== "endereco")) {
       expect(COLUNA_CLIENTE_CIVIL[campo]).toBe(COLUNA_MEMBRO_CIVIL[campo]);
     }
   });

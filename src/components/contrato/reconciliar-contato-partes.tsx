@@ -65,6 +65,12 @@ function BlocoCampoContato({
       setPlano(Array.isArray(r.plano) ? r.plano : []);
       setAberto(true);
       if (!r.simulado && r.atualizados > 0) onMudou();
+      // Fase C (27/09/2026): preenchimento de campo vazio passa a ser
+      // automático — conflito continua só sinal, nunca escrito sozinho.
+      // Nunca dispara em contrato já assinado (snapshot imutável).
+      if (r.simulado && !contratoAssinado && Array.isArray(r.plano) && r.plano.some((p: any) => p.acao === "preencher")) {
+        mVerificar.mutate(true);
+      }
     },
   });
 

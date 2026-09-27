@@ -57,6 +57,13 @@ function BlocoCampoCivil({ caseId, campo, onMudou }: { caseId: string; campo: Ca
       setPlano(Array.isArray(r.plano) ? r.plano : []);
       setAberto(true);
       if (!r.simulado && r.atualizados > 0) onMudou();
+      // Fase C (27/09/2026): preenchimento de campo vazio passa a ser
+      // automático assim que a conferência carrega — nunca espera um
+      // segundo clique manual. Conflito continua só sinal, nunca escrito
+      // sozinho aqui.
+      if (r.simulado && Array.isArray(r.plano) && r.plano.some((p: any) => p.acao === "preencher")) {
+        mVerificar.mutate(true);
+      }
     },
   });
 
@@ -132,12 +139,12 @@ export function PainelDadosCivisMembrosCaso({ caseId, onMudou }: { caseId: strin
         <span className="text-[11px] text-navy/55">Pessoa Canônica · nunca funde automaticamente</span>
       </div>
       <p className="mt-1 text-xs text-navy/65">
-        E-mail, RG, nacionalidade, data de nascimento, profissão e estado civil — o mesmo dado existe em `clientes`
-        e em `case_members` sem nunca terem sido comparados. Um painel só, um bloco por campo: só preenche o que
-        está vazio a partir do cadastro canônico; conflito (os dois já preenchidos, divergentes) é só sinal — não
-        funde, não sobrescreve.
+        Nome, e-mail, RG, nacionalidade, data de nascimento, profissão, estado civil e endereço — o mesmo dado
+        existe em `clientes` e em `case_members` sem nunca terem sido comparados. Um painel só, um bloco por
+        campo: preenche automaticamente o que está vazio a partir do cadastro canônico assim que a conferência
+        carrega; conflito (os dois já preenchidos, divergentes) é só sinal — não funde, não sobrescreve.
       </p>
-      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+      <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {CAMPOS_CIVIS_RECONCILIAVEIS.map((campo) => (
           <BlocoCampoCivil key={campo} caseId={caseId} campo={campo} onMudou={onMudou} />
         ))}

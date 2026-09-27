@@ -677,7 +677,7 @@ const NORMALIZAR_CONTATO_PARTE: Record<CampoContatoParte, (s: string) => string>
   endereco: (s) => s.trim().toLowerCase().replace(/\s+/g, " "),
 };
 
-const COLUNAS_CLIENTE_ENDERECO = [
+export const COLUNAS_CLIENTE_ENDERECO = [
   "endereco_logradouro",
   "endereco_numero",
   "endereco_complemento",

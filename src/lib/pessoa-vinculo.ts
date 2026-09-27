@@ -329,52 +329,68 @@ export function sinalCepDaPessoaPorCaso(
  * em produção; não foram reescritos para não arriscar regressão.
  */
 export type CampoCivilReconciliavel =
+  | "nome"
   | "email"
   | "rg"
   | "nacionalidade"
   | "data_nascimento"
   | "profissao"
-  | "estado_civil";
+  | "estado_civil"
+  | "endereco";
 
 export const CAMPOS_CIVIS_RECONCILIAVEIS: readonly CampoCivilReconciliavel[] = [
+  "nome",
   "email",
   "rg",
   "nacionalidade",
   "data_nascimento",
   "profissao",
   "estado_civil",
+  "endereco",
 ];
 
 export const ROTULO_CAMPO_CIVIL: Record<CampoCivilReconciliavel, string> = {
+  nome: "Nome",
   email: "E-mail",
   rg: "RG",
   nacionalidade: "Nacionalidade",
   data_nascimento: "Data de nascimento",
   profissao: "Profissão",
   estado_civil: "Estado civil",
+  endereco: "Endereço",
 };
 
 /** Nome da coluna em `case_members` para cada campo (só "rg" difere do nome canônico). */
 export const COLUNA_MEMBRO_CIVIL: Record<CampoCivilReconciliavel, string> = {
+  nome: "nome",
   email: "email",
   rg: "rg",
   nacionalidade: "nacionalidade",
   data_nascimento: "data_nascimento",
   profissao: "profissao",
   estado_civil: "estado_civil",
+  endereco: "endereco",
 };
 
-/** Nome da coluna em `clientes` para cada campo (RG é `rg_numero`, os demais mantêm o nome). */
+/**
+ * Nome da coluna em `clientes` para cada campo (RG é `rg_numero`, os demais
+ * mantêm o nome). "endereco" não tem coluna única — é composto a partir do
+ * endereço estruturado (`montarEnderecoCanonico`, ver `caso-canonico.functions.ts`);
+ * a entrada aqui é só um placeholder, nunca lida diretamente para esse campo.
+ */
 export const COLUNA_CLIENTE_CIVIL: Record<CampoCivilReconciliavel, string> = {
+  nome: "nome",
   email: "email",
   rg: "rg_numero",
   nacionalidade: "nacionalidade",
   data_nascimento: "data_nascimento",
   profissao: "profissao",
   estado_civil: "estado_civil",
+  endereco: "endereco_logradouro",
 };
 
 const NORMALIZADOR_CIVIL: Record<CampoCivilReconciliavel, (s: string) => string> = {
+  nome: (s) => s.trim().toLowerCase(),
   email: (s) => s.trim().toLowerCase(),
   // RG não tem dígito nacional único (por isso não existe formatarRg); compara
   // por dígitos/letras, ignorando pontuação, espaço e caixa.
@@ -385,6 +401,7 @@ const NORMALIZADOR_CIVIL: Record<CampoCivilReconciliavel, (s: string) => string>
   data_nascimento: (s) => s.trim().slice(0, 10),
   profissao: (s) => s.trim().toLowerCase(),
   estado_civil: (s) => s.trim().toLowerCase(),
+  endereco: (s) => s.trim().toLowerCase().replace(/\s+/g, " "),
 };
 
 export type EstadoCampoCivilMembro =
