@@ -12,14 +12,15 @@ import {
  * (migration de imutabilidade proposta, não aplicada).
  */
 
-describe("Fase 0.2 — sincronizarContatoPartesDoCaso: nome/e-mail/telefone, mesma filosofia sem dedup do CPF", () => {
+describe("Fase 0.2 — sincronizarContatoPartesDoCaso: nome/e-mail/telefone/endereço, mesma filosofia sem dedup do CPF", () => {
   const arquivo = readFileSync("src/lib/contratos.functions.ts", "utf8");
 
-  it("cobre exatamente nome, email e telefone — endereço fica fora, declarado", () => {
-    expect(CAMPOS_CONTATO_PARTE_RECONCILIAVEIS).toEqual(["nome", "email", "telefone"]);
+  it("cobre nome, email, telefone e endereço (endereço estendido no Corte 4, 27/09/2026)", () => {
+    expect(CAMPOS_CONTATO_PARTE_RECONCILIAVEIS).toEqual(["nome", "email", "telefone", "endereco"]);
     expect(ROTULO_CAMPO_CONTATO_PARTE.nome).toBe("Nome");
     expect(ROTULO_CAMPO_CONTATO_PARTE.email).toBe("E-mail");
     expect(ROTULO_CAMPO_CONTATO_PARTE.telefone).toBe("Telefone");
+    expect(ROTULO_CAMPO_CONTATO_PARTE.endereco).toBe("Endereço");
   });
 
   it("existe como server fn, valida o campo contra a lista controlada", () => {

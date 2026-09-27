@@ -633,37 +633,82 @@ export const sincronizarPessoaDoCaso = createServerFn({ method: "POST" })
 /**
  * Fase 0 (27/09/2026) — "Prompt Canônicos": `contract_parties` é snapshot
  * documental de uma versão, nunca fonte mestre de pessoa. `sincronizarPessoaDoCaso`
- * (acima) já resolvia isso para CPF; generaliza-se aqui para nome/e-mail/
- * telefone — mesma filosofia sem dedup já decidida para os campos civis de
- * `case_members` (P32b, 26/09/2026): só preenche o que está vazio; um valor
- * já preenchido e divergente vira só sinal passivo, nunca um botão de
- * sobrescrever. Endereço fica FORA desta reconciliação: `clientes` grava
- * endereço estruturado (logradouro/número/bairro/cidade/UF/CEP), `contract_parties.
- * address` é texto livre — comparar os dois produziria falso "conflito" por
- * formatação, não por dado realmente divergente; declarado, não construído.
+ * (acima) já resolvia isso para CPF; generalizado aqui para nome/e-mail/
+ * telefone e, no Corte 4 do plano de motor jurídico/Caso 360 unificado
+ * (27/09/2026), também para endereço — mesma filosofia sem dedup já
+ * decidida para os campos civis de `case_members` (P32b, 26/09/2026): só
+ * preenche o que está vazio; um valor já preenchido e divergente vira só
+ * sinal passivo, nunca um botão de sobrescrever.
+ *
+ * Endereço é composto a partir dos campos estruturados de `clientes`
+ * (`endereco_logradouro/numero/complemento/bairro/cidade/uf/cep`) numa
+ * única string formatada, comparada contra `contract_parties.address`
+ * (texto livre) — nunca grava de volta nos campos estruturados, só lê.
  */
-export type CampoContatoParte = "nome" | "email" | "telefone";
-export const CAMPOS_CONTATO_PARTE_RECONCILIAVEIS: readonly CampoContatoParte[] = ["nome", "email", "telefone"];
+export type CampoContatoParte = "nome" | "email" | "telefone" | "endereco";
+export const CAMPOS_CONTATO_PARTE_RECONCILIAVEIS: readonly CampoContatoParte[] = [
+  "nome",
+  "email",
+  "telefone",
+  "endereco",
+];
 export const ROTULO_CAMPO_CONTATO_PARTE: Record<CampoContatoParte, string> = {
   nome: "Nome",
   email: "E-mail",
   telefone: "Telefone",
+  endereco: "Endereço",
 };
 const COLUNA_PARTE_CONTATO: Record<CampoContatoParte, string> = {
   nome: "person_name",
   email: "email",
   telefone: "phone",
+  endereco: "address",
 };
 const COLUNA_CLIENTE_CONTATO: Record<CampoContatoParte, string> = {
   nome: "nome",
   email: "email",
   telefone: "telefone",
+  endereco: "endereco_logradouro", // placeholder — endereço resolve por montarEnderecoCanonico, nunca por esta coluna única
 };
 const NORMALIZAR_CONTATO_PARTE: Record<CampoContatoParte, (s: string) => string> = {
   nome: (s) => s.trim().toLowerCase(),
   email: (s) => s.trim().toLowerCase(),
   telefone: (s) => s.replace(/\D/g, ""),
+  endereco: (s) => s.trim().toLowerCase().replace(/\s+/g, " "),
 };
+
+const COLUNAS_CLIENTE_ENDERECO = [
+  "endereco_logradouro",
+  "endereco_numero",
+  "endereco_complemento",
+  "endereco_bairro",
+  "endereco_cidade",
+  "endereco_uf",
+  "endereco_cep",
+] as const;
+
+/**
+ * Compõe uma string única a partir do endereço estruturado de `clientes`.
+ * Exige ao menos logradouro, cidade e UF — sem isso, não há endereço
+ * canônico suficiente para comparar (nunca inventa parte faltante).
+ */
+export function montarEnderecoCanonico(cliente: Record<string, unknown> | null | undefined): string | null {
+  if (!cliente) return null;
+  const logradouro = String(cliente["endereco_logradouro"] ?? "").trim();
+  const cidade = String(cliente["endereco_cidade"] ?? "").trim();
+  const uf = String(cliente["endereco_uf"] ?? "").trim();
+  if (!logradouro || !cidade || !uf) return null;
+
+  const numero = String(cliente["endereco_numero"] ?? "").trim();
+  const complemento = String(cliente["endereco_complemento"] ?? "").trim();
+  const bairro = String(cliente["endereco_bairro"] ?? "").trim();
+  const cep = String(cliente["endereco_cep"] ?? "").trim();
+
+  const linha1 = [logradouro, numero].filter(Boolean).join(", ") + (complemento ? ` - ${complemento}` : "");
+  const linha2 = [bairro, `${cidade}/${uf}`].filter(Boolean).join(" - ");
+  const partes = [linha1, linha2, cep ? `CEP ${cep}` : null].filter(Boolean);
+  return partes.join(" - ");
+}
 
 export const sincronizarContatoPartesDoCaso = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -700,7 +745,10 @@ export const sincronizarContatoPartesDoCaso = createServerFn({ method: "POST" })
       .is("archived_at", null);
 
     const clientIds = Array.from(new Set(((partes ?? []) as any[]).map((p) => p.client_id).filter(Boolean)));
-    const colunasCliente = Array.from(new Set(["id", colunaCliente]));
+    const colunasCliente =
+      campo === "endereco"
+        ? Array.from(new Set(["id", ...COLUNAS_CLIENTE_ENDERECO]))
+        : Array.from(new Set(["id", colunaCliente]));
     const { data: clientesRaw } = clientIds.length
       ? await supabase.from("clientes").select(colunasCliente.join(",")).in("id", clientIds)
       : { data: [] as any[] };
@@ -711,7 +759,7 @@ export const sincronizarContatoPartesDoCaso = createServerFn({ method: "POST" })
         return { parte: p.person_name, id: p.id, acao: "dependente_nao_sincronizado" as const };
       }
       const cliente = p.client_id ? clientePorId.get(p.client_id) : null;
-      const valorCanonico = cliente?.[colunaCliente] ?? null;
+      const valorCanonico = campo === "endereco" ? montarEnderecoCanonico(cliente) : (cliente?.[colunaCliente] ?? null);
       if (!valorCanonico || !String(valorCanonico).trim()) {
         return { parte: p.person_name, id: p.id, acao: "sem_dado_canonico" as const };
       }

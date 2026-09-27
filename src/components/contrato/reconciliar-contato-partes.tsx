@@ -13,8 +13,9 @@ import {
  * Fase 0 (27/09/2026) — "Prompt Canônicos": generaliza `ReconciliarCpfPartes`
  * (já em produção, só CPF) para nome/e-mail/telefone — mesmo princípio sem
  * dedup: só preenche o que está vazio; um valor já preenchido e divergente é
- * só sinal, nunca um botão de "usar o canônico". Endereço fica fora (ver
- * comentário em contratos.functions.ts).
+ * só sinal, nunca um botão de "usar o canônico". Corte 4 do plano de motor
+ * jurídico/Caso 360 unificado (27/09/2026) estendeu o mesmo mecanismo para
+ * endereço (composto a partir dos campos estruturados de `clientes`).
  */
 
 type ItemPlanoContato = {
@@ -143,14 +144,16 @@ export function ReconciliarContatoPartesContrato({
   return (
     <section className="rounded-lg border border-navy/15 bg-cream/40 p-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="text-sm font-medium text-navy">Conferir nome, e-mail e telefone das partes com o cadastro canônico</h3>
+        <h3 className="text-sm font-medium text-navy">
+          Conferir nome, e-mail, telefone e endereço das partes com o cadastro canônico
+        </h3>
         <span className="text-[11px] text-navy/55">Pessoa Canônica · nunca funde automaticamente</span>
       </div>
       <p className="mt-1 text-xs text-navy/65">
         `contract_parties` é o snapshot da parte no contrato; `clientes` é a Pessoa Canônica viva. Só
         preenche o que está vazio a partir do cadastro canônico; conflito (os dois já preenchidos,
-        divergentes) é só sinal — não funde, não sobrescreve. Endereço não entra aqui (comparação
-        estruturado × texto livre geraria falso conflito).
+        divergentes) é só sinal — não funde, não sobrescreve. Endereço compara a string composta do
+        endereço estruturado de `clientes` contra o texto livre do contrato.
       </p>
       {contratoAssinado ? (
         <p className="mt-2 text-xs text-terracotta">
@@ -158,7 +161,7 @@ export function ReconciliarContatoPartesContrato({
           imutável.
         </p>
       ) : null}
-      <div className="mt-2 grid gap-2 sm:grid-cols-3">
+      <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {CAMPOS_CONTATO_PARTE_RECONCILIAVEIS.map((campo) => (
           <BlocoCampoContato key={campo} caseId={caseId} campo={campo} contratoAssinado={contratoAssinado} onMudou={onMudou} />
         ))}

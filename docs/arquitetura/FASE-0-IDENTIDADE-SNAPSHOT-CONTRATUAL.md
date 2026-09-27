@@ -54,12 +54,16 @@ de app, `if (contrato.signed_at) throw ...`, preservada). Componente
 `casos.$caseId.contrato.preparar.tsx` ao lado do já existente
 `ReconciliarCpfPartes`.
 
-**Endereço fica fora desta reconciliação, declarado**: `clientes` grava
-endereço estruturado (logradouro/número/bairro/cidade/UF/CEP);
-`contract_parties.address` é texto livre. Comparar os dois produziria falso
-"conflito" por formatação (não por dado realmente divergente) — precisaria
-de uma função de composição de endereço primeiro, fora do escopo desta
-fase.
+**Atualização (Corte 4, 27/09/2026)**: o gap de endereço declarado acima foi
+fechado. `montarEnderecoCanonico` (`contratos.functions.ts`) compõe uma
+string única a partir do endereço estruturado de `clientes`
+(logradouro/número/complemento/bairro/cidade/UF/CEP — exige ao menos
+logradouro, cidade e UF preenchidos) e `sincronizarContatoPartesDoCaso`
+passou a aceitar `campo: "endereco"`, comparando-a contra
+`contract_parties.address` (texto livre) com a mesma filosofia sem dedup —
+diferença de formatação também vira só "conflito" passivo, nunca bloqueia
+nem funde sozinho. `CAMPOS_CONTATO_PARTE_RECONCILIAVEIS` agora é
+`["nome", "email", "telefone", "endereco"]`.
 
 ## 0.3 — Imutabilidade pós-assinatura (gap real, migration proposta, NÃO aplicada)
 
