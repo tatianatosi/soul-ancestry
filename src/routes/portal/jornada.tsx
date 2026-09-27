@@ -231,7 +231,7 @@ function TimelineVertical({
       <h2 className="mb-3 font-serif text-xl text-navy">{eyebrow}</h2>
       {eventos.length === 0 ? (
         <p className="rounded-lg border border-dashed border-navy/15 bg-cream/50 px-3 py-4 text-center text-xs text-navy/50">
-           Esta parte da história será preenchida quando houver algo pronto para compartilhar.
+           As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.
         </p>
       ) : (
         <div className="relative">
@@ -469,7 +469,7 @@ export function PortalJornada() {
                         <div className="relative rounded-xl border border-dashed border-gold/45 bg-gold/5 px-4 py-4 text-center">
                           <p className="text-[10px] font-semibold uppercase tracking-widest text-navy/55">Momentos de União</p>
                           <p className="mt-1 text-xs leading-relaxed text-navy/60">
-                             Aqui se encontram os caminhos da família e os passos de hoje, quando houver uma conexão para compartilhar.
+                             Aqui os ramos da família se encontram com os passos de hoje. Este encontro ganhará forma a cada descoberta compartilhada.
                           </p>
                         </div>
                         <section className="rounded-xl border border-navy/20 bg-card p-5 shadow-sm">
