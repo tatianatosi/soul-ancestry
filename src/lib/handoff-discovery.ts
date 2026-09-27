@@ -180,6 +180,7 @@ export type PayloadClienteDoLead = {
   email: string | null;
   telefone: string | null;
   origem: string | null;
+  indicado_por: string | null;
   pais_interesse: string | null;
   classificacao: "pre_cliente";
   status: "pre_onboarding";
@@ -206,6 +207,9 @@ export function payloadClienteDoLead(lead: LeadDesk): PayloadClienteDoLead {
     email: lead.email?.trim() || null,
     telefone: lead.telefone?.trim() || null,
     origem: lead.origem?.trim() || null,
+    // Fase B (27/09/2026) — "cadeia canônica executável": indicado_por
+    // faltava na lista de campos copiados uma vez no handoff.
+    indicado_por: lead.indicado_por?.trim() || null,
     pais_interesse: lead.pais_linha_prioritaria?.trim() || lead.nacionalidade?.trim() || null,
     classificacao: "pre_cliente",
     status: "pre_onboarding",

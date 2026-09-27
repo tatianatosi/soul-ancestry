@@ -364,6 +364,7 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
           email: payload.email,
           telefone: payload.telefone,
           origem: payload.origem,
+          indicado_por: payload.indicado_por,
           pais_interesse: payload.pais_interesse,
           classificacao: payload.classificacao,
           status: payload.status,

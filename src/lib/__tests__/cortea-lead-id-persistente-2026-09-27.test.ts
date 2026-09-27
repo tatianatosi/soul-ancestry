@@ -31,7 +31,7 @@ describe("Corte A — handoff grava lead_id só na criação, nunca em reuso", (
   it("grava lead_id no insert de clientes (ramo de criação, decisao.acao !== 'reusar')", () => {
     const inicioInsert = arquivo.indexOf('tabela: "clientes"');
     expect(inicioInsert).toBeGreaterThan(-1);
-    const trecho = arquivo.slice(inicioInsert, inicioInsert + 700);
+    const trecho = arquivo.slice(inicioInsert, inicioInsert + 900);
     expect(trecho).toContain("lead_id: data.leadId");
   });
 
