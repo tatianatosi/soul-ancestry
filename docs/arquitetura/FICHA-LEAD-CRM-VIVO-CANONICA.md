@@ -24,6 +24,16 @@ CRM/pipeline (lista + detalhe), sem writer próprio.
 | 6 | Decisão e handoff | Campos corretos (resultado/próxima ação/prazo/responsável), mas sem resumo único | "Handoff da Discovery" renomeado para "Decisão e handoff", ganhou resumo de próxima ação/prazo/responsável ao lado do resultado — mesmos campos, mesmo writer, um só lugar para ver a decisão inteira |
 | 7 | Histórico | Já existia (`TrilhaDoLead`) | Sem mudança |
 
+**Correção de precisão (auditoria de 27/09/2026)**: a numeração acima é
+conceitual, não a ordem visual literal de cima para baixo na tela.
+`VarreduraWhatsApp` (bloco 3) renderiza no topo de toda a página
+(`painel-calls.tsx:655`), antes da lista de leads e antes de qualquer
+lead ser selecionado — não "entre o bloco 2 e o bloco 4" dentro da coluna
+de detalhe do lead. Os blocos 1, 2, 4, 5, 6 e 7 sim seguem essa ordem,
+todos dentro da coluna de detalhe, que só aparece após selecionar um
+lead. Achado sem impacto funcional (nenhum código mudou por causa dele) —
+só corrige a leitura da tabela acima para bater com a tela real.
+
 ## O que não foi tocado (por decisão de escopo, preservando comportamento testado)
 
 - **Nenhum campo mudou de writer.** `salvarLeadDesk` continua o único

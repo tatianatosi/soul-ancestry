@@ -302,7 +302,10 @@ function AreaPesquisaEvidencias() {
                 v: c?.pesquisa?.external_research_authorization_status ?? "pendente",
               },
               { t: "Responsável", v: c?.pesquisa?.assigned_researcher_user_id ?? "A definir" },
-              { t: "Hipótese interna", v: c?.pesquisa?.internal_hypothesis ?? "Não registrada (uso interno)" },
+              {
+                t: "Hipótese interna (resumo em texto)",
+                v: c?.pesquisa?.internal_hypothesis ?? "Não registrada (uso interno)",
+              },
               { t: "Próximo marco", v: c?.pesquisa?.next_milestone ?? "Não definido" },
               {
                 t: "Próxima ação e prazo",
@@ -322,6 +325,26 @@ function AreaPesquisaEvidencias() {
               </div>
             ))}
           </dl>
+          {/*
+            Fase 3 (27/09/2026) — auditoria pós-execução: "Hipótese interna"
+            acima é só um resumo em texto livre de research_cases; a lista
+            estruturada real de hipóteses (status/categoria/confiança,
+            research_case_hypotheses) vive em /pesquisa-modulo/$id e nunca
+            era alcançável a partir deste hub. c.pesquisa.id já É o
+            research_case_id que essa rota espera — conectar peça órfã
+            existente, sem duplicar dado nem criar segunda tabela.
+          */}
+          {c?.pesquisa?.id ? (
+            <p className="mt-2 text-xs">
+              <Link
+                to="/pesquisa-modulo/$id"
+                params={{ id: c.pesquisa.id }}
+                className="font-medium text-navy underline decoration-gold underline-offset-4"
+              >
+                Abrir hipóteses estruturadas (status/categoria/confiança) →
+              </Link>
+            </p>
+          ) : null}
         </Bloco>
         <ReferenciasNormativasAplicaveis caseId={caseId} />
         <Bloco titulo="Origem dos insumos — Biblioteca Mestre">

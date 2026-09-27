@@ -46,21 +46,63 @@ construído" exigiriam decisão de produto (criar rastreamento de decisão
 nomeada, criar checklist estruturado de revisão) — fora do escopo desta
 fase, que só mapeia o vocabulário existente contra o histórico.
 
-## Hub de caso — já existe, com um gap de link fechado
+## Hub de caso — já existe, com dois gaps de link fechados
 
 `/pesquisa-evidencias/$caseId` já cobre, num único hub por caso, as 9 peças
 pedidas: pessoa de pesquisa e linhagem ("Pessoas, famílias e ramos" +
 "Ficha genealógica do caso" + "Relações genealógicas" + link para
 `/pessoas-linhagens/$caseId`), fonte e consulta ("Fontes e documentos" +
 `ConsultaBasesHomologadas`), evidência ("Evidências e validação"),
-hipótese ("Hipótese interna" + "hipótese interna" nas relações), achado
+hipótese (ver seção própria abaixo — achado da auditoria de 27/09), achado
 (link para `/achados/$caseId`), relatório F1/F2 (seção própria) e
 microentrega/publicação (link para `/biblioteca-evidencias/$caseId`).
 
-**Gap real fechado**: a seção "Relatórios F1/F2" só listava (leitura),
-sem link para criar/editar. Adicionado link "Criar ou editar relatório de
-fase →" para `/relatorios-fase/$caseId` — mesma tela que o corte P5 desta
-sessão já conectou ao App.
+**Gap real fechado (27/09/2026, execução original)**: a seção
+"Relatórios F1/F2" só listava (leitura), sem link para criar/editar.
+Adicionado link "Criar ou editar relatório de fase →" para
+`/relatorios-fase/$caseId` — mesma tela que o corte P5 desta sessão já
+conectou ao App.
+
+## Hipótese — 3 sistemas desconectados, achado da auditoria pós-execução (27/09/2026)
+
+A execução original desta fase tratou "Hipótese interna" (o campo de texto
+livre `research_cases.internal_hypothesis`, mostrado no hub) como se
+cobrisse o conceito de hipótese do prompt canônico. Uma auditoria
+posterior (pedida pela Proprietária, que chamou esta fase de "a mais
+importante") encontrou que na verdade existem **3 sistemas de hipótese
+genuinamente desconectados**:
+
+1. `research_hypotheses` (por `case_id`) — só leitura, exposta na Ficha
+   Piloto (`ficha-piloto-genealogica.functions.ts`).
+2. `research_case_hypotheses` (por `research_case_id`, com
+   `status`/`category`/`confidence_level`) — CRUD completo e real, com UI
+   própria em `/pesquisa-modulo/$id` (`src/components/pesquisa/modulo.tsx`,
+   aba "Hipóteses") — mas **nunca era alcançável a partir do hub**.
+3. `research_cases.internal_hypothesis` — o campo de texto livre único que
+   o hub mostrava como se fosse "a hipótese do caso".
+
+O próprio código já registrava essa fragmentação como pendência conhecida
+(`src/lib/biblioteca-mestre.ts:170`, "duas tabelas de hipótese,
+declarado") — não é um achado inédito, mas nunca tinha sido reconciliado
+com o hub de Pesquisa desta fase.
+
+**Gap fechado (só link, sem fundir dado)**: `c.pesquisa.id` (já carregado
+pelo hub, é a própria linha de `research_cases`) é exatamente o
+`research_case_id` que `/pesquisa-modulo/$id` espera como parâmetro
+(`pesquisa-modulo.functions.ts:643-645` confirma o FK). Adicionado link
+condicional "Abrir hipóteses estruturadas (status/categoria/confiança) →"
+logo após o bloco "Dimensões da pesquisa", e o rótulo do campo de texto
+foi clarificado para "Hipótese interna (resumo em texto)" — deixando
+explícito que é um resumo, não a lista estruturada. Nenhuma query nova,
+nenhum writer novo, nenhuma tabela criada.
+
+**Declarado, não construído — decisão humana pendente**: qual dos 3
+sistemas deve ser o canônico daqui pra frente (ou se os 3 continuam
+coexistindo com papéis distintos: resumo executivo vs. lista estruturada
+vs. leitura legada) é decisão de arquitetura de dado, não algo que um
+agente deve resolver sozinho fundindo tabelas. Enquanto essa decisão não
+vier explicitamente da Proprietária, os 3 continuam como estão — só
+ficaram mutuamente alcançáveis por link.
 
 ## Ficha Piloto — mantida pré-pesquisa, com link explícito (opção mais segura)
 
