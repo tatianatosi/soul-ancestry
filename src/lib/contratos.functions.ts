@@ -558,16 +558,78 @@ export const salvarItemContrato = createServerFn({ method: "POST" })
  * vira conflito para decisão humana. Nunca mexe em parte de contrato já
  * assinado.
  */
+/**
+ * Fase E (27/09/2026): antes de `contract_parties` congelar/enviar, um
+ * conflito com o cadastro canônico não pode ficar só sinalizado para
+ * sempre — a Proprietária precisa de 3 decisões explícitas, cada uma
+ * exigindo motivo (auditoria, nunca automática):
+ * - `atualizar_snapshot`: o contrato passa a valer o dado canônico
+ *   (mesma direção do preenchimento automático, agora para um valor já
+ *   preenchido e divergente).
+ * - `manter_com_motivo`: o contrato mantém o valor como está; a
+ *   divergência fica registrada como decisão humana aceita (não volta a
+ *   aparecer como conflito enquanto nenhum dos dois lados mudar).
+ * - `corrigir_pessoa_canonica`: o cadastro canônico (`clientes`) é quem
+ *   está desatualizado — corrige-o com o valor do contrato (única
+ *   direção inversa desta sessão; achado real da Ficha Piloto: o
+ *   contrato às vezes tem dado mais completo/atual que `clientes`).
+ * Nunca disponível em contrato já assinado (snapshot imutável).
+ */
+export type DecisaoConflitoContrato = "atualizar_snapshot" | "manter_com_motivo" | "corrigir_pessoa_canonica";
+
+async function decisaoConflitoJaAceita(
+  supabase: Sb,
+  organizationId: string,
+  contratoId: string,
+  campo: string,
+  itemId: string,
+  atual: unknown,
+  canonico: unknown,
+) {
+  const { data } = await supabase
+    .from("contract_review_events")
+    .select("metadata,created_at")
+    .eq("organization_id", organizationId)
+    .eq("contract_id", contratoId)
+    .eq("event_type", "conflito_mantido_com_motivo")
+    .order("created_at", { ascending: false })
+    .limit(50);
+  return ((data ?? []) as { metadata: Record<string, unknown> }[]).some((e) => {
+    const m = e.metadata ?? {};
+    return (
+      m["campo"] === campo &&
+      m["itemId"] === itemId &&
+      String(m["atual"] ?? "") === String(atual ?? "") &&
+      String(m["canonico"] ?? "") === String(canonico ?? "")
+    );
+  });
+}
+
 export const sincronizarPessoaDoCaso = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { caseId: string; confirmar?: boolean }) => d)
+  .inputValidator(
+    (d: {
+      caseId: string;
+      confirmar?: boolean;
+      resolverPartyId?: string;
+      decisao?: DecisaoConflitoContrato;
+      motivo?: string;
+    }) => {
+      if (d.resolverPartyId && !d.decisao) throw new Error("Informe a decisão para resolver o conflito de CPF.");
+      if (d.resolverPartyId && !(d.motivo ?? "").trim()) {
+        throw new Error("Resolver conflito de CPF exige o motivo da decisão.");
+      }
+      return d;
+    },
+  )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const { organizationId } = await contexto(supabase, context.userId as string);
+    const userId = context.userId as string;
 
     const { data: contrato } = await supabase
       .from("contracts")
-      .select("id,signed_at")
+      .select("id,signed_at,case_id")
       .eq("case_id", data.caseId)
       .is("archived_at", null)
       .order("created_at", { ascending: false })
@@ -583,26 +645,102 @@ export const sincronizarPessoaDoCaso = createServerFn({ method: "POST" })
 
     const clientIds = Array.from(new Set(((partes ?? []) as any[]).map((p) => p.client_id).filter(Boolean)));
     const { data: clientesRaw } = clientIds.length
-      ? await supabase.from("clientes").select("id,nome,cpf").in("id", clientIds)
+      ? await supabase.from("clientes").select("id,nome,cpf").eq("organization_id", organizationId).in("id", clientIds)
       : { data: [] as any[] };
     const clientePorId = new Map(((clientesRaw ?? []) as any[]).map((c) => [c.id, c]));
     const normalizar = (s: string) => s.replace(/\D/g, "");
 
-    const plano = ((partes ?? []) as any[]).map((p) => {
-      // Dependente (ex.: menor sem cadastro próprio) pode ter client_id
-      // apontando para o responsável — nunca herdar o documento de outra
-      // pessoa. Achado real: Felipe (dependente) tem client_id da própria
-      // mãe; sincronizar por engano gravaria o CPF dela como se fosse dele.
-      if (p.role === "dependent") return { parte: p.person_name, id: p.id, acao: "dependente_nao_sincronizado" as const };
-      const cliente = p.client_id ? clientePorId.get(p.client_id) : null;
-      if (!cliente?.cpf) return { parte: p.person_name, id: p.id, acao: "sem_dado_canonico" as const };
-      if (p.document_number) {
-        return normalizar(String(p.document_number)) !== normalizar(String(cliente.cpf))
-          ? { parte: p.person_name, id: p.id, acao: "conflito" as const, atual: p.document_number, canonico: cliente.cpf }
-          : { parte: p.person_name, id: p.id, acao: "ja_sincronizado" as const };
+    const planoBruto = await Promise.all(
+      ((partes ?? []) as any[]).map(async (p) => {
+        // Dependente (ex.: menor sem cadastro próprio) pode ter client_id
+        // apontando para o responsável — nunca herdar o documento de outra
+        // pessoa. Achado real: Felipe (dependente) tem client_id da própria
+        // mãe; sincronizar por engano gravaria o CPF dela como se fosse dele.
+        if (p.role === "dependent")
+          return { parte: p.person_name, id: p.id, acao: "dependente_nao_sincronizado" as const };
+        const cliente = p.client_id ? clientePorId.get(p.client_id) : null;
+        if (!cliente?.cpf) return { parte: p.person_name, id: p.id, acao: "sem_dado_canonico" as const };
+        if (p.document_number) {
+          if (normalizar(String(p.document_number)) === normalizar(String(cliente.cpf))) {
+            return { parte: p.person_name, id: p.id, acao: "ja_sincronizado" as const };
+          }
+          const aceito = await decisaoConflitoJaAceita(
+            supabase,
+            organizationId,
+            contrato.id,
+            "cpf",
+            p.id,
+            p.document_number,
+            cliente.cpf,
+          );
+          return {
+            parte: p.person_name,
+            id: p.id,
+            acao: (aceito ? "conflito_aceito" : "conflito") as "conflito" | "conflito_aceito",
+            atual: p.document_number,
+            canonico: cliente.cpf as string,
+            clientId: p.client_id as string,
+          };
+        }
+        return { parte: p.person_name, id: p.id, acao: "preencher" as const, cpf: cliente.cpf as string };
+      }),
+    );
+    const plano = planoBruto;
+
+    if (data.resolverPartyId) {
+      if (contrato.signed_at) throw new Error("Contrato já assinado: partes não podem ser alteradas.");
+      const alvo = plano.find((p) => p.id === data.resolverPartyId) as
+        | { id: string; parte: string; acao: string; atual?: string; canonico?: string; clientId?: string }
+        | undefined;
+      if (!alvo || (alvo.acao !== "conflito" && alvo.acao !== "conflito_aceito")) {
+        throw new Error("Esta parte não está em conflito de CPF com o cadastro canônico — nada a resolver.");
       }
-      return { parte: p.person_name, id: p.id, acao: "preencher" as const, cpf: cliente.cpf as string };
-    });
+      const decisao = data.decisao as DecisaoConflitoContrato;
+      if (decisao === "atualizar_snapshot") {
+        const r = await gravarComVerificacao({
+          supabase,
+          tabela: "contract_parties",
+          id: alvo.id,
+          organizationId,
+          userId,
+          payload: { document_type: "CPF", document_number: alvo.canonico },
+        });
+        await evento(supabase, organizationId, contrato.id, "cpf_conflito_atualizar_snapshot", {
+          case_id: data.caseId,
+          parteId: alvo.id,
+          motivo: data.motivo?.trim(),
+        });
+        return { simulado: false, plano, atualizados: 1, resolvido: alvo.id, salvoEm: r.salvoEm };
+      }
+      if (decisao === "corrigir_pessoa_canonica") {
+        if (!alvo.clientId) throw new Error("Esta parte não tem Pessoa Canônica vinculada para corrigir.");
+        const r = await gravarComVerificacao({
+          supabase,
+          tabela: "clientes",
+          id: alvo.clientId,
+          organizationId,
+          userId,
+          payload: { cpf: alvo.atual },
+        });
+        await evento(supabase, organizationId, contrato.id, "cpf_conflito_corrigir_pessoa_canonica", {
+          case_id: data.caseId,
+          parteId: alvo.id,
+          clientId: alvo.clientId,
+          motivo: data.motivo?.trim(),
+        });
+        return { simulado: false, plano, atualizados: 1, resolvido: alvo.id, salvoEm: r.salvoEm };
+      }
+      // manter_com_motivo — nunca escreve; só registra a decisão aceita.
+      await evento(supabase, organizationId, contrato.id, "conflito_mantido_com_motivo", {
+        case_id: data.caseId,
+        campo: "cpf",
+        itemId: alvo.id,
+        atual: alvo.atual,
+        canonico: alvo.canonico,
+        motivo: data.motivo?.trim(),
+      });
+      return { simulado: false, plano, atualizados: 0, resolvido: alvo.id };
+    }
 
     if (!data.confirmar) return { simulado: true, plano, contratoAssinado: Boolean(contrato.signed_at) };
     if (contrato.signed_at) throw new Error("Contrato já assinado: partes não podem ser alteradas.");
@@ -612,7 +750,7 @@ export const sincronizarPessoaDoCaso = createServerFn({ method: "POST" })
       if (item.acao !== "preencher") continue;
       const { error } = await supabase
         .from("contract_parties")
-        .update({ document_type: "CPF", document_number: item.cpf })
+        .update({ document_type: "CPF", document_number: (item as { cpf: string }).cpf })
         .eq("id", item.id);
       if (error) throw new Error(error.message);
       atualizados++;
@@ -623,7 +761,7 @@ export const sincronizarPessoaDoCaso = createServerFn({ method: "POST" })
       entidade: "contract_parties",
       entidade_id: contrato.id,
       acao: "pessoa_sincronizada_do_cadastro_canonico",
-      user_id: context.userId as string,
+      user_id: userId,
       metadados: { case_id: data.caseId, plano, atualizados },
     });
 
@@ -712,15 +850,37 @@ export function montarEnderecoCanonico(cliente: Record<string, unknown> | null |
 
 export const sincronizarContatoPartesDoCaso = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { caseId: string; campo: CampoContatoParte; confirmar?: boolean }) => {
-    if (!CAMPOS_CONTATO_PARTE_RECONCILIAVEIS.includes(d.campo)) {
-      throw new Error("Campo fora da lista controlada.");
-    }
-    return d;
-  })
+  .inputValidator(
+    (d: {
+      caseId: string;
+      campo: CampoContatoParte;
+      confirmar?: boolean;
+      resolverPartyId?: string;
+      decisao?: DecisaoConflitoContrato;
+      motivo?: string;
+    }) => {
+      if (!CAMPOS_CONTATO_PARTE_RECONCILIAVEIS.includes(d.campo)) {
+        throw new Error("Campo fora da lista controlada.");
+      }
+      if (d.resolverPartyId && !d.decisao) throw new Error("Informe a decisão para resolver o conflito.");
+      if (d.resolverPartyId && !(d.motivo ?? "").trim()) {
+        throw new Error("Resolver conflito exige o motivo da decisão.");
+      }
+      // Endereço é composto de 7 colunas estruturadas em `clientes` — não há
+      // como "corrigir a Pessoa Canônica" a partir de uma única string livre
+      // do contrato sem inventar como fatiar logradouro/número/bairro/etc.
+      if (d.resolverPartyId && d.decisao === "corrigir_pessoa_canonica" && d.campo === "endereco") {
+        throw new Error(
+          "Endereço não pode corrigir a Pessoa Canônica por aqui — edite o cadastro estruturado em Pessoa 360.",
+        );
+      }
+      return d;
+    },
+  )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const { organizationId } = await contexto(supabase, context.userId as string);
+    const userId = context.userId as string;
     const campo = data.campo;
     const colunaParte = COLUNA_PARTE_CONTATO[campo];
     const colunaCliente = COLUNA_CLIENTE_CONTATO[campo];
@@ -750,27 +910,105 @@ export const sincronizarContatoPartesDoCaso = createServerFn({ method: "POST" })
         ? Array.from(new Set(["id", ...COLUNAS_CLIENTE_ENDERECO]))
         : Array.from(new Set(["id", colunaCliente]));
     const { data: clientesRaw } = clientIds.length
-      ? await supabase.from("clientes").select(colunasCliente.join(",")).in("id", clientIds)
+      ? await supabase
+          .from("clientes")
+          .select(colunasCliente.join(","))
+          .eq("organization_id", organizationId)
+          .in("id", clientIds)
       : { data: [] as any[] };
     const clientePorId = new Map(((clientesRaw ?? []) as any[]).map((c) => [c.id, c]));
 
-    const plano = ((partes ?? []) as any[]).map((p) => {
-      if (p.role === "dependent") {
-        return { parte: p.person_name, id: p.id, acao: "dependente_nao_sincronizado" as const };
+    const plano = await Promise.all(
+      ((partes ?? []) as any[]).map(async (p) => {
+        if (p.role === "dependent") {
+          return { parte: p.person_name, id: p.id, acao: "dependente_nao_sincronizado" as const };
+        }
+        const cliente = p.client_id ? clientePorId.get(p.client_id) : null;
+        const valorCanonico = campo === "endereco" ? montarEnderecoCanonico(cliente) : (cliente?.[colunaCliente] ?? null);
+        if (!valorCanonico || !String(valorCanonico).trim()) {
+          return { parte: p.person_name, id: p.id, acao: "sem_dado_canonico" as const };
+        }
+        const atual = p[colunaParte];
+        if (atual && String(atual).trim()) {
+          if (normalizar(String(atual)) === normalizar(String(valorCanonico))) {
+            return { parte: p.person_name, id: p.id, acao: "ja_sincronizado" as const };
+          }
+          const aceito = await decisaoConflitoJaAceita(
+            supabase,
+            organizationId,
+            contrato.id,
+            campo,
+            p.id,
+            atual,
+            valorCanonico,
+          );
+          return {
+            parte: p.person_name,
+            id: p.id,
+            acao: (aceito ? "conflito_aceito" : "conflito") as "conflito" | "conflito_aceito",
+            atual,
+            canonico: valorCanonico as string,
+            clientId: p.client_id as string,
+          };
+        }
+        return { parte: p.person_name, id: p.id, acao: "preencher" as const, valor: valorCanonico as string };
+      }),
+    );
+
+    if (data.resolverPartyId) {
+      if (contrato.signed_at) throw new Error("Contrato já assinado: partes não podem ser alteradas.");
+      const alvo = plano.find((p) => p.id === data.resolverPartyId) as
+        | { id: string; parte: string; acao: string; atual?: string; canonico?: string; clientId?: string }
+        | undefined;
+      if (!alvo || (alvo.acao !== "conflito" && alvo.acao !== "conflito_aceito")) {
+        throw new Error("Esta parte não está em conflito neste campo — nada a resolver.");
       }
-      const cliente = p.client_id ? clientePorId.get(p.client_id) : null;
-      const valorCanonico = campo === "endereco" ? montarEnderecoCanonico(cliente) : (cliente?.[colunaCliente] ?? null);
-      if (!valorCanonico || !String(valorCanonico).trim()) {
-        return { parte: p.person_name, id: p.id, acao: "sem_dado_canonico" as const };
+      const decisao = data.decisao as DecisaoConflitoContrato;
+      if (decisao === "atualizar_snapshot") {
+        const r = await gravarComVerificacao({
+          supabase,
+          tabela: "contract_parties",
+          id: alvo.id,
+          organizationId,
+          userId,
+          payload: { [colunaParte]: alvo.canonico },
+        });
+        await evento(supabase, organizationId, contrato.id, `${campo}_conflito_atualizar_snapshot`, {
+          case_id: data.caseId,
+          parteId: alvo.id,
+          motivo: data.motivo?.trim(),
+        });
+        return { simulado: false, plano, atualizados: 1, resolvido: alvo.id, salvoEm: r.salvoEm };
       }
-      const atual = p[colunaParte];
-      if (atual && String(atual).trim()) {
-        return normalizar(String(atual)) !== normalizar(String(valorCanonico))
-          ? { parte: p.person_name, id: p.id, acao: "conflito" as const, atual, canonico: valorCanonico as string }
-          : { parte: p.person_name, id: p.id, acao: "ja_sincronizado" as const };
+      if (decisao === "corrigir_pessoa_canonica") {
+        if (!alvo.clientId) throw new Error("Esta parte não tem Pessoa Canônica vinculada para corrigir.");
+        const r = await gravarComVerificacao({
+          supabase,
+          tabela: "clientes",
+          id: alvo.clientId,
+          organizationId,
+          userId,
+          payload: { [colunaCliente]: alvo.atual },
+        });
+        await evento(supabase, organizationId, contrato.id, `${campo}_conflito_corrigir_pessoa_canonica`, {
+          case_id: data.caseId,
+          parteId: alvo.id,
+          clientId: alvo.clientId,
+          motivo: data.motivo?.trim(),
+        });
+        return { simulado: false, plano, atualizados: 1, resolvido: alvo.id, salvoEm: r.salvoEm };
       }
-      return { parte: p.person_name, id: p.id, acao: "preencher" as const, valor: valorCanonico as string };
-    });
+      // manter_com_motivo — nunca escreve; só registra a decisão aceita.
+      await evento(supabase, organizationId, contrato.id, "conflito_mantido_com_motivo", {
+        case_id: data.caseId,
+        campo,
+        itemId: alvo.id,
+        atual: alvo.atual,
+        canonico: alvo.canonico,
+        motivo: data.motivo?.trim(),
+      });
+      return { simulado: false, plano, atualizados: 0, resolvido: alvo.id };
+    }
 
     if (!data.confirmar) return { simulado: true, plano, contratoAssinado: Boolean(contrato.signed_at) };
     if (contrato.signed_at) throw new Error("Contrato já assinado: partes não podem ser alteradas.");
@@ -791,7 +1029,7 @@ export const sincronizarContatoPartesDoCaso = createServerFn({ method: "POST" })
       entidade: "contract_parties",
       entidade_id: contrato.id,
       acao: `${campo}_parte_sincronizado_do_cadastro_canonico`,
-      user_id: context.userId as string,
+      user_id: userId,
       metadados: { case_id: data.caseId, campo: rotulo, plano, atualizados },
     });
 

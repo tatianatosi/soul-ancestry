@@ -58,10 +58,13 @@ describe("Fase 0.2 — componente ReconciliarContatoPartesContrato: sem botão d
     expect(componente).toContain("CAMPOS_CONTATO_PARTE_RECONCILIAVEIS.map((campo) =>");
   });
 
-  it("conflito é só informativo — nunca um botão de sobrescrever", () => {
-    expect(componente).toContain("nada é sobrescrito automaticamente");
+  // Fase E (27/09/2026) substituiu "conflito é só informativo" por decisão
+  // humana explícita com motivo obrigatório — nunca sobrescrita automática.
+  it("conflito nunca é sobrescrito automaticamente — só por decisão humana com motivo", () => {
+    expect(componente).toContain("decisão humana pendente");
+    expect(componente).toContain("!motivo.trim()");
     expect(componente).not.toContain("Usar o");
-    expect(componente).not.toContain("resolverParteId");
+    expect(componente).not.toMatch(/acao === "conflito"[\s\S]{0,80}\.mutate\(true\)/);
   });
 
   it("desabilita preencher quando o contrato já foi assinado", () => {

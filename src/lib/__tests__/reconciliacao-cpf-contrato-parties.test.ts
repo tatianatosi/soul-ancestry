@@ -9,7 +9,9 @@ import { readFileSync } from "node:fs";
  * lógica, mas nenhuma rota/componente a chamava. Este corte só faz o
  * wiring: nenhuma mudança na função em si, nenhum writer novo, nenhuma
  * fusão automática — o botão "Preencher CPFs pendentes" só grava itens
- * `preencher`; itens `conflito` continuam sem ação nesta tela.
+ * `preencher`. Fase E (27/09/2026) acrescentou decisão humana explícita
+ * (com motivo) para itens `conflito`/`conflito_aceito` — ver
+ * fasee-contrato-snapshot-3-decisoes-2026-09-27.test.ts.
  */
 
 const funcoes = readFileSync("src/lib/contratos.functions.ts", "utf8");
@@ -29,11 +31,12 @@ describe("sincronizarPessoaDoCaso (contratos.functions.ts) — não alterada por
   });
 });
 
-describe("ReconciliarCpfPartes (novo componente) — mostra os 5 estados, sem ação sobre conflito", () => {
-  it("define os 5 estados possíveis do plano", () => {
+describe("ReconciliarCpfPartes (novo componente) — mostra os 6 estados (Fase E acrescenta conflito_aceito)", () => {
+  it("define os 6 estados possíveis do plano", () => {
     for (const acao of [
       "preencher",
       "conflito",
+      "conflito_aceito",
       "ja_sincronizado",
       "sem_dado_canonico",
       "dependente_nao_sincronizado",
@@ -46,15 +49,18 @@ describe("ReconciliarCpfPartes (novo componente) — mostra os 5 estados, sem a�
     expect(componente).toContain("disabled={ocupado || Boolean(contratoAssinado) || preencher === 0}");
   });
 
-  it("conflito é só informativo — mostra valor atual x canônico, sem botão de ação por item", () => {
-    expect(componente).toContain('p.acao === "conflito"');
+  it("Fase E (27/09/2026): conflito mostra valor atual x canônico e agora oferece ação de decisão humana (nunca sobrescrita silenciosa)", () => {
+    expect(componente).toContain('p.acao === "conflito" || p.acao === "conflito_aceito"');
     expect(componente).toContain("Na parte do contrato:");
+    expect(componente).toContain("Resolver conflito");
   });
 });
 
 describe("casos.$caseId.contrato.preparar.tsx — wiring do painel", () => {
   it("importa sincronizarPessoaDoCaso e o novo componente", () => {
-    expect(pagina).toContain('import { sincronizarPessoaDoCaso } from "@/lib/contratos.functions";');
+    expect(pagina).toContain(
+      'import { sincronizarPessoaDoCaso, type DecisaoConflitoContrato } from "@/lib/contratos.functions";',
+    );
     expect(pagina).toContain(
       'import { ReconciliarCpfPartes } from "@/components/contrato/reconciliar-cpf-partes";',
     );

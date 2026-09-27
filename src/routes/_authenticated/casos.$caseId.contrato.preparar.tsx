@@ -65,7 +65,7 @@ import { MaterializarRevisados } from "@/components/contrato/materializar-revisa
 import { RessincronizarAnexos } from "@/components/contrato/ressincronizar-anexos";
 import { ReconciliarCpfPartes } from "@/components/contrato/reconciliar-cpf-partes";
 import { ReconciliarContatoPartesContrato } from "@/components/contrato/reconciliar-contato-partes";
-import { sincronizarPessoaDoCaso } from "@/lib/contratos.functions";
+import { sincronizarPessoaDoCaso, type DecisaoConflitoContrato } from "@/lib/contratos.functions";
 import type { ItemPlanoMaterializacao } from "@/lib/anexos-materializacao";
 
 import { abrirPreparacaoContrato, auditoriaPreparacao, solicitarRevisaoHumana } from "@/lib/contrato-preparar.functions";
@@ -309,6 +309,24 @@ function Pagina() {
           : "Nada a preencher: nenhuma parte estava com CPF vazio.",
       );
       invalidar();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // Fase E (27/09/2026): decisão explícita para conflito de CPF (atualizar
+  // snapshot / manter com motivo / corrigir Pessoa Canônica) — nunca uma
+  // sobrescrita silenciosa, sempre com motivo.
+  const mResolverConflitoCpf = useMutation({
+    mutationFn: (vars: { id: string; decisao: DecisaoConflitoContrato; motivo: string }) =>
+      reconciliarCpf({ data: { caseId, resolverPartyId: vars.id, decisao: vars.decisao, motivo: vars.motivo } }),
+    onSuccess: (r: any) => {
+      setPlanoReconciliacaoCpf(listaOpcional(r.plano) as any);
+      if (r.atualizados > 0) {
+        toast.success("Conflito de CPF resolvido.");
+        invalidar();
+      } else {
+        toast.success("Divergência mantida com o motivo registrado.");
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -987,9 +1005,12 @@ function Pagina() {
                     <ReconciliarCpfPartes
                       plano={planoReconciliacaoCpf}
                       contratoAssinado={contratoAssinadoReconciliacao}
-                      ocupado={mReconciliarCpf.isPending}
+                      ocupado={mReconciliarCpf.isPending || mResolverConflitoCpf.isPending}
                       onVerificar={() => mReconciliarCpf.mutate(false)}
                       onSincronizar={() => mReconciliarCpf.mutate(true)}
+                      onResolverConflito={(id, decisao, motivo) =>
+                        mResolverConflitoCpf.mutate({ id, decisao, motivo })
+                      }
                     />
                   </div>
                   <div className="mt-2">
