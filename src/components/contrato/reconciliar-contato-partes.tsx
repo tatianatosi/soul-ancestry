@@ -7,6 +7,7 @@ import {
   CAMPOS_CONTATO_PARTE_RECONCILIAVEIS,
   ROTULO_CAMPO_CONTATO_PARTE,
   type CampoContatoParte,
+  type DecisaoConflitoContrato,
 } from "@/lib/contratos.functions";
 
 /**
@@ -21,7 +22,13 @@ import {
 type ItemPlanoContato = {
   parte: string;
   id: string;
-  acao: "preencher" | "conflito" | "ja_sincronizado" | "sem_dado_canonico" | "dependente_nao_sincronizado";
+  acao:
+    | "preencher"
+    | "conflito"
+    | "conflito_aceito"
+    | "ja_sincronizado"
+    | "sem_dado_canonico"
+    | "dependente_nao_sincronizado";
   valor?: string;
   atual?: string;
   canonico?: string;
@@ -29,7 +36,8 @@ type ItemPlanoContato = {
 
 const ROTULO_ACAO: Record<ItemPlanoContato["acao"], string> = {
   preencher: "Vai preencher com o dado canônico",
-  conflito: "Diverge do cadastro canônico — não é gravado automaticamente",
+  conflito: "Diverge do cadastro canônico — decisão humana pendente",
+  conflito_aceito: "Divergência mantida por decisão humana (com motivo registrado)",
   ja_sincronizado: "Já bate com o cadastro canônico",
   sem_dado_canonico: "Cadastro canônico ainda sem este dado",
   dependente_nao_sincronizado: "Dependente — nunca herda este dado do responsável",
@@ -38,10 +46,86 @@ const ROTULO_ACAO: Record<ItemPlanoContato["acao"], string> = {
 const ESTILO_ACAO: Record<ItemPlanoContato["acao"], string> = {
   preencher: "border-gold/50 bg-gold/10 text-navy/80",
   conflito: "border-terracotta/40 bg-terracotta/10 text-terracotta",
+  conflito_aceito: "border-navy/20 bg-cream/40 text-navy/70",
   ja_sincronizado: "border-navy/20 bg-cream/40 text-navy/70",
   sem_dado_canonico: "border-navy/10 bg-cream/30 text-navy/55",
   dependente_nao_sincronizado: "border-navy/10 bg-cream/30 text-navy/55",
 };
+
+/**
+ * Fase E (27/09/2026): 3 decisões explícitas para um conflito de nome/
+ * e-mail/telefone/endereço, cada uma exigindo motivo. Endereço nunca
+ * oferece "corrigir cadastro canônico" (composto de 7 colunas — não dá
+ * para fatiar uma string livre de volta com segurança).
+ */
+function ResolverConflitoContato({
+  item,
+  campo,
+  contratoAssinado,
+  ocupado,
+  onResolver,
+}: {
+  item: ItemPlanoContato;
+  campo: CampoContatoParte;
+  contratoAssinado?: boolean;
+  ocupado?: boolean;
+  onResolver: (decisao: DecisaoConflitoContrato, motivo: string) => void;
+}) {
+  const [aberto, setAberto] = useState(false);
+  const [motivo, setMotivo] = useState("");
+  if (contratoAssinado) return null;
+  if (!aberto) {
+    return (
+      <button
+        type="button"
+        disabled={ocupado}
+        onClick={() => setAberto(true)}
+        className="mt-1 rounded border border-terracotta/40 px-1.5 py-0.5 text-[10px] font-medium text-terracotta hover:bg-terracotta/10 disabled:opacity-50"
+      >
+        Resolver conflito
+      </button>
+    );
+  }
+  return (
+    <div className="mt-1.5 space-y-1.5 rounded border border-terracotta/30 bg-white/60 p-1.5">
+      <textarea
+        value={motivo}
+        onChange={(e) => setMotivo(e.target.value)}
+        placeholder="Motivo da decisão (obrigatório)"
+        className="w-full rounded border border-navy/20 p-1 text-[10px]"
+        rows={2}
+      />
+      <div className="flex flex-wrap gap-1">
+        <button
+          type="button"
+          disabled={ocupado || !motivo.trim()}
+          onClick={() => onResolver("atualizar_snapshot", motivo)}
+          className="rounded bg-navy px-1.5 py-0.5 text-[10px] text-cream hover:bg-navy/90 disabled:opacity-40"
+        >
+          Atualizar contrato
+        </button>
+        {campo !== "endereco" ? (
+          <button
+            type="button"
+            disabled={ocupado || !motivo.trim()}
+            onClick={() => onResolver("corrigir_pessoa_canonica", motivo)}
+            className="rounded border border-navy/25 px-1.5 py-0.5 text-[10px] text-navy hover:bg-cream/50 disabled:opacity-40"
+          >
+            Corrigir cadastro
+          </button>
+        ) : null}
+        <button
+          type="button"
+          disabled={ocupado || !motivo.trim()}
+          onClick={() => onResolver("manter_com_motivo", motivo)}
+          className="rounded border border-navy/25 px-1.5 py-0.5 text-[10px] text-navy hover:bg-cream/50 disabled:opacity-40"
+        >
+          Manter (com motivo)
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function BlocoCampoContato({
   caseId,
@@ -74,8 +158,19 @@ function BlocoCampoContato({
     },
   });
 
+  const mResolver = useMutation({
+    mutationFn: (vars: { id: string; decisao: DecisaoConflitoContrato; motivo: string }) =>
+      sincronizar({ data: { caseId, campo, resolverPartyId: vars.id, decisao: vars.decisao, motivo: vars.motivo } }),
+    onSuccess: (r: any) => {
+      setPlano(Array.isArray(r.plano) ? r.plano : plano);
+      if (r.atualizados > 0) onMudou();
+    },
+  });
+
   const preencher = plano ? plano.filter((p) => p.acao === "preencher").length : 0;
-  const conflitos = plano ? plano.filter((p) => p.acao === "conflito").length : 0;
+  const conflitos = plano
+    ? plano.filter((p) => p.acao === "conflito" || p.acao === "conflito_aceito").length
+    : 0;
 
   return (
     <div className="rounded-md border border-navy/10 bg-white/40 p-2.5">
@@ -114,22 +209,31 @@ function BlocoCampoContato({
       {aberto && plano && plano.length > 0 ? (
         <ul className="mt-2 space-y-1">
           {plano
-            .filter((p) => p.acao === "conflito" || p.acao === "preencher")
+            .filter((p) => p.acao === "conflito" || p.acao === "conflito_aceito" || p.acao === "preencher")
             .map((p) => (
               <li key={p.id} className={`rounded border p-1.5 text-[11px] ${ESTILO_ACAO[p.acao]}`}>
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <span className="font-medium">{p.parte}</span>
                   <span className="uppercase tracking-wide">{ROTULO_ACAO[p.acao]}</span>
                 </div>
-                {p.acao === "conflito" ? (
-                  <p className="mt-1">
-                    Na parte do contrato: {p.atual ?? "—"} · No cadastro canônico: {p.canonico ?? "—"} — só
-                    sinal, nada é sobrescrito automaticamente.
-                  </p>
+                {p.acao === "conflito" || p.acao === "conflito_aceito" ? (
+                  <>
+                    <p className="mt-1">
+                      Na parte do contrato: {p.atual ?? "—"} · No cadastro canônico: {p.canonico ?? "—"}
+                      {p.acao === "conflito" ? " — decisão humana pendente." : " — decisão humana já registrada."}
+                    </p>
+                    <ResolverConflitoContato
+                      item={p}
+                      campo={campo}
+                      contratoAssinado={contratoAssinado}
+                      ocupado={mResolver.isPending}
+                      onResolver={(decisao, motivo) => mResolver.mutate({ id: p.id, decisao, motivo })}
+                    />
+                  </>
                 ) : null}
               </li>
             ))}
-          {plano.every((p) => p.acao !== "conflito" && p.acao !== "preencher") ? (
+          {plano.every((p) => p.acao !== "conflito" && p.acao !== "conflito_aceito" && p.acao !== "preencher") ? (
             <li className="text-[11px] text-navy/55">Nenhuma pendência — todos sincronizados ou sem dado canônico.</li>
           ) : null}
         </ul>
