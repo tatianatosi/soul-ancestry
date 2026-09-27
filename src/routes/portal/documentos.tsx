@@ -184,6 +184,7 @@ export function PortalDocumentos() {
             const checklist = liberados + enviados;
             const proximaAcao = vivo.data?.proximaAcao ?? null;
             const solicitado = proximaAcao?.destino === "/portal/documentos" ? proximaAcao.acao : null;
+            const solicitacoesAbertas = vivo.data?.solicitacoes ?? [];
             return (
         <div className="space-y-5" data-aba-documentos-vivo>
           {/* 1. Solicitados — o que a equipe pediu, com a instrução de envio integrada ao card. */}
@@ -196,7 +197,37 @@ export function PortalDocumentos() {
                 Pedido da equipe
               </span>
             </div>
-            {solicitado ? (
+            {/*
+              REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026): Ficha Piloto
+              #6 "Documento foco" / #28 "Pendência principal". Antes só a
+              frase genérica do motor ("Há 1 documento para você enviar.");
+              agora cada pedido aberto aparece pelo nome que a equipe deu
+              (portal_document_requests, policy pdr_sel_portal), com envio
+              ligado ao próprio pedido.
+            */}
+            {solicitacoesAbertas.length > 0 ? (
+              <ul className="mt-3 space-y-2" data-documentos-solicitados-lista>
+                {solicitacoesAbertas.map((s) => (
+                  <li key={s.id} className="rounded-xl border border-gold/35 bg-gold/10 px-4 py-3">
+                    <p className="text-sm font-medium text-navy">{s.titulo}</p>
+                    {s.descricao ? <p className="mt-1 text-sm text-navy/70">{s.descricao}</p> : null}
+                    {s.prazo ? (
+                      <p className="mt-1 text-xs text-navy/55">
+                        Até {s.prazo.split("-").reverse().join("/")}
+                      </p>
+                    ) : null}
+                    {s.recusado ? (
+                      <p className="mt-2 rounded-lg bg-cream px-3 py-2 text-xs text-navy/70">
+                        Precisamos de um novo envio{s.motivoRecusa ? `: ${s.motivoRecusa}` : "."}
+                      </p>
+                    ) : null}
+                    <div className="mt-2">
+                      <EnviarDocumento casoId={casoAtivo} solicitacaoId={s.id} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : solicitado ? (
               <div className="mt-3 rounded-xl border border-gold/35 bg-gold/10 px-4 py-3">
                 <p className="text-sm text-navy">{solicitado}</p>
               </div>

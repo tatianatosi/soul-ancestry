@@ -145,13 +145,46 @@ export function PortalConta() {
               )}
             </section>
 
+            {/*
+              REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026) — Ficha Piloto
+              da Giovanna, campos #47-49 ("Conta > Histórico", 3 marcos).
+              `case_timeline_events` (visibility='cliente_aprovado',
+              `summary_client_approved`) já tinha tabela, coluna e policy de
+              portal (`cte_select_portal`); faltava o escritor
+              (`aprovarEventoTimelineParaCliente`, Caso 360 > Histórico) e
+              esta leitura. Só o texto que a equipe escreveu explicitamente
+              para a família — nunca o título interno do evento.
+            */}
+            <section data-conta-marcos className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <h2 className="font-serif text-xl text-navy">Marcos da sua jornada</h2>
+              </div>
+              {(vivo.data?.historico ?? []).length === 0 ? (
+                <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center text-sm text-navy/60">
+                  Quando a equipe aprovar um marco da sua jornada, ele aparecerá aqui.
+                </p>
+              ) : (
+                <ul className="mt-3 space-y-2">
+                  {(vivo.data?.historico ?? []).map((marco) => (
+                    <li key={marco.id} className="rounded-lg border border-border bg-card p-3 text-sm text-navy/80">
+                      <p>{marco.texto}</p>
+                      {marco.data ? (
+                        <p className="mt-1 text-xs text-navy/45">
+                          {new Date(marco.data).toLocaleDateString("pt-BR")}
+                        </p>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
             <section data-conta-historico className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="font-serif text-xl text-navy">Nossas conversas</h2>
               </div>
               <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
                 <p className="text-sm text-navy/70">Ainda não há conversas disponíveis neste espaço.</p>
-                <p className="mt-1 text-xs text-navy/50">Ainda não há conversas disponíveis neste espaço.</p>
               </div>
             </section>
           </div>

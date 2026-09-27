@@ -2,8 +2,21 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
-import type { DocumentoPortal, EtapaCliente } from "@/lib/portal-dados-vivos";
-import { composicaoDoCasoCliente, etapaDoCasoCliente, proximaEntregaCliente } from "@/lib/portal-dados-vivos";
+import type {
+  DocumentoPortal,
+  EtapaCliente,
+  EventoTimelinePortal,
+  MarcoHistoricoCliente,
+  SolicitacaoDocumentoBruta,
+  SolicitacaoDocumentoCliente,
+} from "@/lib/portal-dados-vivos";
+import {
+  composicaoDoCasoCliente,
+  etapaDoCasoCliente,
+  historicoSanitizado,
+  proximaEntregaCliente,
+  solicitacoesAbertasCliente,
+} from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 import { projetarProximaAcaoCliente, sinaisDoCasoPortal, type ProximaAcaoCliente } from "@/lib/motor-caso";
 
@@ -46,6 +59,10 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
     composicao: string | null;
     /** P3: só a data da próxima micro-entrega aberta, já em texto de cliente. */
     proximaEntrega: { data: string; texto: string } | null;
+    /** Marcos da jornada aprovados explicitamente para a família (Conta). */
+    historico: MarcoHistoricoCliente[];
+    /** Documentos pedidos pela equipe e ainda abertos, com o nome do pedido. */
+    solicitacoes: SolicitacaoDocumentoCliente[];
   }> => {
     semCache();
     const supabase = context.supabase as any;
@@ -82,17 +99,36 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       ? (permitidos.find((c) => String(c.id) === data.casoId) ?? null)
       : (permitidos[0] ?? null);
     if (!casoAtivo)
-      return { projecoes: [], documentos: [], proximaAcao: null, casoAtivoId: null, etapa: null, composicao: null, proximaEntrega: null };
+      return { projecoes: [], documentos: [], proximaAcao: null, casoAtivoId: null, etapa: null, composicao: null, proximaEntrega: null, historico: [], solicitacoes: [] };
     const alvo = [String(casoAtivo.id)];
 
-    const [proj, docs, pendencias, faturas] = await Promise.all([
+    const [proj, docs, pendencias, faturas, timeline] = await Promise.all([
       supabase
         .from("portal_projecoes")
         .select("id, case_id, projection_type, content_sanitized, effective_from, updated_at")
         .in("case_id", alvo),
       supabase.from("documents").select("id, liberado_cliente, origem, is_demo").in("case_id", alvo),
-      supabase.from("portal_document_requests").select("case_id, status").in("case_id", alvo).in("status", ["aguardando", "recusado"]),
+      // REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026): mesma consulta de antes,
+      // agora também com título/descrição/prazo (policy `pdr_sel_portal`) — a
+      // aba Documentos passa a nomear QUAL documento é pedido.
+      supabase
+        .from("portal_document_requests")
+        .select("id, case_id, status, titulo, descricao, prazo, motivo_recusa")
+        .in("case_id", alvo)
+        .in("status", ["aguardando", "recusado"]),
       supabase.from("invoices").select("case_id, status").in("case_id", alvo).in("status", ["aberta", "vencida"]),
+      // REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026): "Histórico (3 marcos)"
+      // da Ficha Piloto. RLS (`cte_select_portal`) já restringe a leitura a
+      // `visibility = 'cliente_aprovado'` do próprio caso; o filtro explícito
+      // abaixo é defesa em profundidade, mesmo padrão das outras consultas
+      // desta função.
+      supabase
+        .from("case_timeline_events")
+        .select("id, summary_client_approved, occurred_at, created_at, visibility")
+        .in("case_id", alvo)
+        .eq("visibility", "cliente_aprovado")
+        .order("occurred_at", { ascending: false })
+        .limit(3),
     ]);
 
     const documentosPendentes = ((pendencias.data ?? []) as { case_id: string }[]).length;
@@ -119,5 +155,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       etapa: etapaDoCasoCliente(casoAtivo.fase_jornada),
       composicao: composicaoDoCasoCliente(casoAtivo.composicao),
       proximaEntrega: proximaEntregaCliente(casoAtivo.proxima_entrega_prevista_em),
+      historico: historicoSanitizado((timeline.data ?? []) as EventoTimelinePortal[]),
+      solicitacoes: solicitacoesAbertasCliente((pendencias.data ?? []) as SolicitacaoDocumentoBruta[]),
     };
   });

@@ -108,8 +108,13 @@ describe("d) não há agregação entre casos", () => {
     expect(servidor).toContain("casoAtivoId: null, etapa: null, composicao: null");
   });
 
-  it("todas as quatro consultas usam o mesmo alvo de um caso só", () => {
-    expect(servidor.match(/\.in\("case_id", alvo\)/g)?.length).toBe(4);
+  it("todas as consultas por caso usam o mesmo alvo de um caso só", () => {
+    // REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026): eram 4 (projeções,
+    // documentos, pendências, faturas); ganhou uma 5ª (case_timeline_events,
+    // para o Histórico da Conta) — a invariante que este teste trava
+    // (nenhuma consulta some casos, todas usam `alvo`) continua valendo, só
+    // a contagem cresceu.
+    expect(servidor.match(/\.in\("case_id", alvo\)/g)?.length).toBe(5);
   });
 });
 
