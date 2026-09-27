@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 
 import { Secao } from "@/components/caso/campos";
 import { carregarFichaPiloto } from "@/lib/ficha-piloto-genealogica.functions";
@@ -88,6 +89,21 @@ export function PainelFichaPiloto({ caseId }: { caseId: string }) {
             ))}
           </ul>
         ) : null}
+        {/*
+          Fase 3 (27/09/2026) — "Prompt Canônicos": Ficha Piloto permanece
+          pré-pesquisa e só leitura (decisão preservada, opção mais segura
+          que mover de rota); ganha link explícito para o hub real de
+          Pesquisa do caso, sem duplicar nenhum dado aqui.
+        */}
+        <p className="mt-3 text-xs">
+          <Link
+            to="/pesquisa-evidencias/$caseId"
+            params={{ caseId }}
+            className="font-medium text-navy underline decoration-gold underline-offset-4"
+          >
+            Abrir Pesquisa e Evidências do caso →
+          </Link>
+        </p>
       </Secao>
 
       <Secao titulo="Pessoas do núcleo e da pesquisa" descricao="Nenhum antepassado inferido. Identidade só é confirmada com evidência.">

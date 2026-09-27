@@ -679,6 +679,15 @@ function AreaPesquisaEvidencias() {
                 ))}
               </ul>
             )}
+            <div className="mt-3">
+              <Link
+                to="/relatorios-fase/$caseId"
+                params={{ caseId }}
+                className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+              >
+                Criar ou editar relatório de fase →
+              </Link>
+            </div>
           </Bloco>
           <LastroDeFontes caseId={caseId} tipoAlvo="relatorio" />
         </div>
