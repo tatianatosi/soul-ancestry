@@ -4045,7 +4045,9 @@ export type Database = {
           endereco_uf: string | null
           estado_civil: string | null
           id: string
+          indicado_por: string | null
           is_demo: boolean
+          lead_id: string | null
           nacionalidade: string | null
           nome: string
           nome_conjuge: string | null
@@ -4096,7 +4098,9 @@ export type Database = {
           endereco_uf?: string | null
           estado_civil?: string | null
           id?: string
+          indicado_por?: string | null
           is_demo?: boolean
+          lead_id?: string | null
           nacionalidade?: string | null
           nome: string
           nome_conjuge?: string | null
@@ -4147,7 +4151,9 @@ export type Database = {
           endereco_uf?: string | null
           estado_civil?: string | null
           id?: string
+          indicado_por?: string | null
           is_demo?: boolean
+          lead_id?: string | null
           nacionalidade?: string | null
           nome?: string
           nome_conjuge?: string | null
@@ -4172,6 +4178,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "clientes_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "clientes_organization_id_fkey"
             columns: ["organization_id"]
@@ -6796,6 +6809,7 @@ export type Database = {
           id_canonico_decidido_por: string | null
           ids_historicos: Json
           info_cliente_liberada: boolean
+          lead_id: string | null
           link_origem_interna: string | null
           marcos_gerais_da_proposta: string | null
           modelo: string
@@ -6920,6 +6934,7 @@ export type Database = {
           id_canonico_decidido_por?: string | null
           ids_historicos?: Json
           info_cliente_liberada?: boolean
+          lead_id?: string | null
           link_origem_interna?: string | null
           marcos_gerais_da_proposta?: string | null
           modelo?: string
@@ -7044,6 +7059,7 @@ export type Database = {
           id_canonico_decidido_por?: string | null
           ids_historicos?: Json
           info_cliente_liberada?: boolean
+          lead_id?: string | null
           link_origem_interna?: string | null
           marcos_gerais_da_proposta?: string | null
           modelo?: string
@@ -7118,6 +7134,13 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "portal_meu_cadastro"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_casos_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
             referencedColumns: ["id"]
           },
           {
