@@ -17,6 +17,9 @@ export type ProjecaoBruta = {
   content_sanitized?: string | null;
   effective_from?: string | null;
   updated_at?: string | null;
+  /** Corte 2a: só projeções da árvore publicadas pela equipe trazem pessoa e geração. */
+  pessoa_id?: string | null;
+  geracao_cliente?: number | null;
 };
 
 export type PublicacaoCliente = {

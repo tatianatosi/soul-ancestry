@@ -199,6 +199,7 @@ export type Database = {
           destination: string
           due_at: string | null
           effective_from: string | null
+          geracao_cliente: number | null
           id: string
           organization_id: string
           pessoa_id: string | null
@@ -223,6 +224,7 @@ export type Database = {
           destination: string
           due_at?: string | null
           effective_from?: string | null
+          geracao_cliente?: number | null
           id?: string
           organization_id: string
           pessoa_id?: string | null
@@ -247,6 +249,7 @@ export type Database = {
           destination?: string
           due_at?: string | null
           effective_from?: string | null
+          geracao_cliente?: number | null
           id?: string
           organization_id?: string
           pessoa_id?: string | null
@@ -19534,7 +19537,9 @@ export type Database = {
           case_id: string | null
           content_sanitized: string | null
           effective_from: string | null
+          geracao_cliente: number | null
           id: string | null
+          pessoa_id: string | null
           projection_type: string | null
           updated_at: string | null
         }
@@ -19542,7 +19547,9 @@ export type Database = {
           case_id?: string | null
           content_sanitized?: string | null
           effective_from?: string | null
+          geracao_cliente?: number | null
           id?: string | null
+          pessoa_id?: string | null
           projection_type?: string | null
           updated_at?: string | null
         }
@@ -19550,7 +19557,9 @@ export type Database = {
           case_id?: string | null
           content_sanitized?: string | null
           effective_from?: string | null
+          geracao_cliente?: number | null
           id?: string | null
+          pessoa_id?: string | null
           projection_type?: string | null
           updated_at?: string | null
         }

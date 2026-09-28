@@ -5,6 +5,7 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
 import { painelArvoreGeracoes, type GeracaoArvore } from "@/lib/portal-arvore-geracoes";
+import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
 import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { cn } from "@/lib/utils";
@@ -64,6 +65,22 @@ function NoArvore({
   );
 }
 
+/**
+ * Corte 2a (28/09/2026): pessoa da família publicada pela equipe — nome e
+ * vínculo, destaque dourado de "conectada". Só o que foi liberado no Desk.
+ */
+function NoPessoa({ pessoa }: { pessoa: PessoaNaArvore }) {
+  return (
+    <div
+      className="flex min-h-9 min-w-[5.5rem] max-w-[9rem] flex-col items-center justify-center rounded-md border-2 border-gold bg-gold/15 px-2 py-1 text-center shadow-sm sm:min-h-14 sm:rounded-lg"
+      data-arvore-pessoa
+    >
+      <span className="text-[10px] font-semibold leading-tight text-navy sm:text-xs">{pessoa.nome}</span>
+      {pessoa.vinculo ? <span className="text-[9px] leading-tight text-navy/60 sm:text-[10px]">{pessoa.vinculo}</span> : null}
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/portal/arvore")({
   head: () => ({
     meta: [
@@ -97,8 +114,14 @@ export function PortalArvore() {
           recurso="a sua árvore"
         >
           {([vivo]) => {
-            const itens = arvoreSanitizada(vivo.projecoes);
+            // Corte 2a: pessoas nomeadas (uma por pessoa) viram nós; o restante
+            // das publicações da árvore continua como nota.
+            const pessoas = pessoasDaArvore(vivo.projecoes);
+            const idsComPessoa = new Set(vivo.projecoes.filter((p) => p.pessoa_id).map((p) => String(p.id)));
+            const itens = arvoreSanitizada(vivo.projecoes).filter((p) => !idsComPessoa.has(p.id));
             const painel = painelArvoreGeracoes(itens);
+            const temConteudo = painel.temPublicacao || pessoas.length > 0;
+            const pessoasDaGeracao = (id: string) => pessoas.filter((x) => `G${x.geracao}` === id);
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-arvore>
@@ -111,15 +134,18 @@ export function PortalArvore() {
                       Cinco gerações da sua família
                     </p>
                     <p className="mt-1 text-sm text-navy/65">
-                      {painel.temPublicacao
+                      {temConteudo
                         ? "A árvore reúne as pessoas e os vínculos já confirmados e compartilhados com você."
                         : COPY_TELAS.arvore.vazio}
                     </p>
-                    {itens.length > 0 ? (
-                      <p className="mt-2 text-xs text-navy/50">
-                        {itens.length} {itens.length === 1 ? "pessoa conectada" : "pessoas conectadas"} na história publicada da família.
+                    {pessoas.length > 0 ? (
+                      <p className="mt-2 text-xs text-navy/50" data-arvore-contagem>
+                        {pessoas.length} {pessoas.length === 1 ? "pessoa conectada" : "pessoas conectadas"} na história publicada da família.
                       </p>
                     ) : null}
+                    <p className="mt-2 rounded-md bg-cream/70 px-2 py-1 text-[11px] text-navy/60">
+                      A árvore mostra somente nomes e vínculos já liberados.
+                    </p>
                     <div className="mt-5 space-y-1">
                       {painel.geracoes.map((geracao: GeracaoArvore, gi) => (
                         <div key={geracao.id}>
@@ -128,16 +154,24 @@ export function PortalArvore() {
                             {geracao.rotulo}
                           </p>
                           <div className="flex flex-wrap justify-center gap-2">
-                            {Array.from({ length: geracao.slots }).map((_, i) => {
-                              const ehG1 = geracao.id === "G1";
-                              return (
-                                <NoArvore
-                                  key={`${geracao.id}-${i}`}
-                                  ehG1={ehG1}
-                                  estado={painel.estadoSlotAnonimo}
-                                />
-                              );
-                            })}
+                            {geracao.id === "G1" ? (
+                              <NoArvore ehG1 estado={painel.estadoSlotAnonimo} />
+                            ) : null}
+                            {pessoasDaGeracao(geracao.id).map((pessoa) => (
+                              <NoPessoa key={pessoa.chave} pessoa={pessoa} />
+                            ))}
+                            {Array.from({
+                              length: Math.max(
+                                0,
+                                geracao.slots - (geracao.id === "G1" ? 1 : 0) - pessoasDaGeracao(geracao.id).length,
+                              ),
+                            }).map((_, i) => (
+                              <NoArvore
+                                key={`${geracao.id}-${i}`}
+                                ehG1={false}
+                                estado={temConteudo ? "em_pesquisa" : painel.estadoSlotAnonimo}
+                              />
+                            ))}
                           </div>
                         </div>
                       ))}

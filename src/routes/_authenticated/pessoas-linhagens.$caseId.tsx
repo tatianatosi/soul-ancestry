@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { AbaModulos } from "@/components/genealogia/aba-modulos";
 import { AbaProjecaoCliente } from "@/components/genealogia/aba-projecao-cliente";
+import { PublicarArvoreApp } from "@/components/genealogia/publicar-arvore-app";
 import type { RegistroModulo } from "@/lib/genealogia-modulos";
 import {
   ESTADO_VALIDACAO_VARIANTE,
@@ -563,7 +564,11 @@ function Pagina() {
       ) : null}
 
       {aba === "projecao" ? (
-        <AbaProjecaoCliente perfis={perfis} relacoes={relacoes} eventos={eventos} arvore={arvore} />
+        <div className="space-y-4">
+          <AbaProjecaoCliente perfis={perfis} relacoes={relacoes} eventos={eventos} arvore={arvore} />
+          {/* Corte 2a (28/09/2026): a prévia vira publicação real, pessoa a pessoa. */}
+          <PublicarArvoreApp caseId={caseId} />
+        </div>
       ) : null}
 
       {aba === "lacunas" ? (
