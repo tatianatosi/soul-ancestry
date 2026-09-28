@@ -103,3 +103,27 @@ export function preservadoDoPlanoSalvo(linha: Record<string, unknown> | null | u
       : [];
   return { fontes, regrasAnexos: lista(linha["regras_anexos"]) };
 }
+
+/**
+ * Corte U2 (28/09/2026) — os campos da Jornada gravados no plano. Com plano
+ * salvo, o formulário grande os devolve exatamente assim (só leitura);
+ * quem edita é o cartão "Jornada do planejador". Sem plano, `null`.
+ */
+export type JornadaDoPlano = {
+  rotaConfirmada: string | null;
+  produtoPaiId: ProdutoPaiId | null;
+  proximaAcao: string | null;
+  prazoProximaAcao: string | null;
+};
+
+export function jornadaDoPlanoSalvo(linha: Record<string, unknown> | null | undefined): JornadaDoPlano | null {
+  if (!linha) return null;
+  const txt = (v: unknown) => (v == null || String(v).trim() === "" ? null : String(v).trim());
+  const prazo = txt(linha["prazo_proxima_acao"]);
+  return {
+    rotaConfirmada: txt(linha["rota_confirmada"]),
+    produtoPaiId: txt(linha["produto_pai_id"]) as ProdutoPaiId | null,
+    proximaAcao: txt(linha["proxima_acao"]),
+    prazoProximaAcao: prazo ? prazo.slice(0, 10) : null,
+  };
+}

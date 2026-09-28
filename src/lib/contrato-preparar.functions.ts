@@ -366,7 +366,11 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
     // dado vivo (condição do caso ou referência do país), nunca do lookup
     // estático legado (P22, 2026-09-26).
     const planejador = parametrosDoPlanejador(caso.codigo, skuHomologado, referenciaFinanceira);
-    for (const c of planejador.parametros) {
+    // Corte U2 (28/09/2026): partes vêm da Pessoa 360 (origem "crm"); o
+    // cadastro legado do Planejador só cobre o que a Pessoa 360 não tem.
+    const { parametrosCanonicosDoCaso, mesclarComPessoaCanonica } = await import("@/lib/contrato-partes-canonicas.server");
+    const canonicos = await parametrosCanonicosDoCaso(supabase, org, caso as { id: string; cliente_id?: string | null });
+    for (const c of mesclarComPessoaCanonica(planejador.parametros, canonicos)) {
       const atual = lista.find((v) => v.campo === c.campo);
       if (!atual || String(atual.valor ?? "").trim()) continue;
       // Corte 1: linha esvaziada pela equipe não volta preenchida sozinha.
@@ -377,7 +381,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
         .from("contract_parameter_values")
         .update({
           valor: texto,
-          origem: "planejador",
+          origem: "origem" in c ? c.origem : "planejador",
           origem_detalhe: c.detalhe,
           status: "importado_a_confirmar",
         })

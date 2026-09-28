@@ -81,7 +81,7 @@ export async function lerJornadaDoCaso(supabase: any, organizationId: string, ca
  * valor existente: só espelha o campo que veio com valor novo (mesmo
  * cuidado defensivo do espelhamento de `motivos_bloqueio` já em produção).
  */
-async function espelharProximaAcaoNoCaso(
+export async function espelharProximaAcaoNoCaso(
   supabase: any,
   input: { organizationId: string; caseId: string; userId: string; patch: Record<string, unknown> },
 ): Promise<void> {

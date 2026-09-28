@@ -10,11 +10,12 @@ import { lerPlanejadorSalvo, listarSkusPlanejador, salvarPlanejadorOperacional }
 import {
   FORMULARIO_PLANEJADOR_VAZIO,
   formularioDoPlanoSalvo,
+  jornadaDoPlanoSalvo,
   preservadoDoPlanoSalvo,
   type FormularioPlanejador,
 } from "@/lib/planejador-salvo";
 import { FASES_JORNADA, type FaseJornada } from "@/lib/onboarding-jornada";
-import { PRODUTOS_PAI_CANONICOS, type ProdutoPaiId } from "@/lib/planejador-produtos-pai";
+import { PRODUTOS_PAI_CANONICOS, produtoPaiPorId, type ProdutoPaiId } from "@/lib/planejador-produtos-pai";
 
 const ROTULO_COMPOSICAO: Record<Composicao, string> = {
   individual: "Individual",
@@ -107,13 +108,19 @@ export function PlanejadorOperacional({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Corte U2 (28/09/2026): com plano já salvo, produto-pai, rota e próxima
+  // ação têm um só lugar de edição — o cartão "Jornada do planejador" acima.
+  // Este formulário mostra esses valores só para leitura e os devolve como
+  // estão gravados, para nunca desfazer o que foi editado na Jornada.
+  const jornada = useMemo(() => jornadaDoPlanoSalvo(planoSalvo), [planoSalvo]);
+
   const entrada: EntradaPlanejador = useMemo(
     () => ({
       caseId,
       objetivo: estado.objetivo.trim() || null,
       etapa: estado.etapa.trim() || null,
       composicao: estado.composicao || null,
-      rotaConfirmada: estado.rotaConfirmada.trim() || null,
+      rotaConfirmada: jornada ? jornada.rotaConfirmada : estado.rotaConfirmada.trim() || null,
       produtoSkuCodigo: estado.produtoSkuCodigo || null,
       dadosDisponiveis: [],
       dependenciasCliente: linhas(estado.dependenciasCliente),
@@ -122,10 +129,10 @@ export function PlanejadorOperacional({
       fontes: preservado.fontes,
       // Resolvido no servidor a partir da sessão autenticada — nunca enviado pelo cliente.
       responsavelUserId: null,
-      proximaAcao: estado.proximaAcao.trim() || null,
-      prazoProximaAcao: estado.prazoProximaAcao || null,
+      proximaAcao: jornada ? jornada.proximaAcao : estado.proximaAcao.trim() || null,
+      prazoProximaAcao: jornada ? jornada.prazoProximaAcao : estado.prazoProximaAcao || null,
       faseJornada: estado.faseJornada || null,
-      produtoPaiId: estado.produtoPaiId || null,
+      produtoPaiId: jornada ? jornada.produtoPaiId : estado.produtoPaiId || null,
       checklist: linhas(estado.checklist),
       perguntas: linhas(estado.perguntas),
       marcos: linhas(estado.marcos),
@@ -133,7 +140,7 @@ export function PlanejadorOperacional({
       microentregas: linhas(estado.microentregas),
       regrasAnexos: preservado.regrasAnexos,
     }),
-    [caseId, estado, preservado],
+    [caseId, estado, preservado, jornada],
   );
 
   if (!aberto) {
@@ -235,8 +242,22 @@ export function PlanejadorOperacional({
             </span>
           ) : null}
         </label>
-        {campo("rotaConfirmada", "País/rota confirmado", "Só se já confirmado — o motor não infere")}
-        <label className="block">
+        {jornada ? (
+          <div className="rounded-lg border border-gold/40 bg-gold/5 p-3 text-xs text-navy/80 sm:col-span-2" data-planejador-jornada-leitura>
+            <p className="font-medium text-navy">Vindo da Jornada do planejador (editar no cartão acima)</p>
+            <p className="mt-1">País/rota: {jornada.rotaConfirmada ?? "—"}</p>
+            <p>
+              Produto-Pai: {jornada.produtoPaiId ? `${jornada.produtoPaiId} — ${produtoPaiPorId(jornada.produtoPaiId)?.nome ?? ""}` : "—"}
+            </p>
+            <p>
+              Próxima ação: {jornada.proximaAcao ?? "—"}
+              {jornada.prazoProximaAcao ? ` · até ${jornada.prazoProximaAcao.split("-").reverse().join("/")}` : ""}
+            </p>
+          </div>
+        ) : (
+          campo("rotaConfirmada", "País/rota confirmado", "Só se já confirmado — o motor não infere")
+        )}
+        <label className={jornada ? "hidden" : "block"}>
           <span className="text-[11px] font-medium uppercase tracking-wide text-navy/50">Produto-Pai</span>
           <select
             value={estado.produtoPaiId}
@@ -287,8 +308,8 @@ export function PlanejadorOperacional({
             ))}
           </select>
         </label>
-        {campo("proximaAcao", "Próxima ação")}
-        <label className="block">
+        {jornada ? null : campo("proximaAcao", "Próxima ação")}
+        <label className={jornada ? "hidden" : "block"}>
           <span className="text-[11px] font-medium uppercase tracking-wide text-navy/50">Prazo da próxima ação</span>
           <input
             type="date"

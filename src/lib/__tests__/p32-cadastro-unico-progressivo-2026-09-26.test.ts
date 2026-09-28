@@ -38,6 +38,8 @@ describe("P32 — estadoCampoCivilMembroCaso é genérico, cobre os campos civis
       "profissao",
       "estado_civil",
       "endereco",
+      "local_nascimento",
+      "telefone_whatsapp",
     ]);
   });
 
@@ -106,7 +108,7 @@ describe("P32 — colunas: RG e endereço divergem de nome entre case_members e 
   it("rg → rg_numero em clientes; endereco é composto (placeholder, nunca lido direto); os demais mantêm o mesmo nome", () => {
     expect(COLUNA_CLIENTE_CIVIL.rg).toBe("rg_numero");
     expect(COLUNA_MEMBRO_CIVIL.rg).toBe("rg");
-    for (const campo of CAMPOS_CIVIS_RECONCILIAVEIS.filter((c) => c !== "rg" && c !== "endereco")) {
+    for (const campo of CAMPOS_CIVIS_RECONCILIAVEIS.filter((c) => c !== "rg" && c !== "endereco" && c !== "local_nascimento")) {
       expect(COLUNA_CLIENTE_CIVIL[campo]).toBe(COLUNA_MEMBRO_CIVIL[campo]);
     }
   });

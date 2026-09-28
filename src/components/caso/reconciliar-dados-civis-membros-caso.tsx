@@ -45,6 +45,13 @@ const ESTILO_ACAO: Record<ItemPlanoCivil["acao"], string> = {
   dependente_nao_sincronizado: "border-navy/10 bg-cream/30 text-navy/55",
 };
 
+/** Boolean (telefone_whatsapp) aparece como Sim/Não, nunca true/false. */
+function exibir(v: unknown): string {
+  if (v == null || v === "") return "—";
+  if (typeof v === "boolean") return v ? "Sim" : "Não";
+  return String(v);
+}
+
 function BlocoCampoCivil({ caseId, campo, onMudou }: { caseId: string; campo: CampoCivilReconciliavel; onMudou: () => void }) {
   const conferir = useServerFn(conferirDivergenciaCampoCivilMembrosCaso);
   const [plano, setPlano] = useState<ItemPlanoCivil[] | null>(null);
@@ -116,7 +123,7 @@ function BlocoCampoCivil({ caseId, campo, onMudou }: { caseId: string; campo: Ca
                 </div>
                 {p.acao === "conflito" ? (
                   <p className="mt-1">
-                    No caso: {p.atual ?? "—"} · No cadastro canônico: {p.canonico ?? "—"} — só sinal, nada é
+                    No caso: {exibir(p.atual)} · No cadastro canônico: {exibir(p.canonico)} — só sinal, nada é
                     sobrescrito automaticamente.
                   </p>
                 ) : null}
@@ -139,7 +146,7 @@ export function PainelDadosCivisMembrosCaso({ caseId, onMudou }: { caseId: strin
         <span className="text-[11px] text-navy/55">Pessoa Canônica · nunca funde automaticamente</span>
       </div>
       <p className="mt-1 text-xs text-navy/65">
-        Nome, e-mail, RG, nacionalidade, data de nascimento, profissão, estado civil e endereço — o mesmo dado
+        Nome, e-mail, RG, nacionalidade, data de nascimento, profissão, estado civil, endereço, local de nascimento e WhatsApp — o mesmo dado
         existe em `clientes` e em `case_members` sem nunca terem sido comparados. Um painel só, um bloco por
         campo: preenche automaticamente o que está vazio a partir do cadastro canônico assim que a conferência
         carrega; conflito (os dois já preenchidos, divergentes) é só sinal — não funde, não sobrescreve.

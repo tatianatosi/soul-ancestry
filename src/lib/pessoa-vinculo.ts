@@ -128,7 +128,7 @@ export async function pessoasDoCasoComFallbackNucleo(
 ): Promise<PessoaDoCaso[]> {
   const { data: membrosCaso } = await supabase
     .from("case_members")
-    .select("id,nome,papel_no_caso,titular,contratante,dependente,cpf,telefone,cep,data_nascimento,representante_legal,status_cadastral,parentesco,requerente,nacionalidade,cliente_id,pai_id,mae_id,data_verificacao_dado,representacao_necessaria,representacao_documentada")
+    .select("id,nome,papel_no_caso,titular,contratante,dependente,cpf,telefone,telefone_whatsapp,cep,data_nascimento,local_nascimento,email,rg,profissao,estado_civil,endereco,representante_legal,status_cadastral,parentesco,requerente,nacionalidade,cliente_id,pai_id,mae_id,data_verificacao_dado,representacao_necessaria,representacao_documentada")
     .eq("case_id", caseId)
     .is("archived_at", null)
     .order("created_at", { ascending: true });
@@ -336,7 +336,9 @@ export type CampoCivilReconciliavel =
   | "data_nascimento"
   | "profissao"
   | "estado_civil"
-  | "endereco";
+  | "endereco"
+  | "local_nascimento"
+  | "telefone_whatsapp";
 
 export const CAMPOS_CIVIS_RECONCILIAVEIS: readonly CampoCivilReconciliavel[] = [
   "nome",
@@ -347,6 +349,10 @@ export const CAMPOS_CIVIS_RECONCILIAVEIS: readonly CampoCivilReconciliavel[] = [
   "profissao",
   "estado_civil",
   "endereco",
+  // Corte U2 (28/09/2026): naturalidade e "o telefone é WhatsApp" também
+  // existiam nas duas tabelas sem nunca serem comparados.
+  "local_nascimento",
+  "telefone_whatsapp",
 ];
 
 export const ROTULO_CAMPO_CIVIL: Record<CampoCivilReconciliavel, string> = {
@@ -358,6 +364,8 @@ export const ROTULO_CAMPO_CIVIL: Record<CampoCivilReconciliavel, string> = {
   profissao: "Profissão",
   estado_civil: "Estado civil",
   endereco: "Endereço",
+  local_nascimento: "Local de nascimento",
+  telefone_whatsapp: "Telefone é WhatsApp",
 };
 
 /** Nome da coluna em `case_members` para cada campo (só "rg" difere do nome canônico). */
@@ -370,6 +378,8 @@ export const COLUNA_MEMBRO_CIVIL: Record<CampoCivilReconciliavel, string> = {
   profissao: "profissao",
   estado_civil: "estado_civil",
   endereco: "endereco",
+  local_nascimento: "local_nascimento",
+  telefone_whatsapp: "telefone_whatsapp",
 };
 
 /**
@@ -387,6 +397,9 @@ export const COLUNA_CLIENTE_CIVIL: Record<CampoCivilReconciliavel, string> = {
   profissao: "profissao",
   estado_civil: "estado_civil",
   endereco: "endereco_logradouro",
+  // Corte U2: a Pessoa 360 chama de cidade de nascimento o que o caso chama de local.
+  local_nascimento: "cidade_nascimento",
+  telefone_whatsapp: "telefone_whatsapp",
 };
 
 const NORMALIZADOR_CIVIL: Record<CampoCivilReconciliavel, (s: string) => string> = {
@@ -402,6 +415,8 @@ const NORMALIZADOR_CIVIL: Record<CampoCivilReconciliavel, (s: string) => string>
   profissao: (s) => s.trim().toLowerCase(),
   estado_civil: (s) => s.trim().toLowerCase(),
   endereco: (s) => s.trim().toLowerCase().replace(/\s+/g, " "),
+  local_nascimento: (s) => s.trim().toLowerCase().replace(/\s+/g, " "),
+  telefone_whatsapp: (s) => s.trim().toLowerCase(),
 };
 
 export type EstadoCampoCivilMembro =
@@ -414,14 +429,16 @@ export type EstadoCampoCivilMembro =
 /** Mesmo mecanismo de estadoCpfMembroCaso/estadoTelefoneMembroCaso/estadoCepMembroCaso, genérico por campo. */
 export function estadoCampoCivilMembroCaso(
   campo: CampoCivilReconciliavel,
-  membro: { valor?: string | null; dependente?: boolean | null },
-  valorCanonico: string | null | undefined,
+  membro: { valor?: string | boolean | null; dependente?: boolean | null },
+  valorCanonico: string | boolean | null | undefined,
 ): EstadoCampoCivilMembro {
   if (membro.dependente) return "dependente_nao_sincronizado";
   const normalizar = NORMALIZADOR_CIVIL[campo];
-  const canonico = valorCanonico && String(valorCanonico).trim() ? normalizar(String(valorCanonico)) : "";
+  // `false` é valor (telefone_whatsapp); só null/undefined/texto vazio contam como vazio.
+  const texto = (v: unknown) => (v == null ? "" : String(v).trim());
+  const canonico = texto(valorCanonico) ? normalizar(texto(valorCanonico)) : "";
   if (!canonico) return "sem_dado_canonico";
-  const atual = membro.valor && String(membro.valor).trim() ? normalizar(String(membro.valor)) : "";
+  const atual = texto(membro.valor) ? normalizar(texto(membro.valor)) : "";
   if (atual) return atual === canonico ? "ja_sincronizado" : "conflito";
   return "preencher";
 }
@@ -437,7 +454,7 @@ export function sinalCampoCivilDaPessoaPorCaso(
     [coluna: string]: unknown;
   }[],
   clienteId: string,
-  valorCanonico: string | null | undefined,
+  valorCanonico: string | boolean | null | undefined,
 ): Record<string, { conflito: number; preencher: number }> {
   const coluna = COLUNA_MEMBRO_CIVIL[campo];
   const saida: Record<string, { conflito: number; preencher: number }> = {};

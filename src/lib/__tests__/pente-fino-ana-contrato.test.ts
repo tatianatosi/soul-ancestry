@@ -34,7 +34,8 @@ describe("pente-fino Ana — primeira cliente e contrato decente", () => {
     expect(escritor).toContain("importado_a_confirmar");
     expect(escritor).toContain("MODELO-ESTUDO");
     expect(escritor).toContain("BASE-GEN-V2");
-    expect(escritor).toContain('origem: "planejador"');
+    // Corte U2 (28/09/2026): Pessoa 360 (origem "crm") prevalece; o Planejador cobre o resto.
+    expect(escritor).toContain('origem: "origem" in c ? c.origem : "planejador"');
   });
 });
 

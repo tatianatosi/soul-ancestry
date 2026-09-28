@@ -24,7 +24,7 @@ import { pendenciaPesquisaAberta } from "@/lib/rotulo-negocio";
 import { ROTULO_ATO_FORMAL } from "@/lib/validacao-juridica-caso";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions";
-import { conferirDivergenciaCepMembrosCaso, conferirDivergenciaCpfMembrosCaso, conferirDivergenciaTelefoneMembrosCaso } from "@/lib/caso-canonico.functions";
+import { adicionarPessoaAoCaso, conferirDivergenciaCepMembrosCaso, conferirDivergenciaCpfMembrosCaso, conferirDivergenciaTelefoneMembrosCaso, listarPessoasParaCaso } from "@/lib/caso-canonico.functions";
 import { lerCadeiaOperacional } from "@/lib/cadeia-operacional.functions";
 import { EstadoIntegradoCaso } from "@/components/caso/estado-integrado";
 import { ReconciliarCpfMembrosCaso } from "@/components/caso/reconciliar-cpf-membros-caso";
@@ -2838,12 +2838,31 @@ function AbaPessoas({
     ? nucleosCarregados.some((n) => n.case_id === casoId)
     : false;
 
+  // Corte U2 (28/09/2026): a pessoa do caso é sempre uma Pessoa 360 —
+  // escolhe uma já cadastrada ou cria a nova, e o membro nasce com cliente_id.
+  const [pessoaEscolhida, setPessoaEscolhida] = useState("");
+  const carregarPessoas = useServerFn(listarPessoasParaCaso);
+  const qPessoas = useQuery({
+    queryKey: ["pessoas-para-caso"],
+    queryFn: () => carregarPessoas(),
+    retry: false,
+  });
+  const idsNoCaso = new Set(membros.map((m) => m["cliente_id"]).filter(Boolean));
+  const pessoasDisponiveis = (qPessoas.data ?? []).filter((p) => !idsNoCaso.has(p.id));
+  const adicionar = useServerFn(adicionarPessoaAoCaso);
   const mCriar = useMutation({
     mutationFn: () =>
-      criar({ data: { entidade: "case_members", dados: { case_id: casoId, nome: novo.trim() } } }),
-    onSuccess: () => {
+      adicionar({
+        data: pessoaEscolhida
+          ? { caseId: casoId, clienteId: pessoaEscolhida }
+          : { caseId: casoId, nome: novo.trim() },
+      }),
+    onSuccess: (r: { pessoaCriada: boolean }) => {
+      toast.success(r.pessoaCriada ? "Pessoa criada na Pessoa 360 e ligada ao caso." : "Pessoa ligada ao caso.");
       setNovo("");
+      setPessoaEscolhida("");
       setErro(null);
+      void qPessoas.refetch();
       onMudou();
     },
     onError: (e: unknown) => setErro(e instanceof Error ? e.message : "Falha ao criar pessoa."),
@@ -3042,21 +3061,43 @@ function AbaPessoas({
         descricao="Registro de pessoa é distinto do caso e da família. Menor de idade nunca é signatário: exige representante legal."
       >
         {erro ? <p className="mb-3 text-sm text-terracotta">{erro}</p> : null}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            aria-label="Pessoa já cadastrada"
+            className={inputCls + " max-w-xs"}
+            value={pessoaEscolhida}
+            onChange={(e) => {
+              setPessoaEscolhida(e.target.value);
+              if (e.target.value) setNovo("");
+            }}
+          >
+            <option value="">Pessoa nova (digite o nome)</option>
+            {pessoasDisponiveis.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.nome}
+                {p.email ? ` · ${p.email}` : ""}
+              </option>
+            ))}
+          </select>
           <input
             className={inputCls + " max-w-xs"}
-            placeholder="Nome completo da pessoa"
+            placeholder="Nome completo da pessoa nova"
             value={novo}
+            disabled={Boolean(pessoaEscolhida)}
             onChange={(e) => setNovo(e.target.value)}
           />
           <button
             onClick={() => mCriar.mutate()}
-            disabled={novo.trim().length < 3 || mCriar.isPending}
+            disabled={(!pessoaEscolhida && novo.trim().length < 3) || mCriar.isPending}
             className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
           >
             Adicionar pessoa
           </button>
         </div>
+        <p className="mt-2 text-xs text-navy/60">
+          Toda pessoa do caso é também uma Pessoa 360: escolha quem já está cadastrado para não repetir os dados, ou
+          crie a pessoa nova — o que for preenchido na Pessoa 360 chega a este caso e ao contrato.
+        </p>
       </Secao>
 
       {membros.length === 0 ? (

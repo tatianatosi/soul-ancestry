@@ -331,8 +331,17 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       throw new Error("Sem convenção homologada no Planejador para este caso: nada a pré-carregar.");
     }
 
+    // Corte U2 (28/09/2026): partes vêm da Pessoa 360 (origem "crm"); o
+    // cadastro legado do Planejador só cobre o que a Pessoa 360 não tem.
+    const { parametrosCanonicosDoCaso, mesclarComPessoaCanonica } = await import("@/lib/contrato-partes-canonicas.server");
+    const canonicos = await parametrosCanonicosDoCaso(supabase, orgDoCaso, caso as { id: string; cliente_id?: string | null });
     candidatos.push(
-      ...planejador.parametros.map((p) => ({ campo: p.campo, valor: p.valor, origem: "planejador", detalhe: p.detalhe })),
+      ...mesclarComPessoaCanonica(planejador.parametros, canonicos).map((p) => ({
+        campo: p.campo,
+        valor: p.valor,
+        origem: "origem" in p ? p.origem : "planejador",
+        detalhe: p.detalhe,
+      })),
     );
 
     // Exceção controlada (somente domínio comercial): quando o Planejador não

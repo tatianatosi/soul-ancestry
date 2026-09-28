@@ -27,6 +27,7 @@ import {
 import { PAPEIS_PESSOA } from "@/lib/caso-ficha";
 import { STATUS_FILA_DRIVE } from "@/lib/drive-provisioning";
 import { salvarTarefa } from "@/lib/ops.functions";
+import { sincronizarMembrosDoCaso } from "@/lib/caso-canonico.functions";
 
 export const Route = createFileRoute("/_authenticated/nucleos")({
   head: () => ({
@@ -123,6 +124,29 @@ function NucleosPage() {
   const [adicionandoEm, setAdicionandoEm] = useState<string | null>(null);
   const [novoMembro, setNovoMembro] = useState({ nome: "", papel: "dependente", vinculo: "", clienteId: "" });
   const [erroNovoMembro, setErroNovoMembro] = useState<string | null>(null);
+  // Corte U2 (28/09/2026): o escritor `sincronizarMembrosDoCaso` já existia sem
+  // tela. Aqui ele leva ao caso (case_members, com cliente_id) os membros do
+  // núcleo que ainda não estão lá — prévia primeiro, gravação só confirmada.
+  const sincronizarCaso = useServerFn(sincronizarMembrosDoCaso);
+  const [previaSinc, setPreviaSinc] = useState<{ caseId: string; nomes: string[] } | null>(null);
+  const mSincronizarCaso = useMutation({
+    mutationFn: (v: { caseId: string; confirmar: boolean }) => sincronizarCaso({ data: v }),
+    onSuccess: (r: any, v) => {
+      const plano = Array.isArray(r.plano) ? r.plano : [];
+      if (r.simulado) {
+        if (!plano.length) {
+          setPreviaSinc(null);
+          toast.info("Todos os membros com pessoa vinculada já estão no caso.");
+        } else setPreviaSinc({ caseId: v.caseId, nomes: plano.map((p: any) => String(p.nome ?? "")) });
+        return;
+      }
+      setPreviaSinc(null);
+      toast.success(`${r.criados ?? 0} membro(s) levado(s) ao caso.`);
+      void qc.invalidateQueries({ queryKey: ["ficha-caso", v.caseId] });
+      void qc.invalidateQueries({ queryKey: ["caso-canonico", v.caseId] });
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Falha ao sincronizar com o caso."),
+  });
   const mAdicionarMembro = useMutation({
     mutationFn: (v: { nucleoId: string; nome: string; papel: string; vinculo: string; clienteId: string }) =>
       adicionarMembro({
@@ -403,10 +427,42 @@ function NucleosPage() {
                     >
                       {n.caso.codigo ?? n.caso.titulo}
                     </Link>
+                    {" · "}
+                    <button
+                      type="button"
+                      disabled={mSincronizarCaso.isPending}
+                      onClick={() => mSincronizarCaso.mutate({ caseId: n.caso!.id, confirmar: false })}
+                      className="text-navy underline underline-offset-2 disabled:opacity-50"
+                      data-nucleo-sincronizar-caso
+                    >
+                      Levar membros ao caso
+                    </button>
                   </p>
                 ) : (
                   <p className="mt-2 text-xs text-navy/45">Sem caso operacional vinculado.</p>
                 )}
+
+                {n.caso && previaSinc?.caseId === n.caso.id ? (
+                  <div className="mt-2 rounded-lg border border-gold/40 bg-gold/5 px-3 py-2 text-[11px] text-navy">
+                    <p>
+                      Vão entrar no caso (só quem tem pessoa vinculada e ainda não está lá): {previaSinc.nomes.join(", ")}.
+                      Nada é sobrescrito.
+                    </p>
+                    <div className="mt-1 flex gap-2">
+                      <button
+                        type="button"
+                        disabled={mSincronizarCaso.isPending}
+                        onClick={() => mSincronizarCaso.mutate({ caseId: previaSinc.caseId, confirmar: true })}
+                        className="rounded-md bg-navy px-2 py-1 text-cream disabled:opacity-50"
+                      >
+                        Confirmar
+                      </button>
+                      <button type="button" onClick={() => setPreviaSinc(null)} className="rounded-md border border-navy/15 px-2 py-1">
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
 
                 {n.caso && casosDuplicados.has(n.caso.id) ? (
                   <p className="mt-2 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-[11px] text-navy">
@@ -684,7 +740,14 @@ function NucleosPage() {
                             ajuda="Só por escolha sua — nunca por coincidência de nome."
                             valor={novoMembro.clienteId}
                             opcoes={clientes.map((c) => ({ valor: c.id, rotulo: c.nome }))}
-                            onChange={(v) => setNovoMembro({ ...novoMembro, clienteId: v })}
+                            onChange={(v) => {
+                              // Corte U2: escolher a pessoa traz o nome da Pessoa 360 — não se digita de novo.
+                              const anterior = clientes.find((c) => c.id === novoMembro.clienteId)?.nome ?? "";
+                              const escolhido = clientes.find((c) => c.id === v)?.nome ?? "";
+                              const nomeDigitado = novoMembro.nome.trim();
+                              const nome = escolhido && (!nomeDigitado || nomeDigitado === anterior) ? escolhido : novoMembro.nome;
+                              setNovoMembro({ ...novoMembro, clienteId: v, nome });
+                            }}
                           />
                         )}
                       </EstadoDados>

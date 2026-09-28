@@ -1344,3 +1344,125 @@ export const atualizarGrupoComunicacaoCaso = createServerFn({ method: "POST" })
 
     return { ok: true, salvoEm: r.salvoEm };
   });
+
+/**
+ * Corte U2 (28/09/2026) — "Adicionar pessoa" no Caso 360 deixa de criar
+ * `case_members` solto (sem `cliente_id`, e sem `parentesco`, coluna
+ * NOT NULL — o insert antigo falhava). Agora a pessoa é SEMPRE uma Pessoa
+ * 360 (`clientes`): escolhe uma existente da organização ou cria uma nova
+ * com o nome digitado, e o membro do caso nasce ligado a ela. Assim os
+ * reconciliadores (CPF, telefone, CEP, dados civis) alcançam o membro e
+ * nenhum dado é perguntado duas vezes. Nunca funde por nome: escolher uma
+ * pessoa existente é decisão humana explícita no seletor.
+ */
+export const adicionarPessoaAoCaso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string; clienteId?: string | null; nome?: string | null; parentesco?: string | null }) => {
+    if (!data?.caseId) throw new Error("Caso não informado.");
+    const nome = (data.nome ?? "").trim();
+    if (!data.clienteId && nome.length < 3) throw new Error("Escolha uma pessoa já cadastrada ou digite o nome completo (mínimo 3 letras).");
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    const userId = context.userId as string;
+
+    const { data: caso } = await supabase
+      .from("crm_casos")
+      .select("id")
+      .eq("id", data.caseId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (!caso) throw new Error("Caso não encontrado nesta organização.");
+
+    let clienteId = data.clienteId ?? null;
+    let nome = (data.nome ?? "").trim();
+    let pessoaCriada = false;
+    if (clienteId) {
+      const { data: cliente } = await supabase
+        .from("clientes")
+        .select("id,nome")
+        .eq("id", clienteId)
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+      if (!cliente) throw new Error("Pessoa não encontrada nesta organização.");
+      nome = String(cliente.nome ?? "").trim();
+      const { data: jaNoCaso } = await supabase
+        .from("case_members")
+        .select("id")
+        .eq("case_id", data.caseId)
+        .eq("organization_id", organizationId)
+        .eq("cliente_id", clienteId)
+        .is("archived_at", null)
+        .limit(1);
+      if ((jaNoCaso ?? []).length) throw new Error(`${nome} já faz parte deste caso.`);
+    } else {
+      const novaPessoa = await inserirComVerificacao({
+        supabase,
+        tabela: "clientes",
+        organizationId,
+        userId,
+        payload: { nome },
+      });
+      clienteId = novaPessoa.id;
+      pessoaCriada = true;
+    }
+
+    const membro = await inserirComVerificacao({
+      supabase,
+      tabela: "case_members",
+      organizationId,
+      userId,
+      payload: {
+        case_id: data.caseId,
+        cliente_id: clienteId,
+        nome,
+        parentesco: (data.parentesco ?? "").trim() || "a informar",
+        fonte_origem_dado: pessoaCriada ? "caso_360_pessoa_nova" : "caso_360_pessoa_existente",
+      },
+    });
+
+    await supabase.from("audit_logs").insert({
+      organization_id: organizationId,
+      entidade: "case_members",
+      entidade_id: membro.id,
+      acao: "pessoa_adicionada_ao_caso",
+      user_id: userId,
+      metadados: { case_id: data.caseId, cliente_id: clienteId, pessoa_criada: pessoaCriada },
+    });
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: data.caseId,
+      eventType: "caso",
+      title: `${nome} adicionada(o) ao caso`,
+      summaryInternal: pessoaCriada
+        ? "Pessoa nova criada na Pessoa 360 e ligada ao caso."
+        : "Pessoa já cadastrada na Pessoa 360 ligada ao caso.",
+      sourceEntityType: "case_members",
+      sourceEntityId: membro.id,
+      userId,
+    });
+
+    return { ok: true, membroId: membro.id, clienteId, pessoaCriada, salvoEm: membro.salvoEm };
+  });
+
+/** Seletor leve de pessoas da organização para o Caso 360 (só id e nome). */
+export const listarPessoasParaCaso = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    semCache();
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    const { data } = await supabase
+      .from("clientes")
+      .select("id,nome,email")
+      .eq("organization_id", organizationId)
+      .is("archived_at", null)
+      .order("nome");
+    return ((data ?? []) as { id: string; nome: string | null; email: string | null }[]).map((c) => ({
+      id: c.id,
+      nome: c.nome ?? "",
+      email: c.email ?? null,
+    }));
+  });

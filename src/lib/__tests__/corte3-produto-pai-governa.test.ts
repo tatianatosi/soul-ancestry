@@ -139,6 +139,7 @@ describe("a tela do planejador deixa escolher o produto-pai", () => {
   });
 
   it("envia o escolhido, e nulo quando não escolhido", () => {
-    expect(form).toContain("produtoPaiId: estado.produtoPaiId || null");
+    // Corte U2 (28/09/2026): com plano salvo, o produto-pai vem da Jornada (só leitura).
+    expect(form).toContain("produtoPaiId: jornada ? jornada.produtoPaiId : estado.produtoPaiId || null");
   });
 });

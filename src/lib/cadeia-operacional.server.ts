@@ -188,6 +188,22 @@ export async function sincronizarPlanejador(
     planId = data.id;
   }
 
+  // Corte U2 (28/09/2026): a próxima ação do formulário grande chega ao caso
+  // pelo mesmo espelho da Jornada — Painel Hoje/Ficha/Lista leem crm_casos.
+  // Import dinâmico: jornada-planejador.server não deve virar dependência
+  // estática deste módulo (evita ciclo). Nunca apaga valor existente.
+  const { espelharProximaAcaoNoCaso } = await import("@/lib/jornada-planejador.server");
+  await espelharProximaAcaoNoCaso(supabase, {
+    organizationId: input.org,
+    caseId: caso.id as string,
+    userId: input.userId,
+    patch: {
+      proxima_acao: payload.proxima_acao,
+      prazo_proxima_acao: payload.prazo_proxima_acao,
+      responsavel_user_id: payload.responsavel_user_id,
+    },
+  });
+
   await auditar(supabase, {
     org: input.org,
     userId: input.userId,
