@@ -576,7 +576,7 @@ export const ROTULO_CAMPO_ROTEIRO: Record<string, string> = {
   pendencia_documental_prioritaria: "Pendência documental prioritária",
   complexidade_documental: "Complexidade documental",
   confianca_triagem: "Confiança da triagem",
-  via_juridica_preliminar: "Via jurídica preliminar",
+  via_juridica_preliminar: "Hipótese de rota — via preliminar (pendente de validação humana)",
   status_via: "Status da via",
   trilha_referencia_id: "Trilha jurídica de referência",
   marco_referencia_id: "Marco jurídico de referência",

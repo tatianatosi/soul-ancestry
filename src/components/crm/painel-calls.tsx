@@ -10,15 +10,22 @@ import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { CaCard } from "@/components/ui/ca-card";
 import { decidirSugestaoDiscovery, listarLeadsDesk, salvarLeadDesk, trilhaDoLead } from "@/lib/crm-desk.functions";
-import { consentimentoTranscricao, normalizarRegistro, type DecisaoSugestao } from "@/lib/discovery-registro";
+import { consentimentoTranscricao, normalizarRegistro, type DecisaoSugestao, type RegistroDiscovery } from "@/lib/discovery-registro";
+import {
+  AberturaConsentimentos,
+  BlocoSpinCard,
+  DecisoesDiscovery,
+  ExtensoesPais,
+  FechamentoPosCall,
+  RespostaNarrativa,
+} from "@/components/crm/mesa-roteiro-mestre";
 import { executarHandoffDiscovery } from "@/lib/handoff-discovery.functions";
 import { podeExecutarHandoffDiscovery } from "@/lib/handoff-discovery";
-import { salvarTarefa } from "@/lib/ops.functions";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
 import {
   CANAIS_CONSENTIMENTO,
   CATALOGOS,
-  CONSENTIMENTO_STATUS,
+  leadForaDoPipeline,
   DOCUMENTOS_CHAVE,
   NACIONALIDADES,
   PESQUISA_PREVIA_ESCOPO,
@@ -119,15 +126,14 @@ function MesaDiscovery({
   indice,
   onIndice,
   renderCampo,
-  onTarefa,
-  tarefaPendente,
+  roteiro,
 }: {
   lead: LeadDesk;
   indice: number;
   onIndice: (n: number) => void;
   renderCampo: (campoId: string) => ReactNode;
-  onTarefa: () => void;
-  tarefaPendente: boolean;
+  /** Roteiro vivo (27/09/2026): bloco SPIN, resposta narrativa e extensões por país gravam no lead. */
+  roteiro: { lead: LeadDesk; registro: RegistroDiscovery; onSalvo: () => void; onAviso: (t: string) => void } | null;
 }) {
   const i = Math.min(Math.max(indice, 0), PERGUNTAS_MESA.length - 1);
   const atual = PERGUNTAS_MESA[i]!;
@@ -165,6 +171,8 @@ function MesaDiscovery({
         </Selo>
       </div>
 
+      {roteiro ? <BlocoSpinCard {...roteiro} etapa={atual.etapa} /> : null}
+
       <div
         data-mesa-discovery
         data-pergunta={atual.id}
@@ -183,22 +191,9 @@ function MesaDiscovery({
           {atual.campos.map((c) => renderCampo(c))}
         </div>
 
-        {atual.campos.includes("proxima_acao") ? (
-          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-navy/10 pt-3">
-            <button
-              type="button"
-              disabled={!lead.case_id || !lead.proxima_acao || !lead.proxima_acao_em || tarefaPendente}
-              onClick={onTarefa}
-              title={
-                lead.case_id
-                  ? "Cria ou reaproveita a tarefa no caso a partir da próxima ação."
-                  : "Só disponível depois do handoff, quando o lead já tem caso."
-              }
-              className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy hover:bg-navy/5 disabled:opacity-40"
-            >
-              Criar/atualizar tarefa desta próxima ação
-            </button>
-          </div>
+        {roteiro ? <RespostaNarrativa {...roteiro} perguntaId={atual.id} /> : null}
+        {roteiro && atual.etapa === "situacao" && i === PERGUNTAS_MESA.filter((p) => p.etapa === "situacao").length - 1 ? (
+          <ExtensoesPais {...roteiro} />
         ) : null}
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -339,8 +334,15 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
 
   const hoje = new Date().toISOString();
   const visiveis = useMemo(
-    () => (leads as LeadDesk[]).filter((l) => (mostrarTeste ? true : !l.dados_teste)),
-    [leads, mostrarTeste],
+    () =>
+      (leads as LeadDesk[]).filter(
+        (l) =>
+          (mostrarTeste ? true : !l.dados_teste) &&
+          // CRM Vivo (27/09/2026): lead convertido em caso ou encerrado sai do
+          // pipeline; só continua visível se foi aberto de propósito (link).
+          (!leadForaDoPipeline(l as LeadDesk & { archived_at?: string | null }) || l.id === selecionado),
+      ),
+    [leads, mostrarTeste, selecionado],
   );
   const filas = useMemo(() => filasCalls(visiveis, hoje), [visiveis, hoje]);
   const resumo = useMemo(() => resumoCalls(visiveis, hoje), [visiveis, hoje]);
@@ -563,25 +565,13 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
   const campo = (c: keyof LeadDesk) => String((lead?.[c] as string | null | undefined) ?? "");
   const campoArray = (c: keyof LeadDesk) => ((lead?.[c] as string[] | null | undefined) ?? []) as string[];
 
-  // Item 6 da missão: só cria/atualiza tarefa quando há consequência real —
-  // responsável + prazo definidos E já existe caso (antes do handoff, a
-  // "próxima ação" do próprio lead já é o registro; tarefa é coisa de caso).
-  const criarTarefaFn = useServerFn(salvarTarefa);
-  const mTarefaProximaAcao = useMutation({
-    mutationFn: () =>
-      criarTarefaFn({
-        data: {
-          valores: {
-            caso_id: lead?.case_id,
-            titulo: `${rotulo("proxima_acao", lead?.proxima_acao)} — ${lead?.nome}`,
-            prazo: lead?.proxima_acao_em,
-            tipo: "discovery",
-          },
-        },
-      }),
-    onSuccess: () => setAviso("Tarefa criada/reaproveitada no caso a partir da próxima ação."),
-    onError: (e: Error) => setAviso(e.message),
-  });
+  // Roteiro mestre (27/09/2026): o botão que criava tarefa no caso a partir
+  // da próxima ação do lead saiu — antes do case_id nada vai ao Desk, e
+  // depois dele a próxima ação é a do caso (Caso 360 / Planejador).
+  const recarregarLead = () => {
+    void qc.invalidateQueries({ queryKey: ["leads-desk"] });
+    void qc.invalidateQueries({ queryKey: ["trilha-lead"] });
+  };
 
   /**
    * Controle de um campo dentro do card da pergunta SPIN.
@@ -975,12 +965,14 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 descricao="Consentimento de gravação antes de qualquer transcrição — verificado antes da conversa, não misturado ao registro dela."
               >
                 <div className="grid gap-3 md:grid-cols-3">
-                  <Selecao
-                    label="Consentimento de gravação"
-                    valor={campo("consentimento_status")}
-                    opcoes={CONSENTIMENTO_STATUS}
-                    onChange={set("consentimento_status")}
-                  />
+                  {/* Roteiro mestre (27/09/2026): um só lugar grava o consentimento de gravação — "Abertura e consentimentos". */}
+                  <div data-consentimento-gravacao-leitura>
+                    <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">Consentimento de gravação</p>
+                    <p className="mt-1 text-sm text-navy">
+                      {rotulo("consentimento_status", leadBase?.consentimento_status ?? null)}
+                    </p>
+                    <p className="text-[11px] text-navy/50">Registre em “Abertura e consentimentos”, logo abaixo.</p>
+                  </div>
                   <Selecao
                     label="Canal do consentimento"
                     valor={campo("consentimento_canal")}
@@ -995,6 +987,19 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                   />
                 </div>
               </Secao>
+
+              {lead.id ? (
+                <div className="space-y-3">
+                  <DecisoesDiscovery registro={registroDiscovery} />
+                  <TrilhaDoLead leadId={lead.id} />
+                  <AberturaConsentimentos
+                    lead={leadBase as LeadDesk}
+                    registro={registroDiscovery}
+                    onSalvo={recarregarLead}
+                    onAviso={setAviso}
+                  />
+                </div>
+              ) : null}
 
               <Secao
                 titulo={`Registro da call — ${lead.nome}`}
@@ -1083,9 +1088,17 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 indice={indicePergunta}
                 onIndice={setIndicePergunta}
                 renderCampo={renderCampoRoteiro}
-                onTarefa={() => mTarefaProximaAcao.mutate()}
-                tarefaPendente={mTarefaProximaAcao.isPending}
+                roteiro={
+                  leadBase?.id
+                    ? { lead: leadBase, registro: registroDiscovery, onSalvo: recarregarLead, onAviso: setAviso }
+                    : null
+                }
               />
+              {leadBase?.id ? (
+                <div className="mt-3">
+                  <FechamentoPosCall lead={leadBase} registro={registroDiscovery} onSalvo={recarregarLead} onAviso={setAviso} />
+                </div>
+              ) : null}
               <div className="mt-3">
                 <Pendencias
                   titulo="Bloqueios da qualificação"
@@ -1247,8 +1260,6 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                   trilhaJaEscolhida={Boolean(lead.trilha_referencia_id)}
                 />
               ) : null}
-              {lead.id ? <TrilhaDoLead leadId={lead.id} /> : null}
-
             </>
           )}
         </div>

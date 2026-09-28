@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { CaCard } from "@/components/ui/ca-card";
 import { filaDeAprovacoes, resumoAprovacoes, type ItemAprovacao } from "@/lib/golive-aprovacoes";
 import { kanbanPorEtapa, type LeadComercial } from "@/lib/golive-comercial";
+import { rotulo as rotuloCrm } from "@/lib/crm-desk";
 import { concluida } from "@/lib/golive-microentregas";
 import {
   casosPorPaisVia,
@@ -364,6 +365,39 @@ function PainelConsolidado() {
       {/* §11 linhas 8, 10 e 11 — funil, ritmo e prioridades, cada um sobre a
           função canônica que a tela de /golive já usa. */}
       <div className="mb-6 grid gap-4 lg:grid-cols-3">
+        <CaCard titulo="Próximas ações comerciais" eyebrow="Mesmo registro do lead — /calls, /leads e /proximas-acoes">
+          {(() => {
+            // CRM Vivo (27/09/2026): uma só próxima ação por lead, o mesmo
+            // `leads.id` das outras telas, com link para a origem (Mesa Discovery).
+            const comAcao = leads
+              .filter((l) => l.proximoPasso)
+              .sort((a, b) => String(a.proximoPassoEm ?? "9999").localeCompare(String(b.proximoPassoEm ?? "9999")))
+              .slice(0, 8);
+            if (!comAcao.length) return <EstadoVazio mensagem="Nenhum lead do pipeline com próxima ação registrada." />;
+            return (
+              <ul className="space-y-1.5" data-proximas-acoes-hoje>
+                {comAcao.map((l) => (
+                  <li key={l.id} className="flex flex-wrap items-baseline justify-between gap-2 text-xs">
+                    <Link
+                      to="/calls"
+                      search={{ lead: l.id }}
+                      data-link-origem-lead={l.id}
+                      className="text-navy underline decoration-gold/60 underline-offset-2"
+                    >
+                      {l.nome}
+                    </Link>
+                    <span className="text-navy/70">
+                      {rotuloCrm("proxima_acao", l.proximoPasso)}
+                      {l.proximoPassoEm ? ` · ${String(l.proximoPassoEm).slice(0, 10)}` : ""}
+                      {l.responsavel ? ` · ${l.responsavel}` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            );
+          })()}
+        </CaCard>
+
         <CaCard titulo="Funil de leads" eyebrow="Fonte: etapa comercial gravada">
           {funilLeads.length === 0 ? (
             <EstadoVazio mensagem="Nenhum lead com etapa registrada." />

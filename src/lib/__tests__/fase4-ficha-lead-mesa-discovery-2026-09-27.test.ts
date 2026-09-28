@@ -19,7 +19,9 @@ describe("Fase 4 — Mesa Discovery (/calls) organizada em 7 blocos", () => {
   it("bloco 2 — preparação pré-call: consentimento separado do registro da call", () => {
     const inicio = pagina.indexOf('titulo="Preparação pré-call"');
     expect(inicio).toBeGreaterThan(-1);
-    const trecho = pagina.slice(inicio, inicio + 1100);
+    // Roteiro mestre (28/09/2026): o bloco ganhou a leitura do consentimento
+    // de gravação (um só escritor, em "Abertura e consentimentos").
+    const trecho = pagina.slice(inicio, pagina.indexOf("Registro da call", inicio));
     expect(trecho).toContain("Consentimento de gravação");
     expect(trecho).toContain("Canal do consentimento");
     expect(trecho).toContain("Consentimento registrado em");

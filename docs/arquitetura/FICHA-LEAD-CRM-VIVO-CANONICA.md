@@ -68,3 +68,72 @@ Suíte completa e `vite build` — ver rodapé do commit.
 3. Depois do roteiro SPIN, conferir "Síntese de Discovery" (mesmos sinais
    que já apareciam em `/leads`) e, em seguida, "Decisão e handoff" com o
    resumo de resultado + próxima ação + prazo + responsável juntos.
+
+---
+
+## Roteiro mestre e CRM Vivo executados (27–28/09/2026)
+
+Fonte: documentos da Proprietária de 10–11/08/2026 ("Bloco Discovery",
+"Pente-Fino Final", "Auditoria Final do SPIN e Esquema de Campos", "Adendo —
+Ficha Piloto"). Só o que está no código está listado aqui.
+
+### Contrato de dados
+
+- **Oportunidade = o lead canônico** (`leads.id`). Não existe segunda
+  entidade de oportunidade ativa.
+- **Próxima ação = `leads.proxima_acao` + `proxima_acao_em` +
+  `responsavel_nome`**, lida pelo mesmo `id` em `/calls`, `/leads`,
+  `/proximas-acoes` e Hoje (`/painel`, cartão "Próximas ações comerciais"),
+  sempre com link `/calls?lead=<id>`. Nenhuma tarefa do Desk é criada a partir
+  do lead: antes do `case_id` nada vai ao Desk; depois dele, a próxima ação é
+  a do caso (Caso 360 / Planejador de Cidadania).
+- **Pipeline:** Leads → Discovery → Diagnóstico → Proposta → Contrato
+  (`etapaPipeline`, derivada dos eixos existentes). Lead com `case_id`,
+  cliente ativo, perdido ou encerrado sai do pipeline (`leadForaDoPipeline`)
+  em `/calls`, `/leads` (salvo "Mostrar convertidos"), `/proximas-acoes` e Hoje.
+- **Registro da Discovery = `leads.discovery_registro`** (jsonb, migration
+  `20260927140000`, aplicada): blocos SPIN (nota, dispensa com motivo),
+  respostas narrativas por pergunta com origem (relato, WhatsApp, documento
+  visto/recebido, a confirmar; "não sabe / não tem agora" = lacuna), decisões
+  sobre sugestões da varredura (aceita/rejeitada/hipótese, com fonte, autor,
+  trecho e data), pós-call e os 4 consentimentos. A conversa inteira nunca é
+  gravada. O App Cliente nunca lê este registro.
+
+### Tela `/calls` (ordem)
+
+Contexto do lead → Preparação pré-call → Histórico da Discovery + trilha →
+**Abertura e consentimentos** (contato, dados, gravação/transcrição,
+documentos — separados; gravação espelha `consentimento_status`) →
+Varredura (só com gravação/transcrição concedida; fala de
+Consultor/Atendente/Equipe ignorada) → **SPIN** (uma pergunta por vez;
+card do bloco com estado, nota e dispensa com motivo; resposta estruturada
++ resposta narrativa; extensões curtas por país ao fim da Situação) →
+**Fechamento e pós-call** (nível 1 sempre; nível 2 quando qualifica;
+pendência informa, não trava) → Síntese → Decisão e handoff.
+
+### Legado de referência, sem escritor
+
+| Material | Situação |
+|---|---|
+| Planilha Mestre / catálogo / SKU | Legado. Não governa produto, preço, escopo nem jornada. Em `/leads`, `sku_referencia` é só leitura, rotulado legado. Depois da conversão, o Planejador de Cidadania (`case_plans`) governa. |
+| CRM Mestre conceitual (`/crm-mestre`, `opportunities`/`discovery_assessments`) | Referência/dicionário. Não é fonte de escrita do CRM operacional. |
+| OPS / CA OPS | Referência. Não é CRM operacional nem pipeline. |
+| Dossiê-mãe no lead (`dossie_*`) | Só leitura em `/leads`; o dono é o Núcleo familiar. |
+| `leads.nacionalidade` (valor único) | Só leitura; país de interesse é `nacionalidades_interesse`. |
+
+### Mensagens de WhatsApp dos gaps (rascunho, não publicar nem automatizar)
+
+1. Pós-call: "Oi [NOME], obrigada pela conversa de hoje. Resumindo: vamos [PRÓXIMO PASSO] até [PRAZO]. Qualquer dúvida, estou aqui."
+2. Reativação 3+ meses: "Oi [NOME], lembrei de você e da história da família [SOBRENOME]. Se quiser retomar, estou à disposição — sem pressa."
+3. Onboarding: "Oi [NOME], bem-vinda ao seu espaço no Clube Ancestral. Para começar, preciso de: [LISTA]. Pode enviar quando tiver."
+4. Pós-entrega: "Oi [NOME], seu relatório foi entregue. Espero que a família aproveite cada descoberta."
+5. Proposta recusada: "Entendo, [NOME]. É uma decisão importante e o momento precisa ser o certo. Fico à disposição."
+
+### Não feito (fora deste corte)
+
+- Levar a triagem da Discovery ao caso no handoff (linha, geração, localidades,
+  autorização de pesquisa) — próximo corte do plano.
+- Prova autenticada da Proprietária (prints) — `NAO_LOCALIZADO`.
+
+Testes: `crm-vivo-roteiro-mestre-2026-09-28.test.ts`,
+`mesa-discovery-viva-2026-09-27.test.ts`.

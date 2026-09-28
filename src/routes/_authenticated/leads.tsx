@@ -51,6 +51,14 @@ import { ETAPAS_SPIN, progressoSpin, sinaisQualidadeLead, spinDerivadoDoLead } f
 import { calcularRadar } from "@/lib/radar-elegibilidade";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
 import { formatarTelefone } from "@/lib/validacao-pessoa";
+import { leadForaDoPipeline, etapaPipeline, ROTULO_ETAPA_PIPELINE } from "@/lib/crm-desk";
+import {
+  INDICADORES_LEADS,
+  indicadoresLeads,
+  leadNoIndicador,
+  leadValidoParaIndicadores,
+  type IndicadorLeads,
+} from "@/lib/crm-vivo-metricas";
 
 export const Route = createFileRoute("/_authenticated/leads")({
   head: () => ({
@@ -93,6 +101,8 @@ function LeadsPage() {
   const [rascunho, setRascunho] = useState<Record<string, unknown>>({});
   const [leadPendente, setLeadPendente] = useState<string | null>(null);
   const [filtroEixo, setFiltroEixo] = useState("");
+  const [mostrarConvertidos, setMostrarConvertidos] = useState(false);
+  const [indicadorAtivo, setIndicadorAtivo] = useState<IndicadorLeads | null>(null);
   const [filtroArea, setFiltroArea] = useState("");
   // CA10-MARKETING-CONTEUDO-VIVO (09/09/2026): filtro de origem já existia
   // como campo do lead, nunca como filtro da lista — Marketing agora abre
@@ -171,7 +181,12 @@ function LeadsPage() {
     onError: (e: Error) => setMsg(e.message),
   });
 
+  const hojeIndicadores = new Date();
+  const contagemIndicadores = indicadoresLeads(leads as never, hojeIndicadores);
   const visiveis = leads.filter((l) => {
+    // CRM Vivo (27/09/2026): convertido em caso ou encerrado sai do pipeline, salvo pedido explícito.
+    if (!mostrarConvertidos && leadForaDoPipeline(l as never)) return false;
+    if (indicadorAtivo && !(leadValidoParaIndicadores(l as never) && leadNoIndicador(l as never, indicadorAtivo, hojeIndicadores))) return false;
     if (filtroEixo && l.eixo_comercial !== filtroEixo) return false;
     if (filtroArea && l.area_responsavel !== filtroArea) return false;
     if (filtroOrigem && l.origem !== filtroOrigem) return false;
@@ -213,6 +228,27 @@ function LeadsPage() {
             "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
         </p>
       ) : null}
+      {/* CRM Vivo (27/09/2026): 5 indicadores acionáveis, só leads reais do pipeline. Clique filtra a lista. */}
+      <div className="mb-4 grid gap-2 sm:grid-cols-3 lg:grid-cols-5" data-indicadores-leads>
+        {INDICADORES_LEADS.map((i) => (
+          <button
+            key={i.chave}
+            type="button"
+            data-indicador={i.chave}
+            onClick={() => setIndicadorAtivo((a) => (a === i.chave ? null : i.chave))}
+            className={`rounded-xl border px-3 py-2 text-left ${
+              indicadorAtivo === i.chave ? "border-gold bg-gold/15" : "border-navy/10 bg-cream/40"
+            }`}
+          >
+            <p className="text-[11px] uppercase tracking-wide text-navy/55">{i.rotulo}</p>
+            <p className="font-serif text-2xl text-navy">{contagemIndicadores[i.chave]}</p>
+          </button>
+        ))}
+      </div>
+      <label className="mb-4 flex items-center gap-2 text-xs text-navy/70">
+        <input type="checkbox" checked={mostrarConvertidos} onChange={(e) => setMostrarConvertidos(e.target.checked)} />
+        Mostrar convertidos/encerrados (fora do pipeline)
+      </label>
       <NovoLeadDialog
         aberto={novoLeadAberto}
         onFechar={() => setNovoLeadAberto(false)}
@@ -280,6 +316,9 @@ function LeadsPage() {
                   >
                     <span className="block font-medium text-navy">
                       {l.codigo ?? "—"} · {l.nome}
+                      <span className="ml-2 text-[10px] uppercase tracking-wide text-navy/55" data-etapa-pipeline>
+                        {leadForaDoPipeline(l as never) ? "Fora do pipeline" : ROTULO_ETAPA_PIPELINE[etapaPipeline(l)]}
+                      </span>
                       {l.dados_teste ? (
                         <span className="ml-2 rounded border border-navy/20 bg-cream px-1.5 py-0.5 align-middle text-[10px] uppercase tracking-wide text-navy/60">
                           dado de teste
@@ -510,14 +549,19 @@ function LeadsPage() {
           <Secao titulo="Objetivo e linha preliminar" descricao="Leitura interna preliminar; não é parecer jurídico.">
             <div className="grid gap-3 md:grid-cols-2">
               <Selecao label="Objetivo" valor={campo("objetivo")} opcoes={OBJETIVOS} onChange={set("objetivo")} />
+              {/* CRM Vivo (27/09/2026): país de interesse tem um só campo editável —
+                  "Nacionalidades de interesse", abaixo. O valor único antigo fica só leitura. */}
+              {campo("nacionalidade") ? (
+                <div data-nacionalidade-legado>
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">Nacionalidade (registro antigo)</p>
+                  <p className="mt-1 text-sm text-navy">
+                    {NACIONALIDADES.find((o) => o.valor === campo("nacionalidade"))?.rotulo ?? campo("nacionalidade")}
+                  </p>
+                  <p className="text-[11px] text-navy/50">Use “Nacionalidades de interesse” para registrar países.</p>
+                </div>
+              ) : null}
               <Selecao
-                label="Nacionalidade de interesse"
-                valor={campo("nacionalidade")}
-                opcoes={NACIONALIDADES}
-                onChange={set("nacionalidade")}
-              />
-              <Selecao
-                label="Via jurídica preliminar"
+                label="Hipótese de rota — via preliminar (pendente de validação humana)"
                 valor={campo("via_juridica_preliminar")}
                 opcoes={VIAS_JURIDICAS}
                 onChange={set("via_juridica_preliminar")}
@@ -618,31 +662,21 @@ function LeadsPage() {
             titulo="Dossiê-mãe autorizado"
             descricao="Dossiê só fica ativo com identificação, ambiente autorizado, link interno, nível de acesso e responsável nominal. Nada disso aparece em área de cliente."
           >
-            <div className="grid gap-3 md:grid-cols-2">
-              <label className="flex items-end gap-2 text-sm text-navy">
-                <input
-                  type="checkbox"
-                  checked={bool("dossie_ativo")}
-                  onChange={(e) => set("dossie_ativo")(e.target.checked)}
-                />
-                Dossiê-mãe ativo
-              </label>
-              <Texto label="Dossiê do cliente (referência interna)" valor={campo("dossie_link_interno")} onChange={set("dossie_link_interno")} />
-              <Texto label="ID/nome do dossiê-mãe" valor={campo("dossie_mae_ref")} onChange={set("dossie_mae_ref")} />
-              <Selecao
-                label="Ambiente autorizado"
-                valor={campo("dossie_ambiente")}
-                opcoes={AMBIENTES_DOSSIE}
-                onChange={set("dossie_ambiente")}
-              />
-              <Selecao
-                label="Nível de acesso"
-                valor={campo("dossie_nivel_acesso")}
-                opcoes={NIVEIS_ACESSO_DOSSIE}
-                onChange={set("dossie_nivel_acesso")}
-              />
-              <Texto label="Responsável pelo dossiê" valor={campo("dossie_responsavel")} onChange={set("dossie_responsavel")} />
+            {/* CRM Vivo (27/09/2026): o dono do dossiê-mãe é o Núcleo familiar
+                (nucleos_familiares.dossie_*). Aqui é só leitura do que o lead já tinha. */}
+            <div className="grid gap-2 text-sm text-navy md:grid-cols-2" data-dossie-somente-leitura>
+              <p>Ativo no lead: {bool("dossie_ativo") ? "sim" : "não"}</p>
+              <p>Referência: {campo("dossie_mae_ref") || "—"}</p>
+              <p>Ambiente: {AMBIENTES_DOSSIE.find((o) => o.valor === campo("dossie_ambiente"))?.rotulo ?? (campo("dossie_ambiente") || "—")}</p>
+              <p>Nível de acesso: {NIVEIS_ACESSO_DOSSIE.find((o) => o.valor === campo("dossie_nivel_acesso"))?.rotulo ?? (campo("dossie_nivel_acesso") || "—")}</p>
+              <p>Responsável: {campo("dossie_responsavel") || "—"}</p>
             </div>
+            <p className="mt-2 text-xs text-navy/60">
+              Dossiê-mãe é do Núcleo familiar.{" "}
+              <Link to="/nucleos" className="underline decoration-gold underline-offset-2">
+                Abrir Núcleos
+              </Link>
+            </p>
           </Secao>
 
 
@@ -807,7 +841,12 @@ function LeadsPage() {
                   })}
                 </div>
               </div>
-              <Texto label="Referência de SKU (catálogo homologado)" valor={campo("sku_referencia")} onChange={set("sku_referencia")} />
+              {/* Catálogo/SKU/Planilha Mestre é legado: não governa proposta, preço nem escopo. */}
+              <div data-sku-legado>
+                <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">Referência de SKU</p>
+                <p className="mt-1 text-sm text-navy">{campo("sku_referencia") || "—"}</p>
+                <p className="text-[11px] text-navy/50">Legado (catálogo/SKU) — não governa proposta, preço nem escopo.</p>
+              </div>
               <Selecao label="Status das despesas de terceiros" valor={campo("despesas_terceiros_status")} opcoes={DESPESAS_TERCEIROS_STATUS} onChange={set("despesas_terceiros_status")} />
               <Selecao label="Regra de pagamento das despesas" valor={campo("despesas_terceiros_regra")} opcoes={DESPESAS_TERCEIROS_REGRA} onChange={set("despesas_terceiros_regra")} />
               <Selecao label="Faixa estimada de despesas" valor={campo("despesas_terceiros_faixa")} opcoes={DESPESAS_TERCEIROS_FAIXA} onChange={set("despesas_terceiros_faixa")} />

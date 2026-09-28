@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
@@ -125,6 +126,15 @@ export function ProximasAcoes() {
                   {l.nome} {l.teste ? <span className="text-[10px] uppercase text-terracotta">· registro de teste</span> : null}
                 </p>
                 <p className="text-xs text-navy/55">{l.codigo}</p>
+                {/* Mesma próxima ação, mesmo lead: a origem é a Mesa Discovery (/calls). */}
+                <Link
+                  to="/calls"
+                  search={{ lead: l.leadId }}
+                  data-link-origem-lead={l.leadId}
+                  className="text-xs text-navy underline decoration-gold/60 underline-offset-2"
+                >
+                  Abrir na Mesa Discovery
+                </Link>
               </div>
               <span className={`rounded-full border px-3 py-1 text-[11px] ${COR[l.estado]}`}>
                 {ROTULO_ESTADO_ACAO[l.estado]}

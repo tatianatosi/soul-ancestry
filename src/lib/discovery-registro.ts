@@ -13,6 +13,14 @@
  */
 import type { LeadDesk } from "@/lib/crm-desk";
 import { ETAPAS_SPIN, perguntaRespondida, perguntasDaEtapa, type EtapaSpin } from "@/lib/discovery-roteiro";
+import {
+  CAMPOS_POS_CALL,
+  CONSENTIMENTOS,
+  ORIGENS_RESPOSTA,
+  RESPOSTAS_CONSENTIMENTO,
+  type PosCall,
+  type TipoConsentimento,
+} from "@/lib/discovery-roteiro-mestre";
 
 export type RegistroBloco = {
   nota: string | null;
@@ -45,9 +53,23 @@ export type SugestaoRegistrada = {
   por: string | null;
 };
 
+export type RespostaRegistrada = {
+  texto: string | null;
+  origem: string;
+  nao_sabe: boolean;
+  em: string;
+  por: string | null;
+};
+
 export type RegistroDiscovery = {
   blocos: Partial<Record<EtapaSpin, RegistroBloco>>;
   sugestoes: SugestaoRegistrada[];
+  /** Resposta narrativa por pergunta (SPIN ou extensão de país), com origem. */
+  respostas: Record<string, RespostaRegistrada>;
+  /** Pós-call em níveis (roteiro mestre). */
+  pos_call: Partial<PosCall>;
+  /** Consentimentos separados; gravação espelha `leads.consentimento_status`. */
+  consentimentos: Partial<Record<TipoConsentimento, string | null>>;
 };
 
 export const MOTIVO_DISPENSA_MINIMO = 5;
@@ -90,7 +112,57 @@ export function normalizarRegistro(bruto: unknown): RegistroDiscovery {
           por: texto(s.por) || null,
         }))
     : [];
-  return { blocos, sugestoes };
+  const respostas: Record<string, RespostaRegistrada> = {};
+  if (o.respostas && typeof o.respostas === "object") {
+    for (const [id, r] of Object.entries(o.respostas as Record<string, any>)) {
+      if (!r || typeof r !== "object") continue;
+      respostas[id] = {
+        texto: texto(r.texto).trim() || null,
+        origem: ORIGENS_RESPOSTA.some((x) => x.valor === r.origem) ? r.origem : "relato_call",
+        nao_sabe: r.nao_sabe === true,
+        em: texto(r.em),
+        por: texto(r.por) || null,
+      };
+    }
+  }
+  const pos_call: Partial<PosCall> = {};
+  if (o.pos_call && typeof o.pos_call === "object") {
+    for (const c of CAMPOS_POS_CALL) if (o.pos_call[c] != null) pos_call[c] = texto(o.pos_call[c]) || null;
+  }
+  const consentimentos: RegistroDiscovery["consentimentos"] = {};
+  if (o.consentimentos && typeof o.consentimentos === "object") {
+    for (const c of CONSENTIMENTOS) {
+      const v = texto(o.consentimentos[c.tipo]);
+      if (RESPOSTAS_CONSENTIMENTO.some((x) => x.valor === v)) consentimentos[c.tipo] = v;
+    }
+  }
+  return { blocos, sugestoes, respostas, pos_call, consentimentos };
+}
+
+/** Resposta narrativa de uma pergunta. "Não sabe / não tem agora" é lacuna registrada, não falha. */
+export function registrarResposta(
+  atual: RegistroDiscovery,
+  perguntaId: string,
+  entrada: { texto?: string | null; origem?: string | null; naoSabe?: boolean },
+  meta: { em: string; por: string | null },
+): { ok: true; registro: RegistroDiscovery } | { ok: false; erro: string } {
+  const id = texto(perguntaId).trim();
+  if (!id || id.length > 80) return { ok: false, erro: "Pergunta inválida." };
+  const origem = texto(entrada.origem) || "relato_call";
+  if (!ORIGENS_RESPOSTA.some((x) => x.valor === origem)) return { ok: false, erro: "Origem da resposta fora da lista." };
+  const t = texto(entrada.texto).trim().slice(0, LIMITE_NOTA);
+  const naoSabe = entrada.naoSabe === true;
+  if (!t && !naoSabe) {
+    const { [id]: _removida, ...resto } = atual.respostas;
+    return { ok: true, registro: { ...atual, respostas: resto } };
+  }
+  return {
+    ok: true,
+    registro: {
+      ...atual,
+      respostas: { ...atual.respostas, [id]: { texto: t || null, origem, nao_sabe: naoSabe, em: meta.em, por: meta.por } },
+    },
+  };
 }
 
 /** Grava nota e/ou dispensa de um bloco SPIN. Dispensar exige motivo. */

@@ -53,13 +53,16 @@ describe("Painel de Calls — mesa de Discovery (CA02-CRM-VIVO-PAINEL-CALLS)", (
     expect(painel).not.toContain("a.trecho}`");
   });
 
-  it("criar tarefa da próxima ação reusa salvarTarefa (já deduplicado) — nenhum escritor novo", () => {
-    expect(painel).toContain('import { salvarTarefa } from "@/lib/ops.functions"');
-    expect(painel).toContain("criarTarefaFn({");
+  // Roteiro mestre (documentos da Proprietária de 10–11/08, executados em
+  // 27–28/09/2026): antes do case_id nenhuma tarefa vai ao Desk; depois dele,
+  // a próxima ação é a do caso. O botão "Criar/atualizar tarefa" saiu da Mesa.
+  it("a Mesa não cria tarefa do Desk a partir da próxima ação do lead", () => {
+    expect(painel).not.toContain("salvarTarefa");
+    expect(painel).not.toContain("criarTarefaFn({");
   });
 
-  it("tarefa só é oferecida quando já há caso e a próxima ação tem prazo real (consequência real)", () => {
-    expect(painel).toContain("!lead.case_id || !lead.proxima_acao || !lead.proxima_acao_em");
+  it("a próxima ação do lead continua sendo gravada só no lead canônico", () => {
+    expect(painel).toContain("salvarLeadDesk");
   });
 
   it("trilha/marco mostram contexto interno resumido com o mesmo aviso de não exposição ao App", () => {

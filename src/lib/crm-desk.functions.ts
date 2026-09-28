@@ -24,11 +24,13 @@ import { contarSlaEmRisco } from "@/lib/d7-microentrega";
 import {
   normalizarRegistro,
   registrarBloco,
+  registrarResposta,
   registrarSugestao,
   type DecisaoSugestao,
   type OrigemSugestao,
 } from "@/lib/discovery-registro";
 import type { EtapaSpin } from "@/lib/discovery-roteiro";
+import { CONSENTIMENTOS, RESPOSTAS_CONSENTIMENTO, validarPosCall, type TipoConsentimento } from "@/lib/discovery-roteiro-mestre";
 import {
   eventosDeCall,
   exigeMotivoDeCall,
@@ -489,6 +491,104 @@ export const decidirSugestaoDiscovery = createServerFn({ method: "POST" })
       origem: r.sugestao.origem,
     });
     return { ok: true as const, erros: [], lead: resultado.registro as LeadDesk };
+  });
+
+/** Resposta narrativa de uma pergunta do roteiro (SPIN ou extensão de país), com origem. */
+export const salvarRespostaDiscovery = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { leadId: string; perguntaId: string; texto?: string | null; origem?: string | null; naoSabe?: boolean }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = (context as any).supabase;
+    const userId = (context as any).userId as string;
+    const lead = await leadParaDiscovery(supabase, data.leadId);
+    const r = registrarResposta(
+      normalizarRegistro(lead.discovery_registro),
+      data.perguntaId,
+      { texto: data.texto, origem: data.origem, naoSabe: data.naoSabe },
+      { em: new Date().toISOString(), por: userId },
+    );
+    if (!r.ok) return { ok: false as const, erro: r.erro };
+    const resultado = await gravarComVerificacao({
+      supabase,
+      tabela: "leads",
+      id: data.leadId,
+      organizationId: lead.organization_id,
+      userId,
+      payload: { discovery_registro: r.registro },
+    });
+    await auditarDiscovery(supabase, lead.organization_id, userId, data.leadId, "discovery_resposta", {
+      pergunta: data.perguntaId,
+      origem: data.origem ?? "relato_call",
+      nao_sabe: data.naoSabe === true,
+    });
+    return { ok: true as const, lead: resultado.registro as LeadDesk };
+  });
+
+/** Pós-call (roteiro mestre): só valores das listas fechadas; campo livre com limite. */
+export const salvarPosCallDiscovery = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { leadId: string; posCall: Record<string, unknown> }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = (context as any).supabase;
+    const userId = (context as any).userId as string;
+    const lead = await leadParaDiscovery(supabase, data.leadId);
+    const v = validarPosCall(data.posCall ?? {});
+    if (!v.ok) return { ok: false as const, erro: v.erro };
+    const atual = normalizarRegistro(lead.discovery_registro);
+    const registro = { ...atual, pos_call: { ...atual.pos_call, ...v.valor } };
+    const resultado = await gravarComVerificacao({
+      supabase,
+      tabela: "leads",
+      id: data.leadId,
+      organizationId: lead.organization_id,
+      userId,
+      payload: { discovery_registro: registro },
+    });
+    await auditarDiscovery(supabase, lead.organization_id, userId, data.leadId, "discovery_pos_call", {
+      campos: Object.keys(v.valor),
+    });
+    return { ok: true as const, lead: resultado.registro as LeadDesk };
+  });
+
+/**
+ * Os quatro consentimentos, separados. O de gravação/transcrição também grava
+ * nas colunas do lead que a trava da varredura e o trigger de gravação leem.
+ */
+export const salvarConsentimentosDiscovery = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { leadId: string; consentimentos: Partial<Record<TipoConsentimento, string | null>>; canal?: string | null }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = (context as any).supabase;
+    const userId = (context as any).userId as string;
+    const lead = await leadParaDiscovery(supabase, data.leadId);
+    const atual = normalizarRegistro(lead.discovery_registro);
+    const consentimentos = { ...atual.consentimentos };
+    for (const [tipo, valor] of Object.entries(data.consentimentos ?? {})) {
+      if (!CONSENTIMENTOS.some((c) => c.tipo === tipo)) return { ok: false as const, erro: `Consentimento desconhecido: ${tipo}.` };
+      if (valor && !RESPOSTAS_CONSENTIMENTO.some((o) => o.valor === valor)) return { ok: false as const, erro: "Resposta de consentimento fora da lista." };
+      consentimentos[tipo as TipoConsentimento] = valor || null;
+    }
+    const payload: Record<string, unknown> = { discovery_registro: { ...atual, consentimentos } };
+    if ("gravacao" in (data.consentimentos ?? {})) {
+      const g = data.consentimentos.gravacao;
+      payload.consentimento_status = g === "sim" ? "concedido" : g === "nao" ? "recusado" : "pendente";
+      payload.consentimento_gravacao = g === "sim";
+      payload.consentimento_em = g ? new Date().toISOString() : null;
+      if (data.canal) payload.consentimento_canal = data.canal;
+    }
+    const resultado = await gravarComVerificacao({
+      supabase,
+      tabela: "leads",
+      id: data.leadId,
+      organizationId: lead.organization_id,
+      userId,
+      payload,
+      // consentimento_em é carimbado aqui; o banco pode devolver outro formato de data.
+    });
+    await auditarDiscovery(supabase, lead.organization_id, userId, data.leadId, "discovery_consentimentos", {
+      consentimentos,
+    });
+    return { ok: true as const, lead: resultado.registro as LeadDesk };
   });
 
 /**

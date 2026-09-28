@@ -8,7 +8,7 @@
  * Nenhuma ação externa (mensagem, proposta, cobrança) é executada aqui.
  */
 
-import { PROXIMAS_ACOES, type LeadDesk } from "@/lib/crm-desk";
+import { PROXIMAS_ACOES, leadForaDoPipeline, type LeadDesk } from "@/lib/crm-desk";
 
 export type EstadoAcao = "sem_acao" | "sem_data" | "atrasada" | "hoje" | "proxima" | "futura";
 
@@ -109,6 +109,9 @@ export function listaAcoes(
     const id = String(lead.id ?? "");
     if (!id || vistos.has(id)) continue;
     if (!vazio(lead.archived_at)) continue;
+    // CRM Vivo (27/09/2026): convertido em caso ou encerrado sai da fila — a
+    // próxima ação passa a ser a do caso (Caso 360 / Planejador).
+    if (leadForaDoPipeline(lead as LeadDesk & { archived_at?: string | null })) continue;
     if (lead.dados_teste === true && opcoes.incluirTeste !== true) continue;
     vistos.add(id);
     linhas.push(linhaAcao(lead, hoje));

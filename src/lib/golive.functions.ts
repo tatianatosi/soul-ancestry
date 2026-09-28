@@ -17,6 +17,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { etapaComercialDoLead } from "@/lib/golive-comercial";
+import { leadForaDoPipeline } from "@/lib/crm-desk";
 import { semCache } from "@/lib/no-store";
 import { ehRegistroDeTeste } from "@/lib/registros-teste";
 
@@ -190,7 +191,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
     const leadsResposta = await supabase
       .from("leads")
       .select(
-        "id,nome,estagio,eixo_comercial,origem,data_origin,responsavel_nome,proxima_acao,proxima_acao_em," +
+        "id,nome,estagio,eixo_comercial,eixo_formalizacao,origem,data_origin,responsavel_nome,proxima_acao,proxima_acao_em," +
           "ultimo_followup_em,call_agendada_em,call_realizada_em,status_call,resumo_call,discovery_resultado," +
           "objetivo,consentimento_status,consentimento_em,consentimento_canal,proposta_referencia_interna," +
           "case_id,updated_at,created_at,demo,dados_teste",
@@ -634,7 +635,10 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           (l) =>
             l["demo"] !== true &&
             l["dados_teste"] !== true &&
-            !["demo", "teste", "homologacao", "sintetico"].includes(String(l["data_origin"] ?? "real").toLowerCase()),
+            !["demo", "teste", "homologacao", "sintetico"].includes(String(l["data_origin"] ?? "real").toLowerCase()) &&
+            // CRM Vivo (27/09/2026): lead convertido em caso ou encerrado sai do
+            // pipeline do Hoje — a partir do caso, quem governa é o Caso 360.
+            !leadForaDoPipeline(l as never),
         )
         .map((l) => ({
           id: String(l["id"]),
