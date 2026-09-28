@@ -34,6 +34,10 @@ import { nomeResponsavelPadrao } from "@/lib/responsavel-padrao";
 import { autoSatisfazerChecksIdentidade } from "@/lib/checks-identidade-startup";
 import { garantirTarefaAberta } from "@/lib/tarefa-garantida.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { limparCamposLead } from "@/lib/crm-lead-campos";
+import { errosBloqueantesAlteracao } from "@/lib/crm-desk";
+import { proprietariaOperando } from "@/lib/autoridade.server";
+import { patchCasoDaTriagem, patchClienteReaproveitado } from "@/lib/handoff-triagem";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -187,8 +191,18 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
     if (errLead) throw new Error(errLead.message);
     if (!leadRow) throw new Error("Lead não encontrado nesta organização.");
 
-    const rascunho = data.rascunho ?? {};
+    // Corte U1 (28/09/2026): o rascunho levado pelo handoff passa pela mesma
+    // regra do lead (só colunas editáveis + validação) e fica na trilha.
+    const rascunho = limparCamposLead(data.rascunho ?? {});
     if (Object.keys(rascunho).filter((k) => rascunho[k] !== undefined).length > 0) {
+      const livre = await proprietariaOperando(supabase, userId);
+      const erros = errosBloqueantesAlteracao(
+        leadRow as LeadDesk,
+        { ...(leadRow as LeadDesk), ...rascunho } as LeadDesk,
+        Object.keys(rascunho),
+        livre,
+      );
+      if (erros.length) throw new Error(erros.map((e) => e.motivo).join(" · "));
       await gravarComVerificacao({
         supabase,
         tabela: "leads",
@@ -196,6 +210,14 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
         organizationId,
         userId,
         payload: rascunho,
+      });
+      await supabase.from("audit_logs").insert({
+        organization_id: organizationId,
+        user_id: userId,
+        acao: "handoff_rascunho_gravado",
+        entidade: "lead",
+        entidade_id: data.leadId,
+        metadados: { fonte: "handoff-discovery", campos: Object.keys(rascunho) },
       });
     }
 
@@ -243,14 +265,15 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
     if (lead.case_id) {
       const { data: casoExistente } = await supabase
         .from("crm_casos")
-        .select("id,codigo,cliente_id")
+        .select("id,codigo,cliente_id,pais,pais_linha_prioritaria,via_juridica_preliminar,status_via,citizenship_track_id,brief_interno,dossie_mae_referencia")
         .eq("id", lead.case_id)
         .eq("organization_id", organizationId)
         .is("archived_at", null)
         .maybeSingle();
       if (!casoExistente?.id) throw new Error("O case_id do lead não aponta para um caso ativo.");
 
-      const patchCaso: Record<string, unknown> = {};
+      // Corte U1: a triagem da Discovery completa só o que está vazio no caso.
+      const patchCaso: Record<string, unknown> = { ...patchCasoDaTriagem(lead, casoExistente as Record<string, unknown>) };
       if (lead.proxima_acao) patchCaso.proxima_acao = lead.proxima_acao;
       if (lead.proxima_acao_em) patchCaso.prazo_proxima_acao = lead.proxima_acao_em;
       patchCaso.responsavel_principal =
@@ -351,6 +374,26 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
     let clienteCriado = false;
     if (decisao.acao === "reusar") {
       clienteId = decisao.clienteId;
+      // Corte U1: pessoa reaproveitada ganha só o que estiver vazio nela.
+      const { data: clienteAtual } = await supabase
+        .from("clientes")
+        .select("id,email,telefone,origem,indicado_por,pais_interesse")
+        .eq("id", clienteId)
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+      if (clienteAtual) {
+        const doLead = payloadClienteDoLead(lead);
+        const patchCliente = patchClienteReaproveitado(clienteAtual as Record<string, unknown>, {
+          email: doLead.email,
+          telefone: doLead.telefone,
+          origem: doLead.origem,
+          indicado_por: doLead.indicado_por,
+          pais_interesse: doLead.pais_interesse,
+        });
+        if (Object.keys(patchCliente).length) {
+          await gravarComVerificacao({ supabase, tabela: "clientes", id: clienteId, organizationId, userId, payload: patchCliente });
+        }
+      }
     } else {
       const payload = payloadClienteDoLead(lead);
       if (!payload.nome) throw new Error("Lead sem nome — não dá para criar pessoa.");
@@ -422,6 +465,9 @@ export const executarHandoffDiscovery = createServerFn({ method: "POST" })
           // Corte A (27/09/2026): todo caso aberto por este handoff nasce
           // deste lead — sempre gravado na criação.
           lead_id: data.leadId,
+          // Corte U1 (28/09/2026): triagem da Discovery (país, via, trilha,
+          // brief "a confirmar", dossiê) entra no caso sem ser redigitada.
+          ...patchCasoDaTriagem(lead, {}),
         })
         .select("id,codigo,titulo,cliente_id,tipo_servico,proxima_acao")
         .single();

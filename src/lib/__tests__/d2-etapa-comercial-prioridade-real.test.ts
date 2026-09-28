@@ -63,8 +63,9 @@ describe("rotuloEtapaComercial — rótulo legível para a coluna/funil", () => 
 });
 
 describe("D2 · confirma que estagio realmente não é editável pela UI do Desk (motivação do achado)", () => {
-  it("CAMPOS_LEAD (crm-desk.functions.ts) inclui eixo_comercial e não inclui estagio", () => {
-    const arquivo = readFileSync(resolve(__dirname, "../crm-desk.functions.ts"), "utf8");
+  it("CAMPOS_LEAD (crm-lead-campos.ts, usado por crm-desk.functions.ts e pelo handoff) inclui eixo_comercial e não inclui estagio", () => {
+    // 28/09/2026: a lista saiu de crm-desk.functions.ts para crm-lead-campos.ts (mesma regra no handoff).
+    const arquivo = readFileSync(resolve(__dirname, "../crm-lead-campos.ts"), "utf8");
     const trecho = arquivo.slice(arquivo.indexOf("const CAMPOS_LEAD"), arquivo.indexOf("const CAMPOS_LEAD") + 1200);
     const listaAte = trecho.indexOf("];");
     const lista = trecho.slice(0, listaAte);

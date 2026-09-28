@@ -29,7 +29,9 @@ describe("Corte A — handoff grava lead_id só na criação, nunca em reuso", (
   const arquivo = readFileSync("src/lib/handoff-discovery.functions.ts", "utf8");
 
   it("grava lead_id no insert de clientes (ramo de criação, decisao.acao !== 'reusar')", () => {
-    const inicioInsert = arquivo.indexOf('tabela: "clientes"');
+    // 28/09/2026: o ramo de reuso também escreve em clientes (só campos vazios);
+    // a trava mira a CRIAÇÃO (inserirComVerificacao em clientes).
+    const inicioInsert = arquivo.indexOf('tabela: "clientes"', arquivo.indexOf("inserirComVerificacao({"));
     expect(inicioInsert).toBeGreaterThan(-1);
     const trecho = arquivo.slice(inicioInsert, inicioInsert + 900);
     expect(trecho).toContain("lead_id: data.leadId");

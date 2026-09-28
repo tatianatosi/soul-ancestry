@@ -250,6 +250,31 @@ export const prepararAreaPesquisa = createServerFn({ method: "POST" })
       .maybeSingle();
     if (existente.data?.id) return { id: existente.data.id, criado: false };
 
+    // Corte U1 (28/09/2026): a pesquisa nasce com a linha familiar que a
+    // Discovery já capturou (lead de origem do caso), marcada "a confirmar" —
+    // a equipe não redigita. Autorização externa continua "pending": o
+    // consentimento da Discovery não autoriza pesquisa externa sozinho.
+    const { data: casoOrigem } = await supabase
+      .from("crm_casos")
+      .select("lead_id,citizenship_track_id")
+      .eq("id", data.caseId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    let linhaDaDiscovery: string | null = null;
+    if (casoOrigem?.lead_id) {
+      const { data: leadOrigem } = await supabase
+        .from("leads")
+        .select("*")
+        .eq("id", casoOrigem.lead_id)
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+      if (leadOrigem) {
+        const { resumoLinhaFamiliarDaDiscovery } = await import("@/lib/handoff-triagem");
+        const texto = resumoLinhaFamiliarDaDiscovery(leadOrigem as never);
+        linhaDaDiscovery = texto ? `Vindo da Discovery (a confirmar):\n${texto}` : null;
+      }
+    }
+
     const r = await supabase
       .from("research_cases")
       .insert({
@@ -258,6 +283,8 @@ export const prepararAreaPesquisa = createServerFn({ method: "POST" })
         research_objective: data.objetivo,
         status: "preparation",
         external_research_authorization_status: "pending",
+        family_line_summary_internal: linhaDaDiscovery,
+        citizenship_track_id: casoOrigem?.citizenship_track_id ?? null,
         created_by: context.userId,
       })
       .select("id")

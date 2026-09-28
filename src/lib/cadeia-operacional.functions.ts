@@ -42,13 +42,31 @@ export const lerPlanejadorSalvo = createServerFn({ method: "GET" })
       .limit(1)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!linha) return { plano: null as Record<string, any> | null, skuCodigo: null as string | null };
+    if (!linha) {
+      // Corte U1 (28/09/2026): sem plano salvo, o objetivo é sugerido a partir
+      // do lead de origem do caso (Discovery) — nunca rota nem produto.
+      const { data: caso } = await supabase
+        .from("crm_casos")
+        .select("lead_id")
+        .eq("id", data.caseId)
+        .eq("organization_id", org)
+        .maybeSingle();
+      let sugestaoObjetivo: string | null = null;
+      if (caso?.lead_id) {
+        const { data: lead } = await supabase.from("leads").select("objetivo").eq("id", caso.lead_id).maybeSingle();
+        if (lead?.objetivo) {
+          const { rotulo } = await import("@/lib/crm-desk");
+          sugestaoObjetivo = rotulo("objetivo", lead.objetivo);
+        }
+      }
+      return { plano: null as Record<string, any> | null, skuCodigo: null as string | null, sugestaoObjetivo };
+    }
     let skuCodigo: string | null = null;
     if (linha.product_catalog_id) {
       const { data: sku } = await supabase.from("product_catalog").select("code").eq("id", linha.product_catalog_id).maybeSingle();
       skuCodigo = sku?.code ?? null;
     }
-    return { plano: linha as Record<string, any> | null, skuCodigo };
+    return { plano: linha as Record<string, any> | null, skuCodigo, sugestaoObjetivo: null as string | null };
   });
 
 /** Persiste o planejador do caso (idempotente por hash). */

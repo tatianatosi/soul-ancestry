@@ -70,10 +70,14 @@ export function PlanejadorOperacional({
   const preservado = useMemo(() => preservadoDoPlanoSalvo(planoSalvo), [planoSalvo]);
   const versaoSalva = planoSalvo ? `${planoSalvo["versao"] ?? ""}:${planoSalvo["updated_at"] ?? ""}` : "";
 
+  const sugestaoObjetivo = (salvo.data as { sugestaoObjetivo?: string | null } | undefined)?.sugestaoObjetivo ?? null;
   useEffect(() => {
-    if (!editado) setEstado(formularioDoPlanoSalvo(planoSalvo, salvo.data?.skuCodigo ?? null));
+    if (editado) return;
+    const base = formularioDoPlanoSalvo(planoSalvo, salvo.data?.skuCodigo ?? null);
+    // Corte U1: sem plano salvo, o objetivo vem da Discovery (a confirmar).
+    setEstado(!planoSalvo && sugestaoObjetivo ? { ...base, objetivo: sugestaoObjetivo } : base);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [versaoSalva, salvo.data?.skuCodigo]);
+  }, [versaoSalva, salvo.data?.skuCodigo, sugestaoObjetivo]);
 
   const carregarSkus = useServerFn(listarSkusPlanejador);
   const skus = useQuery({ queryKey: ["skus-planejador"], queryFn: () => carregarSkus(), enabled: aberto });
@@ -201,7 +205,14 @@ export function PlanejadorOperacional({
         confirmado para este caso.
       </p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        {campo("objetivo", "Objetivo do caso", "Ex.: Cidadania italiana por linha materna")}
+        <div>
+          {campo("objetivo", "Objetivo do caso", "Ex.: Cidadania italiana por linha materna")}
+          {!planoSalvo && sugestaoObjetivo ? (
+            <span className="mt-1 block text-[11px] text-navy/55" data-vindo-da-discovery>
+              Vindo da Discovery (a confirmar).
+            </span>
+          ) : null}
+        </div>
         {campo("etapa", "Etapa atual", "Ex.: Discovery concluído")}
         <label className="block">
           <span className="text-[11px] font-medium uppercase tracking-wide text-navy/50">Composição</span>

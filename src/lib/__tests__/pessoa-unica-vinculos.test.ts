@@ -14,7 +14,9 @@ const pessoaIdentidade = readFileSync("src/lib/pessoa-identidade.ts", "utf8");
 
 describe("vínculo ausente corrigido: leads.case_id agora tem escritor", () => {
   it("case_id entrou em CAMPOS_LEAD (existia na tabela, nenhum escritor gravava)", () => {
-    expect(crmDeskFn).toMatch(/CAMPOS_LEAD = \[[\s\S]*?"case_id"/);
+    // 28/09/2026: a lista mora em crm-lead-campos.ts e é a usada por salvarLeadDesk.
+    expect(readFileSync("src/lib/crm-lead-campos.ts", "utf8")).toMatch(/CAMPOS_LEAD = \[[\s\S]*?"case_id"/);
+    expect(crmDeskFn).toContain('import { limparCamposLead as limpar } from "@/lib/crm-lead-campos"');
   });
 
   it("nenhuma tabela nova foi criada para isto — reusa salvarLeadDesk existente", () => {
