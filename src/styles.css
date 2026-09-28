@@ -311,13 +311,20 @@
 }
 
 [data-app-cliente="true"] :where(.bg-card, section.bg-white) {
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--navy) 12%, transparent);
+  background-color: var(--ca-surface-raised);
+  border-color: var(--ca-border);
+  border-radius: var(--ca-radius-md);
+  box-shadow: var(--ca-shadow-sm);
 }
 
 [data-app-cliente="true"] :where(h1, h2) {
   font-family: var(--font-serif);
   font-weight: 500;
   letter-spacing: 0;
+}
+
+[data-app-cliente="true"] [data-app-cabecalho] {
+  background-color: var(--ca-surface-inverse);
 }
 
 [data-app-cliente="true"] :where(p, li, dd, dt, a, button, span) {

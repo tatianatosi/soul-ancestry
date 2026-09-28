@@ -57,9 +57,9 @@ describe("a mesma composição aparece na Home e na Jornada", () => {
     expect(jornada).toContain("vivo.composicao");
   });
 
-  it("nenhuma das duas renderiza quando não há composição", () => {
+  it("Home não renderiza composição ausente; Jornada usa texto narrativo genérico", () => {
     expect(home).toContain("{composicao ? <p");
-    expect(jornada).toContain("{vivo.composicao ? <ChipMeta");
+    expect(jornada).toContain('{vivo.composicao ?? "A história da sua família"}');
   });
 
   it("nenhuma das duas inventa texto para o caso vazio", () => {

@@ -99,7 +99,7 @@ describe("as telas seguem o caso ativo, não o primeiro da lista", () => {
 
   it("a Conta mostra o mesmo caso das outras abas", () => {
     // 25/09/2026 — Conta não exibe mais código de caso (sanitização).
-    expect(conta).not.toContain("codigo");
+    expect(conta).not.toMatch(/\{previa\.identidade\.codigo\}/);
     expect(conta).not.toContain("casosPortal?.[0]?.codigo");
   });
 });

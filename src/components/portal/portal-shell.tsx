@@ -86,16 +86,16 @@ export function PortalShell({
         empurravam o conteúdo real para baixo da dobra e destoavam do mockup
         3/17, que usa uma só faixa). Logo + "Bem-vinda/nome" no mesmo bloco.
       */}
-      <header className="bg-navy text-cream shadow-sm" data-app-cabecalho>
-        <div className="mx-auto max-w-[740px] px-4 pb-4 pt-3 sm:px-6 lg:pb-7 lg:pt-5">
+      <header className="bg-navy text-cream" data-app-cabecalho>
+        <div className="mx-auto w-full max-w-[740px] px-5 pb-5 pt-[calc(1rem+env(safe-area-inset-top))] sm:px-8 sm:pb-7 sm:pt-6">
           <div className="flex items-center">
             <BrandLogo size={28} variant="client-dark" showText />
           </div>
 
-          <div className="mt-4 max-w-2xl">
-            <p className="text-[9px] font-semibold uppercase tracking-widest text-gold">Aplicativo da família</p>
-            <h1 className="mt-1 font-serif text-[1.75rem] font-medium leading-none text-cream sm:text-3xl">{titulo}</h1>
-            {descricao ? <p className="mt-1.5 max-w-[32rem] text-[11px] leading-relaxed text-cream/70 sm:text-sm">{descricao}</p> : null}
+          <div className="mt-5 max-w-2xl">
+            <p className="text-[10px] font-semibold uppercase text-gold">Aplicativo da família</p>
+            <h1 className="mt-1.5 font-serif text-[2rem] font-medium leading-tight text-cream sm:text-4xl">{titulo}</h1>
+            {descricao ? <p className="mt-1 max-w-[32rem] text-xs leading-relaxed text-cream/80 sm:text-sm">{descricao}</p> : null}
           </div>
         </div>
 
@@ -120,7 +120,7 @@ export function PortalShell({
         e a navegação das 7 abas continua sendo o rodapé único.
       */}
       <div className="mx-auto w-full min-w-0 max-w-[740px]">
-        <main id="conteudo-portal" className="min-w-0 px-4 pb-28 pt-5 sm:px-6 lg:pb-32 lg:pt-8">
+        <main id="conteudo-portal" className="min-w-0 px-5 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-6 sm:px-8 sm:pb-32 sm:pt-8">
           <div>{children}</div>
         </main>
       </div>
@@ -131,7 +131,7 @@ export function PortalShell({
         className="fixed inset-x-0 bottom-0 z-40 border-t border-gold/40 bg-card/95 shadow-[0_-4px_16px_color-mix(in_srgb,var(--navy)_10%,transparent)] backdrop-blur"
       >
         <div
-          className="mx-auto grid max-w-lg px-1 pb-[env(safe-area-inset-bottom)]"
+          className="mx-auto grid w-full max-w-[740px] px-1 pb-[env(safe-area-inset-bottom)] sm:px-5"
           style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}
         >
           {nav.map(({ to, label, icon: Icon }) => (
@@ -139,11 +139,11 @@ export function PortalShell({
               key={to}
               to={to}
               className={cn(
-                "relative flex min-h-[3.75rem] min-w-0 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[8px] leading-tight sm:text-[10px]",
+                "relative flex min-h-[4rem] min-w-0 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[8px] leading-tight sm:min-h-[4.25rem] sm:text-[10px]",
                 "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
                 rotaAtiva === to
                   ? "after:absolute after:inset-x-2 after:top-0 after:h-0.5 after:bg-gold font-semibold text-gold"
-                  : "text-navy/55",
+                  : "text-navy/70",
               )}
             >
               <Icon className="h-[17px] w-[17px] shrink-0 sm:h-[19px] sm:w-[19px]" aria-hidden="true" />
