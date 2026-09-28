@@ -1,5 +1,9 @@
 # Roadmap
 
+## Shell global do App Cliente (28/09/2026)
+- [ ] Alinhar a moldura das sete telas ao celular 375 px e à coluna central no computador, sem alterar dados ou rotas.
+- [ ] Conferir Home e Jornada nas duas larguras e entregar capturas para aprovação.
+
 ## Revisão textual e capturas do App Cliente (26/09/2026)
 - [x] Comparar textos das sete telas com o roteiro aprovado e ajustar cartões narrativos sem alterar fontes ou permissões.
 - [x] Capturar sete telas em 375 px e desktop com sessão master e caso real, distinguindo conteúdo do caso de estados vazios, e entregar imagens para aprovação.
