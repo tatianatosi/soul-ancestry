@@ -48,10 +48,10 @@ describe("D5 · Pessoa 360 mostra vínculos familiares reais de case_members", (
   });
 
   it("pessoasDoCasoComFallbackNucleo agora seleciona pai_id/mae_id/data_verificacao_dado de case_members", () => {
-    const trecho = vinculo.slice(
-      vinculo.indexOf('from("case_members")'),
-      vinculo.indexOf('from("case_members")') + 500,
-    );
+    // Corte U3 (28/09/2026): as colunas lidas de case_members ficam numa constante única.
+    const inicio = vinculo.indexOf("export const COLUNAS_CASE_MEMBERS_PESSOA");
+    const trecho = vinculo.slice(inicio, inicio + 500);
+    expect(vinculo).toContain(".select(COLUNAS_CASE_MEMBERS_PESSOA)");
     expect(trecho).toContain("pai_id");
     expect(trecho).toContain("mae_id");
     expect(trecho).toContain("data_verificacao_dado");

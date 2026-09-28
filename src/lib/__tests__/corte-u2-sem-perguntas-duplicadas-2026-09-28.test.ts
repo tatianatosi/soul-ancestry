@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 
 import { parametrosDasPartesCanonicas, idadeEm } from "@/lib/contrato-partes-canonicas";
 import { mesclarComPessoaCanonica } from "@/lib/contrato-partes-canonicas.server";
-import { COLUNA_CLIENTE_CIVIL, COLUNA_MEMBRO_CIVIL, estadoCampoCivilMembroCaso } from "@/lib/pessoa-vinculo";
+import { COLUNA_CLIENTE_CIVIL, COLUNA_MEMBRO_CIVIL, COLUNAS_CASE_MEMBERS_PESSOA, estadoCampoCivilMembroCaso } from "@/lib/pessoa-vinculo";
 import { jornadaDoPlanoSalvo } from "@/lib/planejador-salvo";
 
 /**
@@ -113,9 +113,9 @@ describe("reconciliadores ganham local de nascimento e WhatsApp", () => {
   });
 
   it("a Pessoa 360 carrega as colunas que o sinal compara (sem falso 'a preencher')", () => {
-    const sel = ler("src/lib/pessoa-vinculo.ts");
+    const colunas = COLUNAS_CASE_MEMBERS_PESSOA.split(",");
     for (const c of ["local_nascimento", "telefone_whatsapp", "email", "rg", "profissao", "estado_civil", "endereco"]) {
-      expect(sel).toMatch(new RegExp(`from\\("case_members"\\)\\s*\\.select\\("[^"]*\\b${c}\\b`));
+      expect(colunas).toContain(c);
     }
   });
 });

@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { SaasShell, useSaas, EstadoVazio } from "@/components/saas/shell";
 import { CaCard } from "@/components/ui/ca-card";
+import { PendenciasHumanasCaso } from "@/components/caso/pendencias-humanas-caso";
 import { NucleoKitPessoa } from "@/components/desk/kit-conectado";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { atualizarPessoa, carregarPessoa } from "@/lib/pessoa.functions";
@@ -499,6 +500,15 @@ function Pessoa() {
         email: cliente.email as string | null | undefined,
         telefone: cliente.telefone as string | null | undefined,
         data_nascimento: cliente.data_nascimento as string | null | undefined,
+        // Corte U3: o que o contrato precisa e só a Pessoa 360 guarda.
+        rg_numero: (cliente.rg_numero as string | null | undefined) ?? null,
+        nome_mae: (cliente.nome_mae as string | null | undefined) ?? null,
+        nome_pai: (cliente.nome_pai as string | null | undefined) ?? null,
+        profissao: (cliente.profissao as string | null | undefined) ?? null,
+        estado_civil: (cliente.estado_civil as string | null | undefined) ?? null,
+        endereco_logradouro: (cliente.endereco_logradouro as string | null | undefined) ?? null,
+        endereco_cidade: (cliente.endereco_cidade as string | null | undefined) ?? null,
+        endereco_cep: (cliente.endereco_cep as string | null | undefined) ?? null,
       },
       leads: leads.map((l) => ({
         id: l.id ? String(l.id) : null,
@@ -1048,6 +1058,18 @@ function Pessoa() {
               })}
             </ul>
           )}
+                  {/* Corte U3 (28/09/2026): decisões humanas pendentes de cada caso da pessoa (só leitura). */}
+          {casos.length > 0 ? (
+            <div className="mt-3 space-y-2">
+              {casos.map((c) => (
+                <PendenciasHumanasCaso
+                  key={`pend-${c.id}`}
+                  caseId={String(c.id)}
+                  titulo={`Decisões pendentes — ${c.codigo ?? c.titulo ?? "caso"}`}
+                />
+              ))}
+            </div>
+          ) : null}
         </CaCard>
 
         <CaCard

@@ -79,7 +79,7 @@ export const listarNucleos = createServerFn({ method: "GET" })
       ids.length
         ? supabase
             .from("nucleo_membros")
-            .select("id,nucleo_id,nome,papel,papel_no_caso,vinculo,processo,ordem,cliente_id")
+            .select("id,nucleo_id,nome,papel,papel_no_caso,vinculo,processo,ordem,cliente_id,representacao_necessaria,representacao_documentada")
             .in("nucleo_id", ids)
             .is("archived_at", null)
             .order("ordem")
@@ -141,30 +141,6 @@ export const listarNucleos = createServerFn({ method: "GET" })
     const coberturaPorCaso = new Map(
       membrosPorCaso.map(([caseId, membros]) => [caseId, coberturaPorGeracao(membros)]),
     );
-    /*
-     * Fase 2 (27/09/2026) — "representação de menor... como leitura/vínculo
-     * ao membro/caso existente, sem criar ficha paralela": `nucleo_membros`
-     * não grava representacao_necessaria/documentada (só case_members
-     * grava). Quando o caso ainda tem case_members ativo (fonte real,
-     * `origem === "case_members"`), a mesma pessoa aparece aqui por nome
-     * normalizado — nunca inventa dado quando a fonte é o fallback de
-     * núcleo (representação continua nula, como já era).
-     */
-    const normalizarNome = (s: string) => s.trim().toLowerCase();
-    const representacaoPorCaso = new Map(
-      membrosPorCaso.map(([caseId, membros]) => {
-        const porNome = new Map<string, { necessaria: boolean | null; documentada: boolean | null }>();
-        for (const m of membros) {
-          if (m.origem !== "case_members") continue;
-          porNome.set(normalizarNome(m.nome), {
-            necessaria: m.representacaoNecessaria,
-            documentada: m.representacaoDocumentada,
-          });
-        }
-        return [caseId, porNome] as const;
-      }),
-    );
-
     return (nucleos ?? []).map((n: any) => {
       // P32c (26/09/2026) — "a mesma pessoa não pode aparecer com rótulo
       // diferente em telas diferentes": esta tela lia `nucleo_membros.papel`
@@ -178,19 +154,19 @@ export const listarNucleos = createServerFn({ method: "GET" })
       // em Caso 360 e em Pessoa 360 — nunca mais um rótulo próprio por tela.
       const membrosDoNucleo = ((membros ?? []) as MembroNucleoBruto[]).filter((m) => m.nucleo_id === n.id);
       const ordemMinima = ordemDoContratantePrincipal(membrosDoNucleo);
-      const representacaoDoCaso = n.case_id ? representacaoPorCaso.get(n.case_id) : undefined;
       return {
         ...n,
         caso: n.case_id ? (porCaso.get(n.case_id) ?? null) : null,
         filaDrive: porFila.get(n.id) ?? null,
         coberturaGeracoes: n.case_id ? (coberturaPorCaso.get(n.case_id) ?? []) : [],
         membros: membrosDoNucleo.map((m) => {
-          const rep = representacaoDoCaso?.get(normalizarNome(m.nome));
+          // Corte U3 (28/09/2026): representação é coluna do próprio
+          // nucleo_membros — lida direto, não mais casada por nome.
           return {
             ...m,
             ...pessoaDoCasoAPartirDoNucleo(m, ordemMinima),
-            representacaoNecessaria: rep?.necessaria ?? null,
-            representacaoDocumentada: rep?.documentada ?? null,
+            representacaoNecessaria: m.representacao_necessaria ?? null,
+            representacaoDocumentada: m.representacao_documentada ?? null,
           };
         }),
       };

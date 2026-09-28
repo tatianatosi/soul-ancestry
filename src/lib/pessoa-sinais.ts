@@ -30,7 +30,26 @@ type ClienteMin = {
   email?: string | null;
   telefone?: string | null;
   data_nascimento?: string | null;
+  // Corte U3 (28/09/2026): cadastro que o contrato lê da Pessoa 360. Só
+  // entram na conta os campos que o chamador enviou (chave presente).
+  rg_numero?: string | null;
+  nome_mae?: string | null;
+  nome_pai?: string | null;
+  profissao?: string | null;
+  estado_civil?: string | null;
+  endereco_logradouro?: string | null;
+  endereco_cidade?: string | null;
+  endereco_cep?: string | null;
 };
+
+/** Campos do cadastro para contrato (além dos essenciais), com rótulo. */
+export const CAMPOS_CADASTRO_CONTRATO: readonly { campos: readonly (keyof ClienteMin)[]; rotulo: string }[] = [
+  { campos: ["rg_numero"], rotulo: "RG" },
+  { campos: ["nome_mae", "nome_pai"], rotulo: "filiação" },
+  { campos: ["profissao"], rotulo: "profissão" },
+  { campos: ["estado_civil"], rotulo: "estado civil" },
+  { campos: ["endereco_logradouro", "endereco_cidade", "endereco_cep"], rotulo: "endereço" },
+];
 
 type LeadMin = {
   id?: string | null;
@@ -94,6 +113,22 @@ export function sinaisDaPessoa(entrada: {
       titulo: `${lacunas.length} campo(s) essencial(is) sem valor`,
       detalhe: `Faltando: ${lacunas.map((l) => l.rotulo).join(", ")}. Necessário para elegibilidade e comunicação segura.`,
       acaoRecomendada: "Coletar os dados na próxima interação, no bloco Perfil.",
+    });
+  }
+
+  // 2b. Corte U3 (28/09/2026) — cadastro para contrato: uma única pendência,
+  //     aqui, para tudo o que o contrato, o caso e o núcleo leem da Pessoa 360.
+  //     Filiação e endereço contam como faltando quando qualquer parte falta.
+  const faltamContrato = CAMPOS_CADASTRO_CONTRATO.filter(
+    (g) => g.campos.some((c) => c in cliente) && g.campos.some((c) => c in cliente && vazio(cliente[c])),
+  );
+  if (faltamContrato.length > 0) {
+    sinais.push({
+      tipo: "lacuna_documental",
+      prioridade: "media",
+      titulo: "Cadastro para o contrato incompleto",
+      detalhe: `Faltando: ${faltamContrato.map((g) => g.rotulo).join(", ")}. Contrato, Caso 360 e núcleo leem daqui — preencher uma vez, nesta ficha.`,
+      acaoRecomendada: "Completar no bloco Quem é desta Pessoa 360; as outras fichas passam a ler o valor.",
     });
   }
 

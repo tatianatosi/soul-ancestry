@@ -24,6 +24,7 @@ import { pendenciaPesquisaAberta } from "@/lib/rotulo-negocio";
 import { ROTULO_ATO_FORMAL } from "@/lib/validacao-juridica-caso";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions";
+import { PendenciasHumanasCaso } from "@/components/caso/pendencias-humanas-caso";
 import { adicionarPessoaAoCaso, conferirDivergenciaCepMembrosCaso, conferirDivergenciaCpfMembrosCaso, conferirDivergenciaTelefoneMembrosCaso, listarPessoasParaCaso } from "@/lib/caso-canonico.functions";
 import { lerCadeiaOperacional } from "@/lib/cadeia-operacional.functions";
 import { EstadoIntegradoCaso } from "@/components/caso/estado-integrado";
@@ -1746,6 +1747,10 @@ function FichaCaso() {
         <summary className="cursor-pointer text-sm font-medium text-navy">Abrir ficha operacional completa</summary>
       <div className="mt-5 space-y-8 border-t border-navy/10 pt-5">
         <SecaoAncora id="visao" titulo="Indicadores" hidden={secaoFoco !== null && secaoFoco !== "visao"}>
+          {/* Corte U3 (28/09/2026): decisões que só a equipe toma, lidas do dado real. */}
+          <div className="mb-4">
+            <PendenciasHumanasCaso caseId={id} />
+          </div>
           <EstadoDados
             carregando={q.isLoading}
             erro={q.error}

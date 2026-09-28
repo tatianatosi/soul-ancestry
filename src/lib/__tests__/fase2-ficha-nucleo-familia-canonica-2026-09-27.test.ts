@@ -97,21 +97,21 @@ describe("Fase 2 — uma única fonte de rótulo em /nucleos, Caso 360 e Pessoa 
   });
 });
 
-describe("Fase 2 — representação de menor: só exposta quando a fonte é case_members real", () => {
+describe("Fase 2 — representação de menor (corrigido no Corte U3, 28/09/2026: a coluna é de nucleo_membros)", () => {
   const arquivo = readFileSync("src/lib/nucleos-desk.functions.ts", "utf8");
+  const listar = arquivo.slice(arquivo.indexOf("export const listarNucleos"), arquivo.indexOf("return (nucleos ?? []).map"));
 
-  it("listarNucleos casa representação por nome normalizado, só para origem case_members", () => {
-    expect(arquivo).toContain('m.origem !== "case_members"');
-    expect(arquivo).toContain("representacaoNecessaria");
-    expect(arquivo).toContain("representacaoDocumentada");
+  it("listarNucleos lê representação direto de nucleo_membros, sem casar por nome", () => {
+    expect(listar).toContain("representacao_necessaria,representacao_documentada");
+    expect(arquivo).toContain("representacaoNecessaria: m.representacao_necessaria ?? null");
+    expect(arquivo).toContain("representacaoDocumentada: m.representacao_documentada ?? null");
+    expect(arquivo).not.toContain("representacaoPorCaso");
   });
 
-  it("nunca escreve representacao_necessaria/documentada em nucleo_membros (só leitura)", () => {
-    const inicio = arquivo.indexOf("representacaoPorCaso");
-    const fim = arquivo.indexOf("return (nucleos ?? []).map");
-    const trecho = arquivo.slice(inicio, fim);
-    expect(trecho).not.toContain(".update(");
-    expect(trecho).not.toContain(".insert(");
+  it("nunca escreve representacao_necessaria/documentada ao listar (só leitura)", () => {
+    expect(listar.length).toBeGreaterThan(100);
+    expect(listar).not.toContain(".update(");
+    expect(listar).not.toContain(".insert(");
   });
 });
 

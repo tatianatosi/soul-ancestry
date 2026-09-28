@@ -33,6 +33,12 @@ export type MembroNucleoBruto = {
    * prevalece sobre o papel derivado de `papel` (que só distingue 3 valores).
    */
   papel_no_caso?: string | null;
+  /**
+   * Corte U3 (28/09/2026) — representação legal é coluna REAL de
+   * `nucleo_membros` (conferido no banco); `case_members` não a tem.
+   */
+  representacao_necessaria?: boolean | null;
+  representacao_documentada?: boolean | null;
   vinculo: string | null;
   processo: string | null;
   ordem: number | null;
@@ -98,10 +104,11 @@ export function pessoaDoCasoAPartirDoNucleo(m: MembroNucleoBruto, ordemMinimaCon
     pai_id: null as string | null,
     mae_id: null as string | null,
     data_verificacao_dado: null as string | null,
-    // Idem para representação legal — só case_members grava
-    // representacao_necessaria/representacao_documentada.
-    representacao_necessaria: null as boolean | null,
-    representacao_documentada: null as boolean | null,
+    // Corte U3 (28/09/2026): representação legal vive em `nucleo_membros`
+    // (o comentário antigo dizia o contrário; o banco confirma). Sem valor
+    // lido, continua nulo — nunca inventado.
+    representacao_necessaria: (m.representacao_necessaria ?? null) as boolean | null,
+    representacao_documentada: (m.representacao_documentada ?? null) as boolean | null,
   };
 }
 
@@ -118,44 +125,56 @@ export function ordemDoContratantePrincipal(membros: MembroNucleoBruto[]): numbe
 }
 
 /**
- * Pessoas do caso: `case_members` ativo quando existir; senão, fallback para
- * Núcleos (ver `pessoaDoCasoAPartirDoNucleo`) via `nucleos_familiares.case_id`.
- * Nunca funde as duas fontes — usa uma ou outra, para não duplicar pessoa.
+ * Pessoas do caso. Corte U3 (28/09/2026) — correção de causa raiz: a leitura
+ * de `case_members` pedia `representacao_necessaria/documentada`, colunas que
+ * só existem em `nucleo_membros`; o PostgREST recusava a consulta inteira e
+ * esta função caía SEMPRE no núcleo, em silêncio. Regra agora explícita e
+ * igual ao comportamento real de antes: caso com núcleo que tem membros usa o
+ * núcleo (decisão da migration 20260821152043 — Núcleos é a fonte de pessoas
+ * do caso); sem núcleo, usa `case_members`. Nunca funde as duas fontes.
  */
 export async function pessoasDoCasoComFallbackNucleo(
   supabase: { from: (t: string) => any },
   caseId: string,
 ): Promise<PessoaDoCaso[]> {
-  const { data: membrosCaso } = await supabase
-    .from("case_members")
-    .select("id,nome,papel_no_caso,titular,contratante,dependente,cpf,telefone,telefone_whatsapp,cep,data_nascimento,local_nascimento,email,rg,profissao,estado_civil,endereco,representante_legal,status_cadastral,parentesco,requerente,nacionalidade,cliente_id,pai_id,mae_id,data_verificacao_dado,representacao_necessaria,representacao_documentada")
-    .eq("case_id", caseId)
-    .is("archived_at", null)
-    .order("created_at", { ascending: true });
-
-  if (membrosCaso && membrosCaso.length > 0) {
-    return membrosCaso.map((m: any) => ({ origem: "case_members" as const, ...m })) as PessoaDoCaso[];
-  }
-
   const { data: nucleo } = await supabase
     .from("nucleos_familiares")
     .select("id")
     .eq("case_id", caseId)
     .is("archived_at", null)
     .maybeSingle();
-  if (!nucleo?.id) return [];
+  if (nucleo?.id) {
+    const { data: membrosNucleo } = await supabase
+      .from("nucleo_membros")
+      .select("id,nome,papel,papel_no_caso,vinculo,processo,ordem,cliente_id,representacao_necessaria,representacao_documentada")
+      .eq("nucleo_id", nucleo.id)
+      .is("archived_at", null)
+      .order("ordem", { ascending: true });
+    const lista = (membrosNucleo ?? []) as MembroNucleoBruto[];
+    if (lista.length > 0) {
+      const ordemMinima = ordemDoContratantePrincipal(lista);
+      return lista.map((m) => pessoaDoCasoAPartirDoNucleo(m, ordemMinima));
+    }
+  }
 
-  const { data: membrosNucleo } = await supabase
-    .from("nucleo_membros")
-    .select("id,nome,papel,vinculo,processo,ordem,cliente_id")
-    .eq("nucleo_id", nucleo.id)
+  const { data: membrosCaso, error } = await supabase
+    .from("case_members")
+    .select(COLUNAS_CASE_MEMBERS_PESSOA)
+    .eq("case_id", caseId)
     .is("archived_at", null)
-    .order("ordem", { ascending: true });
-
-  const lista = (membrosNucleo ?? []) as MembroNucleoBruto[];
-  const ordemMinima = ordemDoContratantePrincipal(lista);
-  return lista.map((m) => pessoaDoCasoAPartirDoNucleo(m, ordemMinima));
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(`Pessoas do caso: ${error.message}`);
+  return ((membrosCaso ?? []) as any[]).map((m) => ({
+    origem: "case_members" as const,
+    representacao_necessaria: null,
+    representacao_documentada: null,
+    ...m,
+  })) as PessoaDoCaso[];
 }
+
+/** Colunas de `case_members` lidas como pessoa do caso — todas existem na tabela. */
+export const COLUNAS_CASE_MEMBERS_PESSOA =
+  "id,nome,papel_no_caso,titular,contratante,dependente,cpf,telefone,telefone_whatsapp,cep,data_nascimento,local_nascimento,email,rg,profissao,estado_civil,endereco,representante_legal,status_cadastral,parentesco,requerente,nacionalidade,cliente_id,pai_id,mae_id,data_verificacao_dado";
 
 /**
  * R2 — estado do CPF de um membro do caso já vinculado à Pessoa Canônica
