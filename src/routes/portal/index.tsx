@@ -14,7 +14,7 @@ import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, Search, ArrowRight } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { CaCard } from "@/components/ui/ca-card";
 
 /**
@@ -92,6 +92,7 @@ export function PortalHome() {
               tipo: item.tipoRotulo,
               destino: destinoPorTipo(item.tipo),
               texto: item.conteudo,
+              ano: item.publicadoEm ? item.publicadoEm.slice(0, 4) : null,
             }))}
             fase={
               // Progresso fixo pertence só ao caso de demonstração. Num caso
@@ -139,7 +140,6 @@ export function PortalHome() {
             <div className="space-y-4">
               <PainelHomeMockup
                 tituloCaso={principal.titulo}
-                statusTexto={principal.statusTexto}
                 proximoPasso={principal.proximoPasso || jornada.proximoPasso}
                 proximoPassoDestino={principal.proximoPassoDestino}
                 proximaEntrega={vivo.data?.proximaEntrega?.texto ?? null}
@@ -150,6 +150,7 @@ export function PortalHome() {
                   tipo: item.tipoRotulo,
                   destino: destinoPorTipo(item.tipo),
                   texto: item.conteudo,
+                  ano: item.publicadoEm ? item.publicadoEm.slice(0, 4) : null,
                 }))}
                 composicao={vivo.data?.composicao ?? null}
                 fase={
@@ -299,6 +300,7 @@ function PainelHomeMockup({
     tipo: string;
     destino: "/portal/jornada" | "/portal/arvore" | "/portal/documentos" | "/portal/legado";
     texto: string;
+    ano?: string | null;
   }>;
   /**
    * 21/09/2026: deixou de ser exclusivo da demo. A view `portal_casos` passou
