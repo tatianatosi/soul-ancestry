@@ -52,35 +52,35 @@ export type CopyTela = {
 export const COPY_TELAS = {
   home: {
     navegacao: "Home",
-    titulo: "Home",
-    descricao: "Um olhar sereno sobre a história que estamos construindo juntos",
+    titulo: "Sua jornada",
+    descricao: "Acompanhe o que já foi publicado e o que vem a seguir.",
     vazio: "Assim que houver algo preparado para você, ele aparece aqui.",
   },
   jornada: {
     navegacao: "Jornada",
-    titulo: "Jornada",
-    descricao: "Os caminhos da família, do passado aos próximos passos",
+    titulo: "Sua Jornada",
+    descricao: "Duas linhas caminham juntas: a história e o seu processo.",
     vazio: "Sua jornada está começando. Novas etapas aparecerão aqui quando estiverem prontas para você.",
   },
   radar: {
     navegacao: "Radar",
-    titulo: "Radar",
+    titulo: "Radar Ancestral",
     // RADAR-APP-SEMANTICA-PROGRESSO (18/09/2026): "elegibilidade" induzia
     // leitura de parecer jurídico/chance. Percentuais são progresso/andamento
     // das seis dimensões da jornada, nunca resultado conclusivo.
-    descricao: "Seis dimensões que ganham forma ao longo da pesquisa",
+    descricao: "Seu equilíbrio nas 6 dimensões.",
     vazio: "O Radar ganhará forma à medida que novas descobertas forem compartilhadas com você.",
   },
   arvore: {
     navegacao: "Árvore",
-    titulo: "Árvore",
-    descricao: "As gerações e os vínculos que formam a sua história",
+    titulo: "Árvore Familiar",
+    descricao: "Cinco gerações que compõem você.",
     vazio: "A árvore da família começa por você e cresce quando novos vínculos são confirmados.",
   },
   documentos: {
     navegacao: "Documentos",
     titulo: "Documentos",
-    descricao: "Documentos compartilhados ao longo da jornada",
+    descricao: "Pedidos, recebimentos e materiais liberados em um só lugar.",
     vazio: "Ainda não há documentos liberados para você neste momento.",
   },
   entregas: {
@@ -103,14 +103,14 @@ export const COPY_TELAS = {
   },
   legado: {
     navegacao: "Legado",
-    titulo: "Legado",
-    descricao: "O acervo preparado para permanecer com a sua família",
+    titulo: "Seus Achados",
+    descricao: "Biblioteca da família — seu legado, organizado por coleção.",
     vazio: "Este espaço vai reunir o que for preparado para ficar com a sua família.",
   },
   conta: {
     navegacao: "Conta",
-    titulo: "Conta",
-    descricao: "Seus dados, avisos e contato com a equipe de pesquisa",
+    titulo: "Minha Conta",
+    descricao: "Seus dados, seu plano e o histórico do seu acompanhamento.",
     vazio: "As informações do seu acesso aparecem aqui.",
   },
   faturas: {

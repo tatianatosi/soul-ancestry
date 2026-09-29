@@ -19,12 +19,24 @@ export type GeracaoArvore = {
 
 /** Escala canônica do mockup — G1 (você) … G5 (ancestrais). */
 export const GERACOES_ARVORE: readonly GeracaoArvore[] = [
-  { id: "G1", rotulo: "G1 — você", slots: 1 },
-  { id: "G2", rotulo: "G2 — pais", slots: 2 },
-  { id: "G3", rotulo: "G3 — avós", slots: 4 },
-  { id: "G4", rotulo: "G4 — bisavós", slots: 4 },
-  { id: "G5", rotulo: "G5 — ancestrais", slots: 3 },
+  { id: "G1", rotulo: "G1 · Você", slots: 1 },
+  { id: "G2", rotulo: "G2 · Avós", slots: 2 },
+  { id: "G3", rotulo: "G3 · Bisavós", slots: 4 },
+  { id: "G4", rotulo: "G4 · Bisavós de bisavós", slots: 4 },
+  { id: "G5", rotulo: "G5 · Ancestrais", slots: 3 },
 ] as const;
+
+/**
+ * Corte 2b (29/09/2026) — o mockup (p. 6/17) desenha a árvore de cima para
+ * baixo: ancestrais no topo, você embaixo. A ordem dos dados continua G1→G5.
+ */
+export const GERACOES_ARVORE_EXIBICAO: readonly GeracaoArvore[] = [...GERACOES_ARVORE].reverse();
+
+/**
+ * "de um universo de 31 possíveis nas 5 gerações" (mockup): 1+2+4+8+16 — o
+ * total teórico de ascendentes diretos em cinco gerações, não uma meta.
+ */
+export const PESSOAS_POSSIVEIS_CINCO_GERACOES = 31;
 
 /**
  * Estado honesto de um slot sem nome liberado (correção 2026-09-12, pedido

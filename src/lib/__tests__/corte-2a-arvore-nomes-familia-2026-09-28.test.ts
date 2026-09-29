@@ -56,7 +56,11 @@ describe("App: pessoas distintas por geração, nunca contagem de publicações"
   it("a aba Árvore usa as pessoas, conta pessoas distintas e mostra a faixa de liberação", () => {
     const tela = ler("src/routes/portal/arvore.tsx");
     expect(tela).toContain("pessoasDaArvore(vivo.projecoes)");
-    expect(tela).toContain("{pessoas.length} {pessoas.length === 1 ? \"pessoa conectada\"");
+    // Corte 2b (29/09/2026): a contagem virou o rodapé do mockup (p.6) — continua
+    // sendo pessoas distintas, agora com o universo possível ao lado.
+    expect(tela).toContain("data-arvore-contagem");
+    expect(tela).toContain("{pessoas.length}{\" \"}");
+    expect(tela).toContain("de um universo de {PESSOAS_POSSIVEIS_CINCO_GERACOES} possíveis nas 5 gerações");
     expect(tela).toContain("A árvore mostra somente nomes e vínculos já liberados.");
     expect(ler("src/lib/portal-dados-vivos.functions.ts")).toContain("pessoa_id, geracao_cliente");
   });

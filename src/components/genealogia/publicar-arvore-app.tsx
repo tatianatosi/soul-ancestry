@@ -17,11 +17,12 @@ import {
 } from "@/lib/arvore-publicacao.functions";
 
 const ROTULO_GERACAO: Record<number, string> = {
-  1: "1 — cliente",
-  2: "2 — pais",
-  3: "3 — avós",
-  4: "4 — bisavós",
-  5: "5 — ancestrais",
+  // Mesmos rótulos que o cliente vê na aba Árvore (mockup p.6).
+  1: "1 · Você (cliente)",
+  2: "2 · Avós",
+  3: "3 · Bisavós",
+  4: "4 · Bisavós de bisavós",
+  5: "5 · Ancestrais",
 };
 
 type Linha = {

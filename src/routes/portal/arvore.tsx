@@ -4,7 +4,12 @@ import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
-import { painelArvoreGeracoes, type GeracaoArvore } from "@/lib/portal-arvore-geracoes";
+import {
+  painelArvoreGeracoes,
+  GERACOES_ARVORE_EXIBICAO,
+  PESSOAS_POSSIVEIS_CINCO_GERACOES,
+  type GeracaoArvore,
+} from "@/lib/portal-arvore-geracoes";
 import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
 import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -138,16 +143,11 @@ export function PortalArvore() {
                         ? "A árvore reúne as pessoas e os vínculos já confirmados e compartilhados com você."
                         : COPY_TELAS.arvore.vazio}
                     </p>
-                    {pessoas.length > 0 ? (
-                      <p className="mt-2 text-xs text-navy/50" data-arvore-contagem>
-                        {pessoas.length} {pessoas.length === 1 ? "pessoa conectada" : "pessoas conectadas"} na história publicada da família.
-                      </p>
-                    ) : null}
                     <p className="mt-2 rounded-md bg-cream/70 px-2 py-1 text-[11px] text-navy/60">
                       A árvore mostra somente nomes e vínculos já liberados.
                     </p>
                     <div className="mt-5 space-y-1">
-                      {painel.geracoes.map((geracao: GeracaoArvore, gi) => (
+                      {GERACOES_ARVORE_EXIBICAO.map((geracao: GeracaoArvore, gi) => (
                         <div key={geracao.id}>
                           {gi > 0 ? <ConectorGeracao slots={geracao.slots} /> : null}
                           <p className="mb-2 text-center text-[10px] uppercase tracking-[0.14em] text-navy/45">
@@ -176,6 +176,29 @@ export function PortalArvore() {
                         </div>
                       ))}
                     </div>
+
+                    {/* Mockup p.6: "N pessoas conectadas recuperadas — de um universo
+                        de 31 possíveis nas 5 gerações". Sem publicação, estado vazio. */}
+                    <p
+                      className="mt-5 rounded-xl border border-gold/40 bg-gold/5 px-4 py-3 text-center text-sm text-navy/75"
+                      data-arvore-contagem
+                    >
+                      {pessoas.length > 0 ? (
+                        <>
+                          <span className="font-serif text-base text-navy">
+                            {pessoas.length}{" "}
+                            {pessoas.length === 1 ? "pessoa conectada recuperada" : "pessoas conectadas recuperadas"}
+                          </span>
+                          <span className="mt-0.5 block text-xs text-navy/60">
+                            de um universo de {PESSOAS_POSSIVEIS_CINCO_GERACOES} possíveis nas 5 gerações
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-xs text-navy/60">
+                          Nenhuma pessoa liberada ainda — de um universo de {PESSOAS_POSSIVEIS_CINCO_GERACOES} possíveis nas 5 gerações.
+                        </span>
+                      )}
+                    </p>
                   </section>
 
                   {/*
