@@ -19578,6 +19578,13 @@ export type Database = {
             referencedRelation: "portal_casos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "app_projections_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
         ]
       }
       v_ops_microentregas: {

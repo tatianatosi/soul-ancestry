@@ -68,10 +68,11 @@ describe("Entrega 1 — hero navy + stepper de 5 fases na Home", () => {
 
   it("o hero do caso é um único card navy-800 (Pantone 534 C), sem gradiente nem card claro/cinza dentro dele", () => {
     const home = readFileSync("src/routes/portal/index.tsx", "utf8");
-    const hero = home.slice(home.indexOf("<section className=\"rounded-xl bg-navy"), home.indexOf("<EstepeJornada"));
+    const hero = home.slice(home.indexOf("rounded-2xl border-b-2 border-gold/70 bg-navy-800"), home.indexOf("<EstepeJornada"));
     // 16/09/2026 — cartão do processo ampliado na primeira dobra (p-5/sm:p-7);
     // continua sendo um único card navy-800, sem gradiente nem card claro dentro.
-    expect(home).toContain('<section className="rounded-xl bg-navy-800 p-5 text-cream shadow-md sm:p-7">');
+    expect(home).toContain("bg-navy-800 p-6 text-cream shadow-md sm:p-8");
+    expect(hero).not.toContain("gradient");
     expect(hero).not.toContain("ChipIdentidadeCaso");
   });
 
