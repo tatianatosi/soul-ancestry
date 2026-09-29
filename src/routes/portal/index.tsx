@@ -329,13 +329,15 @@ function PainelHomeMockup({
       */}
       {/* 16/09/2026 — primeira dobra: o cartão do processo é o elemento
           principal (maior), e a linha do tempo abaixo fica discreta. */}
-      <section className="rounded-xl bg-navy-800 p-5 text-cream shadow-md sm:p-7">
+      <section className="relative overflow-hidden rounded-2xl border-b-2 border-gold/70 bg-navy-800 p-6 text-cream shadow-md sm:p-8">
         <div className="min-w-0">
-          <p className="text-[10px] uppercase tracking-widest text-gold/80">Uma história em construção</p>
-          <h2 className="font-serif text-2xl leading-tight text-cream sm:text-3xl">{tituloCaso}</h2>
-          {composicao ? <p className="mt-1 text-xs text-cream/65">{composicao}</p> : null}
+          <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-gold">Acompanhamento da família</p>
+          <h2 className="mt-2 font-serif text-[1.9rem] leading-tight text-cream sm:text-4xl">Uma história em construção</h2>
+          <p className="mt-2 text-sm leading-relaxed text-cream/80 sm:text-base">
+            {tituloCaso}
+            {composicao ? <span className="text-cream/60"> · {composicao}</span> : null}
+          </p>
         </div>
-        {statusTexto ? <p className="mt-2 text-sm text-cream/75">{statusTexto}</p> : null}
 
         {fase ? (
           <EstepeJornada
@@ -346,31 +348,29 @@ function PainelHomeMockup({
             compacto={fase.compacto ?? false}
           />
         ) : (
-          <p className="mt-3 text-xs text-cream/60">
+          <p className="mt-4 border-t border-cream/10 pt-4 text-sm leading-relaxed text-cream/70">
             {marcos === 0
-              ? "A história da sua família está sendo preparada para ser compartilhada."
+              ? "Estamos reunindo as primeiras memórias da sua família com calma e cuidado."
               : `${marcos} ${marcos === 1 ? "momento já compartilhado" : "momentos já compartilhados"} com você`}
           </p>
         )}
       </section>
 
-      {/* Correção 2026-09-12: grade em telas largas (sidebar liberou espaço horizontal); CTA lilás removido (fora do guia oficial de marca — só 5 cores). */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <section>
-          <h3 className="mb-2 font-serif text-xl text-navy">Próxima ação</h3>
-          {/* Acabamento 2026-09-13 (referência Lovable): título editorial em
-              vez de crachá numerado — mesma frase real, leitura mais serena. */}
-          <CaCard titulo="O que vem agora">
-            <p className="mb-3 whitespace-pre-line text-sm leading-relaxed text-navy/75">{proximoPasso}</p>
+      <div className="space-y-8 pt-2">
+        <section aria-label="Próxima ação">
+          <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Próxima ação</p>
+          <h3 className="mb-3 font-serif text-2xl text-navy">O que vem agora</h3>
+          <CaCard>
+            <p className="whitespace-pre-line text-sm leading-relaxed text-navy/80">{proximoPasso}</p>
             {proximaEntrega ? (
-              <p className="mb-2 text-xs text-navy/70" data-proxima-entrega>
+              <p className="mt-2 text-xs text-navy/70" data-proxima-entrega>
                 {proximaEntrega}
               </p>
             ) : null}
             {proximoPassoDestino ? (
               <LinkPortal
                 to={proximoPassoDestino}
-                className="inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
+                className="mt-3 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
               >
                 {proximoPassoDestino.includes("documentos") ? "Ver documentos solicitados" : "Ver próxima ação"}
               </LinkPortal>
@@ -378,7 +378,7 @@ function PainelHomeMockup({
               <Link
                 to="/portal/casos/$id"
                 params={{ id: casoId }}
-                className="inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
+                className="mt-3 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
               >
                 Acompanhar sua jornada
               </Link>
@@ -387,34 +387,34 @@ function PainelHomeMockup({
         </section>
 
         <section>
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <h3 className="font-serif text-xl text-navy">Achados da sua história</h3>
-            <LinkPortal to="/portal/jornada" className="text-xs font-medium text-navy/60 hover:text-navy">
+          <div className="mb-3 flex items-end justify-between gap-2">
+            <h3 className="font-serif text-2xl text-navy">Achados da sua história</h3>
+            <LinkPortal to="/portal/jornada" className="shrink-0 text-xs font-medium text-navy/60 underline-offset-2 hover:text-navy hover:underline">
               Ver Jornada
             </LinkPortal>
           </div>
           {achados.length === 0 ? (
-            <p className="text-sm text-navy/60">
+            <p className="font-serif text-base italic leading-relaxed text-navy/60">
               As descobertas confirmadas pela equipe aparecerão aqui, com todo o cuidado que a sua história merece.
             </p>
           ) : (
-            /* Linha do tempo enxuta: uma linha por achado, sem competir com o
-               cartão do processo. */
-            <div className="space-y-1.5">
-              {achados.map((a) => (
-                <LinkPortal key={a.id} to={a.destino} className="block">
-                  <CaCard className="flex items-center justify-between gap-2 border-l-2 border-l-gold p-2.5 transition-colors hover:border-gold">
-                    <div className="flex min-w-0 flex-1 items-center gap-2">
-                      <Search className="h-3 w-3 shrink-0 text-gold" aria-hidden="true" />
-                      <span className="shrink-0 text-[10px] font-medium uppercase tracking-widest text-gold">
-                        {a.tipo}
-                      </span>
-                      <p className="line-clamp-1 text-xs text-navy/80">{a.texto}</p>
-                    </div>
-                    <ArrowRight className="h-3.5 w-3.5 shrink-0 text-navy/40" aria-hidden="true" />
-                  </CaCard>
-                </LinkPortal>
-              ))}
+            <div className="space-y-3">
+              {achados.slice(0, 3).map((a) => {
+                const [titulo, ...resto] = a.texto.split(/(?<=[.!?])\s+/);
+                const resumo = resto.join(" ");
+                return (
+                  <LinkPortal key={a.id} to={a.destino} className="block">
+                    <CaCard className="border-l-2 border-l-gold transition-colors hover:border-gold">
+                      <div className="flex items-baseline gap-3">
+                        {a.ano ? <span className="font-serif text-2xl leading-none text-gold">{a.ano}</span> : null}
+                        <span className="text-[10px] font-medium uppercase tracking-widest text-navy/55">{a.tipo}</span>
+                      </div>
+                      <p className="mt-2 font-serif text-lg leading-snug text-navy">{titulo}</p>
+                      {resumo ? <p className="mt-1 line-clamp-2 text-sm text-navy/70">{resumo}</p> : null}
+                    </CaCard>
+                  </LinkPortal>
+                );
+              })}
             </div>
           )}
         </section>
