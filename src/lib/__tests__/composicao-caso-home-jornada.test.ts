@@ -58,7 +58,7 @@ describe("a mesma composição aparece na Home e na Jornada", () => {
   });
 
   it("Home não renderiza composição ausente; Jornada usa texto narrativo genérico", () => {
-    expect(home).toContain("{composicao ? <p");
+    expect(home).toContain("{composicao ? <span");
     expect(jornada).toContain('{vivo.composicao ?? "A história da sua família"}');
   });
 
