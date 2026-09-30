@@ -63,7 +63,7 @@ function NoArvore({
           ) : (
             <Clock className="hidden h-3.5 w-3.5 text-navy/40 lg:block" aria-hidden="true" />
           )}
-          <span className="sr-only lg:not-sr-only lg:text-[8px] lg:leading-tight">{rotuloEstado}</span>
+          <span className="sr-only">{rotuloEstado}</span>
         </>
       )}
     </div>
