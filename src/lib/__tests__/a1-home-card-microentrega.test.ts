@@ -30,7 +30,7 @@ describe("A1 Home — card Microentrega público removido", () => {
   });
 
   it("achados continua a única lista de publicações recentes na Home", () => {
-    expect(codigo).toContain("achados={jornada.linha.slice(0, 3)");
+    expect(codigo).toContain("achados={achadosPublicados.slice(0, 3)");
   });
 });
 
