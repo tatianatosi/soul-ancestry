@@ -62,3 +62,23 @@ describe("navegação — App Cliente como pessoa é alcançável em Casos 360",
     expect(rotas).toContain("/app-cliente-como-pessoa");
   });
 });
+
+describe("sem ponte admin: RLS da equipe lê as projeções (30/09/2026)", () => {
+  const fonte = readFileSync("src/lib/app-cliente-como-pessoa.functions.ts", "utf8");
+
+  it("não importa o cliente service_role — a rota parou de depender dele", () => {
+    // O contorno existia só "enquanto 20260911120000 não estiver no projeto
+    // remoto"; a migration já está aplicada. Segredo ausente ou de outro
+    // projeto era o que virava "Invalid API key" nesta tela.
+    expect(fonte).not.toContain("client.server");
+    expect(fonte).not.toContain("supabaseAdmin");
+    expect((fonte.match(/const leitorProjecoes = supabase;/g) ?? []).length).toBe(2);
+  });
+
+  it("continua autorizando antes de ler, e filtrando por organização e caso", () => {
+    expect(fonte).toContain("ehProprietariaAdministradora(papel)");
+    expect(fonte).toContain('.from("app_projections")');
+    for (const filtro of ['.eq("organization_id", organizationId)', '.eq("case_id", data.casoId)'])
+      expect(fonte).toContain(filtro);
+  });
+});

@@ -62,12 +62,14 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
     if (!caso) throw new Error("Caso não encontrado nesta organização.");
 
     const agora = new Date().toISOString();
-    // Policy portal (LGPD shares) recursa com app_projection_shares mesmo para
-    // is_org_member. Enquanto 20260911120000 não estiver no projeto remoto, a
-    // visão master lê projeções via admin *depois* de autorizar proprietária +
-    // org + caso — mesmos filtros. Portal do cliente continua no JWT.
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const leitorProjecoes = supabaseAdmin as typeof supabase;
+    // 30/09/2026 — a ponte admin saiu. Ela existia só "enquanto 20260911120000
+    // não estiver no projeto remoto": essa migration já está aplicada
+    // (fix_recursao_rls_app_projections_shares) e a policy hoje é
+    // `app_proj_select = is_org_member(organization_id)`, sem recursão. Ler com
+    // o JWT da equipe vale por RLS real e tira desta rota a dependência da
+    // chave secreta do servidor, que o ambiente pode não ter — era isso que
+    // virava "Invalid API key" no Acesso app como pessoa.
+    const leitorProjecoes = supabase;
 
     const [proj, docs, pendencias, faturas] = await Promise.all([
       leitorProjecoes
@@ -180,9 +182,8 @@ export const resumoVisaoClienteCaso = createServerFn({ method: "GET" })
       .maybeSingle();
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
 
-    // Mesma ponte admin de dadosVivosDoPortalComoAdmin (recursão RLS shares).
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const leitorProjecoes = supabaseAdmin as typeof supabase;
+    // Mesma decisão de dadosVivosDoPortalComoAdmin: RLS da equipe, sem admin.
+    const leitorProjecoes = supabase;
 
     const [acessoCaso, projecoes, entregas, documentos, pendencias, faturas] = await Promise.all([
       supabase
