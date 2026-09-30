@@ -1,5 +1,10 @@
 # Roadmap
 
+## App Cliente fiel ao mockup de 17 páginas (30/09/2026)
+- [x] Primeiro corte, Home: cabeçalho com nome da aba, cartão da história real da Ana e estados de espera próprios para próximo passo e achados não publicados; conferir 375 px e desktop.
+- [ ] Validar compilação integral: bloqueada por erros de tipo preexistentes em `__root` e rotas internas do Desk após atualização de dependências, fora deste corte visual.
+- [ ] Após aprovação visual da Home, avançar uma tela por vez: Jornada, Radar, Árvore, Documentos, Legado e Conta, sem criar dados ou publicações.
+
 ## Jornada do App fiel ao mockup (30/09/2026)
 - [x] Unir Linha Ancestral, Momentos de União e Linha do Processo por eixo dourado em 375 px e desktop, com vazios únicos e links só para material liberado.
 - [x] Conferir testes, compilação e capturas autenticadas nas duas larguras; parar para aprovação visual.
