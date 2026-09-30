@@ -179,8 +179,6 @@ export function PortalDocumentos() {
             */
             const liberados_lista = noCaso(data?.entregas);
             const recebidos = noCaso(data?.envios);
-            const liberados = liberados_lista.length;
-            const enviados = recebidos.length;
             const proximaAcao = vivo.data?.proximaAcao ?? null;
             const solicitado = proximaAcao?.destino === "/portal/documentos" ? proximaAcao.acao : null;
             const solicitacoesAbertas = vivo.data?.solicitacoes ?? [];
