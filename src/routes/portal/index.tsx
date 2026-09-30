@@ -335,7 +335,7 @@ function PainelHomeMockup({
       */}
       {/* 16/09/2026 — primeira dobra: o cartão do processo é o elemento
           principal (maior), e a linha do tempo abaixo fica discreta. */}
-      <section className="relative overflow-hidden rounded-2xl border-b-2 border-gold/70 bg-navy-800 p-6 text-cream shadow-md sm:p-8">
+      <section className="relative overflow-hidden rounded-xl border-b-2 border-gold/70 bg-navy-800 p-6 text-cream shadow-md sm:p-8">
         <div className="min-w-0">
           <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-gold">Acompanhamento da família</p>
            <p className="mt-2 font-serif text-xl text-cream/80">Uma história em construção</p>
@@ -400,9 +400,11 @@ function PainelHomeMockup({
             </LinkPortal>
           </div>
           {achados.length === 0 ? (
-            <p className="font-serif text-base italic leading-relaxed text-navy/60">
-              As descobertas confirmadas pela equipe aparecerão aqui, com todo o cuidado que a sua história merece.
-            </p>
+            <CaCard className="border-l-2 border-l-gold">
+              <p className="font-serif text-lg leading-relaxed text-navy/70">
+                Quando houver descobertas prontas para compartilhar, elas encontrarão seu lugar aqui.
+              </p>
+            </CaCard>
           ) : (
             <div className="space-y-3">
               {achados.slice(0, 3).map((a) => {
