@@ -116,7 +116,11 @@ export function PortalLegado() {
                           </div>
                           {itens.length === 0 ? (
                             <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
-                                {`Quando houver algo em ${p.rotulo} pronto para compartilhar, você encontrará aqui.`}
+                                 {p.id === "cadernos"
+                                   ? "Os cadernos da família aparecerão aqui quando forem liberados."
+                                   : p.id === "relatorios"
+                                     ? "Nenhum dossiê ou relatório foi liberado para a família até agora."
+                                     : "As narrativas de origem aparecerão aqui quando estiverem prontas para a família."}
                             </p>
                           ) : (
                             <ul className="mt-3 space-y-2">

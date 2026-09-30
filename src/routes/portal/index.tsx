@@ -96,7 +96,9 @@ export function PortalHome() {
               tipo: item.tipoRotulo,
               destino: destinoPorTipo(item.tipo),
               texto: item.conteudo,
-              ano: item.publicadoEm ? item.publicadoEm.slice(0, 4) : null,
+              ano: ["arvore", "achado", "evidencia", "linha_tempo", "legado"].includes(item.tipo)
+                ? item.conteudo.match(/\b(1[5-9]\d{2}|20[0-2]\d)\b/)?.[0] ?? null
+                : null,
             }))}
             fase={
               // Progresso fixo pertence só ao caso de demonstração. Num caso
@@ -154,7 +156,9 @@ export function PortalHome() {
                   tipo: item.tipoRotulo,
                   destino: destinoPorTipo(item.tipo),
                   texto: item.conteudo,
-                  ano: item.publicadoEm ? item.publicadoEm.slice(0, 4) : null,
+                   ano: ["arvore", "achado", "evidencia", "linha_tempo", "legado"].includes(item.tipo)
+                     ? item.conteudo.match(/\b(1[5-9]\d{2}|20[0-2]\d)\b/)?.[0] ?? null
+                     : null,
                 }))}
                 composicao={vivo.data?.composicao ?? null}
                 fase={
@@ -356,8 +360,8 @@ function PainelHomeMockup({
         ) : (
           <p className="mt-4 border-t border-cream/10 pt-4 text-sm leading-relaxed text-cream/70">
             {marcos === 0
-              ? "Estamos reunindo as primeiras memórias da sua família com calma e cuidado."
-              : `${marcos} ${marcos === 1 ? "momento já compartilhado" : "momentos já compartilhados"} com você`}
+               ? "A história da sua família terá seu lugar aqui, à medida que novos trechos forem compartilhados."
+               : "Os trechos já compartilhados da sua história estão logo abaixo."}
           </p>
         )}
       </section>
