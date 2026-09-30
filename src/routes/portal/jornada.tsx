@@ -329,7 +329,7 @@ export function PortalJornada() {
     const abreJornada = (r: typeof entrega.visibilidade) => r.estado === "released";
 
   return (
-    <PortalShell titulo={COPY_TELAS.jornada.titulo} descricao={COPY_TELAS.jornada.descricao}>
+    <PortalShell titulo="Nossa jornada" descricao={COPY_TELAS.jornada.descricao}>
       {carregando ? (
         <PortalCarregando />
       ) : (
