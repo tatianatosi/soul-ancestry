@@ -9,7 +9,7 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { LinkPortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { jornadaSanitizada, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
+import { jornadaSanitizada, publicacoesDeEntrega, publicacoesDeFase01, publicacoesDeFase02, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
 import type { PublicacaoCliente } from "@/lib/projecoes-cliente";
 import { cn } from "@/lib/utils";
 
@@ -225,13 +225,15 @@ function TimelineVertical({
   const gradiente = `linear-gradient(to bottom, ${paradas.join(", ")})`;
 
   return (
-    <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+    <div className="min-w-0 rounded-lg border border-border bg-card shadow-sm">
       <div className={cn("h-1 w-full", variante === "gold" ? "bg-gold" : "bg-navy")} aria-hidden="true" />
       <div className="px-4 py-5 sm:px-5">
       <h2 className="mb-3 font-serif text-xl text-navy">{eyebrow}</h2>
       {eventos.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-navy/15 bg-cream/50 px-3 py-4 text-center text-xs text-navy/50">
-           As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.
+        <p className="py-3 text-sm leading-relaxed text-navy/60">
+          {variante === "gold"
+            ? "As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família."
+            : "Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar."}
         </p>
       ) : (
         <div className="relative">
@@ -284,19 +286,16 @@ function TimelineVertical({
  * lista (era o nó tipo "ponte" antes desta composição em duas colunas).
  */
 function MomentosDeUniao({ pontes }: { pontes: NoPonte[] }) {
-  if (pontes.length === 0) return null;
   return (
-    <div className="relative rounded-2xl border border-gold/45 bg-linear-to-r from-gold/12 to-navy/5 px-4 py-4">
-      <span className="mx-auto mb-2 block h-5 w-px bg-gold/50 sm:hidden" aria-hidden="true" />
+    <div className="relative rounded-lg border border-gold/45 bg-cream px-4 py-4">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-navy/60">Momentos de União</p>
-      <ul className="mt-1.5 space-y-1.5">
-        {pontes.map((p, i) => (
-          <li key={i} className="text-xs leading-relaxed text-navy/75">
-            {p.texto}
-          </li>
-        ))}
-      </ul>
-      <span className="mx-auto mt-2 block h-5 w-px bg-navy/25 sm:hidden" aria-hidden="true" />
+      {pontes.length > 0 ? (
+        <ul className="mt-1.5 space-y-1.5">
+          {pontes.map((p, i) => <li key={i} className="text-sm leading-relaxed text-navy/75">{p.texto}</li>)}
+        </ul>
+      ) : (
+        <p className="mt-1.5 text-sm leading-relaxed text-navy/60">Os encontros da história da família aparecerão aqui quando forem compartilhados.</p>
+      )}
     </div>
   );
 }
@@ -327,11 +326,10 @@ export function PortalJornada() {
   const fase2 = useVisibilidade("fase02");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
 
-  const abreJornada = (r: typeof entrega.visibilidade) =>
-    r.navegavel && r.estado !== "hidden_by_permission" && r.estado !== "not_applicable";
+    const abreJornada = (r: typeof entrega.visibilidade) => r.estado === "released";
 
   return (
-    <PortalShell titulo={COPY_TELAS.jornada.titulo} descricao={COPY_TELAS.jornada.descricao}>
+    <PortalShell titulo="Nossa jornada" descricao={COPY_TELAS.jornada.descricao}>
       {carregando ? (
         <PortalCarregando />
       ) : (
@@ -345,6 +343,9 @@ export function PortalJornada() {
         >
           {([vivo]) => {
             const jornada = jornadaSanitizada(vivo.projecoes, new Date(), vivo.proximaAcao);
+            const temMateriais = publicacoesDeEntrega(vivo.projecoes).length > 0;
+            const temFase01 = publicacoesDeFase01(vivo.projecoes).length > 0;
+            const temFase02 = publicacoesDeFase02(vivo.projecoes).length > 0;
             const destino = vivo.proximaAcao?.destino ?? null;
             const ritmoRotulo =
               jornada.ritmo === "sem_publicacao"
@@ -451,81 +452,77 @@ export function PortalJornada() {
                       bloco narrativo aprovado: etapa, próxima atualização e o
                       estado vazio de publicação por linha.
                     */
-                    <div data-jornada-vazio className="space-y-4">
-                      <div data-jornada-narrativa-vazia className="rounded-xl bg-navy-800 px-5 py-5 text-cream shadow-sm">
+                     <div data-jornada-vazio className="space-y-5">
+                       <div data-jornada-narrativa-vazia className="rounded-lg bg-navy-800 px-5 py-6 text-cream shadow-sm">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Nossa jornada</p>
-                        <h2 className="mt-1 font-serif text-xl text-cream">
-                          {passoAtualIndice !== null ? passos[passoAtualIndice] : "Uma história começando a ganhar forma"}
-                        </h2>
-                        <p className="mt-2 text-sm text-cream/70">{ritmoRotulo}</p>
+                         <h2 className="mt-1 font-serif text-2xl text-cream">Uma história começando a ganhar forma</h2>
+                         <p className="mt-2 text-sm leading-relaxed text-cream/80">{ritmoRotulo}</p>
                       </div>
-                      <div data-jornada-duas-linhas className="relative grid gap-4 pl-5">
-                        <span aria-hidden="true" className="absolute bottom-4 left-1.5 top-4 w-px bg-gold/60" />
-                        <section className="relative rounded-xl border border-gold/35 bg-card p-5 shadow-sm">
-                          <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Linha Ancestral</p>
-                          <p className="mt-2 text-sm leading-relaxed text-navy/60">
-                           As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.
-                          </p>
-                        </section>
-                        <div className="relative rounded-xl border border-dashed border-gold/45 bg-gold/5 px-4 py-4 text-center">
-                          <p className="text-[10px] font-semibold uppercase tracking-widest text-navy/55">Momentos de União</p>
-                          <p className="mt-1 text-xs leading-relaxed text-navy/60">
-                             Aqui os ramos da família se encontram com os passos de hoje. Este encontro ganhará forma a cada descoberta compartilhada.
-                          </p>
-                        </div>
-                        <section className="rounded-xl border border-navy/20 bg-card p-5 shadow-sm">
-                          <p className="text-[10px] font-semibold uppercase tracking-widest text-navy/55">Linha do Processo</p>
-                          <p className="mt-2 text-sm leading-relaxed text-navy/60">{COPY_TELAS.jornada.vazio}</p>
-                        </section>
+                       <div data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:gap-6">
+                         <span aria-hidden="true" className="absolute bottom-5 left-2 top-5 w-0.5 bg-gold/70" />
+                         <section className="relative rounded-lg border border-gold/35 bg-card p-5 shadow-sm">
+                           <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
+                           <h2 className="font-serif text-xl text-navy">Linha Ancestral</h2>
+                           <p className="mt-2 text-sm leading-relaxed text-navy/60">As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.</p>
+                         </section>
+                         <div className="relative">
+                           <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
+                           <MomentosDeUniao pontes={pontes} />
+                         </div>
+                         <section className="relative rounded-lg border border-navy/20 bg-card p-5 shadow-sm">
+                           <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
+                           <h2 className="font-serif text-xl text-navy">Linha do Processo</h2>
+                           <p className="mt-2 text-sm leading-relaxed text-navy/60">Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar.</p>
+                         </section>
                       </div>
                     </div>
                   ) : (
                     <>
-                      <div className="rounded-xl bg-navy-800 px-5 py-5 text-cream shadow-sm">
+                       <div className="rounded-lg bg-navy-800 px-5 py-6 text-cream shadow-sm">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Nossa jornada</p>
-                        <h2 className="mt-1 font-serif text-xl text-cream">
-                          {vivo.composicao ?? "A história da sua família"}
-                        </h2>
-                        <p className="mt-2 text-sm text-cream/70">{ritmoRotulo}</p>
+                         <h2 className="mt-1 font-serif text-2xl text-cream">Uma história começando a ganhar forma</h2>
+                         <p className="mt-2 text-sm leading-relaxed text-cream/80">{vivo.composicao ?? "A história da sua família"} · {ritmoRotulo}</p>
                       </div>
-
-                      <TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} />
-
-                      <div data-jornada-duas-linhas className="grid gap-5 sm:grid-cols-2 sm:gap-6">
-                        <div className="order-2 sm:order-1 sm:col-span-2">
-                          <MomentosDeUniao pontes={pontes} />
-                        </div>
-                        <div className="order-1 min-w-0 sm:order-2">
+                       <div data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:gap-6">
+                         <span aria-hidden="true" className="absolute bottom-5 left-2 top-5 w-0.5 bg-gold/70" />
+                         <div className="relative min-w-0">
+                           <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                           <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" variante="gold" />
                         </div>
-                        <div className="order-3 min-w-0">
+                         <div className="relative">
+                           <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
+                           <MomentosDeUniao pontes={pontes} />
+                         </div>
+                         <div className="relative min-w-0">
+                           <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
                           <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" />
+                           <div className="mt-3"><TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} /></div>
                         </div>
                       </div>
                     </>
                   )}
 
-                  {(abreJornada(entrega.visibilidade) ||
-                    abreJornada(fase1.visibilidade) ||
-                    abreJornada(fase2.visibilidade)) && (
+                   {((abreJornada(entrega.visibilidade) && temMateriais) ||
+                     (abreJornada(fase1.visibilidade) && temFase01) ||
+                     (abreJornada(fase2.visibilidade) && temFase02)) && (
                     <p className="text-[11px] text-navy/50">
                       Material publicado:{" "}
-                      {abreJornada(entrega.visibilidade) ? (
+                       {abreJornada(entrega.visibilidade) && temMateriais ? (
                         <LinkPortal to="/portal/entregas" className="underline underline-offset-2 hover:text-navy/70">
                           ver materiais liberados
                         </LinkPortal>
                       ) : null}
-                      {abreJornada(entrega.visibilidade) && abreJornada(fase1.visibilidade) ? " · " : null}
-                      {abreJornada(fase1.visibilidade) ? (
+                       {abreJornada(entrega.visibilidade) && temMateriais && abreJornada(fase1.visibilidade) && temFase01 ? " · " : null}
+                       {abreJornada(fase1.visibilidade) && temFase01 ? (
                         <LinkPortal to="/portal/fase-01" className="underline underline-offset-2 hover:text-navy/70">
                           ver relatório preparado
                         </LinkPortal>
                       ) : null}
-                      {(abreJornada(entrega.visibilidade) || abreJornada(fase1.visibilidade)) &&
-                      abreJornada(fase2.visibilidade)
+                       {((abreJornada(entrega.visibilidade) && temMateriais) || (abreJornada(fase1.visibilidade) && temFase01)) &&
+                       abreJornada(fase2.visibilidade) && temFase02
                         ? " · "
                         : null}
-                      {abreJornada(fase2.visibilidade) ? (
+                       {abreJornada(fase2.visibilidade) && temFase02 ? (
                         <LinkPortal to="/portal/fase-02" className="underline underline-offset-2 hover:text-navy/70">
                           ver atualização seguinte
                         </LinkPortal>
