@@ -58,7 +58,7 @@ export const Route = createFileRoute("/_authenticated/biblioteca-evidencias/$cas
   }),
   errorComponent: ({ error }) => (
     <SaasShell titulo="Biblioteca de evidências" descricao="Falha ao carregar a biblioteca.">
-      <p role="alert" className="text-sm text-terracotta">Não foi possível carregar a biblioteca: {error.message}</p>
+      <p role="alert" className="text-sm text-terracotta">Não foi possível carregar a biblioteca: {(error as Error).message}</p>
     </SaasShell>
   ),
   notFoundComponent: () => (

@@ -77,7 +77,7 @@ export const Route = createFileRoute("/_authenticated/pessoas-linhagens/$caseId"
   }),
   errorComponent: ({ error }) => (
     <SaasShell titulo="Pessoas e linhagens" descricao="Falha ao carregar a ficha.">
-      <p role="alert" className="text-sm text-terracotta">Não foi possível carregar a ficha: {error.message}</p>
+      <p role="alert" className="text-sm text-terracotta">Não foi possível carregar a ficha: {(error as Error).message}</p>
     </SaasShell>
   ),
   notFoundComponent: () => (
