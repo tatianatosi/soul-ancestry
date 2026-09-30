@@ -58,7 +58,7 @@ export type GrupoDesk = {
   sub: readonly ItemNav[];
 };
 
-/** Nomes das 7 telas do mockup — taxonomia visual, não a sidebar. */
+/** Sete entradas da face V4; cada destino é uma rota oficial já existente. */
 export const TELAS_DESK_MOCKUP = [
   "Visão Geral",
   "Casos 360",
@@ -68,6 +68,16 @@ export const TELAS_DESK_MOCKUP = [
   "Alertas",
   "Biblioteca Mestre",
 ] as const;
+
+export const NAVEGACAO_V4_DESK = [
+  { label: "Visão Geral", to: "/painel", icone: "hoje" },
+  { label: "Casos 360", to: "/casos", icone: "casos" },
+  { label: "Checklist", to: "/tarefas", icone: "casos" },
+  { label: "Validação Jurídica", to: "/matriz-juridica", icone: "contratos" },
+  { label: "Radar Interno", to: "/qualidade", icone: "pesquisa" },
+  { label: "Alertas", to: "/alertas", icone: "hoje" },
+  { label: "Biblioteca Mestre", to: "/biblioteca", icone: "pesquisa" },
+] as const satisfies readonly { label: string; to: string; icone: GrupoDesk["icone"] }[];
 
 export const GRUPOS_OPERACIONAIS_DESK = [
   "Hoje",
