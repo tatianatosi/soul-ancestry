@@ -74,7 +74,7 @@ export function PortalRadar() {
                     <h2 className="mb-3 font-serif text-xl text-navy">A história em seis dimensões</h2>
                     <ul className="grid grid-cols-2 gap-2.5 sm:gap-3">
                       {dimensoes.map((d, i) => (
-                        <li key={d.id} className="min-w-0 rounded-xl border border-border bg-card p-3.5 shadow-sm sm:p-4">
+                        <li key={d.id} className="min-w-0 rounded-xl border border-border bg-card p-3 shadow-sm sm:p-4">
                           <div className="min-w-0 sm:flex sm:items-start sm:justify-between sm:gap-2">
                             <div className="min-w-0">
                               <p className="text-[9px] font-semibold uppercase tracking-widest text-navy/45">
@@ -82,7 +82,7 @@ export function PortalRadar() {
                               </p>
                               <h3 className="mt-0.5 text-xs font-semibold leading-tight text-navy">{d.titulo}</h3>
                             </div>
-                            <span className="mt-2 block font-serif text-xl leading-none text-navy sm:mt-0 sm:shrink-0 sm:text-base">
+                            <span className="mt-2 block break-words font-serif text-sm leading-tight text-navy sm:mt-0 sm:shrink-0 sm:text-base">
                                {d.percentual === 0 ? "Em preparação" : d.rotuloNumero}
                             </span>
                           </div>
