@@ -66,7 +66,7 @@ export function PortalRadar() {
                       Um passo de cada vez
                     </p>
                     <p className="mt-1 text-sm text-navy/80">
-                       {passoPublicado?.conteudo ?? "O próximo passo aparecerá aqui quando estiver pronto para compartilhar com você."}
+                       {passoPublicado?.conteudo ?? "Ainda não há um próximo passo liberado para a família."}
                     </p>
                   </section>
 

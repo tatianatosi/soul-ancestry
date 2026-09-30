@@ -163,7 +163,7 @@ export function PortalConta() {
               </div>
               {(vivo.data?.historico ?? []).length === 0 ? (
                 <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center text-sm text-navy/60">
-                  Quando a equipe aprovar um marco da sua jornada, ele aparecerá aqui.
+                   Ainda não há um marco da jornada liberado para a família.
                 </p>
               ) : (
                 <ul className="mt-3 space-y-2">

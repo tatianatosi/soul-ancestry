@@ -75,7 +75,7 @@ export const COPY_TELAS = {
     navegacao: "Árvore",
     titulo: "Árvore Familiar",
     descricao: "Cinco gerações que compõem você.",
-    vazio: "Quando um novo vínculo estiver confirmado e pronto para compartilhar, você poderá encontrá-lo aqui e na Jornada.",
+    vazio: "A árvore da família ainda não tem vínculos liberados para você.",
   },
   documentos: {
     navegacao: "Documentos",

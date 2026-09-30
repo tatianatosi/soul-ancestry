@@ -141,7 +141,7 @@ export function PortalArvore() {
                     <p className="mt-1 text-sm text-navy/65">
                       {temConteudo
                         ? "A árvore reúne as pessoas e os vínculos já confirmados e compartilhados com você."
-                        : "Os lugares abaixo serão preenchidos, geração a geração, conforme as pessoas forem confirmadas."}
+                         : "Esta árvore ainda não tem nomes e vínculos liberados para a família."}
                     </p>
                     <div className="mt-5 space-y-1">
                       {GERACOES_ARVORE_EXIBICAO.map((geracao: GeracaoArvore, gi) => (
@@ -192,7 +192,7 @@ export function PortalArvore() {
                         </>
                       ) : (
                         <span className="text-xs text-navy/60">
-                          Nenhuma pessoa liberada ainda — de um universo de {PESSOAS_POSSIVEIS_CINCO_GERACOES} possíveis nas 5 gerações.
+                           Nenhum nome liberado para esta árvore até agora.
                         </span>
                       )}
                     </p>
@@ -218,7 +218,7 @@ export function PortalArvore() {
                     </div>
                     {painel.notasPublicadas.length === 0 ? (
                       <p className="rounded-xl border border-dashed border-navy/20 bg-cream/60 p-4 text-sm text-navy/60">
-                         Quando um novo vínculo estiver confirmado e pronto para compartilhar, você poderá encontrá-lo aqui e na Jornada.
+                          A próxima ligação da família aparecerá aqui quando estiver confirmada e liberada.
                       </p>
                     ) : (
                       <ul className="space-y-3">
