@@ -4,7 +4,7 @@
 - [x] Mostrar em "O que vem agora" somente próximo passo explicitamente publicado; manter espera se ausente.
 - [x] Restringir Achados a material familiar publicado e retirar contagem técnica da Home.
 - [x] Manter topo azul e eixo dourado contínuo na Jornada; exibir etapas apenas quando houver etapa real.
-- [ ] Validar compilação, testes e capturas autenticadas da Jornada em 375 px e desktop.
+- [x] Validar compilação, testes e capturas autenticadas da Jornada em 375 px e desktop.
 
 ## Jornada do App fiel ao mockup (30/09/2026)
 - [x] Unir Linha Ancestral, Momentos de União e Linha do Processo por eixo dourado em 375 px e desktop, com vazios únicos e links só para material liberado.
