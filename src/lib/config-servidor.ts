@@ -26,7 +26,7 @@
  * O que este módulo faz nesse caso é tornar a falha legível, em vez de
  * silenciosa: veja `diagnosticoDoServidor()`.
  */
-import { PROJETO_DECLARADO, refDaUrl } from "./config-publica";
+import { PROJETO_DECLARADO, chaveServeAoProjeto, refDaUrl } from "./config-publica";
 
 function ambiente(): Record<string, string | undefined> {
   return typeof process !== "undefined" && process.env ? process.env : {};
@@ -60,7 +60,9 @@ export function chavePublicavelDoServidor(env = ambiente()): string {
   const url = urlBruta(env);
   const chave = env["SUPABASE_PUBLISHABLE_KEY"] || env["VITE_SUPABASE_PUBLISHABLE_KEY"];
   if (!url || !chave) return PROJETO_DECLARADO.publishableKey;
-  return refDaUrl(url) === PROJETO_DECLARADO.ref ? chave : PROJETO_DECLARADO.publishableKey;
+  return refDaUrl(url) === PROJETO_DECLARADO.ref && chaveServeAoProjeto(chave, PROJETO_DECLARADO.ref)
+    ? chave
+    : PROJETO_DECLARADO.publishableKey;
 }
 
 /**

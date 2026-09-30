@@ -67,6 +67,35 @@ export function refDaUrl(url: string): string | null {
   return m ? m[1].toLowerCase() : null;
 }
 
+/**
+ * A chave do ambiente serve ao projeto declarado?
+ *
+ * 30/09/2026 — "Invalid API key" no preview do App. `alinhado` só conferia o
+ * REF da URL: um `.env` com a URL certa e uma chave de OUTRO projeto (ou
+ * antiga) passava, e o Supabase recusava cada requisição. A chave JWT carrega
+ * o ref do projeto no payload, então dá para recusar a que não é deste
+ * projeto, e a `service_role`/`sb_secret_` nunca pode ir ao navegador.
+ * Formato `sb_publishable_` é opaco: aceito, sem como conferir o dono.
+ */
+export function chaveServeAoProjeto(chave: string | undefined | null, ref: string): boolean {
+  const c = (chave ?? "").trim();
+  if (!c || c.startsWith("sb_secret_")) return false;
+  if (c.startsWith("sb_publishable_")) return true;
+  if (!c.startsWith("eyJ")) return false;
+  try {
+    const meio = c.split(".")[1];
+    if (!meio) return false;
+    const b64 = meio.replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(atob(b64 + "=".repeat((4 - (b64.length % 4)) % 4))) as {
+      ref?: string;
+      role?: string;
+    };
+    return payload.role === "anon" && payload.ref === ref;
+  } catch {
+    return false;
+  }
+}
+
 export type ConfigPublica = { url: string; publishableKey: string };
 
 /** Onde o navegador encontra a configuração injetada pelo servidor. */
@@ -104,7 +133,10 @@ export function configPublicaDoServidor(
     banco ele pertence. Para apontar a outro projeto, muda-se `config.toml` e
     estes valores juntos — deliberadamente, não por variável solta.
   */
-  return refDaUrl(url) === PROJETO_DECLARADO.ref ? { url, publishableKey } : declarado();
+  return refDaUrl(url) === PROJETO_DECLARADO.ref &&
+    chaveServeAoProjeto(publishableKey, PROJETO_DECLARADO.ref)
+    ? { url, publishableKey }
+    : declarado();
 }
 
 /** O ambiente aponta para um projeto diferente do declarado? */

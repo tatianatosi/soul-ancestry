@@ -112,3 +112,46 @@ describe("o diagnóstico não vaza segredo", () => {
     expect(formatoDaChave("eyJhbGciOi")).toBe("jwt");
   });
 });
+
+describe("chave do ambiente que não serve ao projeto (Invalid API key, 30/09/2026)", () => {
+  const jwt = (payload: object) =>
+    `eyJhbGciOiJIUzI1NiJ9.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.assinatura`;
+  const url = PROJETO_DECLARADO.url;
+
+  it("URL certa + JWT de outro projeto → usa a chave declarada", () => {
+    const env = {
+      SUPABASE_URL: url,
+      SUPABASE_PUBLISHABLE_KEY: jwt({ ref: "zsxpdbhdvbuulwpepemd", role: "anon" }),
+    };
+    expect(chavePublicavelDoServidor(env)).toBe(PROJETO_DECLARADO.publishableKey);
+  });
+
+  it("URL certa + JWT anon do mesmo projeto → mantém a do ambiente", () => {
+    const chave = jwt({ ref: PROJETO_DECLARADO.ref, role: "anon" });
+    expect(chavePublicavelDoServidor({ SUPABASE_URL: url, SUPABASE_PUBLISHABLE_KEY: chave })).toBe(chave);
+  });
+
+  it("service_role e sb_secret_ nunca viram chave publicável", () => {
+    const servico = jwt({ ref: PROJETO_DECLARADO.ref, role: "service_role" });
+    expect(chavePublicavelDoServidor({ SUPABASE_URL: url, SUPABASE_PUBLISHABLE_KEY: servico })).toBe(
+      PROJETO_DECLARADO.publishableKey,
+    );
+    expect(
+      chavePublicavelDoServidor({ SUPABASE_URL: url, SUPABASE_PUBLISHABLE_KEY: "sb_secret_x" }),
+    ).toBe(PROJETO_DECLARADO.publishableKey);
+  });
+
+  it("chave ilegível ou vazia → a declarada, nunca a quebrada", () => {
+    for (const k of ["lixo", "eyJ.quebrado", "   "]) {
+      expect(chavePublicavelDoServidor({ SUPABASE_URL: url, SUPABASE_PUBLISHABLE_KEY: k })).toBe(
+        PROJETO_DECLARADO.publishableKey,
+      );
+    }
+  });
+
+  it("o cliente do navegador aplica a mesma regra", async () => {
+    const { readFileSync } = await import("node:fs");
+    const src = readFileSync("src/integrations/supabase/client.ts", "utf8");
+    expect(src).toContain("chaveServeAoProjeto(bruto.publishableKey, PROJETO_DECLARADO.ref)");
+  });
+});
