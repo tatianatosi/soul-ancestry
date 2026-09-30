@@ -14,8 +14,7 @@ import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, Users } from "lucide-react";
-import { pessoasDaArvore } from "@/lib/arvore-publicacao";
+import { CheckCircle2 } from "lucide-react";
 import { CaCard } from "@/components/ui/ca-card";
 
 /**
@@ -75,6 +74,12 @@ export function PortalHome() {
     new Date(),
     vivo.data?.proximaAcao,
   );
+  // Apenas uma publicação explícita pode ser chamada de próximo passo; sinais
+  // derivados do caso e conteúdos de contrato/proposta não são achados.
+  const passoPublicado = jornada.linha.find((item) => item.tipo === "proxima_acao");
+  const achadosPublicados = jornada.linha.filter((item) =>
+    ["achado", "arvore", "evidencia", "linha_tempo", "legado", "microentrega", "relatorio_fase"].includes(item.tipo),
+  );
 
   if (previa) {
     return (
@@ -84,11 +89,11 @@ export function PortalHome() {
         ) : (
           <PainelHomeMockup
             tituloCaso={previa.titulo}
-            proximoPasso="Assim que houver um próximo passo compartilhado com sua família, você o verá aqui."
+            proximoPasso={passoPublicado?.conteudo ?? "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui."}
             proximoPassoDestino={null}
             proximaEntrega={null}
             marcos={jornada.marcosPublicados}
-            achados={jornada.linha.slice(0, 3).map((item) => ({
+            achados={achadosPublicados.slice(0, 3).map((item) => ({
               id: item.id,
               tipo: item.tipoRotulo,
               destino: destinoPorTipo(item.tipo),
@@ -141,12 +146,12 @@ export function PortalHome() {
             <div className="space-y-4">
               <PainelHomeMockup
                 tituloCaso={principal.titulo}
-                proximoPasso="Assim que houver um próximo passo compartilhado com sua família, você o verá aqui."
+                proximoPasso={passoPublicado?.conteudo ?? "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui."}
                 proximoPassoDestino={null}
                 proximaEntrega={null}
                 marcos={jornada.marcosPublicados}
                 casoId={principal.id}
-                achados={jornada.linha.slice(0, 3).map((item) => ({
+                achados={achadosPublicados.slice(0, 3).map((item) => ({
                   id: item.id,
                   tipo: item.tipoRotulo,
                   destino: destinoPorTipo(item.tipo),
@@ -154,7 +159,6 @@ export function PortalHome() {
                   ano: item.publicadoEm ? item.publicadoEm.slice(0, 4) : null,
                 }))}
                 composicao={vivo.data?.composicao ?? null}
-                pessoasConectadas={pessoasDaArvore(vivo.data?.projecoes ?? []).length}
                 fase={
                   /*
                     Etapa real do caso, vinda de `case_plans.fase_jornada` pela
