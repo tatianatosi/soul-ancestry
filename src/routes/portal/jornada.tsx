@@ -394,19 +394,20 @@ export function PortalJornada() {
             }
 
 
-            // Nó final: próxima ação publicada, sempre presente (real ou demo).
-            // Ajuste 2026-09-12: CTA nomeia a rota real em vez de "Abrir" genérico.
-            nos.push({
+             // Só a publicação explícita de próximo passo pode aparecer como
+             // ação da família; o sinal do motor é operacional, não publicação.
+             const passoPublicado = jornada.linha.find((item) => item.tipo === "proxima_acao");
+             if (passoPublicado) nos.push({
               tipo: "evento",
               id: "__agora__",
               categoria: "navy",
               rotuloCategoria: "Presente",
               dataPrincipal: "Agora",
               titulo: "Próxima ação",
-              conteudo: jornada.proximoPasso,
-              destino,
+               conteudo: passoPublicado.conteudo,
+               destino: destino?.startsWith("/portal/") ? destino : null,
               rotuloCta: destino?.includes("documentos") ? "Ver documentos solicitados" : "Ver próxima ação",
-            });
+             });
 
             // P3 (25/09/2026): próxima entrega — só a data sanitizada que a
             // view portal_casos projeta; nenhum título ou detalhe interno.
@@ -496,7 +497,7 @@ export function PortalJornada() {
                          <div className="relative min-w-0">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
                           <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" />
-                           <div className="mt-3"><TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} /></div>
+                            {passoAtualIndice !== null ? <div className="mt-3"><TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} /></div> : null}
                         </div>
                       </div>
                     </>
