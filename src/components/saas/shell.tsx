@@ -25,6 +25,7 @@ import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
 import {
   GRUPOS_DESK,
+  NAVEGACAO_V4_DESK,
   MENU_CONTA,
   grupoNavAtivo,
   itemNavAtivo,
@@ -78,11 +79,7 @@ export function useSaas() {
   };
 }
 
-/**
- * Navegação do Desk: 6 grupos. O registro canônico vive em
- * `src/lib/navegacao-desk.ts`; aqui só há apresentação. Cada função mora em
- * um grupo; atalho não cria segunda fila. Nenhuma rota operacional some.
- */
+/** A face V4 tem sete destinos; os seis grupos permanecem em contexto recolhido. */
 type SubItem = ItemNav;
 
 type SecaoNav = {
@@ -236,7 +233,30 @@ export function SaasShell({
           <div className="mt-3 h-0.5 w-full bg-gold/80" aria-hidden="true" />
         </div>
 
-        <nav className="grid flex-1 auto-rows-min grid-cols-2 content-start gap-2 md:block md:space-y-1">
+        <nav aria-label="Navegação do Desk" className="flex flex-1 flex-col gap-1">
+          {NAVEGACAO_V4_DESK.map((item) => {
+            const Icon = ICONES[item.icone];
+            const ativo = rotaAtendeDestino(rota, item.to);
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setAberto(false)}
+                aria-current={ativo ? "page" : undefined}
+                className={cn(
+                  "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                  ativo ? "bg-gold font-semibold text-navy" : "text-cream/80 hover:bg-cream/10",
+                )}
+              >
+                <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span className="min-w-0">{item.label}</span>
+                {badgeDe(item.to) > 0 ? <span className="ml-auto text-xs">{badgeDe(item.to)}</span> : null}
+              </Link>
+            );
+          })}
+          <details className="mt-4 border-t border-cream/15 pt-3">
+            <summary className="cursor-pointer px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gold">Áreas de trabalho</summary>
+            <div className="mt-1 space-y-1">
           {itens.map((item) => {
             const { to, label, icon: Icon, sub, descricao: descricaoGrupo } = item;
             const ativo = grupoNavAtivo(rota, hash, item);
@@ -273,13 +293,11 @@ export function SaasShell({
                       {badgeDe(to)}
                     </span>
                   ) : null}
-                  <ChevronDown
-                    className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")}
-                  />
+                  <ChevronDown className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")} />
                 </button>
                 {expandida && sub.length ? (
                   <div className="mb-1 space-y-0.5 border-t border-cream/15 px-2 pb-2 pt-1 md:ml-7 md:border-l md:border-t-0 md:px-0 md:pb-0 md:pl-3 md:pt-0">
-                    {sub.map((s, i) =>
+                    {sub.filter((s) => !("to" in s && NAVEGACAO_V4_DESK.some((v) => v.to === s.to && !s.hash))).map((s, i) =>
                       "grupo" in s ? (
                         <p
                           key={`g-${s.grupo}`}
@@ -331,6 +349,8 @@ export function SaasShell({
               </div>
             );
           })}
+            </div>
+          </details>
         </nav>
         <div className="mt-4 border-t border-cream/15 pt-3">
           <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gold">
@@ -408,28 +428,6 @@ export function SaasShell({
             </div>
           )}
         </header>
-        <nav
-          aria-label="Módulos do Desk"
-          className="hidden min-w-0 items-stretch gap-1 overflow-x-auto border-b border-navy/10 bg-card px-8 md:flex"
-        >
-          {itens.map((item) => {
-            const ativo = grupoNavAtivo(rota, hash, item);
-            return (
-              <Link
-                key={`modulo-${item.to}`}
-                to={item.to}
-                className={cn(
-                  "shrink-0 border-b-2 px-3 py-3 text-xs transition-colors",
-                  ativo
-                    ? "border-gold font-semibold text-navy"
-                    : "border-transparent text-navy/55 hover:text-navy",
-                )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
         {contexto?.organizacao?.demo ? (
           <div className="border-b border-gold/40 bg-gold/15 px-4 py-2 text-xs font-medium uppercase tracking-wide text-navy lg:px-8">
             DEMO — não usar dados reais

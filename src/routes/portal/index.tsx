@@ -84,9 +84,9 @@ export function PortalHome() {
         ) : (
           <PainelHomeMockup
             tituloCaso={previa.titulo}
-            proximoPasso={jornada.proximoPasso}
-            proximoPassoDestino={vivo.data?.proximaAcao?.destino ?? null}
-            proximaEntrega={vivo.data?.proximaEntrega?.texto ?? null}
+            proximoPasso="Assim que houver um próximo passo compartilhado com sua família, você o verá aqui."
+            proximoPassoDestino={null}
+            proximaEntrega={null}
             marcos={jornada.marcosPublicados}
             achados={jornada.linha.slice(0, 3).map((item) => ({
               id: item.id,
@@ -141,9 +141,9 @@ export function PortalHome() {
             <div className="space-y-4">
               <PainelHomeMockup
                 tituloCaso={principal.titulo}
-                proximoPasso={principal.proximoPasso || jornada.proximoPasso}
-                proximoPassoDestino={principal.proximoPassoDestino}
-                proximaEntrega={vivo.data?.proximaEntrega?.texto ?? null}
+                proximoPasso="Assim que houver um próximo passo compartilhado com sua família, você o verá aqui."
+                proximoPassoDestino={null}
+                proximaEntrega={null}
                 marcos={jornada.marcosPublicados}
                 casoId={principal.id}
                 achados={jornada.linha.slice(0, 3).map((item) => ({
@@ -339,11 +339,11 @@ function PainelHomeMockup({
       <section className="relative overflow-hidden rounded-2xl border-b-2 border-gold/70 bg-navy-800 p-6 text-cream shadow-md sm:p-8">
         <div className="min-w-0">
           <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-gold">Acompanhamento da família</p>
-          <h2 className="mt-2 font-serif text-[1.9rem] leading-tight text-cream sm:text-4xl">Uma história em construção</h2>
-          <p className="mt-2 text-sm leading-relaxed text-cream/80 sm:text-base">
-            {tituloCaso}
+           <p className="mt-2 font-serif text-xl text-cream/80">Uma história em construção</p>
+           <h2 className="mt-1 font-serif text-[1.9rem] leading-tight text-cream sm:text-4xl">
+             {tituloCaso}
             {composicao ? <span className="text-cream/60"> · {composicao}</span> : null}
-          </p>
+           </h2>
         </div>
 
         {fase ? (
@@ -381,7 +381,7 @@ function PainelHomeMockup({
               >
                 {proximoPassoDestino.includes("documentos") ? "Ver documentos solicitados" : "Ver próxima ação"}
               </LinkPortal>
-            ) : casoId ? (
+             ) : casoId && proximoPasso !== "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui." ? (
               <Link
                 to="/portal/casos/$id"
                 params={{ id: casoId }}
