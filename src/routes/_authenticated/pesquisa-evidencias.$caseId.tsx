@@ -70,7 +70,7 @@ export const Route = createFileRoute("/_authenticated/pesquisa-evidencias/$caseI
   component: AreaPesquisaEvidencias,
   errorComponent: ({ error }) => (
     <SaasShell titulo="Pesquisa Genealógica e Evidências" descricao="Falha ao carregar a área de pesquisa.">
-      <p role="alert" className="text-sm text-terracotta">{error.message}</p>
+      <p role="alert" className="text-sm text-terracotta">{(error as Error).message}</p>
     </SaasShell>
   ),
   notFoundComponent: () => (

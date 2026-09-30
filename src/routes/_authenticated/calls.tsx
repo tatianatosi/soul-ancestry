@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_authenticated/calls")({
     lead: typeof s.lead === "string" && s.lead.length > 0 ? s.lead : undefined,
   }),
   errorComponent: ({ error, reset }) => (
-    <ErroSuperficieDesk error={error} reset={reset} titulo="Mesa de Discovery" />
+    <ErroSuperficieDesk error={error as Error} reset={reset} titulo="Mesa de Discovery" />
   ),
   head: () => ({
     meta: [

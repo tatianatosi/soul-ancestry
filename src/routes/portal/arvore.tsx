@@ -141,7 +141,7 @@ export function PortalArvore() {
                     <p className="mt-1 text-sm text-navy/65">
                       {temConteudo
                         ? "A árvore reúne as pessoas e os vínculos já confirmados e compartilhados com você."
-                        : COPY_TELAS.arvore.vazio}
+                        : "Os lugares abaixo serão preenchidos, geração a geração, conforme as pessoas forem confirmadas."}
                     </p>
                     <p className="mt-2 rounded-md bg-cream/70 px-2 py-1 text-[11px] text-navy/60">
                       A árvore mostra somente nomes e vínculos já liberados.

@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/metricas")({
     ],
   }),
   component: Metricas,
-  errorComponent: ({ error }) => <div className="p-6 text-sm text-terracotta">Não foi possível carregar as métricas: {error.message}</div>,
+  errorComponent: ({ error }) => <div className="p-6 text-sm text-terracotta">Não foi possível carregar as métricas: {(error as Error).message}</div>,
 });
 
 function Cartao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
