@@ -63,7 +63,7 @@ function NoArvore({
           ) : (
             <Clock className="hidden h-3.5 w-3.5 text-navy/40 lg:block" aria-hidden="true" />
           )}
-          <span className="sr-only lg:not-sr-only lg:text-[8px] lg:leading-tight">{rotuloEstado}</span>
+          <span className="sr-only">{rotuloEstado}</span>
         </>
       )}
     </div>
@@ -142,9 +142,6 @@ export function PortalArvore() {
                       {temConteudo
                         ? "A árvore reúne as pessoas e os vínculos já confirmados e compartilhados com você."
                         : "Os lugares abaixo serão preenchidos, geração a geração, conforme as pessoas forem confirmadas."}
-                    </p>
-                    <p className="mt-2 rounded-md bg-cream/70 px-2 py-1 text-[11px] text-navy/60">
-                      A árvore mostra somente nomes e vínculos já liberados.
                     </p>
                     <div className="mt-5 space-y-1">
                       {GERACOES_ARVORE_EXIBICAO.map((geracao: GeracaoArvore, gi) => (

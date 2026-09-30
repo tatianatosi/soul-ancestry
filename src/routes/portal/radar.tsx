@@ -5,8 +5,9 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { radarSeisDimensoes } from "@/lib/radar-seis-eixos";
 import { RadarSeisEixos } from "@/components/portal/radar-seis-eixos";
-import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
+import { usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
 
 export const Route = createFileRoute("/portal/radar")({
   head: () => ({
@@ -53,36 +54,27 @@ export function PortalRadar() {
               projecoes: vivo.projecoes,
               documentos: vivo.documentos,
             });
+             const passoPublicado = jornadaSanitizada(vivo.projecoes, new Date(), vivo.proximaAcao).linha.find((item) => item.tipo === "proxima_acao");
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-radar>
                   <RadarSeisEixos dimensoes={dimensoes} />
 
                   {/* Próximo passo real (mesma fonte de Home/Jornada) — nunca um passo por eixo inventado. */}
-                  <section className="rounded-xl border border-navy/10 border-l-4 border-l-navy bg-card p-4 shadow-sm">
+                  <section className="border-l-2 border-gold/60 py-1 pl-4">
                     <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">
                       Um passo de cada vez
                     </p>
                     <p className="mt-1 text-sm text-navy/80">
-                       {vivo.proximaAcao?.acao ?? "O próximo passo aparecerá aqui quando estiver pronto para você."}
+                       {passoPublicado?.conteudo ?? "O próximo passo aparecerá aqui quando estiver pronto para compartilhar com você."}
                     </p>
-                    {vivo.proximaAcao?.destino ? (
-                      <LinkPortal
-                        to={vivo.proximaAcao.destino}
-                        className="mt-1 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
-                      >
-                        {vivo.proximaAcao.destino.includes("documentos")
-                          ? "Ver documentos solicitados"
-                          : "Ver próxima ação"}
-                      </LinkPortal>
-                    ) : null}
                   </section>
 
                   <section aria-label="Dimensões do Radar">
                     <h2 className="mb-3 font-serif text-xl text-navy">A história em seis dimensões</h2>
                     <ul className="grid grid-cols-2 gap-2.5 sm:gap-3">
                       {dimensoes.map((d, i) => (
-                        <li key={d.id} className="min-w-0 rounded-xl border border-border bg-card p-3.5 shadow-sm sm:p-4">
+                        <li key={d.id} className="min-w-0 rounded-xl border border-border bg-card p-3 shadow-sm sm:p-4">
                           <div className="min-w-0 sm:flex sm:items-start sm:justify-between sm:gap-2">
                             <div className="min-w-0">
                               <p className="text-[9px] font-semibold uppercase tracking-widest text-navy/45">
@@ -90,14 +82,14 @@ export function PortalRadar() {
                               </p>
                               <h3 className="mt-0.5 text-xs font-semibold leading-tight text-navy">{d.titulo}</h3>
                             </div>
-                            <span className="mt-2 block font-serif text-xl leading-none text-navy sm:mt-0 sm:shrink-0 sm:text-base">
-                              {d.rotuloNumero}
+                            <span className="mt-2 block break-words font-serif text-sm leading-tight text-navy sm:mt-0 sm:shrink-0 sm:text-base">
+                               {d.percentual === 0 ? "Em preparação" : d.rotuloNumero}
                             </span>
                           </div>
                           <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-cream" aria-hidden="true">
                             <div
                               className="h-full rounded-full bg-gold"
-                              style={{ width: `${d.estado === "percentual" ? (d.percentual ?? 0) : 0}%` }}
+                               style={{ width: `${d.estado === "percentual" ? (d.percentual ?? 0) : 0}%` }}
                             />
                           </div>
                           <p className="mt-2 text-[10px] leading-relaxed text-navy/55">{d.legenda}</p>

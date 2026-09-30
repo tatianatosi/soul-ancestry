@@ -118,7 +118,7 @@ export function PortalDocumentos() {
               <div className="p-5">
                 <h2 className="font-serif text-xl text-navy">Entregas do Legado</h2>
                 <p className="mt-2 text-sm text-navy/70">As histórias e os materiais preparados para a sua família ficam reunidos no Legado, quando estiverem disponíveis.</p>
-                <LinkPortal to="/portal/legado" className="mt-3 inline-flex min-h-11 items-center rounded-lg border border-navy/20 px-3 py-2 text-sm font-medium text-navy hover:border-gold">Conhecer o Legado</LinkPortal>
+                 <LinkPortal to="/portal/legado" className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4 hover:text-terracotta">Conhecer o Legado</LinkPortal>
               </div>
             </section>
           </div>
@@ -179,9 +179,6 @@ export function PortalDocumentos() {
             */
             const liberados_lista = noCaso(data?.entregas);
             const recebidos = noCaso(data?.envios);
-            const liberados = liberados_lista.length;
-            const enviados = recebidos.length;
-            const checklist = liberados + enviados;
             const proximaAcao = vivo.data?.proximaAcao ?? null;
             const solicitado = proximaAcao?.destino === "/portal/documentos" ? proximaAcao.acao : null;
             const solicitacoesAbertas = vivo.data?.solicitacoes ?? [];
@@ -194,7 +191,7 @@ export function PortalDocumentos() {
             <div className="flex flex-wrap items-start justify-between gap-2">
               <h2 className="font-serif text-xl text-navy">Solicitados</h2>
               <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
-                Pedido da equipe
+                 Quando precisarmos de você
               </span>
             </div>
             {/*
@@ -348,7 +345,7 @@ export function PortalDocumentos() {
             </p>
             <LinkPortal
               to="/portal/legado"
-              className="mt-3 inline-flex items-center gap-2 rounded-lg border border-navy/20 px-3 py-2 text-sm font-medium text-navy hover:border-gold"
+               className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4 hover:text-terracotta"
             >
                Conhecer o Legado
             </LinkPortal>
