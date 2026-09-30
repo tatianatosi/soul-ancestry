@@ -1,5 +1,9 @@
 # Roadmap
 
+## Jornada do App fiel ao mockup (30/09/2026)
+- [x] Unir Linha Ancestral, Momentos de União e Linha do Processo por eixo dourado em 375 px e desktop, com vazios únicos e links só para material liberado.
+- [ ] Conferir testes, compilação e capturas autenticadas nas duas larguras; parar para aprovação visual.
+
 ## Shell global do App Cliente (28/09/2026)
 - [x] Alinhar a moldura das sete telas ao celular 375 px e à coluna central no computador, sem alterar dados ou rotas.
 - [x] Conferir Home e Jornada nas duas larguras e entregar capturas para aprovação.
