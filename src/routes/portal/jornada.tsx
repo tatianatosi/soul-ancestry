@@ -9,7 +9,7 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { LinkPortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { jornadaSanitizada, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
+import { jornadaSanitizada, publicacoesDeEntrega, publicacoesDeFase01, publicacoesDeFase02, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
 import type { PublicacaoCliente } from "@/lib/projecoes-cliente";
 import { cn } from "@/lib/utils";
 
@@ -343,6 +343,9 @@ export function PortalJornada() {
         >
           {([vivo]) => {
             const jornada = jornadaSanitizada(vivo.projecoes, new Date(), vivo.proximaAcao);
+            const temMateriais = publicacoesDeEntrega(vivo.projecoes).length > 0;
+            const temFase01 = publicacoesDeFase01(vivo.projecoes).length > 0;
+            const temFase02 = publicacoesDeFase02(vivo.projecoes).length > 0;
             const destino = vivo.proximaAcao?.destino ?? null;
             const ritmoRotulo =
               jornada.ritmo === "sem_publicacao"
@@ -499,27 +502,27 @@ export function PortalJornada() {
                     </>
                   )}
 
-                  {(abreJornada(entrega.visibilidade) ||
-                    abreJornada(fase1.visibilidade) ||
-                    abreJornada(fase2.visibilidade)) && (
+                   {((abreJornada(entrega.visibilidade) && temMateriais) ||
+                     (abreJornada(fase1.visibilidade) && temFase01) ||
+                     (abreJornada(fase2.visibilidade) && temFase02)) && (
                     <p className="text-[11px] text-navy/50">
                       Material publicado:{" "}
-                      {abreJornada(entrega.visibilidade) ? (
+                       {abreJornada(entrega.visibilidade) && temMateriais ? (
                         <LinkPortal to="/portal/entregas" className="underline underline-offset-2 hover:text-navy/70">
                           ver materiais liberados
                         </LinkPortal>
                       ) : null}
-                      {abreJornada(entrega.visibilidade) && abreJornada(fase1.visibilidade) ? " · " : null}
-                      {abreJornada(fase1.visibilidade) ? (
+                       {abreJornada(entrega.visibilidade) && temMateriais && abreJornada(fase1.visibilidade) && temFase01 ? " · " : null}
+                       {abreJornada(fase1.visibilidade) && temFase01 ? (
                         <LinkPortal to="/portal/fase-01" className="underline underline-offset-2 hover:text-navy/70">
                           ver relatório preparado
                         </LinkPortal>
                       ) : null}
-                      {(abreJornada(entrega.visibilidade) || abreJornada(fase1.visibilidade)) &&
-                      abreJornada(fase2.visibilidade)
+                       {((abreJornada(entrega.visibilidade) && temMateriais) || (abreJornada(fase1.visibilidade) && temFase01)) &&
+                       abreJornada(fase2.visibilidade) && temFase02
                         ? " · "
                         : null}
-                      {abreJornada(fase2.visibilidade) ? (
+                       {abreJornada(fase2.visibilidade) && temFase02 ? (
                         <LinkPortal to="/portal/fase-02" className="underline underline-offset-2 hover:text-navy/70">
                           ver atualização seguinte
                         </LinkPortal>
