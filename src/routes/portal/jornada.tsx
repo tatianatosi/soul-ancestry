@@ -225,13 +225,15 @@ function TimelineVertical({
   const gradiente = `linear-gradient(to bottom, ${paradas.join(", ")})`;
 
   return (
-    <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+    <div className="min-w-0 rounded-lg border border-border bg-card shadow-sm">
       <div className={cn("h-1 w-full", variante === "gold" ? "bg-gold" : "bg-navy")} aria-hidden="true" />
       <div className="px-4 py-5 sm:px-5">
       <h2 className="mb-3 font-serif text-xl text-navy">{eyebrow}</h2>
       {eventos.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-navy/15 bg-cream/50 px-3 py-4 text-center text-xs text-navy/50">
-           As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.
+        <p className="py-3 text-sm leading-relaxed text-navy/60">
+          {variante === "gold"
+            ? "As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família."
+            : "Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar."}
         </p>
       ) : (
         <div className="relative">
@@ -284,19 +286,16 @@ function TimelineVertical({
  * lista (era o nó tipo "ponte" antes desta composição em duas colunas).
  */
 function MomentosDeUniao({ pontes }: { pontes: NoPonte[] }) {
-  if (pontes.length === 0) return null;
   return (
-    <div className="relative rounded-2xl border border-gold/45 bg-linear-to-r from-gold/12 to-navy/5 px-4 py-4">
-      <span className="mx-auto mb-2 block h-5 w-px bg-gold/50 sm:hidden" aria-hidden="true" />
+    <div className="relative rounded-lg border border-gold/45 bg-cream px-4 py-4">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-navy/60">Momentos de União</p>
-      <ul className="mt-1.5 space-y-1.5">
-        {pontes.map((p, i) => (
-          <li key={i} className="text-xs leading-relaxed text-navy/75">
-            {p.texto}
-          </li>
-        ))}
-      </ul>
-      <span className="mx-auto mt-2 block h-5 w-px bg-navy/25 sm:hidden" aria-hidden="true" />
+      {pontes.length > 0 ? (
+        <ul className="mt-1.5 space-y-1.5">
+          {pontes.map((p, i) => <li key={i} className="text-sm leading-relaxed text-navy/75">{p.texto}</li>)}
+        </ul>
+      ) : (
+        <p className="mt-1.5 text-sm leading-relaxed text-navy/60">Os encontros da história da família aparecerão aqui quando forem compartilhados.</p>
+      )}
     </div>
   );
 }
@@ -327,8 +326,7 @@ export function PortalJornada() {
   const fase2 = useVisibilidade("fase02");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
 
-  const abreJornada = (r: typeof entrega.visibilidade) =>
-    r.navegavel && r.estado !== "hidden_by_permission" && r.estado !== "not_applicable";
+    const abreJornada = (r: typeof entrega.visibilidade) => r.estado === "released";
 
   return (
     <PortalShell titulo={COPY_TELAS.jornada.titulo} descricao={COPY_TELAS.jornada.descricao}>
