@@ -26,7 +26,7 @@
  * O que este módulo faz nesse caso é tornar a falha legível, em vez de
  * silenciosa: veja `diagnosticoDoServidor()`.
  */
-import { PROJETO_DECLARADO, chaveServeAoProjeto, refDaUrl } from "./config-publica";
+import { PROJETO_DECLARADO, chaveServeAoProjeto, payloadDaChave, refDaUrl } from "./config-publica";
 
 function ambiente(): Record<string, string | undefined> {
   return typeof process !== "undefined" && process.env ? process.env : {};
@@ -75,6 +75,26 @@ export function chaveSecretaDoServidor(env = ambiente()): string | undefined {
   return env["SUPABASE_SERVICE_ROLE_KEY"] || env["SUPABASE_SECRET_KEY"] || undefined;
 }
 
+/**
+ * O segredo do ambiente pertence ao projeto declarado?
+ *
+ * 30/09/2026 — "Invalid API key" em "Acesso app como pessoa". `urlDoServidor()`
+ * força a URL do projeto declarado, mas o segredo vinha do ambiente sem
+ * nenhuma conferência: um `service_role` do projeto LEGADO viajava para a URL
+ * do projeto novo, e o Supabase recusava cada requisição do cliente admin.
+ *
+ * A chave JWT carrega o `ref` do dono, então dá para responder com certeza.
+ * `sb_secret_` é opaca: devolve `null` (não sei), e ninguém bloqueia por dúvida.
+ */
+export function segredoServeAoProjeto(
+  chave: string | undefined | null,
+  ref: string,
+): boolean | null {
+  const p = payloadDaChave(chave);
+  if (!p?.ref) return null;
+  return p.ref === ref;
+}
+
 /** Formato da chave, sem revelar a chave. */
 export function formatoDaChave(chave: string | undefined): string {
   if (!chave) return "ausente";
@@ -120,7 +140,11 @@ export function diagnosticoDoServidor(env = ambiente()): DiagnosticoServidor {
   const secreta = chaveSecretaDoServidor(env);
 
   let segredoPodeServir: DiagnosticoServidor["segredoPodeServir"];
+  const doDono = segredoServeAoProjeto(secreta, PROJETO_DECLARADO.ref);
   if (!secreta) segredoPodeServir = "ausente";
+  // O dono gravado na própria chave decide; só na dúvida se olha a URL.
+  else if (doDono === true) segredoPodeServir = "sim";
+  else if (doDono === false) segredoPodeServir = "nao";
   else if (!refDoAmbiente) segredoPodeServir = "provavel";
   else segredoPodeServir = ambienteConcorda ? "provavel" : "nao";
 

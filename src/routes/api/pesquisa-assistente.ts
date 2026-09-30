@@ -33,9 +33,11 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
 
         const ACOES = ["salvar_rascunho", "preencher_dados"] as const;
 
-        const url = process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"];
-        const anon =
-          process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
+        // 30/09/2026 — mesma correção do link mágico: a chave do ambiente só
+        // vale se servir ao projeto que o repositório declara.
+        const { chavePublicavelDoServidor, urlDoServidor } = await import("@/lib/config-servidor");
+        const url = urlDoServidor();
+        const anon = chavePublicavelDoServidor();
         const apiKey = process.env["LOVABLE_API_KEY"];
         if (!url || !anon) return new Response("Backend indisponível.", { status: 500 });
         if (!apiKey) return new Response("Assistente de IA não configurado.", { status: 500 });

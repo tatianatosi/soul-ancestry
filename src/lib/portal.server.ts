@@ -11,6 +11,7 @@
  */
 import { createClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { chavePublicavelDoServidor, urlDoServidor } from "@/lib/config-servidor";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const admin = supabaseAdmin as any;
@@ -30,8 +31,13 @@ export function emailValido(email: string) {
 
 /** Cliente publishable no servidor: usado só para disparar o e-mail do link mágico. */
 function clientePublico() {
-  const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
-  return createClient(process.env["SUPABASE_URL"]!, key, {
+  // 30/09/2026 — aqui liam-se `process.env` cruas, fora da regra do repositório.
+  // Sem a variável (o normal na Vercel) ou com a chave de OUTRO projeto, o
+  // Supabase responde "Invalid API key" e o link mágico do cliente nunca sai.
+  // O login da equipe não sofria disso porque `equipe.server.ts` já resolvia
+  // pelo módulo canônico. Agora os dois usam a mesma fonte.
+  const key = chavePublicavelDoServidor();
+  return createClient(urlDoServidor(), key, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: {
       fetch: (input: any, init: any) => {

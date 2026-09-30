@@ -81,18 +81,28 @@ export function chaveServeAoProjeto(chave: string | undefined | null, ref: strin
   const c = (chave ?? "").trim();
   if (!c || c.startsWith("sb_secret_")) return false;
   if (c.startsWith("sb_publishable_")) return true;
-  if (!c.startsWith("eyJ")) return false;
+  const p = payloadDaChave(c);
+  return !!p && p.role === "anon" && p.ref === ref;
+}
+
+/**
+ * O `ref` e o papel gravados dentro de uma chave JWT do Supabase.
+ *
+ * Chave `sb_publishable_`/`sb_secret_` é opaca: não dá para saber o dono, e a
+ * resposta honesta é `null` — nunca um palpite.
+ */
+export function payloadDaChave(
+  chave: string | undefined | null,
+): { ref?: string; role?: string } | null {
+  const c = (chave ?? "").trim();
+  if (!c.startsWith("eyJ")) return null;
   try {
     const meio = c.split(".")[1];
-    if (!meio) return false;
+    if (!meio) return null;
     const b64 = meio.replace(/-/g, "+").replace(/_/g, "/");
-    const payload = JSON.parse(atob(b64 + "=".repeat((4 - (b64.length % 4)) % 4))) as {
-      ref?: string;
-      role?: string;
-    };
-    return payload.role === "anon" && payload.ref === ref;
+    return JSON.parse(atob(b64 + "=".repeat((4 - (b64.length % 4)) % 4)));
   } catch {
-    return false;
+    return null;
   }
 }
 

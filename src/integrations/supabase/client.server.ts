@@ -4,7 +4,8 @@
 // For user-authenticated queries (with RLS), use the auth middleware instead.
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
-import { chaveSecretaDoServidor, urlDoServidor } from '@/lib/config-servidor';
+import { chaveSecretaDoServidor, segredoServeAoProjeto, urlDoServidor } from '@/lib/config-servidor';
+import { PROJETO_DECLARADO, payloadDaChave } from '@/lib/config-publica';
 
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
@@ -39,6 +40,21 @@ function createSupabaseAdminClient() {
     const message =
       'Falta a chave secreta do Supabase no servidor (SUPABASE_SERVICE_ROLE_KEY). ' +
       'Ela nunca mora no repositório: precisa estar na variável de ambiente do servidor.';
+    console.error(`[Supabase] ${message}`);
+    throw new Error(message);
+  }
+
+  // 30/09/2026 — a URL é forçada para o projeto declarado, mas o segredo vinha
+  // do ambiente sem conferência. Segredo de OUTRO projeto contra esta URL faz o
+  // Supabase responder "Invalid API key" em toda rota admin (foi o que quebrou
+  // "Acesso app como pessoa"). Só recusa quando a própria chave prova o dono.
+  if (segredoServeAoProjeto(SUPABASE_SERVICE_ROLE_KEY, PROJETO_DECLARADO.ref) === false) {
+    const dono = payloadDaChave(SUPABASE_SERVICE_ROLE_KEY)?.ref ?? 'desconhecido';
+    const message =
+      `A chave secreta do ambiente pertence ao projeto Supabase "${dono}", mas este ` +
+      `repositório opera o projeto "${PROJETO_DECLARADO.ref}". Ela não autentica nada aqui ` +
+      `(o Supabase responde "Invalid API key"). Troque SUPABASE_SERVICE_ROLE_KEY no ambiente ` +
+      `de deploy pela chave do projeto "${PROJETO_DECLARADO.ref}".`;
     console.error(`[Supabase] ${message}`);
     throw new Error(message);
   }

@@ -155,3 +155,60 @@ describe("chave do ambiente que não serve ao projeto (Invalid API key, 30/09/20
     expect(src).toContain("chaveServeAoProjeto(bruto.publishableKey, PROJETO_DECLARADO.ref)");
   });
 });
+
+describe('segredo de outro projeto ("Invalid API key" em Acesso app como pessoa, 30/09/2026)', () => {
+  const jwtDe = (ref: string, role = "service_role") =>
+    `eyJhbGciOiJIUzI1NiJ9.${Buffer.from(JSON.stringify({ ref, role })).toString("base64url")}.assinatura`;
+
+  it("o dono gravado na chave decide, mesmo quando a URL do ambiente está certa", async () => {
+    const { segredoServeAoProjeto } = await import("../config-servidor");
+    expect(segredoServeAoProjeto(jwtDe("zsxpdbhdvbuulwpepemd"), PROJETO_DECLARADO.ref)).toBe(false);
+    expect(segredoServeAoProjeto(jwtDe(PROJETO_DECLARADO.ref), PROJETO_DECLARADO.ref)).toBe(true);
+  });
+
+  it("chave opaca não tem dono legível: responde 'não sei', nunca um palpite", async () => {
+    const { segredoServeAoProjeto } = await import("../config-servidor");
+    for (const k of ["sb_secret_opaca", "sb_publishable_opaca", "", undefined, null])
+      expect(segredoServeAoProjeto(k, PROJETO_DECLARADO.ref)).toBeNull();
+  });
+
+  it("o diagnóstico afirma 'nao' com o segredo do projeto legado e 'sim' com o certo", () => {
+    const base = { SUPABASE_URL: PROJETO_DECLARADO.url };
+    expect(
+      diagnosticoDoServidor({ ...base, SUPABASE_SERVICE_ROLE_KEY: jwtDe("zsxpdbhdvbuulwpepemd") })
+        .segredoPodeServir,
+    ).toBe("nao");
+    expect(
+      diagnosticoDoServidor({ ...base, SUPABASE_SERVICE_ROLE_KEY: jwtDe(PROJETO_DECLARADO.ref) })
+        .segredoPodeServir,
+    ).toBe("sim");
+    // Opaca continua "provavel": dúvida não vira acusação.
+    expect(
+      diagnosticoDoServidor({ ...base, SUPABASE_SERVICE_ROLE_KEY: "sb_secret_opaca" })
+        .segredoPodeServir,
+    ).toBe("provavel");
+    expect(diagnosticoDoServidor(base).segredoPodeServir).toBe("ausente");
+    // Nenhum valor de chave atravessa o diagnóstico.
+    const d = JSON.stringify(
+      diagnosticoDoServidor({ ...base, SUPABASE_SERVICE_ROLE_KEY: jwtDe("outro") }),
+    );
+    expect(d).not.toContain("eyJ");
+  });
+
+  it("o cliente admin recusa com mensagem que nomeia os dois projetos", async () => {
+    const { readFileSync } = await import("node:fs");
+    const src = readFileSync("src/integrations/supabase/client.server.ts", "utf8");
+    expect(src).toContain("segredoServeAoProjeto(SUPABASE_SERVICE_ROLE_KEY, PROJETO_DECLARADO.ref) === false");
+    expect(src).toContain("Troque SUPABASE_SERVICE_ROLE_KEY");
+  });
+
+  it("link mágico do cliente e assistente usam o resolvedor, não process.env cru", async () => {
+    const { readFileSync } = await import("node:fs");
+    for (const f of ["src/lib/portal.server.ts", "src/routes/api/pesquisa-assistente.ts"]) {
+      const src = readFileSync(f, "utf8");
+      expect(src).toContain("chavePublicavelDoServidor()");
+      expect(src).toContain("urlDoServidor()");
+      expect(src).not.toMatch(/process\.env\[?"?SUPABASE_(URL|PUBLISHABLE_KEY)/);
+    }
+  });
+});
