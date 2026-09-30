@@ -292,10 +292,7 @@ function PainelHomeMockup({
   achados,
   fase,
   composicao,
-  pessoasConectadas = 0,
 }: {
-  /** Corte 2b: pessoas distintas publicadas na Árvore (mesma conta da aba Árvore). */
-  pessoasConectadas?: number;
   tituloCaso: string;
   statusTexto?: string;
   proximoPasso: string;
@@ -396,31 +393,6 @@ function PainelHomeMockup({
             ) : null}
           </CaCard>
         </section>
-
-        {/* Corte 2b (29/09/2026) — mockup p.3: "Pessoas conectadas". Mesma
-            contagem da aba Árvore (pessoas distintas publicadas pela equipe). */}
-        <LinkPortal to="/portal/arvore" className="block" data-home-pessoas-conectadas>
-          <CaCard className="flex items-center gap-4 transition-colors hover:border-gold">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold">
-              <Users className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <div className="min-w-0">
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-navy/55">Pessoas conectadas</p>
-              {pessoasConectadas > 0 ? (
-                <p className="mt-1 text-navy">
-                  <span className="font-serif text-2xl leading-none">{pessoasConectadas}</span>{" "}
-                  <span className="font-serif text-sm text-navy/60">
-                    {pessoasConectadas === 1 ? "ancestral recuperado" : "ancestrais recuperados"}
-                  </span>
-                </p>
-              ) : (
-                <p className="mt-1 text-sm text-navy/65">
-                  As pessoas confirmadas da sua família aparecem aqui e na Árvore.
-                </p>
-              )}
-            </div>
-          </CaCard>
-        </LinkPortal>
 
         <section>
           <div className="mb-3 flex items-end justify-between gap-2">
