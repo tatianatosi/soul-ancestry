@@ -5,8 +5,9 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { radarSeisDimensoes } from "@/lib/radar-seis-eixos";
 import { RadarSeisEixos } from "@/components/portal/radar-seis-eixos";
-import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
+import { usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
 
 export const Route = createFileRoute("/portal/radar")({
   head: () => ({
@@ -53,6 +54,7 @@ export function PortalRadar() {
               projecoes: vivo.projecoes,
               documentos: vivo.documentos,
             });
+            const passoPublicado = jornadaSanitizada(vivo.projecoes, new Date(), vivo.proximaAcao).linha.find((item) => item.tipo === "proxima_acao");
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-radar>
@@ -64,7 +66,7 @@ export function PortalRadar() {
                       Um passo de cada vez
                     </p>
                     <p className="mt-1 text-sm text-navy/80">
-                       O próximo passo aparecerá aqui quando estiver pronto para compartilhar com você.
+                       {passoPublicado?.conteudo ?? "O próximo passo aparecerá aqui quando estiver pronto para compartilhar com você."}
                     </p>
                   </section>
 
