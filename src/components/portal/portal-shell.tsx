@@ -87,7 +87,7 @@ export function PortalShell({
         3/17, que usa uma só faixa). Logo + "Bem-vinda/nome" no mesmo bloco.
       */}
       <header className="bg-navy text-cream" data-app-cabecalho>
-        <div className="mx-auto w-full max-w-[740px] px-5 pb-5 pt-[calc(1rem+env(safe-area-inset-top))] sm:px-8 sm:pb-7 sm:pt-6">
+         <div className="mx-auto w-full max-w-[740px] px-4 pb-6 pt-[calc(1rem+env(safe-area-inset-top))] sm:px-8 sm:pb-8 sm:pt-6">
           <div className="flex items-center">
             <BrandLogo size={28} variant="client-dark" showText />
           </div>
@@ -95,7 +95,7 @@ export function PortalShell({
           <div className="mt-5 max-w-2xl">
             <p className="text-[10px] font-semibold uppercase text-gold">Aplicativo da família</p>
             <h1 className="mt-1.5 font-serif text-[2rem] font-medium leading-tight text-cream sm:text-4xl">{titulo}</h1>
-            {descricao ? <p className="mt-1 max-w-[32rem] text-xs leading-relaxed text-cream/80 sm:text-sm">{descricao}</p> : null}
+             {descricao ? <p className="mt-2 max-w-[32rem] text-base leading-relaxed text-cream/80">{descricao}</p> : null}
           </div>
         </div>
 
@@ -120,7 +120,7 @@ export function PortalShell({
         e a navegação das 7 abas continua sendo o rodapé único.
       */}
       <div className="mx-auto w-full min-w-0 max-w-[740px]">
-        <main id="conteudo-portal" className="min-w-0 px-5 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-6 sm:px-8 sm:pb-32 sm:pt-8">
+         <main id="conteudo-portal" className="min-w-0 px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-6 sm:px-8 sm:pb-32 sm:pt-8">
           <div>{children}</div>
         </main>
       </div>

@@ -39,8 +39,8 @@ export function PortalConta() {
    * para nunca fabricar titular/país fora da demo de verdade.
    */
   const previaDemo = previa?.identidade?.fonte === "demo";
-  const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null) ?? "—";
-  const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null) ?? "—";
+   const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null);
+   const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null);
   const acompanhamento = previa || data?.autorizado ? "Sua jornada está sendo acompanhada pela equipe." : "Aguardando novidades da equipe.";
 
   /**
@@ -79,23 +79,28 @@ export function PortalConta() {
                   aria-hidden="true"
                   className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-gold/60 bg-navy font-serif text-xl text-gold"
                 >
-                  {titular && titular !== "—" ? titular.trim().charAt(0).toUpperCase() : "✦"}
+                   {titular ? titular.trim().charAt(0).toUpperCase() : "✦"}
                 </span>
                 <div className="min-w-0">
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Sua família</p>
                   <h2 className="font-serif text-xl text-navy">Sobre você e sua família</h2>
                 </div>
               </div>
-              <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+               <p className="mt-3 text-sm text-navy/65">Um espaço para cuidar da sua história e acompanhar as novidades da sua família.</p>
+               {titular || paisInteresse ? <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+                 {titular ? (
                 <div className="rounded-lg border border-border bg-card p-3">
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>
                   <dd className="text-sm text-navy">{titular}</dd>
                 </div>
+                 ) : null}
+                 {paisInteresse ? (
                 <div className="rounded-lg border border-border bg-card p-3">
                    <dt className="text-[11px] uppercase tracking-widest text-navy/50">Origem de interesse</dt>
                   <dd className="text-sm text-navy">{paisInteresse}</dd>
                 </div>
-              </dl>
+                 ) : null}
+               </dl> : null}
               <p className="mt-3 text-xs text-navy/55">
                   Se alguma informação mudar, conte à equipe pelos canais de contato já combinados.
               </p>
@@ -138,9 +143,6 @@ export function PortalConta() {
               ) : (
                   <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
                    <p className="text-sm text-navy/70">Nenhum recado novo por enquanto.</p>
-                  <p className="mt-1 text-xs text-navy/50">
-                     Pedidos de documentos e outras novidades importantes aparecerão aqui.
-                  </p>
                 </div>
               )}
             </section>

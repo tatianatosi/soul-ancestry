@@ -143,9 +143,6 @@ export function PortalArvore() {
                         ? "A árvore reúne as pessoas e os vínculos já confirmados e compartilhados com você."
                         : "Os lugares abaixo serão preenchidos, geração a geração, conforme as pessoas forem confirmadas."}
                     </p>
-                    <p className="mt-2 rounded-md bg-cream/70 px-2 py-1 text-[11px] text-navy/60">
-                      A árvore mostra somente nomes e vínculos já liberados.
-                    </p>
                     <div className="mt-5 space-y-1">
                       {GERACOES_ARVORE_EXIBICAO.map((geracao: GeracaoArvore, gi) => (
                         <div key={geracao.id}>
