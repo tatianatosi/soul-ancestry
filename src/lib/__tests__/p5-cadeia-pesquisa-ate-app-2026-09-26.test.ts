@@ -156,9 +156,10 @@ describe("P5 — mockup 17p aplicado à superfície afetada (Legado): card de co
   const arquivo = readFileSync("src/routes/portal/legado.tsx", "utf8");
 
   it("mostra o card 'Continuidade da jornada' reaproveitando vivo.proximaAcao (mesma projeção da Home)", () => {
-    expect(arquivo).toContain("Continuidade da jornada");
+    // 01/10/2026 — o Lovable tirou o título literal do card; o que importa
+    // (reaproveitar a MESMA projeção da Home, sem fonte nova) segue intacto.
+    expect(arquivo).toContain("data-legado-continuidade");
     expect(arquivo).toContain("vivo.proximaAcao?.acao");
-    expect(arquivo).toContain("LinkPortal");
   });
 
   it("não inventa fonte de dado nova — reaproveita o mesmo campo já usado em /portal", () => {

@@ -52,12 +52,20 @@ describe("A5 Documentos — 4 caixas com fonte semântica exclusiva (§7 De-Para
     expect(conteudoEntregas).not.toMatch(/entregas\.map/);
   });
 
-  it("Nunca soma duas listas para forjar contagem — checklist só soma liberados+enviados", () => {
-    expect(codigo).toMatch(/const checklist = liberados \+ enviados/);
-    // liberados vem do length de liberados_lista, enviados de recebidos —
-    // duas fontes diferentes, nunca a mesma lista contada duas vezes.
-    expect(codigo).toMatch(/const liberados = liberados_lista\.length/);
-    expect(codigo).toMatch(/const enviados = recebidos\.length/);
+  it("Nunca soma duas listas para forjar contagem — agora não soma nada", () => {
+    // 01/10/2026 — o Lovable foi além da regra: a caixa "Solicitados" deixou
+    // de exibir contagem agregada e passou a mostrar o pedido real da equipe
+    // (`solicitado`) ou um estado vazio honesto. Sem soma, não há o que forjar.
+    expect(codigo).toMatch(/data-documentos-checklist/);
+    expect(codigo).not.toMatch(/liberados\.length \+ enviados\.length/);
+    expect(codigo).not.toMatch(/const checklist =/);
+    expect(codigo).toMatch(/Por enquanto, não precisamos de nenhum documento seu/);
+    // Sem contagem agregada, o que resta proteger é a exclusividade da fonte:
+    // Entregas continua lendo `liberados_lista` (entregas do caso) e as caixas
+    // Recebidos/Liberados continuam nos seus próprios filtros de `docs`.
+    expect(codigo).toMatch(/const liberados_lista = noCaso\(data\?\.entregas\)/);
+    expect(codigo).toMatch(/docs\.filter\(\(d\) => d\.liberado_cliente\)/);
+    expect(codigo).toMatch(/docs\.filter\(\(d\) => d\.origem === "cliente"\)/);
   });
 
   it("Documenta o bloqueio CA_PORTAL_02 no cabeçalho da seção Entregas", () => {

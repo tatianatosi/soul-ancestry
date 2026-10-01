@@ -27,7 +27,10 @@ describe("A4 Árvore — seção Ligação com a Jornada nunca desaparece", () =
 
   it("mostra estado vazio honesto quando não há publicação, não null/desaparecimento", () => {
     expect(codigo).toMatch(/painel\.notasPublicadas\.length === 0 \? \(/);
-    expect(codigo).toMatch(/Quando um novo vínculo estiver confirmado/);
+    // 01/10/2026 — o Lovable reescreveu a frase do estado vazio (é dele o
+    // texto do App). O que este teste protege continua igual: existe um
+    // estado vazio explícito, e ele não promete nem inventa vínculo.
+    expect(codigo).toMatch(/A próxima ligação da família aparecerá aqui quando estiver confirmada e liberada/);
   });
 
   it("link 'Ver na Jornada' só aparece quando há publicação real", () => {
