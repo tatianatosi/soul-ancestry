@@ -6,6 +6,7 @@ import { conteudoProjetavel } from "@/lib/biblioteca-evidencias";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { EVIDENCIA_ESCRITOR_APOSENTADO } from "@/lib/evidencia-canonica";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -252,6 +253,10 @@ export const salvarEvidencia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id?: string; valores: Record<string, unknown> }) => d)
   .handler(async ({ data, context }) => {
+    // Corte 1 (01/10/2026): escritor aposentado. `evidences` deixou de ser a
+    // tabela canônica (estava vazia); quem grava é `evidencia-canonica`.
+    throw new Error(EVIDENCIA_ESCRITOR_APOSENTADO);
+    // eslint-disable-next-line no-unreachable
     const supabase = context.supabase as unknown as Sb;
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     recusarNaoMapeado(CAMPOS_EVIDENCIA, data.valores);

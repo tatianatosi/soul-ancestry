@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
+import { EVIDENCIA_ESCRITOR_APOSENTADO } from "@/lib/evidencia-canonica";
 import {
   COLUNA_ALVO,
   payloadLimpo,
@@ -196,6 +197,9 @@ export const criarEvidenciaRascunhoDeFonte = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { caseId: string; sourceDocumentId: string }) => d)
   .handler(async ({ data, context }) => {
+    // Corte 1 (01/10/2026): escritor aposentado — ver evidencia-canonica.
+    throw new Error(EVIDENCIA_ESCRITOR_APOSENTADO);
+    // eslint-disable-next-line no-unreachable
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoDoCaso(supabase, context.userId as string, data.caseId);
     if (!PAPEIS_EDITA.includes(papel)) throw new Error("Seu papel não pode criar evidências.");

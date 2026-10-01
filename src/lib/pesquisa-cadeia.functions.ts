@@ -6,6 +6,7 @@ import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesq
 import { statusEvidenciaCanonico, statusPesquisaCanonico, validarTransicaoEvidencia } from "@/lib/pesquisa-cadeia";
 import { workflowStatusDeEvidenciaModulo } from "@/lib/rotulo-negocio";
 import { idsJaCopiados } from "@/lib/fontes-pesquisa-canonicas";
+import { EVIDENCIA_ESCRITOR_APOSENTADO } from "@/lib/evidencia-canonica";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -347,62 +348,22 @@ export const mudarEstadoEvidencia = createServerFn({ method: "POST" })
     return d;
   })
   .handler(async ({ data, context }) => {
-    const supabase = context.supabase as unknown as Sb;
-    const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
-    if (!PAPEIS_EDITA.includes(papel)) throw new Error("Seu papel não pode alterar evidências.");
+    /*
+      Corte 1 (01/10/2026) — escritor aposentado, corpo removido.
 
-    const atual = await supabase
-      .from("evidences")
-      .select("id,workflow_status,data_origin,evidence_nature")
-      .eq("id", data.id)
-      .eq("organization_id", organizationId)
-      .maybeSingle();
-    if (atual.error) throw new Error(atual.error.message);
-    if (!atual.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+      `evidences` deixou de ser a tabela canônica de evidência: estava vazia
+      (0 linhas) enquanto `research_evidence_items` tinha o dado real. A
+      mudança de situação passou para `mudarSituacaoEvidencia`
+      (`evidencia-canonica.functions.ts`), que mantém o MESMO grafo
+      (`TRANSICOES_EVIDENCIA`) e a mesma exigência de autor, justificativa e
+      origem — e agora grava com releitura.
 
-    const deBruto = String((atual.data as any).workflow_status ?? "recebida");
-    const de = statusEvidenciaCanonico(deBruto) ?? deBruto;
-    const para = statusEvidenciaCanonico(data.status);
-    if (!para) throw new Error("Situação de evidência desconhecida.");
-    const origem = String((atual.data as any).data_origin ?? (atual.data as any).evidence_nature ?? "");
-    const check = validarTransicaoEvidencia({
-      de,
-      para,
-      autor: context.userId as string,
-      justificativa: data.nota ?? "",
-      origem,
-    });
-    if (!check.ok) throw new Error(check.erro as string);
-
-    const revisando = ["aprovada_para_entrega", "em_revisao", "publicada"].includes(para);
-    const agora = new Date().toISOString();
-    const r = await supabase
-      .from("evidences")
-      .update({
-        workflow_status: para,
-        validation_notes_internal: data.nota?.trim() || null,
-        reviewed_by: revisando ? context.userId : undefined,
-        reviewed_at: revisando ? agora : undefined,
-        updated_by: context.userId,
-      })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId)
-      .eq("workflow_status", deBruto)
-      .select("id,workflow_status")
-      .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
-    if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
-
-    await supabase.from("research_audit_events").insert({
-      organization_id: organizationId,
-      entity_type: "evidences",
-      entity_id: data.id,
-      event_type: `estado:${de}->${para}`,
-      actor_user_id: context.userId,
-      metadata: { justificativa: data.nota?.trim() ?? "", origem },
-    } as any);
-
-    return { ok: true, status: r.data.workflow_status };
+      A função continua exportada porque há rota importando; ela falha alto,
+      dizendo para onde ir, em vez de gravar em paralelo.
+    */
+    void data;
+    void context;
+    throw new Error(EVIDENCIA_ESCRITOR_APOSENTADO);
   });
 
 

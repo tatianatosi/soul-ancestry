@@ -15,6 +15,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
 import { CODIGO_CASO_GO_LIVE } from "@/lib/golive.functions";
 import { etapaDoResultado, passoDeEtapa } from "@/lib/golive-comercial";
+import { EVIDENCIA_ESCRITOR_APOSENTADO } from "@/lib/evidencia-canonica";
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -844,6 +845,9 @@ export const registrarEvidenciaGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { titulo: string; tipo?: string; fonteId?: string; descricao?: string }) => d)
   .handler(async ({ data, context }) => {
+    // Corte 1 (01/10/2026): escritor aposentado — ver evidencia-canonica.
+    throw new Error(EVIDENCIA_ESCRITOR_APOSENTADO);
+    // eslint-disable-next-line no-unreachable
     semCache();
     const s = context.supabase as any;
     const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
