@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { abrirCasoOperacional } from "@/lib/abrir-caso-operacional.functions";
 import { SERVICOS_CASO_OPERACIONAL } from "@/lib/abrir-caso-operacional";
 import { listarRegistros } from "@/lib/saas.functions";
+import { semFixtures, type LinhaComOrigem } from "@/lib/fixtures";
 
 /**
  * Corte vertical da Fase 1: selecionar cliente, título e serviço → persiste crm_casos.
@@ -70,7 +71,7 @@ export function AbrirCasoMotor() {
             className="w-full rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm text-navy"
           >
             <option value="">— selecionar cliente —</option>
-            {clientes.map((c) => (
+            {(semFixtures(clientes as LinhaComOrigem[]) as typeof clientes).map((c) => (
               <option key={String(c["id"])} value={String(c["id"])}>
                 {String(c["nome"] ?? c["id"])}
               </option>

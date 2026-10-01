@@ -18,6 +18,7 @@ import {
   inputCls,
 } from "@/components/comercial/base";
 import { FLUXO } from "@/lib/comercial-fluxo";
+import { semFixtures } from "@/lib/fixtures";
 import {
   atualizarObservacaoOrdem,
   criarOrdemServico,
@@ -422,7 +423,7 @@ function OrdensPage() {
               onChange={(e) => setForm({ ...form, case_id: e.target.value })}
             >
               <option value="">Selecione…</option>
-              {casos.map((c) => (
+              {semFixtures(casos).map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.codigo ?? c.titulo}
                 </option>

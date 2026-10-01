@@ -20,6 +20,7 @@ import {
   tomGatePesquisa,
 } from "@/components/contratos/rotulos";
 import { INVENTARIO_DATA, ROTULO_DOMINIO, itensPorDominio } from "@/lib/inventario-patrimonial";
+import { semFixtures } from "@/lib/fixtures";
 
 export const Route = createFileRoute("/_authenticated/contratos/")({
   head: () => ({
@@ -329,7 +330,7 @@ function FormNovo({
             className="mt-1 w-full rounded-lg border border-navy/20 px-3 py-2"
           >
             <option value="">Selecione o caso…</option>
-            {casos.map((c) => (
+            {semFixtures(casos).map((c) => (
               <option key={c.id} value={c.id}>
                 {c.codigo} — {c.titulo}
               </option>

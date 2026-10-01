@@ -28,6 +28,7 @@ import {
   SEVERIDADES,
 } from "@/lib/qualidade.server";
 import { cn } from "@/lib/utils";
+import { semFixtures } from "@/lib/fixtures";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
@@ -345,7 +346,7 @@ function AbaChecklists() {
         <Campo rotulo="Caso">
           <select value={casoId} onChange={(e) => setCasoId(e.target.value)} className={inputCls}>
             <option value="">Selecione um caso…</option>
-            {casos.map((c: Linha) => (
+            {semFixtures(casos).map((c: Linha) => (
               <option key={c["id"]} value={c["id"]}>
                 {c["codigo"]} — {c["titulo"]}
               </option>

@@ -34,6 +34,7 @@ import {
 import { FLUXO } from "@/lib/comercial-fluxo";
 import { CAT_ESTADO_PROPOSTA, CAT_FORMA_PAGAMENTO, CAT_MOTIVO_ARQUIVAMENTO } from "@/lib/parametros-catalogos";
 import { RegraComercial } from "@/components/contrato/regra-comercial";
+import { semFixtures } from "@/lib/fixtures";
 
 const AJUDA_PROPOSTA: Record<string, string> = Object.fromEntries(CAT_ESTADO_PROPOSTA.map((o) => [o.valor, o.ajuda ?? ""]));
 
@@ -569,7 +570,7 @@ function PropostasPage() {
                 onChange={(e) => setForm({ ...form, client_id: e.target.value })}
               >
                 <option value="">Selecione…</option>
-                {clientes.map((c) => (
+                {semFixtures(clientes).map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.nome}
                   </option>
@@ -583,7 +584,7 @@ function PropostasPage() {
                 onChange={(e) => setForm({ ...form, case_id: e.target.value })}
               >
                 <option value="">Sem vínculo</option>
-                {casos.map((c) => (
+                {semFixtures(casos).map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.codigo ?? c.titulo}
                   </option>

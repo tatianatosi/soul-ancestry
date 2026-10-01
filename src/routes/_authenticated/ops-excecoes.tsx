@@ -10,6 +10,7 @@ import { CaCard } from "@/components/ui/ca-card";
 import { listarExcecoes, referenciasOps, registrarExcecao } from "@/lib/ops.functions";
 import { TIPOS_EXCECAO } from "@/lib/ops.server";
 import { cn } from "@/lib/utils";
+import { semFixtures } from "@/lib/fixtures";
 
 export const Route = createFileRoute("/_authenticated/ops-excecoes")({
   head: () => ({
@@ -119,7 +120,7 @@ function ExcecoesPage() {
             <Campo rotulo="Caso">
               <select name="casoId" className={inputCls} defaultValue="">
                 <option value="">Sem caso vinculado</option>
-                {casos.map((c) => (
+                {semFixtures(casos).map((c) => (
                   <option key={c["id"]} value={c["id"]}>
                     {c["codigo"]} — {c["titulo"]} ({c["status"]})
                   </option>

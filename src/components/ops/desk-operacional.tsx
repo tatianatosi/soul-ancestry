@@ -33,6 +33,7 @@ import {
 import { FASES_JORNADA, sugerirProximaMicroentrega } from "@/lib/onboarding-jornada";
 import { rotuloFase } from "@/lib/fase-rotulo";
 import { cn } from "@/lib/utils";
+import { semFixtures } from "@/lib/fixtures";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
@@ -283,7 +284,7 @@ export function DeskOperacional() {
             onChange={(e) => setFiltros((f) => ({ ...f, casoId: e.target.value }))}
           >
             <option value="">Todos os casos</option>
-            {casos.map((c) => (
+            {semFixtures(casos).map((c) => (
               <option key={c["id"]} value={c["id"]}>
                 {c["codigo"]} — {c["titulo"]}
               </option>
@@ -762,7 +763,7 @@ export function DeskOperacional() {
             <Campo rotulo="Caso">
               <select name="caso_id" className={inputCls} defaultValue="">
                 <option value="">Sem caso</option>
-                {casos.map((c) => (
+                {semFixtures(casos).map((c) => (
                   <option key={c["id"]} value={c["id"]}>
                     {c["codigo"]} — {c["titulo"]}
                   </option>
@@ -864,7 +865,7 @@ export function DeskOperacional() {
                 className={inputCls}
               >
                 <option value="">Selecione…</option>
-                {casos.map((c) => (
+                {semFixtures(casos).map((c) => (
                   <option key={c["id"]} value={c["id"]}>
                     {c["codigo"]} — {c["titulo"]} ({c["status"]})
                   </option>

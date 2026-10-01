@@ -13,6 +13,7 @@ import { criarPesquisaParaCaso, painelPesquisaModulo, rodarScanPesquisa } from "
 import { filtrarPorBusca } from "@/lib/rotulo-negocio";
 import { CardIndicador } from "@/components/desk/ui-desk";
 import { CaCard } from "@/components/ui/ca-card";
+import { semFixtures } from "@/lib/fixtures";
 
 export const Route = createFileRoute("/_authenticated/pesquisa-modulo/")({
   head: () => ({
@@ -201,7 +202,7 @@ function Index() {
                   className="mt-1 w-full rounded-lg border border-navy/15 bg-cream/40 px-2 py-1 text-sm text-navy"
                 >
                   <option value="">Selecione…</option>
-                  {d.casosSemPesquisa.map((c: any) => (
+                  {semFixtures(d.casosSemPesquisa).map((c: any) => (
                     <option key={c["id"]} value={c["id"]}>
                       {String(c["codigo"])} — {String(c["titulo"])}
                     </option>
