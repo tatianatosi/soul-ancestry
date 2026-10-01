@@ -59,7 +59,7 @@ export const Route = createFileRoute("/_authenticated/biblioteca-mensagens")({
   errorComponent: ({ error }) => (
     <SaasShell titulo="Biblioteca de Mensagens" descricao="Falha ao carregar os modelos internos.">
       <p role="alert" className="text-sm text-destructive">
-        {error.message}
+        {(error as Error).message}
       </p>
     </SaasShell>
   ),

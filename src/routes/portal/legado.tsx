@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
-import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
+import { usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { legadoSanitizado } from "@/lib/portal-dados-vivos";
 import { PRATELEIRAS, prateleiraDe, type PrateleiraId, type PublicacaoCliente } from "@/lib/projecoes-cliente";
@@ -83,25 +83,11 @@ export function PortalLegado() {
                     Reaproveita `vivo.proximaAcao` — a mesma projeção sanitizada
                     que a Home já usa, nenhum dado novo.
                   */}
-                  {vivo.proximaAcao?.acao ? (
-                    <section
-                      data-legado-continuidade
-                      className="rounded-xl border border-border bg-card p-4 shadow-sm"
-                    >
-                      <p className="text-[10px] font-medium uppercase tracking-widest text-gold/70">
-                        Continuidade da jornada
-                      </p>
-                      <p className="mt-1 text-sm text-navy/85">{vivo.proximaAcao.acao}</p>
-                      {vivo.proximaAcao.destino ? (
-                        <LinkPortal
-                          to={vivo.proximaAcao.destino}
-                          className="mt-2 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4"
-                        >
-                          Ver próxima etapa
-                        </LinkPortal>
-                      ) : null}
-                    </section>
-                  ) : null}
+                   {vivo.proximaAcao?.acao ? (
+                     <p data-legado-continuidade className="border-l-2 border-gold/60 py-1 pl-4 text-sm text-navy/75">
+                       {vivo.proximaAcao.acao}
+                     </p>
+                   ) : null}
 
                   <div className="space-y-3" data-legado-prateleiras>
                     {PRATELEIRAS.filter((p) => p.id !== "memoria").map((p) => {
@@ -130,7 +116,11 @@ export function PortalLegado() {
                           </div>
                           {itens.length === 0 ? (
                             <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
-                                {`Quando houver algo em ${p.rotulo} pronto para compartilhar, você encontrará aqui.`}
+                                 {p.id === "cadernos"
+                                   ? "Os cadernos da família aparecerão aqui quando forem liberados."
+                                   : p.id === "relatorios"
+                                     ? "Nenhum dossiê ou relatório foi liberado para a família até agora."
+                                     : "As narrativas de origem aparecerão aqui quando estiverem prontas para a família."}
                             </p>
                           ) : (
                             <ul className="mt-3 space-y-2">
@@ -159,11 +149,6 @@ export function PortalLegado() {
                     })}
                   </div>
 
-                  {entregas.length === 0 ? (
-                    <p className="rounded-xl border border-dashed border-navy/20 bg-cream/60 p-4 text-center text-sm text-navy/60">
-                      {COPY_TELAS.legado.vazio}
-                    </p>
-                  ) : null}
                 </div>
               </BlocoVisibilidade>
             );

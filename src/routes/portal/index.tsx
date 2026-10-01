@@ -14,8 +14,7 @@ import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, Users } from "lucide-react";
-import { pessoasDaArvore } from "@/lib/arvore-publicacao";
+import { CheckCircle2 } from "lucide-react";
 import { CaCard } from "@/components/ui/ca-card";
 
 /**
@@ -75,6 +74,10 @@ export function PortalHome() {
     new Date(),
     vivo.data?.proximaAcao,
   );
+  const passoPublicado = jornada.linha.find((item) => item.tipo === "proxima_acao");
+  const achadosPublicados = jornada.linha.filter((item) =>
+    ["achado", "arvore", "evidencia", "linha_tempo", "legado", "microentrega", "relatorio_fase"].includes(item.tipo),
+  );
 
   if (previa) {
     return (
@@ -84,16 +87,18 @@ export function PortalHome() {
         ) : (
           <PainelHomeMockup
             tituloCaso={previa.titulo}
-            proximoPasso="Assim que houver um próximo passo compartilhado com sua família, você o verá aqui."
+            proximoPasso={passoPublicado?.conteudo ?? "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui."}
             proximoPassoDestino={null}
             proximaEntrega={null}
             marcos={jornada.marcosPublicados}
-            achados={jornada.linha.slice(0, 3).map((item) => ({
+            achados={achadosPublicados.slice(0, 3).map((item) => ({
               id: item.id,
               tipo: item.tipoRotulo,
               destino: destinoPorTipo(item.tipo),
               texto: item.conteudo,
-              ano: item.publicadoEm ? item.publicadoEm.slice(0, 4) : null,
+              ano: ["arvore", "achado", "evidencia", "linha_tempo", "legado"].includes(item.tipo)
+                ? item.conteudo.match(/\b(1[5-9]\d{2}|20[0-2]\d)\b/)?.[0] ?? null
+                : null,
             }))}
             fase={
               // Progresso fixo pertence só ao caso de demonstração. Num caso
@@ -141,20 +146,21 @@ export function PortalHome() {
             <div className="space-y-4">
               <PainelHomeMockup
                 tituloCaso={principal.titulo}
-                proximoPasso="Assim que houver um próximo passo compartilhado com sua família, você o verá aqui."
+                proximoPasso={passoPublicado?.conteudo ?? "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui."}
                 proximoPassoDestino={null}
                 proximaEntrega={null}
                 marcos={jornada.marcosPublicados}
                 casoId={principal.id}
-                achados={jornada.linha.slice(0, 3).map((item) => ({
+                achados={achadosPublicados.slice(0, 3).map((item) => ({
                   id: item.id,
                   tipo: item.tipoRotulo,
                   destino: destinoPorTipo(item.tipo),
                   texto: item.conteudo,
-                  ano: item.publicadoEm ? item.publicadoEm.slice(0, 4) : null,
+                   ano: ["arvore", "achado", "evidencia", "linha_tempo", "legado"].includes(item.tipo)
+                     ? item.conteudo.match(/\b(1[5-9]\d{2}|20[0-2]\d)\b/)?.[0] ?? null
+                     : null,
                 }))}
                 composicao={vivo.data?.composicao ?? null}
-                pessoasConectadas={pessoasDaArvore(vivo.data?.projecoes ?? []).length}
                 fase={
                   /*
                     Etapa real do caso, vinda de `case_plans.fase_jornada` pela
@@ -288,10 +294,7 @@ function PainelHomeMockup({
   achados,
   fase,
   composicao,
-  pessoasConectadas = 0,
 }: {
-  /** Corte 2b: pessoas distintas publicadas na Árvore (mesma conta da aba Árvore). */
-  pessoasConectadas?: number;
   tituloCaso: string;
   statusTexto?: string;
   proximoPasso: string;
@@ -336,7 +339,7 @@ function PainelHomeMockup({
       */}
       {/* 16/09/2026 — primeira dobra: o cartão do processo é o elemento
           principal (maior), e a linha do tempo abaixo fica discreta. */}
-      <section className="relative overflow-hidden rounded-2xl border-b-2 border-gold/70 bg-navy-800 p-6 text-cream shadow-md sm:p-8">
+      <section className="relative overflow-hidden rounded-xl border-b-2 border-gold/70 bg-navy-800 p-6 text-cream shadow-md sm:p-8">
         <div className="min-w-0">
           <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-gold">Acompanhamento da família</p>
            <p className="mt-2 font-serif text-xl text-cream/80">Uma história em construção</p>
@@ -357,8 +360,8 @@ function PainelHomeMockup({
         ) : (
           <p className="mt-4 border-t border-cream/10 pt-4 text-sm leading-relaxed text-cream/70">
             {marcos === 0
-              ? "Estamos reunindo as primeiras memórias da sua família com calma e cuidado."
-              : `${marcos} ${marcos === 1 ? "momento já compartilhado" : "momentos já compartilhados"} com você`}
+               ? "A história da sua família terá seu lugar aqui, à medida que novos trechos forem compartilhados."
+               : "Os trechos já compartilhados da sua história estão logo abaixo."}
           </p>
         )}
       </section>
@@ -393,31 +396,6 @@ function PainelHomeMockup({
           </CaCard>
         </section>
 
-        {/* Corte 2b (29/09/2026) — mockup p.3: "Pessoas conectadas". Mesma
-            contagem da aba Árvore (pessoas distintas publicadas pela equipe). */}
-        <LinkPortal to="/portal/arvore" className="block" data-home-pessoas-conectadas>
-          <CaCard className="flex items-center gap-4 transition-colors hover:border-gold">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold">
-              <Users className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <div className="min-w-0">
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-navy/55">Pessoas conectadas</p>
-              {pessoasConectadas > 0 ? (
-                <p className="mt-1 text-navy">
-                  <span className="font-serif text-2xl leading-none">{pessoasConectadas}</span>{" "}
-                  <span className="font-serif text-sm text-navy/60">
-                    {pessoasConectadas === 1 ? "ancestral recuperado" : "ancestrais recuperados"}
-                  </span>
-                </p>
-              ) : (
-                <p className="mt-1 text-sm text-navy/65">
-                  As pessoas confirmadas da sua família aparecem aqui e na Árvore.
-                </p>
-              )}
-            </div>
-          </CaCard>
-        </LinkPortal>
-
         <section>
           <div className="mb-3 flex items-end justify-between gap-2">
             <h3 className="font-serif text-2xl text-navy">Achados da sua história</h3>
@@ -426,9 +404,11 @@ function PainelHomeMockup({
             </LinkPortal>
           </div>
           {achados.length === 0 ? (
-            <p className="font-serif text-base italic leading-relaxed text-navy/60">
-              As descobertas confirmadas pela equipe aparecerão aqui, com todo o cuidado que a sua história merece.
-            </p>
+            <CaCard className="border-l-2 border-l-gold">
+              <p className="font-serif text-lg leading-relaxed text-navy/70">
+                Quando houver descobertas prontas para compartilhar, elas encontrarão seu lugar aqui.
+              </p>
+            </CaCard>
           ) : (
             <div className="space-y-3">
               {achados.slice(0, 3).map((a) => {

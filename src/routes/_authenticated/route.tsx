@@ -5,7 +5,7 @@ import { ErroSuperficieDesk } from "@/components/saas/erro-superficie";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  errorComponent: ({ error, reset }) => <ErroSuperficieDesk error={error} reset={reset} />,
+  errorComponent: ({ error, reset }) => <ErroSuperficieDesk error={error as Error} reset={reset} />,
   beforeLoad: async () => {
     const { data, error } = await supabase.auth.getUser();
     let usuario = !error && data.user ? data.user : null;

@@ -43,7 +43,7 @@ export const Route = createFileRoute("/_authenticated/relatorios-fase/$caseId")(
   component: RelatoriosFase,
   errorComponent: ({ error }) => (
     <SaasShell titulo="Relatórios de fase" descricao="Falha ao carregar os relatórios.">
-      <p role="alert" className="text-sm text-terracotta">{error.message}</p>
+      <p role="alert" className="text-sm text-terracotta">{(error as Error).message}</p>
     </SaasShell>
   ),
   notFoundComponent: () => (

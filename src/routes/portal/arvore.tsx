@@ -63,7 +63,7 @@ function NoArvore({
           ) : (
             <Clock className="hidden h-3.5 w-3.5 text-navy/40 lg:block" aria-hidden="true" />
           )}
-          <span className="sr-only lg:not-sr-only lg:text-[8px] lg:leading-tight">{rotuloEstado}</span>
+          <span className="sr-only">{rotuloEstado}</span>
         </>
       )}
     </div>
@@ -141,10 +141,7 @@ export function PortalArvore() {
                     <p className="mt-1 text-sm text-navy/65">
                       {temConteudo
                         ? "A árvore reúne as pessoas e os vínculos já confirmados e compartilhados com você."
-                        : COPY_TELAS.arvore.vazio}
-                    </p>
-                    <p className="mt-2 rounded-md bg-cream/70 px-2 py-1 text-[11px] text-navy/60">
-                      A árvore mostra somente nomes e vínculos já liberados.
+                         : "Esta árvore ainda não tem nomes e vínculos liberados para a família."}
                     </p>
                     <div className="mt-5 space-y-1">
                       {GERACOES_ARVORE_EXIBICAO.map((geracao: GeracaoArvore, gi) => (
@@ -195,7 +192,7 @@ export function PortalArvore() {
                         </>
                       ) : (
                         <span className="text-xs text-navy/60">
-                          Nenhuma pessoa liberada ainda — de um universo de {PESSOAS_POSSIVEIS_CINCO_GERACOES} possíveis nas 5 gerações.
+                           Nenhum nome liberado para esta árvore até agora.
                         </span>
                       )}
                     </p>
@@ -221,7 +218,7 @@ export function PortalArvore() {
                     </div>
                     {painel.notasPublicadas.length === 0 ? (
                       <p className="rounded-xl border border-dashed border-navy/20 bg-cream/60 p-4 text-sm text-navy/60">
-                         Quando um novo vínculo estiver confirmado e pronto para compartilhar, você poderá encontrá-lo aqui e na Jornada.
+                          A próxima ligação da família aparecerá aqui quando estiver confirmada e liberada.
                       </p>
                     ) : (
                       <ul className="space-y-3">

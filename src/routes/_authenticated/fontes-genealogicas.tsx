@@ -48,7 +48,7 @@ export const Route = createFileRoute("/_authenticated/fontes-genealogicas")({
   errorComponent: ({ error }) => (
     <SaasShell titulo="Fontes genealógicas" descricao="Falha ao carregar o catálogo.">
       <p role="alert" className="text-sm text-terracotta">
-        Não foi possível abrir o catálogo: {error.message}
+        Não foi possível abrir o catálogo: {(error as Error).message}
       </p>
     </SaasShell>
   ),

@@ -50,7 +50,7 @@ export const Route = createFileRoute("/_authenticated/biblioteca")({
   errorComponent: ({ error }) => (
     <SaasShell titulo="Biblioteca Mestre" descricao="Falha ao carregar as referências internas.">
       <p role="alert" className="text-sm text-destructive">
-        {error.message}
+        {(error as Error).message}
       </p>
     </SaasShell>
   ),

@@ -52,9 +52,9 @@ export type CopyTela = {
 export const COPY_TELAS = {
   home: {
     navegacao: "Home",
-    titulo: "Sua jornada",
-    descricao: "Acompanhe o que já foi publicado e o que vem a seguir.",
-    vazio: "Assim que houver algo preparado para você, ele aparece aqui.",
+    titulo: "Home",
+    descricao: "Sua história, seus próximos passos e as descobertas compartilhadas.",
+    vazio: "A história da sua família está sendo preparada para ser compartilhada.",
   },
   jornada: {
     navegacao: "Jornada",
@@ -69,13 +69,13 @@ export const COPY_TELAS = {
     // leitura de parecer jurídico/chance. Percentuais são progresso/andamento
     // das seis dimensões da jornada, nunca resultado conclusivo.
     descricao: "Seu equilíbrio nas 6 dimensões.",
-    vazio: "O Radar ganhará forma à medida que novas descobertas forem compartilhadas com você.",
+    vazio: "Este desenho ganhará forma conforme documentos e descobertas forem compartilhados com você.",
   },
   arvore: {
     navegacao: "Árvore",
     titulo: "Árvore Familiar",
     descricao: "Cinco gerações que compõem você.",
-    vazio: "A árvore da família começa por você e cresce quando novos vínculos são confirmados.",
+    vazio: "A árvore da família ainda não tem vínculos liberados para você.",
   },
   documentos: {
     navegacao: "Documentos",
@@ -110,7 +110,7 @@ export const COPY_TELAS = {
   conta: {
     navegacao: "Conta",
     titulo: "Minha Conta",
-    descricao: "Seus dados, seu plano e o histórico do seu acompanhamento.",
+    descricao: "Seu espaço para acompanhar novidades e conversar com a equipe.",
     vazio: "As informações do seu acesso aparecem aqui.",
   },
   faturas: {

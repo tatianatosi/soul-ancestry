@@ -1,5 +1,16 @@
 # Roadmap
 
+## Revisão do App da Ana e publicação familiar (01/10/2026)
+- [x] Conferir quatro perfis, vínculos e gerações entre cadastro, pesquisa e projeções: quatro perfis internos, três identidades não revisadas, uma relação declarada sem prova e nenhuma geração registrada.
+- [x] Alinhar apresentação e texto das sete abas ao roteiro sem transformar exemplos do mockup em parentescos, eventos, datas ou marcos reais.
+- [ ] Publicar pessoas na Árvore e marco na Jornada — bloqueado por perfis não aprovados, vínculos sem validação, gerações ausentes e marco não liberado; requer decisão humana individual e fonte.
+- [ ] Após publicação verificável da Ana: prova de salvar/recarregar no Desk e prévia do contrato v2; não criar/assinar/enviar contrato sem aprovação separada.
+
+## App Cliente fiel ao mockup de 17 páginas (30/09/2026)
+- [x] Primeiro corte, Home: cabeçalho com nome da aba, cartão da história real da Ana e estados de espera próprios para próximo passo e achados não publicados; conferir 375 px e desktop.
+- [ ] Validar compilação integral: bloqueada por erros de tipo preexistentes em `__root` e rotas internas do Desk após atualização de dependências, fora deste corte visual.
+- [ ] Após aprovação visual da Home, avançar uma tela por vez: Jornada, Radar, Árvore, Documentos, Legado e Conta, sem criar dados ou publicações.
+
 ## Jornada do App fiel ao mockup (30/09/2026)
 - [x] Unir Linha Ancestral, Momentos de União e Linha do Processo por eixo dourado em 375 px e desktop, com vazios únicos e links só para material liberado.
 - [x] Conferir testes, compilação e capturas autenticadas nas duas larguras; parar para aprovação visual.
