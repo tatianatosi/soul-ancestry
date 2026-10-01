@@ -108,7 +108,9 @@ export function AtendimentoInterno() {
   const publicarProjecao = useServerFn(publicarProjecaoApp);
 
   const [casoId, setCasoId] = useState<string>("");
-  const [publicacaoTipo, setPublicacaoTipo] = useState<"marco" | "arvore">("marco");
+  // Corte 3b (01/10/2026): "atualizacao" entra como terceiro tipo — o aviso
+  // da equipe que aparece em "Novidades para você", na Conta do App.
+  const [publicacaoTipo, setPublicacaoTipo] = useState<"marco" | "arvore" | "atualizacao">("marco");
   const [publicacaoTexto, setPublicacaoTexto] = useState("");
   const [form, setForm] = useState({
     titulo: "",
@@ -270,7 +272,7 @@ export function AtendimentoInterno() {
   });
 
   const publicar = useMutation({
-    mutationFn: (p: { caseId: string; tipo: "marco" | "arvore"; conteudo: string; motivo: string }) => publicarProjecao({ data: p }),
+    mutationFn: (p: { caseId: string; tipo: "marco" | "arvore" | "atualizacao"; conteudo: string; motivo: string }) => publicarProjecao({ data: p }),
     onSuccess: () => {
       setPublicacaoTexto("");
       toast.success("Projeção publicada.");
@@ -412,11 +414,12 @@ export function AtendimentoInterno() {
             <div className="mt-2 flex flex-wrap items-start gap-2">
               <select
                 value={publicacaoTipo}
-                onChange={(e) => setPublicacaoTipo(e.target.value as "marco" | "arvore")}
+                onChange={(e) => setPublicacaoTipo(e.target.value as "marco" | "arvore" | "atualizacao")}
                 className="rounded border border-navy/20 px-2 py-1.5 text-xs"
               >
                 <option value="marco">Jornada (marco)</option>
                 <option value="arvore">Árvore da família</option>
+                <option value="atualizacao">Atualização da equipe</option>
               </select>
               <textarea
                 value={publicacaoTexto}
@@ -424,7 +427,9 @@ export function AtendimentoInterno() {
                 placeholder={
                   publicacaoTipo === "marco"
                     ? "Ex.: A equipe concluiu a análise da certidão de nascimento e avançou para a próxima etapa."
-                    : "Ex.: Confirmado o vínculo entre você e seu bisavô Giuseppe, nascido em 1887 na Itália."
+                    : publicacaoTipo === "atualizacao"
+                      ? "Ex.: Esta semana avançamos na busca pelos registros da paróquia; assim que houver novidade, contamos aqui."
+                      : "Ex.: Confirmado o vínculo entre você e seu bisavô Giuseppe, nascido em 1887 na Itália."
                 }
                 rows={2}
                 className="min-w-[16rem] flex-1 rounded border border-navy/20 px-2 py-1.5 text-xs"

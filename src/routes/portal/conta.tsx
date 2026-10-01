@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { planoPublicado } from "@/lib/plano-publicacao";
+import { publicacoesParaCliente } from "@/lib/projecoes-cliente";
 import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
@@ -57,6 +58,16 @@ export function PortalConta() {
    * leitor recusam).
    */
   const plano = planoPublicado(vivo.data?.projecoes ?? []);
+
+  /**
+   * Corte 3b (01/10/2026) — "Atualização da equipe" publicada em
+   * /atendimento aparece aqui, da mais recente para a mais antiga. O texto é
+   * o que a equipe escreveu para a família; `publicacoesParaCliente` já
+   * sanitiza e descarta conteúdo vazio.
+   */
+  const atualizacoes = publicacoesParaCliente(
+    (vivo.data?.projecoes ?? []).filter((p) => p.projection_type === "atualizacao"),
+  );
 
   const proximaAcao = vivo.data?.proximaAcao ?? null;
   const alertaAcionavel =
@@ -153,6 +164,19 @@ export function PortalConta() {
                   Da sua jornada
                 </span>
               </div>
+              {atualizacoes.length > 0 ? (
+                <ul className="mt-3 space-y-2" data-conta-atualizacoes>
+                  {atualizacoes.map((a) => (
+                    <li key={a.id} className="rounded-xl border border-border bg-cream/40 px-4 py-3">
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
+                        {a.tipoRotulo}
+                        {a.publicadoEm ? ` · ${new Date(a.publicadoEm).toLocaleDateString("pt-BR")}` : ""}
+                      </p>
+                      <p className="mt-1 whitespace-pre-line text-sm text-navy">{a.conteudo}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
               {alertaAcionavel ? (
                 <div className="mt-3 rounded-xl border border-gold/40 bg-gold/10 px-4 py-4">
                   <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
@@ -168,11 +192,11 @@ export function PortalConta() {
                     </LinkPortal>
                   ) : null}
                 </div>
-              ) : (
+              ) : atualizacoes.length === 0 ? (
                   <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
                    <p className="text-sm text-navy/70">Nenhum recado novo por enquanto.</p>
                 </div>
-              )}
+              ) : null}
             </section>
 
             {/*

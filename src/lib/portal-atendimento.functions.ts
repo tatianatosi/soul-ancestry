@@ -704,7 +704,7 @@ export const confirmarDocumentosMinimos = createServerFn({ method: "POST" })
  */
 export const publicarProjecaoApp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { caseId: string; tipo: "marco" | "arvore"; conteudo: string; motivo?: string }) => ({
+  .inputValidator((data: { caseId: string; tipo: "marco" | "arvore" | "atualizacao"; conteudo: string; motivo?: string }) => ({
     ...data,
     motivo: data.motivo?.trim() || "Motivo não informado (fluxo sem confirmação humana explícita).",
   }))
