@@ -78,7 +78,13 @@ describe("validação de evidência", () => {
 });
 
 describe("escritor único: ninguém mais grava evidência", () => {
-  const canonico = ler("src/lib/evidencia-canonica.functions.ts");
+  // Corte 0 (01/10): o corpo do escritor saiu para `.server.ts` (padrão do repo
+  // para lógica de servidor compartilhada), e `.functions.ts` virou a casca HTTP.
+  // O teste passa a olhar os dois juntos: o que importa é que a cadeia
+  // releitura → auditoria → timeline exista no módulo canônico, não em qual
+  // dos dois arquivos cada linha mora.
+  const canonico =
+    ler("src/lib/evidencia-canonica.functions.ts") + ler("src/lib/evidencia-canonica.server.ts");
 
   it("o módulo canônico grava com releitura, audita e registra na timeline", () => {
     for (const t of [
