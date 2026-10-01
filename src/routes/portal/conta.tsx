@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
+import { planoPublicado } from "@/lib/plano-publicacao";
 import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
@@ -49,6 +50,14 @@ export function PortalConta() {
    * acionável (documento pendente ou pagamento em aberto); qualquer outro
    * destino (jornada seguindo, caso encerrado/pausado) fica no "sem alerta".
    */
+  /**
+   * Corte 3a (01/10/2026) — o plano que a equipe publicou para este caso.
+   * Sem publicação, `null`: a Conta mantém o texto de acompanhamento e não
+   * inventa plano nenhum. Preço e parcela nunca chegam aqui (o escritor e o
+   * leitor recusam).
+   */
+  const plano = planoPublicado(vivo.data?.projecoes ?? []);
+
   const proximaAcao = vivo.data?.proximaAcao ?? null;
   const alertaAcionavel =
     proximaAcao &&
@@ -103,11 +112,30 @@ export function PortalConta() {
 
             <section data-conta-plano className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-xl text-navy">Estamos por perto</h2>
+                <h2 className="font-serif text-xl text-navy">{plano ? "Seu plano" : "Estamos por perto"}</h2>
+                {plano?.situacao ? (
+                  <span
+                    data-conta-plano-situacao
+                    className="rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-navy/70"
+                  >
+                    {plano.situacao}
+                  </span>
+                ) : null}
               </div>
-              <p className="mt-2 text-sm text-navy/75">
-                 {acompanhamento}
-              </p>
+              {plano ? (
+                <>
+                  <p className="mt-2 text-sm text-navy" data-conta-plano-nome>
+                    {plano.nome}
+                  </p>
+                  {plano.vigencia ? (
+                    <p className="mt-1 text-xs text-navy/60">{plano.vigencia}</p>
+                  ) : null}
+                </>
+              ) : (
+                <p className="mt-2 text-sm text-navy/75">
+                   {acompanhamento}
+                </p>
+              )}
               <p className="mt-3 text-xs text-navy/55">
                   Para conversar sobre documentos ou sobre a sua jornada, use os canais de contato já combinados com a equipe.
               </p>
