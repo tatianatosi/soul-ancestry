@@ -134,6 +134,9 @@ export function usePortalVivo() {
     queryKey: ["portal-dados-vivos", casoId ?? "padrao"],
     queryFn: () => carregar({ data: casoId ? { casoId } : {} }),
     enabled: externa === null,
+    // O que o Desk publica aparece no App sem recarregar (decisão 01/10/2026: 30 s).
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   });
 
   if (externa) {
