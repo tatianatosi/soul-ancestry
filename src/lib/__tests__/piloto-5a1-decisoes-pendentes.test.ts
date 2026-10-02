@@ -11,26 +11,32 @@ import {
  * Achado da sessão de 27/09/2026: D-01, D-04, D-05 e D-06 (Piloto 5A.1,
  * caso Giovanna Prade) foram registrados em 11/08/2026 como "AGUARDANDO
  * DECISÃO HUMANA" e ninguém nunca confirmou depois se a Proprietária
- * decidiu. Este teste trava exatamente isso: nenhum agente pode "decidir"
- * silenciosamente editando este arquivo — mudar o status exige preencher
- * valorDecidido/decididoPor/decididoEm também, e mesmo assim só a
- * Proprietária autoriza esse conteúdo.
+ * decidiu. Este teste travava exatamente isso: nenhum agente podia
+ * "decidir" silenciosamente editando este arquivo — mudar o status exige
+ * preencher valorDecidido/decididoPor/decididoEm também, e mesmo assim só
+ * a Proprietária autoriza esse conteúdo.
+ *
+ * Corte DECISÕES (02/10/2026): a Proprietária decidiu de fato, de forma
+ * explícita ("execute todas elas d01 em diante"), registrada por ela mesma
+ * (tati@pluggedresearch.com). O teste passa a travar o estado NOVO: as
+ * quatro decididas, cada uma com autor e data, e o pacote fechado.
  */
-describe("Piloto 5A.1 — pacote de decisões pendentes (D-01, D-04, D-05, D-06)", () => {
+describe("Piloto 5A.1 — pacote de decisões (D-01, D-04, D-05, D-06)", () => {
   it("registra exatamente os quatro códigos do pacote de decisão, nenhum inventado", () => {
     expect(DECISOES_PILOTO_5A1.map((d) => d.codigo).sort()).toEqual(["D-01", "D-04", "D-05", "D-06"]);
   });
 
-  it("nenhuma decisão foi tomada por um agente: todas continuam aguardando_decisao_humana hoje", () => {
+  it("as quatro foram decididas pela Proprietária em 02/10/2026, com conteúdo e autoria registrados", () => {
     for (const d of DECISOES_PILOTO_5A1) {
-      expect(d.status).toBe("aguardando_decisao_humana");
-      expect(d.valorDecidido).toBeNull();
-      expect(d.decididoPor).toBeNull();
-      expect(d.decididoEm).toBeNull();
+      expect(d.status).toBe("decidida");
+      expect(typeof d.valorDecidido).toBe("string");
+      expect((d.valorDecidido as string).length).toBeGreaterThan(10);
+      expect(d.decididoPor).toBe("tati@pluggedresearch.com");
+      expect(d.decididoEm).toBe("2026-10-02");
     }
   });
 
-  it("toda decisão pendente tem o texto exato de 'Decisão necessária de Tatiana' do documento-fonte", () => {
+  it("toda decisão tem o texto exato de 'Decisão necessária de Tatiana' do documento-fonte", () => {
     for (const d of DECISOES_PILOTO_5A1) {
       expect(d.pendencia.length).toBeGreaterThan(20);
     }
@@ -43,11 +49,11 @@ describe("Piloto 5A.1 — pacote de decisões pendentes (D-01, D-04, D-05, D-06)
     expect(decisaoPiloto5A1("D-06")?.titulo).toBe("Critério de elevação de evidência");
   });
 
-  it("decisoesPendentesPiloto5A1 retorna as quatro enquanto nada for decidido", () => {
-    expect(decisoesPendentesPiloto5A1()).toHaveLength(4);
+  it("decisoesPendentesPiloto5A1 não retorna mais nenhuma — todas decididas", () => {
+    expect(decisoesPendentesPiloto5A1()).toHaveLength(0);
   });
 
-  it("pacoteDecisaoPiloto5A1Fechado é false até a Proprietária decidir todas", () => {
-    expect(pacoteDecisaoPiloto5A1Fechado()).toBe(false);
+  it("pacoteDecisaoPiloto5A1Fechado é true agora que a Proprietária decidiu todas", () => {
+    expect(pacoteDecisaoPiloto5A1Fechado()).toBe(true);
   });
 });

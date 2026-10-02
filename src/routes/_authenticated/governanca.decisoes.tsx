@@ -18,6 +18,8 @@ import {
   SUPERFICIES_CANONICAS,
   type SituacaoCriterio,
 } from "@/lib/decisoes-operacionais";
+import { DECISOES_PILOTO_5A1 } from "@/lib/piloto-5a1-decisoes-pendentes";
+import { BLOQUEIOS_ABERTOS_DA_PROPRIETARIA, DECISOES_DA_PROPRIETARIA } from "@/lib/decisoes-da-proprietaria";
 
 export const Route = createFileRoute("/_authenticated/governanca/decisoes")({
   head: () => ({
@@ -96,6 +98,68 @@ function DecisoesPage() {
             apaga módulo, tabela ou tela; nenhuma cobrança, assinatura, portal ou pesquisa externa é disparada aqui.
           </p>
         </header>
+
+        {/*
+          Corte DECISÕES (02/10/2026): a Proprietária reclamou duas vezes que
+          não tinha acesso à lista do que dependia dela — vivia só em arquivo
+          de plano ou em markdown fora do app. Esta seção lê as decisões do
+          Piloto 5A.1, as D-02..D-12 do Adendo, e o que ainda está aberto —
+          tudo em código, somente leitura. Nenhum botão grava decisão aqui;
+          só a Proprietária decide, registrada por ela (ver decididoPor).
+        */}
+        <Bloco titulo="Piloto 5A.1 — decisões D-01, D-04, D-05, D-06">
+          <Tabela
+            cabecalho={["Código", "Título", "Status", "Decidido por", "Em", "Valor decidido"]}
+            linhas={DECISOES_PILOTO_5A1.map((d) => [
+              d.codigo,
+              d.titulo,
+              <span
+                key={d.codigo}
+                className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                  d.status === "decidida" ? "bg-emerald-100 text-emerald-900" : "bg-orange-100 text-orange-900"
+                }`}
+              >
+                {d.status === "decidida" ? "Decidida" : "Aguardando decisão humana"}
+              </span>,
+              d.decididoPor ?? "—",
+              d.decididoEm ?? "—",
+              (d.valorDecidido as string | null) ?? d.pendencia,
+            ])}
+          />
+        </Bloco>
+
+        <Bloco titulo="Decisões D-02..D-12 (Adendo Bloco 5A)">
+          <Tabela
+            cabecalho={["Código", "Título", "Área", "Status", "Decidido por", "Em", "Valor decidido"]}
+            linhas={DECISOES_DA_PROPRIETARIA.map((d) => [
+              d.codigo,
+              d.titulo,
+              d.area,
+              <span
+                key={d.codigo}
+                className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                  d.status === "decidida" ? "bg-emerald-100 text-emerald-900" : "bg-orange-100 text-orange-900"
+                }`}
+              >
+                {d.status === "decidida" ? "Decidida" : "Aguardando decisão humana"}
+              </span>,
+              d.decididoPor ?? "—",
+              d.decididoEm ?? "—",
+              d.valorDecidido ?? d.pendencia,
+            ])}
+          />
+        </Bloco>
+
+        <Bloco titulo="O que ainda depende de você">
+          <Tabela
+            cabecalho={["Tema", "O que trava", "Registrado em"]}
+            linhas={BLOQUEIOS_ABERTOS_DA_PROPRIETARIA.map((b) => [b.tema, b.oQueTrava, b.registradoEm])}
+          />
+          <p className="mt-2 text-xs text-navy/60">
+            Nenhum item desta lista foi decidido por inferência de código, teste, migration ou mockup — só por decisão
+            explícita e datada sua.
+          </p>
+        </Bloco>
 
         {DECISOES.map((d) => (
           <article key={d.codigo} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
