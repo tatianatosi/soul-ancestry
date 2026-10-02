@@ -264,3 +264,30 @@ describe("G-02 — pessoas, relações e linhagens", () => {
     expect(perfis[0]!.nascimento_data).toBeNull();
   });
 });
+
+describe("validarAderenciaPercentual (heatmap, 02/10/2026)", () => {
+  it("aceita null/undefined (limpa o campo)", async () => {
+    const { validarAderenciaPercentual } = await import("@/lib/pessoas-linhagens");
+    expect(validarAderenciaPercentual(null)).toBeNull();
+    expect(validarAderenciaPercentual(undefined)).toBeNull();
+  });
+
+  it("aceita inteiro de 0 a 100", async () => {
+    const { validarAderenciaPercentual } = await import("@/lib/pessoas-linhagens");
+    expect(validarAderenciaPercentual(0)).toBe(0);
+    expect(validarAderenciaPercentual(85)).toBe(85);
+    expect(validarAderenciaPercentual(100)).toBe(100);
+  });
+
+  it("recusa string com símbolo %", async () => {
+    const { validarAderenciaPercentual } = await import("@/lib/pessoas-linhagens");
+    expect(() => validarAderenciaPercentual("80%")).toThrow(/sem o símbolo/);
+  });
+
+  it("recusa fora de 0-100 e não-inteiro", async () => {
+    const { validarAderenciaPercentual } = await import("@/lib/pessoas-linhagens");
+    expect(() => validarAderenciaPercentual(-1)).toThrow(/entre 0 e 100/);
+    expect(() => validarAderenciaPercentual(101)).toThrow(/entre 0 e 100/);
+    expect(() => validarAderenciaPercentual(50.5)).toThrow(/entre 0 e 100/);
+  });
+});

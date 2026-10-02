@@ -11725,6 +11725,7 @@ export type Database = {
       }
       lineage_paths: {
         Row: {
+          aderencia_percentual: number | null
           archive_reason: string | null
           archived_at: string | null
           archived_by: string | null
@@ -11749,6 +11750,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          aderencia_percentual?: number | null
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -11773,6 +11775,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          aderencia_percentual?: number | null
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null

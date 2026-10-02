@@ -83,7 +83,7 @@ export async function montarCaseDataReal({
   const caso = casoRes.data as Record<string, any> | null;
   if (!caso) throw new Error("Caso não encontrado nesta organização.");
 
-  const [clienteRes, trilhaRes, planoRes, pesquisaRes, projecoesRes, docLiberadoRes, docPendenteRes, timelineRes] =
+  const [clienteRes, trilhaRes, planoRes, pesquisaRes, projecoesRes, docLiberadoRes, docPendenteRes, timelineRes, ramosRes] =
     await Promise.all([
       caso.cliente_id
         ? supabase.from("clientes").select("nome,pais_interesse").eq("id", caso.cliente_id).maybeSingle()
@@ -140,6 +140,17 @@ export async function montarCaseDataReal({
         .not("summary_client_approved", "is", null)
         .order("occurred_at", { ascending: false })
         .limit(3),
+      // Heatmap de aderência (campos 13-18 da Ficha Master, Prioridade 2 de
+      // 02/10/2026): os ramos do caso (P14, múltiplos ramos). aderencia_percentual
+      // é a coluna nova (migration 20261002120000); país vem de
+      // citizenship_tracks, resolvido abaixo (dois passos, sem depender de
+      // embed do PostgREST — mais simples de testar e de ler).
+      supabase
+        .from("lineage_paths")
+        .select("citizenship_track_id,aderencia_percentual")
+        .eq("organization_id", organizationId)
+        .eq("case_id", caseId)
+        .is("archived_at", null),
     ]);
 
   const cliente = (clienteRes.data ?? null) as { nome?: string; pais_interesse?: string } | null;
@@ -150,6 +161,26 @@ export async function montarCaseDataReal({
   const docLiberado = ((docLiberadoRes.data ?? [])[0] ?? null) as { titulo?: string } | null;
   const docPendente = ((docPendenteRes.data ?? [])[0] ?? null) as { titulo?: string } | null;
   const timeline = (timelineRes.data ?? []) as { summary_client_approved?: string }[];
+  const ramosBrutos = (ramosRes.data ?? []) as { citizenship_track_id?: string | null; aderencia_percentual?: number | null }[];
+
+  // Top 3 ramos por aderência (desc; sem aderência registrada vai para o
+  // fim, nunca inventa um valor). Resolve o país de cada ramo numa segunda
+  // consulta — só os citizenship_track_id realmente usados pelo caso.
+  const idsTrilhasRamos = [...new Set(ramosBrutos.map((r) => r.citizenship_track_id).filter(Boolean))] as string[];
+  const trilhasRamosRes = idsTrilhasRamos.length
+    ? await supabase.from("citizenship_tracks").select("id,pais").in("id", idsTrilhasRamos)
+    : { data: [] as { id: string; pais?: string | null }[] };
+  const paisPorTrilha = new Map(
+    ((trilhasRamosRes.data ?? []) as { id: string; pais?: string | null }[]).map((t) => [t.id, t.pais ?? ""]),
+  );
+  const ramosOrdenados = [...ramosBrutos]
+    .filter((r) => r.citizenship_track_id)
+    .sort((a, b) => (b.aderencia_percentual ?? -1) - (a.aderencia_percentual ?? -1))
+    .slice(0, 3);
+  const heatmap = ramosOrdenados.map((r) => ({
+    pais: paisPorTrilha.get(r.citizenship_track_id as string) ?? "",
+    pct: typeof r.aderencia_percentual === "number" ? r.aderencia_percentual : null,
+  }));
 
   const porTipo = (tipo: string) =>
     projecoes.filter((p) => String(p.projection_type ?? "").toLowerCase() === tipo);
@@ -210,12 +241,15 @@ export async function montarCaseDataReal({
       pessoas_colaterais: [],
     },
     rota: {
-      pais_principal: String(trilha?.pais ?? cliente?.pais_interesse ?? caso.pais ?? ""),
-      aderencia_principal: null,
-      pais_secundario: "",
-      aderencia_secundaria: null,
-      pais_terciario: "",
-      aderencia_terciaria: null,
+      // Heatmap (campos 13-18): os ramos reais do caso, por aderência
+      // desc. Sem ramo cadastrado, cai no país único da trilha/cliente —
+      // nunca inventa um 2º/3º país.
+      pais_principal: String(heatmap[0]?.pais || trilha?.pais || cliente?.pais_interesse || caso.pais || ""),
+      aderencia_principal: heatmap[0]?.pct ?? null,
+      pais_secundario: String(heatmap[1]?.pais ?? ""),
+      aderencia_secundaria: heatmap[1]?.pct ?? null,
+      pais_terciario: String(heatmap[2]?.pais ?? ""),
+      aderencia_terciaria: heatmap[2]?.pct ?? null,
       hipotese_principal: String(pesquisa?.internal_hypothesis ?? ""),
       status_hipotese: "pendente_validacao",
       resumo_radar: "",

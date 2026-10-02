@@ -200,3 +200,75 @@ describe("montarCaseDataReal: Ficha Master lê dado real, nunca estático de dem
     );
   });
 });
+
+describe("Heatmap de aderência (Prioridade 2, 02/10/2026): os 3 ramos de maior aderência, nunca inventados", () => {
+  it("usa os ramos reais do caso (lineage_paths + citizenship_tracks), ordenados por aderência desc", async () => {
+    const supabase = supabaseFalso({
+      crm_casos: [
+        {
+          id: CASO,
+          organization_id: ORG,
+          codigo: "CA-CID-HEATMAP-001",
+          titulo: "Caso com ramos",
+          status: "ativo",
+          cliente_id: null,
+          pais: null,
+          citizenship_track_id: null,
+          created_at: "2026-10-01T00:00:00Z",
+          updated_at: "2026-10-01T00:00:00Z",
+        },
+      ],
+      lineage_paths: [
+        { organization_id: ORG, case_id: CASO, archived_at: null, citizenship_track_id: "t-it", aderencia_percentual: 60 },
+        { organization_id: ORG, case_id: CASO, archived_at: null, citizenship_track_id: "t-pt", aderencia_percentual: 85 },
+        { organization_id: ORG, case_id: CASO, archived_at: null, citizenship_track_id: "t-at", aderencia_percentual: null },
+        { organization_id: ORG, case_id: CASO, archived_at: null, citizenship_track_id: "t-br", aderencia_percentual: 40 },
+      ],
+      citizenship_tracks: [
+        { id: "t-it", pais: "Itália" },
+        { id: "t-pt", pais: "Portugal" },
+        { id: "t-at", pais: "Áustria" },
+        { id: "t-br", pais: "Brasil" },
+      ],
+    });
+
+    const caseData = await montarCaseDataReal({ supabase, organizationId: ORG, caseId: CASO });
+    // Maior aderência primeiro; o ramo sem aderência (Áustria) fica de fora do top 3.
+    expect(caseData.rota.pais_principal).toBe("Portugal");
+    expect(caseData.rota.aderencia_principal).toBe(85);
+    expect(caseData.rota.pais_secundario).toBe("Itália");
+    expect(caseData.rota.aderencia_secundaria).toBe(60);
+    expect(caseData.rota.pais_terciario).toBe("Brasil");
+    expect(caseData.rota.aderencia_terciaria).toBe(40);
+
+    const ficha = toFichaPiloto(caseData);
+    expect(ficha.heatmap_pais_1).toBe("Portugal");
+    expect(ficha.heatmap_pct_1).toBe(85);
+    expect(ficha.heatmap_pais_2).toBe("Itália");
+    expect(ficha.heatmap_pct_2).toBe(60);
+  });
+
+  it("sem nenhum ramo com aderência registrada, cai no país único — percentual nunca inventado", async () => {
+    const supabase = supabaseFalso({
+      crm_casos: [
+        {
+          id: CASO,
+          organization_id: ORG,
+          codigo: "CA-CID-HEATMAP-002",
+          titulo: "Caso sem ramos",
+          status: "ativo",
+          cliente_id: null,
+          pais: "Itália",
+          citizenship_track_id: null,
+          created_at: "2026-10-01T00:00:00Z",
+          updated_at: "2026-10-01T00:00:00Z",
+        },
+      ],
+    });
+    const caseData = await montarCaseDataReal({ supabase, organizationId: ORG, caseId: CASO });
+    expect(caseData.rota.pais_principal).toBe("Itália");
+    expect(caseData.rota.aderencia_principal).toBeNull();
+    const ficha = toFichaPiloto(caseData);
+    expect(ficha.heatmap_pct_1).toBeNull();
+  });
+});

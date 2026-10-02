@@ -508,3 +508,21 @@ export const MOTIVO_SEM_PROJECAO =
 export function projecaoClienteBloqueada(): { publicavel: false; motivo: string } {
   return { publicavel: false, motivo: MOTIVO_SEM_PROJECAO };
 }
+
+/**
+ * Heatmap de aderência (campos 14/16/18 da Ficha Master, Prioridade 2 de
+ * 02/10/2026) — percentual do ramo (`lineage_paths.aderencia_percentual`,
+ * migration 20261002120000). Nunca aceita símbolo "%"; sempre inteiro de
+ * 0 a 100. `null`/`undefined` passam (campo opcional, limpa o valor).
+ */
+export function validarAderenciaPercentual(bruto: unknown): number | null {
+  if (bruto === null || bruto === undefined) return null;
+  if (typeof bruto === "string" && bruto.includes("%")) {
+    throw new Error("Aderência é gravada sem o símbolo %, só o número de 0 a 100.");
+  }
+  const n = Number(bruto);
+  if (!Number.isInteger(n) || n < 0 || n > 100) {
+    throw new Error("Aderência precisa ser um número inteiro entre 0 e 100.");
+  }
+  return n;
+}

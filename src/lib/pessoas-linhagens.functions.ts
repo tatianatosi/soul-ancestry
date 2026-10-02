@@ -7,6 +7,7 @@ import { MODULOS_HISTORICOS } from "@/lib/genealogia-modulos";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { normalizarNome } from "@/lib/pessoa-identidade";
+import { validarAderenciaPercentual } from "@/lib/pessoas-linhagens";
 import { clienteElegivelParaPerfil, pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
@@ -110,6 +111,10 @@ const CAMPOS_LINHAGEM = [
   "risco_principal",
   "proximo_marco",
   "responsavel",
+  // Heatmap de aderência (Ficha Master, campos 14/16/18) — percentual
+  // liberado no App em 01/10/2026, migration 20261002120000. CHECK no
+  // banco recusa fora de 0-100; nunca gravar com símbolo "%".
+  "aderencia_percentual",
 ];
 
 const CAMPOS_MODULO = [
@@ -448,6 +453,13 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
     const valores = filtrar(data.tabela, data.valores);
     if (data.caseId && (TABELAS[data.tabela] as string[]).includes("case_id"))
       valores["case_id"] = data.caseId;
+
+    // Heatmap de aderência (campos 14/16/18 da Ficha Master): validação do
+    // lado da aplicação, com mensagem clara, antes de depender só do CHECK
+    // do banco (lineage_paths_aderencia_percentual_ck).
+    if (data.tabela === "lineage_paths" && "aderencia_percentual" in valores) {
+      valores["aderencia_percentual"] = validarAderenciaPercentual(valores["aderencia_percentual"]);
+    }
 
     /*
       24/09/2026 — Perfil genealógico é separado e opcional; o vínculo com a
