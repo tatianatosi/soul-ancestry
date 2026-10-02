@@ -119,8 +119,8 @@ function LeadsGoLive() {
             { nome: "responsavel", rotulo: "Responsável", obrigatorio: true },
             { nome: "proximoPasso", rotulo: "Próximo passo", obrigatorio: true },
             { nome: "proximoPassoEm", rotulo: "Próximo passo em", tipo: "data", obrigatorio: true },
-            { nome: "email", rotulo: "E-mail" },
-            { nome: "telefone", rotulo: "Telefone" },
+            { nome: "email", rotulo: "E-mail", tipo: "email" },
+            { nome: "telefone", rotulo: "Telefone", tipo: "telefone" },
             { nome: "objetivo", rotulo: "Objetivo", tipo: "area" },
           ]}
           aoConfirmar={(v) =>

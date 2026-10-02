@@ -9,11 +9,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { emailValido, formatarTelefone, telefoneValido } from "@/lib/validacao-pessoa";
 
 export type CampoAcao = {
   nome: string;
   rotulo: string;
-  tipo?: "texto" | "area" | "numero" | "data" | "escolha";
+  tipo?: "texto" | "area" | "numero" | "data" | "escolha" | "telefone" | "email";
   obrigatorio?: boolean;
   opcoes?: { valor: string; rotulo: string }[];
   ajuda?: string;
@@ -97,15 +98,28 @@ export function Acao({
           {titulo ? <p className="font-serif text-sm text-navy">{titulo}</p> : null}
           {campos.map((campo) => {
             const id = `acao-${campo.nome}`;
+            const valorAtual = valores[campo.nome] ?? "";
+            // Telefone/e-mail (02/10/2026, Corte MÁSCARAS): este formulário
+            // genérico alimenta vários campos de pessoa (golive.leads.tsx,
+            // golive.comercial.tsx) — mascarar/validar aqui cobre todos de
+            // uma vez, em vez de repetir por tela.
+            const invalido =
+              (campo.tipo === "telefone" && valorAtual.trim() !== "" && !telefoneValido(valorAtual)) ||
+              (campo.tipo === "email" && valorAtual.trim() !== "" && !emailValido(valorAtual));
             const comum = {
               id,
               required: campo.obrigatorio,
-              value: valores[campo.nome] ?? "",
+              value: valorAtual,
               onChange: (
                 e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => setValores((v) => ({ ...v, [campo.nome]: e.target.value })),
-              className:
-                "w-full min-w-0 rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-navy/40",
+              ) =>
+                setValores((v) => ({
+                  ...v,
+                  [campo.nome]: campo.tipo === "telefone" ? formatarTelefone(e.target.value) : e.target.value,
+                })),
+              className: `w-full min-w-0 rounded-lg border bg-white px-3 py-2 text-sm text-navy outline-none focus:border-navy/40 ${
+                invalido ? "border-terracota/60" : "border-navy/15"
+              }`,
             };
             return (
               <div key={campo.nome} className="min-w-0">
@@ -125,11 +139,26 @@ export function Acao({
                   </select>
                 ) : (
                   <input
-                    type={campo.tipo === "numero" ? "number" : campo.tipo === "data" ? "date" : "text"}
+                    type={
+                      campo.tipo === "numero"
+                        ? "number"
+                        : campo.tipo === "data"
+                          ? "date"
+                          : campo.tipo === "telefone"
+                            ? "tel"
+                            : campo.tipo === "email"
+                              ? "email"
+                              : "text"
+                    }
                     step={campo.tipo === "numero" ? "0.01" : undefined}
                     {...comum}
                   />
                 )}
+                {invalido ? (
+                  <p className="mt-1 text-[11px] text-terracota">
+                    {campo.tipo === "telefone" ? "Telefone inválido." : "E-mail inválido."}
+                  </p>
+                ) : null}
                 {campo.ajuda ? <p className="mt-1 text-[11px] text-navy/50">{campo.ajuda}</p> : null}
               </div>
             );

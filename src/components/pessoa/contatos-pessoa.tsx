@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { CaCard } from "@/components/ui/ca-card";
 import { adicionarContatoPessoa, arquivarContatoPessoa } from "@/lib/pessoa.functions";
+import { emailValido, formatarTelefone, nomeValido, telefoneValido } from "@/lib/validacao-pessoa";
 
 type Contato = {
   id: string;
@@ -69,17 +70,41 @@ export function ContatosDaPessoa({
     onError: (e: Error) => setAviso({ texto: e.message }),
   });
 
-  const campo = (k: keyof typeof VAZIO, rotulo: string, tipo = "text") => (
-    <label className="flex flex-col gap-1 text-xs text-navy/70">
-      {rotulo}
-      <input
-        type={tipo}
-        value={String(form[k] ?? "")}
-        onChange={(e) => setForm((f) => ({ ...f, [k]: e.target.value }))}
-        className="rounded-md border border-navy/20 bg-cream px-2 py-1 text-sm text-navy"
-      />
-    </label>
-  );
+  const campo = (k: keyof typeof VAZIO, rotulo: string, tipo = "text") => {
+    const valor = String(form[k] ?? "");
+    const invalido =
+      (k === "nome" && valor.trim() !== "" && !nomeValido(valor)) ||
+      (k === "email" && valor.trim() !== "" && !emailValido(valor)) ||
+      (k === "telefone" && valor.trim() !== "" && !telefoneValido(valor));
+    return (
+      <label className="flex flex-col gap-1 text-xs text-navy/70">
+        {rotulo}
+        <input
+          type={tipo}
+          value={valor}
+          onChange={(e) =>
+            setForm((f) => ({
+              ...f,
+              [k]: k === "telefone" ? formatarTelefone(e.target.value) : e.target.value,
+            }))
+          }
+          className={`rounded-md border bg-cream px-2 py-1 text-sm text-navy ${
+            invalido ? "border-terracotta/60" : "border-navy/20"
+          }`}
+        />
+        {invalido ? (
+          <span className="text-[11px] text-terracotta">
+            {k === "nome" ? "Nome inválido." : k === "email" ? "E-mail inválido." : "Telefone inválido."}
+          </span>
+        ) : null}
+      </label>
+    );
+  };
+
+  const formValido =
+    nomeValido(form.nome) &&
+    (!form.email.trim() || emailValido(form.email)) &&
+    (!form.telefone.trim() || telefoneValido(form.telefone));
 
   return (
     <CaCard
@@ -170,7 +195,7 @@ export function ContatosDaPessoa({
             <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
               <button
                 type="button"
-                disabled={mAdicionar.isPending || !form.nome.trim()}
+                disabled={mAdicionar.isPending || !formValido}
                 onClick={() => mAdicionar.mutate()}
                 className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
               >

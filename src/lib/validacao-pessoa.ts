@@ -213,3 +213,87 @@ export function contemCpf(texto: string): boolean {
   const sequenciasDe11 = texto.match(/\d{11}/g) ?? [];
   return sequenciasDe11.some((seq) => cpfValido(seq));
 }
+
+/* ------------------------------------------------------------------ */
+/* Nome                                                                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * 02/10/2026 — Corte MÁSCARAS: nome não tinha nenhum validador em lugar
+ * nenhum do repo (confirmado por grep). Recusa só o que é comprovadamente
+ * inválido: vazio, 1 caractere, ou dígito no meio do nome. Nunca barra
+ * nome composto, partícula ("de", "da", "dos"), acento, apóstrofo ("D'Ávila")
+ * ou hífen ("Maria-Clara") — isso é fundamento de produto (não fundir por
+ * nome continua intacto; isto só valida formato de entrada).
+ */
+export function nomeValido(valor: string): boolean {
+  const v = valor.trim();
+  if (v.length < 2) return false;
+  if (/\d/.test(v)) return false;
+  return true;
+}
+
+/* ------------------------------------------------------------------ */
+/* Data                                                                 */
+/* ------------------------------------------------------------------ */
+
+/** Aplica a máscara `DD/MM/AAAA` progressivamente, enquanto a pessoa digita. */
+export function formatarDataBr(valor: string): string {
+  const d = apenasDigitos(valor).slice(0, 8);
+  if (d.length <= 2) return d;
+  if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
+  return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`;
+}
+
+/**
+ * Aceita `DD/MM/AAAA` ou ISO (`AAAA-MM-DD`). Recusa data futura (nascimento
+ * não pode estar no futuro) e ano implausível (antes de 1900 ou o ano
+ * atual) — nunca aceita "31/02" ou qualquer dia/mês fora do calendário real.
+ */
+export function dataValida(valor: string, options: { permitirFutura?: boolean } = {}): boolean {
+  const v = valor.trim();
+  if (!v) return false;
+
+  let dia: number, mes: number, ano: number;
+  const br = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  const iso = v.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (br) {
+    dia = Number(br[1]);
+    mes = Number(br[2]);
+    ano = Number(br[3]);
+  } else if (iso) {
+    ano = Number(iso[1]);
+    mes = Number(iso[2]);
+    dia = Number(iso[3]);
+  } else {
+    return false;
+  }
+
+  if (ano < 1900 || ano > new Date().getFullYear() + (options.permitirFutura ? 1 : 0)) return false;
+  if (mes < 1 || mes > 12) return false;
+  const data = new Date(ano, mes - 1, dia);
+  // new Date normaliza datas inválidas (ex.: 31/02 vira 03/03) — comparar
+  // de volta pega exatamente isso.
+  if (data.getFullYear() !== ano || data.getMonth() !== mes - 1 || data.getDate() !== dia) return false;
+
+  if (!options.permitirFutura && data.getTime() > Date.now()) return false;
+  return true;
+}
+
+/* ------------------------------------------------------------------ */
+/* Endereço                                                             */
+/* ------------------------------------------------------------------ */
+
+export type CampoEndereco = "logradouro" | "numero" | "bairro" | "cidade";
+
+/**
+ * Validação mínima por campo de endereço — nunca inventa formato de rua
+ * (varia demais por país/região); só recusa vazio e, no número, texto que
+ * não tem nenhum dígito nem "S/N" (sem número).
+ */
+export function enderecoCampoValido(campo: CampoEndereco, valor: string): boolean {
+  const v = valor.trim();
+  if (!v) return false;
+  if (campo === "numero") return /\d/.test(v) || /^s\/?n$/i.test(v);
+  return true;
+}
