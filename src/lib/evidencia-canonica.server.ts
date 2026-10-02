@@ -66,7 +66,31 @@ export type EntradaGravacaoEvidencia = {
   pessoaId?: string | null;
   /** Só na criação: de onde a gravação veio, para a auditoria. */
   origem?: string | null;
+  /**
+   * Os 12 campos que a Biblioteca de Evidências já coletava e que a tabela
+   * canônica passou a ter na migration `20261001190000`. Todos opcionais: quem
+   * não os preenche continua gravando como antes.
+   */
+  natureza?: string | null;
+  nivelAcesso?: string | null;
+  estadoEpistemico?: string | null;
+  revisaoJuridica?: string | null;
+  notaRevisaoJuridica?: string | null;
+  dataReferencia?: string | null;
+  localReferencia?: string | null;
+  referenciaArmazenamento?: string | null;
+  buscaNegativaFonte?: string | null;
+  buscaNegativaData?: string | null;
+  buscaNegativaProximaAcao?: string | null;
+  itemPesquisaId?: string | null;
 };
+
+/** Só entra no payload o que veio preenchido — nunca apaga valor existente. */
+function seDefinido(payload: Record<string, unknown>, coluna: string, valor: unknown) {
+  if (valor === undefined) return;
+  if (typeof valor === "string" && valor.trim() === "") return;
+  payload[coluna] = valor;
+}
 
 /** Cria ou atualiza evidência. Único caminho de escrita da tabela canônica. */
 export async function gravarEvidenciaCanonica(
@@ -80,13 +104,41 @@ export async function gravarEvidenciaCanonica(
   const erros = validarEvidencia({ titulo: data.titulo, tipo: data.tipo });
   if (erros.length) throw new Error(erros.join(" "));
 
-  const campos = {
+  const campos: Record<string, unknown> = {
     title: data.titulo.trim(),
     description: data.descricao?.trim() || null,
     evidence_type: data.tipo,
     source_id: data.fonteId || null,
     person_id: data.pessoaId || null,
   };
+  seDefinido(campos, "evidence_nature", data.natureza);
+  seDefinido(campos, "access_level", data.nivelAcesso);
+  seDefinido(campos, "epistemic_validation_status", data.estadoEpistemico);
+  seDefinido(campos, "legal_review_status", data.revisaoJuridica);
+  seDefinido(campos, "legal_review_notes_internal", data.notaRevisaoJuridica);
+  seDefinido(campos, "reference_date", data.dataReferencia);
+  seDefinido(campos, "reference_location", data.localReferencia);
+  seDefinido(campos, "storage_reference_internal", data.referenciaArmazenamento);
+  seDefinido(campos, "negative_search_source", data.buscaNegativaFonte);
+  seDefinido(campos, "negative_search_date", data.buscaNegativaData);
+  seDefinido(campos, "negative_search_next_action", data.buscaNegativaProximaAcao);
+  seDefinido(campos, "research_item_id", data.itemPesquisaId);
+
+  // D-06, critério D (aprovado em 01/10): busca negativa registra escopo, fonte,
+  // período e responsável — e nunca conclui por si. Sem fonte e sem data, o
+  // registro não é uma busca negativa, é uma afirmação sem lastro.
+  if (data.natureza === "busca_negativa") {
+    const faltando = [
+      !data.buscaNegativaFonte?.trim() ? "onde se buscou" : null,
+      !data.buscaNegativaData ? "a data da busca" : null,
+    ].filter(Boolean);
+    if (faltando.length)
+      throw new Error(
+        "Busca negativa exige " +
+          faltando.join(" e ") +
+          ". A ausência de resultado só vale como evidência quando o escopo da busca está registrado.",
+      );
+  }
 
   const r = data.id
     ? await gravarComVerificacao({
@@ -128,7 +180,7 @@ export async function gravarEvidenciaCanonica(
     caseId: data.caseId,
     eventType: "caso",
     title: data.id ? "Evidência atualizada" : "Evidência registrada",
-    summaryInternal: campos.title,
+    summaryInternal: String(campos.title),
     sourceEntityType: "research_evidence_items",
     sourceEntityId: id ?? data.caseId,
     userId,

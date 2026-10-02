@@ -3,7 +3,8 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
-import { EVIDENCIA_ESCRITOR_APOSENTADO } from "@/lib/evidencia-canonica";
+import { tipoEvidenciaCanonico } from "@/lib/evidencia-canonica";
+import { gravarEvidenciaCanonica } from "@/lib/evidencia-canonica.server";
 import {
   COLUNA_ALVO,
   payloadLimpo,
@@ -90,7 +91,16 @@ export const listarVinculosFonte = createServerFn({ method: "GET" })
     const { data: linhas, error } = await q;
     if (error) throw new Error(error.message);
 
-    const [evidencias, solicitacoes, pessoas, relatorios] = await Promise.all([
+    // Corte 0 (01/10/2026): o seletor de evidência passa a oferecer a tabela
+    // canônica. `evidences` continua sendo lida só para rotular um vínculo
+    // histórico que aponte para ela — nunca oferece opção nova.
+    const [evidencias, evidenciasLegado, solicitacoes, pessoas, relatorios] = await Promise.all([
+      (supabase as any)
+        .from("research_evidence_items")
+        .select("id,title,research_cases!inner(case_id)")
+        .eq("organization_id", organizationId)
+        .eq("research_cases.case_id", data.caseId)
+        .is("archived_at", null),
       supabase
         .from("evidences")
         .select("id,title_internal")
@@ -116,7 +126,12 @@ export const listarVinculosFonte = createServerFn({ method: "GET" })
       podeEditar: PAPEIS_EDITA.includes(papel),
       vinculos: (linhas ?? []) as Record<string, any>[],
       alvos: {
-        evidencia: ((evidencias.data ?? []) as any[]).map((e) => ({ id: String(e.id), rotulo: String(e.title_internal ?? "Evidência") })),
+        evidencia: ((evidencias.data ?? []) as any[]).map((e) => ({ id: String(e.id), rotulo: String(e.title ?? "Evidência") })),
+        // Rótulo de linha histórica; não é opção oferecida para vínculo novo.
+        evidenciaLegado: ((evidenciasLegado.data ?? []) as any[]).map((e) => ({
+          id: String(e.id),
+          rotulo: String(e.title_internal ?? "Evidência (registro histórico)"),
+        })),
         solicitacao: ((solicitacoes.data ?? []) as any[]).map((s) => ({
           id: String(s.id),
           rotulo: `${s.document_type ?? "Solicitação"}${s.full_name_text ? ` — ${s.full_name_text}` : ""}`,
@@ -197,14 +212,13 @@ export const criarEvidenciaRascunhoDeFonte = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { caseId: string; sourceDocumentId: string }) => d)
   .handler(async ({ data, context }) => {
-    // Corte 1 (01/10/2026): escritor aposentado — ver evidencia-canonica.
-    throw new Error(EVIDENCIA_ESCRITOR_APOSENTADO);
-    // eslint-disable-next-line no-unreachable
+    // Corte 0 (01/10/2026): deixa de ter escritor próprio. A evidência nasce no
+    // módulo canônico e o vínculo aponta para a coluna canônica nova.
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoDoCaso(supabase, context.userId as string, data.caseId);
     if (!PAPEIS_EDITA.includes(papel)) throw new Error("Seu papel não pode criar evidências.");
 
-    const doc = await supabase
+    const doc = await (supabase as any)
       .from("case_source_documents")
       .select(
         "id,case_id,organization_id,titulo_interno,nome_arquivo,tipo_documento,data_documento,cidade,estado_provincia,pais,pessoa_ref_id,confidencialidade",
@@ -218,34 +232,43 @@ export const criarEvidenciaRascunhoDeFonte = createServerFn({ method: "POST" })
 
     const rascunho = rascunhoEvidenciaDeDocumento(doc.data as any);
     // Pessoa só entra se de fato for pessoa da pesquisa; caso contrário fica vazia.
-    if (rascunho.research_person_id) {
-      const p = await supabase
+    let pessoaId = rascunho.research_person_id as string | null;
+    if (pessoaId) {
+      const p = await (supabase as any)
         .from("research_people")
         .select("id")
-        .eq("id", rascunho.research_person_id)
+        .eq("id", pessoaId)
         .eq("organization_id", organizationId)
         .maybeSingle();
-      if (!p.data) rascunho.research_person_id = null;
+      if (!p.data) pessoaId = null;
     }
 
-    const ev = await supabase.from("evidences").insert(rascunho).select("id").maybeSingle();
-    if (ev.error) throw new Error(ev.error.message);
-    if (!ev.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão do caso.");
+    const ev = await gravarEvidenciaCanonica(supabase as any, context.userId as string, organizationId, {
+      caseId: data.caseId,
+      titulo: String(rascunho.title_internal),
+      // `tipo_documento` fala os 28 TIPOS_DOCUMENTO; o de-para canônico traduz
+      // para um dos 10 valores do CHECK. Documento sem tradução conhecida vira
+      // "document" — honesto, porque é de um documento que a evidência nasceu.
+      tipo: tipoEvidenciaCanonico(rascunho.evidence_type) ?? "document",
+      pessoaId,
+      origem: "documento_do_acervo",
+    });
+    if (!ev.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão do caso.");
 
-    const v = await supabase
+    const v = await (supabase as any)
       .from("case_source_document_links")
       .insert({
         organization_id: organizationId,
         case_id: data.caseId,
         source_document_id: data.sourceDocumentId,
-        evidence_id: ev.data.id,
+        research_evidence_item_id: ev.id,
         tipo_vinculo: "comprova",
       })
       .select("id")
       .maybeSingle();
     if (v.error) throw new Error(v.error.message);
 
-    return { evidenceId: ev.data.id as string, vinculoId: (v.data?.id ?? null) as string | null };
+    return { evidenceId: ev.id as string, vinculoId: (v.data?.id ?? null) as string | null };
   });
 
 /** Desvínculo é sempre lógico e exige motivo. Não existe exclusão física. */

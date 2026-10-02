@@ -15,7 +15,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
 import { CODIGO_CASO_GO_LIVE } from "@/lib/golive.functions";
 import { etapaDoResultado, passoDeEtapa } from "@/lib/golive-comercial";
-import { EVIDENCIA_ESCRITOR_APOSENTADO } from "@/lib/evidencia-canonica";
+import { tipoEvidenciaCanonico } from "@/lib/evidencia-canonica";
+import { gravarEvidenciaCanonica } from "@/lib/evidencia-canonica.server";
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -845,32 +846,24 @@ export const registrarEvidenciaGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { titulo: string; tipo?: string; fonteId?: string; descricao?: string }) => d)
   .handler(async ({ data, context }) => {
-    // Corte 1 (01/10/2026): escritor aposentado — ver evidencia-canonica.
-    throw new Error(EVIDENCIA_ESCRITOR_APOSENTADO);
-    // eslint-disable-next-line no-unreachable
+    // Corte 0 (01/10/2026): deixa de ter escritor próprio e delega ao módulo
+    // canônico, que é o único que grava evidência. A tela do Go Live continua
+    // chamando a mesma função com a mesma assinatura.
     semCache();
     const s = context.supabase as any;
     const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
     if (!texto(data.titulo)) throw new Error("Título da evidência é obrigatório.");
-    const pesquisaId = await pesquisaDoCaso(s, organizationId, casoId);
-
-    const r = await s
-      .from("research_evidence_items")
-      .insert({
-        organization_id: organizationId,
-        research_case_id: pesquisaId,
-        title: texto(data.titulo),
-        evidence_type: TIPO_EVIDENCIA[texto(data.tipo)] ?? "document",
-        description: texto(data.descricao) || null,
-        source_id: texto(data.fonteId) || null,
-        evidence_status: "collected",
-        client_visibility: "never",
-        created_by: userId,
-      })
-      .select("id")
-      .single();
-    erro(r);
-    return { id: String(r.data.id) };
+    void userId;
+    const r = await gravarEvidenciaCanonica(s, context.userId as string, organizationId, {
+      caseId: casoId,
+      titulo: texto(data.titulo),
+      // O Go Live falava os apelidos em português; o de-para canônico os traduz.
+      tipo: tipoEvidenciaCanonico(data.tipo) ?? "document",
+      descricao: texto(data.descricao) || null,
+      fonteId: texto(data.fonteId) || null,
+      origem: "golive_pesquisa",
+    });
+    return { id: String(r.id) };
   });
 
 export const registrarAchadoGoLive = createServerFn({ method: "POST" })

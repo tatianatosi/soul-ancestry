@@ -142,7 +142,8 @@ function AreaPesquisaEvidencias() {
   });
 
   const mudarEvidencia = useMutation({
-    mutationFn: (v: { id: string; status: string }) => mudarEstadoEvidencia({ data: v }),
+    mutationFn: (v: { id: string; status: string; nota: string; caseId: string }) =>
+      mudarEstadoEvidencia({ data: v }),
     onSuccess: () => {
       toast.success("Situação da evidência atualizada.");
       void qc.invalidateQueries({ queryKey: ["cadeia-pesquisa", caseId] });
@@ -659,18 +660,12 @@ function AreaPesquisaEvidencias() {
                       ))}
                     </ul>
                     {podeEditarAutoridade && (
-                      <select
-                        aria-label={`Situação da evidência ${e.title_internal}`}
-                        value={e.workflow_status}
-                        onChange={(ev) => mudarEvidencia.mutate({ id: e.id, status: ev.target.value })}
-                        className="mt-1 rounded border border-navy/20 px-2 py-1 text-xs"
-                      >
-                        {STATUS_EVIDENCIA.map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.rotulo}
-                          </option>
-                        ))}
-                      </select>
+                      <MudarSituacaoEvidencia
+                        caseId={caseId}
+                        evidencia={e}
+                        pendente={mudarEvidencia.isPending}
+                        onConfirmar={(v) => mudarEvidencia.mutate(v)}
+                      />
                     )}
                   </li>
                 ))}
@@ -1129,5 +1124,103 @@ function Lista({
         </Link>
       )}
     </Bloco>
+  );
+}
+
+/**
+ * Troca de situação de evidência, com justificativa.
+ *
+ * Corte 0 (01/10/2026): antes isto era um `<select>` solto que mandava só
+ * `{id, status}`. A regra do grafo (`validarTransicaoEvidencia`) sempre exigiu
+ * autor, justificativa (mínimo 5 letras) e origem — só que a tela nunca
+ * coletava, então o escritor antigo gravava sem passar pelo grafo. Agora o
+ * motivo é pedido aqui e vai junto; sem ele o servidor recusa.
+ *
+ * Confirmação inline (nunca `window.confirm`, proibido pelos testes).
+ */
+function MudarSituacaoEvidencia({
+  caseId,
+  evidencia,
+  pendente,
+  onConfirmar,
+}: {
+  caseId: string;
+  evidencia: any;
+  pendente: boolean;
+  onConfirmar: (v: { id: string; status: string; nota: string; caseId: string }) => void;
+}) {
+  const [aberto, setAberto] = useState(false);
+  const [destino, setDestino] = useState<string>("");
+  const [motivo, setMotivo] = useState("");
+  const atual = String(evidencia.workflow_status ?? "");
+  const possiveis = STATUS_EVIDENCIA.filter((s) => s.id !== atual);
+  const podeConfirmar = Boolean(destino) && motivo.trim().length >= 5 && !pendente;
+
+  if (!aberto)
+    return (
+      <button
+        type="button"
+        onClick={() => setAberto(true)}
+        className="mt-1 rounded border border-navy/20 px-2 py-1 text-xs text-navy hover:bg-cream/60"
+      >
+        Mudar situação
+      </button>
+    );
+
+  return (
+    <div className="mt-2 space-y-2 rounded border border-navy/15 bg-cream/40 p-2">
+      <label className="block text-xs text-navy/70">
+        Nova situação
+        <select
+          aria-label={`Nova situação da evidência ${evidencia.title_internal}`}
+          value={destino}
+          onChange={(ev) => setDestino(ev.target.value)}
+          className="mt-0.5 block w-full rounded border border-navy/20 px-2 py-1 text-xs"
+        >
+          <option value="">Escolha…</option>
+          {possiveis.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.rotulo}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="block text-xs text-navy/70">
+        Justificativa (obrigatória, mínimo 5 letras)
+        <textarea
+          aria-label={`Justificativa da mudança de situação da evidência ${evidencia.title_internal}`}
+          value={motivo}
+          onChange={(ev) => setMotivo(ev.target.value)}
+          rows={2}
+          className="mt-0.5 block w-full rounded border border-navy/20 px-2 py-1 text-xs"
+        />
+      </label>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          disabled={!podeConfirmar}
+          onClick={() => {
+            onConfirmar({ id: evidencia.id, status: destino, nota: motivo.trim(), caseId });
+            setAberto(false);
+            setDestino("");
+            setMotivo("");
+          }}
+          className="rounded bg-navy px-2 py-1 text-xs text-cream disabled:opacity-40"
+        >
+          Confirmar mudança
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setAberto(false);
+            setDestino("");
+            setMotivo("");
+          }}
+          className="rounded border border-navy/20 px-2 py-1 text-xs text-navy"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
   );
 }

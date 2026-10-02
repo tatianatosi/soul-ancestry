@@ -18,7 +18,11 @@ export const TIPOS_VINCULO: { id: string; rotulo: string; alvo: TipoAlvo }[] = [
 ];
 
 export const COLUNA_ALVO: Record<TipoAlvo, string> = {
-  evidencia: "evidence_id",
+  // Corte 0 (01/10/2026): o vínculo de evidência passou a apontar para a tabela
+  // canônica (`research_evidence_items`). A coluna antiga `evidence_id` tem FK
+  // para `evidences`, que deixou de ser canônica — gravar ali o id canônico era
+  // recusado pelo banco. `evidence_id` segue lida, nunca escrita.
+  evidencia: "research_evidence_item_id",
   solicitacao: "document_request_id",
   pessoa: "research_person_id",
   relatorio: "case_report_id",
@@ -91,7 +95,10 @@ export function validarVinculo(e: EntradaVinculo): Resultado {
 
 /** Só um alvo pode estar preenchido na linha persistida. */
 export function alvoUnico(linha: Record<string, unknown>): boolean {
-  const preenchidos = Object.values(COLUNA_ALVO).filter((c) => linha[c] !== null && linha[c] !== undefined);
+  // A coluna legada entra na contagem para que uma linha histórica com
+  // `evidence_id` continue sendo reconhecida como alvo único.
+  const colunas = [...Object.values(COLUNA_ALVO), "evidence_id"];
+  const preenchidos = colunas.filter((c) => linha[c] !== null && linha[c] !== undefined);
   return preenchidos.length === 1;
 }
 

@@ -103,7 +103,86 @@ export const TIPOS_EVIDENCIA = [
   "other",
 ] as const;
 
+export type TipoEvidencia = (typeof TIPOS_EVIDENCIA)[number];
+
 const t = (v: unknown) => (v == null ? "" : String(v).trim());
+
+/**
+ * De-para de tipo de evidência — **o único do sistema**.
+ *
+ * `research_evidence_items.evidence_type` tem CHECK com os 10 valores de
+ * `TIPOS_EVIDENCIA`. Mas quem chama o escritor fala três vocabulários
+ * diferentes, todos legítimos e já em uso:
+ *
+ *  - os 28 `TIPOS_DOCUMENTO` (`fontes-documentos.ts`), quando a evidência nasce
+ *    de um documento do acervo;
+ *  - os apelidos em português que o Go Live usava (`documento`, `registro`,
+ *    `foto`, `trecho`, `referencia_arquivo`, `outro`);
+ *  - os próprios 10 valores canônicos, quando a tela já oferece o select certo.
+ *
+ * Antes deste corte cada chamador tinha o seu mapa (ou mapa nenhum, e gravava
+ * texto livre que o CHECK recusaria). Aqui é um só. Nada é inventado: cada
+ * destino é um dos 10 valores já aprovados, e a escolha segue o que o documento
+ * **é** — certidão e registro são lançamento em registro (`registry_entry`),
+ * identidade e documento notarial/judicial são documento (`document`), relato
+ * de família é história oral (`oral_history`), árvore recebida é nota
+ * estruturada (`structured_note`).
+ */
+export const DE_PARA_TIPO_EVIDENCIA: Record<string, TipoEvidencia> = {
+  // Lançamentos em registro civil, religioso ou consular.
+  certidao_nascimento: "registry_entry",
+  certidao_casamento: "registry_entry",
+  certidao_obito: "registry_entry",
+  registro_civil: "registry_entry",
+  inteiro_teor: "registry_entry",
+  certidao_estrangeira: "registry_entry",
+  registro_religioso_batismo: "registry_entry",
+  registro_imigracao: "registry_entry",
+  lista_passageiros: "registry_entry",
+  registro_consular: "registry_entry",
+  naturalizacao: "registry_entry",
+  certidao_negativa_positiva: "registry_entry",
+  documento_cidadania: "registry_entry",
+  // Documentos que não são lançamento em registro.
+  passaporte: "document",
+  documento_identidade: "document",
+  comprovante_residencia: "document",
+  documento_militar: "document",
+  documento_notarial: "document",
+  inventario_testamento: "document",
+  documento_judicial: "document",
+  documento_comercial_contratual: "document",
+  proposta_canva: "document",
+  // Os demais, por natureza do material.
+  registro_arquivo_historico: "archive_reference",
+  fotografia_imagem_historica: "photo",
+  correspondencia: "correspondence",
+  arvore_recebida_familia: "structured_note",
+  relato_familiar: "oral_history",
+  outro_documento: "other",
+  // Apelidos em português herdados do Go Live.
+  documento: "document",
+  registro: "registry_entry",
+  foto: "photo",
+  trecho: "record_excerpt",
+  referencia_arquivo: "archive_reference",
+  outro: "other",
+};
+
+/**
+ * Traduz qualquer vocabulário de entrada para um dos 10 tipos canônicos.
+ *
+ * Devolve `null` quando não reconhece — o chamador decide se recusa ou cai em
+ * `"document"`. Nunca adivinha um tipo específico a partir de texto livre.
+ */
+export function tipoEvidenciaCanonico(bruto: unknown): TipoEvidencia | null {
+  const v = t(bruto);
+  if (!v) return null;
+  if ((TIPOS_EVIDENCIA as readonly string[]).includes(v)) return v as TipoEvidencia;
+  return DE_PARA_TIPO_EVIDENCIA[v] ?? null;
+}
+
+
 
 export type EntradaEvidencia = {
   titulo: string;

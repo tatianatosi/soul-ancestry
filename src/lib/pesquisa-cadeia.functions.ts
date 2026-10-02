@@ -6,7 +6,7 @@ import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesq
 import { statusEvidenciaCanonico, statusPesquisaCanonico, validarTransicaoEvidencia } from "@/lib/pesquisa-cadeia";
 import { workflowStatusDeEvidenciaModulo } from "@/lib/rotulo-negocio";
 import { idsJaCopiados } from "@/lib/fontes-pesquisa-canonicas";
-import { EVIDENCIA_ESCRITOR_APOSENTADO } from "@/lib/evidencia-canonica";
+import { mudarSituacaoEvidenciaCanonica } from "@/lib/evidencia-canonica.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -343,29 +343,33 @@ export const salvarVisaoPesquisa = createServerFn({ method: "POST" })
 /** Muda a situação de uma evidência: só transições permitidas, com autor, justificativa e origem. */
 export const mudarEstadoEvidencia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string; status: string; nota?: string }) => {
+  .inputValidator((d: { id: string; status: string; nota?: string; caseId?: string | null }) => {
     if (!d?.id || !d?.status) throw new Error("Evidência ou situação inválida.");
+    // A transição sempre exigiu justificativa (mínimo 5 letras) e origem — a
+    // regra vive em `validarTransicaoEvidencia` e é a mesma desde antes deste
+    // corte. O que mudou é que agora ela chega até aqui, em vez de a tela
+    // mandar só `{id, status}` e o grafo nunca ser consultado.
+    if ((d.nota ?? "").trim().length < 5)
+      throw new Error("Informe a justificativa da mudança de situação (mínimo 5 letras).");
     return d;
   })
   .handler(async ({ data, context }) => {
-    /*
-      Corte 1 (01/10/2026) — escritor aposentado, corpo removido.
-
-      `evidences` deixou de ser a tabela canônica de evidência: estava vazia
-      (0 linhas) enquanto `research_evidence_items` tinha o dado real. A
-      mudança de situação passou para `mudarSituacaoEvidencia`
-      (`evidencia-canonica.functions.ts`), que mantém o MESMO grafo
-      (`TRANSICOES_EVIDENCIA`) e a mesma exigência de autor, justificativa e
-      origem — e agora grava com releitura.
-
-      A função continua exportada porque há rota importando; ela falha alto,
-      dizendo para onde ir, em vez de gravar em paralelo.
-    */
-    void data;
-    void context;
-    throw new Error(EVIDENCIA_ESCRITOR_APOSENTADO);
+    // Corte 0 (01/10/2026): deixa de ter escritor próprio e delega ao módulo
+    // canônico, que aplica o MESMO grafo (`TRANSICOES_EVIDENCIA`), exige autor,
+    // justificativa e origem, e grava com releitura.
+    const supabase = context.supabase as unknown as Sb;
+    // Mesmo gate de papel que o resto deste módulo usa.
+    const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
+    if (!PAPEIS_EDITA.includes(papel))
+      throw new Error("Seu papel não pode mudar a situação de evidência.");
+    return mudarSituacaoEvidenciaCanonica(supabase as any, context.userId as string, organizationId, {
+      caseId: data.caseId ?? null,
+      id: data.id,
+      para: data.status,
+      justificativa: String(data.nota ?? ""),
+      origem: "pesquisa_evidencias_do_caso",
+    });
   });
-
 
 /** Arquivamento lógico de registros da cadeia; exclusão física é proibida no banco. */
 export const arquivarRegistroPesquisa = createServerFn({ method: "POST" })

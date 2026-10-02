@@ -6,7 +6,8 @@ import { conteudoProjetavel } from "@/lib/biblioteca-evidencias";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
-import { EVIDENCIA_ESCRITOR_APOSENTADO } from "@/lib/evidencia-canonica";
+import { tipoEvidenciaCanonico } from "@/lib/evidencia-canonica";
+import { gravarEvidenciaCanonica } from "@/lib/evidencia-canonica.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -253,42 +254,52 @@ export const salvarEvidencia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id?: string; valores: Record<string, unknown> }) => d)
   .handler(async ({ data, context }) => {
-    // Corte 1 (01/10/2026): escritor aposentado. `evidences` deixou de ser a
-    // tabela canônica (estava vazia); quem grava é `evidencia-canonica`.
-    throw new Error(EVIDENCIA_ESCRITOR_APOSENTADO);
-    // eslint-disable-next-line no-unreachable
+    // Corte 0 (01/10/2026): deixa de ter escritor próprio e delega ao módulo
+    // canônico. A assinatura que a tela usa (`{ id, valores }`) não muda; o que
+    // muda é o destino: `research_evidence_items`, com releitura e auditoria.
+    //
+    // Campo de `valores` sem destino canônico é **recusado com nome**, nunca
+    // descartado em silêncio — é a mesma disciplina de `recusarNaoMapeado`.
     const supabase = context.supabase as unknown as Sb;
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     recusarNaoMapeado(CAMPOS_EVIDENCIA, data.valores);
-    const valores = filtrar(CAMPOS_EVIDENCIA, data.valores);
 
-    const r = data.id
-      ? await supabase.from("evidences").update(valores).eq("id", data.id).select("id,case_id").maybeSingle()
-      : await supabase
-          .from("evidences")
-          .insert({ ...valores, organization_id: organizationId })
-          .select("id,case_id")
-          .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
-    if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
-    if (r.data.case_id) {
-      await registrarTimelineCaso(supabase, {
-        organizationId,
-        caseId: r.data.case_id as string,
-        eventType: "caso",
-        title: data.id ? "Evidência atualizada" : "Evidência registrada",
-        sourceEntityType: "evidences",
-        sourceEntityId: r.data.id as string,
-        userId: context.userId as string,
-      });
-    }
-    return { id: r.data.id as string };
+    const v = data.valores as Record<string, unknown>;
+    const caseId = String(v["case_id"] ?? "").trim();
+    if (!caseId) throw new Error("Caso é obrigatório para registrar evidência.");
+
+    const texto = (k: string) => {
+      const x = v[k];
+      return x === undefined || x === null || String(x).trim() === "" ? null : String(x).trim();
+    };
+
+    const r = await gravarEvidenciaCanonica(supabase as any, context.userId as string, organizationId, {
+      caseId,
+      id: data.id ?? null,
+      titulo: String(v["title_internal"] ?? ""),
+      tipo: tipoEvidenciaCanonico(v["evidence_type"]) ?? "",
+      descricao: texto("description_internal"),
+      fonteId: texto("source_id"),
+      pessoaId: texto("research_person_id"),
+      // Os 12 campos que a migration 20261001190000 trouxe para a tabela
+      // canônica. Nenhum é descartado em silêncio.
+      natureza: texto("evidence_nature"),
+      nivelAcesso: texto("access_level"),
+      estadoEpistemico: texto("epistemic_validation_status"),
+      revisaoJuridica: texto("legal_review_status"),
+      notaRevisaoJuridica: texto("legal_review_notes_internal"),
+      dataReferencia: texto("reference_date"),
+      localReferencia: texto("reference_location"),
+      referenciaArmazenamento: texto("storage_reference_internal"),
+      buscaNegativaFonte: texto("negative_search_source"),
+      buscaNegativaData: texto("negative_search_date"),
+      buscaNegativaProximaAcao: texto("negative_search_next_action"),
+      itemPesquisaId: texto("research_item_id"),
+      origem: "biblioteca_de_evidencias",
+    });
+    return { id: r.id, caseId };
   });
 
-/**
- * Elevação/rebaixamento de confiança sempre pelo histórico: registra a justificativa
- * e só então altera a evidência. O banco recusa salto INICIAL → ALTO.
- */
 export const registrarValidacaoEvidencia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(

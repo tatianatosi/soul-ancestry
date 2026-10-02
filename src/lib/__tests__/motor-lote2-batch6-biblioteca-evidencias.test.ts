@@ -14,12 +14,15 @@ function trechoDe(nomeFn: string, proximaFn: string) {
 }
 
 describe("biblioteca-evidencias.functions.ts — histórico em todos os escritores case-scoped", () => {
-  it("salvarEvidencia registra histórico na criação e na atualização", () => {
+  it("salvarEvidencia delega ao núcleo canônico, que registra histórico na criação e na atualização", () => {
+    // Corte 0 (01/10/2026): salvarEvidencia deixou de ter escritor/histórico
+    // próprios — passou a delegar a `gravarEvidenciaCanonica`
+    // (`evidencia-canonica.server.ts`), que já é testada separadamente
+    // (corte-1a-evidencia-canonica, corte-0-religar-rotas-evidencia) e grava
+    // "Evidência atualizada"/"Evidência registrada" via `registrarTimelineCaso`.
     const t = trechoDe("salvarEvidencia", "registrarValidacaoEvidencia");
-    expect(t).toContain('.select("id,case_id")');
-    expect(t).toContain("Evidência atualizada");
-    expect(t).toContain("Evidência registrada");
-    expect(t).toContain("registrarTimelineCaso(");
+    expect(t).toContain("gravarEvidenciaCanonica(");
+    expect(t).not.toContain(".from(\"evidences\")");
   });
 
   it("registrarValidacaoEvidencia registra histórico com a transição de estado", () => {

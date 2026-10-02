@@ -98,14 +98,21 @@ describe("escritor único: ninguém mais grava evidência", () => {
       expect(canonico).toContain(t);
   });
 
-  it("os quatro escritores concorrentes foram aposentados com mensagem que diz para onde ir", () => {
-    for (const f of [
-      "src/lib/biblioteca-evidencias.functions.ts",
-      "src/lib/fontes-documentos-integracao.functions.ts",
-      "src/lib/pesquisa-cadeia.functions.ts",
-      "src/lib/golive-escritores.functions.ts",
-    ])
-      expect(ler(f), f).toContain("throw new Error(EVIDENCIA_ESCRITOR_APOSENTADO)");
+  it("Corte 0 (02/10/2026): os quatro escritores religados delegam ao núcleo canônico, nunca lançam mais o aposentado", () => {
+    // O Corte 1a aposentou os 4 escritores concorrentes (só throw). O Corte 0
+    // religou cada rota ao núcleo (`gravarEvidenciaCanonica`/
+    // `mudarSituacaoEvidenciaCanonica`), sem reintroduzir um escritor próprio.
+    const delegam: Record<string, string> = {
+      "src/lib/biblioteca-evidencias.functions.ts": "gravarEvidenciaCanonica(",
+      "src/lib/fontes-documentos-integracao.functions.ts": "gravarEvidenciaCanonica(",
+      "src/lib/pesquisa-cadeia.functions.ts": "mudarSituacaoEvidenciaCanonica(",
+      "src/lib/golive-escritores.functions.ts": "gravarEvidenciaCanonica(",
+    };
+    for (const [f, chamada] of Object.entries(delegam)) {
+      const corpo = ler(f);
+      expect(corpo, f).toContain(chamada);
+      expect(corpo, f).not.toContain("throw new Error(EVIDENCIA_ESCRITOR_APOSENTADO)");
+    }
   });
 
   it("nenhum escritor novo de `evidences` sobrou no módulo canônico", () => {
