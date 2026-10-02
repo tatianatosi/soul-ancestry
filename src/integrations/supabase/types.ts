@@ -209,6 +209,7 @@ export type Database = {
           titular_client_id: string | null
           updated_at: string
           updated_by: string | null
+          vinculo_projecao_id: string | null
           visibility_scope: string
         }
         Insert: {
@@ -234,6 +235,7 @@ export type Database = {
           titular_client_id?: string | null
           updated_at?: string
           updated_by?: string | null
+          vinculo_projecao_id?: string | null
           visibility_scope?: string
         }
         Update: {
@@ -259,9 +261,24 @@ export type Database = {
           titular_client_id?: string | null
           updated_at?: string
           updated_by?: string | null
+          vinculo_projecao_id?: string | null
           visibility_scope?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "app_proj_vinculo_projecao_fk"
+            columns: ["vinculo_projecao_id"]
+            isOneToOne: false
+            referencedRelation: "app_projections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_proj_vinculo_projecao_fk"
+            columns: ["vinculo_projecao_id"]
+            isOneToOne: false
+            referencedRelation: "portal_projecoes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "app_projections_case_id_fkey"
             columns: ["case_id"]
@@ -2525,6 +2542,7 @@ export type Database = {
           id: string
           observacao_interna: string | null
           organization_id: string
+          research_evidence_item_id: string | null
           research_person_id: string | null
           source_document_id: string
           tipo_vinculo: string
@@ -2545,6 +2563,7 @@ export type Database = {
           id?: string
           observacao_interna?: string | null
           organization_id: string
+          research_evidence_item_id?: string | null
           research_person_id?: string | null
           source_document_id: string
           tipo_vinculo: string
@@ -2565,6 +2584,7 @@ export type Database = {
           id?: string
           observacao_interna?: string | null
           organization_id?: string
+          research_evidence_item_id?: string | null
           research_person_id?: string | null
           source_document_id?: string
           tipo_vinculo?: string
@@ -2614,6 +2634,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_source_document_links_research_evidence_item_id_fkey"
+            columns: ["research_evidence_item_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
             referencedColumns: ["id"]
           },
           {
@@ -17078,6 +17105,7 @@ export type Database = {
       }
       research_evidence_items: {
         Row: {
+          access_level: string | null
           archive_reason: string | null
           archived_at: string | null
           archived_by: string | null
@@ -17088,30 +17116,43 @@ export type Database = {
           description: string | null
           discard_reason: string | null
           document_id: string | null
+          epistemic_validation_status: string | null
           event_id: string | null
+          evidence_nature: string | null
           evidence_status: string
           evidence_type: string
           external_reference: string | null
           fornecida_pelo_cliente: boolean
           id: string
+          legal_review_notes_internal: string | null
+          legal_review_status: string | null
+          negative_search_date: string | null
+          negative_search_next_action: string | null
+          negative_search_source: string | null
           organization_id: string
           origem_externa: boolean
           person_id: string | null
+          reference_date: string | null
+          reference_location: string | null
           relationship_id: string | null
           research_case_id: string
+          research_item_id: string | null
           responsible_user_id: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           sensitivity_level: string
           source_id: string | null
+          storage_reference_internal: string | null
           title: string
           updated_at: string
           updated_by: string | null
           validated_at: string | null
           validated_by: string | null
           validation_rationale: string | null
+          workflow_status: string | null
         }
         Insert: {
+          access_level?: string | null
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -17122,30 +17163,43 @@ export type Database = {
           description?: string | null
           discard_reason?: string | null
           document_id?: string | null
+          epistemic_validation_status?: string | null
           event_id?: string | null
+          evidence_nature?: string | null
           evidence_status?: string
           evidence_type?: string
           external_reference?: string | null
           fornecida_pelo_cliente?: boolean
           id?: string
+          legal_review_notes_internal?: string | null
+          legal_review_status?: string | null
+          negative_search_date?: string | null
+          negative_search_next_action?: string | null
+          negative_search_source?: string | null
           organization_id: string
           origem_externa?: boolean
           person_id?: string | null
+          reference_date?: string | null
+          reference_location?: string | null
           relationship_id?: string | null
           research_case_id: string
+          research_item_id?: string | null
           responsible_user_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           sensitivity_level?: string
           source_id?: string | null
+          storage_reference_internal?: string | null
           title: string
           updated_at?: string
           updated_by?: string | null
           validated_at?: string | null
           validated_by?: string | null
           validation_rationale?: string | null
+          workflow_status?: string | null
         }
         Update: {
+          access_level?: string | null
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -17156,28 +17210,40 @@ export type Database = {
           description?: string | null
           discard_reason?: string | null
           document_id?: string | null
+          epistemic_validation_status?: string | null
           event_id?: string | null
+          evidence_nature?: string | null
           evidence_status?: string
           evidence_type?: string
           external_reference?: string | null
           fornecida_pelo_cliente?: boolean
           id?: string
+          legal_review_notes_internal?: string | null
+          legal_review_status?: string | null
+          negative_search_date?: string | null
+          negative_search_next_action?: string | null
+          negative_search_source?: string | null
           organization_id?: string
           origem_externa?: boolean
           person_id?: string | null
+          reference_date?: string | null
+          reference_location?: string | null
           relationship_id?: string | null
           research_case_id?: string
+          research_item_id?: string | null
           responsible_user_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           sensitivity_level?: string
           source_id?: string | null
+          storage_reference_internal?: string | null
           title?: string
           updated_at?: string
           updated_by?: string | null
           validated_at?: string | null
           validated_by?: string | null
           validation_rationale?: string | null
+          workflow_status?: string | null
         }
         Relationships: [
           {
@@ -19541,7 +19607,9 @@ export type Database = {
           id: string | null
           pessoa_id: string | null
           projection_type: string | null
+          source_entity_id: string | null
           updated_at: string | null
+          vinculo_projecao_id: string | null
         }
         Insert: {
           case_id?: string | null
@@ -19551,7 +19619,9 @@ export type Database = {
           id?: string | null
           pessoa_id?: string | null
           projection_type?: string | null
+          source_entity_id?: string | null
           updated_at?: string | null
+          vinculo_projecao_id?: string | null
         }
         Update: {
           case_id?: string | null
@@ -19561,9 +19631,25 @@ export type Database = {
           id?: string | null
           pessoa_id?: string | null
           projection_type?: string | null
+          source_entity_id?: string | null
           updated_at?: string | null
+          vinculo_projecao_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "app_proj_vinculo_projecao_fk"
+            columns: ["vinculo_projecao_id"]
+            isOneToOne: false
+            referencedRelation: "app_projections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_proj_vinculo_projecao_fk"
+            columns: ["vinculo_projecao_id"]
+            isOneToOne: false
+            referencedRelation: "portal_projecoes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "app_projections_case_id_fkey"
             columns: ["case_id"]
