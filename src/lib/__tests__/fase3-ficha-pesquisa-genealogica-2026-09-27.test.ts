@@ -62,16 +62,18 @@ describe("Fase 3 — hub real (/pesquisa-evidencias/$caseId) cobre as 9 peças, 
   });
 });
 
-describe("Fase 3 — Ficha Piloto: mantida pré-pesquisa, com link explícito para o hub (não movida de rota)", () => {
-  const componente = readFileSync("src/components/caso/ficha-piloto-genealogica.tsx", "utf8");
+describe("Fase 3 → Corte Ficha Única (02/10/2026) — preparação de pesquisa unificada à Ficha Master, mesma rota, com link ao hub", () => {
+  const modulo = readFileSync("src/lib/ficha-unica-caso.ts", "utf8");
   const casoIndex = readFileSync("src/routes/_authenticated/casos.$caseId.index.tsx", "utf8");
 
-  it("continua montada em Caso 360 (não moveu de rota)", () => {
-    expect(casoIndex).toContain("<PainelFichaPiloto caseId={id} />");
+  it("continua montada em Caso 360, agora como Ficha Única (não moveu de rota, não há mais duas fichas concorrentes)", () => {
+    expect(casoIndex).toContain("<PainelFichaUnica caseId={id} />");
+    expect(casoIndex).not.toContain("<PainelFichaPiloto caseId={id} />");
+    expect(casoIndex).not.toContain("<PainelFichaMaster caseId={id} />");
   });
 
-  it("ganhou link explícito para /pesquisa-evidencias/$caseId, sem duplicar dado", () => {
-    expect(componente).toContain('to="/pesquisa-evidencias/$caseId"');
-    expect(componente).toContain("Abrir Pesquisa e Evidências do caso");
+  it("mantém link explícito para /pesquisa-evidencias/$caseId, sem duplicar dado", () => {
+    expect(modulo).toContain('to: "/pesquisa-evidencias/$caseId"');
+    expect(modulo).toContain("Abrir Pesquisa e Evidências do caso");
   });
 });

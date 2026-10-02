@@ -58,8 +58,7 @@ import { AbaOnboarding } from "@/components/caso/onboarding-caso";
 import { AbaJornadaCliente } from "@/components/caso/jornada-cliente";
 import { AbaFechamento } from "@/components/caso/fechamento";
 import { AbaCadastro } from "@/components/caso/cadastro-checklist";
-import { PainelFichaPiloto } from "@/components/caso/ficha-piloto-genealogica";
-import { PainelFichaMaster } from "@/components/caso/ficha-master";
+import { PainelFichaUnica } from "@/components/caso/ficha-unica";
 import { VinculoNucleo } from "@/components/caso/vinculo-nucleo";
 import { PessoasDoNucleo } from "@/components/caso/pessoas-do-nucleo";
 import { listarNucleos } from "@/lib/nucleos-desk.functions";
@@ -2224,6 +2223,11 @@ function FichaCaso() {
         </SecaoAncora>
 
         <SecaoAncora id="tecnico" titulo="Pesquisa" hidden={secaoFoco !== null && secaoFoco !== "tecnico"}>
+          <p className="mb-4 text-xs">
+            <a href="#ficha-unica" className="font-medium text-navy underline decoration-gold underline-offset-4">
+              Ir direto para a Ficha Única do caso ↓
+            </a>
+          </p>
           <div className="grid gap-5 lg:grid-cols-2">
             <Secao
               titulo="País e via"
@@ -2312,9 +2316,7 @@ function FichaCaso() {
               />
             </Secao>
 
-            <PainelFichaPiloto caseId={id} />
-
-            <PainelFichaMaster caseId={id} />
+            <PainelFichaUnica caseId={id} />
           </div>
         </SecaoAncora>
 

@@ -73,8 +73,8 @@ describe("P32b — carregarFichaPiloto busca o perfil pela FK real, não por nom
   });
 });
 
-describe("P32b — a tela da Ficha Piloto mostra o dado mais completo, não só a versão pobre", () => {
-  const arquivo = readFileSync("src/components/caso/ficha-piloto-genealogica.tsx", "utf8");
+describe("P32b → Corte Ficha Única (02/10/2026) — o bloco de pessoas continua mostrando o dado mais completo, não só a versão pobre", () => {
+  const arquivo = readFileSync("src/lib/ficha-unica-caso.ts", "utf8");
 
   it("renderiza nascimento/óbito quando presentes, sem exigir abrir a Ficha Genealógica à parte", () => {
     expect(arquivo).toContain("x.nascimento_data");
