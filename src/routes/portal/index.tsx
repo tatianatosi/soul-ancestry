@@ -16,6 +16,7 @@ import { jornadaSanitizada, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-viv
 import { cn } from "@/lib/utils";
 import { CheckCircle2 } from "lucide-react";
 import { CaCard } from "@/components/ui/ca-card";
+import { pessoasDaArvore } from "@/lib/arvore-publicacao";
 
 /**
  * Rota real por tipo de publicação (correção 2026-09-12, pedido da
@@ -78,6 +79,7 @@ export function PortalHome() {
   const achadosPublicados = jornada.linha.filter((item) =>
     ["achado", "arvore", "evidencia", "linha_tempo", "legado", "microentrega", "relatorio_fase"].includes(item.tipo),
   );
+  const pessoasPublicadas = pessoasDaArvore(vivo.data?.projecoes ?? []).length;
 
   if (previa) {
     return (
@@ -91,6 +93,7 @@ export function PortalHome() {
             proximoPassoDestino={null}
             proximaEntrega={null}
             marcos={jornada.marcosPublicados}
+            pessoasPublicadas={pessoasPublicadas}
             achados={achadosPublicados.slice(0, 3).map((item) => ({
               id: item.id,
               tipo: item.tipoRotulo,
@@ -150,6 +153,7 @@ export function PortalHome() {
                 proximoPassoDestino={null}
                 proximaEntrega={null}
                 marcos={jornada.marcosPublicados}
+                pessoasPublicadas={pessoasPublicadas}
                 casoId={principal.id}
                 achados={achadosPublicados.slice(0, 3).map((item) => ({
                   id: item.id,
@@ -290,6 +294,7 @@ function PainelHomeMockup({
   proximoPassoDestino,
   proximaEntrega,
   marcos,
+  pessoasPublicadas,
   casoId,
   achados,
   fase,
@@ -302,6 +307,7 @@ function PainelHomeMockup({
   /** P3: só a data sanitizada da próxima entrega (portal_casos). */
   proximaEntrega?: string | null;
   marcos: number;
+  pessoasPublicadas: number;
   casoId?: string;
   achados: Array<{
     id: string;
@@ -366,7 +372,7 @@ function PainelHomeMockup({
         )}
       </section>
 
-      <div className="space-y-8 pt-2">
+      <div className="grid gap-7 pt-2 sm:grid-cols-2 sm:items-start">
         <section aria-label="Próxima ação">
           <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Próxima ação</p>
           <h3 className="mb-3 font-serif text-2xl text-navy">O que vem agora</h3>
@@ -393,6 +399,19 @@ function PainelHomeMockup({
                 Acompanhar sua jornada
               </Link>
             ) : null}
+          </CaCard>
+        </section>
+
+        <section className="sm:col-start-2 sm:row-start-1" aria-label="Pessoas conectadas">
+          <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Família</p>
+          <h3 className="mb-3 font-serif text-2xl text-navy">Pessoas conectadas</h3>
+          <CaCard>
+            <p className="text-sm leading-relaxed text-navy/75">
+              {pessoasPublicadas > 0
+                ? `${pessoasPublicadas} ${pessoasPublicadas === 1 ? "pessoa compartilhada" : "pessoas compartilhadas"} na sua Árvore.`
+                : "Quando novos vínculos estiverem confirmados, eles aparecerão na sua Árvore."}
+            </p>
+            <LinkPortal to="/portal/arvore" className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Árvore</LinkPortal>
           </CaCard>
         </section>
 
