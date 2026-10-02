@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   MODULOS_HISTORICOS,
@@ -39,6 +39,9 @@ export type AbaModulosProps = {
   podeEditar?: boolean;
   onSalvar: (tabela: string, valores: Record<string, unknown>) => void;
   onArquivar: (tabela: string, id: string, motivo: string) => void;
+  /** Corte "Pesquisa G1...Gn" (02/10/2026): pré-seleciona a pessoa quando o
+   *  CTA da aba "Por geração" traz o staff direto para cá. */
+  personFocoInicial?: string | null;
 };
 
 /**
@@ -53,6 +56,7 @@ export function AbaModulos({
   podeEditar: _podeEditar,
   onSalvar,
   onArquivar,
+  personFocoInicial,
 }: AbaModulosProps) {
   const [tabela, setTabela] = useState(MODULOS_HISTORICOS[0]!.tabela);
   const modulo = MODULOS_HISTORICOS.find((m) => m.tabela === tabela)!;
@@ -76,6 +80,9 @@ export function AbaModulos({
     status_verificacao: "pendente",
     client_visibility: "interna",
   });
+  useEffect(() => {
+    if (personFocoInicial) setForm((f) => ({ ...f, person_id: personFocoInicial }));
+  }, [personFocoInicial]);
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const erros = validarRegistroModulo({

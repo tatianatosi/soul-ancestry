@@ -99,6 +99,21 @@ export const STATUS_VALIDACAO_EVENTO: Opcao[] = [
   { id: "descartado", rotulo: "Descartado" },
 ];
 
+/**
+ * `genealogical_events.impact_type` (migration 20260822205306, coluna
+ * aditiva) — o formulário de eventos nunca expôs este campo, embora o
+ * servidor já o aceite (`CAMPOS_EVENTO`). Vocabulário exatamente do CHECK
+ * real, nenhum valor novo.
+ */
+export const IMPACTO_EVENTO: Opcao[] = [
+  { id: "familiar", rotulo: "Familiar" },
+  { id: "patrimonial", rotulo: "Patrimonial" },
+  { id: "migratorio", rotulo: "Migratório" },
+  { id: "documental", rotulo: "Documental" },
+  { id: "juridico", rotulo: "Jurídico" },
+  { id: "memoria", rotulo: "Memória" },
+];
+
 export const TIPOS_LINHA: Opcao[] = [
   { id: "paterna", rotulo: "Paterna" },
   { id: "materna", rotulo: "Materna" },
@@ -198,6 +213,9 @@ export type Evento = {
   validation_status: string;
   evidence_id: string | null;
   source_id: string | null;
+  impact_type?: string | null;
+  data_precisao?: string;
+  client_visibility?: string;
   archived_at?: string | null;
 };
 
@@ -314,7 +332,7 @@ export type NoArvore = {
 const ativos = <T extends { archived_at?: string | null }>(lista: T[]) => lista.filter((i) => !i.archived_at);
 
 /** Relação vira aresta pai→filho apenas a partir de registro persistido. */
-function arestasFiliacao(relacoes: Relacao[]) {
+export function arestasFiliacao(relacoes: Relacao[]) {
   const arestas: { pai: string; filho: string; tipo: string; status: string }[] = [];
   for (const r of ativos(relacoes)) {
     if (r.status_pesquisa === "refutado" || r.status_pesquisa === "descartado") continue;
@@ -389,6 +407,68 @@ export function montarArvore(perfis: Perfil[], relacoes: Relacao[], ancoraPerson
 
 export function contarNos(nos: NoArvore[]): number {
   return nos.reduce((total, n) => total + 1 + contarNos(n.filhos), 0);
+}
+
+/* ------------------------------------------------------------------ */
+/* Pesquisa G1...Gn — geração ascendente a partir de uma pessoa âncora  */
+/* ------------------------------------------------------------------ */
+
+export type PessoaGeracao = {
+  personId: string;
+  nome: string;
+  status: string;
+  /** G1 = âncora (convenção do App: G1 "Você"); sobe +1 por geração de pais. */
+  geracao: number;
+};
+
+/**
+ * Sobe pela filiação a partir de `ancoraPersonId` (a mesma pessoa que
+ * `lineage_paths.pessoa_ancora_id` já registra para a linha escolhida),
+ * devolvendo cada pessoa com sua geração ascendente (G1=âncora, G2=pais,
+ * G3=avós...). Convenção oposta a `montarArvore` (que desce do ancestral
+ * mais antigo, G0, para o mais novo) — esta função serve à visão G1...Gn
+ * que o App e a Árvore já usam (`portal-arvore-geracoes.ts`,
+ * `app_projections.geracao_cliente`), para o Desk falar a mesma convenção.
+ * Nenhum parentesco é inferido: só sobe por aresta de filiação persistida.
+ */
+export function geracaoAscendente(
+  ancoraPersonId: string | null | undefined,
+  perfis: Perfil[],
+  relacoes: Relacao[],
+): PessoaGeracao[] {
+  if (!ancoraPersonId) return [];
+  const vivos = ativos(perfis);
+  const porPessoa = new Map(vivos.map((p) => [p.research_person_id, p]));
+  if (!porPessoa.has(ancoraPersonId)) return [];
+
+  const arestas = arestasFiliacao(relacoes);
+  const paisDe = new Map<string, string[]>();
+  for (const a of arestas) {
+    if (!porPessoa.has(a.pai) || !porPessoa.has(a.filho)) continue;
+    paisDe.set(a.filho, [...(paisDe.get(a.filho) ?? []), a.pai]);
+  }
+  const nomeDe = (id: string) => porPessoa.get(id)?.nome_completo ?? "Pessoa não identificada";
+  const statusDe = (id: string) => porPessoa.get(id)?.status_verificacao ?? "pendente";
+
+  const resultado: PessoaGeracao[] = [];
+  const visitados = new Set<string>();
+  let atual = [ancoraPersonId];
+  let geracao = 1;
+  // teto defensivo: nunca um laço infinito por dado circular não-tratado
+  while (atual.length > 0 && geracao <= 20) {
+    const proximos: string[] = [];
+    for (const id of atual) {
+      if (visitados.has(id)) continue;
+      visitados.add(id);
+      resultado.push({ personId: id, nome: nomeDe(id), status: statusDe(id), geracao });
+      for (const pai of paisDe.get(id) ?? []) {
+        if (!visitados.has(pai)) proximos.push(pai);
+      }
+    }
+    atual = proximos;
+    geracao += 1;
+  }
+  return resultado;
 }
 
 /* ------------------------------------------------------------------ */

@@ -8,9 +8,10 @@ import { toast } from "sonner";
 import { AbaModulos } from "@/components/genealogia/aba-modulos";
 import { AbaProjecaoCliente } from "@/components/genealogia/aba-projecao-cliente";
 import { PublicarArvoreApp } from "@/components/genealogia/publicar-arvore-app";
-import type { RegistroModulo } from "@/lib/genealogia-modulos";
+import { PRECISAO_DATA, VISIBILIDADE_CLIENTE, MODULOS_HISTORICOS, type RegistroModulo } from "@/lib/genealogia-modulos";
 import {
   ESTADO_VALIDACAO_VARIANTE,
+  IMPACTO_EVENTO,
   MOTIVO_SEM_PROJECAO,
   NIVEIS_CONFIANCA,
   SEXO,
@@ -24,6 +25,7 @@ import {
   TIPOS_VARIANTE,
   calcularLacunas,
   contarNos,
+  geracaoAscendente,
   montarArvore,
   montarTimeline,
   rotuloDe,
@@ -36,6 +38,7 @@ import {
   type Linhagem,
   type NoArvore,
   type Perfil,
+  type PessoaGeracao,
   type Relacao,
   type Variante,
 } from "@/lib/pessoas-linhagens";
@@ -137,6 +140,7 @@ function Selo({ texto, tom }: { texto: string; tom: "ok" | "alerta" | "neutro" }
 const ABAS = [
   { id: "perfis", rotulo: "Perfil 360°" },
   { id: "arvore", rotulo: "Árvore interna" },
+  { id: "geracao", rotulo: "Por geração (G1...Gn)" },
   { id: "timeline", rotulo: "Linha do tempo genealógica" },
   { id: "relacoes", rotulo: "Relações" },
   { id: "variantes", rotulo: "Variantes de nome" },
@@ -279,6 +283,32 @@ function Pagina() {
   const arvore = useMemo(() => montarArvore(perfis, relacoes), [perfis, relacoes]);
   const timeline = useMemo(() => montarTimeline(perfis, eventos), [perfis, eventos]);
   const lacunas = useMemo(() => calcularLacunas(perfis, relacoes, eventos, linhagens), [perfis, relacoes, eventos, linhagens]);
+
+  // Corte "Pesquisa G1...Gn" (02/10/2026): linhas com pessoa âncora definida
+  // são as únicas que podem render a visão por geração — sem âncora, nada
+  // é inventado (mesma pessoa que já aparece como lacuna em "sem pessoa
+  // âncora definida" quando falta).
+  const linhagensComAncora = useMemo(() => linhagens.filter((l) => !l.archived_at && l.pessoa_ancora_id), [linhagens]);
+  const [linhaFocoId, setLinhaFocoId] = useState<string>("");
+  const linhaFoco = linhagensComAncora.find((l) => l.id === linhaFocoId) ?? linhagensComAncora[0] ?? null;
+  const pessoasPorGeracao = useMemo(
+    () => geracaoAscendente(linhaFoco?.pessoa_ancora_id, perfis, relacoes),
+    [linhaFoco, perfis, relacoes],
+  );
+  const geracoesAgrupadas = useMemo(() => {
+    const porGeracao = new Map<number, PessoaGeracao[]>();
+    for (const p of pessoasPorGeracao) porGeracao.set(p.geracao, [...(porGeracao.get(p.geracao) ?? []), p]);
+    return Array.from(porGeracao.entries()).sort((a, b) => a[0] - b[0]);
+  }, [pessoasPorGeracao]);
+  const modulosPorPessoa = (personId: string) =>
+    MODULOS_HISTORICOS.flatMap((m) => {
+      const linhas = ((data?.modulos ?? {}) as Record<string, RegistroModulo[]>)[m.tabela] ?? [];
+      return linhas
+        .filter((r) => !r.archived_at && r.person_id === personId)
+        .map((r) => ({ rotuloModulo: m.rotulo, titulo: r.titulo, comSuporte: Boolean(r.evidence_id || r.source_id) }));
+    });
+  // Pré-seleciona a pessoa ao saltar para "Registrar evento"/"Registrar módulo".
+  const [personFoco, setPersonFoco] = useState<string | null>(null);
 
   if (isLoading)
     return (
@@ -481,6 +511,89 @@ function Pagina() {
 
       {aba === "arvore" ? <AbaArvore arvore={arvore} /> : null}
 
+      {aba === "geracao" ? (
+        <section className="space-y-4">
+          <p className="text-xs text-navy/60">
+            G1 é a pessoa âncora da linha (mesma convenção do App e da Árvore publicada); G2 são os pais, G3 os avós,
+            e assim por diante. Só sobe por vínculo de filiação já gravado — nenhum parentesco é inferido.
+          </p>
+          {linhagensComAncora.length === 0 ? (
+            <p className="text-sm text-navy/60">
+              Nenhuma linha tem pessoa âncora definida ainda. Defina em "Linhagens" para ver a pesquisa por geração.
+            </p>
+          ) : (
+            <>
+              {linhagensComAncora.length > 1 ? (
+                <Campo label="Linha">
+                  <Selecao
+                    valor={linhaFoco?.id ?? ""}
+                    onChange={setLinhaFocoId}
+                    opcoes={linhagensComAncora.map((l) => ({ id: l.id, rotulo: l.nome_da_linha }))}
+                  />
+                </Campo>
+              ) : null}
+              {geracoesAgrupadas.map(([geracao, pessoas]) => (
+                <div key={geracao} className="rounded-xl border border-navy/10 bg-cream p-4">
+                  <h3 className="mb-2 font-serif text-base text-navy">G{geracao}{geracao === 1 ? " · Você" : ""}</h3>
+                  <div className="space-y-2">
+                    {pessoas.map((p) => {
+                      const eventosDaPessoa = eventos.filter((e) => !e.archived_at && e.person_id === p.personId);
+                      const modulosDaPessoa = modulosPorPessoa(p.personId);
+                      return (
+                        <div key={p.personId} className="rounded-lg border border-navy/10 bg-white p-3">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="text-sm font-medium text-navy">{p.nome}</span>
+                            <Selo texto={rotuloDe(STATUS_VERIFICACAO, p.status)} tom={p.status === "confirmado" ? "ok" : "neutro"} />
+                          </div>
+                          <ul className="mt-2 space-y-1 text-xs text-navy/70">
+                            {eventosDaPessoa.map((e) => (
+                              <li key={e.id}>
+                                • {rotuloDe(TIPOS_EVENTO, e.event_type)} —{" "}
+                                {e.evidence_id || e.source_id ? "com suporte" : "sem suporte"}
+                              </li>
+                            ))}
+                            {modulosDaPessoa.map((m, i) => (
+                              <li key={i}>
+                                • {m.rotuloModulo}: {m.titulo} — {m.comSuporte ? "com suporte" : "sem suporte"}
+                              </li>
+                            ))}
+                            {eventosDaPessoa.length === 0 && modulosDaPessoa.length === 0 ? (
+                              <li>Nenhum evento ou módulo histórico registrado ainda.</li>
+                            ) : null}
+                          </ul>
+                          <div className="mt-2 flex flex-wrap gap-3 text-xs">
+                            <button
+                              type="button"
+                              className="font-medium text-navy underline decoration-gold underline-offset-4"
+                              onClick={() => {
+                                setPersonFoco(p.personId);
+                                setAba("eventos");
+                              }}
+                            >
+                              Registrar evento desta pessoa →
+                            </button>
+                            <button
+                              type="button"
+                              className="font-medium text-navy underline decoration-gold underline-offset-4"
+                              onClick={() => {
+                                setPersonFoco(p.personId);
+                                setAba("modulos");
+                              }}
+                            >
+                              Registrar módulo histórico desta pessoa →
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+        </section>
+      ) : null}
+
       {aba === "timeline" ? (
         <section className="space-y-2">
           <p className="text-xs text-navy/60">
@@ -538,6 +651,7 @@ function Pagina() {
           evidencias={evidenciaOpcoes}
           fontes={fonteOpcoes}
           onSalvar={(id, valores) => salvar.mutate({ tabela: "genealogical_events", id, valores })}
+          personFocoInicial={personFoco}
         />
       ) : null}
 
@@ -560,6 +674,7 @@ function Pagina() {
           fontes={fonteOpcoes}
           onSalvar={(tabela, valores) => salvar.mutate({ tabela, valores })}
           onArquivar={(tabela, id, motivo) => arquivar.mutate({ tabela, id, motivo })}
+          personFocoInicial={personFoco}
         />
       ) : null}
 
@@ -1033,12 +1148,16 @@ function AbaEventos({
   evidencias,
   fontes,
   onSalvar,
+  personFocoInicial,
 }: {
   eventos: Evento[];
   pessoas: { id: string; rotulo: string }[];
   evidencias: { id: string; rotulo: string }[];
   fontes: { id: string; rotulo: string }[];
   onSalvar: (id: string | undefined, valores: Record<string, unknown>) => void;
+  /** Corte "Pesquisa G1...Gn" (02/10/2026): pré-seleciona a pessoa quando o
+   *  CTA da aba "Por geração" traz o staff direto para cá. */
+  personFocoInicial?: string | null;
 }) {
   const vazio = {
     person_id: "",
@@ -1051,8 +1170,14 @@ function AbaEventos({
     validation_status: "pendente",
     evidence_id: "",
     source_id: "",
+    impact_type: "",
+    data_precisao: "desconhecida",
+    client_visibility: "interna",
   };
   const [novo, setNovo] = useState(vazio);
+  useEffect(() => {
+    if (personFocoInicial) setNovo((n) => ({ ...n, person_id: personFocoInicial }));
+  }, [personFocoInicial]);
   const nome = (id: string) => pessoas.find((p) => p.id === id)?.rotulo ?? "—";
 
   return (
@@ -1085,6 +1210,15 @@ function AbaEventos({
         <Campo label="Fonte">
           <Selecao valor={novo.source_id} onChange={(v) => setNovo({ ...novo, source_id: v })} opcoes={fontes} vazio="Sem fonte" />
         </Campo>
+        <Campo label="Tipo de impacto">
+          <Selecao valor={novo.impact_type} onChange={(v) => setNovo({ ...novo, impact_type: v })} opcoes={IMPACTO_EVENTO} vazio="Não classificado" />
+        </Campo>
+        <Campo label="Precisão da data">
+          <Selecao valor={novo.data_precisao} onChange={(v) => setNovo({ ...novo, data_precisao: v })} opcoes={PRECISAO_DATA} />
+        </Campo>
+        <Campo label="Visibilidade ao cliente">
+          <Selecao valor={novo.client_visibility} onChange={(v) => setNovo({ ...novo, client_visibility: v })} opcoes={VISIBILIDADE_CLIENTE} />
+        </Campo>
         <div className="md:col-span-3">
           <Campo label="Descrição interna">
             <textarea className={inputCls} rows={2} value={novo.description_internal} onChange={(e) => setNovo({ ...novo, description_internal: e.target.value })} />
@@ -1112,6 +1246,7 @@ function AbaEventos({
           <Selo texto={rotuloDe(TIPOS_EVENTO, e.event_type)} tom="neutro" />
           <span className="text-xs text-navy/60">{e.start_date ?? e.approximate_date ?? "Data não informada"}</span>
           <Selo texto={rotuloDe(STATUS_VALIDACAO_EVENTO, e.validation_status)} tom={e.validation_status === "confirmado" ? "ok" : "neutro"} />
+          {e.client_visibility ? <Selo texto={rotuloDe(VISIBILIDADE_CLIENTE, e.client_visibility)} tom="neutro" /> : null}
         </div>
       ))}
       {eventos.length === 0 ? <p className="text-sm text-navy/60">Nenhum evento registrado.</p> : null}
