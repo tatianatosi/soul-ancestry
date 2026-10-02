@@ -126,9 +126,15 @@ export function PortalConta() {
               </p>
             </section>
 
-            <section data-conta-plano className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
+            <section className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
+              <h2 className="font-serif text-xl text-navy">Estamos por perto</h2>
+              <p className="mt-2 text-sm text-navy/75">{acompanhamento}</p>
+              <p className="mt-3 text-xs text-navy/55">Para conversar sobre documentos ou sobre a sua jornada, use os canais de contato já combinados com a equipe.</p>
+            </section>
+
+            {plano ? <section data-conta-plano className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-xl text-navy">{plano ? "Seu plano" : "Estamos por perto"}</h2>
+                <h2 className="font-serif text-xl text-navy">Meu plano</h2>
                 {plano?.situacao ? (
                   <span
                     data-conta-plano-situacao
@@ -138,7 +144,6 @@ export function PortalConta() {
                   </span>
                 ) : null}
               </div>
-              {plano ? (
                 <>
                   <p className="mt-2 text-sm text-navy" data-conta-plano-nome>
                     {plano.nome}
@@ -147,15 +152,7 @@ export function PortalConta() {
                     <p className="mt-1 text-xs text-navy/60">{plano.vigencia}</p>
                   ) : null}
                 </>
-              ) : (
-                <p className="mt-2 text-sm text-navy/75">
-                   {acompanhamento}
-                </p>
-              )}
-              <p className="mt-3 text-xs text-navy/55">
-                  Para conversar sobre documentos ou sobre a sua jornada, use os canais de contato já combinados com a equipe.
-              </p>
-            </section>
+            </section> : null}
 
             <section data-conta-alertas className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">

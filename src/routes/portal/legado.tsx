@@ -89,7 +89,7 @@ export function PortalLegado() {
                      </p>
                    ) : null}
 
-                  <div className="space-y-3" data-legado-prateleiras>
+                  <div className="grid gap-3 sm:grid-cols-3 sm:items-stretch" data-legado-prateleiras>
                     {PRATELEIRAS.filter((p) => p.id !== "memoria").map((p) => {
                       const itens = p.id === "narrativas"
                         ? [...porPrateleira.narrativas, ...porPrateleira.memoria]
@@ -98,11 +98,11 @@ export function PortalLegado() {
                         <section
                           key={p.id}
                           data-legado-prateleira={p.id}
-                          className={`overflow-hidden rounded-xl border border-border border-t-4 bg-card p-4 shadow-sm ${
+                          className={`min-w-0 overflow-hidden rounded-xl border border-border border-t-4 bg-card p-4 shadow-sm ${
                             ["border-t-gold", "border-t-navy", "border-t-terracotta"][PRATELEIRAS.indexOf(p) % 3]
                           }`}
                         >
-                          <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div className="flex flex-col items-start gap-2">
                             <div>
                               <p className="text-[10px] font-medium uppercase tracking-widest text-gold/70">
                                 Coleção
