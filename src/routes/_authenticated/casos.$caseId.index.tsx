@@ -59,6 +59,7 @@ import { AbaJornadaCliente } from "@/components/caso/jornada-cliente";
 import { AbaFechamento } from "@/components/caso/fechamento";
 import { AbaCadastro } from "@/components/caso/cadastro-checklist";
 import { PainelFichaPiloto } from "@/components/caso/ficha-piloto-genealogica";
+import { PainelFichaMaster } from "@/components/caso/ficha-master";
 import { VinculoNucleo } from "@/components/caso/vinculo-nucleo";
 import { PessoasDoNucleo } from "@/components/caso/pessoas-do-nucleo";
 import { listarNucleos } from "@/lib/nucleos-desk.functions";
@@ -2312,6 +2313,8 @@ function FichaCaso() {
             </Secao>
 
             <PainelFichaPiloto caseId={id} />
+
+            <PainelFichaMaster caseId={id} />
           </div>
         </SecaoAncora>
 
