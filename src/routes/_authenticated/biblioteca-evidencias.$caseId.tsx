@@ -33,6 +33,7 @@ import {
   salvarEvidencia,
   salvarProjecao,
 } from "@/lib/biblioteca-evidencias.functions";
+import { CompartilharAchado } from "@/components/pesquisa/compartilhar-achado";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { SaasShell, useSaas } from "@/components/saas/shell";
@@ -349,6 +350,21 @@ function Pagina() {
             evidencias={evidencias}
             marcosJuridicos={data.marcosJuridicos}
             onCriar={(v) => mProj.mutate(v)}
+          />
+          {/*
+            Corte ÓRFÃOS (03/10/2026): a decisão da Proprietária de 09/09
+            ("achado é compartilhável apenas quando sanitizado e autorizado")
+            tinha SEIS escritores e RLS própria em `app_projection_shares`, e
+            nenhum chamador — construída no banco, na RLS e no servidor, e em
+            tela nenhuma. Esta é a ponta do Desk, onde a equipe registra que
+            o titular autorizou. A ponta do App segue declarada como
+            pendente: depende de decisão sua sobre quais parentes o portal
+            pode listar ao titular.
+          */}
+          <CompartilharAchado
+            projecoes={projecoes as never}
+            membrosDoCaso={(data.membrosDoCaso ?? []) as never}
+            podeEditar={Boolean(data.podeEditar)}
           />
           <div className="space-y-3">
             {projecoes.map((p) => {

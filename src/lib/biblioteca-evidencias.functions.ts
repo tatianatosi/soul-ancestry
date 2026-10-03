@@ -4,6 +4,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { conteudoProjetavel } from "@/lib/biblioteca-evidencias";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
+import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { tipoEvidenciaCanonico } from "@/lib/evidencia-canonica";
@@ -149,6 +150,24 @@ export const painelBibliotecaEvidencias = createServerFn({ method: "GET" })
           .order("revisado_em", { ascending: false })
       : { data: [] as any[] };
 
+    /*
+      Corte ÓRFÃOS (03/10/2026): `registrarCompartilhamentoAchado`,
+      `listarCompartilhamentosAchado` e `revogarCompartilhamentoAchado`
+      existiam desde a decisão da Proprietária de 09/09 ("achado é
+      compartilhável apenas quando sanitizado e autorizado") e tinham zero
+      chamadores — a decisão foi construída dos dois lados e ligada em
+      nenhum. Para a tela poder registrar, falta o que o painel não devolvia:
+      quem são as pessoas do caso COM `cliente_id` (é o id que o
+      compartilhamento aponta). Reusa o helper canônico, sem leitor novo.
+    */
+    const membrosDoCaso = (await pessoasDoCasoComFallbackNucleo(supabase as never, data.caseId))
+      .filter((m: { cliente_id?: string | null }) => m.cliente_id)
+      .map((m: { cliente_id?: string | null; nome?: string | null; papel_no_caso?: string | null; papel?: string | null }) => ({
+        clienteId: String(m.cliente_id),
+        nome: m.nome ?? "(sem nome)",
+        papel: m.papel_no_caso ?? m.papel ?? null,
+      }));
+
     return {
       podeEditar: PAPEIS_EDITA.includes(papel),
       papel,
@@ -159,6 +178,7 @@ export const painelBibliotecaEvidencias = createServerFn({ method: "GET" })
       fontes: (fontes.data ?? []) as any[],
       pessoas: (pessoas.data ?? []) as any[],
       marcosJuridicos: (marcosJuridicos.data ?? []) as any[],
+      membrosDoCaso,
     };
   });
 
