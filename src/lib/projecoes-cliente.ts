@@ -49,7 +49,65 @@ export const TIPO_PROJECAO_ROTULO: Record<string, string> = {
   // Corte 3 (01/10/2026) — plano na Conta e União de Ramos na Jornada.
   plano: "Seu plano",
   uniao_ramos: "União de ramos",
+  /*
+    Varredura de 03/10/2026: estes três tipos já eram esperados por
+    `TIPOS_FASE_01`/`TIPOS_FASE_02` e por `TAXONOMIA_ENTREGA`
+    (`app-visibilidade.ts`), mas não tinham rótulo aqui — então caíam no
+    genérico "Atualização da equipe". A microentrega publicada do caso real
+    da Ana é uma delas.
+  */
+  microentrega: "Micro-entrega",
+  relatorio_f1: "Relatório preparado",
+  relatorio_f2: "Atualização seguinte",
 };
+
+/**
+ * Tipos que NUNCA são conteúdo do App Cliente (decisão da Proprietária,
+ * 03/10/2026, lendo o mockup aprovado): "originalmente o cliente não tem
+ * acesso a proposta e o contrato no app; parte das informações extraídas da
+ * proposta estará na minha conta no app; o contrato ele terá acesso via
+ * portal para a sua assinatura".
+ *
+ * Ou seja: a informação da proposta chega à Conta pelo tipo `plano`
+ * (nome + situação + vigência, sem preço — Corte 3a), e o contrato é
+ * acessado para assinatura por outro caminho, não como cartão de conteúdo.
+ */
+export const TIPOS_FORA_DO_APP = new Set(["contrato", "proposta"]);
+
+/**
+ * Lista PERMITIDA de tipos que podem chegar ao cliente.
+ *
+ * Defeito estrutural achado na varredura de 03/10: `publicacoesDeEntrega`
+ * filtrava por EXCLUSÃO (tirava só `arvore` e `legado`), então qualquer tipo
+ * fora da taxonomia — inclusive `contrato` com preço — já contava como
+ * "entrega ao cliente", e a única coisa que o segurava era o filtro de
+ * conteúdo. Lista permitida fecha isso: tipo desconhecido não vaza.
+ */
+export const TIPOS_PROJECAO_APP = new Set(
+  Object.keys(TIPO_PROJECAO_ROTULO).filter((t) => !TIPOS_FORA_DO_APP.has(t)),
+);
+
+export function tipoChegaAoCliente(tipo: string | null | undefined): boolean {
+  return TIPOS_PROJECAO_APP.has(String(tipo ?? "").trim().toLowerCase());
+}
+
+/**
+ * Subconjunto que rende cartão de ENTREGA na jornada. Fora: `arvore` e
+ * `legado` (têm aba própria), `plano` (é da Conta) e `uniao_ramos` (é ponte
+ * entre as duas linhas, não entrega).
+ */
+export const TIPOS_ENTREGA_APP = new Set([
+  "resumo",
+  "marco",
+  "atualizacao",
+  "achado",
+  "evidencia",
+  "linha_tempo",
+  "relatorio_fase",
+  "relatorio_f1",
+  "relatorio_f2",
+  "microentrega",
+]);
 
 export function rotuloTipoProjecao(tipo: string | null | undefined): string {
   const bruto = String(tipo ?? "").trim();
@@ -76,6 +134,13 @@ export function publicacoesParaCliente(linhas: ProjecaoBruta[]): PublicacaoClien
       );
       if (!conteudo) return null;
       const tipo = String(linha.projection_type ?? "").trim().toLowerCase() || "atualizacao";
+      /*
+        03/10/2026 — aperto, nunca afrouxamento: tipo que o mockup não dá ao
+        cliente (contrato, proposta) não atravessa o normalizador. Antes, um
+        resumo de contrato sem preço passaria pelo filtro de conteúdo e
+        apareceria como entrega — contrariando o mockup aprovado.
+      */
+      if (TIPOS_FORA_DO_APP.has(tipo)) return null;
       const publicadoEm = linha.effective_from ?? linha.updated_at ?? null;
       return {
         id: String(linha.id),

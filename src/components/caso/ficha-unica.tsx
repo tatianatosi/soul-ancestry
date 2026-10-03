@@ -63,6 +63,14 @@ export function PainelFichaUnica({ caseId }: { caseId: string }) {
   return (
     <section id="ficha-unica" className="scroll-mt-24 rounded-xl border-2 border-gold/40 bg-cream/60 p-5 lg:col-span-2">
       <h2 className="font-serif text-xl text-navy">Ficha Única do Caso</h2>
+      {/*
+        03/10/2026 — os nomes antigos ficam escritos aqui de propósito: quem
+        procurar por "Ficha Piloto", "Ficha Master" ou "Técnico e riscos"
+        (como a Proprietária procurou, sem achar) encontra este painel.
+      */}
+      <p className="mt-1 text-[11px] uppercase tracking-wide text-navy/45">
+        Antes chamada de Ficha Piloto · Ficha Master · Técnico e riscos
+      </p>
       <p className="mb-4 mt-1 text-xs text-navy/60">
         Dado real, do mais macro (visão do caso) ao mais granular (preparação de pesquisa). Cada bloco mostra dono,
         origem e, quando existe, onde editar — nenhuma fonte consultada, nenhum documento solicitado, nenhum arquivo

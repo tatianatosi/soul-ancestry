@@ -29,6 +29,7 @@
  */
 import { contemConteudoInterno } from "@/lib/onboarding-jornada";
 import { pareceComercial } from "@/lib/plano-publicacao";
+import { TIPOS_FORA_DO_APP, tipoChegaAoCliente } from "@/lib/projecoes-cliente";
 
 export type RecusaPublicacao = {
   motivo: string;
@@ -76,4 +77,30 @@ export function exigirPublicavelNoApp(conteudo: string | null | undefined): stri
   const recusa = recusaDePublicacaoNoApp(conteudo);
   if (recusa) throw new Error(`${recusa.motivo} ${recusa.comoCorrigir}`);
   return (conteudo ?? "").trim();
+}
+
+/**
+ * Recusa o TIPO que o mockup não dá ao cliente, antes de gravar.
+ *
+ * Decisão da Proprietária (03/10/2026): contrato e proposta não são conteúdo
+ * do App. A informação da proposta chega à Conta pelo tipo `plano`
+ * (`publicarPlanoNoApp`, Corte 3a — nome, situação e vigência, sem preço); o
+ * contrato é acessado pelo portal para assinatura, não como cartão.
+ */
+export function exigirTipoPublicavelNoApp(tipo: string | null | undefined): string {
+  const t = String(tipo ?? "").trim().toLowerCase();
+  if (!t) throw new Error("Informe o tipo da publicação.");
+  if (TIPOS_FORA_DO_APP.has(t)) {
+    throw new Error(
+      `"${t}" não é conteúdo do App Cliente: o mockup aprovado não dá proposta nem contrato ao cliente como cartão. ` +
+        "A informação da proposta chega à Conta pelo tipo plano (sem preço), e o contrato é acessado pelo portal para assinatura.",
+    );
+  }
+  if (!tipoChegaAoCliente(t)) {
+    throw new Error(
+      `"${t}" não está na taxonomia de projeções do App, então o cliente nunca veria este cartão. ` +
+        "Use um dos tipos aprovados antes de publicar.",
+    );
+  }
+  return t;
 }

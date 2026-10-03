@@ -2223,12 +2223,16 @@ function FichaCaso() {
         </SecaoAncora>
 
         <SecaoAncora id="tecnico" titulo="Pesquisa" hidden={secaoFoco !== null && secaoFoco !== "tecnico"}>
-          <p className="mb-4 text-xs">
-            <a href="#ficha-unica" className="font-medium text-navy underline decoration-gold underline-offset-4">
-              Ir direto para a Ficha Única do caso ↓
-            </a>
-          </p>
-          <div className="grid gap-5 lg:grid-cols-2">
+          {/*
+            03/10/2026 — a Proprietária não conseguia achar a ficha: "está tão
+            escondido e sobreposto que eu não tenho acesso". Ela estava no FIM
+            desta aba, depois de três blocos, e com nome novo — a unificação
+            das duas fichas concorrentes fez "Ficha Piloto" e "Ficha Master"
+            deixarem de existir como rótulo. Sobe para o topo da aba e passa a
+            citar os dois nomes antigos, para quem procura por eles achar.
+          */}
+          <PainelFichaUnica caseId={id} />
+          <div className="mt-5 grid gap-5 lg:grid-cols-2">
             <Secao
               titulo="País e via"
               descricao="Sugestões são preliminares e sempre editáveis; nunca conclusão jurídica."
@@ -2316,7 +2320,6 @@ function FichaCaso() {
               />
             </Secao>
 
-            <PainelFichaUnica caseId={id} />
           </div>
         </SecaoAncora>
 

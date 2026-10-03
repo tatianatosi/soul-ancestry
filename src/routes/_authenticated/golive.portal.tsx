@@ -14,7 +14,6 @@ import { Acao } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
 import { Barras, Rosca } from "@/components/golive/graficos";
 import { Button } from "@/components/ui/button";
-import { publicarInstrumentoNoAppGoLive } from "@/lib/golive-escritores.functions";
 import { acessoAoPortal, coberturaDoApp, publicacaoPorEstado } from "@/lib/golive-portal";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
@@ -47,11 +46,8 @@ function PortalGoLive() {
   const porEstado = publicacaoPorEstado(projecoes);
   const resumoAcesso = acessoAoPortal(acessos, emails);
   const cobertura = coberturaDoApp(projecoes);
-  const publicarInstrumento = useServerFn(publicarInstrumentoNoAppGoLive);
   const contrato = caso?.contratos?.[0] ?? null;
   const proposta = caso?.propostas?.[0] ?? null;
-  const contratoPublicado = publicados.some((p) => p.tipo === "contrato");
-  const propostaPublicada = publicados.some((p) => p.tipo === "proposta");
   const rascunhos = porEstado.find((i) => i.rotulo === "Rascunho")?.valor ?? 0;
   const emRevisao = porEstado.find((i) => i.rotulo === "Em revisão")?.valor ?? 0;
   const publicadosTotal = porEstado.find((i) => i.rotulo === "Publicada")?.valor ?? 0;
@@ -183,24 +179,18 @@ function PortalGoLive() {
                 <p className="mb-2 text-xs text-navy/65">
                   Versão {proposta.versao ?? 1} · {humano(proposta.status, "sem situação")}
                 </p>
-                <Acao
-                  rotulo={propostaPublicada ? "Publicar novamente" : "Publicar proposta"}
-                  titulo="Publicar proposta no App"
-                  variante="outline"
-                  campos={[
-                    {
-                      nome: "confirmar",
-                      rotulo: "Digite PUBLICAR para confirmar",
-                      obrigatorio: true,
-                    },
-                  ]}
-                  aoConfirmar={async (v) => {
-                    if ((v["confirmar"] ?? "").trim().toUpperCase() !== "PUBLICAR")
-                      throw new Error("Digite PUBLICAR para confirmar.");
-                    return publicarInstrumento({ data: { tipo: "proposta", id: proposta.id } });
-                  }}
-                  confirmacao="Proposta publicada no App."
-                />
+                {/*
+                  03/10/2026 — decisão da Proprietária lendo o mockup
+                  aprovado: a proposta não é cartão do App. A parte que o
+                  cliente vê chega à Conta pelo tipo `plano` (Caso 360 ›
+                  Formalização → "Publicar plano no App"), sem preço. O botão
+                  de publicar proposta saiu daqui porque o servidor passou a
+                  recusar — botão que só dá erro é pior que botão ausente.
+                */}
+                <p className="text-xs text-navy/60">
+                  A proposta não vai ao App como cartão. O que o cliente vê é o plano, publicado em Caso 360 ›
+                  Formalização — nome, situação e vigência, sem preço.
+                </p>
               </>
             ) : (
               <p className="text-xs text-navy/60">Nenhuma proposta registrada neste caso.</p>
@@ -214,24 +204,14 @@ function PortalGoLive() {
                 <p className="mb-2 text-xs text-navy/65">
                   {contrato.numero ?? "sem número"} · {humano(contrato.status, "sem situação")}
                 </p>
-                <Acao
-                  rotulo={contratoPublicado ? "Publicar novamente" : "Publicar contrato"}
-                  titulo="Publicar contrato no App"
-                  variante="outline"
-                  campos={[
-                    {
-                      nome: "confirmar",
-                      rotulo: "Digite PUBLICAR para confirmar",
-                      obrigatorio: true,
-                    },
-                  ]}
-                  aoConfirmar={async (v) => {
-                    if ((v["confirmar"] ?? "").trim().toUpperCase() !== "PUBLICAR")
-                      throw new Error("Digite PUBLICAR para confirmar.");
-                    return publicarInstrumento({ data: { tipo: "contrato", id: contrato.id } });
-                  }}
-                  confirmacao="Contrato publicado no App."
-                />
+                {/*
+                  Mesma decisão: o contrato não é cartão de conteúdo. O
+                  cliente o acessa pelo portal para ASSINATURA, que é outro
+                  caminho — não uma projeção publicada.
+                */}
+                <p className="text-xs text-navy/60">
+                  O contrato não vai ao App como cartão. O cliente o acessa pelo portal para assinatura.
+                </p>
               </>
             ) : (
               <p className="text-xs text-navy/60">Nenhum contrato registrado neste caso.</p>

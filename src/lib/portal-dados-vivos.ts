@@ -17,7 +17,12 @@
  * expor alerta interno, gate, responsável ou SLA técnico.
  */
 import { diasEntre, saudeDoPlano, contemConteudoInterno, FASES_JORNADA } from "@/lib/onboarding-jornada";
-import { publicacoesParaCliente, type ProjecaoBruta, type PublicacaoCliente } from "@/lib/projecoes-cliente";
+import {
+  publicacoesParaCliente,
+  TIPOS_ENTREGA_APP,
+  type ProjecaoBruta,
+  type PublicacaoCliente,
+} from "@/lib/projecoes-cliente";
 import type { EixoRadar } from "@/lib/radar-eixos";
 import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos";
 import type { ProximaAcaoCliente } from "@/lib/motor-caso";
@@ -196,8 +201,15 @@ export function legadoSanitizado(projecoes: ProjecaoBruta[]): PublicacaoCliente[
 
 /** Entregas da jornada: publicações do repositório, sem Árvore e sem Legado (abas próprias). */
 export function publicacoesDeEntrega(projecoes: ProjecaoBruta[]): PublicacaoCliente[] {
+  /*
+    03/10/2026 — era filtro por EXCLUSÃO (tirava só `arvore` e `legado`), o
+    que fazia qualquer tipo fora da taxonomia contar como entrega ao
+    cliente: `contrato`, `proposta`, `resumo_caso` entravam aqui, e só o
+    filtro de conteúdo os segurava. Agora é lista PERMITIDA
+    (`TIPOS_ENTREGA_APP`): tipo desconhecido não vaza, nem com texto limpo.
+  */
   return publicacoesParaCliente(projecoes)
-    .filter((p) => !["arvore", "legado"].includes(p.tipo))
+    .filter((p) => TIPOS_ENTREGA_APP.has(p.tipo))
     .filter((p) => !contemConteudoInterno(p.conteudo));
 }
 

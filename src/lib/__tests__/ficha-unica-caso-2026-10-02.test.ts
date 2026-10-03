@@ -131,8 +131,25 @@ describe("Corte Ficha Única (02/10/2026) — Caso 360 monta um único component
     expect(casoIndex).not.toContain("<PainelFichaMaster");
   });
 
-  it("a aba Pesquisa tem um atalho de salto direto para a Ficha Única", () => {
-    expect(casoIndex).toContain("#ficha-unica");
+  it("a Ficha Única é o PRIMEIRO bloco da aba Pesquisa, não o último", () => {
+    /*
+      03/10/2026 — "está tão escondido e sobreposto que eu não tenho acesso".
+      Estava depois de "País e via", "Hipótese e radar" e "Riscos
+      identificados". Agora abre a aba.
+    */
+    const aba = casoIndex.indexOf('<SecaoAncora id="tecnico"');
+    const ficha = casoIndex.indexOf("<PainelFichaUnica caseId={id} />", aba);
+    const paisEVia = casoIndex.indexOf('titulo="País e via"', aba);
+    expect(aba).toBeGreaterThan(-1);
+    expect(ficha).toBeGreaterThan(aba);
+    expect(ficha, "a ficha precisa vir ANTES de País e via").toBeLessThan(paisEVia);
+  });
+
+  it("o painel cita os nomes antigos, para quem procura por eles encontrar", () => {
+    const componente = readFileSync("src/components/caso/ficha-unica.tsx", "utf8");
+    expect(componente).toContain("Ficha Piloto");
+    expect(componente).toContain("Ficha Master");
+    expect(componente).toContain("Técnico e riscos");
   });
 });
 

@@ -10,7 +10,7 @@
  *   telefone igual devolve "confirmar", nome sozinho cria nova.
  */
 import { createServerFn } from "@tanstack/react-start";
-import { exigirPublicavelNoApp } from "@/lib/projecao-publicavel";
+import { exigirPublicavelNoApp, exigirTipoPublicavelNoApp } from "@/lib/projecao-publicavel";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
@@ -1250,6 +1250,14 @@ export const publicarInstrumentoNoAppGoLive = createServerFn({ method: "POST" })
       equipe publicava e o cliente via tela vazia — exatamente o que estava
       acontecendo no caso da Ana com as três projeções publicadas.
     */
+    /*
+      03/10/2026 — decisão da Proprietária lendo o mockup aprovado: o cliente
+      não tem acesso a proposta nem a contrato como cartão do App. A parte da
+      proposta que ele vê chega à Conta pelo tipo `plano`
+      (`publicarPlanoNoApp`, sem preço); o contrato é acessado pelo portal
+      para assinatura. Este escritor publicava os dois como conteúdo.
+    */
+    exigirTipoPublicavelNoApp(data.tipo);
     exigirPublicavelNoApp(resumo);
     const agora = new Date().toISOString();
     // Republicar substitui o cartão anterior: o registro antigo é arquivado, nunca apagado.
