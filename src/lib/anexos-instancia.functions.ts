@@ -1,14 +1,17 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { conteudoDoAnexoSalvo } from "@/lib/anexos-conteudo";
 import type { InstanciaPersistida } from "@/lib/anexos-instancia";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
- * Leitura somente-metadados das instâncias documentais de anexos de um caso.
- * Não devolve notas internas nem HTML bruto — apenas o suficiente para provar
- * qual versão salva a tela autenticada está apontando.
+ * Leitura das instâncias documentais de anexos de um caso, para a superfície
+ * interna autenticada: metadados de versionamento MAIS o conteúdo salvo
+ * (`structured_data` traduzido), porque sem ele a equipe não vê o que está
+ * sendo aprovado — achado de 03/10/2026. O HTML bruto continua fora: a tela
+ * renderiza o conteúdo estruturado, nunca injeta markup do banco.
  */
 export const instanciasDocumentaisDoCaso = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -37,5 +40,6 @@ export const instanciasDocumentaisDoCaso = createServerFn({ method: "GET" })
       tem_conteudo: Boolean(l.rendered_html) && Boolean(l.structured_data),
       atualizado_em: l.updated_at ?? l.created_at ?? null,
       is_test: Boolean(l.is_test),
+      conteudo: conteudoDoAnexoSalvo(l.structured_data),
     }));
   });

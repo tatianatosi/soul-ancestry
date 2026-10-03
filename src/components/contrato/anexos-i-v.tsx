@@ -11,6 +11,7 @@
 import type { ReactNode } from "react";
 
 import { ROTULO_ESTADO_ANEXO } from "@/lib/anexos-dicionario";
+import { acaoSeguinteAnexo, rotuloStatusAnexoSalvo } from "@/lib/anexos-conteudo";
 import { documentoDoAnexo } from "@/lib/anexos-documento";
 import { AnexoDocumento } from "@/components/contrato/anexo-documento";
 import {
@@ -68,6 +69,22 @@ export function AnexosIaV({
               {a.condicional ? " · condicional" : ""}
             </span>
           </div>
+          {/*
+            Estado real da instância gravada em `contract_annexes` ao lado do
+            estado computado pela regra. Sem isto o selo da direita era só a
+            regra em memória e a equipe não sabia o que estava salvo nem o que
+            fazer em seguida (achado de 03/10/2026).
+          */}
+          {persistido ? (
+            <p className="mt-1 text-[11px] text-navy/60" data-anexo-salvo={a.codigo}>
+              Instância salva: {rotuloStatusAnexoSalvo(persistido.status)} · versão {persistido.annexVersion}
+              {acaoSeguinteAnexo(persistido.status) ? ` · próximo passo: ${acaoSeguinteAnexo(persistido.status)}` : ""}
+            </p>
+          ) : (
+            <p className="mt-1 text-[11px] text-terracotta" data-anexo-salvo={a.codigo}>
+              Ainda sem instância salva — materialize o anexo para que exista conteúdo aprovável.
+            </p>
+          )}
           {persistido?.overrideManual && (
             <p className="mt-1 rounded border border-terracotta/30 bg-terracotta/5 p-2 text-[11px] text-navy/75">
               Dispensado manualmente (versão {persistido.annexVersion}): {persistido.reasonNotApplicable}

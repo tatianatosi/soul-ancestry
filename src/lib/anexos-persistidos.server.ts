@@ -13,6 +13,7 @@
 import { hashConteudo } from "@/lib/contrato-parametros.server";
 import { MODELO_VERSAO_ANEXO, type AnexoInterno } from "@/lib/contrato-corpo.server";
 import { ACOES_BLOQUEADAS_SEM_ANEXO_III, type AnexoGovernado } from "@/lib/anexos-i-v";
+import { corpoRenderizadoDoAnexo } from "@/lib/anexos-conteudo";
 
 type Sb = any;
 
@@ -125,7 +126,19 @@ export function instanciasDeAnexos(input: {
       impactoAusencia: a.impactoAusencia,
       gatesBloqueados: a.gatesBloqueados,
     },
-    rendered_html: `<h3>${a.codigo} — ${a.titulo}</h3><p>${a.finalidade}</p><p>${a.regra}</p>`,
+    // O conteúdo salvo precisa mostrar o que está sendo aprovado: os campos
+    // do anexo, com fonte e pendência nomeada. Antes de 03/10/2026 isto era
+    // só código/título/finalidade/regra e a equipe não via o conteúdo.
+    rendered_html: corpoRenderizadoDoAnexo({
+      codigo: a.codigo,
+      titulo: a.titulo,
+      finalidade: a.finalidade,
+      regra: a.regra,
+      motivo: a.motivo,
+      campos: a.campos,
+      pendencias: a.pendencias,
+      impactoAusencia: a.impactoAusencia,
+    }),
     reason_not_applicable: a.aplicavel ? null : a.motivo,
   }));
 
@@ -141,7 +154,11 @@ export function instanciasDeAnexos(input: {
     status: "drafting",
     structured_data: { motivo: i.motivo, natureza: "interno" },
 
-    rendered_html: `<h3>${i.codigo} — ${i.titulo}</h3><p>${i.motivo}</p>`,
+    rendered_html: corpoRenderizadoDoAnexo({
+      codigo: i.codigo,
+      titulo: i.titulo,
+      motivo: i.motivo,
+    }),
     reason_not_applicable: null,
   }));
 

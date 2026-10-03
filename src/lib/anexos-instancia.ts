@@ -5,6 +5,8 @@
  * Somente leitura e comparação: nada aqui assina, envia, cobra ou grava.
  */
 
+import type { ConteudoAnexoSalvo } from "@/lib/anexos-conteudo";
+
 export type InstanciaPersistida = {
   annex_code: string;
   title: string;
@@ -15,6 +17,11 @@ export type InstanciaPersistida = {
   tem_conteudo: boolean;
   atualizado_em: string | null;
   is_test: boolean;
+  /**
+   * Conteúdo salvo da instância (o que está sendo aprovado). Opcional porque
+   * outros chamadores só precisam dos metadados de versionamento.
+   */
+  conteudo?: ConteudoAnexoSalvo | null;
 };
 
 export type AnexoNaTela = {
@@ -51,6 +58,8 @@ export type LinhaInstancia = {
   temConteudo: boolean;
   hash: string | null;
   observacao: string;
+  /** Conteúdo gravado da instância vigente, para a tela mostrar o que aprova. */
+  conteudo: ConteudoAnexoSalvo | null;
 };
 
 export const ROTULO_ESTADO_INSTANCIA: Record<EstadoInstancia, string> = {
@@ -98,6 +107,7 @@ export function conferirInstancias(tela: AnexoNaTela[], persistidas: InstanciaPe
         temConteudo: false,
         hash: null,
         observacao: EXPLICACAO_ESTADO_INSTANCIA.nao_materializada,
+        conteudo: null,
       });
       continue;
     }
@@ -115,6 +125,7 @@ export function conferirInstancias(tela: AnexoNaTela[], persistidas: InstanciaPe
       temConteudo: p.tem_conteudo,
       hash: p.file_hash,
       observacao: EXPLICACAO_ESTADO_INSTANCIA[estado],
+      conteudo: p.conteudo ?? null,
     });
   }
 
@@ -133,6 +144,7 @@ export function conferirInstancias(tela: AnexoNaTela[], persistidas: InstanciaPe
       temConteudo: p.tem_conteudo,
       hash: p.file_hash,
       observacao: EXPLICACAO_ESTADO_INSTANCIA.somente_persistida,
+      conteudo: p.conteudo ?? null,
     });
   }
 
