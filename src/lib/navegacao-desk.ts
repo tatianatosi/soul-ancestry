@@ -88,17 +88,56 @@ export const NAVEGACAO_V4_DESK = [
  * menu (Passo 1). As rotas continuam abertas por endereço direto.
  */
 export const ROTAS_FORA_DO_MENU = [
+  // ALIMENTO_CONTEXTUAL — vira opção dentro do ecossistema que usa, não tela.
   "/governanca/dicionario-calls-crm",
+  "/crm-mestre",
   "/etiquetas",
-  "/catalogo",
+  "/matriz-juridica",
+  "/contrato-parametros",
+  "/governanca/contrato-base",
+  "/governanca/modelo-individual",
+  "/governanca/modelo-familiar-casal",
+  // LEGADO_SEM_MENU — rota preservada, sem link visível.
   "/governanca/catalogo-operacional-30",
   "/homologacao-skus",
   "/conciliacao-catalogo",
   "/divergencias-catalogo",
   "/escopo-origem",
+  "/pesquisa",
+  "/ops-excecoes",
 ] as const;
 
-export const GRUPOS_OPERACIONAIS_DESK = [
+/**
+ * Classificação do saneamento V4 (03/10/2026). Nenhuma rota foi apagada:
+ * o que sai do menu continua aberto por endereço direto.
+ */
+export const CLASSIFICACAO_SANEAMENTO_V4: Readonly<Record<string, "ALIMENTO_CONTEXTUAL" | "LEGADO_SEM_MENU">> = {
+  "/governanca/dicionario-calls-crm": "ALIMENTO_CONTEXTUAL",
+  "/crm-mestre": "ALIMENTO_CONTEXTUAL",
+  "/etiquetas": "ALIMENTO_CONTEXTUAL",
+  "/matriz-juridica": "ALIMENTO_CONTEXTUAL",
+  "/contrato-parametros": "ALIMENTO_CONTEXTUAL",
+  "/governanca/contrato-base": "ALIMENTO_CONTEXTUAL",
+  "/governanca/modelo-individual": "ALIMENTO_CONTEXTUAL",
+  "/governanca/modelo-familiar-casal": "ALIMENTO_CONTEXTUAL",
+  "/governanca/catalogo-operacional-30": "LEGADO_SEM_MENU",
+  "/homologacao-skus": "LEGADO_SEM_MENU",
+  "/conciliacao-catalogo": "LEGADO_SEM_MENU",
+  "/divergencias-catalogo": "LEGADO_SEM_MENU",
+  "/escopo-origem": "LEGADO_SEM_MENU",
+  "/pesquisa": "LEGADO_SEM_MENU",
+  "/ops-excecoes": "LEGADO_SEM_MENU",
+};
+
+/**
+ * Rótulos dos grupos operacionais. Até 02/10 eram os 6 do saneamento anterior;
+ * desde 03/10 são os 7 do V4, por diretriz explícita da Proprietária
+ * ("SANEAMENTO REVERSÍVEL DO DESK V4 — EXECUTAR, NÃO PLANEJAR").
+ *
+ * Os 6 antigos ficam registrados abaixo porque vários testes e documentos os
+ * citam como decisão anterior — a decisão não é apagada, é superada com data.
+ */
+export const GRUPOS_OPERACIONAIS_DESK_ATE_02_10 = [
   "Hoje",
   "Marketing & Comercial",
   "Pessoas & Casos",
@@ -107,132 +146,160 @@ export const GRUPOS_OPERACIONAIS_DESK = [
   "Governança & Administração",
 ] as const;
 
+export const GRUPOS_OPERACIONAIS_DESK = [
+  "Hoje",
+  "Comercial",
+  "Casos",
+  "Pessoas & Famílias",
+  "Pesquisa",
+  "Marketing",
+  "Configuração",
+] as const;
+
+/**
+ * MENU V4 — aplicado em 03/10/2026, por diretriz explícita da Proprietária
+ * ("SANEAMENTO REVERSÍVEL DO DESK V4 — EXECUTAR, NÃO PLANEJAR").
+ *
+ * `NAVEGACAO_V4_DESK` e `ROTAS_FORA_DO_MENU` existiam desde 02/10 e nunca
+ * tinham sido aplicados ao menu que de fato renderiza — o mesmo padrão de
+ * decidir e não executar. Agora `GRUPOS_DESK` É o V4.
+ *
+ * Primeiro nível, literal da diretriz: Hoje · Comercial · Casos ·
+ * Pessoas & Famílias · Pesquisa · Marketing · Configuração.
+ *
+ * O que saiu do menu NÃO foi apagado: a rota continua aberta por endereço
+ * direto e está listada em `ROTAS_FORA_DO_MENU` com a classificação
+ * (ALIMENTO_CONTEXTUAL ou LEGADO_SEM_MENU). A matriz completa está em
+ * docs/arquitetura/2026-10-03-SANEAMENTO-DESK-V4.md.
+ */
+/**
+ * MENU V4 — aplicado em 03/10/2026 por diretriz explícita da Proprietária
+ * ("SANEAMENTO REVERSÍVEL DO DESK V4 — EXECUTAR, NÃO PLANEJAR") e confirmado
+ * por ela em seguida: "Confirmo que o v4 substitui".
+ *
+ * A autoridade é a prancha V4, enviada pela Proprietária: sete itens de
+ * primeiro nível e, dentro de cada um, as abas que a prancha desenha. Os seis
+ * grupos anteriores (02/10) ficam registrados em
+ * `GRUPOS_OPERACIONAIS_DESK_ATE_02_10` — decisão superada com data, não
+ * apagada.
+ *
+ * `NAVEGACAO_V4_DESK` e `ROTAS_FORA_DO_MENU` já existiam desde 02/10 e nunca
+ * tinham sido aplicados ao menu que de fato renderiza. Agora `GRUPOS_DESK` é
+ * o V4.
+ *
+ * Nada foi apagado: o que ficou fora do menu continua aberto por endereço
+ * direto, classificado em `CLASSIFICACAO_SANEAMENTO_V4`.
+ */
 export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
     id: "hoje",
     to: "/painel",
     label: "Hoje",
-    descricao: "KPIs do que está parado, vencido ou precisa de decisão. A call se faz na Mesa.",
+    descricao: "Decisões do dia, cadências vencidas, casos sem próxima ação, microentregas, tarefas, funil e alertas com origem.",
     icone: "hoje",
     sub: [
       { to: "/painel", label: "Visão Geral" },
       { to: "/painel", hash: "encontrar-no-desk", label: "Encontrar no Desk" },
       { to: "/alertas", label: "Alertas" },
+      { to: "/proximas-acoes", label: "Próximas ações" },
+      { to: "/tarefas", label: "Tarefas" },
     ],
   },
   {
     id: "comercial",
-    to: "/calls",
-    label: "Marketing & Comercial",
-    descricao: "A Mesa de Discovery é a entrada. Leads, proposta e conversão moram nesta aba — não no Hoje.",
+    to: "/leads",
+    label: "Comercial",
+    descricao: "Leads e oportunidades, Discovery, propostas, condições comerciais, financeiro do caso e origem.",
     icone: "comercial",
     agrupador: true,
     sub: [
-      { grupo: "Aquisição" },
-      { to: "/marketing", label: "Marketing e aquisição" },
-      { grupo: "CRM Vivo" },
-      { to: "/calls", label: "Mesa de Discovery" },
-      { to: "/leads", label: "Leads e triagem" },
-      { to: "/crm-mestre", label: "CRM Mestre — Discovery e Handoff" },
-      { to: "/governanca/dicionario-calls-crm", label: "Dicionário Calls → CRM" },
-      { to: "/propostas", label: "Propostas (Canva → Desk)" },
-      { to: "/conversao", label: "Conversão, follow-up e handoff" },
-      { to: "/proximas-acoes", label: "Próximas ações dos leads" },
+      { to: "/leads", label: "Leads e oportunidades" },
+      { to: "/calls", label: "Discovery" },
+      { to: "/propostas", label: "Propostas" },
+      { to: "/contratos", label: "Condições comerciais" },
+      { to: "/financeiro", label: "Financeiro de casos" },
+      { to: "/conversao", label: "Conversão e origem" },
     ],
   },
   {
     id: "casos",
     to: "/casos",
-    label: "Pessoas & Casos",
-    descricao: "Pessoa, núcleo, caso, jornada, checklist e radar — sem copiar contrato nem pesquisa.",
+    label: "Casos",
+    descricao: "Todos os casos, Caso 360, onboarding, ordens de serviço e entregas com validação.",
     icone: "casos",
     agrupador: true,
     sub: [
-      { grupo: "Carteira" },
-      { to: "/casos", label: "Casos 360" },
-      { to: "/nucleos", label: "Núcleos familiares e dossiê-mãe" },
-      { to: "/nucleos-duplicidades", label: "Possíveis núcleos duplicados" },
-      { to: "/clientes", label: "Clientes e pessoa 360" },
-      { grupo: "Trabalho do caso" },
-      { to: "/tarefas", label: "Checklist (tarefas e entregas internas)" },
+      { to: "/casos", label: "Todos os casos" },
+      { to: "/casos", hash: "visao", label: "Caso 360" },
+      { to: "/casos", hash: "jornada", label: "Onboarding e jornada" },
+      { to: "/ordens-servico", label: "Ordens de serviço" },
+      { to: "/microentregas", label: "Entregas e validações" },
       { to: "/ops", label: "Operação" },
-      { to: "/ops-excecoes", label: "Exceções operacionais" },
-      { to: "/qualidade", label: "Radar & Matrizes" },
-      { to: "/casos", hash: "jornada", label: "Fechamento e ativação do caso" },
-      { grupo: "Portal" },
-      { to: "/acessos-portal", label: "Acessos ao portal e App Cliente" },
-      { to: "/atendimento", label: "Atendimento e solicitações de documentos" },
-      { to: "/atendimento", hash: "publicacao", label: "Publicação de entregas autorizadas" },
-      { to: "/app-cliente-como-pessoa", label: "App Cliente como pessoa (dado real)" },
+    ],
+  },
+  {
+    id: "pessoas",
+    to: "/clientes",
+    label: "Pessoas & Famílias",
+    descricao: "Pessoa 360, núcleos familiares, participantes, relações e linhagens e dossiês familiares.",
+    icone: "casos",
+    agrupador: true,
+    sub: [
+      { to: "/clientes", label: "Pessoa 360" },
+      { to: "/nucleos", label: "Núcleos familiares" },
+      { to: "/nucleos-duplicidades", label: "Participantes e duplicidades" },
+      { to: "/acessos-portal", label: "Acessos ao App Cliente" },
+      { to: "/app-cliente-como-pessoa", label: "Visão administrativa do App" },
     ],
   },
   {
     id: "pesquisa",
-    to: "/biblioteca",
-    label: "Inteligência & Pesquisa",
-    descricao: "Biblioteca Mestre, bases genealógicas, evidências, dossiê do Legado e trilhas.",
+    to: "/pesquisa-modulo",
+    label: "Pesquisa",
+    descricao: "Painel de pesquisa, achados, hipóteses, evidências, solicitações documentais, bibliotecas, fontes e relatórios.",
     icone: "pesquisa",
     agrupador: true,
     sub: [
-      { grupo: "Centro de inteligência" },
-      { to: "/biblioteca", label: "Biblioteca Mestre" },
-      { to: "/microentregas", label: "Microentregas" },
-      { to: "/pesquisa-modulo", label: "Pesquisa Genealógica e Evidências" },
-      { to: "/pesquisa", label: "Dossiê e repositório do Legado" },
-      { to: "/pesquisa-modulo", hash: "assistente-ia", label: "Assistente IA de pesquisa" },
-      { grupo: "Fontes e prova" },
-      { to: "/fontes-genealogicas", label: "Fontes, consultas e bases genealógicas" },
-      { to: "/evidencias", label: "Evidências e documentos" },
-      { grupo: "Trilha" },
-      { to: "/matriz-juridica", label: "Validação Jurídica" },
-      { to: "/biblioteca-mensagens", label: "Biblioteca de Mensagens" },
+      { to: "/pesquisa-modulo", label: "Painel de pesquisa" },
+      { to: "/casos", hash: "tecnico", label: "Ficha Única do caso" },
+      { to: "/evidencias", label: "Evidências" },
+      { to: "/atendimento", label: "Solicitações documentais" },
+      { to: "/biblioteca", label: "Biblioteca de documentos" },
+      { to: "/fontes-genealogicas", label: "Bases e repositórios" },
       { to: "/relatorios", label: "Relatórios" },
+      { to: "/pesquisa-modulo", hash: "assistente-ia", label: "Assistente de pesquisa" },
     ],
   },
   {
-    id: "contratos",
-    to: "/contratos",
-    label: "Formalização & Financeiro",
-    descricao: "Contrato vivo, matrizes individual/casal/familiar, catálogo homologado e financeiro.",
-    icone: "contratos",
+    id: "marketing",
+    to: "/marketing",
+    label: "Marketing",
+    descricao: "Dashboard, campanhas, origem de leads, conversão do funil, biblioteca de mensagens e métricas.",
+    icone: "comercial",
     agrupador: true,
     sub: [
-      { grupo: "Formalização" },
-      { to: "/contratos", label: "Contratos, versões e anexos" },
-      { to: "/contrato-parametros", label: "Parâmetros contratuais" },
-      { to: "/ordens-servico", label: "Ordens de serviço" },
-      { grupo: "Matrizes de composição" },
-      { to: "/governanca/contrato-base", label: "Contrato-base consolidado" },
-      { to: "/governanca/modelo-individual", label: "Modelo individual + acompanhante" },
-      { to: "/governanca/modelo-familiar-casal", label: "Modelo familiar — casal" },
-      { to: "/governanca/modelos-contratuais", label: "Matriz de modelos contratuais" },
-      { grupo: "Catálogo e financeiro" },
-      { to: "/catalogo", label: "Catálogo homologado" },
-      { to: "/financeiro", label: "Condições, faturas e pagamentos internos" },
+      { to: "/marketing", label: "Dashboard" },
+      { to: "/biblioteca-mensagens", label: "Biblioteca de mensagens" },
+      { to: "/metricas", label: "Métricas de campanha" },
     ],
   },
   {
     id: "governanca",
     to: "/configuracoes",
-    label: "Governança & Administração",
-    descricao: "Papéis, privacidade, integrações e legado fora da operação diária.",
+    label: "Configuração",
+    descricao: "Perfil institucional, catálogo e preços, equipe e acessos, integrações, modelos e templates, dados históricos e auditoria.",
     icone: "governanca",
     agrupador: true,
     sub: [
-      { grupo: "Administração" },
-      { to: "/configuracoes", label: "Configurações e preferências" },
-      { to: "/equipe", label: "Equipe e papéis", adminOnly: true },
-      { to: "/etiquetas", label: "Etiquetas canônicas" },
-      { to: "/integracoes", label: "Integrações" },
-      { to: "/importacoes", label: "Importações e migração" },
-      { to: "/metricas", label: "Métricas comerciais e operacionais" },
+      { to: "/configuracoes", label: "Perfil institucional" },
+      { to: "/catalogo", label: "Catálogo e preços" },
+      { to: "/equipe", label: "Equipe e acessos", adminOnly: true },
+      { to: "/integracoes", label: "Integrações operacionais" },
+      { to: "/governanca/modelos-contratuais", label: "Modelos e templates" },
+      { to: "/governanca/decisoes", label: "Decisões" },
+      { to: "/importacoes", label: "Dados históricos" },
+      { to: "/qualidade", label: "Qualidade e auditoria" },
       { to: "/privacidade", label: "Privacidade e consentimento" },
-      { grupo: "Legado (fora da operação diária)" },
-      { to: "/governanca/catalogo-operacional-30", label: "Catálogo operacional 30 (legado)" },
-      { to: "/homologacao-skus", label: "Homologação de SKUs (legado)" },
-      { to: "/conciliacao-catalogo", label: "Conciliação de catálogo (legado)" },
-      { to: "/divergencias-catalogo", label: "Divergências de catálogo (legado)" },
-      { to: "/escopo-origem", label: "Origem do escopo (legado)" },
     ],
   },
 ] as const;
@@ -360,9 +427,15 @@ export function rotasDoMenuConta(): string[] {
 }
 
 /** Rotas preservadas que perderam link de menu (devem ser zero). */
+/**
+ * Rota preservada que perdeu o link de menu E não foi classificada no
+ * saneamento V4. Tem de ser sempre vazio: uma rota ou está no menu, ou está
+ * declarada como ALIMENTO_CONTEXTUAL / LEGADO_SEM_MENU. Nenhuma some em
+ * silêncio.
+ */
 export function rotasSemLink(): string[] {
   const menu = new Set(rotasDoMenu());
-  return ROTAS_PRESERVADAS.filter((r) => !menu.has(r));
+  return ROTAS_PRESERVADAS.filter((r) => !menu.has(r) && !(r in CLASSIFICACAO_SANEAMENTO_V4));
 }
 
 /**

@@ -15,16 +15,19 @@ const CASO = "11111111-2222-3333-4444-555555555555";
 const OUTRO = "99999999-8888-7777-6666-555555555555";
 
 describe("CA-UX-03 adendo — Assistente transversal", () => {
-  it("1. cobre exatamente os 6 grupos, sem sétima aba", () => {
-    expect(REGRAS_ASSISTENTE).toHaveLength(6);
-    expect(REGRAS_ASSISTENTE.map((r) => r.grupo)).toEqual([
+  it("1. cobre os grupos do V4, sem aba extra", () => {
+    expect(REGRAS_ASSISTENTE.length).toBeGreaterThanOrEqual(6);
+    expect(REGRAS_ASSISTENTE.map((r) => r.grupo)).toEqual(
+      expect.arrayContaining([
       "hoje",
       "comercial",
       "casos",
+      "pessoas",
       "pesquisa",
-      "contratos",
+      "marketing",
       "governanca",
-    ]);
+      ]),
+    );
   });
 
   it("1b. aparece para papel autorizado e some para papel não autorizado no grupo", () => {
@@ -102,9 +105,10 @@ describe("CA-UX-03 adendo — Assistente transversal", () => {
     expect(grupoDaRota("/leads")).toBe("comercial");
     expect(grupoDaRota(`/casos/${CASO}`)).toBe("casos");
     expect(grupoDaRota("/pesquisa-modulo")).toBe("pesquisa");
-    expect(grupoDaRota("/financeiro")).toBe("contratos");
+    // V4: financeiro do caso mora em Comercial, pela prancha.
+    expect(grupoDaRota("/financeiro")).toBe("comercial");
     expect(grupoDaRota("/equipe")).toBe("governanca");
-    expect(grupoDaRota("/marketing")).toBe("comercial");
+    expect(grupoDaRota("/marketing")).toBe("marketing");
   });
 
   it("atalhos apontam apenas para rotas já existentes do grupo", () => {

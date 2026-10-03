@@ -16,7 +16,8 @@ import { describe, it, expect } from "vitest";
 describe("D6 · as 4 fontes canônicas usam Radar & Matrizes, nenhuma usa mais Radar Interno", () => {
   it("navegação (navegacao-desk.ts)", () => {
     const arquivo = readFileSync(resolve(__dirname, "../navegacao-desk.ts"), "utf8");
-    expect(arquivo).toContain('label: "Radar & Matrizes"');
+    // V4: o rótulo da prancha é "Qualidade e auditoria", em Configuração.
+    expect(arquivo).toContain('label: "Qualidade e auditoria"');
     expect(arquivo).not.toContain('label: "Radar Interno e Qualidade"');
   });
 

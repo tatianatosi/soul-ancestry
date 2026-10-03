@@ -42,14 +42,15 @@ describe("pente-fino Ana — primeira cliente e contrato decente", () => {
 describe("pente-fino visual — legado fora da face do produto", () => {
   it("grupo Biblioteca Mestre entra no módulo vivo e no dossiê do Legado; DEMO sai da face", () => {
     const bib = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
-    expect(bib.to).toBe("/biblioteca");
+    expect(bib.to).toBe("/pesquisa-modulo");
     const rotasBib = bib.sub.filter((s) => "to" in s).map((s) => s.to);
-    expect(rotasBib).toContain("/pesquisa");
+    // V4: o dossiê legado saiu do menu; o módulo vivo permanece.
+    expect(rotasBib).not.toContain("/pesquisa");
     expect(rotasBib).toContain("/pesquisa-modulo");
-    const casos = GRUPOS_DESK.find((g) => g.id === "casos")!;
-    const rotasCasos = casos.sub.filter((s) => "to" in s).map((s) => s.to);
-    expect(rotasCasos).not.toContain("/app-cliente-demo");
-    expect(rotasCasos).toContain("/app-cliente-como-pessoa");
+    const pessoas = GRUPOS_DESK.find((g) => g.id === "pessoas")!;
+    const rotasPessoas = pessoas.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotasPessoas).not.toContain("/app-cliente-demo");
+    expect(rotasPessoas).toContain("/app-cliente-como-pessoa");
     const conta = MENU_CONTA.itens.filter((i) => "to" in i).map((i) => i.to);
     expect(conta).not.toContain("/pesquisa");
     expect(conta).toContain("/app-cliente-demo");

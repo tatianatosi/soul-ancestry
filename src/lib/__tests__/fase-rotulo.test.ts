@@ -46,8 +46,8 @@ describe("rótulo de fase", () => {
 describe("atalhos contextuais no menu", () => {
   it("sem atalho cruzado, /nucleos não ganha marca de origem", async () => {
     const { origemDoAtalho } = await import("@/lib/navegacao-desk");
-    expect(origemDoAtalho("Inteligência & Pesquisa", "/nucleos")).toBeNull();
-    expect(origemDoAtalho("Pessoas & Casos", "/nucleos")).toBeNull();
+    expect(origemDoAtalho("Pesquisa", "/nucleos")).toBeNull();
+    expect(origemDoAtalho("Casos", "/nucleos")).toBeNull();
   });
 
   it("não marca a entrada canônica — não há nada a dizer ali", async () => {

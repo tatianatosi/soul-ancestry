@@ -67,7 +67,7 @@ describe("Motores primordiais P0–P11", () => {
     expect(componente).toContain("Link");
     expect(pagina).toContain("FasesMotorCidadania");
     expect(pagina).not.toMatch(/setAba\(/);
-    expect(GRUPOS_DESK).toHaveLength(6);
+    expect(GRUPOS_DESK).toHaveLength(7);
   });
 });
 

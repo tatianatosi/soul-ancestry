@@ -21,14 +21,16 @@ import {
 } from "@/lib/marketing-aquisicao";
 
 const ler = (p: string) => readFileSync(p, "utf8");
-const ORDEM = ["hoje", "comercial", "casos", "pesquisa", "contratos", "governanca"];
+const ORDEM = ["hoje", "comercial", "casos", "pessoas", "pesquisa", "marketing", "governanca"];
 
 describe("CA-UX-04 — navegação", () => {
   it("tem exatamente 6 grupos; Marketing mora em Marketing & Comercial", () => {
-    expect(GRUPOS_DESK).toHaveLength(6);
+    expect(GRUPOS_DESK).toHaveLength(7);
     expect(GRUPOS_DESK.map((g) => g.id)).toEqual(ORDEM);
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
-    expect(comercial.sub.some((s) => "to" in s && s.to === "/marketing")).toBe(true);
+    // V4: Marketing virou grupo de primeiro nível, não submenu de Comercial.
+    expect(comercial.sub.some((s) => "to" in s && s.to === "/marketing")).toBe(false);
+    expect(GRUPOS_DESK.some((g) => g.id === "marketing" && g.to === "/marketing")).toBe(true);
   });
 
   it("não expõe Administração como id próprio — mora em Governança", () => {
@@ -40,7 +42,8 @@ describe("CA-UX-04 — navegação", () => {
     expect(rotasDoMenuConta()).toEqual(["/app-cliente-demo"]);
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
     const rotas = gov.sub.filter((s) => "to" in s).map((s) => s.to);
-    for (const r of ["/equipe", "/configuracoes", "/etiquetas"]) {
+    // V4: etiquetas viraram alimento contextual e saíram do menu.
+    for (const r of ["/equipe", "/configuracoes"]) {
       expect(rotas).toContain(r);
     }
     const equipe = gov.sub.find((i) => "to" in i && i.to === "/equipe") as { adminOnly?: boolean };

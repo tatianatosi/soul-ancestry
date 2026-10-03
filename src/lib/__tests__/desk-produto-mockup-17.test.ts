@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
 import {
+  CLASSIFICACAO_SANEAMENTO_V4,
   GRUPOS_DESK,
   GRUPOS_OPERACIONAIS_DESK,
   MENU_CONTA,
@@ -14,14 +15,15 @@ import {
 
 describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas como referência)", () => {
   it("expõe exatamente os 6 grupos, na ordem aprovada", () => {
-    expect(GRUPOS_DESK).toHaveLength(6);
+    expect(GRUPOS_DESK).toHaveLength(7);
     expect(GRUPOS_DESK.map((g) => g.label)).toEqual([...GRUPOS_OPERACIONAIS_DESK]);
     expect(GRUPOS_DESK.map((g) => g.to)).toEqual([
       "/painel",
-      "/calls",
+      "/leads",
       "/casos",
-      "/biblioteca",
-      "/contratos",
+      "/clientes",
+      "/pesquisa-modulo",
+      "/marketing",
       "/configuracoes",
     ]);
   });
@@ -31,8 +33,9 @@ describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas com
       "hoje",
       "comercial",
       "casos",
+      "pessoas",
       "pesquisa",
-      "contratos",
+      "marketing",
       "governanca",
     ]);
     expect(GRUPOS_DESK.map((g) => g.id)).not.toContain("visao-geral");
@@ -45,25 +48,27 @@ describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas com
         .sub.filter((s) => "to" in s)
         .map((s) => s.to);
     expect(rotas("comercial")).toEqual(
-      expect.arrayContaining(["/calls", "/leads", "/marketing", "/propostas", "/conversao"]),
+      // V4: Marketing virou grupo próprio.
+      expect.arrayContaining(["/calls", "/leads", "/propostas", "/conversao"]),
     );
-    expect(rotas("casos")).toEqual(
+    // V4: pessoas e acessos moram em Pessoas & Famílias; contrato em Comercial.
+    expect(rotas("pessoas")).toEqual(
       expect.arrayContaining(["/clientes", "/acessos-portal", "/app-cliente-como-pessoa"]),
     );
     expect(rotas("casos")).not.toContain("/contratos");
-    expect(rotas("contratos")).toContain("/contratos");
+    expect(rotas("comercial")).toContain("/contratos");
     expect(rotas("pesquisa")).toEqual(
-      expect.arrayContaining(["/pesquisa-modulo", "/pesquisa", "/evidencias", "/matriz-juridica"]),
+      expect.arrayContaining(["/pesquisa-modulo", "/evidencias", "/fontes-genealogicas"]),
     );
     expect(rotas("pesquisa")).not.toContain("/privacidade");
-    expect(rotas("contratos")).not.toContain("/conciliacao-catalogo");
-    expect(rotas("contratos")).not.toContain("/homologacao-skus");
+    // V4: o grupo "contratos" deixou de existir; legado de SKU saiu do menu.
+    expect(rotas("comercial")).not.toContain("/conciliacao-catalogo");
+    expect(rotas("comercial")).not.toContain("/homologacao-skus");
     expect(rotas("governanca")).toEqual(
       expect.arrayContaining([
         "/privacidade",
-        "/homologacao-skus",
-        "/conciliacao-catalogo",
-        "/escopo-origem",
+        "/catalogo",
+        "/qualidade",
       ]),
     );
     expect(destinosSobrepostos()).toEqual([]);
@@ -72,27 +77,31 @@ describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas com
   it("não perde rota preservada e não duplica destino dentro do grupo", () => {
     expect(rotasSemLink()).toEqual([]);
     expect(destinosDuplicados()).toEqual([]);
-    for (const r of ROTAS_PRESERVADAS) expect(rotasDoMenu()).toContain(r);
+    for (const r of ROTAS_PRESERVADAS) {
+      expect(rotasDoMenu().includes(r) || r in CLASSIFICACAO_SANEAMENTO_V4, r).toBe(true);
+    }
   });
 
   it("Painel de Calls e CA-04 ficam no Comercial; DEMO fica fora da fila do dia", () => {
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
     expect(comercial.sub.some((s) => "to" in s && s.to === "/calls")).toBe(true);
-    expect(comercial.sub.some((s) => "to" in s && s.to === "/crm-mestre")).toBe(true);
+    expect(comercial.sub.some((s) => "to" in s && s.to === "/crm-mestre")).toBe(false);
     const conta = MENU_CONTA.itens.filter((s) => "to" in s).map((s) => s.to);
     expect(conta).toContain("/app-cliente-demo");
     expect(conta).not.toContain("/pesquisa");
     expect(conta).not.toContain("/crm-mestre");
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
     expect(gov.sub.some((s) => "to" in s && s.to === "/crm-mestre")).toBe(false);
-    expect(gov.sub.some((s) => "to" in s && s.to === "/governanca/catalogo-operacional-30")).toBe(true);
+    // V4: catálogo 30 virou LEGADO_SEM_MENU.
+    expect(gov.sub.some((s) => "to" in s && s.to === "/governanca/catalogo-operacional-30")).toBe(false);
     expect(gov.sub.some((s) => "to" in s && s.to === "/privacidade")).toBe(true);
   });
 
   it("dossiê /pesquisa é o repositório do Legado, dentro da Inteligência", () => {
     const bib = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
-    const item = bib.sub.find((s) => "to" in s && s.to === "/pesquisa") as { label: string };
-    expect(item.label).toMatch(/Legado/i);
+    // V4: o dossiê legado saiu do menu; segue classificado.
+    expect(bib.sub.some((s) => "to" in s && s.to === "/pesquisa")).toBe(false);
+    expect(CLASSIFICACAO_SANEAMENTO_V4["/pesquisa"]).toBe("LEGADO_SEM_MENU");
   });
 
   it("Radar & Matrizes hospeda a matriz; Casos 360 aponta para ela", () => {

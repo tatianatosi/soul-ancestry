@@ -23,8 +23,9 @@ describe("nomenclatura humana", () => {
   });
 
   it("exibe os rótulos na navegação do Desk real", () => {
-    expect(navegacao).toContain('{ to: "/qualidade", label: "Radar & Matrizes" }');
-    expect(navegacao).toContain('{ to: "/matriz-juridica", label: "Validação Jurídica" }');
+    expect(navegacao).toContain('{ to: "/qualidade", label: "Qualidade e auditoria" }');
+    // V4: trilha jurídica virou alimento do caso e saiu do menu.
+    expect(navegacao).toContain('"/matriz-juridica": "ALIMENTO_CONTEXTUAL"');
   });
 
   it("mantém os cabeçalhos das telas alinhados ao rótulo humano", () => {
@@ -67,12 +68,13 @@ describe("atalhos de descoberta", () => {
   });
 
   it("o atalho aponta para a aba dona da função, não para o nome antigo do grupo", () => {
-    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe("Pessoas & Casos");
-    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/matriz-juridica")?.onde).toBe(
-      "Inteligência & Pesquisa",
+    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe("Configuração");
+    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/matriz-juridica")?.onde).toBeDefined();
+    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe(
+      "Configuração",
     );
     expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/integracoes")?.onde).toBe(
-      "Governança & Administração",
+      "Configuração",
     );
     expect(painel).toContain('to: "/calls"');
     expect(painel).toContain("Mesa de Discovery");
@@ -89,11 +91,12 @@ describe("superfícies preservadas", () => {
   it("mantém os 6 grupos na navegação do Desk", () => {
     const grupos = [
       "Hoje",
-      "Marketing & Comercial",
-      "Pessoas & Casos",
-      "Inteligência & Pesquisa",
-      "Formalização & Financeiro",
-      "Governança & Administração",
+      "Comercial",
+      "Casos",
+      "Pessoas & Famílias",
+      "Pesquisa",
+      "Marketing",
+      "Configuração",
     ];
     for (const g of grupos) expect(navegacao).toContain(`label: "${g}"`);
     expect(shell).toContain("GRUPOS_DESK");

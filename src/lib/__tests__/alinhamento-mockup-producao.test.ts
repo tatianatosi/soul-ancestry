@@ -29,16 +29,18 @@ describe("rota do menu sem colisão de prefixo", () => {
     const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
     expect(grupoNavAtivo("/matriz-juridica", "", comercial)).toBe(false);
-    expect(grupoNavAtivo("/matriz-juridica", "", pesquisa)).toBe(true);
+    // V4: trilha jurídica virou alimento do caso e saiu do menu.
+    expect(grupoNavAtivo("/matriz-juridica", "", pesquisa)).toBe(false);
     expect(grupoNavAtivo("/pesquisa-modulo", "", pesquisa)).toBe(true);
   });
 
   it("o grupo Inteligência entra no módulo vivo e no dossiê do Legado", () => {
     const bib = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
-    expect(bib.to).toBe("/biblioteca");
+    expect(bib.to).toBe("/pesquisa-modulo");
     const rotas = bib.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/pesquisa-modulo");
-    expect(rotas).toContain("/pesquisa");
+    // V4: o dossiê legado saiu do menu; o módulo vivo é /pesquisa-modulo.
+    expect(rotas).toContain("/pesquisa-modulo");
   });
 });
 

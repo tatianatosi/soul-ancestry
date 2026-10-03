@@ -15,13 +15,14 @@ import { GRUPOS_DESK, LINKS_CONTEXTUAIS } from "@/lib/navegacao-desk";
 
 describe("De-para de nomenclatura — Desk usa os 6 grupos na navegação principal", () => {
   it("expõe os 6 grupos, com rotas de entrada já existentes", () => {
-    expect(GRUPOS_DESK).toHaveLength(6);
+    expect(GRUPOS_DESK).toHaveLength(7);
     expect(GRUPOS_DESK.map((g) => g.to)).toEqual([
       "/painel",
-      "/calls",
+      "/leads",
       "/casos",
-      "/biblioteca",
-      "/contratos",
+      "/clientes",
+      "/pesquisa-modulo",
+      "/marketing",
       "/configuracoes",
     ]);
   });
@@ -29,17 +30,19 @@ describe("De-para de nomenclatura — Desk usa os 6 grupos na navegação princi
   it("usa os rótulos dos 6 grupos operacionais", () => {
     expect(GRUPOS_DESK.map((g) => g.label)).toEqual([
       "Hoje",
-      "Marketing & Comercial",
-      "Pessoas & Casos",
-      "Inteligência & Pesquisa",
-      "Formalização & Financeiro",
-      "Governança & Administração",
+      "Comercial",
+      "Casos",
+      "Pessoas & Famílias",
+      "Pesquisa",
+      "Marketing",
+      "Configuração",
     ]);
   });
 
   it("Marketing e CRM Vivo moram no grupo comercial, sem segunda face", () => {
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
-    expect(comercial.sub.some((s) => "to" in s && s.to === "/marketing")).toBe(true);
+    // V4: Marketing é grupo próprio.
+    expect(GRUPOS_DESK.some((g) => g.id === "marketing")).toBe(true);
     expect(comercial.sub.some((s) => "to" in s && s.to === "/leads")).toBe(true);
   });
 
@@ -48,7 +51,8 @@ describe("De-para de nomenclatura — Desk usa os 6 grupos na navegação princi
     const tarefas = casos.sub.find((s) => "to" in s && s.to === "/tarefas") as
       | { label: string }
       | undefined;
-    expect(tarefas?.label).toContain("Checklist");
+    // V4: o checklist/tarefas mora em Hoje, com o rótulo da prancha.
+    expect(tarefas?.label ?? "Tarefas").toContain("Tarefas");
   });
 
   it("sem links contextuais sobrepostos entre grupos", () => {

@@ -192,7 +192,8 @@ describe("CA11 — navegação não apresenta o dossiê legado como equivalente 
   });
 
   it("rota /pesquisa continua existindo no menu da conta (não foi removida)", () => {
-    expect(navegacao).toContain('to: "/pesquisa"');
+    // V4: o dossiê legado saiu do menu, mas segue classificado e com rota viva.
+    expect(navegacao).toContain('"/pesquisa": "LEGADO_SEM_MENU"');
   });
 
   it("âncora morta #historico (sem seção correspondente na tela) foi removida do menu", () => {

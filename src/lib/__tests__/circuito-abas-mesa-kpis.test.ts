@@ -18,9 +18,9 @@ const ler = (p: string) => readFileSync(p, "utf8");
 
 describe("Abas — circuito nas seis áreas (sem tela nova)", () => {
   it("Desk tem exatamente 6 grupos e Calls mora em Marketing & Comercial", () => {
-    expect(GRUPOS_DESK).toHaveLength(6);
+    expect(GRUPOS_DESK).toHaveLength(7);
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial");
-    expect(comercial?.label).toBe("Marketing & Comercial");
+    expect(comercial?.label).toBe("Comercial");
     expect(comercial?.sub.some((i) => "to" in i && i.to === "/calls")).toBe(true);
   });
 
@@ -33,7 +33,9 @@ describe("Abas — circuito nas seis áreas (sem tela nova)", () => {
   it("Pessoas & Casos recebe o destino do handoff (/casos, /clientes)", () => {
     const casos = GRUPOS_DESK.find((g) => g.id === "casos");
     expect(casos?.sub.some((i) => "to" in i && i.to === "/casos")).toBe(true);
-    expect(casos?.sub.some((i) => "to" in i && i.to === "/clientes")).toBe(true);
+    // V4: /clientes é Pessoa 360, no grupo Pessoas & Famílias.
+    const pessoas = GRUPOS_DESK.find((g) => g.id === "pessoas");
+    expect(pessoas?.sub.some((i) => "to" in i && i.to === "/clientes")).toBe(true);
   });
 });
 

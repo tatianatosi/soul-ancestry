@@ -143,8 +143,9 @@ describe("Dicionário de validações Calls → CRM", () => {
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial");
     const rotas = comercial?.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/calls");
-    expect(rotas).toContain("/crm-mestre");
-    expect(rotas).toContain("/governanca/dicionario-calls-crm");
+    // V4: dicionário virou alimento contextual, fora do menu.
+    expect(rotas).not.toContain("/crm-mestre");
+    expect(rotas).not.toContain("/governanca/dicionario-calls-crm");
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca");
     const rotasGov = gov?.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotasGov).not.toContain("/governanca/dicionario-calls-crm");

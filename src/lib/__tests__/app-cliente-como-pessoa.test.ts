@@ -59,7 +59,9 @@ describe("navegação — App Cliente como pessoa é alcançável em Casos 360",
     const casos = GRUPOS_DESK.find((g) => g.id === "casos")!;
     const rotas = casos.sub.map((s) => ("to" in s ? s.to : null));
     expect(rotas).not.toContain("/app-cliente-demo");
-    expect(rotas).toContain("/app-cliente-como-pessoa");
+    // V4: a visão administrativa do App mora em Pessoas & Famílias.
+    const pessoas = GRUPOS_DESK.find((g) => g.id === "pessoas")!;
+    expect(pessoas.sub.some((s) => "to" in s && s.to === "/app-cliente-como-pessoa")).toBe(true);
   });
 });
 

@@ -24,8 +24,9 @@ export type GrupoAssistenteId =
   | "hoje"
   | "comercial"
   | "casos"
+  | "pessoas"
+  | "marketing"
   | "pesquisa"
-  | "contratos"
   | "governanca";
 
 export type RegraAssistente = {
@@ -61,7 +62,7 @@ export const REGRAS_ASSISTENTE: readonly RegraAssistente[] = [
   },
   {
     grupo: "comercial",
-    label: "Marketing & Comercial",
+    label: "Comercial",
     contexto: "Leads, Calls, Discovery, proposta e conversão — CRM Vivo",
     resultado: "Explicar o funil e o próximo passo comercial, sem inventar origem",
     papeis: ["admin", "operacoes", "comercial", "leitura"],
@@ -69,15 +70,23 @@ export const REGRAS_ASSISTENTE: readonly RegraAssistente[] = [
   },
   {
     grupo: "casos",
-    label: "Pessoas & Casos",
+    label: "Casos",
     contexto: "Caso confirmado, núcleo, checklist, radar e portal",
     resultado: "Sintetizar estado do caso e próximos passos internos",
     papeis: ["admin", "operacoes", "pesquisador", "comercial", "financeiro", "leitura"],
     analisaCaso: true,
   },
   {
+    grupo: "pessoas",
+    label: "Pessoas & Famílias",
+    contexto: "Pessoa 360, núcleos familiares, participantes e acesso ao App",
+    resultado: "Explicar vínculos e pendências de pessoa sem fundir ninguém por semelhança",
+    papeis: ["admin", "operacoes", "pesquisador", "comercial", "leitura"],
+    analisaCaso: true,
+  },
+  {
     grupo: "pesquisa",
-    label: "Inteligência & Pesquisa",
+    label: "Pesquisa",
     contexto: "Biblioteca Mestre, evidências, dossiê do Legado e Validação Jurídica",
     resultado:
       "Organizar evidências existentes e formular hipóteses marcadas como não confirmadas",
@@ -85,16 +94,16 @@ export const REGRAS_ASSISTENTE: readonly RegraAssistente[] = [
     analisaCaso: true,
   },
   {
-    grupo: "contratos",
-    label: "Formalização & Financeiro",
-    contexto: "Contrato vivo, catálogo homologado, OS e financeiro interno",
-    resultado: "Explicar pendência de formalização sem emitir parecer automático",
-    papeis: ["admin", "operacoes", "financeiro", "leitura"],
-    analisaCaso: true,
+    grupo: "marketing",
+    label: "Marketing",
+    contexto: "Aquisição, campanhas, origem de leads e biblioteca de mensagens",
+    resultado: "Explicar origem e desempenho sem inventar atribuição",
+    papeis: ["admin", "operacoes", "comercial", "leitura"],
+    analisaCaso: false,
   },
   {
     grupo: "governanca",
-    label: "Governança & Administração",
+    label: "Configuração",
     contexto: "Papéis, legado arquivado, integrações e configurações",
     resultado: "Orientar administração sem misturar com a fila do dia",
     papeis: TODOS,
