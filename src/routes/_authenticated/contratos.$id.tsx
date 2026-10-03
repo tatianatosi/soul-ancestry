@@ -39,6 +39,7 @@ import {
   tentarEtapaExterna,
   visualizarVersaoInterna,
 } from "@/lib/contratos.functions";
+import { diagnosticarVersaoContratual, versaoMaisRecente } from "@/lib/versao-contratual-vazia";
 import { salvarTarefa } from "@/lib/ops.functions";
 import { listarEquipe } from "@/lib/equipe.functions";
 
@@ -243,6 +244,30 @@ function ContratoDetalhe() {
         de fato mutam. Removidos daqui; a aba correspondente continua
         acessível pela nav.
       */}
+      {/*
+        03/10/2026 — achado no caso real da Ana: o instrumento está nomeado
+        "Contrato de Estudo Genealógico v2" e aponta para o modelo aprovado
+        (12 KB de cláusulas), mas a única versão gerada é de 21/08, anterior
+        às correções do gerador: conteúdo com zero cláusula, rotulado
+        "contrato-base". A tela mostrava isso em silêncio, como se fosse o
+        contrato. Agora diz o que está errado e o que fazer.
+      */}
+      {(() => {
+        const dg = diagnosticarVersaoContratual(versaoMaisRecente((d.versoes as any[]) ?? []));
+        if (!dg.vazia) return null;
+        return (
+          <div role="alert" className="mt-4 rounded-lg border border-terracotta/40 bg-terracotta/5 p-3 text-xs text-navy/80" data-versao-vazia>
+            <p className="font-medium text-terracotta">A versão mais recente não tem o texto contratual.</p>
+            <ul className="mt-1 list-disc space-y-0.5 pl-4">
+              {dg.motivos.map((m2, i) => (
+                <li key={i}>{m2}</li>
+              ))}
+            </ul>
+            {dg.acao ? <p className="mt-2">{dg.acao}</p> : null}
+          </div>
+        );
+      })()}
+
       <div className="mt-4 flex flex-wrap items-start gap-2">
         {(d.versoes as any[]).length ? (
           <input
