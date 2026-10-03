@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import {
   aprovarMicroentregaGoLive,
   criarMicroentregaGoLive,
-  publicarNoAppGoLive,
+  salvarRascunhoProjecaoApp,
 } from "@/lib/golive-escritores.functions";
 import {
   concluida,
@@ -27,6 +27,7 @@ import {
   prazoEmFatias,
   type MicroentregaGoLive,
 } from "@/lib/golive-microentregas";
+import { RascunhosApp } from "@/components/golive/rascunhos-app";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/microentregas")({
@@ -47,7 +48,7 @@ function MicroentregasGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
   const aprovar = useServerFn(aprovarMicroentregaGoLive);
-  const publicar = useServerFn(publicarNoAppGoLive);
+  const salvarRascunho = useServerFn(salvarRascunhoProjecaoApp);
   const criar = useServerFn(criarMicroentregaGoLive);
 
   const itens = useMemo<MicroentregaGoLive[]>(
@@ -56,9 +57,6 @@ function MicroentregasGoLive() {
   );
   const ordenadas = useMemo(() => ordenarMicroentregas(itens), [itens]);
   const fatias = useMemo(() => prazoEmFatias(itens), [itens]);
-  const publicadas = new Set(
-    (caso?.publicados ?? []).filter((p) => p.tipo === "microentrega").map((p) => p.id),
-  );
   const concluidas = itens.filter(concluida).length;
   const semPrazo = itens.filter((item) => !item.prazo).length;
   const aguardandoRevisao = itens.filter((item) => !concluida(item)).length;
@@ -134,14 +132,22 @@ function MicroentregasGoLive() {
                 <div className="mt-2 flex flex-wrap gap-2">
                   {concluida(m) ? (
                     <Acao
-                      rotulo={publicadas.size ? "Publicar no App" : "Publicar no App"}
+                      rotulo="Escrever para a família"
                       titulo="Texto que a família vai ler"
                       variante="outline"
                       campos={[
                         { nome: "resumo", rotulo: "Resumo para a família", tipo: "area", obrigatorio: true },
                       ]}
+                      /*
+                        03/10/2026: salva RASCUNHO, não publica. O texto fica
+                        gravado e editável (“Rascunhos para o App”, abaixo), e
+                        publicar é um segundo ato explícito. Antes era um
+                        clique só, de uma caixa que não guardava nada — e um
+                        texto com vocabulário interno ficava "publicado" no
+                        banco enquanto o cliente via tela vazia.
+                      */
                       aoConfirmar={(v) =>
-                        publicar({
+                        salvarRascunho({
                           data: {
                             microentregaId: m.id,
                             resumoSanitizado: v["resumo"] ?? "",
@@ -149,7 +155,7 @@ function MicroentregasGoLive() {
                           },
                         })
                       }
-                      confirmacao="Publicado no App do cliente."
+                      confirmacao="Rascunho salvo. Revise e publique em “Rascunhos para o App”."
                     />
                   ) : (
                     <Acao
@@ -172,7 +178,16 @@ function MicroentregasGoLive() {
         )}
       </Bloco>
 
-      <Bloco titulo="3. Nova microentrega">{acaoNova}</Bloco>
+      {/*
+        03/10/2026 — o texto que vai ao cliente passa por aqui: gravado,
+        editável depois de recarregar, e publicado num segundo ato. É onde a
+        revisão de copy da marca acontece.
+      */}
+      <Bloco titulo="3. Rascunhos para o App">
+        <RascunhosApp />
+      </Bloco>
+
+      <Bloco titulo="4. Nova microentrega">{acaoNova}</Bloco>
     </GoLiveShell>
   );
 }

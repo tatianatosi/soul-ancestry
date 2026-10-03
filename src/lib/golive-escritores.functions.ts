@@ -10,10 +10,12 @@
  *   telefone igual devolve "confirmar", nome sozinho cria nova.
  */
 import { createServerFn } from "@tanstack/react-start";
-import { exigirPublicavelNoApp, exigirTipoPublicavelNoApp } from "@/lib/projecao-publicavel";
+import { exigirPublicavelNoApp, exigirTipoPublicavelNoApp, recusaDePublicacaoNoApp } from "@/lib/projecao-publicavel";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { CODIGO_CASO_GO_LIVE } from "@/lib/golive.functions";
 import { etapaDoResultado, passoDeEtapa } from "@/lib/golive-comercial";
 import { tipoEvidenciaCanonico } from "@/lib/evidencia-canonica";
@@ -1107,6 +1109,163 @@ export const aprovarMicroentregaGoLive = createServerFn({ method: "POST" })
   });
 
 /** Publica um conteúdo já sanitizado no App do cliente, com autor e data. */
+/*
+  Rascunho editável antes de publicar (03/10/2026) — pedido literal da
+  Proprietária: "veja se temos um campo que podemos editar o texto antes de
+  ser publicado sempre com persistência universal... no futuro tudo terá que
+  ser revisado com copy da marca".
+
+  Não tínhamos. `publicarNoAppGoLive` ia direto a `published`, com insert cru
+  (sem releitura, sem auditoria) e — defeito medido no caso da Ana — SEM o
+  guard de fronteira, que ficou só em `publicarInstrumentoNoAppGoLive`. O
+  resultado real: a microentrega da Ana ficou "publicada" no banco com a
+  palavra "fontes", e o App a descartou em silêncio. Desk dizia entregue,
+  cliente via tela vazia.
+
+  O rascunho é interno, então PERSISTE mesmo com texto que ainda não pode ir
+  ao cliente — é exatamente o estado em que o texto precisa ser editado e
+  revisado. Quem recusa é a publicação, não o salvamento, e a recusa volta
+  com o motivo para a tela mostrar antes.
+*/
+export const salvarRascunhoProjecaoApp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id?: string | null; microentregaId?: string | null; resumoSanitizado: string; tipo?: string }) => {
+    if (!texto(d?.resumoSanitizado)) throw new Error("Escreva o texto que o cliente vai ler.");
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    const s = context.supabase as any;
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const conteudo = texto(data.resumoSanitizado);
+    const tipo = texto(data.tipo) || "microentrega";
+
+    const payload = { content_sanitized: conteudo, projection_type: tipo, approval_status: "draft" };
+    const r = data.id
+      ? await gravarComVerificacao({ supabase: s, tabela: "app_projections", id: data.id, organizationId, userId, payload })
+      : await inserirComVerificacao({
+          supabase: s,
+          tabela: "app_projections",
+          organizationId,
+          userId,
+          payload: {
+            ...payload,
+            case_id: casoId,
+            source_entity_type: "milestone",
+            source_entity_id: texto(data.microentregaId) || null,
+            destination: "app",
+            visibility_scope: "titular",
+          },
+        });
+    const id = data.id ?? ((r as { id?: string }).id ?? null);
+
+    await s.from("audit_logs").insert({
+      organization_id: organizationId,
+      entidade: "app_projections",
+      entidade_id: id,
+      acao: data.id ? "projecao_app_rascunho_editado" : "projecao_app_rascunho_criado",
+      user_id: userId,
+      metadados: { case_id: casoId, tipo },
+    });
+
+    /*
+      O rascunho foi gravado e relido. `recusa` não é erro: é o aviso de que
+      ESTE texto ainda não chegaria ao cliente, para a equipe corrigir antes
+      de publicar. Publicar é um ato separado e explícito.
+    */
+    const recusa = recusaDePublicacaoNoApp(conteudo);
+    return { id, salvoEm: r.salvoEm, conteudo, tipo, recusa };
+  });
+
+/** Rascunhos do caso ativo, para o Desk revisar antes de publicar. */
+export const listarRascunhosProjecaoApp = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    semCache();
+    const s = context.supabase as any;
+    const { organizationId, casoId } = await contexto(s, context.userId as string);
+    const r = await s
+      .from("app_projections")
+      .select("id,projection_type,content_sanitized,updated_at,created_at")
+      .eq("organization_id", organizationId)
+      .eq("case_id", casoId)
+      .eq("approval_status", "draft")
+      .is("archived_at", null)
+      .order("created_at", { ascending: false });
+    erro(r);
+    return ((r.data ?? []) as any[]).map((l) => {
+      const conteudo = String(l.content_sanitized ?? "");
+      return {
+        id: String(l.id),
+        tipo: String(l.projection_type ?? ""),
+        conteudo,
+        atualizadoEm: (l.updated_at as string | null) ?? (l.created_at as string | null) ?? null,
+        recusa: recusaDePublicacaoNoApp(conteudo),
+      };
+    });
+  });
+
+/** Publica um rascunho já revisado. Aqui, sim, o guard recusa. */
+export const publicarRascunhoProjecaoApp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => {
+    if (!texto(d?.id)) throw new Error("Rascunho não informado.");
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    const s = context.supabase as any;
+    const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
+    const { data: rascunho } = await s
+      .from("app_projections")
+      .select("id,projection_type,content_sanitized,approval_status")
+      .eq("id", data.id)
+      .eq("organization_id", organizationId)
+      .eq("case_id", casoId)
+      .maybeSingle();
+    if (!rascunho) throw new Error("Rascunho não encontrado neste caso.");
+    if (String(rascunho.approval_status) !== "draft") {
+      throw new Error("Este registro não é um rascunho — só rascunho é publicado por aqui.");
+    }
+
+    const tipo = exigirTipoPublicavelNoApp(rascunho.projection_type);
+    const conteudo = exigirPublicavelNoApp(rascunho.content_sanitized);
+
+    const agora = new Date().toISOString();
+    const r = await gravarComVerificacao({
+      supabase: s,
+      tabela: "app_projections",
+      id: String(rascunho.id),
+      organizationId,
+      userId,
+      payload: {
+        projection_type: tipo,
+        content_sanitized: conteudo,
+        approval_status: "published",
+        approved_by: userId,
+        approved_at: agora,
+        effective_from: agora,
+      },
+    });
+    await s.from("audit_logs").insert({
+      organization_id: organizationId,
+      entidade: "app_projections",
+      entidade_id: String(rascunho.id),
+      acao: "projecao_app_publicada",
+      user_id: userId,
+      metadados: { case_id: casoId, tipo },
+    });
+    await registrarTimelineCaso(s, {
+      organizationId,
+      caseId: casoId,
+      eventType: "caso",
+      title: "Publicação liberada no App",
+      summaryInternal: conteudo,
+      sourceEntityType: "app_projections",
+      sourceEntityId: String(rascunho.id),
+      userId,
+    });
+    return { id: String(rascunho.id), salvoEm: r.salvoEm, conteudo };
+  });
+
 export const publicarNoAppGoLive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { microentregaId: string; resumoSanitizado: string; tipo?: string }) => d)
@@ -1116,28 +1275,36 @@ export const publicarNoAppGoLive = createServerFn({ method: "POST" })
     const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
     if (!texto(data.resumoSanitizado)) throw new Error("Escreva o texto que o cliente vai ler.");
 
+    /*
+      Guard que faltava aqui (03/10/2026). Era o único caminho de publicação
+      sem ele — e foi por aqui que a microentrega da Ana entrou com a palavra
+      "fontes" e virou tela vazia no App. Recusar com motivo é melhor que
+      publicar e o cliente não ver.
+    */
+    const tipo = exigirTipoPublicavelNoApp(texto(data.tipo) || "microentrega");
+    const conteudo = exigirPublicavelNoApp(data.resumoSanitizado);
+
     const agora = new Date().toISOString();
-    const r = await s
-      .from("app_projections")
-      .insert({
-        organization_id: organizationId,
+    const r = await inserirComVerificacao({
+      supabase: s,
+      tabela: "app_projections",
+      organizationId,
+      userId,
+      payload: {
         case_id: casoId,
         source_entity_type: "milestone",
         source_entity_id: data.microentregaId,
-        projection_type: texto(data.tipo) || "microentrega",
+        projection_type: tipo,
         destination: "app",
-        content_sanitized: texto(data.resumoSanitizado),
+        content_sanitized: conteudo,
         approval_status: "published",
         approved_by: userId,
         approved_at: agora,
         effective_from: agora,
         visibility_scope: "titular",
-        created_by: userId,
-      })
-      .select("id")
-      .single();
-    erro(r);
-    return { id: String(r.data.id) };
+      },
+    });
+    return { id: String((r as { id?: string }).id ?? "") };
   });
 
 /**
