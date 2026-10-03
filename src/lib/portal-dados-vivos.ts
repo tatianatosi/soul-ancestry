@@ -18,6 +18,7 @@
  */
 import { diasEntre, saudeDoPlano, contemConteudoInterno, FASES_JORNADA } from "@/lib/onboarding-jornada";
 import { pontesDeUniaoDeRamos, TIPO_UNIAO_RAMOS, type PonteUniaoRamos } from "@/lib/uniao-ramos";
+import { TIPO_ASSINATURA, TIPO_UPSELL } from "@/lib/assinatura-app";
 import {
   publicacoesParaCliente,
   TIPOS_ENTREGA_APP,
@@ -97,7 +98,14 @@ export function jornadaSanitizada(
     como evento solto e como ponte. Ela sai da linha e entra em `pontes`,
     com a legenda já sanitizada pelo mesmo caminho das outras.
   */
-  const linha = todas.filter((p) => p.tipo !== TIPO_UNIAO_RAMOS);
+  /*
+    03/10/2026 — assinatura e upsell (A7) também saem da linha: são blocos da
+    Conta, com valor em campo estruturado, e nunca um cartão de entrega na
+    Jornada. Sem isto, o preço autorizado só na Conta apareceria na linha da
+    jornada como evento.
+  */
+  const FORA_DA_LINHA = new Set<string>([TIPO_UNIAO_RAMOS, TIPO_ASSINATURA, TIPO_UPSELL]);
+  const linha = todas.filter((p) => !FORA_DA_LINHA.has(p.tipo));
   const pontes = pontesDeUniaoDeRamos(
     projecoes,
     linha.map((p) => p.id),

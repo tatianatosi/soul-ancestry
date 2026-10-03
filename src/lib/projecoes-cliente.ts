@@ -50,6 +50,15 @@ export const TIPO_PROJECAO_ROTULO: Record<string, string> = {
   plano: "Seu plano",
   uniao_ramos: "União de ramos",
   /*
+    A7 liberado em 03/10/2026 com escopo estreito ("somente devemos mostrar
+    sua assinatura e possibilidade de upsell com preço"). O valor entra como
+    campo numérico estruturado em `assinatura-app.ts`; texto livre continua
+    sem preço. Nenhum dos dois rende cartão de entrega na jornada: moram na
+    Conta.
+  */
+  assinatura: "Sua assinatura",
+  upsell: "Próximo nível disponível",
+  /*
     Varredura de 03/10/2026: estes três tipos já eram esperados por
     `TIPOS_FASE_01`/`TIPOS_FASE_02` e por `TAXONOMIA_ENTREGA`
     (`app-visibilidade.ts`), mas não tinham rótulo aqui — então caíam no

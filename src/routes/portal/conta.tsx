@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { planoPublicado } from "@/lib/plano-publicacao";
+import { assinaturaPublicada, upsellsPublicados } from "@/lib/assinatura-app";
 import { publicacoesParaCliente } from "@/lib/projecoes-cliente";
 import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
@@ -58,6 +59,15 @@ export function PortalConta() {
    * leitor recusam).
    */
   const plano = planoPublicado(vivo.data?.projecoes ?? []);
+  /*
+   * A7 liberado em 03/10/2026, com escopo da própria Proprietária: "somente
+   * devemos mostrar sua assinatura e possibilidade de upsell com preço".
+   * Até aqui o App era sem preço nenhum. Entram só estes dois blocos, com o
+   * valor em campo estruturado (`assinatura-app.ts`) — nunca parcela,
+   * desconto, cobrança, contrato ou código de catálogo, que seguem recusados no servidor.
+   */
+  const assinatura = assinaturaPublicada(vivo.data?.projecoes ?? []);
+  const upsells = upsellsPublicados(vivo.data?.projecoes ?? []);
 
   /**
    * Corte 3b (01/10/2026) — "Atualização da equipe" publicada em
@@ -130,6 +140,49 @@ export function PortalConta() {
               <h2 className="font-serif text-xl text-navy">Estamos por perto</h2>
               <p className="mt-2 text-sm text-navy/75">{acompanhamento}</p>
               <p className="mt-3 text-xs text-navy/55">Para conversar sobre documentos ou sobre a sua jornada, use os canais de contato já combinados com a equipe.</p>
+            </section>
+
+            <section data-conta-assinatura className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
+              <h2 className="font-serif text-xl text-navy">Sua assinatura</h2>
+              {assinatura ? (
+                <>
+                  <p className="mt-2 text-sm text-navy" data-conta-assinatura-nome>
+                    {assinatura.nome}
+                  </p>
+                  <p className="mt-1 font-serif text-2xl text-navy" data-conta-assinatura-valor>
+                    {assinatura.valor}{" "}
+                    <span className="text-sm text-navy/60">{assinatura.periodicidadeRotulo}</span>
+                  </p>
+                  {assinatura.situacao ? (
+                    <p className="mt-1 text-xs text-navy/60">{assinatura.situacao}</p>
+                  ) : null}
+                </>
+              ) : (
+                <p className="mt-2 text-sm text-navy/70">
+                  A sua assinatura ainda não foi publicada aqui. A equipe informa o valor e a periodicidade pelos
+                  canais já combinados.
+                </p>
+              )}
+              {upsells.length > 0 ? (
+                <div className="mt-4 border-t border-border pt-3" data-conta-upsell>
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">
+                    Próximo nível disponível
+                  </p>
+                  <ul className="mt-2 space-y-2">
+                    {upsells.map((u) => (
+                      <li key={u.id} className="rounded-xl border border-gold/40 bg-gold/5 px-4 py-3">
+                        <p className="text-sm text-navy">{u.nome}</p>
+                        <p className="mt-0.5 text-sm text-navy">
+                          {u.valor} <span className="text-xs text-navy/60">{u.periodicidadeRotulo}</span>
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-2 text-xs text-navy/55">
+                    Para avançar de nível, fale com a equipe pelos canais já combinados. Nada é cobrado por aqui.
+                  </p>
+                </div>
+              ) : null}
             </section>
 
             {plano ? <section data-conta-plano className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">

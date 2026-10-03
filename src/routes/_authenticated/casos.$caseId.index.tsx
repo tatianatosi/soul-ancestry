@@ -41,6 +41,7 @@ import { CadeiaCaso360 } from "@/components/caso/cadeia-caso-360";
 import { FormularioTarefaCaso } from "@/components/caso/formulario-tarefa-caso";
 import { PlanejadorOperacional } from "@/components/contrato/planejador-operacional";
 import { PublicarPlanoApp } from "@/components/contrato/publicar-plano-app";
+import { PublicarAssinaturaApp } from "@/components/contrato/publicar-assinatura-app";
 import { PainelJornadaPlanejador } from "@/components/caso/jornada-planejador";
 import { AbaVisaoGeral } from "@/components/caso/visao-geral";
 import { RadarInternoCaso } from "@/components/caso/radar-interno";
@@ -2046,6 +2047,8 @@ function FichaCaso() {
           */}
           {/* Corte 3a (01/10/2026): o plano que o cliente vê na Conta do App. */}
           <PublicarPlanoApp caseId={id} />
+
+          <PublicarAssinaturaApp caseId={id} />
 
           <div className="grid gap-5 lg:grid-cols-2">
             <Secao titulo="Eixo comercial">
