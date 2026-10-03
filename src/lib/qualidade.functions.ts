@@ -1,4 +1,5 @@
 import { semCache } from "@/lib/no-store";
+import { semFixtures } from "@/lib/fixtures";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
@@ -148,7 +149,7 @@ export const listarChecklists = createServerFn({ method: "GET" })
     const [casos, modelos, itens] = await Promise.all([
       supabase
         .from("crm_casos")
-        .select("id,codigo,titulo,status,fase,tipo_servico")
+        .select("id,codigo,titulo,status,fase,tipo_servico,demo,dados_teste,data_origin")
         .eq("organization_id", ctx.organizationId)
         .is("archived_at", null)
         .order("codigo"),
@@ -174,7 +175,12 @@ export const listarChecklists = createServerFn({ method: "GET" })
     for (const r of [casos, modelos, itens] as any[]) if (r.error) throw new Error(r.error.message);
 
     return {
-      casos: (casos.data ?? []) as Record<string, any>[],
+      /*
+        Corte 1c-bis (03/10/2026): este é o seletor de caso do checklist de
+        qualidade e listava todos os casos — incluindo os 2 demo/teste que o
+        banco tem ativos hoje. Fixture segue existindo, fora do seletor.
+      */
+      casos: semFixtures((casos.data ?? []) as Record<string, any>[]) as Record<string, any>[],
       modelos: (modelos.data ?? []) as Record<string, any>[],
       itens: ((itens as any).data ?? []) as Record<string, any>[],
       podeTratar: ctx.podeTratar,

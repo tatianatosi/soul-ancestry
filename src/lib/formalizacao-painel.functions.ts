@@ -1,4 +1,5 @@
 import { semCache } from "@/lib/no-store";
+import { semFixtures } from "@/lib/fixtures";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -30,7 +31,7 @@ export const painelFormalizacao = createServerFn({ method: "GET" })
       supabase
         .from("crm_casos")
         .select(
-          "id,codigo,titulo,contrato_assinado,pagamento_confirmado,ativo,onboarding_iniciado_em,dossie_mae_referencia,eixo_comercial,eixo_formalizacao,status_caso_derivado,ultimo_touchpoint_em,aguardando_instituicao_externa,motivo_espera_externa,proxima_acao,prazo_proxima_acao,created_at",
+          "id,codigo,titulo,contrato_assinado,pagamento_confirmado,ativo,onboarding_iniciado_em,dossie_mae_referencia,eixo_comercial,eixo_formalizacao,status_caso_derivado,ultimo_touchpoint_em,aguardando_instituicao_externa,motivo_espera_externa,proxima_acao,prazo_proxima_acao,created_at,demo,dados_teste,data_origin",
         )
         .eq("organization_id", org)
         .is("archived_at", null)
@@ -53,7 +54,14 @@ export const painelFormalizacao = createServerFn({ method: "GET" })
     ]);
 
     const hoje = Date.now();
-    const lista = (casos ?? []) as any[];
+    /*
+      Corte 1c-bis (03/10/2026): o painel de Formalização listava TODOS os
+      casos. Conferido no banco: dos 4 ativos, 2 são demo/teste
+      (CA-DEMO-IT-2026-001 por `demo`/`data_origin`, CA-TESTE-VAL-2026-001 só
+      pela rede de segurança do rótulo) e apareciam no pipeline ao lado do
+      caso real da Ana. Fixture continua no banco, fora da lista operacional.
+    */
+    const lista = semFixtures((casos ?? []) as any[]) as any[];
     const nucleoPorCaso = new Set((nucleos ?? []).map((n: any) => n.case_id));
     const nome = (c: any) => c.codigo ?? c.titulo ?? c.id;
 

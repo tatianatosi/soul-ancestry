@@ -21,7 +21,12 @@ describe("duplicidade preventiva — e-mail, telefone e CPF", () => {
     // `clientes.cpf` existe desde a migration 20260902144855 (Pessoa
     // Canônica). O comentário antigo da função dizia o contrário e por isso
     // CPF ficava de fora da prevenção.
-    expect(clientesFn).toContain('.select("id, nome, email, telefone, cpf, classificacao")');
+    // Corte 1c-bis (03/10/2026): o select ganhou as flags de fixture
+    // (demo/is_demo/data_origin) para a prevenção não apontar cliente de
+    // demonstração como duplicata de pessoa real — por isso a asserção checa
+    // as colunas que importam, não a lista literal.
+    expect(clientesFn).toMatch(/\.select\("id, nome, email, telefone, cpf, classificacao/);
+    expect(clientesFn).toContain('.from("clientes")');
     expect(clientesFn).toContain('motivos.push("mesmo CPF")');
   });
 

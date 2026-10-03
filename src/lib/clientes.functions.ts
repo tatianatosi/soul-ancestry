@@ -6,6 +6,7 @@ import { organizacaoDo } from "@/lib/caso-canonico.server";
 import { contextoInterno } from "@/lib/comercial.server";
 import { elegibilidadeAtivacao, type Classificacao, type PessoaLista } from "@/lib/clientes-lista";
 import { semCache } from "@/lib/no-store";
+import { semFixtures } from "@/lib/fixtures";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { normalizarCpf } from "@/lib/pessoa-identidade";
 
@@ -180,7 +181,7 @@ export const verificarDuplicidadeCliente = createServerFn({ method: "POST" })
 
     const { data: linhas } = await supabase
       .from("clientes")
-      .select("id, nome, email, telefone, cpf, classificacao")
+      .select("id, nome, email, telefone, cpf, classificacao, demo, is_demo, data_origin")
       .eq("organization_id", organizationId)
       .is("archived_at", null)
       .limit(2000);
@@ -192,7 +193,12 @@ export const verificarDuplicidadeCliente = createServerFn({ method: "POST" })
     const cpf = normalizarCpf(data.cpf ?? null);
 
     const achados: PossivelDuplicidadeCliente[] = [];
-    for (const l of (linhas ?? []) as PossivelDuplicidadeCliente[]) {
+    /*
+      Corte 1c-bis (03/10/2026): a detecção de duplicidade comparava contra
+      clientes de demonstração também, e apontava fixture como "possível
+      duplicata" de pessoa real. Fixture nunca é candidata a fusão.
+    */
+    for (const l of semFixtures((linhas ?? []) as PossivelDuplicidadeCliente[]) as PossivelDuplicidadeCliente[]) {
       const motivos: string[] = [];
       if (cpf && normalizarCpf(l.cpf) === cpf) motivos.push("mesmo CPF");
       if (email && (l.email ?? "").trim().toLowerCase() === email) motivos.push("mesmo e-mail");
