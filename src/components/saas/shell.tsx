@@ -26,6 +26,7 @@ import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
 import {
   GRUPOS_DESK,
   NAVEGACAO_V4_DESK,
+  ROTAS_FORA_DO_MENU,
   MENU_CONTA,
   grupoNavAtivo,
   itemNavAtivo,
@@ -297,7 +298,7 @@ export function SaasShell({
                 </button>
                 {expandida && sub.length ? (
                   <div className="mb-1 space-y-0.5 border-t border-cream/15 px-2 pb-2 pt-1 md:ml-7 md:border-l md:border-t-0 md:px-0 md:pb-0 md:pl-3 md:pt-0">
-                    {sub.filter((s) => !("to" in s && NAVEGACAO_V4_DESK.some((v) => v.to === s.to && !s.hash))).map((s, i) =>
+                    {sub.filter((s) => !("to" in s && ((NAVEGACAO_V4_DESK.some((v) => v.to === s.to && !s.hash)) || (ROTAS_FORA_DO_MENU as readonly string[]).includes(s.to)))).map((s, i) =>
                       "grupo" in s ? (
                         <p
                           key={`g-${s.grupo}`}

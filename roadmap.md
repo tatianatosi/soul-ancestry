@@ -150,3 +150,13 @@
 - [ ] Começar o acabamento do App por Home e Radar e completar as demais superfícies representadas nas 17 páginas, sem novas rotas.
 - [ ] Validar Home, Jornada, Radar, Árvore, Documentos e Conta em desktop e 375 px com sessão master, sem overflow ou erros de console.
 - [ ] Registrar cada seção do wireframe completo da Ana em desktop e 375 px, somente leitura.
+
+## Sanear o Desk V4 (02/10/2026)
+- [x] Passo 0 — sincronização confirmada
+- [x] Passo 1 — menu V4 de 7 itens (aguarda aprovação)
+- [ ] Passo 2 — um único Painel Hoje
+- [ ] Passo 3 — hipóteses num só bloco
+- [ ] Passo 4 — demonstração fora do caso real (interruptor)
+- [ ] Passo 5 — opções controladas nos campos
+- [ ] Passo 6 — Configuração e Governança reduzidas
+- [ ] Pedido anterior (cortes 1–4: gravação Passo 5, dicionário, hipótese só leitura no servidor, arquivar DEMO) — fundido nos passos acima
