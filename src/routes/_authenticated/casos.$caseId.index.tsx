@@ -59,6 +59,7 @@ import { AbaJornadaCliente } from "@/components/caso/jornada-cliente";
 import { AbaFechamento } from "@/components/caso/fechamento";
 import { AbaCadastro } from "@/components/caso/cadastro-checklist";
 import { PainelFichaUnica } from "@/components/caso/ficha-unica";
+import { PublicarUniaoRamos } from "@/components/caso/publicar-uniao-ramos";
 import { VinculoNucleo } from "@/components/caso/vinculo-nucleo";
 import { PessoasDoNucleo } from "@/components/caso/pessoas-do-nucleo";
 import { listarNucleos } from "@/lib/nucleos-desk.functions";
@@ -2419,6 +2420,13 @@ function FichaCaso() {
             propriamente dita, como moldura de tudo isso.
           */}
           <div className="space-y-8">
+            {/*
+              Corte 3c (03/10/2026) — a União de Ramos deixa de existir só na
+              demo: o Desk liga aqui as duas publicações que se encontram na
+              aba Jornada do App, por id, com legenda própria.
+            */}
+            <PublicarUniaoRamos caseId={id} />
+
             {/*
               P4 (25/09/2026) — a jornada persistida do plano (Produto-Pai,
               país/via, etapa, marco, responsável, bloqueio, próxima ação,

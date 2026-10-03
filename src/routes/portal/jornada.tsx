@@ -377,19 +377,36 @@ export function PortalJornada() {
                   .sort((a, b) => new Date(a.publicadoEm ?? 0).getTime() - new Date(b.publicadoEm ?? 0).getTime())
                   .map(noRealDeItem);
 
-            // União de Ramos: vínculo explícito por id — nunca por proximidade de data.
-            const temHistoria = jornada.linha.some((i) => i.id === UNIAO_DE_RAMOS_DEMO_SOPHIA.historiaProjecaoId);
-            const temCaso = jornada.linha.some((i) => i.id === UNIAO_DE_RAMOS_DEMO_SOPHIA.casoProjecaoId);
-            if (temHistoria && temCaso) {
-              const ponte: No = { tipo: "ponte", texto: UNIAO_DE_RAMOS_DEMO_SOPHIA.legenda };
-              if (ehDemo) {
+            /*
+              União de Ramos: vínculo explícito por id — nunca por proximidade
+              de data, nome parecido ou sobrenome em comum.
+
+              03/10/2026: para o cliente REAL, as pontes vêm de
+              `jornada.pontes` (projeções `uniao_ramos` publicadas pelo Desk,
+              com as duas pontas em `source_entity_id`/`vinculo_projecao_id`).
+              Antes só existia o par fixo da demo, então a ponte nunca
+              aparecia para cliente real, mesmo com o campo de vínculo já no
+              banco. A demo segue com o roteiro editorial próprio.
+            */
+            if (ehDemo) {
+              const temHistoria = jornada.linha.some((i) => i.id === UNIAO_DE_RAMOS_DEMO_SOPHIA.historiaProjecaoId);
+              const temCaso = jornada.linha.some((i) => i.id === UNIAO_DE_RAMOS_DEMO_SOPHIA.casoProjecaoId);
+              if (temHistoria && temCaso) {
                 // Roteiro editorial: a ponte entra após o 3º evento (posição 4 do roteiro).
-                nos.splice(3, 0, ponte);
-              } else {
-                const idx = nos.findIndex(
-                  (n) => n.tipo === "evento" && n.id === UNIAO_DE_RAMOS_DEMO_SOPHIA.historiaProjecaoId,
-                );
-                if (idx !== -1) nos.splice(idx + 1, 0, ponte);
+                nos.splice(3, 0, { tipo: "ponte", texto: UNIAO_DE_RAMOS_DEMO_SOPHIA.legenda });
+              }
+            } else {
+              // Ordem decrescente de posição: inserir de baixo para cima mantém
+              // os índices das pontes seguintes válidos.
+              const inserir = jornada.pontes
+                .map((ponte) => ({
+                  ponte,
+                  idx: nos.findIndex((n) => n.tipo === "evento" && n.id === ponte.historiaProjecaoId),
+                }))
+                .filter((x) => x.idx !== -1)
+                .sort((a2, b2) => b2.idx - a2.idx);
+              for (const { ponte, idx } of inserir) {
+                nos.splice(idx + 1, 0, { tipo: "ponte", texto: ponte.legenda });
               }
             }
 

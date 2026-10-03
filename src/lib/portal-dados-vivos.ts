@@ -17,6 +17,7 @@
  * expor alerta interno, gate, responsável ou SLA técnico.
  */
 import { diasEntre, saudeDoPlano, contemConteudoInterno, FASES_JORNADA } from "@/lib/onboarding-jornada";
+import { pontesDeUniaoDeRamos, TIPO_UNIAO_RAMOS, type PonteUniaoRamos } from "@/lib/uniao-ramos";
 import {
   publicacoesParaCliente,
   TIPOS_ENTREGA_APP,
@@ -71,6 +72,8 @@ export type JornadaCliente = {
    */
   ritmo: "regular" | "atencao" | "critico" | "sem_publicacao";
   linha: PublicacaoCliente[];
+  /** União de Ramos publicada pelo Desk: vínculo explícito por id, nunca inferido. */
+  pontes: PonteUniaoRamos[];
 };
 
 const TEXTO_RITMO: Record<"regular" | "atencao" | "critico", string> = {
@@ -87,7 +90,19 @@ export function jornadaSanitizada(
   hoje = new Date(),
   proximaDoMotor?: Pick<ProximaAcaoCliente, "acao"> | null,
 ): JornadaCliente {
-  const linha = publicacoesParaCliente(projecoes).filter((p) => !contemConteudoInterno(p.conteudo));
+  const todas = publicacoesParaCliente(projecoes).filter((p) => !contemConteudoInterno(p.conteudo));
+  /*
+    03/10/2026 — a União de Ramos é a PONTE entre dois marcos, não um marco a
+    mais. Sem tirá-la da linha, a mesma publicação apareceria duas vezes:
+    como evento solto e como ponte. Ela sai da linha e entra em `pontes`,
+    com a legenda já sanitizada pelo mesmo caminho das outras.
+  */
+  const linha = todas.filter((p) => p.tipo !== TIPO_UNIAO_RAMOS);
+  const pontes = pontesDeUniaoDeRamos(
+    projecoes,
+    linha.map((p) => p.id),
+    new Map(todas.filter((p) => p.tipo === TIPO_UNIAO_RAMOS).map((p) => [p.id, p.conteudo])),
+  );
   const ultima = linha[0]?.publicadoEm ?? null;
   const dias = diasEntre(ultima, hoje);
   const ritmo =
@@ -101,6 +116,7 @@ export function jornadaSanitizada(
     proximoPasso,
     ritmo,
     linha,
+    pontes,
   };
 }
 
