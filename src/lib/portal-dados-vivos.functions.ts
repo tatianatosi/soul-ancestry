@@ -106,7 +106,10 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       supabase
         .from("portal_projecoes")
         // Corte 2a (28/09/2026): pessoa e geração publicadas pela equipe para a aba Árvore.
-        .select("id, case_id, projection_type, content_sanitized, effective_from, updated_at, pessoa_id, geracao_cliente")
+        // Corte 3c (02/10/2026): as duas pontas da União de Ramos, só usadas quando projection_type = uniao_ramos.
+        .select(
+          "id, case_id, projection_type, content_sanitized, effective_from, updated_at, pessoa_id, geracao_cliente, source_entity_id, vinculo_projecao_id",
+        )
         .in("case_id", alvo),
       supabase.from("documents").select("id, liberado_cliente, origem, is_demo").in("case_id", alvo),
       // REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026): mesma consulta de antes,

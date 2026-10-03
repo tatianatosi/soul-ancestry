@@ -20,6 +20,9 @@ export type ProjecaoBruta = {
   /** Corte 2a: só projeções da árvore publicadas pela equipe trazem pessoa e geração. */
   pessoa_id?: string | null;
   geracao_cliente?: number | null;
+  /** Corte 3c (02/10/2026): só projeções do tipo uniao_ramos usam as duas pontas. */
+  source_entity_id?: string | null;
+  vinculo_projecao_id?: string | null;
 };
 
 export type PublicacaoCliente = {
