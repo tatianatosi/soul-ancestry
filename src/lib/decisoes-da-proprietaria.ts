@@ -284,3 +284,43 @@ export const AVISO_PRIVACIDADE = {
   url: "https://clubeancestral.com.br/",
   anexoContratual: "Anexo de privacidade e LGPD do contrato de estudo genealógico",
 } as const;
+
+/* ------------------------------------------------------------------ */
+/* Superfície de lançamento — regra permanente                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Onde o produto é lançado, e qual banco o rege.
+ *
+ * Instrução literal da Proprietária (03/10/2026): "Vou repetir novamente o
+ * lançamento não será no vercel e já tinha colocado como regra o lançamento
+ * será no Lovable e toda a base que rege está lá no supabase dele e não no
+ * outro pode mudar pra sempre".
+ *
+ * Isto existe porque a confusão já custou caro duas vezes: o `.env.example`
+ * apontava para o projeto legado (corrigido em `ab294fac`), e uma medição de
+ * 03/10 no deploy do Vercel mostrou `SUPABASE_URL` da integração legada
+ * (`zsxpdbhdvbuulwpepemd`) — o que levaria a "consertar" um ambiente que não
+ * é o do lançamento.
+ *
+ * Consequência prática, já garantida no código e travada por teste:
+ * `urlDoServidor()` e `chavePublicavelDoServidor()` só aceitam o ambiente
+ * quando ele aponta para o projeto DECLARADO; caso contrário vale o
+ * declarado. E `client.server.ts` recusa, com erro nomeado, um segredo que
+ * prove pertencer a outro projeto — em vez de deixá-lo virar "Invalid API
+ * key" mudo.
+ *
+ * O Vercel segue existindo como histórico. Não é a produção, não é a prova,
+ * e um problema de ambiente lá não é um problema do lançamento.
+ */
+export const SUPERFICIE_DE_LANCAMENTO = {
+  plataforma: "Lovable",
+  projetoLovable: "1a628b61-ec68-454f-85e1-671d6f297370",
+  supabaseRef: "liiqqibnirnpnvjmjrpj",
+  siteInstitucional: "https://clubeancestral.com.br/",
+  legado: {
+    plataforma: "Vercel",
+    supabaseRef: "zsxpdbhdvbuulwpepemd",
+    motivo: "Ambiente anterior. Nunca rege o produto nem serve de prova.",
+  },
+} as const;
