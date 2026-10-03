@@ -13,6 +13,7 @@ import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { produtoPaiPorId, type ProdutoPaiId } from "@/lib/planejador-produtos-pai";
 import { bloqueiosDoPlano, jornadaMudou, patchJornada, prazoValido, type CamposJornada } from "@/lib/jornada-planejador";
+import { produtoPaiDoSku } from "@/lib/sku-produto-pai";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -49,6 +50,18 @@ export async function lerJornadaDoCaso(supabase: any, organizationId: string, ca
 
   const produtoPai = produtoPaiPorId(plano.produto_pai_id as ProdutoPaiId | null);
 
+  /*
+   * 03/10/2026 — o de-para SKU→Produto-Pai como ALIMENTO, não tela estática
+   * ("aprovado de para sku-pp para todos os produtos ser usado como alimento
+   * e não tela estática"). O SKU do plano já era lido aqui, só para exibir
+   * texto. Agora ele diz qual produto-pai implica, pela regra de
+   * `sku-produto-pai.ts` — e, quando o Produto-Pai escolhido à mão discorda,
+   * a tela mostra o sinal em vez de alguém descobrir depois no contrato.
+   * Continua informativo: nenhum gate, nenhuma sobrescrita automática.
+   */
+  const implicadoPeloSku = sku.data ? produtoPaiDoSku(sku.data.code as string, sku.data.nome_comercial as string) : null;
+  const produtoPaiImplicado = implicadoPeloSku ? produtoPaiPorId(implicadoPeloSku.produtoPaiId) : null;
+
   return {
     existe: true as const,
     id: plano.id as string,
@@ -68,6 +81,12 @@ export async function lerJornadaDoCaso(supabase: any, organizationId: string, ca
     bloqueios: bloqueiosDoPlano(plano.motivos_bloqueio),
     skuCodigo: (sku.data?.code as string | undefined) ?? null,
     skuNome: (sku.data?.nome_comercial as string | undefined) ?? null,
+    skuProdutoPaiId: implicadoPeloSku?.produtoPaiId ?? null,
+    skuProdutoPaiNome: produtoPaiImplicado?.nome ?? null,
+    skuProdutoPaiPorque: implicadoPeloSku?.porque ?? null,
+    divergeDoSku: Boolean(
+      implicadoPeloSku && plano.produto_pai_id && plano.produto_pai_id !== implicadoPeloSku.produtoPaiId,
+    ),
     atualizadoEm: (plano.updated_at as string | null) ?? null,
     atualizadoPorId: (plano.updated_by as string | null) ?? null,
   };

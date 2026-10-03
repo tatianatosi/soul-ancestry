@@ -236,6 +236,23 @@ export function PainelJornadaPlanejador({ caseId }: { caseId: string }) {
       <p className="mt-3 text-xs text-navy/55">
         SKU informativo do plano: {plano.skuCodigo ? `${plano.skuCodigo} — ${plano.skuNome ?? "sem nome"}` : "não selecionado"}.
       </p>
+      {/*
+        03/10/2026 — de-para SKU→Produto-Pai alimentando a tela: o SKU do
+        plano passa a dizer qual produto-pai implica, com o motivo da regra.
+        Divergência com o Produto-Pai escolhido à mão aparece como sinal, não
+        como sobrescrita.
+      */}
+      {plano.skuProdutoPaiId ? (
+        <p className="mt-1 text-xs text-navy/55" data-sku-produto-pai>
+          Produto-Pai implicado por este SKU: {plano.skuProdutoPaiId} — {plano.skuProdutoPaiNome}.{" "}
+          <span className="text-navy/40">{plano.skuProdutoPaiPorque}</span>
+          {plano.divergeDoSku ? (
+            <span className="ml-1 text-terracotta">
+              Diverge do Produto-Pai escolhido ({plano.produtoPaiId}). Confirme qual vale antes da formalização.
+            </span>
+          ) : null}
+        </p>
+      ) : null}
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <button
