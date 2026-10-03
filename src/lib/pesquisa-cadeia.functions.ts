@@ -87,14 +87,13 @@ export const cadeiaPesquisaDoCaso = createServerFn({ method: "GET" })
           )
           .eq("organization_id", organizationId)
           .eq("research_case_id", researchCaseId ?? VAZIO_UUID),
-        supabase
-          .from("evidences")
-          .select(
-            "id,title_internal,evidence_type,workflow_status,confidence_level,legal_review_status,reviewed_by,reviewed_at,validation_notes_internal,research_person_id,source_id,reference_date,reference_location,archived_at",
-          )
-          .eq("organization_id", organizationId)
-          .eq("case_id", data.caseId)
-          .order("created_at", { ascending: false }),
+        /*
+          Corte 0-bis (03/10/2026): este hub lia as DUAS tabelas e concatenava
+          (`[...evidenciasCadeia, ...evidenciasDoModulo]`). `evidences` tem zero
+          linhas e nenhum escritor desde o Corte 1a — a lista legado era peso
+          morto. Fica só a canônica, lida logo abaixo por `research_case_id`.
+        */
+        Promise.resolve({ data: [] as any[] }),
         researchCaseId
           ? supabase
               .from("research_evidence_items")

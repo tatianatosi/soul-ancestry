@@ -27,7 +27,15 @@ describe("biblioteca-evidencias.functions.ts — histórico em todos os escritor
 
   it("registrarValidacaoEvidencia registra histórico com a transição de estado", () => {
     const t = trechoDe("registrarValidacaoEvidencia", "salvarProjecao");
-    expect(t).toContain("epistemic_validation_status,confidence_level,case_id");
+    // Corte 0-bis (03/10/2026): o estado anterior deixou de ser lido de
+    // `evidences` (zero linhas) e passa pelo leitor canônico; a gravação do
+    // estado novo vai para `research_evidence_items`. O histórico em
+    // `evidence_validations` e a timeline do caso seguem exigidos.
+    expect(t).toContain("evidenciaCanonicaPorId(");
+    expect(t).toContain("epistemic_validation_status");
+    expect(t).toContain('tabela: "research_evidence_items"');
+    expect(t).not.toContain('tabela: "evidences"');
+    expect(t).toContain('.from("evidence_validations")');
     expect(t).toContain("registrarTimelineCaso(");
   });
 

@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
+import { listarEvidenciasCanonicasDoCaso } from "@/lib/evidencia-canonica.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -63,12 +64,11 @@ export const painelPesquisaEvidencias = createServerFn({ method: "GET" })
         .eq("organization_id", organizationId)
         .eq("case_id", data.caseId)
         .order("created_at", { ascending: false }),
-      supabase
-        .from("evidences")
-        .select("id,title_internal,workflow_status,confidence_level,evidence_nature")
-        .eq("organization_id", organizationId)
-        .eq("case_id", data.caseId)
-        .order("created_at", { ascending: false }),
+      // Corte 0-bis (03/10/2026): a canônica, não `evidences` (zero linhas).
+      listarEvidenciasCanonicasDoCaso(supabase, organizationId, data.caseId).then((linhas) => ({
+        data: linhas as any[],
+        error: null,
+      })),
       supabase
         .from("research_sources")
         .select("id,title,source_type")

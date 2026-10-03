@@ -7,7 +7,13 @@ import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesq
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { tipoEvidenciaCanonico } from "@/lib/evidencia-canonica";
-import { gravarEvidenciaCanonica } from "@/lib/evidencia-canonica.server";
+import {
+  casoDaPesquisa,
+  evidenciaCanonicaPorId,
+  evidenciasCanonicasPorIds,
+  gravarEvidenciaCanonica,
+  listarEvidenciasCanonicasDoCaso,
+} from "@/lib/evidencia-canonica.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -84,12 +90,16 @@ export const painelBibliotecaEvidencias = createServerFn({ method: "GET" })
     if (!PAPEIS_LE_DETALHE.includes(papel)) throw new Error("Seu papel não acessa a biblioteca de evidências.");
 
     const [evidencias, projecoes, fontes, pessoas, caso, casoServicos] = await Promise.all([
-      supabase
-        .from("evidences")
-        .select("*")
-        .eq("organization_id", organizationId)
-        .eq("case_id", data.caseId)
-        .order("created_at", { ascending: false }),
+      /*
+        Corte 0-bis (03/10/2026): a Biblioteca lia `evidences`, tabela com
+        zero linhas e sem escritor desde o Corte 1a — por isso aparecia vazia
+        mesmo com evidência real gravada. Passa a ler a canônica
+        (`research_evidence_items`) pelo único de-para de leitura. Mantém
+        arquivadas, como a consulta anterior fazia (não tinha filtro).
+      */
+      listarEvidenciasCanonicasDoCaso(supabase, organizationId, data.caseId, {
+        incluirArquivadas: true,
+      }).then((linhas) => ({ data: linhas, error: null })),
       supabase
         .from("app_projections")
         .select("*")
@@ -179,8 +189,12 @@ export const listarFilaMicroentregas = createServerFn({ method: "GET" })
       caseIds.length
         ? supabase.from("crm_casos").select("id,codigo,titulo").eq("organization_id", organizationId).in("id", caseIds)
         : Promise.resolve({ data: [] as any[], error: null }),
+      // Corte 0-bis (03/10/2026): rótulo da projeção vem da canônica.
       evidenciaIds.length
-        ? supabase.from("evidences").select("id,title_internal,description_internal,source_id,workflow_status").eq("organization_id", organizationId).in("id", evidenciaIds)
+        ? evidenciasCanonicasPorIds(supabase, organizationId, evidenciaIds).then((linhas) => ({
+            data: linhas as any[],
+            error: null,
+          }))
         : Promise.resolve({ data: [] as any[], error: null }),
       entregaIds.length
         ? supabase.from("client_deliverables").select("id,title_client,summary_approved,internal_reference,responsible_user_id").eq("organization_id", organizationId).in("id", entregaIds)
@@ -315,13 +329,10 @@ export const registrarValidacaoEvidencia = createServerFn({ method: "POST" })
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     const justificativa = (data.justificativa ?? "").trim() || "Sem justificativa informada.";
 
-    const atual = await supabase
-      .from("evidences")
-      .select("id,epistemic_validation_status,confidence_level,case_id")
-      .eq("id", data.evidenceId)
-      .maybeSingle();
-    if (atual.error) throw new Error(atual.error.message);
-    if (!atual.data) throw new Error("Evidência não encontrada ou sem permissão de acesso.");
+    // Corte 0-bis (03/10/2026): estado atual vem da canônica, não da tabela vazia.
+    const evidenciaAtual = await evidenciaCanonicaPorId(supabase, organizationId, data.evidenceId);
+    if (!evidenciaAtual) throw new Error("Evidência não encontrada ou sem permissão de acesso.");
+    const atual = { data: evidenciaAtual };
 
     const agora = new Date().toISOString();
     const hist = await supabase.from("evidence_validations").insert({
@@ -337,9 +348,15 @@ export const registrarValidacaoEvidencia = createServerFn({ method: "POST" })
     });
     if (hist.error) throw new Error(hist.error.message);
 
+    /*
+      Corte 0-bis (03/10/2026): este era um 5º escritor que o Corte 0 não
+      cobriu — gravava a validação epistêmica em `evidences`, tabela vazia e
+      sem escritor. A coluna `epistemic_validation_status` existe na canônica
+      desde a migration 20261001190000 (os 12 campos da Biblioteca).
+    */
     await gravarComVerificacao({
       supabase,
-      tabela: "evidences",
+      tabela: "research_evidence_items",
       id: data.evidenceId,
       organizationId,
       userId: context.userId as string,
@@ -357,7 +374,7 @@ export const registrarValidacaoEvidencia = createServerFn({ method: "POST" })
         eventType: "caso",
         title: `Validação da evidência: ${atual.data.epistemic_validation_status} → ${data.estadoNovo}`,
         summaryInternal: justificativa,
-        sourceEntityType: "evidences",
+        sourceEntityType: "research_evidence_items",
         sourceEntityId: data.evidenceId,
         userId: context.userId as string,
       });
@@ -710,16 +727,24 @@ export const prepararAlertaProjecao = createServerFn({ method: "POST" })
 /** Sem exclusão física: apenas arquivamento com motivo. */
 export const arquivarRegistroG03 = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { tabela: "evidences" | "app_projections"; id: string; motivo: string }) => d)
+  /*
+    Corte 0-bis (03/10/2026): era o 6º escritor apontado para `evidences`
+    (vazia). Arquivar evidência passa a mirar a canônica, cuja coluna de
+    motivo chama `archive_reason` (sem o "d"), diferente de `app_projections`.
+  */
+  .inputValidator((d: { tabela: "research_evidence_items" | "app_projections"; id: string; motivo: string }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
-    const patch: Record<string, unknown> = {
-      archived_at: new Date().toISOString(),
-      archived_reason: motivo,
-    };
-    if (data.tabela === "app_projections") patch["approval_status"] = "archived";
+    const patch: Record<string, unknown> = { archived_at: new Date().toISOString() };
+    if (data.tabela === "app_projections") {
+      patch["archived_reason"] = motivo;
+      patch["approval_status"] = "archived";
+    } else {
+      patch["archive_reason"] = motivo;
+      patch["archived_by"] = context.userId as string;
+    }
     const r = await gravarComVerificacao({
       supabase,
       tabela: data.tabela,
@@ -728,12 +753,20 @@ export const arquivarRegistroG03 = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: patch,
     });
-    if (r.registro["case_id"]) {
+    /*
+      `research_evidence_items` não tem `case_id` — a ponte é
+      `research_case_id`. Sem isto a timeline do caso deixaria de registrar o
+      arquivamento de evidência, silenciosamente.
+    */
+    const casoDoRegistro =
+      (r.registro["case_id"] as string | undefined) ??
+      (await casoDaPesquisa(supabase as any, organizationId, r.registro["research_case_id"] as string | null));
+    if (casoDoRegistro) {
       await registrarTimelineCaso(supabase, {
         organizationId,
-        caseId: r.registro["case_id"] as string,
+        caseId: casoDoRegistro,
         eventType: "caso",
-        title: `Registro arquivado: ${data.tabela === "evidences" ? "evidência" : "projeção"}`,
+        title: `Registro arquivado: ${data.tabela === "app_projections" ? "projeção" : "evidência"}`,
         summaryInternal: motivo,
         sourceEntityType: data.tabela,
         sourceEntityId: data.id,

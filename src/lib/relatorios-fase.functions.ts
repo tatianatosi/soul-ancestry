@@ -7,6 +7,7 @@ import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { conteudoProjetavel } from "@/lib/biblioteca-evidencias";
 import { projetarParaApp, visivelNoApp } from "@/lib/relatorios-fase";
+import { listarEvidenciasCanonicasDoCaso } from "@/lib/evidencia-canonica.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -61,12 +62,11 @@ export const painelRelatoriosFase = createServerFn({ method: "GET" })
         .order("created_at", { ascending: true }),
       supabase.from("report_evidence_links").select("*").eq("organization_id", organizationId),
       supabase.from("report_microdelivery_links").select("*").eq("organization_id", organizationId),
-      supabase
-        .from("evidences")
-        .select("id,title_internal,workflow_status,confidence_level")
-        .eq("organization_id", organizationId)
-        .eq("case_id", data.caseId)
-        .order("created_at", { ascending: false }),
+      // Corte 0-bis (03/10/2026): a canônica, não `evidences` (zero linhas).
+      listarEvidenciasCanonicasDoCaso(supabase, organizationId, data.caseId).then((linhas) => ({
+        data: linhas as any[],
+        error: null,
+      })),
       supabase
         .from("ops_microentregas")
         .select("id,titulo,fase,status")

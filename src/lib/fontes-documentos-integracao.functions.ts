@@ -4,7 +4,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 import { tipoEvidenciaCanonico } from "@/lib/evidencia-canonica";
-import { gravarEvidenciaCanonica } from "@/lib/evidencia-canonica.server";
+import { evidenciaCanonicaPorId, gravarEvidenciaCanonica } from "@/lib/evidencia-canonica.server";
 import {
   COLUNA_ALVO,
   payloadLimpo,
@@ -33,13 +33,14 @@ async function contextoDoCaso(supabase: Sb, userId: string, caseId: string) {
 
 async function lerAlvo(supabase: Sb, organizationId: string, tipoAlvo: TipoAlvo, alvoId: string) {
   if (tipoAlvo === "evidencia") {
-    const r = await supabase
-      .from("evidences")
-      .select("id,case_id,organization_id")
-      .eq("id", alvoId)
-      .eq("organization_id", organizationId)
-      .maybeSingle();
-    return r.data as any;
+    /*
+      Corte 0-bis (03/10/2026): validava o alvo contra `evidences` — tabela
+      com zero linhas desde o Corte 1a. Vínculo apontando para uma evidência
+      canônica real era recusado como "alvo não encontrado". Passa a resolver
+      pela canônica, que já devolve `case_id` pelo de-para de leitura.
+    */
+    const ev = await evidenciaCanonicaPorId(supabase as any, organizationId, alvoId);
+    return ev ? ({ id: ev.id, case_id: ev.case_id, organization_id: organizationId } as any) : null;
   }
   if (tipoAlvo === "solicitacao") {
     const r = await supabase

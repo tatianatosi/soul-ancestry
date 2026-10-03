@@ -177,7 +177,7 @@ function Pagina() {
     onError: erro,
   });
   const mArquivar = useMutation({
-    mutationFn: (v: { tabela: "evidences" | "app_projections"; id: string; motivo: string }) => arquivar({ data: v }),
+    mutationFn: (v: { tabela: "research_evidence_items" | "app_projections"; id: string; motivo: string }) => arquivar({ data: v }),
     onSuccess: () => {
       toast.success("Registro arquivado. Não existe exclusão física.");
       invalidar();
@@ -317,7 +317,7 @@ function Pagina() {
                   className="h-auto rounded-none border-0 bg-transparent p-0 text-[11px] text-terracotta underline decoration-terracotta hover:bg-transparent"
                   acaoExterna="arquivar_evidencia"
                   efeito="Arquiva a evidência com motivo — não há exclusão física."
-                  onConfirmar={(motivo) => mArquivar.mutate({ tabela: "evidences", id: String(e["id"]), motivo })}
+                  onConfirmar={(motivo) => mArquivar.mutate({ tabela: "research_evidence_items", id: String(e["id"]), motivo })}
                 />
               </div>
             </article>

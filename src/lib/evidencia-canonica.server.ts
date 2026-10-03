@@ -56,6 +56,107 @@ export async function areaDePesquisaDoCaso(
   return id;
 }
 
+/* ------------------------------------------------------------------ */
+/* Leitura canônica (Corte 0-bis, 03/10/2026)                          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Achado da Proprietária em 03/10: o Corte 0 fechou o lado do ESCRITOR
+ * (as 4 rotas gravam em `research_evidence_items`), mas sete leitores
+ * continuaram consultando `evidences` — tabela com **zero linhas** e sem
+ * escritor desde o Corte 1a. Resultado: a Biblioteca de Evidências, o
+ * Relatório de fase e a aba de Documentos mostravam lista vazia mesmo com
+ * evidência real gravada.
+ *
+ * Estas funções são o único de-para de LEITURA. Devolvem a linha canônica
+ * acrescida dos apelidos que as telas já leem (`title_internal`,
+ * `description_internal`, `validation_notes_internal`, `case_id`,
+ * `research_person_id`) — mesmo precedente de
+ * `pesquisa-cadeia.functions.ts` (`title_internal: e.title ?? e.title_internal`).
+ * De-para de leitura é permitido; gravar vocabulário novo não é (AGENTS.md).
+ */
+export type EvidenciaLeitura = Record<string, any> & {
+  id: string;
+  case_id: string | null;
+  title_internal: string;
+  description_internal: string | null;
+  validation_notes_internal: string | null;
+  research_person_id: string | null;
+};
+
+const COLUNAS_EVIDENCIA_LEITURA =
+  "id,title,description,evidence_type,evidence_status,workflow_status,confidence_level," +
+  "evidence_nature,access_level,epistemic_validation_status,legal_review_status," +
+  "legal_review_notes_internal,validation_rationale,reference_date,reference_location," +
+  "negative_search_source,negative_search_date,negative_search_next_action," +
+  "person_id,source_id,document_id,research_item_id,research_case_id," +
+  "responsible_user_id,reviewed_by,reviewed_at,validated_at,validated_by," +
+  "client_visibility,sensitivity_level,fornecida_pelo_cliente,origem_externa," +
+  "storage_reference_internal,external_reference,created_at,updated_at," +
+  "archived_at,archive_reason";
+
+/** Acrescenta os apelidos de leitura à linha canônica. Nada é inventado. */
+function comApelidosDeLeitura(linha: Record<string, any>, caseId: string | null): EvidenciaLeitura {
+  return {
+    ...linha,
+    case_id: caseId,
+    title_internal: (linha["title"] as string) ?? "",
+    description_internal: (linha["description"] as string | null) ?? null,
+    validation_notes_internal: (linha["validation_rationale"] as string | null) ?? null,
+    research_person_id: (linha["person_id"] as string | null) ?? null,
+  } as EvidenciaLeitura;
+}
+
+/**
+ * Todas as evidências canônicas do caso, mais recentes primeiro.
+ * Filtra por `research_cases.case_id` porque a chave de
+ * `research_evidence_items` é `research_case_id`, não `case_id`.
+ */
+export async function listarEvidenciasCanonicasDoCaso(
+  supabase: any,
+  organizationId: string,
+  caseId: string,
+  opcoes?: { incluirArquivadas?: boolean },
+): Promise<EvidenciaLeitura[]> {
+  let q = supabase
+    .from("research_evidence_items")
+    .select(`${COLUNAS_EVIDENCIA_LEITURA},research_cases!inner(case_id)`)
+    .eq("organization_id", organizationId)
+    .eq("research_cases.case_id", caseId);
+  if (!opcoes?.incluirArquivadas) q = q.is("archived_at", null);
+  const { data, error } = await q.order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return ((data ?? []) as Record<string, any>[]).map((l) => comApelidosDeLeitura(l, caseId));
+}
+
+/** Evidências canônicas por id (para rotular vínculo/projeção já gravada). */
+export async function evidenciasCanonicasPorIds(
+  supabase: any,
+  organizationId: string,
+  ids: readonly string[],
+): Promise<EvidenciaLeitura[]> {
+  if (!ids.length) return [];
+  const { data, error } = await supabase
+    .from("research_evidence_items")
+    .select(`${COLUNAS_EVIDENCIA_LEITURA},research_cases!inner(case_id)`)
+    .eq("organization_id", organizationId)
+    .in("id", [...ids]);
+  if (error) throw new Error(error.message);
+  return ((data ?? []) as Record<string, any>[]).map((l) =>
+    comApelidosDeLeitura(l, (l["research_cases"]?.case_id as string | undefined) ?? null),
+  );
+}
+
+/** Uma evidência canônica por id, já com o `case_id` resolvido. */
+export async function evidenciaCanonicaPorId(
+  supabase: any,
+  organizationId: string,
+  id: string,
+): Promise<EvidenciaLeitura | null> {
+  const linhas = await evidenciasCanonicasPorIds(supabase, organizationId, [id]);
+  return linhas[0] ?? null;
+}
+
 export type EntradaGravacaoEvidencia = {
   caseId: string;
   id?: string | null;
