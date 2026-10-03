@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Selo } from "@/components/comercial/base";
 import { CaCard } from "@/components/ui/ca-card";
 import { BloqueioEmissaoOS } from "@/components/contrato/bloqueio-emissao-os";
+import { OrdemServicoDoCaso } from "@/components/contrato/ordem-servico-do-caso";
 import { carregarCadeiaFormalizacao, derivarAnexoIDaProposta } from "@/lib/cadeia-formalizacao.functions";
 
 const TOM: Record<string, "ok" | "alerta" | "erro"> = {
@@ -140,6 +141,19 @@ export function CadeiaFormalizacao({
           executada aqui.
         </span>
       </div>
+
+      {/*
+        A OS fica operável aqui mesmo: responsável, início, prazo, escopo e
+        nota de dependências/cadência. Status continua em /ordens-servico.
+      */}
+      <OrdemServicoDoCaso
+        ordem={d.ordemServico}
+        podeEscrever={podeEscrever}
+        onGravou={() => {
+          qc.invalidateQueries({ queryKey: chave });
+          qc.invalidateQueries({ queryKey: ["contrato-preparar", caseId] });
+        }}
+      />
 
       {governadoPeloPlanejador ? (
         <p className="mt-3 text-xs text-navy/60" data-os-governada-planejador>

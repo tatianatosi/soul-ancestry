@@ -61,7 +61,13 @@ export async function contextoDaCadeia(supabase: Sb, org: string, caseId: string
         .maybeSingle(),
       supabase
         .from("service_orders")
-        .select("id,case_id,status,scope_summary,deliverable_summary,service_order_number,archived_at,contract_id")
+        // Planejamento real da OS (responsável, início, prazo, condição de
+        // início e notas internas) para a OS ser operável DENTRO do fluxo do
+        // contrato, sem a equipe sair para /ordens-servico (diretriz de
+        // 03/10/2026, "Contrato de Uma Hora" item 3).
+        .select(
+          "id,case_id,status,scope_summary,deliverable_summary,service_order_number,archived_at,contract_id,responsible_user_id,start_date,end_date,start_condition_status,start_condition_notes,internal_notes,versao,updated_at",
+        )
         .eq("case_id", caso.id)
         .is("archived_at", null)
         .order("created_at", { ascending: false })
