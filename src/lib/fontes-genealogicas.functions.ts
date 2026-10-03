@@ -1,5 +1,5 @@
 import { semCache } from "@/lib/no-store";
-import { RESPONSAVEL_VALIDACAO_PADRAO } from "@/lib/decisoes-da-proprietaria";
+import { FONTE_NOVA_APROVADA_POR_PADRAO, RESPONSAVEL_VALIDACAO_PADRAO } from "@/lib/decisoes-da-proprietaria";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -35,6 +35,7 @@ const CAMPOS_FONTE = [
   "responsavel_revisao",
   "estagio_maturidade",
   "responsavel_validacao",
+  "permite_automacao",
 ];
 
 const CAMPOS_MATRIZ = ["source_id", "criterio", "nota", "parecer_interno", "evidencia_interna", "avaliado_em", "avaliado_por", "bloqueante"];
@@ -117,6 +118,19 @@ export const salvarFonte = createServerFn({ method: "POST" })
     */
     if (!data.id && !String(valores["responsavel_validacao"] ?? "").trim()) {
       valores["responsavel_validacao"] = RESPONSAVEL_VALIDACAO_PADRAO;
+    }
+    /*
+      D-04 executada (03/10/2026): "todas as fontes são aprovadas e mesmo
+      aquelas que não estão homologadas pode por default ser homologadas e
+      aprovadas persistindo sempre". Fonte nova nasce homologada para uso
+      MANUAL; quem informar outro valor continua mandando. Automação segue
+      fora por construção — `permite_automacao` nasce "nao" e só M3-APROVADA
+      a libera, com termos, responsável e parecer (trigger do banco).
+    */
+    if (!data.id) {
+      for (const [coluna, padrao] of Object.entries(FONTE_NOVA_APROVADA_POR_PADRAO)) {
+        if (!String(valores[coluna] ?? "").trim()) valores[coluna] = padrao;
+      }
     }
 
     if (data.id) {

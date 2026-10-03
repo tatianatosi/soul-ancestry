@@ -16,6 +16,8 @@
  * - conteúdo interno não é projetado ao App Cliente sem autorização futura.
  */
 
+import { ANO_MINIMO_GENEALOGICO, dataValida, nomeValido } from "@/lib/validacao-pessoa";
+
 export type Opcao = { id: string; rotulo: string };
 
 export const STATUS_VERIFICACAO: Opcao[] = [
@@ -252,6 +254,28 @@ const vazio = (v: unknown) => v === null || v === undefined || String(v).trim() 
 export function validarPerfil(p: Partial<Perfil>): string[] {
   const erros: string[] = [];
   if (vazio(p.nome_completo)) erros.push("Nome completo é obrigatório.");
+  /*
+    Varredura de máscaras (03/10/2026): a Ficha Genealógica exigia apenas
+    "não vazio" — aceitava "João 123" como nome e nascimento em 2090. Os
+    validadores existiam em `validacao-pessoa.ts` desde 02/10 e nenhuma aba
+    da ficha os usava. Aqui é o servidor, que é quem recusa; a tela apenas
+    mostra o mesmo motivo antes.
+  */
+  if (!vazio(p.nome_completo) && !nomeValido(String(p.nome_completo))) {
+    erros.push("Nome completo não pode conter números e precisa de ao menos duas letras.");
+  }
+  for (const [rotulo, valor] of [
+    ["nascimento", p.nascimento_data],
+    ["morte", p.morte_data],
+  ] as const) {
+    // Ancestral nascido antes de 1900 é o caso normal aqui — o piso é o
+    // genealógico, não o de pessoa viva.
+    if (!vazio(valor) && !dataValida(String(valor), { anoMinimo: ANO_MINIMO_GENEALOGICO })) {
+      erros.push(
+        `Data de ${rotulo} inválida: use dd/mm/aaaa ou ISO, a partir de ${ANO_MINIMO_GENEALOGICO} e nunca no futuro.`,
+      );
+    }
+  }
   if (p.status_verificacao === "confirmado" && vazio(p.evidence_id)) {
     erros.push("Perfil confirmado exige evidência de suporte vinculada.");
   }

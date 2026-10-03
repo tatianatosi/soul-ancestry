@@ -77,6 +77,7 @@ export function Texto({
   area,
   tipo = "text",
   ajuda,
+  erro,
 }: {
   label: string;
   valor: string;
@@ -85,16 +86,29 @@ export function Texto({
   area?: boolean;
   tipo?: string;
   ajuda?: string;
+  /**
+   * Varredura de máscaras (03/10/2026): até aqui `Texto` não tinha estado de
+   * erro, então cada tela que quisesse validar precisava montar input e
+   * mensagem à mão — e por isso 77 das 87 telas com campo mascarável não
+   * validavam nada. Com o erro aqui, aplicar validador vira uma linha por
+   * campo, e a varredura deixa de ser artesanal.
+   *
+   * Mensagem presente = campo inválido. A borda muda e a mensagem aparece;
+   * nada é bloqueado aqui — quem recusa continua sendo o servidor.
+   */
+  erro?: string | null;
 }) {
+  const classe = erro ? `${inputCls} border-terracotta` : inputCls;
   return (
     <label className="block">
       <Rotulo>{label}</Rotulo>
       {area ? (
-        <textarea className={inputCls} rows={4} value={valor} disabled={desabilitado} onChange={(e) => onChange(e.target.value)} />
+        <textarea className={classe} rows={4} value={valor} disabled={desabilitado} onChange={(e) => onChange(e.target.value)} aria-invalid={Boolean(erro)} />
       ) : (
-        <input className={inputCls} type={tipo} value={valor} disabled={desabilitado} onChange={(e) => onChange(e.target.value)} />
+        <input className={classe} type={tipo} value={valor} disabled={desabilitado} onChange={(e) => onChange(e.target.value)} aria-invalid={Boolean(erro)} />
       )}
-      {ajuda ? <span className="mt-1 block text-[11px] text-navy/45">{ajuda}</span> : null}
+      {erro ? <span className="mt-1 block text-[11px] text-terracotta">{erro}</span> : null}
+      {ajuda && !erro ? <span className="mt-1 block text-[11px] text-navy/45">{ajuda}</span> : null}
     </label>
   );
 }

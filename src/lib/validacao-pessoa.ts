@@ -247,10 +247,22 @@ export function formatarDataBr(valor: string): string {
 
 /**
  * Aceita `DD/MM/AAAA` ou ISO (`AAAA-MM-DD`). Recusa data futura (nascimento
- * não pode estar no futuro) e ano implausível (antes de 1900 ou o ano
- * atual) — nunca aceita "31/02" ou qualquer dia/mês fora do calendário real.
+ * não pode estar no futuro) e ano implausível — nunca aceita "31/02" ou
+ * qualquer dia/mês fora do calendário real.
+ *
+ * `anoMinimo` existe porque o piso 1900 serve para pessoa viva e **quebra a
+ * pesquisa genealógica**: ancestral nascido em 1820 é o caso normal da Ficha
+ * Genealógica (achado de 03/10/2026, ao aplicar o validador na ficha). Quem
+ * valida dado de pessoa viva continua no padrão; quem valida ancestral passa
+ * `ANO_MINIMO_GENEALOGICO`. O piso nunca é zero: ano 0300 num campo de
+ * nascimento é erro de digitação, não registro.
  */
-export function dataValida(valor: string, options: { permitirFutura?: boolean } = {}): boolean {
+export const ANO_MINIMO_GENEALOGICO = 1500;
+
+export function dataValida(
+  valor: string,
+  options: { permitirFutura?: boolean; anoMinimo?: number } = {},
+): boolean {
   const v = valor.trim();
   if (!v) return false;
 
@@ -269,7 +281,8 @@ export function dataValida(valor: string, options: { permitirFutura?: boolean } 
     return false;
   }
 
-  if (ano < 1900 || ano > new Date().getFullYear() + (options.permitirFutura ? 1 : 0)) return false;
+  const anoMinimo = options.anoMinimo ?? 1900;
+  if (ano < anoMinimo || ano > new Date().getFullYear() + (options.permitirFutura ? 1 : 0)) return false;
   if (mes < 1 || mes > 12) return false;
   const data = new Date(ano, mes - 1, dia);
   // new Date normaliza datas inválidas (ex.: 31/02 vira 03/03) — comparar

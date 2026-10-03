@@ -233,3 +233,23 @@ export const RESPONSAVEL_VALIDACAO_PADRAO = "Tatiana Melani Tosi";
 
 /** Forma institucional aceita quando a validação é da equipe, não de uma pessoa. */
 export const RESPONSAVEL_VALIDACAO_INSTITUCIONAL = "equipe Clube Ancestral";
+
+/**
+ * D-04 executada por inteiro (03/10/2026), instrução literal da Proprietária:
+ * "todas as fontes são aprovadas e mesmo aquelas que não estão homologadas
+ * pode por default ser homologadas e aprovadas persistindo sempre".
+ *
+ * Fonte nova nasce aprovada para USO MANUAL — consulta humana, metadados e
+ * link profundo. O limite que NÃO se move junto, e que o próprio Adendo do
+ * Bloco 5A protege: automação, scraping e API seguem fora. Elas exigem
+ * `M3-APROVADA`, que o trigger `fn_g08_source_guard` só aceita com
+ * `api_validada` + `permite_automacao='sim'` + termos de uso + responsável.
+ * Homologar para consulta humana não é autorizar robô.
+ */
+export const FONTE_NOVA_APROVADA_POR_PADRAO = {
+  status_documentacao: "completa",
+  estagio_maturidade: "HOMOLOGADA_MANUAL",
+  status_integracao: "homologada_manual",
+  modo_de_uso_permitido: "manual",
+  permite_automacao: "nao",
+} as const;

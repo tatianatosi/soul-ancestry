@@ -1,3 +1,4 @@
+import { nomeValido } from "@/lib/validacao-pessoa";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -59,7 +60,16 @@ export function PainelDependentes({ caseId, podeEscrever }: { caseId: string; po
 
   const formulario = (valores: Record<string, unknown>, onChange: (k: string, v: unknown) => void) => (
     <div className="grid gap-3 md:grid-cols-2">
-      <Texto label="Nome completo" valor={String(valores.nome_completo ?? "")} onChange={(v) => onChange("nome_completo", v)} />
+      <Texto
+        label="Nome completo"
+        valor={String(valores.nome_completo ?? "")}
+        onChange={(v) => onChange("nome_completo", v)}
+        erro={
+          String(valores.nome_completo ?? "").trim() && !nomeValido(String(valores.nome_completo))
+            ? "Nome não pode conter números e precisa de ao menos duas letras."
+            : null
+        }
+      />
       <Selecao
         label="Vínculo com o titular"
         valor={String(valores.vinculo_com_titular ?? "")}

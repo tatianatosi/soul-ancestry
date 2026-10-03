@@ -1,3 +1,4 @@
+import { nomeValido } from "@/lib/validacao-pessoa";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -718,7 +719,16 @@ function NucleosPage() {
                   )}
                   {adicionandoEm === n.id ? (
                     <div className="mt-2 space-y-1.5 rounded-lg border border-gold/40 bg-gold/5 p-2 text-xs" data-nucleo-novo-membro>
-                      <Texto label="Nome" valor={novoMembro.nome} onChange={(v) => setNovoMembro({ ...novoMembro, nome: v })} />
+                      <Texto
+                        label="Nome"
+                        valor={novoMembro.nome}
+                        onChange={(v) => setNovoMembro({ ...novoMembro, nome: v })}
+                        erro={
+                          novoMembro.nome.trim() && !nomeValido(novoMembro.nome)
+                            ? "Nome não pode conter números e precisa de ao menos duas letras."
+                            : null
+                        }
+                      />
                       <Selecao
                         label="Papel no núcleo"
                         valor={novoMembro.papel}

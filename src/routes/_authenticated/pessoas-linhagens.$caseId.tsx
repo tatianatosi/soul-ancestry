@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { ANO_MINIMO_GENEALOGICO, dataValida, nomeValido } from "@/lib/validacao-pessoa";
 import { AbaModulos } from "@/components/genealogia/aba-modulos";
 import { AbaProjecaoCliente } from "@/components/genealogia/aba-projecao-cliente";
 import { PublicarArvoreApp } from "@/components/genealogia/publicar-arvore-app";
@@ -752,11 +753,32 @@ function AbaPerfis({
     setNovo({ nome_completo: "", nome_nascimento: "", sexo: "", nascimento_data: "" });
   };
 
+  const nomeInvalido = Boolean(novo.nome_completo.trim()) && !nomeValido(novo.nome_completo);
+  // Piso genealógico: ancestral de 1820 é registro normal, não erro.
+  const nascimentoInvalido =
+    Boolean(novo.nascimento_data) && !dataValida(novo.nascimento_data, { anoMinimo: ANO_MINIMO_GENEALOGICO });
+
   return (
     <section className="space-y-4">
       <div className="grid gap-3 rounded-xl border border-navy/10 bg-cream p-4 md:grid-cols-4">
+        {/*
+          Varredura de máscaras (03/10/2026): a Ficha Genealógica aceitava
+          "João 123" como nome. O validador existia desde 02/10 e nenhuma aba
+          o usava. O servidor recusa (validarPerfil); aqui a pessoa vê o
+          motivo antes de tentar salvar.
+        */}
         <Campo label="Nome completo">
-          <input className={inputCls} value={novo.nome_completo} onChange={(e) => setNovo({ ...novo, nome_completo: e.target.value })} />
+          <input
+            className={nomeInvalido ? `${inputCls} border-terracotta` : inputCls}
+            value={novo.nome_completo}
+            onChange={(e) => setNovo({ ...novo, nome_completo: e.target.value })}
+            aria-invalid={nomeInvalido}
+          />
+          {nomeInvalido ? (
+            <span className="mt-1 block text-[11px] text-terracotta">
+              Nome não pode conter números e precisa de ao menos duas letras.
+            </span>
+          ) : null}
         </Campo>
         <Campo label="Nome de nascimento">
           <input className={inputCls} value={novo.nome_nascimento} onChange={(e) => setNovo({ ...novo, nome_nascimento: e.target.value })} />
@@ -765,7 +787,18 @@ function AbaPerfis({
           <Selecao valor={novo.sexo} onChange={(v) => setNovo({ ...novo, sexo: v })} opcoes={SEXO} vazio="Não informado" />
         </Campo>
         <Campo label="Nascimento (data)" ajuda="Deixe vazio se não houver documento.">
-          <input type="date" className={inputCls} value={novo.nascimento_data} onChange={(e) => setNovo({ ...novo, nascimento_data: e.target.value })} />
+          <input
+            type="date"
+            className={nascimentoInvalido ? `${inputCls} border-terracotta` : inputCls}
+            value={novo.nascimento_data}
+            onChange={(e) => setNovo({ ...novo, nascimento_data: e.target.value })}
+            aria-invalid={nascimentoInvalido}
+          />
+          {nascimentoInvalido ? (
+            <span className="mt-1 block text-[11px] text-terracotta">
+              Data de nascimento inválida: a partir de {ANO_MINIMO_GENEALOGICO} e nunca no futuro.
+            </span>
+          ) : null}
         </Campo>
         <div className="md:col-span-4">
           <AcaoOperacional
