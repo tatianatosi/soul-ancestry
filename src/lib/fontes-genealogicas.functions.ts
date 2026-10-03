@@ -1,4 +1,5 @@
 import { semCache } from "@/lib/no-store";
+import { RESPONSAVEL_VALIDACAO_PADRAO } from "@/lib/decisoes-da-proprietaria";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -33,6 +34,7 @@ const CAMPOS_FONTE = [
   "observacao_risco",
   "responsavel_revisao",
   "estagio_maturidade",
+  "responsavel_validacao",
 ];
 
 const CAMPOS_MATRIZ = ["source_id", "criterio", "nota", "parecer_interno", "evidencia_interna", "avaliado_em", "avaliado_por", "bloqueante"];
@@ -106,6 +108,16 @@ export const salvarFonte = createServerFn({ method: "POST" })
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     const userId = context.userId as string;
     const valores = filtrar(CAMPOS_FONTE, data.valores);
+    /*
+      D-05 executada (03/10/2026): a decisão da Proprietária define Tatiana
+      Melani Tosi como responsável padrão pela validação de fonte. Até aqui
+      isso era só texto no registro da decisão, e a coluna nascia nula em
+      toda fonte nova. Default aplicado na criação; quem informar outro
+      responsável continua mandando — o default preenche, não sobrescreve.
+    */
+    if (!data.id && !String(valores["responsavel_validacao"] ?? "").trim()) {
+      valores["responsavel_validacao"] = RESPONSAVEL_VALIDACAO_PADRAO;
+    }
 
     if (data.id) {
       const r = await gravarComVerificacao({

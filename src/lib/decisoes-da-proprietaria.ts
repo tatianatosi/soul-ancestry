@@ -216,3 +216,20 @@ export const BLOQUEIOS_ABERTOS_DA_PROPRIETARIA: readonly BloqueioAbertoDaProprie
     registradoEm: "2026-09-10",
   },
 ] as const;
+
+/**
+ * D-05 executada (03/10/2026), não só registrada.
+ *
+ * A decisão diz: "responsável pela validação: Tatiana Melani Tosi, com
+ * 'equipe Clube Ancestral' como forma institucional. Vira default de
+ * `responsavel_validacao` e do responsável de elevação de evidência."
+ *
+ * Até 03/10 isso existia só como texto em `valorDecidido`: nenhuma constante,
+ * nenhum default, e `responsavel_validacao` estava NULO nas 23 fontes do
+ * catálogo. Marcar a decisão como "decidida" num módulo não é executá-la —
+ * executá-la é esta constante entrar no escritor e no dado.
+ */
+export const RESPONSAVEL_VALIDACAO_PADRAO = "Tatiana Melani Tosi";
+
+/** Forma institucional aceita quando a validação é da equipe, não de uma pessoa. */
+export const RESPONSAVEL_VALIDACAO_INSTITUCIONAL = "equipe Clube Ancestral";

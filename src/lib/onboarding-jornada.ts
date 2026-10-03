@@ -429,13 +429,51 @@ const TERMOS_PROIBIDOS = [
   "dossie",
 ];
 
+/**
+ * Corte 1-quater (03/10/2026) — a parte que o plano pedia e nunca tinha sido
+ * executada: nome técnico de fonte, URL, token, endpoint, API, matching,
+ * score e RG também não chegam ao cliente. Medido em 03/10: nenhum destes
+ * termos estava na lista, então o App publicaria "encontramos no
+ * FamilySearch" ou uma URL para a cliente real.
+ *
+ * Vai em lista SEPARADA, por regex com limite de palavra, porque a lista
+ * acima compara por substring: "api" casaria dentro de "capital" e "rg"
+ * dentro de "organização", e o texto legítimo passaria a ser descartado —
+ * exatamente o defeito que o guard de publicação acabou de fechar.
+ *
+ * `PARES` (Portal de Arquivos Espanhóis) só conta em caixa alta isolada:
+ * "pares" é palavra comum em português e barrá-la custaria mais do que
+ * protege.
+ */
+const PADROES_PROIBIDOS: RegExp[] = [
+  // Nomes técnicos de fonte (Adendo Bloco 5A).
+  /\b(familysearch|antenati|digitarq|geneanet|myheritage|ancestry|matricula\s*online|szukaj|find\s*a\s*grave|findagrave|genteam|archion|geneteka|cisei|altreitalie|oesta)\b/i,
+  // "ÖStA" começa com caractere não-ASCII: `\b` do JS não o reconhece como
+  // limite de palavra, então precisa de limite por propriedade Unicode.
+  /(^|[^\p{L}])östa([^\p{L}]|$)/iu,
+  /\bPARES\b/, // só caixa alta: "pares" comum não é a fonte espanhola
+  /\bportal\s+de\s+arquivos\s+espanh/i,
+  // Endereço e mecanismo técnico.
+  /\bhttps?:\/\//i,
+  /\bwww\./i,
+  /\b(token|endpoint|api|webhook|oauth|scraping|matching|score)\b/i,
+  // Documento de identidade (CPF já é coberto por `contemCpf`).
+  /\brg\b/i,
+];
+
 /** Verdadeiro quando o texto contém conteúdo que não pode chegar ao cliente. */
 export function contemConteudoInterno(texto?: string | null): boolean {
-  const t = String(texto ?? "").toLowerCase();
+  const bruto = String(texto ?? "");
+  const t = bruto.toLowerCase();
   // P5 (26/09/2026) — filtro de CPF reaproveitado (validacao-pessoa.ts):
   // este gate cobre entregas de onboarding cliente-facing (portal-dados-vivos.ts,
   // portal-atendimento.functions.ts) que também não tinham proteção contra CPF.
-  return TERMOS_PROIBIDOS.some((p) => t.includes(p)) || contemCpf(String(texto ?? ""));
+  if (TERMOS_PROIBIDOS.some((p) => t.includes(p))) return true;
+  // Corte 1-quater: os padrões com limite de palavra rodam sobre o texto
+  // ORIGINAL, porque `\bPARES\b` distingue a fonte espanhola da palavra
+  // comum "pares" justamente pela caixa.
+  if (PADROES_PROIBIDOS.some((re) => re.test(bruto))) return true;
+  return contemCpf(bruto);
 }
 
 export type EntregaBruta = {
