@@ -596,6 +596,37 @@ export const revogarCompartilhamentoAchadoPortal = createServerFn({ method: "POS
     return { ok: true };
   });
 
+/**
+ * Membros do MESMO processo e família, para o titular escolher com quem
+ * compartilhar um achado.
+ *
+ * Decisão da Proprietária (03/10/2026), que desbloqueou esta ponta: "o
+ * compartilhamento de achado será compartilhado somente com cada membro que
+ * faz parte do mesmo processo e família... já temos um anexo no contrato
+ * referente a privacidade de dados". Antes disso o App não tinha como listar
+ * ninguém: `nucleo_membros` é só da equipe e `client_portal_case_access`
+ * devolve apenas a própria linha do titular.
+ *
+ * Privilégio mínimo: a função `portal_membros_do_meu_caso` devolve só id,
+ * nome e papel — nunca CPF, RG, e-mail, telefone, endereço ou nascimento.
+ */
+export const membrosDoMeuCaso = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    semCache();
+    const h = await import("./portal-cliente.server");
+    const supabase = context.supabase as any;
+    await h.acessoDoCliente(supabase, context.userId as string);
+    const { data, error } = await supabase.rpc("portal_membros_do_meu_caso");
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as any[]).map((m) => ({
+      casoId: String(m.case_id),
+      clienteId: String(m.cliente_id),
+      nome: String(m.nome ?? "(sem nome)"),
+      papel: (m.papel as string | null) ?? null,
+    }));
+  });
+
 /** Achados e compartilhamentos deste titular — o que ele autorizou e o que recebeu. */
 export const meusCompartilhamentosDeAchado = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

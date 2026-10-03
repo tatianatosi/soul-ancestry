@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
+import { CompartilharAchadoCliente } from "@/components/portal/compartilhar-achado-cliente";
 import { usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { legadoSanitizado } from "@/lib/portal-dados-vivos";
@@ -148,6 +149,16 @@ export function PortalLegado() {
                       );
                     })}
                   </div>
+
+                  {/*
+                    Corte ÓRFÃOS — ponta do App (03/10/2026). A decisão de
+                    09/09 ("cliente decide se deseja compartilhar o achado")
+                    tinha três escritores no portal e RLS própria, com zero
+                    chamadores. O que faltava era a regra de escopo, que veio
+                    em 03/10: somente membros do mesmo processo e família,
+                    coberto pelo anexo de privacidade do contrato.
+                  */}
+                  <CompartilharAchadoCliente achados={entregas} />
 
                 </div>
               </BlocoVisibilidade>

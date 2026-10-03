@@ -103,3 +103,68 @@ describe("Ponta do App — declarada como pendente, não fabricada", () => {
     expect(PAINEL).toContain("ainda pendente de decisão sua sobre quais");
   });
 });
+
+describe("Ponta do App — ligada em 03/10 pela regra de escopo da Proprietária", () => {
+  const APP = readFileSync("src/components/portal/compartilhar-achado-cliente.tsx", "utf8");
+  const LEGADO = readFileSync("src/routes/portal/legado.tsx", "utf8");
+  const MIGRATION = readFileSync("supabase/migrations/20261003140000_portal_membros_do_meu_caso.sql", "utf8");
+
+  for (const fn of [
+    "autorizarCompartilhamentoAchado",
+    "revogarCompartilhamentoAchadoPortal",
+    "meusCompartilhamentosDeAchado",
+    "membrosDoMeuCaso",
+  ]) {
+    it(`${fn} é chamado pelo App`, () => {
+      expect(APP).toContain(fn);
+    });
+  }
+
+  it("o painel está montado na aba Legado — sem aba nova", () => {
+    expect(LEGADO).toContain("<CompartilharAchadoCliente");
+    // A taxonomia do App Cliente continua em 7 abas: nada de aba nova.
+    expect(LEGADO).not.toContain("createFileRoute(\"/portal/compartilhar");
+  });
+
+  it("o escopo é o MESMO processo e família, pela regra da Proprietária", () => {
+    expect(MIGRATION).toContain("client_portal_case_access");
+    expect(MIGRATION).toContain("portal_meu_acesso()");
+    // O próprio titular sai da lista: ninguém compartilha consigo mesmo.
+    expect(MIGRATION).toContain("mb.cliente_id <> public.portal_meu_cliente()");
+    expect(APP).toContain("mesmo processo da sua família");
+  });
+
+  it("privilégio mínimo: a função devolve só id, nome e papel — nunca dado civil", () => {
+    expect(MIGRATION).toContain("RETURNS TABLE (case_id uuid, cliente_id uuid, nome text, papel text)");
+    /*
+      A verificação é sobre o SQL, não sobre a prosa: o próprio cabeçalho da
+      migration escreve "NUNCA CPF, RG, e-mail…" para registrar a decisão, e
+      uma busca ingênua no arquivo inteiro acusaria esse comentário. Tirar os
+      comentários antes de checar é o que separa o que a função FAZ do que
+      ela DIZ.
+    */
+    const sqlSemComentario = MIGRATION.split("\n")
+      .filter((l) => !l.trimStart().startsWith("--"))
+      .join("\n")
+      .toLowerCase();
+    for (const proibido of ["cpf", "rg_numero", "endereco", "telefone", "email", "data_nascimento"]) {
+      expect(sqlSemComentario.includes(proibido), `a função não deve expor ${proibido}`).toBe(false);
+    }
+  });
+
+  it("a função é SECURITY DEFINER com search_path fixo e sem EXECUTE para PUBLIC", () => {
+    expect(MIGRATION).toContain("SECURITY DEFINER");
+    expect(MIGRATION).toContain("SET search_path TO 'public'");
+    expect(MIGRATION).toContain("REVOKE ALL ON FUNCTION public.portal_membros_do_meu_caso() FROM PUBLIC");
+    expect(MIGRATION).toContain("GRANT EXECUTE ON FUNCTION public.portal_membros_do_meu_caso() TO authenticated");
+  });
+
+  it("o App diz a fronteira ao cliente: só o texto, nunca o documento original", () => {
+    expect(APP).toContain("nunca o documento original");
+  });
+
+  it("estado vazio explica o motivo em vez de mostrar seletor vazio", () => {
+    expect(APP).toContain("Quando houver um achado publicado para você");
+    expect(APP).toContain("não há outra pessoa do seu processo cadastrada");
+  });
+});
