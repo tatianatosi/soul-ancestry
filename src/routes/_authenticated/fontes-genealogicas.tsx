@@ -37,6 +37,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { filtrarPorBusca } from "@/lib/rotulo-negocio";
+import { MarcosJuridicosPorPais } from "@/components/pesquisa/marcos-juridicos-paises";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -573,6 +574,8 @@ function FontesGenealogicas() {
           </button>
         )}
       </div>
+
+      <MarcosJuridicosPorPais />
 
       <Secao titulo="Recomendáveis para uso operacional" subtitulo="Documentadas, sem termos pendentes e nunca restritas ou descontinuadas.">
         {render(grupos.recomendaveis)}
