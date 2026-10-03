@@ -13,6 +13,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import type { LeadDesk } from "@/lib/crm-desk";
+import { AVISO_PRIVACIDADE } from "@/lib/decisoes-da-proprietaria";
 import {
   registrarBlocoDiscovery,
   salvarConsentimentosDiscovery,
@@ -72,6 +73,24 @@ export function AberturaConsentimentos({ lead, registro, onSalvo, onAviso }: Pro
           <li key={t}>{t}</li>
         ))}
       </ul>
+      {/*
+        D-01 ligado (03/10/2026): o registro deixa de ser cego. Quem concede
+        precisa saber QUAL aviso foi apresentado, e o banco exige a versão
+        junto com data e canal — era exatamente a peça que faltava e que
+        fazia o gate falhar em silêncio.
+      */}
+      <p className="mb-3 text-[11px] text-navy/60" data-aviso-privacidade>
+        Aviso apresentado: <strong>{AVISO_PRIVACIDADE.versao}</strong> ·{" "}
+        <a
+          href={AVISO_PRIVACIDADE.url}
+          target="_blank"
+          rel="noreferrer"
+          className="underline decoration-gold underline-offset-2"
+        >
+          política de privacidade publicada
+        </a>{" "}
+        · {AVISO_PRIVACIDADE.anexoContratual}. O consentimento concedido grava data, canal e esta versão.
+      </p>
       <div className="grid gap-3 md:grid-cols-2" data-consentimentos>
         {CONSENTIMENTOS.map((c) => (
           <Selecao

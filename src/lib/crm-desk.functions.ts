@@ -1,4 +1,5 @@
 import { semCache } from "@/lib/no-store";
+import { AVISO_PRIVACIDADE } from "@/lib/decisoes-da-proprietaria";
 // Alias obrigatório: este arquivo já usa `linhas` como variável local.
 import { linhas as linhasDe } from "@/lib/linhas";
 import { createServerFn } from "@tanstack/react-start";
@@ -477,6 +478,28 @@ export const salvarConsentimentosDiscovery = createServerFn({ method: "POST" })
       payload.consentimento_gravacao = g === "sim";
       payload.consentimento_em = g ? new Date().toISOString() : null;
       if (data.canal) payload.consentimento_canal = data.canal;
+      /*
+        D-01 ligado (03/10/2026). Defeito que o gate escondia: o trigger do
+        banco recusa `concedido` sem data/hora, canal E versão do aviso, e
+        esta função nunca gravava a versão. Conceder consentimento pela tela
+        falhava sempre — por isso os 11 leads estavam todos em
+        `nao_solicitado`. Não era falta de dado: era caminho inalcançável.
+
+        A versão vem da política publicada (`AVISO_PRIVACIDADE`), e só é
+        carimbada quando o lead ainda não tem uma: consentimento antigo
+        continua apontando para a versão que foi de fato apresentada.
+      */
+      if (g === "sim") {
+        if (!String(payload.consentimento_canal ?? lead.consentimento_canal ?? "").trim()) {
+          return {
+            ok: false as const,
+            erro: "Consentimento concedido exige o canal em que foi dado (ex.: verbal na call).",
+          };
+        }
+        if (!String(lead.consentimento_versao_aviso ?? "").trim()) {
+          payload.consentimento_versao_aviso = AVISO_PRIVACIDADE.versao;
+        }
+      }
     }
     const resultado = await gravarComVerificacao({
       supabase,

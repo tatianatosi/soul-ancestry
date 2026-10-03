@@ -253,3 +253,34 @@ export const FONTE_NOVA_APROVADA_POR_PADRAO = {
   modo_de_uso_permitido: "manual",
   permite_automacao: "nao",
 } as const;
+
+/* ------------------------------------------------------------------ */
+/* D-01 — aviso de privacidade apresentado ao titular                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Versão do aviso de privacidade que a equipe apresenta ao registrar
+ * consentimento.
+ *
+ * Instrução literal da Proprietária (03/10/2026): "pode ligar o gate de
+ * consentimento aos 11 leads lembrando que temos a politica de privacidade e
+ * anexo de lgpd em contrato esse gate é no desk
+ * https://clubeancestral.com.br/".
+ *
+ * Por que esta constante existe, e não é burocracia: o trigger do banco
+ * (`20260821235800`) recusa `consentimento_status = 'concedido'` sem
+ * data/hora, canal E versão do aviso — e o escritor
+ * `salvarConsentimentosDiscovery` nunca gravava a versão. Resultado medido em
+ * 03/10: os 11 leads estavam todos em `nao_solicitado`, porque conceder
+ * consentimento pela tela SEMPRE falhava no trigger. O gate não estava
+ * "aguardando dado": estava inalcançável por construção.
+ *
+ * A versão é a data da política vigente no site, não um número inventado:
+ * quando a política mudar, esta constante muda, e os consentimentos antigos
+ * continuam apontando para a versão que foi de fato apresentada.
+ */
+export const AVISO_PRIVACIDADE = {
+  versao: "politica-privacidade-clubeancestral-2026-10",
+  url: "https://clubeancestral.com.br/",
+  anexoContratual: "Anexo de privacidade e LGPD do contrato de estudo genealógico",
+} as const;
