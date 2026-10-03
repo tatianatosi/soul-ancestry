@@ -234,6 +234,12 @@ export type Linhagem = {
   risco_principal: string | null;
   proximo_marco: string | null;
   responsavel: string | null;
+  /**
+   * Heatmap por ramo (02/10/2026). Aderência operacional/documental deste
+   * ramo, 0–100 inteiro — nunca veredito jurídico, direito ou elegibilidade
+   * definitiva. É o que alimenta `heatmap_pct_1..3` da Ficha Master.
+   */
+  aderencia_percentual?: number | null;
   archived_at?: string | null;
 };
 
@@ -597,8 +603,17 @@ export function projecaoClienteBloqueada(): { publicavel: false; motivo: string 
  */
 export function validarAderenciaPercentual(bruto: unknown): number | null {
   if (bruto === null || bruto === undefined) return null;
-  if (typeof bruto === "string" && bruto.includes("%")) {
-    throw new Error("Aderência é gravada sem o símbolo %, só o número de 0 a 100.");
+  if (typeof bruto === "string") {
+    if (bruto.includes("%")) {
+      throw new Error("Aderência é gravada sem o símbolo %, só o número de 0 a 100.");
+    }
+    /*
+      03/10/2026 — defeito achado ao escrever o teste do item 6: `Number("")`
+      é 0, e 0 passa no intervalo. Campo em branco virava "0% de aderência"
+      gravado no banco, em vez de "não calculada". A tela já tratava; o
+      servidor, que é quem recusa, não. Branco é ausência de dado, nunca zero.
+    */
+    if (bruto.trim() === "") return null;
   }
   const n = Number(bruto);
   if (!Number.isInteger(n) || n < 0 || n > 100) {

@@ -1281,6 +1281,7 @@ function AbaLinhagens({
     risco_principal: "",
     proximo_marco: "",
     responsavel: "",
+    aderencia_percentual: "",
   };
   const [nova, setNova] = useState(vazia);
 
@@ -1323,14 +1324,39 @@ function AbaLinhagens({
         <Campo label="Próximo marco">
           <input className={inputCls} value={nova.proximo_marco} onChange={(e) => setNova({ ...nova, proximo_marco: e.target.value })} />
         </Campo>
+        {/*
+          Heatmap por ramo (02/10/2026): aderência operacional/documental
+          DESTE ramo, que alimenta heatmap_pct_1..3 da Ficha Master. Inteiro
+          0–100, sem o símbolo "%" — o servidor recusa o resto
+          (validarAderenciaPercentual + CHECK do banco).
+        */}
+        <Campo label="Aderência do ramo (%)">
+          <input
+            className={inputCls}
+            type="number"
+            min={0}
+            max={100}
+            step={1}
+            value={nova.aderencia_percentual}
+            onChange={(e) => setNova({ ...nova, aderencia_percentual: e.target.value })}
+            placeholder="0 a 100"
+          />
+        </Campo>
         <div className="md:col-span-3">
           <button
             type="button"
             className={btnCls}
             onClick={() => {
-              const erros = validarLinhagem({ ...nova, case_id: caseId } as Partial<Linhagem>, linhagens);
+              const erros = validarLinhagem(
+                { ...nova, aderencia_percentual: undefined, case_id: caseId } as unknown as Partial<Linhagem>,
+                linhagens,
+              );
               if (erros.length) return toast.error(erros.join(" "));
-              onSalvar(undefined, nova);
+              // Campo vazio não vira 0: o servidor normaliza para null.
+              onSalvar(undefined, {
+                ...nova,
+                aderencia_percentual: nova.aderencia_percentual.trim() === "" ? null : nova.aderencia_percentual,
+              });
               setNova(vazia);
             }}
           >
@@ -1345,14 +1371,83 @@ function AbaLinhagens({
             <span className="text-sm font-semibold text-navy">{l.nome_da_linha}</span>
             <Selo texto={rotuloDe(TIPOS_LINHA, l.tipo_da_linha)} tom="neutro" />
             <Selo texto={rotuloDe(STATUS_LINHA, l.status)} tom={l.status === "com_suporte" ? "ok" : "neutro"} />
+            <Selo
+              texto={
+                typeof l.aderencia_percentual === "number"
+                  ? `Aderência ${l.aderencia_percentual}%`
+                  : "Aderência não calculada"
+              }
+              tom={typeof l.aderencia_percentual === "number" ? "ok" : "neutro"}
+            />
           </div>
           <p className="text-xs text-navy/60">
             {l.objetivo ?? "Objetivo não informado"} · próximo marco: {l.proximo_marco ?? "não registrado"} ·
             responsável: {l.responsavel ?? "não atribuído"}
           </p>
+          {/*
+            Heatmap por ramo (03/10/2026): o ramo já existente precisava de um
+            lugar para receber o percentual sem recriar a linhagem — é o caso
+            real de hoje (um ramo gravado, aderência nula). Edição pontual, só
+            deste campo.
+          */}
+          <AderenciaDoRamo linhagem={l} onSalvar={onSalvar} />
         </div>
       ))}
       {linhagens.length === 0 ? <p className="text-sm text-navy/60">Nenhuma linhagem registrada.</p> : null}
     </section>
+  );
+}
+
+/**
+ * Aderência do ramo (heatmap por país) — edição pontual de um campo só.
+ *
+ * Alimenta `heatmap_pais_1..3` / `heatmap_pct_1..3` da Ficha Master: a Ficha
+ * ordena os ramos do caso por este percentual e pega os três primeiros. É
+ * aderência operacional/documental do ramo, nunca veredito jurídico, direito
+ * ou elegibilidade definitiva — o rótulo diz isso na tela, não só no código.
+ */
+function AderenciaDoRamo({
+  linhagem,
+  onSalvar,
+}: {
+  linhagem: Linhagem;
+  onSalvar: (id: string | undefined, valores: Record<string, unknown>) => void;
+}) {
+  const gravado = typeof linhagem.aderencia_percentual === "number" ? String(linhagem.aderencia_percentual) : "";
+  const [valor, setValor] = useState(gravado);
+  const mudou = valor.trim() !== gravado.trim();
+  const numero = Number(valor);
+  const invalido =
+    valor.trim() !== "" && (!Number.isInteger(numero) || numero < 0 || numero > 100);
+
+  return (
+    <div className="mt-2 flex flex-wrap items-end gap-2">
+      <Campo label="Aderência do ramo (%)">
+        <input
+          className={inputCls}
+          type="number"
+          min={0}
+          max={100}
+          step={1}
+          value={valor}
+          onChange={(e) => setValor(e.target.value)}
+          placeholder="0 a 100"
+          aria-label={`Aderência do ramo ${linhagem.nome_da_linha}`}
+        />
+      </Campo>
+      <button
+        type="button"
+        className={btnCls}
+        disabled={!mudou || invalido}
+        onClick={() => onSalvar(linhagem.id, { aderencia_percentual: valor.trim() === "" ? null : valor })}
+      >
+        Salvar aderência
+      </button>
+      <p className="text-xs text-navy/55">
+        {invalido
+          ? "Use um inteiro de 0 a 100, sem o símbolo de porcentagem."
+          : "Aderência operacional e documental deste ramo. Não é parecer jurídico, direito reconhecido nem elegibilidade definitiva."}
+      </p>
+    </div>
   );
 }
