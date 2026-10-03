@@ -58,26 +58,45 @@ export type GrupoDesk = {
   sub: readonly ItemNav[];
 };
 
-/** Sete entradas da face V4; cada destino é uma rota oficial já existente. */
+/**
+ * Menu de primeiro nível das pranchas V4 (decisão da Proprietária, 02/10/2026,
+ * "Sanear o Desk — Passo 1"). Cada destino é uma rota oficial já existente;
+ * financeiro, jurídico/contrato e portal ficam dentro de Casos/Pesquisa.
+ */
 export const TELAS_DESK_MOCKUP = [
-  "Visão Geral",
-  "Casos 360",
-  "Checklist",
-  "Validação Jurídica",
-  "Radar Interno",
-  "Alertas",
-  "Biblioteca Mestre",
+  "Hoje",
+  "Comercial",
+  "Casos",
+  "Pessoas & Famílias",
+  "Pesquisa",
+  "Marketing",
+  "Configuração",
 ] as const;
 
 export const NAVEGACAO_V4_DESK = [
-  { label: "Visão Geral", to: "/painel", icone: "hoje" },
-  { label: "Casos 360", to: "/casos", icone: "casos" },
-  { label: "Checklist", to: "/tarefas", icone: "casos" },
-  { label: "Validação Jurídica", to: "/matriz-juridica", icone: "contratos" },
-  { label: "Radar Interno", to: "/qualidade", icone: "pesquisa" },
-  { label: "Alertas", to: "/alertas", icone: "hoje" },
-  { label: "Biblioteca Mestre", to: "/biblioteca", icone: "pesquisa" },
+  { label: "Hoje", to: "/painel", icone: "hoje" },
+  { label: "Comercial", to: "/calls", icone: "comercial" },
+  { label: "Casos", to: "/casos", icone: "casos" },
+  { label: "Pessoas & Famílias", to: "/clientes", icone: "casos" },
+  { label: "Pesquisa", to: "/pesquisa-modulo", icone: "pesquisa" },
+  { label: "Marketing", to: "/marketing", icone: "comercial" },
+  { label: "Configuração", to: "/configuracoes", icone: "governanca" },
 ] as const satisfies readonly { label: string; to: string; icone: GrupoDesk["icone"] }[];
+
+/**
+ * Itens de dicionário, etiqueta, tipologia, catálogo, SKU e legado saem do
+ * menu (Passo 1). As rotas continuam abertas por endereço direto.
+ */
+export const ROTAS_FORA_DO_MENU = [
+  "/governanca/dicionario-calls-crm",
+  "/etiquetas",
+  "/catalogo",
+  "/governanca/catalogo-operacional-30",
+  "/homologacao-skus",
+  "/conciliacao-catalogo",
+  "/divergencias-catalogo",
+  "/escopo-origem",
+] as const;
 
 export const GRUPOS_OPERACIONAIS_DESK = [
   "Hoje",
