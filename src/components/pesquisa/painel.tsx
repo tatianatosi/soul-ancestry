@@ -5,6 +5,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
+import { motivoCampoInvalido, type RegraCampo } from "@/lib/validacao-pessoa";
+
 import { Campo, Gaveta, Selo, inputCls } from "@/components/comercial/base";
 import { CaCard } from "@/components/ui/ca-card";
 import { AssistentePesquisa } from "@/components/pesquisa/assistente";
@@ -82,19 +84,35 @@ type CampoDef = {
   rotulo: string;
   tipo?: "texto" | "area" | "data" | "datahora" | "select" | "bool" | "pessoa" | "hipotese";
   opcoes?: Record<string, string>;
+  /**
+   * Varredura de máscaras (03/10/2026): este painel coletava nome de pessoa e
+   * data histórica sem nenhum validador — `tipo: "data"` só trocava o
+   * `type=` do input, e o navegador aceita 02/03/0185 sem reclamar.
+   *
+   * A validação é declarada por campo, não pelo `tipo`, porque `prazo` é a
+   * única data que PODE estar no futuro (é compromisso, não registro) — um
+   * validador blanket por tipo recusaria prazo legítimo.
+   */
+  validacao?: RegraCampo;
 };
+
+/** Aplica a regra declarada no campo. A regra em si vive em `validacao-pessoa`. */
+function motivoInvalido(campo: CampoDef, valor: string): string | null {
+  if (!campo.validacao) return null;
+  return motivoCampoInvalido(campo.rotulo, campo.validacao, valor);
+}
 
 const FORMULARIOS: Record<Bloco, { titulo: string; campos: CampoDef[] }> = {
   pessoas: {
     titulo: "Pessoa da linha familiar",
     campos: [
-      { nome: "nome", rotulo: "Nome" },
+      { nome: "nome", rotulo: "Nome", validacao: "nome" },
       { nome: "parentesco", rotulo: "Parentesco" },
       { nome: "requerente", rotulo: "É o requerente", tipo: "bool" },
       { nome: "nacionalidade", rotulo: "Nacionalidade" },
-      { nome: "data_nascimento", rotulo: "Nascimento", tipo: "data" },
+      { nome: "data_nascimento", rotulo: "Nascimento", tipo: "data", validacao: "data_historica" },
       { nome: "local_nascimento", rotulo: "Local de nascimento" },
-      { nome: "data_obito", rotulo: "Óbito", tipo: "data" },
+      { nome: "data_obito", rotulo: "Óbito", tipo: "data", validacao: "data_historica" },
       { nome: "local_obito", rotulo: "Local do óbito" },
       { nome: "pai_id", rotulo: "Pai", tipo: "pessoa" },
       { nome: "mae_id", rotulo: "Mãe", tipo: "pessoa" },
@@ -123,8 +141,8 @@ const FORMULARIOS: Record<Bloco, { titulo: string; campos: CampoDef[] }> = {
       { nome: "hypothesis_id", rotulo: "Hipótese vinculada", tipo: "hipotese" },
       { nome: "relacao_hipotese", rotulo: "Relação com a hipótese", tipo: "area" },
       { nome: "local_relacionado", rotulo: "Local" },
-      { nome: "data_inicio", rotulo: "Data inicial", tipo: "data" },
-      { nome: "data_fim", rotulo: "Data final", tipo: "data" },
+      { nome: "data_inicio", rotulo: "Data inicial", tipo: "data", validacao: "data_historica" },
+      { nome: "data_fim", rotulo: "Data final", tipo: "data", validacao: "data_historica" },
       { nome: "periodo", rotulo: "Período (texto)" },
       { nome: "fonte", rotulo: "Fonte/origem" },
       { nome: "url", rotulo: "Endereço na internet (opcional)" },
@@ -141,8 +159,8 @@ const FORMULARIOS: Record<Bloco, { titulo: string; campos: CampoDef[] }> = {
       { nome: "tipo", rotulo: "Tipo (nascimento, casamento, emigração…)" },
       { nome: "person_id", rotulo: "Pessoa", tipo: "pessoa" },
       { nome: "local", rotulo: "Local" },
-      { nome: "data_inicio", rotulo: "Data inicial", tipo: "data" },
-      { nome: "data_fim", rotulo: "Data final", tipo: "data" },
+      { nome: "data_inicio", rotulo: "Data inicial", tipo: "data", validacao: "data_historica" },
+      { nome: "data_fim", rotulo: "Data final", tipo: "data", validacao: "data_historica" },
       { nome: "periodo_texto", rotulo: "Período aproximado (texto)" },
       { nome: "descricao", rotulo: "Descrição", tipo: "area" },
       { nome: "confirmado", rotulo: "Apoiado por evidência validada", tipo: "bool" },
@@ -160,7 +178,7 @@ const FORMULARIOS: Record<Bloco, { titulo: string; campos: CampoDef[] }> = {
         tipo: "select",
         opcoes: { baixa: "Baixa", media: "Média", alta: "Alta", critica: "Crítica" },
       },
-      { nome: "prazo", rotulo: "Prazo", tipo: "data" },
+      { nome: "prazo", rotulo: "Prazo", tipo: "data", validacao: "data_futura" },
       { nome: "person_id", rotulo: "Pessoa", tipo: "pessoa" },
       { nome: "hypothesis_id", rotulo: "Hipótese", tipo: "hipotese" },
     ],
@@ -523,8 +541,19 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
               ev.preventDefault();
               const fd = new FormData(ev.currentTarget);
               const dados: Linha = {};
+              const recusas: string[] = [];
               for (const campo of FORMULARIOS[edicao.bloco].campos) {
-                dados[campo.nome] = campo.tipo === "bool" ? fd.get(campo.nome) === "on" : fd.get(campo.nome);
+                const bruto = campo.tipo === "bool" ? fd.get(campo.nome) === "on" : fd.get(campo.nome);
+                dados[campo.nome] = bruto;
+                if (campo.tipo !== "bool") {
+                  const motivo = motivoInvalido(campo, String(bruto ?? ""));
+                  if (motivo) recusas.push(motivo);
+                }
+              }
+              if (recusas.length > 0) {
+                // Não grava com dado inválido e diz exatamente qual campo e por quê.
+                toast.error(recusas.join(" "));
+                return;
               }
               salvarMut.mutate({ bloco: edicao.bloco, id: edicao.linha?.id, dados });
             }}

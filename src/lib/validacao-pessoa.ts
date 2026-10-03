@@ -259,6 +259,9 @@ export function formatarDataBr(valor: string): string {
  */
 export const ANO_MINIMO_GENEALOGICO = 1500;
 
+/** Teto de futuro para data de compromisso (prazo). Barra digitação, não planejamento. */
+export const HORIZONTE_FUTURO_ANOS = 10;
+
 export function dataValida(
   valor: string,
   options: { permitirFutura?: boolean; anoMinimo?: number } = {},
@@ -282,7 +285,14 @@ export function dataValida(
   }
 
   const anoMinimo = options.anoMinimo ?? 1900;
-  if (ano < anoMinimo || ano > new Date().getFullYear() + (options.permitirFutura ? 1 : 0)) return false;
+  /*
+    03/10/2026 — o horizonte de futuro era +1 ano, o que recusava prazo
+    legítimo: processo de cidadania corre por anos, e "prazo em 2029" é
+    compromisso normal, não digitação. +10 continua barrando o erro de
+    digitação (ano 9999, dedo no teclado) sem barrar o prazo real.
+  */
+  const anoMaximo = new Date().getFullYear() + (options.permitirFutura ? HORIZONTE_FUTURO_ANOS : 0);
+  if (ano < anoMinimo || ano > anoMaximo) return false;
   if (mes < 1 || mes > 12) return false;
   const data = new Date(ano, mes - 1, dia);
   // new Date normaliza datas inválidas (ex.: 31/02 vira 03/03) — comparar
@@ -309,4 +319,41 @@ export function enderecoCampoValido(campo: CampoEndereco, valor: string): boolea
   if (!v) return false;
   if (campo === "numero") return /\d/.test(v) || /^s\/?n$/i.test(v);
   return true;
+}
+
+/* ------------------------------------------------------------------ */
+/* Regra de campo reutilizável — o que faltava para a varredura escalar */
+/* ------------------------------------------------------------------ */
+
+/**
+ * 03/10/2026 — a varredura de máscaras mostrou por que ela vinha sendo
+ * artesanal: cada tela que quisesse validar tinha de escrever a condição, a
+ * mensagem e a classe de erro à mão. Com a regra nomeada aqui, religar um
+ * campo é uma linha, e a mensagem fica igual em todas as telas.
+ *
+ * - `nome`: nome de PESSOA. Nunca aplicar a nome de linha, fonte ou
+ *   documento ("Certidão 1912" tem dígito de propósito).
+ * - `data_historica`: nascimento, óbito, data de evidência ou de fonte —
+ *   piso genealógico, nunca no futuro.
+ * - `data_futura`: prazo e compromisso — é a única data que pode estar
+ *   adiante; um validador único por tipo recusaria prazo legítimo.
+ *
+ * Campo vazio nunca é erro aqui: obrigatoriedade é outra regra, e é do
+ * servidor.
+ */
+export type RegraCampo = "nome" | "data_historica" | "data_futura";
+
+export function motivoCampoInvalido(rotulo: string, regra: RegraCampo, valor: string): string | null {
+  const v = String(valor ?? "").trim();
+  if (!v) return null;
+  if (regra === "nome" && !nomeValido(v)) {
+    return `${rotulo}: nome não pode conter números e precisa de ao menos duas letras.`;
+  }
+  if (regra === "data_historica" && !dataValida(v, { anoMinimo: ANO_MINIMO_GENEALOGICO })) {
+    return `${rotulo}: data inválida — a partir de ${ANO_MINIMO_GENEALOGICO} e nunca no futuro.`;
+  }
+  if (regra === "data_futura" && !dataValida(v, { permitirFutura: true })) {
+    return `${rotulo}: data inválida.`;
+  }
+  return null;
 }

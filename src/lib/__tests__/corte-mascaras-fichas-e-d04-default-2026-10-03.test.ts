@@ -162,3 +162,46 @@ describe("D-04 ampliada — fonte nova nasce aprovada, sem abrir automação", (
     }
   });
 });
+
+describe("Regra de campo reutilizável — a varredura deixa de ser artesanal", () => {
+  it("nome de pessoa recusa dígito; nome de coisa não passa por esta regra", async () => {
+    const { motivoCampoInvalido } = await import("@/lib/validacao-pessoa");
+    expect(motivoCampoInvalido("Nome", "nome", "João 123")).toContain("números");
+    expect(motivoCampoInvalido("Nome", "nome", "Maria da Silveira")).toBeNull();
+  });
+
+  it("data histórica aceita 1858 e recusa futuro; prazo aceita futuro", async () => {
+    const { motivoCampoInvalido } = await import("@/lib/validacao-pessoa");
+    const futuro = String(new Date().getFullYear() + 2) + "-01-01";
+    expect(motivoCampoInvalido("Nascimento", "data_historica", "1858-03-02")).toBeNull();
+    expect(motivoCampoInvalido("Nascimento", "data_historica", futuro)).toContain("nunca no futuro");
+    /*
+      `prazo` é a única data que PODE estar adiante — é compromisso, não
+      registro. Um validador único por tipo de input recusaria prazo legítimo;
+      foi por isso que a regra é declarada por campo, não pelo `tipo`.
+    */
+    expect(motivoCampoInvalido("Prazo", "data_futura", futuro)).toBeNull();
+  });
+
+  it("campo vazio nunca é erro aqui — obrigatoriedade é regra do servidor", async () => {
+    const { motivoCampoInvalido } = await import("@/lib/validacao-pessoa");
+    for (const regra of ["nome", "data_historica", "data_futura"] as const) {
+      expect(motivoCampoInvalido("X", regra, "")).toBeNull();
+      expect(motivoCampoInvalido("X", regra, "   ")).toBeNull();
+    }
+  });
+
+  it("o painel de Pesquisa declara a regra por campo e RECUSA o submit inválido", () => {
+    const src = readFileSync("src/components/pesquisa/painel.tsx", "utf8");
+    expect(src).toContain("motivoCampoInvalido");
+    expect(src).toContain('validacao: "nome"');
+    expect(src).toContain('validacao: "data_historica"');
+    // Prazo é a exceção declarada: compromisso pode ser futuro.
+    expect(src).toContain('{ nome: "prazo", rotulo: "Prazo", tipo: "data", validacao: "data_futura" }');
+    // A recusa precisa acontecer ANTES do mutate, ou validar não muda nada.
+    const recusa = src.indexOf("if (recusas.length > 0)");
+    const mutate = src.indexOf("salvarMut.mutate({ bloco: edicao.bloco", recusa);
+    expect(recusa).toBeGreaterThan(-1);
+    expect(mutate).toBeGreaterThan(recusa);
+  });
+});
