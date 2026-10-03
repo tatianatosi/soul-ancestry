@@ -3,12 +3,16 @@
 - **Modelo válido para geração:** `MODELO-ESTUDO + BASE-GEN-V2`
 - **Versão:** v2.0
 - **Data:** 2026-08-22
-- **Status:** `under_legal_review` (não vigente, não assinável, não cobrável)
+- **Status:** `vigente` — revisão jurídica concluída e aprovada.
+- **Decisão da Proprietária, 03/10/2026:** "Contrato da Ana correto é v2.0 com 14 cláusulas
+  e já foi revisado e aprovado pelo jurídico." O status anterior era
+  `under_legal_review`; esta linha registra a mudança, não a apaga.
 - **Fonte canônica única.** Nenhum texto jurídico pode viver em prompt, comentário de código,
   campo de formulário ou página de governança fora deste arquivo e dos módulos que o carregam.
 
-> Artefato interno. Não substitui revisão jurídica independente e não autoriza cobrança,
-> assinatura, pesquisa externa, portal ou automação.
+> A revisão jurídica deste instrumento está concluída (03/10/2026). Vigência não é, por si,
+> autorização de ato externo: cobrança, assinatura, envio, portal e automação continuam
+> dependendo dos gates formais e de ato humano explícito.
 
 ---
 

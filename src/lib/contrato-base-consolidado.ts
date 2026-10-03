@@ -7,12 +7,20 @@
  *  - texto fixo é institucional e versionado: não é editável por caso;
  *  - variável só existe se estiver na matriz de variáveis permitidas;
  *  - campo ausente permanece pendente, nunca é inferido;
- *  - status inicial é `under_legal_review`: não vigente, não assinável.
+ *  - 03/10/2026 — decisão da Proprietária: "Contrato da Ana correto é v2.0 com
+ *    14 cláusulas e já foi revisado e aprovado pelo jurídico". O instrumento
+ *    deixa de ser `under_legal_review`: é v2.0, vigente, com 14 cláusulas.
  */
 
 export const CONTRATO_BASE_ID = "CA-CONTRATOS-Resgate-Consolidado-Contrato-Base-Motor-Anexos-v1.0";
 export const CONTRATO_BASE_MODELO = "MODELO-ESTUDO + BASE-GEN-V2";
-export const CONTRATO_BASE_VERSAO = "v1.0";
+/**
+ * 03/10/2026 — v2.0 por decisão da Proprietária, com revisão jurídica
+ * concluída. Era "v1.0" aqui e no banco enquanto o documento canônico
+ * (docs/contratos/CA-CONTRATO-BASE-ESTUDO-GENEALOGICO-v2.md) já dizia v2.0:
+ * divergência real, corrigida.
+ */
+export const CONTRATO_BASE_VERSAO = "v2.0";
 export const CONTRATO_BASE_DATA = "2026-08-22";
 
 export const ESTADOS_VIGENCIA_CONTRATO_BASE = [
@@ -270,6 +278,17 @@ export const CLAUSULAS_FIXAS: ClausulaFixa[] = [
     ],
   },
 ];
+
+/**
+ * As 14 cláusulas do instrumento aprovado (v2.0, revisão jurídica concluída
+ * em 03/10/2026). `CLAUSULAS_FIXAS` tem 16: as de número 15 (Inadimplemento)
+ * e 16 (Rescisão) **não** fazem parte do v2.0 aprovado. Elas continuam no
+ * módulo — texto jurídico não se apaga — mas não entram na geração do
+ * instrumento até decisão explícita da Proprietária.
+ */
+export const CLAUSULAS_APROVADAS_V2 = CLAUSULAS_FIXAS.filter((c) => c.numero <= 14);
+
+export const CLAUSULAS_FORA_DO_V2_APROVADO = CLAUSULAS_FIXAS.filter((c) => c.numero > 14);
 
 /* ------------------------------------------------------------------ */
 /* 3b — Equivalência com o documento consolidado publicado              */

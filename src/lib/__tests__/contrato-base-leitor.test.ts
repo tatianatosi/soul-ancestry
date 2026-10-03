@@ -28,7 +28,8 @@ describe("leitor do contrato-base", () => {
         .trim();
       expect(texto.length).toBeGreaterThan(40);
       expect(s.selo).toBe(SELO_TEXTO_FIXO);
-      expect(s.versao).toBe("v1.0");
+      // 03/10/2026 — v2.0 aprovado pelo jurídico, por decisão da Proprietária.
+      expect(s.versao).toBe("v2.0");
       expect(s.equivalenciaMatriz.length).toBeGreaterThan(0);
       expect(s.estadoVigencia).toBe("vigente");
     }
