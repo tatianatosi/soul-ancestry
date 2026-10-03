@@ -23,6 +23,7 @@ import {
   TIPOS_DESPESA,
   type ItemPainel,
 } from "@/lib/plano-acao-pesquisa";
+import { EditarPlanoAcao } from "@/components/pesquisa/editar-plano-acao";
 import { painelPlanoAcao } from "@/lib/plano-acao-pesquisa.functions";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -230,6 +231,20 @@ function PlanoAcao() {
         {(dados?.caso as any)?.codigo ?? caseId} — fila interna de trabalho. Nenhum contato, envio, pedido externo, despesa ou
         cobrança é executado por esta tela.
       </p>
+
+      {/*
+        Corte ÓRFÃOS (03/10/2026): esta rota importava SÓ o leitor. Os quatro
+        escritores do plano existiam, com autorização por papel e releitura,
+        e tinham zero chamadores — a equipe via a fila e não conseguia criar,
+        editar nem arquivar nada pela tela.
+      */}
+      <EditarPlanoAcao
+        caseId={caseId}
+        podeEditar={Boolean((dados as any)?.podeEditar)}
+        instituicoes={instituicoes}
+        itens={itens}
+        aoSalvar={() => void q.refetch()}
+      />
 
       {foco === "criticas" ? (
         <Secao

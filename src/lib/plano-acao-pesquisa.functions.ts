@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
-import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -133,13 +133,19 @@ export const salvarItemPlano = createServerFn({ method: "POST" })
       });
       return { id: data.id };
     }
-    const { data: linha, error } = await supabase
-      .from("research_action_plan_items")
-      .insert({ ...valores, organization_id: organizationId, requires_human_approval: true })
-      .select("id")
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    return { id: linha?.id as string };
+    /*
+      03/10/2026 — criação passou a reler como a atualização já fazia. O
+      insert cru devolvia sucesso sem conferir o gravado, contrariando a
+      regra de persistência universal do próprio repo.
+    */
+    const r = await inserirComVerificacao({
+      supabase: supabase as never,
+      tabela: "research_action_plan_items",
+      organizationId,
+      userId: context.userId as string,
+      payload: { ...valores, requires_human_approval: true },
+    });
+    return { id: (r as { id?: string }).id as string };
   });
 
 export const salvarInstituicao = createServerFn({ method: "POST" })
@@ -161,13 +167,14 @@ export const salvarInstituicao = createServerFn({ method: "POST" })
       });
       return { id: data.id };
     }
-    const { data: linha, error } = await supabase
-      .from("institutions")
-      .insert({ ...valores, organization_id: organizationId })
-      .select("id")
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    return { id: linha?.id as string };
+    const r = await inserirComVerificacao({
+      supabase: supabase as never,
+      tabela: "institutions",
+      organizationId,
+      userId: context.userId as string,
+      payload: valores,
+    });
+    return { id: (r as { id?: string }).id as string };
   });
 
 export const salvarEstimativa = createServerFn({ method: "POST" })
@@ -189,13 +196,14 @@ export const salvarEstimativa = createServerFn({ method: "POST" })
       });
       return { id: data.id };
     }
-    const { data: linha, error } = await supabase
-      .from("expense_estimates")
-      .insert({ ...valores, organization_id: organizationId })
-      .select("id")
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    return { id: linha?.id as string };
+    const r = await inserirComVerificacao({
+      supabase: supabase as never,
+      tabela: "expense_estimates",
+      organizationId,
+      userId: context.userId as string,
+      payload: valores,
+    });
+    return { id: (r as { id?: string }).id as string };
   });
 
 /** Sem exclusão física: apenas arquivamento com motivo. */

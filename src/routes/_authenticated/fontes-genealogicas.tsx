@@ -21,7 +21,17 @@ import {
   STATUS_INTEGRACAO,
   type Fonte,
 } from "@/lib/fontes-genealogicas";
-import { painelFontes, salvarFonte } from "@/lib/fontes-genealogicas.functions";
+import {
+  arquivarRegistroG08,
+  painelFontes,
+  salvarAvaliacaoFonte,
+  salvarBacklogFonte,
+  salvarFonte,
+} from "@/lib/fontes-genealogicas.functions";
+import { toast } from "sonner";
+
+import { motivoCampoInvalido } from "@/components/campos/aviso-campo";
+import { Selecao, Texto } from "@/components/caso/campos";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { useAutoridade } from "@/components/saas/autoridade";
@@ -273,9 +283,152 @@ function CartaoFonte({ fonte, matriz, backlog, onSalvo }: { fonte: Fonte; matriz
               </ul>
             )}
           </div>
+
+          {/*
+            Corte ÓRFÃOS (03/10/2026): a rota importava só `painelFontes` e
+            `salvarFonte`. `salvarAvaliacaoFonte`, `salvarBacklogFonte` e
+            `arquivarRegistroG08` existiam, com releitura e autorização por
+            papel, e tinham zero chamadores — a matriz e o backlog eram
+            listas que ninguém conseguia preencher pela tela.
+          */}
+          <div className="sm:col-span-2">
+            <EscreverGovernancaFonte fonteId={fonte.id} onSalvo={onSalvo} />
+          </div>
         </div>
       )}
     </article>
+  );
+}
+
+/** Avaliação, backlog e arquivamento de UMA fonte. Nenhuma consulta externa. */
+function EscreverGovernancaFonte({ fonteId, onSalvo }: { fonteId: string; onSalvo: () => void }) {
+  const salvarAval = useServerFn(salvarAvaliacaoFonte);
+  const salvarBack = useServerFn(salvarBacklogFonte);
+  const arquivar = useServerFn(arquivarRegistroG08);
+
+  const [aval, setAval] = useState<Record<string, unknown>>({});
+  const [back, setBack] = useState<Record<string, unknown>>({});
+  const [motivo, setMotivo] = useState("");
+  const t = (v: unknown) => String(v ?? "");
+
+  const mAval = useMutation({
+    mutationFn: () => salvarAval({ data: { valores: { ...aval, source_id: fonteId } } }),
+    onSuccess: () => {
+      toast.success("Avaliação registrada.");
+      setAval({});
+      onSalvo();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const mBack = useMutation({
+    mutationFn: () => salvarBack({ data: { valores: { ...back, source_id: fonteId } } }),
+    onSuccess: () => {
+      toast.success("Ação interna registrada no backlog.");
+      setBack({});
+      onSalvo();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const mArq = useMutation({
+    mutationFn: () => arquivar({ data: { tabela: "genealogical_sources_catalog", id: fonteId, motivo } }),
+    onSuccess: () => {
+      toast.success("Fonte arquivada com motivo.");
+      setMotivo("");
+      onSalvo();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <div className="mt-2 space-y-3 rounded-lg border border-gold/40 bg-gold/5 p-2">
+      <p className="text-[11px] uppercase tracking-wide text-navy/45">Registrar governança desta fonte</p>
+
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Selecao
+          label="Critério avaliado"
+          valor={t(aval.criterio)}
+          opcoes={Object.entries(CRITERIOS_MATRIZ).map(([valor, rotulo]) => ({ valor, rotulo: String(rotulo) }))}
+          onChange={(v) => setAval({ ...aval, criterio: v })}
+        />
+        <Texto label="Nota" valor={t(aval.nota)} onChange={(v) => setAval({ ...aval, nota: v })} />
+        <div className="sm:col-span-2">
+          <Texto area label="Parecer interno" valor={t(aval.parecer_interno)} onChange={(v) => setAval({ ...aval, parecer_interno: v })} />
+        </div>
+        <Selecao
+          label="Bloqueante?"
+          valor={t(aval.bloqueante)}
+          opcoes={[
+            { valor: "true", rotulo: "Sim" },
+            { valor: "false", rotulo: "Não" },
+          ]}
+          onChange={(v) => setAval({ ...aval, bloqueante: v === "true" })}
+        />
+        <div className="sm:col-span-2">
+          <AcaoOperacional
+            rotulo={mAval.isPending ? "Salvando…" : "Registrar avaliação"}
+            capacidade="editar_rascunho"
+            efeito="Grava a avaliação interna da fonte e relê o registro. Nenhuma consulta externa é disparada."
+            size="sm"
+            validacaoFormulario={t(aval.criterio) ? null : "Escolha o critério avaliado."}
+            onConfirmar={async () => {
+              await mAval.mutateAsync();
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Texto label="Ação interna" valor={t(back.acao_interna)} onChange={(v) => setBack({ ...back, acao_interna: v })} />
+        <Selecao
+          label="Situação"
+          valor={t(back.status)}
+          opcoes={Object.entries(STATUS_BACKLOG).map(([valor, rotulo]) => ({ valor, rotulo: String(rotulo) }))}
+          onChange={(v) => setBack({ ...back, status: v })}
+        />
+        <Texto
+          label="Prazo"
+          tipo="date"
+          valor={t(back.prazo)}
+          onChange={(v) => setBack({ ...back, prazo: v })}
+          erro={motivoCampoInvalido("Prazo", "data_futura", t(back.prazo))}
+        />
+        <Texto label="Responsável" valor={t(back.responsavel)} onChange={(v) => setBack({ ...back, responsavel: v })} />
+        <div className="sm:col-span-2">
+          <Texto area label="Motivo da ação" valor={t(back.motivo)} onChange={(v) => setBack({ ...back, motivo: v })} />
+        </div>
+        <div className="sm:col-span-2">
+          <AcaoOperacional
+            rotulo={mBack.isPending ? "Salvando…" : "Registrar ação interna"}
+            capacidade="editar_rascunho"
+            efeito="Grava a sugestão interna de ativação, que nasce exigindo aprovação humana. Nada é executado."
+            size="sm"
+            validacaoFormulario={t(back.acao_interna).trim() ? null : "Descreva a ação interna."}
+            onConfirmar={async () => {
+              await mBack.mutateAsync();
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-2 sm:grid-cols-2">
+        {/* Sem exclusão física: arquivar exige motivo e preserva o registro. */}
+        <div className="sm:col-span-2">
+          <Texto label="Motivo para arquivar esta fonte" valor={motivo} onChange={setMotivo} />
+        </div>
+        <div className="sm:col-span-2">
+          <AcaoOperacional
+            rotulo={mArq.isPending ? "Arquivando…" : "Arquivar fonte com motivo"}
+            capacidade="editar_rascunho"
+            efeito="Marca a fonte como arquivada com motivo. Nada é apagado fisicamente."
+            size="sm"
+            validacaoFormulario={motivo.trim().length >= 5 ? null : "Escreva o motivo (mínimo 5 letras)."}
+            onConfirmar={async () => {
+              await mArq.mutateAsync();
+            }}
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 

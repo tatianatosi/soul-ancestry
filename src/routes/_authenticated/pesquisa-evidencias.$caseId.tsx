@@ -39,6 +39,7 @@ import {
   mudarEstadoEvidencia,
   prepararAreaPesquisa,
 } from "@/lib/pesquisa-cadeia.functions";
+import { EditarVisaoPesquisa } from "@/components/pesquisa/editar-visao-pesquisa";
 import { SecaoFontesDocumentos } from "@/components/pesquisa/fontes-documentos";
 import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
 
@@ -326,6 +327,13 @@ function AreaPesquisaEvidencias() {
               </div>
             ))}
           </dl>
+          {/*
+            Corte ÓRFÃOS (03/10/2026): o hub exibia estes campos e
+            `salvarVisaoPesquisa` — o escritor deles — tinha zero chamadores.
+            Ler e não poder corrigir era o padrão que vinha se repetindo.
+          */}
+          <EditarVisaoPesquisa pesquisa={(c?.pesquisa ?? null) as never} aoSalvar={() => void cadeia.refetch()} />
+
           {/*
             Fase 3 (27/09/2026) — auditoria pós-execução: "Hipótese interna"
             acima é só um resumo em texto livre de research_cases; a lista
