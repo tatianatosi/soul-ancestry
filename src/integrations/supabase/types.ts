@@ -9630,6 +9630,8 @@ export type Database = {
       genealogical_sources_catalog: {
         Row: {
           acesso: string
+          api_documentacao_url: string | null
+          api_status: string | null
           archive_motivo: string | null
           archived_at: string | null
           archived_by: string | null
@@ -9641,32 +9643,46 @@ export type Database = {
           created_by: string | null
           custo: string
           data_origin: string
+          direitos_de_reuso: string | null
           estagio_maturidade: string
           id: string
+          jurisdicao: string | null
           licenca_termos: string | null
+          modelo_acesso: string | null
           modo_de_uso_permitido: string
+          nivel_de_evidencia: string | null
           nivel_de_fonte: string
           nome: string
           observacao_risco: string | null
           organization_id: string
           pais_eixo: string
+          permite_automacao: string | null
+          permite_cache: string | null
+          permite_download: string | null
           prioridade: string
           proxima_acao: string | null
           responsavel_revisao: string | null
+          responsavel_validacao: string | null
           risco: string
+          robots_verificado: string | null
           scraping_status: string
           status_documentacao: string
           status_integracao: string
+          termos_de_uso_url: string | null
           tipo_de_acervo: string
           trata_dados_pessoais: boolean
           ultima_verificacao: string | null
           updated_at: string
           updated_by: string | null
+          url_canonica: string | null
+          url_pesquisa: string | null
           url_referencia_interna: string | null
           uso_recomendado: string | null
         }
         Insert: {
           acesso?: string
+          api_documentacao_url?: string | null
+          api_status?: string | null
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -9678,32 +9694,46 @@ export type Database = {
           created_by?: string | null
           custo?: string
           data_origin?: string
+          direitos_de_reuso?: string | null
           estagio_maturidade?: string
           id?: string
+          jurisdicao?: string | null
           licenca_termos?: string | null
+          modelo_acesso?: string | null
           modo_de_uso_permitido?: string
+          nivel_de_evidencia?: string | null
           nivel_de_fonte?: string
           nome: string
           observacao_risco?: string | null
           organization_id: string
           pais_eixo: string
+          permite_automacao?: string | null
+          permite_cache?: string | null
+          permite_download?: string | null
           prioridade?: string
           proxima_acao?: string | null
           responsavel_revisao?: string | null
+          responsavel_validacao?: string | null
           risco?: string
+          robots_verificado?: string | null
           scraping_status?: string
           status_documentacao?: string
           status_integracao?: string
+          termos_de_uso_url?: string | null
           tipo_de_acervo?: string
           trata_dados_pessoais?: boolean
           ultima_verificacao?: string | null
           updated_at?: string
           updated_by?: string | null
+          url_canonica?: string | null
+          url_pesquisa?: string | null
           url_referencia_interna?: string | null
           uso_recomendado?: string | null
         }
         Update: {
           acesso?: string
+          api_documentacao_url?: string | null
+          api_status?: string | null
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -9715,27 +9745,39 @@ export type Database = {
           created_by?: string | null
           custo?: string
           data_origin?: string
+          direitos_de_reuso?: string | null
           estagio_maturidade?: string
           id?: string
+          jurisdicao?: string | null
           licenca_termos?: string | null
+          modelo_acesso?: string | null
           modo_de_uso_permitido?: string
+          nivel_de_evidencia?: string | null
           nivel_de_fonte?: string
           nome?: string
           observacao_risco?: string | null
           organization_id?: string
           pais_eixo?: string
+          permite_automacao?: string | null
+          permite_cache?: string | null
+          permite_download?: string | null
           prioridade?: string
           proxima_acao?: string | null
           responsavel_revisao?: string | null
+          responsavel_validacao?: string | null
           risco?: string
+          robots_verificado?: string | null
           scraping_status?: string
           status_documentacao?: string
           status_integracao?: string
+          termos_de_uso_url?: string | null
           tipo_de_acervo?: string
           trata_dados_pessoais?: boolean
           ultima_verificacao?: string | null
           updated_at?: string
           updated_by?: string | null
+          url_canonica?: string | null
+          url_pesquisa?: string | null
           url_referencia_interna?: string | null
           uso_recomendado?: string | null
         }
