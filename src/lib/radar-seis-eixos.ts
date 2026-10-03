@@ -58,6 +58,18 @@ export type DimensaoRadar = {
    * (usado pela média de Elegibilidade), sem mudar nenhum cálculo.
    */
   rotuloNumero: string;
+  /**
+   * A conta, em linguagem do cliente (03/10/2026, instrução da
+   * Proprietária: "mostrando as percentagens e calculos de acordo com
+   * premissas já aprovadas anteriormente no app e no portal app do
+   * cliente").
+   *
+   * Existe porque percentual sem conta visível é número mágico: o cliente
+   * via "62%" e não tinha como saber de onde veio. Aqui ele lê a fórmula —
+   * e, nos eixos sem total conhecido, lê exatamente isso, em vez de um
+   * percentual que fingiria precisão.
+   */
+  comoCalculamos: string;
 };
 
 /**
@@ -95,6 +107,7 @@ export function radarSeisDimensoes(entrada: {
         ? `${liberados} de ${docs.length} documentos do seu caso já liberados para você.`
         : "Nenhum documento vinculado ao seu caso ainda.",
     rotuloNumero: `${percentual(liberados, docs.length)}%`,
+    comoCalculamos: `Documentos liberados para você (${liberados}) ÷ documentos do seu caso (${docs.length}).`,
   };
   const origem: DimensaoRadar = {
     id: "origem",
@@ -112,6 +125,8 @@ export function radarSeisDimensoes(entrada: {
         : "Ainda não há registro de origem publicado pela equipe.",
     // Presença/ausência, não "% concluído" — rótulo mostra a contagem real.
     rotuloNumero: arvore.length > 0 ? `${arvore.length} registro(s)` : "Nenhum ainda",
+    comoCalculamos:
+      "Não existe um total conhecido de registros de origem que um caso pode ter, então mostramos a contagem publicada em vez de uma porcentagem.",
   };
   const conexoes: DimensaoRadar = {
     id: "conexoes",
@@ -120,6 +135,7 @@ export function radarSeisDimensoes(entrada: {
     percentual: percentual(arvore.length, TETO_ANCESTRAIS_G1_G5),
     legenda: `${arvore.length} de até ${TETO_ANCESTRAIS_G1_G5} ancestrais possíveis em 5 gerações (você, pais, avós, bisavós e trisavós).`,
     rotuloNumero: `${percentual(arvore.length, TETO_ANCESTRAIS_G1_G5)}%`,
+    comoCalculamos: `Pessoas publicadas na sua árvore (${arvore.length}) ÷ ${TETO_ANCESTRAIS_G1_G5}, que é o total de ancestrais possíveis em 5 gerações.`,
   };
   const memoria: DimensaoRadar = {
     id: "memoria",
@@ -131,6 +147,8 @@ export function radarSeisDimensoes(entrada: {
         ? `${achados.length} achado(s) de memória familiar publicados.`
         : "Nenhum achado de memória familiar publicado ainda.",
     rotuloNumero: achados.length > 0 ? `${achados.length} achado(s)` : "Nenhum ainda",
+    comoCalculamos:
+      "Não existe um total conhecido de achados de memória que uma família pode ter, então mostramos a contagem publicada em vez de uma porcentagem.",
   };
   const legado: DimensaoRadar = {
     id: "legado",
@@ -142,6 +160,8 @@ export function radarSeisDimensoes(entrada: {
         ? `${marcos.length} marco(s)/resumo(s) de jornada publicados.`
         : "Nenhum marco de jornada publicado ainda.",
     rotuloNumero: marcos.length > 0 ? `${marcos.length} marco(s)` : "Nenhum ainda",
+    comoCalculamos:
+      "Não existe um total fechado de marcos de legado, então mostramos a contagem publicada em vez de uma porcentagem.",
   };
 
   // RADAR-APP-SEMANTICA-PROGRESSO (18/09/2026): este eixo é a média dos
@@ -163,6 +183,7 @@ export function radarSeisDimensoes(entrada: {
     legenda:
       "Andamento médio dos outros 5 eixos da sua jornada — acompanhamento de progresso, não parecer jurídico, chance ou resultado.",
     rotuloNumero: `${mediaOutros}%`,
+    comoCalculamos: `Média dos outros 5 eixos: (${outros.map((d) => `${d.percentual ?? 0}`).join(" + ")}) ÷ ${outros.length}.`,
   };
 
   return [documentacao, origem, conexoes, elegibilidade, memoria, legado];

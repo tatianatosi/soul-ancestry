@@ -29,8 +29,28 @@ export const Route = createFileRoute("/portal/radar")({
  * dimensões do mockup aprovado (Documentação, Origem, Conexões Familiares,
  * Elegibilidade, Memória, Legado) — era um radar diferente, de 4 eixos sobre
  * "próximos passos", com quatro cartões de texto e nenhum gráfico. Ver
- * src/lib/radar-seis-eixos.ts para a fonte de cada dimensão e por que
- * Elegibilidade continua sem percentual (decisão institucional, não esquecimento).
+ * src/lib/radar-seis-eixos.ts para a fonte de cada dimensão.
+ *
+ * Reconciliação (03/10/2026) — autorização literal: "radar correto de 06
+ * eixos no app e 04 eixos no desk reconciliação autorizada mostrando as
+ * percentagens e calculos de acordo com premissas já aprovadas
+ * anteriormente no app e no portal app do cliente".
+ *
+ * Este comentário afirmava, até hoje, que "Elegibilidade continua sem
+ * percentual (decisão institucional)" — e o código fazia o contrário desde
+ * 07/09, por decisão da Proprietária: o 4º eixo é a média dos outros 5.
+ * Dois lugares do código discordavam sobre o mesmo eixo; isso era dívida,
+ * não decisão. Fica valendo o código, e o texto passa a dizer o mesmo.
+ *
+ * A separação de superfícies, confirmada hoje e já implementada:
+ * - App Cliente (esta tela): 6 dimensões (`radar-seis-eixos.ts`);
+ * - Desk, Radar & Matrizes (`/qualidade`): 4 eixos da jornada
+ *   (`radar-eixos.ts`). Sem eixo extra em nenhuma das duas.
+ *
+ * O percentual é PROGRESSO PUBLICADO — nunca chance, prazo, parecer
+ * jurídico ou promessa de elegibilidade. Por isso o 4º eixo se chama
+ * "Progresso Geral" desde 18/09: o rótulo "Elegibilidade" induzia a leitura
+ * errada, e o cálculo nunca foi juízo legal.
  */
 export function PortalRadar() {
   const { visibilidade, carregando } = useVisibilidade("radar");
@@ -93,6 +113,16 @@ export function PortalRadar() {
                             />
                           </div>
                           <p className="mt-2 text-[10px] leading-relaxed text-navy/55">{d.legenda}</p>
+                          {/*
+                            03/10/2026 — "mostrando as percentagens e
+                            calculos". Percentual sem conta visível é número
+                            mágico: o cliente lia "62%" sem ter como saber de
+                            onde veio. Nos eixos sem total conhecido, a conta
+                            diz exatamente isso, em vez de fingir precisão.
+                          */}
+                          <p className="mt-1 text-[10px] leading-relaxed text-navy/40" data-radar-calculo>
+                            Como calculamos: {d.comoCalculamos}
+                          </p>
                         </li>
                       ))}
                     </ul>
