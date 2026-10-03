@@ -143,6 +143,26 @@ describe("Corte 0-bis — leitor canônico acha a evidência real do caso", () =
     expect(await listarEvidenciasCanonicasDoCaso(supabaseFalso(), ORG, "caso-sem-pesquisa")).toEqual([]);
   });
 
+  it("estado fino nulo (como as 5 linhas reais do banco) é derivado do evidence_status, com a origem declarada", async () => {
+    const { listarEvidenciasCanonicasDoCaso } = await import("@/lib/evidencia-canonica.server");
+    // Reproduz o estado real conferido no banco em 03/10: evidence_status
+    // preenchido, workflow_status nulo. Sem derivar, a tela mostrava branco.
+    banco.tabelas["research_evidence_items"]![0]!["workflow_status"] = null;
+    banco.tabelas["research_evidence_items"]![0]!["evidence_status"] = "validated";
+    const [ev] = await listarEvidenciasCanonicasDoCaso(supabaseFalso(), ORG, CASO);
+    expect(ev.workflow_status).toBe("aprovada_para_entrega");
+    expect(ev["workflow_status_origem"]).toBe("derivado_do_evidence_status");
+  });
+
+  it("estado fino já gravado prevalece e é marcado como gravado — derivação nunca sobrescreve", async () => {
+    const { listarEvidenciasCanonicasDoCaso } = await import("@/lib/evidencia-canonica.server");
+    banco.tabelas["research_evidence_items"]![0]!["workflow_status"] = "requer_traducao_apostila";
+    banco.tabelas["research_evidence_items"]![0]!["evidence_status"] = "collected";
+    const [ev] = await listarEvidenciasCanonicasDoCaso(supabaseFalso(), ORG, CASO);
+    expect(ev.workflow_status).toBe("requer_traducao_apostila");
+    expect(ev["workflow_status_origem"]).toBe("gravado");
+  });
+
   it("por id devolve a linha com o case_id resolvido (é o que lerAlvo/validação epistêmica precisam)", async () => {
     const { evidenciaCanonicaPorId, evidenciasCanonicasPorIds } = await import("@/lib/evidencia-canonica.server");
     const ev = await evidenciaCanonicaPorId(supabaseFalso(), ORG, "ev-1");

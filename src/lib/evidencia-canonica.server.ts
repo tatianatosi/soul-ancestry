@@ -19,6 +19,7 @@
  * writer próprio.
  */
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { workflowStatusDeEvidenciaModulo } from "@/lib/rotulo-negocio";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import {
   ESTADO_INICIAL,
@@ -82,6 +83,8 @@ export type EvidenciaLeitura = Record<string, any> & {
   description_internal: string | null;
   validation_notes_internal: string | null;
   research_person_id: string | null;
+  /** De onde veio o estado fino exibido: gravado na linha ou derivado do EN. */
+  workflow_status_origem: "gravado" | "derivado_do_evidence_status";
 };
 
 const COLUNAS_EVIDENCIA_LEITURA =
@@ -95,8 +98,26 @@ const COLUNAS_EVIDENCIA_LEITURA =
   "storage_reference_internal,external_reference,created_at,updated_at," +
   "archived_at,archive_reason";
 
-/** Acrescenta os apelidos de leitura à linha canônica. Nada é inventado. */
+/**
+ * Acrescenta os apelidos de leitura à linha canônica. Nada é inventado.
+ *
+ * `workflow_status` (o estado fino, que as telas exibem e contam) é nulo em
+ * toda linha gravada antes do Corte 0 — conferido no banco em 03/10: as 5
+ * evidências reais têm `evidence_status` preenchido e `workflow_status` nulo.
+ * Sem derivar, a Biblioteca mostrava estado em branco e os contadores por
+ * estado do hub de Pesquisa ficavam em zero com evidência real existindo.
+ * A derivação usa o mapa já aprovado e em produção
+ * (`EVIDENCIA_MODULO_PARA_CADEIA`, usado por `pesquisa-cadeia.functions.ts`),
+ * e `workflow_status_origem` diz de onde veio — exibição derivada nunca se
+ * disfarça de valor gravado.
+ *
+ * Isto é EXIBIÇÃO. A regra de transição continua conservadora em
+ * `estadoFinoDaLinha` ("recebida" quando não há estado fino gravado): subir
+ * de EN para PT é ambíguo (6 → 11) e quem reclassifica é a equipe.
+ */
 function comApelidosDeLeitura(linha: Record<string, any>, caseId: string | null): EvidenciaLeitura {
+  const gravado = (linha["workflow_status"] as string | null) ?? null;
+  const derivado = gravado ?? workflowStatusDeEvidenciaModulo(linha["evidence_status"] as string | null);
   return {
     ...linha,
     case_id: caseId,
@@ -104,7 +125,9 @@ function comApelidosDeLeitura(linha: Record<string, any>, caseId: string | null)
     description_internal: (linha["description"] as string | null) ?? null,
     validation_notes_internal: (linha["validation_rationale"] as string | null) ?? null,
     research_person_id: (linha["person_id"] as string | null) ?? null,
-  } as EvidenciaLeitura;
+    workflow_status: derivado || null,
+    workflow_status_origem: gravado ? ("gravado" as const) : ("derivado_do_evidence_status" as const),
+  } as unknown as EvidenciaLeitura;
 }
 
 /**
