@@ -47,7 +47,8 @@ export type EvidenciaDeElo = {
  * E-mail comparável.
  *
  * O `trim` não é zelo teórico: o e-mail da Ana Luiza está gravado no banco
- * como "analuizabox@gmail.com " — com espaço no fim. Sem normalizar, ela não
+ * com espaço no fim do e-mail (achado em caso real; o endereço não se repete
+ * aqui — a fonte é a Pessoa 360). Sem normalizar, a pessoa não
  * casa nem consigo mesma.
  */
 export function normalizarEmail(valor: unknown): string | null {
