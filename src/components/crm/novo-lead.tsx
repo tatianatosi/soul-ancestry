@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 
+import { motivoCampoInvalido } from "@/components/campos/aviso-campo";
 import { Rotulo, Selecao, Texto, inputCls } from "@/components/caso/campos";
 import { useSaas } from "@/components/saas/shell";
 import { criarLeadManual, type PossivelDuplicidade } from "@/lib/crm-desk.functions";
@@ -95,13 +96,25 @@ export function NovoLeadDialog({ aberto, onFechar, onCriado }: Props) {
         </div>
 
         <div className="mt-4 grid gap-3 md:grid-cols-2">
-          <Texto label="Nome completo *" valor={form.nome} onChange={set("nome")} />
+          <Texto
+            label="Nome completo *"
+            valor={form.nome}
+            onChange={set("nome")}
+            erro={motivoCampoInvalido("Nome completo", "nome", form.nome)}
+          />
           <Texto label="Indicado por (opcional)" valor={form.indicado_por} onChange={set("indicado_por")} />
-          <Texto label="E-mail (e-mail ou telefone obrigatório)" tipo="email" valor={form.email} onChange={set("email")} />
+          <Texto
+            label="E-mail (e-mail ou telefone obrigatório)"
+            tipo="email"
+            valor={form.email}
+            onChange={set("email")}
+            erro={motivoCampoInvalido("E-mail", "email", form.email)}
+          />
           <Texto
             label="Telefone (e-mail ou telefone obrigatório)"
             valor={form.telefone}
             onChange={(v) => set("telefone")(formatarTelefone(v))}
+            erro={motivoCampoInvalido("Telefone", "telefone", form.telefone)}
           />
           <Selecao label="Origem *" valor={form.origem} opcoes={ORIGENS_LEAD} onChange={set("origem")} />
           <Selecao label="Interesse inicial *" valor={form.objetivo} opcoes={OBJETIVOS} onChange={set("objetivo")} />

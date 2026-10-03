@@ -59,6 +59,7 @@ import { AbaJornadaCliente } from "@/components/caso/jornada-cliente";
 import { AbaFechamento } from "@/components/caso/fechamento";
 import { AbaCadastro } from "@/components/caso/cadastro-checklist";
 import { PainelFichaUnica } from "@/components/caso/ficha-unica";
+import { AvisoCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
 import { PublicarUniaoRamos } from "@/components/caso/publicar-uniao-ramos";
 import { VinculoNucleo } from "@/components/caso/vinculo-nucleo";
 import { PessoasDoNucleo } from "@/components/caso/pessoas-do-nucleo";
@@ -166,6 +167,13 @@ function comoPayload<T>(dados: T | null | undefined): T[] | undefined {
   return dados === null || dados === undefined ? undefined : [dados];
 }
 
+/*
+  03/10/2026 — `erro` entra no campo compartilhado desta rota pelo mesmo
+  motivo da Ficha Genealógica: sem ele, cada um dos campos civis teria de
+  montar borda e mensagem à mão, e foi por isso que a varredura de máscaras
+  vinha saindo em pedaços. Aqui os campos tinham MÁSCARA e nenhum
+  VALIDADOR — o CPF era formatado e aceito inválido.
+*/
 function Texto({
   label,
   valor,
@@ -174,6 +182,7 @@ function Texto({
   area,
   tipo = "text",
   ajuda,
+  erro,
 }: {
   label: string;
   valor: string;
@@ -182,28 +191,33 @@ function Texto({
   area?: boolean;
   tipo?: string;
   ajuda?: string;
+  erro?: string | null;
 }) {
+  const classe = erro ? `${inputCls} border-terracotta` : inputCls;
   return (
     <label className="block">
       <Rotulo>{label}</Rotulo>
       {area ? (
         <textarea
-          className={inputCls}
+          className={classe}
           rows={4}
           value={valor}
           disabled={desabilitado}
           onChange={(e) => onChange(e.target.value)}
+          aria-invalid={Boolean(erro)}
         />
       ) : (
         <input
-          className={inputCls}
+          className={classe}
           type={tipo}
           value={valor}
           disabled={desabilitado}
           onChange={(e) => onChange(e.target.value)}
+          aria-invalid={Boolean(erro)}
         />
       )}
-      {ajuda ? <span className="mt-1 block text-[11px] text-navy/45">{ajuda}</span> : null}
+      {erro ? <AvisoCampo motivo={erro} /> : null}
+      {ajuda && !erro ? <span className="mt-1 block text-[11px] text-navy/45">{ajuda}</span> : null}
     </label>
   );
 }
@@ -3252,6 +3266,13 @@ function CartaoPessoa({
           tipo="date"
           valor={v("data_nascimento")}
           onChange={(x) => set("data_nascimento", x)}
+          /*
+            03/10/2026 — estes campos tinham MÁSCARA e nenhum VALIDADOR: o
+            CPF era formatado e aceito inválido. Piso de ano é o genealógico
+            (mais permissivo que o de pessoa viva), porque membro do caso
+            pode ser pessoa já falecida; o que nunca passa é data no futuro.
+          */
+          erro={motivoCampoInvalido("Data de nascimento", "data_historica", String(v("data_nascimento") ?? ""))}
         />
         <Texto
           label="Local de nascimento"
@@ -3267,11 +3288,17 @@ function CartaoPessoa({
           label="CPF"
           valor={v("cpf")}
           onChange={(x) => set("cpf", formatarCpf(x))}
+          erro={motivoCampoInvalido("CPF", "cpf", String(v("cpf") ?? ""))}
         />
         <Texto
           label="RG / documento"
           valor={v("rg")}
           onChange={(x) => set("rg", x)}
+          /*
+            RG não tem dígito verificador nem formato nacional único — o que dá
+            para validar é a UF do órgão emissor quando ela vier escrita.
+          */
+          erro={motivoCampoInvalido("RG / documento", "rg_orgao", String(v("rg") ?? ""))}
         />
         <Selecao
           label="Estado civil"
@@ -3289,6 +3316,7 @@ function CartaoPessoa({
           valor={v("telefone")}
           onChange={(x) => set("telefone", formatarTelefone(x))}
           ajuda="Máscara de Brasil (DDD) por padrão. Pessoa morando fora: comece digitando + e o DDI."
+          erro={motivoCampoInvalido("Telefone", "telefone", String(v("telefone") ?? ""))}
         />
         <Selecao
           label="É WhatsApp?"
@@ -3304,6 +3332,7 @@ function CartaoPessoa({
           tipo="email"
           valor={v("email")}
           onChange={(x) => set("email", x)}
+          erro={motivoCampoInvalido("E-mail", "email", String(v("email") ?? ""))}
         />
         <Texto
           label="Endereço"
@@ -3314,6 +3343,7 @@ function CartaoPessoa({
           label="CEP"
           valor={v("cep")}
           onChange={(x) => set("cep", formatarCep(x))}
+          erro={motivoCampoInvalido("CEP", "cep", String(v("cep") ?? ""))}
         />
         <Texto
           label="Documentos pendentes"

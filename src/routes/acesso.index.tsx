@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { BrandLogo } from "@/components/brand";
 import { solicitarLinkAcesso } from "@/lib/portal.functions";
+import { AvisoCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
 
 export const Route = createFileRoute("/acesso/")({
   head: () => ({
@@ -71,7 +72,9 @@ function AcessoPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-navy outline-none focus:border-gold"
                 placeholder="voce@exemplo.com"
+                aria-invalid={Boolean(motivoCampoInvalido("E-mail", "email", email))}
               />
+              <AvisoCampo motivo={motivoCampoInvalido("E-mail", "email", email)} />
             </div>
             <button
               type="submit"

@@ -13,7 +13,18 @@ const clientesTsx = readFileSync("src/routes/_authenticated/clientes.tsx", "utf8
 
 describe("Corte U1 — Lead (leads.tsx)", () => {
   it("campo E-mail agora usa tipo=email (mesmo mecanismo já usado em acessos-portal.tsx)", () => {
-    expect(leadsTsx).toContain('label="E-mail" tipo="email"');
+    /*
+      03/10/2026 — a asserção antes exigia os dois atributos na MESMA linha
+      (`label="E-mail" tipo="email"`), e quebrou quando o campo ganhou o
+      validador e virou multilinha. A intenção original era o mecanismo, não
+      a formatação: o campo de e-mail do lead é `tipo="email"`. Agora é isso
+      que o teste afirma — e também que ele passou a validar de fato.
+    */
+    const i = leadsTsx.indexOf('label="E-mail"');
+    expect(i).toBeGreaterThan(-1);
+    const campo = leadsTsx.slice(i, i + 320);
+    expect(campo).toContain('tipo="email"');
+    expect(campo).toContain('motivoCampoInvalido("E-mail", "email"');
   });
 
   it("campo Telefone continua mascarado por formatarTelefone (já correto antes deste corte)", () => {

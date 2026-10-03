@@ -20,6 +20,7 @@ import {
 import { KitBadge, KitCard, KpiCard } from "@/components/clube-ancestral-kit";
 import { CaCard } from "@/components/ui/ca-card";
 import { CAPACIDADES_PROPRIETARIA, ROTULO_CAPACIDADE } from "@/lib/modo-proprietaria";
+import { AvisoCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
 
 export const Route = createFileRoute("/_authenticated/equipe")({
   head: () => ({
@@ -247,7 +248,9 @@ function EquipePage() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="mt-1 w-full rounded-lg border border-navy/20 px-3 py-2"
                   placeholder="pessoa@clubeancestral.com"
+                  aria-invalid={Boolean(motivoCampoInvalido("E-mail", "email", email))}
                 />
+                <AvisoCampo motivo={motivoCampoInvalido("E-mail", "email", email)} />
               </label>
               <label className="text-sm">
                 Nome

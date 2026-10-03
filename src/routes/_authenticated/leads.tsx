@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
+import { motivoCampoInvalido } from "@/components/campos/aviso-campo";
 import { MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
 import { DerivacaoJornada } from "@/components/crm/derivacao-jornada";
 import { HandoffLead } from "@/components/crm/handoff-lead";
@@ -505,13 +506,25 @@ function LeadsPage() {
 
           <Secao titulo="Identificação e responsabilidade" descricao="Lead ativo exige área, responsável e próxima ação datada.">
             <div className="grid gap-3 md:grid-cols-2">
-              <Texto label="Nome" valor={campo("nome")} onChange={set("nome")} />
+              <Texto
+                label="Nome"
+                valor={campo("nome")}
+                onChange={set("nome")}
+                erro={motivoCampoInvalido("Nome", "nome", String(campo("nome") ?? ""))}
+              />
               <Texto label="Código" valor={String(editado.codigo ?? "gerado ao salvar")} onChange={() => {}} desabilitado />
-              <Texto label="E-mail" tipo="email" valor={campo("email")} onChange={set("email")} />
+              <Texto
+                label="E-mail"
+                tipo="email"
+                valor={campo("email")}
+                onChange={set("email")}
+                erro={motivoCampoInvalido("E-mail", "email", String(campo("email") ?? ""))}
+              />
               <Texto
                 label="Telefone"
                 valor={campo("telefone")}
                 onChange={(x) => set("telefone")(formatarTelefone(x))}
+                erro={motivoCampoInvalido("Telefone", "telefone", String(campo("telefone") ?? ""))}
               />
               <Selecao label="Origem" valor={campo("origem")} opcoes={ORIGENS_LEAD} onChange={set("origem")} />
               <Selecao

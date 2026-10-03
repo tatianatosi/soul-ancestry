@@ -341,7 +341,15 @@ export function enderecoCampoValido(campo: CampoEndereco, valor: string): boolea
  * Campo vazio nunca é erro aqui: obrigatoriedade é outra regra, e é do
  * servidor.
  */
-export type RegraCampo = "nome" | "data_historica" | "data_futura";
+export type RegraCampo =
+  | "nome"
+  | "data_historica"
+  | "data_futura"
+  | "cpf"
+  | "cep"
+  | "telefone"
+  | "email"
+  | "rg_orgao";
 
 export function motivoCampoInvalido(rotulo: string, regra: RegraCampo, valor: string): string | null {
   const v = String(valor ?? "").trim();
@@ -354,6 +362,21 @@ export function motivoCampoInvalido(rotulo: string, regra: RegraCampo, valor: st
   }
   if (regra === "data_futura" && !dataValida(v, { permitirFutura: true })) {
     return `${rotulo}: data inválida.`;
+  }
+  if (regra === "cpf" && !cpfValido(v)) {
+    return `${rotulo}: CPF inválido — confira os 11 dígitos.`;
+  }
+  if (regra === "cep" && !cepValido(v)) {
+    return `${rotulo}: CEP precisa de 8 dígitos.`;
+  }
+  if (regra === "telefone" && !telefoneValido(v)) {
+    return `${rotulo}: telefone do Brasil precisa de DDD + 8 ou 9 dígitos; do exterior, comece com +DDI.`;
+  }
+  if (regra === "email" && !emailValido(v)) {
+    return `${rotulo}: e-mail precisa ter o formato nome@dominio.`;
+  }
+  if (regra === "rg_orgao" && !rgOrgaoUfValido(v)) {
+    return `${rotulo}: a UF do órgão emissor não existe (ex.: SSP/GO).`;
   }
   return null;
 }

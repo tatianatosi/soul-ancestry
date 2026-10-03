@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
+import { motivoCampoInvalido } from "@/components/campos/aviso-campo";
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -198,12 +199,23 @@ function ConteudoFluxoCanonico({ dados }: { dados: DadosFluxo }) {
         <div className="space-y-3">
           <Secao titulo="Contatos" descricao="Origem sempre declarada. Nada é inferido.">
             <div className="grid gap-3">
-              <Texto label="Nome" valor={contato.nome} onChange={(v) => setContato((c) => ({ ...c, nome: v }))} />
-              <Texto label="E-mail" valor={contato.email} onChange={(v) => setContato((c) => ({ ...c, email: v }))} />
+              <Texto
+                label="Nome"
+                valor={contato.nome}
+                onChange={(v) => setContato((c) => ({ ...c, nome: v }))}
+                erro={motivoCampoInvalido("Nome", "nome", contato.nome)}
+              />
+              <Texto
+                label="E-mail"
+                valor={contato.email}
+                onChange={(v) => setContato((c) => ({ ...c, email: v }))}
+                erro={motivoCampoInvalido("E-mail", "email", contato.email)}
+              />
               <Texto
                 label="Telefone"
                 valor={contato.telefone}
                 onChange={(v) => setContato((c) => ({ ...c, telefone: formatarTelefone(v) }))}
+                erro={motivoCampoInvalido("Telefone", "telefone", contato.telefone)}
               />
               <Selecao label="Origem" valor={contato.origem} opcoes={op(ORIGENS_CONTATO)} onChange={(v) => setContato((c) => ({ ...c, origem: v }))} />
               <button

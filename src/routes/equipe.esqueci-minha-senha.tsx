@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { EquipeMoldura } from "@/components/equipe/moldura";
 import { recuperarSenhaEquipe } from "@/lib/equipe.functions";
+import { AvisoCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
 
 export const Route = createFileRoute("/equipe/esqueci-minha-senha")({
   head: () => ({
@@ -105,7 +106,9 @@ function EsqueciSenha() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-navy outline-none focus:border-gold"
+              aria-invalid={Boolean(motivoCampoInvalido("E-mail", "email", email))}
             />
+            <AvisoCampo motivo={motivoCampoInvalido("E-mail", "email", email)} />
           </div>
           <button
             type="submit"

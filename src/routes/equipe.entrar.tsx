@@ -15,6 +15,7 @@ import {
 import { EquipeMoldura } from "@/components/equipe/moldura";
 import { AvisoConfiguracao } from "@/components/equipe/aviso-configuracao";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { AvisoCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
 
 export const Route = createFileRoute("/equipe/entrar")({
   head: () => ({
@@ -187,7 +188,9 @@ function EntrarEquipe() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="mt-1 w-full rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-navy outline-none focus:border-gold"
+            aria-invalid={Boolean(motivoCampoInvalido("E-mail", "email", email))}
           />
+          <AvisoCampo motivo={motivoCampoInvalido("E-mail", "email", email)} />
         </div>
         <div>
           <label htmlFor="senha" className="text-sm font-medium text-navy">

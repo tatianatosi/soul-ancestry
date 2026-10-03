@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { AvisoCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
 import { ANO_MINIMO_GENEALOGICO, dataValida, nomeValido } from "@/lib/validacao-pessoa";
 import { AbaModulos } from "@/components/genealogia/aba-modulos";
 import { AbaProjecaoCliente } from "@/components/genealogia/aba-projecao-cliente";
@@ -95,12 +96,29 @@ const inputCls =
   "w-full rounded-lg border border-navy/15 bg-cream px-3 py-2 text-sm text-navy outline-none focus:border-gold";
 const btnCls = "rounded-lg bg-navy px-3 py-2 text-xs font-semibold text-cream hover:bg-navy/90 disabled:opacity-50";
 
-function Campo({ label, children, ajuda }: { label: string; children: React.ReactNode; ajuda?: string }) {
+/*
+  03/10/2026 — `erro` entra aqui, e não em cada campo, porque a varredura de
+  máscaras mostrou o custo do contrário: cada tela reescrevia condição,
+  mensagem e classe de erro à mão, e por isso a varredura saía 3 campos por
+  rodada. Com o erro no `Campo`, religar é uma linha. A mensagem substitui a
+  ajuda enquanto existir, para não empilhar dois textos sob o campo.
+*/
+function Campo({
+  label,
+  children,
+  ajuda,
+  erro,
+}: {
+  label: string;
+  children: React.ReactNode;
+  ajuda?: string;
+  erro?: string | null;
+}) {
   return (
     <div>
       <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-navy/60">{label}</label>
       {children}
-      {ajuda ? <p className="mt-1 text-xs text-navy/50">{ajuda}</p> : null}
+      {erro ? <AvisoCampo motivo={erro} /> : ajuda ? <p className="mt-1 text-xs text-navy/50">{ajuda}</p> : null}
     </div>
   );
 }
@@ -780,7 +798,10 @@ function AbaPerfis({
             </span>
           ) : null}
         </Campo>
-        <Campo label="Nome de nascimento">
+        <Campo
+          label="Nome de nascimento"
+          erro={motivoCampoInvalido("Nome de nascimento", "nome", novo.nome_nascimento)}
+        >
           <input className={inputCls} value={novo.nome_nascimento} onChange={(e) => setNovo({ ...novo, nome_nascimento: e.target.value })} />
         </Campo>
         <Campo label="Sexo">
@@ -864,16 +885,16 @@ function AbaPerfis({
             </div>
 
             <div className="grid gap-3 md:grid-cols-3">
-              <Campo label="Nome completo">
+              <Campo label="Nome completo" erro={motivoCampoInvalido("Nome completo", "nome", String(e.nome_completo ?? ""))}>
                 <input className={inputCls} value={e.nome_completo ?? ""} onChange={(x) => set("nome_completo", x.target.value)} />
               </Campo>
-              <Campo label="Nome de nascimento">
+              <Campo label="Nome de nascimento" erro={motivoCampoInvalido("Nome de nascimento", "nome", String(e.nome_nascimento ?? ""))}>
                 <input className={inputCls} value={e.nome_nascimento ?? ""} onChange={(x) => set("nome_nascimento", x.target.value)} />
               </Campo>
               <Campo label="Sexo">
                 <Selecao valor={e.sexo ?? ""} onChange={(v) => set("sexo", v)} opcoes={SEXO} vazio="Não informado" />
               </Campo>
-              <Campo label="Nascimento (data)">
+              <Campo label="Nascimento (data)" erro={motivoCampoInvalido("Nascimento", "data_historica", String(e.nascimento_data ?? ""))}>
                 <input type="date" className={inputCls} value={e.nascimento_data ?? ""} onChange={(x) => set("nascimento_data", x.target.value)} />
               </Campo>
               <Campo label="Nascimento (aproximado)" ajuda="Ex.: 'entre 1890 e 1893'.">
@@ -882,7 +903,7 @@ function AbaPerfis({
               <Campo label="Nascimento (localidade)">
                 <input className={inputCls} value={e.nascimento_localidade ?? ""} onChange={(x) => set("nascimento_localidade", x.target.value)} />
               </Campo>
-              <Campo label="Morte (data)">
+              <Campo label="Morte (data)" erro={motivoCampoInvalido("Morte", "data_historica", String(e.morte_data ?? ""))}>
                 <input type="date" className={inputCls} value={e.morte_data ?? ""} onChange={(x) => set("morte_data", x.target.value)} />
               </Campo>
               <Campo label="Morte (aproximada)">
