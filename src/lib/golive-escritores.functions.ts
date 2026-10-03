@@ -10,6 +10,7 @@
  *   telefone igual devolve "confirmar", nome sozinho cria nova.
  */
 import { createServerFn } from "@tanstack/react-start";
+import { exigirPublicavelNoApp } from "@/lib/projecao-publicavel";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
@@ -1214,7 +1215,16 @@ export const publicarInstrumentoNoAppGoLive = createServerFn({ method: "POST" })
           .eq("organization_id", organizationId)
           .maybeSingle();
         erro(p);
-        parcelas = texto(p.data?.forma_pagamento) ? `Parcelas: ${texto(p.data.forma_pagamento)}` : "";
+        /*
+          03/10/2026 — A7 segue bloqueado: "enquanto não vier autorização
+          escrita, o App fica sem preço". Este escritor compunha
+          `Parcelas: <forma_pagamento>` no texto publicado, e foi assim que
+          "3 assinaturas mensais de R$ 320 … total R$ 9.600" entrou na
+          projeção publicada do caso real da Ana. O formato aprovado no
+          Corte 3a é nome + situação + vigência, sem parcela. A condição
+          comercial continua inteira no contrato e na proposta, no Desk.
+        */
+        parcelas = "";
       }
     } else {
       const r = await s
@@ -1231,10 +1241,16 @@ export const publicarInstrumentoNoAppGoLive = createServerFn({ method: "POST" })
       situacao = r.data.aprovada_em ? "Aprovada" : situacaoHumana(r.data.status);
       const validade = diaBR(r.data.validade);
       if (validade) prazo = `Validade até ${validade}`;
-      parcelas = texto(r.data.forma_pagamento) ? `Parcelas: ${texto(r.data.forma_pagamento)}` : "";
+      parcelas = ""; // idem: App sem preço enquanto A7 estiver bloqueado.
     }
 
     const resumo = [titulo, numero, situacao, prazo, parcelas].filter(Boolean).join(" · ");
+    /*
+      Recusa na gravação o que o App descartaria na leitura. Sem isto, a
+      equipe publicava e o cliente via tela vazia — exatamente o que estava
+      acontecendo no caso da Ana com as três projeções publicadas.
+    */
+    exigirPublicavelNoApp(resumo);
     const agora = new Date().toISOString();
     // Republicar substitui o cartão anterior: o registro antigo é arquivado, nunca apagado.
     const anterior = await s
