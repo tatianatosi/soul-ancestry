@@ -48,6 +48,7 @@ import {
   type LeadDesk,
   type Opcao,
 } from "@/lib/crm-desk";
+import { AVISO_PRIVACIDADE } from "@/lib/decisoes-da-proprietaria";
 import { ETAPAS_SPIN, progressoSpin, sinaisQualidadeLead, spinDerivadoDoLead } from "@/lib/discovery-roteiro";
 import { calcularRadar } from "@/lib/radar-elegibilidade";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
@@ -720,6 +721,7 @@ function LeadsPage() {
                 label="Versão do aviso apresentada"
                 valor={campo("consentimento_versao_aviso")}
                 onChange={set("consentimento_versao_aviso")}
+                ajuda={`Aviso publicado hoje: ${AVISO_PRIVACIDADE.versao}`}
               />
               <Texto
                 label="Gravação (referência interna)"
@@ -739,6 +741,66 @@ function LeadsPage() {
                 />
                 Consentimento confirmado na conversa
               </label>
+            </div>
+            {/*
+              03/10/2026 (D-01) — autorização literal: "pode ligar o gate de
+              consentimento aos 11 leads lembrando que temos a politica de
+              privacidade e anexo de lgpd em contrato esse gate é no desk".
+
+              O gate já existia por lead, mas exigia quatro campos digitados à
+              mão, um deles a versão do aviso — e o banco recusa "concedido"
+              sem data, canal E versão (trigger de 21/08). Resultado medido:
+              nenhum lead com consentimento registrado. Este botão escreve os
+              quatro de uma vez, com a base que ela nomeou. Ele preenche o
+              formulário; quem grava continua sendo o salvar, validado no
+              servidor — a tela não decide consentimento por ninguém.
+            */}
+            <div className="mt-3 space-y-2 rounded-lg border border-gold/40 bg-gold/5 p-3">
+              <p className="text-xs text-navy/70">
+                Base registrada: aviso de privacidade publicado em{" "}
+                <a href={AVISO_PRIVACIDADE.url} target="_blank" rel="noreferrer" className="underline decoration-gold">
+                  {AVISO_PRIVACIDADE.url}
+                </a>{" "}
+                e {AVISO_PRIVACIDADE.anexoContratual}.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="rounded-lg border border-navy/20 px-3 py-2 text-[11px] text-navy hover:bg-navy/5"
+                  onClick={() => {
+                    const agora = new Date().toISOString().slice(0, 16);
+                    setRascunho((r) => ({
+                      ...r,
+                      consentimento_status: "concedido",
+                      consentimento_em: agora,
+                      consentimento_canal: "aviso_site",
+                      consentimento_versao_aviso: AVISO_PRIVACIDADE.versao,
+                    }));
+                  }}
+                >
+                  Preencher pelo aviso publicado no site
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border border-navy/20 px-3 py-2 text-[11px] text-navy hover:bg-navy/5"
+                  onClick={() => {
+                    const agora = new Date().toISOString().slice(0, 16);
+                    setRascunho((r) => ({
+                      ...r,
+                      consentimento_status: "concedido",
+                      consentimento_em: agora,
+                      consentimento_canal: "anexo_lgpd_contrato",
+                      consentimento_versao_aviso: AVISO_PRIVACIDADE.versao,
+                    }));
+                  }}
+                >
+                  Preencher pelo anexo de privacidade e LGPD do contrato
+                </button>
+              </div>
+              <p className="text-[11px] text-navy/50">
+                Revise a data e o canal antes de salvar. Consentimento é ato da pessoa: o botão registra a base
+                documental, não substitui o consentimento de quem não o deu.
+              </p>
             </div>
           </Secao>
 

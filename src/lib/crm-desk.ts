@@ -342,6 +342,14 @@ export const CANAIS_CONSENTIMENTO: Opcao[] = [
   { valor: "email", rotulo: "E-mail" },
   { valor: "formulario", rotulo: "Formulário" },
   { valor: "termo_assinado", rotulo: "Termo assinado" },
+  // 03/10/2026 — as duas bases que a Proprietária nomeou ao autorizar o gate:
+  // "temos a politica de privacidade e anexo de lgpd em contrato". Antes só
+  // havia canal de conversa; registrar consentimento pelo aviso publicado ou
+  // pelo anexo contratual não tinha onde ser dito, e a equipe digitava texto
+  // livre. `consentimento_canal` não tem CHECK no banco (conferido), então
+  // isto é vocabulário de tela, não valor novo inventado em coluna restrita.
+  { valor: "aviso_site", rotulo: "Aviso de privacidade publicado no site" },
+  { valor: "anexo_lgpd_contrato", rotulo: "Anexo de privacidade e LGPD do contrato" },
 ];
 
 export const PAISES_LINHA_PRIORITARIA: Opcao[] = [
