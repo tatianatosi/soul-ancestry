@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { SaasShell, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { carregarConversao } from "@/lib/conversao.functions";
+import { AvancarAceite } from "@/components/crm/avancar-aceite";
 import {
   ESCADA,
   montarEstados,
@@ -137,6 +138,8 @@ function Conversao() {
       >
         {() => (
         <div className="grid gap-4">
+          {/* Onda 4 dos órfãos: a tela mostrava o funil e não movia nada. */}
+          <AvancarAceite casos={q.data?.rotulos?.casos ?? []} />
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-navy/10 bg-cream/40 px-4 py-3 text-xs text-navy/70">
             <span>
               {incluirDemo

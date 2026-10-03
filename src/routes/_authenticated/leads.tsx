@@ -49,6 +49,7 @@ import {
   type Opcao,
 } from "@/lib/crm-desk";
 import { AVISO_PRIVACIDADE } from "@/lib/decisoes-da-proprietaria";
+import { ImportarTriagemScan } from "@/components/crm/importar-triagem-scan";
 import { ETAPAS_SPIN, progressoSpin, sinaisQualidadeLead, spinDerivadoDoLead } from "@/lib/discovery-roteiro";
 import { calcularRadar } from "@/lib/radar-elegibilidade";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
@@ -263,6 +264,15 @@ function LeadsPage() {
       />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,380px)_1fr]">
         <div className="space-y-3">
+          {/*
+            Onda 4 dos órfãos (03/10/2026): a porta de entrada do Scan existia
+            no servidor e não tinha tela — só se via a triagem de um lead que
+            nunca podia nascer pelo Desk.
+          */}
+          <div className="mb-4">
+            <ImportarTriagemScan />
+          </div>
+
           <Secao titulo="Filtros" descricao="Todos os campos classificatórios são listas fechadas.">
             <div className="grid gap-3">
               <Texto label="Buscar por nome, código ou e-mail" valor={busca} onChange={setBusca} />
