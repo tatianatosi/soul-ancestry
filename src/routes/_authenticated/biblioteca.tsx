@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Archive, BookOpen, Bookmark, Database, FileText, Scale } from "lucide-react";
 
 import { SaasShell } from "@/components/saas/shell";
@@ -20,6 +21,7 @@ import {
   arquivarItemBiblioteca,
   definirVigenciaItem,
   ESTADOS_VIGENCIA,
+  historicoVigenciaItem,
   homologarTrilhaOuRegra,
   listarBibliotecaMestre,
   listarCatalogoTop30,
@@ -808,6 +810,15 @@ function FormularioVigencia({
           {erro}
         </p>
       )}
+      {/*
+        Onda 5 dos órfãos (03/10/2026): `historicoVigenciaItem` lê os eventos
+        append-only de `master_library_state_events` — estado anterior, novo,
+        justificativa, versão, responsável, critério — e não tinha chamador
+        nenhum. A tela registrava mudança de vigência e não deixava ninguém
+        ver o que já havia sido registrado.
+      */}
+      <HistoricoVigencia itemId={item.id} />
+
       <AcaoOperacional
         size="sm"
         rotulo={salvando ? "Registrando…" : "Registrar mudança de vigência"}
@@ -826,5 +837,66 @@ function FormularioVigencia({
         }}
       />
     </form>
+  );
+}
+
+function HistoricoVigencia({ itemId }: { itemId: string }) {
+  const carregar = useServerFn(historicoVigenciaItem);
+  const [aberto, setAberto] = useState(false);
+  const q = useQuery({
+    queryKey: ["historico-vigencia", itemId],
+    queryFn: () => carregar({ data: { id: itemId } }),
+    enabled: aberto,
+    retry: false,
+  });
+
+  return (
+    <div className="rounded-lg border border-navy/10 bg-cream/40 p-2">
+      <button
+        type="button"
+        onClick={() => setAberto((a) => !a)}
+        className="text-[11px] uppercase tracking-wide text-navy/50 underline decoration-gold"
+      >
+        {aberto ? "Ocultar histórico de vigência" : "Ver histórico de vigência"}
+      </button>
+      {aberto ? (
+        q.isLoading ? (
+          <p className="mt-1 text-[11px] text-navy/50">Carregando o histórico…</p>
+        ) : q.isError ? (
+          <p role="alert" className="mt-1 text-[11px] text-destructive">
+            {(q.error as Error).message}
+          </p>
+        ) : (
+          (() => {
+            const eventos = ((q.data as any)?.eventos ?? []) as any[];
+            if (eventos.length === 0) {
+              return (
+                <p className="mt-1 text-[11px] text-navy/55">
+                  Nenhuma mudança de vigência registrada para este item.
+                </p>
+              );
+            }
+            return (
+              <ul className="mt-1 space-y-1">
+                {eventos.map((e) => (
+                  <li key={e.id} className="text-[11px] text-navy/70">
+                    {(e.estado_anterior ?? "—")} → {(e.estado_novo ?? "—")}
+                    {e.versao ? ` · v${e.versao}` : ""}
+                    {e.responsavel ? ` · ${e.responsavel}` : ""}
+                    {e.created_at ? ` · ${new Date(e.created_at).toLocaleString("pt-BR")}` : ""}
+                    {e.justificativa ? (
+                      <>
+                        <br />
+                        <span className="text-navy/45">{e.justificativa}</span>
+                      </>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            );
+          })()
+        )
+      ) : null}
+    </div>
   );
 }

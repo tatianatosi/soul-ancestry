@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   conciliarCatalogoProposta,
+  executarConciliacaoCatalogo,
   historicoConciliacaoCatalogo,
   reprocessarConciliacaoCatalogo,
 } from "@/lib/conciliacao-catalogo.functions";
@@ -17,6 +18,32 @@ const dataHora = (v: string | null | undefined) =>
   v ? new Date(v).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "—";
 
 /** Reprocessamento auditado + histórico versionado das decisões de conciliação. */
+/*
+ * Onda 5 dos órfãos (03/10/2026): `executarConciliacaoCatalogo` — o registro
+ * da PRIMEIRA conciliação — não tinha chamador nenhum. A tela sabia conferir
+ * (leitura) e reprocessar (já existindo versão anterior), mas a primeira
+ * gravação da decisão só acontecia por SQL. Sem ela, o histórico versionado
+ * nascia vazio e o reprocessamento não tinha de onde preservar versão.
+ */
+function RegistrarConciliacao({ proposalId }: { proposalId: string }) {
+  const qc = useQueryClient();
+  const executar = useServerFn(executarConciliacaoCatalogo);
+  const m = useMutation({
+    mutationFn: () => executar({ data: { proposalId } }),
+    onSuccess: () => {
+      toast.success("Conciliação registrada. O histórico passa a ter versão inicial.");
+      void qc.invalidateQueries({ queryKey: ["conciliacao-emissao-os", proposalId] });
+      void qc.invalidateQueries({ queryKey: ["conciliacao-historico", proposalId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <Button type="button" variant="outline" size="sm" disabled={m.isPending} onClick={() => m.mutate()}>
+      Registrar conciliação desta proposta
+    </Button>
+  );
+}
+
 function ReprocessarConciliacao({ proposalId }: { proposalId: string }) {
   const qc = useQueryClient();
   const reprocessar = useServerFn(reprocessarConciliacaoCatalogo);
@@ -162,7 +189,9 @@ export function BloqueioEmissaoOS({ proposalId, ativo = true }: { proposalId: st
             ))}
           </ul>
         )}
-        <ReprocessarConciliacao proposalId={proposalId} />
+        <RegistrarConciliacao proposalId={proposalId} />
+        <RegistrarConciliacao proposalId={proposalId} />
+      <ReprocessarConciliacao proposalId={proposalId} />
       </div>
     );
   }

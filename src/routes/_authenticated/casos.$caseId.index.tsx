@@ -43,6 +43,7 @@ import { PlanejadorOperacional } from "@/components/contrato/planejador-operacio
 import { PublicarPlanoApp } from "@/components/contrato/publicar-plano-app";
 import { PublicarAssinaturaApp } from "@/components/contrato/publicar-assinatura-app";
 import { CalculadoraOrcamento } from "@/components/contrato/calculadora-orcamento";
+import { OverrideComercial } from "@/components/caso/override-comercial";
 import { PainelJornadaPlanejador } from "@/components/caso/jornada-planejador";
 import { AbaVisaoGeral } from "@/components/caso/visao-geral";
 import { RadarInternoCaso } from "@/components/caso/radar-interno";
@@ -2552,6 +2553,11 @@ function FichaCaso() {
         </SecaoAncora>
 
         <SecaoAncora id="financeiro" titulo="Financeiro" hidden={secaoFoco !== null && secaoFoco !== "financeiro"}>
+          {/* Onda 5 dos órfãos: a exceção da Proprietária só existia por SQL. */}
+          <div className="mb-4">
+            <OverrideComercial caseId={id} />
+          </div>
+
           <Secao
             titulo="Resumo financeiro do caso"
             descricao="Registrar pagamento e preparar cobrança ficam no resumo executivo, no topo da página — aqui é só o estado, para consulta rápida."
