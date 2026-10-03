@@ -72,8 +72,22 @@ export function CalculadoraOrcamento({ caseId }: { caseId: string }) {
     <section className="rounded-xl border border-navy/10 bg-cream/40 p-4" data-calculadora-orcamento>
       <h3 className="font-serif text-base text-navy">Calculadora de orçamento da proposta</h3>
       <p className="mt-1 text-[11px] text-navy/50">
-        Compõe o valor a partir do preço sugerido canônico de cada item, com quantidade por requerente. Preço sugerido
-        é referência interna: não é preço homologado para cobrança, não gera parcela nem link de pagamento.
+        Compõe o valor por item × quantidade (um por requerente). Preço é referência interna: não é preço homologado
+        para cobrança, não gera parcela nem link de pagamento.
+      </p>
+      {/*
+        03/10/2026 — correção de um erro meu, apontado pela Proprietária:
+        "planilha mestre é legado, sku não manda, a maioria que está lá é
+        legado". A primeira versão desta calculadora somava o preço do
+        catálogo como base válida. Medido no banco: as 118 linhas de
+        product_catalog estão em `rascunho` e vêm do arquivo da Planilha
+        Mestre — legado que o AGENTS.md proíbe como premissa. A conta
+        continua visível, mas não vira valor de proposta.
+      */}
+      <p className="mt-1 rounded border border-terracotta/30 bg-terracotta/5 p-2 text-[11px] text-navy/75">
+        Base de preço pendente: hoje a única origem disponível é a Planilha Mestre (catálogo em rascunho), que é
+        legado declarado e não sustenta orçamento de proposta. A base correta é a tabela do Planejador de Cidadania
+        por nacionalidade, com despesas de terceiros e consulares — ela ainda não existe como dado neste sistema.
       </p>
 
       <EstadoDados

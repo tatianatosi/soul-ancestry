@@ -171,3 +171,55 @@ describe("o escritor respeita snapshot e não faz ação externa", () => {
     expect(caso).toMatch(/CalculadoraOrcamento/);
   });
 });
+
+/**
+ * Correção de 03/10 — a Proprietária apontou o erro de raiz: "planilha mestre
+ * é legado, sku não manda, a maioria que está lá é legado". Medição no banco:
+ * as 118 linhas de `product_catalog` estão em `estado_catalogo = 'rascunho'` e
+ * vêm de "CA · FIN · Planilha Mestre de Produtos OFICIAL 2.xlsx".
+ */
+describe("base legada não vira valor de proposta", () => {
+  const legado = {
+    sku: sku(),
+    quantidade: 3,
+    fonteArquivo: "CA · FIN · Planilha Mestre de Produtos OFICIAL 2.xlsx",
+    estadoCatalogo: "rascunho",
+  };
+
+  it("reconhece a Planilha Mestre como fonte legada", () => {
+    const o = calcularOrcamento({ itens: [legado] });
+    expect(o.baseLegada).toBe(true);
+  });
+
+  it("reconhece catálogo em rascunho como não operável, mesmo sem o nome do arquivo", () => {
+    const o = calcularOrcamento({ itens: [{ sku: sku(), estadoCatalogo: "rascunho" }] });
+    expect(o.baseLegada).toBe(true);
+  });
+
+  it("mostra a conta, mas recusa aplicar na proposta, dizendo qual é a base certa", () => {
+    const o = calcularOrcamento({ itens: [legado] });
+    expect(o.subtotal).toBe(9600); // a conta continua visível
+    const recusa = String(motivoParaNaoAplicar(o));
+    expect(recusa).toMatch(/legado declarado/);
+    expect(recusa).toMatch(/Planejador de Cidadania por nacionalidade/);
+  });
+
+  it("avisa, em texto, de onde veio o preço recusado", () => {
+    const o = calcularOrcamento({ itens: [legado] });
+    expect(o.avisos.join(" ")).toMatch(/Planilha Mestre/);
+  });
+
+  it("origem homologada e fora de rascunho não é barrada", () => {
+    const o = calcularOrcamento({
+      itens: [{ sku: sku({ fonte_referencia: "tabela-planejador-cidadania" }), quantidade: 3, estadoCatalogo: "homologado" }],
+    });
+    expect(o.baseLegada).toBe(false);
+    expect(motivoParaNaoAplicar(o)).toBeNull();
+  });
+
+  it("a tela declara a pendência da base de preço em vez de fingir que o número vale", () => {
+    const painel = readFileSync("src/components/contrato/calculadora-orcamento.tsx", "utf8");
+    expect(painel).toMatch(/Base de preço pendente/);
+    expect(painel).toMatch(/despesas de terceiros e consulares/);
+  });
+});

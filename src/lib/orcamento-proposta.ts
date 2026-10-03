@@ -22,6 +22,26 @@
  * selo obrigatório. SKU sem preço utilizável **não vira zero**: entra na lista
  * de bloqueados e o orçamento fica marcado como parcial.
  *
+ * ## Correção de 03/10, depois de um erro meu
+ *
+ * A primeira versão desta calculadora somava `product_catalog.preco_sugerido_fonte`
+ * como se fosse base válida de orçamento. Está errado, e a Proprietária apontou:
+ * "planilha mestre é legado, sku não manda, a maioria que está lá é legado".
+ * O `AGENTS.md` já dizia isso em regra inegociável — "a planilha mestre... é
+ * passado. Proibido usá-la como premissa arquitetural, motor de priorização,
+ * dashboard operacional, CRM, planner ou razão do negócio" — e eu usei como
+ * premissa de preço mesmo assim.
+ *
+ * A medição no banco (03/10) confirma: as **118 linhas** de `product_catalog`
+ * estão em `estado_catalogo = 'rascunho'` e a única fonte é o arquivo
+ * "CA · FIN · Planilha Mestre de Produtos OFICIAL 2.xlsx". Não há uma linha
+ * sequer de catálogo homologado fora da planilha legada.
+ *
+ * Então a calculadora passa a **recusar** base legada em vez de somá-la. Ela
+ * continua existindo e mostrando a conta, para a equipe ver o que existe — mas
+ * não aplica na proposta e diz o que falta: a tabela de preços do Planejador
+ * de Cidadania, por nacionalidade, que ainda não existe como dado.
+ *
  * Nunca: inventa preço, aplica desconto por conta própria, deriva parcela ou
  * vencimento, homologa condição comercial, cria cobrança ou link de pagamento.
  * Condição particular (o caso da Ana, R$ 9.600) existe como campo explícito
@@ -37,6 +57,11 @@ import {
 
 export type ItemOrcamento = {
   skuId: string;
+  /** Arquivo de onde o preço veio. É isto que denuncia base legada. */
+  fonteArquivo: string | null;
+  /** Estado do item no catálogo: `rascunho` nunca é base de orçamento. */
+  estadoCatalogo: string | null;
+  legado: boolean;
   code: string | null;
   nome: string | null;
   /** Quantas vezes o item entra (ex.: um por requerente). */
@@ -63,6 +88,8 @@ export type OrcamentoProposta = {
   total: number;
   /** true quando algum item ficou de fora: o total não é o orçamento inteiro. */
   parcial: boolean;
+  /** true quando a conta se apoia em fonte legada (Planilha Mestre, rascunho). */
+  baseLegada: boolean;
   selo: string;
   avisos: string[];
 };
@@ -71,6 +98,9 @@ export type EntradaItem = {
   sku: SkuPrecoSugerido;
   quantidade?: number;
   divergencias?: DivergenciaFonte[];
+  /** `product_catalog.fonte_arquivo` e `estado_catalogo`, lidos sem interpretar. */
+  fonteArquivo?: string | null;
+  estadoCatalogo?: string | null;
 };
 
 export type EntradaOrcamento = {
@@ -80,6 +110,23 @@ export type EntradaOrcamento = {
   ajusteMotivo?: string;
   hoje?: Date;
 };
+
+/**
+ * Fontes que o AGENTS.md declara legado e proíbe como premissa operacional.
+ * Casar por trecho do nome do arquivo, não por igualdade: o nome muda de
+ * versão ("OFICIAL 2.xlsx"), a natureza não.
+ */
+export const FONTES_LEGADAS = ["planilha mestre", "planilha_mestre", "dre", "asaas legado"];
+
+/** Estados de catálogo que não sustentam orçamento, por não serem homologados. */
+export const ESTADOS_CATALOGO_NAO_OPERAVEIS = ["rascunho", "legado_referencia", "arquivado"];
+
+export function baseLegada(fonteArquivo?: string | null, estadoCatalogo?: string | null): boolean {
+  const f = String(fonteArquivo ?? "").toLowerCase();
+  if (FONTES_LEGADAS.some((t) => f.includes(t))) return true;
+  const e = String(estadoCatalogo ?? "").trim().toLowerCase();
+  return ESTADOS_CATALOGO_NAO_OPERAVEIS.includes(e);
+}
 
 export function formatarDinheiro(valor: number, moeda: string | null): string {
   const m = (moeda ?? "BRL").toUpperCase();
@@ -104,8 +151,12 @@ export function calcularOrcamento(entrada: EntradaOrcamento): OrcamentoProposta 
     const quantidade = Math.max(1, Math.trunc(Number(e.quantidade ?? 1)));
     const r = resolverPrecoSugerido(e.sku, e.divergencias ?? [], hoje);
     const utilizavel = r.selecionavel_internamente && r.valor !== null;
+    const legado = baseLegada(e.fonteArquivo ?? e.sku.fonte_referencia, e.estadoCatalogo);
     return {
       skuId: e.sku.id,
+      fonteArquivo: e.fonteArquivo ?? e.sku.fonte_referencia ?? null,
+      estadoCatalogo: e.estadoCatalogo ?? null,
+      legado,
       code: e.sku.code ?? null,
       nome: e.sku.nome ?? null,
       quantidade,
@@ -152,6 +203,15 @@ export function calcularOrcamento(entrada: EntradaOrcamento): OrcamentoProposta 
     ajuste = 0;
   }
 
+  const comLegado = somados.filter((i) => i.legado);
+  if (comLegado.length > 0) {
+    avisos.push(
+      `${comLegado.length} item(ns) têm preço vindo de fonte legada (${[...new Set(comLegado.map((i) => i.fonteArquivo ?? i.estadoCatalogo ?? "origem não registrada"))].join(", ")}). ` +
+        "A Planilha Mestre e o catálogo em rascunho são legado declarado e não sustentam orçamento de proposta. " +
+        "A base correta é a tabela de preços do Planejador de Cidadania por nacionalidade, que ainda não existe como dado.",
+    );
+  }
+
   const total = misturaDeMoeda ? 0 : subtotal + ajuste;
 
   return {
@@ -164,6 +224,7 @@ export function calcularOrcamento(entrada: EntradaOrcamento): OrcamentoProposta 
     ajusteMotivo: ajuste !== 0 ? ajusteMotivo : null,
     total,
     parcial: bloqueados.length > 0 || misturaDeMoeda || somados.length === 0,
+    baseLegada: comLegado.length > 0,
     selo: SELO_PRECO_SUGERIDO,
     avisos,
   };
@@ -175,6 +236,13 @@ export function calcularOrcamento(entrada: EntradaOrcamento): OrcamentoProposta 
  */
 export function motivoParaNaoAplicar(o: OrcamentoProposta): string | null {
   if (o.somados.length === 0) return "Nenhum item com preço utilizável — não há orçamento a aplicar.";
+  if (o.baseLegada) {
+    return (
+      "O preço destes itens vem da Planilha Mestre / catálogo em rascunho, que é legado declarado e não pode " +
+      "virar valor de proposta. A base correta é a tabela do Planejador de Cidadania por nacionalidade — ela " +
+      "ainda não existe como dado neste sistema."
+    );
+  }
   if (o.parcial)
     return "Orçamento parcial: há item sem preço utilizável ou moedas diferentes. Resolva antes de gravar na proposta.";
   if (o.total <= 0) return "O total precisa ser maior que zero.";

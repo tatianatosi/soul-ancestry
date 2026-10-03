@@ -30,7 +30,7 @@ import {
 import { resolverPrecoSugerido, type DivergenciaFonte, type SkuPrecoSugerido } from "@/lib/preco-sugerido-canonico";
 
 const COLUNAS =
-  "id,code,nome_comercial,preco_sugerido_fonte,preco_atual_fonte,moeda,fonte_versao,fonte_arquivo,vigencia_inicio,vigencia_fim,status_produto,status_fonte,ativo,archived_at,dados_teste,elegivel_para_proposta";
+  "id,code,nome_comercial,preco_sugerido_fonte,preco_atual_fonte,moeda,fonte_versao,fonte_arquivo,vigencia_inicio,vigencia_fim,status_produto,status_fonte,ativo,archived_at,dados_teste,elegivel_para_proposta,estado_catalogo";
 
 function paraSku(row: any): SkuPrecoSugerido {
   return {
@@ -125,6 +125,10 @@ async function montarOrcamento(supabase: any, organizationId: string, data: Entr
       sku,
       quantidade: i.quantidade,
       divergencias: porSku.get(String(sku.code ?? "").toUpperCase()) ?? [],
+      // A origem vai junto: é ela que denuncia base legada (Planilha Mestre,
+      // catálogo em rascunho) e impede que vire valor de proposta.
+      fonteArquivo: (row as any).fonte_arquivo ?? null,
+      estadoCatalogo: (row as any).estado_catalogo ?? null,
     });
   }
   return calcularOrcamento({ itens: entradas, ajuste: data.ajuste, ajusteMotivo: data.ajusteMotivo });
