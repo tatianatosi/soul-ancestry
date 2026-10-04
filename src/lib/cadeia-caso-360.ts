@@ -13,7 +13,11 @@
  * `cadeia-caso-360-planejador-0ed5`, que nunca foi mesclada) contra o
  * schema atual e o escopo de hoje.
  */
-import type { RaciocinioJuridicoCaso } from "@/lib/motor-raciocinio-juridico";
+import {
+  indiceInternoDeElegibilidade,
+  type IndiceInternoElegibilidade,
+  type RaciocinioJuridicoCaso,
+} from "@/lib/motor-raciocinio-juridico";
 
 export type EstadoCamada = "operavel" | "pendente" | "bloqueado";
 
@@ -144,6 +148,13 @@ export type CadeiaCaso360 = {
   plano: CamadaPlano;
   liberacao: CamadaLiberacao;
   raciocinioJuridico: RaciocinioJuridicoCaso;
+  /*
+   * 04/10/2026 — índice interno de elegibilidade, liberado pela Proprietária:
+   * "não está proibido o score, já tem uma regra pra isso, e uso interno de
+   * elegibilidade está dentro das premissas do radar e matrizes". Vive aqui,
+   * no Desk, com os três componentes ao lado — nunca sozinho, nunca no App.
+   */
+  indiceInterno: IndiceInternoElegibilidade;
 };
 
 export function montarCadeiaCaso360(entrada: {
@@ -160,5 +171,6 @@ export function montarCadeiaCaso360(entrada: {
     plano: camadaPlano(entrada.plano),
     liberacao: camadaLiberacao(entrada.projecoes),
     raciocinioJuridico: entrada.raciocinioJuridico,
+    indiceInterno: indiceInternoDeElegibilidade(entrada.raciocinioJuridico),
   };
 }

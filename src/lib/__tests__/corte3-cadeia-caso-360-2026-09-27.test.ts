@@ -90,7 +90,14 @@ describe("Corte 3 — camadaLiberacao (estágio de liberação Desk→App, nunca
 });
 
 describe("Corte 3 — montarCadeiaCaso360 compõe as 4 camadas + raciocínio jurídico, sem fundir nada", () => {
-  it("devolve os 5 campos esperados, cada um com sua própria estrutura", () => {
+  /*
+   * 04/10/2026 — passou a 6 campos: `indiceInterno` entrou por correção de
+   * escopo da Proprietária ("não está proibido o score; uso interno de
+   * elegibilidade está dentro das premissas do radar e matrizes"). Os 5
+   * anteriores continuam intactos e separados — o índice é composição, não
+   * fusão: os três componentes seguem expostos ao lado dele.
+   */
+  it("devolve os 6 campos esperados, cada um com sua própria estrutura", () => {
     const r = montarCadeiaCaso360({
       caseService: null,
       produtoCatalogo: null,
@@ -111,7 +118,18 @@ describe("Corte 3 — montarCadeiaCaso360 compõe as 4 camadas + raciocínio jur
         },
       },
     });
-    expect(Object.keys(r).sort()).toEqual(["liberacao", "plano", "produtoPai", "raciocinioJuridico", "trilhaJuridica"]);
+    expect(Object.keys(r).sort()).toEqual([
+      "indiceInterno",
+      "liberacao",
+      "plano",
+      "produtoPai",
+      "raciocinioJuridico",
+      "trilhaJuridica",
+    ]);
+    // o índice não substitui os três: eles continuam lá, cada um com sua forma
+    expect(r.raciocinioJuridico.completude.proporcaoValidada).toBeNull();
+    expect(r.indiceInterno.usoPermitido).toBe("interno_radar_e_matrizes");
+    expect(r.indiceInterno.componentes).toEqual({ continuidade: 0, completude: 0, confiabilidade: 0 });
   });
 });
 

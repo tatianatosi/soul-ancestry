@@ -182,10 +182,29 @@ export type RaciocinioJuridicoCaso = {
 };
 
 /**
- * Composição dos 3 índices para um caso — sempre separados, nunca
- * combinados num score único ou percentual de elegibilidade. Cada linha
- * de pesquisa (`lineage_paths`) recebe sua própria continuidade; o caso
- * inteiro recebe uma completude documental e uma confiabilidade jurídica.
+ * Composição dos 3 índices para um caso. Cada linha de pesquisa
+ * (`lineage_paths`) recebe sua própria continuidade; o caso inteiro recebe
+ * uma completude documental e uma confiabilidade jurídica.
+ *
+ * ## Correção de 04/10/2026 — o score NÃO é proibido
+ *
+ * Instrução literal da Proprietária: "não está proibido o score, já tem uma
+ * regra pra isso, e uso interno de elegibilidade está dentro das premissas do
+ * radar e matrizes". Eu vinha repetindo "nunca combinados num score único"
+ * como se fosse proibição geral — e estava errado em escopo. A regra que
+ * existe é de **destino**, não de cálculo:
+ *
+ *  - uso INTERNO (Radar e matrizes, Desk de staff): permitido, e já havia
+ *    precedente vivo — `radar-elegibilidade.ts` é um radar interno com faixas
+ *    (forte, provável, possível com pesquisa, baixa, inconclusiva);
+ *  - o que continua proibido é **expor ao cliente** percentual de
+ *    elegibilidade, chance, prazo ou promessa, e tratar o índice como parecer
+ *    jurídico. Isso segue travado pela fronteira do App, que já barra estes
+ *    módulos em `src/routes/portal/**`.
+ *
+ * Por isso `indiceInternoDeElegibilidade` existe abaixo, com faixa declarada
+ * e os três componentes sempre visíveis ao lado do número — nunca um número
+ * sozinho, que seria o que dá aparência de parecer.
  */
 export function raciocinioJuridicoDoCaso(entrada: {
   linhas: readonly LineagePathBruto[];
@@ -199,5 +218,98 @@ export function raciocinioJuridicoDoCaso(entrada: {
     continuidade: entrada.linhas.map((linha) => continuidadeDaLinha(linha, entrada.encontros)),
     completude: completudeDocumental(entrada.documentosMinimosOk, entrada.evidencias),
     confiabilidade: confiabilidadeJuridica(entrada.regras, entrada.marcos),
+  };
+}
+
+/* ------------------------------------------------------- Índice interno */
+
+/**
+ * Faixa do índice interno. Mesma gramática do `radar-elegibilidade.ts`, para
+ * Desk e Radar não divergirem de vocabulário.
+ */
+export const FAIXAS_INDICE_INTERNO = [
+  "inconclusiva",
+  "baixa",
+  "possivel_com_pesquisa",
+  "provavel",
+  "forte",
+] as const;
+export type FaixaIndiceInterno = (typeof FAIXAS_INDICE_INTERNO)[number];
+
+export type IndiceInternoElegibilidade = {
+  /** 0–100, uso interno. Nunca projetado ao cliente. */
+  percentual: number;
+  faixa: FaixaIndiceInterno;
+  /** Os três componentes continuam visíveis: o número nunca anda sozinho. */
+  componentes: { continuidade: number; completude: number; confiabilidade: number };
+  /** Linhas sem elo comprovado — o que derruba o índice, dito por nome. */
+  limitantes: string[];
+  usoPermitido: "interno_radar_e_matrizes";
+  avisoObrigatorio: string;
+};
+
+export const AVISO_INDICE_INTERNO =
+  "Índice interno de uso do Desk (Radar e matrizes). Não é parecer jurídico, não estima prazo, " +
+  "não garante direito e nunca é exibido ao cliente.";
+
+function faixaDoIndice(p: number): FaixaIndiceInterno {
+  if (p >= 85) return "forte";
+  if (p >= 65) return "provavel";
+  if (p >= 40) return "possivel_com_pesquisa";
+  if (p > 0) return "baixa";
+  return "inconclusiva";
+}
+
+/**
+ * Compõe o índice interno a partir dos 3 índices já calculados. Média simples
+ * dos três — a mesma escolha que a Proprietária já havia feito em 07/09 para o
+ * eixo Elegibilidade do Radar (`radar-seis-eixos.ts`), para não haver duas
+ * fórmulas diferentes para a mesma ideia.
+ */
+export function indiceInternoDeElegibilidade(r: RaciocinioJuridicoCaso): IndiceInternoElegibilidade {
+  /*
+   * `proporcao`/`proporcaoValidada` são 0–1 e podem ser `null` quando não há
+   * denominador real. `null` NÃO vira 0: a linha fica fora da média, e o fato
+   * entra em `limitantes` — zerar em silêncio é o que transforma "não sei" em
+   * "não tem", exatamente o que a memória permanente proíbe.
+   */
+  const pct = (v: number | null | undefined) => (v === null || v === undefined ? null : Math.round(v * 100));
+
+  const continuidades = r.continuidade.map((c) => pct(c.proporcao)).filter((v): v is number => v !== null);
+  const continuidade = continuidades.length
+    ? Math.round(continuidades.reduce((s, v) => s + v, 0) / continuidades.length)
+    : 0;
+
+  const completudeBase = pct(r.completude.proporcaoValidada);
+  const completude = completudeBase ?? (r.completude.documentosMinimosOk ? 100 : 0);
+
+  const regras = pct(r.confiabilidade.proporcaoRegrasAprovadas);
+  const marcos = pct(r.confiabilidade.proporcaoMarcosVigentes);
+  const confiaveis = [regras, marcos].filter((v): v is number => v !== null);
+  const confiabilidade = confiaveis.length ? Math.round(confiaveis.reduce((s, v) => s + v, 0) / confiaveis.length) : 0;
+
+  const percentual = Math.round((continuidade + completude + confiabilidade) / 3);
+
+  const limitantes: string[] = [];
+  r.continuidade.forEach((c, i) => {
+    if (c.proporcao === null) limitantes.push(`Linha ${i + 1} (${c.statusLinha}): sem elo registrado — não entra na média.`);
+    else if (c.proporcao < 1)
+      limitantes.push(`Linha ${i + 1} (${c.statusLinha}): ${c.elosComprovados} de ${c.totalElos} elos comprovados.`);
+  });
+  if (!r.completude.documentosMinimosOk) limitantes.push("Documentos mínimos do caso ainda não confirmados.");
+  if (completudeBase !== null && completudeBase < 100)
+    limitantes.push(`Evidências validadas: ${r.completude.evidenciasValidadas} de ${r.completude.totalEvidencias}.`);
+  if (regras !== null && regras < 100)
+    limitantes.push(`Regras jurídicas aprovadas: ${r.confiabilidade.regrasAprovadas} de ${r.confiabilidade.totalRegras}.`);
+  if (marcos !== null && marcos < 100)
+    limitantes.push(`Marcos vigentes: ${r.confiabilidade.marcosVigentes} de ${r.confiabilidade.totalMarcos}.`);
+
+  return {
+    percentual,
+    faixa: faixaDoIndice(percentual),
+    componentes: { continuidade, completude, confiabilidade },
+    limitantes,
+    usoPermitido: "interno_radar_e_matrizes",
+    avisoObrigatorio: AVISO_INDICE_INTERNO,
   };
 }

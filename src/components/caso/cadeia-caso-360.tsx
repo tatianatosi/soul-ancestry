@@ -108,8 +108,38 @@ export function CadeiaCaso360({ caseId }: { caseId: string }) {
         </div>
       </div>
 
+      {/*
+        04/10/2026 — correção de escopo feita pela Proprietária: "não está
+        proibido o score, já tem uma regra pra isso, e uso interno de
+        elegibilidade está dentro das premissas do radar e matrizes". O índice
+        interno entra aqui, no Desk, sempre com os três componentes ao lado e
+        com os limitantes nomeados. O que segue proibido é levá-lo ao cliente
+        ou tratá-lo como parecer — a fronteira do App já barra este módulo.
+      */}
       <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-navy/50">
-        Raciocínio jurídico automático (3 índices — nunca um score único)
+        Elegibilidade — índice interno (Radar e matrizes)
+      </p>
+      <div className="rounded-lg border border-gold/40 bg-gold/5 px-3 py-2" data-indice-interno-elegibilidade>
+        <p className="font-serif text-xl text-navy">
+          {d.indiceInterno.percentual}% · {d.indiceInterno.faixa.replace(/_/g, " ")}
+        </p>
+        <p className="mt-1 text-[11px] text-navy/70">
+          Continuidade {d.indiceInterno.componentes.continuidade}% · completude{" "}
+          {d.indiceInterno.componentes.completude}% · confiabilidade jurídica{" "}
+          {d.indiceInterno.componentes.confiabilidade}%
+        </p>
+        {d.indiceInterno.limitantes.length ? (
+          <ul className="mt-1 space-y-0.5 text-[11px] text-terracotta">
+            {d.indiceInterno.limitantes.map((l, i) => (
+              <li key={i}>{l}</li>
+            ))}
+          </ul>
+        ) : null}
+        <p className="mt-1 text-[10px] text-navy/45">{d.indiceInterno.avisoObrigatorio}</p>
+      </div>
+
+      <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-navy/50">
+        Os três índices que compõem o número (sempre visíveis)
       </p>
       <div className="grid gap-2 sm:grid-cols-3">
         <div className="rounded-lg border border-navy/10 bg-cream/40 px-3 py-2">
