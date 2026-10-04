@@ -77,7 +77,8 @@ export function PortalHome() {
   );
   const passoPublicado = jornada.linha.find((item) => item.tipo === "proxima_acao");
   const achadosPublicados = jornada.linha.filter((item) =>
-    ["achado", "arvore", "evidencia", "linha_tempo", "legado", "microentrega", "relatorio_fase"].includes(item.tipo),
+    ["achado", "arvore", "evidencia", "linha_tempo", "legado", "microentrega", "relatorio_fase"].includes(item.tipo) &&
+    !/estado de validação|próximo passo: devolutiva/i.test(item.conteudo),
   );
   const pessoasPublicadas = pessoasDaArvore(vivo.data?.projecoes ?? []).length;
 
@@ -449,6 +450,13 @@ function PainelHomeMockup({
             </div>
           )}
         </section>
+        {achados.length === 0 ? (
+          <section aria-label="Microentrega" className="border-t border-gold/30 pt-4 sm:col-span-2">
+            <p className="text-[10px] font-medium uppercase tracking-widest text-gold">Microentrega</p>
+            <p className="mt-1 text-sm text-navy/65">Quando houver uma entrega pronta para compartilhar, ela aparecerá na sua Jornada.</p>
+            <LinkPortal to="/portal/jornada" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Jornada</LinkPortal>
+          </section>
+        ) : null}
       </div>
     </div>
   );
