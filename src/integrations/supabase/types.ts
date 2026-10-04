@@ -2661,6 +2661,8 @@ export type Database = {
       }
       case_source_documents: {
         Row: {
+          legibilidade: string | null
+          integridade: string | null
           archive_motivo: string | null
           archived_at: string | null
           case_id: string
@@ -2693,6 +2695,8 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          legibilidade?: string | null
+          integridade?: string | null
           archive_motivo?: string | null
           archived_at?: string | null
           case_id: string
@@ -2725,6 +2729,8 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          legibilidade?: string | null
+          integridade?: string | null
           archive_motivo?: string | null
           archived_at?: string | null
           case_id?: string
@@ -16936,6 +16942,8 @@ export type Database = {
       }
       research_document_requests: {
         Row: {
+          genealogical_source_id: string | null
+          resultado_consulta: string | null
           archive_reason: string | null
           archived_at: string | null
           archived_by: string | null
@@ -16962,6 +16970,8 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          genealogical_source_id?: string | null
+          resultado_consulta?: string | null
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -16988,6 +16998,8 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          genealogical_source_id?: string | null
+          resultado_consulta?: string | null
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null

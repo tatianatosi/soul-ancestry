@@ -160,6 +160,18 @@ export const BLOCOS: Record<BlocoRg, Def> = {
       "responsible_user_id",
       "client_visible",
       "notes_internal",
+      /*
+       * 04/10/2026 — template de log de consulta do prompt de Pesquisa
+       * (`CONSULTA_ID` · `FONTE_ID` · `CLASSIFICACAO_M` · `RESULTADO`).
+       * `FICHA-PESQUISA-GENEALOGICA-CANONICA.md` registrava os três como
+       * "declarado, não construído" desde 27/09 — ficaram documentados e
+       * nunca executados. Agora existem, sem tabela nova: `CONSULTA_ID` é o
+       * `id` desta linha, `FONTE_ID` é a FK para o catálogo (a classificação
+       * M vem por leitura da FK, nunca copiada) e `RESULTADO` é o CHECK de 5
+       * valores. Migration 20261004120000.
+       */
+      "genealogical_source_id",
+      "resultado_consulta",
     ],
   },
   pendencias: {

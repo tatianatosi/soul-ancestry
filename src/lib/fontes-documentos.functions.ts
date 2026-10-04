@@ -8,6 +8,8 @@ import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import {
   CONFIDENCIALIDADE,
+  INTEGRIDADE,
+  LEGIBILIDADE,
   MIMES_ACEITOS,
   ORIGENS_DOCUMENTO,
   QUALIDADE_ORIGEM,
@@ -38,6 +40,15 @@ const CAMPOS_METADADOS = [
   "referencia_origem",
   "idioma",
   "observacoes",
+  /*
+   * 04/10/2026 — checklist de revisão documental do prompt de Pesquisa
+   * (`LEGIVEL` · `INTEGRO` · `PESSOA_IDENTIFICAVEL`). Estava "declarado, não
+   * construído" desde 27/09: `pessoa_nao_identificada` já existia (é o
+   * inverso de PESSOA_IDENTIFICAVEL), as outras duas não. Migration
+   * 20261004120000, CHECK no banco, default `a_avaliar`.
+   */
+  "legibilidade",
+  "integridade",
 ];
 
 function filtrarMetadados(entrada: Record<string, unknown>) {
@@ -58,6 +69,8 @@ function validarDicionarios(valores: Record<string, unknown>) {
   checa("status", STATUS_FONTE);
   checa("qualidade_origem", QUALIDADE_ORIGEM);
   checa("confidencialidade", CONFIDENCIALIDADE);
+  checa("legibilidade", LEGIBILIDADE);
+  checa("integridade", INTEGRIDADE);
   const naoIdent = valores["pessoa_nao_identificada"] === true;
   const pessoa = String(valores["pessoa_ref_id"] ?? "").trim();
   if ("pessoa_ref_id" in valores || "pessoa_nao_identificada" in valores) {

@@ -129,6 +129,11 @@ function Formulario({
         texto: (p["preferred_display_name"] as string) || (p["canonical_name"] as string),
       })),
       fontes: dados.fontes.map((f) => ({ id: f["id"], texto: f["title"] })),
+      // Catálogo oficial (org-wide), para o log de consulta apontar a fonte.
+      catalogo_fontes: (dados.catalogoFontes ?? []).map((f) => ({
+        id: f["id"],
+        texto: [f["nome"], f["pais"], f["modelo_acesso"]].filter(Boolean).join(" · "),
+      })),
       relacoes: dados.relacoes.map((r) => ({
         id: r["id"],
         texto: `${nomePessoa(dados, r["person_a_id"])} → ${nomePessoa(dados, r["person_b_id"])}`,

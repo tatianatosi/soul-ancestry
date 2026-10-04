@@ -57,6 +57,27 @@ export const QUALIDADE_ORIGEM: Opcao[] = [
   { id: "origem_a_confirmar", rotulo: "Origem a confirmar" },
 ];
 
+/**
+ * Checklist de revisão documental (04/10/2026) — `LEGIVEL` e `INTEGRO` do
+ * prompt de Pesquisa. `PESSOA_IDENTIFICAVEL` já existia como o inverso de
+ * `pessoa_nao_identificada`. Espelham os CHECKs `csd_legibilidade_chk` e
+ * `csd_integridade_chk`; `a_avaliar` é o default do banco, não um "ok"
+ * presumido.
+ */
+export const LEGIBILIDADE: Opcao[] = [
+  { id: "a_avaliar", rotulo: "A avaliar" },
+  { id: "ok", rotulo: "Legível" },
+  { id: "parcial", rotulo: "Parcialmente legível" },
+  { id: "ilegivel", rotulo: "Ilegível" },
+];
+
+export const INTEGRIDADE: Opcao[] = [
+  { id: "a_avaliar", rotulo: "A avaliar" },
+  { id: "ok", rotulo: "Íntegro" },
+  { id: "parcial", rotulo: "Parcialmente íntegro" },
+  { id: "comprometida", rotulo: "Comprometido" },
+];
+
 export const CONFIDENCIALIDADE: Opcao[] = [
   { id: "equipe_do_caso", rotulo: "Equipe do caso" },
   { id: "interno", rotulo: "Interno" },

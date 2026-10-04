@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   CONFIDENCIALIDADE,
   EXTENSOES_ACEITAS,
+  INTEGRIDADE,
+  LEGIBILIDADE,
   ORIGENS_DOCUMENTO,
   QUALIDADE_ORIGEM,
   STATUS_FONTE,
@@ -299,6 +301,15 @@ export function SecaoFontesDocumentos({ caseId }: { caseId: string }) {
             </label>
             <Selecao label="Qualidade/origem" valor={form["qualidade_origem"]} opcoes={QUALIDADE_ORIGEM} onChange={(v) => set("qualidade_origem", v)} />
             <Selecao label="Confidencialidade" valor={form["confidencialidade"]} opcoes={CONFIDENCIALIDADE} onChange={(v) => set("confidencialidade", v)} />
+            {/*
+              04/10/2026 — checklist de revisão documental do prompt de
+              Pesquisa (LEGIVEL · INTEGRO · PESSOA_IDENTIFICAVEL). Os dois
+              primeiros estavam "declarados, não construídos" desde 27/09; o
+              terceiro já existia como `pessoa_nao_identificada`, acima.
+              Default `a_avaliar`: documento não revisado não vira "ok".
+            */}
+            <Selecao label="Legibilidade" valor={form["legibilidade"]} opcoes={LEGIBILIDADE} onChange={(v) => set("legibilidade", v)} />
+            <Selecao label="Integridade" valor={form["integridade"]} opcoes={INTEGRIDADE} onChange={(v) => set("integridade", v)} />
             <Texto label="Título interno" valor={form["titulo_interno"]} onChange={(v) => set("titulo_interno", v)} />
             <Texto label="Data do documento" tipo="date" valor={form["data_documento"]} onChange={(v) => set("data_documento", v)} />
             <Texto label="País" valor={form["pais"]} onChange={(v) => set("pais", v)} />
@@ -420,7 +431,9 @@ export function SecaoFontesDocumentos({ caseId }: { caseId: string }) {
           <p className="text-xs text-navy/70">
             {rotulo(TIPOS_DOCUMENTO, detalhe["tipo_documento"])} · {rotulo(ORIGENS_DOCUMENTO, detalhe["origem_documento"])} ·{" "}
             {rotulo(STATUS_FONTE, detalhe["status"])} · {rotulo(QUALIDADE_ORIGEM, detalhe["qualidade_origem"])} ·{" "}
-            {rotulo(CONFIDENCIALIDADE, detalhe["confidencialidade"])}
+            {rotulo(CONFIDENCIALIDADE, detalhe["confidencialidade"])} · legibilidade:{" "}
+            {rotulo(LEGIBILIDADE, detalhe["legibilidade"] ?? "a_avaliar")} · integridade:{" "}
+            {rotulo(INTEGRIDADE, detalhe["integridade"] ?? "a_avaliar")}
           </p>
           {detalhe["referencia_origem"] ? (
             <p className="text-xs text-navy/70">Referência: {String(detalhe["referencia_origem"])}</p>

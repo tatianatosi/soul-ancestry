@@ -5,7 +5,7 @@ export type Campo = {
   rotulo: string;
   tipo?: "texto" | "area" | "data" | "select" | "bool" | "ref";
   opcoes?: [string, string][];
-  ref?: "pessoas" | "relacoes" | "eventos" | "fontes" | "evidencias" | "documentos";
+  ref?: "pessoas" | "relacoes" | "eventos" | "fontes" | "catalogo_fontes" | "evidencias" | "documentos";
   ajuda?: string;
 };
 
@@ -30,6 +30,34 @@ export const CONFIANCA: [string, string][] = [
   ["low", "Baixa"],
   ["medium", "Média"],
   ["high", "Alta"],
+];
+
+/**
+ * RESULTADO do log de consulta a fonte (prompt de Pesquisa, executado em
+ * 04/10/2026). Espelha o CHECK `rdr_resultado_consulta_chk`.
+ */
+export const RESULTADO_CONSULTA: [string, string][] = [
+  ["encontrado", "Encontrado"],
+  ["nao_encontrado", "Não encontrado (busca negativa)"],
+  ["parcial", "Parcial"],
+  ["inacessivel", "Inacessível"],
+  ["aguardando", "Aguardando"],
+];
+
+/** Checklist de revisão documental: LEGIVEL. Espelha `csd_legibilidade_chk`. */
+export const LEGIBILIDADE_DOCUMENTO: [string, string][] = [
+  ["a_avaliar", "A avaliar"],
+  ["ok", "Legível"],
+  ["parcial", "Parcialmente legível"],
+  ["ilegivel", "Ilegível"],
+];
+
+/** Checklist de revisão documental: INTEGRO. Espelha `csd_integridade_chk`. */
+export const INTEGRIDADE_DOCUMENTO: [string, string][] = [
+  ["a_avaliar", "A avaliar"],
+  ["ok", "Íntegro"],
+  ["parcial", "Parcialmente íntegro"],
+  ["comprometida", "Comprometido"],
 ];
 
 export const SENSIBILIDADE: [string, string][] = [
@@ -368,6 +396,19 @@ export const CAMPOS: Record<BlocoRg, Campo[]> = {
     },
     { nome: "due_at", rotulo: "Prazo", tipo: "data" },
     { nome: "client_visible", rotulo: "Pode aparecer ao cliente", tipo: "bool" },
+    /*
+     * Log de consulta a fonte (04/10/2026): o pedido documental já era o
+     * registro do ato de consultar; faltavam a fonte e o resultado. A
+     * classificação M não é copiada — vem por leitura da FK do catálogo.
+     */
+    { nome: "genealogical_source_id", rotulo: "Fonte consultada (catálogo)", tipo: "ref", ref: "catalogo_fontes" },
+    {
+      nome: "resultado_consulta",
+      rotulo: "Resultado da consulta",
+      tipo: "select",
+      opcoes: RESULTADO_CONSULTA,
+      ajuda: "“Não encontrado” é busca negativa: registra o escopo consultado e nunca conclui nada sozinho.",
+    },
     { nome: "notes_internal", rotulo: "Notas internas", tipo: "area" },
   ],
   pendencias: [

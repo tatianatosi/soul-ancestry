@@ -186,6 +186,7 @@ export const carregarPesquisaModulo = createServerFn({ method: "GET" })
         relacoes: [],
         eventos: [],
         fontes: [],
+        catalogoFontes: [] as Record<string, any>[],
         evidencias: [],
         vinculos: [],
         hipoteses: [],
@@ -242,6 +243,18 @@ export const carregarPesquisaModulo = createServerFn({ method: "GET" })
     const idsPessoas = linhasDe<Record<string, any>>(pessoas, "pessoas da pesquisa").map((p) => p["id"]);
     const idsEvid = linhasDe<Record<string, any>>(evidencias, "evidências da pesquisa").map((e) => e["id"]);
 
+    /*
+     * 04/10/2026 — catálogo oficial de fontes (org-wide) entra no painel para
+     * o log de consulta poder apontar a fonte consultada (`FONTE_ID`). A
+     * classificação M não é copiada: fica no catálogo e é lida pela FK.
+     */
+    const catalogoFontes = await supabase
+      .from("genealogical_sources_catalog")
+      .select("id,nome,pais,modelo_acesso,nivel_de_fonte")
+      .eq("organization_id", organizationId)
+      .is("archived_at", null)
+      .order("nome", { ascending: true });
+
     const [variantes, vinculos] = await Promise.all([
       idsPessoas.length
         ? supabase
@@ -273,6 +286,7 @@ export const carregarPesquisaModulo = createServerFn({ method: "GET" })
       relacoes: linhasDe<Record<string, any>>(relacoes, "relações da pesquisa"),
       eventos: linhasDe<Record<string, any>>(eventos, "eventos da pesquisa"),
       fontes: linhasDe<Record<string, any>>(fontes, "fontes da pesquisa"),
+      catalogoFontes: ((catalogoFontes as any).data ?? []) as Record<string, any>[],
       evidencias: linhasDe<Record<string, any>>(evidencias, "evidências da pesquisa"),
       vinculos: linhasDe<Record<string, any>>(vinculos as any, "vínculos de evidência da pesquisa"),
       hipoteses: linhasDe<Record<string, any>>(hipoteses, "hipóteses da pesquisa"),
