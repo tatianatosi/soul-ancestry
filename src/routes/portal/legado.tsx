@@ -99,7 +99,7 @@ export function PortalLegado() {
                         <section
                           key={p.id}
                           data-legado-prateleira={p.id}
-                          className={`min-w-0 overflow-hidden rounded-xl border border-border border-t-4 bg-card p-4 shadow-sm ${
+                           className={`flex min-w-0 flex-col overflow-hidden rounded-xl border border-border border-t-4 bg-card p-4 shadow-sm ${
                             ["border-t-gold", "border-t-navy", "border-t-terracotta"][PRATELEIRAS.indexOf(p) % 3]
                           }`}
                         >
@@ -116,7 +116,7 @@ export function PortalLegado() {
                             </span>
                           </div>
                           {itens.length === 0 ? (
-                            <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
+                             <p className="mt-3 flex min-h-28 grow items-center justify-center rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
                                  {p.id === "cadernos"
                                    ? "Os cadernos da família aparecerão aqui quando forem liberados."
                                    : p.id === "relatorios"

@@ -160,3 +160,9 @@
 - [ ] Passo 5 — opções controladas nos campos
 - [ ] Passo 6 — Configuração e Governança reduzidas
 - [ ] Pedido anterior (cortes 1–4: gravação Passo 5, dicionário, hipótese só leitura no servidor, arquivar DEMO) — fundido nos passos acima
+
+## Paridade visual final do App Cliente (04/10/2026)
+- [x] Conferir as sete telas oficiais em 375 e 1280 px, sem inventar publicações nem alterar navegação, dados ou regras de acesso.
+- [x] Ajustar Home, Radar, Árvore e Legado onde havia divergência visual ou texto interno; preservar as demais telas e os estados honestos.
+- [x] Capturar as 14 telas autenticadas, validar ausência de overflow e erros de página, e executar testes visuais direcionados.
+- [ ] Aprovação visual das 14 capturas pela Proprietária; não publicar sem aprovação.

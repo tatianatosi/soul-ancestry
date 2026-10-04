@@ -20029,6 +20029,15 @@ export type Database = {
       pode_iniciar_pesquisa_externa: { Args: { _rc: string }; Returns: Json }
       pode_pesquisar_caso: { Args: { _case: string }; Returns: boolean }
       portal_caso_permitido: { Args: { _case: string }; Returns: boolean }
+      portal_membros_do_meu_caso: {
+        Args: never
+        Returns: {
+          case_id: string
+          cliente_id: string
+          nome: string
+          papel: string
+        }[]
+      }
       portal_meu_acesso: { Args: never; Returns: string }
       portal_meu_cliente: { Args: never; Returns: string }
       portal_meu_nivel: {
