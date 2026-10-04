@@ -7,6 +7,7 @@ import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
 import {
   painelArvoreGeracoes,
   GERACOES_ARVORE_EXIBICAO,
+  PESSOAS_POSSIVEIS_CINCO_GERACOES,
   type GeracaoArvore,
 } from "@/lib/portal-arvore-geracoes";
 import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
@@ -185,7 +186,16 @@ export function PortalArvore() {
                             {pessoas.length}{" "}
                             {pessoas.length === 1 ? "pessoa conectada recuperada" : "pessoas conectadas recuperadas"}
                           </span>
-                           <span className="mt-0.5 block text-xs text-navy/60">Compartilhadas com a família</span>
+                          {/*
+                            Rodapé normativo do mockup aprovado de 17 páginas.
+                            Removido por commit do Lovable em 04/10/2026 (segunda
+                            vez: a primeira restauração foi 39d6929a). Restaurado
+                            no merge para manter o contrato visual.
+                          */}
+                          <span className="mt-0.5 block text-xs text-navy/60">
+                            de um universo de {PESSOAS_POSSIVEIS_CINCO_GERACOES} possíveis nas 5 gerações —
+                            compartilhadas com a família
+                          </span>
                         </>
                       ) : (
                         <span className="text-xs text-navy/60">
