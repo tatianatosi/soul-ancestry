@@ -26,7 +26,9 @@ import {
   escopoEstruturadoDoOrcamento,
   motivoParaNaoAplicar,
   type EntradaItem,
+  type OrigemItemOrcamento,
 } from "@/lib/orcamento-proposta";
+import { produtoPaiPorId } from "@/lib/planejador-produtos-pai";
 import { resolverPrecoSugerido, type DivergenciaFonte, type SkuPrecoSugerido } from "@/lib/preco-sugerido-canonico";
 
 const COLUNAS =
@@ -77,10 +79,36 @@ async function catalogoComDivergencias(supabase: any, organizationId: string) {
   return { rows: (rows ?? []) as any[], porSku };
 }
 
-/** Itens que o Desk pode escolher, com o estado do preço de cada um. */
+const COLUNAS_FEED = "id,item_id,name,product_parent,status_dictionary,journey_phase_default,country_scope,commercial_model,requires_case_gate";
+
+/** Item da jornada do produto-pai — o universo do seletor. */
+async function itensDoPlanejador(supabase: any, organizationId: string) {
+  const { data } = await supabase
+    .from("planner_catalog_feed")
+    .select(COLUNAS_FEED)
+    .eq("organization_id", organizationId)
+    .is("archived_at", null)
+    .order("product_parent", { ascending: true })
+    .order("item_id", { ascending: true });
+  return ((data ?? []) as any[]).filter((r) => r.status_dictionary !== "ARQUIVADO_DECISAO_PROPRIETARIA");
+}
+
+/**
+ * Itens que o Desk pode escolher.
+ *
+ * 04/10/2026 — decisão da Proprietária: "só use todos os produtos específicos
+ * da jornada pai e planejador de cidadania; quando digo como alimento, que
+ * seja push pelo seletor, senão o contrato da Ana vai ser bloqueado de novo".
+ * O universo passou a ser `planner_catalog_feed` (99 itens vivos, agrupados
+ * pelos 9 produtos-pai), com o produto-pai do caso empurrado para o topo. O
+ * `product_catalog` (118 linhas, todas `rascunho`, todas da Planilha Mestre —
+ * medido em 04/10) continua disponível, mas **como alimento**: aparece
+ * rotulado, não soma e não bloqueia.
+ */
 export const itensParaOrcamento = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((data?: { caseId?: string }) => data ?? {})
+  .handler(async ({ data, context }) => {
     semCache();
     const supabase = (context as any).supabase;
     const { organizationId, papel } = await contextoRg(supabase as unknown as Sb, context.userId as string);
@@ -88,41 +116,128 @@ export const itensParaOrcamento = createServerFn({ method: "GET" })
       throw new Error("Seu papel não compõe orçamento de proposta.");
     }
 
+    // Produto-pai do caso: é ele que define quais itens vêm primeiro.
+    let produtoPaiDoCaso: string | null = null;
+    if (data?.caseId) {
+      const { data: plano } = await supabase
+        .from("case_plans")
+        .select("produto_pai_id")
+        .eq("organization_id", organizationId)
+        .eq("case_id", data.caseId)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      produtoPaiDoCaso = (plano?.produto_pai_id as string | null) ?? null;
+    }
+    const nomeDoProdutoPai = produtoPaiPorId(produtoPaiDoCaso)?.nome ?? null;
+
+    const feed = await itensDoPlanejador(supabase, organizationId);
+    const planejador = feed
+      .map((r) => ({
+        id: String(r.id),
+        origemItem: "planejador" as const,
+        code: (r.item_id as string) ?? null,
+        nome: (r.name as string) ?? null,
+        produtoPai: (r.product_parent as string) ?? null,
+        doCaso: Boolean(nomeDoProdutoPai && r.product_parent === nomeDoProdutoPai),
+        statusDicionario: (r.status_dictionary as string) ?? null,
+        fase: (r.journey_phase_default as string) ?? null,
+        paises: (r.country_scope as string[] | null) ?? null,
+        modeloComercial: (r.commercial_model as string) ?? null,
+        exigeGateDoCaso: r.requires_case_gate === true,
+        ofertavel: r.status_dictionary === "ATIVO_HOMOLOGADO" || r.status_dictionary === "CONDICIONAL_POR_CASO",
+        valor: null as number | null,
+        moeda: null as string | null,
+        estado: "sem_preco_homologado",
+        utilizavel: false,
+        motivos: [
+          "Item da jornada do produto-pai: o preço não é de catálogo. O valor do caso entra pela condição particular aprovada.",
+        ],
+      }))
+      // push: o produto-pai do caso primeiro, o resto depois, sem esconder nada.
+      .sort((a, b) => (a.doCaso === b.doCaso ? 0 : a.doCaso ? -1 : 1));
+
     const { rows, porSku } = await catalogoComDivergencias(supabase, organizationId);
-    return rows.map((r) => {
+    const alimento = rows.map((r) => {
       const sku = paraSku(r);
       const resolucao = resolverPrecoSugerido(sku, porSku.get(String(sku.code ?? "").toUpperCase()) ?? []);
       return {
         id: sku.id,
+        origemItem: "alimento_legado" as const,
         code: sku.code,
         nome: sku.nome,
         ofertavel: r.elegivel_para_proposta === true,
         valor: resolucao.valor,
         moeda: resolucao.moeda,
         estado: resolucao.estado,
-        utilizavel: resolucao.selecionavel_internamente,
-        motivos: resolucao.motivos.map((m) => m.descricao),
+        // Alimento nunca é base de preço: fica fora da conta por desenho.
+        utilizavel: false,
+        motivos: [
+          "Catálogo legado (Planilha Mestre / rascunho): entra como alimento de contexto, fora da soma.",
+          ...resolucao.motivos.map((m) => m.descricao),
+        ],
       };
     });
+
+    return { produtoPaiDoCaso, nomeDoProdutoPai, planejador, alimento };
   });
 
 type EntradaCalculo = {
   caseId: string;
-  itens: { skuId: string; quantidade?: number }[];
+  itens: { skuId: string; quantidade?: number; origemItem?: OrigemItemOrcamento }[];
   ajuste?: number;
   ajusteMotivo?: string;
+  condicaoParticular?: { valor: number; moeda: string; motivo: string };
 };
 
 async function montarOrcamento(supabase: any, organizationId: string, data: EntradaCalculo) {
   const { rows, porSku } = await catalogoComDivergencias(supabase, organizationId);
   const porId = new Map(rows.map((r) => [String(r.id), r]));
+  const feed = await itensDoPlanejador(supabase, organizationId);
+  const porFeedId = new Map(feed.map((r) => [String(r.id), r]));
   const entradas: EntradaItem[] = [];
   for (const i of data.itens ?? []) {
+    const origemItem: OrigemItemOrcamento = i.origemItem ?? "planejador";
+    if (origemItem === "planejador") {
+      const row = porFeedId.get(String(i.skuId));
+      if (!row) throw new Error("Item do orçamento não existe na jornada do produto-pai.");
+      entradas.push({
+        /*
+         * Item da jornada não tem preço de catálogo — e não se inventa um
+         * aqui. O valor do caso entra pela condição particular aprovada.
+         */
+        sku: {
+          id: String(row.id),
+          code: (row.item_id as string) ?? null,
+          nome: (row.name as string) ?? null,
+          preco_sugerido: null,
+          preco_atual: null,
+          moeda: null,
+          fonte_versao: null,
+          fonte_referencia: "planner_catalog_feed",
+          vigencia_inicio: null,
+          vigencia_fim: null,
+          status_produto: (row.status_dictionary as string) ?? null,
+          status_fonte: null,
+          ativo: true,
+          archived_at: null,
+          dados_teste: false,
+        },
+        origemItem,
+        quantidade: i.quantidade,
+        divergencias: [],
+        fonteArquivo: null,
+        estadoCatalogo: null,
+      });
+      continue;
+    }
     const row = porId.get(String(i.skuId));
     if (!row) throw new Error("Item do orçamento não existe neste catálogo.");
     const sku = paraSku(row);
     entradas.push({
       sku,
+      origemItem,
       quantidade: i.quantidade,
       divergencias: porSku.get(String(sku.code ?? "").toUpperCase()) ?? [],
       // A origem vai junto: é ela que denuncia base legada (Planilha Mestre,
@@ -131,7 +246,12 @@ async function montarOrcamento(supabase: any, organizationId: string, data: Entr
       estadoCatalogo: (row as any).estado_catalogo ?? null,
     });
   }
-  return calcularOrcamento({ itens: entradas, ajuste: data.ajuste, ajusteMotivo: data.ajusteMotivo });
+  return calcularOrcamento({
+    itens: entradas,
+    ajuste: data.ajuste,
+    ajusteMotivo: data.ajusteMotivo,
+    condicaoParticular: data.condicaoParticular,
+  });
 }
 
 /** Calcula sem gravar — a prévia da tela vem do servidor, não do navegador. */

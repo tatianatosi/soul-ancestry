@@ -55,8 +55,24 @@ import {
   type SkuPrecoSugerido,
 } from "@/lib/preco-sugerido-canonico";
 
+/**
+ * De onde o item vem. Decisão da Proprietária (04/10/2026, literal): "só use
+ * todos os produtos específicos da jornada pai e planejador de cidadania;
+ * quando digo como alimento, que seja push pelo seletor, senão o contrato da
+ * Ana vai ser bloqueado de novo".
+ *
+ *  - `planejador`: item da jornada do produto-pai (`planner_catalog_feed`),
+ *    agrupado por produto-pai. É o universo do seletor.
+ *  - `alimento_legado`: SKU do `product_catalog` (118 linhas, todas em
+ *    `rascunho`, todas vindas da Planilha Mestre — medido em 04/10). Entra só
+ *    se a equipe empurrar pelo seletor, aparece rotulado, **nunca soma e
+ *    nunca bloqueia**: é alimento de contexto, não base de preço.
+ */
+export type OrigemItemOrcamento = "planejador" | "alimento_legado";
+
 export type ItemOrcamento = {
   skuId: string;
+  origemItem: OrigemItemOrcamento;
   /** Arquivo de onde o preço veio. É isto que denuncia base legada. */
   fonteArquivo: string | null;
   /** Estado do item no catálogo: `rascunho` nunca é base de orçamento. */
@@ -90,12 +106,18 @@ export type OrcamentoProposta = {
   parcial: boolean;
   /** true quando a conta se apoia em fonte legada (Planilha Mestre, rascunho). */
   baseLegada: boolean;
+  /** Itens de alimento legado: listados para contexto, fora da soma. */
+  alimento: ItemOrcamento[];
+  /** Condição particular aplicada (quando houver), com o motivo registrado. */
+  condicaoParticular: { valor: number; moeda: string; motivo: string } | null;
   selo: string;
   avisos: string[];
 };
 
 export type EntradaItem = {
   sku: SkuPrecoSugerido;
+  /** Default `planejador`: alimento legado precisa ser declarado. */
+  origemItem?: OrigemItemOrcamento;
   quantidade?: number;
   divergencias?: DivergenciaFonte[];
   /** `product_catalog.fonte_arquivo` e `estado_catalogo`, lidos sem interpretar. */
@@ -108,6 +130,15 @@ export type EntradaOrcamento = {
   /** Condição particular aprovada por humano: diferença e motivo, juntos. */
   ajuste?: number;
   ajusteMotivo?: string;
+  /**
+   * Condição particular fechada — o valor que a Proprietária aprovou para
+   * este caso (o da Ana: R$ 9.600, 3 responsáveis × R$ 320 × 10 meses).
+   * Quando existe com motivo, **ela é a base** e o orçamento deixa de
+   * depender de tabela de preço homologada. É decisão humana registrada, não
+   * cálculo — e é o que impede o contrato de travar por falta de preço de
+   * catálogo.
+   */
+  condicaoParticular?: { valor: number; moeda: string; motivo: string };
   hoje?: Date;
 };
 
@@ -151,9 +182,11 @@ export function calcularOrcamento(entrada: EntradaOrcamento): OrcamentoProposta 
     const quantidade = Math.max(1, Math.trunc(Number(e.quantidade ?? 1)));
     const r = resolverPrecoSugerido(e.sku, e.divergencias ?? [], hoje);
     const utilizavel = r.selecionavel_internamente && r.valor !== null;
-    const legado = baseLegada(e.fonteArquivo ?? e.sku.fonte_referencia, e.estadoCatalogo);
+    const origemItem: OrigemItemOrcamento = e.origemItem ?? "planejador";
+    const legado = origemItem === "alimento_legado" || baseLegada(e.fonteArquivo ?? e.sku.fonte_referencia, e.estadoCatalogo);
     return {
       skuId: e.sku.id,
+      origemItem,
       fonteArquivo: e.fonteArquivo ?? e.sku.fonte_referencia ?? null,
       estadoCatalogo: e.estadoCatalogo ?? null,
       legado,
@@ -161,7 +194,8 @@ export function calcularOrcamento(entrada: EntradaOrcamento): OrcamentoProposta 
       nome: e.sku.nome ?? null,
       quantidade,
       valorUnitario: r.valor,
-      valorTotal: utilizavel && r.valor !== null ? r.valor * quantidade : null,
+      // Alimento legado nunca soma: entra como contexto, nunca como base.
+      valorTotal: origemItem !== "alimento_legado" && utilizavel && r.valor !== null ? r.valor * quantidade : null,
       moeda: r.moeda,
       estado: r.estado,
       origem: r.origem,
@@ -169,8 +203,16 @@ export function calcularOrcamento(entrada: EntradaOrcamento): OrcamentoProposta 
     };
   });
 
-  const somados = itens.filter((i) => i.valorTotal !== null);
-  const bloqueados = itens.filter((i) => i.valorTotal === null);
+  const alimento = itens.filter((i) => i.origemItem === "alimento_legado");
+  const doPlanejador = itens.filter((i) => i.origemItem !== "alimento_legado");
+  const somados = doPlanejador.filter((i) => i.valorTotal !== null);
+  const bloqueados = doPlanejador.filter((i) => i.valorTotal === null);
+  if (alimento.length > 0) {
+    avisos.push(
+      `${alimento.length} item(ns) entraram como alimento (catálogo legado / Planilha Mestre), empurrados pelo seletor. ` +
+        "Ficam listados como contexto e nunca entram na soma nem bloqueiam a proposta.",
+    );
+  }
 
   const moedas = new Set(somados.map((i) => (i.moeda ?? "").toUpperCase()).filter(Boolean));
   let moeda: string | null = null;
@@ -212,18 +254,42 @@ export function calcularOrcamento(entrada: EntradaOrcamento): OrcamentoProposta 
     );
   }
 
-  const total = misturaDeMoeda ? 0 : subtotal + ajuste;
+  /*
+   * Condição particular: quando a Proprietária fecha o valor do caso com
+   * motivo, ele é a base — não o catálogo. Sem isto, um caso real (a Ana, R$
+   * 9.600) ficaria sem orçamento aplicável enquanto a tabela de preços do
+   * Planejador não existir como dado, e o contrato travaria por falta de um
+   * número que já foi decidido.
+   */
+  const cp = entrada.condicaoParticular;
+  const condicaoParticular =
+    cp && Number.isFinite(Number(cp.valor)) && Number(cp.valor) > 0 && String(cp.motivo ?? "").trim()
+      ? { valor: Number(cp.valor), moeda: String(cp.moeda || "BRL").toUpperCase(), motivo: String(cp.motivo).trim() }
+      : null;
+  if (cp && !condicaoParticular) {
+    avisos.push("Condição particular informada sem valor positivo ou sem motivo registrado — não foi aplicada.");
+  }
+  if (condicaoParticular) {
+    avisos.push(
+      `Condição particular aprovada aplicada: ${formatarDinheiro(condicaoParticular.valor, condicaoParticular.moeda)} — ` +
+        `${condicaoParticular.motivo}. É decisão humana registrada, não cálculo de catálogo.`,
+    );
+  }
+
+  const total = condicaoParticular ? condicaoParticular.valor : misturaDeMoeda ? 0 : subtotal + ajuste;
 
   return {
     itens,
+    alimento,
+    condicaoParticular,
     somados,
     bloqueados,
-    moeda,
+    moeda: condicaoParticular ? condicaoParticular.moeda : moeda,
     subtotal,
     ajuste,
     ajusteMotivo: ajuste !== 0 ? ajusteMotivo : null,
     total,
-    parcial: bloqueados.length > 0 || misturaDeMoeda || somados.length === 0,
+    parcial: condicaoParticular ? false : bloqueados.length > 0 || misturaDeMoeda || somados.length === 0,
     baseLegada: comLegado.length > 0,
     selo: SELO_PRECO_SUGERIDO,
     avisos,
@@ -235,6 +301,16 @@ export function calcularOrcamento(entrada: EntradaOrcamento): OrcamentoProposta 
  * `null` = pode aplicar; string = o motivo da recusa, mostrado na tela.
  */
 export function motivoParaNaoAplicar(o: OrcamentoProposta): string | null {
+  /*
+   * 04/10/2026 — condição particular aprovada com motivo é base suficiente.
+   * Antes desta linha, um caso com valor fechado pela Proprietária e catálogo
+   * sem preço homologado caía em "não pode aplicar" e travava a formalização.
+   * O alimento legado também deixou de ser motivo de recusa: ele não soma.
+   */
+  if (o.condicaoParticular) {
+    if (o.condicaoParticular.valor <= 0) return "A condição particular precisa ter valor maior que zero.";
+    return null;
+  }
   if (o.somados.length === 0) return "Nenhum item com preço utilizável — não há orçamento a aplicar.";
   if (o.baseLegada) {
     return (
@@ -259,6 +335,8 @@ export function escopoEstruturadoDoOrcamento(o: OrcamentoProposta) {
     subtotal: o.subtotal,
     ajuste: o.ajuste,
     ajuste_motivo: o.ajusteMotivo,
+    condicao_particular: o.condicaoParticular,
+    alimento_legado: o.alimento.map((i) => ({ code: i.code, nome: i.nome, nota: "alimento de contexto — fora da soma" })),
     total: o.total,
     itens: o.somados.map((i) => ({
       code: i.code,

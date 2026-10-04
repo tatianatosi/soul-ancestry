@@ -39,21 +39,39 @@ export function CalculadoraOrcamento({ caseId }: { caseId: string }) {
   const calcular = useServerFn(calcularOrcamentoDaProposta);
   const aplicar = useServerFn(aplicarOrcamentoNaProposta);
 
-  const q = useQuery({ queryKey: ["itens-orcamento"], queryFn: () => carregarItens(), retry: false });
+  const q = useQuery({
+    queryKey: ["itens-orcamento", caseId],
+    queryFn: () => carregarItens({ data: { caseId } }),
+    retry: false,
+  });
   const [quantidades, setQuantidades] = useState<Record<string, number>>({});
-  const [ajuste, setAjuste] = useState("");
-  const [ajusteMotivo, setAjusteMotivo] = useState("");
+  const [origens, setOrigens] = useState<Record<string, "planejador" | "alimento_legado">>({});
+  const [verAlimento, setVerAlimento] = useState(false);
+  const [condicaoValor, setCondicaoValor] = useState("");
+  const [condicaoMotivo, setCondicaoMotivo] = useState("");
   const [resultado, setResultado] = useState<{ orcamento: OrcamentoProposta; recusa: string | null } | null>(null);
+
+  const numero = (v: string) => Number(String(v).replace(/\./g, "").replace(",", ".")) || 0;
 
   const selecionados = Object.entries(quantidades)
     .filter(([, n]) => n > 0)
-    .map(([skuId, quantidade]) => ({ skuId, quantidade }));
+    .map(([skuId, quantidade]) => ({ skuId, quantidade, origemItem: origens[skuId] ?? ("planejador" as const) }));
 
+  const valorCondicao = numero(condicaoValor);
   const corpo = () => ({
     caseId,
     itens: selecionados,
-    ajuste: Number(String(ajuste).replace(/\./g, "").replace(",", ".")) || 0,
-    ajusteMotivo,
+    /*
+      04/10/2026 — a condição particular deixou de ser só "diferença em reais"
+      e passou a ser o valor fechado do caso, com motivo: é ela a base quando
+      não existe tabela de preço homologada. Sem isso, um caso com valor já
+      aprovado pela Proprietária (a Ana, R$ 9.600) não tinha orçamento
+      aplicável e a formalização travava.
+    */
+    condicaoParticular:
+      valorCondicao > 0 && condicaoMotivo.trim()
+        ? { valor: valorCondicao, moeda: "BRL", motivo: condicaoMotivo.trim() }
+        : undefined,
   });
 
   const mCalcular = useMutation({
@@ -77,32 +95,36 @@ export function CalculadoraOrcamento({ caseId }: { caseId: string }) {
       </p>
       {/*
         03/10/2026 — correção de um erro meu, apontado pela Proprietária:
-        "planilha mestre é legado, sku não manda, a maioria que está lá é
-        legado". A primeira versão desta calculadora somava o preço do
-        catálogo como base válida. Medido no banco: as 118 linhas de
-        product_catalog estão em `rascunho` e vêm do arquivo da Planilha
-        Mestre — legado que o AGENTS.md proíbe como premissa. A conta
-        continua visível, mas não vira valor de proposta.
+        "planilha mestre é legado, sku não manda". 04/10 — segunda instrução:
+        "só use todos os produtos específicos da jornada pai e planejador de
+        cidadania; quando digo como alimento, que seja push pelo seletor,
+        senão o contrato da Ana vai ser bloqueado de novo". O seletor passou a
+        ser a jornada do produto-pai; o catálogo legado entra só como
+        alimento, e a condição particular aprovada é a base do valor.
       */}
-      <p className="mt-1 rounded border border-terracotta/30 bg-terracotta/5 p-2 text-[11px] text-navy/75">
-        Base de preço pendente: hoje a única origem disponível é a Planilha Mestre (catálogo em rascunho), que é
-        legado declarado e não sustenta orçamento de proposta. A base correta é a tabela do Planejador de Cidadania
-        por nacionalidade, com despesas de terceiros e consulares — ela ainda não existe como dado neste sistema.
+      <p className="mt-1 rounded border border-navy/15 bg-navy/5 p-2 text-[11px] text-navy/75">
+        O seletor traz os itens da jornada do produto-pai deste caso (Planejador de Cidadania). O preço deles não é
+        de catálogo: o valor do caso entra pela <strong>condição particular aprovada</strong>, com motivo registrado.
+        O catálogo legado (Planilha Mestre, em rascunho) fica disponível como <strong>alimento</strong> — aparece
+        rotulado, não soma e não bloqueia a proposta.
       </p>
 
       <EstadoDados
         carregando={q.isLoading}
         erro={q.error}
-        dados={q.data}
+        dados={q.data ? [q.data] : q.data === null ? null : undefined}
         aoTentarNovamente={() => void q.refetch()}
         recurso="os itens com preço de referência"
       >
-        {(itens) => (
+        {([dados]) => (
           <div className="mt-3 space-y-3">
-            <ul className="max-h-72 space-y-1 overflow-y-auto rounded border border-navy/10 bg-white/60 p-2">
-              {itens
-                .filter((i) => i.ofertavel)
-                .map((i) => (
+            <div>
+              <p className="text-[11px] font-semibold text-navy">
+                Jornada do produto-pai
+                {dados.nomeDoProdutoPai ? ` — ${dados.nomeDoProdutoPai} (produto-pai deste caso, no topo)` : " (caso sem produto-pai definido no Planejador)"}
+              </p>
+              <ul className="mt-1 max-h-72 space-y-1 overflow-y-auto rounded border border-navy/10 bg-white/60 p-2" data-itens-planejador>
+                {dados.planejador.map((i) => (
                   <li key={i.id} className="flex flex-wrap items-center gap-2 text-[11px] text-navy/70">
                     <input
                       type="number"
@@ -110,30 +132,68 @@ export function CalculadoraOrcamento({ caseId }: { caseId: string }) {
                       step={1}
                       className="w-14 rounded border border-navy/15 px-1 py-0.5 text-[11px]"
                       value={quantidades[i.id] ?? 0}
-                      onChange={(e) =>
-                        setQuantidades((q0) => ({ ...q0, [i.id]: Math.max(0, Math.trunc(Number(e.target.value) || 0)) }))
-                      }
+                      onChange={(e) => {
+                        const n = Math.max(0, Math.trunc(Number(e.target.value) || 0));
+                        setQuantidades((q0) => ({ ...q0, [i.id]: n }));
+                        setOrigens((o) => ({ ...o, [i.id]: "planejador" }));
+                      }}
                       aria-label={`Quantidade de ${i.code ?? i.nome ?? "item"}`}
                     />
                     <span className="text-navy">{i.code}</span>
                     <span className="min-w-0 flex-1 truncate">{i.nome}</span>
-                    {i.utilizavel && i.valor !== null ? (
-                      <span className="text-navy/60">{formatarDinheiro(i.valor, i.moeda)}</span>
-                    ) : (
-                      <span className="text-terracotta">{i.motivos[0] ?? "sem preço utilizável"}</span>
-                    )}
+                    {i.doCaso ? <span className="rounded bg-gold/25 px-1 text-[10px] text-navy">deste caso</span> : null}
+                    <span className="text-navy/45">{i.produtoPai ?? "sem produto-pai"}</span>
                   </li>
                 ))}
-            </ul>
+                {dados.planejador.length === 0 ? (
+                  <li className="text-[11px] text-navy/55">Nenhum item na jornada do produto-pai ainda.</li>
+                ) : null}
+              </ul>
+            </div>
+
+            <div>
+              <button
+                type="button"
+                onClick={() => setVerAlimento((v) => !v)}
+                className="text-[11px] text-navy/70 underline decoration-gold"
+                data-abrir-alimento
+              >
+                {verAlimento ? "Esconder alimento (catálogo legado)" : `Empurrar alimento pelo seletor (catálogo legado · ${dados.alimento.length})`}
+              </button>
+              {verAlimento ? (
+                <ul className="mt-1 max-h-56 space-y-1 overflow-y-auto rounded border border-terracotta/20 bg-terracotta/5 p-2" data-itens-alimento>
+                  {dados.alimento.map((i) => (
+                    <li key={i.id} className="flex flex-wrap items-center gap-2 text-[11px] text-navy/70">
+                      <input
+                        type="number"
+                        min={0}
+                        step={1}
+                        className="w-14 rounded border border-navy/15 px-1 py-0.5 text-[11px]"
+                        value={quantidades[i.id] ?? 0}
+                        onChange={(e) => {
+                          const n = Math.max(0, Math.trunc(Number(e.target.value) || 0));
+                          setQuantidades((q0) => ({ ...q0, [i.id]: n }));
+                          setOrigens((o) => ({ ...o, [i.id]: "alimento_legado" }));
+                        }}
+                        aria-label={`Quantidade de ${i.code ?? i.nome ?? "item"}`}
+                      />
+                      <span className="text-navy">{i.code}</span>
+                      <span className="min-w-0 flex-1 truncate">{i.nome}</span>
+                      <span className="text-terracotta">alimento · fora da soma</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
 
             <div className="grid gap-2 sm:grid-cols-2">
               <Texto
-                label="Condição particular (diferença em reais)"
-                valor={ajuste}
-                onChange={setAjuste}
-                ajuda="Opcional. Negativo desconta. Só entra no total com motivo registrado."
+                label="Condição particular aprovada (valor do caso, em reais)"
+                valor={condicaoValor}
+                onChange={setCondicaoValor}
+                ajuda="O valor fechado com a Proprietária. Só entra com motivo registrado — é decisão humana, não cálculo."
               />
-              <Texto label="Motivo da condição particular" valor={ajusteMotivo} onChange={setAjusteMotivo} />
+              <Texto label="Motivo da condição particular" valor={condicaoMotivo} onChange={setCondicaoMotivo} />
             </div>
 
             <button
@@ -163,11 +223,22 @@ export function CalculadoraOrcamento({ caseId }: { caseId: string }) {
                     ))}
                   </ul>
                 ) : null}
+                {resultado.orcamento.alimento.length > 0 ? (
+                  <ul className="mt-2 space-y-0.5" data-orcamento-alimento>
+                    {resultado.orcamento.alimento.map((i) => (
+                      <li key={i.skuId} className="text-[11px] text-navy/55">
+                        Alimento (fora da soma): {i.code} — {i.nome}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
                 <p className="mt-2 text-xs text-navy/70">
                   Subtotal: {formatarDinheiro(resultado.orcamento.subtotal, resultado.orcamento.moeda)}
-                  {resultado.orcamento.ajuste !== 0
-                    ? ` · condição particular: ${formatarDinheiro(resultado.orcamento.ajuste, resultado.orcamento.moeda)} (${resultado.orcamento.ajusteMotivo})`
-                    : ""}
+                  {resultado.orcamento.condicaoParticular
+                    ? ` · condição particular aprovada: ${formatarDinheiro(resultado.orcamento.condicaoParticular.valor, resultado.orcamento.condicaoParticular.moeda)} (${resultado.orcamento.condicaoParticular.motivo})`
+                    : resultado.orcamento.ajuste !== 0
+                      ? ` · ajuste: ${formatarDinheiro(resultado.orcamento.ajuste, resultado.orcamento.moeda)} (${resultado.orcamento.ajusteMotivo})`
+                      : ""}
                 </p>
                 <p className="mt-1 font-serif text-xl text-navy">
                   Total: {formatarDinheiro(resultado.orcamento.total, resultado.orcamento.moeda)}

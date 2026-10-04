@@ -217,9 +217,21 @@ describe("base legada não vira valor de proposta", () => {
     expect(motivoParaNaoAplicar(o)).toBeNull();
   });
 
-  it("a tela declara a pendência da base de preço em vez de fingir que o número vale", () => {
+  /*
+   * 04/10/2026 — decisão nova da Proprietária substitui o texto que este
+   * teste travava: "só use todos os produtos específicos da jornada pai e
+   * planejador de cidadania; quando digo como alimento, que seja push pelo
+   * seletor, senão o contrato da Ana vai ser bloqueado de novo". O aviso
+   * deixou de ser "base de preço pendente" (beco sem saída) e passou a dizer
+   * de onde vem o valor: jornada do produto-pai no seletor, catálogo legado
+   * como alimento, condição particular aprovada como base. A decisão anterior
+   * (03/10: catálogo legado não sustenta orçamento) continua valendo — o
+   * alimento não soma. Ver `calculadora-orcamento-jornada-pai-2026-10-04`.
+   */
+  it("a tela declara de onde vem o valor, sem fingir que o catálogo legado vale", () => {
     const painel = readFileSync("src/components/contrato/calculadora-orcamento.tsx", "utf8");
-    expect(painel).toMatch(/Base de preço pendente/);
-    expect(painel).toMatch(/despesas de terceiros e consulares/);
+    expect(painel).toMatch(/jornada do produto-pai/);
+    expect(painel).toMatch(/condição particular aprovada/);
+    expect(painel).toMatch(/não soma e não bloqueia/);
   });
 });
