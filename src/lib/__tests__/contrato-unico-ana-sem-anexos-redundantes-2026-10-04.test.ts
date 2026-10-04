@@ -480,3 +480,69 @@ describe("10. a tela mostra a cobertura, os blocos e as duas listas", () => {
     expect(ocorrencias.length).toBe(2);
   });
 });
+
+/**
+ * Corte B (04/10/2026) — correção contra o que eu mesmo entreguei: lendo só a
+ * condição comercial, `montarPessoasContratuais` criava uma 5ª pessoa fantasma,
+ * porque o deck diz "Adair Gomes Silveira" e o cadastro diz "Adair Pinto
+ * Silveira Júnior". A lista registrada em `contract_parties` passa a ser a
+ * fonte primária, e o nome que não casa vira divergência declarada.
+ */
+describe("11. partes registradas são a fonte primária; nome divergente não cria parte", () => {
+  const PARTES_REGISTRADAS = [
+    { nome: "Clube Ancestral", papel: "provider", assinaturaExigida: true },
+    { nome: "Ana Luiza Gomes Silveira Rodrigues", papel: "contracting_client", assinaturaExigida: true },
+    { nome: "Adair Pinto Silveira Júnior", papel: "co_contractor", assinaturaExigida: true },
+    { nome: "Alice Gomes Silveira", papel: "co_contractor", assinaturaExigida: true },
+    { nome: "Felipe", papel: "dependent", assinaturaExigida: false },
+  ];
+
+  const pessoas = montarPessoasContratuais({
+    partesRegistradas: PARTES_REGISTRADAS,
+    membros: MEMBROS,
+    dependentes: [
+      { nome: "Felipe", representadoPor: "Ana Luiza Gomes Silveira Rodrigues", statusRepresentacao: "documentada" },
+    ],
+    itensCondicao: ITENS,
+    // O deck e a condição usam outro nome para o pai.
+    responsaveisFinanceiros: [
+      "Ana Luiza Gomes Silveira Rodrigues",
+      "Adair Gomes Silveira",
+      "Alice Gomes Silveira",
+    ],
+  });
+
+  it("a contratada não entra como parte do lado do cliente", () => {
+    expect(pessoas.find((p) => p.nome === "Clube Ancestral")).toBeUndefined();
+  });
+
+  it("são as 4 pessoas do caso — nenhuma 5ª criada pelo nome divergente", () => {
+    expect(pessoas.map((p) => p.nome)).toEqual([
+      "Ana Luiza Gomes Silveira Rodrigues",
+      "Adair Pinto Silveira Júnior",
+      "Alice Gomes Silveira",
+      "Felipe",
+    ]);
+    expect(pessoas.find((p) => p.nome === "Adair Gomes Silveira")).toBeUndefined();
+  });
+
+  it("o papel vem do registro do contrato", () => {
+    const ana = pessoas.find((p) => p.nome.startsWith("Ana Luiza"))!;
+    expect(ana.papeis).toContain("contratante");
+    expect(ana.papeis).toContain("signatario");
+    expect(ana.papeis).toContain("responsavel_financeiro");
+  });
+
+  it("o nome que não casa com nenhuma parte vira divergência nomeada, sem fundir", () => {
+    const texto = pessoas.flatMap((p) => p.pendencias).join(" ");
+    expect(texto).toContain("Adair Gomes Silveira");
+    expect(texto).toContain("Divergência de fonte");
+    expect(texto).toContain("nenhum nome foi fundido por semelhança");
+  });
+
+  it("o leitor da preparação passa as partes registradas", () => {
+    const fn = readFileSync("src/lib/contrato-preparar.functions.ts", "utf8");
+    expect(fn).toContain("partesRegistradas:");
+    expect(fn).toContain("p.person_name");
+  });
+});

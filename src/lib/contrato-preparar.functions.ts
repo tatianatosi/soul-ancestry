@@ -11,6 +11,13 @@ import {
 } from "@/lib/contrato-blocos-incorporados";
 import { CLAUSULA_DESPESAS_TERCEIROS } from "@/lib/despesas-terceiros";
 import { instrumentosPosteriores } from "@/lib/contrato-blocos-incorporados";
+import {
+  CAMPOS_FORA_DO_CANVA,
+  aPreencher,
+  divergencias,
+  falsosNaoLocalizados,
+  planoDePreenchimento,
+} from "@/lib/canva-para-parametros";
 import { CONTRATO_BASE_VERSAO } from "@/lib/contrato-base-consolidado";
 import { anexosIaV, entradaDeValores } from "@/lib/anexos-i-v";
 import { CONFLITO_PAIS_ROTA, qualificadorPaisDoCodigo } from "@/lib/coerencia-caso";
@@ -216,7 +223,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
     const { data: paginasCanva } = proposta?.id
       ? await supabase
           .from("proposal_canva_pages")
-          .select("page_number,extracao_status,page_content_structured")
+          .select("page_number,extracao_status,page_content_structured,campos_nao_localizados")
           .eq("proposal_id", proposta.id)
           .is("archived_at", null)
       : { data: [] as any[] };
@@ -524,6 +531,16 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       : [];
 
     const pessoasContratuais = montarPessoasContratuais({
+      /*
+       * A lista registrada em `contract_parties` é a fonte primária de partes e
+       * papéis quando existe — medido correto no caso da Ana, enquanto a
+       * condição comercial (vinda do deck) traz um nome divergente do pai.
+       */
+      partesRegistradas: ((partesRaw ?? []) as any[]).map((p) => ({
+        nome: String(p.person_name ?? ""),
+        papel: (p.role as string | null) ?? null,
+        assinaturaExigida: Boolean(p.signature_required),
+      })),
       membros: ((membros ?? []) as any[]).map((m) => ({
         nome: String(m.nome ?? ""),
         papelNoCaso: (m.papel_no_caso as string | null) ?? null,
@@ -573,6 +590,22 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       regraDespesasInstitucional: CLAUSULA_DESPESAS_TERCEIROS,
     });
 
+    /*
+     * Plano do deck Canva (04/10/2026). O Canva está autorizado na proposta e as
+     * páginas estão extraídas; o que faltava era escrever o conteúdo nos
+     * parâmetros. Aqui é só leitura: diz o que será preenchido, o que divergiu e
+     * o que o deck realmente não traz.
+     */
+    const planoCanva = planoDePreenchimento((paginasCanva ?? []) as any[], lista.map((v: any) => ({
+      campo: String(v.campo),
+      valor: (v.valor as string | null) ?? null,
+      status: (v.status as string | null) ?? null,
+      origem: (v.origem as string | null) ?? null,
+    })));
+    const falsosNaoLocalizadosCanva = ((paginasCanva ?? []) as any[]).flatMap((p) =>
+      falsosNaoLocalizados(p).map((campo) => ({ pagina: p.page_number as number, campo })),
+    );
+
     const coberturaMaterial = coberturaContratual(pessoasContratuais, blocosIncorporados);
     const anexoIIncorporado = anexoIIncorporadoNoCorpo(blocosIncorporados);
 
@@ -601,6 +634,14 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
     const posterioresCondicionais = instrumentosPosteriores(anexosGovernados);
 
     return {
+      canva: {
+        registroId: registro?.id ?? null,
+        plano: planoCanva,
+        aPreencher: aPreencher(planoCanva).map((i) => i.campo),
+        divergentes: divergencias(planoCanva).map((i) => i.campo),
+        foraDoCanva: CAMPOS_FORA_DO_CANVA.map((c) => ({ ...c })),
+        falsosNaoLocalizados: falsosNaoLocalizadosCanva,
+      },
       coberturaContratual: {
         completa: coberturaMaterial.completa,
         anexoIIncorporadoNoCorpo: anexoIIncorporado,

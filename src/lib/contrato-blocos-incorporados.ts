@@ -64,6 +64,18 @@ export type PessoaContratual = {
 export type EntradaPessoas = {
   /** Pessoas do caso, com o papel real já gravado (nunca derivado de ordem). */
   membros: { nome: string; papelNoCaso: string | null; dependente: boolean }[];
+  /**
+   * Partes já registradas no contrato (`contract_parties`), quando existem.
+   *
+   * Correção de 04/10/2026: medido que `contract_parties` do caso da Ana está
+   * correto (5 partes, papéis certos, "Adair Pinto Silveira Júnior"), enquanto a
+   * condição comercial — vinda do deck — diz "Adair Gomes Silveira". Lendo só a
+   * condição, esta função criava uma 5ª pessoa fantasma. Agora a lista
+   * registrada é a fonte primária de quem é parte, e o nome que não casa com
+   * nenhuma delas vira **divergência declarada**, nunca pessoa nova: fundir
+   * pessoa por semelhança de nome é proibido.
+   */
+  partesRegistradas?: { nome: string; papel: string | null; assinaturaExigida: boolean }[];
   /** Dependentes com o vínculo de representação como está registrado. */
   dependentes: { nome: string; representadoPor: string | null; statusRepresentacao: string | null }[];
   /** Itens da condição comercial aprovada: escopo e valor por pessoa. */
@@ -87,6 +99,7 @@ function mesmoNome(a: string, b: string): boolean {
  */
 export function montarPessoasContratuais(e: EntradaPessoas): PessoaContratual[] {
   const saida: PessoaContratual[] = [];
+  const divergenciasDeNome: string[] = [];
 
   const registrar = (nome: string): PessoaContratual => {
     const achada = saida.find((p) => mesmoNome(p.nome, nome));
@@ -107,6 +120,31 @@ export function montarPessoasContratuais(e: EntradaPessoas): PessoaContratual[] 
   const addPapel = (p: PessoaContratual, papel: PapelContratual) => {
     if (!p.papeis.includes(papel)) p.papeis.push(papel);
   };
+
+  /*
+   * Partes registradas primeiro: elas definem quem é parte e com qual papel.
+   */
+  for (const parte of e.partesRegistradas ?? []) {
+    if (!parte.nome?.trim()) continue;
+    const papel = (parte.papel ?? "").trim();
+    if (papel === "provider") continue; // a contratada não é parte do lado do cliente
+    const p = registrar(parte.nome);
+    if (papel === "contracting_client") {
+      addPapel(p, "contratante");
+      addPapel(p, "signatario");
+      addPapel(p, "beneficiario");
+    } else if (papel === "co_contractor") {
+      addPapel(p, "signatario");
+      addPapel(p, "beneficiario");
+    } else if (papel === "dependent") {
+      addPapel(p, "dependente_representado");
+    } else if (papel === "legal_representative") {
+      addPapel(p, "signatario");
+    } else {
+      addPapel(p, "beneficiario");
+      p.pendencias.push("Parte registrada no contrato sem papel reconhecido — o papel contratual não pode ser presumido.");
+    }
+  }
 
   for (const m of e.membros) {
     if (!m.nome?.trim()) continue;
@@ -174,7 +212,26 @@ export function montarPessoasContratuais(e: EntradaPessoas): PessoaContratual[] 
 
   for (const r of e.responsaveisFinanceiros) {
     if (!r?.trim()) continue;
-    addPapel(registrar(r), "responsavel_financeiro");
+    const jaConhecida = saida.find((p) => mesmoNome(p.nome, r));
+    if (jaConhecida) {
+      addPapel(jaConhecida, "responsavel_financeiro");
+      continue;
+    }
+    /*
+     * Nome de responsável financeiro que não casa com nenhuma parte registrada
+     * nem com nenhum membro do caso. Não cria parte nova e não funde por
+     * semelhança: entra como divergência de fonte, nomeada.
+     */
+    divergenciasDeNome.push(r.trim());
+  }
+
+  if (divergenciasDeNome.length && saida.length) {
+    for (const nome of divergenciasDeNome) {
+      saida[0]!.pendencias.push(
+        `A condição comercial declara "${nome}" como responsável financeiro, e esse nome não corresponde a nenhuma parte ` +
+          "registrada no contrato nem a membro do caso. Divergência de fonte: nenhuma parte nova foi criada e nenhum nome foi fundido por semelhança.",
+      );
+    }
   }
 
   return saida;

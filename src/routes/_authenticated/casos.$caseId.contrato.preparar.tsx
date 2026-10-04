@@ -35,6 +35,7 @@ import { instanciasDocumentaisDoCaso } from "@/lib/anexos-instancia.functions";
 import { InstanciaDocumental } from "@/components/contrato/instancia-documental";
 import { TrilhoProntidaoContrato } from "@/components/contrato/trilho-prontidao";
 import { CoberturaContratual } from "@/components/contrato/cobertura-contratual";
+import { TrazerDoCanva } from "@/components/contrato/trazer-do-canva";
 import { AbrirDocumentoContrato } from "@/components/contrato/abrir-documento-contrato";
 import { resumoProntidao } from "@/lib/contrato-prontidao";
 import { avaliarMatrizClausulas, previaFinalLiberada } from "@/lib/matriz-clausulas";
@@ -700,6 +701,11 @@ function Pagina() {
         </CaCard>
 
         <TrilhoProntidaoContrato resumo={prontidao} />
+        {d.canva && (d.canva as any).plano?.length ? (
+          <div className="mt-3">
+            <TrazerDoCanva canva={d.canva as any} aoConcluir={invalidar} />
+          </div>
+        ) : null}
         {d.coberturaContratual ? (
           <div className="mt-3">
             <CoberturaContratual cobertura={d.coberturaContratual as any} />

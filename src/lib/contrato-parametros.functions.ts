@@ -27,6 +27,14 @@ import {
   qualificacaoCompletaContratada,
 } from "@/lib/contrato-base-consolidado";
 import { renderCorpoContratual } from "@/lib/contrato-corpo.server";
+import {
+  ORIGEM_CANVA,
+  STATUS_CANVA,
+  aPreencher,
+  divergencias,
+  planoDePreenchimento,
+  type PaginaCanva,
+} from "@/lib/canva-para-parametros";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import { condicaoVigente } from "@/lib/condicao-comercial-caso";
 import {
@@ -2065,4 +2073,123 @@ export const sincronizarContratoBase = createServerFn({ method: "POST" })
       clausulas: CLAUSULAS_FIXAS.length,
       previasLegado: linhas<any>(legadas, "prévias legadas sem corpo contratual").length,
     };
+  });
+
+/**
+ * Preenche os parâmetros do caso a partir das páginas do Canva já extraídas
+ * (04/10/2026).
+ *
+ * Proprietária: "o Canva já está autorizado na proposta". Medido: as 7 páginas
+ * do caso dela estão `extraida` e carregam serviços excluídos, despesas
+ * externas, escopos individuais e as etapas da jornada — e **nada** escrevia
+ * isso nos parâmetros. `servicos_excluidos` vazio era a única pendência
+ * impeditiva de conteúdo do contrato.
+ *
+ * Preenche só campo vazio, com origem `proposta` e status
+ * `importado_a_confirmar`. Campo já preenchido e diferente vira **divergência
+ * declarada** — nunca sobrescrita, nem quando está validado. Não envia, não
+ * assina, não cobra.
+ */
+export const preencherParametrosDoCanva = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; motivo: string }) => {
+    if (!d?.id) throw new Error("Registro de parâmetros é obrigatório.");
+    if (!String(d?.motivo ?? "").trim()) throw new Error("Informe o motivo do preenchimento a partir do deck.");
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as Sb;
+    const userId = context.userId as string;
+
+    const { data: registro } = await supabase
+      .from("contract_case_parameters")
+      .select("id,case_id,organization_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!registro) throw new Error("Registro de parâmetros não encontrado.");
+
+    const [{ data: paginas }, { data: valores }] = await Promise.all([
+      supabase
+        .from("proposal_canva_pages")
+        .select("page_number,extracao_status,page_content_structured,campos_nao_localizados")
+        .eq("organization_id", registro.organization_id)
+        .eq("case_id", registro.case_id)
+        .is("archived_at", null)
+        .order("page_number"),
+      supabase
+        .from("contract_parameter_values")
+        .select("id,campo,valor,status,origem")
+        .eq("parameters_id", registro.id)
+        .is("archived_at", null),
+    ]);
+
+    const linhas = (paginas ?? []) as PaginaCanva[];
+    if (!linhas.some((p) => p.extracao_status === "extraida")) {
+      throw new Error("Nenhuma página do deck está extraída: não há conteúdo autorizado a trazer.");
+    }
+
+    const atuais = ((valores ?? []) as any[]).map((v) => ({
+      campo: String(v.campo),
+      valor: (v.valor as string | null) ?? null,
+      status: (v.status as string | null) ?? null,
+      origem: (v.origem as string | null) ?? null,
+    }));
+    const plano = planoDePreenchimento(linhas, atuais);
+
+    const gravados: string[] = [];
+    for (const item of aPreencher(plano)) {
+      const linha = ((valores ?? []) as any[]).find((v) => v.campo === item.campo);
+      if (!linha?.id || !item.valorCanva) continue;
+      await gravarComVerificacao({
+        supabase,
+        tabela: "contract_parameter_values",
+        id: linha.id as string,
+        organizationId: registro.organization_id as string,
+        userId,
+        payload: {
+          valor: item.valorCanva.slice(0, 4000),
+          origem: ORIGEM_CANVA,
+          origem_detalhe: `Deck Canva da proposta, página ${item.pagina}`.slice(0, 300),
+          status: STATUS_CANVA,
+          justificativa: data.motivo.slice(0, 500),
+          conflito: [],
+        },
+      });
+      gravados.push(item.campo);
+    }
+
+    const divergentes = divergencias(plano).map((d) => d.campo);
+
+    if (gravados.length || divergentes.length) {
+      await supabase.from("audit_logs").insert({
+        organization_id: registro.organization_id,
+        entidade: "contract_parameter_values",
+        entidade_id: null,
+        acao: "parametros_preenchidos_do_deck_canva",
+        user_id: userId,
+        valores_posteriores: { gravados, divergentes },
+        metadados: {
+          case_id: registro.case_id,
+          motivo: data.motivo,
+          regra:
+            "Só campo vazio é preenchido; campo preenchido e diferente fica como divergência declarada, nunca sobrescrito.",
+        },
+      });
+    }
+
+    if (gravados.length) {
+      await atualizarCompletude(supabase, registro.id as string);
+      await registrarTimelineCaso(supabase, {
+        organizationId: registro.organization_id as string,
+        caseId: registro.case_id as string,
+        eventType: "caso",
+        title: `Parâmetros preenchidos do deck Canva: ${gravados.join(", ")}`,
+        summaryInternal: data.motivo,
+        sourceEntityType: "contract_case_parameters",
+        sourceEntityId: registro.id as string,
+        userId,
+      });
+    }
+
+    return { gravados, divergentes, plano };
   });
