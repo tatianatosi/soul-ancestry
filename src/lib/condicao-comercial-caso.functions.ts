@@ -17,12 +17,13 @@ import { semCache } from "@/lib/no-store";
 import { inserirComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import {
-  anexosDaComposicao,
   condicaoVigente,
   conferirCondicao,
-  lacunasDeAnexos,
+  instanciasDeCobertura,
+  lacunasDeCobertura,
   type CondicaoComercialCaso,
 } from "@/lib/condicao-comercial-caso";
+import { ANEXOS_CANONICOS, DE_PARA_ANEXOS_DUPLICADOS } from "@/lib/anexos-de-para-duplicidade";
 
 const COLUNAS =
   "id,case_id,proposal_id,proposal_reference,versao,approved_items,fees,third_party_costs,official_fees," +
@@ -116,14 +117,25 @@ export const condicaoComercialDoCaso = createServerFn({ method: "GET" })
       representadoPor: (d.titular_responsavel_legal_nome as string | null) ?? null,
     }));
 
-    const anexosEsperados = vigente ? anexosDaComposicao(vigente, deps) : [];
+    const instancias = vigente ? instanciasDeCobertura(vigente, deps) : [];
     return {
       condicoes,
       vigente,
       conferencia: vigente ? conferirCondicao(vigente) : null,
-      anexosEsperados,
+      /** Família canônica: Anexo I a V, e só ela (decisão de 04/10/2026). */
+      anexosCanonicos: ANEXOS_CANONICOS.map((a) => ({ ...a })),
+      /** O que foi retirado por duplicidade, com o que já cobre cada um. */
+      duplicidadesRetiradas: DE_PARA_ANEXOS_DUPLICADOS.map((l) => ({
+        codigo: l.codigo,
+        titulo: l.titulo,
+        veredicto: l.veredicto,
+        clausulas: l.clausulasQueCobrem,
+        anexos: l.anexosQueCobrem,
+        fonteNaProposta: l.fonteNaProposta,
+      })),
+      instancias,
       anexosRegistrados,
-      lacunasDeAnexos: vigente ? lacunasDeAnexos(anexosRegistrados, anexosEsperados) : [],
+      lacunasDeCobertura: vigente ? lacunasDeCobertura(anexosRegistrados, instancias) : [],
       contratoId: contratoId ?? null,
     };
   });

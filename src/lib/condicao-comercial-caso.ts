@@ -101,75 +101,72 @@ export function conferirCondicao(c: CondicaoComercialCaso): ConferenciaCondicao 
 }
 
 /**
- * Partes que o contrato precisa cobrir com anexo próprio.
+ * Cobertura por requerente — **instância do Anexo I**, não anexo novo.
  *
- * A Proprietária apontou (04/10): "no contrato revise pois somente está
- * cobrindo um anexo quando na verdade são 04 anexos". Medido na estrutura
- * contratual do dossiê da Ana (14/08): contrato-mãe familiar + Anexo A (Ana
- * Luiza + filho), Anexo B (pai), Anexo C (irmã) e Anexo D (financeiro — as 3
- * assinaturas de R$ 320, vencimentos e política de atraso). O Anexo E
- * (despesas e reembolsos) já é o Anexo II governado do contrato-base, então
- * não se duplica aqui: por isso **quatro**, não cinco.
+ * Correção de 04/10/2026, instrução da Proprietária: "o correto é anexo de I
+ * até V; os demais são cópias dos mesmos". Eu havia criado Anexos A–D por
+ * parte contratante; era duplicata de terceiro nível, porque
+ * `anexos-dicionario.ts` já gerava uma instância por titular. O de-para
+ * completo (o que cada anexo repetia, qual cláusula do contrato e qual anexo
+ * I–V já cobria) está em `anexos-de-para-duplicidade.ts`.
  *
- * Dependente menor entra DENTRO do anexo do seu representante — nunca como
- * anexo próprio, porque não assina.
+ * Aqui fica só a composição: quem é titular, quem é dependente representado,
+ * e qual instância do Anexo I cobre cada um. Dependente menor nunca é
+ * instância própria — não assina.
  */
-export const ANEXOS_POR_COMPOSICAO = ["A", "B", "C", "D"] as const;
-
-export type AnexoDeComposicao = {
-  letra: string;
+export type InstanciaCobertura = {
+  chave: string;
   titulo: string;
-  parte: string | null;
-  tipo: "parte_contratante" | "financeiro";
+  parte: string;
   escopo: string | null;
   valor: number | null;
   dependentesRepresentados: string[];
 };
 
-export function anexosDaComposicao(
+export function instanciasDeCobertura(
   c: CondicaoComercialCaso,
   dependentes: readonly { nome: string; representadoPor?: string | null }[] = [],
-): AnexoDeComposicao[] {
+): InstanciaCobertura[] {
   const comValor = c.itens.filter((i) => Number(i.valor) > 0);
   const semValor = c.itens.filter((i) => !(Number(i.valor) > 0));
-  const letras = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
-  const anexos: AnexoDeComposicao[] = comValor.map((item, i) => {
+  return comValor.map((item, i) => {
     const representados = [
       ...dependentes.filter((d) => (d.representadoPor ?? "").trim() === item.parte).map((d) => d.nome),
-      // Item sem valor é dependente representado: entra no anexo do titular,
-      // e na falta de vínculo explícito fica no primeiro anexo (o do
-      // contratante), nunca como anexo próprio.
+      // Item sem valor na condição é dependente representado: entra na
+      // instância do titular, e sem vínculo explícito fica na do contratante.
       ...(i === 0 ? semValor.map((s) => s.parte) : []),
     ];
     return {
-      letra: letras[i] ?? `${i + 1}`,
-      titulo: `Anexo ${letras[i] ?? i + 1} — ${item.parte}`,
+      chave: `ANEXO_I_ORDEM_SERVICO::${item.parte}`,
+      titulo: `Anexo I — Ordem de Serviço · ${item.parte}`,
       parte: item.parte,
-      tipo: "parte_contratante" as const,
       escopo: item.escopo,
       valor: Number(item.valor),
       dependentesRepresentados: [...new Set(representados)],
     };
   });
-
-  anexos.push({
-    letra: letras[anexos.length] ?? "D",
-    titulo: `Anexo ${letras[anexos.length] ?? "D"} — Financeiro`,
-    parte: null,
-    tipo: "financeiro",
-    escopo: c.formaPagamento,
-    valor: c.total,
-    dependentesRepresentados: [],
-  });
-
-  return anexos;
 }
 
-/** O que falta para o contrato cobrir a composição inteira. */
-export function lacunasDeAnexos(cobertos: readonly string[], esperados: readonly AnexoDeComposicao[]): string[] {
-  const temCobertura = (letra: string) => cobertos.some((c) => c.toUpperCase().includes(letra.toUpperCase()));
-  return esperados
-    .filter((a) => !temCobertura(a.letra))
-    .map((a) => `${a.titulo} não está coberto por nenhum anexo registrado no contrato.`);
+/**
+ * O que falta para o contrato cobrir a composição. Agora a pergunta é se o
+ * **Anexo I** tem instância para cada titular — não se existe um anexo por
+ * pessoa.
+ */
+export function lacunasDeCobertura(
+  anexosRegistrados: readonly string[],
+  instancias: readonly InstanciaCobertura[],
+): string[] {
+  const lacunas: string[] = [];
+  const temAnexoI = anexosRegistrados.some((a) => a.toUpperCase().includes("ANEXO_I_ORDEM_SERVICO"));
+  if (!temAnexoI) {
+    lacunas.push("O Anexo I (Ordem de Serviço) não está registrado no contrato — sem ele não há escopo contratado.");
+    return lacunas;
+  }
+  for (const i of instancias) {
+    if (!anexosRegistrados.some((a) => a === i.chave)) {
+      lacunas.push(`${i.titulo} — o Anexo I ainda não tem instância para esta pessoa.`);
+    }
+  }
+  return lacunas;
 }

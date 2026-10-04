@@ -121,34 +121,59 @@ export function CondicaoComercialVersionada({ caseId }: { caseId: string }) {
 
               <div>
                 <p className="text-[11px] font-semibold text-navy">
-                  Anexos que a composição exige ({d.anexosEsperados.length})
+                  Anexos do contrato — família canônica: Anexo I a V
                 </p>
-                <ul className="mt-1 space-y-0.5 text-[11px] text-navy/75" data-anexos-composicao>
-                  {d.anexosEsperados.map((a) => (
-                    <li key={a.letra}>
+                <ul className="mt-1 space-y-0.5 text-[11px] text-navy/75" data-anexos-canonicos>
+                  {d.anexosCanonicos.map((a) => (
+                    <li key={a.codigo}>
                       <strong>{a.titulo}</strong>
-                      {a.valor !== null ? ` — ${formatarDinheiro(a.valor, d.vigente!.moeda)}` : ""}
-                      {a.dependentesRepresentados.length
-                        ? ` · representa ${a.dependentesRepresentados.join(", ")} (menor não assina, entra no anexo do representante)`
+                      {a.obrigatorio ? " · obrigatório" : " · condicional"}
+                      {d.anexosRegistrados.includes(a.codigo) ? " · registrado" : " · não registrado"}
+                    </li>
+                  ))}
+                </ul>
+
+                <p className="mt-2 text-[11px] font-semibold text-navy">
+                  Cobertura por requerente — instância do Anexo I, não anexo novo
+                </p>
+                <ul className="mt-1 space-y-0.5 text-[11px] text-navy/75" data-instancias-anexo-i>
+                  {d.instancias.map((i) => (
+                    <li key={i.chave}>
+                      <strong>{i.titulo}</strong>
+                      {i.valor !== null ? ` — ${formatarDinheiro(i.valor, d.vigente!.moeda)}` : ""}
+                      {i.dependentesRepresentados.length
+                        ? ` · representa ${i.dependentesRepresentados.join(", ")} (menor não assina)`
                         : ""}
                     </li>
                   ))}
                 </ul>
-                {d.lacunasDeAnexos.length ? (
-                  <ul className="mt-1 space-y-0.5 text-[11px] text-terracotta" data-lacunas-anexos>
-                    {d.lacunasDeAnexos.map((l, i) => (
+                {d.lacunasDeCobertura.length ? (
+                  <ul className="mt-1 space-y-0.5 text-[11px] text-terracotta" data-lacunas-cobertura>
+                    {d.lacunasDeCobertura.map((l, i) => (
                       <li key={i}>{l}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="mt-1 text-[11px] text-navy/55">
-                    Todos os anexos da composição têm registro no contrato.
-                  </p>
+                  <p className="mt-1 text-[11px] text-navy/55">Toda a composição está coberta pelo Anexo I.</p>
                 )}
-                <p className="mt-1 text-[10px] text-navy/45">
-                  O Anexo de despesas e reembolsos não entra nesta contagem: ele já é o Anexo II governado do
-                  contrato-base, e duplicá-lo criaria dois documentos para a mesma regra.
-                </p>
+
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-[11px] text-navy/60">
+                    Anexos retirados por duplicidade ({d.duplicidadesRetiradas.length}) — e o que já cobre cada um
+                  </summary>
+                  <ul className="mt-1 space-y-1 text-[11px] text-navy/70" data-duplicidades-retiradas>
+                    {d.duplicidadesRetiradas.map((r) => (
+                      <li key={r.codigo}>
+                        <strong>{r.codigo}</strong> · {r.veredicto.replace(/_/g, " ").toLowerCase()}
+                        {r.clausulas.length
+                          ? ` · cláusula ${r.clausulas.map((c) => `${c.numero} (${c.titulo})`).join(", ")}`
+                          : ""}
+                        {r.anexos.length ? ` · ${r.anexos.join(", ")}` : ""}
+                        {r.fonteNaProposta ? ` · da proposta: ${r.fonteNaProposta}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
               </div>
 
               <AcaoOperacional

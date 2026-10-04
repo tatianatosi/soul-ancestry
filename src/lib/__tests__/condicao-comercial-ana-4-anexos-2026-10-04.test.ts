@@ -2,13 +2,18 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
 import {
-  ANEXOS_POR_COMPOSICAO,
-  anexosDaComposicao,
   condicaoVigente,
   conferirCondicao,
-  lacunasDeAnexos,
+  instanciasDeCobertura,
+  lacunasDeCobertura,
   type CondicaoComercialCaso,
 } from "@/lib/condicao-comercial-caso";
+import {
+  ANEXOS_CANONICOS,
+  DE_PARA_ANEXOS_DUPLICADOS,
+  anexosARetirar,
+  anexosQuePermanecem,
+} from "@/lib/anexos-de-para-duplicidade";
 
 /**
  * Proprietária, 04/10/2026: "primeiro fechar o case commercial condition e
@@ -93,45 +98,93 @@ describe("a condição da Ana fecha, e é a fonte — não o catálogo", () => {
   });
 });
 
-describe("os 4 anexos da composição", () => {
-  const anexos = anexosDaComposicao(ANA, [{ nome: "Felipe", representadoPor: "Ana Luiza Gomes Silveira Rodrigues" }]);
-
-  it("são quatro: três partes contratantes + financeiro", () => {
-    expect(anexos).toHaveLength(4);
-    expect(ANEXOS_POR_COMPOSICAO).toHaveLength(4);
-    expect(anexos.map((a) => a.letra)).toEqual(["A", "B", "C", "D"]);
-    expect(anexos.filter((a) => a.tipo === "parte_contratante")).toHaveLength(3);
-    expect(anexos.filter((a) => a.tipo === "financeiro")).toHaveLength(1);
+/**
+ * Correção de 04/10/2026, instrução da Proprietária: "o correto é anexo de I
+ * até V; revise que os demais são cópias dos mesmos". Eu havia criado Anexos
+ * A–D por parte contratante — duplicata de terceiro nível, porque
+ * `anexos-dicionario.ts` já gerava instância por titular. O de-para mede o
+ * que cada cópia repetia e o que já a cobria.
+ */
+describe("a família canônica é Anexo I a V, e só ela", () => {
+  it("são exatamente cinco, com I e II obrigatórios", () => {
+    expect(ANEXOS_CANONICOS).toHaveLength(5);
+    expect(anexosQuePermanecem()).toEqual([
+      "ANEXO_I_ORDEM_SERVICO",
+      "ANEXO_II_DESPESAS_EXTERNAS",
+      "ANEXO_III_AUTORIZACAO_PESQUISA",
+      "ANEXO_IV_PROCURACAO",
+      "ANEXO_V_ALTERACAO_ESCOPO",
+    ]);
+    expect(ANEXOS_CANONICOS.filter((a) => a.obrigatorio).map((a) => a.codigo)).toEqual([
+      "ANEXO_I_ORDEM_SERVICO",
+      "ANEXO_II_DESPESAS_EXTERNAS",
+    ]);
   });
 
-  it("Anexo A é da Ana e carrega Felipe representado — o menor não tem anexo próprio", () => {
-    expect(anexos[0]!.parte).toContain("Ana Luiza");
-    expect(anexos[0]!.dependentesRepresentados).toContain("Felipe");
-    expect(anexos.some((a) => a.parte === "Felipe")).toBe(false);
+  it("cada duplicata diz o que a cobre: cláusula do contrato, anexo I–V ou a proposta", () => {
+    for (const l of DE_PARA_ANEXOS_DUPLICADOS) {
+      expect(l.clausulasQueCobrem.length + l.anexosQueCobrem.length).toBeGreaterThan(0);
+      expect(l.decisao.length).toBeGreaterThan(40);
+    }
   });
 
-  it("Anexo D é o financeiro, com a forma de pagamento e o total", () => {
-    const d = anexos[3]!;
-    expect(d.tipo).toBe("financeiro");
-    expect(d.valor).toBe(9600);
-    expect(d.escopo).toContain("assinaturas mensais");
+  it("escopo e comercial eram cópia de cláusula do contrato-base", () => {
+    const escopo = DE_PARA_ANEXOS_DUPLICADOS.find((l) => l.codigo === "ANX-ESCOPO")!;
+    expect(escopo.clausulasQueCobrem.map((c) => c.numero)).toEqual([3, 10]);
+    const comercial = DE_PARA_ANEXOS_DUPLICADOS.find((l) => l.codigo === "ANX-COMERCIAL")!;
+    expect(comercial.clausulasQueCobrem.map((c) => c.numero)).toEqual([8, 9]);
+    expect(comercial.anexosQueCobrem).toContain("ANEXO_II_DESPESAS_EXTERNAS");
   });
 
-  it("contrato sem anexo nenhum: as quatro lacunas aparecem nomeadas", () => {
-    const lacunas = lacunasDeAnexos([], anexos);
-    expect(lacunas).toHaveLength(4);
-    expect(lacunas.join(" ")).toContain("Anexo A");
-    expect(lacunas.join(" ")).toContain("Anexo D");
+  it("individual não era anexo novo: vira instância do Anexo I", () => {
+    const ind = DE_PARA_ANEXOS_DUPLICADOS.find((l) => l.codigo === "ANX-INDIVIDUAL")!;
+    expect(ind.veredicto).toBe("VIRA_INSTANCIA");
+    expect(ind.anexosQueCobrem).toEqual(["ANEXO_I_ORDEM_SERVICO"]);
+    expect(ind.decisao).toContain("instância do Anexo I");
   });
 
-  it("contrato cobrindo só um anexo deixa três lacunas — o defeito que ela apontou", () => {
-    expect(lacunasDeAnexos(["ANEXO_A"], anexos)).toHaveLength(3);
+  it("os Anexos A–D que eu criei estão na lista de retirados, com motivo", () => {
+    const meus = ["ANEXO_A_ANA_LUIZA", "ANEXO_B_ADAIR", "ANEXO_C_ALICE", "ANEXO_D_FINANCEIRO"];
+    for (const c of meus) {
+      const l = DE_PARA_ANEXOS_DUPLICADOS.find((x) => x.codigo === c)!;
+      expect(l.veredicto).toBe("DUPLICATA_DE_ANEXO");
+    }
+    const retirar = anexosARetirar().map((r) => r.codigo);
+    for (const c of meus) expect(retirar).toContain(c);
+    expect(retirar).toHaveLength(9);
   });
 
-  it("o anexo de despesas não é duplicado aqui: já é o Anexo II governado", () => {
-    expect(anexos.some((a) => (a.titulo + a.escopo).toLowerCase().includes("reembolso"))).toBe(false);
-    const fonte = readFileSync("src/lib/condicao-comercial-caso.ts", "utf8");
-    expect(fonte).toContain("já é o Anexo II governado");
+  it("nenhum código canônico aparece na lista de retirada", () => {
+    const retirar = anexosARetirar().map((r) => r.codigo);
+    for (const c of anexosQuePermanecem()) expect(retirar).not.toContain(c);
+  });
+});
+
+describe("cobertura por requerente — instância do Anexo I", () => {
+  const instancias = instanciasDeCobertura(ANA, [
+    { nome: "Felipe", representadoPor: "Ana Luiza Gomes Silveira Rodrigues" },
+  ]);
+
+  it("uma instância por titular com valor; o menor entra na do representante", () => {
+    expect(instancias).toHaveLength(3);
+    expect(instancias[0]!.chave).toBe("ANEXO_I_ORDEM_SERVICO::Ana Luiza Gomes Silveira Rodrigues");
+    expect(instancias[0]!.dependentesRepresentados).toContain("Felipe");
+    expect(instancias.some((i) => i.parte === "Felipe")).toBe(false);
+  });
+
+  it("sem Anexo I registrado, a lacuna é o próprio Anexo I", () => {
+    const lacunas = lacunasDeCobertura([], instancias);
+    expect(lacunas).toHaveLength(1);
+    expect(lacunas[0]).toContain("Anexo I");
+  });
+
+  it("com Anexo I registrado mas sem instâncias, cada pessoa aparece como lacuna", () => {
+    expect(lacunasDeCobertura(["ANEXO_I_ORDEM_SERVICO"], instancias)).toHaveLength(3);
+  });
+
+  it("com todas as instâncias registradas, não há lacuna", () => {
+    const todas = ["ANEXO_I_ORDEM_SERVICO", ...instancias.map((i) => i.chave)];
+    expect(lacunasDeCobertura(todas, instancias)).toEqual([]);
   });
 });
 
@@ -141,9 +194,17 @@ describe("a tela e o escritor ficaram ligados — nada de peça órfã", () => {
     expect(rota).toContain("<CondicaoComercialVersionada caseId={id} />");
   });
 
-  it("o leitor expõe condição vigente, conferência, anexos esperados e lacunas", () => {
+  it("o leitor expõe condição vigente, conferência, canônicos, instâncias e duplicidades", () => {
     const fn = readFileSync("src/lib/condicao-comercial-caso.functions.ts", "utf8");
-    for (const chave of ["vigente", "conferencia", "anexosEsperados", "anexosRegistrados", "lacunasDeAnexos"]) {
+    for (const chave of [
+      "vigente",
+      "conferencia",
+      "anexosCanonicos",
+      "duplicidadesRetiradas",
+      "instancias",
+      "anexosRegistrados",
+      "lacunasDeCobertura",
+    ]) {
       expect(fn).toContain(chave);
     }
   });
