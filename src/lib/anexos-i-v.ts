@@ -9,6 +9,7 @@
 import { CLAUSULA_DESPESAS_TERCEIROS, ESTADOS_DESPESA, type EstadoDespesa } from "@/lib/despesas-terceiros";
 import { fonteOficialDePreco } from "@/lib/precos-sku";
 import type { EstadoAnexo } from "@/lib/anexos-dicionario";
+import { MOTIVO_ANEXO_I_INCORPORADO, regraDoAnexo } from "@/lib/contrato-blocos-incorporados";
 import {
   AVISO_PREPARO_PROCURACAO,
   bloqueiosProcuracaoEuropeia,
@@ -366,6 +367,15 @@ export type EntradaAnexosIaV = {
   procuracao: ProcuracaoAnexo | null;
   alteracaoEscopo: AlteracaoEscopoAnexo | null;
   estados?: Record<string, EstadoAnexo>;
+  /**
+   * O conteúdo do Anexo I (escopo por pessoa, serviços, entregas e condição
+   * comercial) está incorporado ao corpo do contrato? Decisão da Proprietária
+   * em 04/10/2026: "não substituir essa duplicidade por uma obrigação
+   * artificial de gerar Anexos I e II separados". Quando verdadeiro, o Anexo I
+   * não é documento separado a emitir e sua ausência não bloqueia a assinatura
+   * inicial — é o mesmo conteúdo, já no contrato.
+   */
+  anexoIIncorporadoNoCorpo?: boolean;
 };
 
 const AUSENTE = "Sem fonte rastreável — não preenchido por inferência.";
@@ -460,22 +470,43 @@ export function anexoIOrdemServico(e: EntradaAnexosIaV): AnexoGovernado {
     },
   ];
 
-  const aplicavel = true;
+  /*
+   * Incorporado ao corpo: o documento separado deixa de ser aplicável, e as
+   * pendências que ele levantava passam a ser as do corpo (que já as nomeia
+   * bloco por bloco). Não é "aprovado sem conteúdo": é não aplicável com
+   * motivo, usando estado que já existe no dicionário.
+   */
+  const incorporado = e.anexoIIncorporadoNoCorpo === true;
+  const aplicavel = !incorporado;
+  const pendencias = incorporado ? [] : pend;
   return {
     codigo: "ANEXO_I_ORDEM_SERVICO",
     titulo: "Anexo I — Ordem de Serviço do caso",
     finalidade: "Traduz a proposta/OS aprovada em escopo, entregáveis e condição comercial do caso.",
-    regra: "Obrigatório quando existir proposta/OS aprovada e vinculada ao mesmo caso. Texto derivado, nunca livre.",
+    regra: incorporado
+      ? "Conteúdo incorporado ao corpo do contrato: não há documento separado obrigatório."
+      : "Obrigatório quando existir proposta/OS aprovada e vinculada ao mesmo caso. Texto derivado, nunca livre.",
     condicional: false,
     aplicavel,
-    obrigatorio: true,
-    motivo: conf.ok ? "Proposta/OS aprovada vinculada ao caso." : conf.motivo!,
-    estado: estadoDe({ aplicavel, obrigatorio: true, pendencias: pend, registrado: e.estados?.["ANEXO_I_ORDEM_SERVICO"] }),
+    obrigatorio: aplicavel,
+    motivo: incorporado
+      ? MOTIVO_ANEXO_I_INCORPORADO
+      : conf.ok
+        ? "Proposta/OS aprovada vinculada ao caso."
+        : conf.motivo!,
+    estado: estadoDe({
+      aplicavel,
+      obrigatorio: aplicavel,
+      pendencias,
+      registrado: e.estados?.["ANEXO_I_ORDEM_SERVICO"],
+    }),
     campos,
-    pendencias: pend,
-    impactoAusencia: "Sem Anexo I válido não há escopo contratado: prévia final, revisão e assinatura ficam bloqueadas.",
+    pendencias,
+    impactoAusencia: incorporado
+      ? "Nenhum: o escopo contratado está no corpo do contrato, nos blocos de escopo, serviços, entregas e condição comercial."
+      : "Sem Anexo I válido não há escopo contratado: prévia final, revisão e assinatura ficam bloqueadas.",
     destinos: ["previa_final", "revisao_humana", "assinatura", "financeiro"],
-    gatesBloqueados: pend.length ? ["previa_final", "revisao_humana", "assinatura", "financeiro"] : [],
+    gatesBloqueados: pendencias.length ? ["previa_final", "revisao_humana", "assinatura", "financeiro"] : [],
   };
 }
 
@@ -526,22 +557,46 @@ export function anexoIIDespesas(e: EntradaAnexosIaV): AnexoGovernado {
     },
   ];
 
-  const aplicavel = e.politicaDespesas !== "nao_previstas_nesta_etapa";
+  /*
+   * Correção de 04/10/2026 ("execute também em relação a todos os anexos, não
+   * somente ao anexo 1"): o Anexo II é **condicionado a despesa concreta**.
+   * Antes, política não selecionada já o tornava aplicável e obrigatório, e a
+   * pendência "política não selecionada" travava prévia e revisão de um caso
+   * que não tem nenhuma despesa — pendência artificial. A regra institucional
+   * de despesas continua no corpo (cláusula 9) e no bloco do caso.
+   */
+  const temDespesaConcreta = e.despesas.length > 0;
+  const politicaExplicita = e.politicaDespesas !== null && e.politicaDespesas !== undefined;
+  const aplicavel =
+    temDespesaConcreta || (politicaExplicita && e.politicaDespesas !== "nao_previstas_nesta_etapa");
+  const regraII = regraDoAnexo("ANEXO_II_DESPESAS_EXTERNAS");
+  const pendencias = aplicavel ? pend : [];
   return {
     codigo: "ANEXO_II_DESPESAS_EXTERNAS",
     titulo: "Anexo II — Controle de despesas externas",
     finalidade: "Registra política, estimativas, aprovações e comprovantes de despesas de terceiros.",
     regra: "Despesas de terceiros nunca entram como receita, custo próprio, reembolso ou cobrança padrão do Clube.",
-    condicional: false,
+    condicional: true,
     aplicavel,
     obrigatorio: aplicavel,
-    motivo: aplicavel ? "Há política de despesas aplicável ao caso." : "Política declarada: despesas não previstas nesta etapa.",
-    estado: estadoDe({ aplicavel, obrigatorio: aplicavel, pendencias: pend, registrado: e.estados?.["ANEXO_II_DESPESAS_EXTERNAS"] }),
+    motivo: aplicavel
+      ? temDespesaConcreta
+        ? "Há despesa de terceiro concreta registrada neste caso."
+        : "Há política de despesas declarada e aplicável ao caso."
+      : (regraII?.motivoNaoAplicavel ?? "Despesas não previstas nesta etapa."),
+    estado: estadoDe({
+      aplicavel,
+      obrigatorio: aplicavel,
+      pendencias,
+      registrado: e.estados?.["ANEXO_II_DESPESAS_EXTERNAS"],
+    }),
     campos,
-    pendencias: pend,
-    impactoAusencia: "Sem política e aprovação registradas, nenhuma despesa pode ser executada em nome da Cliente.",
+    pendencias,
+    impactoAusencia: aplicavel
+      ? "Sem política e aprovação registradas, nenhuma despesa pode ser executada em nome da Cliente."
+      : "Nenhum na contratação inicial: sem despesa concreta, não há o que aprovar. A regra institucional está no corpo do contrato.",
     destinos: ["previa_final", "revisao_humana", "financeiro"],
-    gatesBloqueados: pend.length ? ["previa_final", "revisao_humana"] : [],
+    gatesBloqueados: pendencias.length ? ["previa_final", "revisao_humana"] : [],
   };
 }
 
@@ -608,7 +663,10 @@ export function anexoIIIAutorizacao(e: EntradaAnexosIaV): AnexoGovernado {
     condicional: true,
     aplicavel,
     obrigatorio: aplicavel,
-    motivo: aplicavel ? "Autorização específica solicitada para este caso." : "Nenhuma pesquisa externa específica solicitada.",
+    motivo: aplicavel
+      ? "Autorização específica solicitada para este caso."
+      : (regraDoAnexo("ANEXO_III_AUTORIZACAO_PESQUISA")?.motivoNaoAplicavel ??
+        "Nenhuma pesquisa externa específica solicitada."),
     estado: estadoDe({ aplicavel, obrigatorio: aplicavel, pendencias: pend, registrado: e.estados?.["ANEXO_III_AUTORIZACAO_PESQUISA"] }),
     campos,
     pendencias: pend,
@@ -713,7 +771,9 @@ export function anexoIVProcuracao(e: EntradaAnexosIaV): AnexoGovernado {
     condicional: true,
     aplicavel,
     obrigatorio: aplicavel,
-    motivo: aplicavel ? "Órgão destinatário exige instrumento próprio." : "Nenhum órgão exigiu instrumento próprio até aqui.",
+    motivo: aplicavel
+      ? "Órgão destinatário exige instrumento próprio."
+      : (regraDoAnexo("ANEXO_IV_PROCURACAO")?.motivoNaoAplicavel ?? "Nenhum órgão exigiu instrumento próprio até aqui."),
     estado: estadoDe({ aplicavel, obrigatorio: aplicavel, pendencias: pend, registrado: e.estados?.["ANEXO_IV_PROCURACAO"] }),
     campos,
     pendencias: pend,
@@ -797,7 +857,9 @@ export function anexoVAlteracaoEscopo(e: EntradaAnexosIaV): AnexoGovernado {
     condicional: true,
     aplicavel,
     obrigatorio: aplicavel,
-    motivo: aplicavel ? "Alteração de escopo formalmente solicitada." : "Nenhuma alteração de escopo formalizada.",
+    motivo: aplicavel
+      ? "Alteração de escopo formalmente solicitada."
+      : (regraDoAnexo("ANEXO_V_ALTERACAO_ESCOPO")?.motivoNaoAplicavel ?? "Nenhuma alteração de escopo formalizada."),
     estado: estadoDe({ aplicavel, obrigatorio: aplicavel, pendencias: pend, registrado: e.estados?.["ANEXO_V_ALTERACAO_ESCOPO"] }),
     campos,
     pendencias: pend,

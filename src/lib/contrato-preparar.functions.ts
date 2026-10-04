@@ -3,6 +3,16 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { conteudoDoAnexoSalvo } from "@/lib/anexos-conteudo";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  anexoIIncorporadoNoCorpo,
+  coberturaContratual,
+  montarBlocosIncorporados,
+  montarPessoasContratuais,
+} from "@/lib/contrato-blocos-incorporados";
+import { CLAUSULA_DESPESAS_TERCEIROS } from "@/lib/despesas-terceiros";
+import { instrumentosPosteriores } from "@/lib/contrato-blocos-incorporados";
+import { CONTRATO_BASE_VERSAO } from "@/lib/contrato-base-consolidado";
+import { anexosIaV, entradaDeValores } from "@/lib/anexos-i-v";
 import { CONFLITO_PAIS_ROTA, qualificadorPaisDoCodigo } from "@/lib/coerencia-caso";
 import { conflitosCoerenciaDoRegistro, exigirCoerencia } from "@/lib/coerencia-caso.server";
 import { PLACEHOLDER_PARAM, anexosPorRegra } from "@/lib/contrato-parametros.server";
@@ -323,7 +333,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
         : { data: [] as any[] },
       supabase
         .from("case_dependents")
-        .select("id,nome_completo,status_representacao,participa_do_contrato")
+        .select("id,nome_completo,status_representacao,participa_do_contrato,titular_responsavel_legal_nome")
         .eq("case_id", caso.id)
         .is("archived_at", null),
       supabase
@@ -488,7 +498,142 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       },
     });
 
+    /*
+     * Cobertura material do contrato (04/10/2026). Instrução da Proprietária:
+     * "não dizer que falta escopo quando o escopo está no contrato" e "não
+     * inferir que item sem valor é dependente". A cobertura passa a ser
+     * calculada sobre pessoa + papel + escopo + entregas + condição comercial +
+     * representação, com as pendências separadas entre o que impede a
+     * assinatura inicial e o que é ato posterior.
+     */
+    const { data: condicoesComerciais } = await supabase
+      .from("case_commercial_condition")
+      .select("approved_items,fees,moeda,proposal_reference,approval_status,versao,responsaveis_financeiros")
+      .eq("organization_id", org)
+      .eq("case_id", caso.id)
+      .is("archived_at", null)
+      .order("versao", { ascending: false });
+
+    const condicaoAprovada = ((condicoesComerciais ?? []) as any[]).find((c) => c.approval_status === "aprovada") ?? null;
+    const itensCondicao = Array.isArray(condicaoAprovada?.approved_items)
+      ? (condicaoAprovada!.approved_items as any[]).map((i) => ({
+          parte: String(i.parte ?? ""),
+          valor: Number(i.valor ?? 0),
+          escopo: String(i.escopo ?? ""),
+        }))
+      : [];
+
+    const pessoasContratuais = montarPessoasContratuais({
+      membros: ((membros ?? []) as any[]).map((m) => ({
+        nome: String(m.nome ?? ""),
+        papelNoCaso: (m.papel_no_caso as string | null) ?? null,
+        dependente: Boolean(m.dependente),
+      })),
+      dependentes: ((dependentesRaw ?? []) as any[]).map((d) => ({
+        nome: String(d.nome_completo ?? ""),
+        representadoPor: (d.titular_responsavel_legal_nome as string | null) ?? null,
+        statusRepresentacao: (d.status_representacao as string | null) ?? null,
+      })),
+      itensCondicao,
+      responsaveisFinanceiros: Array.isArray(condicaoAprovada?.responsaveis_financeiros)
+        ? (condicaoAprovada!.responsaveis_financeiros as any[]).map((x) => String(x))
+        : [],
+    });
+
+    const valorDoCampo = (campo: string) => {
+      const v = lista.find((x: any) => x.campo === campo)?.valor;
+      return v && String(v).trim() ? String(v) : null;
+    };
+
+    const blocosIncorporados = montarBlocosIncorporados({
+      pessoas: pessoasContratuais,
+      contratadaQualificacao: valorDoCampo("contratada_qualificacao"),
+      objeto: valorDoCampo("objeto_contrato"),
+      paisRota: valorDoCampo("pais_rota"),
+      escopoResumo: valorDoCampo("escopo_resumo"),
+      servicosIncluidos: valorDoCampo("servicos_incluidos"),
+      servicosExcluidos: valorDoCampo("servicos_excluidos"),
+      fasesEntregas: valorDoCampo("fases_entregas"),
+      prazosReferencia: valorDoCampo("prazos_referencia"),
+      despesasExternas: valorDoCampo("despesas_externas"),
+      total:
+        condicaoAprovada?.fees === null || condicaoAprovada?.fees === undefined
+          ? valorDoCampo("valor_total")
+            ? Number(valorDoCampo("valor_total"))
+            : null
+          : Number(condicaoAprovada.fees),
+      moeda: String(condicaoAprovada?.moeda ?? "BRL"),
+      formaPagamento: valorDoCampo("forma_pagamento"),
+      parcelas: valorDoCampo("parcelas"),
+      vencimentos: valorDoCampo("vencimentos"),
+      propostaReferencia:
+        (condicaoAprovada?.proposal_reference as string | null) ??
+        ((proposta as any)?.origem_referencia as string | null) ??
+        null,
+      regraDespesasInstitucional: CLAUSULA_DESPESAS_TERCEIROS,
+    });
+
+    const coberturaMaterial = coberturaContratual(pessoasContratuais, blocosIncorporados);
+    const anexoIIncorporado = anexoIIncorporadoNoCorpo(blocosIncorporados);
+
+    /*
+     * Aplicabilidade real dos cinco anexos, pela mesma regra única. Nenhum
+     * deles, ausente por não aplicabilidade, bloqueia a assinatura inicial:
+     * Anexo I porque o conteúdo está no corpo; II, III, IV e V porque dependem
+     * de um ato concreto que pode nunca acontecer.
+     */
+    const anexosGovernados = anexosIaV({
+      ...entradaDeValores({
+        caseId: caso.id,
+        clienteNome: cliente?.nome ?? null,
+        responsavel: null,
+        contratoBaseVersao: CONTRATO_BASE_VERSAO,
+        modelo: "MODELO-ESTUDO",
+        valores: lista.map((v: any) => ({
+          campo: v.campo,
+          valor: v.valor,
+          origem: v.origem,
+          status: v.status,
+        })),
+      }),
+      anexoIIncorporadoNoCorpo: anexoIIncorporado,
+    });
+    const posterioresCondicionais = instrumentosPosteriores(anexosGovernados);
+
     return {
+      coberturaContratual: {
+        completa: coberturaMaterial.completa,
+        anexoIIncorporadoNoCorpo: anexoIIncorporado,
+        blocos: blocosIncorporados.map((b) => ({
+          chave: b.chave,
+          titulo: b.titulo,
+          clausula: b.clausula,
+          pendencias: b.pendencias,
+          bloqueiaAssinaturaInicial: b.bloqueiaAssinaturaInicial,
+        })),
+        pessoas: pessoasContratuais.map((p) => ({
+          nome: p.nome,
+          papeis: p.papeis,
+          escopoIndividual: p.escopoIndividual,
+          valorIndividual: p.valorIndividual,
+          representadoPor: p.representadoPor,
+          representacaoConfirmada: p.representacaoConfirmada,
+          pendencias: p.pendencias,
+        })),
+        impeditivas: coberturaMaterial.impeditivas,
+        posteriores: coberturaMaterial.posteriores,
+        anexos: anexosGovernados.map((a) => ({
+          codigo: a.codigo,
+          titulo: a.titulo,
+          aplicavel: a.aplicavel,
+          obrigatorio: a.obrigatorio,
+          estado: a.estado,
+          motivo: a.motivo,
+          pendencias: a.pendencias,
+          bloqueiaAssinaturaInicial: false,
+        })),
+        instrumentosPosteriores: posterioresCondicionais,
+      },
       caso: {
         id: caso.id,
         codigo: caso.codigo,

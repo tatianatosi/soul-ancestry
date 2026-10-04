@@ -27,6 +27,8 @@ import {
   qualificacaoCompletaContratada,
 } from "@/lib/contrato-base-consolidado";
 import { renderCorpoContratual } from "@/lib/contrato-corpo.server";
+import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
+import { condicaoVigente } from "@/lib/condicao-comercial-caso";
 import {
   dispensarAnexoManualmente,
   instanciasDeAnexos,
@@ -869,6 +871,64 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
     representacao: valoresFicha.find((v) => v.campo === "representacao_legal")?.valor ?? null,
   });
 
+  /*
+   * 04/10/2026 — o corpo passa a carregar a composição do caso e a condição
+   * comercial aprovada. Antes, esse conteúdo existia só dentro do Anexo I, e
+   * por isso a ausência do anexo era lida como "sem escopo contratado".
+   *
+   * Pessoas vêm da função canônica (CA19); dependentes e representação vêm
+   * como estão registrados — nada é inferido por valor zero ou posição.
+   */
+  const [membrosDoCaso, { data: dependentesDoCaso }, { data: condicoesDoCaso }] = await Promise.all([
+    pessoasDoCasoComFallbackNucleo(supabase, registro.case_id),
+    supabase
+      .from("case_dependents")
+      .select("nome_completo,titular_responsavel_legal_nome,status_representacao")
+      .eq("organization_id", registro.organization_id)
+      .eq("case_id", registro.case_id)
+      .is("archived_at", null),
+    supabase
+      .from("case_commercial_condition")
+      .select("approved_items,fees,moeda,proposal_reference,approval_status,versao,responsaveis_financeiros")
+      .eq("organization_id", registro.organization_id)
+      .eq("case_id", registro.case_id)
+      .is("archived_at", null)
+      .order("versao", { ascending: false }),
+  ]);
+
+  const vigente = condicaoVigente(
+    ((condicoesDoCaso ?? []) as any[]).map((c) => ({
+      id: "",
+      caseId: registro.case_id,
+      propostaId: null,
+      propostaReferencia: (c.proposal_reference as string | null) ?? null,
+      versao: Number(c.versao ?? 1),
+      itens: Array.isArray(c.approved_items)
+        ? (c.approved_items as any[]).map((i) => ({
+            parte: String(i.parte ?? ""),
+            valor: Number(i.valor ?? 0),
+            escopo: String(i.escopo ?? ""),
+          }))
+        : [],
+      total: c.fees === null || c.fees === undefined ? null : Number(c.fees),
+      despesasTerceiros: null,
+      taxasOficiais: null,
+      formaPagamento: null,
+      responsaveisFinanceiros: [],
+      parcelas: null,
+      valorParcela: null,
+      moeda: String(c.moeda ?? "BRL"),
+      validade: null,
+      estado: String(c.approval_status ?? "rascunho"),
+      origem: "",
+    })),
+  );
+
+  const responsaveisFinanceiros = ((condicoesDoCaso ?? []) as any[])
+    .filter((c) => c.approval_status === "aprovada")
+    .flatMap((c) => (Array.isArray(c.responsaveis_financeiros) ? (c.responsaveis_financeiros as any[]) : []))
+    .map((x) => String(x));
+
   const corpo = renderCorpoContratual({
     caseId: registro.case_id,
     casoCodigo: caso?.codigo ?? null,
@@ -876,6 +936,23 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
     responsavel: null,
     valores: valoresFicha,
     anexosInternos,
+    pessoas: {
+      membros: membrosDoCaso.map((m) => ({
+        nome: String(m.nome ?? ""),
+        papelNoCaso: (m.papel_no_caso as string | null) ?? null,
+        dependente: Boolean(m.dependente),
+      })),
+      dependentes: ((dependentesDoCaso ?? []) as any[]).map((d) => ({
+        nome: String(d.nome_completo ?? ""),
+        representadoPor: (d.titular_responsavel_legal_nome as string | null) ?? null,
+        statusRepresentacao: (d.status_representacao as string | null) ?? null,
+      })),
+      itensCondicao: vigente?.itens ?? [],
+      responsaveisFinanceiros,
+    },
+    condicao: vigente
+      ? { total: vigente.total, moeda: vigente.moeda, propostaReferencia: vigente.propostaReferencia }
+      : null,
   });
 
   const previa = montarPrevia({

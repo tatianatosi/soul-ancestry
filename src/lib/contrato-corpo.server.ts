@@ -20,6 +20,17 @@ import {
 } from "@/lib/contrato-base-consolidado";
 import { blocosRenderizados, type BlocoRenderizado } from "@/lib/matriz-aceite";
 import {
+  anexoIIncorporadoNoCorpo,
+  coberturaContratual,
+  montarBlocosIncorporados,
+  montarPessoasContratuais,
+  type BlocoIncorporado,
+  type CoberturaContratual,
+  type EntradaPessoas,
+  type PessoaContratual,
+} from "@/lib/contrato-blocos-incorporados";
+import { CLAUSULA_DESPESAS_TERCEIROS } from "@/lib/despesas-terceiros";
+import {
   ANEXO_I_MODELO_VERSAO,
   ANEXO_III_MODELO_VERSAO,
   ANEXO_IV_MODELO_VERSAO,
@@ -56,12 +67,27 @@ export type EntradaCorpo = {
   responsavel: string | null;
   valores: ValorFicha[];
   anexosInternos: AnexoInterno[];
+  /**
+   * Composição do caso e condição comercial aprovada. Sem isso o corpo volta a
+   * ser só texto institucional e o conteúdo do caso fica preso ao Anexo I —
+   * exatamente o defeito corrigido em 04/10/2026.
+   */
+  pessoas?: EntradaPessoas;
+  condicao?: {
+    total: number | null;
+    moeda: string;
+    propostaReferencia: string | null;
+  } | null;
 };
 
 export type CorpoContratual = {
   html: string;
   anexos: AnexoGovernado[];
   blocos: BlocoRenderizado[];
+  /** Blocos do caso incorporados ao corpo, com pendência nomeada por linha. */
+  blocosIncorporados: BlocoIncorporado[];
+  pessoasContratuais: PessoaContratual[];
+  cobertura: CoberturaContratual;
   estrutura: {
     contratoBaseId: string;
     contratoBaseVersao: string;
@@ -72,21 +98,81 @@ export type CorpoContratual = {
     clausulas: number;
     anexosCondicionais: { codigo: string; versaoModelo: string; aplicavel: boolean; estado: string; pendencias: string[] }[];
     anexosInternos: AnexoInterno[];
+    anexoIIncorporadoNoCorpo: boolean;
   };
 };
 
 /** Constrói os anexos governados I–V a partir da ficha do caso (somente leitura). */
-export function anexosDoCaso(e: EntradaCorpo): AnexoGovernado[] {
-  return anexosIaV(
-    entradaDeValores({
-      caseId: e.caseId,
-      clienteNome: e.clienteNome,
-      responsavel: e.responsavel,
-      contratoBaseVersao: CONTRATO_BASE_VERSAO,
-      modelo: CONTRATO_BASE_MODELO,
-      valores: e.valores,
-    }),
+export function anexosDoCaso(e: EntradaCorpo, anexoIIncorporado = false): AnexoGovernado[] {
+  const entrada = entradaDeValores({
+    caseId: e.caseId,
+    clienteNome: e.clienteNome,
+    responsavel: e.responsavel,
+    contratoBaseVersao: CONTRATO_BASE_VERSAO,
+    modelo: CONTRATO_BASE_MODELO,
+    valores: e.valores,
+  });
+  return anexosIaV({ ...entrada, anexoIIncorporadoNoCorpo: anexoIIncorporado });
+}
+
+/**
+ * Blocos do caso que o corpo do contrato passa a carregar (04/10/2026).
+ *
+ * Cada bloco se ancora numa cláusula fixa já aprovada e traz o dado do caso que
+ * ela pressupõe. Nenhuma cláusula nova, nenhum texto jurídico reescrito.
+ */
+export function blocosDoCaso(e: EntradaCorpo): {
+  pessoas: PessoaContratual[];
+  blocos: BlocoIncorporado[];
+  cobertura: CoberturaContratual;
+} {
+  const val = (campo: string) => {
+    const v = e.valores.find((x) => x.campo === campo)?.valor;
+    return v && String(v).trim() ? String(v) : null;
+  };
+  const pessoas = montarPessoasContratuais(
+    e.pessoas ?? { membros: [], dependentes: [], itensCondicao: [], responsaveisFinanceiros: [] },
   );
+  const blocos = montarBlocosIncorporados({
+    pessoas,
+    contratadaQualificacao: val("contratada_qualificacao"),
+    objeto: val("objeto_contrato"),
+    paisRota: val("pais_rota"),
+    escopoResumo: val("escopo_resumo"),
+    servicosIncluidos: val("servicos_incluidos"),
+    servicosExcluidos: val("servicos_excluidos"),
+    fasesEntregas: val("fases_entregas"),
+    prazosReferencia: val("prazos_referencia"),
+    despesasExternas: val("despesas_externas"),
+    total: e.condicao?.total ?? (val("valor_total") ? Number(val("valor_total")) : null),
+    moeda: e.condicao?.moeda ?? "BRL",
+    formaPagamento: val("forma_pagamento"),
+    parcelas: val("parcelas"),
+    vencimentos: val("vencimentos"),
+    propostaReferencia: e.condicao?.propostaReferencia ?? null,
+    regraDespesasInstitucional: CLAUSULA_DESPESAS_TERCEIROS,
+  });
+  return { pessoas, blocos, cobertura: coberturaContratual(pessoas, blocos) };
+}
+
+function secaoBlocosIncorporados(blocos: BlocoIncorporado[]) {
+  const corpo = blocos
+    .map((b) => {
+      const linhas = b.linhas
+        .map(
+          (l) =>
+            `<li><strong>${esc(l.rotulo)}:</strong> ${
+              l.valor ? esc(l.valor) : `<span class="pend">${esc(l.pendencia ?? "sem fonte rastreável")}</span>`
+            } <span class="orig">[${esc(l.fonte)}]</span></li>`,
+        )
+        .join("");
+      return `<section class="bloco-caso"><h3>${esc(b.titulo)} <span class="orig">(cláusula ${b.clausula})</span></h3>
+<p class="orig">${esc(b.finalidade)}</p><ul>${linhas}</ul></section>`;
+    })
+    .join("");
+  return `<section><h2>Condições específicas deste caso</h2>
+<p class="orig">Cada bloco abaixo integra a cláusula indicada do contrato-base. Nenhum texto jurídico novo: o bloco traz o dado do caso que a cláusula pressupõe.</p>
+${corpo}</section>`;
 }
 
 function secaoPerfil() {
@@ -145,7 +231,9 @@ function secaoBlocos(blocos: BlocoRenderizado[]) {
 
 /** Corpo contratual completo, pronto para ser persistido no snapshot. */
 export function renderCorpoContratual(e: EntradaCorpo): CorpoContratual {
-  const anexos = anexosDoCaso(e);
+  const doCaso = blocosDoCaso(e);
+  const incorporado = anexoIIncorporadoNoCorpo(doCaso.blocos);
+  const anexos = anexosDoCaso(e, incorporado);
   const blocos = blocosRenderizados(anexos);
 
   const html = `<section class="base"><h2>Contrato de Estudo Genealógico v2</h2>
@@ -157,6 +245,7 @@ export function renderCorpoContratual(e: EntradaCorpo): CorpoContratual {
 ${secaoPerfil()}
 <section><h2>Preâmbulo</h2><p>${esc(PREAMBULO_CONTRATO_BASE)}</p></section>
 ${secaoClausulas()}
+${secaoBlocosIncorporados(doCaso.blocos)}
 ${secaoAnexos(anexos, e.anexosInternos)}
 ${secaoBlocos(blocos)}`;
 
@@ -164,6 +253,9 @@ ${secaoBlocos(blocos)}`;
     html,
     anexos,
     blocos,
+    blocosIncorporados: doCaso.blocos,
+    pessoasContratuais: doCaso.pessoas,
+    cobertura: doCaso.cobertura,
     estrutura: {
       contratoBaseId: CONTRATO_BASE_ID,
       contratoBaseVersao: CONTRATO_BASE_VERSAO,
@@ -180,6 +272,7 @@ ${secaoBlocos(blocos)}`;
         pendencias: a.pendencias,
       })),
       anexosInternos: e.anexosInternos,
+      anexoIIncorporadoNoCorpo: incorporado,
     },
   };
 }

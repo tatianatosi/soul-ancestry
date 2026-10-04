@@ -7,7 +7,7 @@
  * "onde está e o que falta" sem abrir nenhum deles.
  */
 
-import type { EstadoPasso, ResumoProntidao } from "@/lib/contrato-prontidao";
+import { ROTULO_FASE_INSTRUMENTO, type EstadoPasso, type ResumoProntidao } from "@/lib/contrato-prontidao";
 
 const COR: Record<EstadoPasso, string> = {
   ok: "border-navy/20 bg-cream/60 text-navy/70",
@@ -55,6 +55,27 @@ export function TrilhoProntidaoContrato({ resumo }: { resumo: ResumoProntidao })
       >
         {resumo.frase}
       </p>
+      {/*
+        04/10/2026 — fases separadas, instrução da Proprietária: contrato não
+        assinado pode aparecer como pronto para assinatura, nunca como
+        assinado; e ato posterior condicional não é pendência de contratação.
+      */}
+      <ul className="mt-2 flex flex-wrap gap-1.5" data-fases-instrumento>
+        {resumo.fases.map((f) => (
+          <li
+            key={f.fase}
+            title={f.motivo}
+            data-fase={f.fase}
+            data-alcancada={f.alcancada ? "sim" : "nao"}
+            className={`rounded border px-2 py-0.5 text-[11px] ${
+              f.alcancada ? "border-navy/20 bg-cream/60 text-navy/70" : "border-navy/10 bg-white/40 text-navy/45"
+            }`}
+          >
+            {ROTULO_FASE_INSTRUMENTO[f.fase]}
+          </li>
+        ))}
+      </ul>
+
       {!resumo.pronto && resumo.proximo && (
         <a
           href={resumo.proximo.ancora}

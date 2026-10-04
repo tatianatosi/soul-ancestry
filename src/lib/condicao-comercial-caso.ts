@@ -128,15 +128,19 @@ export function instanciasDeCobertura(
   dependentes: readonly { nome: string; representadoPor?: string | null }[] = [],
 ): InstanciaCobertura[] {
   const comValor = c.itens.filter((i) => Number(i.valor) > 0);
-  const semValor = c.itens.filter((i) => !(Number(i.valor) > 0));
 
-  return comValor.map((item, i) => {
-    const representados = [
-      ...dependentes.filter((d) => (d.representadoPor ?? "").trim() === item.parte).map((d) => d.nome),
-      // Item sem valor na condição é dependente representado: entra na
-      // instância do titular, e sem vínculo explícito fica na do contratante.
-      ...(i === 0 ? semValor.map((s) => s.parte) : []),
-    ];
+  return comValor.map((item) => {
+    /*
+     * Correção de 04/10/2026, instrução expressa da Proprietária: "não inferir
+     * que item sem valor é dependente; não atribuir automaticamente uma pessoa
+     * ao primeiro titular por ausência de vínculo; valor zero não comprova
+     * representação; vínculo ausente deve permanecer como pendência
+     * identificada". A versão anterior fazia exatamente isso. Agora só entra na
+     * instância quem tem vínculo de representação **registrado**.
+     */
+    const representados = dependentes
+      .filter((d) => (d.representadoPor ?? "").trim() === item.parte)
+      .map((d) => d.nome);
     return {
       chave: `ANEXO_I_ORDEM_SERVICO::${item.parte}`,
       titulo: `Anexo I — Ordem de Serviço · ${item.parte}`,
@@ -149,18 +153,61 @@ export function instanciasDeCobertura(
 }
 
 /**
- * O que falta para o contrato cobrir a composição. Agora a pergunta é se o
- * **Anexo I** tem instância para cada titular — não se existe um anexo por
- * pessoa.
+ * Pessoas da condição sem vínculo de representação registrado — pendência
+ * identificada, nunca resolvida por inferência.
+ */
+export function pessoasSemVinculoRegistrado(
+  c: CondicaoComercialCaso,
+  dependentes: readonly { nome: string; representadoPor?: string | null }[] = [],
+): string[] {
+  const comVinculo = new Set(
+    dependentes.filter((d) => (d.representadoPor ?? "").trim()).map((d) => d.nome.trim().toLocaleLowerCase("pt-BR")),
+  );
+  return c.itens
+    .filter((i) => !(Number(i.valor) > 0))
+    .map((i) => i.parte)
+    .filter((nome) => !comVinculo.has(nome.trim().toLocaleLowerCase("pt-BR")));
+}
+
+/**
+ * O que falta para o contrato cobrir a composição.
+ *
+ * Correção de 04/10/2026: a versão anterior afirmava "sem Anexo I não há escopo
+ * contratado" — o que é falso quando o escopo está incorporado ao corpo do
+ * contrato. A pergunta passa a ser **material**: o conteúdo existe? A cobertura
+ * por bloco do corpo é avaliada em `contrato-blocos-incorporados.ts`; aqui
+ * sobra só o que depende da condição comercial em si.
+ *
+ * `anexoIIncorporado` vem do corpo renderizado: quando verdadeiro, a ausência
+ * da instância documental do Anexo I **não** é lacuna.
  */
 export function lacunasDeCobertura(
   anexosRegistrados: readonly string[],
   instancias: readonly InstanciaCobertura[],
+  opcoes: { anexoIIncorporado?: boolean; semVinculoRegistrado?: readonly string[] } = {},
 ): string[] {
   const lacunas: string[] = [];
+
+  for (const nome of opcoes.semVinculoRegistrado ?? []) {
+    lacunas.push(
+      `${nome} — item sem valor próprio na condição e sem vínculo de representação registrado. ` +
+        "Valor zero não comprova representação: registre o papel e o responsável legal.",
+    );
+  }
+
+  if (opcoes.anexoIIncorporado) {
+    /*
+     * Conteúdo no corpo: nada a emitir como documento separado. Instância
+     * registrada continua valendo como histórico, mas não é exigida.
+     */
+    return lacunas;
+  }
+
   const temAnexoI = anexosRegistrados.some((a) => a.toUpperCase().includes("ANEXO_I_ORDEM_SERVICO"));
   if (!temAnexoI) {
-    lacunas.push("O Anexo I (Ordem de Serviço) não está registrado no contrato — sem ele não há escopo contratado.");
+    lacunas.push(
+      "O escopo contratado não está coberto: nem incorporado ao corpo do contrato, nem registrado como Anexo I.",
+    );
     return lacunas;
   }
   for (const i of instancias) {

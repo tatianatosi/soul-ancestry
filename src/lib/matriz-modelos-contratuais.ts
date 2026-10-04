@@ -309,7 +309,13 @@ export const PENDENCIAS_FORMALIZACAO: PendenciaFormalizacao[] = [
   },
   {
     tema: "Revisão humana/jurídica",
-    situacao: "Contrato-base, qualificação institucional e modelos em under_legal_review.",
+    /*
+     * 04/10/2026 — o contrato-base v2.0 e a qualificação institucional estão
+     * aprovados (decisões de 03/10 e 04/10). Os modelos de composição
+     * complementares seguem em revisão: substituição pontual, não global.
+     */
+    situacao:
+      "Contrato-base v2.0 e qualificação institucional aprovados; modelos de composição complementares seguem em under_legal_review.",
     gateBloqueado: "Assinatura — bloqueia se método ou revisão ausentes",
   },
   {

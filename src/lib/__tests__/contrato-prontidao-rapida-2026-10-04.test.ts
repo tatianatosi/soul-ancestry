@@ -52,7 +52,7 @@ describe("Prontidão do contrato — verificação em uma olhada (04/10/2026)", 
       "partes",
       "escopo",
       "comercial",
-      "os",
+      "cobertura",
       "rascunho",
       "revisao",
       "assinatura",
@@ -100,9 +100,21 @@ describe("Prontidão do contrato — verificação em uma olhada (04/10/2026)", 
 
   it("6. Anexo I salvo sem conteúdo não conta como feito, e o detalhe diz por quê", () => {
     const r = resumoProntidao({ ...PRONTO, anexoIStatus: "missing" });
-    const os = r.passos.find((p) => p.chave === "os")!;
-    expect(os.estado).toBe("pendente");
-    expect(os.detalhe).toContain("sem conteúdo");
+    const cobertura = r.passos.find((p) => p.chave === "cobertura")!;
+    expect(cobertura.estado).toBe("pendente");
+    expect(cobertura.detalhe).toContain("sem conteúdo");
+  });
+
+  /*
+   * 04/10/2026 — correção pedida pela Proprietária: "não dizer que falta
+   * escopo quando o escopo está no contrato". Conteúdo incorporado ao corpo
+   * fecha o passo mesmo sem instância documental do Anexo I.
+   */
+  it("6-bis. cobertura incorporada ao corpo fecha o passo sem Anexo I separado", () => {
+    const r = resumoProntidao({ ...PRONTO, anexoIStatus: null, anexoIIncorporadoNoCorpo: true });
+    const cobertura = r.passos.find((p) => p.chave === "cobertura")!;
+    expect(cobertura.estado).toBe("ok");
+    expect(cobertura.detalhe).toContain("incorporad");
   });
 
   it("7. partes incompletas distinguem reconciliação pendente de ficha incompleta", () => {

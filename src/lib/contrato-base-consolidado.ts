@@ -37,8 +37,19 @@ export type EstadoVigenciaContratoBase = (typeof ESTADOS_VIGENCIA_CONTRATO_BASE)
 /** Status desta versão. Só muda por decisão humana registrada após revisão jurídica. */
 export const CONTRATO_BASE_STATUS: EstadoVigenciaContratoBase = "vigente";
 
+/*
+ * 04/10/2026 — alinhamento de rótulo ao status real do modelo, pedido pela
+ * Proprietária: "alinhar documento, constantes e UI ao status atual do modelo;
+ * a revisão humana dos dados preenchidos continua, mas não é reabertura
+ * jurídica automática". O aviso dizia "não substitui revisão jurídica
+ * independente" num modelo cuja revisão jurídica está concluída (decisões de
+ * 03/10 e 04/10, registradas no documento canônico, data original de 22/08
+ * preservada). O que o aviso mantém, porque é verdade e é outra coisa:
+ * vigência não autoriza ato externo.
+ */
 export const CONTRATO_BASE_AVISO =
-  "Artefato interno de recuperação. Não substitui revisão jurídica independente e não autoriza cobrança, assinatura, pesquisa externa, portal ou automação.";
+  "Revisão jurídica deste contrato-base concluída e aprovada. A conferência humana dos dados preenchidos por caso continua obrigatória — e não reabre a revisão jurídica. " +
+  "Vigência não autoriza, por si, cobrança, assinatura, pesquisa externa, portal ou automação: cada ato depende do seu gate e de decisão humana.";
 
 /* ------------------------------------------------------------------ */
 /* 2 — Perfil institucional versionado                                  */

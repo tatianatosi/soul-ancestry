@@ -34,6 +34,7 @@ import { conferirInstancias, statusTelaDeAnexo } from "@/lib/anexos-instancia";
 import { instanciasDocumentaisDoCaso } from "@/lib/anexos-instancia.functions";
 import { InstanciaDocumental } from "@/components/contrato/instancia-documental";
 import { TrilhoProntidaoContrato } from "@/components/contrato/trilho-prontidao";
+import { CoberturaContratual } from "@/components/contrato/cobertura-contratual";
 import { AbrirDocumentoContrato } from "@/components/contrato/abrir-documento-contrato";
 import { resumoProntidao } from "@/lib/contrato-prontidao";
 import { avaliarMatrizClausulas, previaFinalLiberada } from "@/lib/matriz-clausulas";
@@ -568,6 +569,18 @@ function Pagina() {
     anexoIStatus:
       listaOpcional<any>(d.anexosPersistidos).find((a) => a.annexCode === "ANEXO_I_ORDEM_SERVICO")?.status ?? null,
     anexosPendentes: pendenciasAnexos,
+    /*
+     * 04/10/2026 — cobertura material: o conteúdo do Anexo I está incorporado
+     * ao corpo? Então não falta documento. As pendências vêm separadas entre o
+     * que impede assinar agora e o que é instrumento posterior.
+     */
+    anexoIIncorporadoNoCorpo: Boolean((d.coberturaContratual as any)?.anexoIIncorporadoNoCorpo),
+    pendenciasImpeditivas: (((d.coberturaContratual as any)?.impeditivas ?? []) as any[]).map(
+      (x) => `${x.pessoa ? `${x.pessoa} — ` : ""}${x.campo}: ${x.texto}`,
+    ),
+    pendenciasPosteriores: (((d.coberturaContratual as any)?.posteriores ?? []) as any[]).map(
+      (x) => `${x.pessoa ? `${x.pessoa} — ` : ""}${x.campo}: ${x.texto}`,
+    ),
     rascunhoSalvo: Boolean(listaOpcional<any>(d.previas).find((p: any) => p.estado === "rascunho_editavel")),
     versaoFinalCongelada: Boolean(
       listaOpcional<any>(d.previas).find((p: any) => p.tipo === "final" && p.estado === "congelado"),
@@ -687,6 +700,11 @@ function Pagina() {
         </CaCard>
 
         <TrilhoProntidaoContrato resumo={prontidao} />
+        {d.coberturaContratual ? (
+          <div className="mt-3">
+            <CoberturaContratual cobertura={d.coberturaContratual as any} />
+          </div>
+        ) : null}
 
         <div className="flex flex-wrap gap-2" role="tablist" aria-label="Modo de trabalho da ficha">
           <button
