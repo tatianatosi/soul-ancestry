@@ -36,6 +36,8 @@ import { anexosIaV, entradaDeValores, gatesBloqueados, pendenciasDosAnexos } fro
 import { conferirInstancias, statusTelaDeAnexo } from "@/lib/anexos-instancia";
 import { instanciasDocumentaisDoCaso } from "@/lib/anexos-instancia.functions";
 import { InstanciaDocumental } from "@/components/contrato/instancia-documental";
+import { TrilhoProntidaoContrato } from "@/components/contrato/trilho-prontidao";
+import { resumoProntidao } from "@/lib/contrato-prontidao";
 import { avaliarMatrizClausulas, previaFinalLiberada } from "@/lib/matriz-clausulas";
 import { blocosRenderizados } from "@/lib/matriz-aceite";
 import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
@@ -558,6 +560,35 @@ function Pagina() {
     ficam recolhidos em "Detalhes internos" — nada foi apagado.
   */
   const pendenciasHumanas = listaOpcional<any>(d.pendenciasHumanas);
+  /*
+   * Trilho de prontidão (04/10/2026): a tela já tinha todos os sinais, só não
+   * respondia "onde está e o que falta" sem abrir cartão. Derivado do que já
+   * foi carregado — nenhuma consulta nova, nenhum estado novo.
+   */
+  const prontidao = resumoProntidao({
+    propostaAprovada: d.proposta?.status === "aprovada",
+    completudePct: Number(d.completude?.pct ?? 0),
+    partesComPendencia: listaOpcional<any>(d.valores).filter(
+      (v) => ["partes", "membros"].includes(v.grupo) && v.obrigatorio && !String(v.valor ?? "").trim(),
+    ).length,
+    escopoResumoPreenchido: Boolean(
+      String(listaOpcional<any>(d.valores).find((v) => v.campo === "escopo_resumo")?.valor ?? "").trim(),
+    ),
+    condicaoValor: (d.condicaoParticular as any)?.valor ?? null,
+    anexoIStatus:
+      listaOpcional<any>(d.anexosPersistidos).find((a) => a.annexCode === "ANEXO_I_ORDEM_SERVICO")?.status ?? null,
+    anexosPendentes: pendenciasAnexos,
+    rascunhoSalvo: Boolean(listaOpcional<any>(d.previas).find((p: any) => p.estado === "rascunho_editavel")),
+    versaoFinalCongelada: Boolean(
+      listaOpcional<any>(d.previas).find((p: any) => p.tipo === "final" && p.estado === "congelado"),
+    ),
+    revisaoAprovadaEm: (d.revisaoAprovadaEm as string | null) ?? null,
+    assinaturaRegistradaEm: (d.contrato?.signed_at as string | null) ?? null,
+    bloqueiosImpeditivos: bloqueiosResolutivos(bloqueios, listaOpcional(d.valores) as any)
+      .filter((b) => b.impeditivo)
+      .map((b) => b.titulo),
+    pendenciasHumanas: listaOpcional<any>(d.pendenciasHumanas).length,
+  });
   const instrumento = String(d.instrumento ?? "Contrato de Estudo Genealógico v2");
   const condicao = d.condicaoParticular ?? null;
   const planejadorCaso = d.planejador ?? null;
@@ -654,6 +685,8 @@ function Pagina() {
           </p>
         </CaCard>
 
+        <TrilhoProntidaoContrato resumo={prontidao} />
+
         <div className="flex flex-wrap gap-2" role="tablist" aria-label="Modo de trabalho da ficha">
           <button
             type="button"
@@ -682,6 +715,7 @@ function Pagina() {
         {/* ===================== PREPARAR CONTRATO ===================== */}
         {modo === "preparar" && (
           <div className="space-y-4" data-modo-preparar>
+            <div id="proposta">
             <CaCard titulo="1. Proposta aprovada">
               <ul className="space-y-1 text-sm text-navy/80">
                 <li>
@@ -729,6 +763,8 @@ function Pagina() {
               </div>
             </CaCard>
 
+            </div>
+
             <div id="partes">
               <CaCard titulo="2. Partes e representação">
                 <div className="space-y-3">
@@ -756,11 +792,15 @@ function Pagina() {
               </CaCard>
             </div>
 
+            <div id="escopo">
             <CaCard titulo="3. Escopo e entregas">
               <EscopoProposta dados={(d as any).escopo} proposta={d.proposta as any} />
               <div className="mt-3 space-y-3">{gruposFicha(["objeto", "servicos"])}</div>
             </CaCard>
 
+            </div>
+
+            <div id="comercial">
             <CaCard titulo="4. Condição particular do caso">
               <div data-condicao-particular className="space-y-1 text-sm text-navy/80">
                 <p>
@@ -778,6 +818,7 @@ function Pagina() {
               </div>
               <div className="mt-3 space-y-3">{gruposFicha(["comerciais"])}</div>
             </CaCard>
+            </div>
 
             <div id="anexos">
               <CaCard titulo="5. Ordem de Serviço (Anexo I) e anexos">

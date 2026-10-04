@@ -258,6 +258,9 @@ export const CLAUSULAS_FIXAS: ClausulaFixa[] = [
    * docs/auditorias/fechamento-8-temas-juridicos-ana-07-09.md. Numeradas após
    * a cláusula 14 (não renumeradas no meio) para não alterar a referência de
    * nenhuma cláusula já existente.
+   *
+   * 04/10/2026 — aprovadas explicitamente pela Proprietária e incorporadas a
+   * `CLAUSULAS_APROVADAS_V2` (ver `DECISAO_CLAUSULAS_15_16` abaixo).
    */
   {
     numero: 15,
@@ -280,15 +283,39 @@ export const CLAUSULAS_FIXAS: ClausulaFixa[] = [
 ];
 
 /**
- * As 14 cláusulas do instrumento aprovado (v2.0, revisão jurídica concluída
- * em 03/10/2026). `CLAUSULAS_FIXAS` tem 16: as de número 15 (Inadimplemento)
- * e 16 (Rescisão) **não** fazem parte do v2.0 aprovado. Elas continuam no
- * módulo — texto jurídico não se apaga — mas não entram na geração do
- * instrumento até decisão explícita da Proprietária.
+ * Cláusulas aprovadas do instrumento.
+ *
+ * Linha do tempo das duas decisões da Proprietária, ambas preservadas:
+ * - 03/10/2026: "Contrato da Ana correto é v2.0 com 14 cláusulas e já foi
+ *   revisado e aprovado pelo jurídico." As cláusulas 15 (Inadimplemento) e
+ *   16 (Rescisão) ficaram fora do conjunto aprovado, declaradas como dívida.
+ * - 04/10/2026: "pode aprovar as demais cláusulas de inadimplemento e
+ *   rescisão." As 16 passam a ser o conjunto aprovado.
+ *
+ * Isto alinha a declaração ao que o gerador sempre fez: `corpo-contratual`,
+ * `contrato-corpo.server` e `matriz-modelos-contratuais` já renderizavam as
+ * 16 cláusulas. A divergência era entre o marcador e o motor, não dentro do
+ * instrumento.
+ *
+ * O princípio anterior continua valendo: texto jurídico não se apaga — nenhuma
+ * cláusula sai do módulo por mudança de aprovação, só muda o conjunto
+ * marcado como aprovado.
+ *
+ * A numeração não muda: 15 e 16 seguem depois de "Disposições finais e foro"
+ * para não deslocar a referência de nenhuma cláusula já citada em contrato
+ * gerado. Renumerar é decisão jurídica, não ajuste de código.
  */
-export const CLAUSULAS_APROVADAS_V2 = CLAUSULAS_FIXAS.filter((c) => c.numero <= 14);
+export const DECISAO_CLAUSULAS_15_16 = {
+  aprovadoEm: "2026-10-04",
+  aprovadoPor: "tati@pluggedresearch.com",
+  decisao: "pode aprovar as demais cláusulas de inadimplemento e rescisão",
+  temas: ["Inadimplemento", "Rescisão"],
+} as const;
 
-export const CLAUSULAS_FORA_DO_V2_APROVADO = CLAUSULAS_FIXAS.filter((c) => c.numero > 14);
+export const CLAUSULAS_APROVADAS_V2 = CLAUSULAS_FIXAS.filter((c) => c.numero <= 16);
+
+/** Vazio desde 04/10/2026: nenhuma cláusula do módulo fica fora do aprovado. */
+export const CLAUSULAS_FORA_DO_V2_APROVADO = CLAUSULAS_FIXAS.filter((c) => c.numero > 16);
 
 /* ------------------------------------------------------------------ */
 /* 3b — Equivalência com o documento consolidado publicado              */

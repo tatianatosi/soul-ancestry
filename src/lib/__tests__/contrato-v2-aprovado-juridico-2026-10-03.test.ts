@@ -5,6 +5,7 @@ import {
   CLAUSULAS_APROVADAS_V2,
   CLAUSULAS_FIXAS,
   CLAUSULAS_FORA_DO_V2_APROVADO,
+  DECISAO_CLAUSULAS_15_16,
   CONTRATO_BASE_MODELO,
   CONTRATO_BASE_STATUS,
   CONTRATO_BASE_VERSAO,
@@ -43,23 +44,45 @@ describe("v2.0 vigente, com revisão jurídica concluída", () => {
   });
 });
 
-describe("as 14 cláusulas aprovadas, e as duas que ficam fora", () => {
-  it("o instrumento aprovado tem exatamente 14 cláusulas", () => {
-    expect(CLAUSULAS_APROVADAS_V2).toHaveLength(14);
-    expect(CLAUSULAS_APROVADAS_V2.map((c) => c.numero)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
+describe("cláusulas aprovadas — 14 em 03/10, as 16 em 04/10", () => {
+  /*
+   * Decisão da Proprietária em 04/10/2026: "pode aprovar as demais cláusulas
+   * de inadimplemento e rescisão". A decisão de 03/10 (14 cláusulas) fica
+   * registrada como etapa anterior, não apagada.
+   */
+  it("o conjunto aprovado passa a ter as 16 cláusulas, Inadimplemento e Rescisão incluídas", () => {
+    expect(CLAUSULAS_APROVADAS_V2).toHaveLength(16);
+    expect(CLAUSULAS_APROVADAS_V2.map((c) => c.numero)).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+    ]);
+    expect(CLAUSULAS_APROVADAS_V2.map((c) => c.titulo)).toEqual(
+      expect.arrayContaining(["Inadimplemento", "Rescisão"]),
+    );
   });
 
-  it("as duas cláusulas fora do v2 não foram apagadas — texto jurídico não se apaga", () => {
+  it("nenhuma cláusula do módulo fica fora do aprovado, e nada foi apagado", () => {
     expect(CLAUSULAS_FIXAS).toHaveLength(16);
-    expect(CLAUSULAS_FORA_DO_V2_APROVADO.map((c) => c.titulo)).toEqual(["Inadimplemento", "Rescisão"]);
-    for (const c of CLAUSULAS_FORA_DO_V2_APROVADO) expect(c.itens.length).toBeGreaterThan(0);
+    expect(CLAUSULAS_FORA_DO_V2_APROVADO).toEqual([]);
+    for (const c of CLAUSULAS_FIXAS) expect(c.itens.length).toBeGreaterThan(0);
   });
 
-  it("os títulos das 14 batem com o documento canônico", () => {
+  it("a aprovação de 15 e 16 está registrada com data e autoria", () => {
+    expect(DECISAO_CLAUSULAS_15_16.aprovadoEm).toBe("2026-10-04");
+    expect(DECISAO_CLAUSULAS_15_16.aprovadoPor).toBe("tati@pluggedresearch.com");
+    expect([...DECISAO_CLAUSULAS_15_16.temas]).toEqual(["Inadimplemento", "Rescisão"]);
+  });
+
+  it("a numeração não foi deslocada: 15 e 16 seguem depois de Disposições finais", () => {
+    expect(CLAUSULAS_FIXAS[13]?.titulo).toMatch(/Disposições finais/i);
+    expect(CLAUSULAS_FIXAS[14]?.titulo).toBe("Inadimplemento");
+    expect(CLAUSULAS_FIXAS[15]?.titulo).toBe("Rescisão");
+  });
+
+  it("o documento canônico continua sendo a fonte do texto das cláusulas A–N", () => {
     const doc = readFileSync("docs/contratos/CA-CONTRATO-BASE-ESTUDO-GENEALOGICO-v2.md", "utf8");
-    // O documento usa letras A–N; o que se confere aqui é a contagem declarada.
     expect(doc).toMatch(/\|\s*N\s*\|/);
-    expect(CLAUSULAS_APROVADAS_V2).toHaveLength(14);
+    expect(doc).toMatch(/Inadimplemento/);
+    expect(doc).toMatch(/Rescisão/);
   });
 });
 

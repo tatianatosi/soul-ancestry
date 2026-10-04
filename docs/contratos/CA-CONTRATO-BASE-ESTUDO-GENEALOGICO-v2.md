@@ -7,6 +7,12 @@
 - **Decisão da Proprietária, 03/10/2026:** "Contrato da Ana correto é v2.0 com 14 cláusulas
   e já foi revisado e aprovado pelo jurídico." O status anterior era
   `under_legal_review`; esta linha registra a mudança, não a apaga.
+- **Decisão da Proprietária, 04/10/2026:** "pode aprovar as demais cláusulas de
+  inadimplemento e rescisão." As cláusulas O (Inadimplemento) e P (Rescisão) — números 15 e
+  16 no módulo `src/lib/contrato-base-consolidado.ts` — passam a integrar o conjunto
+  aprovado. A numeração não foi deslocada: seguem depois de Disposições finais, para não
+  alterar a referência de nenhuma cláusula já citada em contrato gerado. A decisão de 03/10
+  (14 cláusulas) fica registrada como etapa anterior.
 - **Fonte canônica única.** Nenhum texto jurídico pode viver em prompt, comentário de código,
   campo de formulário ou página de governança fora deste arquivo e dos módulos que o carregam.
 
@@ -37,8 +43,14 @@ O corpo contratual é fixo e institucional. A ficha contratual preenche apenas:
 | L | Propriedade intelectual | Titularidade dos métodos e materiais analíticos da contratada; uso licenciado ao contratante. |
 | M | Assinatura, registros e prova | Assinatura eletrônica com referência externa verificável e registro de auditoria. |
 | N | Disposições finais e foro autorizado | Integralidade, comunicação oficial e foro autorizado. |
+| O | Inadimplemento | Mora, multa, correção e suspensão da execução após 30 dias, sem indenização pelo período suspenso. |
+| P | Rescisão | Aviso prévio de 15 dias, dispensa do aviso em inadimplemento acima de 60 dias, entrega dos materiais já produzidos. |
 
 Adendos vigentes em revisão: `ADENDO-CANCELAMENTO-v1.0`, `ADENDO-CANAIS-OFICIAIS-v1.0`.
+
+O motor de geração (`corpo-contratual`, `contrato-corpo.server`, `matriz-modelos-contratuais`)
+sempre renderizou as 16 cláusulas do módulo. Até 03/10/2026 o marcador de aprovação cobria
+só 14; a decisão de 04/10 alinhou o marcador ao motor, sem reescrever nenhum texto.
 
 ---
 
