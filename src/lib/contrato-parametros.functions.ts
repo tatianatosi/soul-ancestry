@@ -373,6 +373,86 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       candidatos.push({ campo: c.campo, valor: c.valor, origem: "proposta", detalhe: c.detalhe });
     }
 
+    /*
+     * 04/10/2026 — os 3 obrigatórios vazios que já tinham fonte real.
+     *
+     * Medição do caso canônico CA-CID-AT-FAM-2026-001: 5 parâmetros
+     * obrigatórios vazios travavam a prévia. Três deles tinham fonte viva e
+     * nenhuma delas era lida aqui; dois não têm fonte e continuam pendência
+     * humana declarada (`vencimentos`, porque a condição comercial do caso não
+     * tem dia de vencimento nem parcelas; `ancestral_referencia`, porque a
+     * âncora da linhagem é a própria requerente, não o ancestral — derivar
+     * dali poria a cliente como ancestral de si mesma).
+     *
+     * Nada é inferido: cada candidato abaixo só existe se a fonte existir.
+     */
+    if (propostaApta) {
+      const exclusoes = String((propostaCaso as any)?.exclusoes ?? "").trim();
+      if (exclusoes && !camposDoPlanejador.has("servicos_excluidos")) {
+        candidatos.push({
+          campo: "servicos_excluidos",
+          valor: exclusoes,
+          origem: "proposta",
+          detalhe: `Exclusões declaradas na proposta aprovada v${(propostaCaso as any)?.versao ?? "?"}`,
+        });
+      }
+    }
+
+    /*
+     * Produto contratado vem do PRODUTO-PAI do Planejador, não de SKU de
+     * catálogo: "planilha mestre é legado, SKU não manda" (Proprietária,
+     * 03/10/2026). O campo se chama `produto_sku` por histórico de schema —
+     * o conteúdo é o produto-pai homologado e a rota confirmada.
+     */
+    const { data: planoAtivo } = await supabase
+      .from("case_plans")
+      .select("produto_pai_id,rota_confirmada")
+      .eq("case_id", registro.case_id)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const produtoPaiId = String(planoAtivo?.produto_pai_id ?? "").trim();
+    if (produtoPaiId) {
+      const { produtoPaiPorId } = await import("@/lib/planejador-produtos-pai");
+      const pp = produtoPaiPorId(produtoPaiId as never);
+      const rota = String(planoAtivo?.rota_confirmada ?? "").trim();
+      candidatos.push({
+        campo: "produto_sku",
+        valor: [produtoPaiId, pp?.nome, rota ? `rota ${rota}` : null].filter(Boolean).join(" — "),
+        origem: "planejador",
+        detalhe: "Produto-pai homologado no Planejador do caso (sem SKU técnico de catálogo)",
+      });
+    }
+
+    /*
+     * Anexos aplicáveis: derivados da instância já persistida em
+     * `contract_annexes` — o que foi materializado para este caso, não uma
+     * segunda derivação em memória que poderia divergir da instância salva.
+     */
+    const { data: anexosDoCaso } = await supabase
+      .from("contract_annexes")
+      .select("annex_code,status,annex_version")
+      .eq("organization_id", orgDoCaso ?? "")
+      .eq("case_id", registro.case_id)
+      .is("archived_at", null)
+      .order("annex_version", { ascending: false });
+    const aplicaveis = [
+      ...new Set(
+        ((anexosDoCaso ?? []) as any[])
+          .filter((a) => !["not_applicable", "archived"].includes(String(a.status)))
+          .map((a) => String(a.annex_code)),
+      ),
+    ].sort();
+    if (aplicaveis.length) {
+      candidatos.push({
+        campo: "anexos_aplicaveis",
+        valor: aplicaveis.join(", "),
+        origem: "calculo_aprovado",
+        detalhe: "Derivado das instâncias de anexo já materializadas para o caso",
+      });
+    }
+
 
 
 
