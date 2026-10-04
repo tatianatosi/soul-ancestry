@@ -11,7 +11,8 @@
 import type { ReactNode } from "react";
 
 import { ROTULO_ESTADO_ANEXO } from "@/lib/anexos-dicionario";
-import { acaoSeguinteAnexo, rotuloStatusAnexoSalvo } from "@/lib/anexos-conteudo";
+import { acaoSeguinteAnexo, rotuloStatusAnexoSalvo, type ConteudoAnexoSalvo } from "@/lib/anexos-conteudo";
+import { ConteudoSalvoDoAnexo } from "@/components/contrato/conteudo-salvo-anexo";
 import { documentoDoAnexo } from "@/lib/anexos-documento";
 import { AnexoDocumento } from "@/components/contrato/anexo-documento";
 import {
@@ -41,6 +42,8 @@ export type AnexoPersistidoResumo = {
   status: string;
   reasonNotApplicable: string | null;
   overrideManual: boolean;
+  /** Conteúdo gravado da instância, para ver o que está sendo aprovado. */
+  conteudo?: ConteudoAnexoSalvo | null;
 };
 
 export function AnexosIaV({
@@ -179,6 +182,7 @@ export function AnexosIaV({
               const doc = documentoDoAnexo(a, entrada);
               return doc ? <AnexoDocumento documento={doc} /> : null;
             })()}
+          {persistido?.conteudo ? <ConteudoSalvoDoAnexo codigo={a.codigo} conteudo={persistido.conteudo} /> : null}
           {renderAcoes && <div className="mt-2 flex flex-wrap gap-2">{renderAcoes(a, persistido)}</div>}
         </article>
         );

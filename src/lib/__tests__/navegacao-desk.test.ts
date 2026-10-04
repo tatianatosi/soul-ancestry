@@ -100,7 +100,14 @@ describe("Navegação do Desk — 7 grupos do V4 (03/10/2026)", () => {
       label: string;
     }[];
     // Rótulos do V4, conforme a prancha enviada pela Proprietária em 03/10.
-    expect(todos.some((s) => s.to === "/qualidade" && s.label === "Qualidade e auditoria")).toBe(true);
+    /*
+     * 04/10/2026 — decisão da Proprietária: "Retire todas as auditorias
+     * repetidas do menu". O item passou de "Qualidade e auditoria" (rótulo da
+     * prancha V4) para "Radar e matrizes", que é o que a rota realmente é. A
+     * parte de qualidade/checklists continua dentro dela, recolhida.
+     */
+    expect(todos.some((s) => s.to === "/qualidade" && s.label === "Radar e matrizes")).toBe(true);
+    expect(todos.some((s) => /auditoria/i.test(s.label))).toBe(false);
     expect(todos.some((s) => s.to === "/catalogo" && s.label === "Catálogo e preços")).toBe(true);
     expect(todos.some((s) => s.to === "/pesquisa-modulo" && s.label === "Painel de pesquisa")).toBe(true);
   });

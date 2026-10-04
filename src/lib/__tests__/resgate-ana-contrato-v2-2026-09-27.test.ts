@@ -156,7 +156,7 @@ describe("Resgate Ana — persistência real e decisão do dependente", () => {
   const rota = readFileSync("src/routes/_authenticated/casos.$caseId.contrato.preparar.tsx", "utf8");
 
   it("Salvar rascunho existe no modo Preparar e só diz 'salvo' com o rascunho relido do servidor", () => {
-    const card7 = rota.slice(rota.indexOf('titulo="7. Salvar rascunho"'));
+    const card7 = rota.slice(rota.indexOf('titulo="6. Salvar rascunho"'));
     expect(card7).toContain('mGerar.mutate("rascunho")');
     expect(card7).toContain("rascunhoAtual");
     expect(card7).toContain("relido do servidor");

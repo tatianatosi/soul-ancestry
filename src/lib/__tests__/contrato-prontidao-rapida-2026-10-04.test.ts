@@ -128,15 +128,16 @@ describe("Prontidão do contrato — verificação em uma olhada (04/10/2026)", 
     const modo = rota.indexOf('role="tablist"');
     expect(trilho).toBeGreaterThan(-1);
     expect(trilho).toBeLessThan(modo);
-    // Nenhum cartão da sequência de uma hora foi removido.
+    // A sequência de uma hora continua inteira. Em 04/10/2026 a Proprietária
+    // mandou retirar os bloqueios humanos: o cartão "Pendências humanas" saiu
+    // e o passo 7 virou 6; os demais cartões permanecem.
     for (const titulo of [
       "1. Proposta aprovada",
       "2. Partes e representação",
       "3. Escopo e entregas",
       "4. Condição particular do caso",
       "5. Ordem de Serviço (Anexo I) e anexos",
-      "6. Pendências humanas",
-      "7. Salvar rascunho",
+      "6. Salvar rascunho",
     ]) {
       expect(rota, titulo).toContain(titulo);
     }

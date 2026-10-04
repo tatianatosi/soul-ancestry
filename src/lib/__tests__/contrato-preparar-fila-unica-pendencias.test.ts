@@ -23,21 +23,30 @@ describe("Contrato de Uma Hora — fila única de pendências (resumo agregado)"
     expect(rota).toContain("const totalPendenciasFicha = pendenciasChecklist + bloqueios.length + pendenciasAnexos");
   });
 
-  // Resgate Ana (27/09/2026): o cabeçalho aponta para UMA lista de
-  // pendências humanas; as contagens técnicas ficam só em Detalhes internos.
-  it("o cabeçalho linka para a lista única de pendências humanas, não duplica a UI", () => {
-    expect(rota).toContain('href="#pendencias"');
-    expect(rota).toContain('id="pendencias"');
-    expect(rota.match(/data-pendencias-humanas/g)?.length).toBe(2);
+  /*
+   * 04/10/2026 — decisão da Proprietária: "retire ... também os bloqueios
+   * humanos do contrato". A lista de pendências humanas e o link do cabeçalho
+   * saíram da tela. Quem responde "o que falta agora" é o trilho de prontidão,
+   * com uma frase e a âncora do cartão que resolve. As três contagens técnicas
+   * continuam somadas e visíveis em Detalhes internos — não foram fundidas
+   * nem apagadas.
+   */
+  it("os bloqueios humanos saíram da tela, e o trilho responde no lugar deles", () => {
+    expect(rota).not.toContain('href="#pendencias"');
+    expect(rota).not.toContain('titulo="6. Pendências humanas"');
+    expect(rota).not.toContain("data-pendencias-humanas");
+    expect(rota).toContain("<TrilhoProntidaoContrato");
+    expect(rota).toContain("data-fila-pendencias-ficha-interna");
   });
 
-  it("os três alvos de âncora existem de fato na página", () => {
-    expect(rota).toContain('id="checklist-pre-contrato"');
-    expect(rota).toContain('id="decisao-humana"');
-    expect(rota).toContain('id="anexos"');
+  it("as âncoras do trilho existem de fato na página", () => {
+    for (const id of ["proposta", "ficha", "escopo", "comercial", "anexos", "previas", "decisao-humana"]) {
+      expect(rota, id).toContain(`id="${id}"`);
+    }
   });
 
-  it('mostra "sem pendência" quando o total é zero, em vez de esconder o bloco', () => {
-    expect(rota).toContain("Nenhuma pendência humana aberta.");
+  it("as contagens técnicas continuam somadas, agora só no bloco recolhido", () => {
+    expect(rota).toContain("totalPendenciasFicha");
+    expect(rota).toContain("marcador(es) técnico(s)");
   });
 });

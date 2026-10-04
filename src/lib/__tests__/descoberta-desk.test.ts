@@ -23,7 +23,13 @@ describe("nomenclatura humana", () => {
   });
 
   it("exibe os rótulos na navegação do Desk real", () => {
-    expect(navegacao).toContain('{ to: "/qualidade", label: "Qualidade e auditoria" }');
+    /*
+     * 04/10/2026 — decisão da Proprietária: "Retire todas as auditorias
+     * repetidas do menu". O item passou de "Qualidade e auditoria" (rótulo da
+     * prancha V4) para "Radar e matrizes", que é o que a rota realmente é. A
+     * parte de qualidade/checklists continua dentro dela, recolhida.
+     */
+    expect(navegacao).toContain('{ to: "/qualidade", label: "Radar e matrizes" }');
     // V4: trilha jurídica virou alimento do caso e saiu do menu.
     expect(navegacao).toContain('"/matriz-juridica": "ALIMENTO_CONTEXTUAL"');
   });

@@ -1,6 +1,7 @@
 import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
+import { conteudoDoAnexoSalvo } from "@/lib/anexos-conteudo";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { CONFLITO_PAIS_ROTA, qualificadorPaisDoCodigo } from "@/lib/coerencia-caso";
 import { conflitosCoerenciaDoRegistro, exigirCoerencia } from "@/lib/coerencia-caso.server";
@@ -291,6 +292,9 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       status: l.status as string,
       reasonNotApplicable: (l.reason_not_applicable ?? null) as string | null,
       overrideManual: (l.structured_data as any)?.overrideManual === true,
+      // 04/10/2026: o conteúdo salvo acompanha o anexo no próprio fluxo, para
+      // a equipe ver o que aprova sem abrir o bloco de auditoria.
+      conteudo: conteudoDoAnexoSalvo(l.structured_data),
     }));
 
     const contrato = registro.contract_id

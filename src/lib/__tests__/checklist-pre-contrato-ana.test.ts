@@ -1,4 +1,10 @@
-import { readFileSync } from "node:fs";
+/*
+ * Decisão da Proprietária em 04/10/2026, literal: "Retire todas as auditorias
+ * repetidas do menu, de todas as abas e também os bloqueios humanos do
+ * contrato." As asserções abaixo foram ajustadas a essa decisão; o que era
+ * exigido antes fica descrito no próprio arquivo, não apagado da história.
+ */
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, it, expect } from "vitest";
@@ -160,15 +166,18 @@ describe("D · rota oficial (casos.$caseId.contrato.preparar.tsx) expõe o check
   );
   const funcoes = readFileSync(resolve(__dirname, "../contrato-preparar.functions.ts"), "utf8");
 
-  it("importa checklistPreContrato do módulo canônico e renderiza sempre aberto", () => {
-    expect(rota).toMatch(/from "@\/lib\/contrato-checklist-pre"/);
-    expect(rota).toContain("data-checklist-pre-contrato");
+  it("04/10/2026: o checklist saiu da tela de contrato; o módulo canônico continua intacto", () => {
+    // O trilho de prontidão passou a responder "onde está e o que falta".
+    expect(rota).not.toContain("data-checklist-pre-contrato");
+    expect(rota).not.toContain("Checklist operacional");
+    expect(rota).toContain("TrilhoProntidaoContrato");
+    // Nada foi apagado: o módulo puro e seus testes seguem valendo.
+    expect(existsSync("src/lib/contrato-checklist-pre.ts")).toBe(true);
   });
 
-  it("cada item mostra fonte, estado, responsável e próxima ação (quando houver)", () => {
-    expect(rota).toContain("Fonte: {item.fonte}");
-    expect(rota).toContain("Responsável: {item.responsavel}");
-    expect(rota).toContain("Próxima ação: {item.proximaAcao}");
+  it("o módulo do checklist continua devolvendo fonte, estado e próxima ação por item", () => {
+    const mod = readFileSync("src/lib/contrato-checklist-pre.ts", "utf8");
+    for (const campo of ["fonte", "estado", "proximaAcao"]) expect(mod, campo).toContain(campo);
   });
 
   it("abrirPreparacaoContrato lê case_plans (produto-pai) e invoices (cobrança/pagamento), sem fabricar", () => {

@@ -1,3 +1,14 @@
+/*
+ * Decisão da Proprietária em 04/10/2026, literal: "Retire todas as auditorias
+ * repetidas do menu, de todas as abas e também os bloqueios humanos do
+ * contrato." Saíram da tela de preparação: o cartão "Pendências humanas", o
+ * "Checklist operacional — pré-contrato", o cartão "Coerência & Instrumentos"
+ * (que reunia instrumentos, matriz jurídica e preparação — três conferências
+ * do mesmo ato) e o cartão "Auditoria" (a trilha única vive em
+ * /configuracoes). Nenhum componente nem rota foi apagado; só deixaram de ser
+ * montados aqui. A decisão anterior, que exigia esses blocos, fica registrada
+ * nos comentários abaixo.
+ */
 import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 
@@ -51,7 +62,7 @@ describe("Fase 5 — ordem de trabalho do Resgate Ana", () => {
   });
 
   it("card 5 traz a OS (CadeiaFormalizacao governada pelo Planejador) antes dos Anexos I-V", () => {
-    const card5 = trecho('titulo="5. Ordem de Serviço (Anexo I) e anexos"', 'titulo="6. Pendências humanas"');
+    const card5 = trecho('titulo="5. Ordem de Serviço (Anexo I) e anexos"', 'titulo="6. Salvar rascunho"');
     const posCadeia = card5.indexOf("<CadeiaFormalizacao");
     const posAnexos = card5.indexOf("<AnexosIaV");
     expect(posCadeia).toBeGreaterThan(-1);
@@ -74,8 +85,11 @@ describe("Fase 5 — ordem de trabalho do Resgate Ana", () => {
     expect(trechoDecisao).toContain("Registrar assinatura externa");
   });
 
-  it("Auditoria continua existindo, recolhida em Detalhes internos", () => {
-    expect(pagina.indexOf('titulo="Auditoria"')).toBeGreaterThan(pagina.indexOf('<details id="detalhes-internos"'));
+  it("a trilha de auditoria passa a ter um único lugar: Configuração", () => {
+    // 04/10/2026: o cartão "Auditoria" saiu da tela de contrato — era a
+    // terceira cópia do mesmo registro. A tela aponta para a trilha única.
+    expect(pagina).not.toContain('titulo="Auditoria"');
+    expect(pagina).toContain("Configuração › trilha de auditoria");
   });
 });
 

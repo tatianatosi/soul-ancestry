@@ -142,8 +142,13 @@ describe("Anexos vivos — o conteúdo aprovado fica visível (03/10/2026)", () 
   });
 
   it("9. as telas mostram o conteúdo salvo, o estado real e o próximo passo", () => {
+    // 04/10/2026: o conteúdo saiu para um componente único, usado no fluxo
+    // (cartão de anexos) e no bloco recolhido — uma renderização, dois lugares.
+    const conteudo = readFileSync("src/components/contrato/conteudo-salvo-anexo.tsx", "utf8");
+    expect(conteudo).toContain("Ver o conteúdo salvo deste anexo");
+    expect(conteudo).not.toContain("dangerouslySetInnerHTML");
     const painel = readFileSync("src/components/contrato/instancia-documental.tsx", "utf8");
-    expect(painel).toContain("Ver o conteúdo salvo deste anexo");
+    expect(painel).toContain("ConteudoSalvoDoAnexo");
     expect(painel).toContain("rotuloStatusAnexoSalvo");
     expect(painel).toContain("acaoSeguinteAnexo");
     expect(painel).toContain("l.conteudo");
@@ -151,6 +156,8 @@ describe("Anexos vivos — o conteúdo aprovado fica visível (03/10/2026)", () 
     expect(painel).not.toContain("dangerouslySetInnerHTML");
 
     const anexos = readFileSync("src/components/contrato/anexos-i-v.tsx", "utf8");
+    // O conteúdo aprovado aparece no próprio cartão de anexos do fluxo.
+    expect(anexos).toContain("ConteudoSalvoDoAnexo");
     expect(anexos).toContain("Instância salva:");
     expect(anexos).toContain("rotuloStatusAnexoSalvo");
     expect(anexos).toContain("Ainda sem instância salva");

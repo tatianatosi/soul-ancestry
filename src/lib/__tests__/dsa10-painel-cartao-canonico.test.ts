@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -113,8 +113,20 @@ describe("DSA-10 — nenhuma regra de negócio, writer, dado ou texto jurídico 
     // presença deles confirma que a migração foi só de superfície.
     expect(preparar).toContain("PainelBloqueios");
     expect(preparar).toContain("PainelDependentes");
-    expect(preparar).toContain("PainelInstrumentos");
-    expect(preparar).toContain("PainelPreparacao");
+    /*
+     * 04/10/2026 — a Proprietária mandou retirar as auditorias repetidas das
+     * abas. `PainelInstrumentos`, `PainelPreparacao` e `MatrizJuridicaPreparacao`
+     * deixaram de ser montados na tela de contrato (eram três conferências do
+     * mesmo ato). Os componentes continuam no repositório, com o nome e o
+     * writer intactos — que é o que este teste protege.
+     */
+    for (const arquivo of [
+      "src/components/contrato/painel-instrumentos.tsx",
+      "src/components/contrato/painel-preparacao.tsx",
+      "src/components/contrato/matriz-juridica-preparacao.tsx",
+    ]) {
+      expect(existsSync(arquivo), arquivo).toBe(true);
+    }
     expect(preparar).toContain("PainelPendenciasContratuais");
   });
 });

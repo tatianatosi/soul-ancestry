@@ -16,8 +16,14 @@ import { describe, it, expect } from "vitest";
 describe("D6 · as 4 fontes canônicas usam Radar & Matrizes, nenhuma usa mais Radar Interno", () => {
   it("navegação (navegacao-desk.ts)", () => {
     const arquivo = readFileSync(resolve(__dirname, "../navegacao-desk.ts"), "utf8");
-    // V4: o rótulo da prancha é "Qualidade e auditoria", em Configuração.
-    expect(arquivo).toContain('label: "Qualidade e auditoria"');
+    /*
+     * 04/10/2026 — decisão da Proprietária: "Retire todas as auditorias
+     * repetidas do menu". O item passou de "Qualidade e auditoria" (rótulo da
+     * prancha V4) para "Radar e matrizes", que é o que a rota realmente é. A
+     * parte de qualidade/checklists continua dentro dela, recolhida.
+     */
+    expect(arquivo).toContain('label: "Radar e matrizes"');
+    expect(arquivo).not.toContain('label: "Qualidade e auditoria"');
     expect(arquivo).not.toContain('label: "Radar Interno e Qualidade"');
   });
 

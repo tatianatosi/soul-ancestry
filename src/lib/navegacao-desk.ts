@@ -287,7 +287,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     id: "governanca",
     to: "/configuracoes",
     label: "Configuração",
-    descricao: "Perfil institucional, catálogo e preços, equipe e acessos, integrações, modelos e templates, dados históricos e auditoria.",
+    descricao: "Perfil institucional, catálogo e preços, equipe e acessos, integrações, modelos e templates, dados históricos e radar.",
     icone: "governanca",
     agrupador: true,
     sub: [
@@ -298,7 +298,14 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/governanca/modelos-contratuais", label: "Modelos e templates" },
       { to: "/governanca/decisoes", label: "Decisões" },
       { to: "/importacoes", label: "Dados históricos" },
-      { to: "/qualidade", label: "Qualidade e auditoria" },
+      /*
+       * 04/10/2026 — "Retire todas as auditorias repetidas do menu": o rótulo
+       * "Qualidade e auditoria" vendia auditoria como item de menu. A rota é a
+       * leitura operacional (matriz de elegibilidade × urgência e Radar
+       * Individual); a parte de qualidade/checklists segue recolhida dentro
+       * dela. A rota não mudou, só o nome no menu.
+       */
+      { to: "/qualidade", label: "Radar e matrizes" },
       { to: "/privacidade", label: "Privacidade e consentimento" },
     ],
   },

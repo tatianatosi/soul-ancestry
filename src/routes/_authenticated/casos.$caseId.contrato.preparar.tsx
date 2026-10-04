@@ -18,9 +18,6 @@ import { CompletudeCanva } from "@/components/contrato/completude-canva";
 import { EstruturaFamiliar } from "@/components/contrato/estrutura-familiar";
 import { PainelDependentes } from "@/components/contrato/painel-dependentes";
 import { LinhaParametro } from "@/components/contrato/linha-parametro";
-import { PainelPreparacao } from "@/components/contrato/painel-preparacao";
-import { MatrizJuridicaPreparacao } from "@/components/contrato/matriz-juridica-preparacao";
-import { PainelInstrumentos } from "@/components/contrato/painel-instrumentos";
 import { PainelBloqueios } from "@/components/contrato/painel-bloqueios";
 import { RegraComercial } from "@/components/contrato/regra-comercial";
 import { CartaoDetalhe } from "@/components/contrato/cartao-detalhe";
@@ -29,7 +26,7 @@ import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { CabecalhoBloco, GovernancaFicha } from "@/components/contrato/ficha-governanca";
-import { agruparAuditoria, bloqueiosResolutivos, temBloqueioImpeditivo } from "@/lib/bloqueios-dicionario";
+import { bloqueiosResolutivos } from "@/lib/bloqueios-dicionario";
 import { GRUPOS, ROTULO_EVENTO_PREVIA } from "@/lib/contrato-parametros.server";
 import { BLOCOS_FICHA, estadoDoBloco } from "@/lib/ficha-familiar";
 import { anexosIaV, entradaDeValores, gatesBloqueados, pendenciasDosAnexos } from "@/lib/anexos-i-v";
@@ -37,6 +34,7 @@ import { conferirInstancias, statusTelaDeAnexo } from "@/lib/anexos-instancia";
 import { instanciasDocumentaisDoCaso } from "@/lib/anexos-instancia.functions";
 import { InstanciaDocumental } from "@/components/contrato/instancia-documental";
 import { TrilhoProntidaoContrato } from "@/components/contrato/trilho-prontidao";
+import { AbrirDocumentoContrato } from "@/components/contrato/abrir-documento-contrato";
 import { resumoProntidao } from "@/lib/contrato-prontidao";
 import { avaliarMatrizClausulas, previaFinalLiberada } from "@/lib/matriz-clausulas";
 import { blocosRenderizados } from "@/lib/matriz-aceite";
@@ -70,7 +68,7 @@ import { ReconciliarContatoPartesContrato } from "@/components/contrato/reconcil
 import { sincronizarPessoaDoCaso, type DecisaoConflitoContrato } from "@/lib/contratos.functions";
 import type { ItemPlanoMaterializacao } from "@/lib/anexos-materializacao";
 
-import { abrirPreparacaoContrato, auditoriaPreparacao, solicitarRevisaoHumana } from "@/lib/contrato-preparar.functions";
+import { abrirPreparacaoContrato, solicitarRevisaoHumana } from "@/lib/contrato-preparar.functions";
 import { checklistPreContrato, type EstadoChecklistItem } from "@/lib/contrato-checklist-pre";
 
 const TITULO = "Preparar contrato do caso | Clube Ancestral";
@@ -179,18 +177,12 @@ function Pagina() {
   const assinar = useServerFn(registrarAssinatura);
   const ver = useServerFn(lerPrevia);
   const revisar = useServerFn(solicitarRevisaoHumana);
-  const auditoria = useServerFn(auditoriaPreparacao);
   const lerInstancias = useServerFn(instanciasDocumentaisDoCaso);
   const carregarPerfilPersistido = useServerFn(lerPerfilInstitucionalPersistido);
   const garantirPerfil = useServerFn(garantirPerfilInstitucionalDaSessao);
 
   const q = useQuery({ queryKey: chave, queryFn: () => abrir({ data: { caseId } }), retry: false });
   const registroId = (q.data as any)?.registro?.id as string | undefined;
-  const qa = useQuery({
-    queryKey: [...chave, "auditoria", registroId],
-    queryFn: () => auditoria({ data: { id: registroId as string } }),
-    enabled: Boolean(registroId),
-  });
 
   const casoUuid = (q.data as any)?.caso?.id as string | undefined;
   const qi = useQuery({
@@ -461,8 +453,6 @@ function Pagina() {
   const bloqueado = bloqueios.length > 0;
   const resolutivos = bloqueiosResolutivos(bloqueios, listaOpcional(d.valores) as any);
   const impeditivos = resolutivos.filter((b) => b.impeditivo);
-  const revisaoTravada = temBloqueioImpeditivo(resolutivos);
-  const eventos = agruparAuditoria(listaOpcional(qa.data?.eventos) as any[]);
   const rascunhoAtual = listaOpcional<any>(d.previas).find((p: any) => p.estado === "rascunho_editavel");
   const ultimaFinal = listaOpcional<any>(d.previas).find((p: any) => p.tipo === "final" && p.estado === "congelado");
   const finalAprovada = listaOpcional<any>(d.previas).find((p: any) => p.tipo === "final" && p.aprovado_em);
@@ -590,6 +580,26 @@ function Pagina() {
     pendenciasHumanas: listaOpcional<any>(d.pendenciasHumanas).length,
   });
   const instrumento = String(d.instrumento ?? "Contrato de Estudo Genealógico v2");
+
+  /*
+   * Saída em documento (04/10/2026): medido que não existia nenhuma — a prévia
+   * só vivia dentro do iframe da tela. A identificação abaixo vem do que a
+   * tela já carregou; o conteúdo é o MESMO HTML da prévia gerada.
+   */
+  const previaVisivel = listaOpcional<any>(d.previas).find((p: any) => p.estado === "rascunho_editavel")
+    ? "rascunho de trabalho"
+    : ultimaFinal
+      ? `versão v${ultimaFinal.versao} (congelada)`
+      : "sem versão gerada";
+  const identificacaoDocumento = {
+    caso: String(d.caso?.codigo ?? "—"),
+    instrumento,
+    versao: previaVisivel,
+    revisao: d.revisaoAprovadaEm
+      ? `aprovada em ${new Date(d.revisaoAprovadaEm).toLocaleDateString("pt-BR")}`
+      : "ainda não aprovada",
+    geradoEm: new Date().toLocaleString("pt-BR"),
+  };
   const condicao = d.condicaoParticular ?? null;
   const planejadorCaso = d.planejador ?? null;
   const governado = Boolean(d.governadoPeloPlanejador);
@@ -650,15 +660,6 @@ function Pagina() {
               </Link>
             )}
           </div>
-          <p className="mt-2 text-xs text-navy/70" data-fila-pendencias-ficha>
-            {pendenciasHumanas.length === 0 ? (
-              "Nenhuma pendência humana aberta."
-            ) : (
-              <a href="#pendencias" className="underline underline-offset-2">
-                <strong>{pendenciasHumanas.length} pendência(s) humana(s)</strong> — ver lista única
-              </a>
-            )}
-          </p>
           {d.aliasDe && (
             <p className="mt-2 rounded border border-gold/50 bg-gold/10 p-2 text-xs text-navy">
               Referência legada/interna corrigida. Este fluxo opera no caso <strong>{d.caso.codigo}</strong>. A referência{" "}
@@ -796,6 +797,20 @@ function Pagina() {
             <CaCard titulo="3. Escopo e entregas">
               <EscopoProposta dados={(d as any).escopo} proposta={d.proposta as any} />
               <div className="mt-3 space-y-3">{gruposFicha(["objeto", "servicos"])}</div>
+              {/*
+                Divergência de país/rota tem ação corretiva real, então fica no
+                fluxo. As três conferências que só repetiam o mesmo ato
+                (instrumentos, matriz jurídica, preparação) saíram da tela por
+                decisão da Proprietária em 04/10/2026 — os componentes e as
+                rotas continuam no repositório.
+              */}
+              <div id="coerencia" className="mt-3">
+                <ConflitoCoerencia
+                  coerencia={d.coerencia}
+                  valorPaisRota={listaOpcional<any>(d.valores).find((v) => v.campo === "pais_rota") ?? null}
+                  aoCorrigir={invalidar}
+                />
+              </div>
             </CaCard>
 
             </div>
@@ -856,33 +871,7 @@ function Pagina() {
               </CaCard>
             </div>
 
-            <div id="pendencias">
-              <CaCard titulo="6. Pendências humanas">
-                {pendenciasHumanas.length === 0 ? (
-                  <p className="text-sm text-navy/60" data-pendencias-humanas>
-                    Nenhuma pendência humana aberta.
-                  </p>
-                ) : (
-                  <ul className="space-y-2" data-pendencias-humanas>
-                    {pendenciasHumanas.map((p: any) => (
-                      <li key={p.chave} className="rounded-lg border border-terracotta/30 bg-terracotta/5 p-3">
-                        <p className="text-sm font-medium text-navy">{p.titulo}</p>
-                        <p className="mt-0.5 text-xs text-navy/70">{p.detalhe}</p>
-                        <a
-                          href={p.ancora === "revisar" ? undefined : `#${p.ancora}`}
-                          onClick={p.ancora === "revisar" ? () => setModo("revisar") : undefined}
-                          className="mt-1 inline-block cursor-pointer text-xs font-medium text-navy underline underline-offset-2"
-                        >
-                          {p.ancora === "revisar" ? "Ir para Revisar prévia" : "Resolver agora"}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </CaCard>
-            </div>
-
-            <CaCard titulo="7. Salvar rascunho">
+            <CaCard titulo="6. Salvar rascunho">
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => mGerar.mutate("rascunho")}
@@ -928,6 +917,7 @@ function Pagina() {
                       Ver prévia do contrato completo
                     </button>
                   )}
+                  <AbrirDocumentoContrato html={html} identificacao={identificacaoDocumento} />
                   <span className="self-center text-[11px] text-navy/60">
                     {mGerar.isPending
                       ? "Salvando rascunho…"
@@ -1008,13 +998,7 @@ function Pagina() {
                       <button
                         onClick={() => mRevisar.mutate()}
                         disabled={mRevisar.isPending || !nota.trim()}
-                        title={
-                          revisaoTravada
-                            ? `${impeditivos.length} bloqueio(s) ainda aberto(s) — ${impeditivos
-                                .map((b) => b.titulo)
-                                .join("; ")}. Pode prosseguir mesmo assim; a pendência fica registrada.`
-                            : "Registra o pedido de revisão humana em auditoria."
-                        }
+                        title="Registra o pedido de revisão humana em auditoria."
                         className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
                       >
                         Solicitar revisão humana
@@ -1132,7 +1116,7 @@ function Pagina() {
               <Selo texto={`Completude ${d.completude?.pct ?? 0}%`} tom={(d.completude?.pct ?? 0) === 100 ? "ok" : "alerta"} />
               <Selo texto={`Modelo: ${d.modelo?.code ?? "não localizado"}`} tom={d.modelo ? "ok" : "erro"} />
               <Selo texto={`Base: ${d.base?.code ?? "não localizada"}`} tom={d.base ? "ok" : "erro"} />
-              <span className="text-navy/60">
+              <span className="text-navy/60" data-fila-pendencias-ficha-interna>
                 {totalPendenciasFicha} marcador(es) técnico(s): {pendenciasChecklist} checklist · {bloqueios.length} gate(s) ·{" "}
                 {pendenciasAnexos} anexo(s)
               </span>
@@ -1142,45 +1126,6 @@ function Pagina() {
                 Códigos legados registrados (somente referência): {d.caso.codigos_legados.join(", ")}
               </p>
             )}
-
-            <div id="checklist-pre-contrato" data-checklist-pre-contrato>
-              <CaCard variante="compacto" titulo="Checklist operacional — pré-contrato">
-                <ul className="space-y-2">
-                  {checklistPre.map((item) => (
-                    <li
-                      key={item.chave}
-                      className="rounded-lg border border-navy/10 bg-cream/40 p-3 text-sm"
-                      data-checklist-item={item.chave}
-                      data-checklist-estado={item.estado}
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="font-medium text-navy">{item.rotulo}</p>
-                        <Selo texto={ROTULO_ESTADO_CHECKLIST[item.estado]} tom={TOM_ESTADO_CHECKLIST[item.estado]} />
-                      </div>
-                      <p className="mt-1 text-xs text-navy/70">{item.estadoTexto}</p>
-                      <p className="mt-1 text-[11px] text-navy/45">Fonte: {item.fonte} · Responsável: {item.responsavel}</p>
-                      {item.proximaAcao ? (
-                        <p className="mt-1 text-xs font-medium text-navy/80">Próxima ação: {item.proximaAcao}</p>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              </CaCard>
-            </div>
-
-            <div id="bloqueios">
-              <PainelBloqueios bloqueios={bloqueios} valores={listaOpcional(d.valores)} pendencias={listaOpcional(d.pendencias)} />
-            </div>
-            <div className="rounded-lg border border-navy/10 bg-cream/60 p-3 text-xs text-navy/70">
-              <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
-                Prévia final — {previaFinalCaso.liberada ? "liberada" : "bloqueada"}
-              </p>
-              <ul className="mt-1 space-y-1">
-                {previaFinalCaso.motivos.map((m) => (
-                  <li key={m}>• {m}</li>
-                ))}
-              </ul>
-            </div>
 
             <CartaoDetalhe
               titulo="Planejador & Comercial (fontes)"
@@ -1305,23 +1250,6 @@ function Pagina() {
             </CartaoDetalhe>
 
             <CartaoDetalhe
-              titulo="Coerência & Instrumentos"
-              aberto={cartoesAbertos.coerencia}
-              aoAlternar={() => alternarCartao("coerencia")}
-            >
-              <div id="coerencia">
-                <ConflitoCoerencia
-                  coerencia={d.coerencia}
-                  valorPaisRota={listaOpcional<any>(d.valores).find((v) => v.campo === "pais_rota") ?? null}
-                  aoCorrigir={invalidar}
-                />
-              </div>
-              <PainelInstrumentos caseId={caseId} />
-              <MatrizJuridicaPreparacao caseId={caseId} />
-              <PainelPreparacao caseId={caseId} />
-            </CartaoDetalhe>
-
-            <CartaoDetalhe
               titulo="Ficha — assinatura e governança"
               aberto={cartoesAbertos.familia}
               aoAlternar={() => alternarCartao("familia")}
@@ -1335,39 +1263,14 @@ function Pagina() {
               <div className="space-y-3">{gruposFicha(["assinatura"])}</div>
             </CartaoDetalhe>
 
-            <CartaoDetalhe
-              titulo="Auditoria"
-              resumo={`${eventos.length} evento(s) registrados`}
-              aberto={cartoesAbertos.auditoria}
-              aoAlternar={() => alternarCartao("auditoria")}
-            >
-              <CaCard variante="compacto" titulo="Auditoria da preparação (sem dados sensíveis completos)">
-                {qa.isError ? (
-                  <p className="mb-2 flex flex-wrap items-center gap-3 text-xs text-terracotta">
-                    Não foi possível carregar a auditoria.
-                    <button
-                      type="button"
-                      onClick={() => void qa.refetch()}
-                      className="rounded-md border border-terracotta/50 px-2 py-1 text-[11px] font-medium text-terracotta hover:bg-terracotta/10"
-                    >
-                      Tentar novamente
-                    </button>
-                  </p>
-                ) : null}
-                <ul className="space-y-1 text-xs text-navy/70">
-                  {eventos.map((e) => (
-                    <li key={e.id}>
-                      {new Date(e.created_at).toLocaleString("pt-BR")} — <strong>{e.acao}</strong>
-                      {e.ocorrencias > 1
-                        ? ` · ${e.ocorrencias}x em até 30 min (último às ${new Date(e.ultimo_em).toLocaleTimeString("pt-BR")})`
-                        : ""}
-                      {e.metadados?.bloqueios?.length ? ` · bloqueios: ${e.metadados.bloqueios.join(", ")}` : ""}
-                    </li>
-                  ))}
-                  {eventos.length === 0 && <li>Sem eventos registrados ainda.</li>}
-                </ul>
-              </CaCard>
-            </CartaoDetalhe>
+            <p className="text-xs text-navy/60">
+              A trilha de auditoria desta organização — incluindo cada evento desta preparação — fica em um único
+              lugar:{" "}
+              <Link to="/configuracoes" className="font-medium text-navy underline underline-offset-2">
+                Configuração › trilha de auditoria
+              </Link>
+              .
+            </p>
           </div>
         </details>
       </div>
