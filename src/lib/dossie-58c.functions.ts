@@ -36,6 +36,10 @@ import {
   CHECKLIST_58C,
   DE_PARA_CAMPOS_CHECKLIST,
   MARCA_CHECKLIST_58C,
+  acaoDoItem,
+  estadoInicialDespesa,
+  itensComAcao,
+  itensSemAcaoDeTerceiro,
   tituloInstancia,
   totalDeInstancias,
   type ItemChecklist58c,
@@ -192,6 +196,25 @@ export const dossieConsolidadoDoCaso = createServerFn({ method: "GET" })
       };
     });
 
+    /*
+     * Plano de ação por item: é onde moram custo estimado, moeda, aprovação de
+     * despesa, pagador, prazo, canal e link de evidência. Sem isso o checklist
+     * seria "só renderizado", que foi exatamente a crítica.
+     */
+    const { data: acoes } = await supabase
+      .from("research_action_plan_items")
+      .select(
+        "id,titulo,action_type,status,priority,due_date,responsible_user_id,estimated_cost_amount,estimated_cost_currency,expense_approval_status,payer,suggested_channel,internal_evidence_link,next_action",
+      )
+      .eq("organization_id", organizationId)
+      .eq("case_id", data.caseId)
+      .is("archived_at", null)
+      .order("titulo");
+
+    const acoesDoChecklist = ((acoes ?? []) as any[]).filter((a) =>
+      String(a.titulo ?? "").startsWith(MARCA_CHECKLIST_58C),
+    );
+
     /* Histórico: a timeline do caso é o histórico consolidado, não um doc. */
     const { data: eventos } = await supabase
       .from("case_timeline_events")
@@ -250,6 +273,28 @@ export const dossieConsolidadoDoCaso = createServerFn({ method: "GET" })
         proximoMarco: (l.proximo_marco as string | null) ?? null,
         risco: (l.risco_principal as string | null) ?? null,
       })),
+      /** Ações de terceiro do checklist, com os campos que o item exige. */
+      acoes: acoesDoChecklist.map((a) => ({
+        id: String(a.id),
+        titulo: String(a.titulo ?? ""),
+        tipo: String(a.action_type ?? ""),
+        status: String(a.status ?? ""),
+        prioridade: String(a.priority ?? ""),
+        prazo: (a.due_date as string | null) ?? null,
+        temResponsavel: Boolean(a.responsible_user_id),
+        custo:
+          a.estimated_cost_amount === null || a.estimated_cost_amount === undefined
+            ? null
+            : Number(a.estimated_cost_amount),
+        moeda: (a.estimated_cost_currency as string | null) ?? null,
+        aprovacaoDespesa: String(a.expense_approval_status ?? ""),
+        pagador: String(a.payer ?? ""),
+        canal: String(a.suggested_channel ?? ""),
+        arquivo: (a.internal_evidence_link as string | null) ?? null,
+      })),
+      /** Quantos itens do template geram ação de terceiro e quantos são internos. */
+      acoesPrevistas: itensComAcao().length,
+      itensInternos: itensSemAcaoDeTerceiro().length,
       /** Onde cada um dos oito campos do checklist mora. Não é texto solto. */
       deParaCampos: DE_PARA_CAMPOS_CHECKLIST.map((d) => ({ ...d })),
     };
@@ -296,7 +341,33 @@ export const semearChecklist58cNoCaso = createServerFn({ method: "POST" })
     const composicao = await composicaoDoCaso(supabase, organizationId, data.caseId);
 
     const criados: string[] = [];
+    const acoesCriadas: string[] = [];
     const lacunas: string[] = [];
+
+    /* Plano de ação já existente do caso, para não duplicar linha por título. */
+    const { data: acoesExistentes } = await supabase
+      .from("research_action_plan_items")
+      .select("titulo")
+      .eq("organization_id", organizationId)
+      .eq("case_id", data.caseId)
+      .is("archived_at", null);
+    const acoesGravadas = new Set(((acoesExistentes ?? []) as any[]).map((a) => String(a.titulo ?? "")));
+
+    /*
+     * Instituições de referência. O guard do plano (`fn_g07_plan_guard`) recusa
+     * ação de canal externo sem instituição vinculada — e está certo: "vincule a
+     * instituição de referência em vez de repetir contatos na tarefa". Se a
+     * instituição do item não estiver cadastrada, a ação **não** é criada e a
+     * lacuna é nomeada; nunca se inventa instituição nem se burla o canal.
+     */
+    const { data: instituicoes } = await supabase
+      .from("institutions")
+      .select("id,name")
+      .eq("organization_id", organizationId)
+      .is("archived_at", null);
+    const idDaInstituicao = new Map(
+      ((instituicoes ?? []) as any[]).map((i) => [String(i.name ?? ""), String(i.id)]),
+    );
     for (const item of CHECKLIST_58C) {
       const pessoas = pessoasDoItem(item, composicao);
       const alvos = pessoas.length ? pessoas : [null];
@@ -324,24 +395,71 @@ export const semearChecklist58cNoCaso = createServerFn({ method: "POST" })
         });
         jaGravados.add(titulo);
         criados.push(titulo);
+
+        /*
+         * Complemento de 04/10/2026: "adicione todos os campos necessários, não
+         * somente renderizados". O item que depende de terceiro ganha a linha de
+         * plano de ação, que é onde moram custo estimado, moeda, aprovação de
+         * despesa, pagador, prazo, canal e link de evidência. Campo sem fonte
+         * fica **vazio**: custo não é estimado por conta própria, despesa nunca
+         * nasce aprovada e pagador nasce não definido.
+         */
+        const acao = acaoDoItem(item);
+        if (acao && !acoesGravadas.has(titulo)) {
+          const instituicaoId = acao.instituicao ? (idDaInstituicao.get(acao.instituicao) ?? null) : null;
+          if (acao.canal !== "desk_only" && !instituicaoId) {
+            lacunas.push(
+              `${item.id}: a ação depende da instituição "${acao.instituicao ?? "não definida"}", que não está cadastrada. ` +
+                "Cadastre a instituição de referência antes — contato não se repete dentro da tarefa.",
+            );
+            continue;
+          }
+          await inserirComVerificacao({
+            supabase,
+            tabela: "research_action_plan_items",
+            organizationId,
+            userId,
+            payload: {
+              case_id: data.caseId,
+              action_type: acao.tipo,
+              titulo,
+              priority: acao.prioridade,
+              reason: descricaoDaInstancia(item, composicao),
+              status: "planejada",
+              suggested_channel: acao.canal,
+              institution_id: instituicaoId,
+              requires_human_approval: true,
+              estimated_cost_amount: null,
+              estimated_cost_currency: null,
+              expense_approval_status: estadoInicialDespesa(acao),
+              payer: "nao_definido",
+              due_date: null,
+              notes_internal:
+                `Item ${item.id} do checklist §58c. Custo, prazo e pagador em branco: não são estimados por inferência.`,
+              data_origin: "real",
+            },
+          });
+          acoesGravadas.add(titulo);
+          acoesCriadas.push(titulo);
+        }
       }
     }
 
-    if (criados.length) {
+    if (criados.length || acoesCriadas.length) {
       await supabase.from("audit_logs").insert({
         organization_id: organizationId,
         entidade: "research_pending_items",
         entidade_id: null,
         acao: "checklist_58c_semeado",
         user_id: userId,
-        valores_posteriores: { criados: criados.length, lacunas: lacunas.length },
+        valores_posteriores: { criados: criados.length, acoes: acoesCriadas.length, lacunas: lacunas.length },
         metadados: { case_id: data.caseId, research_case_id: researchCaseId, motivo: data.motivo },
       });
       await registrarTimelineCaso(supabase, {
         organizationId,
         caseId: data.caseId,
         eventType: "caso",
-        title: `Checklist §58c semeado: ${criados.length} itens`,
+        title: `Checklist §58c semeado: ${criados.length} itens e ${acoesCriadas.length} ações de plano`,
         summaryInternal: data.motivo,
         sourceEntityType: "research_pending_items",
         sourceEntityId: researchCaseId,
@@ -349,5 +467,10 @@ export const semearChecklist58cNoCaso = createServerFn({ method: "POST" })
       });
     }
 
-    return { criados: criados.length, jaExistiam: jaGravados.size - criados.length, lacunas };
+    return {
+      criados: criados.length,
+      acoesCriadas: acoesCriadas.length,
+      jaExistiam: jaGravados.size - criados.length,
+      lacunas,
+    };
   });

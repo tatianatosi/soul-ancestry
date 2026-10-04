@@ -187,7 +187,7 @@ export const DE_PARA_CAMPOS_CHECKLIST = [
   },
   {
     campo: "responsável",
-    destino: "research_pending_items.responsible_user_id",
+    destino: "research_pending_items.responsible_user_id · research_action_plan_items.responsible_user_id",
     vocabulario: "usuário da organização",
     copia: false,
     nota: "Vazio significa a equipe institucional — não se pergunta de novo a cada item.",
@@ -207,22 +207,29 @@ export const DE_PARA_CAMPOS_CHECKLIST = [
     nota: "FK para o catálogo; a fonte provável do template é só sugestão em texto.",
   },
   {
+    /*
+     * Correção de 04/10/2026. Eu havia dito que custo e aprovação de despesa não
+     * tinham dono por item e os mandei para o catálogo de fontes e para o gate.
+     * Tinham dono: `research_action_plan_items` já carrega os dois por item, com
+     * moeda, pagador e prazo. O catálogo segue como referência de preço da
+     * fonte, não como destino do custo deste item.
+     */
     campo: "custo estimado",
-    destino: "genealogical_sources_catalog.custo (por leitura da FK)",
-    vocabulario: "texto do catálogo",
+    destino: "research_action_plan_items.estimated_cost_amount + estimated_cost_currency",
+    vocabulario: "valor e moeda por item; vazio quando não estimado",
     copia: false,
-    nota: "O custo é atributo da fonte, não do item. Copiar criaria duas verdades.",
+    nota: "Custo é do item de ação, não do checklist nem da fonte. O catálogo de fontes é referência de preço, não destino.",
   },
   {
     campo: "aprovação de despesa",
-    destino: "research_document_requests.external_gate_status + Anexo II do contrato",
-    vocabulario: "pending_authorization · eligible_for_human_release · released_by_authorized_user",
+    destino: "research_action_plan_items.expense_approval_status + payer (Anexo II é o instrumento)",
+    vocabulario: "nao_aplicavel · nao_submetida · aguardando_aprovacao · aprovada · recusada",
     copia: false,
-    nota: "Despesa externa só com aprovação prévia registrada; o Anexo II é o instrumento.",
+    nota: "Despesa externa só com aprovação prévia registrada. Item nasce nao_submetida — nunca aprovada por omissão.",
   },
   {
     campo: "arquivo/link",
-    destino: "case_source_documents (+ legibilidade e integridade)",
+    destino: "case_source_documents (+ legibilidade e integridade) · research_action_plan_items.internal_evidence_link",
     vocabulario: "ok · parcial · ilegivel/comprometida · a_avaliar",
     copia: false,
     nota: "Documento recebido e não revisado fica a_avaliar — nunca entra como ok.",
@@ -276,4 +283,159 @@ export function totalDeInstancias(composicao: {
     else total += 1;
   }
   return total;
+}
+
+/* ---------------- ação de terceiro por item do checklist ---------------- */
+
+/**
+ * Complemento de 04/10/2026, instrução da Proprietária: "adicione todos os
+ * campos necessários, não somente renderizados".
+ *
+ * Correção contra o que eu havia entregado: o item do checklist precisa de
+ * custo estimado, aprovação de despesa, pagador, prazo, canal e instituição —
+ * e `research_action_plan_items` já tem todos esses campos. A tabela estava com
+ * **0 linhas** no caso dela. Aqui fica a regra de qual item do §58c gera ação de
+ * terceiro, com o tipo de ação do CHECK real.
+ */
+export const ACOES_PLANO = [
+  "consulta_acervo_interno",
+  "solicitacao_documento",
+  "contato_institucional",
+  "visita_presencial",
+  "pesquisa_em_campo",
+  "traducao",
+  "apostilamento",
+  "conferencia_documental",
+  "revisao_interna",
+  "organizacao_de_evidencias",
+  "preparacao_de_pedido",
+  "outro",
+] as const;
+export type AcaoPlano = (typeof ACOES_PLANO)[number];
+
+export const CANAIS_PLANO = [
+  "desk_only",
+  "email",
+  "telefone",
+  "presencial",
+  "portal_web",
+  "correio",
+  "whatsapp",
+  "intermediario",
+] as const;
+export type CanalPlano = (typeof CANAIS_PLANO)[number];
+
+export type AcaoDoItem = {
+  tipo: AcaoPlano;
+  canal: CanalPlano;
+  /** Depende de pagamento a terceiro? Decide se o custo é esperado. */
+  despesaEsperada: boolean;
+  prioridade: "critica" | "alta" | "media" | "baixa";
+  /**
+   * Nome da instituição de referência em `institutions`.
+   *
+   * O guard do plano de ação (`fn_g07_plan_guard`) recusa ação de canal externo
+   * sem instituição vinculada — e está certo: "vincule a instituição de
+   * referência em vez de repetir contatos na tarefa". Ação `desk_only` não
+   * precisa de instituição.
+   *
+   * `null` em item de canal externo significa **instituição por caso**: o
+   * arquivo da localidade do ascendente depende de qual é a localidade, e isso
+   * não pertence ao template — vem de `research_people`. Nesse caso o semeador
+   * declara a lacuna em vez de criar ação sem destino.
+   */
+  instituicao: string | null;
+};
+
+/** Severidade do item → prioridade da ação. Mesma escala, nomes do CHECK. */
+const PRIORIDADE_POR_SEVERIDADE: Record<SeveridadePendencia, AcaoDoItem["prioridade"]> = {
+  critical: "critica",
+  high: "alta",
+  medium: "media",
+  low: "baixa",
+};
+
+/**
+ * Qual ação de plano cada item gera. Item que não aparece aqui é trabalho
+ * interno: não cria linha de plano, não tem custo e não espera aprovação de
+ * despesa — dizer o contrário seria inventar despesa.
+ */
+const ACAO_POR_ITEM: Record<
+  string,
+  { tipo: AcaoPlano; canal: CanalPlano; despesaEsperada: boolean; instituicao: string | null }
+> = {
+  "1.1.nascimento": { tipo: "solicitacao_documento", canal: "portal_web", despesaEsperada: true , instituicao: "Registro civil brasileiro — cartórios" },
+  "1.1.estado_civil": { tipo: "solicitacao_documento", canal: "portal_web", despesaEsperada: true , instituicao: "Registro civil brasileiro — cartórios" },
+  "1.1.alteracao_nome": { tipo: "solicitacao_documento", canal: "portal_web", despesaEsperada: true , instituicao: "Registro civil brasileiro — cartórios" },
+  "1.1.antecedentes": { tipo: "solicitacao_documento", canal: "portal_web", despesaEsperada: true , instituicao: "Polícia Federal — registro de estrangeiro e antecedentes" },
+  "1.1.traducao": { tipo: "traducao", canal: "email", despesaEsperada: true , instituicao: "Tradutor público juramentado" },
+  "1.1.apostila": { tipo: "apostilamento", canal: "presencial", despesaEsperada: true , instituicao: "Tabelionato habilitado para apostilamento" },
+  "1.2.nascimento": { tipo: "solicitacao_documento", canal: "portal_web", despesaEsperada: true , instituicao: "Registro civil brasileiro — cartórios" },
+
+  "2.1.heimatschein": { tipo: "contato_institucional", canal: "email", despesaEsperada: true , instituicao: "MA 35 — Magistratsabteilung 35 (Viena)" },
+  "2.1.heimatrolle": { tipo: "contato_institucional", canal: "email", despesaEsperada: true , instituicao: "MA 35 — Magistratsabteilung 35 (Viena)" },
+  "2.1.nachweis": { tipo: "contato_institucional", canal: "email", despesaEsperada: true , instituicao: "MA 35 — Magistratsabteilung 35 (Viena)" },
+  "2.1.feststellung": { tipo: "contato_institucional", canal: "email", despesaEsperada: true , instituicao: "MA 35 — Magistratsabteilung 35 (Viena)" },
+  "2.1.altmatrik": { tipo: "solicitacao_documento", canal: "email", despesaEsperada: true , instituicao: "MA 61 — Zivile Altmatrik (Viena)" },
+  "2.1.zentralkartothek": { tipo: "contato_institucional", canal: "email", despesaEsperada: true , instituicao: "MA 8 — Arquivo Municipal e Provincial de Viena" },
+  "2.2.meldeunterlagen": { tipo: "contato_institucional", canal: "email", despesaEsperada: true , instituicao: "MA 8 — Arquivo Municipal e Provincial de Viena" },
+  "2.2.meldezettel": { tipo: "contato_institucional", canal: "email", despesaEsperada: true , instituicao: "MA 8 — Arquivo Municipal e Provincial de Viena" },
+  "2.3.localidade_nascimento": { tipo: "solicitacao_documento", canal: "email", despesaEsperada: true , instituicao: null },
+  "2.3.localidade_pertenca": { tipo: "contato_institucional", canal: "email", despesaEsperada: true , instituicao: null },
+  "2.3.localidade_residencia": { tipo: "contato_institucional", canal: "email", despesaEsperada: true , instituicao: null },
+  "2.3.localidade_casamento": { tipo: "solicitacao_documento", canal: "email", despesaEsperada: true , instituicao: null },
+  "2.3.localidade_filiacao": { tipo: "solicitacao_documento", canal: "email", despesaEsperada: true , instituicao: null },
+  "2.4.servico_militar": { tipo: "contato_institucional", canal: "email", despesaEsperada: true , instituicao: "Kriegsarchiv — Arquivo Militar Austríaco (ÖStA)" },
+  "2.4.ficha_pessoal": { tipo: "contato_institucional", canal: "email", despesaEsperada: true , instituicao: "Kriegsarchiv — Arquivo Militar Austríaco (ÖStA)" },
+  "2.4.matriculas": { tipo: "contato_institucional", canal: "email", despesaEsperada: true , instituicao: "Kriegsarchiv — Arquivo Militar Austríaco (ÖStA)" },
+  "2.5.imigracao": { tipo: "pesquisa_em_campo", canal: "presencial", despesaEsperada: true , instituicao: "APESP — Arquivo Público do Estado de São Paulo" },
+  "2.5.passageiros": { tipo: "consulta_acervo_interno", canal: "portal_web", despesaEsperada: false , instituicao: "Museu da Imigração do Estado de São Paulo" },
+  "2.5.registro_estrangeiro": { tipo: "solicitacao_documento", canal: "portal_web", despesaEsperada: true , instituicao: "Polícia Federal — registro de estrangeiro e antecedentes" },
+  "2.5.consular": { tipo: "contato_institucional", canal: "email", despesaEsperada: false , instituicao: "Embaixada e consulados da Áustria no Brasil" },
+
+  "3.1.condicao_perseguida": { tipo: "contato_institucional", canal: "email", despesaEsperada: true , instituicao: "IKG Wien — Israelitische Kultusgemeinde" },
+  "3.1.perseguicao_direta": { tipo: "consulta_acervo_interno", canal: "portal_web", despesaEsperada: false , instituicao: "Arolsen Archives" },
+  "3.1.fuga": { tipo: "consulta_acervo_interno", canal: "portal_web", despesaEsperada: false , instituicao: "Museu da Imigração do Estado de São Paulo" },
+  "3.2.arolsen": { tipo: "consulta_acervo_interno", canal: "portal_web", despesaEsperada: false , instituicao: "Arolsen Archives" },
+  "3.2.yad_vashem": { tipo: "consulta_acervo_interno", canal: "portal_web", despesaEsperada: false , instituicao: "Yad Vashem" },
+  "3.2.ushmm": { tipo: "consulta_acervo_interno", canal: "portal_web", despesaEsperada: false , instituicao: "USHMM — United States Holocaust Memorial Museum" },
+  "3.2.comunidade": { tipo: "contato_institucional", canal: "email", despesaEsperada: true , instituicao: "IKG Wien — Israelitische Kultusgemeinde" },
+  "3.2.doew": { tipo: "contato_institucional", canal: "email", despesaEsperada: false , instituicao: "DÖW — Dokumentationsarchiv des österreichischen Widerstandes" },
+  "3.2.oesta": { tipo: "contato_institucional", canal: "email", despesaEsperada: true , instituicao: "ÖStA — Arquivo Nacional da Áustria" },
+  "3.4.certidao_naturalizacao": { tipo: "preparacao_de_pedido", canal: "portal_web", despesaEsperada: true , instituicao: "Ministério da Justiça — DEMIG (e-Certidão)" },
+  "3.4.processo_naturalizacao": { tipo: "solicitacao_documento", canal: "portal_web", despesaEsperada: true , instituicao: "Arquivo Nacional (Brasil)" },
+
+  "4.2.documento_do_elo": { tipo: "solicitacao_documento", canal: "portal_web", despesaEsperada: true , instituicao: "Registro civil brasileiro — cartórios" },
+  "4.2.complemento_do_elo": { tipo: "solicitacao_documento", canal: "portal_web", despesaEsperada: true , instituicao: "Registro civil brasileiro — cartórios" },
+  "4.3.ruptura_nome": { tipo: "conferencia_documental", canal: "desk_only", despesaEsperada: false , instituicao: null },
+  "4.3.ruptura_datas": { tipo: "conferencia_documental", canal: "desk_only", despesaEsperada: false , instituicao: null },
+  "4.3.ruptura_filiacao": { tipo: "conferencia_documental", canal: "desk_only", despesaEsperada: false , instituicao: null },
+  "4.3.ruptura_casamento": { tipo: "solicitacao_documento", canal: "email", despesaEsperada: true , instituicao: "Registro civil brasileiro — cartórios" },
+  "4.3.obitos": { tipo: "solicitacao_documento", canal: "portal_web", despesaEsperada: true , instituicao: "Registro civil brasileiro — cartórios" },
+  "4.4.variantes_nome": { tipo: "organizacao_de_evidencias", canal: "desk_only", despesaEsperada: false , instituicao: null },
+};
+
+export function acaoDoItem(item: ItemChecklist58c): AcaoDoItem | null {
+  const base = ACAO_POR_ITEM[item.id];
+  if (!base) return null;
+  return { ...base, prioridade: PRIORIDADE_POR_SEVERIDADE[item.severidade] };
+}
+
+/** Itens que geram linha no plano de ação. */
+export function itensComAcao(): { item: ItemChecklist58c; acao: AcaoDoItem }[] {
+  return CHECKLIST_58C.map((item) => ({ item, acao: acaoDoItem(item) }))
+    .filter((x): x is { item: ItemChecklist58c; acao: AcaoDoItem } => x.acao !== null);
+}
+
+/** Itens de trabalho interno: sem linha de plano, sem custo, sem despesa. */
+export function itensSemAcaoDeTerceiro(): ItemChecklist58c[] {
+  return CHECKLIST_58C.filter((i) => acaoDoItem(i) === null);
+}
+
+/**
+ * Estado inicial da despesa, por item. Nunca nasce aprovada; item sem despesa
+ * esperada nasce `nao_aplicavel`, para a fila não mostrar aprovação fantasma.
+ */
+export function estadoInicialDespesa(acao: AcaoDoItem): "nao_aplicavel" | "nao_submetida" {
+  return acao.despesaEsperada ? "nao_submetida" : "nao_aplicavel";
 }

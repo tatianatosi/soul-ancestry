@@ -2,12 +2,18 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
 import {
+  ACOES_PLANO,
+  acaoDoItem,
   BLOCOS_58C,
+  CANAIS_PLANO,
   CHECKLIST_58C,
   DE_PARA_CAMPOS_CHECKLIST,
   DE_PARA_STATUS_DOCUMENTO,
   MARCA_CHECKLIST_58C,
+  estadoInicialDespesa,
+  itensComAcao,
   itensDoBloco,
+  itensSemAcaoDeTerceiro,
   tituloInstancia,
   totalDeInstancias,
 } from "@/lib/dossie-58c";
@@ -110,6 +116,24 @@ describe("o template não guarda dado da Ana", () => {
     }
   });
 
+  /*
+   * Consequência da regra acima: o arquivo da localidade do ascendente não pode
+   * ser instituição do template — depende de qual é a localidade. Nesses itens
+   * a instituição é por caso, e o semeador declara a lacuna.
+   */
+  it("itens de localidade do ascendente têm instituição por caso, não fixa", () => {
+    for (const id of [
+      "2.3.localidade_nascimento",
+      "2.3.localidade_pertenca",
+      "2.3.localidade_residencia",
+      "2.3.localidade_casamento",
+      "2.3.localidade_filiacao",
+    ]) {
+      const item = CHECKLIST_58C.find((i) => i.id === id)!;
+      expect(acaoDoItem(item)!.instituicao).toBeNull();
+    }
+  });
+
   it("nenhuma URL no template — fonte é texto, nunca endereço ao cliente", () => {
     expect(fonte).not.toContain("http");
   });
@@ -151,15 +175,20 @@ describe("os oito campos do checklist têm destino, e nenhum é cópia", () => {
     ]);
   });
 
-  it("nenhum campo é copiado: custo e classificação vêm por leitura da FK", () => {
+  /*
+   * Corrigido em 04/10/2026: eu havia mandado o custo para o catálogo de
+   * fontes. O dono por item é `research_action_plan_items`; o catálogo segue
+   * como referência de preço da fonte, não como destino do custo do item.
+   */
+  it("nenhum campo é copiado, e o custo mora no item de ação", () => {
     for (const d of DE_PARA_CAMPOS_CHECKLIST) {
       expect(d.copia).toBe(false);
       expect(d.destino.length).toBeGreaterThan(10);
       expect(d.nota.length).toBeGreaterThan(20);
     }
     const custo = DE_PARA_CAMPOS_CHECKLIST.find((d) => d.campo === "custo estimado")!;
-    expect(custo.destino).toContain("genealogical_sources_catalog");
-    expect(custo.destino).toContain("FK");
+    expect(custo.destino).toContain("research_action_plan_items");
+    expect(custo.nota).toContain("catálogo de fontes é referência de preço");
   });
 
   it("conclusão probatória nunca mora no item de checklist", () => {
@@ -214,5 +243,82 @@ describe("o leitor e o semeador ficaram ligados — nada de peça órfã", () =>
   it("todo item nasce aberto — semear não conclui nada", () => {
     expect(fn).toContain('status: "open"');
     expect(fn).not.toContain('status: "resolved"');
+  });
+});
+
+/**
+ * Corte C (04/10/2026) — correção contra o que eu mesmo entreguei.
+ *
+ * Eu havia dito que "custo estimado" e "aprovação de despesa" não tinham dono
+ * por item e os mandei para o catálogo de fontes e para o gate. Tinham dono:
+ * `research_action_plan_items` já carrega custo, moeda, aprovação de despesa,
+ * pagador, prazo, canal, instituição e link de evidência — e a tabela estava
+ * com **0 linhas** no caso dela. É isto que ela pediu com "adicione todos os
+ * campos necessários, não somente renderizados".
+ */
+describe("todos os campos do item: custo, despesa, pagador, prazo, instituição", () => {
+  it("o de-para aponta custo e aprovação de despesa para o plano de ação", () => {
+    const custo = DE_PARA_CAMPOS_CHECKLIST.find((d) => d.campo === "custo estimado")!;
+    expect(custo.destino).toContain("research_action_plan_items.estimated_cost_amount");
+    expect(custo.nota).toContain("Custo é do item de ação");
+    const despesa = DE_PARA_CAMPOS_CHECKLIST.find((d) => d.campo === "aprovação de despesa")!;
+    expect(despesa.destino).toContain("expense_approval_status");
+    expect(despesa.vocabulario).toContain("nao_submetida");
+    expect(despesa.nota).toContain("nunca aprovada por omissão");
+  });
+
+  it("cada ação tem tipo, canal, prioridade e instituição do vocabulário real", () => {
+    for (const { item, acao } of itensComAcao()) {
+      expect(ACOES_PLANO).toContain(acao.tipo);
+      expect(CANAIS_PLANO).toContain(acao.canal);
+      expect(["critica", "alta", "media", "baixa"]).toContain(acao.prioridade);
+      // O guard do plano recusa canal externo sem instituição: o template
+      // precisa nomear uma, ou ser desk_only.
+      if (acao.canal !== "desk_only" && !item.id.startsWith("2.3.")) {
+        expect(acao.instituicao, `${item.id} sem instituição de referência`).toBeTruthy();
+      }
+    }
+  });
+
+  it("prioridade da ação acompanha a severidade do item", () => {
+    const critico = itensComAcao().find((x) => x.item.severidade === "critical")!;
+    expect(critico.acao.prioridade).toBe("critica");
+    const baixo = itensComAcao().find((x) => x.item.severidade === "low");
+    if (baixo) expect(baixo.acao.prioridade).toBe("baixa");
+  });
+
+  it("despesa nasce não submetida quando é esperada, e não aplicável quando não é", () => {
+    const comDespesa = itensComAcao().find((x) => x.acao.despesaEsperada)!;
+    expect(estadoInicialDespesa(comDespesa.acao)).toBe("nao_submetida");
+    const semDespesa = itensComAcao().find((x) => !x.acao.despesaEsperada)!;
+    expect(estadoInicialDespesa(semDespesa.acao)).toBe("nao_aplicavel");
+  });
+
+  it("conferência interna não gera ação de terceiro nem despesa", () => {
+    const internos = itensSemAcaoDeTerceiro().map((i) => i.id);
+    expect(internos).toContain("1.3.cadastro");
+    expect(internos).toContain("1.1.passaporte");
+    expect(itensComAcao().length + internos.length).toBe(CHECKLIST_58C.length);
+  });
+
+  it("o semeador cria a ação com custo e prazo em branco e exige instituição", () => {
+    const fn = readFileSync("src/lib/dossie-58c.functions.ts", "utf8");
+    expect(fn).toContain("research_action_plan_items");
+    expect(fn).toContain("estimated_cost_amount: null");
+    expect(fn).toContain("due_date: null");
+    expect(fn).toContain('payer: "nao_definido"');
+    expect(fn).toContain("institution_id: instituicaoId");
+    expect(fn).toContain("não está cadastrada");
+    // Nunca nasce aprovada.
+    expect(fn).not.toContain('expense_approval_status: "aprovada"');
+  });
+
+  it("o painel mostra custo, despesa, pagador, prazo, responsável e arquivo por item", () => {
+    const painel = readFileSync("src/components/caso/dossie-consolidado.tsx", "utf8");
+    expect(painel).toContain("data-acoes-checklist");
+    for (const rotulo of ["custo", "despesa", "pagador", "prazo", "responsável", "arquivo"]) {
+      expect(painel).toContain(rotulo);
+    }
+    expect(painel).toContain("não estimado");
   });
 });

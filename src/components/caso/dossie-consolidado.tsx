@@ -173,6 +173,39 @@ export function DossieConsolidado({ caseId }: { caseId: string }) {
               </ul>
             </details>
 
+            <div data-acoes-checklist>
+              <p className="text-[11px] font-semibold text-navy">
+                Ações de terceiro do checklist — {d.acoes.length} de {d.acoesPrevistas} previstas ·{" "}
+                {d.itensInternos} itens são trabalho interno
+              </p>
+              {d.acoes.length ? (
+                <ul className="mt-1 space-y-0.5 text-[11px] text-navy/75">
+                  {d.acoes.slice(0, 10).map((a) => (
+                    <li key={a.id}>
+                      <strong>{a.titulo.replace(/^§58c /, "")}</strong> · {a.tipo} · {a.status} · {a.prioridade}
+                      <span className="block text-navy/55">
+                        custo {a.custo === null ? "não estimado" : `${a.custo} ${a.moeda ?? ""}`} · despesa{" "}
+                        {a.aprovacaoDespesa} · pagador {a.pagador} · prazo{" "}
+                        {a.prazo ? new Date(a.prazo).toLocaleDateString("pt-BR") : "não definido"} · responsável{" "}
+                        {a.temResponsavel ? "designado" : "equipe institucional"} · arquivo{" "}
+                        {a.arquivo ? "vinculado" : "não vinculado"}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-1 text-[11px] text-terracotta">
+                  Nenhuma ação de plano criada ainda: custo estimado, aprovação de despesa, pagador e prazo não têm onde
+                  ser registrados até semear o checklist.
+                </p>
+              )}
+              {d.acoes.length > 10 ? (
+                <p className="text-[11px] text-navy/55">
+                  e mais {d.acoes.length - 10} — a fila completa fica no plano de ação da pesquisa.
+                </p>
+              ) : null}
+            </div>
+
             <details data-de-para-campos-checklist>
               <summary className="cursor-pointer text-[11px] font-semibold text-navy">
                 Onde mora cada campo do checklist ({d.deParaCampos.length})
