@@ -1,0 +1,353 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/**
+ * Dossiê consolidado do caso — leitor e semeador do checklist §58c (04/10/2026).
+ *
+ * Proprietária: "pode seguir executar pela tabela de rotas, leia e execute o
+ * dossiê da Ana e junto do histórico completo da Ana... anexei também o skill
+ * que foi criado para trazer e montar o dossiê de cada cliente".
+ *
+ * A skill `ca-client-go-live` monta o dossiê como documento no Drive. O que
+ * **falta** e é desta camada: o dossiê como dado do Desk, com estado por item.
+ * Medido antes de executar, e ela está certa: o caso da Ana tinha 6 pendências
+ * de pesquisa (todas `resolved`) e **nenhuma** linha dos quatro BLOCOS do
+ * checklist §58c — o material tinha sido enviado e nunca teve destino.
+ *
+ * O que este módulo faz: compõe o dossiê a partir das fontes que já existem
+ * (composição do caso, linhagem, checklist, histórico, condição comercial,
+ * anexos) e semeia as instâncias do checklist no caso, uma vez, de forma
+ * idempotente.
+ *
+ * O que ele **não** faz: não consulta fonte externa, não solicita documento,
+ * não aprova despesa, não conclui prova, não publica nada ao cliente e não cria
+ * pasta, evento de calendário ou mensagem. As fases externas da skill (Drive,
+ * Canva, Calendar, WhatsApp, planilha de go-live) ficam fora: exigem conector
+ * autorizado e ação para fora, que esta sessão não executa.
+ */
+import { createServerFn } from "@tanstack/react-start";
+
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { organizacaoDo } from "@/lib/caso-canonico.server";
+import { semCache } from "@/lib/no-store";
+import { inserirComVerificacao } from "@/lib/persistencia.server";
+import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import {
+  BLOCOS_58C,
+  CHECKLIST_58C,
+  DE_PARA_CAMPOS_CHECKLIST,
+  MARCA_CHECKLIST_58C,
+  tituloInstancia,
+  totalDeInstancias,
+  type ItemChecklist58c,
+} from "@/lib/dossie-58c";
+
+/** Pessoas do caso, pelos papéis que o checklist precisa distinguir. */
+type ComposicaoDoCaso = {
+  adultos: string[];
+  dependentes: string[];
+  /** Elos da cadeia de descendência, do ascendente ao requerente. */
+  elos: string[];
+  /** Ascendentes prioritários (os que sustentam o vínculo e a perseguição). */
+  ascendentes: string[];
+};
+
+async function composicaoDoCaso(
+  supabase: any,
+  organizationId: string,
+  caseId: string,
+): Promise<ComposicaoDoCaso> {
+  /*
+   * Pessoas do caso vêm da função canônica (CA19): nunca de leitura crua de
+   * `case_members`, que é redundante com `nucleo_membros` e já derrubou um
+   * leitor em silêncio antes.
+   */
+  const [membros, { data: deps }, { data: pesquisa }] = await Promise.all([
+    pessoasDoCasoComFallbackNucleo(supabase, caseId),
+    supabase
+      .from("case_dependents")
+      .select("nome_completo")
+      .eq("organization_id", organizationId)
+      .eq("case_id", caseId)
+      .is("archived_at", null),
+    supabase
+      .from("research_cases")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .eq("case_id", caseId)
+      .is("archived_at", null)
+      .maybeSingle(),
+  ]);
+
+  const adultos = membros
+    .filter((m) => !m.dependente)
+    .map((m) => String(m.nome ?? ""))
+    .filter(Boolean);
+  const dependentes = ((deps ?? []) as any[]).map((d) => String(d.nome_completo ?? "")).filter(Boolean);
+
+  let elos: string[] = [];
+  let ascendentes: string[] = [];
+  const researchCaseId = (pesquisa as any)?.id as string | undefined;
+  if (researchCaseId) {
+    const { data: pessoas } = await supabase
+      .from("research_people")
+      .select("canonical_name,person_status,geracao")
+      .eq("organization_id", organizationId)
+      .eq("research_case_id", researchCaseId)
+      .is("archived_at", null)
+      .order("geracao", { ascending: false, nullsFirst: false });
+    const linhas = ((pessoas ?? []) as any[]).filter((p) => String(p.canonical_name ?? "").trim());
+    elos = linhas.map((p) => String(p.canonical_name));
+    ascendentes = linhas.filter((p) => p.person_status === "ancestor").map((p) => String(p.canonical_name));
+  }
+
+  return { adultos, dependentes, elos, ascendentes };
+}
+
+/** Pessoas a quem o item se aplica. Lista vazia = instância única do caso. */
+function pessoasDoItem(item: ItemChecklist58c, c: ComposicaoDoCaso): string[] {
+  if (item.alcance === "cada_adulto_requerente") return c.adultos;
+  if (item.alcance === "cada_dependente") return c.dependentes;
+  if (item.alcance === "cada_elo_da_cadeia") return c.elos;
+  return [];
+}
+
+/**
+ * Descrição da instância. Para os itens de alcance `ascendentes_prioritarios`,
+ * o documento da Proprietária nomeia as pessoas prioritárias dentro da própria
+ * linha — então a instância é única e nomeia quem são, em vez de multiplicar
+ * uma linha por ascendente (que inflaria a fila de pendências do caso).
+ */
+function descricaoDaInstancia(item: ItemChecklist58c, c: ComposicaoDoCaso): string {
+  const partes: string[] = [`Checklist §58c · BLOCO ${item.bloco} · ${item.secao}.`];
+  if (item.fonteProvavel) partes.push(`Fonte provável: ${item.fonteProvavel}.`);
+  if (item.alcance === "ascendentes_prioritarios") {
+    partes.push(
+      c.ascendentes.length
+        ? `Ascendentes prioritários: ${c.ascendentes.join(", ")}.`
+        : "Ascendentes prioritários ainda não registrados na pesquisa do caso — registrar antes de solicitar.",
+    );
+  }
+  if (item.observacao) partes.push(item.observacao);
+  return partes.join(" ");
+}
+
+/**
+ * Dossiê consolidado: o que a skill produziria como documento, aqui como
+ * leitura do dado real. Nenhum número é inventado — item sem instância aparece
+ * como "não semeado", nunca como concluído.
+ */
+export const dossieConsolidadoDoCaso = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string }) => {
+    if (!data?.caseId) throw new Error("Caso é obrigatório.");
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    semCache();
+    const supabase = (context as any).supabase;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+
+    const composicao = await composicaoDoCaso(supabase, organizationId, data.caseId);
+
+    const { data: pesquisa } = await supabase
+      .from("research_cases")
+      .select("id,status,country_context")
+      .eq("organization_id", organizationId)
+      .eq("case_id", data.caseId)
+      .is("archived_at", null)
+      .maybeSingle();
+    const researchCaseId = (pesquisa as any)?.id as string | undefined;
+
+    let pendencias: any[] = [];
+    if (researchCaseId) {
+      const { data: itens } = await supabase
+        .from("research_pending_items")
+        .select("id,title,description,category,severity,status,blocking_reason,due_at,resolution_note")
+        .eq("organization_id", organizationId)
+        .eq("research_case_id", researchCaseId)
+        .is("archived_at", null)
+        .order("title");
+      pendencias = (itens ?? []) as any[];
+    }
+
+    const doChecklist = pendencias.filter((p) => String(p.title ?? "").startsWith(MARCA_CHECKLIST_58C));
+    const foraDoChecklist = pendencias.filter((p) => !String(p.title ?? "").startsWith(MARCA_CHECKLIST_58C));
+
+    /* Estado por BLOCO: contagem real, com "não semeado" explícito. */
+    const blocos = BLOCOS_58C.map((b) => {
+      const prefixo = `${MARCA_CHECKLIST_58C} ${b.numero}.`;
+      const linhas = doChecklist.filter((p) => String(p.title).startsWith(prefixo));
+      return {
+        numero: b.numero,
+        titulo: b.titulo,
+        resumo: b.resumo,
+        previstos: CHECKLIST_58C.filter((i) => i.bloco === b.numero).length,
+        instancias: linhas.length,
+        abertos: linhas.filter((l) => l.status === "open").length,
+        emAndamento: linhas.filter((l) => l.status === "in_progress").length,
+        bloqueados: linhas.filter((l) => l.status === "blocked").length,
+        resolvidos: linhas.filter((l) => l.status === "resolved").length,
+        naoAplicaveis: linhas.filter((l) => l.status === "not_applicable").length,
+        criticosAbertos: linhas.filter((l) => l.severity === "critical" && l.status !== "resolved" && l.status !== "not_applicable").length,
+      };
+    });
+
+    /* Histórico: a timeline do caso é o histórico consolidado, não um doc. */
+    const { data: eventos } = await supabase
+      .from("case_timeline_events")
+      .select("id,event_type,title,status,occurred_at,summary_internal,bloqueio")
+      .eq("organization_id", organizationId)
+      .eq("case_id", data.caseId)
+      .is("archived_at", null)
+      .order("occurred_at", { ascending: true, nullsFirst: false });
+
+    /* Linhagem registrada: o dossiê sem cadeia é dossiê sem objeto. */
+    const { data: linhas } = await supabase
+      .from("lineage_paths")
+      .select("id,nome_da_linha,tipo_da_linha,status,geracao_alvo,aderencia_percentual,proximo_marco,risco_principal")
+      .eq("organization_id", organizationId)
+      .eq("case_id", data.caseId)
+      .is("archived_at", null);
+
+    const previsto = totalDeInstancias({
+      adultos: composicao.adultos.length,
+      dependentes: composicao.dependentes.length,
+      elos: composicao.elos.length,
+    });
+
+    return {
+      composicao,
+      pesquisa: pesquisa ?? null,
+      blocos,
+      previsto,
+      semeados: doChecklist.length,
+      /** Pendências do caso que não vêm do template — não são tocadas pelo seed. */
+      outrasPendencias: foraDoChecklist.map((p) => ({
+        id: String(p.id),
+        titulo: String(p.title ?? ""),
+        categoria: String(p.category ?? ""),
+        severidade: String(p.severity ?? ""),
+        status: String(p.status ?? ""),
+      })),
+      criticosAbertos: doChecklist
+        .filter((p) => p.severity === "critical" && p.status !== "resolved" && p.status !== "not_applicable")
+        .map((p) => ({ id: String(p.id), titulo: String(p.title ?? ""), status: String(p.status ?? "") })),
+      historico: ((eventos ?? []) as any[]).map((e) => ({
+        id: String(e.id),
+        tipo: String(e.event_type ?? ""),
+        titulo: String(e.title ?? ""),
+        status: String(e.status ?? ""),
+        quando: (e.occurred_at as string | null) ?? null,
+        bloqueio: Boolean(e.bloqueio),
+      })),
+      linhagem: ((linhas ?? []) as any[]).map((l) => ({
+        id: String(l.id),
+        nome: String(l.nome_da_linha ?? ""),
+        tipo: String(l.tipo_da_linha ?? ""),
+        status: String(l.status ?? ""),
+        geracaoAlvo: l.geracao_alvo === null || l.geracao_alvo === undefined ? null : Number(l.geracao_alvo),
+        aderencia: l.aderencia_percentual === null || l.aderencia_percentual === undefined ? null : Number(l.aderencia_percentual),
+        proximoMarco: (l.proximo_marco as string | null) ?? null,
+        risco: (l.risco_principal as string | null) ?? null,
+      })),
+      /** Onde cada um dos oito campos do checklist mora. Não é texto solto. */
+      deParaCampos: DE_PARA_CAMPOS_CHECKLIST.map((d) => ({ ...d })),
+    };
+  });
+
+/**
+ * Semeia as instâncias do checklist §58c no caso. Idempotente por título: o que
+ * já existe não é recriado, e nada existente é alterado — nem status, nem
+ * responsável, nem resolução.
+ */
+export const semearChecklist58cNoCaso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string; motivo: string }) => {
+    if (!data?.caseId) throw new Error("Caso é obrigatório.");
+    if (!String(data?.motivo ?? "").trim()) throw new Error("Informe o motivo da semeadura do checklist.");
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    const supabase = (context as any).supabase;
+    const userId = context.userId as string;
+    const organizationId = await organizacaoDo(supabase, userId);
+
+    const { data: pesquisa } = await supabase
+      .from("research_cases")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .eq("case_id", data.caseId)
+      .is("archived_at", null)
+      .maybeSingle();
+    const researchCaseId = (pesquisa as any)?.id as string | undefined;
+    if (!researchCaseId) {
+      throw new Error(
+        "Este caso ainda não tem pesquisa aberta. O checklist §58c pertence à pesquisa do caso — abra a pesquisa antes de semear.",
+      );
+    }
+
+    const { data: existentes } = await supabase
+      .from("research_pending_items")
+      .select("title")
+      .eq("organization_id", organizationId)
+      .eq("research_case_id", researchCaseId);
+    const jaGravados = new Set(((existentes ?? []) as any[]).map((p) => String(p.title ?? "")));
+
+    const composicao = await composicaoDoCaso(supabase, organizationId, data.caseId);
+
+    const criados: string[] = [];
+    const lacunas: string[] = [];
+    for (const item of CHECKLIST_58C) {
+      const pessoas = pessoasDoItem(item, composicao);
+      const alvos = pessoas.length ? pessoas : [null];
+      if (!pessoas.length && item.alcance !== "caso" && item.alcance !== "ascendentes_prioritarios") {
+        lacunas.push(
+          `${item.id}: nenhuma pessoa registrada para o alcance "${item.alcance}" — item semeado uma vez no caso, a desdobrar quando a composição estiver registrada.`,
+        );
+      }
+      for (const pessoa of alvos) {
+        const titulo = tituloInstancia(item, pessoa);
+        if (jaGravados.has(titulo)) continue;
+        await inserirComVerificacao({
+          supabase,
+          tabela: "research_pending_items",
+          organizationId,
+          userId,
+          payload: {
+            research_case_id: researchCaseId,
+            title: titulo,
+            description: descricaoDaInstancia(item, composicao),
+            category: item.categoria,
+            severity: item.severidade,
+            status: "open",
+          },
+        });
+        jaGravados.add(titulo);
+        criados.push(titulo);
+      }
+    }
+
+    if (criados.length) {
+      await supabase.from("audit_logs").insert({
+        organization_id: organizationId,
+        entidade: "research_pending_items",
+        entidade_id: null,
+        acao: "checklist_58c_semeado",
+        user_id: userId,
+        valores_posteriores: { criados: criados.length, lacunas: lacunas.length },
+        metadados: { case_id: data.caseId, research_case_id: researchCaseId, motivo: data.motivo },
+      });
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.caseId,
+        eventType: "caso",
+        title: `Checklist §58c semeado: ${criados.length} itens`,
+        summaryInternal: data.motivo,
+        sourceEntityType: "research_pending_items",
+        sourceEntityId: researchCaseId,
+        userId,
+      });
+    }
+
+    return { criados: criados.length, jaExistiam: jaGravados.size - criados.length, lacunas };
+  });

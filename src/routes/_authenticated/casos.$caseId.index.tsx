@@ -64,6 +64,7 @@ import { AbaJornadaCliente } from "@/components/caso/jornada-cliente";
 import { AbaFechamento } from "@/components/caso/fechamento";
 import { AbaCadastro } from "@/components/caso/cadastro-checklist";
 import { PainelFichaUnica } from "@/components/caso/ficha-unica";
+import { DossieConsolidado } from "@/components/caso/dossie-consolidado";
 import { AvisoCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
 import { PublicarUniaoRamos } from "@/components/caso/publicar-uniao-ramos";
 import { VinculoNucleo } from "@/components/caso/vinculo-nucleo";
@@ -2271,6 +2272,16 @@ function FichaCaso() {
             citar os dois nomes antigos, para quem procura por eles achar.
           */}
           <PainelFichaUnica caseId={id} />
+          {/*
+            04/10/2026 — "leia e execute o dossiê da Ana e junto do histórico
+            completo da Ana... anexei também o skill que foi criado para trazer
+            e montar o dossiê de cada cliente". O dossiê deixa de ser documento
+            à parte e passa a ser dado: checklist §58c com estado por item,
+            cadeia registrada, histórico e o de-para dos oito campos.
+          */}
+          <div className="mt-5">
+            <DossieConsolidado caseId={id} />
+          </div>
           <div className="mt-5 grid gap-5 lg:grid-cols-2">
             <Secao
               titulo="País e via"
