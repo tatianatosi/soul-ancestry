@@ -142,8 +142,21 @@ export const salvarPesquisa = createServerFn({ method: "POST" })
     const alvo = TABELA[data.bloco];
     // 24/09/2026 — evidências e eventos do dossiê antigo são legado
     // (fontes-pesquisa-canonicas.ts): só edição/arquivamento do que existe.
-    if (!data.id && (data.bloco === "evidencias" || data.bloco === "eventos")) {
-      throw new Error(mensagemLegadoSemCriacao(data.bloco === "evidencias" ? "evidencia" : "evento"));
+    /*
+     * 24/09/2026 — evidências e eventos do dossiê antigo são legado
+     * (fontes-pesquisa-canonicas.ts): só edição/arquivamento do que existe.
+     *
+     * 04/10/2026, passo 5 do Saneamento V4 — "hipótese única": `hipoteses`
+     * entra na mesma regra. Esta função ainda criava em `research_hypotheses`,
+     * a tabela legada, enquanto a hipótese estruturada (categoria, status,
+     * nível de confiança) vive em `research_case_hypotheses`, no módulo de
+     * Pesquisa. Nada é apagado: o que já existe continua editável e
+     * arquivável aqui.
+     */
+    if (!data.id && (data.bloco === "evidencias" || data.bloco === "eventos" || data.bloco === "hipoteses")) {
+      const conceito =
+        data.bloco === "evidencias" ? "evidencia" : data.bloco === "hipoteses" ? "hipotese" : "evento";
+      throw new Error(mensagemLegadoSemCriacao(conceito));
     }
     const dados = limparCampos(alvo.campos, data.dados);
     if (data.bloco === "evidencias" && !dados["pesquisador_id"]) {

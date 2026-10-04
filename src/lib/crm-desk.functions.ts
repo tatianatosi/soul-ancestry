@@ -1168,8 +1168,16 @@ export type PossivelDuplicidade = {
   motivo: string;
 };
 
-/** Procura possíveis duplicidades por e-mail e telefone, usando nome como sinal complementar. */
-async function buscarDuplicidades(
+/**
+ * Procura possíveis duplicidades por e-mail e telefone, usando nome como sinal
+ * complementar.
+ *
+ * Exportada em 04/10/2026: a varredura de cadastros paralelos de lead mostrou
+ * que `registrarLeadGoLive` inseria direto, sem nenhuma checagem — dois
+ * caminhos de criação, só um com dedup. Mesma função nos dois, em vez de uma
+ * segunda regra de duplicidade.
+ */
+export async function buscarDuplicidades(
   supabase: any,
   entrada: { nome: string; email?: string | null; telefone?: string | null },
 ): Promise<PossivelDuplicidade[]> {

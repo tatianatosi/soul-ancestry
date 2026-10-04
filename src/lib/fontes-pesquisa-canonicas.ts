@@ -36,7 +36,7 @@ export type FontePesquisa = {
   ponte?: string;
 };
 
-export type ConceitoPesquisa = "evidencia" | "relacao" | "evento";
+export type ConceitoPesquisa = "evidencia" | "relacao" | "evento" | "hipotese";
 
 export const FONTES_PESQUISA: Record<ConceitoPesquisa, FontePesquisa[]> = {
   evidencia: [
@@ -88,6 +88,41 @@ export const FONTES_PESQUISA: Record<ConceitoPesquisa, FontePesquisa[]> = {
       ponte: "Copiada para genealogical_relationships pela ponte com prévia (/governanca/migracao-onboarding-gate).",
     },
   ],
+  /*
+   * Passo 5 do Saneamento V4 (Proprietária, 03/10/2026): "hipótese, ficha e
+   * evidência únicas". Hipótese vivia em TRÊS lugares sem registro de qual
+   * manda, e `salvarPesquisa` ainda CRIAVA na tabela legada. Registrado aqui,
+   * com a mesma estrutura dos outros conceitos; nada é apagado.
+   */
+  hipotese: [
+    {
+      tabela: "research_case_hypotheses",
+      papel: "canonica",
+      representa: "Hipótese estruturada do caso: categoria, status, nível de confiança e revisão.",
+      escritaNova: "src/lib/pesquisa-modulo.functions.ts#salvarBlocoPesquisa",
+      casa: "/pesquisa-modulo/$id (bloco Hipóteses)",
+    },
+    {
+      tabela: "research_cases.internal_hypothesis",
+      papel: "camada_propria",
+      representa: "Resumo em texto livre da leitura interna do caso — não é a lista de hipóteses.",
+      escritaNova: "src/lib/pesquisa-cadeia.functions.ts#salvarVisaoPesquisa",
+      casa: "/pesquisa-evidencias/$caseId (campo \"Hipótese interna (resumo em texto)\")",
+      ponte:
+        "Divergência declarada: o texto do passo 5 do V4 pede este campo \"somente leitura\". " +
+        "A medição mostra que ele é outro objeto — resumo em texto, sem categoria, status nem " +
+        "nível de confiança —, com escritor próprio e sem sobreposição com a lista estruturada. " +
+        "Fica editável, e a divergência está registrada aqui em vez de escondida.",
+    },
+    {
+      tabela: "research_hypotheses",
+      papel: "legado",
+      representa: "Hipótese do dossiê antigo (pessoa = case_members). Só dado do caso DEMO.",
+      escritaNova: null,
+      casa: "/pesquisa/$id (edição e arquivamento do que existe)",
+      ponte: "Sem registro real a migrar; congelado para criação.",
+    },
+  ],
   evento: [
     {
       tabela: "genealogical_events",
@@ -126,7 +161,13 @@ export const FONTES_PESQUISA: Record<ConceitoPesquisa, FontePesquisa[]> = {
 export function mensagemLegadoSemCriacao(conceito: ConceitoPesquisa): string {
   const canonica = FONTES_PESQUISA[conceito].find((f) => f.papel === "canonica")!;
   return `Esta lista é legado: aqui só se edita ou arquiva o que já existe. Registre ${
-    conceito === "evidencia" ? "a evidência nova" : conceito === "relacao" ? "a relação nova" : "o evento novo"
+    conceito === "evidencia"
+      ? "a evidência nova"
+      : conceito === "relacao"
+        ? "a relação nova"
+        : conceito === "hipotese"
+          ? "a hipótese nova"
+          : "o evento novo"
   } em ${canonica.casa}.`;
 }
 

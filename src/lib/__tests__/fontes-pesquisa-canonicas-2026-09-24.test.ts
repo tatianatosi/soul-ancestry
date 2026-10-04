@@ -127,9 +127,14 @@ describe("ponte idempotente", () => {
 });
 
 describe("legado sem registro novo — servidor e tela", () => {
-  it("dossiê antigo recusa evidência e evento novos", () => {
+  /*
+   * 04/10/2026, passo 5 do Saneamento V4: `hipoteses` entrou na mesma regra —
+   * a hipótese estruturada vive em `research_case_hypotheses`, no módulo de
+   * Pesquisa. O dossiê antigo segue editável e arquivável.
+   */
+  it("dossiê antigo recusa evidência, evento e hipótese novos", () => {
     const fn = ler("src/lib/pesquisa.functions.ts");
-    expect(fn).toContain('if (!data.id && (data.bloco === "evidencias" || data.bloco === "eventos"))');
+    expect(fn).toContain('if (!data.id && (data.bloco === "evidencias" || data.bloco === "eventos" || data.bloco === "hipoteses"))');
   });
   it("módulo antigo recusa relação e evento novos", () => {
     const fn = ler("src/lib/pesquisa-modulo.functions.ts");

@@ -284,6 +284,62 @@ export const INDICADORES_CANONICOS: readonly IndicadorCanonico[] = [
   },
 ];
 
+/**
+ * Comparação medida entre `painel-dia.tsx` e a rota `/painel` — passo 3 do
+ * Saneamento V4, que a Proprietária pediu explicitamente ("a comparação entre
+ * o painel dia e a rota painel", 04/10/2026).
+ *
+ * Diferente de `painel-desk-hoje.tsx` e `painel-hoje.tsx` (abaixo), que são
+ * legado deliberado com decisão registrada, `painel-dia.tsx` NÃO tem decisão
+ * nenhuma: nenhuma rota o renderiza, e ao mesmo tempo 18 arquivos de teste o
+ * cobrem como se fosse o Painel Hoje vivo. Nenhum agente deve escolher por
+ * ela — este registro existe para a escolha ser informada, não para ser feita
+ * aqui.
+ */
+export const COMPARACAO_PAINEL_HOJE = {
+  medidoEm: "2026-10-04",
+  candidatos: [
+    {
+      arquivo: "src/components/painel/painel-dia.tsx",
+      linhas: 1260,
+      rota: null,
+      leitores: [
+        "painelHojeDesk",
+        "painelCadencia",
+        "listarAlertas",
+        "estadoAcessoPainel",
+        "casosBloqueadosPorCatalogo",
+        "panoramaChecklistJuridico",
+      ],
+      forte:
+        "Seis leitores especializados do Desk: cadência, alertas, caso em destaque, sinais por grupo, " +
+        "checklist jurídico, bloqueio por catálogo e ações rápidas com gate de acesso.",
+      fraco: "Nenhuma rota o renderiza — está vivo só em teste.",
+      testes: 18,
+    },
+    {
+      arquivo: "src/routes/_authenticated/painel.tsx",
+      linhas: 693,
+      rota: "/painel",
+      leitores: ["useGoLive (agregado)", "radarMarcosJuridicosDoPainel"],
+      forte:
+        "É a rota real do menu, com 16 blocos: tarefas e microentregas, decisões prioritárias, " +
+        "próximas ações comerciais, funil, ritmo, prioridades, casos por país e via, radar jurídico, " +
+        "propostas, contratos, pagamentos, cadência, casos sem próxima ação, revisão e alertas.",
+      fraco:
+        "Depende de um único leitor agregado do Go Live, não dos leitores especializados do Desk.",
+      testes: null,
+    },
+  ],
+  /** O que a decisão dela resolve, em uma linha cada. */
+  consequencias: [
+    "Eleger /painel: os 18 testes de painel-dia passam a cobrir componente fora de rota — reclassificar.",
+    "Eleger painel-dia: precisa de rota e de substituir os 16 blocos já em uso em /painel.",
+    "Fundir: os seis leitores especializados entram em /painel bloco a bloco, sem perder os 16.",
+  ],
+  decisao: "PENDENTE_PROPRIETARIA",
+} as const;
+
 /** Painéis aposentados visualmente: arquivo, rota e teste preservados. */
 export const PAINEIS_HISTORICOS = [
   {

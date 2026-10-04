@@ -78,6 +78,8 @@ export const registrarLeadGoLive = createServerFn({ method: "POST" })
       responsavel?: string;
       proximoPasso?: string;
       proximoPassoEm?: string;
+      /** Confirmação humana para criar mesmo havendo duplicidade (04/10/2026). */
+      confirmarDuplicidade?: boolean;
     }) => d,
   )
   .handler(async ({ data, context }) => {
@@ -93,6 +95,34 @@ export const registrarLeadGoLive = createServerFn({ method: "POST" })
     // Regra do banco para lead ativo: área responsável e data da próxima ação.
     if (!texto(data.area)) throw new Error("Área responsável é obrigatória.");
     if (!texto(data.proximoPassoEm)) throw new Error("Data do próximo passo é obrigatória.");
+
+    /*
+     * 04/10/2026 — varredura de cadastros paralelos de lead: este é o SEGUNDO
+     * caminho de criação (o primeiro é `criarLeadManual`, em /leads) e não
+     * tinha dedup nenhum. Passa a usar a MESMA checagem por e-mail, telefone e
+     * nome; duplicidade encontrada exige confirmação explícita em vez de criar
+     * um lead gêmeo em silêncio. Nenhuma regra nova de duplicidade.
+     */
+    const { buscarDuplicidades } = await import("@/lib/crm-desk.functions");
+    const duplicidades = await buscarDuplicidades(s, {
+      nome,
+      email: texto(data.email) || null,
+      telefone: texto(data.telefone) || null,
+    });
+    if (duplicidades.length && !data.confirmarDuplicidade) {
+      /*
+       * Recusa, não "ok: false": esta tela não tem (e não vai ganhar aqui) a
+       * confirmação de duplicidade. Quem precisa criar mesmo assim usa o
+       * cadastro canônico em /leads, que já mostra os candidatos e pede
+       * confirmação explícita. Assim o segundo caminho não cria gêmeo em
+       * silêncio e não nasce uma segunda cerimônia de dedup.
+       */
+      const achado = duplicidades[0];
+      throw new Error(
+        `Já existe lead com ${achado.motivo}: ${achado.codigo ?? achado.nome}. ` +
+          "Para criar mesmo assim, use o cadastro de lead em Comercial › Leads, que pede confirmação explícita.",
+      );
+    }
 
     const r = await s
       .from("leads")
