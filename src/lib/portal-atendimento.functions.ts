@@ -67,7 +67,7 @@ export const painelAtendimento = createServerFn({ method: "GET" })
 
     const filtro = <T,>(q: T) => (data.casoId ? (q as any).eq("case_id", data.casoId) : q);
 
-    const [casos, solicitacoes, envios, entregas, tickets, faturas, equipe, dependentes, acessos, clientes] =
+    const [casos, solicitacoes, envios, entregas, tickets, faturas, equipe, dependentes, acessos, clientes, projecoes] =
       await Promise.all([
         supabase
           .from("crm_casos")
@@ -146,6 +146,21 @@ export const painelAtendimento = createServerFn({ method: "GET" })
           .select("id, nome")
           .eq("organization_id", organizationId)
           .is("archived_at", null),
+        /*
+         * Onda 6 dos órfãos (04/10/2026): `despublicarProjecaoApp` existia e
+         * não tinha chamador — despublicar só por SQL. O artefato 007 exige
+         * que o Desk publique E despublique, com autor, data, caso e estado.
+         * Esta leitura é o que faltava para a ação ter onde aparecer.
+         */
+        filtro(
+          supabase
+            .from("app_projections")
+            .select("id, case_id, projection_type, content_sanitized, published_at, created_at, published_by")
+            .eq("organization_id", organizationId)
+            .is("archived_at", null)
+            .order("created_at", { ascending: false })
+            .limit(100),
+        ),
       ]);
 
     const ativos = new Set(
@@ -172,6 +187,8 @@ export const painelAtendimento = createServerFn({ method: "GET" })
       equipe: (equipe.data ?? []) as any[],
       dependentes: (dependentes.data ?? []) as any[],
       clientes: (clientes.data ?? []) as any[],
+      /** Publicações vivas no App Cliente, para a equipe despublicar sem SQL. */
+      projecoes: (projecoes.data ?? []) as any[],
     };
   });
 

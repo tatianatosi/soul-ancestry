@@ -15,6 +15,7 @@ import {
   liberarEntregaCliente,
   liberarFaturaCliente,
   painelAtendimento,
+  despublicarProjecaoApp,
   publicarProjecaoApp,
   responderTicketEquipe,
   revisarEnvioCliente,
@@ -92,6 +93,15 @@ function Pendencia({ motivos }: { motivos: string[] }) {
  * contrato — nunca lista vazia. Substitui o coalescimento para lista vazia que
  * fazia falha de leitura parecer ausência de registro.
  */
+/** Rótulos humanos dos tipos de projeção que o Desk publica no App. */
+const ROTULO_PUBLICACAO: Record<string, string> = {
+  marco: "Jornada (marco)",
+  arvore: "Árvore da família",
+  atualizacao: "Atualização da equipe",
+  plano: "Plano",
+  uniao_ramos: "União de Ramos",
+};
+
 function lista<T = any>(valor: unknown): T[] | null {
   return Array.isArray(valor) ? (valor as T[]) : null;
 }
@@ -106,6 +116,7 @@ export function AtendimentoInterno() {
   const liberarFat = useServerFn(liberarFaturaCliente);
   const confirmarDocsMinimos = useServerFn(confirmarDocumentosMinimos);
   const publicarProjecao = useServerFn(publicarProjecaoApp);
+  const despublicarProjecao = useServerFn(despublicarProjecaoApp);
 
   const [casoId, setCasoId] = useState<string>("");
   // Corte 3b (01/10/2026): "atualizacao" entra como terceiro tipo — o aviso
@@ -281,6 +292,17 @@ export function AtendimentoInterno() {
     onError: falhar,
   });
 
+  /*
+   * Onda 6 dos órfãos (04/10/2026): despublicar existia no servidor e não
+   * tinha botão — só saía do App por SQL. Arquiva, nunca apaga: o histórico
+   * da publicação fica, com motivo e autor.
+   */
+  const despublicar = useMutation({
+    mutationFn: (p: { projecaoId: string; motivo: string }) => despublicarProjecao({ data: p }),
+    onSuccess: confirmar("Conteúdo despublicado do App Cliente."),
+    onError: falhar,
+  });
+
   /**
    * Campos obrigatórios do formulário — continua desabilitando, porque sem eles
    * não há o que gravar. A pendência do caso saiu daqui: virou pendência visível
@@ -293,6 +315,10 @@ export function AtendimentoInterno() {
     !form.responsavelId ? "responsável interno" : null,
     !form.prazo ? "prazo" : null,
   ].filter((x): x is string => Boolean(x));
+
+  const publicacoes = lista(data?.projecoes);
+  const publicacoesDoCaso =
+    publicacoes === null ? null : publicacoes.filter((p: any) => p.case_id === casoId);
 
   const envios = lista(data?.envios);
   const solicitacoes = lista(data?.solicitacoes);
@@ -447,6 +473,48 @@ export function AtendimentoInterno() {
               />
             </div>
             {publicar.isSuccess ? <p className="mt-1 text-[11px] text-navy/60">Publicado.</p> : null}
+
+            <div className="mt-3 border-t border-navy/10 pt-2" data-publicacoes-vivas>
+              <p className="text-[11px] font-medium text-navy/70">No App agora, neste caso</p>
+              {publicacoesDoCaso === null ? (
+                <p className="mt-1 text-[11px] text-navy/55">Não foi possível ler as publicações.</p>
+              ) : publicacoesDoCaso.length === 0 ? (
+                <p className="mt-1 text-[11px] text-navy/55">
+                  Nada publicado neste caso ainda. O cliente vê o estado vazio da aba.
+                </p>
+              ) : (
+                <ul className="mt-1 space-y-1">
+                  {publicacoesDoCaso.map((p: any) => (
+                    <li
+                      key={p.id}
+                      className="flex flex-wrap items-baseline justify-between gap-2 rounded border border-navy/10 bg-cream/40 p-2"
+                      data-publicacao={p.id}
+                    >
+                      <span className="text-[11px] text-navy/80">
+                        <strong>{ROTULO_PUBLICACAO[p.projection_type] ?? p.projection_type}</strong> ·{" "}
+                        {new Date(p.published_at ?? p.created_at).toLocaleString("pt-BR")} · por{" "}
+                        {nomePessoa(p.published_by)}
+                        <span className="mt-0.5 block text-navy/60">{String(p.content_sanitized ?? "").slice(0, 160)}</span>
+                      </span>
+                      {data?.podeLiberar ? (
+                        <AcaoOperacional
+                          rotulo="Despublicar"
+                          className="rounded border border-terracotta/40 px-2 py-1 text-[11px] text-terracotta"
+                          acaoExterna="despublicar_projecao_app_cliente"
+                          efeito="Arquiva esta publicação: o cliente deixa de vê-la a partir de agora. Nada é apagado — autor, data e motivo ficam no histórico do caso."
+                          onConfirmar={(motivo) => {
+                            if (despublicar.isPending) return;
+                            despublicar.mutate({ projecaoId: p.id, motivo });
+                          }}
+                        />
+                      ) : (
+                        <span className="text-[11px] text-navy/50">Só admin e operações despublicam.</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         ) : null}
         <ul className="grid gap-1.5 md:grid-cols-3">
