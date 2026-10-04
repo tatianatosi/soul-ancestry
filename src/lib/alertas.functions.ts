@@ -2,7 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo } from "@/lib/caso-canonico.server";
-import { semFixtures } from "@/lib/fixtures";
+import { ehFixtureLinha, semFixtures } from "@/lib/fixtures";
 import { calcularCadencia } from "@/lib/jornada-cliente";
 import { montarFilasHoje, type LeadDesk } from "@/lib/crm-desk";
 
@@ -189,7 +189,7 @@ export const listarAlertas = createServerFn({ method: "GET" })
       casoIds.length
         ? supabase
             .from("crm_casos")
-            .select("id,codigo,titulo,responsavel_principal")
+            .select("id,codigo,titulo,responsavel_principal,dados_teste,data_origin")
             .eq("organization_id", organizationId)
             .in("id", casoIds)
         : Promise.resolve({ data: [] as any[] }),
@@ -210,7 +210,19 @@ export const listarAlertas = createServerFn({ method: "GET" })
       if (!tarefaPorCaso.has(t.caso_id)) tarefaPorCaso.set(t.caso_id, { id: t.id, titulo: t.titulo });
     }
 
-    const resultado: LinhaAlerta[] = linhas.map((a: any) => {
+    /*
+     * Varredura de demonstração em todas as abas (04/10/2026, pedido da
+     * Proprietária): alerta de caso de demonstração sai da fila operacional.
+     * A irmã `listarAlertasCentrais` já fazia isso; esta não. O filtro é pelo
+     * caso, porque `case_alerts` não tem marca própria de demo. Nada é
+     * apagado — a linha continua no banco.
+     */
+    const linhasReais = linhas.filter((a: any) => {
+      const c = casoPorId.get(a.case_id);
+      return !c || !ehFixtureLinha(c as never);
+    });
+
+    const resultado: LinhaAlerta[] = linhasReais.map((a: any) => {
       const caso = casoPorId.get(a.case_id) as Record<string, any> | undefined;
       return {
         id: a.id,

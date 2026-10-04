@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions";
 import { tituloTarefaAposSalvarPessoa } from "@/lib/decisao-apos-salvar-pessoa";
 import { salvarTarefa } from "@/lib/ops.functions";
+import { ROTULO_DEMONSTRACAO, ehFixtureLinha } from "@/lib/fixtures";
 
 export type CasoParaDecisao = { id: string; codigo?: string | null; titulo?: string | null };
 
@@ -78,9 +79,17 @@ export function DecisaoAposSalvarPessoa({
             value={casoId}
             onChange={(e) => setCasoId(e.target.value)}
           >
+            {/*
+              Varredura de demonstração (04/10/2026): aqui a lista é dos casos
+              DESTA pessoa, não um seletor global. Esconder sumiria com o caso
+              real de quem tem um caso de demonstração, então o tratamento
+              certo é rotular — a regra do módulo de fixtures para registro
+              aberto internamente.
+            */}
             {casos.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.codigo || c.titulo || c.id}
+                {ehFixtureLinha(c as never) ? ` · ${ROTULO_DEMONSTRACAO}` : ""}
               </option>
             ))}
           </select>

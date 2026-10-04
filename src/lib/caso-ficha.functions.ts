@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { semFixtures } from "@/lib/fixtures";
 import { semCache } from "@/lib/no-store";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 
@@ -165,11 +166,16 @@ export const listarCasosFicha = createServerFn({ method: "GET" })
     semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
+    /*
+     * Varredura de demonstração em todas as abas (04/10/2026, pedido da
+     * Proprietária). `semFixtures` remove a linha da lista operacional sem
+     * apagar nada no banco. Esta função não tinha o filtro.
+     */
     const { data, error } = await supabase
       .from("crm_casos")
       .select("*")
       .eq("organization_id", organizationId)
       .order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return { casos: (data ?? []) as Linha[] };
+    return { casos: semFixtures((data ?? []) as never) as unknown as Linha[] };
   });

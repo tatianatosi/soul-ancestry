@@ -47,6 +47,7 @@ import {
 } from "@/lib/pessoa-vinculo";
 import { dossieMaeDoCaso } from "@/lib/nucleo-completude";
 import { RELEVANCIAS, STATUS_VALIDACAO, TIPOS_ACHADO } from "@/lib/achados-genealogicos";
+import { ROTULO_DEMONSTRACAO, ehFixtureLinha } from "@/lib/fixtures";
 
 const rotulo = (lista: { id: string; rotulo: string }[], id: unknown) =>
   lista.find((x) => x.id === id)?.rotulo ?? String(id ?? "—");
@@ -902,7 +903,21 @@ function Pessoa() {
                     className="flex flex-col rounded-lg border border-navy/12 bg-cream/25 p-3 transition-colors hover:bg-cream/50"
                   >
                     <Link to="/casos/$caseId" params={{ caseId: c.id }} className="block">
-                      <p className="font-mono text-[11px] text-navy/60">{c.codigo}</p>
+                      {/*
+                        Varredura de demonstração (04/10/2026): os casos aqui
+                        são os DESTA pessoa, não um seletor global — esconder
+                        sumiria com o caso real de quem também tem um de
+                        demonstração. O tratamento é o selo, como o módulo de
+                        fixtures manda para registro aberto internamente.
+                      */}
+                      <p className="font-mono text-[11px] text-navy/60">
+                        {c.codigo}
+                        {ehFixtureLinha(c as never) ? (
+                          <span className="ml-2 rounded border border-gold/50 bg-gold/10 px-1 py-0.5 text-[9px] uppercase tracking-wide text-navy/70">
+                            {ROTULO_DEMONSTRACAO}
+                          </span>
+                        ) : null}
+                      </p>
                       <p className="text-sm font-medium text-navy">{c.titulo}</p>
                       <p className="mt-1 text-xs text-navy/55">
                         {[

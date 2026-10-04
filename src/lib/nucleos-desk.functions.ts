@@ -1,3 +1,4 @@
+import { semFixtures } from "@/lib/fixtures";
 import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
@@ -183,13 +184,21 @@ export const listarClientesParaVinculo = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     semCache();
     const supabase = (context as any).supabase;
+    const organizationId = await orgDoUsuario(supabase, context.userId as string);
+    /*
+     * Varredura de demonstração em todas as abas (04/10/2026, pedido da
+     * Proprietária). Decisão vigente: "Demo/teste NUNCA aparece em caso real"
+     * — `semFixtures` remove a linha da lista operacional sem apagar nada no
+     * banco. Esta função não tinha o filtro.
+     */
     const { data, error } = await supabase
       .from("clientes")
-      .select("id,nome")
+      .select("id,nome,demo,is_demo,data_origin")
+      .eq("organization_id", organizationId)
       .is("archived_at", null)
       .order("nome");
     if (error) throw new Error(error.message);
-    return (data ?? []) as { id: string; nome: string }[];
+    return semFixtures((data ?? []) as never).map((c: any) => ({ id: c.id as string, nome: c.nome as string }));
   });
 
 async function orgDoUsuario(supabase: any, userId: string) {

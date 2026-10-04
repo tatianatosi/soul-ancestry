@@ -1,3 +1,4 @@
+import { ehFixtureLinha } from "@/lib/fixtures";
 import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
@@ -207,7 +208,11 @@ export const listarFilaMicroentregas = createServerFn({ method: "GET" })
 
     const [casosRes, evidenciasRes, entregasRes, equipeRes, achadosRes] = await Promise.all([
       caseIds.length
-        ? supabase.from("crm_casos").select("id,codigo,titulo").eq("organization_id", organizationId).in("id", caseIds)
+        ? supabase
+            .from("crm_casos")
+            .select("id,codigo,titulo,dados_teste,data_origin")
+            .eq("organization_id", organizationId)
+            .in("id", caseIds)
         : Promise.resolve({ data: [] as any[], error: null }),
       // Corte 0-bis (03/10/2026): rótulo da projeção vem da canônica.
       evidenciaIds.length
@@ -245,7 +250,18 @@ export const listarFilaMicroentregas = createServerFn({ method: "GET" })
     const equipe = new Map((equipeRes.data ?? []).map((e: any) => [String(e.auth_user_id), e]));
     const achados = (achadosRes.data ?? []) as Record<string, any>[];
 
-    return projecoes.map((p) => {
+    /*
+     * Varredura de demonstração em todas as abas (04/10/2026, pedido da
+     * Proprietária): a fila operacional não mostra projeção de caso de
+     * demonstração. O filtro é pelo CASO, porque `app_projections` não tem
+     * marca própria de demo. Nada é apagado — a linha continua no banco.
+     */
+    const projecoesReais = projecoes.filter((p) => {
+      const c = casos.get(String(p["case_id"]));
+      return !c || !ehFixtureLinha(c as never);
+    });
+
+    return projecoesReais.map((p) => {
       const caso = casos.get(String(p["case_id"])) as Record<string, any> | undefined;
       const evidencia = p["source_entity_type"] === "evidence"
         ? evidenciasPorId.get(String(p["source_entity_id"])) as Record<string, any> | undefined

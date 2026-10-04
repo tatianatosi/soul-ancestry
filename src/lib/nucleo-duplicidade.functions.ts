@@ -1,3 +1,4 @@
+import { ehFixtureLinha } from "@/lib/fixtures";
 import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
@@ -86,7 +87,7 @@ export const listarCandidatosDuplicidadeNucleo = createServerFn({ method: "GET" 
             .in("nucleo_id", ids)
         : Promise.resolve({ data: [] }),
       caseIds.length
-        ? supabase.from("crm_casos").select("id,codigo,titulo,pais").in("id", caseIds)
+        ? supabase.from("crm_casos").select("id,codigo,titulo,pais,dados_teste,data_origin").in("id", caseIds)
         : Promise.resolve({ data: [] }),
       ids.length
         ? supabase.from("leads").select("id,nucleo_id").in("nucleo_id", ids).is("archived_at", null)
@@ -99,7 +100,20 @@ export const listarCandidatosDuplicidadeNucleo = createServerFn({ method: "GET" 
       leadsPorNucleo.set(l.nucleo_id, (leadsPorNucleo.get(l.nucleo_id) ?? 0) + 1);
     }
 
-    const paraComparar: NucleoParaComparar[] = ((nucleos ?? []) as any[]).map((n) => ({
+    /*
+     * Varredura de demonstração em todas as abas (04/10/2026, pedido da
+     * Proprietária). Esta tela UNIFICA registros: núcleo de demonstração não
+     * pode entrar na lista de candidatos e virar candidato a fusão com um
+     * núcleo real. Filtra pelo próprio núcleo (nome) e pelo caso vinculado;
+     * nada é apagado.
+     */
+    const nucleosReais = ((nucleos ?? []) as any[]).filter((n) => {
+      if (ehFixtureLinha({ nome: n.nome } as never)) return false;
+      const c = n.case_id ? porCaso.get(n.case_id) : null;
+      return !c || !ehFixtureLinha(c as never);
+    });
+
+    const paraComparar: NucleoParaComparar[] = nucleosReais.map((n) => ({
       id: n.id,
       nome: n.nome,
       dossie_mae: n.dossie_mae,
