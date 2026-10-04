@@ -475,7 +475,11 @@ export function AtendimentoInterno() {
             {publicar.isSuccess ? <p className="mt-1 text-[11px] text-navy/60">Publicado.</p> : null}
 
             <div className="mt-3 border-t border-navy/10 pt-2" data-publicacoes-vivas>
-              <p className="text-[11px] font-medium text-navy/70">No App agora, neste caso</p>
+              <p className="text-[11px] font-medium text-navy/70">Publicações deste caso</p>
+              <p className="text-[11px] text-navy/55">
+                Só o que está <strong>publicado</strong> chega ao App. O resto existe no caso e não é visto pelo
+                cliente — fica aqui para a equipe saber que existe.
+              </p>
               {publicacoesDoCaso === null ? (
                 <p className="mt-1 text-[11px] text-navy/55">Não foi possível ler as publicações.</p>
               ) : publicacoesDoCaso.length === 0 ? (
@@ -491,9 +495,19 @@ export function AtendimentoInterno() {
                       data-publicacao={p.id}
                     >
                       <span className="text-[11px] text-navy/80">
-                        <strong>{ROTULO_PUBLICACAO[p.projection_type] ?? p.projection_type}</strong> ·{" "}
-                        {new Date(p.published_at ?? p.created_at).toLocaleString("pt-BR")} · por{" "}
-                        {nomePessoa(p.published_by)}
+                        <strong>{ROTULO_PUBLICACAO[p.projection_type] ?? p.projection_type}</strong>{" "}
+                        <span
+                          className={
+                            p.approval_status === "published"
+                              ? "rounded-full border border-navy/20 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-navy/70"
+                              : "rounded-full border border-gold/50 bg-gold/10 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-navy/70"
+                          }
+                          data-no-app={p.approval_status === "published" ? "sim" : "nao"}
+                        >
+                          {p.approval_status === "published" ? "no App" : `não publicado · ${p.approval_status ?? "—"}`}
+                        </span>{" "}
+                        · {new Date(p.approved_at ?? p.created_at).toLocaleString("pt-BR")} · por{" "}
+                        {nomePessoa(p.approved_by ?? p.created_by)}
                         <span className="mt-0.5 block text-navy/60">{String(p.content_sanitized ?? "").slice(0, 160)}</span>
                       </span>
                       {data?.podeLiberar ? (

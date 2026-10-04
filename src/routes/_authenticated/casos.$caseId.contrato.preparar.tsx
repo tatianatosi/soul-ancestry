@@ -769,6 +769,32 @@ function Pagina() {
             <div id="partes">
               <CaCard titulo="2. Partes e representação">
                 <div className="space-y-3">
+                  {/*
+                    04/10/2026 — a detecção de composição já existia, mas vivia
+                    recolhida em "Detalhes internos". A Proprietária: "quando
+                    preparamos um contrato o sistema já detecta se é um caso
+                    familiar... e depois é só um ajuste". O instrumento é
+                    sempre o Contrato de Estudo Genealógico v2; individual,
+                    casal e núcleo são PREMISSA de composição — qual anexo e
+                    quantos signatários —, não contratos diferentes.
+                  */}
+                  <p className="rounded border border-navy/15 bg-cream/40 p-2 text-xs text-navy/75" data-composicao-detectada>
+                    <strong>Instrumento:</strong> {instrumento}.{" "}
+                    {composicaoCaso.estado === "sem_dados" ? (
+                      <span className="text-terracotta">
+                        Composição ainda não detectada — {composicaoCaso.motivo}. Registre as pessoas do caso para o
+                        sistema derivar os anexos e os signatários.
+                      </span>
+                    ) : (
+                      <>
+                        <strong>Composição detectada:</strong> {composicaoCaso.modelo.nome} — {composicaoCaso.motivo}.{" "}
+                        <span className="text-navy/55">
+                          Anexos derivados: {composicaoCaso.modelo.anexos.map((a) => a.codigo).join(", ")}. A composição
+                          é premissa do mesmo instrumento, não outro contrato.
+                        </span>
+                      </>
+                    )}
+                  </p>
                   <EstruturaFamiliar codigoCaso={d.caso?.codigo} caseId={caseId} />
                   <ReconciliarContatoPartesContrato
                     caseId={caseId}

@@ -155,7 +155,7 @@ export const painelAtendimento = createServerFn({ method: "GET" })
         filtro(
           supabase
             .from("app_projections")
-            .select("id, case_id, projection_type, content_sanitized, published_at, created_at, published_by")
+            .select("id, case_id, projection_type, content_sanitized, approval_status, approved_at, created_at, created_by, approved_by")
             .eq("organization_id", organizationId)
             .is("archived_at", null)
             .order("created_at", { ascending: false })

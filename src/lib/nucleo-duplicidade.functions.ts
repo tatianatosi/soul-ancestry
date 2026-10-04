@@ -1,4 +1,4 @@
-import { ehFixtureLinha } from "@/lib/fixtures";
+import { ehFixtureLinha, semFixtures } from "@/lib/fixtures";
 import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
@@ -90,13 +90,19 @@ export const listarCandidatosDuplicidadeNucleo = createServerFn({ method: "GET" 
         ? supabase.from("crm_casos").select("id,codigo,titulo,pais,dados_teste,data_origin").in("id", caseIds)
         : Promise.resolve({ data: [] }),
       ids.length
-        ? supabase.from("leads").select("id,nucleo_id").in("nucleo_id", ids).is("archived_at", null)
+        ? supabase.from("leads").select("id,nucleo_id,nome").in("nucleo_id", ids).is("archived_at", null)
         : Promise.resolve({ data: [] }),
     ]);
 
     const porCaso = new Map(((casos ?? []) as any[]).map((c) => [c.id, c]));
+    /*
+     * 04/10/2026, modo execução controlada: o núcleo real da Ana tem um lead
+     * de demonstração pendurado ("Ana Luiza (dado de teste)", sem case_id).
+     * Contá-lo como lead ativo do núcleo faz o Desk mostrar um número que não
+     * corresponde a nenhuma oportunidade real. Fica no banco, fora da conta.
+     */
     const leadsPorNucleo = new Map<string, number>();
-    for (const l of (leads ?? []) as any[]) {
+    for (const l of semFixtures((leads ?? []) as never) as any[]) {
       leadsPorNucleo.set(l.nucleo_id, (leadsPorNucleo.get(l.nucleo_id) ?? 0) + 1);
     }
 

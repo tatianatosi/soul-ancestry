@@ -15,6 +15,7 @@ import {
   STATUS_VINCULO,
 } from "@/lib/ficha-piloto-genealogica";
 import { montarBlocosFichaUnica, type BlocoFichaUnica } from "@/lib/ficha-unica-caso";
+import { FichaMaster54Campos } from "@/components/caso/ficha-master-54-campos";
 
 /**
  * Ficha Única progressiva do caso (02/10/2026) — único painel da aba
@@ -113,6 +114,14 @@ export function PainelFichaUnica({ caseId }: { caseId: string }) {
         {blocos.map((bloco) => (
           <BlocoFichaUnicaView key={bloco.id} bloco={bloco} />
         ))}
+        {/*
+          04/10/2026 — os 54 campos deixam de ser uma tabela de documento e
+          passam a ser lidos aqui, com o estado real de cada um. Não é ficha
+          nova: é a mesma leitura do caso, mostrada por campo.
+        */}
+        {!carregando && !erro ? (
+          <FichaMaster54Campos ficha={(qMaster.data?.ficha as Record<string, unknown>) ?? null} />
+        ) : null}
       </div>
     </section>
   );

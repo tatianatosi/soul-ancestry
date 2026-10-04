@@ -37,8 +37,17 @@ describe("Despublicar do App Cliente deixa de depender de SQL", () => {
   it("3. cada publicação mostra tipo, data e autor — o que o artefato 007 exige", () => {
     const s = readFileSync(UI, "utf8");
     expect(s).toContain("ROTULO_PUBLICACAO");
-    expect(s).toContain("p.published_at ?? p.created_at");
-    expect(s).toContain("nomePessoa(p.published_by)");
+    /*
+     * 04/10/2026, modo execução controlada: medi no caso da Ana que 5 das 6
+     * projeções vivas NÃO estão publicadas (approval_status "archived" ou
+     * "draft"). O título "No App agora" seria mentira para elas, então cada
+     * linha passa a dizer se está no App ou não, e a data/autor vêm da
+     * aprovação quando existe.
+     */
+    expect(s).toContain("p.approved_at ?? p.created_at");
+    expect(s).toContain("nomePessoa(p.approved_by ?? p.created_by)");
+    expect(s).toContain("data-no-app");
+    expect(s).toContain("não publicado");
   });
 
   it("4. despublicar arquiva com motivo e nunca apaga", () => {
