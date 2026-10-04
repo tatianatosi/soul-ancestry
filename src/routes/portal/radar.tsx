@@ -112,7 +112,7 @@ export function PortalRadar() {
                                style={{ width: `${d.estado === "percentual" ? (d.percentual ?? 0) : 0}%` }}
                             />
                           </div>
-                          <p className="mt-2 text-[10px] leading-relaxed text-navy/55">{d.legenda}</p>
+                           {d.percentual ? <p className="mt-2 text-[10px] leading-relaxed text-navy/55">{d.legenda}</p> : null}
                           {/*
                             03/10/2026 — "mostrando as percentagens e
                             calculos". Percentual sem conta visível é número
@@ -120,9 +120,9 @@ export function PortalRadar() {
                             onde veio. Nos eixos sem total conhecido, a conta
                             diz exatamente isso, em vez de fingir precisão.
                           */}
-                          <p className="mt-1 text-[10px] leading-relaxed text-navy/40" data-radar-calculo>
+                           {d.percentual ? <p className="mt-1 text-[10px] leading-relaxed text-navy/40" data-radar-calculo>
                             Como calculamos: {d.comoCalculamos}
-                          </p>
+                           </p> : null}
                         </li>
                       ))}
                     </ul>
