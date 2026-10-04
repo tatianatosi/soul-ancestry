@@ -159,14 +159,15 @@ function Index() {
             />
             <div className="space-y-2">
               {pesquisasFiltradas.map((p: any) => (
-                <Link
+                <div
                   key={p["id"]}
-                  to="/pesquisa-modulo/$id"
-                  params={{ id: p["id"] }}
                   className="block rounded-xl border border-navy/10 bg-cream/40 p-3 hover:border-navy/30"
+                  data-pesquisa-caso
                 >
                   <div className="flex flex-wrap items-center gap-2">
-                    <strong className="text-sm">{String(p.caso?.codigo ?? "caso")}</strong>
+                    <Link to="/pesquisa-modulo/$id" params={{ id: p["id"] }} className="text-sm font-semibold underline decoration-gold">
+                      {String(p.caso?.codigo ?? "caso")}
+                    </Link>
                     <span className="text-sm text-navy/70">{String(p.caso?.titulo ?? "")}</span>
                     <Selo texto={rotulo(p["status"])} />
                     {p["pendencias_criticas"] > 0 && (
@@ -180,7 +181,44 @@ function Index() {
                     )}
                   </div>
                   <p className="text-xs text-navy/50">{String(p["research_objective"] ?? "objetivo não descrito")}</p>
-                </Link>
+                  {/*
+                    04/10/2026 — Proprietária: "antes pesquisa tinha até lacunas,
+                    plano de ação, módulos históricos, eventos, linhagens...
+                    não sei onde". Medido: essas superfícies existem, mas
+                    `/pessoas-linhagens/$caseId` (11 abas, onde moram lacunas,
+                    módulos históricos, eventos, linhagens, árvore interna e
+                    por geração), `/achados/$caseId`, `/plano-acao/$caseId` e
+                    `/pesquisa-evidencias/$caseId` não têm rota índice e NÃO
+                    estão no menu do grupo Pesquisa — só eram alcançáveis de
+                    dentro do caso. Isto religa os caminhos daqui, sem tela,
+                    rota ou item de menu novo.
+                  */}
+                  {p.caso?.id ? (
+                    <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px]" data-pesquisa-atalhos>
+                      <Link
+                        to="/pessoas-linhagens/$caseId"
+                        params={{ caseId: String(p.caso.id) }}
+                        className="underline decoration-gold"
+                      >
+                        Ficha genealógica (lacunas, módulos históricos, eventos, linhagens)
+                      </Link>
+                      <Link to="/pesquisa-evidencias/$caseId" params={{ caseId: String(p.caso.id) }} className="underline decoration-gold">
+                        Evidências do caso
+                      </Link>
+                      <Link to="/achados/$caseId" params={{ caseId: String(p.caso.id) }} className="underline decoration-gold">
+                        Achados
+                      </Link>
+                      <Link
+                        to="/plano-acao/$caseId"
+                        params={{ caseId: String(p.caso.id) }}
+                        search={{ foco: undefined }}
+                        className="underline decoration-gold"
+                      >
+                        Plano de ação
+                      </Link>
+                    </div>
+                  ) : null}
+                </div>
               ))}
               {pesquisasFiltradas.length === 0 && <p className="text-sm text-navy/60">Nenhuma pesquisa criada ainda.</p>}
             </div>
