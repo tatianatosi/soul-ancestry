@@ -11,6 +11,7 @@ import { AbaModulos } from "@/components/genealogia/aba-modulos";
 import { AbaProjecaoCliente } from "@/components/genealogia/aba-projecao-cliente";
 import { PublicarArvoreApp } from "@/components/genealogia/publicar-arvore-app";
 import { PRECISAO_DATA, VISIBILIDADE_CLIENTE, MODULOS_HISTORICOS, type RegistroModulo } from "@/lib/genealogia-modulos";
+import { RESUMO_GATE_ARVORE } from "@/lib/visibilidade-arvore";
 import {
   ESTADO_VALIDACAO_VARIANTE,
   IMPACTO_EVENTO,
@@ -918,8 +919,26 @@ function AbaPerfis({
               <Campo label="Sepultamento (localidade)">
                 <input className={inputCls} value={e.sepultamento_localidade ?? ""} onChange={(x) => set("sepultamento_localidade", x.target.value)} />
               </Campo>
-              <Campo label="Status de verificação">
+              <Campo
+                label="Status de verificação"
+                ajuda="Estado da identidade (confirmado, provável, hipótese…). Não é o que libera a Árvore do App."
+              >
                 <Selecao valor={e.status_verificacao ?? "pendente"} onChange={(v) => set("status_verificacao", v)} opcoes={STATUS_VERIFICACAO} />
+              </Campo>
+              {/*
+                04/10/2026 — este seletor faltava, e era o bloqueio real relatado
+                pela Proprietária: `client_visibility` já era gravável
+                (CAMPOS_PERFIL em pessoas-linhagens.functions.ts) e é o ÚNICO
+                gate da Árvore do App, mas nenhuma tela o oferecia — todo perfil
+                ficava "interna" e a publicação era impossível. Ver
+                `visibilidade-arvore.ts` para os três eixos e qual manda.
+              */}
+              <Campo label="Visibilidade ao cliente" ajuda={RESUMO_GATE_ARVORE}>
+                <Selecao
+                  valor={e.client_visibility ?? "interna"}
+                  onChange={(v) => set("client_visibility", v)}
+                  opcoes={VISIBILIDADE_CLIENTE}
+                />
               </Campo>
               <Campo label="Evidência de suporte" ajuda="Obrigatória para status confirmado.">
                 <Selecao valor={e.evidence_id ?? ""} onChange={(v) => set("evidence_id", v)} opcoes={evidencias} vazio="Sem evidência vinculada" />

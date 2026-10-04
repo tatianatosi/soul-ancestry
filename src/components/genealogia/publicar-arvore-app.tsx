@@ -15,6 +15,7 @@ import {
   listarArvoreDoCaso,
   publicarPessoaNaArvore,
 } from "@/lib/arvore-publicacao.functions";
+import { RESUMO_GATE_ARVORE, prontidaoParaArvore } from "@/lib/visibilidade-arvore";
 
 const ROTULO_GERACAO: Record<number, string> = {
   // Mesmos rótulos que o cliente vê na aba Árvore (mockup p.6).
@@ -29,6 +30,8 @@ type Linha = {
   perfilId: string;
   nome: string;
   clientVisibility: string;
+  sensitivityLevel?: string | null;
+  temPessoaPesquisa?: boolean;
   publicacao: { id: string; conteudo: string; geracao: number | null; publicadoEm: string | null } | null;
 };
 
@@ -41,7 +44,18 @@ function LinhaPessoa({ caseId, p, onMudou }: { caseId: string; p: Linha; onMudou
   const [motivo, setMotivo] = useState("");
   const publicar = useServerFn(publicarPessoaNaArvore);
   const despublicar = useServerFn(despublicarPessoaDaArvore);
-  const aprovado = p.clientVisibility === "aprovada";
+  /*
+   * 04/10/2026 — antes a tela só dizia "Visibilidade ao cliente não aprovada
+   * — não pode ser publicada", sem dizer onde mudar, e o Perfil 360° não tinha
+   * o seletor. Era um beco sem saída real, relatado pela Proprietária. Agora o
+   * bloqueio vem nomeado, com o caminho, de uma fonte única.
+   */
+  const prontidao = prontidaoParaArvore({
+    clientVisibility: p.clientVisibility,
+    sensitivityLevel: p.sensitivityLevel,
+    temPessoaPesquisa: p.temPessoaPesquisa,
+  });
+  const aprovado = prontidao.pode;
 
   const mPublicar = useMutation({
     mutationFn: () => publicar({ data: { caseId, perfilId: p.perfilId, nome, vinculo, geracao } }),
@@ -73,7 +87,7 @@ function LinhaPessoa({ caseId, p, onMudou }: { caseId: string; p: Linha; onMudou
               ? `No App: “${p.publicacao.conteudo}” · geração ${p.publicacao.geracao ?? "—"}${p.publicacao.publicadoEm ? ` · desde ${new Date(p.publicacao.publicadoEm).toLocaleDateString("pt-BR")}` : ""}`
               : aprovado
                 ? "Ainda não está na árvore do App."
-                : "Visibilidade ao cliente não aprovada — não pode ser publicada."}
+                : "Ainda não pode ir ao App — motivo abaixo."}
           </p>
         </div>
         <div className="flex gap-2">
@@ -89,6 +103,19 @@ function LinhaPessoa({ caseId, p, onMudou }: { caseId: string; p: Linha; onMudou
           ) : null}
         </div>
       </div>
+
+      {!aprovado ? (
+        <ul className="mt-2 space-y-1 text-[11px] text-terracotta" data-arvore-bloqueios>
+          {prontidao.bloqueios.map((b) => (
+            <li key={b.chave}>
+              {b.texto} <span className="text-navy/60">Resolver em: {b.ondeResolver}.</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {prontidao.observacoes.length ? (
+        <p className="mt-1 text-[11px] text-navy/55">{prontidao.observacoes.join(" ")}</p>
+      ) : null}
 
       {aberto ? (
         <div className="mt-2 grid gap-2 sm:grid-cols-3">
@@ -156,6 +183,7 @@ export function PublicarArvoreApp({ caseId }: { caseId: string }) {
         <h3 className="text-sm font-medium text-navy">Publicar pessoa na árvore do App</h3>
         <span className="text-[11px] text-navy/55">Nomes e vínculos que o cliente vê na aba Árvore</span>
       </div>
+      <p className="text-[11px] text-navy/60">{RESUMO_GATE_ARVORE}</p>
       <EstadoDados
         carregando={q.isLoading}
         erro={q.error}

@@ -559,7 +559,7 @@ export type AdendoTextual = {
 export const REFERENCIA_WHATSAPP_INSTITUCIONAL =
   "WhatsApp institucional homologado, conforme configuração vigente do Clube Ancestral.";
 
-function valorInstitucional(campo: string): string {
+export function valorInstitucional(campo: string): string {
   return PERFIL_INSTITUCIONAL.find((c) => c.campo === campo)?.valor ?? "";
 }
 

@@ -19,6 +19,11 @@
  * §2 (lista literal dos 8 códigos D-02/D-03/D-07..D-12).
  */
 
+import {
+  EQUIPE_INSTITUCIONAL_PADRAO,
+  RESPONSAVEL_INSTITUCIONAL_PADRAO,
+} from "@/lib/responsavel-institucional";
+
 export type StatusDecisaoProprietaria = "decidida" | "aguardando_decisao_humana";
 
 export type CodigoDecisaoProprietaria =
@@ -229,10 +234,17 @@ export const BLOQUEIOS_ABERTOS_DA_PROPRIETARIA: readonly BloqueioAbertoDaProprie
  * catálogo. Marcar a decisão como "decidida" num módulo não é executá-la —
  * executá-la é esta constante entrar no escritor e no dado.
  */
-export const RESPONSAVEL_VALIDACAO_PADRAO = "Tatiana Melani Tosi";
+/*
+ * 04/10/2026 — instrução da Proprietária: "por default a equipe do Clube
+ * Ancestral sou eu, então não preciso ficar repetindo diversas vezes e em
+ * lugares diferentes que sou eu a equipe". Estas duas constantes deixaram de
+ * ser nome digitado aqui e passaram a reler o perfil institucional
+ * (`responsavel-institucional.ts`): uma fonte, não duas cópias do mesmo nome.
+ */
+export const RESPONSAVEL_VALIDACAO_PADRAO = RESPONSAVEL_INSTITUCIONAL_PADRAO;
 
 /** Forma institucional aceita quando a validação é da equipe, não de uma pessoa. */
-export const RESPONSAVEL_VALIDACAO_INSTITUCIONAL = "equipe Clube Ancestral";
+export const RESPONSAVEL_VALIDACAO_INSTITUCIONAL = EQUIPE_INSTITUCIONAL_PADRAO;
 
 /**
  * D-04 executada por inteiro (03/10/2026), instrução literal da Proprietária:

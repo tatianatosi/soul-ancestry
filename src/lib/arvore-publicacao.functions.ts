@@ -43,12 +43,30 @@ export const listarArvoreDoCaso = createServerFn({ method: "GET" })
     if (perfis.error) throw new Error(perfis.error.message);
     if (publicadas.error) throw new Error(publicadas.error.message);
     const porPessoa = new Map(((publicadas.data ?? []) as any[]).filter((p) => p.pessoa_id).map((p) => [p.pessoa_id as string, p]));
+    /*
+     * 04/10/2026 — a sensibilidade mora em `research_people`, não no perfil. A
+     * tela precisa dela para dizer POR QUE a pessoa não pode ser publicada (o
+     * painel antes só dizia "não aprovada", sem caminho). `restricted` NÃO
+     * bloqueia: só `highly_restricted`. Ver `visibilidade-arvore.ts`.
+     */
+    const idsPesquisa = ((perfis.data ?? []) as any[]).map((p) => p.research_person_id).filter(Boolean);
+    const pessoas = idsPesquisa.length
+      ? await supabase
+          .from("research_people")
+          .select("id,sensitivity_level")
+          .eq("organization_id", organizationId)
+          .in("id", idsPesquisa)
+      : { data: [] as any[], error: null };
+    if (pessoas.error) throw new Error(pessoas.error.message);
+    const sensibilidadePor = new Map(((pessoas.data ?? []) as any[]).map((r) => [r.id as string, (r.sensitivity_level as string) ?? null]));
     return ((perfis.data ?? []) as any[]).map((p) => {
       const pub = porPessoa.get(p.research_person_id);
       return {
         perfilId: p.id as string,
         nome: (p.nome_completo as string) ?? "",
         clientVisibility: (p.client_visibility as string) ?? "interna",
+        sensitivityLevel: p.research_person_id ? (sensibilidadePor.get(p.research_person_id) ?? null) : null,
+        temPessoaPesquisa: Boolean(p.research_person_id),
         publicacao: pub
           ? {
               id: pub.id as string,

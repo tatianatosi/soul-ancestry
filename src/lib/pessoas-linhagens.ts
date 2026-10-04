@@ -163,6 +163,12 @@ export type Perfil = {
   evidence_id: string | null;
   verified_at: string | null;
   internal_notes: string | null;
+  /**
+   * Gate da Árvore do App: só `aprovada` publica (04/10/2026). Eixo distinto
+   * de `status_verificacao` e de `research_people.sensitivity_level` — ver
+   * `visibilidade-arvore.ts`.
+   */
+  client_visibility?: string | null;
   archived_at?: string | null;
   /**
    * Vínculo opcional com a Pessoa Canônica (`clientes.id`). Corte U2
