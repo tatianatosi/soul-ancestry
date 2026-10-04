@@ -92,7 +92,7 @@ export function PortalRadar() {
 
                   <section aria-label="Dimensões do Radar">
                     <h2 className="mb-3 font-serif text-xl text-navy">A história em seis dimensões</h2>
-                    <ul className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                     <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
                       {dimensoes.map((d, i) => (
                         <li key={d.id} className="min-w-0 rounded-xl border border-border bg-card p-3 shadow-sm sm:p-4">
                           <div className="min-w-0 sm:flex sm:items-start sm:justify-between sm:gap-2">
