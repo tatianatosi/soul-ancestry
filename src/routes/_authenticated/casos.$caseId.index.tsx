@@ -43,6 +43,7 @@ import { PlanejadorOperacional } from "@/components/contrato/planejador-operacio
 import { PublicarPlanoApp } from "@/components/contrato/publicar-plano-app";
 import { PublicarAssinaturaApp } from "@/components/contrato/publicar-assinatura-app";
 import { CalculadoraOrcamento } from "@/components/contrato/calculadora-orcamento";
+import { CondicaoComercialVersionada } from "@/components/contrato/condicao-comercial-versionada";
 import { OrcamentoPorProdutoPai } from "@/components/contrato/orcamento-produto-pai";
 import { OverrideComercial } from "@/components/caso/override-comercial";
 import { PainelJornadaPlanejador } from "@/components/caso/jornada-planejador";
@@ -2057,6 +2058,14 @@ function FichaCaso() {
             produto-pai rege, país é trilha, os quatro componentes ficam
             separados e a condição particular substitui a referência.
           */}
+          {/*
+            04/10/2026 — a condição comercial versionada passou a existir
+            (`case_commercial_condition`, semeada das 7 páginas do Canva já
+            extraídas). A proposta e o contrato leem daqui; o catálogo e o SKU
+            não entram. O painel também nomeia os quatro anexos que a
+            composição exige e as lacunas.
+          */}
+          <CondicaoComercialVersionada caseId={id} />
           <OrcamentoPorProdutoPai caseId={id} />
           <CalculadoraOrcamento caseId={id} />
 

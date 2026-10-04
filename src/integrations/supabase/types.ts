@@ -1505,6 +1505,147 @@ export type Database = {
           },
         ]
       }
+      case_commercial_condition: {
+        Row: {
+          id: string
+          organization_id: string
+          case_id: string
+          proposal_id: string | null
+          proposal_reference: string | null
+          versao: number
+          approved_items: Json
+          fees: number | null
+          third_party_costs: string | null
+          official_fees: string | null
+          payment_terms: string | null
+          responsaveis_financeiros: Json
+          parcelas: number | null
+          valor_parcela: number | null
+          moeda: string
+          validity: string | null
+          approval_status: string
+          aprovado_por: string | null
+          aprovado_em: string | null
+          origem: string
+          observacao_interna: string | null
+          created_at: string
+          created_by: string | null
+          updated_at: string
+          updated_by: string | null
+          archived_at: string | null
+          archive_motivo: string | null
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          case_id: string
+          proposal_id?: string | null
+          proposal_reference?: string | null
+          versao?: number
+          approved_items?: Json
+          fees?: number | null
+          third_party_costs?: string | null
+          official_fees?: string | null
+          payment_terms?: string | null
+          responsaveis_financeiros?: Json
+          parcelas?: number | null
+          valor_parcela?: number | null
+          moeda?: string
+          validity?: string | null
+          approval_status?: string
+          aprovado_por?: string | null
+          aprovado_em?: string | null
+          origem: string
+          observacao_interna?: string | null
+          created_at?: string
+          created_by?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          archived_at?: string | null
+          archive_motivo?: string | null
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          case_id?: string
+          proposal_id?: string | null
+          proposal_reference?: string | null
+          versao?: number
+          approved_items?: Json
+          fees?: number | null
+          third_party_costs?: string | null
+          official_fees?: string | null
+          payment_terms?: string | null
+          responsaveis_financeiros?: Json
+          parcelas?: number | null
+          valor_parcela?: number | null
+          moeda?: string
+          validity?: string | null
+          approval_status?: string
+          aprovado_por?: string | null
+          aprovado_em?: string | null
+          origem?: string
+          observacao_interna?: string | null
+          created_at?: string
+          created_by?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          archived_at?: string | null
+          archive_motivo?: string | null
+        }
+        Relationships: []
+      }
+      legacy_sku_mappings: {
+        Row: {
+          id: string
+          organization_id: string
+          legacy_sku: string
+          produto_pai_codigo: string
+          modulo_nome: string | null
+          country_code: string | null
+          amount: number | null
+          currency: string | null
+          source_reference: string
+          decided_at: string
+          notes: string | null
+          created_at: string
+          archived_at: string | null
+          archive_motivo: string | null
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          legacy_sku: string
+          produto_pai_codigo: string
+          modulo_nome?: string | null
+          country_code?: string | null
+          amount?: number | null
+          currency?: string | null
+          source_reference: string
+          decided_at?: string
+          notes?: string | null
+          created_at?: string
+          archived_at?: string | null
+          archive_motivo?: string | null
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          legacy_sku?: string
+          produto_pai_codigo?: string
+          modulo_nome?: string | null
+          country_code?: string | null
+          amount?: number | null
+          currency?: string | null
+          source_reference?: string
+          decided_at?: string
+          notes?: string | null
+          created_at?: string
+          archived_at?: string | null
+          archive_motivo?: string | null
+        }
+        Relationships: []
+      }
       case_dependents: {
         Row: {
           anexo_individual_aplicavel: boolean
