@@ -43,6 +43,7 @@ import { PlanejadorOperacional } from "@/components/contrato/planejador-operacio
 import { PublicarPlanoApp } from "@/components/contrato/publicar-plano-app";
 import { PublicarAssinaturaApp } from "@/components/contrato/publicar-assinatura-app";
 import { CalculadoraOrcamento } from "@/components/contrato/calculadora-orcamento";
+import { OrcamentoPorProdutoPai } from "@/components/contrato/orcamento-produto-pai";
 import { OverrideComercial } from "@/components/caso/override-comercial";
 import { PainelJornadaPlanejador } from "@/components/caso/jornada-planejador";
 import { AbaVisaoGeral } from "@/components/caso/visao-geral";
@@ -2050,6 +2051,13 @@ function FichaCaso() {
           {/* Corte 3a (01/10/2026): o plano que o cliente vê na Conta do App. */}
           <PublicarPlanoApp caseId={id} />
 
+          {/*
+            04/10/2026 — a tabela de preços vigente por país passou a existir
+            como decisão da Proprietária (v3.0). Este painel é a execução dela:
+            produto-pai rege, país é trilha, os quatro componentes ficam
+            separados e a condição particular substitui a referência.
+          */}
+          <OrcamentoPorProdutoPai caseId={id} />
           <CalculadoraOrcamento caseId={id} />
 
           <PublicarAssinaturaApp caseId={id} />
