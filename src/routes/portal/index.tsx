@@ -475,6 +475,11 @@ function PainelHomeMockup({
             <LinkPortal to="/portal/jornada" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Jornada</LinkPortal>
           </section>
         ) : null}
+        {achados.some((a) => a.tipo === "Registro encontrado") ? (
+          <p role="status" className="border-l-2 border-gold pl-4 text-sm text-navy/75 sm:col-span-2">
+            Há um registro da história da sua família disponível nos Achados acima.
+          </p>
+        ) : null}
       </div>
     </div>
   );

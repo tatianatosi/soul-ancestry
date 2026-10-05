@@ -166,3 +166,9 @@
 - [x] Ajustar Home, Radar, Árvore e Legado onde havia divergência visual ou texto interno; preservar as demais telas e os estados honestos.
 - [x] Capturar as 14 telas autenticadas, validar ausência de overflow e erros de página, e executar testes visuais direcionados.
 - [ ] Aprovação visual das 14 capturas pela Proprietária; não publicar sem aprovação.
+
+## Elementos faltantes do App Cliente (05/10/2026)
+- [x] Usar somente leituras existentes e publicações autorizadas nas sete abas; sem gravar dados, criar rotas ou liberar conteúdos.
+- [x] Home: pedido documental e microentrega publicados, aviso de achado e progresso existente; Jornada: marcos já aprovados na linha do processo; Radar: resumos dos seis eixos; Árvore: detalhe expansível de pessoa publicada; Documentos: contagem de pedidos abertos; Legado: materiais já publicados classificados nas coleções; Conta: manter plano e origem somente quando disponíveis.
+- [ ] Heatmap por país, aderência, vínculos/estado do elo, datas/localidades/lacunas/correções, originais da Biblioteca, entrevistas, acessos individuais e pagamentos: exigem projeções sanitizadas e permissões específicas; não inferir de dados internos nem simular publicação.
+- [ ] Aprovação visual da Proprietária antes de qualquer publicação.
