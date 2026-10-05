@@ -96,7 +96,14 @@ export function PortalRadar() {
                   <section aria-label="Dimensões do Radar">
                     <h2 className="mb-3 font-serif text-xl text-navy">A história em seis dimensões</h2>
                      <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
-                      {dimensoes.map((d, i) => (
+                      {dimensoes.map((d, i) => {
+                        // "Em preparação" só quando não há percentual nem registro publicado.
+                        const temPercentual = d.estado === "percentual" && (d.percentual ?? 0) > 0;
+                        const temRegistro = !["Nenhum ainda", "Em preparação", ""].includes(d.rotuloNumero.trim());
+                        const vazio = !temPercentual && !temRegistro;
+                        const contagemConexoes =
+                          d.id === "conexoes" && temPercentual ? d.legenda.match(/^(\d+) de (\d+)/) : null;
+                        return (
                         <li key={d.id} className="min-w-0 rounded-xl border border-border bg-card p-3 shadow-sm sm:p-4">
                           <div className="min-w-0 sm:flex sm:items-start sm:justify-between sm:gap-2">
                             <div className="min-w-0">
@@ -106,29 +113,29 @@ export function PortalRadar() {
                               <h3 className="mt-0.5 text-xs font-semibold leading-tight text-navy">{d.titulo}</h3>
                             </div>
                             <span className="mt-2 block break-words font-serif text-sm leading-tight text-navy sm:mt-0 sm:shrink-0 sm:text-base">
-                                {d.percentual === null || d.percentual === 0 ? "Em preparação" : d.rotuloNumero}
+                              {vazio ? "Em preparação" : d.rotuloNumero}
+                              {contagemConexoes ? (
+                                <span className="ml-1 font-sans text-[10px] text-navy/55">
+                                  · {contagemConexoes[1]} de {contagemConexoes[2]} pessoas
+                                </span>
+                              ) : null}
                             </span>
                           </div>
                           <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-cream" aria-hidden="true">
                             <div
                               className="h-full rounded-full bg-gold"
-                               style={{ width: `${d.estado === "percentual" ? (d.percentual ?? 0) : 0}%` }}
+                              style={{ width: `${temPercentual ? (d.percentual ?? 0) : 0}%` }}
                             />
                           </div>
-                           {d.percentual ? <p className="mt-2 text-[10px] leading-relaxed text-navy/55">{d.legenda}</p> : null}
-                            {(d.percentual === null || d.percentual === 0) && d.legenda ? <p className="mt-2 text-xs leading-relaxed text-navy/60">{d.legenda}</p> : null}
-                          {/*
-                            03/10/2026 — "mostrando as percentagens e
-                            calculos". Percentual sem conta visível é número
-                            mágico: o cliente lia "62%" sem ter como saber de
-                            onde veio. Nos eixos sem total conhecido, a conta
-                            diz exatamente isso, em vez de fingir precisão.
-                          */}
-                           {d.percentual ? <p className="mt-1 text-[10px] leading-relaxed text-navy/40" data-radar-calculo>
-                            Como calculamos: {d.comoCalculamos}
-                           </p> : null}
+                          {d.legenda ? <p className="mt-2 text-[10px] leading-relaxed text-navy/55">{d.legenda}</p> : null}
+                          {!vazio ? (
+                            <p className="mt-1 text-[10px] leading-relaxed text-navy/40" data-radar-calculo>
+                              Como calculamos: {d.comoCalculamos}
+                            </p>
+                          ) : null}
                         </li>
-                      ))}
+                        );
+                      })}
                     </ul>
                   </section>
                 </div>
