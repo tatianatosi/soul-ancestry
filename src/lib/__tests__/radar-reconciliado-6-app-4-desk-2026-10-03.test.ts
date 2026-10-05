@@ -25,7 +25,7 @@ const DESK = readFileSync("src/routes/_authenticated/qualidade.tsx", "utf8");
 
 const entrada = {
   projecoes: [
-    { id: "p1", projection_type: "arvore", content_sanitized: "Maria Silveira — bisavó" },
+    { id: "p1", projection_type: "arvore", pessoa_id: "pessoa-1", content_sanitized: "Maria Silveira — bisavó" },
     { id: "p2", projection_type: "achado", content_sanitized: "Registro de 1912 localizado" },
     { id: "p3", projection_type: "marco", content_sanitized: "Etapa de conferência iniciada" },
   ] as never,
@@ -33,6 +33,12 @@ const entrada = {
     { id: "d1", liberado_cliente: true },
     { id: "d2", liberado_cliente: false },
   ] as never,
+  /*
+   * 05/10/2026 — PREMISSA da Proprietária (não reabrir): "Conexões
+   * Familiares" usa pessoas mapeadas como denominador, nunca o teto
+   * ilustrativo de 31. Aqui: 1 pessoa publicada de 4 mapeadas pela pesquisa.
+   */
+  pessoasMapeadas: 4,
 };
 
 describe("App Cliente — 6 dimensões, todas com percentual e com a conta visível", () => {
@@ -49,45 +55,11 @@ describe("App Cliente — 6 dimensões, todas com percentual e com a conta visí
     ]);
   });
 
-  /*
-   * CONFLITO ABERTO, registrado em 05/10/2026 — não resolvido por agente.
-   *
-   * Em 02/10 a Proprietária decidiu: "percentagem está autorizada em todas as
-   * premissas do radar... é só radar do progresso de cada aba do app", e este
-   * teste travava exatamente isso: as 6 dimensões com percentual.
-   *
-   * Em 05/10 um commit vindo do Lovable tirou o percentual de "Conexões
-   * Familiares" (`estado: "em_preparacao"`, `percentual: null`), com o motivo
-   * escrito no próprio código: "Não tomar o teto ilustrativo G1–G5 como
-   * denominador do caso da família". O argumento é bom — 31 é o teto de uma
-   * árvore cheia de 5 gerações, não o número de ancestrais que ESTA família
-   * teve.
-   *
-   * Pela ordem de autoridade do AGENTS.md (decisão explícita e mais recente da
-   * Proprietária em primeiro lugar), o teste passa a travar o comportamento
-   * novo. Os outros 5 eixos continuam com percentual obrigatório. Se a decisão
-   * de 02/10 continua valendo para "Conexões", é ela que diz — e aí este teste
-   * volta a exigir percentual nos 6.
-   */
-  const SEM_PERCENTUAL_POR_DECISAO_LOVABLE = ["conexoes"];
-
-  it("todas têm percentual, menos as que a decisão mais recente deixou sem denominador", () => {
+  it("todas têm percentual — nenhuma fica sem número", () => {
     for (const d of dims) {
-      if (SEM_PERCENTUAL_POR_DECISAO_LOVABLE.includes(d.id)) {
-        expect(d.estado, d.id).toBe("em_preparacao");
-        expect(d.percentual, d.id).toBeNull();
-        // Sem número não é sem informação: a contagem real continua visível.
-        expect(d.rotuloNumero.length, d.id).toBeGreaterThan(0);
-        continue;
-      }
       expect(d.estado, d.id).toBe("percentual");
       expect(typeof d.percentual, d.id).toBe("number");
     }
-  });
-
-  it("os outros cinco eixos seguem com percentual — a exceção é uma, não a regra", () => {
-    expect(SEM_PERCENTUAL_POR_DECISAO_LOVABLE).toHaveLength(1);
-    expect(dims.filter((d) => d.estado === "percentual").length).toBe(dims.length - 1);
   });
 
   it("todas dizem COMO o número foi calculado", () => {
@@ -107,11 +79,16 @@ describe("App Cliente — 6 dimensões, todas com percentual e com a conta visí
   it("eixo com denominador real mostra a razão; eixo sem total conhecido diz que não há total", () => {
     const docs = dims.find((d) => d.id === "documentacao")!;
     expect(docs.comoCalculamos).toContain("÷");
+    /*
+      05/10/2026 — PREMISSA da Proprietária (não reabrir): Conexões Familiares
+      usa pessoas mapeadas como denominador, nunca o teto ilustrativo de 31.
+      1 pessoa publicada ÷ 4 mapeadas (fixture acima).
+    */
     const conexoes = dims.find((d) => d.id === "conexoes")!;
-    // Deixou de usar o teto de 31 (ver o conflito registrado acima): agora diz,
-    // em vez de um denominador fingido, que não há total previsto.
-    expect(conexoes.comoCalculamos).toContain("não há um total previsto");
+    expect(conexoes.comoCalculamos).toContain("÷");
+    expect(conexoes.comoCalculamos).toContain("mapeadas");
     expect(conexoes.comoCalculamos).not.toContain("31");
+    expect(conexoes.percentual).toBe(25);
 
     for (const id of ["origem", "memoria", "legado"] as const) {
       const d = dims.find((x) => x.id === id)!;

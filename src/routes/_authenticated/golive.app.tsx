@@ -123,7 +123,7 @@ function AppClienteGoLive() {
   const acesso = caso?.portal.acessos[0] ?? null;
 
   /* Radar das seis dimensões: só publicações e documentos já liberados. */
-  const radar = radarDoApp(publicados, caso?.documentos ?? []);
+  const radar = radarDoApp(publicados, caso?.documentos ?? [], caso?.pessoasMapeadas ?? 0);
   const radarVazio = radarSemConteudo(radar);
   const titularId = caso?.identidade?.pessoaPrincipalId ?? null;
   const contrato = contratoParaFamilia(caso?.contratos ?? [], titularId);

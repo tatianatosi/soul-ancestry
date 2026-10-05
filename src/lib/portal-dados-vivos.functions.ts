@@ -63,19 +63,32 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
     historico: MarcoHistoricoCliente[];
     /** Documentos pedidos pela equipe e ainda abertos, com o nome do pedido. */
     solicitacoes: SolicitacaoDocumentoCliente[];
+    /**
+     * Pessoas mapeadas pela pesquisa neste caso (05/10/2026, PREMISSA da
+     * Proprietária): denominador real do eixo "Conexões Familiares" do
+     * Radar, nunca o teto ilustrativo de 31. Contagem sanitizada, sem PII —
+     * `portal_casos.pessoas_mapeadas` (migration 20261005180000).
+     */
+    pessoasMapeadas: number;
   }> => {
     semCache();
     const supabase = context.supabase as any;
 
-    // P3 (25/09/2026) `proxima_entrega_prevista_em` e P4 (25/09/2026)
-    // `pendencia_cliente_pendente` vêm de migrations aditivas na view
-    // portal_casos. Se o banco conectado ainda não tiver uma delas (ou as
-    // duas), relê sem a coluna ausente — o App segue igual, só sem aquele
-    // sinal, nunca finge o dado.
+    // P3 (25/09/2026) `proxima_entrega_prevista_em`, P4 (25/09/2026)
+    // `pendencia_cliente_pendente` e 05/10/2026 `pessoas_mapeadas` vêm de
+    // migrations aditivas na view portal_casos. Se o banco conectado ainda
+    // não tiver uma delas, relê sem a coluna ausente — o App segue igual, só
+    // sem aquele sinal, nunca finge o dado.
     const COLUNAS = "id, status, ativo, suspenso_em, fase_jornada, composicao";
     const COL_ENTREGA = "proxima_entrega_prevista_em";
     const COL_PENDENCIA = "pendencia_cliente_pendente";
-    let casos = await supabase.from("portal_casos").select(`${COLUNAS}, ${COL_ENTREGA}, ${COL_PENDENCIA}`);
+    const COL_MAPEADAS = "pessoas_mapeadas";
+    let casos = await supabase
+      .from("portal_casos")
+      .select(`${COLUNAS}, ${COL_ENTREGA}, ${COL_PENDENCIA}, ${COL_MAPEADAS}`);
+    if (casos.error && new RegExp(COL_MAPEADAS).test(String(casos.error.message ?? ""))) {
+      casos = await supabase.from("portal_casos").select(`${COLUNAS}, ${COL_ENTREGA}, ${COL_PENDENCIA}`);
+    }
     if (casos.error && new RegExp(COL_PENDENCIA).test(String(casos.error.message ?? ""))) {
       casos = await supabase.from("portal_casos").select(`${COLUNAS}, ${COL_ENTREGA}`);
     }
@@ -91,6 +104,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       composicao?: string | null;
       proxima_entrega_prevista_em?: string | null;
       pendencia_cliente_pendente?: boolean | null;
+      pessoas_mapeadas?: number | null;
     }[]);
 
     // Um caso por leitura. Pedido explícito só vale se estiver entre os
@@ -99,7 +113,18 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       ? (permitidos.find((c) => String(c.id) === data.casoId) ?? null)
       : (permitidos[0] ?? null);
     if (!casoAtivo)
-      return { projecoes: [], documentos: [], proximaAcao: null, casoAtivoId: null, etapa: null, composicao: null, proximaEntrega: null, historico: [], solicitacoes: [] };
+      return {
+        projecoes: [],
+        documentos: [],
+        proximaAcao: null,
+        casoAtivoId: null,
+        etapa: null,
+        composicao: null,
+        proximaEntrega: null,
+        historico: [],
+        solicitacoes: [],
+        pessoasMapeadas: 0,
+      };
     const alvo = [String(casoAtivo.id)];
 
     const [proj, docs, pendencias, faturas, timeline] = await Promise.all([
@@ -161,5 +186,6 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       proximaEntrega: proximaEntregaCliente(casoAtivo.proxima_entrega_prevista_em),
       historico: historicoSanitizado((timeline.data ?? []) as EventoTimelinePortal[]),
       solicitacoes: solicitacoesAbertasCliente((pendencias.data ?? []) as SolicitacaoDocumentoBruta[]),
+      pessoasMapeadas: Math.max(0, Number(casoAtivo.pessoas_mapeadas ?? 0)),
     };
   });

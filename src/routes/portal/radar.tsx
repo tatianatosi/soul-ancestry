@@ -73,6 +73,9 @@ export function PortalRadar() {
             const dimensoes = radarSeisDimensoes({
               projecoes: vivo.projecoes,
               documentos: vivo.documentos,
+              // 05/10/2026 — PREMISSA da Proprietária: denominador real de
+              // "Conexões Familiares", nunca o teto ilustrativo de 31.
+              pessoasMapeadas: vivo.pessoasMapeadas ?? 0,
             });
              const passoPublicado = jornadaSanitizada(vivo.projecoes, new Date(), vivo.proximaAcao).linha.find((item) => item.tipo === "proxima_acao");
             return (

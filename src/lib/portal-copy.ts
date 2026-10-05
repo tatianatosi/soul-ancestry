@@ -103,7 +103,7 @@ export const COPY_TELAS = {
   },
   legado: {
     navegacao: "Legado",
-    titulo: "Seus Achados",
+    titulo: "Legado",
     descricao: "Biblioteca da família — seu legado, organizado por coleção.",
     vazio: "Este espaço vai reunir o que for preparado para ficar com a sua família.",
   },

@@ -74,11 +74,19 @@ export type DimensaoRadar = {
 
 /**
  * Teto matemático de ancestrais possíveis em 5 gerações (você + 2 pais + 4
- * avós + 8 bisavós + 16 trisavós = 31). Não é estimativa do caso: é o máximo
- * genealógico do formato de árvore G1-G5 já usado em /portal/arvore — mesma
- * conta que o mockup aprovado usa ("de um universo de 31 possíveis").
+ * avós + 8 bisavós + 16 trisavós = 31). Histórico: era usado como tentativa
+ * de denominador de "Conexões Familiares" — a Proprietária corrigiu isso
+ * (05/10/2026): o teto ilustrativo G1-G5 não é o denominador do caso real da
+ * família. Continua exportado só porque `/portal/arvore` o usa para a
+ * legenda "de um universo de 31 possíveis" nas 5 gerações — não para o
+ * cálculo deste radar.
  */
 export const TETO_ANCESTRAIS_G1_G5 = 1 + 2 + 4 + 8 + 16;
+
+function percentualOuNulo(parte: number, total: number): number | null {
+  if (total <= 0) return null;
+  return percentual(parte, total);
+}
 
 function percentual(parte: number, total: number): number {
   if (total <= 0) return 0;
@@ -88,6 +96,15 @@ function percentual(parte: number, total: number): number {
 export function radarSeisDimensoes(entrada: {
   projecoes: ProjecaoBruta[];
   documentos: DocumentoPortal[];
+  /**
+   * Pessoas que a pesquisa já mapeou para este caso (05/10/2026, decisão da
+   * Proprietária — PREMISSA, não reabrir): denominador real de "Conexões
+   * Familiares", nunca o teto ilustrativo de 31. Vem de
+   * `portal_casos.pessoas_mapeadas` (contagem sanitizada, sem PII — migration
+   * 20261005180000). Omitido ou 0 = ainda não há ninguém mapeado: o eixo
+   * continua em preparação, sem fingir um percentual.
+   */
+  pessoasMapeadas?: number;
 }): DimensaoRadar[] {
   const publicacoes = publicacoesParaCliente(entrada.projecoes);
   const docs = entrada.documentos.filter((d) => d.is_demo !== true);
@@ -128,17 +145,41 @@ export function radarSeisDimensoes(entrada: {
     comoCalculamos:
       "Não existe um total conhecido de registros de origem que um caso pode ter, então mostramos a contagem publicada em vez de uma porcentagem.",
   };
+  const pessoasMapeadas = entrada.pessoasMapeadas ?? 0;
+  const pessoasPublicadasNaArvore = new Set(
+    entrada.projecoes
+      .filter((p) => (p.projection_type === "arvore" || p.projection_type === "linha_tempo") && p.pessoa_id)
+      .map((p) => String(p.pessoa_id)),
+  ).size;
+  const percentualConexoes = percentualOuNulo(pessoasPublicadasNaArvore, pessoasMapeadas);
   const conexoes: DimensaoRadar = {
     id: "conexoes",
     titulo: "Conexões Familiares",
-    estado: "em_preparacao",
-    // Não tomar o teto ilustrativo G1–G5 como denominador do caso da família.
-    percentual: null,
-    legenda: arvore.length > 0
-      ? `${arvore.length} registro(s) da árvore ou linha familiar compartilhados.`
-      : "A árvore e as linhas familiares aparecerão quando forem compartilhadas.",
-    rotuloNumero: arvore.length > 0 ? `${arvore.length} registro(s)` : "Em preparação",
-    comoCalculamos: "Mostramos somente os registros compartilhados; não há um total previsto para a família.",
+    estado: percentualConexoes === null ? "em_preparacao" : "percentual",
+    /*
+     * 05/10/2026 — decisão da Proprietária, PREMISSA (não reabrir): o
+     * percentual é APROVADO neste eixo, com denominador real = pessoas
+     * mapeadas do caso (pesquisa), nunca o teto ilustrativo G1-G5 de 31.
+     * Sem nenhuma pessoa mapeada ainda, fica honesto em preparação — não
+     * finge um percentual sobre zero.
+     */
+    percentual: percentualConexoes,
+    legenda:
+      percentualConexoes !== null
+        ? `${pessoasPublicadasNaArvore} de ${pessoasMapeadas} pessoas mapeadas pela pesquisa já publicadas na árvore ou linha familiar.`
+        : arvore.length > 0
+          ? `${arvore.length} registro(s) da árvore ou linha familiar compartilhados.`
+          : "A árvore e as linhas familiares aparecerão quando forem compartilhadas.",
+    rotuloNumero:
+      percentualConexoes !== null
+        ? `${percentualConexoes}%`
+        : arvore.length > 0
+          ? `${arvore.length} registro(s)`
+          : "Em preparação",
+    comoCalculamos:
+      percentualConexoes !== null
+        ? `Pessoas publicadas na árvore (${pessoasPublicadasNaArvore}) ÷ pessoas mapeadas pela pesquisa neste caso (${pessoasMapeadas}).`
+        : "Ainda não há pessoas mapeadas pela pesquisa neste caso; o percentual aparece quando houver.",
   };
   const memoria: DimensaoRadar = {
     id: "memoria",

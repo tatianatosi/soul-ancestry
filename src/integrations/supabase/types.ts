@@ -19731,6 +19731,7 @@ export type Database = {
           organization_id: string | null
           pais: string | null
           pendencia_cliente_pendente: boolean | null
+          pessoas_mapeadas: number | null
           proxima_entrega_prevista_em: string | null
           status: string | null
           suspenso_em: string | null

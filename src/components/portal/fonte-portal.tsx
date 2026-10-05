@@ -57,6 +57,11 @@ export type DadosPortal = {
   historico?: MarcoHistoricoCliente[];
   /** Documentos pedidos pela equipe e ainda abertos, nomeados (aba Documentos). */
   solicitacoes?: SolicitacaoDocumentoCliente[];
+  /**
+   * Pessoas mapeadas pela pesquisa neste caso (05/10/2026, PREMISSA da
+   * Proprietária): denominador real de "Conexões Familiares" no Radar.
+   */
+  pessoasMapeadas?: number;
 };
 
 /**

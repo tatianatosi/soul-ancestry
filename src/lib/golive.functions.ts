@@ -424,18 +424,31 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         ).data ?? []) as Linha[]).filter((p) => p["dados_teste"] !== true)
       : [];
 
-    const [acessosPortal, emailsAutorizados] = await Promise.all([
+    const [acessosPortal, emailsAutorizados, perfisGenealogicos] = await Promise.all([
       clienteCanonico?.id
         ? lista(supabase, "client_portal_access", "client_id", String(clienteCanonico.id))
         : Promise.resolve([]),
       lista(supabase, "authorized_portal_emails", "case_id", casoId),
+      /*
+       * Pessoas que a pesquisa já mapeou para este caso — denominador real
+       * do eixo "Conexões Familiares" do Radar (05/10/2026, PREMISSA da
+       * Proprietária: nunca o teto ilustrativo de 31). Só a contagem viaja
+       * para a projeção; nenhum dado de pessoa.
+       */
+      lista(supabase, "genealogical_person_profiles", "case_id", casoId, "id"),
     ]);
+    const pessoasMapeadas = perfisGenealogicos.length;
 
 
 
     return {
       encontrado: true as const,
       codigo: CODIGO_CASO_GO_LIVE,
+      /*
+       * Denominador real do eixo "Conexões Familiares" do Radar (05/10/2026,
+       * PREMISSA da Proprietária): nunca o teto ilustrativo de 31.
+       */
+      pessoasMapeadas,
       identidade: {
         pessoaPrincipal: nomeCanonico,
         pessoaPrincipalId: String(clienteCanonico?.id ?? contratante?.["id"] ?? "") || null,
@@ -687,6 +700,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           resumo: (p["content_sanitized"] as string) ?? null,
           em: (p["approved_at"] as string) ?? (p["effective_from"] as string) ?? null,
           criadoEm: (p["created_at"] as string) ?? null,
+          pessoaId: (p["pessoa_id"] as string) ?? null,
         })),
       /**
        * Projeções do caso em qualquer situação — inclusive despublicadas,

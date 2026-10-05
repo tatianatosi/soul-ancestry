@@ -15,6 +15,8 @@ export type ProjecaoPublicada = {
   origem?: string | null;
   resumo?: string | null;
   em?: string | null;
+  /** Corte 2a: só projeções da árvore publicadas pela equipe trazem pessoa. */
+  pessoaId?: string | null;
 };
 
 export type AbaApp = "Home" | "Jornada" | "Radar" | "Árvore" | "Documentos" | "Legado" | "Conta";
@@ -333,6 +335,12 @@ export function parcelasEmFatias(situacao: SituacaoFinanceira): Fatia[] {
 export function radarDoApp(
   publicados: readonly ProjecaoPublicada[],
   documentos: readonly { id: string; liberadoCliente?: boolean | null }[],
+  /**
+   * Pessoas mapeadas pela pesquisa neste caso (05/10/2026, PREMISSA da
+   * Proprietária): denominador real de "Conexões Familiares", nunca o teto
+   * ilustrativo de 31. Vem de `genealogical_person_profiles` (contagem).
+   */
+  pessoasMapeadas = 0,
 ): DimensaoRadar[] {
   const tipoRadar = (p: ProjecaoPublicada): string | null => {
     switch (abaDaPublicacao(p)) {
@@ -356,6 +364,7 @@ export function radarDoApp(
         projection_type: tipo,
         content_sanitized: p.resumo ?? p.tipo,
         effective_from: p.em ?? null,
+        pessoa_id: p.pessoaId ?? null,
       };
     })
     .filter((p): p is NonNullable<typeof p> => p !== null);
@@ -367,6 +376,7 @@ export function radarDoApp(
       liberado_cliente: d.liberadoCliente === true,
       is_demo: false,
     })),
+    pessoasMapeadas,
   });
 }
 

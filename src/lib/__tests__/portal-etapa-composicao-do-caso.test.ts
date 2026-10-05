@@ -130,7 +130,9 @@ describe("App consome a etapa real, não uma lista fixa", () => {
     expect(fn).toContain("etapa: etapaDoCasoCliente(casoAtivo.fase_jornada)");
     expect(fn).toContain("composicao: composicaoDoCasoCliente(casoAtivo.composicao)");
     // Caso não autorizado segue devolvendo vazio, agora também sem etapa.
-    expect(fn).toContain("etapa: null, composicao: null");
+    // 05/10/2026: o objeto ganhou pessoasMapeadas e passou a várias linhas —
+    // os dois campos continuam lado a lado, só que cada um na sua linha.
+    expect(fn).toMatch(/etapa:\s*null,\s*\n\s*composicao:\s*null,/);
     // A fronteira não se rompe: o portal não lê case_plans direto.
     expect(fn).not.toContain('from("case_plans")');
   });

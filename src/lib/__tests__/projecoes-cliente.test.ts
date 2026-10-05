@@ -163,6 +163,7 @@ describe("publicações do Desk no App Cliente", () => {
   it("descarta conteúdo vazio e usa rótulos cliente-facing", () => {
     expect(publicacoesParaCliente([{ id: "v1", content_sanitized: "   " }])).toEqual([]);
     expect(rotuloTipoProjecao("linha_tempo")).toBe("Linha do tempo");
+    expect(rotuloTipoProjecao("microentrega")).toBe("Da nossa jornada");
     expect(rotuloTipoProjecao(null)).toBe("Atualização da equipe");
   });
 

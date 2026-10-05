@@ -105,7 +105,9 @@ describe("d) não há agregação entre casos", () => {
   });
 
   it("c) caso não autorizado devolve vazio, nunca outro caso", () => {
-    expect(servidor).toContain("casoAtivoId: null, etapa: null, composicao: null");
+    // 05/10/2026: o objeto ganhou pessoasMapeadas e passou a várias linhas —
+    // os três campos continuam juntos, só que cada um na sua linha.
+    expect(servidor).toMatch(/casoAtivoId:\s*null,\s*\n\s*etapa:\s*null,\s*\n\s*composicao:\s*null,/);
   });
 
   it("todas as consultas por caso usam o mesmo alvo de um caso só", () => {

@@ -45,7 +45,7 @@ describe("radar de seis dimensões", () => {
   it("ganha forma com conteúdo publicado e documento liberado", () => {
     const r = dims(
       [
-        { id: "p1", tipo: "arvore", origem: "lineage", resumo: "Linha materna", em: "2026-09-01" },
+        { id: "p1", tipo: "arvore", origem: "lineage", resumo: "Linha materna", em: "2026-09-01", pessoaId: "pessoa-1" },
         { id: "p2", tipo: "marco", origem: "milestone", resumo: "Etapa concluída", em: "2026-09-02" },
       ],
       [{ id: "d1", liberadoCliente: true }],
@@ -53,15 +53,25 @@ describe("radar de seis dimensões", () => {
     expect(radarSemConteudo(r)).toBe(false);
     expect(r.find((d) => d.id === "documentacao")?.percentual).toBe(100);
     /*
-     * 05/10/2026 — "Conexões Familiares" deixou de ter percentual por decisão
-     * vinda do Lovable (ver o conflito registrado em
-     * radar-reconciliado-6-app-4-desk-2026-10-03.test.ts): o teto ilustrativo
-     * de 31 ancestrais não é o denominador desta família. O que o eixo tem de
-     * mostrar com conteúdo publicado é a contagem real, não um percentual.
-     */
+      05/10/2026 — PREMISSA da Proprietária (não reabrir): Conexões Familiares
+      usa pessoas mapeadas como denominador, nunca o teto ilustrativo de 31.
+      Sem o 3º argumento (pessoasMapeadas), fica honesto em preparação — não
+      finge percentual sobre denominador desconhecido.
+    */
+    expect(r.find((d) => d.id === "conexoes")?.percentual).toBeNull();
+    expect(r.find((d) => d.id === "conexoes")?.estado).toBe("em_preparacao");
+  });
+
+  it("com pessoas mapeadas, Conexões Familiares mostra percentual real — nunca sobre 31", () => {
+    const r = radarDoApp(
+      [{ id: "p1", tipo: "arvore", origem: "lineage", resumo: "Linha materna", em: "2026-09-01", pessoaId: "pessoa-1" }],
+      [],
+      4,
+    );
     const conexoes = r.find((d) => d.id === "conexoes")!;
-    expect(conexoes.percentual).toBeNull();
-    expect(conexoes.rotuloNumero).toContain("registro");
-    expect(conexoes.rotuloNumero).not.toBe("Em preparação");
+    expect(conexoes.estado).toBe("percentual");
+    expect(conexoes.percentual).toBe(25);
+    expect(conexoes.comoCalculamos).toContain("mapeadas");
+    expect(conexoes.comoCalculamos).not.toContain("31");
   });
 });
