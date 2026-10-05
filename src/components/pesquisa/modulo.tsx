@@ -2,7 +2,6 @@
 import { useMemo, useState } from "react";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
-import { VincularEvidencia } from "@/components/pesquisa/vincular-evidencia";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -281,30 +280,6 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
   // Autoridade operacional: papel do servidor não esconde mais ação. Fica
   // pendência declarada; o servidor revalida.
   const podeEditar = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
-
-  /*
-   * Mesmas listas que o formulário já monta (`refLista`, dentro de `Formulario`),
-   * aqui para o vínculo da evidência. Nenhuma consulta nova: tudo vem do `d`
-   * que esta tela já carregou.
-   */
-  const opcoesVinculo = useMemo(
-    () => ({
-      pessoas: d.pessoas.map((p) => ({
-        id: String(p["id"]),
-        texto: String((p["preferred_display_name"] as string) || (p["canonical_name"] as string) || "—"),
-      })),
-      relacoes: d.relacoes.map((r) => ({
-        id: String(r["id"]),
-        texto: `${nomePessoa(d, r["person_a_id"])} → ${nomePessoa(d, r["person_b_id"])}`,
-      })),
-      eventos: d.eventos.map((e) => ({
-        id: String(e["id"]),
-        texto: `${rotulo(e["event_type"])} · ${nomePessoa(d, e["person_id"])}`,
-      })),
-      fontes: d.fontes.map((f) => ({ id: String(f["id"]), texto: String(f["title"] ?? "—") })),
-    }),
-    [d],
-  );
   const pendenciaPapel = d.podeEditar
     ? null
     : "O servidor não reconhece seu papel como responsável desta pesquisa — as ações seguem disponíveis por decisão sua.";
@@ -633,17 +608,6 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
                     <p className="text-xs text-terracotta">Descarte: {String(e["discard_reason"])}</p>
                   )}
                   {linhaAcoes("evidencias", e)}
-                  {podeEditar ? (
-                    <VincularEvidencia
-                      researchCaseId={researchCaseId}
-                      evidenciaId={String(e["id"])}
-                      pessoas={opcoesVinculo.pessoas}
-                      relacoes={opcoesVinculo.relacoes}
-                      eventos={opcoesVinculo.eventos}
-                      fontes={opcoesVinculo.fontes}
-                      aoConcluir={recarregar}
-                    />
-                  ) : null}
                 </>,
                 e["id"],
               ),

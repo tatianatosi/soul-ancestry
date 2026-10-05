@@ -492,97 +492,10 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
       }
     }
 
-    /*
-     * Fio da Pessoa Unificada (05/10/2026). Medido antes: quando a equipe
-     * vinculava o perfil à pessoa canônica, nada propagava esse vínculo para
-     * `research_people` — e `research_people.family_member_id`, a coluna que
-     * liga a pessoa de pesquisa ao membro do caso, não era escrita por
-     * NENHUMA linha de código do repositório. Resultado: o vínculo era
-     * registrado e o fio continuava arrebentado no elo seguinte.
-     *
-     * Aqui o vínculo passa a propagar sozinho, compondo duas decisões humanas
-     * já registradas: o perfil diz qual é a pessoa canônica; `case_members`
-     * diz qual é o membro dela neste caso. Não é inferência por nome — é a
-     * composição do que alguém já decidiu. Composição ambígua (zero ou mais de
-     * um membro para a mesma pessoa cadastrada) não grava nada; desvincular o
-     * perfil limpa o ponteiro, para não ficar apontando para quem saiu.
-     */
-    const propagarFioParaPesquisa = async (perfilId: string) => {
-      if (!mexeNoVinculo || !caseDoPerfil) return;
-      const novoCliente = (valores["client_id"] as string | null) ?? null;
-      const { data: pessoaPesquisa } = await supabase
-        .from("research_people")
-        .select("id,family_member_id,genealogical_person_profile_id")
-        .eq("organization_id", organizationId)
-        .eq("genealogical_person_profile_id", perfilId)
-        .maybeSingle();
-      const alvo = (pessoaPesquisa as any) ?? null;
-      if (!alvo?.id) return;
-
-      if (!novoCliente) {
-        if (!alvo.family_member_id) return;
-        await gravarComVerificacao({
-          supabase,
-          tabela: "research_people",
-          id: String(alvo.id),
-          organizationId,
-          userId: context.userId as string,
-          payload: { family_member_id: null },
-        });
-        return;
-      }
-
-      const { data: membros } = await supabase
-        .from("case_members")
-        .select("id")
-        .eq("organization_id", organizationId)
-        .eq("case_id", caseDoPerfil)
-        .eq("cliente_id", novoCliente)
-        .is("archived_at", null);
-      const candidatos = ((membros ?? []) as { id: string }[]).map((m) => String(m.id));
-      if (candidatos.length !== 1) {
-        /*
-         * Silêncio é pior que lacuna: sem exatamente um membro ativo para esta
-         * pessoa cadastrada, não há composição única e nada é gravado — mas
-         * fica registrado, para o vínculo não parecer completo quando não
-         * está. Zero acontece quando a composição da pessoa vive no núcleo e o
-         * membro duplicado da ficha foi arquivado pela reconciliação; mais de
-         * um é duplicidade a resolver antes.
-         */
-        await supabase.from("audit_logs").insert({
-          organization_id: organizationId,
-          user_id: context.userId as string,
-          acao: "fio_membro_nao_derivado",
-          entidade: "research_people",
-          entidade_id: String(alvo.id),
-          metadados: {
-            motivo:
-              candidatos.length === 0
-                ? "Nenhum membro ativo da ficha do caso para esta pessoa cadastrada: a composição dela vive no núcleo. research_people.family_member_id é FK de case_members, então o elo não fecha sem restaurar o membro ou estender a referência."
-                : `${candidatos.length} membros ativos da ficha do caso para a mesma pessoa cadastrada: duplicidade a resolver antes de derivar o vínculo.`,
-            case_id: caseDoPerfil,
-            client_id: novoCliente,
-            regra: "Composição ambígua ou ausente nunca é gravada por conta própria.",
-          },
-        });
-        return;
-      }
-      if (alvo.family_member_id === candidatos[0]) return;
-      await gravarComVerificacao({
-        supabase,
-        tabela: "research_people",
-        id: String(alvo.id),
-        organizationId,
-        userId: context.userId as string,
-        payload: { family_member_id: candidatos[0] },
-      });
-    };
-
     const registrarVinculo = async (perfilId: string) => {
       if (!mexeNoVinculo) return;
       const novo = (valores["client_id"] as string | null) ?? null;
       if (novo === clienteAnterior) return;
-      await propagarFioParaPesquisa(perfilId);
       await supabase.from("audit_logs").insert({
         organization_id: organizationId,
         entidade: "genealogical_person_profiles",

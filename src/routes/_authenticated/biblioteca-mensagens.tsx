@@ -16,7 +16,6 @@ import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { EditorTemplate } from "@/components/mensagens/editor-template";
 import {
   definirStatusTemplate,
   listarBibliotecaMensagens,
@@ -109,7 +108,6 @@ function BibliotecaMensagensPage() {
     ? null
     : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const queryClient = useQueryClient();
-  const [criando, setCriando] = useState(false);
   const busca_alerta = Route.useSearch();
   const [categoria, setCategoria] = useState("");
   const [status, setStatus] = useState("");
@@ -268,27 +266,6 @@ function BibliotecaMensagensPage() {
         ) : null}
 
         <OrquestracaoContextual />
-
-        <section data-criar-modelo className="space-y-2">
-          {criando ? (
-            <EditorTemplate
-              categorias={(dados.data?.categorias ?? []).map((c) => ({ id: c.id, name: c.name }))}
-              aoConcluir={() => {
-                setCriando(false);
-                void queryClient.invalidateQueries({ queryKey: ["biblioteca-mensagens"] });
-              }}
-              aoCancelar={() => setCriando(false)}
-            />
-          ) : (
-            <button
-              type="button"
-              onClick={() => setCriando(true)}
-              className="rounded-lg bg-navy px-3 py-2 text-sm text-cream"
-            >
-              Criar modelo
-            </button>
-          )}
-        </section>
 
         <section className="grid gap-2 sm:grid-cols-3">
           <input

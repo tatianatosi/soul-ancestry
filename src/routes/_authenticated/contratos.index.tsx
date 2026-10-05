@@ -7,7 +7,6 @@ import { useState } from "react";
 import { SaasShell } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
-import { PainelEstadoContratual } from "@/components/contratos/painel-estado-contratual";
 import { FormalizacaoConectada } from "@/components/desk/superficies-kit-conectadas";
 import { criarInstrumento, listarContratos } from "@/lib/contratos.functions";
 import { listarCasosFicha } from "@/lib/caso-ficha.functions";
@@ -85,9 +84,6 @@ function ContratosPage() {
         )
       }
     >
-      <div className="mb-6">
-        <PainelEstadoContratual />
-      </div>
       <FormalizacaoConectada />
       <details className="mt-6 rounded-lg border border-navy/15 bg-card p-4" open={novo}>
         <summary className="cursor-pointer font-medium text-navy">Abrir instrumentos, inventário e gestão contratual</summary>

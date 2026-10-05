@@ -1,14 +1,6 @@
 /**
  * Inventário classificado dos `createServerFn` sem chamador de tela.
  *
- * Corte F (05/10/2026) — a fila RELIGAR foi zerada: as 8 funções que ela
- * nomeava passaram a ser chamadas por tela. Três entradas que eu havia posto
- * em RELIGAR estavam **classificadas erradas por mim** e foram corrigidas
- * depois de medir o repositório, não religadas: religá-las criaria um segundo
- * caminho vivo para o que já chega à tela por outro, que é exatamente o que o
- * AGENTS.md proíbe. O veredicto está em cada entrada, com a função que faz o
- * trabalho hoje.
- *
  * Regra do AGENTS.md para peça órfã: **religada com prova de uso** ou
  * **aposentada com classificação**, nunca apagada em silêncio. Até aqui a
  * varredura era manual e recomeçava a cada rodada; este registro a congela:
@@ -20,10 +12,7 @@
  */
 
 export type VeredictoOrfa =
-  /**
-   * Religar: fecha lacuna real de operação. Entra na fila de execução.
-   * Vazio depois do Corte F — e vazio aqui é o objetivo, não uma falha.
-   */
+  /** Religar: fecha lacuna real de operação. Entra na fila de execução. */
   | "RELIGAR"
   /** Casca duplicada: a lógica já chega à tela por outro caminho. Não religar. */
   | "CASCA_DUPLICADA"
@@ -75,23 +64,6 @@ export const ORFAS_CLASSIFICADAS: OrfaClassificada[] = [
     motivo:
       'Saiu da tela de contrato em 04/10/2026 ("retire as auditorias repetidas"): era a terceira cópia do mesmo registro.',
     destino: "listarAuditoria em /configuracoes — trilha única da organização",
-  },
-  ...(["registrarPerfilInstitucional", "registrarSnapshotInstitucional"] as const).map((fn) => ({
-    modulo: "perfil-institucional-persistido.functions.ts",
-    fn,
-    veredicto: "CASCA_DUPLICADA" as const,
-    motivo:
-      "Corte F: eu havia classificado como RELIGAR sem medir. O perfil institucional JÁ chega à tela por `garantirPerfilInstitucionalDaSessao` (montada em casos.$caseId.contrato.preparar) e o snapshot JÁ é gravado por `gravarSnapshotInstitucional`, chamado em três pontos de contratos.functions.ts. Estas duas são a versão crua: a primeira pede `organizationId` ao cliente — o mesmo dado que o wrapper deriva no servidor.",
-    destino:
-      "src/lib/perfil-institucional-persistido.server.ts#garantirPerfilInstitucional e #gravarSnapshotInstitucional (ambos em uso)",
-  })),
-  {
-    modulo: "saas.functions.ts",
-    fn: "ativarCaso",
-    veredicto: "APOSENTADA_CLASSIFICADA",
-    motivo:
-      "Corte F: eu havia classificado como RELIGAR sem medir. `ativarCasoComChecks` (onboarding.functions.ts) já está montada em /onboarding/$id e é mais forte — gate de papel, RPC case_ativacao_bloqueios_reais, override da proprietária auditado em owner_override_events e caminho da máquina de estados. Esta aqui só confere três booleanos, sem gate de papel nem máquina de estados: religá-la criaria um segundo caminho de ativação com guarda mais fraca.",
-    destino: "src/lib/onboarding.functions.ts#ativarCasoComChecks, montada em /onboarding/$id",
   },
   {
     modulo: "portal.functions.ts",
@@ -146,6 +118,81 @@ export const ORFAS_CLASSIFICADAS: OrfaClassificada[] = [
   })),
 
   /* ---------- religar: lacuna real de operação ---------- */
+  {
+    modulo: "pesquisa-modulo.functions.ts",
+    fn: "vincularEvidencia",
+    veredicto: "RELIGAR",
+    motivo:
+      "Liga a evidência à pessoa, à fonte ou ao achado (research_evidence_links). Sem chamador, o vínculo só nasce por SQL e a evidência fica solta no caso.",
+    destino: "/pesquisa-modulo/$id (bloco Evidências) e /biblioteca-evidencias/$caseId",
+  },
+  {
+    modulo: "documentos.functions.ts",
+    fn: "listarConsentimentos",
+    veredicto: "RELIGAR",
+    motivo: "Consentimento de LGPD gravado e sem nenhuma leitura em tela — a equipe não consegue conferir o que foi consentido.",
+    destino: "/privacidade (bloco de consentimentos do caso)",
+  },
+  {
+    modulo: "message-library.functions.ts",
+    fn: "salvarTemplate",
+    veredicto: "RELIGAR",
+    motivo: "A Biblioteca de mensagens lista templates mas não deixa criar nem corrigir nenhum pela tela.",
+    destino: "/biblioteca-mensagens",
+  },
+  ...(["registrarPerfilInstitucional", "registrarSnapshotInstitucional"] as const).map((fn) => ({
+    modulo: "perfil-institucional-persistido.functions.ts",
+    fn,
+    veredicto: "RELIGAR" as const,
+    motivo:
+      "O perfil institucional é cláusula fixa do contrato (qualificação da contratada) e hoje só muda por SQL.",
+    destino: "/configuracoes (Perfil institucional)",
+  })),
+  {
+    modulo: "contratos.functions.ts",
+    fn: "painelContratual",
+    veredicto: "RELIGAR",
+    motivo: "Leitor agregado do estado contratual da organização, sem consumidor.",
+    destino: "/contratos (cabeçalho do módulo)",
+  },
+  {
+    modulo: "contrato-parametros.functions.ts",
+    fn: "sincronizarContratoBase",
+    veredicto: "RELIGAR",
+    motivo:
+      "Sincroniza a ficha do caso com a versão vigente do contrato-base; hoje a atualização do contrato-base não chega aos casos abertos.",
+    destino: "Caso 360 › Formalização (ação de sincronizar a versão do contrato-base)",
+  },
+  {
+    modulo: "atos-representacao.functions.ts",
+    fn: "verificarAtoEmNomeDoCliente",
+    veredicto: "RELIGAR",
+    motivo:
+      "Verifica no servidor os anexos exigidos (III e IV) antes de ato em nome do cliente; sem chamador, o gate de procuração não é exercido por nenhuma tela.",
+    destino: "Caso 360 › Formalização e módulo de Pesquisa (antes de ato externo)",
+  },
+  {
+    modulo: "saas.functions.ts",
+    fn: "verificarCondicoesCaso",
+    veredicto: "RELIGAR",
+    motivo: "Verificação servidor-side das condições de ativação do caso, sem tela que a exerça.",
+    destino: "Caso 360 › Visão (antes de ativar)",
+  },
+  {
+    modulo: "saas.functions.ts",
+    fn: "ativarCaso",
+    veredicto: "RELIGAR",
+    motivo: "Ativação do caso só por SQL; é o passo que tira o caso de 'em ativação'.",
+    destino: "Caso 360 › Visão",
+  },
+  {
+    modulo: "saas.functions.ts",
+    fn: "restaurarRegistro",
+    veredicto: "RELIGAR",
+    motivo:
+      "Desarquivar registro é o par do arquivamento, que a tela já faz; sem ele, arquivar por engano só se desfaz por SQL.",
+    destino: "Telas que arquivam (casos, clientes, leads, documentos)",
+  },
 ];
 
 export function orfasPor(veredicto: VeredictoOrfa): OrfaClassificada[] {

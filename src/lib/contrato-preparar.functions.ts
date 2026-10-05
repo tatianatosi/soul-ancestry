@@ -147,7 +147,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
     const { data: caso } = await supabase
       .from("crm_casos")
       .select(
-        "id,codigo,titulo,pais,via,status,demo,cliente_id,organization_id,contrato_assinado,archived_at,codigos_legados,documentos_minimos_ok,condicoes_verificadas_em,condicoes_verificadas_por",
+        "id,codigo,titulo,pais,via,status,demo,cliente_id,organization_id,contrato_assinado,archived_at,codigos_legados,documentos_minimos_ok",
       )
       .eq("id", idCanonico)
       .maybeSingle();
