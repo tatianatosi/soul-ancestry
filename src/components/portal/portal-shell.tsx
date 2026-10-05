@@ -87,15 +87,19 @@ export function PortalShell({
         3/17, que usa uma só faixa). Logo + "Bem-vinda/nome" no mesmo bloco.
       */}
       <header className="bg-navy text-cream" data-app-cabecalho>
-         <div className="mx-auto w-full max-w-[740px] px-4 pb-6 pt-[calc(1rem+env(safe-area-inset-top))] sm:px-8 sm:pb-8 sm:pt-6">
-          <div className="flex items-center">
-            <BrandLogo size={28} variant="client-dark" showText />
+          <div className="mx-auto w-full max-w-[740px] px-4 py-2 sm:px-8 sm:py-5">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+            <div className="flex min-w-0 items-center gap-2">
+              <BrandLogo size={24} variant="client-dark" showText={false} />
+              <p className="truncate text-xs text-cream/80">{previa?.titulo ?? data?.cliente?.nome ?? "Clube Ancestral"}</p>
+            </div>
+            <LinkPortal to="/portal/conta" className="inline-flex min-h-11 shrink-0 items-center text-xs text-cream underline decoration-gold underline-offset-4">Contato</LinkPortal>
           </div>
 
-          <div className="mt-5 max-w-2xl">
-            <p className="text-[10px] font-semibold uppercase text-gold">Aplicativo da família</p>
-            <h1 className="mt-1.5 font-serif text-[2rem] font-medium leading-tight text-cream sm:text-4xl">{titulo}</h1>
-             {descricao ? <p className="mt-2 max-w-[32rem] text-base leading-relaxed text-cream/80">{descricao}</p> : null}
+          <div className="max-w-2xl">
+            {rotaAtiva === "/portal" ? <p className="sr-only text-gold">Aplicativo da família</p> : null}
+            <h1 className="font-serif text-2xl font-medium leading-tight text-cream sm:text-4xl">{titulo}</h1>
+             {descricao ? <p className="mt-2 hidden max-w-[32rem] text-base leading-relaxed text-cream/80 sm:block">{descricao}</p> : null}
           </div>
         </div>
 
@@ -139,7 +143,7 @@ export function PortalShell({
               key={to}
               to={to}
               className={cn(
-                "relative flex min-h-[4rem] min-w-0 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[9px] leading-tight sm:min-h-[4.25rem] sm:text-[10px]",
+                "relative flex min-h-[4rem] min-w-0 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[11px] leading-tight sm:min-h-[4.25rem]",
                 "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
                 rotaAtiva === to
                   ? "after:absolute after:inset-x-2 after:top-0 after:h-0.5 after:bg-gold font-semibold text-gold"
@@ -147,7 +151,7 @@ export function PortalShell({
               )}
             >
               <Icon className="h-[17px] w-[17px] shrink-0 sm:h-[19px] sm:w-[19px]" aria-hidden="true" />
-              <span className="w-full text-center">{label}</span>
+              <span className="w-full text-center">{to === "/portal/documentos" ? <><span className="sm:hidden">Docs</span><span className="hidden sm:inline">{label}</span></> : label}</span>
             </LinkPortal>
           ))}
         </div>

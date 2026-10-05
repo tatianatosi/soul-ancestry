@@ -464,6 +464,11 @@ export function PortalJornada() {
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-6 pb-6 lg:pb-0" data-aba-jornada>
+                  <nav aria-label="Linhas da jornada" className="sticky top-0 z-10 grid grid-cols-3 gap-2 border-b border-border bg-cream py-2 sm:static">
+                    <a href="#linha-origem" className="flex min-h-11 items-center justify-center border-b-2 border-gold text-sm font-medium text-navy">Origem</a>
+                    <a href="#linha-processo" className="flex min-h-11 items-center justify-center border-b-2 border-navy text-sm font-medium text-navy">Processo</a>
+                    <a href="#linha-memoria" className="flex min-h-11 items-center justify-center border-b-2 border-plum text-sm font-medium text-navy">Memória</a>
+                  </nav>
                   {jornada.linha.length === 0 && (vivo.historico ?? []).length === 0 ? (
                     /*
                       FIDELIDADE-VISUAL-2026-09-23: estado vazio não mostra o
@@ -480,7 +485,7 @@ export function PortalJornada() {
                       </div>
                         <div data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:grid-cols-2 sm:gap-6">
                          <span aria-hidden="true" className="absolute bottom-5 left-2 top-5 w-0.5 bg-gold/70" />
-                         <section className="relative rounded-lg border border-gold/35 bg-card p-5 shadow-sm">
+                          <section id="linha-origem" className="relative scroll-mt-20 rounded-lg border border-gold/35 bg-card p-5 shadow-sm">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                            <h2 className="font-serif text-xl text-navy">Linha Ancestral</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.</p>
@@ -489,7 +494,7 @@ export function PortalJornada() {
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                            <MomentosDeUniao pontes={pontes} />
                          </div>
-                          <section className="relative rounded-lg border border-navy/20 bg-card p-5 shadow-sm sm:order-3 sm:col-span-2">
+                          <section id="linha-processo" className="relative scroll-mt-20 rounded-lg border border-navy/20 bg-card p-5 shadow-sm sm:order-3 sm:col-span-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
                            <h2 className="font-serif text-xl text-navy">Linha do Processo</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar.</p>
@@ -505,7 +510,7 @@ export function PortalJornada() {
                       </div>
                         <div data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:grid-cols-2 sm:gap-6">
                          <span aria-hidden="true" className="absolute bottom-5 left-2 top-5 w-0.5 bg-gold/70" />
-                         <div className="relative min-w-0">
+                          <div id="linha-origem" className="relative min-w-0 scroll-mt-20">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                           <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" variante="gold" />
                         </div>
@@ -513,7 +518,7 @@ export function PortalJornada() {
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                            <MomentosDeUniao pontes={pontes} />
                          </div>
-                          <div className="relative min-w-0 sm:order-3 sm:col-span-2">
+                          <div id="linha-processo" className="relative min-w-0 scroll-mt-20 sm:order-3 sm:col-span-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
                           <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" />
                             {passoAtualIndice !== null ? (
@@ -524,6 +529,11 @@ export function PortalJornada() {
                     </>
                   )}
 
+                   <section id="linha-memoria" className="scroll-mt-20 border-l-2 border-plum pl-4" aria-label="Memória da família">
+                     <h2 className="font-serif text-xl text-navy">Memória</h2>
+                     <p className="mt-2 text-sm leading-relaxed text-navy/75">As histórias e os materiais de memória compartilhados com sua família ficam reunidos no Legado.</p>
+                     <LinkPortal to="/portal/legado" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver o Legado</LinkPortal>
+                   </section>
                    {((abreJornada(entrega.visibilidade) && temMateriais) ||
                      (abreJornada(fase1.visibilidade) && temFase01) ||
                      (abreJornada(fase2.visibilidade) && temFase02)) && (
