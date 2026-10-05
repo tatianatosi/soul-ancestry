@@ -118,8 +118,8 @@ export function radarSeisDimensoes(entrada: {
     // mesma fonte de "Conexões Familiares" (publicações de árvore/linha),
     // só que como presença/ausência em vez de contagem contra um teto —
     // por isso os dois eixos sobem juntos; não é redundância acidental.
-    estado: "em_preparacao",
-    percentual: null,
+    estado: "percentual",
+    percentual: arvore.length > 0 ? 100 : 0,
     legenda:
       arvore.length > 0
         ? `${arvore.length} registro(s) de origem/linha publicados pela equipe.`
@@ -132,9 +132,9 @@ export function radarSeisDimensoes(entrada: {
   const conexoes: DimensaoRadar = {
     id: "conexoes",
     titulo: "Conexões Familiares",
-    estado: "percentual",
+    estado: "em_preparacao",
     // Não tomar o teto ilustrativo G1–G5 como denominador do caso da família.
-    percentual: arvore.length > 0 ? 100 : 0,
+    percentual: null,
     legenda: arvore.length > 0
       ? `${arvore.length} registro(s) da árvore ou linha familiar compartilhados.`
       : "A árvore e as linhas familiares aparecerão quando forem compartilhadas.",

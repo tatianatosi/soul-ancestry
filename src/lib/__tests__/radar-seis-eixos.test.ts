@@ -29,7 +29,7 @@ describe("radarSeisDimensoes", () => {
   it("sem nenhuma publicação nem documento, todos os percentuais ficam em 0", () => {
     const dimensoes = radarSeisDimensoes({ projecoes: [], documentos: [] });
     for (const d of dimensoes) {
-      if (d.id === "elegibilidade") continue;
+      if (d.id === "elegibilidade" || d.id === "conexoes") continue;
       expect(d.percentual).toBe(0);
     }
   });
@@ -94,7 +94,7 @@ describe("radarSeisDimensoes", () => {
   it("origem e conexões sobem juntas (mesma fonte, presença vs. contagem)", () => {
     const semNada = radarSeisDimensoes({ projecoes: [], documentos: [] });
     expect(semNada.find((d) => d.id === "origem")!.percentual).toBe(0);
-    expect(semNada.find((d) => d.id === "conexoes")!.percentual).toBe(0);
+    expect(semNada.find((d) => d.id === "conexoes")!.percentual).toBeNull();
 
     const comArvore = radarSeisDimensoes({ projecoes: [projecao("arvore")], documentos: [] });
     expect(comArvore.find((d) => d.id === "origem")!.percentual).toBe(100);
