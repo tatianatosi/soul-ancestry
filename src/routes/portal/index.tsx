@@ -81,6 +81,8 @@ export function PortalHome() {
     !/estado de validação|próximo passo: devolutiva/i.test(item.conteudo),
   );
   const pessoasPublicadas = pessoasDaArvore(vivo.data?.projecoes ?? []).length;
+  const documentoPrioritario = vivo.data?.solicitacoes?.[0]?.titulo ?? null;
+  const microentrega = jornada.linha.find((item) => item.tipo === "microentrega")?.conteudo ?? null;
 
   if (previa) {
     return (
@@ -95,6 +97,8 @@ export function PortalHome() {
             proximaEntrega={null}
             marcos={jornada.marcosPublicados}
             pessoasPublicadas={pessoasPublicadas}
+            documentoPrioritario={documentoPrioritario}
+            microentrega={microentrega}
             achados={achadosPublicados.slice(0, 3).map((item) => ({
               id: item.id,
               tipo: item.tipoRotulo,
@@ -155,6 +159,8 @@ export function PortalHome() {
                 proximaEntrega={null}
                 marcos={jornada.marcosPublicados}
                 pessoasPublicadas={pessoasPublicadas}
+                documentoPrioritario={documentoPrioritario}
+                microentrega={microentrega}
                 casoId={principal.id}
                 achados={achadosPublicados.slice(0, 3).map((item) => ({
                   id: item.id,
@@ -296,6 +302,8 @@ function PainelHomeMockup({
   proximaEntrega,
   marcos,
   pessoasPublicadas,
+  documentoPrioritario,
+  microentrega,
   casoId,
   achados,
   fase,
@@ -309,6 +317,8 @@ function PainelHomeMockup({
   proximaEntrega?: string | null;
   marcos: number;
   pessoasPublicadas: number;
+  documentoPrioritario?: string | null;
+  microentrega?: string | null;
   casoId?: string;
   achados: Array<{
     id: string;
@@ -416,6 +426,14 @@ function PainelHomeMockup({
           </CaCard>
         </section>
 
+        {documentoPrioritario ? (
+          <section aria-label="Documento prioritário" className="sm:col-span-2 border-l-2 border-gold pl-4">
+            <h3 className="font-serif text-xl text-navy">Documento solicitado</h3>
+            <p className="mt-1 text-sm text-navy/75">{documentoPrioritario}</p>
+            <LinkPortal to="/portal/documentos" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver documentos</LinkPortal>
+          </section>
+        ) : null}
+
         <section>
           <div className="mb-3 flex items-end justify-between gap-2">
             <h3 className="font-serif text-2xl text-navy">Achados da sua história</h3>
@@ -450,10 +468,10 @@ function PainelHomeMockup({
             </div>
           )}
         </section>
-        {achados.length === 0 ? (
+        {microentrega || achados.length === 0 ? (
           <section aria-label="Microentrega" className="border-t border-gold/30 pt-4 sm:col-span-2">
             <p className="text-[10px] font-medium uppercase tracking-widest text-gold">Microentrega</p>
-            <p className="mt-1 text-sm text-navy/65">Quando houver uma entrega pronta para compartilhar, ela aparecerá na sua Jornada.</p>
+            <p className="mt-1 text-sm text-navy/65">{microentrega ?? "Quando houver uma entrega pronta para compartilhar, ela aparecerá na sua Jornada."}</p>
             <LinkPortal to="/portal/jornada" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Jornada</LinkPortal>
           </section>
         ) : null}
