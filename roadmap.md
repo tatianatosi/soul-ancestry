@@ -177,3 +177,10 @@
 - [x] Conferir as sete abas em 375 e 1280 px com o mockup real; retirar texto interno de microentrega/marco e o teto teórico do Radar.
 - [x] Entregar sete pranchas comparativas sem publicar novo conteúdo.
 - [ ] Conferir os ajustes finais de composição visual em 375 e 1280 px; aguardar aprovação visual antes de publicar conteúdo.
+
+## Paridade UI do App P1–P4 (05/10/2026)
+- [ ] P1 Home: progresso somente com fase publicada, grade desktop e cartões condicionais de documento e microentrega.
+- [ ] P2 Jornada: história, união e processo conectados; régua somente com fase visível.
+- [ ] P3 Radar e Árvore: cores semânticas e detalhe expansível somente de conteúdo publicado; heatmap apenas se houver projeção autorizada.
+- [ ] P4 Documentos, Legado e Conta: informação publicada com cores existentes; sem ações falsas nem cartões vazios adicionais.
+- [ ] Validar testes e 14 capturas a 375/1280 sem overflow; registrar diferenças não resolvidas por falta de fonte e parar antes de publicar.
