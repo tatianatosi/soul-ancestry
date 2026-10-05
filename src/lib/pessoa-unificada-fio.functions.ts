@@ -1,0 +1,309 @@
+import { semCache } from "@/lib/no-store";
+import { createServerFn } from "@tanstack/react-start";
+
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { contextoRg, pesquisaAutorizada, exigirEdicao, type Sb } from "@/lib/pesquisa-modulo.server";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import {
+  ELOS_DO_FIO,
+  eloSeAplica,
+  elosMecanicos,
+  filaDeResolucao,
+  resumoDoFio,
+  saudeDoFio,
+  type EloMedido,
+  type PessoaDoFio,
+} from "@/lib/pessoa-unificada-fio";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/**
+ * Mede o fio da Pessoa Unificada no caso, e religa SÓ o elo mecânico.
+ *
+ * O leitor existe porque a pergunta "a mesma pessoa atravessa a jornada?" não
+ * tinha onde ser respondida: cada tela via o seu pedaço. Pesquisa é o centro
+ * de inteligência operacional, então é aqui que o fio se verifica de ponta a
+ * ponta — Lead até App Cliente.
+ *
+ * O escritor religa um elo só: `research_people.genealogical_person_profile_id`,
+ * copiado de `genealogical_person_profiles.research_person_id`, que já existe e
+ * foi registrado por decisão humana. Não é inferência: é o mesmo vínculo
+ * escrito no sentido que faltava. Qualquer elo de identidade — dizer que a
+ * pessoa de pesquisa é a pessoa canônica — fica fora deste escritor por
+ * desenho, e o leitor devolve a rota onde a equipe decide.
+ */
+
+type Linha = Record<string, any>;
+
+function medir(
+  pessoa: Linha,
+  presenca: Record<string, boolean>,
+): PessoaDoFio {
+  const personStatus = String(pessoa["person_status"] ?? "unknown_person");
+  const elos: EloMedido[] = ELOS_DO_FIO.map((def) => {
+    if (!eloSeAplica(def, personStatus)) {
+      return {
+        chave: def.chave,
+        estado: "nao_se_aplica" as const,
+        motivo:
+          "Pessoa histórica da pesquisa: não tem pessoa canônica, membro de caso nem parte no contrato — e isso não é lacuna.",
+      };
+    }
+    return { chave: def.chave, estado: presenca[def.chave] ? ("segura" as const) : ("aberto" as const) };
+  });
+  return {
+    id: String(pessoa["id"]),
+    nome: String(pessoa["preferred_display_name"] || pessoa["canonical_name"] || "—"),
+    personStatus,
+    elos,
+  };
+}
+
+export const medirFioDaPessoaUnificada = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { researchCaseId: string }) => {
+    if (!data?.researchCaseId) throw new Error("Informe a pesquisa do caso.");
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    const userId = context.userId as string;
+    const { organizationId, papel } = await contextoRg(supabase, userId);
+    const { pesquisa } = await pesquisaAutorizada(supabase, organizationId, papel, userId, data.researchCaseId);
+    const caseId = (pesquisa as Linha)?.["case_id"] as string | null;
+
+    const [pessoas, perfis, caso, membros, nucleoMembros, evidencias, vinculos, achados, partes, projecoes] =
+      await Promise.all([
+        supabase
+          .from("research_people")
+          .select("id,canonical_name,preferred_display_name,person_status,family_member_id,genealogical_person_profile_id")
+          .eq("organization_id", organizationId)
+          .eq("research_case_id", data.researchCaseId)
+          .is("archived_at", null),
+        supabase
+          .from("genealogical_person_profiles")
+          .select("id,research_person_id,client_id")
+          .eq("organization_id", organizationId)
+          .eq("case_id", caseId ?? "00000000-0000-0000-0000-000000000000")
+          .is("archived_at", null),
+        caseId
+          ? supabase
+              .from("crm_casos")
+              .select("id,cliente_id,lead_id")
+              .eq("organization_id", organizationId)
+              .eq("id", caseId)
+              .maybeSingle()
+          : Promise.resolve({ data: null } as any),
+        supabase
+          .from("case_members")
+          .select("id,cliente_id")
+          .eq("organization_id", organizationId)
+          .eq("case_id", caseId ?? "00000000-0000-0000-0000-000000000000"),
+        supabase
+          .from("nucleo_membros")
+          .select("id,cliente_id,nucleo_id")
+          .eq("organization_id", organizationId),
+        supabase
+          .from("research_evidence_items")
+          .select("id,person_id")
+          .eq("organization_id", organizationId)
+          .eq("research_case_id", data.researchCaseId)
+          .is("archived_at", null),
+        supabase
+          .from("research_evidence_links")
+          .select("entity_type,entity_id")
+          .eq("organization_id", organizationId)
+          .eq("entity_type", "person")
+          .is("archived_at", null),
+        supabase
+          .from("genealogical_findings")
+          .select("id,primary_research_person_id")
+          .eq("organization_id", organizationId)
+          .eq("case_id", caseId ?? "00000000-0000-0000-0000-000000000000")
+          .is("archived_at", null),
+        supabase
+          .from("contract_parties")
+          .select("id,client_id,contract_id")
+          .eq("organization_id", organizationId),
+        supabase
+          .from("app_projections")
+          .select("id,pessoa_id")
+          .eq("organization_id", organizationId)
+          .eq("case_id", caseId ?? "00000000-0000-0000-0000-000000000000"),
+      ]);
+
+    const listaPessoas = (pessoas.data ?? []) as Linha[];
+    const listaPerfis = (perfis.data ?? []) as Linha[];
+
+    // Índices por pessoa de pesquisa.
+    const perfilPorPesquisa = new Map<string, Linha>();
+    for (const p of listaPerfis) {
+      if (p["research_person_id"]) perfilPorPesquisa.set(String(p["research_person_id"]), p);
+    }
+    const membroPorId = new Map<string, Linha>();
+    for (const m of (membros.data ?? []) as Linha[]) membroPorId.set(String(m["id"]), m);
+
+    const clientesComMembro = new Set(
+      ((membros.data ?? []) as Linha[]).map((m) => String(m["cliente_id"] ?? "")).filter(Boolean),
+    );
+    const clientesComNucleo = new Set(
+      ((nucleoMembros.data ?? []) as Linha[]).map((m) => String(m["cliente_id"] ?? "")).filter(Boolean),
+    );
+    const clientesComParte = new Set(
+      ((partes.data ?? []) as Linha[]).map((p) => String(p["client_id"] ?? "")).filter(Boolean),
+    );
+    const pessoasComEvidencia = new Set(
+      ((evidencias.data ?? []) as Linha[]).map((e) => String(e["person_id"] ?? "")).filter(Boolean),
+    );
+    for (const v of (vinculos.data ?? []) as Linha[]) pessoasComEvidencia.add(String(v["entity_id"] ?? ""));
+    const pessoasComAchado = new Set(
+      ((achados.data ?? []) as Linha[]).map((a) => String(a["primary_research_person_id"] ?? "")).filter(Boolean),
+    );
+    const pessoasComProjecao = new Set(
+      ((projecoes.data ?? []) as Linha[]).map((p) => String(p["pessoa_id"] ?? "")).filter(Boolean),
+    );
+
+    const c = (caso as any)?.data as Linha | null;
+
+    const medidas = listaPessoas.map((pessoa) => {
+      const id = String(pessoa["id"]);
+      const perfil = perfilPorPesquisa.get(id) ?? null;
+      const clienteVinculado = perfil?.["client_id"] ? String(perfil["client_id"]) : null;
+      const membro = pessoa["family_member_id"] ? membroPorId.get(String(pessoa["family_member_id"])) : null;
+      const clienteDoMembro = membro?.["cliente_id"] ? String(membro["cliente_id"]) : null;
+      const cliente = clienteVinculado ?? clienteDoMembro;
+
+      return medir(pessoa, {
+        // Elos de caso: valem para o caso, logo iguais para todas as pessoas dele.
+        lead_para_cliente: cliente !== null && clientesComMembro.has(cliente) && Boolean(c?.["lead_id"]),
+        lead_para_caso: Boolean(c?.["lead_id"]),
+        cliente_para_caso: Boolean(c?.["cliente_id"]),
+        // Elos por pessoa.
+        caso_para_membro: Boolean(clienteDoMembro) || (cliente !== null && clientesComMembro.has(cliente)),
+        caso_para_nucleo: cliente !== null && clientesComNucleo.has(cliente),
+        perfil_para_cliente: Boolean(clienteVinculado),
+        pesquisa_para_perfil: Boolean(pessoa["genealogical_person_profile_id"]),
+        pesquisa_para_membro: Boolean(pessoa["family_member_id"]),
+        evidencia_para_pessoa: pessoasComEvidencia.has(id),
+        achado_para_pessoa: pessoasComAchado.has(id),
+        cliente_para_contrato: cliente !== null && clientesComParte.has(cliente),
+        pessoa_para_app: pessoasComProjecao.has(id),
+      });
+    });
+
+    const saude = saudeDoFio(medidas);
+
+    /*
+     * Quantos elos mecânicos poderiam ser religados agora: pessoa de pesquisa
+     * com perfil apontando para ela e sem o ponteiro de volta. Nenhuma
+     * inferência — é o mesmo vínculo, no sentido que falta.
+     */
+    const religaveis = listaPessoas.filter(
+      (p) => !p["genealogical_person_profile_id"] && perfilPorPesquisa.has(String(p["id"])),
+    ).length;
+
+    return {
+      researchCaseId: data.researchCaseId,
+      caseId,
+      pessoas: medidas,
+      saude,
+      resumo: resumoDoFio(saude),
+      fila: filaDeResolucao(medidas),
+      religaveis,
+      elosMecanicos: elosMecanicos().map((e) => e.chave),
+    };
+  });
+
+export const religarElosMecanicosDoFio = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { researchCaseId: string; motivo: string }) => {
+    if (!data?.researchCaseId) throw new Error("Informe a pesquisa do caso.");
+    if (!data.motivo || data.motivo.trim().length < 5) {
+      throw new Error("Informe o motivo do religamento (mínimo de 5 caracteres).");
+    }
+    return { researchCaseId: data.researchCaseId, motivo: data.motivo.trim() };
+  })
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const userId = context.userId as string;
+    const { organizationId, papel } = await contextoRg(supabase, userId);
+    const { podeEditar, pesquisa } = await pesquisaAutorizada(
+      supabase,
+      organizationId,
+      papel,
+      userId,
+      data.researchCaseId,
+    );
+    exigirEdicao(podeEditar);
+    const caseId = (pesquisa as Linha)?.["case_id"] as string | null;
+
+    const [{ data: pessoas }, { data: perfis }] = await Promise.all([
+      supabase
+        .from("research_people")
+        .select("id,canonical_name,genealogical_person_profile_id")
+        .eq("organization_id", organizationId)
+        .eq("research_case_id", data.researchCaseId)
+        .is("archived_at", null),
+      supabase
+        .from("genealogical_person_profiles")
+        .select("id,research_person_id")
+        .eq("organization_id", organizationId)
+        .eq("case_id", caseId ?? "00000000-0000-0000-0000-000000000000")
+        .is("archived_at", null),
+    ]);
+
+    const perfilPorPesquisa = new Map<string, string>();
+    for (const p of (perfis ?? []) as Linha[]) {
+      if (p["research_person_id"]) perfilPorPesquisa.set(String(p["research_person_id"]), String(p["id"]));
+    }
+
+    const religados: string[] = [];
+    for (const pessoa of (pessoas ?? []) as Linha[]) {
+      const id = String(pessoa["id"]);
+      const perfilId = perfilPorPesquisa.get(id);
+      // Nunca sobrescreve ponteiro já gravado, nem inventa quando não há perfil.
+      if (!perfilId || pessoa["genealogical_person_profile_id"]) continue;
+      await gravarComVerificacao({
+        supabase: supabase as never,
+        tabela: "research_people",
+        id,
+        organizationId,
+        userId,
+        payload: { genealogical_person_profile_id: perfilId },
+      });
+      religados.push(String(pessoa["canonical_name"] ?? id));
+    }
+
+    await supabase.from("audit_logs").insert({
+      organization_id: organizationId,
+      user_id: userId,
+      acao: "elos_mecanicos_do_fio_religados",
+      entidade: "research_people",
+      entidade_id: data.researchCaseId,
+      valores_posteriores: { religados, quantidade: religados.length },
+      metadados: {
+        motivo: data.motivo,
+        regra:
+          "Copiado de genealogical_person_profiles.research_person_id, vínculo já registrado por decisão humana. Nenhuma identidade foi inferida por nome, endereço, profissão ou filiação.",
+        nao_tocado:
+          "Elos de identidade (perfil→cliente, pesquisa→membro, evidência→pessoa, achado→pessoa, pessoa→App) ficam para a equipe decidir na tela que o leitor aponta.",
+      },
+    });
+
+    if (caseId && religados.length > 0) {
+      await registrarTimelineCaso(supabase as never, {
+        organizationId,
+        caseId,
+        eventType: "caso",
+        title: "Fio da Pessoa Unificada: elos mecânicos religados",
+        summaryInternal: `${religados.length} pessoa(s) de pesquisa passaram a apontar para o perfil genealógico que já apontava para elas. Motivo: ${data.motivo}`,
+        sourceEntityType: "research_people",
+        sourceEntityId: data.researchCaseId,
+        userId,
+      });
+    }
+
+    return { religados, quantidade: religados.length };
+  });

@@ -40,6 +40,7 @@ import {
   prepararAreaPesquisa,
 } from "@/lib/pesquisa-cadeia.functions";
 import { EditarVisaoPesquisa } from "@/components/pesquisa/editar-visao-pesquisa";
+import { FioPessoaUnificada } from "@/components/pesquisa/fio-pessoa-unificada";
 import { SecaoFontesDocumentos } from "@/components/pesquisa/fontes-documentos";
 import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
 
@@ -333,6 +334,16 @@ function AreaPesquisaEvidencias() {
             Ler e não poder corrigir era o padrão que vinha se repetindo.
           */}
           <EditarVisaoPesquisa pesquisa={(c?.pesquisa ?? null) as never} aoSalvar={() => void cadeia.refetch()} />
+
+          {/*
+            05/10/2026 — Pesquisa é o centro de inteligência operacional, e o
+            fio da Pessoa Unificada é o que se verifica aqui: a mesma pessoa
+            atravessando Lead → Contato/Discovery → Cliente → Caso → Núcleo →
+            Ficha Piloto → Ficha Genealógica → Pessoas e Relações → Fontes e
+            Evidências → Hipóteses/Lacunas/Achados → Contrato → Portal/App.
+            Antes disto cada tela via o seu pedaço e nenhuma via a cadeia.
+          */}
+          {c?.pesquisa?.id ? <FioPessoaUnificada researchCaseId={String(c.pesquisa.id)} /> : null}
 
           {/*
             Fase 3 (27/09/2026) — auditoria pós-execução: "Hipótese interna"

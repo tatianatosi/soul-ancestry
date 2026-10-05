@@ -34,6 +34,11 @@ const PERMITIDOS: { arquivo: string; motivo: string }[] = [
     arquivo: "golive.functions.ts",
     motivo: "busca candidatos homônimos em case_members para revisão humana de duplicidade (não exibe pessoas do caso)",
   },
+  {
+    arquivo: "pessoa-unificada-fio.functions.ts",
+    motivo:
+      "mede se case_members.cliente_id está preenchido — e essa medida não pode passar por pessoasDoCasoComFallbackNucleo, porque o fallback de núcleo mascararia exatamente a coluna vazia que o fio precisa denunciar. Leitura de diagnóstico, nunca de exibição de pessoas do caso.",
+  },
 ];
 
 function arquivosTs(dir: string): string[] {
