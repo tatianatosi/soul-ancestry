@@ -183,4 +183,4 @@
 - [x] P2 Jornada: história, união e processo em sequência conectada; régua somente com fase visível.
 - [x] P3 Radar e Árvore: hexágono e seis dimensões preservados, nós expansíveis com vínculo publicado ou ausência explícita. Heatmap não exibido sem projeção autorizada.
 - [x] P4 Documentos, Legado e Conta: coleções diferenciadas por token existente; itens e plano continuam condicionais, sem ações falsas.
-- [ ] Validar testes e 14 capturas a 375/1280 sem overflow; registrar diferenças não resolvidas por falta de fonte e parar antes de publicar.
+- [x] Validados 68 testes direcionados, compilação registrada OK e 14 capturas a 375/1280 sem overflow ou erro de página. Heatmap de países/ramos, correção na árvore e preferências permanecem ocultos: não há projeção autorizada ou ação existente para sustentá-los. Sem publicação.
