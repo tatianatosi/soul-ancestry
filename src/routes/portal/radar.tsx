@@ -113,6 +113,7 @@ export function PortalRadar() {
                             />
                           </div>
                            {d.percentual ? <p className="mt-2 text-[10px] leading-relaxed text-navy/55">{d.legenda}</p> : null}
+                           {d.percentual === 0 && d.legenda ? <p className="mt-2 text-xs leading-relaxed text-navy/60">{d.legenda}</p> : null}
                           {/*
                             03/10/2026 — "mostrando as percentagens e
                             calculos". Percentual sem conta visível é número

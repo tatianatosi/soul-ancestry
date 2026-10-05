@@ -377,6 +377,23 @@ export function PortalJornada() {
                   .sort((a, b) => new Date(a.publicadoEm ?? 0).getTime() - new Date(b.publicadoEm ?? 0).getTime())
                   .map(noRealDeItem);
 
+            // Marcos aprovados para a família também pertencem à linha viva.
+            // Não duplicar uma publicação que já traz o mesmo texto.
+            if (!ehDemo) {
+              for (const marco of vivo.historico ?? []) {
+                if (nos.some((no) => no.tipo === "evento" && no.conteudo === marco.texto)) continue;
+                nos.push({
+                  tipo: "evento",
+                  id: `marco-${marco.id}`,
+                  categoria: "navy",
+                  rotuloCategoria: "Marco compartilhado",
+                  dataPrincipal: marco.data ? dataCurta(marco.data) : null,
+                  titulo: "Nossa jornada",
+                  conteudo: marco.texto,
+                });
+              }
+            }
+
             /*
               União de Ramos: vínculo explícito por id — nunca por proximidade
               de data, nome parecido ou sobrenome em comum.
@@ -461,7 +478,7 @@ export function PortalJornada() {
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-6 pb-6 lg:pb-0" data-aba-jornada>
-                  {jornada.linha.length === 0 ? (
+                  {jornada.linha.length === 0 && (vivo.historico ?? []).length === 0 ? (
                     /*
                       FIDELIDADE-VISUAL-2026-09-23: estado vazio não mostra o
                       painel administrativo (Caso/Composição/Marcos/Ritmo/
