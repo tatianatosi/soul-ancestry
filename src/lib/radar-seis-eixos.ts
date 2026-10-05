@@ -112,12 +112,12 @@ export function radarSeisDimensoes(entrada: {
   const origem: DimensaoRadar = {
     id: "origem",
     titulo: "Origem",
-    estado: "percentual",
     // Sem teto conhecido de "quantos registros de origem um caso tem" —
     // dois degraus honestos, não percentual fino fingindo precisão. Usa a
     // mesma fonte de "Conexões Familiares" (publicações de árvore/linha),
     // só que como presença/ausência em vez de contagem contra um teto —
     // por isso os dois eixos sobem juntos; não é redundância acidental.
+    estado: "percentual",
     percentual: arvore.length > 0 ? 100 : 0,
     legenda:
       arvore.length > 0
@@ -131,11 +131,14 @@ export function radarSeisDimensoes(entrada: {
   const conexoes: DimensaoRadar = {
     id: "conexoes",
     titulo: "Conexões Familiares",
-    estado: "percentual",
-    percentual: percentual(arvore.length, TETO_ANCESTRAIS_G1_G5),
-    legenda: `${arvore.length} de até ${TETO_ANCESTRAIS_G1_G5} ancestrais possíveis em 5 gerações (você, pais, avós, bisavós e trisavós).`,
-    rotuloNumero: `${percentual(arvore.length, TETO_ANCESTRAIS_G1_G5)}%`,
-    comoCalculamos: `Pessoas publicadas na sua árvore (${arvore.length}) ÷ ${TETO_ANCESTRAIS_G1_G5}, que é o total de ancestrais possíveis em 5 gerações.`,
+    estado: "em_preparacao",
+    // Não tomar o teto ilustrativo G1–G5 como denominador do caso da família.
+    percentual: null,
+    legenda: arvore.length > 0
+      ? `${arvore.length} registro(s) da árvore ou linha familiar compartilhados.`
+      : "A árvore e as linhas familiares aparecerão quando forem compartilhadas.",
+    rotuloNumero: arvore.length > 0 ? `${arvore.length} registro(s)` : "Em preparação",
+    comoCalculamos: "Mostramos somente os registros compartilhados; não há um total previsto para a família.",
   };
   const memoria: DimensaoRadar = {
     id: "memoria",

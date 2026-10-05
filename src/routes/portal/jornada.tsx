@@ -12,6 +12,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada, publicacoesDeEntrega, publicacoesDeFase01, publicacoesDeFase02, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
 import type { PublicacaoCliente } from "@/lib/projecoes-cliente";
 import { cn } from "@/lib/utils";
+import { textoParaCliente } from "@/lib/portal-linguagem-viva";
 
 const TIPOS_HISTORIA = new Set(["arvore", "achado", "evidencia", "linha_tempo", "legado"]);
 
@@ -354,7 +355,7 @@ export function PortalJornada() {
                   ? "Ritmo em dia"
                   : jornada.ritmo === "atencao"
                     ? "Próxima atualização em preparação"
-                    : "Atualização em revisão";
+                     : "A próxima atualização será compartilhada quando estiver pronta";
             // Prévia não é sinônimo de demonstração: o acesso master abre caso
             // real. Roteiro editorial e passo fixo pertencem só ao caso demo.
             const ehDemo = Boolean(previa) && (previa?.identidade?.fonte ?? "demo") === "demo";
@@ -381,15 +382,16 @@ export function PortalJornada() {
             // Não duplicar uma publicação que já traz o mesmo texto.
             if (!ehDemo) {
               for (const marco of vivo.historico ?? []) {
-                if (nos.some((no) => no.tipo === "evento" && no.conteudo === marco.texto)) continue;
+                const texto = textoParaCliente(marco.texto);
+                if (!texto || nos.some((no) => no.tipo === "evento" && no.conteudo === texto)) continue;
                 nos.push({
                   tipo: "evento",
                   id: `marco-${marco.id}`,
                   categoria: "navy",
                   rotuloCategoria: "Marco compartilhado",
                   dataPrincipal: marco.data ? dataCurta(marco.data) : null,
-                  titulo: "Nossa jornada",
-                  conteudo: marco.texto,
+                  titulo: "Marco da jornada",
+                  conteudo: texto,
                 });
               }
             }
@@ -428,9 +430,9 @@ export function PortalJornada() {
             }
 
 
-            // Nó final: próxima ação publicada, sempre presente (real ou demo).
+             // Nó final: apenas quando a próxima ação tem destino liberado.
             // Ajuste 2026-09-12: CTA nomeia a rota real em vez de "Abrir" genérico.
-            nos.push({
+            if (destino) nos.push({
               tipo: "evento",
               id: "__agora__",
               categoria: "navy",

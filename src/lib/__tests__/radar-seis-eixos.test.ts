@@ -29,7 +29,7 @@ describe("radarSeisDimensoes", () => {
   it("sem nenhuma publicação nem documento, todos os percentuais ficam em 0", () => {
     const dimensoes = radarSeisDimensoes({ projecoes: [], documentos: [] });
     for (const d of dimensoes) {
-      if (d.id === "elegibilidade") continue;
+      if (d.id === "elegibilidade" || d.id === "conexoes") continue;
       expect(d.percentual).toBe(0);
     }
   });
@@ -82,21 +82,23 @@ describe("radarSeisDimensoes", () => {
     expect(doc.percentual).toBe(50);
   });
 
-  it("conexões familiares usa o teto genealógico de 31 (5 gerações), nunca o total do caso", () => {
+  it("conexões familiares não apresenta o teto ilustrativo como total da família", () => {
     const projecoes = [projecao("arvore", "a1"), projecao("arvore", "a2"), projecao("linha_tempo", "a3")];
     const dimensoes = radarSeisDimensoes({ projecoes, documentos: [] });
     const conexoes = dimensoes.find((d) => d.id === "conexoes")!;
-    expect(conexoes.percentual).toBe(Math.round((3 / TETO_ANCESTRAIS_G1_G5) * 100));
+    expect(conexoes.rotuloNumero).toBe("3 registro(s)");
+    expect(conexoes.legenda + conexoes.comoCalculamos).not.toContain(String(TETO_ANCESTRAIS_G1_G5));
+    expect(conexoes.percentual).toBeNull();
   });
 
   it("origem e conexões sobem juntas (mesma fonte, presença vs. contagem)", () => {
     const semNada = radarSeisDimensoes({ projecoes: [], documentos: [] });
     expect(semNada.find((d) => d.id === "origem")!.percentual).toBe(0);
-    expect(semNada.find((d) => d.id === "conexoes")!.percentual).toBe(0);
+    expect(semNada.find((d) => d.id === "conexoes")!.percentual).toBeNull();
 
     const comArvore = radarSeisDimensoes({ projecoes: [projecao("arvore")], documentos: [] });
     expect(comArvore.find((d) => d.id === "origem")!.percentual).toBe(100);
-    expect(comArvore.find((d) => d.id === "conexoes")!.percentual).toBeGreaterThan(0);
+    expect(comArvore.find((d) => d.id === "conexoes")!.rotuloNumero).toBe("1 registro(s)");
   });
 
   it("memória só conta publicações do tipo achado", () => {
