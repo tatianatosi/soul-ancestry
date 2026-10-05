@@ -6,7 +6,7 @@ import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-v
 import { CompartilharAchadoCliente } from "@/components/portal/compartilhar-achado-cliente";
 import { usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { legadoSanitizado } from "@/lib/portal-dados-vivos";
+import { legadoSanitizado, publicacoesDeEntrega } from "@/lib/portal-dados-vivos";
 import { PRATELEIRAS, prateleiraDe, type PrateleiraId, type PublicacaoCliente } from "@/lib/projecoes-cliente";
 
 export const Route = createFileRoute("/portal/legado")({
@@ -53,8 +53,12 @@ export function PortalLegado() {
         >
           {([vivo]) => {
             const entregas = legadoSanitizado(vivo.projecoes);
+            const materiaisPublicados = publicacoesDeEntrega(vivo.projecoes).filter((item) =>
+              ["achado", "relatorio_fase", "relatorio_f1", "relatorio_f2", "microentrega"].includes(item.tipo),
+            );
+            const acervo = [...entregas, ...materiaisPublicados];
             const porPrateleira = Object.fromEntries(
-              PRATELEIRAS.map((p) => [p.id, entregas.filter((e) => prateleiraDe(e) === p.id)]),
+              PRATELEIRAS.map((p) => [p.id, acervo.filter((e) => prateleiraDe(e) === p.id)]),
             ) as Record<PrateleiraId, PublicacaoCliente[]>;
 
             return (

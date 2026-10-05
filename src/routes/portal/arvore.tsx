@@ -76,13 +76,13 @@ function NoArvore({
  */
 function NoPessoa({ pessoa }: { pessoa: PessoaNaArvore }) {
   return (
-    <div
+    <details
       className="flex min-h-9 min-w-[5.5rem] max-w-[9rem] flex-col items-center justify-center rounded-md border-2 border-gold bg-gold/15 px-2 py-1 text-center shadow-sm sm:min-h-14 sm:rounded-lg"
       data-arvore-pessoa
     >
-      <span className="text-[10px] font-semibold leading-tight text-navy sm:text-xs">{pessoa.nome}</span>
-      {pessoa.vinculo ? <span className="text-[9px] leading-tight text-navy/60 sm:text-[10px]">{pessoa.vinculo}</span> : null}
-    </div>
+      <summary className="cursor-pointer list-none text-[10px] font-semibold leading-tight text-navy sm:text-xs">{pessoa.nome}</summary>
+      {pessoa.vinculo ? <span className="mt-1 text-[9px] leading-tight text-navy/60 sm:text-[10px]">{pessoa.vinculo}</span> : <span className="mt-1 text-[9px] text-navy/60">Vínculo não publicado</span>}
+    </details>
   );
 }
 
