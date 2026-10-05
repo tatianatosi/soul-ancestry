@@ -162,7 +162,8 @@ export function PortalLegado() {
                     em 03/10: somente membros do mesmo processo e família,
                     coberto pelo anexo de privacidade do contrato.
                   */}
-                  <CompartilharAchadoCliente achados={entregas} />
+                   <p className="border-t border-border pt-4 text-sm leading-relaxed text-navy/75">Entrevistas, acervo e novas descobertas terão seu lugar nas coleções quando forem compartilhados com a família.</p>
+                   <CompartilharAchadoCliente achados={entregas} />
 
                 </div>
               </BlocoVisibilidade>

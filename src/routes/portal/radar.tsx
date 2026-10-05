@@ -98,7 +98,7 @@ export function PortalRadar() {
                      <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
                       {dimensoes.map((d, i) => {
                         // "Em preparação" só quando não há percentual nem registro publicado.
-                        const temPercentual = d.estado === "percentual" && (d.percentual ?? 0) > 0;
+                        const temPercentual = d.percentual !== null;
                         const temRegistro = !["Nenhum ainda", "Em preparação", ""].includes(d.rotuloNumero.trim());
                         const vazio = !temPercentual && !temRegistro;
                         const contagemConexoes =
@@ -113,7 +113,8 @@ export function PortalRadar() {
                               <h3 className="mt-0.5 text-xs font-semibold leading-tight text-navy">{d.titulo}</h3>
                             </div>
                             <span className="mt-2 block break-words font-serif text-sm leading-tight text-navy sm:mt-0 sm:shrink-0 sm:text-base">
-                              {vazio ? "Em preparação" : d.rotuloNumero}
+                              {vazio ? "Em preparação" : temPercentual ? `${d.percentual}%` : d.rotuloNumero}
+                              {temPercentual && d.id !== "conexoes" && !d.rotuloNumero.includes("%") && temRegistro ? <span className="ml-1 font-sans text-xs text-navy/70">· {d.rotuloNumero}</span> : null}
                               {contagemConexoes ? (
                                 <span className="ml-1 font-sans text-[10px] text-navy/55">
                                   · {contagemConexoes[1]} de {contagemConexoes[2]} pessoas
@@ -127,9 +128,9 @@ export function PortalRadar() {
                               style={{ width: `${temPercentual ? (d.percentual ?? 0) : 0}%` }}
                             />
                           </div>
-                          {d.legenda ? <p className="mt-2 text-[10px] leading-relaxed text-navy/55">{d.legenda}</p> : null}
-                          {!vazio ? (
-                            <p className="mt-1 text-[10px] leading-relaxed text-navy/40" data-radar-calculo>
+                          {d.legenda ? <p className="mt-2 text-sm leading-relaxed text-navy/75">{d.legenda}</p> : null}
+                          {d.comoCalculamos ? (
+                            <p className="mt-2 border-t border-border pt-2 text-sm leading-relaxed text-navy/70" data-radar-calculo>
                               Como calculamos: {d.comoCalculamos}
                             </p>
                           ) : null}

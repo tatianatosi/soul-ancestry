@@ -81,7 +81,7 @@ export function PortalHome() {
     !/estado de validação|próximo passo: devolutiva/i.test(item.conteudo),
   );
   const pessoasPublicadas = pessoasDaArvore(vivo.data?.projecoes ?? []).length;
-  const documentoPrioritario = vivo.data?.solicitacoes?.[0]?.titulo ?? null;
+   const documentoPrioritario = vivo.data?.solicitacoes?.slice(0, 3).map((item) => item.titulo).join("\n") || null;
   const microentrega = jornada.linha.find((item) => item.tipo === "microentrega")?.conteudo ?? null;
 
   if (previa) {
@@ -427,7 +427,7 @@ function PainelHomeMockup({
         {documentoPrioritario ? (
           <section aria-label="Documento prioritário" className="sm:col-span-2 border-l-2 border-gold pl-4">
             <h3 className="font-serif text-xl text-navy">Documento solicitado</h3>
-            <p className="mt-1 text-sm text-navy/75">{documentoPrioritario}</p>
+             <p className="mt-1 whitespace-pre-line text-sm text-navy/75">{documentoPrioritario}</p>
             <LinkPortal to="/portal/documentos" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver documentos</LinkPortal>
           </section>
         ) : null}
@@ -473,6 +473,8 @@ function PainelHomeMockup({
             <LinkPortal to="/portal/jornada" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Jornada</LinkPortal>
           </section>
         ) : null}
+        {!documentoPrioritario ? <p className="border-t border-border pt-4 text-sm leading-relaxed text-navy/70 sm:col-span-2">Os documentos prioritários e novos avisos da equipe aparecerão aqui quando forem compartilhados com sua família.</p> : null}
+        <LinkPortal to="/portal/conta" className="inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4 sm:col-span-2">Contato com a equipe</LinkPortal>
       </div>
     </div>
   );
