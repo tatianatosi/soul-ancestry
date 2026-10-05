@@ -23,7 +23,7 @@ import { contemCpf } from "@/lib/validacao-pessoa";
 /* ------------------------------------------------- remoção de marcas técnicas */
 
 const MARCAS_TECNICAS: RegExp[] = [
-  /(?:^|[.!?]\s*)estado de validação\s*:\s*[^.!?\n]*(?:[.!?]|$)/gi, // observação interna anexada ao texto publicado
+  /\bestado de validação\s*:\s*[^.!?\n]*(?:[.!?]|$)/gi, // observação interna anexada ao texto publicado
   /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, // UUID
   /\b(?:public|auth|storage|realtime)\.[a-z0-9_]+\b/gi, // nome de tabela/schema
   /\b[a-z0-9]+_(?:id|ids|at|by|status|policy|rls|sel|ins|upd|del)\b/gi, // colunas e policies
