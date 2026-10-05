@@ -132,10 +132,13 @@ export function radarSeisDimensoes(entrada: {
     id: "conexoes",
     titulo: "Conexões Familiares",
     estado: "percentual",
-    percentual: percentual(arvore.length, TETO_ANCESTRAIS_G1_G5),
-    legenda: `${arvore.length} de até ${TETO_ANCESTRAIS_G1_G5} ancestrais possíveis em 5 gerações (você, pais, avós, bisavós e trisavós).`,
-    rotuloNumero: `${percentual(arvore.length, TETO_ANCESTRAIS_G1_G5)}%`,
-    comoCalculamos: `Pessoas publicadas na sua árvore (${arvore.length}) ÷ ${TETO_ANCESTRAIS_G1_G5}, que é o total de ancestrais possíveis em 5 gerações.`,
+    // Não tomar o teto ilustrativo G1–G5 como denominador do caso da família.
+    percentual: arvore.length > 0 ? 100 : 0,
+    legenda: arvore.length > 0
+      ? `${arvore.length} registro(s) da árvore ou linha familiar compartilhados.`
+      : "A árvore e as linhas familiares aparecerão quando forem compartilhadas.",
+    rotuloNumero: arvore.length > 0 ? `${arvore.length} registro(s)` : "Em preparação",
+    comoCalculamos: "Mostramos somente os registros compartilhados; não há um total previsto para a família.",
   };
   const memoria: DimensaoRadar = {
     id: "memoria",

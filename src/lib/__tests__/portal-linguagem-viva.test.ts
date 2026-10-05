@@ -34,6 +34,11 @@ describe("CA-PORTAL-04 — critério 11: dados vivos com copy de cliente", () =>
     );
   });
 
+  it("remove observação interna anexada à microentrega ou ao marco sem inventar outro texto", () => {
+    expect(textoParaCliente("Um registro foi compartilhado. Estado de validação: em conferência.")).toBe("Um registro foi compartilhado.");
+    expect(textoParaCliente("Estado de validação: em conferência.")).toBe("");
+  });
+
   it("lista descarta itens vazios e duplicados", () => {
     expect(
       listaParaCliente(["Registro localizado.", "Registro localizado.", "case_id 12"]),

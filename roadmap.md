@@ -172,3 +172,7 @@
 - [x] Home: pedido documental e microentrega publicados, aviso de achado e progresso existente; Jornada: marcos já aprovados na linha do processo; Radar: resumos dos seis eixos; Árvore: detalhe expansível de pessoa publicada; Documentos: contagem de pedidos abertos; Legado: materiais já publicados classificados nas coleções; Conta: manter plano e origem somente quando disponíveis.
 - [ ] Heatmap por país, aderência, vínculos/estado do elo, datas/localidades/lacunas/correções, originais da Biblioteca, entrevistas, acessos individuais e pagamentos: exigem projeções sanitizadas e permissões específicas; não inferir de dados internos nem simular publicação.
 - [ ] Aprovação visual da Proprietária antes de qualquer publicação.
+
+## Pranchas comparativas do App (05/10/2026)
+- [ ] Conferir as sete abas em 375 e 1280 px com o mockup real; retirar texto interno de microentrega/marco e o teto teórico do Radar.
+- [ ] Entregar sete pranchas comparativas sem publicar novo conteúdo e aguardar aprovação visual.

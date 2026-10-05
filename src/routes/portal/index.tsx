@@ -470,7 +470,7 @@ function PainelHomeMockup({
         </section>
         {microentrega || achados.length === 0 ? (
           <section aria-label="Microentrega" className="border-t border-gold/30 pt-4 sm:col-span-2">
-            <p className="text-[10px] font-medium uppercase tracking-widest text-gold">Microentrega</p>
+            <p className="text-[10px] font-medium uppercase tracking-widest text-gold">Da nossa jornada</p>
             <p className="mt-1 text-sm text-navy/65">{microentrega ?? "Quando houver uma entrega pronta para compartilhar, ela aparecerá na sua Jornada."}</p>
             <LinkPortal to="/portal/jornada" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Jornada</LinkPortal>
           </section>
