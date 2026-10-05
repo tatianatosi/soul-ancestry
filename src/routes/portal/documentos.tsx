@@ -56,6 +56,7 @@ export function PortalDocumentos() {
           <PortalCarregando />
         ) : (
           <div className="space-y-5" data-aba-documentos>
+            <p className="border-l-2 border-gold pl-4 text-sm leading-relaxed text-navy/75">Você poderá acompanhar os pedidos pendentes e a conferência por documento quando essas informações estiverem disponíveis. Ainda não há uma lista completa para mostrar a contagem do checklist.</p>
             {/* 1. Solicitados — só o pedido real da equipe, com a instrução de envio integrada ao card. */}
             <section
               data-documentos-solicitados
@@ -184,6 +185,7 @@ export function PortalDocumentos() {
             const solicitacoesAbertas = vivo.data?.solicitacoes ?? [];
             return (
         <div className="space-y-5" data-aba-documentos-vivo>
+          <p className="border-l-2 border-gold pl-4 text-sm leading-relaxed text-navy/75">Os pedidos pendentes ficam em Solicitados. A conferência acompanha cada envio em Recebidos; os materiais abertos para você ficam em Liberados.</p>
           {/* 1. Solicitados — o que a equipe pediu, com a instrução de envio integrada ao card. */}
           <section data-documentos-solicitados className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
             <div className="h-1 bg-gold" aria-hidden="true" />
