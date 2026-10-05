@@ -77,7 +77,7 @@ export function PortalHome() {
   );
   const passoPublicado = jornada.linha.find((item) => item.tipo === "proxima_acao");
   const achadosPublicados = jornada.linha.filter((item) =>
-    ["achado", "arvore", "evidencia", "linha_tempo", "legado", "microentrega", "relatorio_fase"].includes(item.tipo) &&
+    ["achado", "arvore", "evidencia", "linha_tempo", "legado", "relatorio_fase"].includes(item.tipo) &&
     !/estado de validação|próximo passo: devolutiva/i.test(item.conteudo),
   );
   const pessoasPublicadas = pessoasDaArvore(vivo.data?.projecoes ?? []).length;
