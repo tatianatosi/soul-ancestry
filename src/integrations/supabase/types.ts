@@ -1507,142 +1507,91 @@ export type Database = {
       }
       case_commercial_condition: {
         Row: {
-          id: string
-          organization_id: string
-          case_id: string
-          proposal_id: string | null
-          proposal_reference: string | null
-          versao: number
-          approved_items: Json
-          fees: number | null
-          third_party_costs: string | null
-          official_fees: string | null
-          payment_terms: string | null
-          responsaveis_financeiros: Json
-          parcelas: number | null
-          valor_parcela: number | null
-          moeda: string
-          validity: string | null
           approval_status: string
-          aprovado_por: string | null
+          approved_items: Json
           aprovado_em: string | null
-          origem: string
-          observacao_interna: string | null
+          aprovado_por: string | null
+          archive_motivo: string | null
+          archived_at: string | null
+          case_id: string
           created_at: string
           created_by: string | null
+          fees: number | null
+          id: string
+          moeda: string
+          observacao_interna: string | null
+          official_fees: string | null
+          organization_id: string
+          origem: string
+          parcelas: number | null
+          payment_terms: string | null
+          proposal_id: string | null
+          proposal_reference: string | null
+          responsaveis_financeiros: Json
+          third_party_costs: string | null
           updated_at: string
           updated_by: string | null
-          archived_at: string | null
-          archive_motivo: string | null
+          validity: string | null
+          valor_parcela: number | null
+          versao: number
         }
         Insert: {
-          id?: string
-          organization_id: string
+          approval_status?: string
+          approved_items?: Json
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          archive_motivo?: string | null
+          archived_at?: string | null
           case_id: string
-          proposal_id?: string | null
-          proposal_reference?: string | null
-          versao?: number
-          approved_items?: Json
+          created_at?: string
+          created_by?: string | null
           fees?: number | null
-          third_party_costs?: string | null
-          official_fees?: string | null
-          payment_terms?: string | null
-          responsaveis_financeiros?: Json
-          parcelas?: number | null
-          valor_parcela?: number | null
+          id?: string
           moeda?: string
-          validity?: string | null
-          approval_status?: string
-          aprovado_por?: string | null
-          aprovado_em?: string | null
+          observacao_interna?: string | null
+          official_fees?: string | null
+          organization_id: string
           origem: string
-          observacao_interna?: string | null
-          created_at?: string
-          created_by?: string | null
-          updated_at?: string
-          updated_by?: string | null
-          archived_at?: string | null
-          archive_motivo?: string | null
-        }
-        Update: {
-          id?: string
-          organization_id?: string
-          case_id?: string
+          parcelas?: number | null
+          payment_terms?: string | null
           proposal_id?: string | null
           proposal_reference?: string | null
-          versao?: number
-          approved_items?: Json
-          fees?: number | null
-          third_party_costs?: string | null
-          official_fees?: string | null
-          payment_terms?: string | null
           responsaveis_financeiros?: Json
-          parcelas?: number | null
-          valor_parcela?: number | null
-          moeda?: string
-          validity?: string | null
-          approval_status?: string
-          aprovado_por?: string | null
-          aprovado_em?: string | null
-          origem?: string
-          observacao_interna?: string | null
-          created_at?: string
-          created_by?: string | null
+          third_party_costs?: string | null
           updated_at?: string
           updated_by?: string | null
-          archived_at?: string | null
-          archive_motivo?: string | null
-        }
-        Relationships: []
-      }
-      legacy_sku_mappings: {
-        Row: {
-          id: string
-          organization_id: string
-          legacy_sku: string
-          produto_pai_codigo: string
-          modulo_nome: string | null
-          country_code: string | null
-          amount: number | null
-          currency: string | null
-          source_reference: string
-          decided_at: string
-          notes: string | null
-          created_at: string
-          archived_at: string | null
-          archive_motivo: string | null
-        }
-        Insert: {
-          id?: string
-          organization_id: string
-          legacy_sku: string
-          produto_pai_codigo: string
-          modulo_nome?: string | null
-          country_code?: string | null
-          amount?: number | null
-          currency?: string | null
-          source_reference: string
-          decided_at?: string
-          notes?: string | null
-          created_at?: string
-          archived_at?: string | null
-          archive_motivo?: string | null
+          validity?: string | null
+          valor_parcela?: number | null
+          versao?: number
         }
         Update: {
-          id?: string
-          organization_id?: string
-          legacy_sku?: string
-          produto_pai_codigo?: string
-          modulo_nome?: string | null
-          country_code?: string | null
-          amount?: number | null
-          currency?: string | null
-          source_reference?: string
-          decided_at?: string
-          notes?: string | null
-          created_at?: string
-          archived_at?: string | null
+          approval_status?: string
+          approved_items?: Json
+          aprovado_em?: string | null
+          aprovado_por?: string | null
           archive_motivo?: string | null
+          archived_at?: string | null
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          fees?: number | null
+          id?: string
+          moeda?: string
+          observacao_interna?: string | null
+          official_fees?: string | null
+          organization_id?: string
+          origem?: string
+          parcelas?: number | null
+          payment_terms?: string | null
+          proposal_id?: string | null
+          proposal_reference?: string | null
+          responsaveis_financeiros?: Json
+          third_party_costs?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          validity?: string | null
+          valor_parcela?: number | null
+          versao?: number
         }
         Relationships: []
       }
@@ -2802,8 +2751,6 @@ export type Database = {
       }
       case_source_documents: {
         Row: {
-          legibilidade: string | null
-          integridade: string | null
           archive_motivo: string | null
           archived_at: string | null
           case_id: string
@@ -2817,6 +2764,8 @@ export type Database = {
           id: string
           idioma: string | null
           instituicao_emissora: string | null
+          integridade: string | null
+          legibilidade: string | null
           mime_type: string | null
           nome_arquivo: string
           observacoes: string | null
@@ -2836,8 +2785,6 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
-          legibilidade?: string | null
-          integridade?: string | null
           archive_motivo?: string | null
           archived_at?: string | null
           case_id: string
@@ -2851,6 +2798,8 @@ export type Database = {
           id?: string
           idioma?: string | null
           instituicao_emissora?: string | null
+          integridade?: string | null
+          legibilidade?: string | null
           mime_type?: string | null
           nome_arquivo: string
           observacoes?: string | null
@@ -2870,8 +2819,6 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
-          legibilidade?: string | null
-          integridade?: string | null
           archive_motivo?: string | null
           archived_at?: string | null
           case_id?: string
@@ -2885,6 +2832,8 @@ export type Database = {
           id?: string
           idioma?: string | null
           instituicao_emissora?: string | null
+          integridade?: string | null
+          legibilidade?: string | null
           mime_type?: string | null
           nome_arquivo?: string
           observacoes?: string | null
@@ -11583,6 +11532,57 @@ export type Database = {
           },
         ]
       }
+      legacy_sku_mappings: {
+        Row: {
+          amount: number | null
+          archive_motivo: string | null
+          archived_at: string | null
+          country_code: string | null
+          created_at: string
+          currency: string | null
+          decided_at: string
+          id: string
+          legacy_sku: string
+          modulo_nome: string | null
+          notes: string | null
+          organization_id: string
+          produto_pai_codigo: string
+          source_reference: string
+        }
+        Insert: {
+          amount?: number | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          country_code?: string | null
+          created_at?: string
+          currency?: string | null
+          decided_at?: string
+          id?: string
+          legacy_sku: string
+          modulo_nome?: string | null
+          notes?: string | null
+          organization_id: string
+          produto_pai_codigo: string
+          source_reference: string
+        }
+        Update: {
+          amount?: number | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          country_code?: string | null
+          created_at?: string
+          currency?: string | null
+          decided_at?: string
+          id?: string
+          legacy_sku?: string
+          modulo_nome?: string | null
+          notes?: string | null
+          organization_id?: string
+          produto_pai_codigo?: string
+          source_reference?: string
+        }
+        Relationships: []
+      }
       legal_clause_matrix: {
         Row: {
           archive_motivo: string | null
@@ -17083,8 +17083,6 @@ export type Database = {
       }
       research_document_requests: {
         Row: {
-          genealogical_source_id: string | null
-          resultado_consulta: string | null
           archive_reason: string | null
           archived_at: string | null
           archived_by: string | null
@@ -17094,6 +17092,7 @@ export type Database = {
           due_at: string | null
           external_action_required: boolean
           external_gate_status: string
+          genealogical_source_id: string | null
           id: string
           notes_internal: string | null
           organization_id: string
@@ -17104,6 +17103,7 @@ export type Database = {
           requested_document_type: string
           research_case_id: string
           responsible_user_id: string | null
+          resultado_consulta: string | null
           status: string
           target_institution: string | null
           target_location: string | null
@@ -17111,8 +17111,6 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
-          genealogical_source_id?: string | null
-          resultado_consulta?: string | null
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -17122,6 +17120,7 @@ export type Database = {
           due_at?: string | null
           external_action_required?: boolean
           external_gate_status?: string
+          genealogical_source_id?: string | null
           id?: string
           notes_internal?: string | null
           organization_id: string
@@ -17132,6 +17131,7 @@ export type Database = {
           requested_document_type: string
           research_case_id: string
           responsible_user_id?: string | null
+          resultado_consulta?: string | null
           status?: string
           target_institution?: string | null
           target_location?: string | null
@@ -17139,8 +17139,6 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
-          genealogical_source_id?: string | null
-          resultado_consulta?: string | null
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -17150,6 +17148,7 @@ export type Database = {
           due_at?: string | null
           external_action_required?: boolean
           external_gate_status?: string
+          genealogical_source_id?: string | null
           id?: string
           notes_internal?: string | null
           organization_id?: string
@@ -17160,6 +17159,7 @@ export type Database = {
           requested_document_type?: string
           research_case_id?: string
           responsible_user_id?: string | null
+          resultado_consulta?: string | null
           status?: string
           target_institution?: string | null
           target_location?: string | null
@@ -17167,6 +17167,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "research_document_requests_genealogical_source_id_fkey"
+            columns: ["genealogical_source_id"]
+            isOneToOne: false
+            referencedRelation: "genealogical_sources_catalog"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "research_document_requests_organization_id_fkey"
             columns: ["organization_id"]
