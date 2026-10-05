@@ -218,8 +218,12 @@ export function elosMecanicos(): DefinicaoElo[] {
   return ELOS_DO_FIO.filter((e) => e.natureza === "mecanico");
 }
 
-/** Um elo medido: existe, está aberto, ou não se aplica a esta pessoa. */
-export type EstadoElo = "segura" | "aberto" | "nao_se_aplica";
+/**
+ * Um elo medido. `limite_estrutural` é diferente de `aberto`: não é trabalho
+ * que alguém esqueceu, é coisa que o modelo atual não comporta — e dizer
+ * "aberto" nesse caso seria culpar a equipe por um limite do produto.
+ */
+export type EstadoElo = "segura" | "aberto" | "nao_se_aplica" | "limite_estrutural";
 
 export type EloMedido = {
   chave: string;
@@ -262,6 +266,8 @@ export type SaudeDoFio = {
   abertosMecanicos: number;
   /** Aberto e de identidade: só a Proprietária ou a equipe decide. */
   abertosDeIdentidade: number;
+  /** O modelo atual não comporta — decisão de produto, não de operação. */
+  limitesEstruturais: number;
   /** O fio atravessa quando nenhum elo aplicável está aberto. */
   atravessa: boolean;
 };
@@ -271,9 +277,16 @@ export function saudeDoFio(pessoas: readonly PessoaDoFio[]): SaudeDoFio {
   let aplicaveis = 0;
   let mec = 0;
   let ident = 0;
+  let estrutural = 0;
   for (const p of pessoas) {
     for (const e of p.elos) {
       if (e.estado === "nao_se_aplica") continue;
+      // Limite do modelo não entra no denominador: contar como lacuna da
+      // operação seria cobrar da equipe uma decisão de produto.
+      if (e.estado === "limite_estrutural") {
+        estrutural += 1;
+        continue;
+      }
       aplicaveis += 1;
       if (e.estado === "segura") {
         segurando += 1;
@@ -290,6 +303,7 @@ export function saudeDoFio(pessoas: readonly PessoaDoFio[]): SaudeDoFio {
     aplicaveis,
     abertosMecanicos: mec,
     abertosDeIdentidade: ident,
+    limitesEstruturais: estrutural,
     atravessa: aplicaveis > 0 && segurando === aplicaveis,
   };
 }
@@ -301,7 +315,7 @@ export function filaDeResolucao(
   const porRota = new Map<string, { ondeResolver: string; coluna: string; natureza: NaturezaElo; pessoas: string[] }>();
   for (const p of pessoas) {
     for (const e of p.elos) {
-      if (e.estado !== "aberto") continue;
+      if (e.estado !== "aberto") continue; // limite estrutural não é fila de trabalho
       const def = eloPor(e.chave);
       if (!def) continue;
       const atual = porRota.get(def.chave);
@@ -330,9 +344,13 @@ export function filaDeResolucao(
  */
 export function resumoDoFio(s: SaudeDoFio): string {
   if (s.aplicaveis === 0) return "Nenhuma pessoa de pesquisa neste caso: o fio ainda não tem por onde passar.";
-  if (s.atravessa) return `O fio atravessa: ${s.segurando} de ${s.aplicaveis} elos aplicáveis seguram.`;
+  const nota =
+    s.limitesEstruturais > 0
+      ? ` ${s.limitesEstruturais} elo(s) fora do que o modelo atual comporta — decisão de produto, não lacuna da operação.`
+      : "";
+  if (s.atravessa) return `O fio atravessa: ${s.segurando} de ${s.aplicaveis} elos aplicáveis seguram.${nota}`;
   const partes = [`${s.segurando} de ${s.aplicaveis} elos aplicáveis seguram`];
   if (s.abertosMecanicos > 0) partes.push(`${s.abertosMecanicos} religável sem decisão`);
   if (s.abertosDeIdentidade > 0) partes.push(`${s.abertosDeIdentidade} dependendo de decisão de identidade`);
-  return `O fio NÃO atravessa — ${partes.join(" · ")}.`;
+  return `O fio NÃO atravessa — ${partes.join(" · ")}.${nota}`;
 }

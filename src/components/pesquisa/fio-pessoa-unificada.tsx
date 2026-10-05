@@ -52,6 +52,7 @@ type Medida = {
     aplicaveis: number;
     abertosMecanicos: number;
     abertosDeIdentidade: number;
+    limitesEstruturais: number;
     atravessa: boolean;
   };
   resumo: string;
@@ -239,7 +240,9 @@ export function FioPessoaUnificada({ researchCaseId }: { researchCaseId: string 
                                   ? "px-2 py-2 text-center text-navy"
                                   : estado === "nao_se_aplica"
                                     ? "px-2 py-2 text-center text-navy/30"
-                                    : "px-2 py-2 text-center text-terracotta"
+                                    : estado === "limite_estrutural"
+                                      ? "px-2 py-2 text-center text-navy/55"
+                                      : "px-2 py-2 text-center text-terracotta"
                               }
                               title={
                                 e?.motivo ??
@@ -248,7 +251,13 @@ export function FioPessoaUnificada({ researchCaseId }: { researchCaseId: string 
                                 }`
                               }
                             >
-                              {estado === "segura" ? "sim" : estado === "nao_se_aplica" ? "—" : "aberto"}
+                              {estado === "segura"
+                                ? "sim"
+                                : estado === "nao_se_aplica"
+                                  ? "—"
+                                  : estado === "limite_estrutural"
+                                    ? "não cabe"
+                                    : "aberto"}
                             </td>
                           );
                         })}

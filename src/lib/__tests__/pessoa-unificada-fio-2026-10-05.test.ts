@@ -357,3 +357,39 @@ describe("o fio se mantém sozinho: o vínculo do perfil propaga para a pesquisa
     expect(trecho).not.toContain("ilike");
   });
 });
+
+describe("limite do modelo não é lacuna da operação", () => {
+  it("elo em limite estrutural não entra no denominador nem na fila de trabalho", () => {
+    const comLimite: PessoaDoFio = {
+      id: "x",
+      nome: "Ascendente de 7ª geração",
+      personStatus: "ancestor",
+      elos: ELOS_DO_FIO.map((e) => ({
+        chave: e.chave,
+        estado: !eloSeAplica(e, "ancestor")
+          ? ("nao_se_aplica" as const)
+          : e.chave === "pessoa_para_app"
+            ? ("limite_estrutural" as const)
+            : ("segura" as const),
+        motivo: e.chave === "pessoa_para_app" ? "A árvore do App comporta 1 a 5 gerações." : undefined,
+      })),
+    };
+    const s = saudeDoFio([comLimite]);
+    expect(s.limitesEstruturais).toBe(1);
+    // Os demais aplicáveis seguram, então o fio atravessa: o limite não é dívida.
+    expect(s.atravessa).toBe(true);
+    expect(resumoDoFio(s)).toContain("decisão de produto, não lacuna da operação");
+    expect(filaDeResolucao([comLimite])).toEqual([]);
+  });
+
+  it("o leitor deriva o limite da geração medida, não de uma lista fixa", () => {
+    expect(FN).toContain("app_proj_geracao_cliente_ck");
+    expect(FN).toContain("geracao < 1 || geracao > 5");
+    expect(FN).toContain("Estender o modelo é decisão de produto");
+  });
+
+  it("o painel diz 'não cabe' em vez de 'aberto'", () => {
+    expect(PAINEL).toContain('"não cabe"');
+    expect(PAINEL).toContain("limite_estrutural");
+  });
+});

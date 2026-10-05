@@ -39,6 +39,7 @@ type Linha = Record<string, any>;
 function medir(
   pessoa: Linha,
   presenca: Record<string, boolean>,
+  limites: Record<string, string> = {},
 ): PessoaDoFio {
   const personStatus = String(pessoa["person_status"] ?? "unknown_person");
   const elos: EloMedido[] = ELOS_DO_FIO.map((def) => {
@@ -50,7 +51,12 @@ function medir(
           "Pessoa histórica da pesquisa: não tem pessoa canônica, membro de caso nem parte no contrato — e isso não é lacuna.",
       };
     }
-    return { chave: def.chave, estado: presenca[def.chave] ? ("segura" as const) : ("aberto" as const) };
+    if (presenca[def.chave]) return { chave: def.chave, estado: "segura" as const };
+    // Limite do modelo não é trabalho esquecido: diz por que não cabe.
+    if (limites[def.chave]) {
+      return { chave: def.chave, estado: "limite_estrutural" as const, motivo: limites[def.chave] };
+    }
+    return { chave: def.chave, estado: "aberto" as const };
   });
   return {
     id: String(pessoa["id"]),
@@ -78,7 +84,7 @@ export const medirFioDaPessoaUnificada = createServerFn({ method: "GET" })
       await Promise.all([
         supabase
           .from("research_people")
-          .select("id,canonical_name,preferred_display_name,person_status,family_member_id,genealogical_person_profile_id")
+          .select("id,canonical_name,preferred_display_name,person_status,family_member_id,genealogical_person_profile_id,geracao")
           .eq("organization_id", organizationId)
           .eq("research_case_id", data.researchCaseId)
           .is("archived_at", null),
@@ -175,6 +181,20 @@ export const medirFioDaPessoaUnificada = createServerFn({ method: "GET" })
       const clienteDoMembro = membro?.["cliente_id"] ? String(membro["cliente_id"]) : null;
       const cliente = clienteVinculado ?? clienteDoMembro;
 
+      /*
+       * A árvore do App é um modelo de cinco gerações: o CHECK
+       * `app_proj_geracao_cliente_ck` só aceita 1 a 5. Ascendente medido em
+       * geração 6 ou 7 não cabe — e chamar isso de "aberto" cobraria da equipe
+       * uma decisão de produto que não é dela.
+       */
+      const geracao = Number.parseInt(String(pessoa["geracao"] ?? ""), 10);
+      const limites: Record<string, string> =
+        Number.isFinite(geracao) && (geracao < 1 || geracao > 5)
+          ? {
+              pessoa_para_app: `Geração ${geracao}: a árvore do App comporta 1 a 5 gerações (CHECK app_proj_geracao_cliente_ck). Estender o modelo é decisão de produto.`,
+            }
+          : {};
+
       return medir(pessoa, {
         // Elos de caso: valem para o caso, logo iguais para todas as pessoas dele.
         lead_para_cliente: cliente !== null && clientesComMembro.has(cliente) && Boolean(c?.["lead_id"]),
@@ -190,7 +210,7 @@ export const medirFioDaPessoaUnificada = createServerFn({ method: "GET" })
         achado_para_pessoa: pessoasComAchado.has(id),
         cliente_para_contrato: cliente !== null && clientesComParte.has(cliente),
         pessoa_para_app: pessoasComProjecao.has(id),
-      });
+      }, limites);
     });
 
     const saude = saudeDoFio(medidas);
