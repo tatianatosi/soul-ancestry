@@ -366,15 +366,7 @@ function PainelHomeMockup({
            </h2>
         </div>
 
-        {fase ? (
-          <EstepeJornada
-            rotulos={fase.rotulos}
-            indice={fase.indice}
-            percentual={fase.percentual}
-            valor={fase.valor}
-            compacto={fase.compacto ?? false}
-          />
-        ) : (
+        {fase ? null : (
           <p className="mt-4 border-t border-cream/10 pt-4 text-sm leading-relaxed text-cream/70">
             {marcos === 0
                ? "A história da sua família terá seu lugar aqui, à medida que novos trechos forem compartilhados."
@@ -382,6 +374,12 @@ function PainelHomeMockup({
           </p>
         )}
       </section>
+
+      {fase ? (
+        <section aria-label="Progresso da jornada" className="rounded-xl bg-navy-800 px-5 pb-5 pt-1 text-cream">
+          <EstepeJornada rotulos={fase.rotulos} indice={fase.indice} percentual={fase.percentual} valor={fase.valor} compacto={fase.compacto ?? false} />
+        </section>
+      ) : null}
 
       <div className="grid gap-7 pt-2 sm:grid-cols-2 sm:items-start">
         <section aria-label="Próxima ação">
@@ -434,7 +432,7 @@ function PainelHomeMockup({
           </section>
         ) : null}
 
-        <section>
+        <section className="sm:col-span-2">
           <div className="mb-3 flex items-end justify-between gap-2">
             <h3 className="font-serif text-2xl text-navy">Achados da sua história</h3>
             <LinkPortal to="/portal/jornada" className="shrink-0 text-xs font-medium text-navy/60 underline-offset-2 hover:text-navy hover:underline">
@@ -448,13 +446,13 @@ function PainelHomeMockup({
               </p>
             </CaCard>
           ) : (
-            <div className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               {achados.slice(0, 3).map((a) => {
                 const [titulo, ...resto] = a.texto.split(/(?<=[.!?])\s+/);
                 const resumo = resto.join(" ");
                 return (
                   <LinkPortal key={a.id} to={a.destino} className="block">
-                    <CaCard className="border-l-2 border-l-gold transition-colors hover:border-gold">
+                    <CaCard className="border-l-2 border-l-plum transition-colors hover:border-plum">
                       <div className="flex items-baseline gap-3">
                         {a.ano ? <span className="font-serif text-2xl leading-none text-gold">{a.ano}</span> : null}
                         <span className="text-[10px] font-medium uppercase tracking-widest text-navy/55">{a.tipo}</span>
@@ -468,17 +466,12 @@ function PainelHomeMockup({
             </div>
           )}
         </section>
-        {microentrega || achados.length === 0 ? (
-          <section aria-label="Microentrega" className="border-t border-gold/30 pt-4 sm:col-span-2">
-            <p className="text-[10px] font-medium uppercase tracking-widest text-gold">Da nossa jornada</p>
-            <p className="mt-1 text-sm text-navy/65">{microentrega ?? "Quando houver uma entrega pronta para compartilhar, ela aparecerá na sua Jornada."}</p>
+        {microentrega ? (
+          <section aria-label="Microentrega" className="border-l-2 border-plum/60 py-1 pl-4 sm:col-span-2">
+            <p className="text-[10px] font-medium uppercase tracking-widest text-plum">Da nossa jornada</p>
+            <p className="mt-1 text-sm text-navy/65">{microentrega}</p>
             <LinkPortal to="/portal/jornada" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Jornada</LinkPortal>
           </section>
-        ) : null}
-        {achados.some((a) => a.tipo === "Registro encontrado") ? (
-          <p role="status" className="border-l-2 border-gold pl-4 text-sm text-navy/75 sm:col-span-2">
-            Há um registro da história da sua família disponível nos Achados acima.
-          </p>
         ) : null}
       </div>
     </div>

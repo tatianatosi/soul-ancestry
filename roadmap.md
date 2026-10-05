@@ -174,5 +174,13 @@
 - [ ] Aprovação visual da Proprietária antes de qualquer publicação.
 
 ## Pranchas comparativas do App (05/10/2026)
-- [ ] Conferir as sete abas em 375 e 1280 px com o mockup real; retirar texto interno de microentrega/marco e o teto teórico do Radar.
-- [ ] Entregar sete pranchas comparativas sem publicar novo conteúdo e aguardar aprovação visual.
+- [x] Conferir as sete abas em 375 e 1280 px com o mockup real; retirar texto interno de microentrega/marco e o teto teórico do Radar.
+- [x] Entregar sete pranchas comparativas sem publicar novo conteúdo.
+- [ ] Conferir os ajustes finais de composição visual em 375 e 1280 px; aguardar aprovação visual antes de publicar conteúdo.
+
+## Paridade UI do App P1–P4 (05/10/2026)
+- [x] P1 Home: progresso condicional, grade desktop e documento/microentrega somente com conteúdo disponível.
+- [x] P2 Jornada: história, união e processo em sequência conectada; régua somente com fase visível.
+- [x] P3 Radar e Árvore: hexágono e seis dimensões preservados, nós expansíveis com vínculo publicado ou ausência explícita. Heatmap não exibido sem projeção autorizada.
+- [x] P4 Documentos, Legado e Conta: coleções diferenciadas por token existente; itens e plano continuam condicionais, sem ações falsas.
+- [x] Validados 68 testes direcionados, compilação registrada OK e 14 capturas a 375/1280 sem overflow ou erro de página. Heatmap de países/ramos, correção na árvore e preferências permanecem ocultos: não há projeção autorizada ou ação existente para sustentá-los. Sem publicação.
