@@ -147,7 +147,9 @@ export function PortalArvore() {
                     </p>
                     <p className="mt-1 text-sm text-navy/65">
                       {temConteudo
-                        ? "A árvore reúne as pessoas e os vínculos já confirmados e compartilhados com você."
+                        ? pessoas.length > 0
+                          ? "A árvore reúne as pessoas e os vínculos já confirmados e compartilhados com você."
+                          : "Os nomes compartilhados estão abaixo. As posições na árvore aparecerão quando os vínculos e as gerações estiverem disponíveis."
                          : "Esta árvore ainda não tem nomes e vínculos liberados para a família."}
                     </p>
                     <div className="mt-5 space-y-1">
@@ -202,7 +204,9 @@ export function PortalArvore() {
                         </>
                       ) : (
                         <span className="text-xs text-navy/60">
-                           Nenhum nome liberado para esta árvore até agora.
+                           {temConteudo
+                             ? "Os nomes já compartilhados ainda não têm posição disponível nesta árvore."
+                             : "Nenhum nome liberado para esta árvore até agora."}
                         </span>
                       )}
                     </p>
