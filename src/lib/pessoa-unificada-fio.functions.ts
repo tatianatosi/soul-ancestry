@@ -106,7 +106,8 @@ export const medirFioDaPessoaUnificada = createServerFn({ method: "GET" })
           .from("case_members")
           .select("id,cliente_id")
           .eq("organization_id", organizationId)
-          .eq("case_id", caseId ?? "00000000-0000-0000-0000-000000000000"),
+          .eq("case_id", caseId ?? "00000000-0000-0000-0000-000000000000")
+          .is("archived_at", null),
         supabase
           .from("nucleo_membros")
           .select("id,cliente_id,nucleo_id")
@@ -173,6 +174,13 @@ export const medirFioDaPessoaUnificada = createServerFn({ method: "GET" })
 
     const c = (caso as any)?.data as Linha | null;
 
+    const membrosPorClienteLeitura = new Map<string, number>();
+    for (const m of (membros.data ?? []) as Linha[]) {
+      const cm = m["cliente_id"] ? String(m["cliente_id"]) : null;
+      if (!cm) continue;
+      membrosPorClienteLeitura.set(cm, (membrosPorClienteLeitura.get(cm) ?? 0) + 1);
+    }
+
     const medidas = listaPessoas.map((pessoa) => {
       const id = String(pessoa["id"]);
       const perfil = perfilPorPesquisa.get(id) ?? null;
@@ -188,12 +196,24 @@ export const medirFioDaPessoaUnificada = createServerFn({ method: "GET" })
        * uma decisão de produto que não é dela.
        */
       const geracao = Number.parseInt(String(pessoa["geracao"] ?? ""), 10);
-      const limites: Record<string, string> =
-        Number.isFinite(geracao) && (geracao < 1 || geracao > 5)
-          ? {
-              pessoa_para_app: `Geração ${geracao}: a árvore do App comporta 1 a 5 gerações (CHECK app_proj_geracao_cliente_ck). Estender o modelo é decisão de produto.`,
-            }
-          : {};
+      const limites: Record<string, string> = {};
+      if (Number.isFinite(geracao) && (geracao < 1 || geracao > 5)) {
+        limites["pessoa_para_app"] =
+          `Geração ${geracao}: a árvore do App comporta 1 a 5 gerações (CHECK app_proj_geracao_cliente_ck). Estender o modelo é decisão de produto.`;
+      }
+      /*
+       * `research_people.family_member_id` é FK de `case_members`. Quando a
+       * pessoa já está vinculada a uma pessoa cadastrada e o caso NÃO tem
+       * membro ativo para ela, o elo não fecha por nenhum caminho: a
+       * composição dela vive no núcleo, por decisão de reconciliação
+       * registrada (membros duplicados na ficha do caso foram arquivados).
+       * Chamar isso de "aberto" faria a tela pedir à equipe algo impossível —
+       * e a propagação automática falharia calada.
+       */
+      if (clienteVinculado && (membrosPorClienteLeitura.get(clienteVinculado) ?? 0) === 0) {
+        limites["pesquisa_para_membro"] =
+          "Esta pessoa não tem membro ativo na ficha do caso: a composição dela vive no núcleo, por decisão de reconciliação registrada. A coluna é FK de case_members, então o elo só fecha restaurando o membro ou estendendo a referência — decisão de dado, não de operação.";
+      }
 
       return medir(pessoa, {
         // Elos de caso: valem para o caso, logo iguais para todas as pessoas dele.
@@ -220,12 +240,6 @@ export const medirFioDaPessoaUnificada = createServerFn({ method: "GET" })
      * com perfil apontando para ela e sem o ponteiro de volta. Nenhuma
      * inferência — é o mesmo vínculo, no sentido que falta.
      */
-    const membrosPorClienteLeitura = new Map<string, number>();
-    for (const m of (membros.data ?? []) as Linha[]) {
-      const c = m["cliente_id"] ? String(m["cliente_id"]) : null;
-      if (!c) continue;
-      membrosPorClienteLeitura.set(c, (membrosPorClienteLeitura.get(c) ?? 0) + 1);
-    }
     const religaveis = listaPessoas.filter((p) => {
       const perfil = perfilPorPesquisa.get(String(p["id"]));
       if (!perfil) return false;

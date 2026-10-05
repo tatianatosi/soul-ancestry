@@ -327,7 +327,7 @@ describe("o fio se mantém sozinho: o vínculo do perfil propaga para a pesquisa
 
   it("propaga compondo as duas decisões registradas, e só quando é única", () => {
     expect(G02).toContain('.eq("cliente_id", novoCliente)');
-    expect(G02).toContain("if (candidatos.length !== 1) return;");
+    expect(G02).toContain("if (candidatos.length !== 1) {");
     expect(G02).toContain("composição do que alguém já decidiu");
   });
 
@@ -391,5 +391,52 @@ describe("limite do modelo não é lacuna da operação", () => {
   it("o painel diz 'não cabe' em vez de 'aberto'", () => {
     expect(PAINEL).toContain('"não cabe"');
     expect(PAINEL).toContain("limite_estrutural");
+  });
+
+  it("pessoa cujo membro da ficha foi arquivado também é limite, não lacuna", () => {
+    /*
+      Medido no caso-piloto: o único case_members do dependente menor está
+      ARQUIVADO — a reconciliação moveu a composição familiar para Núcleos.
+      Como family_member_id é FK de case_members, esse elo não fecha por
+      nenhum caminho. Mostrar "aberto" pediria à equipe algo impossível.
+    */
+    expect(FN).toContain('limites["pesquisa_para_membro"]');
+    expect(FN).toContain("a composição dela vive no núcleo");
+    expect(FN).toContain("FK de case_members");
+  });
+
+  it("o leitor só conta membro ATIVO: arquivado não finge composição", () => {
+    const trecho = FN.slice(FN.indexOf('.from("case_members")'), FN.indexOf('.from("nucleo_membros")'));
+    expect(trecho).toContain('.is("archived_at", null)');
+  });
+});
+
+describe("silêncio é pior que lacuna: a propagação que não deriva fica registrada", () => {
+  const G02 = readFileSync("src/lib/pessoas-linhagens.functions.ts", "utf8");
+
+  it("sem composição única, audita em vez de retornar calado", () => {
+    expect(G02).toContain("fio_membro_nao_derivado");
+    expect(G02).toContain("Silêncio é pior que lacuna");
+  });
+
+  it("distingue zero (composição no núcleo) de mais de um (duplicidade)", () => {
+    expect(G02).toContain("a composição dela vive no núcleo");
+    expect(G02).toContain("duplicidade a resolver antes");
+  });
+
+  it("e continua não gravando nada nesses dois casos", () => {
+    const i = G02.indexOf("if (candidatos.length !== 1) {");
+    const trecho = G02.slice(i, G02.indexOf("if (alvo.family_member_id === candidatos[0]) return;"));
+    expect(trecho).not.toContain("gravarComVerificacao");
+    expect(trecho).toContain("return;");
+  });
+
+  it("a propagação também só olha membro ativo", () => {
+    const trecho = G02.slice(
+      G02.indexOf("const propagarFioParaPesquisa"),
+      G02.indexOf("const registrarVinculo"),
+    );
+    expect(trecho).toContain('.eq("cliente_id", novoCliente)');
+    expect(trecho).toContain('.is("archived_at", null)');
   });
 });

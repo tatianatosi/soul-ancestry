@@ -537,9 +537,36 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
         .select("id")
         .eq("organization_id", organizationId)
         .eq("case_id", caseDoPerfil)
-        .eq("cliente_id", novoCliente);
+        .eq("cliente_id", novoCliente)
+        .is("archived_at", null);
       const candidatos = ((membros ?? []) as { id: string }[]).map((m) => String(m.id));
-      if (candidatos.length !== 1) return;
+      if (candidatos.length !== 1) {
+        /*
+         * Silêncio é pior que lacuna: sem exatamente um membro ativo para esta
+         * pessoa cadastrada, não há composição única e nada é gravado — mas
+         * fica registrado, para o vínculo não parecer completo quando não
+         * está. Zero acontece quando a composição da pessoa vive no núcleo e o
+         * membro duplicado da ficha foi arquivado pela reconciliação; mais de
+         * um é duplicidade a resolver antes.
+         */
+        await supabase.from("audit_logs").insert({
+          organization_id: organizationId,
+          user_id: context.userId as string,
+          acao: "fio_membro_nao_derivado",
+          entidade: "research_people",
+          entidade_id: String(alvo.id),
+          metadados: {
+            motivo:
+              candidatos.length === 0
+                ? "Nenhum membro ativo da ficha do caso para esta pessoa cadastrada: a composição dela vive no núcleo. research_people.family_member_id é FK de case_members, então o elo não fecha sem restaurar o membro ou estender a referência."
+                : `${candidatos.length} membros ativos da ficha do caso para a mesma pessoa cadastrada: duplicidade a resolver antes de derivar o vínculo.`,
+            case_id: caseDoPerfil,
+            client_id: novoCliente,
+            regra: "Composição ambígua ou ausente nunca é gravada por conta própria.",
+          },
+        });
+        return;
+      }
       if (alvo.family_member_id === candidatos[0]) return;
       await gravarComVerificacao({
         supabase,
