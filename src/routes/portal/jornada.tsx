@@ -519,7 +519,9 @@ export function PortalJornada() {
                           <div className="relative min-w-0 sm:order-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
                           <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" />
-                           <div className="mt-3"><TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} /></div>
+                            {passoAtualIndice !== null ? (
+                              <div className="mt-3"><TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} /></div>
+                            ) : null}
                         </div>
                       </div>
                     </>
