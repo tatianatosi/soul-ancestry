@@ -7,7 +7,6 @@ import { toast } from "sonner";
 
 import { Selo, inputCls, moeda } from "@/components/comercial/base";
 import { CaCard } from "@/components/ui/ca-card";
-import { AnexosAplicaveis } from "@/components/contrato/anexos-aplicaveis";
 import { CadeiaFormalizacao } from "@/components/contrato/cadeia-formalizacao";
 import { CadeiaOperacional } from "@/components/contrato/cadeia-operacional";
 import { PlanejadorOperacional } from "@/components/contrato/planejador-operacional";
@@ -996,18 +995,15 @@ function Pagina() {
               </CaCard>
             </div>
 
-            <CaCard titulo="2. Anexo I (Ordem de Serviço) e anexos aplicáveis">
-              <AnexosAplicaveis
-                valores={listaOpcional(d.valores)}
-                anexosGerados={listaOpcional(d.anexos)}
-                aoVerPrevia={(codigo) => {
-                  const alvo = rascunhoAtual ?? listaOpcional<any>(d.previas)[0];
-                  if (alvo) mVer.mutate(alvo.id);
-                  else toast.info(`Gere o rascunho de trabalho para visualizar a instância de ${codigo}.`);
-                  document.getElementById("previas")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-              />
-            </CaCard>
+            {/*
+              05/10/2026 — removida a segunda lista de Anexo I/anexos
+              (o componente antigo, lia `d.anexos`, lógica antiga e
+              desatualizada: dizia "pendente" mesmo quando o conteúdo do
+              Anexo I já está incorporado ao corpo do contrato). A lista
+              governada (seção "Ordem de Serviço (Anexo I) e anexos",
+              `AnexosIaV` com `anexosGovernados`) é a única fonte de estado
+              de anexo nesta tela — travado por teste.
+            */}
 
             <CaCard titulo="3. Versões e histórico">
               <div className="space-y-2">

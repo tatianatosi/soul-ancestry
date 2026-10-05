@@ -74,7 +74,7 @@ export const COPY_TELAS = {
   arvore: {
     navegacao: "Árvore",
     titulo: "Árvore Familiar",
-    descricao: "Cinco gerações que compõem você.",
+    descricao: "As gerações que compõem você.",
     vazio: "A árvore da família ainda não tem vínculos liberados para você.",
   },
   documentos: {

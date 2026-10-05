@@ -6,13 +6,20 @@
  *   - só publica perfil com `client_visibility = 'aprovada'`;
  *   - pessoa `highly_restricted` nunca é publicada;
  *   - menor de idade aparece só pelo primeiro nome;
- *   - geração de 1 (cliente) a 5 (ancestrais), escrita pela equipe;
+ *   - geração de 1 (cliente) a 10 (ascendentes mais distantes), escrita pela equipe;
  *   - contagem no App = pessoas distintas (`pessoa_id`), nunca publicações.
+ *
+ * Ampliado de 5 para 10 gerações em 05/10/2026 — decisão explícita da
+ * Proprietária, depois de medir que o caso-piloto tem ascendentes
+ * documentados em geração 6 e 7 que o modelo anterior não comportava.
+ * Migration `20261005160000_arvore_app_dez_geracoes.sql` ampliou o CHECK
+ * `app_proj_geracao_cliente_ck` no mesmo sentido (aditivo: 1–5 é
+ * subconjunto de 1–10, nenhuma linha existente fica inválida).
  */
 // O App lê `pessoasDaArvore`: nada de módulo de contrato neste arquivo.
 import { contemConteudoInterno } from "@/lib/onboarding-jornada";
 
-export const GERACOES_PUBLICAVEIS = [1, 2, 3, 4, 5] as const;
+export const GERACOES_PUBLICAVEIS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 export const SEPARADOR_ARVORE = " · ";
 
 const t = (v: unknown) => (v == null ? "" : String(v).trim());
@@ -55,7 +62,7 @@ export function validarPublicacaoArvore(entrada: {
   if (entrada.sensitivityLevel === "highly_restricted")
     erros.push("Pessoa com sensibilidade “altamente restrita” nunca é publicada no App.");
   if (!(GERACOES_PUBLICAVEIS as readonly number[]).includes(entrada.geracao))
-    erros.push("Escolha a geração (1 = cliente … 5 = ancestrais).");
+    erros.push("Escolha a geração (1 = cliente … 10 = ascendentes mais distantes).");
   if (t(entrada.nome).length < 2) erros.push("Informe o nome como deve aparecer para o cliente.");
   const conteudo = conteudoArvore(entrada.nome, entrada.vinculo);
   if (conteudo && contemConteudoInterno(conteudo))

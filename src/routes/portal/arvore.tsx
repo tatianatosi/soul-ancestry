@@ -133,13 +133,13 @@ export function PortalArvore() {
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-arvore>
-                  {/* Estrutura G1–G5 do mockup — chrome visual, sem inventar pessoas. */}
+                  {/* Estrutura G1–G5 do mockup aprovado + G6–G10 (ampliação de 05/10/2026) — chrome visual, sem inventar pessoas. */}
                   <section
-                    aria-label="Gerações G1 a G5"
+                    aria-label="Gerações G1 a G10"
                     className="overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm"
                   >
                     <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">
-                      Cinco gerações da sua família
+                      Até dez gerações da sua família
                     </p>
                     <p className="mt-1 text-sm text-navy/65">
                       {temConteudo

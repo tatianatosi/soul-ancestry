@@ -22,7 +22,6 @@ const base = readFileSync("src/components/comercial/base.tsx", "utf8");
 const FAMILIA_CONTRATUAL = [
   "src/routes/_authenticated/contrato-parametros.$id.tsx",
   "src/routes/_authenticated/casos.$caseId.contrato.preparar.tsx",
-  "src/components/contrato/anexos-aplicaveis.tsx",
   "src/components/contrato/cadeia-operacional.tsx",
   "src/components/contrato/cadeia-formalizacao.tsx",
   "src/components/contrato/ficha-governanca.tsx",

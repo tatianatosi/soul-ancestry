@@ -371,7 +371,7 @@ describe("limite do modelo não é lacuna da operação", () => {
           : e.chave === "pessoa_para_app"
             ? ("limite_estrutural" as const)
             : ("segura" as const),
-        motivo: e.chave === "pessoa_para_app" ? "A árvore do App comporta 1 a 5 gerações." : undefined,
+        motivo: e.chave === "pessoa_para_app" ? "A árvore do App comporta 1 a 10 gerações." : undefined,
       })),
     };
     const s = saudeDoFio([comLimite]);
@@ -384,8 +384,8 @@ describe("limite do modelo não é lacuna da operação", () => {
 
   it("o leitor deriva o limite da geração medida, não de uma lista fixa", () => {
     expect(FN).toContain("app_proj_geracao_cliente_ck");
-    expect(FN).toContain("geracao < 1 || geracao > 5");
-    expect(FN).toContain("Estender o modelo é decisão de produto");
+    expect(FN).toContain("geracao < 1 || geracao > 10");
+    expect(FN).toContain("Estender além disso é nova decisão de produto");
   });
 
   it("o painel diz 'não cabe' em vez de 'aberto'", () => {

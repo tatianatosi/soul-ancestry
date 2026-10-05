@@ -63,10 +63,16 @@ describe("Contrato de Uma Hora — dois modos (Preparar contrato / Revisar prév
     expect(rota.indexOf('modo === "revisar"', guarda)).toBeGreaterThan(ordem[ordem.length - 1]);
   });
 
-  it("Revisar segue a ordem Contrato v2 completo → Anexo I/OS → versões → solicitar revisão", () => {
+  it("Revisar segue a ordem Contrato v2 completo → versões → solicitar revisão", () => {
+    /*
+     * 05/10/2026 — a segunda lista de Anexo I ("2. Anexo I (Ordem de Serviço)
+     * e anexos aplicáveis", componente antigo sem a lógica de incorporação)
+     * foi removida: a tela tinha duas listas de anexo mostrando estados
+     * divergentes (uma dizia "Anexo I pendente" mesmo incorporado ao corpo).
+     * A única lista de anexos do modo Preparar (seção "5.") é quem governa.
+     */
     const ordem = [
       "1. ${instrumento} — prévia completa",
-      'titulo="2. Anexo I (Ordem de Serviço) e anexos aplicáveis"',
       'titulo="3. Versões e histórico"',
       'titulo="4. Solicitar revisão, aprovar e preparar assinatura"',
     ].map((t) => rota.indexOf(t));

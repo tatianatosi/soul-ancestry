@@ -25,12 +25,19 @@ describe("regras de publicação", () => {
     expect(nomeParaArvore("Avó  Exemplo", false)).toBe("Avó Exemplo");
   });
 
-  it("só perfil aprovado; nunca altamente restrito; geração 1–5; sem dado interno", () => {
+  it("só perfil aprovado; nunca altamente restrito; geração 1–10; sem dado interno", () => {
     const ok = { clientVisibility: "aprovada", sensitivityLevel: "standard", geracao: 4, nome: "Bisavó Exemplo", vinculo: "bisavó materna" };
     expect(validarPublicacaoArvore(ok)).toEqual([]);
     expect(validarPublicacaoArvore({ ...ok, clientVisibility: "sanitizada" }).join(" ")).toMatch(/aprovada/);
     expect(validarPublicacaoArvore({ ...ok, sensitivityLevel: "highly_restricted" }).join(" ")).toMatch(/altamente restrita/);
-    expect(validarPublicacaoArvore({ ...ok, geracao: 6 }).join(" ")).toMatch(/geração/);
+    /*
+      Ampliado de 5 para 10 gerações em 05/10/2026 (decisão explícita da
+      Proprietária): geração 6 passa a ser válida (era o caso de Rudolf
+      Friedmann, ascendente real do caso-piloto); o limite de verdade agora
+      é 10.
+    */
+    expect(validarPublicacaoArvore({ ...ok, geracao: 6 })).toEqual([]);
+    expect(validarPublicacaoArvore({ ...ok, geracao: 11 }).join(" ")).toMatch(/geração/);
     expect(validarPublicacaoArvore({ ...ok, vinculo: "dossiê 12" }).join(" ")).toMatch(/dado interno/);
     expect(conteudoArvore("Nome", "vínculo")).toBe("Nome · vínculo");
   });

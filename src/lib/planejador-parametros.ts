@@ -128,7 +128,7 @@ export const CADASTRO_PLANEJADOR: CadastroPlanejador[] = [
     ],
     observacoes: [
       "Sem alteração de nome de qualquer titular: os nomes seguem exatamente como registrados no Planejador.",
-      "Todos os beneficiários são maiores de idade — não há representação legal de menores.",
+      "Felipe (dependente menor) é representado por Ana Luiza Gomes Silveira Rodrigues (mãe e representante legal) — decisão registrada em case_dependents.status_representacao em 05/10/2026. Os demais beneficiários são maiores de idade.",
       "Documento de identificação de Alice Gomes Silveira ainda não informado: pendência de coleta, nada inventado.",
       "03/10/2026 — PII migrada para a Pessoa 360 (`clientes`) com autorização da Proprietária e auditoria (`pii_migrada_do_planejador_para_pessoa_360`). CPF, RG, endereço, contato e nascimento saíram deste arquivo: a fonte agora é a Pessoa 360, e este cadastro guarda só nome, papel e as decisões do Planejador.",
       "Divergência declarada, não resolvida por mim: o telefone da contratante estava gravado na Pessoa 360 com um dígito a menos que o deste arquivo (celular sem o 9). A regra é preencher vazio e nunca sobrescrever divergente — o valor da Pessoa 360 foi mantido e a escolha é humana. O número não se repete aqui: a fonte é a Pessoa 360.",

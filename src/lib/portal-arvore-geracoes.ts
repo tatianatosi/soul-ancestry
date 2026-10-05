@@ -1,5 +1,15 @@
 /**
- * Apresentação visual G1–G5 da aba Árvore (mockup 17).
+ * Apresentação visual G1–G10 da aba Árvore.
+ *
+ * G1–G5 são o mockup aprovado de 17 páginas (contrato visual normativo,
+ * intocado). G6–G10 são ampliação explícita da Proprietária em 05/10/2026
+ * ("expandir a árvore até a 10a geração"), depois de medir ascendentes
+ * documentados em geração 6 e 7 que o modelo de 5 gerações não comportava.
+ * Sem página de mockup para G6–G10, o rótulo fica neutro (geração numerada,
+ * sem termo de parentesco inventado em PT como "tetravós"/"pentavós" —
+ * nenhum desses nomes está aprovado em documento algum) e o slot visual é 1
+ * (não finge censo genealógico: só evita placeholder vazio quando já existe
+ * gente publicada).
  *
  * Não inventa pessoas, vínculos nem elegibilidade. A estrutura de gerações é
  * chrome de interface; o conteúdo vem só de `arvoreSanitizada` (publicações
@@ -8,22 +18,27 @@
 
 import type { PublicacaoCliente } from "@/lib/projecoes-cliente";
 
-export type GeracaoArvoreId = "G1" | "G2" | "G3" | "G4" | "G5";
+export type GeracaoArvoreId = "G1" | "G2" | "G3" | "G4" | "G5" | "G6" | "G7" | "G8" | "G9" | "G10";
 
 export type GeracaoArvore = {
   id: GeracaoArvoreId;
   rotulo: string;
-  /** Quantidade de slots visuais no mockup (não é censo genealógico). */
+  /** Quantidade de slots visuais (não é censo genealógico). */
   slots: number;
 };
 
-/** Escala canônica do mockup — G1 (você) … G5 (ancestrais). */
+/** Escala canônica — G1 (você) … G10 (ascendentes mais distantes). */
 export const GERACOES_ARVORE: readonly GeracaoArvore[] = [
   { id: "G1", rotulo: "G1 · Você", slots: 1 },
   { id: "G2", rotulo: "G2 · Avós", slots: 2 },
   { id: "G3", rotulo: "G3 · Bisavós", slots: 4 },
   { id: "G4", rotulo: "G4 · Bisavós de bisavós", slots: 4 },
   { id: "G5", rotulo: "G5 · Ancestrais", slots: 3 },
+  { id: "G6", rotulo: "G6 · 6ª geração", slots: 1 },
+  { id: "G7", rotulo: "G7 · 7ª geração", slots: 1 },
+  { id: "G8", rotulo: "G8 · 8ª geração", slots: 1 },
+  { id: "G9", rotulo: "G9 · 9ª geração", slots: 1 },
+  { id: "G10", rotulo: "G10 · 10ª geração", slots: 1 },
 ] as const;
 
 /**
@@ -35,8 +50,14 @@ export const GERACOES_ARVORE_EXIBICAO: readonly GeracaoArvore[] = [...GERACOES_A
 /**
  * "de um universo de 31 possíveis nas 5 gerações" (mockup): 1+2+4+8+16 — o
  * total teórico de ascendentes diretos em cinco gerações, não uma meta.
+ * Mantida com o nome e o valor originais do mockup aprovado — não é a conta
+ * usada na tela hoje (o rodapé real mostra contagem publicada, nunca o
+ * teto), e renomear ou recalcular este valor histórico não muda nenhum
+ * comportamento. Constante nova para o alcance ampliado, caso algum dia
+ * precise de referência: 1+2+4+8+16+32+64+128+256+512.
  */
 export const PESSOAS_POSSIVEIS_CINCO_GERACOES = 31;
+export const PESSOAS_POSSIVEIS_DEZ_GERACOES = 1023;
 
 /**
  * Estado honesto de um slot sem nome liberado (correção 2026-09-12, pedido

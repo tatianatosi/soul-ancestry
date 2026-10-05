@@ -197,9 +197,15 @@ export const medirFioDaPessoaUnificada = createServerFn({ method: "GET" })
        */
       const geracao = Number.parseInt(String(pessoa["geracao"] ?? ""), 10);
       const limites: Record<string, string> = {};
-      if (Number.isFinite(geracao) && (geracao < 1 || geracao > 5)) {
+      /*
+       * Ampliado de 5 para 10 gerações em 05/10/2026: decisão explícita da
+       * Proprietária ("expandir a árvore até a 10a geração"), depois de medir
+       * ascendentes documentados em geração 6 e 7 que o modelo anterior não
+       * comportava. Migration 20261005160000 ampliou o CHECK no mesmo sentido.
+       */
+      if (Number.isFinite(geracao) && (geracao < 1 || geracao > 10)) {
         limites["pessoa_para_app"] =
-          `Geração ${geracao}: a árvore do App comporta 1 a 5 gerações (CHECK app_proj_geracao_cliente_ck). Estender o modelo é decisão de produto.`;
+          `Geração ${geracao}: a árvore do App comporta 1 a 10 gerações (CHECK app_proj_geracao_cliente_ck). Estender além disso é nova decisão de produto.`;
       }
       /*
        * `research_people.family_member_id` é FK de `case_members`. Quando a
