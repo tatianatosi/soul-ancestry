@@ -179,8 +179,8 @@
 - [ ] Conferir os ajustes finais de composição visual em 375 e 1280 px; aguardar aprovação visual antes de publicar conteúdo.
 
 ## Paridade UI do App P1–P4 (05/10/2026)
-- [ ] P1 Home: progresso somente com fase publicada, grade desktop e cartões condicionais de documento e microentrega.
-- [ ] P2 Jornada: história, união e processo conectados; régua somente com fase visível.
-- [ ] P3 Radar e Árvore: cores semânticas e detalhe expansível somente de conteúdo publicado; heatmap apenas se houver projeção autorizada.
-- [ ] P4 Documentos, Legado e Conta: informação publicada com cores existentes; sem ações falsas nem cartões vazios adicionais.
+- [x] P1 Home: progresso condicional, grade desktop e documento/microentrega somente com conteúdo disponível.
+- [x] P2 Jornada: história, união e processo em sequência conectada; régua somente com fase visível.
+- [x] P3 Radar e Árvore: hexágono e seis dimensões preservados, nós expansíveis com vínculo publicado ou ausência explícita. Heatmap não exibido sem projeção autorizada.
+- [x] P4 Documentos, Legado e Conta: coleções diferenciadas por token existente; itens e plano continuam condicionais, sem ações falsas.
 - [ ] Validar testes e 14 capturas a 375/1280 sem overflow; registrar diferenças não resolvidas por falta de fonte e parar antes de publicar.
