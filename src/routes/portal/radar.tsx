@@ -124,7 +124,7 @@ export function PortalRadar() {
                           <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-cream" aria-hidden="true">
                             <div
                               className="h-full rounded-full bg-gold"
-                              style={{ width: `${temPercentual ? (d.percentual ?? 0) : temRegistro ? 100 : 0}%` }}
+                              style={{ width: `${temPercentual ? (d.percentual ?? 0) : 0}%` }}
                             />
                           </div>
                           {d.legenda ? <p className="mt-2 text-[10px] leading-relaxed text-navy/55">{d.legenda}</p> : null}
