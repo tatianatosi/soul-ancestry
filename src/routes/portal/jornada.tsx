@@ -12,6 +12,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada, publicacoesDeEntrega, publicacoesDeFase01, publicacoesDeFase02, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
 import type { PublicacaoCliente } from "@/lib/projecoes-cliente";
 import { cn } from "@/lib/utils";
+import { textoParaCliente } from "@/lib/portal-linguagem-viva";
 
 const TIPOS_HISTORIA = new Set(["arvore", "achado", "evidencia", "linha_tempo", "legado"]);
 
@@ -163,22 +164,6 @@ function TrilhaCompacta({
               </span>
               {i < passos.length - 1 ? <span className="mx-1 h-px flex-1 bg-navy/10" aria-hidden="true" /> : null}
             </div>
-          );
-        })}
-      </div>
-      <div className="mt-1 hidden sm:flex">
-        {passos.map((passo, i) => {
-          const atual = passoAtualIndice !== null && i === passoAtualIndice;
-          return (
-            <span
-              key={passo}
-              className={cn(
-                "flex-1 text-center text-[8px] leading-tight",
-                atual ? "font-semibold text-navy" : "text-navy/50",
-              )}
-            >
-              {passo}
-            </span>
           );
         })}
       </div>
@@ -354,7 +339,7 @@ export function PortalJornada() {
                   ? "Ritmo em dia"
                   : jornada.ritmo === "atencao"
                     ? "Próxima atualização em preparação"
-                    : "Atualização em revisão";
+                     : "A próxima atualização será compartilhada quando estiver pronta";
             // Prévia não é sinônimo de demonstração: o acesso master abre caso
             // real. Roteiro editorial e passo fixo pertencem só ao caso demo.
             const ehDemo = Boolean(previa) && (previa?.identidade?.fonte ?? "demo") === "demo";
@@ -376,6 +361,24 @@ export function PortalJornada() {
               : [...jornada.linha]
                   .sort((a, b) => new Date(a.publicadoEm ?? 0).getTime() - new Date(b.publicadoEm ?? 0).getTime())
                   .map(noRealDeItem);
+
+            // Marcos aprovados para a família também pertencem à linha viva.
+            // Não duplicar uma publicação que já traz o mesmo texto.
+            if (!ehDemo) {
+              for (const marco of vivo.historico ?? []) {
+                const texto = textoParaCliente(marco.texto);
+                if (!texto || nos.some((no) => no.tipo === "evento" && no.conteudo === texto)) continue;
+                nos.push({
+                  tipo: "evento",
+                  id: `marco-${marco.id}`,
+                  categoria: "navy",
+                  rotuloCategoria: "Marco compartilhado",
+                  dataPrincipal: marco.data ? dataCurta(marco.data) : null,
+                  titulo: "Marco da jornada",
+                  conteudo: texto,
+                });
+              }
+            }
 
             /*
               União de Ramos: vínculo explícito por id — nunca por proximidade
@@ -411,9 +414,9 @@ export function PortalJornada() {
             }
 
 
-            // Nó final: próxima ação publicada, sempre presente (real ou demo).
+             // Nó final: apenas quando a próxima ação tem destino liberado.
             // Ajuste 2026-09-12: CTA nomeia a rota real em vez de "Abrir" genérico.
-            nos.push({
+            if (destino) nos.push({
               tipo: "evento",
               id: "__agora__",
               categoria: "navy",
@@ -461,7 +464,7 @@ export function PortalJornada() {
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-6 pb-6 lg:pb-0" data-aba-jornada>
-                  {jornada.linha.length === 0 ? (
+                  {jornada.linha.length === 0 && (vivo.historico ?? []).length === 0 ? (
                     /*
                       FIDELIDADE-VISUAL-2026-09-23: estado vazio não mostra o
                       painel administrativo (Caso/Composição/Marcos/Ritmo/
@@ -475,18 +478,18 @@ export function PortalJornada() {
                          <h2 className="mt-1 font-serif text-2xl text-cream">Uma história começando a ganhar forma</h2>
                          <p className="mt-2 text-sm leading-relaxed text-cream/80">{ritmoRotulo}</p>
                       </div>
-                       <div data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:gap-6">
+                        <div data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:grid-cols-2 sm:gap-6">
                          <span aria-hidden="true" className="absolute bottom-5 left-2 top-5 w-0.5 bg-gold/70" />
                          <section className="relative rounded-lg border border-gold/35 bg-card p-5 shadow-sm">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                            <h2 className="font-serif text-xl text-navy">Linha Ancestral</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.</p>
                          </section>
-                         <div className="relative">
+                          <div className="relative sm:order-2 sm:col-span-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                            <MomentosDeUniao pontes={pontes} />
                          </div>
-                         <section className="relative rounded-lg border border-navy/20 bg-card p-5 shadow-sm">
+                          <section className="relative rounded-lg border border-navy/20 bg-card p-5 shadow-sm sm:order-3 sm:col-span-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
                            <h2 className="font-serif text-xl text-navy">Linha do Processo</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar.</p>
@@ -500,20 +503,22 @@ export function PortalJornada() {
                          <h2 className="mt-1 font-serif text-2xl text-cream">Uma história começando a ganhar forma</h2>
                          <p className="mt-2 text-sm leading-relaxed text-cream/80">{vivo.composicao ?? "A história da sua família"} · {ritmoRotulo}</p>
                       </div>
-                       <div data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:gap-6">
+                        <div data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:grid-cols-2 sm:gap-6">
                          <span aria-hidden="true" className="absolute bottom-5 left-2 top-5 w-0.5 bg-gold/70" />
                          <div className="relative min-w-0">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                           <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" variante="gold" />
                         </div>
-                         <div className="relative">
+                          <div className="relative sm:order-2 sm:col-span-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                            <MomentosDeUniao pontes={pontes} />
                          </div>
-                         <div className="relative min-w-0">
+                          <div className="relative min-w-0 sm:order-3 sm:col-span-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
                           <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" />
-                           <div className="mt-3"><TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} /></div>
+                            {passoAtualIndice !== null ? (
+                              <div className="mt-3"><TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} /></div>
+                            ) : null}
                         </div>
                       </div>
                     </>

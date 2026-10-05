@@ -60,7 +60,7 @@ describe("App: pessoas distintas por geração, nunca contagem de publicações"
     // sendo pessoas distintas, agora com o universo possível ao lado.
     expect(tela).toContain("data-arvore-contagem");
     expect(tela).toContain("{pessoas.length}{\" \"}");
-    expect(tela).toContain("de um universo de {PESSOAS_POSSIVEIS_CINCO_GERACOES} possíveis nas 5 gerações");
+    expect(tela).not.toContain("de um universo de {PESSOAS_POSSIVEIS_CINCO_GERACOES} possíveis nas 5 gerações");
     expect(tela).toContain("A árvore reúne as pessoas e os vínculos já confirmados e compartilhados com você.");
     expect(tela).toContain("Esta árvore ainda não tem nomes e vínculos liberados para a família.");
     expect(ler("src/lib/portal-dados-vivos.functions.ts")).toContain("pessoa_id, geracao_cliente");

@@ -103,7 +103,7 @@ export function PortalRadar() {
                               <h3 className="mt-0.5 text-xs font-semibold leading-tight text-navy">{d.titulo}</h3>
                             </div>
                             <span className="mt-2 block break-words font-serif text-sm leading-tight text-navy sm:mt-0 sm:shrink-0 sm:text-base">
-                               {d.percentual === 0 ? "Em preparação" : d.rotuloNumero}
+                                {d.percentual === null || d.percentual === 0 ? "Em preparação" : d.rotuloNumero}
                             </span>
                           </div>
                           <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-cream" aria-hidden="true">
@@ -113,6 +113,7 @@ export function PortalRadar() {
                             />
                           </div>
                            {d.percentual ? <p className="mt-2 text-[10px] leading-relaxed text-navy/55">{d.legenda}</p> : null}
+                            {(d.percentual === null || d.percentual === 0) && d.legenda ? <p className="mt-2 text-xs leading-relaxed text-navy/60">{d.legenda}</p> : null}
                           {/*
                             03/10/2026 — "mostrando as percentagens e
                             calculos". Percentual sem conta visível é número

@@ -24,8 +24,10 @@ describe("A1 Home — card Microentrega público removido", () => {
     expect(codigo).not.toContain("microentregaPublicada");
   });
 
-  it("PainelHomeMockup não recebe mais a prop microentrega", () => {
-    expect(codigo).not.toMatch(/microentrega=\{microentrega\}/);
+  it("microentrega publicada aparece só em linha editorial, sem cartão próprio", () => {
+    expect(codigo).toMatch(/microentrega=\{microentrega\}/);
+    expect(codigo).toContain('microentrega ? (');
+    expect(codigo).toContain('border-l-2 border-plum/60');
     expect(codigo).not.toMatch(/\bmicentrega\?:/);
   });
 

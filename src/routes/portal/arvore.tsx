@@ -7,7 +7,6 @@ import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
 import {
   painelArvoreGeracoes,
   GERACOES_ARVORE_EXIBICAO,
-  PESSOAS_POSSIVEIS_CINCO_GERACOES,
   type GeracaoArvore,
 } from "@/lib/portal-arvore-geracoes";
 import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
@@ -76,13 +75,17 @@ function NoArvore({
  */
 function NoPessoa({ pessoa }: { pessoa: PessoaNaArvore }) {
   return (
-    <div
+    <details
       className="flex min-h-9 min-w-[5.5rem] max-w-[9rem] flex-col items-center justify-center rounded-md border-2 border-gold bg-gold/15 px-2 py-1 text-center shadow-sm sm:min-h-14 sm:rounded-lg"
       data-arvore-pessoa
     >
-      <span className="text-[10px] font-semibold leading-tight text-navy sm:text-xs">{pessoa.nome}</span>
-      {pessoa.vinculo ? <span className="text-[9px] leading-tight text-navy/60 sm:text-[10px]">{pessoa.vinculo}</span> : null}
-    </div>
+      <summary className="cursor-pointer list-none text-[10px] font-semibold leading-tight text-navy sm:text-xs">{pessoa.nome}</summary>
+      <div className="mt-2 border-t border-gold/30 pt-2 text-left text-[10px] leading-relaxed text-navy/70">
+        <p className="font-semibold">Sobre esta ligação</p>
+        <p>{pessoa.vinculo ?? "Vínculo não publicado"}</p>
+        <p className="mt-1">Para sugerir uma correção, fale com a equipe pelos canais já combinados.</p>
+      </div>
+    </details>
   );
 }
 
@@ -174,8 +177,8 @@ export function PortalArvore() {
                       ))}
                     </div>
 
-                    {/* Mockup p.6: "N pessoas conectadas recuperadas — de um universo
-                        de 31 possíveis nas 5 gerações". Sem publicação, estado vazio. */}
+                    {/* Só contar nomes efetivamente publicados; o teto ilustrativo
+                        do mockup não representa pessoas reais desta família. */}
                     <p
                       className="mt-5 rounded-xl border border-gold/40 bg-gold/5 px-4 py-3 text-center text-sm text-navy/75"
                       data-arvore-contagem
@@ -192,10 +195,6 @@ export function PortalArvore() {
                             vez: a primeira restauração foi 39d6929a). Restaurado
                             no merge para manter o contrato visual.
                           */}
-                          <span className="mt-0.5 block text-xs text-navy/60">
-                            de um universo de {PESSOAS_POSSIVEIS_CINCO_GERACOES} possíveis nas 5 gerações —
-                            compartilhadas com a família
-                          </span>
                         </>
                       ) : (
                         <span className="text-xs text-navy/60">

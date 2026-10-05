@@ -194,6 +194,7 @@ export function PortalDocumentos() {
                  Quando precisarmos de você
               </span>
             </div>
+            {solicitacoesAbertas.length > 0 ? <p className="mt-2 text-xs text-navy/60">{solicitacoesAbertas.length} {solicitacoesAbertas.length === 1 ? "pedido aberto" : "pedidos abertos"}</p> : null}
             {/*
               REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026): Ficha Piloto
               #6 "Documento foco" / #28 "Pendência principal". Antes só a

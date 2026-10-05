@@ -77,10 +77,12 @@ export function PortalHome() {
   );
   const passoPublicado = jornada.linha.find((item) => item.tipo === "proxima_acao");
   const achadosPublicados = jornada.linha.filter((item) =>
-    ["achado", "arvore", "evidencia", "linha_tempo", "legado", "microentrega", "relatorio_fase"].includes(item.tipo) &&
+    ["achado", "arvore", "evidencia", "linha_tempo", "legado", "relatorio_fase"].includes(item.tipo) &&
     !/estado de validação|próximo passo: devolutiva/i.test(item.conteudo),
   );
   const pessoasPublicadas = pessoasDaArvore(vivo.data?.projecoes ?? []).length;
+  const documentoPrioritario = vivo.data?.solicitacoes?.[0]?.titulo ?? null;
+  const microentrega = jornada.linha.find((item) => item.tipo === "microentrega")?.conteudo ?? null;
 
   if (previa) {
     return (
@@ -95,6 +97,8 @@ export function PortalHome() {
             proximaEntrega={null}
             marcos={jornada.marcosPublicados}
             pessoasPublicadas={pessoasPublicadas}
+            documentoPrioritario={documentoPrioritario}
+            microentrega={microentrega}
             achados={achadosPublicados.slice(0, 3).map((item) => ({
               id: item.id,
               tipo: item.tipoRotulo,
@@ -155,6 +159,8 @@ export function PortalHome() {
                 proximaEntrega={null}
                 marcos={jornada.marcosPublicados}
                 pessoasPublicadas={pessoasPublicadas}
+                documentoPrioritario={documentoPrioritario}
+                microentrega={microentrega}
                 casoId={principal.id}
                 achados={achadosPublicados.slice(0, 3).map((item) => ({
                   id: item.id,
@@ -296,6 +302,8 @@ function PainelHomeMockup({
   proximaEntrega,
   marcos,
   pessoasPublicadas,
+  documentoPrioritario,
+  microentrega,
   casoId,
   achados,
   fase,
@@ -309,6 +317,8 @@ function PainelHomeMockup({
   proximaEntrega?: string | null;
   marcos: number;
   pessoasPublicadas: number;
+  documentoPrioritario?: string | null;
+  microentrega?: string | null;
   casoId?: string;
   achados: Array<{
     id: string;
@@ -356,15 +366,7 @@ function PainelHomeMockup({
            </h2>
         </div>
 
-        {fase ? (
-          <EstepeJornada
-            rotulos={fase.rotulos}
-            indice={fase.indice}
-            percentual={fase.percentual}
-            valor={fase.valor}
-            compacto={fase.compacto ?? false}
-          />
-        ) : (
+        {fase ? null : (
           <p className="mt-4 border-t border-cream/10 pt-4 text-sm leading-relaxed text-cream/70">
             {marcos === 0
                ? "A história da sua família terá seu lugar aqui, à medida que novos trechos forem compartilhados."
@@ -372,6 +374,12 @@ function PainelHomeMockup({
           </p>
         )}
       </section>
+
+      {fase ? (
+        <section aria-label="Progresso da jornada" className="rounded-xl bg-navy-800 px-5 pb-5 pt-1 text-cream">
+          <EstepeJornada rotulos={fase.rotulos} indice={fase.indice} percentual={fase.percentual} valor={fase.valor} compacto={fase.compacto ?? false} />
+        </section>
+      ) : null}
 
       <div className="grid gap-7 pt-2 sm:grid-cols-2 sm:items-start">
         <section aria-label="Próxima ação">
@@ -416,7 +424,15 @@ function PainelHomeMockup({
           </CaCard>
         </section>
 
-        <section>
+        {documentoPrioritario ? (
+          <section aria-label="Documento prioritário" className="sm:col-span-2 border-l-2 border-gold pl-4">
+            <h3 className="font-serif text-xl text-navy">Documento solicitado</h3>
+            <p className="mt-1 text-sm text-navy/75">{documentoPrioritario}</p>
+            <LinkPortal to="/portal/documentos" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver documentos</LinkPortal>
+          </section>
+        ) : null}
+
+        <section className="sm:col-span-2">
           <div className="mb-3 flex items-end justify-between gap-2">
             <h3 className="font-serif text-2xl text-navy">Achados da sua história</h3>
             <LinkPortal to="/portal/jornada" className="shrink-0 text-xs font-medium text-navy/60 underline-offset-2 hover:text-navy hover:underline">
@@ -430,13 +446,13 @@ function PainelHomeMockup({
               </p>
             </CaCard>
           ) : (
-            <div className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               {achados.slice(0, 3).map((a) => {
                 const [titulo, ...resto] = a.texto.split(/(?<=[.!?])\s+/);
                 const resumo = resto.join(" ");
                 return (
                   <LinkPortal key={a.id} to={a.destino} className="block">
-                    <CaCard className="border-l-2 border-l-gold transition-colors hover:border-gold">
+                    <CaCard className="border-l-2 border-l-plum transition-colors hover:border-plum">
                       <div className="flex items-baseline gap-3">
                         {a.ano ? <span className="font-serif text-2xl leading-none text-gold">{a.ano}</span> : null}
                         <span className="text-[10px] font-medium uppercase tracking-widest text-navy/55">{a.tipo}</span>
@@ -450,10 +466,10 @@ function PainelHomeMockup({
             </div>
           )}
         </section>
-        {achados.length === 0 ? (
-          <section aria-label="Microentrega" className="border-t border-gold/30 pt-4 sm:col-span-2">
-            <p className="text-[10px] font-medium uppercase tracking-widest text-gold">Microentrega</p>
-            <p className="mt-1 text-sm text-navy/65">Quando houver uma entrega pronta para compartilhar, ela aparecerá na sua Jornada.</p>
+        {microentrega ? (
+          <section aria-label="Microentrega" className="border-l-2 border-plum/60 py-1 pl-4 sm:col-span-2">
+            <p className="text-[10px] font-medium uppercase tracking-widest text-plum">Da nossa jornada</p>
+            <p className="mt-1 text-sm text-navy/65">{microentrega}</p>
             <LinkPortal to="/portal/jornada" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Jornada</LinkPortal>
           </section>
         ) : null}

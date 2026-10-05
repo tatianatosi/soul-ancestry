@@ -166,3 +166,21 @@
 - [x] Ajustar Home, Radar, Árvore e Legado onde havia divergência visual ou texto interno; preservar as demais telas e os estados honestos.
 - [x] Capturar as 14 telas autenticadas, validar ausência de overflow e erros de página, e executar testes visuais direcionados.
 - [ ] Aprovação visual das 14 capturas pela Proprietária; não publicar sem aprovação.
+
+## Elementos faltantes do App Cliente (05/10/2026)
+- [x] Usar somente leituras existentes e publicações autorizadas nas sete abas; sem gravar dados, criar rotas ou liberar conteúdos.
+- [x] Home: pedido documental e microentrega publicados, aviso de achado e progresso existente; Jornada: marcos já aprovados na linha do processo; Radar: resumos dos seis eixos; Árvore: detalhe expansível de pessoa publicada; Documentos: contagem de pedidos abertos; Legado: materiais já publicados classificados nas coleções; Conta: manter plano e origem somente quando disponíveis.
+- [ ] Heatmap por país, aderência, vínculos/estado do elo, datas/localidades/lacunas/correções, originais da Biblioteca, entrevistas, acessos individuais e pagamentos: exigem projeções sanitizadas e permissões específicas; não inferir de dados internos nem simular publicação.
+- [ ] Aprovação visual da Proprietária antes de qualquer publicação.
+
+## Pranchas comparativas do App (05/10/2026)
+- [x] Conferir as sete abas em 375 e 1280 px com o mockup real; retirar texto interno de microentrega/marco e o teto teórico do Radar.
+- [x] Entregar sete pranchas comparativas sem publicar novo conteúdo.
+- [ ] Conferir os ajustes finais de composição visual em 375 e 1280 px; aguardar aprovação visual antes de publicar conteúdo.
+
+## Paridade UI do App P1–P4 (05/10/2026)
+- [x] P1 Home: progresso condicional, grade desktop e documento/microentrega somente com conteúdo disponível.
+- [x] P2 Jornada: história, união e processo em sequência conectada; régua somente com fase visível.
+- [x] P3 Radar e Árvore: hexágono e seis dimensões preservados, nós expansíveis com vínculo publicado ou ausência explícita. Heatmap não exibido sem projeção autorizada.
+- [x] P4 Documentos, Legado e Conta: coleções diferenciadas por token existente; itens e plano continuam condicionais, sem ações falsas.
+- [x] Validados 68 testes direcionados, compilação registrada OK e 14 capturas a 375/1280 sem overflow ou erro de página. Heatmap de países/ramos, correção na árvore e preferências permanecem ocultos: não há projeção autorizada ou ação existente para sustentá-los. Sem publicação.

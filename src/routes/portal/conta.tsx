@@ -142,7 +142,7 @@ export function PortalConta() {
               <p className="mt-3 text-xs text-navy/55">Para conversar sobre documentos ou sobre a sua jornada, use os canais de contato já combinados com a equipe.</p>
             </section>
 
-            <section data-conta-assinatura className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
+             {assinatura || upsells.length > 0 ? <section data-conta-assinatura className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <h2 className="font-serif text-xl text-navy">Sua assinatura</h2>
               {assinatura ? (
                 <>
@@ -157,12 +157,7 @@ export function PortalConta() {
                     <p className="mt-1 text-xs text-navy/60">{assinatura.situacao}</p>
                   ) : null}
                 </>
-              ) : (
-                <p className="mt-2 text-sm text-navy/70">
-                  A sua assinatura ainda não foi publicada aqui. A equipe informa o valor e a periodicidade pelos
-                  canais já combinados.
-                </p>
-              )}
+               ) : null}
               {upsells.length > 0 ? (
                 <div className="mt-4 border-t border-border pt-3" data-conta-upsell>
                   <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">
@@ -183,7 +178,7 @@ export function PortalConta() {
                   </p>
                 </div>
               ) : null}
-            </section>
+             </section> : null}
 
             {plano ? <section data-conta-plano className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
