@@ -105,7 +105,7 @@ export function pessoasDaArvore(projecoes: readonly ProjecaoArvore[]): PessoaNaA
       chave,
       nome: t(nome),
       vinculo: resto.length ? resto.join(SEPARADOR_ARVORE) : null,
-      geracao: Number.isInteger(g) && g >= 1 && g <= 5 ? g : null,
+      geracao: (GERACOES_PUBLICAVEIS as readonly number[]).includes(g) ? g : null,
     };
   });
 }
