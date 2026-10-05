@@ -52,6 +52,16 @@ describe("radar de seis dimensões", () => {
     );
     expect(radarSemConteudo(r)).toBe(false);
     expect(r.find((d) => d.id === "documentacao")?.percentual).toBe(100);
-    expect((r.find((d) => d.id === "conexoes")?.percentual ?? 0) > 0).toBe(true);
+    /*
+     * 05/10/2026 — "Conexões Familiares" deixou de ter percentual por decisão
+     * vinda do Lovable (ver o conflito registrado em
+     * radar-reconciliado-6-app-4-desk-2026-10-03.test.ts): o teto ilustrativo
+     * de 31 ancestrais não é o denominador desta família. O que o eixo tem de
+     * mostrar com conteúdo publicado é a contagem real, não um percentual.
+     */
+    const conexoes = r.find((d) => d.id === "conexoes")!;
+    expect(conexoes.percentual).toBeNull();
+    expect(conexoes.rotuloNumero).toContain("registro");
+    expect(conexoes.rotuloNumero).not.toBe("Em preparação");
   });
 });
