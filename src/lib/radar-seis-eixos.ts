@@ -118,7 +118,8 @@ export function radarSeisDimensoes(entrada: {
     // mesma fonte de "Conexões Familiares" (publicações de árvore/linha),
     // só que como presença/ausência em vez de contagem contra um teto —
     // por isso os dois eixos sobem juntos; não é redundância acidental.
-    percentual: arvore.length > 0 ? 100 : 0,
+    estado: "em_preparacao",
+    percentual: null,
     legenda:
       arvore.length > 0
         ? `${arvore.length} registro(s) de origem/linha publicados pela equipe.`

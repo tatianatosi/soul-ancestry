@@ -88,7 +88,7 @@ describe("radarSeisDimensoes", () => {
     const conexoes = dimensoes.find((d) => d.id === "conexoes")!;
     expect(conexoes.rotuloNumero).toBe("3 registro(s)");
     expect(conexoes.legenda + conexoes.comoCalculamos).not.toContain(String(TETO_ANCESTRAIS_G1_G5));
-    expect(conexoes.percentual).toBe(100);
+    expect(conexoes.percentual).toBeNull();
   });
 
   it("origem e conexões sobem juntas (mesma fonte, presença vs. contagem)", () => {
@@ -98,7 +98,7 @@ describe("radarSeisDimensoes", () => {
 
     const comArvore = radarSeisDimensoes({ projecoes: [projecao("arvore")], documentos: [] });
     expect(comArvore.find((d) => d.id === "origem")!.percentual).toBe(100);
-    expect(comArvore.find((d) => d.id === "conexoes")!.percentual).toBeGreaterThan(0);
+    expect(comArvore.find((d) => d.id === "conexoes")!.rotuloNumero).toBe("1 registro(s)");
   });
 
   it("memória só conta publicações do tipo achado", () => {
