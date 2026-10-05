@@ -167,27 +167,14 @@ function TrilhaCompacta({
           );
         })}
       </div>
-      <div className="mt-1 hidden sm:flex">
-        {passos.map((passo, i) => {
-          const atual = passoAtualIndice !== null && i === passoAtualIndice;
-          return (
-            <span
-              key={passo}
-              className={cn(
-                "flex-1 text-center text-[8px] leading-tight",
-                atual ? "font-semibold text-navy" : "text-navy/50",
-              )}
-            >
-              {passo}
-            </span>
-          );
-        })}
-      </div>
       {/* Ajuste 2026-09-12: microtexto explícito — o dourado sozinho não deixava claro que é a etapa atual. */}
       {passoAtualIndice !== null ? (
         <p className="mt-2 text-center text-[10px] text-navy/55">
           Você está aqui: <span className="font-semibold text-navy">{passos[passoAtualIndice]}</span>
         </p>
+      ) : null}
+      {passoAtualIndice === null ? (
+        <p className="mt-2 text-center text-[10px] text-navy/55">As etapas aparecerão aqui quando forem compartilhadas.</p>
       ) : null}
     </div>
   );
