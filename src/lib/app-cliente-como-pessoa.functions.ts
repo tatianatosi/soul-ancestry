@@ -74,7 +74,7 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
     const [proj, docs, pendencias, faturas] = await Promise.all([
       leitorProjecoes
         .from("app_projections")
-        .select("id, case_id, projection_type, content_sanitized, effective_from, updated_at")
+        .select("id, case_id, projection_type, content_sanitized, pessoa_id, geracao_cliente, effective_from, updated_at")
         .eq("organization_id", organizationId)
         .eq("case_id", data.casoId)
         .eq("destination", "app")
