@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Archive, Plus, Pencil } from "lucide-react";
+import { Archive, ArchiveRestore, Plus, Pencil } from "lucide-react";
 
 import {
   arquivarRegistro,
   atualizarRegistro,
   criarRegistro,
   listarRegistros,
+  restaurarRegistro,
   type Entidade,
 } from "@/lib/saas.functions";
 import { rotuloEstado, transicoesDe, type Dominio } from "@/lib/estados";
@@ -89,6 +90,7 @@ export function EntidadeCrud({
   const criar = useServerFn(criarRegistro);
   const atualizar = useServerFn(atualizarRegistro);
   const arquivar = useServerFn(arquivarRegistro);
+  const restaurar = useServerFn(restaurarRegistro);
 
   const [incluirArquivados, setIncluirArquivados] = useState(false);
   const [busca, setBusca] = useState("");
@@ -96,6 +98,7 @@ export function EntidadeCrud({
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [arquivando, setArquivando] = useState<{ id: string; motivo: string } | null>(null);
+  const [restaurando, setRestaurando] = useState<{ id: string; motivo: string } | null>(null);
 
   const chave = ["saas", entidade, incluirArquivados];
   const q = useQuery({
@@ -134,6 +137,24 @@ export function EntidadeCrud({
       arquivar({ data: { entidade, id: v.id, motivo: v.motivo } }),
     onSuccess: () => {
       setArquivando(null);
+      setErro(null);
+      recarregar();
+    },
+    onError: (e: Error) => setErro(e.message),
+  });
+
+  /*
+   * Par de `mArquivar`: arquivar é lógico, então desarquivar também exige
+   * motivo rastreável. Sem isto, arquivar por engano só se desfazia por SQL —
+   * o escritor existia desde sempre (`restaurarRegistro`) e nenhuma tela o
+   * chamava. Fica aqui, no componente genérico, porque é o mesmo lugar onde
+   * toda tela de entidade já arquiva: nada de segundo caminho por tela.
+   */
+  const mRestaurar = useMutation({
+    mutationFn: (v: { id: string; motivo: string }) =>
+      restaurar({ data: { entidade, id: v.id, motivo: v.motivo } }),
+    onSuccess: () => {
+      setRestaurando(null);
       setErro(null);
       recarregar();
     },
@@ -269,9 +290,21 @@ export function EntidadeCrud({
                 <div className="mt-4 flex flex-col gap-2 border-t border-navy/10 pt-3">
                   {extra ? extra(linha, recarregar) : null}
                   {arquivado ? (
-                    <span className="text-xs text-navy/50">
-                      Arquivado — {String(linha["archive_motivo"] ?? "sem motivo")}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs text-navy/50">
+                        Arquivado — {String(linha["archive_motivo"] ?? "sem motivo")}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setErro(null);
+                          setRestaurando({ id: String(linha["id"]), motivo: "" });
+                        }}
+                        className="inline-flex items-center gap-1 rounded-md border border-gold/50 bg-gold/10 px-2 py-1 text-xs text-navy hover:bg-gold/20"
+                      >
+                        <ArchiveRestore className="h-3.5 w-3.5" /> Restaurar
+                      </button>
+                    </div>
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       <button
@@ -325,9 +358,21 @@ export function EntidadeCrud({
                       <div className="flex flex-col items-end gap-2">
                         {extra ? extra(linha, recarregar) : null}
                         {arquivado ? (
-                          <span className="text-xs text-navy/50">
-                            Arquivado — {String(linha["archive_motivo"] ?? "sem motivo")}
-                          </span>
+                          <div className="flex flex-wrap items-center justify-end gap-2">
+                            <span className="text-xs text-navy/50">
+                              Arquivado — {String(linha["archive_motivo"] ?? "sem motivo")}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setErro(null);
+                                setRestaurando({ id: String(linha["id"]), motivo: "" });
+                              }}
+                              className="inline-flex items-center gap-1 rounded-md border border-gold/50 bg-gold/10 px-2 py-1 text-xs text-navy hover:bg-gold/20"
+                            >
+                              <ArchiveRestore className="h-3.5 w-3.5" /> Restaurar
+                            </button>
+                          </div>
                         ) : (
                           <div className="flex gap-2">
                             <button
@@ -452,6 +497,47 @@ export function EntidadeCrud({
                 className="rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
               >
                 Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {restaurando ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4">
+          <div className="w-full max-w-md rounded-xl bg-cream p-5" data-restaurar-registro>
+            <h2 className="font-serif text-xl">Restaurar registro</h2>
+            <p className="mt-1 text-xs text-navy/60">
+              Desarquivar deixa o registro ativo de novo. Fica registrado com autor, data e motivo, no
+              histórico do caso — como o arquivamento.
+            </p>
+            <label className="mt-4 block text-sm">
+              <span className="mb-1 block text-navy/70">Motivo da restauração</span>
+              <textarea
+                rows={3}
+                value={restaurando.motivo}
+                onChange={(e) => setRestaurando({ ...restaurando, motivo: e.target.value })}
+                className="w-full rounded-lg border border-navy/20 px-3 py-2"
+              />
+            </label>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={() => setRestaurando(null)}
+                className="rounded-lg border border-navy/20 px-3 py-2 text-sm"
+              >
+                Cancelar
+              </button>
+              <button
+                disabled={mRestaurar.isPending}
+                onClick={() =>
+                  mRestaurar.mutate({
+                    id: restaurando.id,
+                    motivo: restaurando.motivo.trim() || "Motivo não informado.",
+                  })
+                }
+                className="rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-50"
+              >
+                Restaurar
               </button>
             </div>
           </div>

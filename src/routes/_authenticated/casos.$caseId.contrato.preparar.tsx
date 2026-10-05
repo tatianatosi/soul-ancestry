@@ -34,6 +34,7 @@ import { conferirInstancias, statusTelaDeAnexo } from "@/lib/anexos-instancia";
 import { instanciasDocumentaisDoCaso } from "@/lib/anexos-instancia.functions";
 import { InstanciaDocumental } from "@/components/contrato/instancia-documental";
 import { TrilhoProntidaoContrato } from "@/components/contrato/trilho-prontidao";
+import { GovernancaFormalizacao } from "@/components/contrato/governanca-formalizacao";
 import { CoberturaContratual } from "@/components/contrato/cobertura-contratual";
 import { TrazerDoCanva } from "@/components/contrato/trazer-do-canva";
 import { AbrirDocumentoContrato } from "@/components/contrato/abrir-documento-contrato";
@@ -711,6 +712,14 @@ function Pagina() {
             <CoberturaContratual cobertura={d.coberturaContratual as any} />
           </div>
         ) : null}
+
+        <div className="mt-3">
+          <GovernancaFormalizacao
+            caseId={caseId}
+            condicoesVerificadasEm={(d.caso?.condicoes_verificadas_em as string | null) ?? null}
+            aoConcluir={invalidar}
+          />
+        </div>
 
         <div className="flex flex-wrap gap-2" role="tablist" aria-label="Modo de trabalho da ficha">
           <button

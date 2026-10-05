@@ -93,15 +93,25 @@ describe("Órfãs: inventário classificado, nada apagado em silêncio (04/10/20
     }
   });
 
-  it("4. os quatro vereditos estão em uso e nenhum vira depósito", () => {
+  it("4. nenhum veredicto vira depósito, e RELIGAR vazio é a fila zerada", () => {
+    /*
+      Corrigido no Corte F (05/10/2026). A regra antiga exigia RELIGAR > 0 — o
+      que, levado a sério, só se satisfaz deixando lacuna aberta de propósito.
+      RELIGAR vazio significa que a fila foi executada; é o objetivo. O que
+      continua travado é o resto: cada órfã com veredicto escrito (teste 1),
+      nenhuma já religada guardada no registro (teste 2), e nenhum veredicto
+      engolindo o inventário inteiro.
+    */
     expect(orfasPor("CASCA_DUPLICADA").length).toBeGreaterThan(0);
     expect(orfasPor("APOSENTADA_CLASSIFICADA").length).toBeGreaterThan(0);
     expect(orfasPor("AGUARDA_DECISAO").length).toBeGreaterThan(0);
-    expect(orfasPor("RELIGAR").length).toBeGreaterThan(0);
-    // Nenhum veredicto pode conter mais da metade do inventário sem explicação.
-    for (const v of ["CASCA_DUPLICADA", "APOSENTADA_CLASSIFICADA", "RELIGAR"] as const) {
+    for (const v of ["CASCA_DUPLICADA", "APOSENTADA_CLASSIFICADA", "AGUARDA_DECISAO", "RELIGAR"] as const) {
       expect(orfasPor(v).length, v).toBeLessThan(ORFAS_CLASSIFICADAS.length);
     }
+  });
+
+  it("4-bis. a fila RELIGAR está zerada — cada uma das 8 tem chamador de tela", () => {
+    expect(orfasPor("RELIGAR")).toEqual([]);
   });
 
   it("5. o que aguarda decisão nomeia a decisão, não um 'pendente' genérico", () => {

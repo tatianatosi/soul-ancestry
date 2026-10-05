@@ -7,6 +7,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { Selo } from "@/components/comercial/base";
 import { CaCard } from "@/components/ui/ca-card";
 import { listarClientesECasos } from "@/lib/documentos.functions";
+import { RegistroConsentimentos } from "@/components/privacidade/registro-consentimentos";
 
 export const Route = createFileRoute("/_authenticated/privacidade/")({
   head: () => ({
@@ -26,6 +27,18 @@ export const Route = createFileRoute("/_authenticated/privacidade/")({
 function PrivacidadeIndex() {
   const carregar = useServerFn(listarClientesECasos);
   const q = useQuery({ queryKey: ["privacidade", "vinculos"], queryFn: () => carregar() });
+
+  // De-para id → rótulo, para o registro da organização nomear cliente e caso
+  // sem nenhuma consulta nova: a lista de vínculos já está carregada aqui.
+  const nomePorCliente: Record<string, string> = {};
+  for (const c of (q.data?.clientes ?? []) as Record<string, unknown>[]) {
+    nomePorCliente[String(c["id"])] = String(c["nome"] ?? "—");
+  }
+  const codigoPorCaso: Record<string, string> = {};
+  for (const c of (q.data?.casos ?? []) as Record<string, unknown>[]) {
+    codigoPorCaso[String(c["id"])] = String(c["codigo"] ?? c["titulo"] ?? "—");
+  }
+
   return (
     <SaasShell
       titulo="Privacidade e documentos"
@@ -82,6 +95,10 @@ function PrivacidadeIndex() {
           )}
         </EstadoDados>
       </CaCard>
+
+      <div className="mt-4">
+        <RegistroConsentimentos nomePorCliente={nomePorCliente} codigoPorCaso={codigoPorCaso} />
+      </div>
     </SaasShell>
   );
 }
