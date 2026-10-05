@@ -12,6 +12,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada, publicacoesDeEntrega, publicacoesDeFase01, publicacoesDeFase02, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
 import type { PublicacaoCliente } from "@/lib/projecoes-cliente";
 import { cn } from "@/lib/utils";
+import { textoParaCliente } from "@/lib/portal-linguagem-viva";
 
 const TIPOS_HISTORIA = new Set(["arvore", "achado", "evidencia", "linha_tempo", "legado"]);
 
@@ -381,15 +382,16 @@ export function PortalJornada() {
             // Não duplicar uma publicação que já traz o mesmo texto.
             if (!ehDemo) {
               for (const marco of vivo.historico ?? []) {
-                if (nos.some((no) => no.tipo === "evento" && no.conteudo === marco.texto)) continue;
+                const texto = textoParaCliente(marco.texto);
+                if (!texto || nos.some((no) => no.tipo === "evento" && no.conteudo === texto)) continue;
                 nos.push({
                   tipo: "evento",
                   id: `marco-${marco.id}`,
                   categoria: "navy",
                   rotuloCategoria: "Marco compartilhado",
                   dataPrincipal: marco.data ? dataCurta(marco.data) : null,
-                  titulo: "Nossa jornada",
-                  conteudo: marco.texto,
+                  titulo: "Marco da jornada",
+                  conteudo: texto,
                 });
               }
             }
@@ -430,7 +432,7 @@ export function PortalJornada() {
 
             // Nó final: próxima ação publicada, sempre presente (real ou demo).
             // Ajuste 2026-09-12: CTA nomeia a rota real em vez de "Abrir" genérico.
-            nos.push({
+            if (destino) nos.push({
               tipo: "evento",
               id: "__agora__",
               categoria: "navy",
