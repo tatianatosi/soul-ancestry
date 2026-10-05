@@ -74,7 +74,7 @@ export const COPY_TELAS = {
   arvore: {
     navegacao: "Árvore",
     titulo: "Árvore Familiar",
-    descricao: "Cinco gerações que compõem você.",
+    descricao: "As gerações que compõem você.",
     vazio: "A árvore da família ainda não tem vínculos liberados para você.",
   },
   documentos: {
@@ -103,7 +103,7 @@ export const COPY_TELAS = {
   },
   legado: {
     navegacao: "Legado",
-    titulo: "Seus Achados",
+    titulo: "Legado",
     descricao: "Biblioteca da família — seu legado, organizado por coleção.",
     vazio: "Este espaço vai reunir o que for preparado para ficar com a sua família.",
   },
