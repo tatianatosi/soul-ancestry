@@ -1,5 +1,12 @@
 # Roadmap
 
+## Revisão da prancha enviada (05/10/2026)
+- [x] Padronizar o rótulo de microentrega para “Da nossa jornada”, título Legado e subtítulo neutro da Árvore; melhorar legibilidade da barra sem mudar as sete abas.
+- [x] Árvore com conteúdo exibe somente gerações publicadas e G1; sem conteúdo mantém a estrutura visual de espera, sem nomes inventados.
+- [x] Conferidas sete telas autenticadas em 375/1280 e recarga: 49 testes, build OK, zero overflow/pageerrors e toque mínimo 52 × 64 px. Seis nomes aparecem nas publicações; assinatura publicada aparece na Conta. Data 15/09 é de publicação, não previsão.
+- [ ] Nós nomeados/Pessoas conectadas no espelho: leitor master não seleciona pessoa_id/geracao_cliente; correção do reader é corte separado, não inferir posições a partir de nomes. Não comprovada ausência desses dados na fonte.
+- [ ] G6/G7: limite de publicação e leitura atual é G1–G5; ampliação depende de corte separado do responsável pelo banco, sem alterar validação neste corte de UI.
+
 ## Revisão do App da Ana e publicação familiar (01/10/2026)
 - [x] Conferir quatro perfis, vínculos e gerações entre cadastro, pesquisa e projeções: quatro perfis internos, três identidades não revisadas, uma relação declarada sem prova e nenhuma geração registrada.
 - [x] Alinhar apresentação e texto das sete abas ao roteiro sem transformar exemplos do mockup em parentescos, eventos, datas ou marcos reais.

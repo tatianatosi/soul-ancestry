@@ -65,7 +65,7 @@ export const TIPO_PROJECAO_ROTULO: Record<string, string> = {
     genérico "Atualização da equipe". A microentrega publicada do caso real
     da Ana é uma delas.
   */
-  microentrega: "Micro-entrega",
+  microentrega: "Da nossa jornada",
   relatorio_f1: "Relatório preparado",
   relatorio_f2: "Atualização seguinte",
 };

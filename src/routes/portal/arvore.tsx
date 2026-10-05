@@ -130,24 +130,30 @@ export function PortalArvore() {
             const painel = painelArvoreGeracoes(itens);
             const temConteudo = painel.temPublicacao || pessoas.length > 0;
             const pessoasDaGeracao = (id: string) => pessoas.filter((x) => `G${x.geracao}` === id);
+            const geracoesPublicadas = new Set(pessoas.map((pessoa) => `G${pessoa.geracao}`));
+            const geracoesExibidas = pessoas.length > 0
+              ? GERACOES_ARVORE_EXIBICAO.filter((geracao) => geracao.id === "G1" || geracoesPublicadas.has(geracao.id))
+              : GERACOES_ARVORE_EXIBICAO;
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-arvore>
                   {/* Estrutura G1–G5 do mockup — chrome visual, sem inventar pessoas. */}
                   <section
-                    aria-label="Gerações G1 a G5"
+                    aria-label="Gerações da sua família"
                     className="overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm"
                   >
                     <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">
-                      Cinco gerações da sua família
+                      As gerações da sua família
                     </p>
                     <p className="mt-1 text-sm text-navy/65">
                       {temConteudo
-                        ? "A árvore reúne as pessoas e os vínculos já confirmados e compartilhados com você."
+                        ? pessoas.length > 0
+                          ? "A árvore reúne as pessoas e os vínculos já confirmados e compartilhados com você."
+                          : "Os nomes compartilhados estão abaixo. As posições na árvore aparecerão quando os vínculos e as gerações estiverem disponíveis."
                          : "Esta árvore ainda não tem nomes e vínculos liberados para a família."}
                     </p>
                     <div className="mt-5 space-y-1">
-                      {GERACOES_ARVORE_EXIBICAO.map((geracao: GeracaoArvore, gi) => (
+                      {geracoesExibidas.map((geracao: GeracaoArvore, gi) => (
                         <div key={geracao.id}>
                           {gi > 0 ? <ConectorGeracao slots={geracao.slots} /> : null}
                           <p className="mb-2 text-center text-[10px] uppercase tracking-[0.14em] text-navy/45">
@@ -163,7 +169,7 @@ export function PortalArvore() {
                             {Array.from({
                               length: Math.max(
                                 0,
-                                geracao.slots - (geracao.id === "G1" ? 1 : 0) - pessoasDaGeracao(geracao.id).length,
+                                pessoas.length > 0 ? 0 : geracao.slots - (geracao.id === "G1" ? 1 : 0),
                               ),
                             }).map((_, i) => (
                               <NoArvore
@@ -198,7 +204,9 @@ export function PortalArvore() {
                         </>
                       ) : (
                         <span className="text-xs text-navy/60">
-                           Nenhum nome liberado para esta árvore até agora.
+                           {temConteudo
+                             ? "Os nomes já compartilhados ainda não têm posição disponível nesta árvore."
+                             : "Nenhum nome liberado para esta árvore até agora."}
                         </span>
                       )}
                     </p>
