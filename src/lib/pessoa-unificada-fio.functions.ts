@@ -200,9 +200,21 @@ export const medirFioDaPessoaUnificada = createServerFn({ method: "GET" })
      * com perfil apontando para ela e sem o ponteiro de volta. Nenhuma
      * inferência — é o mesmo vínculo, no sentido que falta.
      */
-    const religaveis = listaPessoas.filter(
-      (p) => !p["genealogical_person_profile_id"] && perfilPorPesquisa.has(String(p["id"])),
-    ).length;
+    const membrosPorClienteLeitura = new Map<string, number>();
+    for (const m of (membros.data ?? []) as Linha[]) {
+      const c = m["cliente_id"] ? String(m["cliente_id"]) : null;
+      if (!c) continue;
+      membrosPorClienteLeitura.set(c, (membrosPorClienteLeitura.get(c) ?? 0) + 1);
+    }
+    const religaveis = listaPessoas.filter((p) => {
+      const perfil = perfilPorPesquisa.get(String(p["id"]));
+      if (!perfil) return false;
+      // Elo 1: ponteiro de volta ainda em falta.
+      if (!p["genealogical_person_profile_id"]) return true;
+      // Elo 2: composição única disponível e membro ainda não ligado.
+      const cliente = perfil["client_id"] ? String(perfil["client_id"]) : null;
+      return Boolean(cliente) && !p["family_member_id"] && membrosPorClienteLeitura.get(cliente!) === 1;
+    }).length;
 
     return {
       researchCaseId: data.researchCaseId,
@@ -239,39 +251,81 @@ export const religarElosMecanicosDoFio = createServerFn({ method: "POST" })
     exigirEdicao(podeEditar);
     const caseId = (pesquisa as Linha)?.["case_id"] as string | null;
 
-    const [{ data: pessoas }, { data: perfis }] = await Promise.all([
+    const [{ data: pessoas }, { data: perfis }, { data: membros }] = await Promise.all([
       supabase
         .from("research_people")
-        .select("id,canonical_name,genealogical_person_profile_id")
+        .select("id,canonical_name,genealogical_person_profile_id,family_member_id")
         .eq("organization_id", organizationId)
         .eq("research_case_id", data.researchCaseId)
         .is("archived_at", null),
       supabase
         .from("genealogical_person_profiles")
-        .select("id,research_person_id")
+        .select("id,research_person_id,client_id")
         .eq("organization_id", organizationId)
         .eq("case_id", caseId ?? "00000000-0000-0000-0000-000000000000")
         .is("archived_at", null),
+      supabase
+        .from("case_members")
+        .select("id,cliente_id")
+        .eq("organization_id", organizationId)
+        .eq("case_id", caseId ?? "00000000-0000-0000-0000-000000000000"),
     ]);
 
-    const perfilPorPesquisa = new Map<string, string>();
+    const perfilPorPesquisa = new Map<string, Linha>();
     for (const p of (perfis ?? []) as Linha[]) {
-      if (p["research_person_id"]) perfilPorPesquisa.set(String(p["research_person_id"]), String(p["id"]));
+      if (p["research_person_id"]) perfilPorPesquisa.set(String(p["research_person_id"]), p);
+    }
+    const membrosPorCliente = new Map<string, string[]>();
+    for (const m of (membros ?? []) as Linha[]) {
+      const c = m["cliente_id"] ? String(m["cliente_id"]) : null;
+      if (!c) continue;
+      membrosPorCliente.set(c, [...(membrosPorCliente.get(c) ?? []), String(m["id"])]);
     }
 
     const religados: string[] = [];
+    const membrosLigados: string[] = [];
+    const ambiguos: string[] = [];
     for (const pessoa of (pessoas ?? []) as Linha[]) {
       const id = String(pessoa["id"]);
-      const perfilId = perfilPorPesquisa.get(id);
-      // Nunca sobrescreve ponteiro já gravado, nem inventa quando não há perfil.
-      if (!perfilId || pessoa["genealogical_person_profile_id"]) continue;
+      const perfil = perfilPorPesquisa.get(id);
+      const payload: Record<string, unknown> = {};
+
+      // Elo 1 — ponteiro de volta: copia o vínculo que já existe.
+      // Nunca sobrescreve ponteiro gravado, nem inventa quando não há perfil.
+      if (perfil && !pessoa["genealogical_person_profile_id"]) {
+        payload["genealogical_person_profile_id"] = String(perfil["id"]);
+      }
+
+      /*
+       * Elo 2 — composição de duas decisões humanas já registradas: o perfil
+       * diz que esta pessoa de pesquisa é a pessoa canônica X, e `case_members`
+       * diz que X é membro deste caso. Logo o membro desta pessoa é derivável.
+       * Não é inferência por nome: ambos os lados foram decididos por alguém e
+       * estão auditados. Com zero ou mais de um membro para a mesma pessoa
+       * canônica, não se grava nada — ambiguidade é declarada, não resolvida
+       * por conta própria.
+       */
+      const clienteDoPerfil = perfil?.["client_id"] ? String(perfil["client_id"]) : null;
+      if (clienteDoPerfil && !pessoa["family_member_id"]) {
+        const candidatos = membrosPorCliente.get(clienteDoPerfil) ?? [];
+        if (candidatos.length === 1) {
+          payload["family_member_id"] = candidatos[0];
+          membrosLigados.push(String(pessoa["canonical_name"] ?? id));
+        } else if (candidatos.length > 1) {
+          ambiguos.push(
+            `${String(pessoa["canonical_name"] ?? id)}: ${candidatos.length} membros do caso para a mesma pessoa cadastrada`,
+          );
+        }
+      }
+
+      if (Object.keys(payload).length === 0) continue;
       await gravarComVerificacao({
         supabase: supabase as never,
         tabela: "research_people",
         id,
         organizationId,
         userId,
-        payload: { genealogical_person_profile_id: perfilId },
+        payload,
       });
       religados.push(String(pessoa["canonical_name"] ?? id));
     }
@@ -282,13 +336,18 @@ export const religarElosMecanicosDoFio = createServerFn({ method: "POST" })
       acao: "elos_mecanicos_do_fio_religados",
       entidade: "research_people",
       entidade_id: data.researchCaseId,
-      valores_posteriores: { religados, quantidade: religados.length },
+      valores_posteriores: {
+        religados,
+        quantidade: religados.length,
+        membrosLigados,
+        ambiguosNaoGravados: ambiguos,
+      },
       metadados: {
         motivo: data.motivo,
         regra:
-          "Copiado de genealogical_person_profiles.research_person_id, vínculo já registrado por decisão humana. Nenhuma identidade foi inferida por nome, endereço, profissão ou filiação.",
+          "Dois elos mecânicos. (1) genealogical_person_profile_id copiado de genealogical_person_profiles.research_person_id. (2) family_member_id derivado da composição de duas decisões humanas registradas: o perfil diz qual é a pessoa canônica e case_members diz qual é o membro dela neste caso. Composição ambígua não é gravada. Nenhuma identidade foi inferida por nome, endereço, profissão ou filiação.",
         nao_tocado:
-          "Elos de identidade (perfil→cliente, pesquisa→membro, evidência→pessoa, achado→pessoa, pessoa→App) ficam para a equipe decidir na tela que o leitor aponta.",
+          "Elos de identidade (perfil→cliente, evidência→pessoa, achado→pessoa, pessoa→App) ficam para a equipe decidir na tela que o leitor aponta.",
       },
     });
 
@@ -305,5 +364,5 @@ export const religarElosMecanicosDoFio = createServerFn({ method: "POST" })
       });
     }
 
-    return { religados, quantidade: religados.length };
+    return { religados, quantidade: religados.length, membrosLigados, ambiguos };
   });

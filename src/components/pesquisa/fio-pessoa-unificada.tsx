@@ -161,15 +161,17 @@ export function FioPessoaUnificada({ researchCaseId }: { researchCaseId: string 
             {d.religaveis > 0 ? (
               <div className="rounded-xl border border-gold/60 bg-gold/10 p-3">
                 <p className="text-xs text-navy/75">
-                  {d.religaveis} pessoa(s) de pesquisa têm um perfil genealógico apontando para elas e não apontam
-                  de volta. Religar é copiar esse vínculo, que já foi registrado por decisão humana, no sentido que
-                  falta — <strong>nenhuma identidade é inferida por nome</strong>.
+                  {d.religaveis} pessoa(s) de pesquisa com elo mecânico em falta. Religar faz duas coisas, e nenhuma
+                  delas decide quem é quem: copia o ponteiro do perfil genealógico que já aponta para a pessoa, e
+                  deriva o membro do caso compondo duas decisões já registradas — o perfil diz qual é a pessoa
+                  cadastrada, e a lista de membros diz qual é o membro dela aqui. Composição ambígua não é gravada.{" "}
+                  <strong>Nenhuma identidade é inferida por nome, endereço, profissão ou filiação.</strong>
                 </p>
                 <AcaoOperacional
                   rotulo="Religar os elos mecânicos"
                   className="mt-2 rounded-lg bg-navy px-3 py-1.5 text-xs text-cream"
                   capacidade="avancar_pesquisa_evidencia_microentrega"
-                  efeito="Copia o ponteiro do perfil genealógico para a pessoa de pesquisa. Nunca sobrescreve ponteiro já gravado e não decide identidade de ninguém."
+                  efeito="Copia o ponteiro do perfil genealógico e deriva o membro do caso da composição de duas decisões já registradas. Nunca sobrescreve ponteiro gravado, não grava composição ambígua e não decide identidade de ninguém."
                   onConfirmar={(motivo) => m.mutate(motivo)}
                 />
               </div>

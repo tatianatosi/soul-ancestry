@@ -35,8 +35,10 @@
  * Por isso há **duas** naturezas de elo, e a distinção é a regra central deste
  * módulo:
  *
- *  - **mecânico**: o vínculo já existe, registrado por decisão humana, só não
- *    foi escrito no outro sentido. Religar é copiar o que já está lá. Seguro.
+ *  - **mecânico**: o vínculo já existe, registrado por decisão humana, e só
+ *    falta escrevê-lo no sentido que falta — ou derivá-lo compondo duas
+ *    decisões humanas já registradas. Religar é copiar ou compor o que já
+ *    está lá; nunca adivinhar. Seguro.
  *  - **decisão de identidade**: dizer que a pessoa de pesquisa X é a pessoa
  *    canônica Y. Nunca inferido por nome, endereço, profissão ou filiação
  *    (AGENTS.md). Fica como pendência nomeada, com a rota de resolução.
@@ -160,8 +162,19 @@ export const ELOS_DO_FIO: DefinicaoElo[] = [
     de: "pessoas_relacoes",
     para: "ficha_piloto",
     coluna: "research_people.family_member_id",
-    natureza: "decisao_de_identidade",
-    ondeResolver: "/pessoas-linhagens/$caseId › Perfil 360° — o mesmo vínculo do perfil resolve este",
+    /*
+     * Corrigido em 05/10/2026, depois de medir: eu havia classificado como
+     * decisão de identidade, e não é. Dado que o perfil genealógico diz
+     * "esta pessoa de pesquisa é a pessoa canônica X" (decisão humana,
+     * auditada) e que `case_members` diz "X é membro deste caso" (outra
+     * decisão humana), o membro desta pessoa de pesquisa é **derivável** —
+     * é a composição de duas decisões já registradas, não um palpite por
+     * nome. Só vale quando a composição é única: com zero ou mais de um
+     * membro para a mesma pessoa canônica no caso, não se grava nada.
+     */
+    natureza: "mecanico",
+    inversoDe: "genealogical_person_profiles.client_id ∘ case_members.cliente_id",
+    ondeResolver: "Hub de Pesquisa — religar os elos mecânicos do fio (depois do vínculo do perfil)",
   },
   {
     chave: "evidencia_para_pessoa",

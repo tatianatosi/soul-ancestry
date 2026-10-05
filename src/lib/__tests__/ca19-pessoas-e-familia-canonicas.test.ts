@@ -35,6 +35,11 @@ const PERMITIDOS: { arquivo: string; motivo: string }[] = [
     motivo: "busca candidatos homônimos em case_members para revisão humana de duplicidade (não exibe pessoas do caso)",
   },
   {
+    arquivo: "pessoas-linhagens.functions.ts",
+    motivo:
+      "propaga o vínculo do perfil para research_people.family_member_id, que é FK de case_members.id. pessoasDoCasoComFallbackNucleo não serve aqui: quando o caso tem núcleo, ela devolve nucleo_membros.id — gravar esse id seria um FK errado. Escrita, não leitura de exibição.",
+  },
+  {
     arquivo: "pessoa-unificada-fio.functions.ts",
     motivo:
       "mede se case_members.cliente_id está preenchido — e essa medida não pode passar por pessoasDoCasoComFallbackNucleo, porque o fallback de núcleo mascararia exatamente a coluna vazia que o fio precisa denunciar. Leitura de diagnóstico, nunca de exibição de pessoas do caso.",

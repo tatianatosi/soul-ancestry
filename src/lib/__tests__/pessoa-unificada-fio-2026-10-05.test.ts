@@ -98,7 +98,10 @@ describe("mecânico × decisão de identidade — a distinção central", () => 
     expect(mec.length).toBeGreaterThan(0);
     for (const e of mec) {
       expect(e.inversoDe, e.chave).toBeTruthy();
-      expect(e.inversoDe, e.chave).toMatch(/^[a-z_]+\.[a-z_]+$/);
+      // Cada lado da origem é uma tabela.coluna real; a composição usa "∘".
+      for (const lado of e.inversoDe!.split("∘").map((x) => x.trim())) {
+        expect(lado, `${e.chave} ← ${lado}`).toMatch(/^[a-z_]+\.[a-z_]+$/);
+      }
     }
   });
 
@@ -110,9 +113,34 @@ describe("mecânico × decisão de identidade — a distinção central", () => 
   });
 
   it("ligar pessoa de pesquisa a pessoa canônica NUNCA é mecânico", () => {
-    for (const chave of ["perfil_para_cliente", "pesquisa_para_membro", "caso_para_membro"]) {
+    /*
+      Este é o elo que a Fase D teve de consertar: casar `canonical_name` com o
+      nome da pessoa canônica. Dizer QUEM é quem continua sendo decisão humana.
+    */
+    for (const chave of ["perfil_para_cliente", "caso_para_membro"]) {
       expect(eloPor(chave)!.natureza, chave).toBe("decisao_de_identidade");
     }
+  });
+
+  it("o membro da pessoa de pesquisa é COMPOSIÇÃO de duas decisões, não palpite", () => {
+    /*
+      Corrigido em 05/10 depois de medir: eu tinha classificado
+      `pesquisa_para_membro` como decisão de identidade. Não é — dado que o
+      perfil diz qual é a pessoa canônica (decisão humana) e que case_members
+      diz qual é o membro dela no caso (outra decisão humana), o membro é
+      derivável. A composição declara de onde vem, e os dois lados são colunas
+      reais.
+    */
+    const e = eloPor("pesquisa_para_membro")!;
+    expect(e.natureza).toBe("mecanico");
+    expect(e.inversoDe).toContain("genealogical_person_profiles.client_id");
+    expect(e.inversoDe).toContain("case_members.cliente_id");
+  });
+
+  it("composição ambígua não grava: zero ou mais de um membro fica declarado", () => {
+    expect(FN).toContain("candidatos.length === 1");
+    expect(FN).toContain("ambiguosNaoGravados");
+    expect(FN).toContain("ambiguidade é declarada, não resolvida");
   });
 
   it("nem o módulo nem o escritor casam pessoa por nome, endereço, profissão ou filiação", () => {
@@ -125,9 +153,11 @@ describe("mecânico × decisão de identidade — a distinção central", () => 
       expect(texto, nome).not.toContain("nomeNormalizado");
       expect(texto, nome).not.toMatch(/ilike.*canonical_name/i);
     }
-    // E o escritor grava uma coluna só.
-    const gravadas = [...FN.matchAll(/payload: \{ ([a-z_]+):/g)].map((m) => m[1]);
-    expect(gravadas).toEqual(["genealogical_person_profile_id"]);
+    // E o escritor grava só as duas colunas do fio, nenhuma outra.
+    expect(FN).toContain('payload["genealogical_person_profile_id"]');
+    expect(FN).toContain('payload["family_member_id"]');
+    expect(FN).not.toContain('payload["client_id"]');
+    expect(FN).not.toContain('payload["cliente_id"]');
   });
 });
 
@@ -180,7 +210,7 @@ describe("a conta do fio é honesta: não diz completo com elo aberto", () => {
 
   it("separa o que é religável do que depende de decisão", () => {
     const s = saudeDoFio([pessoa("Ascendente", "ancestor", [])]);
-    expect(s.abertosMecanicos).toBe(1); // pesquisa_para_perfil
+    expect(s.abertosMecanicos).toBe(1); // pesquisa_para_perfil (o do membro não se aplica a histórica)
     expect(s.abertosDeIdentidade).toBe(3); // evidência, achado, App
     expect(resumoDoFio(s)).toContain("religável sem decisão");
     expect(resumoDoFio(s)).toContain("decisão de identidade");
@@ -240,7 +270,10 @@ describe("Pesquisa é onde o fio se verifica — o painel está montado no hub",
 describe("o escritor é conservador e auditado", () => {
   it("grava por gravarComVerificacao e nunca sobrescreve ponteiro existente", () => {
     expect(FN).toContain("gravarComVerificacao");
-    expect(FN).toContain('if (!perfilId || pessoa["genealogical_person_profile_id"]) continue;');
+    expect(FN).toContain('if (perfil && !pessoa["genealogical_person_profile_id"])');
+    expect(FN).toContain('if (clienteDoPerfil && !pessoa["family_member_id"])');
+    // Sem nada a fazer, não grava: releitura sem escrita é melhor que escrita vazia.
+    expect(FN).toContain("if (Object.keys(payload).length === 0) continue;");
   });
 
   it("audita nomeando a regra e o que NÃO foi tocado", () => {
@@ -281,5 +314,46 @@ describe("nada do caso da Ana entrou no código", () => {
         expect(texto, `${nome} contém ${dado}`).not.toContain(dado);
       }
     }
+  });
+});
+
+describe("o fio se mantém sozinho: o vínculo do perfil propaga para a pesquisa", () => {
+  const G02 = readFileSync("src/lib/pessoas-linhagens.functions.ts", "utf8");
+
+  it("salvarRegistroG02 propaga o vínculo ao gravá-lo — não espera botão de diagnóstico", () => {
+    expect(G02).toContain("propagarFioParaPesquisa");
+    expect(G02).toContain("await propagarFioParaPesquisa(perfilId);");
+  });
+
+  it("propaga compondo as duas decisões registradas, e só quando é única", () => {
+    expect(G02).toContain('.eq("cliente_id", novoCliente)');
+    expect(G02).toContain("if (candidatos.length !== 1) return;");
+    expect(G02).toContain("composição do que alguém já decidiu");
+  });
+
+  it("desvincular limpa o ponteiro — não deixa apontando para quem saiu", () => {
+    expect(G02).toContain("payload: { family_member_id: null }");
+  });
+
+  it("grava por gravarComVerificacao e não toca em mais nada da pesquisa", () => {
+    const trecho = G02.slice(
+      G02.indexOf("const propagarFioParaPesquisa"),
+      G02.indexOf("const registrarVinculo"),
+    );
+    expect(trecho).toContain("gravarComVerificacao");
+    expect(trecho).toContain('tabela: "research_people"');
+    // Nenhuma outra tabela da pesquisa é escrita nesta propagação.
+    for (const t of ["research_relationships", "research_evidence_items", "genealogical_findings"]) {
+      expect(trecho, t).not.toContain(t);
+    }
+  });
+
+  it("a regra de não fundir por nome continua valendo no escritor do vínculo", () => {
+    const trecho = G02.slice(
+      G02.indexOf("const propagarFioParaPesquisa"),
+      G02.indexOf("const registrarVinculo"),
+    );
+    expect(trecho).not.toContain("canonical_name");
+    expect(trecho).not.toContain("ilike");
   });
 });
