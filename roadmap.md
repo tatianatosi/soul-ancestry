@@ -174,5 +174,6 @@
 - [ ] Aprovação visual da Proprietária antes de qualquer publicação.
 
 ## Pranchas comparativas do App (05/10/2026)
-- [ ] Conferir as sete abas em 375 e 1280 px com o mockup real; retirar texto interno de microentrega/marco e o teto teórico do Radar.
-- [ ] Entregar sete pranchas comparativas sem publicar novo conteúdo e aguardar aprovação visual.
+- [x] Conferir as sete abas em 375 e 1280 px com o mockup real; retirar texto interno de microentrega/marco e o teto teórico do Radar.
+- [x] Entregar sete pranchas comparativas sem publicar novo conteúdo.
+- [ ] Conferir os ajustes finais de composição visual em 375 e 1280 px; aguardar aprovação visual antes de publicar conteúdo.

@@ -7,7 +7,6 @@ import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
 import {
   painelArvoreGeracoes,
   GERACOES_ARVORE_EXIBICAO,
-  PESSOAS_POSSIVEIS_CINCO_GERACOES,
   type GeracaoArvore,
 } from "@/lib/portal-arvore-geracoes";
 import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
@@ -174,8 +173,8 @@ export function PortalArvore() {
                       ))}
                     </div>
 
-                    {/* Mockup p.6: "N pessoas conectadas recuperadas — de um universo
-                        de 31 possíveis nas 5 gerações". Sem publicação, estado vazio. */}
+                    {/* Só contar nomes efetivamente publicados; o teto ilustrativo
+                        do mockup não representa pessoas reais desta família. */}
                     <p
                       className="mt-5 rounded-xl border border-gold/40 bg-gold/5 px-4 py-3 text-center text-sm text-navy/75"
                       data-arvore-contagem
@@ -192,10 +191,6 @@ export function PortalArvore() {
                             vez: a primeira restauração foi 39d6929a). Restaurado
                             no merge para manter o contrato visual.
                           */}
-                          <span className="mt-0.5 block text-xs text-navy/60">
-                            de um universo de {PESSOAS_POSSIVEIS_CINCO_GERACOES} possíveis nas 5 gerações —
-                            compartilhadas com a família
-                          </span>
                         </>
                       ) : (
                         <span className="text-xs text-navy/60">

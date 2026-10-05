@@ -46,7 +46,8 @@ describe("A2 Jornada — duas colunas paralelas (mockup 2/7)", () => {
 
   it("as duas linhas seguem o mesmo eixo dourado em mobile e desktop", () => {
     expect(codigo).toMatch(/data-jornada-duas-linhas/);
-    expect(codigo).toMatch(/data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:gap-6"/);
+    expect(codigo).toMatch(/data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:grid-cols-2 sm:gap-6"/);
+    expect(codigo).toMatch(/sm:order-3 sm:col-span-2/);
     expect(codigo).toMatch(/bottom-5 left-2 top-5 w-0\.5 bg-gold\/70/);
   });
 

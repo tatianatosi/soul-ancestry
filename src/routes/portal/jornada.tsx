@@ -494,18 +494,18 @@ export function PortalJornada() {
                          <h2 className="mt-1 font-serif text-2xl text-cream">Uma história começando a ganhar forma</h2>
                          <p className="mt-2 text-sm leading-relaxed text-cream/80">{ritmoRotulo}</p>
                       </div>
-                       <div data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:gap-6">
+                        <div data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:grid-cols-2 sm:gap-6">
                          <span aria-hidden="true" className="absolute bottom-5 left-2 top-5 w-0.5 bg-gold/70" />
                          <section className="relative rounded-lg border border-gold/35 bg-card p-5 shadow-sm">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                            <h2 className="font-serif text-xl text-navy">Linha Ancestral</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.</p>
                          </section>
-                         <div className="relative">
+                          <div className="relative sm:order-3 sm:col-span-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                            <MomentosDeUniao pontes={pontes} />
                          </div>
-                         <section className="relative rounded-lg border border-navy/20 bg-card p-5 shadow-sm">
+                          <section className="relative rounded-lg border border-navy/20 bg-card p-5 shadow-sm sm:order-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
                            <h2 className="font-serif text-xl text-navy">Linha do Processo</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar.</p>
@@ -519,17 +519,17 @@ export function PortalJornada() {
                          <h2 className="mt-1 font-serif text-2xl text-cream">Uma história começando a ganhar forma</h2>
                          <p className="mt-2 text-sm leading-relaxed text-cream/80">{vivo.composicao ?? "A história da sua família"} · {ritmoRotulo}</p>
                       </div>
-                       <div data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:gap-6">
+                        <div data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:grid-cols-2 sm:gap-6">
                          <span aria-hidden="true" className="absolute bottom-5 left-2 top-5 w-0.5 bg-gold/70" />
                          <div className="relative min-w-0">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                           <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" variante="gold" />
                         </div>
-                         <div className="relative">
+                          <div className="relative sm:order-3 sm:col-span-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                            <MomentosDeUniao pontes={pontes} />
                          </div>
-                         <div className="relative min-w-0">
+                          <div className="relative min-w-0 sm:order-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
                           <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" />
                            <div className="mt-3"><TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} /></div>

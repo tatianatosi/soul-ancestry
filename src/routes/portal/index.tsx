@@ -434,7 +434,7 @@ function PainelHomeMockup({
           </section>
         ) : null}
 
-        <section>
+        <section className="sm:col-span-2">
           <div className="mb-3 flex items-end justify-between gap-2">
             <h3 className="font-serif text-2xl text-navy">Achados da sua história</h3>
             <LinkPortal to="/portal/jornada" className="shrink-0 text-xs font-medium text-navy/60 underline-offset-2 hover:text-navy hover:underline">
@@ -448,7 +448,7 @@ function PainelHomeMockup({
               </p>
             </CaCard>
           ) : (
-            <div className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               {achados.slice(0, 3).map((a) => {
                 const [titulo, ...resto] = a.texto.split(/(?<=[.!?])\s+/);
                 const resumo = resto.join(" ");
@@ -474,11 +474,6 @@ function PainelHomeMockup({
             <p className="mt-1 text-sm text-navy/65">{microentrega ?? "Quando houver uma entrega pronta para compartilhar, ela aparecerá na sua Jornada."}</p>
             <LinkPortal to="/portal/jornada" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Jornada</LinkPortal>
           </section>
-        ) : null}
-        {achados.some((a) => a.tipo === "Registro encontrado") ? (
-          <p role="status" className="border-l-2 border-gold pl-4 text-sm text-navy/75 sm:col-span-2">
-            Há um registro da história da sua família disponível nos Achados acima.
-          </p>
         ) : null}
       </div>
     </div>
