@@ -173,9 +173,6 @@ function TrilhaCompacta({
           Você está aqui: <span className="font-semibold text-navy">{passos[passoAtualIndice]}</span>
         </p>
       ) : null}
-      {passoAtualIndice === null ? (
-        <p className="mt-2 text-center text-[10px] text-navy/55">As etapas aparecerão aqui quando forem compartilhadas.</p>
-      ) : null}
     </div>
   );
 }
@@ -488,11 +485,11 @@ export function PortalJornada() {
                            <h2 className="font-serif text-xl text-navy">Linha Ancestral</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.</p>
                          </section>
-                          <div className="relative sm:order-3 sm:col-span-2">
+                          <div className="relative sm:order-2 sm:col-span-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                            <MomentosDeUniao pontes={pontes} />
                          </div>
-                          <section className="relative rounded-lg border border-navy/20 bg-card p-5 shadow-sm sm:order-2">
+                          <section className="relative rounded-lg border border-navy/20 bg-card p-5 shadow-sm sm:order-3">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
                            <h2 className="font-serif text-xl text-navy">Linha do Processo</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar.</p>
@@ -512,11 +509,11 @@ export function PortalJornada() {
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                           <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" variante="gold" />
                         </div>
-                          <div className="relative sm:order-3 sm:col-span-2">
+                          <div className="relative sm:order-2 sm:col-span-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                            <MomentosDeUniao pontes={pontes} />
                          </div>
-                          <div className="relative min-w-0 sm:order-2">
+                          <div className="relative min-w-0 sm:order-3 sm:col-span-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
                           <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" />
                             {passoAtualIndice !== null ? (

@@ -80,7 +80,11 @@ function NoPessoa({ pessoa }: { pessoa: PessoaNaArvore }) {
       data-arvore-pessoa
     >
       <summary className="cursor-pointer list-none text-[10px] font-semibold leading-tight text-navy sm:text-xs">{pessoa.nome}</summary>
-      {pessoa.vinculo ? <span className="mt-1 text-[9px] leading-tight text-navy/60 sm:text-[10px]">{pessoa.vinculo}</span> : <span className="mt-1 text-[9px] text-navy/60">Vínculo não publicado</span>}
+      <div className="mt-2 border-t border-gold/30 pt-2 text-left text-[10px] leading-relaxed text-navy/70">
+        <p className="font-semibold">Sobre esta ligação</p>
+        <p>{pessoa.vinculo ?? "Vínculo não publicado"}</p>
+        <p className="mt-1">Para sugerir uma correção, fale com a equipe pelos canais já combinados.</p>
+      </div>
     </details>
   );
 }
