@@ -112,7 +112,6 @@ export function radarSeisDimensoes(entrada: {
   const origem: DimensaoRadar = {
     id: "origem",
     titulo: "Origem",
-    estado: "percentual",
     // Sem teto conhecido de "quantos registros de origem um caso tem" —
     // dois degraus honestos, não percentual fino fingindo precisão. Usa a
     // mesma fonte de "Conexões Familiares" (publicações de árvore/linha),

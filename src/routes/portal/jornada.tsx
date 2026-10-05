@@ -355,7 +355,7 @@ export function PortalJornada() {
                   ? "Ritmo em dia"
                   : jornada.ritmo === "atencao"
                     ? "Próxima atualização em preparação"
-                    : "Atualização em revisão";
+                     : "A próxima atualização será compartilhada quando estiver pronta";
             // Prévia não é sinônimo de demonstração: o acesso master abre caso
             // real. Roteiro editorial e passo fixo pertencem só ao caso demo.
             const ehDemo = Boolean(previa) && (previa?.identidade?.fonte ?? "demo") === "demo";
@@ -430,7 +430,7 @@ export function PortalJornada() {
             }
 
 
-            // Nó final: próxima ação publicada, sempre presente (real ou demo).
+             // Nó final: apenas quando a próxima ação tem destino liberado.
             // Ajuste 2026-09-12: CTA nomeia a rota real em vez de "Abrir" genérico.
             if (destino) nos.push({
               tipo: "evento",
