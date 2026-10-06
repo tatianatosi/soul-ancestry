@@ -80,18 +80,6 @@ export function useSaas() {
   };
 }
 
-/** A face V4 tem sete destinos; os seis grupos permanecem em contexto recolhido. */
-type SubItem = ItemNav;
-
-type SecaoNav = {
-  to: string;
-  label: string;
-  descricao: string;
-  icon: typeof LayoutDashboard;
-  agrupador?: boolean;
-  sub: readonly SubItem[];
-};
-
 const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
   hoje: LayoutDashboard,
   comercial: Target,
@@ -101,14 +89,119 @@ const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
   governanca: ShieldCheck,
 };
 
-const NAV: readonly SecaoNav[] = GRUPOS_DESK.map((g) => ({
-  to: g.to,
-  label: g.label,
-  descricao: g.descricao,
-  icon: ICONES[g.icone],
-  ...(g.agrupador ? { agrupador: true } : {}),
-  sub: g.sub,
-}));
+/**
+ * Menu definitivo do Desk (decisão da Proprietária, 06/10/2026): seis setores
+ * na lateral, sem "Áreas de trabalho". Cada setor tem uma única linha de abas
+ * que aponta para rotas já existentes. Caso 360, Pessoa 360, lead, contrato e
+ * dossiê são páginas contextuais, abertas a partir das listas.
+ */
+type AbaSetor = { label: string; to: string; adminOnly?: boolean };
+type SetorDesk = {
+  id: string;
+  label: string;
+  to: string;
+  icone: GrupoDesk["icone"];
+  abas: readonly AbaSetor[];
+  prefixos: readonly string[];
+};
+
+const SETORES_DESK: readonly SetorDesk[] = [
+  {
+    id: "hoje",
+    label: "Hoje",
+    to: "/painel",
+    icone: "hoje",
+    abas: [
+      { label: "Visão do dia", to: "/painel" },
+      { label: "Kanban", to: "/ops" },
+      { label: "Microentregas", to: "/microentregas" },
+      { label: "Alertas", to: "/alertas" },
+      { label: "SLA e exceções", to: "/ops-excecoes" },
+    ],
+    prefixos: ["/painel", "/ops", "/microentregas", "/alertas", "/tarefas", "/proximas-acoes"],
+  },
+  {
+    id: "comercial",
+    label: "Marketing & Comercial",
+    to: "/leads",
+    icone: "comercial",
+    abas: [
+      { label: "Aquisição", to: "/marketing" },
+      { label: "CRM Vivo", to: "/leads" },
+      { label: "Discovery", to: "/calls" },
+      { label: "Propostas", to: "/propostas" },
+      { label: "Conversão", to: "/conversao" },
+    ],
+    prefixos: ["/leads", "/calls", "/propostas", "/conversao", "/marketing", "/crm-mestre", "/metricas"],
+  },
+  {
+    id: "casos",
+    label: "Pessoas & Casos",
+    to: "/casos",
+    icone: "casos",
+    abas: [
+      { label: "Casos", to: "/casos" },
+      { label: "Pessoas", to: "/clientes" },
+      { label: "Famílias", to: "/nucleos" },
+    ],
+    prefixos: ["/casos", "/clientes", "/pessoas", "/nucleos", "/onboarding", "/pessoas-linhagens", "/atendimento", "/app-cliente-como-pessoa"],
+  },
+  {
+    id: "pesquisa",
+    label: "Inteligência & Pesquisa",
+    to: "/pesquisa-modulo",
+    icone: "pesquisa",
+    abas: [
+      { label: "Pesquisas", to: "/pesquisa-modulo" },
+      { label: "Radar", to: "/qualidade" },
+      { label: "Fontes", to: "/fontes-genealogicas" },
+      { label: "Evidências", to: "/evidencias" },
+      { label: "Devolutivas", to: "/studio-devolutivas" },
+    ],
+    prefixos: ["/pesquisa", "/qualidade", "/fontes-genealogicas", "/evidencias", "/studio-devolutivas", "/achados", "/biblioteca", "/plano-acao", "/relatorios"],
+  },
+  {
+    id: "contratos",
+    label: "Formalização & Financeiro",
+    to: "/contratos",
+    icone: "contratos",
+    abas: [
+      { label: "Contratos", to: "/contratos" },
+      { label: "Validação jurídica", to: "/matriz-juridica" },
+      { label: "Ordens de serviço", to: "/ordens-servico" },
+      { label: "Financeiro", to: "/financeiro" },
+    ],
+    prefixos: ["/contratos", "/contrato-parametros", "/matriz-juridica", "/ordens-servico", "/financeiro"],
+  },
+  {
+    id: "governanca",
+    label: "Governança & Administração",
+    to: "/configuracoes",
+    icone: "governanca",
+    abas: [
+      { label: "Configuração", to: "/configuracoes" },
+      { label: "Portal", to: "/acessos-portal" },
+      { label: "Equipe e acesso", to: "/equipe", adminOnly: true },
+      { label: "Catálogos e dicionários", to: "/catalogo" },
+      { label: "Integrações", to: "/integracoes" },
+    ],
+    prefixos: ["/configuracoes", "/acessos-portal", "/equipe", "/catalogo", "/integracoes", "/governanca", "/etiquetas", "/privacidade", "/importacoes", "/homologacao-skus", "/conciliacao-catalogo", "/divergencias-catalogo", "/escopo-origem", "/historico", "/biblioteca-mensagens", "/golive"],
+  },
+];
+
+const casaPrefixo = (rota: string, p: string) => rota === p || rota.startsWith(`${p}/`) || rota.startsWith(`${p}-`) && p === "/pesquisa";
+
+function setorDaRota(rota: string): SetorDesk | undefined {
+  return SETORES_DESK.find((s) => s.prefixos.some((p) => casaPrefixo(rota, p)));
+}
+
+/** A aba mais específica que casa com a rota fica ativa (ex.: /casos/:id → Casos). */
+function abaAtiva(rota: string, aba: AbaSetor, abas: readonly AbaSetor[]): boolean {
+  const melhor = abas
+    .filter((a) => rota === a.to || rota.startsWith(`${a.to}/`))
+    .sort((a, b) => b.to.length - a.to.length)[0];
+  return melhor?.to === aba.to;
+}
 
 export function SaasShell({
   titulo,
@@ -337,6 +430,32 @@ export function SaasShell({
             </div>
           )}
         </header>
+        {abasSetor.length ? (
+          <nav
+            aria-label={`Abas de ${setorAtivo?.label ?? "setor"}`}
+            className="flex min-w-0 gap-1 overflow-x-auto border-b border-navy/10 bg-card px-4 md:px-8"
+            data-desk-abas-setor={setorAtivo?.id}
+          >
+            {abasSetor.map((aba) => {
+              const ativa = abaAtiva(rota, aba, abasSetor);
+              return (
+                <Link
+                  key={aba.to}
+                  to={aba.to}
+                  aria-current={ativa ? "page" : undefined}
+                  className={cn(
+                    "flex min-h-11 shrink-0 items-center border-b-2 px-3 text-sm transition-colors",
+                    ativa
+                      ? "border-gold font-semibold text-navy"
+                      : "border-transparent text-navy/60 hover:text-navy",
+                  )}
+                >
+                  {aba.label}
+                </Link>
+              );
+            })}
+          </nav>
+        ) : null}
         {contexto?.organizacao?.demo ? (
           <div className="border-b border-gold/40 bg-gold/15 px-4 py-2 text-xs font-medium uppercase tracking-wide text-navy lg:px-8">
             DEMO — não usar dados reais
