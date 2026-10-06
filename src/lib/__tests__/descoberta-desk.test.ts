@@ -7,6 +7,7 @@ import {
   ROTULO_PRIORIDADE,
   rotuloHumano,
 } from "@/lib/descoberta-desk";
+import { GRUPOS_DESK, SETORES_DESK_V5, setorDaRota } from "@/lib/navegacao-desk";
 import { ORDEM_BLOCOS_PAINEL, validarOrdemPainel } from "@/lib/painel-ordem";
 
 const shell = readFileSync("src/components/saas/shell.tsx", "utf8");
@@ -105,7 +106,34 @@ describe("superfícies preservadas", () => {
       "Configuração",
     ];
     for (const g of grupos) expect(navegacao).toContain(`label: "${g}"`);
-    expect(shell).toContain("GRUPOS_DESK");
+
+    /*
+      06/10/2026 — este teste exigia a string "GRUPOS_DESK" dentro do shell.
+      O commit do Lovable "Construiu layout e 6 grupos do desk" trouxe uma
+      SEGUNDA lista de setores escrita dentro de `shell.tsx` (rótulos de
+      02/10), e a string literal não pegou isso: o shell deixou de ler a
+      fonte única e o teste continuaria verde se eu só reimportasse o nome.
+
+      Então a asserção passou a ser a propriedade que importa, não a string:
+      o shell lê navegação de `@/lib/navegacao-desk` e não declara lista
+      própria de setor/grupo. A lista que a Proprietária viu hoje foi
+      preservada em `SETORES_DESK_V5` (lá, com a divergência V4 × V5
+      declarada por escrito) — decisão de primeiro nível é dela, não minha.
+    */
+    expect(shell).toContain('from "@/lib/navegacao-desk"');
+    expect(shell).toContain("SETORES_DESK_V5");
+    expect(shell).not.toMatch(/const\s+(SETORES_DESK|GRUPOS_DESK)\s*(:[^=]*)?=\s*\[/);
+  });
+
+  it("a divergência V4 (7 itens) × V5 (6 setores) está declarada, e nenhuma lista foi apagada", () => {
+    expect(GRUPOS_DESK).toHaveLength(7);
+    expect(SETORES_DESK_V5).toHaveLength(6);
+    // As duas convivem na fonte única, com a divergência escrita no arquivo.
+    expect(navegacao).toContain("DIVERGÊNCIA DECLARADA");
+    // Rota→setor resolve inclusive página contextual fora do menu.
+    expect(setorDaRota("/casos/abc-123")?.id).toBe("casos");
+    expect(setorDaRota("/contrato-parametros/xyz")?.id).toBe("contratos");
+    expect(setorDaRota("/rota-que-nao-existe")).toBeUndefined();
   });
 
   it("o protótipo antigo saiu do runtime; o mockup aprovado volta como referência (CA-UX-04, revisto 05/09/2026)", () => {

@@ -312,6 +312,184 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
 ] as const;
 
 /**
+ * SETORES V5 — a lateral de seis setores que o Desk renderiza hoje.
+ *
+ * Procedência: commit do Lovable "Construiu layout e 6 grupos do desk"
+ * (06/10/2026), que trazia esta lista escrita DENTRO de
+ * `src/components/saas/shell.tsx`, com o comentário "decisão da Proprietária,
+ * 06/10/2026: seis setores na lateral, sem Áreas de trabalho".
+ *
+ * O conteúdo dele fica — é a decisão mais recente relatada, e navegação é
+ * decisão da Proprietária, não minha. O que muda é só o LUGAR: navegação do
+ * Desk tem fonte única em `src/lib`, nunca uma segunda lista dentro do
+ * componente que renderiza. Com duas listas, a próxima pessoa corrige uma e
+ * a outra continua valendo — foi exatamente o que aconteceu aqui.
+ *
+ * DIVERGÊNCIA DECLARADA, não resolvida por mim: `GRUPOS_DESK` acima é o V4,
+ * de SETE itens (Hoje · Comercial · Casos · Pessoas & Famílias · Pesquisa ·
+ * Marketing · Configuração), aprovado em 03/10/2026 ("Confirmo que o v4
+ * substitui"). Esta lista tem SEIS setores e os rótulos de 02/10. As duas
+ * ficam registradas; nenhuma foi apagada. Qual vale no primeiro nível é
+ * decisão da Proprietária — está no relato desta rodada como pendência.
+ *
+ * Enquanto não houver essa decisão: a lateral renderiza V5 (o que ela viu
+ * hoje) e `GRUPOS_DESK` segue sendo a fonte de `grupoDonoDaRota`, dos testes
+ * de sobreposição e do de-para do saneamento.
+ */
+export type AbaSetor = { label: string; to: string; adminOnly?: boolean };
+export type SetorDesk = {
+  id: string;
+  label: string;
+  to: string;
+  icone: GrupoDesk["icone"];
+  abas: readonly AbaSetor[];
+  prefixos: readonly string[];
+};
+
+export const SETORES_DESK_V5: readonly SetorDesk[] = [
+  {
+    id: "hoje",
+    label: "Hoje",
+    to: "/painel",
+    icone: "hoje",
+    abas: [
+      { label: "Visão do dia", to: "/painel" },
+      { label: "Kanban", to: "/ops" },
+      { label: "Microentregas", to: "/microentregas" },
+      { label: "Alertas", to: "/alertas" },
+      { label: "SLA e exceções", to: "/ops-excecoes" },
+    ],
+    prefixos: ["/painel", "/ops", "/microentregas", "/alertas", "/tarefas", "/proximas-acoes"],
+  },
+  {
+    id: "comercial",
+    label: "Marketing & Comercial",
+    to: "/leads",
+    icone: "comercial",
+    abas: [
+      { label: "Aquisição", to: "/marketing" },
+      { label: "CRM Vivo", to: "/leads" },
+      { label: "Discovery", to: "/calls" },
+      { label: "Propostas", to: "/propostas" },
+      { label: "Conversão", to: "/conversao" },
+    ],
+    prefixos: ["/leads", "/calls", "/propostas", "/conversao", "/marketing", "/crm-mestre", "/metricas", "/biblioteca-mensagens"],
+  },
+  {
+    id: "casos",
+    label: "Pessoas & Casos",
+    to: "/casos",
+    icone: "casos",
+    abas: [
+      { label: "Casos", to: "/casos" },
+      { label: "Pessoas", to: "/clientes" },
+      { label: "Famílias", to: "/nucleos" },
+    ],
+    prefixos: [
+      "/casos",
+      "/clientes",
+      "/pessoas",
+      "/nucleos",
+      "/onboarding",
+      "/pessoas-linhagens",
+      "/atendimento",
+      "/app-cliente-como-pessoa",
+      "/ordens-servico",
+      "/matriz-juridica",
+    ],
+  },
+  {
+    id: "pesquisa",
+    label: "Inteligência & Pesquisa",
+    to: "/pesquisa-modulo",
+    icone: "pesquisa",
+    abas: [
+      { label: "Pesquisas", to: "/pesquisa-modulo" },
+      { label: "Radar", to: "/qualidade" },
+      { label: "Fontes", to: "/fontes-genealogicas" },
+      { label: "Evidências", to: "/evidencias" },
+      { label: "Devolutivas", to: "/studio-devolutivas" },
+    ],
+    prefixos: [
+      "/pesquisa",
+      "/qualidade",
+      "/fontes-genealogicas",
+      "/evidencias",
+      "/studio-devolutivas",
+      "/achados",
+      "/biblioteca",
+      "/plano-acao",
+      "/relatorios",
+    ],
+  },
+  {
+    id: "contratos",
+    label: "Formalização & Financeiro",
+    to: "/contratos",
+    icone: "contratos",
+    abas: [
+      { label: "Contratos", to: "/contratos" },
+      { label: "Validação jurídica", to: "/matriz-juridica" },
+      { label: "Ordens de serviço", to: "/ordens-servico" },
+      { label: "Financeiro", to: "/financeiro" },
+    ],
+    prefixos: ["/contratos", "/contrato-parametros", "/matriz-juridica", "/ordens-servico", "/financeiro"],
+  },
+  {
+    id: "governanca",
+    label: "Governança & Administração",
+    to: "/configuracoes",
+    icone: "governanca",
+    abas: [
+      { label: "Configuração", to: "/configuracoes" },
+      { label: "Portal", to: "/acessos-portal" },
+      { label: "Equipe e acesso", to: "/equipe", adminOnly: true },
+      { label: "Catálogos e dicionários", to: "/catalogo" },
+      { label: "Integrações", to: "/integracoes" },
+    ],
+    prefixos: [
+      "/configuracoes",
+      "/acessos-portal",
+      "/equipe",
+      "/catalogo",
+      "/integracoes",
+      "/governanca",
+      "/etiquetas",
+      "/privacidade",
+      "/importacoes",
+      "/homologacao-skus",
+      "/conciliacao-catalogo",
+      "/divergencias-catalogo",
+      "/escopo-origem",
+      "/historico",
+      "/golive",
+    ],
+  },
+];
+
+const casaPrefixoSetor = (rota: string, p: string) =>
+  rota === p || rota.startsWith(`${p}/`) || (p === "/pesquisa" && rota.startsWith(`${p}-`));
+
+/**
+ * Setor aceso para uma rota, inclusive rota contextual fora do menu (Caso
+ * 360, dossiê, plano de ação, espelho do App). O prefixo mais específico
+ * ganha, para `/contratos` não roubar `/contrato-parametros` nem o contrário.
+ * Sem setor, devolve undefined: a tela abre sem linha de abas, o que é
+ * melhor que inventar aba.
+ */
+export function setorDaRota(rota: string): SetorDesk | undefined {
+  const path = (rota.split("#")[0] ?? "").replace(/\/$/, "") || "/";
+  let melhor: { setor: SetorDesk; tamanho: number } | null = null;
+  for (const s of SETORES_DESK_V5) {
+    for (const p of s.prefixos) {
+      if (!casaPrefixoSetor(path, p)) continue;
+      if (!melhor || p.length > melhor.tamanho) melhor = { setor: s, tamanho: p.length };
+    }
+  }
+  return melhor?.setor;
+}
+
+/**
  * Legado no menu de Governança. Decisão de 10/09/2026: fica aqui agora.
  * No pente fino, sai do Desk e vai para arquivo GitHub — não apagar nesta rodada.
  */

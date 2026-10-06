@@ -54,7 +54,18 @@ describe("histórico da Conta (case_timeline_events aprovado para o cliente)", (
     const conta = readFileSync("src/routes/portal/conta.tsx", "utf8");
     expect(conta).toContain("data-conta-marcos");
     expect(conta).toContain("vivo.data?.historico");
-    expect(conta.split("Ainda não há conversas disponíveis neste espaço.").length - 1).toBe(1);
+
+    /*
+      06/10/2026 — a asserção contava uma frase literal ("Ainda não há
+      conversas disponíveis neste espaço.") que o Lovable reescreveu na
+      prancha nova. O que este teste protege não é a frase: é não haver DUAS
+      cópias do mesmo estado vazio na mesma tela, que foi o defeito original.
+      Então a asserção passou a ser a propriedade — nenhuma frase de estado
+      vazio aparece mais de uma vez em conta.tsx.
+    */
+    const vazios = [...conta.matchAll(/[^">]{20,}?neste espaço\./g)].map((m) => m[0].trim());
+    expect(vazios.length).toBeGreaterThan(0);
+    expect(new Set(vazios).size).toBe(vazios.length);
   });
 
   it("o servidor do portal lê case_timeline_events só aprovados, do caso ativo, sem resumo interno", () => {

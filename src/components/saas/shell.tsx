@@ -25,6 +25,9 @@ import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
 import {
   MENU_CONTA,
   rotaAtendeDestino,
+  setorDaRota,
+  SETORES_DESK_V5,
+  type AbaSetor,
   type GrupoDesk,
 } from "@/lib/navegacao-desk";
 import { AssistenteTransversal } from "@/components/desk/assistente-transversal";
@@ -81,110 +84,14 @@ const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
 };
 
 /**
- * Menu definitivo do Desk (decisão da Proprietária, 06/10/2026): seis setores
- * na lateral, sem "Áreas de trabalho". Cada setor tem uma única linha de abas
- * que aponta para rotas já existentes. Caso 360, Pessoa 360, lead, contrato e
- * dossiê são páginas contextuais, abertas a partir das listas.
+ * Navegação do Desk: o shell NÃO guarda lista própria de setores.
+ *
+ * 06/10/2026 — este arquivo tinha uma segunda lista (`SETORES_DESK`, com os
+ * rótulos de 02/10) escrita aqui dentro, concorrendo com `src/lib`. O
+ * conteúdo dela foi preservado e movido para `SETORES_DESK_V5` em
+ * `navegacao-desk.ts`, junto com a divergência declarada contra o V4 de sete
+ * itens. Aqui ficou só o layout.
  */
-type AbaSetor = { label: string; to: string; adminOnly?: boolean };
-type SetorDesk = {
-  id: string;
-  label: string;
-  to: string;
-  icone: GrupoDesk["icone"];
-  abas: readonly AbaSetor[];
-  prefixos: readonly string[];
-};
-
-const SETORES_DESK: readonly SetorDesk[] = [
-  {
-    id: "hoje",
-    label: "Hoje",
-    to: "/painel",
-    icone: "hoje",
-    abas: [
-      { label: "Visão do dia", to: "/painel" },
-      { label: "Kanban", to: "/ops" },
-      { label: "Microentregas", to: "/microentregas" },
-      { label: "Alertas", to: "/alertas" },
-      { label: "SLA e exceções", to: "/ops-excecoes" },
-    ],
-    prefixos: ["/painel", "/ops", "/microentregas", "/alertas", "/tarefas", "/proximas-acoes"],
-  },
-  {
-    id: "comercial",
-    label: "Marketing & Comercial",
-    to: "/leads",
-    icone: "comercial",
-    abas: [
-      { label: "Aquisição", to: "/marketing" },
-      { label: "CRM Vivo", to: "/leads" },
-      { label: "Discovery", to: "/calls" },
-      { label: "Propostas", to: "/propostas" },
-      { label: "Conversão", to: "/conversao" },
-    ],
-    prefixos: ["/leads", "/calls", "/propostas", "/conversao", "/marketing", "/crm-mestre", "/metricas"],
-  },
-  {
-    id: "casos",
-    label: "Pessoas & Casos",
-    to: "/casos",
-    icone: "casos",
-    abas: [
-      { label: "Casos", to: "/casos" },
-      { label: "Pessoas", to: "/clientes" },
-      { label: "Famílias", to: "/nucleos" },
-    ],
-    prefixos: ["/casos", "/clientes", "/pessoas", "/nucleos", "/onboarding", "/pessoas-linhagens", "/atendimento", "/app-cliente-como-pessoa"],
-  },
-  {
-    id: "pesquisa",
-    label: "Inteligência & Pesquisa",
-    to: "/pesquisa-modulo",
-    icone: "pesquisa",
-    abas: [
-      { label: "Pesquisas", to: "/pesquisa-modulo" },
-      { label: "Radar", to: "/qualidade" },
-      { label: "Fontes", to: "/fontes-genealogicas" },
-      { label: "Evidências", to: "/evidencias" },
-      { label: "Devolutivas", to: "/studio-devolutivas" },
-    ],
-    prefixos: ["/pesquisa", "/qualidade", "/fontes-genealogicas", "/evidencias", "/studio-devolutivas", "/achados", "/biblioteca", "/plano-acao", "/relatorios"],
-  },
-  {
-    id: "contratos",
-    label: "Formalização & Financeiro",
-    to: "/contratos",
-    icone: "contratos",
-    abas: [
-      { label: "Contratos", to: "/contratos" },
-      { label: "Validação jurídica", to: "/matriz-juridica" },
-      { label: "Ordens de serviço", to: "/ordens-servico" },
-      { label: "Financeiro", to: "/financeiro" },
-    ],
-    prefixos: ["/contratos", "/contrato-parametros", "/matriz-juridica", "/ordens-servico", "/financeiro"],
-  },
-  {
-    id: "governanca",
-    label: "Governança & Administração",
-    to: "/configuracoes",
-    icone: "governanca",
-    abas: [
-      { label: "Configuração", to: "/configuracoes" },
-      { label: "Portal", to: "/acessos-portal" },
-      { label: "Equipe e acesso", to: "/equipe", adminOnly: true },
-      { label: "Catálogos e dicionários", to: "/catalogo" },
-      { label: "Integrações", to: "/integracoes" },
-    ],
-    prefixos: ["/configuracoes", "/acessos-portal", "/equipe", "/catalogo", "/integracoes", "/governanca", "/etiquetas", "/privacidade", "/importacoes", "/homologacao-skus", "/conciliacao-catalogo", "/divergencias-catalogo", "/escopo-origem", "/historico", "/biblioteca-mensagens", "/golive"],
-  },
-];
-
-const casaPrefixo = (rota: string, p: string) => rota === p || rota.startsWith(`${p}/`) || rota.startsWith(`${p}-`) && p === "/pesquisa";
-
-function setorDaRota(rota: string): SetorDesk | undefined {
-  return SETORES_DESK.find((s) => s.prefixos.some((p) => casaPrefixo(rota, p)));
-}
 
 /** A aba mais específica que casa com a rota fica ativa (ex.: /casos/:id → Casos). */
 function abaAtiva(rota: string, aba: AbaSetor, abas: readonly AbaSetor[]): boolean {
@@ -306,7 +213,7 @@ export function SaasShell({
         </div>
 
         <nav aria-label="Navegação do Desk" className="flex flex-1 flex-col gap-1">
-          {SETORES_DESK.map((setor) => {
+          {SETORES_DESK_V5.map((setor) => {
             const Icon = ICONES[setor.icone];
             const ativo = setorAtivo?.id === setor.id;
             return (

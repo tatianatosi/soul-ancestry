@@ -24,6 +24,17 @@ describe("Revisão da prancha do App Cliente", () => {
     expect(readFileSync("src/routes/portal/conta.tsx", "utf8")).toContain("neste espaço.");
     const shell = readFileSync("src/components/portal/portal-shell.tsx", "utf8");
     expect(shell).toContain("min-h-[4rem]");
-    expect(shell).toContain("text-[9px]");
+
+    /*
+      06/10/2026 — a asserção era a classe exata `text-[9px]`, e o Lovable
+      subiu o rótulo da aba para 11px na prancha mobile nova. Congelar a
+      classe era a asserção errada: 11px é MELHOR no eixo que este teste
+      existe para proteger (legibilidade no telefone). Então o teste passou a
+      exigir a propriedade — rótulo de aba com pelo menos 10px — em vez do
+      valor literal. Abaixo de 10px volta a falhar.
+    */
+    const tamanhos = [...shell.matchAll(/text-\[(\d+)px\]/g)].map((m) => Number(m[1]));
+    expect(tamanhos.length).toBeGreaterThan(0);
+    expect(Math.min(...tamanhos)).toBeGreaterThanOrEqual(10);
   });
 });

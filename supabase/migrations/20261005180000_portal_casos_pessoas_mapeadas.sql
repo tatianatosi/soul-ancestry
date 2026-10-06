@@ -26,6 +26,25 @@ select c.id, c.organization_id, c.cliente_id, c.codigo, c.titulo, c.pais, c.via,
        c.created_at, c.updated_at,
        p.fase_jornada,
        p.composicao,
+       (
+         select min(m.prazo)
+         from public.ops_microentregas m
+         where m.caso_id = c.id
+           and m.archived_at is null
+           and m.status <> all (array['concluida', 'cancelada'])
+       ) as proxima_entrega_prevista_em,
+       coalesce(
+         (
+           select cardinality(p2.dependencias_cliente) > 0
+           from public.case_plans p2
+           where p2.case_id = c.id
+             and p2.status = 'ativo'
+             and p2.archived_at is null
+           order by p2.updated_at desc
+           limit 1
+         ),
+         false
+       ) as pendencia_cliente_pendente,
        coalesce(pm.pessoas_mapeadas, 0) as pessoas_mapeadas
 from public.crm_casos c
 left join lateral (
