@@ -140,7 +140,7 @@ export function PortalConta() {
               <h2 className="font-serif text-xl text-navy">Estamos por perto</h2>
               <p className="mt-2 text-sm text-navy/75">{acompanhamento}</p>
               <p className="mt-3 text-sm leading-relaxed text-navy/75">Para conversar sobre documentos ou sobre a sua jornada, use os canais de contato já combinados com a equipe.</p>
-              <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Seus canais, preferências de aviso e informações de privacidade aparecerão aqui quando estiverem disponíveis para você.</p>
+              <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Neste espaço, seus canais, preferências de aviso e informações de privacidade aparecerão quando estiverem disponíveis para você.</p>
             </section>
 
              {assinatura || upsells.length > 0 ? <section data-conta-assinatura className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
