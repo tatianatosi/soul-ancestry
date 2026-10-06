@@ -6,6 +6,7 @@ import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-v
 import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
 import {
   painelArvoreGeracoes,
+  GERACOES_ARVORE_EXIBICAO,
   type GeracaoArvore,
 } from "@/lib/portal-arvore-geracoes";
 import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
@@ -129,22 +130,18 @@ export function PortalArvore() {
             const painel = painelArvoreGeracoes(itens);
             const temConteudo = painel.temPublicacao || pessoas.length > 0;
             const pessoasDaGeracao = (id: string) => pessoas.filter((x) => `G${x.geracao}` === id);
-             const maiorGeracao = Math.max(1, ...pessoas.map((pessoa) => pessoa.geracao));
-             const geracoesExibidas: GeracaoArvore[] = Array.from(
-               { length: maiorGeracao },
-               (_, indice) => {
-                 const numero = maiorGeracao - indice;
-                 return {
-                   id: `G${numero}`,
-                   rotulo: numero === 1 ? "G1 · Você" : `G${numero} · Geração ${numero}`,
-                   slots: Math.max(1, pessoasDaGeracao(`G${numero}`).length),
-                 } as GeracaoArvore;
-               },
+             const geracoesPublicadas = new Set(pessoas.map((pessoa) => `G${pessoa.geracao}`));
+             const geracoesExibidas = pessoas.length > 0
+               ? GERACOES_ARVORE_EXIBICAO.filter((geracao) => geracao.id === "G1" || geracoesPublicadas.has(geracao.id))
+               : GERACOES_ARVORE_EXIBICAO;
+             const maiorGeracao = geracoesExibidas.reduce(
+               (maior, geracao) => Math.max(maior, Number(geracao.id.slice(1)) || 1),
+               1,
              );
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-arvore>
-                  {/* A composição cresce de G1 até a maior geração publicada, sem teto visual fixo. */}
+                  {/* A composição exibe G1 e as gerações com pessoas publicadas. */}
                   <section
                     aria-label={`Gerações G1 a G${maiorGeracao}`}
                     className="overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm"
