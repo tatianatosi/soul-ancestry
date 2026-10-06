@@ -11,7 +11,6 @@ import {
   Library,
   LogOut,
   Menu,
-  ChevronDown,
   ShieldCheck,
   Search,
 } from "lucide-react";
@@ -24,17 +23,9 @@ import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
 import {
-  GRUPOS_DESK,
-  NAVEGACAO_V4_DESK,
-  ROTAS_FORA_DO_MENU,
   MENU_CONTA,
-  grupoNavAtivo,
-  itemNavAtivo,
-  naturezaDaBiblioteca,
-  origemDoAtalho,
   rotaAtendeDestino,
   type GrupoDesk,
-  type ItemNav,
 } from "@/lib/navegacao-desk";
 import { AssistenteTransversal } from "@/components/desk/assistente-transversal";
 import { BrandLogo } from "@/components/brand";
@@ -80,18 +71,6 @@ export function useSaas() {
   };
 }
 
-/** A face V4 tem sete destinos; os seis grupos permanecem em contexto recolhido. */
-type SubItem = ItemNav;
-
-type SecaoNav = {
-  to: string;
-  label: string;
-  descricao: string;
-  icon: typeof LayoutDashboard;
-  agrupador?: boolean;
-  sub: readonly SubItem[];
-};
-
 const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
   hoje: LayoutDashboard,
   comercial: Target,
@@ -101,14 +80,119 @@ const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
   governanca: ShieldCheck,
 };
 
-const NAV: readonly SecaoNav[] = GRUPOS_DESK.map((g) => ({
-  to: g.to,
-  label: g.label,
-  descricao: g.descricao,
-  icon: ICONES[g.icone],
-  ...(g.agrupador ? { agrupador: true } : {}),
-  sub: g.sub,
-}));
+/**
+ * Menu definitivo do Desk (decisão da Proprietária, 06/10/2026): seis setores
+ * na lateral, sem "Áreas de trabalho". Cada setor tem uma única linha de abas
+ * que aponta para rotas já existentes. Caso 360, Pessoa 360, lead, contrato e
+ * dossiê são páginas contextuais, abertas a partir das listas.
+ */
+type AbaSetor = { label: string; to: string; adminOnly?: boolean };
+type SetorDesk = {
+  id: string;
+  label: string;
+  to: string;
+  icone: GrupoDesk["icone"];
+  abas: readonly AbaSetor[];
+  prefixos: readonly string[];
+};
+
+const SETORES_DESK: readonly SetorDesk[] = [
+  {
+    id: "hoje",
+    label: "Hoje",
+    to: "/painel",
+    icone: "hoje",
+    abas: [
+      { label: "Visão do dia", to: "/painel" },
+      { label: "Kanban", to: "/ops" },
+      { label: "Microentregas", to: "/microentregas" },
+      { label: "Alertas", to: "/alertas" },
+      { label: "SLA e exceções", to: "/ops-excecoes" },
+    ],
+    prefixos: ["/painel", "/ops", "/microentregas", "/alertas", "/tarefas", "/proximas-acoes"],
+  },
+  {
+    id: "comercial",
+    label: "Marketing & Comercial",
+    to: "/leads",
+    icone: "comercial",
+    abas: [
+      { label: "Aquisição", to: "/marketing" },
+      { label: "CRM Vivo", to: "/leads" },
+      { label: "Discovery", to: "/calls" },
+      { label: "Propostas", to: "/propostas" },
+      { label: "Conversão", to: "/conversao" },
+    ],
+    prefixos: ["/leads", "/calls", "/propostas", "/conversao", "/marketing", "/crm-mestre", "/metricas"],
+  },
+  {
+    id: "casos",
+    label: "Pessoas & Casos",
+    to: "/casos",
+    icone: "casos",
+    abas: [
+      { label: "Casos", to: "/casos" },
+      { label: "Pessoas", to: "/clientes" },
+      { label: "Famílias", to: "/nucleos" },
+    ],
+    prefixos: ["/casos", "/clientes", "/pessoas", "/nucleos", "/onboarding", "/pessoas-linhagens", "/atendimento", "/app-cliente-como-pessoa"],
+  },
+  {
+    id: "pesquisa",
+    label: "Inteligência & Pesquisa",
+    to: "/pesquisa-modulo",
+    icone: "pesquisa",
+    abas: [
+      { label: "Pesquisas", to: "/pesquisa-modulo" },
+      { label: "Radar", to: "/qualidade" },
+      { label: "Fontes", to: "/fontes-genealogicas" },
+      { label: "Evidências", to: "/evidencias" },
+      { label: "Devolutivas", to: "/studio-devolutivas" },
+    ],
+    prefixos: ["/pesquisa", "/qualidade", "/fontes-genealogicas", "/evidencias", "/studio-devolutivas", "/achados", "/biblioteca", "/plano-acao", "/relatorios"],
+  },
+  {
+    id: "contratos",
+    label: "Formalização & Financeiro",
+    to: "/contratos",
+    icone: "contratos",
+    abas: [
+      { label: "Contratos", to: "/contratos" },
+      { label: "Validação jurídica", to: "/matriz-juridica" },
+      { label: "Ordens de serviço", to: "/ordens-servico" },
+      { label: "Financeiro", to: "/financeiro" },
+    ],
+    prefixos: ["/contratos", "/contrato-parametros", "/matriz-juridica", "/ordens-servico", "/financeiro"],
+  },
+  {
+    id: "governanca",
+    label: "Governança & Administração",
+    to: "/configuracoes",
+    icone: "governanca",
+    abas: [
+      { label: "Configuração", to: "/configuracoes" },
+      { label: "Portal", to: "/acessos-portal" },
+      { label: "Equipe e acesso", to: "/equipe", adminOnly: true },
+      { label: "Catálogos e dicionários", to: "/catalogo" },
+      { label: "Integrações", to: "/integracoes" },
+    ],
+    prefixos: ["/configuracoes", "/acessos-portal", "/equipe", "/catalogo", "/integracoes", "/governanca", "/etiquetas", "/privacidade", "/importacoes", "/homologacao-skus", "/conciliacao-catalogo", "/divergencias-catalogo", "/escopo-origem", "/historico", "/biblioteca-mensagens", "/golive"],
+  },
+];
+
+const casaPrefixo = (rota: string, p: string) => rota === p || rota.startsWith(`${p}/`) || rota.startsWith(`${p}-`) && p === "/pesquisa";
+
+function setorDaRota(rota: string): SetorDesk | undefined {
+  return SETORES_DESK.find((s) => s.prefixos.some((p) => casaPrefixo(rota, p)));
+}
+
+/** A aba mais específica que casa com a rota fica ativa (ex.: /casos/:id → Casos). */
+function abaAtiva(rota: string, aba: AbaSetor, abas: readonly AbaSetor[]): boolean {
+  const melhor = abas
+    .filter((a) => rota === a.to || rota.startsWith(`${a.to}/`))
+    .sort((a, b) => b.to.length - a.to.length)[0];
+  return melhor?.to === aba.to;
+}
 
 export function SaasShell({
   titulo,
@@ -127,19 +211,8 @@ export function SaasShell({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const rota = useRouterState({ select: (s) => s.location.pathname });
-  const hash = useRouterState({ select: (s) => s.location.hash });
   const [aberto, setAberto] = useState(false);
-  const [abertosManuais, setAbertosManuais] = useState<Record<string, boolean>>({});
-  const [desktop, setDesktop] = useState(false);
   const registrarSaida = useServerFn(registrarLogoutEquipe);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const sync = () => setDesktop(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
 
   // Só sai da área protegida quando o servidor responde e a autorização não
   // existe. Erro de rede/token com sessão válida apenas refaz a consulta —
@@ -196,14 +269,12 @@ export function SaasShell({
   });
   const atrasadasCasos =
     (alertas.data?.atrasadas?.length ?? 0) + (alertas.data?.microAtrasadas?.length ?? 0);
-  const badgeDe = (to: string): number => (to === "/casos" ? atrasadasCasos : 0);
+  const badgeDe = (id: string): number => (id === "casos" ? atrasadasCasos : 0);
 
-  // Itens restritos a admin (equipe) só aparecem para admin.
-  // O Desk tem 6 grupos para qualquer papel interno.
-  const itens: SecaoNav[] = NAV.map((item) => ({
-    ...item,
-    sub: item.sub.filter((s) => !("to" in s) || !s.adminOnly || ehAdmin),
-  }));
+  // Seis setores fixos; o setor ativo define a única linha de abas abaixo do
+  // cabeçalho. Abas restritas a admin só aparecem para admin.
+  const setorAtivo = setorDaRota(rota);
+  const abasSetor = (setorAtivo?.abas ?? []).filter((a) => !a.adminOnly || ehAdmin);
 
   return (
     <div
@@ -235,13 +306,13 @@ export function SaasShell({
         </div>
 
         <nav aria-label="Navegação do Desk" className="flex flex-1 flex-col gap-1">
-          {NAVEGACAO_V4_DESK.map((item) => {
-            const Icon = ICONES[item.icone];
-            const ativo = rotaAtendeDestino(rota, item.to);
+          {SETORES_DESK.map((setor) => {
+            const Icon = ICONES[setor.icone];
+            const ativo = setorAtivo?.id === setor.id;
             return (
               <Link
-                key={item.to}
-                to={item.to}
+                key={setor.id}
+                to={setor.to}
                 onClick={() => setAberto(false)}
                 aria-current={ativo ? "page" : undefined}
                 className={cn(
@@ -250,108 +321,18 @@ export function SaasShell({
                 )}
               >
                 <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <span className="min-w-0">{item.label}</span>
-                {badgeDe(item.to) > 0 ? <span className="ml-auto text-xs">{badgeDe(item.to)}</span> : null}
+                <span className="min-w-0 leading-tight">{setor.label}</span>
+                {badgeDe(setor.id) > 0 ? (
+                  <span
+                    title={`${badgeDe(setor.id)} item(ns) com prazo vencido`}
+                    className="ml-auto rounded-full bg-terracotta px-1.5 py-0.5 text-[10px] font-semibold text-cream"
+                  >
+                    {badgeDe(setor.id)}
+                  </span>
+                ) : null}
               </Link>
             );
           })}
-          <details className="mt-4 border-t border-cream/15 pt-3">
-            <summary className="cursor-pointer px-3 py-2 text-xs font-semibold uppercase tracking-widest text-gold">Áreas de trabalho</summary>
-            <div className="mt-1 space-y-1">
-          {itens.map((item) => {
-            const { to, label, icon: Icon, sub, descricao: descricaoGrupo } = item;
-            const ativo = grupoNavAtivo(rota, hash, item);
-            const expandida = to in abertosManuais ? abertosManuais[to] : desktop && ativo;
-            return (
-              <div key={to} className="min-w-0 rounded-lg border border-cream/10 md:border-0">
-                <button
-                  type="button"
-                  title={descricaoGrupo}
-                  onClick={() => {
-                    if (ativo) {
-                      setAbertosManuais((v) => ({
-                        ...v,
-                        [to]: !(to in v ? v[to] : desktop && ativo),
-                      }));
-                      return;
-                    }
-                    setAbertosManuais((v) => ({ ...v, [to]: true }));
-                    void navigate({ to: to as never });
-                    setAberto(false);
-                  }}
-                  className={cn(
-                    "grid min-h-16 w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors md:min-h-0 md:text-sm",
-                    ativo ? "bg-gold text-navy font-medium" : "text-cream/80 hover:bg-cream/10",
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="min-w-0 leading-tight">{label}</span>
-                  {badgeDe(to) > 0 ? (
-                    <span
-                      title={`${badgeDe(to)} item(ns) com prazo vencido`}
-                      className="rounded-full bg-terracotta px-1.5 py-0.5 text-[10px] font-semibold text-cream"
-                    >
-                      {badgeDe(to)}
-                    </span>
-                  ) : null}
-                  <ChevronDown className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")} />
-                </button>
-                {expandida && sub.length ? (
-                  <div className="mb-1 space-y-0.5 border-t border-cream/15 px-2 pb-2 pt-1 md:ml-7 md:border-l md:border-t-0 md:px-0 md:pb-0 md:pl-3 md:pt-0">
-                    {sub.filter((s) => !("to" in s && ((NAVEGACAO_V4_DESK.some((v) => v.to === s.to && !s.hash)) || (ROTAS_FORA_DO_MENU as readonly string[]).includes(s.to)))).map((s, i) =>
-                      "grupo" in s ? (
-                        <p
-                          key={`g-${s.grupo}`}
-                          className="px-2 pb-0.5 pt-2 text-[10px] font-semibold uppercase tracking-widest text-gold"
-                        >
-                          {s.grupo}
-                        </p>
-                      ) : (
-                        <Link
-                          key={`${s.to}-${s.hash ?? i}`}
-                          to={s.to}
-                          hash={s.hash}
-                          onClick={() => setAberto(false)}
-                          className={cn(
-                            "block rounded-md px-2 py-1.5 text-[13px] transition-colors",
-                            itemNavAtivo(rota, hash, s)
-                              ? "bg-cream/15 text-cream font-medium"
-                              : "text-cream/65 hover:bg-cream/10",
-                          )}
-                        >
-                          {s.label}
-                          {/* Atalho para rota que mora em outro grupo: sem esta
-                              marca, a repetição deliberada lê-se como
-                              duplicação. */}
-                          {origemDoAtalho(label, s.to) ? (
-                            <span className="ml-1.5 text-[10px] font-normal text-cream/40">
-                              ↗ {origemDoAtalho(label, s.to)}
-                            </span>
-                          ) : null}
-                          {/* Biblioteca que um motor chama não se lê igual a
-                              biblioteca de referência. Sem a marca, as duas
-                              parecem a mesma coisa no menu. */}
-                          {naturezaDaBiblioteca(s.to) ? (
-                            <span
-                              className="ml-1.5 text-[10px] font-normal text-cream/40"
-                              title={naturezaDaBiblioteca(s.to)!.nota}
-                            >
-                              ·{" "}
-                              {naturezaDaBiblioteca(s.to)!.natureza === "motor"
-                                ? "motor"
-                                : "referência"}
-                            </span>
-                          ) : null}
-                        </Link>
-                      ),
-                    )}
-                  </div>
-                ) : null}
-              </div>
-            );
-          })}
-            </div>
-          </details>
         </nav>
         <div className="mt-4 border-t border-cream/15 pt-3">
           <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gold">
@@ -429,6 +410,32 @@ export function SaasShell({
             </div>
           )}
         </header>
+        {abasSetor.length ? (
+          <nav
+            aria-label={`Abas de ${setorAtivo?.label ?? "setor"}`}
+            className="flex min-w-0 gap-1 overflow-x-auto border-b border-navy/10 bg-card px-4 md:px-8"
+            data-desk-abas-setor={setorAtivo?.id}
+          >
+            {abasSetor.map((aba) => {
+              const ativa = abaAtiva(rota, aba, abasSetor);
+              return (
+                <Link
+                  key={aba.to}
+                  to={aba.to}
+                  aria-current={ativa ? "page" : undefined}
+                  className={cn(
+                    "flex min-h-11 shrink-0 items-center border-b-2 px-3 text-sm transition-colors",
+                    ativa
+                      ? "border-gold font-semibold text-navy"
+                      : "border-transparent text-navy/60 hover:text-navy",
+                  )}
+                >
+                  {aba.label}
+                </Link>
+              );
+            })}
+          </nav>
+        ) : null}
         {contexto?.organizacao?.demo ? (
           <div className="border-b border-gold/40 bg-gold/15 px-4 py-2 text-xs font-medium uppercase tracking-wide text-navy lg:px-8">
             DEMO — não usar dados reais
