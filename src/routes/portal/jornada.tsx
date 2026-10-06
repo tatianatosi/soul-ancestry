@@ -59,7 +59,7 @@ function noRealDeItem(item: PublicacaoCliente): NoEvento {
     categoria: historico ? "gold" : "navy",
     rotuloCategoria: historico ? "Passado" : "Presente",
     dataPrincipal: historico ? (ano ? String(ano) : null) : dataCurta(item.publicadoEm),
-    titulo: item.tipoRotulo,
+    titulo: item.tipo === "microentrega" ? "Da nossa jornada" : item.tipoRotulo,
     conteudo: item.conteudo,
   };
 }
@@ -499,6 +499,11 @@ export function PortalJornada() {
                            <h2 className="font-serif text-xl text-navy">Linha do Processo</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar.</p>
                          </section>
+                          <section id="linha-memoria" className="relative scroll-mt-20 rounded-lg border border-plum/30 bg-card p-5 shadow-sm sm:order-4 sm:col-span-2">
+                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-plum bg-cream" />
+                            <h2 className="font-serif text-xl text-navy">Memória</h2>
+                            <p className="mt-2 text-sm leading-relaxed text-navy/60">As histórias e os materiais de memória aparecerão aqui quando forem compartilhados com a família.</p>
+                          </section>
                       </div>
                     </div>
                   ) : (
@@ -525,15 +530,16 @@ export function PortalJornada() {
                               <div className="mt-3"><TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} /></div>
                             ) : null}
                         </div>
+                         <section id="linha-memoria" className="relative scroll-mt-20 rounded-lg border border-plum/30 bg-card p-5 shadow-sm sm:order-4 sm:col-span-2">
+                           <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-plum bg-cream" />
+                           <h2 className="font-serif text-xl text-navy">Memória</h2>
+                           <p className="mt-2 text-sm leading-relaxed text-navy/75">As histórias e os materiais de memória compartilhados com sua família ficam reunidos no Legado.</p>
+                           <LinkPortal to="/portal/legado" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver o Legado</LinkPortal>
+                         </section>
                       </div>
                     </>
                   )}
 
-                   <section id="linha-memoria" className="scroll-mt-20 border-l-2 border-plum pl-4" aria-label="Memória da família">
-                     <h2 className="font-serif text-xl text-navy">Memória</h2>
-                     <p className="mt-2 text-sm leading-relaxed text-navy/75">As histórias e os materiais de memória compartilhados com sua família ficam reunidos no Legado.</p>
-                     <LinkPortal to="/portal/legado" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver o Legado</LinkPortal>
-                   </section>
                    {((abreJornada(entrega.visibilidade) && temMateriais) ||
                      (abreJornada(fase1.visibilidade) && temFase01) ||
                      (abreJornada(fase2.visibilidade) && temFase02)) && (

@@ -140,7 +140,7 @@ export function PortalConta() {
               <h2 className="font-serif text-xl text-navy">Estamos por perto</h2>
               <p className="mt-2 text-sm text-navy/75">{acompanhamento}</p>
               <p className="mt-3 text-sm leading-relaxed text-navy/75">Para conversar sobre documentos ou sobre a sua jornada, use os canais de contato já combinados com a equipe.</p>
-              <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">O canal de contato ainda não está disponível neste espaço. As preferências de aviso e os registros de privacidade aparecerão aqui quando estiverem disponíveis para você.</p>
+              <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Seus canais, preferências de aviso e informações de privacidade aparecerão aqui quando estiverem disponíveis para você.</p>
             </section>
 
              {assinatura || upsells.length > 0 ? <section data-conta-assinatura className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
@@ -279,14 +279,6 @@ export function PortalConta() {
               )}
             </section>
 
-            <section data-conta-historico className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-xl text-navy">Nossas conversas</h2>
-              </div>
-              <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
-                <p className="text-sm text-navy/70">Ainda não há conversas disponíveis neste espaço.</p>
-              </div>
-            </section>
           </div>
         </BlocoVisibilidade>
       )}

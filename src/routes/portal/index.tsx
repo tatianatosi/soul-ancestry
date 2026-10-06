@@ -18,6 +18,9 @@ import { CheckCircle2 } from "lucide-react";
 import { CaCard } from "@/components/ui/ca-card";
 import { pessoasDaArvore } from "@/lib/arvore-publicacao";
 
+const PROXIMO_PASSO_VAZIO =
+  "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui.";
+
 /**
  * Rota real por tipo de publicação (correção 2026-09-12, pedido da
  * Proprietária): achado sobre a árvore abre Árvore, sobre legado abre
@@ -92,7 +95,7 @@ export function PortalHome() {
         ) : (
           <PainelHomeMockup
             tituloCaso={previa.titulo}
-            proximoPasso={passoPublicado?.conteudo ?? "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui."}
+            proximoPasso={passoPublicado?.conteudo ?? PROXIMO_PASSO_VAZIO}
             proximoPassoDestino={null}
             proximaEntrega={null}
             marcos={jornada.marcosPublicados}
@@ -154,7 +157,7 @@ export function PortalHome() {
             <div className="space-y-4">
               <PainelHomeMockup
                 tituloCaso={principal.titulo}
-                proximoPasso={passoPublicado?.conteudo ?? "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui."}
+                 proximoPasso={passoPublicado?.conteudo ?? PROXIMO_PASSO_VAZIO}
                 proximoPassoDestino={null}
                 proximaEntrega={null}
                 marcos={jornada.marcosPublicados}
@@ -399,7 +402,7 @@ function PainelHomeMockup({
               >
                 {proximoPassoDestino.includes("documentos") ? "Ver documentos solicitados" : "Ver próxima ação"}
               </LinkPortal>
-             ) : casoId && proximoPasso !== "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui." ? (
+             ) : casoId && proximoPasso !== PROXIMO_PASSO_VAZIO ? (
               <Link
                 to="/portal/casos/$id"
                 params={{ id: casoId }}
@@ -473,7 +476,7 @@ function PainelHomeMockup({
             <LinkPortal to="/portal/jornada" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Jornada</LinkPortal>
           </section>
         ) : null}
-        {!documentoPrioritario ? <p className="border-t border-border pt-4 text-sm leading-relaxed text-navy/70 sm:col-span-2">Os documentos prioritários e novos avisos da equipe aparecerão aqui quando forem compartilhados com sua família.</p> : null}
+        {!documentoPrioritario && !microentrega ? <p className="border-t border-border pt-4 text-sm leading-relaxed text-navy/70 sm:col-span-2">Os documentos prioritários e as novidades da jornada aparecerão aqui quando forem compartilhados com sua família.</p> : null}
         <LinkPortal to="/portal/conta" className="inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4 sm:col-span-2">Contato com a equipe</LinkPortal>
       </div>
     </div>
