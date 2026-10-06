@@ -11,7 +11,6 @@ import {
   Library,
   LogOut,
   Menu,
-  ChevronDown,
   ShieldCheck,
   Search,
 } from "lucide-react";
@@ -24,17 +23,9 @@ import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
 import {
-  GRUPOS_DESK,
-  NAVEGACAO_V4_DESK,
-  ROTAS_FORA_DO_MENU,
   MENU_CONTA,
-  grupoNavAtivo,
-  itemNavAtivo,
-  naturezaDaBiblioteca,
-  origemDoAtalho,
   rotaAtendeDestino,
   type GrupoDesk,
-  type ItemNav,
 } from "@/lib/navegacao-desk";
 import { AssistenteTransversal } from "@/components/desk/assistente-transversal";
 import { BrandLogo } from "@/components/brand";
@@ -220,19 +211,8 @@ export function SaasShell({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const rota = useRouterState({ select: (s) => s.location.pathname });
-  const hash = useRouterState({ select: (s) => s.location.hash });
   const [aberto, setAberto] = useState(false);
-  const [abertosManuais, setAbertosManuais] = useState<Record<string, boolean>>({});
-  const [desktop, setDesktop] = useState(false);
   const registrarSaida = useServerFn(registrarLogoutEquipe);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const sync = () => setDesktop(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
 
   // Só sai da área protegida quando o servidor responde e a autorização não
   // existe. Erro de rede/token com sessão válida apenas refaz a consulta —
