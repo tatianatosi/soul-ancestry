@@ -135,7 +135,7 @@ export function PortalLegado() {
                                   className="rounded-lg border border-border bg-card p-4 shadow-sm"
                                 >
                                   <p className="text-[11px] font-medium uppercase tracking-wide text-navy/45">
-                                    {item.tipoRotulo}
+                                     {item.tipo === "microentrega" ? "Da nossa jornada" : item.tipoRotulo}
                                   </p>
                                   <p className="mt-1 whitespace-pre-line text-sm text-navy/85">
                                     {item.conteudo}

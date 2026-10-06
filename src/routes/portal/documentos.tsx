@@ -56,7 +56,7 @@ export function PortalDocumentos() {
           <PortalCarregando />
         ) : (
           <div className="space-y-5" data-aba-documentos>
-            <p className="border-l-2 border-gold pl-4 text-sm leading-relaxed text-navy/75">Você poderá acompanhar os pedidos pendentes e a conferência por documento quando essas informações estiverem disponíveis. Ainda não há uma lista completa para mostrar a contagem do checklist.</p>
+            <p className="border-l-2 border-gold pl-4 text-sm leading-relaxed text-navy/75">Cada documento terá seu estado aqui assim que a equipe compartilhar a lista completa com você.</p>
             {/* 1. Solicitados — só o pedido real da equipe, com a instrução de envio integrada ao card. */}
             <section
               data-documentos-solicitados
