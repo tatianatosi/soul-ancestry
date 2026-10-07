@@ -100,3 +100,11 @@ Este registro complementa, sem arquivar, a auditoria anterior. Consulta somente 
 | Base de Origem | Radar | Contrato de origem aprovado | Origem histórica contextualizada e unidade/total quando houver; árvore publicada não comprova localização nem progresso de origem. |
 
 **Validação deste corte:** 33 testes existentes passaram; compilação da plataforma OK. Navegação administrativa autenticada nas três abas em 375×1800 e 1280×1800, capturas topo/meio/fim, sem overflow de documento e sem erro JavaScript. Capturas em `/tmp/browser/ana-bases-reais/`. Login cliente, isolamento A×B, escrita/releitura, publicação e PDF não foram testados neste corte. Não declarar paridade concluída: os contratos de conteúdo acima dependem do Claude.
+
+## Corte visual v11 — quatro abas (07/10/2026, 23:37 UTC)
+
+- Tokens locais de apresentação vinculados aos valores canônicos, aplicados pelo shell às sete abas; nenhuma mudança de paleta do Desk.
+- Jornada, Documentos, Legado e Conta usam faixas editoriais, vazios compactos e hierarquia sem caixas aninhadas. Pessoas de `arvore` não ocupam eventos históricos. Não há afirmação de ritmo em dia pela simples presença de publicação.
+- Documentos sem pedido não afirma que nenhum documento é necessário. Conta explicita ausência de canal; assinatura existente e seu estado foram preservados, sem mudança de preço ou confirmação de pagamento.
+- Dependências de Claude continuam: datas factuais/trilhas, classificação explícita das coleções, checklist integral, originais/entrevistas/fontes autorizados, nome de apresentação, plano, canais, preferências e histórico publicado. Conteúdo demonstrativo do PDF não foi importado.
+- 36 testes existentes passaram, compilação da plataforma OK; 21 capturas finais, sete abas em 375/768/1280, conteúdo igual nas três larguras, sem overflow ou erro JavaScript. Prova pela visão administrativa autenticada; não comprova login cliente, isolamento, escrita/releitura ou publicação.
