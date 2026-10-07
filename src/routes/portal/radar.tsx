@@ -82,6 +82,10 @@ export function PortalRadar() {
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-radar>
                   <RadarSeisEixos dimensoes={dimensoes} />
+                  <section aria-label="Checklist documental" className="border-l-2 border-terracotta/40 py-1 pl-4">
+                    <h2 className="font-serif text-xl text-navy">Checklist documental</h2>
+                    <p className="mt-2 text-sm leading-relaxed text-navy/75">O checklist completo do caso ainda não foi compartilhado. Sem essa lista, não há uma base documental completa para comparar.</p>
+                  </section>
 
                   {/* Próximo passo real (mesma fonte de Home/Jornada) — nunca um passo por eixo inventado. */}
                   <section className="border-l-2 border-gold/60 py-1 pl-4">
