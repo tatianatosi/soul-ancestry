@@ -154,7 +154,7 @@ export function PortalArvore() {
                     <p className="mt-1 text-sm text-navy/65">
                       {temConteudo
                         ? pessoas.length > 0
-                          ? "A árvore reúne as pessoas e os vínculos já confirmados e compartilhados com você."
+                          ? "A árvore reúne as pessoas compartilhadas com você, nas gerações publicadas. Os vínculos aparecem somente quando também forem compartilhados."
                           : "Os nomes compartilhados estão abaixo. As posições na árvore aparecerão quando os vínculos e as gerações estiverem disponíveis."
                          : "Esta árvore ainda não tem nomes e vínculos liberados para a família."}
                     </p>
@@ -163,7 +163,7 @@ export function PortalArvore() {
                         <div key={geracao.id}>
                           {gi > 0 ? <ConectorGeracao slots={geracao.slots} /> : null}
                           <p className="mb-2 text-center text-[10px] uppercase tracking-[0.14em] text-navy/45">
-                            {geracao.rotulo}
+                            {geracao.id === "G1" ? "G1 · Você (âncora)" : `${geracao.id} · ${Number(geracao.id.slice(1))}ª geração`}
                           </p>
                           <div className="flex flex-wrap justify-center gap-2">
                             {geracao.id === "G1" ? (

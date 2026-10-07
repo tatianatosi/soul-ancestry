@@ -80,7 +80,7 @@ export function PortalHome() {
   );
   const passoPublicado = jornada.linha.find((item) => item.tipo === "proxima_acao");
   const achadosPublicados = jornada.linha.filter((item) =>
-    ["achado", "arvore", "evidencia", "linha_tempo", "legado", "relatorio_fase"].includes(item.tipo) &&
+    item.tipo === "achado" &&
     !/estado de validação|próximo passo: devolutiva/i.test(item.conteudo),
   );
   const pessoasPublicadas = pessoasDaArvore(vivo.data?.projecoes ?? []).length;
@@ -476,8 +476,18 @@ function PainelHomeMockup({
             <LinkPortal to="/portal/jornada" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Jornada</LinkPortal>
           </section>
         ) : null}
-        {!documentoPrioritario && !microentrega ? <p className="border-t border-border pt-4 text-sm leading-relaxed text-navy/70 sm:col-span-2">Os documentos prioritários e as novidades da jornada aparecerão aqui quando forem compartilhados com sua família.</p> : null}
-        <LinkPortal to="/portal/conta" className="inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4 sm:col-span-2">Contato com a equipe</LinkPortal>
+        {!documentoPrioritario ? (
+          <section aria-label="Documentos prioritários" className="border-t border-border pt-4 sm:col-span-2">
+            <h3 className="font-serif text-xl text-navy">Documentos prioritários</h3>
+            <p className="mt-2 text-sm leading-relaxed text-navy/70">Ainda não há uma prioridade documental compartilhada com sua família. O checklist aparecerá quando for disponibilizado pela equipe.</p>
+            <LinkPortal to="/portal/documentos" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Documentos</LinkPortal>
+          </section>
+        ) : null}
+        <section aria-label="Contato com a equipe" className="border-t border-border pt-4 sm:col-span-2">
+          <h3 className="font-serif text-xl text-navy">Contato com a equipe</h3>
+          <p className="mt-2 text-sm leading-relaxed text-navy/70">Ainda não há um canal de contato disponibilizado neste aplicativo.</p>
+          <LinkPortal to="/portal/conta" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Conta</LinkPortal>
+        </section>
       </div>
     </div>
   );
