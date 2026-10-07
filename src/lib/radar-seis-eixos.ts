@@ -231,7 +231,7 @@ export function radarSeisDimensoes(entrada: {
     percentual: mediaOutros,
     legenda:
       mediaOutros === null
-        ? "Lacuna: nenhum eixo tem ainda um total real para calcular o andamento."
+        ? "Lacuna: nenhum eixo tem ainda um total real para calcular o andamento — acompanhamento de progresso, não parecer jurídico, chance ou resultado."
         : "Andamento médio dos eixos que já têm total real — acompanhamento de progresso, não parecer jurídico, chance ou resultado.",
     rotuloNumero: mediaOutros === null ? "Lacuna" : `${mediaOutros}%`,
     comoCalculamos:
