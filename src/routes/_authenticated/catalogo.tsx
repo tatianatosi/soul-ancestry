@@ -10,6 +10,7 @@ import { CatalogoSaneamento } from "@/components/painel/catalogo-saneamento";
 import { PrecoSugeridoOperacional } from "@/components/catalogo/preco-sugerido-operacional";
 import { PlanejadorProdutosPai } from "@/components/catalogo/planejador-produtos-pai";
 import { DeParaSkuProdutoPai } from "@/components/catalogo/de-para-sku-produto-pai";
+import { PrecosProdutosPaiCrud } from "@/components/catalogo/precos-produtos-pai-crud";
 import { AuditoriaCatalogo } from "@/components/catalogo/auditoria-catalogo";
 import { lerCatalogoImportado } from "@/lib/catalogo-importacao.functions";
 import {
@@ -182,6 +183,10 @@ function CatalogoPage() {
       </section>
 
       <AuditoriaCatalogo />
+
+      <div className="mt-6">
+        <PrecosProdutosPaiCrud />
+      </div>
 
       <DeParaSkuProdutoPai />
 
