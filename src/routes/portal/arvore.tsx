@@ -200,10 +200,15 @@ export function PortalArvore() {
                             {pessoas.length === 1 ? "pessoa conectada recuperada" : "pessoas conectadas recuperadas"}
                           </span>
                           {/*
-                            Rodapé normativo do mockup aprovado de 17 páginas.
-                            Removido por commit do Lovable em 04/10/2026 (segunda
-                            vez: a primeira restauração foi 39d6929a). Restaurado
-                            no merge para manter o contrato visual.
+                            O rodapé "de um universo de N possíveis" do mockup de
+                            17 páginas foi removido pelo Lovable 3 vezes (a 1ª
+                            restauração foi 39d6929a). Decisão final e explícita
+                            da Proprietária em 07/10/2026: a árvore é sem teto —
+                            não há denominador teórico a mostrar (a árvore já
+                            passou de 5 para 10 gerações, e o "31"/"1023" nunca
+                            foi uma meta real de pessoas). Não restaurar de novo:
+                            o contrato visual, neste ponto específico, foi
+                            substituído por esta decisão.
                           */}
                         </>
                       ) : (
