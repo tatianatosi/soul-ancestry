@@ -99,7 +99,7 @@ export function PortalRadar() {
                       {dimensoes.map((d, i) => {
                         // "Em preparação" só quando não há percentual nem registro publicado.
                         const temPercentual = d.percentual !== null;
-                        const temRegistro = !["Nenhum ainda", "Em preparação", ""].includes(d.rotuloNumero.trim());
+                        const temRegistro = !["Nenhum ainda", "Em preparação", "Lacuna", ""].includes(d.rotuloNumero.trim());
                         const vazio = !temPercentual && !temRegistro;
                         const contagemConexoes =
                           d.id === "conexoes" && temPercentual ? d.legenda.match(/^(\d+) de (\d+)/) : null;
@@ -113,7 +113,7 @@ export function PortalRadar() {
                               <h3 className="mt-0.5 text-xs font-semibold leading-tight text-navy">{d.titulo}</h3>
                             </div>
                             <span className="mt-2 block break-words font-serif text-sm leading-tight text-navy sm:mt-0 sm:shrink-0 sm:text-base">
-                              {vazio ? "Em preparação" : temPercentual ? `${d.percentual}%` : d.rotuloNumero}
+                              {vazio ? "Lacuna" : temPercentual ? `${d.percentual}%` : d.rotuloNumero}
                               {temPercentual && d.id !== "conexoes" && !d.rotuloNumero.includes("%") && temRegistro ? <span className="ml-1 font-sans text-xs text-navy/70">· {d.rotuloNumero}</span> : null}
                               {contagemConexoes ? (
                                 <span className="ml-1 font-sans text-[10px] text-navy/55">

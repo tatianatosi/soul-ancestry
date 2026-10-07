@@ -18,6 +18,8 @@ export type DadosPortalComoAdmin = {
   documentos: DocumentoPortal[];
   proximaAcao: ProximaAcaoCliente | null;
   escopo: EscopoCliente;
+  /** Mesmo total de `portal_casos.pessoas_mapeadas`: perfis genealógicos ativos do caso. */
+  pessoasMapeadas: number;
 };
 
 /**
@@ -71,7 +73,7 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
     // virava "Invalid API key" no Acesso app como pessoa.
     const leitorProjecoes = supabase;
 
-    const [proj, docs, pendencias, faturas] = await Promise.all([
+    const [proj, docs, pendencias, faturas, mapeadas] = await Promise.all([
       leitorProjecoes
         .from("app_projections")
         .select("id, case_id, projection_type, content_sanitized, pessoa_id, geracao_cliente, effective_from, updated_at")
@@ -100,6 +102,11 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
         .eq("organization_id", organizationId)
         .eq("case_id", data.casoId)
         .in("status", ["aberta", "vencida"]),
+      supabase
+        .from("genealogical_person_profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("case_id", data.casoId)
+        .is("archived_at", null),
     ]);
 
     const projecoes = linhasDe<ProjecaoBruta>(proj, "as publicações do App Cliente");
@@ -117,6 +124,7 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
     return {
       projecoes,
       documentos,
+      pessoasMapeadas: Math.max(0, Number(mapeadas.count ?? 0)),
       proximaAcao: projetarProximaAcaoCliente(
         sinaisDoCasoPortal({
           status: caso.status,
