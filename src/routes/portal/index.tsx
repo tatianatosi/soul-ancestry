@@ -384,11 +384,11 @@ function PainelHomeMockup({
         </section>
       ) : null}
 
-      <div className="grid gap-7 pt-2 sm:grid-cols-2 sm:items-start">
+      <div className="grid gap-8 pt-4 sm:grid-cols-2 sm:items-start">
         <section aria-label="Próxima ação">
           <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Próxima ação</p>
           <h3 className="mb-3 font-serif text-2xl text-navy">O que vem agora</h3>
-          <CaCard>
+          <div className="border-l-2 border-gold pl-4">
             <p className="whitespace-pre-line text-sm leading-relaxed text-navy/80">{proximoPasso}</p>
             {proximaEntrega ? (
               <p className="mt-2 text-xs text-navy/70" data-proxima-entrega>
@@ -411,20 +411,20 @@ function PainelHomeMockup({
                 Acompanhar sua jornada
               </Link>
             ) : null}
-          </CaCard>
+          </div>
         </section>
 
         <section className="sm:col-start-2 sm:row-start-1" aria-label="Pessoas conectadas">
           <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Família</p>
           <h3 className="mb-3 font-serif text-2xl text-navy">Pessoas conectadas</h3>
-          <CaCard>
+          <div className="border-t border-gold/40 py-3">
             <p className="text-sm leading-relaxed text-navy/75">
               {pessoasPublicadas > 0
                 ? `${pessoasPublicadas} ${pessoasPublicadas === 1 ? "pessoa compartilhada" : "pessoas compartilhadas"} na sua Árvore.`
                 : "Quando novos vínculos estiverem confirmados, eles aparecerão na sua Árvore."}
             </p>
             <LinkPortal to="/portal/arvore" className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Árvore</LinkPortal>
-          </CaCard>
+          </div>
         </section>
 
         {documentoPrioritario ? (
@@ -443,11 +443,11 @@ function PainelHomeMockup({
             </LinkPortal>
           </div>
           {achados.length === 0 ? (
-            <CaCard className="border-l-2 border-l-gold">
+            <div className="border-l-2 border-gold/40 py-1 pl-4">
               <p className="font-serif text-lg leading-relaxed text-navy/70">
                 Quando houver descobertas prontas para compartilhar, elas encontrarão seu lugar aqui.
               </p>
-            </CaCard>
+            </div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               {achados.slice(0, 3).map((a) => {
