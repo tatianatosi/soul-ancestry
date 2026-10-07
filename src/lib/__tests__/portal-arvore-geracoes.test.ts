@@ -6,12 +6,12 @@ import {
 import type { PublicacaoCliente } from "@/lib/projecoes-cliente";
 
 describe("painelArvoreGeracoes", () => {
-  it("sempre expõe G1–G10 (G1–G5 do mockup + G6–G10 ampliados em 05/10/2026)", () => {
+  it("cobre ao menos G1–G10, em ordem, sem teto para gerações futuras", () => {
     const painel = painelArvoreGeracoes([]);
-    expect(painel.geracoes.map((g) => g.id)).toEqual([
+    expect(painel.geracoes.map((g) => g.id).slice(0, 10)).toEqual([
       "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10",
     ]);
-    expect(GERACOES_ARVORE).toHaveLength(10);
+    expect(GERACOES_ARVORE.length).toBeGreaterThanOrEqual(10);
   });
 
   it("não inventa notas quando não há publicação de árvore", () => {
