@@ -105,7 +105,8 @@ export function pessoasDaArvore(projecoes: readonly ProjecaoArvore[]): PessoaNaA
       chave,
       nome: t(nome),
       vinculo: resto.length ? resto.join(SEPARADOR_ARVORE) : null,
-      geracao: (GERACOES_PUBLICAVEIS as readonly number[]).includes(g) ? g : null,
+      // Leitura sem teto: qualquer geração inteira ≥ 1 publicada aparece.
+      geracao: Number.isInteger(g) && g >= 1 ? g : null,
     };
   });
 }
