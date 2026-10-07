@@ -311,7 +311,7 @@ export function PortalDocumentos() {
                       <p className="font-medium text-navy">{textoParaCliente(d.titulo)}</p>
                       <p className="text-xs text-navy/50">{textoParaCliente(d.caso)}</p>
                     </div>
-                    <button
+                    <Button variant="outline"
                       onClick={() => abrir(d.id)}
                       className="inline-flex items-center gap-2 rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy"
                     >
