@@ -7,6 +7,7 @@ import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
 import {
   painelArvoreGeracoes,
   GERACOES_ARVORE_EXIBICAO,
+  geracoesParaExibir,
   type GeracaoArvore,
 } from "@/lib/portal-arvore-geracoes";
 import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
@@ -131,8 +132,9 @@ export function PortalArvore() {
             const temConteudo = painel.temPublicacao || pessoas.length > 0;
             const pessoasDaGeracao = (id: string) => pessoas.filter((x) => `G${x.geracao}` === id);
              const geracoesPublicadas = new Set(pessoas.map((pessoa) => `G${pessoa.geracao}`));
+             // Gerações vêm do que foi publicado (sem lista fixa nem teto).
              const geracoesExibidas = pessoas.length > 0
-               ? GERACOES_ARVORE_EXIBICAO.filter((geracao) => geracao.id === "G1" || geracoesPublicadas.has(geracao.id))
+               ? geracoesParaExibir(pessoas.map((pessoa) => pessoa.geracao))
                : GERACOES_ARVORE_EXIBICAO;
              const maiorGeracao = geracoesExibidas.reduce(
                (maior, geracao) => Math.max(maior, Number(geracao.id.slice(1)) || 1),
@@ -166,6 +168,11 @@ export function PortalArvore() {
                           <div className="flex flex-wrap justify-center gap-2">
                             {geracao.id === "G1" ? (
                               <NoArvore ehG1 estado={painel.estadoSlotAnonimo} />
+                            ) : null}
+                            {pessoas.length > 0 && geracao.id !== "G1" && !geracoesPublicadas.has(geracao.id) ? (
+                              <p className="rounded-lg border border-dashed border-terracotta/40 px-3 py-2 text-center text-xs text-navy/70" data-arvore-lacuna>
+                                Lacuna: ninguém desta geração foi compartilhado ainda.
+                              </p>
                             ) : null}
                             {pessoasDaGeracao(geracao.id).map((pessoa) => (
                               <NoPessoa key={pessoa.chave} pessoa={pessoa} />
