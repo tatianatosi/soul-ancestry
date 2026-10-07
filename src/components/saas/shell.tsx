@@ -378,7 +378,7 @@ export function SaasShell({
           <span>Clube Ancestral · Desk Intelligence</span>
           <span>Genealogia profissional e história familiar</span>
         </div>
-        <header className="grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3 border-b border-navy/10 border-t-4 border-t-gold bg-navy px-4 py-4 text-cream shadow-sm md:grid-cols-[minmax(0,1fr)_minmax(16rem,28rem)_auto] md:bg-card md:px-8 md:text-navy">
+        <header className="grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3 border-b border-navy/10 border-t-4 border-t-gold bg-navy px-4 py-4 text-cream shadow-sm md:grid-cols-[minmax(0,1fr)_auto] md:bg-card md:px-8 md:text-navy">
           <button
             className="shrink-0 md:hidden"
             onClick={() => setAberto((v) => !v)}
@@ -393,8 +393,8 @@ export function SaasShell({
             className="shrink-0 md:hidden"
           />
 
-          <div className="min-w-0 max-w-full flex-1">
-            <h1 className="truncate font-serif text-2xl">{titulo}</h1>
+          <div className="min-w-0 max-w-full flex-1 md:col-span-full">
+            <h1 className="break-words font-serif text-2xl leading-tight">{titulo}</h1>
             {descricao ? <p className="overflow-wrap-anywhere text-sm text-cream/70 md:text-navy/60">{descricao}</p> : null}
           </div>
           <div className="hidden min-w-0 items-center gap-2 rounded-md border border-input bg-cream/40 px-3 py-2.5 md:flex" aria-label="Busca no Desk">
