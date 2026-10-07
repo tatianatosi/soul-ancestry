@@ -135,7 +135,7 @@ export function PortalRadar() {
                           {d.legenda ? <p className="mt-2 text-sm leading-relaxed text-navy/75">{d.legenda}</p> : null}
                           {d.comoCalculamos ? (
                             <details className="mt-2 text-sm leading-relaxed text-navy/70" data-radar-calculo>
-                              <summary className="flex min-h-11 cursor-pointer items-center font-medium text-navy focus-visible:outline-2 focus-visible:outline-gold">Como calculamos</summary>
+                              <summary className="flex min-h-11 cursor-pointer items-center font-medium text-navy focus-visible:outline-2 focus-visible:outline-gold">Como calculamos:</summary>
                               <p className="pb-2">{d.comoCalculamos}</p>
                             </details>
                           ) : null}
