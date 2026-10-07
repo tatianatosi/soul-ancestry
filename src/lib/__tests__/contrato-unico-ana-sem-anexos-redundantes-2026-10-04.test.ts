@@ -533,11 +533,36 @@ describe("11. partes registradas são a fonte primária; nome divergente não cr
     expect(ana.papeis).toContain("responsavel_financeiro");
   });
 
-  it("o nome que não casa com nenhuma parte vira divergência nomeada, sem fundir", () => {
+  /*
+   * Revisto no Corte A (07/10/2026). Até aqui o nome do deck virava
+   * divergência pendente — e a Proprietária apontou que essa pendência nunca
+   * fecharia, porque não há nada a corrigir: é a mesma pessoa, provada por
+   * documento de identidade. Com D2, o par deck↔cadastro está registrado em
+   * `APELIDOS_APROVADOS` e deixa de ser divergência. O que a regra antiga
+   * protegia continua protegido pelo teste seguinte: nome NÃO registrado
+   * continua divergência, e semelhança nunca funde ninguém.
+   */
+  it("apelido aprovado (D2) não vira divergência nem nome na saída", () => {
     const texto = pessoas.flatMap((p) => p.pendencias).join(" ");
-    expect(texto).toContain("Adair Gomes Silveira");
+    expect(texto).not.toContain("Adair Gomes Silveira");
+    expect(texto).not.toContain("Divergência de fonte");
+    const adair = pessoas.find((p) => p.nome === "Adair Pinto Silveira Júnior")!;
+    expect(adair.papeis).toContain("responsavel_financeiro");
+  });
+
+  it("nome sem apelido registrado continua divergência declarada, sem fundir", () => {
+    const comNomeDesconhecido = montarPessoasContratuais({
+      partesRegistradas: PARTES_REGISTRADAS,
+      membros: MEMBROS,
+      dependentes: [],
+      itensCondicao: ITENS,
+      responsaveisFinanceiros: ["Adair Pinto da Silva Neto"],
+    });
+    const texto = comNomeDesconhecido.flatMap((p) => p.pendencias).join(" ");
+    expect(texto).toContain("Adair Pinto da Silva Neto");
     expect(texto).toContain("Divergência de fonte");
     expect(texto).toContain("nenhum nome foi fundido por semelhança");
+    expect(comNomeDesconhecido.find((p) => p.nome === "Adair Pinto da Silva Neto")).toBeUndefined();
   });
 
   it("o leitor da preparação passa as partes registradas", () => {

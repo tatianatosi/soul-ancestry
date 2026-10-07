@@ -261,7 +261,7 @@ export function ContratoBaseLeitor() {
       <div data-testid="contrato-base-adendos" className="mt-6 rounded-lg border border-navy/10 bg-cream/30 p-4">
         <h3 className="font-serif text-sm text-navy">Adendos textuais em revisão jurídica</h3>
         <p className="mt-1 text-[11px] text-navy/60">
-          Acréscimos ao contrato-base. Não reescrevem as 14 cláusulas, não habilitam assinatura e não declaram regra
+          Acréscimos ao contrato-base. Não reescrevem as 16 cláusulas, não habilitam assinatura e não declaram regra
           jurídica aprovada.
         </p>
         {ADENDOS_TEXTUAIS.map((adendo) => (

@@ -28,6 +28,7 @@
  *  - nada aqui envia, assina, cobra ou publica.
  */
 
+import { nomeCanonicoAprovado, nomeDaMesmaPessoa } from "@/lib/apelidos-aprovados";
 import { formatarDinheiro } from "@/lib/orcamento-proposta";
 
 /* ------------------------- papéis das pessoas ------------------------- */
@@ -84,8 +85,16 @@ export type EntradaPessoas = {
   responsaveisFinanceiros: string[];
 };
 
+/**
+ * Igualdade de pessoa para esta camada. Além do nome idêntico, aceita o par
+ * declarado em `APELIDOS_APROVADOS` — Corte A / D2 (07/10/2026): o deck do
+ * Canva escreve "Adair Gomes Silveira" e o cadastro "Adair Pinto Silveira
+ * Júnior"; a Proprietária autenticada declarou ser a mesma pessoa, com base
+ * documental. Sem esse registro explícito, nomes diferentes continuam
+ * pessoas diferentes: semelhança nunca funde ninguém.
+ */
 function mesmoNome(a: string, b: string): boolean {
-  return a.trim().toLocaleLowerCase("pt-BR") === b.trim().toLocaleLowerCase("pt-BR");
+  return nomeDaMesmaPessoa(a, b);
 }
 
 /**
@@ -105,7 +114,9 @@ export function montarPessoasContratuais(e: EntradaPessoas): PessoaContratual[] 
     const achada = saida.find((p) => mesmoNome(p.nome, nome));
     if (achada) return achada;
     const nova: PessoaContratual = {
-      nome: nome.trim(),
+      // Apelido aprovado entra sempre pelo nome do cadastro: o texto da fonte
+      // de origem (deck) não deve chegar a contrato, PDF nem App.
+      nome: nomeCanonicoAprovado(nome),
       papeis: [],
       escopoIndividual: null,
       valorIndividual: null,
@@ -563,6 +574,16 @@ export const BLOCOS_QUE_INCORPORAM_ANEXO_I = [
   "valor",
   "pagamento",
 ] as const;
+
+/**
+ * Título da seção que agrupa, no corpo, o conteúdo da Ordem de Serviço.
+ *
+ * Corte B / D1 (07/10/2026): as cláusulas 3.1 e 10.1 citam o Anexo I. Com o
+ * Anexo I incorporado, o corpo precisa dizer, com título próprio, que aqueles
+ * blocos SÃO a Ordem de Serviço — senão a cláusula aponta para um documento
+ * que o leitor não encontra.
+ */
+export const TITULO_SECAO_ANEXO_I_INCORPORADO = "Ordem de Serviço (Anexo I) — incorporada a este contrato";
 
 export function anexoIIncorporadoNoCorpo(blocos: readonly BlocoIncorporado[]): boolean {
   const cobertos = new Set(blocos.filter((b) => b.pendencias.length === 0).map((b) => b.chave));

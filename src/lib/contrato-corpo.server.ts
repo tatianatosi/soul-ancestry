@@ -21,9 +21,11 @@ import {
 import { blocosRenderizados, type BlocoRenderizado } from "@/lib/matriz-aceite";
 import {
   anexoIIncorporadoNoCorpo,
+  BLOCOS_QUE_INCORPORAM_ANEXO_I,
   coberturaContratual,
   montarBlocosIncorporados,
   montarPessoasContratuais,
+  TITULO_SECAO_ANEXO_I_INCORPORADO,
   type BlocoIncorporado,
   type CoberturaContratual,
   type EntradaPessoas,
@@ -155,24 +157,44 @@ export function blocosDoCaso(e: EntradaCorpo): {
   return { pessoas, blocos, cobertura: coberturaContratual(pessoas, blocos) };
 }
 
-function secaoBlocosIncorporados(blocos: BlocoIncorporado[]) {
-  const corpo = blocos
-    .map((b) => {
-      const linhas = b.linhas
-        .map(
-          (l) =>
-            `<li><strong>${esc(l.rotulo)}:</strong> ${
-              l.valor ? esc(l.valor) : `<span class="pend">${esc(l.pendencia ?? "sem fonte rastreável")}</span>`
-            } <span class="orig">[${esc(l.fonte)}]</span></li>`,
-        )
-        .join("");
-      return `<section class="bloco-caso"><h3>${esc(b.titulo)} <span class="orig">(cláusula ${b.clausula})</span></h3>
-<p class="orig">${esc(b.finalidade)}</p><ul>${linhas}</ul></section>`;
-    })
+function blocoHtml(b: BlocoIncorporado) {
+  const linhas = b.linhas
+    .map(
+      (l) =>
+        `<li><strong>${esc(l.rotulo)}:</strong> ${
+          l.valor ? esc(l.valor) : `<span class="pend">${esc(l.pendencia ?? "sem fonte rastreável")}</span>`
+        } <span class="orig">[${esc(l.fonte)}]</span></li>`,
+    )
     .join("");
-  return `<section><h2>Condições específicas deste caso</h2>
+  return `<section class="bloco-caso"><h3>${esc(b.titulo)} <span class="orig">(cláusula ${b.clausula})</span></h3>
+<p class="orig">${esc(b.finalidade)}</p><ul>${linhas}</ul></section>`;
+}
+
+/*
+ * Corte B / D1 (07/10/2026): os blocos que carregam a Ordem de Serviço saem
+ * sob título próprio, para as cláusulas 3.1 e 10.1 — que citam o Anexo I —
+ * continuarem apontando para algo que o leitor acha no documento.
+ */
+function secaoBlocosIncorporados(blocos: BlocoIncorporado[]) {
+  const daOrdemDeServico = BLOCOS_QUE_INCORPORAM_ANEXO_I.map((chave) => blocos.find((b) => b.chave === chave)).filter(
+    (b): b is BlocoIncorporado => Boolean(b),
+  );
+  const demais = blocos.filter((b) => !BLOCOS_QUE_INCORPORAM_ANEXO_I.some((c) => c === b.chave));
+
+  const secaoOs = daOrdemDeServico.length
+    ? `<section><h2>${esc(TITULO_SECAO_ANEXO_I_INCORPORADO)}</h2>
+<p class="orig">Escopo por pessoa, serviços incluídos e excluídos, entregas, valores e pagamento. Este é o conteúdo do Anexo I, incorporado ao corpo: não há documento separado a emitir.</p>
+${daOrdemDeServico.map(blocoHtml).join("")}</section>`
+    : "";
+
+  const secaoDemais = demais.length
+    ? `<section><h2>Condições específicas deste caso</h2>
 <p class="orig">Cada bloco abaixo integra a cláusula indicada do contrato-base. Nenhum texto jurídico novo: o bloco traz o dado do caso que a cláusula pressupõe.</p>
-${corpo}</section>`;
+${demais.map(blocoHtml).join("")}</section>`
+    : "";
+
+  return `${secaoOs}
+${secaoDemais}`;
 }
 
 function secaoPerfil() {

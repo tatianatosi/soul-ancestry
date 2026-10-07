@@ -95,7 +95,7 @@ function PreviaTeste({ chave }: { chave: ChaveModelo }) {
       </section>
 
       <section className="space-y-1">
-        <h4 className="text-sm font-semibold">Preâmbulo e 14 cláusulas</h4>
+        <h4 className="text-sm font-semibold">Preâmbulo e 16 cláusulas</h4>
         <p className="text-xs text-navy/65">{rascunho.preambulo}</p>
         <ol className="list-decimal space-y-1 pl-5 text-xs text-navy/65">
           {rascunho.clausulas.map((c) => (

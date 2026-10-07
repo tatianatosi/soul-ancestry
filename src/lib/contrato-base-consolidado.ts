@@ -117,7 +117,7 @@ export function violacoesIdentificacao(texto: string): string[] {
 }
 
 /* ------------------------------------------------------------------ */
-/* 3 — Contrato-base consolidado: 14 cláusulas fixas                    */
+/* 3 — Contrato-base consolidado: 16 cláusulas fixas                    */
 /* ------------------------------------------------------------------ */
 
 export type ClausulaFixa = { numero: number; titulo: string; itens: string[] };
@@ -132,7 +132,7 @@ export const CLAUSULAS_FIXAS: ClausulaFixa[] = [
     itens: [
       "1.1. A qualificação completa da CONTRATADA será obtida exclusivamente do Perfil Institucional vigente e aprovado.",
       "1.2. A qualificação do(s) CONTRATANTE(S), signatário(s), beneficiário(s), representante(s) e dependente(s) será obtida dos parâmetros contratuais rastreáveis, da Ordem de Serviço/Proposta válida e dos anexos aplicáveis.",
-      "1.3. Este Contrato-Base é complementado, quando aplicável, por: Ordem de Serviço ou Proposta Comercial aprovada, Anexo I — Ordem de Serviço, Anexo de Escopo, Anexo de Privacidade e Dados, Anexo Comercial, Anexo Individual e Anexo de Representação.",
+      "1.3. Este Contrato-Base é complementado, quando aplicável, pela Ordem de Serviço e pela Proposta Comercial aprovada, incorporadas a este contrato, e pelos demais anexos condicionais aplicáveis.",
       "1.4. Em caso de divergência específica entre este contrato-base e a Ordem de Serviço/Proposta aprovada, a Ordem de Serviço/Proposta prevalecerá quanto a escopo contratado, valores, forma de pagamento, parcelas, prazos específicos e despesas específicas, desde que respeitados o contrato-base, a legislação aplicável e as aprovações exigidas.",
     ],
   },
@@ -141,7 +141,7 @@ export const CLAUSULAS_FIXAS: ClausulaFixa[] = [
     titulo: "Objeto",
     itens: [
       "2.1. O presente instrumento tem por objeto a prestação de serviços técnicos especializados de pesquisa genealógica, organização de informações familiares, análise documental, estruturação de jornada documental e entregas descritas no escopo aprovado.",
-      "2.2. Conforme a modalidade contratada, o serviço poderá incluir leitura de árvore existente, análise das informações e documentos fornecidos, identificação de lacunas e inconsistências, organização de hipóteses de pesquisa, definição de próximos passos, relatórios, orientação documental e demais entregas expressamente previstas no Anexo de Escopo.",
+      "2.2. Conforme a modalidade contratada, o serviço poderá incluir leitura de árvore existente, análise das informações e documentos fornecidos, identificação de lacunas e inconsistências, organização de hipóteses de pesquisa, definição de próximos passos, relatórios, orientação documental e demais entregas expressamente previstas na Ordem de Serviço e na Proposta aprovada, incorporadas a este contrato.",
       "2.3. O objeto específico não transforma hipótese, narrativa, informação não validada ou triagem preliminar em fato comprovado, decisão jurídica, reconhecimento de direito ou garantia de resultado.",
     ],
   },
@@ -190,7 +190,7 @@ export const CLAUSULAS_FIXAS: ClausulaFixa[] = [
     numero: 7,
     titulo: "Documentos, privacidade, guarda e sigilo",
     itens: [
-      "7.1. O tratamento de dados pessoais e documentos observará a finalidade contratual, o Anexo de Privacidade e Dados, a política vigente aplicável e a Lei nº 13.709/2018 — LGPD.",
+      "7.1. O tratamento de dados pessoais e documentos observará a finalidade contratual, a política de privacidade vigente, a política vigente aplicável e a Lei nº 13.709/2018 — LGPD.",
       "7.2. A CONTRATADA adotará medidas técnicas e administrativas proporcionais para proteger os dados e documentos sob sua guarda contra acessos não autorizados, vazamentos, perda ou uso incompatível com a finalidade.",
       "7.3. A guarda, retenção, arquivamento e descarte observarão a política institucional versionada e vigente, os registros de aceite e eventuais obrigações legais aplicáveis. Nenhum prazo específico será presumido se não estiver previsto na política vigente.",
       "7.4. Gravações, transcrições e materiais de comunicação somente serão utilizados quando houver autorização, base aplicável e controles de acesso compatíveis.",
