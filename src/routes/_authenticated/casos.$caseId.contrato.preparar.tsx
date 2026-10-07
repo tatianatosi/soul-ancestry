@@ -981,7 +981,7 @@ function Pagina() {
                     </button>
                   )}
                   <AbrirDocumentoContrato html={html} identificacao={identificacaoDocumento} />
-                  <BaixarPdfContrato previaId={previaVistaId} />
+                  <BaixarPdfContrato previaId={previaVistaId ?? (rascunhoAtual ?? listaOpcional<any>(d.previas)[0])?.id ?? null} />
                   <span className="self-center text-[11px] text-navy/60">
                     {mGerar.isPending
                       ? "Salvando rascunho…"
