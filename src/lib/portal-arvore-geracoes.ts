@@ -18,7 +18,7 @@
 
 import type { PublicacaoCliente } from "@/lib/projecoes-cliente";
 
-export type GeracaoArvoreId = "G1" | "G2" | "G3" | "G4" | "G5" | "G6" | "G7" | "G8" | "G9" | "G10";
+export type GeracaoArvoreId = `G${number}`;
 
 export type GeracaoArvore = {
   id: GeracaoArvoreId;
@@ -77,6 +77,22 @@ export type PainelArvoreGeracoes = {
   /** Estado a mostrar em qualquer slot sem nome liberado (fora G1). */
   estadoSlotAnonimo: "em_pesquisa" | "a_publicar";
 };
+
+/** Rótulo de uma geração: G1–G10 da escala canônica; acima disso, neutro. */
+export function geracaoArvore(n: number): GeracaoArvore {
+  return GERACOES_ARVORE.find((g) => g.id === `G${n}`) ?? { id: `G${n}`, rotulo: `G${n} · ${n}ª geração`, slots: 1 };
+}
+
+/**
+ * Gerações a exibir montadas a partir do que foi publicado: G1 (você) e cada
+ * geração com pessoa publicada, sem teto. Sem publicação, a escala canônica.
+ * Ordem de exibição: ancestrais no topo, você embaixo.
+ */
+export function geracoesParaExibir(publicadas: readonly (number | null)[]): GeracaoArvore[] {
+  const numeros = [...new Set(publicadas.filter((n): n is number => Number.isInteger(n) && (n as number) >= 1))];
+  if (numeros.length === 0) return [...GERACOES_ARVORE_EXIBICAO];
+  return [...new Set([1, ...numeros])].sort((a, b) => b - a).map(geracaoArvore);
+}
 
 export function painelArvoreGeracoes(
   publicacoes: PublicacaoCliente[],

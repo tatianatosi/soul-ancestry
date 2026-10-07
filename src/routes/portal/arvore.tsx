@@ -7,6 +7,7 @@ import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
 import {
   painelArvoreGeracoes,
   GERACOES_ARVORE_EXIBICAO,
+  geracoesParaExibir,
   type GeracaoArvore,
 } from "@/lib/portal-arvore-geracoes";
 import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
@@ -131,8 +132,9 @@ export function PortalArvore() {
             const temConteudo = painel.temPublicacao || pessoas.length > 0;
             const pessoasDaGeracao = (id: string) => pessoas.filter((x) => `G${x.geracao}` === id);
              const geracoesPublicadas = new Set(pessoas.map((pessoa) => `G${pessoa.geracao}`));
+             // Gerações vêm do que foi publicado (sem lista fixa nem teto).
              const geracoesExibidas = pessoas.length > 0
-               ? GERACOES_ARVORE_EXIBICAO.filter((geracao) => geracao.id === "G1" || geracoesPublicadas.has(geracao.id))
+               ? geracoesParaExibir(pessoas.map((pessoa) => pessoa.geracao)).filter((geracao) => geracao.id === "G1" || geracoesPublicadas.has(geracao.id))
                : GERACOES_ARVORE_EXIBICAO;
              const maiorGeracao = geracoesExibidas.reduce(
                (maior, geracao) => Math.max(maior, Number(geracao.id.slice(1)) || 1),
