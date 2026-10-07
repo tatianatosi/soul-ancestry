@@ -82,3 +82,21 @@ Tipos reconhecidos em `projecoes-cliente.ts`: `linha_tempo`, `arvore`, `achado`,
 - Tentativa autenticada de abrir `/app-cliente-como-pessoa?casoId=` no caso da Ana: carregamento seguido de tela vazia. Capturas comparativas 375/1280 e releitura das sete abas **não comprovadas neste corte**. Não entregar captura vazia como paridade aprovada.
 - Inventário anterior: seis pessoas, uma microentrega e uma assinatura publicadas; resumo em rascunho. Essas contagens não foram consultadas novamente no banco neste corte e não são afirmação de estado atual.
 - Próximo passo: Claude reconciliar os contratos acima; retomar ajustes exclusivamente visuais e capturas das sete abas em 375/1280 com a mesma informação, sem publicação automática.
+
+## Corte 07/10/2026 — Árvore, Radar e Home (19:46 UTC)
+
+Este registro complementa, sem arquivar, a auditoria anterior. Consulta somente leitura no Lovable Cloud confirmou 6 projeções `arvore`, 1 `assinatura` e 1 `microentrega` em `portal_projecoes` para o caso da Ana; nenhuma solicitação documental não arquivada. Não há projeção de checklist completo, próxima ação ou canal nesse conjunto. Nenhum dado foi criado ou publicado.
+
+**Apresentação implementada e conferida:** G1 como âncora, demais rótulos numerados neutros (G4 · 4ª geração), sem renumerar pessoas; Home limita Achados ao tipo `achado` e explicita ausência de prioridade/checklist e canal; Radar não conecta dimensões sem percentual ao centro como se fossem zero. O cálculo existente continua intacto: Conexões mostra 6/10 = 60%, e Progresso Geral informa que atualmente utiliza apenas esse eixo.
+
+**Limite:** a convenção foi corrigida na apresentação da Árvore, não na biblioteca compartilhada pelo Claude. A existência de documentos recebidos não comprova checklist completo. Ticket interno não equivale a canal publicado. Próxima ação produzida pelo motor não equivale a projeção de próxima ação, e a procura por `proxima_acao` na linha atual não possui tipo reconhecido pelo leitor.
+
+| Elemento | Aba | Projeção esperada | Campos que a tela precisa / pedido ao Claude |
+|---|---|---|---|
+| Convenção de geração compartilhada | Árvore / leitores / simulação | `arvore` existente | Unificar biblioteca: G1 âncora; Gn · nª geração; preservar `geracao_cliente` e vínculos publicados. Não reinterpretar G4 como parentesco pela posição. |
+| Checklist completo | Home / Radar | Contrato a reconciliar, sem inventar tipo | Universo integral aplicável ao caso, IDs de itens, estados publicados, numerador e denominador com critério de completude. `docs.length` é contagem de arquivos disponíveis, não prova desse universo. |
+| Próxima ação | Home / Radar | Contrato a reconciliar com leitores existentes | Texto sanitizado aprovado, caso, destino permitido e data opcional real. Entregar a mesma ação nas duas telas sem texto interno ou pagamento não confirmado. Não habilitar tipo desconhecido só na UI. |
+| Canal de contato | Home | Contrato a reconciliar | Rótulo, destino autorizado, disponibilidade e contexto do caso; ação existente persistente se for atendimento interno. Sem telefone/e-mail inventado ou atalho apresentado como contato funcional. |
+| Base de Origem | Radar | Contrato de origem aprovado | Origem histórica contextualizada e unidade/total quando houver; árvore publicada não comprova localização nem progresso de origem. |
+
+**Validação deste corte:** 33 testes existentes passaram; compilação da plataforma OK. Navegação administrativa autenticada nas três abas em 375×1800 e 1280×1800, capturas topo/meio/fim, sem overflow de documento e sem erro JavaScript. Capturas em `/tmp/browser/ana-bases-reais/`. Login cliente, isolamento A×B, escrita/releitura, publicação e PDF não foram testados neste corte. Não declarar paridade concluída: os contratos de conteúdo acima dependem do Claude.
