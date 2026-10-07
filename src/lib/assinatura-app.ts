@@ -1,6 +1,6 @@
 /**
- * Assinatura e upsell no App Cliente, com preço — exceção A7 autorizada
- * (03/10/2026).
+ * Assinatura no App Cliente + upsell no Desk, com preço — exceção A7
+ * autorizada (03/10/2026).
  *
  * ## A autorização, literal
  *
@@ -13,18 +13,27 @@
  * que esvaziou a Conta da Ana: as três projeções publicadas dela eram
  * contrato e proposta com "3 assinaturas mensais de R$ 320".
  *
+ * ## Correção de escopo (07/10/2026)
+ *
+ * A Proprietária revisou o campo editável do upsell: ele continua existindo
+ * — editável, nunca hardcoded — mas **só no Desk**, nunca no App. O cliente
+ * nunca vê "próximo nível"/upsell; só vê a própria assinatura. `upsell` foi
+ * incluído em `TIPOS_FORA_DO_APP` (`projecoes-cliente.ts`) por esse motivo —
+ * o mesmo mecanismo que já mantinha contrato/proposta fora do App. O campo
+ * de publicar upsell no Desk (`publicar-assinatura-app.tsx`) continua de pé,
+ * como registro/planejamento interno da equipe.
+ *
  * ## O escopo da exceção, estreito de propósito
  *
  * O preço entra **só como campo numérico estruturado** (`valorCentavos`), em
- * dois tipos novos: `assinatura` (a dela) e `upsell` (o próximo nível). O
- * texto livre continua passando por `contemConteudoInterno` **e**
- * `pareceComercial` — ou seja, ninguém escreve "parcelamos em 3x de R$ 320"
- * no nome do plano. Contrato e proposta seguem fora do App
- * (`TIPOS_FORA_DO_APP`), e parcela, desconto, forma de pagamento, SKU e
- * código de catálogo continuam recusados em qualquer lugar.
+ * dois tipos: `assinatura` (a dela, chega ao App) e `upsell` (o próximo
+ * nível, fica só no Desk). O texto livre continua passando por
+ * `contemConteudoInterno` **e** `pareceComercial` — ou seja, ninguém escreve
+ * "parcelamos em 3x de R$ 320" no nome do plano. Parcela, desconto, forma de
+ * pagamento, SKU e código de catálogo continuam recusados em qualquer lugar.
  *
- * O que o cliente vê: o nome do plano, o valor, a periodicidade, a situação —
- * e, no upsell, o nome e o valor do próximo nível. Nada de cobrança, link de
+ * O que o cliente vê na Conta: o nome do plano, o valor, a periodicidade e a
+ * situação da própria assinatura. Nada de upsell, cobrança, link de
  * pagamento ou condição negociada.
  */
 import { contemConteudoInterno } from "@/lib/onboarding-jornada";
@@ -170,7 +179,12 @@ export function assinaturaPublicada(projecoes: readonly ProjecaoAssinatura[]): A
   return atual ? interpretar(atual) : null;
 }
 
-/** Os upsells publicados, do mais recente para o mais antigo. */
+/**
+ * Os upsells publicados, do mais recente para o mais antigo. Uso Desk-only
+ * (07/10/2026): o App nunca lê isto — ver `TIPOS_FORA_DO_APP` em
+ * `projecoes-cliente.ts`. Função mantida para a equipe ver, dentro do Desk,
+ * o que já registrou como próximo nível.
+ */
 export function upsellsPublicados(projecoes: readonly ProjecaoAssinatura[]): AssinaturaDoCliente[] {
   return projecoes
     .filter((p) => String(p.projection_type ?? "").trim().toLowerCase() === TIPO_UPSELL)

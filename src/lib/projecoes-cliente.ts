@@ -80,8 +80,14 @@ export const TIPO_PROJECAO_ROTULO: Record<string, string> = {
  * Ou seja: a informação da proposta chega à Conta pelo tipo `plano`
  * (nome + situação + vigência, sem preço — Corte 3a), e o contrato é
  * acessado para assinatura por outro caminho, não como cartão de conteúdo.
+ *
+ * 07/10/2026 — correção da Proprietária sobre o escopo da A7 (03/10/2026):
+ * o campo editável de upsell é só do Desk ("revisando o campo editável do
+ * upsell e só no desk não no app na Ana"). `upsell` sai da taxonomia que
+ * chega ao cliente — a assinatura continua chegando (é o que o cliente dela
+ * mesma vê), o upsell fica como registro/planejamento interno da equipe.
  */
-export const TIPOS_FORA_DO_APP = new Set(["contrato", "proposta"]);
+export const TIPOS_FORA_DO_APP = new Set(["contrato", "proposta", "upsell"]);
 
 /**
  * Lista PERMITIDA de tipos que podem chegar ao cliente.

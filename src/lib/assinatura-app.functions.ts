@@ -1,12 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * A7 (03/10/2026) — o Desk publica a assinatura do cliente e o upsell no App,
- * com valor. Mesma receita de `plano-publicacao.functions.ts`: valida no
- * servidor, grava com releitura, audita e registra na timeline.
+ * A7 (03/10/2026) — o Desk publica a assinatura do cliente no App e registra
+ * o upsell, com valor. Mesma receita de `plano-publicacao.functions.ts`:
+ * valida no servidor, grava com releitura, audita e registra na timeline.
  *
  * O valor é campo estruturado (`valorCentavos`): o servidor nunca aceita
  * preço embutido em texto livre, e o cliente nunca vê parcela, desconto,
  * cobrança nem código de catálogo.
+ *
+ * 07/10/2026 — correção da Proprietária: o upsell não chega ao cliente.
+ * Grava na mesma tabela (`app_projections`, `projection_type='upsell'`),
+ * porque é o mesmo mecanismo de releitura/auditoria/timeline já aprovado —
+ * mas `TIPOS_FORA_DO_APP` (`projecoes-cliente.ts`) impede o App de ler esse
+ * tipo. É registro/planejamento interno da equipe, não publicação ao
+ * cliente.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -33,7 +40,10 @@ const tipoValido = (t: string): Tipo => {
   return v as Tipo;
 };
 
-/** O que o cliente vê hoje na Conta: a assinatura e os upsells publicados. */
+/**
+ * Visão do Desk: a assinatura (o que o cliente vê hoje na Conta) e os
+ * upsells já registrados (07/10/2026: Desk-only, o cliente nunca vê).
+ */
 export const listarAssinaturaDoCaso = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { caseId: string }) => {
@@ -137,16 +147,21 @@ export const publicarAssinaturaNoApp = createServerFn({ method: "POST" })
       organization_id: organizationId,
       entidade: "app_projections",
       entidade_id: (idExistente ?? (r as { id?: string }).id) ?? null,
-      acao: tipo === TIPO_ASSINATURA ? "assinatura_app_publicada" : "upsell_app_publicado",
+      acao: tipo === TIPO_ASSINATURA ? "assinatura_app_publicada" : "upsell_registrado_desk",
       user_id: userId,
       valores_posteriores: { content_sanitized: payload.content_sanitized },
-      metadados: { case_id: data.caseId, tipo, autorizacao_a7: "Proprietária, 03/10/2026" },
+      metadados: {
+        case_id: data.caseId,
+        tipo,
+        autorizacao_a7: "Proprietária, 03/10/2026",
+        correcao_07_10_2026: tipo === TIPO_UPSELL ? "upsell nunca chega ao App — registro interno do Desk" : undefined,
+      },
     });
     await registrarTimelineCaso(supabase, {
       organizationId,
       caseId: data.caseId,
       eventType: "caso",
-      title: tipo === TIPO_ASSINATURA ? "Assinatura publicada no App" : "Upsell publicado no App",
+      title: tipo === TIPO_ASSINATURA ? "Assinatura publicada no App" : "Upsell registrado no Desk",
       summaryInternal: payload.content_sanitized,
       sourceEntityType: "app_projections",
       sourceEntityId: idExistente ?? (r as { id?: string }).id ?? data.caseId,

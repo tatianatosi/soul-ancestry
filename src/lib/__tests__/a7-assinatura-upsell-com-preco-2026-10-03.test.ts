@@ -19,6 +19,12 @@ import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
  * A7 (03/10/2026) — "somente devemos mostrar sua assinatura e possibilidade
  * de upsell com preço também precisa de um campo para editar se não tiver no
  * app e no desk".
+ *
+ * 07/10/2026 — correção da Proprietária: "revisando o campo editável do
+ * upsell e só no desk não no app na Ana". O campo editável continua nas duas
+ * superfícies (Desk sempre editou; o App só LIA), mas agora `upsell` nunca
+ * chega ao cliente — só a assinatura. `upsell` entrou em `TIPOS_FORA_DO_APP`
+ * (mesmo mecanismo que já bloqueava `contrato`/`proposta`).
  */
 
 const ok = { nome: "Acompanhamento Familiar", valorCentavos: 32000, periodicidade: "mensal", situacao: "ativa" };
@@ -102,11 +108,12 @@ describe("leitura no App", () => {
 });
 
 describe("fronteira do App preservada", () => {
-  it("os dois tipos chegam ao cliente, contrato e proposta não", () => {
+  it("a assinatura chega ao cliente; upsell, contrato e proposta não (07/10/2026)", () => {
     expect(tipoChegaAoCliente(TIPO_ASSINATURA)).toBe(true);
-    expect(tipoChegaAoCliente(TIPO_UPSELL)).toBe(true);
+    expect(tipoChegaAoCliente(TIPO_UPSELL)).toBe(false);
     expect(TIPOS_FORA_DO_APP.has("contrato")).toBe(true);
     expect(TIPOS_FORA_DO_APP.has("proposta")).toBe(true);
+    expect(TIPOS_FORA_DO_APP.has("upsell")).toBe(true);
   });
 
   it("nenhum dos dois rende cartão de entrega na jornada", () => {
@@ -126,26 +133,27 @@ describe("fronteira do App preservada", () => {
   });
 });
 
-describe("o campo editável existe nas duas superfícies", () => {
-  it("no Desk, em Caso 360 › Formalização", () => {
+describe("o campo editável existe no Desk; só a assinatura chega ao App (07/10/2026)", () => {
+  it("no Desk, em Caso 360 › Formalização, com os dois tipos (assinatura e upsell)", () => {
     const caso = readFileSync("src/routes/_authenticated/casos.$caseId.index.tsx", "utf8");
     expect(caso).toMatch(/PublicarAssinaturaApp/);
     const painel = readFileSync("src/components/contrato/publicar-assinatura-app.tsx", "utf8");
     expect(painel).toMatch(/publicarAssinaturaNoApp/);
     expect(painel).toMatch(/label="Valor"/);
+    expect(painel).toMatch(/TIPO_UPSELL/);
   });
 
-  it("no App, na Conta, com valor e upsell", () => {
+  it("no App, na Conta, só a assinatura — nenhum rastro de upsell", () => {
     const conta = readFileSync("src/routes/portal/conta.tsx", "utf8");
     expect(conta).toMatch(/data-conta-assinatura-valor/);
-    expect(conta).toMatch(/data-conta-upsell/);
     expect(conta).toMatch(/Sua assinatura/);
-    expect(conta).toMatch(/Próximo nível disponível/);
+    expect(conta).not.toMatch(/upsellsPublicados/);
+    expect(conta).not.toMatch(/data-conta-upsell/);
+    expect(conta).not.toMatch(/Próximo nível disponível/);
   });
 
   it("o App não cobra nem gera pagamento — só mostra", () => {
     const conta = readFileSync("src/routes/portal/conta.tsx", "utf8");
-    expect(conta).toMatch(/Nada é cobrado por aqui/);
     expect(conta).not.toMatch(/asaas|checkout|pagar|boleto|pix/i);
   });
 

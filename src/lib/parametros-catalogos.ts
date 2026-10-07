@@ -249,6 +249,13 @@ export const CAT_PRODUTO_SKU: Opcao[] = [
 
 export const CAT_FORMA_ASSINATURA: Opcao[] = [
   { valor: "eletronica_externa", rotulo: "Eletrônica em plataforma externa", ajuda: "Assinatura registrada manualmente com referência/comprovante." },
+  {
+    valor: "eletronica_govbr",
+    rotulo: "Eletrônica via gov.br",
+    ajuda:
+      "Assinatura eletrônica pela Plataforma de Assinatura Eletrônica do governo federal (gov.br). " +
+      "Decisão da Proprietária, 07/10/2026, caso da Ana.",
+  },
   { valor: "fisica_digitalizada", rotulo: "Física digitalizada" },
 ];
 

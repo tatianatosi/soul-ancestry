@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { planoPublicado } from "@/lib/plano-publicacao";
-import { assinaturaPublicada, upsellsPublicados } from "@/lib/assinatura-app";
+import { assinaturaPublicada } from "@/lib/assinatura-app";
 import { publicacoesParaCliente } from "@/lib/projecoes-cliente";
 import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
@@ -67,7 +67,11 @@ export function PortalConta() {
    * desconto, cobrança, contrato ou código de catálogo, que seguem recusados no servidor.
    */
   const assinatura = assinaturaPublicada(vivo.data?.projecoes ?? []);
-  const upsells = upsellsPublicados(vivo.data?.projecoes ?? []);
+  /*
+    07/10/2026 — correção da Proprietária: o upsell fica só no campo
+    editável do Desk, nunca chega ao App ("só no desk não no app"). A
+    assinatura do próprio cliente continua aparecendo aqui; o upsell não.
+  */
 
   /**
    * Corte 3b (01/10/2026) — "Atualização da equipe" publicada em
@@ -169,26 +173,6 @@ export function PortalConta() {
                   Nenhuma assinatura publicada ainda. A equipe publica aqui quando houver.
                 </p>
                )}
-              {upsells.length > 0 ? (
-                <div className="mt-4 border-t border-border pt-3" data-conta-upsell>
-                  <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">
-                    Próximo nível disponível
-                  </p>
-                  <ul className="mt-2 space-y-2">
-                    {upsells.map((u) => (
-                      <li key={u.id} className="rounded-xl border border-gold/40 bg-gold/5 px-4 py-3">
-                        <p className="text-sm text-navy">{u.nome}</p>
-                        <p className="mt-0.5 text-sm text-navy">
-                          {u.valor} <span className="text-xs text-navy/60">{u.periodicidadeRotulo}</span>
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="mt-2 text-xs text-navy/55">
-                    Para avançar de nível, fale com a equipe pelos canais já combinados. Nada é cobrado por aqui.
-                  </p>
-                </div>
-              ) : null}
              </section>
 
             <section data-conta-plano className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
