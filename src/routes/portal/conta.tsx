@@ -96,7 +96,7 @@ export function PortalConta() {
         <PortalCarregando />
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>
-          <div className="space-y-5" data-aba-conta>
+          <div className="app-v11-secoes" data-aba-conta>
             {/*
               25/09/2026 — a faixa de crachás no topo (código do caso, canal
               de acesso) era leitura técnica; os mesmos dados humanos seguem
@@ -106,7 +106,7 @@ export function PortalConta() {
 
             <section
               data-conta-perfil
-              className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm"
+              className="app-v11-faixa"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <span
@@ -123,31 +123,31 @@ export function PortalConta() {
                <p className="mt-3 text-sm text-navy/65">Um espaço para cuidar da sua história e acompanhar as novidades da sua família.</p>
                {titular || paisInteresse ? <dl className="mt-3 grid gap-3 sm:grid-cols-2">
                  {titular ? (
-                <div className="rounded-lg border border-border bg-card p-3">
+                <div className="border-b border-border py-3">
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>
                   <dd className="text-sm text-navy">{titular}</dd>
                 </div>
                  ) : null}
                  {paisInteresse ? (
-                <div className="rounded-lg border border-border bg-card p-3">
+                <div className="border-b border-border py-3">
                    <dt className="text-[11px] uppercase tracking-widest text-navy/50">Origem de interesse</dt>
                   <dd className="text-sm text-navy">{paisInteresse}</dd>
                 </div>
                  ) : null}
                </dl> : null}
               <p className="mt-3 text-xs text-navy/55">
-                  Se alguma informação mudar, conte à equipe pelos canais de contato já combinados.
+                  Se alguma informação mudar, avise a equipe pelo canal que você já utiliza.
               </p>
             </section>
 
-            <section className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
+            <section className="app-v11-faixa">
               <h2 className="font-serif text-xl text-navy">Estamos por perto</h2>
               <p className="mt-2 text-sm text-navy/75">{acompanhamento}</p>
-              <p className="mt-3 text-sm leading-relaxed text-navy/75">Para conversar sobre documentos ou sobre a sua jornada, use os canais de contato já combinados com a equipe.</p>
+              <p className="mt-3 text-sm leading-relaxed text-navy/75">Ainda não há um canal de contato disponibilizado neste aplicativo.</p>
               <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Seus canais, preferências de aviso e informações de privacidade aparecerão quando estiverem disponíveis neste espaço.</p>
             </section>
 
-             <section data-conta-assinatura className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
+             <section data-conta-assinatura className="app-v11-faixa">
               <h2 className="font-serif text-xl text-navy">Sua assinatura</h2>
               {assinatura ? (
                 <>
@@ -175,7 +175,7 @@ export function PortalConta() {
                )}
              </section>
 
-            <section data-conta-plano className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
+            <section data-conta-plano className="app-v11-faixa">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="font-serif text-xl text-navy">Meu plano</h2>
                 {plano?.situacao ? (
@@ -203,7 +203,7 @@ export function PortalConta() {
               )}
             </section>
 
-            <section data-conta-alertas className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
+            <section data-conta-alertas className="app-v11-faixa">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="font-serif text-xl text-navy">Novidades para você</h2>
                 <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
@@ -232,14 +232,14 @@ export function PortalConta() {
                   {alertaAcionavel.destino === "/portal/documentos" ? (
                     <LinkPortal
                       to="/portal/documentos"
-                      className="mt-2 inline-flex text-xs font-medium text-navy/70 underline hover:text-navy"
+                      className="mt-2 inline-flex min-h-11 items-center text-xs font-medium text-navy/70 underline hover:text-navy"
                     >
                       Ver documentos solicitados
                     </LinkPortal>
                   ) : null}
                 </div>
               ) : atualizacoes.length === 0 ? (
-                  <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
+                  <div className="app-v11-lacuna mt-3">
                    <p className="text-sm text-navy/70">Nenhum recado novo por enquanto.</p>
                 </div>
               ) : null}
@@ -255,12 +255,12 @@ export function PortalConta() {
               esta leitura. Só o texto que a equipe escreveu explicitamente
               para a família — nunca o título interno do evento.
             */}
-            <section data-conta-marcos className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
+            <section data-conta-marcos className="app-v11-faixa">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="font-serif text-xl text-navy">Marcos da sua jornada</h2>
               </div>
               {(vivo.data?.historico ?? []).length === 0 ? (
-                <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center text-sm text-navy/60">
+                <p className="app-v11-lacuna mt-3 text-sm text-navy/60">
                    Ainda não há um marco da jornada liberado para a família.
                 </p>
               ) : (

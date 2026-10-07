@@ -63,12 +63,12 @@ export function PortalLegado() {
 
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
-                <div className="space-y-5" data-aba-legado>
+                <div className="app-v11-secoes" data-aba-legado>
                   {/* Acabamento 2026-09-13 (referência Lovable): card editorial de
                       abertura, mesmo texto que já existia (movido para cá, não
                       duplicado), no padrão navy já usado no hero da Home. */}
-                  <section className="rounded-2xl bg-navy-800 p-4 text-cream sm:p-5">
-                    <p className="text-[10px] uppercase tracking-widest text-gold/80">
+                  <section className="app-v11-abertura text-cream">
+                    <p className="text-xs uppercase text-gold">
                        Acervo da família
                     </p>
                     <h2 className="mt-1 font-serif text-xl text-cream">
@@ -94,7 +94,7 @@ export function PortalLegado() {
                      </p>
                    ) : null}
 
-                  <div className="grid gap-3 sm:grid-cols-3 sm:items-stretch" data-legado-prateleiras>
+                  <div className="grid gap-6 sm:grid-cols-2 sm:items-start" data-legado-prateleiras>
                     {PRATELEIRAS.filter((p) => p.id !== "memoria").map((p) => {
                       const itens = p.id === "narrativas"
                         ? [...porPrateleira.narrativas, ...porPrateleira.memoria]
@@ -109,7 +109,7 @@ export function PortalLegado() {
                         >
                           <div className="flex flex-col items-start gap-2">
                             <div>
-                              <p className="text-[10px] font-medium uppercase tracking-widest text-gold/70">
+                              <p className="text-xs font-medium uppercase text-navy/60">
                                 Coleção
                               </p>
                               <h2 className="mt-0.5 font-serif text-xl text-navy">{p.rotulo}</h2>
@@ -120,7 +120,7 @@ export function PortalLegado() {
                             </span>
                           </div>
                           {itens.length === 0 ? (
-                             <p className="mt-3 flex min-h-28 grow items-center justify-center rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
+                             <p className="app-v11-lacuna mt-3 text-navy/60">
                                  {p.id === "cadernos"
                                    ? "Os cadernos da família aparecerão aqui quando forem liberados."
                                    : p.id === "relatorios"
@@ -132,7 +132,7 @@ export function PortalLegado() {
                               {itens.map((item) => (
                                 <li
                                   key={item.id}
-                                  className="rounded-lg border border-border bg-card p-4 shadow-sm"
+                                  className="border-b border-border py-4"
                                 >
                                   <p className="text-[11px] font-medium uppercase tracking-wide text-navy/45">
                                      {item.tipo === "microentrega" ? "Da nossa jornada" : item.tipoRotulo}
