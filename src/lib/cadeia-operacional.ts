@@ -480,7 +480,16 @@ export type EloOperacional = {
 export function consolidarCadeia(
   entradas: Record<ChaveEloOperacional, { motivos: string[]; fonte?: string | null; versao?: string | null }>,
   opcoes: { proprietaria?: boolean } = {},
-): { versao: string; elos: EloOperacional[]; proximoElo: ChaveEloOperacional | null; assinaturaLiberada: boolean } {
+): {
+  versao: string;
+  elos: EloOperacional[];
+  proximoElo: ChaveEloOperacional | null;
+  assinaturaLiberada: boolean;
+  /** O que ainda falta para assinar, nomeado elo a elo. Vazio = liberada. */
+  motivosAssinatura: string[];
+  /** true quando o SKU legado deixou de contar por haver condição particular em ordem. */
+  skuDispensadoPorCondicao: boolean;
+} {
   const elos: EloOperacional[] = [];
   let travou = false;
   for (const def of ELOS_OPERACIONAIS) {
@@ -495,15 +504,21 @@ export function consolidarCadeia(
     // Para a proprietária, cada elo passa a mostrar o próprio estado. A
     // sequência continua visível em `proximoElo`, mas não apaga o diagnóstico
     // dos elos seguintes.
-    const estado = opcoes.proprietaria
-      ? info.motivos.length
-        ? "pendente"
-        : "ok"
-      : travou
-        ? "bloqueado"
-        : info.motivos.length
-          ? "pendente"
-          : "ok";
+    /*
+     * 06/10/2026 — a cascata caiu para todo mundo, não só para a
+     * Proprietária.
+     *
+     * A exceção de 05/09 consertava o sintoma pela metade: a equipe continuava
+     * vendo a parede de "bloqueado pelo elo anterior", e um elo pendente lá no
+     * começo escondia o diagnóstico de todos os seguintes. Isso é exatamente
+     * "o elo que falha para a cadeia inteira" — o oposto da ordem recebida:
+     * cada elo que falha gera PENDÊNCIA NOMEADA e os outros continuam sendo
+     * avaliados.
+     *
+     * A sequência não se perde: `proximoElo` continua dizendo por onde
+     * começar, e agora com o diagnóstico real de cada etapa ao lado.
+     */
+    const estado = info.motivos.length ? "pendente" : "ok";
     if (info.motivos.length) travou = true;
     elos.push({
       chave: def.chave,
@@ -516,14 +531,39 @@ export function consolidarCadeia(
       motivos: info.motivos,
     });
   }
+  /*
+   * 06/10/2026 — PREMISSA da Proprietária (não reabrir): "o SKU nunca bloqueia
+   * o contrato da Ana; ela é governada por condição particular aprovada".
+   *
+   * `assinaturaLiberada` exigia TODOS os elos em ok, e o elo `catalogo` é
+   * "SKU/preço da Planilha Mestre" — catálogo que a própria Proprietária
+   * declarou LEGADO. Um caso sem código de catálogo ficava impedido de assinar
+   * para sempre por falta de um SKU que não existe para ele.
+   *
+   * O elo continua aparecendo, com o motivo nomeado: não desaparece nem vira
+   * "ok" fingido. Ele só deixa de ser condição de assinatura quando a condição
+   * comercial do caso está em ordem — ou seja, quando existe condição
+   * particular aprovada governando o caso. Faltando a condição comercial, o
+   * SKU volta a contar: não há governo nenhum para substituí-lo.
+   */
+  const condicaoEmOrdem = elos.find((e) => e.chave === "condicao_comercial")?.estado === "ok";
+  const elosQueBloqueiamAssinatura = elos.filter((e) => !(e.chave === "catalogo" && condicaoEmOrdem));
+  const pendentesParaAssinar = elosQueBloqueiamAssinatura.filter((e) => e.estado !== "ok");
+
   return {
     versao: CADEIA_OPERACIONAL_VERSAO,
     elos,
     proximoElo: elos.find((e) => e.estado === "pendente")?.chave ?? null,
     // A assinatura estava fixa em `false` no código: nenhum caminho do produto
     // conseguia habilitá-la, com todos os elos verdes ou não. Agora depende do
-    // estado real da cadeia.
-    assinaturaLiberada: elos.every((e) => e.estado === "ok"),
+    // estado real da cadeia — menos o SKU legado, quando há condição
+    // particular aprovada governando o caso.
+    assinaturaLiberada: pendentesParaAssinar.length === 0,
+    /** O que ainda falta para assinar, nomeado. Vazio = liberada. */
+    motivosAssinatura: pendentesParaAssinar.flatMap((e) => e.motivos.map((m) => `${e.titulo}: ${m}`)),
+    /** Declarado quando o SKU deixou de contar por causa da condição particular. */
+    skuDispensadoPorCondicao:
+      condicaoEmOrdem && elos.find((e) => e.chave === "catalogo")?.estado !== "ok",
   };
 }
 

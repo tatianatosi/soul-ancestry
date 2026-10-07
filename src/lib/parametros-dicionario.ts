@@ -61,7 +61,14 @@ export const DICIONARIO_CAMPOS: DefinicaoCampo[] = [
     campo: "contratante_nome",
     tipo: "texto_curto",
     justificativa: "opcional",
-    origens: ["planejador", "documento", "crm", "preenchimento_humano"],
+    /*
+     * 06/10/2026 — PREMISSA da Proprietária (não reabrir): "ao salvar o
+     * planejador, o nome da proposta prevalece". A proposta aprovada nomeia
+     * as partes nas páginas 2 e 6 do deck; recusar essa origem obrigava a
+     * equipe a redigitar o mesmo nome como "preenchimento_humano", o que
+     * apaga a procedência real do dado.
+     */
+    origens: ["planejador", "documento", "crm", "preenchimento_humano", "proposta"],
     confiancaMinima: 4,
     validacao: "Nome civil exatamente como registrado na fonte; sem abreviação ou alteração.",
     destinos: ["contrato", "anexo", "auditoria"],
@@ -165,9 +172,18 @@ export const DICIONARIO_CAMPOS: DefinicaoCampo[] = [
     tipo: "dropdown",
     opcoes: CAT_PRODUTO_SKU,
     justificativa: "opcional",
-    origens: ["planejador"],
+    /*
+     * 06/10/2026 — PREMISSA da Proprietária (não reabrir): "o SKU nunca
+     * bloqueia o contrato da Ana; ela é governada por condição particular
+     * aprovada". O caso dela não tem código de catálogo — o deck aprovado não
+     * traz SKU (já declarado em canva-para-parametros.ts). Com a origem presa
+     * em "planejador", o produto-pai gravado na proposta não entrava, e o
+     * campo ficava eternamente vazio virando pendência de escopo.
+     */
+    origens: ["planejador", "proposta"],
     confiancaMinima: 6,
-    validacao: "Somente SKU homologado no Planejador para a rota do caso.",
+    validacao:
+      "SKU homologado no Planejador para a rota do caso, ou o produto-pai da proposta aprovada. Caso sem código de catálogo não é bloqueio: a condição particular aprovada governa.",
     destinos: ["contrato", "anexo", "auditoria"],
   },
   {
@@ -388,18 +404,60 @@ export const ROTULO_TIPO: Record<TipoCampo, string> = {
  * Valida um valor contra o dicionário. `valorAtual` é aceito como legado para
  * não invalidar dados já gravados antes da lista controlada.
  */
+/**
+ * Origens que nunca validam sozinhas um parâmetro contratual, com ou sem
+ * justificativa: relato não é documento. O trigger `fn_cpv_guard` recusa as
+ * mesmas duas no banco — aqui é a mesma regra, dita antes, para a equipe ler
+ * o motivo na tela em vez de levar um erro de banco.
+ */
+export const ORIGENS_SEM_FORCA_CONTRATUAL = ["whatsapp", "transcricao"] as const;
+
+/** Tamanho mínimo da justificativa, igual ao que o trigger do banco exige. */
+export const MINIMO_JUSTIFICATIVA = 10;
+
 export function validarValorCampo(input: {
   campo: string;
   valor: string;
   origem: string;
   justificativa?: string;
   valorAtual?: string | null;
-}): { ok: true } | { ok: false; erro: string } {
+}): { ok: true; sinal?: string } | { ok: false; erro: string } {
   const def = definicaoCampo(input.campo);
   const valor = input.valor.trim();
+  const justificativa = (input.justificativa ?? "").trim();
+  let sinal: string | undefined;
 
+  /*
+   * 06/10/2026 — origem fora da lista deixou de ser recusa seca.
+   *
+   * Medido no caso da Ana: salvar no planejador o nome que está na proposta
+   * aprovada (abb12c85 v1) morria aqui, com "Origem não permitida para este
+   * campo" — e o banco, no mesmo caminho, JÁ aceitava a divergência desde que
+   * houvesse justificativa registrada (`fn_cpv_guard`: "Divergência com o
+   * Planejador: registre justificativa e revisão humana"). Aplicação e banco
+   * discordavam sobre a mesma gravação; quem recusava era a camada mais fraca,
+   * e a recusa não dizia o que fazer.
+   *
+   * Agora: origem rastreável fora da lista passa COM SINAL DECLARADO quando a
+   * justificativa está registrada — o valor entra, a divergência fica escrita
+   * e visível, e nada é sobrescrito em silêncio. Sem justificativa, ainda
+   * recusa, mas dizendo exatamente o que falta. WhatsApp e transcrição
+   * continuam recusadas, com ou sem justificativa.
+   */
   if (valor && def.origens?.length && !def.origens.includes(input.origem)) {
-    return { ok: false, erro: `Origem não permitida para este campo. Permitidas: ${def.origens.join(", ")}.` };
+    if ((ORIGENS_SEM_FORCA_CONTRATUAL as readonly string[]).includes(input.origem)) {
+      return {
+        ok: false,
+        erro: `Relato (${input.origem}) não vira parâmetro contratual deste campo. Origens aceitas: ${def.origens.join(", ")}.`,
+      };
+    }
+    if (justificativa.length < MINIMO_JUSTIFICATIVA) {
+      return {
+        ok: false,
+        erro: `Origem "${input.origem}" é divergente para este campo (aceitas: ${def.origens.join(", ")}). Registre a justificativa (mínimo ${MINIMO_JUSTIFICATIVA} caracteres) e o valor entra como divergência declarada.`,
+      };
+    }
+    sinal = `Origem divergente declarada: "${input.origem}" fora das origens homologadas deste campo (${def.origens.join(", ")}), aceita com justificativa humana registrada.`;
   }
 
   if (valor && def.justificativa === "obrigatoria" && !(input.justificativa ?? "").trim()) {
@@ -430,7 +488,30 @@ export function validarValorCampo(input: {
     return { ok: false, erro: "Data inválida: use o seletor de data." };
   }
 
-  return { ok: true };
+  return sinal ? { ok: true, sinal } : { ok: true };
+}
+
+/**
+ * Divergência de nome entre a proposta aprovada e o valor homologado no
+ * Planejador (06/10/2026, PREMISSA da Proprietária: "ao salvar o planejador,
+ * o nome da proposta prevalece").
+ *
+ * Prevalecer não é sobrescrever em silêncio: devolve qual valor vale e a
+ * frase que fica registrada. Nada é apagado — o valor anterior entra no
+ * sinal, para a equipe ver de onde cada um veio.
+ */
+export function nomeQuePrevalece(entrada: {
+  nomeProposta?: string | null;
+  nomePlanejador?: string | null;
+}): { valor: string | null; sinal: string | null } {
+  const proposta = (entrada.nomeProposta ?? "").trim();
+  const planejador = (entrada.nomePlanejador ?? "").trim();
+  if (!proposta) return { valor: planejador || null, sinal: null };
+  if (!planejador || proposta === planejador) return { valor: proposta, sinal: null };
+  return {
+    valor: proposta,
+    sinal: `Nome da proposta aprovada prevalece ("${proposta}"); o Planejador trazia "${planejador}". Divergência declarada, nenhum dos dois apagado.`,
+  };
 }
 
 /**

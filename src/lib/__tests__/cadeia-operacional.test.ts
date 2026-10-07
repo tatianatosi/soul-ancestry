@@ -184,12 +184,71 @@ describe("consolidação da cadeia", () => {
     expect(r.proximoElo).toBe("assinatura");
   });
 
-  it("propaga bloqueio para os elos seguintes ao primeiro pendente", () => {
+  it("o elo que falha vira pendência nomeada; os seguintes mostram o próprio diagnóstico, não 'bloqueado' em cascata", () => {
+    /*
+     * 06/10/2026 — PREMISSA/Tarefa A3 da Proprietária: "o elo que falha deve
+     * gerar pendência nomeada, nunca parar a cadeia inteira." Até aqui, um
+     * elo pendente lá no começo escondia o diagnóstico real de TODOS os
+     * elos seguintes atrás de "Bloqueado pelo elo anterior" — mesmo quando
+     * esses elos seguintes já estavam em ordem (ou tinham outro motivo
+     * próprio). `proximoElo` continua apontando a sequência; cada elo só
+     * não finge mais que o problema é de outro.
+     */
     const entradas = base();
     entradas.proposta = { motivos: ["Proposta não materializada."] };
     const r = consolidarCadeia(entradas);
     expect(r.elos.find((e) => e.chave === "proposta")?.estado).toBe("pendente");
-    expect(r.elos.find((e) => e.chave === "os_anexo_i")?.estado).toBe("bloqueado");
+    // os_anexo_i estava sem motivo próprio no fixture — mostra "ok", não mais bloqueado.
+    expect(r.elos.find((e) => e.chave === "os_anexo_i")?.estado).toBe("ok");
+    expect(r.proximoElo).toBe("proposta");
+  });
+
+  it("cada elo com motivo próprio continua pendente, independente dos outros", () => {
+    const entradas = base();
+    entradas.proposta = { motivos: ["Proposta não materializada."] };
+    entradas.previa = { motivos: ["Prévia contratual persistida ainda não gerada."] };
+    const r = consolidarCadeia(entradas);
+    expect(r.elos.find((e) => e.chave === "proposta")?.estado).toBe("pendente");
+    expect(r.elos.find((e) => e.chave === "previa")?.estado).toBe("pendente");
+    expect(r.elos.find((e) => e.chave === "os_anexo_i")?.estado).toBe("ok");
+    expect(r.elos.find((e) => e.chave === "revisao_humana")?.estado).toBe("ok");
+  });
+
+  it("A2: SKU de catálogo nunca bloqueia a assinatura quando a condição particular está em ordem", () => {
+    /*
+     * PREMISSA da Proprietária (não reabrir): "o SKU nunca bloqueia o
+     * contrato da Ana; ela é governada por condição particular aprovada."
+     * O caso dela não tem SKU de catálogo (Top 30 é legado) — o elo
+     * `catalogo` fica pendente para sempre, e isso é esperado: o motivo
+     * continua visível, só deixa de contar para liberar a assinatura.
+     */
+    const entradas = base();
+    entradas.catalogo = { motivos: ["SKU do catálogo não vinculado à proposta."] };
+    entradas.condicao_comercial = { motivos: ["Condição comercial não persistida a partir da proposta aprovada."] };
+    entradas.assinatura = { motivos: [] };
+    const semCondicao = consolidarCadeia(entradas);
+    expect(semCondicao.assinaturaLiberada).toBe(false);
+    expect(semCondicao.skuDispensadoPorCondicao).toBe(false);
+
+    entradas.condicao_comercial = { motivos: [] };
+    const comCondicao = consolidarCadeia(entradas);
+    expect(comCondicao.assinaturaLiberada).toBe(true);
+    expect(comCondicao.skuDispensadoPorCondicao).toBe(true);
+    // O elo continua aparecendo com o motivo nomeado — nunca "ok" fingido.
+    expect(comCondicao.elos.find((e) => e.chave === "catalogo")?.estado).toBe("pendente");
+  });
+
+  it("A3: motivosAssinatura nomeia exatamente o que falta, elo a elo", () => {
+    const entradas = base();
+    entradas.previa = { motivos: ["Prévia contratual persistida ainda não gerada."] };
+    entradas.revisao_humana = { motivos: ["Revisão humana da prévia ainda não registrada."] };
+    entradas.assinatura = { motivos: [] };
+    const r = consolidarCadeia(entradas);
+    expect(r.assinaturaLiberada).toBe(false);
+    expect(r.motivosAssinatura).toEqual([
+      "Prévia contratual persistida: Prévia contratual persistida ainda não gerada.",
+      "Revisão humana: Revisão humana da prévia ainda não registrada.",
+    ]);
   });
 
   it("expõe uma pendência priorizada para o Painel Hoje", () => {

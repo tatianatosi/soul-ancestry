@@ -698,6 +698,15 @@ export const salvarParametro = createServerFn({ method: "POST" })
     });
     if (!check.ok) throw new Error(check.erro);
 
+    /*
+     * 06/10/2026 — origem divergente aceita com justificativa vira SINAL
+     * declarado, não recusa (ver validarValorCampo). O sinal precisa ficar
+     * gravado junto do valor: sem isto, "aceita com justificativa" seria
+     * indistinguível de "aceita normalmente" na releitura, e a divergência
+     * desapareceria da tela no próximo F5.
+     */
+    const sinalOrigem = check.sinal ?? null;
+
     // Resalvar o MESMO valor e a mesma origem que já estavam confirmados não
     // desfaz a validação — só uma mudança real de conteúdo ou origem exige
     // reconfirmação. Antes disso, "Salvar" derrubava qualquer campo já
@@ -719,7 +728,7 @@ export const salvarParametro = createServerFn({ method: "POST" })
         origem_detalhe: valor ? (data.origemDetalhe ?? "").slice(0, 300) : MARCA_ESVAZIADO_PELA_EQUIPE,
         justificativa: (data.justificativa ?? "").slice(0, 500) || null,
         status: statusFinal,
-        conflito: [],
+        conflito: sinalOrigem ? [sinalOrigem] : [],
       },
     });
     const caseId = await casoDoRegistroParametros(supabase, linha.parameters_id as string);

@@ -98,13 +98,27 @@ export function CadeiaOperacional({ caseId, podeEscrever }: { caseId: string; po
 
   return (
     <CaCard variante="compacto" titulo="Cadeia operacional">
-      <div className="mb-2">
+      <div className="mb-2 flex flex-wrap items-center gap-2">
         <Selo texto={d.versao} tom="neutro" />
+        <Selo
+          texto={d.assinaturaLiberada ? "Assinatura liberada pelos elos" : "Assinatura ainda pendente"}
+          tom={d.assinaturaLiberada ? "ok" : "alerta"}
+        />
+        {d.skuDispensadoPorCondicao ? (
+          <Selo texto="SKU de catálogo dispensado: condição particular aprovada governa" tom="ok" />
+        ) : null}
       </div>
       <p className="text-xs text-navy/60">
         Fluxo único do caso {d.caso.codigo}. Cada elo mostra a fonte real do dado, a versão vigente e o motivo do bloqueio.
         Nenhuma cobrança, assinatura, comunicação ou pesquisa externa é executada aqui.
       </p>
+      {!d.assinaturaLiberada && d.motivosAssinatura?.length > 0 ? (
+        <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs text-terracotta">
+          {d.motivosAssinatura.slice(0, 6).map((m: string) => (
+            <li key={m}>{m}</li>
+          ))}
+        </ul>
+      ) : null}
 
       <ol className="mt-3 space-y-2">
         {d.elos.map((e: any, i: number) => (
