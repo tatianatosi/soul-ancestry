@@ -106,16 +106,23 @@ export type IdentificacaoPdf = {
   rascunho: boolean;
 };
 
+function fatiaSegura(v: string): string {
+  return v
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^A-Za-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
+}
+
 /** Nome de arquivo, mesma regra de `nomeArquivoContrato` (contrato-impressao.ts), sem duplicar a função. */
 export function nomeArquivoPdf(id: Pick<IdentificacaoPdf, "caso" | "versao">): string {
-  const limpo = (v: string) =>
-    v
-      .normalize("NFD")
-      .replace(/[̀-ͯ]/g, "")
-      .replace(/[^A-Za-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .toLowerCase();
-  return `contrato-${limpo(id.caso)}-${limpo(id.versao)}.pdf`;
+  return `contrato-${fatiaSegura(id.caso)}-${fatiaSegura(id.versao)}.pdf`;
+}
+
+/** Mesmo nome-base do PDF, extensão .docx — PDF e DOCX saem da mesma fonte/versão. */
+export function nomeArquivoDocx(id: Pick<IdentificacaoPdf, "caso" | "versao">): string {
+  return `contrato-${fatiaSegura(id.caso)}-${fatiaSegura(id.versao)}.docx`;
 }
 
 export const AVISO_PDF_CONTRATO =

@@ -38,6 +38,7 @@ import { CoberturaContratual } from "@/components/contrato/cobertura-contratual"
 import { TrazerDoCanva } from "@/components/contrato/trazer-do-canva";
 import { AbrirDocumentoContrato } from "@/components/contrato/abrir-documento-contrato";
 import { BaixarPdfContrato } from "@/components/contrato/baixar-pdf-contrato";
+import { BaixarDocxContrato } from "@/components/contrato/baixar-docx-contrato";
 import { resumoProntidao } from "@/lib/contrato-prontidao";
 import { avaliarMatrizClausulas, previaFinalLiberada } from "@/lib/matriz-clausulas";
 import { blocosRenderizados } from "@/lib/matriz-aceite";
@@ -982,6 +983,7 @@ function Pagina() {
                   )}
                   <AbrirDocumentoContrato html={html} identificacao={identificacaoDocumento} />
                   <BaixarPdfContrato previaId={previaVistaId ?? (rascunhoAtual ?? listaOpcional<any>(d.previas)[0])?.id ?? null} className="min-h-11 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50 sm:min-h-0" />
+                  <BaixarDocxContrato previaId={previaVistaId ?? (rascunhoAtual ?? listaOpcional<any>(d.previas)[0])?.id ?? null} className="min-h-11 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50 sm:min-h-0" />
                   <span className="self-center text-[11px] text-navy/60">
                     {mGerar.isPending
                       ? "Salvando rascunho…"
