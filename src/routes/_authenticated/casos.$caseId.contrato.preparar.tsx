@@ -37,6 +37,7 @@ import { GovernancaFormalizacao } from "@/components/contrato/governanca-formali
 import { CoberturaContratual } from "@/components/contrato/cobertura-contratual";
 import { TrazerDoCanva } from "@/components/contrato/trazer-do-canva";
 import { AbrirDocumentoContrato } from "@/components/contrato/abrir-documento-contrato";
+import { BaixarPdfContrato } from "@/components/contrato/baixar-pdf-contrato";
 import { resumoProntidao } from "@/lib/contrato-prontidao";
 import { avaliarMatrizClausulas, previaFinalLiberada } from "@/lib/matriz-clausulas";
 import { blocosRenderizados } from "@/lib/matriz-aceite";
@@ -326,6 +327,7 @@ function Pagina() {
   });
 
   const [html, setHtml] = useState<string | null>(null);
+  const [previaVistaId, setPreviaVistaId] = useState<string | null>(null);
   const [nota, setNota] = useState("");
   const [assinatura, setAssinatura] = useState({ dataAssinatura: "", origemExterna: "", referencia: "" });
 
@@ -405,7 +407,10 @@ function Pagina() {
   });
   const mVer = useMutation({
     mutationFn: (previaId: string) => ver({ data: { previaId } }),
-    onSuccess: (r: any) => setHtml(r.html),
+    onSuccess: (r: any) => {
+      setHtml(r.html);
+      setPreviaVistaId(r.id ?? null);
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -976,6 +981,7 @@ function Pagina() {
                     </button>
                   )}
                   <AbrirDocumentoContrato html={html} identificacao={identificacaoDocumento} />
+                  <BaixarPdfContrato previaId={previaVistaId} />
                   <span className="self-center text-[11px] text-navy/60">
                     {mGerar.isPending
                       ? "Salvando rascunho…"
