@@ -114,17 +114,20 @@ export function radarSeisDimensoes(entrada: {
   const achados = publicacoes.filter((p) => p.tipo === "achado");
   const marcos = publicacoes.filter((p) => p.tipo === "marco" || p.tipo === "resumo");
 
+  // 07/10/2026 (Proprietária): sem total real, mostrar a lacuna, nunca 0% sobre 0.
+  const temDocs = docs.length > 0;
   const documentacao: DimensaoRadar = {
     id: "documentacao",
     titulo: "Documentação",
-    estado: "percentual",
-    percentual: percentual(liberados, docs.length),
-    legenda:
-      docs.length > 0
-        ? `${liberados} de ${docs.length} documentos do seu caso já liberados para você.`
-        : "Nenhum documento vinculado ao seu caso ainda.",
-    rotuloNumero: `${percentual(liberados, docs.length)}%`,
-    comoCalculamos: `Documentos liberados para você (${liberados}) ÷ documentos do seu caso (${docs.length}).`,
+    estado: temDocs ? "percentual" : "em_preparacao",
+    percentual: temDocs ? percentual(liberados, docs.length) : null,
+    legenda: temDocs
+      ? `${liberados} de ${docs.length} documentos do seu caso já liberados para você.`
+      : "Lacuna: a lista de documentos do seu caso ainda não foi registrada.",
+    rotuloNumero: temDocs ? `${percentual(liberados, docs.length)}%` : "Lacuna",
+    comoCalculamos: temDocs
+      ? `Documentos liberados para você (${liberados}) ÷ documentos do seu caso (${docs.length}).`
+      : "O percentual aparece quando a equipe registrar os documentos do seu caso; antes disso não há total para comparar.",
   };
   const origem: DimensaoRadar = {
     id: "origem",
@@ -135,7 +138,7 @@ export function radarSeisDimensoes(entrada: {
     // só que como presença/ausência em vez de contagem contra um teto —
     // por isso os dois eixos sobem juntos; não é redundância acidental.
     estado: "percentual",
-    percentual: arvore.length > 0 ? 100 : 0,
+    percentual: null,
     legenda:
       arvore.length > 0
         ? `${arvore.length} registro(s) de origem/linha publicados pela equipe.`
@@ -175,7 +178,7 @@ export function radarSeisDimensoes(entrada: {
         ? `${percentualConexoes}%`
         : arvore.length > 0
           ? `${arvore.length} registro(s)`
-          : "Em preparação",
+          : "Lacuna",
     comoCalculamos:
       percentualConexoes !== null
         ? `Pessoas publicadas na árvore (${pessoasPublicadasNaArvore}) ÷ pessoas mapeadas pela pesquisa neste caso (${pessoasMapeadas}).`
@@ -185,7 +188,7 @@ export function radarSeisDimensoes(entrada: {
     id: "memoria",
     titulo: "Memória",
     estado: "percentual",
-    percentual: achados.length > 0 ? 100 : 0,
+    percentual: null,
     legenda:
       achados.length > 0
         ? `${achados.length} achado(s) de memória familiar publicados.`
@@ -198,7 +201,7 @@ export function radarSeisDimensoes(entrada: {
     id: "legado",
     titulo: "Legado",
     estado: "percentual",
-    percentual: marcos.length > 0 ? 100 : 0,
+    percentual: null,
     legenda:
       marcos.length > 0
         ? `${marcos.length} marco(s)/resumo(s) de jornada publicados.`
@@ -216,18 +219,25 @@ export function radarSeisDimensoes(entrada: {
   // essa leitura errada; o cálculo continua o mesmo, só o título e a legenda
   // mudaram. Nunca lê parecer jurídico (sem fonte com RLS de portal).
   const outros = [documentacao, origem, conexoes, memoria, legado];
-  const mediaOutros = Math.round(
-    outros.reduce((soma, d) => soma + (d.percentual ?? 0), 0) / outros.length,
-  );
+  // Média só dos eixos com total real; sem nenhum, mostra a lacuna.
+  const comTotal = outros.filter((d) => d.percentual !== null);
+  const mediaOutros = comTotal.length
+    ? Math.round(comTotal.reduce((soma, d) => soma + (d.percentual ?? 0), 0) / comTotal.length)
+    : null;
   const elegibilidade: DimensaoRadar = {
     id: "elegibilidade",
     titulo: "Progresso Geral",
-    estado: "percentual",
+    estado: mediaOutros === null ? "em_preparacao" : "percentual",
     percentual: mediaOutros,
     legenda:
-      "Andamento médio dos outros 5 eixos da sua jornada — acompanhamento de progresso, não parecer jurídico, chance ou resultado.",
-    rotuloNumero: `${mediaOutros}%`,
-    comoCalculamos: `Média dos outros 5 eixos: (${outros.map((d) => `${d.percentual ?? 0}`).join(" + ")}) ÷ ${outros.length}.`,
+      mediaOutros === null
+        ? "Lacuna: nenhum eixo tem ainda um total real para calcular o andamento — acompanhamento de progresso, não parecer jurídico, chance ou resultado."
+        : "Andamento médio dos eixos que já têm total real — acompanhamento de progresso, não parecer jurídico, chance ou resultado.",
+    rotuloNumero: mediaOutros === null ? "Lacuna" : `${mediaOutros}%`,
+    comoCalculamos:
+      mediaOutros === null
+        ? "A média aparece quando ao menos um eixo tiver total real; eixos só com contagem não entram."
+        : `Média dos eixos com total real: (${comTotal.map((d) => `${d.titulo} ${d.percentual}%`).join(" + ")}) ÷ ${comTotal.length}.`,
   };
 
   return [documentacao, origem, conexoes, elegibilidade, memoria, legado];

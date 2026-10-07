@@ -91,7 +91,9 @@ export function geracaoArvore(n: number): GeracaoArvore {
 export function geracoesParaExibir(publicadas: readonly (number | null)[]): GeracaoArvore[] {
   const numeros = [...new Set(publicadas.filter((n): n is number => Number.isInteger(n) && (n as number) >= 1))];
   if (numeros.length === 0) return [...GERACOES_ARVORE_EXIBICAO];
-  return [...new Set([1, ...numeros])].sort((a, b) => b - a).map(geracaoArvore);
+  // Inclui as gerações intermediárias sem publicação, para mostrar a lacuna.
+  const maior = Math.max(1, ...numeros);
+  return Array.from({ length: maior }, (_, i) => maior - i).map(geracaoArvore);
 }
 
 export function painelArvoreGeracoes(

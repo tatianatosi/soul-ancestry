@@ -26,19 +26,18 @@ describe("radarSeisDimensoes", () => {
     ]);
   });
 
-  it("sem nenhuma publicação nem documento, todos os percentuais ficam em 0", () => {
+  // 07/10/2026 (Proprietária): sem total real, lacuna explicada — nunca 0% sobre 0.
+  it("sem nenhuma publicação nem documento, nenhum eixo mostra 0% fictício", () => {
     const dimensoes = radarSeisDimensoes({ projecoes: [], documentos: [] });
-    for (const d of dimensoes) {
-      if (d.id === "elegibilidade" || d.id === "conexoes") continue;
-      expect(d.percentual).toBe(0);
-    }
+    for (const d of dimensoes) expect(d.percentual).toBeNull();
+    expect(dimensoes.find((d) => d.id === "documentacao")!.rotuloNumero).toBe("Lacuna");
   });
 
   it("elegibilidade nunca lê parecer jurídico — é sempre a média dos outros 5 eixos", () => {
     const projecoes = [projecao("arvore"), projecao("achado"), projecao("marco")];
     const documentos: DocumentoPortal[] = [{ id: "1", liberado_cliente: true }];
     const dimensoes = radarSeisDimensoes({ projecoes, documentos });
-    const outros = dimensoes.filter((d) => d.id !== "elegibilidade");
+    const outros = dimensoes.filter((d) => d.id !== "elegibilidade" && d.percentual !== null);
     const mediaEsperada = Math.round(
       outros.reduce((soma, d) => soma + (d.percentual ?? 0), 0) / outros.length,
     );
@@ -47,9 +46,11 @@ describe("radarSeisDimensoes", () => {
     expect(elegibilidade.percentual).toBe(mediaEsperada);
   });
 
-  it("sem nenhum dado publicado, elegibilidade fica em 0 (média de zeros, não em preparação)", () => {
+  it("sem nenhum eixo com total real, progresso geral mostra a lacuna, não 0%", () => {
     const dimensoes = radarSeisDimensoes({ projecoes: [], documentos: [] });
-    expect(dimensoes.find((d) => d.id === "elegibilidade")!.percentual).toBe(0);
+    const eixo = dimensoes.find((d) => d.id === "elegibilidade")!;
+    expect(eixo.percentual).toBeNull();
+    expect(eixo.rotuloNumero).toBe("Lacuna");
   });
 
   it("RADAR-APP-SEMANTICA-PROGRESSO: título do eixo 'elegibilidade' não usa o termo, e a legenda afirma progresso, não conclusão jurídica", () => {
@@ -93,11 +94,13 @@ describe("radarSeisDimensoes", () => {
 
   it("origem e conexões sobem juntas (mesma fonte, presença vs. contagem)", () => {
     const semNada = radarSeisDimensoes({ projecoes: [], documentos: [] });
-    expect(semNada.find((d) => d.id === "origem")!.percentual).toBe(0);
+    expect(semNada.find((d) => d.id === "origem")!.percentual).toBeNull();
     expect(semNada.find((d) => d.id === "conexoes")!.percentual).toBeNull();
 
     const comArvore = radarSeisDimensoes({ projecoes: [projecao("arvore")], documentos: [] });
-    expect(comArvore.find((d) => d.id === "origem")!.percentual).toBe(100);
+    // Sem total conhecido: contagem, nunca 100% por presença.
+    expect(comArvore.find((d) => d.id === "origem")!.percentual).toBeNull();
+    expect(comArvore.find((d) => d.id === "origem")!.rotuloNumero).toBe("1 registro(s)");
     expect(comArvore.find((d) => d.id === "conexoes")!.rotuloNumero).toBe("1 registro(s)");
   });
 
@@ -106,14 +109,14 @@ describe("radarSeisDimensoes", () => {
       projecoes: [projecao("achado", "m1"), projecao("arvore", "m2")],
       documentos: [],
     });
-    expect(dimensoes.find((d) => d.id === "memoria")!.percentual).toBe(100);
+    expect(dimensoes.find((d) => d.id === "memoria")!.rotuloNumero).toBe("1 achado(s)");
   });
 
   it("legado conta publicações do tipo marco ou resumo", () => {
     const porMarco = radarSeisDimensoes({ projecoes: [projecao("marco")], documentos: [] });
     const porResumo = radarSeisDimensoes({ projecoes: [projecao("resumo")], documentos: [] });
-    expect(porMarco.find((d) => d.id === "legado")!.percentual).toBe(100);
-    expect(porResumo.find((d) => d.id === "legado")!.percentual).toBe(100);
+    expect(porMarco.find((d) => d.id === "legado")!.rotuloNumero).toBe("1 marco(s)");
+    expect(porResumo.find((d) => d.id === "legado")!.rotuloNumero).toBe("1 marco(s)");
   });
 
   it("nunca devolve percentual fora de 0-100", () => {
