@@ -1,0 +1,64 @@
+/* Prancha 375 v11: papéis locais ligados aos tokens canônicos, sem paleta paralela. */
+[data-app-cliente] {
+  --app-v11-orientacao: var(--ca-navy);
+  --app-v11-topo: var(--ca-navy-hero);
+  --app-v11-conexao: var(--ca-gold);
+  --app-v11-texto: var(--ca-ink);
+  --app-v11-fundo: var(--ca-surface-base);
+  --app-v11-borda: var(--ca-border);
+  --app-v11-titulo: var(--ca-font-title);
+  --app-v11-corpo: var(--ca-font-body);
+  --app-v11-legenda: var(--ca-text-xs);
+  --app-v11-leitura: var(--ca-text-sm);
+  --app-v11-secao: var(--ca-text-xl);
+  --app-v11-respiro: var(--ca-space-6);
+  --app-v11-intervalo: var(--ca-space-4);
+  --app-v11-toque: var(--ca-touch-target);
+  font-family: var(--app-v11-corpo);
+  background: var(--app-v11-fundo);
+}
+[data-app-cliente] #conteudo-portal :where(h2, h3) {
+  font-family: var(--app-v11-titulo);
+  letter-spacing: 0;
+}
+[data-app-cliente] .app-v11-secoes > :where(section, div) + :where(section, div) {
+  margin-top: var(--app-v11-respiro);
+}
+[data-app-cliente="true"] #conteudo-portal .app-v11-faixa {
+  min-width: 0;
+  border: 0;
+  border-top: 1px solid var(--app-v11-borda);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding-inline: 0;
+  padding-block: var(--app-v11-intervalo);
+}
+[data-app-cliente="true"] #conteudo-portal .app-v11-faixa > div:last-child {
+  padding-inline: 0;
+}
+[data-app-cliente] .app-v11-lacuna {
+  border: 0;
+  border-left: 2px solid var(--app-v11-conexao);
+  border-radius: 0;
+  background: transparent;
+  padding: var(--ca-space-2) 0 var(--ca-space-2) var(--app-v11-intervalo);
+  text-align: left;
+  min-height: 0;
+  font-size: var(--app-v11-leitura);
+  line-height: var(--ca-leading-relaxed);
+}
+[data-app-cliente] .app-v11-abertura {
+  border: 0;
+  border-bottom: 2px solid var(--app-v11-conexao);
+  border-radius: 0;
+  background: var(--app-v11-topo);
+  padding: var(--ca-space-5);
+  box-shadow: none;
+}
+[data-app-cliente] #conteudo-portal :where(a, button) {
+  min-height: var(--app-v11-toque);
+}
+[data-app-cliente] #conteudo-portal :where(p, dd, li) {
+  overflow-wrap: anywhere;
+}
