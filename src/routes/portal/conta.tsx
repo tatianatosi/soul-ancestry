@@ -143,7 +143,7 @@ export function PortalConta() {
               <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Seus canais, preferências de aviso e informações de privacidade aparecerão quando estiverem disponíveis neste espaço.</p>
             </section>
 
-             {assinatura || upsells.length > 0 ? <section data-conta-assinatura className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
+             <section data-conta-assinatura className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <h2 className="font-serif text-xl text-navy">Sua assinatura</h2>
               {assinatura ? (
                 <>
@@ -158,7 +158,17 @@ export function PortalConta() {
                     <p className="mt-1 text-xs text-navy/60">{assinatura.situacao}</p>
                   ) : null}
                 </>
-               ) : null}
+               ) : (
+                /*
+                  07/10/2026 — este espaço nunca some: antes a seção inteira
+                  desaparecia sem assinatura nem upsell publicados, e ninguém
+                  via onde o Desk publicaria isso. O estado vazio é sempre
+                  editável/publicável do Desk, nunca hardcoded aqui.
+                */
+                <p className="mt-2 text-sm text-navy/60" data-conta-assinatura-vazio>
+                  Nenhuma assinatura publicada ainda. A equipe publica aqui quando houver.
+                </p>
+               )}
               {upsells.length > 0 ? (
                 <div className="mt-4 border-t border-border pt-3" data-conta-upsell>
                   <p className="text-[10px] font-medium uppercase tracking-widest text-navy/45">
@@ -179,9 +189,9 @@ export function PortalConta() {
                   </p>
                 </div>
               ) : null}
-             </section> : null}
+             </section>
 
-            {plano ? <section data-conta-plano className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
+            <section data-conta-plano className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="font-serif text-xl text-navy">Meu plano</h2>
                 {plano?.situacao ? (
@@ -193,6 +203,7 @@ export function PortalConta() {
                   </span>
                 ) : null}
               </div>
+              {plano ? (
                 <>
                   <p className="mt-2 text-sm text-navy" data-conta-plano-nome>
                     {plano.nome}
@@ -201,7 +212,12 @@ export function PortalConta() {
                     <p className="mt-1 text-xs text-navy/60">{plano.vigencia}</p>
                   ) : null}
                 </>
-            </section> : null}
+              ) : (
+                <p className="mt-2 text-sm text-navy/60" data-conta-plano-vazio>
+                  Nenhum plano publicado ainda. A equipe publica aqui quando houver.
+                </p>
+              )}
+            </section>
 
             <section data-conta-alertas className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
