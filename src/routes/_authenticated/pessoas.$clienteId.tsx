@@ -547,7 +547,7 @@ function Pessoa() {
               .split(/\s+/)
               .filter(Boolean)
               .slice(0, 2)
-              .map((p) => p[0]?.toUpperCase())
+              .map((p: string) => p[0]?.toUpperCase())
               .join("")}
           </span>
           <div className="min-w-0 flex-1">
