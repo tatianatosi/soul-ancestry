@@ -535,7 +535,7 @@ function Pessoa() {
   return (
     <SaasShell titulo={nome} descricao="A história desta pessoa, reunida de todos os casos dela." visualKit="pantone">
       <div className="space-y-6">
-        <section
+        <div
           data-pessoa360-identidade-v4
           className="flex flex-col gap-4 rounded-xl border border-navy/10 bg-navy p-5 text-cream sm:flex-row sm:items-center"
         >
@@ -575,7 +575,7 @@ function Pessoa() {
               <span className="text-xs text-cream/70">Nenhum caso vinculado</span>
             )}
           </div>
-        </section>
+        </div>
         <NucleoKitPessoa clienteId={String(cliente.id)} />
 
         <CaCard
