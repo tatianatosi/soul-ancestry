@@ -1,8 +1,8 @@
 # Roadmap
 
 ## Desk — aplicação do de-para v4 (07/10/2026)
-- [ ] Primeiro corte: Caso 360 com linha do tempo, participantes e rosca do dossiê reutilizados do kit; cabeçalho legível; dados e oito seções preservados.
-- [ ] Validar testes e capturas do primeiro corte em desktop e 375 px; parar para aprovação antes das outras superfícies.
+- [x] Primeiro corte: Caso 360 com linha do tempo, participantes e rosca do dossiê reutilizados do kit; cabeçalho legível; dados e oito seções preservados.
+- [x] Validar testes e capturas do primeiro corte em desktop e 375 px: 55 testes passaram, build OK, releitura e ausência de overflow conferidas; parada para aprovação antes das outras superfícies.
 - [ ] Próximos cortes: Checklist, Pessoa, Radar, Pesquisa, Financeiro/Jurídico, Famílias, Acesso, Marketing/Alertas/Biblioteca; Hoje aguarda decisão sobre a fonte viva.
 
 ## Revisão da prancha enviada (05/10/2026)
