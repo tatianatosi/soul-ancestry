@@ -336,7 +336,7 @@ export function PortalJornada() {
               jornada.ritmo === "sem_publicacao"
                  ? "Estamos preparando os primeiros passos para compartilhar com você"
                 : jornada.ritmo === "regular"
-                  ? "Ritmo em dia"
+                   ? "Veja os trechos já compartilhados com sua família"
                   : jornada.ritmo === "atencao"
                     ? "Próxima atualização em preparação"
                      : "A próxima atualização será compartilhada quando estiver pronta";
