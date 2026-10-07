@@ -76,6 +76,7 @@ import { ehFixtureLinha, ROTULO_DEMONSTRACAO } from "@/lib/fixtures";
 import { classificarErroPersistencia, ESTADOS_SALVAMENTO } from "@/lib/persistencia-erros";
 import { toast } from "sonner";
 import { MapaPersistenciaCaso } from "@/components/caso/mapa-persistencia";
+import { HistoricoPorFase } from "@/components/caso/historico-por-fase";
 import { aprovarEventoTimelineParaCliente, revogarEventoTimelineDoCliente } from "@/lib/timeline-caso.functions";
 import { estadoDerivadoPorGates } from "@/lib/gates-ativacao-ficha";
 import { cepValido, cpfValido, emailValido, formatarCep, formatarCpf, formatarTelefone, telefoneValido } from "@/lib/validacao-pessoa";
@@ -2712,6 +2713,20 @@ function FichaCaso() {
                 </ul>
               )}
             </EstadoDados>
+          </Secao>
+
+          {/*
+            Histórico por fase (item E, 07/10/2026): registro manual,
+            um de cada vez — nunca importação em bloco —, com data, fonte
+            e conteúdo colado/descrito, por fase (Lead/Discovery/Proposta/
+            Contrato/Pesquisa/Árvore). Reusa case_timeline_events (acima),
+            nunca uma tabela paralela.
+          */}
+          <Secao
+            titulo="Histórico por fase"
+            descricao="Registro manual da equipe, por fase, com fonte e conteúdo — auditado, um por vez."
+          >
+            <HistoricoPorFase caseId={id} />
           </Secao>
 
           {/*
