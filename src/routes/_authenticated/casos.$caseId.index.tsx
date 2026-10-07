@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { SaasShell, useSaas, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
 import { ResumoKitCaso } from "@/components/desk/kit-conectado";
+import { GenealogyEvent, PersonNode, StatusDonut } from "@/components/clube-ancestral-kit";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -1167,19 +1168,19 @@ function FichaCaso() {
         );
       })()}
 
-      <div className="mb-6 grid gap-4 lg:grid-cols-2" data-caso360-resumo-v4>
-        <section className="rounded-xl border border-navy/10 bg-card p-4">
+      <div className="mb-6 grid gap-5 border-y border-navy/10 py-5 lg:grid-cols-2" data-caso360-resumo-v4>
+        <section className="min-w-0">
           <p className="font-serif text-lg text-navy">Linha do tempo do caso</p>
           {((q.data?.timeline ?? []) as any[]).length ? (
             <ol className="mt-3 space-y-2">
               {((q.data?.timeline ?? []) as any[]).slice(0, 4).map((evento) => (
-                <li key={evento.id} className="border-l-2 border-gold/60 pl-3 text-xs text-navy/70">
-                  <span className="font-medium text-navy">{evento.title ?? "Evento registrado"}</span>
-                  <span className="block text-[10px] text-navy/50">
-                    {evento.occurred_at || evento.created_at
+                <li key={evento.id}>
+                  <GenealogyEvent
+                    title={evento.title ?? "Evento registrado"}
+                    date={evento.occurred_at || evento.created_at
                       ? new Date(String(evento.occurred_at ?? evento.created_at)).toLocaleDateString("pt-BR")
-                      : "Data não registrada"}
-                  </span>
+                       : "Data não registrada"}
+                  />
                 </li>
               ))}
             </ol>
@@ -1188,14 +1189,17 @@ function FichaCaso() {
           )}
         </section>
 
-        <section className="rounded-xl border border-navy/10 bg-card p-4">
+        <section className="min-w-0">
           <p className="font-serif text-lg text-navy">Participantes</p>
           {((q.data?.membros ?? []) as any[]).length ? (
             <ul className="mt-3 grid gap-2 sm:grid-cols-2">
               {((q.data?.membros ?? []) as any[]).slice(0, 4).map((membro) => (
-                <li key={membro.id} className="rounded-lg bg-cream/50 px-3 py-2 text-xs text-navy/70">
-                  <span className="block font-medium text-navy">{membro.nome ?? membro.nome_completo ?? "Pessoa sem nome registrado"}</span>
-                  {membro.papel ? <span>{membro.papel}</span> : null}
+                <li key={membro.id} className="min-w-0">
+                  <PersonNode person={{
+                    id: String(membro.id),
+                    name: membro.nome ?? membro.nome_completo ?? "Pessoa sem nome registrado",
+                    role: membro.papel ?? "Papel não registrado",
+                  }} />
                 </li>
               ))}
             </ul>
@@ -1204,22 +1208,31 @@ function FichaCaso() {
           )}
         </section>
 
-        <section className="rounded-xl border border-navy/10 bg-card p-4">
+        <section className="min-w-0 border-t border-navy/10 pt-5">
           <p className="font-serif text-lg text-navy">Estado do dossiê</p>
           {(() => {
+            if (qPesquisa.isLoading) return <p className="mt-3 text-sm text-navy/60" role="status">Carregando o dossiê…</p>;
+            if (qPesquisa.isError) return <p className="mt-3 text-sm text-terracotta" role="alert">Não foi possível carregar o dossiê.</p>;
             const dossie = estadoDossieDoCaso(qPesquisa.data?.evidencias ?? []);
+            if (!dossie.total) return <p className="mt-3 text-sm text-navy/60">Nenhuma evidência registrada no dossiê.</p>;
             return (
-              <dl className="mt-3 grid grid-cols-3 gap-3 text-center">
-                <div><dd className="font-serif text-2xl text-navy">{dossie.confirmados}</dd><dt className="text-[10px] text-navy/55">Confirmados</dt></div>
-                <div><dd className="font-serif text-2xl text-navy">{dossie.emRevisao}</dd><dt className="text-[10px] text-navy/55">Em revisão</dt></div>
-                <div><dd className="font-serif text-2xl text-navy">{dossie.pendentes}</dd><dt className="text-[10px] text-navy/55">Pendentes</dt></div>
-              </dl>
+              <div className="mt-3">
+                <StatusDonut
+                  label={`Estado do dossiê: ${dossie.confirmados} confirmados, ${dossie.emRevisao} em revisão, ${dossie.pendentes} pendentes. Total: ${dossie.total} evidências registradas.`}
+                  segments={[
+                    { label: "Confirmados", value: dossie.confirmados, tone: "success" },
+                    { label: "Em revisão", value: dossie.emRevisao, tone: "gold" },
+                    { label: "Pendentes", value: dossie.pendentes, tone: "terracotta" },
+                  ]}
+                />
+                <p className="mt-3 text-xs text-navy/60">{dossie.total} evidência(s) registrada(s) · situação atual do caso.</p>
+              </div>
             );
           })()}
         </section>
 
-        <section className="rounded-xl border border-navy/10 bg-card p-4">
-          <p className="font-serif text-lg text-navy">Jornada D0–D365</p>
+        <section className="min-w-0 border-t border-navy/10 pt-5">
+          <p className="font-serif text-lg text-navy">Jornada do caso</p>
           <p className="mt-3 text-sm font-medium text-navy">
             {qCadeia.data?.planejador?.fase_jornada ?? qCadeia.data?.planejador?.etapa ?? "Etapa não registrada"}
           </p>
@@ -1228,6 +1241,16 @@ function FichaCaso() {
               ? `${qCadeia.data?.planejador?.marcos.length} marco(s) registrado(s) no planejador.`
               : "Nenhum marco registrado no planejador."}
           </p>
+          {(qCadeia.data?.planejador?.marcos ?? []).length ? (
+            <ol className="mt-4 space-y-3 border-l-2 border-gold pl-4">
+              {qCadeia.data?.planejador?.marcos.map((marco, index) => (
+                <li key={`${index}-${marco}`} className="relative text-sm text-navy">
+                  <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full bg-gold" aria-hidden="true" />
+                  {marco}
+                </li>
+              ))}
+            </ol>
+          ) : null}
         </section>
       </div>
 
