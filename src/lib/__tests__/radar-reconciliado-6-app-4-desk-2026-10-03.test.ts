@@ -18,6 +18,17 @@ import { EIXOS_RADAR_CANONICOS } from "@/lib/radar-eixos";
  * decisão da Proprietária. Dois lugares do código discordando sobre o mesmo
  * eixo é dívida, não decisão — e era o tipo de contradição que fazia a
  * próxima pessoa "corrigir" o código a favor do texto errado.
+ *
+ * 07/10/2026 — correção legítima da Proprietária em `radar-seis-eixos.ts`,
+ * registrada no próprio cabeçalho do módulo: "sem total real, mostrar a
+ * lacuna, nunca 0% sobre 0". `origem`, `memoria` e `legado` nunca tiveram
+ * teto conhecido e passam a devolver `percentual: null` em vez de fingir
+ * 0/100 por mera presença/ausência; `elegibilidade` passa a ser a média só
+ * dos eixos que têm total real (hoje: Documentação e Conexões Familiares),
+ * nunca mais os 5 tratando ausência como zero. As duas asserções abaixo que
+ * assumiam "todas as 6 sempre têm percentual numérico" e "média sobre os 5"
+ * ficaram desatualizadas por essa melhoria — atualizadas para refletir o
+ * comportamento novo, sem reverter o código.
  */
 
 const APP = readFileSync("src/routes/portal/radar.tsx", "utf8");
@@ -55,10 +66,22 @@ describe("App Cliente — 6 dimensões, todas com percentual e com a conta visí
     ]);
   });
 
-  it("todas têm percentual — nenhuma fica sem número", () => {
-    for (const d of dims) {
-      expect(d.estado, d.id).toBe("percentual");
-      expect(typeof d.percentual, d.id).toBe("number");
+  it("eixo com total real mostra percentual numérico; eixo sem total mostra a lacuna honesta", () => {
+    /*
+      07/10/2026 (Proprietária): "sem total real, mostrar a lacuna, nunca 0%
+      sobre 0". Documentação e Conexões Familiares têm denominador real nesta
+      fixture (docs liberados/total; pessoas publicadas/mapeadas) e devolvem
+      número. Origem, Memória e Legado nunca tiveram teto conhecido e
+      devolvem percentual: null — Elegibilidade, por ser média, só existe
+      quando ao menos um eixo tem total real.
+    */
+    for (const id of ["documentacao", "conexoes", "elegibilidade"] as const) {
+      const d = dims.find((x) => x.id === id)!;
+      expect(typeof d.percentual, id).toBe("number");
+    }
+    for (const id of ["origem", "memoria", "legado"] as const) {
+      const d = dims.find((x) => x.id === id)!;
+      expect(d.percentual, id).toBeNull();
     }
   });
 
@@ -68,12 +91,18 @@ describe("App Cliente — 6 dimensões, todas com percentual e com a conta visí
     }
   });
 
-  it("o 4º eixo é a média dos outros 5, e a conta aparece escrita", () => {
-    const outros = dims.filter((d) => d.id !== "elegibilidade");
-    const media = Math.round(outros.reduce((s, d) => s + (d.percentual ?? 0), 0) / outros.length);
+  it("o 4º eixo é a média só dos eixos com total real, e a conta aparece escrita", () => {
+    /*
+      07/10/2026 (Proprietária): a média deixou de somar os 5 outros eixos
+      tratando ausência de total como 0 — agora soma só os que têm total
+      real (nesta fixture: Documentação 50% + Conexões Familiares 25% = 38%,
+      não mais os 5 com origem/memória/legado contando como zero).
+    */
+    const comTotal = dims.filter((d) => d.id !== "elegibilidade" && d.percentual !== null);
+    const media = Math.round(comTotal.reduce((s, d) => s + (d.percentual ?? 0), 0) / comTotal.length);
     const geral = dims.find((d) => d.id === "elegibilidade")!;
     expect(geral.percentual).toBe(media);
-    expect(geral.comoCalculamos).toContain("Média dos outros 5 eixos");
+    expect(geral.comoCalculamos).toContain("Média dos eixos com total real");
   });
 
   it("eixo com denominador real mostra a razão; eixo sem total conhecido diz que não há total", () => {
