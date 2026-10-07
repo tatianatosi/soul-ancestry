@@ -103,9 +103,7 @@ export function PortalLegado() {
                         <section
                           key={p.id}
                           data-legado-prateleira={p.id}
-                           className={`flex min-w-0 flex-col overflow-hidden rounded-xl border border-border border-t-4 bg-card p-4 shadow-sm ${
-                             ["border-t-gold", "border-t-navy", "border-t-plum"][PRATELEIRAS.indexOf(p) % 3]
-                          }`}
+                           className="app-v11-faixa flex min-w-0 flex-col"
                         >
                           <div className="flex flex-col items-start gap-2">
                             <div>

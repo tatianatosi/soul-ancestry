@@ -358,7 +358,7 @@ export function PortalJornada() {
               ? ORDEM_NARRATIVA_DEMO_SOPHIA.map((id) => jornada.linha.find((item) => item.id === id))
                   .filter((item): item is PublicacaoCliente => Boolean(item))
                   .map(noDemoDeItem)
-              : [...jornada.linha]
+              : [...jornada.linha].filter((item) => item.tipo !== "arvore")
                   .sort((a, b) => new Date(a.publicadoEm ?? 0).getTime() - new Date(b.publicadoEm ?? 0).getTime())
                   .map(noRealDeItem);
 

@@ -24,10 +24,18 @@
 [data-app-cliente] .app-v11-secoes > :where(section, div) + :where(section, div) {
   margin-top: var(--app-v11-respiro);
 }
-[data-app-cliente] .app-v11-faixa {
+[data-app-cliente="true"] #conteudo-portal .app-v11-faixa {
   min-width: 0;
+  border: 0;
   border-top: 1px solid var(--app-v11-borda);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding-inline: 0;
   padding-block: var(--app-v11-intervalo);
+}
+[data-app-cliente="true"] #conteudo-portal .app-v11-faixa > div:last-child {
+  padding-inline: 0;
 }
 [data-app-cliente] .app-v11-lacuna {
   border: 0;
