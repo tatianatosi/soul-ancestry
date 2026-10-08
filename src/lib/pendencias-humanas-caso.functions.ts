@@ -56,6 +56,24 @@ export const lerPendenciasHumanasCaso = createServerFn({ method: "GET" })
         )
       : new Map<string, string | null>();
 
+    /*
+     * Retificação de 07/10/2026: `case_dependents` é onde a decisão humana de
+     * representação fica registrada; `nucleo_membros.representacao_necessaria`
+     * é espelho e estava defasado. A pendência de menor passa a consultar o
+     * registro vigente — leitura reconciliada, nenhum status alterado.
+     */
+    const { data: dependentes } = await supabase
+      .from("case_dependents")
+      .select("nome_completo,status_representacao")
+      .eq("case_id", caso.id)
+      .is("archived_at", null);
+    const statusPorNome = new Map(
+      (((dependentes ?? []) as { nome_completo: string | null; status_representacao: string | null }[]) ?? []).map((d) => [
+        String(d.nome_completo ?? "").trim().toLocaleLowerCase("pt-BR"),
+        d.status_representacao,
+      ]),
+    );
+
     const filtros = [`case_id.eq.${caso.id}`];
     if (caso.lead_id) filtros.push(`id.eq.${caso.lead_id}`);
     for (const id of idsNucleo) filtros.push(`nucleo_id.eq.${id}`);
@@ -68,7 +86,11 @@ export const lerPendenciasHumanasCaso = createServerFn({ method: "GET" })
     return pendenciasHumanasDoCaso({
       caso,
       nucleo: listaNucleos.find((n) => n.dossie_mae) ?? null,
-      membros: membros.map((m) => ({ ...m, data_nascimento: m.cliente_id ? (nascimentos.get(m.cliente_id) ?? null) : null })),
+      membros: membros.map((m) => ({
+        ...m,
+        data_nascimento: m.cliente_id ? (nascimentos.get(m.cliente_id) ?? null) : null,
+        status_representacao: statusPorNome.get(String(m.nome ?? "").trim().toLocaleLowerCase("pt-BR")) ?? null,
+      })),
       leads: (leads ?? []) as any[],
     });
   });

@@ -10,7 +10,7 @@ import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-v
 import { LinkPortal, usePortalVivo, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada, publicacoesDeEntrega, publicacoesDeFase01, publicacoesDeFase02, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
-import type { PublicacaoCliente } from "@/lib/projecoes-cliente";
+import { ehPessoaPublicada, type PublicacaoCliente } from "@/lib/projecoes-cliente";
 import { cn } from "@/lib/utils";
 import { textoParaCliente } from "@/lib/portal-linguagem-viva";
 
@@ -359,6 +359,15 @@ export function PortalJornada() {
                   .filter((item): item is PublicacaoCliente => Boolean(item))
                   .map(noDemoDeItem)
               : [...jornada.linha]
+                  /*
+                   * Retificação de 07/10/2026: pessoa publicada na árvore não é
+                   * acontecimento. Um nome com geração não virou fato histórico
+                   * só por existir — quem lista nome e vínculo é a Árvore. A
+                   * Linha Ancestral recebe acontecimento documentado (nota da
+                   * árvore com ano citado, achado, evidência, legado), nunca o
+                   * nó de pessoa.
+                   */
+                  .filter((item) => !ehPessoaPublicada(item))
                   .sort((a, b) => new Date(a.publicadoEm ?? 0).getTime() - new Date(b.publicadoEm ?? 0).getTime())
                   .map(noRealDeItem);
 

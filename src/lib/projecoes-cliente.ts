@@ -31,7 +31,27 @@ export type PublicacaoCliente = {
   tipoRotulo: string;
   conteudo: string;
   publicadoEm: string | null;
+  /**
+   * Retificação de 07/10/2026: sem esta marca, `tipo === "arvore"` significava
+   * duas coisas ao mesmo tempo — uma PESSOA publicada (nó da árvore) e uma
+   * NOTA sobre a árvore. As telas só conseguiam filtrar por tipo, então a
+   * pessoa virava "achado" na Home e "acontecimento" na Jornada. A distinção
+   * já existia no leitor da Árvore ("projeção de árvore sem pessoa continua
+   * nota, não nó") e agora atravessa a sanitização.
+   *
+   * É um BOOLEANO de propósito: o `pessoa_id` é id interno de
+   * `research_people` e não atravessa a fronteira do App — o teste de
+   * fronteira (`projecoes-cliente.test.ts`) existe exatamente para impedir
+   * que identificador interno chegue à tela, e ele pegou a primeira versão
+   * desta correção, que mandava o UUID.
+   */
+  ehPessoa: boolean;
 };
+
+/** Pessoa publicada (nó da árvore) — não é achado nem acontecimento. */
+export function ehPessoaPublicada(p: PublicacaoCliente): boolean {
+  return p.tipo === "arvore" && p.ehPessoa;
+}
 
 /** Rótulos cliente-facing por tipo de projeção. Sem jargão interno. */
 export const TIPO_PROJECAO_ROTULO: Record<string, string> = {
@@ -163,6 +183,7 @@ export function publicacoesParaCliente(linhas: ProjecaoBruta[]): PublicacaoClien
         tipoRotulo: rotuloTipoProjecao(tipo),
         conteudo,
         publicadoEm,
+        ehPessoa: Boolean(linha.pessoa_id),
       } satisfies PublicacaoCliente;
     })
     .filter((p): p is PublicacaoCliente => p !== null)

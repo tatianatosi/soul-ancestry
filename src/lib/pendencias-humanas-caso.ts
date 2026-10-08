@@ -28,7 +28,22 @@ export type MembroNucleoPendencia = {
   cliente_id?: string | null;
   data_nascimento?: string | null;
   representacao_necessaria?: boolean | null;
+  /**
+   * Status vindo de `case_dependents.status_representacao` — o registro que
+   * a decisão humana atualiza. Retificação de 07/10/2026: esta regra lia só
+   * `nucleo_membros.representacao_necessaria`, um espelho que ninguém
+   * atualizou (Felipe: `false` desde 18/08), e por isso continuava pedindo
+   * uma representação que já estava **documentada** em `case_dependents`
+   * desde 05/10. Reconciliação é de LEITURA: nenhum status é alterado aqui.
+   */
+  status_representacao?: string | null;
 };
+
+/** Representação já registrada como documentada/confirmada no dependente. */
+export function representacaoJaDocumentada(m: MembroNucleoPendencia): boolean {
+  const s = texto(m.status_representacao).toLowerCase();
+  return m.representacao_necessaria === true || s === "documentada" || s === "confirmada";
+}
 
 export type LeadPendencia = {
   nome?: string | null;
@@ -81,7 +96,7 @@ export function pendenciasHumanasDoCaso(entrada: {
     const idade = idadeEm(m.data_nascimento, hoje);
     const menorPorData = idade !== null && idade < 18;
     const menorPorVinculo = idade === null && /\bmenor\b/i.test(texto(m.vinculo));
-    if ((menorPorData || menorPorVinculo) && m.representacao_necessaria !== true) {
+    if ((menorPorData || menorPorVinculo) && !representacaoJaDocumentada(m)) {
       out.push({
         tipo: "menor_sem_representacao",
         titulo: `${m.nome}: menor sem representação legal marcada`,

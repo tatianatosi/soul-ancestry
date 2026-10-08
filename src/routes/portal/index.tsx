@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { CheckCircle2 } from "lucide-react";
 import { CaCard } from "@/components/ui/ca-card";
 import { pessoasDaArvore } from "@/lib/arvore-publicacao";
+import { ehPessoaPublicada } from "@/lib/projecoes-cliente";
 
 const PROXIMO_PASSO_VAZIO =
   "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui.";
@@ -79,8 +80,16 @@ export function PortalHome() {
     vivo.data?.proximaAcao,
   );
   const passoPublicado = jornada.linha.find((item) => item.tipo === "proxima_acao");
+  /*
+   * Retificação de 07/10/2026: uma pessoa publicada na árvore NÃO é achado.
+   * Antes, `tipo === "arvore"` entrava aqui sem distinguir nó de nota, então
+   * os nomes da família apareciam em "Achados da sua história" ao mesmo tempo
+   * que em "Pessoas conectadas". Pessoa alimenta só "Pessoas conectadas";
+   * nota sobre a árvore (projeção de árvore sem pessoa) segue sendo achado.
+   */
   const achadosPublicados = jornada.linha.filter((item) =>
     ["achado", "arvore", "evidencia", "linha_tempo", "legado", "relatorio_fase"].includes(item.tipo) &&
+    !ehPessoaPublicada(item) &&
     !/estado de validação|próximo passo: devolutiva/i.test(item.conteudo),
   );
   const pessoasPublicadas = pessoasDaArvore(vivo.data?.projecoes ?? []).length;

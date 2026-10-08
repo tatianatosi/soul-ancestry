@@ -22,6 +22,7 @@ describe("painelArvoreGeracoes", () => {
         tipoRotulo: "Marco",
         conteudo: "Abertura",
         publicadoEm: "2026-06-02",
+        ehPessoa: false,
       },
     ]);
     expect(painel.temPublicacao).toBe(false);
@@ -32,6 +33,7 @@ describe("painelArvoreGeracoes", () => {
     const nota: PublicacaoCliente = {
       id: "a1",
       tipo: "arvore",
+      ehPessoa: false,
       tipoRotulo: "Árvore",
       conteudo: "Quatro gerações com documento.",
       publicadoEm: "2026-08-05",

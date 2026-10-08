@@ -26,6 +26,7 @@ describe("partirJornadaEmDuasLinhas — mockup 17", () => {
         id: "1",
         tipo: "marco",
         tipoRotulo: "Marco da jornada",
+        ehPessoa: false,
         conteudo: "Abertura",
         publicadoEm: "2026-01-01",
       },

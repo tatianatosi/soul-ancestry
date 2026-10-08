@@ -138,6 +138,7 @@ describe("publicações do Desk no App Cliente", () => {
     for (const p of out) {
       expect(Object.keys(p).sort()).toEqual([
         "conteudo",
+        "ehPessoa",
         "id",
         "publicadoEm",
         "tipo",
