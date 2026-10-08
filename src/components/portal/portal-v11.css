@@ -21,6 +21,24 @@
   font-family: var(--app-v11-titulo);
   letter-spacing: 0;
 }
+[data-app-cliente="true"] #conteudo-portal :where(h2, h3)[class~="text-xl"] {
+  font-size: var(--app-v11-secao);
+  line-height: var(--ca-leading-tight);
+}
+[data-app-cliente="true"] #conteudo-portal :where(p, span, dt)[class~="text-[10px]"],
+[data-app-cliente="true"] #conteudo-portal :where(p, span, dt)[class~="text-[11px]"] {
+  font-size: var(--app-v11-legenda);
+  line-height: var(--ca-leading-normal);
+}
+[data-app-cliente="true"] #conteudo-portal :where(p, dd)[class~="text-sm"] {
+  font-size: var(--app-v11-leitura);
+  line-height: var(--ca-leading-relaxed);
+}
+[data-app-cliente="true"] #conteudo-portal :where(p, span, dt)[class~="text-navy/45"],
+[data-app-cliente="true"] #conteudo-portal :where(p, span, dt)[class~="text-navy/50"],
+[data-app-cliente="true"] #conteudo-portal :where(p, span, dt)[class~="text-navy/55"] {
+  color: var(--ca-text-muted);
+}
 [data-app-cliente] .app-v11-secoes > :where(section, div) + :where(section, div) {
   margin-top: var(--app-v11-respiro);
 }
@@ -58,6 +76,9 @@
 }
 [data-app-cliente] #conteudo-portal :where(a, button) {
   min-height: var(--app-v11-toque);
+}
+[data-app-cliente="true"] #conteudo-portal a {
+  align-content: center;
 }
 [data-app-cliente] #conteudo-portal :where(p, dd, li) {
   overflow-wrap: anywhere;
