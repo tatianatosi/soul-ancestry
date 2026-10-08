@@ -229,9 +229,9 @@
   align-items: start;
 }
 [data-app-cliente] [data-aba-documentos] .app-v11-faixa span[class~="rounded-full"] {
-  max-width: 10rem;
-  border-radius: var(--ca-radius-sm);
-  white-space: normal;
+  max-width: none;
+  border-radius: var(--ca-radius-pill);
+  white-space: nowrap;
   background: var(--app-v11-acento-suave);
 }
 [data-app-cliente] [data-legado-prateleiras] {
@@ -454,6 +454,15 @@
   margin-top: var(--ca-space-3);
 }
 [data-app-cliente] .app-documento-conteudo .app-v11-lacuna { border: 0; padding-left: 0; }
+[data-app-cliente] .app-documento-conteudo span.rounded-full { display: inline-block; width: auto; max-width: 100%; white-space: nowrap; border-radius: var(--ca-radius-pill); }
+/* Árvore: rótulo de geração legível, como marcador da faixa. */
+[data-app-cliente] #conteudo-portal .app-arvore-geracao > h3 {
+  font-family: var(--ca-font-body) !important;
+  font-size: var(--ca-text-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ca-estado-aguardando);
+}
 
 /* Bibliothèque: dos de couverture, collections compactes, matériaux publiés. */
 [data-app-cliente] [data-legado-prateleiras] { grid-template-columns: minmax(0, 1fr); gap: 0; }

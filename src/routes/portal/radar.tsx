@@ -133,10 +133,10 @@ export function PortalRadar() {
                               style={{ width: `${temPercentual ? (d.percentual ?? 0) : 0}%` }}
                             />
                           </div> : null}
-                          {d.legenda ? <p className="mt-2 text-sm leading-relaxed text-navy/75">{d.legenda}</p> : null}
+                          {d.legenda ? <p className="mt-2 text-sm leading-relaxed text-navy/75">{vazio ? d.legenda.replace(/^Lacuna:\s*/i, "").replace(/^./, (c) => c.toUpperCase()) : d.legenda}</p> : null}
                           {d.comoCalculamos ? (
                             <details className="mt-2 text-sm leading-relaxed text-navy/70" data-radar-calculo>
-                              <summary className="flex min-h-11 cursor-pointer items-center font-medium text-navy focus-visible:outline-2 focus-visible:outline-gold">Como calculamos:</summary>
+                              <summary className="flex min-h-11 cursor-pointer items-center gap-2 font-medium text-navy underline decoration-gold underline-offset-4 focus-visible:outline-2 focus-visible:outline-gold">Como calculamos</summary>
                               <p className="pb-2">{d.comoCalculamos}</p>
                             </details>
                           ) : null}
