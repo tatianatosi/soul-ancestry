@@ -25,6 +25,7 @@ import { conflitosCoerenciaDoRegistro, exigirCoerencia } from "@/lib/coerencia-c
 import { PLACEHOLDER_PARAM, anexosPorRegra } from "@/lib/contrato-parametros.server";
 import { MARCA_ESVAZIADO_PELA_EQUIPE } from "@/lib/parametros-dicionario";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { anexarOpcoesVivasDoCatalogo } from "@/lib/catalogo-opcoes-contrato.server";
 import { skuHomologadoParaCaso } from "@/lib/catalogo-sku.server";
 import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
 import { referenciaFinanceiraDoCaso } from "@/lib/financeiro-referencia.server";
@@ -699,7 +700,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       base: base ?? null,
       membros: membros ?? [],
       contrato,
-      valores: lista,
+      valores: await anexarOpcoesVivasDoCatalogo(supabase, org, caso.id, lista),
       previas: previas ?? [],
       /*
        * 08/10/2026 — quando o parâmetro mais recente foi alterado. A tela usa

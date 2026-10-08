@@ -27,7 +27,15 @@ export function LinhaParametro({ valor, aoMudar }: { valor: any; aoMudar: () => 
   const [justificativa, setJustificativa] = useState("");
 
   const origensPermitidas = def.origens?.length ? def.origens : [...ORIGENS_PARAM];
-  const opcoes = def.opcoes ?? [];
+  /*
+   * Corte D (08/10/2026): campo classificatório de catálogo recebe a lista do
+   * Planejador vivo pelo próprio leitor (`opcoes_vivas`), em cascata pelo país
+   * e pelo produto-pai do caso. A lista estática do dicionário continua
+   * valendo para os demais campos.
+   */
+  const opcoes: { valor: string; rotulo: string; ajuda?: string }[] =
+    (valor.opcoes_vivas as any[] | null | undefined)?.length ? (valor.opcoes_vivas as any[]) : (def.opcoes ?? []);
+  const divergenciaCatalogo = (valor.divergencia_catalogo as string | null | undefined) ?? null;
   const valorLegado = valor.valor && !opcoes.some((o) => o.valor === valor.valor) ? (valor.valor as string) : null;
 
   const mSalvar = useMutation({
@@ -138,6 +146,11 @@ export function LinhaParametro({ valor, aoMudar }: { valor: any; aoMudar: () => 
       {classificatorio && (
         <p className="mt-1 text-[11px] text-navy/50">
           {opcoes.find((o) => o.valor === texto)?.ajuda ?? "Campo de lista controlada: texto livre é rejeitado."}
+        </p>
+      )}
+      {divergenciaCatalogo && (
+        <p className="mt-1 text-[11px] text-terracota" data-divergencia-catalogo>
+          Divergência com o Planejador: {divergenciaCatalogo}
         </p>
       )}
       <div className="mt-2 flex flex-wrap items-center gap-2">

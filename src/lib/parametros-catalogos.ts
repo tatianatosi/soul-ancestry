@@ -239,13 +239,22 @@ export const CAT_TIPO_EXCECAO: Opcao[] = [
   { valor: "consentimento", rotulo: "Exceção de consentimento" },
 ];
 
-export const CAT_PRODUTO_SKU: Opcao[] = [
-  {
-    valor: "CA-CID-AT-001 — Cidadania austríaca — atendimento familiar (§ 58c StbG)",
-    rotulo: "CA-CID-AT-001 — Cidadania austríaca familiar (§ 58c StbG)",
-    ajuda: "SKU homologado no Planejador para o prefixo CA-CID-AT-FAM.",
-  },
-];
+/**
+ * Corte D (08/10/2026) — lista vazia por desenho.
+ *
+ * Até aqui esta constante tinha UMA opção fixa: o código real
+ * `CA-CID-AT-001` colado num nome que o Planejador nunca emitiu
+ * ("Cidadania austríaca — atendimento familiar (§ 58c StbG)"). O nome real
+ * do item em `planner_catalog_feed` é "Consultoria e Acompanhamento de
+ * Cidadania Austríaca".
+ *
+ * As opções agora vêm do catálogo vivo (99 itens, 8 produtos-pai, 20
+ * países), em cascata pelo país e pelo produto-pai do caso — ver
+ * `catalogo-opcoes-contrato.ts` e `opcoes_vivas` na linha do parâmetro. Um
+ * valor já gravado fora da lista continua visível (`valorLegado` em
+ * `LinhaParametro`) com a divergência declarada, nunca reescrito sozinho.
+ */
+export const CAT_PRODUTO_SKU: Opcao[] = [];
 
 export const CAT_FORMA_ASSINATURA: Opcao[] = [
   { valor: "eletronica_externa", rotulo: "Eletrônica em plataforma externa", ajuda: "Assinatura registrada manualmente com referência/comprovante." },

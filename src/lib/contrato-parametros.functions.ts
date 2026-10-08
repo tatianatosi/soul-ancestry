@@ -35,6 +35,7 @@ import {
   planoDePreenchimento,
   type PaginaCanva,
 } from "@/lib/canva-para-parametros";
+import { anexarOpcoesVivasDoCatalogo } from "@/lib/catalogo-opcoes-contrato.server";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import { condicaoVigente } from "@/lib/condicao-comercial-caso";
 import {
@@ -239,10 +240,15 @@ export const painelParametros = createServerFn({ method: "GET" })
       ? (await supabase.from("contracts").select("id,contract_number,status,signed_at,signature_reference,signed_source").eq("id", registro.contract_id).maybeSingle()).data
       : null;
 
-    const valoresLista = await preencherQualificacaoContratada(
+    const valoresLista = await anexarOpcoesVivasDoCatalogo(
       supabase,
-      data.id,
-      linhas<any>(valores, "valores dos parâmetros do contrato"),
+      (registro as any).organization_id ?? null,
+      (registro as any).case_id ?? null,
+      await preencherQualificacaoContratada(
+        supabase,
+        data.id,
+        linhas<any>(valores, "valores dos parâmetros do contrato"),
+      ),
     );
 
     return {
