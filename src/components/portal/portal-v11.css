@@ -487,11 +487,64 @@
 [data-app-cliente] #conteudo-portal [data-compartilhar-achado-cliente] { padding-inline: 0; border: 0; border-top: 1px solid var(--app-v11-borda); border-radius: 0; background: transparent; }
 
 /* Identité et continuité: abonnement isolé sans confusion avec paiement. */
-[data-app-cliente] #conteudo-portal [data-conta-perfil] { padding: var(--ca-space-5); background: var(--app-v11-superficie); border: 1px solid var(--app-v11-borda); border-radius: var(--ca-radius-lg); }
-[data-app-cliente] #conteudo-portal [data-conta-assinatura] { padding: var(--ca-space-5); background: var(--app-v11-topo); color: var(--ca-text-inverse); border-radius: var(--ca-radius-lg); border: 0; }
+[data-app-cliente] #conteudo-portal [data-conta-perfil] { padding: var(--ca-space-4); background: var(--app-v11-superficie); border: 1px solid var(--app-v11-borda); border-radius: var(--ca-radius-md); }
+[data-app-cliente] #conteudo-portal [data-conta-assinatura] { padding: var(--ca-space-5); background: var(--app-v11-topo); color: var(--ca-text-inverse); border-radius: var(--ca-radius-md); border: 0; }
 [data-app-cliente] #conteudo-portal [data-conta-assinatura] :where(h2, p, span) { color: var(--ca-text-inverse); }
 [data-app-cliente] #conteudo-portal [data-conta-assinatura] h2 { color: var(--app-v11-conexao); }
 [data-app-cliente] #conteudo-portal [data-conta-assinatura-valor] { font-family: var(--app-v11-corpo); font-size: var(--ca-text-2xl); }
+
+/* Documentos: registro contínuo, estados junto do título e arquivo sem caixa interna. */
+[data-app-cliente] .app-documento-icone {
+  display: grid;
+  place-items: center;
+  width: var(--ca-space-7);
+  aspect-ratio: 1;
+  border-radius: var(--ca-radius-md);
+  background: var(--app-v11-acento-suave);
+}
+[data-app-cliente] [data-documento-acordeao="liberados"] .app-documento-icone {
+  background: var(--app-v11-orientacao);
+  color: var(--ca-text-inverse);
+}
+[data-app-cliente] .app-documento-legenda {
+  display: block;
+  font-family: var(--app-v11-corpo);
+  font-size: var(--ca-text-xs);
+  color: var(--ca-text-muted);
+  line-height: var(--ca-leading-normal);
+}
+[data-app-cliente] .app-documento-conteudo > div > div:first-child > span.rounded-full { display: none; }
+[data-app-cliente] .app-documento-conteudo { padding-left: var(--ca-space-4); }
+[data-app-cliente] .app-documento-conteudo li {
+  border: 0;
+  border-bottom: 1px solid var(--app-v11-borda);
+  border-radius: 0;
+  background: transparent;
+  padding-inline: 0;
+}
+
+/* Legado: ouverture éditoriale et rayonnage, sans panneau dominant. */
+[data-app-cliente] .app-legado-editorial {
+  position: relative;
+  border-bottom: 2px solid var(--app-v11-conexao);
+  padding-block: var(--ca-space-2) var(--ca-space-5);
+  padding-right: var(--ca-space-7);
+}
+[data-app-cliente] .app-legado-editorial h2 { font-size: var(--ca-text-2xl); }
+[data-app-cliente] .app-legado-simbolo { position: absolute; top: var(--ca-space-2); right: 0; color: var(--ca-estado-aguardando); }
+[data-app-cliente] .app-colecao-resumo { gap: var(--ca-space-4); }
+[data-app-cliente] .app-colecao-resumo h2 { font-size: var(--ca-text-xl); }
+[data-app-cliente] .app-colecao-detalhe li { border-radius: 0; background: transparent; padding: var(--ca-space-4); }
+[data-app-cliente] .app-legado-compartilhar { border-top: 1px solid var(--app-v11-borda); padding-top: var(--ca-space-4); }
+[data-app-cliente] .app-legado-compartilhar > summary { min-height: var(--app-v11-toque); }
+
+/* Conta: profil, plan puis nouvelles; assistance en fin de lecture. */
+[data-app-cliente] .app-conta-composicao { display: flex; flex-direction: column; gap: var(--ca-space-5); }
+[data-app-cliente] .app-conta-composicao > section { margin-top: 0 !important; }
+[data-app-cliente] .app-conta-atendimento { order: 1; }
+[data-app-cliente] .app-conta-registro { border-bottom: 1px solid var(--app-v11-borda); padding-block: var(--ca-space-3); }
+[data-app-cliente] #conteudo-portal [data-conta-plano] { border-top: 0; padding-top: 0; }
+[data-app-cliente] [data-conta-alertas] > div:first-child > span { display: none; }
 @media (min-width: 768px) {
   [data-app-cliente] [data-aba-radar] section > ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   [data-app-cliente] .app-arvore-ferramentas { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; }
