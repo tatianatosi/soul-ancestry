@@ -4,6 +4,7 @@ import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { radarSeisDimensoes } from "@/lib/radar-seis-eixos";
+import { OrigemGeografica } from "@/components/portal/origem-geografica";
 import { RadarSeisEixos } from "@/components/portal/radar-seis-eixos";
 import { usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -144,10 +145,7 @@ export function PortalRadar() {
                       })}
                     </ul>
                   </section>
-                  <section aria-label="Países da sua origem" className="border-t border-gold/40 pt-5">
-                    <h2 className="font-serif text-2xl text-navy">Países da sua origem</h2>
-                    <p className="mt-2 text-sm leading-relaxed text-navy/70">Os países e ramos da sua história ainda não foram compartilhados. Quando houver essa publicação, você poderá conhecer cada origem aqui.</p>
-                  </section>
+                  <OrigemGeografica />
                 </div>
               </BlocoVisibilidade>
             );

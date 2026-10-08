@@ -1,0 +1,52 @@
+import { useState } from "react";
+import { ChevronDown, Network, Rows3, UserRound } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { PessoaNaArvore } from "@/lib/arvore-publicacao";
+import type { GeracaoArvore } from "@/lib/portal-arvore-geracoes";
+
+export function PerfilPessoaArvore({ pessoa }: { pessoa: PessoaNaArvore }) {
+  return (
+    <details className="app-arvore-perfil" data-arvore-pessoa>
+      <summary>
+        <span className="app-arvore-inicial" aria-hidden="true">{pessoa.nome.charAt(0)}</span>
+        <span className="min-w-0"><span className="block font-medium">{pessoa.nome}</span>{pessoa.geracao ? <span className="text-xs text-navy/60">G{pessoa.geracao} · {pessoa.geracao}ª geração</span> : null}</span>
+        <ChevronDown className="app-detalhe-seta h-4 w-4 shrink-0" aria-hidden="true" />
+      </summary>
+      <div className="app-arvore-ficha">
+        <h3 className="font-serif text-xl text-navy">Sobre esta ligação</h3>
+        <p className="mt-2 text-sm text-navy/75">{pessoa.vinculo ?? "Vínculo não publicado"}</p>
+        <p className="mt-3 text-sm leading-relaxed text-navy/70">Eventos, lugares e documentos desta pessoa aparecerão quando forem compartilhados com sua família.</p>
+        <p className="mt-3 border-t border-border pt-3 text-xs leading-relaxed text-navy/70">Para sugerir uma correção, fale com a equipe pelos canais já combinados.</p>
+      </div>
+    </details>
+  );
+}
+
+/** Exploração visual dos mesmos nós publicados; sem inventar arestas relacionais. */
+export function ExploradorArvore({ pessoas, geracoes }: { pessoas: PessoaNaArvore[]; geracoes: readonly GeracaoArvore[] }) {
+  const [modo, setModo] = useState<"geracoes" | "pessoas">("geracoes");
+  const [foco, setFoco] = useState<string | null>(null);
+  const pessoasVisiveis = foco ? pessoas.filter((pessoa) => pessoa.chave === foco) : pessoas;
+  return (
+    <div className="app-explorador-arvore" data-explorador-arvore>
+      <div className="app-arvore-ferramentas">
+        <div className="app-arvore-modos" role="group" aria-label="Visão da árvore">
+          <Button variant="ghost" aria-pressed={modo === "geracoes"} onClick={() => setModo("geracoes")}><Rows3 aria-hidden="true" />Gerações</Button>
+          <Button variant="ghost" aria-pressed={modo === "pessoas"} onClick={() => setModo("pessoas")}><Network aria-hidden="true" />Pessoas</Button>
+        </div>
+        <label className="app-arvore-foco text-xs text-navy/70">Focar pessoa<select value={foco ?? ""} onChange={(event) => setFoco(event.target.value || null)} aria-label="Focar pessoa"><option value="">Todas as pessoas</option>{pessoas.map((pessoa) => <option key={pessoa.chave} value={pessoa.chave}>{pessoa.nome}</option>)}</select></label>
+      </div>
+      <p className="app-arvore-aviso text-sm leading-relaxed text-navy/70">As pessoas estão em suas gerações publicadas. As conexões do genograma aparecerão quando as relações forem compartilhadas; por enquanto, os nós permanecem independentes.</p>
+      {modo === "pessoas" ? (
+        <div className="app-arvore-pessoas" aria-label="Pessoas publicadas">{pessoasVisiveis.map((pessoa) => <PerfilPessoaArvore key={pessoa.chave} pessoa={pessoa} />)}</div>
+      ) : (
+        <div className="app-arvore-geracoes">{geracoes.filter((geracao) => !foco || pessoasVisiveis.some((pessoa) => `G${pessoa.geracao}` === geracao.id)).map((geracao) => (
+          <section key={geracao.id} className="app-arvore-geracao" aria-label={geracao.id === "G1" ? "G1 · Você (âncora)" : `${geracao.id} · ${Number(geracao.id.slice(1))}ª geração`}>
+            <h3 className="text-xs font-medium text-navy/70">{geracao.id === "G1" ? "G1 · Você (âncora)" : `${geracao.id} · ${Number(geracao.id.slice(1))}ª geração`}</h3>
+            <div className="app-arvore-nos">{geracao.id === "G1" ? <p className="app-arvore-ancora"><UserRound aria-hidden="true" className="h-5 w-5" />Você</p> : null}{pessoasVisiveis.filter((pessoa) => `G${pessoa.geracao}` === geracao.id).map((pessoa) => <PerfilPessoaArvore key={pessoa.chave} pessoa={pessoa} />)}{geracao.id !== "G1" && !pessoasVisiveis.some((pessoa) => `G${pessoa.geracao}` === geracao.id) ? <p className="text-sm text-navy/70" data-arvore-lacuna>Lacuna: ninguém desta geração foi compartilhado ainda.</p> : null}</div>
+          </section>
+        ))}</div>
+      )}
+    </div>
+  );
+}

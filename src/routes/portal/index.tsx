@@ -14,7 +14,7 @@ import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
 import { cn } from "@/lib/utils";
-import { CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, UsersRound, Sparkles } from "lucide-react";
 import { CaCard } from "@/components/ui/ca-card";
 import { pessoasDaArvore } from "@/lib/arvore-publicacao";
 
@@ -416,7 +416,7 @@ function PainelHomeMockup({
 
         <section className="sm:col-start-2 sm:row-start-1" aria-label="Pessoas conectadas">
           <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Família</p>
-          <h3 className="mb-3 font-serif text-2xl text-navy">Pessoas conectadas</h3>
+          <h3 className="mb-3 flex items-center gap-3 font-serif text-2xl text-navy"><UsersRound className="h-6 w-6 shrink-0" aria-hidden="true" />Pessoas conectadas</h3>
           <div className="border-t border-gold/40 py-3">
             <p className="text-sm leading-relaxed text-navy/75">
               {pessoasPublicadas > 0
@@ -437,7 +437,7 @@ function PainelHomeMockup({
 
         <section className="sm:col-span-2">
           <div className="mb-3 flex items-end justify-between gap-2">
-            <h3 className="font-serif text-2xl text-navy">Achados da sua história</h3>
+            <h3 className="flex min-w-0 items-center gap-2 font-serif text-2xl text-navy"><Sparkles className="h-5 w-5 shrink-0" aria-hidden="true" />Achados da sua história</h3>
             <LinkPortal to="/portal/jornada" className="shrink-0 text-xs font-medium text-navy/60 underline-offset-2 hover:text-navy hover:underline">
               Ver Jornada
             </LinkPortal>
@@ -470,23 +470,25 @@ function PainelHomeMockup({
           )}
         </section>
         {microentrega ? (
-          <section aria-label="Microentrega" className="border-l-2 border-plum/60 py-1 pl-4 sm:col-span-2">
+          <section aria-label="Microentrega" className="app-home-entrega border-l-2 border-plum/60 py-1 pl-4 sm:col-span-2">
             <p className="text-[10px] font-medium uppercase tracking-widest text-plum">Da nossa jornada</p>
             <p className="mt-1 text-sm text-navy/65">{microentrega}</p>
             <LinkPortal to="/portal/jornada" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Jornada</LinkPortal>
           </section>
         ) : null}
         {!documentoPrioritario ? (
-          <section aria-label="Documentos prioritários" className="border-t border-border pt-4 sm:col-span-2">
-            <h3 className="font-serif text-xl text-navy">Documentos prioritários</h3>
+          <section aria-label="Documentos prioritários" className="app-home-ausencia sm:col-span-2">
+            <details><summary className="font-serif text-xl text-navy">Documentos prioritários</summary>
             <p className="mt-2 text-sm leading-relaxed text-navy/70">Ainda não há uma prioridade documental compartilhada com sua família. O checklist aparecerá quando for disponibilizado pela equipe.</p>
-            <LinkPortal to="/portal/documentos" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Documentos</LinkPortal>
+            <LinkPortal to="/portal/documentos" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Documentos <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></LinkPortal>
+            </details>
           </section>
         ) : null}
-        <section aria-label="Contato com a equipe" className="border-t border-border pt-4 sm:col-span-2">
-          <h3 className="font-serif text-xl text-navy">Contato com a equipe</h3>
+        <section aria-label="Contato com a equipe" className="app-home-ausencia sm:col-span-2">
+          <details><summary className="font-serif text-xl text-navy">Contato com a equipe</summary>
           <p className="mt-2 text-sm leading-relaxed text-navy/70">Ainda não há um canal de contato disponibilizado neste aplicativo.</p>
-          <LinkPortal to="/portal/conta" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Conta</LinkPortal>
+          <LinkPortal to="/portal/conta" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Conta <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></LinkPortal>
+          </details>
         </section>
       </div>
     </div>

@@ -13,25 +13,14 @@ import {
 import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
 import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { ExploradorArvore, PerfilPessoaArvore } from "@/components/portal/explorador-arvore";
 
 /**
  * Corte 2a (28/09/2026): pessoa da família publicada pela equipe — nome e
  * vínculo, destaque dourado de "conectada". Só o que foi liberado no Desk.
  */
 function NoPessoa({ pessoa }: { pessoa: PessoaNaArvore }) {
-  return (
-    <details
-      className="w-full min-w-0 rounded-lg border border-gold/40 bg-card text-left"
-      data-arvore-pessoa
-    >
-      <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3 px-4 py-3 text-sm font-semibold leading-relaxed text-navy focus-visible:outline-2 focus-visible:outline-gold">{pessoa.nome}</summary>
-      <div className="border-t border-gold/30 px-4 py-3 text-sm leading-relaxed text-navy/70">
-        <p className="font-semibold">Sobre esta ligação</p>
-        <p>{pessoa.vinculo ?? "Vínculo não publicado"}</p>
-        <p className="mt-1">Para sugerir uma correção, fale com a equipe pelos canais já combinados.</p>
-      </div>
-    </details>
-  );
+  return <PerfilPessoaArvore pessoa={pessoa} />;
 }
 
 export const Route = createFileRoute("/portal/arvore")({
@@ -102,6 +91,9 @@ export function PortalArvore() {
                           : "Os nomes compartilhados estão abaixo. As posições na árvore aparecerão quando os vínculos e as gerações estiverem disponíveis."
                          : "Esta árvore ainda não tem nomes e vínculos liberados para a família."}
                     </p>
+                    {pessoas.length > 0 ? (
+                      <ExploradorArvore pessoas={pessoas} geracoes={geracoesExibidas} />
+                    ) : (
                     <div className="mt-6 divide-y divide-border">
                       {geracoesExibidas.map((geracao: GeracaoArvore) => (
                         <div key={geracao.id} className="grid min-w-0 gap-3 py-4 sm:grid-cols-[10rem_minmax(0,1fr)] sm:items-start">
@@ -125,6 +117,8 @@ export function PortalArvore() {
                         </div>
                       ))}
                     </div>
+                    )}
+
 
                     {/* Só contar nomes efetivamente publicados; o teto ilustrativo
                         do mockup não representa pessoas reais desta família. */}
