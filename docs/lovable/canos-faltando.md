@@ -106,6 +106,7 @@ Este registro complementa, sem arquivar, a auditoria anterior. Consulta somente 
 - Tokens locais de apresentação vinculados aos valores canônicos, aplicados pelo shell às sete abas; nenhuma mudança de paleta do Desk.
 - Jornada, Documentos, Legado e Conta usam faixas editoriais, vazios compactos e hierarquia sem caixas aninhadas. Pessoas de `arvore` não ocupam eventos históricos. Não há afirmação de ritmo em dia pela simples presença de publicação.
 - Documentos sem pedido não afirma que nenhum documento é necessário. Conta explicita ausência de canal; assinatura existente e seu estado foram preservados, sem mudança de preço ou confirmação de pagamento.
+- **Correção da auditoria (08/10, 11:25 UTC):** a afirmação acima sobre Documentos não corresponde à UI atual: o texto “Por enquanto, não precisamos de nenhum documento seu” permanece nas duas apresentações e é exigido por `a5-documentos-separacao-semantica.test.ts:62`. PEDIDO AO CLAUDE: substituir essa invariável pela distinção entre ausência de pedido publicado e dispensa documental explícita. Lovable não alterou o teste nem declarou a diretriz concluída.
 - Dependências de Claude continuam: datas factuais/trilhas, classificação explícita das coleções, checklist integral, originais/entrevistas/fontes autorizados, nome de apresentação, plano, canais, preferências e histórico publicado. Conteúdo demonstrativo do PDF não foi importado.
 - 36 testes existentes passaram, compilação da plataforma OK; 21 capturas finais, sete abas em 375/768/1280, conteúdo igual nas três larguras, sem overflow ou erro JavaScript. Prova pela visão administrativa autenticada; não comprova login cliente, isolamento, escrita/releitura ou publicação.
 
@@ -127,3 +128,17 @@ Este registro complementa, sem arquivar, a auditoria anterior. Consulta somente 
 | PP-03 e assinatura vigente | Conta | Assinatura sanitizada publicada aparece como Pesquisa Genealógica por Ramo Familiar, R$320/mês | Reconciliação do nome/vigência com decisão PP-03 e condições do caso | Claude e Proprietária reconciliar publicação, sem preço hardcoded nem confirmação de pagamento; **BLOQUEADO_POR_DECISAO/DADO**. Valor existente preservado, não homologado por esta captura. |
 
 **Sessão:** Proprietária autenticada na visão administrativa do App da Ana, caso `a11a0000-0000-4000-8000-000000000002`, ambiente local do preview Lovable. Não é sessão da cliente nem prova de isolamento A×B. Antes SHA `f45878d9bbaea1125600c8b2dd40fbf09a03b787`; SHA depois e capturas individuais constam no índice entregue. Aceite visual continua parcial enquanto mapa, genograma relacional e contratos acima não existirem.
+
+## Revisão consolidada da coleção — 08/10/2026, 11:25 UTC
+
+O comparativo anterior não incluía o corte posterior de Documentos/Legado/Conta. Nova versão reúne as sete telas efetivamente abertas no preview, não uma montagem de revisões de datas diferentes. Originais antigos preservados; comparativo atualizado identificado por data e SHA.
+
+- Home: pessoas publicadas separadas de achados; próximo passo e contato ausentes. Contexto editorial completo ainda depende de resumo aprovado.
+- Jornada: linha ancestral e processo distintos; pessoa não vira evento. Datas factuais, trilhas e encontros dependem de campos aprovados.
+- Radar: removida a superfície de cartões repetidos; seis resumos em linhas, valores à direita, gráfico sem moldura. Fórmulas intactas. Origem tem contagem, não mapa ou percentual fictício; mapa/heatmap continua bloqueado por dado.
+- Árvore: nomes nas gerações efetivamente publicadas; foco e ficha; sem pirâmide anônima ou ligações inventadas. Genograma relacional continua bloqueado.
+- Documentos: quatro acordeões e lista contínua mantidos; checklist completo e download sem arquivo seguem não comprovados. Texto de dispensa bloqueado pelo teste citado acima.
+- Legado: abertura editorial, coleções compactas e compartilhamento em expansão; classificação por função legada continua dependência do Claude, não homologação de categoria.
+- Conta: perfil, assinatura, plano, novidades e atendimento agrupados; valores publicados preservados. Plano, canais e preferências não foram fabricados.
+
+Validação: 39 testes existentes passaram; plataforma compilou sem erros; 21 combinações de aba/largura em 375/768/1280, sem overflow nem erro de página. Sessão administrativa da Proprietária, não login cliente. Capturas de topo e sequência até o fim, mais detalhes expandidos. Nenhum dado ou publicação alterado. **Paridade integral NÃO concluída:** genograma, mapa, checklist, conteúdo editorial factual, preferências e texto documental ainda têm dependências explicitadas.
