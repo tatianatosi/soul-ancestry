@@ -179,7 +179,7 @@
 [data-app-cliente] [data-aba-radar] section > ul {
   display: grid;
   gap: var(--ca-space-3);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
 }
 [data-app-cliente] [data-aba-radar] section > ul > li {
   border: 1px solid var(--app-v11-borda);
@@ -484,6 +484,7 @@
 [data-app-cliente] #conteudo-portal [data-conta-assinatura] h2 { color: var(--app-v11-conexao); }
 [data-app-cliente] #conteudo-portal [data-conta-assinatura-valor] { font-family: var(--app-v11-corpo); font-size: var(--ca-text-2xl); }
 @media (min-width: 768px) {
+  [data-app-cliente] [data-aba-radar] section > ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   [data-app-cliente] .app-arvore-ferramentas { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; }
   [data-app-cliente] .app-arvore-geracao { grid-template-columns: 9rem minmax(0, 1fr); align-items: start; }
   [data-app-cliente] .app-arvore-pessoas { grid-template-columns: repeat(2, minmax(0, 1fr)); }

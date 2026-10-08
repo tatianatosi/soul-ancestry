@@ -105,7 +105,7 @@ export function PortalLegado() {
                         <section
                           key={p.id}
                           data-legado-prateleira={p.id}
-                           className="app-v11-faixa flex min-w-0 flex-col"
+                            className="app-colecao flex min-w-0 flex-col"
                         >
                           <details className="app-colecao-detalhe" open={itens.length > 0}>
                           <summary className="app-colecao-resumo">
@@ -119,7 +119,7 @@ export function PortalLegado() {
                               <p className="mt-0.5 text-xs text-navy/55">{p.dica}</p>
                             </div>
                             <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
-                                {itens.length === 0 ? "Ainda sem histórias" : `${itens.length} ${itens.length === 1 ? "história" : "histórias"}`}
+                                 {itens.length === 0 ? "Em preparação" : `${itens.length} ${itens.length === 1 ? "material" : "materiais"}`}
                             </span>
                           </div>
                           <ChevronDown className="app-detalhe-seta h-4 w-4 shrink-0" aria-hidden="true" />
