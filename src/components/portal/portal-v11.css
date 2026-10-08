@@ -456,7 +456,7 @@
 [data-app-cliente] .app-documento-conteudo .app-v11-lacuna { border: 0; padding-left: 0; }
 [data-app-cliente] .app-documento-conteudo span.rounded-full { display: inline-block; width: auto; max-width: 100%; white-space: nowrap; border-radius: var(--ca-radius-pill); }
 /* Árvore: rótulo de geração legível, como marcador da faixa. */
-[data-app-cliente] .app-arvore-geracao > h3 {
+[data-app-cliente] #conteudo-portal .app-arvore-geracao > h3 {
   font-family: var(--app-v11-corpo);
   font-size: var(--ca-text-xs);
   letter-spacing: 0.08em;
