@@ -95,7 +95,7 @@ export function PortalShell({
               <BrandLogo size={32} variant="client-dark" showText={false} />
               <p className="font-serif text-xl leading-tight text-cream">Clube Ancestral</p>
             </div>
-            <LinkPortal to="/portal/conta" className="inline-flex min-h-11 shrink-0 items-center gap-2 text-xs text-cream underline decoration-gold underline-offset-4"><UserRound className="h-4 w-4" aria-hidden="true" />Contato</LinkPortal>
+            <LinkPortal to="/portal/conta" className="inline-flex min-h-11 shrink-0 items-center gap-2 text-xs text-cream underline decoration-gold underline-offset-4"><UserRound className="h-4 w-4" aria-hidden="true" />Conta</LinkPortal>
           </div>
 
           <div className="app-v11-identidade max-w-2xl">

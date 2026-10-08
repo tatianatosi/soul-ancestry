@@ -23,7 +23,7 @@ export function PerfilPessoaArvore({ pessoa }: { pessoa: PessoaNaArvore }) {
 }
 
 /** Exploração visual dos mesmos nós publicados; sem inventar arestas relacionais. */
-export function ExploradorArvore({ pessoas, geracoes }: { pessoas: PessoaNaArvore[]; geracoes: GeracaoArvore[] }) {
+export function ExploradorArvore({ pessoas, geracoes }: { pessoas: PessoaNaArvore[]; geracoes: readonly GeracaoArvore[] }) {
   const [modo, setModo] = useState<"geracoes" | "pessoas">("geracoes");
   const [foco, setFoco] = useState<string | null>(null);
   const pessoasVisiveis = foco ? pessoas.filter((pessoa) => pessoa.chave === foco) : pessoas;
