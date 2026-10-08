@@ -14,10 +14,9 @@ import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
 import { cn } from "@/lib/utils";
-import { CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, UsersRound, Sparkles } from "lucide-react";
 import { CaCard } from "@/components/ui/ca-card";
 import { pessoasDaArvore } from "@/lib/arvore-publicacao";
-import { ehPessoaPublicada } from "@/lib/projecoes-cliente";
 
 const PROXIMO_PASSO_VAZIO =
   "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui.";
@@ -82,14 +81,13 @@ export function PortalHome() {
   const passoPublicado = jornada.linha.find((item) => item.tipo === "proxima_acao");
   /*
    * Retificação de 07/10/2026: uma pessoa publicada na árvore NÃO é achado.
-   * Antes, `tipo === "arvore"` entrava aqui sem distinguir nó de nota, então
-   * os nomes da família apareciam em "Achados da sua história" ao mesmo tempo
-   * que em "Pessoas conectadas". Pessoa alimenta só "Pessoas conectadas";
-   * nota sobre a árvore (projeção de árvore sem pessoa) segue sendo achado.
+   * Antes, `tipo === "arvore"` entrava aqui, e os nomes da família apareciam
+   * em "Achados da sua história" ao mesmo tempo que em "Pessoas conectadas".
+   * Achado é só o que foi publicado COMO achado — regra do Lovable, mantida
+   * por ser a mais estreita: pessoa nunca entra, por construção.
    */
   const achadosPublicados = jornada.linha.filter((item) =>
-    ["achado", "arvore", "evidencia", "linha_tempo", "legado", "relatorio_fase"].includes(item.tipo) &&
-    !ehPessoaPublicada(item) &&
+    item.tipo === "achado" &&
     !/estado de validação|próximo passo: devolutiva/i.test(item.conteudo),
   );
   const pessoasPublicadas = pessoasDaArvore(vivo.data?.projecoes ?? []).length;
@@ -393,11 +391,11 @@ function PainelHomeMockup({
         </section>
       ) : null}
 
-      <div className="grid gap-7 pt-2 sm:grid-cols-2 sm:items-start">
+      <div className="grid gap-8 pt-4 sm:grid-cols-2 sm:items-start">
         <section aria-label="Próxima ação">
           <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Próxima ação</p>
           <h3 className="mb-3 font-serif text-2xl text-navy">O que vem agora</h3>
-          <CaCard>
+          <div className="border-l-2 border-gold pl-4">
             <p className="whitespace-pre-line text-sm leading-relaxed text-navy/80">{proximoPasso}</p>
             {proximaEntrega ? (
               <p className="mt-2 text-xs text-navy/70" data-proxima-entrega>
@@ -420,20 +418,20 @@ function PainelHomeMockup({
                 Acompanhar sua jornada
               </Link>
             ) : null}
-          </CaCard>
+          </div>
         </section>
 
         <section className="sm:col-start-2 sm:row-start-1" aria-label="Pessoas conectadas">
           <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Família</p>
-          <h3 className="mb-3 font-serif text-2xl text-navy">Pessoas conectadas</h3>
-          <CaCard>
+          <h3 className="mb-3 flex items-center gap-3 font-serif text-2xl text-navy"><UsersRound className="h-6 w-6 shrink-0" aria-hidden="true" />Pessoas conectadas</h3>
+          <div className="border-t border-gold/40 py-3">
             <p className="text-sm leading-relaxed text-navy/75">
               {pessoasPublicadas > 0
                 ? `${pessoasPublicadas} ${pessoasPublicadas === 1 ? "pessoa compartilhada" : "pessoas compartilhadas"} na sua Árvore.`
                 : "Quando novos vínculos estiverem confirmados, eles aparecerão na sua Árvore."}
             </p>
             <LinkPortal to="/portal/arvore" className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Árvore</LinkPortal>
-          </CaCard>
+          </div>
         </section>
 
         {documentoPrioritario ? (
@@ -446,17 +444,17 @@ function PainelHomeMockup({
 
         <section className="sm:col-span-2">
           <div className="mb-3 flex items-end justify-between gap-2">
-            <h3 className="font-serif text-2xl text-navy">Achados da sua história</h3>
+            <h3 className="flex min-w-0 items-center gap-2 font-serif text-2xl text-navy"><Sparkles className="h-5 w-5 shrink-0" aria-hidden="true" />Achados da sua história</h3>
             <LinkPortal to="/portal/jornada" className="shrink-0 text-xs font-medium text-navy/60 underline-offset-2 hover:text-navy hover:underline">
               Ver Jornada
             </LinkPortal>
           </div>
           {achados.length === 0 ? (
-            <CaCard className="border-l-2 border-l-gold">
+            <div className="border-l-2 border-gold/40 py-1 pl-4">
               <p className="font-serif text-lg leading-relaxed text-navy/70">
                 Quando houver descobertas prontas para compartilhar, elas encontrarão seu lugar aqui.
               </p>
-            </CaCard>
+            </div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               {achados.slice(0, 3).map((a) => {
@@ -479,14 +477,26 @@ function PainelHomeMockup({
           )}
         </section>
         {microentrega ? (
-          <section aria-label="Microentrega" className="border-l-2 border-plum/60 py-1 pl-4 sm:col-span-2">
+          <section aria-label="Microentrega" className="app-home-entrega border-l-2 border-plum/60 py-1 pl-4 sm:col-span-2">
             <p className="text-[10px] font-medium uppercase tracking-widest text-plum">Da nossa jornada</p>
             <p className="mt-1 text-sm text-navy/65">{microentrega}</p>
             <LinkPortal to="/portal/jornada" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Jornada</LinkPortal>
           </section>
         ) : null}
-        {!documentoPrioritario && !microentrega ? <p className="border-t border-border pt-4 text-sm leading-relaxed text-navy/70 sm:col-span-2">Os documentos prioritários e as novidades da jornada aparecerão aqui quando forem compartilhados com sua família.</p> : null}
-        <LinkPortal to="/portal/conta" className="inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4 sm:col-span-2">Contato com a equipe</LinkPortal>
+        {!documentoPrioritario ? (
+          <section aria-label="Documentos prioritários" className="app-home-ausencia sm:col-span-2">
+            <details><summary className="font-serif text-xl text-navy">Documentos prioritários</summary>
+            <p className="mt-2 text-sm leading-relaxed text-navy/70">Ainda não há uma prioridade documental compartilhada com sua família. O checklist aparecerá quando for disponibilizado pela equipe.</p>
+            <LinkPortal to="/portal/documentos" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Documentos <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></LinkPortal>
+            </details>
+          </section>
+        ) : null}
+        <section aria-label="Contato com a equipe" className="app-home-ausencia sm:col-span-2">
+          <details><summary className="font-serif text-xl text-navy">Contato com a equipe</summary>
+          <p className="mt-2 text-sm leading-relaxed text-navy/70">Ainda não há um canal de contato disponibilizado neste aplicativo.</p>
+          <LinkPortal to="/portal/conta" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Conta <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></LinkPortal>
+          </details>
+        </section>
       </div>
     </div>
   );

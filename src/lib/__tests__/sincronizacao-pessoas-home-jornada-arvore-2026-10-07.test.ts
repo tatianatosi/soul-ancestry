@@ -110,12 +110,10 @@ describe("A/B. pessoa não produz achado nem acontecimento", () => {
     expect(pessoasDaArvore(seisPessoas as ProjecaoArvore[])).toHaveLength(6);
 
     // Home: o filtro de achados (mesma regra da tela) não recebe nenhuma delas.
-    const achados = publicadas.filter(
-      (item: PublicacaoCliente) =>
-        ["achado", "arvore", "evidencia", "linha_tempo", "legado", "relatorio_fase"].includes(item.tipo) &&
-        !ehPessoaPublicada(item),
-    );
+    const achados = publicadas.filter((item: PublicacaoCliente) => item.tipo === "achado");
     expect(achados).toHaveLength(0);
+    // E a regra do nó de pessoa segue valendo em qualquer coleção.
+    expect(publicadas.every((p) => !(ehPessoaPublicada(p) && p.tipo === "achado"))).toBe(true);
   });
 
   it("B. pessoa sem fato não entra na linha; nota com ano documentado entra", () => {
@@ -185,6 +183,8 @@ describe("4. Home, Jornada e Árvore chegam ao mesmo conjunto, cada uma na sua l
 
   it("Home mostra só a contagem de pessoas distintas e o link para a Árvore", () => {
     expect(home).toContain("pessoasDaArvore(vivo.data?.projecoes ?? []).length");
+    // Achado é só o publicado COMO achado: pessoa não entra por construção.
+    expect(home).toContain('item.tipo === "achado"');
     expect(home).toContain("Pessoas conectadas");
     expect(home).toContain('to="/portal/arvore"');
     expect(home).toContain("Ver Árvore");

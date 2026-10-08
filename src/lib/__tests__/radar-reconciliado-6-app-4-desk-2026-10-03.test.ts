@@ -152,7 +152,9 @@ describe("App Cliente — 6 dimensões, todas com percentual e com a conta visí
 
   it("a tela do cliente renderiza a conta", () => {
     expect(APP).toContain("data-radar-calculo");
-    expect(APP).toContain("Como calculamos:");
+    // 08/10/2026: virou disclosure (<summary>Como calculamos</summary>) no
+    // Lovable; a conta continua visível ao cliente, agora recolhível.
+    expect(APP).toContain("Como calculamos");
     expect(APP).toContain("d.comoCalculamos");
   });
 

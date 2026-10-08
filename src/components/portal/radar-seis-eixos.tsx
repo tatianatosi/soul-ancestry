@@ -29,12 +29,13 @@ function anelDeFundo(fracao: number, chave: string) {
  *
  * RADAR-APP-SEMANTICA-PROGRESSO (18/09/2026): todos os 6 eixos, inclusive o
  * de progresso geral, representam andamento da jornada — nunca elegibilidade
- * jurídica, chance ou parecer. Dimensão sem percentual publicado fica no
- * centro do polígono — nunca inventa posição.
+ * jurídica, chance ou parecer. Dimensão sem percentual não ganha posição;
+ * o polígono só aparece quando todos os eixos possuem percentual.
  */
 export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
+  const todosComBase = dimensoes.every((d) => d.percentual !== null);
   const pontosPoligono = dimensoes
-    .map((d, i) => ponto(i, d.estado === "percentual" ? RAIO * ((d.percentual ?? 0) / 100) : 0))
+    .map((d, i) => ponto(i, RAIO * ((d.percentual ?? 0) / 100)))
     .map((p) => `${p.x},${p.y}`)
     .join(" ");
 
@@ -43,10 +44,10 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
   );
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm" data-radar-grafico>
-      <div className="border-b border-navy/10 px-5 py-4">
+    <div className="min-w-0 py-2" data-radar-grafico>
+      <div className="px-1 py-3">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Visão das seis dimensões</p>
-        <h2 className="mt-0.5 font-serif text-xl text-navy">Radar Ancestral</h2>
+        <h2 className="mt-1 font-serif text-2xl text-navy">Radar Ancestral</h2>
       </div>
       {!comProgresso ? (
         <p className="mx-4 mt-4 rounded-lg border border-border bg-cream/70 px-3 py-2 text-center text-xs text-navy/65">
@@ -54,8 +55,8 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
         </p>
       ) : null}
       <svg
-        viewBox="-90 -30 400 300"
-        className="mx-auto w-full max-w-lg px-2 pb-2"
+        viewBox="-110 -30 450 300"
+        className="mx-auto w-full max-w-2xl pb-2"
         role="img"
         aria-label="Radar das 6 dimensões da sua jornada"
       >
@@ -75,7 +76,12 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
             />
           );
         })}
-        <polygon points={pontosPoligono} className="fill-gold/25 stroke-gold" strokeWidth={2} />
+        {todosComBase ? <polygon points={pontosPoligono} className="fill-gold/25 stroke-gold" strokeWidth={2} /> : null}
+        {dimensoes.map((d, i) => {
+          if (d.percentual === null) return null;
+          const valor = ponto(i, RAIO * (d.percentual / 100));
+          return <circle key={`valor-${d.id}`} cx={valor.x} cy={valor.y} r={4} className="fill-gold" />;
+        })}
         {dimensoes.map((d, i) => {
           const rotulo = ponto(i, RAIO + 28);
           // Âncora por quadrante evita corte dos rótulos nas bordas do SVG.
@@ -89,13 +95,14 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
               y={rotulo.y}
               textAnchor={textAnchor}
               dominantBaseline="middle"
-              className="fill-navy text-[9px] font-medium"
+              className="fill-navy text-[11px] font-medium"
             >
               {d.titulo}
             </text>
           );
         })}
       </svg>
+      {!todosComBase ? <p className="pb-4 text-sm leading-relaxed text-navy/70">Os pontos mostram apenas dimensões com base real. Dimensões sem total não são representadas como zero.</p> : null}
     </div>
   );
 }

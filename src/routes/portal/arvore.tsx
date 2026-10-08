@@ -13,81 +13,14 @@ import {
 import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
 import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { cn } from "@/lib/utils";
-import { Search, Clock } from "lucide-react";
-
-/**
- * Conector real entre gerações (correção 2026-09-12): um leque de linhas da
- * geração anterior até cada slot desta geração — mostra a estrutura real de
- * descendência entre as duas faixas, sem inventar QUAL slot é filho de qual
- * (essa relação pessoa-a-pessoa não existe em dado publicado no portal).
- */
-function ConectorGeracao({ slots }: { slots: number }) {
-  const pontos = Array.from({ length: slots }, (_, i) => ((i + 0.5) / slots) * 100);
-  return (
-    <svg viewBox="0 0 100 20" className="mx-auto block h-4 w-full max-w-xs" preserveAspectRatio="none" aria-hidden="true">
-      {pontos.map((x, i) => (
-        <path key={i} d={`M 50 0 L ${x} 20`} stroke="var(--gold)" strokeOpacity={0.4} strokeWidth={1} fill="none" />
-      ))}
-    </svg>
-  );
-}
-
-function NoArvore({
-  ehG1,
-  estado,
-  titulo,
-}: {
-  ehG1: boolean;
-  estado: "em_pesquisa" | "a_publicar";
-  titulo?: string;
-}) {
-  const rotuloEstado = estado === "em_pesquisa" ? "Em pesquisa" : "A publicar";
-  return (
-    <div
-      className={cn(
-        "flex h-9 w-9 flex-col items-center justify-center gap-0.5 rounded-md border text-center shadow-sm sm:h-14 sm:w-14 sm:rounded-lg",
-        ehG1 ? "border-2 border-navy bg-navy font-semibold text-cream shadow-sm" : "border-gold/40 bg-card text-navy/55",
-      )}
-      title={ehG1 ? "Você (G1)" : rotuloEstado}
-    >
-      {ehG1 ? (
-          <span className="text-[8px] sm:text-[10px]">Você</span>
-      ) : (
-        <>
-          {/* Ajuste 2026-09-12 (opcional, pedido da Proprietária): no desktop,
-              ícone + tooltip evita repetir o mesmo texto em vários nós; no
-              mobile (sem hover), o texto continua visível. */}
-          {estado === "em_pesquisa" ? (
-            <Search className="hidden h-3.5 w-3.5 text-gold/70 lg:block" aria-hidden="true" />
-          ) : (
-            <Clock className="hidden h-3.5 w-3.5 text-navy/40 lg:block" aria-hidden="true" />
-          )}
-          <span className="sr-only">{rotuloEstado}</span>
-        </>
-      )}
-    </div>
-  );
-}
+import { ExploradorArvore, PerfilPessoaArvore } from "@/components/portal/explorador-arvore";
 
 /**
  * Corte 2a (28/09/2026): pessoa da família publicada pela equipe — nome e
  * vínculo, destaque dourado de "conectada". Só o que foi liberado no Desk.
  */
 function NoPessoa({ pessoa }: { pessoa: PessoaNaArvore }) {
-  return (
-    <details
-      className="flex min-h-9 min-w-[5.5rem] max-w-[9rem] flex-col items-center justify-center rounded-md border-2 border-gold bg-gold/15 px-2 py-1 text-center shadow-sm sm:min-h-14 sm:rounded-lg"
-      data-arvore-pessoa
-    >
-      <summary className="cursor-pointer list-none text-[10px] font-semibold leading-tight text-navy sm:text-xs">{pessoa.nome}</summary>
-      <div className="mt-2 border-t border-gold/30 pt-2 text-left text-[10px] leading-relaxed text-navy/70">
-        <p className="font-semibold">Sobre esta ligação</p>
-        <p>{pessoa.vinculo ?? "Vínculo não publicado"}</p>
-        <p className="mt-1">Para sugerir uma correção, fale com a equipe pelos canais já combinados.</p>
-      </div>
-    </details>
-  );
+  return <PerfilPessoaArvore pessoa={pessoa} />;
 }
 
 export const Route = createFileRoute("/portal/arvore")({
@@ -146,7 +79,7 @@ export function PortalArvore() {
                   {/* A composição exibe G1 e as gerações com pessoas publicadas. */}
                   <section
                     aria-label={`Gerações G1 a G${maiorGeracao}`}
-                    className="overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm"
+                    className="min-w-0 py-2"
                   >
                     <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">
                        As gerações que compõem você
@@ -154,50 +87,43 @@ export function PortalArvore() {
                     <p className="mt-1 text-sm text-navy/65">
                       {temConteudo
                         ? pessoas.length > 0
-                          ? "A árvore reúne as pessoas e os vínculos já confirmados e compartilhados com você."
+                          ? "A árvore reúne as pessoas compartilhadas com você, nas gerações publicadas. Os vínculos aparecem somente quando também forem compartilhados."
                           : "Os nomes compartilhados estão abaixo. As posições na árvore aparecerão quando os vínculos e as gerações estiverem disponíveis."
                          : "Esta árvore ainda não tem nomes e vínculos liberados para a família."}
                     </p>
-                    <div className="mt-5 space-y-1">
-                      {geracoesExibidas.map((geracao: GeracaoArvore, gi) => (
-                        <div key={geracao.id}>
-                          {gi > 0 ? <ConectorGeracao slots={geracao.slots} /> : null}
-                          <p className="mb-2 text-center text-[10px] uppercase tracking-[0.14em] text-navy/45">
-                            {geracao.rotulo}
+                    {pessoas.length > 0 ? (
+                      <ExploradorArvore pessoas={pessoas} geracoes={geracoesExibidas} />
+                    ) : (
+                    <div className="mt-6 divide-y divide-border">
+                      {geracoesExibidas.map((geracao: GeracaoArvore) => (
+                        <div key={geracao.id} className="grid min-w-0 gap-3 py-4 sm:grid-cols-[10rem_minmax(0,1fr)] sm:items-start">
+                          <p className="text-xs font-medium leading-relaxed text-navy/70">
+                            {geracao.id === "G1" ? "G1 · Você (âncora)" : `${geracao.id} · ${Number(geracao.id.slice(1))}ª geração`}
                           </p>
-                          <div className="flex flex-wrap justify-center gap-2">
+                          <div className="grid min-w-0 gap-2">
                             {geracao.id === "G1" ? (
-                              <NoArvore ehG1 estado={painel.estadoSlotAnonimo} />
+                              <p className="rounded-lg bg-navy px-4 py-3 text-sm font-medium text-cream">Você</p>
                             ) : null}
                             {pessoas.length > 0 && geracao.id !== "G1" && !geracoesPublicadas.has(geracao.id) ? (
-                              <p className="rounded-lg border border-dashed border-terracotta/40 px-3 py-2 text-center text-xs text-navy/70" data-arvore-lacuna>
+                              <p className="border-l-2 border-terracotta/40 pl-4 text-sm leading-relaxed text-navy/70" data-arvore-lacuna>
                                 Lacuna: ninguém desta geração foi compartilhado ainda.
                               </p>
                             ) : null}
                             {pessoasDaGeracao(geracao.id).map((pessoa) => (
                               <NoPessoa key={pessoa.chave} pessoa={pessoa} />
                             ))}
-                            {Array.from({
-                              length: Math.max(
-                                0,
-                                pessoas.length > 0 ? 0 : geracao.slots - (geracao.id === "G1" ? 1 : 0),
-                              ),
-                            }).map((_, i) => (
-                              <NoArvore
-                                key={`${geracao.id}-${i}`}
-                                ehG1={false}
-                                estado={temConteudo ? "em_pesquisa" : painel.estadoSlotAnonimo}
-                              />
-                            ))}
+                            {pessoas.length === 0 && geracao.id !== "G1" ? <p className="text-sm text-navy/60">Nenhuma pessoa compartilhada nesta geração.</p> : null}
                           </div>
                         </div>
                       ))}
                     </div>
+                    )}
+
 
                     {/* Só contar nomes efetivamente publicados; o teto ilustrativo
                         do mockup não representa pessoas reais desta família. */}
                     <p
-                      className="mt-5 rounded-xl border border-gold/40 bg-gold/5 px-4 py-3 text-center text-sm text-navy/75"
+                      className="mt-5 border-t border-gold/40 py-4 text-sm text-navy/75"
                       data-arvore-contagem
                     >
                       {pessoas.length > 0 ? (
@@ -247,7 +173,7 @@ export function PortalArvore() {
                       ) : null}
                     </div>
                     {painel.notasPublicadas.length === 0 ? (
-                      <p className="rounded-xl border border-dashed border-navy/20 bg-cream/60 p-4 text-sm text-navy/60">
+                      <p className="border-l-2 border-gold/40 pl-4 text-sm leading-relaxed text-navy/70">
                           A próxima ligação da família aparecerá aqui quando estiver confirmada e liberada.
                       </p>
                     ) : (

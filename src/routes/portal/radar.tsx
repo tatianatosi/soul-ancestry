@@ -4,6 +4,7 @@ import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { radarSeisDimensoes } from "@/lib/radar-seis-eixos";
+import { OrigemGeografica } from "@/components/portal/origem-geografica";
 import { RadarSeisEixos } from "@/components/portal/radar-seis-eixos";
 import { usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -82,6 +83,10 @@ export function PortalRadar() {
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="space-y-5" data-aba-radar>
                   <RadarSeisEixos dimensoes={dimensoes} />
+                  <section aria-label="Checklist documental" className="border-l-2 border-terracotta/40 py-1 pl-4">
+                    <h2 className="font-serif text-xl text-navy">Checklist documental</h2>
+                    <p className="mt-2 text-sm leading-relaxed text-navy/75">O checklist completo do caso ainda não foi compartilhado. Sem essa lista, não há uma base documental completa para comparar.</p>
+                  </section>
 
                   {/* Próximo passo real (mesma fonte de Home/Jornada) — nunca um passo por eixo inventado. */}
                   <section className="border-l-2 border-gold/60 py-1 pl-4">
@@ -95,7 +100,7 @@ export function PortalRadar() {
 
                   <section aria-label="Dimensões do Radar">
                     <h2 className="mb-3 font-serif text-xl text-navy">A história em seis dimensões</h2>
-                     <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
+                     <ul className="divide-y divide-border">
                       {dimensoes.map((d, i) => {
                         // "Em preparação" só quando não há percentual nem registro publicado.
                         const temPercentual = d.percentual !== null;
@@ -104,41 +109,43 @@ export function PortalRadar() {
                         const contagemConexoes =
                           d.id === "conexoes" && temPercentual ? d.legenda.match(/^(\d+) de (\d+)/) : null;
                         return (
-                        <li key={d.id} className="min-w-0 rounded-xl border border-border bg-card p-3 shadow-sm sm:p-4">
-                          <div className="min-w-0 sm:flex sm:items-start sm:justify-between sm:gap-2">
+                        <li key={d.id} className="min-w-0 py-4">
+                          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                             <div className="min-w-0">
-                              <p className="text-[9px] font-semibold uppercase tracking-widest text-navy/45">
+                              <p className="text-xs font-medium text-navy/60">
                                 Parte {i + 1} de 6
                               </p>
-                              <h3 className="mt-0.5 text-xs font-semibold leading-tight text-navy">{d.titulo}</h3>
+                              <h3 className="mt-1 font-serif text-xl leading-tight text-navy">{d.titulo}</h3>
                             </div>
-                            <span className="mt-2 block break-words font-serif text-sm leading-tight text-navy sm:mt-0 sm:shrink-0 sm:text-base">
+                            <span className="block max-w-32 break-words text-right font-serif text-xl leading-tight text-navy">
                               {vazio ? "Lacuna" : temPercentual ? `${d.percentual}%` : d.rotuloNumero}
                               {temPercentual && d.id !== "conexoes" && !d.rotuloNumero.includes("%") && temRegistro ? <span className="ml-1 font-sans text-xs text-navy/70">· {d.rotuloNumero}</span> : null}
                               {contagemConexoes ? (
-                                <span className="ml-1 font-sans text-[10px] text-navy/55">
+                                <span className="mt-1 block font-sans text-xs text-navy/70">
                                   · {contagemConexoes[1]} de {contagemConexoes[2]} pessoas
                                 </span>
                               ) : null}
                             </span>
                           </div>
-                          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-cream" aria-hidden="true">
+                          {temPercentual ? <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-navy/10" aria-hidden="true">
                             <div
                               className="h-full rounded-full bg-gold"
                               style={{ width: `${temPercentual ? (d.percentual ?? 0) : 0}%` }}
                             />
-                          </div>
-                          {d.legenda ? <p className="mt-2 text-sm leading-relaxed text-navy/75">{d.legenda}</p> : null}
+                          </div> : null}
+                          {d.legenda ? <p className="mt-2 text-sm leading-relaxed text-navy/75">{vazio ? d.legenda.replace(/^Lacuna:\s*/i, "").replace(/^./, (c) => c.toUpperCase()) : d.legenda}</p> : null}
                           {d.comoCalculamos ? (
-                            <p className="mt-2 border-t border-border pt-2 text-sm leading-relaxed text-navy/70" data-radar-calculo>
-                              Como calculamos: {d.comoCalculamos}
-                            </p>
+                            <details className="mt-2 text-sm leading-relaxed text-navy/70" data-radar-calculo>
+                              <summary className="flex min-h-11 cursor-pointer items-center gap-2 font-medium text-navy underline decoration-gold underline-offset-4 focus-visible:outline-2 focus-visible:outline-gold">Como calculamos</summary>
+                              <p className="pb-2">{d.comoCalculamos}</p>
+                            </details>
                           ) : null}
                         </li>
                         );
                       })}
                     </ul>
                   </section>
+                  <OrigemGeografica />
                 </div>
               </BlocoVisibilidade>
             );

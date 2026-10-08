@@ -68,7 +68,14 @@ describe("App: pessoas distintas por geração, nunca contagem de publicações"
     expect(tela).toContain("data-arvore-contagem");
     expect(tela).toContain("{pessoas.length}{\" \"}");
     expect(tela).not.toContain("de um universo de {PESSOAS_POSSIVEIS_CINCO_GERACOES} possíveis nas 5 gerações");
-    expect(tela).toContain("A árvore reúne as pessoas e os vínculos já confirmados e compartilhados com você.");
+    /*
+      08/10/2026: o Lovable reescreveu a faixa para uma versão MAIS precisa —
+      diz que o vínculo só aparece quando também for compartilhado, que é
+      exatamente o estado real (as 6 pessoas publicadas estão sem vínculo).
+      A proteção é a mesma: a tela declara o recorte do que está liberado.
+    */
+    expect(tela).toContain("A árvore reúne as pessoas compartilhadas com você, nas gerações publicadas.");
+    expect(tela).toContain("Os vínculos aparecem somente quando também forem compartilhados.");
     expect(tela).toContain("Esta árvore ainda não tem nomes e vínculos liberados para a família.");
     expect(ler("src/lib/portal-dados-vivos.functions.ts")).toContain("pessoa_id, geracao_cliente");
   });

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { BookOpen, ChevronDown, FileText, Feather } from "lucide-react";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
@@ -63,18 +64,19 @@ export function PortalLegado() {
 
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
-                <div className="space-y-5" data-aba-legado>
+                <div className="app-v11-secoes" data-aba-legado>
                   {/* Acabamento 2026-09-13 (referência Lovable): card editorial de
                       abertura, mesmo texto que já existia (movido para cá, não
                       duplicado), no padrão navy já usado no hero da Home. */}
-                  <section className="rounded-2xl bg-navy-800 p-4 text-cream sm:p-5">
-                    <p className="text-[10px] uppercase tracking-widest text-gold/80">
+                  <section className="app-legado-editorial">
+                    <BookOpen className="app-legado-simbolo h-7 w-7" aria-hidden="true" />
+                    <p className="text-xs uppercase text-gold">
                        Acervo da família
                     </p>
-                    <h2 className="mt-1 font-serif text-xl text-cream">
+                    <h2 className="mt-1 font-serif text-xl text-navy">
                        Histórias para guardar e compartilhar
                     </h2>
-                    <p className="mt-2 text-sm text-cream/70">
+                    <p className="mt-2 text-sm text-navy/70">
                         Um lugar para reunir as histórias e os materiais preparados para permanecer com a sua família.
                     </p>
                   </section>
@@ -94,33 +96,37 @@ export function PortalLegado() {
                      </p>
                    ) : null}
 
-                  <div className="grid gap-3 sm:grid-cols-3 sm:items-stretch" data-legado-prateleiras>
+                  <div className="grid gap-6 sm:grid-cols-2 sm:items-start" data-legado-prateleiras>
                     {PRATELEIRAS.filter((p) => p.id !== "memoria").map((p) => {
                       const itens = p.id === "narrativas"
                         ? [...porPrateleira.narrativas, ...porPrateleira.memoria]
                         : porPrateleira[p.id];
+                      const IconeColecao = p.id === "cadernos" ? BookOpen : p.id === "relatorios" ? FileText : Feather;
                       return (
                         <section
                           key={p.id}
                           data-legado-prateleira={p.id}
-                           className={`flex min-w-0 flex-col overflow-hidden rounded-xl border border-border border-t-4 bg-card p-4 shadow-sm ${
-                             ["border-t-gold", "border-t-navy", "border-t-plum"][PRATELEIRAS.indexOf(p) % 3]
-                          }`}
+                            className="app-colecao flex min-w-0 flex-col"
                         >
-                          <div className="flex flex-col items-start gap-2">
+                          <details className="app-colecao-detalhe" open={itens.length > 0}>
+                          <summary className="app-colecao-resumo">
+                            <span className="app-colecao-capa" aria-hidden="true"><IconeColecao className="h-6 w-6" /></span>
+                            <div className="min-w-0">
                             <div>
-                              <p className="text-[10px] font-medium uppercase tracking-widest text-gold/70">
+                              <p className="text-xs font-medium uppercase text-navy/60">
                                 Coleção
                               </p>
                               <h2 className="mt-0.5 font-serif text-xl text-navy">{p.rotulo}</h2>
                               <p className="mt-0.5 text-xs text-navy/55">{p.dica}</p>
                             </div>
                             <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
-                                {itens.length === 0 ? "Ainda sem histórias" : `${itens.length} ${itens.length === 1 ? "história" : "histórias"}`}
+                                 {itens.length === 0 ? "Em preparação" : `${itens.length} ${itens.length === 1 ? "material" : "materiais"}`}
                             </span>
                           </div>
+                          <ChevronDown className="app-detalhe-seta h-4 w-4 shrink-0" aria-hidden="true" />
+                          </summary>
                           {itens.length === 0 ? (
-                             <p className="mt-3 flex min-h-28 grow items-center justify-center rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-4 text-center text-sm text-navy/60">
+                             <p className="app-v11-lacuna mt-3 text-navy/60">
                                  {p.id === "cadernos"
                                    ? "Os cadernos da família aparecerão aqui quando forem liberados."
                                    : p.id === "relatorios"
@@ -132,7 +138,7 @@ export function PortalLegado() {
                               {itens.map((item) => (
                                 <li
                                   key={item.id}
-                                  className="rounded-lg border border-border bg-card p-4 shadow-sm"
+                                  className="border-b border-border py-4"
                                 >
                                   <p className="text-[11px] font-medium uppercase tracking-wide text-navy/45">
                                      {item.tipo === "microentrega" ? "Da nossa jornada" : item.tipoRotulo}
@@ -149,6 +155,7 @@ export function PortalLegado() {
                               ))}
                             </ul>
                           )}
+                          </details>
                         </section>
                       );
                     })}
@@ -163,7 +170,7 @@ export function PortalLegado() {
                     coberto pelo anexo de privacidade do contrato.
                   */}
                    <p className="border-t border-border pt-4 text-sm leading-relaxed text-navy/75">Entrevistas, acervo e novas descobertas terão seu lugar nas coleções quando forem compartilhados com a família.</p>
-                   <CompartilharAchadoCliente achados={entregas} />
+                    <details className="app-legado-compartilhar"><summary className="flex items-center gap-3 font-serif text-xl text-navy"><span className="flex-1">Compartilhar com a família</span><ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary><CompartilharAchadoCliente achados={entregas} /></details>
 
                 </div>
               </BlocoVisibilidade>

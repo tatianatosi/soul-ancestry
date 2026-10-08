@@ -82,3 +82,63 @@ Tipos reconhecidos em `projecoes-cliente.ts`: `linha_tempo`, `arvore`, `achado`,
 - Tentativa autenticada de abrir `/app-cliente-como-pessoa?casoId=` no caso da Ana: carregamento seguido de tela vazia. Capturas comparativas 375/1280 e releitura das sete abas **não comprovadas neste corte**. Não entregar captura vazia como paridade aprovada.
 - Inventário anterior: seis pessoas, uma microentrega e uma assinatura publicadas; resumo em rascunho. Essas contagens não foram consultadas novamente no banco neste corte e não são afirmação de estado atual.
 - Próximo passo: Claude reconciliar os contratos acima; retomar ajustes exclusivamente visuais e capturas das sete abas em 375/1280 com a mesma informação, sem publicação automática.
+
+## Corte 07/10/2026 — Árvore, Radar e Home (19:46 UTC)
+
+Este registro complementa, sem arquivar, a auditoria anterior. Consulta somente leitura no Lovable Cloud confirmou 6 projeções `arvore`, 1 `assinatura` e 1 `microentrega` em `portal_projecoes` para o caso da Ana; nenhuma solicitação documental não arquivada. Não há projeção de checklist completo, próxima ação ou canal nesse conjunto. Nenhum dado foi criado ou publicado.
+
+**Apresentação implementada e conferida:** G1 como âncora, demais rótulos numerados neutros (G4 · 4ª geração), sem renumerar pessoas; Home limita Achados ao tipo `achado` e explicita ausência de prioridade/checklist e canal; Radar não conecta dimensões sem percentual ao centro como se fossem zero. O cálculo existente continua intacto: Conexões mostra 6/10 = 60%, e Progresso Geral informa que atualmente utiliza apenas esse eixo.
+
+**Limite:** a convenção foi corrigida na apresentação da Árvore, não na biblioteca compartilhada pelo Claude. A existência de documentos recebidos não comprova checklist completo. Ticket interno não equivale a canal publicado. Próxima ação produzida pelo motor não equivale a projeção de próxima ação, e a procura por `proxima_acao` na linha atual não possui tipo reconhecido pelo leitor.
+
+| Elemento | Aba | Projeção esperada | Campos que a tela precisa / pedido ao Claude |
+|---|---|---|---|
+| Convenção de geração compartilhada | Árvore / leitores / simulação | `arvore` existente | Unificar biblioteca: G1 âncora; Gn · nª geração; preservar `geracao_cliente` e vínculos publicados. Não reinterpretar G4 como parentesco pela posição. |
+| Checklist completo | Home / Radar | Contrato a reconciliar, sem inventar tipo | Universo integral aplicável ao caso, IDs de itens, estados publicados, numerador e denominador com critério de completude. `docs.length` é contagem de arquivos disponíveis, não prova desse universo. |
+| Próxima ação | Home / Radar | Contrato a reconciliar com leitores existentes | Texto sanitizado aprovado, caso, destino permitido e data opcional real. Entregar a mesma ação nas duas telas sem texto interno ou pagamento não confirmado. Não habilitar tipo desconhecido só na UI. |
+| Canal de contato | Home | Contrato a reconciliar | Rótulo, destino autorizado, disponibilidade e contexto do caso; ação existente persistente se for atendimento interno. Sem telefone/e-mail inventado ou atalho apresentado como contato funcional. |
+| Base de Origem | Radar | Contrato de origem aprovado | Origem histórica contextualizada e unidade/total quando houver; árvore publicada não comprova localização nem progresso de origem. |
+
+**Validação deste corte:** 33 testes existentes passaram; compilação da plataforma OK. Navegação administrativa autenticada nas três abas em 375×1800 e 1280×1800, capturas topo/meio/fim, sem overflow de documento e sem erro JavaScript. Capturas em `/tmp/browser/ana-bases-reais/`. Login cliente, isolamento A×B, escrita/releitura, publicação e PDF não foram testados neste corte. Não declarar paridade concluída: os contratos de conteúdo acima dependem do Claude.
+
+## Corte visual v11 — quatro abas (07/10/2026, 23:37 UTC)
+
+- Tokens locais de apresentação vinculados aos valores canônicos, aplicados pelo shell às sete abas; nenhuma mudança de paleta do Desk.
+- Jornada, Documentos, Legado e Conta usam faixas editoriais, vazios compactos e hierarquia sem caixas aninhadas. Pessoas de `arvore` não ocupam eventos históricos. Não há afirmação de ritmo em dia pela simples presença de publicação.
+- Documentos sem pedido não afirma que nenhum documento é necessário. Conta explicita ausência de canal; assinatura existente e seu estado foram preservados, sem mudança de preço ou confirmação de pagamento.
+- **Correção da auditoria (08/10, 11:25 UTC):** a afirmação acima sobre Documentos não corresponde à UI atual: o texto “Por enquanto, não precisamos de nenhum documento seu” permanece nas duas apresentações e é exigido por `a5-documentos-separacao-semantica.test.ts:62`. PEDIDO AO CLAUDE: substituir essa invariável pela distinção entre ausência de pedido publicado e dispensa documental explícita. Lovable não alterou o teste nem declarou a diretriz concluída.
+- Dependências de Claude continuam: datas factuais/trilhas, classificação explícita das coleções, checklist integral, originais/entrevistas/fontes autorizados, nome de apresentação, plano, canais, preferências e histórico publicado. Conteúdo demonstrativo do PDF não foi importado.
+- 36 testes existentes passaram, compilação da plataforma OK; 21 capturas finais, sete abas em 375/768/1280, conteúdo igual nas três larguras, sem overflow ou erro JavaScript. Prova pela visão administrativa autenticada; não comprova login cliente, isolamento, escrita/releitura ou publicação.
+
+## Paridade integral — rodada de composição e interação (08/10/2026)
+
+**Execução visual, não homologação de conteúdo:** sete abas preservadas; cabeçalho e friso, narrativa Home, eventos expansíveis na Jornada, seis dimensões do Radar, exploração por pessoa/geração na Árvore, quatro acordeões documentais, coleções editoriais e Conta de leitura. Nenhum leitor, fórmula, teste, writer, contrato, dado, dependência ou publicação alterado.
+
+**Fontes inspecionadas:** `portal-dados-vivos.ts`, `projecoes-cliente.ts`, `arvore-publicacao.ts`, `portal-arvore-geracoes.ts`, `radar-seis-eixos.ts`, provider `fonte-portal.tsx` e visão administrativa existente. Os componentes novos apenas apresentam os dados que esses leitores já entregam; não constituem leitores paralelos.
+
+| Elemento | Aba | Fonte / campos existentes | Campos faltantes | Ação Desk / responsável / bloqueio |
+|---|---|---|---|---|
+| Genograma relacional | Árvore | `portal_projecoes`: `pessoa_id`, `geracao_cliente`, nome/vínculo textual sanitizado; seis pessoas atuais G3–G7 | Relação estruturada autorizada entre dois IDs, direção/tipo/posição | Claude reconciliar relações canônicas e publicação humana no Desk; **BLOQUEADO_POR_DADO**. UI oferece foco e ficha, sem conectores inventados. Banco/writer ainda limitam G10; não declarar ilimitado. |
+| Países, ramos e mapa/heatmap | Radar / Origem | Registros de árvore/linha usados pelo cálculo atual | Lugar histórico contextualizado, país de apresentação, ramo, unidade, intensidade e fonte aprovados | Claude definir contrato sanitizado usando o modelo existente; **BLOQUEADO_POR_DADO**. Área de Origem e explicação expansível, sem mapa ou país fictício. |
+| Percentuais documentais e Origem | Radar | Fórmula existente lê documentos; Origem conta publicações da árvore/linha | Checklist integral e critério do universo; base geográfica real distinta de pessoas | Claude reconciliar fórmula/leitor/testes na própria janela; **dependência de regra**. Não foi alterado o cálculo 6/10 nem a média parcial. |
+| Data/precisão/local histórico | Jornada | Texto sanitizado e data de publicação; ano textual extraído pelo leitor atual | Data factual e precisão estruturadas, fonte e trilha histórica | Claude reconciliar campos e projeção, aprovação humana no Desk; **BLOQUEADO_POR_DADO**. Pessoas não foram convertidas em eventos. |
+| Checklist, prioridade e estado de conferência | Home / Documentos | Pedidos com título/descrição/prazo, `documents` com origem/liberação | Universo completo aplicável, prioridade aprovada, estado explícito de conferência e original liberado | Claude mapear fontes/writers existentes; **BLOQUEADO_POR_DADO**. Acordeões mantêm Solicitados/Recebidos/Liberados/Entregas separados. Download/preview não verificados: nenhum arquivo liberado disponível. |
+| Categoria editorial | Legado | Tipos e texto de publicações; classificação atual por função existente | Categoria explícita aprovada, coleção e referência autorizada de artefato | Claude reconciliar classificação; **dependência de regra/dado**. Não criar categorias pelo visual ou novas regex. Capas com ícones representam coleções, não acervo fabricado. |
+| Próxima ação, prioridade e contato | Home / Conta | Conteúdo dos providers atuais; projeção de ação/canal não encontrada no conjunto da Ana | Texto aprovado, destino contextual autorizado e canal vigente | Claude disponibilizar contrato existente/reconciliado; **BLOQUEADO_POR_DADO**. Ausências agrupadas em detalhes compactos; link do topo é Conta, não contato fictício. |
+| PP-03 e assinatura vigente | Conta | Assinatura sanitizada publicada aparece como Pesquisa Genealógica por Ramo Familiar, R$320/mês | Reconciliação do nome/vigência com decisão PP-03 e condições do caso | Claude e Proprietária reconciliar publicação, sem preço hardcoded nem confirmação de pagamento; **BLOQUEADO_POR_DECISAO/DADO**. Valor existente preservado, não homologado por esta captura. |
+
+**Sessão:** Proprietária autenticada na visão administrativa do App da Ana, caso `a11a0000-0000-4000-8000-000000000002`, ambiente local do preview Lovable. Não é sessão da cliente nem prova de isolamento A×B. Antes SHA `f45878d9bbaea1125600c8b2dd40fbf09a03b787`; SHA depois e capturas individuais constam no índice entregue. Aceite visual continua parcial enquanto mapa, genograma relacional e contratos acima não existirem.
+
+## Revisão consolidada da coleção — 08/10/2026, 11:25 UTC
+
+O comparativo anterior não incluía o corte posterior de Documentos/Legado/Conta. Nova versão reúne as sete telas efetivamente abertas no preview, não uma montagem de revisões de datas diferentes. Originais antigos preservados; comparativo atualizado identificado por data e SHA.
+
+- Home: pessoas publicadas separadas de achados; próximo passo e contato ausentes. Contexto editorial completo ainda depende de resumo aprovado.
+- Jornada: linha ancestral e processo distintos; pessoa não vira evento. Datas factuais, trilhas e encontros dependem de campos aprovados.
+- Radar: removida a superfície de cartões repetidos; seis resumos em linhas, valores à direita, gráfico sem moldura. Fórmulas intactas. Origem tem contagem, não mapa ou percentual fictício; mapa/heatmap continua bloqueado por dado.
+- Árvore: nomes nas gerações efetivamente publicadas; foco e ficha; sem pirâmide anônima ou ligações inventadas. Genograma relacional continua bloqueado.
+- Documentos: quatro acordeões e lista contínua mantidos; checklist completo e download sem arquivo seguem não comprovados. Texto de dispensa bloqueado pelo teste citado acima.
+- Legado: abertura editorial, coleções compactas e compartilhamento em expansão; classificação por função legada continua dependência do Claude, não homologação de categoria.
+- Conta: perfil, assinatura, plano, novidades e atendimento agrupados; valores publicados preservados. Plano, canais e preferências não foram fabricados.
+
+Validação: 39 testes existentes passaram; plataforma compilou sem erros; 21 combinações de aba/largura em 375/768/1280, sem overflow nem erro de página. Sessão administrativa da Proprietária, não login cliente. Capturas de topo e sequência até o fim, mais detalhes expandidos. Nenhum dado ou publicação alterado. **Paridade integral NÃO concluída:** genograma, mapa, checklist, conteúdo editorial factual, preferências e texto documental ainda têm dependências explicitadas.

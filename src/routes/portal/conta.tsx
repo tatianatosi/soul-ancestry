@@ -1,3 +1,4 @@
+import { UserRound, ShieldCheck, ChevronDown } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
@@ -96,7 +97,7 @@ export function PortalConta() {
         <PortalCarregando />
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>
-          <div className="space-y-5" data-aba-conta>
+          <div className="app-v11-secoes app-conta-composicao" data-aba-conta>
             {/*
               25/09/2026 — a faixa de crachás no topo (código do caso, canal
               de acesso) era leitura técnica; os mesmos dados humanos seguem
@@ -106,14 +107,14 @@ export function PortalConta() {
 
             <section
               data-conta-perfil
-              className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm"
+              className="app-v11-faixa"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <span
                   aria-hidden="true"
                   className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-gold/60 bg-navy font-serif text-xl text-gold"
                 >
-                   {titular ? titular.trim().charAt(0).toUpperCase() : "✦"}
+                   {titular ? titular.trim().charAt(0).toUpperCase() : <UserRound className="h-5 w-5" />}
                 </span>
                 <div className="min-w-0">
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Sua família</p>
@@ -123,31 +124,31 @@ export function PortalConta() {
                <p className="mt-3 text-sm text-navy/65">Um espaço para cuidar da sua história e acompanhar as novidades da sua família.</p>
                {titular || paisInteresse ? <dl className="mt-3 grid gap-3 sm:grid-cols-2">
                  {titular ? (
-                <div className="rounded-lg border border-border bg-card p-3">
+                <div className="border-b border-border py-3">
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>
                   <dd className="text-sm text-navy">{titular}</dd>
                 </div>
                  ) : null}
                  {paisInteresse ? (
-                <div className="rounded-lg border border-border bg-card p-3">
+                <div className="border-b border-border py-3">
                    <dt className="text-[11px] uppercase tracking-widest text-navy/50">Origem de interesse</dt>
                   <dd className="text-sm text-navy">{paisInteresse}</dd>
                 </div>
                  ) : null}
                </dl> : null}
               <p className="mt-3 text-xs text-navy/55">
-                  Se alguma informação mudar, conte à equipe pelos canais de contato já combinados.
+                  Se alguma informação mudar, avise a equipe pelo canal que você já utiliza.
               </p>
             </section>
 
-            <section className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
-              <h2 className="font-serif text-xl text-navy">Estamos por perto</h2>
+            <section className="app-v11-faixa app-conta-atendimento">
+              <details className="app-conta-contato"><summary className="flex min-h-11 cursor-pointer items-center gap-2 font-serif text-xl text-navy"><ShieldCheck className="h-5 w-5" aria-hidden="true" /><span className="flex-1">Estamos por perto</span><ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary>
               <p className="mt-2 text-sm text-navy/75">{acompanhamento}</p>
-              <p className="mt-3 text-sm leading-relaxed text-navy/75">Para conversar sobre documentos ou sobre a sua jornada, use os canais de contato já combinados com a equipe.</p>
-              <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Seus canais, preferências de aviso e informações de privacidade aparecerão quando estiverem disponíveis neste espaço.</p>
+              <p className="mt-3 text-sm leading-relaxed text-navy/75">Ainda não há um canal de contato disponibilizado neste aplicativo.</p>
+              <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Seus canais, preferências de aviso e informações de privacidade aparecerão quando estiverem disponíveis neste espaço.</p></details>
             </section>
 
-             <section data-conta-assinatura className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
+             <section data-conta-assinatura className="app-v11-faixa">
               <h2 className="font-serif text-xl text-navy">Sua assinatura</h2>
               {assinatura ? (
                 <>
@@ -175,7 +176,7 @@ export function PortalConta() {
                )}
              </section>
 
-            <section data-conta-plano className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
+            <section data-conta-plano className="app-v11-faixa">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="font-serif text-xl text-navy">Meu plano</h2>
                 {plano?.situacao ? (
@@ -203,7 +204,7 @@ export function PortalConta() {
               )}
             </section>
 
-            <section data-conta-alertas className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
+            <section data-conta-alertas className="app-v11-faixa">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="font-serif text-xl text-navy">Novidades para você</h2>
                 <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
@@ -213,7 +214,7 @@ export function PortalConta() {
               {atualizacoes.length > 0 ? (
                 <ul className="mt-3 space-y-2" data-conta-atualizacoes>
                   {atualizacoes.map((a) => (
-                    <li key={a.id} className="rounded-xl border border-border bg-cream/40 px-4 py-3">
+                    <li key={a.id} className="app-conta-registro">
                       <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
                         {a.tipoRotulo}
                         {a.publicadoEm ? ` · ${new Date(a.publicadoEm).toLocaleDateString("pt-BR")}` : ""}
@@ -232,14 +233,14 @@ export function PortalConta() {
                   {alertaAcionavel.destino === "/portal/documentos" ? (
                     <LinkPortal
                       to="/portal/documentos"
-                      className="mt-2 inline-flex text-xs font-medium text-navy/70 underline hover:text-navy"
+                      className="mt-2 inline-flex min-h-11 items-center text-xs font-medium text-navy/70 underline hover:text-navy"
                     >
                       Ver documentos solicitados
                     </LinkPortal>
                   ) : null}
                 </div>
               ) : atualizacoes.length === 0 ? (
-                  <div className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center">
+                  <div className="app-v11-lacuna mt-3">
                    <p className="text-sm text-navy/70">Nenhum recado novo por enquanto.</p>
                 </div>
               ) : null}
@@ -255,18 +256,18 @@ export function PortalConta() {
               esta leitura. Só o texto que a equipe escreveu explicitamente
               para a família — nunca o título interno do evento.
             */}
-            <section data-conta-marcos className="overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm">
+            <section data-conta-marcos className="app-v11-faixa">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="font-serif text-xl text-navy">Marcos da sua jornada</h2>
               </div>
               {(vivo.data?.historico ?? []).length === 0 ? (
-                <p className="mt-3 rounded-xl border border-dashed border-navy/20 bg-cream/60 px-4 py-5 text-center text-sm text-navy/60">
+                <p className="app-v11-lacuna mt-3 text-sm text-navy/60">
                    Ainda não há um marco da jornada liberado para a família.
                 </p>
               ) : (
                 <ul className="mt-3 space-y-2">
                   {(vivo.data?.historico ?? []).map((marco) => (
-                    <li key={marco.id} className="rounded-lg border border-border bg-card p-3 text-sm text-navy/80">
+                     <li key={marco.id} className="app-conta-registro text-sm text-navy/80">
                       <p>{marco.texto}</p>
                       {marco.data ? (
                         <p className="mt-1 text-xs text-navy/45">

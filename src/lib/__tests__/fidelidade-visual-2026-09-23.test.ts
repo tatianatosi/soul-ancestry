@@ -72,10 +72,17 @@ describe("3. Documentos — 4 cards, envio integrado a Solicitados, sem KPI/pain
   it("a instrução de envio está integrada ao card Solicitados nos dois modos (prévia e real)", () => {
     expect(documentos).toContain("Se precisarmos de algo, o pedido e a orientação para enviar aparecerão aqui.");
     expect(documentos).toContain("<EnviarDocumento casoId={casoAtivo} />");
+    /*
+      08/10/2026: a âncora deixou de depender da classe CSS (o Lovable trocou
+      "overflow-hidden" por "app-v11-faixa"). O que o teste protege é o lugar
+      do CTA — dentro da seção Solicitados —, não o nome da classe.
+    */
+    const inicioSolicitados = documentos.indexOf("data-documentos-solicitados className=");
     const secaoSolicitadosReal = documentos.slice(
-      documentos.indexOf('data-documentos-solicitados className="overflow-hidden'),
-      documentos.indexOf("</section>", documentos.indexOf('data-documentos-solicitados className="overflow-hidden')),
+      inicioSolicitados,
+      documentos.indexOf("</section>", inicioSolicitados),
     );
+    expect(inicioSolicitados).toBeGreaterThan(-1);
     expect(secaoSolicitadosReal).toContain("<EnviarDocumento");
   });
 });
