@@ -1,5 +1,6 @@
 import { radarSeisDimensoes } from "@/lib/radar-seis-eixos";
 import { usePortalVivo } from "@/components/portal/fonte-portal";
+import { JourneyProgress } from "@/components/clube-ancestral-kit/jornada";
 
 /** Apenas apresentação das mesmas métricas já calculadas pelo leitor do Radar. */
 export function AndamentoPublicado({ rota }: { rota: string }) {
@@ -23,7 +24,7 @@ export function AndamentoPublicado({ rota }: { rota: string }) {
         <span>{parcial ? "Radar · média dos eixos com base" : dimensao.titulo}</span>
         <strong>{dimensao.percentual !== null ? `${dimensao.percentual}%` : dimensao.rotuloNumero === "Nenhum ainda" ? "Ainda não publicado" : dimensao.rotuloNumero}</strong>
       </summary>
-      {dimensao.percentual !== null ? <progress max={100} value={dimensao.percentual} aria-label={parcial ? "Média parcial do Radar" : dimensao.titulo} /> : null}
+      {dimensao.percentual !== null ? <JourneyProgress label={parcial ? "Média parcial do Radar" : dimensao.titulo} value={dimensao.percentual} /> : null}
       <p>{dimensao.comoCalculamos}</p>
     </details>
   );

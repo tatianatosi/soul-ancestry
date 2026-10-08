@@ -14,6 +14,7 @@ import { jornadaSanitizada, publicacoesDeEntrega, publicacoesDeFase01, publicaco
 import type { PublicacaoCliente } from "@/lib/projecoes-cliente";
 import { cn } from "@/lib/utils";
 import { textoParaCliente } from "@/lib/portal-linguagem-viva";
+import { KitBadge } from "@/components/clube-ancestral-kit/base";
 
 const TIPOS_HISTORIA = new Set(["arvore", "achado", "evidencia", "linha_tempo", "legado"]);
 
@@ -184,12 +185,6 @@ function TrilhaCompacta({
  * médio -> navy profundo na próxima ação; Legado volta a dourado suave.
  * Sem terracota/laranja/roxo — só os tokens Pantone já aprovados.
  */
-function corDoNo(no: NoEvento, ultimo: boolean): string {
-  if (no.categoria === "gold-soft") return "var(--gold-soft)";
-  if (no.categoria === "gold") return "var(--gold)";
-  return ultimo ? "var(--navy)" : "var(--navy-800)";
-}
-
 /**
  * Uma coluna da timeline (só eventos, sem ponte — a ponte agora é o
  * conector "MOMENTOS DE UNIÃO" entre as duas colunas, não um item
@@ -204,14 +199,8 @@ function TimelineVertical({
   eyebrow: string;
   variante?: "gold" | "navy";
 }) {
-  const paradas = eventos.map((no, i) => {
-    const pct = eventos.length > 1 ? (i / (eventos.length - 1)) * 100 : 0;
-    return `${corDoNo(no, i === eventos.length - 1)} ${pct}%`;
-  });
-  const gradiente = `linear-gradient(to bottom, ${paradas.join(", ")})`;
-
   return (
-    <div className="min-w-0">
+    <div className="app-jornada-linha min-w-0" data-linha-tom={variante}>
       <div className={cn("h-1 w-full", variante === "gold" ? "bg-gold" : "bg-navy")} aria-hidden="true" />
       <div className="py-4">
       <h2 className="mb-3 font-serif text-xl text-navy">{eyebrow}</h2>
@@ -223,7 +212,7 @@ function TimelineVertical({
         </p>
       ) : (
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 w-0.5 rounded-full" style={{ background: gradiente }} aria-hidden="true" />
+          <div className={cn("app-jornada-fio absolute inset-y-0 left-0 w-0.5 rounded-full", variante === "gold" ? "bg-gold" : "bg-navy")} aria-hidden="true" />
           <ol className="relative">
             {eventos.map((no, i) => (
               <li key={no.id} className="relative py-4 pl-5 last:pb-0 lg:py-6">
@@ -236,15 +225,12 @@ function TimelineVertical({
                   )}
                   aria-hidden="true"
                 />
-                <p
-                  className={cn(
-                    "text-[10px] font-medium uppercase tracking-wide",
-                    no.categoria === "navy" ? "text-navy/60" : "text-gold",
-                  )}
-                >
+                <div className="app-jornada-data">
+                  <KitBadge tone={no.categoria === "navy" ? "neutral" : "gold"}>
                   {no.rotuloCategoria}
                   {no.dataPrincipal ? ` · ${no.dataPrincipal}` : ""}
-                </p>
+                  </KitBadge>
+                </div>
                 <details className="app-jornada-evento" open>
                   <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 text-sm font-medium text-navy"><span className="min-w-0">{no.titulo}</span><ChevronDown className="app-detalhe-seta h-4 w-4 shrink-0" aria-hidden="true" /></summary>
                   <p className="mt-0.5 text-sm text-navy/70">{no.conteudo}</p>
