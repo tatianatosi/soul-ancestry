@@ -1,4 +1,5 @@
 import "./portal-v11.css";
+import { AndamentoPublicado } from "@/components/portal/andamento-publicado";
 
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -128,6 +129,7 @@ export function PortalShell({
       */}
       <div className="mx-auto w-full min-w-0 max-w-[740px]">
          <main id="conteudo-portal" className="min-w-0 px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-6 sm:px-8 sm:pb-32 sm:pt-8">
+          <AndamentoPublicado rota={rotaAtiva} />
           <div>{children}</div>
         </main>
       </div>

@@ -36,13 +36,13 @@ export function ExploradorArvore({ pessoas, geracoes }: { pessoas: PessoaNaArvor
         </div>
         <label className="app-arvore-foco text-xs text-navy/70">Focar pessoa<select value={foco ?? ""} onChange={(event) => setFoco(event.target.value || null)} aria-label="Focar pessoa"><option value="">Todas as pessoas</option>{pessoas.map((pessoa) => <option key={pessoa.chave} value={pessoa.chave}>{pessoa.nome}</option>)}</select></label>
       </div>
-      <p className="app-arvore-aviso text-sm leading-relaxed text-navy/70">As pessoas estão em suas gerações publicadas. As conexões do genograma aparecerão quando as relações forem compartilhadas; por enquanto, os nós permanecem independentes.</p>
+      <details className="app-arvore-aviso"><summary>Sobre as conexões da família<ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary><p className="text-sm leading-relaxed text-navy/70">As pessoas estão em suas gerações publicadas. As conexões do genograma aparecerão quando as relações forem compartilhadas; por enquanto, os nós permanecem independentes.</p></details>
       {modo === "pessoas" ? (
         <div className="app-arvore-pessoas" aria-label="Pessoas publicadas">{pessoasVisiveis.map((pessoa) => <PerfilPessoaArvore key={pessoa.chave} pessoa={pessoa} />)}</div>
       ) : (
         <div className="app-arvore-geracoes">{geracoes.filter((geracao) => !foco || pessoasVisiveis.some((pessoa) => `G${pessoa.geracao}` === geracao.id)).map((geracao) => (
           <section key={geracao.id} className="app-arvore-geracao" aria-label={geracao.id === "G1" ? "G1 · Você (âncora)" : `${geracao.id} · ${Number(geracao.id.slice(1))}ª geração`}>
-            <h3 className="text-xs font-medium text-navy/70">{geracao.id === "G1" ? "G1 · Você (âncora)" : `${geracao.id} · ${Number(geracao.id.slice(1))}ª geração`}</h3>
+            <h3 className="text-xs font-medium text-navy/70"><span className="app-geracao-nivel">{geracao.id}</span><span>{geracao.id === "G1" ? "Você (âncora)" : `${Number(geracao.id.slice(1))}ª geração`}</span></h3>
             <div className="app-arvore-nos">{geracao.id === "G1" ? <p className="app-arvore-ancora"><UserRound aria-hidden="true" className="h-5 w-5" />Você</p> : null}{pessoasVisiveis.filter((pessoa) => `G${pessoa.geracao}` === geracao.id).map((pessoa) => <PerfilPessoaArvore key={pessoa.chave} pessoa={pessoa} />)}{geracao.id !== "G1" && !pessoasVisiveis.some((pessoa) => `G${pessoa.geracao}` === geracao.id) ? <p className="text-sm text-navy/70" data-arvore-lacuna>Lacuna: ninguém desta geração foi compartilhado ainda.</p> : null}</div>
           </section>
         ))}</div>
