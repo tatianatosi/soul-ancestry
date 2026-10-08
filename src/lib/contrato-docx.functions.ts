@@ -16,6 +16,7 @@ import { organizacaoDo } from "@/lib/caso-canonico.server";
 import { semCache } from "@/lib/no-store";
 import { htmlParaBlocos, nomeArquivoDocx } from "@/lib/contrato-pdf";
 import { gerarDocxContratoBase64 } from "@/lib/contrato-docx-gerador";
+import { motivoBloqueioSaida } from "@/lib/previa-vigente";
 
 export const baixarDocxContrato = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -30,7 +31,7 @@ export const baixarDocxContrato = createServerFn({ method: "GET" })
 
     const { data: previa, error } = await supabase
       .from("contract_parameter_previews")
-      .select("id,versao,tipo,estado,html,congelado_em,parameters_id")
+      .select("id,versao,tipo,estado,html,congelado_em,created_at,parameters_id,corpo_contratual,legado_sem_corpo")
       .eq("id", data.previaId)
       .eq("organization_id", organizationId)
       .is("archived_at", null)
@@ -38,6 +39,17 @@ export const baixarDocxContrato = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     if (!previa) throw new Error("Prévia não encontrada nesta organização.");
     if (!previa.html) throw new Error("Esta prévia ainda não tem conteúdo gerado — gere a prévia antes de baixar o DOCX.");
+
+    // Mesma trava do PDF (08/10/2026): prévia sem corpo ou defasada não vira documento.
+    const { data: ultimoValor } = await supabase
+      .from("contract_parameter_values")
+      .select("atualizado_em")
+      .eq("parameters_id", previa.parameters_id)
+      .order("atualizado_em", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const bloqueio = motivoBloqueioSaida(previa, ultimoValor?.atualizado_em ?? null);
+    if (bloqueio) throw new Error(bloqueio);
 
     const { data: parametros } = await supabase
       .from("contract_case_parameters")

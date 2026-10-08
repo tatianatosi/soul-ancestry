@@ -270,7 +270,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
     const [{ data: valores }, { data: previas }, completude, pendencias, { data: anexosPersistidosRaw }] = await Promise.all([
       supabase
         .from("contract_parameter_values")
-        .select("id,grupo,campo,label,obrigatorio,ordem,valor,origem,origem_detalhe,status,conflito,justificativa")
+        .select("id,grupo,campo,label,obrigatorio,ordem,valor,origem,origem_detalhe,status,conflito,justificativa,atualizado_em")
         .eq("parameters_id", registro.id)
         .is("archived_at", null)
         .order("grupo", { ascending: true })
@@ -701,6 +701,17 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       contrato,
       valores: lista,
       previas: previas ?? [],
+      /*
+       * 08/10/2026 — quando o parâmetro mais recente foi alterado. A tela usa
+       * isto para dizer "Prévia desatualizada" e travar PDF/revisão/assinatura
+       * até regerar; o servidor aplica a mesma regra ao gerar o documento.
+       */
+      parametroAlteradoEm:
+        ((valores ?? []) as { atualizado_em?: string | null }[])
+          .map((v) => v.atualizado_em ?? "")
+          .filter(Boolean)
+          .sort()
+          .pop() ?? null,
       anexos,
       anexosPersistidos,
       completude: (completude as any).data ?? null,

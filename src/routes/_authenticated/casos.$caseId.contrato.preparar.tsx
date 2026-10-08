@@ -39,6 +39,7 @@ import { TrazerDoCanva } from "@/components/contrato/trazer-do-canva";
 import { AbrirDocumentoContrato } from "@/components/contrato/abrir-documento-contrato";
 import { BaixarPdfContrato } from "@/components/contrato/baixar-pdf-contrato";
 import { BaixarDocxContrato } from "@/components/contrato/baixar-docx-contrato";
+import { motivoBloqueioSaida, previaVigente, rotuloPrevia } from "@/lib/previa-vigente";
 import { resumoProntidao } from "@/lib/contrato-prontidao";
 import { avaliarMatrizClausulas, previaFinalLiberada } from "@/lib/matriz-clausulas";
 import { blocosRenderizados } from "@/lib/matriz-aceite";
@@ -47,6 +48,7 @@ import { garantirPerfilInstitucionalDaSessao, lerPerfilInstitucionalPersistido }
 import { MatrizClausulas, PerfilInstitucionalBloco } from "@/components/contrato/matriz-clausulas";
 import { modeloAplicavelAoCaso } from "@/lib/matriz-modelos-contratuais";
 import {
+  CLAUSULAS_FIXAS,
   CONTRATO_BASE_VERSAO,
   contratoBaseAssinavel,
   type EstadoVigenciaContratoBase,
@@ -462,6 +464,14 @@ function Pagina() {
   const resolutivos = bloqueiosResolutivos(bloqueios, listaOpcional(d.valores) as any);
   const impeditivos = resolutivos.filter((b) => b.impeditivo);
   const rascunhoAtual = listaOpcional<any>(d.previas).find((p: any) => p.estado === "rascunho_editavel");
+  /*
+   * 08/10/2026 — uma prévia vigente só, com data e versão à vista, e trava
+   * contra defasagem. Medido: havia 7 prévias do mesmo contrato, seis delas
+   * congeladas SEM corpo contratual, e o PDF aceitava qualquer uma.
+   */
+  const previaAtual = previaVigente(listaOpcional<any>(d.previas));
+  const bloqueioPrevia = motivoBloqueioSaida(previaAtual, (d as any).parametroAlteradoEm ?? null);
+  const cabecalhoPrevia = rotuloPrevia(previaAtual, CONTRATO_BASE_VERSAO, CLAUSULAS_FIXAS.length);
   const ultimaFinal = listaOpcional<any>(d.previas).find((p: any) => p.tipo === "final" && p.estado === "congelado");
   const finalAprovada = listaOpcional<any>(d.previas).find((p: any) => p.tipo === "final" && p.aprovado_em);
   // CA14-MATRIZES-DE-COMPOSICAO (09/09/2026): individual/casal/núcleo são
@@ -965,6 +975,17 @@ function Pagina() {
           <div className="space-y-4" data-modo-revisar>
             <div id="previas">
               <CaCard titulo={`1. ${instrumento} — prévia completa`}>
+                <p className="mb-2 text-[11px] text-navy/60" data-previa-cabecalho>
+                  {cabecalhoPrevia}
+                </p>
+                {bloqueioPrevia ? (
+                  <p
+                    className="mb-3 rounded-lg border border-terracota/40 bg-terracota/5 p-3 text-xs text-terracota"
+                    data-previa-bloqueio
+                  >
+                    {bloqueioPrevia}
+                  </p>
+                ) : null}
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => mGerar.mutate("rascunho")}
@@ -982,8 +1003,8 @@ function Pagina() {
                     </button>
                   )}
                   <AbrirDocumentoContrato html={html} identificacao={identificacaoDocumento} />
-                  <BaixarPdfContrato previaId={previaVistaId ?? (rascunhoAtual ?? listaOpcional<any>(d.previas)[0])?.id ?? null} className="min-h-11 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50 sm:min-h-0" />
-                  <BaixarDocxContrato previaId={previaVistaId ?? (rascunhoAtual ?? listaOpcional<any>(d.previas)[0])?.id ?? null} className="min-h-11 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50 sm:min-h-0" />
+                  <BaixarPdfContrato previaId={bloqueioPrevia ? null : (previaAtual?.id ?? null)} className="min-h-11 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50 sm:min-h-0" />
+                  <BaixarDocxContrato previaId={bloqueioPrevia ? null : (previaAtual?.id ?? null)} className="min-h-11 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50 sm:min-h-0" />
                   <span className="self-center text-[11px] text-navy/60">
                     {mGerar.isPending
                       ? "Salvando rascunho…"
