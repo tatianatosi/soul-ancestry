@@ -11,8 +11,8 @@
   --app-v11-legenda: var(--ca-text-xs);
   --app-v11-leitura: var(--ca-text-sm);
   --app-v11-secao: var(--ca-text-xl);
-  --app-v11-respiro: var(--ca-space-4);
-  --app-v11-intervalo: var(--ca-space-3);
+  --app-v11-respiro: var(--ca-space-3);
+  --app-v11-intervalo: var(--ca-space-2);
   --app-v11-toque: var(--ca-touch-target);
   --app-v11-superficie: var(--ca-surface-raised);
   --app-v11-acento-suave: var(--ca-surface-accent);
@@ -158,8 +158,8 @@
   padding: var(--ca-space-5);
 }
 [data-app-cliente] [data-aba-jornada] [data-jornada-duas-linhas] {
-  padding-top: var(--ca-space-3);
-  row-gap: var(--ca-space-5);
+  padding-top: var(--ca-space-2);
+  row-gap: var(--ca-space-3);
 }
 [data-app-cliente] [data-aba-jornada] nav[aria-label="Linhas da jornada"] {
   margin-top: calc(-1 * var(--ca-space-3));
@@ -641,3 +641,53 @@
 @media (min-width: 768px) {
   [data-app-cliente] .app-arvore-geracao { grid-template-columns: 8rem minmax(0,1fr); }
 }
+
+/* Jornada contínua: curvas ligam seções, nunca pessoas sem vínculo publicado. */
+[data-app-cliente] [data-jornada-duas-linhas] > span:first-child {
+  border-radius: var(--ca-radius-pill);
+  top: var(--ca-space-4);
+  bottom: var(--ca-space-4);
+}
+[data-app-cliente] [data-jornada-duas-linhas] > :where(section, div) {
+  padding-block: var(--ca-space-2);
+}
+[data-app-cliente] .app-jornada-linha > div:first-child {
+  width: var(--ca-space-7);
+  height: var(--ca-space-1);
+  border-radius: var(--ca-radius-pill);
+}
+[data-app-cliente] .app-jornada-linha > div:nth-child(2) { padding-block: var(--ca-space-2); }
+[data-app-cliente] .app-jornada-linha h2 { margin-bottom: var(--ca-space-2); }
+[data-app-cliente] .app-jornada-linha ol > li { padding-block: var(--ca-space-2); padding-left: var(--ca-space-4); }
+[data-app-cliente] .app-jornada-fio { opacity: 0.45; }
+[data-app-cliente] .app-jornada-linha ol > li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: var(--ca-space-5);
+  width: var(--ca-space-4);
+  height: var(--ca-space-4);
+  border-bottom: 2px solid var(--app-v11-orientacao);
+  border-left: 2px solid var(--app-v11-orientacao);
+  border-bottom-left-radius: var(--ca-radius-xl);
+  pointer-events: none;
+}
+[data-app-cliente] .app-jornada-linha[data-linha-tom="gold"] ol > li::before { border-color: var(--app-v11-conexao); }
+[data-app-cliente] .app-jornada-linha ol > li > span:first-child { top: var(--ca-space-4); }
+[data-app-cliente] .app-jornada-data { margin-bottom: var(--ca-space-1); }
+[data-app-cliente] .app-jornada-data > span { font-size: var(--ca-text-xs); letter-spacing: 0; }
+[data-app-cliente] .app-jornada-evento { padding: var(--ca-space-2) var(--ca-space-3); border-radius: var(--ca-radius-lg); }
+[data-app-cliente] .app-jornada-uniao { padding: var(--ca-space-3); border: 0; border-left: 2px solid var(--app-v11-conexao); }
+[data-app-cliente] #conteudo-portal [data-aba-jornada] .app-v11-abertura { padding: var(--ca-space-4); }
+[data-app-cliente] #conteudo-portal [data-aba-jornada] > :where(div, section) + :where(div, section) { margin-top: var(--ca-space-3); }
+[data-app-cliente] #conteudo-portal :where([data-aba-home], [data-aba-radar], [data-aba-arvore], [data-aba-documentos], [data-aba-legado]) > :where(section, div) + :where(section, div) { margin-top: var(--ca-space-3); }
+[data-app-cliente] #conteudo-portal [data-aba-home] > section:first-child { padding: var(--ca-space-4); }
+[data-app-cliente] .app-documento-conteudo { padding-bottom: var(--ca-space-2); }
+[data-app-cliente] .app-origem-geografica { padding-block: var(--ca-space-3); }
+[data-app-cliente] .app-origem-abertura { gap: var(--ca-space-3); }
+[data-app-cliente] .app-colecao-resumo { gap: var(--ca-space-3); }
+[data-app-cliente] .app-colecao-detalhe li { padding-block: var(--ca-space-2); }
+[data-app-cliente] .app-conta-composicao { gap: var(--ca-space-2); }
+[data-app-cliente] .app-conta-registro { padding-block: var(--ca-space-2); }
+[data-app-cliente] .app-andamento-publicado { padding-block: var(--ca-space-1); }
+[data-app-cliente] .app-andamento-publicado > div { padding-block: var(--ca-space-2); }
