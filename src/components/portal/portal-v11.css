@@ -229,9 +229,9 @@
   align-items: start;
 }
 [data-app-cliente] [data-aba-documentos] .app-v11-faixa span[class~="rounded-full"] {
-  max-width: 10rem;
-  border-radius: var(--ca-radius-sm);
-  white-space: normal;
+  max-width: none;
+  border-radius: var(--ca-radius-pill);
+  white-space: nowrap;
   background: var(--app-v11-acento-suave);
 }
 [data-app-cliente] [data-legado-prateleiras] {

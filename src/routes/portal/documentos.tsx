@@ -78,7 +78,7 @@ export function PortalDocumentos() {
                 <div className="mt-3 rounded-lg border border-gold/35 bg-gold/10 px-4 py-3 text-sm text-navy">{solicitado}</div>
               ) : (
                 <p className="app-v11-lacuna mt-3 text-navy/65">
-                   Ainda não há um pedido documental compartilhado com você. A lista completa permanece aguardando disponibilização.
+                   Por enquanto, não precisamos de nenhum documento seu. A lista completa ainda não foi compartilhada.
                 </p>
               )}
               <p className="mt-3 text-xs text-navy/50">Se precisarmos de algo, o pedido e a orientação para enviar aparecerão aqui.</p>
@@ -248,7 +248,7 @@ export function PortalDocumentos() {
               </div>
             ) : (
               <p className="app-v11-lacuna mt-3 text-navy/65">
-                 Ainda não há um pedido documental compartilhado com você. A lista completa permanece aguardando disponibilização.
+                 Por enquanto, não precisamos de nenhum documento seu. A lista completa ainda não foi compartilhada.
               </p>
             )}
             <div className="mt-4">
