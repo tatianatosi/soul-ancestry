@@ -14,6 +14,10 @@
   --app-v11-respiro: var(--ca-space-6);
   --app-v11-intervalo: var(--ca-space-4);
   --app-v11-toque: var(--ca-touch-target);
+  --app-v11-superficie: var(--ca-surface-raised);
+  --app-v11-acento-suave: var(--ca-surface-accent);
+  --app-v11-canto: var(--ca-radius-md);
+  --app-v11-elevacao: var(--ca-shadow-sm);
   font-family: var(--app-v11-corpo);
   background: var(--app-v11-fundo);
 }
@@ -82,4 +86,180 @@
 }
 [data-app-cliente] #conteudo-portal :where(p, dd, li) {
   overflow-wrap: anywhere;
+}
+
+/* Moldura comum do mockup: marca, identificação e friso dourado. */
+[data-app-cliente] [data-app-cabecalho] {
+  background: var(--app-v11-orientacao);
+}
+[data-app-cliente] [data-app-cabecalho] > div:first-child {
+  padding-block: 0;
+}
+[data-app-cliente] .app-v11-marca {
+  padding-block: var(--ca-space-2);
+  border-bottom: 1px solid var(--app-v11-conexao);
+}
+[data-app-cliente] .app-v11-identidade {
+  padding-block: var(--ca-space-3);
+}
+[data-app-cliente] .app-v11-identidade h1 {
+  font-size: var(--ca-text-2xl);
+  line-height: var(--ca-leading-tight);
+}
+[data-app-cliente] .app-v11-identidade > p:first-child {
+  overflow-wrap: anywhere;
+}
+[data-app-cliente] #conteudo-portal {
+  padding-top: var(--ca-space-5);
+}
+[data-app-cliente] #conteudo-portal :where(h2, h3) {
+  line-height: var(--ca-leading-tight);
+}
+[data-app-cliente] nav[aria-label="Navegação do aplicativo do cliente"] {
+  border-top-color: var(--app-v11-conexao);
+  background: var(--app-v11-superficie);
+  box-shadow: var(--ca-shadow-lg);
+}
+
+/* Home : panneau navy, liens familiaux et découvertes distinctes. */
+[data-app-cliente] [data-aba-home] > section:first-child {
+  border-radius: var(--ca-radius-lg);
+  padding: var(--ca-space-5);
+  background: var(--app-v11-topo);
+  box-shadow: var(--ca-shadow-md);
+}
+[data-app-cliente] [data-aba-home] > section:first-child h2 {
+  font-size: var(--ca-text-2xl);
+}
+[data-app-cliente] [data-aba-home] > section:first-child > div > p:first-child {
+  letter-spacing: 0;
+}
+[data-app-cliente] [data-aba-home] > div {
+  gap: var(--ca-space-5);
+}
+[data-app-cliente] [data-aba-home] [aria-label="Pessoas conectadas"] {
+  border-block: 1px solid var(--app-v11-conexao);
+  background: var(--app-v11-acento-suave);
+  padding: var(--ca-space-4);
+}
+[data-app-cliente] [data-aba-home] [aria-label="Pessoas conectadas"] > div {
+  border: 0;
+  padding-block: 0;
+}
+[data-app-cliente] [data-aba-home] [aria-label="Microentrega"] {
+  padding-block: var(--ca-space-3);
+}
+
+/* Jornada : lignes et points, sans reconstituer des événements absents. */
+[data-app-cliente] [data-aba-jornada] .app-v11-abertura,
+[data-app-cliente] [data-aba-legado] .app-v11-abertura {
+  border-top: 1px solid var(--app-v11-conexao);
+  border-bottom: 2px solid var(--app-v11-conexao);
+  padding: var(--ca-space-5);
+}
+[data-app-cliente] [data-aba-jornada] [data-jornada-duas-linhas] {
+  padding-top: var(--ca-space-3);
+  row-gap: var(--ca-space-5);
+}
+[data-app-cliente] [data-aba-jornada] nav[aria-label="Linhas da jornada"] {
+  margin-top: calc(-1 * var(--ca-space-3));
+}
+
+/* Radar : fond clair d'inspection et six mesures indépendantes. */
+[data-app-cliente] [data-radar-grafico] svg {
+  background: var(--app-v11-superficie);
+  border: 1px solid var(--app-v11-borda);
+  border-radius: var(--app-v11-canto);
+  box-shadow: var(--app-v11-elevacao);
+  margin-block: var(--ca-space-3);
+}
+[data-app-cliente] [data-radar-grafico] > p:last-child {
+  padding-bottom: 0;
+}
+[data-app-cliente] [data-aba-radar] section > ul {
+  display: grid;
+  gap: var(--ca-space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+[data-app-cliente] [data-aba-radar] section > ul > li {
+  border: 1px solid var(--app-v11-borda);
+  border-radius: var(--app-v11-canto);
+  background: var(--app-v11-superficie);
+  padding: var(--ca-space-3);
+  box-shadow: var(--app-v11-elevacao);
+}
+[data-app-cliente] [data-aba-radar] section > ul > li > div:first-child {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ca-space-2);
+}
+[data-app-cliente] [data-aba-radar] section > ul > li > div:first-child > span {
+  max-width: none;
+  text-align: left;
+}
+[data-app-cliente] [data-aba-radar] section > ul h3 {
+  font-size: var(--ca-text-lg);
+}
+[data-app-cliente] [data-aba-radar] section > ul :where(p, summary) {
+  font-size: var(--app-v11-legenda);
+}
+
+/* Árvore : repères de génération et profils réellement publiés. */
+[data-app-cliente] [data-arvore-pessoa] {
+  border-color: var(--app-v11-conexao);
+  border-radius: var(--app-v11-canto);
+  background: var(--app-v11-superficie);
+  box-shadow: var(--app-v11-elevacao);
+}
+[data-app-cliente] [data-arvore-pessoa] summary::marker {
+  color: var(--app-v11-conexao);
+}
+[data-app-cliente] [data-arvore-contagem] {
+  border-bottom: 1px solid var(--app-v11-conexao);
+  background: var(--app-v11-acento-suave);
+  padding-inline: var(--ca-space-4);
+}
+
+/* Documents et collections : listes lisibles, sans boîtes imbriquées. */
+[data-app-cliente] [data-aba-documentos] .app-v11-faixa {
+  border-top-color: var(--app-v11-conexao);
+}
+[data-app-cliente] [data-aba-documentos] .app-v11-faixa > div:first-child > div:first-child {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+[data-app-cliente] [data-aba-documentos] .app-v11-faixa span[class~="rounded-full"] {
+  max-width: 10rem;
+  border-radius: var(--ca-radius-sm);
+  white-space: normal;
+  background: var(--app-v11-acento-suave);
+}
+[data-app-cliente] [data-legado-prateleiras] {
+  gap: var(--ca-space-5);
+}
+[data-app-cliente] [data-legado-prateleira] > div:first-child {
+  border-bottom: 1px solid var(--app-v11-borda);
+  padding-bottom: var(--ca-space-3);
+}
+[data-app-cliente] [data-legado-prateleira] li {
+  border-left: 2px solid var(--app-v11-conexao);
+  padding-left: var(--ca-space-3);
+  background: var(--app-v11-superficie);
+}
+
+/* Conta : identité, abonnement et historique, chacun à sa place. */
+[data-app-cliente] [data-conta-perfil] {
+  border-top: 0;
+  border-bottom: 1px solid var(--app-v11-borda);
+  padding-top: 0;
+}
+[data-app-cliente] [data-conta-assinatura] {
+  border-block: 1px solid var(--app-v11-conexao);
+  background: var(--app-v11-acento-suave);
+  padding-inline: var(--ca-space-4);
+}
+@media (min-width: 768px) {
+  [data-app-cliente] [data-aba-radar] section > ul > li {
+    padding: var(--ca-space-4);
+  }
 }
