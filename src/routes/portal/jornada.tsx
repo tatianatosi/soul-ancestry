@@ -1,3 +1,4 @@
+import { ChevronDown, BookOpen } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 import { COPY_TELAS } from "@/lib/portal-copy";
 import {
@@ -244,8 +245,10 @@ function TimelineVertical({
                   {no.rotuloCategoria}
                   {no.dataPrincipal ? ` · ${no.dataPrincipal}` : ""}
                 </p>
-                <p className="text-sm font-medium text-navy">{no.titulo}</p>
-                <p className="mt-0.5 text-sm text-navy/70">{no.conteudo}</p>
+                <details className="app-jornada-evento" open>
+                  <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 text-sm font-medium text-navy"><span className="min-w-0">{no.titulo}</span><ChevronDown className="app-detalhe-seta h-4 w-4 shrink-0" aria-hidden="true" /></summary>
+                  <p className="mt-0.5 text-sm text-navy/70">{no.conteudo}</p>
+                </details>
                 {no.dataSecundaria ? <p className="mt-0.5 text-[10px] text-navy/40">{no.dataSecundaria}</p> : null}
                 {no.destino ? (
                   <LinkPortal
@@ -272,7 +275,7 @@ function TimelineVertical({
  */
 function MomentosDeUniao({ pontes }: { pontes: NoPonte[] }) {
   return (
-    <div className="relative border-y border-gold/45 py-5">
+    <div className="app-jornada-uniao relative border-y border-gold/45 py-5">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-navy/60">Momentos de União</p>
       {pontes.length > 0 ? (
         <ul className="mt-1.5 space-y-1.5">
@@ -501,7 +504,7 @@ export function PortalJornada() {
                          </section>
                           <section id="linha-memoria" className="relative scroll-mt-20 border-t border-border py-4 sm:order-4 sm:col-span-2">
                             <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-plum bg-cream" />
-                            <h2 className="font-serif text-xl text-navy">Memória</h2>
+                            <h2 className="flex items-center gap-2 font-serif text-xl text-navy"><BookOpen className="h-5 w-5" aria-hidden="true" />Memória</h2>
                             <p className="mt-2 text-sm leading-relaxed text-navy/60">As histórias e os materiais de memória aparecerão aqui quando forem compartilhados com a família.</p>
                           </section>
                       </div>
@@ -532,7 +535,7 @@ export function PortalJornada() {
                         </div>
                          <section id="linha-memoria" className="relative scroll-mt-20 border-t border-border py-4 sm:order-4 sm:col-span-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-plum bg-cream" />
-                           <h2 className="font-serif text-xl text-navy">Memória</h2>
+                           <h2 className="flex items-center gap-2 font-serif text-xl text-navy"><BookOpen className="h-5 w-5" aria-hidden="true" />Memória</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/75">As histórias e os materiais de memória compartilhados com sua família ficam reunidos no Legado.</p>
                            <LinkPortal to="/portal/legado" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver o Legado</LinkPortal>
                          </section>

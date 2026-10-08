@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { BookOpen, ChevronDown, FileText, Feather } from "lucide-react";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
@@ -99,13 +100,17 @@ export function PortalLegado() {
                       const itens = p.id === "narrativas"
                         ? [...porPrateleira.narrativas, ...porPrateleira.memoria]
                         : porPrateleira[p.id];
+                      const IconeColecao = p.id === "cadernos" ? BookOpen : p.id === "relatorios" ? FileText : Feather;
                       return (
                         <section
                           key={p.id}
                           data-legado-prateleira={p.id}
                            className="app-v11-faixa flex min-w-0 flex-col"
                         >
-                          <div className="flex flex-col items-start gap-2">
+                          <details className="app-colecao-detalhe" open={itens.length > 0}>
+                          <summary className="app-colecao-resumo">
+                            <span className="app-colecao-capa" aria-hidden="true"><IconeColecao className="h-6 w-6" /></span>
+                            <div className="min-w-0">
                             <div>
                               <p className="text-xs font-medium uppercase text-navy/60">
                                 Coleção
@@ -117,6 +122,8 @@ export function PortalLegado() {
                                 {itens.length === 0 ? "Ainda sem histórias" : `${itens.length} ${itens.length === 1 ? "história" : "histórias"}`}
                             </span>
                           </div>
+                          <ChevronDown className="app-detalhe-seta h-4 w-4 shrink-0" aria-hidden="true" />
+                          </summary>
                           {itens.length === 0 ? (
                              <p className="app-v11-lacuna mt-3 text-navy/60">
                                  {p.id === "cadernos"
@@ -147,6 +154,7 @@ export function PortalLegado() {
                               ))}
                             </ul>
                           )}
+                          </details>
                         </section>
                       );
                     })}

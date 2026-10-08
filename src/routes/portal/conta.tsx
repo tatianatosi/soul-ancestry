@@ -1,3 +1,4 @@
+import { UserRound, ShieldCheck, ChevronDown } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
@@ -113,7 +114,7 @@ export function PortalConta() {
                   aria-hidden="true"
                   className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-gold/60 bg-navy font-serif text-xl text-gold"
                 >
-                   {titular ? titular.trim().charAt(0).toUpperCase() : "✦"}
+                   {titular ? titular.trim().charAt(0).toUpperCase() : <UserRound className="h-5 w-5" />}
                 </span>
                 <div className="min-w-0">
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Sua família</p>
@@ -141,10 +142,10 @@ export function PortalConta() {
             </section>
 
             <section className="app-v11-faixa">
-              <h2 className="font-serif text-xl text-navy">Estamos por perto</h2>
+              <details className="app-conta-contato"><summary className="flex min-h-11 cursor-pointer items-center gap-2 font-serif text-xl text-navy"><ShieldCheck className="h-5 w-5" aria-hidden="true" /><span className="flex-1">Estamos por perto</span><ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary>
               <p className="mt-2 text-sm text-navy/75">{acompanhamento}</p>
               <p className="mt-3 text-sm leading-relaxed text-navy/75">Ainda não há um canal de contato disponibilizado neste aplicativo.</p>
-              <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Seus canais, preferências de aviso e informações de privacidade aparecerão quando estiverem disponíveis neste espaço.</p>
+              <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Seus canais, preferências de aviso e informações de privacidade aparecerão quando estiverem disponíveis neste espaço.</p></details>
             </section>
 
              <section data-conta-assinatura className="app-v11-faixa">
