@@ -68,14 +68,15 @@ export function PortalLegado() {
                   {/* Acabamento 2026-09-13 (referência Lovable): card editorial de
                       abertura, mesmo texto que já existia (movido para cá, não
                       duplicado), no padrão navy já usado no hero da Home. */}
-                  <section className="app-v11-abertura text-cream">
+                  <section className="app-legado-editorial">
+                    <BookOpen className="app-legado-simbolo h-7 w-7" aria-hidden="true" />
                     <p className="text-xs uppercase text-gold">
                        Acervo da família
                     </p>
-                    <h2 className="mt-1 font-serif text-xl text-cream">
+                    <h2 className="mt-1 font-serif text-xl text-navy">
                        Histórias para guardar e compartilhar
                     </h2>
-                    <p className="mt-2 text-sm text-cream/70">
+                    <p className="mt-2 text-sm text-navy/70">
                         Um lugar para reunir as histórias e os materiais preparados para permanecer com a sua família.
                     </p>
                   </section>
@@ -169,7 +170,7 @@ export function PortalLegado() {
                     coberto pelo anexo de privacidade do contrato.
                   */}
                    <p className="border-t border-border pt-4 text-sm leading-relaxed text-navy/75">Entrevistas, acervo e novas descobertas terão seu lugar nas coleções quando forem compartilhados com a família.</p>
-                   <CompartilharAchadoCliente achados={entregas} />
+                    <details className="app-legado-compartilhar"><summary className="flex items-center gap-3 font-serif text-xl text-navy"><span className="flex-1">Compartilhar com a família</span><ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary><CompartilharAchadoCliente achados={entregas} /></details>
 
                 </div>
               </BlocoVisibilidade>
