@@ -1,5 +1,26 @@
 # Canos faltando — App Cliente (07/10/2026)
 
+## Releitura autenticada — 08/10/2026, 14:52 UTC
+
+SHA consultado: `7699250df238427eaec1d0e033eb2de15d8f14e7`. Sete abas abertas na visão administrativa da Proprietária, mesmo caso Ana, em 375/768/1280 × 1800 px. Não é login da cliente nem prova de isolamento. 21 combinações sem overflow horizontal e sem erro de página; nenhuma publicação ou dado alterado.
+
+Consulta somente leitura do Cloud: 6 publicações de Árvore (G3–G7), todas com `vinculo_projecao_id` nulo e conteúdo contendo apenas nome; 1 assinatura publicada e 1 microentrega publicada. Nenhuma publicação de país/ramo, plano, canal ou acervo categorizado nesse conjunto. Documentos ativos: 0; liberados: 0; recebidos do cliente: 0. Pedidos documentais ativos: 0. Esses zeros não comprovam dispensa de documentos nem universo documental vazio.
+
+**Correção de registros anteriores, sem arquivá-los:** a leitura da Árvore já aceita gerações positivas futuras e exibe G1/G2 como contexto; não permanece limitada a G10 na apresentação. O limite do escritor/banco é assunto separado. A assinatura publicada já tem nome “Pesquisa Genealógica por Ramo Familiar”, R$320/mês e “aguardando confirmação”; não há publicação de plano/vigência completa, nem justificativa para substituir esse valor pelo total contratual ou confirmar pagamento.
+
+### PEDIDO AO CLAUDE — fontes para completar a experiência
+
+| Elemento | Aba | Existente | Necessário / bloqueio |
+|---|---|---|---|
+| Conectores e ramos reais | Árvore | seis IDs/pessoas e gerações publicadas | relação autorizada entre dois IDs, tipo/direção e ramo; os seis vínculos publicados estão ausentes. Não ligar por sobrenome ou ordem. |
+| Mapa e heatmap | Radar | contagem de publicações, não coordenadas/origem | lugar histórico/país autorizado, ramo, unidade/numerador/denominador ou intensidade e fonte; reconciliar leitor existente antes da UI. |
+| Universo, pendentes e arquivos | Documentos | leitores/ações existentes; nenhum item ativo no caso | checklist integral aprovado, pedidos, estados explícitos, contexto e arquivo autorizado; aprovação/publicação humana separadas. |
+| Cadernos, relatórios e narrativas | Legado | uma microentrega; categoria atual depende do leitor legado | categoria editorial explícita, título/contexto, fonte e artefato autorizado; não apresentar a microentrega como caderno homologado por inferência. |
+| PP-03, plano e contato | Conta | assinatura com nome compatível, valor e situação publicados | plano/vigência autorizados e canais com destino permitido; reconciliação PP-03 sem recalcular preço nem confirmar pagamento. |
+| Texto de dispensa documental | Documentos | teste `a5-documentos-separacao-semantica.test.ts:62` exige “não precisamos” | corrigir o contrato/teste para ausência de pedido não significar dispensa. Lovable não alterou o teste nem contornou a exigência com comentário. |
+
+21 testes existentes de Árvore/Radar/Documentos passaram. Não houve edição do App neste corte: fontes ausentes e o teste documental impedem afirmar execução integral. Comparativo atual contém as sete abas, não somente a Home; paridade visual e conteúdo permanecem parciais.
+
 ## Contrato deste corte
 
 Paridade com o mockup aprovado de 17 páginas, em 375 e 1280 px, mantendo Home, Jornada, Radar, Árvore, Documentos, Legado e Conta. Para cada elemento, a fonte exigida é `portal_projecoes`, por tipo e conteúdo sanitizado. Não criar dados, inferir parentesco, deduzir país, fabricar percentuais, publicar conteúdo ou substituir ausência por demonstração.

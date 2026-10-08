@@ -11,8 +11,8 @@
   --app-v11-legenda: var(--ca-text-xs);
   --app-v11-leitura: var(--ca-text-sm);
   --app-v11-secao: var(--ca-text-xl);
-  --app-v11-respiro: var(--ca-space-6);
-  --app-v11-intervalo: var(--ca-space-4);
+  --app-v11-respiro: var(--ca-space-3);
+  --app-v11-intervalo: var(--ca-space-2);
   --app-v11-toque: var(--ca-touch-target);
   --app-v11-superficie: var(--ca-surface-raised);
   --app-v11-acento-suave: var(--ca-surface-accent);
@@ -158,8 +158,8 @@
   padding: var(--ca-space-5);
 }
 [data-app-cliente] [data-aba-jornada] [data-jornada-duas-linhas] {
-  padding-top: var(--ca-space-3);
-  row-gap: var(--ca-space-5);
+  padding-top: var(--ca-space-2);
+  row-gap: var(--ca-space-3);
 }
 [data-app-cliente] [data-aba-jornada] nav[aria-label="Linhas da jornada"] {
   margin-top: calc(-1 * var(--ca-space-3));
@@ -556,3 +556,138 @@
 @media (prefers-reduced-motion: reduce) {
   [data-app-cliente] .app-detalhe-seta { transition: none; }
 }
+
+/* Révision du mockup: densité, objets doux et niveaux, sans filiation dessinée. */
+[data-app-cliente] #conteudo-portal { padding-top: var(--ca-space-3); }
+[data-app-cliente] #conteudo-portal :where([data-aba-home], [data-aba-jornada], [data-aba-radar], [data-aba-arvore], [data-aba-documentos], [data-aba-legado]) > :where(section, div) + :where(section, div) { margin-top: var(--ca-space-4); }
+[data-app-cliente] #conteudo-portal :where(.app-v11-faixa, .app-v11-lacuna, .app-origem-geografica, .app-home-ausencia, .app-legado-compartilhar) { border-radius: var(--ca-radius-lg); }
+[data-app-cliente] .app-v11-abertura { border-radius: var(--ca-radius-xl); }
+[data-app-cliente] [data-aba-home] > div { gap: var(--ca-space-3); }
+[data-app-cliente] [data-aba-home] [aria-label="Pessoas conectadas"] { border: 0; border-radius: var(--ca-radius-xl); padding: var(--ca-space-3) var(--ca-space-4); }
+[data-app-cliente] .app-home-entrega { padding: var(--ca-space-4) !important; }
+[data-app-cliente] .app-conta-composicao { gap: var(--ca-space-3); }
+[data-app-cliente] #conteudo-portal [data-conta-perfil],
+[data-app-cliente] #conteudo-portal [data-conta-assinatura] { border-radius: var(--ca-radius-xl); padding: var(--ca-space-4); }
+[data-app-cliente] .app-documento-icone { border-radius: var(--ca-radius-pill); background: var(--ca-estado-andamento-suave); }
+[data-app-cliente] [data-documento-acordeao="recebidos"] .app-documento-icone { background: var(--ca-estado-aguardando-suave); color: var(--ca-estado-aguardando); }
+[data-app-cliente] [data-documento-acordeao="entregas"] .app-documento-icone { background: var(--ca-estado-concluido-suave); color: var(--ca-estado-concluido); }
+[data-app-cliente] .app-documento-acordeao > summary { padding-block: var(--ca-space-2); }
+[data-app-cliente] .app-documento-conteudo { padding-left: 0; padding-bottom: var(--ca-space-3); }
+[data-app-cliente] .app-colecao { padding-block: var(--ca-space-3); }
+[data-app-cliente] .app-colecao-capa { border-radius: var(--ca-radius-lg); }
+[data-app-cliente] [data-legado-prateleira="narrativas"] .app-colecao-capa { background: var(--ca-estado-vencido-suave); color: var(--ca-terracotta); }
+[data-app-cliente] .app-legado-editorial { padding-bottom: var(--ca-space-3); }
+[data-app-cliente] #conteudo-portal svg { stroke-linecap: round; stroke-linejoin: round; }
+[data-app-cliente] nav[aria-label="Navegação do aplicativo do cliente"] :where(a, button)::after { border-radius: var(--ca-radius-pill); }
+
+/* Le niveau est un repère; aucune ligne ne relie les personnes indépendantes. */
+[data-app-cliente] .app-explorador-arvore { margin-top: var(--ca-space-3); }
+[data-app-cliente] .app-arvore-ferramentas { gap: var(--ca-space-2); margin-bottom: var(--ca-space-2); }
+[data-app-cliente] .app-arvore-modos { border: 0; padding: var(--ca-space-1); gap: var(--ca-space-1); background: var(--ca-surface-sunken); border-radius: var(--ca-radius-pill); }
+[data-app-cliente] .app-arvore-modos button { border-radius: var(--ca-radius-pill); }
+[data-app-cliente] .app-arvore-foco select { border-radius: var(--ca-radius-pill); }
+[data-app-cliente] .app-arvore-aviso { border: 0; padding: 0; margin-bottom: var(--ca-space-2); }
+[data-app-cliente] .app-arvore-aviso summary { display: flex; align-items: center; justify-content: space-between; font-size: var(--ca-text-xs); color: var(--ca-text-muted); }
+[data-app-cliente] .app-arvore-geracao { border: 0; padding-block: var(--ca-space-2); gap: var(--ca-space-2); }
+[data-app-cliente] #conteudo-portal .app-arvore-geracao > h3 { display: flex; align-items: center; gap: var(--ca-space-2); font-size: var(--ca-text-xs); letter-spacing: 0; text-transform: none; }
+[data-app-cliente] .app-geracao-nivel { display: grid; place-items: center; flex-shrink: 0; width: var(--ca-space-7); height: var(--ca-space-7); border-radius: var(--ca-radius-pill); background: var(--ca-surface-accent); color: var(--ca-estado-aguardando); }
+[data-app-cliente] .app-arvore-geracao:nth-child(even) .app-geracao-nivel { background: var(--ca-estado-andamento-suave); color: var(--ca-navy); }
+[data-app-cliente] .app-arvore-perfil { border-radius: var(--ca-radius-xl); }
+[data-app-cliente] .app-arvore-perfil summary { padding: var(--ca-space-2) var(--ca-space-3); }
+[data-app-cliente] .app-arvore-inicial { width: var(--ca-space-7); height: var(--ca-space-7); background: var(--ca-estado-concluido-suave); color: var(--ca-estado-concluido); }
+[data-app-cliente] .app-arvore-ancora { border-radius: var(--ca-radius-pill); min-height: var(--ca-space-7); }
+[data-app-cliente] .app-arvore-nos { gap: var(--ca-space-2); }
+[data-app-cliente] [data-arvore-contagem] { border: 0; border-radius: var(--ca-radius-xl); padding: var(--ca-space-3) var(--ca-space-4); }
+
+/* Radar proche du format compact de la référence; absence sans barre. */
+[data-app-cliente] [data-radar-grafico] > div:first-child { padding: var(--ca-space-2) 0; }
+[data-app-cliente] [data-radar-grafico] svg { margin-block: 0; }
+[data-app-cliente] [data-aba-radar] section > ul { gap: var(--ca-space-2); }
+[data-app-cliente] [data-aba-radar] section > ul > li { border: 0; border-radius: var(--ca-radius-xl); padding: var(--ca-space-3); background: var(--ca-surface-raised); }
+[data-app-cliente] [data-aba-radar] section > ul > li:nth-child(2),
+[data-app-cliente] [data-aba-radar] section > ul > li:nth-child(4) { background: var(--ca-surface-accent); }
+[data-app-cliente] [data-aba-radar] section > ul > li > p { font-size: var(--ca-text-xs); line-height: var(--ca-leading-normal); }
+[data-app-cliente] [data-aba-radar] [data-radar-calculo] { margin-top: 0; }
+
+[data-app-cliente] .app-andamento-publicado { margin-bottom: var(--ca-space-3); border-radius: var(--ca-radius-lg); padding: var(--ca-space-2) var(--ca-space-3); background: var(--ca-surface-accent); }
+[data-app-cliente] .app-andamento-publicado summary { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: var(--ca-space-2); font-size: var(--ca-text-xs); min-height: var(--ca-touch-target); }
+[data-app-cliente] .app-andamento-publicado strong { font-weight: var(--ca-weight-semibold); color: var(--ca-navy); }
+[data-app-cliente] .app-andamento-ponto { width: var(--ca-space-2); height: var(--ca-space-2); border-radius: var(--ca-radius-pill); background: var(--ca-gold); }
+[data-app-cliente] .app-andamento-publicado p { font-size: var(--ca-text-xs); margin-top: var(--ca-space-2); }
+[data-app-cliente] .app-andamento-publicado progress { display: block; width: 100%; height: var(--ca-space-2); appearance: none; border: 0; border-radius: var(--ca-radius-pill); overflow: hidden; background: var(--ca-surface-sunken); }
+[data-app-cliente] .app-andamento-publicado progress::-webkit-progress-bar { background: var(--ca-surface-sunken); border-radius: var(--ca-radius-pill); }
+[data-app-cliente] .app-andamento-publicado progress::-webkit-progress-value { background: var(--ca-gold); border-radius: var(--ca-radius-pill); }
+[data-app-cliente] .app-andamento-publicado progress::-moz-progress-bar { background: var(--ca-gold); border-radius: var(--ca-radius-pill); }
+@media (min-width: 768px) {
+  [data-app-cliente] .app-arvore-geracao { grid-template-columns: 8rem minmax(0,1fr); align-items: center; }
+  [data-app-cliente] .app-arvore-nos { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+
+/* Kit du mockup envoyé: niveaux compacts et silhouettes indépendantes. */
+[data-app-cliente] .app-arvore-geracao { grid-template-columns: minmax(0,1fr); }
+[data-app-cliente] #conteudo-portal .app-arvore-geracao > h3 { gap: var(--ca-space-2); }
+[data-app-cliente] .app-geracao-nivel { width: var(--ca-space-7); height: var(--ca-space-7); }
+[data-app-cliente] .app-arvore-nos { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--ca-space-2); }
+[data-app-cliente] .app-arvore-nos .app-arvore-perfil { flex: 1 1 9rem; max-width: 18rem; }
+[data-app-cliente] .app-arvore-nos .app-arvore-perfil summary { grid-template-columns: minmax(0,1fr) auto; gap: var(--ca-space-2); padding: var(--ca-space-3); }
+[data-app-cliente] .app-arvore-nos .app-arvore-inicial { display: none; }
+[data-app-cliente] .app-arvore-nos .app-arvore-perfil summary > span:nth-child(2) { text-align: center; }
+[data-app-cliente] .app-arvore-nos .app-arvore-perfil summary > span:nth-child(2) > span:first-child { font-size: var(--ca-text-xs); line-height: var(--ca-leading-normal); }
+[data-app-cliente] .app-arvore-nos .app-arvore-ancora { width: 12rem; padding-inline: var(--ca-space-3); }
+[data-app-cliente] .app-arvore-nos [data-arvore-lacuna] { width: 100%; text-align: center; font-size: var(--ca-text-xs); }
+[data-app-cliente] [data-radar-grafico] svg { max-width: 32rem; }
+[data-app-cliente] [data-aba-home] > section:first-child { border-radius: var(--ca-radius-xl); }
+[data-app-cliente] .app-jornada-uniao { border-radius: var(--ca-radius-xl); background: var(--ca-estado-vencido-suave); }
+@media (min-width: 768px) {
+  [data-app-cliente] .app-arvore-geracao { grid-template-columns: 8rem minmax(0,1fr); }
+}
+
+/* Jornada contínua: curvas ligam seções, nunca pessoas sem vínculo publicado. */
+[data-app-cliente] [data-jornada-duas-linhas] > span:first-child {
+  border-radius: var(--ca-radius-pill);
+  top: var(--ca-space-4);
+  bottom: var(--ca-space-4);
+}
+[data-app-cliente] [data-jornada-duas-linhas] > :where(section, div) {
+  padding-block: var(--ca-space-2);
+}
+[data-app-cliente] .app-jornada-linha > div:first-child {
+  width: var(--ca-space-7);
+  height: var(--ca-space-1);
+  border-radius: var(--ca-radius-pill);
+}
+[data-app-cliente] .app-jornada-linha > div:nth-child(2) { padding-block: var(--ca-space-2); }
+[data-app-cliente] .app-jornada-linha h2 { margin-bottom: var(--ca-space-2); }
+[data-app-cliente] .app-jornada-linha ol > li { padding-block: var(--ca-space-2); padding-left: var(--ca-space-4); }
+[data-app-cliente] .app-jornada-fio { opacity: 0.45; }
+[data-app-cliente] .app-jornada-linha ol > li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: var(--ca-space-5);
+  width: var(--ca-space-4);
+  height: var(--ca-space-4);
+  border-bottom: 2px solid var(--app-v11-orientacao);
+  border-left: 2px solid var(--app-v11-orientacao);
+  border-bottom-left-radius: var(--ca-radius-xl);
+  pointer-events: none;
+}
+[data-app-cliente] .app-jornada-linha[data-linha-tom="gold"] ol > li::before { border-color: var(--app-v11-conexao); }
+[data-app-cliente] .app-jornada-linha ol > li > span:first-child { top: var(--ca-space-4); }
+[data-app-cliente] .app-jornada-data { margin-bottom: var(--ca-space-1); }
+[data-app-cliente] .app-jornada-data > span { font-size: var(--ca-text-xs); letter-spacing: 0; }
+[data-app-cliente] .app-jornada-evento { padding: var(--ca-space-2) var(--ca-space-3); border-radius: var(--ca-radius-lg); }
+[data-app-cliente] .app-jornada-uniao { padding: var(--ca-space-3); border: 0; border-left: 2px solid var(--app-v11-conexao); }
+[data-app-cliente] #conteudo-portal [data-aba-jornada] .app-v11-abertura { padding: var(--ca-space-4); }
+[data-app-cliente] #conteudo-portal [data-aba-jornada] > :where(div, section) + :where(div, section) { margin-top: var(--ca-space-3); }
+[data-app-cliente] #conteudo-portal :where([data-aba-home], [data-aba-radar], [data-aba-arvore], [data-aba-documentos], [data-aba-legado]) > :where(section, div) + :where(section, div) { margin-top: var(--ca-space-3); }
+[data-app-cliente] #conteudo-portal [data-aba-home] > section:first-child { padding: var(--ca-space-4); }
+[data-app-cliente] .app-documento-conteudo { padding-bottom: var(--ca-space-2); }
+[data-app-cliente] .app-origem-geografica { padding-block: var(--ca-space-3); }
+[data-app-cliente] .app-origem-abertura { gap: var(--ca-space-3); }
+[data-app-cliente] .app-colecao-resumo { gap: var(--ca-space-3); }
+[data-app-cliente] .app-colecao-detalhe li { padding-block: var(--ca-space-2); }
+[data-app-cliente] .app-conta-composicao { gap: var(--ca-space-2); }
+[data-app-cliente] .app-conta-registro { padding-block: var(--ca-space-2); }
+[data-app-cliente] .app-andamento-publicado { padding-block: var(--ca-space-1); }
+[data-app-cliente] .app-andamento-publicado > div { padding-block: var(--ca-space-2); }
