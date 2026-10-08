@@ -622,3 +622,22 @@
   [data-app-cliente] .app-arvore-geracao { grid-template-columns: 8rem minmax(0,1fr); align-items: center; }
   [data-app-cliente] .app-arvore-nos { grid-template-columns: repeat(2, minmax(0,1fr)); }
 }
+
+/* Kit du mockup envoyé: niveaux compacts et silhouettes indépendantes. */
+[data-app-cliente] .app-arvore-geracao { grid-template-columns: minmax(0,1fr); }
+[data-app-cliente] #conteudo-portal .app-arvore-geracao > h3 { gap: var(--ca-space-2); }
+[data-app-cliente] .app-geracao-nivel { width: var(--ca-space-7); height: var(--ca-space-7); }
+[data-app-cliente] .app-arvore-nos { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--ca-space-2); }
+[data-app-cliente] .app-arvore-nos .app-arvore-perfil { flex: 1 1 9rem; max-width: 18rem; }
+[data-app-cliente] .app-arvore-nos .app-arvore-perfil summary { grid-template-columns: minmax(0,1fr) auto; gap: var(--ca-space-2); padding: var(--ca-space-3); }
+[data-app-cliente] .app-arvore-nos .app-arvore-inicial { display: none; }
+[data-app-cliente] .app-arvore-nos .app-arvore-perfil summary > span:nth-child(2) { text-align: center; }
+[data-app-cliente] .app-arvore-nos .app-arvore-perfil summary > span:nth-child(2) > span:first-child { font-size: var(--ca-text-xs); line-height: var(--ca-leading-normal); }
+[data-app-cliente] .app-arvore-nos .app-arvore-ancora { width: 12rem; padding-inline: var(--ca-space-3); }
+[data-app-cliente] .app-arvore-nos [data-arvore-lacuna] { width: 100%; text-align: center; font-size: var(--ca-text-xs); }
+[data-app-cliente] [data-radar-grafico] svg { max-width: 32rem; }
+[data-app-cliente] [data-aba-home] > section:first-child { border-radius: var(--ca-radius-xl); }
+[data-app-cliente] .app-jornada-uniao { border-radius: var(--ca-radius-xl); background: var(--ca-estado-vencido-suave); }
+@media (min-width: 768px) {
+  [data-app-cliente] .app-arvore-geracao { grid-template-columns: 8rem minmax(0,1fr); }
+}
