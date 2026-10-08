@@ -263,3 +263,231 @@
     padding: var(--ca-space-4);
   }
 }
+
+/* Paridade de composição: objetos distintos, ausência compacta, leitura contínua. */
+[data-app-cliente] #conteudo-portal :where(a, button, summary, select):focus-visible {
+  outline: 2px solid var(--app-v11-orientacao);
+  outline-offset: 3px;
+}
+[data-app-cliente] #conteudo-portal summary {
+  min-height: var(--app-v11-toque);
+  cursor: pointer;
+  list-style: none;
+}
+[data-app-cliente] #conteudo-portal summary::-webkit-details-marker { display: none; }
+[data-app-cliente] .app-detalhe-seta { transition: transform 160ms ease; }
+[data-app-cliente] details[open] > summary .app-detalhe-seta { transform: rotate(180deg); }
+[data-app-cliente] #conteudo-portal :where(p, span)[class~="text-gold"],
+[data-app-cliente] [data-aba-home] [aria-label="Próxima ação"] > p,
+[data-app-cliente] [data-aba-home] [aria-label="Pessoas conectadas"] > p {
+  color: var(--ca-estado-aguardando);
+  letter-spacing: 0;
+}
+[data-app-cliente] #conteudo-portal :where(.app-v11-abertura, [data-aba-home] > section:first-child) :where(p, span)[class~="text-gold"] {
+  color: var(--app-v11-conexao);
+}
+[data-app-cliente] [data-aba-home] .app-home-entrega {
+  border: 0;
+  border-top: 2px solid var(--app-v11-conexao);
+  background: var(--app-v11-superficie);
+  padding: var(--ca-space-5);
+  border-radius: var(--ca-radius-lg);
+  box-shadow: var(--ca-shadow-sm);
+}
+[data-app-cliente] .app-home-ausencia {
+  padding-block: var(--ca-space-2);
+  border-top: 1px solid var(--app-v11-borda);
+}
+[data-app-cliente] .app-home-ausencia summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ca-space-3);
+}
+[data-app-cliente] .app-home-ausencia summary::after { content: "+"; font-family: var(--app-v11-corpo); }
+[data-app-cliente] .app-home-ausencia details[open] summary::after { content: "−"; }
+
+/* Deux lignes narratives et événements développables. */
+[data-app-cliente] .app-jornada-uniao {
+  background: var(--app-v11-acento-suave);
+  padding: var(--ca-space-4);
+  border-radius: var(--ca-radius-md);
+}
+[data-app-cliente] .app-jornada-evento {
+  background: var(--app-v11-superficie);
+  border-radius: var(--ca-radius-md);
+  padding: var(--ca-space-3);
+  border-bottom: 1px solid var(--app-v11-borda);
+}
+[data-app-cliente] [data-aba-jornada] .app-v11-abertura,
+[data-app-cliente] [data-aba-legado] .app-v11-abertura {
+  border-radius: var(--ca-radius-lg);
+}
+
+/* Géographies: espace lisible réservé sans carte décorative ni pays supposés. */
+[data-app-cliente] .app-origem-geografica {
+  padding-block: var(--ca-space-5);
+  border-block: 1px solid var(--app-v11-conexao);
+}
+[data-app-cliente] .app-origem-abertura {
+  display: flex;
+  align-items: center;
+  gap: var(--ca-space-4);
+  color: var(--ca-estado-aguardando);
+}
+[data-app-cliente] .app-origem-lacuna {
+  border-top: 1px solid var(--app-v11-borda);
+  padding-top: var(--ca-space-2);
+}
+[data-app-cliente] [data-aba-radar] section > ul > li {
+  box-shadow: none;
+  border-radius: var(--ca-radius-lg);
+}
+[data-app-cliente] [data-aba-radar] section > ul > li > p {
+  font-size: var(--ca-text-sm);
+}
+[data-app-cliente] [data-radar-grafico] svg {
+  border-radius: var(--ca-radius-lg);
+}
+
+/* Exploration familiale: profils autonomes et générations, sans fausse filiation. */
+[data-app-cliente] .app-explorador-arvore {
+  margin-top: var(--ca-space-5);
+}
+[data-app-cliente] .app-arvore-ferramentas {
+  display: grid;
+  gap: var(--ca-space-4);
+  margin-bottom: var(--ca-space-4);
+}
+[data-app-cliente] .app-arvore-modos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-bottom: 1px solid var(--app-v11-conexao);
+}
+[data-app-cliente] .app-arvore-modos button { border-radius: var(--ca-radius-md) var(--ca-radius-md) 0 0; }
+[data-app-cliente] .app-arvore-modos button[aria-pressed="true"] { background: var(--app-v11-orientacao); color: var(--ca-text-inverse); }
+[data-app-cliente] .app-arvore-foco { display: grid; gap: var(--ca-space-1); }
+[data-app-cliente] .app-arvore-foco select {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--app-v11-toque);
+  border: 1px solid var(--app-v11-borda);
+  border-radius: var(--ca-radius-md);
+  background: var(--app-v11-superficie);
+  padding-inline: var(--ca-space-3);
+  font-size: var(--ca-text-sm);
+  color: var(--app-v11-texto);
+}
+[data-app-cliente] .app-arvore-aviso {
+  border-left: 2px solid var(--app-v11-conexao);
+  padding-left: var(--ca-space-3);
+  margin-bottom: var(--ca-space-5);
+}
+[data-app-cliente] .app-arvore-geracao {
+  border-top: 1px solid var(--app-v11-borda);
+  padding-block: var(--ca-space-4);
+  display: grid;
+  gap: var(--ca-space-3);
+}
+[data-app-cliente] .app-arvore-nos,
+[data-app-cliente] .app-arvore-pessoas {
+  display: grid;
+  gap: var(--ca-space-3);
+  min-width: 0;
+}
+[data-app-cliente] .app-arvore-perfil {
+  min-width: 0;
+  border: 1px solid var(--app-v11-borda);
+  border-radius: var(--ca-radius-lg);
+  background: var(--app-v11-superficie);
+  box-shadow: none;
+}
+[data-app-cliente] .app-arvore-perfil summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--ca-space-3);
+  padding: var(--ca-space-3);
+  color: var(--app-v11-texto);
+}
+[data-app-cliente] .app-arvore-inicial {
+  display: grid;
+  place-items: center;
+  width: var(--ca-space-7);
+  height: var(--ca-space-7);
+  border-radius: var(--ca-radius-pill);
+  background: var(--app-v11-acento-suave);
+  color: var(--ca-estado-aguardando);
+  font-family: var(--app-v11-titulo);
+  font-size: var(--ca-text-xl);
+}
+[data-app-cliente] .app-arvore-ficha { padding: var(--ca-space-4); border-top: 1px solid var(--app-v11-borda); }
+[data-app-cliente] .app-arvore-ancora {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--ca-space-3);
+  min-height: var(--ca-space-8);
+  border-radius: var(--ca-radius-lg);
+  background: var(--app-v11-orientacao);
+  color: var(--ca-text-inverse);
+}
+
+/* Documents: sections conservées, ouverture au clavier, détails sans boîte imbriquée. */
+[data-app-cliente] #conteudo-portal [data-documento-acordeao] {
+  border-bottom: 1px solid var(--app-v11-borda);
+}
+[data-app-cliente] .app-documento-acordeao > summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--ca-space-3);
+  align-items: center;
+  padding-block: var(--ca-space-3);
+  color: var(--app-v11-orientacao);
+}
+[data-app-cliente] .app-documento-conteudo { padding-bottom: var(--ca-space-4); }
+[data-app-cliente] .app-documento-conteudo > div > div:first-child > h2,
+[data-app-cliente] .app-documento-conteudo > div > h2 { display: none; }
+[data-app-cliente] #conteudo-portal :is([data-aba-documentos], [data-aba-documentos-vivo]) .app-v11-faixa {
+  border: 0;
+  padding-block: 0;
+  margin-top: var(--ca-space-3);
+}
+[data-app-cliente] .app-documento-conteudo .app-v11-lacuna { border: 0; padding-left: 0; }
+
+/* Bibliothèque: dos de couverture, collections compactes, matériaux publiés. */
+[data-app-cliente] [data-legado-prateleiras] { grid-template-columns: minmax(0, 1fr); gap: 0; }
+[data-app-cliente] .app-colecao { border-bottom: 1px solid var(--app-v11-borda); padding-block: var(--ca-space-4); }
+[data-app-cliente] .app-colecao-resumo { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--ca-space-3); align-items: center; }
+[data-app-cliente] .app-colecao-capa {
+  width: var(--ca-space-8);
+  aspect-ratio: 3 / 4;
+  display: grid;
+  place-items: center;
+  border-radius: var(--ca-radius-sm);
+  border-left: 4px solid var(--app-v11-conexao);
+  background: var(--app-v11-topo);
+  color: var(--ca-text-inverse);
+}
+[data-app-cliente] [data-legado-prateleira="relatorios"] .app-colecao-capa { background: var(--app-v11-acento-suave); color: var(--app-v11-orientacao); }
+[data-app-cliente] [data-legado-prateleira="narrativas"] .app-colecao-capa { background: var(--ca-surface-sunken); color: var(--app-v11-orientacao); }
+[data-app-cliente] .app-colecao-resumo h2 { font-size: var(--ca-text-lg); }
+[data-app-cliente] .app-colecao-resumo :where(p, span) { font-size: var(--ca-text-xs); }
+[data-app-cliente] .app-colecao-detalhe > ul { margin-top: var(--ca-space-4); }
+[data-app-cliente] .app-colecao-detalhe li { border-radius: var(--ca-radius-md); padding: var(--ca-space-4); }
+[data-app-cliente] #conteudo-portal [data-compartilhar-achado-cliente] { padding-inline: 0; border: 0; border-top: 1px solid var(--app-v11-borda); border-radius: 0; background: transparent; }
+
+/* Identité et continuité: abonnement isolé sans confusion avec paiement. */
+[data-app-cliente] #conteudo-portal [data-conta-perfil] { padding: var(--ca-space-5); background: var(--app-v11-superficie); border: 1px solid var(--app-v11-borda); border-radius: var(--ca-radius-lg); }
+[data-app-cliente] #conteudo-portal [data-conta-assinatura] { padding: var(--ca-space-5); background: var(--app-v11-topo); color: var(--ca-text-inverse); border-radius: var(--ca-radius-lg); border: 0; }
+[data-app-cliente] #conteudo-portal [data-conta-assinatura] :where(h2, p, span) { color: var(--ca-text-inverse); }
+[data-app-cliente] #conteudo-portal [data-conta-assinatura] h2 { color: var(--app-v11-conexao); }
+[data-app-cliente] #conteudo-portal [data-conta-assinatura-valor] { font-family: var(--app-v11-corpo); font-size: var(--ca-text-2xl); }
+@media (min-width: 768px) {
+  [data-app-cliente] .app-arvore-ferramentas { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; }
+  [data-app-cliente] .app-arvore-geracao { grid-template-columns: 9rem minmax(0, 1fr); align-items: start; }
+  [data-app-cliente] .app-arvore-pessoas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-app-cliente] .app-detalhe-seta { transition: none; }
+}
