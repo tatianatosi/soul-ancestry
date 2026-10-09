@@ -19,6 +19,7 @@ import {
   PREAMBULO_CONTRATO_BASE,
 } from "@/lib/contrato-base-consolidado";
 import { blocosRenderizados, type BlocoRenderizado } from "@/lib/matriz-aceite";
+import { definicaoCampo } from "@/lib/parametros-dicionario";
 import {
   anexoIIncorporadoNoCorpo,
   BLOCOS_QUE_INCORPORAM_ANEXO_I,
@@ -128,9 +129,23 @@ export function blocosDoCaso(e: EntradaCorpo): {
   blocos: BlocoIncorporado[];
   cobertura: CoberturaContratual;
 } {
+  /*
+   * 09/10/2026 — defeito medido no corpo guardado da prévia da Ana: o
+   * contrato imprimia o CÓDIGO interno em vez do rótulo. Saía
+   * "eletronica_govbr" no lugar de "Eletrônica via gov.br", e "Austria" no
+   * lugar de "Áustria — administrativa (§ 58c StbG)". Campo classificatório
+   * guarda código por desenho; quem lê o contrato precisa do rótulo.
+   *
+   * Valor fora da lista controlada continua aparecendo como está — some
+   * seria pior que mostrar o código.
+   */
   const val = (campo: string) => {
     const v = e.valores.find((x) => x.campo === campo)?.valor;
-    return v && String(v).trim() ? String(v) : null;
+    if (!v || !String(v).trim()) return null;
+    const bruto = String(v);
+    const def = definicaoCampo(campo);
+    if (def.tipo !== "dropdown" && def.tipo !== "multiselect") return bruto;
+    return (def.opcoes ?? []).find((o) => o.valor === bruto)?.rotulo ?? bruto;
   };
   const pessoas = montarPessoasContratuais(
     e.pessoas ?? { membros: [], dependentes: [], itensCondicao: [], responsaveisFinanceiros: [] },
