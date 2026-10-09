@@ -893,6 +893,7 @@
     transition: none;
     scroll-behavior: auto;
   }
+}
 /* Homologação 09/10: todos os seletores ficam sob a raiz exclusiva do App. */
 [data-app-cliente] #conteudo-portal { padding-top: var(--ca-space-5); }
 [data-app-cliente] .app-abertura-tela { margin-bottom: var(--ca-space-5); }
