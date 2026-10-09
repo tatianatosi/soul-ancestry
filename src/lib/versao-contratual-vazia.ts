@@ -77,8 +77,29 @@ export function diagnosticarVersaoContratual(v: VersaoContratual | null | undefi
   const c = conteudo(v);
   const motivos: string[] = [];
 
+  /*
+   * Correção de 09/10/2026. A regra anterior era `vazia = clausulas === 0`, e
+   * isso marcava como vazia uma versão CORRETA: o array `clausulas` guarda só
+   * as cláusulas SOBRESCRITAS por contrato (`contract_clause_overrides`), que
+   * ficam legitimamente vazias quando o instrumento usa o texto do modelo
+   * aprovado sem alterar nada. O texto das cláusulas, nesse caso, vive no HTML
+   * renderizado a partir de `contract_templates.default_clauses`.
+   *
+   * Medido no caso da Ana: a v2 regenerada tem 0 overrides, 21 itens de escopo
+   * e 17 ocorrências de "Cláusula" no HTML — está completa. A v1 de 21/08 tem
+   * 0 overrides, 0 escopo e 642 bytes — essa sim está vazia.
+   */
   const clausulas = Array.isArray(c?.clausulas) ? c!.clausulas.length : 0;
-  if (clausulas === 0) motivos.push("A versão não tem nenhuma cláusula: o corpo contratual está vazio.");
+  const html = typeof c?.html === "string" ? c.html : "";
+  const clausulasNoHtml = (html.match(/Cl[áa]usula/g) ?? []).length;
+  const semCorpo = clausulas === 0 && clausulasNoHtml === 0;
+  if (semCorpo) {
+    motivos.push(
+      clausulas === 0 && !html
+        ? "A versão não tem cláusula sobrescrita nem HTML renderizado: o corpo contratual está vazio."
+        : "A versão não tem nenhuma cláusula: o corpo contratual está vazio.",
+    );
+  }
 
   const escopo = Array.isArray(c?.escopo) ? c!.escopo.length : 0;
   if (escopo === 0) motivos.push("A versão não tem itens de escopo.");
@@ -99,7 +120,7 @@ export function diagnosticarVersaoContratual(v: VersaoContratual | null | undefi
     );
   }
 
-  const vazia = clausulas === 0;
+  const vazia = semCorpo && escopo === 0;
   return {
     vazia,
     anteriorAoGerador,

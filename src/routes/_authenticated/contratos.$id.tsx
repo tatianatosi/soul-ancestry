@@ -531,9 +531,18 @@ function Resumo({ dados, onSalvo }: { dados: any; onSalvo: () => void }) {
   );
 }
 
+/**
+ * Tabela larga do instrumento. PR #32 (30/08/2026) apontou o defeito e nunca
+ * foi mesclada: `min-w-[640px]` dentro de `overflow-x-auto` é inoperável em
+ * 375 px — a pessoa precisa arrastar a tabela para alcançar as ações.
+ *
+ * Correção de 09/10/2026: a tabela passa a ser exclusiva de `md+`; abaixo
+ * disso, cada linha vira card empilhado (`<CardsPartes>`), com as MESMAS
+ * ações. Nenhuma informação sai da tela pequena; nada de ação só no desktop.
+ */
 function Tabela({ cabecalho, children }: { cabecalho: string[]; children: React.ReactNode }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="hidden overflow-x-auto md:block">
       <table className="w-full min-w-[640px] text-sm">
         <thead className="bg-navy/5 text-left text-xs uppercase tracking-wide text-navy/60">
           <tr>
@@ -576,6 +585,62 @@ function useSalvarItem(contratoId: string, tabela: any, onSalvo: () => void) {
   };
 }
 
+/** Uma parte do instrumento como card — a vista de telas estreitas. */
+function CardsPartes({
+  partes,
+  aoArquivar,
+}: {
+  partes: any[];
+  aoArquivar: (id: string, motivo: string) => void | Promise<void>;
+}) {
+  return (
+    <ul className="flex flex-col gap-2 md:hidden">
+      {partes.map((p) => (
+        <li
+          key={p.id}
+          className={`rounded-lg border border-navy/15 bg-white p-3 text-sm ${p.archived_at ? "opacity-50" : ""}`}
+        >
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <span className="font-medium text-navy">{p.person_name}</span>
+            <span className="text-xs text-navy/60">{ROTULO_PAPEL_PARTE[p.role] ?? p.role}</span>
+          </div>
+          {p.client_id ? (
+            <Link
+              to="/pessoas/$clienteId"
+              params={{ clienteId: String(p.client_id) }}
+              className="mt-1 inline-block text-xs text-navy underline underline-offset-4"
+            >
+              Pessoa 360
+            </Link>
+          ) : null}
+          <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-navy/70">
+            <dt className="text-navy/55">Capacidade</dt>
+            <dd>{p.legal_capacity_status}</dd>
+            <dt className="text-navy/55">Assinatura</dt>
+            <dd>{p.signature_required ? "requerida" : "não requerida"}</dd>
+          </dl>
+          <div className="mt-2">
+            {!p.archived_at ? (
+              <AcaoOperacional
+                rotulo="Arquivar parte"
+                acaoExterna="excluir_registro_ou_versao"
+                variant="ghost"
+                size="sm"
+                efeito={`Arquiva a parte ${p.person_name}. O registro permanece no histórico.`}
+                onConfirmar={(motivo) => aoArquivar(p.id, motivo)}
+              >
+                Arquivar
+              </AcaoOperacional>
+            ) : (
+              <span className="text-xs text-navy/50">arquivada</span>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string; onSalvo: () => void }) {
   const { erro, salvar, arquivar } = useSalvarItem(contratoId, "contract_parties", onSalvo);
   const [nome, setNome] = useState("");
@@ -590,7 +655,9 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
         vazio="Nenhuma parte cadastrada neste instrumento."
       >
         {(partes) => (
-          <Tabela cabecalho={["Nome", "Papel", "Capacidade", "Assinatura", "Ações"]}>
+          <>
+            <CardsPartes partes={partes as any[]} aoArquivar={arquivar} />
+            <Tabela cabecalho={["Nome", "Papel", "Capacidade", "Assinatura", "Ações"]}>
             {(partes as any[]).map((p) => (
               <tr key={p.id} className={`border-t border-navy/10 ${p.archived_at ? "opacity-50" : ""}`}>
                 <td className="px-3 py-2">
@@ -625,8 +692,9 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
                   )}
                 </td>
               </tr>
-            ))}
-          </Tabela>
+              ))}
+            </Tabela>
+          </>
         )}
       </EstadoDados>
       <div className="flex flex-wrap items-start gap-2">
