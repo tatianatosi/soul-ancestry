@@ -173,11 +173,11 @@ export const ANA_BLOQUEIOS: string[] = [
 ];
 
 export const ANA_NOTA_COMERCIAL =
-  "A proposta aceita cobre três titulares e um dependente. A estrutura aprovada é R$ 9.600 em três assinaturas " +
-  "mensais de R$ 320 por responsável (Ana Luiza, Adair e Alice), durante 10 meses — confirmada pela Proprietária " +
-  "em 09/10/2026. A leitura de '10 mensalidades de R$ 960', presente em material recuperado, é legado: o total " +
-  "coincide, a estrutura e o número de pagadores não. Nada disso vira cobrança, contrato ou SKU sem reconciliação " +
-  "e definição formal.";
+  "A proposta aceita cobre três titulares e um dependente. A estrutura aprovada (confirmada pela Proprietária em " +
+  "09/10/2026): R$ 9.600 no total, R$ 960 por mês, divididos em três assinaturas de R$ 320 — Ana Luiza, Adair e " +
+  "Alice —, durante 10 meses. As duas leituras que circulam ('10 mensalidades de R$ 960' e 'três assinaturas de " +
+  "R$ 320') descrevem a MESMA condição, por ângulos diferentes: 3 x 320 = 960 por mês, 960 x 10 = 9.600. Nada " +
+  "disso vira cobrança, contrato ou SKU sem reconciliação e definição formal.";
 
 export type DegrauOnboarding = {
   estado: string;

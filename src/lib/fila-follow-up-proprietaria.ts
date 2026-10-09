@@ -122,9 +122,9 @@ export const FIXTURE_ANA_LUIZA: EntradaFollowUp = {
   prazo: "2026-10-01",
   rotaDestino: "/casos/a11a0000-0000-4000-8000-000000000002",
   evidenciaOrigem:
-      "Proposta familiar aprovada: R$ 9.600,00 em três assinaturas mensais de R$ 320 por responsável " +
-      "(Ana Luiza, Adair e Alice), durante 10 meses — estrutura confirmada pela Proprietária em 09/10/2026. " +
-      "Aceite formal registrado.",
+      "Proposta familiar aprovada: R$ 9.600,00 no total — R$ 960,00 por mês, divididos em três assinaturas " +
+      "de R$ 320 (Ana Luiza, Adair e Alice), durante 10 meses. Estrutura confirmada pela Proprietária em " +
+      "09/10/2026. Aceite formal registrado.",
   recomendacao: "Decidir e registrar: iniciar preparação antes do pagamento (override) ou manter bloqueio financeiro.",
 };
 

@@ -524,8 +524,16 @@ export const MENU_CONTA: {
  * 03/09/2026 — /piloto e /piloto-ana removidas desta lista por decisão
  * explícita da proprietária: o mecanismo de "piloto" da Ana convergiu para
  * o fluxo padrão de qualquer caso real (aba Jornada → Fechamento, 9 gates
- * de src/lib/fechamento-caso.ts). As rotas continuam existindo no
- * repositório, só saíram do menu.
+ * de src/lib/fechamento-caso.ts).
+ *
+ * Correção de 09/10/2026: este comentário dizia que "as rotas continuam
+ * existindo no repositório, só saíram do menu". Medido: os arquivos de rota
+ * NÃO existem mais em src/routes/_authenticated/ — saíram junto. O que
+ * permanece é a camada de dados do piloto (src/lib/piloto-ana.ts,
+ * piloto-ana.functions.ts, gates-piloto.ts, ficha-piloto-genealogica*),
+ * usada pela Ficha Piloto dentro do Caso 360. Consequência prática: a PR #29,
+ * que arrumava piloto-ana.tsx, ficou sem objeto — não é regressão, é
+ * substituição pela decisão de 03/09.
  *
  * 06/09/2026 — /governanca/criterios-aceite, /governanca/matriz-conformidade,
  * /governanca/corte-vertical, /governanca/indicadores,
