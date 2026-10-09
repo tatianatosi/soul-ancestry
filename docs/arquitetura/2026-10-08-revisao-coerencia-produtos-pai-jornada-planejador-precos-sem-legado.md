@@ -1,124 +1,91 @@
 # Revisão de coerência — produtos-pai, jornada, Planejador Universal e preços
 
-Status: em revisão
-Versão: v1.0
+Status: aprovado
+Versão: v1.1
 Data: 2026-10-08
 Responsável pela decisão: Proprietária do Clube Ancestral
-Fonte(s) de evidência: instrução atual da proprietária; consulta somente de leitura autorizada no Supabase zsxpdbhdvbuulwpepemd em 08/10/2026, tabelas planner_catalog_feed, price_catalog_rescued, controlled_taxonomies e citizenship_tracks; inventário list_tables; documentos de projeto docs/auditorias/verificacao-planejador-produtos-pai-multipais-07-09.md e docs/auditorias/trava-sku-planejador-corrigida-08-09.md; pesquisa de nomes de documentos no GitHub tatianatosi/soul-ancestry.
-Escopo: reconciliar o modelo de produto, múltiplas jornadas, países, contexto familiar, etapas de vida e preços; separar registros utilizáveis, pendentes e excluídos. Revisão documental e de dados, sem implementação.
-Premissas: Planilha Mestre, CRM Mestre e Painel Mestre OPS não são insumos, fontes subsidiárias, fallback ou validadores. SKU não valida nem bloqueia. Preço de um caso não é preço universal. Mesma tabela não significa mesma taxonomia.
-Limites: os cinco arquivos originais não foram recuperados integralmente e individualmente. A revisão não se declara cotejo linha a linha desses cinco. O GitHub devolveu metadados/nomes e confirmação de download de um arquivo, sem disponibilizar seu texto nesta sessão. Dados do banco foram efetivamente retornados e lidos. Não houve auditoria atual de triggers, código, tela autenticada, RLS ou deploy. Não houve alteração de banco ou GitHub. Aprovação desta consulta não aprova políticas, preços ou implementação.
-Substitui: nenhuma versão formalmente nesta rodada; propõe superar as premissas incompatíveis descritas abaixo.
-Destino proposto após aprovação: docs/arquitetura/2026-10-08-revisao-coerencia-produtos-pai-jornada-planejador-precos-sem-legado.md.
+Fonte(s) de evidência: instrução da proprietária de 08/10/2026 às 22:05; revisão v1.0 publicada em main no commit f0a38302ccfb186f3a337b5f079baffbe72b8105; correção da seção 9 no commit bd199972be2e26a228f60afaa5b3c85985156ca9; consulta somente de leitura ao Supabase zsxpdbhdvbuulwpepemd, tabelas planner_catalog_feed, price_catalog_rescued, controlled_taxonomies e citizenship_tracks; documentos verificacao-planejador-produtos-pai-multipais-07-09.md e trava-sku-planejador-corrigida-08-09.md.
+Escopo: diretriz aprovada de reconciliação entre produtos-pai, jornadas múltiplas, Planejador Universal, contexto de vida, países e preços. Esta versão reorganiza e condensa a v1.0; a anterior permanece no histórico Git.
+Premissas: Mestre, CRM Mestre e Painel Mestre OPS não alimentam o modelo, inclusive por fallback. SKU não valida nem bloqueia. Mesma tabela não prova mesma taxonomia. Condição particular não é preço universal.
+Limites: aprovação documental não comprova implementação. Os cinco originais não foram recuperados integralmente; a revisão não se declara cotejo integral deles. Não há comprovação atual de testes de interface, triggers, consumidores, deploy ou migração. Valores resgatados não estão automaticamente homologados. Esta publicação não altera banco, código, contrato ou cobrança.
+Substitui: v1.0 deste mesmo documento, preservada no histórico Git.
+Próximos passos: executar e comprovar os cortes da seção 9, mantendo registro de alterações e aprovação específica de cada escrita externa.
+Critério de aceite: seção 10.
 
-## 1. Resultado central
+## 1. Diretriz aprovada
 
-Não existem cinco produtos ou cinco arquiteturas a escolher. Existem perspectivas sobre o mesmo sistema: produto-pai, jornada, composição do Planejador, aplicações multipaís/etapas de vida e preço. Elas precisam compartilhar significado e proveniência, sem fazer do catálogo antigo uma autoridade.
+Pessoa/núcleo + objetivos + contexto de vida + ramos/evidências → Planejador Universal → jornadas contextualizadas → escopo, entregas e aceite → composição comercial aprovada → execução e continuidade.
 
-Modelo proposto para esta revisão:
+Produto-pai classifica finalidade. País/via qualifica aplicação. Fase registra progresso. Etapa de vida contextualiza a pessoa. Preço remunera escopo e condição. SKU é somente referência histórica/técnica opcional, nunca prova de elegibilidade, homologação, preço ou avanço.
 
-Pessoa/núcleo + objetivo + contexto de vida + ramo/evidências → Planejador Universal → uma ou mais jornadas contextualizadas → escopo, entregas e critérios de aceite → composição comercial aprovada → execução e continuidade.
+## 2. Cinco perspectivas do mesmo sistema
 
-Produtos-pai classificam a natureza dos serviços. País/via qualificam uma aplicação. Fase informa o progresso da jornada. Etapa de vida informa o contexto da pessoa. Preço remunera escopo e condições definidos. Nenhuma dessas dimensões deve ser confundida com SKU.
-
-Esta formulação é proposta de reconciliação, não afirmação de que todas essas relações já estejam persistidas.
-
-## 2. Cinco perspectivas: reconciliação sem fingir recuperação dos cinco originais
-
-| Perspectiva a reconciliar | Papel único | O que não pode fazer | Relação com as demais |
-|---|---|---|---|
-| Produtos-pai | Classificar a finalidade do serviço | Validar caso por SKU ou exigir compra de todas as famílias | Jornadas selecionam os serviços necessários |
-| Jornada | Organizar etapas, dependências, entregas e responsáveis | Reduzir toda a família a uma fase única | Cada aplicação tem progresso próprio |
-| Planejador Universal | Compor contexto, objetivos, ramos, países e escopo | Ser cópia de planilha ou catálogo antigo | Usa referências admitidas e registra decisões |
-| Multipaís e etapas de vida | Contextualizar aplicações paralelas ou sucessivas | Converter país, nascimento ou casamento em produto obrigatório | Qualifica participantes, atos e próximos passos |
-| Tabela de preços | Informar referência, proposta e condições aprovadas | Homologar por existência de valor ou código | Precifica escopo, sem duplicar base compartilhada |
-
-Nomes recuperados pelo histórico, sem texto integral nesta sessão: auditoria de coerência dos cinco artefatos de 04/09; revisão canônica do Planejador/produtos-pai/jornada de 04/09; de-para de prompts/valores de 04/09. Dois títulos de origem foram confirmados diretamente em source_artifact no banco: “Correção Canônica — Catálogo Multipaís, Produtos-Pai, Jornada, Valores e Legado” v2.0 e “Prompt Canônico — Planejador Universal Multipaís, Catálogo-Alimento e Preços Resgatados” v2.1. Não há evidência suficiente para garantir que esses títulos correspondam, sem sobreposição, exatamente aos cinco arquivos mencionados pela proprietária.
-
-## 3. O que o banco demonstra agora
-
-### 3.1 planner_catalog_feed não é alimento integralmente confiável
-
-A consulta retornou, na mesma tabela, registros provenientes de versões distintas, estados pendentes, registros legados, curso arquivado e classificações explicitamente feitas por analogia. Logo, não se pode admitir a tabela inteira só porque seu nome contém planner.
-
-Achados literais relevantes:
-
-- CA-CID-001: LEGADO_RECONCILIAR; nota pede reconciliar sem usar Planilha Mestre. Pela instrução atual, não entra na alimentação ativa enquanto permanecer legado.
-- CA-CID-AT-001: LEGADO_RECONCILIAR; nota distingue condição de caso de preço de catálogo. Também excluído da alimentação ativa nesse estado.
-- CA-CURSO-001: ARQUIVADO_DECISAO_PROPRIETARIA, mas archived_at está nulo. Filtrar somente archived_at não é suficiente para excluir o curso.
-- CA-FAM-002: nota afirma mapeamento por analogia e que nenhum documento recebido o cita nominalmente. Essa associação não prova homologação taxonômica.
-- CA-IND-001 e CA-COMBO-001: notas reconhecem ausência de citação nominal e associação por analogia. Permanecem fora do conjunto admitido até verificação de escopo e classificação.
-- “Consolidação de Dossiê Familiar Multipaís”: associada a “História, Memória e Legado Familiar”, fase F3, status ESPECIFICACAO_PENDENTE. Não foi demonstrado se a entrega é pasta probatória ou artefato de memória; não reclassificar automaticamente.
-- “Pesquisa Genealógica por Ramo” e “História, Memória e Legado Familiar” coexistem com nomes mais completos documentados. Sem identificador taxonômico e equivalência explícita, não basta comparar texto ou prefixo.
-- “Pacote WhatsApp Essencial/Premium” está sob Continuidade e Acervo Familiar, mas em F4. Isso exige separar canal/benefício, serviço e fase; não significa automaticamente erro, nem autoriza sua oferta.
-- “Estratégia de Via e Composição Familiar” consta na taxonomia de nove famílias do documento de 07/09, mas não apareceu como product_parent nos registros retornados nesta consulta. Não criar associações por suposição para preencher essa lacuna.
-
-O campo requires_case_gate=true não demonstra, sozinho, uma trava de SKU: é necessário ler a implementação da regra para saber o que ele exige. Esta revisão não presume que todo gate seja indevido; requisitos reais de escopo, autorização e formalização continuam distintos de código comercial.
-
-### 3.2 controlled_taxonomies não resolve sozinho as etapas de vida
-
-Os registros retornados contêm domínios de fontes, documentos, evidências, achados, relações, eventos, transmissão, países, etiquetas, risco, pesquisa e relatório.
-
-Nascimento, casamento e óbito estão em tipo_evento. Isso registra acontecimentos; não demonstra uma taxonomia completa de etapas de vida, objetivos e jornadas. Não foi retornado um domínio explícito de produto-pai, fase de jornada ou etapa de vida.
-
-Consequência: esta tabela pode fornecer vocabulários auxiliares pertinentes, mas não deve ser apresentada como prova de que o modelo de múltiplas jornadas por etapa de vida já está completo.
-
-### 3.3 citizenship_tracks exige isolamento por organização e revisão de estado
-
-Há registros com códigos semelhantes em diferentes organization_id. A organização presente nas linhas do feed/preços é 11f32aae-ea08-47e0-8114-f5d8a900c9a1. Não unir trilhas de outras organizações por igualdade de país/código.
-
-Dentro dessa organização há trilhas com status_via=homologada e, simultaneamente, lifecycle_status=em_revisao, status_atualizacao=a_revisar, criterio_aprovacao nulo e evidencia_aprovacao_referencia nula. Exemplos: Hungria, Romênia, Luxemburgo, Croácia, Polônia, Alemanha, Áustria, Portugal, Espanha e Itália.
-
-Isso não permite concluir que a homologação seja inválida, mas demonstra que a evidência retornada não basta para tratar essas linhas como regras jurídicas finais e atualizadas. Podem integrar estudo contextual com ressalvas; aprovação operacional e confirmação jurídica não são sinônimos.
-
-Os registros retornados incluem aplicações comerciais para Irlanda e França, porém não demonstram trilhas correspondentes completas na mesma organização. Não completar esse vazio usando outra organização ou o Mestre.
-
-Bélgica, Tchéquia, Eslovênia e Países Baixos aparecem em nomes de documentos localizados no GitHub, mas não tiveram cobertura operacional demonstrada pelos registros retornados. Permanecem não confirmados nesta revisão.
-
-## 4. Taxonomia: preservar famílias sem transformar fases em produtos obrigatórios
-
-A fonte de 07/09 registra PP-01–PP-09 como confirmados. Esse registro documental é a base de comparação, não justificativa para recuperar SKUs antigos.
-
-| Família documentada | Significado a preservar | Uso em jornadas |
+| Perspectiva | Papel | Limite |
 |---|---|---|
-| Diagnóstico Familiar Multipaís | Levantar contexto e hipóteses familiares | Uma base pode apoiar várias aplicações |
-| Diagnóstico de Cidadania por Etapas | Investigar aplicação de país/via | Decisão por ramo, pessoa e evidência |
-| Pesquisa Genealógica por Ramo Familiar | Produzir pesquisa de um ramo | Reutilizável quando escopo e autorização permitirem |
-| Preparação de Prova e Pasta Documental | Organizar prova para uma finalidade | Exigências próprias de cada aplicação |
-| Estratégia de Via e Composição Familiar | Definir estratégia e participantes | Não confundir com soma de pacotes |
-| Acompanhamento Familiar de Nacionalidade | Coordenar execução aplicável | Jornadas podem avançar em ritmos distintos |
-| Regularização e Vida Civil Pós-Reconhecimento | Atos posteriores contextualizados | Atos por pessoa/país/evento, não lista italiana universal |
-| História de Família, Memória e Legado | Pesquisa/narrativa/preservação como finalidade | Pode existir sem cidadania e em paralelo |
-| Continuidade e Acervo Familiar | Continuidade do vínculo e acervo | Não é contratação obrigatória de assinatura |
+| Produtos-pai | Classificação da finalidade | Não equivalem a SKU nem compras obrigatórias |
+| Jornada | Etapas, dependências, entregas e responsáveis | Não reduz toda a família a uma fase única |
+| Planejador Universal | Composição de objetivos, ramos, contexto e aplicações | Não replica o catálogo antigo |
+| Países e etapas de vida | Contexto de necessidades paralelas/sucessivas | Não tornam país ou evento um produto obrigatório |
+| Preços | Referências e condições vinculadas ao escopo | Não homologam por existência de código/valor |
 
-Não foi demonstrada equivalência integral entre a taxonomia de oito famílias por etapa de vida e a de nove famílias. A reconciliação proposta separa os eixos conceituais, sem declarar os oito nomes recuperados ou sua conversão aprovados.
+Dois títulos foram confirmados como origem de registros no banco: Correção Canônica — Catálogo Multipaís, Produtos-Pai, Jornada, Valores e Legado v2.0; Prompt Canônico — Planejador Universal Multipaís, Catálogo-Alimento e Preços Resgatados v2.1. Isso não identifica nem recupera integralmente os cinco arquivos citados pela proprietária.
 
-## 5. Critério de admissão de tabelas e linhas
+## 3. Evidências e inconsistências preservadas
 
-Uma linha candidata só integra o conjunto atual quando:
+### planner_catalog_feed
 
-1. Pertence à organização aplicável.
-2. Não está arquivada, rejeitada ou marcada como legado; excluir também por estado semântico, não só archived_at.
-3. Tem fonte/versionamento compatíveis com a taxonomia atual.
-4. Possui vínculo de significado comprovado com a família de serviço, sem inferência por prefixo, SKU ou analogia.
-5. Explicita finalidade/escopo e aplicabilidade a contexto, pessoa/ramo/país quando pertinente.
-6. Não converte preço pendente em bloqueio de planejamento, nem preço resgatado em preço homologado.
-7. Não depende de Mestre/OPS/CRM Mestre, inclusive via cópia, fallback, rotina ou material derivado não revalidado.
+A tabela mistura versões, registros legados, especificações pendentes, curso arquivado e associações por analogia. Não admitir a tabela inteira como alimento.
 
-Classificação proposta:
+- CA-CID-001 e CA-CID-AT-001: LEGADO_RECONCILIAR; excluídos da alimentação nesse estado.
+- CA-CURSO-001: ARQUIVADO_DECISAO_PROPRIETARIA com archived_at nulo. Exclusão depende também do estado semântico.
+- CA-FAM-002, CA-IND-001 e CA-COMBO-001: notas reconhecem classificação por analogia sem citação nominal. Associação não prova homologação taxonômica.
+- Consolidação de Dossiê Familiar Multipaís: vinculada a História, Memória e Legado Familiar, fase F3, ESPECIFICACAO_PENDENTE. Finalidade probatória versus editorial não comprovada; não reclassificar automaticamente.
+- Pesquisa Genealógica por Ramo e História, Memória e Legado Familiar: nomes divergentes dos nomes completos documentados. Exigir equivalência semântica explícita.
+- WhatsApp Essencial/Premium: Continuidade e Acervo Familiar com F4. Separar canal, benefício, serviço e fase; não pressupor erro ou autorização comercial.
+- Estratégia de Via e Composição Familiar não apareceu como product_parent nos registros retornados. Não preencher lacuna por analogia.
+- requires_case_gate=true não demonstra trava de SKU; a implementação do gate precisa ser lida.
 
-- Admitido: significado, proveniência e aplicabilidade verificados.
-- Candidato em revisão: conteúdo atual potencialmente útil, mas vínculo/escopo/evidência incompletos.
-- Referência de preço: preserva valor e fonte sem autorização automática de oferta.
-- Excluído da alimentação: legado, arquivado, derivado do Mestre, outra organização, analogia não comprovada.
+### controlled_taxonomies
 
-Não basta executar uma junção feed.item_id=preco.item_id e chamá-la de taxonomia. Esse vínculo pode ajudar a localizar a origem, mas SKU não decide aplicabilidade, elegibilidade, avanço, homologação ou preço.
+A consulta retornou fontes, documentos, evidências, achados, relações, eventos, transmissão, países, etiquetas, risco, pesquisa e relatório. Nascimento, casamento e óbito são tipo_evento. Não foi demonstrado domínio explícito completo de produto-pai, fase de jornada ou etapa de vida. Eventos não substituem o modelo de jornadas.
 
-## 6. Tabela de preços recuperada: existe, mas não é uma tabela final aprovada
+### citizenship_tracks
 
-Fonte desta seção: price_catalog_rescued, consulta autorizada de 08/10/2026. Valores em BRL. Linhas abaixo são referências retornadas, não oferta atual, orçamento aprovado nem preço de um produto-pai. A proveniência registrada é Planejador histórico/prompt v2.1, não consulta à Planilha Mestre. A origem independente de cada valor ainda não foi revalidada nesta sessão.
+Há códigos semelhantes em organizações diferentes. Usar somente a organização aplicável; o feed/preços consultado usa 11f32aae-ea08-47e0-8114-f5d8a900c9a1.
 
-| Aplicação registrada | Honorários de referência | Despesas de referência | Taxas de referência | Situação |
+Nessa organização, várias trilhas apresentam status_via=homologada, lifecycle_status=em_revisao e campos de evidência/aprovação vazios. A consulta não comprova conclusão jurídica atual. Aprovação operacional e confirmação jurídica são distintas.
+
+Aplicações comerciais de Irlanda e França não tiveram trilhas completas correspondentes demonstradas na mesma organização. Bélgica, Tchéquia, Eslovênia e Países Baixos aparecem em nomes de documentos, mas sua cobertura operacional não foi comprovada pelos registros retornados. Não completar lacunas com outra organização ou Mestre.
+
+## 4. Famílias de produto-pai documentadas
+
+O registro de 07/09 confirma PP-01–PP-09. Preservar significado, sem recuperar SKU como autoridade:
+
+1. Diagnóstico Familiar Multipaís.
+2. Diagnóstico de Cidadania por Etapas.
+3. Pesquisa Genealógica por Ramo Familiar.
+4. Preparação de Prova e Pasta Documental.
+5. Estratégia de Via e Composição Familiar.
+6. Acompanhamento Familiar de Nacionalidade.
+7. Regularização e Vida Civil Pós-Reconhecimento.
+8. História de Família, Memória e Legado.
+9. Continuidade e Acervo Familiar.
+
+Uma fase pode envolver várias famílias. Memória e continuidade podem existir sem cidadania. Não foi demonstrada equivalência integral com a taxonomia concorrente de oito famílias; separar eixos não equivale a aprovar conversão não verificada.
+
+## 5. Admissão de referências
+
+Exigir organização correta, fonte/versionamento compatíveis, significado comprovado, escopo e aplicabilidade. Excluir legado, arquivado, rejeitado e derivado do Mestre não revalidado. Não inferir por prefixo, SKU ou analogia.
+
+Estados de revisão: admitido; candidato em revisão; referência de preço; excluído da alimentação. Esses estados são diretriz aprovada, não declaração de atualização das linhas.
+
+Junção por item_id pode localizar proveniência; não valida taxonomia ou jornada. Preço pendente não bloqueia planejamento; bloqueia compromisso comercial não aprovado daquele escopo. Gates reais de autorização, escopo e formalização permanecem.
+
+## 6. Preços recuperados — não homologados por esta aprovação
+
+Fonte: price_catalog_rescued, consulta de 08/10/2026. Valores BRL. Proveniência registrada: Planejador histórico/prompt v2.1; origem independente de cada valor não revalidada nesta rodada. Não somar automaticamente componentes sem escopo/unidade/vigência.
+
+| Aplicação | Honorários de referência | Despesas | Taxas | Estado |
 |---|---:|---:|---:|---|
 | Alemanha | R$ 4.200 | R$ 1.500 | R$ 500 | REFERENCIA_RESGATADA |
 | Áustria | R$ 4.800 | R$ 1.800 | R$ 600 | REFERENCIA_RESGATADA |
@@ -131,80 +98,58 @@ Fonte desta seção: price_catalog_rescued, consulta autorizada de 08/10/2026. V
 | Hungria | Nulo | Não retornadas | Não retornadas | PENDENTE_DE_HOMOLOGACAO |
 | Luxemburgo | Nulo | Não retornadas | Não retornadas | PENDENTE_DE_HOMOLOGACAO |
 | Irlanda | Nulo | Não retornadas | Não retornadas | PENDENTE_DE_HOMOLOGACAO |
-| Portugal | R$ 3.800 / R$ 4.400 / R$ 4.800 | R$ 1.400 | R$ 450 | Honorários divergentes; não selecionar automaticamente |
-| Itália | R$ 4.500 / R$ 4.700 / R$ 4.800 | R$ 1.600 | R$ 500 | Honorários divergentes; não usar como padrão universal |
+| Portugal | R$ 3.800 / R$ 4.400 / R$ 4.800 | R$ 1.400 | R$ 450 | Honorários divergentes |
+| Itália | R$ 4.500 / R$ 4.700 / R$ 4.800 | R$ 1.600 | R$ 500 | Honorários divergentes |
 
-Não somar componentes automaticamente: não há escopo, unidade comercial, vigência e abrangência suficientes para assegurar que representam um orçamento completo comparável.
+Referências alemãs de diagnóstico R$ 247, pesquisa/montagem R$ 1.290 e protocolo R$ 890 têm escopos distintos da referência nacional; não declarar conflito sem comparação de escopo.
 
-Tambiém retornaram referências associadas a itens de Alemanha: diagnóstico R$ 247; pesquisa/montagem R$ 1.290; acompanhamento de protocolo R$ 890. São escopos diferentes da referência por país de R$ 4.200; não afirmar conflito sem comparar escopo.
+Planos Memórias/Legado: R$ 269/R$ 359. Essência R$ 179 está associado a LEGADO_RECONCILIAR e não alimenta o conjunto atual. WhatsApp Essencial/Premium R$ 79/R$ 149 permanecem condicionais. Familiar Conectado Plus R$ 490 tem vínculo por analogia não comprovado. Não inferir periodicidade/unidade por nome.
 
-Planos Memórias e Legado têm referências R$ 269 e R$ 359. Essência tem R$ 179, mas seu vínculo no feed está marcado LEGADO_RECONCILIAR; fica excluído da alimentação ativa. WhatsApp Essencial/Premium têm R$ 79/R$ 149, mas benefício, comunicação e preço permanecem condicionais no feed. Familiar Conectado Plus tem referência R$ 490 e vínculo por analogia; não admitir por esse vínculo. Não presumir periodicidade, unidade de cobrança ou inclusão apenas pelo nome.
+Europa geral R$ 3.500 é referência legada de triagem e fica excluída. Ana Luiza R$ 9.600 tem case_only=true e CONDICAO_PARTICULAR_DE_CASO; não precifica Áustria universalmente.
 
-“Europa geral” tem referência R$ 3.500 e nota que a chama de referência legada de triagem; excluída do modelo atual. Não é país/via nem produto universal.
+## 7. Cenários de teste conceituais
 
-A condição da Ana Luiza, R$ 9.600, está case_only=true e CONDICAO_PARTICULAR_DE_CASO. Não precifica Áustria universalmente, diagnóstico nem assinatura genérica. É evidência de distinção entre caso e catálogo, não premissa de preço para todas as famílias.
+- Dois ramos/dois países: base familiar compartilhada, aplicações próprias, progresso separado e cobrança apenas de incremento demonstrado.
+- História sem cidadania: pesquisa/memória/acervo sem exigência de via jurídica ou reconhecimento.
+- Pessoa reconhecida com novo evento familiar: avaliação contextual de ato civil, sem aplicar itens italianos universalmente ou reiniciar tudo.
+- Novo país sem preço: hipótese/investigação/escopo preliminar permitidos, sem orçamento automático ou fallback de outro país.
+- Memória paralela à execução: espera externa de uma jornada não paralisa outra; responsável, próxima ação e aceite por entrega/jornada.
 
-## 7. Cenários coerentes no mesmo sistema
+São testes propostos, não casos reais comprovados na interface.
 
-Os cenários seguintes são testes conceituais propostos, não casos reais encontrados no banco.
+## 8. Correções normativas aprovadas
 
-### A. Família com dois ramos e dois países
+Mestre não é autoridade ou fallback; produto-pai não equivale a SKU; país não determina preço; etapa de vida não é fase operacional; família não percorre sequência obrigatória única; resgate não equivale a homologação; analogia não comprova taxonomia; archived_at nulo não prova atividade; homologada não comprova regra jurídica atual sem evidência/revisão.
 
-Uma base familiar, duas aplicações contextualizadas. A pesquisa comum é registrada uma vez; cada aplicação tem requisitos, participantes e progresso próprios. Composição comercial distingue base e incremento comprovado. Não há soma automática de dois pacotes nacionais nem trava por SKU faltante.
+## 9. Publicação e execução integral
 
-### B. História familiar sem objetivo de cidadania
+A v1.0 foi publicada em main em f0a38302ccfb186f3a337b5f079baffbe72b8105; a seção 9 foi corrigida em bd199972be2e26a228f60afaa5b3c85985156ca9. A proprietária aprovou a diretriz e solicitou execução integral em 08/10/2026. Não declarar implementação concluída sem evidências.
 
-Pesquisa, memória e acervo têm jornada própria. Não exigir país, via jurídica ou reconhecimento. Continuidade pode ser escolhida, mas não imposta. Isso evita reduzir o Clube a um funil de cidadania.
+Cortes ainda não comprovados:
 
-### C. Pessoa já reconhecida e novo evento familiar
+1. Recuperar os cinco originais integralmente e fixar inventário.
+2. Cotejar consumidores atuais de feed, preços, catálogo, Mestre e SKU.
+3. Verificar triggers/restrições antes de propor alteração de banco.
+4. Classificar alimentação por proveniência/escopo; não apagar histórico.
+5. Verificar estruturas existentes de contexto de vida/múltiplas jornadas antes de criar tabelas.
+6. Implementar somente mudanças concretas examinadas, com testes e verificação de persistência.
+7. Relacionar preços a escopo e evidência independente, sem homologação automática.
+8. Registrar referências cruzadas nos cinco originais após recuperação.
+9. Confirmar commit, testes e deploy separadamente; publicação documental não prova execução funcional.
 
-Nascimento, casamento ou outro evento pode motivar uma avaliação contextual de vida civil. A aplicação depende da pessoa, finalidade e país pertinentes; não aplica automaticamente AIRE, SPID ou outros itens italianos a todos os países. Não reabre obrigatoriamente diagnóstico e pesquisa já concluídos.
+## 10. Critérios de aceite
 
-### D. Novo país com preço ainda não definido
-
-O Planejador pode registrar hipótese, investigação, evidências e escopo preliminar. Preço pendente limita compromisso comercial daquele escopo, não a existência do planejamento. Não preencher preço a partir de outro país ou Mestre.
-
-### E. Continuidade e memória em paralelo à execução
-
-Uma jornada de cidadania pode estar em espera externa enquanto uma entrega de memória avança. Uma única fase global não deve mascarar essas diferenças. Responsável, próximo passo, prazo e aceite pertencem à jornada/entrega aplicável.
-
-## 8. Correções de premissa para todos os artefatos
-
-| Premissa incompatível | Formulação corrigida |
-|---|---|
-| Catálogo/Mestre é autoridade e origem obrigatória | Só referências atuais, compatíveis e verificadas podem alimentar o Planejador |
-| Produto-pai equivale a SKU homologado | Produto-pai classifica finalidade; SKU não valida |
-| País define produto e preço automaticamente | País qualifica aplicação; escopo e condição definem composição comercial |
-| Etapa de vida é fase de execução | São dimensões distintas; eventos contextualizam decisões |
-| Toda família percorre a mesma sequência | Jornadas paralelas/sucessivas com progresso próprio |
-| Fonte resgatada é preço aprovado | Resgate preserva evidência; aprovação comercial é outro ato |
-| Legado pode permanecer como fallback | Legado fica fora das premissas e alimentação |
-| Item por analogia comprova taxonomia | Analogias não verificadas ficam fora do conjunto admitido |
-| archived_at nulo prova item ativo | Estado semântico também deve ser considerado |
-| homologada prova regra jurídica atual | Estado, evidência, revisão e vigência precisam ser cotejados |
-
-## 9. Próximos passos delimitados
-
-1. Recuperar integralmente os cinco originais e fixar seu inventário exato antes de marcar o cotejo individual como concluído.
-2. Usar esta reconciliação como versão em revisão; não convertê-la em aprovação retroativa.
-3. Classificar linhas do feed segundo proveniência, significado e escopo; separar legados e associações por analogia sem apagá-los nesta rodada.
-4. Verificar no código e banco consumidores, triggers e restrições que ainda possam usar SKU/Mestre como requisito. O documento de 08/09 descreve correção histórica em três camadas; não demonstra estado atual integral.
-5. Identificar como persistir contexto de vida e múltiplas jornadas usando estruturas existentes, antes de propor tabelas novas.
-6. Relacionar preços a escopo e condições com evidência independente; não homologar por país nem por código.
-7. Esta revisão já foi publicada em docs/arquitetura no commit f0a38302ccfb186f3a337b5f079baffbe72b8105. As referências cruzadas nos cinco originais continuam pendentes da recuperação integral desses arquivos e de decisão da proprietária.
-
-## 10. Critérios de aceite para implementação futura
-
-- Caso/plano válido sem SKU persiste e avança conforme requisitos reais.
-- Nenhum consumidor consulta Mestre/OPS/CRM Mestre como alimentação ou fallback.
-- Curso arquivado e linhas LEGADO_RECONCILIAR não entram nas ofertas nem no motor.
-- Isolamento por organização é preservado.
-- Duas jornadas do mesmo núcleo podem ter fases, responsáveis e próximos passos distintos.
-- Etapa/contexto de vida não substitui fase operacional.
-- Memória pode funcionar sem objetivo de cidadania.
-- País sem preço permite planejamento e não gera orçamento automático.
-- Preço de caso não vira referência universal.
-- Referências/divergências aparecem como tais; valor nulo nunca vira zero.
-- Base compartilhada não é cobrada novamente sem incremento de escopo demonstrado.
-- Mapeamentos de produto-pai possuem evidência sem depender de prefixo/SKU/analogia.
-- Os cinco documentos, quando integralmente recuperados, usam as mesmas definições e declaram claramente seu papel, fonte, status e limites.
+- Caso/plano válido sem SKU persiste e avança por requisitos reais.
+- Nenhum consumidor usa Mestre/OPS/CRM Mestre como alimento ou fallback.
+- Arquivados e LEGADO_RECONCILIAR não alimentam oferta/motor.
+- Isolamento por organização preservado.
+- Jornadas do mesmo núcleo têm progresso/responsáveis/próximas ações independentes.
+- Contexto de vida distinto da fase operacional.
+- Memória funciona sem objetivo de cidadania.
+- País sem preço permite planejamento e não orçamento automático.
+- Preço particular não se torna referência universal.
+- Valores nulos não se tornam zero; divergências são explícitas.
+- Base compartilhada não é cobrada novamente sem incremento comprovado.
+- Produto-pai é associado por significado/evidência, não SKU/prefixo/analogia.
+- Cinco originais recuperados e alinhados às mesmas definições.
+- Testes, persistência e deploy comprovados antes do fechamento da execução.
