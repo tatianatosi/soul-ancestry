@@ -90,11 +90,10 @@ export function PortalShell({
         3/17, que usa uma só faixa). Logo + "Bem-vinda/nome" no mesmo bloco.
       */}
       <header className="bg-navy text-cream" data-app-cabecalho>
-          <div className="mx-auto w-full max-w-[740px] px-4 py-2 sm:px-8 sm:py-5">
+          <div className="app-layout-largura mx-auto w-full max-w-[740px] px-4 py-2 sm:px-8 sm:py-5">
           <div className="app-v11-marca grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
             <div className="flex min-w-0 items-center gap-2">
-              <BrandLogo size={32} variant="client-dark" showText={false} />
-              <p className="font-serif text-xl leading-tight text-cream">Clube Ancestral</p>
+              <BrandLogo size={40} variant="client-dark" showText />
             </div>
             <LinkPortal to="/portal/conta" className="inline-flex min-h-11 shrink-0 items-center gap-2 text-xs text-cream underline decoration-gold underline-offset-4"><UserRound className="h-4 w-4" aria-hidden="true" />Conta</LinkPortal>
           </div>
@@ -102,8 +101,6 @@ export function PortalShell({
           <div className="app-v11-identidade max-w-2xl">
             <p className="mb-1 text-xs text-gold">{previa?.titulo ?? data?.cliente?.nome ?? "Sua história familiar"}</p>
             {rotaAtiva === "/portal" ? <p className="sr-only text-gold">Aplicativo da família</p> : null}
-            <h1 className="font-serif text-2xl font-medium leading-tight text-cream sm:text-4xl">{titulo}</h1>
-             {descricao ? <p className="mt-2 hidden max-w-[32rem] text-base leading-relaxed text-cream/80 sm:block">{descricao}</p> : null}
           </div>
         </div>
 
@@ -127,9 +124,13 @@ export function PortalShell({
         nem painel. Em telas largas a leitura só fica mais ampla e centrada,
         e a navegação das 7 abas continua sendo o rodapé único.
       */}
-      <div className="mx-auto w-full min-w-0 max-w-[740px]">
+      <div className="app-layout-largura mx-auto w-full min-w-0 max-w-[740px]">
          <main id="conteudo-portal" className="min-w-0 px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-6 sm:px-8 sm:pb-32 sm:pt-8">
-          <AndamentoPublicado rota={rotaAtiva} />
+           <div className="app-abertura-tela">
+             <h1 className="font-serif text-2xl font-medium leading-tight text-navy sm:text-4xl">{titulo}</h1>
+             {descricao ? <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">{descricao}</p> : null}
+           </div>
+           <AndamentoPublicado rota={rotaAtiva} />
           <div>{children}</div>
         </main>
       </div>
@@ -140,7 +141,7 @@ export function PortalShell({
         className="fixed inset-x-0 bottom-0 z-40 border-t border-gold/40 bg-card/95 shadow-[0_-4px_16px_color-mix(in_srgb,var(--navy)_10%,transparent)] backdrop-blur"
       >
         <div
-          className="mx-auto grid w-full max-w-[740px] px-1 pb-[env(safe-area-inset-bottom)] sm:px-5"
+           className="app-layout-largura mx-auto grid w-full max-w-[740px] px-1 pb-[env(safe-area-inset-bottom)] sm:px-5"
           style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}
         >
           {nav.map(({ to, label, icon: Icon }) => (

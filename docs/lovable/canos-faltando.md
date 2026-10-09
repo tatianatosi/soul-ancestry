@@ -1,5 +1,13 @@
 # Canos faltando — App Cliente (07/10/2026)
 
+## Rascunho isolado — homologação visual 09/10/2026
+
+Somente acabamento em PortalShell, portal-v11.css e RadarSeisEixos. Nenhum leitor, dado, fórmula ou publicação alterado. Cabeçalho com BrandLogo existente, título no corpo como páginas 3–9, respiro por tokens e composição desktop própria. Referência literal contém cores antigas distintas dos tokens aprovados: sem mudar tema global, a reprodução cromática exata permanece decisão pendente.
+
+PEDIDO AO CLAUDE: permanecem relações estruturadas/ramos, lugares históricos e métrica geográfica, checklist completo/arquivos, categorias editoriais/fontes, plano/vigência/canal. Ausência de pedido não comprova dispensa: o teste a5-documentos-separacao-semantica ainda exige a frase “não precisamos”; texto não foi contornado. Secundárias de materiais/fases mostram metadados de caso; faturas trata erro como PortalVazio e Conta não distingue falha de leitura de ausência. Esses comportamentos não foram reconstruídos neste corte visual; requerem janela de lógica/testes do Claude.
+
+Visão administrativa autenticada do caso autorizado, não login da cliente nem prova A×B. Não aceitar/integrar/publicar este rascunho sem autorização separada. Aceite integral pendente.
+
 ## Releitura autenticada — 08/10/2026, 14:52 UTC
 
 SHA consultado: `7699250df238427eaec1d0e033eb2de15d8f14e7`. Sete abas abertas na visão administrativa da Proprietária, mesmo caso Ana, em 375/768/1280 × 1800 px. Não é login da cliente nem prova de isolamento. 21 combinações sem overflow horizontal e sem erro de página; nenhuma publicação ou dado alterado.
