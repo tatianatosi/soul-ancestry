@@ -9,6 +9,7 @@ import { usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { legadoSanitizado, publicacoesDeEntrega } from "@/lib/portal-dados-vivos";
 import { PRATELEIRAS, prateleiraDe, type PrateleiraId, type PublicacaoCliente } from "@/lib/projecoes-cliente";
+import { BlocoExemploVisual } from "@/components/portal/bloco-exemplo-visual";
 
 export const Route = createFileRoute("/portal/legado")({
   head: () => ({
@@ -108,14 +109,14 @@ export function PortalLegado() {
                           data-legado-prateleira={p.id}
                             className="app-colecao flex min-w-0 flex-col"
                         >
-                          <details className="app-colecao-detalhe" open={itens.length > 0}>
+                          <details className="app-colecao-detalhe" open>
                           <summary className="app-colecao-resumo">
                             <span className="app-colecao-capa" aria-hidden="true"><IconeColecao className="h-6 w-6" /></span>
                             <div className="min-w-0">
                             <div>
                               <p className="text-xs font-medium uppercase text-navy/60">
                                 Coleção
-                              </p>
+                             </p>
                               <h2 className="mt-0.5 font-serif text-xl text-navy">{p.rotulo}</h2>
                               <p className="mt-0.5 text-xs text-navy/55">{p.dica}</p>
                             </div>
@@ -126,13 +127,13 @@ export function PortalLegado() {
                           <ChevronDown className="app-detalhe-seta h-4 w-4 shrink-0" aria-hidden="true" />
                           </summary>
                           {itens.length === 0 ? (
-                             <p className="app-v11-lacuna mt-3 text-navy/60">
+                              <div><p className="app-v11-lacuna mt-3 text-navy/60">
                                  {p.id === "cadernos"
                                    ? "Os cadernos da família aparecerão aqui quando forem liberados."
                                    : p.id === "relatorios"
                                      ? "Nenhum dossiê ou relatório foi liberado para a família até agora."
                                      : "As narrativas de origem aparecerão aqui quando estiverem prontas para a família."}
-                            </p>
+                             </p><BlocoExemploVisual tipo="colecao" categoria={p.id} /></div>
                           ) : (
                             <ul className="mt-3 space-y-2">
                               {itens.map((item) => (

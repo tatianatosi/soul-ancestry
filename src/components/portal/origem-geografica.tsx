@@ -1,4 +1,5 @@
 import { Globe2, MapPin } from "lucide-react";
+import { BlocoExemploVisual } from "./bloco-exemplo-visual";
 
 /** Sem contrato geográfico publicado não há mapa, país ou intensidade inventados. */
 export function OrigemGeografica() {
@@ -12,6 +13,7 @@ export function OrigemGeografica() {
         </div>
       </div>
       <p className="mt-4 text-sm leading-relaxed text-navy/75">Os países e ramos da sua história ainda não foram compartilhados. Quando houver essa publicação, você poderá conhecer cada origem aqui.</p>
+      <BlocoExemploVisual tipo="origem" />
       <details className="app-origem-lacuna mt-4">
         <summary className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-medium text-navy"><MapPin aria-hidden="true" className="h-4 w-4 shrink-0" />Lugares, ramos e distribuição</summary>
         <dl className="mt-2 grid gap-3 text-sm text-navy/75">

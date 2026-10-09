@@ -15,6 +15,7 @@ import { ehPessoaPublicada, type PublicacaoCliente } from "@/lib/projecoes-clien
 import { cn } from "@/lib/utils";
 import { textoParaCliente } from "@/lib/portal-linguagem-viva";
 import { KitBadge } from "@/components/clube-ancestral-kit/base";
+import { BlocoExemploVisual } from "@/components/portal/bloco-exemplo-visual";
 
 const TIPOS_HISTORIA = new Set(["arvore", "achado", "evidencia", "linha_tempo", "legado"]);
 
@@ -205,11 +206,11 @@ function TimelineVertical({
       <div className="py-4">
       <h2 className="mb-3 font-serif text-xl text-navy">{eyebrow}</h2>
       {eventos.length === 0 ? (
-        <p className="py-3 text-sm leading-relaxed text-navy/60">
+        <div><p className="py-3 text-sm leading-relaxed text-navy/60">
           {variante === "gold"
             ? "As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família."
             : "Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar."}
-        </p>
+        </p><BlocoExemploVisual tipo={variante === "gold" ? "historia" : "processo"} /></div>
       ) : (
         <div className="relative">
           <div className={cn("app-jornada-fio absolute inset-y-0 left-0 w-0.5 rounded-full", variante === "gold" ? "bg-gold" : "bg-navy")} aria-hidden="true" />
@@ -268,7 +269,7 @@ function MomentosDeUniao({ pontes }: { pontes: NoPonte[] }) {
           {pontes.map((p, i) => <li key={i} className="text-sm leading-relaxed text-navy/75">{p.texto}</li>)}
         </ul>
       ) : (
-        <p className="mt-1.5 text-sm leading-relaxed text-navy/60">Os encontros da história da família aparecerão aqui quando forem compartilhados.</p>
+        <div><p className="mt-1.5 text-sm leading-relaxed text-navy/60">Os encontros da história da família aparecerão aqui quando forem compartilhados.</p><BlocoExemploVisual tipo="uniao" /></div>
       )}
     </div>
   );
@@ -491,6 +492,7 @@ export function PortalJornada() {
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                            <h2 className="font-serif text-xl text-navy">Linha Ancestral</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.</p>
+                            <BlocoExemploVisual tipo="historia" />
                          </section>
                           <div className="relative sm:order-2 sm:col-span-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
@@ -500,6 +502,7 @@ export function PortalJornada() {
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
                            <h2 className="font-serif text-xl text-navy">Linha do Processo</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar.</p>
+                            <BlocoExemploVisual tipo="processo" />
                          </section>
                           <section id="linha-memoria" className="relative scroll-mt-20 border-t border-border py-4 sm:order-4 sm:col-span-2">
                             <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-plum bg-cream" />
