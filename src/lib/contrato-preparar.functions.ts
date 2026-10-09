@@ -723,8 +723,14 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
        * isto para dizer "Prévia desatualizada" e travar PDF/revisão/assinatura
        * até regerar; o servidor aplica a mesma regra ao gerar o documento.
        */
+      /*
+       * 09/10/2026: só parâmetro COM valor conta. Semear uma linha nova e
+       * vazia (a migration de `modo_anexos`, em 08/10) não mudou o
+       * documento — não pode marcar a prévia como velha nem travar o PDF.
+       */
       parametroAlteradoEm:
-        ((valores ?? []) as { atualizado_em?: string | null }[])
+        ((valores ?? []) as { atualizado_em?: string | null; valor?: string | null }[])
+          .filter((v) => String(v.valor ?? "").trim() !== "")
           .map((v) => v.atualizado_em ?? "")
           .filter(Boolean)
           .sort()

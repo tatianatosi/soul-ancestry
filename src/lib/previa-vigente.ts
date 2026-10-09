@@ -27,6 +27,7 @@ export type PreviaRegistro = {
   estado?: string | null;
   congelado_em?: string | null;
   created_at?: string | null;
+  updated_at?: string | null;
   aprovado_em?: string | null;
   corpo_contratual?: boolean | null;
   legado_sem_corpo?: boolean | null;
@@ -37,9 +38,24 @@ const ts = (v: unknown): number => {
   return Number.isNaN(t) ? 0 : t;
 };
 
-/** Quando a prévia foi gerada (congelamento, ou criação do rascunho). */
+/**
+ * Quando a prévia foi gerada de fato.
+ *
+ * 09/10/2026 — correção de um defeito meu, medido no contrato da Ana:
+ * `gerarPrevia` ATUALIZA o rascunho editável no lugar (mesma linha, mesma
+ * versão) e nunca mexe em `created_at`. A prévia vigente dela tem
+ * `created_at = 21/08` e `updated_at = 08/10 11:02`, e o HTML guardado já
+ * contém a seção "Ordem de Serviço (Anexo I)" criada em 07/10 — prova de
+ * que foi regerada depois.
+ *
+ * Lendo `created_at`, a regra de defasagem marcaria o rascunho como velho
+ * para sempre: a trava de PDF/revisão/assinatura NUNCA limparia, nem
+ * segundos depois de regerar. Versão congelada continua valendo pelo
+ * congelamento; rascunho vale pela última gravação.
+ */
 export function geradaEm(p: PreviaRegistro): string | null {
-  return p.congelado_em ?? p.created_at ?? null;
+  if (p.estado === "rascunho_editavel") return p.updated_at ?? p.created_at ?? null;
+  return p.congelado_em ?? p.updated_at ?? p.created_at ?? null;
 }
 
 /** A prévia que vale — rascunho editável, senão a congelada de maior versão. */

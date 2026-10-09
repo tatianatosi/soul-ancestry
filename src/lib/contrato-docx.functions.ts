@@ -31,7 +31,7 @@ export const baixarDocxContrato = createServerFn({ method: "GET" })
 
     const { data: previa, error } = await supabase
       .from("contract_parameter_previews")
-      .select("id,versao,tipo,estado,html,congelado_em,created_at,parameters_id,corpo_contratual,legado_sem_corpo")
+      .select("id,versao,tipo,estado,html,congelado_em,created_at,updated_at,parameters_id,corpo_contratual,legado_sem_corpo")
       .eq("id", data.previaId)
       .eq("organization_id", organizationId)
       .is("archived_at", null)
@@ -45,6 +45,14 @@ export const baixarDocxContrato = createServerFn({ method: "GET" })
       .from("contract_parameter_values")
       .select("atualizado_em")
       .eq("parameters_id", previa.parameters_id)
+      /*
+       * 09/10/2026: só parâmetro COM valor conta para defasagem. Semear uma
+       * linha nova e vazia (foi o que a migration de `modo_anexos` fez em
+       * 08/10) não mudou o documento — não pode marcar a prévia como velha
+       * nem travar o PDF.
+       */
+      .not("valor", "is", null)
+      .is("archived_at", null)
       .order("atualizado_em", { ascending: false })
       .limit(1)
       .maybeSingle();

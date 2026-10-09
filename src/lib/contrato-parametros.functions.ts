@@ -276,22 +276,73 @@ export const painelParametros = createServerFn({ method: "GET" })
  */
 async function preencherQualificacaoContratada(supabase: Sb, parametersId: string, valores: any[]) {
   const linha = valores.find((v) => v.campo === "contratada_qualificacao");
-  if (!linha || linha.valor?.trim()) return valores;
+  if (!linha) return valores;
 
+  const canonico = qualificacaoCompletaContratada();
+  const atual = String(linha.valor ?? "").trim();
+  if (atual === canonico) return valores;
+
+  /*
+   * 09/10/2026 — medido no contrato da Ana: o campo estava preenchido, mas
+   * com texto digitado à mão (origem `preenchimento_humano`), divergente do
+   * perfil institucional — sem os canais oficiais (e-mail, site, WhatsApp) e
+   * com pontuação própria. A regra antiga só preenchia campo VAZIO, então a
+   * divergência ficava para sempre dentro do contrato.
+   *
+   * Qualificação da contratada é dado institucional de fonte única
+   * (PERFIL_INSTITUCIONAL, versionado): não é juízo por caso. Divergência
+   * aqui é defeito de cópia, não decisão comercial — por isso o texto
+   * canônico prevalece, com a origem corrigida e a troca auditada.
+   *
+   * Nunca toca contrato já assinado: `exigirContratoNaoAssinado` barra antes.
+   */
+  if (await contratoAssinadoDoRegistro(supabase, parametersId)) return valores;
+
+  const preenchendoVazio = atual === "";
   const { data: atualizado, error } = await supabase
     .from("contract_parameter_values")
     .update({
-      valor: qualificacaoCompletaContratada(),
+      valor: canonico,
       origem: "documento",
       origem_detalhe: "Perfil institucional homologado do Clube Ancestral.",
-      status: "importado_a_confirmar",
+      // Vazio → a confirmar, como antes. Divergência corrigida pela fonte
+      // única continua validada: o texto passou a ser exatamente o canônico.
+      status: preenchendoVazio ? "importado_a_confirmar" : linha.status,
     })
     .eq("id", linha.id)
     .select("*")
     .maybeSingle();
   if (error || !atualizado) return valores;
 
+  if (!preenchendoVazio) {
+    await supabase.from("audit_logs").insert({
+      organization_id: atualizado.organization_id,
+      entidade: "contract_parameter_values",
+      entidade_id: String(linha.id),
+      acao: "qualificacao_contratada_reconciliada_com_perfil_institucional",
+      valores_anteriores: { valor: atual, origem: linha.origem },
+      valores_posteriores: { valor: canonico, origem: "documento" },
+    });
+  }
+
   return valores.map((v) => (v.id === linha.id ? atualizado : v));
+}
+
+/** Contrato do registro de parâmetros já está assinado? */
+async function contratoAssinadoDoRegistro(supabase: Sb, parametersId: string): Promise<boolean> {
+  const { data } = await supabase
+    .from("contract_case_parameters")
+    .select("contract_id")
+    .eq("id", parametersId)
+    .maybeSingle();
+  const contractId = (data as any)?.contract_id as string | null | undefined;
+  if (!contractId) return false;
+  const { data: contrato } = await supabase
+    .from("contracts")
+    .select("signed_at")
+    .eq("id", contractId)
+    .maybeSingle();
+  return Boolean((contrato as any)?.signed_at);
 }
 
 /**
