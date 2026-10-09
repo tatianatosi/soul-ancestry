@@ -720,7 +720,6 @@
 [data-app-cliente] .app-andamento-publicado { padding-block: var(--ca-space-1); }
 [data-app-cliente] .app-andamento-publicado > div { padding-block: var(--ca-space-2); }
 
-<<<<<<< src/components/portal/portal-v11.css
 /* G1: isolamento completo dos papéis do App e respiro sem modificar o Desk. */
 [data-app-cliente] { color: var(--app-v11-texto); }
 [data-app-cliente] [data-app-cabecalho] { background: var(--app-v11-topo); }
@@ -808,7 +807,6 @@
 [data-app-cliente] .app-exemplo-genograma section + section { margin-top: var(--ca-space-4); }
 [data-app-cliente] .app-jornada-uniao:has([data-exemplo-visual]) { border: 0; background: transparent; padding: 0; }
 [data-app-cliente] .app-jornada-uniao:has([data-exemplo-visual]) .app-exemplo-uniao { margin-top: var(--ca-space-3); }
-=======
 /* Phase 3 pilot: App p.4 has unframed tracks and a bordered union panel.
    Existing event selection, dates, publication gates and actions stay intact. */
 [data-app-cliente] #conteudo-portal [data-aba-jornada] .app-v11-abertura {
@@ -894,4 +892,3 @@
     scroll-behavior: auto;
   }
 }
->>>>>>> /tmp/d
