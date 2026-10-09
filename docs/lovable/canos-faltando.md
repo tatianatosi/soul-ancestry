@@ -163,3 +163,24 @@ O comparativo anterior não incluía o corte posterior de Documentos/Legado/Cont
 - Conta: perfil, assinatura, plano, novidades e atendimento agrupados; valores publicados preservados. Plano, canais e preferências não foram fabricados.
 
 Validação: 39 testes existentes passaram; plataforma compilou sem erros; 21 combinações de aba/largura em 375/768/1280, sem overflow nem erro de página. Sessão administrativa da Proprietária, não login cliente. Capturas de topo e sequência até o fim, mais detalhes expandidos. Nenhum dado ou publicação alterado. **Paridade integral NÃO concluída:** genograma, mapa, checklist, conteúdo editorial factual, preferências e texto documental ainda têm dependências explicitadas.
+
+
+## Execução integral solicitada — 09/10/2026, rascunho isolado
+
+A autorização recente permite exemplos visuais explicitamente rotulados, não publicações nem fatos familiares. Genograma/mapa/checklist/coleções/plano/canais ilustrativos foram apresentados sem escrita e sem preencher as dependências reais anteriormente registradas. Os bloqueios de fonte permanecem ativos.
+
+## Registro factual — execução no rascunho isolado
+
+- Caso: `a11a0000-0000-4000-8000-000000000002`; visão administrativa autorizada da Proprietária, não login da cliente.
+- Revisão consultada: `02671b2c47495f28f51ac1bc33b36d1390e26ed2`. Branch observada: `edit/edt-d83d7ee3-5ae6-4cd2-98da-c9cc6f7b7127`. Commit automático não é aprovação.
+- Preview do rascunho: https://id-preview-4--1a628b61-ec68-454f-85e1-671d6f297370.lovable.app. Navegação de prova no ambiente local correspondente; URL externa não submetida a smoke test.
+- 43 testes existentes passaram. Última compilação automática consultada: 09/10/2026 20:42:13 UTC, build OK. Tipos/lint separados: não executados.
+- 42 verificações registradas, sete abas em 375/1280 e amostras 320/768/1440, mais zoom: sem overflow global ou erro de página nos percursos executados.
+- Exemplos com `data-exemplo-visual` e selo “Exemplo do layout — ainda sem dados publicados”; sem nomes reais, preços ou datas reais dentro dos exemplos. Seis pessoas reais preservadas após recarga, sem vínculos inferidos.
+- Filtro do genograma ilustrativo: todos os ramos 9 nós, ramo A 5 nós. Canais/upload/download ilustrativos desabilitados: não simulam sucesso.
+- Nenhuma escrita de banco, publicação de conteúdo, integração em main, envio, assinatura ou cobrança. Nenhuma edição em Desk, src/lib, testes, migrations, dependências ou tokens globais.
+- G0 parcial: referência do repositório identificada, mas assets aprovados e correspondência exata ainda não resolvidos. G1 executado, isolamento verificado nas cinco superfícies visitadas. G2 parcial: sete abas trabalhadas; secundárias e estados não integralmente exercitados. G3 parcial: comparação e testes executados, pendências abaixo. G4/G5 aguardam exclusivamente a Proprietária.
+- PDFs G0/G1/G2/G3: comparação referência/antes/fase; 14 capturas finais nomeadas por aba e largura. Todas as 86 páginas renderizadas e inspecionadas em seis folhas de contato: sem páginas vazias acidentais, títulos cortados ou sobreposições na paginação. As capturas de topo não substituem prova do fim; G3 inclui continuações.
+- Files indisponível: mkdir/stat em /mnt/documents expiraram. Pacote preparado em área temporária; não declarar entrega no destino nem coleção atualizada até cópia bem-sucedida.
+
+PEDIDO AO CLAUDE: fonte de vínculo real, origem geográfica, checklist e categorias, PP-03/vigência/canais e semântica de dispensa documental continuam pendentes; nenhum teste foi alterado. Nenhum teste falhou nesta execução. Não arquivar esses pedidos por exemplo visual, teste verde ou captura.
