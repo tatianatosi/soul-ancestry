@@ -40,3 +40,14 @@ G0/G2/G3 permanecem parciais pelos motivos registrados; G1 isolamento verificado
 - G0 parcial: referência do repositório identificada, mas assets aprovados e correspondência exata ainda não resolvidos. G1 executado, isolamento verificado nas cinco superfícies visitadas. G2 parcial: sete abas trabalhadas; secundárias e estados não integralmente exercitados. G3 parcial: comparação e testes executados, pendências abaixo. G4/G5 aguardam exclusivamente a Proprietária.
 - PDFs G0/G1/G2/G3: comparação referência/antes/fase; 14 capturas finais nomeadas por aba e largura. Todas as 86 páginas renderizadas e inspecionadas em seis folhas de contato: sem páginas vazias acidentais, títulos cortados ou sobreposições na paginação. As capturas de topo não substituem prova do fim; G3 inclui continuações.
 - Files indisponível: mkdir/stat em /mnt/documents expiraram. Pacote preparado em área temporária; não declarar entrega no destino nem coleção atualizada até cópia bem-sucedida.
+
+
+---
+
+<!-- Registro do rascunho “App Cliente — fases 1–3 e Jornada piloto” -->
+
+# Execução UI — registro fases 1–3
+
+Status: rascunho, não homologado.
+
+Ordem recebida da Proprietária: fase 1 materiais/capturas; fase 2 shell/tema isolados; fase 3 Jornada piloto. Executadas com limites no registro de auditoria. Nenhum aceite/integração/publicação autorizado. O prompt integral anterior não estava presente neste rascunho; este registro não o substitui. Escopo futuro mantém readers/writers/testes/dados/Desk fora de escrita.

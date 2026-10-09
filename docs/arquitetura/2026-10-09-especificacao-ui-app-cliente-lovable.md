@@ -43,3 +43,18 @@ Uma fonte de fixtures em exemplos-visuais-mockup.ts; apresentação em bloco-exe
 - G0 parcial: referência do repositório identificada, mas assets aprovados e correspondência exata ainda não resolvidos. G1 executado, isolamento verificado nas cinco superfícies visitadas. G2 parcial: sete abas trabalhadas; secundárias e estados não integralmente exercitados. G3 parcial: comparação e testes executados, pendências abaixo. G4/G5 aguardam exclusivamente a Proprietária.
 - PDFs G0/G1/G2/G3: comparação referência/antes/fase; 14 capturas finais nomeadas por aba e largura. Todas as 86 páginas renderizadas e inspecionadas em seis folhas de contato: sem páginas vazias acidentais, títulos cortados ou sobreposições na paginação. As capturas de topo não substituem prova do fim; G3 inclui continuações.
 - Files indisponível: mkdir/stat em /mnt/documents expiraram. Pacote preparado em área temporária; não declarar entrega no destino nem coleção atualizada até cópia bem-sucedida.
+
+
+---
+
+<!-- Registro do rascunho “App Cliente — fases 1–3 e Jornada piloto” -->
+
+# Especificação visual — registro fases 1–3
+
+Status: rascunho, não homologado.
+
+Base 0c0fdf193ce9ce0774a72623df87ddc80bff3e7e; revisão CSS 2a1b7f284ed3723b9c8412bc212095fa0ab22c7e.
+
+Reutilizar shell e raiz data-app-cliente; aliases somente nessa raiz. Sem shell paralelo, mudanças globais, dados ou Desk. Nenhuma decisão arquitetural nova: folha existente e import existente preservados.
+
+Referências e inventários: /mnt/documents/app-fases-1-3-2026-10-09/. A especificação integral anterior não estava presente neste rascunho; não foi reconstruída por suposição. Fases futuras e gates pendentes.

@@ -72,3 +72,99 @@ Status: rascunho; versão v1.0; decisão de aceite: **pendente**. Todos os itens
 ## Decisão de aceite
 
 Pendente. Aprovadora: Proprietária. Nenhum desvio aceito automaticamente; G4/G5 não executados. Falha de autorização/privacidade, mudança indevida no Desk, exemplo como fato ou ausência de evidência impedem conformidade integral.
+
+
+---
+
+<!-- Registro do rascunho “App Cliente — fases 1–3 e Jornada piloto” -->
+
+# Checklist de homologação — registro do rascunho
+
+Status: rascunho, não homologado.
+
+# Execução fases 1–3 — App Cliente (rascunho)
+
+Status: execução parcial verificável; **não homologado / não publicado**. Encerramento UTC: 2026-10-09T20:10:22.996317+00:00.
+
+## Origem e ambiente
+- Rascunho `drft_01m4h3sbyfe1yvybcrj9rdpb36`, thread `thr_egbqg2391a8j`.
+- Base salva de main: `0c0fdf193ce9ce0774a72623df87ddc80bff3e7e`. Revisão final disponível do CSS: `2a1b7f284ed3723b9c8412bc212095fa0ab22c7e`. Commits automáticos não são aprovação.
+- Não contém automaticamente o rascunho anterior `thr_zb5ond3psp8n`; evidências anteriores não foram reutilizadas como execução deste rascunho.
+- Preview real: https://id-preview-3--1a628b61-ec68-454f-85e1-671d6f297370.lovable.app . Captura executada no servidor local http://localhost:8080 do rascunho.
+- Visão administrativa autorizada da Proprietária, `/app-cliente-como-pessoa?casoId=a11a0000-0000-4000-8000-000000000002`; título observado “Projeto familiar — Ana Luiza”, código fornecido CA-CID-AT-FAM-2026-001. Nenhum token em evidências.
+- Não é login real da cliente, prova A×B, persistência, homologação dos dados ou publicação.
+
+## Fase 1 — materiais e antes
+**Executado:** AGENTS e memórias pertinentes lidos; referências verificadas (referencias.json); páginas 3–9 reais rasterizadas; complemento mobile e Desk identificados separadamente. Sete abas capturadas em 375/1280, 14 vistas iniciais + versões do elemento App completo. Comparativo anterior localizado, não usado como fonte de dados.
+**Inventário:** logo efetivamente servido `/clube-ancestral-logo.svg` carregou nas 14 vistas; pointer e três variantes disponíveis registrados em assets.json. Nenhuma nova imagem buscada, gerada ou substituída. Não localizado asset fotográfico/mapa/acervo correspondente autorizado para preencher detalhes; bloqueios ASSET-RETRATO, ASSET-MAPA, ASSET-ACERVO, sem inventar nomes/pessoas.
+**Medidas:** cores dominantes extraídas do raster de Jornada (p.4) em tokens-medidos.csv. PDF extraído tem DejaVu Sans regular/bold e Helvetica embutidos: não prova Cormorant/Montserrat no PDF. App usa famílias canônicas existentes; correspondência exata de tipografia da referência permanece **BLOQUEADO_POR_REFERÊNCIA**. Raios, bordas, sombras e espaços não foram mensurados pixel a pixel da referência: estes valores são tokens existentes usados na implementação, não falsa medição.
+**Desk antes:** cinco tentativas capturadas. Parte saiu vazia/em carregamento, portanto baseline ANTES está **FALHOU / não comparável integralmente**. Preservada como evidência de limite, não como prova de não regressão.
+
+## Fase 2 — tema e shell existentes
+**Executado:** reutilizado `[data-app-cliente]` e shell/nav existentes, sem shell paralelo. Aliases medidos definidos apenas nesse ancestral; max-width local 65rem, friso/nav/cor ativa e foco ajustados. CSS integralmente escopado; nenhum :root/body/global/Desk alterado; imports intactos. 14 vistas intermediárias fase2.
+**Sete abas:** Home → Jornada → Radar → Árvore → Documentos → Legado → Conta; nenhuma rota, nome, contexto ou comportamento alterado. Origem permanece transversal.
+**Isolamento:** diff do produto somente portal-v11.css; nenhuma query, fórmula, reader/writer, teste, dado, dependência ou regra alterada. Navegação Desk somente leitura refeita após espera; comparação visual estrita antes/depois **BLOQUEADA pelo baseline antes**. Ausência de edição e seletor escopado são prova de isolamento de código, não prova integral de não regressão.
+
+## Fase 3 — Jornada piloto
+**Executado:** abertura editorial não enquadrada; trilhas ancestral/processo sem cards; evento real expansível com marcador/conector curto; painel Momentos de União com borda suave; espaçamento e tipografia por tokens existentes. Fontes/ordem/ações/datas/calculadores preservados.
+**Conteúdo observado:** uma microentrega de 15/09/2026 (publicação, não previsão); nenhuma história ancestral/união factual disponível. Pessoas permanecem na Árvore. Sem trilha ancestral completa fictícia. Demais seis abas só recebem tema do shell, não reconstrução integral de suas composições.
+**Evidência:** 14 capturas depois + 14 fim + 14 completas; antes/depois têm texto idêntico em 14/14. PDF mostra referência/antes/depois e cinco pares Desk com a limitação descrita.
+
+## Verificação realmente executada
+| Verificação | Resultado | Evidência/limite |
+|---|---|---|
+| 4 arquivos Vitest / 23 testes antes e depois | PASSOU | tests-before.txt, tests-after.txt |
+| Build automático | PASSOU | último sinal build OK 20:06 UTC; nenhum build/typecheck manual |
+| Tipos separados | NÃO REALIZADO | não há sinal distinto de typecheck nos logs disponíveis |
+| Lint seletivo de shell/Jornada | FALHOU | 179 erros + 1 warning, formatação preexistente em arquivos não alterados; sem --fix/teste alterado |
+| Navegação 7 abas, 375/1280 | PASSOU | visão administrativa por botões do provider, não navegação cliente real |
+| Overflow 320/375/768/1280/1440 | PASSOU | 35 combinações; nenhum overflow horizontal |
+| Toque >=44px em controles visíveis, 375/1280 | PASSOU | dimensões em accessibility.json; não é auditoria de todos os estados |
+| Foco/teclado amostra Conta | PASSOU | outline 2px, acionamento e navegação amostrados |
+| Reduced-motion | PASSOU | transição computada 0s na seta e regra local |
+| Texto 200% na Jornada | PARCIAL | tamanhos computados dobrados por CSS; sem overflow, textos de navegação quebram. Não equivale a zoom nativo, nem valida sete abas |
+| Último conteúdo fora da nav | PASSOU nas vistas normais | capturas fim; Radar completo também registrado |
+| Contraste texto principal 12,39; secundário 5,53; ativo 5,70; ouro/navy 6,15 | PASSOU amostras | contrast.json, não auditoria integral |
+| Conector dourado 2,01/3 | CORRIGIDO parcialmente | trilha Jornada usa accent ink; gráficos/decoração restantes não auditados integralmente |
+| Borda suave união 1,34/3 | NÃO APLICÁVEL como decoração | informações em texto de alto contraste; não é controle ou estado único |
+| Carregando/vazio/erro | PARCIAL | vazios reais vistos; não forçar falhas ou dados; estados erro/loading não exercitados |
+| Desk não regressão visual integral | BLOQUEADO | antes com carga incompleta; depois capturado e navegação utilizável |
+| Download documental, cliente A×B, escrita/F5 | NÃO REALIZADO | sem arquivo e fora de escopo; nada persistido para testar |
+
+## Inventário de implementação
+- Produto: `src/components/portal/portal-v11.css` apenas; diff em alteracoes.diff.
+- Aliases locais medidos: navy #1B2B4B, hero #233659, gold #C9A84C, cream #F5F0E8, ink #3D444B, superfície #EFE7DD, borda #D9D1BF; accent-ink #80621E é ajuste local acessível, não cor medida.
+- Tokens existentes: título Cormorant Garamond; corpo Montserrat; espaços 4/8/12/16/24/32/48/64px; raios 6/8/12/16px; sombras canônicas preservadas. Uso concreto difere por região; não se alegam medidas exatas do mockup.
+- Dependências: nenhuma instalação/remoção. AGENTS/roadmap, src/lib, testes, schema/RLS, dados, preços e Desk intocados.
+- Metadata de todas as rotas portal inspecionada (metadata.txt), não reescrita; eventuais lacunas preexistentes de head ficam fora deste corte visual.
+
+## De-para topo → rodapé
+
+### Home
+Topo: manter logo, friso e contexto. Corpo: preservar narrativa, próxima ação e achados separados. Família: seis pessoas já publicadas. Rodapé: prioridades/contato dependem de publicação. Composição narrativa ainda não idêntica à referência.
+
+### Jornada
+Topo: abertura sem caixa navy, trilhas preservadas. Corpo: linha ancestral e processo em trilhas não enquadradas; evento real expansível com marcador; união em painel suave contornado; memória no fim. Nenhuma pessoa convertida em fato, data ou encontro. Só um evento real permite conector curto; timeline ancestral completa depende de publicação.
+
+### Radar
+Topo: manter seis eixos e explicação. Corpo: bases/percentuais já calculados, Lacuna quando ausente. Países/ramos sem mapa fictício. Gráfico e percentuais não foram recalculados. Cores/gráficos precisam auditoria integral de contraste futura.
+
+### Árvore
+Topo: gerações/pessoas e foco existentes. Corpo: seis nomes em G3–G7, G1 âncora, G2 lacuna. Preservar rótulos neutros. Relações/conectores individuais e ramos dependem de vínculos publicados; não desenhados.
+
+### Documentos
+Topo: documentação em lacuna. Corpo: Solicitados/Recebidos/Liberados/Entregas com ações existentes; sem arquivo para provar download. Texto de dispensa permanece dívida bloqueada por teste; ausência de solicitação não comprova dispensa. Checklist completo depende de fonte.
+
+### Legado
+Topo editorial, coleções e uma microentrega já existente. Categorias explícitas, fontes, fotos, entrevistas e arquivos ausentes bloqueiam detalhe. Não gerar capas/retratos; ícones existentes preservados. Classificação legada não homologada.
+
+### Conta
+Topo/perfil, assinatura publicada preservada R$320/mês aguardando confirmação. Plano não publicado e canais não disponíveis. Não substituir por PP-03 hardcoded nem conferir pagamento. Contrato e proposta fora das sete abas.
+
+## Bloqueios / próximo passo sem autorização externa
+- REFERENCIA-TIPOGRAFIA / medidas: mapear fonte visual exata, raios/sombras/espaços; não afirmar pixel-paridade.
+- DADO-VINCULOS / ORIGEM / CHECKLIST / ACERVO / PLANO-CANAL: fontes reais dependem de Claude/Proprietária; não alterar leitores ou publicar por este rascunho.
+- TESTE-DISPENSA: PEDIDO AO CLAUDE para retirar pressuposto de dispensa baseado em ausência de pedido; teste `a5-documentos-separacao-semantica.test.ts:62` preservado.
+- BASELINE-DESK: antes não comparable; repetir comparação controlada em próxima janela, sem trocar main/commits por ferramenta git stateful.
+- A11Y-INTEGRAL: gráficos, todos os estados, zoom nativo e navegação completa por teclado ainda não homologados.
+- Fases futuras, aceite da Proprietária, integração do rascunho e publicação continuam PENDENTES. Nada publicado ou integrado. Evidências contêm dados autorizados: somente Files privados, não assets públicos do App.
