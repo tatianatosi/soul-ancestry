@@ -156,7 +156,93 @@ export type CondicaoComercialRegistro = {
   product_catalog_id: string | null;
   homologado_por: string | null;
   homologado_em: string | null;
+  /**
+   * true quando a condição vem de `case_commercial_condition` — a condição
+   * particular versionada do caso, regida por produto-pai + trilha. Nesse
+   * modelo o catálogo não é fonte comercial, então `product_catalog_id` não
+   * existe e não pode ser exigido.
+   */
+  versionada?: boolean;
 } | null;
+
+/**
+ * Linha de `case_commercial_condition` (condição particular versionada).
+ * Só os campos que o gate usa — o restante fica com quem lê a tabela.
+ */
+export type CondicaoVersionadaRegistro = {
+  id: string;
+  approval_status: string | null;
+  origem: string | null;
+  payment_terms: string | null;
+  parcelas: number | null;
+  valor_parcela: number | string | null;
+  fees: number | string | null;
+  vencimento_dia?: number | null;
+  primeiro_vencimento?: string | null;
+  aprovado_por: string | null;
+  aprovado_em: string | null;
+  archived_at?: string | null;
+} | null;
+
+function numeroOuNulo(v: number | string | null | undefined): number | null {
+  if (v === null || v === undefined || v === "") return null;
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+/*
+ * Correção de 09/10/2026 — o gate comercial lia a tabela superseded.
+ *
+ * `cadeia-formalizacao.server.ts` avaliava só `commercial_conditions`, mas a
+ * condição particular aprovada da Ana vive em `case_commercial_condition`
+ * desde 04/10 (produto-pai + trilha + condição do caso). Medido no banco, o
+ * efeito era um bloqueio por porta lateral: a linha antiga está em
+ * `rascunho`, com `parcelas`, `valor_parcela` e `product_catalog_id` nulos,
+ * enquanto a versionada está `aprovada`, com 10 parcelas de R$ 320 e
+ * responsáveis declarados. O gate acusava seis pendências, cinco delas
+ * falsas — o dado existia, na outra tabela.
+ *
+ * De-para de vocabulário já existente, sem valor novo: `aprovada`
+ * (`ccc_approval_status_chk`) é o estado terminal de aprovação equivalente a
+ * `homologada` (`commercial_conditions_status_chk`).
+ *
+ * `product_catalog` não é apagado nem deixa de existir: continua inventário,
+ * legado e reconciliação. O que ele deixa de ser é REQUISITO de formalização
+ * quando o caso já tem condição particular versionada.
+ */
+export function condicaoVersionadaComoRegistro(
+  cv: CondicaoVersionadaRegistro,
+): CondicaoComercialRegistro {
+  if (!cv || cv.archived_at) return null;
+  return {
+    id: cv.id,
+    // `aprovada` é o terminal da condição versionada; o gate compara contra
+    // `homologada`, o terminal equivalente do vocabulário antigo.
+    status: cv.approval_status === "aprovada" ? "homologada" : cv.approval_status,
+    origem: cv.origem,
+    forma_pagamento: cv.payment_terms,
+    parcelas: numeroOuNulo(cv.parcelas),
+    valor_parcela: numeroOuNulo(cv.valor_parcela),
+    valor_total_referencia: numeroOuNulo(cv.fees),
+    vencimento_dia: cv.vencimento_dia ?? null,
+    primeiro_vencimento: cv.primeiro_vencimento ?? null,
+    product_catalog_id: null,
+    homologado_por: cv.aprovado_por,
+    homologado_em: cv.aprovado_em,
+    versionada: true,
+  };
+}
+
+/**
+ * A condição que rege o caso: a particular versionada quando existe, senão a
+ * do registro antigo. Nunca mistura as duas — a versionada vence inteira.
+ */
+export function condicaoVigenteDoCaso(input: {
+  versionada: CondicaoVersionadaRegistro;
+  legada: CondicaoComercialRegistro;
+}): CondicaoComercialRegistro {
+  return condicaoVersionadaComoRegistro(input.versionada) ?? input.legada;
+}
 
 export function condicaoComercialFormal(cc: CondicaoComercialRegistro): { ok: boolean; motivos: string[] } {
   const motivos: string[] = [];
@@ -166,7 +252,9 @@ export function condicaoComercialFormal(cc: CondicaoComercialRegistro): { ok: bo
   if (cc.valor_parcela === null || cc.valor_parcela === undefined) motivos.push("Valor da parcela não declarado.");
   if (cc.valor_total_referencia === null || cc.valor_total_referencia === undefined)
     motivos.push("Valor total de referência não declarado.");
-  if (!cc.product_catalog_id) motivos.push("Condição sem produto homologado do catálogo.");
+  // Catálogo só é exigido no modelo antigo. Com condição particular
+  // versionada, produto-pai + trilha regem e o SKU é apenas alimento.
+  if (!cc.versionada && !cc.product_catalog_id) motivos.push("Condição sem produto homologado do catálogo.");
   if (cc.status !== "homologada") motivos.push(`Condição comercial em “${cc.status ?? "sem status"}”: exige homologação.`);
   if (!cc.homologado_por || !cc.homologado_em) motivos.push("Homologação sem responsável e data registrados.");
   return { ok: motivos.length === 0, motivos };

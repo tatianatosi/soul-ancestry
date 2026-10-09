@@ -8,6 +8,7 @@
 import { extrairEscopoDaProposta, propostaComPaginasCanva, validarPropostaCanva } from "@/lib/escopo-proposta";
 import {
   avaliarCadeia,
+  condicaoVigenteDoCaso,
   derivarItensDaProposta,
   type ItemDerivado,
   type ResultadoCadeia,
@@ -39,8 +40,15 @@ export async function contextoDaCadeia(supabase: Sb, org: string, caseId: string
   if (caso.archived_at) throw new Error("Caso arquivado: cadeia de formalização bloqueada.");
   if (caso.demo) throw new Error("Caso de demonstração não alimenta a cadeia de formalização.");
 
-  const [{ data: proposta }, { data: contrato }, { data: os }, { data: condicao }, { data: regras }, { data: registro }] =
-    await Promise.all([
+  const [
+    { data: proposta },
+    { data: contrato },
+    { data: os },
+    { data: condicao },
+    { data: regras },
+    { data: registro },
+    { data: condicaoVersionada },
+  ] = await Promise.all([
       supabase
         .from("proposals")
         .select(
@@ -98,6 +106,19 @@ export async function contextoDaCadeia(supabase: Sb, org: string, caseId: string
         .eq("case_id", caso.id)
         .is("archived_at", null)
         .maybeSingle(),
+      // Condição particular versionada (produto-pai + trilha + condição do
+      // caso). Quando existe, é ela que rege a formalização — o catálogo
+      // deixa de ser requisito. Ver `condicaoVigenteDoCaso`.
+      supabase
+        .from("case_commercial_condition")
+        .select(
+          "id,approval_status,origem,payment_terms,parcelas,valor_parcela,fees,aprovado_por,aprovado_em,archived_at,versao",
+        )
+        .eq("case_id", caso.id)
+        .is("archived_at", null)
+        .order("versao", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
 
   const [{ data: itensEscopo }, { data: valores }, { data: previaFinal }, { data: paginasCanva }] = await Promise.all([
@@ -146,7 +167,12 @@ export async function contextoDaCadeia(supabase: Sb, org: string, caseId: string
     proposta: proposta ?? null,
     contrato: contrato ?? null,
     ordemServico: os ?? null,
-    condicao: condicao ?? null,
+    condicao: condicaoVigenteDoCaso({
+      versionada: (condicaoVersionada as any) ?? null,
+      legada: (condicao as any) ?? null,
+    }),
+    condicaoLegada: condicao ?? null,
+    condicaoVersionada: condicaoVersionada ?? null,
     regras: (regras ?? []) as any[],
     registro: registro ?? null,
     itensEscopo: (itensEscopo ?? []) as any[],
