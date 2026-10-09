@@ -1,5 +1,14 @@
 # Reconciliação executável — famílias CA-, seletor e preços
 
+> **CORREÇÃO DE FONTE (09/10/2026).** Este documento foi medido no Supabase
+> `zsxpdbhdvbuulwpepemd` — o projeto **legado da Vercel**, não o banco do
+> Lovable (`liiqqibnirnpnvjmjrpj`), que é onde o produto roda e onde será o
+> lançamento (decisão da Proprietária). Por isso os números das seções 2 e 3
+> **não descrevem a operação atual**. A remedição no banco correto está na
+> seção 7, ao fim deste arquivo. O restante do texto é preservado como
+> histórico da leitura de 08/10, não como estado vigente.
+
+
 Status: em revisão
 Versão: v1.0
 Data: 2026-10-08
@@ -89,3 +98,54 @@ A limpeza de tela não foi aplicada neste commit. O alimento já está definido 
 - Arquivado só volta se a proprietária nomear o código.
 - País sem preço não gera proposta automática.
 - Mestre, CRM Mestre e OPS não aparecem como fonte.
+
+## 7. Remedição no banco do Lovable (09/10/2026)
+
+Fonte: `mcp__Lovable__query_database`, projeto `1a628b61-ec68-454f-85e1-671d6f297370`
+(Supabase `liiqqibnirnpnvjmjrpj`). Somente leitura.
+
+### 7.1 `product_catalog` — 118 linhas em 3 organizações, não 90
+
+| Organização | Linhas | Vivas | Homologadas | Homologadas e elegíveis |
+|---|---:|---:|---:|---:|
+| Clube Ancestral (real) | 46 | 46 | 31 | **23** |
+| DEMO — Organização Alfa (fictícia) | 36 | 36 | 4 | 3 |
+| DEMO — Organização Beta (fictícia) | 36 | 36 | 4 | 3 |
+
+O recorte utilizável na organização real é de **23 itens** homologados e
+elegíveis para proposta — não "um recorte pequeno" de 2. As 72 linhas das duas
+organizações DEMO não são produto do Clube e nunca devem entrar em seletor
+(o filtro de fixtures já existe no código).
+
+### 7.2 Preços resgatados — invariante corrigida hoje
+
+`price_catalog_rescued`, 75 linhas:
+
+| Estado | Linhas | Com valor |
+|---|---:|---:|
+| VIGENTE | 65 | 65 |
+| ARQUIVADO | 6 | 6 |
+| PENDENTE_DE_HOMOLOGACAO | 3 | 0 |
+| CONDICAO_PARTICULAR_DE_CASO | 1 | 1 |
+
+Correção aplicada em 09/10/2026, com `audit_logs`: Luxemburgo, Hungria e
+Irlanda tinham honorários **sem valor** marcados como `VIGENTE`. Pelo documento
+canônico de 04/09 ("sem valor localizado; não estimar"), passaram a
+`PENDENTE_DE_HOMOLOGACAO`. Agora toda linha `VIGENTE` tem valor, e nenhuma
+linha sem valor pode ser lida como preço ativo.
+
+### 7.3 O que já estava correto (medido, não presumido)
+
+- `planner_catalog_feed`: 99 itens, com o dicionário de 8 estados exatamente
+  como o documento canônico define.
+- `CA-CURSO-001`: `ARQUIVADO_DECISAO_PROPRIETARIA`, fora do motor comercial.
+- `PACOTE-*`: existe apenas como `legacy_aliases` de itens `CA-*`; nenhum
+  `item_id` com esse prefixo. A taxonomia não foi contaminada.
+- Áustria: a condição de R$ 9.600 da Ana Luiza está isolada como
+  `CONDICAO_PARTICULAR_DE_CASO` e **não** substitui a referência de R$ 4.800.
+- Itália e Portugal: as divergências (4.500/4.700/4.800 e 3.800/4.400/4.800)
+  foram **resolvidas em 26/09 por decisão explícita da Proprietária** — IT
+  R$ 4.700 e PT R$ 4.800 ficaram `VIGENTE`, as perdedoras `ARQUIVADO`. O
+  documento canônico de 04/09 pede `DIVERGENTE` e bloqueio; isso descreve o
+  estado **anterior** à decisão de 26/09. Não reabri a decisão mais recente —
+  se a intenção for voltar a bloquear, é decisão explícita da Proprietária.
