@@ -112,3 +112,63 @@ describe("inventário de campos por aba — recalculado do código", () => {
     expect(existsSync("src/lib/ficha-master-estado-campos.ts")).toBe(true);
   });
 });
+
+describe("Corte G item 1 — descrição por campo (09/10/2026)", () => {
+  it("cada campo descrito existe de fato na allowlist real — nunca inventado", () => {
+    const erros: string[] = [];
+    for (const item of INVENTARIO_CAMPOS_ABAS) {
+      if (!item.camposDescritos) continue;
+      const reais = new Set(camposDaAllowlist(item.modulo, item.allowlist));
+      for (const cd of item.camposDescritos) {
+        if (!reais.has(cd.campo)) erros.push(`${item.aba}: "${cd.campo}" não está em ${item.allowlist}`);
+      }
+    }
+    expect(erros).toEqual([]);
+  });
+
+  it("quando uma aba declara camposDescritos, cobre TODOS os campos da allowlist — nunca parcial e silencioso", () => {
+    const incompletas: string[] = [];
+    for (const item of INVENTARIO_CAMPOS_ABAS) {
+      if (!item.camposDescritos) continue;
+      const reais = camposDaAllowlist(item.modulo, item.allowlist);
+      if (item.camposDescritos.length !== reais.length) {
+        incompletas.push(`${item.aba}: ${item.camposDescritos.length} descritos, ${reais.length} reais`);
+      }
+    }
+    expect(incompletas).toEqual([]);
+  });
+
+  it("nenhum campo descrito se repete dentro da mesma aba", () => {
+    const duplicados: string[] = [];
+    for (const item of INVENTARIO_CAMPOS_ABAS) {
+      if (!item.camposDescritos) continue;
+      const vistos = new Set<string>();
+      for (const cd of item.camposDescritos) {
+        if (vistos.has(cd.campo)) duplicados.push(`${item.aba}: "${cd.campo}" duplicado`);
+        vistos.add(cd.campo);
+      }
+    }
+    expect(duplicados).toEqual([]);
+  });
+
+  it("nenhuma descrição é o nome técnico cru repetido — tem de explicar o que o campo coleta", () => {
+    const vagas: string[] = [];
+    for (const item of INVENTARIO_CAMPOS_ABAS) {
+      if (!item.camposDescritos) continue;
+      for (const cd of item.camposDescritos) {
+        if (cd.oQueColeta.trim().length < 15 || cd.oQueColeta === cd.campo) {
+          vagas.push(`${item.aba}: "${cd.campo}" sem descrição real`);
+        }
+        if (!cd.quemPreenche.trim()) vagas.push(`${item.aba}: "${cd.campo}" sem quemPreenche`);
+      }
+    }
+    expect(vagas).toEqual([]);
+  });
+
+  it("'Contrato › dados gerais' e 'Contrato › financeiro' têm os 19 campos reais descritos (prova do corte)", () => {
+    const gerais = INVENTARIO_CAMPOS_ABAS.find((i) => i.aba === "Contrato › dados gerais")!;
+    const financeiro = INVENTARIO_CAMPOS_ABAS.find((i) => i.aba === "Contrato › financeiro")!;
+    expect(gerais.camposDescritos?.length).toBe(14);
+    expect(financeiro.camposDescritos?.length).toBe(5);
+  });
+});

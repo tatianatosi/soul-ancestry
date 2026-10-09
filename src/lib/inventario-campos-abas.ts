@@ -32,6 +32,22 @@
 
 export type EstadoAba = "vivo" | "leitura" | "legado";
 
+/**
+ * Descrição de UM campo real — o que falta desde 04/10/2026 (Corte G item 1):
+ * "não só os 54 campos da ficha única, como os demais cadastros... o que cada
+ * campo coleta". Por campo, não por aba.
+ */
+export type CampoDescrito = {
+  /** Nome exato da coluna/chave, como aparece na allowlist do escritor. */
+  campo: string;
+  /** O que o campo coleta, em uma frase — nunca o nome técnico sozinho. */
+  oQueColeta: string;
+  /** Quem preenche: papel ou automação real, nunca "o sistema" genérico. */
+  quemPreenche: string;
+  /** O App Cliente pode ver este campo? Desk-only é o padrão default. */
+  visibilidade: "interna" | "cliente";
+};
+
 export type AbaComCampos = {
   aba: string;
   rota: string;
@@ -44,6 +60,12 @@ export type AbaComCampos = {
   campos: number;
   estado: EstadoAba;
   observacao?: string;
+  /**
+   * Descrição por campo (Corte G item 1). Opcional porque está sendo
+   * preenchida aba a aba — o teste confere, quando presente, que cada nome
+   * listado aqui existe de fato na allowlist (nunca inventa campo).
+   */
+  camposDescritos?: CampoDescrito[];
 };
 
 export const INVENTARIO_CAMPOS_ABAS: AbaComCampos[] = [
@@ -69,6 +91,33 @@ export const INVENTARIO_CAMPOS_ABAS: AbaComCampos[] = [
     campos: 25,
     estado: "vivo",
     observacao: "Dono canônico de identidade, contato e documentos civis. As outras abas leem daqui.",
+    camposDescritos: [
+      { campo: "nome", oQueColeta: "Nome civil completo — usado por contrato, núcleo e caso ao reconciliar a mesma pessoa.", quemPreenche: "Equipe (cadastro/Discovery)", visibilidade: "cliente" },
+      { campo: "nome_social", oQueColeta: "Nome social, quando diferente do civil.", quemPreenche: "Equipe, a pedido da pessoa", visibilidade: "cliente" },
+      { campo: "email", oQueColeta: "E-mail de contato para comunicação e acesso ao portal.", quemPreenche: "Equipe (cadastro/Discovery)", visibilidade: "cliente" },
+      { campo: "telefone", oQueColeta: "Telefone de contato geral.", quemPreenche: "Equipe (cadastro/Discovery)", visibilidade: "cliente" },
+      { campo: "telefone_whatsapp", oQueColeta: "WhatsApp — usado pela Mesa Discovery/varredura de conversa.", quemPreenche: "Equipe (cadastro/Discovery)", visibilidade: "cliente" },
+      { campo: "sexo", oQueColeta: "Sexo registrado, para documentos civis e certidões.", quemPreenche: "Equipe (cadastro)", visibilidade: "cliente" },
+      { campo: "nacionalidade", oQueColeta: "Nacionalidade atual da pessoa (não confundir com país de interesse do caso).", quemPreenche: "Equipe (cadastro)", visibilidade: "cliente" },
+      { campo: "profissao", oQueColeta: "Profissão declarada.", quemPreenche: "Equipe (cadastro)", visibilidade: "cliente" },
+      { campo: "cpf", oQueColeta: "CPF — campo mascarado e validado (validacao-pessoa.ts); reconciliado com case_members/contract_parties sem sobrescrever divergência.", quemPreenche: "Equipe (cadastro)", visibilidade: "interna" },
+      { campo: "rg_numero", oQueColeta: "Número do RG, documento civil complementar ao CPF.", quemPreenche: "Equipe (cadastro)", visibilidade: "interna" },
+      { campo: "rg_orgao_uf", oQueColeta: "Órgão expedidor e UF do RG.", quemPreenche: "Equipe (cadastro)", visibilidade: "interna" },
+      { campo: "endereco_logradouro", oQueColeta: "Logradouro do endereço civil.", quemPreenche: "Equipe (cadastro)", visibilidade: "cliente" },
+      { campo: "endereco_numero", oQueColeta: "Número do endereço civil.", quemPreenche: "Equipe (cadastro)", visibilidade: "cliente" },
+      { campo: "endereco_complemento", oQueColeta: "Complemento do endereço civil.", quemPreenche: "Equipe (cadastro)", visibilidade: "cliente" },
+      { campo: "endereco_bairro", oQueColeta: "Bairro do endereço civil.", quemPreenche: "Equipe (cadastro)", visibilidade: "cliente" },
+      { campo: "endereco_cidade", oQueColeta: "Cidade do endereço civil.", quemPreenche: "Equipe (cadastro)", visibilidade: "cliente" },
+      { campo: "endereco_uf", oQueColeta: "UF do endereço civil.", quemPreenche: "Equipe (cadastro)", visibilidade: "cliente" },
+      { campo: "endereco_cep", oQueColeta: "CEP — campo mascarado e validado.", quemPreenche: "Equipe (cadastro)", visibilidade: "cliente" },
+      { campo: "endereco_pais", oQueColeta: "País do endereço civil.", quemPreenche: "Equipe (cadastro)", visibilidade: "cliente" },
+      { campo: "estado_civil", oQueColeta: "Estado civil declarado — relevante para certidões e representação.", quemPreenche: "Equipe (cadastro)", visibilidade: "interna" },
+      { campo: "nome_conjuge", oQueColeta: "Nome do cônjuge, quando aplicável.", quemPreenche: "Equipe (cadastro)", visibilidade: "interna" },
+      { campo: "data_nascimento", oQueColeta: "Data de nascimento — mascarada/validada, recusa data futura.", quemPreenche: "Equipe (cadastro)", visibilidade: "cliente" },
+      { campo: "nome_pai", oQueColeta: "Nome do pai — usado na cadeia de linhagem/filiação.", quemPreenche: "Equipe (cadastro/pesquisa)", visibilidade: "interna" },
+      { campo: "nome_mae", oQueColeta: "Nome da mãe — usado na cadeia de linhagem/filiação.", quemPreenche: "Equipe (cadastro/pesquisa)", visibilidade: "interna" },
+      { campo: "cidade_nascimento", oQueColeta: "Cidade de nascimento — alimenta a Ficha Genealógica.", quemPreenche: "Equipe (cadastro/pesquisa)", visibilidade: "interna" },
+    ],
   },
   {
     aba: "Caso 360 › Jornada (Planejador)",
@@ -339,6 +388,22 @@ export const INVENTARIO_CAMPOS_ABAS: AbaComCampos[] = [
     allowlist: "CAMPOS_GERAIS",
     campos: 14,
     estado: "vivo",
+    camposDescritos: [
+      { campo: "title", oQueColeta: "Nome do instrumento (ex.: Contrato de Estudo Genealógico v2).", quemPreenche: "Equipe de contratos", visibilidade: "interna" },
+      { campo: "purpose_summary", oQueColeta: "Resumo da finalidade do contrato, em texto livre.", quemPreenche: "Equipe de contratos", visibilidade: "interna" },
+      { campo: "scope_summary", oQueColeta: "Resumo do escopo contratado — espelha o escopo aprovado na proposta/OS.", quemPreenche: "Equipe de contratos", visibilidade: "interna" },
+      { campo: "exclusions_summary", oQueColeta: "Serviços excluídos explicitamente do instrumento.", quemPreenche: "Equipe de contratos", visibilidade: "interna" },
+      { campo: "no_exclusions_confirmed", oQueColeta: "Confirmação humana de que a ausência de exclusões foi revisada, não é omissão.", quemPreenche: "Revisão humana/jurídica", visibilidade: "interna" },
+      { campo: "effective_start_date", oQueColeta: "Data de início de vigência do instrumento.", quemPreenche: "Equipe de contratos", visibilidade: "interna" },
+      { campo: "effective_end_date", oQueColeta: "Data de fim de vigência, quando houver prazo definido.", quemPreenche: "Equipe de contratos", visibilidade: "interna" },
+      { campo: "effective_rule", oQueColeta: "Regra de vigência em texto (ex.: até conclusão do escopo, prazo fixo).", quemPreenche: "Equipe de contratos", visibilidade: "interna" },
+      { campo: "privacy_terms_status", oQueColeta: "Estado dos termos de privacidade: pending | defined | not_applicable (CHECK real).", quemPreenche: "Equipe de contratos/jurídico", visibilidade: "interna" },
+      { campo: "review_owner_user_id", oQueColeta: "Responsável humano pela revisão jurídica deste instrumento.", quemPreenche: "Atribuído pela equipe", visibilidade: "interna" },
+      { campo: "internal_notes", oQueColeta: "Notas internas de equipe — nunca sanitizadas para o cliente.", quemPreenche: "Equipe de contratos", visibilidade: "interna" },
+      { campo: "base_contract_reference", oQueColeta: "Referência ao contrato-base quando este é complemento/aditivo.", quemPreenche: "Equipe de contratos", visibilidade: "interna" },
+      { campo: "case_id", oQueColeta: "Vínculo com o caso (crm_casos) — nunca editável livremente, definido na criação.", quemPreenche: "Sistema, na criação do instrumento", visibilidade: "interna" },
+      { campo: "client_id", oQueColeta: "Vínculo com o cliente titular (clientes).", quemPreenche: "Sistema, na criação do instrumento", visibilidade: "interna" },
+    ],
   },
   {
     aba: "Contrato › financeiro",
@@ -349,6 +414,13 @@ export const INVENTARIO_CAMPOS_ABAS: AbaComCampos[] = [
     campos: 5,
     estado: "vivo",
     observacao: "Gate financeiro propaga de conciliarPagamento quando há exatamente um contrato assinado.",
+    camposDescritos: [
+      { campo: "financial_change_status", oQueColeta: "Se a condição financeira mudou após a aprovação: no_change | pending_review | expressly_changed | not_applicable (CHECK real).", quemPreenche: "Financeiro/admin (gate de papel)", visibilidade: "interna" },
+      { campo: "external_expense_status", oQueColeta: "Estado das despesas de terceiros: not_applicable | pending | estimated | approved | client_pays_directly | partially_paid (CHECK real).", quemPreenche: "Financeiro/admin", visibilidade: "interna" },
+      { campo: "financial_gate_status", oQueColeta: "Gate que a OS consulta para liberar execução: not_applicable | pending_contract | pending_confirmation | confirmed | blocked | exception_authorized (CHECK real). Propagado automaticamente por conciliarPagamento quando há 1 contrato assinado no caso — não é sempre manual.", quemPreenche: "Automático (conciliarPagamento) ou financeiro/admin em exceção", visibilidade: "interna" },
+      { campo: "invoice_reference", oQueColeta: "Referência da fatura associada a este instrumento.", quemPreenche: "Financeiro/admin", visibilidade: "interna" },
+      { campo: "payment_reference", oQueColeta: "Referência do pagamento confirmado associado.", quemPreenche: "Financeiro/admin", visibilidade: "interna" },
+    ],
   },
   {
     aba: "Perfil institucional (contratada)",
