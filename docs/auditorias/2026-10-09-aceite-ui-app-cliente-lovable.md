@@ -76,6 +76,7 @@ Pendente. Aprovadora: Proprietária. Nenhum desvio aceito automaticamente; G4/G5
 
 ---
 
+<<<<<<< /tmp/m
 <!-- Registro do rascunho “App Cliente — fases 1–3 e Jornada piloto” -->
 
 # Checklist de homologação — registro do rascunho
@@ -168,3 +169,56 @@ Topo/perfil, assinatura publicada preservada R$320/mês aguardando confirmação
 - BASELINE-DESK: antes não comparable; repetir comparação controlada em próxima janela, sem trocar main/commits por ferramenta git stateful.
 - A11Y-INTEGRAL: gráficos, todos os estados, zoom nativo e navegação completa por teclado ainda não homologados.
 - Fases futuras, aceite da Proprietária, integração do rascunho e publicação continuam PENDENTES. Nada publicado ou integrado. Evidências contêm dados autorizados: somente Files privados, não assets públicos do App.
+=======
+## Registro do rascunho “App Cliente — homologação visual v1.0”
+
+# Aceite UI App Cliente — rascunho
+
+Inicial: todos os itens NÃO EXECUTADO. Resultados abaixo não são aceite da Proprietária. G4/G5 permanecem PENDENTES.
+
+| Item | Resultado | Evidência ou motivo |
+|---|---|---|
+| R01 | PASSOU parcialmente | App real 17 páginas/recorte 3–9 inspecionado; Desk separado, versão exata v4/v6 bloqueada |
+| R02 | BLOQUEADO parcialmente | tabela literal versus tokens na especificação; pesos/raios exatos não homologados |
+| R03 | PASSOU parcialmente | BrandLogo existente carregado; imagens de cliente indisponíveis, nenhuma fabricada |
+| R04 | PASSOU | todos os seletores locais sob raiz App; sem shared default alterado |
+| R05 | PASSOU | mesma sessão/caso, publicações textuais iguais após descontar título movido |
+| R06 | PASSOU no escopo executado | nenhuma escrita backend/publicação; sem comprovar isolamento do backend |
+| A01 Home | PASSOU parcial | 375/1280 topo/fim/composição; imagem/resumo completos bloqueados |
+| A02 Jornada | PASSOU parcial | duas linhas, marcadores, sequência preservada; fatos/encontros ausentes |
+| A03 Radar | PASSOU parcial | seis eixos, sem falso polígono; mapa/heatmap bloqueados |
+| A04 Árvore | PASSOU parcial | mesmos nós/gerações, foco disponível; relações publicadas ausentes |
+| A05 Documentos | BLOQUEADO | visual aplicado; frase de dispensa exige alteração de teste pelo Claude; checklist/arquivo ausentes |
+| A06 Legado | PASSOU parcial | material real preservado; categorias/fontes/capas dependentes |
+| A07 Conta | PASSOU parcial | assinatura existente preservada; PP-03 completo/canal dependentes |
+| J01 | PASSOU parcial | sequência e próxima ação existentes preservadas, nenhum evento inventado |
+| RA01 | PASSOU | números/eixos existentes intactos, não é homologação da fórmula |
+| AR01 | PASSOU no escopo | sem alterar nós/vínculos/gerações/privacidade; A×B não testado |
+| D01 | BLOQUEADO_POR_DADO | recebido/liberado separados; download/upload real não executado |
+| L01 | PASSOU no escopo | só conteúdo já entregue pelo leitor; nenhuma publicação |
+| C01 | PASSOU parcial | sem escrita casual; plano e contato ausentes |
+| H01 | PASSOU parcial | fonte preservada; resumo real completo não publicado |
+| T01 | PASSOU | 14 capturas depois + topo/fim/composição e referência/antes, Files autorizado |
+| T02 | BLOQUEADO parcialmente | estados não simulados; Conta e faturas têm dívida de erro/ausência, PEDIDO AO CLAUDE |
+| T03 | NÃO EXECUTADO integral | sem criar longos sintéticos; mobile/nav e texto existente conferidos |
+| T04 | PASSOU | 320/768/1440, sete abas sem overflow global |
+| T05 | PASSOU parcial | último bloco/nav/área segura capturados; teclado virtual não executado |
+| T06 | PASSOU parcial | Tab e 200% Árvore; modal integral não executado |
+| T07 | NÃO EXECUTADO integral | sem medição completa de todos os contrastes; não declarar WCAG |
+| T08 | PASSOU parcial | estados e percentuais têm rótulos textuais; auditoria integral não executada |
+| T09 | PASSOU parcial | marca carregada/alt/proporção; thumbnails reais bloqueados |
+| T10 | BLOQUEADO parcialmente | sete secundárias inspecionadas no código e herdando shell; ausência de IDs/arquivos autorizados impede teste integral; não abrir acessos |
+| T11 | PASSOU | 64 testes existentes; logs automáticos build OK; lint/typecheck manual não executados |
+| T12 | NÃO EXECUTADO | nenhum segundo caso autorizado selecionado/criado |
+| ND01 | PASSOU | /painel antes/depois sem diferença de pixels |
+| ND02 | PASSOU | /comercial e /casos sem diferença de pixels |
+| ND03 | PASSOU parcial | /pesquisa e /contratos sem diferença; outras famílias não executadas |
+| ND04 | NÃO EXECUTADO | modal/alerta Desk compartilhado não acionado |
+| ND05 | PASSOU | diff apenas portal/docs, CSS sem seletor global |
+
+## Gates
+
+G0 referências/assets PARCIAL/BLOQUEADO: versão Desk exata e assets/clientes ausentes. G1 isolamento visual PASSOU nas cinco amostras, não prova banco isolado. G2 sete abas PASSOU parcial/secundárias BLOQUEADAS. G3 comparação/regressão PARCIAL. G4 aceite explícito Proprietária PENDENTE. G5 publicação/smoke PENDENTE, NÃO AUTORIZADO.
+
+Responsáveis pelos bloqueios: Claude — contratos de dados, checklist/texto/testes, erros/ausências e publicações estruturadas; Proprietária — autoridade visual de cores divergentes/Desk versão, aprovação de fontes/conteúdo e aceite deste rascunho. Lovable — finalizar QA visual após disponibilização, sem aceitar/publicar automaticamente.
+>>>>>>> /tmp/d

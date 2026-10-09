@@ -47,6 +47,7 @@ Uma fonte de fixtures em exemplos-visuais-mockup.ts; apresentação em bloco-exe
 
 ---
 
+<<<<<<< /tmp/m
 <!-- Registro do rascunho “App Cliente — fases 1–3 e Jornada piloto” -->
 
 # Especificação visual — registro fases 1–3
@@ -58,3 +59,50 @@ Base 0c0fdf193ce9ce0774a72623df87ddc80bff3e7e; revisão CSS 2a1b7f284ed3723b9c84
 Reutilizar shell e raiz data-app-cliente; aliases somente nessa raiz. Sem shell paralelo, mudanças globais, dados ou Desk. Nenhuma decisão arquitetural nova: folha existente e import existente preservados.
 
 Referências e inventários: /mnt/documents/app-fases-1-3-2026-10-09/. A especificação integral anterior não estava presente neste rascunho; não foi reconstruída por suposição. Fases futuras e gates pendentes.
+=======
+## Registro do rascunho “App Cliente — homologação visual v1.0”
+
+# Especificação UI App Cliente — rascunho isolado
+
+Status: RASCUNHO; decisão da Proprietária PENDENTE. Data 09/10/2026 UTC. Não integrar ou publicar.
+
+## Referências verificadas
+
+App: PDF real de 17 páginas `clube-ancestral-mockup.pdf` nos uploads; recorte acessível em Files `kit-app-mockup-2026-10-08-v1/sete-telas-app-paginas-3-a-9.pdf`, sete páginas renderizadas e inspecionadas. Ordem Home, Jornada, Radar, Árvore, Documentos, Legado, Conta. Complemento acessível `prancha-app-cliente-mobile.png` nos uploads: prancha anterior de sete telas, não substitui o mockup nem autoriza retornar a pirâmide estática.
+
+Desk: `prancha-visual-desk-clube-ancestral-v1_3.pdf` dos uploads, prancha separada com quinze superfícies. A versão v4/v6 exata não pôde ser autenticada pelo nome/metadata desta prancha: BLOQUEADO_POR_REFERENCIA, não usar App para dirigir Desk. Baselines de /painel, /comercial, /casos, /pesquisa e /contratos preservados em leitura.
+
+Ambiente: Lovable, rascunho drft_01m4h1ekvzejst0zgfhzgmxgwh. URL https://id-preview-2--1a628b61-ec68-454f-85e1-671d6f297370.lovable.app. Testes no localhost:8080, sessão administrativa da Proprietária restaurada apenas nessa origem. Configuração conectada funcionou para a visão administrativa; isso não comprova isolamento do backend nem login cliente. Nenhuma credencial incluída.
+
+## Paleta: observação literal versus autoridade vigente
+
+Valores obtidos por amostragem dos pixels do recorte, não nova homologação de cores.
+
+| Valor observado | Papel | Página do recorte | Token vigente usado |
+|---|---|---|---|
+| #1B2B4B | cabeçalho navy | 1–7 | --ca-navy #13294B |
+| #F5F0E8 | fundo claro | 1–7 | --ca-cream #F0EEE9 |
+| #C9A84C | progresso/conexão | 3 | --ca-gold #C2A84D |
+| #FFFFFF | superfícies | 1,3–7 | --ca-surface-raised |
+| tons sálvia e roxo observados | legenda e oferta | 2,6,7 | não copiados como tokens novos |
+
+Referência literal e tokens homologados diferem. Não houve mudança global nem alegação de igualdade cromática. Cormorant Garamond em títulos, Montserrat no corpo; marca com BrandLogo canônico. Pesos usados 400/500/600, sem afirmar pesos exatos do bitmap. Raios por função: 6/8/12px já existentes, zero nas listas/faixas; não homologar 18/22px por observação. Borda 1px e sombra --ca-shadow-sm somente em itens genuinamente elevados. Intervalos 12/24px, conteúdo 16/24/32px via escala existente; medidas exatas do mockup dependem de arquivo-fonte vetorial.
+
+## Assets reais
+
+BrandLogo usa public/marca, variante principal definida pelo registro canônico existente, fundo navy, símbolo 40px nominal, proporção intrínseca, object-fit contain, sem recorte, centro como ponto focal; informativa, alt Clube Ancestral. Ponteiro preexistente src/assets/clube-ancestral-logo.svg.asset.json preservado, sem novo upload. Todas as imagens renderizadas carregaram. Nenhum retrato, capa, mapa, documento ou foto da Ana disponível nos componentes inspecionados; não converter imagem de referência em dado real. Detalhes dependentes: BLOQUEADO_POR_ASSET/PUBLICACAO.
+
+## De-para topo → conteúdo → navegação
+
+| Aba | Reproduzido | Preservado | Falta ou dependência |
+|---|---|---|---|
+| Home | marca, abertura, hero, faixa próxima ação, item pessoas, respiro | resumo, achados e ações dos leitores | imagem principal e resumo publicado completo |
+| Jornada | título no corpo, duas linhas, marcadores, eventos sem moldura, união diferenciada | sequência real, datas e destinos existentes | fatos/local/precisão/trilhas e encontros publicados |
+| Radar | gráfico em superfície, seis itens com hierarquia, desktop duas colunas | valores/eixos/fórmulas e explicação expansível | origem geográfica/heatmap; só bases reais representadas |
+| Árvore | níveis espaçados, nós separados, âncora e controles locais | pessoas, gerações, filtro e privacidade | relações/ramos publicados; sem linhas inferidas |
+| Documentos | títulos/estados e listas com respiro | recebido distinto de liberado, ações existentes | checklist integral, arquivos reais e thumbnails |
+| Legado | abertura editorial, coleções e listas contínuas | material publicado e classificação existente | fontes, categorias explícitas, capas/acervo autorizado |
+| Conta | perfil elevado, assinatura, plano separado, histórico e atendimento | nome/valor/situação publicados | PP-03 completo/vigência/canais/preferências |
+
+Último bloco mantém distância da navegação fixa com área segura. Sete abas e destinos preservados. CSS exclusivo sob [data-app-cliente], sem :root/body/default global. PortalShell é componente exclusivo do portal, não shell do Desk; nenhuma mudança de shared BrandLogo/Button. Secundárias herdam somente acabamento do shell; sem acesso novo. Metadados, tratamento de erros e contratos de leitura das secundárias permanecem dívida registrada ao Claude.
+>>>>>>> /tmp/d

@@ -44,6 +44,7 @@ G0/G2/G3 permanecem parciais pelos motivos registrados; G1 isolamento verificado
 
 ---
 
+<<<<<<< /tmp/m
 <!-- Registro do rascunho “App Cliente — fases 1–3 e Jornada piloto” -->
 
 # Execução UI — registro fases 1–3
@@ -51,3 +52,22 @@ G0/G2/G3 permanecem parciais pelos motivos registrados; G1 isolamento verificado
 Status: rascunho, não homologado.
 
 Ordem recebida da Proprietária: fase 1 materiais/capturas; fase 2 shell/tema isolados; fase 3 Jornada piloto. Executadas com limites no registro de auditoria. Nenhum aceite/integração/publicação autorizado. O prompt integral anterior não estava presente neste rascunho; este registro não o substitui. Escopo futuro mantém readers/writers/testes/dados/Desk fora de escrita.
+=======
+## Registro do rascunho “App Cliente — homologação visual v1.0”
+
+# Execução UI App Cliente — 09/10/2026
+
+Status RASCUNHO, decisão pendente. Escopo exclusivamente visual neste rascunho isolado; main/produção intocados por esta execução, sem aceite ou publicação.
+
+Base: 0842adeb0efed3824bb8a200744fedd070405dd9. Checkpoint visual capturado: 65fdba6d3e84fc1ff38f89d981ac8ac6458761b8; acabamento final e SHA exato acompanham índice de evidências. Antes/depois usam mesmo caso e sessão, não mesmo SHA: comparar dois estados de código é necessário para registrar o diff.
+
+Caso autorizado a11a0000-0000-4000-8000-000000000002 na visão administrativa existente. Sessão da Proprietária, nunca sessão cliente. Conteúdo comparado via texto renderizado: diferença exclusiva dos títulos/descrições movidos do cabeçalho ao corpo; conteúdo das publicações permaneceu igual. Sem SQL de escrita, banco importado, fixture, convite, publicação, envio, cobrança ou assinatura.
+
+Arquivos visuais: portal-shell.tsx (marca e posição do título), portal-v11.css (respiro, geometria por elemento e desktop), radar-seis-eixos.tsx (viewBox/labels legíveis e contorno dos pontos, sem fórmula). Docs: especificação, execução, aceite e canos-faltando.
+
+Piloto por divergência confirmada: Jornada do mockup tem título fora do cabeçalho e duas linhas sem hero navy adicional. Aplicado acabamento local e harmonização das demais abas. Sem reconstruir lógica, sem dados fictícios. Os detalhes de publicação ausentes foram preservados como lacuna, não substituídos pelo mockup demonstrativo.
+
+Verificações: 64 testes existentes em sete arquivos passaram; build automático OK em 19:25:21 UTC, sem build/typecheck manual. 14 combinações 375/1280 sem overflow e sem pageerror; 21 amostras 320/768/1440 sem overflow; texto 200% conferido parcialmente na Árvore. Cinco screenshots Desk antes/depois pixel-idênticos no checkpoint. Sem verificação de login cliente, persistência de escrita, A×B ou smoke de produção.
+
+Não declarado: paridade pixel a pixel, conformidade integral de contraste, todas as secundárias funcionais, arquivo real liberado/download, completo genograma/mapa/acervo/PP-03. Nenhum gate é satisfeito por este documento. Rollback não executado nem prometido; rascunho continua sem aceitar.
+>>>>>>> /tmp/d
