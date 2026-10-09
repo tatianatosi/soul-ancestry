@@ -6,6 +6,8 @@ import { gravarComVerificacao } from "@/lib/persistencia.server";
 import {
   camposDoTipo,
   pendenciasCadastro,
+  resolvivelPelaPessoa360,
+  valorCanonicoDoCampo,
   rascunhoSolicitacaoCadastro,
   resumoPorPessoa,
   type ItemChecklist,
@@ -54,6 +56,70 @@ async function contexto(supabase: any, caseId: string) {
   return caso;
 }
 
+
+/**
+ * Reconciliação Pessoa 360 → checklist cadastral (09/10/2026).
+ *
+ * Bug medido no caso da Ana: o checklist listava "CPF: não informado",
+ * "RG: não informado", "Endereço completo: não informado" para pessoas que
+ * TÊM esses dados em `clientes`. A semeadura criava toda linha como
+ * "pendente" e nunca olhava a pessoa canônica — e, como o upsert usa
+ * `ignoreDuplicates`, semear de novo nunca corrigiria as linhas já criadas.
+ * O contrato ficava travado por pendência que não existe.
+ *
+ * Esta passagem roda na LEITURA e é conservadora por desenho:
+ *  - só toca linha ainda `pendente` (decisão humana registrada fica);
+ *  - só marca `verificado` quando o valor canônico existe de fato;
+ *  - grava `fonte: "crm"` (a Pessoa 360 é o registro canônico do CRM) e a
+ *    data — nunca inventa fonte nova nem valor;
+ *  - falha de gravação não derruba a tela: devolve a lista como está.
+ *
+ * Campo sem valor canônico continua pendente, e é pendência de verdade.
+ */
+async function resolverPelaPessoa360(
+  supabase: any,
+  organizationId: string,
+  userId: string,
+  itens: ItemChecklist[],
+): Promise<ItemChecklist[]> {
+  const clienteIds = [
+    ...new Set(itens.map((i) => (i as any).cliente_id as string | null).filter(Boolean) as string[]),
+  ];
+  if (!clienteIds.length) return itens;
+
+  const { data: clientes } = await supabase
+    .from("clientes")
+    .select("*")
+    .eq("organization_id", organizationId)
+    .in("id", clienteIds)
+    .is("archived_at", null);
+  const porId = new Map(((clientes ?? []) as any[]).map((c) => [String(c.id), c as Record<string, unknown>]));
+  if (!porId.size) return itens;
+
+  const hoje = new Date().toISOString().slice(0, 10);
+  const resolvidos = itens.filter((i) => resolvivelPelaPessoa360(i as any, porId.get(String((i as any).cliente_id))));
+  if (!resolvidos.length) return itens;
+
+  const atualizados = new Map<string, ItemChecklist>();
+  for (const item of resolvidos) {
+    try {
+      const r = await gravarComVerificacao({
+        supabase,
+        tabela: "checklist_cadastral",
+        id: String((item as any).id),
+        organizationId,
+        userId,
+        payload: { status: "verificado", fonte: "crm", data_verificacao: hoje },
+      });
+      atualizados.set(String((item as any).id), r.registro as ItemChecklist);
+    } catch {
+      // Lacuna é melhor que silêncio invertido: se a gravação falhar, a
+      // linha continua pendente na tela em vez de parecer resolvida.
+    }
+  }
+  return itens.map((i) => atualizados.get(String((i as any).id)) ?? i);
+}
+
 /** Leitura do checklist + resumo por pessoa + pendências + rascunhos já registrados. */
 export const carregarChecklistCadastral = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -80,7 +146,12 @@ export const carregarChecklistCadastral = createServerFn({ method: "GET" })
       .is("archived_at", null)
       .order("created_at", { ascending: false });
 
-    const lista = (itens ?? []) as ItemChecklist[];
+    const lista = await resolverPelaPessoa360(
+      supabase,
+      caso.organization_id,
+      (context as any).userId as string,
+      (itens ?? []) as ItemChecklist[],
+    );
     return {
       caso,
       itens: lista,
@@ -112,12 +183,20 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
       .is("archived_at", null);
 
     // Clientes canônicos da organização para reconciliar pessoa → cliente por ID.
+    /*
+     * 09/10/2026: a linha inteira, não só `id,nome`. A semeadura passa a
+     * conferir o que a Pessoa 360 já tem (CPF, RG, endereço, telefone,
+     * e-mail…) em vez de criar tudo como pendente.
+     */
     const { data: clientes } = await supabase
       .from("clientes")
-      .select("id,nome")
+      .select("*")
       .eq("organization_id", caso.organization_id)
       .is("archived_at", null);
     const clientesOrg = (clientes ?? []) as { id: string; nome: string }[];
+    const clientesCanonicos = new Map(
+      ((clientes ?? []) as any[]).map((c) => [String(c.id), c as Record<string, unknown>]),
+    );
 
     /*
      * 04/09/2026 — achado real (Ana Luiza, Pessoa 360): o vínculo aqui era
@@ -176,6 +255,11 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
           ? PERFIL_INSTITUCIONAL.find((x) => x.campo === campoPerfil)?.valor
           : null;
         const resolvidoPeloPerfil = Boolean(valorPerfil && valorPerfil.trim());
+        const resolvidoPelaPessoa =
+          !resolvidoPeloPerfil &&
+          p.tipo === "titular" &&
+          Boolean(p.cliente) &&
+          valorCanonicoDoCampo(c.campo, clientesCanonicos.get(String(p.cliente))) !== null;
         linhas.push({
           organization_id: caso.organization_id,
           case_id: data.caseId,
@@ -189,13 +273,21 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
           // 08/09/2026 — antes era `true` para todo campo, gerando 9 travas por
           // pessoa adulta. Agora respeita a obrigatoriedade declarada no molde.
           obrigatorio: c.obrigatorio,
+          /*
+           * 09/10/2026: a semeadura passa a consultar a Pessoa 360. Antes
+           * criava TODA linha como "pendente" mesmo conhecendo o
+           * `cliente_id`, e o caso da Ana nascia com pendência falsa de
+           * CPF, RG e endereço que travava o contrato.
+           */
           status: resolvidoPeloPerfil
             ? "verificado"
-            : p.tipo === "contratada"
-              ? "aguarda_fonte_societaria"
-              : "pendente",
-          fonte: resolvidoPeloPerfil ? "fonte_societaria" : null,
-          data_verificacao: resolvidoPeloPerfil ? hoje : null,
+            : resolvidoPelaPessoa
+              ? "verificado"
+              : p.tipo === "contratada"
+                ? "aguarda_fonte_societaria"
+                : "pendente",
+          fonte: resolvidoPeloPerfil ? "fonte_societaria" : resolvidoPelaPessoa ? "crm" : null,
+          data_verificacao: resolvidoPeloPerfil || resolvidoPelaPessoa ? hoje : null,
           acesso_restrito: true,
           ordem: i,
           created_by: userId,

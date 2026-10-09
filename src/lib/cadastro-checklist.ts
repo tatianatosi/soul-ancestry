@@ -260,3 +260,79 @@ export function rascunhoSolicitacaoCadastro(input: {
     ].join("\n"),
   };
 }
+
+/* -------------------------------------------------------------------------
+ * Pessoa 360 resolve o checklist cadastral (09/10/2026)
+ *
+ * Bug medido no caso da Ana e reportado pela Proprietária: a aba "Pessoa e
+ * família" listava "Ana Luiza · CPF: não informado", "Adair · RG: não
+ * informado", "Adair · Endereço completo: não informado" — e o contrato
+ * ficava travado por isso. Mas o dado ESTÁ no banco: medido em `clientes`,
+ * Ana tem CPF, RG, endereço, CEP, telefone, e-mail e estado civil; Adair tem
+ * CPF, RG, endereço, telefone e e-mail.
+ *
+ * Causa: `semearChecklistCadastral` criava TODA linha com `status: "pendente"`
+ * e nunca consultava a pessoa canônica — mesmo já conhecendo o `cliente_id`
+ * (ele chega a gravá-lo de volta em `case_members`). O checklist não estava
+ * medindo o cadastro; estava afirmando que tudo falta.
+ *
+ * Aqui fica o de-para puro entre o campo do checklist e a coluna real de
+ * `clientes`. Nada é inventado: campo sem valor canônico continua pendente, e
+ * a decisão humana já registrada nunca é sobrescrita.
+ * ---------------------------------------------------------------------- */
+
+/** Campo do checklist → coluna de `clientes` (Pessoa 360). */
+export const CAMPO_CHECKLIST_PARA_CLIENTE: Readonly<Record<string, string>> = {
+  nome_completo: "nome",
+  cpf: "cpf",
+  rg: "rg_numero",
+  profissao: "profissao",
+  estado_civil: "estado_civil",
+  cep: "endereco_cep",
+  telefone: "telefone",
+  email: "email",
+  // `endereco` não tem coluna única: é composto, e quem compõe é
+  // `montarEnderecoCanonico` (contratos.functions.ts). Tratado à parte.
+};
+
+/**
+ * O valor canônico deste campo, ou `null` quando a Pessoa 360 não tem o dado.
+ *
+ * `endereco` exige logradouro + cidade + UF (mesma regra de
+ * `montarEnderecoCanonico`): endereço pela metade não é endereço.
+ */
+export function valorCanonicoDoCampo(
+  campo: string,
+  cliente: Record<string, unknown> | null | undefined,
+): string | null {
+  if (!cliente) return null;
+  if (campo === "endereco") {
+    const partes = ["endereco_logradouro", "endereco_cidade", "endereco_uf"].map((c) =>
+      String(cliente[c] ?? "").trim(),
+    );
+    return partes.every(Boolean) ? partes.join(" - ") : null;
+  }
+  const coluna = CAMPO_CHECKLIST_PARA_CLIENTE[campo];
+  if (!coluna) return null;
+  const v = String(cliente[coluna] ?? "").trim();
+  return v ? v : null;
+}
+
+/**
+ * A linha pode ser resolvida pela Pessoa 360 agora?
+ *
+ * Conservador por desenho — só diz sim quando:
+ *  - a linha ainda está `pendente` (decisão humana registrada nunca é
+ *    sobrescrita: `verificado`, `nao_aplicavel` e `aguarda_fonte_societaria`
+ *    ficam como estão);
+ *  - existe pessoa canônica vinculada; e
+ *  - o valor canônico existe de fato.
+ */
+export function resolvivelPelaPessoa360(
+  item: { campo: string; status?: string | null; cliente_id?: string | null },
+  cliente: Record<string, unknown> | null | undefined,
+): boolean {
+  if (item.status !== "pendente") return false;
+  if (!item.cliente_id || !cliente) return false;
+  return valorCanonicoDoCampo(item.campo, cliente) !== null;
+}
