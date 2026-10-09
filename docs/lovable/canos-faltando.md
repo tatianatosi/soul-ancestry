@@ -184,3 +184,6 @@ A autorização recente permite exemplos visuais explicitamente rotulados, não 
 - Files indisponível: mkdir/stat em /mnt/documents expiraram. Pacote preparado em área temporária; não declarar entrega no destino nem coleção atualizada até cópia bem-sucedida.
 
 PEDIDO AO CLAUDE: fonte de vínculo real, origem geográfica, checklist e categorias, PP-03/vigência/canais e semântica de dispensa documental continuam pendentes; nenhum teste foi alterado. Nenhum teste falhou nesta execução. Não arquivar esses pedidos por exemplo visual, teste verde ou captura.
+## Rascunho fases 1–3 — 09/10/2026
+
+Visão administrativa da Ana, 375/1280; base 0c0fdf193ce9ce0774a72623df87ddc80bff3e7e, CSS 2a1b7f284ed3723b9c8412bc212095fa0ab22c7e. Apenas apresentação alterada. Uma microentrega, seis pessoas, assinatura atual preservadas; sem publicação. Linha ancestral/união factual, vínculos, países, checklist completo, categorias explícitas e PP-03/plano/canais continuam dependências de fonte/Claude. Texto documental de dispensa continua bloqueado pelo teste existente, não alterado. Tipografia/métricas exatas da referência e baseline Desk antes integral não comprovados. Auditoria e Files registram testes, limites e imagens; nenhuma fase futura homologada.
