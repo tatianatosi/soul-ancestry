@@ -130,3 +130,24 @@ describe("tela e servidor aplicam a mesma regra", () => {
     }
   });
 });
+
+describe("a trava desarma os botões, não só mostra o aviso", () => {
+  it("com a trava acesa, a rota passa previaId nulo para PDF e DOCX", () => {
+    const rota = ler("src/routes/_authenticated/casos.$caseId.contrato.preparar.tsx");
+    // defesa em profundidade: a tela não oferece o id quando está bloqueada
+    expect(rota).toMatch(/<BaixarPdfContrato\s+previaId=\{bloqueioPrevia \? null :/);
+    expect(rota).toMatch(/<BaixarDocxContrato\s+previaId=\{bloqueioPrevia \? null :/);
+    // e o aviso aparece na tela
+    expect(rota).toContain("{bloqueioPrevia ?");
+  });
+
+  it("sem id de prévia, o botão não chama o servidor", () => {
+    for (const alvo of [
+      "src/components/contrato/baixar-pdf-contrato.tsx",
+      "src/components/contrato/baixar-docx-contrato.tsx",
+    ]) {
+      const src = ler(alvo);
+      expect(src).toMatch(/if \(!previaId\)[\s\S]{0,200}return;/);
+    }
+  });
+});
