@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useBlocker } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { handlerBeforeUnload } from "@/lib/aviso-edicao-nao-salva";
 
 import { SaasShell, useSaas, EstadoVazio } from "@/components/saas/shell";
 import { CaCard } from "@/components/ui/ca-card";
@@ -274,6 +275,19 @@ function Pessoa() {
 
   const [editando, setEditando] = useState(false);
   const [form, setForm] = useState<Partial<CamposPessoa>>({});
+  /*
+   * F5/sair da linha (09/10/2026) — o mesmo padrão já provado em
+   * casos.$caseId.index.tsx, generalizado. Pessoa 360 tinha ZERO proteção:
+   * recarregar ou trocar de rota com edição pendente perdia o rascunho em
+   * silêncio.
+   */
+  const sujo = Object.keys(form).length > 0;
+  useEffect(() => {
+    if (!sujo) return;
+    window.addEventListener("beforeunload", handlerBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handlerBeforeUnload);
+  }, [sujo]);
+  useBlocker({ shouldBlockFn: () => sujo, enableBeforeUnload: false, withResolver: true });
   const [erroSalvar, setErroSalvar] = useState<string | null>(null);
   // CA03-PESSOA-UNICA-VINCULOS (09/09/2026): confirmação humana do vínculo
   // lead → pessoa. Nunca funde por nome sozinho — só grava quando alguém
