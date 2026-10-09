@@ -191,7 +191,7 @@ Uma jornada de cidadania pode estar em espera externa enquanto uma entrega de me
 4. Verificar no código e banco consumidores, triggers e restrições que ainda possam usar SKU/Mestre como requisito. O documento de 08/09 descreve correção histórica em três camadas; não demonstra estado atual integral.
 5. Identificar como persistir contexto de vida e múltiplas jornadas usando estruturas existentes, antes de propor tabelas novas.
 6. Relacionar preços a escopo e condições com evidência independente; não homologar por país nem por código.
-7. Após decisão da proprietária, preparar publicação canônica em docs/arquitetura e referências cruzadas nos cinco originais. Não foi feito commit.
+7. Esta revisão já foi publicada em docs/arquitetura no commit f0a38302ccfb186f3a337b5f079baffbe72b8105. As referências cruzadas nos cinco originais continuam pendentes da recuperação integral desses arquivos e de decisão da proprietária.
 
 ## 10. Critérios de aceite para implementação futura
 
