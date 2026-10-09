@@ -10,6 +10,7 @@ import { conferirPrecoCanonico, type ProdutoCanonico } from "@/lib/preco-canonic
 import type { Despesa } from "@/lib/despesas-terceiros";
 import { contextoGatesDaConferencia } from "@/lib/escopo-conferencia";
 import { bloqueiosDependentes, type Dependente } from "@/lib/dependentes";
+import { coberturaDoModelo } from "@/lib/aprovacao-modelo";
 import { TEMAS_JURIDICOS, temasBloqueantesPendentes, type LinhaMatriz } from "@/lib/matriz-juridica";
 import { GateBloqueadoError, bloqueiosDaAcao, ehAcaoGateadaInterna, type AcaoGateada } from "@/lib/gates-formalizacao";
 import { extrairEscopoDaProposta, mapaCoberturaEscopo } from "@/lib/escopo-proposta";
@@ -74,7 +75,7 @@ export async function montarConferencia(
       supabase.from("third_party_expenses").select("*").eq("case_id", caso.id).is("archived_at", null),
       supabase
         .from("contract_case_parameters")
-        .select("id,status,contract_id")
+        .select("id,status,contract_id,contract_template_id")
         .eq("case_id", caso.id)
         .is("archived_at", null)
         .maybeSingle(),
@@ -181,6 +182,29 @@ export async function montarConferencia(
   const menores = listaMembros.filter((m) => ehMenor(m.data_nascimento, hoje));
   const despesas = ((despesasRaw ?? []) as any[]).map((d) => d as Despesa);
 
+  /*
+   * 09/10/2026 — aprovação do MODELO × conferência da INSTÂNCIA. O Contrato de
+   * Estudo Genealógico v2 já foi revisado juridicamente; revisão só volta a ser
+   * exigida para alteração material fora do conteúdo aprovado (override de
+   * cláusula no contrato do caso). Dados, representação e assinatura seguem
+   * pelos seus próprios gates.
+   */
+  const templateCode = ficha?.contract_template_id
+    ? ((
+        await supabase.from("contract_templates").select("code").eq("id", ficha.contract_template_id).maybeSingle()
+      ).data?.code ?? null)
+    : null;
+  const clausulasAlteradas = ficha?.contract_id
+    ? ((
+        await supabase
+          .from("contract_clause_overrides")
+          .select("clause_code,clause_title,action,change_reason,clause_text,archived_at")
+          .eq("contract_id", ficha.contract_id)
+          .is("archived_at", null)
+      ).data ?? [])
+    : [];
+  const coberturaModelo = coberturaDoModelo({ templateCode, clausulasAlteradas });
+
   const entrada: EntradaConferencia = {
     caseId: caso.id,
     proposta: proposta as any,
@@ -208,7 +232,10 @@ export async function montarConferencia(
         listaMembros.length > 0 && listaMembros.every((m) => m.nome && m.status_cadastral && m.status_cadastral !== "incompleto"),
     },
     checklist: {
-      revisaoJuridicaOk: caso.revisao_humana_juridica === "aprovada" || caso.revisao_humana_juridica === true,
+      revisaoJuridicaOk:
+        caso.revisao_humana_juridica === "aprovada" ||
+        caso.revisao_humana_juridica === true ||
+        coberturaModelo.dentroDoAprovado,
       contratoOsProntos: Boolean(ficha?.contract_id) || ficha?.status === "aprovado",
       assinaturaRegistrada: Boolean(caso.contrato_assinado),
       pagamentoConfirmado: Boolean(caso.pagamento_confirmado),
@@ -216,7 +243,8 @@ export async function montarConferencia(
     },
     despesas,
     dependentesPendentes: bloqueiosDependentes(dependentes).map((b) => b.descricao),
-    temasJuridicosBloqueantes: temasBloqueantesPendentes(matriz),
+    temasJuridicosBloqueantes: coberturaModelo.dentroDoAprovado ? [] : temasBloqueantesPendentes(matriz),
+    alteracoesForaDoModelo: coberturaModelo.escalonamento.map((a) => `${a.clausula} (${a.motivo})`),
     paginasCanva: ((paginasRaw ?? []) as any[]).map((p) => ({
       page_number: Number(p.page_number),
       extracao_status: p.extracao_status ?? null,

@@ -13,6 +13,7 @@ import { FaixaIdentidade } from "@/components/golive/identidade";
 import { Escada } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
 import { useGoLive } from "@/components/golive/dados";
+import { CartoesFormalizacaoDoCaso } from "@/components/contrato/cartoes-formalizacao";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import {
@@ -158,6 +159,10 @@ function FormalizacaoGoLive() {
                 { rotulo: "Publicação", feito: caso.publicados.length > 0 },
               ]}
             />
+          </Bloco>
+
+          <Bloco titulo="Formalização do contrato em cinco cartões">
+            <CartoesFormalizacaoDoCaso caseId={caso.caso.id} responsavelNome={caso.identidade.responsavel} />
           </Bloco>
 
           <Bloco titulo="1. Proposta">

@@ -187,6 +187,11 @@ export type ContextoGates = {
   dependentesPendentes?: string[];
   /** Temas da matriz jurídica marcados como bloqueantes e ainda não decididos. */
   temasJuridicosBloqueantes?: string[];
+  /**
+   * Alterações materiais FORA do conteúdo do modelo aprovado (cláusula + motivo).
+   * Só elas reabrem revisão jurídica quando o modelo vigente já foi aprovado.
+   */
+  alteracoesForaDoModelo?: string[];
   /** Páginas 1–7 da proposta Canva sem extração concluída. */
   paginasCanvaPendentes?: number[];
   /** Campos declarados como não localizados na extração das páginas. */
@@ -234,7 +239,13 @@ export function avaliarGates(c: ContextoGates): AvaliacaoGate[] {
       !c.menorEnvolvido || c.representacaoRegistrada,
       "Menor/incapaz no núcleo sem representação legal registrada.",
     ),
-    g("revisao_juridica", c.revisaoJuridicaOk, "Revisão jurídica da versão final não aprovada."),
+    g(
+      "revisao_juridica",
+      c.revisaoJuridicaOk,
+      (c.alteracoesForaDoModelo ?? []).length
+        ? `Alteração fora do conteúdo do modelo aprovado sem revisão jurídica: ${(c.alteracoesForaDoModelo ?? []).join("; ")}.`
+        : "Revisão jurídica da versão final não aprovada.",
+    ),
     g("contrato_os_prontos", c.contratoOsProntos, "Contrato/OS ainda não preparados."),
     g("assinatura", c.assinaturaRegistrada, "Assinatura não registrada."),
     g("pagamento", c.pagamentoConfirmado, "Pagamento inicial não confirmado."),

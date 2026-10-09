@@ -64,6 +64,8 @@ export type EntradaConferencia = {
   dependentesPendentes?: string[];
   /** Temas jurídicos bloqueantes ainda sem decisão registrada. */
   temasJuridicosBloqueantes?: string[];
+  /** Alterações materiais fora do conteúdo do modelo aprovado (reabrem revisão jurídica). */
+  alteracoesForaDoModelo?: string[];
   /** Registro de extração das páginas 1–7 da proposta Canva. */
   paginasCanva?: { page_number: number; extracao_status: string | null; campos_nao_localizados: string[] | null }[];
   hoje?: Date;
@@ -178,6 +180,7 @@ export function conferirEscopo(e: EntradaConferencia): ResultadoConferencia {
     despesasPendentes,
     dependentesPendentes: e.dependentesPendentes ?? [],
     temasJuridicosBloqueantes: e.temasJuridicosBloqueantes ?? [],
+    alteracoesForaDoModelo: e.alteracoesForaDoModelo ?? [],
     paginasCanvaPendentes,
     camposNaoLocalizadosCanva,
   };

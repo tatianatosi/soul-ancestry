@@ -33,6 +33,7 @@ import { conferirInstancias, statusTelaDeAnexo } from "@/lib/anexos-instancia";
 import { instanciasDocumentaisDoCaso } from "@/lib/anexos-instancia.functions";
 import { InstanciaDocumental } from "@/components/contrato/instancia-documental";
 import { TrilhoProntidaoContrato } from "@/components/contrato/trilho-prontidao";
+import { CartoesFormalizacao } from "@/components/contrato/cartoes-formalizacao";
 import { GovernancaFormalizacao } from "@/components/contrato/governanca-formalizacao";
 import { CoberturaContratual } from "@/components/contrato/cobertura-contratual";
 import { TrazerDoCanva } from "@/components/contrato/trazer-do-canva";
@@ -717,6 +718,16 @@ function Pagina() {
         </CaCard>
 
         <TrilhoProntidaoContrato resumo={prontidao} />
+        <div className="mt-3">
+          <CartoesFormalizacao
+            caseId={String(d.caso?.id ?? "")}
+            preparacao={d}
+            responsavelNome={null}
+            bloqueiosImpeditivos={bloqueiosResolutivos(bloqueios, listaOpcional(d.valores) as any)
+              .filter((b) => b.impeditivo)
+              .map((b) => b.titulo)}
+          />
+        </div>
         {d.canva && (d.canva as any).plano?.length ? (
           <div className="mt-3">
             <TrazerDoCanva canva={d.canva as any} aoConcluir={invalidar} />
