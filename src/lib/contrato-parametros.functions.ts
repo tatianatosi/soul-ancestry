@@ -58,6 +58,7 @@ import { exigirGate } from "@/lib/escopo-conferencia.server";
 import { MARCA_ESVAZIADO_PELA_EQUIPE, definicaoCampo, validarValorCampo } from "@/lib/parametros-dicionario";
 import { candidatosComerciaisDaProposta, propostaAptaParaPrecarga } from "@/lib/proposta-comercial";
 import { exigirPreviaVigenteLiberada } from "@/lib/previa-vigente.server";
+import { RENDERIZADOR_VERSAO } from "@/lib/renderizador-versao";
 
 /** Chave de conflito por campo quando a proposta aprovada diverge do valor homologado no Planejador. */
 const CONFLITO_PROPOSTA_PLANEJADOR = "proposal_planner_value_conflict";
@@ -939,6 +940,13 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
     campo: v.campo,
     valor: v.valor,
     origem: v.origem,
+    /*
+     * 09/10/2026 — `origem_detalhe` estava sendo descartado aqui. Com ele
+     * fora, o corpo do contrato declarava a procedência do objeto por
+     * literal ("CRM confirmado") em vez de dizer o que está gravado: "Deck
+     * Canva da proposta, página 2 — decisão da Proprietária em 09/10/2026".
+     */
+    origem_detalhe: v.origem_detalhe,
     status: v.status,
   }));
 
@@ -1419,6 +1427,7 @@ export const gerarPrevia = createServerFn({ method: "POST" })
           conteudo_hash: hash,
           evento: "rascunho_atualizado",
           corpo_contratual: previa.corpoContratual,
+          renderizador_versao: RENDERIZADOR_VERSAO,
           legado_sem_corpo: false,
           legado_sem_evento: false,
           template_code: template.code,
@@ -1463,6 +1472,7 @@ export const gerarPrevia = createServerFn({ method: "POST" })
         anexos: previa.anexos,
         placeholders_pendentes: previa.placeholdersPendentes,
         corpo_contratual: previa.corpoContratual,
+        renderizador_versao: RENDERIZADOR_VERSAO,
         template_code: template.code,
         template_version: template.template_version ?? null,
         gerado_por: context.userId,
@@ -1588,6 +1598,7 @@ export const congelarPrevia = createServerFn({ method: "POST" })
         anexos: previa.anexos,
         placeholders_pendentes: previa.placeholdersPendentes,
         corpo_contratual: previa.corpoContratual,
+        renderizador_versao: RENDERIZADOR_VERSAO,
         template_code: template.code,
         template_version: template.template_version ?? null,
         gerado_por: context.userId,

@@ -15,9 +15,10 @@
  * documento (PDF/DOCX), revisão e assinatura.
  */
 import { previaVigente, motivoBloqueioSaida, type PreviaRegistro } from "@/lib/previa-vigente";
+import { RENDERIZADOR_VERSAO } from "@/lib/renderizador-versao";
 
 const CAMPOS_PREVIA =
-  "id,versao,tipo,estado,congelado_em,created_at,updated_at,aprovado_em,corpo_contratual,legado_sem_corpo,archived_at,parameters_id";
+  "id,versao,tipo,estado,congelado_em,created_at,updated_at,aprovado_em,corpo_contratual,legado_sem_corpo,archived_at,parameters_id,renderizador_versao";
 
 /** Prévias vivas da ficha, em ordem de versão — nunca as arquivadas. */
 export async function previasVivasDoRegistro(
@@ -94,7 +95,7 @@ export async function exigirPreviaVigenteLiberada(
     );
   }
   const alteradoEm = await ultimaAlteracaoDeParametro(supabase, args.parametersId);
-  const bloqueio = motivoBloqueioSaida(vigente, alteradoEm);
+  const bloqueio = motivoBloqueioSaida(vigente, alteradoEm, RENDERIZADOR_VERSAO);
   if (bloqueio) throw new Error(bloqueio);
   return vigente;
 }

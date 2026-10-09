@@ -986,7 +986,14 @@ export function gateLiberado(gate: GateContratual, bloqueios: { gate: GateContra
 
 /* ---------------- derivação a partir da ficha parametrizável ---------------- */
 
-export type ValorFicha = { campo: string; valor?: string | null; origem?: string | null; status?: string | null };
+export type ValorFicha = {
+  campo: string;
+  valor?: string | null;
+  origem?: string | null;
+  /** Detalhe da origem registrado no parâmetro (ex.: página do deck Canva). */
+  origem_detalhe?: string | null;
+  status?: string | null;
+};
 
 const lista = (v?: string | null) =>
   String(v ?? "")

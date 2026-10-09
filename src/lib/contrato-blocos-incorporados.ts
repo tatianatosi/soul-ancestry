@@ -347,6 +347,19 @@ function bloco(
   return { chave, titulo, clausula, finalidade, linhas, pendencias, bloqueiaAssinaturaInicial: bloqueia && pendencias.length > 0 };
 }
 
+/**
+ * 09/10/2026 — achado ao conferir byte a byte a prévia regerada da Ana: o
+ * contrato saía com "Dependente menor representado — sem assinatura e sem
+ * cobrança própria — sem cobrança própria". O escopo aprovado do Felipe já
+ * declara a ausência de cobrança; o renderizador acrescentava de novo para
+ * valor zero. Só acrescenta quando o escopo ainda não disse.
+ */
+export function sufixoValorIndividual(escopo: string, valor: number | null, moeda: string): string {
+  if (valor === null) return "";
+  if (valor > 0) return ` — ${formatarDinheiro(valor, moeda)}`;
+  return /sem cobran[çc]a pr[óo]pria/i.test(escopo) ? "" : " — sem cobrança própria";
+}
+
 function papeisTexto(p: PessoaContratual): string {
   return p.papeis.length ? p.papeis.map((x) => ROTULO_PAPEL_CONTRATUAL[x]).join(", ") : "papel não registrado";
 }
@@ -372,7 +385,7 @@ export function montarBlocosIncorporados(e: EntradaBlocos): BlocoIncorporado[] {
       linha(
         p.nome,
         p.escopoIndividual
-          ? `${p.escopoIndividual}${p.valorIndividual !== null ? ` — ${p.valorIndividual > 0 ? formatarDinheiro(p.valorIndividual, e.moeda) : "sem cobrança própria"}` : ""}`
+          ? `${p.escopoIndividual}${sufixoValorIndividual(p.escopoIndividual, p.valorIndividual, e.moeda)}`
           : null,
         "condição comercial aprovada do caso",
         "escopo individual não registrado na condição comercial",

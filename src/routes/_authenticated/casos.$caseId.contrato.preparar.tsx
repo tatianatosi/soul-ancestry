@@ -78,6 +78,7 @@ import type { ItemPlanoMaterializacao } from "@/lib/anexos-materializacao";
 import { abrirPreparacaoContrato, solicitarRevisaoHumana } from "@/lib/contrato-preparar.functions";
 import { checklistPreContrato, type EstadoChecklistItem } from "@/lib/contrato-checklist-pre";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
+import { RENDERIZADOR_VERSAO } from "@/lib/renderizador-versao";
 
 const TITULO = "Preparar contrato do caso | Clube Ancestral";
 const DESCRICAO = "Ficha única parametrizável e prévia contratual do caso, reaproveitando proposta, modelo ativo e anexos existentes.";
@@ -476,7 +477,7 @@ function Pagina() {
    * congeladas SEM corpo contratual, e o PDF aceitava qualquer uma.
    */
   const previaAtual = previaVigente(listaOpcional<any>(d.previas));
-  const bloqueioPrevia = motivoBloqueioSaida(previaAtual, (d as any).parametroAlteradoEm ?? null);
+  const bloqueioPrevia = motivoBloqueioSaida(previaAtual, (d as any).parametroAlteradoEm ?? null, RENDERIZADOR_VERSAO);
   const cabecalhoPrevia = rotuloPrevia(previaAtual, CONTRATO_BASE_VERSAO, CLAUSULAS_FIXAS.length);
   const ultimaFinal = listaOpcional<any>(d.previas).find((p: any) => p.tipo === "final" && p.estado === "congelado");
   const finalAprovada = listaOpcional<any>(d.previas).find((p: any) => p.tipo === "final" && p.aprovado_em);

@@ -195,3 +195,54 @@ describe("origem declarada no documento vem do dado, não de literal", () => {
     );
   });
 });
+
+describe("defasagem por renderizador — corrigir o texto também desatualiza a prévia", () => {
+  // importação tardia para não mexer no topo do arquivo
+  const mod = () => import("@/lib/previa-vigente");
+  const base = { id: "x", versao: 11, estado: "congelado", congelado_em: "2026-10-09T19:40:00Z", corpo_contratual: true };
+
+  it("prévia do renderizador atual sai; de renderizador antigo é bloqueada", async () => {
+    const { motivoBloqueioSaida, AVISO_PREVIA_MODELO_ATUALIZADO } = await mod();
+    expect(motivoBloqueioSaida({ ...base, renderizador_versao: "2026-10-09.1" }, null, "2026-10-09.1")).toBeNull();
+    expect(motivoBloqueioSaida({ ...base, renderizador_versao: "2026-10-01.1" }, null, "2026-10-09.1")).toBe(
+      AVISO_PREVIA_MODELO_ATUALIZADO,
+    );
+  });
+
+  it("prévia sem versão registrada é tratada como desatualizada, nunca como atual", async () => {
+    const { motivoBloqueioSaida, AVISO_PREVIA_MODELO_ATUALIZADO } = await mod();
+    expect(motivoBloqueioSaida({ ...base }, null, "2026-10-09.1")).toBe(AVISO_PREVIA_MODELO_ATUALIZADO);
+  });
+
+  it("o aviso usa as palavras 'Prévia desatualizada'", async () => {
+    const { AVISO_PREVIA_MODELO_ATUALIZADO } = await mod();
+    expect(AVISO_PREVIA_MODELO_ATUALIZADO).toMatch(/^Prévia desatualizada/);
+  });
+
+  it("guard, tela e os três escritores usam a mesma constante", () => {
+    expect(GUARD).toMatch(/motivoBloqueioSaida\(vigente, alteradoEm, RENDERIZADOR_VERSAO\)/);
+    expect(TELA).toMatch(/motivoBloqueioSaida\(previaAtual, \(d as any\)\.parametroAlteradoEm \?\? null, RENDERIZADOR_VERSAO\)/);
+    expect((PARAMETROS.match(/renderizador_versao: RENDERIZADOR_VERSAO/g) ?? []).length).toBe(3);
+  });
+
+  it("o leitor da tela traz updated_at — defasagem do rascunho não pode ler a data de criação", () => {
+    expect(PREPARAR).toMatch(/created_at,updated_at,gerado_por/);
+    expect(PREPARAR).toMatch(/corpo_contratual,legado_sem_corpo,renderizador_versao/);
+  });
+
+  it("migration aditiva registrada no repositório", () => {
+    const sql = readFileSync("supabase/migrations/20261009200000_previa_renderizador_versao.sql", "utf8");
+    expect(sql).toMatch(/add column if not exists renderizador_versao text/);
+    expect(sql).not.toMatch(/drop |delete /i);
+  });
+});
+
+describe("escopo de valor zero não repete 'sem cobrança própria'", () => {
+  it("só acrescenta quando o escopo ainda não disse", async () => {
+    const { sufixoValorIndividual } = await import("@/lib/contrato-blocos-incorporados");
+    expect(sufixoValorIndividual("Dependente menor — sem assinatura e sem cobrança própria", 0, "BRL")).toBe("");
+    expect(sufixoValorIndividual("Dependente menor representado", 0, "BRL")).toBe(" — sem cobrança própria");
+    expect(sufixoValorIndividual("Pesquisa histórica", 4800, "BRL")).toMatch(/4\.800,00/);
+    expect(sufixoValorIndividual("qualquer", null, "BRL")).toBe("");
+  });
+});

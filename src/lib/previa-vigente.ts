@@ -38,6 +38,8 @@ export type PreviaRegistro = {
    * valer aqui também, onde ela está escrita.
    */
   archived_at?: string | null;
+  /** Versão do renderizador que produziu o HTML (`RENDERIZADOR_VERSAO`). */
+  renderizador_versao?: string | null;
 };
 
 const ts = (v: unknown): number => {
@@ -98,6 +100,21 @@ export function previaDefasada(p: PreviaRegistro | null, parametroAlteradoEm: st
   return alterado > gerada;
 }
 
+/**
+ * Prévia produzida por um renderizador diferente do atual (09/10/2026).
+ *
+ * A defasagem por parâmetro não pega correção de texto: os dados não mudam,
+ * o documento sim. Ausente = desconhecido = desatualizada — nunca presumida
+ * atual. Quem não passa `atual` (chamada antiga) não é afetado.
+ */
+export function previaDeRenderizadorAntigo(p: PreviaRegistro | null, atual?: string | null): boolean {
+  if (!p || !atual) return false;
+  return (p.renderizador_versao ?? null) !== atual;
+}
+
+export const AVISO_PREVIA_MODELO_ATUALIZADO =
+  "Prévia desatualizada: o texto do contrato foi corrigido depois que ela foi gerada. Gere a prévia de novo antes de baixar o PDF, pedir revisão ou preparar assinatura.";
+
 export const AVISO_PREVIA_DESATUALIZADA =
   "Prévia desatualizada: algum parâmetro mudou depois que ela foi gerada. Gere a prévia de novo antes de baixar o PDF, pedir revisão ou preparar assinatura.";
 
@@ -111,10 +128,12 @@ export const AVISO_PREVIA_SEM_CORPO =
 export function motivoBloqueioSaida(
   p: PreviaRegistro | null,
   parametroAlteradoEm: string | null | undefined,
+  renderizadorAtual?: string | null,
 ): string | null {
   if (!p) return "Nenhuma prévia gerada para este contrato.";
   if (!temCorpoContratual(p)) return AVISO_PREVIA_SEM_CORPO;
   if (previaDefasada(p, parametroAlteradoEm)) return AVISO_PREVIA_DESATUALIZADA;
+  if (previaDeRenderizadorAntigo(p, renderizadorAtual)) return AVISO_PREVIA_MODELO_ATUALIZADO;
   return null;
 }
 

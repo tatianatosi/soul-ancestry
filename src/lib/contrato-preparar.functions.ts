@@ -281,7 +281,13 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       supabase
         .from("contract_parameter_previews")
         .select(
-          "id,versao,tipo,estado,evento,motivo,conteudo,placeholders_pendentes,anexos,congelado_em,created_at,gerado_por,aprovado_em,aprovado_por,template_code,template_version",
+          /*
+           * 09/10/2026 — sem `updated_at` a tela calculava a defasagem do rascunho
+           * pela data de CRIAÇÃO (21/08), não pela da última geração; sem
+           * `corpo_contratual`/`legado_sem_corpo`/`renderizador_versao` as outras
+           * metades da regra não tinham dado. Mesma linha que o guard do servidor lê.
+           */
+          "id,versao,tipo,estado,evento,motivo,conteudo,placeholders_pendentes,anexos,congelado_em,created_at,updated_at,gerado_por,aprovado_em,aprovado_por,template_code,template_version,corpo_contratual,legado_sem_corpo,renderizador_versao",
         )
         .eq("parameters_id", registro.id)
         .is("archived_at", null)
@@ -298,7 +304,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       supabase
         .from("contract_parameter_previews")
         .select(
-          "id,versao,tipo,estado,evento,congelado_em,created_at,updated_at,aprovado_em,template_code,template_version,conteudo_hash,corpo_contratual,legado_sem_corpo,archived_at,archive_reason",
+          "id,versao,tipo,estado,evento,congelado_em,created_at,updated_at,aprovado_em,template_code,template_version,conteudo_hash,corpo_contratual,legado_sem_corpo,archived_at,archive_reason,renderizador_versao",
         )
         .eq("parameters_id", registro.id)
         .order("versao", { ascending: false }),
