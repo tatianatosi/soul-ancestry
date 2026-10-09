@@ -62,6 +62,10 @@ export async function gravarComVerificacao(opcoes: {
     .eq("organization_id", organizationId)
     .select("id");
 
+  // Marca se a gravação só pegou pelo caminho tolerante (linha de outra
+  // organização que a RLS ainda deixa escrever). Só nesse caso a releitura
+  // sai sem o filtro de organização.
+  let gravouForaDaOrganizacao = false;
   if (!error && (!linhas || linhas.length === 0) && id) {
     const retry = await supabase
       .from(tabela)
@@ -71,6 +75,7 @@ export async function gravarComVerificacao(opcoes: {
     if (!retry.error && retry.data && retry.data.length > 0) {
       linhas = retry.data;
       error = null;
+      gravouForaDaOrganizacao = true;
     }
   }
 
@@ -81,11 +86,15 @@ export async function gravarComVerificacao(opcoes: {
     );
   }
 
-  const relido = await supabase
-    .from(tabela)
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
+  /*
+   * 09/10/2026 — a releitura tinha perdido o filtro de organização em TODAS as
+   * gravações, não só no caso tolerante acima. Isolamento entre organizações
+   * volta a valer no caminho normal; sem filtro apenas quando a gravação de
+   * fato precisou do caminho tolerante.
+   */
+  let releitura = supabase.from(tabela).select("*").eq("id", id);
+  if (!gravouForaDaOrganizacao) releitura = releitura.eq("organization_id", organizationId);
+  const relido = await releitura.maybeSingle();
   const registro = (relido.data ?? null) as Record<string, unknown> | null;
 
   // Releitura efetuada: não aborta com erro fatal divergências cosméticas se o banco gravou
