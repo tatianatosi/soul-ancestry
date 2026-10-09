@@ -11,8 +11,8 @@
   --app-v11-legenda: var(--ca-text-xs);
   --app-v11-leitura: var(--ca-text-sm);
   --app-v11-secao: var(--ca-text-xl);
-  --app-v11-respiro: var(--ca-space-3);
-  --app-v11-intervalo: var(--ca-space-2);
+  --app-v11-respiro: var(--ca-space-5);
+  --app-v11-intervalo: var(--ca-space-4);
   --app-v11-toque: var(--ca-touch-target);
   --app-v11-superficie: var(--ca-surface-raised);
   --app-v11-acento-suave: var(--ca-surface-accent);
@@ -691,3 +691,91 @@
 [data-app-cliente] .app-conta-registro { padding-block: var(--ca-space-2); }
 [data-app-cliente] .app-andamento-publicado { padding-block: var(--ca-space-1); }
 [data-app-cliente] .app-andamento-publicado > div { padding-block: var(--ca-space-2); }
+
+/* G1: isolamento completo dos papéis do App e respiro sem modificar o Desk. */
+[data-app-cliente] { color: var(--app-v11-texto); }
+[data-app-cliente] [data-app-cabecalho] { background: var(--app-v11-topo); }
+[data-app-cliente] #conteudo-portal { padding-block: var(--ca-space-5) calc(6rem + env(safe-area-inset-bottom)); }
+[data-app-cliente] nav[aria-label="Navegação do aplicativo do cliente"] { box-shadow: none; }
+[data-app-cliente] nav[aria-label="Navegação do aplicativo do cliente"] :where(a,button) { color: var(--app-v11-orientacao); font-size: var(--ca-text-xs); }
+[data-app-cliente] nav[aria-label="Navegação do aplicativo do cliente"] :where(a,button):focus-visible { outline: 2px solid var(--app-v11-orientacao); outline-offset: -3px; }
+[data-app-cliente] #conteudo-portal :where([data-aba-home],[data-aba-jornada],[data-aba-radar],[data-aba-arvore],[data-aba-documentos],[data-aba-legado]) > :where(section,div) + :where(section,div) { margin-top: var(--app-v11-respiro); }
+[data-app-cliente] .app-conta-composicao { gap: var(--app-v11-respiro); }
+
+/* Exemplos isolados: mesmos tokens, conteúdo sem conexão com o caso. */
+[data-app-cliente] .app-exemplo { margin-block: var(--ca-space-4); color: var(--ca-text); min-width: 0; }
+[data-app-cliente] .app-exemplo-selo { display: flex; align-items: flex-start; gap: var(--ca-space-2); padding: var(--ca-space-3); border-left: 3px solid var(--ca-gold); background: var(--ca-surface-accent); color: var(--ca-navy); font-size: var(--ca-text-xs); line-height: var(--ca-leading-normal); margin-bottom: var(--ca-space-4); }
+[data-app-cliente] .app-exemplo-selo svg { margin-top: 3px; }
+[data-app-cliente] .app-exemplo :where(summary,button) { min-height: var(--ca-touch-target); cursor: pointer; }
+[data-app-cliente] .app-exemplo button:disabled { cursor: not-allowed; opacity: 1; color: var(--ca-text-muted); background: var(--ca-surface-sunken); border-color: var(--ca-border); }
+[data-app-cliente] .app-exemplo :where(summary,button):focus-visible { outline: 2px solid var(--ca-navy); outline-offset: 3px; border-radius: var(--ca-radius-sm); }
+[data-app-cliente] .app-exemplo :where(p,li) { font-size: var(--ca-text-xs); line-height: var(--ca-leading-relaxed); }
+[data-app-cliente] .app-exemplo-timeline { position: relative; padding-left: var(--ca-space-5); list-style: none; }
+[data-app-cliente] .app-exemplo-timeline::before { content: ""; position: absolute; inset: 0 auto 0 7px; width: 1px; background: var(--ca-gold); }
+[data-app-cliente] .app-exemplo-timeline[data-tom="processo"]::before { background: var(--ca-navy); }
+[data-app-cliente] .app-exemplo-timeline li { position: relative; padding-block: var(--ca-space-3); }
+[data-app-cliente] .app-exemplo-ponto { position: absolute; top: 25px; left: -22px; width: 11px; height: 11px; border-radius: var(--ca-radius-pill); background: var(--ca-gold); }
+[data-app-cliente] .app-exemplo-timeline[data-tom="processo"] .app-exemplo-ponto { background: var(--ca-navy); }
+[data-app-cliente] .app-exemplo-timeline strong { display: block; font-family: var(--ca-font-title); font-size: var(--ca-text-lg); font-weight: var(--ca-weight-medium); }
+[data-app-cliente] .app-exemplo-ordem { color: var(--ca-text-muted); font-size: var(--ca-text-xs); display: block; }
+[data-app-cliente] .app-exemplo-uniao { border: 1px solid var(--ca-border); border-left: 3px solid var(--ca-gold); border-radius: var(--ca-radius-xl); padding: var(--ca-space-4); background: var(--ca-estado-vencido-suave); }
+[data-app-cliente] .app-exemplo-uniao blockquote { font-family: var(--ca-font-title); font-style: italic; font-size: var(--ca-text-xl); margin-block: var(--ca-space-2); }
+[data-app-cliente] .app-exemplo-ramos { display: flex; flex-wrap: wrap; gap: var(--ca-space-1); margin-bottom: var(--ca-space-4); }
+[data-app-cliente] .app-exemplo-ramos button { font-size: var(--ca-text-xs); border-radius: var(--ca-radius-pill); }
+[data-app-cliente] .app-exemplo-ramos button[aria-pressed="true"] { background: var(--ca-surface-accent); color: var(--ca-navy); }
+[data-app-cliente] .app-exemplo-genograma { background: var(--ca-surface-raised); border: 1px solid var(--ca-border); border-radius: var(--ca-radius-xl); padding: var(--ca-space-4); }
+[data-app-cliente] .app-exemplo-nos { display: flex; justify-content: center; gap: var(--ca-space-2); padding-top: var(--ca-space-2); }
+[data-app-cliente] .app-exemplo-no { flex: 1 1 0; min-width: 0; max-width: 15rem; border: 1px solid var(--ca-border); border-radius: var(--ca-radius-md); box-shadow: var(--ca-shadow-sm); text-align: center; }
+[data-app-cliente] .app-exemplo-no summary { display: flex; align-items: center; justify-content: center; gap: var(--ca-space-1); font-size: var(--ca-text-xs); padding: var(--ca-space-2); }
+[data-app-cliente] .app-exemplo-no svg { flex-shrink: 0; }
+[data-app-cliente] .app-exemplo-no p { padding: var(--ca-space-2); }
+[data-app-cliente] .app-exemplo-ancora { background: var(--ca-navy); color: var(--ca-white); }
+[data-app-cliente] .app-exemplo-conector { width: 35%; height: 24px; margin: 0 auto 16px; border-left: 1px solid var(--ca-gold); border-right: 1px solid var(--ca-gold); border-bottom: 1px solid var(--ca-gold); border-radius: 0 0 var(--ca-radius-xl) var(--ca-radius-xl); }
+[data-app-cliente] .app-exemplo-nota { margin-top: var(--ca-space-3); color: var(--ca-text-muted); }
+[data-app-cliente] .app-exemplo-mapa { padding: var(--ca-space-3); background: var(--ca-surface-raised); border-radius: var(--ca-radius-xl); }
+[data-app-cliente] .app-exemplo-mapa svg { width: 100%; aspect-ratio: 500/230; }
+[data-app-cliente] .app-exemplo-terra { fill: var(--ca-surface-sunken); stroke: var(--ca-border); }
+[data-app-cliente] .app-exemplo-route { stroke: var(--ca-gold); fill: none; stroke-width: 2px; stroke-dasharray: 4 5; }
+[data-app-cliente] .app-exemplo-pin { fill: var(--ca-gold); stroke: var(--ca-navy); }
+[data-app-cliente] .app-exemplo-map-label { fill: var(--ca-navy); font-size: 16px; font-weight: var(--ca-weight-semibold); }
+[data-app-cliente] .app-exemplo-mapa figcaption { font-size: var(--ca-text-xs); color: var(--ca-text-muted); }
+[data-app-cliente] .app-exemplo-heatmap { margin-top: var(--ca-space-4); }
+[data-app-cliente] .app-exemplo-heatmap > div { display: grid; grid-template-columns: 1.4fr repeat(3,minmax(0,1fr)); gap: var(--ca-space-1); margin-bottom: var(--ca-space-1); }
+[data-app-cliente] .app-exemplo-heatmap span { padding: var(--ca-space-2); font-size: var(--ca-text-xs); text-align: center; border-radius: var(--ca-radius-sm); }
+[data-app-cliente] .app-exemplo-heatmap [data-intensidade="0"] { background: var(--ca-surface-sunken); }
+[data-app-cliente] .app-exemplo-heatmap [data-intensidade="1"] { background: var(--ca-surface-accent); }
+[data-app-cliente] .app-exemplo-heatmap [data-intensidade="2"] { background: var(--ca-gold); color: var(--ca-navy); }
+[data-app-cliente] .app-exemplo-origens { list-style: none; display: flex; flex-wrap: wrap; gap: var(--ca-space-3); padding-top: var(--ca-space-2); }
+[data-app-cliente] .app-exemplo-upload { display: grid; justify-items: center; gap: var(--ca-space-2); border: 1px dashed var(--ca-gold); border-radius: var(--ca-radius-xl); background: var(--ca-surface-accent); padding: var(--ca-space-5); text-align: center; }
+[data-app-cliente] .app-exemplo-heading { margin-block: var(--ca-space-5) var(--ca-space-3); font-size: var(--ca-text-xl); }
+[data-app-cliente] .app-exemplo-checklist { padding: 0; list-style: none; background: var(--ca-surface-raised); border-radius: var(--ca-radius-lg); border: 1px solid var(--ca-border); }
+[data-app-cliente] .app-exemplo-checklist li { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: var(--ca-space-2); padding: var(--ca-space-3); border-bottom: 1px solid var(--ca-border); }
+[data-app-cliente] .app-exemplo-checklist li:last-child { border-bottom: 0; }
+[data-app-cliente] .app-exemplo-checklist strong { font-weight: var(--ca-weight-medium); }
+[data-app-cliente] .app-exemplo-checklist li > span:last-child { max-width: 5rem; white-space: normal; text-align: center; }
+[data-app-cliente] .app-exemplo-status { display: grid; place-items: center; width: 24px; height: 24px; border-radius: var(--ca-radius-pill); background: var(--ca-estado-andamento-suave); color: var(--ca-navy); }
+[data-app-cliente] .app-exemplo-status svg { width: 16px; height: 16px; }
+[data-app-cliente] .app-exemplo-status[data-tom="concluido"] { background: var(--ca-estado-concluido-suave); color: var(--ca-estado-concluido); }
+[data-app-cliente] .app-exemplo-status[data-tom="aguardando"] { background: var(--ca-estado-aguardando-suave); color: var(--ca-estado-aguardando); }
+[data-app-cliente] .app-exemplo-entrega { display: flex; align-items: center; gap: var(--ca-space-3); border: 1px solid var(--ca-border); border-radius: var(--ca-radius-md); padding: var(--ca-space-3); background: var(--ca-surface-raised); }
+[data-app-cliente] .app-exemplo-entrega > span { flex: 1; font-size: var(--ca-text-xs); }
+[data-app-cliente] .app-exemplo-livro { display: grid; grid-template-columns: 4rem minmax(0,1fr); gap: var(--ca-space-3); align-items: start; padding-block: var(--ca-space-3); }
+[data-app-cliente] .app-exemplo-capa { display: grid; place-items: center; min-height: 96px; border-radius: 2px var(--ca-radius-md) var(--ca-radius-md) 2px; background: var(--ca-navy); color: var(--ca-gold); border-left: 5px solid var(--ca-gold); }
+[data-app-cliente] [data-categoria="narrativas"] .app-exemplo-capa { background: var(--ca-terracotta); color: var(--ca-white); }
+[data-app-cliente] .app-exemplo-livro h3 { font-size: var(--ca-text-xl); line-height: var(--ca-leading-tight); }
+[data-app-cliente] .app-exemplo-livro summary { font-size: var(--ca-text-xs); color: var(--ca-navy); text-decoration: underline; text-decoration-color: var(--ca-gold); }
+[data-app-cliente] .app-exemplo-plano { background: var(--ca-navy); color: var(--ca-white); border-radius: var(--ca-radius-md); padding: var(--ca-space-4); }
+[data-app-cliente] .app-exemplo-plano h3 { font-size: var(--ca-text-xl); margin-block: var(--ca-space-2); }
+[data-app-cliente] .app-exemplo-plano .app-exemplo-ordem { color: var(--ca-gold); }
+[data-app-cliente] .app-exemplo-etapas { padding-block: var(--ca-space-3); list-style: none; }
+[data-app-cliente] .app-exemplo-etapas li { display: flex; align-items: center; gap: var(--ca-space-2); padding-block: var(--ca-space-2); }
+[data-app-cliente] .app-exemplo-canais { display: flex; flex-wrap: wrap; gap: var(--ca-space-3); }
+[data-app-cliente] .app-exemplo-achados { display: grid; gap: var(--ca-space-3); }
+[data-app-cliente] .app-exemplo-achados > details { border-left: 2px solid var(--ca-gold); background: var(--ca-surface-raised); padding: var(--ca-space-3); border-radius: var(--ca-radius-md); }
+[data-app-cliente] .app-exemplo-achados summary { display: flex; align-items: center; gap: var(--ca-space-3); }
+[data-app-cliente] .app-exemplo-achados h3 { font-size: var(--ca-text-xl); }
+[data-app-cliente] .app-exemplo-checklist li > span:last-child { max-width: none; white-space: nowrap; font-size: var(--ca-text-xs); padding-inline: var(--ca-space-2); }
+[data-app-cliente] .app-exemplo-plano > span { background: var(--ca-gold); color: var(--ca-navy); }
+[data-app-cliente] .app-exemplo-genograma section + section { margin-top: var(--ca-space-4); }
+[data-app-cliente] .app-jornada-uniao:has([data-exemplo-visual]) { border: 0; background: transparent; padding: 0; }
+[data-app-cliente] .app-jornada-uniao:has([data-exemplo-visual]) .app-exemplo-uniao { margin-top: var(--ca-space-3); }

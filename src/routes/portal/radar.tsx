@@ -9,6 +9,7 @@ import { RadarSeisEixos } from "@/components/portal/radar-seis-eixos";
 import { usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
+import { BlocoExemploVisual } from "@/components/portal/bloco-exemplo-visual";
 
 export const Route = createFileRoute("/portal/radar")({
   head: () => ({
@@ -86,6 +87,7 @@ export function PortalRadar() {
                   <section aria-label="Checklist documental" className="border-l-2 border-terracotta/40 py-1 pl-4">
                     <h2 className="font-serif text-xl text-navy">Checklist documental</h2>
                     <p className="mt-2 text-sm leading-relaxed text-navy/75">O checklist completo do caso ainda não foi compartilhado. Sem essa lista, não há uma base documental completa para comparar.</p>
+                    <details><summary className="flex min-h-11 items-center text-sm text-navy">Ver composição do checklist</summary><BlocoExemploVisual tipo="documentos" /></details>
                   </section>
 
                   {/* Próximo passo real (mesma fonte de Home/Jornada) — nunca um passo por eixo inventado. */}

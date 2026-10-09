@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { ArrowRight, CheckCircle2, UsersRound, Sparkles } from "lucide-react";
 import { CaCard } from "@/components/ui/ca-card";
 import { pessoasDaArvore } from "@/lib/arvore-publicacao";
+import { BlocoExemploVisual } from "@/components/portal/bloco-exemplo-visual";
 
 const PROXIMO_PASSO_VAZIO =
   "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui.";
@@ -454,6 +455,7 @@ function PainelHomeMockup({
               <p className="font-serif text-lg leading-relaxed text-navy/70">
                 Quando houver descobertas prontas para compartilhar, elas encontrarão seu lugar aqui.
               </p>
+              <BlocoExemploVisual tipo="achados" />
             </div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
@@ -487,6 +489,7 @@ function PainelHomeMockup({
           <section aria-label="Documentos prioritários" className="app-home-ausencia sm:col-span-2">
             <details><summary className="font-serif text-xl text-navy">Documentos prioritários</summary>
             <p className="mt-2 text-sm leading-relaxed text-navy/70">Ainda não há uma prioridade documental compartilhada com sua família. O checklist aparecerá quando for disponibilizado pela equipe.</p>
+            <BlocoExemploVisual tipo="documentos" />
             <LinkPortal to="/portal/documentos" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Documentos <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></LinkPortal>
             </details>
           </section>
@@ -494,6 +497,7 @@ function PainelHomeMockup({
         <section aria-label="Contato com a equipe" className="app-home-ausencia sm:col-span-2">
           <details><summary className="font-serif text-xl text-navy">Contato com a equipe</summary>
           <p className="mt-2 text-sm leading-relaxed text-navy/70">Ainda não há um canal de contato disponibilizado neste aplicativo.</p>
+          <BlocoExemploVisual tipo="contato" />
           <LinkPortal to="/portal/conta" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Conta <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></LinkPortal>
           </details>
         </section>

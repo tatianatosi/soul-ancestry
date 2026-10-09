@@ -14,6 +14,7 @@ import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
 import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { ExploradorArvore, PerfilPessoaArvore } from "@/components/portal/explorador-arvore";
+import { BlocoExemploVisual } from "@/components/portal/bloco-exemplo-visual";
 
 /**
  * Corte 2a (28/09/2026): pessoa da família publicada pela equipe — nome e
@@ -153,6 +154,8 @@ export function PortalArvore() {
                       )}
                     </p>
                   </section>
+
+                  {!pessoas.some((pessoa) => pessoa.vinculo) ? <section aria-label="Genograma ilustrativo"><h2 className="font-serif text-xl text-navy">Conexões entre gerações</h2><BlocoExemploVisual tipo="arvore" /></section> : null}
 
                   {/*
                     §6 linha 4 do De-Para ("LIGAÇÃO COM A JORNADA"; "Próxima

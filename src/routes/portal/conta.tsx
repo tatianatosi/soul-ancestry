@@ -9,6 +9,7 @@ import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
+import { BlocoExemploVisual } from "@/components/portal/bloco-exemplo-visual";
 
 export const Route = createFileRoute("/portal/conta")({
   head: () => ({
@@ -145,6 +146,7 @@ export function PortalConta() {
               <details className="app-conta-contato"><summary className="flex min-h-11 cursor-pointer items-center gap-2 font-serif text-xl text-navy"><ShieldCheck className="h-5 w-5" aria-hidden="true" /><span className="flex-1">Estamos por perto</span><ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary>
               <p className="mt-2 text-sm text-navy/75">{acompanhamento}</p>
               <p className="mt-3 text-sm leading-relaxed text-navy/75">Ainda não há um canal de contato disponibilizado neste aplicativo.</p>
+              <BlocoExemploVisual tipo="contato" />
               <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Seus canais, preferências de aviso e informações de privacidade aparecerão quando estiverem disponíveis neste espaço.</p></details>
             </section>
 
@@ -198,9 +200,9 @@ export function PortalConta() {
                   ) : null}
                 </>
               ) : (
-                <p className="mt-2 text-sm text-navy/60" data-conta-plano-vazio>
+                <div><p className="mt-2 text-sm text-navy/60" data-conta-plano-vazio>
                   Nenhum plano publicado ainda. A equipe publica aqui quando houver.
-                </p>
+                </p><BlocoExemploVisual tipo="plano" /></div>
               )}
             </section>
 
