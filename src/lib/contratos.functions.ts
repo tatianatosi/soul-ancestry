@@ -1,7 +1,7 @@
 import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { gravarComVerificacao, inserirComVerificacao, exigirLinhaGravada } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 // Alias obrigatório: este arquivo já usa `linhas` como variável local.
 import { linhas as linhasDe } from "@/lib/linhas";
@@ -748,10 +748,12 @@ export const sincronizarPessoaDoCaso = createServerFn({ method: "POST" })
     let atualizados = 0;
     for (const item of plano) {
       if (item.acao !== "preencher") continue;
-      const { error } = await supabase
+      const { error, data: gravadasCpf } = await supabase
         .from("contract_parties")
         .update({ document_type: "CPF", document_number: (item as { cpf: string }).cpf })
-        .eq("id", item.id);
+        .eq("id", item.id)
+        .select("id");
+      exigirLinhaGravada({ error: error, data: gravadasCpf }, "contract_parties");
       if (error) throw new Error(error.message);
       atualizados++;
     }
@@ -1016,10 +1018,12 @@ export const sincronizarContatoPartesDoCaso = createServerFn({ method: "POST" })
     let atualizados = 0;
     for (const item of plano) {
       if (item.acao !== "preencher") continue;
-      const { error } = await supabase
+      const { error, data: gravadasParte } = await supabase
         .from("contract_parties")
         .update({ [colunaParte]: (item as { valor: string }).valor })
-        .eq("id", item.id);
+        .eq("id", item.id)
+        .select("id");
+      exigirLinhaGravada({ error: error, data: gravadasParte }, "contract_parties");
       if (error) throw new Error(error.message);
       atualizados++;
     }

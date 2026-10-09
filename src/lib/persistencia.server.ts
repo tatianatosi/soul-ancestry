@@ -34,6 +34,30 @@ export function limparCamposDeControle(dados: Record<string, unknown>): Record<s
 }
 
 /**
+ * Persistência universal (09/10/2026) — a regra mínima para TODA escrita por id
+ * que não passa por `gravarComVerificacao`.
+ *
+ * Medido no código: 49 `update`/`upsert` não conferiam se alguma linha foi
+ * gravada. No Supabase, um `update` que bate em 0 linhas (RLS negou, id de
+ * outra organização, registro arquivado) NÃO devolve erro — a tela dizia
+ * "Salvo" e nada tinha mudado. É o "nada salva" relatado.
+ *
+ * Uso: acrescentar `.select("id")` à escrita e passar o resultado aqui.
+ */
+export function exigirLinhaGravada(
+  res: { data?: unknown; error?: { message: string } | null },
+  tabela: string,
+): void {
+  if (res.error) throw new Error(res.error.message);
+  const linhas = Array.isArray(res.data) ? res.data.length : res.data ? 1 : 0;
+  if (linhas === 0) {
+    throw new Error(
+      `${CODIGOS_PERSISTENCIA.SEM_LINHA}: nada foi gravado em ${tabela}. O registro não existe nesta organização, foi arquivado ou seu papel não permite editar.`,
+    );
+  }
+}
+
+/**
  * Atualiza, confirma linha afetada, relê e compara.
  * Lança NENHUMA_LINHA_AFETADA quando o registro de fato não existe.
  */

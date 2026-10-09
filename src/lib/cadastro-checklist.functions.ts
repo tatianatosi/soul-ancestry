@@ -2,7 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { gravarComVerificacao, exigirLinhaGravada } from "@/lib/persistencia.server";
 import {
   camposDoTipo,
   pendenciasCadastro,
@@ -218,7 +218,10 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
       // cliente_id correto lido de lá; escrever em case_members com esse id
       // atingiria a linha errada (ou nenhuma).
       if (clienteId && !m.cliente_id && m.origem === "case_members") {
-        await supabase.from("case_members").update({ cliente_id: clienteId }).eq("id", m.id);
+        exigirLinhaGravada(
+          await supabase.from("case_members").update({ cliente_id: clienteId }).eq("id", m.id).select("id"),
+          "case_members",
+        );
       }
       pessoas.push({
         tipo: "titular",
@@ -408,14 +411,16 @@ export const registrarAcaoCadastro = createServerFn({ method: "POST" })
     });
     if (e1) throw new Error(`Não foi possível gravar o rascunho: ${e1.message}`);
 
-    const { error: e2 } = await supabase
+    const { error: e2, data: gravadasCaso } = await supabase
       .from("crm_casos")
       .update({
         proxima_acao: `Confirmar dados cadastrais de ${data.pessoa}`,
         prazo_proxima_acao: data.prazo,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", data.caseId);
+      .eq("id", data.caseId)
+      .select("id");
+    exigirLinhaGravada({ error: e2, data: gravadasCaso }, "crm_casos");
     if (e2) throw new Error(`Não foi possível registrar a próxima ação: ${e2.message}`);
 
     return { pendencias: pend.length, enviado: false };

@@ -14,7 +14,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo } from "@/lib/caso-canonico.server";
 import { semCache } from "@/lib/no-store";
-import { inserirComVerificacao } from "@/lib/persistencia.server";
+import { inserirComVerificacao, exigirLinhaGravada } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import {
   condicaoVigente,
@@ -201,11 +201,15 @@ export const registrarVersaoCondicaoComercial = createServerFn({ method: "POST" 
     });
 
     for (const a of ((atuais ?? []) as any[]).filter((x) => x.approval_status === "aprovada")) {
-      await supabase
-        .from("case_commercial_condition")
-        .update({ approval_status: "substituida", updated_by: userId, updated_at: new Date().toISOString() })
-        .eq("id", a.id)
-        .eq("organization_id", organizationId);
+      exigirLinhaGravada(
+        await supabase
+          .from("case_commercial_condition")
+          .update({ approval_status: "substituida", updated_by: userId, updated_at: new Date().toISOString() })
+          .eq("id", a.id)
+          .eq("organization_id", organizationId)
+          .select("id"),
+        "case_commercial_condition",
+      );
     }
 
     await supabase.from("audit_logs").insert({

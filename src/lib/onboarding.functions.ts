@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { recusaTickManualD7 } from "@/lib/d7-microentrega";
 import { tratarTickManualD7 } from "@/lib/d7-microentrega.server";
+import { exigirLinhaGravada } from "@/lib/persistencia.server";
 import {
   meusPapeis,
   podeAtivar,
@@ -429,14 +430,18 @@ export const ativarCasoComChecks = createServerFn({ method: "POST" })
         (casoAntes.responsavel_principal as string | null) ||
           (await nomeResponsavelSessao(supabase, organizationId, context.userId as string)),
       );
-      await supabase
-        .from("crm_casos")
-        .update({
-          responsavel_id: context.userId,
-          responsavel_principal: nome,
-        })
-        .eq("id", data.casoId)
-        .eq("organization_id", organizationId);
+      exigirLinhaGravada(
+        await supabase
+          .from("crm_casos")
+          .update({
+            responsavel_id: context.userId,
+            responsavel_principal: nome,
+          })
+          .eq("id", data.casoId)
+          .eq("organization_id", organizationId)
+          .select("id"),
+        "crm_casos",
+      );
     }
 
     const { data: casoAtual, error: erroLeitura } = await supabase

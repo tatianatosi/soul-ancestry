@@ -4,7 +4,7 @@ import { organizacaoDo, type Linha } from "@/lib/caso-canonico.server";
 import { derivarPendenciasPiloto, NUCLEO_PILOTO, PILOTO_ANA } from "@/lib/piloto-ana";
 import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
 import { semCache } from "@/lib/no-store";
-import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { gravarComVerificacao, exigirLinhaGravada } from "@/lib/persistencia.server";
 import { clienteCorrespondentePorNome } from "@/lib/pessoa-vinculo";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -189,7 +189,9 @@ export const materializarPilotoAna = createServerFn({ method: "POST" })
          * completado — sem tocar em nenhum outro campo.
          */
         if (!existente.cliente_id && clienteId) {
-          const { error } = await supabase.from("nucleo_membros").update({ cliente_id: clienteId }).eq("id", existente.id);
+          const { error, data: gravadasNucleo } = await supabase.from("nucleo_membros").update({ cliente_id: clienteId }).eq("id", existente.id)
+    .select("id");
+          exigirLinhaGravada({ error: error, data: gravadasNucleo }, "nucleo_membros");
           if (error) throw new Error(`Vínculo do requerente (${m.nome}): ${error.message}`);
         }
         continue;

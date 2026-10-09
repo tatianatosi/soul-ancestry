@@ -15,7 +15,7 @@ import { exigirPublicavelNoApp, exigirTipoPublicavelNoApp, recusaDePublicacaoNoA
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
-import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { exigirLinhaGravada, gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { CODIGO_CASO_GO_LIVE } from "@/lib/golive.functions";
 import { etapaDoResultado, passoDeEtapa } from "@/lib/golive-comercial";
 import { tipoEvidenciaCanonico } from "@/lib/evidencia-canonica";
@@ -49,6 +49,15 @@ async function contexto(supabase: any, userId: string) {
 
 function erro(r: { error: { message: string } | null }) {
   if (r.error) throw new Error(r.error.message);
+}
+
+/**
+ * Persistência universal (09/10/2026): gravação por id que bate em 0 linhas
+ * não dá erro no Supabase — a tela dizia "Salvo" sem ter salvo. Esta variante
+ * exige a linha de volta (`.select("id")` na escrita).
+ */
+function erroOuNadaGravado(r: { error: { message: string } | null; data?: unknown }, tabela: string) {
+  exigirLinhaGravada(r, tabela);
 }
 
 const texto = (v: unknown) => String(v ?? "").trim();
@@ -158,7 +167,7 @@ export const registrarDiscoveryGoLive = createServerFn({ method: "POST" })
     const { organizationId, casoId, userId } = await contexto(s, context.userId as string);
     if (!texto(data.resumo)) throw new Error("Resumo do discovery é obrigatório.");
 
-    erro(
+    erroOuNadaGravado(
       await s
         .from("leads")
         .update({
@@ -167,7 +176,9 @@ export const registrarDiscoveryGoLive = createServerFn({ method: "POST" })
           updated_by: userId,
         })
         .eq("id", data.leadId)
-        .eq("organization_id", organizationId),
+        .eq("organization_id", organizationId)
+        .select("id"),
+      "leads",
     );
 
     erro(
@@ -197,12 +208,14 @@ export const registrarCallGoLive = createServerFn({ method: "POST" })
     if (!texto(data.resumo)) throw new Error("Resumo da call é obrigatório.");
     const quando = texto(data.ocorridoEm) || new Date().toISOString();
 
-    erro(
+    erroOuNadaGravado(
       await s
         .from("leads")
         .update({ call_realizada_em: quando, resumo_call: texto(data.resumo), updated_by: userId })
         .eq("id", data.leadId)
-        .eq("organization_id", organizationId),
+        .eq("organization_id", organizationId)
+        .select("id"),
+      "leads",
     );
 
     erro(
@@ -285,8 +298,14 @@ export const registrarAtendimentoGoLive = createServerFn({ method: "POST" })
     }
     else if (quando) atualizacao["call_agendada_em"] = quando;
 
-    erro(
-      await s.from("leads").update(atualizacao).eq("id", texto(data.leadId)).eq("organization_id", organizationId),
+    erroOuNadaGravado(
+      await s
+        .from("leads")
+        .update(atualizacao)
+        .eq("id", texto(data.leadId))
+        .eq("organization_id", organizationId)
+        .select("id"),
+      "leads",
     );
 
     erro(
@@ -338,7 +357,7 @@ export const arquivarLeadGoLive = createServerFn({ method: "POST" })
     // Respeita a máquina de estados: um passo por vez até `arquivado`.
     const etapa = passoDeEtapa(atual.data.estagio, "arquivado") ?? "arquivado";
     const agora = new Date().toISOString();
-    erro(
+    erroOuNadaGravado(
       await s
         .from("leads")
         .update({
@@ -349,7 +368,9 @@ export const arquivarLeadGoLive = createServerFn({ method: "POST" })
           updated_by: userId,
         })
         .eq("id", texto(data.leadId))
-        .eq("organization_id", organizationId),
+        .eq("organization_id", organizationId)
+        .select("id"),
+      "leads",
     );
     return { ok: true, etapa, arquivadoEm: agora };
   });
@@ -1070,12 +1091,14 @@ export const registrarPagamentoGoLive = createServerFn({ method: "POST" })
       .single();
     erro(r);
 
-    erro(
+    erroOuNadaGravado(
       await s
         .from("invoices")
         .update({ status: "paga", valor_pago: Number(data.valor), paga_em: quando, updated_by: userId })
         .eq("id", data.faturaId)
-        .eq("organization_id", organizationId),
+        .eq("organization_id", organizationId)
+        .select("id"),
+      "invoices",
     );
     return { id: String(r.data.id) };
   });
@@ -1121,7 +1144,7 @@ export const aprovarMicroentregaGoLive = createServerFn({ method: "POST" })
     const s = context.supabase as any;
     const { organizationId, userId } = await contexto(s, context.userId as string);
 
-    erro(
+    erroOuNadaGravado(
       await s
         .from("ops_microentregas")
         .update({
@@ -1133,7 +1156,9 @@ export const aprovarMicroentregaGoLive = createServerFn({ method: "POST" })
           updated_by: userId,
         })
         .eq("id", data.id)
-        .eq("organization_id", organizationId),
+        .eq("organization_id", organizationId)
+        .select("id"),
+      "ops_microentregas",
     );
     return { ok: true };
   });
@@ -1499,7 +1524,7 @@ export const despublicarDoAppGoLive = createServerFn({ method: "POST" })
     const { organizationId, userId } = await contexto(s, context.userId as string);
     if (!texto(data.motivo)) throw new Error("Informe o motivo de despublicar.");
 
-    erro(
+    erroOuNadaGravado(
       await s
         .from("app_projections")
         .update({
@@ -1509,7 +1534,9 @@ export const despublicarDoAppGoLive = createServerFn({ method: "POST" })
           updated_by: userId,
         })
         .eq("id", data.id)
-        .eq("organization_id", organizationId),
+        .eq("organization_id", organizationId)
+        .select("id"),
+      "app_projections",
     );
     return { ok: true };
   });
@@ -1547,13 +1574,19 @@ export const definirProximaAcaoGoLive = createServerFn({ method: "POST" })
       const patch: Linha = { proxima_acao: texto(data.proximaAcao), updated_by: userId };
       if (prazo) patch["prazo_proxima_acao"] = prazo;
       if (texto(data.marco)) patch["marco_atual"] = texto(data.marco);
-      erro(await s.from("case_plans").update(patch).eq("id", plano.data[0].id).eq("organization_id", organizationId));
+      erroOuNadaGravado(
+        await s.from("case_plans").update(patch).eq("id", plano.data[0].id).eq("organization_id", organizationId).select("id"),
+        "case_plans",
+      );
     }
 
     const patchCaso: Linha = { proxima_acao: texto(data.proximaAcao) };
     if (prazo) patchCaso["prazo_proxima_acao"] = prazo;
     if (responsavel) patchCaso["proxima_acao_responsavel"] = responsavel;
-    erro(await s.from("crm_casos").update(patchCaso).eq("id", casoId).eq("organization_id", organizationId));
+    erroOuNadaGravado(
+      await s.from("crm_casos").update(patchCaso).eq("id", casoId).eq("organization_id", organizationId).select("id"),
+      "crm_casos",
+    );
 
     return { ok: true };
   });

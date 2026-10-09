@@ -27,7 +27,7 @@ import {
   type SkuCanonicoProposta,
 } from "@/lib/cadeia-operacional";
 import { linhas } from "@/lib/linhas";
-import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { gravarComVerificacao, exigirLinhaGravada } from "@/lib/persistencia.server";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 
 type Sb = any;
@@ -413,7 +413,9 @@ export async function materializarProposta(
   let versao: number;
   if (atual && atual.status === "rascunho") {
     versao = atual.versao ?? 1;
-    const { error } = await supabase.from("proposals").update(payload).eq("id", atual.id);
+    const { error, data: gravadasProposta } = await supabase.from("proposals").update(payload).eq("id", atual.id)
+    .select("id");
+    exigirLinhaGravada({ error: error, data: gravadasProposta }, "proposals");
     if (error) throw new Error(error.message);
     proposalId = atual.id;
   } else {
@@ -426,10 +428,14 @@ export async function materializarProposta(
     if (error) throw new Error(error.message);
     proposalId = data.id;
     if (atual) {
-      await supabase
-        .from("proposals")
-        .update({ substituida_em: new Date().toISOString(), substituida_por_id: proposalId })
-        .eq("id", atual.id);
+      exigirLinhaGravada(
+        await supabase
+          .from("proposals")
+          .update({ substituida_em: new Date().toISOString(), substituida_por_id: proposalId })
+          .eq("id", atual.id)
+          .select("id"),
+        "proposals",
+      );
     }
   }
 
@@ -549,7 +555,7 @@ export async function aprovarPropostaEstruturada(
 
   const condicao = derivarCondicaoComercial(proposta, sku as SkuCanonicoProposta);
 
-  const { error: erroProposta } = await supabase
+  const { error: erroProposta, data: gravadasAprovacao } = await supabase
     .from("proposals")
     .update({
       status: "aprovada",
@@ -557,7 +563,9 @@ export async function aprovarPropostaEstruturada(
       forma_pagamento: proposta.forma_pagamento,
       updated_by: input.userId,
     })
-    .eq("id", row.id);
+    .eq("id", row.id)
+    .select("id");
+  exigirLinhaGravada({ error: erroProposta, data: gravadasAprovacao }, "proposals");
   if (erroProposta) throw new Error(erroProposta.message);
 
   const { data: ccExistente } = await supabase
@@ -587,7 +595,9 @@ export async function aprovarPropostaEstruturada(
 
   let condicaoId: string;
   if (ccExistente?.id) {
-    const { error } = await supabase.from("commercial_conditions").update(payloadCC).eq("id", ccExistente.id);
+    const { error, data: gravadasCondicao } = await supabase.from("commercial_conditions").update(payloadCC).eq("id", ccExistente.id)
+    .select("id");
+    exigirLinhaGravada({ error: error, data: gravadasCondicao }, "commercial_conditions");
     if (error) throw new Error(error.message);
     condicaoId = ccExistente.id;
   } else {
@@ -672,10 +682,12 @@ async function sincronizarEscopoContratual(
     };
     const atual = existentes.get(k);
     if (atual) {
-      const { error } = await supabase
+      const { error, data: gravadasEscopo } = await supabase
         .from("contract_scope_items")
         .update({ ...comum, archived_at: null, archived_by: null, archive_reason: null })
-        .eq("id", atual.id);
+        .eq("id", atual.id)
+        .select("id");
+      exigirLinhaGravada({ error: error, data: gravadasEscopo }, "contract_scope_items");
       if (error) throw new Error(error.message);
       atualizados += 1;
     } else {
@@ -690,7 +702,7 @@ async function sincronizarEscopoContratual(
   let arquivados = 0;
   for (const [k, r] of existentes) {
     if (desejados.has(k) || r.archived_at) continue;
-    const { error } = await supabase
+    const { error, data: gravadasEscopoArq } = await supabase
       .from("contract_scope_items")
       .update({
         archived_at: new Date().toISOString(),
@@ -698,7 +710,9 @@ async function sincronizarEscopoContratual(
         archive_reason: "Item deixou de constar na proposta aprovada vigente.",
         updated_by: input.userId,
       })
-      .eq("id", r.id);
+      .eq("id", r.id)
+      .select("id");
+    exigirLinhaGravada({ error: error, data: gravadasEscopoArq }, "contract_scope_items");
     if (error) throw new Error(error.message);
     arquivados += 1;
   }

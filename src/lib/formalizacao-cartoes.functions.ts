@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
 import { CHAVES_CONFERENCIA_MANUAL, PREFIXO_CHAVE_FORMALIZACAO, type RegistroPersistido } from "@/lib/formalizacao-cartoes";
 import { CONTRATO_BASE_VERSAO } from "@/lib/contrato-base-consolidado";
+import { exigirLinhaGravada } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Sb = any;
@@ -138,7 +139,9 @@ export const marcarItemFormalizacao = createServerFn({ method: "POST" })
     };
     let id = atual?.id as string | undefined;
     if (id) {
-      const { error } = await supabase.from("case_checklist_items").update(payload).eq("id", id).eq("organization_id", org);
+      const { error, data: gravadasChecklist } = await supabase.from("case_checklist_items").update(payload).eq("id", id).eq("organization_id", org)
+    .select("id");
+      exigirLinhaGravada({ error: error, data: gravadasChecklist }, "case_checklist_items");
       if (error) throw new Error(error.message);
     } else {
       const { data: criado, error } = await supabase

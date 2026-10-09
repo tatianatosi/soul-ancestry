@@ -1,4 +1,5 @@
 import { resumoParametroDependentes, type Dependente } from "@/lib/dependentes";
+import { exigirLinhaGravada } from "@/lib/persistencia.server";
 
 /**
  * Espelha o parâmetro `dependentes` na ficha contratual do caso.
@@ -32,9 +33,13 @@ export async function sincronizarParametroDependentes(
       .eq("campo", "dependentes")
       .maybeSingle();
     if (!linha || (linha.valor ?? "") === (valor ?? "")) continue;
-    await supabase
-      .from("contract_parameter_values")
-      .update({ valor, origem: "crm", status: "importado_a_confirmar" })
-      .eq("id", linha.id);
+    exigirLinhaGravada(
+      await supabase
+        .from("contract_parameter_values")
+        .update({ valor, origem: "crm", status: "importado_a_confirmar" })
+        .eq("id", linha.id)
+        .select("id"),
+      "contract_parameter_values",
+    );
   }
 }
