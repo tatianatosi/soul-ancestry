@@ -20,6 +20,7 @@ import {
 import { gerarRelatorioPesquisa, periodoEvento } from "@/lib/relatorio-pesquisa";
 import { cn } from "@/lib/utils";
 import { mensagemLegadoSemCriacao } from "@/lib/fontes-pesquisa-canonicas";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
@@ -188,6 +189,8 @@ const FORMULARIOS: Record<Bloco, { titulo: string; campos: CampoDef[] }> = {
 export function PesquisaCaso({ casoId }: { casoId: string }) {
   const [aba, setAba] = useState<(typeof ABAS)[number]["id"]>("visao");
   const [edicao, setEdicao] = useState<{ bloco: Bloco; linha: Linha | null } | null>(null);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(edicao !== null);
 
   const carregar = useServerFn(carregarPesquisa);
   const salvar = useServerFn(salvarPesquisa);

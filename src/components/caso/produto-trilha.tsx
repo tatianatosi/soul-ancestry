@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { AcaoDeEscrita, Secao, Selecao, Texto, Rotulo, inputCls } from "@/components/caso/campos";
 import { salvarCaseService } from "@/lib/caso-canonico.functions";
 import { STATUS_CASE_SERVICE, rotulo } from "@/lib/caso-ficha";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 type Linha = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -45,6 +46,8 @@ export function AbaProdutoTrilha({
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [erro, setErro] = useState<string | null>(null);
   const [salvoEm, setSalvoEm] = useState<string | null>(null);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(Object.keys(form).length > 0);
   const sujo = Object.keys(form).length > 0;
 
   const v = (k: string) => {

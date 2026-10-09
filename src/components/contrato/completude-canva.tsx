@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { listarPaginasCanva, salvarPaginaCanva } from "@/lib/crm-desk.functions";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 const PAGINAS = [1, 2, 3, 4, 5, 6, 7];
 
@@ -75,6 +76,8 @@ export function CompletudeCanva({
   const salvar = useServerFn(salvarPaginaCanva);
   const qc = useQueryClient();
   const [rascunho, setRascunho] = useState<Record<number, Rascunho>>({});
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(Object.keys(rascunho).length > 0);
 
   const q = useQuery({
     queryKey: ["canva-paginas", proposalId],

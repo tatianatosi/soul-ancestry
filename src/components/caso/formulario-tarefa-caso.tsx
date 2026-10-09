@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { PRIORIDADES, ROTULO_PRIORIDADE, TIPOS_TAREFA, ROTULO_TIPO } from "@/lib/ops.server";
 import { referenciasOps, salvarTarefa } from "@/lib/ops.functions";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 /**
  * Formulário visível da ficha: cria tarefa no caso com responsável, prazo, prioridade
@@ -31,6 +32,10 @@ export function FormularioTarefaCaso({
   const [responsavelId, setResponsavelId] = useState("");
   const [bloqueio, setBloqueio] = useState(false);
   const [motivoBloqueio, setMotivoBloqueio] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    [titulo, prazo, responsavelId, motivoBloqueio].some((v) => v.trim() !== ""),
+  );
 
   const m = useMutation({
     mutationFn: (tituloTrim: string) =>

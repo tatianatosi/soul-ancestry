@@ -17,6 +17,7 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { EditorTemplate } from "@/components/mensagens/editor-template";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   definirStatusTemplate,
   listarBibliotecaMensagens,
@@ -116,6 +117,8 @@ function BibliotecaMensagensPage() {
   const [busca, setBusca] = useState("");
   const [selecionado, setSelecionado] = useState<Template | null>(null);
   const [valores, setValores] = useState<Record<string, string>>({});
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(Object.keys(valores).length > 0);
   const [casoId, setCasoId] = useState("");
   const [finalidade, setFinalidade] = useState("");
   const [motivoArquivo, setMotivoArquivo] = useState("");

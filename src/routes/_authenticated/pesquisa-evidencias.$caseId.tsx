@@ -52,6 +52,7 @@ import {
 } from "@/components/pesquisa/referencias-normativas";
 import { SaasShell } from "@/components/saas/shell";
 
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 function rotuloDe(lista: readonly { id: string; rotulo: string }[], id?: string | null) {
@@ -97,6 +98,15 @@ function AreaPesquisaEvidencias() {
   const [secao, setSecao] = useState<SecaoPesquisa>("visao");
   const [form, setForm] = useState<Record<string, unknown>>({ ...VAZIO, case_id: caseId });
   const [editandoId, setEditandoId] = useState<string | null>(null);
+  /*
+   * F5 / sair da linha (09/10/2026). O form nasce com `VAZIO + case_id`:
+   * comparar contra essa linha de base é o que distingue "aberto" de
+   * "editado". `editandoId` cobre a edição de um registro existente.
+   */
+  useAvisoEdicaoNaoSalva(
+    editandoId !== null ||
+      JSON.stringify(form) !== JSON.stringify({ ...VAZIO, case_id: caseId }),
+  );
 
   const autoridade = useAutoridade();
   const painel = useQuery({

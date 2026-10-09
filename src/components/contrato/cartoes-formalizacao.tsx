@@ -20,6 +20,7 @@ import {
 } from "@/lib/formalizacao-cartoes";
 import { abrirPreparacaoContrato } from "@/lib/contrato-preparar.functions";
 import { lerEstadoFormalizacao, marcarItemFormalizacao } from "@/lib/formalizacao-cartoes.functions";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 const ESTILO: Record<EstadoItem, string> = {
   pendente: "border-navy/20 bg-cream/40 text-navy/70",
@@ -48,6 +49,8 @@ function LinhaItem({
 }) {
   const [justificando, setJustificando] = useState(false);
   const [nota, setNota] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(justificando && nota.trim() !== "");
   return (
     <li className="flex flex-col gap-1 border-t border-navy/10 py-2 first:border-t-0">
       <div className="flex flex-wrap items-center justify-between gap-2">

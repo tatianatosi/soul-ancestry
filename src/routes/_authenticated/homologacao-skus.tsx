@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DetalhesTecnicos } from "@/components/ui/detalhes-tecnicos";
 import { lerSaneamentoCatalogo } from "@/lib/catalogo-canonico.functions";
 import { confirmarHomologacaoLote } from "@/lib/homologacao-revisao.functions";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   ROTULO_DECISAO,
   TEXTO_CONFIRMACAO_HOMOLOGACAO,
@@ -75,6 +76,8 @@ function HomologacaoSkusPage() {
   const [decisoes, setDecisoes] = useState<Record<string, DecisaoRevisao>>({});
   const [motivo, setMotivo] = useState("");
   const [confirmado, setConfirmado] = useState(false);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(Object.keys(decisoes).length > 0 || motivo.trim() !== "");
   const [erros, setErros] = useState<string[]>([]);
   const [filtro, setFiltro] = useState<Filtro>("todos");
 

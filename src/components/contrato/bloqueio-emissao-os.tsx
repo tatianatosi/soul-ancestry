@@ -13,6 +13,7 @@ import {
   reprocessarConciliacaoCatalogo,
 } from "@/lib/conciliacao-catalogo.functions";
 import { resumoBloqueio, type GrupoBloqueio, type ResultadoConciliacao } from "@/lib/conciliacao-catalogo";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 const dataHora = (v: string | null | undefined) =>
   v ? new Date(v).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "—";
@@ -50,6 +51,8 @@ function ReprocessarConciliacao({ proposalId }: { proposalId: string }) {
   const historico = useServerFn(historicoConciliacaoCatalogo);
   const [motivo, setMotivo] = useState("");
   const [verHistorico, setVerHistorico] = useState(false);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(motivo.trim() !== "");
 
   const qHist = useQuery({
     queryKey: ["conciliacao-historico", proposalId],

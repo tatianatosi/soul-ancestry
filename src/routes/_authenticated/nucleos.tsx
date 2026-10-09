@@ -30,6 +30,7 @@ import { STATUS_FILA_DRIVE } from "@/lib/drive-provisioning";
 import { salvarTarefa } from "@/lib/ops.functions";
 import { sincronizarMembrosDoCaso } from "@/lib/caso-canonico.functions";
 
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 export const Route = createFileRoute("/_authenticated/nucleos")({
   head: () => ({
     meta: [
@@ -187,6 +188,12 @@ function NucleosPage() {
   const [novoNucleoAberto, setNovoNucleoAberto] = useState(false);
   const [novoNucleoNome, setNovoNucleoNome] = useState("");
   const [erroNovoNucleo, setErroNovoNucleo] = useState<string | null>(null);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    (rascunho !== null && Object.values(rascunho).some((x) => String(x ?? "").trim() !== "")) ||
+      membroEditando !== null ||
+      novoNucleoNome.trim() !== "",
+  );
 
   const mCriarNucleo = useMutation({
     mutationFn: (nome: string) => criar({ data: { nome } }),

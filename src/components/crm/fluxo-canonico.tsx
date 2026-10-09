@@ -7,6 +7,7 @@ import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { formatarTelefone } from "@/lib/validacao-pessoa";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   DIRECOES_INTERACAO,
   ETAPAS_COMERCIAIS,
@@ -72,6 +73,14 @@ function ConteudoFluxoCanonico({ dados }: { dados: DadosFluxo }) {
   const [inter, setInter] = useState<Record<string, string>>({ tipo: "", direcao: "", resumo_interno: "", proxima_acao: "", prazo_proxima_acao: "" });
   const [disc, setDisc] = useState<Record<string, string>>({ objetivo_principal: "", estrutura_familiar: "", linha_transmissao: "", estado_documental_inicial: "" });
   const [referencia, setReferencia] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    Object.keys(rascunho).length > 0 ||
+      referencia.trim() !== "" ||
+      [contato, inter, disc].some((bloco) =>
+        Object.values(bloco).some((v) => String(v ?? "").trim() !== ""),
+      ),
+  );
   const [filtroEtapa, setFiltroEtapa] = useState("");
   const [soPendentes, setSoPendentes] = useState(false);
 

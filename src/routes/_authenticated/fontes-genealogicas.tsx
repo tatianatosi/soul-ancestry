@@ -38,6 +38,7 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { filtrarPorBusca } from "@/lib/rotulo-negocio";
 import { MarcosJuridicosPorPais } from "@/components/pesquisa/marcos-juridicos-paises";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -102,6 +103,12 @@ function EditarFonte({ fonte, onSalvo }: { fonte: Fonte; onSalvo: () => void }) 
   });
   const [erro, setErro] = useState<string | null>(null);
   const salvarFn = useServerFn(salvarFonte);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    Object.entries(form).some(
+      ([k, v]) => String(v ?? "") !== String((fonte as Record<string, unknown>)[k] ?? ""),
+    ),
+  );
   const m = useMutation({
     mutationFn: () => salvarFn({ data: { id: fonte.id, valores: form } }),
     onSuccess: () => {
@@ -310,6 +317,10 @@ function EscreverGovernancaFonte({ fonteId, onSalvo }: { fonteId: string; onSalv
   const [aval, setAval] = useState<Record<string, unknown>>({});
   const [back, setBack] = useState<Record<string, unknown>>({});
   const [motivo, setMotivo] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    Object.keys(aval).length > 0 || Object.keys(back).length > 0 || motivo.trim() !== "",
+  );
   const t = (v: unknown) => String(v ?? "");
 
   const mAval = useMutation({
@@ -456,6 +467,8 @@ function FontesGenealogicas() {
   const [novaFonteAberta, setNovaFonteAberta] = useState(false);
   const [novaFonteNome, setNovaFonteNome] = useState("");
   const [erroNovaFonte, setErroNovaFonte] = useState<string | null>(null);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(novaFonteNome.trim() !== "");
   const mCriarFonte = useMutation({
     mutationFn: (nome: string) => criarFonteFn({ data: { valores: { nome } } }),
     onSuccess: () => {

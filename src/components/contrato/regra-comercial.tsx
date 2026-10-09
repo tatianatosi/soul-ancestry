@@ -14,6 +14,7 @@ import {
 } from "@/lib/despesas-terceiros";
 import { REGRAS_PRECO_SKU, ROTULO_FONTE_PRECO, fonteOficialDePreco } from "@/lib/precos-sku";
 import { conferirRegraComercial, registrarExcecaoComercial } from "@/lib/regra-comercial.functions";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 function faixa(d: Despesa) {
   if (d.estimativa_min == null && d.estimativa_max == null) return "estimativa não registrada";
@@ -38,6 +39,10 @@ export function RegraComercial({ caseId }: { caseId: string }) {
   const [condicaoPagamento, setCondicaoPagamento] = useState("");
   const [validoAte, setValidoAte] = useState("");
   const [erroExcecao, setErroExcecao] = useState<string | null>(null);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    [motivo, precoTotal, condicaoPagamento, validoAte].some((v) => v.trim() !== ""),
+  );
 
   const mExcecao = useMutation({
     mutationFn: (vars: { sku: string }) =>

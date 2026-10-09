@@ -54,6 +54,7 @@ import {
 import { useAutoridade } from "@/components/saas/autoridade";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { DecisaoAposSalvarPessoa } from "@/components/pessoa/decisao-apos-salvar";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   KitBadge,
   KitCard,
@@ -757,6 +758,8 @@ function AbaPerfis({
 }) {
   const [novo, setNovo] = useState({ nome_completo: "", nome_nascimento: "", sexo: "", nascimento_data: "" });
   const [edicao, setEdicao] = useState<Record<string, Partial<Perfil>>>({});
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(Object.keys(edicao).length > 0);
   const temEdicao = Object.values(edicao).some((e) => Object.keys(e).length > 0);
   useEffect(() => {
     onSujo?.(temEdicao);

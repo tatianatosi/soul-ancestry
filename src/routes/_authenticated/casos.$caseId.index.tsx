@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound, redirect, useBlocker, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
@@ -88,6 +88,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 import {
   EIXO_COMERCIAL,
@@ -573,23 +574,13 @@ function FichaCaso() {
 
   const sujo = Object.keys(form).length > 0;
 
-  // Nada de saída silenciosa com alteração pendente (recarregar/fechar aba).
-  useEffect(() => {
-    if (!sujo) return;
-    const h = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", h);
-    return () => window.removeEventListener("beforeunload", h);
-  }, [sujo]);
-
-  // ...e também na navegação interna entre abas/rotas do Desk (salvar / descartar / cancelar).
-  const bloqueio = useBlocker({
-    shouldBlockFn: () => sujo,
-    enableBeforeUnload: false,
-    withResolver: true,
-  });
+  /*
+   * F5 / sair da linha: recarregar, fechar a aba e navegar entre abas/rotas do
+   * Desk. O padrão nasceu aqui (Corte 1, 27/09) e em 09/10/2026 virou
+   * `useAvisoEdicaoNaoSalva` — esta tela passa a usar o módulo, guardando o
+   * resolver porque desenha a própria confirmação (salvar / descartar / cancelar).
+   */
+  const bloqueio = useAvisoEdicaoNaoSalva(sujo);
 
   const v = (chave: string): string => {
     const atual = chave in form ? form[chave] : caso?.[chave];
@@ -3255,6 +3246,8 @@ function CartaoPessoa({
   const [salvo, setSalvo] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const sujo = Object.keys(form).length > 0;
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(sujo);
 
   const v = (k: string) => {
     const atual = k in form ? form[k] : pessoa[k];

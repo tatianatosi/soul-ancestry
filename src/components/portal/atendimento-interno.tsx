@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { CardIndicador } from "@/components/desk/ui-desk";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   atualizarStatusTicket,
   cancelarSolicitacaoDocumento,
@@ -134,6 +135,13 @@ export function AtendimentoInterno() {
   });
   const [erro, setErro] = useState<string | null>(null);
   const [ticketAberto, setTicketAberto] = useState<string | null>(null);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    publicacaoTexto.trim() !== "" ||
+      [form.titulo, form.participante, form.responsavelId, form.prazo, form.descricao].some(
+        (v) => String(v ?? "").trim() !== "",
+      ),
+  );
 
   const {
     data,
@@ -210,6 +218,11 @@ export function AtendimentoInterno() {
   const [confVersao, setConfVersao] = useState("");
   const [confMotivo, setConfMotivo] = useState("");
   const [confSubstituta, setConfSubstituta] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    confirmacao !== null &&
+      [confVersao, confMotivo, confSubstituta].some((v) => v.trim() !== ""),
+  );
 
   function abrirConfirmacao(c: Confirmacao) {
     setConfVersao("");
@@ -1060,6 +1073,8 @@ function Conversa({
   const [texto, setTexto] = useState("");
   const temPendencia = pendencias.length > 0;
   const [interna, setInterna] = useState(temPendencia);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(texto.trim() !== "");
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["ticket-interno", ticketId],

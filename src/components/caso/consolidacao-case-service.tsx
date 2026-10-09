@@ -11,6 +11,7 @@ import {
   semearCriteriosAceite,
 } from "@/lib/case-service-consolidacao.functions";
 import { ROTULO_ORIGEM_VALOR, type ItemCriterio } from "@/lib/case-service-consolidacao";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 const STATUS_CRITERIO = [
   { valor: "pendente_decisao_humana", rotulo: "Pendente de decisão humana" },
@@ -33,6 +34,12 @@ export function ConsolidacaoCaseService({ caseId }: { caseId: string }) {
   const [quem, setQuem] = useState("Tatiana Tosi");
   const [rascunhoCriterio, setRascunhoCriterio] = useState<Record<string, { justificativa: string; evidencia: string }>>({});
   const [cond, setCond] = useState<Record<string, string>>({});
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    Object.keys(rascunhoCriterio).length > 0 ||
+      Object.keys(cond).length > 0 ||
+      quem !== "Tatiana Tosi",
+  );
 
   const q = useQuery({
     queryKey: ["consolidacao-case-service", caseId],

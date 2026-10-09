@@ -12,6 +12,7 @@ import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 import {
   despublicarUniaoDeRamos,
@@ -37,6 +38,11 @@ export function PublicarUniaoRamos({ caseId }: { caseId: string }) {
   const [legenda, setLegenda] = useState("");
   const [retirando, setRetirando] = useState<string | null>(null);
   const [motivo, setMotivo] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    [historia, processo, legenda].some((v) => v.trim() !== "") ||
+      (retirando !== null && motivo.trim() !== ""),
+  );
 
   const limpar = () => {
     setHistoria("");

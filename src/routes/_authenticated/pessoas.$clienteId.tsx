@@ -1,8 +1,8 @@
-import { createFileRoute, Link, useBlocker } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
-import { handlerBeforeUnload } from "@/lib/aviso-edicao-nao-salva";
+import { useState } from "react";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 import { SaasShell, useSaas, EstadoVazio } from "@/components/saas/shell";
 import { CaCard } from "@/components/ui/ca-card";
@@ -281,13 +281,7 @@ function Pessoa() {
    * recarregar ou trocar de rota com edição pendente perdia o rascunho em
    * silêncio.
    */
-  const sujo = Object.keys(form).length > 0;
-  useEffect(() => {
-    if (!sujo) return;
-    window.addEventListener("beforeunload", handlerBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handlerBeforeUnload);
-  }, [sujo]);
-  useBlocker({ shouldBlockFn: () => sujo, enableBeforeUnload: false, withResolver: true });
+  useAvisoEdicaoNaoSalva(Object.keys(form).length > 0);
   const [erroSalvar, setErroSalvar] = useState<string | null>(null);
   // CA03-PESSOA-UNICA-VINCULOS (09/09/2026): confirmação humana do vínculo
   // lead → pessoa. Nunca funde por nome sozinho — só grava quando alguém

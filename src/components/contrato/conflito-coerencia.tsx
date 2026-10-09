@@ -8,6 +8,7 @@ import { inputCls } from "@/components/comercial/base";
 import { CaCard } from "@/components/ui/ca-card";
 import { CONFLITO_PAIS_ROTA } from "@/lib/coerencia-caso";
 import { corrigirParametroPlanejador } from "@/lib/contrato-parametros.functions";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 /**
  * Conflito crítico de coerência (código canônico x país/rota) com correção
@@ -27,6 +28,10 @@ export function ConflitoCoerencia({
   const [novoValor, setNovoValor] = useState("");
   const [justificativa, setJustificativa] = useState("");
   const [versao, setVersao] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    [novoValor, justificativa, versao].some((v) => v.trim() !== ""),
+  );
 
   const m = useMutation({
     mutationFn: () =>

@@ -25,6 +25,7 @@ import {
 } from "@/components/comercial/base";
 import { CaCard } from "@/components/ui/ca-card";
 import { FLUXO } from "@/lib/comercial-fluxo";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   formatarIndicador,
   previsoesControladas,
@@ -78,6 +79,8 @@ function FinanceiroPage() {
   const [status, setStatus] = useState("");
   const [detalhe, setDetalhe] = useState<Linha | null>(null);
   const [form, setForm] = useState<Record<string, string> | null>(null);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(form !== null && Object.values(form).some((x) => String(x ?? "").trim() !== ""));
   const [erro, setErro] = useState<string | null>(null);
   const [ajuste, setAjuste] = useState({ valor: "" });
   const [conc, setConc] = useState({ data: "", valor: "", referencia: "" });

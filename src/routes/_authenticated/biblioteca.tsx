@@ -17,6 +17,7 @@ import { ConteudoEditorialConectado } from "@/components/biblioteca/conteudo-edi
 import { PesquisaConectada } from "@/components/desk/superficies-kit-conectadas";
 import { MAPA_CENTRO_INTELIGENCIA, SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
 import { rotuloFonteNegocio } from "@/lib/rotulo-negocio";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   arquivarItemBiblioteca,
   definirVigenciaItem,
@@ -73,6 +74,8 @@ function BibliotecaPage() {
   const [detalhe, setDetalhe] = useState<ItemBiblioteca | null>(null);
   const [aArquivar, setAArquivar] = useState<ItemBiblioteca | null>(null);
   const [motivo, setMotivo] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(aArquivar !== null && motivo.trim() !== "");
   const [erroArquivo, setErroArquivo] = useState<string | null>(null);
   const [erroVigencia, setErroVigencia] = useState<string | null>(null);
   const [gestaoAberta, setGestaoAberta] = useState(false);
@@ -721,6 +724,10 @@ function FormularioVigencia({
   const [sucessor, setSucessor] = useState(item.sucessorId ?? "");
   const [justificativa, setJustificativa] = useState("");
   const [motivoSuspensao, setMotivoSuspensao] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    justificativa.trim() !== "" || motivoSuspensao.trim() !== "" || sucessor !== (item.sucessorId ?? ""),
+  );
 
   /**
    * Pendências do próprio estado escolhido. Não desabilitam o registro: viram

@@ -9,6 +9,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { SITUACOES_PLANO } from "@/lib/plano-publicacao";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   despublicarPlanoDoApp,
   listarPlanoDoCaso,
@@ -27,6 +28,10 @@ export function PublicarPlanoApp({ caseId }: { caseId: string }) {
   const [vigencia, setVigencia] = useState("");
   const [retirando, setRetirando] = useState(false);
   const [motivo, setMotivo] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    nome.trim() !== "" || vigencia.trim() !== "" || (retirando && motivo.trim() !== ""),
+  );
 
   const mPublicar = useMutation({
     mutationFn: () => publicar({ data: { caseId, nomeComercial: nome, situacao, vigencia } }),

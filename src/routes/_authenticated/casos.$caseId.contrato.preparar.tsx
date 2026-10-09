@@ -77,6 +77,7 @@ import type { ItemPlanoMaterializacao } from "@/lib/anexos-materializacao";
 
 import { abrirPreparacaoContrato, solicitarRevisaoHumana } from "@/lib/contrato-preparar.functions";
 import { checklistPreContrato, type EstadoChecklistItem } from "@/lib/contrato-checklist-pre";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 const TITULO = "Preparar contrato do caso | Clube Ancestral";
 const DESCRICAO = "Ficha única parametrizável e prévia contratual do caso, reaproveitando proposta, modelo ativo e anexos existentes.";
@@ -334,6 +335,10 @@ function Pagina() {
   const [previaVistaId, setPreviaVistaId] = useState<string | null>(null);
   const [nota, setNota] = useState("");
   const [assinatura, setAssinatura] = useState({ dataAssinatura: "", origemExterna: "", referencia: "" });
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    nota.trim() !== "" || Object.values(assinatura).some((v) => String(v ?? "").trim() !== ""),
+  );
 
   const mImportar = useMutation({
     mutationFn: () => importar({ data: { id: registroId as string } }),

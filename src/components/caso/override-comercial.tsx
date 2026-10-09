@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { Selecao, Texto } from "@/components/caso/campos";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   ESCOPOS_LIBERAVEIS,
   ROTULO_ESTADO_OVERRIDE,
@@ -50,6 +51,12 @@ export function OverrideComercial({ caseId }: { caseId: string }) {
   const [justificativa, setJustificativa] = useState("");
   const [dataRevisao, setDataRevisao] = useState("");
   const [motivoRevogacao, setMotivoRevogacao] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    [objeto, condicao, gate, gateMotivo, justificativa, dataRevisao, motivoRevogacao].some(
+      (v) => v.trim() !== "",
+    ) || escopos.length > 0,
+  );
 
   const disponiveis = ESCOPOS_LIBERAVEIS[tipo] ?? [];
 

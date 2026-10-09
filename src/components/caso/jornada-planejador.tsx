@@ -9,6 +9,7 @@ import { lerJornadaPlanejador, atualizarJornadaPlanejador } from "@/lib/jornada-
 import { camposAlterados, origemJornada } from "@/lib/jornada-planejador";
 import { listarUsuarios } from "@/lib/saas.functions";
 import { PRODUTOS_PAI_CANONICOS } from "@/lib/planejador-produtos-pai";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 type Rascunho = {
   etapa: string;
@@ -56,6 +57,8 @@ export function PainelJornadaPlanejador({ caseId }: { caseId: string }) {
   // Corte 1 (27/09/2026): enquanto houver edição local, uma releitura vinda de
   // outro painel não apaga o que a pessoa digitou.
   const [editado, setEditado] = useState(false);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(editado);
   const editarRascunho = (fn: (r: Rascunho) => Rascunho) => {
     setEditado(true);
     setRascunho(fn);

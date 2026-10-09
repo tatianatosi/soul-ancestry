@@ -15,6 +15,7 @@ import {
   registrarOverrideProprietaria,
 } from "@/lib/painel-hoje-acoes.functions";
 import { listarEquipe } from "@/lib/equipe.functions";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 type Tipo = "lead" | "oportunidade" | "caso" | "tarefa";
 
@@ -54,6 +55,8 @@ export function AcoesRapidasProprietaria({
     observacao: "",
   });
   const [erros, setErros] = useState<string[]>([]);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(Object.values(form).some((v) => String(v ?? "").trim() !== ""));
   const [ok, setOk] = useState(false);
 
   const m = useMutation({

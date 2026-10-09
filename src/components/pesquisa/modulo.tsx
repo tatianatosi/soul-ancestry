@@ -24,6 +24,7 @@ import type { BlocoRg } from "@/lib/pesquisa-modulo.server";
 import { estagiosCadeiaPesquisa } from "@/lib/pesquisa-cadeia";
 import { cn } from "@/lib/utils";
 import { mensagemLegadoSemCriacao } from "@/lib/fontes-pesquisa-canonicas";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 type Dados = Awaited<ReturnType<typeof carregarPesquisaModulo>>;
 
@@ -121,6 +122,8 @@ function Formulario({
   salvando: boolean;
 }) {
   const [valores, setValores] = useState<Record<string, any>>(inicial);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(JSON.stringify(valores) !== JSON.stringify(inicial));
   const set = (k: string, v: any) => setValores((a) => ({ ...a, [k]: v }));
 
   const refLista = (ref: Campo["ref"]) => {
@@ -221,6 +224,8 @@ function Formulario({
 export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: string }) {
   const [aba, setAba] = useState<string>("visao");
   const [editando, setEditando] = useState<{ bloco: BlocoRg; id?: string } | null>(null);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(editando !== null);
   const qc = useQueryClient();
 
   const carregar = useServerFn(carregarPesquisaModulo);

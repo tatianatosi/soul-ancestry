@@ -6,6 +6,7 @@ import { useState } from "react";
 import { CaCard } from "@/components/ui/ca-card";
 import { adicionarContatoPessoa, arquivarContatoPessoa } from "@/lib/pessoa.functions";
 import { emailValido, formatarTelefone, nomeValido, telefoneValido } from "@/lib/validacao-pessoa";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 type Contato = {
   id: string;
@@ -43,6 +44,11 @@ export function ContatosDaPessoa({
   const [aviso, setAviso] = useState<{ texto: string; pessoaId?: string } | null>(null);
   const [arquivando, setArquivando] = useState<string | null>(null);
   const [motivo, setMotivo] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    JSON.stringify(form) !== JSON.stringify(VAZIO) ||
+      (arquivando !== null && motivo.trim() !== ""),
+  );
 
   const mAdicionar = useMutation({
     mutationFn: () => adicionar({ data: { clienteId, ...form } }),

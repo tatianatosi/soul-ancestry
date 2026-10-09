@@ -26,6 +26,7 @@ import {
 } from "@/lib/relatorios-fase.functions";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -74,6 +75,10 @@ function RelatoriosFase() {
   const qc = useQueryClient();
   const [form, setForm] = useState<Record<string, unknown>>({ ...VAZIO, case_id: caseId });
   const [editandoId, setEditandoId] = useState<string | null>(null);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    editandoId !== null || JSON.stringify(form) !== JSON.stringify({ ...VAZIO, case_id: caseId }),
+  );
   const [vinculo, setVinculo] = useState<Record<string, { evidenceId: string; relacao: string; micro: string }>>({});
 
   const painel = useQuery({ queryKey: ["g05", caseId], queryFn: () => painelRelatoriosFase({ data: { caseId } }) });

@@ -14,6 +14,7 @@ import {
   transicionarMicroentrega,
 } from "@/lib/jornada-cliente.functions";
 import { projetarMicroentregaParaApp } from "@/lib/biblioteca-evidencias.functions";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   FASES_JORNADA,
   ROTULO_FASE,
@@ -164,6 +165,13 @@ export function AbaJornadaCliente({
     deepLink: "",
     referencia: "",
   });
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    [inter.resumo, inter.resultado, inter.proximaAcao, inter.prazo, inter.ocorridoEm,
+      inter.feito, inter.aguardando, inter.naoDepende, inter.marco,
+      entrega.titulo, entrega.resumo, entrega.deepLink, entrega.referencia,
+    ].some((v) => String(v ?? "").trim() !== ""),
+  );
 
   const mRegistrar = useMutation({
     mutationFn: () =>
@@ -249,6 +257,8 @@ export function AbaJornadaCliente({
   });
 
   const [motivoEspera, setMotivoEspera] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(motivoEspera.trim() !== "");
   const caso = q.data?.caso as Record<string, unknown> | undefined;
   const cadencia = q.data?.cadencia;
 

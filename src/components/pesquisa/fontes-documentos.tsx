@@ -31,6 +31,7 @@ import {
 } from "@/lib/fontes-documentos.functions";
 import { VinculosDoDocumento } from "@/components/pesquisa/fontes-vinculos";
 import { KitBadge, KitCard, KpiCard } from "@/components/clube-ancestral-kit";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -56,6 +57,12 @@ export function SecaoFontesDocumentos({ caseId }: { caseId: string }) {
   const [busca, setBusca] = useState("");
   const [filtros, setFiltros] = useState<Record<string, string>>({});
   const [enviando, setEnviando] = useState(false);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    editandoId !== null ||
+      arquivo !== null ||
+      JSON.stringify(form) !== JSON.stringify({ ...VAZIO }),
+  );
 
   const autoridade = useAutoridade();
   const painel = useQuery({

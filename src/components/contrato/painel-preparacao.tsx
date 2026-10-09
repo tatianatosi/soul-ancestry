@@ -26,6 +26,7 @@ import {
   type AvaliacaoGate,
 } from "@/lib/gates-formalizacao";
 import { ROTULO_FONTE_CANONICA } from "@/lib/preco-canonico";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 /**
  * Decisão auditada da Proprietária Administradora para superar um gate
@@ -36,6 +37,8 @@ import { ROTULO_FONTE_CANONICA } from "@/lib/preco-canonico";
 function OverrideGateInterno({ caseId, acao, onFeito }: { caseId: string; acao: AcaoGateada; onFeito: () => void }) {
   const [aberto, setAberto] = useState(false);
   const [motivo, setMotivo] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(motivo.trim() !== "");
   const registrar = useServerFn(registrarOverrideGateInterno);
   const m = useMutation({
     mutationFn: () => registrar({ data: { caseId, acao, motivo } }),

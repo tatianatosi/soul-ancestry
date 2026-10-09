@@ -19,6 +19,7 @@ import {
 } from "@/components/comercial/base";
 import { FLUXO } from "@/lib/comercial-fluxo";
 import { semFixtures } from "@/lib/fixtures";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   atualizarObservacaoOrdem,
   criarOrdemServico,
@@ -76,6 +77,15 @@ function OrdensPage() {
   const [salvo, setSalvo] = useState(false);
   const [salvoPlanejamento, setSalvoPlanejamento] = useState(false);
   const [form, setForm] = useState<Record<string, string> | null>(caseId ? { case_id: caseId } : null);
+  /*
+   * F5 / sair da linha (09/10/2026). O form nasce com `case_id` quando a
+   * rota recebe o caso: esse valor é estado inicial, não edição. Sujo é
+   * qualquer OUTRO campo preenchido — senão a tela travaria ao abrir.
+   */
+  useAvisoEdicaoNaoSalva(
+    form !== null &&
+      Object.entries(form).some(([k, v]) => k !== "case_id" && String(v ?? "").trim() !== ""),
+  );
   const [erro, setErro] = useState<string | null>(null);
 
   const q = useQuery({

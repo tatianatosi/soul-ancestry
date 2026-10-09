@@ -36,6 +36,7 @@ import { CAT_ESTADO_PROPOSTA, CAT_FORMA_PAGAMENTO, CAT_MOTIVO_ARQUIVAMENTO } fro
 import { RegraComercial } from "@/components/contrato/regra-comercial";
 import { semFixtures } from "@/lib/fixtures";
 
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 const AJUDA_PROPOSTA: Record<string, string> = Object.fromEntries(CAT_ESTADO_PROPOSTA.map((o) => [o.valor, o.ajuda ?? ""]));
 
 export const Route = createFileRoute("/_authenticated/propostas")({
@@ -77,6 +78,8 @@ function PropostasPage() {
   const [status, setStatus] = useState("");
   const [detalhe, setDetalhe] = useState<Linha | null>(null);
   const [form, setForm] = useState<Record<string, string> | null>(null);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(form !== null && Object.values(form).some((x) => String(x ?? "").trim() !== ""));
   const [erro, setErro] = useState<string | null>(null);
   const [renovacao, setRenovacao] = useState({ validade: "", motivo: "" });
   const [visao, setVisao] = useState<"ativas" | "todas" | "arquivadas">("ativas");

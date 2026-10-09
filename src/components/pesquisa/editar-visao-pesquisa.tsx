@@ -24,6 +24,7 @@ import { Selecao, Texto } from "@/components/caso/campos";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { STATUS_PESQUISA } from "@/lib/pesquisa-cadeia";
 import { salvarVisaoPesquisa } from "@/lib/pesquisa-cadeia.functions";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 type Pesquisa = Record<string, unknown> & { id?: string };
 
@@ -32,6 +33,8 @@ export function EditarVisaoPesquisa({ pesquisa, aoSalvar }: { pesquisa: Pesquisa
   const [aberto, setAberto] = useState(false);
   const t = (k: string) => String((pesquisa?.[k] as string | null) ?? "");
   const [form, setForm] = useState<Record<string, string>>({});
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(Object.keys(form).length > 0);
 
   const valor = (k: string) => (k in form ? form[k] : t(k));
   const mudar = (k: string) => (v: string) => setForm({ ...form, [k]: v });

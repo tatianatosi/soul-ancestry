@@ -55,6 +55,7 @@ import { calcularRadar } from "@/lib/radar-elegibilidade";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
 import { formatarTelefone } from "@/lib/validacao-pessoa";
 import { leadForaDoPipeline, etapaPipeline, ROTULO_ETAPA_PIPELINE } from "@/lib/crm-desk";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   INDICADORES_LEADS,
   indicadoresLeads,
@@ -102,6 +103,8 @@ function LeadsPage() {
   });
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const [rascunho, setRascunho] = useState<Record<string, unknown>>({});
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(Object.keys(rascunho).length > 0);
   const [leadPendente, setLeadPendente] = useState<string | null>(null);
   const [filtroEixo, setFiltroEixo] = useState("");
   const [mostrarConvertidos, setMostrarConvertidos] = useState(false);

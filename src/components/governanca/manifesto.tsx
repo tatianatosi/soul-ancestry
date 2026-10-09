@@ -27,6 +27,7 @@ import {
 } from "@/lib/governanca.functions";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -308,6 +309,12 @@ function LinhaArtefato({
   const [form, setForm] = useState({ ...artefato });
   const [motivo, setMotivo] = useState("");
   const [sucessor, setSucessor] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    JSON.stringify(form) !== JSON.stringify({ ...artefato }) ||
+      motivo.trim() !== "" ||
+      sucessor.trim() !== "",
+  );
 
   const naoLocalizado = artefato.status_recuperacao === "NAO_LOCALIZADO";
 
@@ -434,6 +441,8 @@ function NovoArtefato({ onCriar }: { onCriar: (campos: Record<string, unknown>) 
   const [nome, setNome] = useState("");
   const [status, setStatus] = useState<string>("NAO_LOCALIZADO");
   const [dominio, setDominio] = useState<string>("governanca");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(nome.trim() !== "");
   return (
     <div className="rounded-xl border border-dashed border-navy/20 bg-cream/40 p-3">
       <p className="text-sm font-medium text-navy">Registrar artefato</p>
@@ -466,6 +475,8 @@ function Biblioteca({
 }) {
   const [titulo, setTitulo] = useState("");
   const [tipo, setTipo] = useState("documento");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(titulo.trim() !== "");
   return (
     <section className="space-y-3">
       <ul className="space-y-2">
@@ -543,6 +554,12 @@ function Decisoes({
     substitui_ids: [] as string[],
   });
   const faltando = pendenciasDecisao(form);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    Object.entries(form).some(([, v]) =>
+      Array.isArray(v) ? v.length > 0 : String(v ?? "").trim() !== "",
+    ),
+  );
 
   return (
     <section className="space-y-4">

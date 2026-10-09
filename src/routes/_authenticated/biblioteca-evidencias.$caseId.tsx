@@ -37,6 +37,7 @@ import { CompartilharAchado } from "@/components/pesquisa/compartilhar-achado";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 export const Route = createFileRoute("/_authenticated/biblioteca-evidencias/$caseId")({
   component: Pagina,
@@ -504,6 +505,10 @@ function FormEvidencia({
     confidence_level: "INICIAL",
   });
   const set = (k: string, val: unknown) => setV((x) => ({ ...x, [k]: val }));
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    [v.evidence_type, v.title_internal].some((x) => String(x ?? "").trim() !== ""),
+  );
   const check = validarEvidencia(v);
 
   return (
@@ -655,6 +660,8 @@ function FormValidacao({
   const [estadoNovo, setEstadoNovo] = useState("EM_VALIDACAO_DOCUMENTAL");
   const [confiancaNova, setConfiancaNova] = useState("BAIXO");
   const [justificativa, setJustificativa] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(justificativa.trim() !== "");
 
   const check = validarElevacaoConfianca({
     anterior: String(alvo?.["confidence_level"] ?? "INICIAL"),
@@ -727,6 +734,8 @@ function FormProjecao({
   const [tipo, setTipo] = useState("marco_de_pesquisa");
   const [destino, setDestino] = useState("app");
   const [conteudo, setConteudo] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(origem.trim() !== "" || conteudo.trim() !== "");
   const evidencia = evidencias.find((e) => e["id"] === origem);
   const regra = marcosJuridicos.find((r) => r["id"] === origem);
   const checkTexto = conteudoProjetavel(conteudo);

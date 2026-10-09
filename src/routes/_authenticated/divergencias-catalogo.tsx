@@ -10,6 +10,7 @@ import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { Selo, inputCls, dataBr } from "@/components/comercial/base";
 import { CaCard } from "@/components/ui/ca-card";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   anotarResolucaoDivergencia,
   listarDivergenciasCatalogo,
@@ -58,6 +59,8 @@ function DivergenciasCatalogoPage() {
   const [vinculo, setVinculo] = useState("");
   const [status, setStatus] = useState<Status>("todos");
   const [edicao, setEdicao] = useState<Record<string, string>>({});
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(Object.keys(edicao).length > 0);
 
   const salvar = useMutation({
     mutationFn: (v: { id: string; observacao: string }) => anotar({ data: v }),

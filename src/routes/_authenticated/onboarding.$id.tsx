@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { SaasShell } from "@/components/saas/shell";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   atualizarCheckAtivacao,
   atualizarItemChecklistOnboarding,
@@ -73,6 +74,10 @@ function OnboardingPage() {
   const [expira, setExpira] = useState("");
   const [motivoSuspensao, setMotivoSuspensao] = useState("");
   const [suspendendo, setSuspendendo] = useState(false);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    motivo.trim() !== "" || expira.trim() !== "" || motivoSuspensao.trim() !== "",
+  );
   const [itemOnboardingDe, setItemOnboardingDe] = useState<{
     id: string;
     label: string;

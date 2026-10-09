@@ -7,6 +7,7 @@ import { Selecao, Texto } from "@/components/caso/campos";
 import { PROXIMAS_ACOES, type LeadDesk } from "@/lib/crm-desk";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { ROTULO_ESTADO_ACAO, listaAcoes, resumoAcoes, type EstadoAcao, type LinhaAcao } from "@/lib/proximas-acoes";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 const CARTAO = "rounded-xl border border-navy/10 bg-cream/40 p-4";
 
@@ -32,6 +33,8 @@ export function ProximasAcoes() {
     responsavel_nome: "",
   });
   const [erros, setErros] = useState<string[]>([]);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(editando !== null);
 
   const {
     data: leads = [],

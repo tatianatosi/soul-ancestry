@@ -40,6 +40,7 @@ import { rotuloEstado } from "@/lib/estados";
 import { cn } from "@/lib/utils";
 import { formatarCpf, formatarTelefone } from "@/lib/validacao-pessoa";
 
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 export const Route = createFileRoute("/_authenticated/clientes")({
   head: () => ({
     meta: [
@@ -123,6 +124,8 @@ function ClientesPage() {
     null,
   );
   const [novo, setNovo] = useState<Record<string, string> | null>(null);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(novo !== null && Object.values(novo).some((x) => String(x ?? "").trim() !== ""));
   const [duplicidadesNovo, setDuplicidadesNovo] = useState<PossivelDuplicidadeCliente[]>([]);
   const [verificandoDuplicidade, setVerificandoDuplicidade] = useState(false);
 

@@ -41,6 +41,7 @@ import {
 } from "@/lib/discovery-roteiro-mestre";
 import { MOTIVO_DISPENSA_MINIMO, situacaoBlocos, type RegistroDiscovery } from "@/lib/discovery-registro";
 import type { EtapaSpin } from "@/lib/discovery-roteiro";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 type Props = { lead: LeadDesk; registro: RegistroDiscovery; onSalvo: () => void; onAviso: (t: string) => void };
 
@@ -121,6 +122,10 @@ export function RespostaNarrativa({
   const salvo = registro.respostas[perguntaId];
   const [texto, setTexto] = useState(salvo?.texto ?? "");
   const [origem, setOrigem] = useState(salvo?.origem ?? "relato_call");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    texto !== (salvo?.texto ?? "") || origem !== (salvo?.origem ?? "relato_call"),
+  );
   useEffect(() => {
     setTexto(salvo?.texto ?? "");
     setOrigem(salvo?.origem ?? "relato_call");
@@ -188,6 +193,10 @@ export function BlocoSpinCard({ lead, registro, etapa, onSalvo, onAviso }: Props
   const atual = situacao.find((b) => b.etapa === etapa)!;
   const [nota, setNota] = useState(atual.nota ?? "");
   const [motivo, setMotivo] = useState(atual.motivoDispensa ?? "");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    nota !== (atual.nota ?? "") || motivo !== (atual.motivoDispensa ?? ""),
+  );
   useEffect(() => {
     setNota(atual.nota ?? "");
     setMotivo(atual.motivoDispensa ?? "");
@@ -297,6 +306,8 @@ export function ExtensoesPais(props: Props) {
 /** Fechamento + pós-call: nível 1 sempre; nível 2 quando a call qualificou. Pendência informa, não trava. */
 export function FechamentoPosCall({ lead, registro, onSalvo, onAviso }: Props) {
   const [pos, setPos] = useState<Partial<PosCall>>(registro.pos_call);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(JSON.stringify(pos) !== JSON.stringify(registro.pos_call));
   useEffect(() => setPos(registro.pos_call), [lead.id, JSON.stringify(registro.pos_call)]); // eslint-disable-line react-hooks/exhaustive-deps
   const salvar = useServerFn(salvarPosCallDiscovery);
   const m = useMutation({

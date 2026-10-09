@@ -42,6 +42,7 @@ import {
 import { diagnosticarVersaoContratual, versaoMaisRecente } from "@/lib/versao-contratual-vazia";
 import { salvarTarefa } from "@/lib/ops.functions";
 import { listarEquipe } from "@/lib/equipe.functions";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
   head: () => ({
@@ -83,6 +84,8 @@ function ContratoDetalhe() {
   const [aviso, setAviso] = useState<string | null>(null);
   const [resumoVersao, setResumoVersao] = useState("");
   const [tituloTarefa, setTituloTarefa] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(resumoVersao.trim() !== "" || tituloTarefa.trim() !== "");
 
   const recarregar = () => q.refetch();
 
@@ -645,6 +648,8 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
   const { erro, salvar, arquivar } = useSalvarItem(contratoId, "contract_parties", onSalvo);
   const [nome, setNome] = useState("");
   const [papel, setPapel] = useState("contracting_client");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(nome.trim() !== "");
   return (
     <div className="space-y-4">
       {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
@@ -735,22 +740,11 @@ function Escopo({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
   const [titulo, setTitulo] = useState("");
   const [categoria, setCategoria] = useState("contracted_scope");
   const [status, setStatus] = useState("included");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(titulo.trim() !== "");
 
-  // P0-2: "Adicionar item" só grava ao clicar — diferente de Resumo (Campo
-  // autosalva por campo, onBlur/onChange). Aqui um título digitado e ainda
-  // não confirmado se perde silenciosamente ao sair/recarregar. Mesmo
-  // padrão de aviso já usado em casos.$caseId.index.tsx (beforeunload),
-  // sem criar hook novo — só o alcance mínimo (rascunho não confirmado
-  // deste item), sem tocar cláusula, anexo ou assinatura.
-  useEffect(() => {
-    if (!titulo.trim()) return;
-    const h = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", h);
-    return () => window.removeEventListener("beforeunload", h);
-  }, [titulo]);
+  // P0-2 (09/10/2026): o guard inline que vivia aqui cobria só o F5. O hook
+  // acima cobre F5 *e* a navegação interna do Desk — um mecanismo só.
 
   return (
     <div className="space-y-4">
@@ -832,6 +826,12 @@ function Clausulas({ dados, contratoId, onSalvo }: { dados: any; contratoId: str
     clause_text: "",
   });
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    Object.entries(form).some(([k, v]) =>
+      k === "action" ? v !== "specify" : String(v ?? "").trim() !== "",
+    ),
+  );
   return (
     <div className="space-y-4">
       {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
@@ -902,6 +902,12 @@ function Clausulas({ dados, contratoId, onSalvo }: { dados: any; contratoId: str
 function Anexos({ dados, contratoId, onSalvo }: { dados: any; contratoId: string; onSalvo: () => void }) {
   const { erro, salvar } = useSalvarItem(contratoId, "contract_annexes", onSalvo);
   const [form, setForm] = useState({ annex_code: "", title: "", annex_type: "scope", required_for_contract: true });
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    Object.entries(form).some(([k, v]) =>
+      k === "annex_type" ? v !== "scope" : k === "required_for_contract" ? v !== true : String(v ?? "").trim() !== "",
+    ),
+  );
   return (
     <div className="space-y-4">
       {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
@@ -984,6 +990,8 @@ function Fontes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
   const { erro, salvar } = useSalvarItem(contratoId, "contract_source_links", onSalvo);
   const [ref, setRef] = useState("");
   const [tipo, setTipo] = useState("proposal");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(ref.trim() !== "");
   return (
     <div className="space-y-4">
       {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}

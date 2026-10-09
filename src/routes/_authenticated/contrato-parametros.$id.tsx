@@ -13,6 +13,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { GRUPOS } from "@/lib/contrato-parametros.server";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   aprovarParametros,
   congelarPrevia,
@@ -80,6 +81,8 @@ function Pagina() {
 
   const [html, setHtml] = useState<string | null>(null);
   const [assinatura, setAssinatura] = useState({ dataAssinatura: "", origemExterna: "", referencia: "" });
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(Object.values(assinatura).some((v) => String(v ?? "").trim() !== ""));
 
   const mImportar = useMutation({
     mutationFn: () => importar({ data: { id } }),

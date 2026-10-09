@@ -10,6 +10,7 @@ import { ORIGENS_PARAM } from "@/lib/contrato-parametros.server";
 import { definirStatusParametro, salvarParametro } from "@/lib/contrato-parametros.functions";
 import { CAT_ORIGEM, CAT_STATUS_PARAMETRO } from "@/lib/parametros-catalogos";
 import { ROTULO_DESTINO, ROTULO_TIPO, definicaoCampo, validarValorCampo } from "@/lib/parametros-dicionario";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 export const ROTULO_ORIGEM: Record<string, string> = Object.fromEntries(CAT_ORIGEM.map((o) => [o.valor, o.rotulo]));
 const AJUDA_ORIGEM: Record<string, string> = Object.fromEntries(CAT_ORIGEM.map((o) => [o.valor, o.ajuda ?? ""]));
@@ -25,6 +26,13 @@ export function LinhaParametro({ valor, aoMudar }: { valor: any; aoMudar: () => 
   const [origem, setOrigem] = useState((valor.origem as string) ?? "preenchimento_humano");
   const [detalhe, setDetalhe] = useState((valor.origem_detalhe as string) ?? "");
   const [justificativa, setJustificativa] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    texto !== ((valor.valor as string) ?? "") ||
+      origem !== ((valor.origem as string) ?? "preenchimento_humano") ||
+      detalhe !== ((valor.origem_detalhe as string) ?? "") ||
+      justificativa.trim() !== "",
+  );
 
   const origensPermitidas = def.origens?.length ? def.origens : [...ORIGENS_PARAM];
   /*

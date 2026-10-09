@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { CaCard } from "@/components/ui/ca-card";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { inputCls } from "@/components/comercial/base";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   arquivarPrecoCatalogo,
   criarPrecoCatalogo,
@@ -48,6 +49,12 @@ function NovaLinhaForm({ onCriada }: { onCriada: () => void }) {
     item_id: "",
     notes: "",
   });
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    [form.country_code, form.amount, form.source_type, form.source_reference, form.item_id,
+      form.notes,
+    ].some((v) => String(v ?? "").trim() !== ""),
+  );
 
   const m = useMutation({
     mutationFn: () =>
@@ -153,6 +160,12 @@ function LinhaEditavel({ linha, onMudou }: { linha: LinhaPrecoCatalogo; onMudou:
   const [status, setStatus] = useState(linha.price_status);
   const [motivo, setMotivo] = useState("");
   const [arquivando, setArquivando] = useState(false);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    amount !== (linha.amount === null ? "" : String(linha.amount)) ||
+      status !== linha.price_status ||
+      motivo.trim() !== "",
+  );
 
   const mEditar = useMutation({
     mutationFn: () => editar({ data: { id: linha.id, amount: amount === "" ? null : Number(amount), price_status: status } }),

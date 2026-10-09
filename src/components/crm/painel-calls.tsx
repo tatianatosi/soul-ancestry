@@ -65,6 +65,7 @@ import { VarreduraWhatsApp } from "@/components/crm/varredura-whatsapp";
 import { CrmKanban } from "@/components/clube-ancestral-kit";
 import { CAMPO_LEAD_POR_VARREDURA, codigoLeadDoAchado, type Achado } from "@/lib/varredura-whatsapp";
 import { filaCrmVivo, statusPedeMotivo } from "@/lib/crm-vivo";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 /** Catálogos de seleção múltipla — não vivem em CATALOGOS (só campo único). */
 const CATALOGO_MULTI: Record<string, Opcao[]> = {
@@ -288,6 +289,8 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
   // P2 CRM Vivo (24/09/2026): no-show e cancelamento exigem motivo, gravado
   // na trilha do lead (audit_logs) junto com o evento nomeado da call.
   const [motivoCall, setMotivoCall] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(Object.keys(rascunho).length > 0 || motivoCall.trim() !== "");
   const [candidatosCliente, setCandidatosCliente] = useState<
     Array<{ id: string; nome: string; motivo: string }>
   >([]);

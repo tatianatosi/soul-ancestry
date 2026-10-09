@@ -10,6 +10,7 @@ import { useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { emailValido, formatarTelefone, telefoneValido } from "@/lib/validacao-pessoa";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 export type CampoAcao = {
   nome: string;
@@ -43,6 +44,10 @@ export function Acao({
     Object.fromEntries(campos.map((c) => [c.nome, c.padrao ?? ""])),
   );
   const [mensagem, setMensagem] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    campos.some((c) => String(valores[c.nome] ?? "") !== String(c.padrao ?? "")),
+  );
   const queryClient = useQueryClient();
 
   /*

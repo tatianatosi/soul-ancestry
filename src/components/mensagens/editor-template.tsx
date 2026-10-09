@@ -20,6 +20,7 @@ import { toast } from "sonner";
 
 import { CaCard } from "@/components/ui/ca-card";
 import { CANAIS, salvarTemplate, validarConteudoTemplate, type Canal } from "@/lib/message-library.functions";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 const PUBLICOS = [
   { valor: "interno", rotulo: "Interno (equipe)" },
@@ -66,6 +67,8 @@ export function EditorTemplate({
 }) {
   const salvar = useServerFn(salvarTemplate);
   const [form, setForm] = useState<TemplateEditavel>(inicial ?? VAZIO);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(JSON.stringify(form) !== JSON.stringify(inicial ?? VAZIO));
 
   // Mesma função que o servidor aplica — o aviso aparece antes de enviar,
   // mas quem recusa continua sendo o servidor.

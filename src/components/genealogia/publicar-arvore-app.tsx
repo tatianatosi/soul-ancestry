@@ -16,6 +16,7 @@ import {
   publicarPessoaNaArvore,
 } from "@/lib/arvore-publicacao.functions";
 import { RESUMO_GATE_ARVORE, prontidaoParaArvore } from "@/lib/visibilidade-arvore";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 const ROTULO_GERACAO: Record<number, string> = {
   // Mesmos rótulos que o cliente vê na aba Árvore (mockup p.6).
@@ -42,6 +43,13 @@ function LinhaPessoa({ caseId, p, onMudou }: { caseId: string; p: Linha; onMudou
   const [geracao, setGeracao] = useState<number>(p.publicacao?.geracao ?? 0);
   const [retirando, setRetirando] = useState(false);
   const [motivo, setMotivo] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    nome !== (p.publicacao?.conteudo.split(" · ")[0] ?? p.nome) ||
+      vinculo !== (p.publicacao?.conteudo.split(" · ").slice(1).join(" · ") ?? "") ||
+      geracao !== (p.publicacao?.geracao ?? 0) ||
+      (retirando && motivo.trim() !== ""),
+  );
   const publicar = useServerFn(publicarPessoaNaArvore);
   const despublicar = useServerFn(despublicarPessoaDaArvore);
   /*

@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 import {
   atualizarGrupoComunicacaoCaso,
@@ -42,6 +43,11 @@ export function GrupoComunicacaoCaso({ caseId }: { caseId: string }) {
 
   const [proposito, setProposito] = useState("");
   const [novoLink, setNovoLink] = useState<Record<string, string>>({});
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    proposito.trim() !== "" ||
+      Object.values(novoLink).some((v) => String(v ?? "").trim() !== ""),
+  );
 
   const mRegistrar = useMutation({
     mutationFn: () => registrar({ data: { caseId, proposito: proposito.trim() } }),

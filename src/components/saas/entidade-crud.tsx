@@ -15,6 +15,7 @@ import { rotuloEstado, transicoesDe, type Dominio } from "@/lib/estados";
 import { filtrarPorBusca } from "@/lib/rotulo-negocio";
 import { BotaoTentarNovamente, EstadoVazio } from "./shell";
 import { cn } from "@/lib/utils";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 export type Campo = {
   chave: string;
@@ -99,6 +100,13 @@ export function EntidadeCrud({
   const [erro, setErro] = useState<string | null>(null);
   const [arquivando, setArquivando] = useState<{ id: string; motivo: string } | null>(null);
   const [restaurando, setRestaurando] = useState<{ id: string; motivo: string } | null>(null);
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    editandoId !== null ||
+      (form !== null && Object.values(form).some((v) => String(v ?? "").trim() !== "")) ||
+      (arquivando?.motivo ?? "").trim() !== "" ||
+      (restaurando?.motivo ?? "").trim() !== "",
+  );
 
   const chave = ["saas", entidade, incluirArquivados];
   const q = useQuery({

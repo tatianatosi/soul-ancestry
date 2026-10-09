@@ -9,6 +9,7 @@ import { criarLeadManual, type PossivelDuplicidade } from "@/lib/crm-desk.functi
 import { OBJETIVOS, ORIGENS_LEAD, PROXIMAS_ACOES } from "@/lib/crm-desk";
 import { hojeISO } from "@/lib/painel-dia";
 import { formatarTelefone } from "@/lib/validacao-pessoa";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 type Props = {
   aberto: boolean;
@@ -43,6 +44,8 @@ export function NovoLeadDialog({ aberto, onFechar, onCriado }: Props) {
   const qc = useQueryClient();
   const { contexto } = useSaas();
   const [form, setForm] = useState({ ...vazio });
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(JSON.stringify(form) !== JSON.stringify({ ...vazio }));
   const [duplicidades, setDuplicidades] = useState<PossivelDuplicidade[]>([]);
   const [msg, setMsg] = useState<string | null>(null);
 

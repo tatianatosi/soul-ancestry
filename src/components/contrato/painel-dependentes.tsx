@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { listarDependentes, salvarDependente } from "@/lib/crm-desk.functions";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   STATUS_REPRESENTACAO,
   VINCULOS_DEPENDENTE,
@@ -33,6 +34,8 @@ export function PainelDependentes({ caseId, podeEscrever }: { caseId: string; po
   const q = useQuery({ queryKey: ["dependentes", caseId], queryFn: () => carregar({ data: { caseId } }), retry: false });
   const [novo, setNovo] = useState<Record<string, unknown> | null>(null);
   const [edicao, setEdicao] = useState<Record<string, Record<string, unknown>>>({});
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(novo !== null || Object.keys(edicao).length > 0);
 
   const mut = useMutation({
     mutationFn: (p: { id?: string | null; valores: Record<string, unknown> }) => salvar({ data: { ...p, caseId } }),

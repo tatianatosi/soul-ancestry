@@ -12,6 +12,7 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { consolidarMatrizJuridica, listarMatrizJuridica, registrarDecisaoTema } from "@/lib/crm-desk.functions";
 import { STATUS_TEMA, rotuloStatusTema, temasBloqueantesPendentes, type LinhaMatriz } from "@/lib/matriz-juridica";
 import { separarNotaTecnica } from "@/lib/rotulo-negocio";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 export const Route = createFileRoute("/_authenticated/matriz-juridica")({
   head: () => ({
@@ -45,6 +46,8 @@ function MatrizPage() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["matriz-juridica"], queryFn: () => carregar(), retry: false });
   const [edicao, setEdicao] = useState<Record<string, Record<string, string>>>({});
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(Object.keys(edicao).length > 0);
 
   const mutConsolidar = useMutation({
     mutationFn: () => consolidar(),

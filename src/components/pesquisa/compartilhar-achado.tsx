@@ -29,6 +29,7 @@ import { toast } from "sonner";
 
 import { Selecao, Texto } from "@/components/caso/campos";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   listarCompartilhamentosAchado,
   registrarCompartilhamentoAchado,
@@ -68,6 +69,10 @@ export function CompartilharAchado({
   const [comClienteId, setComClienteId] = useState("");
   const [revogando, setRevogando] = useState<string | null>(null);
   const [motivo, setMotivo] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(
+    comClienteId.trim() !== "" || (revogando !== null && motivo.trim() !== ""),
+  );
 
   const mRegistrar = useMutation({
     mutationFn: () => registrar({ data: { projecaoId, compartilharComClienteId: comClienteId } }),

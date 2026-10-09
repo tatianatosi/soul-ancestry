@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 import {
   sincronizarContatoPartesDoCaso,
@@ -73,6 +74,8 @@ function ResolverConflitoContato({
 }) {
   const [aberto, setAberto] = useState(false);
   const [motivo, setMotivo] = useState("");
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
+  useAvisoEdicaoNaoSalva(motivo.trim() !== "");
   if (contratoAssinado) return null;
   if (!aberto) {
     return (
