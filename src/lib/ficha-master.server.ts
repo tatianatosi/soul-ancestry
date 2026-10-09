@@ -13,10 +13,17 @@
  * De-para completo: `docs/arquitetura/2026-10-01_FICHA-MASTER-54-CAMPOS-DE-PARA.md`.
  * Campo sem fonte real hoje (heatmap_pct_1..3, heatmap_pais_2/3, 2ª/3ª
  * pessoa do genograma além da já publicada, jornada_ancestral_1,
- * jornada_intersecao_1/2 — dependem de `uniao_ramos`, ainda não construído,
- * Corte 3c) entra vazio/nulo — nunca fabricado. O heatmap de percentual
- * (campos 14/16/18) é a Prioridade 2 da mesma sequência (migration de
- * `aderencia_percentual` nos ramos do caso, ainda não aplicada).
+ * jornada_intersecao_1/2) entra vazio/nulo — nunca fabricado.
+ *
+ * Correção de comentário (09/10/2026): este cabeçalho dizia que esses campos
+ * dependem de `uniao_ramos` "ainda não construído, Corte 3c" e que a migration
+ * de `aderencia_percentual` estava "ainda não aplicada". As duas afirmações
+ * estão desatualizadas: `src/lib/uniao-ramos.ts` e `uniao-ramos.functions.ts`
+ * existem desde 03/10, com a migration `20261001120000`, e
+ * `aderencia_percentual` já está no ramo. O que de fato falta é **onde gravar**
+ * `heatmap_pais_1..3` e `heatmap_pct_1..3` como campos de apresentação, e isso
+ * depende de decisão da Proprietária (Radar de países como heatmap por país ou
+ * como camada do Radar de 6 dimensões) — não de código ausente.
  *
  * Só leitura. Nenhum escritor aqui.
  */

@@ -365,7 +365,10 @@ export const MOTORES_TABELAS = [
     tabelas: [] as const,
     naoCriar: [] as const,
     rotaDesk: "/biblioteca" as const,
-    oQueJaEscreve: "Marca e navegação do Desk (6 grupos, GRUPOS_DESK). Não é motor de dado.",
+    oQueJaEscreve:
+      "Marca e navegação do Desk. O menu que renderiza é SETORES_DESK_V5 (6 setores: hoje, comercial, casos, " +
+      "pesquisa, contratos, governanca), consumido por components/saas/shell.tsx. GRUPOS_DESK tem 7 grupos e NÃO " +
+      "desenha menu: resolve rota por prefixo no assistente transversal. Medido em 09/10/2026. Não é motor de dado.",
     evidencia: {
       writer: null,
       tabela: null,
