@@ -11,7 +11,14 @@ const v1Vazia = {
   version_number: 1,
   status: "working",
   created_at: "2026-08-21T15:14:00Z",
-  generated_content: { contrato: { contract_type: "contract_base" }, clausulas: [], escopo: [] },
+  generated_content: {
+    contrato: {
+      contract_type: "contract_base",
+      title: "Contrato-base familiar — Silveira / Friedmann-Reimer (Áustria)",
+    },
+    clausulas: [],
+    escopo: [],
+  },
 };
 
 const v2Correta = {
@@ -19,7 +26,10 @@ const v2Correta = {
   status: "working",
   created_at: "2026-10-09T14:45:00Z",
   generated_content: {
-    contrato: { contract_type: "contract_base", title: "Contrato de Estudo Genealógico v2" },
+    contrato: {
+      contract_type: "contract_base",
+      title: "Contrato de Estudo Genealógico v2 — Silveira / Friedmann-Reimer (Áustria)",
+    },
     clausulas: [],
     escopo: new Array(21).fill({ title: "item" }),
     html: "<section><h2>Cláusulas indicadas</h2><p>Cláusula 1 …</p></section>",
@@ -61,10 +71,37 @@ describe("versão vazia × versão sem override", () => {
     expect(diagnosticarVersaoContratual(null).vazia).toBe(false);
   });
 
-  it("o rótulo 'contrato-base' continua sendo sinalizado como motivo, sem tornar a versão vazia", () => {
+  /*
+   * Esta asserção estava invertida quando foi escrita, mais cedo em 09/10/2026:
+   * ela exigia que a v2 CORRETA fosse sinalizada como contrato-base. O motivo
+   * olhava `contract_type`, cujo CHECK só admite `contract_base`,
+   * `contract_complement` e `amendment` — então `contract_base` é o único
+   * valor válido para o instrumento principal e o sinal disparava em todos os
+   * contratos-base, sempre. Quem distingue é o título.
+   */
+  it("o título 'Contrato-base familiar' da v1 é sinalizado como motivo", () => {
+    const d = diagnosticarVersaoContratual(v1Vazia);
+    expect(d.motivos.some((m) => /contrato-base/i.test(m))).toBe(true);
+  });
+
+  it("a v2 com título próprio NÃO é sinalizada como contrato-base, apesar de contract_type='contract_base'", () => {
     const d = diagnosticarVersaoContratual(v2Correta);
-    expect(d.tipoDeclarado).toBeTruthy();
-    expect(d.motivos.some((m) => /contrato-base|contract_base/i.test(m))).toBe(true);
+    expect(d.tipoDeclarado).toBe("contract_base");
+    expect(d.motivos.some((m) => /contrato-base/i.test(m))).toBe(false);
     expect(d.vazia).toBe(false);
+  });
+
+  it("contract_type sozinho nunca basta para acusar contrato-base", () => {
+    const d = diagnosticarVersaoContratual({
+      version_number: 4,
+      created_at: "2026-10-09T00:00:00Z",
+      generated_content: {
+        contrato: { contract_type: "contract_base", title: "Contrato de Estudo Genealógico v2" },
+        clausulas: [],
+        escopo: new Array(3).fill({ title: "item" }),
+        html: "<p>Cláusula 1 …</p>",
+      },
+    });
+    expect(d.motivos.some((m) => /contrato-base/i.test(m))).toBe(false);
   });
 });

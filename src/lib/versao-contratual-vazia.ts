@@ -106,9 +106,25 @@ export function diagnosticarVersaoContratual(v: VersaoContratual | null | undefi
 
   const tipoDeclarado =
     (c?.contrato?.contract_type as string | undefined) ?? (c?.contrato?.title as string | undefined) ?? null;
-  if (typeof tipoDeclarado === "string" && /contract_base|contrato[- ]base/i.test(tipoDeclarado)) {
+
+  /*
+   * Segunda correção de 09/10/2026, da mesma família da anterior: o sinal
+   * estava no campo errado. `contracts.contract_type` tem CHECK de três
+   * valores — `contract_base`, `contract_complement`, `amendment` — e
+   * `contract_base` é o ÚNICO válido para o instrumento principal. Testar o
+   * rótulo "contrato-base" contra esse campo faz o motivo disparar em 100%
+   * dos contratos-base, sempre, inclusive na v2 regenerada e correta.
+   *
+   * O que de fato distingue os dois casos é o TÍTULO, como as duas versões da
+   * Ana mostram: a v1 de 21/08 se chama "Contrato-base familiar — Silveira /
+   * Friedmann-Reimer (Áustria)" e a v2 de 09/10 se chama "Contrato de Estudo
+   * Genealógico v2 — Silveira / Friedmann-Reimer (Áustria)". O motivo passa a
+   * olhar o título; `tipoDeclarado` segue informativo, sem mudar de forma.
+   */
+  const tituloDeclarado = typeof c?.contrato?.title === "string" ? (c.contrato.title as string) : "";
+  if (/contrato[- ]base/i.test(tituloDeclarado)) {
     motivos.push(
-      `O conteúdo gravado se declara "${tipoDeclarado}" — contrato-base, não o Contrato de Estudo Genealógico v2 completo.`,
+      `O conteúdo gravado se declara "${tituloDeclarado}" — contrato-base, não o Contrato de Estudo Genealógico v2 completo.`,
     );
   }
 
