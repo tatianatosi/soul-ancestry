@@ -26,6 +26,7 @@ import { PLACEHOLDER_PARAM, anexosPorRegra } from "@/lib/contrato-parametros.ser
 import { MARCA_ESVAZIADO_PELA_EQUIPE } from "@/lib/parametros-dicionario";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { anexarOpcoesVivasDoCatalogo } from "@/lib/catalogo-opcoes-contrato.server";
+import { AVISO_ANEXOS_NO_CORPO, MOTIVO_SEM_ANEXO_APLICAVEL, ausenciaDeAnexoEhPendencia, modoAnexosEfetivo } from "@/lib/modo-anexos";
 import { skuHomologadoParaCaso } from "@/lib/catalogo-sku.server";
 import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
 import { referenciaFinanceiraDoCaso } from "@/lib/financeiro-referencia.server";
@@ -445,7 +446,16 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       bloqueios.push({ chave: "condicao_comercial", motivo: `Proposta v${proposta.versao} não está aprovada (${proposta.status}).` });
     if (!modelo) bloqueios.push({ chave: "template", motivo: "MODELO ESTUDO ativo não localizado." });
     if (!base) bloqueios.push({ chave: "anexo", motivo: "Contrato-base genérico v2 ativo não localizado." });
-    if (!anexos.length) bloqueios.push({ chave: "anexo", motivo: "Nenhum anexo aplicável pelas regras existentes." });
+    /*
+     * Corte C / D3 (08/10/2026): a escolha registrada em `modo_anexos`
+     * manda; sem escolha, vale o modo derivado dos blocos do Anexo I.
+     *
+     * No modo incorporado, não existir anexo aplicável é o estado CORRETO
+     * (o conteúdo está no corpo), não uma pendência. O gate de proposta
+     * vinculada e aprovada, logo acima, NÃO é afetado: a proposta aprovada
+     * é a fonte da condição comercial incorporada, não um anexo dispensável.
+     */
+    if (!anexos.length) bloqueios.push({ chave: "anexo", motivo: MOTIVO_SEM_ANEXO_APLICAVEL });
 
     const obrigatoriosVazios = lista.filter((v) => v.obrigatorio && !v.valor);
     if (obrigatoriosVazios.length)
@@ -609,6 +619,11 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
 
     const coberturaMaterial = coberturaContratual(pessoasContratuais, blocosIncorporados);
     const anexoIIncorporado = anexoIIncorporadoNoCorpo(blocosIncorporados);
+    const modoAnexos = modoAnexosEfetivo(pegar("modo_anexos"), anexoIIncorporado);
+    if (!ausenciaDeAnexoEhPendencia(modoAnexos.modo)) {
+      const i = bloqueios.findIndex((b) => b.motivo === MOTIVO_SEM_ANEXO_APLICAVEL);
+      if (i >= 0) bloqueios.splice(i, 1);
+    }
 
     /*
      * Aplicabilidade real dos cinco anexos, pela mesma regra única. Nenhum
@@ -701,6 +716,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       membros: membros ?? [],
       contrato,
       valores: await anexarOpcoesVivasDoCatalogo(supabase, org, caso.id, lista),
+      modoAnexos: { ...modoAnexos, avisoNoCorpo: AVISO_ANEXOS_NO_CORPO },
       previas: previas ?? [],
       /*
        * 08/10/2026 — quando o parâmetro mais recente foi alterado. A tela usa

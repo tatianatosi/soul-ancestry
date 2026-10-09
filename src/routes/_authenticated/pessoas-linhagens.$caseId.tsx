@@ -855,6 +855,17 @@ function AbaPerfis({
             sepultamento_localidade: e.sepultamento_localidade,
             status_verificacao: e.status_verificacao,
             evidence_id: e.evidence_id,
+            /*
+             * 09/10/2026 — bug medido e reportado pela Proprietária: "não
+             * consigo mudar a visibilidade de nenhum parente da Ana para
+             * aprovada; salva e não persiste". O seletor existia e gravava
+             * no rascunho, mas `client_visibility` NÃO estava neste payload
+             * — os outros campos salvavam, o toast dizia "salvo", e ao
+             * recarregar a visibilidade voltava para "interna". Como
+             * `client_visibility` é o ÚNICO gate da Árvore do App
+             * (visibilidade-arvore.ts), publicar era impossível.
+             */
+            client_visibility: e.client_visibility,
             internal_notes: e.internal_notes,
             client_id: e.client_id,
           }, () =>

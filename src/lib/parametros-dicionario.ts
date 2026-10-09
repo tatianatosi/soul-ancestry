@@ -10,6 +10,7 @@
  * texto contratual) NUNCA viram dropdown.
  */
 
+import { CAT_MODO_ANEXOS } from "@/lib/modo-anexos";
 import {
   CAT_CONDICAO_COMERCIAL,
   CAT_FORMA_ASSINATURA,
@@ -243,6 +244,26 @@ export const DICIONARIO_CAMPOS: DefinicaoCampo[] = [
     confiancaMinima: 4,
     validacao: "Selecionado por regra de produto/escopo; alteração manual exige justificativa.",
     destinos: ["contrato", "anexo", "auditoria"],
+  },
+  {
+    /*
+     * Corte C / D3 (08/10/2026): o modelo passa a dizer, por escolha
+     * registrada, se o Anexo I vai no corpo ou como documento separado.
+     * Antes isso era derivado da completude dos blocos — e mudava de forma
+     * sozinho no meio da preparação. Opcional por desenho: obrigatório
+     * viraria bloqueio novo em contrato já em preparação; sem escolha, o
+     * modo derivado continua valendo e a tela diz que é derivado.
+     */
+    campo: "modo_anexos",
+    tipo: "dropdown",
+    opcoes: CAT_MODO_ANEXOS,
+    justificativa: "obrigatoria",
+    origens: ["preenchimento_humano", "planejador"],
+    confiancaMinima: 6,
+    validacao:
+      "Escolha entre anexos incorporados ao corpo e Anexo I a V como documentos separados. Muda a forma do instrumento: alteração exige justificativa e fica auditada.",
+    destinos: ["contrato", "anexo", "auditoria"],
+    ajuda: "No modo incorporado, não existir anexo aplicável deixa de ser pendência — o conteúdo está no próprio contrato.",
   },
   {
     campo: "prazos_referencia",

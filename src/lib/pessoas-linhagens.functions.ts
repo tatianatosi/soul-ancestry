@@ -275,16 +275,36 @@ export const painelPessoasLinhagens = createServerFn({ method: "GET" })
         .eq("case_id", data.caseId)
         .order("start_date", { ascending: true }),
       org("lineage_paths").eq("case_id", data.caseId).order("created_at", { ascending: true }),
-      supabase
-        .from("research_evidence_items")
-        .select("id,title,evidence_status")
-        .eq("organization_id", organizationId)
-        .is("archived_at", null),
-      supabase
-        .from("research_sources")
-        .select("id,title,source_type,source_status")
-        .eq("organization_id", organizationId)
-        .is("archived_at", null),
+      /*
+       * 09/10/2026 — bug medido e reportado pela Proprietária: os seletores
+       * de "Evidência de suporte" e "Fonte" liam a ORGANIZAÇÃO INTEIRA, sem
+       * filtrar pelo caso. Resultado medido no caso da Ana: apareciam as 4
+       * evidências "DEMO —" de outro caso (3f2b7d10…) ao lado da única
+       * evidência real dela ("Certidão de casamento Silveira 1912"). Isso
+       * não era só ruído de lista: era conteúdo de outro caso dentro da
+       * ficha deste, e dava para vincular a evidência de um caso à pessoa
+       * de outro.
+       *
+       * Passa a filtrar pelas pesquisas DESTE caso (`pesquisaIds`, já
+       * resolvido acima). Sem pesquisa, a lista vem vazia — vazio honesto,
+       * nunca a lista da organização.
+       */
+      pesquisaIds.length
+        ? supabase
+            .from("research_evidence_items")
+            .select("id,title,evidence_status")
+            .eq("organization_id", organizationId)
+            .in("research_case_id", pesquisaIds)
+            .is("archived_at", null)
+        : Promise.resolve({ data: [] as any[] }),
+      pesquisaIds.length
+        ? supabase
+            .from("research_sources")
+            .select("id,title,source_type,source_status")
+            .eq("organization_id", organizationId)
+            .in("research_case_id", pesquisaIds)
+            .is("archived_at", null)
+        : Promise.resolve({ data: [] as any[] }),
       org("nucleos_familiares").eq("case_id", data.caseId).is("archived_at", null),
       supabase
         .from("citizenship_tracks")

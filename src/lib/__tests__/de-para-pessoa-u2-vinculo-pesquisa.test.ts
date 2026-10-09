@@ -46,8 +46,12 @@ describe("pessoas-linhagens.$caseId.tsx — seletor de vínculo opcional, sem fu
   });
 
   it("o payload de salvar perfil inclui client_id junto aos demais campos", () => {
-    const idx = rota.indexOf("status_verificacao: e.status_verificacao,");
-    const trecho = rota.slice(idx, idx + 300);
+    // Lê o bloco inteiro do payload, não uma janela de N caracteres: em
+    // 09/10/2026 um comentário acrescentado ao payload (correção do bug de
+    // `client_visibility`) empurrou `client_id` para fora do recorte fixo e
+    // quebrou este teste sem que nada do comportamento tivesse mudado.
+    const trecho = rota.slice(rota.indexOf("onSalvar(p.id, {"), rota.indexOf("}, () =>"));
+    expect(trecho).toContain("status_verificacao: e.status_verificacao,");
     expect(trecho).toContain("client_id: e.client_id,");
   });
 });
