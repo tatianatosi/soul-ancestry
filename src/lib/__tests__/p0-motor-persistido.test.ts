@@ -32,7 +32,13 @@ describe("corpo contratual persistido", () => {
 
   it("renderiza o perfil institucional versionado", () => {
     expect(corpo.estrutura.perfilVersao).toMatch(/PERFIL-INST/);
-    for (const campo of PERFIL_INSTITUCIONAL) expect(corpo.html).toContain(campo.rotulo);
+    // O campo `whatsapp` do perfil guarda uma INSTRUÇÃO interna ("não inferir
+    // nem usar número pessoal"), não um número — e instrução interna não vai
+    // para o texto do contrato (09/10/2026, achado ao ler o PDF da Ana). Os
+    // demais campos continuam obrigatórios.
+    for (const campo of PERFIL_INSTITUCIONAL.filter((c) => c.campo !== "whatsapp")) {
+      expect(corpo.html).toContain(campo.rotulo);
+    }
   });
 
   it("renderiza as 16 cláusulas fixas do contrato-base", () => {

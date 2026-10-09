@@ -589,14 +589,47 @@ export function qualificacaoCompletaContratada(): string {
   const razao = valorInstitucional("razao_empresarial");
   const operacao = valorInstitucional("nome_operacao");
   const cnpj = valorInstitucional("cnpj");
+  const representante = valorInstitucional("representante_legal");
   const endereco = valorInstitucional("endereco_institucional");
   const email = valorInstitucional("email_oficial");
   const site = valorInstitucional("site");
   const whatsapp = valorInstitucional("whatsapp");
+  /*
+   * 09/10/2026 — corrigido depois de medir: o texto anterior (a) não dizia
+   * quem representa a contratada, e (b) terminava com o valor cru do campo
+   * `whatsapp` do perfil, que NÃO é um número: é uma instrução interna
+   * ("Canal institucional homologado/configurado — não inferir nem usar
+   * número pessoal"). Ela ia parar dentro do contrato. WhatsApp só entra
+   * quando o valor é de fato um número de telefone.
+   */
+  const temNumero = whatsapp.replace(/\D/g, "").length >= 10;
+  const canais = [`e-mail oficial ${email}`, `site ${site}`, temNumero ? `WhatsApp ${whatsapp}` : null]
+    .filter(Boolean)
+    .join(", ");
   return (
-    `${razao}, operando sob o nome de "${operacao}", CNPJ ${cnpj}, com sede em ${endereco}. ` +
-    `Canais oficiais: e-mail ${email}, site ${site}, WhatsApp — ${whatsapp}`
+    `${razao}, operando sob o nome "${operacao}", CNPJ ${cnpj}, com sede em ${endereco}` +
+    (representante ? `, representada por ${representante}` : "") +
+    `. Canais oficiais: ${canais}`
   );
+}
+
+/**
+ * A qualificação gravada no contrato é coerente com o perfil institucional?
+ *
+ * Coerente = traz TODOS os fatos que o perfil declara (razão, nome de
+ * operação, CNPJ, sede, representante, e-mail, site). A redação pode ser
+ * diferente: o que não pode é faltar ou divergir um fato. Texto coerente nunca
+ * é sobrescrito — foi o que me faltou ao publicar a primeira versão da
+ * reconciliação, que trocava um texto bom da Ana por um pior só por não ser
+ * idêntico caractere a caractere.
+ */
+export function qualificacaoContratadaCoerente(texto: string | null | undefined): boolean {
+  const t = String(texto ?? "");
+  if (!t.trim()) return false;
+  return ["razao_empresarial", "nome_operacao", "cnpj", "endereco_institucional", "representante_legal", "email_oficial", "site"]
+    .map((c) => valorInstitucional(c))
+    .filter(Boolean)
+    .every((fato) => t.includes(fato));
 }
 
 /**

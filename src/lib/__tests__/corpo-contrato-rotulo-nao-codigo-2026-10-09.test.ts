@@ -45,4 +45,17 @@ describe("o corpo do contrato mostra rótulo, não código interno", () => {
     expect(definicaoCampo("objeto_contrato").tipo).toBe("texto_longo");
     expect(definicaoCampo("escopo_resumo").tipo).toBe("texto_longo");
   });
+
+  it("a ficha parametrizada também mostra rótulo — o corpo e a ficha usam o mesmo critério", () => {
+    const ficha = readFileSync("src/lib/contrato-parametros.server.ts", "utf8");
+    expect(ficha).toContain("const exibir = (v: ValorParam)");
+    expect(ficha).toContain("${esc(exibir(v))}");
+    // O conteúdo hasheado continua com o código; só a exibição muda.
+    expect(ficha).toContain("valor: v.valor,");
+  });
+
+  it("forma de pagamento no corpo deixou de sair como assinatura_mensal", () => {
+    // Medido na linha 29 do HTML guardado: "Forma de pagamento: assinatura_mensal".
+    expect(definicaoCampo("forma_pagamento").tipo).toBe("dropdown");
+  });
 });

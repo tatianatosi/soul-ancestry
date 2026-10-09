@@ -55,6 +55,15 @@ export type LinhaDeParaCanva = {
  * Canva de fato traz — nada de destino hipotético.
  */
 export const DE_PARA_CANVA_PARAMETRO: LinhaDeParaCanva[] = [
+  /*
+   * 09/10/2026 — decisão da Proprietária: a proposta do Canva rege o OBJETO do
+   * contrato. A regra não existia (o objeto só vinha da convenção do
+   * Planejador, que o grava como texto fixo por prefixo de caso); por isso o
+   * deck aprovado nunca chegou ao parâmetro. A página 2 traz o objeto na chave
+   * `escopo_macro`: "Estudo genealógico e assessoria de cidadania austríaca —
+   * trilha § 58c StbG — para o núcleo familiar".
+   */
+  { campo: "objeto_contrato", grupo: "objeto", chaves: ["escopo_macro"], paginas: [2], rotulo: "Objeto do contrato" },
   { campo: "escopo_resumo", grupo: "objeto", chaves: ["escopo_macro", "caso_contexto"], paginas: [1, 2], rotulo: "Resumo do escopo aprovado" },
   { campo: "servicos_incluidos", grupo: "servicos", chaves: ["servicos_incluidos"], paginas: [3], rotulo: "Serviços incluídos" },
   { campo: "servicos_excluidos", grupo: "servicos", chaves: ["servicos_excluidos"], paginas: [3], rotulo: "Serviços excluídos" },

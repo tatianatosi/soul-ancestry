@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { geradaEm, previaDefasada, type PreviaRegistro } from "@/lib/previa-vigente";
-import { qualificacaoCompletaContratada } from "@/lib/contrato-base-consolidado";
+import { qualificacaoCompletaContratada, qualificacaoContratadaCoerente } from "@/lib/contrato-base-consolidado";
 
 /**
  * Medido no contrato da Ana (prévia 470a93d3) em 09/10/2026:
@@ -82,7 +82,42 @@ describe("qualificação da contratada vem do perfil institucional", () => {
 
   it("divergência passa a ser corrigida, não só campo vazio", () => {
     expect(fn).toContain("const canonico = qualificacaoCompletaContratada();");
-    expect(fn).toContain("if (atual === canonico) return valores;");
+    expect(fn).toContain("if (atual === canonico || qualificacaoContratadaCoerente(atual)) return valores;");
+  });
+
+  /*
+   * Regressão MINHA, achada em 09/10/2026 ao comparar com o perfil: o texto
+   * canônico terminava com o valor cru do campo `whatsapp` — que não é um
+   * número, é a instrução interna "Canal institucional homologado/configurado
+   * — não inferir nem usar número pessoal" — e não dizia quem representa a
+   * contratada. A reconciliação publicada em 911aaf9a trocaria o texto bom da
+   * Ana por esse pior. Agora: o canônico traz o representante, não traz
+   * instrução interna, e texto coerente com o perfil nunca é sobrescrito.
+   */
+  const ANA_GRAVADO =
+    'TATIANA MELANI TOSI – ME, operando sob o nome "Clube Ancestral", CNPJ 10.448.812/0001-58 · com sede em Rua Nova York, 822, Apt. 142, Brooklin, CEP 04560-001, São Paulo – SP, Brasil · representada por Tatiana Melani Tosi · e-mail oficial atendimento@clubeancestral.com.br, site https://clubeancestral.com.br';
+
+  it("o texto canônico diz quem representa a contratada", () => {
+    expect(qualificacaoCompletaContratada()).toContain("representada por Tatiana Melani Tosi");
+  });
+
+  it("nenhuma instrução interna do perfil vai parar dentro do contrato", () => {
+    const c = qualificacaoCompletaContratada();
+    expect(c).not.toContain("não inferir");
+    expect(c).not.toContain("número pessoal");
+    expect(c).not.toContain("homologado/configurado");
+  });
+
+  it("o texto hoje gravado na Ana é coerente com o perfil — e por isso fica intocado", () => {
+    expect(qualificacaoContratadaCoerente(ANA_GRAVADO)).toBe(true);
+    expect(qualificacaoContratadaCoerente(qualificacaoCompletaContratada())).toBe(true);
+  });
+
+  it("faltar ou divergir um fato do perfil torna o texto incoerente", () => {
+    expect(qualificacaoContratadaCoerente(ANA_GRAVADO.replace("representada por Tatiana Melani Tosi", ""))).toBe(false);
+    expect(qualificacaoContratadaCoerente(ANA_GRAVADO.replace("10.448.812/0001-58", "00.000.000/0000-00"))).toBe(false);
+    expect(qualificacaoContratadaCoerente("")).toBe(false);
+    expect(qualificacaoContratadaCoerente(null)).toBe(false);
   });
 
   it("nunca toca contrato assinado", () => {

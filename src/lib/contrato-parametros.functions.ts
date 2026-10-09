@@ -25,6 +25,7 @@ import {
   PERFIL_INSTITUCIONAL_VERSAO,
   PREAMBULO_CONTRATO_BASE,
   qualificacaoCompletaContratada,
+  qualificacaoContratadaCoerente,
 } from "@/lib/contrato-base-consolidado";
 import { renderCorpoContratual } from "@/lib/contrato-corpo.server";
 import {
@@ -280,7 +281,9 @@ async function preencherQualificacaoContratada(supabase: Sb, parametersId: strin
 
   const canonico = qualificacaoCompletaContratada();
   const atual = String(linha.valor ?? "").trim();
-  if (atual === canonico) return valores;
+  // Coerente com o perfil institucional = nada a corrigir, mesmo que a redação
+  // seja outra. Só falta ou divergência de FATO justifica trocar o texto.
+  if (atual === canonico || qualificacaoContratadaCoerente(atual)) return valores;
 
   /*
    * 09/10/2026 — medido no contrato da Ana: o campo estava preenchido, mas

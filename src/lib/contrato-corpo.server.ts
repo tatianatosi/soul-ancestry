@@ -212,10 +212,26 @@ ${demais.map(blocoHtml).join("")}</section>`
 ${secaoDemais}`;
 }
 
+/*
+ * 09/10/2026 — achado ao LER o PDF gerado da prévia da Ana: a seção imprimia
+ * todos os campos do perfil, inclusive
+ *   "WhatsApp: Canal institucional homologado/configurado — não inferir nem
+ *    usar número pessoal".
+ * Isso é uma instrução interna de uso do perfil, não dado da contratada, e
+ * estava dentro do texto do contrato. Campo de contato só entra quando o valor
+ * é de fato um número de telefone.
+ */
+function valorImprimivelDoPerfil(c: { campo: string; valor: string }): boolean {
+  if (c.campo !== "whatsapp") return true;
+  return c.valor.replace(/\D/g, "").length >= 10;
+}
+
 function secaoPerfil() {
-  return `<section><h2>Perfil institucional da contratada (${esc(PERFIL_INSTITUCIONAL_VERSAO)})</h2><ul>${PERFIL_INSTITUCIONAL.map(
-    (c) => `<li><strong>${esc(c.rotulo)}:</strong> ${esc(c.valor)}</li>`,
-  ).join("")}</ul></section>`;
+  return `<section><h2>Perfil institucional da contratada (${esc(PERFIL_INSTITUCIONAL_VERSAO)})</h2><ul>${PERFIL_INSTITUCIONAL.filter(
+    valorImprimivelDoPerfil,
+  )
+    .map((c) => `<li><strong>${esc(c.rotulo)}:</strong> ${esc(c.valor)}</li>`)
+    .join("")}</ul></section>`;
 }
 
 function secaoClausulas() {

@@ -1,3 +1,4 @@
+import { definicaoCampo } from "@/lib/parametros-dicionario";
 /**
  * Helpers server-only do motor contratual parametrizável.
  * A prévia é montada exclusivamente a partir dos parâmetros do registro mestre.
@@ -176,9 +177,19 @@ export function montarPrevia(input: {
 
   const selo = tipo === "final" ? SELO_FINAL_PARAM : SELO_RASCUNHO_PARAM;
 
+  /*
+   * 09/10/2026: a ficha também mostra o rótulo, não o código interno de
+   * campo classificatório (`eletronica_govbr`, `Austria`). O `conteudo` que
+   * é hasheado continua com o código — só a exibição muda.
+   */
+  const exibir = (v: ValorParam) => {
+    const def = definicaoCampo(v.campo);
+    if (def.tipo !== "dropdown" && def.tipo !== "multiselect") return String(v.valor ?? "");
+    return (def.opcoes ?? []).find((o) => o.valor === v.valor)?.rotulo ?? String(v.valor ?? "");
+  };
   const linha = (v: ValorParam) => {
     const conteudo = v.valor
-      ? `${esc(v.valor)} <span class="orig">[origem: ${esc(v.origem)}${
+      ? `${esc(exibir(v))} <span class="orig">[origem: ${esc(v.origem)}${
           v.origem_detalhe ? ` · ${esc(v.origem_detalhe)}` : ""
         } · ${esc(v.status)}]</span>`
       : tipo === "rascunho"
