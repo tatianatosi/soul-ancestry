@@ -57,6 +57,7 @@ import { MARCA_CORRECAO_PLANEJADOR, exigirCoerencia, temCorrecaoHomologada } fro
 import { exigirGate } from "@/lib/escopo-conferencia.server";
 import { MARCA_ESVAZIADO_PELA_EQUIPE, definicaoCampo, validarValorCampo } from "@/lib/parametros-dicionario";
 import { candidatosComerciaisDaProposta, propostaAptaParaPrecarga } from "@/lib/proposta-comercial";
+import { exigirPreviaVigenteLiberada } from "@/lib/previa-vigente.server";
 
 /** Chave de conflito por campo quando a proposta aprovada diverge do valor homologado no Planejador. */
 const CONFLITO_PROPOSTA_PLANEJADOR = "proposal_planner_value_conflict";
@@ -1596,6 +1597,46 @@ export const congelarPrevia = createServerFn({ method: "POST" })
       .select("id,versao")
       .single();
     if (error) throw new Error(error.message);
+
+    /*
+     * 09/10/2026 — "as antigas ficam marcadas como substituídas, sem apagar".
+     * Isso tinha sido feito à mão nas prévias da Ana (UPDATE com
+     * `archive_reason`), e o congelamento seguinte voltaria a deixar duas
+     * versões congeladas vivas ao mesmo tempo, sem dizer qual vale. Agora o
+     * próprio congelamento substitui as congeladas anteriores: arquiva — nunca
+     * apaga, nunca toca o rascunho de trabalho — com o motivo nomeando a nova
+     * versão. O histórico inteiro continua legível em `previasHistorico`.
+     */
+    const { data: substituidas } = await supabase
+      .from("contract_parameter_previews")
+      .update({
+        archived_at: new Date().toISOString(),
+        archived_by: context.userId,
+        archive_reason: `Substituída pela versão ${nova.versao} (${data.evento}). Preservada no histórico, não apagada.`,
+        updated_by: context.userId,
+      })
+      .eq("parameters_id", data.id)
+      .eq("estado", "congelado")
+      .is("archived_at", null)
+      .neq("id", nova.id)
+      .select("id,versao");
+
+    if ((substituidas ?? []).length > 0) {
+      await supabase.from("audit_logs").insert({
+        organization_id: registro.organization_id,
+        user_id: context.userId,
+        entidade: "contract_parameter_previews",
+        entidade_id: nova.id as string,
+        acao: "previas_substituidas_por_versao_nova",
+        metadados: {
+          parameters_id: registro.id,
+          case_id: registro.case_id,
+          versao_vigente: nova.versao,
+          substituidas: (substituidas as any[]).map((x) => ({ id: x.id, versao: x.versao })),
+          regra: "substituir nao e apagar: a linha fica com archive_reason",
+        },
+      });
+    }
     const sync = await sincronizarMotor(supabase, {
       registro,
       previaId: nova.id as string,
@@ -1751,6 +1792,17 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
     if (!registro) throw new Error("Registro de parâmetros não encontrado.");
     if (registro.status !== "aprovado") throw new Error("Aprove os parâmetros antes de enviar para assinatura.");
     await exigirCoerencia(supabase, registro);
+    /*
+     * 09/10/2026 — mesmo gap da revisão, com consequência maior: preparar
+     * assinatura exigia parâmetros aprovados e coerência, mas não olhava a
+     * prévia. Instrumento defasado, substituído ou sem corpo contratual não
+     * entra em assinatura.
+     */
+    await exigirPreviaVigenteLiberada(supabase, {
+      parametersId: registro.id,
+      organizationId: registro.organization_id,
+      saida: "assinatura",
+    });
     await exigirGate(supabase, {
       caseId: registro.case_id,
       acao: "solicitar_assinatura",

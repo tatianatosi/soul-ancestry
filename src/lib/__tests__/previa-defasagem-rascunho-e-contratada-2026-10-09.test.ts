@@ -63,9 +63,15 @@ describe("parâmetro sem valor não marca o documento como velho", () => {
   it("a tela e os dois servidores filtram valor vazio", () => {
     const tela = readFileSync("src/lib/contrato-preparar.functions.ts", "utf8");
     expect(tela).toContain('.filter((v) => String(v.valor ?? "").trim() !== "")');
+    /*
+     * 09/10/2026 — o filtro de valor vazio saiu do PDF e do DOCX e passou a
+     * viver no guard único do servidor, que é quem os dois chamam agora.
+     */
+    const guard = readFileSync("src/lib/previa-vigente.server.ts", "utf8");
+    expect(guard).toContain('.not("valor", "is", null)');
     for (const f of ["src/lib/contrato-pdf.functions.ts", "src/lib/contrato-docx.functions.ts"]) {
       const fn = readFileSync(f, "utf8");
-      expect(fn).toContain('.not("valor", "is", null)');
+      expect(fn).toContain("exigirPreviaVigenteLiberada(");
       expect(fn).toContain("updated_at");
     }
   });

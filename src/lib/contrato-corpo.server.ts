@@ -168,6 +168,13 @@ export function blocosDoCaso(e: EntradaCorpo): {
     vencimentos: val("vencimentos"),
     propostaReferencia: e.condicao?.propostaReferencia ?? null,
     regraDespesasInstitucional: CLAUSULA_DESPESAS_TERCEIROS,
+    /* A procedência que o documento declara vem do próprio parâmetro. */
+    origens: Object.fromEntries(
+      e.valores.map((v) => [
+        v.campo,
+        { origem: v.origem ?? null, detalhe: (v as { origem_detalhe?: string | null }).origem_detalhe ?? null },
+      ]),
+    ),
   });
   return { pessoas, blocos, cobertura: coberturaContratual(pessoas, blocos) };
 }

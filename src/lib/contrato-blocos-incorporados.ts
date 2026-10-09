@@ -290,6 +290,39 @@ export type EntradaBlocos = {
   propostaReferencia: string | null;
   /** Texto institucional da regra de despesas (cláusula fixa, não reescrito). */
   regraDespesasInstitucional: string;
+  /*
+   * 09/10/2026 — a linha "Objeto do caso" declarava a fonte "CRM confirmado"
+   * por literal, mas o parâmetro `objeto_contrato` da Ana está gravado com
+   * `origem = proposta` e detalhe "Deck Canva da proposta, página 2 — decisão
+   * da Proprietária em 09/10/2026". O documento dizia a origem errada. A
+   * fonte passa a vir do dado; o literal fica só como texto de reserva para
+   * campo sem origem registrada.
+   */
+  origens?: Record<string, { origem?: string | null; detalhe?: string | null } | undefined>;
+};
+
+/** Como o documento declara a procedência de um campo: do dado, não de literal. */
+export function fonteDeclarada(
+  origens: EntradaBlocos["origens"],
+  campo: string,
+  reserva: string,
+): string {
+  const o = origens?.[campo];
+  const origem = String(o?.origem ?? "").trim();
+  if (!origem) return reserva;
+  const detalhe = String(o?.detalhe ?? "").trim();
+  const rotulo = ROTULO_ORIGEM[origem] ?? origem.replace(/_/g, " ");
+  return detalhe ? `${rotulo} — ${detalhe}` : rotulo;
+}
+
+/** Rótulos das origens que o CHECK de `contract_parameter_values.origem` aceita. */
+const ROTULO_ORIGEM: Record<string, string> = {
+  proposta: "proposta aprovada",
+  crm: "CRM confirmado",
+  planejador: "planejador homologado",
+  preenchimento_humano: "preenchimento humano registrado",
+  importado_a_confirmar: "importado da proposta, a confirmar",
+  perfil_institucional: "perfil institucional versionado",
 };
 
 function linha(
@@ -359,7 +392,12 @@ export function montarBlocosIncorporados(e: EntradaBlocos): BlocoIncorporado[] {
       1,
       "Identifica a contratada e cada parte do contrato, com o papel que exerce.",
       [
-        linha("Contratada", e.contratadaQualificacao, "perfil institucional versionado", "qualificação da contratada não registrada"),
+        linha(
+          "Contratada",
+          e.contratadaQualificacao,
+          fonteDeclarada(e.origens, "contratada_qualificacao", "perfil institucional versionado"),
+          "qualificação da contratada não registrada",
+        ),
         ...partes,
       ],
       true,
@@ -370,7 +408,12 @@ export function montarBlocosIncorporados(e: EntradaBlocos): BlocoIncorporado[] {
       2,
       "Delimita o objeto do estudo neste caso, dentro do objeto institucional da cláusula 2.",
       [
-        linha("Objeto do caso", e.objeto, "CRM confirmado", "objeto do caso não registrado"),
+        linha(
+          "Objeto do caso",
+          e.objeto,
+          fonteDeclarada(e.origens, "objeto_contrato", "CRM confirmado"),
+          "objeto do caso não registrado",
+        ),
         linha("País e rota", e.paisRota, "planejador homologado", "país/rota não confirmado"),
         linha("Resumo do escopo aprovado", e.escopoResumo, "proposta aprovada", "escopo não registrado a partir da proposta"),
       ],

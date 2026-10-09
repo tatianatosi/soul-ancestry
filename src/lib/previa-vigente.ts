@@ -31,6 +31,13 @@ export type PreviaRegistro = {
   aprovado_em?: string | null;
   corpo_contratual?: boolean | null;
   legado_sem_corpo?: boolean | null;
+  /**
+   * 09/10/2026 — o cabeçalho deste módulo sempre disse "prévia arquivada
+   * nunca é vigente", mas o filtro só existia no leitor da tela: a função
+   * pura aceitava uma linha arquivada e podia devolvê-la. A regra passa a
+   * valer aqui também, onde ela está escrita.
+   */
+  archived_at?: string | null;
 };
 
 const ts = (v: unknown): number => {
@@ -60,7 +67,7 @@ export function geradaEm(p: PreviaRegistro): string | null {
 
 /** A prévia que vale — rascunho editável, senão a congelada de maior versão. */
 export function previaVigente(previas: readonly PreviaRegistro[]): PreviaRegistro | null {
-  const vivas = previas.filter((p) => p?.id);
+  const vivas = previas.filter((p) => p?.id && !p.archived_at);
   if (!vivas.length) return null;
   const rascunho = vivas.find((p) => p.estado === "rascunho_editavel");
   if (rascunho) return rascunho;

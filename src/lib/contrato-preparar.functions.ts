@@ -38,6 +38,7 @@ import {
   validarPropostaCanva,
 } from "@/lib/escopo-proposta";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
+import { exigirPreviaVigenteLiberada } from "@/lib/previa-vigente.server";
 import {
   NOME_INSTRUMENTO,
   casoGovernadoPeloPlanejador,
@@ -269,7 +270,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       registro = resultado.registro;
     }
 
-    const [{ data: valores }, { data: previas }, completude, pendencias, { data: anexosPersistidosRaw }] = await Promise.all([
+    const [{ data: valores }, { data: previas }, { data: previasHistorico }, completude, pendencias, { data: anexosPersistidosRaw }] = await Promise.all([
       supabase
         .from("contract_parameter_values")
         .select("id,grupo,campo,label,obrigatorio,ordem,valor,origem,origem_detalhe,status,conflito,justificativa,atualizado_em")
@@ -285,6 +286,21 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
         .eq("parameters_id", registro.id)
         .is("archived_at", null)
         .order("estado", { ascending: true })
+        .order("versao", { ascending: false }),
+      /*
+       * 09/10/2026 — histórico completo das prévias, inclusive as
+       * substituídas. `previas` continua só com as vivas (os consumidores
+       * desta tela escolhem rascunho/final a partir dela e não podem passar a
+       * ver linha arquivada); este é o que a aba "Versões e histórico" lista:
+       * identificador, data, versão do modelo e estado, com a substituída
+       * dizendo por que foi substituída. Substituir não é apagar.
+       */
+      supabase
+        .from("contract_parameter_previews")
+        .select(
+          "id,versao,tipo,estado,evento,congelado_em,created_at,updated_at,aprovado_em,template_code,template_version,conteudo_hash,corpo_contratual,legado_sem_corpo,archived_at,archive_reason",
+        )
+        .eq("parameters_id", registro.id)
         .order("versao", { ascending: false }),
       supabase.rpc("contract_parameters_completude", { _id: registro.id }),
       supabase.rpc("contract_parameters_pendencias", { _id: registro.id }),
@@ -599,6 +615,13 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
         ((proposta as any)?.origem_referencia as string | null) ??
         null,
       regraDespesasInstitucional: CLAUSULA_DESPESAS_TERCEIROS,
+      /* A procedência que a tela declara vem do próprio parâmetro, não de literal. */
+      origens: Object.fromEntries(
+        (lista as any[]).map((v) => [
+          String(v.campo),
+          { origem: (v.origem as string | null) ?? null, detalhe: (v.origem_detalhe as string | null) ?? null },
+        ]),
+      ),
     });
 
     /*
@@ -718,6 +741,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       valores: await anexarOpcoesVivasDoCatalogo(supabase, org, caso.id, lista),
       modoAnexos: { ...modoAnexos, avisoNoCorpo: AVISO_ANEXOS_NO_CORPO },
       previas: previas ?? [],
+      previasHistorico: previasHistorico ?? [],
       /*
        * 08/10/2026 — quando o parâmetro mais recente foi alterado. A tela usa
        * isto para dizer "Prévia desatualizada" e travar PDF/revisão/assinatura
@@ -795,6 +819,18 @@ export const solicitarRevisaoHumana = createServerFn({ method: "POST" })
       .eq("id", registro.id)
       .maybeSingle();
     await exigirCoerencia(supabase, completo ?? registro, { userId, organizationId: registro.organization_id });
+
+    /*
+     * 09/10/2026 — gap medido: a regra de prévia desatualizada travava PDF e
+     * DOCX e NÃO travava a revisão. Dava para pedir revisão humana de um
+     * documento gerado antes da última alteração de parâmetro, ou de uma
+     * prévia sem corpo contratual — a pessoa revisaria o texto errado.
+     */
+    await exigirPreviaVigenteLiberada(supabase, {
+      parametersId: registro.id,
+      organizationId: registro.organization_id,
+      saida: "revisao",
+    });
 
     await auditar(supabase, {
       org: registro.organization_id,

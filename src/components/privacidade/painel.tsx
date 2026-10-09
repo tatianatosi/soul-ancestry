@@ -30,6 +30,7 @@ import {
   VISIBILIDADES,
 } from "@/lib/documentos.server";
 import { cn } from "@/lib/utils";
+import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
@@ -74,6 +75,16 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
   const [novoConsent, setNovoConsent] = useState(false);
   const [novaExcecao, setNovaExcecao] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  /*
+   * F5 / sair da linha (09/10/2026) — última exceção da varredura, fechada.
+   * Os três formulários desta tela são HTML não-controlado (leem por FormData
+   * no submit), então não havia estado React para o guard ler. Em vez de
+   * travar a saída de um painel só por estar aberto — falso bloqueio —, a
+   * própria digitação marca o rascunho: `onInput` no <form>.
+   */
+  const [digitou, setDigitou] = useState(false);
+  useAvisoEdicaoNaoSalva(digitou);
+  const marcarDigitado = () => setDigitou(true);
 
   const qc = useQueryClient();
   const carregarPainel = useServerFn(painelPrivacidade);
@@ -179,6 +190,7 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
       toast.error((e as Error).message);
     } finally {
       setEnviando(false);
+      setDigitou(false);
     }
   }
 
@@ -452,6 +464,7 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
       {novoDoc && (
         <Gaveta titulo="Enviar documento" aoFechar={() => setNovoDoc(false)}>
           <form
+            onInput={marcarDigitado}
             onSubmit={(ev) => {
               ev.preventDefault();
               void enviarDocumento(ev.currentTarget);
@@ -548,6 +561,7 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
       {novoConsent && (
         <Gaveta titulo="Registrar consentimento" aoFechar={() => setNovoConsent(false)}>
           <form
+            onInput={marcarDigitado}
             onSubmit={async (ev) => {
               ev.preventDefault();
               const fd = new FormData(ev.currentTarget);
@@ -567,6 +581,7 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
                 });
                 toast.success("Consentimento registrado.");
                 setNovoConsent(false);
+                setDigitou(false);
                 atualizar();
               } catch (e) {
                 toast.error((e as Error).message);
@@ -627,6 +642,7 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
       {novaExcecao && (
         <Gaveta titulo="Exceção formal de consentimento" aoFechar={() => setNovaExcecao(false)}>
           <form
+            onInput={marcarDigitado}
             onSubmit={async (ev) => {
               ev.preventDefault();
               const fd = new FormData(ev.currentTarget);
@@ -641,6 +657,7 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
                 });
                 toast.success("Exceção formal registrada e auditada.");
                 setNovaExcecao(false);
+                setDigitou(false);
                 atualizar();
               } catch (e) {
                 toast.error((e as Error).message);

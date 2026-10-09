@@ -103,11 +103,19 @@ describe("cabeçalho mostra data e versão", () => {
 describe("a trava vale no servidor, não só na tela", () => {
   for (const arquivo of ["src/lib/contrato-pdf.functions.ts", "src/lib/contrato-docx.functions.ts"]) {
     it(`${arquivo} recusa prévia sem corpo ou defasada`, () => {
+      /*
+       * 09/10/2026 — este assert pinçava a regra escrita DENTRO do PDF e do
+       * DOCX. A regra virou uma só, em `previa-vigente.server.ts`, e passou a
+       * cobrir também "a prévia tem de ser a vigente" (a Ana tem duas vivas),
+       * revisão humana e envio para assinatura. Protege mais, não menos — o
+       * assert passa a exigir o guard compartilhado.
+       */
       const fn = readFileSync(arquivo, "utf8");
-      expect(fn).toContain("motivoBloqueioSaida(previa");
-      expect(fn).toContain("if (bloqueio) throw new Error(bloqueio)");
-      expect(fn).toContain("corpo_contratual");
-      expect(fn).toContain("legado_sem_corpo");
+      expect(fn).toContain("exigirPreviaVigenteLiberada(");
+      expect(fn).toContain('saida: "documento"');
+      const guard = readFileSync("src/lib/previa-vigente.server.ts", "utf8");
+      expect(guard).toContain("motivoBloqueioSaida(vigente");
+      expect(guard).toContain("archived_at");
     });
   }
 });

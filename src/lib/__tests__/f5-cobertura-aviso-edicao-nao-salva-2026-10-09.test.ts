@@ -30,8 +30,6 @@ const EXCECOES: Record<string, string> = {
     "Confirmação de acesso do cliente (magic link). Mesmo motivo do login: não há trabalho da equipe a perder.",
   "src/routes/_authenticated/contratos.index.tsx":
     "`novo` é um booleano que abre/fecha o modal — não guarda texto digitado. O rascunho real vive no componente de dentro.",
-  "src/components/privacidade/painel.tsx":
-    "DÍVIDA DECLARADA: o formulário de documento é HTML não-controlado (lê por FormData no submit), então não existe estado React para o guard ler. Fechar exige transformar os campos em controlados — não feito aqui para não travar a saída de um painel vazio.",
 };
 
 function arquivosTsx(raiz: string): string[] {
@@ -80,14 +78,14 @@ describe("F5 / sair da linha — cobertura do aviso de edição não salva", () 
     }
   });
 
-  it("a cobertura medida não regride: 59 arquivos e 80 pontos de guard em 09/10/2026", () => {
+  it("a cobertura medida não regride: 60 arquivos e 81 pontos de guard em 09/10/2026", () => {
     const comGuard = telas.filter((c) => readFileSync(c, "utf8").includes("useAvisoEdicaoNaoSalva"));
-    expect(comGuard.length).toBeGreaterThanOrEqual(59);
+    expect(comGuard.length).toBeGreaterThanOrEqual(60);
     const pontos = telas.reduce(
       (soma, c) => soma + (readFileSync(c, "utf8").match(/useAvisoEdicaoNaoSalva\(/g)?.length ?? 0),
       0,
     );
-    expect(pontos).toBeGreaterThanOrEqual(80);
+    expect(pontos).toBeGreaterThanOrEqual(81);
   });
 
   it("todas as telas usam o mesmo mecanismo — nenhum beforeunload solto fora do módulo", () => {

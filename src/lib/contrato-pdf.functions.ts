@@ -18,7 +18,7 @@ import { organizacaoDo } from "@/lib/caso-canonico.server";
 import { semCache } from "@/lib/no-store";
 import { htmlParaBlocos, nomeArquivoPdf } from "@/lib/contrato-pdf";
 import { gerarPdfContrato } from "@/lib/contrato-pdf-gerador";
-import { motivoBloqueioSaida } from "@/lib/previa-vigente";
+import { exigirPreviaVigenteLiberada } from "@/lib/previa-vigente.server";
 
 function paraBase64(bytes: Uint8Array): string {
   let binario = "";
@@ -55,24 +55,17 @@ export const baixarPdfContrato = createServerFn({ method: "GET" })
      * aceitava qualquer uma delas: saía um "contrato" sem o contrato dentro.
      * Defasagem idem — documento não pode ser mais novo que o dado que o
      * originou.
+     *
+     * 09/10/2026 — e aceitava também o id de qualquer prévia VIVA, não só da
+     * vigente. A Ana tem duas vivas (rascunho de trabalho e a congelada v8):
+     * bastava mandar a outra. A regra agora é uma só, no guard do servidor.
      */
-    const { data: ultimoValor } = await supabase
-      .from("contract_parameter_values")
-      .select("atualizado_em")
-      .eq("parameters_id", previa.parameters_id)
-      /*
-       * 09/10/2026: só parâmetro COM valor conta para defasagem. Semear uma
-       * linha nova e vazia (foi o que a migration de `modo_anexos` fez em
-       * 08/10) não mudou o documento — não pode marcar a prévia como velha
-       * nem travar o PDF.
-       */
-      .not("valor", "is", null)
-      .is("archived_at", null)
-      .order("atualizado_em", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const bloqueio = motivoBloqueioSaida(previa, ultimoValor?.atualizado_em ?? null);
-    if (bloqueio) throw new Error(bloqueio);
+    await exigirPreviaVigenteLiberada(supabase, {
+      parametersId: previa.parameters_id as string,
+      organizationId,
+      saida: "documento",
+      previaId: previa.id as string,
+    });
 
     const { data: parametros } = await supabase
       .from("contract_case_parameters")

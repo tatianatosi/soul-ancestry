@@ -124,9 +124,14 @@ describe("tela e servidor aplicam a mesma regra", () => {
     // Os dois caminhos de saída em documento do contrato.
     for (const alvo of ["src/lib/contrato-pdf.functions.ts", "src/lib/contrato-docx.functions.ts"]) {
       const src = ler(alvo);
-      expect(src).toContain("motivoBloqueioSaida");
-      // o servidor recusa de fato, não só calcula o motivo
-      expect(src).toMatch(/if \(bloqueio\)[\s\S]{0,120}(throw|Error)/);
+      // 09/10/2026: a recusa passou para o guard único — e as quatro saídas
+      // (documento, revisão, assinatura) usam o mesmo.
+      expect(src).toContain("exigirPreviaVigenteLiberada(");
+    }
+    const guard = ler("src/lib/previa-vigente.server.ts");
+    expect(guard).toMatch(/if \(bloqueio\) throw new Error\(bloqueio\)/);
+    for (const alvo of ["src/lib/contrato-preparar.functions.ts", "src/lib/contrato-parametros.functions.ts"]) {
+      expect(ler(alvo), alvo).toContain("exigirPreviaVigenteLiberada(");
     }
   });
 });

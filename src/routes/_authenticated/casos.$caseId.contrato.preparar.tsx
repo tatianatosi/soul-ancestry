@@ -1010,10 +1010,17 @@ function Pagina() {
                   >
                     Salvar rascunho de trabalho
                   </button>
-                  {(rascunhoAtual ?? listaOpcional<any>(d.previas)[0]) && (
+                  {/*
+                    09/10/2026 — este botão caía para `d.previas[0]`, a primeira
+                    linha da lista, não a prévia vigente: abria uma versão
+                    substituída quando não havia rascunho de trabalho. A tela
+                    passa a ler a MESMA prévia que o PDF e o DOCX.
+                  */}
+                  {previaAtual && (
                     <button
-                      onClick={() => mVer.mutate((rascunhoAtual ?? listaOpcional<any>(d.previas)[0]).id)}
+                      onClick={() => mVer.mutate(previaAtual.id)}
                       className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream"
+                      data-ver-previa-vigente
                     >
                       Ver prévia do contrato completo
                     </button>
@@ -1052,24 +1059,50 @@ function Pagina() {
 
             <CaCard titulo="3. Versões e histórico">
               <div className="space-y-2">
-                {(d.previas as any[]).map((p) => (
-                  <div key={p.id} className="rounded-lg border border-navy/15 bg-cream/40 p-3">
+                {/*
+                  09/10/2026 — a lista mostrava só as prévias VIVAS: as
+                  substituídas desapareciam da tela, e "substituir não é
+                  apagar" ficava só no banco. Agora lista o histórico inteiro
+                  (`previasHistorico`), cada linha com identificador, data,
+                  versão do modelo e estado — e a substituída diz por que foi.
+                */}
+                {listaOpcional<any>((d as any).previasHistorico).map((p) => {
+                  const substituida = Boolean(p.archived_at);
+                  const vigente = previaAtual?.id === p.id;
+                  return (
+                  <div
+                    key={p.id}
+                    className={`rounded-lg border p-3 ${substituida ? "border-navy/10 bg-cream/20 opacity-70" : "border-navy/15 bg-cream/40"}`}
+                    data-previa-linha
+                  >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
                         <p className="text-sm text-navy">
                           {p.estado === "rascunho_editavel" ? "Rascunho de trabalho (editável)" : `Versão v${p.versao} (congelada)`}
+                          {vigente ? " · vigente" : substituida ? " · substituída" : ""}
                         </p>
                         <p className="text-xs text-navy/60">
                           {ROTULO_EVENTO_PREVIA[p.evento ?? ""] ?? "Evento não registrado"} ·{" "}
-                          {new Date(p.congelado_em ?? p.created_at).toLocaleString("pt-BR")}
+                          {new Date(p.congelado_em ?? p.created_at).toLocaleString("pt-BR")} · modelo{" "}
+                          {p.template_code ?? "não registrado"} {CONTRATO_BASE_VERSAO}
+                        </p>
+                        <p className="text-[11px] text-navy/45">
+                          id {String(p.id).slice(0, 8)}
+                          {p.conteudo_hash ? ` · conteúdo ${String(p.conteudo_hash).slice(0, 10)}` : ""}
+                          {p.legado_sem_corpo ? " · sem corpo contratual (legada)" : ""}
                         </p>
                         {p.motivo && <p className="text-xs text-navy/60">Motivo: {p.motivo}</p>}
+                        {substituida && p.archive_reason && (
+                          <p className="text-[11px] text-navy/55">Substituída: {p.archive_reason}</p>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <button onClick={() => mVer.mutate(p.id)} className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80">
-                          Ver prévia
-                        </button>
-                        {p.tipo === "final" && !p.aprovado_em && (
+                        {!substituida && (
+                          <button onClick={() => mVer.mutate(p.id)} className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80">
+                            Ver prévia
+                          </button>
+                        )}
+                        {!substituida && p.tipo === "final" && !p.aprovado_em && (
                           <button onClick={() => mAprovar.mutate(p.id)} className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream">
                             Aprovar revisão humana
                           </button>
@@ -1078,8 +1111,11 @@ function Pagina() {
                       </div>
                     </div>
                   </div>
-                ))}
-                {d.previas.length === 0 && <p className="text-sm text-navy/60">Nenhuma prévia gerada ainda.</p>}
+                  );
+                })}
+                {listaOpcional<any>((d as any).previasHistorico).length === 0 && (
+                  <p className="text-sm text-navy/60">Nenhuma prévia gerada ainda.</p>
+                )}
               </div>
             </CaCard>
 

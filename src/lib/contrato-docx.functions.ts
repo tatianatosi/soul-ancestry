@@ -16,7 +16,7 @@ import { organizacaoDo } from "@/lib/caso-canonico.server";
 import { semCache } from "@/lib/no-store";
 import { htmlParaBlocos, nomeArquivoDocx } from "@/lib/contrato-pdf";
 import { gerarDocxContratoBase64 } from "@/lib/contrato-docx-gerador";
-import { motivoBloqueioSaida } from "@/lib/previa-vigente";
+import { exigirPreviaVigenteLiberada } from "@/lib/previa-vigente.server";
 
 export const baixarDocxContrato = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -40,24 +40,14 @@ export const baixarDocxContrato = createServerFn({ method: "GET" })
     if (!previa) throw new Error("Prévia não encontrada nesta organização.");
     if (!previa.html) throw new Error("Esta prévia ainda não tem conteúdo gerado — gere a prévia antes de baixar o DOCX.");
 
-    // Mesma trava do PDF (08/10/2026): prévia sem corpo ou defasada não vira documento.
-    const { data: ultimoValor } = await supabase
-      .from("contract_parameter_values")
-      .select("atualizado_em")
-      .eq("parameters_id", previa.parameters_id)
-      /*
-       * 09/10/2026: só parâmetro COM valor conta para defasagem. Semear uma
-       * linha nova e vazia (foi o que a migration de `modo_anexos` fez em
-       * 08/10) não mudou o documento — não pode marcar a prévia como velha
-       * nem travar o PDF.
-       */
-      .not("valor", "is", null)
-      .is("archived_at", null)
-      .order("atualizado_em", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const bloqueio = motivoBloqueioSaida(previa, ultimoValor?.atualizado_em ?? null);
-    if (bloqueio) throw new Error(bloqueio);
+    // Mesma trava do PDF, mesmo guard (09/10/2026): prévia substituída, sem
+    // corpo ou defasada não vira documento — regra única no servidor.
+    await exigirPreviaVigenteLiberada(supabase, {
+      parametersId: previa.parameters_id as string,
+      organizationId,
+      saida: "documento",
+      previaId: previa.id as string,
+    });
 
     const { data: parametros } = await supabase
       .from("contract_case_parameters")
