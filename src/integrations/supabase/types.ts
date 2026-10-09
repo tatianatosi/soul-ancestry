@@ -5447,6 +5447,7 @@ export type Database = {
           organization_id: string
           parameters_id: string
           placeholders_pendentes: Json
+          renderizador_versao: string | null
           template_code: string | null
           template_version: number | null
           tipo: string
@@ -5478,6 +5479,7 @@ export type Database = {
           organization_id: string
           parameters_id: string
           placeholders_pendentes?: Json
+          renderizador_versao?: string | null
           template_code?: string | null
           template_version?: number | null
           tipo?: string
@@ -5509,6 +5511,7 @@ export type Database = {
           organization_id?: string
           parameters_id?: string
           placeholders_pendentes?: Json
+          renderizador_versao?: string | null
           template_code?: string | null
           template_version?: number | null
           tipo?: string
