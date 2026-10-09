@@ -809,7 +809,6 @@
 [data-app-cliente] .app-exemplo-genograma section + section { margin-top: var(--ca-space-4); }
 [data-app-cliente] .app-jornada-uniao:has([data-exemplo-visual]) { border: 0; background: transparent; padding: 0; }
 [data-app-cliente] .app-jornada-uniao:has([data-exemplo-visual]) .app-exemplo-uniao { margin-top: var(--ca-space-3); }
-<<<<<<< /tmp/m
 /* Phase 3 pilot: App p.4 has unframed tracks and a bordered union panel.
    Existing event selection, dates, publication gates and actions stay intact. */
 [data-app-cliente] #conteudo-portal [data-aba-jornada] .app-v11-abertura {
@@ -894,7 +893,6 @@
     transition: none;
     scroll-behavior: auto;
   }
-=======
 /* Homologação 09/10: todos os seletores ficam sob a raiz exclusiva do App. */
 [data-app-cliente] #conteudo-portal { padding-top: var(--ca-space-5); }
 [data-app-cliente] .app-abertura-tela { margin-bottom: var(--ca-space-5); }
@@ -941,5 +939,4 @@
   [data-app-cliente] [data-aba-radar] > .app-origem-geografica { grid-column: 1 / -1; }
   [data-app-cliente] .app-conta-composicao { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; column-gap: var(--ca-space-6); }
   [data-app-cliente] .app-conta-atendimento { grid-column: 1 / -1; }
->>>>>>> /tmp/d
 }

@@ -47,7 +47,6 @@ Uma fonte de fixtures em exemplos-visuais-mockup.ts; apresentação em bloco-exe
 
 ---
 
-<<<<<<< /tmp/m
 <!-- Registro do rascunho “App Cliente — fases 1–3 e Jornada piloto” -->
 
 # Especificação visual — registro fases 1–3
@@ -59,7 +58,6 @@ Base 0c0fdf193ce9ce0774a72623df87ddc80bff3e7e; revisão CSS 2a1b7f284ed3723b9c84
 Reutilizar shell e raiz data-app-cliente; aliases somente nessa raiz. Sem shell paralelo, mudanças globais, dados ou Desk. Nenhuma decisão arquitetural nova: folha existente e import existente preservados.
 
 Referências e inventários: /mnt/documents/app-fases-1-3-2026-10-09/. A especificação integral anterior não estava presente neste rascunho; não foi reconstruída por suposição. Fases futuras e gates pendentes.
-=======
 ## Registro do rascunho “App Cliente — homologação visual v1.0”
 
 # Especificação UI App Cliente — rascunho isolado
@@ -105,4 +103,3 @@ BrandLogo usa public/marca, variante principal definida pelo registro canônico 
 | Conta | perfil elevado, assinatura, plano separado, histórico e atendimento | nome/valor/situação publicados | PP-03 completo/vigência/canais/preferências |
 
 Último bloco mantém distância da navegação fixa com área segura. Sete abas e destinos preservados. CSS exclusivo sob [data-app-cliente], sem :root/body/default global. PortalShell é componente exclusivo do portal, não shell do Desk; nenhuma mudança de shared BrandLogo/Button. Secundárias herdam somente acabamento do shell; sem acesso novo. Metadados, tratamento de erros e contratos de leitura das secundárias permanecem dívida registrada ao Claude.
->>>>>>> /tmp/d

@@ -44,7 +44,6 @@ G0/G2/G3 permanecem parciais pelos motivos registrados; G1 isolamento verificado
 
 ---
 
-<<<<<<< /tmp/m
 <!-- Registro do rascunho “App Cliente — fases 1–3 e Jornada piloto” -->
 
 # Execução UI — registro fases 1–3
@@ -52,7 +51,6 @@ G0/G2/G3 permanecem parciais pelos motivos registrados; G1 isolamento verificado
 Status: rascunho, não homologado.
 
 Ordem recebida da Proprietária: fase 1 materiais/capturas; fase 2 shell/tema isolados; fase 3 Jornada piloto. Executadas com limites no registro de auditoria. Nenhum aceite/integração/publicação autorizado. O prompt integral anterior não estava presente neste rascunho; este registro não o substitui. Escopo futuro mantém readers/writers/testes/dados/Desk fora de escrita.
-=======
 ## Registro do rascunho “App Cliente — homologação visual v1.0”
 
 # Execução UI App Cliente — 09/10/2026
@@ -70,4 +68,3 @@ Piloto por divergência confirmada: Jornada do mockup tem título fora do cabeç
 Verificações: 64 testes existentes em sete arquivos passaram; build automático OK em 19:25:21 UTC, sem build/typecheck manual. 14 combinações 375/1280 sem overflow e sem pageerror; 21 amostras 320/768/1440 sem overflow; texto 200% conferido parcialmente na Árvore. Cinco screenshots Desk antes/depois pixel-idênticos no checkpoint. Sem verificação de login cliente, persistência de escrita, A×B ou smoke de produção.
 
 Não declarado: paridade pixel a pixel, conformidade integral de contraste, todas as secundárias funcionais, arquivo real liberado/download, completo genograma/mapa/acervo/PP-03. Nenhum gate é satisfeito por este documento. Rollback não executado nem prometido; rascunho continua sem aceitar.
->>>>>>> /tmp/d

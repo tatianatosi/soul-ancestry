@@ -76,7 +76,6 @@ Pendente. Aprovadora: Proprietária. Nenhum desvio aceito automaticamente; G4/G5
 
 ---
 
-<<<<<<< /tmp/m
 <!-- Registro do rascunho “App Cliente — fases 1–3 e Jornada piloto” -->
 
 # Checklist de homologação — registro do rascunho
@@ -169,7 +168,6 @@ Topo/perfil, assinatura publicada preservada R$320/mês aguardando confirmação
 - BASELINE-DESK: antes não comparable; repetir comparação controlada em próxima janela, sem trocar main/commits por ferramenta git stateful.
 - A11Y-INTEGRAL: gráficos, todos os estados, zoom nativo e navegação completa por teclado ainda não homologados.
 - Fases futuras, aceite da Proprietária, integração do rascunho e publicação continuam PENDENTES. Nada publicado ou integrado. Evidências contêm dados autorizados: somente Files privados, não assets públicos do App.
-=======
 ## Registro do rascunho “App Cliente — homologação visual v1.0”
 
 # Aceite UI App Cliente — rascunho
@@ -221,4 +219,3 @@ Inicial: todos os itens NÃO EXECUTADO. Resultados abaixo não são aceite da Pr
 G0 referências/assets PARCIAL/BLOQUEADO: versão Desk exata e assets/clientes ausentes. G1 isolamento visual PASSOU nas cinco amostras, não prova banco isolado. G2 sete abas PASSOU parcial/secundárias BLOQUEADAS. G3 comparação/regressão PARCIAL. G4 aceite explícito Proprietária PENDENTE. G5 publicação/smoke PENDENTE, NÃO AUTORIZADO.
 
 Responsáveis pelos bloqueios: Claude — contratos de dados, checklist/texto/testes, erros/ausências e publicações estruturadas; Proprietária — autoridade visual de cores divergentes/Desk versão, aprovação de fontes/conteúdo e aceite deste rascunho. Lovable — finalizar QA visual após disponibilização, sem aceitar/publicar automaticamente.
->>>>>>> /tmp/d
