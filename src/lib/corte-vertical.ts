@@ -173,7 +173,11 @@ export const ANA_BLOQUEIOS: string[] = [
 ];
 
 export const ANA_NOTA_COMERCIAL =
-  "A proposta aceita cobre três titulares e um dependente. A modelagem indicada foi R$ 9.600 em 10 mensalidades familiares de R$ 960, operacionalmente pensadas como três assinaturas de R$ 320. Nada disso vira cobrança, contrato ou SKU sem reconciliação e definição formal.";
+  "A proposta aceita cobre três titulares e um dependente. A estrutura aprovada é R$ 9.600 em três assinaturas " +
+  "mensais de R$ 320 por responsável (Ana Luiza, Adair e Alice), durante 10 meses — confirmada pela Proprietária " +
+  "em 09/10/2026. A leitura de '10 mensalidades de R$ 960', presente em material recuperado, é legado: o total " +
+  "coincide, a estrutura e o número de pagadores não. Nada disso vira cobrança, contrato ou SKU sem reconciliação " +
+  "e definição formal.";
 
 export type DegrauOnboarding = {
   estado: string;
