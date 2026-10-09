@@ -68,7 +68,7 @@ export const lerPendenciasHumanasCaso = createServerFn({ method: "GET" })
       .eq("case_id", caso.id)
       .is("archived_at", null);
     const statusPorNome = new Map(
-      (((dependentes ?? []) as { nome_completo: string | null; status_representacao: string | null }[]) ?? []).map((d) => [
+      ((dependentes ?? []) as { nome_completo: string | null; status_representacao: string | null }[]).map((d) => [
         String(d.nome_completo ?? "").trim().toLocaleLowerCase("pt-BR"),
         d.status_representacao,
       ]),
