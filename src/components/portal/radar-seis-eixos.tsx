@@ -55,7 +55,7 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
         </p>
       ) : null}
       <svg
-        viewBox="-82 -30 390 280"
+        viewBox="-150 -30 520 280"
         className="mx-auto w-full max-w-2xl pb-2"
         role="img"
         aria-label="Radar das 6 dimensões da sua jornada"
@@ -71,7 +71,7 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
               x2={p.x}
               y2={p.y}
               stroke="currentColor"
-              className="text-navy/10"
+              className="text-navy/30"
               strokeWidth={1}
             />
           );
@@ -80,7 +80,7 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
         {dimensoes.map((d, i) => {
           if (d.percentual === null) return null;
           const valor = ponto(i, RAIO * (d.percentual / 100));
-          return <circle key={`valor-${d.id}`} cx={valor.x} cy={valor.y} r={4} className="fill-gold" />;
+          return <circle key={`valor-${d.id}`} cx={valor.x} cy={valor.y} r={4} className="fill-gold stroke-navy" strokeWidth={1.5} />;
         })}
         {dimensoes.map((d, i) => {
           const rotulo = ponto(i, RAIO + 28);
@@ -95,7 +95,7 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
               y={rotulo.y}
               textAnchor={textAnchor}
               dominantBaseline="middle"
-              className="fill-navy text-[11px] font-medium"
+              className="fill-navy text-[14px] font-medium"
             >
               {d.titulo}
             </text>
