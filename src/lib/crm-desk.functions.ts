@@ -20,6 +20,7 @@ import { avaliarValidacaoJuridicaCaso } from "@/lib/validacao-juridica-caso";
 import { raciocinarJuridicoPorFase } from "@/lib/raciocinio-juridico-jornada";
 import type { Dependente } from "@/lib/dependentes";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { camposParaPreencherNaPessoa } from "@/lib/lead-para-pessoa";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { proprietariaOperando } from "@/lib/autoridade.server";
 import { contarSlaEmRisco } from "@/lib/d7-microentrega";
@@ -167,6 +168,42 @@ async function registrarEventosCall(
   }
 }
 
+/**
+ * 10/10/2026 — nome, telefone e país de interesse anotados na call completam a
+ * Pessoa 360 do lead (a pessoa criada no handoff, `clientes.lead_id`), sem nova
+ * digitação. Só preenche campo vazio e nunca bloqueia o salvamento do lead.
+ */
+async function levarDadosCivisParaPessoa(
+  supabase: Sb,
+  organizationId: string,
+  userId: string,
+  leadId: string,
+  lead: Record<string, unknown>,
+): Promise<void> {
+  try {
+    const { data: pessoas } = await supabase
+      .from("clientes")
+      .select("id,nome,telefone,pais_interesse")
+      .eq("organization_id", organizationId)
+      .eq("lead_id", leadId)
+      .is("archived_at", null);
+    for (const pessoa of (pessoas ?? []) as Array<Record<string, unknown>>) {
+      const payload = camposParaPreencherNaPessoa(lead as never, pessoa as never);
+      if (Object.keys(payload).length === 0) continue;
+      await gravarComVerificacao({
+        supabase,
+        tabela: "clientes",
+        id: String(pessoa.id),
+        organizationId,
+        userId,
+        payload,
+      });
+    }
+  } catch (e) {
+    console.warn("[crm] Pessoa 360 não recebeu os dados civis da call:", (e as Error).message);
+  }
+}
+
 async function registrarAuditoriaLead(
   supabase: Sb,
   organizationId: string,
@@ -250,6 +287,7 @@ export const salvarLeadDesk = createServerFn({ method: "POST" })
         resultado.registro,
       );
       await registrarEventosCall(supabase, organizationId, userId, data.id, eventosCall, motivoCall);
+      await levarDadosCivisParaPessoa(supabase, organizationId, userId, data.id, resultado.registro as Record<string, unknown>);
       return { ok: true as const, erros: [], lead: resultado.registro as LeadDesk };
     }
 
