@@ -121,7 +121,7 @@ export type LeituraCampoFicha = {
   exibicao: string;
 };
 
-function vazioOuFrasePronta(bruto: unknown): boolean {
+export function vazioOuFrasePronta(bruto: unknown): boolean {
   if (bruto === null || bruto === undefined) return true;
   if (Array.isArray(bruto)) return bruto.length === 0;
   if (typeof bruto === "number") return false;

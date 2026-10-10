@@ -15,6 +15,7 @@
  * ("rota de edição"), nunca para um formulário novo.
  */
 import type { FichaPiloto } from "@/lib/caseAdapter";
+import { vazioOuFrasePronta } from "@/lib/ficha-master-estado-campos";
 
 export interface CampoFichaUnica {
   rotulo: string;
@@ -234,5 +235,10 @@ export function montarBlocosFichaUnica(params: {
     });
   }
 
+  // Frase institucional de preenchimento ("Em atualização documental"…) não é dado:
+  // vira ausência, e a tela mostra o estado real do campo.
+  for (const b of blocos) {
+    for (const c of b.campos ?? []) if (vazioOuFrasePronta(c.valor)) c.valor = null;
+  }
   return blocos;
 }

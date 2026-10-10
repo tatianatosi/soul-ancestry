@@ -65,6 +65,7 @@ import { AbaJornadaCliente } from "@/components/caso/jornada-cliente";
 import { AbaFechamento } from "@/components/caso/fechamento";
 import { AbaCadastro } from "@/components/caso/cadastro-checklist";
 import { PainelFichaUnica } from "@/components/caso/ficha-unica";
+import { CaseHealthHero, saudeDoCaso } from "@/components/caso/case-health-hero";
 import { DossieConsolidado } from "@/components/caso/dossie-consolidado";
 import { AvisoCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
 import { PublicarUniaoRamos } from "@/components/caso/publicar-uniao-ramos";
@@ -860,63 +861,27 @@ function FichaCaso() {
         continuam abaixo, nos quatro resumos; gates/logs/histórico foram para
         "Dados técnicos e validações", recolhida, no fim da página.
       */}
-      <div className="mb-4 rounded-xl border border-gold/50 bg-gold/10 p-4">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div>
-            <p className="text-[11px] uppercase tracking-wide text-navy/55">Situação hoje</p>
-            <p className="mt-0.5 text-sm font-medium text-navy">
-              {caso["ativo"] ? "Caso ativo" : rotulo(STATUS_DERIVADO, derivado.valor)}
-            </p>
-          </div>
-          <div>
-            <p className="text-[11px] uppercase tracking-wide text-navy/55">Próxima ação</p>
-            <p className="mt-0.5 text-sm font-medium text-navy">{canonica?.acao ?? "—"}</p>
-            {canonica ? (
-              <span className="mt-0.5 inline-block rounded-full border border-navy/15 bg-cream px-2 py-0.5 text-[10px] text-navy/70">
-                {SELO_PROXIMA_ACAO[canonica.origem]}
-              </span>
-            ) : null}
-          </div>
-          <div>
-            <p className="text-[11px] uppercase tracking-wide text-navy/55">Responsável</p>
-            <p className="mt-0.5 text-sm font-medium text-navy">{canonica?.responsavel || "Sem responsável"}</p>
-          </div>
-          <div>
-            <p className="text-[11px] uppercase tracking-wide text-navy/55">Prazo</p>
-            <p className="mt-0.5 text-sm font-medium text-navy">
-              {canonica?.prazo ? new Date(String(canonica.prazo)).toLocaleDateString("pt-BR") : "Sem prazo definido"}
-            </p>
-          </div>
-          <div>
-            <p className="text-[11px] uppercase tracking-wide text-navy/55">Motivo</p>
-            <p className="mt-0.5 text-sm text-navy/85">{derivado.motivo}</p>
-          </div>
-          <div data-caso360-impacto>
-            <p className="text-[11px] uppercase tracking-wide text-navy/55">Impacto</p>
-            <p className="mt-0.5 text-sm text-navy/85">
-              {bloqueiosReais.length === 0
-                ? "Nenhum bloqueio real — elegível para ativação"
-                : `Ativação bloqueada — ${bloqueiosReais.length} pendência(s), primeiro: ${bloqueiosReais[0]?.motivo ?? "—"}`}
-            </p>
-            {/*
-              FIDELIDADE-VISUAL-2026-09-23: único link de resolução do
-              bloqueio prioritário na visão geral — os demais pontos da
-              página (KPI "Jornada/onboarding" e o checklist de gates em
-              Fechamento) deixam de repetir esta mesma frase; cada um leva
-              aqui em vez de reafirmar a contagem.
-            */}
-            {bloqueiosReais.length > 0 && bloqueiosReais[0]?.cta_tela ? (
-              <a
-                href={bloqueiosReais[0].cta_tela}
-                className="mt-1 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-2"
-              >
-                Resolver bloqueio
-              </a>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
+      <CaseHealthHero
+        saude={saudeDoCaso({
+          bloqueios: bloqueiosReais.length,
+          temProximaAcao: Boolean(canonica?.acao),
+          temResponsavel: Boolean(canonica?.responsavel),
+          temPrazo: Boolean(canonica?.prazo),
+        })}
+        situacao={caso["ativo"] ? "Caso ativo" : rotulo(STATUS_DERIVADO, derivado.valor)}
+        proximaAcao={canonica?.acao ?? "Sem próxima ação definida"}
+        seloProximaAcao={canonica ? SELO_PROXIMA_ACAO[canonica.origem] : null}
+        responsavel={canonica?.responsavel || "Sem responsável"}
+        prazo={canonica?.prazo ? new Date(String(canonica.prazo)).toLocaleDateString("pt-BR") : "Sem prazo definido"}
+        motivo={derivado.motivo}
+        impacto={
+          bloqueiosReais.length === 0
+            ? "Nenhum bloqueio real — elegível para ativação"
+            : `Ativação bloqueada — ${bloqueiosReais.length} pendência(s), primeiro: ${bloqueiosReais[0]?.motivo ?? "—"}`
+        }
+        resolverBloqueio={bloqueiosReais.length > 0 && bloqueiosReais[0]?.cta_tela ? { href: bloqueiosReais[0].cta_tela } : null}
+      >
+        <>
           <button
             type="button"
             disabled={mConcluir.isPending || !canonica}
@@ -1003,8 +968,8 @@ function FichaCaso() {
               Abrir Pessoa 360
             </Link>
           ) : null}
-        </div>
-      </div>
+        </>
+      </CaseHealthHero>
 
       {erro ? (
         <p className="mb-4 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-navy">
@@ -2286,7 +2251,12 @@ function FichaCaso() {
             deixarem de existir como rótulo. Sobe para o topo da aba e passa a
             citar os dois nomes antigos, para quem procura por eles achar.
           */}
-          <PainelFichaUnica caseId={id} />
+          <PainelFichaUnica
+            caseId={id}
+            clienteId={clienteId ?? null}
+            pessoas360={(q.data?.pessoas360 ?? []) as Record<string, any>[]}
+            membros={(q.data?.membros ?? []) as Record<string, any>[]}
+          />
           {/*
             04/10/2026 — "leia e execute o dossiê da Ana e junto do histórico
             completo da Ana... anexei também o skill que foi criado para trazer

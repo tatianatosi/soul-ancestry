@@ -126,7 +126,7 @@ describe("Corte Ficha Única (02/10/2026) — Caso 360 monta um único component
   const casoIndex = readFileSync("src/routes/_authenticated/casos.$caseId.index.tsx", "utf8");
 
   it("renderiza PainelFichaUnica e não renderiza mais PainelFichaPiloto/PainelFichaMaster separados", () => {
-    expect(casoIndex).toContain("<PainelFichaUnica caseId={id} />");
+    expect(casoIndex).toMatch(/<PainelFichaUnica\s+caseId=\{id\}/);
     expect(casoIndex).not.toContain("<PainelFichaPiloto");
     expect(casoIndex).not.toContain("<PainelFichaMaster");
   });
@@ -138,7 +138,7 @@ describe("Corte Ficha Única (02/10/2026) — Caso 360 monta um único component
       identificados". Agora abre a aba.
     */
     const aba = casoIndex.indexOf('<SecaoAncora id="tecnico"');
-    const ficha = casoIndex.indexOf("<PainelFichaUnica caseId={id} />", aba);
+    const ficha = casoIndex.indexOf("<PainelFichaUnica", aba);
     const paisEVia = casoIndex.indexOf('titulo="País e via"', aba);
     expect(aba).toBeGreaterThan(-1);
     expect(ficha).toBeGreaterThan(aba);

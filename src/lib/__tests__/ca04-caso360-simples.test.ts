@@ -14,7 +14,7 @@ describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)"
   });
 
   it("as seis ações exigidas existem, todas no mesmo bloco do hero", () => {
-    const inicioHero = pagina.indexOf('<p className="text-[11px] uppercase tracking-wide text-navy/55">Situação hoje</p>');
+    const inicioHero = pagina.indexOf("<CaseHealthHero");
     const fimHero = pagina.indexOf("{erro ? (");
     const hero = pagina.slice(inicioHero, fimHero);
     for (const cta of ["Concluir", "Reprogramar", "Criar tarefa", "Registrar atualização", "Preparar microentrega", "Abrir Visão Administrativa do Cliente"]) {

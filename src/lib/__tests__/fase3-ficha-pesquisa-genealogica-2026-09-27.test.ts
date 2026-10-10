@@ -67,7 +67,7 @@ describe("Fase 3 → Corte Ficha Única (02/10/2026) — preparação de pesquis
   const casoIndex = readFileSync("src/routes/_authenticated/casos.$caseId.index.tsx", "utf8");
 
   it("continua montada em Caso 360, agora como Ficha Única (não moveu de rota, não há mais duas fichas concorrentes)", () => {
-    expect(casoIndex).toContain("<PainelFichaUnica caseId={id} />");
+    expect(casoIndex).toMatch(/<PainelFichaUnica\s+caseId=\{id\}/);
     expect(casoIndex).not.toContain("<PainelFichaPiloto caseId={id} />");
     expect(casoIndex).not.toContain("<PainelFichaMaster caseId={id} />");
   });

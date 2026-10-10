@@ -93,6 +93,23 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
       ? (membrosBrutos.data as Linha[])
       : await pessoasDoCasoComFallbackNucleo(supabase, data.id);
 
+    // Dados civis vêm da Pessoa 360 (`clientes`), via cliente_id do caso e dos
+    // membros — a equipe não redigita em case_members. Só leitura, por organização.
+    const idsPessoa360 = [
+      ...new Set(
+        [caso.data.cliente_id, ...membrosComFallback.map((m) => m.cliente_id)].filter(Boolean) as string[],
+      ),
+    ];
+    const pessoas360 = idsPessoa360.length
+      ? await supabase
+          .from("clientes")
+          .select(
+            "id, nome, nome_social, email, telefone, cpf, data_nascimento, cidade_nascimento, nacionalidade, estado_civil, nome_mae, nome_pai, nome_conjuge",
+          )
+          .eq("organization_id", organizationId)
+          .in("id", idsPessoa360)
+      : { data: [] as Linha[] };
+
     // 07/09/2026 — achado real reportado pela proprietária: esta ficha e a
     // tela de onboarding (/onboarding/$id) mostravam estados diferentes para
     // o mesmo caso, porque cada uma calculava "pronto?" com uma lógica
@@ -135,6 +152,7 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
       membros: membrosComFallback as Linha[],
       log: (log.data ?? []) as Linha[],
       cliente: (cliente as any)?.data ?? null,
+      pessoas360: ((pessoas360 as any).data ?? []) as Linha[],
       leadOrigem: (leadOrigem ?? null) as Linha | null,
       nucleos: (nucleos.data ?? []) as Linha[],
       nucleoCompletude,

@@ -16,6 +16,8 @@ import {
 } from "@/lib/ficha-piloto-genealogica";
 import { montarBlocosFichaUnica, type BlocoFichaUnica } from "@/lib/ficha-unica-caso";
 import { FichaMaster54Campos } from "@/components/caso/ficha-master-54-campos";
+import { montarCivilDoCaso } from "@/lib/ficha-civil-pessoa360";
+import { TEXTO_ESTADO_CAMPO } from "@/lib/ficha-master-estado-campos";
 
 /**
  * Ficha Única progressiva do caso (02/10/2026) — único painel da aba
@@ -29,7 +31,18 @@ import { FichaMaster54Campos } from "@/components/caso/ficha-master-54-campos";
  * Cada bloco aqui declara dono, origem (tabela real) e, quando existe,
  * a rota onde aquele dado é de fato editado — nunca um formulário novo.
  */
-export function PainelFichaUnica({ caseId }: { caseId: string }) {
+export function PainelFichaUnica({
+  caseId,
+  clienteId,
+  pessoas360,
+  membros,
+}: {
+  caseId: string;
+  clienteId?: string | null;
+  pessoas360?: Record<string, any>[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+  membros?: Record<string, any>[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+}) {
+  const civil = montarCivilDoCaso({ clienteId, pessoas360: pessoas360 ?? [], membros: membros ?? [] });
   const carregarMaster = useServerFn(obterFichaMasterReal);
   const carregarPiloto = useServerFn(carregarFichaPiloto);
 
@@ -111,6 +124,45 @@ export function PainelFichaUnica({ caseId }: { caseId: string }) {
       ) : null}
 
       <div className="space-y-4">
+        {/* Dados civis: leitura da Pessoa 360 (clientes); nada é redigitado em case_members. */}
+        <div className="rounded-lg border border-navy/10 bg-white/60 p-4" data-ficha-civil-pessoa360>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 className="font-serif text-base text-navy">Dados civis — titular e membros</h3>
+            <span className="text-[11px] uppercase tracking-wide text-navy/45">dono: Pessoa 360 · origem: clientes</span>
+          </div>
+          {civil.length === 0 ? (
+            <p className="mt-3 text-sm text-navy/55">Sem dados suficientes: nenhum cliente vinculado a este caso.</p>
+          ) : (
+            <div className="mt-3 space-y-4">
+              {civil.map((p) => (
+                <div key={p.chave}>
+                  <p className="text-sm font-medium text-navy">
+                    {p.nome} <span className="text-[11px] font-normal uppercase text-navy/45">{p.papel}</span>
+                    {p.clienteId ? (
+                      <Link
+                        to="/pessoas/$clienteId"
+                        params={{ clienteId: p.clienteId }}
+                        className="ml-2 text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+                      >
+                        Editar na Pessoa 360 →
+                      </Link>
+                    ) : (
+                      <span className="ml-2 text-xs text-terracotta">sem vínculo com a Pessoa 360 — pendente de validação</span>
+                    )}
+                  </p>
+                  <dl className="mt-1 grid gap-x-4 sm:grid-cols-2">
+                    {p.campos.map((c) => (
+                      <div key={c.rotulo} className="flex items-baseline justify-between gap-3 border-b border-navy/5 py-1 text-sm">
+                        <dt className="text-navy/55">{c.rotulo}</dt>
+                        <dd className={c.preenchido ? "text-right text-navy/85" : "text-right text-navy/45"}>{c.exibicao}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         {blocos.map((bloco) => (
           <BlocoFichaUnicaView key={bloco.id} bloco={bloco} />
         ))}
@@ -143,7 +195,7 @@ function BlocoFichaUnicaView({ bloco }: { bloco: BlocoFichaUnica }) {
           {bloco.campos.map((c) => (
             <div key={c.rotulo} className="flex items-baseline justify-between gap-3 border-b border-navy/5 py-1">
               <dt className="text-navy/55">{c.rotulo}</dt>
-              <dd className="text-right text-navy/85">{c.valor === null || c.valor === undefined || c.valor === "" ? "—" : c.valor}</dd>
+              <dd className="text-right text-navy/85">{c.valor === null || c.valor === undefined || c.valor === "" ? TEXTO_ESTADO_CAMPO.sem_dados_suficientes : c.valor}</dd>
             </div>
           ))}
         </dl>

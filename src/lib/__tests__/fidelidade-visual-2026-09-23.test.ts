@@ -114,9 +114,11 @@ describe("5. Caso 360 — visão geral não repete o mesmo bloqueio em banner e 
   const pagina = readFileSync("src/routes/_authenticated/casos.$caseId.index.tsx", "utf8");
 
   it("o campo Impacto do hero é o único lugar com o link de resolução do bloqueio prioritário", () => {
-    expect(pagina).toContain("data-caso360-impacto");
-    expect(pagina).toContain("Resolver bloqueio");
-    const ocorrencias = pagina.match(/Resolver bloqueio/g) ?? [];
+    // O hero vive em CaseHealthHero (Pranchas Desk v4); a rota só o alimenta.
+    const hero = readFileSync("src/components/caso/case-health-hero.tsx", "utf8");
+    expect(hero).toContain("data-caso360-impacto");
+    expect(hero).toContain("Resolver bloqueio");
+    const ocorrencias = (pagina + hero).match(/Resolver bloqueio/g) ?? [];
     expect(ocorrencias.length).toBe(1);
   });
 
