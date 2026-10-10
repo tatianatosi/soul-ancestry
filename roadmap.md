@@ -1,9 +1,10 @@
 # Roadmap
 
 ## Núcleo — formulário pai e irmã da Ana (10/10/2026)
-- [ ] Ajustar apenas adicionar/editar membro na rota existente, com campos e writers atuais.
-- [ ] Documentar PEDIDO AO CLAUDE se requerente não for gravável; não substituir papel.
-- [ ] Capturar formulários autenticados em 375/1280, conferir compilação; sem salvar dados, integrar ou publicar.
+- [x] Ajustar apenas adicionar/editar membro na rota existente, com campos e writers atuais.
+- [x] Documentar PEDIDO AO CLAUDE: requerente não é gravável; nenhum papel substituído.
+- [x] Capturar formulários autenticados em 375/1280; build OK, sem overflow/erros de página, sem salvar dados, integrar ou publicar.
+- [ ] Gravação de requerente — bloqueada pelos contratos/restrições atuais; adequação a cargo do Claude em branch própria.
 
 ## Desk — aplicação do de-para v4 (07/10/2026)
 - [x] Primeiro corte: Caso 360 com linha do tempo, participantes e rosca do dossiê reutilizados do kit; cabeçalho legível; dados e oito seções preservados.

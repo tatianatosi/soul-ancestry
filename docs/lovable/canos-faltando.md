@@ -195,3 +195,14 @@ PEDIDO AO CLAUDE: fonte de vínculo real, origem geográfica, checklist e catego
 ## Rascunho fases 1–3 — 09/10/2026
 
 Visão administrativa da Ana, 375/1280; base 0c0fdf193ce9ce0774a72623df87ddc80bff3e7e, CSS 2a1b7f284ed3723b9c8412bc212095fa0ab22c7e. Apenas apresentação alterada. Uma microentrega, seis pessoas, assinatura atual preservadas; sem publicação. Linha ancestral/união factual, vínculos, países, checklist completo, categorias explícitas e PP-03/plano/canais continuam dependências de fonte/Claude. Texto documental de dispensa continua bloqueado pelo teste existente, não alterado. Tipografia/métricas exatas da referência e baseline Desk antes integral não comprovados. Auditoria e Files registram testes, limites e imagens; nenhuma fase futura homologada.
+
+
+## PEDIDO AO CLAUDE — Requerentes do núcleo da Ana (10/10/2026)
+
+Decisão da Proprietária: pai e irmã entram no MESMO caso CA-CID-AT-FAM-2026-001 (`a11a0000-0000-4000-8000-000000000002`). Ana = contratante/titular e responsável financeira; pai e irmã = requerente. Usar apenas `nucleo_membros` e `client_portal_access` existentes.
+
+**Bloqueio comprovado no contrato dos writers:** `adicionarMembroNucleo` recebe nome, papel, vínculo e clienteId, mas não recebe nem grava papelNoCaso. `PAPEIS_GRAVAVEIS_MEMBRO` só aceita contratante_signatario/dependente. `salvarMembroNucleo` recebe papelNoCaso, porém `PAPEIS_PESSOA` e a restrição versionada não incluem requerente. Não mapear requerente para dependente, titular ou signatário. Tipagem string não autoriza novo valor.
+
+Claude deve reconciliar a decisão com os writers/constraints existentes em sua branch, preservando identidade e mesmo caso, sem tabela paralela. Status cadastral existe na tabela, mas não é recebido por nenhum desses writers e não foi adicionado ao formulário. Separação de visibilidade financeira e acessos individuais continuam fora deste corte de UI.
+
+UI: Requerente é opção identificada como aguardando adequação nos dois formulários; seleção não envia valor inválido. Nome, vínculo/parentesco, pessoa vinculada e Processo existente na edição preservados. Contratante e Titular continuam valores separados. Nenhum familiar cadastrado, convite, magic link, acesso, alteração financeira, RLS, migration ou publicação executados. Escrita/releitura permanece não testada por proibição expressa da Proprietária.

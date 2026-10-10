@@ -2,6 +2,7 @@ import { nomeValido } from "@/lib/validacao-pessoa";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { Button } from "@/components/ui/button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -53,6 +54,20 @@ const rotulo = (v: string) =>
   v.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
 
 const opcoes = (lista: readonly string[]) => lista.map((v) => ({ valor: v, rotulo: rotulo(v) }));
+
+const REQUERENTE_PENDENTE = "requerente";
+const AVISO_REQUERENTE = "O cadastro como Requerente aguarda adequação pelo Claude. Não será salvo como dependente, titular ou signatário.";
+const papeisDeInclusao = [
+  ...PAPEIS_GRAVAVEIS_MEMBRO.map((valor) => ({
+    valor,
+    rotulo: valor === "contratante_signatario" ? "Contratante / signatário" : "Dependente",
+  })),
+  { valor: REQUERENTE_PENDENTE, rotulo: "Requerente — aguardando adequação" },
+];
+const papeisDeEdicao = [
+  ...PAPEIS_NO_CASO_GRAVAVEIS_NUCLEO,
+  { valor: REQUERENTE_PENDENTE, rotulo: "Requerente — aguardando adequação" },
+];
 
 const CORES_STATUS: Record<string, string> = {
   nao_iniciado: "bg-navy/10 text-navy/70",
@@ -124,7 +139,7 @@ function NucleosPage() {
   const salvarMembro = useServerFn(salvarMembroNucleo);
   const adicionarMembro = useServerFn(adicionarMembroNucleo);
   const [adicionandoEm, setAdicionandoEm] = useState<string | null>(null);
-  const [novoMembro, setNovoMembro] = useState({ nome: "", papel: "dependente", vinculo: "", clienteId: "" });
+  const [novoMembro, setNovoMembro] = useState({ nome: "", papel: "", vinculo: "", clienteId: "" });
   const [erroNovoMembro, setErroNovoMembro] = useState<string | null>(null);
   // Corte U2 (28/09/2026): o escritor `sincronizarMembrosDoCaso` já existia sem
   // tela. Aqui ele leva ao caso (case_members, com cliente_id) os membros do
@@ -156,7 +171,7 @@ function NucleosPage() {
       }),
     onSuccess: async () => {
       setAdicionandoEm(null);
-      setNovoMembro({ nome: "", papel: "dependente", vinculo: "", clienteId: "" });
+      setNovoMembro({ nome: "", papel: "", vinculo: "", clienteId: "" });
       setErroNovoMembro(null);
       // Releitura do servidor: a lista mostra o que foi gravado, não o rascunho.
       await qc.invalidateQueries({ queryKey: ["nucleos-desk"] });
@@ -211,7 +226,7 @@ function NucleosPage() {
         setSelecionado(id);
         setRascunho(null);
         setRascunhoMembro(null);
-        setNovoMembro({ nome: "", papel: "dependente", vinculo: "", clienteId: "" });
+        setNovoMembro({ nome: "", papel: "", vinculo: "", clienteId: "" });
       }
       toast.success("Núcleo criado.");
     },
@@ -259,7 +274,7 @@ function NucleosPage() {
     setOk(null);
     setRascunhoMembro(null);
     setErroMembro(null);
-    setNovoMembro({ nome: "", papel: "dependente", vinculo: "", clienteId: "" });
+    setNovoMembro({ nome: "", papel: "", vinculo: "", clienteId: "" });
     setRascunho({
       dossie_mae: n.dossie_mae ?? "",
       ambiente: n.ambiente ?? "",
@@ -558,7 +573,8 @@ function NucleosPage() {
                                 onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, nome: v })}
                               />
                               <Texto
-                                label="Vínculo"
+                                label="Vínculo / parentesco"
+                                ajuda="Ex.: pai, irmã."
                                 valor={rascunhoMembro.vinculo}
                                 onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, vinculo: v })}
                               />
@@ -569,12 +585,12 @@ function NucleosPage() {
                               />
                               <Selecao
                                 label="Papel no caso"
-                                ajuda="Mesmo vocabulário usado em Caso 360 e Pessoa 360 — nunca um rótulo próprio desta tela."
+                                ajuda="Contratante e Titular são papéis distintos; Requerente aguarda adequação do cadastro."
                                 valor={rascunhoMembro.papelNoCaso}
                                 opcoes={
                                   rascunhoMembro.papelNoCaso === "interlocutor"
-                                    ? [...PAPEIS_NO_CASO_GRAVAVEIS_NUCLEO, { valor: "interlocutor", rotulo: "Interlocutor (variante legada — mantido)" }]
-                                    : [...PAPEIS_NO_CASO_GRAVAVEIS_NUCLEO]
+                                    ? [...papeisDeEdicao, { valor: "interlocutor", rotulo: "Interlocutor (variante legada — mantido)" }]
+                                    : papeisDeEdicao
                                 }
                                 onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, papelNoCaso: v })}
                               />
@@ -588,7 +604,7 @@ function NucleosPage() {
                               >
                                 {(clientes) => (
                                   <Selecao
-                                    label="Vincular a pessoa cadastrada"
+                                    label="Pessoa vinculada"
                                     ajuda="Liga este requerente ao cadastro de Pessoa Canônica — habilita o link 'Ver perfil' e evita duplicar o cadastro da mesma pessoa."
                                     valor={rascunhoMembro.clienteId}
                                     opcoes={clientes.map((c) => ({ valor: c.id, rotulo: c.nome }))}
@@ -596,29 +612,31 @@ function NucleosPage() {
                                   />
                                 )}
                               </EstadoDados>
-                              {erroMembro ? <p className="text-red-700">{erroMembro}</p> : null}
-                              <div className="flex gap-2 pt-1">
-                                <button
+                               {rascunhoMembro.papelNoCaso === REQUERENTE_PENDENTE ? <p role="status" className="text-terracotta">{AVISO_REQUERENTE}</p> : null}
+                               {erroMembro ? <p className="text-red-700">{erroMembro}</p> : null}
+                               <div className="flex flex-wrap gap-2 pt-1">
+                                 <Button
                                   type="button"
-                                  disabled={mMembro.isPending}
-                                  onClick={() =>
-                                    mMembro.mutate({ membroId: m2.id, ...rascunhoMembro, caseId: n.caso?.id ?? null })
-                                  }
-                                  className="rounded-md bg-navy px-2 py-1 text-cream disabled:opacity-50"
+                                  disabled={mMembro.isPending || rascunhoMembro.papelNoCaso === REQUERENTE_PENDENTE || !rascunhoMembro.nome.trim() || !nomeValido(rascunhoMembro.nome)}
+                                   onClick={() => {
+                                     if (rascunhoMembro.papelNoCaso === REQUERENTE_PENDENTE) return;
+                                     mMembro.mutate({ membroId: m2.id, ...rascunhoMembro, caseId: n.caso?.id ?? null });
+                                   }}
+                                   className="min-h-11"
                                 >
-                                  {mMembro.isPending ? "Gravando…" : "Salvar"}
-                                </button>
-                                <button
+                                   {mMembro.isPending ? "Gravando…" : "Salvar membro"}
+                                 </Button>
+                                 <Button variant="outline"
                                   type="button"
                                   onClick={() => {
                                     setMembroEditando(null);
                                     setRascunhoMembro(null);
                                     setErroMembro(null);
                                   }}
-                                  className="rounded-md border border-navy/15 px-2 py-1"
+                                   className="min-h-11"
                                 >
                                   Cancelar
-                                </button>
+                                 </Button>
                               </div>
                             </div>
                           ) : (
@@ -738,11 +756,12 @@ function NucleosPage() {
                       />
                       <Selecao
                         label="Papel no núcleo"
+                         ajuda="Contratante/signatário não equivale a Requerente; a titularidade pode ser editada no papel do caso."
                         valor={novoMembro.papel}
-                        opcoes={PAPEIS_GRAVAVEIS_MEMBRO.map((p) => ({ valor: p, rotulo: rotulo(p) }))}
-                        onChange={(v) => setNovoMembro({ ...novoMembro, papel: v || "dependente" })}
+                        opcoes={papeisDeInclusao}
+                        onChange={(v) => setNovoMembro({ ...novoMembro, papel: v })}
                       />
-                      <Texto label="Vínculo (ex.: filho, cônjuge)" valor={novoMembro.vinculo} onChange={(v) => setNovoMembro({ ...novoMembro, vinculo: v })} />
+                      <Texto label="Vínculo / parentesco" ajuda="Ex.: pai, irmã." valor={novoMembro.vinculo} onChange={(v) => setNovoMembro({ ...novoMembro, vinculo: v })} />
                       <EstadoDados
                         carregando={qClientes.isLoading}
                         erro={qClientes.error}
@@ -753,7 +772,7 @@ function NucleosPage() {
                       >
                         {(clientes) => (
                           <Selecao
-                            label="Vincular a pessoa cadastrada (opcional)"
+                            label="Pessoa vinculada (opcional)"
                             ajuda="Só por escolha sua — nunca por coincidência de nome."
                             valor={novoMembro.clienteId}
                             opcoes={clientes.map((c) => ({ valor: c.id, rotulo: c.nome }))}
@@ -768,26 +787,30 @@ function NucleosPage() {
                           />
                         )}
                       </EstadoDados>
-                      {erroNovoMembro ? <p className="text-red-700">{erroNovoMembro}</p> : null}
-                      <div className="flex gap-2 pt-1">
-                        <button
+                       {novoMembro.papel === REQUERENTE_PENDENTE ? <p role="status" className="text-terracotta">{AVISO_REQUERENTE}</p> : null}
+                       {erroNovoMembro ? <p className="text-red-700">{erroNovoMembro}</p> : null}
+                       <div className="flex flex-wrap gap-2 pt-1">
+                         <Button
                           type="button"
-                          disabled={mAdicionarMembro.isPending || !novoMembro.nome.trim()}
-                          onClick={() => mAdicionarMembro.mutate({ nucleoId: n.id, ...novoMembro })}
-                          className="rounded-md bg-navy px-2 py-1 text-cream disabled:opacity-50"
+                          disabled={mAdicionarMembro.isPending || !novoMembro.nome.trim() || !nomeValido(novoMembro.nome) || !PAPEIS_GRAVAVEIS_MEMBRO.some((papel) => papel === novoMembro.papel)}
+                          onClick={() => {
+                             if (!PAPEIS_GRAVAVEIS_MEMBRO.some((papel) => papel === novoMembro.papel)) return;
+                             mAdicionarMembro.mutate({ nucleoId: n.id, ...novoMembro });
+                           }}
+                           className="min-h-11"
                         >
                           {mAdicionarMembro.isPending ? "Gravando…" : "Adicionar membro"}
-                        </button>
-                        <button
+                         </Button>
+                         <Button variant="outline"
                           type="button"
                           onClick={() => {
                             setAdicionandoEm(null);
                             setErroNovoMembro(null);
                           }}
-                          className="rounded-md border border-navy/15 px-2 py-1"
+                           className="min-h-11"
                         >
                           Cancelar
-                        </button>
+                         </Button>
                       </div>
                     </div>
                   ) : podeEscrever ? (
