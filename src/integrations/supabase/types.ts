@@ -20209,6 +20209,10 @@ export type Database = {
         Returns: Database["public"]["Enums"]["portal_access_level"]
       }
       portal_minha_org: { Args: never; Returns: string }
+      portal_sou_contratante_financeiro: {
+        Args: { p_case_id: string }
+        Returns: boolean
+      }
       proxima_acao_prioritaria: {
         Args: { _case: string }
         Returns: {

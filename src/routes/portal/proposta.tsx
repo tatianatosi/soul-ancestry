@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { COPY_TELAS } from "@/lib/portal-copy";
+import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { portalProposta } from "@/lib/portal.functions";
@@ -69,7 +69,13 @@ function PropostaPage() {
             <h2 className="font-serif text-xl">Condições</h2>
             {!data?.faturas.length ? (
               <div className="mt-3">
-                <PortalVazio mensagem="As condições combinadas aparecem aqui assim que estiverem disponíveis para você." />
+                <PortalVazio
+                  mensagem={
+                    data?.restritoAoContratante
+                      ? COPY_GERAL.faturasApenasContratante
+                      : "As condições combinadas aparecem aqui assim que estiverem disponíveis para você."
+                  }
+                />
               </div>
             ) : (
               <ul className="mt-3 space-y-3">

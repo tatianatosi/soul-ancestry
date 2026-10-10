@@ -300,10 +300,29 @@ export const portalProposta = createServerFn({ method: "GET" })
       supabase.from("portal_casos").select("id, codigo, titulo, pais, via, status"),
       supabase
         .from("invoices")
-        .select("id, numero, valor, moeda, status, vencimento")
+        .select("id, case_id, numero, valor, moeda, status, vencimento")
         .order("vencimento", { ascending: true }),
     ]);
-    return { casos: (casos.data ?? []) as any[], faturas: (faturas.data ?? []) as any[] };
+    const faturasBrutas = (faturas.data ?? []) as any[];
+    // 10/10/2026 — "Condições" é dado financeiro do contratante, não de todo
+    // o núcleo: um familiar (requerente) autenticado no mesmo caso não vê a
+    // fatura de quem assina e paga. Ver portal_sou_contratante_financeiro.
+    const casosDasFaturas = [...new Set(faturasBrutas.map((f) => f.case_id).filter(Boolean))] as string[];
+    const souContratantePorCaso = new Map(
+      await Promise.all(
+        casosDasFaturas.map(async (caseId) => {
+          const { data, error } = await supabase.rpc("portal_sou_contratante_financeiro", { p_case_id: caseId });
+          if (error) throw new Error(error.message);
+          return [caseId, Boolean(data)] as const;
+        }),
+      ),
+    );
+    const faturasVisiveis = faturasBrutas.filter((f) => souContratantePorCaso.get(f.case_id) === true);
+    return {
+      casos: (casos.data ?? []) as any[],
+      faturas: faturasVisiveis,
+      restritoAoContratante: faturasVisiveis.length === 0 && faturasBrutas.length > 0,
+    };
   });
 
 /* ============ ÁREA INTERNA: CLIENTES > ACESSOS AO PORTAL ============ */
