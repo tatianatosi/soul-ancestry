@@ -574,7 +574,7 @@ function NucleosPage() {
                               />
                               <Texto
                                 label="Vínculo / parentesco"
-                               ajuda="Ex.: pai, irmã."
+                                ajuda="Ex.: pai, irmã."
                                 valor={rascunhoMembro.vinculo}
                                 onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, vinculo: v })}
                               />
@@ -612,29 +612,31 @@ function NucleosPage() {
                                   />
                                 )}
                               </EstadoDados>
-                              {erroMembro ? <p className="text-red-700">{erroMembro}</p> : null}
-                              <div className="flex gap-2 pt-1">
-                                <button
+                               {rascunhoMembro.papelNoCaso === REQUERENTE_PENDENTE ? <p role="status" className="text-terracotta">{AVISO_REQUERENTE}</p> : null}
+                               {erroMembro ? <p className="text-red-700">{erroMembro}</p> : null}
+                               <div className="flex flex-wrap gap-2 pt-1">
+                                 <Button
                                   type="button"
                                   disabled={mMembro.isPending || rascunhoMembro.papelNoCaso === REQUERENTE_PENDENTE || !rascunhoMembro.nome.trim() || !nomeValido(rascunhoMembro.nome)}
-                                  onClick={() =>
-                                    mMembro.mutate({ membroId: m2.id, ...rascunhoMembro, caseId: n.caso?.id ?? null })
-                                  }
-                                  className="rounded-md bg-navy px-2 py-1 text-cream disabled:opacity-50"
+                                   onClick={() => {
+                                     if (rascunhoMembro.papelNoCaso === REQUERENTE_PENDENTE) return;
+                                     mMembro.mutate({ membroId: m2.id, ...rascunhoMembro, caseId: n.caso?.id ?? null });
+                                   }}
+                                   className="min-h-11"
                                 >
-                                  {mMembro.isPending ? "Gravando…" : "Salvar"}
-                                </button>
-                                <button
+                                   {mMembro.isPending ? "Gravando…" : "Salvar membro"}
+                                 </Button>
+                                 <Button variant="outline"
                                   type="button"
                                   onClick={() => {
                                     setMembroEditando(null);
                                     setRascunhoMembro(null);
                                     setErroMembro(null);
                                   }}
-                                  className="rounded-md border border-navy/15 px-2 py-1"
+                                   className="min-h-11"
                                 >
                                   Cancelar
-                                </button>
+                                 </Button>
                               </div>
                             </div>
                           ) : (
@@ -785,29 +787,30 @@ function NucleosPage() {
                           />
                         )}
                       </EstadoDados>
-                      {erroNovoMembro ? <p className="text-red-700">{erroNovoMembro}</p> : null}
-                      <div className="flex gap-2 pt-1">
-                        <button
+                       {novoMembro.papel === REQUERENTE_PENDENTE ? <p role="status" className="text-terracotta">{AVISO_REQUERENTE}</p> : null}
+                       {erroNovoMembro ? <p className="text-red-700">{erroNovoMembro}</p> : null}
+                       <div className="flex flex-wrap gap-2 pt-1">
+                         <Button
                           type="button"
                           disabled={mAdicionarMembro.isPending || !novoMembro.nome.trim() || !nomeValido(novoMembro.nome) || !PAPEIS_GRAVAVEIS_MEMBRO.some((papel) => papel === novoMembro.papel)}
                           onClick={() => {
                              if (!PAPEIS_GRAVAVEIS_MEMBRO.some((papel) => papel === novoMembro.papel)) return;
                              mAdicionarMembro.mutate({ nucleoId: n.id, ...novoMembro });
                            }}
-                          className="rounded-md bg-navy px-2 py-1 text-cream disabled:opacity-50"
+                           className="min-h-11"
                         >
                           {mAdicionarMembro.isPending ? "Gravando…" : "Adicionar membro"}
-                        </button>
-                        <button
+                         </Button>
+                         <Button variant="outline"
                           type="button"
                           onClick={() => {
                             setAdicionandoEm(null);
                             setErroNovoMembro(null);
                           }}
-                          className="rounded-md border border-navy/15 px-2 py-1"
+                           className="min-h-11"
                         >
                           Cancelar
-                        </button>
+                         </Button>
                       </div>
                     </div>
                   ) : podeEscrever ? (
