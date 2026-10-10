@@ -2,7 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { organizacaoDo } from "@/lib/caso-canonico.server";
+import { casoAutorizado } from "@/lib/portal-cliente.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -15,9 +15,7 @@ import { organizacaoDo } from "@/lib/caso-canonico.server";
 export type EncontroLinhagemApp = {
   id: string;
   titulo: string;
-  contextoHistorico: string | null;
   territoriosMigratorios: string | null;
-  memoriaFamiliar: string | null;
   resumoAprovado: string;
   criadoEm: string;
 };
@@ -31,13 +29,22 @@ export const listarEncontrosLinhagemApp = createServerFn({ method: "GET" })
   .handler(async ({ data, context }): Promise<EncontroLinhagemApp[]> => {
     semCache();
     const supabase = (context as any).supabase;
-    const organizationId = await organizacaoDo(supabase, context.userId as string);
 
-    const { data: encontros, error } = await supabase
+    // Isolamento A×B: o caso precisa estar liberado para ESTE cliente na view
+    // do portal (RLS). Caso alheio ou não liberado devolve lista vazia.
+    const caso = await casoAutorizado(supabase, data.caseId);
+    if (!caso?.organization_id) return [];
+
+    // Os encontros não têm política de leitura para o cliente: a leitura é feita
+    // no servidor, depois da autorização acima, e só devolve o que foi aprovado
+    // e sanitizado (nunca contexto, memória ou títulos internos).
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: encontros, error } = await (supabaseAdmin as any)
       .from("lineage_encounters")
-      .select("id,title_client,title_internal,contexto_historico,territorios_migratorios,memoria_familiar,resumo_aprovado_cliente,created_at")
-      .eq("organization_id", organizationId)
-      .eq("case_id", data.caseId)
+      .select("id,title_client,territorios_migratorios,resumo_aprovado_cliente,created_at")
+      .eq("organization_id", caso.organization_id)
+      .eq("case_id", caso.id)
+      .eq("approval_status", "aprovado")
       .is("archived_at", null)
       .not("resumo_aprovado_cliente", "is", null)
       .order("created_at", { ascending: false });
@@ -49,10 +56,8 @@ export const listarEncontrosLinhagemApp = createServerFn({ method: "GET" })
 
     return ((encontros ?? []) as any[]).map((e) => ({
       id: String(e.id),
-      titulo: String(e.title_client || e.title_internal || "Encontro de Linhagem"),
-      contextoHistorico: e.contexto_historico ?? null,
+      titulo: String(e.title_client || "Encontro de Linhagem"),
       territoriosMigratorios: e.territorios_migratorios ?? null,
-      memoriaFamiliar: e.memoria_familiar ?? null,
       resumoAprovado: String(e.resumo_aprovado_cliente),
       criadoEm: String(e.created_at),
     }));

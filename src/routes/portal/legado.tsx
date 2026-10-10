@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { BookOpen, ChevronDown, FileText, Feather } from "lucide-react";
 
@@ -10,6 +11,10 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { legadoSanitizado, publicacoesDeEntrega } from "@/lib/portal-dados-vivos";
 import { PRATELEIRAS, prateleiraDe, type PrateleiraId, type PublicacaoCliente } from "@/lib/projecoes-cliente";
 import { BlocoExemploVisual } from "@/components/portal/bloco-exemplo-visual";
+import { listarEncontrosLinhagemApp } from "@/lib/legado-app.functions";
+
+export const DISCLAIMER_ENCONTROS =
+  "Este conteúdo é histórico, cultural e narrativo. Não substitui acompanhamento terapêutico, psicológico ou médico.";
 
 export const Route = createFileRoute("/portal/legado")({
   head: () => ({
@@ -39,6 +44,12 @@ function dataPublicacao(iso: string): string {
 export function PortalLegado() {
   const { visibilidade, carregando } = useVisibilidade("biblio");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
+  const casoId = data?.casoAtivoId ?? null;
+  const { data: encontros } = useQuery({
+    queryKey: ["portal-encontros-linhagem", casoId],
+    queryFn: () => listarEncontrosLinhagemApp({ data: { caseId: casoId as string } }),
+    enabled: Boolean(casoId),
+  });
 
   return (
     <PortalShell titulo={COPY_TELAS.legado.titulo} descricao={COPY_TELAS.legado.descricao}>
@@ -96,6 +107,24 @@ export function PortalLegado() {
                        {vivo.proximaAcao.acao}
                      </p>
                    ) : null}
+
+                  {encontros && encontros.length > 0 ? (
+                    <section data-legado-encontros className="space-y-3">
+                      <h2 className="font-serif text-xl text-navy">Encontros de linhagem</h2>
+                      <ul className="space-y-3">
+                        {encontros.map((e) => (
+                          <li key={e.id} className="border-b border-border pb-4">
+                            <p className="font-serif text-lg text-navy">{e.titulo}</p>
+                            {e.territoriosMigratorios ? (
+                              <p className="mt-1 text-xs uppercase tracking-wide text-navy/55">{e.territoriosMigratorios}</p>
+                            ) : null}
+                            <p className="mt-2 whitespace-pre-line text-sm text-navy/85">{e.resumoAprovado}</p>
+                          </li>
+                        ))}
+                      </ul>
+                      <p data-legado-disclaimer className="text-xs text-navy/60">{DISCLAIMER_ENCONTROS}</p>
+                    </section>
+                  ) : null}
 
                   <div className="grid gap-6 sm:grid-cols-2 sm:items-start" data-legado-prateleiras>
                     {PRATELEIRAS.filter((p) => p.id !== "memoria").map((p) => {
