@@ -307,6 +307,7 @@ export const religarElosMecanicosDoFio = createServerFn({ method: "POST" })
       supabase
         .from("case_members")
         .select("id,cliente_id")
+        .is("archived_at", null)
         .eq("organization_id", organizationId)
         .eq("case_id", caseId ?? "00000000-0000-0000-0000-000000000000"),
     ]);

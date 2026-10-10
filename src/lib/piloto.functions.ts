@@ -65,7 +65,7 @@ export const painelPiloto = createServerFn({ method: "GET" })
         .eq("case_id", caso["id"])
         .is("archived_at", null)
         .order("chave", { ascending: true }),
-      supabase.from("research_cases").select("id,status,external_research_gate_status").eq("case_id", caso["id"]).maybeSingle(),
+      supabase.from("research_cases").select("id,status,external_research_gate_status").is("archived_at", null).eq("case_id", caso["id"]).maybeSingle(),
     ]);
 
     return {
@@ -178,6 +178,7 @@ export const criarPesquisaPiloto = createServerFn({ method: "POST" })
     const { data: existente } = await supabase
       .from("research_cases")
       .select("id")
+      .is("archived_at", null)
       .eq("case_id", caso["id"])
       .maybeSingle();
     if (existente) return { id: existente["id"] as string, jaExistia: true };

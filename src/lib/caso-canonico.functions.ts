@@ -644,7 +644,7 @@ export const sincronizarMembrosDoCaso = createServerFn({ method: "POST" })
 
     const clienteIds = Array.from(new Set(faltantes.map((m) => m.cliente_id)));
     const { data: clientesRaw } = clienteIds.length
-      ? await supabase.from("clientes").select("id,cpf").in("id", clienteIds)
+      ? await supabase.from("clientes").select("id,cpf").is("archived_at", null).in("id", clienteIds)
       : { data: [] };
     const clientePorId = new Map(((clientesRaw ?? []) as Linha[]).map((c) => [c.id, c]));
 
@@ -761,7 +761,7 @@ export const conferirDivergenciaCpfMembrosCaso = createServerFn({ method: "POST"
     const membrosLinha = (membros ?? []) as Linha[];
     const clienteIds = Array.from(new Set(membrosLinha.map((m) => m.cliente_id).filter(Boolean)));
     const { data: clientesRaw } = clienteIds.length
-      ? await supabase.from("clientes").select("id,cpf").eq("organization_id", organizationId).in("id", clienteIds)
+      ? await supabase.from("clientes").select("id,cpf").is("archived_at", null).eq("organization_id", organizationId).in("id", clienteIds)
       : { data: [] };
     const clientePorId = new Map(((clientesRaw ?? []) as Linha[]).map((c) => [c.id, c]));
 
@@ -888,7 +888,7 @@ export const conferirDivergenciaTelefoneMembrosCaso = createServerFn({ method: "
     const membrosLinha = (membros ?? []) as Linha[];
     const clienteIds = Array.from(new Set(membrosLinha.map((m) => m.cliente_id).filter(Boolean)));
     const { data: clientesRaw } = clienteIds.length
-      ? await supabase.from("clientes").select("id,telefone").eq("organization_id", organizationId).in("id", clienteIds)
+      ? await supabase.from("clientes").select("id,telefone").is("archived_at", null).eq("organization_id", organizationId).in("id", clienteIds)
       : { data: [] };
     const clientePorId = new Map(((clientesRaw ?? []) as Linha[]).map((c) => [c.id, c]));
 
@@ -1014,7 +1014,7 @@ export const conferirDivergenciaCepMembrosCaso = createServerFn({ method: "POST"
     const membrosLinha = (membros ?? []) as Linha[];
     const clienteIds = Array.from(new Set(membrosLinha.map((m) => m.cliente_id).filter(Boolean)));
     const { data: clientesRaw } = clienteIds.length
-      ? await supabase.from("clientes").select("id,endereco_cep").eq("organization_id", organizationId).in("id", clienteIds)
+      ? await supabase.from("clientes").select("id,endereco_cep").is("archived_at", null).eq("organization_id", organizationId).in("id", clienteIds)
       : { data: [] };
     const clientePorId = new Map(((clientesRaw ?? []) as Linha[]).map((c) => [c.id, c]));
 
@@ -1152,7 +1152,7 @@ export const conferirDivergenciaCampoCivilMembrosCaso = createServerFn({ method:
     // `montarEnderecoCanonico` já usado para contract_parties (Corte 4).
     const colunasCliente = campo === "endereco" ? ["id", ...COLUNAS_CLIENTE_ENDERECO] : ["id", colunaCliente];
     const { data: clientesRaw } = clienteIds.length
-      ? await supabase.from("clientes").select(Array.from(new Set(colunasCliente)).join(",")).eq("organization_id", organizationId).in("id", clienteIds)
+      ? await supabase.from("clientes").select(Array.from(new Set(colunasCliente)).join(",")).is("archived_at", null).eq("organization_id", organizationId).in("id", clienteIds)
       : { data: [] };
     const clientePorId = new Map(((clientesRaw ?? []) as Linha[]).map((c) => [c.id, c]));
 

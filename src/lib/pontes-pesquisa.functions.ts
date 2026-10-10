@@ -48,8 +48,8 @@ export const pontearFontesDePesquisa = createServerFn({ method: "POST" })
         .select("id,research_case_id,person_id,event_type,event_date,event_date_precision,location_text,country_context,status,notes_internal")
         .eq("organization_id", organizationId)
         .is("archived_at", null),
-      supabase.from("genealogical_relationships").select("internal_notes").eq("organization_id", organizationId),
-      supabase.from("genealogical_events").select("description_internal").eq("organization_id", organizationId),
+      supabase.from("genealogical_relationships").select("internal_notes").is("archived_at", null).eq("organization_id", organizationId),
+      supabase.from("genealogical_events").select("description_internal").is("archived_at", null).eq("organization_id", organizationId),
     ]);
     for (const r of [casos, relacoes, eventos, relacoesCanonicas, eventosCanonicos]) {
       if (r.error) throw new Error(`Não foi possível ler as fontes da pesquisa: ${r.error.message}`);

@@ -103,6 +103,7 @@ export const casosBloqueadosPorCatalogo = createServerFn({ method: "GET" })
     const { data: crm } = await supabase
       .from("crm_casos")
       .select("id,codigo,titulo")
+      .is("archived_at", null)
       .in("id", [...casos.keys()]);
     const nome = new Map((crm ?? []).map((c: any) => [String(c.id), `${c.codigo ?? "caso"} · ${c.titulo ?? "sem título"}`]));
 

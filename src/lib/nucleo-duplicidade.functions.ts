@@ -218,7 +218,7 @@ export const executarUnificacaoNucleo = createServerFn({ method: "POST" })
       await Promise.all([
         supabase.from("nucleo_membros").select("id,nucleo_id,nome,papel,archived_at").eq("nucleo_id", data.canonicoId),
         supabase.from("nucleo_membros").select("id,nucleo_id,nome,papel,archived_at").eq("nucleo_id", data.origemId),
-        supabase.from("leads").select("id,nucleo_id").eq("nucleo_id", data.origemId),
+        supabase.from("leads").select("id,nucleo_id").is("archived_at", null).eq("nucleo_id", data.origemId),
       ]);
 
     const membrosCanonico = (membrosCanonicoTodos ?? []) as any[];
@@ -317,7 +317,7 @@ export const executarUnificacaoNucleo = createServerFn({ method: "POST" })
           .from("nucleo_membros")
           .select("id,nucleo_id,nome,archived_at")
           .in("nucleo_id", [data.canonicoId, data.origemId]),
-        supabase.from("leads").select("id,nucleo_id").in("nucleo_id", [data.canonicoId, data.origemId]),
+        supabase.from("leads").select("id,nucleo_id").is("archived_at", null).in("nucleo_id", [data.canonicoId, data.origemId]),
       ]);
 
     if (!origemRelido || !canonicoRelido) {

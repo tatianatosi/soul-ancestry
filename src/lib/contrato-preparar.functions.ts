@@ -388,7 +388,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
     const partesContrato = (partesRaw ?? []) as ParteContrato[];
     const idsClientesPartes = [...new Set(partesContrato.map((p) => p.client_id).filter(Boolean))] as string[];
     const { data: clientesPartes } = idsClientesPartes.length
-      ? await supabase.from("clientes").select("id,telefone").eq("organization_id", org).in("id", idsClientesPartes)
+      ? await supabase.from("clientes").select("id,telefone").is("archived_at", null).eq("organization_id", org).in("id", idsClientesPartes)
       : { data: [] as any[] };
     const telefonesCanonicos: Record<string, string | null> = Object.fromEntries(
       ((clientesPartes ?? []) as any[]).map((c) => [c.id, c.telefone ?? null]),

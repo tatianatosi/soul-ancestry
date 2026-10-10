@@ -175,6 +175,8 @@ export const listarCasosFicha = createServerFn({ method: "GET" })
       .from("crm_casos")
       .select("*")
       .eq("organization_id", organizationId)
+      // 09/10/2026 — caso arquivado (inclusive os de teste retirados) não volta ao seletor.
+      .is("archived_at", null)
       .order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
     return { casos: semFixtures((data ?? []) as never) as unknown as Linha[] };

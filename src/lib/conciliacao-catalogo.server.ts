@@ -532,7 +532,7 @@ export async function varrerConciliacao(supabase: Sb, input: { org: string; hoje
   const propostas = ((data ?? []) as any[]).filter((p) => p.dados_teste !== true);
   const casosIds = [...new Set(propostas.map((p) => p.case_id).filter(Boolean))];
   const { data: casos } = casosIds.length
-    ? await supabase.from("crm_casos").select("id,codigo,titulo").in("id", casosIds)
+    ? await supabase.from("crm_casos").select("id,codigo,titulo").is("archived_at", null).in("id", casosIds)
     : { data: [] as any[] };
   const mapaCaso = new Map(((casos ?? []) as any[]).map((c) => [c.id, c]));
 

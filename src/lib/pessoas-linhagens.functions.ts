@@ -224,6 +224,7 @@ export const painelPessoasLinhagens = createServerFn({ method: "GET" })
       const perfisExistentes = await supabase
         .from("genealogical_person_profiles")
         .select("research_person_id")
+        .is("archived_at", null)
         .eq("organization_id", organizationId)
         .in("research_person_id", personIds);
       const comPerfil = new Set(
@@ -533,6 +534,7 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
       const { data: pessoaPesquisa } = await supabase
         .from("research_people")
         .select("id,family_member_id,genealogical_person_profile_id")
+        .is("archived_at", null)
         .eq("organization_id", organizationId)
         .eq("genealogical_person_profile_id", perfilId)
         .maybeSingle();

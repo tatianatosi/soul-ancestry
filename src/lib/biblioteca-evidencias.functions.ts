@@ -211,6 +211,7 @@ export const listarFilaMicroentregas = createServerFn({ method: "GET" })
         ? supabase
             .from("crm_casos")
             .select("id,codigo,titulo,dados_teste,data_origin")
+            .is("archived_at", null)
             .eq("organization_id", organizationId)
             .in("id", caseIds)
         : Promise.resolve({ data: [] as any[], error: null }),
@@ -238,7 +239,7 @@ export const listarFilaMicroentregas = createServerFn({ method: "GET" })
     const evidencias = (evidenciasRes.data ?? []) as Record<string, any>[];
     const sourceIds = [...new Set(evidencias.map((e) => e["source_id"] as string).filter(Boolean))];
     const fontesRes = sourceIds.length
-      ? await supabase.from("research_sources").select("id,title,source_type").eq("organization_id", organizationId).in("id", sourceIds)
+      ? await supabase.from("research_sources").select("id,title,source_type").is("archived_at", null).eq("organization_id", organizationId).in("id", sourceIds)
       : { data: [] as any[], error: null };
     if (fontesRes.error) throw new Error(fontesRes.error.message);
 

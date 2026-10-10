@@ -51,7 +51,7 @@ export const lerPendenciasHumanasCaso = createServerFn({ method: "GET" })
     const nascimentos = idsPessoa.length
       ? new Map(
           (((
-            await supabase.from("clientes").select("id,data_nascimento").eq("organization_id", organizationId).in("id", idsPessoa)
+            await supabase.from("clientes").select("id,data_nascimento").is("archived_at", null).eq("organization_id", organizationId).in("id", idsPessoa)
           ).data ?? []) as { id: string; data_nascimento: string | null }[]).map((c) => [c.id, c.data_nascimento]),
         )
       : new Map<string, string | null>();
@@ -80,6 +80,7 @@ export const lerPendenciasHumanasCaso = createServerFn({ method: "GET" })
     const { data: leads } = await supabase
       .from("leads")
       .select("nome,via_juridica_preliminar,dados_teste")
+      .is("archived_at", null)
       .eq("organization_id", organizationId)
       .or(filtros.join(","));
 

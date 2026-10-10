@@ -1181,7 +1181,7 @@ export async function buscarDuplicidades(
   supabase: any,
   entrada: { nome: string; email?: string | null; telefone?: string | null },
 ): Promise<PossivelDuplicidade[]> {
-  const leadsRes = await supabase.from("leads").select("id, codigo, nome, email, telefone").limit(2000);
+  const leadsRes = await supabase.from("leads").select("id, codigo, nome, email, telefone").is("archived_at", null).limit(2000);
   const linhas = linhasDe<{ id: string; codigo: string | null; nome: string; email: string | null; telefone: string | null }>(
     leadsRes,
     "leads para checagem de duplicidade",

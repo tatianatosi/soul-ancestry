@@ -64,6 +64,7 @@ export async function listarDivergencias(
     const { data: cs } = await supabase
       .from("crm_casos")
       .select("id,codigo,titulo")
+      .is("archived_at", null)
       .in("id", [...casos]);
     for (const c of (cs ?? []) as any[]) mapaCaso.set(c.id, { codigo: c.codigo ?? null, titulo: c.titulo ?? null });
   }

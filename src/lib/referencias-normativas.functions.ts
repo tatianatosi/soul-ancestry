@@ -32,6 +32,7 @@ export const referenciasNormativasDoCaso = createServerFn({ method: "GET" })
     const pesquisa = await supabase
       .from("research_cases")
       .select("case_id,country_context,citizenship_track_id")
+      .is("archived_at", null)
       .eq("case_id", data.caseId)
       .maybeSingle();
 

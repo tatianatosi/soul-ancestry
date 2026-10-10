@@ -54,6 +54,7 @@ export const listarArvoreDoCaso = createServerFn({ method: "GET" })
       ? await supabase
           .from("research_people")
           .select("id,sensitivity_level")
+          .is("archived_at", null)
           .eq("organization_id", organizationId)
           .in("id", idsPesquisa)
       : { data: [] as any[], error: null };

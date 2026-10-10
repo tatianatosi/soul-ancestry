@@ -255,7 +255,7 @@ export const pendenciasCriticasPainel = createServerFn({ method: "GET" })
     );
     const ids = [...new Set(itens.map((i) => i.case_id).filter(Boolean))];
     const casos = ids.length
-      ? ((await supabase.from("crm_casos").select("id,codigo,titulo").in("id", ids)).data ?? [])
+      ? ((await supabase.from("crm_casos").select("id,codigo,titulo").is("archived_at", null).in("id", ids)).data ?? [])
       : [];
     return { itens, casos: casos as Record<string, any>[] };
   });

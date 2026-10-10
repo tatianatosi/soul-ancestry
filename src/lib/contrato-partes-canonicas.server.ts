@@ -51,6 +51,7 @@ export async function parametrosCanonicosDoCaso(
   const { data: pessoas } = await supabase
     .from("clientes")
     .select(COLUNAS_PESSOA)
+    .is("archived_at", null)
     .eq("organization_id", organizationId)
     .in("id", ids);
   const porId = new Map(((pessoas ?? []) as any[]).map((p) => [p.id as string, p]));

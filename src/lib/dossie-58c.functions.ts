@@ -334,6 +334,7 @@ export const semearChecklist58cNoCaso = createServerFn({ method: "POST" })
     const { data: existentes } = await supabase
       .from("research_pending_items")
       .select("title")
+      .is("archived_at", null)
       .eq("organization_id", organizationId)
       .eq("research_case_id", researchCaseId);
     const jaGravados = new Set(((existentes ?? []) as any[]).map((p) => String(p.title ?? "")));

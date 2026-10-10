@@ -118,6 +118,7 @@ export const cadeiaPesquisaDoCaso = createServerFn({ method: "GET" })
               .select(
                 "id,report_type,title,status,version,internal_reference,evidence_summary_internal,approved_summary_client,responsible_user_id,approved_by,approved_at,published_at,updated_at",
               )
+              .is("archived_at", null)
               .eq("organization_id", organizationId)
               .eq("research_case_id", researchCaseId)
               .order("updated_at", { ascending: false })
@@ -245,6 +246,7 @@ export const prepararAreaPesquisa = createServerFn({ method: "POST" })
     const existente = await supabase
       .from("research_cases")
       .select("id")
+      .is("archived_at", null)
       .eq("organization_id", organizationId)
       .eq("case_id", data.caseId)
       .maybeSingle();

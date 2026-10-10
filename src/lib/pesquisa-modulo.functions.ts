@@ -105,6 +105,7 @@ export const criarPesquisaParaCaso = createServerFn({ method: "POST" })
     const existente = await supabase
       .from("research_cases")
       .select("id")
+      .is("archived_at", null)
       .eq("organization_id", organizationId)
       .eq("case_id", data.casoId)
       .maybeSingle();

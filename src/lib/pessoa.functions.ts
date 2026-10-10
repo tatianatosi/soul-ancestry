@@ -63,6 +63,7 @@ export const carregarPessoa = createServerFn({ method: "GET" })
           // Corte A (27/09/2026): lead_id — rastreabilidade até o lead de origem.
           " lead_id",
       )
+      .is("archived_at", null)
       .eq("id", data.clienteId)
       .eq("organization_id", organizationId)
       .is("archived_at", null)
@@ -233,6 +234,7 @@ export const carregarPessoa = createServerFn({ method: "GET" })
         .select(
           "id, nome_completo, status_verificacao, case_id, nascimento_data, nascimento_localidade, morte_data, morte_localidade, research_person_id",
         )
+        .is("archived_at", null)
         .eq("organization_id", organizationId)
         .eq("client_id", data.clienteId)
         .is("archived_at", null),

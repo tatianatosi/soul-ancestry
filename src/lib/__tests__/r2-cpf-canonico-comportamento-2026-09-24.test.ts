@@ -60,7 +60,7 @@ describe("conferirDivergenciaCpfMembrosCaso — escrita com releitura e conflito
     expect(trechoR2).not.toMatch(/\.from\("case_members"\)\s*\.update\(/);
   });
   it("cadastro canônico lido só da organização do usuário", () => {
-    expect(trechoR2).toContain('.from("clientes").select("id,cpf").eq("organization_id", organizationId)');
+    expect(trechoR2).toContain('.from("clientes").select("id,cpf").is("archived_at", null).eq("organization_id", organizationId)');
   });
   it("resolver conflito exige motivo e só vale para membro em conflito", () => {
     expect(trechoR2).toContain("Resolver conflito de CPF exige o motivo da decisão.");

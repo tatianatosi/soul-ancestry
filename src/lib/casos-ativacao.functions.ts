@@ -85,6 +85,7 @@ export const listarEstadoAtivacao = createServerFn({ method: "GET" })
     const casos = await supabase
       .from("crm_casos")
       .select("id,ativo")
+      .is("archived_at", null)
       .eq("organization_id", organizationId);
 
     const porCaso = new Map<

@@ -645,7 +645,7 @@ export const sincronizarPessoaDoCaso = createServerFn({ method: "POST" })
 
     const clientIds = Array.from(new Set(((partes ?? []) as any[]).map((p) => p.client_id).filter(Boolean)));
     const { data: clientesRaw } = clientIds.length
-      ? await supabase.from("clientes").select("id,nome,cpf").eq("organization_id", organizationId).in("id", clientIds)
+      ? await supabase.from("clientes").select("id,nome,cpf").is("archived_at", null).eq("organization_id", organizationId).in("id", clientIds)
       : { data: [] as any[] };
     const clientePorId = new Map(((clientesRaw ?? []) as any[]).map((c) => [c.id, c]));
     const normalizar = (s: string) => s.replace(/\D/g, "");
@@ -915,6 +915,7 @@ export const sincronizarContatoPartesDoCaso = createServerFn({ method: "POST" })
       ? await supabase
           .from("clientes")
           .select(colunasCliente.join(","))
+          .is("archived_at", null)
           .eq("organization_id", organizationId)
           .in("id", clientIds)
       : { data: [] as any[] };
