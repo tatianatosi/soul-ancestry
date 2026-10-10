@@ -24,4 +24,19 @@ describe("Legado do App — encontros de linhagem (Bloco 5C, 10/10/2026)", () =>
       "Este conteúdo é histórico, cultural e narrativo. Não substitui acompanhamento terapêutico, psicológico ou médico.",
     );
   });
+
+  it("sem encontro aprovado, mostra acolhimento em vez de sumir a seção ou girar spinner infinito", () => {
+    expect(rota).toContain("data-legado-encontros-vazio");
+    expect(rota).toContain("carregandoEncontros");
+    // A seção só decide (lista ou vazio) depois que a consulta termina —
+    // nunca mostra a mensagem de vazio por cima de um carregamento em curso.
+    expect(rota).toContain("casoId && !carregandoEncontros");
+  });
+
+  it("a tela do cliente não expõe botão de excluir, input de edição nem rótulo de ID de banco", () => {
+    const secao = rota.slice(rota.indexOf("data-legado-encontros"), rota.indexOf("data-legado-prateleiras"));
+    expect(secao).not.toMatch(/excluir|deletar|apagar/i);
+    expect(secao).not.toMatch(/<input|<textarea|onChange=/);
+    expect(secao).not.toMatch(/\be\.id\b\s*[^}]*<\/|>\s*{?\s*e\.id\s*}?\s*</);
+  });
 });

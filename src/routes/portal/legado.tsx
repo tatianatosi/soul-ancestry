@@ -45,7 +45,7 @@ export function PortalLegado() {
   const { visibilidade, carregando } = useVisibilidade("biblio");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
   const casoId = data?.casoAtivoId ?? null;
-  const { data: encontros } = useQuery({
+  const { data: encontros, isLoading: carregandoEncontros } = useQuery({
     queryKey: ["portal-encontros-linhagem", casoId],
     queryFn: () => listarEncontrosLinhagemApp({ data: { caseId: casoId as string } }),
     enabled: Boolean(casoId),
@@ -108,21 +108,29 @@ export function PortalLegado() {
                      </p>
                    ) : null}
 
-                  {encontros && encontros.length > 0 ? (
+                  {casoId && !carregandoEncontros ? (
                     <section data-legado-encontros className="space-y-3">
                       <h2 className="font-serif text-xl text-navy">Encontros de linhagem</h2>
-                      <ul className="space-y-3">
-                        {encontros.map((e) => (
-                          <li key={e.id} className="border-b border-border pb-4">
-                            <p className="font-serif text-lg text-navy">{e.titulo}</p>
-                            {e.territoriosMigratorios ? (
-                              <p className="mt-1 text-xs uppercase tracking-wide text-navy/55">{e.territoriosMigratorios}</p>
-                            ) : null}
-                            <p className="mt-2 whitespace-pre-line text-sm text-navy/85">{e.resumoAprovado}</p>
-                          </li>
-                        ))}
-                      </ul>
-                      <p data-legado-disclaimer className="text-xs text-navy/60">{DISCLAIMER_ENCONTROS}</p>
+                      {encontros && encontros.length > 0 ? (
+                        <>
+                          <ul className="space-y-3">
+                            {encontros.map((e) => (
+                              <li key={e.id} className="border-b border-border pb-4">
+                                <p className="font-serif text-lg text-navy">{e.titulo}</p>
+                                {e.territoriosMigratorios ? (
+                                  <p className="mt-1 text-xs uppercase tracking-wide text-navy/55">{e.territoriosMigratorios}</p>
+                                ) : null}
+                                <p className="mt-2 whitespace-pre-line text-sm text-navy/85">{e.resumoAprovado}</p>
+                              </li>
+                            ))}
+                          </ul>
+                          <p data-legado-disclaimer className="text-xs text-navy/60">{DISCLAIMER_ENCONTROS}</p>
+                        </>
+                      ) : (
+                        <p className="app-v11-lacuna text-navy/60" data-legado-encontros-vazio>
+                          Ainda não há encontros de linhagem liberados para a sua família. Quando a equipe aprovar um, ele aparecerá aqui.
+                        </p>
+                      )}
                     </section>
                   ) : null}
 
