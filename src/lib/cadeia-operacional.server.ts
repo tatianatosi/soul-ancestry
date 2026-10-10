@@ -587,7 +587,7 @@ export async function aprovarPropostaEstruturada(
     valor_parcela: condicao.parcelas ? Number((condicao.valor_total_referencia / condicao.parcelas).toFixed(2)) : null,
     primeiro_vencimento: condicao.primeiro_vencimento,
     origem: condicao.origem,
-    status: condicao.pendencias.length ? "pendente" : "registrada",
+    status: condicao.pendencias.length ? "em_revisao" : "homologada",
     observacao_interna: condicao.pendencias.join(" · ") || null,
     dados_teste: caso.dados_teste === true,
     updated_by: input.userId,

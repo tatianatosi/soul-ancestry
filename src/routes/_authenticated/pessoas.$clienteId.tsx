@@ -639,7 +639,7 @@ function Pessoa() {
                     endereco_pais: cliente.endereco_pais ?? "",
                     estado_civil: cliente.estado_civil ?? "",
                     nome_conjuge: cliente.nome_conjuge ?? "",
-                    data_nascimento: cliente.data_nascimento ?? "",
+                    data_nascimento: cliente.data_nascimento ? String(cliente.data_nascimento).slice(0, 10) : "",
                     nome_pai: cliente.nome_pai ?? "",
                     nome_mae: cliente.nome_mae ?? "",
                     cidade_nascimento: cliente.cidade_nascimento ?? "",
