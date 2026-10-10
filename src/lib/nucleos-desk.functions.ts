@@ -230,6 +230,29 @@ export const criarNucleo = createServerFn({ method: "POST" })
     const userId = (context as any).userId as string;
     const organization_id = await orgDoUsuario(supabase, userId);
 
+    /*
+     * Dossiê Familiar Único (10/10/2026): um caso tem UM núcleo ativo. Criar
+     * um segundo núcleo para o mesmo caso gera núcleo duplicado, que depois
+     * divide os membros e o dossiê-mãe entre dois cadastros. Núcleo arquivado
+     * não conta — o caso pode ganhar um novo depois de arquivar o anterior.
+     */
+    if (data.caseId) {
+      const { data: existente } = await supabase
+        .from("nucleos_familiares")
+        .select("id,nome")
+        .eq("organization_id", organization_id)
+        .eq("case_id", data.caseId)
+        .is("archived_at", null)
+        .limit(1)
+        .maybeSingle();
+      if (existente?.id) {
+        throw new Error(
+          `Este caso já tem um núcleo familiar ativo ("${String(existente.nome ?? "sem nome")}"). ` +
+            "Use o núcleo existente ou arquive-o antes de criar outro.",
+        );
+      }
+    }
+
     const { data: criado, error } = await supabase
       .from("nucleos_familiares")
       .insert({
