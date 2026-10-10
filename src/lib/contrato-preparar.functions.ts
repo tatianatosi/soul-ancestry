@@ -39,6 +39,7 @@ import {
 } from "@/lib/escopo-proposta";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import { exigirPreviaVigenteLiberada } from "@/lib/previa-vigente.server";
+import { verificarTermosProibidos } from "@/lib/linguagem-proibida";
 import {
   NOME_INSTRUMENTO,
   casoGovernadoPeloPlanejador,
@@ -832,11 +833,31 @@ export const solicitarRevisaoHumana = createServerFn({ method: "POST" })
      * documento gerado antes da última alteração de parâmetro, ou de uma
      * prévia sem corpo contratual — a pessoa revisaria o texto errado.
      */
-    await exigirPreviaVigenteLiberada(supabase, {
+    const previaVigente = await exigirPreviaVigenteLiberada(supabase, {
       parametersId: registro.id,
       organizationId: registro.organization_id,
       saida: "revisao",
     });
+
+    /*
+     * Governança 5A (adendo 11/08/2026, seção 8): texto narrativo com termo
+     * proibido volta para revisão humana antes de avançar. O checker só
+     * classifica; aqui ele bloqueia o avanço e diz o termo e a razão.
+     */
+    const { data: corpoPrevia } = await supabase
+      .from("contract_parameter_previews")
+      .select("html")
+      .eq("id", previaVigente.id)
+      .maybeSingle();
+    const textoPrevia = String(corpoPrevia?.html ?? "").replace(/<[^>]+>/g, " ");
+    const termosVedados = verificarTermosProibidos(`${textoPrevia}\n${nota}`);
+    if (termosVedados.length > 0) {
+      throw new Error(
+        "Termo proibido pela Governança 5A: " +
+          termosVedados.map((t) => `"${t.termo}" (${t.razao})`).join("; ") +
+          ". Corrija o texto do contrato e gere a prévia de novo antes de pedir revisão.",
+      );
+    }
 
     await auditar(supabase, {
       org: registro.organization_id,
