@@ -2,6 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { organizacaoDo } from "@/lib/caso-canonico.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -50,17 +51,20 @@ export const listarTrilhasJuridicas = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     semCache();
     const supabase = (context as any).supabase;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     const [trilhas, marcos] = await Promise.all([
       supabase
         .from("citizenship_tracks")
         .select(
           "id,code,pais,track_name,via_preliminar,status_via,legal_reference_label,legal_reference_summary,official_source_name,official_source_url,revisao_humana_juridica,idioma_entrevista,autorizacao_pesquisa_necessaria,lifecycle_status,versao,ultima_revisao_em",
         )
+        .eq("organization_id", organizationId)
         .is("archived_at", null)
         .order("pais"),
       supabase
         .from("legal_reference_milestones")
         .select("id,track_id,label,reference_type,summary_internal,official_source_url,status,review_required,verified_at,versao,lifecycle_status")
+        .eq("organization_id", organizationId)
         .is("archived_at", null)
         .order("label"),
     ]);
