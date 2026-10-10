@@ -231,7 +231,8 @@ export function notaDePromocao(pais: string, fonte: FonteOficialPais, responsave
     ? ` Endereços complementares da mesma autoridade: ${fonte.complementares.join(" · ")}.`
     : "";
   return (
-    `Fonte oficial de ${pais}: ${fonte.autoridade}. Endereço oficial validado.` +
+    `Fonte oficial de ${pais}: ${fonte.autoridade}. Endereço oficial validado ` +
+    `(${DOCUMENTO_DE_REFERENCIAS}, item "${fonte.itemDoDocumento}").` +
     `${extras} Promovido a vigente por ${responsavel} em ${data}.`
   );
 }

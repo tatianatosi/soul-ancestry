@@ -580,3 +580,29 @@ A mudança principal é abandonar a lógica de uma linha por país e adotar um s
 27. [Citizenship of the Republic of Lithuania](https://migracija.lrv.lt/en/activities/citizenship-of-the-republic-of-lithuania-1/) - The Migration Department evaluates documents regarding the restoration, acquisition, granting, retur...
 
 28. [Retome e revise o planejador universal em conjunto com os skus de produtos pai e jornada prepare um...](https://www.perplexity.ai/search/b6bead4f-0122-46af-b0d3-fe1ad1fa601e) - Concluí a revisão e criei o artefato 2026-09-02-revisao-planejador-universal-catalogo-pai-jornada-fi...
+
+29. [Cittadinanza - Ministero degli Affari Esteri e della Cooperazione Internazionale](https://www.esteri.it/it/servizi-consolari-e-visti/italiani-all-estero/cittadinanza/) - Autoridade oficial italiana para cidadania (MAECI).
+
+30. [Staatsbürgerschaft - Bundesministerium für Inneres](https://www.bmi.gv.at/405/staatsbuergerschaft/) - Autoridade oficial austríaca para cidadania (BMI), §58c StbG.
+
+31. [Como obter a nacionalidade portuguesa - Instituto dos Registos e do Notariado](https://justica.gov.pt/Como-obter-nacionalidade-portuguesa) - Autoridade oficial portuguesa para nacionalidade (IRN).
+
+32. [Staatsangehörigkeit - Bundesverwaltungsamt](https://www.bva.bund.de/DE/Services/Buerger/Ausweis-Dokumente-Recht/Staatsangehoerigkeit/staatsangehoerigkeit_node.html) - Autoridade oficial alemã para cidadania (BVA), Art. 116 II GG / §15 StAG.
+
+33. [Nacionalidad española - Ministerio de Justicia](https://www.mjusticia.gob.es/es/ciudadanos/tramites-gestiones-personales/nacionalidad-espanola) - Autoridade oficial espanhola para nacionalidade, Ley de Memoria Democrática (LMD).
+
+34. [Certificat de nationalité française - Service-Public.fr](https://www.service-public.fr/particuliers/vosdroits/N111) - Autoridade oficial francesa para nacionalidade (Ministère de la Justice), CNF.
+
+35. [Registering a foreign birth - Department of Foreign Affairs](https://www.ireland.ie/en/dfa/citizenship/born-abroad/registering-a-foreign-birth/) - Autoridade oficial irlandesa para cidadania (DFA), Foreign Births Register.
+
+36. [Nationalité luxembourgeoise - Guichet.lu](https://guichet.public.lu/fr/citoyens/citoyennete/nationalite-luxembourgeoise.html) - Autoridade oficial luxemburguesa para nacionalidade (Ministère de la Justice), Art. 7 / Art. 89.
+
+37. [Autoritatea Națională pentru Cetățenie](http://cetatenie.just.ro/) - Autoridade oficial romena para cidadania (ANC).
+
+38. [Državljanstvo Republike Slovenije - Ministrstvo za notranje zadeve](https://www.gov.si/podrocja/drzava-in-druzba/priseljevanje-in-drzavljanstvo/drzavljanstvo-republike-slovenije/) - Autoridade oficial eslovena para cidadania (MNZ).
+
+39. [Občanstvi a státní symboly - Ministerstvo vnitra České republiky](https://www.mvcr.cz/clanek/obcanstvi-a-statni-symboly.aspx) - Autoridade oficial tcheca para cidadania (MVCR).
+
+40. [Nationalité belge - Service Public Fédéral Justice](https://justice.belgium.be/fr/themes_et_dossiers/personnes_et_familles/nationalite) - Autoridade oficial belga para nacionalidade (SPF Justice).
+
+41. [Nacionalidade e naturalização - Ministério da Justiça e Segurança Pública](https://www.gov.br/mj/pt-br/assuntos/seus-direitos/migracoes/nacionalidade-e-naturalizacao) - Autoridade oficial brasileira para nacionalidade e naturalização (MJSP).

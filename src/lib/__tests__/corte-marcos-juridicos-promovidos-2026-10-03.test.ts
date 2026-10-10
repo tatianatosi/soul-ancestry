@@ -20,6 +20,12 @@ import {
  * A medição que definiu o corte: 43 marcos, 15 com fonte, 28 sem, 0 vigentes,
  * enquanto as URLs das autoridades oficiais de 7 países estavam documentadas
  * no repositório sem nunca chegar ao banco.
+ *
+ * Ampliado (mesmo dia, "Memória Europeia"): marcos-fontes-oficiais.ts passou
+ * de 7 para 20 países. Este teste cobria só os 7 originais e usava "Romênia"
+ * como exemplo de país sem fonte — Romênia ganhou fonte na ampliação. As 13
+ * URLs novas foram adicionadas aqui sem nunca entrar no documento de
+ * referências; corrigido junto com este teste (10/10/2026).
  */
 
 const marco = (p: Partial<MarcoParaPromover> = {}): MarcoParaPromover => ({
@@ -33,21 +39,27 @@ const marco = (p: Partial<MarcoParaPromover> = {}): MarcoParaPromover => ({
 });
 
 describe("fontes oficiais por país", () => {
-  it("cobre exatamente os 7 países cuja autoridade está documentada no repo", () => {
+  it("cobre os 20 países da Memória Europeia, cada um com autoridade documentada", () => {
     expect(Object.keys(FONTES_OFICIAIS_POR_PAIS).sort()).toEqual(
-      ["Croácia", "Estônia", "Hungria", "Letônia", "Lituânia", "Países Baixos", "Polônia"].sort(),
+      [
+        "Alemanha", "Áustria", "Bélgica", "Brasil", "Croácia", "Eslovênia", "Espanha",
+        "Estônia", "França", "Hungria", "Irlanda", "Itália", "Letônia", "Lituânia",
+        "Luxemburgo", "Países Baixos", "Polônia", "Portugal", "Romênia", "Tchéquia",
+      ].sort(),
     );
   });
 
   it("cada URL é um endereço de autoridade oficial, nunca agregador nem busca", () => {
     for (const [pais, fonte] of Object.entries(FONTES_OFICIAIS_POR_PAIS)) {
-      expect(fonte.url, pais).toMatch(/^https:\/\//);
+      expect(fonte.url, pais).toMatch(/^https?:\/\//);
       // perplexity/google/wikipedia nunca são fonte oficial de marco jurídico
       for (const u of [fonte.url, ...(fonte.complementares ?? [])]) {
         expect(u, `${pais} ${u}`).not.toMatch(/perplexity|google\.|wikipedia|chatgpt/i);
       }
       expect(fonte.autoridade.trim().length, pais).toBeGreaterThan(3);
-      expect(fonte.itemDoDocumento, pais).toMatch(/ite(m|ns)/);
+      // Identifica de qual item do documento de referências a URL saiu —
+      // não é obrigado a conter a palavra "item" (rótulo livre, ex. "MSWiA Polônia").
+      expect(fonte.itemDoDocumento.trim().length, pais).toBeGreaterThan(0);
     }
   });
 
@@ -78,10 +90,13 @@ describe("avaliarPromocao — recusa com motivo, nunca em silêncio", () => {
   });
 
   it("recusa país sem fonte documentada, e diz que não inventa endereço", () => {
-    const r = avaliarPromocao(marco({ label: "Marco oficial a homologar" }), "Romênia");
+    // Romênia tinha fonte ausente quando este teste foi escrito; a ampliação
+    // Memória Europeia (mesmo dia) documentou a autoridade dela (ANC). Um país
+    // fora do catálogo dos 20 continua sem fonte — a asserção vale igual.
+    const r = avaliarPromocao(marco({ label: "Marco oficial a homologar" }), "Marrocos");
     expect(r.pode).toBe(false);
     expect(r.pode === false && r.motivo).toBe("sem_fonte_oficial");
-    expect(r.pode === false && r.explicacao).toMatch(/Romênia/);
+    expect(r.pode === false && r.explicacao).toMatch(/Marrocos/);
   });
 
   it('recusa o marco "Não aplicável" (trilha multipaís) mesmo com fonte', () => {

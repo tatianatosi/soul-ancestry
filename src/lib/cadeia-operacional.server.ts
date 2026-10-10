@@ -303,17 +303,10 @@ export async function materializarProposta(
   const sku = skuCanonico(skuRow);
   // O Planejador Universal define escopo, fases, entregas e critérios sem
   // depender de SKU do catálogo. Exigir SKU aqui era a regra antiga, e travava
-  // caso com blueprint completo. Para a proprietária, a ausência de SKU vira
-  // pendência assumida; para os demais papéis segue bloqueando.
-  if (!sku) {
-    const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
-    await assumirOuRecusarComUsuario(
-      supabase as never,
-      input.userId,
-      ["Planejador sem SKU homologado do catálogo (Planilha Mestre)."],
-      "Planejador sem SKU homologado do catálogo (Planilha Mestre): proposta bloqueada.",
-    );
-  }
+  // caso com blueprint completo. 10/10/2026: ausência de SKU nunca bloqueia,
+  // para nenhum papel — Produtos-Pai (PP-01 a PP-09) e a condição comercial
+  // aprovada do caso já governam o avanço. A pendência segue visível a quem
+  // olhar o catálogo (sku == null), mas não impede gerar proposta.
 
   const entrada = entradaDoPlano(plano, caso.id, sku?.code ?? "");
   const saida = avaliarPlanejador(entrada);
