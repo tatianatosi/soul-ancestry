@@ -10,6 +10,7 @@
  */
 
 import { contemCpf } from "@/lib/validacao-pessoa";
+import { contemFonteOuMecanismoTecnico } from "@/lib/onboarding-jornada";
 
 export type NivelAcesso = "restrito" | "equipe_do_caso" | "cliente_autorizado";
 export type Confianca = "INICIAL" | "BAIXO" | "MEDIO" | "ALTO";
@@ -193,6 +194,11 @@ export function conteudoProjetavel(texto: string): ResultadoValidacao {
   if (PADRAO_INTERNO.test(texto))
     erros.push("Conteúdo com hipótese, risco, transcrição, nota interna ou juízo de mérito não pode compor projeção.");
   if (contemCpf(texto)) erros.push("Conteúdo com CPF não pode compor projeção — nunca vai ao App Cliente.");
+  // Governança 5A (Corte 1-quater): nome técnico de fonte, token, API, score e RG
+  // também ficam fora do App. Antes só o portal filtrava na leitura; agora a
+  // fila de publicação recusa já na aprovação.
+  if (contemFonteOuMecanismoTecnico(texto))
+    erros.push("Conteúdo com nome técnico de fonte, token, API, score ou RG não pode compor projeção.");
   return { ok: erros.length === 0, erros };
 }
 

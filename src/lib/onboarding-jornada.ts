@@ -461,6 +461,17 @@ const PADROES_PROIBIDOS: RegExp[] = [
   /\brg\b/i,
 ];
 
+/**
+ * Só o recorte técnico do guard acima: nome de fonte, URL, token/API/score e RG.
+ * É o que a fila de publicação da Biblioteca precisa checar ao aprovar um item
+ * para o App, sem a lista ampla de termos (evidência, fonte, contrato...), que
+ * descartaria texto legítimo de entrega.
+ */
+export function contemFonteOuMecanismoTecnico(texto?: string | null): boolean {
+  const bruto = String(texto ?? "");
+  return PADROES_PROIBIDOS.some((re) => re.test(bruto));
+}
+
 /** Verdadeiro quando o texto contém conteúdo que não pode chegar ao cliente. */
 export function contemConteudoInterno(texto?: string | null): boolean {
   const bruto = String(texto ?? "");
