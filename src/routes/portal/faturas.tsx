@@ -35,11 +35,13 @@ function FaturasPage() {
         <PortalCarregando />
       ) : isError ? (
         <PortalVazio mensagem={COPY_GERAL.semPermissao} />
-      ) : !data || data.length === 0 ? (
-        <PortalVazio mensagem={COPY_TELAS.faturas.vazio} />
+      ) : !data || data.faturas.length === 0 ? (
+        <PortalVazio
+          mensagem={data?.restritoAoContratante ? COPY_GERAL.faturasApenasContratante : COPY_TELAS.faturas.vazio}
+        />
       ) : (
         <ul className="space-y-2">
-          {data.map((f) => (
+          {data.faturas.map((f) => (
             <li
               key={f.id}
               className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-cream/40 p-4"

@@ -148,6 +148,8 @@ export const COPY_GERAL = {
     "Não conseguimos carregar esta parte agora. Tente novamente em instantes — se continuar assim, a equipe pode ajudar você.",
   indisponivel: "Esta área não está disponível para o seu acesso no momento.",
   semPermissao: "Este conteúdo não está disponível no seu acesso. A equipe pode orientar você.",
+  faturasApenasContratante:
+    "As faturas e as condições comerciais ficam visíveis apenas para a pessoa responsável financeira pelo caso.",
   sair: "Sair",
   voltar: "Voltar",
   irParaConteudo: "Ir para o conteúdo",

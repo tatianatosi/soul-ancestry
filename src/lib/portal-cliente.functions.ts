@@ -504,7 +504,16 @@ export const minhasEntregas = createServerFn({ method: "GET" })
     };
   });
 
-/** Faturas liberadas para visualização, em todos os casos autorizados. */
+/**
+ * Faturas liberadas para visualização, só nos casos em que o titular
+ * autenticado tem papel financeiro (contratante).
+ *
+ * 10/10/2026 — em casos com múltiplos usuários do portal vinculados ao
+ * mesmo caso via `nucleo_membros` (ex.: titular financeira + familiares na
+ * jornada), fatura e condição comercial são dados financeiros do
+ * contratante, não de todo o núcleo. `portal_sou_contratante_financeiro`
+ * confirma o papel por caso antes de incluir qualquer fatura dele.
+ */
 export const minhasFaturas = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -520,16 +529,33 @@ export const minhasFaturas = createServerFn({ method: "GET" })
       supabase.from("portal_casos").select("id, titulo"),
     ]);
     const nome = new Map(((casos.data ?? []) as any[]).map((c) => [c.id, c.titulo]));
-    return semFixtures((faturas.data ?? []) as any[]).map((f) => ({
-      id: f.id as string,
-      numero: f.numero as string | null,
-      descricao: f.descricao as string | null,
-      caso: nome.get(f.case_id) ?? "",
-      valor: Number(f.valor ?? 0),
-      moeda: (f.moeda as string) ?? "BRL",
-      vencimento: f.vencimento as string | null,
-      statusRotulo: h.STATUS_FATURA_SIMPLES[f.status] ?? "Em aberto",
-    }));
+    const semFixturesFaturas = semFixtures((faturas.data ?? []) as any[]);
+    const casosDasFaturas = [...new Set(semFixturesFaturas.map((f) => f.case_id).filter(Boolean))] as string[];
+    const souContratantePorCaso = new Map(
+      await Promise.all(
+        casosDasFaturas.map(async (caseId) => {
+          const { data, error } = await supabase.rpc("portal_sou_contratante_financeiro", { p_case_id: caseId });
+          if (error) throw new Error(error.message);
+          return [caseId, Boolean(data)] as const;
+        }),
+      ),
+    );
+    const visiveis = semFixturesFaturas.filter((f) => souContratantePorCaso.get(f.case_id) === true);
+    return {
+      faturas: visiveis.map((f) => ({
+        id: f.id as string,
+        numero: f.numero as string | null,
+        descricao: f.descricao as string | null,
+        caso: nome.get(f.case_id) ?? "",
+        valor: Number(f.valor ?? 0),
+        moeda: (f.moeda as string) ?? "BRL",
+        vencimento: f.vencimento as string | null,
+        statusRotulo: h.STATUS_FATURA_SIMPLES[f.status] ?? "Em aberto",
+      })),
+      // Vazio por papel (existe fatura, mas não para este acesso) é um estado
+      // diferente de vazio legítimo (nenhuma fatura no caso todo).
+      restritoAoContratante: visiveis.length === 0 && semFixturesFaturas.length > 0,
+    };
   });
 
 /* ===================== COMPARTILHAMENTO DE ACHADO (LGPD) ===================== */
