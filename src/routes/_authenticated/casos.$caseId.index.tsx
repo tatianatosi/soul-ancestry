@@ -2579,8 +2579,8 @@ function FichaCaso() {
               <p className="text-xs text-navy/50">Carregando…</p>
             ) : qFinanceiro.isError ? (
               <p className="text-xs text-terracotta">Não foi possível carregar o financeiro deste caso.</p>
-            ) : (
-              <dl className="grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
+             ) : (
+               <dl className="grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
                 <div>
                   <dt className="text-navy/50">Valor contratado</dt>
                   <dd className="mt-0.5 text-sm text-navy">
@@ -2625,7 +2625,7 @@ function FichaCaso() {
                   <dt className="text-navy/50">Próxima ação financeira</dt>
                   <dd className="mt-0.5 text-sm text-navy">{qFinanceiro.data?.proximaAcaoFinanceira}</dd>
                 </div>
-              </dl>
+               </dl>
             )}
           </Secao>
         </SecaoAncora>

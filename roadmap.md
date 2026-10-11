@@ -1,5 +1,16 @@
 # Roadmap
 
+## Homologação final — Desk V4 e App Cliente (11/10/2026)
+- [ ] Ajustar `/painel` na implementação Go Live: retirar a sessão demo do menu e alimentar o cockpit pela fila real de próxima ação prioritária.
+- [ ] Corrigir Assistente × heatmap e apresentar cinco leituras financeiras com dados reais ou vazio honesto.
+- [ ] Refinar Conta, Árvore e Radar sem afirmar Asaas, fatura individual, parentesco ou percentual não comprovado.
+- [ ] Executar o checklist do App nas sete abas e a não regressão do Desk; capturas 375/1280 e relatório, sem publicar.
+- Bloqueios conhecidos: zero faturas no caso; nenhuma integração Asaas no App; zero relações genealógicas publicadas; acessos individuais de Adair/Alice ausentes.
+
+## Telemetria de permanência por aba (11/10/2026)
+- [ ] Validar a proposta `client_tab_dwell_events` contra schema, funções de acesso, privacidade, retenção e política de dados — bloqueada até autorização explícita de migration/RLS.
+- [ ] Aplicar migration somente após autorização explícita da Proprietária em corte separado; nenhuma alteração de banco neste corte visual.
+
 ## Experiência familiar — pedido ao Claude (11/10/2026)
 - [x] Registrar a solicitação e a decisão explícita da Proprietária de manter navegação, acesso familiar e faturas sob responsabilidade do Claude; nenhum código ou dado alterado pelo Lovable.
 - [ ] Claude: ajustar exatamente sete abas para Painel · Jornada · Árvore · Descobertas · Documentos · Biblioteca · Conta, reutilizando destinos existentes e esclarecendo a correspondência de Descobertas com Radar.

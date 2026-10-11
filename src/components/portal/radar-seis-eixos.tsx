@@ -29,16 +29,10 @@ function anelDeFundo(fracao: number, chave: string) {
  *
  * RADAR-APP-SEMANTICA-PROGRESSO (18/09/2026): todos os 6 eixos, inclusive o
  * de progresso geral, representam andamento da jornada — nunca elegibilidade
- * jurídica, chance ou parecer. Dimensão sem percentual não ganha posição;
- * o polígono só aparece quando todos os eixos possuem percentual.
+ * jurídica, chance ou parecer. Dimensão sem percentual não ganha posição
+ * nem é desenhada como zero.
  */
 export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
-  const todosComBase = dimensoes.every((d) => d.percentual !== null);
-  const pontosPoligono = dimensoes
-    .map((d, i) => ponto(i, RAIO * ((d.percentual ?? 0) / 100)))
-    .map((p) => `${p.x},${p.y}`)
-    .join(" ");
-
   const comProgresso = dimensoes.some(
     (d) => d.estado === "percentual" && (d.percentual ?? 0) > 0,
   );
@@ -76,7 +70,22 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
             />
           );
         })}
-        {todosComBase ? <polygon points={pontosPoligono} className="fill-gold/25 stroke-gold" strokeWidth={2} /> : null}
+        {dimensoes.map((d, i) => {
+          if (d.percentual === null) return null;
+          const valor = ponto(i, RAIO * (d.percentual / 100));
+          return (
+            <line
+              key={`progresso-${d.id}`}
+              x1={CENTRO}
+              y1={CENTRO}
+              x2={valor.x}
+              y2={valor.y}
+              className="stroke-gold"
+              strokeWidth={3}
+              strokeLinecap="round"
+            />
+          );
+        })}
         {dimensoes.map((d, i) => {
           if (d.percentual === null) return null;
           const valor = ponto(i, RAIO * (d.percentual / 100));
@@ -102,7 +111,7 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
           );
         })}
       </svg>
-      {!todosComBase ? <p className="pb-4 text-sm leading-relaxed text-navy/70">Os pontos mostram apenas dimensões com base real. Dimensões sem total não são representadas como zero.</p> : null}
+      {dimensoes.some((d) => d.percentual === null) ? <p className="pb-4 text-sm leading-relaxed text-navy/70">O Ouro Nobre mostra somente dimensões com base real. As lacunas não são representadas como zero.</p> : null}
     </div>
   );
 }
