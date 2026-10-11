@@ -361,32 +361,6 @@ function Secao({
   );
 }
 
-function moedaFinanceira(valor: number | null | undefined, moeda: string): string {
-  if (valor === null || valor === undefined) return "Não registrado";
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: moeda }).format(valor);
-}
-
-function GradeFinanceiraCaso({ financeiro }: { financeiro: ResumoFinanceiroCaso | null | undefined }) {
-  const moeda = financeiro?.moeda ?? "BRL";
-  const itens = [
-    { rotulo: "Total contratado", valor: financeiro?.valorContratado },
-    { rotulo: "Valor liquidado", valor: financeiro?.valorRecebido },
-    { rotulo: "Saldo em aberto", valor: financeiro?.saldoAberto },
-    { rotulo: "Custos de busca e emissão", valor: financeiro?.custosBuscaEmissao },
-    { rotulo: "Margem bruta operacional", valor: financeiro?.margemBrutaOperacional },
-  ];
-  return (
-    <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5" data-financeiro-cinco-cartoes>
-      {itens.map((item) => (
-        <div key={item.rotulo} className="min-w-0 rounded-lg border border-border bg-cream/35 p-4">
-          <dt className="text-[11px] font-medium uppercase tracking-wide text-navy/55">{item.rotulo}</dt>
-          <dd className="mt-2 break-words font-serif text-xl text-navy">{moedaFinanceira(item.valor, moeda)}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
 /* ---------------- Página ---------------- */
 
 /**
@@ -1441,8 +1415,7 @@ function FichaCaso() {
             <p className="mt-2 text-xs text-terracotta">Não foi possível carregar o financeiro deste caso.</p>
           ) : (
             <>
-              <GradeFinanceiraCaso financeiro={qFinanceiro.data} />
-              <dl className="mt-4 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
+              <dl className="mt-2 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
                 <div>
                   <dt className="text-navy/50">Valor contratado</dt>
                   <dd className="mt-0.5 text-sm text-navy">
@@ -2607,9 +2580,7 @@ function FichaCaso() {
             ) : qFinanceiro.isError ? (
               <p className="text-xs text-terracotta">Não foi possível carregar o financeiro deste caso.</p>
              ) : (
-              <>
-               <GradeFinanceiraCaso financeiro={qFinanceiro.data} />
-               <dl className="mt-4 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
+               <dl className="grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
                 <div>
                   <dt className="text-navy/50">Valor contratado</dt>
                   <dd className="mt-0.5 text-sm text-navy">
@@ -2655,7 +2626,6 @@ function FichaCaso() {
                   <dd className="mt-0.5 text-sm text-navy">{qFinanceiro.data?.proximaAcaoFinanceira}</dd>
                 </div>
                </dl>
-              </>
             )}
           </Secao>
         </SecaoAncora>
