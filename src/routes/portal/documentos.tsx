@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { SecaoDocumental } from "@/components/portal/secao-documental";
-import { BlocoExemploVisual } from "@/components/portal/bloco-exemplo-visual";
 import { Download } from "lucide-react";
 import { useState } from "react";
 
@@ -66,7 +65,6 @@ export function PortalDocumentos() {
         ) : (
           <div className="app-v11-secoes" data-aba-documentos>
             <p className="border-l-2 border-gold pl-4 text-sm leading-relaxed text-navy/75">Cada documento terá seu estado aqui assim que a equipe compartilhar a lista completa com você.</p>
-            {docs.length === 0 && !solicitado ? <BlocoExemploVisual tipo="documentos" /> : null}
             {/* 1. Solicitados — só o pedido real da equipe, com a instrução de envio integrada ao card. */}
             <section
               data-documentos-solicitados
@@ -97,10 +95,10 @@ export function PortalDocumentos() {
 
             {/* 2. Recebidos — enviar nunca comunica validação automática. */}
             <section data-documentos-recebidos data-documentos-enviados className="app-v11-faixa">
-              <SecaoDocumental tipo="recebidos" titulo="Recebidos">
+              <SecaoDocumental tipo="recebidos" titulo="Em conferência">
               
               <div className="py-1">
-              <div className="flex flex-wrap items-start justify-between gap-2"><h2 className="font-serif text-xl text-navy">Recebidos</h2><span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">Aguardam conferência</span></div>
+              <div className="flex flex-wrap items-start justify-between gap-2"><h2 className="font-serif text-xl text-navy">Em conferência</h2><span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">Aguardam conferência</span></div>
               <p className="mt-1 text-sm text-navy/60">Os documentos que você nos enviar ficam aqui enquanto a equipe os confere.</p>
               {enviados.length === 0 ? (
                 <p className="app-v11-lacuna mt-3 text-navy/65">
@@ -116,10 +114,10 @@ export function PortalDocumentos() {
 
             {/* 3. Liberados — somente publicações reais. */}
             <section data-documentos-liberados data-documentos-preparado className="app-v11-faixa">
-              <SecaoDocumental tipo="liberados" titulo="Liberados">
+              <SecaoDocumental tipo="liberados" titulo="Certidões liberadas">
               
               <div className="py-1">
-              <div className="flex flex-wrap items-start justify-between gap-2"><h2 className="font-serif text-xl text-navy">Liberados</h2><span className="rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/65">Abertos para você</span></div>
+              <div className="flex flex-wrap items-start justify-between gap-2"><h2 className="font-serif text-xl text-navy">Certidões liberadas</h2><span className="rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/65">Abertos para você</span></div>
               {liberados.length === 0 ? (
                 <p className="app-v11-lacuna mt-3 text-navy/65">
                   {COPY_TELAS.documentos.vazio}
@@ -207,8 +205,7 @@ export function PortalDocumentos() {
             const solicitacoesAbertas = vivo.data?.solicitacoes ?? [];
             return (
         <div className="app-v11-secoes" data-aba-documentos-vivo>
-          <p className="border-l-2 border-gold pl-4 text-sm leading-relaxed text-navy/75">Os pedidos pendentes ficam em Solicitados. A conferência acompanha cada envio em Recebidos; os materiais abertos para você ficam em Liberados.</p>
-          {liberados_lista.length === 0 && recebidos.length === 0 && solicitacoesAbertas.length === 0 && !solicitado ? <BlocoExemploVisual tipo="documentos" /> : null}
+          <p className="border-l-2 border-gold pl-4 text-sm leading-relaxed text-navy/75">Os pedidos pendentes ficam em Solicitados. Cada envio é acompanhado em Em conferência (Recebidos); as certidões abertas para você ficam em Certidões liberadas (Liberados).</p>
           {/* 1. Solicitados — o que a equipe pediu, com a instrução de envio integrada ao card. */}
           <section data-documentos-solicitados className="app-v11-faixa">
               <SecaoDocumental tipo="solicitados" titulo="Solicitados">
@@ -270,11 +267,11 @@ export function PortalDocumentos() {
 
           {/* 2. Recebidos — chegou, mas ainda não foi conferido. */}
           <section data-documentos-recebidos className="app-v11-faixa">
-              <SecaoDocumental tipo="recebidos" titulo="Recebidos">
+              <SecaoDocumental tipo="recebidos" titulo="Em conferência">
             
             <div className="py-1">
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <h2 className="font-serif text-xl text-navy">Recebidos</h2>
+              <h2 className="font-serif text-xl text-navy">Em conferência</h2>
               <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
                 Aguardam conferência
               </span>
@@ -316,11 +313,11 @@ export function PortalDocumentos() {
 
           {/* 3. Liberados — conferidos e abertos para a família. */}
           <section data-documentos-liberados className="app-v11-faixa">
-              <SecaoDocumental tipo="liberados" titulo="Liberados">
+              <SecaoDocumental tipo="liberados" titulo="Certidões liberadas">
             
             <div className="py-1">
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <h2 className="font-serif text-xl text-navy">Liberados</h2>
+              <h2 className="font-serif text-xl text-navy">Certidões liberadas</h2>
               <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
                 Abertos para você
               </span>
