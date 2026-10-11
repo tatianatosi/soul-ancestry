@@ -110,7 +110,8 @@ export function PortalHome() {
           <PainelHomeMockup
             tituloCaso={previa.titulo}
             proximoPasso={passoPublicado?.conteudo ?? PROXIMO_PASSO_VAZIO}
-            proximoPassoDestino={null}
+            proximoPassoDestino={passoPublicado ? vivo.data?.proximaAcao?.destino ?? "/portal/jornada" : null}
+            pais={previa.pais ?? null}
             proximaEntrega={null}
             marcos={jornada.marcosPublicados}
             pessoasPublicadas={pessoasPublicadas}
@@ -172,7 +173,8 @@ export function PortalHome() {
               <PainelHomeMockup
                 tituloCaso={principal.titulo}
                  proximoPasso={passoPublicado?.conteudo ?? PROXIMO_PASSO_VAZIO}
-                proximoPassoDestino={null}
+                proximoPassoDestino={passoPublicado ? vivo.data?.proximaAcao?.destino ?? principal.proximoPassoDestino ?? "/portal/jornada" : null}
+                pais={principal.pais}
                 proximaEntrega={null}
                 marcos={jornada.marcosPublicados}
                 pessoasPublicadas={pessoasPublicadas}
@@ -325,6 +327,7 @@ function PainelHomeMockup({
   achados,
   fase,
   composicao,
+  pais,
 }: {
   tituloCaso: string;
   statusTexto?: string;
@@ -362,7 +365,10 @@ function PainelHomeMockup({
    * vez de deduzir pelo título. Vazio quando o plano ainda não declarou.
    */
   composicao?: string | null;
+  /** País da trilha (crm_casos.pais). O selo §58c só aparece para Áustria. */
+  pais?: string | null;
 }) {
+  const trilhaAustria = /^(á|a)ustria$/i.test((pais ?? "").trim());
   return (
     <div className="space-y-4" data-aba-home>
       {/*
@@ -373,14 +379,23 @@ function PainelHomeMockup({
       */}
       {/* 16/09/2026 — primeira dobra: o cartão do processo é o elemento
           principal (maior), e a linha do tempo abaixo fica discreta. */}
-      <section className="relative overflow-hidden rounded-xl border-b-2 border-gold/70 bg-navy-800 p-6 text-cream shadow-md sm:p-8">
+      <section data-home-editorial className="relative overflow-hidden rounded-xl border-b-2 border-gold/70 bg-navy-800 p-6 text-cream shadow-md sm:p-8">
         <div className="min-w-0">
           <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-gold">Acompanhamento da família</p>
-           <p className="mt-2 font-serif text-xl text-cream/80">Uma história em construção</p>
-           <h2 className="mt-1 font-serif text-[1.9rem] leading-tight text-cream sm:text-4xl">
-             {tituloCaso}
+          <p className="mt-2 font-serif text-xl text-cream/80">Uma história em construção</p>
+          <h2 className="mt-1 font-serif text-[1.9rem] leading-tight text-cream sm:text-4xl">
+            {tituloCaso}
             {composicao ? <span className="text-cream/60"> · {composicao}</span> : null}
-           </h2>
+          </h2>
+          {trilhaAustria ? (
+            <p className="app-selo-trilha mt-4" data-selo-trilha>Cidadania Austríaca (§ 58c StbG)</p>
+          ) : null}
+          {/* Membros do núcleo: só entram quando publicados para a família.
+              Sem publicação, a ausência é dita — nunca deduzida do cadastro. */}
+          <div className="mt-4 border-t border-cream/10 pt-4" data-home-nucleo>
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-cream/60">Núcleo familiar</p>
+            <p className="mt-1 text-sm text-cream/75">Não registrado — os membros aparecem aqui quando forem compartilhados com a família.</p>
+          </div>
         </div>
 
         {fase ? null : (
@@ -399,33 +414,25 @@ function PainelHomeMockup({
       ) : null}
 
       <div className="grid gap-8 pt-4 sm:grid-cols-2 sm:items-start">
-        <section aria-label="Próxima ação">
-          <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Próxima ação</p>
+        <section aria-label="Próximo passo" className="app-card-proximo-passo" data-home-proximo-passo>
+          <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Próximo passo</p>
           <h3 className="mb-3 font-serif text-2xl text-navy">O que vem agora</h3>
-          <div className="border-l-2 border-gold pl-4">
-            <p className="whitespace-pre-line text-sm leading-relaxed text-navy/80">{proximoPasso}</p>
-            {proximaEntrega ? (
-              <p className="mt-2 text-xs text-navy/70" data-proxima-entrega>
-                {proximaEntrega}
-              </p>
-            ) : null}
-            {proximoPassoDestino ? (
-              <LinkPortal
-                to={proximoPassoDestino}
-                className="mt-3 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
-              >
-                {proximoPassoDestino.includes("documentos") ? "Ver documentos solicitados" : "Ver próxima ação"}
-              </LinkPortal>
-             ) : casoId && proximoPasso !== PROXIMO_PASSO_VAZIO ? (
-              <Link
-                to="/portal/casos/$id"
-                params={{ id: casoId }}
-                className="mt-3 inline-block text-xs font-medium text-terracotta underline-offset-2 hover:underline"
-              >
-                Acompanhar sua jornada
-              </Link>
-            ) : null}
-          </div>
+          <p className="whitespace-pre-line text-sm leading-relaxed text-navy/80">{proximoPasso}</p>
+          {proximaEntrega ? (
+            <p className="mt-2 text-xs text-navy/70" data-proxima-entrega>
+              {proximaEntrega}
+            </p>
+          ) : null}
+          {proximoPassoDestino && proximoPasso !== PROXIMO_PASSO_VAZIO ? (
+            <LinkPortal to={proximoPassoDestino} className="app-botao-proximo-passo mt-4">
+              {proximoPassoDestino.includes("documentos")
+                ? "Abrir Documentos"
+                : proximoPassoDestino.includes("conta")
+                  ? "Abrir Conta"
+                  : "Abrir Jornada"}
+              <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+            </LinkPortal>
+          ) : null}
         </section>
 
         <section className="sm:col-start-2 sm:row-start-1" aria-label="Pessoas conectadas">

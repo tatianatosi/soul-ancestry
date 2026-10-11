@@ -84,6 +84,7 @@ function AppClienteComoPessoa() {
             previa: {
               selo: "Visualização do aplicativo da família",
               titulo: casoEscolhido ? String(casoEscolhido["titulo"]) : "Sua história familiar",
+              pais: casoEscolhido ? ((casoEscolhido["pais"] as string | null) ?? null) : null,
               ...(casoEscolhido
                 ? {
                     identidade: identidadeDeCrmCaso({

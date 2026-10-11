@@ -86,6 +86,8 @@ export type PreviaPortal = {
   destinoSair?: string;
   /** Identidade canônica do caso (Ordem 2) — UUID = crm_casos.id. */
   identidade?: IdentidadeCaso;
+  /** País da trilha registrado no caso (crm_casos.pais), só para o selo da Home. */
+  pais?: string | null;
 };
 
 export type FontePortal = {
