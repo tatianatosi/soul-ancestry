@@ -29,7 +29,6 @@ export type FaturaBruta = {
 export type DespesaBruta = {
   id: string;
   estado: string;
-  valor_pago?: number | null;
 };
 
 export type PagamentoBruto = {
@@ -66,8 +65,6 @@ export type ResumoFinanceiroCaso = {
   proximaParcela: { faturaId: string; valor: number; vencimento: string } | null;
   status: StatusFinanceiroCaso;
   despesasTerceiros: { total: number; aguardandoAprovacao: number; aprovadasOuPagas: number } | null;
-  custosBuscaEmissao: number | null;
-  margemBrutaOperacional: number | null;
   /** Pagamentos estornados deste caso — já excluídos de valorRecebido pelo trigger, mas nunca antes visíveis. */
   reembolsos: { total: number; valor: number } | null;
   proximaAcaoFinanceira: string;
@@ -131,11 +128,6 @@ export function calcularResumoFinanceiroCaso(
         aprovadasOuPagas: despesas.filter((d) => d.estado === "aprovada" || d.estado === "paga_diretamente_pelo_cliente").length,
       }
     : null;
-  const despesasComValor = despesas.filter((d) => d.valor_pago !== null && d.valor_pago !== undefined);
-  const custosBuscaEmissao = despesasComValor.length
-    ? despesasComValor.reduce((soma, despesa) => soma + Number(despesa.valor_pago ?? 0), 0)
-    : null;
-  const margemBrutaOperacional = custosBuscaEmissao === null ? null : valorRecebido - custosBuscaEmissao;
 
   // CA16-FINANCEIRO-E-CAMPANHAS (09/09/2026): payments.status='estornado' já
   // existe e já é excluído de valorRecebido pelo trigger fn_payments_pos —
@@ -155,8 +147,6 @@ export function calcularResumoFinanceiroCaso(
     proximaParcela,
     status,
     despesasTerceiros,
-    custosBuscaEmissao,
-    margemBrutaOperacional,
     reembolsos,
     proximaAcaoFinanceira,
     faturaRascunhoAberta: faturaRascunho ? { faturaId: faturaRascunho.id } : null,

@@ -185,23 +185,6 @@ export const carregarGoLive = createServerFn({ method: "GET" })
       alertasPorCaso.set(chave, (alertasPorCaso.get(chave) ?? 0) + 1);
     }
 
-    /* Painel Hoje: uma única fila canônica por caso, da mesma RPC usada por
-       Caso 360 e Lista de Casos. Uma chamada em lote evita narrativa paralela
-       e mantém registros DEMO/teste fora pelo mesmo filtro da carteira. */
-    const idsCarteiraReal = (carteira ?? [])
-      .filter((c) => c["demo"] !== true && c["dados_teste"] !== true && !ehRegistroDeTeste(c))
-      .map((c) => String(c["id"]));
-    const proximasAcoesResposta = idsCarteiraReal.length
-      ? await supabase.rpc("proxima_acao_prioritaria_lote", { _cases: idsCarteiraReal })
-      : { data: [] as Linha[] };
-    const proximasAcoesPrioritarias = ((proximasAcoesResposta.data ?? []) as Linha[]).map((acao) => ({
-      caseId: String(acao["case_id"]),
-      nivel: Number(acao["nivel"] ?? 9),
-      motivo: String(acao["motivo"] ?? "Próxima ação não registrada"),
-      origemTabela: (acao["origem_tabela"] as string) ?? null,
-      origemId: (acao["origem_id"] as string) ?? null,
-      prazo: (acao["prazo"] as string) ?? null,
-    }));
 
     /* Carteira comercial da organização (CRM vivo). Só leitura, sem writer novo:
        etapa, origem, responsável, último toque e próximo passo já gravados no lead. */
@@ -635,7 +618,6 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           alertasAbertos: alertasPorCaso.get(String(c["id"])) ?? 0,
           eixoComercial: (c["eixo_comercial"] as string) ?? null,
         })),
-      proximasAcoesPrioritarias,
       /** Contratos enviados, ainda sem assinatura — Formalização & Financeiro. */
       contratosAguardandoAssinatura: contratosPendentesAssinatura
         .filter((c) => c["case_id"] !== null && c["case_id"] !== undefined)
