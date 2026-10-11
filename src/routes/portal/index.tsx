@@ -413,7 +413,7 @@ function PainelHomeMockup({
       ) : null}
 
       <div className="grid gap-8 pt-4 sm:grid-cols-2 sm:items-start">
-        <section aria-label="Próximo passo" className="app-card-proximo-passo" data-home-proximo-passo>
+        <section aria-label="Próxima ação — próximo passo" className="app-card-proximo-passo" data-home-proximo-passo>
           <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Próximo passo</p>
           <h3 className="mb-3 font-serif text-2xl text-navy">O que vem agora</h3>
           <p className="whitespace-pre-line text-sm leading-relaxed text-navy/80">{proximoPasso}</p>
