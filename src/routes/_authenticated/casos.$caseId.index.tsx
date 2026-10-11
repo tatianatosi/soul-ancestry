@@ -2597,7 +2597,7 @@ function FichaCaso() {
           </div>
 
           {/* Grade operacional (homologação Desk V4, 11/10/2026): mesma leitura
-              obterResumoFinanceiroCaso; ausência = "Não registrado", nunca zero. */}
+              do resumo financeiro (qFinanceiro); ausência = "Não registrado", nunca zero. */}
           {qFinanceiro.data ? (() => {
             const f = qFinanceiro.data;
             const fmt = (v: number) =>

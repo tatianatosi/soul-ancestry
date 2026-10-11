@@ -87,7 +87,7 @@ describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas com
     expect(comercial.sub.some((s) => "to" in s && s.to === "/calls")).toBe(true);
     expect(comercial.sub.some((s) => "to" in s && s.to === "/crm-mestre")).toBe(false);
     const conta = MENU_CONTA.itens.filter((s) => "to" in s).map((s) => s.to);
-    expect(conta).toContain("/app-cliente-demo");
+    expect(conta).not.toContain("/app-cliente-demo"); // 11/10/2026: DEMO saiu da lateral
     expect(conta).not.toContain("/pesquisa");
     expect(conta).not.toContain("/crm-mestre");
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
