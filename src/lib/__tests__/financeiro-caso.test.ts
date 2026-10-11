@@ -122,4 +122,22 @@ describe("calcularResumoFinanceiroCaso — CA07-FINANCEIRO-SIMPLES", () => {
     const r = calcularResumoFinanceiroCaso([], [], [], HOJE);
     expect(r.despesasTerceiros).toBeNull();
   });
+
+  it("resposta normativa 11/10/2026 (Cláusula 9): custos de busca do cliente nunca deduzem a margem — margem bruta é só o valor liquidado", () => {
+    const r = calcularResumoFinanceiroCaso(
+      [{ id: "p1", status: "aprovada", valor: 9600, moeda: "BRL", forma_pagamento: "10x" }],
+      [{ id: "f1", status: "paga", valor: 3200, valor_pago: 3200, moeda: "BRL", vencimento: "2026-08-01" }],
+      [{ id: "d1", estado: "paga_diretamente_pelo_cliente", valor_pago: 500 }],
+      HOJE,
+    );
+    expect(r.custosBuscaCliente).toBe(500);
+    expect(r.margemBruta).toBe(3200);
+    expect(r.valorRecebido).toBe(3200);
+  });
+
+  it("sem lançamento de despesa de terceiro: custos de busca é 0, não null — vazio honesto, não ausência de campo", () => {
+    const r = calcularResumoFinanceiroCaso([], [], [], HOJE);
+    expect(r.custosBuscaCliente).toBe(0);
+    expect(r.margemBruta).toBe(0);
+  });
 });

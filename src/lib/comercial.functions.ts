@@ -999,7 +999,7 @@ export const obterResumoFinanceiroCaso = createServerFn({ method: "GET" })
         .is("archived_at", null),
       supabase
         .from("third_party_expenses")
-        .select("id,estado")
+        .select("id,estado,valor_pago")
         .eq("organization_id", organizationId)
         .eq("case_id", data.caseId)
         .is("archived_at", null),
