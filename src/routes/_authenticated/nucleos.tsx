@@ -62,11 +62,11 @@ const papeisDeInclusao = [
     valor,
     rotulo: valor === "contratante_signatario" ? "Contratante / signatário" : "Dependente",
   })),
-  { valor: REQUERENTE_PENDENTE, rotulo: "Requerente — aguardando adequação" },
+  { valor: REQUERENTE_PENDENTE, rotulo: "Requerente" },
 ];
 const papeisDeEdicao = [
   ...PAPEIS_NO_CASO_GRAVAVEIS_NUCLEO,
-  { valor: REQUERENTE_PENDENTE, rotulo: "Requerente — aguardando adequação" },
+  { valor: REQUERENTE_PENDENTE, rotulo: "Requerente" },
 ];
 
 const CORES_STATUS: Record<string, string> = {

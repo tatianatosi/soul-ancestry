@@ -205,7 +205,7 @@
 - [ ] Conferir os ajustes finais de composição visual em 375 e 1280 px; aguardar aprovação visual antes de publicar conteúdo.
 
 ## Paridade UI do App P1–P4 (05/10/2026)
-- [ ] Corte isolado 11/10: finalizar apresentação de adicionar/editar membro do núcleo da Ana e entregar quatro capturas 375/1280, sem salvar dados.
+- [x] Corte isolado 11/10: apresentação de adicionar/editar membro do núcleo da Ana verificada em sessão da Proprietária, quatro capturas 375/1280, sem salvar dados; gravação de Requerente permanece com Claude, aprovação visual aguarda a Proprietária.
 - [x] P1 Home: progresso condicional, grade desktop e documento/microentrega somente com conteúdo disponível.
 - [x] P2 Jornada: história, união e processo em sequência conectada; régua somente com fase visível.
 - [x] P3 Radar e Árvore: hexágono e seis dimensões preservados, nós expansíveis com vínculo publicado ou ausência explícita. Heatmap não exibido sem projeção autorizada.
