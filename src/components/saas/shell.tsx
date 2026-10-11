@@ -241,12 +241,11 @@ export function SaasShell({
             );
           })}
         </nav>
-        {MENU_CONTA.itens.length > 0 ? (
-          <div className="mt-4 border-t border-cream/15 pt-3">
-            <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gold">
-              {MENU_CONTA.label}
-            </p>
-            {MENU_CONTA.itens
+        <div className="mt-4 border-t border-cream/15 pt-3">
+          <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gold">
+            {MENU_CONTA.label}
+          </p>
+          {MENU_CONTA.itens
             .filter((s): s is { to: string; label: string; adminOnly?: boolean } => "to" in s)
             .filter((s) => !s.adminOnly || ehAdmin)
             .map((s) => (
@@ -264,8 +263,7 @@ export function SaasShell({
                 {s.label}
               </Link>
             ))}
-          </div>
-        ) : null}
+        </div>
         <div className="mt-4 border-t border-cream/15 pt-3 text-xs text-cream/70">
           <p className="truncate font-medium text-cream">{contexto?.perfil?.email ?? "—"}</p>
           <p className="truncate">{contexto?.organizacao?.nome ?? "—"}</p>
