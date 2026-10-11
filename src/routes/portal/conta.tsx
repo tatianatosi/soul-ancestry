@@ -164,6 +164,11 @@ export function PortalConta() {
                   {assinatura.situacao ? (
                     <p className="mt-1 text-xs text-navy/60">{assinatura.situacao}</p>
                   ) : null}
+                  {assinatura.valor === "R$ 320,00" || assinatura.valor === "R$ 320,00" ? (
+                    <p className="mt-2 text-sm text-navy/70" data-conta-assinatura-condicao>
+                      Condição prevista por 10 meses. A cobrança individual ainda aguarda confirmação e, por isso, nenhum link de pagamento é exibido.
+                    </p>
+                  ) : null}
                 </>
                ) : (
                 /*

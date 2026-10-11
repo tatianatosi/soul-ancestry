@@ -155,7 +155,7 @@ export function PortalArvore() {
                     </p>
                   </section>
 
-                  {!pessoas.some((pessoa) => pessoa.vinculo) ? <section aria-label="Genograma ilustrativo"><h2 className="font-serif text-xl text-navy">Conexões entre gerações</h2><BlocoExemploVisual tipo="arvore" /></section> : null}
+                  {!pessoas.some((pessoa) => pessoa.vinculo) ? <section aria-label="Exemplo visual de conexões"><h2 className="font-serif text-xl text-navy">Como as conexões poderão aparecer</h2><p className="mt-1 text-sm leading-relaxed text-navy/70">A ilustração abaixo não representa as seis pessoas publicadas nem estabelece parentesco entre elas.</p><BlocoExemploVisual tipo="arvore" /></section> : null}
 
                   {/*
                     §6 linha 4 do De-Para ("LIGAÇÃO COM A JORNADA"; "Próxima

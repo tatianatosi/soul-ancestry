@@ -502,8 +502,8 @@ export const ROTAS_LEGADO_MENU_GOVERNANCA = [
 ] as const;
 
 /**
- * Menu da conta — só a sessão DEMO. Equipe, configurações e legado moram
- * em Governança & Administração. Não é nona aba.
+ * Menu da conta sem atalhos operacionais. Equipe, configurações e legado
+ * moram em Governança & Administração. Não é sétimo grupo.
  */
 export const MENU_CONTA: {
   id: "conta";
@@ -513,8 +513,8 @@ export const MENU_CONTA: {
 } = {
   id: "conta",
   label: "Conta e administração",
-  descricao: "Sessão DEMO do App Cliente — dado fictício, fora da operação.",
-  itens: [{ to: "/app-cliente-demo", label: "Sessão demo do App Cliente (dado fictício)" }],
+  descricao: "Preferências da sessão atual.",
+  itens: [],
 } as const;
 
 /**
