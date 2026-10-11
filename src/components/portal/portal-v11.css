@@ -941,3 +941,49 @@
   [data-app-cliente] .app-conta-composicao { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; column-gap: var(--ca-space-6); }
   [data-app-cliente] .app-conta-atendimento { grid-column: 1 / -1; }
 }
+
+/* ===== Essência canônica 11/10/2026 — somente [data-app-cliente] ===== */
+[data-app-cliente] {
+  --app-essencia-navy: #13294B;
+  --app-essencia-petroleo: #1B365D;
+  --app-essencia-areia: #F0EEE9;
+  --app-essencia-ouro: #C2A84D;
+}
+[data-app-cliente] .app-selo-trilha {
+  display: inline-flex; align-items: center; min-height: 1.75rem;
+  padding: 0.2rem 0.75rem; border: 1px solid var(--app-essencia-ouro);
+  border-radius: 999px; color: var(--app-essencia-ouro);
+  font-family: "Montserrat", sans-serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em;
+}
+[data-app-cliente] .app-card-proximo-passo {
+  background: #fff; border: 1px solid color-mix(in srgb, var(--app-essencia-navy) 10%, transparent);
+  border-left: 3px solid var(--app-essencia-ouro); border-radius: 0.75rem; padding: 1.25rem;
+}
+[data-app-cliente] .app-botao-proximo-passo {
+  display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 1.1rem;
+  border-radius: 999px; background: var(--app-essencia-navy); color: var(--app-essencia-areia);
+  font-size: 0.875rem; font-weight: 600; text-decoration: none;
+}
+[data-app-cliente] .app-botao-proximo-passo:hover { background: var(--app-essencia-petroleo); }
+[data-app-cliente] .app-lacuna {
+  display: inline-block; padding: 0.15rem 0.6rem; border: 1px dashed color-mix(in srgb, var(--app-essencia-navy) 30%, transparent);
+  border-radius: 999px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.03em;
+  color: color-mix(in srgb, var(--app-essencia-navy) 70%, transparent);
+}
+[data-app-cliente] .app-uniao-ramos {
+  border: 0; border-radius: 0.75rem; padding: 1.25rem;
+  background: color-mix(in srgb, var(--app-essencia-ouro) 16%, var(--app-essencia-areia));
+  border-left: 3px solid var(--app-essencia-ouro); color: var(--app-essencia-navy);
+}
+[data-app-cliente] .app-uniao-ramos > p:first-child { color: color-mix(in srgb, var(--app-essencia-navy) 70%, transparent); }
+[data-app-cliente] .app-prateleiras { display: flex; flex-direction: column; gap: 2.5rem; }
+[data-app-cliente] .app-prateleiras > .app-colecao { padding-bottom: 2rem; border-bottom: 1px solid color-mix(in srgb, var(--app-essencia-ouro) 35%, transparent); }
+[data-app-cliente] .app-prateleiras > .app-colecao:last-child { border-bottom: 0; }
+[data-app-cliente] .app-colecao-capa[data-capa] { width: 3.5rem; height: 4.5rem; display: grid; place-items: center; box-shadow: 2px 3px 0 color-mix(in srgb, var(--app-essencia-navy) 18%, transparent); }
+[data-app-cliente] .app-colecao-capa[data-capa="cadernos"] { background: var(--app-essencia-navy); color: var(--app-essencia-ouro); }
+[data-app-cliente] .app-colecao-capa[data-capa="relatorios"] { background: var(--app-essencia-petroleo); color: var(--app-essencia-areia); }
+[data-app-cliente] .app-colecao-capa[data-capa="narrativas"] { background: var(--app-essencia-ouro); color: var(--app-essencia-navy); }
+@media (min-width: 1024px) {
+  [data-app-cliente] .app-prateleiras { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; align-items: start; }
+  [data-app-cliente] .app-prateleiras > .app-colecao { border-bottom: 0; padding-bottom: 0; }
+}
