@@ -124,7 +124,6 @@ export function PortalLegado() {
                               </li>
                             ))}
                           </ul>
-                          <p data-legado-disclaimer className="text-xs text-navy/60">{DISCLAIMER_ENCONTROS}</p>
                         </>
                       ) : (
                         <p className="app-v11-lacuna text-navy/60" data-legado-encontros-vazio>
@@ -133,6 +132,11 @@ export function PortalLegado() {
                       )}
                     </section>
                   ) : null}
+
+                  <aside aria-label="Aviso sobre Encontros de Linhagem" className="border-l-2 border-gold/60 py-2 pl-4">
+                    <p className="mb-1 text-sm font-medium text-navy">Sobre os Encontros de Linhagem</p>
+                    <p data-legado-disclaimer className="text-xs leading-relaxed text-navy/70">{DISCLAIMER_ENCONTROS}</p>
+                  </aside>
 
                   <div className="grid gap-6 sm:grid-cols-2 sm:items-start" data-legado-prateleiras>
                     {PRATELEIRAS.filter((p) => p.id !== "memoria").map((p) => {

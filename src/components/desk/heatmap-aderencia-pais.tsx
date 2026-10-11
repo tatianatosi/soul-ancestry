@@ -27,7 +27,7 @@ export function HeatmapAderenciaPais({ caseId }: { caseId: string }) {
 
   return (
     <section
-      className="rounded-xl border border-[#13294B]/15 bg-[#F0EEE9] p-4"
+      className="mb-24 rounded-xl border border-[#13294B]/15 bg-[#F0EEE9] p-4 md:mr-40"
       data-heatmap-aderencia-pais
       aria-label="Heatmap de aderência por país"
     >

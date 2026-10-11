@@ -21,10 +21,10 @@ export function AndamentoPublicado({ rota }: { rota: string }) {
     <details className="app-andamento-publicado" data-andamento-publicado>
       <summary>
         <span className="app-andamento-ponto" aria-hidden="true" />
-        <span>{parcial ? "Radar · média dos eixos com base" : dimensao.titulo}</span>
+        <span>{parcial ? "Como sua jornada está avançando" : dimensao.titulo}</span>
         <strong>{dimensao.percentual !== null ? `${dimensao.percentual}%` : dimensao.rotuloNumero === "Nenhum ainda" ? "Ainda não publicado" : dimensao.rotuloNumero}</strong>
       </summary>
-      {dimensao.percentual !== null ? <JourneyProgress label={parcial ? "Média parcial do Radar" : dimensao.titulo} value={dimensao.percentual} /> : null}
+      {dimensao.percentual !== null ? <JourneyProgress label={parcial ? "Avanço da sua jornada" : dimensao.titulo} value={dimensao.percentual} /> : null}
       <p>{dimensao.comoCalculamos}</p>
     </details>
   );

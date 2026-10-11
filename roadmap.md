@@ -1,5 +1,13 @@
 # Roadmap
 
+## Experiência familiar — pedido ao Claude (11/10/2026)
+- [x] Registrar a solicitação e a decisão explícita da Proprietária de manter navegação, acesso familiar e faturas sob responsabilidade do Claude; nenhum código ou dado alterado pelo Lovable.
+- [ ] Claude: ajustar exatamente sete abas para Painel · Jornada · Árvore · Descobertas · Documentos · Biblioteca · Conta, reutilizando destinos existentes e esclarecendo a correspondência de Descobertas com Radar.
+- [ ] Claude: comprovar fatura individual por pessoa autenticada em todos os leitores e RLS, sem expor pagamentos familiares; R$320/Asaas somente com fonte vigente, sem cobrança ou integração automática.
+- [ ] Claude: conferir e vincular as três identidades solicitadas ao núcleo do caso canônico sem convites ou criação de credenciais.
+- [ ] Claude: conferir identidade e responsável legal de Felipe, representação persistida e conteúdo autorizado para Ana; sem login/cobrança do menor. Prova autenticada e releitura pendentes.
+- Handoff detalhado: docs/prompts/2026-10-11-pedido-claude-experiencia-familiar.md. Bloqueio deste corte: responsabilidade mantida com Claude; fontes e isolamento ainda não comprovados.
+
 ## Núcleo — formulário pai e irmã da Ana (10/10/2026)
 - [x] Ajustar apenas adicionar/editar membro na rota existente, com campos e writers atuais.
 - [x] Documentar PEDIDO AO CLAUDE: requerente não é gravável; nenhum papel substituído.
