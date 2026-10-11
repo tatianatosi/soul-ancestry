@@ -36,10 +36,10 @@ export function AssistenteTransversal({ papeis }: { papeis: readonly string[] })
         onClick={() => setAberto((v) => !v)}
         aria-label="Assistente do Desk"
         aria-expanded={aberto}
-        className="fixed bottom-5 right-5 z-40 hidden items-center justify-center gap-2 rounded-full border border-gold/50 bg-navy px-4 py-3 text-sm font-medium text-cream shadow-lg hover:bg-navy/90 md:flex"
+        title="Assistente do Desk"
+        className="fixed bottom-4 right-4 z-30 hidden h-12 w-12 items-center justify-center rounded-full border border-gold/50 bg-navy text-cream shadow-lg hover:bg-navy/90 md:flex"
       >
-        <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
-        <span className="hidden sm:inline">Assistente</span>
+        <Sparkles className="h-5 w-5 shrink-0" aria-hidden />
       </button>
 
       {aberto ? (

@@ -502,9 +502,11 @@ export const ROTAS_LEGADO_MENU_GOVERNANCA = [
 ] as const;
 
 /**
- * Menu da conta — só a sessão DEMO. Equipe, configurações e legado moram
- * em Governança & Administração. Não é nona aba.
- */
+  * Menu da conta — vazio desde 11/10/2026 (decisão da Proprietária): a sessão
+  * DEMO saiu da lateral; a rota /app-cliente-demo e os dados demo seguem
+  * preservados e acessíveis só por link direto. Equipe, configurações e
+  * legado moram em Governança & Administração. Não é nona aba.
+  */
 export const MENU_CONTA: {
   id: "conta";
   label: string;
@@ -513,8 +515,8 @@ export const MENU_CONTA: {
 } = {
   id: "conta",
   label: "Conta e administração",
-  descricao: "Sessão DEMO do App Cliente — dado fictício, fora da operação.",
-  itens: [{ to: "/app-cliente-demo", label: "Sessão demo do App Cliente (dado fictício)" }],
+  descricao: "Sem atalhos na lateral; sessão DEMO só por link direto.",
+  itens: [],
 } as const;
 
 /**

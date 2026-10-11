@@ -2596,6 +2596,45 @@ function FichaCaso() {
             <OverrideComercial caseId={id} />
           </div>
 
+          {/* Grade operacional (homologação Desk V4, 11/10/2026): mesma leitura
+              obterResumoFinanceiroCaso; ausência = "Não registrado", nunca zero. */}
+          {qFinanceiro.data ? (() => {
+            const f = qFinanceiro.data;
+            const fmt = (v: number) =>
+              v.toLocaleString("pt-BR", { style: "currency", currency: f.moeda || "BRL" });
+            const temCobranca = f.status !== "sem_dados_suficientes" && f.status !== "sem_cobranca_emitida";
+            const liquidado = temCobranca ? f.valorRecebido : null;
+            // Despesas de terceiros só trazem contagem nesta leitura: sem valor somado.
+            const custos: number | null = null;
+            const cartoes: { rotulo: string; valor: string; apoio: string }[] = [
+              { rotulo: "Total Contratado", valor: f.valorContratado == null ? "Não registrado" : fmt(f.valorContratado), apoio: "Proposta de referência do caso" },
+              { rotulo: "Liquidado", valor: liquidado == null ? "Não registrado" : fmt(liquidado), apoio: "Pagamentos em faturas ativas" },
+              { rotulo: "Saldo Aberto", valor: f.saldoAberto == null || !temCobranca ? "Não registrado" : fmt(f.saldoAberto), apoio: "Contratado − liquidado" },
+              {
+                rotulo: "Custos de Busca",
+                valor: "Não registrado",
+                apoio: f.despesasTerceiros ? `${f.despesasTerceiros.total} despesa(s) sem valor somado` : "Nenhuma despesa de terceiros",
+              },
+              {
+                rotulo: "Margem Bruta",
+                valor: liquidado != null && custos != null ? fmt(liquidado - custos) : "Não registrado",
+                apoio: "Liquidado − custos, só com ambos",
+              },
+            ];
+            return (
+              <dl className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5" data-grade-financeira-5>
+                {cartoes.map((c) => (
+                  <div key={c.rotulo} className="rounded-xl border border-navy/10 bg-card p-4 shadow-sm">
+                    <dt className="text-[11px] font-semibold uppercase tracking-wide text-navy/55">{c.rotulo}</dt>
+                    <dd className="mt-1 font-serif text-xl text-navy">{c.valor}</dd>
+                    <dd className="mt-1 text-[11px] text-navy/55">{c.apoio}</dd>
+                  </div>
+                ))}
+              </dl>
+            );
+          })() : null}
+
+
           <Secao
             titulo="Resumo financeiro do caso"
             descricao="Registrar pagamento e preparar cobrança ficam no resumo executivo, no topo da página — aqui é só o estado, para consulta rápida."
