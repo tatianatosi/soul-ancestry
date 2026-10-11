@@ -22,7 +22,7 @@ export const meusCasos = createServerFn({ method: "GET" })
     semCache();
     const h = await import("./portal-cliente.server");
     const supabase = context.supabase as any;
-    await h.acessoDoCliente(supabase, context.userId as string);
+    const acesso = await h.acessoDoCliente(supabase, context.userId as string);
 
     const [casos, pendencias, faturas] = await Promise.all([
       supabase
@@ -30,7 +30,15 @@ export const meusCasos = createServerFn({ method: "GET" })
         .select("id, codigo, titulo, pais, via, status, ativo, suspenso_em, updated_at")
         .order("updated_at", { ascending: false }),
       supabase.from("portal_document_requests").select("case_id, status").in("status", ["aguardando", "recusado"]),
-      supabase.from("invoices").select("case_id, status").in("status", ["aberta", "vencida"]),
+      // Caso com múltiplos contratantes no mesmo case_id (ex.: 3 assinaturas
+      // individuais de R$ 320/mês): filtro explícito por client_id garante
+      // que o indicador de pendência de pagamento reflita só a própria
+      // fatura, nunca a de outro contratante do mesmo núcleo.
+      supabase
+        .from("invoices")
+        .select("case_id, status")
+        .eq("client_id", acesso.client_id)
+        .in("status", ["aberta", "vencida"]),
     ]);
 
     const porCaso = new Map<string, number>();
@@ -116,6 +124,10 @@ export const meuCaso = createServerFn({ method: "GET" })
         .from("invoices")
         .select("id, numero, descricao, valor, moeda, vencimento, status, valor_pago, paga_em, dados_teste")
         .eq("case_id", data.casoId)
+        // Caso com múltiplos contratantes (ex.: 3 assinaturas individuais de
+        // R$ 320/mês): filtro explícito reforça a RLS invoices_sel_portal
+        // para que cada contratante só leia a própria fatura, nunca a alheia.
+        .eq("client_id", acesso.client_id)
         .order("vencimento", { ascending: true }),
       supabase
         .from("portal_tickets")
@@ -520,11 +532,16 @@ export const minhasFaturas = createServerFn({ method: "GET" })
     semCache();
     const h = await import("./portal-cliente.server");
     const supabase = context.supabase as any;
-    await h.acessoDoCliente(supabase, context.userId as string);
+    const acesso = await h.acessoDoCliente(supabase, context.userId as string);
     const [faturas, casos] = await Promise.all([
       supabase
         .from("invoices")
         .select("id, case_id, numero, descricao, valor, moeda, vencimento, status, dados_teste")
+        // Mesmo caso com múltiplos contratantes (ex.: 3 assinaturas individuais
+        // de R$ 320/mês): RLS (invoices_sel_portal) já restringe a leitura ao
+        // client_id do titular autenticado, mas o filtro explícito evita que
+        // cada contratante dependa só da policy para não ver a fatura alheia.
+        .eq("client_id", acesso.client_id)
         .order("vencimento", { ascending: true }),
       supabase.from("portal_casos").select("id, titulo"),
     ]);
