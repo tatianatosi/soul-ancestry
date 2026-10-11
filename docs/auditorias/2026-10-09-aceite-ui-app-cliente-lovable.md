@@ -1,65 +1,64 @@
 # Checklist de homologação — App Cliente no Lovable
 
-Status: executado parcialmente — não aprovado
-Versão: v1.0
-Data/hora UTC da execução: 2026-10-11
-Responsável pela execução: Lovable, em sessão administrativa autorizada da Proprietária
-Escopo executado neste corte: Radar, Árvore e Conta do App Cliente. Desk preservado.
-Sessão/caso: visualização administrativa autorizada do caso CA-CID-AT-FAM-2026-001, sem segredo ou token no artefato.
-Banco conectado: Lovable Cloud do projeto.
+Status: executado integralmente nas sete abas — NÃO APROVADO (divergências abaixo)
+Versão: v1.1
+Data/hora UTC: 2026-10-11 16:40
+Responsável pela execução: Lovable, sessão administrativa autorizada da Proprietária (sem segredo ou token neste artefato)
+Rota: `/app-cliente-como-pessoa?casoId=` — caso CA-CID-AT-FAM-2026-001 (visão admin; não é login cliente)
+Mockup App: `clube-ancestral-mockup.pdf`, 17 págs.; App = págs. 3–9 (Home, Jornada, Radar, Árvore, Documentos, Legado, Conta). Mockup Desk: referência separada, não usada.
+Banco: Lovable Cloud do projeto. Evidências: Files `app-checklist-paridade-2026-10-11-v1/` (14 capturas + PDF comparativo de 7 págs.).
 
 ## 1. Referências e contenção
+- [x] R01 mockup App separado do Desk.
+- [x] R02 tokens canônicos locais (navy, Ouro Nobre, Cormorant/Montserrat).
+- [x] R03 nenhum asset substituto gerado.
+- [x] R04 nenhum tema global/Desk alterado.
+- [x] R05 mesma sessão e caso nas 14 capturas; exemplos do mockup não viraram dado real.
+- [x] R06 sem SQL de escrita, migration, RLS ou publicação.
 
-- [x] R01: referências do App mantidas separadas do Desk.
-- [x] R02: tokens locais canônicos preservados; Radar usa Ouro Nobre.
-- [x] R03: nenhuma imagem substituta nova.
-- [x] R04: nenhuma alteração em tema global ou estilo do Desk.
-- [x] R05: capturas usam a mesma sessão e o mesmo caso.
-- [x] R06: não houve SQL, migration, RLS, escrita ou publicação de conteúdo.
+## 2. Aceite por aba (375 e 1280)
 
-## 2. Resultado por aba neste corte
+| ID | Aba | Composição | Cores/formas | Estados/dados | Overflow | Resultado |
+|---|---|---|---|---|---|---|
+| A01 | Home | falhou: sem saudação "Bem-vinda" + avatar; card navy sem barra de progresso e stepper de fases | passou | passou (vazios honestos) | 0 px | falhou |
+| A02 | Jornada | parcial: duas linhas presentes; marcos são exemplo rotulado | passou | passou | 0 px | parcial |
+| A03 | Radar | falhou: teia não preenchida (3 de 6 dimensões em Lacuna) | passou (Ouro Nobre) | passou | 0 px | parcial — bloqueado por dado |
+| A04 | Árvore | parcial: 6 pessoas reais G3–G7; sem linhas (0 relações publicadas) | passou | passou | 0 px | parcial — bloqueado por dado |
+| A05 | Documentos | parcial: upload + checklist + entregas presentes como exemplo rotulado | passou | falhou: texto "não precisamos de nenhum documento" contradiz checklist (copy travada por teste a5) | 0 px | falhou |
+| A06 | Legado | divergente: mockup = "Seus Achados" + card premium; atual = coleções editoriais | passou | passou | 0 px | parcial |
+| A07 | Conta | parcial: assinatura R$ 320/mês × 10 como prevista/aguardando confirmação | passou | passou | 0 px | parcial |
 
-| ID | Aba | Resultado | Evidência |
-|---|---|---|---|
-| A01 | Home | não executado neste corte | — |
-| A02 | Jornada | não executado neste corte | — |
-| A03 | Radar | parcial | `radar-375.png`, `radar-1280.png` |
-| A04 | Árvore | parcial | `arvore-375.png`, `arvore-1280.png` |
-| A05 | Documentos | não executado neste corte | — |
-| A06 | Legado | não executado neste corte | — |
-| A07 | Conta | parcial | `conta-375.png`, `conta-1280.png` |
+## 3. Roteiros específicos
+- H01 passou: nenhum KPI/data inventado; próxima ação vazia honesta.
+- J01 parcial: sequência preservada; etapas reais ausentes.
+- RA01 passou com ressalva: sem percentual fictício; Lacuna mantida.
+- AR01 passou: mesmos nós, nenhum menor exposto, nenhum vínculo inferido.
+- D01 parcial: recebido × validado distinguidos no exemplo; upload/download ilustrativos desabilitados.
+- L01 passou: só material publicado (1 microentrega) + exemplos rotulados.
+- C01 parcial: sem link Asaas (não há cobrança confirmada); salvar/sair não exercitados (exigiria escrita).
 
-## 3. Verificações específicas
-
-- RA01 — passou com ressalva: Ouro Nobre aplicado apenas nos eixos com base real; Documentação, Memória e Legado permanecem como `Lacuna`, nunca zero.
-- AR01 — passou para os dados disponíveis: seis pessoas reais permanecem agrupadas em G3–G7; o genograma ilustrativo foi removido; nenhuma linha foi inferida porque não há relação publicada.
-- C01 — parcial: a condição de R$ 320,00/mês por 10 meses aparece como `prevista` e `aguardando confirmação`. Nenhum link Asaas foi exibido porque não há cobrança individual confirmada vinculada.
-
-## 4. Transversais executados
-
-- T01 — parcial: seis capturas autenticadas registradas, em 375 e 1280 px.
-- T02 — passou nas superfícies verificadas: lacunas continuam explícitas.
-- T03 — passou visualmente nas seis capturas; nenhuma ação observada ficou exclusiva do desktop.
-- T04 — parcial: 375 e 1280 verificados; 320/768/1440 continuam não executados.
-- T05 — passou visualmente em 375 px: último conteúdo permanece acima da navegação fixa.
-- T06 — não executado.
-- T07 — não executado por medição automatizada.
-- T08 — passou no Radar: `Lacuna` e percentuais acompanham a cor.
-- T09 — não aplicável neste corte.
-- T10 — não executado.
-- T11 — 39 testes relevantes passaram; build mais recente OK.
-- T12 — não executado; as capturas usam somente o caso autorizado.
+## 4. Transversais
+- T01 passou: 14 capturas + comparativo.
+- T02 parcial: vazios verificados; loading visto; erro não forçado.
+- T03 passou visualmente.
+- T04 parcial: 375/1280 = 0 px de overflow; 320/768/1440 verificados em 09/10, não refeitos.
+- T05 passou em 375.
+- T06 não executado (200%/teclado/modal).
+- T07 não executado (contraste não medido).
+- T08 passou: Lacuna e % acompanham a cor.
+- T09 passou: logo sem distorção.
+- T10 não executado nesta rodada.
+- T11 parcial: build mais recente OK; tipos/lint/testes não rodados nesta rodada (sem mudança de código).
+- T12 passou: caso por `casoId`, sem Ana fixa no código.
+- Alvos de toque: 1 elemento < 44 px em Home e Documentos (link de texto).
 
 ## 5. Não regressão no Desk
+- ND01–ND05 preservado por contenção: nenhum arquivo do Desk alterado.
 
-- ND01–ND05 — preservado por contenção: nenhum arquivo do Desk ficou alterado neste corte. Não foi feita nova auditoria visual do Desk.
+## 6. Publicação
+- P01–P06 pendentes: sem publicação nem smoke em produção.
 
-## 6. Bloqueios e decisão
-
-- Não existe cobrança individual confirmada nem link Asaas comprovado para renderizar.
-- Não existem relações publicadas entre as seis pessoas; linhas de parentesco não podem ser criadas por inferência.
-- O checklist integral das sete abas permanece incompleto porque este corte validou somente Radar, Árvore e Conta.
-- A proposta `client_tab_dwell_events` não foi aplicada; migration, RLS e retenção exigem autorização e revisão próprias.
-
+## 7. Decisão
 Decisão: pendente / não aprovado.
-Publicação: não autorizada e não realizada.
+Bloqueios de dado (não visuais): relações publicadas, dimensões Memória/Legado/Documentação, próxima ação compartilhada, cobrança individual Asaas.
+Divergências visuais corrigíveis no App (aguardam autorização): saudação + avatar e card de progresso com stepper na Home; estrutura "Seus Achados" no Legado; texto contraditório em Documentos (requer ajuste no teste a5 → PEDIDO AO CLAUDE).
