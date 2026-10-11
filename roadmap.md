@@ -8,7 +8,7 @@
 - Bloqueios conhecidos: zero faturas no caso; nenhuma integração Asaas no App; zero relações genealógicas publicadas; acessos individuais de Adair/Alice ausentes.
 
 ## Telemetria de permanência por aba (11/10/2026)
-- [ ] Validar a proposta `client_tab_dwell_events` contra schema, funções de acesso, privacidade, retenção e política de dados.
+- [ ] Validar a proposta `client_tab_dwell_events` contra schema, funções de acesso, privacidade, retenção e política de dados — bloqueada até autorização explícita de migration/RLS.
 - [ ] Aplicar migration somente após autorização explícita da Proprietária em corte separado; nenhuma alteração de banco neste corte visual.
 
 ## Experiência familiar — pedido ao Claude (11/10/2026)
