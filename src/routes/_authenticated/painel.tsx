@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { useGoLive } from "@/components/golive/dados";
+import { CardsAlertasCentrais } from "@/components/painel/cards-alertas-centrais";
 import { EstadoVazio, SaasShell } from "@/components/saas/shell";
 import { Button } from "@/components/ui/button";
 import { CaCard } from "@/components/ui/ca-card";
@@ -208,6 +209,13 @@ function PainelConsolidado() {
         </div>
         <span className="rounded-full border border-navy/15 bg-card px-3 py-1 text-[11px] font-medium text-navy/65">Dados conectados</span>
       </div>
+
+      {/*
+        P5 (11/10/2026) — fila de prioridades ligada à RPC canônica
+        `proxima_acao_prioritaria_lote`. Componente já existia
+        (cards-alertas-centrais.tsx) mas não estava montado em nenhuma rota.
+      */}
+      <CardsAlertasCentrais />
 
       {/*
         Faixa de 4 indicadores do Hoje (§11 do De-Para).

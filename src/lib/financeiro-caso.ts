@@ -29,6 +29,7 @@ export type FaturaBruta = {
 export type DespesaBruta = {
   id: string;
   estado: string;
+  valor_pago?: number | null;
 };
 
 export type PagamentoBruto = {
@@ -65,6 +66,16 @@ export type ResumoFinanceiroCaso = {
   proximaParcela: { faturaId: string; valor: number; vencimento: string } | null;
   status: StatusFinanceiroCaso;
   despesasTerceiros: { total: number; aguardandoAprovacao: number; aprovadasOuPagas: number } | null;
+  /**
+   * Resposta normativa da Proprietária (11/10/2026, Cláusula 9 do Estudo
+   * Genealógico v2): despesas de busca (certidões, arquivos, traduções,
+   * apostilas) são pagas/antecipadas pelo cliente, nunca custo do Clube.
+   * `custosBuscaCliente` é só informativo (soma de third_party_expenses.
+   * valor_pago) — nunca entra em margemBruta.
+   */
+  custosBuscaCliente: number;
+  /** Honorários do Clube não têm custo direto a deduzir — margem bruta é o valor já liquidado. */
+  margemBruta: number;
   /** Pagamentos estornados deste caso — já excluídos de valorRecebido pelo trigger, mas nunca antes visíveis. */
   reembolsos: { total: number; valor: number } | null;
   proximaAcaoFinanceira: string;
@@ -138,6 +149,8 @@ export function calcularResumoFinanceiroCaso(
     ? { total: estornados.length, valor: estornados.reduce((soma, p) => soma + Number(p.valor ?? 0), 0) }
     : null;
 
+  const custosBuscaCliente = despesas.reduce((soma, d) => soma + Number(d.valor_pago ?? 0), 0);
+
   return {
     valorContratado,
     moeda,
@@ -147,6 +160,8 @@ export function calcularResumoFinanceiroCaso(
     proximaParcela,
     status,
     despesasTerceiros,
+    custosBuscaCliente,
+    margemBruta: valorRecebido,
     reembolsos,
     proximaAcaoFinanceira,
     faturaRascunhoAberta: faturaRascunho ? { faturaId: faturaRascunho.id } : null,

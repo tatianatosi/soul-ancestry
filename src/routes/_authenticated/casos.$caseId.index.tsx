@@ -1460,6 +1460,31 @@ function FichaCaso() {
                       : "Sem dados suficientes"}
                   </dd>
                 </div>
+                {/*
+                  11/10/2026 — resposta normativa da Proprietária (Cláusula 9
+                  do Estudo Genealógico v2): despesas de busca são pagas pelo
+                  cliente, nunca custo do Clube. Este cartão é só informativo
+                  e nunca deduz dos honorários/margem.
+                */}
+                <div>
+                  <dt className="text-navy/50">Custos de busca</dt>
+                  <dd className="mt-0.5 text-sm text-navy">
+                    {qFinanceiro.data && qFinanceiro.data.custosBuscaCliente > 0
+                      ? `${qFinanceiro.data.moeda} ${qFinanceiro.data.custosBuscaCliente.toFixed(2)}`
+                      : "R$ 0,00"}
+                  </dd>
+                  <p className="mt-0.5 text-[11px] text-navy/50">Despesas de busca do cliente (não deduzem honorários)</p>
+                  {qFinanceiro.data && qFinanceiro.data.custosBuscaCliente === 0 ? (
+                    <p className="text-[11px] text-navy/40">Nenhuma despesa externa incorrida</p>
+                  ) : null}
+                </div>
+                <div>
+                  <dt className="text-navy/50">Margem bruta</dt>
+                  <dd className="mt-0.5 text-sm text-navy">
+                    {qFinanceiro.data ? `${qFinanceiro.data.moeda} ${qFinanceiro.data.margemBruta.toFixed(2)}` : "Sem dados suficientes"}
+                  </dd>
+                  <p className="mt-0.5 text-[11px] text-navy/50">Honorários do Clube (valor liquidado) — sem custo direto a deduzir</p>
+                </div>
                 <div>
                   <dt className="text-navy/50">Reembolsos (pagamentos estornados)</dt>
                   <dd className="mt-0.5 text-sm text-navy">
