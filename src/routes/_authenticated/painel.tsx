@@ -113,6 +113,10 @@ function PainelConsolidado() {
   if (!caso) return <EstadoVazio mensagem="Sem registros para consolidar — nenhuma organização com dados suficientes foi encontrada." />;
 
   const hoje = kpisHoje(caso.carteira, caso.tarefas);
+  const filaPrioritaria = caso.proximasAcoesPrioritarias;
+  const casosAtivos = caso.carteira.filter((item) => item.ativo).length;
+  const prazosImutaveis = filaPrioritaria.filter((item) => item.prazo && item.prazo < new Date().toISOString()).length;
+  const alertasPrioritarios = filaPrioritaria.filter((item) => item.nivel <= 6).length;
   /*
     Mesma conta que /golive/microentregas publica como "Aguardando revisão",
     com fonte e fórmula declaradas lá ("Itens ainda não concluídos"). Reusa
@@ -225,16 +229,11 @@ function PainelConsolidado() {
       */}
       <dl className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-hoje-indicadores>
         {[
+          { rotulo: "Casos ativos", valor: casosAtivos, apoio: "na carteira real", to: "/golive" },
+          { rotulo: "Prazos imutáveis", valor: prazosImutaveis, apoio: "vencidos na fila prioritária", to: "/golive" },
+          { rotulo: "Alertas", valor: alertasPrioritarios, apoio: "ações prioritárias com origem", to: "/golive" },
           {
-            rotulo: "Decisões do dia",
-            valor: decisoesDoDia,
-            apoio: "aguardam decisão da equipe",
-            to: "/golive/aprovacoes",
-          },
-          { rotulo: "Cadências vencidas", valor: hoje.vencidas, apoio: "pedem retomada", to: "/golive" },
-          { rotulo: "Casos sem próxima ação", valor: hoje.semProxima, apoio: "precisam de decisão", to: "/golive" },
-          {
-            rotulo: "Microentregas para revisão",
+            rotulo: "Microentregas",
             valor: microentregasAguardandoRevisao,
             apoio: "aguardando revisão humana",
             to: "/golive/microentregas",

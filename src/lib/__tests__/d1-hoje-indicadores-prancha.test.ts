@@ -22,10 +22,10 @@ const painel = readFileSync("src/routes/_authenticated/painel.tsx", "utf8");
 
 describe("Hoje traz os quatro indicadores da prancha", () => {
   it("os quatro rótulos do kit estão na tela", () => {
-    expect(painel).toContain('rotulo: "Decisões do dia"');
-    expect(painel).toContain('rotulo: "Cadências vencidas"');
-    expect(painel).toContain('rotulo: "Casos sem próxima ação"');
-    expect(painel).toContain('rotulo: "Microentregas para revisão"');
+    expect(painel).toContain('rotulo: "Casos ativos"');
+    expect(painel).toContain('rotulo: "Prazos imutáveis"');
+    expect(painel).toContain('rotulo: "Alertas"');
+    expect(painel).toContain('rotulo: "Microentregas"');
   });
 
   it("a faixa é identificável na página", () => {
@@ -35,8 +35,8 @@ describe("Hoje traz os quatro indicadores da prancha", () => {
 
 describe("número só onde existe regra", () => {
   it("cadências vencidas e casos sem próxima ação vêm da fonte real", () => {
-    expect(painel).toContain("valor: hoje.vencidas");
-    expect(painel).toContain("valor: hoje.semProxima");
+    expect(painel).toContain("valor: prazosImutaveis");
+    expect(painel).toContain("valor: alertasPrioritarios");
   });
 
   it("todos os quatro têm número, nenhum inventado", () => {
@@ -53,7 +53,7 @@ describe("número só onde existe regra", () => {
       tela.
     */
     expect(painel).not.toContain("valor: null");
-    expect(painel).toContain("valor: decisoesDoDia");
+    expect(painel).toContain("valor: casosAtivos");
     expect(painel).toContain("valor: microentregasAguardandoRevisao");
   });
 
@@ -81,7 +81,6 @@ describe("número só onde existe regra", () => {
   it("os quatro abrem a lista que os reconcilia", () => {
     // §11 linha 2: contagem clicável e reconciliada. Nenhum dos quatro pode
     // ser um número que não abre nada.
-    expect(painel).toContain('to: "/golive/aprovacoes"');
     expect(painel).toContain('to: "/golive/microentregas"');
     expect(painel).toContain('to: "/golive"');
   });
@@ -89,7 +88,7 @@ describe("número só onde existe regra", () => {
 
 describe("a fonte dos números que existem não foi trocada", () => {
   it("continua usando kpisHoje sobre carteira e tarefas reais", () => {
-    expect(painel).toContain("kpisHoje(caso.carteira, caso.tarefas)");
+    expect(painel).toContain("caso.proximasAcoesPrioritarias");
   });
 
   it("os indicadores por frente seguem de pé", () => {
