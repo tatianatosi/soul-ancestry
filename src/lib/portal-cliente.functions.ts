@@ -671,3 +671,38 @@ export const meusCompartilhamentosDeAchado = createServerFn({ method: "GET" })
       compartilhamentos: (data ?? []) as Record<string, any>[],
     };
   });
+
+/**
+ * Telemetria de permanência nas abas do App Cliente (11/10/2026).
+ *
+ * As 7 abas reais do portal (`src/components/portal/portal-shell.tsx`); não
+ * existe aba "descobertas" — o pedido original cobre onde achados/memórias
+ * aparecem hoje: Home, Radar e Legado, além da Árvore. Grava direto pelo
+ * cliente autenticado via RLS (`ctde_insert_self`), nunca por admin/service
+ * role — mesmo padrão de client_access_events.
+ */
+export const ABAS_COM_TELEMETRIA = ["home", "jornada", "radar", "arvore", "documentos", "legado", "conta"] as const;
+export type AbaComTelemetria = (typeof ABAS_COM_TELEMETRIA)[number];
+
+export const registrarTempoNaAba = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { tab: AbaComTelemetria; duracaoMs: number; casoId?: string | null }) => data)
+  .handler(async ({ data, context }) => {
+    const h = await import("./portal-cliente.server");
+    const supabase = context.supabase as any;
+    const acesso = await h.acessoDoCliente(supabase, context.userId as string);
+
+    if (!ABAS_COM_TELEMETRIA.includes(data.tab)) return { ok: false as const };
+    const duracaoMs = Math.round(Number(data.duracaoMs));
+    if (!Number.isFinite(duracaoMs) || duracaoMs <= 0 || duracaoMs > 86400000) return { ok: false as const };
+
+    const { error } = await supabase.from("client_tab_dwell_events").insert({
+      organization_id: acesso.organization_id,
+      client_portal_access_id: acesso.id,
+      case_id: data.casoId ?? null,
+      tab: data.tab,
+      duracao_ms: duracaoMs,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
