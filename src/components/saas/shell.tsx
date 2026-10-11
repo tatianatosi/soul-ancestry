@@ -241,7 +241,7 @@ export function SaasShell({
             );
           })}
         </nav>
-        <div className="mt-4 border-t border-cream/15 pt-3">
+        <div className={cn("mt-4 border-t border-cream/15 pt-3", MENU_CONTA.itens.length === 0 && "hidden")}>
           <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gold">
             {MENU_CONTA.label}
           </p>
