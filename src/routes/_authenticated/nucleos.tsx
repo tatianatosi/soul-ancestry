@@ -56,7 +56,7 @@ const rotulo = (v: string) =>
 const opcoes = (lista: readonly string[]) => lista.map((v) => ({ valor: v, rotulo: rotulo(v) }));
 
 const REQUERENTE_PENDENTE = "requerente";
-const AVISO_REQUERENTE = "O cadastro como Requerente aguarda adequação pelo Claude. Não será salvo como dependente, titular ou signatário.";
+const AVISO_REQUERENTE = "A gravação do papel Requerente aguarda adequação do cadastro. Não será salvo como dependente, titular ou signatário.";
 const papeisDeInclusao = [
   ...PAPEIS_GRAVAVEIS_MEMBRO.map((valor) => ({
     valor,
@@ -566,11 +566,13 @@ function NucleosPage() {
                       {n.membros.map((m2: Membro) => (
                         <li key={m2.id} className="rounded-lg border border-navy/10 px-2 py-1.5 text-xs text-navy/70">
                           {membroEditando === m2.id && rascunhoMembro ? (
-                            <div className="space-y-1.5">
+                            <div className="min-w-0 space-y-3 [&_input]:min-h-11 [&_select]:min-h-11 [&_select]:min-w-0 [&_select]:max-w-full" data-nucleo-editar-membro>
+                              <h3 className="text-sm font-semibold text-navy">Editar membro</h3>
                               <Texto
                                 label="Nome"
                                 valor={rascunhoMembro.nome}
                                 onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, nome: v })}
+                                erro={rascunhoMembro.nome.trim() && !nomeValido(rascunhoMembro.nome) ? "Nome não pode conter números e precisa de ao menos duas letras." : null}
                               />
                               <Texto
                                 label="Vínculo / parentesco"
@@ -605,7 +607,7 @@ function NucleosPage() {
                                 {(clientes) => (
                                   <Selecao
                                     label="Pessoa vinculada"
-                                    ajuda="Liga este requerente ao cadastro de Pessoa Canônica — habilita o link 'Ver perfil' e evita duplicar o cadastro da mesma pessoa."
+                                    ajuda="Vincule ao cadastro existente da pessoa, sem criar outro cadastro."
                                     valor={rascunhoMembro.clienteId}
                                     opcoes={clientes.map((c) => ({ valor: c.id, rotulo: c.nome }))}
                                     onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, clienteId: v })}
@@ -613,7 +615,7 @@ function NucleosPage() {
                                 )}
                               </EstadoDados>
                                {rascunhoMembro.papelNoCaso === REQUERENTE_PENDENTE ? <p role="status" className="text-terracotta">{AVISO_REQUERENTE}</p> : null}
-                               {erroMembro ? <p className="text-red-700">{erroMembro}</p> : null}
+                               {erroMembro ? <p className="text-terracotta">{erroMembro}</p> : null}
                                <div className="flex flex-wrap gap-2 pt-1">
                                  <Button
                                   type="button"
@@ -743,7 +745,8 @@ function NucleosPage() {
                     </ul>
                   )}
                   {adicionandoEm === n.id ? (
-                    <div className="mt-2 space-y-1.5 rounded-lg border border-gold/40 bg-gold/5 p-2 text-xs" data-nucleo-novo-membro>
+                    <div className="mt-2 min-w-0 space-y-3 rounded-lg border border-gold/40 bg-gold/5 p-3 text-xs [&_input]:min-h-11 [&_select]:min-h-11 [&_select]:min-w-0 [&_select]:max-w-full" data-nucleo-novo-membro>
+                      <h3 className="text-sm font-semibold text-navy">Adicionar membro</h3>
                       <Texto
                         label="Nome"
                         valor={novoMembro.nome}
@@ -788,7 +791,7 @@ function NucleosPage() {
                         )}
                       </EstadoDados>
                        {novoMembro.papel === REQUERENTE_PENDENTE ? <p role="status" className="text-terracotta">{AVISO_REQUERENTE}</p> : null}
-                       {erroNovoMembro ? <p className="text-red-700">{erroNovoMembro}</p> : null}
+                       {erroNovoMembro ? <p className="text-terracotta">{erroNovoMembro}</p> : null}
                        <div className="flex flex-wrap gap-2 pt-1">
                          <Button
                           type="button"
