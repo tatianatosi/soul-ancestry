@@ -170,6 +170,21 @@ export const carregarGoLive = createServerFn({ method: "GET" })
     /* Alertas abertos por caso da carteira. Só contagem do que já está gravado
        em `case_alerts`; sem criar, resolver ou disparar nada. */
     const idsCarteira = (carteira ?? []).map((c) => String(c["id"]));
+
+    /* Fila oficial de próxima ação (RPC proxima_acao_prioritaria_lote). Nível 9
+       = indefinido → sem próxima ação. Se a RPC falhar, mantém a leitura da
+       coluna como antes (nunca esconder como "tudo certo"). */
+    const canonicaResp = idsCarteira.length
+      ? await supabase.rpc("proxima_acao_prioritaria_lote", { _cases: idsCarteira })
+      : { data: [], error: null };
+    const proximaCanonica: Map<string, { nivel: number; motivo: string }> | null = canonicaResp.error
+      ? null
+      : new Map(
+          ((canonicaResp.data ?? []) as { case_id: string; nivel: number; motivo: string }[]).map((p) => [
+            p.case_id,
+            { nivel: p.nivel, motivo: p.motivo },
+          ]),
+        );
     const alertasCarteira = idsCarteira.length
       ? (
           await supabase
@@ -611,7 +626,12 @@ export const carregarGoLive = createServerFn({ method: "GET" })
           prioridade: (c["prioridade"] as string) ?? null,
           responsavel: (c["responsavel_principal"] as string) ?? null,
           proximaAcao: (c["proxima_acao"] as string) ?? null,
-          temProximaAcao: Boolean(c["proxima_acao"]),
+          temProximaAcao: proximaCanonica
+            ? (() => {
+                const p = proximaCanonica.get(String(c["id"]));
+                return Boolean(p && p.nivel !== 9 && p.motivo);
+              })()
+            : Boolean(c["proxima_acao"]),
           prazoProximaAcao: (c["prazo_proxima_acao"] as string) ?? null,
           contratoAssinado: c["contrato_assinado"] === true,
           pagamentoConfirmado: c["pagamento_confirmado"] === true,
