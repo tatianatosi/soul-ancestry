@@ -218,3 +218,8 @@ arquivo):
 ### Proteções (todos os artefatos)
 
 Não remover: RLS/isolamento, LGPD e consentimento, representação de menor, histórico/auditoria, canônicos, contrato assinado, evidência para achado confirmado, bloqueio de exclusão física crítica.
+
+## Proteção de schema e isolamento financeiro (2026-10-11)
+- Preservar a RPC `portal_sou_contratante_financeiro` (migration `20261010120000_*`) e suas chamadas em `portal-cliente.functions.ts`/`portal.functions.ts`; ao regenerar tipos, nunca podá-la — por quê: é o único filtro de fatura por papel no núcleo.
+- Membro do núcleo que não é contratante recebe só o estado neutro quando `restritoAoContratante` é verdadeiro; nunca valor, vencimento ou cobrança — por quê: dado financeiro pertence ao contratante.
+- Nenhuma tela ou menu fora das 7 abas do App Cliente — por quê: decisão da Proprietária.
