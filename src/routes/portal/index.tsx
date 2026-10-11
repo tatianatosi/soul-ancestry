@@ -323,7 +323,6 @@ function PainelHomeMockup({
   pessoasPublicadas,
   documentoPrioritario,
   microentrega,
-  casoId,
   achados,
   fase,
   composicao,
