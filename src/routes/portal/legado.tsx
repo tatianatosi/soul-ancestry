@@ -10,7 +10,6 @@ import { usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { legadoSanitizado, publicacoesDeEntrega } from "@/lib/portal-dados-vivos";
 import { PRATELEIRAS, prateleiraDe, type PrateleiraId, type PublicacaoCliente } from "@/lib/projecoes-cliente";
-import { BlocoExemploVisual } from "@/components/portal/bloco-exemplo-visual";
 import { listarEncontrosLinhagemApp } from "@/lib/legado-app.functions";
 
 export const DISCLAIMER_ENCONTROS =
@@ -138,7 +137,7 @@ export function PortalLegado() {
                     <p data-legado-disclaimer className="text-xs leading-relaxed text-navy/70">{DISCLAIMER_ENCONTROS}</p>
                   </aside>
 
-                  <div className="grid gap-6 sm:grid-cols-2 sm:items-start" data-legado-prateleiras>
+                  <div className="app-prateleiras" data-legado-prateleiras>
                     {PRATELEIRAS.filter((p) => p.id !== "memoria").map((p) => {
                       const itens = p.id === "narrativas"
                         ? [...porPrateleira.narrativas, ...porPrateleira.memoria]
@@ -152,7 +151,7 @@ export function PortalLegado() {
                         >
                           <details className="app-colecao-detalhe" open>
                           <summary className="app-colecao-resumo">
-                            <span className="app-colecao-capa" aria-hidden="true"><IconeColecao className="h-6 w-6" /></span>
+                            <span className="app-colecao-capa" data-capa={p.id} aria-hidden="true"><IconeColecao className="h-6 w-6" /></span>
                             <div className="min-w-0">
                             <div>
                               <p className="text-xs font-medium uppercase text-navy/60">
@@ -174,7 +173,7 @@ export function PortalLegado() {
                                    : p.id === "relatorios"
                                      ? "Nenhum dossiê ou relatório foi liberado para a família até agora."
                                      : "As narrativas de origem aparecerão aqui quando estiverem prontas para a família."}
-                             </p><BlocoExemploVisual tipo="colecao" categoria={p.id} /></div>
+                             </p></div>
                           ) : (
                             <ul className="mt-3 space-y-2">
                               {itens.map((item) => (
