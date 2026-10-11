@@ -4,7 +4,7 @@ import { AndamentoPublicado } from "@/components/portal/andamento-publicado";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import {
   Home,
   FileText,
@@ -18,9 +18,61 @@ import {
 import { BrandLogo } from "@/components/brand";
 import { LinkPortal, useFontePortal, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { portalContexto } from "@/lib/portal.functions";
+import { registrarTempoNaAba, type AbaComTelemetria } from "@/lib/portal-cliente.functions";
 import { cn } from "@/lib/utils";
 import { TIPO_CLIENTE } from "@/lib/marca";
 import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
+
+/*
+  Telemetria de permanência (11/10/2026) — pedido cobre onde achados e
+  memórias aparecem hoje: Home, Radar e Legado, além da Árvore já pedida
+  nominalmente. Não existe aba "descobertas"; nenhuma rota nova foi criada
+  para isso. As demais abas (Jornada, Documentos, Conta) não são rastreadas
+  até um pedido explícito as incluir.
+*/
+const ABAS_RASTREADAS: Partial<Record<string, AbaComTelemetria>> = {
+  "/portal": "home",
+  "/portal/radar": "radar",
+  "/portal/arvore": "arvore",
+  "/portal/legado": "legado",
+};
+
+function useTelemetriaDePermanencia(rotaAtiva: string, bloqueado: boolean) {
+  const registrar = useServerFn(registrarTempoNaAba);
+  const estadoRef = useRef<{ tab: AbaComTelemetria; desde: number } | null>(null);
+
+  const enviarEFechar = useCallback(() => {
+    const atual = estadoRef.current;
+    estadoRef.current = null;
+    if (!atual || bloqueado) return;
+    const duracaoMs = Date.now() - atual.desde;
+    if (duracaoMs <= 0) return;
+    void registrar({ data: { tab: atual.tab, duracaoMs, casoId: null } }).catch(() => {});
+  }, [registrar, bloqueado]);
+
+  useEffect(() => {
+    enviarEFechar();
+    const tab = ABAS_RASTREADAS[rotaAtiva];
+    estadoRef.current = tab ? { tab, desde: Date.now() } : null;
+    // Só reage à troca de rota: a duração pendente é fechada com o estado
+    // (bloqueado/registrar) vigente no momento da troca, não re-disparada a
+    // cada render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rotaAtiva]);
+
+  useEffect(() => {
+    function aoEsconder() {
+      if (document.visibilityState === "hidden") enviarEFechar();
+    }
+    document.addEventListener("visibilitychange", aoEsconder);
+    window.addEventListener("pagehide", enviarEFechar);
+    return () => {
+      document.removeEventListener("visibilitychange", aoEsconder);
+      window.removeEventListener("pagehide", enviarEFechar);
+      enviarEFechar();
+    };
+  }, [enviarEFechar]);
+}
 
 export function usePortal() {
   const previa = usePreviaPortal();
@@ -47,6 +99,8 @@ export function PortalShell({
   const previa = usePreviaPortal();
   const fonte = useFontePortal();
   const rotaAtiva = fonte?.rotaInterna ?? rota;
+
+  useTelemetriaDePermanencia(rotaAtiva, Boolean(previa));
 
   useEffect(() => {
     // Em prévia (demo e espelho, dentro do Desk) ninguém é cliente autorizado

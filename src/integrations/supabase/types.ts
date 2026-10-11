@@ -3727,6 +3727,61 @@ export type Database = {
           },
         ]
       }
+      client_tab_dwell_events: {
+        Row: {
+          case_id: string | null
+          client_portal_access_id: string
+          created_at: string
+          duracao_ms: number
+          id: string
+          occurred_at: string
+          organization_id: string
+          tab: string
+        }
+        Insert: {
+          case_id?: string | null
+          client_portal_access_id: string
+          created_at?: string
+          duracao_ms: number
+          id?: string
+          occurred_at?: string
+          organization_id: string
+          tab: string
+        }
+        Update: {
+          case_id?: string | null
+          client_portal_access_id?: string
+          created_at?: string
+          duracao_ms?: number
+          id?: string
+          occurred_at?: string
+          organization_id?: string
+          tab?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_tab_dwell_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_tab_dwell_events_client_portal_access_id_fkey"
+            columns: ["client_portal_access_id"]
+            isOneToOne: false
+            referencedRelation: "client_portal_access"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_tab_dwell_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_contacts: {
         Row: {
           archive_motivo: string | null
