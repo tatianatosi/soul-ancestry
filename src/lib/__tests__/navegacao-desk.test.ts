@@ -74,8 +74,8 @@ describe("Navegação do Desk — 7 grupos do V4 (03/10/2026)", () => {
     expect(GRUPOS_DESK.map((g) => g.id)).not.toContain("visao-geral");
   });
 
-  it("menu da conta só tem a sessão DEMO; administração mora em Governança", () => {
-    expect(rotasDoMenuConta()).toEqual(["/app-cliente-demo"]);
+  it("menu da conta ficou sem a sessão DEMO; administração mora em Governança", () => {
+    expect(rotasDoMenuConta()).toEqual([]);
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
     const rotas = gov.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/configuracoes");

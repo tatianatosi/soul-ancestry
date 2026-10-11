@@ -90,8 +90,8 @@ describe("o link morto do espelho no menu", () => {
     expect(json).not.toContain('"espelho"');
   });
 
-  it("a sessão demo saiu do grupo Cliente e mora no menu da conta", () => {
+  it("a sessão demo saiu do grupo Cliente e da lateral (rota preservada)", () => {
     expect(JSON.stringify(GRUPOS_DESK)).not.toContain("/app-cliente-demo");
-    expect(JSON.stringify(MENU_CONTA)).toContain("/app-cliente-demo");
+    expect(JSON.stringify(MENU_CONTA)).not.toContain("/app-cliente-demo");
   });
 });
