@@ -8,14 +8,16 @@
 -- arquivada via archived_at/archive_motivo, histórico preservado.
 --
 -- Estado-alvo confirmado pela Proprietária:
---   - Ana Luiza Gomes Silveira Rodrigues: papel_no_caso = 'contratante'
---     (titular financeira do caso).
---   - Adair Pinto Silveira Júnior e Alice Gomes Silveira: papel_no_caso
---     = 'dependente' (sem papel financeiro — o filtro
---     portal_sou_contratante_financeiro, migration 20261010120000, passa
---     a ocultar fatura/condição comercial deles no portal).
---   - Felipe (dependente, representado por Ana no § 58c, sem cliente_id
---     próprio): já estava correto — não tocado nesta migração.
+--   - Ana Luiza Gomes Silveira Rodrigues, Adair Pinto Silveira Júnior e
+--     Alice Gomes Silveira: papel_no_caso = 'contratante'. A cota familiar
+--     de R$ 9.600,00 do contrato do Clube Ancestral se divide em 3
+--     assinaturas individuais de R$ 320,00/mês por 10 meses — uma por
+--     pessoa — então os três são titulares financeiros de sua própria
+--     fatura (o filtro portal_sou_contratante_financeiro, migration
+--     20261010120000, libera fatura/condição comercial aos três no portal).
+--   - Felipe (dependente menor, não pagante, representado por Ana no
+--     § 58c, sem cliente_id próprio): já estava correto — não tocado nesta
+--     migração.
 --
 -- `where archived_at is null` e os filtros por conteúdo (não só id) tornam
 -- a migration idempotente mesmo se já aplicada manualmente antes.
@@ -35,9 +37,9 @@ where id = 'f2b80016-b714-4915-93d0-0108c4b86d68'
   and nome = 'Ana Luiza Gomes Silveira Rodrigues'
   and archived_at is null;
 
--- 3) Adair e Alice: dependentes (sem papel financeiro).
+-- 3) Adair e Alice: contratantes das suas cotas individuais de R$ 320/mês.
 update public.nucleo_membros
-set papel_no_caso = 'dependente'
+set papel_no_caso = 'contratante'
 where id in ('8871edd9-0623-473f-bf8f-6bf0bcb51c73', '90d29bd9-269b-4f86-975d-051f35e8b6a3')
   and nome in ('Adair Pinto Silveira Júnior', 'Alice Gomes Silveira')
   and archived_at is null;
