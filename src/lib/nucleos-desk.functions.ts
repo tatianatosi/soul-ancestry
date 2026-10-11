@@ -25,6 +25,24 @@ import { PAPEIS_PESSOA } from "@/lib/caso-ficha";
 
 const UUID = /^[0-9a-f-]{36}$/i;
 
+/**
+ * Dossiê Familiar Único — a checagem de `criarNucleo` (select + insert) não
+ * impede duas criações simultâneas para o mesmo caso: ambas podem passar
+ * pelo `maybeSingle()` antes de qualquer uma inserir. A garantia real contra
+ * essa corrida é o índice único parcial do banco
+ * (`nucleos_familiares_case_unico`, migration 20260821141414,
+ * `ON nucleos_familiares (case_id) WHERE archived_at IS NULL AND case_id IS
+ * NOT NULL`). Esta função traduz a violação desse índice (Postgres 23505)
+ * na mesma mensagem amigável da checagem prévia — sem ela, a perdedora da
+ * corrida via o erro cru do Postgres.
+ */
+export function mensagemErroCriarNucleo(error: { code?: string | null; message?: string | null }): string {
+  if (error.code === "23505" && String(error.message ?? "").includes("nucleos_familiares_case_unico")) {
+    return "Este caso já tem um núcleo familiar ativo. Use o núcleo existente ou arquive-o antes de criar outro.";
+  }
+  return String(error.message ?? "Erro desconhecido ao criar núcleo.");
+}
+
 export const NUCLEO_AMBIENTES = [
   "drive_clube_ancestral",
   "desk_intelligence",
@@ -264,7 +282,7 @@ export const criarNucleo = createServerFn({ method: "POST" })
       })
       .select("*")
       .single();
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(mensagemErroCriarNucleo(error));
     if (data.caseId) {
       await registrarTimelineCaso(supabase, {
         organizationId: organization_id,
