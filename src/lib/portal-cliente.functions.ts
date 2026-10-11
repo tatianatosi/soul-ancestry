@@ -520,11 +520,16 @@ export const minhasFaturas = createServerFn({ method: "GET" })
     semCache();
     const h = await import("./portal-cliente.server");
     const supabase = context.supabase as any;
-    await h.acessoDoCliente(supabase, context.userId as string);
+    const acesso = await h.acessoDoCliente(supabase, context.userId as string);
     const [faturas, casos] = await Promise.all([
       supabase
         .from("invoices")
         .select("id, case_id, numero, descricao, valor, moeda, vencimento, status, dados_teste")
+        // Mesmo caso com múltiplos contratantes (ex.: 3 assinaturas individuais
+        // de R$ 320/mês): RLS (invoices_sel_portal) já restringe a leitura ao
+        // client_id do titular autenticado, mas o filtro explícito evita que
+        // cada contratante dependa só da policy para não ver a fatura alheia.
+        .eq("client_id", acesso.client_id)
         .order("vencimento", { ascending: true }),
       supabase.from("portal_casos").select("id, titulo"),
     ]);
