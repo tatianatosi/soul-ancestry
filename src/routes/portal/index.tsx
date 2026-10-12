@@ -117,7 +117,7 @@ export function PortalHome() {
             proximaEntrega={null}
             marcos={jornada.marcosPublicados}
             pessoasPublicadas={pessoasPublicadas}
-            nomesNucleo={nomesNucleo.map((p) => ({ chave: p.chave, nome: p.nome }))}
+            nomesNucleo={pessoasDoNucleo.map((p) => ({ chave: p.chave, nome: p.nome }))}
             documentoPrioritario={documentoPrioritario}
             microentrega={microentrega}
             achados={achadosPublicados.slice(0, 3).map((item) => ({
@@ -181,7 +181,7 @@ export function PortalHome() {
                 proximaEntrega={null}
                 marcos={jornada.marcosPublicados}
                 pessoasPublicadas={pessoasPublicadas}
-            nomesNucleo={nomesNucleo.map((p) => ({ chave: p.chave, nome: p.nome }))}
+            nomesNucleo={pessoasDoNucleo.map((p) => ({ chave: p.chave, nome: p.nome }))}
                 documentoPrioritario={documentoPrioritario}
                 microentrega={microentrega}
                 casoId={principal.id}
