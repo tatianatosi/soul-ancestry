@@ -46,7 +46,9 @@ export function PortalConta() {
    * para nunca fabricar titular/país fora da demo de verdade.
    */
   const previaDemo = previa?.identidade?.fonte === "demo";
-   const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null);
+   const titularPrevia = vivo.data && "titularNome" in vivo.data ? (vivo.data.titularNome as string | null) : null;
+   const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : titularPrevia);
+   const codigoCaso = previaDemo ? null : (previa?.identidade?.codigo ?? null);
    const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null);
   const acompanhamento = previa || data?.autorizado ? "Sua jornada está sendo acompanhada pela equipe." : "Aguardando novidades da equipe.";
 
@@ -125,7 +127,13 @@ export function PortalConta() {
                 </div>
               </div>
                <p className="mt-3 text-sm text-navy/65">Um espaço para cuidar da sua história e acompanhar as novidades da sua família.</p>
-               {titular || paisInteresse ? <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+               {titular || paisInteresse || codigoCaso ? <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+                 {codigoCaso ? (
+                <div className="border-b border-border py-3" data-conta-codigo>
+                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">Projeto familiar</dt>
+                  <dd className="text-sm text-navy">{codigoCaso}</dd>
+                </div>
+                 ) : null}
                  {titular ? (
                 <div className="border-b border-border py-3">
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>

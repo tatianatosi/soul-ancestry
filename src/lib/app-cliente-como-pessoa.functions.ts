@@ -21,6 +21,8 @@ export type DadosPortalComoAdmin = {
   /** Mesmo total de `portal_casos.pessoas_mapeadas`: perfis genealógicos ativos do caso. */
   pessoasMapeadas: number;
   /** Mesmo recorte de `dadosVivosDoPortal`: vínculos aprovados entre pessoas publicadas. */
+  /** Nome da titular (cadastro do cliente do caso) — só nome, para a Conta da prévia. */
+  titularNome: string | null;
   vinculosArvore: { de: string; para: string; tipo: "pai_mae" | "conjuge" }[];
 };
 
@@ -144,7 +146,19 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
         tipo: r.relation_type === "conjuge" ? ("conjuge" as const) : ("pai_mae" as const),
       }));
 
+    let titularNome: string | null = null;
+    if ((caso as any).cliente_id) {
+      const cli = await supabase
+        .from("clientes")
+        .select("nome")
+        .eq("organization_id", organizationId)
+        .eq("id", (caso as any).cliente_id)
+        .maybeSingle();
+      titularNome = ((cli.data as any)?.nome as string | undefined)?.trim() || null;
+    }
+
     return {
+      titularNome,
       vinculosArvore,
       projecoes,
       documentos,
