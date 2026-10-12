@@ -161,3 +161,16 @@ isoladamente.
 Resultado permitido: PASSOU, FALHOU, BLOQUEADO_POR_DADO,
 BLOQUEADO_POR_DECISAO, ERRO_DE_FONTE ou NAO_LOCALIZADO.
 ```
+
+## 2026-10-12 — Ficha civil × Hero CaseHealth em /app-cliente-como-pessoa
+
+- Caso: Ana Luiza (a11a0000-0000-4000-8000-000000000002)
+- Rota pedida: `/app-cliente-como-pessoa?casoId=a11a0000-0000-4000-8000-000000000002`
+- Verificação (agente, inspeção de código — não é prova de uso): `CaseHealthHero`
+  é usado apenas em `src/routes/_authenticated/casos.$caseId.index.tsx` (Caso 360 do Desk).
+  A rota pedida renderiza somente as 7 abas sanitizadas do App, que por regra
+  nunca exibem CPF/RG/endereço; não há ficha civil nem Hero ali.
+- Resultado: **NAO_LOCALIZADO** — comparação impossível na rota indicada;
+  nenhum dado foi introduzido para satisfazer o pedido.
+- Caminho válido para nova prova (pela Proprietária): Desk → `/casos/a11a0000-0000-4000-8000-000000000002`
+  → Hero, conferindo o mascaramento contra a ficha civil.
