@@ -1,33 +1,39 @@
-# Auditoria visual autenticada — caso Ana Luiza
+# Resiliência de rede do App Cliente
 
-## Objetivo
-Navegar no ambiente atual com a sessão autorizada de `tati@pluggedresearch.com`, capturar as dez superfícies solicitadas e emitir um relatório factual, sem alterar dados, permissões, rotas ou regras.
+## Estado do corte
+O rascunho isolado já implementa a maior parte do pedido: erro honesto na Conta e na Árvore, preservação do arquivo em Documentos, timeout de 15 segundos e nova tentativa por aba. Nada foi publicado.
 
-## Limite da evidência
-- As imagens produzidas pelo agente serão identificadas como **inspeção administrativa autenticada**, não como `COMPROVADO_EM_USO` nem “prova oficial da Proprietária”.
-- A prova oficial continua exigindo ação executada pela própria Proprietária, confirmação, releitura após F5/reabertura e integração quando aplicável.
-- Cada item receberá somente um resultado permitido: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_DECISAO`, `ERRO_DE_FONTE` ou `NAO_LOCALIZADO`.
+Falta completar o mesmo comportamento nas mensagens da página de detalhe do suporte: o texto já permanece após falha, mas ainda não há o botão **Reenviar**.
 
-## Execução
-1. Restaurar a sessão autorizada no navegador sem registrar tokens, cookies ou outros segredos nas imagens e no relatório.
-2. Abrir as rotas pedidas e confirmar em tela a identidade segura do caso canônico, sem expor dados civis desnecessários.
-3. Capturar em `output/aceite-e2e/`:
-   - `01-desk-painel-hoje.png` — `/painel`, quatro KPIs e ausência visual de dados DEMO no grid.
-   - `02-desk-caso360-hero.png` — `/casos/CA-CID-AT-FAM-2026-001`, após eventual redirecionamento canônico, enquadrando o `CaseHealthHero` e verificando o mascaramento observável.
-   - `03-desk-radar-heatmap.png` — `/qualidade`, aba Radar Individual, caso Ana selecionado, enquadrando o Heatmap de Aderência Operacional por País.
-   - `04-portal-home.png` a `10-portal-conta-sem-upsell.png` — as sete rotas `/portal/*`, somente se a sessão tiver autorização real para o caso.
-4. Nas rotas diretas do App, não criar acesso, não trocar identidade e não contornar a autorização. Se a conta master não tiver acesso cliente direto, registrar o resultado correspondente e usar `/app-cliente-como-pessoa?casoId=a11a0000-0000-4000-8000-000000000002` apenas como evidência administrativa complementar, claramente separada — nunca como substituta do login do cliente.
-5. Fazer F5/reabertura de cada superfície para confirmar que o estado visual permanece; isso não converte a inspeção do agente em prova da Proprietária.
-6. Conferir visualmente cada PNG para garantir rota/título legível, enquadramento correto, ausência de sobreposição e ausência de segredos.
+## Implementação final
+1. **Conta e faturas**
+   - Manter o aviso “Instabilidade de conexão ao carregar seus dados financeiros.” e o botão **Tentar novamente**.
+   - Em erro ou timeout, não renderizar ausência de assinatura, estado de dependente, faturas ou seções que possam sugerir vazio.
+   - Preservar integralmente a regra de contratante financeiro e a RPC existente.
 
-## Critérios honestos de conformidade
-- Não declarar “dados demo removidos” apenas porque não estão no recorte; conferir o grid renderizado e seus rótulos.
-- Não declarar dados civis “mascarados” se o `CaseHealthHero` ou os campos civis não forem localizados.
-- Não declarar evidências, relações, seis eixos completos ou assinatura ativa quando a fonte mostrar `Lacuna`, condição prevista ou ausência de dado.
-- Na Conta, validar o texto real autorizado: `Condição familiar: 3 assinaturas / parcelas mensais`, com R$ 320/mês × 10 como condição prevista/aguardando confirmação; não afirmar cobrança ativa ou Asaas sem fonte confirmada.
-- Na Árvore, ausência de relações publicadas permanece `BLOQUEADO_POR_DADO`; pessoas por geração não comprovam parentesco.
+2. **Árvore**
+   - Manter erro de rede separado de `Lacuna`.
+   - O botão **Recarregar árvore** refaz a leitura dos nós; `Lacuna` só aparece depois de uma resposta válida e vazia.
 
-## Relatório
-Gerar `output/aceite-e2e/relatorio-auditoria-visual.md` com, para cada um dos dez itens: arquivo, data/hora UTC, ambiente, rota inicial e final, sessão usada, objeto observado, resultado permitido, evidência visível, divergência ou bloqueio e limite da inspeção.
+3. **Documentos e suporte**
+   - Manter arquivo, texto e demais campos locais após falha de envio.
+   - Exibir “Falha de conexão — seu conteúdo foi mantido.” com **Reenviar**.
+   - Completar o botão **Reenviar** também na mensagem de detalhe do ticket, reutilizando a mesma tentativa e sem duplicar mensagens.
+   - Limpar o formulário somente após confirmação de sucesso.
 
-O relatório terminará declarando que código, build, teste, preview e capturas do agente não substituem a prova visual executada pela Proprietária e que nenhum contexto foi arquivado.
+4. **Fim de carregamentos infinitos**
+   - Manter timeout padrão de 15 segundos nas leituras do App e na atualização automática.
+   - Após o limite, mostrar erro localizado com nova tentativa; conservar dados anteriores quando já existirem.
+
+## Limites
+- Não alterar banco, tabelas, RLS, permissões, acessos, regras financeiras, Desk, navegação ou as sete abas.
+- Não alterar `types.ts` nem a função `portal_sou_contratante_financeiro`.
+- Falha de rede nunca será convertida em vazio, dependente, ausência de assinatura ou ausência de pessoas/documentos.
+
+## Validação
+- Testar timeout, distinção erro × vazio, nova tentativa e preservação de arquivo/texto.
+- Confirmar que um reenvio bem-sucedido limpa uma única vez e não duplica o conteúdo.
+- Capturar estados normais e de falha em 375 e 1280 px para Conta, Árvore, Documentos e suporte.
+- Verificar os registros atuais da plataforma e separar falhas preexistentes ou fora deste corte.
+
+As capturas do agente serão inspeção administrativa, não `COMPROVADO_EM_USO`; nada será publicado sem nova autorização explícita.
