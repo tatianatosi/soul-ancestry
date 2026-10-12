@@ -195,6 +195,9 @@ export function PortalConta() {
                )}
              </section>
 
+            {/* 12/10/2026: com falha de leitura, nenhuma seção afirma vazio. */}
+            {vivo.isError ? null : (
+            <>
             <section data-conta-plano className="app-v11-faixa">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="font-serif text-xl text-navy">Meu plano</h2>
@@ -298,6 +301,8 @@ export function PortalConta() {
                 </ul>
               )}
             </section>
+            </>
+            )}
 
           </div>
         </BlocoVisibilidade>
