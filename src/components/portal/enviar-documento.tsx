@@ -12,6 +12,8 @@ import {
   FORMATOS_ROTULO,
   TAMANHO_MAXIMO_ROTULO,
 } from "@/lib/portal-envio-arquivo";
+import { comTimeoutPortal } from "@/lib/portal-resiliencia";
+import { Button } from "@/components/ui/button";
 
 /**
  * Caixa "Enviar novo documento" da aba Documentos (mockup 5/7).
@@ -40,16 +42,17 @@ export function EnviarDocumento({
   const entrada = useRef<HTMLInputElement | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [enviado, setEnviado] = useState<string | null>(null);
+  const [arquivoPendente, setArquivoPendente] = useState<File | null>(null);
 
   const envio = useMutation({
     mutationFn: async (arquivo: File) => {
       if (!casoId) throw new Error("Nenhum acompanhamento selecionado para receber o arquivo.");
-      const pronto = await preparar({
+      const pronto = await comTimeoutPortal(preparar({
         data: { casoId, nome: arquivo.name, tamanho: arquivo.size },
-      });
-      const resposta = await fetch(pronto.url, { method: "PUT", body: arquivo });
+      }));
+      const resposta = await comTimeoutPortal(fetch(pronto.url, { method: "PUT", body: arquivo }));
       if (!resposta.ok) throw new Error("Falha no envio do arquivo. Tente novamente.");
-      await confirmar({
+      await comTimeoutPortal(confirmar({
         data: {
           casoId,
           solicitacaoId,
@@ -58,22 +61,25 @@ export function EnviarDocumento({
           nomeArquivo: arquivo.name,
           tamanho: arquivo.size,
         },
-      });
+      }));
       return arquivo.name;
     },
     onSuccess: (nome) => {
       setEnviado(nome);
+      setArquivoPendente(null);
+      setErro(null);
       // Sem isso o arquivo enviado só apareceria no próximo F5.
       void queryClient.invalidateQueries({ queryKey: ["portal-entregas"] });
       void queryClient.invalidateQueries({ queryKey: ["portal-dados-vivos"] });
     },
-    onError: (e: Error) => setErro(e.message),
+    onError: () => setErro("Falha de conexão — seu conteúdo foi mantido."),
   });
 
   function escolher(arquivo: File | undefined) {
     setErro(null);
     setEnviado(null);
     if (!arquivo) return;
+    setArquivoPendente(arquivo);
     // Mesma regra do servidor: recusar aqui evita subir arquivo que seria
     // recusado depois, e a mensagem é idêntica nos dois lados.
     const recusa = erroDoArquivoCliente(arquivo.name, arquivo.size);
@@ -121,9 +127,14 @@ export function EnviarDocumento({
       ) : null}
 
       {erro ? (
-        <p role="alert" className="mt-3 text-xs text-terracotta">
-          {erro}
-        </p>
+        <div role="alert" className="mt-3 text-xs text-terracotta">
+          <p>{erro}</p>
+          {arquivoPendente ? (
+            <Button type="button" variant="outline" size="sm" className="mt-2" disabled={ocupado} onClick={() => envio.mutate(arquivoPendente)}>
+              Reenviar
+            </Button>
+          ) : null}
+        </div>
       ) : null}
 
       {enviado ? (

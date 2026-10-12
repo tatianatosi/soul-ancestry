@@ -12,6 +12,7 @@ import { legadoSanitizado, publicacoesDeEntrega } from "@/lib/portal-dados-vivos
 import { PRATELEIRAS, prateleiraDe, type PrateleiraId, type PublicacaoCliente } from "@/lib/projecoes-cliente";
 import { BlocoExemploVisual } from "@/components/portal/bloco-exemplo-visual";
 import { listarEncontrosLinhagemApp } from "@/lib/legado-app.functions";
+import { comTimeoutPortal } from "@/lib/portal-resiliencia";
 
 export const DISCLAIMER_ENCONTROS =
   "Este conteúdo é histórico, cultural e narrativo. Não substitui acompanhamento terapêutico, psicológico ou médico.";
@@ -47,7 +48,7 @@ export function PortalLegado() {
   const casoId = data?.casoAtivoId ?? null;
   const { data: encontros, isLoading: carregandoEncontros } = useQuery({
     queryKey: ["portal-encontros-linhagem", casoId],
-    queryFn: () => listarEncontrosLinhagemApp({ data: { caseId: casoId as string } }),
+    queryFn: () => comTimeoutPortal(listarEncontrosLinhagemApp({ data: { caseId: casoId as string } })),
     enabled: Boolean(casoId),
   });
 

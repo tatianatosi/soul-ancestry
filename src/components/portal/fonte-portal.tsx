@@ -14,6 +14,7 @@ import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 import type { ProximaAcaoCliente } from "@/lib/motor-caso";
 import type { EscopoCliente } from "@/lib/app-visibilidade";
 import type { IdentidadeCaso } from "@/lib/caso-compartilhado";
+import { comTimeoutPortal } from "@/lib/portal-resiliencia";
 
 /**
  * Fonte de dados do App Cliente — ponto único de desacoplamento.
@@ -137,7 +138,7 @@ export function usePortalVivo() {
     // O caso entra na chave: sem isso, trocar de caso devolveria o conteúdo
     // do caso anterior servido pelo cache.
     queryKey: ["portal-dados-vivos", casoId ?? "padrao"],
-    queryFn: () => carregar({ data: casoId ? { casoId } : {} }),
+    queryFn: () => comTimeoutPortal(carregar({ data: casoId ? { casoId } : {} })),
     enabled: externa === null,
     // O que o Desk publica aparece no App sem recarregar (decisão 01/10/2026: 30 s).
     refetchInterval: 30_000,

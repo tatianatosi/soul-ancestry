@@ -6,6 +6,8 @@ import { useState } from "react";
 import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
 import { meuTicket, responderTicketCliente } from "@/lib/portal-cliente.functions";
+import { comTimeoutPortal } from "@/lib/portal-resiliencia";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/portal/mensagens/$id")({
   head: () => ({
@@ -32,17 +34,17 @@ function MensagemPage() {
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["portal-ticket", id],
-    queryFn: () => carregar({ data: { ticketId: id } }),
+    queryFn: () => comTimeoutPortal(carregar({ data: { ticketId: id } })),
   });
 
   const enviar = useMutation({
-    mutationFn: () => responder({ data: { ticketId: id, mensagem: texto } }),
+    mutationFn: () => comTimeoutPortal(responder({ data: { ticketId: id, mensagem: texto } })),
     onSuccess: () => {
       setErroEnvio(null);
       setTexto("");
       queryClient.invalidateQueries({ queryKey: ["portal-ticket", id] });
     },
-    onError: (e: Error) => setErroEnvio(e.message || "Não foi possível enviar sua mensagem."),
+    onError: () => setErroEnvio("Falha de conexão — seu conteúdo foi mantido."),
   });
 
   if (isLoading) {
@@ -100,9 +102,12 @@ function MensagemPage() {
       {data.ticket.status !== "fechado" ? (
         <div className="mt-5 rounded-xl border border-navy/10 bg-cream/40 p-4">
           {erroEnvio ? (
-            <p className="mb-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
-              {erroEnvio}
-            </p>
+            <div role="alert" className="mb-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+              <p>{erroEnvio}</p>
+              <Button type="button" variant="outline" size="sm" className="mt-2" disabled={enviar.isPending || !texto.trim()} onClick={() => enviar.mutate()}>
+                Reenviar
+              </Button>
+            </div>
           ) : null}
           <textarea
             value={texto}

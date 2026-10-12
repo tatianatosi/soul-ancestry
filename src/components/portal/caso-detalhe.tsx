@@ -13,6 +13,8 @@ import {
   prepararEnvioDocumento,
 } from "@/lib/portal-cliente.functions";
 import { AVISO_PUBLICACAO_CLIENTE } from "@/lib/projecoes-cliente";
+import { comTimeoutPortal } from "@/lib/portal-resiliencia";
+import { Button } from "@/components/ui/button";
 
 const CATEGORIAS = [
   { valor: "duvida", rotulo: "Dúvida" },
@@ -55,6 +57,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
   const [assunto, setAssunto] = useState("");
   const [categoria, setCategoria] = useState("duvida");
   const [mensagem, setMensagem] = useState("");
+  const [arquivoPendente, setArquivoPendente] = useState<{ arquivo: File; solicitacaoId?: string | null; titulo: string } | null>(null);
   const inputs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const {
@@ -64,17 +67,17 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
     refetch: recarregarPainel,
   } = useQuery({
     queryKey: ["portal-caso-detalhe", casoId],
-    queryFn: () => carregar({ data: { casoId } }),
+    queryFn: () => comTimeoutPortal(carregar({ data: { casoId } })),
   });
 
   const enviarArquivo = useMutation({
     mutationFn: async (params: { arquivo: File; solicitacaoId?: string | null; titulo: string }) => {
-      const pronto = await preparar({
+      const pronto = await comTimeoutPortal(preparar({
         data: { casoId, nome: params.arquivo.name, tamanho: params.arquivo.size },
-      });
-      const resposta = await fetch(pronto.url, { method: "PUT", body: params.arquivo });
+      }));
+      const resposta = await comTimeoutPortal(fetch(pronto.url, { method: "PUT", body: params.arquivo }));
       if (!resposta.ok) throw new Error("Falha no envio do arquivo. Tente novamente.");
-      await confirmar({
+      await comTimeoutPortal(confirmar({
         data: {
           casoId,
           solicitacaoId: params.solicitacaoId ?? null,
@@ -83,21 +86,26 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
           nomeArquivo: params.arquivo.name,
           tamanho: params.arquivo.size,
         },
-      });
+      }));
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["portal-caso-detalhe", casoId] }),
-    onError: (e: Error) => setErro(e.message),
+    onSuccess: () => {
+      setArquivoPendente(null);
+      setErro(null);
+      void queryClient.invalidateQueries({ queryKey: ["portal-caso-detalhe", casoId] });
+    },
+    onError: () => setErro("Falha de conexão — seu conteúdo foi mantido."),
     onSettled: () => setEnviando(null),
   });
 
   const novoTicket = useMutation({
-    mutationFn: () => abrir({ data: { casoId, assunto, categoria, mensagem } }),
+    mutationFn: () => comTimeoutPortal(abrir({ data: { casoId, assunto, categoria, mensagem } })),
     onSuccess: () => {
       setAssunto("");
       setMensagem("");
-      queryClient.invalidateQueries({ queryKey: ["portal-caso-detalhe", casoId] });
+      setErro(null);
+      void queryClient.invalidateQueries({ queryKey: ["portal-caso-detalhe", casoId] });
     },
-    onError: (e: Error) => setErro(e.message),
+    onError: () => setErro("Falha de conexão — seu conteúdo foi mantido."),
   });
 
   async function baixarDocumento(id: string) {
@@ -129,9 +137,11 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
   return (
     <div className="space-y-8">
       {erro ? (
-        <p className="rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
-          {erro}
-        </p>
+        <div role="alert" className="rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+          <p>{erro}</p>
+          {arquivoPendente ? <Button type="button" variant="outline" size="sm" className="mt-2" disabled={enviarArquivo.isPending} onClick={() => enviarArquivo.mutate(arquivoPendente)}>Reenviar documento</Button> : null}
+          {!arquivoPendente && assunto.trim() && mensagem.trim() ? <Button type="button" variant="outline" size="sm" className="mt-2" disabled={novoTicket.isPending} onClick={() => novoTicket.mutate()}>Reenviar mensagem</Button> : null}
+        </div>
       ) : null}
 
       <Cartao>
@@ -190,7 +200,9 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
                         if (!arquivo) return;
                         setErro(null);
                         setEnviando(s.id);
-                        enviarArquivo.mutate({ arquivo, solicitacaoId: s.id, titulo: s.titulo });
+                        const pendente = { arquivo, solicitacaoId: s.id, titulo: s.titulo };
+                        setArquivoPendente(pendente);
+                        enviarArquivo.mutate(pendente);
                       }}
                     />
                     <button

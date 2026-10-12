@@ -18,6 +18,7 @@ import { ArrowRight, CheckCircle2, UsersRound, Sparkles } from "lucide-react";
 import { CaCard } from "@/components/ui/ca-card";
 import { pessoasDaArvore } from "@/lib/arvore-publicacao";
 import { BlocoExemploVisual } from "@/components/portal/bloco-exemplo-visual";
+import { comTimeoutPortal } from "@/lib/portal-resiliencia";
 
 const PROXIMO_PASSO_VAZIO =
   "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui.";
@@ -70,7 +71,7 @@ export function PortalHome() {
   const carregar = useServerFn(meusCasos);
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["portal-meus-casos"],
-    queryFn: () => carregar({}),
+    queryFn: () => comTimeoutPortal(carregar({})),
     enabled: previa === null,
   });
 

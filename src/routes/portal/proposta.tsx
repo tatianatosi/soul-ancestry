@@ -6,6 +6,7 @@ import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { portalProposta } from "@/lib/portal.functions";
+import { comTimeoutPortal } from "@/lib/portal-resiliencia";
 
 export const Route = createFileRoute("/portal/proposta")({
   head: () => ({
@@ -30,7 +31,7 @@ function PropostaPage() {
   const carregar = useServerFn(portalProposta);
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["portal-proposta"],
-    queryFn: () => carregar({}),
+    queryFn: () => comTimeoutPortal(carregar({})),
   });
 
   return (

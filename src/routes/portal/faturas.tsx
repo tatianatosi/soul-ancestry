@@ -5,6 +5,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
 import { minhasFaturas } from "@/lib/portal-cliente.functions";
+import { comTimeoutPortal } from "@/lib/portal-resiliencia";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/portal/faturas")({
   head: () => ({
@@ -23,9 +25,9 @@ export const Route = createFileRoute("/portal/faturas")({
 
 function FaturasPage() {
   const carregar = useServerFn(minhasFaturas);
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["portal-faturas"],
-    queryFn: () => carregar({}),
+    queryFn: () => comTimeoutPortal(carregar({})),
     retry: false,
   });
 
@@ -34,7 +36,10 @@ function FaturasPage() {
       {isLoading ? (
         <PortalCarregando />
       ) : isError ? (
-        <PortalVazio mensagem={COPY_GERAL.semPermissao} />
+        <section role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
+          <p className="font-medium text-destructive">Instabilidade de conexão ao carregar seus dados financeiros.</p>
+          <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => void refetch()}>Tentar novamente</Button>
+        </section>
       ) : !data || data.faturas.length === 0 ? (
         <PortalVazio
           mensagem={data?.restritoAoContratante ? COPY_GERAL.faturasApenasContratante : COPY_TELAS.faturas.vazio}

@@ -12,6 +12,7 @@ import { escopoDoPortal } from "@/lib/portal-jornada.functions";
 import { TIPO_CLIENTE } from "@/lib/marca";
 import { COPY_ESTADO_TEXTO, COPY_ESTADO_TITULO } from "@/lib/portal-copy";
 import { usePreviaPortal, useFontePortal } from "@/components/portal/fonte-portal";
+import { comTimeoutPortal } from "@/lib/portal-resiliencia";
 
 /** Escopo conservador enquanto a leitura não retorna: nada é presumido. */
 const ESCOPO_INDEFINIDO: EscopoCliente = {
@@ -42,25 +43,34 @@ export function useEscopoPortal() {
   const carregar = useServerFn(escopoDoPortal);
   return useQuery({
     queryKey: ["portal-escopo"],
-    queryFn: () => carregar({}),
+    queryFn: () => comTimeoutPortal(carregar({})),
     enabled: previa === null,
   });
 }
 
 /** Estado de visibilidade de uma tela do spec CA-UX-01.2. */
-export function useVisibilidade(tela: TelaApp): { visibilidade: ResultadoVisibilidade; carregando: boolean } {
+export function useVisibilidade(tela: TelaApp): {
+  visibilidade: ResultadoVisibilidade;
+  carregando: boolean;
+  erro: unknown;
+  tentarNovamente: () => void;
+} {
   const fonte = useFontePortal();
   const previa = usePreviaPortal();
-  const { data, isLoading } = useEscopoPortal();
+  const { data, isLoading, error, refetch } = useEscopoPortal();
   if (previa) {
     return {
       visibilidade: visibilidadeTela(tela, fonte?.escopo ?? ESCOPO_PREVIA),
       carregando: false,
+      erro: fonte?.erro ? new Error("Falha ao carregar o acesso.") : null,
+      tentarNovamente: () => {},
     };
   }
   return {
     visibilidade: visibilidadeTela(tela, data ?? ESCOPO_INDEFINIDO),
     carregando: isLoading,
+    erro: error,
+    tentarNovamente: () => void refetch(),
   };
 }
 

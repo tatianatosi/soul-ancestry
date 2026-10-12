@@ -14,6 +14,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { EnviarDocumento } from "@/components/portal/enviar-documento";
 import { baixarEntrega, minhasEntregas } from "@/lib/portal-cliente.functions";
 import { mensagemDeFalha, rotuloEstadoVivo, textoParaCliente } from "@/lib/portal-linguagem-viva";
+import { comTimeoutPortal } from "@/lib/portal-resiliencia";
 
 export const Route = createFileRoute("/portal/documentos")({
   head: () => ({
@@ -43,7 +44,7 @@ export function PortalDocumentos() {
     refetch,
   } = useQuery({
     queryKey: ["portal-entregas"],
-    queryFn: () => carregar({}),
+    queryFn: () => comTimeoutPortal(carregar({})),
     enabled: previa === null,
   });
 

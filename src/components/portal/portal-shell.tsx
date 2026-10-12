@@ -22,6 +22,7 @@ import { registrarTempoNaAba, type AbaComTelemetria } from "@/lib/portal-cliente
 import { cn } from "@/lib/utils";
 import { TIPO_CLIENTE } from "@/lib/marca";
 import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
+import { comTimeoutPortal } from "@/lib/portal-resiliencia";
 
 /*
   Telemetria de permanência (11/10/2026) — pedido cobre onde achados e
@@ -79,7 +80,7 @@ export function usePortal() {
   const carregar = useServerFn(portalContexto);
   return useQuery({
     queryKey: ["portal-contexto"],
-    queryFn: () => carregar({}),
+    queryFn: () => comTimeoutPortal(carregar({})),
     enabled: previa === null,
   });
 }

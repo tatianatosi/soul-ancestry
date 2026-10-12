@@ -12,7 +12,7 @@ import {
 } from "@/lib/portal-arvore-geracoes";
 import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
 import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
-import { EstadoDados } from "@/components/saas/estado-dados";
+import { Button } from "@/components/ui/button";
 import { ExploradorArvore, PerfilPessoaArvore } from "@/components/portal/explorador-arvore";
 
 /**
@@ -39,23 +39,30 @@ export const Route = createFileRoute("/portal/arvore")({
 });
 
 export function PortalArvore() {
-  const { visibilidade, carregando } = useVisibilidade("arvore");
-  const { data, isLoading, isError, error, refetch } = usePortalVivo();
+  const escopo = useVisibilidade("arvore");
+  const { visibilidade, carregando } = escopo;
+  const { data, isLoading, isError, refetch } = usePortalVivo();
+  const falhou = Boolean(escopo.erro) || isError;
+  const recarregar = () => {
+    escopo.tentarNovamente();
+    refetch();
+  };
 
   return (
     <PortalShell titulo={COPY_TELAS.arvore.titulo} descricao={COPY_TELAS.arvore.descricao}>
-      {carregando ? (
-        <PortalCarregando />
-      ) : (
-        <EstadoDados
-          superficie="app"
-          carregando={isLoading}
-          erro={isError ? (error ?? true) : null}
-          dados={data ? [data] : null}
-          aoTentarNovamente={refetch}
-          recurso="a sua árvore"
-        >
-          {([vivo]) => {
+      {falhou ? (
+          <section role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
+            <p className="font-medium text-destructive">Instabilidade de conexão ao carregar sua árvore.</p>
+            <p className="mt-1 text-navy/80">Os nós não foram substituídos por uma lacuna.</p>
+            <Button type="button" variant="outline" size="sm" className="mt-3" onClick={recarregar}>
+              Recarregar árvore
+            </Button>
+          </section>
+      ) : carregando || isLoading ? (
+          <PortalCarregando />
+      ) : data ? (
+          <>
+          {(([vivo]) => {
             // Corte 2a: pessoas nomeadas (uma por pessoa) viram nós; o restante
             // das publicações da árvore continua como nota.
             const pessoas = pessoasDaArvore(vivo.projecoes);
@@ -196,8 +203,13 @@ export function PortalArvore() {
                 </div>
               </BlocoVisibilidade>
             );
-          }}
-        </EstadoDados>
+          })([data])}
+          </>
+        ) : (
+          <section role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
+            <p className="font-medium text-destructive">Não foi possível confirmar os dados da sua árvore.</p>
+            <Button type="button" variant="outline" size="sm" className="mt-3" onClick={recarregar}>Recarregar árvore</Button>
+          </section>
       )}
     </PortalShell>
   );
