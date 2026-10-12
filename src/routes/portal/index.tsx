@@ -91,7 +91,10 @@ export function PortalHome() {
     item.tipo === "achado" &&
     !/estado de validação|próximo passo: devolutiva/i.test(item.conteudo),
   );
-  const pessoasPublicadas = pessoasDaArvore(vivo.data?.projecoes ?? []).length;
+  const pessoasDoNucleo = pessoasDaArvore(vivo.data?.projecoes ?? [])
+    .slice()
+    .sort((a, b) => (a.geracao ?? 99) - (b.geracao ?? 99));
+  const pessoasPublicadas = pessoasDoNucleo.length;
    const documentoPrioritario = vivo.data?.solicitacoes?.slice(0, 3).map((item) => item.titulo).join("\n") || null;
   const microentrega = jornada.linha.find((item) => item.tipo === "microentrega")?.conteudo ?? null;
 
@@ -392,7 +395,17 @@ function PainelHomeMockup({
               Sem publicação, a ausência é dita — nunca deduzida do cadastro. */}
           <div className="mt-4 border-t border-cream/10 pt-4" data-home-nucleo>
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-cream/60">Núcleo familiar</p>
-             <p className="mt-1 text-sm text-cream/75">Os membros terão seu lugar aqui quando forem compartilhados com a família.</p>
+             {pessoasDoNucleo.length > 0 ? (
+               <ul className="mt-2 flex flex-wrap gap-2" data-home-nucleo-membros>
+                 {pessoasDoNucleo.map((p) => (
+                   <li key={p.chave} className="rounded-full border border-gold/50 px-3 py-1 text-xs text-cream">
+                     {p.nome}
+                   </li>
+                 ))}
+               </ul>
+             ) : (
+               <p className="mt-1 text-sm text-cream/75">Os membros terão seu lugar aqui quando forem compartilhados com a família.</p>
+             )}
           </div>
         </div>
 

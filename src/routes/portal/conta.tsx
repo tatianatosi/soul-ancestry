@@ -232,7 +232,7 @@ export function PortalConta() {
               ) : (
                 <div><p className="mt-2 text-sm text-navy/60" data-conta-plano-vazio>
                   Nenhum plano publicado ainda. A equipe publica aqui quando houver.
-                </p><BlocoExemploVisual tipo="plano" /></div>
+                </p></div>
               )}
             </section>
 
