@@ -12,13 +12,15 @@ import { normalizarCpf } from "@/lib/pessoa-identidade";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-const seguro = async (p: any): Promise<any[]> => {
-  try {
-    const r = await p;
-    return (r?.data ?? []) as any[];
-  } catch {
-    return [];
-  }
+/**
+ * Lista real ou erro visível — nunca os dois confundidos. Antes, um erro de
+ * rede/RLS (seja lançado, seja em `r.error`) virava `[]` do mesmo jeito que
+ * "sem registros", escondendo instabilidade como se fosse lista vazia.
+ */
+export const seguro = async (p: any): Promise<any[]> => {
+  const r = await p;
+  if (r?.error) throw new Error(r.error.message ?? "Falha ao ler dados.");
+  return (r?.data ?? []) as any[];
 };
 
 /** Leitura da base de pessoas com classificação, condições objetivas e vínculos de núcleo. */
