@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, Network, Rows3, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { PessoaNaArvore } from "@/lib/arvore-publicacao";
@@ -37,7 +37,7 @@ function casalAscendenteDestaque(pessoas: PessoaNaArvore[], vinculos: readonly V
 
 export function PerfilPessoaArvore({ pessoa, destaque = false, titular = false }: { pessoa: PessoaNaArvore; destaque?: boolean; titular?: boolean }) {
   return (
-    <details className={`app-arvore-perfil${destaque || titular ? " app-arvore-perfil--destaque" : ""}`} data-arvore-pessoa data-arvore-titular={titular || undefined}>
+    <details className={`app-arvore-perfil${destaque || titular ? " app-arvore-perfil--destaque" : ""}`} data-arvore-pessoa data-arvore-chave={pessoa.chave} data-arvore-titular={titular || undefined}>
       <summary>
         <span className="app-arvore-inicial" aria-hidden="true">{pessoa.nome.charAt(0)}</span>
         <span className="min-w-0"><span className="block font-medium">{pessoa.nome}</span>{titular ? <span className="text-xs text-navy/60">G1 · Você</span> : pessoa.geracao ? <span className="text-xs text-navy/60">G{pessoa.geracao} · {pessoa.geracao}ª geração</span> : null}</span>
@@ -84,9 +84,55 @@ export function LigacoesArvore({ pessoas, vinculos }: { pessoas: PessoaNaArvore[
   );
 }
 
+/** Linhas douradas entre os cartões, desenhadas só a partir de vínculos aprovados entre pessoas visíveis. */
+function ConectoresArvore({ caixa, vinculos }: { caixa: HTMLDivElement | null; vinculos: readonly VinculoArvoreCliente[] }) {
+  const [desenho, setDesenho] = useState<{ w: number; h: number; d: string[] }>({ w: 0, h: 0, d: [] });
+  useEffect(() => {
+    if (!caixa) return;
+    const medir = () => {
+      const base = caixa.getBoundingClientRect();
+      const rect = (chave: string) => {
+        const el = caixa.querySelector<HTMLElement>(`[data-arvore-chave="${CSS.escape(chave)}"] > summary`);
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return { x: r.left - base.left, y: r.top - base.top, w: r.width, h: r.height };
+      };
+      const d: string[] = [];
+      for (const v of vinculos) {
+        const a = rect(v.de), b = rect(v.para);
+        if (!a || !b) continue;
+        if (v.tipo === "conjuge") {
+          if (Math.abs(a.y - b.y) > 4) continue;
+          const [e, dir] = a.x < b.x ? [a, b] : [b, a];
+          const y = e.y + e.h / 2;
+          d.push(`M${e.x + e.w} ${y} H${dir.x}`);
+        } else if (v.tipo === "pai_mae") {
+          const x1 = a.x + a.w / 2, y1 = a.y + a.h, x2 = b.x + b.w / 2, y2 = b.y;
+          if (y2 <= y1) continue;
+          const meio = (y1 + y2) / 2;
+          d.push(`M${x1} ${y1} V${meio} H${x2} V${y2}`);
+        }
+      }
+      setDesenho({ w: caixa.clientWidth, h: caixa.clientHeight, d });
+    };
+    medir();
+    const ro = new ResizeObserver(medir);
+    ro.observe(caixa);
+    caixa.addEventListener("toggle", medir, true);
+    return () => { ro.disconnect(); caixa.removeEventListener("toggle", medir, true); };
+  }, [caixa, vinculos]);
+  if (desenho.d.length === 0) return null;
+  return (
+    <svg className="app-arvore-conectores" width={desenho.w} height={desenho.h} aria-hidden="true">
+      {desenho.d.map((d, i) => <path key={i} d={d} />)}
+    </svg>
+  );
+}
+
 export function ExploradorArvore({ pessoas, geracoes, vinculos = [] }: { pessoas: PessoaNaArvore[]; geracoes: readonly GeracaoArvore[]; vinculos?: readonly VinculoArvoreCliente[] }) {
   const [modo, setModo] = useState<"geracoes" | "pessoas">("geracoes");
   const [foco, setFoco] = useState<string | null>(null);
+  const [caixa, setCaixa] = useState<HTMLDivElement | null>(null);
   const pessoasVisiveis = foco ? pessoas.filter((pessoa) => pessoa.chave === foco) : pessoas;
   const ascendentes = casalAscendenteDestaque(pessoas, vinculos);
   const temTitular = pessoas.some((p) => p.geracao === 1);
@@ -104,7 +150,9 @@ export function ExploradorArvore({ pessoas, geracoes, vinculos = [] }: { pessoas
       {modo === "pessoas" ? (
         <div className="app-arvore-pessoas" aria-label="Pessoas publicadas">{pessoasVisiveis.map(perfil)}</div>
       ) : (
-        <div className="app-arvore-geracoes">{geracoes.filter((geracao) => !foco || pessoasVisiveis.some((pessoa) => `G${pessoa.geracao}` === geracao.id)).map((geracao) => (
+        <div className="app-arvore-geracoes" ref={setCaixa} style={{ position: "relative" }}>
+          {!foco ? <ConectoresArvore caixa={caixa} vinculos={vinculos} /> : null}
+          {geracoes.filter((geracao) => !foco || pessoasVisiveis.some((pessoa) => `G${pessoa.geracao}` === geracao.id)).map((geracao) => (
           <section key={geracao.id} className="app-arvore-geracao" aria-label={geracao.id === "G1" ? "G1 · Você (âncora)" : `${geracao.id} · ${Number(geracao.id.slice(1))}ª geração`}>
             <h3 className="text-xs font-medium text-navy/70"><span className="app-geracao-nivel">{geracao.id}</span><span>{geracao.id === "G1" ? "Você (âncora)" : `${Number(geracao.id.slice(1))}ª geração`}</span></h3>
             <div className="app-arvore-nos">{geracao.id === "G1" && !temTitular ? <p className="app-arvore-ancora"><UserRound aria-hidden="true" className="h-5 w-5" />Você</p> : null}{pessoasVisiveis.filter((pessoa) => `G${pessoa.geracao}` === geracao.id).map(perfil)}{geracao.id !== "G1" && !pessoasVisiveis.some((pessoa) => `G${pessoa.geracao}` === geracao.id) ? <p className="app-estado-editorial" data-arvore-lacuna>Em pesquisa · geração ainda sem pessoas compartilhadas</p> : null}</div>
