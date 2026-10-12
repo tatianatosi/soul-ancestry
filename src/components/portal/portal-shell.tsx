@@ -205,7 +205,7 @@ export function PortalShell({
               key={to}
               to={to}
               className={cn(
-                "relative flex min-h-[4rem] min-w-0 flex-col items-center justify-center gap-1 px-0 py-2 text-[9px] leading-none whitespace-nowrap sm:min-h-[4.25rem] sm:px-0.5 sm:text-[11px] sm:leading-tight",
+                "relative flex min-h-[4rem] min-w-0 flex-col items-center justify-center gap-1 px-0 py-2 !text-[8px] leading-none whitespace-nowrap sm:min-h-[4.25rem] sm:px-0.5 sm:!text-[11px] sm:leading-tight",
                 "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
                 rotaAtiva === to
                   ? "after:absolute after:inset-x-2 after:top-0 after:h-0.5 after:bg-gold font-semibold text-gold"
