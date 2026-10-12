@@ -12,7 +12,7 @@ import {
 } from "@/lib/portal-arvore-geracoes";
 import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
 import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
-import { EstadoDados } from "@/components/saas/estado-dados";
+import { Button } from "@/components/ui/button";
 import { ExploradorArvore, PerfilPessoaArvore } from "@/components/portal/explorador-arvore";
 
 /**
@@ -47,14 +47,18 @@ export function PortalArvore() {
       {carregando ? (
         <PortalCarregando />
       ) : (
-        <EstadoDados
-          superficie="app"
-          carregando={isLoading}
-          erro={isError ? (error ?? true) : null}
-          dados={data ? [data] : null}
-          aoTentarNovamente={refetch}
-          recurso="a sua árvore"
-        >
+        isError ? (
+          <section role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
+            <p className="font-medium text-destructive">Instabilidade de conexão ao carregar sua árvore.</p>
+            <p className="mt-1 text-navy/80">Os nós não foram substituídos por uma lacuna.</p>
+            <Button type="button" variant="outline" size="sm" className="mt-3" onClick={refetch}>
+              Recarregar árvore
+            </Button>
+          </section>
+        ) : isLoading ? (
+          <PortalCarregando />
+        ) : data ? (
+          <>
           {([vivo]) => {
             // Corte 2a: pessoas nomeadas (uma por pessoa) viram nós; o restante
             // das publicações da árvore continua como nota.
@@ -196,8 +200,14 @@ export function PortalArvore() {
                 </div>
               </BlocoVisibilidade>
             );
-          }}
-        </EstadoDados>
+          }}([data])}
+          </>
+        ) : (
+          <section role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
+            <p className="font-medium text-destructive">Não foi possível confirmar os dados da sua árvore.</p>
+            <Button type="button" variant="outline" size="sm" className="mt-3" onClick={refetch}>Recarregar árvore</Button>
+          </section>
+        )
       )}
     </PortalShell>
   );

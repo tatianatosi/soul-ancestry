@@ -25,3 +25,4 @@ Texto integral (autoridade, legado, schema, navegação, artefatos 005–010, ad
 - `painel-dia.tsx` × `golive-*` aguardam decisão; não tocar — por quê: fonte de verdade indefinida.
 - Nada arquiva sem `COMPROVADO_EM_USO` com prints autenticados da Proprietária; build/teste não é prova — por quê: adendo 2026-09-10.
 - Sem migration, RLS, convite, publicação, merge ou deploy sem autorização explícita — por quê: efeitos externos.
+- Toda leitura ou envio do App Cliente usa o timeout comum de `portal-resiliencia`; erro de rede nunca vira vazio legítimo — por quê: preservar a verdade dos dados e encerrar carregamentos infinitos.

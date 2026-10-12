@@ -1,5 +1,7 @@
 import { UserRound, ShieldCheck, ChevronDown } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { planoPublicado } from "@/lib/plano-publicacao";
@@ -10,6 +12,9 @@ import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/po
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { BlocoExemploVisual } from "@/components/portal/bloco-exemplo-visual";
+import { Button } from "@/components/ui/button";
+import { minhasFaturas } from "@/lib/portal-cliente.functions";
+import { comTimeoutPortal } from "@/lib/portal-resiliencia";
 
 export const Route = createFileRoute("/portal/conta")({
   head: () => ({
@@ -32,6 +37,13 @@ export function PortalConta() {
   const { visibilidade, carregando } = useVisibilidade("conta");
   const { data } = usePortal();
   const vivo = usePortalVivo();
+  const carregarFaturas = useServerFn(minhasFaturas);
+  const faturas = useQuery({
+    queryKey: ["portal-faturas"],
+    queryFn: () => comTimeoutPortal(carregarFaturas({})),
+    enabled: previa === null,
+    retry: false,
+  });
 
   /**
    * APP-CASE-ID-CONTA-RADAR (19/09/2026): `previa` cobre dois casos distintos
@@ -94,7 +106,16 @@ export function PortalConta() {
 
   return (
     <PortalShell titulo={COPY_TELAS.conta.titulo} descricao={COPY_TELAS.conta.descricao}>
-      {carregando ? (
+      {!previa && faturas.isError ? (
+        <section role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
+          <p className="font-medium text-destructive">
+            Instabilidade de conexão ao carregar seus dados financeiros.
+          </p>
+          <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => void faturas.refetch()}>
+            Tentar novamente
+          </Button>
+        </section>
+      ) : carregando || (!previa && faturas.isLoading) ? (
         <PortalCarregando />
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>

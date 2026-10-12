@@ -31,6 +31,7 @@ import {
   revogarCompartilhamentoAchadoPortal,
 } from "@/lib/portal-cliente.functions";
 import type { PublicacaoCliente } from "@/lib/projecoes-cliente";
+import { comTimeoutPortal } from "@/lib/portal-resiliencia";
 
 export function CompartilharAchadoCliente({ achados }: { achados: PublicacaoCliente[] }) {
   const carregarMembros = useServerFn(membrosDoMeuCaso);
@@ -38,8 +39,8 @@ export function CompartilharAchadoCliente({ achados }: { achados: PublicacaoClie
   const autorizar = useServerFn(autorizarCompartilhamentoAchado);
   const revogar = useServerFn(revogarCompartilhamentoAchadoPortal);
 
-  const qMembros = useQuery({ queryKey: ["portal-membros-caso"], queryFn: () => carregarMembros({}), retry: false });
-  const qShares = useQuery({ queryKey: ["portal-compartilhamentos"], queryFn: () => carregarShares({}), retry: false });
+  const qMembros = useQuery({ queryKey: ["portal-membros-caso"], queryFn: () => comTimeoutPortal(carregarMembros({})), retry: false });
+  const qShares = useQuery({ queryKey: ["portal-compartilhamentos"], queryFn: () => comTimeoutPortal(carregarShares({})), retry: false });
 
   const [achadoId, setAchadoId] = useState("");
   const [comQuem, setComQuem] = useState("");
