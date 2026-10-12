@@ -3,8 +3,8 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { EstadoDados } from "@/components/saas/estado-dados";
 import { FontePortalProvider } from "@/components/portal/fonte-portal";
+import { comTimeout } from "@/lib/portal-resiliencia";
 import {
   ABAS_APP_CLIENTE,
   TELAS_INTERNAS_PORTAL,
@@ -49,7 +49,7 @@ function AppClienteComoPessoa() {
   const carregarDados = useServerFn(dadosVivosDoPortalComoAdmin);
   const dados = useQuery({
     queryKey: ["app-cliente-como-pessoa", casoId],
-    queryFn: () => carregarDados({ data: { casoId } }),
+    queryFn: () => comTimeout(carregarDados({ data: { casoId } })),
     enabled: Boolean(casoId),
     retry: false,
   });
@@ -69,24 +69,15 @@ function AppClienteComoPessoa() {
         </div>
       ) : casos.isLoading || dados.isLoading ? (
         <p className="p-6 text-center text-sm text-navy/60" role="status">Preparando o aplicativo da família…</p>
-      ) : dados.isError ? (
-        <div className="mx-auto max-w-xl p-6">
-          <EstadoDados<Record<string, unknown>>
-            superficie="app"
-            erro={dados.error}
-            dados={null}
-            aoTentarNovamente={() => void dados.refetch()}
-            recurso="o aplicativo da família"
-          >
-            {() => null}
-          </EstadoDados>
-        </div>
       ) : (
         <FontePortalProvider
           fonte={{
             dados: dados.data ?? { projecoes: [], documentos: [], proximaAcao: null },
             carregando: false,
-            erro: false,
+            // 12/10/2026: falha de leitura chega a cada aba como erro (nunca
+            // como vazio), com nova tentativa real.
+            erro: dados.isError,
+            recarregar: () => void dados.refetch(),
             escopo: dados.data?.escopo,
             aoNavegar: (path) => setRotaInterna(rotaInternaDoPortal(path)),
             rotaInterna,

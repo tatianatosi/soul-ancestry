@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { dadosVivosDoPortal } from "@/lib/portal-dados-vivos.functions";
+import { comTimeout } from "@/lib/portal-resiliencia";
 import type {
   DocumentoPortal,
   EtapaCliente,
@@ -91,6 +92,8 @@ export type FontePortal = {
   dados: DadosPortal;
   carregando: boolean;
   erro: boolean;
+  /** Nova tentativa da leitura de origem (botão "Tentar novamente"). */
+  recarregar?: () => void;
   previa: PreviaPortal;
   /** Escopo real do caso, quando o acesso master já o calculou. */
   escopo?: EscopoCliente;
@@ -137,11 +140,13 @@ export function usePortalVivo() {
     // O caso entra na chave: sem isso, trocar de caso devolveria o conteúdo
     // do caso anterior servido pelo cache.
     queryKey: ["portal-dados-vivos", casoId ?? "padrao"],
-    queryFn: () => carregar({ data: casoId ? { casoId } : {} }),
+    // 12/10/2026: toda leitura termina em sucesso, vazio honesto ou erro.
+    queryFn: () => comTimeout(carregar({ data: casoId ? { casoId } : {} })),
     enabled: externa === null,
     // O que o Desk publica aparece no App sem recarregar (decisão 01/10/2026: 30 s).
     refetchInterval: 30_000,
     refetchOnWindowFocus: true,
+    retry: 1,
   });
 
   if (externa) {
@@ -150,15 +155,20 @@ export function usePortalVivo() {
       isLoading: externa.carregando,
       isError: externa.erro,
       error: externa.erro ? new Error("Falha ao carregar os dados do acompanhamento.") : null,
-      refetch: () => {},
+      refetch: () => externa.recarregar?.(),
+      isFetching: false,
     };
   }
+  // Refresh em segundo plano que falha não apaga o que já está na tela:
+  // com dado anterior, o erro não é propagado como estado da tela.
+  const semDado = consulta.data === undefined;
   return {
     data: consulta.data,
     isLoading: consulta.isLoading,
-    isError: consulta.isError,
-    error: consulta.error,
+    isError: consulta.isError && semDado,
+    error: semDado ? consulta.error : null,
     refetch: () => void consulta.refetch(),
+    isFetching: consulta.isFetching,
   };
 }
 

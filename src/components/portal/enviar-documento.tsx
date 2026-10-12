@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
+import { MENSAGEM_CONTEUDO_MANTIDO } from "@/lib/portal-resiliencia";
 import { useServerFn } from "@tanstack/react-start";
 import { UploadCloud } from "lucide-react";
 
@@ -40,6 +42,8 @@ export function EnviarDocumento({
   const entrada = useRef<HTMLInputElement | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [enviado, setEnviado] = useState<string | null>(null);
+  // 12/10/2026: o arquivo escolhido só sai daqui depois do sucesso.
+  const [pendente, setPendente] = useState<File | null>(null);
 
   const envio = useMutation({
     mutationFn: async (arquivo: File) => {
@@ -62,17 +66,19 @@ export function EnviarDocumento({
       return arquivo.name;
     },
     onSuccess: (nome) => {
+      setPendente(null);
       setEnviado(nome);
       // Sem isso o arquivo enviado só apareceria no próximo F5.
       void queryClient.invalidateQueries({ queryKey: ["portal-entregas"] });
       void queryClient.invalidateQueries({ queryKey: ["portal-dados-vivos"] });
     },
-    onError: (e: Error) => setErro(e.message),
+    onError: () => setErro(MENSAGEM_CONTEUDO_MANTIDO),
   });
 
   function escolher(arquivo: File | undefined) {
     setErro(null);
     setEnviado(null);
+    setPendente(null);
     if (!arquivo) return;
     // Mesma regra do servidor: recusar aqui evita subir arquivo que seria
     // recusado depois, e a mensagem é idêntica nos dois lados.
@@ -81,6 +87,7 @@ export function EnviarDocumento({
       setErro(recusa);
       return;
     }
+    setPendente(arquivo);
     envio.mutate(arquivo);
   }
 
@@ -120,7 +127,21 @@ export function EnviarDocumento({
         </p>
       ) : null}
 
-      {erro ? (
+      {erro && pendente && !ocupado ? (
+        <div className="mt-3 text-left">
+          <p className="mb-2 text-xs text-navy/70" data-arquivo-mantido>
+            Arquivo mantido: “{pendente.name}”
+          </p>
+          <AvisoFalhaConexao
+            mensagem={MENSAGEM_CONTEUDO_MANTIDO}
+            rotuloBotao="Reenviar"
+            aoTentar={() => {
+              setErro(null);
+              envio.mutate(pendente);
+            }}
+          />
+        </div>
+      ) : erro ? (
         <p role="alert" className="mt-3 text-xs text-terracotta">
           {erro}
         </p>

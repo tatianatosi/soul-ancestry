@@ -545,6 +545,8 @@ export const minhasFaturas = createServerFn({ method: "GET" })
         .order("vencimento", { ascending: true }),
       supabase.from("portal_casos").select("id, titulo"),
     ]);
+    // 12/10/2026 — fail-closed: falha de leitura é erro, nunca "nenhuma fatura".
+    if (faturas.error) throw new Error(faturas.error.message);
     const nome = new Map(((casos.data ?? []) as any[]).map((c) => [c.id, c.titulo]));
     const semFixturesFaturas = semFixtures((faturas.data ?? []) as any[]);
     const casosDasFaturas = [...new Set(semFixturesFaturas.map((f) => f.case_id).filter(Boolean))] as string[];

@@ -5,6 +5,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
 import { minhasFaturas } from "@/lib/portal-cliente.functions";
+import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
+import { comTimeout, MENSAGEM_INSTABILIDADE_FINANCEIRA } from "@/lib/portal-resiliencia";
 
 export const Route = createFileRoute("/portal/faturas")({
   head: () => ({
@@ -23,9 +25,9 @@ export const Route = createFileRoute("/portal/faturas")({
 
 function FaturasPage() {
   const carregar = useServerFn(minhasFaturas);
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["portal-faturas"],
-    queryFn: () => carregar({}),
+    queryFn: () => comTimeout(carregar({})),
     retry: false,
   });
 
@@ -34,7 +36,12 @@ function FaturasPage() {
       {isLoading ? (
         <PortalCarregando />
       ) : isError ? (
-        <PortalVazio mensagem={COPY_GERAL.semPermissao} />
+        // 12/10/2026 — fail-closed: falha (inclusive da regra da contratante) mostra erro, nunca faturas nem estado neutro.
+        <AvisoFalhaConexao
+          mensagem={MENSAGEM_INSTABILIDADE_FINANCEIRA}
+          aoTentar={() => void refetch()}
+          ocupado={isFetching}
+        />
       ) : !data || data.faturas.length === 0 ? (
         <PortalVazio
           mensagem={data?.restritoAoContratante ? COPY_GERAL.faturasApenasContratante : COPY_TELAS.faturas.vazio}

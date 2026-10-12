@@ -2,6 +2,8 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
+import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
+import { MENSAGEM_CONTEUDO_MANTIDO } from "@/lib/portal-resiliencia";
 
 import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
@@ -42,7 +44,8 @@ function MensagemPage() {
       setTexto("");
       queryClient.invalidateQueries({ queryKey: ["portal-ticket", id] });
     },
-    onError: (e: Error) => setErroEnvio(e.message || "Não foi possível enviar sua mensagem."),
+    // 12/10/2026: texto nunca é limpo em falha.
+    onError: () => setErroEnvio(MENSAGEM_CONTEUDO_MANTIDO),
   });
 
   if (isLoading) {
@@ -99,10 +102,17 @@ function MensagemPage() {
 
       {data.ticket.status !== "fechado" ? (
         <div className="mt-5 rounded-xl border border-navy/10 bg-cream/40 p-4">
-          {erroEnvio ? (
-            <p className="mb-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
-              {erroEnvio}
-            </p>
+          {erroEnvio && !enviar.isPending ? (
+            <div className="mb-3">
+              <AvisoFalhaConexao
+                mensagem={erroEnvio}
+                rotuloBotao="Reenviar"
+                aoTentar={() => {
+                  setErroEnvio(null);
+                  enviar.mutate();
+                }}
+              />
+            </div>
           ) : null}
           <textarea
             value={texto}

@@ -13,6 +13,7 @@ import {
 import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
 import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
 import { ExploradorArvore, PerfilPessoaArvore } from "@/components/portal/explorador-arvore";
 
 /**
@@ -46,6 +47,13 @@ export function PortalArvore() {
     <PortalShell titulo={COPY_TELAS.arvore.titulo} descricao={COPY_TELAS.arvore.descricao}>
       {carregando ? (
         <PortalCarregando />
+      ) : isError ? (
+        // 12/10/2026: erro de leitura nunca vira "Lacuna" nem "ninguém compartilhado".
+        <AvisoFalhaConexao
+          mensagem="Erro de conexão ao carregar a árvore. Nada foi perdido."
+          rotuloBotao="Recarregar árvore"
+          aoTentar={refetch}
+        />
       ) : (
         <EstadoDados
           superficie="app"

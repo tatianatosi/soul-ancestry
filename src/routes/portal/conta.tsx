@@ -10,6 +10,8 @@ import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/po
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { BlocoExemploVisual } from "@/components/portal/bloco-exemplo-visual";
+import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
+import { MENSAGEM_INSTABILIDADE_FINANCEIRA } from "@/lib/portal-resiliencia";
 
 export const Route = createFileRoute("/portal/conta")({
   head: () => ({
@@ -152,7 +154,14 @@ export function PortalConta() {
 
              <section data-conta-assinatura className="app-v11-faixa">
               <h2 className="font-serif text-xl text-navy">Sua assinatura</h2>
-              {assinatura ? (
+              {vivo.isError ? (
+                /* 12/10/2026 — falha de leitura (fail-closed): nunca "nenhuma assinatura", nunca dado financeiro. */
+                <div className="mt-2" data-conta-assinatura-erro>
+                  <AvisoFalhaConexao mensagem={MENSAGEM_INSTABILIDADE_FINANCEIRA} aoTentar={vivo.refetch} />
+                </div>
+              ) : vivo.isLoading ? (
+                <p className="mt-2 text-sm text-navy/60" role="status">Carregando sua assinatura…</p>
+              ) : assinatura ? (
                 <>
                   <p className="mt-2 text-sm text-navy" data-conta-assinatura-nome>
                     {assinatura.nome}

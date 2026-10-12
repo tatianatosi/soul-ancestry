@@ -9,6 +9,7 @@ import { useState } from "react";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
+import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { EnviarDocumento } from "@/components/portal/enviar-documento";
@@ -57,6 +58,11 @@ export function PortalDocumentos() {
       <PortalShell titulo={COPY_TELAS.documentos.titulo} descricao={COPY_TELAS.documentos.descricao}>
         {vivo.isLoading ? (
           <PortalCarregando />
+        ) : vivo.isError ? (
+          <AvisoFalhaConexao
+            mensagem="Instabilidade de conexão ao carregar seus documentos."
+            aoTentar={vivo.refetch}
+          />
         ) : (
           <div className="app-v11-secoes" data-aba-documentos>
             <p className="border-l-2 border-gold pl-4 text-sm leading-relaxed text-navy/75">Cada documento terá seu estado aqui assim que a equipe compartilhar a lista completa com você.</p>

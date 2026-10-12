@@ -9,6 +9,7 @@ import {
   FASE_ATUAL_DEMO_SOPHIA_PERCENTUAL,
 } from "@/lib/portal-demo-sophia";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
+import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -100,6 +101,11 @@ export function PortalHome() {
       <PortalShell titulo={COPY_TELAS.home.titulo} descricao={COPY_TELAS.home.descricao}>
         {vivo.isLoading ? (
           <PortalCarregando />
+        ) : vivo.isError ? (
+          <AvisoFalhaConexao
+            mensagem="Instabilidade de conexão ao carregar o painel da sua família."
+            aoTentar={vivo.refetch}
+          />
         ) : (
           <PainelHomeMockup
             tituloCaso={previa.titulo}
