@@ -1192,7 +1192,12 @@ function FichaCaso() {
         <section className="min-w-0 border-t border-navy/10 pt-5">
           <p className="font-serif text-lg text-navy">Jornada do caso</p>
           <p className="mt-3 text-sm font-medium text-navy">
-            {qCadeia.data?.planejador?.fase_jornada ?? qCadeia.data?.planejador?.etapa ?? "Etapa não registrada"}
+            {(() => {
+              const f = qCadeia.data?.planejador?.fase_jornada ?? qCadeia.data?.planejador?.etapa;
+              if (!f) return "Etapa não registrada";
+              const t = String(f).replace(/_/g, " ");
+              return t.charAt(0).toUpperCase() + t.slice(1);
+            })()}
           </p>
           <p className="mt-1 text-xs text-navy/55">
             {(qCadeia.data?.planejador?.marcos ?? []).length

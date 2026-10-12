@@ -46,20 +46,23 @@ export function ChipIdentidadeCaso({
         <>
           <p className="text-[10px] font-medium uppercase tracking-widest text-navy/50">{superficie}</p>
           <p className="mt-1 font-medium text-navy">{identidade.titulo ?? "Caso"}</p>
-          <dl className="mt-2 space-y-1 font-mono text-[11px] text-navy/80">
-            <div className="flex flex-wrap gap-x-2">
-              <dt className="text-navy/45">caseId</dt>
-              <dd data-field="caseId">{identidade.caseId}</dd>
-            </div>
-            <div className="flex flex-wrap gap-x-2">
-              <dt className="text-navy/45">codigo</dt>
-              <dd data-field="codigo">{identidade.codigo ?? "—"}</dd>
-            </div>
-            <div className="flex flex-wrap gap-x-2">
-              <dt className="text-navy/45">fonte</dt>
-              <dd>{identidade.fonte}</dd>
-            </div>
-          </dl>
+          <p className="mt-1 text-[11px] text-navy/70">
+            Código <span data-field="codigo">{identidade.codigo ?? "Não registrado"}</span>
+          </p>
+          {/* Nomes de sistema só em "Detalhes técnicos" recolhido (regra do Desk). */}
+          <details className="mt-1">
+            <summary className="cursor-pointer text-[10px] text-navy/45">Detalhes técnicos</summary>
+            <dl className="mt-1 space-y-1 font-mono text-[11px] text-navy/80">
+              <div className="flex flex-wrap gap-x-2">
+                <dt className="text-navy/45">caseId</dt>
+                <dd data-field="caseId">{identidade.caseId}</dd>
+              </div>
+              <div className="flex flex-wrap gap-x-2">
+                <dt className="text-navy/45">fonte</dt>
+                <dd>{identidade.fonte}</dd>
+              </div>
+            </dl>
+          </details>
         </>
       )}
     </div>
