@@ -18,7 +18,7 @@ export function AvisoFalhaConexao({
       data-aviso-falha-conexao
       className="flex flex-wrap items-center gap-3 rounded-xl border border-terracotta/40 bg-cream px-4 py-3 text-sm text-terracotta"
     >
-      <p className="min-w-0 flex-1 !text-terracotta">{mensagem}</p>
+      <p className="min-w-0 flex-1">{mensagem}</p>
       <button
         type="button"
         onClick={aoTentar}
