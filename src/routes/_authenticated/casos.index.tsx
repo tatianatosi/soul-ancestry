@@ -357,6 +357,7 @@ function CasosPage() {
                       <span className="block text-[11px] text-navy/55">
                         {e.validados}/{e.total} requisitos — pendência informa
                       </span>
+                      {e.etapaAtual ? (<span className="block text-[11px] text-navy/70">Etapa atual: {e.etapaAtual.rotulo} ({e.etapaAtual.feitos}/{e.etapaAtual.total})</span>) : null}
                     </span>
                   ) : e ? (
                     <Badge texto="Requisitos completos — ativação no painel" tom="gold" />
@@ -615,6 +616,7 @@ function CasosPage() {
                     <span className="block text-[11px] text-navy/55">
                       {e.validados}/{e.total} requisitos — pendência informa; proprietária ativa no onboarding
                     </span>
+                      {e.etapaAtual ? (<span className="block text-[11px] text-navy/70">Etapa atual: {e.etapaAtual.rotulo} ({e.etapaAtual.feitos}/{e.etapaAtual.total})</span>) : null}
                     <ul className="ml-3 list-disc space-y-0.5 text-[11px] text-navy/70">
                       {e.motivos.slice(0, 3).map((m) => (
                         <li key={m}>{m}</li>

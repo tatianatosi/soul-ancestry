@@ -26,3 +26,4 @@ Texto integral (autoridade, legado, schema, navegação, artefatos 005–010, ad
 - `painel-dia.tsx` × `golive-*` aguardam decisão; não tocar — por quê: fonte de verdade indefinida.
 - Nada arquiva sem `COMPROVADO_EM_USO` com prints autenticados da Proprietária; build/teste não é prova — por quê: adendo 2026-09-10.
 - Sem migration, RLS, convite, publicação, merge ou deploy sem autorização explícita — por quê: efeitos externos.
+- As 5 etapas do caso (Diagnóstico→App Cliente) vêm só de `src/lib/etapas-caso.ts`, agrupando `case_activation_checks` existentes; nunca gate/tabela nova — por quê: uma regra para Caso 360, lista, Radar e Painel.
