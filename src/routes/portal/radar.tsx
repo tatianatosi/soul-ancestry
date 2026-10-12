@@ -9,7 +9,6 @@ import { RadarSeisEixos } from "@/components/portal/radar-seis-eixos";
 import { usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
-import { BlocoExemploVisual } from "@/components/portal/bloco-exemplo-visual";
 
 export const Route = createFileRoute("/portal/radar")({
   head: () => ({
@@ -87,7 +86,6 @@ export function PortalRadar() {
                   <section aria-label="Checklist documental" className="border-l-2 border-terracotta/40 py-1 pl-4">
                     <h2 className="font-serif text-xl text-navy">Checklist documental</h2>
                     <p className="mt-2 text-sm leading-relaxed text-navy/75">O checklist completo do caso ainda não foi compartilhado. Sem essa lista, não há uma base documental completa para comparar.</p>
-                    <details><summary className="flex min-h-11 items-center text-sm text-navy">Ver composição do checklist</summary><BlocoExemploVisual tipo="documentos" /></details>
                   </section>
 
                   {/* Próximo passo real (mesma fonte de Home/Jornada) — nunca um passo por eixo inventado. */}
@@ -136,12 +134,6 @@ export function PortalRadar() {
                             />
                           </div> : null}
                           {d.legenda ? <p className="mt-2 text-sm leading-relaxed text-navy/75">{vazio ? d.legenda.replace(/^Lacuna:\s*/i, "").replace(/^./, (c) => c.toUpperCase()) : d.legenda}</p> : null}
-                          {d.comoCalculamos ? (
-                            <details className="mt-2 text-sm leading-relaxed text-navy/70" data-radar-calculo>
-                              <summary className="flex min-h-11 cursor-pointer items-center gap-2 font-medium text-navy underline decoration-gold underline-offset-4 focus-visible:outline-2 focus-visible:outline-gold">Como calculamos</summary>
-                              <p className="pb-2">{d.comoCalculamos}</p>
-                            </details>
-                          ) : null}
                         </li>
                         );
                       })}

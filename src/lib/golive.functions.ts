@@ -185,6 +185,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
       alertasPorCaso.set(chave, (alertasPorCaso.get(chave) ?? 0) + 1);
     }
 
+
     /* Carteira comercial da organização (CRM vivo). Só leitura, sem writer novo:
        etapa, origem, responsável, último toque e próximo passo já gravados no lead. */
     const LIMITE_LEADS = 200;
