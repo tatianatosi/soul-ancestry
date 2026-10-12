@@ -1,4 +1,12 @@
 /* Prancha 375 v11: papéis locais ligados aos tokens canônicos, sem paleta paralela. */
+:root {
+  /* Resolve at the canonical root, before legacy App aliases shadow these names. */
+  --app-editorial-navy: var(--ca-navy);
+  --app-editorial-hero: var(--ca-navy-hero);
+  --app-editorial-gold: var(--ca-gold);
+  --app-editorial-ink: var(--ca-ink);
+  --app-editorial-cream: var(--ca-cream);
+}
 [data-app-cliente] {
   /* Measured on App reference pages 3–9; these aliases never affect Desk. */
   --navy: #1b2b4b;
@@ -1002,4 +1010,103 @@
 @keyframes app-entrada { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   [data-app-cliente] #conteudo-portal, [data-app-cliente] details > :not(summary) { animation: none; }
+}
+
+/* Editorial cut: four official tabs only; legacy surfaces and Desk are untouched. */
+[data-app-editorial] {
+  --navy: var(--app-editorial-navy);
+  --navy-800: var(--app-editorial-hero);
+  --gold: var(--app-editorial-gold);
+  --cream: var(--app-editorial-cream);
+  --ca-navy: var(--app-editorial-navy);
+  --ca-navy-hero: var(--app-editorial-hero);
+  --ca-gold: var(--app-editorial-gold);
+  --ca-ink: var(--app-editorial-ink);
+  --ca-cream: var(--app-editorial-cream);
+  --ca-surface-base: var(--ca-cream);
+  --ca-surface-accent: color-mix(in srgb, var(--ca-gold) 18%, var(--ca-cream));
+  --ca-text-muted: color-mix(in srgb, var(--ca-ink) 70%, var(--ca-cream));
+  --ca-border: color-mix(in srgb, var(--ca-navy) 8%, var(--ca-white));
+  --app-essencia-navy: var(--ca-navy);
+  --app-essencia-petroleo: var(--ca-navy-hero);
+  --app-essencia-areia: var(--ca-cream);
+  --app-essencia-ouro: var(--ca-gold);
+  --app-reference-accent-ink: var(--ca-estado-aguardando);
+}
+[data-app-editorial] .app-abertura-tela h1 { white-space: nowrap; }
+[data-app-editorial] .app-estado-editorial {
+  display: inline-block;
+  max-width: 100%;
+  padding: var(--ca-space-1) var(--ca-space-3);
+  border-radius: var(--ca-radius-pill);
+  background: var(--ca-surface-accent);
+  color: var(--ca-estado-aguardando);
+  font-size: var(--ca-text-xs);
+  line-height: var(--ca-leading-normal);
+  font-weight: var(--ca-weight-medium);
+}
+[data-app-editorial] .app-andamento-publicado {
+  border: 0;
+  border-bottom: 1px solid var(--ca-border);
+  border-radius: 0;
+}
+[data-app-editorial] .app-selo-projeto {
+  display: inline-flex;
+  padding: var(--ca-space-1) var(--ca-space-3);
+  border: 1px solid var(--ca-border-inverse);
+  border-radius: var(--ca-radius-pill);
+}
+[data-app-editorial] #conteudo-portal [data-home-editorial] {
+  border-radius: var(--ca-radius-md);
+  box-shadow: none;
+}
+[data-app-editorial] #conteudo-portal [data-aba-home] > div { gap: var(--ca-space-4); }
+[data-app-editorial] #conteudo-portal :where(.app-card-proximo-passo, [aria-label="Pessoas conectadas"], .app-achado-editorial) {
+  border: 1px solid var(--ca-border);
+  border-radius: var(--ca-radius-md);
+  background: var(--ca-surface-raised);
+  box-shadow: var(--ca-shadow-md);
+  padding: var(--ca-space-4);
+}
+[data-app-editorial] #conteudo-portal .app-card-proximo-passo { border-left: 2px solid var(--ca-gold); }
+[data-app-editorial] .app-home-resumo {
+  border-block: 1px solid var(--ca-border);
+  padding-block: var(--ca-space-3);
+}
+[data-app-editorial] .app-arvore-moldura {
+  border: 1px solid color-mix(in srgb, var(--ca-gold) 40%, var(--ca-cream));
+  border-top: 2px solid var(--ca-gold);
+  padding: var(--ca-space-4);
+}
+[data-app-editorial] .app-arvore-modos { background: var(--ca-surface-accent); }
+[data-app-editorial] .app-arvore-geracao { border-bottom: 1px solid var(--ca-border); padding-block: var(--ca-space-3); }
+[data-app-editorial] .app-arvore-nos { display: grid; grid-template-columns: minmax(0,1fr); }
+[data-app-editorial] .app-arvore-nos .app-arvore-perfil { width: 100%; max-width: none; border-color: var(--ca-border); }
+[data-app-editorial] .app-arvore-inicial { background: var(--ca-surface-base); color: var(--ca-navy); }
+[data-app-editorial] .app-jornada-linha ol > li::before { content: none; }
+[data-app-editorial] .app-jornada-fio { width: 1px; background: var(--ca-gold); opacity: 0.65; }
+[data-app-editorial] .app-jornada-linha ol > li > span:first-child { background: var(--ca-gold); }
+[data-app-editorial] .app-jornada-uniao {
+  padding: var(--ca-space-3) 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+[data-app-editorial] [data-jornada-duas-linhas] > span:first-child { background: var(--ca-gold); width: 1px; }
+[data-app-editorial] [data-jornada-duas-linhas] > :where(div, section) > span:first-child { border-color: var(--ca-gold); }
+[data-app-editorial] [data-aba-jornada] nav[aria-label="Linhas da jornada"] a { border-color: var(--ca-gold); }
+[data-app-editorial] #conteudo-portal .app-cofre-ausencia {
+  padding: var(--ca-space-5) 0;
+  border-block: 1px solid color-mix(in srgb, var(--ca-gold) 40%, var(--ca-cream));
+}
+[data-app-editorial] #conteudo-portal .app-documento-registro {
+  border: 1px solid var(--ca-border);
+  border-radius: var(--ca-radius-md);
+  background: var(--ca-surface-raised);
+  padding: var(--ca-space-4);
+  box-shadow: var(--ca-shadow-md);
+}
+@media (min-width: 768px) {
+  [data-app-editorial] .app-arvore-nos { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  [data-app-editorial] .app-arvore-nos > :only-child { grid-column: 1 / -1; max-width: 24rem; width: 100%; justify-self: center; }
 }
