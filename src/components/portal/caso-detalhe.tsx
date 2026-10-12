@@ -358,6 +358,25 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
             placeholder="Escreva sua mensagem"
             className="mt-2 w-full rounded-lg border border-navy/15 px-3 py-2 text-sm"
           />
+          {novoTicket.isError && !novoTicket.isPending ? (
+            <p
+              role="alert"
+              className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta"
+            >
+              Não foi possível enviar agora. Sua mensagem continua aqui.
+              <button
+                type="button"
+                onClick={() => {
+                  setErro(null);
+                  novoTicket.mutate();
+                }}
+                disabled={!assunto.trim() || !mensagem.trim()}
+                className="rounded-md border border-terracotta/50 px-2 py-0.5 text-xs font-medium text-terracotta disabled:opacity-60"
+              >
+                Reenviar
+              </button>
+            </p>
+          ) : null}
           <button
             onClick={() => novoTicket.mutate()}
             disabled={novoTicket.isPending || !assunto.trim() || !mensagem.trim()}
