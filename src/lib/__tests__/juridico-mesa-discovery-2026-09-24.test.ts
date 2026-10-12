@@ -26,12 +26,12 @@ const trechoAplicarAchado = painel.slice(
 describe("Mesa Discovery liga a trilha jurídica quando o país é aceito da varredura", () => {
   it("busca a trilha pelo mesmo país do achado, reaproveitando a lista já carregada", () => {
     expect(trechoAplicarAchado).toContain('campo === "nacionalidades_interesse"');
-    expect(trechoAplicarAchado).toContain("trilhas.find((t: any) => t.pais === valor)");
+    expect(trechoAplicarAchado).toContain("trilhas.find((t) => t.pais === valor)");
   });
 
   it("nunca sobrescreve uma trilha já escolhida manualmente", () => {
     expect(trechoAplicarAchado).toContain('!atualizado["trilha_referencia_id"]');
-    expect(trechoAplicarAchado).toContain("!(lead as any)?.trilha_referencia_id");
+    expect(trechoAplicarAchado).toContain("!lead?.trilha_referencia_id");
   });
 
   it("não introduz nenhuma consulta nova ao servidor — só usa `trilhas`, já carregada para o card de trilha", () => {
