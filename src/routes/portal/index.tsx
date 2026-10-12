@@ -117,6 +117,7 @@ export function PortalHome() {
             proximaEntrega={null}
             marcos={jornada.marcosPublicados}
             pessoasPublicadas={pessoasPublicadas}
+            nomesNucleo={nomesNucleo.map((p) => ({ chave: p.chave, nome: p.nome }))}
             documentoPrioritario={documentoPrioritario}
             microentrega={microentrega}
             achados={achadosPublicados.slice(0, 3).map((item) => ({
@@ -180,6 +181,7 @@ export function PortalHome() {
                 proximaEntrega={null}
                 marcos={jornada.marcosPublicados}
                 pessoasPublicadas={pessoasPublicadas}
+            nomesNucleo={nomesNucleo.map((p) => ({ chave: p.chave, nome: p.nome }))}
                 documentoPrioritario={documentoPrioritario}
                 microentrega={microentrega}
                 casoId={principal.id}
@@ -323,6 +325,7 @@ function PainelHomeMockup({
   proximaEntrega,
   marcos,
   pessoasPublicadas,
+  nomesNucleo = [],
   documentoPrioritario,
   microentrega,
   achados,
@@ -338,6 +341,7 @@ function PainelHomeMockup({
   proximaEntrega?: string | null;
   marcos: number;
   pessoasPublicadas: number;
+  nomesNucleo?: Array<{ chave: string; nome: string }>;
   documentoPrioritario?: string | null;
   microentrega?: string | null;
   casoId?: string;
@@ -395,9 +399,9 @@ function PainelHomeMockup({
               Sem publicação, a ausência é dita — nunca deduzida do cadastro. */}
           <div className="mt-4 border-t border-cream/10 pt-4" data-home-nucleo>
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-cream/60">Núcleo familiar</p>
-             {pessoasDoNucleo.length > 0 ? (
+             {nomesNucleo.length > 0 ? (
                <ul className="mt-2 flex flex-wrap gap-2" data-home-nucleo-membros>
-                 {pessoasDoNucleo.map((p) => (
+                 {nomesNucleo.map((p) => (
                    <li key={p.chave} className="rounded-full border border-gold/50 px-3 py-1 text-xs text-cream">
                      {p.nome}
                    </li>
