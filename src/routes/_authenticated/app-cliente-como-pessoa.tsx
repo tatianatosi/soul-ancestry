@@ -61,6 +61,12 @@ function AppClienteComoPessoa() {
 
   return (
     <div className="min-h-screen bg-cream" data-previa-app-cliente-real>
+      {casoId ? (
+        <div className="border-b-2 border-gold bg-navy px-4 py-2 text-center" role="note" data-banner-visao-master>
+          <p className="font-serif text-base text-cream sm:text-lg">Visualização Master Administrativa — Sessão de Auditoria</p>
+          <p className="text-[11px] tracking-wide text-gold">Somente leitura · você vê o aplicativo como a família, sem virar cliente</p>
+        </div>
+      ) : null}
       {!casoId ? (
         <div className="mx-auto max-w-xl p-6">
           <p className="rounded-xl border border-navy/10 bg-card p-5 text-sm text-navy/70">
