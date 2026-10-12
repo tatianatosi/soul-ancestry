@@ -1,5 +1,11 @@
-import { UserRound, ShieldCheck, ChevronDown } from "lucide-react";
+import { UserRound, ShieldCheck, ChevronDown, Users } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { supabase } from "@/integrations/supabase/client";
+import { membrosDoMeuCaso, minhasFaturas } from "@/lib/portal-cliente.functions";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { planoPublicado } from "@/lib/plano-publicacao";
@@ -94,6 +100,48 @@ export function PortalConta() {
       ? proximaAcao
       : null;
 
+  /*
+   * 12/10/2026 — Conta: perfil, assinatura individual e núcleo familiar.
+   * Só leitores sanitizados já existentes: e-mail da própria sessão,
+   * `membrosDoMeuCaso` (somente nome e papel) e `minhasFaturas`
+   * (somente faturas da pessoa autenticada, já filtradas pela RPC de
+   * contratante). Na prévia administrativa nada disso é lido: estados neutros.
+   */
+  const sessaoCliente = !previa;
+  const [email, setEmail] = useState<string | null>(null);
+  useEffect(() => {
+    if (!sessaoCliente) return;
+    void supabase.auth.getSession().then(({ data: s }) => setEmail(s.session?.user?.email ?? null));
+  }, [sessaoCliente]);
+  const lerMembros = useServerFn(membrosDoMeuCaso);
+  const membrosQ = useQuery({
+    queryKey: ["portal-conta-membros"],
+    queryFn: () => lerMembros(),
+    enabled: sessaoCliente,
+  });
+  const lerFaturas = useServerFn(minhasFaturas);
+  const faturasQ = useQuery({
+    queryKey: ["portal-conta-faturas"],
+    queryFn: () => lerFaturas(),
+    enabled: sessaoCliente,
+  });
+  const [faturasAbertas, setFaturasAbertas] = useState(false);
+  const casoAtual = vivo.data?.casoAtivoId ?? previa?.identidade?.caseId ?? null;
+  const membros = (membrosQ.data ?? []).filter((m) => !casoAtual || m.casoId === casoAtual);
+  const meuPapel = membros.find((m) => m.clienteId === data?.cliente?.id)?.papel ?? null;
+  const faturas = faturasQ.data?.faturas ?? [];
+  const hoje = new Date().toISOString().slice(0, 10);
+  const vencidasOuAtuais = faturas.filter((f) => f.vencimento && f.vencimento <= hoje && f.statusRotulo !== "Cancelada");
+  const ultima = vencidasOuAtuais[vencidasOuAtuais.length - 1] ?? null;
+  const statusMensalidade: "em_dia" | "pendente" | null = ultima
+    ? ultima.statusRotulo === "Paga"
+      ? "em_dia"
+      : "pendente"
+    : null;
+  const moeda = (v: number, m: string) =>
+    v.toLocaleString("pt-BR", { style: "currency", currency: m || "BRL" });
+
+
   return (
     <PortalShell titulo={COPY_TELAS.conta.titulo} descricao={COPY_TELAS.conta.descricao}>
       {carregando ? (
@@ -125,20 +173,29 @@ export function PortalConta() {
                 </div>
               </div>
                <p className="mt-3 text-sm text-navy/65">Um espaço para cuidar da sua história e acompanhar as novidades da sua família.</p>
-               {titular || paisInteresse ? <dl className="mt-3 grid gap-3 sm:grid-cols-2">
-                 {titular ? (
+               {meuPapel === "contratante" ? (
+                 <span data-conta-selo className="mt-3 inline-flex rounded-full border border-gold/60 bg-gold/10 px-2.5 py-0.5 text-xs font-semibold text-navy">
+                   Titular / Signatário
+                 </span>
+               ) : null}
+               <dl className="mt-3 grid gap-3 sm:grid-cols-2">
                 <div className="border-b border-border py-3">
-                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>
-                  <dd className="text-sm text-navy">{titular}</dd>
+                  <dt className="text-[11px] uppercase tracking-widest text-navy/60">Nome</dt>
+                  <dd className="text-sm text-navy">{titular ?? "Não registrado"}</dd>
                 </div>
-                 ) : null}
+                <div className="min-w-0 border-b border-border py-3">
+                  <dt className="text-[11px] uppercase tracking-widest text-navy/60">E-mail cadastrado</dt>
+                  <dd className="break-all text-sm text-navy" data-conta-email>
+                    {sessaoCliente ? (email ?? "Não registrado") : "Não exibido na visualização da equipe"}
+                  </dd>
+                </div>
                  {paisInteresse ? (
                 <div className="border-b border-border py-3">
-                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Origem de interesse</dt>
+                   <dt className="text-[11px] uppercase tracking-widest text-navy/60">Origem de interesse</dt>
                   <dd className="text-sm text-navy">{paisInteresse}</dd>
                 </div>
                  ) : null}
-               </dl> : null}
+               </dl>
               <p className="mt-3 text-xs text-navy/55">
                   Se alguma informação mudar, avise a equipe pelo canal que você já utiliza.
               </p>
@@ -181,6 +238,26 @@ export function PortalConta() {
                       Condição prevista por 10 meses. A cobrança individual ainda aguarda confirmação e, por isso, nenhum link de pagamento é exibido.
                     </p>
                   ) : null}
+                  <div className="mt-3 flex flex-wrap items-center gap-2" data-conta-mensalidade>
+                    <span className="text-[11px] uppercase tracking-widest text-cream/80">Última mensalidade</span>
+                    {statusMensalidade === "em_dia" ? (
+                      <span className="rounded-full border border-sage bg-sage px-2.5 py-0.5 text-xs font-semibold text-cream">Em dia</span>
+                    ) : statusMensalidade === "pendente" ? (
+                      <span className="rounded-full border border-terracotta bg-terracotta px-2.5 py-0.5 text-xs font-semibold text-cream">Pendente</span>
+                    ) : (
+                      <span className="rounded-full border border-cream/50 px-2.5 py-0.5 text-xs font-medium text-cream">
+                        {faturasQ.isError ? "Não foi possível consultar" : "Aguardando confirmação"}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    data-conta-ver-faturas
+                    onClick={() => setFaturasAbertas(true)}
+                    className="mt-3 inline-flex min-h-11 items-center rounded-lg border border-gold/70 px-4 text-sm font-medium text-gold hover:bg-gold/10"
+                  >
+                    Visualizar faturas e comprovantes
+                  </button>
                 </>
                ) : (
                 /*
@@ -194,6 +271,81 @@ export function PortalConta() {
                 </p>
                )}
              </section>
+
+            <Sheet open={faturasAbertas} onOpenChange={setFaturasAbertas}>
+              <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle className="font-serif text-xl text-navy">Faturas e comprovantes</SheetTitle>
+                  <SheetDescription>Somente as suas faturas aparecem aqui.</SheetDescription>
+                </SheetHeader>
+                <div className="mt-4 space-y-2" data-conta-faturas-lista>
+                  {!sessaoCliente ? (
+                    <p className="text-sm text-navy/70">Na visualização da equipe, as faturas da pessoa não são exibidas.</p>
+                  ) : faturasQ.isError ? (
+                    <AvisoFalhaConexao mensagem={MENSAGEM_INSTABILIDADE_FINANCEIRA} aoTentar={faturasQ.refetch} />
+                  ) : faturasQ.isLoading ? (
+                    <p className="text-sm text-navy/70" role="status">Carregando suas faturas…</p>
+                  ) : faturas.length === 0 ? (
+                    <p className="app-v11-lacuna text-sm text-navy/70">
+                      {faturasQ.data?.restritoAoContratante
+                        ? "As faturas deste caso ficam com a pessoa responsável pelo pagamento."
+                        : "Nenhuma fatura liberada até o momento."}
+                    </p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {faturas.map((f) => (
+                        <li key={f.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border px-3 py-2">
+                          <div className="min-w-0">
+                            <p className="text-sm text-navy">{f.descricao ?? f.numero ?? "Fatura"}</p>
+                            <p className="text-xs text-navy/60">
+                              {f.vencimento ? `Vencimento ${new Date(`${f.vencimento}T12:00:00`).toLocaleDateString("pt-BR")}` : "Vencimento não registrado"}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-medium text-navy">{moeda(f.valor, f.moeda)}</p>
+                            <p className="text-xs text-navy/70">{f.statusRotulo}</p>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            <section data-conta-nucleo className="app-v11-faixa">
+              <h2 className="flex items-center gap-2 font-serif text-xl text-navy">
+                <Users className="h-5 w-5" aria-hidden="true" /> Seu núcleo familiar
+              </h2>
+              {!sessaoCliente ? (
+                <p className="mt-2 text-sm text-navy/70">Na visualização da equipe, a lista da família não é exibida.</p>
+              ) : membrosQ.isError ? (
+                <div className="mt-2">
+                  <AvisoFalhaConexao mensagem="Instabilidade de conexão ao carregar sua família." aoTentar={membrosQ.refetch} />
+                </div>
+              ) : membrosQ.isLoading ? (
+                <p className="mt-2 text-sm text-navy/70" role="status">Carregando sua família…</p>
+              ) : membros.length === 0 ? (
+                <p className="app-v11-lacuna mt-2 text-sm text-navy/70">Não registrado</p>
+              ) : (
+                <ul className="mt-3 divide-y divide-border">
+                  {membros.map((m) => (
+                    <li key={m.clienteId} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+                      <span className="text-sm text-navy">{m.nome}</span>
+                      {m.papel === "dependente" ? (
+                        <span className="rounded-full border border-gold/50 bg-gold/10 px-2 py-0.5 text-[11px] font-medium text-navy">
+                          Dependente / Menor
+                        </span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="mt-3 text-xs text-navy/60">
+                As informações compartilhadas respeitam o anexo de privacidade contratual familiar.
+              </p>
+            </section>
+
 
             {/* 12/10/2026: com falha de leitura, nenhuma seção afirma vazio. */}
             {vivo.isError ? null : (

@@ -26,6 +26,8 @@ vi.mock("@tanstack/react-start", async (orig) => ({
 vi.mock("@/lib/portal-cliente.functions", () => ({
   prepararEnvioDocumento: (...a: unknown[]) => prepararMock(...a),
   confirmarEnvioDocumento: (...a: unknown[]) => confirmarMock(...a),
+  membrosDoMeuCaso: () => Promise.resolve([]),
+  minhasFaturas: () => Promise.resolve({ faturas: [], restritoAoContratante: false }),
 }));
 vi.mock("@/components/portal/portal-shell", () => ({
   PortalShell: ({ children }: { children: ReactNode }) => <div>{children}</div>,
