@@ -271,6 +271,9 @@ function FinanceiroPage() {
           )}
         </CaCard>
 
+        {podeFinanceiro ? <CondicoesPrevistas /> : null}
+
+
         {/*
           §19 do De-Para, zona "Obrigações — custos/repasse/fornecedores
           quando aplicável". DIVERGÊNCIA REGISTRADA (§29): `third_party_expenses`
