@@ -6,12 +6,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import {
-  Home,
-  FileText,
-  Route,
-  Radar,
-  Trees,
   BookOpen,
+  Compass,
+  FileText,
+  Flag,
+  GitFork,
+  Home,
   UserRound,
 } from "lucide-react";
 
@@ -114,8 +114,8 @@ export function PortalShell({
   }, [previa, isSuccess, data, navigate]);
 
   /*
-    Sete abas do mockup aprovado: Home, Jornada, Radar, Árvore, Documentos,
-    Legado e Conta. Entregas / Fase 01 / Fase 02 saem da barra — as rotas
+    Sete abas canônicas: Painel, Jornada, Árvore, Descobertas, Documentos,
+    Biblioteca e Conta. Entregas / Fase 01 / Fase 02 saem da barra — as rotas
     continuam existindo como arquivos, só não ocupam a navegação.
   */
   const acessoCompleto = Boolean(previa) || data?.nivel === "client_workspace";
@@ -128,13 +128,13 @@ export function PortalShell({
   */
   const nav = acessoCompleto
     ? [
-        { to: "/portal", label: COPY_TELAS.home.navegacao, icon: Home },
-        { to: "/portal/jornada", label: COPY_TELAS.jornada.navegacao, icon: Route },
-        { to: "/portal/radar", label: COPY_TELAS.radar.navegacao, icon: Radar },
-        { to: "/portal/arvore", label: COPY_TELAS.arvore.navegacao, icon: Trees },
-        { to: "/portal/documentos", label: COPY_TELAS.documentos.navegacao, icon: FileText },
-        { to: "/portal/legado", label: COPY_TELAS.legado.navegacao, icon: BookOpen },
-        { to: "/portal/conta", label: COPY_TELAS.conta.navegacao, icon: UserRound },
+        { to: "/portal", label: "Painel", icon: Home },
+        { to: "/portal/jornada", label: "Jornada", icon: Flag },
+        { to: "/portal/arvore", label: "Árvore", icon: GitFork },
+        { to: "/portal/radar", label: "Descobertas", icon: Compass },
+        { to: "/portal/documentos", label: "Documentos", icon: FileText },
+        { to: "/portal/legado", label: "Biblioteca", icon: BookOpen },
+        { to: "/portal/conta", label: "Conta", icon: UserRound },
       ]
     : [];
 
@@ -205,7 +205,7 @@ export function PortalShell({
               key={to}
               to={to}
               className={cn(
-                "relative flex min-h-[4rem] min-w-0 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[11px] leading-tight sm:min-h-[4.25rem]",
+                "relative flex min-h-[4rem] min-w-0 flex-col items-center justify-center gap-1 px-0 py-2 !text-[8px] leading-none whitespace-nowrap sm:min-h-[4.25rem] sm:px-0.5 sm:!text-[11px] sm:leading-tight",
                 "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
                 rotaAtiva === to
                   ? "after:absolute after:inset-x-2 after:top-0 after:h-0.5 after:bg-gold font-semibold text-gold"
@@ -213,7 +213,7 @@ export function PortalShell({
               )}
             >
               <Icon className="h-[17px] w-[17px] shrink-0 sm:h-[19px] sm:w-[19px]" aria-hidden="true" />
-              <span className="w-full text-center">{to === "/portal/documentos" ? <><span className="sm:hidden">Docs</span><span className="hidden sm:inline">{label}</span></> : label}</span>
+              <span className="w-full text-center">{label}</span>
             </LinkPortal>
           ))}
         </div>
