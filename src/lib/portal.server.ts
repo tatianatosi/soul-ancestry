@@ -12,6 +12,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { chavePublicavelDoServidor, urlDoServidor } from "@/lib/config-servidor";
+import { representacaoLegalAtiva } from "@/lib/pessoa-vinculo";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const admin = supabaseAdmin as any;
@@ -83,6 +84,62 @@ export async function registrarAuditoria(params: {
     entidade_id: params.entidadeId ?? null,
     metadados: params.metadados ?? {},
   });
+}
+
+const normalizarNomePessoa = (valor: unknown) =>
+  String(valor ?? "").trim().replace(/\s+/g, " ").toLocaleLowerCase("pt-BR");
+
+const ERRO_LEITURA_DEPENDENTE = "Não foi possível verificar se este cadastro é dependente.";
+
+export async function dependenteDoCliente(
+  supabase: any,
+  organizationId: string,
+  clientId: string,
+  casoId: string | null,
+): Promise<boolean> {
+  const membros = await supabase
+    .from("nucleo_membros")
+    .select("papel, papel_no_caso, representacao_necessaria")
+    .eq("cliente_id", clientId)
+    .eq("organization_id", organizationId)
+    .is("archived_at", null);
+  if (membros.error) throw new Error(ERRO_LEITURA_DEPENDENTE);
+  const dependenteNoNucleo = (membros.data ?? []).some(
+    (m: any) => m.papel === "dependente" || m.papel_no_caso === "dependente" || representacaoLegalAtiva(m),
+  );
+  if (dependenteNoNucleo) return true;
+
+  const cliente = await supabase
+    .from("clientes")
+    .select("nome")
+    .eq("id", clientId)
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+  if (cliente.error) throw new Error(ERRO_LEITURA_DEPENDENTE);
+  const nome = normalizarNomePessoa(cliente.data?.nome);
+  if (!nome) return false;
+
+  let casosIds: string[] = casoId ? [casoId] : [];
+  if (!casoId) {
+    const casos = await supabase
+      .from("crm_casos")
+      .select("id")
+      .eq("cliente_id", clientId)
+      .eq("organization_id", organizationId)
+      .is("archived_at", null);
+    if (casos.error) throw new Error(ERRO_LEITURA_DEPENDENTE);
+    casosIds = (casos.data ?? []).map((c: any) => c.id as string);
+  }
+  if (casosIds.length === 0) return false;
+
+  const dependentes = await supabase
+    .from("case_dependents")
+    .select("nome_completo")
+    .in("case_id", casosIds)
+    .eq("organization_id", organizationId)
+    .is("archived_at", null);
+  if (dependentes.error) throw new Error(ERRO_LEITURA_DEPENDENTE);
+  return (dependentes.data ?? []).some((d: any) => normalizarNomePessoa(d.nome_completo) === nome);
 }
 
 /** Organização do usuário interno + validação de papel de gestão de acessos. */

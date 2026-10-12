@@ -6,6 +6,7 @@ import {
   representacaoJaDocumentada,
   type MembroNucleoPendencia,
 } from "@/lib/pendencias-humanas-caso";
+import { representacaoLegalAtiva, requerCredencialPortal } from "@/lib/pessoa-vinculo";
 
 /**
  * Retificação C (07/10/2026) — "relato representação pendente contradiz
@@ -72,6 +73,43 @@ describe("a pendência de menor não se repete quando a representação está re
     const pendencia = r.find((p) => p.tipo === "menor_sem_representacao");
     expect(pendencia).toBeDefined();
     expect(pendencia!.titulo).toContain("Felipe");
+  });
+});
+
+describe("credencial do portal: dependente não recebe acesso ao app", () => {
+  it("representação registrada torna a credencial desnecessária", () => {
+    expect(requerCredencialPortal(felipe({ status_representacao: "documentada" }))).toBe(false);
+    expect(requerCredencialPortal(felipe({ representacao_necessaria: true }))).toBe(false);
+    expect(representacaoLegalAtiva(felipe({ status_representacao: "confirmada" }))).toBe(true);
+  });
+
+  it("dependente sem representação registrada também não recebe credencial", () => {
+    expect(requerCredencialPortal({ dependente: true })).toBe(false);
+    expect(requerCredencialPortal({ dependente: true, status_representacao: "pendente" })).toBe(false);
+  });
+
+  it("adulto sem nenhum dependente registrado continua exigindo credencial", () => {
+    expect(requerCredencialPortal({ dependente: false })).toBe(true);
+    expect(requerCredencialPortal({})).toBe(true);
+  });
+
+  it("criarConvitePortal consulta o dependente antes de qualquer insert", () => {
+    const portal = readFileSync("src/lib/portal.functions.ts", "utf8");
+    const bloco = portal.slice(portal.indexOf("export const criarConvitePortal"), portal.indexOf("export const reenviarConvitePortal"));
+    const checagem = bloco.indexOf("dependenteDoCliente(");
+    expect(checagem).toBeGreaterThan(-1);
+    expect(checagem).toBeLessThan(bloco.indexOf('.from("client_portal_access")'));
+    expect(bloco).toContain("convite_portal_bloqueado");
+    expect(bloco).toContain("sob representação legal não possuem credencial própria");
+  });
+
+  it("reenviarConvitePortal aplica a mesma checagem antes de enviar o link", () => {
+    const portal = readFileSync("src/lib/portal.functions.ts", "utf8");
+    const bloco = portal.slice(portal.indexOf("export const reenviarConvitePortal"));
+    const checagem = bloco.indexOf("dependenteDoCliente(");
+    expect(checagem).toBeGreaterThan(-1);
+    expect(checagem).toBeLessThan(bloco.indexOf("enviarLinkMagico("));
+    expect(bloco).toContain("reenvio_convite_bloqueado");
   });
 });
 

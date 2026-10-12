@@ -556,6 +556,19 @@ export const criarConvitePortal = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!cliente.data) throw new Error("Cliente não encontrado nesta organização.");
 
+    if (await helpers.dependenteDoCliente(supabase, organizationId, data.clientId, data.casoId ?? null)) {
+      await helpers.registrarAuditoria({
+        organizationId,
+        userId: context.userId as string,
+        acao: "convite_portal_bloqueado",
+        entidadeId: data.autorizacaoId,
+        metadados: { motivo: "dependente", caso_id: data.casoId ?? null },
+      });
+      throw new Error(
+        "Menores e dependentes sob representação legal não possuem credencial própria; o acesso é realizado pelo titular responsável.",
+      );
+    }
+
     let caso: any = null;
     if (data.nivel === "client_workspace") {
       if (auth.case_id && auth.case_id !== data.casoId) {
@@ -702,6 +715,18 @@ export const reenviarConvitePortal = createServerFn({ method: "POST" })
       .eq("organization_id", organizationId)
       .eq("access_status", "active")
       .maybeSingle();
+    if (await helpers.dependenteDoCliente(supabase, organizationId, acesso.data.client_id, vinculo.data?.case_id ?? null)) {
+      await helpers.registrarAuditoria({
+        organizationId,
+        userId: context.userId as string,
+        acao: "reenvio_convite_bloqueado",
+        entidadeId: data.acessoId,
+        metadados: { motivo: "dependente" },
+      });
+      throw new Error(
+        "Menores e dependentes sob representação legal não possuem credencial própria; o acesso é realizado pelo titular responsável.",
+      );
+    }
     const motivosReenvio = await helpers.revalidarElegibilidade(supabase, organizationId, {
       clientId: acesso.data.client_id,
       nivel: acesso.data.access_level,
