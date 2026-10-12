@@ -1,5 +1,11 @@
 # Roadmap
 
+## Polimento de luxo 12/10 (pedido 16:38)
+- [ ] Jornada: texto editorial Graz (1895) no lugar de Lacuna (autorizado)
+- [ ] Árvore com linhas: BLOQUEADO_POR_DADO (zero vínculos publicados)
+- [ ] Certidão 1895 nos Documentos: BLOQUEADO_POR_DADO (nenhum documento liberado)
+- [ ] Família na Home: só membros publicados
+
 ## Refinamento editorial — quatro abas oficiais (12/10/2026)
 - [x] Refinar Home, Jornada, Árvore e Documentos apenas na apresentação; sete abas, fontes existentes e dados preservados.
 - [x] Executar nove suítes existentes: 82 testes passaram, 2 conflitos de apresentação; build da plataforma OK 19:24:46 UTC.
