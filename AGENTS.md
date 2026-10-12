@@ -19,6 +19,7 @@ Texto integral (autoridade, legado, schema, navegação, artefatos 005–010, ad
 - Desk: divergência aberta entre `GRUPOS_DESK` (V4, 7 grupos, com Marketing) e `SETORES_DESK_V5` (6 setores, o que a lateral renderiza hoje) — qual vale no primeiro nível é decisão pendente da Proprietária, não tocar sem ela decidir primeiro. App = 7 abas (Home, Jornada, Radar, Árvore, Documentos, Legado, Conta); nenhuma tela/menu extra — por quê: decisão da Proprietária.
 - Caso 360 = 8 seções (`SECOES`); admin vê o App só via `/app-cliente-como-pessoa?casoId=` — por quê: sem segundo mecanismo.
 - App mostra só conteúdo sanitizado/aprovado/publicado; vazio honesto; nada inferido — por quê: privacidade e verdade.
+- Editorial presentation refinements are scoped by the existing PortalShell to the requested official tabs; shared readers and global design tokens stay unchanged — why: isolate visual changes from Desk and unrelated tabs.
 - Preservar a RPC `portal_sou_contratante_financeiro` e suas chamadas; não-contratante recebe só estado neutro quando `restritoAoContratante` — por quê: fatura pertence ao contratante.
 - Autorização sempre em RLS/servidor; sem exclusão física; auditoria em mudanças — por quê: segurança real.
 - Preservar `confirmarDocumentosMinimos` → `documentos_minimos_ok` (PR #85) — por quê: gate do portal.

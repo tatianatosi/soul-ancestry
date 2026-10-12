@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { SecaoDocumental } from "@/components/portal/secao-documental";
-import { Download } from "lucide-react";
+import { Download, FileText, LockKeyhole } from "lucide-react";
 import { useState } from "react";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
@@ -54,7 +54,7 @@ export function PortalDocumentos() {
     const proximaAcao = vivo.data?.proximaAcao ?? null;
     const solicitado = proximaAcao?.destino === "/portal/documentos" ? proximaAcao.acao : null;
     return (
-      <PortalShell titulo={COPY_TELAS.documentos.titulo} descricao={COPY_TELAS.documentos.descricao}>
+      <PortalShell titulo="Cofre Digital" descricao="Documentos e registros da sua história familiar.">
         {vivo.isLoading ? (
           <PortalCarregando />
         ) : vivo.isError ? (
@@ -64,7 +64,15 @@ export function PortalDocumentos() {
           />
         ) : (
           <div className="app-v11-secoes" data-aba-documentos>
-            <p className="border-l-2 border-gold pl-4 text-sm leading-relaxed text-navy/75">Cada documento terá seu estado aqui assim que a equipe compartilhar a lista completa com você.</p>
+            {docs.length === 0 && !solicitado ? (
+              <div className="app-cofre-ausencia" data-cofre-ausencia>
+                <LockKeyhole className="h-8 w-8 text-navy" aria-hidden="true" />
+                <h2 className="mt-3 font-serif text-2xl text-navy">Acervo sob curadoria técnica</h2>
+                <p className="mt-2 text-sm text-navy/70">Os pedidos, os documentos em conferência e os arquivos liberados terão seu lugar aqui quando forem compartilhados com você.</p>
+                <span className="app-estado-editorial mt-3">Em preparação</span>
+                <LinkPortal to="/portal/legado" className="mt-4 flex min-h-11 items-center text-sm text-navy underline decoration-gold underline-offset-4">Conhecer o Legado</LinkPortal>
+              </div>
+            ) : (<>
             {/* 1. Solicitados — só o pedido real da equipe, com a instrução de envio integrada ao card. */}
             <section
               data-documentos-solicitados
@@ -83,8 +91,8 @@ export function PortalDocumentos() {
               {solicitado ? (
                 <div className="mt-3 rounded-lg border border-gold/35 bg-gold/10 px-4 py-3 text-sm text-navy">{solicitado}</div>
               ) : (
-                <p className="app-v11-lacuna mt-3 text-navy/65">
-                   Por enquanto, não precisamos de nenhum documento seu. A lista completa ainda não foi compartilhada.
+                <p className="app-estado-editorial mt-3">
+                   A lista de documentos será apresentada quando for compartilhada com você.
                 </p>
               )}
               <p className="mt-3 text-xs text-navy/50">Se precisarmos de algo, o pedido e a orientação para enviar aparecerão aqui.</p>
@@ -101,7 +109,7 @@ export function PortalDocumentos() {
               <div className="flex flex-wrap items-start justify-between gap-2"><h2 className="font-serif text-xl text-navy">Em conferência</h2><span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">Aguardam conferência</span></div>
               <p className="mt-1 text-sm text-navy/60">Os documentos que você nos enviar ficam aqui enquanto a equipe os confere.</p>
               {enviados.length === 0 ? (
-                <p className="app-v11-lacuna mt-3 text-navy/65">
+                <p className="app-estado-editorial mt-3">
                   Quando você compartilhar um documento, poderá acompanhá-lo aqui.
                 </p>
               ) : (
@@ -119,7 +127,7 @@ export function PortalDocumentos() {
               <div className="py-1">
               <div className="flex flex-wrap items-start justify-between gap-2"><h2 className="font-serif text-xl text-navy">Certidões liberadas</h2><span className="rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/65">Abertos para você</span></div>
               {liberados.length === 0 ? (
-                <p className="app-v11-lacuna mt-3 text-navy/65">
+                <p className="app-estado-editorial mt-3">
                   {COPY_TELAS.documentos.vazio}
                 </p>
               ) : (
@@ -142,6 +150,7 @@ export function PortalDocumentos() {
             
               </SecaoDocumental>
 </section>
+            </>)}
           </div>
         )}
       </PortalShell>
@@ -160,7 +169,7 @@ export function PortalDocumentos() {
   }
 
   return (
-    <PortalShell titulo={COPY_TELAS.documentos.titulo} descricao={COPY_TELAS.documentos.descricao}>
+    <PortalShell titulo="Cofre Digital" descricao="Documentos e registros da sua história familiar.">
       {erro ? (
         <p className="mb-4 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
           {erro}
@@ -205,7 +214,16 @@ export function PortalDocumentos() {
             const solicitacoesAbertas = vivo.data?.solicitacoes ?? [];
             return (
         <div className="app-v11-secoes" data-aba-documentos-vivo>
-          <p className="border-l-2 border-gold pl-4 text-sm leading-relaxed text-navy/75">Os pedidos pendentes ficam em Solicitados. Cada envio é acompanhado em Em conferência (Recebidos); as certidões abertas para você ficam em Certidões liberadas (Liberados).</p>
+          {liberados_lista.length === 0 && recebidos.length === 0 && !solicitado && solicitacoesAbertas.length === 0 ? (
+            <div className="app-cofre-ausencia" data-cofre-ausencia>
+              <LockKeyhole className="h-8 w-8 text-navy" aria-hidden="true" />
+              <h2 className="mt-3 font-serif text-2xl text-navy">Acervo sob curadoria técnica</h2>
+              <p className="mt-2 text-sm text-navy/70">Os pedidos, os documentos em conferência e os arquivos liberados terão seu lugar aqui quando forem compartilhados com você.</p>
+              <span className="app-estado-editorial mt-3">Em preparação</span>
+              <div className="mt-4"><EnviarDocumento casoId={casoAtivo} /></div>
+              <LinkPortal to="/portal/legado" className="mt-3 inline-flex min-h-11 items-center text-sm text-navy underline decoration-gold underline-offset-4">Conhecer o Legado</LinkPortal>
+            </div>
+          ) : (<>
           {/* 1. Solicitados — o que a equipe pediu, com a instrução de envio integrada ao card. */}
           <section data-documentos-solicitados className="app-v11-faixa">
               <SecaoDocumental tipo="solicitados" titulo="Solicitados">
@@ -253,8 +271,8 @@ export function PortalDocumentos() {
                 <p className="text-sm text-navy">{solicitado}</p>
               </div>
             ) : (
-              <p className="app-v11-lacuna mt-3 text-navy/65">
-                 Por enquanto, não precisamos de nenhum documento seu. A lista completa ainda não foi compartilhada.
+              <p className="app-estado-editorial mt-3">
+                 A lista de documentos será apresentada quando for compartilhada com você.
               </p>
             )}
             <div className="mt-4">
@@ -280,7 +298,7 @@ export function PortalDocumentos() {
               Os documentos que você nos enviar ficam aqui enquanto a equipe os confere.
             </p>
             {recebidos.length === 0 ? (
-              <p className="app-v11-lacuna mt-3 text-navy/65">
+              <p className="app-estado-editorial mt-3">
                  Quando você compartilhar um documento, poderá acompanhá-lo aqui.
               </p>
             ) : (
@@ -288,10 +306,10 @@ export function PortalDocumentos() {
                 {recebidos.map((d) => (
                   <li
                     key={`rec-${d.id}`}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-4"
+                    className="app-documento-registro grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-4"
                   >
                     <div className="min-w-0">
-                      <p className="font-medium text-navy">{textoParaCliente(d.titulo)}</p>
+                      <p className="flex items-start gap-2 font-medium text-navy"><FileText className="h-5 w-5 shrink-0" aria-hidden="true" />{textoParaCliente(d.titulo)}</p>
                       <p className="text-xs text-navy/50">
                         enviado em {new Date(d.enviadoEm).toLocaleDateString("pt-BR")}
                       </p>
@@ -323,7 +341,7 @@ export function PortalDocumentos() {
               </span>
             </div>
             {liberados_lista.length === 0 ? (
-              <p className="app-v11-lacuna mt-3 text-navy/65">
+              <p className="app-estado-editorial mt-3">
                 {COPY_TELAS.documentos.vazio}
               </p>
             ) : (
@@ -331,15 +349,16 @@ export function PortalDocumentos() {
                 {liberados_lista.map((d) => (
                   <li
                     key={d.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-4"
+                    className="app-documento-registro grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-4"
                   >
                     <div className="min-w-0">
-                      <p className="font-medium text-navy">{textoParaCliente(d.titulo)}</p>
+                      <p className="flex items-start gap-2 font-medium text-navy"><FileText className="h-5 w-5 shrink-0" aria-hidden="true" />{textoParaCliente(d.titulo)}</p>
                       <p className="text-xs text-navy/50">{textoParaCliente(d.caso)}</p>
+                      {d.liberadoEm ? <p className="mt-1 text-xs text-navy/70">Liberado em {new Date(d.liberadoEm).toLocaleDateString("pt-BR")}</p> : null}
                     </div>
-                    <Button variant="outline"
+                    <Button variant="default"
                       onClick={() => abrir(d.id)}
-                      className="inline-flex items-center gap-2 rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy"
+                      className="inline-flex min-h-11 shrink-0 items-center gap-2 bg-navy px-3 py-2 text-sm text-primary-foreground"
                     >
                       <Download className="h-4 w-4" /> Baixar
                     </Button>
@@ -386,6 +405,7 @@ export function PortalDocumentos() {
           
               </SecaoDocumental>
 </section>
+          </>)}
         </div>
           );
           }}
