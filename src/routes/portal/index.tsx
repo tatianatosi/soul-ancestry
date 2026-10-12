@@ -94,7 +94,7 @@ export function PortalHome() {
   const pessoasDoNucleo = pessoasDaArvore(vivo.data?.projecoes ?? [])
     .slice()
     .sort((a, b) => (a.geracao ?? 99) - (b.geracao ?? 99));
-  const pessoasPublicadas = pessoasDoNucleo.length;
+  const pessoasPublicadas = pessoasDaArvore(vivo.data?.projecoes ?? []).length;
    const documentoPrioritario = vivo.data?.solicitacoes?.slice(0, 3).map((item) => item.titulo).join("\n") || null;
   const microentrega = jornada.linha.find((item) => item.tipo === "microentrega")?.conteudo ?? null;
 
