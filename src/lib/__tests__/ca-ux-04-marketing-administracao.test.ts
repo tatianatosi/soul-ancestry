@@ -40,6 +40,7 @@ describe("CA-UX-04 — navegação", () => {
 
   it("mantém rotas administrativas em Governança, com permissão preservada", () => {
     // Menu da conta vazio desde 11/10/2026 (decisão da Proprietária): DEMO saiu da lateral.
+    // A rota /app-cliente-demo segue preservada por link direto.
     expect(rotasDoMenuConta()).toEqual([]);
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
     const rotas = gov.sub.filter((s) => "to" in s).map((s) => s.to);
