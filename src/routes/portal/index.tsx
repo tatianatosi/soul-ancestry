@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils";
 import { ArrowRight, CheckCircle2, UsersRound, Sparkles } from "lucide-react";
 import { CaCard } from "@/components/ui/ca-card";
 import { pessoasDaArvore } from "@/lib/arvore-publicacao";
-import { BlocoExemploVisual } from "@/components/portal/bloco-exemplo-visual";
 
 const PROXIMO_PASSO_VAZIO =
   "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui.";
@@ -380,8 +379,8 @@ function PainelHomeMockup({
           principal (maior), e a linha do tempo abaixo fica discreta. */}
       <section data-home-editorial className="relative overflow-hidden rounded-xl border-b-2 border-gold/70 bg-navy-800 p-6 text-cream shadow-md sm:p-8">
         <div className="min-w-0">
-          <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-gold">Acompanhamento da família</p>
-          <p className="mt-2 font-serif text-xl text-cream/80">Uma história em construção</p>
+           <p className="app-selo-projeto text-[10px] font-medium text-gold">Projeto familiar</p>
+           <p className="mt-3 font-serif text-xl text-cream/80">Bem-vinda à sua história</p>
           <h2 className="mt-1 font-serif text-[1.9rem] leading-tight text-cream sm:text-4xl">
             {tituloCaso}
             {composicao ? <span className="text-cream/60"> · {composicao}</span> : null}
@@ -393,11 +392,11 @@ function PainelHomeMockup({
               Sem publicação, a ausência é dita — nunca deduzida do cadastro. */}
           <div className="mt-4 border-t border-cream/10 pt-4" data-home-nucleo>
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-cream/60">Núcleo familiar</p>
-            <p className="mt-1 text-sm text-cream/75">Não registrado — os membros aparecem aqui quando forem compartilhados com a família.</p>
+             <p className="mt-1 text-sm text-cream/75">Os membros terão seu lugar aqui quando forem compartilhados com a família.</p>
           </div>
         </div>
 
-        {fase ? null : (
+       {fase ? null : (
           <p className="mt-4 border-t border-cream/10 pt-4 text-sm leading-relaxed text-cream/70">
             {marcos === 0
                ? "A história da sua família terá seu lugar aqui, à medida que novos trechos forem compartilhados."
@@ -410,7 +409,14 @@ function PainelHomeMockup({
         <section aria-label="Progresso da jornada" className="rounded-xl bg-navy-800 px-5 pb-5 pt-1 text-cream">
           <EstepeJornada rotulos={fase.rotulos} indice={fase.indice} percentual={fase.percentual} valor={fase.valor} compacto={fase.compacto ?? false} />
         </section>
-      ) : null}
+      ) : (
+        <section className="app-home-resumo" aria-label="Resumo da Jornada">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+            <div className="min-w-0"><h3 className="font-serif text-xl text-navy">Nossa jornada</h3><p className="mt-1 text-sm text-navy/70">{marcos > 0 ? "Acompanhe os trechos já compartilhados da sua história." : "Os primeiros marcos terão seu lugar aqui quando forem compartilhados."}</p></div>
+            <LinkPortal to="/portal/jornada" className="inline-flex min-h-11 shrink-0 items-center text-sm text-navy" aria-label="Abrir Jornada"><ArrowRight className="h-5 w-5" aria-hidden="true" /></LinkPortal>
+          </div>
+        </section>
+      )}
 
       <div className="grid gap-8 pt-4 sm:grid-cols-2 sm:items-start">
         <section aria-label="Próxima ação — próximo passo" className="app-card-proximo-passo" data-home-proximo-passo>
@@ -441,7 +447,7 @@ function PainelHomeMockup({
             <p className="text-sm leading-relaxed text-navy/75">
               {pessoasPublicadas > 0
                 ? `${pessoasPublicadas} ${pessoasPublicadas === 1 ? "pessoa compartilhada" : "pessoas compartilhadas"} na sua Árvore.`
-                : "Quando novos vínculos estiverem confirmados, eles aparecerão na sua Árvore."}
+                 : "As pessoas da família terão seu lugar na Árvore quando forem compartilhadas."}
             </p>
             <LinkPortal to="/portal/arvore" className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Árvore</LinkPortal>
           </div>
@@ -456,7 +462,7 @@ function PainelHomeMockup({
         ) : null}
 
         <section className="sm:col-span-2">
-          <div className="mb-3 flex items-end justify-between gap-2">
+          <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
             <h3 className="flex min-w-0 items-center gap-2 font-serif text-2xl text-navy"><Sparkles className="h-5 w-5 shrink-0" aria-hidden="true" />Achados da sua história</h3>
             <LinkPortal to="/portal/jornada" className="shrink-0 text-xs font-medium text-navy/60 underline-offset-2 hover:text-navy hover:underline">
               Ver Jornada
@@ -467,7 +473,7 @@ function PainelHomeMockup({
               <p className="font-serif text-lg leading-relaxed text-navy/70">
                 Quando houver descobertas prontas para compartilhar, elas encontrarão seu lugar aqui.
               </p>
-              <BlocoExemploVisual tipo="achados" />
+              <span className="app-estado-editorial mt-3">Em pesquisa</span>
             </div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
@@ -476,7 +482,7 @@ function PainelHomeMockup({
                 const resumo = resto.join(" ");
                 return (
                   <LinkPortal key={a.id} to={a.destino} className="block">
-                    <CaCard className="border-l-2 border-l-plum transition-colors hover:border-plum">
+                    <CaCard className="app-achado-editorial transition-colors">
                       <div className="flex items-baseline gap-3">
                         {a.ano ? <span className="font-serif text-2xl leading-none text-gold">{a.ano}</span> : null}
                         <span className="text-[10px] font-medium uppercase tracking-widest text-navy/55">{a.tipo}</span>
@@ -491,27 +497,22 @@ function PainelHomeMockup({
           )}
         </section>
         {microentrega ? (
-          <section aria-label="Microentrega" className="app-home-entrega border-l-2 border-plum/60 py-1 pl-4 sm:col-span-2">
-            <p className="text-[10px] font-medium uppercase tracking-widest text-plum">Da nossa jornada</p>
+          <section aria-label="Microentrega" className="app-home-entrega border-l-2 border-gold/60 py-1 pl-4 sm:col-span-2">
+            <p className="text-[10px] font-medium text-navy">Da nossa jornada</p>
             <p className="mt-1 text-sm text-navy/65">{microentrega}</p>
             <LinkPortal to="/portal/jornada" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Jornada</LinkPortal>
           </section>
         ) : null}
         {!documentoPrioritario ? (
           <section aria-label="Documentos prioritários" className="app-home-ausencia sm:col-span-2">
-            <details><summary className="font-serif text-xl text-navy">Documentos prioritários</summary>
-            <p className="mt-2 text-sm leading-relaxed text-navy/70">Ainda não há uma prioridade documental compartilhada com sua família. O checklist aparecerá quando for disponibilizado pela equipe.</p>
-            <BlocoExemploVisual tipo="documentos" />
+            <h3 className="font-serif text-xl text-navy">Seu acervo</h3>
+            <p className="mt-2 text-sm leading-relaxed text-navy/70">Acervo sob curadoria técnica. Os pedidos e documentos liberados terão seu lugar em Documentos.</p>
             <LinkPortal to="/portal/documentos" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Documentos <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></LinkPortal>
-            </details>
           </section>
         ) : null}
         <section aria-label="Contato com a equipe" className="app-home-ausencia sm:col-span-2">
-          <details><summary className="font-serif text-xl text-navy">Contato com a equipe</summary>
-          <p className="mt-2 text-sm leading-relaxed text-navy/70">Ainda não há um canal de contato disponibilizado neste aplicativo.</p>
-          <BlocoExemploVisual tipo="contato" />
+          <h3 className="font-serif text-xl text-navy">Contato com a equipe</h3>
           <LinkPortal to="/portal/conta" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Conta <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></LinkPortal>
-          </details>
         </section>
       </div>
     </div>

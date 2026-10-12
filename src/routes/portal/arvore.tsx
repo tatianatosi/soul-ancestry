@@ -87,7 +87,7 @@ export function PortalArvore() {
                   {/* A composição exibe G1 e as gerações com pessoas publicadas. */}
                   <section
                     aria-label={`Gerações G1 a G${maiorGeracao}`}
-                    className="min-w-0 py-2"
+                    className="app-arvore-moldura min-w-0 py-2"
                   >
                     <p className="text-[11px] font-medium uppercase tracking-widest text-navy/45">
                        As gerações que compõem você
@@ -114,13 +114,13 @@ export function PortalArvore() {
                             ) : null}
                             {pessoas.length > 0 && geracao.id !== "G1" && !geracoesPublicadas.has(geracao.id) ? (
                               <p className="border-l-2 border-terracotta/40 pl-4 text-sm leading-relaxed text-navy/70" data-arvore-lacuna>
-                                Lacuna: ninguém desta geração foi compartilhado ainda.
+                                Em pesquisa · geração ainda sem pessoas compartilhadas.
                               </p>
                             ) : null}
                             {pessoasDaGeracao(geracao.id).map((pessoa) => (
                               <NoPessoa key={pessoa.chave} pessoa={pessoa} />
                             ))}
-                            {pessoas.length === 0 && geracao.id !== "G1" ? <p className="text-sm text-navy/60">Nenhuma pessoa compartilhada nesta geração.</p> : null}
+                            {pessoas.length === 0 && geracao.id !== "G1" ? <p className="app-estado-editorial">Em pesquisa</p> : null}
                           </div>
                         </div>
                       ))}
@@ -138,7 +138,7 @@ export function PortalArvore() {
                         <>
                           <span className="font-serif text-base text-navy">
                             {pessoas.length}{" "}
-                            {pessoas.length === 1 ? "pessoa conectada recuperada" : "pessoas conectadas recuperadas"}
+                            {pessoas.length === 1 ? "pessoa compartilhada" : "pessoas compartilhadas"}
                           </span>
                           {/*
                             O rodapé "de um universo de N possíveis" do mockup de

@@ -1,4 +1,4 @@
-import { ChevronDown, BookOpen } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 import { COPY_TELAS } from "@/lib/portal-copy";
 import {
@@ -209,7 +209,7 @@ function TimelineVertical({
           {variante === "gold"
             ? "As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família."
             : "Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar."}
-        </p><p className="app-lacuna mt-2" data-lacuna>Lacuna · ainda sem marco publicado</p></div>
+        </p><p className="app-estado-editorial mt-2">Em pesquisa</p></div>
       ) : (
         <div className="relative">
           <div className={cn("app-jornada-fio absolute inset-y-0 left-0 w-0.5 rounded-full", variante === "gold" ? "bg-gold" : "bg-navy")} aria-hidden="true" />
@@ -231,10 +231,10 @@ function TimelineVertical({
                   {no.dataPrincipal ? ` · ${no.dataPrincipal}` : ""}
                   </KitBadge>
                 </div>
-                <details className="app-jornada-evento" open>
-                  <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 text-sm font-medium text-navy"><span className="min-w-0">{no.titulo}</span><ChevronDown className="app-detalhe-seta h-4 w-4 shrink-0" aria-hidden="true" /></summary>
+                <div className="app-jornada-evento">
+                  <h3 className="font-serif text-xl text-navy">{no.titulo}</h3>
                   <p className="mt-0.5 text-sm text-navy/70">{no.conteudo}</p>
-                </details>
+                </div>
                 {no.dataSecundaria ? <p className="mt-0.5 text-[10px] text-navy/40">{no.dataSecundaria}</p> : null}
                 {no.destino ? (
                   <LinkPortal
@@ -269,7 +269,7 @@ function MomentosDeUniao({ pontes }: { pontes: NoPonte[] }) {
           {pontes.map((p, i) => <li key={i} className="text-sm leading-relaxed text-navy/75">{p.texto}</li>)}
         </ul>
       ) : (
-        <div><p className="mt-1.5 text-sm leading-relaxed text-navy/60">Os encontros da história da família aparecerão aqui quando forem compartilhados.</p><p className="app-lacuna mt-2" data-lacuna>Lacuna · ainda sem encontro publicado</p></div>
+        <div><p className="mt-1.5 text-sm leading-relaxed text-navy/60">Os encontros da história da família aparecerão aqui quando forem compartilhados.</p><p className="app-estado-editorial mt-2">Em pesquisa</p></div>
       )}
     </div>
   );
@@ -492,7 +492,7 @@ export function PortalJornada() {
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                            <h2 className="font-serif text-xl text-navy">Linha Ancestral</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.</p>
-                            <p className="app-lacuna mt-2" data-lacuna>Lacuna · ainda sem marco publicado</p>
+                            <p className="app-estado-editorial mt-2">Em pesquisa</p>
                          </section>
                           <div className="relative sm:order-2 sm:col-span-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
@@ -502,7 +502,7 @@ export function PortalJornada() {
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
                            <h2 className="font-serif text-xl text-navy">Linha do Processo</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar.</p>
-                            <p className="app-lacuna mt-2" data-lacuna>Lacuna · ainda sem marco publicado</p>
+                            <p className="app-estado-editorial mt-2">Em pesquisa</p>
                          </section>
                           <section id="linha-memoria" className="relative scroll-mt-20 border-t border-border py-4 sm:order-4 sm:col-span-2">
                             <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-plum bg-cream" />

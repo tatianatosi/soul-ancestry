@@ -1,5 +1,13 @@
 # Roadmap
 
+## Refinamento editorial — quatro abas oficiais (12/10/2026)
+- [x] Refinar Home, Jornada, Árvore e Documentos apenas na apresentação; sete abas, fontes existentes e dados preservados.
+- [x] Executar nove suítes existentes: 82 testes passaram, 2 conflitos de apresentação; build da plataforma OK 19:24:46 UTC.
+- [x] Capturar antes/depois autenticado em 375/1280, foco/perfil da Árvore e reabertura de Documentos; zero overflow/pageerrors; relatório entregue.
+- [ ] PEDIDO AO CLAUDE: a5-documentos-separacao-semantica exige copy antiga; a1-home-card-microentrega exige border-plum legado. Testes inalterados.
+- [ ] Metadados e download no espelho administrativo bloqueados por fonte: leitor entrega só id/liberação/origem; sem título, data ou emissor. Nenhum arquivo liberado no caso para prova real de download.
+- [ ] Aceite da Proprietária; rascunho não publicado nem integrado. Inspeção do agente não é prova pessoal de uso.
+
 ## Publicação do site principal (12/10/2026)
 - [x] Publicação solicitada pela Proprietária: resiliência de rede, botão Reenviar, Conta nova e sete abas canônicas no site principal.
 - [x] Conferência de segurança antes de publicar: varredura executada, sem problemas nas checções básicas; análise profunda do último commit está desatualizada.
