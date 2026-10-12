@@ -1,5 +1,13 @@
 # Roadmap
 
+## Auditoria 10/10 — quatro correções visuais finais (12/10/2026)
+- [x] Inspecionar Radar Individual/heatmap da Ana em 375/1280; nenhuma sobreposição, margem/reserva/Assistente preservados.
+- [x] Conferir legenda humana da Jornada e aviso legal padrão do Legado; ajustes existentes preservados. Estado vazio de encontros NAO_LOCALIZADO pelo seletor, sem deduzir ausência na fonte.
+- [x] Acrescentar na Conta apenas do caso canônico o descritivo autorizado da condição familiar, preservando prevista/aguardando confirmação.
+- [x] Capturar antes/depois da Conta, Jornada, Legado e heatmap; F5 visual confirmado. Ficha civil/CaseHealthHero NAO_LOCALIZADO, sem alegar mascaramento.
+- [x] Preparar relatório, diff e 92 testes existentes; plataforma build OK 14:19:57 UTC. Inspeção administrativa do agente não comprova motores.
+- [ ] Aprovação da Proprietária e prova operacional pessoal; nada integrado/publicado, nenhum contexto arquivado.
+
 ## Homologação final — Desk V4 e App Cliente (11/10/2026)
 - [ ] Ajustar `/painel` na implementação Go Live: retirar a sessão demo do menu e alimentar o cockpit pela fila real de próxima ação prioritária.
 - [ ] Corrigir Assistente × heatmap e apresentar cinco leituras financeiras com dados reais ou vazio honesto.

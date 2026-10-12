@@ -173,6 +173,23 @@ export async function pessoasDoCasoComFallbackNucleo(
 }
 
 /** Colunas de `case_members` lidas como pessoa do caso — todas existem na tabela. */
+export const STATUS_REPRESENTACAO_ATIVA: readonly string[] = ["documentada", "confirmada"];
+
+export function representacaoLegalAtiva(membro: {
+  representacao_necessaria?: boolean | null;
+  status_representacao?: string | null;
+}): boolean {
+  return membro.representacao_necessaria === true || STATUS_REPRESENTACAO_ATIVA.includes(membro.status_representacao ?? "");
+}
+
+export function requerCredencialPortal(membro: {
+  dependente?: boolean | null;
+  representacao_necessaria?: boolean | null;
+  status_representacao?: string | null;
+}): boolean {
+  return !(membro.dependente === true || representacaoLegalAtiva(membro));
+}
+
 export const COLUNAS_CASE_MEMBERS_PESSOA =
   "id,nome,papel_no_caso,titular,contratante,dependente,cpf,telefone,telefone_whatsapp,cep,data_nascimento,local_nascimento,email,rg,profissao,estado_civil,endereco,representante_legal,status_cadastral,parentesco,requerente,nacionalidade,cliente_id,pai_id,mae_id,data_verificacao_dado";
 

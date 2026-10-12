@@ -40,25 +40,27 @@ const ABAS_RASTREADAS: Partial<Record<string, AbaComTelemetria>> = {
 function useTelemetriaDePermanencia(rotaAtiva: string, bloqueado: boolean) {
   const registrar = useServerFn(registrarTempoNaAba);
   const estadoRef = useRef<{ tab: AbaComTelemetria; desde: number } | null>(null);
+  const vigenteRef = useRef({ registrar, bloqueado });
+
+  useEffect(() => {
+    vigenteRef.current = { registrar, bloqueado };
+  }, [registrar, bloqueado]);
 
   const enviarEFechar = useCallback(() => {
+    const { registrar: enviar, bloqueado: travado } = vigenteRef.current;
     const atual = estadoRef.current;
     estadoRef.current = null;
-    if (!atual || bloqueado) return;
+    if (!atual || travado) return;
     const duracaoMs = Date.now() - atual.desde;
     if (duracaoMs <= 0) return;
-    void registrar({ data: { tab: atual.tab, duracaoMs, casoId: null } }).catch(() => {});
-  }, [registrar, bloqueado]);
+    void enviar({ data: { tab: atual.tab, duracaoMs, casoId: null } }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     enviarEFechar();
     const tab = ABAS_RASTREADAS[rotaAtiva];
     estadoRef.current = tab ? { tab, desde: Date.now() } : null;
-    // Só reage à troca de rota: a duração pendente é fechada com o estado
-    // (bloqueado/registrar) vigente no momento da troca, não re-disparada a
-    // cada render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rotaAtiva]);
+  }, [rotaAtiva, enviarEFechar]);
 
   useEffect(() => {
     function aoEsconder() {

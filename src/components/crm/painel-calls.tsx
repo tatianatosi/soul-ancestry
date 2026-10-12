@@ -265,6 +265,8 @@ function TrilhaDoLead({ leadId }: { leadId: string }) {
   );
 }
 
+type RespostaGravacao = { ok: boolean; erros?: { motivo: string }[] };
+
 export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) {
   const carregar = useServerFn(listarLeadsDesk);
   const salvar = useServerFn(salvarLeadDesk);
@@ -370,21 +372,21 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
   // Proprietária: pendência informa, não impede (o servidor faz o mesmo).
   const faltaMotivo = motivoExigido && !motivoCall.trim() && !autoridade.proprietaria;
 
-  const opcoesTrilhas: Opcao[] = trilhas.map((t: any) => ({
+  const opcoesTrilhas: Opcao[] = trilhas.map((t) => ({
     valor: t.id,
     rotulo: `${t.pais ?? "—"} · ${t.track_name ?? t.code ?? "—"} (${rotulo("status_via", t.status_via)})`,
   }));
   const opcoesMarcos: Opcao[] = marcos
-    .filter((m: any) => !lead?.trilha_referencia_id || m.track_id === lead.trilha_referencia_id)
-    .map((m: any) => ({ valor: m.id, rotulo: `${m.label} — ${rotulo("status_marco", m.status)}` }));
-  const trilhaSelecionada = trilhas.find((t: any) => t.id === lead?.trilha_referencia_id) ?? null;
+    .filter((m) => !lead?.trilha_referencia_id || m.track_id === lead.trilha_referencia_id)
+    .map((m) => ({ valor: m.id, rotulo: `${m.label} — ${rotulo("status_marco", m.status)}` }));
+  const trilhaSelecionada = trilhas.find((t) => t.id === lead?.trilha_referencia_id) ?? null;
   // Fase 4 (27/09/2026) — "Prompt Canônicos": síntese de Discovery. A mesma
   // função já existia e já era calculada em /leads — nunca em /calls, onde
   // a call de fato acontece. Mesmo cálculo, mesmo contexto de trilha/marco.
   const sinaisQualidade = lead
     ? sinaisQualidadeLead(lead, {
         status_via: trilhaSelecionada?.status_via ?? lead.status_via ?? null,
-        status_marco: marcos.find((m: any) => m.id === lead.marco_referencia_id)?.status ?? null,
+        status_marco: marcos.find((m) => m.id === lead.marco_referencia_id)?.status ?? null,
       })
     : [];
 
@@ -406,7 +408,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
       const atualizado = !multi
         ? { ...r, [campo]: codigo }
         : (() => {
-            const atual = ((r[campo] as string[] | undefined) ?? (lead as any)?.[campo] ?? []) as string[];
+            const atual = ((r[campo] as string[] | undefined) ?? lead?.[campo as keyof LeadDesk] ?? []) as string[];
             return atual.includes(codigo) ? r : { ...r, [campo]: [...atual, codigo] };
           })();
       /*
@@ -423,9 +425,9 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
       if (
         campo === "nacionalidades_interesse" &&
         !atualizado["trilha_referencia_id"] &&
-        !(lead as any)?.trilha_referencia_id
+        !lead?.trilha_referencia_id
       ) {
-        const trilha = trilhas.find((t: any) => t.pais === valor);
+        const trilha = trilhas.find((t) => t.pais === valor);
         if (trilha) return { ...atualizado, trilha_referencia_id: trilha.id };
       }
       return atualizado;
@@ -466,9 +468,9 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
           origem: { fonte: p.fonte, autor: p.achado.autor, trecho: p.achado.trecho, data: p.achado.quando },
         },
       }),
-    onSuccess: (r: any, p) => {
+    onSuccess: (r: RespostaGravacao, p) => {
       if (r?.ok === false) {
-        setAviso(r.erros?.map((e: any) => e.motivo).join(" · ") ?? "Sugestão não aceita pelas validações.");
+        setAviso(r.erros?.map((e) => e.motivo).join(" · ") ?? "Sugestão não aceita pelas validações.");
         return;
       }
       setAviso(p.decisao === "rejeitada" ? "Sugestão rejeitada e registrada no lead." : "Sugestão gravada no lead, com a origem.");
@@ -496,10 +498,10 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
         },
       });
     },
-    onSuccess: (r: any) => {
+    onSuccess: (r: RespostaGravacao) => {
       if (r?.ok === false) {
         setAviso(
-          r.erros?.map((e: any) => e.motivo).join(" · ") ?? "Registro não aceito pelas validações.",
+          r.erros?.map((e) => e.motivo).join(" · ") ?? "Registro não aceito pelas validações.",
         );
         return;
       }
@@ -512,7 +514,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
       void qc.invalidateQueries({ queryKey: ["painel-cadencia"] });
       void refetch();
     },
-    onError: (e: any) => setAviso(e?.message ?? "Falha ao gravar."),
+    onError: (e: Error) => setAviso(e.message || "Falha ao gravar."),
   });
 
   const mutarHandoff = useMutation({
@@ -730,7 +732,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
           mDecidir.mutate({ achado: a, campo: dest.campoLead, valor: codigo, decisao: "aceita", fonte });
           // País aceito sugere a trilha jurídica correspondente (rascunho, a confirmar) — nunca sobrescreve escolha humana.
           if (dest.campoLead === "nacionalidades_interesse" && !lead?.trilha_referencia_id) {
-            const trilha = trilhas.find((t: any) => t.pais === a.valor);
+            const trilha = trilhas.find((t) => t.pais === a.valor);
             if (trilha) setRascunho((r) => ({ ...r, trilha_referencia_id: trilha.id }));
           }
           const p = perguntaDaMesaPorCampo(dest.campoLead);
