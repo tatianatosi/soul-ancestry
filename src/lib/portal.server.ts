@@ -89,7 +89,9 @@ export async function registrarAuditoria(params: {
 const normalizarNomePessoa = (valor: unknown) =>
   String(valor ?? "").trim().replace(/\s+/g, " ").toLocaleLowerCase("pt-BR");
 
-export async function representacaoLegalDoCliente(
+const ERRO_LEITURA_DEPENDENTE = "Não foi possível verificar se este cadastro é dependente.";
+
+export async function dependenteDoCliente(
   supabase: any,
   organizationId: string,
   clientId: string,
@@ -97,34 +99,47 @@ export async function representacaoLegalDoCliente(
 ): Promise<boolean> {
   const membros = await supabase
     .from("nucleo_membros")
-    .select("representacao_necessaria")
+    .select("papel, papel_no_caso, representacao_necessaria")
     .eq("cliente_id", clientId)
     .eq("organization_id", organizationId)
     .is("archived_at", null);
-  if (membros.error) throw new Error("Não foi possível verificar a representação legal deste cadastro.");
-  if ((membros.data ?? []).some((m: any) => representacaoLegalAtiva(m))) return true;
+  if (membros.error) throw new Error(ERRO_LEITURA_DEPENDENTE);
+  const dependenteNoNucleo = (membros.data ?? []).some(
+    (m: any) => m.papel === "dependente" || m.papel_no_caso === "dependente" || representacaoLegalAtiva(m),
+  );
+  if (dependenteNoNucleo) return true;
 
-  if (!casoId) return false;
   const cliente = await supabase
     .from("clientes")
     .select("nome")
     .eq("id", clientId)
     .eq("organization_id", organizationId)
     .maybeSingle();
-  if (cliente.error) throw new Error("Não foi possível verificar a representação legal deste cadastro.");
+  if (cliente.error) throw new Error(ERRO_LEITURA_DEPENDENTE);
   const nome = normalizarNomePessoa(cliente.data?.nome);
   if (!nome) return false;
+
+  let casosIds: string[] = casoId ? [casoId] : [];
+  if (!casoId) {
+    const casos = await supabase
+      .from("crm_casos")
+      .select("id")
+      .eq("cliente_id", clientId)
+      .eq("organization_id", organizationId)
+      .is("archived_at", null);
+    if (casos.error) throw new Error(ERRO_LEITURA_DEPENDENTE);
+    casosIds = (casos.data ?? []).map((c: any) => c.id as string);
+  }
+  if (casosIds.length === 0) return false;
+
   const dependentes = await supabase
     .from("case_dependents")
-    .select("nome_completo, status_representacao")
-    .eq("case_id", casoId)
+    .select("nome_completo")
+    .in("case_id", casosIds)
     .eq("organization_id", organizationId)
     .is("archived_at", null);
-  if (dependentes.error) throw new Error("Não foi possível verificar a representação legal deste cadastro.");
-  return (dependentes.data ?? []).some(
-    (d: any) =>
-      normalizarNomePessoa(d.nome_completo) === nome && representacaoLegalAtiva({ status_representacao: d.status_representacao }),
-  );
+  if (dependentes.error) throw new Error(ERRO_LEITURA_DEPENDENTE);
+  return (dependentes.data ?? []).some((d: any) => normalizarNomePessoa(d.nome_completo) === nome);
 }
 
 /** Organização do usuário interno + validação de papel de gestão de acessos. */

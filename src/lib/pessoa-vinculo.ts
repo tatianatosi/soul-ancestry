@@ -183,10 +183,11 @@ export function representacaoLegalAtiva(membro: {
 }
 
 export function requerCredencialPortal(membro: {
+  dependente?: boolean | null;
   representacao_necessaria?: boolean | null;
   status_representacao?: string | null;
 }): boolean {
-  return !representacaoLegalAtiva(membro);
+  return !(membro.dependente === true || representacaoLegalAtiva(membro));
 }
 
 export const COLUNAS_CASE_MEMBERS_PESSOA =
