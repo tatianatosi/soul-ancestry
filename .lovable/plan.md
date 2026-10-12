@@ -1,27 +1,33 @@
-# Consolidação visual das 7 abas — o que dá para fazer com os dados reais
+# Auditoria visual autenticada — caso Ana Luiza
 
-## Já feito (falta só sua aprovação)
-- Rascunho "App Cliente — essência canônica (visual seguro)": terminou e o build está verde. Inclui Home, Jornada sem textos técnicos, Documentos em três seções, prateleiras do Legado e o App sem Assistente. As capturas de antes e depois estão prontas.
-- Corte anterior do App: Radar em Ouro Nobre com "Lacuna"; Árvore com as seis pessoas por geração e sem o genograma de demonstração; Conta com R$ 320/mês × 10 marcado como "previsto".
-- Rascunho "Desk V4 — homologação final v2": tira a "Sessão demo do App Cliente" do menu e muda o botão Assistente de lugar para não cobrir o heatmap.
+## Objetivo
+Navegar no ambiente atual com a sessão autorizada de `tati@pluggedresearch.com`, capturar as dez superfícies solicitadas e emitir um relatório factual, sem alterar dados, permissões, rotas ou regras.
 
-## O que este plano faz
-1. Jornada (Timeline Dupla): a Linha Ancestral e a Linha do Processo (§ 58c) ficam lado a lado, e o bloco "União de Ramos" fica em Ouro Nobre. Cada marco mostra o fato publicado no caso. Graz 1895, Viena e Brasil 1920 aparecem como "Lacuna" até que as fontes sejam aprovadas no Desk; nenhum nome ou data fica escrito fixo.
-2. Radar: a teia das 6 dimensões em Ouro Nobre fica centralizada. Ao lado entra um painel "Origens" (Áustria / Graz / Viena), que mostra só os lugares publicados. Dimensões e lugares sem base aparecem como "Lacuna".
-3. Árvore: as linhas de parentesco são desenhadas somente entre pessoas com relação publicada. Hoje não há nenhuma, então as linhas aparecem quando você publicar os vínculos, sem mais mudanças.
-4. Conta: a contratante logada vê o próprio plano de 10 × R$ 320. Ele aparece como "ativo" só se a assinatura estiver confirmada; antes disso, como "previsto". Sem aviso de bloqueio para Adair e Alice quando forem contratantes.
-5. Desk: nada novo. Eu aplico o rascunho do Desk V4 depois que você aprovar.
+## Limite da evidência
+- As imagens produzidas pelo agente serão identificadas como **inspeção administrativa autenticada**, não como `COMPROVADO_EM_USO` nem “prova oficial da Proprietária”.
+- A prova oficial continua exigindo ação executada pela própria Proprietária, confirmação, releitura após F5/reabertura e integração quando aplicável.
+- Cada item receberá somente um resultado permitido: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_DECISAO`, `ERRO_DE_FONTE` ou `NAO_LOCALIZADO`.
 
-## Limites que não mudam
-- Sete abas e seis grupos continuam iguais; nada de banco, permissões, convites ou publicação.
-- Não invento parentesco, datas nem cobrança Asaas.
-- Nada vai para o site principal enquanto o Claude estiver trabalhando sem a sua autorização.
+## Execução
+1. Restaurar a sessão autorizada no navegador sem registrar tokens, cookies ou outros segredos nas imagens e no relatório.
+2. Abrir as rotas pedidas e confirmar em tela a identidade segura do caso canônico, sem expor dados civis desnecessários.
+3. Capturar em `output/aceite-e2e/`:
+   - `01-desk-painel-hoje.png` — `/painel`, quatro KPIs e ausência visual de dados DEMO no grid.
+   - `02-desk-caso360-hero.png` — `/casos/CA-CID-AT-FAM-2026-001`, após eventual redirecionamento canônico, enquadrando o `CaseHealthHero` e verificando o mascaramento observável.
+   - `03-desk-radar-heatmap.png` — `/qualidade`, aba Radar Individual, caso Ana selecionado, enquadrando o Heatmap de Aderência Operacional por País.
+   - `04-portal-home.png` a `10-portal-conta-sem-upsell.png` — as sete rotas `/portal/*`, somente se a sessão tiver autorização real para o caso.
+4. Nas rotas diretas do App, não criar acesso, não trocar identidade e não contornar a autorização. Se a conta master não tiver acesso cliente direto, registrar o resultado correspondente e usar `/app-cliente-como-pessoa?casoId=a11a0000-0000-4000-8000-000000000002` apenas como evidência administrativa complementar, claramente separada — nunca como substituta do login do cliente.
+5. Fazer F5/reabertura de cada superfície para confirmar que o estado visual permanece; isso não converte a inspeção do agente em prova da Proprietária.
+6. Conferir visualmente cada PNG para garantir rota/título legível, enquadramento correto, ausência de sobreposição e ausência de segredos.
 
-## Entrega
-Capturas antes e depois em 375 e 1280 px de Jornada, Radar, Árvore e Conta, mais o PDF comparativo. Depois paro e espero a sua aprovação.
+## Critérios honestos de conformidade
+- Não declarar “dados demo removidos” apenas porque não estão no recorte; conferir o grid renderizado e seus rótulos.
+- Não declarar dados civis “mascarados” se o `CaseHealthHero` ou os campos civis não forem localizados.
+- Não declarar evidências, relações, seis eixos completos ou assinatura ativa quando a fonte mostrar `Lacuna`, condição prevista ou ausência de dado.
+- Na Conta, validar o texto real autorizado: `Condição familiar: 3 assinaturas / parcelas mensais`, com R$ 320/mês × 10 como condição prevista/aguardando confirmação; não afirmar cobrança ativa ou Asaas sem fonte confirmada.
+- Na Árvore, ausência de relações publicadas permanece `BLOQUEADO_POR_DADO`; pessoas por geração não comprovam parentesco.
 
-## Detalhes técnicos
-- Trabalho num novo rascunho que parte do "essência canônica"; CSS só sob `[data-app-cliente]` em `portal-v11.css`.
-- A Timeline e as Origens leem projeções publicadas (eventos e lugares da ficha publicada); sem dado = Lacuna.
-- Árvore: SVG que lê apenas as relações publicadas.
-- Conta: continua usando a RPC `portal_sou_contratante_financeiro` e a condição comercial; não toca `types.ts`.
+## Relatório
+Gerar `output/aceite-e2e/relatorio-auditoria-visual.md` com, para cada um dos dez itens: arquivo, data/hora UTC, ambiente, rota inicial e final, sessão usada, objeto observado, resultado permitido, evidência visível, divergência ou bloqueio e limite da inspeção.
+
+O relatório terminará declarando que código, build, teste, preview e capturas do agente não substituem a prova visual executada pela Proprietária e que nenhum contexto foi arquivado.
