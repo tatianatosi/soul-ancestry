@@ -941,6 +941,3 @@
   [data-app-cliente] .app-conta-composicao { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; column-gap: var(--ca-space-6); }
   [data-app-cliente] .app-conta-atendimento { grid-column: 1 / -1; }
 }
-
-/* 12/10/2026 — aviso de falha de conexão legível também dentro de cartões escuros. */
-[data-app-cliente] #conteudo-portal [data-aviso-falha-conexao] :where(p, span, button) { color: var(--ca-terracotta); }
