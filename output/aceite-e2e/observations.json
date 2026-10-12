@@ -1,0 +1,72 @@
+[
+  {
+    "file": "01-desk-painel-hoje.png",
+    "requested": "/painel",
+    "final": "http://localhost:8080/equipe/entrar",
+    "title": "Entrar — Equipe Clube Ancestral",
+    "body": "CLUBE ANCESTRAL · INTERNO\n\nEntrar no Desk\n\nPainel de Calls continua em Comercial e no Painel Hoje. CRM Mestre e Catálogo 30 ficam na conta, embaixo. Campo com pendência continua editável.\n\nE-mail corporativo\nSenha\nEntrar\nEsqueci minha senha\nSou cliente e recebi um link de acesso\n\nNão há autocadastro: contas internas são criadas apenas por um administrador."
+  },
+  {
+    "file": "02-desk-caso360-hero.png",
+    "requested": "/casos/CA-CID-AT-FAM-2026-001",
+    "final": "http://localhost:8080/equipe/entrar",
+    "title": "Entrar — Equipe Clube Ancestral",
+    "body": "CLUBE ANCESTRAL · INTERNO\n\nEntrar no Desk\n\nPainel de Calls continua em Comercial e no Painel Hoje. CRM Mestre e Catálogo 30 ficam na conta, embaixo. Campo com pendência continua editável.\n\nE-mail corporativo\nSenha\nEntrar\nEsqueci minha senha\nSou cliente e recebi um link de acesso\n\nNão há autocadastro: contas internas são criadas apenas por um administrador."
+  },
+  {
+    "file": "03-desk-radar-heatmap.png",
+    "requested": "/qualidade",
+    "final": "http://localhost:8080/equipe/entrar",
+    "title": "Entrar — Equipe Clube Ancestral",
+    "body": "CLUBE ANCESTRAL · INTERNO\n\nEntrar no Desk\n\nPainel de Calls continua em Comercial e no Painel Hoje. CRM Mestre e Catálogo 30 ficam na conta, embaixo. Campo com pendência continua editável.\n\nE-mail corporativo\nSenha\nEntrar\nEsqueci minha senha\nSou cliente e recebi um link de acesso\n\nNão há autocadastro: contas internas são criadas apenas por um administrador."
+  },
+  {
+    "file": "04-portal-home.png",
+    "requested": "/portal/",
+    "final": "http://localhost:8080/acesso",
+    "title": "Acesso do cliente — Clube Ancestral",
+    "body": "CLUBE ANCESTRAL\n\nAcesso do cliente\n\nO acesso é feito por link enviado ao seu e-mail. Não usamos senha e não é possível criar conta por conta própria: o e-mail precisa ter sido autorizado previamente pela nossa equipe.\n\nE-mail\nEnviar link de acesso\n\nPor segurança, nunca informamos se um e-mail está ou não cadastrado."
+  },
+  {
+    "file": "05-portal-jornada.png",
+    "requested": "/portal/jornada",
+    "final": "http://localhost:8080/portal/jornada",
+    "title": "Clube Ancestral — Genealogia & Cidadania Europeia",
+    "body": ""
+  },
+  {
+    "file": "06-portal-radar-6eixos.png",
+    "requested": "/portal/radar",
+    "final": "http://localhost:8080/acesso",
+    "title": "Acesso do cliente — Clube Ancestral",
+    "body": "CLUBE ANCESTRAL\n\nAcesso do cliente\n\nO acesso é feito por link enviado ao seu e-mail. Não usamos senha e não é possível criar conta por conta própria: o e-mail precisa ter sido autorizado previamente pela nossa equipe.\n\nE-mail\nEnviar link de acesso\n\nPor segurança, nunca informamos se um e-mail está ou não cadastrado."
+  },
+  {
+    "file": "07-portal-arvore.png",
+    "requested": "/portal/arvore",
+    "final": "http://localhost:8080/acesso",
+    "title": "Acesso do cliente — Clube Ancestral",
+    "body": "CLUBE ANCESTRAL\n\nAcesso do cliente\n\nO acesso é feito por link enviado ao seu e-mail. Não usamos senha e não é possível criar conta por conta própria: o e-mail precisa ter sido autorizado previamente pela nossa equipe.\n\nE-mail\nEnviar link de acesso\n\nPor segurança, nunca informamos se um e-mail está ou não cadastrado."
+  },
+  {
+    "file": "08-portal-documentos.png",
+    "requested": "/portal/documentos",
+    "final": "http://localhost:8080/acesso",
+    "title": "Acesso do cliente — Clube Ancestral",
+    "body": "CLUBE ANCESTRAL\n\nAcesso do cliente\n\nO acesso é feito por link enviado ao seu e-mail. Não usamos senha e não é possível criar conta por conta própria: o e-mail precisa ter sido autorizado previamente pela nossa equipe.\n\nE-mail\nEnviar link de acesso\n\nPor segurança, nunca informamos se um e-mail está ou não cadastrado."
+  },
+  {
+    "file": "09-portal-legado-disclaimer.png",
+    "requested": "/portal/legado",
+    "final": "http://localhost:8080/acesso",
+    "title": "Acesso do cliente — Clube Ancestral",
+    "body": "CLUBE ANCESTRAL\n\nAcesso do cliente\n\nO acesso é feito por link enviado ao seu e-mail. Não usamos senha e não é possível criar conta por conta própria: o e-mail precisa ter sido autorizado previamente pela nossa equipe.\n\nE-mail\nEnviar link de acesso\n\nPor segurança, nunca informamos se um e-mail está ou não cadastrado."
+  },
+  {
+    "file": "10-portal-conta-sem-upsell.png",
+    "requested": "/portal/conta",
+    "final": "http://localhost:8080/acesso",
+    "title": "Acesso do cliente — Clube Ancestral",
+    "body": "CLUBE ANCESTRAL\n\nAcesso do cliente\n\nO acesso é feito por link enviado ao seu e-mail. Não usamos senha e não é possível criar conta por conta própria: o e-mail precisa ter sido autorizado previamente pela nossa equipe.\n\nE-mail\nEnviar link de acesso\n\nPor segurança, nunca informamos se um e-mail está ou não cadastrado."
+  }
+]
