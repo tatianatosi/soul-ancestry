@@ -23,6 +23,18 @@ function ascendentesDiretos(pessoas: PessoaNaArvore[], vinculos: readonly Vincul
   return out;
 }
 
+/** Casal ascendente mais antigo unido por vínculo de cônjuge aprovado — calculado pelos vínculos, nunca por nome. */
+function casalAscendenteDestaque(pessoas: PessoaNaArvore[], vinculos: readonly VinculoArvoreCliente[]): Set<string> {
+  const asc = ascendentesDiretos(pessoas, vinculos);
+  const ger = new Map(pessoas.map((p) => [p.chave, p.geracao ?? 0]));
+  let melhor: [string, string] | null = null;
+  for (const v of vinculos) {
+    if (v.tipo !== "conjuge" || !asc.has(v.de) || !asc.has(v.para)) continue;
+    if (!melhor || (ger.get(v.de) ?? 0) > (ger.get(melhor[0]) ?? 0)) melhor = [v.de, v.para];
+  }
+  return new Set(melhor ?? []);
+}
+
 export function PerfilPessoaArvore({ pessoa, destaque = false, titular = false }: { pessoa: PessoaNaArvore; destaque?: boolean; titular?: boolean }) {
   return (
     <details className={`app-arvore-perfil${destaque || titular ? " app-arvore-perfil--destaque" : ""}`} data-arvore-pessoa data-arvore-titular={titular || undefined}>
@@ -76,7 +88,7 @@ export function ExploradorArvore({ pessoas, geracoes, vinculos = [] }: { pessoas
   const [modo, setModo] = useState<"geracoes" | "pessoas">("geracoes");
   const [foco, setFoco] = useState<string | null>(null);
   const pessoasVisiveis = foco ? pessoas.filter((pessoa) => pessoa.chave === foco) : pessoas;
-  const ascendentes = ascendentesDiretos(pessoas, vinculos);
+  const ascendentes = casalAscendenteDestaque(pessoas, vinculos);
   const temTitular = pessoas.some((p) => p.geracao === 1);
   const perfil = (pessoa: PessoaNaArvore) => <PerfilPessoaArvore key={pessoa.chave} pessoa={pessoa} titular={pessoa.geracao === 1} destaque={ascendentes.has(pessoa.chave)} />;
   return (
