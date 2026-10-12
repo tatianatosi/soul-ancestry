@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -270,6 +271,9 @@ function FinanceiroPage() {
             </dl>
           )}
         </CaCard>
+
+        {podeFinanceiro ? <CondicoesPrevistas /> : null}
+
 
         {/*
           §19 do De-Para, zona "Obrigações — custos/repasse/fornecedores
@@ -967,5 +971,68 @@ function FinanceiroPage() {
         </Gaveta>
       ) : null}
     </SaasShell>
+  );
+}
+
+/*
+  12/10/2026 — decisão da Proprietária: sem Asaas por enquanto. Mostra só a
+  condição comercial registrada por caso (commercial_conditions), como
+  previsão. Não entra no saldo: saldo continua vindo de faturas/pagamentos.
+*/
+function CondicoesPrevistas() {
+  const q = useQuery({
+    queryKey: ["financeiro", "condicoes-previstas"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("commercial_conditions")
+        .select("id,case_id,forma_pagamento,valor_total_referencia,status")
+        .is("archived_at", null)
+        .eq("dados_teste", false)
+        .order("updated_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  return (
+    <CaCard titulo="Condições previstas por caso" eyebrow="Financeiro · Previsão sem cobrança" data-financeiro-condicoes>
+      {q.isLoading ? (
+        <p className="text-sm text-navy/50">Carregando…</p>
+      ) : q.isError ? (
+        <p className="text-sm text-terracotta">
+          Não foi possível ler as condições.{" "}
+          <button type="button" className="underline" onClick={() => void q.refetch()}>Tentar novamente</button>
+        </p>
+      ) : q.data!.length === 0 ? (
+        <EstadoVazio mensagem="Nenhuma condição comercial registrada." />
+      ) : (
+        <ul className="divide-y divide-navy/10">
+          {q.data!.map((c) => (
+            <li key={c.id} className="flex flex-col gap-1 py-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-sm text-navy">{c.forma_pagamento ?? "Forma de pagamento não registrada"}</p>
+                <p className="mt-1 text-[11px] text-navy/55">
+                  Aguardando confirmação de pagamento · não entra no saldo até haver pagamento registrado
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-col items-start gap-1 sm:items-end">
+                <span className="font-serif text-lg text-navy">
+                  {c.valor_total_referencia != null ? moeda(Number(c.valor_total_referencia), "BRL") : "Não registrado"}
+                </span>
+                {c.case_id ? (
+                  <Link
+                    to="/casos/$caseId"
+                    params={{ caseId: c.case_id }}
+                    hash="financeiro"
+                    className="text-xs text-navy underline decoration-gold underline-offset-4"
+                  >
+                    Abrir financeiro do caso
+                  </Link>
+                ) : null}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </CaCard>
   );
 }
