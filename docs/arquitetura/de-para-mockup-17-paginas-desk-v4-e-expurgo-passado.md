@@ -2,8 +2,9 @@
 
 ```yaml
 status: aprovado
-versao: v1.1
-data: 2026-10-11
+versao: v1.2
+data: 2026-10-12
+resolucao_normativa: 2026-10-12 (seção 0; prevalece sobre o corpo onde houver conflito)
 responsavel_pela_decisao: Proprietária do Clube Ancestral
 classificacao: decisão de arquitetura e plano de consolidação
 caminho_sugerido_no_repositorio: docs/arquitetura/de-para-mockup-17-paginas-desk-v4-e-expurgo-passado.md
@@ -33,6 +34,27 @@ criterio_de_aceite: >
   todas as entidades de pesquisa, inteligência, comercial, marketing e financeiro vivas e conectadas.
 ```
 
+## 0. Resolução normativa da Proprietária (2026-10-12)
+
+Respostas vinculantes às quatro perguntas da revisão de spec. Onde o corpo do documento discordar, vale esta seção.
+
+1. **Desk: 6 setores vigentes.** Hoje · Marketing & Comercial · Pessoas & Casos · Inteligência & Pesquisa · Formalização & Financeiro · Governança & Administração. Configurações fica no menu da conta.
+   - [JÁ FEITO] A lateral renderiza esses seis rótulos (`SETORES_DESK_V5`, `src/lib/navegacao-desk.ts`).
+   - [PLANEJADO] `GRUPOS_DESK` ainda existe no mesmo arquivo, com 7 grupos (V4), e é a fonte de `grupoDonoDaRota` e dos testes de sobreposição. A resposta chama o conjunto vigente de "`GRUPOS_DESK` (6 grupos)", mas o nome e a constante não batem com o código. Alinhar a constante e os testes aos seis vigentes é trabalho pendente.
+   - [PLANEJADO] "Configurações no menu da conta" não foi verificado no código.
+   - A menção a "7 entradas" nas seções 4 e 5 é tratada como ruído de redação. A seção 5 fica superada por esta resposta.
+2. **App Cliente: 7 abas imutáveis.** Home · Jornada · Radar · Árvore · Documentos · Legado · Conta. Renomeações ("Descobertas", "Biblioteca") foram rejeitadas e arquivadas.
+   - [JÁ FEITO] A navegação do portal (`src/components/portal/portal-shell.tsx`) tem essas sete abas.
+3. **Aprovador de evidências (Bloco 5B).** O papel é `app_role = 'pesquisador'` (ou `admin`). O estado é `status_validacao = 'validadopordocumento'` com `conteudo_aprovado = true`.
+   - [JÁ FEITO] O papel `pesquisador` existe em `app_role` (`src/integrations/supabase/types.ts`).
+   - [PLANEJADO] `status_validacao` e `conteudo_aprovado` não existem no schema. Existe `conteudo_aprovado_para_proposta`. `validado_por_documento` é estado histórico que um teste proíbe em qualquer CHECK (`fase3-ficha-pesquisa-genealogica-2026-09-27.test.ts`). Pela regra do AGENTS.md (sem vocabulário CHECK novo), a flag precisa de decisão antes de qualquer migração: mapear para um campo existente ou autorizar um CHECK novo explicitamente.
+4. **Rotas /golive.** Continuam ativas como homologação funcional e espelho interno até as telas definitivas serem publicadas e testadas. Nada é apagado.
+   - [JÁ FEITO] As rotas existem em `src/routes/_authenticated/golive.*.tsx` e esta resolução não remove nenhuma.
+
+Legenda: [JÁ FEITO] = verificado no código nesta data. [PLANEJADO] = ainda não existe, ou não foi verificado.
+
+---
+
 ## 1. Diagnóstico do Trauma Histórico: Causas e Mecanismos de Ruptura
 
 O histórico de desenvolvimento gerou proliferação desordenada e insegurança decorrente de falhas estruturais:
@@ -48,15 +70,15 @@ O histórico de desenvolvimento gerou proliferação desordenada e insegurança 
 
 | Mockup 17 Páginas (App Cliente) | Desk v4 (Prancha Interna) | Série GoLive (/golive) | Centro de Inteligência & Motores Vivos | Decisão de Governança |
 |---|---|---|---|---|
-| **Aba 1: Home** (Visão geral, projeto familiar, próximo passo, pessoas conectadas) | **Hoje / Cockpit Executivo** (Fila prioritária do dia, pendências críticas) | `/golive` e `/golive/painel-caso` | Orquestrador de Casos (`crm_casos`, `nucleo_membros`) | `/golive/painel-caso` é absorvido como aba "Visão Geral" de Caso 360; App Cliente lê apenas projeção sanitizada. |
-| **Aba 2: Jornada** (Linha ancestral + linha processual, marcos) | **Casos 360 -> Jornada** (Marcos contratuais, fases, linha do tempo) | `/golive/caso` e `/golive/microentregas` | Motor de Prazos e Entregáveis (`caso_timeline`, `microentregas`) | Unificação de microentregas no Caso 360; publicação explícita no portal do cliente. |
-| **Aba 3: Radar** (6 dimensões de elegibilidade e viabilidade) | **Pesquisa -> Radar & Matrizes** (Análise multi-país, viabilidade jurídica) | `/golive/pesquisa` | Centro de Inteligência Genealógica & Radar Jurídico | Cálculo algorítmico e curadoria técnica no Desk; cliente visualiza índices higienizados sem notas de risco internas. |
-| **Aba 4: Árvore** (Genograma por gerações, parentescos e ramos) | **Pessoas & Famílias -> Árvore** (Árvore genealógica completa, nós críticos, fontes) | `/golive/pessoas` e `/golive/pessoa` | Banco Genealógico Vivo (`pessoas`, `parentescos`, registros paroquiais e civis) | `/golive/pessoa` vira drawer contextual de `/golive/pessoas`. App Cliente recebe nós verificados. |
-| **Aba 5: Documentos** (Solicitados, Recebidos, Validados, Entregas) | **Pesquisa & Evidências -> Acervo** (Trilha documental, apostilamento, traduções) | `/golive/pesquisa` e subrotas de evidências | Arquivo Digital & Dossiê Técnico (`evidencias_arquivos`, pasta consular) | Unificação do pipeline de documentos; status do documento reflete imediatamente no App Cliente. |
-| **Aba 6: Legado** (Narrativas, dossiês, entrevistas, memórias) | **Pesquisa & Studio -> Legado** (Cadernos narrativos, biografias familiares) | `/golive/relatorios` e `/golive/pesquisa` | Studio de Conteúdo e Inteligência Histórica | Geração de relatórios e cadernos de memória no Desk; liberação seletiva para a aba Legado do cliente. |
-| **Aba 7: Conta** (Assinatura, parcelas, dados do titular, canais) | **Configuração / Financeiro** (Contrato, faturamento Asaas, webhook, acessos) | `/golive/financeiro`, `/golive/formalizacao`, `/golive/portal` | Motor Financeiro (Asaas) e Motor Contratual Gov.br | Eliminação de telas paralelas; Desk orquestra; App Cliente exibe parcelas e contratos para titulares. |
-| *Superfície Externa (Não existe no App)* | **Comercial / CRM Vivo** (Funil, Leads, Discovery, Propostas) | `/golive/comercial` e `/golive/leads` | Motor de Vendas e Conversão (`leads`, `oportunidades`, `discovery_calls`) | `/crm-mestre` é arquivado; `/golive/comercial` assume funil unificado; `/golive/leads` vira subvisão. |
-| *Superfície Externa (Não existe no App)* | **Marketing / Aquisição** (Campanhas, origens de tráfego, SEO, canais) | Absorvido em Comercial / Inteligência | Centro de Métricas de Aquisição (`utm_campaigns`, tráfego) | Mapeamento de canal e campanha persistido diretamente no lead sem formulário paralelo. |
+| **Aba 1: Home** (Visão geral, projeto familiar, próximo passo, pessoas conectadas) | **Hoje / Cockpit Executivo** (Fila prioritária do dia, pendências críticas) | `/golive` e `/golive/painel-caso` | Orquestrador de Casos (`crm_casos`, `nucleo_membros`) | `/golive/painel-caso` é absorvido como aba "Visão Geral" de Caso 360; App Cliente lê apenas projeção sanitizada. **Status:** [PLANEJADO]: aba Home existe no App; projeção sanitizada do Desk não verificada. |
+| **Aba 2: Jornada** (Linha ancestral + linha processual, marcos) | **Casos 360 -> Jornada** (Marcos contratuais, fases, linha do tempo) | `/golive/caso` e `/golive/microentregas` | Motor de Prazos e Entregáveis (`caso_timeline`, `microentregas`) | Unificação de microentregas no Caso 360; publicação explícita no portal do cliente. **Status:** [PLANEJADO]: aba Jornada existe no App; unificação de microentregas não verificada. |
+| **Aba 3: Radar** (6 dimensões de elegibilidade e viabilidade) | **Pesquisa -> Radar & Matrizes** (Análise multi-país, viabilidade jurídica) | `/golive/pesquisa` | Centro de Inteligência Genealógica & Radar Jurídico | Cálculo algorítmico e curadoria técnica no Desk; cliente visualiza índices higienizados sem notas de risco internas. **Status:** [PLANEJADO]: aba Radar existe no App; cálculo no Desk não verificado. |
+| **Aba 4: Árvore** (Genograma por gerações, parentescos e ramos) | **Pessoas & Famílias -> Árvore** (Árvore genealógica completa, nós críticos, fontes) | `/golive/pessoas` e `/golive/pessoa` | Banco Genealógico Vivo (`pessoas`, `parentescos`, registros paroquiais e civis) | `/golive/pessoa` vira drawer contextual de `/golive/pessoas`. App Cliente recebe nós verificados. **Status:** [PLANEJADO]: aba Árvore existe no App (`src/routes/portal/arvore.tsx`); drawer e nós verificados não confirmados. |
+| **Aba 5: Documentos** (Solicitados, Recebidos, Validados, Entregas) | **Pesquisa & Evidências -> Acervo** (Trilha documental, apostilamento, traduções) | `/golive/pesquisa` e subrotas de evidências | Arquivo Digital & Dossiê Técnico (`evidencias_arquivos`, pasta consular) | Unificação do pipeline de documentos; status do documento reflete imediatamente no App Cliente. **Status:** [PLANEJADO]: aba Documentos existe no App; pipeline unificado não verificado. |
+| **Aba 6: Legado** (Narrativas, dossiês, entrevistas, memórias) | **Pesquisa & Studio -> Legado** (Cadernos narrativos, biografias familiares) | `/golive/relatorios` e `/golive/pesquisa` | Studio de Conteúdo e Inteligência Histórica | Geração de relatórios e cadernos de memória no Desk; liberação seletiva para a aba Legado do cliente. **Status:** [PLANEJADO]: aba Legado existe no App; liberação seletiva no Desk não verificada. |
+| **Aba 7: Conta** (Assinatura, parcelas, dados do titular, canais) | **Configuração / Financeiro** (Contrato, faturamento Asaas, webhook, acessos) | `/golive/financeiro`, `/golive/formalizacao`, `/golive/portal` | Motor Financeiro (Asaas) e Motor Contratual Gov.br | Eliminação de telas paralelas; Desk orquestra; App Cliente exibe parcelas e contratos para titulares. **Status:** [PLANEJADO]: aba Conta existe no App; eliminação de telas paralelas não verificada. |
+| *Superfície Externa (Não existe no App)* | **Comercial / CRM Vivo** (Funil, Leads, Discovery, Propostas) | `/golive/comercial` e `/golive/leads` | Motor de Vendas e Conversão (`leads`, `oportunidades`, `discovery_calls`) | `/crm-mestre` é arquivado; `/golive/comercial` assume funil unificado; `/golive/leads` vira subvisão. **Status:** [PLANEJADO]: entrada Comercial e abas CRM Vivo, Discovery e Propostas existem na lateral; arquivamento de `/crm-mestre` não verificado. |
+| *Superfície Externa (Não existe no App)* | **Marketing / Aquisição** (Campanhas, origens de tráfego, SEO, canais) | Absorvido em Comercial / Inteligência | Centro de Métricas de Aquisição (`utm_campaigns`, tráfego) | Mapeamento de canal e campanha persistido diretamente no lead sem formulário paralelo. **Status:** [PLANEJADO]: aba Aquisição existe na lateral; gravação do canal no lead não verificada. |
 
 ---
 
@@ -96,7 +118,7 @@ Para erradicar a desconexão operacional, os 4 motores de suporte à vida do neg
 
 ---
 
-## 5. Arquitetura Final de Navegação (As 7 Entradas do Desk v4)
+## 5. Arquitetura Final de Navegação (As 7 Entradas do Desk v4) — SUPERADA pela seção 0, item 1: 6 setores vigentes
 
 1. **Hoje**: Cockpit executivo, prioridades do dia, alertas calculados, prazos iminentes.
 2. **Comercial**: Funil de vendas, Leads, Discovery Calls (roteiro vivo), Propostas e Handoff com Marketing.
