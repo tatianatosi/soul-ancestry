@@ -3,6 +3,7 @@ import { ChevronDown, Network, Rows3, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { PessoaNaArvore } from "@/lib/arvore-publicacao";
 import type { GeracaoArvore } from "@/lib/portal-arvore-geracoes";
+import type { VinculoArvoreCliente } from "@/lib/portal-dados-vivos.functions";
 
 export function PerfilPessoaArvore({ pessoa }: { pessoa: PessoaNaArvore }) {
   return (
@@ -23,7 +24,35 @@ export function PerfilPessoaArvore({ pessoa }: { pessoa: PessoaNaArvore }) {
 }
 
 /** Exploração visual dos mesmos nós publicados; sem inventar arestas relacionais. */
-export function ExploradorArvore({ pessoas, geracoes }: { pessoas: PessoaNaArvore[]; geracoes: readonly GeracaoArvore[] }) {
+/** Ligações publicadas: cada linha dourada une duas pessoas já compartilhadas. */
+export function LigacoesArvore({ pessoas, vinculos }: { pessoas: PessoaNaArvore[]; vinculos: readonly VinculoArvoreCliente[] }) {
+  const nome = new Map(pessoas.map((p) => [p.chave, p.nome]));
+  const linhas = vinculos.filter((v) => nome.has(v.de) && nome.has(v.para));
+  if (linhas.length === 0) return null;
+  const casais = linhas.filter((v) => v.tipo === "conjuge");
+  const filiacoes = linhas.filter((v) => v.tipo === "pai_mae");
+  const Linha = ({ a, b, rotulo }: { a: string; b: string; rotulo: string }) => (
+    <li className="app-ligacao">
+      <span className="app-ligacao-no">{a}</span>
+      <span className="app-ligacao-traco" aria-hidden="true" />
+      <span className="app-ligacao-rotulo">{rotulo}</span>
+      <span className="app-ligacao-traco" aria-hidden="true" />
+      <span className="app-ligacao-no">{b}</span>
+    </li>
+  );
+  return (
+    <section className="app-ligacoes-moldura" aria-label="Ligações da família" data-arvore-ligacoes>
+      <h3 className="font-serif text-xl text-navy">Ligações da família</h3>
+      <p className="mt-1 text-sm text-navy/70">Uniões e gerações compartilhadas com você pela equipe.</p>
+      <ul className="mt-4 space-y-3">
+        {casais.map((v) => <Linha key={`${v.de}-${v.para}`} a={nome.get(v.de)!} b={nome.get(v.para)!} rotulo="casal" />)}
+        {filiacoes.map((v) => <Linha key={`${v.de}-${v.para}`} a={nome.get(v.de)!} b={nome.get(v.para)!} rotulo="pai ou mãe de" />)}
+      </ul>
+    </section>
+  );
+}
+
+export function ExploradorArvore({ pessoas, geracoes, vinculos = [] }: { pessoas: PessoaNaArvore[]; geracoes: readonly GeracaoArvore[]; vinculos?: readonly VinculoArvoreCliente[] }) {
   const [modo, setModo] = useState<"geracoes" | "pessoas">("geracoes");
   const [foco, setFoco] = useState<string | null>(null);
   const pessoasVisiveis = foco ? pessoas.filter((pessoa) => pessoa.chave === foco) : pessoas;
@@ -36,7 +65,8 @@ export function ExploradorArvore({ pessoas, geracoes }: { pessoas: PessoaNaArvor
         </div>
         <label className="app-arvore-foco text-xs text-navy/70">Focar pessoa<select value={foco ?? ""} onChange={(event) => setFoco(event.target.value || null)} aria-label="Focar pessoa"><option value="">Todas as pessoas</option>{pessoas.map((pessoa) => <option key={pessoa.chave} value={pessoa.chave}>{pessoa.nome}</option>)}</select></label>
       </div>
-      <details className="app-arvore-aviso"><summary>Sobre as conexões da família<ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary><p className="text-sm leading-relaxed text-navy/70">As pessoas estão em suas gerações publicadas. As conexões do genograma aparecerão quando as relações forem compartilhadas; por enquanto, os nós permanecem independentes.</p></details>
+      <details className="app-arvore-aviso"><summary>Sobre as conexões da família<ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary><p className="text-sm leading-relaxed text-navy/70">As pessoas estão em suas gerações publicadas. {vinculos.length > 0 ? "As linhas douradas mostram as ligações já compartilhadas. Outras aparecerão conforme forem confirmadas." : "As conexões do genograma aparecerão quando as relações forem compartilhadas; por enquanto, os nós permanecem independentes."}</p></details>
+      <LigacoesArvore pessoas={pessoas} vinculos={vinculos} />
       {modo === "pessoas" ? (
         <div className="app-arvore-pessoas" aria-label="Pessoas publicadas">{pessoasVisiveis.map((pessoa) => <PerfilPessoaArvore key={pessoa.chave} pessoa={pessoa} />)}</div>
       ) : (

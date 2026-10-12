@@ -20,6 +20,8 @@ import {
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 import { projetarProximaAcaoCliente, sinaisDoCasoPortal, type ProximaAcaoCliente } from "@/lib/motor-caso";
 
+export type VinculoArvoreCliente = { de: string; para: string; tipo: "pai_mae" | "conjuge" };
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
@@ -70,6 +72,13 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
      * `portal_casos.pessoas_mapeadas` (migration 20261005180000).
      */
     pessoasMapeadas: number;
+    /**
+     * 12/10/2026 — ligações da Árvore autorizadas pela Proprietária. Só
+     * vínculos com `client_visibility = 'aprovada'`, não arquivados, cujas
+     * DUAS pontas já estão publicadas na Árvore deste caso. Sai apenas
+     * de/para/tipo — nenhuma nota, fonte ou status interno.
+     */
+    vinculosArvore: VinculoArvoreCliente[];
   }> => {
     semCache();
     const supabase = context.supabase as any;
@@ -124,6 +133,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         historico: [],
         solicitacoes: [],
         pessoasMapeadas: 0,
+        vinculosArvore: [],
       };
     const alvo = [String(casoAtivo.id)];
 
@@ -176,8 +186,37 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       }),
     );
 
+    // Acesso ao caso já foi decidido pela RLS de `portal_casos` acima. A
+    // tabela de relações não tem policy de portal, então a leitura é feita no
+    // servidor e recortada aqui: só pontas publicadas, só vínculo aprovado.
+    const projecoes = (proj.data ?? []) as ProjecaoBruta[];
+    const publicados = new Set(
+      projecoes
+        .filter((p: any) => String(p.projection_type ?? "").toLowerCase() === "arvore" && p.pessoa_id)
+        .map((p: any) => String(p.pessoa_id)),
+    );
+    let vinculosArvore: VinculoArvoreCliente[] = [];
+    if (publicados.size > 1) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const rel = await (supabaseAdmin as any)
+        .from("genealogical_relationships")
+        .select("person_from_id, person_to_id, relation_type")
+        .eq("case_id", String(casoAtivo.id))
+        .eq("client_visibility", "aprovada")
+        .is("archived_at", null)
+        .in("relation_type", ["pai_mae", "conjuge"]);
+      vinculosArvore = ((rel.data ?? []) as { person_from_id: string; person_to_id: string; relation_type: string }[])
+        .filter((r) => publicados.has(String(r.person_from_id)) && publicados.has(String(r.person_to_id)))
+        .map((r) => ({
+          de: String(r.person_from_id),
+          para: String(r.person_to_id),
+          tipo: r.relation_type === "conjuge" ? ("conjuge" as const) : ("pai_mae" as const),
+        }));
+    }
+
     return {
-      projecoes: (proj.data ?? []) as ProjecaoBruta[],
+      vinculosArvore,
+      projecoes,
       documentos: (docs.data ?? []) as DocumentoPortal[],
       proximaAcao,
       casoAtivoId: String(casoAtivo.id),
