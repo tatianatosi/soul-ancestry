@@ -522,6 +522,8 @@
 [data-app-cliente] #conteudo-portal [data-conta-assinatura] :where(h2, p, span) { color: var(--ca-text-inverse); }
 [data-app-cliente] #conteudo-portal [data-conta-assinatura] h2 { color: var(--app-v11-conexao); }
 [data-app-cliente] #conteudo-portal [data-conta-assinatura-valor] { font-family: var(--app-v11-corpo); font-size: var(--ca-text-2xl); }
+[data-app-cliente] #conteudo-portal [data-conta-ver-faturas] { color: var(--app-v11-conexao); background: transparent; border-color: var(--app-v11-conexao); }
+[data-app-cliente] #conteudo-portal [data-conta-mensalidade] span:not(:first-child) { color: var(--ca-text-inverse); }
 
 /* Documentos: registro contínuo, estados junto do título e arquivo sem caixa interna. */
 [data-app-cliente] .app-documento-icone {
