@@ -197,7 +197,7 @@ export function PortalShell({
         className="fixed inset-x-0 bottom-0 z-40 border-t border-gold/40 bg-card/95 shadow-[0_-4px_16px_color-mix(in_srgb,var(--navy)_10%,transparent)] backdrop-blur"
       >
         <div
-           className="app-layout-largura mx-auto grid w-full max-w-[740px] px-1 pb-[env(safe-area-inset-bottom)] sm:px-5"
+           className="app-layout-largura mx-auto grid w-full max-w-[740px] px-1 pb-[env(safe-area-inset-bottom,16px)] sm:px-5"
           style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}
         >
           {nav.map(({ to, label, icon: Icon }) => (
@@ -205,15 +205,15 @@ export function PortalShell({
               key={to}
               to={to}
               className={cn(
-                "relative flex min-h-[4rem] min-w-0 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[11px] leading-tight sm:min-h-[4.25rem]",
+                "relative flex min-h-[4rem] min-w-[44px] touch-manipulation flex-col items-center justify-center gap-1 px-0.5 py-2 text-[11px] leading-tight transition-colors duration-200 ease-out sm:min-h-[4.25rem]",
                 "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
                 rotaAtiva === to
-                  ? "after:absolute after:inset-x-2 after:top-0 after:h-0.5 after:bg-gold font-semibold text-gold"
+                  ? "app-nav-ativo after:absolute after:inset-x-2 after:top-0 after:h-0.5 after:bg-gold font-semibold"
                   : "text-navy/70",
               )}
             >
               <Icon className="h-[17px] w-[17px] shrink-0 sm:h-[19px] sm:w-[19px]" aria-hidden="true" />
-              <span className="w-full text-center">{to === "/portal/documentos" ? <><span className="sm:hidden">Docs</span><span className="hidden sm:inline">{label}</span></> : label}</span>
+              <span className="w-full text-center whitespace-nowrap">{to === "/portal/documentos" ? <><span className="sm:hidden">Docs</span><span className="hidden sm:inline">{label}</span></> : label}</span>
             </LinkPortal>
           ))}
         </div>
