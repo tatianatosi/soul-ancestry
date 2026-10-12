@@ -20,6 +20,8 @@ export type DadosPortalComoAdmin = {
   escopo: EscopoCliente;
   /** Mesmo total de `portal_casos.pessoas_mapeadas`: perfis genealógicos ativos do caso. */
   pessoasMapeadas: number;
+  /** Mesmo recorte de `dadosVivosDoPortal`: vínculos aprovados entre pessoas publicadas. */
+  vinculosArvore: { de: string; para: string; tipo: "pai_mae" | "conjuge" }[];
 };
 
 /**
@@ -121,7 +123,29 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
     const pagamentoPendente =
       linhasDe<{ id: string }>(faturas, "as faturas deste caso").length > 0;
 
+    const publicadosArvore = new Set(
+      projecoes
+        .filter((p: any) => String(p.projection_type ?? "").toLowerCase() === "arvore" && p.pessoa_id)
+        .map((p: any) => String(p.pessoa_id)),
+    );
+    const rel = await supabase
+      .from("genealogical_relationships")
+      .select("person_from_id, person_to_id, relation_type")
+      .eq("organization_id", organizationId)
+      .eq("case_id", data.casoId)
+      .eq("client_visibility", "aprovada")
+      .is("archived_at", null)
+      .in("relation_type", ["pai_mae", "conjuge"]);
+    const vinculosArvore = ((rel.data ?? []) as any[])
+      .filter((r) => publicadosArvore.has(String(r.person_from_id)) && publicadosArvore.has(String(r.person_to_id)))
+      .map((r) => ({
+        de: String(r.person_from_id),
+        para: String(r.person_to_id),
+        tipo: r.relation_type === "conjuge" ? ("conjuge" as const) : ("pai_mae" as const),
+      }));
+
     return {
+      vinculosArvore,
       projecoes,
       documentos,
       pessoasMapeadas: Math.max(0, Number(mapeadas.count ?? 0)),
