@@ -174,3 +174,23 @@ BLOQUEADO_POR_DECISAO, ERRO_DE_FONTE ou NAO_LOCALIZADO.
   nenhum dado foi introduzido para satisfazer o pedido.
 - Caminho válido para nova prova (pela Proprietária): Desk → `/casos/a11a0000-0000-4000-8000-000000000002`
   → Hero, conferindo o mascaramento contra a ficha civil.
+
+## 2026-10-12 — Mensagem de suporte: envio com falha de rede (opção "Só simule")
+
+- Parecer da Proprietária (12/10/2026): "Só simule" — validar aviso, botão
+  [Reenviar] e preservação de assunto/texto, sem gravar mensagem no banco.
+- Tentativa na tela real (inspeção do agente, sessão de
+  tati@pluggedresearch.com): `/portal/casos/a11a0000-0000-4000-8000-000000000002`
+  respondeu "Este caso não está disponível para o seu acesso." O formulário de
+  mensagem só existe dentro do detalhe do caso, que pertence ao acesso da própria
+  cliente. Nenhuma mensagem foi enviada e nada foi gravado.
+- Resultado na tela real: **BLOQUEADO_POR_DECISAO** — a prova visual desta jornada
+  só pode ocorrer no acesso real da Ana Luiza (ou em acesso de cliente autorizado
+  pela Proprietária), não na visão administrativa.
+- Verificação de código (checagem de desenvolvedor, NÃO é prova de uso):
+  `src/components/portal/__tests__/mensagem-suporte-falha.test.tsx` monta o
+  componente real da tela, faz o envio falhar e confirma:
+  1. aparece o aviso "Não foi possível enviar agora. Sua mensagem continua aqui.";
+  2. assunto e texto permanecem preenchidos;
+  3. [Reenviar] dispara novo envio com o mesmo conteúdo.
+  1 teste executado, aprovado em 12/10/2026.

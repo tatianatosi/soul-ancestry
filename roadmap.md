@@ -1,5 +1,23 @@
 # Roadmap
 
+## Homologação das 7 abas no staging — v1.3 (12/10/2026)
+- [ ] Home: 3 caixas cinzas seguem visíveis; não há régua de 10 etapas; "Núcleo familiar" em "Não registrado" (os 4 membros só aparecem na Conta).
+- [ ] Jornada: Linha Dupla existe (Ancestral · União de Ramos · Processo), mas Graz 1895 → Brasil está em Lacuna (sem marco publicado); § 58c só na Home.
+- [x] Radar: teia SVG de 6 eixos com "Lacuna" honesta (4 ocorrências) — 1 caixa cinza ainda visível.
+- [ ] Árvore: G7→G1 com 6 pessoas, mas zero linhas de parentesco (nenhum vínculo publicado) e sem destaque no casal G5.
+- [ ] Documentos: triagem em três grupos OK; download inexistente porque nada foi liberado; copy contraditória mantém bloqueio do teste a5 (PEDIDO AO CLAUDE).
+- [x] Legado: coleções em prateleiras e aviso legal no rodapé confirmados.
+- [x] Conta: cota de R$ 320/mês com "Condição familiar: 3 assinaturas / parcelas mensais"; selo de titular só aparece no acesso real da cliente.
+- [x] Capturas das sete abas em 375 e 1280 e laudo tela a tela (seção 9 do checklist).
+
+## Checklist visual das 7 abas no staging (12/10/2026)
+- [x] Capturar as sete abas em 375 e 1280; overflow, erros de console, selos de exemplo e rótulos conferidos.
+- [x] Transversais: zoom 200%, larguras 320/768/1440, foco de teclado e contraste medidos.
+- [x] Corrigir a quebra do rótulo "Jornada" na barra inferior em 375 (portal-shell, uma linha).
+- [ ] Registrar o resultado no checklist de homologação e informar divergências de rótulo à Proprietária.
+- [x] Simular falha de envio de mensagem no App (opção "Só simule"): aviso, [Reenviar] e rascunho preservado, sem gravar no banco.
+- [ ] Prova visual da mensagem de suporte no acesso real da Ana Luiza (na visão administrativa a tela fica BLOQUEADO_POR_DECISAO).
+
 ## Publicação do site principal (12/10/2026)
 - [x] Publicação solicitada pela Proprietária: resiliência de rede, botão Reenviar, Conta nova e sete abas canônicas no site principal.
 - [x] Conferência de segurança antes de publicar: varredura executada, sem problemas nas checções básicas; análise profunda do último commit está desatualizada.
