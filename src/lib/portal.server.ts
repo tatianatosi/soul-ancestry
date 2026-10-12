@@ -12,6 +12,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { chavePublicavelDoServidor, urlDoServidor } from "@/lib/config-servidor";
+import { representacaoLegalAtiva } from "@/lib/pessoa-vinculo";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const admin = supabaseAdmin as any;
@@ -83,6 +84,47 @@ export async function registrarAuditoria(params: {
     entidade_id: params.entidadeId ?? null,
     metadados: params.metadados ?? {},
   });
+}
+
+const normalizarNomePessoa = (valor: unknown) =>
+  String(valor ?? "").trim().replace(/\s+/g, " ").toLocaleLowerCase("pt-BR");
+
+export async function representacaoLegalDoCliente(
+  supabase: any,
+  organizationId: string,
+  clientId: string,
+  casoId: string | null,
+): Promise<boolean> {
+  const membros = await supabase
+    .from("nucleo_membros")
+    .select("representacao_necessaria")
+    .eq("cliente_id", clientId)
+    .eq("organization_id", organizationId)
+    .is("archived_at", null);
+  if (membros.error) throw new Error("Não foi possível verificar a representação legal deste cadastro.");
+  if ((membros.data ?? []).some((m: any) => representacaoLegalAtiva(m))) return true;
+
+  if (!casoId) return false;
+  const cliente = await supabase
+    .from("clientes")
+    .select("nome")
+    .eq("id", clientId)
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+  if (cliente.error) throw new Error("Não foi possível verificar a representação legal deste cadastro.");
+  const nome = normalizarNomePessoa(cliente.data?.nome);
+  if (!nome) return false;
+  const dependentes = await supabase
+    .from("case_dependents")
+    .select("nome_completo, status_representacao")
+    .eq("case_id", casoId)
+    .eq("organization_id", organizationId)
+    .is("archived_at", null);
+  if (dependentes.error) throw new Error("Não foi possível verificar a representação legal deste cadastro.");
+  return (dependentes.data ?? []).some(
+    (d: any) =>
+      normalizarNomePessoa(d.nome_completo) === nome && representacaoLegalAtiva({ status_representacao: d.status_representacao }),
+  );
 }
 
 /** Organização do usuário interno + validação de papel de gestão de acessos. */

@@ -6,6 +6,7 @@ import {
   representacaoJaDocumentada,
   type MembroNucleoPendencia,
 } from "@/lib/pendencias-humanas-caso";
+import { representacaoLegalAtiva, requerCredencialPortal } from "@/lib/pessoa-vinculo";
 
 /**
  * Retificação C (07/10/2026) — "relato representação pendente contradiz
@@ -72,6 +73,29 @@ describe("a pendência de menor não se repete quando a representação está re
     const pendencia = r.find((p) => p.tipo === "menor_sem_representacao");
     expect(pendencia).toBeDefined();
     expect(pendencia!.titulo).toContain("Felipe");
+  });
+});
+
+describe("credencial do portal: dependente sob representação legal não recebe convite", () => {
+  it("representação registrada torna a credencial desnecessária", () => {
+    expect(requerCredencialPortal(felipe({ status_representacao: "documentada" }))).toBe(false);
+    expect(requerCredencialPortal(felipe({ representacao_necessaria: true }))).toBe(false);
+    expect(representacaoLegalAtiva(felipe({ status_representacao: "confirmada" }))).toBe(true);
+  });
+
+  it("sem representação registrada, a credencial continua sendo exigida", () => {
+    expect(requerCredencialPortal(felipe())).toBe(true);
+    expect(requerCredencialPortal(felipe({ status_representacao: "pendente" }))).toBe(true);
+  });
+
+  it("criarConvitePortal consulta a representação antes de qualquer insert", () => {
+    const portal = readFileSync("src/lib/portal.functions.ts", "utf8");
+    const bloco = portal.slice(portal.indexOf("export const criarConvitePortal"), portal.indexOf("export const reenviarConvitePortal"));
+    const checagem = bloco.indexOf("representacaoLegalDoCliente(");
+    expect(checagem).toBeGreaterThan(-1);
+    expect(checagem).toBeLessThan(bloco.indexOf('.from("client_portal_access")'));
+    expect(bloco).toContain("convite_portal_bloqueado");
+    expect(bloco).toContain("sob representação legal não possuem credencial própria");
   });
 });
 
