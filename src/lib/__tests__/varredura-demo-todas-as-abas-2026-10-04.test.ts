@@ -137,7 +137,8 @@ describe("Varredura de demonstração — todas as abas do menu (04/10/2026)", (
   const rotas = rotasDoMenuNoArquivo();
 
   it("1. a varredura cobre todas as abas do menu, e cada aba tem arquivo", () => {
-    expect(rotas.length).toBeGreaterThanOrEqual(38);
+    // 38 até 10/10; 37 desde 11/10, quando /app-cliente-demo saiu do menu da Conta por decisão da Proprietária.
+    expect(rotas.length).toBeGreaterThanOrEqual(37);
     for (const r of rotas) expect(arquivoDaRota(r), r).not.toBeNull();
   });
 
