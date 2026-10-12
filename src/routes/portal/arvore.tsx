@@ -62,7 +62,7 @@ export function PortalArvore() {
           <PortalCarregando />
       ) : data ? (
           <>
-          {([vivo]) => {
+          {(([vivo]) => {
             // Corte 2a: pessoas nomeadas (uma por pessoa) viram nós; o restante
             // das publicações da árvore continua como nota.
             const pessoas = pessoasDaArvore(vivo.projecoes);
@@ -203,7 +203,7 @@ export function PortalArvore() {
                 </div>
               </BlocoVisibilidade>
             );
-          }}([data])}
+          })([data])}
           </>
         ) : (
           <section role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
