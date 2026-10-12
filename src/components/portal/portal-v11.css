@@ -1112,9 +1112,9 @@
 }
 
 /* 12/10/2026 — ligações da Árvore publicadas pela Proprietária (linhas douradas). */
-[data-app-cliente] .app-ligacoes-moldura { margin-top: var(--ca-space-4, 1rem); padding: 1.25rem; border: 1px solid color-mix(in oklab, var(--ca-gold, #C2A84D) 55%, transparent); border-radius: 0.75rem; background: var(--ca-surface, #fff); }
+[data-app-cliente] .app-ligacoes-moldura { margin-top: var(--ca-space-4, 1rem); padding: 1.25rem; border: 1px solid color-mix(in oklab, var(--ca-gold, #C2A84D) 55%, transparent); border-radius: 0.75rem; background: var(--ca-surface-raised); }
 [data-app-cliente] .app-ligacao { display: grid; grid-template-columns: minmax(0,1fr) 1.25rem auto 1.25rem minmax(0,1fr); align-items: center; gap: 0.5rem; }
 [data-app-cliente] .app-ligacao-no { min-width: 0; overflow-wrap: anywhere; font-size: 0.875rem; font-weight: 500; color: var(--ca-navy, #13294B); }
 [data-app-cliente] .app-ligacao-no:last-child { text-align: right; }
 [data-app-cliente] .app-ligacao-traco { height: 2px; background: var(--ca-gold, #C2A84D); border-radius: 2px; }
-[data-app-cliente] .app-ligacao-rotulo { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ca-gold-text, #8A7425); white-space: nowrap; }
+[data-app-cliente] .app-ligacao-rotulo { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ca-text-muted); white-space: nowrap; }
