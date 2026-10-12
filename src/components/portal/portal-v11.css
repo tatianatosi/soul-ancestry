@@ -987,3 +987,19 @@
   [data-app-cliente] .app-prateleiras { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; align-items: start; }
   [data-app-cliente] .app-prateleiras > .app-colecao { border-bottom: 0; padding-bottom: 0; }
 }
+
+/* 12/10/2026 — polimento fino: ouro envelhecido para texto pequeno sobre
+   claro, bordas/sombras sutis e transição de 200 ms. */
+[data-app-cliente] { --app-ouro-envelhecido: color-mix(in srgb, var(--app-essencia-ouro) 72%, #3a2a05); }
+[data-app-cliente] .app-nav-ativo { color: var(--app-ouro-envelhecido); }
+[data-app-cliente] .app-selo-curadoria { color: var(--app-ouro-envelhecido); }
+[data-app-cliente] :where(.app-card-proximo-passo, .app-home-curadoria) {
+  border: 1px solid color-mix(in srgb, var(--app-essencia-navy) 8%, transparent);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--app-essencia-navy) 4%, transparent);
+}
+[data-app-cliente] #conteudo-portal { animation: app-entrada 200ms ease-out; }
+[data-app-cliente] details > :not(summary) { animation: app-entrada 200ms ease-out; }
+@keyframes app-entrada { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  [data-app-cliente] #conteudo-portal, [data-app-cliente] details > :not(summary) { animation: none; }
+}
