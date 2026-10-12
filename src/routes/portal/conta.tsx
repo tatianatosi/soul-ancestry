@@ -47,7 +47,9 @@ export function PortalConta() {
    */
   const previaDemo = previa?.identidade?.fonte === "demo";
    const titularPrevia = vivo.data && "titularNome" in vivo.data ? (vivo.data.titularNome as string | null) : null;
-   const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : titularPrevia);
+   const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null);
+   // 12/10/2026: prévia real mostra só o nome da titular vindo do cadastro do caso.
+   const titularExibido = titular ?? titularPrevia;
    const codigoCaso = previaDemo ? null : (previa?.identidade?.codigo ?? null);
    const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null);
   const acompanhamento = previa || data?.autorizado ? "Sua jornada está sendo acompanhada pela equipe." : "Aguardando novidades da equipe.";
