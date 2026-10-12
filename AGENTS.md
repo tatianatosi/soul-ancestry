@@ -25,3 +25,4 @@ Texto integral (autoridade, legado, schema, navegação, artefatos 005–010, ad
 - `painel-dia.tsx` × `golive-*` aguardam decisão; não tocar — por quê: fonte de verdade indefinida.
 - Nada arquiva sem `COMPROVADO_EM_USO` com prints autenticados da Proprietária; build/teste não é prova — por quê: adendo 2026-09-10.
 - Sem migration, RLS, convite, publicação, merge ou deploy sem autorização explícita — por quê: efeitos externos.
+- Desk-only presentation adapters reuse existing kit components at their consumer sites; shared kit modules remain unchanged — why: preserve App behavior and coordinated ownership while avoiding duplicate primitives.

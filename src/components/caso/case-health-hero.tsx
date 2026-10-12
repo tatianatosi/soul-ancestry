@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { KitBadge } from "@/components/clube-ancestral-kit/base";
+
 /**
  * Cabeçalho de saúde do Caso 360 (Pranchas Desk v4): situação, próxima ação,
  * responsável, prazo, motivo e impacto num só bloco, acima da dobra.
@@ -30,8 +32,8 @@ const ROTULO_SAUDE: Record<SaudeCaso, string> = {
 function Item({ rotulo, children, ...rest }: { rotulo: string; children: ReactNode } & Record<string, unknown>) {
   return (
     <div {...rest}>
-      <p className="text-[11px] uppercase tracking-wide text-white/60">{rotulo}</p>
-      <div className="mt-0.5 text-sm text-white">{children}</div>
+      <p className="text-[11px] uppercase tracking-wide text-card/60">{rotulo}</p>
+      <div className="mt-0.5 break-words text-sm text-card">{children}</div>
     </div>
   );
 }
@@ -62,14 +64,14 @@ export function CaseHealthHero({
 }) {
   return (
     <div
-      className="mb-4 overflow-hidden rounded-xl border border-[#13294B]/20 bg-[#F0EEE9]"
+      className="mb-4 min-w-0 overflow-hidden rounded-lg border border-navy/20 bg-cream"
       data-case-health-hero
       data-saude={saude}
     >
-      <div className="bg-[#13294B] px-4 py-2 text-xs font-medium text-white" data-saude-rotulo>
+      <div className="bg-navy px-4 py-2 text-xs font-medium text-card" data-saude-rotulo>
         Saúde do caso: {ROTULO_SAUDE[saude]}
       </div>
-      <div className="bg-[#1B365D] p-4">
+      <div className="bg-navy-800 p-4">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Item rotulo="Situação hoje">
             <span className="font-medium">{situacao}</span>
@@ -77,9 +79,7 @@ export function CaseHealthHero({
           <Item rotulo="Próxima ação">
             <span className="font-medium">{proximaAcao}</span>
             {seloProximaAcao ? (
-              <span className="mt-0.5 block w-fit rounded-full border border-white/30 px-2 py-0.5 text-[10px] text-white/80">
-                {seloProximaAcao}
-              </span>
+              <div className="mt-1 w-fit rounded-full bg-cream"><KitBadge tone="gold">{seloProximaAcao}</KitBadge></div>
             ) : null}
           </Item>
           <Item rotulo="Responsável">
@@ -94,7 +94,7 @@ export function CaseHealthHero({
             {resolverBloqueio ? (
               <a
                 href={resolverBloqueio.href}
-                className="mt-1 block text-xs font-medium text-[#FCB73A] underline underline-offset-2"
+                className="mt-1 flex min-h-11 w-fit items-center text-xs font-medium text-gold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
               >
                 Resolver bloqueio
               </a>
@@ -102,7 +102,7 @@ export function CaseHealthHero({
           </Item>
         </div>
       </div>
-      {children ? <div className="flex flex-wrap gap-2 bg-[#F0EEE9] p-4">{children}</div> : null}
+      {children ? <div className="flex min-w-0 flex-wrap gap-2 bg-cream p-4">{children}</div> : null}
     </div>
   );
 }

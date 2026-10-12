@@ -2,6 +2,9 @@ import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
+import { KitBadge, KitEmptyState } from "@/components/clube-ancestral-kit/base";
+import { Button } from "@/components/ui/button";
+
 import { listarNucleos } from "@/lib/nucleos-desk.functions";
 import { PAPEIS_PESSOA } from "@/lib/caso-ficha";
 
@@ -52,13 +55,14 @@ export function PessoasDoNucleo({ caseId }: { caseId: string }) {
             ? q.error.message
             : "A consulta de núcleos não retornou resultado nem erro."}
         </p>
-        <button
+        <Button
           type="button"
+          variant="outline"
           onClick={() => void q.refetch()}
-          className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy"
+          className="min-h-11 text-xs"
         >
           Tentar novamente
-        </button>
+        </Button>
       </div>
     );
   }
@@ -69,10 +73,10 @@ export function PessoasDoNucleo({ caseId }: { caseId: string }) {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-navy/15 bg-cream px-4 py-4">
+      <section className="min-w-0 border-y border-navy/15 py-4">
         <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
           <h3 className="text-sm font-semibold text-navy">Composição familiar (somente leitura)</h3>
-          <Link to="/nucleos" className="text-xs text-navy underline underline-offset-2">
+          <Link to="/nucleos" className="inline-flex min-h-11 items-center text-xs text-navy underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
             Editar em Núcleos e dossiês
           </Link>
         </div>
@@ -83,23 +87,19 @@ export function PessoasDoNucleo({ caseId }: { caseId: string }) {
         </p>
 
         {membros.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-navy/20 px-3 py-4 text-sm text-navy/55">
-            Nenhum membro registrado no núcleo vinculado.
-          </p>
+          <KitEmptyState title="Nenhum membro registrado no núcleo vinculado." description="" />
         ) : (
           <ul className="divide-y divide-navy/10">
             {membros.map((m) => (
-              <li key={m.id} className="py-2 text-sm text-navy/80">
+              <li key={m.id} className="min-w-0 py-3 text-sm text-navy/80">
                 <div className="flex flex-wrap items-baseline gap-2">
-                  <span className="font-medium text-navy">{m.nome}</span>
-                  <span className="rounded-full border border-navy/15 bg-cream/60 px-2 py-0.5 text-[11px] uppercase tracking-wide text-navy/65">
-                    {rotuloPapel(m)}
-                  </span>
+                  <span className="min-w-0 break-words font-medium text-navy">{m.nome}</span>
+                  <KitBadge>{rotuloPapel(m)}</KitBadge>
                   {m.cliente_id ? (
                     <Link
                       to="/pessoas/$clienteId"
                       params={{ clienteId: m.cliente_id }}
-                      className="text-xs text-navy underline underline-offset-2"
+                      className="inline-flex min-h-11 items-center text-xs text-navy underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                     >
                       Ver perfil
                     </Link>

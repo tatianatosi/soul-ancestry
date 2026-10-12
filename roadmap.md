@@ -1,5 +1,13 @@
 # Roadmap
 
+## Desk V4 — reutilização do kit (11/10/2026, rascunho isolado)
+- [x] Inspecionar ZIP e mapear exports, aliases e consumidores rastreáveis, distinguindo importação estática de uso real, sem importar fixtures ou stubs.
+- [x] Reaproveitar KitBadge/KitEmptyState nos componentes exclusivos do Caso 360, preservando interfaces e arquivos bloqueados.
+- [x] Capturar cabeçalho antes/depois em 375/1280 e família antes/depois em 1280/depois em 375; 38 testes, build automático OK, sem overflow/pageerrors.
+- [ ] Baseline anterior válida da família em 375: captura original vazia descartada; não simular antes. Comparativo estrito bloqueado pela ausência dessa evidência.
+- [x] Entregar cobertura, diff/SHA, comparativo com lacuna explícita e sete capturas verificadas, sem integração/publicação.
+- [ ] Aprovação da Proprietária: pendente; não equivale a COMPROVADO_EM_USO. Shell, compartilhados, fontes e formalização continuam bloqueados para corte específico do Claude.
+
 ## Homologação das 7 abas no staging — v1.3 (12/10/2026)
 - [ ] Home: 3 caixas cinzas seguem visíveis; não há régua de 10 etapas; "Núcleo familiar" em "Não registrado" (os 4 membros só aparecem na Conta).
 - [ ] Jornada: Linha Dupla existe (Ancestral · União de Ramos · Processo), mas Graz 1895 → Brasil está em Lacuna (sem marco publicado); § 58c só na Home.
