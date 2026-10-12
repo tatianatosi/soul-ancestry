@@ -213,7 +213,7 @@ export function PortalShell({
               )}
             >
               <Icon className="h-[17px] w-[17px] shrink-0 sm:h-[19px] sm:w-[19px]" aria-hidden="true" />
-              <span className="w-full text-center">{to === "/portal/documentos" ? <><span className="sm:hidden">Docs</span><span className="hidden sm:inline">{label}</span></> : label}</span>
+              <span className="w-full text-center whitespace-nowrap">{to === "/portal/documentos" ? <><span className="sm:hidden">Docs</span><span className="hidden sm:inline">{label}</span></> : label}</span>
             </LinkPortal>
           ))}
         </div>
