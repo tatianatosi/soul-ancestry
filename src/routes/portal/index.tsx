@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils";
 import { ArrowRight, CheckCircle2, UsersRound, Sparkles } from "lucide-react";
 import { CaCard } from "@/components/ui/ca-card";
 import { pessoasDaArvore } from "@/lib/arvore-publicacao";
-import { BlocoExemploVisual } from "@/components/portal/bloco-exemplo-visual";
 
 const PROXIMO_PASSO_VAZIO =
   "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui.";
@@ -393,7 +392,7 @@ function PainelHomeMockup({
               Sem publicação, a ausência é dita — nunca deduzida do cadastro. */}
           <div className="mt-4 border-t border-cream/10 pt-4" data-home-nucleo>
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-cream/60">Núcleo familiar</p>
-            <p className="mt-1 text-sm text-cream/75">Não registrado — os membros aparecem aqui quando forem compartilhados com a família.</p>
+            <p className="mt-1 text-sm text-cream/75">Em curadoria — os membros aparecem aqui quando forem compartilhados com a família.</p>
           </div>
         </div>
 
@@ -463,11 +462,11 @@ function PainelHomeMockup({
             </LinkPortal>
           </div>
           {achados.length === 0 ? (
-            <div className="border-l-2 border-gold/40 py-1 pl-4">
-              <p className="font-serif text-lg leading-relaxed text-navy/70">
-                Quando houver descobertas prontas para compartilhar, elas encontrarão seu lugar aqui.
+            <div className="app-home-curadoria">
+              <p className="app-selo-curadoria">Pesquisa em andamento</p>
+              <p className="mt-2 font-serif text-lg leading-relaxed text-navy/80">
+                As descobertas da sua história encontrarão seu lugar aqui assim que forem validadas pela equipe.
               </p>
-              <BlocoExemploVisual tipo="achados" />
             </div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
@@ -497,21 +496,20 @@ function PainelHomeMockup({
             <LinkPortal to="/portal/jornada" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Jornada</LinkPortal>
           </section>
         ) : null}
-        {!documentoPrioritario ? (
-          <section aria-label="Documentos prioritários" className="app-home-ausencia sm:col-span-2">
-            <details><summary className="font-serif text-xl text-navy">Documentos prioritários</summary>
-            <p className="mt-2 text-sm leading-relaxed text-navy/70">Ainda não há uma prioridade documental compartilhada com sua família. O checklist aparecerá quando for disponibilizado pela equipe.</p>
-            <BlocoExemploVisual tipo="documentos" />
-            <LinkPortal to="/portal/documentos" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Documentos <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></LinkPortal>
-            </details>
-          </section>
-        ) : null}
-        <section aria-label="Contato com a equipe" className="app-home-ausencia sm:col-span-2">
-          <details><summary className="font-serif text-xl text-navy">Contato com a equipe</summary>
-          <p className="mt-2 text-sm leading-relaxed text-navy/70">Ainda não há um canal de contato disponibilizado neste aplicativo.</p>
-          <BlocoExemploVisual tipo="contato" />
-          <LinkPortal to="/portal/conta" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Conta <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></LinkPortal>
-          </details>
+        {/* 12/10/2026 — os dois acordeões de ausência viraram um cartão
+            editorial único; nenhum dado é afirmado além do que existe. */}
+        <section aria-label="Acervo sob curadoria técnica" className="app-home-curadoria sm:col-span-2" data-home-curadoria>
+          <p className="app-selo-curadoria">Em curadoria</p>
+          <h3 className="mt-2 font-serif text-xl text-navy">Acervo sob curadoria técnica</h3>
+          <p className="mt-1 text-sm leading-relaxed text-navy/70">
+            {documentoPrioritario
+              ? "Sua equipe segue organizando o acervo da família."
+              : "Documentos e registros da família estão sendo organizados pela equipe e aparecerão aqui quando liberados."}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1">
+            <LinkPortal to="/portal/documentos" className="inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Documentos</LinkPortal>
+            <LinkPortal to="/portal/conta" className="inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Conta</LinkPortal>
+          </div>
         </section>
       </div>
     </div>
