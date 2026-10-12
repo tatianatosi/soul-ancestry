@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound, redirect, useParams } from "@tanstack/react-router";
+import { BarraEtapasCaso } from "@/components/caso/barra-etapas-caso";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
@@ -1735,6 +1736,17 @@ function FichaCaso() {
       </div>
         </div>
       </details>
+
+      {/* 12/10/2026 — 5 etapas de leitura, derivadas das verificações existentes. */}
+      <div className="mb-5">
+        <BarraEtapasCaso
+          caseId={id}
+          aoAbrirSecao={(s) => {
+            const alvo = SECOES.find((x) => x.id === s);
+            if (alvo) setSecaoFoco(alvo.id);
+          }}
+        />
+      </div>
 
       {/* Índice: âncoras fixas; seções fora de foco ficam no DOM com hidden. */}
       <nav

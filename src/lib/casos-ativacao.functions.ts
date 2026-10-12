@@ -2,6 +2,8 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { resolverOrganizacao, type SupabaseCliente } from "@/lib/onboarding-regras";
+import { z } from "zod";
+import { calcularEtapas, etapaAtual, type CheckLido, type EtapaCalculada } from "@/lib/etapas-caso";
 
 export type EstadoAtivacaoCaso = {
   caseId: string;
@@ -18,6 +20,8 @@ export type EstadoAtivacaoCaso = {
    * leitura, nunca ocultado como "tudo certo").
    */
   proximaAcaoCanonica: { nivel: number; motivo: string; prazo: string | null } | null;
+  /** Etapa atual das 5 de leitura (etapas-caso.ts); null = todas concluídas. */
+  etapaAtual: EtapaCalculada | null;
 };
 
 type BloqueioReal = { regra: string; motivo: string };
@@ -142,6 +146,12 @@ export const listarEstadoAtivacao = createServerFn({ method: "GET" })
         ativo: Boolean(c.ativo),
         motivos,
         proximaAcaoCanonica: null,
+        etapaAtual: etapaAtual(
+          calcularEtapas(
+            [...(mapa?.entries() ?? [])].map(([check_key, v]) => ({ check_key, ...v })) as CheckLido[],
+            agora,
+          ),
+        ),
       });
     }
 
@@ -200,4 +210,19 @@ export const listarEstadoAtivacao = createServerFn({ method: "GET" })
     }
 
     return resultado;
+  });
+
+/** Cinco etapas de leitura de um caso, a partir de case_activation_checks (RLS do usuário). */
+export const lerEtapasCaso = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ caseId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    semCache();
+    const supabase = context.supabase as unknown as SupabaseCliente;
+    const { data: linhas, error } = await supabase
+      .from("case_activation_checks")
+      .select("check_key,status,isencao_expira_em")
+      .eq("case_id", data.caseId);
+    if (error) throw new Error("Não foi possível ler as etapas do caso.");
+    return calcularEtapas((linhas ?? []) as CheckLido[]);
   });
