@@ -1,21 +1,44 @@
-# Sete abas canônicas do App Cliente
+# Caso Ana Luiza — marcos, vínculos e documentos nas telas oficiais do Desk
 
-## Escopo
-- Alterar somente `src/components/portal/abas-app-cliente.tsx` e `src/components/portal/portal-shell.tsx`.
-- Manter exatamente sete itens de primeiro nível, nesta ordem: Painel, Jornada, Árvore, Descobertas, Documentos, Biblioteca e Conta.
-- Reutilizar as rotas existentes: `/portal`, `/portal/jornada`, `/portal/arvore`, `/portal/radar`, `/portal/documentos`, `/portal/legado` e `/portal/conta`.
-- Usar os ícones Home, Flag, GitFork, Compass, FileText, BookOpen e UserRound.
+Nenhuma tela ou componente novo. O trabalho usa as telas que já existem: Atendimento / Caso 360 para os marcos, Pessoas e linhagens para os vínculos e Documentos do caso para os documentos. As rotas `/admin/desk/...` não existem no projeto e não serão criadas.
 
-## Apresentação
-- Preservar integralmente a identidade visual definida em `portal-v11.css`.
-- Ajustar somente a composição da barra para manter os sete rótulos em uma linha, sem rolagem ou corte horizontal em 375 px e 1280 px.
-- A gestão de assinatura continuará dentro de Conta; nenhuma aba, rota ou tela será criada.
+## 1. Vínculos da Árvore (já feito)
+- Os 9 vínculos autorizados já estão registrados e liberados para a cliente.
+- Ana Luiza e Adair já foram publicados na Árvore.
+- O App já desenha as linhas douradas no preview, no celular e no computador.
+- O site publicado ainda não recebeu essa mudança.
+- Pendente: corrigir as gerações para seguirem os vínculos. Ana Maria passa a ser a geração 2; Cleusa, Lotte e Otto a 3; Rudolf a 4; Heinrich a 5. Isso só será feito se você aprovar.
 
-## Validação
-- Conferir que as duas listas contêm os mesmos sete itens, na mesma ordem, sem Financeiro ou Assinatura.
-- Validar visualmente o App em 375 px e 1280 px.
-- Conferir o diagnóstico automático da prévia após a mudança.
+## 2. Quatro marcos da Jornada
+Serão publicados pelo mesmo caminho que o Desk usa ao publicar um marco da Jornada para o App:
+1. 24/09/1895 — Nascimento de Franz Friedmann em Graz, Estíria (Áustria)
+2. 1938–1939 — Perseguição e emigração de Viena para o Brasil
+3. 1941 — Casamento e fixação no Brasil
+4. 2026 — Processo de reparação histórica (§ 58c StbG)
 
-## Limites
-- Não alterar banco, consultas, funções, permissões, regras de negócio, conteúdo publicado ou qualquer arquivo fora das duas pastas autorizadas.
-- Não publicar o projeto.
+Cada marco:
+- fica registrado como autorizado por você, com data e auditoria;
+- usa somente o texto acima, sem acrescentar fatos;
+- pode ser despublicado depois, no próprio Desk.
+
+Franz é parente colateral da pesquisa. Ele aparece só como texto do marco, não entra na Árvore.
+
+## 3. Documentos
+O caso da Ana não tem nenhum documento cadastrado hoje. Liberar os botões de ver e baixar exige o arquivo de verdade. Por isso:
+- você envia os PDFs no Desk, no caso da Ana, pelo envio de documentos que já existe:
+  - Geburtsbuch Graz 1895
+  - Registro de Imigração
+  - Dossiê Consular § 58c
+- com os arquivos no caso, eu marco cada um como liberado para a cliente, e os botões passam a funcionar no App;
+- sem arquivo, nada é criado. Um cartão sem arquivo seria um botão que não abre nada.
+
+## 4. Conferência
+- Abrir o App da Ana como administradora, em 375 e 1280 px: Jornada com os 4 marcos, Árvore com as linhas e as gerações, Documentos com os botões ativos se os arquivos já existirem.
+- Rodar a checagem de tipos e os testes do App.
+- Publicar o site só com a sua autorização.
+
+## Detalhes técnicos
+- Marcos: inserir em `app_projections` com `projection_type = 'jornada'`, `approval_status = 'published'` e `approved_by` = Proprietária, mais `audit_logs`. É o mesmo formato do escritor existente.
+- Vínculos: `genealogical_relationships` com `client_visibility = 'aprovada'`. A leitura no App fica em `dadosVivosDoPortal` e `dadosPortalComoAdmin`, que só retornam vínculos cujas duas pontas estão publicadas.
+- Gerações: atualizar `app_projections.geracao_cliente` das 6 projeções de árvore, só com aprovação.
+- Documentos: `documents.liberado_cliente = true` somente em registros que já tenham arquivo no armazenamento.
