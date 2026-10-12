@@ -1118,3 +1118,9 @@
 [data-app-cliente] .app-ligacao-no:last-child { text-align: right; }
 [data-app-cliente] .app-ligacao-traco { height: 2px; background: var(--ca-gold, #C2A84D); border-radius: 2px; }
 [data-app-cliente] .app-ligacao-rotulo { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ca-text-muted); white-space: nowrap; }
+[data-app-cliente] .app-ligacao-no { overflow-wrap: normal; word-break: normal; hyphens: none; }
+@media (max-width: 639px) {
+  [data-app-cliente] .app-ligacao { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 0.25rem; padding: 0.5rem 0; border-bottom: 1px solid var(--ca-border, transparent); }
+  [data-app-cliente] .app-ligacao-no, [data-app-cliente] .app-ligacao-no:last-child { text-align: center; }
+  [data-app-cliente] .app-ligacao-traco { width: 2px; height: 0.75rem; }
+}
