@@ -100,7 +100,7 @@ export function PortalArvore() {
                          : "Esta árvore ainda não tem nomes e vínculos liberados para a família."}
                     </p>
                     {pessoas.length > 0 ? (
-                      <ExploradorArvore pessoas={pessoas} geracoes={geracoesExibidas} vinculos={vivo.vinculosArvore ?? []} />
+                      <ExploradorArvore pessoas={pessoas} geracoes={geracoesExibidas} vinculos={"vinculosArvore" in vivo ? vivo.vinculosArvore : []} />
                     ) : (
                     <div className="mt-6 divide-y divide-border">
                       {geracoesExibidas.map((geracao: GeracaoArvore) => (
