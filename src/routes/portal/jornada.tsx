@@ -61,7 +61,7 @@ function noRealDeItem(item: PublicacaoCliente): NoEvento {
     categoria: historico ? "gold" : "navy",
     rotuloCategoria: historico ? "Passado" : "Presente",
     dataPrincipal: historico ? (ano ? String(ano) : null) : dataCurta(item.publicadoEm),
-    titulo: item.tipo === "microentrega" ? "Da nossa jornada" : item.tipoRotulo,
+    titulo: item.tipo === "microentrega" ? "Da nossa jornada" : item.tipo === "linha_tempo" ? "Marco da história" : item.tipoRotulo,
     conteudo: item.conteudo,
   };
 }

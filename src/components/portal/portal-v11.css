@@ -1130,3 +1130,6 @@
 [data-app-cliente] .app-arvore-perfil[data-arvore-titular] { background: var(--ca-navy); color: var(--ca-cream); }
 [data-app-cliente] .app-arvore-perfil[data-arvore-titular] summary, [data-app-cliente] .app-arvore-perfil[data-arvore-titular] summary .text-xs { color: var(--ca-cream); }
 [data-app-cliente] .app-ligacoes-moldura { margin-top: 1.5rem; padding: 1.5rem; }
+/* 12/10 — destaque forte só para titular e casal ascendente; moldura editorial da Árvore. */
+[data-app-cliente] .app-arvore-perfil--destaque { border: 2px solid var(--ca-gold); box-shadow: 0 0 0 3px color-mix(in oklab, var(--ca-gold) 18%, transparent); }
+[data-app-cliente] .app-arvore-nos { padding: var(--ca-space-3); border: 1px solid color-mix(in oklab, var(--ca-gold) 35%, transparent); border-radius: var(--ca-radius-xl); background: color-mix(in oklab, var(--ca-gold) 5%, var(--app-v11-superficie)); }

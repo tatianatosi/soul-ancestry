@@ -118,7 +118,7 @@ export function PortalRadar() {
                               <h3 className="mt-1 font-serif text-xl leading-tight text-navy">{d.titulo}</h3>
                             </div>
                             <span className="block max-w-32 break-words text-right font-serif text-xl leading-tight text-navy">
-                              {vazio ? "Lacuna" : temPercentual ? `${d.percentual}%` : d.rotuloNumero}
+                              {vazio ? "Em pesquisa" : temPercentual ? `${d.percentual}%` : d.rotuloNumero}
                               {temPercentual && d.id !== "conexoes" && !d.rotuloNumero.includes("%") && temRegistro ? <span className="ml-1 font-sans text-xs text-navy/70">· {d.rotuloNumero}</span> : null}
                               {contagemConexoes ? (
                                 <span className="mt-1 block font-sans text-xs text-navy/70">
