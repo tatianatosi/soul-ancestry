@@ -74,4 +74,22 @@ describe("saúde do caso e Ficha Única sem fallback de demonstração", () => {
     const radar = readFileSync("src/components/desk/radar-interno-integrado.tsx", "utf8");
     expect(radar).toContain("<HeatmapAderenciaPais");
   });
+
+  it("preserva as quatro correções visuais da auditoria de 10/10", () => {
+    const heatmap = readFileSync("src/components/desk/heatmap-aderencia-pais.tsx", "utf8");
+    expect(heatmap).toContain("mb-24");
+    expect(heatmap).toContain("md:mr-40");
+
+    const jornada = readFileSync("src/routes/portal/jornada.tsx", "utf8");
+    expect(jornada).not.toContain("Radar · média dos eixos com base");
+    expect(jornada).toContain("Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar.");
+
+    const legado = readFileSync("src/routes/portal/legado.tsx", "utf8");
+    expect(legado).toContain("data-legado-disclaimer");
+    expect(legado).toContain("Não substitui acompanhamento terapêutico, psicológico ou médico.");
+
+    const conta = readFileSync("src/routes/portal/conta.tsx", "utf8");
+    expect(conta).toContain("Condição familiar: 3 assinaturas / parcelas mensais");
+    expect(conta).toContain("a11a0000-0000-4000-8000-000000000002");
+  });
 });
