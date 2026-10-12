@@ -109,7 +109,8 @@ describe("o envio reusa os escritores existentes", () => {
 
   it("faz os dois passos que o servidor exige", () => {
     expect(componente).toContain('method: "PUT"');
-    expect(componente).toContain("await confirmar(");
+    expect(componente).toContain("confirmar({");
+    expect(componente).toContain("comTimeoutPortal(confirmar(");
   });
 
   it("valida no cliente antes de subir", () => {

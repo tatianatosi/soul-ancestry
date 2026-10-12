@@ -34,8 +34,10 @@ export const Route = createFileRoute("/portal/conta")({
 
 export function PortalConta() {
   const previa = usePreviaPortal();
-  const { visibilidade, carregando } = useVisibilidade("conta");
-  const { data } = usePortal();
+  const escopo = useVisibilidade("conta");
+  const { visibilidade, carregando } = escopo;
+  const contexto = usePortal();
+  const { data } = contexto;
   const vivo = usePortalVivo();
   const carregarFaturas = useServerFn(minhasFaturas);
   const faturas = useQuery({
@@ -106,16 +108,21 @@ export function PortalConta() {
 
   return (
     <PortalShell titulo={COPY_TELAS.conta.titulo} descricao={COPY_TELAS.conta.descricao}>
-      {!previa && faturas.isError ? (
+      {!previa && (faturas.isError || vivo.isError || contexto.isError || Boolean(escopo.erro)) ? (
         <section role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
           <p className="font-medium text-destructive">
             Instabilidade de conexão ao carregar seus dados financeiros.
           </p>
-          <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => void faturas.refetch()}>
+          <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => {
+            void faturas.refetch();
+            vivo.refetch();
+            void contexto.refetch();
+            escopo.tentarNovamente();
+          }}>
             Tentar novamente
           </Button>
         </section>
-      ) : carregando || (!previa && faturas.isLoading) ? (
+      ) : carregando || vivo.isLoading || contexto.isLoading || (!previa && faturas.isLoading) ? (
         <PortalCarregando />
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>

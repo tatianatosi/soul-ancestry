@@ -39,25 +39,28 @@ export const Route = createFileRoute("/portal/arvore")({
 });
 
 export function PortalArvore() {
-  const { visibilidade, carregando } = useVisibilidade("arvore");
-  const { data, isLoading, isError, error, refetch } = usePortalVivo();
+  const escopo = useVisibilidade("arvore");
+  const { visibilidade, carregando } = escopo;
+  const { data, isLoading, isError, refetch } = usePortalVivo();
+  const falhou = Boolean(escopo.erro) || isError;
+  const recarregar = () => {
+    escopo.tentarNovamente();
+    refetch();
+  };
 
   return (
     <PortalShell titulo={COPY_TELAS.arvore.titulo} descricao={COPY_TELAS.arvore.descricao}>
-      {carregando ? (
-        <PortalCarregando />
-      ) : (
-        isError ? (
+      {falhou ? (
           <section role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
             <p className="font-medium text-destructive">Instabilidade de conexão ao carregar sua árvore.</p>
             <p className="mt-1 text-navy/80">Os nós não foram substituídos por uma lacuna.</p>
-            <Button type="button" variant="outline" size="sm" className="mt-3" onClick={refetch}>
+            <Button type="button" variant="outline" size="sm" className="mt-3" onClick={recarregar}>
               Recarregar árvore
             </Button>
           </section>
-        ) : isLoading ? (
+      ) : carregando || isLoading ? (
           <PortalCarregando />
-        ) : data ? (
+      ) : data ? (
           <>
           {([vivo]) => {
             // Corte 2a: pessoas nomeadas (uma por pessoa) viram nós; o restante
@@ -205,9 +208,8 @@ export function PortalArvore() {
         ) : (
           <section role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
             <p className="font-medium text-destructive">Não foi possível confirmar os dados da sua árvore.</p>
-            <Button type="button" variant="outline" size="sm" className="mt-3" onClick={refetch}>Recarregar árvore</Button>
+            <Button type="button" variant="outline" size="sm" className="mt-3" onClick={recarregar}>Recarregar árvore</Button>
           </section>
-        )
       )}
     </PortalShell>
   );
