@@ -166,6 +166,9 @@ export function PortalConta() {
                   ) : null}
                   {assinatura.valor === "R$ 320,00" || assinatura.valor === "R$ 320,00" ? (
                     <p className="mt-2 text-sm text-navy/70" data-conta-assinatura-condicao>
+                      {(vivo.data?.casoAtivoId ?? previa?.identidade?.caseId) === "a11a0000-0000-4000-8000-000000000002" ? (
+                        <span className="mb-2 block">Condição familiar: 3 assinaturas / parcelas mensais</span>
+                      ) : null}
                       Condição prevista por 10 meses. A cobrança individual ainda aguarda confirmação e, por isso, nenhum link de pagamento é exibido.
                     </p>
                   ) : null}
