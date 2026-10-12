@@ -1,39 +1,26 @@
-# Resiliência de rede do App Cliente
+# Correções visuais finais e homologação do caso Ana Luiza
 
-## Estado do corte
-O rascunho isolado já implementa a maior parte do pedido: erro honesto na Conta e na Árvore, preservação do arquivo em Documentos, timeout de 15 segundos e nova tentativa por aba. Nada foi publicado.
+## Estado confirmado
+- O Heatmap já reserva espaço inferior e lateral (`mb-24` e `md:mr-40`), enquanto o Assistente fica fixo no canto inferior direito e oculto abaixo de `md`; a validação visual decidirá se ainda existe sobreposição real.
+- A legenda técnica “Radar · média dos eixos com base” não existe mais no código da Jornada; a tela já usa orientações voltadas à família.
+- O aviso legal padrão já é renderizado na aba Legado, inclusive quando não há Encontros de Linhagem publicados.
+- A Conta já exibe “Condição familiar: 3 assinaturas / parcelas mensais” para a assinatura de R$ 320 do caso canônico, mantendo a condição como prevista.
+- A rota administrativa solicitada abre as sete telas sanitizadas do App Cliente, mas não contém hoje uma ficha civil nem o `CaseHealthHero`; esse elemento existe no Caso 360 do Desk. Portanto, a evidência da ficha civil nessa rota está atualmente **NAO_LOCALIZADO** e não será fabricada.
 
-Falta completar o mesmo comportamento nas mensagens da página de detalhe do suporte: o texto já permanece após falha, mas ainda não há o botão **Reenviar**.
+## Implementação
+1. Validar o Heatmap em desktop e 375 px com o Assistente fechado e aberto. Se houver sobreposição, ajustar somente a reserva visual do Heatmap ou a posição do botão, sem tocar em dados ou comportamento.
+2. Preservar a orientação humana já presente na Jornada e adicionar uma proteção focal para impedir o retorno da legenda técnica.
+3. Preservar o disclaimer já existente no Legado e verificar sua presença nos estados com e sem encontros publicados.
+4. Preservar o descritivo familiar já existente na Conta e verificar que ele aparece somente com a condição prevista de R$ 320 do caso canônico.
+5. Navegar pela visão administrativa do caso Ana Luiza e registrar capturas factuais das telas disponíveis. A ficha civil/mascaramento será marcada **NAO_LOCALIZADO** se continuar ausente; não será criado Hero, rota, dado civil ou parentesco para satisfazer a captura.
 
-## Implementação final
-1. **Conta e faturas**
-   - Manter o aviso “Instabilidade de conexão ao carregar seus dados financeiros.” e o botão **Tentar novamente**.
-   - Em erro ou timeout, não renderizar ausência de assinatura, estado de dependente, faturas ou seções que possam sugerir vazio.
-   - Preservar integralmente a regra de contratante financeiro e a RPC existente.
-
-2. **Árvore**
-   - Manter erro de rede separado de `Lacuna`.
-   - O botão **Recarregar árvore** refaz a leitura dos nós; `Lacuna` só aparece depois de uma resposta válida e vazia.
-
-3. **Documentos e suporte**
-   - Manter arquivo, texto e demais campos locais após falha de envio.
-   - Exibir “Falha de conexão — seu conteúdo foi mantido.” com **Reenviar**.
-   - Completar o botão **Reenviar** também na mensagem de detalhe do ticket, reutilizando a mesma tentativa e sem duplicar mensagens.
-   - Limpar o formulário somente após confirmação de sucesso.
-
-4. **Fim de carregamentos infinitos**
-   - Manter timeout padrão de 15 segundos nas leituras do App e na atualização automática.
-   - Após o limite, mostrar erro localizado com nova tentativa; conservar dados anteriores quando já existirem.
+## Validação e evidências
+- Executar verificações focadas, tipos, testes relevantes e confirmar build verde.
+- Gerar capturas em 375 e 1280 px do Heatmap, Jornada, Legado e Conta.
+- Registrar separadamente a tentativa na rota administrativa com o resultado permitido: `PASSOU`, `FALHOU`, `BLOQUEADO_POR_DADO`, `BLOQUEADO_POR_DECISAO`, `ERRO_DE_FONTE` ou `NAO_LOCALIZADO`.
+- As capturas do agente serão inspeção administrativa; a prova oficial continua exigindo ação e releitura pela Proprietária autenticada em sua própria conta.
 
 ## Limites
-- Não alterar banco, tabelas, RLS, permissões, acessos, regras financeiras, Desk, navegação ou as sete abas.
-- Não alterar `types.ts` nem a função `portal_sou_contratante_financeiro`.
-- Falha de rede nunca será convertida em vazio, dependente, ausência de assinatura ou ausência de pessoas/documentos.
-
-## Validação
-- Testar timeout, distinção erro × vazio, nova tentativa e preservação de arquivo/texto.
-- Confirmar que um reenvio bem-sucedido limpa uma única vez e não duplica o conteúdo.
-- Capturar estados normais e de falha em 375 e 1280 px para Conta, Árvore, Documentos e suporte.
-- Verificar os registros atuais da plataforma e separar falhas preexistentes ou fora deste corte.
-
-As capturas do agente serão inspeção administrativa, não `COMPROVADO_EM_USO`; nada será publicado sem nova autorização explícita.
+- Sem alterações em tabelas, schema, RLS, dados, regras de negócio, rotas, navegação, convites ou publicação.
+- Sem alterar ou regenerar `src/integrations/supabase/types.ts` e sem tocar na RPC financeira.
+- Esta mudança fortalece o produto único ao alinhar a apresentação das superfícies existentes, sem criar fonte, fluxo ou tela paralela.
