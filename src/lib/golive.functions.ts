@@ -24,6 +24,8 @@ import { ehRegistroDeTeste } from "@/lib/registros-teste";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
 
+const escaparCuringa = (valor: string) => valor.replace(/[\\%_]/g, (c) => `\\${c}`);
+
 /** Código do único caso carregado pela superfície de go-live. */
 export const CODIGO_CASO_GO_LIVE = "CA-CID-AT-FAM-2026-001";
 
@@ -351,13 +353,13 @@ export const carregarGoLive = createServerFn({ method: "GET" })
     // Candidatos com o mesmo nome em outros cadastros (não são carregados no shell).
     const [outrosClientes, outrosMembros, outrosContatos, aliases] = await Promise.all([
       nomeCanonico
-        ? supabase.from("clientes").select("id,nome,email").ilike("nome", `%${nomeCanonico.split(" ")[0]}%`).is("archived_at", null)
+        ? supabase.from("clientes").select("id,nome,email").ilike("nome", `%${escaparCuringa(nomeCanonico.split(" ")[0])}%`).is("archived_at", null)
         : Promise.resolve({ data: [] }),
       nomeCanonico
-        ? supabase.from("case_members").select("id,case_id,nome").ilike("nome", `%${nomeCanonico.split(" ")[0]}%`).is("archived_at", null)
+        ? supabase.from("case_members").select("id,case_id,nome").ilike("nome", `%${escaparCuringa(nomeCanonico.split(" ")[0])}%`).is("archived_at", null)
         : Promise.resolve({ data: [] }),
       nomeCanonico
-        ? supabase.from("contacts").select("id,nome").ilike("nome", `%${nomeCanonico.split(" ")[0]}%`).is("archived_at", null)
+        ? supabase.from("contacts").select("id,nome").ilike("nome", `%${escaparCuringa(nomeCanonico.split(" ")[0])}%`).is("archived_at", null)
         : Promise.resolve({ data: [] }),
       supabase.from("case_aliases").select("id,alias,alias_type").eq("case_id", casoId),
     ]);
