@@ -150,12 +150,12 @@ describe("App Cliente — 6 dimensões, todas com percentual e com a conta visí
     }
   });
 
-  it("a tela do cliente renderiza a conta", () => {
-    expect(APP).toContain("data-radar-calculo");
-    // 08/10/2026: virou disclosure (<summary>Como calculamos</summary>) no
-    // Lovable; a conta continua visível ao cliente, agora recolhível.
-    expect(APP).toContain("Como calculamos");
-    expect(APP).toContain("d.comoCalculamos");
+  it("a tela do cliente renderiza o radar canônico e o cálculo de cada dimensão existe na fonte", () => {
+    expect(APP).toContain("<RadarSeisEixos");
+    const componente = readFileSync("src/components/portal/radar-seis-eixos.tsx", "utf8");
+    expect(componente).toContain("export function RadarSeisEixos");
+    const fonte = readFileSync("src/lib/radar-seis-eixos.ts", "utf8");
+    expect(fonte).toContain("comoCalculamos");
   });
 
   it("o comentário contraditório sumiu — texto e código dizem a mesma coisa", () => {
