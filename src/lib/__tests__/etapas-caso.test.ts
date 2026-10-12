@@ -25,3 +25,12 @@ describe("calcularEtapas", () => {
     expect(e.find((x) => x.id === "juridico")!.estado).toBe("concluido");
   });
 });
+
+import { calcularEtapas as calc2 } from "../etapas-caso";
+import { it as it2, expect as expect2 } from "vitest";
+it2("contrato não assinado no caso mantém Jurídico em andamento", () => {
+  const checks = ["proposta_aprovada_ou_isencao_autorizada", "contrato_assinado_ou_isencao_autorizada"].map((k) => ({ check_key: k, status: "validado" }));
+  const j = calc2(checks, Date.now(), { contratoAssinado: false }).find((e) => e.id === "juridico")!;
+  expect2(j.estado).toBe("andamento");
+  expect2(calc2(checks).find((e) => e.id === "juridico")!.estado).toBe("concluido");
+});

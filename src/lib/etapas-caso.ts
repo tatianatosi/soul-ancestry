@@ -63,10 +63,24 @@ function satisfeito(c: CheckLido | undefined, agora: number): boolean {
   return c.status === "validado" || c.status === "nao_aplicavel";
 }
 
-export function calcularEtapas(checks: CheckLido[], agora = Date.now()): EtapaCalculada[] {
+/**
+ * `contratoAssinado` vem do mesmo campo do caso que alimenta "Saúde do caso"
+ * (crm_casos.contrato_assinado). Quando é explicitamente false e não há isenção,
+ * o contrato não conta como feito — evita Jurídico "Concluído" com caso Bloqueado.
+ */
+export function calcularEtapas(
+  checks: CheckLido[],
+  agora = Date.now(),
+  caso?: { contratoAssinado?: boolean | null },
+): EtapaCalculada[] {
   const mapa = new Map(checks.map((c) => [c.check_key, c]));
+  const ok = (k: string) => {
+    const c = mapa.get(k);
+    if (k === "contrato_assinado_ou_isencao_autorizada" && caso?.contratoAssinado === false && c?.status !== "isento" && c?.status !== "nao_aplicavel") return false;
+    return satisfeito(c, agora);
+  };
   return ETAPAS_CASO.map((e) => {
-    const feitos = e.chaves.filter((k) => satisfeito(mapa.get(k), agora)).length;
+    const feitos = e.chaves.filter((k) => ok(k)).length;
     const total = e.chaves.length;
     const estado: EstadoEtapa = feitos === total ? "concluido" : feitos > 0 ? "andamento" : "aguardando";
     return { id: e.id, rotulo: e.rotulo, secao: e.secao, feitos, total, estado };

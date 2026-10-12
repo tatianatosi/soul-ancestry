@@ -1195,7 +1195,11 @@ function FichaCaso() {
             {(() => {
               const f = qCadeia.data?.planejador?.fase_jornada ?? qCadeia.data?.planejador?.etapa;
               if (!f) return "Etapa não registrada";
-              const t = String(f).replace(/_/g, " ");
+              const t = String(f)
+                .replace(/_/g, " ")
+                .replace(/formalizacao/gi, "formalização")
+                .replace(/diagnostico/gi, "diagnóstico")
+                .replace(/ativacao/gi, "ativação");
               return t.charAt(0).toUpperCase() + t.slice(1);
             })()}
           </p>

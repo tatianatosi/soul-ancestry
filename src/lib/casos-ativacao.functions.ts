@@ -224,5 +224,11 @@ export const lerEtapasCaso = createServerFn({ method: "GET" })
       .select("check_key,status,isencao_expira_em")
       .eq("case_id", data.caseId);
     if (error) throw new Error("Não foi possível ler as etapas do caso.");
-    return calcularEtapas((linhas ?? []) as CheckLido[]);
+    const { data: caso } = await supabase
+      .from("crm_casos")
+      .select("contrato_assinado")
+      .eq("id", data.caseId)
+      .maybeSingle();
+    const contratoAssinado = (caso as { contrato_assinado?: boolean | null } | null)?.contrato_assinado;
+    return calcularEtapas((linhas ?? []) as CheckLido[], Date.now(), { contratoAssinado });
   });
