@@ -1,5 +1,11 @@
 # Roadmap
 
+## Publicação do site principal (12/10/2026)
+- [x] Publicação solicitada pela Proprietária: resiliência de rede, botão Reenviar, Conta nova e sete abas canônicas no site principal.
+- [x] Conferência de segurança antes de publicar: varredura executada, sem problemas nas checções básicas; análise profunda do último commit está desatualizada.
+- [ ] Nomes Painel · Descobertas · Biblioteca nunca chegaram ao site principal: a barra do App no ar ainda mostra Home · Radar · Legado (rotas e contagem corretas).
+- [ ] Aceite visual da Conta nova, prova autenticada pessoal e varredura profunda atualizada antes de compartilhar amplamente.
+
 ## Auditoria 10/10 — quatro correções visuais finais (12/10/2026)
 - [x] Inspecionar Radar Individual/heatmap da Ana em 375/1280; nenhuma sobreposição, margem/reserva/Assistente preservados.
 - [x] Conferir legenda humana da Jornada e aviso legal padrão do Legado; ajustes existentes preservados. Estado vazio de encontros NAO_LOCALIZADO pelo seletor, sem deduzir ausência na fonte.
