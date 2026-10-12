@@ -4,7 +4,7 @@
 - [x] Separar falha de rede de vazio legítimo na Conta, faturas e Árvore, com nova tentativa localizada.
 - [x] Preservar arquivo e texto após falha de envio, com reenvio explícito em Documentos e suporte.
 - [x] Aplicar timeout padrão de 15 segundos às leituras centrais e diretas do App Cliente.
-- [ ] Validar testes, registros da plataforma e capturas 375/1280; prova da Proprietária continua pendente.
+- [x] Validar 41 testes, tipos, build e capturas dos estados de rede em 375/1280; prova da Proprietária continua pendente.
 
 ## Auditoria 10/10 — quatro correções visuais finais (12/10/2026)
 - [x] Inspecionar Radar Individual/heatmap da Ana em 375/1280; nenhuma sobreposição, margem/reserva/Assistente preservados.
