@@ -126,6 +126,29 @@ export const listarDespesasTerceiros = createServerFn({ method: "GET" })
     return (data ?? []) as { id: string; case_id: string | null; categoria: string | null; estado: string; valor_pago: number | null }[];
   });
 
+/**
+ * Investimento em marketing, somado por toda a organização — mesma tabela
+ * (`marketing_investments`) já lida por `carregarConversao` (conversao.
+ * functions.ts) para a tela de Marketing, aqui só o total agregado para o
+ * KPI "Investimento em Marketing" do Comercial V4 (Proprietária,
+ * 13/10/2026), sem repetir os 2000 eventos de conversão daquela leitura.
+ */
+export const totalInvestimentoMarketing = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId } = await contextoInterno(supabase, context.userId as string);
+    const { data, error } = await supabase
+      .from("marketing_investments")
+      .select("valor")
+      .eq("organization_id", organizationId)
+      .is("archived_at", null);
+    if (error) throw new Error(error.message);
+    const linhas = (data ?? []) as { valor: number | null }[];
+    return { total: linhas.reduce((soma, l) => soma + (l.valor ?? 0), 0), lancamentos: linhas.length };
+  });
+
 /** Catálogos auxiliares (clientes, casos, contratos, faturas, equipe ativa) para vínculos e rótulos. */
 export const listarVinculos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

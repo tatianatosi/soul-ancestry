@@ -64,8 +64,10 @@ import {
   type IndicadorLeads,
 } from "@/lib/crm-vivo-metricas";
 import { CaCard } from "@/components/ui/ca-card";
-import { BarrasHorizontais, Etiqueta } from "@/components/prancha-v4/kit";
-import { dataHumana } from "@/lib/rotulos-golive";
+import { BarrasHorizontais, Etiqueta, Pessoa } from "@/components/prancha-v4/kit";
+import { dataHumana, humano } from "@/lib/rotulos-golive";
+import { listarComercial, listarVinculos as listarVinculosComercial, totalInvestimentoMarketing } from "@/lib/comercial.functions";
+import { moeda as moedaBRL, dataBr } from "@/components/comercial/base";
 
 export const Route = createFileRoute("/_authenticated/leads")({
   head: () => ({
@@ -96,6 +98,9 @@ function LeadsPage() {
   const carregar = useServerFn(listarLeadsDesk);
   const salvar = useServerFn(salvarLeadDesk);
   const arquivar = useServerFn(arquivarLeadDesk);
+  const listarComercialFn = useServerFn(listarComercial);
+  const listarVinculosFn = useServerFn(listarVinculosComercial);
+  const investimentoFn = useServerFn(totalInvestimentoMarketing);
   const qc = useQueryClient();
 
   const [mostrarArquivados, setMostrarArquivados] = useState(false);
@@ -104,6 +109,20 @@ function LeadsPage() {
     queryFn: () => carregar({ data: { incluirArquivados: mostrarArquivados } }),
     retry: false,
   });
+  /*
+    Propostas em negociação, investimento em marketing e nomes de cliente
+    (Prancha V4, Proprietária, 13/10/2026): `listarComercial` (recurso
+    "proposals") e `listarVinculos` já existem e já são usados por
+    financeiro.tsx — reaproveitados aqui, sem tabela ou coluna nova.
+    `totalInvestimentoMarketing` lê a mesma `marketing_investments` já usada
+    por `carregarConversao` (tela de Marketing), só o total agregado.
+  */
+  const qPropostas = useQuery({
+    queryKey: ["comercial", "proposals", ""],
+    queryFn: () => listarComercialFn({ data: { recurso: "proposals" } }),
+  });
+  const qVinculosComercial = useQuery({ queryKey: ["comercial-vinculos"], queryFn: () => listarVinculosFn({}) });
+  const qInvestimento = useQuery({ queryKey: ["marketing-investimento-total"], queryFn: () => investimentoFn({}) });
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const [rascunho, setRascunho] = useState<Record<string, unknown>>({});
   /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
@@ -226,6 +245,54 @@ function LeadsPage() {
     })
     .slice(0, 8);
 
+  /*
+    Bloco superior de KPIs comerciais e blocos de Propostas/Saúde comercial
+    (Prancha V4, 13/10/2026): investimento soma `totalInvestimentoMarketing`
+    (marketing_investments real); leads entrantes e taxa de conversão vêm do
+    mesmo `pipelineLeads` do funil; propostas em negociação vêm de
+    `listarComercial("proposals")`, real, sem query nova além da já pedida.
+  */
+  const contratoCount = pipelineLeads.filter((l) => etapaPipeline(l) === "contrato").length;
+  const taxaConversao = pipelineLeads.length ? Math.round((contratoCount / pipelineLeads.length) * 100) : null;
+  const propostas = (qPropostas.data ?? []) as Record<string, unknown>[];
+  const propostasAtivas = propostas.filter(
+    (p) => !p["archived_at"] && (p["status"] === "enviada" || p["status"] === "em_negociacao"),
+  );
+  const totalPropostasAtivas = propostasAtivas.reduce((soma, p) => soma + (Number(p["valor"]) || 0), 0);
+  const clientesComercial = qVinculosComercial.data?.clientes ?? [];
+  const nomeClienteComercial = (id: unknown) => clientesComercial.find((c) => c.id === id)?.nome ?? "—";
+  const ROTULO_STATUS_PROPOSTA: Record<string, string> = {
+    rascunho: "Rascunho",
+    em_revisao: "Em revisão",
+    enviada: "Enviada",
+    em_negociacao: "Em negociação",
+    aprovada: "Aprovada",
+    recusada: "Recusada",
+    expirada: "Expirada",
+    substituida: "Substituída",
+  };
+  const TOM_STATUS_PROPOSTA: Record<string, "sucesso" | "critico" | "atencao" | "neutro"> = {
+    aprovada: "sucesso",
+    enviada: "atencao",
+    em_negociacao: "atencao",
+    recusada: "critico",
+    expirada: "critico",
+    rascunho: "neutro",
+    em_revisao: "neutro",
+    substituida: "neutro",
+  };
+  const propostasVisiveis = propostas.filter((p) => !p["archived_at"]).slice(0, 8);
+
+  const distribuicaoCanais = ORIGENS_LEAD.map((o) => {
+    const total = pipelineLeads.filter((l) => l.origem === o.valor).length;
+    const percentual = pipelineLeads.length ? Math.round((total / pipelineLeads.length) * 100) : 0;
+    return { rotulo: o.rotulo, valor: percentual, apoio: `${total} leads` };
+  }).filter((c) => c.valor > 0);
+
+  const leadsAtivosTabela = [...pipelineLeads]
+    .sort((a, b) => (b.ultimo_followup_em ?? b.created_at ?? "").localeCompare(a.ultimo_followup_em ?? a.created_at ?? ""))
+    .slice(0, 8);
+
   const visiveis = leads.filter((l) => {
     // CRM Vivo (27/09/2026): convertido em caso ou encerrado sai do pipeline, salvo pedido explícito.
     if (!mostrarConvertidos && leadForaDoPipeline(l as never)) return false;
@@ -271,6 +338,39 @@ function LeadsPage() {
             "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
         </p>
       ) : null}
+      {/*
+        Bloco 1 — KPIs de performance comercial (Prancha V4, 13/10/2026):
+        investimento real de marketing_investments, leads entrantes e taxa
+        de conversão do mesmo pipelineLeads do funil, propostas ativas de
+        listarComercial("proposals") — sem dado fictício, sem KPI inventado.
+      */}
+      <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4" data-leads-kpis-topo>
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4 text-left">
+          <p className="text-[11px] uppercase tracking-wide text-navy/55">Investimento em Marketing</p>
+          <p className="font-serif text-2xl text-navy">
+            {qInvestimento.isLoading
+              ? "…"
+              : qInvestimento.data && qInvestimento.data.lancamentos > 0
+                ? moedaBRL(qInvestimento.data.total)
+                : "Sem dados suficientes"}
+          </p>
+        </div>
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4 text-left">
+          <p className="text-[11px] uppercase tracking-wide text-navy/55">Leads Entrantes</p>
+          <p className="font-serif text-2xl text-navy">{pipelineLeads.length}</p>
+        </div>
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4 text-left">
+          <p className="text-[11px] uppercase tracking-wide text-navy/55">Taxa de Conversão</p>
+          <p className="font-serif text-2xl text-navy">{taxaConversao === null ? "Sem dados suficientes" : `${taxaConversao}%`}</p>
+        </div>
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4 text-left">
+          <p className="text-[11px] uppercase tracking-wide text-navy/55">Propostas em Negociação</p>
+          <p className="font-serif text-2xl text-navy">
+            {qPropostas.isLoading ? "…" : propostasAtivas.length ? `${propostasAtivas.length} · ${moedaBRL(totalPropostasAtivas)}` : "Sem dados suficientes"}
+          </p>
+        </div>
+      </div>
+
       {/* CRM Vivo (27/09/2026): 5 indicadores acionáveis, só leads reais do pipeline. Clique filtra a lista. */}
       <div className="mb-4 grid gap-2 sm:grid-cols-3 lg:grid-cols-5" data-indicadores-leads>
         {INDICADORES_LEADS.map((i) => (
@@ -323,9 +423,24 @@ function LeadsPage() {
                     <span className="block truncate text-sm font-medium text-navy">{l.nome}</span>
                     <span className="block text-xs text-navy/55">
                       {l.call_realizada_em ? `Realizada em ${dataHumana(l.call_realizada_em)}` : `Agendada para ${dataHumana(l.call_agendada_em, "data não registrada")}`}
+                      {" · "}
+                      {rotulo("origem", l.origem)}
                     </span>
+                    {l.objetivo ? <span className="block truncate text-[11px] text-navy/50">Objetivo: {rotulo("objetivo", l.objetivo)}</span> : null}
                   </div>
-                  <Etiqueta texto={rotulo("status_call", l.status_call)} tom={TOM_STATUS_CALL[String(l.status_call ?? "")] ?? "neutro"} />
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Etiqueta texto={rotulo("status_call", l.status_call)} tom={TOM_STATUS_CALL[String(l.status_call ?? "")] ?? "neutro"} />
+                    <button
+                      type="button"
+                      className="rounded-full border border-navy/15 px-2 py-1 text-[11px] text-navy/70 hover:bg-navy/5"
+                      onClick={() => {
+                        setSelecionado(l.id ?? null);
+                        setRascunho({});
+                      }}
+                    >
+                      Abrir
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -336,6 +451,128 @@ function LeadsPage() {
           )}
         </CaCard>
       </div>
+
+      {/*
+        Bloco 4 — Propostas comerciais (Prancha V4, 13/10/2026): mesma
+        `listarComercial("proposals")` que já alimenta Financeiro/Formalização
+        — sem campo inventado (o schema real não tem "rota consular", então
+        a coluna não existe aqui). Status real do fluxo de propostas
+        (comercial-fluxo.ts), nunca "aceita" fictício.
+      */}
+      <CaCard
+        titulo="Propostas comerciais"
+        eyebrow="Comercial · Emitidas, por status real do fluxo"
+        data-leads-propostas
+        className="mb-4 rounded-2xl p-5 sm:p-6"
+      >
+        {qPropostas.isLoading ? (
+          <p className="text-sm text-navy/60">Carregando…</p>
+        ) : propostasVisiveis.length === 0 ? (
+          <p className="text-sm text-navy/60" data-leads-propostas-vazio>
+            Sem dados suficientes
+          </p>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-navy/10">
+            <table className="w-full text-sm">
+              <thead className="text-left text-xs uppercase text-navy/65">
+                <tr>
+                  <th className="px-3 py-2">Cliente</th>
+                  <th className="px-3 py-2">Valor</th>
+                  <th className="px-3 py-2">Forma de pagamento</th>
+                  <th className="px-3 py-2">Validade</th>
+                  <th className="px-3 py-2">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {propostasVisiveis.map((p) => (
+                  <tr key={String(p["id"])} className="border-t border-navy/5">
+                    <td className="px-3 py-2 text-navy">{nomeClienteComercial(p["client_id"])}</td>
+                    <td className="px-3 py-2 text-navy">{moedaBRL(p["valor"], p["moeda"])}</td>
+                    <td className="px-3 py-2 text-navy/75">{humano(String(p["forma_pagamento"] ?? ""), "—")}</td>
+                    <td className="px-3 py-2 text-navy/75">{dataBr(p["validade"])}</td>
+                    <td className="px-3 py-2">
+                      <Etiqueta
+                        texto={ROTULO_STATUS_PROPOSTA[String(p["status"] ?? "")] ?? "—"}
+                        tom={TOM_STATUS_PROPOSTA[String(p["status"] ?? "")] ?? "neutro"}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CaCard>
+
+      {/*
+        Bloco 5 — Leads ativos (Prancha V4, 13/10/2026): mesmos `leads` já
+        carregados, ordenados por último contato real — a ficha completa
+        continua na gestão abaixo (filtros + editor), este é o resumo.
+      */}
+      <CaCard
+        titulo="Leads ativos"
+        eyebrow="Comercial · Por último contato"
+        data-leads-ativos-tabela
+        className="mb-4 rounded-2xl p-5 sm:p-6"
+      >
+        {leadsAtivosTabela.length === 0 ? (
+          <p className="text-sm text-navy/60" data-leads-ativos-vazio>
+            Nenhum lead ativo no pipeline.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {leadsAtivosTabela.map((l) => (
+              <li key={l.id} className="flex items-center justify-between gap-3 border-b border-navy/5 py-2 last:border-0">
+                <Pessoa nome={l.nome} papel={`${rotulo("origem", l.origem)} · ${humano(l.responsavel_nome ?? "", "sem responsável")}`} />
+                <div className="flex shrink-0 items-center gap-3 text-xs text-navy/60">
+                  <span className="hidden sm:inline">
+                    {l.proxima_acao ? `Próxima ação: ${l.proxima_acao}` : "Sem próxima ação"}
+                  </span>
+                  <button
+                    type="button"
+                    className="rounded-full border border-navy/15 px-2 py-1 text-[11px] text-navy/70 hover:bg-navy/5"
+                    onClick={() => {
+                      setSelecionado(l.id ?? null);
+                      setRascunho({});
+                    }}
+                  >
+                    Abrir ficha
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CaCard>
+
+      {/*
+        Bloco 6 — Saúde comercial & canais (Prancha V4, 13/10/2026):
+        distribuição real por origem (ORIGENS_LEAD) do mesmo pipelineLeads,
+        mais o alerta de estagnação já calculado pelo indicador existente
+        (contagemIndicadores.sem_proxima_acao) — sem contagem nova.
+      */}
+      <CaCard
+        titulo="Saúde comercial & canais"
+        eyebrow="Comercial · Distribuição por canal e estagnação"
+        data-leads-saude-canais
+        className="mb-4 rounded-2xl p-5 sm:p-6"
+      >
+        {distribuicaoCanais.length ? (
+          <BarrasHorizontais
+            itens={distribuicaoCanais}
+            tituloAcessivel={`Distribuição por canal: ${distribuicaoCanais.map((c) => `${c.rotulo} ${c.apoio}`).join(", ")}`}
+          />
+        ) : (
+          <p className="text-sm text-navy/60" data-leads-saude-canais-vazio>
+            Sem dados suficientes
+          </p>
+        )}
+        <p className="mt-3 text-xs text-navy/70" data-leads-sem-proxima-acao>
+          {contagemIndicadores.sem_proxima_acao > 0
+            ? `${contagemIndicadores.sem_proxima_acao} lead(s) sem próxima ação definida.`
+            : "Nenhum lead sem próxima ação."}
+        </p>
+      </CaCard>
 
       <label className="mb-4 flex items-center gap-2 text-xs text-navy/70">
         <input type="checkbox" checked={mostrarConvertidos} onChange={(e) => setMostrarConvertidos(e.target.checked)} />
