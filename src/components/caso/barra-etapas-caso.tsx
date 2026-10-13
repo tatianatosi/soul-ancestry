@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { lerEtapasCaso } from "@/lib/casos-ativacao.functions";
 import { ROTULO_ESTADO_ETAPA, type EstadoEtapa } from "@/lib/etapas-caso";
 import { supabase } from "@/integrations/supabase/client";
+import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
 
 const SELO: Record<EstadoEtapa, string> = {
   concluido: "border-gold bg-gold/15 text-navy",

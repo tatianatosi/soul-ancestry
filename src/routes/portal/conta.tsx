@@ -11,6 +11,7 @@ import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
 import { MENSAGEM_INSTABILIDADE_FINANCEIRA } from "@/lib/portal-resiliencia";
+import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
 
 export const Route = createFileRoute("/portal/conta")({
   head: () => ({
@@ -156,7 +157,7 @@ export function PortalConta() {
             <section className="app-v11-faixa app-conta-atendimento">
               <details className="app-conta-contato"><summary className="flex min-h-11 cursor-pointer items-center gap-2 font-serif text-xl text-navy"><ShieldCheck className="h-5 w-5" aria-hidden="true" /><span className="flex-1">Estamos por perto</span><ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary>
               <p className="mt-2 text-sm text-navy/75">{acompanhamento}</p>
-              <p className="mt-3 text-sm leading-relaxed text-navy/75">Ainda não há um canal de contato disponibilizado neste aplicativo.</p>
+              <a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer" data-conta-whatsapp className="mt-3 inline-flex min-h-11 items-center rounded-full bg-emerald-700 px-5 text-sm font-medium text-white hover:bg-emerald-800">Falar com a Especialista no WhatsApp · {WHATSAPP_ESPECIALISTA.rotulo}</a>
               <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Seus canais, preferências de aviso e informações de privacidade aparecerão quando estiverem disponíveis neste espaço.</p></details>
             </section>
 
