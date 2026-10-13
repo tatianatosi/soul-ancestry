@@ -321,11 +321,11 @@ function PainelConsolidado() {
               {/* Os quatro têm número agora; o ramo de ausência saiu junto
                   com o último "Não registrado". */}
               <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-navy/55">{k.rotulo}</dt>
-              <dd className="mt-1 font-serif text-2xl text-navy">{k.valor}</dd>
-              <p className="mt-1 text-[11px] text-navy/50">{k.apoio}</p>
+              <dd className="font-serif text-2xl text-navy">{k.valor}</dd>
+              <p className="text-[11px] text-navy/50">{k.apoio}</p>
             </>
           );
-          const classe = "block min-h-24 rounded-xl border border-navy/10 bg-card px-5 py-4 text-left shadow-sm transition-colors";
+          const classe = "block min-h-24 rounded-xl border border-navy/10 bg-card px-5 py-4 text-left shadow-sm transition-colors flex flex-col gap-1";
           return k.to ? (
             <Link key={k.rotulo} to={k.to} className={`${classe} hover:border-gold`}>
               {conteudo}
