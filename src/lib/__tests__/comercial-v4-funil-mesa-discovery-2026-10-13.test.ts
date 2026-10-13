@@ -4,10 +4,15 @@ import { describe, expect, it } from "vitest";
 
 /*
  * Comercial / CRM Vivo na Prancha V4 (Proprietária, 13/10/2026): Funil
- * comercial e Mesa de Discovery sobre os mesmos `leads` já carregados por
- * `listarLeadsDesk` — sem query nova, sem lead de exemplo. O funil usa o
- * pipeline canônico já existente (ETAPAS_PIPELINE/etapaPipeline, CRM Vivo
- * 27/09/2026), nunca uma etapa inventada. Cartões ganham rounded-2xl.
+ * comercial sobre os mesmos `leads` já carregados por `listarLeadsDesk` —
+ * sem query nova, sem lead de exemplo. O funil usa o pipeline canônico já
+ * existente (ETAPAS_PIPELINE/etapaPipeline, CRM Vivo 27/09/2026), nunca uma
+ * etapa inventada. Cartões ganham rounded-2xl.
+ *
+ * Decisão executiva (13/10/2026): o setor Comercial ganhou duas telas —
+ * /leads (carteira, funil, propostas, gestão de leads) e /calls (Discovery
+ * Calls, SPIN, handoff). A Mesa de Discovery saiu de /leads para não
+ * duplicar a dona do dado; cobertura dela passa a ser de /calls.
  */
 const rota = readFileSync("src/routes/_authenticated/leads.tsx", "utf8");
 
@@ -31,32 +36,16 @@ describe("Comercial — Funil comercial", () => {
   });
 });
 
-describe("Comercial — Mesa de Discovery", () => {
-  it("lista só leads com call agendada/realizada/status_call, campos reais", () => {
-    expect(rota).toContain("data-leads-mesa-discovery");
-    const trecho = rota.slice(rota.indexOf("const mesaDiscovery"), rota.indexOf("const visiveis"));
-    expect(trecho).toContain("l.call_agendada_em || l.call_realizada_em || l.status_call");
-    expect(trecho).toContain("!l.archived_at");
-  });
-
-  it("vazio honesto quando nenhuma Discovery foi agendada/realizada", () => {
-    expect(rota).toContain("data-leads-mesa-discovery-vazio");
-    expect(rota).toContain("Nenhuma Discovery agendada ou realizada ainda.");
-  });
-
-  it("status da call usa o rótulo real do catálogo (rotulo(\"status_call\", ...)), nunca texto livre", () => {
-    const trecho = rota.slice(
-      rota.indexOf("data-leads-mesa-discovery-lista"),
-      rota.indexOf("</CaCard>", rota.indexOf("data-leads-mesa-discovery-lista")),
-    );
-    expect(trecho).toContain('rotulo("status_call", l.status_call)');
-    expect(trecho).toContain("<Etiqueta");
+describe("Comercial — Mesa de Discovery saiu de /leads", () => {
+  it("não há mais Mesa de Discovery nesta tela — Discovery mora em /calls", () => {
+    expect(rota).not.toContain("data-leads-mesa-discovery");
+    expect(rota).not.toContain("const mesaDiscovery");
   });
 });
 
 describe("Comercial — arredondamento V4 escopado a esta tela", () => {
-  it("os dois novos cartões têm rounded-2xl próprio", () => {
-    const ocorrencias = rota.match(/className="rounded-2xl p-5 sm:p-6"/g) ?? [];
+  it("os cartões V4 têm rounded-2xl próprio", () => {
+    const ocorrencias = rota.match(/rounded-2xl p-5 sm:p-6/g) ?? [];
     expect(ocorrencias.length).toBeGreaterThanOrEqual(2);
   });
 });

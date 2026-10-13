@@ -18,7 +18,7 @@ describe("Comercial — Bloco 1: KPIs de performance comercial", () => {
     expect(rota).toContain("Investimento em Marketing");
     expect(rota).toContain("Leads Entrantes");
     expect(rota).toContain("Taxa de Conversão");
-    expect(rota).toContain("Propostas em Negociação");
+    expect(rota).toContain("Propostas em Aberto");
   });
 
   it("investimento soma marketing_investments real (totalInvestimentoMarketing), nunca número fixo", () => {
@@ -36,9 +36,9 @@ describe("Comercial — Bloco 1: KPIs de performance comercial", () => {
     expect(rota).toContain("taxaConversao === null");
   });
 
-  it("propostas em negociação vêm de listarComercial(\"proposals\"), sem tabela nova", () => {
+  it("propostas em aberto vêm de listarComercial(\"proposals\"), estados não-terminais do fluxo real, sem tabela nova", () => {
     const trecho = rota.slice(rota.indexOf("const propostas = (qPropostas.data"), rota.indexOf("const clientesComercial"));
-    expect(trecho).toContain('p["status"] === "enviada" || p["status"] === "em_negociacao"');
+    expect(trecho).toContain('new Set(["rascunho", "em_revisao", "enviada", "em_negociacao"])');
   });
 });
 

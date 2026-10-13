@@ -65,7 +65,7 @@ import {
 } from "@/lib/crm-vivo-metricas";
 import { CaCard } from "@/components/ui/ca-card";
 import { BarrasHorizontais, Etiqueta, Pessoa } from "@/components/prancha-v4/kit";
-import { dataHumana, humano } from "@/lib/rotulos-golive";
+import { humano } from "@/lib/rotulos-golive";
 import { listarComercial, listarVinculos as listarVinculosComercial, totalInvestimentoMarketing } from "@/lib/comercial.functions";
 import { moeda as moedaBRL, dataBr } from "@/components/comercial/base";
 
@@ -227,24 +227,6 @@ function LeadsPage() {
     const percentual = pipelineLeads.length ? Math.round((total / pipelineLeads.length) * 100) : 0;
     return { rotulo: ROTULO_ETAPA_PIPELINE[etapa], valor: percentual, apoio: `${total} leads` };
   });
-  const TOM_STATUS_CALL: Record<string, "sucesso" | "critico" | "atencao" | "neutro"> = {
-    realizada: "sucesso",
-    confirmada: "sucesso",
-    agendada: "atencao",
-    remarcada: "atencao",
-    no_show: "critico",
-    cancelada_lead: "critico",
-    cancelada_clube: "critico",
-  };
-  const mesaDiscovery = (leads as LeadDesk[])
-    .filter((l) => !l.archived_at && (l.call_agendada_em || l.call_realizada_em || l.status_call))
-    .sort((a, b) => {
-      const da = a.call_agendada_em ?? a.call_realizada_em ?? "";
-      const db = b.call_agendada_em ?? b.call_realizada_em ?? "";
-      return db.localeCompare(da);
-    })
-    .slice(0, 8);
-
   /*
     Bloco superior de KPIs comerciais e blocos de Propostas/Saúde comercial
     (Prancha V4, 13/10/2026): investimento soma `totalInvestimentoMarketing`
@@ -255,9 +237,11 @@ function LeadsPage() {
   const contratoCount = pipelineLeads.filter((l) => etapaPipeline(l) === "contrato").length;
   const taxaConversao = pipelineLeads.length ? Math.round((contratoCount / pipelineLeads.length) * 100) : null;
   const propostas = (qPropostas.data ?? []) as Record<string, unknown>[];
-  const propostasAtivas = propostas.filter(
-    (p) => !p["archived_at"] && (p["status"] === "enviada" || p["status"] === "em_negociacao"),
-  );
+  // "Em aberto" (Decisão executiva, 13/10/2026): ainda não chegou a um estado
+  // terminal do fluxo real (comercial-fluxo.ts) — nem aprovada, recusada,
+  // expirada nem substituída.
+  const ESTADOS_PROPOSTA_ABERTA = new Set(["rascunho", "em_revisao", "enviada", "em_negociacao"]);
+  const propostasAtivas = propostas.filter((p) => !p["archived_at"] && ESTADOS_PROPOSTA_ABERTA.has(String(p["status"] ?? "")));
   const totalPropostasAtivas = propostasAtivas.reduce((soma, p) => soma + (Number(p["valor"]) || 0), 0);
   const clientesComercial = qVinculosComercial.data?.clientes ?? [];
   const nomeClienteComercial = (id: unknown) => clientesComercial.find((c) => c.id === id)?.nome ?? "—";
@@ -384,7 +368,7 @@ function LeadsPage() {
           <p className="font-serif text-2xl text-navy">{taxaConversao === null ? "Sem dados suficientes" : `${taxaConversao}%`}</p>
         </div>
         <div className="rounded-xl border border-navy/10 bg-cream/40 p-4 text-left">
-          <p className="text-[11px] uppercase tracking-wide text-navy/55">Propostas em Negociação</p>
+          <p className="text-[11px] uppercase tracking-wide text-navy/55">Propostas em Aberto</p>
           <p className="font-serif text-2xl text-navy">
             {qPropostas.isLoading ? "…" : propostasAtivas.length ? `${propostasAtivas.length} · ${moedaBRL(totalPropostasAtivas)}` : "Sem dados suficientes"}
           </p>
@@ -410,67 +394,26 @@ function LeadsPage() {
       </div>
 
       {/*
-        Funil comercial e Mesa de Discovery (Prancha V4, 13/10/2026):
-        pipeline canônico (ETAPAS_PIPELINE/etapaPipeline) e calls já
-        gravadas, sobre os mesmos `leads` carregados acima — sem query nova.
+        Decisão executiva (Proprietária, 13/10/2026): duas telas no setor
+        Comercial — /leads é "Comercial & Funil" (carteira, aquisição,
+        propostas); Discovery Calls e qualificação (SPIN, consentimento,
+        handoff) ficam em /calls, rota própria já existente. A Mesa de
+        Discovery sai daqui para não duplicar a dona do dado.
       */}
-      <div className="mb-4 grid gap-4 lg:grid-cols-2">
-        <CaCard
-          titulo="Funil comercial"
-          eyebrow="Comercial · Leads → Discovery → Diagnóstico → Proposta → Contrato"
-          data-leads-funil
-          className="rounded-2xl p-5 sm:p-6"
-        >
-          {pipelineLeads.length ? (
-            <BarrasHorizontais itens={funilItens} tituloAcessivel={`Funil comercial: ${funilItens.map((i) => `${i.rotulo} ${i.apoio}`).join(", ")}`} />
-          ) : (
-            <p className="text-sm text-navy/60" data-leads-funil-vazio>
-              Sem dados suficientes
-            </p>
-          )}
-        </CaCard>
-        <CaCard
-          titulo="Mesa de Discovery"
-          eyebrow="Comercial · Calls agendadas e realizadas"
-          data-leads-mesa-discovery
-          className="rounded-2xl p-5 sm:p-6"
-        >
-          {mesaDiscovery.length ? (
-            <ul className="space-y-2" data-leads-mesa-discovery-lista>
-              {mesaDiscovery.map((l) => (
-                <li key={l.id} className="flex items-center justify-between gap-3 border-b border-navy/5 py-1.5 last:border-0">
-                  <div className="min-w-0">
-                    <span className="block truncate text-sm font-medium text-navy">{l.nome}</span>
-                    <span className="block text-xs text-navy/55">
-                      {l.call_realizada_em ? `Realizada em ${dataHumana(l.call_realizada_em)}` : `Agendada para ${dataHumana(l.call_agendada_em, "data não registrada")}`}
-                      {" · "}
-                      {rotulo("origem", l.origem)}
-                    </span>
-                    {l.objetivo ? <span className="block truncate text-[11px] text-navy/50">Objetivo: {rotulo("objetivo", l.objetivo)}</span> : null}
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <Etiqueta texto={rotulo("status_call", l.status_call)} tom={TOM_STATUS_CALL[String(l.status_call ?? "")] ?? "neutro"} />
-                    <button
-                      type="button"
-                      className="rounded-full border border-navy/15 px-2 py-1 text-[11px] text-navy/70 hover:bg-navy/5"
-                      onClick={() => {
-                        setSelecionado(l.id ?? null);
-                        setRascunho({});
-                      }}
-                    >
-                      Abrir
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-navy/60" data-leads-mesa-discovery-vazio>
-              Nenhuma Discovery agendada ou realizada ainda.
-            </p>
-          )}
-        </CaCard>
-      </div>
+      <CaCard
+        titulo="Funil comercial"
+        eyebrow="Comercial · Leads → Discovery → Diagnóstico → Proposta → Contrato"
+        data-leads-funil
+        className="mb-4 rounded-2xl p-5 sm:p-6"
+      >
+        {pipelineLeads.length ? (
+          <BarrasHorizontais itens={funilItens} tituloAcessivel={`Funil comercial: ${funilItens.map((i) => `${i.rotulo} ${i.apoio}`).join(", ")}`} />
+        ) : (
+          <p className="text-sm text-navy/60" data-leads-funil-vazio>
+            Sem dados suficientes
+          </p>
+        )}
+      </CaCard>
 
       {/*
         Quadro por etapa (Prancha Visual do Desk, kit de referência
