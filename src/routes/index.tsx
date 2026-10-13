@@ -102,7 +102,15 @@ function Home() {
             O Clube Ancestral reconstrói a história da sua família a partir de fontes primárias, organiza a documentação
             necessária e acompanha cada etapa do processo com registro completo e linguagem clara.
           </p>
-          <div className="mt-10 flex flex-wrap gap-3">
+          <Link
+            to="/app-cliente-como-pessoa"
+            search={{ casoId: "a11a0000-0000-4000-8000-000000000002" } as never}
+            className="mt-10 inline-flex min-h-11 items-center gap-3 rounded-full border-2 border-gold bg-navy px-7 py-3 font-medium text-white shadow-md hover:bg-navy/90"
+          >
+            <span aria-hidden="true" className="text-gold">✦</span>
+            Acessar App do Cliente (prévia da equipe)
+          </Link>
+          <div className="mt-6 flex flex-wrap gap-3">
             <Link to="/acesso" className="rounded-full bg-gold px-6 py-3 font-medium text-navy hover:brightness-95">
               Entrar como cliente
             </Link>

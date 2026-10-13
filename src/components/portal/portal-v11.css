@@ -1142,3 +1142,9 @@
 [data-app-cliente] .app-arvore-conectores { position: absolute; inset: 0; pointer-events: none; z-index: 1; overflow: visible; }
 [data-app-cliente] .app-arvore-conectores path { fill: none; stroke: var(--ca-gold); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 [data-app-cliente] .app-arvore-geracoes .app-arvore-perfil { position: relative; z-index: 2; }
+
+/* 13/10/2026 — densidade compacta do mockup (Home, Jornada, Árvore). */
+[data-app-cliente] #conteudo-portal { padding-top: var(--ca-space-3); }
+[data-app-cliente] #conteudo-portal :where([data-aba-home],[data-aba-jornada],[data-aba-arvore]) > :where(section,div) + :where(section,div) { margin-top: var(--ca-space-4, 1rem); }
+[data-app-cliente] #conteudo-portal :where([data-aba-home],[data-aba-jornada],[data-aba-arvore]) :where(section) { padding-block: var(--ca-space-3, 0.75rem); }
+[data-app-cliente] #conteudo-portal .app-cofre-ausencia { padding: 1.25rem; }
