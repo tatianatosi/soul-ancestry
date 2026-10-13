@@ -203,7 +203,7 @@ function TimelineVertical({
     <div className="app-jornada-linha min-w-0" data-linha-tom={variante}>
       <div className={cn("h-1 w-full", variante === "gold" ? "bg-gold" : "bg-navy")} aria-hidden="true" />
       <div className="py-4">
-      <h2 className="mb-3 font-serif text-xl text-navy">{eyebrow}</h2>
+      <h2 className={cn("mb-3 text-[11px] font-semibold uppercase tracking-[0.2em]", variante === "gold" ? "text-gold" : "text-navy")}>{eyebrow}</h2>
       {eventos.length === 0 ? (
         <div><p className="py-3 text-sm leading-relaxed text-navy/60">
           {variante === "gold"
@@ -490,7 +490,7 @@ export function PortalJornada() {
                          <span aria-hidden="true" className="absolute bottom-5 left-2 top-5 w-0.5 bg-gold/70" />
                           <section id="linha-origem" className="relative scroll-mt-20 py-4">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
-                           <h2 className="font-serif text-xl text-navy">Linha Ancestral</h2>
+                           <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">Linha Ancestral</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.</p>
                             <p className="app-estado-editorial mt-2">Em pesquisa</p>
                          </section>
@@ -500,7 +500,7 @@ export function PortalJornada() {
                          </div>) : null}
                           <section id="linha-processo" className="relative scroll-mt-20 py-4 sm:col-start-2 sm:row-start-1">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
-                           <h2 className="font-serif text-xl text-navy">Linha do Processo</h2>
+                           <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-navy">Linha do Processo</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar.</p>
                             <p className="app-estado-editorial mt-2">Em pesquisa</p>
                          </section>
