@@ -119,3 +119,12 @@
   --ca-appbar-height: 56px;      /* barra móvel do App Cliente (7 abas) */
   --ca-touch-target: 44px;       /* alvo mínimo de toque */
 }
+
+/* Acabamento exclusivo do App: não modifica os papéis globais do Desk. */
+[data-app-cliente] {
+  --app-polimento-ouro-borda: #a88434;
+  --app-polimento-ouro-texto: var(--ca-estado-aguardando);
+  --app-polimento-borda: color-mix(in srgb, var(--app-editorial-navy) 8%, transparent);
+  --app-polimento-sombra: 0 4px 16px color-mix(in srgb, var(--app-editorial-navy) 4%, transparent);
+  --app-polimento-pressionado: color-mix(in srgb, var(--app-editorial-navy) 88%, var(--ca-white));
+}

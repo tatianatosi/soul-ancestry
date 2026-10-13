@@ -351,6 +351,7 @@ export function PortalDocumentos() {
                     key={d.id}
                     className="app-documento-registro grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-4"
                   >
+                    <span className="app-documento-selo">Acervo Digital</span>
                     <div className="min-w-0">
                       <p className="flex items-start gap-2 font-medium text-navy"><FileText className="h-5 w-5 shrink-0" aria-hidden="true" />{textoParaCliente(d.titulo)}</p>
                       <p className="text-xs text-navy/50">{textoParaCliente(d.caso)}</p>
