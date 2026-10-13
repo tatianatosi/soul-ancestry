@@ -263,3 +263,7 @@
 - [ ] Paleta antiga x aprovada; Franz/Ruth na Árvore (aguarda decisão)
 - [x] Marco 1895: Franz Friedmann → Otto Reimer (linha direta)
 - [ ] Régua 60% + cartões de documentos do fallback — bloqueado: dados não registrados no caso (decisão da Proprietária)
+
+## Tela Hoje do Desk — refazer alinhada à prancha V4 (13/10/2026)
+- [ ] Proprietária reprovou a implementação atual da Hoje ("distante do v4 em todos os elementos"); refazer conforme desk-01-hoje.png, elemento por elemento, com dados reais e vazios honestos.
+- [ ] Capturas 375/1280 + relatório de arquivos/diff antes de qualquer publicação.
