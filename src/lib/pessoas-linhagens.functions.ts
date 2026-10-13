@@ -7,7 +7,13 @@ import { MODULOS_HISTORICOS } from "@/lib/genealogia-modulos";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { normalizarNome } from "@/lib/pessoa-identidade";
-import { validarAderenciaPercentual } from "@/lib/pessoas-linhagens";
+import {
+  geracaoAscendente,
+  validarAderenciaPercentual,
+  type PessoaGeracao,
+  type Perfil,
+  type Relacao,
+} from "@/lib/pessoas-linhagens";
 import { clienteElegivelParaPerfil, pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
@@ -176,6 +182,66 @@ async function autorizarEscrita(supabase: Sb, userId: string) {
     throw new Error("Seu papel não pode editar pessoas, relações ou linhagens.");
   return organizationId;
 }
+
+/** Teto da leitura por geração no Desk: a linhagem do Clube vai até G10. */
+export const GERACAO_MAXIMA_LINHAGEM = 10;
+
+export type LeituraLinhagemNucleo = {
+  linha: {
+    id: string;
+    nome: string | null;
+    tipo: string | null;
+    status: string | null;
+    proximoMarco: string | null;
+    riscoPrincipal: string | null;
+  } | null;
+  /** G1 = pessoa âncora da linha; sobe pela filiação persistida até G10. */
+  geracoes: (PessoaGeracao & { localidade: string | null })[];
+  totalPerfis: number;
+};
+
+/**
+ * 13/10/2026 — Pessoas & Linhagens (prancha V4) em /nucleos. Leitura pura:
+ * diferente de `painelPessoasLinhagens`, não faz backfill de perfis nem
+ * nenhuma outra escrita. Só lê perfis, relações e linhas do caso e sobe a
+ * filiação persistida a partir da pessoa âncora da primeira linha ativa.
+ * Sem âncora, sem gerações — nada é inferido.
+ */
+export const lerLinhagemDoCaso = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { caseId: string }) => d)
+  .handler(async ({ data, context }): Promise<LeituraLinhagemNucleo> => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId } = await autorizarLeitura(supabase, context.userId as string);
+    const org = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
+    const [perfisR, relacoesR, linhasR] = await Promise.all([
+      org("genealogical_person_profiles").eq("case_id", data.caseId).is("archived_at", null),
+      org("genealogical_relationships").eq("case_id", data.caseId).is("archived_at", null),
+      org("lineage_paths").eq("case_id", data.caseId).is("archived_at", null).order("created_at", { ascending: true }),
+    ]);
+    const perfis = linhas<Perfil>(perfisR as any, "perfis genealógicos do caso");
+    const relacoes = linhas<Relacao>(relacoesR as any, "relações genealógicas do caso");
+    const linhaFoco = linhas<any>(linhasR as any, "linhas do caso").find((l) => l.pessoa_ancora_id) ?? null;
+    const localidade = new Map(perfis.map((p) => [p.research_person_id, p.nascimento_localidade ?? null]));
+    const geracoes = geracaoAscendente(linhaFoco?.pessoa_ancora_id, perfis, relacoes)
+      .filter((g) => g.geracao <= GERACAO_MAXIMA_LINHAGEM)
+      .map((g) => ({ ...g, localidade: localidade.get(g.personId) ?? null }));
+    return {
+      linha: linhaFoco
+        ? {
+            id: String(linhaFoco.id),
+            nome: linhaFoco.nome_da_linha ?? null,
+            tipo: linhaFoco.tipo_da_linha ?? null,
+            status: linhaFoco.status ?? null,
+            proximoMarco: linhaFoco.proximo_marco ?? null,
+            riscoPrincipal: linhaFoco.risco_principal ?? null,
+          }
+        : null,
+      geracoes,
+      totalPerfis: perfis.length,
+    };
+  });
 
 /** Painel interno completo: pessoas, perfis, variantes, relações, eventos e linhagens. */
 export const painelPessoasLinhagens = createServerFn({ method: "GET" })

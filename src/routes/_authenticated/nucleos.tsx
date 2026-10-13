@@ -32,6 +32,7 @@ import { salvarTarefa } from "@/lib/ops.functions";
 import { sincronizarMembrosDoCaso } from "@/lib/caso-canonico.functions";
 
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
+import { ComposicaoLinhagemV4 } from "@/components/pessoas/composicao-linhagem-v4";
 export const Route = createFileRoute("/_authenticated/nucleos")({
   head: () => ({
     meta: [
@@ -413,6 +414,22 @@ function NucleosPage() {
               "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
           </p>
         ) : null}
+
+        {(() => {
+          /* Prancha V4 (13/10/2026): núcleo em foco = o aberto para edição;
+             sem seleção, o primeiro com caso vinculado. */
+          const lista = (q.data as Nucleo[] | undefined) ?? [];
+          const foco = atual ?? lista.find((n) => n.caso) ?? lista[0] ?? null;
+          if (!foco) return null;
+          return (
+            <div data-nucleo-em-foco={foco.id}>
+              <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-navy/55">
+                Núcleo em foco · {foco.nome}
+              </p>
+              <ComposicaoLinhagemV4 nucleo={foco} />
+            </div>
+          );
+        })()}
 
         <EstadoDados<Nucleo>
           carregando={q.isLoading}
