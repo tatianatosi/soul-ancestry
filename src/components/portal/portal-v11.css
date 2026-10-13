@@ -1175,3 +1175,27 @@
 [data-app-cliente] nav[aria-label="Navegação do aplicativo do cliente"] :where(a,button) { min-height: 52px; touch-action: manipulation; }
 [data-app-cliente] #conteudo-portal :where(section,article,li,div) { min-width: 0; }
 [data-app-cliente] #conteudo-portal { overflow-x: clip; }
+
+/* Acabamento fino 13/10 — contraste do ouro em texto, cartões, toque, Árvore e Radar */
+[data-app-cliente] { --app-ouro-texto: #a88434; }
+[data-app-cliente] :is(p, span, small, li, dt, dd, label).text-gold,
+[data-app-cliente] .app-home-boas-vindas,
+[data-app-cliente] .app-ligacao-rotulo { color: var(--app-ouro-texto); }
+[data-app-cliente] .border-gold\/40 { border-color: color-mix(in srgb, var(--app-ouro-texto) 45%, transparent); }
+[data-app-cliente] :is(.app-documento-registro, .app-card-resumo-jornada, .app-arvore-ficha, .app-ligacao-no) {
+  background: #ffffff;
+  border: 1px solid rgba(27, 43, 75, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(19, 41, 75, 0.04);
+}
+[data-app-cliente] .app-documento-registro.border-l-4 { border-left: 4px solid var(--ca-gold); }
+[data-app-cliente] nav[aria-label="Navegação do aplicativo do cliente"] :where(a, button) { min-width: 44px; min-height: 44px; touch-action: manipulation; }
+@media (max-width: 375px) {
+  [data-app-cliente] nav[aria-label="Navegação do aplicativo do cliente"] :where(a, button) span { white-space: nowrap; font-size: 11px; }
+}
+[data-app-cliente] .app-ligacao-no { transition: transform 0.2s ease; }
+@media (hover: hover) { [data-app-cliente] .app-ligacao-no:hover { transform: translateY(-2px); } }
+[data-app-cliente] .app-ligacao-no:active { transform: translateY(-2px); }
+[data-app-cliente] .app-ligacoes-moldura .space-y-3 > * + * { margin-top: 0.5rem; }
+[data-app-cliente] svg[viewBox="-76 -24 372 268"] { width: 70%; min-width: 240px; max-width: 100%; height: auto; margin-inline: auto; display: block; }
+@media (prefers-reduced-motion: reduce) { [data-app-cliente] .app-ligacao-no { transition: none; } }
