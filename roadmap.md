@@ -275,4 +275,5 @@
 - [x] Verificado antes de publicar: sete abas em 375 e 1280 sem overflow; cartão 12px branco; toque 44px; transição 0,2s; ouro #a88434 em 10 rótulos da Árvore.
 - [x] Publicado em https://soul-ancestry.lovable.app e conferido no CSS ao vivo (index-CUliPtht.css: a88434, app-ouro-texto, 52px, 44px, 12px, app-entrada, prefers-reduced-motion).
 - [x] Site publicado serve 200 sem overflow em 375 e 1280 (capturas /tmp/browser/published-final/).
+- [x] Cabeçalho do celular: floreio do logotipo encostava em "Acesso do cliente" (375). Corrigido com espaçamento em src/routes/index.tsx (mr-3 sm:mr-0) e republicado; gap medido 13px no ar.
 - [ ] A mesma publicação levou a nova Tela Hoje do Desk ao ar — homologação da Hoje ainda pendente.
