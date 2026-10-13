@@ -312,7 +312,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
 ] as const;
 
 /**
- * SETORES V5 — a lateral de seis setores que o Desk renderiza hoje.
+ * SETORES — a lateral que o Desk renderiza (7 ecossistemas + Governança desde 13/10/2026).
  *
  * Procedência: commit do Lovable "Construiu layout e 6 grupos do desk"
  * (06/10/2026), que trazia esta lista escrita DENTRO de
@@ -325,16 +325,14 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
  * componente que renderiza. Com duas listas, a próxima pessoa corrige uma e
  * a outra continua valendo — foi exatamente o que aconteceu aqui.
  *
- * DIVERGÊNCIA DECLARADA, não resolvida por mim: `GRUPOS_DESK` acima é o V4,
- * de SETE itens (Hoje · Comercial · Casos · Pessoas & Famílias · Pesquisa ·
- * Marketing · Configuração), aprovado em 03/10/2026 ("Confirmo que o v4
- * substitui"). Esta lista tem SEIS setores e os rótulos de 02/10. As duas
- * ficam registradas; nenhuma foi apagada. Qual vale no primeiro nível é
- * decisão da Proprietária — está no relato desta rodada como pendência.
- *
- * Enquanto não houver essa decisão: a lateral renderiza V5 (o que ela viu
- * hoje) e `GRUPOS_DESK` segue sendo a fonte de `grupoDonoDaRota`, dos testes
- * de sobreposição e do de-para do saneamento.
+ * DIVERGÊNCIA RESOLVIDA em 13/10/2026 pela Proprietária ("Comando de limpeza
+ * do Desk — aplicação do De-Para de retirada"): a lateral passa a ter os 7
+ * ecossistemas canônicos — Hoje · Comercial · Casos · Pessoas & Famílias ·
+ * Pesquisa · Marketing · Formalização & Financeiro — mais Governança &
+ * Configuração. Rotas concorrentes saem do menu principal para a seção
+ * recolhida `MENU_LEGADO_DESK`. O nome da constante segue `SETORES_DESK_V5`
+ * para não mexer em quem a importa; `GRUPOS_DESK` (V4) segue sendo a fonte de
+ * `grupoDonoDaRota`, dos testes de sobreposição e do de-para do saneamento.
  */
 export type AbaSetor = { label: string; to: string; adminOnly?: boolean };
 export type SetorDesk = {
@@ -354,57 +352,48 @@ export const SETORES_DESK_V5: readonly SetorDesk[] = [
     icone: "hoje",
     abas: [
       { label: "Visão do dia", to: "/painel" },
-      { label: "Kanban", to: "/ops" },
-      { label: "Microentregas", to: "/microentregas" },
       { label: "Alertas", to: "/alertas" },
-      { label: "SLA e exceções", to: "/ops-excecoes" },
     ],
-    prefixos: ["/painel", "/ops", "/microentregas", "/alertas", "/tarefas", "/proximas-acoes"],
+    prefixos: ["/painel", "/alertas"],
   },
   {
     id: "comercial",
-    label: "Marketing & Comercial",
+    label: "Comercial",
     to: "/leads",
     icone: "comercial",
     abas: [
-      { label: "Aquisição", to: "/marketing" },
       { label: "CRM Vivo", to: "/leads" },
-      { label: "Discovery", to: "/calls" },
+      { label: "Calls", to: "/calls" },
       { label: "Propostas", to: "/propostas" },
-      { label: "Conversão", to: "/conversao" },
     ],
-    prefixos: ["/leads", "/calls", "/propostas", "/conversao", "/marketing", "/crm-mestre", "/metricas", "/biblioteca-mensagens"],
+    prefixos: ["/leads", "/calls", "/propostas"],
   },
   {
     id: "casos",
-    label: "Pessoas & Casos",
+    label: "Casos",
     to: "/casos",
     icone: "casos",
+    abas: [{ label: "Caso 360", to: "/casos" }],
+    prefixos: ["/casos", "/onboarding", "/atendimento", "/app-cliente-como-pessoa"],
+  },
+  {
+    id: "pessoas",
+    label: "Pessoas & Famílias",
+    to: "/clientes",
+    icone: "casos",
     abas: [
-      { label: "Casos", to: "/casos" },
-      { label: "Pessoas", to: "/clientes" },
-      { label: "Famílias", to: "/nucleos" },
+      { label: "Pessoa 360", to: "/clientes" },
+      { label: "Núcleos familiares", to: "/nucleos" },
     ],
-    prefixos: [
-      "/casos",
-      "/clientes",
-      "/pessoas",
-      "/nucleos",
-      "/onboarding",
-      "/pessoas-linhagens",
-      "/atendimento",
-      "/app-cliente-como-pessoa",
-      "/ordens-servico",
-      "/matriz-juridica",
-    ],
+    prefixos: ["/clientes", "/pessoas", "/nucleos", "/pessoas-linhagens"],
   },
   {
     id: "pesquisa",
-    label: "Inteligência & Pesquisa",
+    label: "Pesquisa",
     to: "/pesquisa-modulo",
     icone: "pesquisa",
     abas: [
-      { label: "Pesquisas", to: "/pesquisa-modulo" },
+      { label: "Centro de Inteligência", to: "/pesquisa-modulo" },
       { label: "Radar", to: "/qualidade" },
       { label: "Fontes", to: "/fontes-genealogicas" },
       { label: "Evidências", to: "/evidencias" },
@@ -423,6 +412,17 @@ export const SETORES_DESK_V5: readonly SetorDesk[] = [
     ],
   },
   {
+    id: "marketing",
+    label: "Marketing",
+    to: "/marketing",
+    icone: "comercial",
+    abas: [
+      { label: "Aquisição", to: "/marketing" },
+      { label: "Biblioteca de mensagens", to: "/biblioteca-mensagens" },
+    ],
+    prefixos: ["/marketing", "/biblioteca-mensagens"],
+  },
+  {
     id: "contratos",
     label: "Formalização & Financeiro",
     to: "/contratos",
@@ -437,7 +437,7 @@ export const SETORES_DESK_V5: readonly SetorDesk[] = [
   },
   {
     id: "governanca",
-    label: "Governança & Administração",
+    label: "Governança & Configuração",
     to: "/configuracoes",
     icone: "governanca",
     abas: [
@@ -463,9 +463,46 @@ export const SETORES_DESK_V5: readonly SetorDesk[] = [
       "/escopo-origem",
       "/historico",
       "/golive",
+      // Rotas concorrentes rebaixadas em 13/10/2026 — ver MENU_LEGADO_DESK.
+      "/crm-mestre",
+      "/conversao",
+      "/ops",
+      "/ops-excecoes",
+      "/tarefas",
+      "/proximas-acoes",
+      "/microentregas",
+      "/metricas",
     ],
   },
 ];
+
+/**
+ * Governança / Legado — De-Para de retirada (Proprietária, 13/10/2026).
+ *
+ * Rotas concorrentes dos 7 ecossistemas saem do menu principal e ficam só
+ * nesta seção recolhida da lateral. As rotas continuam existindo (nada foi
+ * apagado); o destino de cada uma está no rótulo:
+ * - /crm-mestre: dicionário histórico; /conversao: absorvida por Comercial
+ *   e Marketing; /ops e /ops-excecoes: congeladas em leitura; /tarefas:
+ *   fundida no Kanban; /proximas-acoes: filtro do Kanban; /microentregas:
+ *   aba do Caso 360; /metricas: distribuída pelos ecossistemas donos.
+ */
+export const MENU_LEGADO_DESK: {
+  label: string;
+  itens: readonly { to: string; label: string }[];
+} = {
+  label: "Governança / Legado",
+  itens: [
+    { to: "/crm-mestre", label: "CRM Mestre (dicionário histórico)" },
+    { to: "/conversao", label: "Conversão (legado)" },
+    { to: "/ops", label: "Operação (somente leitura)" },
+    { to: "/ops-excecoes", label: "Exceções (somente leitura)" },
+    { to: "/tarefas", label: "Tarefas (legado)" },
+    { to: "/proximas-acoes", label: "Próximas ações (legado)" },
+    { to: "/microentregas", label: "Microentregas (legado)" },
+    { to: "/metricas", label: "Métricas (legado)" },
+  ],
+} as const;
 
 const casaPrefixoSetor = (rota: string, p: string) =>
   rota === p || rota.startsWith(`${p}/`) || (p === "/pesquisa" && rota.startsWith(`${p}-`));

@@ -24,6 +24,7 @@ import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
 import {
   MENU_CONTA,
+  MENU_LEGADO_DESK,
   rotaAtendeDestino,
   setorDaRota,
   SETORES_DESK_V5,
@@ -241,6 +242,25 @@ export function SaasShell({
             );
           })}
         </nav>
+        {/* De-Para de retirada (13/10/2026): rotas concorrentes fora do menu principal, recolhidas aqui. */}
+        <details className="mt-4 border-t border-cream/15 pt-3" data-menu-legado>
+          <summary className="flex min-h-11 cursor-pointer items-center px-2 text-[10px] font-semibold uppercase tracking-widest text-cream/60 hover:text-cream">
+            {MENU_LEGADO_DESK.label}
+          </summary>
+          {MENU_LEGADO_DESK.itens.map((s) => (
+            <Link
+              key={s.to}
+              to={s.to}
+              onClick={() => setAberto(false)}
+              className={cn(
+                "block rounded-md px-2 py-1.5 text-[13px] transition-colors",
+                rotaAtendeDestino(rota, s.to) ? "bg-cream/15 font-medium text-cream" : "text-cream/65 hover:bg-cream/10",
+              )}
+            >
+              {s.label}
+            </Link>
+          ))}
+        </details>
         <div className={cn("mt-4 border-t border-cream/15 pt-3", MENU_CONTA.itens.length === 0 && "hidden")}>
           <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gold">
             {MENU_CONTA.label}
