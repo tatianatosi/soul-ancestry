@@ -174,6 +174,60 @@ export function GraficoColunas({
   );
 }
 
+/** Linha de série; série zerada desenha a linha rente à base, com os pontos e a régua. */
+export function GraficoLinha({
+  pontos,
+  tituloAcessivel,
+}: {
+  pontos: { rotulo: string; valor: number }[];
+  tituloAcessivel: string;
+}) {
+  const largura = 300;
+  const altura = 96;
+  const margem = 10;
+  const maior = Math.max(...pontos.map((p) => p.valor), 1);
+  const passo = pontos.length > 1 ? (largura - margem * 2) / (pontos.length - 1) : 0;
+  const coords = pontos.map((p, i) => ({
+    x: margem + i * passo,
+    y: altura - margem - (p.valor / maior) * (altura - margem * 2),
+  }));
+  const temValor = pontos.some((p) => p.valor > 0);
+  return (
+    <figure role="img" aria-label={tituloAcessivel}>
+      <svg viewBox={`0 0 ${largura} ${altura}`} className="h-auto w-full">
+        {[0.25, 0.5, 0.75].map((f) => (
+          <line
+            key={f}
+            x1={margem}
+            x2={largura - margem}
+            y1={margem + f * (altura - margem * 2)}
+            y2={margem + f * (altura - margem * 2)}
+            className="stroke-navy/5"
+            strokeWidth={1}
+          />
+        ))}
+        <line x1={margem} x2={largura - margem} y1={altura - margem} y2={altura - margem} className="stroke-navy/15" strokeWidth={1} />
+        <polyline
+          points={coords.map((c) => `${c.x},${c.y}`).join(" ")}
+          fill="none"
+          className={temValor ? "stroke-gold" : "stroke-navy/20"}
+          strokeWidth={2}
+        />
+        {coords.map((c, i) => (
+          <circle key={pontos[i]!.rotulo} cx={c.x} cy={c.y} r={3} className={temValor ? "fill-navy" : "fill-navy/20"} />
+        ))}
+      </svg>
+      <div className="mt-1 flex justify-between gap-1 px-1">
+        {pontos.map((p) => (
+          <span key={p.rotulo} className="text-[9px] tabular-nums text-navy/50">
+            {p.rotulo}
+          </span>
+        ))}
+      </div>
+    </figure>
+  );
+}
+
 /** Rosca de estados; total zero desenha o anel cinza com "0" no centro. */
 export function DonutEstados({
   segmentos,

@@ -6,6 +6,7 @@ import { useGoLive } from "@/components/golive/dados";
 import { CardsAlertasCentrais } from "@/components/painel/cards-alertas-centrais";
 import { EstadoVazio, SaasShell } from "@/components/saas/shell";
 import { Button } from "@/components/ui/button";
+import { DonutEstados, GraficoLinha } from "@/components/prancha-v4/kit";
 import { CaCard } from "@/components/ui/ca-card";
 import { filaDeAprovacoes, resumoAprovacoes, type ItemAprovacao } from "@/lib/golive-aprovacoes";
 import { kanbanPorEtapa, type LeadComercial } from "@/lib/golive-comercial";
@@ -149,8 +150,23 @@ function PainelConsolidado() {
     padrão), e só aparece quando há microentrega concluída com data — sem
     isso a linha seria uma régua de zeros fingindo série histórica.
   */
-  const ritmo = temRitmo(caso.microentregas) ? ritmoSemanal(caso.microentregas, 6) : [];
+  const comRitmo = temRitmo(caso.microentregas);
+  const ritmo = ritmoSemanal(caso.microentregas, 6);
   const prioridades = prioridadeDaCarteira(caso.carteira);
+  // Rosca desenhada sempre com as 4 faixas do CHECK de crm_casos.prioridade.
+  const fatiasPrioridade = (
+    [
+      ["critica", "Crítica", "terracotta"],
+      ["alta", "Alta", "gold"],
+      ["media", "Média", "navy"],
+      ["baixa", "Baixa", "sucesso"],
+    ] as const
+  ).map(([chave, rotulo, tom]) => ({
+    rotulo,
+    tom,
+    valor: prioridades.find((p) => p.rotulo === chave)?.valor ?? 0,
+  }));
+  const comPrioridade = prioridades.length > 0;
   // P25 (26/09/2026) — "Casos ativos por fase, país, responsável e saúde",
   // pedido explícito da Proprietária. Mesma carteira ativa já usada acima
   // (país/via reais de crm_casos, sem query nova).
@@ -267,11 +283,6 @@ function PainelConsolidado() {
         })}
       </dl>
 
-      <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
-        <summary className="cursor-pointer text-sm font-medium text-navy">
-          Abrir operação detalhada do dia
-        </summary>
-        <div className="mt-5 border-t border-navy/10 pt-5">
       <div className="mb-6">
         <CaCard
           titulo="Tarefas e microentregas"
@@ -369,7 +380,7 @@ function PainelConsolidado() {
 
       {/* §11 linhas 8, 10 e 11 — funil, ritmo e prioridades, cada um sobre a
           função canônica que a tela de /golive já usa. */}
-      <div className="mb-6 grid gap-4 lg:grid-cols-3">
+      <div className="mb-6 grid gap-4 md:grid-cols-2">
         <CaCard titulo="Próximas ações comerciais" eyebrow="Mesmo registro do lead — /calls, /leads e /proximas-acoes">
           {(() => {
             // CRM Vivo (27/09/2026): uma só próxima ação por lead, o mesmo
@@ -424,59 +435,39 @@ function PainelConsolidado() {
         </CaCard>
 
         <CaCard titulo="Ritmo operacional" eyebrow="6 semanas">
-          {ritmo.length === 0 ? (
-            <EstadoVazio mensagem="Nenhuma microentrega concluída com data — sem série para mostrar." />
-          ) : (
-            <>
-              <div className="flex items-end gap-1.5" aria-hidden="true">
-                {ritmo.map((semana) => {
-                  const teto = Math.max(...ritmo.map((r) => r.valor), 1);
-                  return (
-                    <div key={semana.rotulo} className="flex flex-1 flex-col items-center gap-1">
-                      <div
-                        className="w-full rounded-t bg-gold/70"
-                        style={{ height: `${8 + (semana.valor / teto) * 44}px` }}
-                      />
-                      <span className="text-[9px] text-navy/50">{semana.rotulo}</span>
-                    </div>
-                  );
-                })}
-              </div>
-              <dl className="sr-only">
-                {ritmo.map((semana) => (
-                  <div key={semana.rotulo}>
-                    <dt>Semana de {semana.rotulo}</dt>
-                    <dd>{semana.valor} microentrega(s) concluída(s)</dd>
-                  </div>
-                ))}
-              </dl>
-              {/* §11 linha 10: métrica e unidade explicitadas em produção. */}
-              <p className="mt-2 text-[11px] text-navy/45">
-                Microentregas concluídas por semana, da segunda ao domingo.
-              </p>
-            </>
+          <div data-hoje-ritmo-linha>
+            <GraficoLinha
+              pontos={ritmo}
+              tituloAcessivel={`Microentregas concluídas por semana, últimas 6 semanas: ${ritmo.map((s) => s.valor).join(", ")}`}
+            />
+          </div>
+          {comRitmo ? null : (
+            <p className="mt-2 text-xs font-medium text-navy/70" data-hoje-ritmo-vazio>
+              Sem dados suficientes
+            </p>
           )}
+          {/* §11 linha 10: métrica e unidade explicitadas em produção. */}
+          <p className="mt-2 text-[11px] text-navy/45">
+            Microentregas concluídas por semana, da segunda ao domingo.
+          </p>
         </CaCard>
 
         <CaCard titulo="Distribuição das prioridades" eyebrow="Mesma carteira ativa dos KPIs">
-          {prioridades.length === 0 ? (
-            <EstadoVazio mensagem="Nenhum caso ativo com prioridade registrada." />
-          ) : (
-            <>
-              <dl className="space-y-1.5">
-                {prioridades.map((p) => (
-                  <div key={p.rotulo} className="flex items-baseline justify-between gap-3">
-                    <dt className="truncate text-xs text-navy/70">{p.rotulo}</dt>
-                    <dd className="font-serif text-lg text-navy">{p.valor}</dd>
-                  </div>
-                ))}
-              </dl>
-              {/* Caso encerrado não entra, mesmo com prioridade alta gravada. */}
-              <p className="mt-2 text-[11px] text-navy/45">
-                Só casos ativos; encerrado não conta como prioridade aberta.
-              </p>
-            </>
+          <div data-hoje-prioridades-rosca>
+            <DonutEstados
+              segmentos={fatiasPrioridade}
+              tituloAcessivel={`Casos ativos por prioridade: ${fatiasPrioridade.map((f) => `${f.rotulo} ${f.valor}`).join(", ")}`}
+            />
+          </div>
+          {comPrioridade ? null : (
+            <p className="mt-2 text-xs font-medium text-navy/70" data-hoje-prioridades-vazio>
+              Sem dados suficientes
+            </p>
           )}
+          {/* Caso encerrado não entra, mesmo com prioridade alta gravada. */}
+          <p className="mt-2 text-[11px] text-navy/45">
+            Só casos ativos; encerrado não conta como prioridade aberta.
+          </p>
         </CaCard>
       </div>
 
@@ -691,8 +682,6 @@ function PainelConsolidado() {
           )}
         </CaCard>
       </div>
-        </div>
-      </details>
     </section>
   );
 }

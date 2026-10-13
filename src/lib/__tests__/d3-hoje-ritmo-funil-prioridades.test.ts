@@ -32,10 +32,13 @@ describe("os três cards vêm da função canônica, não de conta própria", ()
   });
 
   it("nenhum card finge série ou período que a fonte não tem", () => {
-    // Sem microentrega concluída com data, a linha some em vez de virar
-    // uma régua de zeros. E o funil não inventa "últimos 30 dias".
-    expect(painel).toContain("temRitmo(caso.microentregas) ? ritmoSemanal");
-    expect(painel).toContain("Nenhuma microentrega concluída com data");
+    // Regra do componente permanente (Proprietária, 13/10/2026): sem
+    // microentrega concluída com data, a linha continua desenhada em cinza,
+    // rente à base, e o card diz "Sem dados suficientes". temRitmo decide o
+    // rótulo; a série nunca recebe ponto inventado. O funil não inventa
+    // "últimos 30 dias".
+    expect(painel).toContain("const comRitmo = temRitmo(caso.microentregas);");
+    expect(painel).toMatch(/comRitmo \? null : \(\s*<p[^>]*data-hoje-ritmo-vazio>\s*Sem dados suficientes/);
     expect(painel).not.toContain("últimos 30 dias");
   });
 });
