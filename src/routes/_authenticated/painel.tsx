@@ -765,7 +765,7 @@ function PainelConsolidado() {
             </ul>
           )}
         </CaCard>
-        <CaCard titulo="Contratos aguardando assinatura" eyebrow="contracts.status = sent">
+        <CaCard titulo="Contratos aguardando assinatura" eyebrow="Enviados ao cliente, sem assinatura registrada">
           {caso.contratosAguardandoAssinatura.length === 0 ? (
             <EstadoVazio mensagem="Nenhum contrato aguardando assinatura." />
           ) : (
@@ -780,7 +780,7 @@ function PainelConsolidado() {
             </ul>
           )}
         </CaCard>
-        <CaCard titulo="Pagamentos pendentes/vencidos" eyebrow="invoices.status: aberta ou vencida">
+        <CaCard titulo="Pagamentos pendentes/vencidos" eyebrow="Faturas abertas ou vencidas">
           {caso.pagamentosPendentes.length === 0 ? (
             <EstadoVazio mensagem="Nenhum pagamento pendente ou vencido." />
           ) : (
