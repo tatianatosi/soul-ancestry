@@ -103,7 +103,28 @@ export const listarComercial = createServerFn({ method: "GET" })
     return saida;
   });
 
-
+/**
+ * Despesas de terceiro (emolumentos, certidões, apostilamentos, traduções),
+ * agregadas por toda a organização — autorizado pela Proprietária em
+ * 13/10/2026 para o KPI "Obrigações e parcelas" do Financeiro V4. Mesma
+ * tabela e colunas já lidas por `obterResumoFinanceiroCaso` (id, estado,
+ * valor_pago), só sem o filtro `case_id` de um caso único.
+ */
+export const listarDespesasTerceiros = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
+    exigirPapel(papel, [...PAPEIS_FINANCEIRO, "operacoes", "leitura"], "Sem acesso financeiro.");
+    const { data, error } = await supabase
+      .from("third_party_expenses")
+      .select("id,case_id,categoria,estado,valor_pago")
+      .eq("organization_id", organizationId)
+      .is("archived_at", null);
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { id: string; case_id: string | null; categoria: string | null; estado: string; valor_pago: number | null }[];
+  });
 
 /** Catálogos auxiliares (clientes, casos, contratos, faturas, equipe ativa) para vínculos e rótulos. */
 export const listarVinculos = createServerFn({ method: "GET" })
