@@ -104,9 +104,11 @@ export function PainelVisaoCaso360({
             <ul className="space-y-2.5">
               {demais.map((p) => (
                 <li key={p.id} className="flex min-w-0 items-center gap-3">
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-navy text-xs text-gold">{iniciais(p.nome)}</span>
-                  <span className="min-w-0 flex-1 truncate text-sm text-navy">{p.nome}</span>
-                  <Selo texto={p.parentesco || p.papel || "Não registrado"} />
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-navy text-xs text-gold">{iniciais(p.nome || "?")}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm text-navy">{p.nome || "Nome não registrado"}</span>
+                    <span className="block truncate text-[11px] text-navy/60" title={p.parentesco || p.papel || ""}>{p.parentesco || p.papel || "Vínculo não registrado"}</span>
+                  </span>
                 </li>
               ))}
             </ul>
