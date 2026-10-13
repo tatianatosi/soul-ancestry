@@ -268,4 +268,11 @@
 - [x] Proprietária reprovou a implementação atual da Hoje ("distante do v4 em todos os elementos"); refazer conforme desk-01-hoje.png, elemento por elemento, com dados reais e vazios honestos.
 - [x] Refeito (13/10/2026): chips de navegação para rotas canônicas do Desk (sem /golive nos atalhos), KPIs com rótulo no topo, grade 2 colunas na ordem da prancha, pílulas/selos, funil consolidado por rótulo, gráfico de linha (ritmo) e rosca (prioridades) em SVG; fontes canônicas preservadas; 161 testes verdes; sem overflow em 1440/375.
 - [ ] Duplicidade: faixa P5 "Sinais centrais" repete Cadências vencidas/Casos sem próxima ação acima dos 4 KPIs da prancha — decidir se some ou se os KPIs viram os da P5 (decisão da Proprietária).
-- [ ] Capturas 375/1280 + relatório de arquivos/diff antes de qualquer publicação.
+- [x] Capturas 1440/375 entregues em /mnt/documents/desk-hoje-v4-2026-10-13/ (hoje-1440.png, hoje-1440-parte2.png, hoje-375.png).
+
+## App — acabamento fino publicado (13/10/2026 12:42 UTC)
+- [x] Proprietária autorizou publicar o acabamento fino (contraste do dourado escuro, cartões, rodapé, transições).
+- [x] Verificado antes de publicar: sete abas em 375 e 1280 sem overflow; cartão 12px branco; toque 44px; transição 0,2s; ouro #a88434 em 10 rótulos da Árvore.
+- [x] Publicado em https://soul-ancestry.lovable.app e conferido no CSS ao vivo (index-CUliPtht.css: a88434, app-ouro-texto, 52px, 44px, 12px, app-entrada, prefers-reduced-motion).
+- [x] Site publicado serve 200 sem overflow em 375 e 1280 (capturas /tmp/browser/published-final/).
+- [ ] A mesma publicação levou a nova Tela Hoje do Desk ao ar — homologação da Hoje ainda pendente.
