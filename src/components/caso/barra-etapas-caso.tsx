@@ -47,7 +47,7 @@ export function BarraEtapasCaso({ caseId, aoAbrirSecao }: { caseId: string; aoAb
 
   return (
     <section aria-label="Etapas do caso" className="rounded-lg border border-navy/15 bg-card p-4">
-      <h2 className="font-serif text-lg text-navy">Etapas do caso</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-serif text-lg text-navy">Etapas do caso</h2><a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center rounded-full bg-emerald-700 px-4 text-xs font-medium text-white hover:bg-emerald-800">WhatsApp da especialista · {WHATSAPP_ESPECIALISTA.rotulo}</a></div>
       <ol className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-5">
         {q.data.map((e, i) => (
           <li key={e.id}>

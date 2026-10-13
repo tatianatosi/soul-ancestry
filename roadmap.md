@@ -250,3 +250,8 @@
 - [x] P3 Radar e Árvore: hexágono e seis dimensões preservados, nós expansíveis com vínculo publicado ou ausência explícita. Heatmap não exibido sem projeção autorizada.
 - [x] P4 Documentos, Legado e Conta: coleções diferenciadas por token existente; itens e plano continuam condicionais, sem ações falsas.
 - [x] Validados 68 testes direcionados, compilação registrada OK e 14 capturas a 375/1280 sem overflow ou erro de página. Heatmap de países/ramos, correção na árvore e preferências permanecem ocultos: não há projeção autorizada ou ação existente para sustentá-los. Sem publicação.
+
+## WhatsApp e publicação (13/10/2026)
+- [x] Botão WhatsApp 11 98838-4907 na Conta do App e no Caso 360 (fonte única).
+- [x] Etapa Jurídica "Em andamento" aprovada pela Proprietária.
+- [ ] P0 fixtures (árvore Otto/Elsa, 5 certidões, régua 60%, #F8F9FA): não aplicado — contradiz dados aprovados.
