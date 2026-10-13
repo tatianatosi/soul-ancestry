@@ -263,3 +263,8 @@
 - [ ] Paleta antiga x aprovada; Franz/Ruth na Árvore (aguarda decisão)
 - [x] Marco 1895: Franz Friedmann → Otto Reimer (linha direta)
 - [ ] Régua 60% + cartões de documentos do fallback — bloqueado: dados não registrados no caso (decisão da Proprietária)
+
+## Desk V4 (13/10)
+- [x] Hoje: grade de trabalho aberta na primeira leitura (sem bloco recolhido)
+- [ ] Hoje: KPIs em grade 2 colunas como prancha (aguarda homologação)
+- [ ] Comercial, Kanban, Pessoa 360, Radar, Pesquisa, Financeiro, Jurídico, Pessoas, Portal/Config — uma por vez, após homologar Hoje
