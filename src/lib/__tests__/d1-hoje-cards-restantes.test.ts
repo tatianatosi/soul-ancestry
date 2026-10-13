@@ -32,8 +32,9 @@ describe("os quatro cards restantes existem e citam a função pura", () => {
     expect(painel).toContain("estado normal, não falha");
   });
 
-  it("Microentregas para revisão reusa o número que já existia", () => {
-    expect(painel).toContain('titulo="Microentregas para revisão"');
+  it("Microentregas (aguardando revisão) reusa o número que já existia", () => {
+    // Rótulo da prancha V4 é "Microentregas" (Proprietária, 13/10/2026).
+    expect(painel).toContain('titulo="Microentregas"');
     expect(painel).toContain("{microentregasAguardandoRevisao}");
     // Abre a fila de onde o número sai.
     expect(painel).toContain('to="/golive/microentregas"');
