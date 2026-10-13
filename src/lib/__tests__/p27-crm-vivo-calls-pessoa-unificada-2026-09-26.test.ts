@@ -133,7 +133,9 @@ describe("P27 — Painel Hoje ganha os 3 blocos que faltavam do Pacote de Instru
 
   it("ação direta dos 3 cards novos abre /casos/$caseId — nunca uma lista desconectada", () => {
     const inicio = pagina.indexOf('titulo="Propostas aguardando resposta"');
-    const fim = pagina.indexOf('titulo="Cadência dos casos"');
+    // 13/10/2026 — o trio P27 agora vem depois da grade da prancha V4; o
+    // bloco termina no card seguinte (Radar de marcos jurídicos).
+    const fim = pagina.indexOf('titulo="Radar de marcos jurídicos"');
     const bloco = pagina.slice(inicio, fim);
     const ocorrencias = bloco.match(/to="\/casos\/\$caseId"/g) ?? [];
     expect(ocorrencias.length).toBeGreaterThanOrEqual(3);
