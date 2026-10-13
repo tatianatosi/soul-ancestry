@@ -8,6 +8,8 @@ import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesq
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { normalizarNome } from "@/lib/pessoa-identidade";
 import {
+  arestasFiliacao,
+  GERACAO_MAXIMA_LINHAGEM,
   geracaoAscendente,
   validarAderenciaPercentual,
   type PessoaGeracao,
@@ -183,8 +185,6 @@ async function autorizarEscrita(supabase: Sb, userId: string) {
   return organizationId;
 }
 
-/** Teto da leitura por geração no Desk: a linhagem do Clube vai até G10. */
-export const GERACAO_MAXIMA_LINHAGEM = 10;
 
 export type LeituraLinhagemNucleo = {
   linha: {
@@ -196,7 +196,9 @@ export type LeituraLinhagemNucleo = {
     riscoPrincipal: string | null;
   } | null;
   /** G1 = pessoa âncora da linha; sobe pela filiação persistida até G10. */
-  geracoes: (PessoaGeracao & { localidade: string | null })[];
+  geracoes: (PessoaGeracao & { localidade: string | null; clienteId: string | null })[];
+  /** Só arestas de filiação gravadas entre pessoas exibidas (pai → filho). */
+  arestas: { pai: string; filho: string }[];
   totalPerfis: number;
 };
 
@@ -223,10 +225,25 @@ export const lerLinhagemDoCaso = createServerFn({ method: "GET" })
     const perfis = linhas<Perfil>(perfisR as any, "perfis genealógicos do caso");
     const relacoes = linhas<Relacao>(relacoesR as any, "relações genealógicas do caso");
     const linhaFoco = linhas<any>(linhasR as any, "linhas do caso").find((l) => l.pessoa_ancora_id) ?? null;
-    const localidade = new Map(perfis.map((p) => [p.research_person_id, p.nascimento_localidade ?? null]));
+    const porPessoa = new Map(perfis.map((p) => [p.research_person_id, p]));
     const geracoes = geracaoAscendente(linhaFoco?.pessoa_ancora_id, perfis, relacoes)
       .filter((g) => g.geracao <= GERACAO_MAXIMA_LINHAGEM)
-      .map((g) => ({ ...g, localidade: localidade.get(g.personId) ?? null }));
+      .map((g) => ({
+        ...g,
+        localidade: porPessoa.get(g.personId)?.nascimento_localidade ?? null,
+        clienteId: porPessoa.get(g.personId)?.client_id ?? null,
+      }));
+    const exibidas = new Set(geracoes.map((g) => g.personId));
+    const vistas = new Set<string>();
+    const arestas = arestasFiliacao(relacoes)
+      .filter((a) => exibidas.has(a.pai) && exibidas.has(a.filho))
+      .map((a) => ({ pai: a.pai, filho: a.filho }))
+      .filter((a) => {
+        const chave = `${a.pai}>${a.filho}`;
+        if (vistas.has(chave)) return false;
+        vistas.add(chave);
+        return true;
+      });
     return {
       linha: linhaFoco
         ? {
@@ -239,6 +256,7 @@ export const lerLinhagemDoCaso = createServerFn({ method: "GET" })
           }
         : null,
       geracoes,
+      arestas,
       totalPerfis: perfis.length,
     };
   });

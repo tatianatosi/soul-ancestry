@@ -19,7 +19,7 @@ const leitura = funcoes.slice(
 
 describe("Pessoas & Linhagens — prancha V4 em /nucleos", () => {
   it("o teto das gerações é G10", () => {
-    expect(funcoes).toContain("export const GERACAO_MAXIMA_LINHAGEM = 10;");
+    expect(readFileSync("src/lib/pessoas-linhagens.ts", "utf8")).toContain("export const GERACAO_MAXIMA_LINHAGEM = 10;");
     expect(leitura).toContain("g.geracao <= GERACAO_MAXIMA_LINHAGEM");
     expect(componente).toContain("Gerações G1–G{GERACAO_MAXIMA_LINHAGEM}");
     expect(componente).toContain("grid-cols-10");
@@ -74,5 +74,52 @@ describe("geracaoAscendente sobe até G10 só por filiação persistida", () => 
 
   it("sem pessoa âncora, nenhuma geração é inventada", () => {
     expect(geracaoAscendente(null, [perfil("a")], [])).toEqual([]);
+  });
+});
+
+describe("Árvore do núcleo — só filiação gravada, sem parentesco suposto", () => {
+  it("desenha uma linha por aresta gravada e nenhuma entre pessoas sem filiação", async () => {
+    const { createElement } = await import("react");
+    const { renderToStaticMarkup } = await import("react-dom/server");
+    const { ArvoreFiliacao } = await import("@/components/pessoas/composicao-linhagem-v4");
+    const geracoes = [
+      { personId: "a", nome: "Pessoa A", status: "confirmado", geracao: 1 },
+      { personId: "b", nome: "Pessoa B Silva", status: "pendente", geracao: 2 },
+      { personId: "c", nome: "Pessoa C Silva", status: "pendente", geracao: 2 },
+    ];
+    // B é mãe/pai de A; C tem o mesmo sobrenome de B, mas sem aresta gravada.
+    const html = renderToStaticMarkup(
+      createElement(ArvoreFiliacao, { geracoes, arestas: [{ pai: "b", filho: "a" }], requerentes: new Set(["a"]) }),
+    );
+    expect(html.match(/data-aresta-filiacao/g)).toHaveLength(1);
+    expect(html).toContain("G1 · requerente");
+    expect(html).not.toContain("G2 · requerente");
+  });
+
+  it("a árvore não liga membros do núcleo em fila", () => {
+    expect(componente).toContain("data-linhagem-membros-sem-vinculo");
+    expect(componente).not.toContain("<ol className=\"mt-5 flex overflow-x-auto pb-1\">");
+    expect(funcoes).toContain("exibidas.has(a.pai) && exibidas.has(a.filho)");
+  });
+});
+
+describe("Cartões de núcleo também contam até G10", () => {
+  it("coberturaPorGeracao aceita o teto; /nucleos pede G10 e o GoLive segue em G5", async () => {
+    const { coberturaPorGeracao } = await import("@/lib/golive-pessoas");
+    const pessoas = Array.from({ length: 12 }, (_, i) => ({
+      id: `p${i}`,
+      paiId: i < 11 ? `p${i + 1}` : null,
+      maeId: null,
+      titular: i === 0,
+      requerente: i === 0,
+      contratante: false,
+    }));
+    expect(coberturaPorGeracao(pessoas as never)).toHaveLength(5);
+    const g10 = coberturaPorGeracao(pessoas as never, 10);
+    expect(g10).toHaveLength(10);
+    expect(g10.at(-1)).toEqual({ rotulo: "G10", valor: 1 });
+    expect(readFileSync("src/lib/nucleos-desk.functions.ts", "utf8")).toContain(
+      "coberturaPorGeracao(membros, GERACAO_MAXIMA_LINHAGEM)",
+    );
   });
 });

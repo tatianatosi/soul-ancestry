@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
-import { GERACAO_MAXIMA_LINHAGEM, lerLinhagemDoCaso } from "@/lib/pessoas-linhagens.functions";
+import { GERACAO_MAXIMA_LINHAGEM } from "@/lib/pessoas-linhagens";
+import { lerLinhagemDoCaso } from "@/lib/pessoas-linhagens.functions";
 
 /*
  * 13/10/2026 — Pessoas & Linhagens na composição da Prancha V4:
@@ -12,7 +13,10 @@ import { GERACAO_MAXIMA_LINHAGEM, lerLinhagemDoCaso } from "@/lib/pessoas-linhag
  * Fontes reais, nada inferido:
  * - gerações e leitura da linha: `lerLinhagemDoCaso` (perfis, relações de
  *   filiação e linha com pessoa âncora do caso; leitura pura);
- * - árvore e rede: `nucleo_membros` do núcleo, já carregados por /nucleos.
+ * - árvore: só arestas de filiação gravadas (`arestas`); requerente é a
+ *   pessoa cujo perfil aponta para o mesmo `cliente_id` de um membro do
+ *   núcleo — nunca parentesco suposto por sobrenome;
+ * - rede: `nucleo_membros` do núcleo, já carregados por /nucleos.
  * Cobertura é contagem de pessoas registradas e confirmadas por geração,
  * nunca percentual estimado.
  */
@@ -23,6 +27,7 @@ export type MembroNucleoV4 = {
   papel: string;
   papel_no_caso: string;
   vinculo: string | null;
+  cliente_id: string | null;
   representacaoNecessaria: boolean | null;
   representacaoDocumentada: boolean | null;
 };
@@ -69,6 +74,92 @@ function No({ nome, apoio, confirmado }: { nome: string; apoio?: string | null; 
   );
 }
 
+type PessoaNaLinha = { personId: string; nome: string; status: string; geracao: number };
+
+/**
+ * Desenho da filiação: uma faixa por geração (a mais antiga no alto, G1 na
+ * base) e uma linha só onde existe aresta pai → filho gravada.
+ */
+export function ArvoreFiliacao({
+  geracoes,
+  arestas,
+  requerentes,
+}: {
+  geracoes: PessoaNaLinha[];
+  arestas: { pai: string; filho: string }[];
+  requerentes: Set<string>;
+}) {
+  const topo = Math.max(...geracoes.map((p) => p.geracao));
+  const largura = 1000;
+  const faixa = 96;
+  const altura = topo * faixa + 24;
+  const pos = new Map<string, { x: number; y: number }>();
+  for (let g = 1; g <= topo; g++) {
+    const linha = geracoes.filter((p) => p.geracao === g);
+    linha.forEach((p, i) => {
+      pos.set(p.personId, { x: (largura * (i + 1)) / (linha.length + 1), y: (topo - g) * faixa + 30 });
+    });
+  }
+  const curto = (n: string) => (n.length > 22 ? `${n.slice(0, 21)}…` : n);
+  return (
+    <div className="mt-4 overflow-x-auto">
+      <svg
+        viewBox={`0 0 ${largura} ${altura}`}
+        className="w-full min-w-[560px]"
+        role="img"
+        aria-label={`Árvore de filiação registrada: ${geracoes.length} pessoa(s) em ${topo} geração(ões), ${arestas.length} ligação(ões) gravada(s).`}
+      >
+        {arestas.map((a) => {
+          const de = pos.get(a.pai);
+          const para = pos.get(a.filho);
+          if (!de || !para) return null;
+          return (
+            <line
+              key={`${a.pai}>${a.filho}`}
+              x1={de.x}
+              y1={de.y + 54}
+              x2={para.x}
+              y2={para.y - 18}
+              stroke="var(--gold)"
+              strokeWidth={2}
+              data-aresta-filiacao
+            />
+          );
+        })}
+        {geracoes.map((p) => {
+          const c = pos.get(p.personId)!;
+          const requerente = requerentes.has(p.personId);
+          return (
+            <g key={p.personId}>
+              <circle
+                cx={c.x}
+                cy={c.y}
+                r={18}
+                fill={p.status === "confirmado" ? "var(--navy)" : "var(--card)"}
+                stroke={requerente ? "var(--terracotta)" : p.status === "confirmado" ? "var(--gold)" : "color-mix(in srgb, var(--navy) 25%, transparent)"}
+                strokeWidth={requerente ? 3 : 2}
+              />
+              <text x={c.x} y={c.y + 4} textAnchor="middle" fontSize={12} fill={p.status === "confirmado" ? "var(--gold)" : "var(--navy)"}>
+                {sigla(p.nome)}
+              </text>
+              <text x={c.x} y={c.y + 34} textAnchor="middle" fontSize={12} fill="var(--navy)">
+                {curto(p.nome)}
+              </text>
+              <text x={c.x} y={c.y + 48} textAnchor="middle" fontSize={10} fill="color-mix(in srgb, var(--navy) 55%, transparent)">
+                G{p.geracao}
+                {requerente ? " · requerente" : ""}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+      <p className="mt-2 text-[11px] text-navy/50">
+        Linhas só onde há filiação gravada. Contorno terracota = requerente do núcleo (mesmo cadastro).
+      </p>
+    </div>
+  );
+}
+
 export function ComposicaoLinhagemV4({ nucleo }: { nucleo: NucleoV4 }) {
   const ler = useServerFn(lerLinhagemDoCaso);
   const caseId = nucleo.caso?.id ?? null;
@@ -85,6 +176,12 @@ export function ComposicaoLinhagemV4({ nucleo }: { nucleo: NucleoV4 }) {
   const maisAntiga = geracoes.length ? Math.max(...geracoes.map((p) => p.geracao)) : null;
   const ancestral = maisAntiga ? porGeracao.get(maisAntiga)?.[0] ?? null : null;
   const ancora = porGeracao.get(1)?.[0] ?? null;
+  const clientesDoNucleo = new Set(nucleo.membros.map((m) => m.cliente_id).filter(Boolean) as string[]);
+  const requerentes = new Set(
+    geracoes.filter((p) => p.clienteId && clientesDoNucleo.has(p.clienteId)).map((p) => p.personId),
+  );
+  const clientesNaLinha = new Set(geracoes.map((p) => p.clienteId).filter(Boolean) as string[]);
+  const semVinculoGenealogico = nucleo.membros.filter((m) => !m.cliente_id || !clientesNaLinha.has(m.cliente_id));
   const maiorContagem = Math.max(1, ...niveis.map((g) => porGeracao.get(g)!.length));
 
   const estadoLinhagem = !caseId ? (
@@ -171,21 +268,23 @@ export function ComposicaoLinhagemV4({ nucleo }: { nucleo: NucleoV4 }) {
 
       <section className={cartao} data-linhagem-arvore-nucleo>
         <p className="font-serif text-lg text-navy">Árvore visual do núcleo</p>
-        {nucleo.membros.length ? (
-          <ol className="mt-5 flex overflow-x-auto pb-1">
-            {nucleo.membros.map((m, i, todos) => (
-              <li key={m.id} className="relative flex min-w-[7rem] flex-1 flex-col items-center px-1">
-                {i > 0 ? <span className="absolute left-0 right-1/2 top-5 h-0.5 bg-gold/60" aria-hidden="true" /> : null}
-                {i < todos.length - 1 ? (
-                  <span className="absolute left-1/2 right-0 top-5 h-0.5 bg-gold/60" aria-hidden="true" />
-                ) : null}
-                <No nome={m.nome} apoio={legivel(m.papel_no_caso) ?? legivel(m.papel)} />
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <p className="mt-3 text-sm text-navy/55">Nenhum membro registrado neste núcleo.</p>
-        )}
+        {estadoLinhagem ?? (geracoes.length ? <ArvoreFiliacao geracoes={geracoes} arestas={q.data!.arestas} requerentes={requerentes} /> : (
+          <p className="mt-3 text-sm text-navy/55">Nenhuma pessoa na linha ainda.</p>
+        ))}
+        {semVinculoGenealogico.length ? (
+          <div className="mt-4 border-t border-navy/10 pt-3" data-linhagem-membros-sem-vinculo>
+            <p className="text-[11px] uppercase tracking-wide text-navy/50">
+              Membros do núcleo sem vínculo genealógico registrado
+            </p>
+            <ul className="mt-2 flex flex-wrap gap-4">
+              {semVinculoGenealogico.map((m) => (
+                <li key={m.id}>
+                  <No nome={m.nome} apoio={legivel(m.papel_no_caso) ?? legivel(m.papel)} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
         <p className="mt-4 border-t border-navy/10 pt-3 text-xs text-navy/60">
           {nucleo.nome} — dossiê-mãe {legivel(nucleo.dossie_status)?.toLowerCase() ?? "não iniciado"}
           {nucleo.caso?.codigo ? ` · caso ${nucleo.caso.codigo}` : ""}
