@@ -255,3 +255,9 @@
 - [x] Botão WhatsApp 11 98838-4907 na Conta do App e no Caso 360 (fonte única).
 - [x] Etapa Jurídica "Em andamento" aprovada pela Proprietária.
 - [ ] P0 fixtures (árvore Otto/Elsa, 5 certidões, régua 60%, #F8F9FA): não aplicado — contradiz dados aprovados.
+
+## 13/10 — Desk V4 / caso Ana
+- [ ] Marcos 1895/1938–39/1941/2026 publicados (aguarda: Otto x Franz em 1895)
+- [ ] Vínculos (aguarda: Cristiane x Ana Maria como mãe de Ana Luiza)
+- [ ] Documentos liberados (aguarda: arquivos enviados)
+- [ ] Paleta antiga x aprovada; Franz/Ruth na Árvore (aguarda decisão)
