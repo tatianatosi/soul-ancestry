@@ -54,7 +54,7 @@ import { ETAPAS_SPIN, progressoSpin, sinaisQualidadeLead, spinDerivadoDoLead } f
 import { calcularRadar } from "@/lib/radar-elegibilidade";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
 import { formatarTelefone } from "@/lib/validacao-pessoa";
-import { leadForaDoPipeline, etapaPipeline, ROTULO_ETAPA_PIPELINE } from "@/lib/crm-desk";
+import { leadForaDoPipeline, etapaPipeline, ETAPAS_PIPELINE, ROTULO_ETAPA_PIPELINE } from "@/lib/crm-desk";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   INDICADORES_LEADS,
@@ -63,6 +63,9 @@ import {
   leadValidoParaIndicadores,
   type IndicadorLeads,
 } from "@/lib/crm-vivo-metricas";
+import { CaCard } from "@/components/ui/ca-card";
+import { BarrasHorizontais, Etiqueta } from "@/components/prancha-v4/kit";
+import { dataHumana } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/leads")({
   head: () => ({
@@ -189,6 +192,40 @@ function LeadsPage() {
 
   const hojeIndicadores = new Date();
   const contagemIndicadores = indicadoresLeads(leads as never, hojeIndicadores);
+
+  /*
+    Funil comercial e Mesa de Discovery (Prancha V4, Proprietária,
+    13/10/2026): mesmos `leads` já carregados por `listarLeadsDesk` acima —
+    sem query nova. O funil usa o pipeline canônico já existente
+    (ETAPAS_PIPELINE/etapaPipeline, CRM Vivo 27/09/2026), nunca uma etapa
+    inventada. A mesa de Discovery lista só leads com call agendada ou
+    realizada (`call_agendada_em`/`call_realizada_em`/`status_call`, já
+    gravados pelos escritores reais) — sem lead de exemplo.
+  */
+  const pipelineLeads = (leads as LeadDesk[]).filter(leadValidoParaIndicadores);
+  const funilItens = ETAPAS_PIPELINE.map((etapa) => {
+    const total = pipelineLeads.filter((l) => etapaPipeline(l) === etapa).length;
+    const percentual = pipelineLeads.length ? Math.round((total / pipelineLeads.length) * 100) : 0;
+    return { rotulo: ROTULO_ETAPA_PIPELINE[etapa], valor: percentual, apoio: `${total} leads` };
+  });
+  const TOM_STATUS_CALL: Record<string, "sucesso" | "critico" | "atencao" | "neutro"> = {
+    realizada: "sucesso",
+    confirmada: "sucesso",
+    agendada: "atencao",
+    remarcada: "atencao",
+    no_show: "critico",
+    cancelada_lead: "critico",
+    cancelada_clube: "critico",
+  };
+  const mesaDiscovery = (leads as LeadDesk[])
+    .filter((l) => !l.archived_at && (l.call_agendada_em || l.call_realizada_em || l.status_call))
+    .sort((a, b) => {
+      const da = a.call_agendada_em ?? a.call_realizada_em ?? "";
+      const db = b.call_agendada_em ?? b.call_realizada_em ?? "";
+      return db.localeCompare(da);
+    })
+    .slice(0, 8);
+
   const visiveis = leads.filter((l) => {
     // CRM Vivo (27/09/2026): convertido em caso ou encerrado sai do pipeline, salvo pedido explícito.
     if (!mostrarConvertidos && leadForaDoPipeline(l as never)) return false;
@@ -251,6 +288,55 @@ function LeadsPage() {
           </button>
         ))}
       </div>
+
+      {/*
+        Funil comercial e Mesa de Discovery (Prancha V4, 13/10/2026):
+        pipeline canônico (ETAPAS_PIPELINE/etapaPipeline) e calls já
+        gravadas, sobre os mesmos `leads` carregados acima — sem query nova.
+      */}
+      <div className="mb-4 grid gap-4 lg:grid-cols-2">
+        <CaCard
+          titulo="Funil comercial"
+          eyebrow="Comercial · Leads → Discovery → Diagnóstico → Proposta → Contrato"
+          data-leads-funil
+          className="rounded-2xl p-5 sm:p-6"
+        >
+          {pipelineLeads.length ? (
+            <BarrasHorizontais itens={funilItens} tituloAcessivel={`Funil comercial: ${funilItens.map((i) => `${i.rotulo} ${i.apoio}`).join(", ")}`} />
+          ) : (
+            <p className="text-sm text-navy/60" data-leads-funil-vazio>
+              Sem dados suficientes
+            </p>
+          )}
+        </CaCard>
+        <CaCard
+          titulo="Mesa de Discovery"
+          eyebrow="Comercial · Calls agendadas e realizadas"
+          data-leads-mesa-discovery
+          className="rounded-2xl p-5 sm:p-6"
+        >
+          {mesaDiscovery.length ? (
+            <ul className="space-y-2" data-leads-mesa-discovery-lista>
+              {mesaDiscovery.map((l) => (
+                <li key={l.id} className="flex items-center justify-between gap-3 border-b border-navy/5 py-1.5 last:border-0">
+                  <div className="min-w-0">
+                    <span className="block truncate text-sm font-medium text-navy">{l.nome}</span>
+                    <span className="block text-xs text-navy/55">
+                      {l.call_realizada_em ? `Realizada em ${dataHumana(l.call_realizada_em)}` : `Agendada para ${dataHumana(l.call_agendada_em, "data não registrada")}`}
+                    </span>
+                  </div>
+                  <Etiqueta texto={rotulo("status_call", l.status_call)} tom={TOM_STATUS_CALL[String(l.status_call ?? "")] ?? "neutro"} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-navy/60" data-leads-mesa-discovery-vazio>
+              Nenhuma Discovery agendada ou realizada ainda.
+            </p>
+          )}
+        </CaCard>
+      </div>
+
       <label className="mb-4 flex items-center gap-2 text-xs text-navy/70">
         <input type="checkbox" checked={mostrarConvertidos} onChange={(e) => setMostrarConvertidos(e.target.checked)} />
         Mostrar convertidos/encerrados (fora do pipeline)
