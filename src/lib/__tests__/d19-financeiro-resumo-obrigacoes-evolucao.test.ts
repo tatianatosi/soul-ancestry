@@ -12,13 +12,17 @@ import { describe, expect, it } from "vitest";
 const rota = readFileSync("src/routes/_authenticated/financeiro.tsx", "utf8");
 
 describe("Financeiro — Resumo do período (§19)", () => {
-  it("renderiza os 4 indicadores reais, com os rótulos da Prancha V4 (Proprietária, 13/10/2026)", () => {
+  it("renderiza os 4 indicadores reais, com os rótulos de carteira global (Proprietária, 13/10/2026)", () => {
     expect(rota).toContain("data-financeiro-resumo-periodo");
-    expect(rota).toContain('rotulo: "Valor do contrato"');
-    expect(rota).toContain('rotulo: "Já recebido"');
-    expect(rota).toContain('rotulo: "Vencido"');
-    expect(rota).toContain('rotulo: "A receber"');
+    expect(rota).toContain('contratado: "Valor Total Contratado"');
+    expect(rota).toContain('recebido: "Total Já Recebido"');
+    expect(rota).toContain('aVencer: "Total a Vencer"');
+    expect(rota).toContain('vencido: "Total Vencido"');
     expect(rota).toContain("DIVERGÊNCIA REGISTRADA (§29)");
+  });
+
+  it("\"Total a Vencer\" exclui o que já está vencido — não soma os dois", () => {
+    expect(rota).toContain("const aVencer = Math.max(contratada - recebida - vencidas, 0);");
   });
 
   it("cada indicador do resumo é clicável e abre a lista/origem (troca aba+status), nenhum é decorativo", () => {

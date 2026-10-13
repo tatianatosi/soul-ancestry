@@ -297,6 +297,22 @@ function FinanceiroPage() {
   const confirmadoPorMes = recebimentoPorMes(faturasAdaptadas, pagamentosAdaptados, 6);
   const comSeriePrevistoConfirmado = previstoPorMes.some((p) => p.valor > 0) || confirmadoPorMes.some((p) => p.valor > 0);
 
+  /*
+    Carteira global (Proprietária, 13/10/2026): os 4 KPIs do topo já eram
+    org-wide — `qFaturas`/`qPagamentos` carregam todas as faturas/pagamentos
+    da organização (`listarComercial`, filtro só por `organization_id`),
+    nunca de um único cliente. Os rótulos passam a dizer isso sem ambiguidade.
+    "Total a Vencer" exclui o que já está vencido (antes "A receber" somava
+    os dois juntos) — mesma fonte, cálculo mais preciso.
+  */
+  const aVencer = Math.max(contratada - recebida - vencidas, 0);
+  const ROTULOS_CARTEIRA = {
+    contratado: "Valor Total Contratado",
+    recebido: "Total Já Recebido",
+    aVencer: "Total a Vencer",
+    vencido: "Total Vencido",
+  } as const;
+
   return (
     <SaasShell
       titulo="Financeiro"
@@ -343,17 +359,22 @@ function FinanceiroPage() {
           query nova) — cada indicador muda a aba/filtro para a lista real
           que o sustenta, nenhum é decorativo.
         */}
-        <CaCard titulo="Resumo do período" eyebrow="Financeiro · Faturas e pagamentos reais" data-financeiro-resumo-periodo>
+        <CaCard
+          titulo="Carteira global"
+          eyebrow="Financeiro · Toda a organização, não um cliente"
+          data-financeiro-resumo-periodo
+          className="rounded-2xl p-5 sm:p-6"
+        >
           {qFaturas.isLoading || qPagamentos.isLoading ? (
             <p className="text-sm text-navy/50">Carregando…</p>
           ) : (
             <dl className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
               {(
                 [
-                  { chave: "previsto", rotulo: "Valor do contrato", valor: contratada, aba: "faturas" as Aba, status: "" },
-                  { chave: "recebido", rotulo: "Já recebido", valor: recebida, aba: "pagamentos" as Aba, status: "confirmado" },
-                  { chave: "vencido", rotulo: "Vencido", valor: vencidas, aba: "faturas" as Aba, status: "vencida" },
-                  { chave: "saldo", rotulo: "A receber", valor: Math.max(contratada - recebida, 0), aba: "faturas" as Aba, status: "" },
+                  { chave: "previsto", rotulo: ROTULOS_CARTEIRA.contratado, valor: contratada, aba: "faturas" as Aba, status: "" },
+                  { chave: "recebido", rotulo: ROTULOS_CARTEIRA.recebido, valor: recebida, aba: "pagamentos" as Aba, status: "confirmado" },
+                  { chave: "vencido", rotulo: ROTULOS_CARTEIRA.vencido, valor: vencidas, aba: "faturas" as Aba, status: "vencida" },
+                  { chave: "saldo", rotulo: ROTULOS_CARTEIRA.aVencer, valor: aVencer, aba: "faturas" as Aba, status: "" },
                 ] as const
               ).map((item) => (
                 <button
@@ -365,7 +386,7 @@ function FinanceiroPage() {
                     setStatus(item.status);
                     setDetalhe(null);
                   }}
-                  className="rounded-lg border border-navy/10 bg-cream/60 p-3 text-left hover:bg-navy/5"
+                  className="rounded-xl border border-navy/10 bg-cream/60 p-4 text-left hover:bg-navy/5"
                 >
                   <dt className="text-[11px] uppercase tracking-wide text-navy/50">{item.rotulo}</dt>
                   <dd className="mt-1 font-serif text-lg text-navy">{moeda(item.valor, "BRL")}</dd>
@@ -394,13 +415,18 @@ function FinanceiroPage() {
           Reconciliação (contagem real de `payments.conciliacao_status`).
         */}
         <div className="grid gap-4 lg:grid-cols-3">
-          <CaCard titulo="Fluxo do contrato" eyebrow="Financeiro · Mesmos valores do resumo" data-financeiro-fluxo-contrato>
+          <CaCard
+            titulo="Fluxo do contrato"
+            eyebrow="Financeiro · Mesmos valores da carteira"
+            data-financeiro-fluxo-contrato
+            className="rounded-2xl p-5 sm:p-6"
+          >
             <dl className="space-y-1.5">
               {[
-                { rotulo: "Valor do contrato", valor: contratada },
-                { rotulo: "Já recebido", valor: recebida, tom: "sucesso" as const },
-                { rotulo: "A receber", valor: Math.max(contratada - recebida, 0), tom: "atencao" as const },
-                { rotulo: "Vencido", valor: vencidas, tom: vencidas ? ("critico" as const) : undefined },
+                { rotulo: ROTULOS_CARTEIRA.contratado, valor: contratada },
+                { rotulo: ROTULOS_CARTEIRA.recebido, valor: recebida, tom: "sucesso" as const },
+                { rotulo: ROTULOS_CARTEIRA.aVencer, valor: aVencer, tom: "atencao" as const },
+                { rotulo: ROTULOS_CARTEIRA.vencido, valor: vencidas, tom: vencidas ? ("critico" as const) : undefined },
               ].map((item) => (
                 <div key={item.rotulo} className="flex items-center justify-between gap-3 border-b border-navy/5 py-1.5 last:border-0">
                   <span className="text-xs text-navy/80">{item.rotulo}</span>
@@ -416,8 +442,13 @@ function FinanceiroPage() {
             faturas — a tabela é desenhada sempre, mesmo sem fatura (linha
             "Sem parcela registrada"), nunca com valor inventado.
           */}
-          <CaCard titulo="Parcelas previstas" eyebrow="Financeiro · Fluxo do contrato" data-financeiro-parcelas-previstas>
-            <div className="overflow-x-auto">
+          <CaCard
+            titulo="Parcelas previstas"
+            eyebrow="Financeiro · Fluxo do contrato"
+            data-financeiro-parcelas-previstas
+            className="rounded-2xl p-5 sm:p-6"
+          >
+            <div className="overflow-x-auto rounded-xl border border-navy/10">
               <table className="w-full text-sm" data-financeiro-fluxo-tabela>
                 <thead className="text-left text-xs uppercase text-navy/65">
                   <tr>
@@ -463,7 +494,12 @@ function FinanceiroPage() {
             logo abaixo na lista detalhada) — mesma `pagamentos` de
             qPagamentos, sem query nova.
           */}
-          <CaCard titulo="Reconciliação" eyebrow="Financeiro · payments.conciliacao_status" data-financeiro-reconciliacao>
+          <CaCard
+            titulo="Reconciliação"
+            eyebrow="Financeiro · payments.conciliacao_status"
+            data-financeiro-reconciliacao
+            className="rounded-2xl p-5 sm:p-6"
+          >
             <dl className="space-y-1.5">
               <div className="flex items-center justify-between gap-3 border-b border-navy/5 py-1.5">
                 <span className="text-xs text-navy/80">Pagamentos conciliados</span>
@@ -488,7 +524,12 @@ function FinanceiroPage() {
           (§19 zona 5) e conciliação confirmada — cada um citando o
           registro real de origem. Sem sinal, o card mostra vazio honesto.
         */}
-        <CaCard titulo="Alertas financeiros contextualizados" eyebrow="Financeiro · Sinais reais, por registro" data-financeiro-alertas>
+        <CaCard
+          titulo="Alertas financeiros contextualizados"
+          eyebrow="Financeiro · Sinais reais, por registro"
+          data-financeiro-alertas
+          className="rounded-2xl p-5 sm:p-6"
+        >
           {alertas.length === 0 ? (
             <EstadoVazio mensagem="Nenhum vencimento próximo, vínculo pendente ou conciliação recente para mostrar." />
           ) : (
@@ -510,7 +551,12 @@ function FinanceiroPage() {
             "confirmado" é `recebimentoPorMes`, já usada por
             /golive/financeiro. Mesma fonte de faturas/pagamentos acima.
           */}
-          <CaCard titulo="Recebimentos previstos × confirmados" eyebrow="Financeiro · 6 meses" data-financeiro-previsto-confirmado>
+          <CaCard
+            titulo="Recebimentos previstos × confirmados"
+            eyebrow="Financeiro · 6 meses"
+            data-financeiro-previsto-confirmado
+            className="rounded-2xl p-5 sm:p-6"
+          >
             <div data-financeiro-previsto-confirmado-linha>
               <GraficoLinhaSeries
                 series={[
@@ -533,7 +579,12 @@ function FinanceiroPage() {
             sobre as mesmas faturas de `qFaturas` — a rosca é desenhada sempre,
             em cinza quando não há fatura carregada, nunca com fatia inventada.
           */}
-          <CaCard titulo="Situação das faturas" eyebrow="Financeiro · Composição real" data-financeiro-situacao-faturas>
+          <CaCard
+            titulo="Situação das faturas"
+            eyebrow="Financeiro · Composição real"
+            data-financeiro-situacao-faturas
+            className="rounded-2xl p-5 sm:p-6"
+          >
             <div data-financeiro-situacao-donut>
               <DonutEstados
                 segmentos={
@@ -560,7 +611,12 @@ function FinanceiroPage() {
           crio uma nova consulta org-wide sem fonte já pronta e sem mutation
           nesta rodada. Estado honesto em vez de número inventado.
         */}
-        <CaCard titulo="Obrigações e parcelas" eyebrow="Financeiro · Custos e fornecedores" data-financeiro-obrigacoes>
+        <CaCard
+          titulo="Obrigações e parcelas"
+          eyebrow="Financeiro · Custos e fornecedores"
+          data-financeiro-obrigacoes
+          className="rounded-2xl p-5 sm:p-6"
+        >
           <EstadoVazio mensagem="Sem agregação por organização ainda: despesas e parcelas continuam disponíveis por caso, sem estimativa nesta leitura." />
         </CaCard>
 
