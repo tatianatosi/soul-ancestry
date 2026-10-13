@@ -1148,3 +1148,9 @@
 [data-app-cliente] #conteudo-portal :where([data-aba-home],[data-aba-jornada],[data-aba-arvore]) > :where(section,div) + :where(section,div) { margin-top: var(--ca-space-4, 1rem); }
 [data-app-cliente] #conteudo-portal :where([data-aba-home],[data-aba-jornada],[data-aba-arvore]) :where(section) { padding-block: var(--ca-space-3, 0.75rem); }
 [data-app-cliente] #conteudo-portal .app-cofre-ausencia { padding: 1.25rem; }
+
+/* 13/10/2026 — P2: cabeçalho fixo navy e alvos mínimos de 52px no rodapé. */
+[data-app-cliente] [data-app-cabecalho] { position: sticky; top: 0; z-index: 30; background: var(--ca-navy, #13294B); }
+[data-app-cliente] nav[aria-label="Navegação do aplicativo do cliente"] :where(a,button) { min-height: 52px; touch-action: manipulation; }
+[data-app-cliente] #conteudo-portal :where(section,article,li,div) { min-width: 0; }
+[data-app-cliente] #conteudo-portal { overflow-x: clip; }
