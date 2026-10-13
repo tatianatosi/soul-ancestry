@@ -693,7 +693,7 @@ function PainelConsolidado() {
         </CaCard>
       </div>
         </div>
-      </details>
+      </section>
     </section>
   );
 }
