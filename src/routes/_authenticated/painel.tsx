@@ -494,22 +494,24 @@ function PainelConsolidado() {
           ) : (
             <ul className="divide-y divide-navy/10">
               {itensRevisao.slice(0, 6).map((m) => (
-                <li key={m.id} className="flex items-start justify-between gap-3 py-1.5">
-                  <Link to="/golive/microentregas" className="min-w-0 rounded-lg px-2 py-1 hover:bg-cream/50">
+                <li key={m.id} className="flex items-start justify-between gap-3 py-2">
+                  <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-navy">{m.titulo}</p>
                     <p className="text-[11px] text-navy/55">{m.responsavel || "Responsável não registrado"}</p>
-                  </Link>
+                  </div>
                   <span className={`shrink-0 ${TOM_PILULA.atencao} rounded-full border px-2.5 py-1 text-[10px] font-medium`}>Revisar</span>
                 </li>
               ))}
             </ul>
           )}
-          {itensRevisao.length > 6 ? (
-            <p className="mt-2 text-[11px] text-navy/50">e mais {itensRevisao.length - 6} na fila de revisão.</p>
+          {itensRevisao.length > 0 ? (
+            <p className="mt-2 text-[11px] text-navy/55">
+              {microentregasAguardandoRevisao} na fila — mesma conta do indicador acima.
+            </p>
           ) : null}
           <Link
             to="/golive/microentregas"
-            className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-2"
+            className="inline-block text-xs text-navy underline decoration-gold underline-offset-2"
           >
             Abrir fila de revisão
           </Link>
