@@ -21,8 +21,8 @@ describe("Pessoas & Linhagens — prancha V4 em /nucleos", () => {
   it("o teto das gerações é G10", () => {
     expect(readFileSync("src/lib/pessoas-linhagens.ts", "utf8")).toContain("export const GERACAO_MAXIMA_LINHAGEM = 10;");
     expect(leitura).toContain("g.geracao <= GERACAO_MAXIMA_LINHAGEM");
-    expect(componente).toContain("Gerações G1–G{GERACAO_MAXIMA_LINHAGEM}");
-    expect(componente).toContain("grid-cols-10");
+    expect(componente).toContain("titulo={`Gerações G1–G${GERACAO_MAXIMA_LINHAGEM}`}");
+    expect(componente).toContain("total={GERACAO_MAXIMA_LINHAGEM}");
   });
 
   it("a leitura de linhagem é pura: nenhuma escrita no banco", () => {
@@ -46,15 +46,17 @@ describe("Pessoas & Linhagens — prancha V4 em /nucleos", () => {
   });
 
   it("cobertura é contagem, nunca percentual estimado; sem dado demonstrativo", () => {
-    expect(componente).toContain("Sem percentual estimado");
+    expect(componente).toContain("sem percentual estimado");
     for (const proibido of ["Bianchi", "Rossi", "Lucca", "valor: 92", "demonstrativ"]) {
       expect(componente).not.toContain(proibido);
     }
   });
 
   it("/nucleos monta a composição para o núcleo em foco", () => {
-    expect(nucleos).toContain("<ComposicaoLinhagemV4 nucleo={foco} />");
-    expect(nucleos).toContain("const foco = atual ??");
+    expect(nucleos).toContain("<ComposicaoLinhagemV4 nucleo={foco} nucleos={lista} />");
+    expect(nucleos).toContain("lista.find((n) => n.id === focoId) ?? atual ??");
+    // A composição vem antes da gestão, que fica recolhida.
+    expect(nucleos.indexOf("<ComposicaoLinhagemV4")).toBeLessThan(nucleos.indexOf("Gerenciar núcleos, membros e dossiê-mãe"));
   });
 });
 
