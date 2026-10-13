@@ -494,10 +494,10 @@ export function PortalJornada() {
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.</p>
                             <p className="app-estado-editorial mt-2">Em pesquisa</p>
                          </section>
-                          <div className="relative sm:order-2 sm:col-span-2">
+                          {pontes.length > 0 ? (<div className="relative sm:order-2 sm:col-span-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                            <MomentosDeUniao pontes={pontes} />
-                         </div>
+                         </div>) : null}
                           <section id="linha-processo" className="relative scroll-mt-20 py-4 sm:col-start-2 sm:row-start-1">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
                            <h2 className="font-serif text-xl text-navy">Linha do Processo</h2>
@@ -524,10 +524,10 @@ export function PortalJornada() {
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                           <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" variante="gold" />
                         </div>
-                          <div className="relative sm:order-2 sm:col-span-2">
+                          {pontes.length > 0 ? (<div className="relative sm:order-2 sm:col-span-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                            <MomentosDeUniao pontes={pontes} />
-                         </div>
+                         </div>) : null}
                           <div id="linha-processo" className="relative min-w-0 scroll-mt-20 sm:col-start-2 sm:row-start-1">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
                           <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" />
