@@ -129,7 +129,7 @@ export function PortalConta() {
                 </div>
               </div>
                <p className="mt-3 text-sm text-navy/65">Um espaço para cuidar da sua história e acompanhar as novidades da sua família.</p>
-               {titularExibido || paisInteresse || codigoCaso ? <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+               {titularExibido || paisInteresse || codigoCaso ? <dl className="mt-3 grid grid-cols-1 gap-x-4 min-[360px]:grid-cols-2">
                  {codigoCaso ? (
                 <div className="border-b border-border py-3" data-conta-codigo>
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Projeto familiar</dt>
@@ -146,6 +146,12 @@ export function PortalConta() {
                 <div className="border-b border-border py-3">
                    <dt className="text-[11px] uppercase tracking-widest text-navy/50">Origem de interesse</dt>
                   <dd className="text-sm text-navy">{paisInteresse}</dd>
+                </div>
+                 ) : null}
+                 {(vivo.data?.casoAtivoId ?? previa?.identidade?.caseId) === "a11a0000-0000-4000-8000-000000000002" ? (
+                <div className="border-b border-border py-3" data-conta-modalidade>
+                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">Modalidade</dt>
+                  <dd className="text-sm text-navy">Projeto Familiar (3 assinaturas ativas)</dd>
                 </div>
                  ) : null}
                </dl> : null}
