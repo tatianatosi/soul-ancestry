@@ -6,6 +6,7 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { exigirLinhaGravada } from "@/lib/persistencia.server";
 
 type Sb = any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -102,12 +103,13 @@ export const publicarMarcoJornada = createServerFn({ method: "POST" })
     const sb = context.supabase as Sb;
     const userId = context.userId as string;
     const org = await orgDoCaso(sb, data.caseId);
-    const { error } = await sb
+    const res = await sb
       .from("app_projections")
       .update({ approval_status: "published", approved_by: userId, approved_at: new Date().toISOString() } as never)
       .eq("id", data.id)
-      .eq("case_id", data.caseId);
-    if (error) throw new Error(error.message);
+      .eq("case_id", data.caseId)
+      .select("id");
+    exigirLinhaGravada(res, "app_projections");
     await auditar(sb, org, userId, data.id, "marco_publicado", { estado: "rascunho" }, { estado: "publicado" });
     return { ok: true };
   });
@@ -122,12 +124,13 @@ export const arquivarMarcoJornada = createServerFn({ method: "POST" })
     const sb = context.supabase as Sb;
     const userId = context.userId as string;
     const org = await orgDoCaso(sb, data.caseId);
-    const { error } = await sb
+    const res = await sb
       .from("app_projections")
       .update({ approval_status: "archived", archived_at: new Date().toISOString(), archived_reason: data.motivo.trim() } as never)
       .eq("id", data.id)
-      .eq("case_id", data.caseId);
-    if (error) throw new Error(error.message);
+      .eq("case_id", data.caseId)
+      .select("id");
+    exigirLinhaGravada(res, "app_projections");
     await auditar(sb, org, userId, data.id, "marco_arquivado", null, { motivo: data.motivo.trim() });
     return { ok: true };
   });

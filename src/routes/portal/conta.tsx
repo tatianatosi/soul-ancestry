@@ -11,6 +11,7 @@ import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-v
 import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
 import { MENSAGEM_INSTABILIDADE_FINANCEIRA } from "@/lib/portal-resiliencia";
 import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
+import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 
 export const Route = createFileRoute("/portal/conta")({
   head: () => ({
@@ -46,8 +47,9 @@ export function PortalConta() {
    */
   const previaDemo = previa?.identidade?.fonte === "demo";
    const titularPrevia = vivo.data && "titularNome" in vivo.data ? (vivo.data.titularNome as string | null) : null;
-   const titular = data?.cliente?.nome ?? null;
-   // 12/10/2026: prévia real mostra só o nome da titular vindo do cadastro do caso.
+   // 13/10/2026 (hotfix autorizado): o nome fixo da demo só entra na demo
+   // institucional; prévia real mostra só o nome vindo do cadastro do caso.
+   const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null);
    const titularExibido = titular ?? titularPrevia;
    const codigoCaso = previaDemo ? null : (previa?.identidade?.codigo ?? null);
    const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null);
