@@ -78,7 +78,7 @@ function Home() {
             clara (navy). O padrão do componente é "client-dark", que pinta o
             texto de creme — creme sobre creme, ilegível.
           */}
-          <BrandLogo size={40} showText variant="client-light" />
+          <BrandLogo size={40} showText variant="client-light" className="mr-3 sm:mr-0" />
           <nav className="flex items-center gap-4 text-sm">
             <Link to="/acesso" className="text-navy/70 underline-offset-4 hover:text-navy hover:underline">
               Acesso do cliente
