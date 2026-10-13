@@ -25,7 +25,7 @@ describe("Hoje traz os quatro indicadores da prancha", () => {
     expect(painel).toContain('rotulo: "Decisões do dia"');
     expect(painel).toContain('rotulo: "Cadências vencidas"');
     expect(painel).toContain('rotulo: "Casos sem próxima ação"');
-    expect(painel).toContain('rotulo: "Microentregas para revisão"');
+    expect(painel).toContain('rotulo: "Microentregas"');
   });
 
   it("a faixa é identificável na página", () => {

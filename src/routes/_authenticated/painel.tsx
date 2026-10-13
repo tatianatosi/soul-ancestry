@@ -6,7 +6,7 @@ import { useGoLive } from "@/components/golive/dados";
 import { CardsAlertasCentrais } from "@/components/painel/cards-alertas-centrais";
 import { EstadoVazio, SaasShell } from "@/components/saas/shell";
 import { Button } from "@/components/ui/button";
-import { DonutEstados, GraficoLinha } from "@/components/prancha-v4/kit";
+import { BarrasHorizontais, DonutEstados, GraficoLinha } from "@/components/prancha-v4/kit";
 import { CaCard } from "@/components/ui/ca-card";
 import { filaDeAprovacoes, resumoAprovacoes, type ItemAprovacao } from "@/lib/golive-aprovacoes";
 import { kanbanPorEtapa, type LeadComercial } from "@/lib/golive-comercial";
@@ -20,6 +20,7 @@ import {
   origemDoSinal,
   prioridadeDaCarteira,
   propostasAguardandoResposta,
+  ROTULOS_ORIGEM,
   ritmoSemanal,
   temRitmo,
   type AcaoOperacional,
@@ -95,6 +96,20 @@ const ROTULO_DECISAO: Record<ItemAprovacao["acao"], string> = {
   publicar: "Publicar no App",
   nenhuma: "Completar dado antes de decidir",
 };
+
+/** Contagens viram barras da prancha: largura relativa à maior, número real ao lado. */
+function barrasDeContagem(itens: { rotulo: string; valor: number; tom?: "navy" | "gold" | "terracotta" }[]) {
+  const maior = Math.max(...itens.map((i) => i.valor), 1);
+  return itens.map((i) => ({ ...i, apoio: String(i.valor), valor: (i.valor / maior) * 100 }));
+}
+
+function SemDados({ ativo, marca }: { ativo: boolean; marca: string }) {
+  return ativo ? (
+    <p className="mt-2 text-xs font-medium text-navy/70" {...{ [marca]: "" }}>
+      Sem dados suficientes
+    </p>
+  ) : null;
+}
 
 function PainelConsolidado() {
   const { data, isPending, error } = useGoLive();
@@ -182,6 +197,16 @@ function PainelConsolidado() {
   const funilLeads = kanbanPorEtapa(leads)
     .map((g) => ({ etapa: g.etapa, total: g.leads.length }))
     .sort((a, b) => b.total - a.total);
+  // Etapas fixas da prancha sempre desenhadas; etapa fora da tabela entra com o valor cru.
+  const ETAPAS_FUNIL = ["novo", "discovery", "diagnostico", "proposta", "cliente"];
+  const totalEtapa = (e: string) =>
+    funilLeads.filter((f) => f.etapa === e || (e === "novo" && f.etapa === "novo_lead")).reduce((s, f) => s + f.total, 0);
+  const funilBarras = barrasDeContagem([
+    ...ETAPAS_FUNIL.map((e) => ({ rotulo: ROTULO_ETAPA[e]!, valor: totalEtapa(e), tom: "navy" as const })),
+    ...funilLeads
+      .filter((f) => !ETAPAS_FUNIL.includes(f.etapa) && f.etapa !== "novo_lead")
+      .map((f) => ({ rotulo: ROTULO_ETAPA[f.etapa] ?? f.etapa, valor: f.total, tom: "navy" as const })),
+  ]);
   /*
     §11 linhas 5, 6, 7 e 9 — as quatro contas que faltavam. Todas vêm de
     função canônica já usada por outra tela — o Hoje passa a chamar a mesma,
@@ -255,7 +280,7 @@ function PainelConsolidado() {
           { rotulo: "Cadências vencidas", valor: hoje.vencidas, apoio: "pedem retomada", to: "/golive" },
           { rotulo: "Casos sem próxima ação", valor: hoje.semProxima, apoio: "precisam de decisão", to: "/golive" },
           {
-            rotulo: "Microentregas para revisão",
+            rotulo: "Microentregas",
             valor: microentregasAguardandoRevisao,
             apoio: "aguardando revisão humana",
             to: "/golive/microentregas",
@@ -415,23 +440,16 @@ function PainelConsolidado() {
         </CaCard>
 
         <CaCard titulo="Funil de leads" eyebrow="Fonte: etapa comercial gravada">
-          {funilLeads.length === 0 ? (
-            <EstadoVazio mensagem="Nenhum lead com etapa registrada." />
-          ) : (
-            <>
-              <dl className="space-y-1.5">
-                {funilLeads.map((f) => (
-                  <div key={f.etapa} className="flex items-baseline justify-between gap-3">
-                    <dt className="truncate text-xs text-navy/70">{ROTULO_ETAPA[f.etapa] ?? f.etapa}</dt>
-                    <dd className="font-serif text-lg text-navy">{f.total}</dd>
-                  </div>
-                ))}
-              </dl>
-              <p className="mt-2 text-[11px] text-navy/45">
-                Sem recorte de período: nenhum está definido na fonte.
-              </p>
-            </>
-          )}
+          <div data-hoje-funil-barras>
+            <BarrasHorizontais
+              tituloAcessivel={`Leads por etapa: ${funilBarras.map((f) => `${f.rotulo} ${f.apoio}`).join(", ")}`}
+              itens={funilBarras}
+            />
+          </div>
+          <SemDados ativo={leads.length === 0} marca="data-hoje-funil-vazio" />
+          <p className="mt-2 text-[11px] text-navy/45">
+            Sem recorte de período: nenhum está definido na fonte.
+          </p>
         </CaCard>
 
         <CaCard titulo="Ritmo operacional" eyebrow="6 semanas">
@@ -614,21 +632,17 @@ function PainelConsolidado() {
       */}
       <div className="mb-6 grid gap-4 lg:grid-cols-4">
         <CaCard titulo="Cadência dos casos" eyebrow="Faixa de prazo das tarefas">
-          <dl className="space-y-1.5">
-            {[
-              ["Em dia", cadencia.hoje + cadencia.proximos7, "hoje ou próximos 7 dias"],
-              ["Atrasadas", cadencia.vencida, "prazo já vencido"],
-              ["Aguardando externo", cadencia.externo, "instituição terceira"],
-            ].map(([r, v, apoio]) => (
-              <div key={String(r)} className="flex items-baseline justify-between gap-3">
-                <div>
-                  <dt className="text-xs text-navy/70">{r}</dt>
-                  <p className="text-[10px] text-navy/45">{apoio}</p>
-                </div>
-                <dd className="font-serif text-lg text-navy">{v}</dd>
-              </div>
-            ))}
-          </dl>
+          <div data-hoje-cadencia-barras>
+            <BarrasHorizontais
+              tituloAcessivel={`Tarefas por faixa de prazo: em dia ${cadencia.hoje + cadencia.proximos7}, atrasadas ${cadencia.vencida}, aguardando externo ${cadencia.externo}`}
+              itens={barrasDeContagem([
+                { rotulo: "Em dia", valor: cadencia.hoje + cadencia.proximos7, tom: "navy" },
+                { rotulo: "Atrasadas", valor: cadencia.vencida, tom: "terracotta" },
+                { rotulo: "Aguardando externo", valor: cadencia.externo, tom: "gold" },
+              ])}
+            />
+          </div>
+          <SemDados ativo={caso.tarefas.length === 0} marca="data-hoje-cadencia-vazio" />
         </CaCard>
 
         <CaCard titulo="Casos sem próxima ação" eyebrow="Por natureza">
@@ -637,22 +651,19 @@ function PainelConsolidado() {
             "Encerrado no mês 5" — a fonte não tem data de encerramento, então
             declaro só o total encerrado, sem inventar recorte de janela.
           */}
-          <dl className="space-y-1.5">
-            <div className="flex items-baseline justify-between gap-3">
-              <dt className="text-xs text-navy/70">Parados</dt>
-              <dd className="font-serif text-lg text-navy">{semAcao.parados}</dd>
-            </div>
-            <div className="flex items-baseline justify-between gap-3">
-              <div>
-                <dt className="text-xs text-navy/70">Encerrados</dt>
-                <p className="text-[10px] text-navy/45">estado normal, não falha</p>
-              </div>
-              <dd className="font-serif text-lg text-navy/70">{semAcao.encerrados}</dd>
-            </div>
-          </dl>
+          <div data-hoje-sem-acao-barras>
+            <BarrasHorizontais
+              tituloAcessivel={`Casos sem próxima ação: parados ${semAcao.parados}, encerrados ${semAcao.encerrados}`}
+              itens={barrasDeContagem([
+                { rotulo: "Parados", valor: semAcao.parados, tom: "terracotta" },
+                { rotulo: "Encerrados (estado normal, não falha)", valor: semAcao.encerrados, tom: "navy" },
+              ])}
+            />
+          </div>
+          <SemDados ativo={caso.carteira.length === 0} marca="data-hoje-sem-acao-vazio" />
         </CaCard>
 
-        <CaCard titulo="Microentregas para revisão" eyebrow="Aguardando aprovação">
+        <CaCard titulo="Microentregas" eyebrow="Aguardando revisão">
           <p className="font-serif text-3xl text-navy">{microentregasAguardandoRevisao}</p>
           <p className="mt-1 text-[11px] text-navy/55">
             Mesma fonte de /golive/microentregas — <em>concluída === false</em>.
@@ -666,20 +677,19 @@ function PainelConsolidado() {
         </CaCard>
 
         <CaCard titulo="Alertas por origem" eyebrow="Onde o sinal começou">
-          {alertasPorOrigem.length === 0 ? (
-            <EstadoVazio mensagem="Nenhum evento classificável na janela atual." />
-          ) : (
-            <dl className="space-y-1.5">
-              {alertasPorOrigem
-                .filter((a) => a.valor > 0)
-                .map((a) => (
-                  <div key={a.rotulo} className="flex items-baseline justify-between gap-3">
-                    <dt className="text-xs text-navy/70">{a.rotulo}</dt>
-                    <dd className="font-serif text-lg text-navy">{a.valor}</dd>
-                  </div>
-                ))}
-            </dl>
-          )}
+          <div data-hoje-alertas-barras>
+            <BarrasHorizontais
+              tituloAcessivel={`Alertas por origem: ${ROTULOS_ORIGEM.map((r) => `${r} ${alertasPorOrigem.find((a) => a.rotulo === r)?.valor ?? 0}`).join(", ")}`}
+              itens={barrasDeContagem(
+                ROTULOS_ORIGEM.map((r) => ({
+                  rotulo: r,
+                  valor: alertasPorOrigem.find((a) => a.rotulo === r)?.valor ?? 0,
+                  tom: "gold" as const,
+                })),
+              )}
+            />
+          </div>
+          <SemDados ativo={alertasPorOrigem.length === 0} marca="data-hoje-alertas-vazio" />
         </CaCard>
       </div>
     </section>

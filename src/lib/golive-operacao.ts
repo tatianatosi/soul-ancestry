@@ -306,6 +306,9 @@ const AREAS: { rotulo: string; teste: RegExp }[] = [
   { rotulo: "Cliente", teste: /(client|portal|cliente|projection|projecao|document)/i },
 ];
 
+/** Rótulos fixos das origens, na ordem do gráfico; servem ao estado zero. */
+export const ROTULOS_ORIGEM: readonly string[] = [...AREAS.map((a) => a.rotulo), SEM_CLASSIFICACAO];
+
 function areaDoEvento(e: EventoCaso) {
   const canonico = (e.origem ?? "").trim();
   if (canonico) {
