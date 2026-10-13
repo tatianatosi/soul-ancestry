@@ -293,6 +293,26 @@ function LeadsPage() {
     .sort((a, b) => (b.ultimo_followup_em ?? b.created_at ?? "").localeCompare(a.ultimo_followup_em ?? a.created_at ?? ""))
     .slice(0, 8);
 
+  /*
+    Quadro por etapa (Prancha Visual do Desk, kit de referência 13/09/2026,
+    "sem dados reais" — layout aprovado, reconstruído aqui com leads reais):
+    mesmo pipelineLeads do funil, agrupado por etapaPipeline em colunas. Dias
+    parado é calculado de ultimo_followup_em/created_at real, nunca um valor
+    de exemplo fixo.
+  */
+  const diasParado = (l: LeadDesk) => {
+    const base = l.ultimo_followup_em ?? l.created_at;
+    if (!base) return null;
+    const d = new Date(base);
+    if (Number.isNaN(d.getTime())) return null;
+    return Math.floor((hojeIndicadores.getTime() - d.getTime()) / 86_400_000);
+  };
+  const colunasPipeline = ETAPAS_PIPELINE.map((etapa) => ({
+    etapa,
+    rotulo: ROTULO_ETAPA_PIPELINE[etapa],
+    leads: pipelineLeads.filter((l) => etapaPipeline(l) === etapa),
+  }));
+
   const visiveis = leads.filter((l) => {
     // CRM Vivo (27/09/2026): convertido em caso ou encerrado sai do pipeline, salvo pedido explícito.
     if (!mostrarConvertidos && leadForaDoPipeline(l as never)) return false;
@@ -451,6 +471,67 @@ function LeadsPage() {
           )}
         </CaCard>
       </div>
+
+      {/*
+        Quadro por etapa (Prancha Visual do Desk, kit de referência
+        13/09/2026 — "Camada visual aprovada, sem backend, sem dados reais":
+        o layout de 5 colunas é o aprovado; os cartões aqui são
+        `pipelineLeads` reais agrupados por `etapaPipeline`, com "parado há
+        N dias" calculado de `ultimo_followup_em`/`created_at` real — nunca
+        um lead ou prazo de exemplo.
+      */}
+      <CaCard
+        titulo="Quadro por etapa"
+        eyebrow="Comercial · Leads → Discovery → Diagnóstico → Proposta → Contrato"
+        data-leads-quadro-etapas
+        className="mb-4 rounded-2xl p-5 sm:p-6"
+      >
+        {pipelineLeads.length === 0 ? (
+          <p className="text-sm text-navy/60" data-leads-quadro-etapas-vazio>
+            Sem dados suficientes
+          </p>
+        ) : (
+          <div className="grid gap-3 overflow-x-auto sm:grid-cols-3 lg:grid-cols-5" data-leads-quadro-etapas-colunas>
+            {colunasPipeline.map((coluna) => (
+              <div key={coluna.etapa} className="min-w-[180px] rounded-xl border border-navy/10 bg-cream/40 p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-navy/60">{coluna.rotulo}</span>
+                  <span className="rounded-full bg-navy/10 px-2 py-0.5 text-[11px] font-medium text-navy">{coluna.leads.length}</span>
+                </div>
+                <div className="space-y-2">
+                  {coluna.leads.length === 0 ? (
+                    <p className="text-[11px] text-navy/45">Nenhum lead nesta etapa.</p>
+                  ) : (
+                    coluna.leads.map((l) => {
+                      const dias = diasParado(l);
+                      return (
+                        <button
+                          key={l.id}
+                          type="button"
+                          onClick={() => {
+                            setSelecionado(l.id ?? null);
+                            setRascunho({});
+                          }}
+                          className="block w-full rounded-lg border border-navy/10 bg-card p-2.5 text-left shadow-sm"
+                        >
+                          <span className="block truncate text-sm font-medium text-navy">{l.nome}</span>
+                          <span className="block truncate text-[11px] text-navy/60">
+                            Próximo passo: {humano(l.proxima_acao ?? "", "não registrado")}
+                          </span>
+                          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                            {dias !== null && dias >= 7 ? <Etiqueta texto={`Lead parado há ${dias} dias`} tom="critico" /> : null}
+                            {l.responsavel_nome ? <Etiqueta texto={l.responsavel_nome} tom="neutro" /> : null}
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CaCard>
 
       {/*
         Bloco 4 — Propostas comerciais (Prancha V4, 13/10/2026): mesma
