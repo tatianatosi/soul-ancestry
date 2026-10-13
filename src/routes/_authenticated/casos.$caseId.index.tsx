@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { SaasShell, useSaas, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
 import { ResumoKitCaso } from "@/components/desk/kit-conectado";
-import { StatusDonut } from "@/components/clube-ancestral-kit";
+import { BarrasHorizontais, DonutEstados, JornadaMarcos, Linha, LinhaTempoGrafica, Pessoa } from "@/components/prancha-v4/kit";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -909,7 +909,7 @@ function FichaCaso() {
       {(() => {
         const ESCALA_FRENTE = ["inicial", "em_coleta", "em_andamento", "concluida"] as const;
         const cartao =
-          "min-w-0 rounded-xl border border-border bg-card p-5 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]";
+          "min-w-0 rounded-xl border border-navy/10 bg-card p-4 shadow-[0_1px_2px_rgba(16,16,16,0.05)]";
         const dossieResumo = estadoDossieDoCaso(qPesquisa.data?.evidencias ?? []);
         const progresso = progressoPorFrente({
           contratoAssinado: Boolean(caso["contrato_assinado"]),
@@ -930,9 +930,25 @@ function FichaCaso() {
               </h3>
               <div className="grid gap-4 lg:grid-cols-2">
                 <section className={`${cartao} lg:order-2`} data-caso360-progresso-frente>
-                  <p className="font-serif text-lg text-navy">Progresso do caso por frente</p>
-                  <ul className="mt-3 space-y-3">
-                    {(
+                  <p className="mb-3 font-serif text-lg text-navy">Progresso do caso por frente</p>
+                  {/*
+                    13/10/2026 — Proprietária: a barra da prancha é sempre
+                    desenhada. Comprimento = degrau atingido na escala de 4
+                    estados de `progressoPorFrente` (inicial 0 · em coleta 1/3 ·
+                    em andamento 2/3 · concluída 3/3); o texto mostra o estado.
+                  */}
+                  <BarrasHorizontais
+                    tituloAcessivel={`Progresso do caso por frente: ${(
+                      [
+                        ["formalizacao", "Formalização"],
+                        ["pesquisa", "Pesquisa"],
+                        ["documentos", "Documentos"],
+                        ["publicacao", "Publicação"],
+                      ] as const
+                    )
+                      .map(([chave, rotulo]) => `${rotulo} ${ROTULO_FRENTE[progresso[chave]].toLowerCase()}`)
+                      .join(", ")}`}
+                    itens={(
                       [
                         ["formalizacao", "Formalização"],
                         ["pesquisa", "Pesquisa"],
@@ -942,73 +958,57 @@ function FichaCaso() {
                     ).map(([chave, rotulo]) => {
                       const estado = progresso[chave];
                       const nivel = ESCALA_FRENTE.indexOf(estado as (typeof ESCALA_FRENTE)[number]);
-                      return (
-                        <li key={chave} data-caso360-frente={chave}>
-                          <div className="flex items-baseline justify-between gap-2 text-xs">
-                            <span className="font-medium text-navy">{rotulo}</span>
-                            <span className="text-navy/55">{ROTULO_FRENTE[estado]}</span>
-                          </div>
-                          <div className="mt-1.5 grid grid-cols-4 gap-1" aria-hidden="true">
-                            {ESCALA_FRENTE.map((passo, i) => (
-                              <span
-                                key={passo}
-                                className={`h-1.5 rounded-full ${i <= nivel ? (estado === "concluida" ? "bg-navy" : "bg-gold") : "bg-navy/10"}`}
-                              />
-                            ))}
-                          </div>
-                        </li>
-                      );
+                      return {
+                        rotulo,
+                        valor: (Math.max(0, nivel) / (ESCALA_FRENTE.length - 1)) * 100,
+                        apoio: ROTULO_FRENTE[estado],
+                        tom: estado === "concluida" ? ("navy" as const) : estado === "inicial" ? ("terracotta" as const) : ("gold" as const),
+                      };
                     })}
+                  />
+                  <ul className="sr-only">
+                    {(["formalizacao", "pesquisa", "documentos", "publicacao"] as const).map((chave) => (
+                      <li key={chave} data-caso360-frente={chave}>
+                        {ROTULO_FRENTE[progresso[chave]]}
+                      </li>
+                    ))}
                   </ul>
-                  <p className="mt-3 text-[11px] text-navy/50">Escala de estado (inicial → concluída), sem percentual estimado.</p>
                 </section>
-                <section className={`${cartao}`}>
-                  <p className="font-serif text-lg text-navy">Linha do tempo do caso</p>
+                <section className={`${cartao}`} data-caso360-linha-tempo>
+                  <p className="mb-1 font-serif text-lg text-navy">Linha do tempo do caso</p>
                   {(() => {
                     const quando = (e: any) => new Date(String(e.occurred_at ?? e.created_at ?? 0)).getTime();
                     const eventos = ((q.data?.timeline ?? []) as any[])
                       .slice(0, 4)
-                      .sort((a, b) => quando(a) - quando(b));
-                    if (!eventos.length) return <p className="mt-3 text-sm text-navy/50">Nenhum evento registrado.</p>;
-                    return (
-                      <ol className="mt-5 flex" data-caso360-linha-tempo>
-                        {eventos.map((evento, i) => (
-                          <li key={evento.id} className="relative flex min-w-0 flex-1 flex-col items-center px-1 text-center">
-                            {i > 0 ? <span className="absolute left-0 right-1/2 top-[7px] h-0.5 bg-navy/15" aria-hidden="true" /> : null}
-                            {i < eventos.length - 1 ? <span className="absolute left-1/2 right-0 top-[7px] h-0.5 bg-navy/15" aria-hidden="true" /> : null}
-                            <span className="relative h-4 w-4 rounded-full border-2 border-gold bg-card" aria-hidden="true" />
-                            <span className="mt-2 line-clamp-2 text-[11px] font-medium leading-tight text-navy">
-                              {evento.title ?? "Evento registrado"}
-                            </span>
-                            <span className="mt-0.5 text-[10px] text-navy/50">
-                              {evento.occurred_at || evento.created_at
-                                ? new Date(String(evento.occurred_at ?? evento.created_at)).toLocaleDateString("pt-BR")
-                                : "Data não registrada"}
-                            </span>
-                          </li>
-                        ))}
-                      </ol>
-                    );
+                      .sort((a, b) => quando(a) - quando(b))
+                      .map((e) => ({
+                        id: String(e.id),
+                        nome: String(e.title ?? "Evento registrado"),
+                        data:
+                          e.occurred_at || e.created_at
+                            ? new Date(String(e.occurred_at ?? e.created_at)).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
+                            : null,
+                      }));
+                    return <LinhaTempoGrafica eventos={eventos} />;
                   })()}
                 </section>
                 <section className={`${cartao} lg:order-3 lg:col-span-2`} data-caso360-jornada>
                   <p className="font-serif text-lg text-navy">Jornada D0–D365</p>
-                  {(qCadeia.data?.planejador?.marcos ?? []).length ? (
-                    <ol className="mt-5 flex overflow-x-auto pb-1">
-                      {qCadeia.data?.planejador?.marcos.map((marco, index, todos) => (
-                        <li key={`${index}-${marco}`} className="relative flex min-w-[7rem] flex-1 flex-col items-center px-1 text-center">
-                          {index > 0 ? <span className="absolute left-0 right-1/2 top-[9px] h-0.5 bg-gold/60" aria-hidden="true" /> : null}
-                          {index < todos.length - 1 ? <span className="absolute left-1/2 right-0 top-[9px] h-0.5 bg-gold/60" aria-hidden="true" /> : null}
-                          <span className="relative grid h-5 w-5 place-items-center rounded-full bg-navy text-[9px] font-medium text-gold" aria-hidden="true">
-                            {index + 1}
-                          </span>
-                          <span className="mt-2 text-[11px] leading-tight text-navy">{marco}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  ) : (
-                    <p className="mt-3 text-sm text-navy/55">Nenhum marco registrado no planejador.</p>
-                  )}
+                  {(() => {
+                    const marcos = qCadeia.data?.planejador?.marcos ?? [];
+                    const fase = String(qCadeia.data?.planejador?.fase_jornada ?? qCadeia.data?.planejador?.etapa ?? "")
+                      .toLowerCase()
+                      .replace(/_/g, " ");
+                    const atual = fase ? marcos.findIndex((m) => String(m).toLowerCase().includes(fase)) : -1;
+                    return (
+                      <div className="mt-3">
+                        <JornadaMarcos marcos={marcos} atual={atual >= 0 ? atual : null} />
+                        {!marcos.length ? (
+                          <p className="mt-2 text-[10px] text-navy/50">Nenhum marco registrado no planejador.</p>
+                        ) : null}
+                      </div>
+                    );
+                  })()}
                   <dl className="mt-5 grid gap-3 border-t border-navy/10 pt-4 text-sm sm:grid-cols-3">
                     <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
                       <dt className="text-navy/60">Etapa atual</dt>
@@ -1051,61 +1051,53 @@ function FichaCaso() {
                 Lote B · Pesquisa e árvore
               </h3>
               <div className="grid gap-4 lg:grid-cols-2">
-                <section className={`${cartao}`}>
-                  <p className="font-serif text-lg text-navy">Núcleo familiar e participantes</p>
-                  {((q.data?.membros ?? []) as any[]).length ? (
-                    <ul className="mt-3 space-y-3">
-                      {((q.data?.membros ?? []) as any[]).slice(0, 4).map((membro) => {
-                        const nome = String(membro.nome ?? membro.nome_completo ?? "Pessoa sem nome registrado");
-                        const sigla = nome
-                          .split(/\s+/)
-                          .filter(Boolean)
-                          .slice(0, 2)
-                          .map((p) => p[0]!.toUpperCase())
-                          .join("");
-                        return (
-                          <li key={membro.id} className="flex min-w-0 items-center gap-3">
-                            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-navy text-xs font-medium text-gold" aria-hidden="true">
-                              {sigla}
-                            </span>
-                            <span className="min-w-0">
-                              <span className="block truncate text-sm text-navy">{nome}</span>
-                              <span className="block truncate text-xs text-navy/55">{membro.papel ?? "Papel não registrado"}</span>
-                            </span>
-                          </li>
-                        );
-                      })}
-                      {((q.data?.membros ?? []) as any[]).length > 4 ? (
-                        <li className="text-xs text-navy/55">
-                          + {((q.data?.membros ?? []) as any[]).length - 4} pessoa(s) em Pessoa e família
-                        </li>
-                      ) : null}
-                    </ul>
-                  ) : (
-                    <p className="mt-3 text-sm text-navy/50">Nenhum participante registrado.</p>
-                  )}
-                </section>
-                <section className={`${cartao}`}>
-                  <p className="font-serif text-lg text-navy">Estado do dossiê</p>
+                <section className={`${cartao}`} data-caso360-participantes>
+                  <p className="mb-3 font-serif text-lg text-navy">Núcleo familiar e participantes</p>
                   {(() => {
-                    if (qPesquisa.isLoading) return <p className="mt-3 text-sm text-navy/60" role="status">Carregando o dossiê…</p>;
-                    if (qPesquisa.isError) return <p className="mt-3 text-sm text-terracotta" role="alert">Não foi possível carregar o dossiê.</p>;
-                    const dossie = dossieResumo;
-                    if (!dossie.total) return <p className="mt-3 text-sm text-navy/60">Nenhuma evidência registrada no dossiê.</p>;
+                    const membros = (q.data?.membros ?? []) as any[];
+                    if (!membros.length)
+                      return (
+                        <div className="flex items-center gap-2 opacity-60">
+                          <span className="grid h-8 w-8 place-items-center rounded-full border border-dashed border-navy/25 text-[11px] text-navy/40">—</span>
+                          <span className="text-xs text-navy/50">Nenhum participante registrado.</span>
+                        </div>
+                      );
                     return (
-                      <div className="mt-3">
-                        <StatusDonut
-                          label={`Estado do dossiê: ${dossie.confirmados} confirmados, ${dossie.emRevisao} em revisão, ${dossie.pendentes} pendentes. Total: ${dossie.total} evidências registradas.`}
-                          segments={[
-                            { label: "Confirmados", value: dossie.confirmados, tone: "success" },
-                            { label: "Em revisão", value: dossie.emRevisao, tone: "gold" },
-                            { label: "Pendentes", value: dossie.pendentes, tone: "terracotta" },
-                          ]}
-                        />
-                        <p className="mt-3 text-xs text-navy/60">{dossie.total} evidência(s) registrada(s) · situação atual do caso.</p>
+                      <div className="space-y-3">
+                        {membros.slice(0, 4).map((membro, i) => (
+                          <Pessoa
+                            key={membro.id}
+                            nome={String(membro.nome ?? membro.nome_completo ?? "Pessoa sem nome registrado")}
+                            papel={String(membro.papel ?? "Papel não registrado")}
+                            destaque={i === 0}
+                          />
+                        ))}
+                        {membros.length > 4 ? (
+                          <p className="text-[10px] text-navy/55">+ {membros.length - 4} pessoa(s) em Pessoa e família</p>
+                        ) : null}
                       </div>
                     );
                   })()}
+                </section>
+                <section className={`${cartao}`} data-caso360-dossie>
+                  <p className="mb-3 font-serif text-lg text-navy">Estados do dossiê</p>
+                  <DonutEstados
+                    tituloAcessivel={`Estado do dossiê: ${dossieResumo.confirmados} confirmados, ${dossieResumo.emRevisao} em revisão, ${dossieResumo.pendentes} pendentes.`}
+                    segmentos={[
+                      { rotulo: "Confirmados", valor: dossieResumo.confirmados, tom: "sucesso" },
+                      { rotulo: "Em revisão", valor: dossieResumo.emRevisao, tom: "gold" },
+                      { rotulo: "Pendentes", valor: dossieResumo.pendentes, tom: "terracotta" },
+                    ]}
+                  />
+                  <p className="mt-3 text-[10px] text-navy/55" role={qPesquisa.isError ? "alert" : undefined}>
+                    {qPesquisa.isLoading
+                      ? "Carregando o dossiê…"
+                      : qPesquisa.isError
+                        ? "Não foi possível carregar o dossiê."
+                        : dossieResumo.total
+                          ? `${dossieResumo.total} evidência(s) registrada(s) · situação atual do caso.`
+                          : "Nenhuma evidência registrada no dossiê ainda."}
+                  </p>
                 </section>
               </div>
             </section>
@@ -1116,11 +1108,11 @@ function FichaCaso() {
               <div className="grid gap-4 lg:grid-cols-2">
                 <section className={cartao} data-caso360-formalizacao>
                   <p className="font-serif text-lg text-navy">Proposta, escopo e contrato</p>
-                  <dl className="mt-3 space-y-2 text-sm">
-                    <div className="flex flex-wrap justify-between gap-2"><dt className="text-navy/60">Etapa comercial</dt><dd className="text-navy">{rotulo(EIXO_COMERCIAL, v("eixo_comercial"))}</dd></div>
-                    <div className="flex flex-wrap justify-between gap-2"><dt className="text-navy/60">Formalização</dt><dd className="text-navy">{rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao"))}</dd></div>
-                    <div className="flex flex-wrap justify-between gap-2"><dt className="text-navy/60">Contrato</dt><dd className="text-navy">{caso["contrato_assinado"] ? "Assinado" : "Assinatura não registrada"}</dd></div>
-                  </dl>
+                  <div className="mt-3">
+                    <Linha rotulo="Etapa comercial" valor={String(rotulo(EIXO_COMERCIAL, v("eixo_comercial")))} />
+                    <Linha rotulo="Formalização" valor={String(rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao")))} />
+                    <Linha rotulo="Contrato" valor={String(caso["contrato_assinado"] ? "Assinado" : "Assinatura não registrada")} />
+                  </div>
                   <a href="#secao-comercial" onClick={() => setSecaoFoco("comercial")} className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4">Abrir Formalização</a>
                 </section>
                 <section className={cartao} data-caso360-condicao>
@@ -1148,11 +1140,11 @@ function FichaCaso() {
                   ) : qVisaoCliente.isError || !qVisaoCliente.data ? (
                     <p className="mt-3 text-sm text-terracotta" role="alert">Não foi possível carregar o estado do App.</p>
                   ) : (
-                    <dl className="mt-3 space-y-2 text-sm">
-                      <div className="flex flex-wrap justify-between gap-2"><dt className="text-navy/60">Acesso da família</dt><dd className="text-navy">{qVisaoCliente.data.acesso.liberado ? "Liberado" : "Não liberado"}</dd></div>
-                      <div className="flex flex-wrap justify-between gap-2"><dt className="text-navy/60">Publicado no App</dt><dd className="text-navy">{qVisaoCliente.data.estadoPublicacao.publicadas}</dd></div>
-                      <div className="flex flex-wrap justify-between gap-2"><dt className="text-navy/60">Aguardando publicação</dt><dd className="text-navy">{qVisaoCliente.data.estadoPublicacao.pendentes}</dd></div>
-                    </dl>
+                    <div className="mt-3">
+                      <Linha rotulo="Acesso da família" valor={String(qVisaoCliente.data.acesso.liberado ? "Liberado" : "Não liberado")} />
+                      <Linha rotulo="Publicado no App" valor={String(qVisaoCliente.data.estadoPublicacao.publicadas)} />
+                      <Linha rotulo="Aguardando publicação" valor={String(qVisaoCliente.data.estadoPublicacao.pendentes)} />
+                    </div>
                   )}
                   <p className="mt-3 text-[11px] text-navy/50">O App mostra só o que foi aprovado e publicado; notas internas ficam no Desk.</p>
                   <Link to="/app-cliente-como-pessoa" search={{ casoId: id }} className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4">Ver como a família vê</Link>
@@ -1164,11 +1156,11 @@ function FichaCaso() {
                   ) : qDocumentos.isError ? (
                     <p className="mt-3 text-sm text-terracotta" role="alert">Não foi possível carregar os documentos.</p>
                   ) : (
-                    <dl className="mt-3 space-y-2 text-sm">
-                      <div className="flex flex-wrap justify-between gap-2"><dt className="text-navy/60">Documentos registrados</dt><dd className="text-navy">{((qDocumentos.data ?? []) as unknown[]).length}</dd></div>
-                      <div className="flex flex-wrap justify-between gap-2"><dt className="text-navy/60">Documentos mínimos</dt><dd className="text-navy">{caso["documentos_minimos_ok"] ? "Confirmados" : "Não confirmados"}</dd></div>
-                      <div className="flex flex-wrap justify-between gap-2"><dt className="text-navy/60">Disponíveis à família</dt><dd className="text-navy">{qVisaoCliente.data?.documentosDisponiveis ?? "—"}</dd></div>
-                    </dl>
+                    <div className="mt-3">
+                      <Linha rotulo="Documentos registrados" valor={String(((qDocumentos.data ?? []) as unknown[]).length)} />
+                      <Linha rotulo="Documentos mínimos" valor={String(caso["documentos_minimos_ok"] ? "Confirmados" : "Não confirmados")} />
+                      <Linha rotulo="Disponíveis à família" valor={String(qVisaoCliente.data?.documentosDisponiveis ?? "—")} />
+                    </div>
                   )}
                   <a href="#secao-documentos" onClick={() => setSecaoFoco("documentos")} className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4">Abrir Documentos</a>
                 </section>

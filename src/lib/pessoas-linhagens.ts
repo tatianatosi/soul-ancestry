@@ -449,6 +449,9 @@ export function contarNos(nos: NoArvore[]): number {
 /* Pesquisa G1...Gn — geração ascendente a partir de uma pessoa âncora  */
 /* ------------------------------------------------------------------ */
 
+/** Teto da leitura por geração no Desk: a linhagem do Clube vai até G10. */
+export const GERACAO_MAXIMA_LINHAGEM = 10;
+
 export type PessoaGeracao = {
   personId: string;
   nome: string;

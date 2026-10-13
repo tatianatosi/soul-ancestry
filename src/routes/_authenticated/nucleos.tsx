@@ -32,6 +32,7 @@ import { salvarTarefa } from "@/lib/ops.functions";
 import { sincronizarMembrosDoCaso } from "@/lib/caso-canonico.functions";
 
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
+import { ComposicaoLinhagemV4 } from "@/components/pessoas/composicao-linhagem-v4";
 export const Route = createFileRoute("/_authenticated/nucleos")({
   head: () => ({
     meta: [
@@ -188,6 +189,8 @@ function NucleosPage() {
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("");
   const [selecionado, setSelecionado] = useState<string | null>(null);
+  /* Prancha V4: núcleo em foco na composição (independe de abrir a edição). */
+  const [focoId, setFocoId] = useState<string | null>(null);
   const [rascunho, setRascunho] = useState<Rascunho | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
@@ -358,6 +361,42 @@ function NucleosPage() {
       descricao="Um dossiê-mãe por núcleo. Requerentes têm registro individual vinculado."
     >
       <div className="space-y-5">
+        {(() => {
+          /*
+            Prancha V4 (13/10/2026) — a tela inteira é a composição da prancha:
+            seletor de núcleo em pílulas, gerações G1–G10, leitura da linhagem,
+            árvore, rede e cobertura. A gestão (busca, membros, dossiê-mãe)
+            continua inteira, recolhida em "Gerenciar núcleos" logo abaixo.
+          */
+          const lista = (q.data as Nucleo[] | undefined) ?? [];
+          const foco =
+            lista.find((n) => n.id === focoId) ?? atual ?? lista.find((n) => n.caso) ?? lista[0] ?? null;
+          return (
+            <div className="space-y-4" data-nucleo-em-foco={foco?.id ?? ""}>
+              <nav aria-label="Núcleo em foco" className="flex flex-wrap gap-2">
+                {lista.map((n) => (
+                  <button
+                    key={n.id}
+                    type="button"
+                    onClick={() => setFocoId(n.id)}
+                    aria-pressed={foco?.id === n.id}
+                    className={`rounded-full border px-3 py-1 text-[11px] ${
+                      foco?.id === n.id ? "border-navy bg-navy text-white" : "border-navy/15 text-navy/70 hover:border-gold"
+                    }`}
+                  >
+                    {n.nome}
+                  </button>
+                ))}
+              </nav>
+              {q.isLoading ? <p className="text-sm text-navy/60" role="status">Carregando núcleos…</p> : null}
+              <ComposicaoLinhagemV4 nucleo={foco} nucleos={lista} />
+            </div>
+          );
+        })()}
+
+        <details className="rounded-xl border border-navy/10 bg-card p-4" open={Boolean(selecionado) || undefined}>
+          <summary className="cursor-pointer font-serif text-base text-navy">Gerenciar núcleos, membros e dossiê-mãe</summary>
+          <div className="mt-4 space-y-5 border-t border-navy/10 pt-4">
         <Secao titulo="Buscar núcleos" descricao="Filtre por nome, contratante, dossiê ou caso vinculado.">
           <div className="grid gap-3 sm:grid-cols-2">
             <Texto label="Busca" valor={busca} onChange={setBusca} />
@@ -934,6 +973,8 @@ function NucleosPage() {
             ) : null}
           </Secao>
         ) : null}
+          </div>
+        </details>
       </div>
     </SaasShell>
   );

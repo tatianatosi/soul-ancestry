@@ -17,6 +17,7 @@ import {
   type MembroNucleoBruto,
 } from "@/lib/pessoa-vinculo";
 import { coberturaPorGeracao } from "@/lib/golive-pessoas";
+import { GERACAO_MAXIMA_LINHAGEM } from "@/lib/pessoas-linhagens";
 import { inserirComVerificacao } from "@/lib/persistencia.server";
 import { motivosDossieMaeNaoAtivavel, nucleoComMesmoDossieAtivo } from "@/lib/nucleo-completude";
 import { PAPEIS_PESSOA } from "@/lib/caso-ficha";
@@ -158,7 +159,7 @@ export const listarNucleos = createServerFn({ method: "GET" })
       }),
     );
     const coberturaPorCaso = new Map(
-      membrosPorCaso.map(([caseId, membros]) => [caseId, coberturaPorGeracao(membros)]),
+      membrosPorCaso.map(([caseId, membros]) => [caseId, coberturaPorGeracao(membros, GERACAO_MAXIMA_LINHAGEM)]),
     );
     return (nucleos ?? []).map((n: any) => {
       // P32c (26/09/2026) — "a mesma pessoa não pode aparecer com rótulo
