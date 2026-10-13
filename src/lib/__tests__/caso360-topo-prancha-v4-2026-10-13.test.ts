@@ -34,6 +34,24 @@ describe("Caso 360 — topo da Prancha V4", () => {
     expect(trecho).not.toContain("disabled");
   });
 
+  /*
+   * Especificação canônica: docs/arquitetura/2026-10-13-reparacao-caso-360-padrao-golive-4-lotes.md.
+   * Os 4 lotes organizam a Visão geral; as 8 SECOES seguem sendo a navegação.
+   */
+  it("a Visão geral segue os 4 lotes A–D, na ordem, sem mexer nas 8 seções", () => {
+    const posicoes = ["A", "B", "C", "D"].map((l) => pagina.indexOf(`data-caso360-lote="${l}"`));
+    for (const p of posicoes) expect(p).toBeGreaterThan(-1);
+    expect([...posicoes].sort((a, b) => a - b)).toEqual(posicoes);
+    expect(pagina).toContain("Lote A · Entrada e caso");
+    expect(pagina).toContain("Jornada D0–D365");
+    expect(pagina).toContain("data-caso360-origem");
+    for (const marca of ["data-caso360-formalizacao", "data-caso360-condicao", "data-caso360-prontidao-app", "data-caso360-acervo"]) {
+      expect(pagina).toContain(marca);
+    }
+    const secoes = pagina.slice(pagina.indexOf("const SECOES = ["), pagina.indexOf("] as const;", pagina.indexOf("const SECOES = [")));
+    expect(secoes.match(/\{ id: "/g)).toHaveLength(8);
+  });
+
   it("a grade não traz dado de demonstração em memória", () => {
     const trecho = pagina.slice(pagina.indexOf("grade de cartões da Visão geral"), pagina.indexOf("Abrir requisitos de ativação"));
     for (const proibido of ["Bianchi", "Dados demonstrativos", "cases.ts", "valor: 64"]) {
