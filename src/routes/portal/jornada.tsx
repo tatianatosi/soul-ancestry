@@ -456,20 +456,24 @@ export function PortalJornada() {
               existia em `noRealDeItem`/`noDemoDeItem`; aqui só se separa
               o array único em três, sem recalcular nada.
             */
-            const linhaAncestral = nos.filter(
+            const linhaAncestralBase = nos.filter(
               (n): n is NoEvento => n.tipo === "evento" && n.categoria !== "navy",
             );
-            const linhaProcesso = nos.filter(
-              (n): n is NoEvento => n.tipo === "evento" && n.categoria === "navy",
-            );
+            // Coluna pelo lugar declarado no texto publicado (sem inferir): menção a Brasil vai para a coluna Brasil.
+            const noBrasil = (n: NoEvento) => /brasil|rio de janeiro|são paulo/i.test(`${n.titulo} ${n.conteudo}`);
+            const linhaProcesso = [
+              ...linhaAncestralBase.filter(noBrasil),
+              ...nos.filter((n): n is NoEvento => n.tipo === "evento" && n.categoria === "navy"),
+            ];
+            const linhaAncestral = linhaAncestralBase.filter((n) => !noBrasil(n));
             const pontes = nos.filter((n): n is NoPonte => n.tipo === "ponte");
 
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="app-v11-secoes pb-6 lg:pb-0" data-aba-jornada>
                   <nav aria-label="Linhas da jornada" className="sticky top-0 z-10 grid grid-cols-3 gap-2 border-b border-border bg-cream py-2 sm:static">
-                    <a href="#linha-origem" className="flex min-h-11 items-center justify-center border-b-2 border-gold text-sm font-medium text-navy">Origem</a>
-                    <a href="#linha-processo" className="flex min-h-11 items-center justify-center border-b-2 border-navy text-sm font-medium text-navy">Processo</a>
+                    <a href="#linha-origem" className="flex min-h-11 items-center justify-center border-b-2 border-gold text-sm font-medium text-navy">Europa</a>
+                    <a href="#linha-processo" className="flex min-h-11 items-center justify-center border-b-2 border-navy text-sm font-medium text-navy">Brasil</a>
                     <a href="#linha-memoria" className="flex min-h-11 items-center justify-center border-b-2 border-plum text-sm font-medium text-navy">Memória</a>
                   </nav>
                   {jornada.linha.length === 0 && (vivo.historico ?? []).length === 0 ? (
@@ -522,7 +526,7 @@ export function PortalJornada() {
                          <span aria-hidden="true" className="absolute bottom-5 left-2 top-5 w-0.5 bg-gold/70" />
                           <div id="linha-origem" className="relative min-w-0 scroll-mt-20">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
-                          <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" variante="gold" />
+                          <TimelineVertical eventos={linhaAncestral} eyebrow="Europa · Áustria" variante="gold" />
                         </div>
                           {pontes.length > 0 ? (<div className="relative sm:order-2 sm:col-span-2">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
@@ -530,7 +534,7 @@ export function PortalJornada() {
                          </div>) : null}
                           <div id="linha-processo" className="relative min-w-0 scroll-mt-20 sm:col-start-2 sm:row-start-1">
                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
-                          <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" />
+                          <TimelineVertical eventos={linhaProcesso} eyebrow="Brasil" variante="navy" />
                             {passoAtualIndice !== null ? (
                               <div className="mt-3"><TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} /></div>
                             ) : null}
