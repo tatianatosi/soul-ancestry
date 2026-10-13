@@ -530,7 +530,7 @@ function PainelConsolidado() {
                   <div key={f.etapa} className="flex items-center justify-between gap-2">
                     <div
                       className={`flex h-7 min-w-0 items-center overflow-hidden rounded-md border px-2.5 ${
-                        f.etapa === "cliente" ? "border-gold/60 bg-gold/25" : "border-navy/10 bg-areia/70"
+                        f.etapa === "Cliente" ? "border-gold/60 bg-gold/25" : "border-navy/10 bg-areia/70"
                       }`}
                       style={{ marginLeft: `${i * 6}%`, maxWidth: `${Math.max(30, Math.round((f.total / tetoFunil) * 100))}%` }}
                     >
