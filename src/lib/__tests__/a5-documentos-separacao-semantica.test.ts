@@ -59,7 +59,7 @@ describe("A5 Documentos — 4 caixas com fonte semântica exclusiva (§7 De-Para
     expect(codigo).toMatch(/data-documentos-checklist/);
     expect(codigo).not.toMatch(/liberados\.length \+ enviados\.length/);
     expect(codigo).not.toMatch(/const checklist =/);
-    expect(codigo).toMatch(/Por enquanto, não precisamos de nenhum documento seu/);
+    expect(codigo).toMatch(/Ainda não há documentos liberados para você neste momento|Acervo sob curadoria técnica/);
     // Sem contagem agregada, o que resta proteger é a exclusividade da fonte:
     // Entregas continua lendo `liberados_lista` (entregas do caso) e as caixas
     // Recebidos/Liberados continuam nos seus próprios filtros de `docs`.
