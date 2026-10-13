@@ -201,12 +201,9 @@ function PainelConsolidado() {
   ];
   return (
     <section aria-labelledby="painel-consolidado-titulo">
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-gold">Desk Intelligence</p>
-          <h2 id="painel-consolidado-titulo" className="mt-1 font-serif text-3xl text-navy">Hoje</h2>
-          <p className="mt-1 text-sm text-navy/60">Decisões, prazos e sinais que pedem atenção agora.</p>
-        </div>
+      {/* O título "Hoje" já vem do topo do Desk (prancha V4); aqui fica só para leitor de tela. */}
+      <div className="mb-5 flex flex-wrap items-end justify-end gap-3">
+        <h2 id="painel-consolidado-titulo" className="sr-only">Hoje</h2>
         <span className="rounded-full border border-navy/15 bg-card px-3 py-1 text-[11px] font-medium text-navy/65">Dados conectados</span>
       </div>
 

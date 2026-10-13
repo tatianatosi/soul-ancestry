@@ -13,6 +13,7 @@ import {
   Menu,
   ShieldCheck,
   Search,
+  ChevronDown,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -183,6 +184,15 @@ export function SaasShell({
   // cabeçalho. Abas restritas a admin só aparecem para admin.
   const setorAtivo = setorDaRota(rota);
   const abasSetor = (setorAtivo?.abas ?? []).filter((a) => !a.adminOnly || ehAdmin);
+  // Avatar da topbar: só o que o perfil da sessão traz — nada fixo no código.
+  const nomeExibido = contexto?.perfil?.nome?.trim() || contexto?.perfil?.email || "Conta";
+  const iniciais =
+    (contexto?.perfil?.nome?.trim() || contexto?.perfil?.email?.split("@")[0] || "")
+      .split(/[\s._-]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p[0]!.toUpperCase())
+      .join("") || "·";
 
   return (
     <div
@@ -224,7 +234,7 @@ export function SaasShell({
                 onClick={() => setAberto(false)}
                 aria-current={ativo ? "page" : undefined}
                 className={cn(
-                  "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                  "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 font-serif text-sm transition-colors",
                   ativo ? "bg-gold font-semibold text-navy" : "text-cream/80 hover:bg-cream/10",
                 )}
               >
@@ -301,11 +311,12 @@ export function SaasShell({
       </aside>
 
       <div className="flex min-w-0 max-w-full flex-1 flex-col overflow-x-clip">
-        <div className="hidden min-h-8 items-center justify-between bg-navy px-8 text-[10px] font-semibold uppercase tracking-widest text-cream/70 md:flex">
-          <span>Clube Ancestral · Desk Intelligence</span>
-          <span>Genealogia profissional e história familiar</span>
-        </div>
-        <header className="grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3 border-b border-navy/10 border-t-4 border-t-gold bg-navy px-4 py-4 text-cream shadow-sm md:grid-cols-[minmax(0,1fr)_auto] md:bg-card md:px-8 md:text-navy">
+        {/*
+          Prancha V4 aprovada (13/10/2026): topo limpo em qualquer largura —
+          sem o bloco navy que subia no celular. A busca leva ao "Encontrar no
+          Desk" que já existe; o avatar mostra o perfil real da sessão.
+        */}
+        <header className="flex min-w-0 items-center gap-3 border-b border-border bg-card px-4 py-3 md:px-6" data-desk-topbar>
           <button
             className="shrink-0 md:hidden"
             onClick={() => setAberto((v) => !v)}
@@ -313,56 +324,71 @@ export function SaasShell({
           >
             <Menu className="h-5 w-5" />
           </button>
-          <BrandLogo
-            size={30}
-            showText={false}
-            variant="client-dark"
-            className="shrink-0 md:hidden"
-          />
-
-          <div className="min-w-0 max-w-full flex-1 md:col-span-full">
-            <h1 className="break-words font-serif text-2xl leading-tight">{titulo}</h1>
-            {descricao ? <p className="overflow-wrap-anywhere text-sm text-cream/70 md:text-navy/60">{descricao}</p> : null}
-          </div>
-          <div className="hidden min-w-0 items-center gap-2 rounded-md border border-input bg-cream/40 px-3 py-2.5 md:flex" aria-label="Busca no Desk">
-            <Search className="h-4 w-4 shrink-0 text-navy/45" aria-hidden="true" />
-            <span className="truncate text-xs text-navy/50">Buscar caso, pessoa ou documento</span>
-          </div>
-          {acoes ? (
-            <div className="col-span-full min-w-0 max-w-full md:col-auto">{acoes}</div>
-          ) : (
-            <div className="hidden min-w-0 rounded-md border border-navy/10 bg-cream/40 px-3 py-2 md:block">
-              <p className="max-w-44 truncate text-xs font-medium text-navy">{contexto?.perfil?.email ?? "Conta"}</p>
-              <p className="max-w-44 truncate text-[10px] text-navy/50">{contexto?.organizacao?.nome ?? "Clube Ancestral"}</p>
-            </div>
-          )}
-        </header>
-        {abasSetor.length ? (
-          <nav
-            aria-label={`Abas de ${setorAtivo?.label ?? "setor"}`}
-            className="flex min-w-0 gap-1 overflow-x-auto border-b border-navy/10 bg-card px-4 md:px-8"
-            data-desk-abas-setor={setorAtivo?.id}
+          <Link
+            to="/painel"
+            hash="encontrar-no-desk"
+            aria-label="Buscar caso, pessoa ou documento"
+            className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-border bg-cream/40 px-3 py-1.5 transition-colors hover:border-gold"
           >
-            {abasSetor.map((aba) => {
-              const ativa = abaAtiva(rota, aba, abasSetor);
-              return (
-                <Link
-                  key={aba.to}
-                  to={aba.to}
-                  aria-current={ativa ? "page" : undefined}
-                  className={cn(
-                    "flex min-h-11 shrink-0 items-center border-b-2 px-3 text-sm transition-colors",
-                    ativa
-                      ? "border-gold font-semibold text-navy"
-                      : "border-transparent text-navy/60 hover:text-navy",
-                  )}
-                >
-                  {aba.label}
-                </Link>
-              );
-            })}
-          </nav>
-        ) : null}
+            <Search className="h-4 w-4 shrink-0 text-navy/50" aria-hidden="true" />
+            <span className="truncate text-xs text-navy/50">Buscar caso, pessoa ou documento</span>
+          </Link>
+          <details className="relative shrink-0" data-desk-avatar>
+            <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-navy text-[10px] font-medium text-gold" aria-hidden="true">
+                {iniciais}
+              </span>
+              <span className="hidden max-w-40 truncate text-xs text-navy/70 sm:inline">{nomeExibido}</span>
+              <ChevronDown className="h-4 w-4 text-navy/50" aria-hidden="true" />
+            </summary>
+            <div className="absolute right-0 z-40 mt-1 w-64 rounded-xl border border-navy/10 bg-card p-3 text-sm shadow-lg">
+              <p className="truncate font-medium text-navy">{nomeExibido}</p>
+              {contexto?.perfil?.email ? <p className="truncate text-xs text-navy/60">{contexto.perfil.email}</p> : null}
+              <p className="mt-1 truncate text-xs text-navy/50">{contexto?.organizacao?.nome ?? "Clube Ancestral"}</p>
+              <button
+                type="button"
+                onClick={sair}
+                className="mt-3 flex w-full items-center gap-2 rounded-lg border border-navy/15 px-3 py-2 text-sm text-navy hover:bg-navy/5"
+              >
+                <LogOut className="h-4 w-4" /> Sair
+              </button>
+            </div>
+          </details>
+        </header>
+        <div className="min-w-0 px-4 pt-4 md:px-6 md:pt-6" data-desk-titulo>
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 sm:flex sm:justify-between">
+            <div className="min-w-0">
+              <h1 className="break-words font-serif text-3xl leading-tight text-navy">{titulo}</h1>
+              {descricao ? <p className="overflow-wrap-anywhere mt-1 text-xs text-navy/60">{descricao}</p> : null}
+            </div>
+            {acoes ? <div className="min-w-0 max-w-full">{acoes}</div> : null}
+          </div>
+          {/* Pílulas da prancha: as abas do setor ativo. */}
+          {abasSetor.length ? (
+            <nav
+              aria-label={`Abas de ${setorAtivo?.label ?? "setor"}`}
+              className="mt-4 flex min-w-0 flex-wrap gap-2"
+              data-desk-abas-setor={setorAtivo?.id}
+            >
+              {abasSetor.map((aba) => {
+                const ativa = abaAtiva(rota, aba, abasSetor);
+                return (
+                  <Link
+                    key={aba.to}
+                    to={aba.to}
+                    aria-current={ativa ? "page" : undefined}
+                    className={cn(
+                      "inline-flex min-h-8 items-center rounded-full border px-3 py-1 text-[11px] transition-colors",
+                      ativa ? "border-navy bg-navy text-white" : "border-navy/15 text-navy/70 hover:bg-cream",
+                    )}
+                  >
+                    {aba.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          ) : null}
+        </div>
         {contexto?.organizacao?.demo ? (
           <div className="border-b border-gold/40 bg-gold/15 px-4 py-2 text-xs font-medium uppercase tracking-wide text-navy lg:px-8">
             DEMO — não usar dados reais
@@ -371,12 +397,38 @@ export function SaasShell({
         {/* Identidade de marca aplicada em escopo isolado: somente a área de
             Pesquisa / Gestão de Pesquisa (inclui /evidencias). Demais telas permanecem congeladas. */}
         <main
-          className="min-w-0 w-full max-w-full flex-1 overflow-x-clip p-4 pb-[calc(5rem+env(safe-area-inset-bottom))] md:p-8 md:pb-8"
+          className="min-w-0 w-full max-w-full flex-1 overflow-x-clip p-4 pb-[calc(5rem+env(safe-area-inset-bottom))] md:px-6 md:pb-8 md:pt-5"
           data-desk-content="true"
           data-marca="guia"
         >
           {children}
         </main>
+        {/* Prancha V4: no celular a navegação entre setores é a barra fixa de ícones embaixo. */}
+        <nav
+          aria-label="Setores do Desk"
+          className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-8 border-t border-navy/10 bg-card px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-sm md:hidden"
+          data-desk-nav-movel
+        >
+          {SETORES_DESK_V5.map((setor) => {
+            const Icon = ICONES[setor.icone];
+            const ativo = setorAtivo?.id === setor.id;
+            return (
+              <Link
+                key={setor.id}
+                to={setor.to}
+                aria-current={ativo ? "page" : undefined}
+                aria-label={setor.label}
+                className={cn(
+                  "flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-md px-0.5 text-[8px] font-medium",
+                  ativo ? "bg-gold/20 text-navy" : "text-navy/50",
+                )}
+              >
+                <Icon className="h-4 w-4" aria-hidden="true" />
+                <span className="max-w-full truncate">{setor.label.split(" ")[0]}</span>
+              </Link>
+            );
+          })}
+        </nav>
         {/* CA-UX-03 (adendo v1.0): Assistente transversal — presente nos 8 grupos,
             conforme papel e contexto. Não é aba nem fonte de verdade. */}
         <AssistenteTransversal papeis={papeis} />
