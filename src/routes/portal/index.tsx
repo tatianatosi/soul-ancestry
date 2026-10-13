@@ -15,7 +15,7 @@ import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
 import { cn } from "@/lib/utils";
-import { ArrowRight, CheckCircle2, UsersRound, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, UsersRound, Search } from "lucide-react";
 import { CaCard } from "@/components/ui/ca-card";
 import { pessoasDaArvore } from "@/lib/arvore-publicacao";
 
@@ -96,6 +96,8 @@ export function PortalHome() {
     .sort((a, b) => (a.geracao ?? 99) - (b.geracao ?? 99));
   const pessoasPublicadas = pessoasDaArvore(vivo.data?.projecoes ?? []).length;
    const documentoPrioritario = vivo.data?.solicitacoes?.slice(0, 3).map((item) => item.titulo).join("\n") || null;
+  // Pedidos abertos reais (portal_document_requests) — a mesma fonte da aba Documentos.
+  const solicitacoesAbertas = (vivo.data?.solicitacoes ?? []).slice(0, 3).map((s) => ({ id: s.id, titulo: s.titulo }));
   const microentrega = jornada.linha.find((item) => item.tipo === "microentrega")?.conteudo ?? null;
 
   if (previa) {
@@ -119,6 +121,7 @@ export function PortalHome() {
             pessoasPublicadas={pessoasPublicadas}
             nomesNucleo={pessoasDoNucleo.map((p) => ({ chave: p.chave, nome: p.nome }))}
             documentoPrioritario={documentoPrioritario}
+            solicitacoes={solicitacoesAbertas}
             microentrega={microentrega}
             achados={achadosPublicados.slice(0, 3).map((item) => ({
               id: item.id,
@@ -184,6 +187,7 @@ export function PortalHome() {
                 pessoasPublicadas={pessoasPublicadas}
             nomesNucleo={pessoasDoNucleo.map((p) => ({ chave: p.chave, nome: p.nome }))}
                 documentoPrioritario={documentoPrioritario}
+                solicitacoes={solicitacoesAbertas}
                 microentrega={microentrega}
                 casoId={principal.id}
                 achados={achadosPublicados.slice(0, 3).map((item) => ({
@@ -328,6 +332,7 @@ function PainelHomeMockup({
   pessoasPublicadas,
   nomesNucleo = [],
   documentoPrioritario,
+  solicitacoes = [],
   microentrega,
   achados,
   fase,
@@ -344,6 +349,8 @@ function PainelHomeMockup({
   pessoasPublicadas: number;
   nomesNucleo?: Array<{ chave: string; nome: string }>;
   documentoPrioritario?: string | null;
+  /** Pedidos de documento abertos (portal_document_requests), no máximo 3. */
+  solicitacoes?: Array<{ id: string; titulo: string }>;
   microentrega?: string | null;
   casoId?: string;
   achados: Array<{
@@ -419,7 +426,12 @@ function PainelHomeMockup({
           </div>
         </div>
 
-       {fase ? null : (
+        {/* Mockup p.3: progresso dentro do mesmo cartão do caso, não num segundo cartão. */}
+        {fase ? (
+          <div aria-label="Progresso da jornada" data-home-progresso className="mt-4 border-t border-cream/10 pt-1">
+            <EstepeJornada rotulos={fase.rotulos} indice={fase.indice} percentual={fase.percentual} valor={fase.valor} compacto={fase.compacto ?? false} />
+          </div>
+        ) : (
           <p className="mt-4 border-t border-cream/10 pt-4 text-sm leading-relaxed text-cream/70">
             {marcos === 0
                ? "A história da sua família terá seu lugar aqui, à medida que novos trechos forem compartilhados."
@@ -428,105 +440,117 @@ function PainelHomeMockup({
         )}
       </section>
 
-      {fase ? (
-        <section aria-label="Progresso da jornada" className="rounded-xl bg-navy-800 px-5 pb-5 pt-1 text-cream">
-          <EstepeJornada rotulos={fase.rotulos} indice={fase.indice} percentual={fase.percentual} valor={fase.valor} compacto={fase.compacto ?? false} />
-        </section>
-      ) : (
+      {fase ? null : (
         <section className="app-home-resumo app-card-resumo-jornada" aria-label="Resumo da Jornada">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-            <div className="min-w-0"><h3 className="font-serif text-xl text-navy">Nossa jornada</h3><p className="mt-1 text-sm text-navy/70">{marcos > 0 ? "Acompanhe os trechos já compartilhados da sua história." : "Os primeiros marcos terão seu lugar aqui quando forem compartilhados."}</p></div>
+            <div className="min-w-0"><h3 className="font-serif text-xl text-navy">{marcos > 0 ? "Nossa jornada" : "Uma história em construção"}</h3><p className="mt-1 text-sm text-navy/70">{marcos > 0 ? "Acompanhe os trechos já compartilhados da sua história." : "Os primeiros marcos terão seu lugar aqui quando forem compartilhados."}</p></div>
             <LinkPortal to="/portal/jornada" className="inline-flex min-h-11 shrink-0 items-center text-sm text-navy" aria-label="Abrir Jornada"><ArrowRight className="h-5 w-5" aria-hidden="true" /></LinkPortal>
           </div>
         </section>
       )}
 
-      <div className="grid gap-8 pt-4 sm:grid-cols-2 sm:items-start">
-        <section aria-label="Próxima ação — próximo passo" className="app-card-proximo-passo" data-home-proximo-passo>
-          <div className="mb-1 flex items-center justify-between gap-2">
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Próximo passo</p>
-            {proximoPassoDestino && proximoPasso !== PROXIMO_PASSO_VAZIO ? (
-              <ArrowRight className="h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
-            ) : null}
-          </div>
-          <h3 className="mb-3 font-serif text-2xl text-navy">O que vem agora</h3>
-          <p className="whitespace-pre-line text-sm leading-relaxed text-navy/80">{proximoPasso}</p>
+      <div className="grid gap-6 pt-2" data-home-paridade-mockup>
+        {/*
+          Mockup p.3 "Próximos passos": cartões brancos numerados. Só itens
+          reais — a próxima ação publicada e os pedidos de documento abertos
+          (até 3). Nenhum passo é inventado para completar a lista.
+        */}
+        <section aria-label="Próxima ação e próximos passos" data-home-proximo-passo>
+          <h3 className="mb-3 font-serif text-2xl text-navy">Próximos passos</h3>
+          {(() => {
+            const itens: Array<{ chave: string; titulo: string; detalhe: string; destino: string | null }> = [];
+            if (proximoPasso !== PROXIMO_PASSO_VAZIO) {
+              itens.push({ chave: "proxima-acao", titulo: proximoPasso, detalhe: "Aguardando sua ação", destino: proximoPassoDestino ?? null });
+            }
+            for (const s of solicitacoes) {
+              if (itens.length >= 3) break;
+              if (itens.some((i) => i.titulo === s.titulo)) continue;
+              itens.push({ chave: s.id, titulo: s.titulo, detalhe: "Documento solicitado", destino: "/portal/documentos" });
+            }
+            if (itens.length === 0) {
+              return <p className="app-home-passo-vazio rounded-xl border border-border bg-white px-4 py-4 text-sm leading-relaxed text-navy/70">{PROXIMO_PASSO_VAZIO}</p>;
+            }
+            return (
+              <ol className="space-y-2.5">
+                {itens.map((item, i) => {
+                  const conteudo = (
+                    <>
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gold/15 font-serif text-xs text-navy" aria-hidden="true">{i + 1}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block whitespace-pre-line text-sm font-medium leading-snug text-navy">{item.titulo}</span>
+                        <span className="mt-0.5 block text-xs text-navy/60">{item.detalhe}</span>
+                      </span>
+                      {item.destino ? <ArrowRight className="h-4 w-4 shrink-0 text-navy/70" aria-hidden="true" /> : null}
+                    </>
+                  );
+                  const classe = "app-home-passo flex min-h-14 items-center gap-3 rounded-xl border border-border bg-white px-4 py-3 shadow-sm";
+                  return (
+                    <li key={item.chave}>
+                      {item.destino ? <LinkPortal to={item.destino} className={classe}>{conteudo}</LinkPortal> : <div className={classe}>{conteudo}</div>}
+                    </li>
+                  );
+                })}
+              </ol>
+            );
+          })()}
           {proximaEntrega ? (
             <p className="mt-2 text-xs text-navy/70" data-proxima-entrega>
               {proximaEntrega}
             </p>
           ) : null}
-          {proximoPassoDestino && proximoPasso !== PROXIMO_PASSO_VAZIO ? (
-            <LinkPortal to={proximoPassoDestino} className="app-botao-proximo-passo mt-4">
-              {proximoPassoDestino.includes("documentos")
-                ? "Abrir Documentos"
-                : proximoPassoDestino.includes("conta")
-                  ? "Abrir Conta"
-                  : "Abrir Jornada"}
-              <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-            </LinkPortal>
-          ) : null}
         </section>
 
-        <section className="sm:col-start-2 sm:row-start-1" aria-label="Pessoas conectadas">
-          <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Família</p>
-          <h3 className="mb-3 flex items-center gap-3 font-serif text-2xl text-navy"><UsersRound className="h-6 w-6 shrink-0" aria-hidden="true" />Pessoas conectadas</h3>
-          <div className="border-t border-gold/40 py-3">
-            {pessoasPublicadas > 0 ? (
-              <div className="flex items-center gap-4" data-home-pessoas-estatistica>
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gold/20 text-gold" aria-hidden="true">
-                  <UsersRound className="h-6 w-6" />
-                </span>
-                <p className="font-serif text-2xl leading-none text-navy">
+        <section aria-label="Pessoas conectadas" className="app-home-pessoas rounded-xl border border-border bg-white px-4 py-4 shadow-sm">
+          <div className="flex items-center gap-4" data-home-pessoas-estatistica>
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gold/15 text-gold" aria-hidden="true">
+              <UsersRound className="h-6 w-6" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-navy/60">Pessoas conectadas</p>
+              {pessoasPublicadas > 0 ? (
+                <p className="mt-1 font-serif text-2xl leading-none text-navy">
                   {pessoasPublicadas}
-                  <span className="ml-2 align-middle text-sm font-normal text-navy/70">
+                  <span className="ml-2 align-middle font-serif text-sm italic text-navy/70">
                     {pessoasPublicadas === 1 ? "pessoa compartilhada na sua Árvore" : "pessoas compartilhadas na sua Árvore"}
                   </span>
                 </p>
-              </div>
-            ) : (
-              <p className="text-sm leading-relaxed text-navy/75">As pessoas da família terão seu lugar na Árvore quando forem compartilhadas.</p>
-            )}
-            <LinkPortal to="/portal/arvore" className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Árvore</LinkPortal>
+              ) : (
+                <p className="mt-1 text-sm leading-relaxed text-navy/75">As pessoas da família terão seu lugar na Árvore quando forem compartilhadas.</p>
+              )}
+            </div>
           </div>
+          <LinkPortal to="/portal/arvore" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Árvore</LinkPortal>
         </section>
 
-        {documentoPrioritario ? (
-          <section aria-label="Documento prioritário" className="sm:col-span-2 border-l-2 border-gold pl-4">
-            <h3 className="font-serif text-xl text-navy">Documento solicitado</h3>
-             <p className="mt-1 whitespace-pre-line text-sm text-navy/75">{documentoPrioritario}</p>
-            <LinkPortal to="/portal/documentos" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver documentos</LinkPortal>
-          </section>
-        ) : null}
-
-        <section className="sm:col-span-2">
+        <section aria-label="Achados recentes">
           <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
-            <h3 className="flex min-w-0 items-center gap-2 font-serif text-2xl text-navy"><Sparkles className="h-5 w-5 shrink-0" aria-hidden="true" />Achados da sua história</h3>
+            <h3 className="min-w-0 font-serif text-2xl text-navy">Achados da sua história</h3>
             <LinkPortal to="/portal/jornada" className="shrink-0 text-xs font-medium text-navy/60 underline-offset-2 hover:text-navy hover:underline">
               Ver Jornada
             </LinkPortal>
           </div>
           {achados.length === 0 ? (
-            <div className="border-l-2 border-gold/40 py-1 pl-4">
-              <p className="font-serif text-lg leading-relaxed text-navy/70">
+            <div className="rounded-xl border border-border border-l-4 border-l-gold/50 bg-white px-4 py-4">
+              <p className="text-sm leading-relaxed text-navy/70">
                 Quando houver descobertas prontas para compartilhar, elas encontrarão seu lugar aqui.
               </p>
               <span className="app-estado-editorial mt-3">Em pesquisa</span>
             </div>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-2.5">
               {achados.slice(0, 3).map((a) => {
                 const [titulo, ...resto] = a.texto.split(/(?<=[.!?])\s+/);
                 const resumo = resto.join(" ");
                 return (
                   <LinkPortal key={a.id} to={a.destino} className="block">
-                    <CaCard className="app-achado-editorial transition-colors">
-                      <div className="flex items-baseline gap-3">
-                        {a.ano ? <span className="font-serif text-2xl leading-none text-gold">{a.ano}</span> : null}
-                        <span className="text-[10px] font-medium uppercase tracking-widest text-navy/55">{a.tipo}</span>
-                      </div>
-                      <p className="mt-2 font-serif text-lg leading-snug text-navy">{titulo}</p>
-                      {resumo ? <p className="mt-1 line-clamp-2 text-sm text-navy/70">{resumo}</p> : null}
+                    <CaCard className="app-achado-editorial rounded-xl border-l-4 border-l-gold bg-white px-4 py-3 text-left transition-colors">
+                      <p className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-widest text-gold">
+                        <Search className="h-3 w-3" aria-hidden="true" />
+                        {a.tipo}
+                        {a.ano ? <span className="ml-1 font-serif text-sm normal-case tracking-normal text-gold">· {a.ano}</span> : null}
+                      </p>
+                      <p className="mt-1 text-sm font-medium leading-snug text-navy">{titulo}</p>
+                      {resumo ? <p className="mt-0.5 line-clamp-2 text-xs text-navy/65">{resumo}</p> : null}
                     </CaCard>
                   </LinkPortal>
                 );

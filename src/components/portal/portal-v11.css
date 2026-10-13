@@ -1199,3 +1199,51 @@
 [data-app-cliente] .app-ligacoes-moldura .space-y-3 > * + * { margin-top: 0.5rem; }
 [data-app-cliente] svg[viewBox="-76 -24 372 268"] { width: 70%; min-width: 240px; max-width: 100%; height: auto; margin-inline: auto; display: block; }
 @media (prefers-reduced-motion: reduce) { [data-app-cliente] .app-ligacao-no { transition: none; } }
+
+/*
+ * Paridade com o mockup de 17 páginas — Home (p.3) e Jornada (p.4), 13/10/2026.
+ * Bloco final de propósito: vence as camadas anteriores sem reescrevê-las.
+ * Só aparência; nenhuma regra de dado, publicação ou rota muda aqui.
+ */
+
+/* Jornada: duas linhas lado a lado, com fio fino contínuo e pontos nos marcos. */
+[data-app-cliente] .app-jornada-linha > div:first-child { display: none; }
+[data-app-cliente] .app-jornada-linha > div:nth-child(2) { padding-block: 0; }
+[data-app-cliente] .app-jornada-linha h2 { margin-bottom: var(--ca-space-4); }
+[data-app-cliente] .app-jornada-linha ol > li { padding: 0 0 var(--ca-space-5) var(--ca-space-4); }
+[data-app-cliente] .app-jornada-linha ol > li:last-child { padding-bottom: 0; }
+[data-app-cliente] .app-jornada-linha ol > li::before { content: none; }
+[data-app-cliente] .app-jornada-linha ol > li > span.app-jornada-ponto { top: 0.3rem; }
+[data-app-cliente] .app-jornada-fio { opacity: 1; width: 1px; }
+[data-app-cliente] .app-jornada-linha[data-linha-tom="gold"] .app-jornada-fio { background: color-mix(in srgb, var(--gold) 75%, transparent); }
+[data-app-cliente] .app-jornada-linha[data-linha-tom="navy"] .app-jornada-fio { background: color-mix(in srgb, var(--navy) 22%, transparent); }
+[data-app-cliente] .app-jornada-evento { padding: 0; border: 0; border-radius: 0; background: transparent; }
+[data-app-cliente] .app-jornada-evento p.text-gold { color: color-mix(in srgb, var(--gold) 72%, #000); }
+[data-app-cliente] #conteudo-portal [data-aba-jornada] [data-jornada-duas-linhas] > :where(section, div) { padding-block: 0; }
+
+/* Jornada: "Momentos de União" em bege terracota, citação em itálico. */
+[data-app-cliente] #conteudo-portal [data-aba-jornada] .app-jornada-uniao {
+  padding: var(--ca-space-4) var(--ca-space-5);
+  background: color-mix(in srgb, var(--terracotta) 8%, var(--cream));
+  border: 1px solid color-mix(in srgb, var(--terracotta) 24%, transparent);
+  border-radius: var(--ca-radius-xl);
+}
+[data-app-cliente] .app-jornada-uniao .app-uniao-rotulo { color: var(--terracotta); }
+[data-app-cliente] #conteudo-portal [data-aba-jornada] .app-jornada-uniao .app-uniao-citacao { color: var(--navy); }
+
+/* Home: cartões brancos de próximos passos, pessoas e achados. */
+[data-app-cliente] #conteudo-portal [data-aba-home] .app-home-passo:hover { border-color: color-mix(in srgb, var(--gold) 55%, transparent); }
+[data-app-editorial] #conteudo-portal [data-aba-home] :where([aria-label="Pessoas conectadas"], .app-achado-editorial) {
+  border-radius: var(--ca-radius-xl);
+  box-shadow: var(--ca-shadow-sm);
+}
+[data-app-editorial] #conteudo-portal [data-aba-home] .app-achado-editorial {
+  border-left: 4px solid var(--ca-gold);
+  padding: var(--ca-space-3) var(--ca-space-4);
+  text-align: left;
+}
+/* Pontos por linha (mockup p.4): ancestral dourado; processo cinza, com o "agora" em navy. */
+[data-app-cliente] #conteudo-portal [data-aba-jornada] .app-jornada-linha[data-linha-tom="gold"] ol > li > span.app-jornada-ponto { background: var(--ca-gold); }
+[data-app-cliente] #conteudo-portal [data-aba-jornada] .app-jornada-linha[data-linha-tom="navy"] ol > li > span.app-jornada-ponto { background: color-mix(in srgb, var(--navy) 35%, var(--cream)); }
+[data-app-cliente] #conteudo-portal [data-aba-jornada] .app-jornada-linha[data-linha-tom="navy"] ol > li > span.app-jornada-ponto.bg-navy { background: var(--navy); }
+[data-app-cliente] #conteudo-portal [data-aba-jornada] .app-jornada-uniao p.app-uniao-rotulo { color: var(--terracotta); }
