@@ -270,11 +270,9 @@ function PainelConsolidado() {
         })}
       </dl>
 
-      <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
-        <summary className="cursor-pointer text-sm font-medium text-navy">
-          Abrir operação detalhada do dia
-        </summary>
-        <div className="mt-5 border-t border-navy/10 pt-5">
+      {/* Prancha V4: a grade de trabalho é a primeira leitura, não um bloco recolhido. */}
+      <section aria-label="Operação do dia" data-hoje-grade>
+        <div>
       <div className="mb-6">
         <CaCard
           titulo="Tarefas e microentregas"
