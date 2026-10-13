@@ -71,6 +71,7 @@ import { DossieConsolidado } from "@/components/caso/dossie-consolidado";
 import { AvisoCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
 import { PublicarUniaoRamos } from "@/components/caso/publicar-uniao-ramos";
 import { MarcosJornadaDesk } from "@/components/caso/marcos-jornada-desk";
+import { PainelVisaoCaso360 } from "@/components/caso/painel-visao-caso360";
 import { VinculoNucleo } from "@/components/caso/vinculo-nucleo";
 import { PessoasDoNucleo } from "@/components/caso/pessoas-do-nucleo";
 import { listarNucleos } from "@/lib/nucleos-desk.functions";
@@ -1748,6 +1749,8 @@ function FichaCaso() {
       </details>
 
       {/* 12/10/2026 — 5 etapas de leitura, derivadas das verificações existentes. */}
+      {/* 13/10/2026 — na Visão, as etapas aparecem no painel de 3 colunas (Prancha V4). */}
+      {secaoFoco !== "visao" ? (
       <div className="mb-5">
         <BarraEtapasCaso
           caseId={id}
@@ -1757,6 +1760,7 @@ function FichaCaso() {
           }}
         />
       </div>
+      ) : null}
 
       {/* Índice: âncoras fixas; seções fora de foco ficam no DOM com hidden. */}
       <nav
@@ -1791,6 +1795,18 @@ function FichaCaso() {
           Ver página completa
         </button>
       </nav>
+
+      {secaoFoco === "visao" ? (
+        <PainelVisaoCaso360
+          caseId={id}
+          codigo={(caso?.["codigo"] as string) ?? null}
+          documentos={Array.isArray(qDocumentos.data) ? (qDocumentos.data as Record<string, any>[]) : null}
+          aoAbrirSecao={(s) => {
+            const alvo = SECOES.find((x) => x.id === s);
+            if (alvo) setSecaoFoco(alvo.id);
+          }}
+        />
+      ) : null}
 
       <details open={secaoFoco !== null && secaoFoco !== "visao"} className="rounded-lg border border-navy/15 bg-card p-4">
         <summary className="cursor-pointer text-sm font-medium text-navy">Abrir ficha operacional completa</summary>
