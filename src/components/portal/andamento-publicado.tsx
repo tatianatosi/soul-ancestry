@@ -18,9 +18,9 @@ export function AndamentoPublicado({ rota }: { rota: string }) {
   if (!dimensao) return null;
   const parcial = eixo === "elegibilidade";
   const editorial = ["/portal", "/portal/jornada", "/portal/arvore", "/portal/documentos"].includes(rota);
-  const rotuloAusencia = editorial && (dimensao.rotuloNumero === "Lacuna" || dimensao.rotuloNumero === "Nenhum ainda")
+  const rotuloAusencia = dimensao.rotuloNumero === "Lacuna" || (editorial && dimensao.rotuloNumero === "Nenhum ainda")
     ? "Em pesquisa"
-    : dimensao.rotuloNumero === "Nenhum ainda" ? "Ainda não publicado" : dimensao.rotuloNumero;
+    : dimensao.rotuloNumero === "Nenhum ainda" ? "Em preparação" : dimensao.rotuloNumero;
   return (
     <details className="app-andamento-publicado" data-andamento-publicado>
       <summary>
