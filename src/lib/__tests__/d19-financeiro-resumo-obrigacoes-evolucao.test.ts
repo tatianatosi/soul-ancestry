@@ -12,12 +12,12 @@ import { describe, expect, it } from "vitest";
 const rota = readFileSync("src/routes/_authenticated/financeiro.tsx", "utf8");
 
 describe("Financeiro — Resumo do período (§19)", () => {
-  it("renderiza os 4 indicadores reais, sem inventar 'em atraso' separado de 'vencido'", () => {
+  it("renderiza os 4 indicadores reais, com os rótulos da Prancha V4 (Proprietária, 13/10/2026)", () => {
     expect(rota).toContain("data-financeiro-resumo-periodo");
-    expect(rota).toContain('rotulo: "Previsto"');
-    expect(rota).toContain('rotulo: "Recebido"');
+    expect(rota).toContain('rotulo: "Valor do contrato"');
+    expect(rota).toContain('rotulo: "Já recebido"');
     expect(rota).toContain('rotulo: "Vencido"');
-    expect(rota).toContain('rotulo: "Saldo em aberto"');
+    expect(rota).toContain('rotulo: "A receber"');
     expect(rota).toContain("DIVERGÊNCIA REGISTRADA (§29)");
   });
 
@@ -50,14 +50,21 @@ describe("Financeiro — Obrigações e Evolução (§19): EstadoVazio honesto o
     expect(trecho).toContain("EstadoVazio");
   });
 
-  it("Evolução não desenha gráfico decorativo sem série mensal real", () => {
-    expect(rota).toContain("data-financeiro-evolucao");
-    const trecho = rota.slice(
-      rota.indexOf("data-financeiro-evolucao") - 600,
-      rota.indexOf("data-financeiro-evolucao") + 400,
-    );
-    expect(trecho).toContain("EstadoVazio");
-    expect(trecho).not.toMatch(/BarChart|LineChart|<svg/);
+  it("situação das faturas é rosca real (situacaoDasFaturas), nunca some sem fatura", () => {
+    // Regra do componente permanente (Proprietária, 13/10/2026): a rosca
+    // roda sobre a mesma `faturas` de qFaturas (sem query nova) e, sem
+    // registro, desenha anel neutro com "Sem dados suficientes" — nunca
+    // troca o gráfico por um EstadoVazio de texto.
+    expect(rota).toContain("data-financeiro-situacao-faturas");
+    expect(rota).toContain("situacaoDasFaturas(faturasAdaptadas)");
+    expect(rota).toContain("<DonutEstados");
+    expect(rota).toContain("data-financeiro-situacao-vazio");
+  });
+
+  it("fluxo do contrato (parcelas) roda sobre as mesmas faturas, sem query nova", () => {
+    expect(rota).toContain("data-financeiro-fluxo-contrato");
+    expect(rota).toContain("planoDeParcelas(faturasAdaptadas, null)");
+    expect(rota).toContain("Sem parcela registrada.");
   });
 });
 

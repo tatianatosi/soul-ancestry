@@ -25,7 +25,9 @@ import {
   moeda,
 } from "@/components/comercial/base";
 import { CaCard } from "@/components/ui/ca-card";
+import { DonutEstados, Etiqueta } from "@/components/prancha-v4/kit";
 import { FLUXO } from "@/lib/comercial-fluxo";
+import { planoDeParcelas, situacaoDasFaturas, type FaturaGoLive } from "@/lib/golive-analitico";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   formatarIndicador,
@@ -193,6 +195,32 @@ function FinanceiroPage() {
   };
   const previsoes = previsoesControladas({ contratada_nao_recebida: Math.max(contratada - recebida, 0) });
 
+  /*
+    Situação das faturas e fluxo do contrato (Prancha V4, pedido da
+    Proprietária em 13/10/2026): mesmas `faturas` já carregadas por
+    `qFaturas` acima — sem query nova. `situacaoDasFaturas` e
+    `planoDeParcelas` já existiam em golive-analitico.ts, usadas pela tela
+    de piloto (/golive/financeiro) sobre um único caso; aqui rodam sobre
+    TODAS as faturas da organização, o que as funções já suportam sem
+    alteração (recebem o array pronto, não dependem de um caso único).
+  */
+  const faturasAdaptadas: FaturaGoLive[] = faturas.map((f) => ({
+    id: String(f["id"]),
+    valor: typeof f["valor"] === "number" ? f["valor"] : Number(f["valor"]) || null,
+    valorPago: typeof f["valor_pago"] === "number" ? f["valor_pago"] : null,
+    status: String(f["status"] ?? ""),
+    vencimento: (f["vencimento"] as string | null) ?? null,
+    pagaEm: (f["paga_em"] as string | null) ?? null,
+  }));
+  const situacaoFaturas = situacaoDasFaturas(faturasAdaptadas);
+  const TOM_SITUACAO: Record<string, "navy" | "gold" | "terracotta" | "sucesso"> = {
+    Aberta: "navy",
+    Vencida: "terracotta",
+    Paga: "sucesso",
+    "Cancelada/dispensada": "gold",
+  };
+  const parcelas = planoDeParcelas(faturasAdaptadas, null).slice(0, 12);
+
   return (
     <SaasShell
       titulo="Financeiro"
@@ -246,10 +274,10 @@ function FinanceiroPage() {
             <dl className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
               {(
                 [
-                  { chave: "previsto", rotulo: "Previsto", valor: contratada, aba: "faturas" as Aba, status: "" },
-                  { chave: "recebido", rotulo: "Recebido", valor: recebida, aba: "pagamentos" as Aba, status: "confirmado" },
+                  { chave: "previsto", rotulo: "Valor do contrato", valor: contratada, aba: "faturas" as Aba, status: "" },
+                  { chave: "recebido", rotulo: "Já recebido", valor: recebida, aba: "pagamentos" as Aba, status: "confirmado" },
                   { chave: "vencido", rotulo: "Vencido", valor: vencidas, aba: "faturas" as Aba, status: "vencida" },
-                  { chave: "saldo", rotulo: "Saldo em aberto", valor: Math.max(contratada - recebida, 0), aba: "faturas" as Aba, status: "" },
+                  { chave: "saldo", rotulo: "A receber", valor: Math.max(contratada - recebida, 0), aba: "faturas" as Aba, status: "" },
                 ] as const
               ).map((item) => (
                 <button
@@ -289,17 +317,76 @@ function FinanceiroPage() {
           </CaCard>
 
         {/*
-          §19 do De-Para, zona "Gráficos — evolução e composição, com
-          período, unidade monetária e fonte". A regra do próprio corte
-          proíbe gráfico decorativo: sem uma consulta de série mensal real
-          (não existe hoje — `qFaturas`/`qPagamentos` trazem a lista crua,
-          não agregada por mês), um gráfico aqui seria decoração, não dado.
-          Estado honesto em vez de forjar uma série temporal.
+          Regra do componente permanente (Proprietária, 13/10/2026):
+          `situacaoDasFaturas` já existia em golive-analitico.ts e roda
+          sobre as mesmas faturas de `qFaturas` — a rosca é desenhada sempre,
+          em cinza quando não há fatura carregada, nunca com fatia inventada.
         */}
-          <CaCard titulo="Recebimentos e reconciliação" eyebrow="Financeiro · Evolução" data-financeiro-evolucao>
-            <EstadoVazio mensagem="Sem série mensal consolidada. Os totais reais permanecem no resumo; nenhum gráfico é desenhado sem fonte." />
+          <CaCard titulo="Situação das faturas" eyebrow="Financeiro · Composição real" data-financeiro-situacao-faturas>
+            <div data-financeiro-situacao-donut>
+              <DonutEstados
+                segmentos={
+                  situacaoFaturas.length
+                    ? situacaoFaturas.map((s) => ({ rotulo: s.rotulo, valor: s.valor, tom: TOM_SITUACAO[s.rotulo] ?? "navy" }))
+                    : [{ rotulo: "Sem fatura carregada", valor: 0, tom: "navy" as const }]
+                }
+                tituloAcessivel={`Situação das faturas: ${situacaoFaturas.length ? situacaoFaturas.map((s) => `${s.rotulo} ${s.valor}`).join(", ") : "sem fatura carregada"}`}
+              />
+            </div>
+            {situacaoFaturas.length === 0 ? (
+              <p className="mt-2 text-xs font-medium text-navy/70" data-financeiro-situacao-vazio>
+                Sem dados suficientes
+              </p>
+            ) : null}
           </CaCard>
         </div>
+
+        {/*
+          Fluxo do contrato: cada fatura é uma parcela prevista do contrato.
+          `planoDeParcelas` já existia e roda sobre as mesmas faturas — a
+          tabela é desenhada sempre, mesmo sem fatura (linha "Sem parcela
+          registrada"), nunca com valor inventado.
+        */}
+        <CaCard titulo="Fluxo do contrato" eyebrow="Financeiro · Parcelas previstas" data-financeiro-fluxo-contrato>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm" data-financeiro-fluxo-tabela>
+              <thead className="text-left text-xs uppercase text-navy/65">
+                <tr>
+                  <th className="px-3 py-2">Parcela</th>
+                  <th className="px-3 py-2">Valor</th>
+                  <th className="px-3 py-2">Vencimento</th>
+                  <th className="px-3 py-2">Situação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {parcelas.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-3 py-4 text-center text-xs text-navy/55">
+                      Sem parcela registrada.
+                    </td>
+                  </tr>
+                ) : (
+                  parcelas.map((p, i) => (
+                    <tr key={p.id} className="border-t border-navy/5">
+                      <td className="px-3 py-2 text-navy/80">
+                        {i + 1}
+                        {p.numero ? ` · ${p.numero}` : ""}
+                      </td>
+                      <td className="px-3 py-2 text-navy">{typeof p.valor === "number" ? moeda(p.valor, "BRL") : "—"}</td>
+                      <td className="px-3 py-2 text-navy/70">{p.vencimento ? dataBr(p.vencimento) : "Não registrado"}</td>
+                      <td className="px-3 py-2">
+                        <Etiqueta
+                          texto={p.situacao}
+                          tom={p.situacao === "Paga" ? "sucesso" : p.situacao === "Vencida" ? "critico" : "neutro"}
+                        />
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CaCard>
 
         <details className="rounded-lg border border-navy/15 bg-card p-4">
           <summary className="cursor-pointer text-sm font-medium text-navy">Abrir gestão financeira completa</summary>
