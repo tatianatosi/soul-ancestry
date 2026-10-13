@@ -261,3 +261,5 @@
 - [ ] Vínculos (aguarda: Cristiane x Ana Maria como mãe de Ana Luiza)
 - [ ] Documentos liberados (aguarda: arquivos enviados)
 - [ ] Paleta antiga x aprovada; Franz/Ruth na Árvore (aguarda decisão)
+- [x] Marco 1895: Franz Friedmann → Otto Reimer (linha direta)
+- [ ] Régua 60% + cartões de documentos do fallback — bloqueado: dados não registrados no caso (decisão da Proprietária)
