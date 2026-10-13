@@ -387,13 +387,13 @@ function PainelHomeMockup({
           principal (maior), e a linha do tempo abaixo fica discreta. */}
       <section data-home-editorial className="relative overflow-hidden rounded-xl border-b-2 border-gold/70 bg-navy-800 p-6 text-cream shadow-md sm:p-8">
         <div className="min-w-0">
-           <p className="app-selo-projeto text-[10px] font-medium text-gold">Projeto familiar</p>
+            <p className="app-selo-projeto text-[10px] font-medium text-gold">Projeto familiar</p>
           {statusTexto ? (
             <span className="absolute right-4 top-6 rounded-full bg-gold px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-navy">
               {statusTexto}
             </span>
           ) : null}
-            <p className="mt-3 font-serif text-xl text-cream/80">Bem-vinda à sua história</p>
+            <p className="app-home-boas-vindas mt-4 text-[11px] font-medium uppercase tracking-[0.25em] text-gold">Bem-vinda à sua história</p>
           <h2 className="mt-1 font-serif text-[1.9rem] leading-tight text-cream sm:text-4xl">
             {tituloCaso}
             {composicao ? <span className="text-cream/60"> · {composicao}</span> : null}
@@ -433,7 +433,7 @@ function PainelHomeMockup({
           <EstepeJornada rotulos={fase.rotulos} indice={fase.indice} percentual={fase.percentual} valor={fase.valor} compacto={fase.compacto ?? false} />
         </section>
       ) : (
-        <section className="app-home-resumo" aria-label="Resumo da Jornada">
+        <section className="app-home-resumo app-card-resumo-jornada" aria-label="Resumo da Jornada">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
             <div className="min-w-0"><h3 className="font-serif text-xl text-navy">Nossa jornada</h3><p className="mt-1 text-sm text-navy/70">{marcos > 0 ? "Acompanhe os trechos já compartilhados da sua história." : "Os primeiros marcos terão seu lugar aqui quando forem compartilhados."}</p></div>
             <LinkPortal to="/portal/jornada" className="inline-flex min-h-11 shrink-0 items-center text-sm text-navy" aria-label="Abrir Jornada"><ArrowRight className="h-5 w-5" aria-hidden="true" /></LinkPortal>
@@ -443,7 +443,12 @@ function PainelHomeMockup({
 
       <div className="grid gap-8 pt-4 sm:grid-cols-2 sm:items-start">
         <section aria-label="Próxima ação — próximo passo" className="app-card-proximo-passo" data-home-proximo-passo>
-          <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Próximo passo</p>
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Próximo passo</p>
+            {proximoPassoDestino && proximoPasso !== PROXIMO_PASSO_VAZIO ? (
+              <ArrowRight className="h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
+            ) : null}
+          </div>
           <h3 className="mb-3 font-serif text-2xl text-navy">O que vem agora</h3>
           <p className="whitespace-pre-line text-sm leading-relaxed text-navy/80">{proximoPasso}</p>
           {proximaEntrega ? (
