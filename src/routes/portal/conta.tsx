@@ -160,10 +160,11 @@ export function PortalConta() {
             </section>
 
             <section className="app-v11-faixa app-conta-atendimento">
-              <details className="app-conta-contato"><summary className="flex min-h-11 cursor-pointer items-center gap-2 font-serif text-xl text-navy"><ShieldCheck className="h-5 w-5" aria-hidden="true" /><span className="flex-1">Estamos por perto</span><ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary>
+              <h2 className="flex min-h-11 items-center gap-2 font-serif text-xl text-navy"><ShieldCheck className="h-5 w-5" aria-hidden="true" /><span className="flex-1">Estamos por perto</span></h2>
               <p className="mt-2 text-sm text-navy/75">{acompanhamento}</p>
               <a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer" data-conta-whatsapp className="mt-3 inline-flex min-h-11 items-center rounded-full bg-emerald-700 px-5 text-sm font-medium text-white hover:bg-emerald-800">Falar com a Especialista no WhatsApp · {WHATSAPP_ESPECIALISTA.rotulo}</a>
-              <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Seus canais, preferências de aviso e informações de privacidade aparecerão quando estiverem disponíveis neste espaço.</p></details>
+              <details className="app-conta-contato mt-3"><summary className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-medium text-navy/70"><span className="flex-1">Seus canais e preferências</span><ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary>
+              <p className="mt-2 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Seus canais, preferências de aviso e informações de privacidade aparecerão quando estiverem disponíveis neste espaço.</p></details>
             </section>
 
              <section data-conta-assinatura className="app-v11-faixa">

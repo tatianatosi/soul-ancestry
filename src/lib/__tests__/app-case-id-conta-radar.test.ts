@@ -18,8 +18,11 @@ describe("APP-CASE-ID-CONTA-RADAR: portal/conta.tsx nunca mostra Sophia/demo em 
     expect(rotaConta).toContain("vivo.data?.proximaAcao");
   });
 
-  it("titular e país só caem no valor fixo de demo quando previaDemo é verdadeiro, nunca em prévia real", () => {
-    expect(rotaConta).toContain('const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null)');
+  it("titular só vem do cadastro real, nunca do valor fixo de demo; país só cai em demo quando previaDemo é verdadeiro", () => {
+    // Ordem da Proprietária (13/10/2026): "remova qualquer referência ou
+    // fallback para CLIENTEDEMO" — o nome da titular é sempre o cadastrado.
+    expect(rotaConta).toContain('const titular = data?.cliente?.nome ?? null');
+    expect(rotaConta).not.toContain('CLIENTE_DEMO_NOME');
     expect(rotaConta).toContain('const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null)');
   });
 
