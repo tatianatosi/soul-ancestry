@@ -111,6 +111,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Consultoria em genealogia e cidadania europeia. Reconecte-se à sua história familiar.",
       },
       { name: "author", content: "Clube Ancestral" },
+      { name: "theme-color", content: "#13294B" },
       { property: "og:title", content: "Clube Ancestral" },
       { property: "og:description", content: "Consultoria em genealogia e cidadania europeia." },
       { property: "og:type", content: "website" },
@@ -128,6 +129,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       // Mesmo arquivo do logo de marca (src/lib/brand-asset.ts): um único
       // SVG serve de ícone de aba e de logo, sem cópia duplicada.
       { rel: "icon", href: "/clube-ancestral-logo.svg", type: "image/svg+xml" },
+      { rel: "manifest", href: "/manifest.json" },
+      { rel: "apple-touch-icon", href: "/icon-192.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
