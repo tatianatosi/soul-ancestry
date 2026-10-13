@@ -5,7 +5,6 @@ import { COPY_TELAS } from "@/lib/portal-copy";
 import { planoPublicado } from "@/lib/plano-publicacao";
 import { assinaturaPublicada } from "@/lib/assinatura-app";
 import { publicacoesParaCliente } from "@/lib/projecoes-cliente";
-import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
@@ -47,7 +46,7 @@ export function PortalConta() {
    */
   const previaDemo = previa?.identidade?.fonte === "demo";
    const titularPrevia = vivo.data && "titularNome" in vivo.data ? (vivo.data.titularNome as string | null) : null;
-   const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null);
+   const titular = data?.cliente?.nome ?? null;
    // 12/10/2026: prévia real mostra só o nome da titular vindo do cadastro do caso.
    const titularExibido = titular ?? titularPrevia;
    const codigoCaso = previaDemo ? null : (previa?.identidade?.codigo ?? null);
