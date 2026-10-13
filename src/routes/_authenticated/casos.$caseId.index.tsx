@@ -1460,13 +1460,14 @@ function FichaCaso() {
                   return (
                     <div
                       role="img"
-                      aria-label="Dossiê: sem dados suficientes — nenhuma evidência registrada no caso"
+                      aria-label="Dossiê: sem dados suficientes. Nenhuma evidência registrada no caso."
                       className="relative h-20 w-20 shrink-0 rounded-full bg-navy/10"
                       data-caso360-dossie-donut
                       data-caso360-dossie-vazio
                     >
                       <div className="absolute inset-[9px] grid place-items-center rounded-full bg-card text-center">
-                        <span className="font-serif text-lg leading-none text-navy/40">—</span>
+                        <span className="font-serif text-lg leading-none text-navy/40">0</span>
+                        <span className="text-[8px] uppercase leading-none tracking-wide text-navy/40">evid.</span>
                       </div>
                     </div>
                   );
@@ -1500,17 +1501,17 @@ function FichaCaso() {
                     <ul className="space-y-1 text-xs">
                       <li className="flex items-center gap-2">
                         <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-600" aria-hidden="true" />
-                        <span className="font-semibold text-emerald-700">{semEvidencia ? "—" : dossie.confirmados}</span>
+                        <span className="font-semibold text-emerald-700">{dossie.confirmados}</span>
                         <span className="text-navy/70">confirmados</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-gold" aria-hidden="true" />
-                        <span className="font-semibold text-navy/80">{semEvidencia ? "—" : dossie.emRevisao}</span>
+                        <span className="font-semibold text-navy/80">{dossie.emRevisao}</span>
                         <span className="text-navy/70">em revisão</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-terracotta/70" aria-hidden="true" />
-                        <span className="font-semibold text-terracotta">{semEvidencia ? "—" : dossie.pendentes}</span>
+                        <span className="font-semibold text-terracotta">{dossie.pendentes}</span>
                         <span className="text-navy/70">pendentes</span>
                       </li>
                     </ul>

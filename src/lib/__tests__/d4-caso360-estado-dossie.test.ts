@@ -102,13 +102,15 @@ describe("Visão Geral do Caso 360 usa a partição e renderiza donut acessível
     expect(arquivo).toContain("Nenhuma evidência registrada no caso ainda.");
   });
 
-  it("caso vazio não inventa fatia nem zero na legenda", () => {
+  it("caso vazio desenha anel cinza sem fatia e mostra a contagem real, sem travessão", () => {
     const inicio = arquivo.indexOf("if (semEvidencia) {");
     const ramoVazio = arquivo.slice(inicio, arquivo.indexOf("const g1", inicio));
     expect(ramoVazio).not.toContain("conic-gradient");
-    expect(arquivo).toContain('{semEvidencia ? "—" : dossie.confirmados}');
-    expect(arquivo).toContain('{semEvidencia ? "—" : dossie.emRevisao}');
-    expect(arquivo).toContain('{semEvidencia ? "—" : dossie.pendentes}');
+    expect(ramoVazio).not.toContain("—");
+    expect(arquivo).not.toContain('semEvidencia ? "—"');
+    expect(arquivo).toContain("{dossie.confirmados}</span>");
+    expect(arquivo).toContain("{dossie.emRevisao}</span>");
+    expect(arquivo).toContain("{dossie.pendentes}</span>");
   });
 
   it("três segmentos proporcionais visíveis, cores semânticas", () => {
