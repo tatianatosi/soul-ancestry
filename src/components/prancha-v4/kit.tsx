@@ -354,7 +354,7 @@ export function RedeVinculos({
   const lista = vizinhos.slice(0, 10);
   const nos = lista.map((v, i) => {
     const ang = (2 * Math.PI * i) / Math.max(1, lista.length) - Math.PI / 2;
-    return { ...v, x: cx + Math.cos(ang) * 190, y: cy + Math.sin(ang) * 80 };
+    return { ...v, x: cx + Math.cos(ang) * 190, y: cy - 14 + Math.sin(ang) * 62 };
   });
   return (
     <figure role="img" aria-label={legenda} className="relative mx-auto h-56 max-w-xl overflow-hidden rounded-lg border border-navy/10 bg-cream/35">
