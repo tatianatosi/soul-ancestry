@@ -47,6 +47,7 @@ import {
   sinalTelefoneDaPessoaPorCaso,
 } from "@/lib/pessoa-vinculo";
 import { dossieMaeDoCaso } from "@/lib/nucleo-completude";
+import { ComposicaoPessoa360V4 } from "@/components/pessoa/composicao-pessoa360-v4";
 import { RELEVANCIAS, STATUS_VALIDACAO, TIPOS_ACHADO } from "@/lib/achados-genealogicos";
 import { ROTULO_DEMONSTRACAO, ehFixtureLinha } from "@/lib/fixtures";
 
@@ -543,47 +544,20 @@ function Pessoa() {
   return (
     <SaasShell titulo={nome} descricao="A história desta pessoa, reunida de todos os casos dela." visualKit="pantone">
       <div className="space-y-6">
-        <div
-          data-pessoa360-identidade-v4
-          className="flex flex-col gap-4 rounded-xl border border-navy/10 bg-navy p-5 text-cream sm:flex-row sm:items-center"
-        >
-          <span
-            aria-hidden
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-gold/60 font-serif text-xl text-gold"
-          >
-            {nome
-              .split(/\s+/)
-              .filter(Boolean)
-              .slice(0, 2)
-              .map((p: string) => p[0]?.toUpperCase())
-              .join("")}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="break-words font-serif text-2xl leading-tight">{nome}</p>
-            <p className="mt-1 text-xs text-cream/70">
-              {cliente.origem ? `Entrou por ${cliente.origem}` : "Origem não registrada"}
-              {cliente.created_at ? ` · na carteira desde ${formatarDia(cliente.created_at)}` : ""}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {casos.length ? (
-              casos.slice(0, 3).map((c) =>
-                c.id ? (
-                  <Link
-                    key={String(c.id)}
-                    to="/casos/$caseId"
-                    params={{ caseId: String(c.id) }}
-                    className="inline-flex min-h-11 items-center rounded-full border border-gold/50 px-3 text-xs text-cream hover:bg-gold/15"
-                  >
-                    Caso {c.codigo ?? c.titulo ?? ""}
-                  </Link>
-                ) : null,
-              )
-            ) : (
-              <span className="text-xs text-cream/70">Nenhum caso vinculado</span>
-            )}
-          </div>
-        </div>
+        {/*
+          13/10/2026 — Prancha V4: a Pessoa 360 abre com a composição da
+          prancha (identidade, parentesco, casos, fontes, localização,
+          confiança, completude e rede), lida do que esta rota já carrega.
+          A ficha completa (edição, comercial, consentimentos, sinais,
+          núcleo, propostas, publicação) continua inteira logo abaixo.
+        */}
+        <ComposicaoPessoa360V4 nome={nome} dados={{ cliente, casos, caseMembers, documentos }} />
+
+        <details className="rounded-xl border border-navy/10 bg-card p-4" open={editando || undefined} data-pessoa360-ficha-completa>
+          <summary className="cursor-pointer font-serif text-base text-navy">
+            Ficha completa: edição, comercial, consentimentos, sinais e históricos
+          </summary>
+          <div className="mt-4 space-y-6 border-t border-navy/10 pt-4">
         <NucleoKitPessoa clienteId={String(cliente.id)} />
 
         <CaCard
@@ -1717,6 +1691,8 @@ function Pessoa() {
             </ol>
           )}
         </CaCard>
+          </div>
+        </details>
       </div>
     </SaasShell>
   );
