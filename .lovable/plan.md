@@ -1,24 +1,28 @@
-# 9 elementos — versão "App — mockup completo v2"
+# Resultado da versão "App — 9 elementos do mockup" e próxima conferência
 
-Os 9 elementos já estão no pedido dessa versão. Ela montou o próprio plano e está parada esperando a sua aprovação. Daqui eu não consigo aprovar esse plano por você, nem mandar instruções novas para ela.
+A versão "App — 9 elementos do mockup" terminou. Nada foi publicado e nada foi juntado ao projeto principal. As imagens e o PDF de 14 páginas estão nos Arquivos, em `comparativo-9-elementos-2026-10-13`.
 
-## O que você precisa fazer
-1. Abra a versão "App — mockup completo v2 (leve, cartões, cores)" no painel de versões.
-2. Aprove o plano que aparece no chat dela.
-3. No mesmo chat, cole o pedido de leveza editorial e o pedido das linhas da Árvore, que te mandei nas mensagens anteriores.
+## O que entrou
+- **Topo das sete abas:** "Bem-vinda, Ana" e o botão redondo com as iniciais, que abre a Conta.
+- **Home:** régua de 5 etapas, selo do estado do caso, próximos passos numerados, achados com borda dourada e o cartão da Assessoria com o WhatsApp.
+- **Jornada:** etapa atual destacada. "União de Ramos" só aparece quando houver uma união publicada; hoje não há nenhuma.
+- **Radar:** área dourada e grade de 6 cartões. Só "Conexões Familiares" tem número (80%). As outras dimensões mostram "Em pesquisa".
+- **Árvore:** pessoas lado a lado em cada geração, selo "Conectado" e rodapé "8 pessoas conectadas".
+- **Legado:** "Seus Achados", com "Em preparação" até haver achados aprovados.
+- **Conta:** perfil, "Membro desde 14 de ago. de 2026", "Meu plano", histórico de atividades e "3 assinaturas ativas".
+- Nenhum aviso "Nenhum…" ou "Lacuna", e nenhuma tela rola para o lado.
 
-## O que ela monta
-1. "Bem-vinda, [nome]" e o botão de perfil no topo.
-2. A régua de 5 etapas e o selo "Caso ativo" na Home.
-3. Próximos passos numerados.
-4. Achados com borda dourada, na Home e no Legado.
-5. Na Jornada, "União de Ramos" e "Momentos de união".
-6. No Radar, a área dourada e a grade de 6 cartões.
-7. Na Árvore, várias pessoas por geração, ligadas entre si e com o selo "Conectado".
-8. Em Documentos, a área de envio, o checklist e as entregas do caso.
-9. Na Conta, o perfil com o histórico de atividades.
+## Três pontos que precisam da sua decisão
+1. **Nomes da régua:** hoje são Diagnóstico, Documentação, Jurídico, Financeiro e App Cliente, que são as etapas registradas do caso. No pedido estavam Pesquisa e Formalização, que não existem no registro do caso. Trocar os nomes depende da sua decisão.
+2. **Etapa atual da Ana:** aparece como Jurídico, porque o contrato ainda não está assinado.
+3. **Selo do caso:** mostra "Pronto para ativar". "Caso ativo" aparece sozinho quando o caso for ativado.
 
-Tudo isso só com dados reais. Onde ainda não houver registro, aparece "Em preparação".
+## Ficou de fora
+- Documentos continua com os três cartões, sem área de envio.
+- Bloco roxo premium e preços do mockup.
+- A leveza editorial (mais respiro e cartões mais suaves) está na outra versão, "App — mockup completo v2", que espera a sua aprovação do plano no chat dela.
 
-## Depois
-Quando ela terminar, confiro o PDF em 3 vias aba por aba, comparando com o mockup original. Você recebe a lista do que ficou igual, do que falta e do que depende de material seu. Nada é publicado.
+## Próximo passo, se você aprovar
+- Abro o PDF e confiro cada página: imagens certas, sem captura repetida ou quebrada.
+- Comparo cada aba com o mockup original e te entrego a lista aba por aba: o que ficou igual, o que falta e o que depende de material seu.
+- Só leitura. Não mudo nada e não publico nada.
