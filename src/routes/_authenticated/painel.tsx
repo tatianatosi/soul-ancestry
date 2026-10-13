@@ -216,18 +216,18 @@ function PainelConsolidado() {
     destino é uma rota que já existe; nada aqui cria segunda rota.
   */
   const ATALHOS_DESK = [
-    { rotulo: "Comercial / CRM Vivo", to: "/golive/comercial" },
-    { rotulo: "Checklist / Kanban operacional", to: "/golive/kanban" },
+    { rotulo: "Comercial / CRM Vivo", to: "/leads" },
+    { rotulo: "Checklist / Kanban operacional", to: "/ops" },
     { rotulo: "Caso 360", to: "/casos" },
-    { rotulo: "Pessoa 360", to: "/golive/pessoa" },
-    { rotulo: "Radar & Matrizes", to: "/golive/radar" },
-    { rotulo: "Pesquisa", to: "/golive/pesquisa" },
+    { rotulo: "Pessoa 360", to: "/clientes" },
+    { rotulo: "Radar & Matrizes", to: "/qualidade" },
+    { rotulo: "Pesquisa", to: "/pesquisa-modulo" },
     { rotulo: "Biblioteca Mestre", to: "/biblioteca" },
-    { rotulo: "Financeiro", to: "/golive/financeiro" },
-    { rotulo: "Jurídico & Contrato", to: "/golive/juridico" },
-    { rotulo: "Pessoas & Famílias", to: "/golive/pessoas" },
-    { rotulo: "Portal do cliente (visão interna)", to: "/golive/portal" },
-    { rotulo: "Configuração & Acesso", to: "/golive/configuracoes" },
+    { rotulo: "Financeiro", to: "/financeiro" },
+    { rotulo: "Jurídico & Contrato", to: "/contratos" },
+    { rotulo: "Pessoas & Famílias", to: "/nucleos" },
+    { rotulo: "Portal do cliente (visão interna)", to: "/app-cliente-como-pessoa" },
+    { rotulo: "Configuração & Acesso", to: "/configuracoes" },
   ] as const;
 
   const TOM_PILULA: Record<string, string> = {
