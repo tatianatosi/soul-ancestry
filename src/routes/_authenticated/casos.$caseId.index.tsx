@@ -1453,8 +1453,25 @@ function FichaCaso() {
               const achados = c?.achados?.length ?? 0;
               // Donut acessível: três segmentos proporcionais, com legenda
               // textual (status nunca só por cor).
+              const semEvidencia = dossie.total === 0;
               const donut = (() => {
-                if (dossie.total === 0) return null;
+                // Sem evidência a rosca continua desenhada, em anel neutro, sem fatia inventada.
+                if (semEvidencia) {
+                  return (
+                    <div
+                      role="img"
+                      aria-label="Dossiê: sem dados suficientes. Nenhuma evidência registrada no caso."
+                      className="relative h-20 w-20 shrink-0 rounded-full bg-navy/10"
+                      data-caso360-dossie-donut
+                      data-caso360-dossie-vazio
+                    >
+                      <div className="absolute inset-[9px] grid place-items-center rounded-full bg-card text-center">
+                        <span className="font-serif text-lg leading-none text-navy/40">0</span>
+                        <span className="text-[8px] uppercase leading-none tracking-wide text-navy/40">evid.</span>
+                      </div>
+                    </div>
+                  );
+                }
                 const g1 = (dossie.confirmados / dossie.total) * 360;
                 const g2 = g1 + (dossie.emRevisao / dossie.total) * 360;
                 return (
@@ -1478,6 +1495,9 @@ function FichaCaso() {
                 <div className="mt-3 flex flex-wrap items-center gap-4">
                   {donut}
                   <div className="min-w-0 flex-1">
+                    {semEvidencia ? (
+                      <p className="mb-1 text-xs font-medium text-navy/70">Sem dados suficientes</p>
+                    ) : null}
                     <ul className="space-y-1 text-xs">
                       <li className="flex items-center gap-2">
                         <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-600" aria-hidden="true" />
@@ -1500,7 +1520,9 @@ function FichaCaso() {
                       {pendencias > 0 ? ` · ${pendencias} pendência(s) de pesquisa` : ""}
                     </p>
                     <p className="mt-0.5 text-[10px] text-navy/45">
-                      Soma bate com o dossiê real ({dossie.total} evidência(s) no caso).
+                      {semEvidencia
+                        ? "Nenhuma evidência registrada no caso ainda."
+                        : `Soma bate com o dossiê real (${dossie.total} evidência(s) no caso).`}
                     </p>
                   </div>
                 </div>
