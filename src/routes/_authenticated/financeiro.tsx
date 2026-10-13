@@ -46,6 +46,7 @@ import {
   conciliarPagamento,
   listarAjustes,
   listarComercial,
+  listarDespesasTerceiros,
   listarVinculos,
   registrarAjusteFatura,
   salvarFatura,
@@ -84,6 +85,7 @@ function FinanceiroPage() {
   const conciliar = useServerFn(conciliarPagamento);
   const ajustar = useServerFn(registrarAjusteFatura);
   const ajustes = useServerFn(listarAjustes);
+  const despesasTerceiros = useServerFn(listarDespesasTerceiros);
 
   const [aba, setAba] = useState<Aba>("faturas");
   const [status, setStatus] = useState("");
@@ -111,6 +113,11 @@ function FinanceiroPage() {
   const qPagamentos = useQuery({
     queryKey: ["financeiro", "payments", ""],
     queryFn: () => listar({ data: { recurso: "payments" } }),
+    enabled: podeFinanceiro,
+  });
+  const qDespesasTerceiros = useQuery({
+    queryKey: ["financeiro", "third_party_expenses"],
+    queryFn: () => despesasTerceiros({}),
     enabled: podeFinanceiro,
   });
   const qv = useQuery({ queryKey: ["comercial-vinculos"], queryFn: () => vinculos({}), enabled: podeFinanceiro });
@@ -244,6 +251,22 @@ function FinanceiroPage() {
     conciliados: pagamentos.filter((p) => p["conciliacao_status"] === "conciliado").length,
     aguardando: pagamentos.filter((p) => p["conciliacao_status"] === "nao_conciliado" || p["conciliacao_status"] === "sugerido").length,
     divergentes: pagamentos.filter((p) => p["conciliacao_status"] === "divergente").length,
+  };
+
+  /*
+    Obrigações e parcelas (Prancha V4, 13/10/2026 — autorizado pela
+    Proprietária): despesas de terceiro (emolumentos, certidões,
+    apostilamentos, traduções) de `third_party_expenses`, agora agregadas
+    por toda a organização via `listarDespesasTerceiros`. Mesma divisão de
+    `estado` já usada por `calcularResumoFinanceiroCaso` (financeiro-caso.ts)
+    para o recorte por caso — aqui só sem o filtro de um caso único.
+  */
+  const despesas = (qDespesasTerceiros.data ?? []) as { id: string; case_id: string | null; categoria: string | null; estado: string; valor_pago: number | null }[];
+  const resumoDespesas = {
+    total: despesas.length,
+    aguardandoAprovacao: despesas.filter((d) => d.estado === "aguardando_aprovacao" || d.estado === "estimada_comunicada").length,
+    aprovadasOuPagas: despesas.filter((d) => d.estado === "aprovada" || d.estado === "paga_diretamente_pelo_cliente").length,
+    totalPago: despesas.reduce((soma, d) => soma + Number(d.valor_pago ?? 0), 0),
   };
 
   /*
@@ -605,11 +628,11 @@ function FinanceiroPage() {
 
         {/*
           §19 do De-Para, zona "Obrigações — custos/repasse/fornecedores
-          quando aplicável". DIVERGÊNCIA REGISTRADA (§29): `third_party_expenses`
-          existe e já é lido em Caso 360 (visao-geral.tsx), sempre por caso —
-          não existe hoje uma agregação por organização/período, e eu não
-          crio uma nova consulta org-wide sem fonte já pronta e sem mutation
-          nesta rodada. Estado honesto em vez de número inventado.
+          quando aplicável". Revisão de 13/10/2026 (Proprietária): despesas de
+          terceiro (`third_party_expenses`) agora agregadas por toda a
+          organização via `listarDespesasTerceiros`, sem query hipotética —
+          mesmas colunas (estado, valor_pago) já lidas por caso em
+          `obterResumoFinanceiroCaso`.
         */}
         <CaCard
           titulo="Obrigações e parcelas"
@@ -617,7 +640,31 @@ function FinanceiroPage() {
           data-financeiro-obrigacoes
           className="rounded-2xl p-5 sm:p-6"
         >
-          <EstadoVazio mensagem="Sem agregação por organização ainda: despesas e parcelas continuam disponíveis por caso, sem estimativa nesta leitura." />
+          {qDespesasTerceiros.isLoading ? (
+            <p className="text-sm text-navy/60">Carregando…</p>
+          ) : resumoDespesas.total === 0 ? (
+            <EstadoVazio mensagem="Nenhuma despesa de terceiro registrada ainda." />
+          ) : (
+            <>
+              <dl className="space-y-1.5">
+                <div className="flex items-center justify-between gap-3 border-b border-navy/5 py-1.5">
+                  <span className="text-xs text-navy/80">Aguardando aprovação</span>
+                  <span className="font-serif text-lg text-navy">{resumoDespesas.aguardandoAprovacao}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 border-b border-navy/5 py-1.5">
+                  <span className="text-xs text-navy/80">Aprovadas ou pagas</span>
+                  <span className="font-serif text-lg text-navy">{resumoDespesas.aprovadasOuPagas}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 py-1.5">
+                  <span className="text-xs text-navy/80">Total pago (emolumentos, certidões, apostilamentos, traduções)</span>
+                  <span className="font-serif text-lg text-navy">{moeda(resumoDespesas.totalPago, "BRL")}</span>
+                </div>
+              </dl>
+              <p className="mt-3 text-[11px] text-navy/50">
+                Despesas de busca pagas/antecipadas pelo cliente, nunca custo do Clube (Cláusula 9, Estudo Genealógico v2).
+              </p>
+            </>
+          )}
         </CaCard>
 
         <details className="rounded-lg border border-navy/15 bg-card p-4">

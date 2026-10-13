@@ -43,14 +43,16 @@ describe("Financeiro — Resumo do período (§19)", () => {
   });
 });
 
-describe("Financeiro — Obrigações e Evolução (§19): EstadoVazio honesto onde a fonte não sustenta", () => {
-  it("Obrigações declara que despesas de terceiro são por caso, sem agregação org-wide inventada", () => {
+describe("Financeiro — Obrigações e Evolução (§19): agregação real onde a fonte sustenta", () => {
+  it("Obrigações agrega despesas de terceiro por toda a organização (autorizado pela Proprietária, 13/10/2026)", () => {
     expect(rota).toContain("data-financeiro-obrigacoes");
+    expect(rota).toContain("listarDespesasTerceiros");
     const trecho = rota.slice(
       rota.indexOf("data-financeiro-obrigacoes") - 600,
-      rota.indexOf("data-financeiro-obrigacoes") + 400,
+      rota.indexOf("data-financeiro-obrigacoes") + 1600,
     );
-    expect(trecho).toContain("DIVERGÊNCIA REGISTRADA (§29)");
+    expect(trecho).toContain("Aguardando aprovação");
+    expect(trecho).toContain("Aprovadas ou pagas");
     expect(trecho).toContain("EstadoVazio");
   });
 
