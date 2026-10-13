@@ -352,7 +352,15 @@ function PainelConsolidado() {
           o número de "Decisões do dia" acima: nenhum dos dois pode divergir do
           outro sem divergir de si mesmo.
         */}
-        <CaCard titulo="Decisões prioritárias" eyebrow="Fila de aprovações">
+        <CaCard
+          titulo="Decisões prioritárias"
+          eyebrow="Fila de aprovações"
+          acao={
+            <Button asChild size="sm" variant="outline">
+              <Link to="/golive/aprovacoes">Abrir</Link>
+            </Button>
+          }
+        >
           {decisoesPendentes.length === 0 ? (
             <EstadoVazio mensagem="Nenhuma decisão pendente de achado, proposta ou contrato neste caso." />
           ) : (
