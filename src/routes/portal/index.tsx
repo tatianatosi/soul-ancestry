@@ -175,6 +175,7 @@ export function PortalHome() {
             <div className="space-y-4">
               <PainelHomeMockup
                 tituloCaso={principal.titulo}
+                statusTexto={principal.statusRotulo || undefined}
                  proximoPasso={passoPublicado?.conteudo ?? PROXIMO_PASSO_VAZIO}
                 proximoPassoDestino={passoPublicado ? vivo.data?.proximaAcao?.destino ?? principal.proximoPassoDestino ?? "/portal/jornada" : null}
                 pais={principal.pais}
@@ -466,11 +467,21 @@ function PainelHomeMockup({
           <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Família</p>
           <h3 className="mb-3 flex items-center gap-3 font-serif text-2xl text-navy"><UsersRound className="h-6 w-6 shrink-0" aria-hidden="true" />Pessoas conectadas</h3>
           <div className="border-t border-gold/40 py-3">
-            <p className="text-sm leading-relaxed text-navy/75">
-              {pessoasPublicadas > 0
-                ? `${pessoasPublicadas} ${pessoasPublicadas === 1 ? "pessoa compartilhada" : "pessoas compartilhadas"} na sua Árvore.`
-                 : "As pessoas da família terão seu lugar na Árvore quando forem compartilhadas."}
-            </p>
+            {pessoasPublicadas > 0 ? (
+              <div className="flex items-center gap-4" data-home-pessoas-estatistica>
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gold/20 text-gold" aria-hidden="true">
+                  <UsersRound className="h-6 w-6" />
+                </span>
+                <p className="font-serif text-2xl leading-none text-navy">
+                  {pessoasPublicadas}
+                  <span className="ml-2 align-middle text-sm font-normal text-navy/70">
+                    {pessoasPublicadas === 1 ? "pessoa compartilhada na sua Árvore" : "pessoas compartilhadas na sua Árvore"}
+                  </span>
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm leading-relaxed text-navy/75">As pessoas da família terão seu lugar na Árvore quando forem compartilhadas.</p>
+            )}
             <LinkPortal to="/portal/arvore" className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Árvore</LinkPortal>
           </div>
         </section>
