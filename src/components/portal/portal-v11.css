@@ -1070,8 +1070,29 @@
 }
 [data-app-editorial] #conteudo-portal .app-card-proximo-passo { border-left: 2px solid var(--ca-gold); }
 [data-app-editorial] .app-home-resumo {
-  border-block: 1px solid var(--ca-border);
   padding-block: var(--ca-space-3);
+}
+[data-app-editorial] .app-card-resumo-jornada {
+  border: 1px solid var(--ca-border);
+  border-radius: var(--ca-radius-md);
+  background: var(--ca-surface-raised);
+  box-shadow: var(--ca-shadow-md);
+  padding: var(--ca-space-4);
+}
+/* Faixa nobre de boas-vindas: brilho dourado suave no canto do cartão navy. */
+[data-app-editorial] #conteudo-portal [data-home-editorial]::before {
+  content: "";
+  position: absolute;
+  top: -60px;
+  right: -40px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--ca-gold) 14%, transparent), transparent 70%);
+  pointer-events: none;
+}
+[data-app-editorial] .app-home-boas-vindas {
+  letter-spacing: 0.25em;
 }
 [data-app-editorial] .app-arvore-moldura {
   border: 1px solid color-mix(in srgb, var(--ca-gold) 40%, var(--ca-cream));

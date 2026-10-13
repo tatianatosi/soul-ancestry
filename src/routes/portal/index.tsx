@@ -433,7 +433,7 @@ function PainelHomeMockup({
           <EstepeJornada rotulos={fase.rotulos} indice={fase.indice} percentual={fase.percentual} valor={fase.valor} compacto={fase.compacto ?? false} />
         </section>
       ) : (
-        <section className="app-home-resumo" aria-label="Resumo da Jornada">
+        <section className="app-home-resumo app-card-resumo-jornada" aria-label="Resumo da Jornada">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
             <div className="min-w-0"><h3 className="font-serif text-xl text-navy">Nossa jornada</h3><p className="mt-1 text-sm text-navy/70">{marcos > 0 ? "Acompanhe os trechos já compartilhados da sua história." : "Os primeiros marcos terão seu lugar aqui quando forem compartilhados."}</p></div>
             <LinkPortal to="/portal/jornada" className="inline-flex min-h-11 shrink-0 items-center text-sm text-navy" aria-label="Abrir Jornada"><ArrowRight className="h-5 w-5" aria-hidden="true" /></LinkPortal>
@@ -443,7 +443,12 @@ function PainelHomeMockup({
 
       <div className="grid gap-8 pt-4 sm:grid-cols-2 sm:items-start">
         <section aria-label="Próxima ação — próximo passo" className="app-card-proximo-passo" data-home-proximo-passo>
-          <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Próximo passo</p>
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gold">Próximo passo</p>
+            {proximoPassoDestino && proximoPasso !== PROXIMO_PASSO_VAZIO ? (
+              <ArrowRight className="h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
+            ) : null}
+          </div>
           <h3 className="mb-3 font-serif text-2xl text-navy">O que vem agora</h3>
           <p className="whitespace-pre-line text-sm leading-relaxed text-navy/80">{proximoPasso}</p>
           {proximaEntrega ? (
