@@ -163,9 +163,29 @@ function PainelConsolidado() {
   const leads = caso.leadsComerciais as LeadComercial[];
   // §11 linha 8 — funil por etapa comercial gravada. Sem período definido no
   // dado: a prancha pede "30 dias quando houver período definido", e não há.
-  const funilLeads = kanbanPorEtapa(leads)
-    .map((g) => ({ etapa: g.etapa, total: g.leads.length }))
-    .sort((a, b) => b.total - a.total);
+  const funilLeads = (() => {
+    /*
+      §11 linha 8 — funil por etapa comercial gravada. As duas variantes de
+      "novo" (`novo`, `novo_lead`) são aliases do MESMO estágio gravado; na
+      barra do funil elas se somam sob um só rótulo — o total continua a soma
+      dos registros, nunca um número próprio. A ordem segue a prancha V4.
+      Sem período definido no dado: a prancha pede "30 dias quando houver
+      período definido", e não há.
+    */
+    const ORDEM_FUNIL = ["Novos leads", "Discovery", "Diagnóstico", "Proposta", "Cliente", "Sem etapa registrada"];
+    const mapa = new Map<string, number>();
+    for (const g of kanbanPorEtapa(leads)) {
+      const rotulo = ROTULO_ETAPA[g.etapa] ?? g.etapa;
+      mapa.set(rotulo, (mapa.get(rotulo) ?? 0) + g.leads.length);
+    }
+    return [...mapa.entries()]
+      .map(([etapa, total]) => ({ etapa, total }))
+      .sort(
+        (a, b) =>
+          (ORDEM_FUNIL.indexOf(a.etapa) + 1 || 99) - (ORDEM_FUNIL.indexOf(b.etapa) + 1 || 99) ||
+          b.total - a.total,
+      );
+  })();
   /*
     §11 linhas 5, 6, 7 e 9 — as quatro contas que faltavam. Todas vêm de
     função canônica já usada por outra tela — o Hoje passa a chamar a mesma,
