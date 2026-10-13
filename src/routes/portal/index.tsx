@@ -387,7 +387,12 @@ function PainelHomeMockup({
       <section data-home-editorial className="relative overflow-hidden rounded-xl border-b-2 border-gold/70 bg-navy-800 p-6 text-cream shadow-md sm:p-8">
         <div className="min-w-0">
            <p className="app-selo-projeto text-[10px] font-medium text-gold">Projeto familiar</p>
-           <p className="mt-3 font-serif text-xl text-cream/80">Bem-vinda à sua história</p>
+          {statusTexto ? (
+            <span className="absolute right-4 top-6 rounded-full bg-gold px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-navy">
+              {statusTexto}
+            </span>
+          ) : null}
+            <p className="mt-3 font-serif text-xl text-cream/80">Bem-vinda à sua história</p>
           <h2 className="mt-1 font-serif text-[1.9rem] leading-tight text-cream sm:text-4xl">
             {tituloCaso}
             {composicao ? <span className="text-cream/60"> · {composicao}</span> : null}
