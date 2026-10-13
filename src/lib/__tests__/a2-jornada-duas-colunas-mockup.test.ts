@@ -44,11 +44,16 @@ describe("A2 Jornada — duas colunas paralelas (mockup 2/7)", () => {
     expect(codigo).toMatch(/<MomentosDeUniao pontes=\{pontes\}\s*\/>/);
   });
 
-  it("as duas linhas seguem o mesmo eixo dourado em mobile e desktop", () => {
-    expect(codigo).toMatch(/data-jornada-duas-linhas/);
-    expect(codigo).toMatch(/data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:grid-cols-2 sm:gap-6"/);
-    expect(codigo).toMatch(/sm:order-2 sm:col-span-2/);
-    expect(codigo).toMatch(/bottom-5 left-2 top-5 w-0\.5 bg-gold\/70/);
+  /*
+   * 13/10/2026 — paridade com o mockup p.4, pedido da Proprietária: "não
+   * empilhe em 1 coluna só". As duas linhas ficam lado a lado em qualquer
+   * largura (antes `sm:grid-cols-2` empilhava no celular), e Momentos de União
+   * é o cartão abaixo das duas, ocupando a largura toda.
+   */
+  it("as duas linhas ficam lado a lado também no celular", () => {
+    expect(codigo).toMatch(/data-jornada-duas-linhas className="relative grid grid-cols-2 /);
+    expect(codigo).not.toMatch(/data-jornada-duas-linhas className="[^"]*sm:grid-cols-2/);
+    expect(codigo).toMatch(/<div className="relative col-span-2">\s*<MomentosDeUniao pontes=\{pontes\}\s*\/>/);
   });
 
   it("marca cada coluna com estado vazio honesto, sem inventar item", () => {

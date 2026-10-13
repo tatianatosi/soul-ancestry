@@ -14,7 +14,6 @@ import { jornadaSanitizada, publicacoesDeEntrega, publicacoesDeFase01, publicaco
 import { ehPessoaPublicada, type PublicacaoCliente } from "@/lib/projecoes-cliente";
 import { cn } from "@/lib/utils";
 import { textoParaCliente } from "@/lib/portal-linguagem-viva";
-import { KitBadge } from "@/components/clube-ancestral-kit/base";
 
 const TIPOS_HISTORIA = new Set(["arvore", "achado", "evidencia", "linha_tempo", "legado"]);
 
@@ -215,25 +214,30 @@ function TimelineVertical({
           <div className={cn("app-jornada-fio absolute inset-y-0 left-0 w-0.5 rounded-full", variante === "gold" ? "bg-gold" : "bg-navy")} aria-hidden="true" />
           <ol className="relative">
             {eventos.map((no, i) => (
-              <li key={no.id} className="relative py-4 pl-5 last:pb-0 lg:py-6">
+              <li key={no.id} className="relative pb-5 pl-4 last:pb-0" data-jornada-no={no.categoria}>
                 <span
                   className={cn(
-                    "absolute -left-[5px] top-5 h-2.5 w-2.5 rounded-full",
+                    "app-jornada-ponto absolute -left-[4px] top-1 h-2.5 w-2.5 rounded-full",
                     no.categoria === "gold" && "bg-gold",
                     no.categoria === "gold-soft" && "bg-gold/50",
-                    no.categoria === "navy" && (no.id === "__agora__" ? "bg-navy" : "bg-navy-800"),
+                    no.categoria === "navy" && (no.id === "__agora__" ? "bg-navy ring-4 ring-gold/30" : "bg-navy/35"),
                   )}
                   aria-hidden="true"
                 />
-                <div className="app-jornada-data">
-                  <KitBadge tone={no.categoria === "navy" ? "neutral" : "gold"}>
-                  {no.rotuloCategoria}
-                  {no.dataPrincipal ? ` · ${no.dataPrincipal}` : ""}
-                  </KitBadge>
-                </div>
-                <div className="app-jornada-evento">
-                  <h3 className="font-serif text-xl text-navy">{no.titulo}</h3>
-                  <p className="mt-0.5 text-sm text-navy/70">{no.conteudo}</p>
+                {/* Mockup p.4: linha ancestral abre pelo ano; linha do processo, pelo marco. */}
+                <div className="app-jornada-evento" data-rotulo-categoria={no.rotuloCategoria}>
+                  {variante === "gold" ? (
+                    <>
+                      <h3 className="font-serif text-lg leading-none text-navy">{no.dataPrincipal ?? no.titulo}</h3>
+                      {no.dataPrincipal ? <p className="mt-1 text-[10px] font-medium uppercase tracking-wide text-gold">{no.titulo}</p> : null}
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="font-serif text-base leading-snug text-navy">{no.titulo}</h3>
+                      {no.dataPrincipal ? <p className="mt-0.5 text-[11px] text-navy/55">{no.dataPrincipal}</p> : null}
+                    </>
+                  )}
+                  <p className="mt-1 text-xs leading-relaxed text-navy/70">{no.conteudo}</p>
                 </div>
                 {no.dataSecundaria ? <p className="mt-0.5 text-[10px] text-navy/40">{no.dataSecundaria}</p> : null}
                 {no.destino ? (
@@ -261,12 +265,11 @@ function TimelineVertical({
  */
 function MomentosDeUniao({ pontes }: { pontes: NoPonte[] }) {
   return (
-    <div className="app-jornada-uniao app-uniao-ramos relative py-5" data-uniao-ramos>
-      <p className="text-[10px] font-semibold uppercase tracking-widest">Momentos de União</p>
-      <h3 className="mt-1 font-serif text-xl">União de Ramos</h3>
+    <div className="app-jornada-uniao app-uniao-ramos relative" data-uniao-ramos>
+      <p className="app-uniao-rotulo text-[10px] font-semibold uppercase tracking-widest">Momentos de União</p>
       {pontes.length > 0 ? (
-        <ul className="mt-1.5 space-y-1.5">
-          {pontes.map((p, i) => <li key={i} className="text-sm leading-relaxed text-navy/75">{p.texto}</li>)}
+        <ul className="mt-2 space-y-1.5">
+          {pontes.map((p, i) => <li key={i} className="app-uniao-citacao text-sm italic leading-relaxed">“{p.texto}”</li>)}
         </ul>
       ) : (
         <div><p className="mt-1.5 text-sm leading-relaxed text-navy/60">Os encontros da história da família aparecerão aqui quando forem compartilhados.</p><p className="app-estado-editorial mt-2">Em pesquisa</p></div>
@@ -467,11 +470,6 @@ export function PortalJornada() {
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
                 <div className="app-v11-secoes pb-6 lg:pb-0" data-aba-jornada>
-                  <nav aria-label="Linhas da jornada" className="sticky top-0 z-10 grid grid-cols-3 gap-2 border-b border-border bg-cream py-2 sm:static">
-                    <a href="#linha-origem" className="flex min-h-11 items-center justify-center border-b-2 border-gold text-sm font-medium text-navy">Linha Ancestral</a>
-                    <a href="#linha-processo" className="flex min-h-11 items-center justify-center border-b-2 border-navy text-sm font-medium text-navy">Linha do Processo</a>
-                    <a href="#linha-memoria" className="flex min-h-11 items-center justify-center border-b-2 border-plum text-sm font-medium text-navy">Memória</a>
-                  </nav>
                   {jornada.linha.length === 0 && (vivo.historico ?? []).length === 0 ? (
                     /*
                       FIDELIDADE-VISUAL-2026-09-23: estado vazio não mostra o
@@ -486,26 +484,21 @@ export function PortalJornada() {
                          <h2 className="mt-1 font-serif text-2xl text-cream">Uma história começando a ganhar forma</h2>
                          <p className="mt-2 text-sm leading-relaxed text-cream/80">{ritmoRotulo}</p>
                       </div>
-                        <div data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:grid-cols-2 sm:gap-6">
-                         <span aria-hidden="true" className="absolute bottom-5 left-2 top-5 w-0.5 bg-gold/70" />
-                          <section id="linha-origem" className="relative scroll-mt-20 py-4">
-                           <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
+                        <div data-jornada-duas-linhas className="relative grid grid-cols-2 gap-x-4 gap-y-6 sm:gap-x-8">
+                          <section id="linha-origem" className="relative min-w-0 scroll-mt-20 py-2">
                            <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">Linha Ancestral</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.</p>
                             <p className="app-estado-editorial mt-2">Em pesquisa</p>
                          </section>
-                          {pontes.length > 0 ? (<div className="relative sm:order-2 sm:col-span-2">
-                           <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
-                           <MomentosDeUniao pontes={pontes} />
-                         </div>) : null}
-                          <section id="linha-processo" className="relative scroll-mt-20 py-4 sm:col-start-2 sm:row-start-1">
-                           <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
+                          <section id="linha-processo" className="relative min-w-0 scroll-mt-20 py-2">
                            <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-navy">Linha do Processo</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">Os próximos passos aparecerão aqui quando estiverem prontos para compartilhar.</p>
                             <p className="app-estado-editorial mt-2">Em pesquisa</p>
                          </section>
-                          <section id="linha-memoria" className="relative scroll-mt-20 border-t border-border py-4 sm:order-4 sm:col-span-2">
-                            <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-plum bg-cream" />
+                          {pontes.length > 0 ? (<div className="relative col-span-2">
+                           <MomentosDeUniao pontes={pontes} />
+                         </div>) : null}
+                          <section id="linha-memoria" className="relative col-span-2 scroll-mt-20 border-t border-border py-4">
                             <h2 className="flex items-center gap-2 font-serif text-xl text-navy"><BookOpen className="h-5 w-5" aria-hidden="true" />Memória</h2>
                             <p className="mt-2 text-sm leading-relaxed text-navy/60">As histórias e os materiais de memória aparecerão aqui quando forem compartilhados com a família.</p>
                           </section>
@@ -518,25 +511,21 @@ export function PortalJornada() {
                          <h2 className="mt-1 font-serif text-2xl text-cream">Uma história começando a ganhar forma</h2>
                          <p className="mt-2 text-sm leading-relaxed text-cream/80">{vivo.composicao ?? "A história da sua família"} · {ritmoRotulo}</p>
                       </div>
-                        <div data-jornada-duas-linhas className="relative grid gap-5 pl-6 sm:grid-cols-2 sm:gap-6">
-                         <span aria-hidden="true" className="absolute bottom-5 left-2 top-5 w-0.5 bg-gold/70" />
+                        <div data-jornada-duas-linhas className="relative grid grid-cols-2 gap-x-4 gap-y-6 sm:gap-x-8">
                           <div id="linha-origem" className="relative min-w-0 scroll-mt-20">
-                           <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
                           <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" variante="gold" />
                         </div>
-                          {pontes.length > 0 ? (<div className="relative sm:order-2 sm:col-span-2">
-                           <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-gold bg-cream" />
-                           <MomentosDeUniao pontes={pontes} />
-                         </div>) : null}
-                          <div id="linha-processo" className="relative min-w-0 scroll-mt-20 sm:col-start-2 sm:row-start-1">
-                           <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-navy bg-cream" />
+                          <div id="linha-processo" className="relative min-w-0 scroll-mt-20">
                           <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" />
                             {passoAtualIndice !== null ? (
                               <div className="mt-3"><TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} /></div>
                             ) : null}
                         </div>
-                         <section id="linha-memoria" className="relative scroll-mt-20 border-t border-border py-4 sm:order-4 sm:col-span-2">
-                           <span aria-hidden="true" className="absolute -left-[23px] top-6 h-3 w-3 rounded-full border-2 border-plum bg-cream" />
+                          {/* Mockup p.4: "Momentos de União" é o cartão abaixo das duas linhas. */}
+                          {pontes.length > 0 ? (<div className="relative col-span-2">
+                           <MomentosDeUniao pontes={pontes} />
+                         </div>) : null}
+                         <section id="linha-memoria" className="relative col-span-2 scroll-mt-20 border-t border-border py-4">
                            <h2 className="flex items-center gap-2 font-serif text-xl text-navy"><BookOpen className="h-5 w-5" aria-hidden="true" />Memória</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/75">As histórias e os materiais de memória compartilhados com sua família ficam reunidos no Legado.</p>
                            <LinkPortal to="/portal/legado" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver o Legado</LinkPortal>

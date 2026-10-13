@@ -125,11 +125,30 @@ describe("superfícies preservadas", () => {
     expect(shell).not.toMatch(/const\s+(SETORES_DESK|GRUPOS_DESK)\s*(:[^=]*)?=\s*\[/);
   });
 
-  it("a divergência V4 (7 itens) × V5 (6 setores) está declarada, e nenhuma lista foi apagada", () => {
+  /*
+   * 13/10/2026 — a Proprietária decidiu a divergência V4 × V5: a lateral
+   * passa a ter os 7 ecossistemas canônicos + Governança & Configuração, e
+   * as rotas concorrentes ficam só na seção recolhida "Governança / Legado".
+   */
+  it("a lateral tem os 7 ecossistemas canônicos + Governança, e o legado fica recolhido", () => {
     expect(GRUPOS_DESK).toHaveLength(7);
-    expect(SETORES_DESK_V5).toHaveLength(6);
-    // As duas convivem na fonte única, com a divergência escrita no arquivo.
-    expect(navegacao).toContain("DIVERGÊNCIA DECLARADA");
+    expect(SETORES_DESK_V5.map((s) => s.label)).toEqual([
+      "Hoje",
+      "Comercial",
+      "Casos",
+      "Pessoas & Famílias",
+      "Pesquisa",
+      "Marketing",
+      "Formalização & Financeiro",
+      "Governança & Configuração",
+    ]);
+    const abas = SETORES_DESK_V5.flatMap((s) => s.abas.map((a) => a.to));
+    for (const r of ["/crm-mestre", "/conversao", "/ops", "/ops-excecoes", "/tarefas", "/proximas-acoes", "/microentregas", "/metricas"]) {
+      expect(abas, r).not.toContain(r);
+      expect(setorDaRota(r)?.id, r).toBe("governanca");
+    }
+    expect(navegacao).toContain("DIVERGÊNCIA RESOLVIDA em 13/10/2026");
+    expect(shell).toContain("MENU_LEGADO_DESK");
     // Rota→setor resolve inclusive página contextual fora do menu.
     expect(setorDaRota("/casos/abc-123")?.id).toBe("casos");
     expect(setorDaRota("/contrato-parametros/xyz")?.id).toBe("contratos");
