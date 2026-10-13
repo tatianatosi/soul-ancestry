@@ -28,7 +28,8 @@ import {
   destinoDoRegistro,
   elegibilidadeAtivacao,
   filtrarClientes,
-  normalizarPais,
+  filtrarPorBusca,
+normalizarPais,
   participantesDeNucleo,
   rotuloClassificacao,
   rotuloDe,
@@ -69,6 +70,11 @@ const ABAS: { valor: Filtros["estado"]; rotulo: string }[] = [
   { valor: "encerrados", rotulo: "Encerrados" },
   { valor: "arquivados", rotulo: "Arquivados" },
 ];
+
+function legivelPapel(valor: string) {
+  const texto = valor.replace(/_/g, " ");
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
 
 function Etiqueta({
   tom,
@@ -114,6 +120,7 @@ function ClientesPage() {
   const verificarDuplicidade = useServerFn(verificarDuplicidadeCliente);
 
   const [filtros, setFiltros] = useState<Filtros>(FILTROS_PADRAO);
+  const [busca, setBusca] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [ativando, setAtivando] = useState<{
     pessoa: PessoaLista;
@@ -152,6 +159,8 @@ function ClientesPage() {
   });
 
   const lista = filtrarClientes(pessoas, filtros);
+  const termoBusca = busca.trim();
+  const listaVisivel = filtrarPorBusca(lista, termoBusca);
   const participantes = participantesDeNucleo(pessoas, filtros.incluirDemonstracoes);
   const preClientes = pessoas.filter(
     (p) =>
@@ -177,6 +186,21 @@ function ClientesPage() {
           {erro}
         </p>
       ) : null}
+
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <input
+          type="search"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar por nome, nome social ou e-mail"
+          aria-label="Buscar pessoa"
+          className="min-w-[16rem] flex-1 rounded-md border border-navy/15 bg-card px-3 py-1.5 text-sm"
+        />
+        <p className="text-sm text-navy/65" data-clientes-totais>
+          {pessoas.length} {pessoas.length === 1 ? "pessoa cadastrada" : "pessoas cadastradas"} · {listaVisivel.length} exibida
+          {listaVisivel.length === 1 ? "" : "s"}
+        </p>
+      </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {ABAS.map((a) => (
@@ -255,7 +279,7 @@ function ClientesPage() {
 
       <section className="rounded-lg border border-navy/15">
         <header className="border-b border-navy/15 px-4 py-3 text-sm font-medium">
-          Perfis de cliente ({lista.length})
+          Perfis de cliente ({listaVisivel.length})
         </header>
         <EstadoDados
           carregando={q.isLoading}
@@ -266,14 +290,21 @@ function ClientesPage() {
           vazio="Nenhuma pessoa cadastrada ainda."
         >
           {() =>
-          lista.length === 0 ? (
-          <EstadoVazio mensagem="Nenhum perfil elegível neste filtro. Casos em formalização permanecem como pré-cliente." />
+          listaVisivel.length === 0 ? (
+          <EstadoVazio
+            mensagem={
+              termoBusca
+                ? `Nenhuma pessoa encontrada para “${busca.trim()}” neste filtro.`
+                : "Nenhum perfil elegível neste filtro. Casos em formalização permanecem como pré-cliente."
+            }
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-left text-xs uppercase text-navy/65">
                 <tr>
                   <th className="px-4 py-2">Pessoa</th>
+                  <th className="px-4 py-2">Papel no núcleo</th>
                   <th className="px-4 py-2">Camada do registro</th>
                   <th className="px-4 py-2">Classificação</th>
                   <th className="px-4 py-2">Origem</th>
@@ -284,8 +315,9 @@ function ClientesPage() {
                 </tr>
               </thead>
               <tbody>
-                {lista.map((p) => {
+                {listaVisivel.map((p) => {
                   const eleg = elegibilidadeAtivacao(p);
+                  const papelRegistrado = p.participacoes.find((x) => x.papel)?.papel ?? null;
                   return (
                     <tr key={p.id} className="border-t border-navy/15 align-top">
                       <td className="px-4 py-2">
@@ -300,11 +332,15 @@ function ClientesPage() {
                             params={{ clienteId: p.id }}
                             className="font-medium underline decoration-transparent underline-offset-4 transition-colors hover:decoration-current"
                           >
-                            {p.nome_social || p.nome}
+                            {p.nome}
                           </Link>
                           {p.is_demo ? <Etiqueta tom="demo">Demonstração</Etiqueta> : null}
                         </div>
+                        {p.nome_social ? <p className="text-xs text-navy/75">Nome social: {p.nome_social}</p> : null}
                         <p className="text-xs text-navy/65">{p.email ?? "—"}</p>
+                      </td>
+                      <td className="px-4 py-2 text-xs text-navy/75">
+                        {papelRegistrado ? legivelPapel(papelRegistrado) : "Não registrado"}
                       </td>
                       <td className="px-4 py-2">
                         <Etiqueta
@@ -335,7 +371,16 @@ function ClientesPage() {
                       </td>
                       <td className="px-4 py-2">{normalizarPais(p.pais_interesse) ?? "—"}</td>
                       <td className="px-4 py-2">
-                        {p.archived_at ? "Arquivado" : rotuloEstado("cliente", p.status)}
+                        <p>{p.archived_at ? "Arquivado" : rotuloEstado("cliente", p.status)}</p>
+                        <p className="mt-1 text-[11px] text-navy/65">
+                          {p.archived_at
+                            ? "Confirmação encerrada"
+                            : p.classificacao === "cliente_ativo"
+                              ? "Confirmado como cliente ativo"
+                              : eleg.apto
+                                ? "Pronto para decisão humana"
+                                : "Aguardando condições de confirmação"}
+                        </p>
                       </td>
                       <td className="px-4 py-2">
                         {p.archived_at ? (
