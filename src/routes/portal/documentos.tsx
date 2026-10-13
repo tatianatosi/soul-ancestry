@@ -413,23 +413,24 @@ export function PortalDocumentos() {
   );
 }
 
-/* Acervo informado pela Proprietária (13/10/2026): só estado, sem botão de ver/baixar até o arquivo ser enviado e liberado. */
-const ACERVO_EM_CONFERENCIA = [
-  { titulo: "Certidão de Nascimento", detalhe: "Graz, Áustria · 1895" },
-  { titulo: "Dossiê Genealógico da Família", detalhe: "Linhagem Friedmann-Reimer" },
-  { titulo: "Registro da Comunidade Israelita", detalhe: "Viena · 1938–39" },
-];
-
+/*
+  13/10/2026 — saneamento (autorizado pela Proprietária): este bloco exibia
+  três documentos fictícios ("Graz 1895", "Linhagem Friedmann-Reimer",
+  "Viena 1938–39") sempre que o cliente real não tinha nenhum documento
+  ainda — em ambos os pontos de uso (prévia administrativa de caso real e
+  sessão autenticada real). Nenhum dos dois é demonstração isolada: é a
+  experiência real mostrando conteúdo inventado como se fosse do caso.
+  Vazio honesto, nada inferido (AGENTS.md) — mesma moldura do mockup
+  aprovado (`app-cofre-ausencia` + ícone de cadeado + cartão com acento
+  dourado), só que agora sem inventar o que ainda não existe.
+*/
 function AcervoEmConferencia() {
   return (
-    <ul className="mt-4 grid w-full gap-3 text-left sm:grid-cols-3" data-acervo-conferencia>
-      {ACERVO_EM_CONFERENCIA.map((d) => (
-        <li key={d.titulo} className="app-documento-registro min-w-0 border-l-4 border-gold p-4">
-          <p className="font-serif text-lg leading-snug text-navy">{d.titulo}</p>
-          <p className="mt-1 text-xs text-navy/60">{d.detalhe}</p>
-          <span className="mt-3 inline-block rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/70">Acervo sob conferência técnica</span>
-        </li>
-      ))}
-    </ul>
+    <div className="app-documento-registro mt-4 w-full max-w-md border-l-4 border-gold p-4 text-left" data-acervo-conferencia>
+      <p className="font-serif text-lg leading-snug text-navy">Nenhum documento enviado ainda</p>
+      <p className="mt-1 text-xs text-navy/60">
+        Assim que você enviar o primeiro documento, ele aparece aqui em conferência técnica.
+      </p>
+    </div>
   );
 }
