@@ -118,8 +118,30 @@ function ConectoresArvore({ caixa, vinculos }: { caixa: HTMLDivElement | null; v
     medir();
     const ro = new ResizeObserver(medir);
     ro.observe(caixa);
+    let quadro = 0;
+    const acompanhar = () => {
+      cancelAnimationFrame(quadro);
+      const ate = performance.now() + 220;
+      const atualizar = () => {
+        medir();
+        if (performance.now() < ate) quadro = requestAnimationFrame(atualizar);
+      };
+      quadro = requestAnimationFrame(atualizar);
+    };
+    caixa.addEventListener("pointerover", acompanhar);
+    caixa.addEventListener("pointerout", acompanhar);
+    caixa.addEventListener("pointerdown", acompanhar);
+    caixa.addEventListener("pointerup", acompanhar);
     caixa.addEventListener("toggle", medir, true);
-    return () => { ro.disconnect(); caixa.removeEventListener("toggle", medir, true); };
+    return () => {
+      ro.disconnect();
+      cancelAnimationFrame(quadro);
+      caixa.removeEventListener("toggle", medir, true);
+      caixa.removeEventListener("pointerover", acompanhar);
+      caixa.removeEventListener("pointerout", acompanhar);
+      caixa.removeEventListener("pointerdown", acompanhar);
+      caixa.removeEventListener("pointerup", acompanhar);
+    };
   }, [caixa, vinculos]);
   if (desenho.d.length === 0) return null;
   return (

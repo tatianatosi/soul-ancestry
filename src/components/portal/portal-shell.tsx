@@ -187,7 +187,7 @@ export function PortalShell({
              {descricao ? <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">{descricao}</p> : null}
            </div>
            <AndamentoPublicado rota={rotaAtiva} />
-          <div>{children}</div>
+           <div key={rotaAtiva} className="app-transicao-aba">{children}</div>
         </main>
       </div>
 
