@@ -25,9 +25,16 @@ import {
   moeda,
 } from "@/components/comercial/base";
 import { CaCard } from "@/components/ui/ca-card";
-import { DonutEstados, Etiqueta } from "@/components/prancha-v4/kit";
+import { DonutEstados, Etiqueta, GraficoLinhaSeries } from "@/components/prancha-v4/kit";
 import { FLUXO } from "@/lib/comercial-fluxo";
-import { planoDeParcelas, situacaoDasFaturas, type FaturaGoLive } from "@/lib/golive-analitico";
+import {
+  planoDeParcelas,
+  porMes,
+  recebimentoPorMes,
+  situacaoDasFaturas,
+  type FaturaGoLive,
+  type PagamentoGoLive,
+} from "@/lib/golive-analitico";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   formatarIndicador,
@@ -221,6 +228,75 @@ function FinanceiroPage() {
   };
   const parcelas = planoDeParcelas(faturasAdaptadas, null).slice(0, 12);
 
+  /*
+    Reconciliação (Prancha V4): `conciliacao_status` já existe em
+    `payments` e já é lido/gravado por `conciliarPagamento` — mesma
+    `pagamentos` de qPagamentos, sem query nova. "Nenhuma cobrança é
+    enviada a partir desta tela" é um fato do próprio código: esta tela só
+    tem mutações de salvar/conciliar/ajustar, nunca um envio de cobrança.
+  */
+  const pagamentosAdaptados: PagamentoGoLive[] = pagamentos.map((p) => ({
+    id: String(p["id"]),
+    valor: typeof p["valor"] === "number" ? p["valor"] : Number(p["valor"]) || null,
+    pagoEm: (p["pago_em"] as string | null) ?? null,
+  }));
+  const contagemConciliacao = {
+    conciliados: pagamentos.filter((p) => p["conciliacao_status"] === "conciliado").length,
+    aguardando: pagamentos.filter((p) => p["conciliacao_status"] === "nao_conciliado" || p["conciliacao_status"] === "sugerido").length,
+    divergentes: pagamentos.filter((p) => p["conciliacao_status"] === "divergente").length,
+  };
+
+  /*
+    Alertas financeiros contextualizados (Prancha V4): três sinais reais,
+    cada um sobre `faturas`/`pagamentos` já carregados, sem query nova.
+    Nomes vêm do registro real (numero/descrição) — nunca de contrato
+    fictício. Sem registro para um sinal, ele simplesmente não aparece.
+  */
+  const diasAte = (iso: string | null, agora = new Date()) => {
+    if (!iso) return null;
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return null;
+    return Math.ceil((d.getTime() - new Date(agora.getFullYear(), agora.getMonth(), agora.getDate()).getTime()) / 86_400_000);
+  };
+  const rotuloRegistro = (l: Linha) => String(l["numero"] ?? l["descricao"] ?? `Fatura ${String(l["id"]).slice(0, 8)}`);
+  type Alerta = { chave: string; rotulo: string; etiqueta: string; tom: "neutro" | "critico" | "atencao" | "sucesso" };
+  const alertas: Alerta[] = [
+    ...faturas
+      .filter((f) => f["status"] !== "paga" && f["status"] !== "cancelada")
+      .map((f) => ({ f, dias: diasAte(f["vencimento"] as string | null) }))
+      .filter((x): x is { f: Linha; dias: number } => x.dias !== null && x.dias >= 0 && x.dias <= 7)
+      .sort((a, b) => a.dias - b.dias)
+      .map((x) => ({
+        chave: `vence-${x.f["id"]}`,
+        rotulo: rotuloRegistro(x.f),
+        etiqueta: x.dias === 0 ? "Vence hoje" : `Vence em ${x.dias} dia${x.dias === 1 ? "" : "s"}`,
+        tom: "atencao" as const,
+      })),
+    ...faturas
+      .filter((f) => f["status"] !== "cancelada" && !f["case_id"])
+      .slice(0, 5)
+      .map((f) => ({ chave: `vinculo-${f["id"]}`, rotulo: rotuloRegistro(f), etiqueta: "Conferir vínculo", tom: "critico" as const })),
+    ...pagamentos
+      .filter((p) => p["conciliacao_status"] === "conciliado")
+      .slice(0, 3)
+      .map((p) => ({
+        chave: `conciliada-${p["id"]}`,
+        rotulo: rotuloFatura(p["invoice_id"]),
+        etiqueta: "Conciliada",
+        tom: "sucesso" as const,
+      })),
+  ].slice(0, 10);
+
+  /*
+    Recebimentos previstos × confirmados: "previsto" soma `faturas` pelo
+    mês de vencimento (porMes, já existente); "confirmado" é
+    `recebimentoPorMes`, já usada por /golive/financeiro. Mesma fonte
+    carregada acima, sem query nova.
+  */
+  const previstoPorMes = porMes(faturasAdaptadas, (f) => f.vencimento, (f) => f.valor, 6);
+  const confirmadoPorMes = recebimentoPorMes(faturasAdaptadas, pagamentosAdaptados, 6);
+  const comSeriePrevistoConfirmado = previstoPorMes.some((p) => p.valor > 0) || confirmadoPorMes.some((p) => p.valor > 0);
+
   return (
     <SaasShell
       titulo="Financeiro"
@@ -311,17 +387,152 @@ function FinanceiroPage() {
           crio uma nova consulta org-wide sem fonte já pronta e sem mutation
           nesta rodada. Estado honesto em vez de número inventado.
         */}
-        <div className="grid gap-4 lg:grid-cols-2">
-          <CaCard titulo="Obrigações e parcelas" eyebrow="Financeiro · Custos e fornecedores" data-financeiro-obrigacoes>
-            <EstadoVazio mensagem="Sem agregação por organização ainda: despesas e parcelas continuam disponíveis por caso, sem estimativa nesta leitura." />
+        {/*
+          Três cartões lado a lado (mockup "Prancha Visual do Desk ·
+          Financeiro"): Fluxo do contrato (os mesmos 4 valores do resumo,
+          em lista), Parcelas previstas (tabela, de `planoDeParcelas`) e
+          Reconciliação (contagem real de `payments.conciliacao_status`).
+        */}
+        <div className="grid gap-4 lg:grid-cols-3">
+          <CaCard titulo="Fluxo do contrato" eyebrow="Financeiro · Mesmos valores do resumo" data-financeiro-fluxo-contrato>
+            <dl className="space-y-1.5">
+              {[
+                { rotulo: "Valor do contrato", valor: contratada },
+                { rotulo: "Já recebido", valor: recebida, tom: "sucesso" as const },
+                { rotulo: "A receber", valor: Math.max(contratada - recebida, 0), tom: "atencao" as const },
+                { rotulo: "Vencido", valor: vencidas, tom: vencidas ? ("critico" as const) : undefined },
+              ].map((item) => (
+                <div key={item.rotulo} className="flex items-center justify-between gap-3 border-b border-navy/5 py-1.5 last:border-0">
+                  <span className="text-xs text-navy/80">{item.rotulo}</span>
+                  <Etiqueta texto={moeda(item.valor, "BRL")} tom={item.tom} />
+                </div>
+              ))}
+            </dl>
           </CaCard>
 
+          {/*
+            Parcelas previstas: cada fatura é uma parcela prevista do
+            contrato. `planoDeParcelas` já existia e roda sobre as mesmas
+            faturas — a tabela é desenhada sempre, mesmo sem fatura (linha
+            "Sem parcela registrada"), nunca com valor inventado.
+          */}
+          <CaCard titulo="Parcelas previstas" eyebrow="Financeiro · Fluxo do contrato" data-financeiro-parcelas-previstas>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm" data-financeiro-fluxo-tabela>
+                <thead className="text-left text-xs uppercase text-navy/65">
+                  <tr>
+                    <th className="px-3 py-2">Parcela</th>
+                    <th className="px-3 py-2">Valor</th>
+                    <th className="px-3 py-2">Vencimento</th>
+                    <th className="px-3 py-2">Situação</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {parcelas.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-3 py-4 text-center text-xs text-navy/55">
+                        Sem parcela registrada.
+                      </td>
+                    </tr>
+                  ) : (
+                    parcelas.map((p, i) => (
+                      <tr key={p.id} className="border-t border-navy/5">
+                        <td className="px-3 py-2 text-navy/80">
+                          {i === 0 ? "Entrada" : `Parcela ${i + 1}`}
+                          {p.numero ? ` · ${p.numero}` : ""}
+                        </td>
+                        <td className="px-3 py-2 text-navy">{typeof p.valor === "number" ? moeda(p.valor, "BRL") : "—"}</td>
+                        <td className="px-3 py-2 text-navy/70">{p.vencimento ? dataBr(p.vencimento) : "Não registrado"}</td>
+                        <td className="px-3 py-2">
+                          <Etiqueta
+                            texto={p.situacao}
+                            tom={p.situacao === "Paga" ? "sucesso" : p.situacao === "Vencida" ? "critico" : "neutro"}
+                          />
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CaCard>
+
+          {/*
+            Reconciliação: `payments.conciliacao_status` já existe e já é
+            gravado por `conciliarPagamento` (ROTULO_CONCILIACAO, usado
+            logo abaixo na lista detalhada) — mesma `pagamentos` de
+            qPagamentos, sem query nova.
+          */}
+          <CaCard titulo="Reconciliação" eyebrow="Financeiro · payments.conciliacao_status" data-financeiro-reconciliacao>
+            <dl className="space-y-1.5">
+              <div className="flex items-center justify-between gap-3 border-b border-navy/5 py-1.5">
+                <span className="text-xs text-navy/80">Pagamentos conciliados</span>
+                <span className="font-serif text-lg text-navy">{contagemConciliacao.conciliados}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 border-b border-navy/5 py-1.5">
+                <span className="text-xs text-navy/80">Aguardando conferência</span>
+                <span className="font-serif text-lg text-navy">{contagemConciliacao.aguardando}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 py-1.5">
+                <span className="text-xs text-navy/80">Divergências abertas</span>
+                <span className="font-serif text-lg text-navy">{contagemConciliacao.divergentes}</span>
+              </div>
+            </dl>
+            <p className="mt-3 text-[11px] text-navy/50">Nenhuma cobrança é enviada a partir desta tela.</p>
+          </CaCard>
+        </div>
+
         {/*
-          Regra do componente permanente (Proprietária, 13/10/2026):
-          `situacaoDasFaturas` já existia em golive-analitico.ts e roda
-          sobre as mesmas faturas de `qFaturas` — a rosca é desenhada sempre,
-          em cinza quando não há fatura carregada, nunca com fatia inventada.
+          Alertas financeiros contextualizados: três sinais reais —
+          vencimento próximo (faturas abertas), vínculo com caso ausente
+          (§19 zona 5) e conciliação confirmada — cada um citando o
+          registro real de origem. Sem sinal, o card mostra vazio honesto.
         */}
+        <CaCard titulo="Alertas financeiros contextualizados" eyebrow="Financeiro · Sinais reais, por registro" data-financeiro-alertas>
+          {alertas.length === 0 ? (
+            <EstadoVazio mensagem="Nenhum vencimento próximo, vínculo pendente ou conciliação recente para mostrar." />
+          ) : (
+            <ul className="flex flex-wrap gap-x-6 gap-y-2" data-financeiro-alertas-lista>
+              {alertas.map((a) => (
+                <li key={a.chave} className="flex items-center gap-2 text-sm">
+                  <span className="text-navy/80">{a.rotulo}</span>
+                  <Etiqueta texto={a.etiqueta} tom={a.tom} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </CaCard>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          {/*
+            Recebimentos previstos × confirmados: "previsto" soma as
+            faturas por mês de vencimento (`porMes`, já existente);
+            "confirmado" é `recebimentoPorMes`, já usada por
+            /golive/financeiro. Mesma fonte de faturas/pagamentos acima.
+          */}
+          <CaCard titulo="Recebimentos previstos × confirmados" eyebrow="Financeiro · 6 meses" data-financeiro-previsto-confirmado>
+            <div data-financeiro-previsto-confirmado-linha>
+              <GraficoLinhaSeries
+                series={[
+                  { rotulo: "Previsto", tom: "navy", pontos: previstoPorMes },
+                  { rotulo: "Confirmado", tom: "gold", pontos: confirmadoPorMes },
+                ]}
+                tituloAcessivel={`Recebimentos previstos e confirmados por mês, últimos 6 meses`}
+              />
+            </div>
+            {comSeriePrevistoConfirmado ? null : (
+              <p className="mt-2 text-xs font-medium text-navy/70" data-financeiro-previsto-confirmado-vazio>
+                Sem dados suficientes
+              </p>
+            )}
+          </CaCard>
+
+          {/*
+            Regra do componente permanente (Proprietária, 13/10/2026):
+            `situacaoDasFaturas` já existia em golive-analitico.ts e roda
+            sobre as mesmas faturas de `qFaturas` — a rosca é desenhada sempre,
+            em cinza quando não há fatura carregada, nunca com fatia inventada.
+          */}
           <CaCard titulo="Situação das faturas" eyebrow="Financeiro · Composição real" data-financeiro-situacao-faturas>
             <div data-financeiro-situacao-donut>
               <DonutEstados
@@ -342,50 +553,15 @@ function FinanceiroPage() {
         </div>
 
         {/*
-          Fluxo do contrato: cada fatura é uma parcela prevista do contrato.
-          `planoDeParcelas` já existia e roda sobre as mesmas faturas — a
-          tabela é desenhada sempre, mesmo sem fatura (linha "Sem parcela
-          registrada"), nunca com valor inventado.
+          §19 do De-Para, zona "Obrigações — custos/repasse/fornecedores
+          quando aplicável". DIVERGÊNCIA REGISTRADA (§29): `third_party_expenses`
+          existe e já é lido em Caso 360 (visao-geral.tsx), sempre por caso —
+          não existe hoje uma agregação por organização/período, e eu não
+          crio uma nova consulta org-wide sem fonte já pronta e sem mutation
+          nesta rodada. Estado honesto em vez de número inventado.
         */}
-        <CaCard titulo="Fluxo do contrato" eyebrow="Financeiro · Parcelas previstas" data-financeiro-fluxo-contrato>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm" data-financeiro-fluxo-tabela>
-              <thead className="text-left text-xs uppercase text-navy/65">
-                <tr>
-                  <th className="px-3 py-2">Parcela</th>
-                  <th className="px-3 py-2">Valor</th>
-                  <th className="px-3 py-2">Vencimento</th>
-                  <th className="px-3 py-2">Situação</th>
-                </tr>
-              </thead>
-              <tbody>
-                {parcelas.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="px-3 py-4 text-center text-xs text-navy/55">
-                      Sem parcela registrada.
-                    </td>
-                  </tr>
-                ) : (
-                  parcelas.map((p, i) => (
-                    <tr key={p.id} className="border-t border-navy/5">
-                      <td className="px-3 py-2 text-navy/80">
-                        {i + 1}
-                        {p.numero ? ` · ${p.numero}` : ""}
-                      </td>
-                      <td className="px-3 py-2 text-navy">{typeof p.valor === "number" ? moeda(p.valor, "BRL") : "—"}</td>
-                      <td className="px-3 py-2 text-navy/70">{p.vencimento ? dataBr(p.vencimento) : "Não registrado"}</td>
-                      <td className="px-3 py-2">
-                        <Etiqueta
-                          texto={p.situacao}
-                          tom={p.situacao === "Paga" ? "sucesso" : p.situacao === "Vencida" ? "critico" : "neutro"}
-                        />
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+        <CaCard titulo="Obrigações e parcelas" eyebrow="Financeiro · Custos e fornecedores" data-financeiro-obrigacoes>
+          <EstadoVazio mensagem="Sem agregação por organização ainda: despesas e parcelas continuam disponíveis por caso, sem estimativa nesta leitura." />
         </CaCard>
 
         <details className="rounded-lg border border-navy/15 bg-card p-4">

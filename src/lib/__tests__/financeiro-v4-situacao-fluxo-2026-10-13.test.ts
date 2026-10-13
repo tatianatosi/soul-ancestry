@@ -40,7 +40,10 @@ describe("Financeiro — fluxo do contrato (parcelas previstas)", () => {
   });
 
   it("tags de situação usam verde (paga) e tom neutro para aberta — nenhuma cor inventada fora do kit", () => {
-    const trecho = rota.slice(rota.indexOf("data-financeiro-fluxo-contrato"), rota.indexOf("</CaCard>", rota.indexOf("data-financeiro-fluxo-contrato")));
+    const trecho = rota.slice(
+      rota.indexOf("data-financeiro-parcelas-previstas"),
+      rota.indexOf("</CaCard>", rota.indexOf("data-financeiro-parcelas-previstas")),
+    );
     expect(trecho).toContain('tom={p.situacao === "Paga" ? "sucesso" : p.situacao === "Vencida" ? "critico" : "neutro"}');
   });
 });

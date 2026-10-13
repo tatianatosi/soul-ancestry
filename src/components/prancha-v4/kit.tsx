@@ -228,6 +228,75 @@ export function GraficoLinha({
   );
 }
 
+/**
+ * Linha com múltiplas séries (ex.: previsto × confirmado), mesma régua de
+ * meses. Série sem nenhum valor fica rente à base, nunca some.
+ */
+export function GraficoLinhaSeries({
+  series,
+  tituloAcessivel,
+}: {
+  series: { rotulo: string; tom: "navy" | "gold"; pontos: { rotulo: string; valor: number }[] }[];
+  tituloAcessivel: string;
+}) {
+  const largura = 300;
+  const altura = 96;
+  const margem = 10;
+  const maiorPonto = Math.max(...series.flatMap((s) => s.pontos.map((p) => p.valor)), 1);
+  const rotulosEixo = series[0]?.pontos.map((p) => p.rotulo) ?? [];
+  const passo = rotulosEixo.length > 1 ? (largura - margem * 2) / (rotulosEixo.length - 1) : 0;
+  const stroke = { navy: "stroke-navy", gold: "stroke-gold" } as const;
+  const ponto = { navy: "fill-navy", gold: "fill-gold" } as const;
+  const dot = { navy: "bg-navy", gold: "bg-gold" } as const;
+  return (
+    <figure role="img" aria-label={tituloAcessivel}>
+      <svg viewBox={`0 0 ${largura} ${altura}`} className="h-auto w-full">
+        {[0.25, 0.5, 0.75].map((f) => (
+          <line
+            key={f}
+            x1={margem}
+            x2={largura - margem}
+            y1={margem + f * (altura - margem * 2)}
+            y2={margem + f * (altura - margem * 2)}
+            className="stroke-navy/5"
+            strokeWidth={1}
+          />
+        ))}
+        <line x1={margem} x2={largura - margem} y1={altura - margem} y2={altura - margem} className="stroke-navy/15" strokeWidth={1} />
+        {series.map((s) => {
+          const coords = s.pontos.map((p, i) => ({
+            x: margem + i * passo,
+            y: altura - margem - (p.valor / maiorPonto) * (altura - margem * 2),
+          }));
+          return (
+            <g key={s.rotulo}>
+              <polyline points={coords.map((c) => `${c.x},${c.y}`).join(" ")} fill="none" className={stroke[s.tom]} strokeWidth={2} />
+              {coords.map((c, i) => (
+                <circle key={s.pontos[i]!.rotulo} cx={c.x} cy={c.y} r={2.5} className={ponto[s.tom]} />
+              ))}
+            </g>
+          );
+        })}
+      </svg>
+      <div className="mt-1 flex justify-between gap-1 px-1">
+        {rotulosEixo.map((r) => (
+          <span key={r} className="text-[9px] tabular-nums text-navy/50">
+            {r}
+          </span>
+        ))}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-3">
+        {series.map((s) => (
+          <span key={s.rotulo} className="flex items-center gap-1.5 text-[11px] text-navy/65">
+            <span className={cn("h-2 w-2 rounded-full", dot[s.tom])} />
+            {s.rotulo}
+          </span>
+        ))}
+      </div>
+    </figure>
+  );
+}
+
 /** Rosca de estados; total zero desenha o anel cinza com "0" no centro. */
 export function DonutEstados({
   segmentos,
