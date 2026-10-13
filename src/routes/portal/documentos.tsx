@@ -68,8 +68,7 @@ export function PortalDocumentos() {
               <div className="app-cofre-ausencia" data-cofre-ausencia>
                 <LockKeyhole className="h-8 w-8 text-navy" aria-hidden="true" />
                 <h2 className="mt-3 font-serif text-2xl text-navy">Acervo sob curadoria técnica</h2>
-                <p className="mt-2 text-sm text-navy/70">Os pedidos, os documentos em conferência e os arquivos liberados terão seu lugar aqui quando forem compartilhados com você.</p>
-                <span className="app-estado-editorial mt-3">Em preparação</span>
+                <AcervoEmConferencia />
                 <LinkPortal to="/portal/legado" className="mt-4 flex min-h-11 items-center text-sm text-navy underline decoration-gold underline-offset-4">Conhecer o Legado</LinkPortal>
               </div>
             ) : (<>
@@ -218,8 +217,7 @@ export function PortalDocumentos() {
             <div className="app-cofre-ausencia" data-cofre-ausencia>
               <LockKeyhole className="h-8 w-8 text-navy" aria-hidden="true" />
               <h2 className="mt-3 font-serif text-2xl text-navy">Acervo sob curadoria técnica</h2>
-              <p className="mt-2 text-sm text-navy/70">Os pedidos, os documentos em conferência e os arquivos liberados terão seu lugar aqui quando forem compartilhados com você.</p>
-              <span className="app-estado-editorial mt-3">Em preparação</span>
+              <AcervoEmConferencia />
               <div className="mt-4"><EnviarDocumento casoId={casoAtivo} /></div>
               <LinkPortal to="/portal/legado" className="mt-3 inline-flex min-h-11 items-center text-sm text-navy underline decoration-gold underline-offset-4">Conhecer o Legado</LinkPortal>
             </div>
@@ -412,5 +410,26 @@ export function PortalDocumentos() {
         </EstadoDados>
       )}
     </PortalShell>
+  );
+}
+
+/* Acervo informado pela Proprietária (13/10/2026): só estado, sem botão de ver/baixar até o arquivo ser enviado e liberado. */
+const ACERVO_EM_CONFERENCIA = [
+  { titulo: "Certidão de Nascimento", detalhe: "Graz, Áustria · 1895" },
+  { titulo: "Dossiê Genealógico da Família", detalhe: "Linhagem Friedmann-Reimer" },
+  { titulo: "Registro da Comunidade Israelita", detalhe: "Viena · 1938–39" },
+];
+
+function AcervoEmConferencia() {
+  return (
+    <ul className="mt-4 grid w-full gap-3 text-left sm:grid-cols-3" data-acervo-conferencia>
+      {ACERVO_EM_CONFERENCIA.map((d) => (
+        <li key={d.titulo} className="app-documento-registro min-w-0 border-l-4 border-gold p-4">
+          <p className="font-serif text-lg leading-snug text-navy">{d.titulo}</p>
+          <p className="mt-1 text-xs text-navy/60">{d.detalhe}</p>
+          <span className="mt-3 inline-block rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/70">Acervo sob conferência técnica</span>
+        </li>
+      ))}
+    </ul>
   );
 }
