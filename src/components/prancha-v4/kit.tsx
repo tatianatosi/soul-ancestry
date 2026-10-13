@@ -6,16 +6,47 @@
  * Regra da Proprietária: o componente gráfico NUNCA some. Sem registro, ele
  * desenha o estado zero dentro do próprio gráfico (trilho vazio, rosca
  * cinza, coluna em zero) e diz isso em texto curto.
+ *
+ * ------------------------------------------------------------------
+ * CORTE 2 DO DESIGN SYSTEM (aplicado em 13/10/2026)
+ *
+ * `clube-ancestral-kit/primitivos.tsx` é a autoridade única das quatro
+ * primitivas canônicas (CartaoCA, SeloCA, IndicadorCA, VazioCA). Este kit
+ * nasceu antes dessa consolidação e repetia três delas com marcação própria
+ * — uma segunda autoridade de cor e moldura, exatamente o que o Corte 2
+ * proíbe. A correção segue o padrão prescrito ("a migração acontece por
+ * wrappers", igual a `components/desk/ui-desk.tsx`): `Cartao`, `Etiqueta` e
+ * `Indicador` passam a delegar para a primitiva canônica, mantendo a mesma
+ * API para não tocar nenhum ponto de uso.
+ *
+ * O que fica local, e por quê: `Linha`, `Pessoa` e os gráficos (barras,
+ * colunas, rosca, linha do tempo, jornada, árvore, rede). O Corte 2 declara
+ * "proibido nesta rodada: tabela, gráfico, timeline, jornada, formulário e
+ * navegação" — canonizá-los agora seria atropelar o próprio corte. São
+ * candidatos dos Cortes 3–6, quando houver primitiva aprovada para eles.
+ * ------------------------------------------------------------------
  */
+import {
+  CartaoCA,
+  IndicadorCA,
+  SeloCA,
+  type EstadoCA,
+} from "@/components/clube-ancestral-kit/primitivos";
 import { cn } from "@/lib/utils";
 
 export type Tom = "neutro" | "critico" | "atencao" | "sucesso";
 
-const TOM: Record<Tom, string> = {
-  neutro: "border-navy/15 bg-cream/70 text-navy/75",
-  critico: "border-critico/30 bg-critico-suave text-critico",
-  atencao: "border-atencao/30 bg-atencao-suave text-atencao",
-  sucesso: "border-sucesso/30 bg-sucesso-suave text-sucesso",
+/**
+ * De-para do vocabulário deste kit para os estados canônicos. As superfícies
+ * resultantes são as mesmas de antes: `neutro` reusava o creme de `ausente`,
+ * `critico` o terracota de `atencao`, `atencao` o dourado de `aguardando` e
+ * `sucesso` o verde de `concluido`. Mesmo de-para de `ui-desk.tsx`.
+ */
+const TOM_PARA_ESTADO: Record<Tom, EstadoCA> = {
+  neutro: "ausente",
+  critico: "atencao",
+  atencao: "aguardando",
+  sucesso: "concluido",
 };
 
 export const sigla = (nome: string) =>
@@ -26,17 +57,13 @@ export const sigla = (nome: string) =>
     .map((p) => p[0]!.toUpperCase())
     .join("") || "?";
 
+/**
+ * Selo de estado. Delega para `SeloCA`: o texto continua obrigatório (cor
+ * nunca é o único sinal) e some o `shrink-0` que fazia um nome real longo
+ * estourar a largura em telas estreitas.
+ */
 export function Etiqueta({ texto, tom = "neutro" }: { texto: string; tom?: Tom }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[10px] font-medium",
-        TOM[tom],
-      )}
-    >
-      {texto}
-    </span>
-  );
+  return <SeloCA texto={texto} estado={TOM_PARA_ESTADO[tom]} />;
 }
 
 export function Cartao({
@@ -52,19 +79,19 @@ export function Cartao({
   acao?: React.ReactNode;
 } & Omit<React.HTMLAttributes<HTMLElement>, "title">) {
   return (
-    <section
-      {...resto}
-      className={cn(
-        "min-w-0 rounded-xl border border-navy/10 bg-card p-4 shadow-[0_1px_2px_rgba(16,16,16,0.05)]",
-        className,
-      )}
-    >
+    /*
+      Moldura canônica. O fundo branco é decisão da Proprietária para a grade
+      da prancha ("cartões brancos"), então sobrepõe o creme padrão da
+      primitiva — `cn` usa tailwind-merge, o `bg-card` vence. Raio, borda e
+      sombra passam a vir da primitiva, não daqui.
+    */
+    <CartaoCA as="section" className={cn("bg-card", className)} {...resto}>
       <div className="mb-3 flex items-start justify-between gap-2">
         <h3 className="font-serif text-base leading-none text-navy">{titulo}</h3>
         {acao}
       </div>
       {children}
-    </section>
+    </CartaoCA>
   );
 }
 
@@ -77,14 +104,21 @@ export function Linha({ rotulo, valor, tom }: { rotulo: string; valor?: string; 
   );
 }
 
-export function Indicador({ rotulo, valor, apoio }: { rotulo: string; valor: string; apoio?: string }) {
-  return (
-    <div className="rounded-xl border border-navy/10 bg-cream/50 p-3">
-      <p className="text-[10px] font-medium uppercase tracking-widest text-navy/55">{rotulo}</p>
-      <p className="mt-1 font-serif text-2xl leading-none tabular-nums text-navy">{valor}</p>
-      {apoio ? <p className="mt-1 text-[11px] text-navy/55">{apoio}</p> : null}
-    </div>
-  );
+/**
+ * KPI. Delega para `IndicadorCA`, que é a primitiva canônica: sem valor,
+ * ela escreve "Sem dados suficientes" em vez de zero inventado. `valor`
+ * aceita vazio justamente para esse caminho honesto.
+ */
+export function Indicador({
+  rotulo,
+  valor,
+  apoio,
+}: {
+  rotulo: string;
+  valor: string | number | null | undefined;
+  apoio?: string;
+}) {
+  return <IndicadorCA rotulo={rotulo} valor={valor} fonte={apoio} />;
 }
 
 export function Pessoa({ nome, papel, destaque }: { nome: string; papel: string; destaque?: boolean }) {
