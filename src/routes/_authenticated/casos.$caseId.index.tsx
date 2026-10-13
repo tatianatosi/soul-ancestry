@@ -70,6 +70,7 @@ import { CaseHealthHero, saudeDoCaso } from "@/components/caso/case-health-hero"
 import { DossieConsolidado } from "@/components/caso/dossie-consolidado";
 import { AvisoCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
 import { PublicarUniaoRamos } from "@/components/caso/publicar-uniao-ramos";
+import { MarcosJornadaDesk } from "@/components/caso/marcos-jornada-desk";
 import { VinculoNucleo } from "@/components/caso/vinculo-nucleo";
 import { PessoasDoNucleo } from "@/components/caso/pessoas-do-nucleo";
 import { listarNucleos } from "@/lib/nucleos-desk.functions";
@@ -2505,6 +2506,8 @@ function FichaCaso() {
               demo: o Desk liga aqui as duas publicações que se encontram na
               aba Jornada do App, por id, com legenda própria.
             */}
+            {/* 13/10/2026 — curadoria dos marcos históricos que a Jornada do App exibe. */}
+            <MarcosJornadaDesk caseId={id} />
             <PublicarUniaoRamos caseId={id} />
 
             {/*
