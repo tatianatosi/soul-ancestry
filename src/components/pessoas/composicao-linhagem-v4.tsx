@@ -78,10 +78,13 @@ export function ArvoreFiliacao({
   geracoes,
   arestas,
   requerentes,
+  titular,
 }: {
   geracoes: PessoaNaLinha[];
   arestas: { pai: string; filho: string }[];
   requerentes: Set<string>;
+  /** Sem linhagem registrada, o nó G1 mostra o titular do núcleo (sem traço). */
+  titular?: string | null;
 }) {
   const topo = Math.max(1, ...geracoes.map((p) => p.geracao));
   const largura = 1000;
@@ -122,10 +125,27 @@ export function ArvoreFiliacao({
         })}
         {geracoes.length === 0 ? (
           <g>
-            <circle cx={largura / 2} cy={30} r={22} className="fill-card stroke-navy/20" strokeWidth={2} strokeDasharray="4 4" />
-            <text x={largura / 2} y={34} textAnchor="middle" className="fill-navy/40 text-[12px]">
-              G1
+            <circle
+              cx={largura / 2}
+              cy={30}
+              r={24}
+              className={titular ? "fill-gold stroke-navy" : "fill-card stroke-navy/20"}
+              strokeWidth={2}
+              strokeDasharray={titular ? undefined : "4 4"}
+            />
+            <text x={largura / 2} y={34} textAnchor="middle" className={`text-[12px] font-semibold ${titular ? "fill-navy" : "fill-navy/40"}`}>
+              {titular ? sigla(titular) : "G1"}
             </text>
+            {titular ? (
+              <>
+                <text x={largura / 2} y={68} textAnchor="middle" className="fill-navy text-[12px]">
+                  {curto(titular)}
+                </text>
+                <text x={largura / 2} y={82} textAnchor="middle" className="fill-navy/55 text-[10px]">
+                  G1 · titular · ascendentes ainda não registrados
+                </text>
+              </>
+            ) : null}
           </g>
         ) : null}
         {geracoes.map((p) => {
@@ -276,7 +296,12 @@ export function ComposicaoLinhagemV4({ nucleo, nucleos = [] }: { nucleo: NucleoV
       </div>
 
       <Cartao titulo="Árvore visual do núcleo" data-linhagem-arvore-nucleo>
-        <ArvoreFiliacao geracoes={geracoes} arestas={q.data?.arestas ?? []} requerentes={requerentes} />
+        <ArvoreFiliacao
+          geracoes={geracoes}
+          arestas={q.data?.arestas ?? []}
+          requerentes={requerentes}
+          titular={membros[0]?.nome ?? null}
+        />
         <p className="mt-1 text-center text-[10px] text-navy/50">
           Traço dourado só onde há filiação gravada · nó dourado = requerente do núcleo (mesmo cadastro).
         </p>
