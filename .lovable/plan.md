@@ -1,27 +1,22 @@
-# Polimento fino das sete abas do App Cliente
+# WhatsApp oficial, etapa Jurídica e publicação
 
-## Objetivo e limites
-Refinar contraste, cartões, navegação e microinterações em 375 px e 1280 px, sem redesenhar as abas ou alterar pessoas, vínculos, documentos, percentuais, permissões e ações existentes. Nenhuma publicação está incluída.
+## O que será feito
+1. **Botão do WhatsApp** — botão verde "Falar com a Especialista no WhatsApp" na aba Conta do App e no Caso 360 do Desk, abrindo `wa.me/5511988384907` (11 98838-4907). O número fica guardado num só lugar e os dois botões o reutilizam.
+   - Atenção: no dia 12/10 o número registrado foi 11 98838-**48**07. Esta ordem diz **49**07. Será usado 4907, o mais recente, e o registro antigo será corrigido.
+2. **Etapa Jurídica** — já aparece "Em andamento" enquanto o contrato não for assinado. Só registrar a aprovação; sem mudança de tela.
+3. **Documentos** — mantém os cartões de curadoria sem botões até o envio dos arquivos (já homologado).
+4. **Publicar** em soul-ancestry.lovable.app com estes pontos, mais o botão da página inicial e a compactação de ontem.
+5. Registrar as tarefas no roadmap.
 
-## Acabamento visual
-1. **Ouro e contraste:** manter #C2A84D nas linhas conectoras e preenchimentos. Aplicar #A88434 às bordas finas e detalhes ornamentais. A medição sobre #F0EEE9 resulta em **3,01:1**, insuficiente para texto pequeno em WCAG AA. Para rótulos G1–G6, selos e percentuais pequenos, usar o token escuro existente `--ca-estado-aguardando`, medido em **5,11:1** sobre creme. Não declarar conformidade apenas pela troca de dourado.
-2. **Cartões:** padronizar somente cartões reais, preservando seções abertas e a moldura da Árvore: branco, raio de 12 px, borda navy a 8% e sombra 0 4px 16px com navy a 4%. Usar tokens semânticos; nenhum literal de cor em componentes. Derivar a borda do navy canônico #13294B, sem reintroduzir o navy legado #1B2B4B.
-3. **Rodapé:** preservar os sete destinos e sua ordem. Os links já declaram altura de 64 px, largura mínima de 44 px e `touch-action: manipulation`; conferir medidas efetivas. Reforçar “Jornada” em 11 px e linha única até 375 px. Garantir área segura e espaço no conteúdo para que a barra não cubra o final da página.
-4. **Árvore:** compactar o intervalo efetivo entre gerações para 24–32 px, preservando legibilidade, destaque da titular e ascendentes e vínculos publicados. Acrescentar movimento de −2 px por 200 ms em hover apropriado e no toque, sem deslocar outros elementos. Conferir se os conectores acompanham os nós durante interação e expansão.
-5. **Documentos:** posicionar selo discreto “Acervo Digital” nos cartões existentes de arquivos. Usar “Certidão Oficial MA 35” somente quando a origem oficial estiver confirmada nos dados já disponíveis; não atribuir autoridade por aparência ou título presumido. Botões existentes: navy, texto branco e estado pressionado acetinado; preservar erros reais, nova tentativa e autorização de download. Não criar documento nem botão sem arquivo liberado.
-6. **Radar:** separar a área da teia dos rótulos externos para o polígono ocupar aproximadamente 70% da largura útil, sem cortar texto. Apresentar legendas em pílulas creme com tinta, conservando as seis dimensões e seus valores reais ou estados de pesquisa. Não fabricar um polígono completo quando faltarem percentuais.
-7. **Transições:** aplicar fade de 200 ms à troca efetiva de aba e abertura dos perfis. Evitar mudanças de tamanho causadas pela animação; a expansão voluntária do conteúdo permanece funcional. Desativar movimento para quem prefere animações reduzidas.
+## O que NÃO será aplicado da segunda mensagem (P0)
+- **Árvore com Otto, Elsa, Adair Sr, Adair Jr, Alice e Felipe**: contradiz a linhagem definitiva que você confirmou (Heinrich → Rudolf → Lotte/Otto → Ana Maria → Cristiane/Adair → Ana Luiza; Cleusa mãe de Adair). Não existe "Elsa" nem "Adair Sr" nos registros aprovados.
+- **5 certidões com "Ver Certidão" e "Baixar PDF"**: não há nenhum arquivo no caso; os botões ficariam quebrados ou abririam documentos inexistentes. Isso também contradiz o item 3 da primeira mensagem.
+- **Régua de 10 etapas com 60% fixo**: o valor viria de um texto fixo, não do andamento real do caso.
+- Esses módulos citados estão hoje com importação quebrada, e são dados de exemplo — o App só mostra conteúdo real aprovado.
+- **Fundo Off-White #F8F9FA**: a paleta aprovada em 16/09 usa creme #F0EEE9; trocar exige sua decisão com capturas.
+- Contrato na Conta: a ficha com as 3 assinaturas de R$ 320 × 10 meses (Ana Luiza, Adair, Alice) já existe como condição prevista; mantida, sem dizer "ativa" como cobrança.
 
-## Detalhes técnicos
-- Priorizar alterações pontuais em `src/components/portal/portal-v11.css`, `radar-seis-eixos.tsx` e `src/routes/portal/documentos.tsx`; mexer em `explorador-arvore.tsx` apenas se necessário para manter alinhamento das linhas.
-- Preservar leitores e telemetria. Se a troca de aba precisar de um marcador, limitar a alteração em `portal-shell.tsx` ao invólucro visual, mediante coordenação do arquivo compartilhado.
-- Manter os tokens globais e o Desk intactos. Registrar os novos papéis de acabamento no sistema de tokens com escopo exclusivo do App, sem substituir as cores de marca.
-- Confirmar isolamento do rascunho antes de editar, conforme a coordenação Claude × Lovable.
-
-## Verificação e entrega
-- Capturas antes/depois das sete abas em 375 px e 1280 px; Árvore em topo/meio/fim, incluindo Ana Luiza e conectores, e Jornada com rodapé visível.
-- Medir contraste, alvos de toque, overflow horizontal, texto “Jornada”, área segura, foco por teclado e comportamento com movimento reduzido.
-- Exercitar navegação e abertura de perfis com a sessão autorizada da Proprietária na prévia administrativa do caso; não gravar dados nem enviar mensagens. Inspeção automatizada não equivale a aceite pessoal ou `COMPROVADO_EM_USO`.
-- Conferir testes relevantes e resultado da validação automática, sem alterar testes para forçar aprovação.
-- **Bloqueio atual confirmado:** o log de validação aponta importação ausente de `./saneamento-desk-app-v4` em dois arquivos de `src/lib`. Encaminhar como **PEDIDO AO CLAUDE**, fora deste corte visual; se persistir, informar que validação final e capturas novas estão bloqueadas, sem afirmar conclusão.
-- Entregar arquivos alterados, resumo do diff, resultados e capturas; parar para aceite, sem publicar.
+## Técnico
+- Constante única do contato (ex.: `src/lib/contato-especialista.ts`) usada em `src/routes/portal/conta.tsx` e no Caso 360.
+- Atualizar `mem://` com o número 4907.
+- Typecheck, capturas 375/1280 da Conta, depois `preview_ui--publish`.
