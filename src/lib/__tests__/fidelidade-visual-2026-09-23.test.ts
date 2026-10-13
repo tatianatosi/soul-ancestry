@@ -100,7 +100,9 @@ describe("4. Desk Hoje — sem o segundo dashboard legado depois do cockpit", ()
     expect(painel).toContain("Decisões prioritárias");
     expect(painel).toContain("Funil de leads");
     expect(painel).toContain("Ritmo operacional");
-    expect(painel).toContain("Alertas por origem");
+    // 13/10/2026: o título do card agora é o da prancha V4 aprovada
+    // (desk-01-hoje.png) — mesmo card, rótulo idêntico ao kit.
+    expect(painel).toContain("Alertas centralizados · com origem");
   });
 
   it("os leitores que alimentam o cockpit continuam importados e usados", () => {

@@ -33,14 +33,16 @@ describe("os quatro cards restantes existem e citam a função pura", () => {
   });
 
   it("Microentregas para revisão reusa o número que já existia", () => {
-    expect(painel).toContain('titulo="Microentregas para revisão"');
+    // 13/10/2026 — o título passou ao literal da prancha V4 (desk-01-hoje.png).
+    expect(painel).toContain('titulo="Microentregas prontas para revisão"');
     expect(painel).toContain("{microentregasAguardandoRevisao}");
     // Abre a fila de onde o número sai.
     expect(painel).toContain('to="/golive/microentregas"');
   });
 
   it("Alertas por origem chama origemDoSinal", () => {
-    expect(painel).toContain('titulo="Alertas por origem"');
+    // 13/10/2026 — o título passou ao literal da prancha V4 (desk-01-hoje.png).
+    expect(painel).toContain('titulo="Alertas centralizados · com origem"');
     expect(painel).toContain("origemDoSinal(caso.eventos ?? [])");
   });
 });
