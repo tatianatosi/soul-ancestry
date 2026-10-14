@@ -10,8 +10,8 @@ import { SaasShell } from "@/components/saas/shell";
 import { listarLeadsDesk } from "@/lib/crm-desk.functions";
 import { rotulo, type LeadDesk } from "@/lib/crm-desk";
 import { estadoCall, ROTULO_ESTADO_CALL, type EstadoCall } from "@/lib/painel-calls";
-import { ETAPAS_SPIN, progressoSpin } from "@/lib/discovery-roteiro";
-import { Etiqueta, BarrasHorizontais, Pessoa, type Tom } from "@/components/prancha-v4/kit";
+import { ETAPAS_SPIN, perguntasDaEtapa, progressoSpin, ROTULO_CAMPO_ROTEIRO, type EtapaSpin } from "@/lib/discovery-roteiro";
+import { Etiqueta, Pessoa, type Tom } from "@/components/prancha-v4/kit";
 import { CaCard } from "@/components/ui/ca-card";
 
 export const Route = createFileRoute("/_authenticated/calls")({
@@ -64,6 +64,23 @@ function horarioCall(v: string | null | undefined): string {
   return String(v).slice(0, 16).replace("T", " ");
 }
 
+function mesmoDia(v: string | null | undefined, hojeStr: string): boolean {
+  return !!v && String(v).slice(0, 10) === hojeStr;
+}
+
+/** Valores reais do lead por campo do roteiro SPIN (ROTULO_CAMPO_ROTEIRO), não texto fixo por bloco. */
+function valoresEtapa(l: LeadDesk, etapa: EtapaSpin): { campo: string; rotuloCampo: string; valor: string }[] {
+  const campos = [...new Set(perguntasDaEtapa(etapa).flatMap((p) => p.campos))];
+  return campos.map((campo) => {
+    const v = (l as unknown as Record<string, unknown>)[campo];
+    let valor: string;
+    if (v === null || v === undefined || v === "") valor = "não registrado";
+    else if (Array.isArray(v)) valor = v.length ? v.map((x) => rotulo(campo, String(x))).join(", ") : "não registrado";
+    else valor = rotulo(campo, String(v));
+    return { campo, rotuloCampo: ROTULO_CAMPO_ROTEIRO[campo] ?? campo, valor };
+  });
+}
+
 function CallsPage() {
   const { lead } = Route.useSearch();
 
@@ -90,26 +107,19 @@ function CallsPage() {
   );
   const taxaQualificacao = realizadas.length > 0 ? Math.round((qualificados.length / realizadas.length) * 100) : null;
 
-  const grade = useMemo(
+  const hojeStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const agendaDoDia = useMemo(
     () =>
       [...agendadas]
-        .sort((a, b) => String(b.call_agendada_em).localeCompare(String(a.call_agendada_em)))
-        .slice(0, 10),
-    [agendadas],
+        .filter((l) => mesmoDia(l.call_agendada_em, hojeStr))
+        .sort((a, b) => String(a.call_agendada_em).localeCompare(String(b.call_agendada_em))),
+    [agendadas, hojeStr],
   );
 
   const selecionado = useMemo(
-    () => (lead ? leadsReais.find((l) => l.id === lead) : undefined) ?? grade[0] ?? leadsReais[0],
-    [lead, leadsReais, grade],
+    () => (lead ? leadsReais.find((l) => l.id === lead) : undefined) ?? agendaDoDia[0] ?? leadsReais[0],
+    [lead, leadsReais, agendaDoDia],
   );
-
-  const spinItens = selecionado
-    ? progressoSpin(selecionado).map((p) => ({
-        rotulo: p.rotulo,
-        valor: p.total > 0 ? Math.round((p.preenchidas / p.total) * 100) : 0,
-        apoio: `${p.preenchidas}/${p.total}`,
-      }))
-    : [];
 
   return (
     <SaasShell
@@ -123,19 +133,19 @@ function CallsPage() {
       ) : null}
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">Calls Agendadas</p>
           <p className="mt-1 font-serif text-3xl text-navy">{agendadas.length}</p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">Realizadas</p>
           <p className="mt-1 font-serif text-3xl text-navy">{realizadas.length}</p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">No-Show</p>
           <p className="mt-1 font-serif text-3xl text-navy">{noShow.length}</p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">Taxa de Qualificação</p>
           <p className="mt-1 font-serif text-3xl text-navy">{taxaQualificacao === null ? "—" : `${taxaQualificacao}%`}</p>
         </div>
@@ -163,73 +173,108 @@ function CallsPage() {
         </div>
       </div>
 
-      <div className="mb-6 grid gap-6 lg:grid-cols-3">
-        <CaCard titulo="Grade de reuniões" eyebrow="Mesa de Discovery · Horário, lead, canal e status" className="lg:col-span-2">
-          {grade.length === 0 ? (
-            <p className="text-sm text-navy/55">Nenhuma call agendada no pipeline real no momento.</p>
-          ) : (
-            <ul className="space-y-2">
-              {grade.map((l) => {
-                const estado = estadoCall(l);
-                const ativo = selecionado?.id === l.id;
-                return (
-                  <li key={l.id}>
-                    <Link
-                      to="/calls"
-                      search={{ lead: l.id }}
-                      className={`flex flex-wrap items-center gap-3 rounded-lg border p-2.5 text-sm transition-colors ${
-                        ativo ? "border-navy/40 bg-navy/5" : "border-border bg-card hover:bg-navy/5"
-                      }`}
-                    >
-                      <span className="w-[120px] shrink-0 tabular-nums text-xs text-navy/70">
-                        {horarioCall(l.call_agendada_em)}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <Pessoa nome={l.nome} papel={l.responsavel_nome || "sem responsável"} />
-                      </span>
-                      <Etiqueta texto={l.origem ? rotulo("origem", l.origem) : "Origem não informada"} tom="neutro" />
-                      <Etiqueta texto={ROTULO_ESTADO_CALL[estado]} tom={TOM_ESTADO_CALL[estado]} />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </CaCard>
+      <CaCard
+        titulo="Agenda de Discovery do Dia"
+        eyebrow="Mesa de Discovery · Horário, lead, canal, via preliminar e status"
+        className="mb-6 rounded-2xl p-6"
+      >
+        {agendaDoDia.length === 0 ? (
+          <p className="text-sm text-navy/55">Nenhuma call agendada para hoje no pipeline real.</p>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {agendaDoDia.map((l) => {
+              const estado = estadoCall(l);
+              const ativo = selecionado?.id === l.id;
+              return (
+                <Link
+                  key={l.id}
+                  to="/calls"
+                  search={{ lead: l.id }}
+                  className={`flex flex-col gap-2 rounded-xl border p-4 text-sm transition-colors ${
+                    ativo ? "border-navy/40 bg-navy/5" : "border-border bg-card hover:bg-navy/5"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="tabular-nums text-xs text-navy/70">{horarioCall(l.call_agendada_em)}</span>
+                    <Etiqueta texto={ROTULO_ESTADO_CALL[estado]} tom={TOM_ESTADO_CALL[estado]} />
+                  </div>
+                  <Pessoa nome={l.nome} papel={l.responsavel_nome || "sem responsável"} />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Etiqueta texto={l.origem ? rotulo("origem", l.origem) : "Origem não informada"} tom="neutro" />
+                  </div>
+                  <p className="text-[11px] text-navy/55">
+                    {l.via_juridica_preliminar
+                      ? `Via preliminar: ${rotulo("via_juridica_preliminar", l.via_juridica_preliminar)}`
+                      : "Via preliminar: não registrada"}
+                  </p>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </CaCard>
 
-        <CaCard titulo="Consentimento" eyebrow="Mesa de Discovery · Lead selecionado na grade">
-          {!selecionado ? (
-            <p className="text-sm text-navy/55">Selecione um lead na grade de reuniões.</p>
-          ) : (
-            <div className="space-y-3">
-              <div>
-                <Pessoa nome={selecionado.nome} papel={selecionado.responsavel_nome || "sem responsável"} />
-              </div>
-              <Etiqueta
-                texto={rotulo("consentimento_status", selecionado.consentimento_status ?? "nao_solicitado")}
-                tom={TOM_CONSENTIMENTO[selecionado.consentimento_status ?? "nao_solicitado"] ?? "neutro"}
-              />
-              <p className="text-xs text-navy/65">
-                Canal:{" "}
-                {selecionado.consentimento_canal ? rotulo("consentimento_canal", selecionado.consentimento_canal) : "não registrado"}
-                {" · "}
-                Registrado em: {selecionado.consentimento_em ? horarioCall(selecionado.consentimento_em) : "não registrado"}
-              </p>
-            </div>
-          )}
-        </CaCard>
-      </div>
+      <CaCard
+        titulo="Consentimento & Gravação"
+        eyebrow="Mesa de Discovery · Lead selecionado na agenda"
+        className="mb-6 rounded-2xl p-6"
+      >
+        {!selecionado ? (
+          <p className="text-sm text-navy/55">Selecione um lead na agenda do dia.</p>
+        ) : (
+          <div className="space-y-3">
+            <Pessoa nome={selecionado.nome} papel={selecionado.responsavel_nome || "sem responsável"} />
+            <Etiqueta
+              texto={rotulo("consentimento_status", selecionado.consentimento_status ?? "nao_solicitado")}
+              tom={TOM_CONSENTIMENTO[selecionado.consentimento_status ?? "nao_solicitado"] ?? "neutro"}
+            />
+            <p className="text-xs text-navy/65">
+              Canal:{" "}
+              {selecionado.consentimento_canal ? rotulo("consentimento_canal", selecionado.consentimento_canal) : "não registrado"}
+              {" · "}
+              Registrado em: {selecionado.consentimento_em ? horarioCall(selecionado.consentimento_em) : "não registrado"}
+            </p>
+            <p className="text-xs text-navy/65">
+              Gravação: {selecionado.gravacao_link_interno || "não registrada"}
+            </p>
+          </div>
+        )}
+      </CaCard>
 
       <div id="calls-spin" className="scroll-mt-24">
-        <CaCard titulo="Roteiro SPIN" eyebrow="Situação · Problema · Implicação · Necessidade" className="mb-6">
+        <CaCard
+          titulo="Roteiro SPIN & Diagnóstico"
+          eyebrow="Situação · Problema · Implicação · Necessidade"
+          className="mb-6 rounded-2xl p-6"
+        >
           {!selecionado ? (
-            <p className="text-sm text-navy/55">Selecione um lead na grade de reuniões para ver o roteiro.</p>
+            <p className="text-sm text-navy/55">Selecione um lead na agenda do dia para ver o roteiro.</p>
           ) : (
-            <div className="space-y-4">
-              <BarrasHorizontais itens={spinItens} tituloAcessivel="progresso do roteiro SPIN" />
-              <p className="text-xs text-navy/55">
-                {ETAPAS_SPIN.map((e) => e.paraQue).join(" ")}
-              </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {ETAPAS_SPIN.map((e) => {
+                const progresso = progressoSpin(selecionado).find((p) => p.chave === e.chave)!;
+                const valores = valoresEtapa(selecionado, e.chave);
+                return (
+                  <div key={e.chave} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="font-serif text-sm text-navy">{e.rotulo}</h4>
+                      <Etiqueta
+                        texto={`${progresso.preenchidas}/${progresso.total}`}
+                        tom={progresso.completo ? "sucesso" : progresso.preenchidas > 0 ? "atencao" : "neutro"}
+                      />
+                    </div>
+                    <p className="mt-1 text-[11px] text-navy/55">{e.paraQue}</p>
+                    <dl className="mt-3 space-y-1.5">
+                      {valores.map((v) => (
+                        <div key={v.campo} className="text-xs">
+                          <dt className="text-navy/50">{v.rotuloCampo}</dt>
+                          <dd className="text-navy">{v.valor}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                );
+              })}
             </div>
           )}
         </CaCard>
