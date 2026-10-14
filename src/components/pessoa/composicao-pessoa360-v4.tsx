@@ -104,8 +104,8 @@ function ArvoreGenealogica({
         </g>
 
         <g aria-hidden>
-          <circle cx={xCentro} cy={yCentro} r={24} className="fill-gold stroke-navy" strokeWidth="2" />
-          <text x={xCentro} y={yCentro + 5} textAnchor="middle" className="fill-navy text-[12px] font-semibold">{sigla(nome)}</text>
+          <circle cx={xCentro} cy={yCentro} r={24} className="fill-terracotta-nobre stroke-navy" strokeWidth="2" />
+          <text x={xCentro} y={yCentro + 5} textAnchor="middle" className="fill-cream text-[12px] font-semibold">{sigla(nome)}</text>
         </g>
 
         {filhosExibidos.length ? (
@@ -208,7 +208,7 @@ export function ComposicaoPessoa360V4({ dados, nome }: { dados: DadosPessoa360; 
 
   return (
     <div className="space-y-4" data-pessoa360-v4>
-      <div className="flex items-center gap-3 rounded-xl border border-navy/10 bg-card p-4" data-pessoa360-identidade-topo>
+      <div className="flex items-center gap-3 rounded-xl border border-navy/10 bg-cream-base p-4" data-pessoa360-identidade-topo>
         <span
           className="grid h-14 w-14 shrink-0 place-items-center rounded-full border border-gold/50 bg-navy font-serif text-lg text-gold"
           aria-hidden
