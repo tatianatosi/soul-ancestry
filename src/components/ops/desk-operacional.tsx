@@ -34,6 +34,7 @@ import { FASES_JORNADA, sugerirProximaMicroentrega } from "@/lib/onboarding-jorn
 import { rotuloFase } from "@/lib/fase-rotulo";
 import { cn } from "@/lib/utils";
 import { semFixtures } from "@/lib/fixtures";
+import { DonutEstados, GraficoLinha, sigla } from "@/components/prancha-v4/kit";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
@@ -137,29 +138,74 @@ export function DeskOperacional() {
     muda os dois juntos, que é o que "reconciliada" significa.
   */
   const kpisKanban = useMemo(() => {
-    const aberta = (t: Linha) => !["concluida", "cancelada"].includes(String(t["status"]));
+    const hoje = new Date();
+    const mesAtual = (v: unknown) => {
+      if (!v) return false;
+      const d = new Date(String(v));
+      return !Number.isNaN(d.getTime()) && d.getFullYear() === hoje.getFullYear() && d.getMonth() === hoje.getMonth();
+    };
     return [
       {
-        rotulo: "Pendente crítico",
-        valor: tarefas.filter((t) => aberta(t) && ["urgente", "alta"].includes(String(t["prioridade"]))).length,
-        apoio: "urgente ou alta, ainda em aberto",
+        rotulo: "Microentregas no ciclo",
+        valor: tarefas.length,
+        apoio: "total sob os filtros ativos",
       },
       {
-        rotulo: "SLA em risco",
-        valor: tarefas.filter((t) => t["sla_status"] === "em_risco").length,
-        apoio: "prazo de SLA se aproximando",
+        rotulo: "Em execução",
+        valor: tarefas.filter((t) => t["status"] === "em_andamento").length,
+        apoio: "status em_andamento",
       },
       {
-        rotulo: "Atrasadas",
-        valor: tarefas.filter((t) => t["sla_status"] === "atrasada").length,
-        apoio: "SLA já vencido",
-      },
-      {
-        rotulo: "Bloqueadas",
+        rotulo: "Travadas / Bloqueadas",
         valor: tarefas.filter((t) => t["status"] === "bloqueada").length,
         apoio: "com motivo registrado",
       },
+      {
+        rotulo: "Concluídas no mês",
+        valor: tarefas.filter((t) => t["status"] === "concluida" && mesAtual(t["concluida_em"])).length,
+        apoio: "concluida_em neste mês",
+      },
     ];
+  }, [tarefas]);
+
+  /*
+    Infográfico de Distribuição (DECISÃO EXECUTIVA 14/10/2026): pedida
+    "complexidade documental" como segundo eixo — campo que não existe em
+    `tarefas` nem em `crm_casos` (ver referenciasOps, ops.functions.ts).
+    Mesma regra do §29 acima: não inventar coluna fora do schema. O eixo
+    real disponível na própria tarefa é `tipo` (TIPOS_TAREFA, geral/
+    documental/pesquisa/…), que também responde "que tipo de trabalho" sem
+    sair do vocabulário existente.
+  */
+  /* Resumo de Ritmo Operacional: microentregas concluídas por semana, sobre
+     concluida_em real (tarefas.concluida_em, migration 20260816151056) —
+     últimas 8 semanas, nunca uma série de exemplo. */
+  const ritmoSemanal = useMemo(() => {
+    const semanas: { inicio: Date; rotulo: string }[] = [];
+    const hoje = new Date();
+    const inicioDaSemana = (d: Date) => {
+      const x = new Date(d);
+      const diaSemana = x.getDay();
+      x.setDate(x.getDate() - diaSemana);
+      x.setHours(0, 0, 0, 0);
+      return x;
+    };
+    for (let i = 7; i >= 0; i--) {
+      const base = new Date(hoje);
+      base.setDate(base.getDate() - i * 7);
+      const inicio = inicioDaSemana(base);
+      semanas.push({ inicio, rotulo: `${String(inicio.getDate()).padStart(2, "0")}/${String(inicio.getMonth() + 1).padStart(2, "0")}` });
+    }
+    return semanas.map(({ inicio, rotulo }) => {
+      const fim = new Date(inicio);
+      fim.setDate(fim.getDate() + 7);
+      const valor = tarefas.filter((t) => {
+        if (t["status"] !== "concluida" || !t["concluida_em"]) return false;
+        const d = new Date(String(t["concluida_em"]));
+        return !Number.isNaN(d.getTime()) && d >= inicio && d < fim;
+      }).length;
+      return { rotulo, valor };
+    });
   }, [tarefas]);
   const microentregas = (micro.data?.microentregas ?? []) as Linha[];
 
@@ -167,6 +213,43 @@ export function DeskOperacional() {
     equipe.find((e) => e["auth_user_id"] === id)?.["nome"] ??
     equipe.find((e) => e["auth_user_id"] === id)?.["email"] ??
     "sem responsável";
+
+  /*
+    Infográfico de Distribuição (DECISÃO EXECUTIVA 14/10/2026): pedida
+    "complexidade documental" como segundo eixo — campo que não existe em
+    `tarefas` nem em `crm_casos` (ver referenciasOps, ops.functions.ts).
+    Mesma regra do §29 acima: não inventar coluna fora do schema. O eixo
+    real disponível na própria tarefa é `tipo` (TIPOS_TAREFA, geral/
+    documental/pesquisa/…), que também responde "que tipo de trabalho" sem
+    sair do vocabulário existente.
+  */
+  const TONS_DONUT = ["navy", "gold", "terracotta", "sucesso"] as const;
+  const distribuicaoResponsavel = useMemo(() => {
+    const porId = new Map<string, number>();
+    for (const t of tarefas) {
+      const id = String(t["responsavel_id"] ?? "sem_responsavel");
+      porId.set(id, (porId.get(id) ?? 0) + 1);
+    }
+    const ordenado = [...porId.entries()].sort((a, b) => b[1] - a[1]);
+    const principais = ordenado.slice(0, 3);
+    const outros = ordenado.slice(3).reduce((soma, [, v]) => soma + v, 0);
+    const itens = principais.map(([id, v]) => ({
+      rotulo: id === "sem_responsavel" ? "Sem responsável" : nomePessoa(id),
+      valor: v,
+    }));
+    if (outros > 0) itens.push({ rotulo: "Outros", valor: outros });
+    return itens.map((it, i) => ({ ...it, tom: TONS_DONUT[i % TONS_DONUT.length]! }));
+  }, [tarefas, equipe]);
+  const distribuicaoTipo = useMemo(() => {
+    const porTipo = new Map<string, number>();
+    for (const t of tarefas) {
+      const tipo = String(t["tipo"] ?? "geral");
+      porTipo.set(tipo, (porTipo.get(tipo) ?? 0) + 1);
+    }
+    return [...porTipo.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([tipo, v], i) => ({ rotulo: ROTULO_TIPO[tipo] ?? tipo, valor: v, tom: TONS_DONUT[i % TONS_DONUT.length]! }));
+  }, [tarefas]);
 
   const calendario = useMemo(() => {
     const mapa = new Map<string, { tarefas: Linha[]; micro: Linha[] }>();
@@ -482,29 +565,46 @@ export function DeskOperacional() {
             o MESMO array `tarefas` que alimenta as colunas abaixo — e não
             sobre o agregado do servidor da aba Painel, que ignora filtro.
 
-            DIVERGÊNCIA REGISTRADA (§29): a prancha nomeia "Confirmar" e "Em
-            revisão". Nenhum dos dois existe no vocabulário real —
-            STATUS_TAREFA tem cinco valores (nao_iniciada, em_andamento,
-            bloqueada, concluida, cancelada) e STATUS_MICRO tem quatro
-            (pendente, em_andamento, concluida, cancelada). Inventar um
-            estado de revisão para caber na prancha criaria vocabulário fora
-            do CHECK. As duas contagens que a prancha nomeia e o dado
-            sustenta — "Pendente crítico" e "SLA em risco" — estão aqui; as
-            outras duas viraram bloqueio e atraso, que são os estados de
-            risco que o modelo tem de verdade.
+            Prancha V4 (DECISÃO EXECUTIVA 14/10/2026): KPIs renomeados para
+            Microentregas no ciclo / Em execução / Travadas-Bloqueadas /
+            Concluídas no mês — os quatro mapeiam direto para `tarefas` e
+            `concluida_em`, reais, sem vocabulário novo.
+            DIVERGÊNCIA REGISTRADA (§29, mantida): a prancha também nomeou
+            "Confirmar" e "Em revisão" em rodadas anteriores — nenhum dos
+            dois existe no vocabulário real (STATUS_TAREFA tem cinco
+            valores: nao_iniciada, em_andamento, bloqueada, concluida,
+            cancelada); continuam fora.
           */}
-          <dl className="mb-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-kanban-indicadores>
+          <dl className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-kanban-indicadores>
             {kpisKanban.map((k) => (
-              <div key={k.rotulo} className="rounded-xl border border-navy/10 bg-cream/40 px-4 py-3">
-                <dd className="font-serif text-2xl text-navy">{k.valor}</dd>
-                <dt className="text-xs text-navy/70">{k.rotulo}</dt>
+              <div key={k.rotulo} className="rounded-xl border border-border bg-card p-5 shadow-sm">
+                <dd className="font-serif text-3xl text-navy">{k.valor}</dd>
+                <dt className="mt-1 text-xs font-semibold uppercase tracking-[0.1em] text-navy/70">{k.rotulo}</dt>
                 <p className="text-[11px] text-navy/45">{k.apoio}</p>
               </div>
             ))}
           </dl>
+
+          <div className="mb-4 grid gap-3 lg:grid-cols-3">
+            <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-navy/50">Distribuição por operador</p>
+              <DonutEstados segmentos={distribuicaoResponsavel} tituloAcessivel="Tarefas por operador responsável" />
+            </div>
+            <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-navy/50">Distribuição por tipo de tarefa</p>
+              <DonutEstados segmentos={distribuicaoTipo} tituloAcessivel="Tarefas por tipo" />
+            </div>
+            <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-navy/50">Ritmo operacional · concluídas por semana</p>
+              <div className="mt-3">
+                <GraficoLinha pontos={ritmoSemanal} tituloAcessivel="Microentregas concluídas por semana, últimas 8 semanas" />
+              </div>
+            </div>
+          </div>
+
         <div className="grid gap-3 lg:grid-cols-5">
           {STATUS_TAREFA.map((coluna) => (
-            <div key={coluna} className="rounded-xl border border-navy/10 bg-cream/40 p-3">
+            <div key={coluna} className="rounded-xl border border-border bg-card p-3 shadow-sm">
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy/60">
                 {ROTULO_TAREFA[coluna]} ({tarefas.filter((t) => t["status"] === coluna).length})
               </h3>
@@ -515,13 +615,16 @@ export function DeskOperacional() {
                     <div
                       key={t["id"]}
                       className={cn(
-                        "rounded-lg border p-2 text-xs",
+                        "rounded-xl border bg-card p-3 text-xs shadow-sm",
                         t["sla_status"] === "atrasada" && "border-terracotta bg-terracotta/5",
                         t["sla_status"] === "em_risco" && "border-gold bg-gold/10",
                         !["atrasada", "em_risco"].includes(String(t["sla_status"])) && "border-navy/10",
                       )}
                     >
-                      <p className="font-medium">{t["titulo"]}</p>
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-medium">{t["titulo"]}</p>
+                        <span className="shrink-0 font-mono text-[10px] text-navy/40">#{String(t["id"]).slice(0, 8)}</span>
+                      </div>
                       {/*
                         21/09/2026 — o cartão comunicava SLA e bloqueio APENAS
                         pela cor da borda acima. §13 linha 5 manda não esconder
@@ -551,19 +654,28 @@ export function DeskOperacional() {
                           {String(t["descricao"]).trim()}
                         </p>
                       ) : null}
-                      <p className="mt-1 text-navy/50">
-                        {t["caso_codigo"] ?? "sem caso"} · {nomePessoa(t["responsavel_id"])}
-                      </p>
-                      <p className="text-navy/50">Prazo {dataBr(t["prazo"])}</p>
+                      <p className="mt-2 text-navy/50">{t["caso_codigo"] ?? "sem caso"}</p>
+                      <div className="mt-1 flex items-center justify-between gap-2">
+                        <span className="flex items-center gap-1.5 text-navy/60">
+                          <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-navy/10 text-[9px] font-semibold text-navy">
+                            {sigla(String(nomePessoa(t["responsavel_id"])))}
+                          </span>
+                          {nomePessoa(t["responsavel_id"])}
+                        </span>
+                        <span className="text-navy/50">{dataBr(t["prazo"])}</span>
+                      </div>
+                      {/* Badge de bloqueio em terracota — token semântico do
+                          projeto (equivalente a "destructive"), motivo sempre
+                          explícito, nunca só a cor. */}
                       {t["status"] === "bloqueada" ? (
-                        <p className="mt-1 text-terracotta">
+                        <p className="mt-2 rounded-lg bg-terracotta/10 px-2 py-1 text-terracotta">
                           Bloqueada: {t["motivo_bloqueio"] || "motivo não registrado"}
                         </p>
                       ) : null}
                       {podeEscrever && (
                         <>
                           <select
-                            className="mt-1 w-full rounded border border-navy/20 px-1 py-0.5 text-[11px]"
+                            className="mt-2 w-full rounded border border-navy/20 px-1 py-0.5 text-[11px]"
                             value=""
                             onChange={(e) => e.target.value && pedirStatus(t, e.target.value)}
                           >
