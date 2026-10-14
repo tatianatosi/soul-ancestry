@@ -19,10 +19,11 @@ describe("Comercial — Funil em degraus/trapézio (FunilVisualSvg)", () => {
     expect(trecho).not.toContain("<BarrasHorizontais");
   });
 
-  it("FunilVisualSvg desenha trapézios reais (polygon), largura proporcional ao valor recebido, nunca some em zero", () => {
+  it("FunilVisualSvg desenha caixas arredondadas em cascata, largura proporcional ao valor real recebido, nunca some em zero", () => {
     const trecho = kit.slice(kit.indexOf("export function FunilVisualSvg"), kit.indexOf("export function GraficoColunas"));
-    expect(trecho).toContain("<polygon");
-    expect(trecho).toContain("Math.max(8,");
+    expect(trecho).toContain("rounded-xl");
+    expect(trecho).toContain("Math.max(14,");
+    expect(trecho).toContain("{etapa.valor}%");
   });
 });
 

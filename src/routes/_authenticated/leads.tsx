@@ -555,10 +555,12 @@ function LeadsPage() {
                           className="block w-full rounded-lg border border-navy/10 bg-card p-2.5 text-left shadow-sm"
                         >
                           <span className="block truncate text-sm font-medium text-navy">{l.nome}</span>
-                          <span className="block truncate text-[11px] text-navy/60">
-                            Próximo passo: {humano(l.proxima_acao ?? "", "não registrado")}
-                          </span>
                           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                            {l.proxima_acao ? (
+                              <Etiqueta texto={humano(l.proxima_acao, "")} tom="atencao" />
+                            ) : (
+                              <Etiqueta texto="Sem próxima ação" tom="neutro" />
+                            )}
                             {l.origem ? (
                               <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${CLASSE_BADGE_CANAL[tomDoCanal(l.origem)]}`}>
                                 {rotulo("origem", l.origem)}

@@ -156,34 +156,23 @@ export function FunilVisualSvg({
   etapas: { rotulo: string; valor: number; apoio?: string }[];
   tituloAcessivel: string;
 }) {
-  const LARGURA = 200;
-  const ALTURA_ETAPA = 40;
-  const larguras = etapas.map((e) => Math.max(8, (Math.max(0, Math.min(100, e.valor)) / 100) * LARGURA));
   return (
-    <figure role="img" aria-label={tituloAcessivel} className="space-y-1.5">
+    <figure role="img" aria-label={tituloAcessivel} className="space-y-2">
       {etapas.map((etapa, i) => {
-        const topo = larguras[i]!;
-        const base = larguras[i + 1] ?? topo;
-        const margemTopo = (LARGURA - topo) / 2;
-        const margemBase = (LARGURA - base) / 2;
+        const largura = Math.max(14, Math.min(100, etapa.valor));
         return (
-          <div key={etapa.rotulo} className="flex items-center gap-3">
-            <svg
-              viewBox={`0 0 ${LARGURA} ${ALTURA_ETAPA}`}
-              preserveAspectRatio="none"
-              className="h-9 w-28 shrink-0 sm:w-36"
+          <div key={etapa.rotulo} className="relative h-10 overflow-hidden rounded-xl bg-navy/10">
+            <div
+              className={cn(
+                "absolute inset-y-0 left-0 flex items-center overflow-hidden rounded-xl px-3",
+                i === 0 ? "bg-navy" : i % 2 === 1 ? "bg-navy/80" : "bg-navy/60",
+              )}
+              style={{ width: `${largura}%` }}
             >
-              <polygon
-                points={`${margemTopo},0 ${margemTopo + topo},0 ${margemBase + base},${ALTURA_ETAPA} ${margemBase},${ALTURA_ETAPA}`}
-                className={i === 0 ? "fill-navy" : i % 2 === 1 ? "fill-navy/75" : "fill-navy/55"}
-              />
-            </svg>
-            <div className="min-w-0">
-              <p className="text-xs font-medium text-navy">{etapa.rotulo}</p>
-              <p className="text-[11px] tabular-nums text-navy/55">
-                {etapa.apoio ? `${etapa.apoio} · ` : ""}
-                {etapa.valor}%
-              </p>
+              <span className="truncate text-xs font-medium text-cream">
+                {etapa.rotulo}
+                {etapa.apoio ? ` · ${etapa.apoio}` : ""} · {etapa.valor}%
+              </span>
             </div>
           </div>
         );
@@ -210,9 +199,9 @@ export function GraficoColunas({
           return (
             <div key={item.rotulo} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1">
               <span className="text-[9px] font-semibold tabular-nums text-navy/60">{item.valor}</span>
-              <svg viewBox="0 0 32 96" preserveAspectRatio="none" className="h-24 w-full max-w-10 overflow-hidden rounded-t-sm">
-                <rect x="0" y={96 - altura} width="32" height={altura} className={item.destaque ? "fill-gold" : item.valor > 0 ? "fill-navy/70" : "fill-navy/15"} />
-                {alturaSec > 0 ? <rect x="0" y={96 - alturaSec} width="32" height={alturaSec} className="fill-gold" /> : null}
+              <svg viewBox="0 0 32 96" preserveAspectRatio="none" className="h-24 w-full max-w-14 overflow-hidden rounded-t-xl">
+                <rect x="0" y={96 - altura} width="32" height={altura} rx="4" className={item.destaque ? "fill-gold" : item.valor > 0 ? "fill-navy/70" : "fill-navy/15"} />
+                {alturaSec > 0 ? <rect x="0" y={96 - alturaSec} width="32" height={alturaSec} rx="4" className="fill-gold" /> : null}
               </svg>
               <span className="w-full truncate text-center text-[8px] text-navy/55">{item.rotulo}</span>
             </div>
