@@ -267,10 +267,22 @@ function LeadsPage() {
   };
   const propostasVisiveis = propostas.filter((p) => !p["archived_at"]).slice(0, 8);
 
+  // Tons temáticos de canal (Proprietária, 13/10/2026 — "barras suaves em
+  // tons temáticos", "badges de canal com cores distintas"): cicla os 3 tons
+  // de marca já existentes (navy/gold/terracotta, kit.tsx) — nenhuma cor
+  // nova fora do design system. Mapa estável por canal, não por posição.
+  const TONS_CANAL: readonly ("navy" | "gold" | "terracotta")[] = ["navy", "gold", "terracotta"];
+  const tomDoCanal = (valor: string) => TONS_CANAL[ORIGENS_LEAD.findIndex((o) => o.valor === valor) % TONS_CANAL.length] ?? "navy";
+  const CLASSE_BADGE_CANAL: Record<"navy" | "gold" | "terracotta", string> = {
+    navy: "border-navy/25 bg-navy/10 text-navy",
+    gold: "border-gold/40 bg-gold/15 text-navy",
+    terracotta: "border-terracotta/30 bg-terracotta/10 text-terracotta",
+  };
+
   const distribuicaoCanais = ORIGENS_LEAD.map((o) => {
     const total = pipelineLeads.filter((l) => l.origem === o.valor).length;
     const percentual = pipelineLeads.length ? Math.round((total / pipelineLeads.length) * 100) : 0;
-    return { rotulo: o.rotulo, valor: percentual, apoio: `${total} leads` };
+    return { rotulo: o.rotulo, valor: percentual, apoio: `${total} leads`, tom: tomDoCanal(o.valor) };
   }).filter((c) => c.valor > 0);
 
   const leadsAtivosTabela = [...pipelineLeads]
@@ -348,8 +360,8 @@ function LeadsPage() {
         de conversão do mesmo pipelineLeads do funil, propostas ativas de
         listarComercial("proposals") — sem dado fictício, sem KPI inventado.
       */}
-      <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4" data-leads-kpis-topo>
-        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4 text-left">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-leads-kpis-topo>
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-left">
           <p className="text-[11px] uppercase tracking-wide text-navy/55">Investimento em Marketing</p>
           <p className="font-serif text-2xl text-navy">
             {qInvestimento.isLoading
@@ -359,15 +371,15 @@ function LeadsPage() {
                 : "Sem dados suficientes"}
           </p>
         </div>
-        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4 text-left">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-left">
           <p className="text-[11px] uppercase tracking-wide text-navy/55">Leads Entrantes</p>
           <p className="font-serif text-2xl text-navy">{pipelineLeads.length}</p>
         </div>
-        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4 text-left">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-left">
           <p className="text-[11px] uppercase tracking-wide text-navy/55">Taxa de Conversão</p>
           <p className="font-serif text-2xl text-navy">{taxaConversao === null ? "Sem dados suficientes" : `${taxaConversao}%`}</p>
         </div>
-        <div className="rounded-xl border border-navy/10 bg-cream/40 p-4 text-left">
+        <div className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-left">
           <p className="text-[11px] uppercase tracking-wide text-navy/55">Propostas em Aberto</p>
           <p className="font-serif text-2xl text-navy">
             {qPropostas.isLoading ? "…" : propostasAtivas.length ? `${propostasAtivas.length} · ${moedaBRL(totalPropostasAtivas)}` : "Sem dados suficientes"}
@@ -400,20 +412,50 @@ function LeadsPage() {
         handoff) ficam em /calls, rota própria já existente. A Mesa de
         Discovery sai daqui para não duplicar a dona do dado.
       */}
-      <CaCard
-        titulo="Funil comercial"
-        eyebrow="Comercial · Leads → Discovery → Diagnóstico → Proposta → Contrato"
-        data-leads-funil
-        className="mb-4 rounded-2xl p-5 sm:p-6"
-      >
-        {pipelineLeads.length ? (
-          <BarrasHorizontais itens={funilItens} tituloAcessivel={`Funil comercial: ${funilItens.map((i) => `${i.rotulo} ${i.apoio}`).join(", ")}`} />
-        ) : (
-          <p className="text-sm text-navy/60" data-leads-funil-vazio>
-            Sem dados suficientes
+      {/*
+        Grid 2 colunas (menos scroll vertical, Proprietária 13/10/2026):
+        Funil comercial e Saúde comercial & canais lado a lado — mesmos
+        dados já computados (funilItens/distribuicaoCanais), só reorganizados.
+      */}
+      <div className="mb-6 grid gap-6 lg:grid-cols-2">
+        <CaCard
+          titulo="Funil comercial"
+          eyebrow="Comercial · Leads → Discovery → Diagnóstico → Proposta → Contrato"
+          data-leads-funil
+          className="rounded-2xl p-6"
+        >
+          {pipelineLeads.length ? (
+            <BarrasHorizontais itens={funilItens} tituloAcessivel={`Funil comercial: ${funilItens.map((i) => `${i.rotulo} ${i.apoio}`).join(", ")}`} />
+          ) : (
+            <p className="text-sm text-navy/60" data-leads-funil-vazio>
+              Sem dados suficientes
+            </p>
+          )}
+        </CaCard>
+
+        <CaCard
+          titulo="Saúde comercial & canais"
+          eyebrow="Comercial · Distribuição por canal e estagnação"
+          data-leads-saude-canais
+          className="rounded-2xl p-6"
+        >
+          {distribuicaoCanais.length ? (
+            <BarrasHorizontais
+              itens={distribuicaoCanais}
+              tituloAcessivel={`Distribuição por canal: ${distribuicaoCanais.map((c) => `${c.rotulo} ${c.apoio}`).join(", ")}`}
+            />
+          ) : (
+            <p className="text-sm text-navy/60" data-leads-saude-canais-vazio>
+              Sem dados suficientes
+            </p>
+          )}
+          <p className="mt-3 text-xs text-navy/70" data-leads-sem-proxima-acao>
+            {contagemIndicadores.sem_proxima_acao > 0
+              ? `${contagemIndicadores.sem_proxima_acao} lead(s) sem próxima ação definida.`
+              : "Nenhum lead sem próxima ação."}
           </p>
-        )}
-      </CaCard>
+        </CaCard>
+      </div>
 
       {/*
         Quadro por etapa (Prancha Visual do Desk, kit de referência
@@ -427,14 +469,14 @@ function LeadsPage() {
         titulo="Quadro por etapa"
         eyebrow="Comercial · Leads → Discovery → Diagnóstico → Proposta → Contrato"
         data-leads-quadro-etapas
-        className="mb-4 rounded-2xl p-5 sm:p-6"
+        className="mb-6 rounded-2xl p-6"
       >
         {pipelineLeads.length === 0 ? (
           <p className="text-sm text-navy/60" data-leads-quadro-etapas-vazio>
             Sem dados suficientes
           </p>
         ) : (
-          <div className="grid gap-3 overflow-x-auto sm:grid-cols-3 lg:grid-cols-5" data-leads-quadro-etapas-colunas>
+          <div className="grid gap-4 overflow-x-auto sm:grid-cols-3 lg:grid-cols-5" data-leads-quadro-etapas-colunas>
             {colunasPipeline.map((coluna) => (
               <div key={coluna.etapa} className="min-w-[180px] rounded-xl border border-navy/10 bg-cream/40 p-3">
                 <div className="mb-2 flex items-center justify-between">
@@ -487,7 +529,7 @@ function LeadsPage() {
         titulo="Propostas comerciais"
         eyebrow="Comercial · Emitidas, por status real do fluxo"
         data-leads-propostas
-        className="mb-4 rounded-2xl p-5 sm:p-6"
+        className="mb-6 rounded-2xl p-6"
       >
         {qPropostas.isLoading ? (
           <p className="text-sm text-navy/60">Carregando…</p>
@@ -537,17 +579,24 @@ function LeadsPage() {
         titulo="Leads ativos"
         eyebrow="Comercial · Por último contato"
         data-leads-ativos-tabela
-        className="mb-4 rounded-2xl p-5 sm:p-6"
+        className="mb-6 rounded-2xl p-6"
       >
         {leadsAtivosTabela.length === 0 ? (
           <p className="text-sm text-navy/60" data-leads-ativos-vazio>
             Nenhum lead ativo no pipeline.
           </p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-4">
             {leadsAtivosTabela.map((l) => (
-              <li key={l.id} className="flex items-center justify-between gap-3 border-b border-navy/5 py-2 last:border-0">
-                <Pessoa nome={l.nome} papel={`${rotulo("origem", l.origem)} · ${humano(l.responsavel_nome ?? "", "sem responsável")}`} />
+              <li key={l.id} className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <Pessoa nome={l.nome} papel={humano(l.responsavel_nome ?? "", "sem responsável")} />
+                  {l.origem ? (
+                    <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium ${CLASSE_BADGE_CANAL[tomDoCanal(l.origem)]}`}>
+                      {rotulo("origem", l.origem)}
+                    </span>
+                  ) : null}
+                </div>
                 <div className="flex shrink-0 items-center gap-3 text-xs text-navy/60">
                   <span className="hidden sm:inline">
                     {l.proxima_acao ? `Próxima ação: ${l.proxima_acao}` : "Sem próxima ação"}
@@ -567,35 +616,6 @@ function LeadsPage() {
             ))}
           </ul>
         )}
-      </CaCard>
-
-      {/*
-        Bloco 6 — Saúde comercial & canais (Prancha V4, 13/10/2026):
-        distribuição real por origem (ORIGENS_LEAD) do mesmo pipelineLeads,
-        mais o alerta de estagnação já calculado pelo indicador existente
-        (contagemIndicadores.sem_proxima_acao) — sem contagem nova.
-      */}
-      <CaCard
-        titulo="Saúde comercial & canais"
-        eyebrow="Comercial · Distribuição por canal e estagnação"
-        data-leads-saude-canais
-        className="mb-4 rounded-2xl p-5 sm:p-6"
-      >
-        {distribuicaoCanais.length ? (
-          <BarrasHorizontais
-            itens={distribuicaoCanais}
-            tituloAcessivel={`Distribuição por canal: ${distribuicaoCanais.map((c) => `${c.rotulo} ${c.apoio}`).join(", ")}`}
-          />
-        ) : (
-          <p className="text-sm text-navy/60" data-leads-saude-canais-vazio>
-            Sem dados suficientes
-          </p>
-        )}
-        <p className="mt-3 text-xs text-navy/70" data-leads-sem-proxima-acao>
-          {contagemIndicadores.sem_proxima_acao > 0
-            ? `${contagemIndicadores.sem_proxima_acao} lead(s) sem próxima ação definida.`
-            : "Nenhum lead sem próxima ação."}
-        </p>
       </CaCard>
 
       <label className="mb-4 flex items-center gap-2 text-xs text-navy/70">

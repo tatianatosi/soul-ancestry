@@ -45,7 +45,7 @@ describe("Comercial — Mesa de Discovery saiu de /leads", () => {
 
 describe("Comercial — arredondamento V4 escopado a esta tela", () => {
   it("os cartões V4 têm rounded-2xl próprio", () => {
-    const ocorrencias = rota.match(/rounded-2xl p-5 sm:p-6/g) ?? [];
+    const ocorrencias = rota.match(/rounded-2xl p-6/g) ?? [];
     expect(ocorrencias.length).toBeGreaterThanOrEqual(2);
   });
 });

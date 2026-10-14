@@ -90,7 +90,7 @@ describe("Comercial — Bloco 6: Saúde comercial & canais", () => {
 
 describe("Comercial — arredondamento V4 (segunda rodada)", () => {
   it("os quatro novos cartões (propostas, leads ativos, saúde canais) têm rounded-2xl e os KPIs rounded-xl", () => {
-    const grandes = rota.match(/className="mb-4 rounded-2xl p-5 sm:p-6"/g) ?? [];
+    const grandes = rota.match(/className="mb-6 rounded-2xl p-6"/g) ?? [];
     expect(grandes.length).toBeGreaterThanOrEqual(3);
     expect(rota).toContain('data-leads-kpis-topo');
   });
