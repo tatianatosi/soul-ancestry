@@ -79,8 +79,11 @@ describe("D4 · Caso 360 renderiza Progresso por frente sem query nova", () => {
   });
 
   it("reusa qPesquisa/qDocumentos/qVisaoCliente/caso já carregados, sem useQuery novo no bloco", () => {
+    // Sétima rodada (14/10/2026): faixa resumida compacta dos 4 lotes
+    // (data-caso360-faixa-lotes) foi inserida ANTES deste bloco, reusando
+    // a mesma `progresso` — janela ampliada para cobrir o novo trecho.
     const idx = rota.indexOf("data-caso360-progresso-frente");
-    const trecho = rota.slice(Math.max(0, idx - 1200), idx);
+    const trecho = rota.slice(Math.max(0, idx - 3800), idx);
     expect(trecho).toContain("estadoDossieDoCaso(qPesquisa.data?.evidencias");
     expect(trecho).toContain('caso["contrato_assinado"]');
     expect(trecho).toContain('caso["documentos_minimos_ok"]');
@@ -102,5 +105,33 @@ describe("D4 · Caso 360 renderiza Progresso por frente sem query nova", () => {
       expect(pos).toBeGreaterThan(posAnterior);
       posAnterior = pos;
     }
+  });
+});
+
+describe("D4 · sétima rodada (14/10/2026) — faixa resumida dos 4 lotes abaixo do cabeçalho", () => {
+  const rota = readFileSync(
+    resolve(__dirname, "../../routes/_authenticated/casos.$caseId.index.tsx"),
+    "utf8",
+  );
+
+  it("4 cards compactos (data-caso360-faixa-lotes), cada um reusando a mesma `progresso` e apontando para o lote completo abaixo", () => {
+    expect(rota).toContain("data-caso360-faixa-lotes");
+    expect(rota).toContain('const LOTES_RESUMO = [');
+    expect(rota).toContain('ancora: "#caso360-lote-a"');
+    expect(rota).toContain('ancora: "#caso360-lote-b"');
+    expect(rota).toContain('ancora: "#caso360-lote-c"');
+    expect(rota).toContain('ancora: "#caso360-lote-d"');
+    // mesmas 4 chaves de progressoPorFrente, uma por lote — nenhum valor inventado
+    expect(rota).toContain('chave: "documentos" as const');
+    expect(rota).toContain('chave: "pesquisa" as const');
+    expect(rota).toContain('chave: "formalizacao" as const');
+    expect(rota).toContain('chave: "publicacao" as const');
+  });
+
+  it("não inventa os nomes de lote da especificação do dia (Identificação/Genealogia/Montagem/Transmissão) sem derivação real", () => {
+    expect(rota).not.toContain("Identificação Civil");
+    expect(rota).not.toContain("Pesquisa Genealógica");
+    expect(rota).not.toContain("Montagem de Pasta");
+    expect(rota).not.toContain("Transmissão e Protocolo Consular");
   });
 });

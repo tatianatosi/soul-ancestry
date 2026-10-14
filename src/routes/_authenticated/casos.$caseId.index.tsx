@@ -922,8 +922,54 @@ function FichaCaso() {
             arquivadas: qVisaoCliente.data?.estadoPublicacao?.arquivadas ?? 0,
           },
         });
+        /*
+          DECISÃO EXECUTIVA 14/10/2026 ("HOMOLOGAÇÃO DO KANBAN OPERACIONAL",
+          item 3): faixa resumida compacta dos 4 lotes logo abaixo do
+          cabeçalho, para escaneamento rápido — complementa (não substitui)
+          as 4 seções Lote A–D detalhadas abaixo, que já existem desde
+          13/10/2026. Reaproveita a MESMA `progresso` (progressoPorFrente,
+          caso-ficha.ts) e os MESMOS títulos de lote já estabelecidos no
+          arquivo — "Identificação/Genealogia/Montagem/Transmissão" (nomes
+          usados na especificação de hoje) não têm derivação real própria;
+          usar esses nomes aqui exigiria inventar um mapeamento sem fonte,
+          o que o CHECK já proíbe. Cada card aponta para a âncora do lote
+          completo abaixo.
+        */
+        const LOTES_RESUMO = [
+          { letra: "A", titulo: "Entrada e caso", chave: "documentos" as const, ancora: "#caso360-lote-a" },
+          { letra: "B", titulo: "Pesquisa e árvore", chave: "pesquisa" as const, ancora: "#caso360-lote-b" },
+          { letra: "C", titulo: "Proposta, escopo e contrato", chave: "formalizacao" as const, ancora: "#caso360-lote-c" },
+          { letra: "D", titulo: "Publicação e App", chave: "publicacao" as const, ancora: "#caso360-lote-d" },
+        ];
         return (
           <div className="mb-6 space-y-6" data-caso360-resumo-v4>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-caso360-faixa-lotes>
+              {LOTES_RESUMO.map((l) => {
+                const estado = progresso[l.chave];
+                return (
+                  <a
+                    key={l.letra}
+                    href={l.ancora}
+                    className="rounded-xl border border-navy/10 bg-card p-4 shadow-sm transition-colors hover:bg-navy/5"
+                  >
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-terracotta">Lote {l.letra}</p>
+                    <p className="mt-1 font-serif text-sm text-navy">{l.titulo}</p>
+                    <p
+                      className={
+                        "mt-2 inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium " +
+                        (estado === "concluida"
+                          ? "bg-sucesso-suave text-sucesso"
+                          : estado === "inicial"
+                            ? "bg-terracotta/10 text-terracotta"
+                            : "bg-gold/20 text-navy")
+                      }
+                    >
+                      {ROTULO_FRENTE[estado]}
+                    </p>
+                  </a>
+                );
+              })}
+            </div>
             <section aria-labelledby="caso360-lote-a" data-caso360-lote="A">
               <h3 id="caso360-lote-a" className="mb-2 text-[11px] font-medium uppercase tracking-wide text-navy/55">
                 Lote A · Entrada e caso
