@@ -64,7 +64,7 @@ import {
   type IndicadorLeads,
 } from "@/lib/crm-vivo-metricas";
 import { CaCard } from "@/components/ui/ca-card";
-import { BarrasHorizontais, Etiqueta, Pessoa } from "@/components/prancha-v4/kit";
+import { BarrasHorizontais, Etiqueta, FunilVisualSvg, Pessoa } from "@/components/prancha-v4/kit";
 import { humano } from "@/lib/rotulos-golive";
 import { listarComercial, listarVinculos as listarVinculosComercial, totalInvestimentoMarketing } from "@/lib/comercial.functions";
 import { moeda as moedaBRL, dataBr } from "@/components/comercial/base";
@@ -425,7 +425,7 @@ function LeadsPage() {
           className="rounded-2xl p-6"
         >
           {pipelineLeads.length ? (
-            <BarrasHorizontais itens={funilItens} tituloAcessivel={`Funil comercial: ${funilItens.map((i) => `${i.rotulo} ${i.apoio}`).join(", ")}`} />
+            <FunilVisualSvg etapas={funilItens} tituloAcessivel={`Funil comercial: ${funilItens.map((i) => `${i.rotulo} ${i.apoio}`).join(", ")}`} />
           ) : (
             <p className="text-sm text-navy/60" data-leads-funil-vazio>
               Sem dados suficientes
@@ -439,6 +439,23 @@ function LeadsPage() {
           data-leads-saude-canais
           className="rounded-2xl p-6"
         >
+          {/*
+            Termômetro de conversão da carteira (Proprietária, 13/10/2026):
+            mesmo cálculo real já usado no KPI "Taxa de Conversão" do topo
+            (contratoCount ÷ pipelineLeads.length) — só a representação
+            visual muda, nenhuma meta mensal inventada.
+          */}
+          <div className="mb-4" data-leads-termometro-conversao>
+            <div className="mb-1 flex items-center justify-between text-[11px] text-navy/60">
+              <span>Contratos fechados sobre o total de oportunidades</span>
+              <span className="tabular-nums">
+                {taxaConversao === null ? "Sem dados suficientes" : `${contratoCount} de ${pipelineLeads.length} · ${taxaConversao}%`}
+              </span>
+            </div>
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-navy/10">
+              <div className="h-full rounded-full bg-gold" style={{ width: `${taxaConversao ?? 0}%` }} />
+            </div>
+          </div>
           {distribuicaoCanais.length ? (
             <BarrasHorizontais
               itens={distribuicaoCanais}
@@ -504,6 +521,11 @@ function LeadsPage() {
                             Próximo passo: {humano(l.proxima_acao ?? "", "não registrado")}
                           </span>
                           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                            {l.origem ? (
+                              <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${CLASSE_BADGE_CANAL[tomDoCanal(l.origem)]}`}>
+                                {rotulo("origem", l.origem)}
+                              </span>
+                            ) : null}
                             {dias !== null && dias >= 7 ? <Etiqueta texto={`Lead parado há ${dias} dias`} tom="critico" /> : null}
                             {l.responsavel_nome ? <Etiqueta texto={l.responsavel_nome} tom="neutro" /> : null}
                           </div>

@@ -143,6 +143,55 @@ export function BarrasHorizontais({
   );
 }
 
+/**
+ * Funil em degraus/trapézio (SVG nativo, Proprietária 13/10/2026): cada
+ * etapa é um trapézio cuja largura topo/base é proporcional ao percentual
+ * real já calculado pelo chamador — nunca recalcula nem inventa taxa. Etapa
+ * em zero mantém largura mínima visível, nunca some.
+ */
+export function FunilVisualSvg({
+  etapas,
+  tituloAcessivel,
+}: {
+  etapas: { rotulo: string; valor: number; apoio?: string }[];
+  tituloAcessivel: string;
+}) {
+  const LARGURA = 200;
+  const ALTURA_ETAPA = 40;
+  const larguras = etapas.map((e) => Math.max(8, (Math.max(0, Math.min(100, e.valor)) / 100) * LARGURA));
+  return (
+    <figure role="img" aria-label={tituloAcessivel} className="space-y-1.5">
+      {etapas.map((etapa, i) => {
+        const topo = larguras[i]!;
+        const base = larguras[i + 1] ?? topo;
+        const margemTopo = (LARGURA - topo) / 2;
+        const margemBase = (LARGURA - base) / 2;
+        return (
+          <div key={etapa.rotulo} className="flex items-center gap-3">
+            <svg
+              viewBox={`0 0 ${LARGURA} ${ALTURA_ETAPA}`}
+              preserveAspectRatio="none"
+              className="h-9 w-28 shrink-0 sm:w-36"
+            >
+              <polygon
+                points={`${margemTopo},0 ${margemTopo + topo},0 ${margemBase + base},${ALTURA_ETAPA} ${margemBase},${ALTURA_ETAPA}`}
+                className={i === 0 ? "fill-navy" : i % 2 === 1 ? "fill-navy/75" : "fill-navy/55"}
+              />
+            </svg>
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-navy">{etapa.rotulo}</p>
+              <p className="text-[11px] tabular-nums text-navy/55">
+                {etapa.apoio ? `${etapa.apoio} · ` : ""}
+                {etapa.valor}%
+              </p>
+            </div>
+          </div>
+        );
+      })}
+    </figure>
+  );
+}
+
 /** Colunas verticais; coluna em zero aparece como base fina, nunca some. */
 export function GraficoColunas({
   itens,
