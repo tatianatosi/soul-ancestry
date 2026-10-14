@@ -4,12 +4,14 @@ import { MapPin, Star } from "lucide-react";
 import {
   BarrasHorizontais,
   Cartao,
+  Etiqueta,
   Linha,
-  Pessoa,
   RedeVinculos,
   sigla,
   type Tom,
 } from "@/components/prancha-v4/kit";
+import { PAPEIS_PESSOA } from "@/lib/caso-ficha";
+import { formatarCpf } from "@/lib/validacao-pessoa";
 import { cn } from "@/lib/utils";
 
 /*
@@ -42,6 +44,87 @@ const ESTADO_DOC: Record<string, { rotulo: string; tom: Tom }> = {
   pendente: { rotulo: "Pendente", tom: "neutro" },
   recusado: { rotulo: "Recusada", tom: "critico" },
 };
+
+// Mesmo vocabulário fechado de pessoas.$clienteId.tsx (CHECK clientes_estado_civil_check) — nunca duplicar como texto livre.
+const ROTULO_ESTADO_CIVIL: Record<string, string> = {
+  solteiro: "Solteiro(a)",
+  casado: "Casado(a)",
+  divorciado: "Divorciado(a)",
+  viuvo: "Viúvo(a)",
+  uniao_estavel: "União estável",
+};
+
+function ArvoreGenealogica({
+  nome,
+  pai,
+  mae,
+  conjuge,
+  filhos,
+}: {
+  nome: string;
+  pai: { nome: string; declarado: boolean } | null;
+  mae: { nome: string; declarado: boolean } | null;
+  conjuge: string | null;
+  filhos: { id: string; nome: string }[];
+}) {
+  const w = 460;
+  const h = 200;
+  const yPais = 28;
+  const yCentro = 100;
+  const yFilhos = 172;
+  const xPai = w * 0.3;
+  const xMae = w * 0.7;
+  const xCentro = w / 2;
+  const filhosExibidos = filhos.slice(0, 3);
+  const xFilho = (i: number) =>
+    filhosExibidos.length === 1
+      ? xCentro
+      : w * (0.2 + (0.6 * i) / Math.max(1, filhosExibidos.length - 1));
+
+  return (
+    <figure
+      role="img"
+      aria-label={`Árvore genealógica de ${nome}: ${pai ? pai.nome : "pai não registrado"}, ${mae ? mae.nome : "mãe não registrada"}, ${filhosExibidos.length} filho(s) registrado(s)`}
+      className="relative mx-auto h-48 max-w-lg overflow-hidden rounded-lg border border-navy/10 bg-cream/35"
+    >
+      <svg viewBox={`0 0 ${w} ${h}`} className="h-full w-full">
+        <line x1={xPai} y1={yPais + 16} x2={xCentro} y2={yCentro - 16} className={pai ? "stroke-gold/60" : "stroke-navy/15"} strokeWidth="2" strokeDasharray={pai?.declarado ? "4 4" : undefined} />
+        <line x1={xMae} y1={yPais + 16} x2={xCentro} y2={yCentro - 16} className={mae ? "stroke-gold/60" : "stroke-navy/15"} strokeWidth="2" strokeDasharray={mae?.declarado ? "4 4" : undefined} />
+        {filhosExibidos.map((f, i) => (
+          <line key={`l-${f.id}`} x1={xCentro} y1={yCentro + 16} x2={xFilho(i)} y2={yFilhos - 16} className="stroke-gold/60" strokeWidth="2" />
+        ))}
+
+        <g aria-hidden>
+          <circle cx={xPai} cy={yPais} r={16} className={pai ? "fill-card stroke-navy/40" : "fill-card stroke-navy/15"} strokeWidth="2" />
+          <text x={xPai} y={yPais + 4} textAnchor="middle" className="fill-navy text-[10px] font-semibold">{pai ? sigla(pai.nome) : "—"}</text>
+        </g>
+        <g aria-hidden>
+          <circle cx={xMae} cy={yPais} r={16} className={mae ? "fill-card stroke-navy/40" : "fill-card stroke-navy/15"} strokeWidth="2" />
+          <text x={xMae} y={yPais + 4} textAnchor="middle" className="fill-navy text-[10px] font-semibold">{mae ? sigla(mae.nome) : "—"}</text>
+        </g>
+
+        <g aria-hidden>
+          <circle cx={xCentro} cy={yCentro} r={24} className="fill-terracotta-nobre stroke-navy" strokeWidth="2" />
+          <text x={xCentro} y={yCentro + 5} textAnchor="middle" className="fill-cream text-[12px] font-semibold">{sigla(nome)}</text>
+        </g>
+
+        {filhosExibidos.length ? (
+          filhosExibidos.map((f, i) => (
+            <g key={f.id} aria-hidden>
+              <circle cx={xFilho(i)} cy={yFilhos} r={16} className="fill-card stroke-navy/40" strokeWidth="2" />
+              <text x={xFilho(i)} y={yFilhos + 4} textAnchor="middle" className="fill-navy text-[10px] font-semibold">{sigla(f.nome)}</text>
+            </g>
+          ))
+        ) : (
+          <text x={xCentro} y={yFilhos + 4} textAnchor="middle" className="fill-navy/40 text-[10px]">Nenhum filho registrado</text>
+        )}
+      </svg>
+      <figcaption className="absolute bottom-1 left-3 right-3 text-[9px] text-navy/50">
+        {conjuge ? `Cônjuge: ${conjuge} · ` : ""}traço contínuo = vínculo gravado no caso · tracejado = só declarado no cadastro
+      </figcaption>
+    </figure>
+  );
+}
 
 function Estrelas({ valor, apoio }: { valor: number; apoio: string }) {
   return (
@@ -116,9 +199,16 @@ export function ComposicaoPessoa360V4({ dados, nome }: { dados: DadosPessoa360; 
     .filter((m) => m !== eu)
     .map((m) => ({ id: String(m.id), nome: nomeDe(m), ligado: ligadosAMim.has(String(m.id)) }));
 
+  // Papéis desta pessoa nos casos vinculados — um por membresia (case_members.papel_no_caso),
+  // nunca inferido: vocabulário fechado real de PAPEIS_PESSOA (caso-ficha.ts).
+  const minhasMembresias = caseMembers.filter((m) => m.cliente_id === cliente.id);
+  const papeisNosCasos = minhasMembresias
+    .map((m) => texto(m.papel_no_caso))
+    .filter((v): v is string => Boolean(v));
+
   return (
     <div className="space-y-4" data-pessoa360-v4>
-      <div className="flex items-center gap-3 rounded-xl border border-navy/10 bg-card p-4" data-pessoa360-identidade-topo>
+      <div className="flex items-center gap-3 rounded-xl border border-navy/10 bg-cream-base p-4" data-pessoa360-identidade-topo>
         <span
           className="grid h-14 w-14 shrink-0 place-items-center rounded-full border border-gold/50 bg-navy font-serif text-lg text-gold"
           aria-hidden
@@ -138,47 +228,36 @@ export function ComposicaoPessoa360V4({ dados, nome }: { dados: DadosPessoa360; 
       <div className="grid gap-4 lg:grid-cols-[1fr_1.25fr_0.9fr]">
         <Cartao titulo="Identidade" data-pessoa360-identidade>
           <Linha rotulo="Nome civil" valor={texto(cliente.nome) ?? "Não registrado"} />
+          <Linha rotulo="CPF" valor={texto(cliente.cpf) ? formatarCpf(String(cliente.cpf)) : "Não registrado"} tom={texto(cliente.cpf) ? "neutro" : "atencao"} />
           <Linha rotulo="Nascimento" valor={nascimento ?? "Não registrado"} tom={nascimento ? "neutro" : "atencao"} />
           <Linha rotulo="Naturalidade" valor={naturalidade ?? "Não registrada"} tom={naturalidade ? "neutro" : "atencao"} />
+          <Linha
+            rotulo="Estado civil"
+            valor={texto(cliente.estado_civil) ? ROTULO_ESTADO_CIVIL[String(cliente.estado_civil)] ?? String(cliente.estado_civil) : "Não registrado"}
+            tom={texto(cliente.estado_civil) ? "neutro" : "atencao"}
+          />
           <Linha
             rotulo="Confiança do dado"
             valor={confiancaEstado ?? "Sem registro em caso"}
             tom={confiancaEstado === "Confirmada" ? "sucesso" : confiancaEstado === "Em revisão" ? "atencao" : "critico"}
           />
+          {papeisNosCasos.length ? (
+            <div className="flex flex-wrap gap-1.5 pt-2" data-pessoa360-papeis>
+              {papeisNosCasos.map((p, i) => (
+                <Etiqueta key={`${p}-${i}`} texto={PAPEIS_PESSOA.find((o) => o.valor === p)?.rotulo ?? p} tom="sucesso" />
+              ))}
+            </div>
+          ) : null}
         </Cartao>
 
-        <Cartao titulo="Gráfico de parentesco" data-pessoa360-parentesco>
-          <div className="mx-auto grid max-w-lg grid-cols-4 grid-rows-[auto_28px_auto_28px_auto] items-center text-center">
-            <div className="col-span-2">
-              {pai || texto(cliente.nome_pai) ? (
-                <Pessoa nome={pai ? nomeDe(pai) : String(cliente.nome_pai)} papel={pai ? "Pai" : "Pai · declarado"} />
-              ) : (
-                <span className="text-[10px] text-navy/40">Pai não registrado</span>
-              )}
-            </div>
-            <div className="col-span-2">
-              {mae || texto(cliente.nome_mae) ? (
-                <Pessoa nome={mae ? nomeDe(mae) : String(cliente.nome_mae)} papel={mae ? "Mãe" : "Mãe · declarada"} />
-              ) : (
-                <span className="text-[10px] text-navy/40">Mãe não registrada</span>
-              )}
-            </div>
-            <div className={cn("col-span-4 mx-auto h-7 w-px", pai || mae ? "bg-gold" : "bg-navy/15")} />
-            <div className="col-span-2 col-start-2 rounded-lg border border-gold/50 bg-gold/10 p-2">
-              <Pessoa nome={nome} papel={conjuge ? `Cônjuge: ${conjuge}` : "Esta pessoa"} destaque />
-            </div>
-            <div className={cn("col-span-4 mx-auto h-7 w-px", filhos.length ? "bg-gold" : "bg-navy/15")} />
-            {filhos.length ? (
-              filhos.slice(0, 2).map((f) => (
-                <div key={String(f.id)} className="col-span-2">
-                  <Pessoa nome={nomeDe(f)} papel="Filho(a)" />
-                </div>
-              ))
-            ) : (
-              <div className="col-span-4 text-[10px] text-navy/40">Nenhum filho registrado</div>
-            )}
-          </div>
-          <p className="mt-2 text-center text-[10px] text-navy/50">Só vínculos gravados no caso ou declarados no cadastro.</p>
+        <Cartao titulo="Árvore genealógica" data-pessoa360-parentesco>
+          <ArvoreGenealogica
+            nome={nome}
+            pai={pai ? { nome: nomeDe(pai), declarado: false } : texto(cliente.nome_pai) ? { nome: String(cliente.nome_pai), declarado: true } : null}
+            mae={mae ? { nome: nomeDe(mae), declarado: false } : texto(cliente.nome_mae) ? { nome: String(cliente.nome_mae), declarado: true } : null}
+            conjuge={conjuge}
+            filhos={filhos.map((f) => ({ id: String(f.id), nome: nomeDe(f) }))}
+          />
         </Cartao>
 
         <Cartao titulo="Casos vinculados" data-pessoa360-casos>

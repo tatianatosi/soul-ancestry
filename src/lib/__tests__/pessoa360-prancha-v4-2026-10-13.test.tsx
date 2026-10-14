@@ -25,7 +25,7 @@ describe("Pessoa 360 — prancha V4", () => {
       expect(html).toContain(`data-pessoa360-${m}`);
     }
     expect(html).toContain("Nenhuma fonte registrada");
-    expect(html).toContain("Pai não registrado");
+    expect(html).toContain("pai não registrado");
   });
 
   it("parentesco só vem de pai_id/mae_id gravados, nunca do sobrenome", async () => {
@@ -49,7 +49,7 @@ describe("Pessoa 360 — prancha V4", () => {
       />,
     );
     expect(html).toContain("José Silva");
-    expect(html).toContain("Mãe não registrada"); // Maria Silva não vira mãe pelo sobrenome
+    expect(html).toContain("mãe não registrada"); // Maria Silva não vira mãe pelo sobrenome
     expect(html).toContain("1 de 2 fonte(s) confirmada(s)");
   });
 });
