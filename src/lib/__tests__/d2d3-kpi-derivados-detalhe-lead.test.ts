@@ -37,29 +37,32 @@ describe("D3 · §13 linha 2 — KPIs do Kanban derivam do array de cards visív
     expect(kanban).toMatch(/\}, \[tarefas\]\);/);
   });
 
-  it("cada KPI é uma contagem sobre `tarefas.filter`, não sobre um agregado paralelo do servidor", () => {
+  it("cada KPI é uma contagem sobre `tarefas` (total ou `.filter`), não sobre um agregado paralelo do servidor", () => {
     const trecho = kanban.slice(
       kanban.indexOf("const kpisKanban = useMemo("),
       kanban.indexOf("}, [tarefas]);"),
     );
-    // as 4 linhas de KPI todas passam por tarefas.filter(...)
+    // Microentregas no ciclo = tarefas.length; as outras três passam por tarefas.filter(...)
+    expect(trecho).toContain("valor: tarefas.length");
     const contagens = trecho.match(/tarefas\.filter\(/g) ?? [];
-    expect(contagens.length).toBeGreaterThanOrEqual(4);
+    expect(contagens.length).toBeGreaterThanOrEqual(3);
     // e nenhum KPI usa o agregado do servidor `p[...]` (que ignora filtro)
     expect(trecho).not.toMatch(/p\[".*?"\]/);
   });
 
-  it("os 4 rótulos canônicos aparecem — sem inventar KPI fora do §13", () => {
-    // §13 nomeia Confirmar/Em revisão/Pendente crítico/SLA em risco;
-    // vocabulário real do CHECK cobre "Pendente crítico" e "SLA em risco"
-    // literalmente; a divergência de "Confirmar/Em revisão" está declarada
-    // no próprio arquivo (comentário §29) e implementada com os rótulos
-    // que o CHECK sustenta: "Atrasadas" e "Bloqueadas".
-    expect(kanban).toMatch(/rotulo: "Pendente crítico"/);
-    expect(kanban).toMatch(/rotulo: "SLA em risco"/);
-    expect(kanban).toMatch(/rotulo: "Atrasadas"/);
-    expect(kanban).toMatch(/rotulo: "Bloqueadas"/);
-    expect(kanban).toMatch(/DIVERGÊNCIA REGISTRADA \(§29\)/);
+  it("sétima rodada (14/10/2026, HOMOLOGAÇÃO FINAL) — os 4 rótulos renomeados aparecem, sem inventar KPI fora do CHECK", () => {
+    // Prancha V4: Microentregas no ciclo / Em execução / Travadas-Bloqueadas /
+    // Concluídas no mês substituem os rótulos anteriores (Pendente crítico/
+    // SLA em risco/Atrasadas/Bloqueadas); todos mapeiam para `tarefas` e
+    // `concluida_em` reais. A divergência de "Confirmar/Em revisão" (§29)
+    // segue registrada no próprio arquivo — nenhum dos dois foi usado.
+    expect(kanban).toMatch(/rotulo: "Microentregas no ciclo"/);
+    expect(kanban).toMatch(/rotulo: "Em execução"/);
+    expect(kanban).toMatch(/rotulo: "Travadas \/ Bloqueadas"/);
+    expect(kanban).toMatch(/rotulo: "Concluídas no mês"/);
+    expect(kanban).toMatch(/DIVERGÊNCIA REGISTRADA \(§29/);
+    expect(kanban).not.toContain('rotulo: "Confirmar"');
+    expect(kanban).not.toContain('rotulo: "Em revisão"');
   });
 });
 
