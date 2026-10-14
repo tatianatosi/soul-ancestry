@@ -58,6 +58,14 @@ import { describe, expect, it } from "vitest";
  * (campo real, já existente em crm-desk.ts e editado na Mesa de Propostas de
  * /leads) passou a aparecer também no bloco Necessidade do roteiro SPIN,
  * só leitura aqui como os demais campos multi — não é campo novo.
+ * Sétima rodada (14/10/2026, "HOMOLOGAÇÃO FINAL DA ROTA /calls"): a estrutura
+ * em 2 colunas e a limpeza do topo (sem Kanban) foram aprovadas. Fechamento:
+ * botão "+ Agendar Call" no cabeçalho do card "Agenda de Discovery do Dia"
+ * (via `acao` de CaCard, alinhado à direita) — agenda um lead já existente
+ * do pipeline (select de leadsReais) para uma data/hora (call_agendada_em),
+ * gravando pela mesma mutação real (salvarLeadDesk) e o mesmo status_call
+ * "agendada" (valor real de STATUS_CALL em crm-desk.ts). Não cria lead novo
+ * (isso já existe em NovoLeadDialog, /leads) nem campo/tabela nova.
  * Todos os blocos leem leads reais (listarLeadsDesk, mesma queryKey
  * "leads-desk" do PainelCalls) — nenhuma call, lead ou taxa de exemplo.
  */
@@ -220,5 +228,29 @@ describe("Calls V4 — recusa consistente de dado fictício", () => {
   it("todos os blocos novos leem a mesma queryKey \"leads-desk\" que PainelCalls (cache compartilhado, não busca dupla)", () => {
     expect(rota).toContain('queryKey: ["leads-desk"]');
     expect(painel).toContain('queryKey: ["leads-desk"]');
+  });
+});
+
+describe("Calls V4 — sétima rodada (14/10/2026): botão + Agendar Call no cabeçalho da Agenda do Dia, ação real", () => {
+  it('"+ Agendar Call" fica no cabeçalho do card via acao de CaCard, alinhado à direita pelo próprio CaCard', () => {
+    expect(rota).toContain("+ Agendar Call");
+    expect(rota).toContain('acao={');
+    expect(rota).toContain('titulo="Agenda de Discovery do Dia"');
+  });
+
+  it("agendar uma call grava pela mesma mutação real (salvarLeadDesk) sobre um lead já existente — nunca cria lead novo nem campo/tabela nova", () => {
+    expect(rota).toContain("const mutarAgendamento = useMutation(");
+    expect(rota).toContain('valores: { call_agendada_em: agendarQuando, status_call: "agendada" }');
+    expect(rota).toContain("mutarAgendamento.mutate()");
+    expect(rota).not.toContain("criarLeadManual");
+  });
+
+  it('"agendada" é valor real de STATUS_CALL (crm-desk.ts), não vocabulário CHECK novo', () => {
+    const crmDesk = readFileSync("src/lib/crm-desk.ts", "utf8");
+    expect(crmDesk).toContain('{ valor: "agendada", rotulo: "Agendada" }');
+  });
+
+  it("o select de lead usa os mesmos leadsReais já carregados (listarLeadsDesk), sem lista fictícia paralela", () => {
+    expect(rota).toContain("leadsReais.map((l) => (");
   });
 });

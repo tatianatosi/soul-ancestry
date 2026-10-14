@@ -192,6 +192,36 @@ function CallsPage() {
   // já usada pelo card "Consentimento" dentro de PainelCalls — não é uma
   // segunda implementação, é a mesma mutação, acionada por um botão.
   const salvarLead = useServerFn(salvarLeadDesk);
+
+  // "+ Agendar Call": mesma mutação real (salvarLeadDesk), aplicada a um lead
+  // já existente no pipeline — define call_agendada_em e status_call
+  // ("agendada", valor real de STATUS_CALL em crm-desk.ts). Não cria lead
+  // novo (isso já existe em NovoLeadDialog, em /leads) nem campo novo.
+  const [agendarAberto, setAgendarAberto] = useState(false);
+  const [agendarLeadId, setAgendarLeadId] = useState("");
+  const [agendarQuando, setAgendarQuando] = useState("");
+  const [agendarErro, setAgendarErro] = useState<string | null>(null);
+  const mutarAgendamento = useMutation({
+    mutationFn: () =>
+      salvarLead({
+        data: {
+          id: agendarLeadId,
+          valores: { call_agendada_em: agendarQuando, status_call: "agendada" },
+        },
+      }),
+    onSuccess: (res) => {
+      if (!res.ok) {
+        setAgendarErro(res.erros?.[0]?.motivo ?? "Não foi possível agendar a call.");
+        return;
+      }
+      setAgendarErro(null);
+      setAgendarAberto(false);
+      setAgendarLeadId("");
+      setAgendarQuando("");
+      void qc.invalidateQueries({ queryKey: ["leads-desk"] });
+    },
+    onError: () => setAgendarErro("Falha ao agendar a call."),
+  });
   const mutarConsentimento = useMutation({
     mutationFn: (leadId: string) =>
       salvarLead({
@@ -336,7 +366,66 @@ function CallsPage() {
             titulo="Agenda de Discovery do Dia"
             eyebrow="Mesa de Discovery · Horário, lead, canal e status"
             className="rounded-2xl p-6"
+            acao={
+              <button
+                type="button"
+                onClick={() => {
+                  setAgendarErro(null);
+                  setAgendarQuando(`${hojeStr}T09:00`);
+                  setAgendarAberto((a) => !a);
+                }}
+                className="rounded-full bg-navy px-4 py-1.5 text-xs font-medium text-cream hover:bg-navy/90"
+              >
+                + Agendar Call
+              </button>
+            }
           >
+            {agendarAberto ? (
+              <div className="mb-4 space-y-3 rounded-xl border border-navy/15 bg-cream/40 p-4">
+                <label className="block text-xs text-navy/50">
+                  Lead
+                  <select
+                    className="mt-0.5 w-full rounded-lg border border-navy/15 bg-card px-2 py-1 text-xs text-navy"
+                    value={agendarLeadId}
+                    onChange={(e) => setAgendarLeadId(e.target.value)}
+                  >
+                    <option value="">Selecione um lead do pipeline</option>
+                    {leadsReais.map((l) => (
+                      <option key={l.id} value={l.id}>
+                        {l.nome}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block text-xs text-navy/50">
+                  Data e horário da call
+                  <input
+                    type="datetime-local"
+                    className="mt-0.5 w-full rounded-lg border border-navy/15 bg-card px-2 py-1 text-xs text-navy"
+                    value={agendarQuando}
+                    onChange={(e) => setAgendarQuando(e.target.value)}
+                  />
+                </label>
+                {agendarErro ? <p className="text-[11px] text-terracotta">{agendarErro}</p> : null}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    disabled={!agendarLeadId || !agendarQuando || mutarAgendamento.isPending}
+                    onClick={() => mutarAgendamento.mutate()}
+                    className="rounded-full bg-navy px-4 py-1.5 text-xs font-medium text-cream hover:bg-navy/90 disabled:opacity-50"
+                  >
+                    {mutarAgendamento.isPending ? "Agendando…" : "Agendar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAgendarAberto(false)}
+                    className="rounded-full border border-navy/20 px-4 py-1.5 text-xs text-navy hover:bg-navy/5"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            ) : null}
             {agendaDoDia.length === 0 ? (
               <p className="text-sm text-navy/55">Nenhuma call agendada para hoje no pipeline real.</p>
             ) : (
