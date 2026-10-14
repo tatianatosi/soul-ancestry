@@ -34,6 +34,38 @@ import { describe, expect, it } from "vitest";
  * os dois lados continuam em sincronia. Só os campos relacionais que
  * dependem de listas externas (países/trilhas/marcos: multi, trilha, marco)
  * continuam só leitura aqui, com link para o roteiro vivo completo.
+ * Quarta rodada (14/10/2026, "DECISÃO EXECUTIVA — RESOLUÇÃO DE SCHEMA"):
+ * confirma zero migrations — os 29 campos de discovery-roteiro.ts continuam
+ * a fonte estruturada oficial. Todo detalhe narrativo que exceda os campos
+ * estruturados vai para o campo de texto livre REAL já existente
+ * (`resumo_call` — o mesmo que PainelCalls exige quando a call é marcada
+ * Realizada); não foi criado um campo novo `resumo_discovery` (isso exigiria
+ * migration, que a própria decisão proíbe).
+ * Quinta rodada (14/10/2026, "DE-PARA OFICIAL: 52 PERGUNTAS VS. 29 CAMPOS"):
+ * a tabela de-para enviada citava ~24 nomes de campo que não existem no
+ * schema real (`ascendente_identificado`, `via_preliminar`,
+ * `trilha_referencia`, `servico_recomendado`, `faixa_orcamento`,
+ * `responsavel_nominal`, `prazo_proxima_acao`, `objetivo_declarado`,
+ * `resumo_discovery` etc. — nenhum usado aqui) — só `consentimento_gravacao`
+ * (boolean, distinto de `consentimento_status`) era real e ainda não estava
+ * na tela; foi adicionado como checkbox real.
+ * Sexta rodada (14/10/2026, "REVISÃO EXECUTIVA — MESA DE DISCOVERY & ROTEIRO
+ * SPIN"): o Kanban "Pipeline comercial" (CrmKanban + colunasPorEtapaComercial),
+ * mantido na terceira rodada, saiu de /calls por decisão explícita — ele
+ * também pertence exclusivamente a /leads (PR #157), junto com o funil que
+ * já havia saído antes. /calls volta a ser só a mesa de atendimento ao vivo:
+ * 4 KPIs, agenda do dia, roteiro SPIN e handoff. `produtos_recomendados`
+ * (campo real, já existente em crm-desk.ts e editado na Mesa de Propostas de
+ * /leads) passou a aparecer também no bloco Necessidade do roteiro SPIN,
+ * só leitura aqui como os demais campos multi — não é campo novo.
+ * Sétima rodada (14/10/2026, "HOMOLOGAÇÃO FINAL DA ROTA /calls"): a estrutura
+ * em 2 colunas e a limpeza do topo (sem Kanban) foram aprovadas. Fechamento:
+ * botão "+ Agendar Call" no cabeçalho do card "Agenda de Discovery do Dia"
+ * (via `acao` de CaCard, alinhado à direita) — agenda um lead já existente
+ * do pipeline (select de leadsReais) para uma data/hora (call_agendada_em),
+ * gravando pela mesma mutação real (salvarLeadDesk) e o mesmo status_call
+ * "agendada" (valor real de STATUS_CALL em crm-desk.ts). Não cria lead novo
+ * (isso já existe em NovoLeadDialog, /leads) nem campo/tabela nova.
  * Todos os blocos leem leads reais (listarLeadsDesk, mesma queryKey
  * "leads-desk" do PainelCalls) — nenhuma call, lead ou taxa de exemplo.
  */
@@ -93,7 +125,7 @@ describe("Calls V4 — Roteiro SPIN & Diagnóstico: qualificação ao vivo, camp
     expect(rota).toContain('meta.tipo === "select"');
     expect(rota).toContain('meta.tipo === "numero"');
     expect(rota).toContain('meta.tipo === "data"');
-    expect(rota).toContain("async function gravarCampoSpin(leadId: string, campo: string, valor: string | null)");
+    expect(rota).toContain("async function gravarCampoSpin(leadId: string, campo: string, valor: string | boolean | null)");
     expect(rota).toContain("salvarLead({ data: { id: leadId, valores: { [campo]: valor } } })");
     // mesma invalidação de cache que PainelCalls usa após salvar — os dois
     // lados continuam em sincronia porque leem a mesma queryKey.
@@ -135,16 +167,29 @@ describe("Calls V4 — Handoff rápido aponta para o handoff real já existente"
   });
 });
 
-describe("Calls V4 — terceira rodada (14/10/2026): funil comercial duplicado removido, Kanban real mantido", () => {
-  it('a barra "Funil comercial" (ComercialConectado/ComercialTemplate) saiu de /calls — o funil canônico vive em /leads (PR #157)', () => {
+describe("Calls V4 — sexta rodada (14/10/2026): nem funil nem Kanban comercial em /calls — ambos exclusivos de /leads", () => {
+  it('nem a barra "Funil comercial" (ComercialConectado) nem o Kanban por etapa comercial aparecem em /calls', () => {
     expect(rota).not.toContain("<ComercialConectado");
     expect(rota).not.toContain('import { ComercialConectado }');
+    expect(rota).not.toContain('import { CrmKanban }');
+    expect(rota).not.toContain('import { colunasPorEtapaComercial }');
+    expect(rota).not.toContain("<CrmKanban");
+    expect(rota).not.toContain("colunasPorEtapaComercial(");
   });
 
-  it("o pipeline Kanban por etapa comercial continua — elemento real e conectado, lido da mesma classificação real que ComercialConectado usava", () => {
-    expect(rota).toContain('import { CrmKanban } from "@/components/clube-ancestral-kit"');
-    expect(rota).toContain('import { colunasPorEtapaComercial } from "@/components/desk/superficies-kit-conectadas"');
-    expect(rota).toContain("<CrmKanban columns={colunasPorEtapaComercial(");
+  it("/calls fica só com a mesa de atendimento ao vivo: KPIs, agenda, roteiro SPIN e handoff", () => {
+    expect(rota).toContain("Agenda de Discovery do Dia");
+    expect(rota).toContain("Roteiro SPIN & Diagnóstico");
+    expect(rota).toContain('href="#calls-handoff"');
+  });
+});
+
+describe("Calls V4 — produtos_recomendados (campo real) aparece no bloco Necessidade, só leitura", () => {
+  it("produtos_recomendados está em PERGUNTAS_MESA/META_CAMPO_ROTEIRO como campo multi real, não inventado", () => {
+    const roteiro = readFileSync("src/lib/discovery-roteiro.ts", "utf8");
+    expect(roteiro).toContain('campos: ["produtos_recomendados"]');
+    expect(roteiro).toContain("produtos_recomendados: {");
+    expect(roteiro).toContain('tipo: "multi"');
   });
 });
 
@@ -183,5 +228,29 @@ describe("Calls V4 — recusa consistente de dado fictício", () => {
   it("todos os blocos novos leem a mesma queryKey \"leads-desk\" que PainelCalls (cache compartilhado, não busca dupla)", () => {
     expect(rota).toContain('queryKey: ["leads-desk"]');
     expect(painel).toContain('queryKey: ["leads-desk"]');
+  });
+});
+
+describe("Calls V4 — sétima rodada (14/10/2026): botão + Agendar Call no cabeçalho da Agenda do Dia, ação real", () => {
+  it('"+ Agendar Call" fica no cabeçalho do card via acao de CaCard, alinhado à direita pelo próprio CaCard', () => {
+    expect(rota).toContain("+ Agendar Call");
+    expect(rota).toContain('acao={');
+    expect(rota).toContain('titulo="Agenda de Discovery do Dia"');
+  });
+
+  it("agendar uma call grava pela mesma mutação real (salvarLeadDesk) sobre um lead já existente — nunca cria lead novo nem campo/tabela nova", () => {
+    expect(rota).toContain("const mutarAgendamento = useMutation(");
+    expect(rota).toContain('valores: { call_agendada_em: agendarQuando, status_call: "agendada" }');
+    expect(rota).toContain("mutarAgendamento.mutate()");
+    expect(rota).not.toContain("criarLeadManual");
+  });
+
+  it('"agendada" é valor real de STATUS_CALL (crm-desk.ts), não vocabulário CHECK novo', () => {
+    const crmDesk = readFileSync("src/lib/crm-desk.ts", "utf8");
+    expect(crmDesk).toContain('{ valor: "agendada", rotulo: "Agendada" }');
+  });
+
+  it("o select de lead usa os mesmos leadsReais já carregados (listarLeadsDesk), sem lista fictícia paralela", () => {
+    expect(rota).toContain("leadsReais.map((l) => (");
   });
 });

@@ -109,6 +109,7 @@ export const ROTEIRO_DISCOVERY: BlocoRoteiro[] = [
       "proxima_acao_em",
       "area_responsavel",
       "responsavel_nome",
+      "produtos_recomendados",
     ],
   },
 ];
@@ -297,6 +298,13 @@ export const PERGUNTAS_MESA: readonly PerguntaMesa[] = [
     bloco: "decisao",
     pergunta: "Qual é o sinal-síntese preliminar desta conversa — sem parecer nem garantia?",
     campos: ["elegibilidade_preliminar"],
+  },
+  {
+    id: "produtos_sugeridos",
+    etapa: "necessidade",
+    bloco: "decisao",
+    pergunta: "Algum produto ou serviço do catálogo já aparece como próximo passo natural?",
+    campos: ["produtos_recomendados"],
   },
 ];
 
@@ -556,6 +564,12 @@ export const META_CAMPO_ROTEIRO: Record<string, MetaCampoRoteiro> = {
     destino: "Ficha do lead — responsável",
     consequencia: "Some do sinal 'sem responsável' assim que preenchido.",
   },
+  produtos_recomendados: {
+    tipo: "multi",
+    porQueImporta: "Antecipa qual produto/serviço do catálogo melhor atende a dor verbalizada na call.",
+    destino: "Mesa de Propostas (/leads) — produtos recomendados",
+    consequencia: "Edição completa (lista controlada, SKU) continua na Mesa de Propostas após o handoff.",
+  },
 };
 
 /** Rótulo curto de cada campo do roteiro — o mesmo texto usado no CRM de leads. */
@@ -589,6 +603,7 @@ export const ROTULO_CAMPO_ROTEIRO: Record<string, string> = {
   proxima_acao_em: "Prazo da próxima ação",
   area_responsavel: "Área responsável",
   elegibilidade_preliminar: "Elegibilidade preliminar",
+  produtos_recomendados: "Produtos/serviços recomendados",
 };
 
 export type EstadoRespostaRoteiro = "confirmado" | "informado_a_confirmar" | "hipotese" | "pendente";
