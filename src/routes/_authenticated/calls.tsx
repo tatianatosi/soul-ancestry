@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo } from "react";
 
 import { PainelCalls } from "@/components/crm/painel-calls";
+import { ComercialConectado } from "@/components/desk/superficies-kit-conectadas";
 import { ErroSuperficieDesk } from "@/components/saas/erro-superficie";
 import { SaasShell } from "@/components/saas/shell";
 import { listarLeadsDesk } from "@/lib/crm-desk.functions";
@@ -138,6 +139,10 @@ function CallsPage() {
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">Taxa de Qualificação</p>
           <p className="mt-1 font-serif text-3xl text-navy">{taxaQualificacao === null ? "—" : `${taxaQualificacao}%`}</p>
         </div>
+      </div>
+
+      <div className="mb-6">
+        <ComercialConectado />
       </div>
 
       <div className="mb-6 flex items-center justify-between gap-3">
