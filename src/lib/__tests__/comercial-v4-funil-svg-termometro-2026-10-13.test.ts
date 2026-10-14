@@ -19,9 +19,9 @@ describe("Comercial — Funil em degraus/trapézio (FunilVisualSvg)", () => {
     expect(trecho).not.toContain("<BarrasHorizontais");
   });
 
-  it("FunilVisualSvg desenha caixas arredondadas em cascata, largura proporcional ao valor real recebido, nunca some em zero", () => {
+  it("FunilVisualSvg desenha barras arredondadas em cascata, com rótulo e percentual sempre legíveis (fora da área colorida), largura proporcional ao valor real, nunca some em zero", () => {
     const trecho = kit.slice(kit.indexOf("export function FunilVisualSvg"), kit.indexOf("export function GraficoColunas"));
-    expect(trecho).toContain("rounded-xl");
+    expect(trecho).toContain("rounded-full");
     expect(trecho).toContain("Math.max(14,");
     expect(trecho).toContain("{etapa.valor}%");
   });

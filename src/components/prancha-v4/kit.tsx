@@ -157,22 +157,23 @@ export function FunilVisualSvg({
   tituloAcessivel: string;
 }) {
   return (
-    <figure role="img" aria-label={tituloAcessivel} className="space-y-2">
+    <figure role="img" aria-label={tituloAcessivel} className="space-y-2.5">
       {etapas.map((etapa, i) => {
         const largura = Math.max(14, Math.min(100, etapa.valor));
         return (
-          <div key={etapa.rotulo} className="relative h-10 overflow-hidden rounded-xl bg-navy/10">
-            <div
-              className={cn(
-                "absolute inset-y-0 left-0 flex items-center overflow-hidden rounded-xl px-3",
-                i === 0 ? "bg-navy" : i % 2 === 1 ? "bg-navy/80" : "bg-navy/60",
-              )}
-              style={{ width: `${largura}%` }}
-            >
-              <span className="truncate text-xs font-medium text-cream">
-                {etapa.rotulo}
-                {etapa.apoio ? ` · ${etapa.apoio}` : ""} · {etapa.valor}%
+          <div key={etapa.rotulo}>
+            <div className="mb-1 flex items-center justify-between gap-2 text-xs">
+              <span className="truncate font-medium text-navy">{etapa.rotulo}</span>
+              <span className="shrink-0 tabular-nums text-navy/55">
+                {etapa.apoio ? `${etapa.apoio} · ` : ""}
+                {etapa.valor}%
               </span>
+            </div>
+            <div className="h-3 w-full overflow-hidden rounded-full bg-navy/10">
+              <div
+                className={cn("h-full rounded-full", i === 0 ? "bg-navy" : i % 2 === 1 ? "bg-navy/80" : "bg-navy/60")}
+                style={{ width: `${largura}%` }}
+              />
             </div>
           </div>
         );

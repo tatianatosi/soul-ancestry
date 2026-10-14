@@ -448,6 +448,32 @@ function LeadsPage() {
       </div>
 
       {/*
+        Cabeçalho de ações do funil (Proprietária, 13/10/2026): os dois
+        botões do mockup já existem como ações reais nesta tela — "Filtros"
+        rola até a seção de filtros real (mesmos campos), "+ Novo lead" abre
+        o mesmo NovoLeadDialog real já usado no cadastro — nenhum botão
+        decorativo novo.
+      */}
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="font-serif text-lg text-navy">Funil comercial vivo</h2>
+        <div className="flex items-center gap-2">
+          <a
+            href="#leads-filtros"
+            className="rounded-full border border-navy/20 px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5"
+          >
+            Filtros
+          </a>
+          <button
+            type="button"
+            onClick={() => setNovoLeadAberto(true)}
+            className="rounded-full bg-navy px-3 py-1.5 text-xs font-medium text-cream hover:bg-navy/90"
+          >
+            + Novo lead
+          </button>
+        </div>
+      </div>
+
+      {/*
         Trio infográfico central (Proprietária, 13/10/2026 — mockup de
         referência "sem dados reais", layout aprovado, dado real aqui): 3
         cartões lado a lado. "Origem e qualidade" do mockup pedia uma nota
@@ -705,6 +731,7 @@ function LeadsPage() {
             <ImportarTriagemScan />
           </div>
 
+          <div id="leads-filtros" className="scroll-mt-24" />
           <Secao titulo="Filtros" descricao="Todos os campos classificatórios são listas fechadas.">
             <div className="grid gap-3">
               <Texto label="Buscar por nome, código ou e-mail" valor={busca} onChange={setBusca} />
