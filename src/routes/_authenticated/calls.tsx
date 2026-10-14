@@ -1,16 +1,25 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
+import { CrmKanban } from "@/components/clube-ancestral-kit";
 import { PainelCalls } from "@/components/crm/painel-calls";
-import { ComercialConectado } from "@/components/desk/superficies-kit-conectadas";
+import { colunasPorEtapaComercial } from "@/components/desk/superficies-kit-conectadas";
 import { ErroSuperficieDesk } from "@/components/saas/erro-superficie";
 import { SaasShell } from "@/components/saas/shell";
-import { listarLeadsDesk } from "@/lib/crm-desk.functions";
-import { rotulo, type LeadDesk } from "@/lib/crm-desk";
+import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
+import { CATALOGOS, rotulo, type LeadDesk } from "@/lib/crm-desk";
 import { estadoCall, ROTULO_ESTADO_CALL, type EstadoCall } from "@/lib/painel-calls";
-import { ETAPAS_SPIN, perguntasDaEtapa, progressoSpin, ROTULO_CAMPO_ROTEIRO, type EtapaSpin } from "@/lib/discovery-roteiro";
+import {
+  ETAPAS_SPIN,
+  META_CAMPO_ROTEIRO,
+  perguntasDaEtapa,
+  progressoSpin,
+  ROTULO_CAMPO_ROTEIRO,
+  type EtapaSpin,
+} from "@/lib/discovery-roteiro";
+import { podeExecutarHandoffDiscovery } from "@/lib/handoff-discovery";
 import { Etiqueta, Pessoa, type Tom } from "@/components/prancha-v4/kit";
 import { CaCard } from "@/components/ui/ca-card";
 
@@ -68,29 +77,109 @@ function mesmoDia(v: string | null | undefined, hojeStr: string): boolean {
   return !!v && String(v).slice(0, 10) === hojeStr;
 }
 
+/** Todos os campos reais do roteiro SPIN desta etapa (preenchidos ou não). */
+function camposDaEtapa(etapa: EtapaSpin): string[] {
+  return [...new Set(perguntasDaEtapa(etapa).flatMap((p) => p.campos))];
+}
+
 /**
- * Valores JÁ RESPONDIDOS do lead por campo do roteiro SPIN (ROTULO_CAMPO_ROTEIRO).
- * Só retorna campos preenchidos — quem responde pergunta por pergunta, uma de
- * cada vez, é o roteiro vivo real (MesaDiscovery/renderCampoRoteiro, dentro de
- * PainelCalls logo abaixo); este painel é um resumo de leitura do que ele já
- * gravou, não uma segunda superfície de edição nem uma lista de "não registrado".
+ * Qualificação ao vivo, campo a campo — mesma mutação real (salvarLeadDesk)
+ * que PainelCalls já usa. Campos de tipo select/texto/numero/data (a maioria
+ * do roteiro) ficam editáveis aqui mesmo; multi/trilha/marco (que dependem de
+ * listas externas — países, trilhas e marcos jurídicos) continuam só leitura
+ * aqui, com link para o roteiro vivo completo dentro de PainelCalls.
  */
-function valoresEtapa(l: LeadDesk, etapa: EtapaSpin): { campo: string; rotuloCampo: string; valor: string }[] {
-  const campos = [...new Set(perguntasDaEtapa(etapa).flatMap((p) => p.campos))];
-  return campos
-    .map((campo) => {
-      const v = (l as unknown as Record<string, unknown>)[campo];
-      let valor: string | null;
-      if (v === null || v === undefined || v === "") valor = null;
-      else if (Array.isArray(v)) valor = v.length ? v.map((x) => rotulo(campo, String(x))).join(", ") : null;
-      else valor = rotulo(campo, String(v));
-      return valor === null ? null : { campo, rotuloCampo: ROTULO_CAMPO_ROTEIRO[campo] ?? campo, valor };
-    })
-    .filter((v): v is { campo: string; rotuloCampo: string; valor: string } => v !== null);
+function ControleCampoSpin({
+  lead,
+  campo,
+  onSalvar,
+  pendente,
+  erro,
+}: {
+  lead: LeadDesk;
+  campo: string;
+  onSalvar: (campo: string, valor: string | null) => void;
+  pendente: boolean;
+  erro?: string;
+}) {
+  const meta = META_CAMPO_ROTEIRO[campo];
+  const valorAtual = (lead as unknown as Record<string, unknown>)[campo];
+  const rotuloCampo = ROTULO_CAMPO_ROTEIRO[campo] ?? campo;
+  const somenteLeitura = !meta || meta.tipo === "multi" || meta.tipo === "trilha" || meta.tipo === "marco";
+
+  if (somenteLeitura) {
+    const valorTexto = Array.isArray(valorAtual)
+      ? valorAtual.length
+        ? valorAtual.map((x) => rotulo(campo, String(x))).join(", ")
+        : "não registrado"
+      : valorAtual
+        ? rotulo(campo, String(valorAtual))
+        : "não registrado";
+    return (
+      <div className="text-xs">
+        <dt className="text-navy/50">{rotuloCampo}</dt>
+        <dd className="text-navy">{valorTexto}</dd>
+        <a href="#calls-roteiro-vivo" className="text-[11px] font-medium text-navy underline">
+          Editar no roteiro vivo →
+        </a>
+      </div>
+    );
+  }
+
+  const comum = "mt-0.5 w-full rounded-lg border border-navy/15 bg-card px-2 py-1 text-xs text-navy";
+  return (
+    <div className="text-xs">
+      <label className="block text-navy/50">
+        {rotuloCampo}
+        {meta.tipo === "select" ? (
+          <select
+            className={comum}
+            value={typeof valorAtual === "string" ? valorAtual : ""}
+            disabled={pendente}
+            onChange={(e) => onSalvar(campo, e.target.value || null)}
+          >
+            <option value="">Não registrado</option>
+            {(CATALOGOS[campo] ?? []).map((o) => (
+              <option key={o.valor} value={o.valor}>
+                {o.rotulo}
+              </option>
+            ))}
+          </select>
+        ) : meta.tipo === "numero" ? (
+          <input
+            type="number"
+            className={comum}
+            defaultValue={typeof valorAtual === "number" ? valorAtual : ""}
+            disabled={pendente}
+            onBlur={(e) => onSalvar(campo, e.target.value === "" ? null : e.target.value)}
+          />
+        ) : meta.tipo === "data" ? (
+          <input
+            type="date"
+            className={comum}
+            defaultValue={typeof valorAtual === "string" ? valorAtual.slice(0, 10) : ""}
+            disabled={pendente}
+            onBlur={(e) => onSalvar(campo, e.target.value || null)}
+          />
+        ) : (
+          <input
+            type="text"
+            className={comum}
+            defaultValue={typeof valorAtual === "string" ? valorAtual : ""}
+            disabled={pendente}
+            onBlur={(e) => onSalvar(campo, e.target.value.trim() || null)}
+          />
+        )}
+      </label>
+      {erro ? <p className="mt-0.5 text-[11px] text-terracotta">{erro}</p> : null}
+    </div>
+  );
 }
 
 function CallsPage() {
   const { lead } = Route.useSearch();
+  const qc = useQueryClient();
+  const [aviso, setAviso] = useState<string | null>(null);
 
   const carregarLeads = useServerFn(listarLeadsDesk);
   const qLeads = useQuery({
@@ -100,6 +189,58 @@ function CallsPage() {
     queryFn: () => carregarLeads(),
     retry: false,
   });
+
+  // Confirmação rápida de consentimento: mesma função real (salvarLeadDesk)
+  // já usada pelo card "Consentimento" dentro de PainelCalls — não é uma
+  // segunda implementação, é a mesma mutação, acionada por um botão.
+  const salvarLead = useServerFn(salvarLeadDesk);
+  const mutarConsentimento = useMutation({
+    mutationFn: (leadId: string) =>
+      salvarLead({
+        data: {
+          id: leadId,
+          valores: {
+            consentimento_status: "concedido",
+            consentimento_canal: "verbal_em_call",
+            consentimento_em: new Date().toISOString(),
+          },
+        },
+      }),
+    onSuccess: (res) => {
+      if (!res.ok) {
+        setAviso(res.erros?.[0]?.motivo ?? "Não foi possível registrar o consentimento.");
+        return;
+      }
+      setAviso(null);
+      void qc.invalidateQueries({ queryKey: ["leads-desk"] });
+    },
+    onError: () => setAviso("Falha ao registrar o consentimento."),
+  });
+
+  // Qualificação ao vivo do roteiro SPIN — mesma mutação real (salvarLeadDesk)
+  // por campo, com controle de pendente/erro por campo para não travar a
+  // tela inteira numa única gravação.
+  const [campoPendente, setCampoPendente] = useState<string | null>(null);
+  const [errosCampo, setErrosCampo] = useState<Record<string, string>>({});
+  async function gravarCampoSpin(leadId: string, campo: string, valor: string | null) {
+    setCampoPendente(campo);
+    try {
+      const res = await salvarLead({ data: { id: leadId, valores: { [campo]: valor } } });
+      if (!res.ok) {
+        setErrosCampo((e) => ({ ...e, [campo]: res.erros?.[0]?.motivo ?? "Não foi possível salvar." }));
+      } else {
+        setErrosCampo((e) => {
+          const { [campo]: _descartado, ...resto } = e;
+          return resto;
+        });
+        void qc.invalidateQueries({ queryKey: ["leads-desk"] });
+      }
+    } catch {
+      setErrosCampo((e) => ({ ...e, [campo]: "Falha ao salvar." }));
+    } finally {
+      setCampoPendente(null);
+    }
+  }
 
   const leadsReais = useMemo(
     () => ((qLeads.data ?? []) as LeadDesk[]).filter((l) => l.dados_teste !== true && !l.archived_at),
@@ -128,6 +269,13 @@ function CallsPage() {
     () => (lead ? leadsReais.find((l) => l.id === lead) : undefined) ?? agendaDoDia[0] ?? leadsReais[0],
     [lead, leadsReais, agendaDoDia],
   );
+
+  // Gate real do handoff (lib/handoff-discovery.ts) — a mesma função que
+  // PainelCalls usa para liberar/bloquear o botão de handoff lá dentro.
+  // Aqui ela só decide se o atalho fica habilitado e qual motivo mostrar;
+  // quem executa o handoff de verdade (com a conferência de pessoa/caso)
+  // continua sendo exclusivamente PainelCalls, em #calls-handoff.
+  const gateHandoff = selecionado ? podeExecutarHandoffDiscovery(selecionado) : { ok: false, motivo: "Selecione um lead" };
 
   return (
     <SaasShell
@@ -159,9 +307,17 @@ function CallsPage() {
         </div>
       </div>
 
-      <div className="mb-6">
-        <ComercialConectado />
-      </div>
+      {/*
+        A barra "Funil comercial" (ComercialTemplate) foi retirada daqui por
+        pedido explícito da Proprietária: o funil já é a tela canônica de
+        /leads (PR #157) e ficava duplicado em /calls. O pipeline Kanban por
+        etapa comercial — elemento real e conectado, não decorativo — continua,
+        lido da mesma classificação real (`colunasPorEtapaComercial`,
+        `etapaComercialDoLead`) que o Comercial Conectado original usava.
+      */}
+      <CaCard titulo="Pipeline comercial" eyebrow="Marketing & Comercial · Por etapa real (eixo_comercial)" className="mb-6 rounded-2xl p-6">
+        <CrmKanban columns={colunasPorEtapaComercial(leadsReais as unknown as Record<string, unknown>[])} />
+      </CaCard>
 
       <div className="mb-6 flex items-center justify-between gap-3">
         <h2 className="font-serif text-lg text-navy">Mesa de Discovery</h2>
@@ -181,120 +337,143 @@ function CallsPage() {
         </div>
       </div>
 
-      <CaCard
-        titulo="Agenda de Discovery do Dia"
-        eyebrow="Mesa de Discovery · Horário, lead, canal, via preliminar e status"
-        className="mb-6 rounded-2xl p-6"
-      >
-        {agendaDoDia.length === 0 ? (
-          <p className="text-sm text-navy/55">Nenhuma call agendada para hoje no pipeline real.</p>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {agendaDoDia.map((l) => {
-              const estado = estadoCall(l);
-              const ativo = selecionado?.id === l.id;
-              return (
-                <Link
-                  key={l.id}
-                  to="/calls"
-                  search={{ lead: l.id }}
-                  className={`flex flex-col gap-2 rounded-xl border p-4 text-sm transition-colors ${
-                    ativo ? "border-navy/40 bg-navy/5" : "border-border bg-card hover:bg-navy/5"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="tabular-nums text-xs text-navy/70">{horarioCall(l.call_agendada_em)}</span>
-                    <Etiqueta texto={ROTULO_ESTADO_CALL[estado]} tom={TOM_ESTADO_CALL[estado]} />
-                  </div>
-                  <Pessoa nome={l.nome} papel={l.responsavel_nome || "sem responsável"} />
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Etiqueta texto={l.origem ? rotulo("origem", l.origem) : "Origem não informada"} tom="neutro" />
-                  </div>
-                  <p className="text-[11px] text-navy/55">
-                    {l.via_juridica_preliminar
-                      ? `Via preliminar: ${rotulo("via_juridica_preliminar", l.via_juridica_preliminar)}`
-                      : "Via preliminar: não registrada"}
-                  </p>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </CaCard>
+      <div className="mb-6 grid gap-6 lg:grid-cols-2">
+        {/* Coluna da esquerda: Agenda & Consentimento */}
+        <div className="space-y-6">
+          <CaCard
+            titulo="Agenda de Discovery do Dia"
+            eyebrow="Mesa de Discovery · Horário, lead, canal e status"
+            className="rounded-2xl p-6"
+          >
+            {agendaDoDia.length === 0 ? (
+              <p className="text-sm text-navy/55">Nenhuma call agendada para hoje no pipeline real.</p>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {agendaDoDia.map((l) => {
+                  const estado = estadoCall(l);
+                  const ativo = selecionado?.id === l.id;
+                  return (
+                    <Link
+                      key={l.id}
+                      to="/calls"
+                      search={{ lead: l.id }}
+                      className={`flex flex-col gap-2 rounded-xl border p-4 text-sm transition-colors ${
+                        ativo ? "border-navy/40 bg-navy/5" : "border-border bg-card hover:bg-navy/5"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="tabular-nums text-xs text-navy/70">{horarioCall(l.call_agendada_em)}</span>
+                        <Etiqueta texto={ROTULO_ESTADO_CALL[estado]} tom={TOM_ESTADO_CALL[estado]} />
+                      </div>
+                      <Pessoa nome={l.nome} papel={l.responsavel_nome || "sem responsável"} />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Etiqueta texto={l.origem ? rotulo("origem", l.origem) : "Origem não informada"} tom="neutro" />
+                      </div>
+                      <p className="text-[11px] text-navy/55">
+                        {l.via_juridica_preliminar
+                          ? `Via preliminar: ${rotulo("via_juridica_preliminar", l.via_juridica_preliminar)}`
+                          : "Via preliminar: não registrada"}
+                      </p>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </CaCard>
 
-      <CaCard
-        titulo="Consentimento & Gravação"
-        eyebrow="Mesa de Discovery · Lead selecionado na agenda"
-        className="mb-6 rounded-2xl p-6"
-      >
-        {!selecionado ? (
-          <p className="text-sm text-navy/55">Selecione um lead na agenda do dia.</p>
-        ) : (
-          <div className="space-y-3">
-            <Pessoa nome={selecionado.nome} papel={selecionado.responsavel_nome || "sem responsável"} />
-            <Etiqueta
-              texto={rotulo("consentimento_status", selecionado.consentimento_status ?? "nao_solicitado")}
-              tom={TOM_CONSENTIMENTO[selecionado.consentimento_status ?? "nao_solicitado"] ?? "neutro"}
-            />
-            <p className="text-xs text-navy/65">
-              Canal:{" "}
-              {selecionado.consentimento_canal ? rotulo("consentimento_canal", selecionado.consentimento_canal) : "não registrado"}
-              {" · "}
-              Registrado em: {selecionado.consentimento_em ? horarioCall(selecionado.consentimento_em) : "não registrado"}
-            </p>
-            <p className="text-xs text-navy/65">
-              Gravação: {selecionado.gravacao_link_interno || "não registrada"}
-            </p>
-          </div>
-        )}
-      </CaCard>
+          <CaCard
+            titulo="Consentimento & Gravação"
+            eyebrow="Mesa de Discovery · Lead selecionado na agenda"
+            className="rounded-2xl p-6"
+          >
+            {!selecionado ? (
+              <p className="text-sm text-navy/55">Selecione um lead na agenda do dia.</p>
+            ) : (
+              <div className="space-y-3">
+                <Pessoa nome={selecionado.nome} papel={selecionado.responsavel_nome || "sem responsável"} />
+                <Etiqueta
+                  texto={rotulo("consentimento_status", selecionado.consentimento_status ?? "nao_solicitado")}
+                  tom={TOM_CONSENTIMENTO[selecionado.consentimento_status ?? "nao_solicitado"] ?? "neutro"}
+                />
+                <p className="text-xs text-navy/65">
+                  Canal:{" "}
+                  {selecionado.consentimento_canal ? rotulo("consentimento_canal", selecionado.consentimento_canal) : "não registrado"}
+                  {" · "}
+                  Registrado em: {selecionado.consentimento_em ? horarioCall(selecionado.consentimento_em) : "não registrado"}
+                </p>
+                <p className="text-xs text-navy/65">Gravação: {selecionado.gravacao_link_interno || "não registrada"}</p>
+                {selecionado.consentimento_status !== "concedido" ? (
+                  <button
+                    type="button"
+                    onClick={() => mutarConsentimento.mutate(selecionado.id!)}
+                    disabled={mutarConsentimento.isPending}
+                    className="rounded-full bg-navy px-4 py-1.5 text-xs font-medium text-cream hover:bg-navy/90 disabled:opacity-50"
+                  >
+                    {mutarConsentimento.isPending ? "Registrando…" : "Confirmar consentimento (verbal, nesta call)"}
+                  </button>
+                ) : null}
+                {aviso ? <p className="text-xs text-terracotta">{aviso}</p> : null}
+              </div>
+            )}
+          </CaCard>
+        </div>
 
-      <div id="calls-spin" className="scroll-mt-24">
-        <CaCard
-          titulo="Roteiro SPIN & Diagnóstico"
-          eyebrow="Situação · Problema · Implicação · Necessidade"
-          className="mb-6 rounded-2xl p-6"
-        >
-          {!selecionado ? (
-            <p className="text-sm text-navy/55">Selecione um lead na agenda do dia para ver o roteiro.</p>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {ETAPAS_SPIN.map((e) => {
-                const progresso = progressoSpin(selecionado).find((p) => p.chave === e.chave)!;
-                const valores = valoresEtapa(selecionado, e.chave);
-                return (
-                  <div key={e.chave} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-                    <div className="flex items-center justify-between gap-2">
-                      <h4 className="font-serif text-sm text-navy">{e.rotulo}</h4>
-                      <Etiqueta
-                        texto={`${progresso.preenchidas}/${progresso.total}`}
-                        tom={progresso.completo ? "sucesso" : progresso.preenchidas > 0 ? "atencao" : "neutro"}
-                      />
-                    </div>
-                    <p className="mt-1 text-[11px] text-navy/55">{e.paraQue}</p>
-                    {valores.length > 0 ? (
-                      <dl className="mt-3 space-y-1.5">
-                        {valores.map((v) => (
-                          <div key={v.campo} className="text-xs">
-                            <dt className="text-navy/50">{v.rotuloCampo}</dt>
-                            <dd className="text-navy">{v.valor}</dd>
-                          </div>
+        {/* Coluna da direita: Mesa Discovery & Roteiro SPIN ativo */}
+        <div id="calls-spin" className="scroll-mt-24 space-y-6">
+          <CaCard
+            titulo="Roteiro SPIN & Diagnóstico"
+            eyebrow="Situação · Problema · Implicação · Necessidade"
+            className="rounded-2xl p-6"
+          >
+            {!selecionado ? (
+              <p className="text-sm text-navy/55">Selecione um lead na agenda do dia para ver o roteiro.</p>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {ETAPAS_SPIN.map((e) => {
+                  const progresso = progressoSpin(selecionado).find((p) => p.chave === e.chave)!;
+                  const campos = camposDaEtapa(e.chave);
+                  return (
+                    <div key={e.chave} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="font-serif text-sm text-navy">{e.rotulo}</h4>
+                        <Etiqueta
+                          texto={`${progresso.preenchidas}/${progresso.total}`}
+                          tom={progresso.completo ? "sucesso" : progresso.preenchidas > 0 ? "atencao" : "neutro"}
+                        />
+                      </div>
+                      <p className="mt-1 text-[11px] text-navy/55">{e.paraQue}</p>
+                      <dl className="mt-3 space-y-2.5">
+                        {campos.map((campo) => (
+                          <ControleCampoSpin
+                            key={campo}
+                            lead={selecionado}
+                            campo={campo}
+                            onSalvar={(c, v) => void gravarCampoSpin(selecionado.id!, c, v)}
+                            pendente={campoPendente === campo}
+                            erro={errosCampo[campo]}
+                          />
                         ))}
                       </dl>
-                    ) : (
-                      <p className="mt-3 text-xs text-navy/55">Ainda sem resposta registrada nesta etapa.</p>
-                    )}
-                    {!progresso.completo ? (
-                      <a href="#calls-roteiro-vivo" className="mt-3 inline-block text-xs font-medium text-navy underline">
-                        Continuar no roteiro vivo →
-                      </a>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CaCard>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CaCard>
+
+          <a
+            href="#calls-handoff"
+            aria-disabled={!gateHandoff.ok}
+            className={`block rounded-2xl px-5 py-4 text-center text-sm font-semibold transition-colors ${
+              gateHandoff.ok
+                ? "bg-navy text-cream hover:bg-navy/90"
+                : "pointer-events-none cursor-not-allowed bg-navy/10 text-navy/40"
+            }`}
+          >
+            Concluir Discovery e Gerar Proposta
+          </a>
+          {!gateHandoff.ok ? <p className="text-center text-xs text-navy/55">{gateHandoff.motivo}</p> : null}
+        </div>
       </div>
 
       <PainelCalls leadIdInicial={selecionado?.id ?? lead} />

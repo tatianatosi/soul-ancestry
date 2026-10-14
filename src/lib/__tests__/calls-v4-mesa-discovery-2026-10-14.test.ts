@@ -14,9 +14,28 @@ import { describe, expect, it } from "vitest";
  * rótulo já marca "hipótese... pendente de validação humana" — nunca
  * tratada como rota confirmada), e o roteiro SPIN passou de barras de
  * progresso soltas para 4 blocos com os campos reais do lead
- * (ROTULO_CAMPO_ROTEIRO), nunca texto fixo por bloco. Todos os blocos
- * leem leads reais (listarLeadsDesk, mesma queryKey "leads-desk" do
- * PainelCalls) — nenhuma call, lead ou taxa de exemplo.
+ * (ROTULO_CAMPO_ROTEIRO), nunca texto fixo por bloco.
+ * Terceira rodada (14/10/2026, "ESPECIFICAÇÃO DE UI DEFINITIVA"): a barra
+ * "Funil comercial" (ComercialConectado/ComercialTemplate) saiu de /calls —
+ * duplicava o funil canônico de /leads (PR #157); o Kanban real por etapa
+ * comercial continua, via CrmKanban + colunasPorEtapaComercial (exportada
+ * de superficies-kit-conectadas.tsx, mesma classificação real de antes).
+ * Mesa em 2 colunas (Agenda & Consentimento | Roteiro SPIN & Handoff).
+ * "Confirmar consentimento" e "Concluir Discovery e Gerar Proposta" são
+ * ações reais: a primeira chama a mesma mutação (salvarLeadDesk) que
+ * PainelCalls já usa; a segunda usa o mesmo gate (podeExecutarHandoffDiscovery)
+ * para habilitar/desabilitar — a execução do handoff em si, com a
+ * conferência de pessoa/caso, continua exclusiva de PainelCalls.
+ * Também na terceira rodada, sob autorização executiva explícita: os campos
+ * do roteiro SPIN de tipo select/texto/numero/data (a maioria dos 28 campos
+ * reais) passam a ser editáveis ao vivo nesta própria tela — não mais só
+ * leitura — gravando pela MESMA mutação real (salvarLeadDesk) que
+ * PainelCalls já usa, com invalidação do mesmo cache ("leads-desk"), então
+ * os dois lados continuam em sincronia. Só os campos relacionais que
+ * dependem de listas externas (países/trilhas/marcos: multi, trilha, marco)
+ * continuam só leitura aqui, com link para o roteiro vivo completo.
+ * Todos os blocos leem leads reais (listarLeadsDesk, mesma queryKey
+ * "leads-desk" do PainelCalls) — nenhuma call, lead ou taxa de exemplo.
  */
 const rota = readFileSync("src/routes/_authenticated/calls.tsx", "utf8");
 const painel = readFileSync("src/components/crm/painel-calls.tsx", "utf8");
@@ -58,20 +77,31 @@ describe("Calls V4 — Agenda de Discovery do Dia (grid aberto, sem <details>)",
   });
 });
 
-describe("Calls V4 — Roteiro SPIN & Diagnóstico: resumo de leitura dos 4 blocos (S/P/I/N), nunca uma segunda superfície de edição", () => {
-  it("cada bloco mostra só os campos reais JÁ RESPONDIDOS (ROTULO_CAMPO_ROTEIRO), nunca uma parede de 'não registrado'", () => {
+describe("Calls V4 — Roteiro SPIN & Diagnóstico: qualificação ao vivo, campo a campo, sobre a mesma mutação real", () => {
+  it("cada etapa lista os campos reais do roteiro (camposDaEtapa/perguntasDaEtapa), rotulados por ROTULO_CAMPO_ROTEIRO", () => {
     expect(rota).toContain('from "@/lib/discovery-roteiro"');
+    expect(rota).toContain("function camposDaEtapa(");
     expect(rota).toContain("perguntasDaEtapa(etapa)");
     expect(rota).toContain("ROTULO_CAMPO_ROTEIRO[campo]");
     expect(rota).toContain("progressoSpin(selecionado)");
     expect(rota).toContain("ETAPAS_SPIN.map((e) =>");
-    // valoresEtapa só retorna campos preenchidos — quem responde pergunta a
-    // pergunta é o roteiro vivo real (MesaDiscovery), não este resumo.
-    expect(rota).toContain("return valor === null ? null :");
-    expect(rota).not.toContain('valor = "não registrado"');
   });
 
-  it("quando a etapa não está completa, um link real aponta para o roteiro vivo (MesaDiscovery) dentro de PainelCalls — nunca um campo redigitado aqui", () => {
+  it("terceira rodada (14/10/2026, 'ESPECIFICAÇÃO DE UI DEFINITIVA'): campos select/texto/numero/data ficam editáveis ao vivo na própria tela, gravando pela mesma mutação real (salvarLeadDesk) que PainelCalls usa — nunca uma implementação paralela", () => {
+    expect(rota).toContain("function ControleCampoSpin(");
+    expect(rota).toContain("META_CAMPO_ROTEIRO[campo]");
+    expect(rota).toContain('meta.tipo === "select"');
+    expect(rota).toContain('meta.tipo === "numero"');
+    expect(rota).toContain('meta.tipo === "data"');
+    expect(rota).toContain("async function gravarCampoSpin(leadId: string, campo: string, valor: string | null)");
+    expect(rota).toContain("salvarLead({ data: { id: leadId, valores: { [campo]: valor } } })");
+    // mesma invalidação de cache que PainelCalls usa após salvar — os dois
+    // lados continuam em sincronia porque leem a mesma queryKey.
+    expect(rota).toContain('void qc.invalidateQueries({ queryKey: ["leads-desk"] });');
+  });
+
+  it("campos relacionais (multi/trilha/marco — dependem de listas externas de países/trilhas/marcos) continuam só leitura aqui, com link real para o roteiro vivo completo dentro de PainelCalls", () => {
+    expect(rota).toContain('meta.tipo === "multi" || meta.tipo === "trilha" || meta.tipo === "marco"');
     expect(rota).toContain('href="#calls-roteiro-vivo"');
     expect(painel).toContain('id="calls-roteiro-vivo"');
     const trecho = painel.slice(painel.indexOf('id="calls-roteiro-vivo"'), painel.indexOf('id="calls-roteiro-vivo"') + 200);
@@ -105,10 +135,42 @@ describe("Calls V4 — Handoff rápido aponta para o handoff real já existente"
   });
 });
 
-describe("Calls V4 — ComercialConectado (funil + kanban conectado) presente", () => {
-  it("a Proprietária pediu a restauração deste elemento aprovado — continua importado e renderizado", () => {
-    expect(rota).toContain('import { ComercialConectado } from "@/components/desk/superficies-kit-conectadas"');
-    expect(rota).toContain("<ComercialConectado />");
+describe("Calls V4 — terceira rodada (14/10/2026): funil comercial duplicado removido, Kanban real mantido", () => {
+  it('a barra "Funil comercial" (ComercialConectado/ComercialTemplate) saiu de /calls — o funil canônico vive em /leads (PR #157)', () => {
+    expect(rota).not.toContain("<ComercialConectado");
+    expect(rota).not.toContain('import { ComercialConectado }');
+  });
+
+  it("o pipeline Kanban por etapa comercial continua — elemento real e conectado, lido da mesma classificação real que ComercialConectado usava", () => {
+    expect(rota).toContain('import { CrmKanban } from "@/components/clube-ancestral-kit"');
+    expect(rota).toContain('import { colunasPorEtapaComercial } from "@/components/desk/superficies-kit-conectadas"');
+    expect(rota).toContain("<CrmKanban columns={colunasPorEtapaComercial(");
+  });
+});
+
+describe("Calls V4 — terceira rodada: mesa em 2 colunas (Agenda & Consentimento | Roteiro SPIN & Handoff)", () => {
+  it("grid de 2 colunas no desktop (lg:grid-cols-2) agrupando os blocos nessa ordem", () => {
+    const trecho = rota.slice(rota.indexOf('className="mb-6 grid gap-6 lg:grid-cols-2"'));
+    expect(trecho.indexOf("Agenda de Discovery do Dia")).toBeGreaterThan(-1);
+    expect(trecho.indexOf("Consentimento & Gravação")).toBeGreaterThan(trecho.indexOf("Agenda de Discovery do Dia"));
+    expect(trecho.indexOf("Roteiro SPIN")).toBeGreaterThan(trecho.indexOf("Consentimento & Gravação"));
+    expect(trecho.indexOf("Concluir Discovery e Gerar Proposta")).toBeGreaterThan(trecho.indexOf("Roteiro SPIN"));
+  });
+});
+
+describe("Calls V4 — terceira rodada: confirmação de consentimento e handoff de destaque são ações reais, não decorativas", () => {
+  it('botão "Confirmar consentimento" chama a mesma mutação real (salvarLeadDesk) já usada por PainelCalls, com canal real (verbal_em_call)', () => {
+    expect(rota).toContain('import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions"');
+    expect(rota).toContain("mutarConsentimento.mutate(selecionado.id!)");
+    expect(rota).toContain('consentimento_canal: "verbal_em_call"');
+    expect(rota).toContain('queryKey: ["leads-desk"]');
+  });
+
+  it('botão "Concluir Discovery e Gerar Proposta" usa o gate real do handoff (podeExecutarHandoffDiscovery) para habilitar/desabilitar e mostrar o motivo — a execução em si continua só em PainelCalls', () => {
+    expect(rota).toContain('import { podeExecutarHandoffDiscovery } from "@/lib/handoff-discovery"');
+    expect(rota).toContain("const gateHandoff = selecionado ? podeExecutarHandoffDiscovery(selecionado)");
+    expect(rota).toContain("Concluir Discovery e Gerar Proposta");
+    expect(rota).toContain("{gateHandoff.motivo}");
   });
 });
 
