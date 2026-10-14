@@ -1135,6 +1135,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 titulo="Decisão e handoff"
                 descricao="O handoff só é liberado com registro completo, qualificação registrada e responsável, próxima ação e prazo definidos."
               >
+                <div id="calls-handoff" className="scroll-mt-24" />
                 <p className="text-xs text-navy/65">
                   Destino derivado:{" "}
                   <strong>
