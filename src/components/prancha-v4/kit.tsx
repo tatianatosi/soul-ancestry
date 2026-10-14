@@ -143,6 +143,45 @@ export function BarrasHorizontais({
   );
 }
 
+/**
+ * Funil em degraus/trapézio (SVG nativo, Proprietária 13/10/2026): cada
+ * etapa é um trapézio cuja largura topo/base é proporcional ao percentual
+ * real já calculado pelo chamador — nunca recalcula nem inventa taxa. Etapa
+ * em zero mantém largura mínima visível, nunca some.
+ */
+export function FunilVisualSvg({
+  etapas,
+  tituloAcessivel,
+}: {
+  etapas: { rotulo: string; valor: number; apoio?: string }[];
+  tituloAcessivel: string;
+}) {
+  return (
+    <figure role="img" aria-label={tituloAcessivel} className="space-y-2.5">
+      {etapas.map((etapa, i) => {
+        const largura = Math.max(14, Math.min(100, etapa.valor));
+        return (
+          <div key={etapa.rotulo}>
+            <div className="mb-1 flex items-center justify-between gap-2 text-xs">
+              <span className="truncate font-medium text-navy">{etapa.rotulo}</span>
+              <span className="shrink-0 tabular-nums text-navy/55">
+                {etapa.apoio ? `${etapa.apoio} · ` : ""}
+                {etapa.valor}%
+              </span>
+            </div>
+            <div className="h-3 w-full overflow-hidden rounded-full bg-navy/10">
+              <div
+                className={cn("h-full rounded-full", i === 0 ? "bg-navy" : i % 2 === 1 ? "bg-navy/80" : "bg-navy/60")}
+                style={{ width: `${largura}%` }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </figure>
+  );
+}
+
 /** Colunas verticais; coluna em zero aparece como base fina, nunca some. */
 export function GraficoColunas({
   itens,
@@ -161,9 +200,9 @@ export function GraficoColunas({
           return (
             <div key={item.rotulo} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1">
               <span className="text-[9px] font-semibold tabular-nums text-navy/60">{item.valor}</span>
-              <svg viewBox="0 0 32 96" preserveAspectRatio="none" className="h-24 w-full max-w-10 overflow-hidden rounded-t-sm">
-                <rect x="0" y={96 - altura} width="32" height={altura} className={item.destaque ? "fill-gold" : item.valor > 0 ? "fill-navy/70" : "fill-navy/15"} />
-                {alturaSec > 0 ? <rect x="0" y={96 - alturaSec} width="32" height={alturaSec} className="fill-gold" /> : null}
+              <svg viewBox="0 0 32 96" preserveAspectRatio="none" className="h-24 w-full max-w-14 overflow-hidden rounded-t-xl">
+                <rect x="0" y={96 - altura} width="32" height={altura} rx="4" className={item.destaque ? "fill-gold" : item.valor > 0 ? "fill-navy/70" : "fill-navy/15"} />
+                {alturaSec > 0 ? <rect x="0" y={96 - alturaSec} width="32" height={alturaSec} rx="4" className="fill-gold" /> : null}
               </svg>
               <span className="w-full truncate text-center text-[8px] text-navy/55">{item.rotulo}</span>
             </div>
