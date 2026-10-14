@@ -68,17 +68,25 @@ function mesmoDia(v: string | null | undefined, hojeStr: string): boolean {
   return !!v && String(v).slice(0, 10) === hojeStr;
 }
 
-/** Valores reais do lead por campo do roteiro SPIN (ROTULO_CAMPO_ROTEIRO), não texto fixo por bloco. */
+/**
+ * Valores JÁ RESPONDIDOS do lead por campo do roteiro SPIN (ROTULO_CAMPO_ROTEIRO).
+ * Só retorna campos preenchidos — quem responde pergunta por pergunta, uma de
+ * cada vez, é o roteiro vivo real (MesaDiscovery/renderCampoRoteiro, dentro de
+ * PainelCalls logo abaixo); este painel é um resumo de leitura do que ele já
+ * gravou, não uma segunda superfície de edição nem uma lista de "não registrado".
+ */
 function valoresEtapa(l: LeadDesk, etapa: EtapaSpin): { campo: string; rotuloCampo: string; valor: string }[] {
   const campos = [...new Set(perguntasDaEtapa(etapa).flatMap((p) => p.campos))];
-  return campos.map((campo) => {
-    const v = (l as unknown as Record<string, unknown>)[campo];
-    let valor: string;
-    if (v === null || v === undefined || v === "") valor = "não registrado";
-    else if (Array.isArray(v)) valor = v.length ? v.map((x) => rotulo(campo, String(x))).join(", ") : "não registrado";
-    else valor = rotulo(campo, String(v));
-    return { campo, rotuloCampo: ROTULO_CAMPO_ROTEIRO[campo] ?? campo, valor };
-  });
+  return campos
+    .map((campo) => {
+      const v = (l as unknown as Record<string, unknown>)[campo];
+      let valor: string | null;
+      if (v === null || v === undefined || v === "") valor = null;
+      else if (Array.isArray(v)) valor = v.length ? v.map((x) => rotulo(campo, String(x))).join(", ") : null;
+      else valor = rotulo(campo, String(v));
+      return valor === null ? null : { campo, rotuloCampo: ROTULO_CAMPO_ROTEIRO[campo] ?? campo, valor };
+    })
+    .filter((v): v is { campo: string; rotuloCampo: string; valor: string } => v !== null);
 }
 
 function CallsPage() {
@@ -264,14 +272,23 @@ function CallsPage() {
                       />
                     </div>
                     <p className="mt-1 text-[11px] text-navy/55">{e.paraQue}</p>
-                    <dl className="mt-3 space-y-1.5">
-                      {valores.map((v) => (
-                        <div key={v.campo} className="text-xs">
-                          <dt className="text-navy/50">{v.rotuloCampo}</dt>
-                          <dd className="text-navy">{v.valor}</dd>
-                        </div>
-                      ))}
-                    </dl>
+                    {valores.length > 0 ? (
+                      <dl className="mt-3 space-y-1.5">
+                        {valores.map((v) => (
+                          <div key={v.campo} className="text-xs">
+                            <dt className="text-navy/50">{v.rotuloCampo}</dt>
+                            <dd className="text-navy">{v.valor}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    ) : (
+                      <p className="mt-3 text-xs text-navy/55">Ainda sem resposta registrada nesta etapa.</p>
+                    )}
+                    {!progresso.completo ? (
+                      <a href="#calls-roteiro-vivo" className="mt-3 inline-block text-xs font-medium text-navy underline">
+                        Continuar no roteiro vivo →
+                      </a>
+                    ) : null}
                   </div>
                 );
               })}

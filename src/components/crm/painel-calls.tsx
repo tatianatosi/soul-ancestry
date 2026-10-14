@@ -1088,6 +1088,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 passa a ter uma única superfície editável (o card SPIN),
                 nunca duas.
               */}
+              <div id="calls-roteiro-vivo" className="scroll-mt-24" />
               <MesaDiscovery
                 lead={lead}
                 indice={indicePergunta}

@@ -58,13 +58,24 @@ describe("Calls V4 — Agenda de Discovery do Dia (grid aberto, sem <details>)",
   });
 });
 
-describe("Calls V4 — Roteiro SPIN & Diagnóstico: 4 blocos reais (S/P/I/N)", () => {
-  it("cada bloco mostra os campos reais do roteiro (ROTULO_CAMPO_ROTEIRO), não uma descrição fixa redigitada", () => {
+describe("Calls V4 — Roteiro SPIN & Diagnóstico: resumo de leitura dos 4 blocos (S/P/I/N), nunca uma segunda superfície de edição", () => {
+  it("cada bloco mostra só os campos reais JÁ RESPONDIDOS (ROTULO_CAMPO_ROTEIRO), nunca uma parede de 'não registrado'", () => {
     expect(rota).toContain('from "@/lib/discovery-roteiro"');
     expect(rota).toContain("perguntasDaEtapa(etapa)");
     expect(rota).toContain("ROTULO_CAMPO_ROTEIRO[campo]");
     expect(rota).toContain("progressoSpin(selecionado)");
     expect(rota).toContain("ETAPAS_SPIN.map((e) =>");
+    // valoresEtapa só retorna campos preenchidos — quem responde pergunta a
+    // pergunta é o roteiro vivo real (MesaDiscovery), não este resumo.
+    expect(rota).toContain("return valor === null ? null :");
+    expect(rota).not.toContain('valor = "não registrado"');
+  });
+
+  it("quando a etapa não está completa, um link real aponta para o roteiro vivo (MesaDiscovery) dentro de PainelCalls — nunca um campo redigitado aqui", () => {
+    expect(rota).toContain('href="#calls-roteiro-vivo"');
+    expect(painel).toContain('id="calls-roteiro-vivo"');
+    const trecho = painel.slice(painel.indexOf('id="calls-roteiro-vivo"'), painel.indexOf('id="calls-roteiro-vivo"') + 200);
+    expect(trecho).toContain("<MesaDiscovery");
   });
 
   it("não existe texto fixo tipo 'Falta de certidões, divergência de nomes ou barreiras consulares' no lugar do dado real do lead", () => {
