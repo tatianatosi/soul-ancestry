@@ -38,9 +38,9 @@ describe("Comercial — paleta semântica enriquecida, sem cor fora do design sy
     expect(trecho).toContain("CLASSE_BADGE_CANAL[tomDoCanal(l.origem)]");
   });
 
-  it("barras de Saúde comercial & canais recebem tom por canal (BarrasHorizontais aceita navy/gold/terracotta)", () => {
-    const trecho = rota.slice(rota.indexOf("const distribuicaoCanais"), rota.indexOf("const leadsAtivosTabela"));
-    expect(trecho).toContain("tom: tomDoCanal(o.valor)");
+  it("barras de Qualidade por canal recebem tom por canal (BarrasHorizontais aceita navy/gold/terracotta)", () => {
+    const trecho = rota.slice(rota.indexOf("const leadsPorCanal"), rota.indexOf("const leadsAtivosTabela"));
+    expect(trecho).toContain("tom: tomDoCanal(c.origem.valor)");
   });
 
   it("estados de proposta e estagnação continuam usando sucesso/atencao/critico/neutro — tokens já existentes, não rose/amber/emerald do Tailwind cru", () => {

@@ -64,7 +64,7 @@ import {
   type IndicadorLeads,
 } from "@/lib/crm-vivo-metricas";
 import { CaCard } from "@/components/ui/ca-card";
-import { BarrasHorizontais, Etiqueta, FunilVisualSvg, Pessoa } from "@/components/prancha-v4/kit";
+import { BarrasHorizontais, Etiqueta, FunilVisualSvg, GraficoColunas, Pessoa } from "@/components/prancha-v4/kit";
 import { humano } from "@/lib/rotulos-golive";
 import { listarComercial, listarVinculos as listarVinculosComercial, totalInvestimentoMarketing } from "@/lib/comercial.functions";
 import { moeda as moedaBRL, dataBr } from "@/components/comercial/base";
@@ -279,11 +279,29 @@ function LeadsPage() {
     terracotta: "border-terracotta/30 bg-terracotta/10 text-terracotta",
   };
 
-  const distribuicaoCanais = ORIGENS_LEAD.map((o) => {
-    const total = pipelineLeads.filter((l) => l.origem === o.valor).length;
-    const percentual = pipelineLeads.length ? Math.round((total / pipelineLeads.length) * 100) : 0;
-    return { rotulo: o.rotulo, valor: percentual, apoio: `${total} leads`, tom: tomDoCanal(o.valor) };
-  }).filter((c) => c.valor > 0);
+  /*
+    Aquisição por canal (colunas, totais absolutos) e Qualidade por canal
+    (Proprietária, 13/10/2026): o mockup de referência pede uma 3ª coluna
+    "Origem e qualidade" com rótulos Alta/Boa/Média — não existe fonte real
+    para uma nota qualitativa por canal, então ela não entra; no lugar, a
+    taxa real de conversão a contrato por canal (mesmo etapaPipeline do
+    funil), que é o dado real mais próximo da intenção ("canal que mais
+    converte").
+  */
+  const leadsPorCanal = ORIGENS_LEAD.map((o) => ({ origem: o, leads: pipelineLeads.filter((l) => l.origem === o.valor) })).filter(
+    (c) => c.leads.length > 0,
+  );
+  const maiorCanal = Math.max(0, ...leadsPorCanal.map((c) => c.leads.length));
+  const aquisicaoPorCanal = leadsPorCanal.map((c) => ({
+    rotulo: c.origem.rotulo,
+    valor: c.leads.length,
+    destaque: c.leads.length === maiorCanal,
+  }));
+  const qualidadePorCanal = leadsPorCanal.map((c) => {
+    const convertidos = c.leads.filter((l) => etapaPipeline(l) === "contrato").length;
+    const percentual = Math.round((convertidos / c.leads.length) * 100);
+    return { rotulo: c.origem.rotulo, valor: percentual, apoio: `${convertidos} de ${c.leads.length}`, tom: tomDoCanal(c.origem.valor) };
+  });
 
   const leadsAtivosTabela = [...pipelineLeads]
     .sort((a, b) => (b.ultimo_followup_em ?? b.created_at ?? "").localeCompare(a.ultimo_followup_em ?? a.created_at ?? ""))
@@ -413,13 +431,50 @@ function LeadsPage() {
         Discovery sai daqui para não duplicar a dona do dado.
       */}
       {/*
-        Grid 2 colunas (menos scroll vertical, Proprietária 13/10/2026):
-        Funil comercial e Saúde comercial & canais lado a lado — mesmos
-        dados já computados (funilItens/distribuicaoCanais), só reorganizados.
+        Termômetro de conversão da carteira (Proprietária, 13/10/2026):
+        mesmo cálculo real já usado no KPI "Taxa de Conversão" do topo
+        (contratoCount ÷ pipelineLeads.length) — nenhuma meta mensal inventada.
       */}
-      <div className="mb-6 grid gap-6 lg:grid-cols-2">
+      <div className="mb-6" data-leads-termometro-conversao>
+        <div className="mb-1 flex items-center justify-between text-[11px] text-navy/60">
+          <span>Contratos fechados sobre o total de oportunidades</span>
+          <span className="tabular-nums">
+            {taxaConversao === null ? "Sem dados suficientes" : `${contratoCount} de ${pipelineLeads.length} · ${taxaConversao}%`}
+          </span>
+        </div>
+        <div className="h-2.5 w-full overflow-hidden rounded-full bg-navy/10">
+          <div className="h-full rounded-full bg-gold" style={{ width: `${taxaConversao ?? 0}%` }} />
+        </div>
+      </div>
+
+      {/*
+        Trio infográfico central (Proprietária, 13/10/2026 — mockup de
+        referência "sem dados reais", layout aprovado, dado real aqui): 3
+        cartões lado a lado. "Origem e qualidade" do mockup pedia uma nota
+        Alta/Boa/Média sem fonte real — substituída pela taxa de conversão
+        a contrato por canal (dado real mais próximo da intenção).
+      */}
+      <div className="mb-6 grid gap-6 lg:grid-cols-3">
         <CaCard
-          titulo="Funil comercial"
+          titulo="Aquisição por canal"
+          eyebrow="Comercial · Volume real por origem"
+          data-leads-aquisicao-canal
+          className="rounded-2xl p-6"
+        >
+          {aquisicaoPorCanal.length ? (
+            <GraficoColunas
+              itens={aquisicaoPorCanal}
+              tituloAcessivel={`Aquisição por canal: ${aquisicaoPorCanal.map((c) => `${c.rotulo} ${c.valor}`).join(", ")}`}
+            />
+          ) : (
+            <p className="text-sm text-navy/60" data-leads-aquisicao-canal-vazio>
+              Sem dados suficientes
+            </p>
+          )}
+        </CaCard>
+
+        <CaCard
+          titulo="Conversão por etapa"
           eyebrow="Comercial · Leads → Discovery → Diagnóstico → Proposta → Contrato"
           data-leads-funil
           className="rounded-2xl p-6"
@@ -434,35 +489,18 @@ function LeadsPage() {
         </CaCard>
 
         <CaCard
-          titulo="Saúde comercial & canais"
-          eyebrow="Comercial · Distribuição por canal e estagnação"
-          data-leads-saude-canais
+          titulo="Qualidade por canal"
+          eyebrow="Comercial · Taxa real de conversão a contrato"
+          data-leads-qualidade-canal
           className="rounded-2xl p-6"
         >
-          {/*
-            Termômetro de conversão da carteira (Proprietária, 13/10/2026):
-            mesmo cálculo real já usado no KPI "Taxa de Conversão" do topo
-            (contratoCount ÷ pipelineLeads.length) — só a representação
-            visual muda, nenhuma meta mensal inventada.
-          */}
-          <div className="mb-4" data-leads-termometro-conversao>
-            <div className="mb-1 flex items-center justify-between text-[11px] text-navy/60">
-              <span>Contratos fechados sobre o total de oportunidades</span>
-              <span className="tabular-nums">
-                {taxaConversao === null ? "Sem dados suficientes" : `${contratoCount} de ${pipelineLeads.length} · ${taxaConversao}%`}
-              </span>
-            </div>
-            <div className="h-2.5 w-full overflow-hidden rounded-full bg-navy/10">
-              <div className="h-full rounded-full bg-gold" style={{ width: `${taxaConversao ?? 0}%` }} />
-            </div>
-          </div>
-          {distribuicaoCanais.length ? (
+          {qualidadePorCanal.length ? (
             <BarrasHorizontais
-              itens={distribuicaoCanais}
-              tituloAcessivel={`Distribuição por canal: ${distribuicaoCanais.map((c) => `${c.rotulo} ${c.apoio}`).join(", ")}`}
+              itens={qualidadePorCanal}
+              tituloAcessivel={`Qualidade por canal: ${qualidadePorCanal.map((c) => `${c.rotulo} ${c.valor}%`).join(", ")}`}
             />
           ) : (
-            <p className="text-sm text-navy/60" data-leads-saude-canais-vazio>
+            <p className="text-sm text-navy/60" data-leads-qualidade-canal-vazio>
               Sem dados suficientes
             </p>
           )}

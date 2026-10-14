@@ -72,10 +72,11 @@ describe("Comercial — Bloco 5: Leads ativos", () => {
   });
 });
 
-describe("Comercial — Bloco 6: Saúde comercial & canais", () => {
-  it("distribuição por canal usa ORIGENS_LEAD real, sem canal inventado", () => {
-    expect(rota).toContain("data-leads-saude-canais");
-    expect(rota).toContain("const distribuicaoCanais = ORIGENS_LEAD.map");
+describe("Comercial — Aquisição/Qualidade por canal (trio infográfico)", () => {
+  it("aquisição e qualidade por canal usam ORIGENS_LEAD real, sem canal inventado", () => {
+    expect(rota).toContain("data-leads-aquisicao-canal");
+    expect(rota).toContain("data-leads-qualidade-canal");
+    expect(rota).toContain("const leadsPorCanal = ORIGENS_LEAD.map");
   });
 
   it("alerta de estagnação reaproveita o indicador já calculado (sem_proxima_acao), sem contagem nova", () => {
@@ -84,7 +85,8 @@ describe("Comercial — Bloco 6: Saúde comercial & canais", () => {
   });
 
   it("vazio honesto quando não há distribuição", () => {
-    expect(rota).toContain("data-leads-saude-canais-vazio");
+    expect(rota).toContain("data-leads-aquisicao-canal-vazio");
+    expect(rota).toContain("data-leads-qualidade-canal-vazio");
   });
 });
 
