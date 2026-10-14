@@ -3,9 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
-import { CrmKanban } from "@/components/clube-ancestral-kit";
 import { PainelCalls } from "@/components/crm/painel-calls";
-import { colunasPorEtapaComercial } from "@/components/desk/superficies-kit-conectadas";
 import { ErroSuperficieDesk } from "@/components/saas/erro-superficie";
 import { SaasShell } from "@/components/saas/shell";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
@@ -222,7 +220,7 @@ function CallsPage() {
   // tela inteira numa única gravação.
   const [campoPendente, setCampoPendente] = useState<string | null>(null);
   const [errosCampo, setErrosCampo] = useState<Record<string, string>>({});
-  async function gravarCampoSpin(leadId: string, campo: string, valor: string | null) {
+  async function gravarCampoSpin(leadId: string, campo: string, valor: string | boolean | null) {
     setCampoPendente(campo);
     try {
       const res = await salvarLead({ data: { id: leadId, valores: { [campo]: valor } } });
@@ -308,17 +306,11 @@ function CallsPage() {
       </div>
 
       {/*
-        A barra "Funil comercial" (ComercialTemplate) foi retirada daqui por
-        pedido explícito da Proprietária: o funil já é a tela canônica de
-        /leads (PR #157) e ficava duplicado em /calls. O pipeline Kanban por
-        etapa comercial — elemento real e conectado, não decorativo — continua,
-        lido da mesma classificação real (`colunasPorEtapaComercial`,
-        `etapaComercialDoLead`) que o Comercial Conectado original usava.
+        Nem funil nem Kanban por etapa comercial aqui — pedido explícito da
+        Proprietária: ambos pertencem exclusivamente a /leads (PR #157). Esta
+        rota é só a mesa operacional de atendimento ao vivo: KPIs de
+        atendimento, agenda do dia, roteiro SPIN e handoff.
       */}
-      <CaCard titulo="Pipeline comercial" eyebrow="Marketing & Comercial · Por etapa real (eixo_comercial)" className="mb-6 rounded-2xl p-6">
-        <CrmKanban columns={colunasPorEtapaComercial(leadsReais as unknown as Record<string, unknown>[])} />
-      </CaCard>
-
       <div className="mb-6 flex items-center justify-between gap-3">
         <h2 className="font-serif text-lg text-navy">Mesa de Discovery</h2>
         <div className="flex gap-2">
@@ -402,6 +394,15 @@ function CallsPage() {
                   Registrado em: {selecionado.consentimento_em ? horarioCall(selecionado.consentimento_em) : "não registrado"}
                 </p>
                 <p className="text-xs text-navy/65">Gravação: {selecionado.gravacao_link_interno || "não registrada"}</p>
+                <label className="flex items-center gap-2 text-xs text-navy/65">
+                  <input
+                    type="checkbox"
+                    checked={selecionado.consentimento_gravacao === true}
+                    disabled={campoPendente === "consentimento_gravacao"}
+                    onChange={(e) => void gravarCampoSpin(selecionado.id!, "consentimento_gravacao", e.target.checked)}
+                  />
+                  Permissão para gravação em áudio/vídeo (consentimento_gravacao)
+                </label>
                 {selecionado.consentimento_status !== "concedido" ? (
                   <button
                     type="button"
@@ -459,6 +460,21 @@ function CallsPage() {
                 })}
               </div>
             )}
+            {selecionado ? (
+              <div className="mt-4 border-t border-navy/10 pt-4">
+                <label className="block text-xs text-navy/50">
+                  Anotações da call (resumo_call — detalhe narrativo além dos 29 campos estruturados)
+                  <textarea
+                    className="mt-1 w-full rounded-lg border border-navy/15 bg-card px-2 py-1.5 text-xs text-navy"
+                    rows={4}
+                    defaultValue={selecionado.resumo_call ?? ""}
+                    disabled={campoPendente === "resumo_call"}
+                    onBlur={(e) => void gravarCampoSpin(selecionado.id!, "resumo_call", e.target.value.trim() || null)}
+                  />
+                </label>
+                {errosCampo.resumo_call ? <p className="mt-0.5 text-[11px] text-terracotta">{errosCampo.resumo_call}</p> : null}
+              </div>
+            ) : null}
           </CaCard>
 
           <a
