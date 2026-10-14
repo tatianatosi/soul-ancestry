@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { SaasShell, useSaas, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
 import { ResumoKitCaso } from "@/components/desk/kit-conectado";
-import { BarrasHorizontais, DonutEstados, JornadaMarcos, Linha, LinhaTempoGrafica, Pessoa } from "@/components/prancha-v4/kit";
+import { BarrasHorizontais, DonutEstados, Etiqueta, JornadaMarcos, Linha, LinhaTempoGrafica, Pessoa } from "@/components/prancha-v4/kit";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -908,8 +908,15 @@ function FichaCaso() {
       */}
       {(() => {
         const ESCALA_FRENTE = ["inicial", "em_coleta", "em_andamento", "concluida"] as const;
-        const cartao =
-          "min-w-0 rounded-xl border border-navy/10 bg-card p-4 shadow-[0_1px_2px_rgba(16,16,16,0.05)]";
+        /*
+          DECISÃO EXECUTIVA 14/10/2026 ("ACABAMENTO VISUAL DO CASO 360"):
+          contraste suave + respiro (rounded-2xl, p-6, shadow-sm, gap-6) e
+          badges de status pelos tokens semânticos reais do projeto
+          (sucesso/atencao/critico — AGENTS.md proíbe hex literal e paleta
+          Tailwind padrão como emerald-50/amber-50/rose-50/slate-200).
+        */
+        const cartao = "min-w-0 rounded-2xl border border-navy/10 bg-card p-6 shadow-sm";
+        const tomStatusCadastral = { completo: "sucesso", parcial: "atencao", pendente: "critico" } as const;
         const dossieResumo = estadoDossieDoCaso(qPesquisa.data?.evidencias ?? []);
         const progresso = progressoPorFrente({
           contratoAssinado: Boolean(caso["contrato_assinado"]),
@@ -928,7 +935,7 @@ function FichaCaso() {
               <h3 id="caso360-lote-a" className="mb-2 text-[11px] font-medium uppercase tracking-wide text-navy/55">
                 Lote A · Entrada e caso
               </h3>
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid gap-6 lg:grid-cols-2">
                 <section className={`${cartao} lg:order-2`} data-caso360-progresso-frente>
                   <p className="mb-3 font-serif text-lg text-navy">Progresso do caso por frente</p>
                   {/*
@@ -1050,7 +1057,7 @@ function FichaCaso() {
               <h3 id="caso360-lote-b" className="mb-2 text-[11px] font-medium uppercase tracking-wide text-navy/55">
                 Lote B · Pesquisa e árvore
               </h3>
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid gap-6 lg:grid-cols-2">
                 <section className={`${cartao}`} data-caso360-participantes>
                   <p className="mb-3 font-serif text-lg text-navy">Núcleo familiar e participantes</p>
                   {(() => {
@@ -1064,14 +1071,22 @@ function FichaCaso() {
                       );
                     return (
                       <div className="space-y-3">
-                        {membros.slice(0, 4).map((membro, i) => (
-                          <Pessoa
-                            key={membro.id}
-                            nome={String(membro.nome ?? membro.nome_completo ?? "Pessoa sem nome registrado")}
-                            papel={String(membro.papel ?? "Papel não registrado")}
-                            destaque={i === 0}
-                          />
-                        ))}
+                        {membros.slice(0, 4).map((membro, i) => {
+                          const status = String(membro.status_cadastral ?? "pendente") as keyof typeof tomStatusCadastral;
+                          return (
+                            <div key={membro.id} className="flex items-center justify-between gap-2">
+                              <Pessoa
+                                nome={String(membro.nome ?? membro.nome_completo ?? "Pessoa sem nome registrado")}
+                                papel={String(membro.papel ?? "Papel não registrado")}
+                                destaque={i === 0}
+                              />
+                              <Etiqueta
+                                texto={rotulo(STATUS_CADASTRAL, membro.status_cadastral)}
+                                tom={tomStatusCadastral[status] ?? "neutro"}
+                              />
+                            </div>
+                          );
+                        })}
                         {membros.length > 4 ? (
                           <p className="text-[10px] text-navy/55">+ {membros.length - 4} pessoa(s) em Pessoa e família</p>
                         ) : null}
@@ -1105,7 +1120,7 @@ function FichaCaso() {
               <h3 id="caso360-lote-c" className="mb-2 text-[11px] font-medium uppercase tracking-wide text-navy/55">
                 Lote C · Proposta, escopo e contrato
               </h3>
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid gap-6 lg:grid-cols-2">
                 <section className={cartao} data-caso360-formalizacao>
                   <p className="font-serif text-lg text-navy">Proposta, escopo e contrato</p>
                   <div className="mt-3">
@@ -1132,7 +1147,7 @@ function FichaCaso() {
               <h3 id="caso360-lote-d" className="mb-2 text-[11px] font-medium uppercase tracking-wide text-navy/55">
                 Lote D · Publicação e App
               </h3>
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid gap-6 lg:grid-cols-2">
                 <section className={cartao} data-caso360-prontidao-app>
                   <p className="font-serif text-lg text-navy">Prontidão para o App</p>
                   {qVisaoCliente.isLoading ? (
