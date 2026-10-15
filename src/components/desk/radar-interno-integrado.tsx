@@ -9,7 +9,6 @@ import { MatrizPrioridadesConectada } from "@/components/desk/matriz-prioridades
 import { HeatmapAderenciaPais } from "@/components/desk/heatmap-aderencia-pais";
 import { Button } from "@/components/ui/button";
 import { ESTADO_EIXO_LABEL, ESTADO_EIXO_TOM } from "@/lib/radar-eixos";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import {
   Select,
@@ -26,7 +25,6 @@ import { radarInternoDoCaso } from "@/lib/radar-interno-caso";
 import { listarRegistros } from "@/lib/saas.functions";
 
 type Linha = Record<string, unknown>;
-type ModoRadar = "matriz" | "individual";
 
 /* Traduz o estado canônico do eixo em altura do desenho. Nenhum cálculo novo. */
 const NIVEL_EIXO = {
@@ -51,7 +49,6 @@ function dataPtBr(valor: unknown): string {
 export function RadarInternoIntegrado() {
   const listar = useServerFn(listarRegistros);
   const carregar = useServerFn(carregarFichaCaso);
-  const [modo, setModo] = useState<ModoRadar>("matriz");
   const [caseId, setCaseId] = useState("");
 
   const casosQuery = useQuery({
@@ -71,13 +68,12 @@ export function RadarInternoIntegrado() {
       if (!caseId) throw new Error("Selecione um caso para abrir o Radar Individual.");
       return carregar({ data: { id: caseId } });
     },
-    enabled: modo === "individual" && Boolean(caseId),
+    enabled: Boolean(caseId),
     retry: false,
   });
 
   const selecionarNaMatriz = (id: string) => {
     setCaseId(id);
-    setModo("individual");
   };
 
   const ficha = fichaQuery.data;
@@ -98,45 +94,53 @@ export function RadarInternoIntegrado() {
     : null;
 
   return (
-    <Tabs value={modo} onValueChange={(valor) => setModo(valor as ModoRadar)}>
-      <TabsList aria-label="Modo do Radar & Matrizes" className="h-auto bg-navy/5">
-        <TabsTrigger value="matriz">Matriz de Prioridade</TabsTrigger>
-        <TabsTrigger value="individual">Radar Individual</TabsTrigger>
-      </TabsList>
+    <div data-radar-interno-integrado aria-label="Modo do Radar & Matrizes">
+      {/*
+        14/10/2026 — Matriz e Radar Individual lado a lado (decisão explícita
+        da Proprietária), substituindo as abas que alternavam o conteúdo.
+        Os dois pills abaixo são só o cabeçalho visual do mockup (sem
+        conteúdo próprio para alternar — as duas leituras já ficam visíveis
+        ao mesmo tempo nas colunas abaixo).
+      */}
+      <div aria-hidden className="mb-5 flex h-auto w-fit gap-1 rounded-lg bg-navy/5 p-1">
+        <span className="rounded-md bg-card px-3 py-1.5 text-sm font-medium text-navy shadow-sm">Matriz de Prioridade</span>
+        <span className="px-3 py-1.5 text-sm text-navy/60">Radar Individual</span>
+      </div>
 
-      <TabsContent value="matriz" className="mt-5">
-        <MatrizPrioridadesConectada casoSelecionado={caseId} onSelecionarCaso={selecionarNaMatriz} />
-      </TabsContent>
+      <section className="mb-5 rounded-xl border border-navy/10 bg-cream/40 p-4">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+          <label className="block">
+            <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-navy/50">
+              Caso ativo
+            </span>
+            <Select value={caseId} onValueChange={setCaseId}>
+              <SelectTrigger aria-label="Selecionar caso para o Radar Individual" className="bg-cream text-navy">
+                <SelectValue placeholder="Selecione um caso" />
+              </SelectTrigger>
+              <SelectContent>
+                {casos.map((item) => {
+                  const id = texto(item["id"], "");
+                  if (!id) return null;
+                  const demonstrativo = papelDoRegistro(item).valor === "demo";
+                  return (
+                    <SelectItem key={id} value={id}>
+                      {texto(item["codigo"] ?? item["titulo"] ?? id)}{demonstrativo ? " · demonstração" : ""}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </label>
+          <p className="text-xs text-navy/55">A seleção não altera o caso nem sua prioridade — só qual aparece no Radar Individual à direita.</p>
+        </div>
+      </section>
 
-      <TabsContent value="individual" className="mt-5 space-y-4">
-        <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-          <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-            <label className="block">
-              <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-navy/50">
-                Caso ativo
-              </span>
-              <Select value={caseId} onValueChange={setCaseId}>
-                <SelectTrigger aria-label="Selecionar caso para o Radar Individual" className="bg-cream text-navy">
-                  <SelectValue placeholder="Selecione um caso" />
-                </SelectTrigger>
-                <SelectContent>
-                  {casos.map((item) => {
-                    const id = texto(item["id"], "");
-                    if (!id) return null;
-                    const demonstrativo = papelDoRegistro(item).valor === "demo";
-                    return (
-                      <SelectItem key={id} value={id}>
-                        {texto(item["codigo"] ?? item["titulo"] ?? id)}{demonstrativo ? " · demonstração" : ""}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </label>
-            <p className="text-xs text-navy/55">A seleção não altera o caso nem sua prioridade.</p>
-          </div>
-        </section>
+      <div className="grid gap-5 xl:grid-cols-2">
+        <div data-radar-coluna-matriz>
+          <MatrizPrioridadesConectada casoSelecionado={caseId} onSelecionarCaso={selecionarNaMatriz} />
+        </div>
 
+        <div data-radar-coluna-individual className="space-y-4">
         {casosQuery.isLoading || fichaQuery.isLoading ? (
           <p className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-sm text-navy/60">
             Carregando o Radar Individual…
@@ -239,8 +243,8 @@ export function RadarInternoIntegrado() {
             );
           })()
         ) : null}
-
-      </TabsContent>
-    </Tabs>
+        </div>
+      </div>
+    </div>
   );
 }
