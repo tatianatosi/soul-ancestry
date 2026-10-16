@@ -95,23 +95,23 @@ function ArvoreGenealogica({
         ))}
 
         <g aria-hidden>
-          <circle cx={xPai} cy={yPais} r={16} className={pai ? "fill-card stroke-navy/40" : "fill-card stroke-navy/15"} strokeWidth="2" />
+          <rect x={xPai - 16} y={yPais - 16} width={32} height={32} rx="10" ry="10" className={pai ? "fill-card stroke-navy/40" : "fill-card stroke-navy/15"} strokeWidth="2" />
           <text x={xPai} y={yPais + 4} textAnchor="middle" className="fill-navy text-[10px] font-semibold">{pai ? sigla(pai.nome) : "—"}</text>
         </g>
         <g aria-hidden>
-          <circle cx={xMae} cy={yPais} r={16} className={mae ? "fill-card stroke-navy/40" : "fill-card stroke-navy/15"} strokeWidth="2" />
+          <rect x={xMae - 16} y={yPais - 16} width={32} height={32} rx="10" ry="10" className={mae ? "fill-card stroke-navy/40" : "fill-card stroke-navy/15"} strokeWidth="2" />
           <text x={xMae} y={yPais + 4} textAnchor="middle" className="fill-navy text-[10px] font-semibold">{mae ? sigla(mae.nome) : "—"}</text>
         </g>
 
         <g aria-hidden>
-          <circle cx={xCentro} cy={yCentro} r={24} className="fill-terracotta-nobre stroke-navy" strokeWidth="2" />
-          <text x={xCentro} y={yCentro + 5} textAnchor="middle" className="fill-cream text-[12px] font-semibold">{sigla(nome)}</text>
+          <rect x={xCentro - 24} y={yCentro - 24} width={48} height={48} rx="10" ry="10" className="fill-card stroke-gold" strokeWidth="2.5" />
+          <text x={xCentro} y={yCentro + 5} textAnchor="middle" className="fill-navy text-[12px] font-semibold">{sigla(nome)}</text>
         </g>
 
         {filhosExibidos.length ? (
           filhosExibidos.map((f, i) => (
             <g key={f.id} aria-hidden>
-              <circle cx={xFilho(i)} cy={yFilhos} r={16} className="fill-card stroke-navy/40" strokeWidth="2" />
+              <rect x={xFilho(i) - 16} y={yFilhos - 16} width={32} height={32} rx="10" ry="10" className="fill-card stroke-navy/40" strokeWidth="2" />
               <text x={xFilho(i)} y={yFilhos + 4} textAnchor="middle" className="fill-navy text-[10px] font-semibold">{sigla(f.nome)}</text>
             </g>
           ))
@@ -226,8 +226,23 @@ export function ComposicaoPessoa360V4({ dados, nome }: { dados: DadosPessoa360; 
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_1.25fr_0.9fr]">
-        <Cartao titulo="Identidade" data-pessoa360-identidade>
-          <Linha rotulo="Nome civil" valor={texto(cliente.nome) ?? "Não registrado"} />
+        <Cartao titulo="Identidade" data-pessoa360-identidade className="rounded-2xl p-6 shadow-sm">
+          <div className="mb-3 flex items-center gap-3">
+            <span
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-navy font-serif text-lg text-gold"
+              aria-hidden
+            >
+              {sigla(nome)}
+            </span>
+            <p className="min-w-0 truncate font-serif text-base text-navy">{texto(cliente.nome) ?? "Não registrado"}</p>
+          </div>
+          {papeisNosCasos.length ? (
+            <div className="mb-3 flex flex-wrap gap-1.5" data-pessoa360-papeis>
+              {papeisNosCasos.map((p, i) => (
+                <Etiqueta key={`${p}-${i}`} texto={PAPEIS_PESSOA.find((o) => o.valor === p)?.rotulo ?? p} tom="sucesso" />
+              ))}
+            </div>
+          ) : null}
           <Linha rotulo="CPF" valor={texto(cliente.cpf) ? formatarCpf(String(cliente.cpf)) : "Não registrado"} tom={texto(cliente.cpf) ? "neutro" : "atencao"} />
           <Linha rotulo="Nascimento" valor={nascimento ?? "Não registrado"} tom={nascimento ? "neutro" : "atencao"} />
           <Linha rotulo="Naturalidade" valor={naturalidade ?? "Não registrada"} tom={naturalidade ? "neutro" : "atencao"} />
@@ -241,16 +256,9 @@ export function ComposicaoPessoa360V4({ dados, nome }: { dados: DadosPessoa360; 
             valor={confiancaEstado ?? "Sem registro em caso"}
             tom={confiancaEstado === "Confirmada" ? "sucesso" : confiancaEstado === "Em revisão" ? "atencao" : "critico"}
           />
-          {papeisNosCasos.length ? (
-            <div className="flex flex-wrap gap-1.5 pt-2" data-pessoa360-papeis>
-              {papeisNosCasos.map((p, i) => (
-                <Etiqueta key={`${p}-${i}`} texto={PAPEIS_PESSOA.find((o) => o.valor === p)?.rotulo ?? p} tom="sucesso" />
-              ))}
-            </div>
-          ) : null}
         </Cartao>
 
-        <Cartao titulo="Árvore genealógica" data-pessoa360-parentesco>
+        <Cartao titulo="Árvore genealógica" data-pessoa360-parentesco className="rounded-2xl p-6 shadow-sm">
           <ArvoreGenealogica
             nome={nome}
             pai={pai ? { nome: nomeDe(pai), declarado: false } : texto(cliente.nome_pai) ? { nome: String(cliente.nome_pai), declarado: true } : null}
@@ -260,7 +268,7 @@ export function ComposicaoPessoa360V4({ dados, nome }: { dados: DadosPessoa360; 
           />
         </Cartao>
 
-        <Cartao titulo="Casos vinculados" data-pessoa360-casos>
+        <Cartao titulo="Casos vinculados" data-pessoa360-casos className="rounded-2xl p-6 shadow-sm">
           {casos.length ? (
             casos.slice(0, 5).map((c) => (
               <Link key={String(c.id)} to="/casos/$caseId" params={{ caseId: String(c.id) }} className="block hover:bg-cream/40">
@@ -276,7 +284,7 @@ export function ComposicaoPessoa360V4({ dados, nome }: { dados: DadosPessoa360; 
           )}
         </Cartao>
 
-        <Cartao titulo="Fontes" data-pessoa360-fontes>
+        <Cartao titulo="Fontes" data-pessoa360-fontes className="rounded-2xl p-6 shadow-sm">
           {docs.length ? (
             docs.slice(0, 5).map((d) => {
               const e = ESTADO_DOC[String(d.status)] ?? { rotulo: "Sem status", tom: "neutro" as Tom };
@@ -287,7 +295,7 @@ export function ComposicaoPessoa360V4({ dados, nome }: { dados: DadosPessoa360; 
           )}
         </Cartao>
 
-        <Cartao titulo="Localização" data-pessoa360-localizacao>
+        <Cartao titulo="Localização" data-pessoa360-localizacao className="rounded-2xl p-6 shadow-sm">
           <div className="flex items-center gap-3 rounded-lg border border-navy/10 bg-cream/40 p-3">
             <span className={cn("grid h-9 w-9 place-items-center rounded-full", local ? "bg-navy text-gold" : "bg-navy/10 text-navy/40")}>
               <MapPin className="h-4 w-4" aria-hidden />
@@ -299,7 +307,7 @@ export function ComposicaoPessoa360V4({ dados, nome }: { dados: DadosPessoa360; 
           </div>
         </Cartao>
 
-        <Cartao titulo="Confiança da pessoa" data-pessoa360-confianca>
+        <Cartao titulo="Confiança da pessoa" data-pessoa360-confianca className="rounded-2xl p-6 shadow-sm">
           <Estrelas
             valor={docs.length ? (confirmadas / docs.length) * 5 : 0}
             apoio={docs.length ? `${confirmadas} de ${docs.length} fonte(s) confirmada(s)` : "Nenhuma fonte conferida ainda"}
@@ -308,7 +316,7 @@ export function ComposicaoPessoa360V4({ dados, nome }: { dados: DadosPessoa360; 
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Cartao titulo="Completude por dimensão" data-pessoa360-completude>
+        <Cartao titulo="Completude por dimensão" data-pessoa360-completude className="rounded-2xl p-6 shadow-sm">
           <BarrasHorizontais
             tituloAcessivel="Completude da ficha da pessoa por dimensão"
             itens={[
@@ -319,7 +327,7 @@ export function ComposicaoPessoa360V4({ dados, nome }: { dados: DadosPessoa360; 
             ]}
           />
         </Cartao>
-        <Cartao titulo="Rede de vínculos" data-pessoa360-rede>
+        <Cartao titulo="Rede de vínculos" data-pessoa360-rede className="rounded-2xl p-6 shadow-sm">
           <RedeVinculos
             centro={{ nome }}
             vizinhos={vizinhos}
