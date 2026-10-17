@@ -31,6 +31,33 @@ const ROTULO_TIPO_FONTE: Record<string, string> = {
 export type CoberturaFonte = { tipo: string; rotulo: string; quantidade: number };
 export type ProducaoMensal = { mes: string; quantidade: number };
 
+/** `research_sources.source_status`, vocabulário real (migration 20260816231149). */
+const ROTULO_STATUS_FONTE: Record<string, string> = {
+  referenced: "Referenciada",
+  located: "Localizada",
+  reviewed: "Revisada",
+  verified: "Verificada",
+  inaccessible: "Inacessível",
+  rejected: "Rejeitada",
+};
+
+export type FonteReferencia = { id: string; titulo: string; status: string; rotuloStatus: string; instituicao: string | null };
+
+/** `research_case_hypotheses.confidence_level`/`status`, vocabulário real (mesma migration). */
+const ROTULO_CONFIANCA_HIPOTESE: Record<string, string> = { low: "Baixa", medium: "Média", high: "Alta" };
+const ROTULO_STATUS_HIPOTESE: Record<string, string> = {
+  open: "Aberta",
+  under_review: "Em revisão",
+  supported: "Sustentada",
+  not_supported: "Não sustentada",
+  inconclusive: "Inconclusiva",
+  closed: "Encerrada",
+};
+
+export type HipoteseResumo = { id: string; titulo: string; status: string; rotuloStatus: string; confianca: string; rotuloConfianca: string };
+
+export type EtapaPesquisa = { id: string; titulo: string; ativa: boolean; semRastro?: boolean };
+
 export type DossiePesquisa = {
   acervosMapeados: number;
   hipotesesEmAberto: number;
@@ -39,6 +66,17 @@ export type DossiePesquisa = {
   coberturaFontes: CoberturaFonte[];
   totalFontes: number;
   producaoEvidencias: ProducaoMensal[];
+  fontesRecentes: FonteReferencia[];
+  hipotesesRecentes: HipoteseResumo[];
+  /**
+   * Confiança média das hipóteses ativas (status != 'closed'), em %.
+   * Fórmula: confidence_level codificado em low=33 / medium=66 / high=100,
+   * média aritmética arredondada. `null` sem hipótese ativa — nunca 0
+   * fingido. Não é uma métrica do schema, é derivada de um campo ordinal
+   * real; documentada aqui e no PR por não ter fonte de verdade própria.
+   */
+  confiancaCadeiaPct: number | null;
+  etapas: EtapaPesquisa[];
 };
 
 const texto = (v: unknown): string => String(v ?? "").trim();
@@ -76,10 +114,83 @@ function producaoPorMes(evidencias: Registro[], meses = 6): ProducaoMensal[] {
   return janelas.map((j) => ({ mes: j.rotulo, quantidade: contagem.get(j.chave) ?? 0 }));
 }
 
+/** Até `limite` fontes mais recentes, com status real — nunca rótulo inventado. */
+function fontesMaisRecentes(fontes: Registro[], limite = 6): FonteReferencia[] {
+  return [...fontes]
+    .sort((a, b) => texto(b["created_at"]).localeCompare(texto(a["created_at"])))
+    .slice(0, limite)
+    .map((f) => {
+      const status = texto(f["source_status"]);
+      return {
+        id: texto(f["id"]),
+        titulo: texto(f["title"]) || "Fonte sem título registrado",
+        status,
+        rotuloStatus: ROTULO_STATUS_FONTE[status] ?? (status || "Sem status"),
+        instituicao: texto(f["repository_or_institution"]) || null,
+      };
+    });
+}
+
+/** Até `limite` hipóteses mais recentes, status/confiança reais do CHECK. */
+function hipotesesMaisRecentes(hipoteses: Registro[], limite = 6): HipoteseResumo[] {
+  return [...hipoteses]
+    .sort((a, b) => texto(b["created_at"]).localeCompare(texto(a["created_at"])))
+    .slice(0, limite)
+    .map((h) => {
+      const status = texto(h["status"]);
+      const confianca = texto(h["confidence_level"]);
+      return {
+        id: texto(h["id"]),
+        titulo: texto(h["title"]) || "Hipótese sem título registrado",
+        status,
+        rotuloStatus: ROTULO_STATUS_HIPOTESE[status] ?? (status || "Sem status"),
+        confianca,
+        rotuloConfianca: ROTULO_CONFIANCA_HIPOTESE[confianca] ?? (confianca || "Sem avaliação"),
+      };
+    });
+}
+
+const PESO_CONFIANCA: Record<string, number> = { low: 33, medium: 66, high: 100 };
+
+/** Ver DossiePesquisa.confiancaCadeiaPct para a fórmula e seus limites. */
+function confiancaCadeia(hipoteses: Registro[]): number | null {
+  const ativas = hipoteses.filter((h) => texto(h["status"]) !== "closed");
+  const pesos = ativas.map((h) => PESO_CONFIANCA[texto(h["confidence_level"])]).filter((p): p is number => p !== undefined);
+  if (pesos.length === 0) return null;
+  return Math.round(pesos.reduce((s, p) => s + p, 0) / pesos.length);
+}
+
 /**
- * Agrega os 4 KPIs do topo, a cobertura de fontes por tipo e a produção
- * mensal de evidências. Entradas já filtradas por organização e
- * `archived_at is null` por quem chama (ver `painelPesquisaModulo`).
+ * Régua "da pergunta à microentrega". Cada etapa marcada ativa (✔) só se
+ * houver pelo menos 1 registro real na tabela correspondente, org-wide.
+ * "Pergunta" não tem tabela própria no schema — nenhuma pergunta de
+ * pesquisa é persistida como entidade separada — e "Pronta para revisão"
+ * não tem status terminal próprio em nenhuma tabela consultada aqui;
+ * ambas ficam `semRastro: true` (estado neutro), nunca marcadas como
+ * concluídas sem base real.
+ */
+function montarEtapas(params: {
+  temFonte: boolean;
+  temEvidenciaValidada: boolean;
+  temAchado: boolean;
+  temMicroentrega: boolean;
+}): EtapaPesquisa[] {
+  return [
+    { id: "pergunta", titulo: "Pergunta", ativa: false, semRastro: true },
+    { id: "fonte", titulo: "Fonte", ativa: params.temFonte },
+    { id: "evidencia", titulo: "Evidência", ativa: params.temEvidenciaValidada },
+    { id: "achado", titulo: "Achado", ativa: params.temAchado },
+    { id: "microentrega", titulo: "Microentrega", ativa: params.temMicroentrega },
+    { id: "revisao", titulo: "Pronta para revisão", ativa: false, semRastro: true },
+  ];
+}
+
+/**
+ * Agrega os 4 KPIs do topo, a cobertura de fontes por tipo, a produção
+ * mensal de evidências, as listas de "Fontes e referências" e "Hipóteses
+ * e confiança", a confiança média da cadeia e a régua de etapas. Entradas
+ * já filtradas por organização e `archived_at is null` por quem chama
+ * (ver `painelPesquisaModulo`).
  */
 export function agregarDossiePesquisa(params: {
   acervosCatalogo: Registro[];
@@ -87,6 +198,8 @@ export function agregarDossiePesquisa(params: {
   evidencias: Registro[];
   fontes: Registro[];
   pedidos: Registro[];
+  achados?: Registro[];
+  microentregas?: Registro[];
 }): DossiePesquisa {
   const hipotesesEmAberto = params.hipoteses.filter((h) =>
     ["open", "under_review"].includes(texto(h["status"])),
@@ -100,6 +213,9 @@ export function agregarDossiePesquisa(params: {
       .filter((inst) => inst.length > 0),
   );
 
+  const achados = params.achados ?? [];
+  const microentregas = params.microentregas ?? [];
+
   return {
     acervosMapeados: params.acervosCatalogo.length,
     hipotesesEmAberto,
@@ -108,5 +224,14 @@ export function agregarDossiePesquisa(params: {
     coberturaFontes: coberturaPorTipo(params.fontes),
     totalFontes: params.fontes.length,
     producaoEvidencias: producaoPorMes(params.evidencias),
+    fontesRecentes: fontesMaisRecentes(params.fontes),
+    hipotesesRecentes: hipotesesMaisRecentes(params.hipoteses),
+    confiancaCadeiaPct: confiancaCadeia(params.hipoteses),
+    etapas: montarEtapas({
+      temFonte: params.fontes.length > 0,
+      temEvidenciaValidada: evidenciasValidadas > 0,
+      temAchado: achados.length > 0,
+      temMicroentrega: microentregas.length > 0,
+    }),
   };
 }

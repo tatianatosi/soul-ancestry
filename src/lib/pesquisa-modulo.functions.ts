@@ -30,8 +30,19 @@ export const painelPesquisaModulo = createServerFn({ method: "GET" })
     const { organizationId, papel } = await contextoRg(supabase, userId);
     if (!PAPEIS_LE_RESUMO.includes(papel)) throw new Error("Seu papel não acessa a pesquisa.");
 
-    const [pesquisas, casos, pendencias, evidencias, issues, acervosCatalogo, hipoteses, fontes, pedidos] =
-      await Promise.all([
+    const [
+      pesquisas,
+      casos,
+      pendencias,
+      evidencias,
+      issues,
+      acervosCatalogo,
+      hipoteses,
+      fontes,
+      pedidos,
+      achados,
+      microentregas,
+    ] = await Promise.all([
         supabase
           .from("research_cases")
           .select("*")
@@ -73,17 +84,32 @@ export const painelPesquisaModulo = createServerFn({ method: "GET" })
           .is("archived_at", null),
         supabase
           .from("research_case_hypotheses")
-          .select("id,status")
+          .select("id,title,status,confidence_level,created_at")
           .eq("organization_id", organizationId)
           .is("archived_at", null),
         supabase
           .from("research_sources")
-          .select("id,source_type")
+          .select("id,title,source_type,source_status,repository_or_institution,created_at")
           .eq("organization_id", organizationId)
           .is("archived_at", null),
         supabase
           .from("research_document_requests")
           .select("id,status,target_institution")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+        /*
+         * 17/10/2026 — Tela 07: régua "da pergunta à microentrega". "Achado"
+         * e "Microentrega" só contam presença real, org-wide, sem CHECK
+         * novo (ver `montarEtapas` em pesquisa-dossie.ts).
+         */
+        supabase
+          .from("genealogical_findings")
+          .select("id")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+        supabase
+          .from("ops_microentregas")
+          .select("id")
           .eq("organization_id", organizationId)
           .is("archived_at", null),
       ]);
@@ -115,6 +141,8 @@ export const painelPesquisaModulo = createServerFn({ method: "GET" })
       evidencias: listaEvid,
       fontes: linhasDe<Record<string, any>>(fontes, "fontes de pesquisa"),
       pedidos: linhasDe<Record<string, any>>(pedidos, "pedidos de documento de pesquisa"),
+      achados: linhasDe<Record<string, any>>(achados, "achados genealógicos"),
+      microentregas: linhasDe<Record<string, any>>(microentregas, "microentregas operacionais"),
     });
 
     return {
