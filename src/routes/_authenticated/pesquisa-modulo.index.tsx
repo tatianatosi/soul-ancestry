@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -9,11 +9,25 @@ import { EstadoVazio, SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { Selo } from "@/components/comercial/base";
 import { rotulo } from "@/components/pesquisa/modulo-campos";
-import { criarPesquisaParaCaso, painelPesquisaModulo, rodarScanPesquisa } from "@/lib/pesquisa-modulo.functions";
+import {
+  criarPesquisaParaCaso,
+  miniaturaFamiliarDoCaso,
+  painelPesquisaModulo,
+  rodarScanPesquisa,
+} from "@/lib/pesquisa-modulo.functions";
 import { filtrarPorBusca } from "@/lib/rotulo-negocio";
 import { CardIndicador } from "@/components/desk/ui-desk";
 import { CaCard } from "@/components/ui/ca-card";
 import { semFixtures } from "@/lib/fixtures";
+import { Pessoa } from "@/components/prancha-v4/kit";
+import { papelDoRegistro } from "@/lib/caso-ficha";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/pesquisa-modulo/")({
   head: () => ({
@@ -55,8 +69,17 @@ function Index() {
   const [busca, setBusca] = useState("");
   const [mostrarFiltro, setMostrarFiltro] = useState(false);
   const [filtroStatusFonte, setFiltroStatusFonte] = useState("");
+  const [casoMiniatura, setCasoMiniatura] = useState("");
 
   const q = useQuery({ queryKey: ["pesquisa-modulo", "painel"], queryFn: () => carregar() });
+
+  const carregarMiniatura = useServerFn(miniaturaFamiliarDoCaso);
+  const miniaturaQuery = useQuery({
+    queryKey: ["pesquisa-modulo", "miniatura-familiar", casoMiniatura],
+    queryFn: () => carregarMiniatura({ data: { caseId: casoMiniatura } }),
+    enabled: Boolean(casoMiniatura),
+    retry: false,
+  });
 
   const mCriar = useMutation({
     mutationFn: () => criar({ data: { casoId, objetivo } }),
@@ -77,6 +100,22 @@ function Index() {
   });
 
   const d = q.data;
+  const casosParaMiniatura = d
+    ? Array.from(
+        new Map(
+          [...d.pesquisas.map((p: any) => p.caso).filter(Boolean), ...d.casosSemPesquisa].map((c: any) => [
+            c["id"],
+            c,
+          ]),
+        ).values(),
+      )
+    : [];
+  useEffect(() => {
+    if (!casoMiniatura && casosParaMiniatura[0]?.["id"]) {
+      const real = casosParaMiniatura.find((c: any) => papelDoRegistro(c).valor !== "demo");
+      setCasoMiniatura(String((real ?? casosParaMiniatura[0])["id"]));
+    }
+  }, [casoMiniatura, casosParaMiniatura]);
   const opcoesStatusFonte = d
     ? Array.from(new Map(d.dossie.fontesRecentes.map((f) => [f.status, f.rotuloStatus])).entries()).map(
         ([status, rotulo]) => ({ status, rotulo }),
@@ -301,7 +340,7 @@ function Index() {
               </p>
             </div>
 
-            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            <div className="mt-5 grid gap-4 lg:grid-cols-3">
               <div data-dossie-fontes>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-widest text-navy/55">
                   Fontes e referências
@@ -352,6 +391,63 @@ function Index() {
                       </li>
                     ))}
                   </ul>
+                )}
+              </div>
+
+              {/*
+                17/10/2026 — Miniatura familiar (mockup, bloco antes fora de
+                escopo na primeira entrega): o Dossiê é agregado da
+                organização inteira, sem um "caso ativo" único, então o
+                seletor abaixo escolhe só qual caso aparece aqui — mesmo
+                padrão de `radar-interno-integrado.tsx` em /qualidade.
+                Vínculos reais de `genealogical_relationships`, nomes de
+                `research_people`; sem geração/ascendência calculada, só o
+                papel real (`papel_na_linhagem` ou o tipo de vínculo do
+                CHECK) — ver `miniaturaFamiliarDoCaso`.
+              */}
+              <div data-dossie-miniatura-familiar>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-widest text-navy/55">
+                  Miniatura familiar
+                </h4>
+                {casosParaMiniatura.length === 0 ? (
+                  <EstadoVazio mensagem="Nenhum caso disponível para leitura familiar." />
+                ) : (
+                  <>
+                    <Select value={casoMiniatura} onValueChange={setCasoMiniatura}>
+                      <SelectTrigger aria-label="Selecionar caso para a miniatura familiar" className="mb-2 bg-cream text-navy">
+                        <SelectValue placeholder="Selecione um caso" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {casosParaMiniatura.map((c: any) => {
+                          const demonstrativo = papelDoRegistro(c).valor === "demo";
+                          return (
+                            <SelectItem key={c["id"]} value={String(c["id"])}>
+                              {String(c["codigo"] ?? c["titulo"] ?? c["id"])}
+                              {demonstrativo ? " · demonstração" : ""}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                    {miniaturaQuery.isLoading ? (
+                      <p className="text-xs text-navy/50">Carregando vínculos…</p>
+                    ) : miniaturaQuery.isError ? (
+                      <p className="text-xs text-terracotta">Vínculos não puderam ser lidos agora.</p>
+                    ) : !miniaturaQuery.data || miniaturaQuery.data.pessoas.length === 0 ? (
+                      <EstadoVazio mensagem="Nenhum vínculo genealógico registrado para este caso ainda." />
+                    ) : (
+                      <div className="flex flex-wrap gap-x-3 gap-y-2" data-dossie-miniatura-pessoas>
+                        {miniaturaQuery.data.pessoas.slice(0, 6).map((p) => (
+                          <Pessoa key={p.id} nome={p.nome} papel={p.papel} />
+                        ))}
+                        {miniaturaQuery.data.pessoas.length > 6 ? (
+                          <span className="self-center text-[11px] text-navy/50">
+                            +{miniaturaQuery.data.pessoas.length - 6} pessoa(s)
+                          </span>
+                        ) : null}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
