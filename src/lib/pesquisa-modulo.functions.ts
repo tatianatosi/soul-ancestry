@@ -16,6 +16,7 @@ import {
 import { mensagemLegadoSemCriacao } from "@/lib/fontes-pesquisa-canonicas";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
+import { agregarDossiePesquisa } from "@/lib/pesquisa-dossie";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -29,35 +30,63 @@ export const painelPesquisaModulo = createServerFn({ method: "GET" })
     const { organizationId, papel } = await contextoRg(supabase, userId);
     if (!PAPEIS_LE_RESUMO.includes(papel)) throw new Error("Seu papel não acessa a pesquisa.");
 
-    const [pesquisas, casos, pendencias, evidencias, issues] = await Promise.all([
-      supabase
-        .from("research_cases")
-        .select("*")
-        .eq("organization_id", organizationId)
-        .is("archived_at", null)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("crm_casos")
-        .select("id,codigo,titulo,status,pais,responsavel_id,contrato_assinado,pagamento_confirmado")
-        .eq("organization_id", organizationId)
-        .is("archived_at", null),
-      supabase
-        .from("research_pending_items")
-        .select("id,research_case_id,severity,status,due_at,title")
-        .eq("organization_id", organizationId)
-        .is("archived_at", null),
-      supabase
-        .from("research_evidence_items")
-        .select("id,research_case_id,evidence_status")
-        .eq("organization_id", organizationId)
-        .is("archived_at", null),
-      supabase
-        .from("quality_issues")
-        .select("id,case_id,severidade,status,titulo")
-        .eq("organization_id", organizationId)
-        .eq("dominio", "pesquisa")
-        .in("status", ["aberta", "reconhecida"]),
-    ]);
+    const [pesquisas, casos, pendencias, evidencias, issues, acervosCatalogo, hipoteses, fontes, pedidos] =
+      await Promise.all([
+        supabase
+          .from("research_cases")
+          .select("*")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("crm_casos")
+          .select("id,codigo,titulo,status,pais,responsavel_id,contrato_assinado,pagamento_confirmado")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+        supabase
+          .from("research_pending_items")
+          .select("id,research_case_id,severity,status,due_at,title")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+        supabase
+          .from("research_evidence_items")
+          .select("id,research_case_id,evidence_status,created_at")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+        supabase
+          .from("quality_issues")
+          .select("id,case_id,severidade,status,titulo")
+          .eq("organization_id", organizationId)
+          .eq("dominio", "pesquisa")
+          .in("status", ["aberta", "reconhecida"]),
+        /*
+         * 17/10/2026 — Tela 07 (Pesquisa Genealógica): bloco "Dossiê de
+         * pesquisa" do mockup aprovado (15/10/2026). KPIs e cobertura de
+         * fontes sobre o org inteiro, mesmo recorte dos demais contadores
+         * deste painel — sem tabela nova, sem CHECK novo (ver
+         * `src/lib/pesquisa-dossie.ts`).
+         */
+        supabase
+          .from("genealogical_sources_catalog")
+          .select("id")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+        supabase
+          .from("research_case_hypotheses")
+          .select("id,status")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+        supabase
+          .from("research_sources")
+          .select("id,source_type")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+        supabase
+          .from("research_document_requests")
+          .select("id,status,target_institution")
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
+      ]);
 
     const listaCasos = linhasDe<Record<string, any>>(casos, "casos de pesquisa");
     const listaPend = linhasDe<Record<string, any>>(pendencias, "pendências de pesquisa");
@@ -80,6 +109,14 @@ export const painelPesquisaModulo = createServerFn({ method: "GET" })
       } as Record<string, any>;
     });
 
+    const dossie = agregarDossiePesquisa({
+      acervosCatalogo: linhasDe<Record<string, any>>(acervosCatalogo, "acervos do catálogo de fontes"),
+      hipoteses: linhasDe<Record<string, any>>(hipoteses, "hipóteses de pesquisa"),
+      evidencias: listaEvid,
+      fontes: linhasDe<Record<string, any>>(fontes, "fontes de pesquisa"),
+      pedidos: linhasDe<Record<string, any>>(pedidos, "pedidos de documento de pesquisa"),
+    });
+
     return {
       papel,
       pesquisas: linhas,
@@ -87,6 +124,7 @@ export const painelPesquisaModulo = createServerFn({ method: "GET" })
       casosSemPesquisa: listaCasos.filter(
         (c) => !linhas.some((l) => l["case_id"] === c["id"]),
       ),
+      dossie,
     };
   });
 

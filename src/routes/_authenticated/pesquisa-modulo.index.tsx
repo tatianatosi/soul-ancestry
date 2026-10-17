@@ -116,6 +116,95 @@ function Index() {
 
       {d && (
         <div className="space-y-4">
+          {/*
+            17/10/2026 — Dossiê de pesquisa (Tela 07), adaptado do mockup
+            aprovado pela Proprietária (15/10/2026). KPIs, cobertura de
+            fontes por tipo e produção mensal de evidências: dados reais do
+            org inteiro (mesmo recorte do restante deste painel), sem
+            tabela ou CHECK novo — ver `src/lib/pesquisa-dossie.ts`. O
+            mockup, na imagem aprovada, não traz barra dupla por "ramo
+            paterno/materno" (texto de uma versão anterior da
+            especificação) — traz cobertura por tipo real de fonte, que é
+            o que este bloco mostra.
+          */}
+          <CaCard titulo="Dossiê de pesquisa" eyebrow="Pesquisa Genealógica · Centro de Inteligência">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-dossie-kpis>
+              <CardIndicador rotulo="Acervos mapeados" valor={d.dossie.acervosMapeados} apoio="Catálogo de fontes da organização" />
+              <CardIndicador
+                rotulo="Hipóteses em aberto"
+                valor={d.dossie.hipotesesEmAberto}
+                apoio="Abertas ou em revisão"
+                tom={d.dossie.hipotesesEmAberto > 0 ? "atencao" : "sucesso"}
+              />
+              <CardIndicador
+                rotulo="Evidências validadas"
+                valor={d.dossie.evidenciasValidadas}
+                apoio="Revisão humana concluída"
+                tom="sucesso"
+              />
+              <CardIndicador
+                rotulo="Cartórios acionados"
+                valor={d.dossie.cartoriosAcionados}
+                apoio="Instituições distintas com pedido feito"
+              />
+            </div>
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              <div data-dossie-cobertura>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-widest text-navy/55">
+                  Cobertura das fontes
+                </h4>
+                {d.dossie.coberturaFontes.length === 0 ? (
+                  <EstadoVazio mensagem="Nenhuma fonte registrada ainda." />
+                ) : (
+                  <ul className="space-y-2">
+                    {d.dossie.coberturaFontes.map((c) => (
+                      <li key={c.tipo}>
+                        <div className="mb-1 flex items-center justify-between text-xs text-navy/70">
+                          <span>{c.rotulo}</span>
+                          <span className="tabular-nums">{c.quantidade} fonte(s)</span>
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-navy/10">
+                          <div
+                            className="h-2 rounded-full bg-gold"
+                            style={{
+                              width: `${Math.max(4, Math.round((c.quantidade / d.dossie.totalFontes) * 100))}%`,
+                            }}
+                          />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div data-dossie-producao>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-widest text-navy/55">
+                  Produção de evidências (6 meses)
+                </h4>
+                {d.dossie.producaoEvidencias.every((m) => m.quantidade === 0) ? (
+                  <EstadoVazio mensagem="Nenhuma evidência registrada nos últimos 6 meses." />
+                ) : (
+                  <div className="flex h-32 items-end gap-3">
+                    {(() => {
+                      const max = Math.max(1, ...d.dossie.producaoEvidencias.map((m) => m.quantidade));
+                      return d.dossie.producaoEvidencias.map((m) => (
+                        <div key={m.mes} className="flex flex-1 flex-col items-center gap-1">
+                          <span className="text-[11px] tabular-nums text-navy/60">{m.quantidade}</span>
+                          <div
+                            className="w-full rounded-t-md bg-navy/60"
+                            style={{ height: `${Math.max(4, Math.round((m.quantidade / max) * 100))}%` }}
+                          />
+                          <span className="text-[10px] uppercase text-navy/50">{m.mes}</span>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                )}
+              </div>
+            </div>
+          </CaCard>
+
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <CardIndicador rotulo="Casos em pesquisa" valor={d.pesquisas.length} apoio="Pesquisas ativas no Desk" />
             <CardIndicador
