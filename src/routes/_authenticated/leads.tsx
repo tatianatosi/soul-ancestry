@@ -9,6 +9,7 @@ import { DerivacaoJornada } from "@/components/crm/derivacao-jornada";
 import { HandoffLead } from "@/components/crm/handoff-lead";
 import { NovoLeadDialog } from "@/components/crm/novo-lead";
 import { TemplatesWhatsapp } from "@/components/crm/templates-whatsapp";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -125,6 +126,15 @@ function LeadsPage() {
   const qInvestimento = useQuery({ queryKey: ["marketing-investimento-total"], queryFn: () => investimentoFn({}) });
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const [rascunho, setRascunho] = useState<Record<string, unknown>>({});
+  /*
+    17/10/2026 — Correção da Proprietária ao corte radical anterior:
+    AncestralScan e templates de WhatsApp precisam de acesso funcional,
+    não só sair do render. Viram gavetas (Sheet) acionadas por botão —
+    mesmos componentes, mesma lógica, só reembalados numa superfície
+    contextual em vez de montados sempre na página.
+  */
+  const [scanAberto, setScanAberto] = useState(false);
+  const [templatesAberto, setTemplatesAberto] = useState(false);
   /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
   useAvisoEdicaoNaoSalva(Object.keys(rascunho).length > 0);
   const [leadPendente, setLeadPendente] = useState<string | null>(null);
@@ -720,17 +730,33 @@ function LeadsPage() {
           setMsg("Lead criado em Triagem.");
         }}
       />
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,380px)_1fr]">
+      {/*
+        17/10/2026 — Correção da Proprietária: a ficha de edição completa
+        do lead (36 campos, organizada em seções: SPIN, radar, handoff,
+        jornada) vira gaveta (Sheet) aberta por "Abrir ficha", em vez de
+        montar inline ao lado da lista na carteira inicial. Mesmo
+        conteúdo, mesma lógica — só a superfície muda.
+      */}
+      <div className="max-w-[420px]">
         <div className="space-y-3">
-          {/*
-            17/10/2026 — Corte radical da prancha V4 (ordem explícita da
-            Proprietária): a página termina no Kanban (4 KPIs + 3
-            infográficos + Kanban de 5 colunas). Nenhum rastro visual de
-            legado abaixo — nem toggle, nem link "ver legado". A triagem
-            do AncestralScan (ImportarTriagemScan, import no topo deste
-            arquivo) continua existindo, preservada, não deletada — só
-            parou de ser chamada no JSX renderizado desta tela.
-          */}
+          <button
+            type="button"
+            id="leads-triagem-scan"
+            className="rounded-lg border border-navy/20 px-3 py-2 text-xs font-medium text-navy hover:bg-navy/5"
+            onClick={() => setScanAberto(true)}
+          >
+            Importar triagem do AncestralScan
+          </button>
+          <Sheet open={scanAberto} onOpenChange={setScanAberto}>
+            <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
+              <SheetHeader>
+                <SheetTitle>Triagem do AncestralScan</SheetTitle>
+              </SheetHeader>
+              <div className="mt-4">
+                <ImportarTriagemScan />
+              </div>
+            </SheetContent>
+          </Sheet>
 
           <div id="leads-filtros" className="scroll-mt-24" />
           <Secao titulo="Filtros" descricao="Todos os campos classificatórios são listas fechadas.">
@@ -818,7 +844,22 @@ function LeadsPage() {
           </Secao>
         </div>
 
-        <div className="space-y-3">
+      </div>
+
+      <Sheet
+        open={Boolean(atual)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelecionado(null);
+            setRascunho({});
+          }
+        }}
+      >
+        <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
+        <SheetHeader>
+          <SheetTitle>{atual ? `${atual.codigo ?? "Lead"} · ${atual.nome}` : "Ficha do lead"}</SheetTitle>
+        </SheetHeader>
+        <div className="mt-4 space-y-3">
           {msg ? <p className="rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-sm text-navy">{msg}</p> : null}
 
           {atual ? (
@@ -1513,7 +1554,8 @@ function LeadsPage() {
             servidor e no banco.
           </p>
         </div>
-      </div>
+        </SheetContent>
+      </Sheet>
 
       {/*
         27/08/2026 — "CRM mestre e legado nunca usei" (Proprietária). Fluxo
@@ -1531,13 +1573,25 @@ function LeadsPage() {
         </Link>
       </p>
 
-      {/*
-        17/10/2026 — Corte radical da prancha V4 (ordem explícita da
-        Proprietária): nenhum rastro visual de legado na tela. Os
-        templates de WhatsApp (TemplatesWhatsapp, import no topo deste
-        arquivo) continuam existindo, preservados, não deletados — só
-        pararam de ser chamados no JSX renderizado desta tela.
-      */}
+      <button
+        type="button"
+        id="crm-templates"
+        className="mt-6 rounded-lg border border-navy/20 px-3 py-2 text-xs font-medium text-navy hover:bg-navy/5"
+        onClick={() => setTemplatesAberto(true)}
+      >
+        Templates de WhatsApp
+      </button>
+      <Sheet open={templatesAberto} onOpenChange={setTemplatesAberto}>
+        <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
+          <SheetHeader>
+            <SheetTitle>Templates de WhatsApp</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4">
+            <TemplatesWhatsapp />
+          </div>
+        </SheetContent>
+      </Sheet>
+
       <p className="mt-6 rounded-lg border border-navy/15 bg-cream px-3 py-2 text-xs text-navy/70">
         Execução diária fica no Painel Hoje — fila única, sem contagem concorrente.{" "}
         <Link to="/painel" className="underline">
