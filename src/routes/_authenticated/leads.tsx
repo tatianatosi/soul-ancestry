@@ -723,13 +723,14 @@ function LeadsPage() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,380px)_1fr]">
         <div className="space-y-3">
           {/*
-            Onda 4 dos órfãos (03/10/2026): a porta de entrada do Scan existia
-            no servidor e não tinha tela — só se via a triagem de um lead que
-            nunca podia nascer pelo Desk.
+            17/10/2026 — Corte radical da prancha V4 (ordem explícita da
+            Proprietária): a página termina no Kanban (4 KPIs + 3
+            infográficos + Kanban de 5 colunas). Nenhum rastro visual de
+            legado abaixo — nem toggle, nem link "ver legado". A triagem
+            do AncestralScan (ImportarTriagemScan, import no topo deste
+            arquivo) continua existindo, preservada, não deletada — só
+            parou de ser chamada no JSX renderizado desta tela.
           */}
-          <div className="mb-4">
-            <ImportarTriagemScan />
-          </div>
 
           <div id="leads-filtros" className="scroll-mt-24" />
           <Secao titulo="Filtros" descricao="Todos os campos classificatórios são listas fechadas.">
@@ -1530,9 +1531,13 @@ function LeadsPage() {
         </Link>
       </p>
 
-      <div id="crm-templates" className="mt-6 scroll-mt-24">
-        <TemplatesWhatsapp />
-      </div>
+      {/*
+        17/10/2026 — Corte radical da prancha V4 (ordem explícita da
+        Proprietária): nenhum rastro visual de legado na tela. Os
+        templates de WhatsApp (TemplatesWhatsapp, import no topo deste
+        arquivo) continuam existindo, preservados, não deletados — só
+        pararam de ser chamados no JSX renderizado desta tela.
+      */}
       <p className="mt-6 rounded-lg border border-navy/15 bg-cream px-3 py-2 text-xs text-navy/70">
         Execução diária fica no Painel Hoje — fila única, sem contagem concorrente.{" "}
         <Link to="/painel" className="underline">
