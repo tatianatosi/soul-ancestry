@@ -263,3 +263,6 @@
 - [ ] Paleta antiga x aprovada; Franz/Ruth na Árvore (aguarda decisão)
 - [x] Marco 1895: Franz Friedmann → Otto Reimer (linha direta)
 - [ ] Régua 60% + cartões de documentos do fallback — bloqueado: dados não registrados no caso (decisão da Proprietária)
+
+- [ ] Desk: novo de-para de conteúdo com prints de todas as telas atuais (topo ao rodapé); App em pausa
+- [ ] Desk: localizar mockup da tela de Marketing (V4)
