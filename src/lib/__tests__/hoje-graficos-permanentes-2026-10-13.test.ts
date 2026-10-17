@@ -39,7 +39,7 @@ describe("Hoje — grade visível e gráficos sempre desenhados", () => {
   });
 
   it("os 4 KPIs da prancha continuam no topo, ligados às mesmas funções", () => {
-    for (const r of ["Decisões do dia", "Cadências vencidas", "Casos sem próxima ação", "Microentregas"]) {
+    for (const r of ["Decisões do dia", "Cadências vencidas", "Casos sem próxima ação", "Microentregas para revisão"]) {
       expect(painel).toContain(`rotulo: "${r}"`);
     }
     expect(painel).toContain("kpisHoje(caso.carteira, caso.tarefas)");

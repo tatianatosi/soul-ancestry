@@ -33,15 +33,22 @@ describe("os quatro cards restantes existem e citam a função pura", () => {
   });
 
   it("Microentregas (aguardando revisão) reusa o número que já existia", () => {
-    // Rótulo da prancha V4 é "Microentregas" (Proprietária, 13/10/2026).
-    expect(painel).toContain('titulo="Microentregas"');
-    expect(painel).toContain("{microentregasAguardandoRevisao}");
+    // 17/10/2026 — corte radical na grade V4 (desk-01-hoje): o rótulo passou
+    // a "Microentregas para revisão" (KPI do topo) e o card de baixo virou
+    // lista real das microentregas abertas (mockup: "Síntese do registro
+    // paroquial — Revisar"), em vez de só o número — mas é o MESMO array
+    // filtrado pela mesma função canônica, não uma conta nova.
+    expect(painel).toContain('titulo="Microentregas prontas para revisão"');
+    expect(painel).toContain("microentregasAbertas.length");
+    expect(painel).toContain("microentregasAbertas.slice(0, 6)");
     // Abre a fila de onde o número sai.
     expect(painel).toContain('to="/golive/microentregas"');
   });
 
   it("Alertas por origem chama origemDoSinal", () => {
-    expect(painel).toContain('titulo="Alertas por origem"');
+    // 17/10/2026 — título renomeado para "Alertas centralizados · com
+    // origem" (mockup desk-01-hoje); a função de origem continua a mesma.
+    expect(painel).toContain('titulo="Alertas centralizados · com origem"');
     expect(painel).toContain("origemDoSinal(caso.eventos ?? [])");
   });
 });

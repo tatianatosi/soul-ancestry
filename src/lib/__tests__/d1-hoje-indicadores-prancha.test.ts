@@ -25,7 +25,7 @@ describe("Hoje traz os quatro indicadores da prancha", () => {
     expect(painel).toContain('rotulo: "Decisões do dia"');
     expect(painel).toContain('rotulo: "Cadências vencidas"');
     expect(painel).toContain('rotulo: "Casos sem próxima ação"');
-    expect(painel).toContain('rotulo: "Microentregas"');
+    expect(painel).toContain('rotulo: "Microentregas para revisão"');
   });
 
   it("a faixa é identificável na página", () => {
@@ -75,7 +75,11 @@ describe("número só onde existe regra", () => {
     // história. O que não pode voltar é o RAMO que o renderiza.
     expect(painel).not.toContain('k.valor === null ? "Não registrado"');
     expect(painel).not.toContain("k.valor === null");
-    expect(painel).toContain('<dd className="font-serif text-2xl text-navy">{k.valor}</dd>');
+    // 17/10/2026 — corte radical na grade V4 (desk-01-hoje): os quatro KPIs
+    // viraram sempre-link (todos os quatro têm `to` real), e o número ganhou
+    // tamanho/posição da prancha. O texto exato mudou; o que esta trava
+    // protege — nenhum ramo de "ausência"/"Não registrado" — continua valendo.
+    expect(painel).toContain('<dd className="mt-1 font-serif text-3xl leading-none text-navy">{k.valor}</dd>');
   });
 
   it("os quatro abrem a lista que os reconcilia", () => {

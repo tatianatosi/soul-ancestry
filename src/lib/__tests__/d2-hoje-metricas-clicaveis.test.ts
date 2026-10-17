@@ -22,7 +22,7 @@ describe("toda contagem com regra abre sua origem", () => {
     // /golive publica exatamente "Vencidas" e "Sem próxima ação" dos
     // mesmos kpis — abrir ali reconcilia, não leva a lista parecida.
     expect(painel).toContain('apoio: "pedem retomada", to: "/golive"');
-    expect(painel).toContain('apoio: "precisam de decisão", to: "/golive"');
+    expect(painel).toContain('apoio: "precisa de decisão", to: "/golive"');
   });
 
   it("microentregas abre a fila de microentregas", () => {
@@ -30,15 +30,20 @@ describe("toda contagem com regra abre sua origem", () => {
   });
 
   it("o card vira link quando há destino", () => {
-    expect(painel).toContain("k.to ? (");
-    expect(painel).toContain("<Link key={k.rotulo} to={k.to}");
+    // 17/10/2026 — corte radical na grade V4: os quatro KPIs sempre têm
+    // `to` real agora (nenhum é decorativo), então o ramo condicional saiu;
+    // a trava passa a ser que os quatro sempre renderizam como Link.
+    expect(painel).toContain("<Link");
+    expect(painel).toContain("key={k.rotulo}");
+    expect(painel).toContain("to={k.to}");
   });
 });
 
 describe("microentregas para revisão passou a ter número real", () => {
   it("usa a função canônica, não um critério reimplementado", () => {
     expect(painel).toContain('import { concluida } from "@/lib/golive-microentregas"');
-    expect(painel).toContain("caso.microentregas.filter((m) => !concluida(m)).length");
+    expect(painel).toContain("caso.microentregas.filter((m) => !concluida(m))");
+    expect(painel).toContain("microentregasAbertas.length");
   });
 
   it("não é mais 'Não registrado'", () => {
