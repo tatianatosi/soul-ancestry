@@ -1,35 +1,38 @@
-# Paleta completa e sete abas — na versão "App — recomposição densa do mockup"
+# Sugestões visuais — CRM Vivo e Painel de Calls (uso diário)
 
-Juntar as duas ordens de hoje (9h23 e 9h28) na versão "recomposição densa", que já tem a estrutura certa. O App no ar não muda e nada é publicado.
+Somente proposta visual para aprovação. Nada é alterado no Desk, no App (em pausa) ou nos dados; nada é publicado.
 
-## Escolhas que eu fiz (você pulou as perguntas)
-- **Paleta:** azul #13294B e creme #F0EEE9, a paleta aprovada no Corte 1 e repetida na ordem das 9h23. O azul #2F4B6E e o bege #ECDFCD são da paleta antiga e ficam de fora.
-- **Conta:** nome, e-mail e papel de cada participante. CPF, RG e endereço continuam fora do App. O contrato aparece como "Aguardando assinatura", porque ainda não foi assinado.
-- **Radar:** continua "Progresso Geral" no lugar de "viabilidade". O semáforo mostra só o estado registrado de documentos e jurídico, sem opinar sobre as chances do caso.
+## O que será entregue
+Um PDF de sugestões, com comparação "como está hoje" e "como ficaria" para cada tela, em computador (1280) e celular (375):
 
-## Cores, só no App
-- Fundo creme. Cartões brancos com borda azul a 6% e sombra suave.
-- Títulos em azul #13294B e texto em tinta #2B2F33.
-- Ouro #C2A84D nos números e na régua; texto pequeno em ouro escuro #A88434.
-- Selos:
-  - Recebido: sálvia #E8F2EC, com texto #21613D.
-  - Em análise: azul #EBF3F8, com texto #1E507A.
-  - Pendente: âmbar #FEF5E7, com texto #9A3A2F.
-- Cantos arredondados e selos em pílula.
+1. **CRM Vivo**
+   - Hoje: página longa, com formulários empilhados até o rodapé.
+   - Proposta: fila do dia no topo (quem precisa de ação hoje), ficha da pessoa ao lado ao clicar, e o fluxo em etapas curtas (Origem → Discovery → Próxima ação → Proposta → Passagem ao caso), uma etapa aberta por vez.
+   - Cada resposta mostra de onde veio e seu estado (confirmada, sugerida, não registrada).
+   - Um botão principal por etapa, com destino claro.
 
-## As sete abas
-1. **Home:** saudação, resumo do caso, régua de 5 etapas, 3 próximos passos numerados em ouro, achados com tarja dourada e cartão do WhatsApp.
-2. **Jornada:** linha do tempo com os marcos publicados da trilha austríaca (§ 58c), separando os concluídos dos que estão em andamento.
-3. **Radar:** teia maior, grade 2×3 com mini-barras e semáforo de documentos e jurídico.
-4. **Documentos:** checklist por membro da família, com os selos coloridos e o botão de envio.
-5. **Árvore:** da Ana Luiza até Heinrich, com cônjuges e pais lado a lado.
-6. **Legado:** memórias e a área de entregas, onde ficam os relatórios de Fase 1 e Fase 2 e o Dossiê Consolidado quando forem liberados.
-7. **Conta:** perfil, participantes, contrato, termos de privacidade e WhatsApp.
+2. **Painel de Calls**
+   - Hoje: cerca de 14 mil pixels de rolagem.
+   - Proposta: modo "durante a call": roteiro SPIN em blocos recolhíveis, anotação rápida e campos do dicionário apenas quando forem úteis.
+   - Ao terminar: resumo de revisão com o que vai para o CRM, pendências e próxima ação. Nada é gravado sem confirmação.
 
-Não existe aba "Relatório Visual": os relatórios ficam dentro de Legado.
+3. **Dicionários e listas como "alimento"**
+   - Saem da tela principal e ficam num painel lateral de consulta.
+   - Mostram para qual motor cada lista envia dados (Discovery, Proposta, Jornada), sem formulário solto.
 
-## O que continua do registro
-A régua usa as etapas registradas. O selo mostra "Pronto para ativar". Checklist, próximos passos, achados e relatórios aparecem como "Em preparação" até você liberar. Felipe aparece só como menor, sem dados pessoais.
+4. **Padrões comuns**
+   - Selos sempre com texto.
+   - No máximo 4 indicadores por tela.
+   - Vazio honesto ("Não registrado").
+   - Celular em uma coluna, sem rolagem lateral.
 
-## Como chega à versão
-Depois que você aprovar, te passo o texto pronto para colar no chat da "App — recomposição densa do mockup". Ela aplica, captura as sete abas no celular e no computador, lado a lado com o mockup, e para esperando sua aprovação.
+## Como será feito
+- Partir das capturas reais de 18/10, já tiradas.
+- Desenhar as propostas como imagens de referência (wireframes), com a paleta canônica: navy, ouro e creme, títulos em Cormorant e corpo em Montserrat.
+- Usar apenas campos e listas que já existem no sistema, sem inventar dados.
+- Salvar o PDF e as imagens em Arquivos, numa pasta datada.
+
+## Detalhes técnicos
+- Fontes lidas, somente leitura: as rotas do CRM Vivo e de Calls, o dicionário das calls e o glossário oficial, para listar os campos reais e seus leitores.
+- Nenhuma edição em `src/`, nenhuma migration, nenhum draft e nenhuma publicação.
+- Implementar qualquer item depois exige aprovação separada, por corte.
