@@ -15,7 +15,7 @@ import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-supriment
 import { FilaPublicacaoReal } from "@/components/biblioteca/fila-publicacao-real";
 import { ConteudoEditorialConectado } from "@/components/biblioteca/conteudo-editorial-conectado";
 import { PesquisaConectada } from "@/components/desk/superficies-kit-conectadas";
-import { MAPA_CENTRO_INTELIGENCIA, SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
+import { MAPA_CENTRO_INTELIGENCIA, MAPA_CONSUMO_SUBAREAS, SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
 import { rotuloFonteNegocio } from "@/lib/rotulo-negocio";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
@@ -223,6 +223,7 @@ function BibliotecaPage() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {entradas.map(({ label, descricao, chave, Icone }) => {
             const quantidade = contadores.get(chave);
+            const consumo = MAPA_CONSUMO_SUBAREAS.find((c) => c.chave === chave);
             return (
               <Button
                 key={label}
