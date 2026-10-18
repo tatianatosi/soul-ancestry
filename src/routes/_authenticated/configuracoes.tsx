@@ -12,6 +12,8 @@ import { obterModoProprietaria, type EventoProprietaria } from "@/lib/modo-propr
 import { CAPACIDADES_PROPRIETARIA, ROTULO_CAPACIDADE } from "@/lib/modo-proprietaria";
 import { KitBadge, KitCard, KpiCard } from "@/components/clube-ancestral-kit";
 import { GovernancaConectada } from "@/components/desk/superficies-kit-conectadas";
+import { CaCard } from "@/components/ui/ca-card";
+import { Etiqueta } from "@/components/prancha-v4/kit";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: () => ({
@@ -97,8 +99,8 @@ function ConfiguracoesPage() {
           </p>
         </KitCard>
       </section>
-      <details className="mt-4 rounded-lg border border-navy/15 bg-card p-4">
-        <summary className="cursor-pointer font-medium text-navy">Abrir Modo Proprietária</summary>
+      <CaCard className="mt-4"><details>
+        <summary className="cursor-pointer font-serif text-lg text-navy">Abrir Modo Proprietária</summary>
         <div className="mt-5 border-t border-navy/10 pt-5">
           <PainelModoProprietaria
             dados={qModo.data}
@@ -107,10 +109,10 @@ function ConfiguracoesPage() {
             aoTentarNovamente={() => void qModo.refetch()}
           />
         </div>
-      </details>
+      </details></CaCard>
 
-      <details className="mt-6 rounded-lg border border-navy/15 bg-card p-4">
-        <summary className="cursor-pointer font-medium text-navy">Abrir gestão detalhada de membros e permissões</summary>
+      <CaCard className="mt-6"><details>
+        <summary className="cursor-pointer font-serif text-lg text-navy">Abrir gestão detalhada de membros e permissões</summary>
         <div className="mt-5 border-t border-navy/10 pt-5">
 
       {!liberado ? (
@@ -133,7 +135,7 @@ function ConfiguracoesPage() {
                   <p className="font-medium text-navy">{u.nome ?? u.email ?? "Membro"}</p>
                   <p className="text-xs text-navy/50">{u.email ?? u.userId}</p>
                 </div>
-                {u.arquivado ? <span className="text-xs text-navy/50">Arquivado</span> : null}
+                {u.arquivado ? <Etiqueta texto="Arquivado" /> : null}
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {PAPEIS.map((papel) => {
@@ -168,10 +170,10 @@ function ConfiguracoesPage() {
         </EstadoDados>
       )}
         </div>
-      </details>
+      </details></CaCard>
 
-      <details className="mt-4 rounded-lg border border-navy/15 bg-card p-4">
-        <summary className="cursor-pointer font-medium text-navy">Abrir trilha de auditoria</summary>
+      <CaCard className="mt-4"><details>
+        <summary className="cursor-pointer font-serif text-lg text-navy">Abrir trilha de auditoria</summary>
         <div className="mt-5 border-t border-navy/10 pt-5">
           {!liberado ? (
             <EstadoVazio mensagem={decisao.motivo} />
@@ -188,7 +190,7 @@ function ConfiguracoesPage() {
             </EstadoDados>
           )}
         </div>
-      </details>
+      </details></CaCard>
     </SaasShell>
   );
 }
