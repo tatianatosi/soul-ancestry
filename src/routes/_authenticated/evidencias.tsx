@@ -7,11 +7,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { EntidadeCrud } from "@/components/saas/entidade-crud";
-import { SaasShell, useSaas } from "@/components/saas/shell";
+import { EstadoVazio, SaasShell, useSaas } from "@/components/saas/shell";
 import { PageHeader, SectionHeader } from "@/components/desk/ui-desk";
 import { listarAcessosEvidencia, registrarAcessoEvidencia } from "@/lib/saas.functions";
 import { ESTADOS, rotuloEstado } from "@/lib/estados";
-import { KitBadge, KitCard } from "@/components/clube-ancestral-kit";
+import { CaCard } from "@/components/ui/ca-card";
+import { Etiqueta } from "@/components/prancha-v4/kit";
 import { mensagemLegadoSemCriacao } from "@/lib/fontes-pesquisa-canonicas";
 
 export const Route = createFileRoute("/_authenticated/evidencias")({
@@ -59,11 +60,11 @@ function EvidenciasPage() {
         titulo="Biblioteca de evidências"
         subtitulo="Caso → hipótese → fonte → evidência → estado de validação. Cada visualização é registrada; documento é evidência, nunca conclusão jurídica."
       />
-      <KitCard
+      <CaCard
         className="mb-4"
         eyebrow="Área de Documentos"
-        title="Fluxo documental"
-        action={<KitBadge tone="gold">Acesso auditado</KitBadge>}
+        titulo="Fluxo documental"
+        acao={<Etiqueta texto="Acesso auditado" tom="atencao" />}
       >
         <ol className="grid gap-2 text-xs sm:grid-cols-4">
           {["Documento recebido", "Fonte catalogada", "Evidência em revisão", "Publicação autorizada"].map((etapa, indice) => (
@@ -74,7 +75,7 @@ function EvidenciasPage() {
           ))}
         </ol>
         <p className="mt-3 text-xs text-navy/60">O fluxo indica estados possíveis; os registros abaixo são os dados reais da organização.</p>
-      </KitCard>
+      </CaCard>
       {pendenciaVinculo ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
           Pendência registrada: {pendenciaVinculo}
@@ -167,7 +168,7 @@ function EvidenciasPage() {
       />
 
       {acessos ? (
-        <div className="mt-5 rounded-xl border border-navy/10 bg-cream/40 p-4">
+        <CaCard className="mt-5" eyebrow="Evidências · auditoria" titulo="Acessos desta evidência">
           <SectionHeader
             titulo="Registro de acessos"
             descricao="Auditoria de visualização desta evidência."
@@ -180,18 +181,24 @@ function EvidenciasPage() {
               </button>
             }
           />
-          <ul className="mt-3 space-y-1 text-sm text-navy/70">
-            {acessos.length === 0 ? (
-              <li>Nenhum acesso registrado ainda.</li>
-            ) : (
-              acessos.map((a) => (
-                <li key={a.id}>
-                  {new Date(a.created_at).toLocaleString("pt-BR")} — {a.acao}
+          {acessos.length === 0 ? (
+            <div className="mt-3">
+              <EstadoVazio mensagem="Nenhum acesso registrado ainda." />
+            </div>
+          ) : (
+            <ul className="mt-3">
+              {acessos.map((a) => (
+                <li
+                  key={a.id}
+                  className="flex items-center justify-between gap-3 border-b border-navy/5 py-1.5 text-xs text-navy/80 last:border-0"
+                >
+                  <span>{new Date(a.created_at).toLocaleString("pt-BR")}</span>
+                  <Etiqueta texto={a.acao} />
                 </li>
-              ))
-            )}
-          </ul>
-        </div>
+              ))}
+            </ul>
+          )}
+        </CaCard>
       ) : null}
     </SaasShell>
   );

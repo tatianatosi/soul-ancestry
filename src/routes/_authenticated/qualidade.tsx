@@ -2,7 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { PainelQualidade } from "@/components/qualidade/painel";
-import { KpisQualidadeV4, RecomendacoesQualidadeV4 } from "@/components/qualidade/kpis-recomendacoes";
+import {
+  KpisQualidadeV4,
+  PanoramaQualidadeV4,
+  RecomendacoesQualidadeV4,
+} from "@/components/qualidade/kpis-recomendacoes";
 import { RadarInternoIntegrado } from "@/components/desk/radar-interno-integrado";
 import { CaCard } from "@/components/ui/ca-card";
 import { Selo } from "@/components/comercial/base";
@@ -50,11 +54,16 @@ function QualidadePage() {
       <div className="mb-6">
         <KpisQualidadeV4 />
       </div>
-      <div className="mb-6 rounded-2xl border border-navy/10 bg-card p-6 shadow-sm">
+      <CaCard
+        titulo="Matriz de prioridade e Radar Individual"
+        eyebrow="Radar & Matrizes · carteira e caso"
+        className="mb-6"
+      >
         <RadarInternoIntegrado />
-      </div>
-      <div className="mb-6">
+      </CaCard>
+      <div className="mb-6 grid gap-4 lg:grid-cols-2">
         <RecomendacoesQualidadeV4 />
+        <PanoramaQualidadeV4 />
       </div>
       <details className="mb-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
         <summary className="cursor-pointer font-serif text-base text-navy">
