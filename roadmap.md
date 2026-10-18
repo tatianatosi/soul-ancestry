@@ -303,6 +303,6 @@
 - [ ] Comparar peça a peça as 11 telas com as cascas V4 originais e sugestões das rodadas 1–4; apresentar cobertura, divergências e novas capturas para aprovação, sem publicar ou integrar.
 
 ## 18/10/2026 às 23:18 UTC — Todas as telas com cascas V4 reais
-- [ ] Recompor o mockup de todas as superfícies e estados contextuais do Desk, não limitado às onze principais nem à prancha aprovada: resgatar cascas/componentes/estudos V4 reais por tela.
+- [ ] Recompor o mockup de todas as superfícies e estados contextuais do Desk, não limitado às onze principais nem à prancha aprovada: resgatar cascas/componentes/estudos V4 reais por tela. Em execução no rascunho isolado “Desk — todas as telas com cascas V4 reais” (drft_01m58n10hyefm9sz2m3rz46dxh), sem integrar/publicar.
 - [ ] Entregar inventário completo com origem da casca e comparação antes/depois em 375/1280, PDF e imagens conferidas; distinguir captura atual, referência histórica e proposta.
 - App congelado; sem produto paralelo, integração, escrita de dados, assinatura ou publicação. Telas não recuperadas devem constar como pendências explícitas, nunca cobertura presumida.
