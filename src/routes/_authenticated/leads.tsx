@@ -525,7 +525,7 @@ function LeadsPage() {
         </CaCard>
 
         <CaCard
-          titulo="Qualidade por canal"
+          titulo="Origem e qualidade"
           eyebrow="Comercial · Taxa real de conversão a contrato"
           data-leads-qualidade-canal
           className="rounded-2xl p-6"
@@ -557,7 +557,7 @@ function LeadsPage() {
         um lead ou prazo de exemplo.
       */}
       <CaCard
-        titulo="Quadro por etapa"
+        titulo="Funil comercial vivo"
         eyebrow="Comercial · Leads → Discovery → Diagnóstico → Proposta → Contrato"
         data-leads-quadro-etapas
         className="mb-6 rounded-2xl p-6"
