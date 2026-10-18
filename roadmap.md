@@ -1,5 +1,11 @@
 # Roadmap
 
+## 18/10 — pedidos para aprovação, sem publicação
+- [ ] Documentos na versão separada: área de envio existente, checklist com selos e Entregas do caso; 14 itens permanecem não compartilhados até autorização.
+- [ ] PDF da versão leve em três vias (original, App no ar, versão nova), sete abas em celular/computador; identificar data e origem de cada captura.
+- [ ] De-para completo do Desk: capturas atuais, inventário de links e verificação de destinos, separar funcionamento comprovado, renderização e não verificado; mapear projeções e resultados no App.
+- Não executar escritas, convites, liberação, cobrança, integração ou publicação nesta auditoria.
+
 ## Polimento de luxo 12/10 (pedido 16:38)
 - [ ] Jornada: texto editorial Graz (1895) no lugar de Lacuna (autorizado)
 - [ ] Árvore com linhas: BLOQUEADO_POR_DADO (zero vínculos publicados)
