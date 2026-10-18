@@ -189,20 +189,13 @@ function BibliotecaPage() {
     { label: "Acervo", descricao: "Materiais internos aprovados", chave: "acervo", Icone: Archive },
     { label: "Bases Genealógicas", descricao: "Repositórios e arquivos", chave: "bases", Icone: Database },
     { label: "Dicionários", descricao: "Termos e taxonomias", chave: "dicionarios", Icone: BookOpen },
-    { label: "Trilhas Jurídicas", descricao: "Vias por país com requisitos e riscos", chave: "trilhas", Icone: Scale },
+    { label: "Trilhas Jurídicas", descricao: "Regras versionadas", chave: "juridico", Icone: Scale },
     { label: "Modelos", descricao: "Sem fonte própria; leitura da categoria Modelos do acervo", chave: "modelos", Icone: FileText },
-    { label: "Referências", descricao: "Regras jurídicas versionadas e citáveis", chave: "juridico", Icone: Bookmark },
+    { label: "Referências", descricao: "Entrada de consulta do mesmo acervo, sem coleção paralela", chave: "acervo", Icone: Bookmark },
   ];
 
-  const [entradaAtiva, setEntradaAtiva] = useState<string | null>(null);
-  const abrirEntrada = (chave: SubareaBiblioteca, label: string) => {
+  const abrirEntrada = (chave: SubareaBiblioteca) => {
     setSub(chave);
-    setEntradaAtiva(label);
-    setBusca("");
-    setStatus("");
-    setResponsavel("");
-    setPais("");
-    setArquivamento("ativos");
     setDetalhe(null);
     setGestaoAberta(true);
     window.requestAnimationFrame(() => document.getElementById("gestao-biblioteca")?.scrollIntoView({ behavior: "smooth" }));
@@ -228,7 +221,7 @@ function BibliotecaPage() {
                 key={label}
                 type="button"
                 variant="ghost"
-                onClick={() => abrirEntrada(chave, label)}
+                onClick={() => abrirEntrada(chave)}
                 className="group grid h-auto min-h-32 grid-cols-[auto_minmax(0,1fr)] items-start gap-3 whitespace-normal rounded-none border-t-2 border-gold bg-background/60 p-4 text-left shadow-sm transition hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold"
               >
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-navy text-cream">
@@ -240,7 +233,7 @@ function BibliotecaPage() {
                   <span className="mt-3 block text-xs font-semibold text-navy">
                     {carregando ? "Carregando…" : erroLeitura ? "Leitura indisponível" : quantidade ? `${quantidade} ${quantidade === 1 ? "registro" : "registros"}` : "Sem registros"}
                   </span>
-                  {label === "Modelos" ? (
+                  {label === "Modelos" || label === "Referências" ? (
                     <span className="mt-1 block text-[11px] text-navy/50">Fonte compartilhada declarada</span>
                   ) : null}
                 </span>
@@ -257,11 +250,6 @@ function BibliotecaPage() {
       >
         <summary className="cursor-pointer font-medium text-navy">Abrir gestão da Biblioteca</summary>
         <div className="mt-5 space-y-6 border-t border-navy/10 pt-5">
-        {entradaAtiva ? (
-          <p role="status" className="rounded-md border border-gold/40 bg-gold/10 px-3 py-2 text-sm text-navy">
-            Aberto por “{entradaAtiva}”: mostrando {meta.label}, somente itens ativos, filtros limpos.
-          </p>
-        ) : null}
         <FilaPublicacaoReal />
         <ConteudoEditorialConectado />
         {/*
@@ -326,7 +314,6 @@ function BibliotecaPage() {
               type="button"
               onClick={() => {
                 setSub(s.chave);
-                setEntradaAtiva(null);
                 setDetalhe(null);
               }}
               className={`rounded-xl border p-3 text-left transition ${
