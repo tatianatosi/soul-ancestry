@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
 import {
   CAMPOS_DICIONARIO_CALLS,
   CRITERIOS_ACEITE_CALLS,
@@ -47,11 +48,13 @@ export const Route = createFileRoute("/_authenticated/governanca/dicionario-call
   component: DicionarioCallsCrm,
 });
 
+// V4-05: bloco local vira o CaCard canônico; a âncora fica no invólucro.
 const Bloco = ({ id, titulo, children }: { id?: string; titulo: string; children: React.ReactNode }) => (
-  <section id={id} className="rounded-xl border border-navy/10 bg-cream/40 p-5">
-    <h2 className="font-serif text-lg text-navy">{titulo}</h2>
-    <div className="mt-3 text-sm text-navy/70">{children}</div>
-  </section>
+  <div id={id}>
+    <CaCard titulo={titulo}>
+      <div className="text-sm text-navy/70">{children}</div>
+    </CaCard>
+  </div>
 );
 
 const Lista = ({ itens }: { itens: readonly string[] }) => (

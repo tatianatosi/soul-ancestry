@@ -10,6 +10,7 @@ import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { Selo, inputCls, dataBr } from "@/components/comercial/base";
 import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   anotarResolucaoDivergencia,
@@ -97,6 +98,7 @@ function DivergenciasCatalogoPage() {
   }, [todas, sku, vinculo, status]);
 
   const resumo = q.data?.resumo;
+  const kpi = (n: number | undefined) => (q.isLoading ? "…" : q.error || n === undefined ? "—" : String(n));
 
   return (
     <SaasShell
@@ -111,6 +113,13 @@ function DivergenciasCatalogoPage() {
         </p>
       ) : null}
       <div className="space-y-6">
+        {/* V4-05: faixa de KPIs com o resumo que o servidor já devolve; sem leitura, traço. */}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-divergencias-kpis-v4>
+          <Indicador rotulo="Registros" valor={kpi(resumo?.total)} />
+          <Indicador rotulo="Em bloqueio" valor={kpi(resumo?.bloqueio)} />
+          <Indicador rotulo="Em atenção" valor={kpi(resumo?.atencao)} />
+          <Indicador rotulo="Resolvidas" valor={kpi(resumo?.resolvidas)} />
+        </div>
         <CaCard variante="compacto" titulo="Filtros">
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="text-sm">

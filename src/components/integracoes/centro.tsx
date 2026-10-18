@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, PlayCircle, Plug, ShieldCheck, TestTube2 } from "lucide-react";
+import { AlertTriangle, PlayCircle, ShieldCheck, TestTube2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { EstadoVazio } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import {
@@ -247,10 +248,7 @@ export function CentroIntegracoes() {
 
         <div className="space-y-4">
           {!atual ? (
-            <p className="rounded-xl border border-navy/10 bg-cream/40 p-6 text-sm text-navy/60">
-              <Plug className="mr-2 inline h-4 w-4" />
-              Escolha uma integração para configurar, testar com dados DEMO e ver os logs mascarados.
-            </p>
+            <EstadoVazio mensagem="Escolha uma integração para configurar, testar com dados DEMO e ver os logs mascarados." />
           ) : (
             <>
               <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
