@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { CaCard } from "@/components/ui/ca-card";
 import { carregarConversao } from "@/lib/conversao.functions";
 import {
   CAMADAS_WHATSAPP,
@@ -75,11 +76,13 @@ const Bloco = ({
   descricao?: string;
   children: React.ReactNode;
 }) => (
-  <section id={id} className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-5">
-    <h2 className="font-serif text-lg text-navy">{titulo}</h2>
-    {descricao && <p className="mt-1 text-[12px] text-navy/55">{descricao}</p>}
-    <div className="mt-3 text-sm text-navy/70">{children}</div>
-  </section>
+  // V4-05: o bloco vira CaCard; a âncora fica no invólucro para o drill-down.
+  <div id={id} className="scroll-mt-24">
+    <CaCard titulo={titulo}>
+      {descricao && <p className="-mt-2 text-[12px] text-navy/55">{descricao}</p>}
+      <div className="mt-3 text-sm text-navy/70">{children}</div>
+    </CaCard>
+  </div>
 );
 
 // CA17-MARKETING-E-INDICADORES-VIVOS (09/09/2026): indicador publicado
@@ -137,7 +140,7 @@ function Marketing() {
       descricao="Canais, campanhas, conteúdo e atribuição antes do lead existir. Somente leitura — nenhuma campanha, link ou envio é executado aqui."
     >
       <div className="space-y-5">
-        <div className="rounded-xl border border-gold/40 bg-cream/50 p-4 text-sm text-navy/75">
+        <CaCard eyebrow="Fronteira" titulo="Marketing × Comercial" className="text-sm text-navy/75">
           <p>
             <strong className="text-navy">Marketing</strong> — {FRONTEIRA_MARKETING_COMERCIAL.marketing}
           </p>
@@ -145,7 +148,7 @@ function Marketing() {
             <strong className="text-navy">Comercial</strong> — {FRONTEIRA_MARKETING_COMERCIAL.comercial}
           </p>
           <p className="mt-2 text-[12px] text-navy/55">{FRONTEIRA_MARKETING_COMERCIAL.regra}</p>
-        </div>
+        </CaCard>
 
         <nav className="flex flex-wrap gap-2">
           {SECOES_MARKETING.map((s) => (
@@ -175,7 +178,7 @@ function Marketing() {
           {([dados]) => <ConteudoMarketing dados={dados as DadosMarketing} />}
         </EstadoDados>
 
-        <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
+        <CaCard>
           <button
             type="button"
             onClick={() => setTecnicoAberto((v) => !v)}
@@ -207,7 +210,7 @@ function Marketing() {
               </table>
             </div>
           )}
-        </section>
+        </CaCard>
       </div>
     </SaasShell>
   );
@@ -525,7 +528,8 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
           </p>
         </Bloco>
 
-        <details className="rounded-xl border border-navy/10 bg-cream/40 p-5">
+        <CaCard>
+        <details>
           <summary className="cursor-pointer font-serif text-lg text-navy">
             Leitura complementar de aquisição
           </summary>
@@ -691,6 +695,7 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
         </Bloco>
           </div>
         </details>
+        </CaCard>
 
         <Bloco id="links-comercial" titulo="Links contextuais para Comercial" descricao={SECOES_MARKETING.find((s) => s.hash === "links-comercial")!.descricao}>
           <div className="flex flex-wrap gap-2">
