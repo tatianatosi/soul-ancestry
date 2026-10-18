@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import { SaasShell, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { CaCard } from "@/components/ui/ca-card";
 import { carregarConversao } from "@/lib/conversao.functions";
 import { AvancarAceite } from "@/components/crm/avancar-aceite";
 import {
@@ -38,14 +39,15 @@ export const Route = createFileRoute("/_authenticated/conversao")({
   component: Conversao,
 });
 
+// V4-02: blocos na casca V4 (CaCard) — mesmo conteúdo, mesma ordem.
 const Bloco = ({ titulo, aviso, children }: { titulo: string; aviso?: string; children: React.ReactNode }) => (
-  <section className="rounded-xl border border-navy/10 bg-cream/40 p-5">
-    <div className="flex flex-wrap items-baseline justify-between gap-2">
-      <h2 className="font-serif text-lg text-navy">{titulo}</h2>
-      {aviso && <span className="text-[11px] text-navy/50">{aviso}</span>}
-    </div>
-    <div className="mt-3 text-sm text-navy/70">{children}</div>
-  </section>
+  <CaCard
+    titulo={titulo}
+    acao={aviso ? <span className="max-w-[45%] text-right text-[11px] text-navy/50">{aviso}</span> : undefined}
+    className="rounded-2xl p-5"
+  >
+    <div className="text-sm text-navy/70">{children}</div>
+  </CaCard>
 );
 
 function Conversao() {
@@ -331,7 +333,7 @@ function Conversao() {
             </div>
           </Bloco>
 
-          <section className="rounded-xl border border-navy/10 bg-cream/40">
+          <section className="rounded-2xl border border-border bg-card shadow-sm">
             <button
               className="flex w-full items-center justify-between px-5 py-4 text-left"
               onClick={() => setReferenciaAberta((v) => !v)}
