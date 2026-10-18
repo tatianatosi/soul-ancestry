@@ -5,6 +5,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { SaasShell } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
 import { PainelEstadoContratual } from "@/components/contratos/painel-estado-contratual";
@@ -62,6 +64,9 @@ function ContratosPage() {
 
   const bases = (qLista.data?.contratos ?? []).filter((c: any) => c.contract_type === "contract_base");
   const basesIndisponiveis = !qLista.isLoading && (Boolean(qLista.error) || qLista.data === undefined);
+  // V4-05: faixa de KPIs só com contagem real da lista já carregada (respeita os filtros).
+  const listaContratos = (qLista.data?.contratos ?? []) as { status?: string }[];
+  const kpi = (n: number) => (qLista.isLoading ? "…" : qLista.error || qLista.data === undefined ? "—" : String(n));
 
   const mCriar = useMutation({
     mutationFn: (dados: any) => criar({ data: dados }),
@@ -85,6 +90,15 @@ function ContratosPage() {
         )
       }
     >
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4" data-contratos-kpis-v4>
+        <Indicador rotulo="Instrumentos" valor={kpi(listaContratos.length)} apoio="conforme os filtros" />
+        <Indicador rotulo="Contratos-base" valor={kpi(bases.length)} />
+        <Indicador
+          rotulo="Em revisão"
+          valor={kpi(listaContratos.filter((c) => c.status === "ready_for_review" || c.status === "under_human_review").length)}
+        />
+        <Indicador rotulo="Assinados" valor={kpi(listaContratos.filter((c) => c.status === "signed").length)} />
+      </div>
       <div className="mb-6">
         <PainelEstadoContratual />
       </div>
@@ -92,11 +106,12 @@ function ContratosPage() {
       <details className="mt-6 rounded-lg border border-navy/15 bg-card p-4" open={novo}>
         <summary className="cursor-pointer font-medium text-navy">Abrir instrumentos, inventário e gestão contratual</summary>
         <div className="mt-5 border-t border-navy/10 pt-5">
-      <section className="mb-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
-        <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-serif text-lg text-navy">Contrato de Estudo Genealógico v2 e anexos</h2>
-          <span className="text-[11px] text-navy/50">Inventário patrimonial · leitura de {INVENTARIO_DATA}</span>
-        </div>
+      <CaCard
+        className="mb-6"
+        eyebrow="Inventário patrimonial"
+        titulo="Contrato de Estudo Genealógico v2 e anexos"
+        acao={<span className="text-[11px] text-navy/50">Leitura de {INVENTARIO_DATA}</span>}
+      >
         <p className="mb-3 text-xs text-navy/60">
           Ativos preservados: versão, situação e onde cada um realmente está. Somente leitura — nenhum texto
           jurídico é reescrito ou substituído aqui.{" "}
@@ -130,7 +145,7 @@ function ContratosPage() {
             </tbody>
           </table>
         </div>
-      </section>
+      </CaCard>
 
       <FilaRevisaoJuridica />
 
@@ -181,7 +196,8 @@ function ContratosPage() {
         vazio="Nenhum instrumento contratual nesta organização ainda."
       >
         {(contratos) => (
-        <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
+        <CaCard titulo="Instrumentos contratuais" className="overflow-hidden">
+        <div className="-mx-4 overflow-x-auto sm:-mx-5">
           <table className="w-full min-w-[720px] text-sm">
             <thead className="bg-navy/5 text-left text-xs uppercase tracking-wide text-navy/60">
               <tr>
@@ -252,6 +268,7 @@ function ContratosPage() {
             </tbody>
           </table>
         </div>
+        </CaCard>
         )}
       </EstadoDados>
       <PainelCatalogo />
