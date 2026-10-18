@@ -907,3 +907,4 @@ function HistoricoVigencia({ itemId }: { itemId: string }) {
     </div>
   );
 }
+
