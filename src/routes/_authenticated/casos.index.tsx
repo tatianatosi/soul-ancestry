@@ -7,6 +7,7 @@ import { useState } from "react";
 import { EntidadeCrud } from "@/components/saas/entidade-crud";
 import { AbrirCasoMotor } from "@/components/caso/abrir-caso-motor";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
 import { listarEstadoAtivacao } from "@/lib/casos-ativacao.functions";
 import { rotuloFase } from "@/lib/fase-rotulo";
 import { resolverCasoPorCodigo } from "@/lib/caso-busca.functions";
@@ -125,7 +126,7 @@ function BuscaPorCodigo() {
           onChange={(e) => setTermo(e.target.value)}
           placeholder="Buscar por código canônico ou identificador histórico"
           aria-label="Buscar caso por código canônico ou identificador histórico"
-          className="min-w-[22rem] rounded-md border border-navy/20 bg-cream/40 px-3 py-1.5 text-sm text-navy"
+          className="w-full min-w-0 flex-1 sm:w-auto sm:min-w-[22rem] sm:flex-none rounded-md border border-navy/20 bg-cream/40 px-3 py-1.5 text-sm text-navy"
         />
         <button
           type="submit"
@@ -244,13 +245,16 @@ function CasosPage() {
         saúde aparece por linha da carteira; o mapa da carteira inteira
         abre aqui.
       */}
-      <p className="mb-4 rounded-lg border border-navy/10 bg-cream/50 px-4 py-3 text-sm text-navy/70">
-        A matriz de prioridade da carteira (Agir agora / Avaliar / Monitorar / Cultivar) está no{" "}
-        <Link to="/qualidade" className="font-medium text-navy underline">
-          Radar & Matrizes
-        </Link>
-        . Nesta lista, a coluna de saúde e a próxima ação vêm do mesmo planejador da ficha.
-      </p>
+      {/* Casca V4 (18/10/2026): aviso solto virou CaCard compacto (mesma superfície canônica). */}
+      <CaCard variante="compacto" className="mb-4">
+        <p className="text-sm text-navy/70">
+          A matriz de prioridade da carteira (Agir agora / Avaliar / Monitorar / Cultivar) está no{" "}
+          <Link to="/qualidade" className="font-medium text-navy underline">
+            Radar & Matrizes
+          </Link>
+          . Nesta lista, a coluna de saúde e a próxima ação vêm do mesmo planejador da ficha.
+        </p>
+      </CaCard>
 
       {pendenciaVinculo ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">

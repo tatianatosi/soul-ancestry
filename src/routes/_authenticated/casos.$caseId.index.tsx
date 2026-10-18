@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 
 import { SaasShell, useSaas, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
 import { ResumoKitCaso } from "@/components/desk/kit-conectado";
 import { BarrasHorizontais, DonutEstados, Etiqueta, JornadaMarcos, Linha, LinhaTempoGrafica, Pessoa } from "@/components/prancha-v4/kit";
 import { useAutoridade } from "@/components/saas/autoridade";
@@ -797,6 +798,19 @@ function FichaCaso() {
       .filter(Boolean)
       .join(" ") || null;
 
+  // Etapa atual lida do planejador (case_plans) — a mesma leitura do chip
+  // "Etapa atual" da Jornada D0–D365; usada também no subtítulo do topo.
+  const etapaAtualPlanejador = (() => {
+    const f = qCadeia.data?.planejador?.fase_jornada ?? qCadeia.data?.planejador?.etapa;
+    if (!f) return null;
+    const t = String(f)
+      .replace(/_/g, " ")
+      .replace(/formalizacao/gi, "formalização")
+      .replace(/diagnostico/gi, "diagnóstico")
+      .replace(/ativacao/gi, "ativação");
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  })();
+
   return (
     <SaasShell
       visualKit="pantone"
@@ -843,12 +857,24 @@ function FichaCaso() {
         informativa — informa, não impede: nenhuma ação desta tela é travada
         por ela (gravar pede motivo, ver `pendenciaCadastro`).
       */}
-      <section className="mb-4 rounded-xl border border-navy/10 bg-card p-4" data-caso360-identidade>
-        <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-navy/55">Lote A · Entrada e caso</p>
+      {/*
+        Casca V4 (18/10/2026) — mockup aprovado "Caso 360": cabeçalho em
+        CaCard branco com nome, subtítulo (tipo de serviço · etapa) e as
+        abas-pílula. As pílulas são o MESMO índice das 8 SECOES (antes uma
+        <nav> solta mais abaixo) — só mudou de lugar e de casca; nenhum
+        mecanismo novo de abas.
+      */}
+      <div className="mb-4" data-caso360-identidade>
+      <CaCard>
+        <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">Lote A · Entrada e caso</p>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 className="truncate font-serif text-2xl text-navy">{String(caso["titulo"] ?? "Caso sem título")}</h2>
-            <p className="mt-1 text-xs text-navy/60">
+            <p className="mt-1 text-sm text-navy/70" data-caso360-subtitulo>
+              {String(caso["tipo_servico"] ?? "").trim() || "Tipo de serviço não registrado"} ·{" "}
+              {etapaAtualPlanejador ?? "Etapa não registrada"}
+            </p>
+            <p className="mt-0.5 text-xs text-navy/55">
               {String(caso["codigo"] ?? "Sem código")} · {caso["ativo"] ? "Caso ativo" : rotulo(STATUS_DERIVADO, derivado.valor)}
             </p>
           </div>
@@ -889,7 +915,39 @@ function FichaCaso() {
           })}
         />
         </div>
-      </section>
+        {/* Índice: âncoras fixas; seções fora de foco ficam no DOM com hidden. */}
+        <nav aria-label="Seções do caso" className="mt-4 flex flex-wrap gap-2 border-t border-navy/10 pt-4">
+          {SECOES.map((a) => (
+            <a
+              key={a.id}
+              href={`#secao-${a.id}`}
+              onClick={() => setSecaoFoco(a.id)}
+              aria-current={secaoFoco === a.id ? "true" : undefined}
+              className={
+                "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors " +
+                (secaoFoco === a.id
+                  ? "border-navy bg-navy text-cream"
+                  : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
+              }
+            >
+              {a.rotulo}
+            </a>
+          ))}
+          <button
+            type="button"
+            onClick={() => setSecaoFoco(null)}
+            className={
+              "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors " +
+              (secaoFoco === null
+                ? "border-gold bg-gold text-navy"
+                : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
+            }
+          >
+            Ver página completa
+          </button>
+        </nav>
+      </CaCard>
+      </div>
       {/*
         Prancha V4 (13/10/2026) — grade de cartões da Visão geral do Caso 360,
         organizada pelos 4 lotes da especificação canônica
@@ -906,16 +964,24 @@ function FichaCaso() {
         `progressoPorFrente` (caso-ficha.ts) deriva cada frente de dado já
         carregado (contrato_assinado, dossiê, documentos_minimos_ok, publicação).
       */}
+      {/*
+        Casca V4 (18/10/2026) — uma grade única (1 coluna no celular,
+        2 no desktop) na ordem do mockup: Linha do tempo · Participantes ·
+        Progresso por frente · Estados do dossiê · Jornada (largura total),
+        depois os lotes C e D. Os 4 lotes continuam marcados na fonte
+        (`data-caso360-lote`) e como eyebrow de cada CaCard; as seções de
+        lote usam `display: contents` para que os cartões entrem na mesma
+        grade e a ordem visual venha de `order-*`.
+      */}
       {(() => {
         const ESCALA_FRENTE = ["inicial", "em_coleta", "em_andamento", "concluida"] as const;
         /*
           DECISÃO EXECUTIVA 14/10/2026 ("ACABAMENTO VISUAL DO CASO 360"):
-          contraste suave + respiro (rounded-2xl, p-6, shadow-sm, gap-6) e
-          badges de status pelos tokens semânticos reais do projeto
+          contraste suave + respiro (casca V4, 18/10/2026: o cartão avulso
+          virou o CaCard canônico — mesma superfície do Desk) e badges de status pelos tokens semânticos reais do projeto
           (sucesso/atencao/critico — AGENTS.md proíbe hex literal e paleta
           Tailwind padrão como emerald-50/amber-50/rose-50/slate-200).
         */
-        const cartao = "min-w-0 rounded-2xl border border-navy/10 bg-card p-6 shadow-sm";
         const tomStatusCadastral = { completo: "sucesso", parcial: "atencao", pendente: "critico" } as const;
         const dossieResumo = estadoDossieDoCaso(qPesquisa.data?.evidencias ?? []);
         const progresso = progressoPorFrente({
@@ -930,14 +996,10 @@ function FichaCaso() {
           },
         });
         return (
-          <div className="mb-6 space-y-6" data-caso360-resumo-v4>
-            <section aria-labelledby="caso360-lote-a" data-caso360-lote="A">
-              <h3 id="caso360-lote-a" className="mb-2 text-[11px] font-medium uppercase tracking-wide text-navy/55">
-                Lote A · Entrada e caso
-              </h3>
-              <div className="grid gap-6 lg:grid-cols-2">
-                <section className={`${cartao} lg:order-2`} data-caso360-progresso-frente>
-                  <p className="mb-3 font-serif text-lg text-navy">Progresso do caso por frente</p>
+          <div className="mb-6 grid gap-4 lg:grid-cols-2" data-caso360-resumo-v4>
+            <section aria-label="Lote A · Entrada e caso" data-caso360-lote="A" className="contents">
+                <div className="order-3 min-w-0" data-caso360-progresso-frente>
+                <CaCard className="h-full" eyebrow="Lote A · Entrada e caso" titulo="Progresso do caso por frente">
                   {/*
                     13/10/2026 — Proprietária: a barra da prancha é sempre
                     desenhada. Comprimento = degrau atingido na escala de 4
@@ -980,9 +1042,10 @@ function FichaCaso() {
                       </li>
                     ))}
                   </ul>
-                </section>
-                <section className={`${cartao}`} data-caso360-linha-tempo>
-                  <p className="mb-1 font-serif text-lg text-navy">Linha do tempo do caso</p>
+                </CaCard>
+                </div>
+                <div className="order-1 min-w-0" data-caso360-linha-tempo>
+                <CaCard className="h-full" eyebrow="Lote A · Entrada e caso" titulo="Linha do tempo do caso">
                   {(() => {
                     const quando = (e: any) => new Date(String(e.occurred_at ?? e.created_at ?? 0)).getTime();
                     const eventos = ((q.data?.timeline ?? []) as any[])
@@ -998,9 +1061,10 @@ function FichaCaso() {
                       }));
                     return <LinhaTempoGrafica eventos={eventos} />;
                   })()}
-                </section>
-                <section className={`${cartao} lg:order-3 lg:col-span-2`} data-caso360-jornada>
-                  <p className="font-serif text-lg text-navy">Jornada D0–D365</p>
+                </CaCard>
+                </div>
+                <div className="order-5 min-w-0 lg:col-span-2" data-caso360-jornada>
+                <CaCard eyebrow="Lote A · Entrada e caso" titulo="Jornada D0–D365">
                   {(() => {
                     const marcos = qCadeia.data?.planejador?.marcos ?? [];
                     const fase = String(qCadeia.data?.planejador?.fase_jornada ?? qCadeia.data?.planejador?.etapa ?? "")
@@ -1008,7 +1072,7 @@ function FichaCaso() {
                       .replace(/_/g, " ");
                     const atual = fase ? marcos.findIndex((m) => String(m).toLowerCase().includes(fase)) : -1;
                     return (
-                      <div className="mt-3">
+                      <div className="mt-1">
                         <JornadaMarcos marcos={marcos} atual={atual >= 0 ? atual : null} />
                         {!marcos.length ? (
                           <p className="mt-2 text-[10px] text-navy/50">Nenhum marco registrado no planejador.</p>
@@ -1016,31 +1080,42 @@ function FichaCaso() {
                       </div>
                     );
                   })()}
-                  <dl className="mt-5 grid gap-3 border-t border-navy/10 pt-4 text-sm sm:grid-cols-3">
-                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
-                      <dt className="text-navy/60">Etapa atual</dt>
-                      <dd className="rounded-full border border-gold/50 bg-gold/10 px-2.5 py-0.5 text-xs text-navy">
-                        {(() => {
-                          const f = qCadeia.data?.planejador?.fase_jornada ?? qCadeia.data?.planejador?.etapa;
-                          if (!f) return "Etapa não registrada";
-                          const t = String(f)
-                            .replace(/_/g, " ")
-                            .replace(/formalizacao/gi, "formalização")
-                            .replace(/diagnostico/gi, "diagnóstico")
-                            .replace(/ativacao/gi, "ativação");
-                          return t.charAt(0).toUpperCase() + t.slice(1);
-                        })()}
+                  {/*
+                    Linha de chips do mockup: Etapa atual / Cadência / Próxima
+                    ação / Microentrega / Alertas. Cadência não tem fonte
+                    carregada nesta tela — mostra o vazio honesto, sem inferir.
+                  */}
+                  <dl className="mt-5 grid gap-3 border-t border-navy/10 pt-4 text-sm sm:grid-cols-2 lg:grid-cols-5" data-caso360-jornada-chips>
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <dt className="text-[11px] text-navy/60">Etapa atual</dt>
+                      <dd className="max-w-full self-start truncate rounded-full border border-gold/50 bg-gold/10 px-2.5 py-0.5 text-xs text-navy">
+                        {etapaAtualPlanejador ?? "Etapa não registrada"}
                       </dd>
                     </div>
-                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
-                      <dt className="text-navy/60">Próxima ação</dt>
-                      <dd className="max-w-full truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <dt className="text-[11px] text-navy/60">Cadência</dt>
+                      <dd className="max-w-full self-start truncate rounded-full border border-dashed border-navy/20 px-2.5 py-0.5 text-xs text-navy/55">
+                        Sem dado registrado ainda
+                      </dd>
+                    </div>
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <dt className="text-[11px] text-navy/60">Próxima ação</dt>
+                      <dd className="max-w-full self-start truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
                         {canonica?.acao ?? "Sem próxima ação definida"}
                       </dd>
                     </div>
-                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
-                      <dt className="text-navy/60">Alertas</dt>
-                      <dd className="rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <dt className="text-[11px] text-navy/60">Microentrega</dt>
+                      <dd className="max-w-full self-start truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
+                        {(() => {
+                          const ultima = ((qc2.data?.entregas ?? []) as any[])[0];
+                          return ultima ? String(ultima.title_client ?? "Microentrega sem título") : "Nenhuma microentrega registrada";
+                        })()}
+                      </dd>
+                    </div>
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <dt className="text-[11px] text-navy/60">Alertas</dt>
+                      <dd className="max-w-full self-start truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
                         {(() => {
                           const n = ((qc2.data?.alertas ?? []) as any[]).filter(
                             (a) => a.criticidade === "critica" && a.status !== "completed",
@@ -1050,25 +1125,15 @@ function FichaCaso() {
                       </dd>
                     </div>
                   </dl>
-                </section>
-              </div>
+                </CaCard>
+                </div>
             </section>
-            <section aria-labelledby="caso360-lote-b" data-caso360-lote="B">
-              <h3 id="caso360-lote-b" className="mb-2 text-[11px] font-medium uppercase tracking-wide text-navy/55">
-                Lote B · Pesquisa e árvore
-              </h3>
-              <div className="grid gap-6 lg:grid-cols-2">
-                <section className={`${cartao}`} data-caso360-participantes>
-                  <p className="mb-3 font-serif text-lg text-navy">Núcleo familiar e participantes</p>
+            <section aria-label="Lote B · Pesquisa e árvore" data-caso360-lote="B" className="contents">
+                <div className="order-2 min-w-0" data-caso360-participantes>
+                <CaCard className="h-full" eyebrow="Lote B · Pesquisa e árvore" titulo="Participantes">
                   {(() => {
                     const membros = (q.data?.membros ?? []) as any[];
-                    if (!membros.length)
-                      return (
-                        <div className="flex items-center gap-2 opacity-60">
-                          <span className="grid h-8 w-8 place-items-center rounded-full border border-dashed border-navy/25 text-[11px] text-navy/40">—</span>
-                          <span className="text-xs text-navy/50">Nenhum participante registrado.</span>
-                        </div>
-                      );
+                    if (!membros.length) return <EstadoVazio mensagem="Nenhum participante registrado ainda." />;
                     return (
                       <div className="space-y-3">
                         {membros.slice(0, 4).map((membro, i) => {
@@ -1093,9 +1158,10 @@ function FichaCaso() {
                       </div>
                     );
                   })()}
-                </section>
-                <section className={`${cartao}`} data-caso360-dossie>
-                  <p className="mb-3 font-serif text-lg text-navy">Estados do dossiê</p>
+                </CaCard>
+                </div>
+                <div className="order-4 min-w-0" data-caso360-dossie>
+                <CaCard className="h-full" eyebrow="Lote B · Pesquisa e árvore" titulo="Estados do dossiê">
                   <DonutEstados
                     tituloAcessivel={`Estado do dossiê: ${dossieResumo.confirmados} confirmados, ${dossieResumo.emRevisao} em revisão, ${dossieResumo.pendentes} pendentes.`}
                     segmentos={[
@@ -1113,49 +1179,42 @@ function FichaCaso() {
                           ? `${dossieResumo.total} evidência(s) registrada(s) · situação atual do caso.`
                           : "Nenhuma evidência registrada no dossiê ainda."}
                   </p>
-                </section>
-              </div>
+                </CaCard>
+                </div>
             </section>
-            <section aria-labelledby="caso360-lote-c" data-caso360-lote="C">
-              <h3 id="caso360-lote-c" className="mb-2 text-[11px] font-medium uppercase tracking-wide text-navy/55">
-                Lote C · Proposta, escopo e contrato
-              </h3>
-              <div className="grid gap-6 lg:grid-cols-2">
-                <section className={cartao} data-caso360-formalizacao>
-                  <p className="font-serif text-lg text-navy">Proposta, escopo e contrato</p>
-                  <div className="mt-3">
+            <section aria-label="Lote C · Proposta, escopo e contrato" data-caso360-lote="C" className="contents">
+                <div className="order-6 min-w-0" data-caso360-formalizacao>
+                <CaCard className="h-full" eyebrow="Lote C · Proposta, escopo e contrato" titulo="Proposta, escopo e contrato">
+                  <div>
                     <Linha rotulo="Etapa comercial" valor={String(rotulo(EIXO_COMERCIAL, v("eixo_comercial")))} />
                     <Linha rotulo="Formalização" valor={String(rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao")))} />
                     <Linha rotulo="Contrato" valor={String(caso["contrato_assinado"] ? "Assinado" : "Assinatura não registrada")} />
                   </div>
                   <a href="#secao-comercial" onClick={() => setSecaoFoco("comercial")} className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4">Abrir Formalização</a>
-                </section>
-                <section className={cartao} data-caso360-condicao>
-                  <p className="font-serif text-lg text-navy">Condição comercial</p>
+                </CaCard>
+                </div>
+                <div className="order-7 min-w-0" data-caso360-condicao>
+                <CaCard className="h-full" eyebrow="Lote C · Proposta, escopo e contrato" titulo="Condição comercial">
                   {qFinanceiro.isLoading ? (
-                    <p className="mt-3 text-sm text-navy/60" role="status">Carregando condição comercial…</p>
+                    <p className="text-sm text-navy/60" role="status">Carregando condição comercial…</p>
                   ) : qFinanceiro.isError ? (
-                    <p className="mt-3 text-sm text-terracotta" role="alert">Não foi possível carregar a condição comercial.</p>
+                    <p className="text-sm text-terracotta" role="alert">Não foi possível carregar a condição comercial.</p>
                   ) : (
-                    <p className="mt-3 text-sm text-navy">{qFinanceiro.data?.condicaoComercial ?? "Nenhuma condição comercial registrada."}</p>
+                    <p className="text-sm text-navy">{qFinanceiro.data?.condicaoComercial ?? "Nenhuma condição comercial registrada."}</p>
                   )}
                   <a href="#secao-financeiro" onClick={() => setSecaoFoco("financeiro")} className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4">Abrir Financeiro</a>
-                </section>
-              </div>
+                </CaCard>
+                </div>
             </section>
-            <section aria-labelledby="caso360-lote-d" data-caso360-lote="D">
-              <h3 id="caso360-lote-d" className="mb-2 text-[11px] font-medium uppercase tracking-wide text-navy/55">
-                Lote D · Publicação e App
-              </h3>
-              <div className="grid gap-6 lg:grid-cols-2">
-                <section className={cartao} data-caso360-prontidao-app>
-                  <p className="font-serif text-lg text-navy">Prontidão para o App</p>
+            <section aria-label="Lote D · Publicação e App" data-caso360-lote="D" className="contents">
+                <div className="order-8 min-w-0" data-caso360-prontidao-app>
+                <CaCard className="h-full" eyebrow="Lote D · Publicação e App" titulo="Prontidão para o App">
                   {qVisaoCliente.isLoading ? (
-                    <p className="mt-3 text-sm text-navy/60" role="status">Carregando o estado do App…</p>
+                    <p className="text-sm text-navy/60" role="status">Carregando o estado do App…</p>
                   ) : qVisaoCliente.isError || !qVisaoCliente.data ? (
-                    <p className="mt-3 text-sm text-terracotta" role="alert">Não foi possível carregar o estado do App.</p>
+                    <p className="text-sm text-terracotta" role="alert">Não foi possível carregar o estado do App.</p>
                   ) : (
-                    <div className="mt-3">
+                    <div>
                       <Linha rotulo="Acesso da família" valor={String(qVisaoCliente.data.acesso.liberado ? "Liberado" : "Não liberado")} />
                       <Linha rotulo="Publicado no App" valor={String(qVisaoCliente.data.estadoPublicacao.publicadas)} />
                       <Linha rotulo="Aguardando publicação" valor={String(qVisaoCliente.data.estadoPublicacao.pendentes)} />
@@ -1163,23 +1222,24 @@ function FichaCaso() {
                   )}
                   <p className="mt-3 text-[11px] text-navy/50">O App mostra só o que foi aprovado e publicado; notas internas ficam no Desk.</p>
                   <Link to="/app-cliente-como-pessoa" search={{ casoId: id }} className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4">Ver como a família vê</Link>
-                </section>
-                <section className={cartao} data-caso360-acervo>
-                  <p className="font-serif text-lg text-navy">Cofre e acervo</p>
+                </CaCard>
+                </div>
+                <div className="order-9 min-w-0" data-caso360-acervo>
+                <CaCard className="h-full" eyebrow="Lote D · Publicação e App" titulo="Cofre e acervo">
                   {qDocumentos.isLoading ? (
-                    <p className="mt-3 text-sm text-navy/60" role="status">Carregando documentos…</p>
+                    <p className="text-sm text-navy/60" role="status">Carregando documentos…</p>
                   ) : qDocumentos.isError ? (
-                    <p className="mt-3 text-sm text-terracotta" role="alert">Não foi possível carregar os documentos.</p>
+                    <p className="text-sm text-terracotta" role="alert">Não foi possível carregar os documentos.</p>
                   ) : (
-                    <div className="mt-3">
+                    <div>
                       <Linha rotulo="Documentos registrados" valor={String(((qDocumentos.data ?? []) as unknown[]).length)} />
                       <Linha rotulo="Documentos mínimos" valor={String(caso["documentos_minimos_ok"] ? "Confirmados" : "Não confirmados")} />
                       <Linha rotulo="Disponíveis à família" valor={String(qVisaoCliente.data?.documentosDisponiveis ?? "—")} />
                     </div>
                   )}
                   <a href="#secao-documentos" onClick={() => setSecaoFoco("documentos")} className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4">Abrir Documentos</a>
-                </section>
-              </div>
+                </CaCard>
+                </div>
             </section>
           </div>
         );
@@ -1968,39 +2028,7 @@ function FichaCaso() {
         />
       </div>
 
-      {/* Índice: âncoras fixas; seções fora de foco ficam no DOM com hidden. */}
-      <nav
-        aria-label="Seções do caso"
-        className="sticky top-0 z-10 -mx-1 mb-5 flex flex-wrap gap-2 border-b border-navy/10 bg-cream/95 px-1 py-2.5 backdrop-blur"
-      >
-        {SECOES.map((a) => (
-          <a
-            key={a.id}
-            href={`#secao-${a.id}`}
-            onClick={() => setSecaoFoco(a.id)}
-            className={
-              "rounded-full border px-3 py-1 text-[12px] transition-colors " +
-              (secaoFoco === a.id
-                ? "border-navy bg-navy text-cream"
-                : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
-            }
-          >
-            {a.rotulo}
-          </a>
-        ))}
-        <button
-          type="button"
-          onClick={() => setSecaoFoco(null)}
-          className={
-            "rounded-full border px-3 py-1 text-[12px] transition-colors " +
-            (secaoFoco === null
-              ? "border-gold bg-gold font-medium text-navy"
-              : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
-          }
-        >
-          Ver página completa
-        </button>
-      </nav>
+      {/* Casca V4 (18/10/2026): o índice das 8 SECOES subiu para o cabeçalho (abas-pílula). */}
 
       <details open={secaoFoco !== null && secaoFoco !== "visao"} className="rounded-lg border border-navy/15 bg-card p-4">
         <summary className="cursor-pointer text-sm font-medium text-navy">Abrir ficha operacional completa</summary>
