@@ -279,3 +279,6 @@
 
 - [x] Rodada 4 (varredura WhatsApp, brief Discovery, GoLive, marcos jurídicos na Validação Jurídica, paleta ampliada) — PDF entregue
 - [x] Prancha V4 com telas reais (7 grupos V4, decisão 18/10) — PDF entregue, sem mudar telas
+
+- [x] De-para Desk V4 revisado (18/10): inventário das 91 telas, Biblioteca Mestre como alimento vivo, dicionários, ordem Discovery — PDF de-para-desk-v4-revisado-2026-10-18.pdf na coleção de estudos
+- [ ] Decisões da Proprietária: GoLive no de-para, modelos contratuais no lote C, etiquetas na Biblioteca, pergunta 20 fora da call, autorização do Corte 1
