@@ -75,13 +75,12 @@ describe("atalhos de descoberta", () => {
   });
 
   it("o atalho aponta para a aba dona da função, não para o nome antigo do grupo", () => {
-    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe("Configuração");
+    // 18/10/2026: o dono vem de SETORES_DESK_V5 (lateral real) — Radar
+    // (/qualidade) mora em Pesquisa e Integrações em Governança & Configuração.
+    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe("Pesquisa");
     expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/matriz-juridica")?.onde).toBeDefined();
-    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe(
-      "Configuração",
-    );
     expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/integracoes")?.onde).toBe(
-      "Configuração",
+      "Governança & Configuração",
     );
     expect(painel).toContain('to: "/calls"');
     expect(painel).toContain("Mesa de Discovery");
@@ -143,11 +142,14 @@ describe("superfícies preservadas", () => {
       "Governança & Configuração",
     ]);
     const abas = SETORES_DESK_V5.flatMap((s) => s.abas.map((a) => a.to));
+    // 18/10/2026: a Proprietária desengavetou estas 8 ferramentas (PR #169) —
+    // agora têm aba direta no setor dono, em vez de ficarem recolhidas em Governança.
     for (const r of ["/crm-mestre", "/conversao", "/ops", "/ops-excecoes", "/tarefas", "/proximas-acoes", "/microentregas", "/metricas"]) {
-      expect(abas, r).not.toContain(r);
-      expect(setorDaRota(r)?.id, r).toBe("governanca");
+      expect(abas, r).toContain(r);
+      expect(setorDaRota(r), r).toBeDefined();
     }
-    expect(navegacao).toContain("DIVERGÊNCIA RESOLVIDA em 13/10/2026");
+    // O marcador textual de 13/10 saiu na PR #169; a invariante real é a lateral vir de SETORES_DESK_V5.
+    expect(navegacao).toContain("export const SETORES_DESK_V5");
     expect(shell).toContain("MENU_LEGADO_DESK");
     // Rota→setor resolve inclusive página contextual fora do menu.
     expect(setorDaRota("/casos/abc-123")?.id).toBe("casos");
