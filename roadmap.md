@@ -299,4 +299,4 @@
 - Bloqueio: executar após concluir L02 (capturas antes/depois 375/1280).
 
 ## 18/10/2026 — Mockup V4 do dia a dia (11 telas) — prioridade antes da jornada viva
-- [ ] Mockup visual (fora do produto) com casca V4 nas 11 telas principais, cortes L00–L12 e sugestões das rodadas 1–4 aplicados; números só de leituras reais; selo MOCKUP.
+- [x] Mockup visual (fora do produto) com casca V4 nas 11 telas principais, cortes L00–L12 e sugestões das rodadas 1–4 aplicados; números só de leituras reais; selo MOCKUP.
