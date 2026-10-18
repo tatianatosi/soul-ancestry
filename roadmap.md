@@ -291,3 +291,9 @@
 - [x] De-para completo 91 telas + jornada do cliente (18/10): de-para-completo-91-telas-e-jornada-2026-10-18.pdf em Arquivos e na coleção; GoLive marcado como painel interno
 - [ ] Drive/Perplexity: conector não envia binário — Proprietária arrasta o PDF para a pasta do Drive
 - [x] Mapa de rotas V4 + canos da jornada 8 fases (18/10): dois diagramas .mmd em Arquivos e na coleção
+
+## 18/10/2026 — Jornada viva da Ana (novo pedido)
+- [ ] Jornada completa somente leitura: Ana como lead → Discovery → proposta → assinatura do contrato, com todos os cards e mudanças sugeridas aplicados em todas as abas do Desk.
+- [ ] Comparar cada etapa com a prancha V4 aprovada (mockup).
+- [ ] Somente leitura: nenhum writer, cobrança, assinatura ou publicação real.
+- Bloqueio: executar após concluir L02 (capturas antes/depois 375/1280).
