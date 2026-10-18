@@ -126,25 +126,39 @@ function ArvoreGenealogica({
   );
 }
 
-function Estrelas({ valor, apoio }: { valor: number; apoio: string }) {
+// `valor` nulo = sem denominador (nenhuma fonte): estrelas vazias e nenhum número.
+function Estrelas({ valor, apoio }: { valor: number | null; apoio: string }) {
   return (
     <div className="rounded-lg border border-navy/10 bg-cream/40 p-3">
-      <div className="flex items-center gap-1" role="img" aria-label={`Confiança ${valor.toFixed(1)} de 5`}>
+      <div
+        className="flex items-center gap-1"
+        role="img"
+        aria-label={valor === null ? "Confiança sem fonte para medir" : `Confiança ${valor.toFixed(1)} de 5`}
+      >
         {Array.from({ length: 5 }).map((_, i) => (
           <Star
             key={i}
-            className={cn("h-4 w-4", i < Math.round(valor) ? "fill-gold text-gold" : "text-navy/15")}
+            className={cn("h-4 w-4", valor !== null && i < Math.round(valor) ? "fill-gold text-gold" : "text-navy/15")}
             aria-hidden
           />
         ))}
-        <span className="ml-1 font-serif text-xl text-navy">{valor.toFixed(1)}</span>
+        <span className="ml-1 font-serif text-xl text-navy">{valor === null ? "—" : valor.toFixed(1)}</span>
       </div>
       <p className="mt-1 text-[10px] text-navy/55">{apoio}</p>
     </div>
   );
 }
 
-export function ComposicaoPessoa360V4({ dados, nome }: { dados: DadosPessoa360; nome: string }) {
+export function ComposicaoPessoa360V4({
+  dados,
+  nome,
+  duplicidadesAbertas,
+}: {
+  dados: DadosPessoa360;
+  nome: string;
+  /** Possíveis duplicidades já detectadas pela rota (sinais da Pessoa 360). Ausente = não verificado: o cabeçalho não afirma nada. */
+  duplicidadesAbertas?: number;
+}) {
   const { cliente, casos, caseMembers, documentos } = dados;
   const eu = caseMembers.find((m) => m.cliente_id === cliente.id) ?? null;
   const porId = new Map(caseMembers.map((m) => [String(m.id), m]));
@@ -219,6 +233,11 @@ export function ComposicaoPessoa360V4({ dados, nome }: { dados: DadosPessoa360; 
           <h2 className="truncate font-serif text-2xl text-navy">{nome}</h2>
           <p className="text-xs text-navy/60">
             Pessoa canônica
+            {duplicidadesAbertas === undefined
+              ? ""
+              : duplicidadesAbertas === 0
+                ? " · sem duplicidade detectada"
+                : ` · ${duplicidadesAbertas} possível(is) duplicidade(s) em revisão`}
             {texto(cliente.origem) ? ` · entrou por ${texto(cliente.origem)}` : ""}
             {` · ${casos.length} caso(s) vinculado(s)`}
           </p>
@@ -243,6 +262,7 @@ export function ComposicaoPessoa360V4({ dados, nome }: { dados: DadosPessoa360; 
               ))}
             </div>
           ) : null}
+          <Linha rotulo="Nome civil" valor={texto(cliente.nome) ?? "Não registrado"} tom={texto(cliente.nome) ? "neutro" : "atencao"} />
           <Linha rotulo="CPF" valor={texto(cliente.cpf) ? formatarCpf(String(cliente.cpf)) : "Não registrado"} tom={texto(cliente.cpf) ? "neutro" : "atencao"} />
           <Linha rotulo="Nascimento" valor={nascimento ?? "Não registrado"} tom={nascimento ? "neutro" : "atencao"} />
           <Linha rotulo="Naturalidade" valor={naturalidade ?? "Não registrada"} tom={naturalidade ? "neutro" : "atencao"} />
@@ -258,7 +278,7 @@ export function ComposicaoPessoa360V4({ dados, nome }: { dados: DadosPessoa360; 
           />
         </Cartao>
 
-        <Cartao titulo="Árvore genealógica" data-pessoa360-parentesco className="rounded-2xl p-6 shadow-sm">
+        <Cartao titulo="Gráfico de parentesco" data-pessoa360-parentesco className="rounded-2xl p-6 shadow-sm">
           <ArvoreGenealogica
             nome={nome}
             pai={pai ? { nome: nomeDe(pai), declarado: false } : texto(cliente.nome_pai) ? { nome: String(cliente.nome_pai), declarado: true } : null}
@@ -309,7 +329,7 @@ export function ComposicaoPessoa360V4({ dados, nome }: { dados: DadosPessoa360; 
 
         <Cartao titulo="Confiança da pessoa" data-pessoa360-confianca className="rounded-2xl p-6 shadow-sm">
           <Estrelas
-            valor={docs.length ? (confirmadas / docs.length) * 5 : 0}
+            valor={docs.length ? (confirmadas / docs.length) * 5 : null}
             apoio={docs.length ? `${confirmadas} de ${docs.length} fonte(s) confirmada(s)` : "Nenhuma fonte conferida ainda"}
           />
         </Cartao>
@@ -322,8 +342,8 @@ export function ComposicaoPessoa360V4({ dados, nome }: { dados: DadosPessoa360; 
             itens={[
               { rotulo: "Identidade", valor: pct(identidadeOk, camposIdentidade.length), apoio: `${identidadeOk} de ${camposIdentidade.length} campos` },
               { rotulo: "Parentesco", valor: pct(parentescoOk, 2), apoio: `${parentescoOk} de 2 genitores`, tom: "gold" },
-              { rotulo: "Fontes", valor: pct(confirmadas, docs.length), apoio: `${confirmadas} de ${docs.length} confirmadas`, tom: "terracotta" },
-              { rotulo: "Casos vinculados", valor: pct(casosComAcao, casos.length), apoio: `${casosComAcao} de ${casos.length} com próxima ação` },
+              { rotulo: "Fontes", valor: pct(confirmadas, docs.length), apoio: docs.length ? `${confirmadas} de ${docs.length} confirmadas` : "Sem fonte para medir", tom: "terracotta" },
+              { rotulo: "Casos vinculados", valor: pct(casosComAcao, casos.length), apoio: casos.length ? `${casosComAcao} de ${casos.length} com próxima ação` : "Sem caso para medir" },
             ]}
           />
         </Cartao>

@@ -6,6 +6,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { SaasShell } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
@@ -213,10 +215,35 @@ function OnboardingPage() {
       ) : null}
 
       {dados ? (
+        // Casca V4: KPIs só com contagem real do que `obterOnboarding` devolveu.
+        <div
+          className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4"
+          data-onboarding-kpis
+        >
+          <Indicador
+            rotulo="Requisitos validados"
+            valor={String(checks.filter((c) => c.status === "validado").length)}
+            apoio={`de ${checks.length} requisito(s)`}
+          />
+          <Indicador
+            rotulo="Pendências reais"
+            valor={String(bloqueiosReais.length)}
+            apoio="Mesma projeção usada pelo banco"
+          />
+          <Indicador
+            rotulo="Checklist concluído"
+            valor={String(checklistOnboarding.filter((i) => i.status === "concluido").length)}
+            apoio={`de ${checklistOnboarding.length} item(ns)`}
+          />
+          <Indicador rotulo="Situação do caso" valor={ativo ? "Ativo" : "Não ativo"} apoio={String(caso["status"] ?? "—")} />
+        </div>
+      ) : null}
+
+      {dados ? (
         <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-          <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+          <CaCard>
             <header className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-base font-semibold text-navy">Requisitos de ativação</h2>
+              <h2 className="font-serif text-lg text-navy">Requisitos de ativação</h2>
               <span
                 className={`rounded-full px-3 py-1 text-xs font-medium ${
                   ativo
@@ -383,10 +410,10 @@ function OnboardingPage() {
                 </p>
               ) : null}
             </div>
-          </section>
+          </CaCard>
 
-          <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-            <h2 className="text-base font-semibold text-navy">Checklist de onboarding</h2>
+          <CaCard>
+            <h2 className="font-serif text-lg text-navy">Checklist de onboarding</h2>
             <p className="mb-3 mt-1 text-xs text-navy/50">
               Esta tabela existe há semanas e é lida pelo banco (trg_caso_ativo_guard) e pela lista
               de bloqueios acima, mas nenhuma tela permitia completá-la — os itens abaixo ficaram
@@ -483,10 +510,10 @@ function OnboardingPage() {
                 </li>
               ) : null}
             </ul>
-          </section>
+          </CaCard>
 
-          <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-            <h2 className="mb-3 text-base font-semibold text-navy">Linha do tempo do onboarding</h2>
+          <CaCard>
+            <h2 className="mb-3 font-serif text-lg text-navy">Linha do tempo do onboarding</h2>
             <ol className="space-y-3">
               <li className="border-l-2 border-gold/60 pl-3">
                 <p className="text-xs text-navy/55">
@@ -507,7 +534,7 @@ function OnboardingPage() {
                 </li>
               ))}
             </ol>
-          </section>
+          </CaCard>
         </div>
       ) : null}
 

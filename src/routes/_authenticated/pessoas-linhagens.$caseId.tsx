@@ -52,16 +52,16 @@ import {
   salvarRegistroG02,
 } from "@/lib/pessoas-linhagens.functions";
 import { useAutoridade } from "@/components/saas/autoridade";
-import { SaasShell, useSaas } from "@/components/saas/shell";
+import { EstadoVazio, SaasShell, useSaas } from "@/components/saas/shell";
 import { DecisaoAposSalvarPessoa } from "@/components/pessoa/decisao-apos-salvar";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   KitBadge,
   KitCard,
   KpiCard,
-  MiniFamilyTree,
   PersonNode,
 } from "@/components/clube-ancestral-kit";
+import { Linha as LinhaV4 } from "@/components/prancha-v4/kit";
 
 export const Route = createFileRoute("/_authenticated/pessoas-linhagens/$caseId")({
   component: Pagina,
@@ -438,18 +438,32 @@ function Pagina() {
               <p className="text-sm text-navy/60">Nenhuma pessoa cadastrada neste caso.</p>
             )}
           </KitCard>
-          <KitCard eyebrow="Derivada" title="Miniárvore familiar">
-            {perfis.length ? (
-              <MiniFamilyTree
-                people={perfis.filter((p) => !p.archived_at).slice(0, 3).map((p) => ({
-                  id: p.id,
-                  name: p.nome_completo,
-                  role: rotuloDe(STATUS_VERIFICACAO, p.status_verificacao),
-                }))}
-              />
-            ) : (
-              <p className="text-sm text-navy/60">Sem relações suficientes para montar a árvore.</p>
-            )}
+          {/*
+            Casca V4 (18/10/2026): a antiga "Miniárvore" punha os 3 primeiros
+            perfis em pirâmide — parentesco por posição. Aqui só aparecem as
+            relações gravadas (person_from_id → person_to_id, relation_type).
+          */}
+          <KitCard eyebrow="Registradas" title="Relações entre pessoas">
+            {(() => {
+              const ativas = relacoes.filter((r) => !r.archived_at);
+              const nomeDe = (id: string) => perfis.find((p) => p.id === id)?.nome_completo ?? "Pessoa não encontrada";
+              return ativas.length ? (
+                <div data-linhagens-relacoes-registradas>
+                  {ativas.slice(0, 6).map((r) => (
+                    <LinhaV4
+                      key={r.id}
+                      rotulo={`${nomeDe(r.person_from_id)} → ${nomeDe(r.person_to_id)}`}
+                      valor={rotuloDe(TIPOS_RELACAO, r.relation_type)}
+                    />
+                  ))}
+                  {ativas.length > 6 ? (
+                    <p className="mt-2 text-[11px] text-navy/55">+{ativas.length - 6} na aba Relações.</p>
+                  ) : null}
+                </div>
+              ) : (
+                <EstadoVazio mensagem="Nenhuma relação registrada entre as pessoas deste caso. A árvore só nasce de vínculo gravado." />
+              );
+            })()}
           </KitCard>
         </div>
       </section>
