@@ -784,3 +784,74 @@ export const rodarScanPesquisa = createServerFn({ method: "POST" })
       abertas: number;
     };
   });
+
+/**
+ * Miniatura familiar do Dossiê de pesquisa (Tela 07) — vínculos reais de
+ * `genealogical_relationships` para o caso selecionado, com os nomes de
+ * `research_people`. Sem geração/ascendência calculada: mostra o papel real
+ * (`papel_na_linhagem`, texto livre) quando existe, senão o tipo de vínculo
+ * do CHECK real (`relation_type`). Vazio honesto sem relações registradas.
+ */
+export const miniaturaFamiliarDoCaso = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string }) => {
+    if (!data.caseId) throw new Error("Informe o caso.");
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    const userId = context.userId as string;
+    const { organizationId, papel } = await contextoRg(supabase, userId);
+    if (!PAPEIS_LE_RESUMO.includes(papel)) throw new Error("Seu papel não acessa a pesquisa.");
+
+    const { data: relacoes, error: erroRelacoes } = await supabase
+      .from("genealogical_relationships")
+      .select("id,person_from_id,person_to_id,relation_type")
+      .eq("organization_id", organizationId)
+      .eq("case_id", data.caseId)
+      .is("archived_at", null);
+    if (erroRelacoes) throw new Error(erroRelacoes.message);
+
+    const listaRelacoes = (relacoes ?? []) as Record<string, any>[];
+    const idsPessoas = Array.from(
+      new Set(listaRelacoes.flatMap((r) => [r["person_from_id"], r["person_to_id"]])),
+    ) as string[];
+
+    if (idsPessoas.length === 0) {
+      return { pessoas: [] as { id: string; nome: string; papel: string }[], totalRelacoes: 0 };
+    }
+
+    const { data: pessoas, error: erroPessoas } = await supabase
+      .from("research_people")
+      .select("id,canonical_name,preferred_display_name,papel_na_linhagem")
+      .in("id", idsPessoas)
+      .is("archived_at", null);
+    if (erroPessoas) throw new Error(erroPessoas.message);
+
+    const mapaPapelPorRelacao = new Map<string, string>();
+    for (const r of listaRelacoes) {
+      mapaPapelPorRelacao.set(r["person_from_id"], ROTULO_RELACAO[r["relation_type"]] ?? r["relation_type"]);
+      mapaPapelPorRelacao.set(r["person_to_id"], ROTULO_RELACAO[r["relation_type"]] ?? r["relation_type"]);
+    }
+
+    const listaPessoas = linhasDe<Record<string, any>>(pessoas, "pessoas da miniatura familiar").map((p) => ({
+      id: String(p["id"]),
+      nome: String(p["preferred_display_name"] ?? p["canonical_name"] ?? "Sem nome registrado"),
+      papel: String(p["papel_na_linhagem"] ?? mapaPapelPorRelacao.get(p["id"]) ?? "Vínculo a confirmar"),
+    }));
+
+    return { pessoas: listaPessoas, totalRelacoes: listaRelacoes.length };
+  });
+
+/** Rótulo em PT-BR do vocabulário real de `relation_type` (CHECK da migration). */
+const ROTULO_RELACAO: Record<string, string> = {
+  pai_mae: "Ascendente",
+  filho: "Descendente",
+  conjuge: "Cônjuge",
+  irmao: "Irmão(ã)",
+  tutor_representante: "Tutor/representante",
+  padrinho_madrinha: "Padrinho/madrinha",
+  colateral: "Colateral",
+  a_confirmar: "Vínculo a confirmar",
+};
