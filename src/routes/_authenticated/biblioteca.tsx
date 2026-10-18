@@ -244,6 +244,12 @@ function BibliotecaPage() {
                   {label === "Modelos" ? (
                     <span className="mt-1 block text-[11px] text-navy/50">Fonte compartilhada declarada</span>
                   ) : null}
+                  {consumo ? (
+                    <span className="mt-2 block border-t border-navy/10 pt-2 text-[11px] leading-snug text-navy/55">
+                      <span className="block"><strong className="font-medium text-navy/70">Quem usa:</strong> {consumo.consumidor}</span>
+                      <span className="mt-0.5 block"><strong className="font-medium text-navy/70">Efeito:</strong> {consumo.efeito}</span>
+                    </span>
+                  ) : null}
                 </span>
               </Button>
             );
