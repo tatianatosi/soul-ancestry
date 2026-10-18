@@ -19,6 +19,7 @@ import {
 } from "@/lib/equipe.functions";
 import { KitBadge, KitCard, KpiCard } from "@/components/clube-ancestral-kit";
 import { CaCard } from "@/components/ui/ca-card";
+import { Etiqueta, type Tom } from "@/components/prancha-v4/kit";
 import { CAPACIDADES_PROPRIETARIA, ROTULO_CAPACIDADE } from "@/lib/modo-proprietaria";
 import { AvisoCampo, motivoCampoInvalido } from "@/components/campos/aviso-campo";
 
@@ -36,6 +37,9 @@ export const Route = createFileRoute("/_authenticated/equipe")({
   }),
   component: EquipePage,
 });
+
+// V4-05: tom do chip de estado do membro (mesmo vocabulário de STATUS_LABEL).
+const TOM_STATUS: Record<string, Tom> = { active: "sucesso", invited: "atencao", suspended: "critico", revoked: "critico" };
 
 const STATUS_LABEL: Record<string, string> = {
   invited: "Convidado",
@@ -82,13 +86,14 @@ function LinhaMembro({
     <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-medium">
+          <p className="flex flex-wrap items-center gap-2 font-medium">
             {m.full_name ?? "—"}
-            {m.demo ? <span className="ml-2 text-xs uppercase text-gold">DEMO</span> : null}
+            <Etiqueta texto={STATUS_LABEL[m.status] ?? m.status} tom={TOM_STATUS[m.status] ?? "neutro"} />
+            {m.demo ? <Etiqueta texto="DEMO" tom="atencao" /> : null}
           </p>
           <p className="text-sm text-navy/60">{m.email}</p>
           <p className="mt-1 text-xs uppercase tracking-wide text-navy/50">
-            {PAPEL_LABEL[m.role as keyof typeof PAPEL_LABEL]} · {STATUS_LABEL[m.status]}
+            {PAPEL_LABEL[m.role as keyof typeof PAPEL_LABEL]}
             {m.last_login_at ? ` · último acesso ${new Date(m.last_login_at).toLocaleString("pt-BR")}` : ""}
           </p>
           {m.reason ? <p className="mt-1 text-xs text-navy/50">Motivo: {m.reason}</p> : null}
@@ -378,8 +383,7 @@ function EquipePage() {
             </CaCard>
           </div>
 
-          <section>
-            <h2 className="font-serif text-xl">Membros</h2>
+          <CaCard titulo="Membros">
             <EstadoDados
               carregando={q.isLoading}
               erro={q.error}
@@ -407,7 +411,7 @@ function EquipePage() {
               Acessos internos nunca são excluídos fisicamente: são arquivados com motivo e responsável, e toda
               alteração entra na auditoria.
             </p>
-          </section>
+          </CaCard>
         </div>
       )}
     </SaasShell>
