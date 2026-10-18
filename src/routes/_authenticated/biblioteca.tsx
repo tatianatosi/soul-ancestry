@@ -9,6 +9,7 @@ import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { Button } from "@/components/ui/button";
 import { CaCard } from "@/components/ui/ca-card";
+import { Etiqueta, Indicador } from "@/components/prancha-v4/kit";
 import { ManifestoResgate } from "@/components/governanca/manifesto";
 import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
 
@@ -142,6 +143,27 @@ function BibliotecaPage() {
     return m;
   }, [itens]);
 
+  // V4-04: faixa de KPIs da Biblioteca — só contagem dos itens já lidos pelas
+  // duas consultas; sem leitura completa, não há número (nunca zero por erro).
+  // Homologado = estado interno de vigência; não é publicação ao App.
+  const kpisBiblioteca =
+    geral.data && catalogo.data
+      ? [
+          { rotulo: "Itens vigentes", valor: itens.filter((i) => !i.arquivado).length, apoio: "Todas as subáreas" },
+          {
+            rotulo: "Homologados",
+            valor: itens.filter((i) => !i.arquivado && i.homologado).length,
+            apoio: "Vigência interna — não publica",
+          },
+          {
+            rotulo: "Não homologados",
+            valor: itens.filter((i) => !i.arquivado && !i.homologado).length,
+            apoio: "Aguardam critério registrado",
+          },
+          { rotulo: "Arquivados", valor: itens.filter((i) => i.arquivado).length, apoio: "Sem exclusão física" },
+        ]
+      : null;
+
   const opcoes = useMemo(() => {
     const st = new Set<string>();
     const rp = new Set<string>();
@@ -215,6 +237,13 @@ function BibliotecaPage() {
       visualKit="pantone"
     >
       <PesquisaConectada />
+      {kpisBiblioteca ? (
+        <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-biblioteca-kpis>
+          {kpisBiblioteca.map((k) => (
+            <Indicador key={k.rotulo} rotulo={k.rotulo} valor={String(k.valor)} apoio={k.apoio} />
+          ))}
+        </div>
+      ) : null}
       <section className="mt-7" aria-labelledby="entradas-biblioteca">
         <div className="mb-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-gold">Biblioteca Mestre</p>
@@ -406,18 +435,15 @@ function BibliotecaPage() {
           ))}
         </section>
 
-        <section className="rounded-xl border border-navy/10 bg-cream/50 p-4">
-          <h2 className="font-serif text-lg text-navy">{meta.label}</h2>
-          <p className="mt-1 text-sm text-navy/65">{meta.finalidade}</p>
+        <CaCard titulo={meta.label} eyebrow="Biblioteca Mestre · subárea">
+          <p className="text-sm text-navy/65">{meta.finalidade}</p>
           <p className="mt-2 text-xs text-navy/55">Regra interna: {meta.regra}</p>
           <div className="mt-3 flex flex-wrap gap-1.5">
             {meta.dimensoes.map((d) => (
-              <span key={d} className="rounded-full border border-navy/15 bg-cream px-2 py-0.5 text-xs text-navy/70">
-                {d}
-              </span>
+              <Etiqueta key={d} texto={d} />
             ))}
           </div>
-        </section>
+        </CaCard>
 
         <section className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <input
@@ -501,22 +527,11 @@ function BibliotecaPage() {
                     )}
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
-                    {i.status && (
-                      <span className="rounded-full border border-navy/15 bg-cream px-2 py-0.5 text-xs text-navy/70">
-                        {i.status}
-                      </span>
-                    )}
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs ${
-                        i.arquivado
-                          ? "border border-navy/15 bg-cream text-navy/60"
-                          : i.homologado
-                            ? "border border-gold/40 bg-gold/15 text-navy"
-                            : "border border-terracotta/30 bg-terracotta/10 text-terracotta"
-                      }`}
-                    >
-                      {i.arquivado ? "Arquivado" : i.homologado ? "Homologado" : "Não homologado"}
-                    </span>
+                    {i.status && <Etiqueta texto={i.status} />}
+                    <Etiqueta
+                      texto={i.arquivado ? "Arquivado" : i.homologado ? "Homologado" : "Não homologado"}
+                      tom={i.arquivado ? "neutro" : i.homologado ? "sucesso" : "atencao"}
+                    />
                   </div>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-navy/60">

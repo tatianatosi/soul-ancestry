@@ -50,7 +50,9 @@ import {
   DecisoesNormativasDoCaso,
   ReferenciasNormativasAplicaveis,
 } from "@/components/pesquisa/referencias-normativas";
-import { SaasShell } from "@/components/saas/shell";
+import { EstadoVazio, SaasShell } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -186,7 +188,6 @@ function AreaPesquisaEvidencias() {
     <div className="space-y-6">
       <header className="space-y-1">
         <p className="text-xs uppercase tracking-widest text-navy/60">Desk Intelligence</p>
-        <h1 className="text-2xl font-semibold text-navy">Pesquisa Genealógica e Evidências</h1>
         <p className="text-sm text-navy/70">
           {d?.caso ? `${d.caso.codigo} — ${d.caso.titulo}` : "Carregando caso…"}
         </p>
@@ -458,7 +459,7 @@ function AreaPesquisaEvidencias() {
               do caso (o que a equipe fez) fica no Caso 360. */}
           <Bloco titulo="Linha do tempo genealógica">
             {(c?.eventos.length ?? 0) === 0 ? (
-              <p className="text-sm text-navy/60">Nenhum evento registrado. Nada é inferido automaticamente.</p>
+              <EstadoVazio mensagem="Nenhum evento registrado. Nada é inferido automaticamente." />
             ) : (
               <ul className="space-y-1 text-sm text-navy">
                 {c!.eventos
@@ -480,7 +481,7 @@ function AreaPesquisaEvidencias() {
 
           <Bloco titulo="Relações genealógicas">
             {(c?.relacoes.length ?? 0) === 0 ? (
-              <p className="text-sm text-navy/60">Nenhuma relação registrada.</p>
+              <EstadoVazio mensagem="Nenhuma relação registrada." />
             ) : (
               <ul className="space-y-1 text-sm text-navy">
                 {c!.relacoes.map((r: any) => {
@@ -555,7 +556,7 @@ function AreaPesquisaEvidencias() {
               diretamente ao App Cliente.
             </p>
             {(c?.achados.length ?? 0) === 0 ? (
-              <p className="mt-3 text-sm text-navy/60">Nenhum achado registrado.</p>
+              <EstadoVazio mensagem="Nenhum achado registrado." />
             ) : (
               <ul className="mt-3 space-y-1 text-sm text-navy">
                 {c!.achados.map((a: any) => (
@@ -643,7 +644,7 @@ function AreaPesquisaEvidencias() {
               extração automática é executada aqui.
             </p>
             {(c?.fontes.length ?? 0) === 0 ? (
-              <p className="mt-3 text-sm text-navy/60">Nenhuma fonte registrada.</p>
+              <EstadoVazio mensagem="Nenhuma fonte registrada." />
             ) : (
               <ul className="mt-3 space-y-1 text-sm text-navy">
                 {c!.fontes.map((f: any) => (
@@ -669,7 +670,7 @@ function AreaPesquisaEvidencias() {
         <div className="space-y-3">
           <Bloco titulo="Evidências e validação">
             {(c?.evidencias.length ?? 0) === 0 ? (
-              <p className="text-sm text-navy/60">Nenhuma evidência registrada.</p>
+              <EstadoVazio mensagem="Nenhuma evidência registrada." />
             ) : (
               <ul className="space-y-2 text-sm text-navy">
                 {c!.evidencias.map((e: any) => (
@@ -709,7 +710,7 @@ function AreaPesquisaEvidencias() {
         <div className="space-y-3">
           <Bloco titulo="Relatórios F1/F2">
             {(c?.relatorios.length ?? 0) === 0 ? (
-              <p className="text-sm text-navy/60">Nenhum relatório registrado para este caso.</p>
+              <EstadoVazio mensagem="Nenhum relatório registrado para este caso." />
             ) : (
               <ul className="space-y-1 text-sm text-navy">
                 {c!.relatorios.map((r: any) => (
@@ -745,7 +746,7 @@ function AreaPesquisaEvidencias() {
         <section className="space-y-3">
           <DecisoesNormativasDoCaso caseId={caseId} />
           <Bloco titulo="Alertas internos">
-            {d.alertas.length === 0 && <p className="text-sm text-navy/60">Nenhum alerta registrado.</p>}
+            {d.alertas.length === 0 && <EstadoVazio mensagem="Nenhum alerta registrado." />}
             {d.alertas.map((a: any) => (
               <p key={a.id} className="border-b border-navy/10 py-2 text-sm text-navy">
                 <strong>{a.titulo}</strong> — {a.criticidade} / {a.status}
@@ -755,7 +756,7 @@ function AreaPesquisaEvidencias() {
             ))}
           </Bloco>
           <Bloco titulo="Rascunhos de comunicação (sem envio)">
-            {d.comunicacoes.length === 0 && <p className="text-sm text-navy/60">Nenhum rascunho.</p>}
+            {d.comunicacoes.length === 0 && <EstadoVazio mensagem="Nenhum rascunho." />}
             {d.comunicacoes.map((c: any) => (
               <p key={c.id} className="border-b border-navy/10 py-2 text-sm text-navy">
                 <strong>{c.assunto}</strong> — {c.status} / canal sugerido {c.suggested_channel}
@@ -1066,22 +1067,17 @@ function AreaPesquisaEvidencias() {
   );
 }
 
+// V4-04: KPI local = Indicador do kit V4; bloco local = cartão canônico (CaCard).
+// API local inalterada para os chamadores.
 function Cartao({ titulo, valor, nota }: { titulo: string; valor: number; nota: string }) {
-  return (
-    <div className="rounded border border-navy/15 bg-cream/40 p-4">
-      <p className="text-xs uppercase tracking-wide text-navy/60">{titulo}</p>
-      <p className="text-2xl font-semibold text-navy">{valor}</p>
-      <p className="text-xs text-navy/60">{nota}</p>
-    </div>
-  );
+  return <Indicador rotulo={titulo} valor={String(valor)} apoio={nota} />;
 }
 
 function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <section className="rounded border border-navy/15 bg-cream/40 p-4">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-navy">{titulo}</h2>
+    <CaCard titulo={titulo} eyebrow="Pesquisa · caso">
       {children}
-    </section>
+    </CaCard>
   );
 }
 
@@ -1135,7 +1131,7 @@ function Lista({
     <Bloco titulo={titulo}>
       <p className="mb-2 text-xs text-navy/60">{nota}</p>
       {itens.length === 0 ? (
-        <p className="text-sm text-navy/60">Nenhum registro nesta seção.</p>
+        <EstadoVazio mensagem="Nenhum registro nesta seção." />
       ) : (
         <ul className="list-disc pl-5 text-sm text-navy">
           {itens.map((i) => (

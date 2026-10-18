@@ -12,7 +12,9 @@ import {
   CATALOGO_ALIAS_TEMPLATES,
   PRECEDENCIA_TEMPLATES,
 } from "@/lib/consolidacao-catalogos-templates";
-import { SaasShell, useSaas } from "@/components/saas/shell";
+import { EstadoVazio, SaasShell, useSaas } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
+import { Etiqueta, Indicador } from "@/components/prancha-v4/kit";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -198,6 +200,18 @@ function BibliotecaMensagensPage() {
     ? selecionado.variaveisObrigatorias.filter((v) => !(valores[v] ?? "").trim())
     : [];
 
+  // V4-04: KPIs só com contagem dos modelos já lidos; sem leitura, sem faixa.
+  // Vigente = modelo liberado para uso manual; nada é enviado por esta tela.
+  const todosTemplates = dados.data?.templates;
+  const kpisModelos = todosTemplates
+    ? [
+        { rotulo: "Modelos", valor: todosTemplates.length, apoio: "Cadastrados na biblioteca" },
+        { rotulo: "Vigentes", valor: todosTemplates.filter((t) => t.status === "vigente").length, apoio: "Uso manual liberado" },
+        { rotulo: "Em revisão", valor: todosTemplates.filter((t) => t.status === "em_revisao").length, apoio: "Aguardam aprovação" },
+        { rotulo: "Arquivados", valor: todosTemplates.filter((t) => t.arquivado).length, apoio: "Histórico preservado" },
+      ]
+    : null;
+
   return (
     <SaasShell
       titulo="Biblioteca de Mensagens e Conteúdos"
@@ -211,23 +225,32 @@ function BibliotecaMensagensPage() {
         </p>
       ) : null}
       <div className="space-y-6">
-        <section data-catalogo="precedencia-templates" className="rounded-xl border border-navy/15 bg-cream/50 p-4">
-          <h2 className="text-sm font-medium text-foreground">Catálogo canônico de modelos</h2>
-          <p className="mt-2 text-xs text-navy/65">
+        {kpisModelos ? (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-biblioteca-mensagens-kpis>
+            {kpisModelos.map((k) => (
+              <Indicador key={k.rotulo} rotulo={k.rotulo} valor={String(k.valor)} apoio={k.apoio} />
+            ))}
+          </div>
+        ) : null}
+        <div className="grid gap-4 lg:grid-cols-2">
+        <CaCard titulo="Catálogo canônico de modelos" eyebrow="Mensagens · precedência">
+        <section data-catalogo="precedencia-templates">
+          <p className="text-xs text-navy/65">
             {PRECEDENCIA_TEMPLATES.regra} A entrada histórica “{CATALOGO_ALIAS_TEMPLATES.rotulo}” da Biblioteca Mestre
             permanece registrada, sem conteúdo próprio, e aponta para esta tela. Nenhum modelo, versão ou histórico de
             uso foi removido.
           </p>
         </section>
+        </CaCard>
 
-        <section className="rounded-xl border border-navy/15 bg-cream/50 p-4">
-          <h2 className="text-sm font-medium text-foreground">Regras de uso</h2>
-          <ul className="mt-2 space-y-1 text-xs text-navy/65">
+        <CaCard titulo="Regras de uso" eyebrow="Mensagens · governança">
+          <ul className="space-y-1 text-xs text-navy/65">
             {REGRAS.map((r) => (
               <li key={r}>• {r}</li>
             ))}
           </ul>
-        </section>
+        </CaCard>
+        </div>
 
 
         {contextoAlerta ? (
@@ -341,9 +364,7 @@ function BibliotecaMensagensPage() {
             const lista = filtrarTemplates(todos, { categoria, status, busca });
             if (lista.length === 0) {
               return (
-                <p className="rounded-xl border border-dashed border-navy/15 bg-cream/60/30 p-6 text-center text-sm text-navy/65">
-                  Nenhum modelo com os filtros atuais.
-                </p>
+                <EstadoVazio mensagem="Nenhum modelo com os filtros atuais." />
               );
             }
             return (
@@ -355,17 +376,18 @@ function BibliotecaMensagensPage() {
                     <div className="text-sm font-medium text-foreground">{t.nome}</div>
                     <p className="mt-0.5 text-xs text-navy/65">{t.objetivo ?? "—"}</p>
                   </div>
-                  <span
-                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${
+                  <Etiqueta
+                    texto={STATUS_TEMPLATE.find((s) => s.valor === t.status)?.rotulo ?? String(t.status)}
+                    tom={
                       t.status === "vigente"
-                        ? "bg-navy/10 text-navy"
+                        ? "sucesso"
                         : t.status === "aprovado"
-                          ? "bg-cream/60 text-foreground"
-                          : "bg-destructive/10 text-destructive"
-                    }`}
-                  >
-                    {STATUS_TEMPLATE.find((s) => s.valor === t.status)?.rotulo}
-                  </span>
+                          ? "neutro"
+                          : t.status === "rascunho" || t.status === "em_revisao"
+                            ? "atencao"
+                            : "critico"
+                    }
+                  />
                 </div>
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-navy/65">
                   <span>{t.categoriaNome}</span>
