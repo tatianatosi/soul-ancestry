@@ -1,7 +1,8 @@
 # Roadmap
 
 ## 18/10 — pedidos para aprovação, sem publicação
-- [ ] Revisar as sugestões do Desk por superfície: dados contextuais aplicados às fichas, percurso guiado completo, cores e fontes oficiais; resgatar os cartões do contrato e separar proposta de implementação. App permanece em pausa.
+- [x] Revisar as sugestões do Desk por superfície: entregue PDF v3 de 18 páginas e mapa de ligações; fichas guiadas, cores/fontes oficiais, resgate dos cinco cartões e separação entre código existente e prova de uso. Todas as páginas inspecionadas; nenhuma implementação/publicação. App permanece em pausa.
+- [ ] PEDIDO AO CLAUDE: preparador de contrato pode inserir parâmetros/preencher campos/auditar na abertura; revisão autenticada estritamente sem escrita depende de resolver esse limite ou de autorização específica. Não aberto nesta revisão.
 - [x] Sugestões UX/UI do Desk entregues no de-para de 18/10: organização contextual de onze superfícies e mapa de alimentos → motores → resultados; proposta não implementada, App em pausa.
 - [ ] Documentos na versão separada: área de envio existente, checklist com selos e Entregas do caso; 14 itens permanecem não compartilhados até autorização.
 - [ ] PDF da versão leve em três vias (original, App no ar, versão nova), sete abas em celular/computador; identificar data e origem de cada captura.
