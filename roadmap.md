@@ -5,6 +5,8 @@
 - [ ] Documentos na versão separada: área de envio existente, checklist com selos e Entregas do caso; 14 itens permanecem não compartilhados até autorização.
 - [ ] PDF da versão leve em três vias (original, App no ar, versão nova), sete abas em celular/computador; identificar data e origem de cada captura.
 - [x] De-para do Desk de 18/10: 33 telas, 66 vistas 1280/375, 319 segmentos, 68 destinos sondados, PDF de análise e caderno integral; leitura separada de ações não executadas.
+- [x] Rodada 3 do Desk vivo (18/10): PDF de 11 páginas com KPIs sem sobreposição (dono único por número), GoLive como leitura "como a família vê" no Caso 360, cards com paleta completa, resgates das pranchas v1–v6, microentregas em duas entidades e planejador como alimento; 3 pedidos de decisão à Proprietária.
+- [x] Correção de typecheck (18/10): restaurados itemNavAtivo, grupoNavAtivo e LACUNAS_CONHECIDAS em navegacao-desk.ts; 4 falhas de teste restantes são a divergência V4×V5 de menu, decisão pendente da Proprietária.
 - [ ] PEDIDO AO CLAUDE: comprovar persistência/releitura, conexões dos alimentos aos motores e resultado autorizado no App; depende de autorização de escrita e execução contextual, não realizada nesta auditoria.
 - Não executar escritas, convites, liberação, cobrança, integração ou publicação nesta auditoria.
 
