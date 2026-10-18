@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { SaasShell } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { CaCard } from "@/components/ui/ca-card";
 import { painelHojeDesk } from "@/lib/crm-desk.functions";
 
 export const Route = createFileRoute("/_authenticated/metricas")({
@@ -27,12 +28,12 @@ export const Route = createFileRoute("/_authenticated/metricas")({
   errorComponent: ({ error }) => <div className="p-6 text-sm text-terracotta">Não foi possível carregar as métricas: {(error as Error).message}</div>,
 });
 
+// V4-02: cartão na casca V4 (CaCard). Mesmo teto de cinco métricas (CA-UX-03).
 function Cartao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-      <p className="text-xs uppercase tracking-wide text-navy/50">{titulo}</p>
-      <div className="mt-2 space-y-1 text-xs text-navy/70">{children}</div>
-    </div>
+    <CaCard titulo={titulo} className="rounded-2xl">
+      <div className="space-y-1 text-xs text-navy/70">{children}</div>
+    </CaCard>
   );
 }
 
@@ -121,7 +122,7 @@ function Metricas() {
             </Link>
           </p>
 
-          <details data-metricas="historico" className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+          <details data-metricas="historico" className="rounded-2xl border border-border bg-card p-4 shadow-sm">
             <summary className="cursor-pointer text-sm font-semibold text-navy">Histórico e análise</summary>
             <p className="mt-1 text-xs text-navy/50">
               Leitura retrospectiva. Nenhum card desta seção cria fila, alerta, tarefa ou status.

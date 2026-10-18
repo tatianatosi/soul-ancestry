@@ -30,13 +30,13 @@ export const Route = createFileRoute("/_authenticated/calls")({
   ),
   head: () => ({
     meta: [
-      { title: "CRM Vivo & Discovery Calls — Clube Ancestral" },
+      { title: "Mesa de Discovery — Clube Ancestral" },
       {
         name: "description",
         content:
           "Entrada comercial: calls agendadas e realizadas, roteiro SPIN, consentimento e handoff para pessoa/caso. KPIs de atraso ficam no Hoje.",
       },
-      { property: "og:title", content: "CRM Vivo & Discovery Calls — Clube Ancestral" },
+      { property: "og:title", content: "Mesa de Discovery — Clube Ancestral" },
       {
         property: "og:description",
         content: "A Mesa de Discovery faz a entrada comercial funcionar — Calls, SPIN e handoff no Desk.",
@@ -307,7 +307,7 @@ function CallsPage() {
 
   return (
     <SaasShell
-      titulo="CRM Vivo & Discovery Calls"
+      titulo="Mesa de Discovery"
       descricao="Calls agendadas e realizadas, roteiro SPIN e consentimento. O handoff do Discovery vira oportunidade abaixo, na Mesa."
     >
       {qLeads.isError ? (
