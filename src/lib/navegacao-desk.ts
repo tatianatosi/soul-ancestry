@@ -571,5 +571,53 @@ export function naturezaDaBiblioteca(rota: string): (typeof NATUREZA_BIBLIOTECA)
 
 export function rotaAtendeDestino(rotaAtual: string, destino: string): boolean {
   const normal = (p: string) => (p.split("#")[0] ?? "").replace(/\/$/, "") || "/";
-  return normal(rotaAtual) === normal(destino);
+  const atual = normal(rotaAtual);
+  const alvo = normal(destino);
+  if (!atual || !alvo) return false;
+  if (atual === alvo) return true;
+  if (alvo === "/") return false;
+  // Subrota só conta com barra: /casos/xyz ∈ /casos, mas /pesquisa-modulo ∉ /pesquisa.
+  return atual.startsWith(`${alvo}/`);
 }
+
+export type DestinoNav = { to: string; hash?: string };
+
+function hashDaRota(valor: string): string {
+  const partes = valor.split("#");
+  return (partes[1] ?? "").trim();
+}
+
+/** Item de menu ativo: hash, quando existe, precisa bater; senão a rota (ou subrota). */
+export function itemNavAtivo(atual: string, hashAtual: string, item: DestinoNav): boolean {
+  const hash = hashDaRota(hashAtual);
+  if (item.hash) return atual === item.to && hash === hashDaRota(item.hash);
+  if (hash && atual === item.to) return false;
+  return rotaAtendeDestino(atual, item.to);
+}
+
+/** Grupo ativo canônico: entrada do grupo ou item que mora nele — atalhos não douram o grupo errado. */
+export function grupoNavAtivo(
+  atual: string,
+  hashAtual: string,
+  grupo: { to: string; label: string; sub: readonly ItemNav[] },
+): boolean {
+  if (rotaAtendeDestino(atual, grupo.to) && !hashDaRota(hashAtual)) return true;
+  return grupo.sub.some((s) => {
+    if (!("to" in s)) return false;
+    if (origemDoAtalho(grupo.label, s.to)) return false;
+    return itemNavAtivo(atual, hashAtual, s);
+  });
+}
+
+/** Lacunas conhecidas: sem fonte canônica, permanecem declaradas e não simuladas. */
+export const LACUNAS_CONHECIDAS: readonly { item: string; motivo: string }[] = [
+  { item: "Radar multi-país", motivo: "Sem fonte canônica definida; nenhum cálculo é simulado." },
+  {
+    item: "Atividade real de abertura/download no App Cliente",
+    motivo: "Só é exibida quando houver evento canônico registrado.",
+  },
+  {
+    item: "Espelho do App Cliente",
+    motivo: "Reutiliza exclusivamente a projeção sanitizada; nenhuma cópia é criada.",
+  },
+] as const;
