@@ -282,3 +282,5 @@
 
 - [x] De-para Desk V4 revisado (18/10): inventário das 91 telas, Biblioteca Mestre como alimento vivo, dicionários, ordem Discovery — PDF de-para-desk-v4-revisado-2026-10-18.pdf na coleção de estudos
 - [ ] Decisões da Proprietária: GoLive no de-para, modelos contratuais no lote C, etiquetas na Biblioteca, pergunta 20 fora da call, autorização do Corte 1
+- [x] De-para completo 91 telas + jornada do cliente (18/10): de-para-completo-91-telas-e-jornada-2026-10-18.pdf em Arquivos e na coleção; GoLive marcado como painel interno
+- [ ] Drive/Perplexity: conector não envia binário — Proprietária arrasta o PDF para a pasta do Drive
