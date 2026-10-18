@@ -22,28 +22,6 @@ import {
   type AcaoOperacional,
 } from "@/lib/golive-operacao";
 
-/**
- * 17/10/2026 — Decisão canônica da Proprietária: a Prancha V4
- * (mockup "desk-01-hoje") é a fonte de verdade visual de `/painel`, e
- * o componente "Painel do Dia" legado e `golive-*` ficam arquivados como
- * legado visual. Esta tela não importa esse componente legado nem os
- * blocos de `/golive` fora da grade V4 — mas continua lendo os mesmos
- * CÁLCULOS puros de
- * `golive-operacao`/`golive-comercial`/`golive-aprovacoes`/
- * `golive-microentregas` que já alimentam /golive/aprovacoes,
- * /golive/microentregas etc. Trocar esse cálculo por um motor paralelo
- * (ex.: reimplementar "Decisões do dia" sobre `posicionar`) divergiria
- * dos mesmos números já publicados nessas outras telas — o que o
- * próprio AGENTS.md deste projeto chama de schema/motor paralelo.
- * Decisão de engenharia registrada aqui para revisão: "arquivado" foi
- * lido como "sai da grade visual de /painel", não como "a lógica pura
- * de cálculo deixa de ser a fonte", já que não existe segunda fonte
- * real para estes números (confirmado: `painelHojeDesk`, em
- * `crm-desk.functions.ts`, cobre só o funil comercial e métricas de
- * discovery — não cobre decisões, cadência, casos sem ação,
- * microentregas ou prioridades da carteira).
- */
-
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
     meta: [
@@ -392,6 +370,26 @@ function PainelConsolidado() {
             Só casos ativos; encerrado não conta como prioridade aberta.
           </p>
         </CaCard>
+
+        {/* Âncora canônica para a busca global do Shell: Encontrar no Desk */}
+        <div id="encontrar-no-desk" className="scroll-mt-24">
+          <CaCard titulo="Encontrar no Desk" eyebrow="Busca rápida contextual de casos e pessoas">
+            <p className="text-xs text-navy/60">
+              Digite na barra de pesquisa superior ou navegue pelos atalhos diretos das abas para localizar qualquer caso, contrato ou evidência.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button asChild size="sm" variant="outline">
+                <Link to="/casos">Ir para Casos 360</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/clientes">Ir para Pessoas 360</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/contratos">Ir para Contratos</Link>
+              </Button>
+            </div>
+          </CaCard>
+        </div>
       </div>
     </section>
   );
