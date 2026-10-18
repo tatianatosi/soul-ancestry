@@ -583,8 +583,9 @@ export function rotaAtendeDestino(rotaAtual: string, destino: string): boolean {
 export type DestinoNav = { to: string; hash?: string };
 
 function hashDaRota(valor: string): string {
+  // Aceita tanto "/rota#ancora" quanto a âncora pura ("canais-campanhas").
   const partes = valor.split("#");
-  return (partes[1] ?? "").trim();
+  return (partes.length > 1 ? partes[1] : partes[0] ?? "").trim();
 }
 
 /** Item de menu ativo: hash, quando existe, precisa bater; senão a rota (ou subrota). */
