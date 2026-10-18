@@ -299,4 +299,5 @@
 - L02 entregue. Leitura atual confirmou lead vinculado ao caso, proposta v1 aprovada e contrato vigente em revisão humana, sem assinatura. Preparador excluído da auditoria por gravar na abertura; alterações de lógica L05/L06 e demais cortes não incluídas neste corte visual.
 
 ## 18/10/2026 — Mockup V4 do dia a dia (11 telas) — prioridade antes da jornada viva
-- [x] Mockup visual (fora do produto) com casca V4 nas 11 telas principais, cortes L00–L12 e sugestões das rodadas 1–4 aplicados; números só de leituras reais; selo MOCKUP.
+- [ ] Revisar o último mockup após concluir a jornada da Ana: rejeitado pela Proprietária às 22:04 UTC por não corresponder às sugestões anteriores nem às cascas originais do Desk V4. A entrega anterior não comprova paridade.
+- [ ] Comparar peça a peça as 11 telas com as cascas V4 originais e sugestões das rodadas 1–4; apresentar cobertura, divergências e novas capturas para aprovação, sem publicar ou integrar.
