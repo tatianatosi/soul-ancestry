@@ -1,5 +1,11 @@
 # Roadmap
 
+## 18/10 — CRM Mestre é dicionário (L00–L12, proposta v1.0)
+- [x] L00 documental: proposta v1.0 registrada no destino solicitado; mapas/cobertura v2 e PDFs com errata vigente entregues na coleção, preservando originais históricos (não reeditados internamente).
+- [x] L01: portas de entrada conferidas em leitura; diff mínimo de identificação das regras jurídicas apresentado, Referências mantém acervo compartilhado.
+- [ ] L01 implementação/índice de dez subáreas/contexto/recarga: bloqueado por aprovação específica da Proprietária e coordenação do arquivo; nenhuma UI alterada.
+- L02–L12 não autorizados; App congelado, 14 itens reservados; sem mudanças de produto ou efeitos externos.
+
 ## 18/10 — pedidos para aprovação, sem publicação
 - [x] Sugestões UX/UI do Desk entregues no de-para de 18/10: organização contextual de onze superfícies e mapa de alimentos → motores → resultados; proposta não implementada, App em pausa.
 - [ ] Documentos na versão separada: área de envio existente, checklist com selos e Entregas do caso; 14 itens permanecem não compartilhados até autorização.
