@@ -197,6 +197,89 @@ export function exposicaoAppCliente(): false {
   return false;
 }
 
+/* ------------------------------------------------------------------ */
+/* L02 (18/10/2026) — mapa de consumo: o que cada subárea contém,     */
+/* quem a consome no Desk e qual o efeito do uso. Somente declaração  */
+/* de leitura: não move dado, não cria rota nem fonte nova.           */
+/* ------------------------------------------------------------------ */
+
+export interface ConsumoSubarea {
+  chave: SubareaBiblioteca;
+  /** O que a subárea contém, em linguagem de operação. */
+  conteudo: string;
+  /** Superfícies do Desk que leem esta subárea hoje. */
+  consumidor: string;
+  /** O que acontece quando o item é usado pelo consumidor. */
+  efeito: string;
+}
+
+export const MAPA_CONSUMO_SUBAREAS: readonly ConsumoSubarea[] = [
+  {
+    chave: "acervo",
+    conteudo: "Modelos internos, guias e materiais aprovados, com ciclo de vigência auditado.",
+    consumidor: "Caso 360 (cadeia do caso) e Formalização (contrato e proposta).",
+    efeito: "Só item vigente entra em seletor de nova utilização; substituído, suspenso ou arquivado segue legível no histórico.",
+  },
+  {
+    chave: "bases",
+    conteudo: "Catálogo de repositórios, cartórios, acervos e coleções por país, com acesso e restrições.",
+    consumidor: "Fontes Genealógicas (edição completa) e Pesquisa e Evidências do caso.",
+    efeito: "A pesquisa consulta a base como referência; consulta externa exige autorização registrada no caso.",
+  },
+  {
+    chave: "dicionarios",
+    conteudo: "Taxonomias controladas: tipos de fonte, documento, evidência, relação, evento e estados.",
+    consumidor: "Pesquisa e Evidências do caso (listas de seleção dos formulários).",
+    efeito: "Termo fora do dicionário ativo não pode ser gravado como valor canônico.",
+  },
+  {
+    chave: "trilhas",
+    conteudo: "Vias preliminares por país, com requisitos, documentos prioritários e riscos.",
+    consumidor: "Painel de Calls (triagem) e Validação Jurídica do Caso 360.",
+    efeito: "Trilha homologada vira referência de triagem; nunca vira parecer jurídico ao cliente.",
+  },
+  {
+    chave: "juridico",
+    conteudo: "Regras jurídicas versionadas e citáveis, com vigência e revisão humana.",
+    consumidor: "Referências normativas da pesquisa e Validação Jurídica do Caso 360.",
+    efeito: "Regra só é citável se aprovada, vigente e não arquivada; não gera conclusão automática.",
+  },
+  {
+    chave: "governanca",
+    conteudo: "Decisões, políticas, retenção, LGPD e nomenclaturas oficiais.",
+    consumidor: "Governança do Desk e Manifesto de Resgate (seção desta página).",
+    efeito: "Decisão registrada é imutável; correção entra como nova decisão.",
+  },
+  {
+    chave: "modelos",
+    conteudo: "Modelos de relatório F1/F2 com versões aprovadas e critérios de uso.",
+    consumidor: "Relatórios de fase do caso (leitura da categoria Modelos do acervo).",
+    efeito: "Relatório publicado precisa apontar para uma versão aprovada de modelo.",
+  },
+  {
+    chave: "top30",
+    conteudo: "Catálogo interno homologado com escopo, condição comercial e preço vigente.",
+    consumidor: "Proposta e Formalização (seleção de itens elegíveis).",
+    efeito: "Só item homologado, elegível e vigente entra em proposta; catálogo nunca é exposto ao App Cliente.",
+  },
+  {
+    chave: "mapas",
+    conteudo: "Fluxos, gates, checklists e playbooks internos do processo executável.",
+    consumidor: "Operação do Desk (referência de processo).",
+    efeito: "Divergência entre mapa e execução abre pendência de governança.",
+  },
+  {
+    chave: "arquivo",
+    conteudo: "Itens legados e descontinuados, preservados com motivo e data.",
+    consumidor: "Consulta histórica interna.",
+    efeito: "Sem exclusão física: item arquivado permanece rastreável e sai de qualquer seletor.",
+  },
+] as const;
+
+export function consumoSubarea(chave: string): ConsumoSubarea | null {
+  return MAPA_CONSUMO_SUBAREAS.find((c) => c.chave === chave) ?? null;
+}
+
 /** Status canônicos de itens versionados da Biblioteca. */
 export const STATUS_BIBLIOTECA = ["rascunho", "em_revisao", "aprovado", "arquivado"] as const;
 export type StatusBiblioteca = (typeof STATUS_BIBLIOTECA)[number];
