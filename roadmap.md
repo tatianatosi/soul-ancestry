@@ -1,6 +1,7 @@
 # Roadmap
 
 ## 18/10 — pedidos para aprovação, sem publicação
+- [ ] Segunda rodada da jornada guiada: sugestões pela composição do mockup Desk V4, melhoria de UX/UI e matriz de cobertura das telas, abas e módulos contextuais desenvolvidos; somente artefatos, App em pausa.
 - [x] Sugestões UX/UI do Desk entregues no de-para de 18/10: organização contextual de onze superfícies e mapa de alimentos → motores → resultados; proposta não implementada, App em pausa.
 - [ ] Documentos na versão separada: área de envio existente, checklist com selos e Entregas do caso; 14 itens permanecem não compartilhados até autorização.
 - [ ] PDF da versão leve em três vias (original, App no ar, versão nova), sete abas em celular/computador; identificar data e origem de cada captura.
