@@ -15,6 +15,7 @@ import {
   rotasSemLink,
   rotasDoMenuConta,
   MENU_CONTA,
+  setorDaRota,
 } from "@/lib/navegacao-desk";
 import { MATRIZ_EQUIVALENCIA } from "@/lib/matriz-equivalencia";
 
@@ -216,5 +217,11 @@ describe("Navegação do Desk — 7 grupos do V4 (03/10/2026)", () => {
       expect(CLASSIFICACAO_SANEAMENTO_V4[r], r).toBe("LEGADO_SEM_MENU");
       expect(rotasDoMenuConta()).not.toContain(r);
     }
+  });
+
+  it("toda rota com contexto de caso tem setor dono na lateral real (sem órfãs)", () => {
+    expect(setorDaRota("/biblioteca-evidencias/abc")?.id).toBe("pesquisa");
+    expect(setorDaRota("/relatorios-fase/abc")?.id).toBe("pesquisa");
+    expect(setorDaRota("/app-cliente-demo")?.id).toBe("casos");
   });
 });

@@ -328,7 +328,15 @@ export const SETORES_DESK_V5: readonly SetorDesk[] = [
       { label: "Operações (Kanban)", to: "/ops" },
       { label: "Tarefas (Lista)", to: "/tarefas" },
     ],
-    prefixos: ["/casos", "/ops", "/tarefas", "/onboarding", "/atendimento", "/app-cliente-como-pessoa"],
+    prefixos: [
+      "/casos",
+      "/ops",
+      "/tarefas",
+      "/onboarding",
+      "/atendimento",
+      "/app-cliente-como-pessoa",
+      "/app-cliente-demo",
+    ],
   },
   {
     id: "pessoas",
@@ -366,6 +374,8 @@ export const SETORES_DESK_V5: readonly SetorDesk[] = [
       "/biblioteca",
       "/plano-acao",
       "/relatorios",
+      "/relatorios-fase",
+      "/biblioteca-evidencias",
     ],
   },
   {
