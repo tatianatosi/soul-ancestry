@@ -316,6 +316,62 @@ function BibliotecaPage() {
           </div>
         </CaCard>
 
+        {/*
+          L02 (18/10/2026): tabela fonte → consumidor de cada subárea.
+          Declaração de leitura: não move dado, não cria rota nem fonte nova.
+        */}
+        <CaCard titulo="Fonte → consumidor" eyebrow="Biblioteca Mestre">
+          <p className="mb-3 mt-1 text-sm text-navy/65">
+            O que cada subárea contém, de onde ela lê, quem a consome no Desk e qual o efeito do uso. Nenhuma subárea
+            é projetada ao App Cliente.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="text-[11px] uppercase tracking-wide text-navy/50">
+                <tr>
+                  <th className="py-2 pr-3">Subárea</th>
+                  <th className="py-2 pr-3">Conteúdo</th>
+                  <th className="py-2 pr-3">Fonte</th>
+                  <th className="py-2 pr-3">Consumidor</th>
+                  <th className="py-2">Efeito do uso</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-navy/10">
+                {MAPA_CONSUMO_SUBAREAS.map((c) => {
+                  const metaSub = SUBAREAS_BIBLIOTECA.find((s) => s.chave === c.chave);
+                  const fonteTecnica =
+                    c.chave === "acervo" || c.chave === "modelos" || c.chave === "governanca" || c.chave === "mapas" || c.chave === "arquivo"
+                      ? "master_library_items"
+                      : c.chave === "bases"
+                        ? "genealogical_sources_catalog"
+                        : c.chave === "dicionarios"
+                          ? "controlled_taxonomies"
+                          : c.chave === "trilhas"
+                            ? "citizenship_tracks"
+                            : c.chave === "juridico"
+                              ? "versioned_legal_rules"
+                              : "product_catalog";
+                  return (
+                    <tr key={c.chave} className="align-top">
+                      <td className="py-2 pr-3 font-medium text-navy">{metaSub?.label ?? c.chave}</td>
+                      <td className="py-2 pr-3 text-navy/65">{c.conteudo}</td>
+                      <td className="py-2 pr-3 text-navy/65">
+                        {rotuloFonteNegocio(fonteTecnica)}
+                        <details className="mt-1">
+                          <summary className="cursor-pointer text-[10px] text-navy/50">Detalhes técnicos</summary>
+                          <code className="mt-1 block font-mono text-[10px]">{fonteTecnica}</code>
+                        </details>
+                      </td>
+                      <td className="py-2 pr-3 text-navy/65">{c.consumidor}</td>
+                      <td className="py-2 text-navy/65">{c.efeito}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </CaCard>
+
         <section className="rounded-xl border border-navy/10 bg-cream/50 p-4">
           <h2 className="font-serif text-lg text-navy">Da Biblioteca até o App Cliente</h2>
           <p className="mb-3 mt-1 text-sm text-navy/65">
