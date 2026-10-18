@@ -276,3 +276,6 @@
 
 - [x] Desk: novo de-para de conteúdo com prints de todas as telas atuais (topo ao rodapé); App em pausa
 - [x] Desk: localizar mockup da tela de Marketing (V4) — wireframes-desk-13
+
+- [x] Rodada 4 (varredura WhatsApp, brief Discovery, GoLive, marcos jurídicos na Validação Jurídica, paleta ampliada) — PDF entregue
+- [ ] Prancha V4 com telas reais do Desk + sugestões da rodada 3, resolvendo divergência 8 setores × 7 grupos — aguarda decisão de qual menu vale
