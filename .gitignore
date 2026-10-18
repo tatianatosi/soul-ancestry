@@ -40,3 +40,4 @@ dist-ssr
 # Worktrees e artefatos locais de sessão do agente (nunca committar —
 # contém checkouts git aninhados, corromperia o repositório se versionado)
 .claude/
+tmp/
