@@ -428,7 +428,7 @@ const casaPrefixoSetor = (rota: string, p: string) =>
   rota === p || rota.startsWith(`${p}/`) || (p === "/pesquisa" && rota.startsWith(`${p}-`));
 
 export function setorDaRota(rota: string): SetorDesk | undefined {
-  const path = (rota.split("#")[0] ?? "").replace(/\\/$/, "") || "/";
+  const path = (rota.split("#")[0] ?? "").replace(/\/$/, "") || "/";
   let melhor: { setor: SetorDesk; tamanho: number } | null = null;
   for (const s of SETORES_DESK_V5) {
     for (const p of s.prefixos) {
@@ -529,7 +529,7 @@ export function destinosDuplicados(): string[] {
 }
 
 export function grupoDonoDaRota(rota: string): string | null {
-  const path = (rota.split("#")[0] ?? "").replace(/\\/$/, "") || "/";
+  const path = (rota.split("#")[0] ?? "").replace(/\/$/, "") || "/";
   for (const s of SETORES_DESK_V5) {
     for (const a of s.abas) {
       if (a.to === path) return s.label;
@@ -570,6 +570,6 @@ export function naturezaDaBiblioteca(rota: string): (typeof NATUREZA_BIBLIOTECA)
 }
 
 export function rotaAtendeDestino(rotaAtual: string, destino: string): boolean {
-  const normal = (p: string) => (p.split("#")[0] ?? "").replace(/\\/$/, "") || "/";
+  const normal = (p: string) => (p.split("#")[0] ?? "").replace(/\/$/, "") || "/";
   return normal(rotaAtual) === normal(destino);
 }
