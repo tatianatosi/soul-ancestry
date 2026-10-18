@@ -1,8 +1,9 @@
 # Roadmap
 
 ## 18/10 — CRM Mestre é dicionário (L00–L12, proposta v1.0)
-- [ ] L00 documental: registrar proposta no destino solicitado, corrigir nomenclatura dos mapas em novas versões e emitir errata rastreável dos PDFs, preservando originais.
-- [ ] L01: conferir portas de entrada da Biblioteca no código corrente e apresentar diff mínimo; implementação bloqueada por aprovação específica da Proprietária.
+- [x] L00 documental: proposta v1.0 registrada no destino solicitado; mapas/cobertura v2 e PDFs com errata vigente entregues na coleção, preservando originais históricos (não reeditados internamente).
+- [x] L01: portas de entrada conferidas em leitura; diff mínimo de identificação das regras jurídicas apresentado, Referências mantém acervo compartilhado.
+- [ ] L01 implementação/índice de dez subáreas/contexto/recarga: bloqueado por aprovação específica da Proprietária e coordenação do arquivo; nenhuma UI alterada.
 - L02–L12 não autorizados; App congelado, 14 itens reservados; sem mudanças de produto ou efeitos externos.
 
 ## 18/10 — pedidos para aprovação, sem publicação
