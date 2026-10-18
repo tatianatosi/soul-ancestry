@@ -284,3 +284,4 @@
 - [ ] Decisões da Proprietária: GoLive no de-para, modelos contratuais no lote C, etiquetas na Biblioteca, pergunta 20 fora da call, autorização do Corte 1
 - [x] De-para completo 91 telas + jornada do cliente (18/10): de-para-completo-91-telas-e-jornada-2026-10-18.pdf em Arquivos e na coleção; GoLive marcado como painel interno
 - [ ] Drive/Perplexity: conector não envia binário — Proprietária arrasta o PDF para a pasta do Drive
+- [x] Mapa de rotas V4 + canos da jornada 8 fases (18/10): dois diagramas .mmd em Arquivos e na coleção
