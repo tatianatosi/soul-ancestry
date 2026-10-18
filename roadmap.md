@@ -1,6 +1,7 @@
 # Roadmap
 
 ## 18/10 — pedidos para aprovação, sem publicação
+- [x] Segunda rodada da jornada guiada: PDF de 30 páginas baseado na composição Desk V4, desenhos de CRM/Calls/Contrato/Pesquisa e matriz das 33 abas, 91 declarações de rota e módulos contextuais; conferência visual, sem implementação/publicação, App em pausa. Validação funcional permanece pendente, não confundida com cobertura do inventário.
 - [x] Sugestões UX/UI do Desk entregues no de-para de 18/10: organização contextual de onze superfícies e mapa de alimentos → motores → resultados; proposta não implementada, App em pausa.
 - [ ] Documentos na versão separada: área de envio existente, checklist com selos e Entregas do caso; 14 itens permanecem não compartilhados até autorização.
 - [ ] PDF da versão leve em três vias (original, App no ar, versão nova), sete abas em celular/computador; identificar data e origem de cada captura.
