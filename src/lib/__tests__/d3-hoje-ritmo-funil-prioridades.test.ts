@@ -21,8 +21,10 @@ describe("os três cards vêm da função canônica, não de conta própria", ()
 
   it("o ritmo é de 6 semanas, como a prancha pede", () => {
     // A função aceita 7 por padrão; a prancha diz S1 a S6.
+    // 17/10/2026 — "6 semanas" passou do eyebrow para o próprio título do
+    // card ("Ritmo operacional · 6 semanas", mockup desk-01-hoje).
     expect(painel).toContain(", 6)");
-    expect(painel).toContain('eyebrow="6 semanas"');
+    expect(painel).toContain('titulo="Ritmo operacional · 6 semanas"');
   });
 
   it("cada card diz sua métrica e sua unidade", () => {

@@ -145,6 +145,16 @@ export const ORFAS_CLASSIFICADAS: OrfaClassificada[] = [
     destino: "Decisão: piloto vira tela própria ou é absorvido pelo Caso 360",
   })),
 
+  /* ---------- aguarda decisão (17/10/2026) ---------- */
+  {
+    modulo: "radar-marcos-juridicos.functions.ts",
+    fn: "radarMarcosJuridicosDoPainel",
+    veredicto: "AGUARDA_DECISAO" as const,
+    motivo:
+      "Ficou órfã pelo corte radical de 17/10/2026 em /painel (Hoje vira só a grade da Prancha V4, desk-01-hoje): o bloco 'Radar de marcos jurídicos' não tem equivalente nessa grade e parou de ser chamado. A função e a consulta continuam corretas, só sem tela dona.",
+    destino: "Decisão: ganha tela/aba própria (ex. dentro de Jurídico & Contrato) ou fica fora do Desk por ora",
+  },
+
   /* ---------- religar: lacuna real de operação ---------- */
 ];
 
