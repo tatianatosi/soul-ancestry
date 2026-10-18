@@ -53,8 +53,6 @@ export const Route = createFileRoute("/_authenticated/pesquisa-modulo/")({
 function Index() {
   const autoridade = useAutoridade();
   const { podeEscrever: podeEscreverVinculo } = useSaas();
-  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
-  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
   const podeEscrever = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
   const pendenciaVinculo = podeEscreverVinculo
     ? null
@@ -165,17 +163,6 @@ function Index() {
 
       {d && (
         <div className="space-y-4">
-          {/*
-            17/10/2026 — Dossiê de pesquisa (Tela 07), adaptado do mockup
-            aprovado pela Proprietária (15/10/2026). KPIs, cobertura de
-            fontes por tipo e produção mensal de evidências: dados reais do
-            org inteiro (mesmo recorte do restante deste painel), sem
-            tabela ou CHECK novo — ver `src/lib/pesquisa-dossie.ts`. O
-            mockup, na imagem aprovada, não traz barra dupla por "ramo
-            paterno/materno" (texto de uma versão anterior da
-            especificação) — traz cobertura por tipo real de fonte, que é
-            o que este bloco mostra.
-          */}
           <CaCard
             titulo="Dossiê de pesquisa"
             eyebrow="Pesquisa Genealógica · Centro de Inteligência"
@@ -201,14 +188,6 @@ function Index() {
               </div>
             }
           >
-            {/*
-              "Nova consulta" rola até o formulário "Abrir pesquisa para um
-              caso existente" já existente nesta tela (mesma mutation
-              `criarPesquisaParaCaso`) — não duplica lógica de criação.
-              "Filtros" filtra só a lista "Fontes e referências" abaixo por
-              status real (`research_sources.source_status`); ainda não
-              filtra os demais blocos do dossiê.
-            */}
             {mostrarFiltro ? (
               <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-navy/15 bg-cream/40 p-2" data-dossie-filtro>
                 <span className="text-[11px] font-medium uppercase tracking-wide text-navy/55">Status da fonte</span>
@@ -394,17 +373,6 @@ function Index() {
                 )}
               </div>
 
-              {/*
-                17/10/2026 — Miniatura familiar (mockup, bloco antes fora de
-                escopo na primeira entrega): o Dossiê é agregado da
-                organização inteira, sem um "caso ativo" único, então o
-                seletor abaixo escolhe só qual caso aparece aqui — mesmo
-                padrão de `radar-interno-integrado.tsx` em /qualidade.
-                Vínculos reais de `genealogical_relationships`, nomes de
-                `research_people`; sem geração/ascendência calculada, só o
-                papel real (`papel_na_linhagem` ou o tipo de vínculo do
-                CHECK) — ver `miniaturaFamiliarDoCaso`.
-              */}
               <div data-dossie-miniatura-familiar>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-widest text-navy/55">
                   Miniatura familiar
@@ -518,18 +486,6 @@ function Index() {
                     )}
                   </div>
                   <p className="text-xs text-navy/50">{String(p["research_objective"] ?? "objetivo não descrito")}</p>
-                  {/*
-                    04/10/2026 — Proprietária: "antes pesquisa tinha até lacunas,
-                    plano de ação, módulos históricos, eventos, linhagens...
-                    não sei onde". Medido: essas superfícies existem, mas
-                    `/pessoas-linhagens/$caseId` (11 abas, onde moram lacunas,
-                    módulos históricos, eventos, linhagens, árvore interna e
-                    por geração), `/achados/$caseId`, `/plano-acao/$caseId` e
-                    `/pesquisa-evidencias/$caseId` não têm rota índice e NÃO
-                    estão no menu do grupo Pesquisa — só eram alcançáveis de
-                    dentro do caso. Isto religa os caminhos daqui, sem tela,
-                    rota ou item de menu novo.
-                  */}
                   {p.caso?.id ? (
                     <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px]" data-pesquisa-atalhos>
                       <Link
@@ -561,73 +517,52 @@ function Index() {
             </div>
           </CaCard>
 
-          <CaCard variante="compacto" titulo="Abrir pesquisa para um caso existente">
-            <form
-              className="grid gap-3 md:grid-cols-2"
-              onSubmit={(e) => {
-                e.preventDefault();
-                mCriar.mutate();
-              }}
-            >
-              <label className="text-xs text-navy/70">
-                Caso
-                <select
-                  value={casoId}
-                  onChange={(e) => setCasoId(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-navy/15 bg-cream/40 px-2 py-1 text-sm text-navy"
-                >
-                  <option value="">Selecione…</option>
-                  {semFixtures(d.casosSemPesquisa).map((c: any) => (
-                    <option key={c["id"]} value={c["id"]}>
-                      {String(c["codigo"])} — {String(c["titulo"])}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="text-xs text-navy/70 md:col-span-2">
-                Objetivo da pesquisa
-                <textarea
-                  rows={2}
-                  value={objetivo}
-                  onChange={(e) => setObjetivo(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-navy/15 bg-cream/40 px-2 py-1 text-sm text-navy"
-                  placeholder="Ex.: reconstruir a linha paterna até o ancestral emigrado e localizar registros civis correspondentes."
-                />
-              </label>
-              <div className="md:col-span-2">
-                <button
-                  type="submit"
-                  disabled={!casoId || mCriar.isPending}
-                  className="rounded-lg bg-navy px-3 py-1.5 text-sm text-cream disabled:opacity-50"
-                >
-                  {mCriar.isPending ? "Criando…" : "Criar pesquisa"}
-                </button>
-              </div>
-            </form>
-          </CaCard>
-
-          {/*
-            DSA-3-CENTRO-INTELIGENCIA (21/09/2026): terceiro consumidor do
-            Desk a usar `CaCard`/`EstadoVazio` (após DSA-1 em qualidade.tsx e
-            DSA-2 em painel.tsx), mesmos tokens, sem hex novo. Troca só o
-            invólucro deste bloco (antes `Painel`); dado, mutation e demais
-            blocos da tela (Painel "Pesquisas em andamento" / "Abrir
-            pesquisa") permanecem intocados.
-          */}
-          <CaCard titulo="Inconsistências de pesquisa em aberto" eyebrow="Pesquisa Genealógica · Centro de Inteligência">
-            {d.inconsistencias.length === 0 ? (
-              <EstadoVazio mensagem="Nenhuma inconsistência aberta." />
-            ) : (
-              <ul className="space-y-1 text-sm text-navy/70">
-                {d.inconsistencias.map((i: any) => (
-                  <li key={i["id"]}>
-                    <Selo texto={String(i["severidade"])} tom={i["severidade"] === "critica" ? "erro" : "alerta"} />{" "}
-                    {String(i["titulo"])}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CaCard>
+          <div id="abrir-pesquisa-caso" className="scroll-mt-24">
+            <CaCard variante="compacto" titulo="Abrir pesquisa para um caso existente">
+              <form
+                className="grid gap-3 md:grid-cols-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  mCriar.mutate();
+                }}
+              >
+                <label className="text-xs text-navy/70">
+                  Caso
+                  <select
+                    value={casoId}
+                    onChange={(e) => setCasoId(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-navy/15 bg-cream/40 px-2 py-1 text-sm text-navy"
+                  >
+                    <option value="">Selecione…</option>
+                    {semFixtures(d.casosSemPesquisa).map((c: any) => (
+                      <option key={c["id"]} value={c["id"]}>
+                        {String(c["codigo"])} — {String(c["titulo"])}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-xs text-navy/70 md:col-span-2">
+                  Objetivo da pesquisa
+                  <textarea
+                    rows={2}
+                    value={objetivo}
+                    onChange={(e) => setObjetivo(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-navy/15 bg-cream/40 px-2 py-1 text-sm text-navy"
+                    placeholder="Ex.: Localização de certidão de nascimento de ascendente austríaco em Graz"
+                  />
+                </label>
+                <div>
+                  <button
+                    type="submit"
+                    disabled={!casoId || mCriar.isPending}
+                    className="rounded-lg bg-navy px-4 py-2 text-xs font-semibold text-cream hover:bg-navy/90 disabled:opacity-40"
+                  >
+                    {mCriar.isPending ? "Criando…" : "Abrir pesquisa"}
+                  </button>
+                </div>
+              </form>
+            </CaCard>
+          </div>
         </div>
       )}
     </SaasShell>
