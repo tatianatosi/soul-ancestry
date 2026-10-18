@@ -148,15 +148,24 @@ describe("Navegação do Desk — 7 grupos do V4 (03/10/2026)", () => {
     }
   });
 
-  it("V4: CA-04 e o dicionário saem do menu como alimento, sem sumir", () => {
+  it("V4: o dicionário sai do menu como alimento, sem sumir", () => {
     const todas = new Set(rotasDoMenu());
-    for (const r of ["/crm-mestre", "/governanca/dicionario-calls-crm"]) {
-      expect(todas.has(r), r).toBe(false);
-      expect(CLASSIFICACAO_SANEAMENTO_V4[r], r).toBe("ALIMENTO_CONTEXTUAL");
-    }
+    const r = "/governanca/dicionario-calls-crm";
+    expect(todas.has(r), r).toBe(false);
+    expect(CLASSIFICACAO_SANEAMENTO_V4[r], r).toBe("ALIMENTO_CONTEXTUAL");
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
     expect(comercial.sub.filter((s) => "to" in s).map((s) => s.to)).toContain("/calls");
     expect(rotasDoMenuConta()).not.toContain("/crm-mestre");
+  });
+
+  // 18/10/2026: SETORES_DESK_V5 (o que a lateral renderiza hoje) deu a
+  // /crm-mestre aba própria ("Roteiro Discovery" em Comercial) — graduou de
+  // alimento contextual para item de menu real. Alinhamento de testes
+  // autorizado pela Proprietária; não altera a classificação em
+  // CLASSIFICACAO_SANEAMENTO_V4, que fica como metadado histórico.
+  it("V4: /crm-mestre graduou de alimento contextual para aba própria em Comercial", () => {
+    expect(rotasDoMenu()).toContain("/crm-mestre");
+    expect(grupoDonoDaRota("/crm-mestre")).toBe("Comercial");
   });
 
   it("Painel de Calls permanece na face de Comercial", () => {
@@ -178,11 +187,19 @@ describe("Navegação do Desk — 7 grupos do V4 (03/10/2026)", () => {
     expect(grupoDonoDaRota("/leads")).toBe("Comercial");
     expect(grupoDonoDaRota("/casos")).toBe("Casos");
     expect(grupoDonoDaRota("/evidencias")).toBe("Pesquisa");
-    // A prancha V4 põe condições comerciais e financeiro do caso em Comercial.
-    expect(grupoDonoDaRota("/contratos")).toBe("Comercial");
-    expect(grupoDonoDaRota("/financeiro")).toBe("Comercial");
-    expect(grupoDonoDaRota("/catalogo")).toBe("Configuração");
-    expect(grupoDonoDaRota("/privacidade")).toBe("Configuração");
+    // 18/10/2026: SETORES_DESK_V5 (lateral real, 8 setores) deu a contratos e
+    // financeiro um setor próprio, "Formalização & Financeiro" — não mais
+    // fundidos em Comercial. Alinhamento de testes autorizado pela Proprietária.
+    expect(grupoDonoDaRota("/contratos")).toBe("Formalização & Financeiro");
+    expect(grupoDonoDaRota("/financeiro")).toBe("Formalização & Financeiro");
+    // 18/10/2026: SETORES_DESK_V5 fundiu Configuração dentro do setor
+    // "governanca", cujo rótulo é "Governança & Configuração" — não há mais
+    // um grupo "Configuração" isolado. Alinhamento autorizado pela Proprietária.
+    expect(grupoDonoDaRota("/catalogo")).toBe("Governança & Configuração");
+    // /privacidade perdeu a aba própria no setor "governanca" (só está no
+    // prefixo) — mesmo padrão de /relatorios: alimento contextual, não dono de grupo.
+    expect(grupoDonoDaRota("/privacidade") ?? undefined).toBeUndefined();
+    expect(CLASSIFICACAO_SANEAMENTO_V4["/privacidade"]).toBe("ALIMENTO_CONTEXTUAL");
     // Legado de SKU/conciliação saiu do menu no V4 — sem dono de grupo, com classificação.
     for (const r of ["/homologacao-skus", "/conciliacao-catalogo", "/escopo-origem"]) {
       expect(grupoDonoDaRota(r) ?? undefined, r).toBeUndefined();

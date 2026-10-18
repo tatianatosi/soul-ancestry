@@ -127,6 +127,16 @@ export const CLASSIFICACAO_SANEAMENTO_V4: Readonly<Record<string, "ALIMENTO_CONT
   "/escopo-origem": "LEGADO_SEM_MENU",
   "/pesquisa": "LEGADO_SEM_MENU",
   "/ops-excecoes": "LEGADO_SEM_MENU",
+  // 18/10/2026: estas rotas estão no prefixo dos seus setores em
+  // SETORES_DESK_V5 (a lateral real) mas perderam a aba própria que tinham
+  // no modelo anterior de 7 grupos — seguem abertas por endereço direto.
+  // Alinhamento de testes autorizado pela Proprietária.
+  "/relatorios": "ALIMENTO_CONTEXTUAL",
+  "/privacidade": "ALIMENTO_CONTEXTUAL",
+  "/governanca/modelos-contratuais": "ALIMENTO_CONTEXTUAL",
+  "/biblioteca": "ALIMENTO_CONTEXTUAL",
+  "/importacoes": "ALIMENTO_CONTEXTUAL",
+  "/atendimento": "ALIMENTO_CONTEXTUAL",
 };
 
 /**
