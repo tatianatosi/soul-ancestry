@@ -293,10 +293,10 @@
 - [x] Mapa de rotas V4 + canos da jornada 8 fases (18/10): dois diagramas .mmd em Arquivos e na coleção
 
 ## 18/10/2026 — Jornada viva da Ana (novo pedido)
-- [ ] Jornada completa somente leitura: Ana como lead → Discovery → proposta → assinatura do contrato, com todos os cards e mudanças sugeridas aplicados em todas as abas do Desk.
+- [ ] Jornada completa somente leitura: Ana como lead → Discovery → proposta → assinatura do contrato, com cortes de ficha L03/L04/L08 em execução no rascunho isolado “Ana — jornada viva e fichas V4” (drft_01m58gggqcet08ecsv365d8p0v), autorizado em 18/10 às 22:00 UTC; sem integrar/publicar.
 - [ ] Comparar cada etapa com a prancha V4 aprovada (mockup).
 - [ ] Somente leitura: nenhum writer, cobrança, assinatura ou publicação real.
-- Bloqueio: executar após concluir L02 (capturas antes/depois 375/1280).
+- L02 entregue. Leitura atual confirmou lead vinculado ao caso, proposta v1 aprovada e contrato vigente em revisão humana, sem assinatura. Preparador excluído da auditoria por gravar na abertura; alterações de lógica L05/L06 e demais cortes não incluídas neste corte visual.
 
 ## 18/10/2026 — Mockup V4 do dia a dia (11 telas) — prioridade antes da jornada viva
 - [x] Mockup visual (fora do produto) com casca V4 nas 11 telas principais, cortes L00–L12 e sugestões das rodadas 1–4 aplicados; números só de leituras reais; selo MOCKUP.
