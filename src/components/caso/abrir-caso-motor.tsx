@@ -47,7 +47,7 @@ export function AbrirCasoMotor() {
   const clientes = qClientes.data ?? [];
 
   return (
-    <section className="rounded-xl border border-gold/40 bg-gold/10 p-4">
+    <section id="abrir-caso-operacional" className="rounded-xl border border-gold/40 bg-gold/10 p-4">
       <h2 className="font-serif text-lg text-navy">Abrir caso operacional</h2>
       <p className="mt-1 text-xs text-navy/60">
         Cliente, serviço e título são obrigatórios. O caso nasce em rascunho, com primeira tarefa e
