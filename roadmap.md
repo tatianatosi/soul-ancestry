@@ -3,7 +3,7 @@
 ## 19/10 — Atualização da recomposição densa do App
 - [x] Restaurar Documentos e reconciliar os ajustes exclusivos de Home, Árvore, Conta e aparência local com a versão principal.
 - [x] Preservar leitores, permissões, sete abas, grade móvel atual e botão institucional; sem edição do Desk ou dados.
-- [ ] Validar testes seletivos e capturas autenticadas em 375/1280.
+- [x] Validar 43 testes seletivos e sete abas autenticadas em 375/1280: sem overflow, zero erros de página, régua preservada após F5; compilação automática OK.
 - [ ] Aprovação da Proprietária; sem aceitar ou publicar.
 
 ## Caso 360 V4 — rascunho isolado (13/10, 13:25 UTC)
