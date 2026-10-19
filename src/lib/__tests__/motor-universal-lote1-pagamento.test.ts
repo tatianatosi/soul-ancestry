@@ -48,8 +48,11 @@ describe("MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA — servidor verifica cada escrita
 });
 
 describe("MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA — interface exige confirmação humana explícita", () => {
-  it("'Conciliar' não é mais um botão cru — está dentro de AcaoOperacional com acaoExterna", () => {
-    const idx = rota.indexOf('rotulo="Conciliar"');
+  it("'Confirmar pagamento' não é mais um botão cru — está dentro de AcaoOperacional com acaoExterna", () => {
+    // Frente 4 (19/10/2026): rótulo passou de "Conciliar" para "Confirmar
+    // pagamento" (pedido literal da ordem de engenharia), preservando a
+    // mesma intenção do teste — ação real envolta em AcaoOperacional.
+    const idx = rota.indexOf('rotulo="Confirmar pagamento"');
     expect(idx).toBeGreaterThan(-1);
     const trecho = rota.slice(Math.max(0, idx - 50), idx + 700);
     expect(trecho).toContain("<AcaoOperacional");
@@ -58,7 +61,7 @@ describe("MOTOR-UNIVERSAL-ACAO-HISTORICO-FILA — interface exige confirmação 
   });
 
   it("bloqueia confirmação sem os três campos preenchidos (data, valor, referência)", () => {
-    const idx = rota.indexOf('rotulo="Conciliar"');
+    const idx = rota.indexOf('rotulo="Confirmar pagamento"');
     const trecho = rota.slice(idx, idx + 500);
     expect(trecho).toContain("validacaoFormulario={");
     expect(trecho).toContain("!conc.data");

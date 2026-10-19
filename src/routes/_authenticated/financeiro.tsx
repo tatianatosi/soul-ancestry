@@ -96,7 +96,7 @@ function FinanceiroPage() {
   useAvisoEdicaoNaoSalva(form !== null && Object.values(form).some((x) => String(x ?? "").trim() !== ""));
   const [erro, setErro] = useState<string | null>(null);
   const [ajuste, setAjuste] = useState({ valor: "" });
-  const [conc, setConc] = useState({ data: "", valor: "", referencia: "" });
+  const [conc, setConc] = useState({ data: "", valor: "", referencia: "", metodo: "" });
   const [realidadeAberta, setRealidadeAberta] = useState(false);
   const [incluirDemos, setIncluirDemos] = useState(false);
 
@@ -146,11 +146,11 @@ function FinanceiroPage() {
     onError: (e: Error) => setErro(e.message),
   });
   const mConciliar = useMutation({
-    mutationFn: (v: { id: string; pago_em: string; valor: number; referencia_externa: string; motivo: string }) =>
+    mutationFn: (v: { id: string; pago_em: string; valor: number; referencia_externa: string; metodo?: string; motivo: string }) =>
       conciliar({ data: v }),
     onSuccess: () => {
       setErro(null);
-      setConc({ data: "", valor: "", referencia: "" });
+      setConc({ data: "", valor: "", referencia: "", metodo: "" });
       setDetalhe(null);
       recarregar();
     },
@@ -1184,10 +1184,10 @@ function FinanceiroPage() {
           ) : (
             <Painel titulo="Conciliar pagamento">
               <p className="mb-3 text-xs text-navy/60">
-                Conciliação exige data, valor e referência. Valor diferente da fatura marca divergente e derruba o
-                check de pagamento confirmado do caso.
+                Conciliação exige data, valor e o link/referência do pagamento no Asaas. Valor diferente da fatura
+                marca divergente e derruba o check de pagamento confirmado do caso.
               </p>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <Campo rotulo="Data">
                   <input
                     type="date"
@@ -1204,24 +1204,33 @@ function FinanceiroPage() {
                     onChange={(e) => setConc({ ...conc, valor: e.target.value })}
                   />
                 </Campo>
-                <Campo rotulo="Referência externa">
+                <Campo rotulo="Link de pagamento (Asaas) / referência externa">
                   <input
                     className={inputCls}
+                    placeholder="Ex.: https://www.asaas.com/i/XXXXXXXXXXXX"
                     value={conc.referencia}
                     onChange={(e) => setConc({ ...conc, referencia: e.target.value })}
                   />
                 </Campo>
+                <Campo rotulo="Forma de pagamento (opcional)">
+                  <input
+                    className={inputCls}
+                    placeholder="Ex.: pix, boleto, cartão"
+                    value={conc.metodo}
+                    onChange={(e) => setConc({ ...conc, metodo: e.target.value })}
+                  />
+                </Campo>
               </div>
               <AcaoOperacional
-                rotulo="Conciliar"
+                rotulo="Confirmar pagamento"
                 className="mt-3 rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
                 acaoExterna="conciliar_pagamento"
                 validacaoFormulario={
                   !conc.data || !conc.valor || !conc.referencia
-                    ? "Preencha data, valor e referência antes de confirmar a conciliação."
+                    ? "Preencha data, valor e o link/referência do pagamento no Asaas antes de confirmar."
                     : null
                 }
-                efeito="Marca o pagamento como confirmado e, quando a fatura estiver vinculada a um caso, libera o campo que o gate de acesso ao Portal do Cliente verifica. Não envia mensagem nem publica conteúdo."
+                efeito="Grava a baixa manual do pagamento (status, data e, quando informada, a forma de pagamento) e, quando a fatura estiver vinculada a um caso, libera o campo que o gate de acesso ao Portal do Cliente verifica. Não envia mensagem nem publica conteúdo."
                 onConfirmar={(motivo) => {
                   if (mConciliar.isPending) return;
                   mConciliar.mutate({
@@ -1229,6 +1238,7 @@ function FinanceiroPage() {
                     pago_em: conc.data,
                     valor: Number(conc.valor),
                     referencia_externa: conc.referencia,
+                    metodo: conc.metodo || undefined,
                     motivo,
                   });
                 }}
