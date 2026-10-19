@@ -563,6 +563,21 @@ function Index() {
               </form>
             </CaCard>
           </div>
+
+          <CaCard titulo="Inconsistências de pesquisa em aberto" eyebrow="Pesquisa Genealógica · Centro de Inteligência">
+            {d.inconsistencias.length === 0 ? (
+              <EstadoVazio mensagem="Nenhuma inconsistência aberta." />
+            ) : (
+              <ul className="space-y-1 text-sm text-navy/70">
+                {d.inconsistencias.map((i: any) => (
+                  <li key={i["id"]}>
+                    <Selo texto={String(i["severidade"])} tom={i["severidade"] === "critica" ? "erro" : "alerta"} />{" "}
+                    {String(i["titulo"])}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CaCard>
         </div>
       )}
     </SaasShell>
