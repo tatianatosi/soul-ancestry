@@ -119,3 +119,53 @@
   --ca-appbar-height: 56px;      /* barra móvel do App Cliente (7 abas) */
   --ca-touch-target: 44px;       /* alvo mínimo de toque */
 }
+
+/* =====================================================================
+   NATUREZA DOS CARTÕES — SÓ DESK (rodadas 3 e 4, 18/10/2026)
+   Barra lateral de cor por natureza + selo com texto. Escopo:
+   [data-desk-shell]; o App Cliente (/portal) não herda nada daqui.
+   ===================================================================== */
+:root {
+  --ca-natureza-acao: var(--ca-gold);         /* ação do dia */
+  --ca-natureza-pessoas: #6b7f5e;             /* sálvia — pessoas/concluído */
+  --ca-natureza-pesquisa: #3e5c76;            /* azul — pesquisa/jurídico */
+  --ca-natureza-financeiro: #b07d2b;          /* âmbar — financeiro/aguardando */
+  --ca-natureza-atencao: var(--ca-terracotta);/* atenção */
+  --ca-natureza-neutro: #8a8478;
+}
+
+[data-desk-shell] .ca-cartao-natureza {
+  --_cor: var(--ca-natureza-acao);
+  position: relative;
+  border: 1px solid var(--ca-border);
+  border-radius: var(--ca-radius-lg);
+  background: var(--ca-surface-raised);
+  padding: var(--ca-space-4) var(--ca-space-4) var(--ca-space-4) calc(var(--ca-space-4) + 4px);
+  box-shadow: var(--ca-shadow-sm);
+  min-width: 0;
+}
+[data-desk-shell] .ca-cartao-natureza::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  border-radius: var(--ca-radius-lg) 0 0 var(--ca-radius-lg);
+  background: var(--_cor);
+}
+[data-desk-shell] .ca-selo-natureza {
+  --_cor: var(--ca-natureza-neutro);
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--ca-radius-pill);
+  padding: 1px 8px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--_cor) 85%, var(--ca-ink));
+  background: color-mix(in srgb, var(--_cor) 14%, var(--ca-white));
+}
+[data-desk-shell] [data-natureza="acao"] { --_cor: var(--ca-natureza-acao); }
+[data-desk-shell] [data-natureza="pessoas"] { --_cor: var(--ca-natureza-pessoas); }
+[data-desk-shell] [data-natureza="pesquisa"] { --_cor: var(--ca-natureza-pesquisa); }
+[data-desk-shell] [data-natureza="financeiro"] { --_cor: var(--ca-natureza-financeiro); }
+[data-desk-shell] [data-natureza="atencao"] { --_cor: var(--ca-natureza-atencao); }
+[data-desk-shell] [data-natureza="neutro"] { --_cor: var(--ca-natureza-neutro); }

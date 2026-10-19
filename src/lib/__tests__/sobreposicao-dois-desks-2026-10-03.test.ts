@@ -47,7 +47,7 @@ describe("o tamanho da sobreposição, medido e congelado", () => {
   });
 
   it("o Desk do menu continua com 6 grupos — o paralelo nunca virou o 7º", () => {
-    expect(GRUPOS_DESK.length).toBe(7);
+    expect(GRUPOS_DESK.length).toBe(8); // 18/10/2026: 7 V4 + Financeiro
     const rotasDoMenu = JSON.stringify(GRUPOS_DESK);
     expect(rotasDoMenu).not.toMatch(/"\/golive/);
   });

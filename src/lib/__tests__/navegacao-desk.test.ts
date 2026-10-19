@@ -30,7 +30,7 @@ describe("Navegação do Desk — 7 grupos do V4 (03/10/2026)", () => {
   });
 
   it("expõe exatamente os 7 grupos do V4", () => {
-    expect(GRUPOS_DESK).toHaveLength(7);
+    expect(GRUPOS_DESK).toHaveLength(8); // 18/10/2026: 7 grupos V4 + Financeiro
     expect(GRUPOS_DESK.map((g) => g.label)).toEqual([...GRUPOS_OPERACIONAIS_DESK]);
     expect(GRUPOS_DESK.map((g) => g.id)).toEqual([
       "hoje",
@@ -39,6 +39,7 @@ describe("Navegação do Desk — 7 grupos do V4 (03/10/2026)", () => {
       "pessoas",
       "pesquisa",
       "marketing",
+      "financeiro",
       "governanca",
     ]);
   });
@@ -86,10 +87,11 @@ describe("Navegação do Desk — 7 grupos do V4 (03/10/2026)", () => {
     expect(rotas).not.toContain("/crm-mestre");
   });
 
-  it("V4: trilha jurídica vira alimento do caso; qualidade e auditoria vão para Configuração", () => {
+  it("18/10/2026: Validação jurídica mora em Configuração, ao lado de Radar e matrizes", () => {
     const casos = GRUPOS_DESK.find((g) => g.id === "casos")!;
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
-    expect(CLASSIFICACAO_SANEAMENTO_V4["/matriz-juridica"]).toBe("ALIMENTO_CONTEXTUAL");
+    expect(gov.sub.some((s) => "to" in s && s.to === "/matriz-juridica")).toBe(true);
+    expect(GRUPOS_DESK.find((g) => g.id === "comercial")!.sub.some((s) => "to" in s && s.to === "/matriz-juridica")).toBe(false);
     expect(casos.sub.some((s) => "to" in s && s.to === "/matriz-juridica")).toBe(false);
     expect(gov.sub.some((s) => "to" in s && s.to === "/qualidade")).toBe(true);
   });
@@ -168,7 +170,7 @@ describe("Navegação do Desk — 7 grupos do V4 (03/10/2026)", () => {
 
   it("declara as três camadas sem criar aba nova", () => {
     expect(CAMADAS_DESK.map((c) => c.id)).toEqual(["abas", "mesa", "kpis"]);
-    expect(GRUPOS_DESK).toHaveLength(7);
+    expect(GRUPOS_DESK).toHaveLength(8); // 18/10/2026: 7 grupos V4 + Financeiro
     expect(CAMADAS_DESK.find((c) => c.id === "mesa")?.rota).toBe("/calls");
     expect(CAMADAS_DESK.find((c) => c.id === "kpis")?.rota).toBe("/painel");
   });
@@ -180,7 +182,7 @@ describe("Navegação do Desk — 7 grupos do V4 (03/10/2026)", () => {
     expect(grupoDonoDaRota("/evidencias")).toBe("Pesquisa");
     // A prancha V4 põe condições comerciais e financeiro do caso em Comercial.
     expect(grupoDonoDaRota("/contratos")).toBe("Comercial");
-    expect(grupoDonoDaRota("/financeiro")).toBe("Comercial");
+    expect(grupoDonoDaRota("/financeiro")).toBe("Financeiro");
     expect(grupoDonoDaRota("/catalogo")).toBe("Configuração");
     expect(grupoDonoDaRota("/privacidade")).toBe("Configuração");
     // Legado de SKU/conciliação saiu do menu no V4 — sem dono de grupo, com classificação.

@@ -62,6 +62,8 @@ import {
   type SinalCor,
 } from "@/lib/painel-calls";
 import { VarreduraWhatsApp } from "@/components/crm/varredura-whatsapp";
+import { BriefPreCall, ReguaJornadaLead } from "@/components/crm/regua-jornada-lead";
+import { briefPreCall, reguaJornadaLead } from "@/lib/regua-jornada-lead";
 import { CrmKanban } from "@/components/clube-ancestral-kit";
 import { CAMPO_LEAD_POR_VARREDURA, codigoLeadDoAchado, type Achado } from "@/lib/varredura-whatsapp";
 import { filaCrmVivo, statusPedeMotivo } from "@/lib/crm-vivo";
@@ -655,6 +657,9 @@ export function PainelCalls({ leadIdInicial, momento }: { leadIdInicial?: string
             <p className="mt-1">
               Uso interno de triagem. Não apresentar como parecer, garantia de direito, prazo ou instrução ao cliente.
             </p>
+            <Link to="/matriz-juridica" className="mt-1 inline-block font-medium text-navy underline" data-atalho-validacao-juridica>
+              Ver marcos e regras na Validação jurídica
+            </Link>
           </div>
         ) : null}
 
@@ -716,6 +721,11 @@ export function PainelCalls({ leadIdInicial, momento }: { leadIdInicial?: string
         prospect. A varredura fica ANTES do formulário porque é dela que sai o
         material para preenchê-lo.
       */}
+      {lead ? (
+        <ReguaJornadaLead
+          etapas={reguaJornadaLead(lead as Parameters<typeof reguaJornadaLead>[0], registroDiscovery.sugestoes)}
+        />
+      ) : null}
       <div hidden={Boolean(momento && momento !== "antes")}>
       <VarreduraWhatsApp
         onAchadosMudaram={(lista, fonte) => {
@@ -745,6 +755,16 @@ export function PainelCalls({ leadIdInicial, momento }: { leadIdInicial?: string
           mDecidir.mutate({ achado: a, campo: dest.campoLead, valor: codigoLeadDoAchado(a) ?? a.valor, decisao: "rejeitada", fonte });
         }}
       />
+
+      {lead ? (
+        <BriefPreCall
+          linhas={briefPreCall(
+            lead as unknown as Record<string, unknown>,
+            achados.filter((a) => !decididosVarredura.has(`${a.campo}::${a.valor}`)),
+            (c, v) => rotulo(c, v),
+          )}
+        />
+      ) : null}
 
       {isError ? (
         <p

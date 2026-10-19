@@ -52,9 +52,14 @@ export type GrupoDesk = {
     | "casos"
     | "pesquisa"
     | "contratos"
-    | "governanca";
+    | "governanca"
+    | "pessoas"
+    | "marketing"
+    | "financeiro";
 
   agrupador?: boolean;
+  /** Prefixos de rota que acendem o grupo (subrotas e telas contextuais). */
+  prefixos?: readonly string[];
   sub: readonly ItemNav[];
 };
 
@@ -92,7 +97,6 @@ export const ROTAS_FORA_DO_MENU = [
   "/governanca/dicionario-calls-crm",
   "/crm-mestre",
   "/etiquetas",
-  "/matriz-juridica",
   "/contrato-parametros",
   "/governanca/contrato-base",
   "/governanca/modelo-individual",
@@ -115,7 +119,6 @@ export const CLASSIFICACAO_SANEAMENTO_V4: Readonly<Record<string, "ALIMENTO_CONT
   "/governanca/dicionario-calls-crm": "ALIMENTO_CONTEXTUAL",
   "/crm-mestre": "ALIMENTO_CONTEXTUAL",
   "/etiquetas": "ALIMENTO_CONTEXTUAL",
-  "/matriz-juridica": "ALIMENTO_CONTEXTUAL",
   "/contrato-parametros": "ALIMENTO_CONTEXTUAL",
   "/governanca/contrato-base": "ALIMENTO_CONTEXTUAL",
   "/governanca/modelo-individual": "ALIMENTO_CONTEXTUAL",
@@ -153,15 +156,24 @@ export const GRUPOS_OPERACIONAIS_DESK = [
   "Pessoas & Famílias",
   "Pesquisa",
   "Marketing",
+  "Financeiro",
   "Configuração",
 ] as const;
 
+/**
+ * 18/10/2026 — decisão da Proprietária: primeiro nível = 7 grupos da V4 +
+ * Financeiro como grupo próprio (8). O setor "Formalização & Financeiro" foi
+ * desfeito: Contratos → Comercial; Ordens de serviço → Casos; Validação
+ * jurídica → Configuração (Radar e matrizes), com atalho na Mesa de Discovery;
+ * Exceções operacionais saem do menu e viram alerta no Hoje. Nenhuma rota
+ * nova, nenhuma removida.
+ */
 export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
     id: "hoje",
     to: "/painel",
     label: "Hoje",
-    descricao: "Decisões do dia, cadências vencidas, casos sem próxima ação, microentregas, tarefas, funil e alertas com origem.",
+    descricao: "Decisões do dia, alertas com origem, próximas ações, tarefas e exceções abertas.",
     icone: "hoje",
     sub: [
       { to: "/painel", label: "Visão Geral" },
@@ -170,28 +182,29 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/proximas-acoes", label: "Próximas ações" },
       { to: "/tarefas", label: "Tarefas" },
     ],
+    prefixos: ["/painel", "/alertas", "/proximas-acoes", "/tarefas"],
   },
   {
     id: "comercial",
     to: "/leads",
     label: "Comercial",
-    descricao: "Leads e oportunidades, Discovery, propostas, condições comerciais, financeiro do caso e origem.",
+    descricao: "Leads e oportunidades, Discovery, propostas, contratos e condições comerciais e origem.",
     icone: "comercial",
     agrupador: true,
     sub: [
       { to: "/leads", label: "Leads e oportunidades" },
       { to: "/calls", label: "Discovery" },
       { to: "/propostas", label: "Propostas" },
-      { to: "/contratos", label: "Condições comerciais" },
-      { to: "/financeiro", label: "Financeiro de casos" },
+      { to: "/contratos", label: "Contratos e condições" },
       { to: "/conversao", label: "Conversão e origem" },
     ],
+    prefixos: ["/leads", "/calls", "/propostas", "/contratos", "/contrato-parametros", "/conversao", "/crm-mestre"],
   },
   {
     id: "casos",
     to: "/casos",
     label: "Casos",
-    descricao: "Todos os casos, Caso 360, onboarding, ordens de serviço e entregas com validação.",
+    descricao: "Todos os casos, Caso 360, onboarding, ordens de serviço, entregas com validação e operação.",
     icone: "casos",
     agrupador: true,
     sub: [
@@ -202,13 +215,14 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/microentregas", label: "Entregas e validações" },
       { to: "/ops", label: "Operação" },
     ],
+    prefixos: ["/casos", "/ordens-servico", "/microentregas", "/ops", "/onboarding"],
   },
   {
     id: "pessoas",
     to: "/clientes",
     label: "Pessoas & Famílias",
-    descricao: "Pessoa 360, núcleos familiares, participantes, relações e linhagens e dossiês familiares.",
-    icone: "casos",
+    descricao: "Pessoa 360, núcleos familiares, participantes, acessos ao App Cliente e visão administrativa do App.",
+    icone: "pessoas",
     agrupador: true,
     sub: [
       { to: "/clientes", label: "Pessoa 360" },
@@ -217,6 +231,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/acessos-portal", label: "Acessos ao App Cliente" },
       { to: "/app-cliente-como-pessoa", label: "Visão administrativa do App" },
     ],
+    prefixos: ["/clientes", "/pessoas", "/nucleos", "/nucleos-duplicidades", "/pessoas-linhagens", "/acessos-portal", "/app-cliente-como-pessoa"],
   },
   {
     id: "pesquisa",
@@ -235,25 +250,36 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/relatorios", label: "Relatórios" },
       { to: "/pesquisa-modulo", hash: "assistente-ia", label: "Assistente de pesquisa" },
     ],
+    prefixos: ["/pesquisa", "/evidencias", "/atendimento", "/biblioteca", "/fontes-genealogicas", "/relatorios", "/studio-devolutivas", "/achados", "/plano-acao"],
   },
   {
     id: "marketing",
     to: "/marketing",
     label: "Marketing",
-    descricao: "Dashboard, campanhas, origem de leads, conversão do funil, biblioteca de mensagens e métricas.",
-    icone: "comercial",
+    descricao: "Dashboard, campanhas, origem de leads, biblioteca de mensagens e métricas de campanha.",
+    icone: "marketing",
     agrupador: true,
     sub: [
       { to: "/marketing", label: "Dashboard" },
       { to: "/biblioteca-mensagens", label: "Biblioteca de mensagens" },
       { to: "/metricas", label: "Métricas de campanha" },
     ],
+    prefixos: ["/marketing", "/biblioteca-mensagens", "/metricas"],
+  },
+  {
+    id: "financeiro",
+    to: "/financeiro",
+    label: "Financeiro",
+    descricao: "Faturas e condições do caso: previsão separada de saldo e pagamento confirmado.",
+    icone: "financeiro",
+    sub: [{ to: "/financeiro", label: "Financeiro de casos" }],
+    prefixos: ["/financeiro"],
   },
   {
     id: "governanca",
     to: "/configuracoes",
     label: "Configuração",
-    descricao: "Perfil institucional, catálogo e preços, equipe e acessos, integrações, modelos e templates, dados históricos e radar.",
+    descricao: "Perfil institucional, catálogo e preços, equipe, integrações, modelos, decisões, radar e matrizes jurídicas.",
     icone: "governanca",
     agrupador: true,
     sub: [
@@ -265,12 +291,18 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/governanca/decisoes", label: "Decisões" },
       { to: "/importacoes", label: "Dados históricos" },
       { to: "/qualidade", label: "Radar e matrizes" },
+      { to: "/matriz-juridica", label: "Validação jurídica" },
       { to: "/privacidade", label: "Privacidade e consentimento" },
+    ],
+    prefixos: [
+      "/configuracoes", "/catalogo", "/equipe", "/integracoes", "/governanca", "/importacoes", "/qualidade",
+      "/matriz-juridica", "/privacidade", "/etiquetas", "/homologacao-skus", "/conciliacao-catalogo",
+      "/divergencias-catalogo", "/escopo-origem", "/historico", "/ops-excecoes",
     ],
   },
 ] as const;
 
-export type AbaSetor = { label: string; to: string; adminOnly?: boolean };
+export type AbaSetor = { label: string; to: string; hash?: string; adminOnly?: boolean };
 export type SetorDesk = {
   id: string;
   label: string;
@@ -280,141 +312,26 @@ export type SetorDesk = {
   prefixos: readonly string[];
 };
 
-export const SETORES_DESK_V5: readonly SetorDesk[] = [
-  {
-    id: "hoje",
-    label: "Hoje",
-    to: "/painel",
-    icone: "hoje",
-    abas: [
-      { label: "Visão do dia", to: "/painel" },
-      { label: "Alertas", to: "/alertas" },
-      { label: "Métricas", to: "/metricas" },
-    ],
-    prefixos: ["/painel", "/alertas", "/metricas"],
-  },
-  {
-    id: "comercial",
-    label: "Comercial",
-    to: "/leads",
-    icone: "comercial",
-    abas: [
-      { label: "CRM Vivo", to: "/leads" },
-      { label: "Calls", to: "/calls" },
-      { label: "Próximas ações", to: "/proximas-acoes" },
-      { label: "Propostas", to: "/propostas" },
-      { label: "Funil & Conversão", to: "/conversao" },
-      { label: "Roteiro Discovery", to: "/crm-mestre" },
-    ],
-    prefixos: ["/leads", "/calls", "/propostas", "/proximas-acoes", "/conversao", "/crm-mestre"],
-  },
-  {
-    id: "casos",
-    label: "Casos",
-    to: "/casos",
-    icone: "casos",
-    abas: [
-      { label: "Caso 360", to: "/casos" },
-      { label: "Operações (Kanban)", to: "/ops" },
-      { label: "Tarefas (Lista)", to: "/tarefas" },
-    ],
-    prefixos: ["/casos", "/ops", "/tarefas", "/onboarding", "/atendimento", "/app-cliente-como-pessoa"],
-  },
-  {
-    id: "pessoas",
-    label: "Pessoas & Famílias",
-    to: "/clientes",
-    icone: "casos",
-    abas: [
-      { label: "Pessoa 360", to: "/clientes" },
-      { label: "Núcleos familiares", to: "/nucleos" },
-      { label: "Duplicidades", to: "/nucleos-duplicidades" },
-    ],
-    prefixos: ["/clientes", "/pessoas", "/nucleos", "/nucleos-duplicidades", "/pessoas-linhagens"],
-  },
-  {
-    id: "pesquisa",
-    label: "Pesquisa",
-    to: "/pesquisa-modulo",
-    icone: "pesquisa",
-    abas: [
-      { label: "Centro de Inteligência", to: "/pesquisa-modulo" },
-      { label: "Radar", to: "/qualidade" },
-      { label: "Microentregas", to: "/microentregas" },
-      { label: "Fontes", to: "/fontes-genealogicas" },
-      { label: "Evidências", to: "/evidencias" },
-      { label: "Devolutivas", to: "/studio-devolutivas" },
-    ],
-    prefixos: [
-      "/pesquisa",
-      "/qualidade",
-      "/microentregas",
-      "/fontes-genealogicas",
-      "/evidencias",
-      "/studio-devolutivas",
-      "/achados",
-      "/biblioteca",
-      "/plano-acao",
-      "/relatorios",
-    ],
-  },
-  {
-    id: "marketing",
-    label: "Marketing",
-    to: "/marketing",
-    icone: "comercial",
-    abas: [
-      { label: "Aquisição", to: "/marketing" },
-      { label: "Biblioteca de mensagens", to: "/biblioteca-mensagens" },
-    ],
-    prefixos: ["/marketing", "/biblioteca-mensagens"],
-  },
-  {
-    id: "contratos",
-    label: "Formalização & Financeiro",
-    to: "/contratos",
-    icone: "contratos",
-    abas: [
-      { label: "Contratos", to: "/contratos" },
-      { label: "Validação jurídica", to: "/matriz-juridica" },
-      { label: "Ordens de serviço", to: "/ordens-servico" },
-      { label: "Financeiro", to: "/financeiro" },
-    ],
-    prefixos: ["/contratos", "/contrato-parametros", "/matriz-juridica", "/ordens-servico", "/financeiro"],
-  },
-  {
-    id: "governanca",
-    label: "Governança & Configuração",
-    to: "/configuracoes",
-    icone: "governanca",
-    abas: [
-      { label: "Configuração", to: "/configuracoes" },
-      { label: "Portal & Acessos", to: "/acessos-portal" },
-      { label: "Equipe e acesso", to: "/equipe", adminOnly: true },
-      { label: "Catálogos e preços", to: "/catalogo" },
-      { label: "Integrações", to: "/integracoes" },
-      { label: "Exceções operacionais", to: "/ops-excecoes" },
-    ],
-    prefixos: [
-      "/configuracoes",
-      "/acessos-portal",
-      "/equipe",
-      "/catalogo",
-      "/integracoes",
-      "/ops-excecoes",
-      "/governanca",
-      "/etiquetas",
-      "/privacidade",
-      "/importacoes",
-      "/homologacao-skus",
-      "/conciliacao-catalogo",
-      "/divergencias-catalogo",
-      "/escopo-origem",
-      "/historico",
-      "/golive",
-    ],
-  },
-];
+/**
+ * Setores que a lateral renderiza — derivados de `GRUPOS_DESK` (fonte única).
+ * O nome `SETORES_DESK_V5` fica como alias para quem ainda importa.
+ */
+export const SETORES_DESK: readonly SetorDesk[] = GRUPOS_DESK.map((g) => ({
+  id: g.id,
+  label: g.label,
+  to: g.to,
+  icone: g.icone,
+  abas: g.sub.filter((s): s is Extract<ItemNav, { to: string }> => "to" in s),
+  prefixos: g.prefixos ?? [g.to],
+}));
+export const SETORES_DESK_V5 = SETORES_DESK;
+
+/** Rotas do menu de lado que precisam de caso: com caseId na URL, vão ao caso certo. */
+export function destinoDaAba(aba: AbaSetor, rotaAtual: string): { to: string; hash?: string; caseId?: string } {
+  const m = /^\/casos\/([^/#?]+)/.exec(rotaAtual);
+  if (aba.to === "/casos" && aba.hash && m) return { to: "/casos/$caseId", hash: aba.hash, caseId: m[1] };
+  return { to: aba.to, hash: aba.hash };
+}
 
 export const MENU_LEGADO_DESK: {
   label: string;
