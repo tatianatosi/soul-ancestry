@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { arquivarLeadDesk, listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import {
@@ -355,6 +356,11 @@ function LeadsPage() {
 
   return (
     <SaasShell titulo="CRM Vivo — Leads e triagem" descricao="Comercial → CRM Vivo: entrada, Discovery, contatos e conversas, proposta e handoff.">
+      <FonteAlimento
+        fonte="Entrada de leads e listas controladas do CRM Mestre (CA04)"
+        consumidor="Mesa de Calls, proposta e handoff ao caso — a identidade da pessoa se mantém"
+        detalheTecnico="crm-desk · listarLeadsDesk"
+      />
       {leadPendente ? (
         <div role="alert" className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-terracotta/30 bg-terracotta/10 px-3 py-2 text-xs text-terracotta">
           Há alterações não salvas neste lead.

@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Archive, BookOpen, Bookmark, Database, FileText, Scale } from "lucide-react";
 
 import { SaasShell } from "@/components/saas/shell";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { Button } from "@/components/ui/button";
@@ -214,6 +215,11 @@ function BibliotecaPage() {
       descricao="Base operacional interna do Desk: referências estruturadas que alimentam pesquisa, relatórios e operação. Nada aqui é exposto ao App Cliente."
       visualKit="pantone"
     >
+      <FonteAlimento
+        fonte="Referências estruturadas e homologadas da operação"
+        consumidor="Pesquisa, relatórios, propostas e o dia a dia do Desk — nada aqui é exposto ao App Cliente"
+        detalheTecnico="MAPA_CONSUMO_SUBAREAS"
+      />
       <PesquisaConectada />
       <section className="mt-7" aria-labelledby="entradas-biblioteca">
         <div className="mb-4">

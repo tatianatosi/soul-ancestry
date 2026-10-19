@@ -7,6 +7,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { cn } from "@/lib/utils";
 import { diasDesde, rotuloIdade, tomIdade } from "@/lib/idade-registro";
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -353,6 +354,11 @@ function FinanceiroPage() {
         </button>
       }
     >
+      <FonteAlimento
+        fonte="Faturas e pagamentos registrados — previsão não é saldo"
+        consumidor="Caso 360 (Financeiro) e, após confirmação, a Conta do App Cliente"
+        detalheTecnico="financeiro-caso"
+      />
       <div className="space-y-4">
         {qFaturas.isError || qPagamentos.isError ? (
           <p className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">

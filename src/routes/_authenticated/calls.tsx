@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { PainelCalls } from "@/components/crm/painel-calls";
 import { ErroSuperficieDesk } from "@/components/saas/erro-superficie";
 import { SaasShell } from "@/components/saas/shell";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { CATALOGOS, rotulo, type LeadDesk } from "@/lib/crm-desk";
 import { estadoCall, ROTULO_ESTADO_CALL, type EstadoCall } from "@/lib/painel-calls";
@@ -310,6 +311,11 @@ function CallsPage() {
       titulo="CRM Vivo & Discovery Calls"
       descricao="Calls agendadas e realizadas, roteiro SPIN e consentimento. O handoff do Discovery vira oportunidade abaixo, na Mesa."
     >
+      <FonteAlimento
+        fonte="Leads do CRM Vivo e o roteiro SPIN homologado"
+        consumidor="O handoff para proposta e o Caso 360 — nunca cria cadastro sozinho"
+        detalheTecnico="podeExecutarHandoffDiscovery · PainelCalls"
+      />
       {qLeads.isError ? (
         <p role="alert" className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-4 text-sm text-terracotta">
           A leitura dos leads falhou. Isto é erro de leitura, não pipeline vazio.

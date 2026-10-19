@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { useGoLive } from "@/components/golive/dados";
 import { EstadoVazio, SaasShell } from "@/components/saas/shell";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { Button } from "@/components/ui/button";
 import { BarrasHorizontais, DonutEstados, GraficoLinha } from "@/components/prancha-v4/kit";
 import { CaCard } from "@/components/ui/ca-card";
@@ -44,6 +45,11 @@ function Painel() {
       descricao="O que está parado, vencido ou pede decisão — com ação e link para a aba dona."
       visualKit="pantone"
     >
+      <FonteAlimento
+        fonte="Exceções, sinais e descobertas derivados das fichas reais"
+        consumidor="A decisão do dia da equipe — nada aqui é digitado, tudo é derivado"
+        detalheTecnico="painel-caso-destaque · pendencias-humanas-caso"
+      />
       <PainelConsolidado />
     </SaasShell>
   );

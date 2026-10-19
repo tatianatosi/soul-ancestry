@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { PainelQualidade } from "@/components/qualidade/painel";
 import { KpisQualidadeV4, RecomendacoesQualidadeV4 } from "@/components/qualidade/kpis-recomendacoes";
 import { RadarInternoIntegrado } from "@/components/desk/radar-interno-integrado";
@@ -42,6 +43,11 @@ function QualidadePage() {
       titulo="Radar & Matrizes"
       descricao="Matriz de elegibilidade × urgência e Radar Individual sincronizados; leitura interna por caso."
     >
+      <FonteAlimento
+        fonte="Urgência e hipótese de elegibilidade registradas em cada caso"
+        consumidor="A prioridade dos casos no Painel Hoje — leitura interna, nunca exposta ao cliente"
+        detalheTecnico="radar-interno-caso"
+      />
       <p className="mb-4 text-sm text-navy/70">
         Alterne entre a carteira completa e a leitura de um caso. A matriz usa urgência e hipótese de
         elegibilidade; o Radar Individual reúne os quatro eixos, responsável, prazo, próxima ação e
