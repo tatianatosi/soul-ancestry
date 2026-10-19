@@ -12,6 +12,7 @@ import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
 import { MENSAGEM_INSTABILIDADE_FINANCEIRA } from "@/lib/portal-resiliencia";
 import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
 import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/portal/conta")({
   head: () => ({
@@ -130,7 +131,7 @@ export function PortalConta() {
                 </div>
               </div>
                <p className="mt-3 text-sm text-navy/65">Um espaço para cuidar da sua história e acompanhar as novidades da sua família.</p>
-               {titularExibido || paisInteresse || codigoCaso ? <dl className="mt-3 grid grid-cols-1 gap-x-4 min-[360px]:grid-cols-2">
+               {titularExibido || paisInteresse || codigoCaso ? <dl className="mt-3 grid grid-cols-1 gap-x-4 md:grid-cols-2">
                  {codigoCaso ? (
                 <div className="border-b border-border py-3" data-conta-codigo>
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Projeto familiar</dt>
@@ -152,7 +153,7 @@ export function PortalConta() {
                  {(vivo.data?.casoAtivoId ?? previa?.identidade?.caseId) === "a11a0000-0000-4000-8000-000000000002" ? (
                 <div className="border-b border-border py-3" data-conta-modalidade>
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Modalidade</dt>
-                  <dd className="text-sm text-navy">Projeto Familiar (3 assinaturas ativas)</dd>
+                  <dd className="text-sm text-navy">Projeto Familiar · condição prevista</dd>
                 </div>
                  ) : null}
                </dl> : null}
@@ -162,9 +163,9 @@ export function PortalConta() {
             </section>
 
             <section className="app-v11-faixa app-conta-atendimento">
-              <details className="app-conta-contato"><summary className="flex min-h-11 cursor-pointer items-center gap-2 font-serif text-xl text-navy"><ShieldCheck className="h-5 w-5" aria-hidden="true" /><span className="flex-1">Estamos por perto</span><ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary>
+              <details open className="app-conta-contato"><summary className="flex min-h-11 cursor-pointer items-center gap-2 font-serif text-xl text-navy"><ShieldCheck className="h-5 w-5" aria-hidden="true" /><span className="flex-1">Estamos por perto</span><ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary>
               <p className="mt-2 text-sm text-navy/75">{acompanhamento}</p>
-              <a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer" data-conta-whatsapp className="mt-3 inline-flex min-h-11 items-center rounded-full bg-emerald-700 px-5 text-sm font-medium text-white hover:bg-emerald-800">Falar com a Especialista no WhatsApp · {WHATSAPP_ESPECIALISTA.rotulo}</a>
+              <Button asChild variant="outline" className="mt-3 h-auto min-h-11 whitespace-normal text-left"><a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer" data-conta-whatsapp>Falar com a Especialista no WhatsApp · {WHATSAPP_ESPECIALISTA.rotulo}</a></Button>
               <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Seus canais, preferências de aviso e informações de privacidade aparecerão quando estiverem disponíveis neste espaço.</p></details>
             </section>
 

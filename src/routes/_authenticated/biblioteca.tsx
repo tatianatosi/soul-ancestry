@@ -6,6 +6,7 @@ import { Archive, BookOpen, Bookmark, Database, FileText, Scale } from "lucide-r
 
 import { SaasShell } from "@/components/saas/shell";
 import { FonteAlimento } from "@/components/desk/fonte-alimento";
+import "@/components/desk/mockup4-superficies.css";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { Button } from "@/components/ui/button";
@@ -220,6 +221,7 @@ function BibliotecaPage() {
         consumidor="Pesquisa, relatórios, propostas e o dia a dia do Desk — nada aqui é exposto ao App Cliente"
         detalheTecnico="MAPA_CONSUMO_SUBAREAS"
       />
+      <div data-desk-mockup4="biblioteca">
       <PesquisaConectada />
       <section className="mt-7" aria-labelledby="entradas-biblioteca">
         <div className="mb-4">
@@ -236,7 +238,7 @@ function BibliotecaPage() {
                 type="button"
                 variant="ghost"
                 onClick={() => abrirEntrada(chave, label)}
-                className="group grid h-auto min-h-32 grid-cols-[auto_minmax(0,1fr)] items-start gap-3 whitespace-normal rounded-none border-t-2 border-gold bg-background/60 p-4 text-left shadow-sm transition hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold"
+                className="group grid h-auto min-h-32 grid-cols-[auto_minmax(0,1fr)] items-start gap-3 whitespace-normal rounded-xl border border-border border-t-2 border-t-gold bg-card p-4 text-left shadow-sm transition hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold"
               >
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-navy text-cream">
                   <Icone className="h-5 w-5" aria-hidden="true" />
@@ -716,6 +718,7 @@ function BibliotecaPage() {
         {sub === "governanca" && <ManifestoResgate />}
         </div>
       </details>
+      </div>
     </SaasShell>
   );
 }

@@ -1247,3 +1247,33 @@
 [data-app-cliente] #conteudo-portal [data-aba-jornada] .app-jornada-linha[data-linha-tom="navy"] ol > li > span.app-jornada-ponto { background: color-mix(in srgb, var(--navy) 35%, var(--cream)); }
 [data-app-cliente] #conteudo-portal [data-aba-jornada] .app-jornada-linha[data-linha-tom="navy"] ol > li > span.app-jornada-ponto.bg-navy { background: var(--navy); }
 [data-app-cliente] #conteudo-portal [data-aba-jornada] .app-jornada-uniao p.app-uniao-rotulo { color: var(--terracotta); }
+
+/* Mockup 4, isolated presentation: preserve tokens and all published readers. */
+[data-app-cliente] .app-home-assessoria {
+  padding: var(--ca-space-5) 0;
+  border-block: 1px solid var(--ca-border);
+}
+[data-app-cliente] .app-achado-editorial[open] summary {
+  border-bottom: 1px solid var(--ca-border);
+  padding-bottom: var(--ca-space-3);
+}
+[data-app-cliente] .app-achado-editorial summary::marker { color: var(--app-ouro-texto); }
+[data-app-cliente] .app-arvore-geracoes .app-arvore-nos {
+  padding: var(--ca-space-2);
+  border: 0;
+  background: transparent;
+}
+[data-app-cliente] .app-ligacoes-moldura {
+  border: 0;
+  border-top: 1px solid var(--ca-border);
+  border-radius: 0;
+  background: transparent;
+  padding: var(--ca-space-4) 0;
+}
+[data-app-cliente] [data-radar-grafico] { border-block: 1px solid var(--ca-border); }
+[data-app-cliente] [data-aba-conta] [data-conta-perfil] dd { overflow-wrap: anywhere; }
+[data-app-cliente] nav[aria-label="Navegação do aplicativo do cliente"] :where(a,button) { min-height: 52px; }
+@media (max-width: 767px) {
+  [data-app-cliente] [data-jornada-duas-linhas] { grid-template-columns: minmax(0,1fr); }
+  [data-app-cliente] [data-jornada-duas-linhas] > .col-span-2 { grid-column: 1 / -1; }
+}

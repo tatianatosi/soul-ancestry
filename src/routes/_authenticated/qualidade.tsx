@@ -8,6 +8,7 @@ import { RadarInternoIntegrado } from "@/components/desk/radar-interno-integrado
 import { CaCard } from "@/components/ui/ca-card";
 import { Selo } from "@/components/comercial/base";
 import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos";
+import "@/components/desk/mockup4-superficies.css";
 
 export const Route = createFileRoute("/_authenticated/qualidade")({
   head: () => ({
@@ -56,13 +57,13 @@ function QualidadePage() {
       <div className="mb-6">
         <KpisQualidadeV4 />
       </div>
-      <div className="mb-6 rounded-2xl border border-navy/10 bg-card p-6 shadow-sm">
+      <div className="mb-6 min-w-0 rounded-2xl border border-navy/10 bg-card p-6 shadow-sm" data-desk-mockup4="radar">
         <RadarInternoIntegrado />
       </div>
       <div className="mb-6">
         <RecomendacoesQualidadeV4 />
       </div>
-      <details className="mb-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
+      <details className="mb-6 rounded-xl border border-navy/10 bg-card p-4">
         <summary className="cursor-pointer font-serif text-base text-navy">
           Qualidade, checklists e exportação
         </summary>

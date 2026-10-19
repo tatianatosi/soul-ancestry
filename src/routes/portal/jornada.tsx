@@ -484,7 +484,7 @@ export function PortalJornada() {
                          <h2 className="mt-1 font-serif text-2xl text-cream">Uma história começando a ganhar forma</h2>
                          <p className="mt-2 text-sm leading-relaxed text-cream/80">{ritmoRotulo}</p>
                       </div>
-                        <div data-jornada-duas-linhas className="relative grid grid-cols-2 gap-x-4 gap-y-6 sm:gap-x-8">
+                        <div data-jornada-duas-linhas className="relative grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2 md:gap-x-8">
                           <section id="linha-origem" className="relative min-w-0 scroll-mt-20 py-2">
                            <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">Linha Ancestral</h2>
                            <p className="mt-2 text-sm leading-relaxed text-navy/60">As histórias das gerações anteriores aparecerão aqui quando estiverem prontas para a família.</p>
@@ -511,7 +511,7 @@ export function PortalJornada() {
                          <h2 className="mt-1 font-serif text-2xl text-cream">Uma história começando a ganhar forma</h2>
                          <p className="mt-2 text-sm leading-relaxed text-cream/80">{vivo.composicao ?? "A história da sua família"} · {ritmoRotulo}</p>
                       </div>
-                        <div data-jornada-duas-linhas className="relative grid grid-cols-2 gap-x-4 gap-y-6 sm:gap-x-8">
+                        <div data-jornada-duas-linhas className="relative grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2 md:gap-x-8">
                           <div id="linha-origem" className="relative min-w-0 scroll-mt-20">
                           <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" variante="gold" />
                         </div>

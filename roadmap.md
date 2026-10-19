@@ -23,6 +23,36 @@
 - [x] Correção de typecheck (18/10): restaurados itemNavAtivo, grupoNavAtivo e LACUNAS_CONHECIDAS em navegacao-desk.ts; 4 falhas de teste restantes são a divergência V4×V5 de menu, decisão pendente da Proprietária.
 - [ ] PEDIDO AO CLAUDE: comprovar persistência/releitura, conexões dos alimentos aos motores e resultado autorizado no App; depende de autorização de escrita e execução contextual, não realizada nesta auditoria.
 - Não executar escritas, convites, liberação, cobrança, integração ou publicação nesta auditoria.
+## Mockup 4 — rascunho isolado (13/10/2026 16:55 UTC)
+Checklist inicial: **NÃO EXECUTADO**. Sem integração, publicação, dados ou permissões; itens históricos abaixo não autorizam trabalho fora deste corte.
+
+| Página | Tela existente | Fonte preservada | Interação a conferir |
+|---|---|---|---|
+| 3 | `/portal` | projeções e próxima ação sanitizadas | expansão achado, Jornada, WhatsApp |
+| 4 | `/portal/jornada` | jornada publicada | duas linhas, destinos contextuais |
+| 5 | `/portal/radar` | seis eixos existentes | detalhes da base real |
+| 6 | `/portal/arvore` | pessoas e relações publicadas | foco, expansão, modos |
+| 7 | `/portal/documentos` | pedidos/arquivos autorizados | categorias, seletor sem envio |
+| 8 | `/portal/legado` | materiais aprovados | prateleiras/expansão |
+| 9 | `/portal/conta` | perfil e condição sanitizados | histórico, WhatsApp |
+| 11 | `/painel` | implementação atual preservada | filtros/destinos, sem mudar motor |
+| 12 | `/casos` | lista atual de casos | busca/filtros/abrir caso |
+| 13 | `/tarefas` | tarefas existentes | filtros/detalhes, sem salvar |
+| 14 | `/matriz-juridica` | regras existentes | busca/abas, sem revisão fictícia |
+| 15 | `/qualidade` | radar existente | matriz/radar individual |
+| 16 | `/alertas` | alertas com origem | filtros/abrir contexto, sem envio |
+| 17 | `/biblioteca` | acervo real | busca/abas/abrir conteúdo |
+
+- [x] Capturas ANTES 375/1440, sessão Proprietária; App só via prévia oficial.
+- [x] Cortes locais Home/Jornada/Árvore/Radar/Legado/Conta e sete superfícies Desk; Documentos preservado por falta de PDFs, kit e leitores mantidos.
+- [x] Detalhe Caso 360: quatro lotes A–D existentes, cabeçalhos sequenciais reforçados; nunca três colunas.
+- [x] Testes seletivos: 45/45; rodada anterior 45/46, teste antigo A2 exige duas colunas no celular e conflita com a ordem atual. Sem alterar teste bloqueador.
+- [x] Capturas DEPOIS 375/1440; 14 telas, foco/expansão/filtros/releitura; nenhuma operação submetida. Correção de tipagem feita; plataforma build OK 17:15:15 UTC.
+- [x] Capturas finais após expansões de Radar/Legado e revisão visual; Hoje recapturado esperando os dados.
+- [x] Relatório IMPLEMENTADO / TESTADO / PENDENTE HOMOLOGAÇÃO: `docs/relatorios/2026-10-13-mockup4-rascunho-visual.md`; PEDIDO AO CLAUDE explícito.
+- [ ] Homologação visual da Proprietária (não COMPROVADO_EM_USO).
+
+PEDIDO AO CLAUDE neste corte: revisar projeção master de pessoas (ancestrais aparecem como núcleo; Cleusa/Ana Maria compartilham G3 registrada), reconciliar timeline interna versus marcos publicados no resumo do Caso, expor títulos/datas/URLs autorizadas no leitor de Documentos antes de leitura física, reconciliar seis grupos solicitados versus oito entradas atuais sem mudança unilateral de navegação, adequar teste A2 à última ordem mobile de uma coluna. Não inferir/regravar dados aqui. Contrato/Gov.br/OS, narrativas/fotos/achados/FAQ ausentes continuam sem conteúdo fabricado.
 
 ## Polimento de luxo 12/10 (pedido 16:38)
 - [ ] Jornada: texto editorial Graz (1895) no lugar de Lacuna (autorizado)

@@ -9,6 +9,7 @@ import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { Button } from "@/components/ui/button";
 import { BarrasHorizontais, DonutEstados, GraficoLinha } from "@/components/prancha-v4/kit";
 import { CaCard } from "@/components/ui/ca-card";
+import "@/components/desk/mockup4-superficies.css";
 import { filaDeAprovacoes, resumoAprovacoes, type ItemAprovacao } from "@/lib/golive-aprovacoes";
 import { kanbanPorEtapa, type LeadComercial } from "@/lib/golive-comercial";
 import { concluida } from "@/lib/golive-microentregas";
@@ -51,7 +52,7 @@ function Painel() {
         consumidor="A decisão do dia da equipe — nada aqui é digitado, tudo é derivado"
         detalheTecnico="painel-caso-destaque · pendencias-humanas-caso"
       />
-      <PainelConsolidado />
+      <div data-desk-mockup4="hoje"><PainelConsolidado /></div>
     </SaasShell>
   );
 }
@@ -164,7 +165,7 @@ function PainelConsolidado() {
       <h2 id="painel-consolidado-titulo" className="sr-only">Hoje</h2>
 
       {/* Topo — 4 KPIs (grade V4, desk-01-hoje). */}
-      <dl className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-hoje-indicadores>
+      <dl className="mb-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4" data-hoje-indicadores>
         {[
           { rotulo: "Decisões do dia", valor: decisoesDoDia, apoio: "aguardando você", to: "/golive/aprovacoes" },
           { rotulo: "Cadências vencidas", valor: hoje.vencidas, apoio: "pedem retomada", to: "/golive" },
