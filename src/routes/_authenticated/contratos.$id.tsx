@@ -187,6 +187,7 @@ function ContratoDetalhe() {
     : `${checklist.bloqueios} bloqueio(s) formal(is) no checklist jurídico.`;
 
   return (
+    <div className="[&_[data-desk-titulo]>div]:grid-cols-1 sm:[&_[data-desk-titulo]>div]:flex">
     <SaasShell
       titulo={c.title}
       descricao={`${c.contract_number} · ${ROTULO_TIPO_INSTRUMENTO[c.contract_type]} · ${ROTULO_STATUS_CONTRATO[c.status]}`}
@@ -205,6 +206,7 @@ function ContratoDetalhe() {
             <Link
               to="/casos/$caseId"
               params={{ caseId: String(c.case_id) }}
+              hash="comercial"
               className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy"
             >
               Abrir Caso 360
@@ -224,6 +226,15 @@ function ContratoDetalhe() {
         </p>
       ) : null}
       <AvisoInstrumento tipo={c.contract_type} status={c.status} />
+      <section className="mt-4 border-y border-border py-4 text-sm text-navy" aria-label="Contexto do instrumento">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div><p className="text-xs text-muted-foreground">Instrumento registrado</p><p>{c.contract_number}</p></div>
+          <div><p className="text-xs text-muted-foreground">Estado</p><p>{ROTULO_STATUS_CONTRATO[c.status] || "Não registrado"}</p></div>
+          <div><p className="text-xs text-muted-foreground">Versões registradas</p><p>{d.versoes.length}</p></div>
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">{c.signed_at ? "Assinatura registrada no instrumento." : "Assinatura não registrada no instrumento."}</p>
+        <a href="#contrato-versões" className="mt-2 inline-block text-xs underline">Consultar versões e histórico deste contrato</a>
+      </section>
 
       {/*
         19/10/2026 — Prancha V4 / corte L08: os 6 marcos do contrato em cards
@@ -407,6 +418,7 @@ function ContratoDetalhe() {
         <section id="contrato-revisão" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Revisão e assinatura</h2><Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} /></section>
       </div>
     </SaasShell>
+    </div>
   );
 }
 

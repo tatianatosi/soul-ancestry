@@ -27,3 +27,4 @@ Texto integral (autoridade, legado, schema, navegação, artefatos 005–010, ad
 - Nada arquiva sem `COMPROVADO_EM_USO` com prints autenticados da Proprietária; build/teste não é prova — por quê: adendo 2026-09-10.
 - Sem migration, RLS, convite, publicação, merge ou deploy sem autorização explícita — por quê: efeitos externos.
 - As 5 etapas do caso (Diagnóstico→App Cliente) vêm só de `src/lib/etapas-caso.ts`, agrupando `case_activation_checks` existentes; nunca gate/tabela nova — por quê: uma regra para Caso 360, lista, Radar e Painel.
+- CRM presentation focus and Calls moments are local state; keep existing editors mounted and preserve all writers and persisted IDs — why: switching context must not lose drafts or create a parallel record.

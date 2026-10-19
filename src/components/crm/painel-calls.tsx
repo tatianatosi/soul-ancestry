@@ -267,7 +267,7 @@ function TrilhaDoLead({ leadId }: { leadId: string }) {
 
 type RespostaGravacao = { ok: boolean; erros?: { motivo: string }[] };
 
-export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) {
+export function PainelCalls({ leadIdInicial, momento }: { leadIdInicial?: string; momento?: "antes" | "durante" | "revisao" } = {}) {
   const carregar = useServerFn(listarLeadsDesk);
   const salvar = useServerFn(salvarLeadDesk);
   const handoffFn = useServerFn(executarHandoffDiscovery);
@@ -716,6 +716,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
         prospect. A varredura fica ANTES do formulário porque é dela que sai o
         material para preenchê-lo.
       */}
+      <div hidden={Boolean(momento && momento !== "antes")}>
       <VarreduraWhatsApp
         onAchadosMudaram={(lista, fonte) => {
           setAchados(lista);
@@ -761,6 +762,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
         </p>
       ) : null}
 
+      </div>
       <Secao
         titulo="Mesa de Discovery"
         descricao="Aqui a entrada comercial funciona: varredura, uma pergunta SPIN por vez, próxima ação e handoff. Os KPIs do que está parado ou vencido ficam no Hoje. Toda triagem é sinal interno — não conclui elegibilidade nem envia proposta."
@@ -965,6 +967,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 </div>
               </div>
 
+              <div hidden={Boolean(momento && momento !== "antes")}>
               <Secao
                 titulo="Preparação pré-call"
                 descricao="Consentimento de gravação antes de qualquer transcrição — verificado antes da conversa, não misturado ao registro dela."
@@ -1006,6 +1009,8 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 </div>
               ) : null}
 
+              </div>
+              <div hidden={Boolean(momento && momento !== "durante")}>
               <Secao
                 titulo={`Registro da call — ${lead.nome}`}
                 descricao="Grava no lead canônico do CRM. Não cria ficha paralela. Próxima ação e prazo ficam no roteiro abaixo, no card 'Decisão e próximo passo'."
@@ -1100,6 +1105,8 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                     : null
                 }
               />
+              </div>
+              <div hidden={Boolean(momento && momento !== "revisao")}>
               {leadBase?.id ? (
                 <div className="mt-3">
                   <FechamentoPosCall lead={leadBase} registro={registroDiscovery} onSalvo={recarregarLead} onAviso={setAviso} />
@@ -1260,6 +1267,7 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                 {aviso ? <span className="text-xs text-navy/70">{aviso}</span> : null}
               </div>
 
+              </div>
               {lead.id ? (
                 <TriagemAncestralScanDoLead
                   leadId={lead.id}
