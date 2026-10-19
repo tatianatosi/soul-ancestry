@@ -1,5 +1,6 @@
 # Roadmap
 
+<<<<<<< roadmap.md
 ## 18/10 — CRM Mestre é dicionário (L00–L12, proposta v1.0)
 - [x] L00 documental: proposta v1.0 registrada no destino solicitado; mapas/cobertura v2 e PDFs com errata vigente entregues na coleção, preservando originais históricos (não reeditados internamente).
 - [x] L01: portas de entrada conferidas em leitura; diff mínimo de identificação das regras jurídicas apresentado, Referências mantém acervo compartilhado.
@@ -15,6 +16,15 @@
 - [x] Correção de typecheck (18/10): restaurados itemNavAtivo, grupoNavAtivo e LACUNAS_CONHECIDAS em navegacao-desk.ts; 4 falhas de teste restantes são a divergência V4×V5 de menu, decisão pendente da Proprietária.
 - [ ] PEDIDO AO CLAUDE: comprovar persistência/releitura, conexões dos alimentos aos motores e resultado autorizado no App; depende de autorização de escrita e execução contextual, não realizada nesta auditoria.
 - Não executar escritas, convites, liberação, cobrança, integração ou publicação nesta auditoria.
+=======
+## Caso 360 V4 — rascunho isolado (13/10, 13:25 UTC)
+- [x] Comparar painel/kit existentes com desk-04-caso360.png; capturas autenticadas antes em 375/1280/1440.
+- [x] Ajustar somente a Visão existente em três colunas; preservar oito seções, blocos recolhidos, dados e App.
+- [x] Validar 39 testes existentes e validação automática OK; capturas depois em 375/1280/1440, navegação e releitura sem overflow.
+- [x] Entregar diff, hash e limitações nas capturas e relatório.
+- [ ] Aprovação visual da Proprietária; sem integrar, aceitar, publicar ou marcar COMPROVADO_EM_USO.
+- [ ] PEDIDO AO CLAUDE: conciliar papéis dos adultos (leitor entrega Titular), estado da formalização e evidências legadas/canônicas; decisão da Proprietária sobre textos 1941/2026. Sem alteração de dados neste corte.
+>>>>>>> /tmp/d
 
 ## Polimento de luxo 12/10 (pedido 16:38)
 - [ ] Jornada: texto editorial Graz (1895) no lugar de Lacuna (autorizado)

@@ -6,7 +6,14 @@ import { useEffect, useMemo, useState } from "react";
 
 import { SaasShell, useSaas, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
 import { ResumoKitCaso } from "@/components/desk/kit-conectado";
+<<<<<<< src/routes/_authenticated/casos.$caseId.index.tsx
 import { BarrasHorizontais, DonutEstados, Etiqueta, JornadaMarcos, Linha, LinhaTempoGrafica, Pessoa } from "@/components/prancha-v4/kit";
+=======
+import { KitBadge, KitCard, GenealogyEvent, PersonNode, StatusDonut } from "@/components/clube-ancestral-kit";
+import { Button } from "@/components/ui/button";
+import { painelBibliotecaEvidencias } from "@/lib/biblioteca-evidencias.functions";
+import { carregarPesquisa as carregarAcervoInterno } from "@/lib/pesquisa.functions";
+>>>>>>> /tmp/d
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -485,6 +492,20 @@ function FichaCaso() {
     retry: false,
   });
 
+  // Reutiliza leitores existentes: publicações do caso e arquivos internos são recortes distintos.
+  const lerBiblioteca = useServerFn(painelBibliotecaEvidencias);
+  const qBiblioteca = useQuery({
+    queryKey: ["biblioteca-evidencias", id],
+    queryFn: () => lerBiblioteca({ data: { caseId: id } }),
+    retry: false,
+  });
+  const lerAcervoInterno = useServerFn(carregarAcervoInterno);
+  const qAcervoInterno = useQuery({
+    queryKey: ["caso360-acervo-interno", id],
+    queryFn: () => lerAcervoInterno({ data: { casoId: id } }),
+    retry: false,
+  });
+
   const [secaoFoco, setSecaoFoco] = useState<(typeof SECOES)[number]["id"] | null>(SECOES[0].id);
   // Link contextual vindo de outra tela (ex.: Pessoa 360 → "Conferir", #pessoas).
   // 18/10/2026: reage também à âncora vinda do menu lateral (Caso 360 / Jornada / Ficha Única).
@@ -840,6 +861,7 @@ function FichaCaso() {
           App Cliente.
         </p>
       ) : null}
+<<<<<<< src/routes/_authenticated/casos.$caseId.index.tsx
       {/*
         Prancha V4 (13/10/2026) — identidade do caso no topo: nome, código e
         situação lidos de crm_casos. Pendência aparece como etiqueta
@@ -883,6 +905,139 @@ function FichaCaso() {
           </div>
         </dl>
         <div className="mt-3 border-t border-navy/10 pt-3" data-ordem2-identidade-desk>
+=======
+      {/* Índice: âncoras fixas; seções fora de foco ficam no DOM com hidden. */}
+      <nav
+        aria-label="Seções do caso"
+        className="sticky top-0 z-10 -mx-1 mb-5 flex flex-wrap gap-1.5 border-b border-navy/10 bg-cream/95 px-1 py-2 backdrop-blur"
+      >
+        {SECOES.map((a) => (
+          <a
+            key={a.id}
+            href={`#secao-${a.id}`}
+            onClick={() => setSecaoFoco(a.id)}
+            className={
+              "rounded-lg px-2.5 py-1 text-[13px] transition-colors " +
+              (secaoFoco === a.id
+                ? "bg-navy text-cream"
+                : "text-navy/65 hover:bg-navy/5 hover:text-navy")
+            }
+          >
+            {a.rotulo}
+          </a>
+        ))}
+        <button
+          type="button"
+          onClick={() => setSecaoFoco(null)}
+          className={
+            "rounded-lg px-2.5 py-1 text-[13px] transition-colors " +
+            (secaoFoco === null
+              ? "bg-gold text-navy font-medium"
+              : "text-navy/65 hover:bg-navy/5 hover:text-navy")
+          }
+        >
+          Ver página completa
+        </button>
+      </nav>
+
+      {(secaoFoco === "visao" || secaoFoco === null) ? (
+      <div className="mb-5 grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)_minmax(0,1.1fr)]" data-caso360-resumo-v4>
+        <KitCard title="Titular e família" className="[&_header]:-mx-5 [&_header]:-mt-5 [&_header]:w-[calc(100%+2.5rem)] [&_header]:rounded-t-lg [&_header]:bg-navy [&_header]:px-5 [&_header]:py-3 [&_h3]:text-cream">
+          <p className="break-words font-serif text-xl leading-tight text-navy">{String(q.data?.cliente?.["nome"] ?? "Titular não registrada")}</p>
+          <p className="mt-2 break-all text-xs text-navy/65">{String(caso["codigo"] ?? "Código não registrado")}</p>
+          <div className="mt-3"><KitBadge tone="gold">{rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao")) || "Formalização não registrada"}</KitBadge></div>
+          <h4 className="mb-3 mt-5 border-t border-navy/10 pt-4 font-serif text-lg text-navy">Família no caso</h4>
+          {((q.data?.membros ?? []) as Record<string, any>[]).length ? (
+            <ul className="space-y-3">
+              {((q.data?.membros ?? []) as Record<string, any>[]).filter((m) => !m.dependente && m.papel_no_caso !== "dependente" && m.cliente_id !== caso["cliente_id"]).map((membro) => (
+                <li key={String(membro.id)} className="min-w-0">
+                  <PersonNode person={{
+                    id: String(membro.id),
+                    name: membro.nome ?? membro.nome_completo ?? "Pessoa sem nome registrado",
+                    role: PAPEIS_PESSOA.find((o) => o.valor === membro.papel_no_caso)?.rotulo ?? membro.papel_no_caso ?? membro.papel ?? "Papel não registrado",
+                  }} />
+                  <p className="mt-1 text-xs leading-relaxed text-navy/65">{PAPEIS_PESSOA.find((o) => o.valor === membro.papel_no_caso)?.rotulo ?? membro.papel_no_caso ?? membro.papel ?? "Papel não registrado"}</p>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="text-sm text-navy/65">Família não registrada.</p>}
+          <Button variant="outline" className="mt-4 min-h-11 w-full whitespace-normal" onClick={() => setSecaoFoco("pessoas")}>Ver pessoas e linhagens</Button>
+        </KitCard>
+
+        <KitCard title="Linha do tempo publicada" className="[&_header]:-mx-5 [&_header]:-mt-5 [&_header]:w-[calc(100%+2.5rem)] [&_header]:rounded-t-lg [&_header]:bg-navy [&_header]:px-5 [&_header]:py-3 [&_h3]:text-cream">
+          {qBiblioteca.isLoading ? <p role="status" className="text-sm text-navy/65">Carregando marcos publicados…</p> : qBiblioteca.isError ? <p role="alert" className="text-sm text-terracotta">Não foi possível ler os marcos publicados.</p> : (() => {
+            const marcos = (qBiblioteca.data?.projecoes ?? []).filter((p) => ["linha_tempo", "marco"].includes(p.projection_type) && p.approval_status === "published" && !p.archived_at);
+            return marcos.length ? (
+              <ol className="space-y-5" data-caso360-marcos-publicados>
+                {marcos.slice().sort((a, b) => {
+                  const ano = (p: Record<string, any>) => Number(String(p.content_sanitized ?? "").match(/\b(?:18|19|20)\d{2}\b/)?.[0] ?? 9999);
+                  return ano(a) - ano(b);
+                }).map((evento) => (
+                  <li key={evento.id}>
+                    <GenealogyEvent title={evento.content_sanitized || "Conteúdo publicado não registrado"} />
+                    <span className="ml-3 mt-2 block text-[11px] font-medium text-navy/65">Publicado no App</span>
+                  </li>
+                ))}
+              </ol>
+            ) : <p className="text-sm text-navy/65">Aguardando marcos genealógicos publicados.</p>;
+          })()}
+          <p className="mt-5 border-t border-navy/10 pt-3 text-xs leading-relaxed text-navy/65">Textos publicados preservados. A conciliação das datas de 1920/1941 e do marco de 2026 aguarda decisão da Proprietária.</p>
+          <Button variant="outline" className="mt-4 min-h-11 w-full" onClick={() => setSecaoFoco("jornada")}>Abrir Jornada do caso</Button>
+        </KitCard>
+
+        <div className="min-w-0 space-y-4">
+          <BarraEtapasCaso caseId={id} layout="coluna" aoAbrirSecao={(s) => {
+            const alvo = SECOES.find((x) => x.id === s);
+            if (alvo) setSecaoFoco(alvo.id);
+          }} />
+          <KitCard title="Cofre documental" className="[&_header]:-mx-5 [&_header]:-mt-5 [&_header]:w-[calc(100%+2.5rem)] [&_header]:rounded-t-lg [&_header]:bg-navy [&_header]:px-5 [&_header]:py-3 [&_h3]:text-cream">
+            <KitBadge tone="attention">Em curadoria técnica</KitBadge>
+            {qAcervoInterno.isLoading ? <p role="status" className="mt-3 text-sm text-navy/65">Carregando acervo interno…</p> : qAcervoInterno.isError ? <p role="alert" className="mt-3 text-sm text-terracotta">Não foi possível ler as evidências internas.</p> : (
+              <p className="mt-3 text-sm text-navy">{qAcervoInterno.data?.evidencias.length ?? 0} evidência(s) interna(s) registrada(s)</p>
+            )}
+            {qDocumentos.isError ? <p role="alert" className="mt-2 text-sm text-terracotta">Não foi possível ler os documentos.</p> : <p className="mt-2 text-xs leading-relaxed text-navy/65">{qDocumentos.isLoading ? "Carregando documentos…" : `${(qDocumentos.data ?? []).length} documento(s) registrado(s) para conferência de liberação.`}</p>}
+            <p className="mt-2 text-xs leading-relaxed text-navy/65">Evidências da equipe não equivalem a PDFs liberados para a cliente. Nenhum botão de arquivo é exibido sem envio e liberação confirmados.</p>
+            <details className="mt-4 border-t border-navy/10 pt-2">
+              <summary className="min-h-11 cursor-pointer text-xs font-medium text-navy">Estado do dossiê de pesquisa</summary>
+          {(() => {
+            if (qPesquisa.isLoading) return <p className="mt-3 text-sm text-navy/60" role="status">Carregando o dossiê…</p>;
+            if (qPesquisa.isError) return <p className="mt-3 text-sm text-terracotta" role="alert">Não foi possível carregar o dossiê.</p>;
+            const dossie = estadoDossieDoCaso(qPesquisa.data?.evidencias ?? []);
+            if (!dossie.total) return <p className="mt-3 text-sm text-navy/60">Nenhuma evidência registrada no dossiê.</p>;
+            return (
+              <div className="mt-3">
+                <StatusDonut
+                  label={`Estado do dossiê: ${dossie.confirmados} confirmados, ${dossie.emRevisao} em revisão, ${dossie.pendentes} pendentes. Total: ${dossie.total} evidências registradas.`}
+                  segments={[
+                    { label: "Confirmados", value: dossie.confirmados, tone: "success" },
+                    { label: "Em revisão", value: dossie.emRevisao, tone: "gold" },
+                    { label: "Pendentes", value: dossie.pendentes, tone: "terracotta" },
+                  ]}
+                />
+                <p className="mt-3 text-xs text-navy/60">{dossie.total} evidência(s) registrada(s) · situação atual do caso.</p>
+              </div>
+            );
+          })()}
+            </details>
+            <Button variant="outline" className="mt-3 min-h-11 w-full" onClick={() => setSecaoFoco("documentos")}>Conferir documentos no Desk</Button>
+          </KitCard>
+        </div>
+      </div>
+      ) : null}
+
+      <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
+        <summary className="cursor-pointer text-sm font-medium text-navy">
+          Abrir requisitos de ativação e bloqueios
+        </summary>
+        <div className="mt-4 border-t border-navy/10 pt-4">
+          <ResumoKitCaso caseId={String(caso["id"])} />
+        </div>
+      </details>
+      <details className="mb-4 rounded-lg border border-navy/15 bg-card p-4">
+        <summary className="min-h-11 cursor-pointer text-sm font-medium text-navy">Abrir situação, próxima ação e controles do caso</summary>
+        <div className="mt-4">
+      <div className="mb-4" data-ordem2-identidade-desk>
+>>>>>>> /tmp/d
         <ChipIdentidadeCaso
           superficie="Desk"
           identidade={identidadeDeCrmCaso({
@@ -1347,6 +1502,9 @@ function FichaCaso() {
         </div>
       ) : null}
 
+        </div>
+      </details>
+
       {/* Ordem P0 (21/09/2026) — Estado Integrado do Caso: consolida os
           domínios transversais num só bloco, só leitura, sem duplicar
           nenhuma das queries já feitas acima. */}
@@ -1413,6 +1571,70 @@ function FichaCaso() {
         </div>
       </details>
 
+<<<<<<< src/routes/_authenticated/casos.$caseId.index.tsx
+=======
+      <details className="mb-4 rounded-lg border border-navy/15 bg-card p-4">
+        <summary className="min-h-11 cursor-pointer text-sm font-medium text-navy">Abrir indicadores por frente (distintos das etapas de prontidão)</summary>
+        <div className="mt-3">
+      {/*
+        §14 linha 5 do De-Para: "Progresso por frente — Formalização,
+        Pesquisa, Documentos, Publicação | concluída / em andamento / em
+        coleta / inicial. Não usar percentual sem fórmula documentada."
+        `progressoPorFrente` (caso-ficha.ts) deriva cada frente de dado JÁ
+        carregado nesta mesma tela (contrato_assinado, dossiê de pesquisa,
+        documentos_minimos_ok, estado de publicação) — sem query nova.
+      */}
+      {(() => {
+        const dossieResumo = estadoDossieDoCaso(qPesquisa.data?.evidencias ?? []);
+        const progresso = progressoPorFrente({
+          contratoAssinado: Boolean(caso["contrato_assinado"]),
+          dossie: dossieResumo,
+          documentosMinimosOk: Boolean(caso["documentos_minimos_ok"]),
+          documentosRegistrados: ((qDocumentos.data ?? []) as unknown[]).length,
+          publicacao: {
+            publicadas: qVisaoCliente.data?.estadoPublicacao?.publicadas ?? 0,
+            pendentes: qVisaoCliente.data?.estadoPublicacao?.pendentes ?? 0,
+            arquivadas: qVisaoCliente.data?.estadoPublicacao?.arquivadas ?? 0,
+          },
+        });
+        const CHIP_FRENTE: Record<string, string> = {
+          concluida: "border-emerald-500/40 bg-emerald-50 text-emerald-800",
+          em_andamento: "border-gold/60 bg-gold/10 text-navy",
+          em_coleta: "border-navy/20 bg-navy/5 text-navy/70",
+          inicial: "border-navy/15 bg-cream text-navy/50",
+        };
+        return (
+          <div
+            className="mb-6 flex flex-wrap items-center gap-2 rounded-xl border border-navy/10 bg-cream/50 px-4 py-3"
+            data-caso360-progresso-frente
+          >
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-navy/50">
+              Progresso por frente ·
+            </span>
+            {(
+              [
+                ["formalizacao", "Formalização"],
+                ["pesquisa", "Pesquisa"],
+                ["documentos", "Documentos"],
+                ["publicacao", "Publicação"],
+              ] as const
+            ).map(([chave, rotulo]) => (
+              <span
+                key={chave}
+                data-caso360-frente={chave}
+                className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${CHIP_FRENTE[progresso[chave]]}`}
+              >
+                {rotulo}: {ROTULO_FRENTE[progresso[chave]]}
+              </span>
+            ))}
+          </div>
+        );
+      })()}
+
+        </div>
+      </details>
+
+>>>>>>> /tmp/d
       {/* Quatro resumos acionáveis — cada um leva à seção completa, já preservada abaixo. */}
       <details className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
         <summary className="cursor-pointer text-sm font-medium text-navy">Abrir resumos operacionais do caso</summary>
@@ -2004,7 +2226,7 @@ function FichaCaso() {
       </details>
 
       {/* 12/10/2026 — 5 etapas de leitura, derivadas das verificações existentes. */}
-      <div className="mb-5">
+      <div className="mb-5" hidden={secaoFoco === "visao" || secaoFoco === null}>
         <BarraEtapasCaso
           caseId={id}
           aoAbrirSecao={(s) => {
@@ -2014,6 +2236,7 @@ function FichaCaso() {
         />
       </div>
 
+<<<<<<< src/routes/_authenticated/casos.$caseId.index.tsx
       {/* Índice: âncoras fixas; seções fora de foco ficam no DOM com hidden. */}
       <nav
         aria-label="Seções do caso"
@@ -2048,6 +2271,8 @@ function FichaCaso() {
         </button>
       </nav>
 
+=======
+>>>>>>> /tmp/d
       <details open={secaoFoco !== null && secaoFoco !== "visao"} className="rounded-lg border border-navy/15 bg-card p-4">
         <summary className="cursor-pointer text-sm font-medium text-navy">Abrir ficha operacional completa</summary>
       <div className="mt-5 space-y-8 border-t border-navy/10 pt-5">
