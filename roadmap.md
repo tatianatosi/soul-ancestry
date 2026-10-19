@@ -392,6 +392,8 @@ PEDIDO AO CLAUDE neste corte: revisar projeção master de pessoas (ancestrais a
 - [ ] PEDIDO AO CLAUDE: preparador grava na carga; separar leitura somente com autorização própria. Pesquisa módulo tem erro de hooks; Pesquisa/Privacidade em carregamento. Nenhuma correção no produto neste turno.
 
 - [x] 19/10/2026 14:32 UTC — Inventário tela a tela (topo→rodapé): online × código × estático, áreas incorporadas, motores migrados, Vercel × Lovable, canos. Mockup completo em pausa (Claude sobe o mockup).
-- [ ] 19/10/2026 14:43 UTC — Sugestões visuais UX/UI por elemento sistêmico (Central de Pesquisa → matrizes jurídicas/contratos, assistente de pesquisa), uso real diário, sem scroll infinito nem gavetas escondidas, mais cores e elementos além de cards.
-- [ ] 19/10/2026 15:08 UTC — Entregar PDF só da nova versão Desk, com complementos disponíveis e limitações explícitas; não publicar nem retomar o mockup pausado.
-- [ ] 19/10/2026 15:08 UTC — Revisar abas/subabas e produzir caderno visual sistêmico: alimento → ação diária → gravação existente → releitura → consumidor; propostas diferenciadas por superfície, sem implementar enquanto Claude atualiza.
+- [x] 19/10/2026 14:43 UTC — Caderno de 24 páginas com propostas visuais por sistema, contextos visíveis e formatos variados; leitura de código não equivale a integração executada.
+- [x] 19/10/2026 15:08 UTC — PDF exclusivo do Desk: 34 páginas de capturas DEPOIS arquivadas e complementos, com carregamentos incompletos explicitados. Sem retomar mockup ou publicar.
+- [x] 19/10/2026 15:08 UTC — Caderno sistêmico cobre rotas e subabas de pesquisa/contrato em código, cadeia alimento → ação → writer → releitura → consumidor; proposta, não implementação nem prova de uso.
+- [x] 19/10/2026 15:17 UTC — Inventário v2 entregue na mesma pasta: 117 endereços, alturas de documento e conteúdo main em 1280/375, gavetas prioritárias abertas, categoria vazio/bloqueado, sessão da Proprietária identificada, erros reconciliados. V1 122 páginas e V2 284 páginas renderizadas e conferidas por folhas de contato; sem submissão manual. Preparador pode escrever automaticamente na carga, não auditado como ausência de escrita.
+- [ ] Prova de gravação com F5/releitura, login cliente e equivalência Vercel atual: não executadas nesta auditoria de leitura; exigem teste autorizado e configuração atual comparável.
