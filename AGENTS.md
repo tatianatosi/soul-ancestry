@@ -16,7 +16,7 @@ Texto integral (autoridade, legado, schema, navegação, artefatos 005–010, ad
 - Um produto só: Desk + App Cliente sobre `crm_casos`; planejador é fonte do trabalho ativo; caso ativo sempre com próxima ação (`proxima_acao_prioritaria`) — por quê: motor unificado.
 - Mapear para tabelas existentes (`types.ts` + CHECK das migrations); nunca tabelas hipotéticas nem vocabulário CHECK novo — por quê: evita schema paralelo.
 - Legado (planilha mestre, matriz, DRE, Asaas antigo) só em trilha rotulada (`legacy_record_links`) — por quê: nunca dirige operação.
-- Desk: divergência aberta entre `GRUPOS_DESK` (V4, 7 grupos, com Marketing) e `SETORES_DESK_V5` (6 setores, o que a lateral renderiza hoje) — qual vale no primeiro nível é decisão pendente da Proprietária, não tocar sem ela decidir primeiro. App = 7 abas (Home, Jornada, Radar, Árvore, Documentos, Legado, Conta); nenhuma tela/menu extra — por quê: decisão da Proprietária.
+- Desk: a lateral renderiza `SETORES_DESK`, derivado de `GRUPOS_DESK` (7 grupos da V4 + Financeiro, decisão da Proprietária 18/10/2026); nunca manter segunda lista de menu. App = 7 abas (Home, Jornada, Radar, Árvore, Documentos, Legado, Conta); nenhuma tela/menu extra — por quê: uma fonte de navegação.
 - Caso 360 = 8 seções (`SECOES`); admin vê o App só via `/app-cliente-como-pessoa?casoId=` — por quê: sem segundo mecanismo.
 - App mostra só conteúdo sanitizado/aprovado/publicado; vazio honesto; nada inferido — por quê: privacidade e verdade.
 - Editorial presentation refinements are scoped by the existing PortalShell to the requested official tabs; shared readers and global design tokens stay unchanged — why: isolate visual changes from Desk and unrelated tabs.
