@@ -207,7 +207,7 @@ export function PortalConta() {
                   editável/publicável do Desk, nunca hardcoded aqui.
                 */
                 <p className="mt-2 text-sm text-navy/60" data-conta-assinatura-vazio>
-                  Nenhuma assinatura publicada ainda. A equipe publica aqui quando houver.
+                  Em preparação — a assinatura aparece aqui quando a equipe compartilhar.
                 </p>
                )}
              </section>
@@ -238,7 +238,7 @@ export function PortalConta() {
                 </>
               ) : (
                 <div><p className="mt-2 text-sm text-navy/60" data-conta-plano-vazio>
-                  Nenhum plano publicado ainda. A equipe publica aqui quando houver.
+                  Em preparação — o plano aparece aqui quando a equipe compartilhar.
                 </p></div>
               )}
             </section>
@@ -280,7 +280,7 @@ export function PortalConta() {
                 </div>
               ) : atualizacoes.length === 0 ? (
                   <div className="app-v11-lacuna mt-3">
-                   <p className="text-sm text-navy/70">Nenhum recado novo por enquanto.</p>
+                   <p className="text-sm text-navy/70">Em preparação — os recados da equipe aparecem aqui quando forem compartilhados.</p>
                 </div>
               ) : null}
             </section>
