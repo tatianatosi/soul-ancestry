@@ -133,7 +133,7 @@ export function PortalRadar() {
                               style={{ width: `${temPercentual ? (d.percentual ?? 0) : 0}%` }}
                             />
                           </div> : null}
-                          {d.legenda ? <p className="mt-2 text-sm leading-relaxed text-navy/75">{vazio ? d.legenda.replace(/^Lacuna:\s*/i, "").replace(/^./, (c) => c.toUpperCase()) : d.legenda}</p> : null}
+                          {d.legenda ? <details className="mt-2"><summary className="flex min-h-11 cursor-pointer items-center text-xs font-medium text-navy">Sobre {d.titulo}</summary><p className="mt-2 text-sm leading-relaxed text-navy/75">{vazio ? d.legenda.replace(/^Lacuna:\s*/i, "").replace(/^./, (c) => c.toUpperCase()) : d.legenda}</p></details> : null}
                         </li>
                         );
                       })}

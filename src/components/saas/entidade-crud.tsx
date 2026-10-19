@@ -358,11 +358,11 @@ export function EntidadeCrud({
                 return (
                   <tr key={String(linha["id"])} className={cn("border-t border-navy/5", arquivado && "opacity-55", classeLinha?.(linha))}>
                     {colunas.map((c) => (
-                      <td key={c.chave} className="px-4 py-3 align-top">
+                      <td key={c.chave} data-label={c.rotulo} className="px-4 py-3 align-top">
                         {c.render ? c.render(linha) : (linha[c.chave] as string) || "—"}
                       </td>
                     ))}
-                    <td className="whitespace-nowrap px-4 py-3 text-right align-top">
+                    <td data-label="Ações do registro" className="whitespace-nowrap px-4 py-3 text-right align-top">
                       <div className="flex flex-col items-end gap-2">
                         {extra ? extra(linha, recarregar) : null}
                         {arquivado ? (

@@ -181,6 +181,11 @@ export function PortalLegado() {
                                   key={item.id}
                                   className="border-b border-border py-4"
                                 >
+                                  <details>
+                                  <summary className="min-h-11 cursor-pointer font-serif text-lg text-navy">
+                                    {item.tipo === "microentrega" ? "Da nossa jornada" : item.tipoRotulo}
+                                    {item.publicadoEm && dataPublicacao(item.publicadoEm) ? <span className="ml-2 font-sans text-xs text-navy/60">{dataPublicacao(item.publicadoEm)}</span> : null}
+                                  </summary>
                                   <p className="text-[11px] font-medium uppercase tracking-wide text-navy/45">
                                      {item.tipo === "microentrega" ? "Da nossa jornada" : item.tipoRotulo}
                                   </p>
@@ -192,6 +197,7 @@ export function PortalLegado() {
                                       Publicado em {dataPublicacao(item.publicadoEm)}
                                     </p>
                                   ) : null}
+                                  </details>
                                 </li>
                               ))}
                             </ul>

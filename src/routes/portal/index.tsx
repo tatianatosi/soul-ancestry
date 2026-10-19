@@ -17,6 +17,8 @@ import { jornadaSanitizada, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-viv
 import { cn } from "@/lib/utils";
 import { ArrowRight, CheckCircle2, UsersRound, Search } from "lucide-react";
 import { CaCard } from "@/components/ui/ca-card";
+import { Button } from "@/components/ui/button";
+import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
 import { pessoasDaArvore } from "@/lib/arvore-publicacao";
 
 const PROXIMO_PASSO_VAZIO =
@@ -468,7 +470,7 @@ function PainelHomeMockup({
               itens.push({ chave: s.id, titulo: s.titulo, detalhe: "Documento solicitado", destino: "/portal/documentos" });
             }
             if (itens.length === 0) {
-              return <p className="app-home-passo-vazio rounded-xl border border-border bg-white px-4 py-4 text-sm leading-relaxed text-navy/70">{PROXIMO_PASSO_VAZIO}</p>;
+              return <p className="app-home-passo-vazio rounded-xl border border-border bg-card px-4 py-4 text-sm leading-relaxed text-navy/70">{PROXIMO_PASSO_VAZIO}</p>;
             }
             return (
               <ol className="space-y-2.5">
@@ -483,7 +485,7 @@ function PainelHomeMockup({
                       {item.destino ? <ArrowRight className="h-4 w-4 shrink-0 text-navy/70" aria-hidden="true" /> : null}
                     </>
                   );
-                  const classe = "app-home-passo flex min-h-14 items-center gap-3 rounded-xl border border-border bg-white px-4 py-3 shadow-sm";
+                  const classe = "app-home-passo flex min-h-14 items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-sm";
                   return (
                     <li key={item.chave}>
                       {item.destino ? <LinkPortal to={item.destino} className={classe}>{conteudo}</LinkPortal> : <div className={classe}>{conteudo}</div>}
@@ -500,7 +502,7 @@ function PainelHomeMockup({
           ) : null}
         </section>
 
-        <section aria-label="Pessoas conectadas" className="app-home-pessoas rounded-xl border border-border bg-white px-4 py-4 shadow-sm">
+        <section aria-label="Pessoas conectadas" className="app-home-pessoas rounded-xl border border-border bg-card px-4 py-4 shadow-sm">
           <div className="flex items-center gap-4" data-home-pessoas-estatistica>
             <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gold/15 text-gold" aria-hidden="true">
               <UsersRound className="h-6 w-6" />
@@ -530,7 +532,7 @@ function PainelHomeMockup({
             </LinkPortal>
           </div>
           {achados.length === 0 ? (
-            <div className="rounded-xl border border-border border-l-4 border-l-gold/50 bg-white px-4 py-4">
+            <div className="rounded-xl border border-border border-l-4 border-l-gold/50 bg-card px-4 py-4">
               <p className="text-sm leading-relaxed text-navy/70">
                 Quando houver descobertas prontas para compartilhar, elas encontrarão seu lugar aqui.
               </p>
@@ -542,17 +544,18 @@ function PainelHomeMockup({
                 const [titulo, ...resto] = a.texto.split(/(?<=[.!?])\s+/);
                 const resumo = resto.join(" ");
                 return (
-                  <LinkPortal key={a.id} to={a.destino} className="block">
-                    <CaCard className="app-achado-editorial rounded-xl border-l-4 border-l-gold bg-white px-4 py-3 text-left transition-colors">
+                  <details key={a.id} className="app-achado-editorial rounded-xl border border-border border-l-4 border-l-gold bg-card px-4 py-3 text-left">
+                    <summary className="min-h-11 cursor-pointer">
                       <p className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-widest text-gold">
                         <Search className="h-3 w-3" aria-hidden="true" />
                         {a.tipo}
                         {a.ano ? <span className="ml-1 font-serif text-sm normal-case tracking-normal text-gold">· {a.ano}</span> : null}
                       </p>
                       <p className="mt-1 text-sm font-medium leading-snug text-navy">{titulo}</p>
-                      {resumo ? <p className="mt-0.5 line-clamp-2 text-xs text-navy/65">{resumo}</p> : null}
-                    </CaCard>
-                  </LinkPortal>
+                    </summary>
+                    {resumo ? <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-navy/75">{resumo}</p> : null}
+                    <LinkPortal to={a.destino} className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-navy underline decoration-gold underline-offset-4">Abrir {a.tipo}<ArrowRight className="h-4 w-4" aria-hidden="true" /></LinkPortal>
+                  </details>
                 );
               })}
             </div>
@@ -572,9 +575,11 @@ function PainelHomeMockup({
             <LinkPortal to="/portal/documentos" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Documentos <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></LinkPortal>
           </section>
         ) : null}
-        <section aria-label="Contato com a equipe" className="app-home-ausencia sm:col-span-2">
-          <h3 className="font-serif text-xl text-navy">Contato com a equipe</h3>
-          <LinkPortal to="/portal/conta" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Conta <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></LinkPortal>
+        <section aria-label="Contato com a equipe" className="app-home-assessoria sm:col-span-2">
+          <h3 className="font-serif text-xl text-navy">Assessoria Familiar</h3>
+          <Button asChild variant="outline" className="mt-3 h-auto min-h-11 whitespace-normal text-left">
+            <a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer">Falar com a Especialista · {WHATSAPP_ESPECIALISTA.rotulo}<ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" /></a>
+          </Button>
         </section>
       </div>
     </div>
