@@ -20,6 +20,12 @@ import {
 import { podeExecutarHandoffDiscovery } from "@/lib/handoff-discovery";
 import { Etiqueta, Pessoa, type Tom } from "@/components/prancha-v4/kit";
 import { CaCard } from "@/components/ui/ca-card";
+// Frente 2 (19/10/2026) — produtos_recomendados aqui é só leitura (edição
+// completa fica na Mesa de Propostas, /leads); este componente dá ao
+// atendente, durante a call, a visão real do catálogo PP-01–09
+// (planner_catalog_feed) ao decidir o que recomendar. Reaproveitado de
+// /catalogo e /leads — não é segunda implementação.
+import { PlanejadorProdutosPai } from "@/components/catalogo/planejador-produtos-pai";
 
 export const Route = createFileRoute("/_authenticated/calls")({
   validateSearch: (s: Record<string, unknown>): { lead?: string } => ({
@@ -562,6 +568,14 @@ function CallsPage() {
                   />
                 </label>
                 {errosCampo.resumo_call ? <p className="mt-0.5 text-[11px] text-terracotta">{errosCampo.resumo_call}</p> : null}
+              </div>
+            ) : null}
+            {selecionado ? (
+              <div data-calls-produto-pai-real className="mt-4 border-t border-navy/10 pt-4">
+                <p className="mb-1 text-xs font-medium text-navy/60">
+                  Catálogo real ao vivo — para decidir "produtos/serviços recomendados" (edição completa em /leads)
+                </p>
+                <PlanejadorProdutosPai />
               </div>
             ) : null}
           </CaCard>

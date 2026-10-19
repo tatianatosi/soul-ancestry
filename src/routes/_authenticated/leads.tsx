@@ -10,6 +10,11 @@ import { HandoffLead } from "@/components/crm/handoff-lead";
 import { NovoLeadDialog } from "@/components/crm/novo-lead";
 import { TemplatesWhatsapp } from "@/components/crm/templates-whatsapp";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+// Frente 2 (19/10/2026) — "Produtos/serviços recomendados" abaixo é a lista
+// curada de sinal comercial (gate de via inviável incluído); o seletor de
+// produto-pai REAL (PP-01–09, planner_catalog_feed) vem deste componente já
+// existente (antes só em /catalogo), reaproveitado aqui — não duplicado.
+import { PlanejadorProdutosPai } from "@/components/catalogo/planejador-produtos-pai";
 
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -1440,6 +1445,15 @@ function LeadsPage() {
             <p className="mt-2 text-xs text-navy/60">
               Despesas de terceiros são sempre do cliente: o Clube não antecipa nem reembolsa. Nenhum valor ou link de cobrança é editável aqui.
             </p>
+            {/*
+              Frente 2 (19/10/2026): conecta esta tela à fonte real de
+              Produto-Pai — PP-01–09, planner_catalog_feed — para a
+              recomendação acima ser escolhida olhando o catálogo vivo, não
+              só rótulos fixos. Mesmo componente de /catalogo; sem query nova.
+            */}
+            <div data-leads-produto-pai-real className="mt-4">
+              <PlanejadorProdutosPai />
+            </div>
           </Secao>
 
           <Secao
