@@ -133,6 +133,14 @@ export function CardsFluxoContrato({
   );
 }
 
+/** Valor numérico vira R$ formatado; texto já redigido passa intacto; ausência é explícita. */
+function formatarValorReferencia(valor: string | null): string {
+  if (!valor) return "Não registrado";
+  const numero = Number(valor.replace(",", "."));
+  if (!Number.isFinite(numero)) return valor;
+  return numero.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
 /** Resumo em linguagem familiar: só repete fatos já registrados; ausências são explícitas. */
 export function ResumoFamiliarContrato({
   titulo,
