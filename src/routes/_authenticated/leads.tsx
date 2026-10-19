@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
 import { motivoCampoInvalido } from "@/components/campos/aviso-campo";
-import { MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
+import { ChipsEscolha, MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
 import { DerivacaoJornada } from "@/components/crm/derivacao-jornada";
 import { HandoffLead } from "@/components/crm/handoff-lead";
 import { NovoLeadDialog } from "@/components/crm/novo-lead";
@@ -1111,7 +1111,13 @@ function LeadsPage() {
                 onChange={(x) => set("telefone")(formatarTelefone(x))}
                 erro={motivoCampoInvalido("Telefone", "telefone", String(campo("telefone") ?? ""))}
               />
-              <Selecao label="Origem" valor={campo("origem")} opcoes={ORIGENS_LEAD} onChange={set("origem")} />
+              {/*
+                19/10/2026 — Diretriz v2.0 (Reintegração micro GoLive): chip de
+                um toque do dicionário CA-04 ("Origem do lead"), mesma lista
+                `ORIGENS_LEAD` e mesmo campo `set("origem")` de antes — só a
+                forma de escolher muda de dropdown para clique direto.
+              */}
+              <ChipsEscolha label="Origem" valor={campo("origem")} opcoes={ORIGENS_LEAD} onChange={set("origem")} />
               <Selecao
                 label="Área responsável"
                 valor={campo("area_responsavel")}
@@ -1146,7 +1152,8 @@ function LeadsPage() {
 
           <Secao titulo="Objetivo e linha preliminar" descricao="Leitura interna preliminar; não é parecer jurídico.">
             <div className="grid gap-3 md:grid-cols-2">
-              <Selecao label="Objetivo" valor={campo("objetivo")} opcoes={OBJETIVOS} onChange={set("objetivo")} />
+              {/* 19/10/2026 — chip de um toque (dicionário CA-04 "Objetivo principal"/interesse do lead). */}
+              <ChipsEscolha label="Objetivo" valor={campo("objetivo")} opcoes={OBJETIVOS} onChange={set("objetivo")} />
               {/* CRM Vivo (27/09/2026): país de interesse tem um só campo editável —
                   "Nacionalidades de interesse", abaixo. O valor único antigo fica só leitura. */}
               {campo("nacionalidade") ? (
@@ -1417,9 +1424,11 @@ function LeadsPage() {
                 valor={campo("localidades_conhecidas")}
                 onChange={set("localidades_conhecidas")}
               />
-              <MultiSelecao
+              {/* 19/10/2026 — chip de um toque, multi-escolha (dicionário CA-04 "Nacionalidade de interesse"). */}
+              <ChipsEscolha
                 label="Nacionalidades de interesse"
                 opcoes={NACIONALIDADES}
+                multiplo
                 valores={(editado.nacionalidades_interesse ?? []) as string[]}
                 onChange={set("nacionalidades_interesse")}
               />
