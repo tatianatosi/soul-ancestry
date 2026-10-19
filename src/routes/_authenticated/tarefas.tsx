@@ -38,6 +38,17 @@ function TarefasPage() {
           Pendência registrada: {pendenciaVinculo}
         </p>
       ) : null}
+      {/*
+        19/10/2026 — Prancha V4: contexto como alimento visível (a faixa
+        declara fonte e consumidor) e as tarefas também em colunas por
+        status, acima da tabela que continua sendo onde se edita.
+      */}
+      <FonteAlimento
+        fonte="Checklist operacional da equipe"
+        consumidor="Painel Hoje, Caso 360 e a próxima ação de cada caso"
+        detalheTecnico="tarefas · listarRegistros"
+      />
+      <KanbanTarefas />
       <EntidadeCrud
         entidade="tarefas"
         titulo="Checklist"
