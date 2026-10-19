@@ -10,6 +10,7 @@ import { CaCard } from "@/components/ui/ca-card";
 import { Indicador } from "@/components/prancha-v4/kit";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { CadeiaFormalizacao } from "@/components/contrato/cadeia-formalizacao";
+import { PranchaJuridicoContrato } from "@/components/contratos/prancha-juridico-contrato";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { montarChecklistJuridico } from "@/lib/checklist-juridico";
 import {
@@ -204,6 +205,15 @@ function ContratoDetalhe() {
         </p>
       ) : null}
       <AvisoInstrumento tipo={c.contract_type} status={c.status} />
+
+      {/*
+        Jurídico & Contrato — composição da prancha V4 (19/10/2026) no topo da
+        ficha: os mesmos seis blocos de /contratos, somente leitura. As ações
+        (aprovar, enviar, assinar) seguem nas abas abaixo, sob useAutoridade.
+      */}
+      <div className="mt-4" data-contrato-prancha-topo>
+        <PranchaJuridicoContrato contratoId={id} />
+      </div>
 
       {d.contratoBase ? (
         <p className="mt-3 rounded-lg border border-navy/15 bg-cream/40 px-3 py-2 text-sm">
