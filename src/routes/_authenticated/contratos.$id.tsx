@@ -70,6 +70,26 @@ const ABAS = [...ABAS_PRINCIPAIS, ...ABAS_AVANCADAS] as const;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+/** Próximo passo em linguagem humana, derivado só do status persistido. */
+function proximoPassoDoStatus(status: string | null | undefined): string | null {
+  switch (status) {
+    case "draft":
+    case "pending_data":
+      return "Preparar o instrumento";
+    case "ready_for_review":
+    case "under_human_review":
+      return "Revisão humana";
+    case "approved_for_send":
+      return "Envio (ato externo, com confirmação)";
+    case "sent":
+      return "Registrar assinatura (ato externo, com confirmação)";
+    case "signed":
+      return "Liberar App (ato externo, com confirmação)";
+    default:
+      return null;
+  }
+}
+
 function ContratoDetalhe() {
   const autoridade = useAutoridade();
   const { podeEscrever: podeEscreverVinculo } = useSaas();
