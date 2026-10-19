@@ -358,8 +358,8 @@ function NucleosPage() {
 
   return (
     <SaasShell
-      titulo="Núcleos familiares"
-      descricao="Um dossiê-mãe por núcleo. Requerentes têm registro individual vinculado."
+      titulo="Pessoas & Famílias"
+      descricao="Núcleos familiares: um dossiê-mãe por núcleo, requerentes com registro individual vinculado."
     >
       <div className="space-y-5">
         {/*
