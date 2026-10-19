@@ -21,6 +21,7 @@ import {
 import { podeExecutarHandoffDiscovery } from "@/lib/handoff-discovery";
 import { Etiqueta, Pessoa, type Tom } from "@/components/prancha-v4/kit";
 import { CaCard } from "@/components/ui/ca-card";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/calls")({
   validateSearch: (s: Record<string, unknown>): { lead?: string } => ({
@@ -251,6 +252,7 @@ function CallsPage() {
   // tela inteira numa única gravação.
   const [campoPendente, setCampoPendente] = useState<string | null>(null);
   const [errosCampo, setErrosCampo] = useState<Record<string, string>>({});
+  const [momento, setMomento] = useState<"antes" | "durante" | "revisao">("antes");
   async function gravarCampoSpin(leadId: string, campo: string, valor: string | boolean | null) {
     setCampoPendente(campo);
     try {
@@ -347,17 +349,31 @@ function CallsPage() {
         rota é só a mesa operacional de atendimento ao vivo: KPIs de
         atendimento, agenda do dia, roteiro SPIN e handoff.
       */}
-      <div className="mb-6 flex items-center justify-between gap-3">
+      <nav aria-label="Momentos da call" className="mb-4 grid grid-cols-3 gap-2">
+        {([ ["antes", "Antes"], ["durante", "Durante"], ["revisao", "Revisão"] ] as const).map(([valor, titulo]) => (
+          <Button key={valor} variant={momento === valor ? "default" : "outline"} className="min-h-11" aria-pressed={momento === valor} onClick={() => setMomento(valor)}>{titulo}</Button>
+        ))}
+      </nav>
+      {selecionado ? <div className="mb-4 border-b border-border pb-4 text-sm text-navy">
+        <Pessoa nome={selecionado.nome} papel={selecionado.codigo || "Código não registrado"} />
+        <div className="mt-2 flex flex-wrap gap-3 text-xs">
+          {selecionado.case_id ? <Link to="/casos/$caseId" params={{ caseId: selecionado.case_id }}>Abrir Caso 360</Link> : <span>Sem caso vinculado</span>}
+          <Link to="/leads">Voltar ao CRM Vivo</Link>
+        </div>
+      </div> : null}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-serif text-lg text-navy">Mesa de Discovery</h2>
         <div className="flex gap-2">
           <a
             href="#calls-spin"
+            onClick={() => setMomento("durante")}
             className="rounded-full border border-navy/20 px-4 py-1.5 text-sm text-navy hover:bg-navy/5"
           >
             Roteiro SPIN
           </a>
           <a
             href="#calls-handoff"
+            onClick={() => setMomento("revisao")}
             className="rounded-full bg-navy px-4 py-1.5 text-sm text-cream hover:bg-navy/90"
           >
             Handoff
@@ -397,7 +413,7 @@ function CallsPage() {
 
       <div className="mb-6 grid gap-6 lg:grid-cols-2">
         {/* Coluna da esquerda: Agenda & Consentimento */}
-        <div className="space-y-6">
+        <div hidden={momento !== "antes"} className="space-y-6">
           <CaCard
             titulo="Agenda de Discovery do Dia"
             eyebrow="Mesa de Discovery · Horário, lead, canal e status"
@@ -545,7 +561,7 @@ function CallsPage() {
         </div>
 
         {/* Coluna da direita: Mesa Discovery & Roteiro SPIN ativo */}
-        <div id="calls-spin" className="scroll-mt-24 space-y-6">
+        <div hidden={momento !== "durante"} id="calls-spin" className="scroll-mt-24 space-y-6">
           <CaCard
             titulo="Roteiro SPIN & Diagnóstico"
             eyebrow="Situação · Problema · Implicação · Necessidade"
@@ -604,6 +620,7 @@ function CallsPage() {
 
           <a
             href="#calls-handoff"
+            onClick={() => setMomento("revisao")}
             aria-disabled={!gateHandoff.ok}
             className={`block rounded-2xl px-5 py-4 text-center text-sm font-semibold transition-colors ${
               gateHandoff.ok
@@ -617,7 +634,14 @@ function CallsPage() {
         </div>
       </div>
 
-      <PainelCalls leadIdInicial={selecionado?.id ?? lead} />
+      {momento === "revisao" && selecionado ? <section className="mb-4 border-b border-border pb-4 text-sm text-navy">
+        <h2 className="font-serif text-xl">Revisão da conversa</h2>
+        <p className="mt-2">Resultado: {rotulo("discovery_resultado", selecionado.discovery_resultado)}</p>
+        <p>Resumo: {selecionado.resumo_call || "Não registrado"}</p>
+        <p>Próxima ação: {selecionado.proxima_acao ? rotulo("proxima_acao", selecionado.proxima_acao) : "Não registrado"}</p>
+        <p>Prazo: {selecionado.proxima_acao_em?.slice(0, 10) || "Não registrado"}</p>
+      </section> : null}
+      <PainelCalls leadIdInicial={selecionado?.id ?? lead} momento={momento} />
     </SaasShell>
   );
 }

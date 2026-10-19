@@ -2279,6 +2279,15 @@ function FichaCaso() {
         </SecaoAncora>
 
         <SecaoAncora id="comercial" titulo="Formalização" hidden={secaoFoco !== null && secaoFoco !== "comercial"}>
+          <section className="mb-6 border-y border-border py-4 text-sm text-navy" aria-label="Contexto da formalização">
+            <h2 className="font-serif text-xl">Formalização deste caso</h2>
+            <p className="mt-2">{caso["contrato_assinado"] ? "Assinatura indicada no caso — conferir no instrumento." : "Assinatura não registrada no caso."}</p>
+            <div className="mt-3 flex flex-wrap gap-3 text-xs">
+              {qProposta.data?.proposta ? <span>Proposta registrada · versão {String(qProposta.data.proposta.versao ?? "Não registrado")} · {String(qProposta.data.proposta.status ?? "Não registrado")}</span> : <span>Proposta não registrada nesta leitura</span>}
+              <a href="#formalizacao-juridico" className="underline">Validação jurídica deste caso</a>
+              <a href="#formalizacao-instrumento" className="underline">Instrumento e versões</a>
+            </div>
+          </section>
           {/*
             27/08/2026 — decisão da Proprietária, com cautela deliberada: o
             motor e a matriz de contrato já moram em /contratos e
@@ -2388,6 +2397,7 @@ function FichaCaso() {
               </div>
             </Secao>
 
+            <div id="formalizacao-juridico" className="scroll-mt-24">
             <Secao
               titulo="Validação jurídica deste caso"
               descricao="Decisão de ato formal, não bloqueio universal — leads, Discovery, pesquisa, tarefas, rascunhos e OS internas seguem sem depender disto."
@@ -2466,6 +2476,8 @@ function FichaCaso() {
               ) : null}
             </Secao>
 
+            </div>
+            <div id="formalizacao-instrumento" className="scroll-mt-24">
             <Secao
               titulo="Motor e matriz de contrato"
               descricao="Vive em Contratos, não é duplicado aqui — esta é a ponte."
@@ -2499,6 +2511,7 @@ function FichaCaso() {
                 </Link>
               </div>
             </Secao>
+            </div>
           </div>
         </SecaoAncora>
 

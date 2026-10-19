@@ -293,9 +293,16 @@
 - [x] Mapa de rotas V4 + canos da jornada 8 fases (18/10): dois diagramas .mmd em Arquivos e na coleção
 
 ## 18/10/2026 — Jornada viva da Ana (novo pedido)
-- [ ] Jornada completa somente leitura: Ana como lead → Discovery → proposta → assinatura do contrato, com cortes de ficha L03/L04/L08 em execução no rascunho isolado “Ana — jornada viva e fichas V4” (drft_01m58gggqcet08ecsv365d8p0v), autorizado em 18/10 às 22:00 UTC; sem integrar/publicar.
-- [ ] Comparar cada etapa com a prancha V4 aprovada (mockup).
-- [ ] Somente leitura: nenhum writer, cobrança, assinatura ou publicação real.
+- [x] Corte isolado L03: filtros no início, identidade/resumo e uma seção da ficha em foco, mantendo campos montados, Scan, templates e gravadores.
+- [x] Corte isolado L04: Antes/Durante/Revisão locais com o lead persistido, SPIN e ajuda existentes; gravação por campo preservada.
+- [x] L08 parcial: contexto read-only do instrumento, versões, assinatura não registrada e retorno ao Caso360; leitura móvel corrigida sem alterar shell/menu global.
+- [x] Lead canônico da Ana conferido por vínculo de caso; Calls, validação jurídica, proposta aprovada, Caso360 e contrato em revisão abertos sem acionar escritores.
+- [x] Testes focados: 5 arquivos / 75 testes; capturas autenticadas 375/1280 antes/depois; build automático OK. Comparação com V4 distingue proposta visual de dados atuais.
+- [ ] PEDIDO AO CLAUDE — L08: leitor da cadeia busca o contrato mas não retorna seu ID; expor vínculo canônico para ponte Caso360→instrumento sem selecionar por nome.
+- [ ] PEDIDO AO CLAUDE — L08: cinco cartões exigem payload do preparador que pode inserir/atualizar ao abrir; fornecer leitura pura compatível antes de montá-los no Caso360.
+- [ ] PEDIDO AO CLAUDE — CRM: clique de saída contextual não concluiu em ficha limpa no teste; destino por URL confirmado, sem alterar bloqueador/rascunhos neste corte.
+- [ ] Prova de gravação, exportação vigente e COMPROVADO_EM_USO: dependem de autorização específica e conferência pessoal da Proprietária; não executados.
+- App congelado, documentos reservados; nada aceito, integrado, publicado ou assinado por este corte. Demais tarefas históricas abaixo permanecem fora do escopo autorizado.
 - L02 entregue. Leitura atual confirmou lead vinculado ao caso, proposta v1 aprovada e contrato vigente em revisão humana, sem assinatura. Preparador excluído da auditoria por gravar na abertura; alterações de lógica L05/L06 e demais cortes não incluídas neste corte visual.
 
 ## 18/10/2026 — Mockup V4 do dia a dia (11 telas) — revisão após a jornada da Ana
