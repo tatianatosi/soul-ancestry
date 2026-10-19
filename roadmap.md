@@ -306,3 +306,5 @@
 - [ ] Recompor o mockup de todas as superfícies e estados contextuais do Desk, não limitado às onze principais nem à prancha aprovada: resgatar cascas/componentes/estudos V4 reais por tela. Em execução no rascunho isolado “Desk — todas as telas com cascas V4 reais” (drft_01m58n10hyefm9sz2m3rz46dxh), sem integrar/publicar.
 - [ ] Entregar inventário completo com origem da casca e comparação antes/depois em 375/1280, PDF e imagens conferidas; distinguir captura atual, referência histórica e proposta.
 - App congelado; sem produto paralelo, integração, escrita de dados, assinatura ou publicação. Telas não recuperadas devem constar como pendências explícitas, nunca cobertura presumida.
+
+- [ ] 19/10/2026 00:04 UTC — Comparar mockup (drft_01m58n10hyefm9sz2m3rz46dxh) com prancha V4 tela a tela, sem publicar; contrato autorizado a gravar rascunho interno da Ana. Aguarda o draft terminar.
