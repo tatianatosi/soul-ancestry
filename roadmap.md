@@ -335,3 +335,14 @@
 - [ ] Contextos como alimento visível (dicionários, gavetas, Biblioteca, planejador): origem e consumidor em cada superfície.
 - [ ] Entrega: antes/depois 375/1280/1440 autenticado, PDF com selo MOCKUP, typecheck + testes, SHA e pendências.
 - Regras: sem rotas novas, sem dados inventados, 14 itens reservados, R$ 9.600 = previsão, sem migration/RLS/publicação/merge; não tocar painel-dia.tsx nem golive-*; App /portal congelado.
+
+## 18/10/2026 23:18 UTC — Recomposição de todas as superfícies Desk
+- [x] Inventário fonte-referenciado: 90 padrões + layout, 87 padrões Desk incluídos; 213 estados listados, não todos capturados.
+- [ ] Resgatar cascas originais V4 e rodadas 1–4, com fonte por composição; preservar mockup rejeitado como histórico.
+- [ ] Produzir proposta isolada em PNG/PDF 1280/375 com antes autenticado, referência original, depois e matriz de cobertura; inspecionar cada página.
+- [ ] Organizar na coleção existente e entregar cobertura exata e bloqueios; nenhum produto, dado, App ou publicação alterado.
+- Jornada anterior: L03/L04 apresentação no draft separado f8aae013; L08 bloqueado pela abertura escritora, contrato não assinado. Não incorporado.
+- [x] Entrega parcial v2: 174 propostas PNG 1280/375 e PDF de 212 páginas; todas vistas em 14 folhas de contato. Matriz explicita faltas; não declarar recomposição integral.
+- [ ] Antes/depois público: bloqueado pela verificação de privacidade incompleta nos pixels; comparativos retidos em /tmp, não compartilhados.
+- [ ] Paridade peça a peça: faltam timeline/rosca Caso 360, funil CRM, matriz nominal/radar, árvore com arestas confirmadas, contrato contínuo e gavetas/subáreas específicas; templates de família não substituem essas cascas.
+- [ ] PEDIDO AO CLAUDE: preparador grava na carga; separar leitura somente com autorização própria. Pesquisa módulo tem erro de hooks; Pesquisa/Privacidade em carregamento. Nenhuma correção no produto neste turno.
