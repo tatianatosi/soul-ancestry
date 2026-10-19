@@ -878,7 +878,7 @@ function LeadsPage() {
                 </div>
                 <div>
                   <dt className="uppercase tracking-wide text-cream/55">Etapa</dt>
-                  <dd>{atual.etapa ? rotulo("etapa", atual.etapa) : "Não registrado"}</dd>
+                  <dd>{ROTULO_ETAPA_PIPELINE[etapaPipeline(atual)]}</dd>
                 </div>
                 <div>
                   <dt className="uppercase tracking-wide text-cream/55">Responsável</dt>
