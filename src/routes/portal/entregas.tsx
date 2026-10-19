@@ -54,7 +54,7 @@ export function PortalEntregas() {
               <ChipMeta rotulo="Tipo" valor="Materiais" />
               <ChipMeta
                 rotulo="Publicados"
-                valor={itens.length === 0 ? "Nenhum ainda" : String(itens.length)}
+                valor={itens.length === 0 ? "Em preparação" : String(itens.length)}
               />
               <ChipMeta
                 rotulo="Estado"
@@ -63,7 +63,7 @@ export function PortalEntregas() {
             </div>
           {itens.length === 0 ? (
             <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
-              Nenhum material liberado para consulta no momento.
+              Em preparação — o material desta etapa aparece aqui quando for compartilhado.
             </p>
           ) : (
             <ul className="space-y-3">

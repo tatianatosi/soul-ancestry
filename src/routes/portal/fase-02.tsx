@@ -56,7 +56,7 @@ export function PortalFase02() {
               <ChipMeta rotulo="Tipo" valor="Atualização" />
               <ChipMeta
                 rotulo="Publicados"
-                valor={itens.length === 0 ? "Nenhum ainda" : String(itens.length)}
+                valor={itens.length === 0 ? "Em preparação" : String(itens.length)}
               />
               <ChipMeta
                 rotulo="Estado"
@@ -65,7 +65,7 @@ export function PortalFase02() {
             </div>
             {itens.length === 0 ? (
               <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
-                Nenhuma atualização desta etapa foi publicada para consulta até agora.
+                Em preparação — o material desta etapa aparece aqui quando for compartilhado.
               </p>
             ) : (
               <ul className="space-y-3">
