@@ -53,14 +53,18 @@ export function KanbanTarefas() {
         recurso="as tarefas em colunas"
         vazio="Nenhuma tarefa registrada."
       >
-        <CrmKanban
-          titulo="Tarefas em colunas"
-          eyebrow="A mesma lista do Checklist, agrupada por status"
-          colunas={colunas as any}
-        />
-        <p className="mt-2 text-[11px] text-navy/55">
-          Visão de leitura: para mudar o status de uma tarefa, edite-a na tabela abaixo.
-        </p>
+        {() => (
+          <>
+            <CrmKanban
+              titulo="Tarefas em colunas"
+              eyebrow="A mesma lista do Checklist, agrupada por status"
+              colunas={colunas as any}
+            />
+            <p className="mt-2 text-[11px] text-navy/55">
+              Visão de leitura: para mudar o status de uma tarefa, edite-a na tabela abaixo.
+            </p>
+          </>
+        )}
       </EstadoDados>
     </div>
   );

@@ -30,31 +30,33 @@ export function CardsContratoCaso({ caseId }: { caseId: string }) {
     <EstadoDados
       carregando={q.isLoading}
       erro={q.error}
-      dados={q.data}
+      dados={q.data ? [q.data] : undefined}
       aoTentarNovamente={() => void q.refetch()}
       recurso="o contrato do caso"
       vazio="Nenhum instrumento contratual registrado para este caso."
     >
-      {vigente ? (
-        <div className="space-y-2">
-          <CardsFluxoContrato
-            status={vigente.status}
-            temVersaoInterna={Boolean(vigente.current_version_id)}
-            titulo={`Marcos do contrato — ${vigente.contract_number}`}
+      {() =>
+        vigente ? (
+          <div className="space-y-2">
+            <CardsFluxoContrato
+              status={vigente.status}
+              temVersaoInterna={Boolean(vigente.current_version_id)}
+              titulo={`Marcos do contrato — ${vigente.contract_number}`}
+            />
+            <p className="text-xs text-navy/60">
+              <Link to="/contratos/$id" params={{ id: String(vigente.id) }} className="font-medium text-navy underline decoration-gold underline-offset-4">
+                Abrir o instrumento contratual
+              </Link>{" "}
+              — preparação, revisão e atos formais acontecem lá; aqui é só leitura.
+            </p>
+          </div>
+        ) : (
+          <KitEmptyState
+            title="Contrato não registrado"
+            description="Nenhum instrumento contratual vigente vinculado a este caso. A formalização começa pela proposta aprovada e pelo preparo do instrumento."
           />
-          <p className="text-xs text-navy/60">
-            <Link to="/contratos/$id" params={{ id: String(vigente.id) }} className="font-medium text-navy underline decoration-gold underline-offset-4">
-              Abrir o instrumento contratual
-            </Link>{" "}
-            — preparação, revisão e atos formais acontecem lá; aqui é só leitura.
-          </p>
-        </div>
-      ) : (
-        <KitEmptyState
-          title="Contrato não registrado"
-          description="Nenhum instrumento contratual vigente vinculado a este caso. A formalização começa pela proposta aprovada e pelo preparo do instrumento."
-        />
-      )}
+        )
+      }
     </EstadoDados>
   );
 }
