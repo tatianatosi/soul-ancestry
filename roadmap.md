@@ -1,5 +1,13 @@
 # Roadmap
 
+## Caso 360 V4 — rascunho isolado (13/10, 13:25 UTC)
+- [x] Comparar painel/kit existentes com desk-04-caso360.png; capturas autenticadas antes em 375/1280/1440.
+- [x] Ajustar somente a Visão existente em três colunas; preservar oito seções, blocos recolhidos, dados e App.
+- [x] Validar 39 testes existentes e validação automática OK; capturas depois em 375/1280/1440, navegação e releitura sem overflow.
+- [x] Entregar diff, hash e limitações nas capturas e relatório.
+- [ ] Aprovação visual da Proprietária; sem integrar, aceitar, publicar ou marcar COMPROVADO_EM_USO.
+- [ ] PEDIDO AO CLAUDE: conciliar papéis dos adultos (leitor entrega Titular), estado da formalização e evidências legadas/canônicas; decisão da Proprietária sobre textos 1941/2026. Sem alteração de dados neste corte.
+
 ## 18/10 — CRM Mestre é dicionário (L00–L12, proposta v1.0)
 - [x] L00 documental: proposta v1.0 registrada no destino solicitado; mapas/cobertura v2 e PDFs com errata vigente entregues na coleção, preservando originais históricos (não reeditados internamente).
 - [x] L01: portas de entrada conferidas em leitura; diff mínimo de identificação das regras jurídicas apresentado, Referências mantém acervo compartilhado.
