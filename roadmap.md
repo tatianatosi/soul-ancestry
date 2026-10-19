@@ -393,3 +393,5 @@ PEDIDO AO CLAUDE neste corte: revisar projeção master de pessoas (ancestrais a
 
 - [x] 19/10/2026 14:32 UTC — Inventário tela a tela (topo→rodapé): online × código × estático, áreas incorporadas, motores migrados, Vercel × Lovable, canos. Mockup completo em pausa (Claude sobe o mockup).
 - [ ] 19/10/2026 14:43 UTC — Sugestões visuais UX/UI por elemento sistêmico (Central de Pesquisa → matrizes jurídicas/contratos, assistente de pesquisa), uso real diário, sem scroll infinito nem gavetas escondidas, mais cores e elementos além de cards.
+- [ ] 19/10/2026 15:08 UTC — Entregar PDF só da nova versão Desk, com complementos disponíveis e limitações explícitas; não publicar nem retomar o mockup pausado.
+- [ ] 19/10/2026 15:08 UTC — Revisar abas/subabas e produzir caderno visual sistêmico: alimento → ação diária → gravação existente → releitura → consumidor; propostas diferenciadas por superfície, sem implementar enquanto Claude atualiza.
