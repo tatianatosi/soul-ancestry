@@ -5,7 +5,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useGoLive } from "@/components/golive/dados";
 import { EstadoVazio, SaasShell } from "@/components/saas/shell";
 import { Button } from "@/components/ui/button";
-import { BarrasHorizontais, DonutEstados, GraficoLinha } from "@/components/prancha-v4/kit";
+import { DonutEstados, Etiqueta, GraficoLinha, Linha, type Tom } from "@/components/prancha-v4/kit";
+import { FunilDegraus } from "@/components/prancha-v4/funil-degraus";
 import { CaCard } from "@/components/ui/ca-card";
 import { filaDeAprovacoes, resumoAprovacoes, type ItemAprovacao } from "@/lib/golive-aprovacoes";
 import { kanbanPorEtapa, type LeadComercial } from "@/lib/golive-comercial";
@@ -68,9 +69,31 @@ const ROTULO_DECISAO: Record<ItemAprovacao["acao"], string> = {
   nenhuma: "Completar dado antes de decidir",
 };
 
-function barrasDeContagem(itens: { rotulo: string; valor: number; tom?: "navy" | "gold" | "terracotta" }[]) {
-  const maior = Math.max(...itens.map((i) => i.valor), 1);
-  return itens.map((i) => ({ ...i, apoio: String(i.valor), valor: (i.valor / maior) * 100 }));
+/*
+  19/10/2026 — conferência bloco a bloco com a prancha V4 (desk-01-hoje): os
+  cartões de lista da prancha são linhas com etiqueta de contagem/estado à
+  direita (Cadência, Sem próxima ação, Alertas) — não barras. A contagem é
+  sempre mostrada, inclusive "0"; zero não é erro.
+*/
+const TOM_DECISAO: Record<ItemAprovacao["acao"], { texto: string; tom: Tom }> = {
+  aprovar_achado: { texto: "Decidir", tom: "critico" },
+  aprovar_escopo: { texto: "Decidir", tom: "critico" },
+  enviar_revisao: { texto: "Decidir", tom: "critico" },
+  registrar_assinatura: { texto: "Decidir", tom: "critico" },
+  publicar: { texto: "Decidir", tom: "critico" },
+  // Sem ação possível até completar o dado: atenção, não decisão.
+  nenhuma: { texto: "Atenção", tom: "atencao" },
+};
+
+function tomDaFaixa(faixa: string): Tom {
+  if (faixa === "Vencida") return "critico";
+  if (faixa === "Hoje" || faixa === "Aguardando externo") return "atencao";
+  if (faixa === "Concluída") return "sucesso";
+  return "neutro";
+}
+
+function LinhaContagem({ rotulo, valor, tom }: { rotulo: string; valor: number; tom: Tom }) {
+  return <Linha rotulo={rotulo} valor={String(valor)} tom={valor > 0 ? tom : "neutro"} />;
 }
 
 function SemDados({ ativo, marca }: { ativo: boolean; marca: string }) {
@@ -126,16 +149,17 @@ function PainelConsolidado() {
   const ETAPAS_FUNIL = ["novo", "discovery", "diagnostico", "proposta", "cliente"];
   const totalEtapa = (e: string) =>
     funilLeads.filter((f) => f.etapa === e || (e === "novo" && f.etapa === "novo_lead")).reduce((s, f) => s + f.total, 0);
-  const funilBarras = barrasDeContagem([
-    ...ETAPAS_FUNIL.map((e) => ({ rotulo: ROTULO_ETAPA[e]!, valor: totalEtapa(e), tom: "navy" as const })),
-    ...funilLeads
-      .filter((f) => !ETAPAS_FUNIL.includes(f.etapa) && f.etapa !== "novo_lead")
-      .map((f) => ({ rotulo: ROTULO_ETAPA[f.etapa] ?? f.etapa, valor: f.total, tom: "navy" as const })),
-  ]);
+  const funilDegraus = ETAPAS_FUNIL.map((e) => ({ rotulo: ROTULO_ETAPA[e]!, total: totalEtapa(e) }));
+  // Etapa gravada fora das cinco do funil não some: aparece em linha à parte.
+  const foraDoFunil = funilLeads
+    .filter((f) => !ETAPAS_FUNIL.includes(f.etapa) && f.etapa !== "novo_lead")
+    .map((f) => ({ rotulo: ROTULO_ETAPA[f.etapa] ?? f.etapa, total: f.total }));
 
   const cadencia = kpisPrazo(caso.tarefas);
   const semAcao = {
     parados: caso.carteira.filter((c) => !c.temProximaAcao && (c.status ?? "").toLowerCase() !== "encerrado").length,
+    // "Caso pausado" da prancha: só o status gravado com "paus" conta — sem inferir pausa de inatividade.
+    pausados: caso.carteira.filter((c) => /paus/i.test(c.status ?? "")).length,
     encerrados: caso.carteira.filter((c) => (c.status ?? "").toLowerCase() === "encerrado").length,
   };
   const alertasPorOrigem = origemDoSinal(caso.eventos ?? []);
@@ -197,14 +221,17 @@ function PainelConsolidado() {
           ) : (
             <ul className="divide-y divide-navy/10">
               {decisoesPendentes.slice(0, 6).map((item: ItemAprovacao) => (
-                <li key={`${item.grupo}-${item.id}`} className="py-2">
-                  <Link to="/golive/aprovacoes" className="block rounded-lg px-2 py-1 hover:bg-cream/50">
-                    <p className="text-sm font-medium text-navy">
-                      {ROTULO_DECISAO[item.acao]} — {item.titulo}
-                    </p>
-                    <p className="text-[11px] text-navy/55">
-                      {item.grupo} · {item.motivo}
-                    </p>
+                <li key={`${item.grupo}-${item.id}`} className="py-1.5">
+                  <Link to="/golive/aprovacoes" className="flex items-center justify-between gap-3 rounded-lg px-1 py-1 hover:bg-cream/50">
+                    <span className="min-w-0">
+                      <span className="block truncate text-xs text-navy/80">
+                        {ROTULO_DECISAO[item.acao]} — {item.titulo}
+                      </span>
+                      <span className="block truncate text-[10px] text-navy/50">
+                        {item.grupo} · {item.motivo}
+                      </span>
+                    </span>
+                    <Etiqueta texto={TOM_DECISAO[item.acao].texto} tom={TOM_DECISAO[item.acao].tom} />
                   </Link>
                 </li>
               ))}
@@ -238,45 +265,37 @@ function PainelConsolidado() {
           {itensKanban.length === 0 ? (
             <EstadoVazio mensagem="Nenhuma tarefa ou microentrega registrada para esta leitura." />
           ) : (
-            <ul className="grid gap-2 md:grid-cols-2">
-              {itensKanban.slice(0, 6).map((item) => (
-                <li key={item.id} className="flex min-w-0 items-start justify-between gap-3 rounded-lg border border-navy/10 bg-cream/35 px-3 py-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-navy">{item.titulo}</p>
-                    <p className="mt-0.5 truncate text-[11px] text-navy/55">{item.responsavel || "Responsável não registrado"}</p>
-                  </div>
-                  <span className="shrink-0 rounded-full border border-navy/15 bg-card px-2 py-0.5 text-[10px] font-medium text-navy/65">
-                    {faixaDePrazo(item)}
-                  </span>
-                </li>
-              ))}
+            <ul className="divide-y divide-navy/5">
+              {itensKanban.slice(0, 6).map((item) => {
+                const faixa = faixaDePrazo(item);
+                return (
+                  <li key={item.id} className="flex min-w-0 items-center justify-between gap-3 py-1.5">
+                    <span className="min-w-0">
+                      <span className="block truncate text-xs text-navy/80">{item.titulo}</span>
+                      <span className="block truncate text-[10px] text-navy/50">{item.responsavel || "Responsável não registrado"}</span>
+                    </span>
+                    <Etiqueta texto={faixa} tom={tomDaFaixa(faixa)} />
+                  </li>
+                );
+              })}
             </ul>
           )}
         </CaCard>
 
         <CaCard titulo="Cadência dos casos" eyebrow="Faixa de prazo das tarefas">
-          <div data-hoje-cadencia-barras>
-            <BarrasHorizontais
-              tituloAcessivel={`Tarefas por faixa de prazo: em dia ${cadencia.hoje + cadencia.proximos7}, atrasadas ${cadencia.vencida}, aguardando externo ${cadencia.externo}`}
-              itens={barrasDeContagem([
-                { rotulo: "Cadência em dia", valor: cadencia.hoje + cadencia.proximos7, tom: "navy" },
-                { rotulo: "Cadência atrasada", valor: cadencia.vencida, tom: "terracotta" },
-                { rotulo: "Aguardando cliente/externo", valor: cadencia.externo, tom: "gold" },
-              ])}
-            />
+          <div data-hoje-cadencia-linhas>
+            <LinhaContagem rotulo="Cadência em dia" valor={cadencia.hoje + cadencia.proximos7} tom="sucesso" />
+            <LinhaContagem rotulo="Cadência atrasada" valor={cadencia.vencida} tom="critico" />
+            <LinhaContagem rotulo="Aguardando cliente/externo" valor={cadencia.externo} tom="atencao" />
           </div>
           <SemDados ativo={caso.tarefas.length === 0} marca="data-hoje-cadencia-vazio" />
         </CaCard>
 
         <CaCard titulo="Casos sem próxima ação" eyebrow="Por natureza">
-          <div data-hoje-sem-acao-barras>
-            <BarrasHorizontais
-              tituloAcessivel={`Casos sem próxima ação: parados ${semAcao.parados}, encerrados ${semAcao.encerrados}`}
-              itens={barrasDeContagem([
-                { rotulo: "Caso sem responsável/parado", valor: semAcao.parados, tom: "terracotta" },
-                { rotulo: "Encerrado (estado normal, não falha)", valor: semAcao.encerrados, tom: "navy" },
-              ])}
-            />
+          <div data-hoje-sem-acao-linhas>
+            <LinhaContagem rotulo="Caso sem responsável/parado" valor={semAcao.parados} tom="critico" />
+            <LinhaContagem rotulo="Caso pausado" valor={semAcao.pausados} tom="neutro" />
+            <LinhaContagem rotulo="Encerrado (estado normal, não falha)" valor={semAcao.encerrados} tom="sucesso" />
           </div>
           <SemDados ativo={caso.carteira.length === 0} marca="data-hoje-sem-acao-vazio" />
         </CaCard>
@@ -295,11 +314,9 @@ function PainelConsolidado() {
           ) : (
             <ul className="divide-y divide-navy/10">
               {microentregasAbertas.slice(0, 6).map((m) => (
-                <li key={m.id} className="flex items-center justify-between gap-2 py-2">
-                  <p className="truncate text-sm font-medium text-navy">{m.titulo}</p>
-                  <span className="shrink-0 rounded-full border border-gold/50 bg-gold/10 px-2.5 py-0.5 text-[11px] font-medium text-navy">
-                    Revisar
-                  </span>
+                <li key={m.id} className="flex items-center justify-between gap-2 py-1.5">
+                  <p className="truncate text-xs text-navy/80">{m.titulo}</p>
+                  <Etiqueta texto="Revisar" tom="atencao" />
                 </li>
               ))}
             </ul>
@@ -307,12 +324,19 @@ function PainelConsolidado() {
         </CaCard>
 
         <CaCard titulo="Funil de leads · Visão Geral" eyebrow="Fonte: etapa comercial gravada">
-          <div data-hoje-funil-barras>
-            <BarrasHorizontais
-              tituloAcessivel={`Leads por etapa: ${funilBarras.map((f) => `${f.rotulo} ${f.apoio}`).join(", ")}`}
-              itens={funilBarras}
+          <div data-hoje-funil-degraus>
+            <FunilDegraus
+              etapas={funilDegraus}
+              tituloAcessivel={`Leads por etapa: ${[...funilDegraus, ...foraDoFunil].map((f) => `${f.rotulo} ${f.total}`).join(", ")}`}
             />
           </div>
+          {foraDoFunil.length ? (
+            <div className="mt-2 border-t border-navy/10 pt-1" data-hoje-funil-fora>
+              {foraDoFunil.map((f) => (
+                <LinhaContagem key={f.rotulo} rotulo={`Fora do funil · ${f.rotulo}`} valor={f.total} tom="atencao" />
+              ))}
+            </div>
+          ) : null}
           <SemDados ativo={leads.length === 0} marca="data-hoje-funil-vazio" />
           <p className="mt-2 text-[11px] text-navy/45">
             Sem recorte de período: nenhum está definido na fonte.
@@ -322,18 +346,16 @@ function PainelConsolidado() {
 
       {/* Base — Alertas + Ritmo lado a lado, Distribuição das prioridades abaixo. */}
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
-        <CaCard titulo="Alertas centralizados · com origem" eyebrow="Onde o sinal começou">
-          <div data-hoje-alertas-barras>
-            <BarrasHorizontais
-              tituloAcessivel={`Alertas por origem: ${ROTULOS_ORIGEM.map((r) => `${r} ${alertasPorOrigem.find((a) => a.rotulo === r)?.valor ?? 0}`).join(", ")}`}
-              itens={barrasDeContagem(
-                ROTULOS_ORIGEM.map((r) => ({
-                  rotulo: r,
-                  valor: alertasPorOrigem.find((a) => a.rotulo === r)?.valor ?? 0,
-                  tom: "gold" as const,
-                })),
-              )}
-            />
+        <CaCard titulo="Alertas centralizados · com origem" eyebrow="Alertas por origem · onde o sinal começou">
+          <div data-hoje-alertas-linhas>
+            {ROTULOS_ORIGEM.map((r) => (
+              <LinhaContagem
+                key={r}
+                rotulo={`Alertas · ${r}`}
+                valor={alertasPorOrigem.find((a) => a.rotulo === r)?.valor ?? 0}
+                tom="critico"
+              />
+            ))}
           </div>
           <SemDados ativo={alertasPorOrigem.length === 0} marca="data-hoje-alertas-vazio" />
         </CaCard>
