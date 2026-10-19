@@ -6,6 +6,7 @@ import {
   Cartao,
   Etiqueta,
   Linha,
+  Pessoa,
   RedeVinculos,
   sigla,
   type Tom,
@@ -54,86 +55,87 @@ const ROTULO_ESTADO_CIVIL: Record<string, string> = {
   uniao_estavel: "União estável",
 };
 
+/** Lugar sem registro: mesma forma da pessoa, tracejado e sem nome. */
+function Vaga({ papel }: { papel: string }) {
+  return (
+    <div className="flex min-w-0 items-center gap-2 opacity-70" data-vaga-parentesco>
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-dashed border-navy/25 text-[11px] text-navy/35" aria-hidden>
+        —
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate text-xs text-navy/45">Não registrado</span>
+        <span className="block truncate text-[10px] text-navy/40">{papel}</span>
+      </span>
+    </div>
+  );
+}
+
+/**
+ * Gráfico de parentesco no desenho da prancha: ascendentes e cônjuge acima,
+ * a pessoa ao centro, filhos abaixo. Cada lugar só com vínculo gravado
+ * (case_members.pai_id/mae_id) ou declarado no cadastro (nome_pai, nome_mae,
+ * nome_conjuge) — este último marcado como "declarado".
+ */
 function ArvoreGenealogica({
   nome,
+  papel,
   pai,
   mae,
   conjuge,
   filhos,
 }: {
   nome: string;
+  papel: string;
   pai: { nome: string; declarado: boolean } | null;
   mae: { nome: string; declarado: boolean } | null;
   conjuge: string | null;
   filhos: { id: string; nome: string }[];
 }) {
-  const w = 460;
-  const h = 200;
-  const yPais = 28;
-  const yCentro = 100;
-  const yFilhos = 172;
-  const xPai = w * 0.3;
-  const xMae = w * 0.7;
-  const xCentro = w / 2;
-  const filhosExibidos = filhos.slice(0, 3);
-  const xFilho = (i: number) =>
-    filhosExibidos.length === 1
-      ? xCentro
-      : w * (0.2 + (0.6 * i) / Math.max(1, filhosExibidos.length - 1));
-
+  const filhosExibidos = filhos.slice(0, 4);
   return (
     <figure
       role="img"
       aria-label={`Árvore genealógica de ${nome}: ${pai ? pai.nome : "pai não registrado"}, ${mae ? mae.nome : "mãe não registrada"}, ${filhosExibidos.length} filho(s) registrado(s)`}
-      className="relative mx-auto h-48 max-w-lg overflow-hidden rounded-lg border border-navy/10 bg-cream/35"
+      className="flex flex-col items-center"
     >
-      <svg viewBox={`0 0 ${w} ${h}`} className="h-full w-full">
-        <line x1={xPai} y1={yPais + 16} x2={xCentro} y2={yCentro - 16} className={pai ? "stroke-gold/60" : "stroke-navy/15"} strokeWidth="2" strokeDasharray={pai?.declarado ? "4 4" : undefined} />
-        <line x1={xMae} y1={yPais + 16} x2={xCentro} y2={yCentro - 16} className={mae ? "stroke-gold/60" : "stroke-navy/15"} strokeWidth="2" strokeDasharray={mae?.declarado ? "4 4" : undefined} />
-        {filhosExibidos.map((f, i) => (
-          <line key={`l-${f.id}`} x1={xCentro} y1={yCentro + 16} x2={xFilho(i)} y2={yFilhos - 16} className="stroke-gold/60" strokeWidth="2" />
-        ))}
-
-        <g aria-hidden>
-          <rect x={xPai - 16} y={yPais - 16} width={32} height={32} rx="10" ry="10" className={pai ? "fill-card stroke-navy/40" : "fill-card stroke-navy/15"} strokeWidth="2" />
-          <text x={xPai} y={yPais + 4} textAnchor="middle" className="fill-navy text-[10px] font-semibold">{pai ? sigla(pai.nome) : "—"}</text>
-        </g>
-        <g aria-hidden>
-          <rect x={xMae - 16} y={yPais - 16} width={32} height={32} rx="10" ry="10" className={mae ? "fill-card stroke-navy/40" : "fill-card stroke-navy/15"} strokeWidth="2" />
-          <text x={xMae} y={yPais + 4} textAnchor="middle" className="fill-navy text-[10px] font-semibold">{mae ? sigla(mae.nome) : "—"}</text>
-        </g>
-
-        <g aria-hidden>
-          <rect x={xCentro - 24} y={yCentro - 24} width={48} height={48} rx="10" ry="10" className="fill-card stroke-gold" strokeWidth="2.5" />
-          <text x={xCentro} y={yCentro + 5} textAnchor="middle" className="fill-navy text-[12px] font-semibold">{sigla(nome)}</text>
-        </g>
-
+      <div className="grid w-full grid-cols-1 justify-items-start gap-2 sm:grid-cols-3">
+        {pai ? <Pessoa nome={pai.nome} papel={`Ascendente · pai${pai.declarado ? " (declarado)" : ""}`} /> : <Vaga papel="Ascendente · pai" />}
+        {mae ? <Pessoa nome={mae.nome} papel={`Ascendente · mãe${mae.declarado ? " (declarado)" : ""}`} /> : <Vaga papel="Ascendente · mãe" />}
+        {conjuge ? <Pessoa nome={conjuge} papel="Cônjuge (declarado)" /> : <Vaga papel="Cônjuge" />}
+      </div>
+      <span className="h-5 w-px bg-navy/20" aria-hidden />
+      <div className="rounded-xl border border-gold/50 bg-gold/10 px-5 py-2.5">
+        <Pessoa nome={nome} papel={papel} />
+      </div>
+      <span className="h-5 w-px bg-navy/20" aria-hidden />
+      <div className="grid w-full grid-cols-1 justify-items-start gap-2 sm:grid-cols-2">
         {filhosExibidos.length ? (
-          filhosExibidos.map((f, i) => (
-            <g key={f.id} aria-hidden>
-              <rect x={xFilho(i) - 16} y={yFilhos - 16} width={32} height={32} rx="10" ry="10" className="fill-card stroke-navy/40" strokeWidth="2" />
-              <text x={xFilho(i)} y={yFilhos + 4} textAnchor="middle" className="fill-navy text-[10px] font-semibold">{sigla(f.nome)}</text>
-            </g>
-          ))
+          filhosExibidos.map((f) => <Pessoa key={f.id} nome={f.nome} papel="Filho(a)" />)
         ) : (
-          <text x={xCentro} y={yFilhos + 4} textAnchor="middle" className="fill-navy/40 text-[10px]">Nenhum filho registrado</text>
+          <Vaga papel="Filho(a) · nenhum filho registrado" />
         )}
-      </svg>
-      <figcaption className="absolute bottom-1 left-3 right-3 text-[9px] text-navy/50">
-        {conjuge ? `Cônjuge: ${conjuge} · ` : ""}traço contínuo = vínculo gravado no caso · tracejado = só declarado no cadastro
+      </div>
+      <figcaption className="mt-2 text-[9px] text-navy/50">
+        Vínculo gravado no caso ou declarado no cadastro · nada deduzido por sobrenome
       </figcaption>
     </figure>
   );
 }
 
 // `valor` nulo = sem denominador (nenhuma fonte): estrelas vazias e nenhum número.
-function Estrelas({ valor, apoio }: { valor: number | null; apoio: string }) {
+function Estrelas({ valor, apoio, semFonte }: { valor: number | null; apoio: string; semFonte?: boolean }) {
   return (
     <div className="rounded-lg border border-navy/10 bg-cream/40 p-3">
       <div
         className="flex items-center gap-1"
         role="img"
-        aria-label={valor === null ? "Confiança sem fonte para medir" : `Confiança ${valor.toFixed(1)} de 5`}
+        aria-label={
+          valor !== null
+            ? `Confiança ${valor.toFixed(1)} de 5`
+            : semFonte
+              ? "Confiança sem fonte para medir"
+              : "Confiança sem nota registrada"
+        }
       >
         {Array.from({ length: 5 }).map((_, i) => (
           <Star
@@ -209,9 +211,15 @@ export function ComposicaoPessoa360V4({
   const ligadosAMim = new Set(
     [pai, mae, ...filhos].filter(Boolean).map((m) => String((m as Linha_).id)),
   );
-  const vizinhos = caseMembers
-    .filter((m) => m !== eu)
-    .map((m) => ({ id: String(m.id), nome: nomeDe(m), ligado: ligadosAMim.has(String(m.id)) }));
+  // 19/10/2026 — só aresta com vínculo registrado: filiação gravada no caso
+  // (pai, mãe, filhos) e cônjuge declarado no cadastro. Estar no mesmo caso
+  // não vira aresta.
+  const vizinhos = [
+    ...caseMembers
+      .filter((m) => m !== eu && ligadosAMim.has(String(m.id)))
+      .map((m) => ({ id: String(m.id), nome: nomeDe(m), ligado: true })),
+    ...(conjuge ? [{ id: "conjuge-declarado", nome: conjuge, ligado: false }] : []),
+  ];
 
   // Papéis desta pessoa nos casos vinculados — um por membresia (case_members.papel_no_caso),
   // nunca inferido: vocabulário fechado real de PAPEIS_PESSOA (caso-ficha.ts).
@@ -219,6 +227,9 @@ export function ComposicaoPessoa360V4({
   const papeisNosCasos = minhasMembresias
     .map((m) => texto(m.papel_no_caso))
     .filter((v): v is string => Boolean(v));
+  const papelCentral = papeisNosCasos.length
+    ? Array.from(new Set(papeisNosCasos.map((p) => PAPEIS_PESSOA.find((o) => o.valor === p)?.rotulo ?? p))).join(" · ")
+    : "Pessoa central";
 
   return (
     <div className="space-y-4" data-pessoa360-v4>
@@ -246,15 +257,6 @@ export function ComposicaoPessoa360V4({
 
       <div className="grid gap-4 lg:grid-cols-[1fr_1.25fr_0.9fr]">
         <Cartao titulo="Identidade" data-pessoa360-identidade className="rounded-2xl p-6 shadow-sm">
-          <div className="mb-3 flex items-center gap-3">
-            <span
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-navy font-serif text-lg text-gold"
-              aria-hidden
-            >
-              {sigla(nome)}
-            </span>
-            <p className="min-w-0 truncate font-serif text-base text-navy">{texto(cliente.nome) ?? "Não registrado"}</p>
-          </div>
           {papeisNosCasos.length ? (
             <div className="mb-3 flex flex-wrap gap-1.5" data-pessoa360-papeis>
               {papeisNosCasos.map((p, i) => (
@@ -281,6 +283,7 @@ export function ComposicaoPessoa360V4({
         <Cartao titulo="Gráfico de parentesco" data-pessoa360-parentesco className="rounded-2xl p-6 shadow-sm">
           <ArvoreGenealogica
             nome={nome}
+            papel={papelCentral}
             pai={pai ? { nome: nomeDe(pai), declarado: false } : texto(cliente.nome_pai) ? { nome: String(cliente.nome_pai), declarado: true } : null}
             mae={mae ? { nome: nomeDe(mae), declarado: false } : texto(cliente.nome_mae) ? { nome: String(cliente.nome_mae), declarado: true } : null}
             conjuge={conjuge}
@@ -322,15 +325,25 @@ export function ComposicaoPessoa360V4({
             </span>
             <div>
               <p className="text-xs font-semibold text-navy">{local || "Não registrada"}</p>
-              <p className="text-[10px] text-navy/55">{local ? "Endereço do cadastro" : "Sem endereço no cadastro"}</p>
+              <p className="text-[10px] text-navy/55">{local ? "Último endereço registrado no cadastro" : "Sem endereço no cadastro"}</p>
             </div>
           </div>
         </Cartao>
 
         <Cartao titulo="Confiança da pessoa" data-pessoa360-confianca className="rounded-2xl p-6 shadow-sm">
+          {/*
+            19/10/2026 — não há nota de confiança gravada para a pessoa
+            (cadastro). Estrelas ficam vazias e a nota é "—"; o apoio mostra só
+            a contagem real de fontes, sem convertê-la em nota.
+          */}
           <Estrelas
-            valor={docs.length ? (confirmadas / docs.length) * 5 : null}
-            apoio={docs.length ? `${confirmadas} de ${docs.length} fonte(s) confirmada(s)` : "Nenhuma fonte conferida ainda"}
+            valor={null}
+            semFonte={docs.length === 0}
+            apoio={
+              docs.length
+                ? `Sem nota de confiança registrada · ${confirmadas} de ${docs.length} fonte(s) confirmada(s)`
+                : "Sem nota de confiança registrada · nenhuma fonte conferida ainda"
+            }
           />
         </Cartao>
       </div>
@@ -353,8 +366,8 @@ export function ComposicaoPessoa360V4({
             vizinhos={vizinhos}
             legenda={
               vizinhos.length
-                ? "Pessoas dos mesmos casos · traço dourado = filiação gravada; tracejado = mesmo caso, sem filiação"
-                : "Nenhuma outra pessoa registrada nos casos desta pessoa"
+                ? "Vínculos registrados · traço dourado = filiação gravada no caso; tracejado = cônjuge declarado no cadastro"
+                : "Nenhum vínculo de filiação ou cônjuge registrado para esta pessoa"
             }
           />
         </Cartao>
