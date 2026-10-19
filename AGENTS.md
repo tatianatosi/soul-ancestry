@@ -20,6 +20,7 @@ Texto integral (autoridade, legado, schema, navegação, artefatos 005–010, ad
 - Caso 360 = 8 seções (`SECOES`); admin vê o App só via `/app-cliente-como-pessoa?casoId=` — por quê: sem segundo mecanismo.
 - App mostra só conteúdo sanitizado/aprovado/publicado; vazio honesto; nada inferido — por quê: privacidade e verdade.
 - Editorial presentation refinements are scoped by the existing PortalShell to the requested official tabs; shared readers and global design tokens stay unchanged — why: isolate visual changes from Desk and unrelated tabs.
+- Mockup 4 Desk presentation uses opt-in data-desk-mockup4 containers and local CSS; CRUD cells expose their column labels without changing readers or writers — why: support mobile reading without affecting unrelated screens or duplicating data.
 - Preservar a RPC `portal_sou_contratante_financeiro` e suas chamadas; não-contratante recebe só estado neutro quando `restritoAoContratante` — por quê: fatura pertence ao contratante.
 - Autorização sempre em RLS/servidor; sem exclusão física; auditoria em mudanças — por quê: segurança real.
 - Preservar `confirmarDocumentosMinimos` → `documentos_minimos_ok` (PR #85) — por quê: gate do portal.

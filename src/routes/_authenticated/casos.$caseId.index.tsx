@@ -6,7 +6,12 @@ import { useEffect, useMemo, useState } from "react";
 
 import { SaasShell, useSaas, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
 import { ResumoKitCaso } from "@/components/desk/kit-conectado";
+<<<<<<< src/routes/_authenticated/casos.$caseId.index.tsx
 import { BarrasHorizontais, DonutEstados, Etiqueta, JornadaMarcos, Linha, LinhaTempoGrafica, Pessoa } from "@/components/prancha-v4/kit";
+=======
+import "@/components/desk/mockup4-superficies.css";
+import { BarrasHorizontais, DonutEstados, JornadaMarcos, Linha, LinhaTempoGrafica, Pessoa } from "@/components/prancha-v4/kit";
+>>>>>>> /tmp/d
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -933,9 +938,9 @@ function FichaCaso() {
           },
         });
         return (
-          <div className="mb-6 space-y-6" data-caso360-resumo-v4>
+          <div className="mb-6 space-y-6" data-caso360-resumo-v4 data-desk-mockup4="caso">
             <section aria-labelledby="caso360-lote-a" data-caso360-lote="A">
-              <h3 id="caso360-lote-a" className="mb-2 text-[11px] font-medium uppercase tracking-wide text-navy/55">
+              <h3 id="caso360-lote-a" className="mb-4 font-serif text-2xl text-navy">
                 Lote A · Entrada e caso
               </h3>
               <div className="grid gap-6 lg:grid-cols-2">
@@ -1057,7 +1062,7 @@ function FichaCaso() {
               </div>
             </section>
             <section aria-labelledby="caso360-lote-b" data-caso360-lote="B">
-              <h3 id="caso360-lote-b" className="mb-2 text-[11px] font-medium uppercase tracking-wide text-navy/55">
+              <h3 id="caso360-lote-b" className="mb-4 font-serif text-2xl text-navy">
                 Lote B · Pesquisa e árvore
               </h3>
               <div className="grid gap-6 lg:grid-cols-2">
@@ -1120,7 +1125,7 @@ function FichaCaso() {
               </div>
             </section>
             <section aria-labelledby="caso360-lote-c" data-caso360-lote="C">
-              <h3 id="caso360-lote-c" className="mb-2 text-[11px] font-medium uppercase tracking-wide text-navy/55">
+              <h3 id="caso360-lote-c" className="mb-4 font-serif text-2xl text-navy">
                 Lote C · Proposta, escopo e contrato
               </h3>
               <div className="grid gap-6 lg:grid-cols-2">
@@ -1147,7 +1152,7 @@ function FichaCaso() {
               </div>
             </section>
             <section aria-labelledby="caso360-lote-d" data-caso360-lote="D">
-              <h3 id="caso360-lote-d" className="mb-2 text-[11px] font-medium uppercase tracking-wide text-navy/55">
+              <h3 id="caso360-lote-d" className="mb-4 font-serif text-2xl text-navy">
                 Lote D · Publicação e App
               </h3>
               <div className="grid gap-6 lg:grid-cols-2">

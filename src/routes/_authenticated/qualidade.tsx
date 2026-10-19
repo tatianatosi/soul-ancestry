@@ -8,6 +8,7 @@ import { RadarInternoIntegrado } from "@/components/desk/radar-interno-integrado
 import { CaCard } from "@/components/ui/ca-card";
 import { Selo } from "@/components/comercial/base";
 import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos";
+import "@/components/desk/mockup4-superficies.css";
 
 export const Route = createFileRoute("/_authenticated/qualidade")({
   head: () => ({
@@ -53,6 +54,7 @@ function QualidadePage() {
         elegibilidade; o Radar Individual reúne os quatro eixos, responsável, prazo, próxima ação e
         bloqueios do mesmo registro. Dados ausentes permanecem declarados, nunca inferidos.
       </p>
+<<<<<<< src/routes/_authenticated/qualidade.tsx
       <div className="mb-6">
         <KpisQualidadeV4 />
       </div>
@@ -63,6 +65,12 @@ function QualidadePage() {
         <RecomendacoesQualidadeV4 />
       </div>
       <details className="mb-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
+=======
+      <div className="mb-6 min-w-0" data-desk-mockup4="radar">
+        <RadarInternoIntegrado />
+      </div>
+      <details className="mb-6 rounded-xl border border-navy/10 bg-card p-4">
+>>>>>>> /tmp/d
         <summary className="cursor-pointer font-serif text-base text-navy">
           Qualidade, checklists e exportação
         </summary>

@@ -6,6 +6,10 @@ import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { KanbanTarefas } from "@/components/desk/kanban-tarefas";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { ESTADOS, PRIORIDADES, rotuloEstado } from "@/lib/estados";
+import { Link } from "@tanstack/react-router";
+import { BadgeDesk } from "@/components/desk/ui-desk";
+import { Button } from "@/components/ui/button";
+import "@/components/desk/mockup4-superficies.css";
 
 export const Route = createFileRoute("/_authenticated/tarefas")({
   head: () => ({
@@ -38,6 +42,7 @@ function TarefasPage() {
           Pendência registrada: {pendenciaVinculo}
         </p>
       ) : null}
+<<<<<<< src/routes/_authenticated/tarefas.tsx
       {/*
         19/10/2026 — Prancha V4: contexto como alimento visível (a faixa
         declara fonte e consumidor) e as tarefas também em colunas por
@@ -49,6 +54,9 @@ function TarefasPage() {
         detalheTecnico="tarefas · listarRegistros"
       />
       <KanbanTarefas />
+=======
+      <div data-desk-mockup4="checklist">
+>>>>>>> /tmp/d
       <EntidadeCrud
         entidade="tarefas"
         titulo="Checklist"
@@ -56,7 +64,7 @@ function TarefasPage() {
         dominio="tarefa"
         colunas={[
           { chave: "titulo", rotulo: "Título" },
-          { chave: "prioridade", rotulo: "Prioridade" },
+          { chave: "prioridade", rotulo: "Prioridade", render: (l) => <BadgeDesk texto={String(l["prioridade"] ?? "Não registrada")} tom={l["prioridade"] === "alta" ? "critico" : "neutro"} /> },
           { chave: "status", rotulo: "Status", render: (l) => rotuloEstado("tarefa", l["status"]) },
           {
             chave: "motivo_bloqueio",
@@ -65,6 +73,7 @@ function TarefasPage() {
           },
           { chave: "prazo", rotulo: "Prazo" },
         ]}
+        extra={(linha) => linha["caso_id"] ? <Button asChild variant="outline" size="sm"><Link to="/casos/$caseId" params={{ caseId: String(linha["caso_id"]) }}>Abrir caso</Link></Button> : null}
         campos={[
           { chave: "titulo", rotulo: "Título", obrigatorio: true },
           { chave: "descricao", rotulo: "Descrição", tipo: "area" },
@@ -101,6 +110,7 @@ function TarefasPage() {
           { chave: "prazo", rotulo: "Prazo", tipo: "data" },
         ]}
       />
+      </div>
 
     </SaasShell>
   );

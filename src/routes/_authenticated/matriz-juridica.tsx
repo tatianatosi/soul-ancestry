@@ -14,6 +14,7 @@ import { consolidarMatrizJuridica, listarMatrizJuridica, registrarDecisaoTema } 
 import { STATUS_TEMA, rotuloStatusTema, temasBloqueantesPendentes, type LinhaMatriz } from "@/lib/matriz-juridica";
 import { separarNotaTecnica } from "@/lib/rotulo-negocio";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
+import "@/components/desk/mockup4-superficies.css";
 
 export const Route = createFileRoute("/_authenticated/matriz-juridica")({
   head: () => ({
@@ -105,6 +106,7 @@ function MatrizPage() {
         />
       </div>
 
+      <div data-desk-mockup4="juridico">
       <EstadoDados<LinhaMatriz>
         carregando={q.isLoading}
         erro={q.error}
@@ -122,8 +124,9 @@ function MatrizPage() {
           const notaJustificativa = separarNotaTecnica(String(l.justificativa ?? ""));
           const justificativaHumana = e.justificativa !== undefined ? e.justificativa : notaJustificativa.humana;
           return (
+            <details key={l.tema_codigo} className="desk-tema-juridico">
+            <summary><h2>{l.tema}</h2><span>{rotuloStatusTema(l.status)} · {l.bloqueia_assinatura ? "Bloqueia assinatura" : "Não bloqueia assinatura"}</span></summary>
             <Secao
-              key={l.tema_codigo}
               titulo={l.tema}
               descricao={`${l.bloqueia_assinatura ? "Bloqueia assinatura" : "Não bloqueia assinatura"} · impacto: ${l.impacto_templates.join(", ")} · status atual: ${rotuloStatusTema(l.status)}`}
             >
@@ -189,11 +192,13 @@ function MatrizPage() {
                 />
               </div>
             </Secao>
+            </details>
           );
         })}
       </div>
         )}
       </EstadoDados>
+      </div>
     </SaasShell>
   );
 }
