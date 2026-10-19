@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { PainelCalls } from "@/components/crm/painel-calls";
 import { ErroSuperficieDesk } from "@/components/saas/erro-superficie";
 import { SaasShell } from "@/components/saas/shell";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { registrarInteracao } from "@/lib/crm-fluxo.functions";
 import { CATALOGOS, rotulo, type LeadDesk } from "@/lib/crm-desk";
@@ -27,6 +28,7 @@ import { CaCard } from "@/components/ui/ca-card";
 // (planner_catalog_feed) ao decidir o que recomendar. Reaproveitado de
 // /catalogo e /leads — não é segunda implementação.
 import { PlanejadorProdutosPai } from "@/components/catalogo/planejador-produtos-pai";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/calls")({
   validateSearch: (s: Record<string, unknown>): { lead?: string } => ({
@@ -258,6 +260,7 @@ function CallsPage() {
   const registrarInteracaoCaso = useServerFn(registrarInteracao);
   const [campoPendente, setCampoPendente] = useState<string | null>(null);
   const [errosCampo, setErrosCampo] = useState<Record<string, string>>({});
+  const [momento, setMomento] = useState<"antes" | "durante" | "revisao">("antes");
   async function gravarCampoSpin(leadId: string, campo: string, valor: string | boolean | null) {
     setCampoPendente(campo);
     try {
@@ -353,6 +356,11 @@ function CallsPage() {
       titulo="Mesa de Discovery"
       descricao="Calls agendadas e realizadas, roteiro SPIN e consentimento. O handoff do Discovery vira oportunidade abaixo, na Mesa."
     >
+      <FonteAlimento
+        fonte="Leads do CRM Vivo e o roteiro SPIN homologado"
+        consumidor="O handoff para proposta e o Caso 360 — nunca cria cadastro sozinho"
+        detalheTecnico="podeExecutarHandoffDiscovery · PainelCalls"
+      />
       {qLeads.isError ? (
         <p role="alert" className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-4 text-sm text-terracotta">
           A leitura dos leads falhou. Isto é erro de leitura, não pipeline vazio.
@@ -384,17 +392,31 @@ function CallsPage() {
         rota é só a mesa operacional de atendimento ao vivo: KPIs de
         atendimento, agenda do dia, roteiro SPIN e handoff.
       */}
-      <div className="mb-6 flex items-center justify-between gap-3">
+      <nav aria-label="Momentos da call" className="mb-4 grid grid-cols-3 gap-2">
+        {([ ["antes", "Antes"], ["durante", "Durante"], ["revisao", "Revisão"] ] as const).map(([valor, titulo]) => (
+          <Button key={valor} variant={momento === valor ? "default" : "outline"} className="min-h-11" aria-pressed={momento === valor} onClick={() => setMomento(valor)}>{titulo}</Button>
+        ))}
+      </nav>
+      {selecionado ? <div className="mb-4 border-b border-border pb-4 text-sm text-navy">
+        <Pessoa nome={selecionado.nome} papel={selecionado.codigo || "Código não registrado"} />
+        <div className="mt-2 flex flex-wrap gap-3 text-xs">
+          {selecionado.case_id ? <Link to="/casos/$caseId" params={{ caseId: selecionado.case_id }}>Abrir Caso 360</Link> : <span>Sem caso vinculado</span>}
+          <Link to="/leads">Voltar ao CRM Vivo</Link>
+        </div>
+      </div> : null}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-serif text-lg text-navy">Mesa de Discovery</h2>
         <div className="flex gap-2">
           <a
             href="#calls-spin"
+            onClick={() => setMomento("durante")}
             className="rounded-full border border-navy/20 px-4 py-1.5 text-sm text-navy hover:bg-navy/5"
           >
             Roteiro SPIN
           </a>
           <a
             href="#calls-handoff"
+            onClick={() => setMomento("revisao")}
             className="rounded-full bg-navy px-4 py-1.5 text-sm text-cream hover:bg-navy/90"
           >
             Handoff
@@ -402,9 +424,39 @@ function CallsPage() {
         </div>
       </div>
 
+      {/*
+        19/10/2026 — corte L04 (Prancha V4): a Mesa se organiza em três
+        momentos visíveis. Nada se duplica: cada cartão aponta para a seção
+        real que já existe abaixo (agenda/consentimento, roteiro SPIN ao
+        lado das respostas, revisão e handoff no PainelCalls).
+      */}
+      <ol className="mb-6 grid gap-3 sm:grid-cols-3" data-l04-momentos>
+        <li className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-terracotta">1 · Antes da call</p>
+          <p className="mt-1 text-sm font-medium text-navy">Agenda do dia e consentimento</p>
+          <p className="mt-1 text-[11px] text-navy/55">
+            Horário, canal, responsável e permissão de gravação — confirmados antes de começar.
+          </p>
+        </li>
+        <li className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-terracotta">2 · Durante</p>
+          <p className="mt-1 text-sm font-medium text-navy">Roteiro SPIN ao lado das respostas</p>
+          <p className="mt-1 text-[11px] text-navy/55">
+            Situação, Problema, Implicação e Necessidade — pergunta e resposta na mesma tela.
+          </p>
+        </li>
+        <li className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-terracotta">3 · Revisão</p>
+          <p className="mt-1 text-sm font-medium text-navy">Resumo validado e handoff</p>
+          <p className="mt-1 text-[11px] text-navy/55">
+            Resumo da call revisado pela pessoa responsável antes de virar proposta — nunca automático.
+          </p>
+        </li>
+      </ol>
+
       <div className="mb-6 grid gap-6 lg:grid-cols-2">
         {/* Coluna da esquerda: Agenda & Consentimento */}
-        <div className="space-y-6">
+        <div hidden={momento !== "antes"} className="space-y-6">
           <CaCard
             titulo="Agenda de Discovery do Dia"
             eyebrow="Mesa de Discovery · Horário, lead, canal e status"
@@ -552,7 +604,7 @@ function CallsPage() {
         </div>
 
         {/* Coluna da direita: Mesa Discovery & Roteiro SPIN ativo */}
-        <div id="calls-spin" className="scroll-mt-24 space-y-6">
+        <div hidden={momento !== "durante"} id="calls-spin" className="scroll-mt-24 space-y-6">
           <CaCard
             titulo="Roteiro SPIN & Diagnóstico"
             eyebrow="Situação · Problema · Implicação · Necessidade"
@@ -619,6 +671,7 @@ function CallsPage() {
 
           <a
             href="#calls-handoff"
+            onClick={() => setMomento("revisao")}
             aria-disabled={!gateHandoff.ok}
             className={`block rounded-2xl px-5 py-4 text-center text-sm font-semibold transition-colors ${
               gateHandoff.ok
@@ -632,7 +685,14 @@ function CallsPage() {
         </div>
       </div>
 
-      <PainelCalls leadIdInicial={selecionado?.id ?? lead} />
+      {momento === "revisao" && selecionado ? <section className="mb-4 border-b border-border pb-4 text-sm text-navy">
+        <h2 className="font-serif text-xl">Revisão da conversa</h2>
+        <p className="mt-2">Resultado: {rotulo("discovery_resultado", selecionado.discovery_resultado)}</p>
+        <p>Resumo: {selecionado.resumo_call || "Não registrado"}</p>
+        <p>Próxima ação: {selecionado.proxima_acao ? rotulo("proxima_acao", selecionado.proxima_acao) : "Não registrado"}</p>
+        <p>Prazo: {selecionado.proxima_acao_em?.slice(0, 10) || "Não registrado"}</p>
+      </section> : null}
+      <PainelCalls leadIdInicial={selecionado?.id ?? lead} momento={momento} />
     </SaasShell>
   );
 }

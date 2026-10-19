@@ -3,11 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { useGoLive } from "@/components/golive/dados";
+import { listarExcecoes } from "@/lib/ops.functions";
 import { EstadoVazio, SaasShell } from "@/components/saas/shell";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { Button } from "@/components/ui/button";
 import { DonutEstados, Etiqueta, GraficoLinha, Linha, type Tom } from "@/components/prancha-v4/kit";
 import { FunilDegraus } from "@/components/prancha-v4/funil-degraus";
 import { CaCard } from "@/components/ui/ca-card";
+import "@/components/desk/mockup4-superficies.css";
 import { filaDeAprovacoes, resumoAprovacoes, type ItemAprovacao } from "@/lib/golive-aprovacoes";
 import { kanbanPorEtapa, type LeadComercial } from "@/lib/golive-comercial";
 import { concluida } from "@/lib/golive-microentregas";
@@ -45,7 +48,12 @@ function Painel() {
       descricao="O que está parado, vencido ou pede decisão — com ação e link para a aba dona."
       visualKit="pantone"
     >
-      <PainelConsolidado />
+      <FonteAlimento
+        fonte="Exceções, sinais e descobertas derivados das fichas reais"
+        consumidor="A decisão do dia da equipe — nada aqui é digitado, tudo é derivado"
+        detalheTecnico="painel-caso-destaque · pendencias-humanas-caso"
+      />
+      <div data-desk-mockup4="hoje"><PainelConsolidado /></div>
     </SaasShell>
   );
 }
@@ -181,7 +189,7 @@ function PainelConsolidado() {
       <h2 id="painel-consolidado-titulo" className="sr-only">Hoje</h2>
 
       {/* Topo — 4 KPIs (grade V4, desk-01-hoje). */}
-      <dl className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-hoje-indicadores>
+      <dl className="mb-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4" data-hoje-indicadores>
         {[
           { rotulo: "Decisões do dia", valor: decisoesDoDia, apoio: "aguardando você", to: "/golive/aprovacoes" },
           { rotulo: "Cadências vencidas", valor: hoje.vencidas, apoio: "pedem retomada", to: "/golive" },
@@ -344,6 +352,8 @@ function PainelConsolidado() {
         </CaCard>
       </div>
 
+      <AlertaExcecoesAbertas />
+
       {/* Base — Alertas + Ritmo lado a lado, Distribuição das prioridades abaixo. */}
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
         <CaCard titulo="Alertas centralizados · com origem" eyebrow="Alertas por origem · onde o sinal começou">
@@ -414,5 +424,37 @@ function PainelConsolidado() {
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * 18/10/2026 — Exceções operacionais saíram do menu e aparecem aqui como
+ * alerta. Aberta = não consumida e dentro da validade. Leitura apenas; a
+ * tela de registro continua no endereço próprio.
+ */
+function AlertaExcecoesAbertas() {
+  const fn = useServerFn(listarExcecoes);
+  const q = useQuery({ queryKey: ["ops", "excecoes"], queryFn: () => fn(), retry: false });
+  if (q.isPending || q.isError) return null;
+  const agora = Date.now();
+  const abertas = (q.data?.excecoes ?? []).filter(
+    (e) => !e.consumida_em && (!e.valido_ate || new Date(e.valido_ate).getTime() >= agora),
+  );
+  if (abertas.length === 0) return null;
+  return (
+    <div className="ca-cartao-natureza mb-6" data-natureza="atencao" data-hoje-excecoes>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0">
+          <span className="ca-selo-natureza" data-natureza="atencao">Atenção</span>
+          <p className="mt-1 font-serif text-lg text-navy">
+            {abertas.length === 1 ? "1 exceção operacional em aberto" : `${abertas.length} exceções operacionais em aberto`}
+          </p>
+          <p className="text-xs text-navy/60">Autorizadas pela administração e ainda não consumidas.</p>
+        </div>
+        <Button asChild size="sm" variant="outline">
+          <Link to="/ops-excecoes">Ver exceções</Link>
+        </Button>
+      </div>
+    </div>
   );
 }

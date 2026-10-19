@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound, redirect, useNavigate, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect, useNavigate, useParams, useRouterState } from "@tanstack/react-router";
 import { BarraEtapasCaso } from "@/components/caso/barra-etapas-caso";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SaasShell, useSaas, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
 import { CaCard } from "@/components/ui/ca-card";
 import { ResumoKitCaso } from "@/components/desk/kit-conectado";
+import "@/components/desk/mockup4-superficies.css";
 import { BarrasHorizontais, DonutEstados, Etiqueta, JornadaMarcos, Linha, LinhaTempoGrafica, Pessoa } from "@/components/prancha-v4/kit";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
@@ -56,6 +57,7 @@ import { PublicarPlanoApp } from "@/components/contrato/publicar-plano-app";
 import { PublicarAssinaturaApp } from "@/components/contrato/publicar-assinatura-app";
 import { CalculadoraOrcamento } from "@/components/contrato/calculadora-orcamento";
 import { CondicaoComercialVersionada } from "@/components/contrato/condicao-comercial-versionada";
+import { CardsContratoCaso } from "@/components/contrato/cards-contrato-caso";
 import { OrcamentoPorProdutoPai } from "@/components/contrato/orcamento-produto-pai";
 import { OverrideComercial } from "@/components/caso/override-comercial";
 import { PainelJornadaPlanejador } from "@/components/caso/jornada-planejador";
@@ -101,7 +103,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
+import { useAvisoEdicaoNaoSalva, useAvisoEdicaoNaoSalvaComConfirmacao } from "@/lib/aviso-edicao-nao-salva";
 
 import {
   EIXO_COMERCIAL,
@@ -838,11 +840,13 @@ function FichaCaso() {
   const [abaVisao, setAbaVisao] = useState<"indicadores" | "concreta">("indicadores");
   const [pilulaVisaoConcretaAtiva, setPilulaVisaoConcretaAtiva] = useState(false);
   // Link contextual vindo de outra tela (ex.: Pessoa 360 → "Conferir", #pessoas).
+  // 18/10/2026: reage também à âncora vinda do menu lateral (Caso 360 / Jornada / Ficha Única).
+  const hashRota = useRouterState({ select: (s) => s.location.hash });
   useEffect(() => {
-    const alvo = window.location.hash.replace("#", "");
+    const alvo = (hashRota || window.location.hash).replace("#", "");
     const secao = SECOES.find((x) => x.id === alvo);
     if (secao) setSecaoFoco(secao.id);
-  }, []);
+  }, [hashRota]);
 
   // CA08-JURIDICO-PROPORCIONAL (09/09/2026): fontes já existentes
   // (citizenship_tracks, versioned_legal_rules, legal_reference_milestones,
@@ -935,7 +939,7 @@ function FichaCaso() {
    * `useAvisoEdicaoNaoSalva` — esta tela passa a usar o módulo, guardando o
    * resolver porque desenha a própria confirmação (salvar / descartar / cancelar).
    */
-  const bloqueio = useAvisoEdicaoNaoSalva(sujo);
+  const bloqueio = useAvisoEdicaoNaoSalvaComConfirmacao(sujo);
 
   const v = (chave: string): string => {
     const atual = chave in form ? form[chave] : caso?.[chave];
@@ -1378,7 +1382,7 @@ function FichaCaso() {
           },
         });
         return (
-          <div className="mb-6 grid gap-4 lg:grid-cols-2" data-caso360-resumo-v4>
+          <div className="mb-6 grid gap-4 lg:grid-cols-2" data-caso360-resumo-v4 data-desk-mockup4="caso">
             <section aria-label="Lote A · Entrada e caso" data-caso360-lote="A" className="contents">
                 <div className="order-3 min-w-0" data-caso360-progresso-frente>
                 <CaCard className="h-full" eyebrow="Lote A · Entrada e caso" titulo="Progresso do caso por frente">
@@ -2036,43 +2040,88 @@ function FichaCaso() {
             </li>
           </ul>
         </div>
-        <div id="resumo-visao-cliente" className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]">
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Visão do cliente</p>
-          <p className="mt-1 text-xs text-navy/60">O que o App Cliente mostra hoje — nunca produção interna.</p>
+        <div id="resumo-visao-cliente" className="ca-cartao-natureza sm:col-span-2" data-natureza="pessoas" data-como-familia-ve>
+          {/* 18/10/2026 — leitura GoLive "como a família vê" dentro do Caso 360 (não é segundo Caso 360).
+              Cada porta separa o que está publicado (vai ao App) do que é interno (não sai do Desk). */}
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Como a família vê</p>
+          <p className="mt-1 text-xs text-navy/60">O que o App Cliente mostra hoje — só conteúdo sanitizado, aprovado e publicado.</p>
+          {/* CA06-APP-NO-DESK: preferências sem fonte viva homologada — nunca inferido nem simulado. */}
+          <p className="mt-1 text-xs text-navy/60">Preferências: sem fonte viva homologada</p>
           {qVisaoCliente.isLoading ? (
             <p className="mt-2 text-xs text-navy/50">Carregando…</p>
           ) : qVisaoCliente.isError ? (
             <p className="mt-2 text-xs text-terracotta">Não foi possível carregar a visão do cliente.</p>
           ) : (
-            <ul className="mt-2 space-y-1 text-xs text-navy/80">
-              <li>
-                Acesso: {qVisaoCliente.data?.acesso.liberado ? "liberado" : "não liberado"}
-                {qVisaoCliente.data?.acesso.statusAcesso ? ` (${qVisaoCliente.data.acesso.statusAcesso})` : ""}
-              </li>
-              <li>
-                Último acesso do cliente:{" "}
-                {qVisaoCliente.data?.acesso.ultimoAcessoEm
-                  ? String(qVisaoCliente.data.acesso.ultimoAcessoEm).slice(0, 10)
-                  : "sem acesso registrado"}
-              </li>
-              <li>Próximo passo publicado ao cliente: {qVisaoCliente.data?.proximaAcao?.acao ?? "Sem dados suficientes"}</li>
-              <li>
-                Última atualização liberada:{" "}
-                {qVisaoCliente.data?.ultimaAtualizacaoLiberada
-                  ? `${qVisaoCliente.data.ultimaAtualizacaoLiberada.tipo} — ${String(qVisaoCliente.data.ultimaAtualizacaoLiberada.em).slice(0, 10)}`
-                  : "nenhuma ainda"}
-              </li>
-              <li>Prontas para revisão/liberação (App): {qVisaoCliente.data?.microentregasProntasParaRevisao ?? 0}</li>
-              <li>Produção interna em revisão (não vai ao App sozinha): {qVisaoCliente.data?.producaoInternaEmRevisao ?? 0}</li>
-              <li>Documentos disponíveis ao titular: {qVisaoCliente.data?.documentosDisponiveis ?? 0}</li>
-              <li>Projeções de árvore publicadas: {qVisaoCliente.data?.projecoesDeArvore ?? 0}</li>
-              <li>Preferências: sem fonte viva homologada</li>
-              <li>
-                Publicação: {qVisaoCliente.data?.estadoPublicacao.publicadas ?? 0} publicada(s),{" "}
-                {qVisaoCliente.data?.estadoPublicacao.pendentes ?? 0} pendente(s),{" "}
-                {qVisaoCliente.data?.estadoPublicacao.arquivadas ?? 0} arquivada(s)
-              </li>
-            </ul>
+            (() => {
+              const v = qVisaoCliente.data;
+              const portas: { id: string; titulo: string; natureza: string; publicado: string; interno: string }[] = [
+                {
+                  id: "pesquisa",
+                  titulo: "Pesquisa",
+                  natureza: "pesquisa",
+                  publicado: v?.ultimaAtualizacaoLiberada ? `Atualização liberada: ${v.ultimaAtualizacaoLiberada.tipo}` : "Não registrado",
+                  interno: `${v?.producaoInternaEmRevisao ?? 0} produção(ões) interna(s) em revisão; hipóteses e evidência bruta não saem`,
+                },
+                {
+                  id: "arvore",
+                  titulo: "Árvore",
+                  natureza: "pessoas",
+                  publicado: `${v?.projecoesDeArvore ?? 0} projeção(ões) de árvore publicada(s)`,
+                  interno: "Pessoas e vínculos em pesquisa ou não aprovados",
+                },
+                {
+                  id: "documentos",
+                  titulo: "Documentos",
+                  natureza: "pesquisa",
+                  publicado: `${v?.documentosDisponiveis ?? 0} documento(s) disponível(is) ao titular`,
+                  interno: "Checklist documental e acervo interno — não compartilhados",
+                },
+                {
+                  id: "publicacoes",
+                  titulo: "Publicações",
+                  natureza: "acao",
+                  publicado: `${v?.estadoPublicacao.publicadas ?? 0} publicada(s)`,
+                  interno: `${v?.estadoPublicacao.pendentes ?? 0} pendente(s) · ${v?.microentregasProntasParaRevisao ?? 0} pronta(s) para revisão · ${v?.estadoPublicacao.arquivadas ?? 0} arquivada(s)`,
+                },
+                {
+                  id: "conta",
+                  titulo: "Conta",
+                  natureza: "financeiro",
+                  publicado: v?.acesso.liberado ? `Acesso liberado${v.acesso.statusAcesso ? ` (${v.acesso.statusAcesso})` : ""}` : "Acesso não liberado",
+                  interno: "CPF, RG, endereço e pagamento não confirmado nunca vão ao App",
+                },
+                {
+                  id: "historico",
+                  titulo: "Histórico",
+                  natureza: "neutro",
+                  publicado: v?.ultimaAtualizacaoLiberada ? `Última liberação em ${String(v.ultimaAtualizacaoLiberada.em).slice(0, 10)}` : "Não registrado",
+                  interno: v?.acesso.ultimoAcessoEm ? `Último acesso do cliente: ${String(v.acesso.ultimoAcessoEm).slice(0, 10)}` : "Sem acesso registrado; auditoria fica no Desk",
+                },
+              ];
+              return (
+                <>
+                  <p className="mt-2 text-sm text-navy">
+                    <span className="ca-selo-natureza mr-2" data-natureza="acao">Próximo passo publicado ao cliente</span>
+                    {v?.proximaAcao?.acao ?? "Não registrado"}
+                  </p>
+                  <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {portas.map((p) => (
+                      <li key={p.id} className="ca-cartao-natureza" data-natureza={p.natureza} data-porta-familia={p.id}>
+                        <p className="font-serif text-base text-navy">{p.titulo}</p>
+                        <p className="mt-1 text-xs text-navy/80">
+                          <span className="ca-selo-natureza mr-1" data-natureza="pessoas">Vai ao App</span>
+                          {p.publicado}
+                        </p>
+                        <p className="mt-1 text-xs text-navy/60">
+                          <span className="ca-selo-natureza mr-1" data-natureza="neutro">Só no Desk</span>
+                          {p.interno}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              );
+            })()
           )}
           <Link
             to="/biblioteca-evidencias/$caseId"
@@ -2778,6 +2827,15 @@ function FichaCaso() {
         </SecaoAncora>
 
         <SecaoAncora id="comercial" titulo="Formalização" hidden={secaoFoco !== null && secaoFoco !== "comercial"}>
+          <section className="mb-6 border-y border-border py-4 text-sm text-navy" aria-label="Contexto da formalização">
+            <h2 className="font-serif text-xl">Formalização deste caso</h2>
+            <p className="mt-2">{caso["contrato_assinado"] ? "Assinatura indicada no caso — conferir no instrumento." : "Assinatura não registrada no caso."}</p>
+            <div className="mt-3 flex flex-wrap gap-3 text-xs">
+              {qProposta.data?.proposta ? <span>Proposta registrada · versão {String(qProposta.data.proposta.versao ?? "Não registrado")} · {String(qProposta.data.proposta.status ?? "Não registrado")}</span> : <span>Proposta não registrada nesta leitura</span>}
+              <a href="#formalizacao-juridico" className="underline">Validação jurídica deste caso</a>
+              <a href="#formalizacao-instrumento" className="underline">Instrumento e versões</a>
+            </div>
+          </section>
           {/*
             27/08/2026 — decisão da Proprietária, com cautela deliberada: o
             motor e a matriz de contrato já moram em /contratos e
@@ -2804,6 +2862,8 @@ function FichaCaso() {
             composição exige e as lacunas.
           */}
           <CondicaoComercialVersionada caseId={id} />
+          {/* Corte L08 (19/10/2026): 6 marcos do contrato em cards, leitura pura. */}
+          <CardsContratoCaso caseId={id} />
           <OrcamentoPorProdutoPai caseId={id} />
           <CalculadoraOrcamento caseId={id} />
 
@@ -2885,6 +2945,7 @@ function FichaCaso() {
               </div>
             </Secao>
 
+            <div id="formalizacao-juridico" className="scroll-mt-24">
             <Secao
               titulo="Validação jurídica deste caso"
               descricao="Decisão de ato formal, não bloqueio universal — leads, Discovery, pesquisa, tarefas, rascunhos e OS internas seguem sem depender disto."
@@ -2963,6 +3024,8 @@ function FichaCaso() {
               ) : null}
             </Secao>
 
+            </div>
+            <div id="formalizacao-instrumento" className="scroll-mt-24">
             <Secao
               titulo="Motor e matriz de contrato"
               descricao="Vive em Contratos, não é duplicado aqui — esta é a ponte."
@@ -2996,6 +3059,7 @@ function FichaCaso() {
                 </Link>
               </div>
             </Secao>
+            </div>
           </div>
         </SecaoAncora>
 

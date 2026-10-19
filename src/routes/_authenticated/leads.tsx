@@ -19,6 +19,7 @@ import { PlanejadorProdutosPai } from "@/components/catalogo/planejador-produtos
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { arquivarLeadDesk, listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import {
@@ -77,6 +78,7 @@ import { FunilDegraus } from "@/components/prancha-v4/funil-degraus";
 import { humano } from "@/lib/rotulos-golive";
 import { listarComercial, listarVinculos as listarVinculosComercial, totalInvestimentoMarketing } from "@/lib/comercial.functions";
 import { moeda as moedaBRL, dataBr } from "@/components/comercial/base";
+import { FichaSecao, FichaSecoes } from "@/components/crm/ficha-secoes";
 
 export const Route = createFileRoute("/_authenticated/leads")({
   head: () => ({
@@ -370,6 +372,11 @@ function LeadsPage() {
 
   return (
     <SaasShell titulo="CRM Vivo — Leads e triagem" descricao="Comercial → CRM Vivo: entrada, Discovery, contatos e conversas, proposta e handoff.">
+      <FonteAlimento
+        fonte="Entrada de leads e listas controladas do CRM Mestre (CA04)"
+        consumidor="Mesa de Calls, proposta e handoff ao caso — a identidade da pessoa se mantém"
+        detalheTecnico="crm-desk · listarLeadsDesk"
+      />
       {leadPendente ? (
         <div role="alert" className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-terracotta/30 bg-terracotta/10 px-3 py-2 text-xs text-terracotta">
           Há alterações não salvas neste lead.
@@ -397,6 +404,31 @@ function LeadsPage() {
             "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
         </p>
       ) : null}
+      <div className="mb-6" aria-label="Filtros diários">
+          <div id="leads-filtros" className="scroll-mt-24" />
+          <Secao titulo="Filtros" descricao="Todos os campos classificatórios são listas fechadas.">
+            <div className="grid gap-3">
+              <Texto label="Buscar por nome, código ou e-mail" valor={busca} onChange={setBusca} />
+              <Selecao label="Eixo comercial" valor={filtroEixo} opcoes={EIXO_COMERCIAL} onChange={setFiltroEixo} />
+              <Selecao label="Área responsável" valor={filtroArea} opcoes={AREAS_RESPONSAVEIS} onChange={setFiltroArea} />
+              <Selecao label="Origem" valor={filtroOrigem} opcoes={ORIGENS_LEAD} onChange={setFiltroOrigem} />
+              <label className="flex items-center gap-2 text-sm text-navy/70">
+                <input type="checkbox" checked={mostrarArquivados} onChange={(e) => setMostrarArquivados(e.target.checked)} />
+                Mostrar arquivados
+              </label>
+              <button
+                type="button"
+                className="rounded-lg bg-navy px-3 py-2 text-sm text-cream"
+                onClick={() => {
+                  setNovoLeadAberto(true);
+                  setMsg(null);
+                }}
+              >
+                Novo lead
+              </button>
+            </div>
+          </Secao>
+      </div>
       {/*
         19/10/2026 — conferência bloco a bloco com a prancha V4 (Comercial /
         CRM Vivo): a ordem da prancha é 4 KPIs → cartão-cabeçalho "Funil
@@ -831,29 +863,7 @@ function LeadsPage() {
             </SheetContent>
           </Sheet>
 
-          <div id="leads-filtros" className="scroll-mt-24" />
-          <Secao titulo="Filtros" descricao="Todos os campos classificatórios são listas fechadas.">
-            <div className="grid gap-3">
-              <Texto label="Buscar por nome, código ou e-mail" valor={busca} onChange={setBusca} />
-              <Selecao label="Eixo comercial" valor={filtroEixo} opcoes={EIXO_COMERCIAL} onChange={setFiltroEixo} />
-              <Selecao label="Área responsável" valor={filtroArea} opcoes={AREAS_RESPONSAVEIS} onChange={setFiltroArea} />
-              <Selecao label="Origem" valor={filtroOrigem} opcoes={ORIGENS_LEAD} onChange={setFiltroOrigem} />
-              <label className="flex items-center gap-2 text-sm text-navy/70">
-                <input type="checkbox" checked={mostrarArquivados} onChange={(e) => setMostrarArquivados(e.target.checked)} />
-                Mostrar arquivados
-              </label>
-              <button
-                type="button"
-                className="rounded-lg bg-navy px-3 py-2 text-sm text-cream"
-                onClick={() => {
-                  setNovoLeadAberto(true);
-                  setMsg(null);
-                }}
-              >
-                Novo lead
-              </button>
-            </div>
-          </Secao>
+
 
           <Secao titulo={`Leads (${visiveis.length})`} descricao="Código único gerado pelo sistema.">
             <EstadoDados
@@ -928,12 +938,52 @@ function LeadsPage() {
           }
         }}
       >
-        <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
+        <SheetContent className="w-full overflow-y-auto sm:max-w-3xl">
         <SheetHeader>
           <SheetTitle>{atual ? `${atual.codigo ?? "Lead"} · ${atual.nome}` : "Ficha do lead"}</SheetTitle>
         </SheetHeader>
         <div className="mt-4 space-y-3">
+          <FichaSecoes>
+          {atual ? <div className="mb-4 border-b border-border pb-4 text-sm text-navy">
+            <Pessoa nome={atual.nome} papel={atual.responsavel_nome || "Responsável não registrado"} />
+            <p className="mt-2 break-words">{atual.email || "E-mail não registrado"}</p>
+            <p className="mt-1">Próxima ação: {atual.proxima_acao ? rotulo("proxima_acao", atual.proxima_acao) : "Não registrado"}</p>
+            <p className="text-xs text-muted-foreground">Prazo: {atual.proxima_acao_em ? dataBr(atual.proxima_acao_em) : "Não registrado"} · {Object.keys(rascunho).length ? "Alterações em rascunho" : "Registro salvo"}</p>
+          </div> : null}
           {msg ? <p className="rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-sm text-navy">{msg}</p> : null}
+
+          {/*
+            19/10/2026 — corte L03 (Prancha V4): identidade da pessoa sempre
+            visível no topo da ficha (nome, origem, etapa, responsável,
+            próxima ação), antes de qualquer leitura derivada. Só repete
+            fatos já registrados; ausências são explícitas.
+          */}
+          {atual ? (
+            <div className="rounded-xl border border-navy/15 bg-navy px-4 py-3 text-cream" data-l03-identidade>
+              <p className="font-serif text-lg leading-tight">{atual.nome || "Nome não registrado"}</p>
+              <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] sm:grid-cols-4">
+                <div>
+                  <dt className="uppercase tracking-wide text-cream/55">Origem</dt>
+                  <dd>{atual.origem ? rotulo("origem", atual.origem) : "Não registrado"}</dd>
+                </div>
+                <div>
+                  <dt className="uppercase tracking-wide text-cream/55">Etapa</dt>
+                  <dd>{ROTULO_ETAPA_PIPELINE[etapaPipeline(atual)]}</dd>
+                </div>
+                <div>
+                  <dt className="uppercase tracking-wide text-cream/55">Responsável</dt>
+                  <dd>{atual.responsavel_nome || "Não registrado"}</dd>
+                </div>
+                <div>
+                  <dt className="uppercase tracking-wide text-cream/55">Próxima ação</dt>
+                  <dd>
+                    {atual.proxima_acao ? rotulo("proxima_acao", atual.proxima_acao) : "Não registrado"}
+                    {atual.proxima_acao_em ? ` · ${String(atual.proxima_acao_em).slice(0, 10).split("-").reverse().join("/")}` : ""}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          ) : null}
 
           {atual ? (
             <div className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/40 px-3 py-2 text-xs">
@@ -964,11 +1014,10 @@ function LeadsPage() {
             </div>
           ) : null}
 
-          {atual ? <HandoffLead lead={editado} /> : null}
+          {atual ? <details className="py-2"><summary className="cursor-pointer text-sm text-navy">Resumo do handoff e jornada</summary><HandoffLead lead={editado} /><DerivacaoJornada lead={editado} /></details> : null}
 
-          {atual ? <DerivacaoJornada lead={editado} /> : null}
-
-          <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+          <details className="border-b border-border py-3">
+            <summary className="cursor-pointer text-sm text-navy">Progresso SPIN e Mesa de Discovery</summary>
             <p className="text-sm font-medium text-navy">SPIN e Mesa de Discovery</p>
             <p className="mt-1 text-xs text-navy/55">
               As perguntas de Situação, Problema, Implicação e Necessidade moram no Painel de Calls,
@@ -990,13 +1039,14 @@ function LeadsPage() {
               })}
             </ul>
             <p className="mt-3 text-xs">
-              <Link to="/calls" className="text-navy underline underline-offset-2">
+              <Link to="/calls" search={editado.id ? { lead: editado.id } : {}} className="text-navy underline underline-offset-2">
                 Abrir a Mesa de Discovery no Painel de Calls
               </Link>
             </p>
-          </div>
+          </details>
 
-          <div className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+          <details className="border-b border-border py-3">
+            <summary className="cursor-pointer text-sm text-navy">Leitura preliminar e pendências</summary>
             <p className="text-[11px] uppercase tracking-wide text-navy/45">Radar de elegibilidade preliminar</p>
             <div className="mt-1 flex flex-wrap items-end gap-x-4 gap-y-1">
               <p className="font-serif text-2xl leading-tight text-navy">{radar.rotulo}</p>
@@ -1053,7 +1103,7 @@ function LeadsPage() {
               </ul>
             ) : null}
             <p className="mt-3 text-[11px] text-navy/50">{radar.observacao}</p>
-          </div>
+          </details>
 
           {sinais.length ? (
             <div className="rounded-xl border border-gold/50 bg-gold/10 p-4">
@@ -1089,7 +1139,20 @@ function LeadsPage() {
             </div>
           ) : null}
 
-          <Secao titulo="Identificação e responsabilidade" descricao="Lead ativo exige área, responsável e próxima ação datada.">
+          {/*
+            19/10/2026 — corte L03: tudo que se edita na ficha mora nesta
+            área única, abaixo deste divisor. Leituras derivadas (SPIN,
+            radar, sinais) ficam acima e não se editam aqui.
+          */}
+          <div className="flex items-center gap-3 pt-2" data-l03-area-edicao>
+            <span className="h-px flex-1 bg-navy/15" aria-hidden />
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-navy/50">
+              Área única de edição — as leituras acima são derivadas
+            </p>
+            <span className="h-px flex-1 bg-navy/15" aria-hidden />
+          </div>
+
+          <FichaSecao titulo="Identificação e responsabilidade" descricao="Lead ativo exige área, responsável e próxima ação datada.">
             <div className="grid gap-3 md:grid-cols-2">
               <Texto
                 label="Nome"
@@ -1148,9 +1211,9 @@ function LeadsPage() {
                 onChange={set("ultimo_followup_em")}
               />
             </div>
-          </Secao>
+          </FichaSecao>
 
-          <Secao titulo="Objetivo e linha preliminar" descricao="Leitura interna preliminar; não é parecer jurídico.">
+          <FichaSecao titulo="Objetivo e linha preliminar" descricao="Leitura interna preliminar; não é parecer jurídico.">
             <div className="grid gap-3 md:grid-cols-2">
               {/* 19/10/2026 — chip de um toque (dicionário CA-04 "Objetivo principal"/interesse do lead). */}
               <ChipsEscolha label="Objetivo" valor={campo("objetivo")} opcoes={OBJETIVOS} onChange={set("objetivo")} />
@@ -1186,7 +1249,7 @@ function LeadsPage() {
                 />
               </div>
             </div>
-          </Secao>
+          </FichaSecao>
 
           {/*
             23/09/2026 — R3 (autorização explícita da Proprietária):
@@ -1285,7 +1348,7 @@ function LeadsPage() {
           </Secao>
 
 
-          <Secao
+          <FichaSecao
             titulo="Consentimento de gravação e transcrição"
             descricao="Gravação, transcrição e uso interno só com consentimento concedido, datado, com canal e versão do aviso. Sem isso, nenhuma referência de gravação pode ser registrada."
           >
@@ -1393,7 +1456,7 @@ function LeadsPage() {
                 documental, não substitui o consentimento de quem não o deu.
               </p>
             </div>
-          </Secao>
+          </FichaSecao>
 
           {trilhasIndisponiveis ? (
             <p
@@ -1408,7 +1471,7 @@ function LeadsPage() {
             </p>
           ) : null}
 
-          <Secao
+          <FichaSecao
             titulo="Linha familiar, trilha jurídica e pesquisa prévia"
             descricao="Trilhas e marcos são referência interna de triagem, nunca parecer jurídico nem garantia de direito. Pesquisa nominal externa exige autorização registrada."
           >
@@ -1479,10 +1542,10 @@ function LeadsPage() {
                 </div>
               ) : null}
             </div>
-          </Secao>
+          </FichaSecao>
 
 
-          <Secao
+          <FichaSecao
             titulo="Recomendação comercial e despesas de terceiros"
             descricao="Preço, condição e link de cobrança vêm do catálogo homologado (product_catalog). A Planilha Mestre é legado de auditoria histórica, não fonte viva. O CRM registra apenas a recomendação e a referência."
           >
@@ -1531,9 +1594,9 @@ function LeadsPage() {
             <div data-leads-produto-pai-real className="mt-4">
               <PlanejadorProdutosPai />
             </div>
-          </Secao>
+          </FichaSecao>
 
-          <Secao
+          <FichaSecao
             titulo="Comercial e formalização"
             descricao="Preço, SKU e link de pagamento não são campo livre: registre apenas referência interna."
           >
@@ -1601,9 +1664,9 @@ function LeadsPage() {
             <p className="mt-3 text-xs text-navy/55">
               Resultado comercial derivado: <strong>{resultadoComercialDerivado(editado)}</strong>
             </p>
-          </Secao>
+          </FichaSecao>
 
-          <div className="flex flex-wrap items-start gap-2">
+          <div className="sticky bottom-0 flex flex-wrap items-start gap-2 border-t border-border bg-background py-3">
             {Object.keys(rascunho).length ? (
               <AcaoOperacional
                 rotulo={mutSalvar.isPending ? "Gravando…" : "Gravar"}
@@ -1644,6 +1707,7 @@ function LeadsPage() {
             Listas controladas em uso: {Object.keys(CATALOGOS).length} campos classificatórios. Entrada fora da lista é recusada no
             servidor e no banco.
           </p>
+          </FichaSecoes>
         </div>
         </SheetContent>
       </Sheet>

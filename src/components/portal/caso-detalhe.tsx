@@ -156,7 +156,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
         <p className="text-sm text-navy/60">Envie apenas o que a equipe pediu aqui. Todo envio passa por revisão.</p>
         {painel.solicitacoes.length === 0 ? (
           <div className="mt-3">
-            <PortalVazio mensagem="Nenhum documento pendente no momento." />
+            <PortalVazio mensagem="Em preparação — os pedidos de documento aparecem aqui quando houver." />
           </div>
         ) : (
           <ul className="mt-3 space-y-3">
@@ -256,7 +256,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
 
         {painel.entregas.length === 0 ? (
           <div className="mt-3">
-            <PortalVazio mensagem="Nenhuma entrega liberada até o momento." />
+            <PortalVazio mensagem="Em preparação — as entregas aparecem aqui quando forem liberadas." />
           </div>
         ) : (
           <ul className="mt-3 space-y-2">
@@ -282,7 +282,7 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
         <h2 className="font-serif text-xl">Faturas</h2>
         {painel.faturas.length === 0 ? (
           <div className="mt-3">
-            <PortalVazio mensagem="Nenhuma fatura liberada para visualização." />
+            <PortalVazio mensagem="Em preparação — as faturas aparecem aqui quando forem liberadas." />
           </div>
         ) : (
           <ul className="mt-3 space-y-2">

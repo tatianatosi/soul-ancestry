@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { EntidadeCrud } from "@/components/saas/entidade-crud";
+import { EntidadeCrud, type Coluna } from "@/components/saas/entidade-crud";
 import { AbrirCasoMotor } from "@/components/caso/abrir-caso-motor";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { CaCard } from "@/components/ui/ca-card";
@@ -32,6 +32,7 @@ import { calcularPrioridade } from "@/lib/prioridade-matriz";
 import { ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { PainelFormalizacao } from "@/components/painel/painel-formalizacao";
 import { AlertaDesk, CardIndicador, CarregandoDesk, PageHeader } from "@/components/desk/ui-desk";
+import "@/components/desk/mockup4-superficies.css";
 
 export const Route = createFileRoute("/_authenticated/casos/")({
   /**
@@ -200,7 +201,7 @@ function CasosPage() {
     >
       <PageHeader
         titulo="Casos 360 em acompanhamento"
-        subtitulo="Carteira em cartões individuais: próxima ação, responsável e prazo do planejador. Hipótese de elegibilidade nunca é elegibilidade definitiva; datas futuras são previsão condicional."
+        subtitulo="Próxima ação, responsável e prazo do planejador. Hipótese de elegibilidade é provisória; datas futuras são previsões condicionais."
       />
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -261,13 +262,14 @@ function CasosPage() {
           Pendência registrada: {pendenciaVinculo}
         </p>
       ) : null}
+      <div data-desk-mockup4="casos">
       <EntidadeCrud
         entidade="crm_casos"
         titulo="Casos 360"
         podeEscrever={podeEscrever}
         dominio="caso"
-        apresentacao="cards"
-        larguraMinima={2100}
+        apresentacao="tabela"
+        larguraMinima={1100}
         filtrarLinhas={(l) =>
           (mostrarDemo || papelDoRegistro(l).valor !== "demo") && casaComFase(l, faseFiltro)
         }
@@ -394,7 +396,7 @@ function CasosPage() {
               </div>
             ) : null}
             <BuscaPorCodigo />
-            <AbrirCasoMotor />
+            <details className="border-y border-border py-3"><summary className="cursor-pointer font-serif text-xl text-navy">Abrir novo caso operacional</summary><div className="mt-3"><AbrirCasoMotor /></div></details>
             <label className="flex items-center gap-2 text-sm text-navy/70">
               <input
                 type="checkbox"
@@ -406,7 +408,9 @@ function CasosPage() {
           </div>
         }
 
-        colunas={[
+        colunas={([
+          { chave: "titulo", rotulo: "Nome", render: (l) => <Link to="/casos/$caseId" params={{ caseId: String(l["id"]) }} className="font-serif text-lg text-navy underline decoration-gold underline-offset-4">{String(l["titulo"] ?? "Não registrado")}</Link> },
+          { chave: "pais", rotulo: "País" },
           {
             chave: "codigo",
             rotulo: "Código canônico",
@@ -419,7 +423,6 @@ function CasosPage() {
               </span>
             ),
           },
-          { chave: "titulo", rotulo: "Título" },
           {
             chave: "papel_registro",
             rotulo: "Papel do registro",
@@ -637,7 +640,7 @@ function CasosPage() {
               );
             },
           },
-        ]}
+        ] satisfies Coluna[]).filter((coluna) => ["titulo", "pais", "codigo", "eixo_formalizacao", "sinal_prioridade", "proxima_acao", "situacao_financeira"].includes(coluna.chave))}
         campos={[
           { chave: "titulo", rotulo: "Título", obrigatorio: true },
           {
@@ -754,6 +757,7 @@ function CasosPage() {
           </div>
         )}
       />
+      </div>
       <PainelFormalizacao />
     </SaasShell>
   );

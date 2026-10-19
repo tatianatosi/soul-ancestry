@@ -11,6 +11,8 @@ import { Indicador } from "@/components/prancha-v4/kit";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { CadeiaFormalizacao } from "@/components/contrato/cadeia-formalizacao";
 import { PranchaJuridicoContrato } from "@/components/contratos/prancha-juridico-contrato";
+import { CardsFluxoContrato, ResumoFamiliarContrato } from "@/components/contrato/cards-fluxo-contrato";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { montarChecklistJuridico } from "@/lib/checklist-juridico";
 import {
@@ -70,6 +72,26 @@ const ABAS_AVANCADAS = ["Fontes", "Validações", "Versões", "Revisão"] as con
 const ABAS = [...ABAS_PRINCIPAIS, ...ABAS_AVANCADAS] as const;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+/** Próximo passo em linguagem humana, derivado só do status persistido. */
+function proximoPassoDoStatus(status: string | null | undefined): string | null {
+  switch (status) {
+    case "draft":
+    case "pending_data":
+      return "Preparar o instrumento";
+    case "ready_for_review":
+    case "under_human_review":
+      return "Revisão humana";
+    case "approved_for_send":
+      return "Envio (ato externo, com confirmação)";
+    case "sent":
+      return "Registrar assinatura (ato externo, com confirmação)";
+    case "signed":
+      return "Liberar App (ato externo, com confirmação)";
+    default:
+      return null;
+  }
+}
 
 function ContratoDetalhe() {
   const autoridade = useAutoridade();
@@ -168,6 +190,7 @@ function ContratoDetalhe() {
     : `${checklist.bloqueios} bloqueio(s) formal(is) no checklist jurídico.`;
 
   return (
+    <div className="[&_[data-desk-titulo]>div]:grid-cols-1 sm:[&_[data-desk-titulo]>div]:flex">
     <SaasShell
       titulo={c.title}
       descricao={`${c.contract_number} · ${ROTULO_TIPO_INSTRUMENTO[c.contract_type]} · ${ROTULO_STATUS_CONTRATO[c.status]}`}
@@ -186,6 +209,7 @@ function ContratoDetalhe() {
             <Link
               to="/casos/$caseId"
               params={{ caseId: String(c.case_id) }}
+              hash="comercial"
               className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy"
             >
               Abrir Caso 360
@@ -205,6 +229,40 @@ function ContratoDetalhe() {
         </p>
       ) : null}
       <AvisoInstrumento tipo={c.contract_type} status={c.status} />
+      <section className="mt-4 border-y border-border py-4 text-sm text-navy" aria-label="Contexto do instrumento">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div><p className="text-xs text-muted-foreground">Instrumento registrado</p><p>{c.contract_number}</p></div>
+          <div><p className="text-xs text-muted-foreground">Estado</p><p>{ROTULO_STATUS_CONTRATO[c.status] || "Não registrado"}</p></div>
+          <div><p className="text-xs text-muted-foreground">Versões registradas</p><p>{d.versoes.length}</p></div>
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">{c.signed_at ? "Assinatura registrada no instrumento." : "Assinatura não registrada no instrumento."}</p>
+        <a href="#contrato-versões" className="mt-2 inline-block text-xs underline">Consultar versões e histórico deste contrato</a>
+      </section>
+
+      {/*
+        19/10/2026 — Prancha V4 / corte L08: os 6 marcos do contrato em cards
+        e o resumo em leitura familiar entram no topo do instrumento. Leitura
+        pura sobre fatos persistidos (status + versão interna); nada grava,
+        envia, assina ou cobra. Contexto como alimento visível: a faixa
+        declara a fonte e quem consome.
+      */}
+      <div className="mt-4">
+        <FonteAlimento
+          fonte="Instrumento contratual e parâmetros do Planejador"
+          consumidor="Caso 360 (Formalização) e, após publicação autorizada, o App Cliente"
+          detalheTecnico="contracts · contract_case_parameters · obterContrato"
+        />
+        <div className="grid gap-4 xl:grid-cols-[1fr_22rem]">
+          <CardsFluxoContrato status={c.status} temVersaoInterna={Boolean(versaoAtual)} />
+          <ResumoFamiliarContrato
+            titulo={c.title}
+            statusRotulo={ROTULO_STATUS_CONTRATO[c.status] ?? c.status}
+            valorReferencia={(d as any).valorReferencia ?? null}
+            prazoReferencia={(d as any).prazoReferencia ?? null}
+            proximoPasso={proximoPassoDoStatus(c.status)}
+          />
+        </div>
+      </div>
 
       {/*
         Jurídico & Contrato — composição da prancha V4 (19/10/2026) no topo da
@@ -390,6 +448,7 @@ function ContratoDetalhe() {
         <div id="contrato-revisão" className="scroll-mt-24"><CaCard titulo="Revisão e assinatura"><Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} /></CaCard></div>
       </div>
     </SaasShell>
+    </div>
   );
 }
 

@@ -46,8 +46,12 @@ export function NovoLeadDialog({ aberto, onFechar, onCriado }: Props) {
   const qc = useQueryClient();
   const { contexto } = useSaas();
   const [form, setForm] = useState({ ...vazio });
-  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
-  useAvisoEdicaoNaoSalva(JSON.stringify(form) !== JSON.stringify({ ...vazio }));
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente.
+     18/10/2026: o responsável é preenchido sozinho pela sessão e o diálogo
+     fechado não é edição — antes isso prendia a saída do CRM Vivo. */
+  useAvisoEdicaoNaoSalva(
+    aberto && JSON.stringify({ ...form, responsavel_nome: "" }) !== JSON.stringify({ ...vazio, responsavel_nome: "" }),
+  );
   /* Aviso não bloqueante (ordem de 19/10/2026): duplicidade nunca impede o
      salvamento — só mostra o selo depois que o lead já foi gravado. */
   const [duplicidades, setDuplicidades] = useState<PossivelDuplicidade[]>([]);

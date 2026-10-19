@@ -105,8 +105,8 @@ describe("CA-UX-03 adendo — Assistente transversal", () => {
     expect(grupoDaRota("/leads")).toBe("comercial");
     expect(grupoDaRota(`/casos/${CASO}`)).toBe("casos");
     expect(grupoDaRota("/pesquisa-modulo")).toBe("pesquisa");
-    // V4: financeiro do caso mora em Comercial, pela prancha.
-    expect(grupoDaRota("/financeiro")).toBe("comercial");
+    // 18/10/2026: Financeiro virou grupo próprio.
+    expect(grupoDaRota("/financeiro")).toBe("financeiro");
     expect(grupoDaRota("/equipe")).toBe("governanca");
     expect(grupoDaRota("/marketing")).toBe("marketing");
   });

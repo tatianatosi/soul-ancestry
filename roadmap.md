@@ -1,5 +1,19 @@
 # Roadmap
 
+## 19/10 — Atualização da recomposição densa do App
+- [x] Restaurar Documentos e reconciliar os ajustes exclusivos de Home, Árvore, Conta e aparência local com a versão principal.
+- [x] Preservar leitores, permissões, sete abas, grade móvel atual e botão institucional; sem edição do Desk ou dados.
+- [x] Validar 43 testes seletivos e sete abas autenticadas em 375/1280: sem overflow, zero erros de página, régua preservada após F5; compilação automática OK.
+- [ ] Aprovação da Proprietária; sem aceitar ou publicar.
+
+## Caso 360 V4 — rascunho isolado (13/10, 13:25 UTC)
+- [x] Comparar painel/kit existentes com desk-04-caso360.png; capturas autenticadas antes em 375/1280/1440.
+- [x] Ajustar somente a Visão existente em três colunas; preservar oito seções, blocos recolhidos, dados e App.
+- [x] Validar 39 testes existentes e validação automática OK; capturas depois em 375/1280/1440, navegação e releitura sem overflow.
+- [x] Entregar diff, hash e limitações nas capturas e relatório.
+- [ ] Aprovação visual da Proprietária; sem integrar, aceitar, publicar ou marcar COMPROVADO_EM_USO.
+- [ ] PEDIDO AO CLAUDE: conciliar papéis dos adultos (leitor entrega Titular), estado da formalização e evidências legadas/canônicas; decisão da Proprietária sobre textos 1941/2026. Sem alteração de dados neste corte.
+
 ## 18/10 — CRM Mestre é dicionário (L00–L12, proposta v1.0)
 - [x] L00 documental: proposta v1.0 registrada no destino solicitado; mapas/cobertura v2 e PDFs com errata vigente entregues na coleção, preservando originais históricos (não reeditados internamente).
 - [x] L01: portas de entrada conferidas em leitura; diff mínimo de identificação das regras jurídicas apresentado, Referências mantém acervo compartilhado.
@@ -15,6 +29,36 @@
 - [x] Correção de typecheck (18/10): restaurados itemNavAtivo, grupoNavAtivo e LACUNAS_CONHECIDAS em navegacao-desk.ts; 4 falhas de teste restantes são a divergência V4×V5 de menu, decisão pendente da Proprietária.
 - [ ] PEDIDO AO CLAUDE: comprovar persistência/releitura, conexões dos alimentos aos motores e resultado autorizado no App; depende de autorização de escrita e execução contextual, não realizada nesta auditoria.
 - Não executar escritas, convites, liberação, cobrança, integração ou publicação nesta auditoria.
+## Mockup 4 — rascunho isolado (13/10/2026 16:55 UTC)
+Checklist inicial: **NÃO EXECUTADO**. Sem integração, publicação, dados ou permissões; itens históricos abaixo não autorizam trabalho fora deste corte.
+
+| Página | Tela existente | Fonte preservada | Interação a conferir |
+|---|---|---|---|
+| 3 | `/portal` | projeções e próxima ação sanitizadas | expansão achado, Jornada, WhatsApp |
+| 4 | `/portal/jornada` | jornada publicada | duas linhas, destinos contextuais |
+| 5 | `/portal/radar` | seis eixos existentes | detalhes da base real |
+| 6 | `/portal/arvore` | pessoas e relações publicadas | foco, expansão, modos |
+| 7 | `/portal/documentos` | pedidos/arquivos autorizados | categorias, seletor sem envio |
+| 8 | `/portal/legado` | materiais aprovados | prateleiras/expansão |
+| 9 | `/portal/conta` | perfil e condição sanitizados | histórico, WhatsApp |
+| 11 | `/painel` | implementação atual preservada | filtros/destinos, sem mudar motor |
+| 12 | `/casos` | lista atual de casos | busca/filtros/abrir caso |
+| 13 | `/tarefas` | tarefas existentes | filtros/detalhes, sem salvar |
+| 14 | `/matriz-juridica` | regras existentes | busca/abas, sem revisão fictícia |
+| 15 | `/qualidade` | radar existente | matriz/radar individual |
+| 16 | `/alertas` | alertas com origem | filtros/abrir contexto, sem envio |
+| 17 | `/biblioteca` | acervo real | busca/abas/abrir conteúdo |
+
+- [x] Capturas ANTES 375/1440, sessão Proprietária; App só via prévia oficial.
+- [x] Cortes locais Home/Jornada/Árvore/Radar/Legado/Conta e sete superfícies Desk; Documentos preservado por falta de PDFs, kit e leitores mantidos.
+- [x] Detalhe Caso 360: quatro lotes A–D existentes, cabeçalhos sequenciais reforçados; nunca três colunas.
+- [x] Testes seletivos: 45/45; rodada anterior 45/46, teste antigo A2 exige duas colunas no celular e conflita com a ordem atual. Sem alterar teste bloqueador.
+- [x] Capturas DEPOIS 375/1440; 14 telas, foco/expansão/filtros/releitura; nenhuma operação submetida. Correção de tipagem feita; plataforma build OK 17:15:15 UTC.
+- [x] Capturas finais após expansões de Radar/Legado e revisão visual; Hoje recapturado esperando os dados.
+- [x] Relatório IMPLEMENTADO / TESTADO / PENDENTE HOMOLOGAÇÃO: `docs/relatorios/2026-10-13-mockup4-rascunho-visual.md`; PEDIDO AO CLAUDE explícito.
+- [ ] Homologação visual da Proprietária (não COMPROVADO_EM_USO).
+
+PEDIDO AO CLAUDE neste corte: revisar projeção master de pessoas (ancestrais aparecem como núcleo; Cleusa/Ana Maria compartilham G3 registrada), reconciliar timeline interna versus marcos publicados no resumo do Caso, expor títulos/datas/URLs autorizadas no leitor de Documentos antes de leitura física, reconciliar seis grupos solicitados versus oito entradas atuais sem mudança unilateral de navegação, adequar teste A2 à última ordem mobile de uma coluna. Não inferir/regravar dados aqui. Contrato/Gov.br/OS, narrativas/fotos/achados/FAQ ausentes continuam sem conteúdo fabricado.
 
 ## Polimento de luxo 12/10 (pedido 16:38)
 - [ ] Jornada: texto editorial Graz (1895) no lugar de Lacuna (autorizado)
@@ -293,9 +337,16 @@
 - [x] Mapa de rotas V4 + canos da jornada 8 fases (18/10): dois diagramas .mmd em Arquivos e na coleção
 
 ## 18/10/2026 — Jornada viva da Ana (novo pedido)
-- [ ] Jornada completa somente leitura: Ana como lead → Discovery → proposta → assinatura do contrato, com cortes de ficha L03/L04/L08 em execução no rascunho isolado “Ana — jornada viva e fichas V4” (drft_01m58gggqcet08ecsv365d8p0v), autorizado em 18/10 às 22:00 UTC; sem integrar/publicar.
-- [ ] Comparar cada etapa com a prancha V4 aprovada (mockup).
-- [ ] Somente leitura: nenhum writer, cobrança, assinatura ou publicação real.
+- [x] Corte isolado L03: filtros no início, identidade/resumo e uma seção da ficha em foco, mantendo campos montados, Scan, templates e gravadores.
+- [x] Corte isolado L04: Antes/Durante/Revisão locais com o lead persistido, SPIN e ajuda existentes; gravação por campo preservada.
+- [x] L08 parcial: contexto read-only do instrumento, versões, assinatura não registrada e retorno ao Caso360; leitura móvel corrigida sem alterar shell/menu global.
+- [x] Lead canônico da Ana conferido por vínculo de caso; Calls, validação jurídica, proposta aprovada, Caso360 e contrato em revisão abertos sem acionar escritores.
+- [x] Testes focados: 5 arquivos / 75 testes; capturas autenticadas 375/1280 antes/depois; build automático OK. Comparação com V4 distingue proposta visual de dados atuais.
+- [ ] PEDIDO AO CLAUDE — L08: leitor da cadeia busca o contrato mas não retorna seu ID; expor vínculo canônico para ponte Caso360→instrumento sem selecionar por nome.
+- [ ] PEDIDO AO CLAUDE — L08: cinco cartões exigem payload do preparador que pode inserir/atualizar ao abrir; fornecer leitura pura compatível antes de montá-los no Caso360.
+- [ ] PEDIDO AO CLAUDE — CRM: clique de saída contextual não concluiu em ficha limpa no teste; destino por URL confirmado, sem alterar bloqueador/rascunhos neste corte.
+- [ ] Prova de gravação, exportação vigente e COMPROVADO_EM_USO: dependem de autorização específica e conferência pessoal da Proprietária; não executados.
+- App congelado, documentos reservados; nada aceito, integrado, publicado ou assinado por este corte. Demais tarefas históricas abaixo permanecem fora do escopo autorizado.
 - L02 entregue. Leitura atual confirmou lead vinculado ao caso, proposta v1 aprovada e contrato vigente em revisão humana, sem assinatura. Preparador excluído da auditoria por gravar na abertura; alterações de lógica L05/L06 e demais cortes não incluídas neste corte visual.
 
 ## 18/10/2026 — Mockup V4 do dia a dia (11 telas) — revisão após a jornada da Ana
@@ -308,3 +359,41 @@
 - App congelado; sem produto paralelo, integração, escrita de dados, assinatura ou publicação. Telas não recuperadas devem constar como pendências explícitas, nunca cobertura presumida.
 
 - [ ] 19/10/2026 00:04 UTC — Comparar mockup (drft_01m58n10hyefm9sz2m3rz46dxh) com prancha V4 tela a tela, sem publicar; contrato autorizado a gravar rascunho interno da Ana. Aguarda o draft terminar.
+
+## 19/10 — Mockup Desk V4 completo (draft drft_01m58xcem1fgk9dyps5y780yh9) — ENTREGUE
+- [x] Contrato: 6 marcos em cards + resumo familiar (cards-fluxo-contrato.tsx)
+- [x] L08: marcos no Caso 360 Formalização (cards-contrato-caso.tsx, leitura pura)
+- [x] L03: identidade visível + área única de edição em leads.tsx
+- [x] L04: três momentos (Antes/Durante/Revisão) em calls.tsx
+- [x] Contexto como alimento: FonteAlimento em 9 superfícies
+- [x] Kanban de tarefas por status (leitura) em tarefas.tsx
+- [x] Antes/depois 375/1280 + PDF MOCKUP (30 págs) entregue; typecheck limpo; 53 testes OK; build OK; HEAD 9d4eba54
+- [ ] Falta: gavetas abertas, árvore com linhas ligadas, radar/matriz, funil, fluxo de publicação, L01 (aguarda aprovação)
+- [ ] Bug pré-existente: título do contrato quebra verticalmente a 375 px (já existia antes)
+
+## 19/10 — Mockup Desk V4 completo (draft drft_01m58xcem1fgk9dyps5y780yh9)
+- [ ] Modelos V4 próprios por tela do Desk (cascas reais: previa-desk-telas, desk-mockup, clube-ancestral-kit).
+- [ ] Capturas: gavetas abertas, árvore com linhas, radar/matriz, funil, fluxo de publicação.
+- [ ] Contrato da Ana: 6 marcos em cards + resumo com leitura familiar (pode gravar rascunho interno; nunca enviar/assinar/cobrar).
+- [ ] Cortes de ficha: L03 (leads), L04 (Calls Antes/Durante/Revisão + SPIN), L08 (cards do contrato no Caso 360).
+- [ ] Contextos como alimento visível (dicionários, gavetas, Biblioteca, planejador): origem e consumidor em cada superfície.
+- [ ] Entrega: antes/depois 375/1280/1440 autenticado, PDF com selo MOCKUP, typecheck + testes, SHA e pendências.
+- Regras: sem rotas novas, sem dados inventados, 14 itens reservados, R$ 9.600 = previsão, sem migration/RLS/publicação/merge; não tocar painel-dia.tsx nem golive-*; App /portal congelado.
+
+## 18/10/2026 23:18 UTC — Recomposição de todas as superfícies Desk
+- [x] Inventário fonte-referenciado: 90 padrões + layout, 87 padrões Desk incluídos; 213 estados listados, não todos capturados.
+- [ ] Resgatar cascas originais V4 e rodadas 1–4, com fonte por composição; preservar mockup rejeitado como histórico.
+- [ ] Produzir proposta isolada em PNG/PDF 1280/375 com antes autenticado, referência original, depois e matriz de cobertura; inspecionar cada página.
+- [ ] Organizar na coleção existente e entregar cobertura exata e bloqueios; nenhum produto, dado, App ou publicação alterado.
+- Jornada anterior: L03/L04 apresentação no draft separado f8aae013; L08 bloqueado pela abertura escritora, contrato não assinado. Não incorporado.
+- [x] Entrega parcial v2: 174 propostas PNG 1280/375 e PDF de 212 páginas; todas vistas em 14 folhas de contato. Matriz explicita faltas; não declarar recomposição integral.
+- [ ] Antes/depois público: bloqueado pela verificação de privacidade incompleta nos pixels; comparativos retidos em /tmp, não compartilhados.
+- [ ] Paridade peça a peça: faltam timeline/rosca Caso 360, funil CRM, matriz nominal/radar, árvore com arestas confirmadas, contrato contínuo e gavetas/subáreas específicas; templates de família não substituem essas cascas.
+- [ ] PEDIDO AO CLAUDE: preparador grava na carga; separar leitura somente com autorização própria. Pesquisa módulo tem erro de hooks; Pesquisa/Privacidade em carregamento. Nenhuma correção no produto neste turno.
+
+- [x] 19/10/2026 14:32 UTC — Inventário tela a tela (topo→rodapé): online × código × estático, áreas incorporadas, motores migrados, Vercel × Lovable, canos. Mockup completo em pausa (Claude sobe o mockup).
+- [x] 19/10/2026 14:43 UTC — Caderno de 24 páginas com propostas visuais por sistema, contextos visíveis e formatos variados; leitura de código não equivale a integração executada.
+- [x] 19/10/2026 15:08 UTC — PDF exclusivo do Desk: 34 páginas de capturas DEPOIS arquivadas e complementos, com carregamentos incompletos explicitados. Sem retomar mockup ou publicar.
+- [x] 19/10/2026 15:08 UTC — Caderno sistêmico cobre rotas e subabas de pesquisa/contrato em código, cadeia alimento → ação → writer → releitura → consumidor; proposta, não implementação nem prova de uso.
+- [x] 19/10/2026 15:17 UTC — Inventário v2 entregue na mesma pasta: 117 endereços, alturas de documento e conteúdo main em 1280/375, gavetas prioritárias abertas, categoria vazio/bloqueado, sessão da Proprietária identificada, erros reconciliados. V1 122 páginas e V2 284 páginas renderizadas e conferidas por folhas de contato; sem submissão manual. Preparador pode escrever automaticamente na carga, não auditado como ausência de escrita.
+- [ ] Prova de gravação com F5/releitura, login cliente e equivalência Vercel atual: não executadas nesta auditoria de leitura; exigem teste autorizado e configuração atual comparável.

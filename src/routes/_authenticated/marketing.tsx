@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { CaCard } from "@/components/ui/ca-card";
 import { carregarConversao } from "@/lib/conversao.functions";
@@ -140,6 +141,11 @@ function Marketing() {
       descricao="Canais, campanhas, conteúdo e atribuição antes do lead existir. Somente leitura — nenhuma campanha, link ou envio é executado aqui."
     >
       <div className="space-y-5">
+        <FonteAlimento
+          fonte="Canais, campanhas e atribuição registrados antes do lead existir"
+          consumidor="O Comercial (CRM Vivo) na entrada de cada lead — fronteira declarada abaixo"
+          detalheTecnico="carregarConversao"
+        />
         <CaCard eyebrow="Fronteira" titulo="Marketing × Comercial" className="text-sm text-navy/75">
           <p>
             <strong className="text-navy">Marketing</strong> — {FRONTEIRA_MARKETING_COMERCIAL.marketing}

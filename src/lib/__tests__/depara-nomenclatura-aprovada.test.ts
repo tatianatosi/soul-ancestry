@@ -15,7 +15,7 @@ import { GRUPOS_DESK, LINKS_CONTEXTUAIS } from "@/lib/navegacao-desk";
 
 describe("De-para de nomenclatura — Desk usa os 6 grupos na navegação principal", () => {
   it("expõe os 6 grupos, com rotas de entrada já existentes", () => {
-    expect(GRUPOS_DESK).toHaveLength(7);
+    expect(GRUPOS_DESK).toHaveLength(8); // 18/10/2026: 7 grupos V4 + Financeiro
     expect(GRUPOS_DESK.map((g) => g.to)).toEqual([
       "/painel",
       "/leads",
@@ -23,6 +23,7 @@ describe("De-para de nomenclatura — Desk usa os 6 grupos na navegação princi
       "/clientes",
       "/pesquisa-modulo",
       "/marketing",
+      "/financeiro",
       "/configuracoes",
     ]);
   });
@@ -35,6 +36,7 @@ describe("De-para de nomenclatura — Desk usa os 6 grupos na navegação princi
       "Pessoas & Famílias",
       "Pesquisa",
       "Marketing",
+      "Financeiro",
       "Configuração",
     ]);
   });

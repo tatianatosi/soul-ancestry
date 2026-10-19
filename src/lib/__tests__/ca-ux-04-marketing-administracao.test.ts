@@ -21,11 +21,11 @@ import {
 } from "@/lib/marketing-aquisicao";
 
 const ler = (p: string) => readFileSync(p, "utf8");
-const ORDEM = ["hoje", "comercial", "casos", "pessoas", "pesquisa", "marketing", "governanca"];
+const ORDEM = ["hoje", "comercial", "casos", "pessoas", "pesquisa", "marketing", "financeiro", "governanca"];
 
 describe("CA-UX-04 — navegação", () => {
   it("tem exatamente 6 grupos; Marketing mora em Marketing & Comercial", () => {
-    expect(GRUPOS_DESK).toHaveLength(7);
+    expect(GRUPOS_DESK).toHaveLength(8); // 18/10/2026: 7 grupos V4 + Financeiro
     expect(GRUPOS_DESK.map((g) => g.id)).toEqual(ORDEM);
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
     // V4: Marketing virou grupo de primeiro nível, não submenu de Comercial.

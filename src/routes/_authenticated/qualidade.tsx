@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { PainelQualidade } from "@/components/qualidade/painel";
 import {
   KpisQualidadeV4,
@@ -11,6 +12,7 @@ import { RadarInternoIntegrado } from "@/components/desk/radar-interno-integrado
 import { CaCard } from "@/components/ui/ca-card";
 import { Selo } from "@/components/comercial/base";
 import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos";
+import "@/components/desk/mockup4-superficies.css";
 
 export const Route = createFileRoute("/_authenticated/qualidade")({
   head: () => ({
@@ -47,11 +49,17 @@ function QualidadePage() {
       descricao="Matriz de elegibilidade × urgência e Radar Individual sincronizados; leitura interna por caso."
     >
       {/*
-        19/10/2026 — prancha visual V4: a composição aprovada (cabeçalho
-        "Radar interno", alternador, matriz e radar individual) abre a tela.
-        KPIs, recomendações, panorama e checklists seguem abaixo, inalterados.
+        19/10/2026 — reconciliação com o Lovable: FonteAlimento + moldura
+        mockup4 do Lovable envolvendo o Radar Interno Integrado da branch;
+        card explicativo "Como ler esta tela" da branch preservado. Nada
+        duplicado, nada perdido.
       */}
-      <div className="mb-6">
+      <FonteAlimento
+        fonte="Urgência e hipótese de elegibilidade registradas em cada caso"
+        consumidor="A prioridade dos casos no Painel Hoje — leitura interna, nunca exposta ao cliente"
+        detalheTecnico="radar-interno-caso"
+      />
+      <div className="mb-6 min-w-0 rounded-2xl border border-navy/10 bg-card p-6 shadow-sm" data-desk-mockup4="radar">
         <RadarInternoIntegrado />
       </div>
       <CaCard
@@ -72,7 +80,7 @@ function QualidadePage() {
         <RecomendacoesQualidadeV4 />
         <PanoramaQualidadeV4 />
       </div>
-      <details className="mb-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
+      <details className="mb-6 rounded-xl border border-navy/10 bg-card p-4">
         <summary className="cursor-pointer font-serif text-base text-navy">
           Qualidade, checklists e exportação
         </summary>

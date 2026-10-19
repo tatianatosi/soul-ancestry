@@ -42,18 +42,31 @@ export function handlerBeforeUnload(e: BeforeUnloadEvent): void {
  * Com `sujo === false` o hook não registra nada — nenhuma tela paga custo por
  * estar limpa.
  */
-export function useAvisoEdicaoNaoSalva(sujo: boolean) {
+function useAvisoBeforeUnload(sujo: boolean) {
   useEffect(() => {
     if (!sujo) return;
     window.addEventListener("beforeunload", handlerBeforeUnload);
     return () => window.removeEventListener("beforeunload", handlerBeforeUnload);
   }, [sujo]);
+}
 
-  /**
-   * Devolvido para a tela que quer desenhar a própria confirmação (Caso 360
-   * já desenhava a sua antes deste módulo existir). Quem não usa o retorno
-   * fica com o diálogo padrão do router — é o caso da maioria das telas.
-   */
+/*
+ * 18/10/2026 — telas sem confirmação própria ficavam com a navegação presa em
+ * silêncio (o resolver esperava uma resposta que nenhuma tela desenhava; ex.:
+ * sair do CRM Vivo pelas abas não fazia nada). Agora o router pergunta pelo
+ * diálogo nativo do navegador.
+ */
+export function useAvisoEdicaoNaoSalva(sujo: boolean) {
+  useAvisoBeforeUnload(sujo);
+  useBlocker({
+    shouldBlockFn: () => sujo && !window.confirm("Há alterações não salvas nesta tela. Sair mesmo assim?"),
+    enableBeforeUnload: false,
+  });
+}
+
+/** Para a tela que desenha a própria confirmação (Caso 360). */
+export function useAvisoEdicaoNaoSalvaComConfirmacao(sujo: boolean) {
+  useAvisoBeforeUnload(sujo);
   return useBlocker({
     shouldBlockFn: () => sujo,
     enableBeforeUnload: false,

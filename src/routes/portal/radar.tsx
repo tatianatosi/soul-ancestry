@@ -98,42 +98,34 @@ export function PortalRadar() {
                     </p>
                   </section>
 
+
                   <section aria-label="Dimensões do Radar">
                     <h2 className="mb-3 font-serif text-xl text-navy">A história em seis dimensões</h2>
-                     <ul className="divide-y divide-border">
+                     {/* Grade de 6 cartões (mockup original, 13/10/2026): percentual e barra só com dado real.
+                         Reconciliação: conteúdo do rascunho preservado; bg-card mantém a superfície semântica atual. */}
+                     <ul className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 lg:grid-cols-3" data-radar-grade>
                       {dimensoes.map((d, i) => {
-                        // "Em preparação" só quando não há percentual nem registro publicado.
                         const temPercentual = d.percentual !== null;
-                        const temRegistro = !["Nenhum ainda", "Em preparação", "Lacuna", ""].includes(d.rotuloNumero.trim());
+                        const temRegistro = !["Em pesquisa", "Em preparação", ""].includes(d.rotuloNumero.trim());
                         const vazio = !temPercentual && !temRegistro;
                         const contagemConexoes =
                           d.id === "conexoes" && temPercentual ? d.legenda.match(/^(\d+) de (\d+)/) : null;
                         return (
-                        <li key={d.id} className="min-w-0 py-4">
-                          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-                            <div className="min-w-0">
-                              <p className="text-xs font-medium text-navy/60">
-                                Parte {i + 1} de 6
-                              </p>
-                              <h3 className="mt-1 font-serif text-xl leading-tight text-navy">{d.titulo}</h3>
-                            </div>
-                            <span className="block max-w-32 break-words text-right font-serif text-xl leading-tight text-navy">
-                              {vazio ? "Em pesquisa" : temPercentual ? `${d.percentual}%` : d.rotuloNumero}
-                              {temPercentual && d.id !== "conexoes" && !d.rotuloNumero.includes("%") && temRegistro ? <span className="ml-1 font-sans text-xs text-navy/70">· {d.rotuloNumero}</span> : null}
-                              {contagemConexoes ? (
-                                <span className="mt-1 block font-sans text-xs text-navy/70">
-                                  · {contagemConexoes[1]} de {contagemConexoes[2]} pessoas
-                                </span>
-                              ) : null}
-                            </span>
-                          </div>
+                        <li key={d.id} className="min-w-0 rounded-xl border border-border bg-card p-4 shadow-sm" data-radar-cartao={d.id}>
+                          <p className="text-[11px] font-medium text-navy/60">Parte {i + 1} de 6</p>
+                          <h3 className="mt-1 font-serif text-lg leading-tight text-navy">{d.titulo}</h3>
+                          <p className="mt-2 font-serif text-2xl leading-none text-navy">
+                            {vazio ? (
+                              <span className="inline-flex rounded-full border border-gold/60 px-2.5 py-0.5 font-sans text-[11px] font-medium text-[var(--app-ouro-texto)]">Em pesquisa</span>
+                            ) : temPercentual ? <span className="font-serif text-[1.75rem] leading-none text-navy" data-radar-percentual>{d.percentual}%</span> : <span className="font-sans text-sm text-navy/80">{d.rotuloNumero}</span>}
+                            {contagemConexoes ? (
+                              <span className="ml-2 font-sans text-xs text-navy/70">{contagemConexoes[1]} de {contagemConexoes[2]} pessoas</span>
+                            ) : null}
+                          </p>
                           {temPercentual ? <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-navy/10" aria-hidden="true">
-                            <div
-                              className="h-full rounded-full bg-gold"
-                              style={{ width: `${temPercentual ? (d.percentual ?? 0) : 0}%` }}
-                            />
+                            <div className="h-full rounded-full bg-gold" style={{ width: `${d.percentual ?? 0}%` }} />
                           </div> : null}
-                          {d.legenda ? <p className="mt-2 text-sm leading-relaxed text-navy/75">{vazio ? d.legenda.replace(/^Lacuna:\s*/i, "").replace(/^./, (c) => c.toUpperCase()) : d.legenda}</p> : null}
+                          {d.legenda ? <p className="mt-2 text-sm leading-relaxed text-navy/75">{d.legenda}</p> : null}
                         </li>
                         );
                       })}

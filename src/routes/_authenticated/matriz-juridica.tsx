@@ -7,6 +7,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
+import { MarcosJuridicosCartoes } from "@/components/juridico/marcos-cartoes";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { CaCard } from "@/components/ui/ca-card";
@@ -15,6 +16,7 @@ import { consolidarMatrizJuridica, listarMatrizJuridica, registrarDecisaoTema } 
 import { STATUS_TEMA, rotuloStatusTema, temasBloqueantesPendentes, type LinhaMatriz } from "@/lib/matriz-juridica";
 import { separarNotaTecnica } from "@/lib/rotulo-negocio";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
+import "@/components/desk/mockup4-superficies.css";
 
 export const Route = createFileRoute("/_authenticated/matriz-juridica")({
   head: () => ({
@@ -85,6 +87,10 @@ function MatrizPage() {
         <Indicador rotulo="Bloqueantes sem decisão" valor={kpi(pendentes.length)} />
         <Indicador rotulo="Aprovados" valor={kpi(linhas?.filter((l) => l.status === "aprovado").length ?? 0)} />
       </div>
+
+      <MarcosJuridicosCartoes />
+
+      <h2 className="mb-2 mt-4 font-serif text-xl text-navy">Temas da matriz contratual</h2>
       <CaCard className="mb-4">
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-navy">
           <span>
@@ -118,6 +124,7 @@ function MatrizPage() {
         />
       </div>
 
+      <div data-desk-mockup4="juridico">
       <EstadoDados<LinhaMatriz>
         carregando={q.isLoading}
         erro={q.error}
@@ -135,8 +142,9 @@ function MatrizPage() {
           const notaJustificativa = separarNotaTecnica(String(l.justificativa ?? ""));
           const justificativaHumana = e.justificativa !== undefined ? e.justificativa : notaJustificativa.humana;
           return (
+            <details key={l.tema_codigo} className="desk-tema-juridico">
+            <summary><h2>{l.tema}</h2><span>{rotuloStatusTema(l.status)} · {l.bloqueia_assinatura ? "Bloqueia assinatura" : "Não bloqueia assinatura"}</span></summary>
             <Secao
-              key={l.tema_codigo}
               titulo={l.tema}
               descricao={`${l.bloqueia_assinatura ? "Bloqueia assinatura" : "Não bloqueia assinatura"} · impacto: ${l.impacto_templates.join(", ")} · status atual: ${rotuloStatusTema(l.status)}`}
             >
@@ -202,11 +210,13 @@ function MatrizPage() {
                 />
               </div>
             </Secao>
+            </details>
           );
         })}
       </div>
         )}
       </EstadoDados>
+      </div>
     </SaasShell>
   );
 }

@@ -42,7 +42,7 @@ describe("App: a Conta lê as atualizações publicadas", () => {
 
   it("o estado vazio só aparece quando não há alerta nem atualização", () => {
     expect(tela).toContain("atualizacoes.length === 0 ?");
-    expect(tela).toContain("Nenhum recado novo por enquanto.");
+    expect(tela).toContain("Os recados da equipe terão seu lugar aqui.");
   });
 
   it("a Conta não importa escritor do Desk", () => {

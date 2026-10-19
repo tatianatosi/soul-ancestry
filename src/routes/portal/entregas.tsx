@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { CartaoEditorial } from "@/components/portal/elementos-mockup";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
@@ -54,7 +55,7 @@ export function PortalEntregas() {
               <ChipMeta rotulo="Tipo" valor="Materiais" />
               <ChipMeta
                 rotulo="Publicados"
-                valor={itens.length === 0 ? "Nenhum ainda" : String(itens.length)}
+                valor={itens.length === 0 ? "Em preparação" : String(itens.length)}
               />
               <ChipMeta
                 rotulo="Estado"
@@ -62,9 +63,7 @@ export function PortalEntregas() {
               />
             </div>
           {itens.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
-              Nenhum material liberado para consulta no momento.
-            </p>
+            <CartaoEditorial texto="Os materiais terão seu lugar aqui quando forem liberados para a família." />
           ) : (
             <ul className="space-y-3">
               {itens.map((item) => (

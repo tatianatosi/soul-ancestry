@@ -14,6 +14,9 @@ import {
   ShieldCheck,
   Search,
   ChevronDown,
+  Users,
+  Megaphone,
+  Wallet,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -28,8 +31,9 @@ import {
   MENU_LEGADO_DESK,
   rotaAtendeDestino,
   setorDaRota,
-  SETORES_DESK_V5,
-  SUPERFICIES_PRANCHA_V4,
+  SETORES_DESK,
+  destinoDaAba,
+  itemNavAtivo,
   type AbaSetor,
   type GrupoDesk,
 } from "@/lib/navegacao-desk";
@@ -84,6 +88,9 @@ const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
   pesquisa: Library,
   contratos: Scale,
   governanca: ShieldCheck,
+  pessoas: Users,
+  marketing: Megaphone,
+  financeiro: Wallet,
 };
 
 /**
@@ -96,12 +103,15 @@ const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
  * itens. Aqui ficou só o layout.
  */
 
-/** A aba mais específica que casa com a rota fica ativa (ex.: /casos/:id → Casos). */
-function abaAtiva(rota: string, aba: AbaSetor, abas: readonly AbaSetor[]): boolean {
+/** A aba mais específica que casa com a rota (e com a âncora, quando houver) fica ativa. */
+function abaAtiva(rota: string, hash: string, aba: AbaSetor, abas: readonly AbaSetor[]): boolean {
+  const comHash = abas.find((a) => a.hash && hash && itemNavAtivo(rota.replace(/^\/casos\/[^/]+$/, "/casos"), hash, a));
+  if (comHash) return comHash === aba;
+  if (aba.hash) return false;
   const melhor = abas
-    .filter((a) => rota === a.to || rota.startsWith(`${a.to}/`))
+    .filter((a) => !a.hash && (rota === a.to || rota.startsWith(`${a.to}/`)))
     .sort((a, b) => b.to.length - a.to.length)[0];
-  return melhor?.to === aba.to;
+  return melhor === aba;
 }
 
 export function SaasShell({
@@ -121,6 +131,7 @@ export function SaasShell({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const rota = useRouterState({ select: (s) => s.location.pathname });
+  const hashAtual = useRouterState({ select: (s) => s.location.hash });
   const [aberto, setAberto] = useState(false);
   const registrarSaida = useServerFn(registrarLogoutEquipe);
 
@@ -181,15 +192,11 @@ export function SaasShell({
     (alertas.data?.atrasadas?.length ?? 0) + (alertas.data?.microAtrasadas?.length ?? 0);
   const badgeDe = (id: string): number => (id === "casos" ? atrasadasCasos : 0);
 
-  // Seis setores fixos; o setor ativo define a única linha de abas abaixo do
+  // Oito setores (GRUPOS_DESK/SETORES_DESK, decisão da Proprietária
+  // 18-19/10/2026); o setor ativo define a única linha de abas abaixo do
   // cabeçalho. Abas restritas a admin só aparecem para admin.
   const setorAtivo = setorDaRota(rota);
   const abasSetor = (setorAtivo?.abas ?? []).filter((a) => !a.adminOnly || ehAdmin);
-  const rotasSuperficie = new Set(SUPERFICIES_PRANCHA_V4.map((s) => s.to));
-  const abasExtras = abasSetor.filter((a) => !rotasSuperficie.has(a.to));
-  const superficieAtiva = SUPERFICIES_PRANCHA_V4.filter((s) => rota === s.to || rota.startsWith(`${s.to}/`)).sort(
-    (a, b) => b.to.length - a.to.length,
-  )[0]?.to;
   // Avatar da topbar: só o que o perfil da sessão traz — nada fixo no código.
   const nomeExibido = contexto?.perfil?.nome?.trim() || contexto?.perfil?.email || "Conta";
   const iniciais =
@@ -230,7 +237,7 @@ export function SaasShell({
         </div>
 
         <nav aria-label="Navegação do Desk" className="flex flex-1 flex-col gap-1">
-          {SETORES_DESK_V5.map((setor) => {
+          {SETORES_DESK.map((setor) => {
             const Icon = ICONES[setor.icone];
             const ativo = setorAtivo?.id === setor.id;
             return (
@@ -369,39 +376,30 @@ export function SaasShell({
             </div>
             {acoes ? <div className="min-w-0 max-w-full">{acoes}</div> : null}
           </div>
-          {/* Pílulas da prancha V4: as 13 superfícies, iguais em toda tela do Desk. */}
-          <nav aria-label="Superfícies do Desk" className="mt-4 flex min-w-0 flex-wrap gap-2" data-desk-superficies>
-            {SUPERFICIES_PRANCHA_V4.map((sup) => {
-              const ativa = superficieAtiva === sup.to;
-              return (
-                <Link
-                  key={sup.to}
-                  to={sup.to}
-                  aria-current={ativa ? "page" : undefined}
-                  className={cn(
-                    "inline-flex min-h-8 items-center rounded-full border px-3 py-1 text-[11px] transition-colors",
-                    ativa ? "border-navy bg-navy text-white" : "border-navy/15 bg-card/60 text-navy/70 hover:bg-cream",
-                  )}
-                >
-                  {sup.label}
-                </Link>
-              );
-            })}
-          </nav>
-          {/* Demais telas do grupo ativo que não são superfície da prancha: continuam a um clique. */}
-          {abasExtras.length ? (
+          {/*
+            19/10/2026 — reconciliação com o Lovable: a pílula cross-grupo das
+            13 "superfícies" (`SUPERFICIES_PRANCHA_V4`) saiu de cena como
+            menu paralelo; a navegação de segundo nível é só as sub-tabs do
+            setor ativo, por rota/hash (`destinoDaAba`/`itemNavAtivo`).
+            `SUPERFICIES_PRANCHA_V4` continua existindo em `navegacao-desk.ts`
+            como metadado/referência interna das 13 áreas canônicas.
+          */}
+          {abasSetor.length ? (
             <nav
-              aria-label={`Mais em ${setorAtivo?.label ?? "este grupo"}`}
-              className="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1"
+              aria-label={`Abas de ${setorAtivo?.label ?? "este grupo"}`}
+              className="mt-4 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1"
               data-desk-abas-setor={setorAtivo?.id}
             >
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-navy/40">Também em {setorAtivo?.label}</span>
-              {abasExtras.map((aba) => {
-                const ativa = abaAtiva(rota, aba, abasSetor);
+              {abasSetor.map((aba) => {
+                const ativa = abaAtiva(rota, hashAtual, aba, abasSetor);
+                const destino = destinoDaAba(aba, rota);
                 return (
                   <Link
-                    key={aba.to}
-                    to={aba.to}
+                    key={`${aba.to}#${aba.hash ?? ""}`}
+                    to={destino.to}
+                    params={destino.caseId ? { caseId: destino.caseId } : undefined}
+                    hash={destino.hash}
+                    data-aba-destino={`${destino.caseId ? `/casos/${destino.caseId}` : destino.to}${destino.hash ? `#${destino.hash}` : ""}`}
                     aria-current={ativa ? "page" : undefined}
                     className={cn(
                       "text-[11px] underline-offset-4 transition-colors",
@@ -432,10 +430,10 @@ export function SaasShell({
         {/* Prancha V4: no celular a navegação entre setores é a barra fixa de ícones embaixo. */}
         <nav
           aria-label="Setores do Desk"
-          className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-navy/10 bg-card px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-sm md:hidden"
+          className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-8 border-t border-navy/10 bg-card px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-sm md:hidden"
           data-desk-nav-movel
         >
-          {SETORES_DESK_V5.map((setor) => {
+          {SETORES_DESK.map((setor) => {
             const Icon = ICONES[setor.icone];
             const ativo = setorAtivo?.id === setor.id;
             return (
