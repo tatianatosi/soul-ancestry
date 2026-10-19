@@ -1003,8 +1003,9 @@ function FichaCaso() {
                   {/*
                     13/10/2026 — Proprietária: a barra da prancha é sempre
                     desenhada. Comprimento = degrau atingido na escala de 4
-                    estados de `progressoPorFrente` (inicial 0 · em coleta 1/3 ·
-                    em andamento 2/3 · concluída 3/3); o texto mostra o estado.
+                    estados de `progressoPorFrente` (inicial 1/4 · em coleta 2/4 ·
+                    em andamento 3/4 · concluída 4/4); o texto mostra o estado.
+                    Escala ordinal, não percentual de execução.
                   */}
                   <BarrasHorizontais
                     tituloAcessivel={`Progresso do caso por frente: ${(
@@ -1029,9 +1030,12 @@ function FichaCaso() {
                       const nivel = ESCALA_FRENTE.indexOf(estado as (typeof ESCALA_FRENTE)[number]);
                       return {
                         rotulo,
-                        valor: (Math.max(0, nivel) / (ESCALA_FRENTE.length - 1)) * 100,
+                        // 19/10/2026 — prancha V4: cada degrau da escala ordinal
+                        // ocupa 1/4 do trilho (inicial já mostra o primeiro
+                        // degrau); só "em andamento" em dourado, como na prancha.
+                        valor: ((Math.max(0, nivel) + 1) / ESCALA_FRENTE.length) * 100,
                         apoio: ROTULO_FRENTE[estado],
-                        tom: estado === "concluida" ? ("navy" as const) : estado === "inicial" ? ("terracotta" as const) : ("gold" as const),
+                        tom: estado === "em_andamento" ? ("gold" as const) : ("navy" as const),
                       };
                     })}
                   />
@@ -1044,8 +1048,8 @@ function FichaCaso() {
                   </ul>
                 </CaCard>
                 </div>
-                <div className="order-1 min-w-0" data-caso360-linha-tempo>
-                <CaCard className="h-full" eyebrow="Lote A · Entrada e caso" titulo="Linha do tempo do caso">
+                <div className="order-1 min-w-0" data-caso360-linha-tempo role="group" aria-label="Linha do tempo do caso">
+                <CaCard className="h-full" eyebrow="Lote A · Entrada e caso" titulo="Linha do tempo">
                   {(() => {
                     const quando = (e: any) => new Date(String(e.occurred_at ?? e.created_at ?? 0)).getTime();
                     const eventos = ((q.data?.timeline ?? []) as any[])
@@ -1085,37 +1089,37 @@ function FichaCaso() {
                     ação / Microentrega / Alertas. Cadência não tem fonte
                     carregada nesta tela — mostra o vazio honesto, sem inferir.
                   */}
-                  <dl className="mt-5 grid gap-3 border-t border-navy/10 pt-4 text-sm sm:grid-cols-2 lg:grid-cols-5" data-caso360-jornada-chips>
-                    <div className="flex min-w-0 flex-col gap-1">
-                      <dt className="text-[11px] text-navy/60">Etapa atual</dt>
-                      <dd className="max-w-full self-start truncate rounded-full border border-gold/50 bg-gold/10 px-2.5 py-0.5 text-xs text-navy">
+                  <dl className="mt-5 grid gap-x-4 gap-y-2 border-t border-navy/10 pt-4 text-sm sm:grid-cols-2 lg:grid-cols-5" data-caso360-jornada-chips>
+                    <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
+                      <dt className="shrink-0 text-xs text-navy/70">Etapa atual</dt>
+                      <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-gold/50 bg-gold/10 px-2.5 py-0.5 text-xs text-navy">
                         {etapaAtualPlanejador ?? "Etapa não registrada"}
                       </dd>
                     </div>
-                    <div className="flex min-w-0 flex-col gap-1">
-                      <dt className="text-[11px] text-navy/60">Cadência</dt>
-                      <dd className="max-w-full self-start truncate rounded-full border border-dashed border-navy/20 px-2.5 py-0.5 text-xs text-navy/55">
+                    <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
+                      <dt className="shrink-0 text-xs text-navy/70">Cadência</dt>
+                      <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-dashed border-navy/20 px-2.5 py-0.5 text-xs text-navy/55">
                         Sem dado registrado ainda
                       </dd>
                     </div>
-                    <div className="flex min-w-0 flex-col gap-1">
-                      <dt className="text-[11px] text-navy/60">Próxima ação</dt>
-                      <dd className="max-w-full self-start truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
+                    <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
+                      <dt className="shrink-0 text-xs text-navy/70">Próxima ação</dt>
+                      <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
                         {canonica?.acao ?? "Sem próxima ação definida"}
                       </dd>
                     </div>
-                    <div className="flex min-w-0 flex-col gap-1">
-                      <dt className="text-[11px] text-navy/60">Microentrega</dt>
-                      <dd className="max-w-full self-start truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
+                    <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
+                      <dt className="shrink-0 text-xs text-navy/70">Microentrega</dt>
+                      <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
                         {(() => {
                           const ultima = ((qc2.data?.entregas ?? []) as any[])[0];
                           return ultima ? String(ultima.title_client ?? "Microentrega sem título") : "Nenhuma microentrega registrada";
                         })()}
                       </dd>
                     </div>
-                    <div className="flex min-w-0 flex-col gap-1">
-                      <dt className="text-[11px] text-navy/60">Alertas</dt>
-                      <dd className="max-w-full self-start truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
+                    <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
+                      <dt className="shrink-0 text-xs text-navy/70">Alertas</dt>
+                      <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
                         {(() => {
                           const n = ((qc2.data?.alertas ?? []) as any[]).filter(
                             (a) => a.criticidade === "critica" && a.status !== "completed",
@@ -1133,7 +1137,15 @@ function FichaCaso() {
                 <CaCard className="h-full" eyebrow="Lote B · Pesquisa e árvore" titulo="Participantes">
                   {(() => {
                     const membros = (q.data?.membros ?? []) as any[];
-                    if (!membros.length) return <EstadoVazio mensagem="Nenhum participante registrado ainda." />;
+                    if (!membros.length)
+                      return (
+                        <div className="flex items-center gap-2" data-caso360-participantes-vazio>
+                          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-dashed border-navy/25 text-[11px] text-navy/35" aria-hidden="true">
+                            —
+                          </span>
+                          <span className="text-xs text-navy/55">Nenhum participante registrado ainda.</span>
+                        </div>
+                      );
                     return (
                       <div className="space-y-3">
                         {membros.slice(0, 4).map((membro, i) => {
@@ -1167,7 +1179,7 @@ function FichaCaso() {
                     segmentos={[
                       { rotulo: "Confirmados", valor: dossieResumo.confirmados, tom: "sucesso" },
                       { rotulo: "Em revisão", valor: dossieResumo.emRevisao, tom: "gold" },
-                      { rotulo: "Pendentes", valor: dossieResumo.pendentes, tom: "terracotta" },
+                      { rotulo: "Pendentes", valor: dossieResumo.pendentes, tom: "navy" },
                     ]}
                   />
                   <p className="mt-3 text-[10px] text-navy/55" role={qPesquisa.isError ? "alert" : undefined}>
