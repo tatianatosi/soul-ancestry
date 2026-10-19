@@ -75,12 +75,12 @@ describe("atalhos de descoberta", () => {
   });
 
   it("o atalho aponta para a aba dona da função, não para o nome antigo do grupo", () => {
-    // 18/10/2026: o dono vem de SETORES_DESK_V5 (lateral real) — Radar
-    // (/qualidade) mora em Pesquisa e Integrações em Governança & Configuração.
-    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe("Pesquisa");
+    // 19/10/2026: o dono vem da lateral da prancha V4 — Radar (/qualidade)
+    // mora em Pessoas & Casos e Integrações em Governança & Administração.
+    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe("Pessoas & Casos");
     expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/matriz-juridica")?.onde).toBeDefined();
     expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/integracoes")?.onde).toBe(
-      "Governança & Configuração",
+      "Governança & Administração",
     );
     expect(painel).toContain('to: "/calls"');
     expect(painel).toContain("Mesa de Discovery");
@@ -131,15 +131,14 @@ describe("superfícies preservadas", () => {
    */
   it("a lateral tem os 7 ecossistemas canônicos + Governança, e o legado fica recolhido", () => {
     expect(GRUPOS_DESK).toHaveLength(7);
+    // 19/10/2026: decisão da Proprietária — a lateral é a da prancha V4 (6 grupos).
     expect(SETORES_DESK_V5.map((s) => s.label)).toEqual([
       "Hoje",
-      "Comercial",
-      "Casos",
-      "Pessoas & Famílias",
-      "Pesquisa",
-      "Marketing",
+      "Marketing & Comercial",
+      "Pessoas & Casos",
+      "Inteligência & Pesquisa",
       "Formalização & Financeiro",
-      "Governança & Configuração",
+      "Governança & Administração",
     ]);
     const abas = SETORES_DESK_V5.flatMap((s) => s.abas.map((a) => a.to));
     // 18/10/2026: a Proprietária desengavetou estas 8 ferramentas (PR #169) —

@@ -290,6 +290,14 @@ export type SetorDesk = {
   prefixos: readonly string[];
 };
 
+/**
+ * Lateral da PRANCHA VISUAL DO DESK V4 (decisão da Proprietária em
+ * 19/10/2026: "em relação ao menu veja na prancha visual como está o
+ * correto"). Exatamente 6 grupos, na ordem e com os rótulos da prancha.
+ * Os ids antigos foram mantidos para não quebrar quem lê `setorDaRota`.
+ * Nenhuma rota sumiu: o que saiu do primeiro nível continua como aba do
+ * grupo dono e por prefixo.
+ */
 export const SETORES_DESK_V5: readonly SetorDesk[] = [
   {
     id: "hoje",
@@ -305,28 +313,44 @@ export const SETORES_DESK_V5: readonly SetorDesk[] = [
   },
   {
     id: "comercial",
-    label: "Comercial",
+    label: "Marketing & Comercial",
     to: "/leads",
     icone: "comercial",
     abas: [
       { label: "CRM Vivo", to: "/leads" },
-      { label: "Calls", to: "/calls" },
+      { label: "Mesa de Discovery", to: "/calls" },
       { label: "Próximas ações", to: "/proximas-acoes" },
       { label: "Propostas", to: "/propostas" },
       { label: "Funil & Conversão", to: "/conversao" },
       { label: "Roteiro Discovery", to: "/crm-mestre" },
+      { label: "Aquisição", to: "/marketing" },
+      { label: "Biblioteca de mensagens", to: "/biblioteca-mensagens" },
     ],
-    prefixos: ["/leads", "/calls", "/propostas", "/proximas-acoes", "/conversao", "/crm-mestre"],
+    prefixos: [
+      "/leads",
+      "/calls",
+      "/propostas",
+      "/proximas-acoes",
+      "/conversao",
+      "/crm-mestre",
+      "/marketing",
+      "/biblioteca-mensagens",
+    ],
   },
   {
     id: "casos",
-    label: "Casos",
+    label: "Pessoas & Casos",
     to: "/casos",
     icone: "casos",
     abas: [
       { label: "Caso 360", to: "/casos" },
-      { label: "Operações (Kanban)", to: "/ops" },
-      { label: "Tarefas (Lista)", to: "/tarefas" },
+      { label: "Kanban operacional", to: "/tarefas" },
+      { label: "Operações", to: "/ops" },
+      { label: "Pessoa 360", to: "/clientes" },
+      { label: "Pessoas & Famílias", to: "/nucleos" },
+      { label: "Duplicidades", to: "/nucleos-duplicidades" },
+      { label: "Radar & Matrizes", to: "/qualidade" },
+      { label: "Portal do cliente", to: "/acessos-portal" },
     ],
     prefixos: [
       "/casos",
@@ -336,36 +360,30 @@ export const SETORES_DESK_V5: readonly SetorDesk[] = [
       "/atendimento",
       "/app-cliente-como-pessoa",
       "/app-cliente-demo",
+      "/clientes",
+      "/pessoas",
+      "/nucleos",
+      "/nucleos-duplicidades",
+      "/pessoas-linhagens",
+      "/qualidade",
+      "/acessos-portal",
     ],
-  },
-  {
-    id: "pessoas",
-    label: "Pessoas & Famílias",
-    to: "/clientes",
-    icone: "casos",
-    abas: [
-      { label: "Pessoa 360", to: "/clientes" },
-      { label: "Núcleos familiares", to: "/nucleos" },
-      { label: "Duplicidades", to: "/nucleos-duplicidades" },
-    ],
-    prefixos: ["/clientes", "/pessoas", "/nucleos", "/nucleos-duplicidades", "/pessoas-linhagens"],
   },
   {
     id: "pesquisa",
-    label: "Pesquisa",
+    label: "Inteligência & Pesquisa",
     to: "/pesquisa-modulo",
     icone: "pesquisa",
     abas: [
       { label: "Centro de Inteligência", to: "/pesquisa-modulo" },
-      { label: "Radar", to: "/qualidade" },
       { label: "Microentregas", to: "/microentregas" },
       { label: "Fontes", to: "/fontes-genealogicas" },
       { label: "Evidências", to: "/evidencias" },
       { label: "Devolutivas", to: "/studio-devolutivas" },
+      { label: "Biblioteca Mestre", to: "/biblioteca" },
     ],
     prefixos: [
       "/pesquisa",
-      "/qualidade",
       "/microentregas",
       "/fontes-genealogicas",
       "/evidencias",
@@ -379,23 +397,12 @@ export const SETORES_DESK_V5: readonly SetorDesk[] = [
     ],
   },
   {
-    id: "marketing",
-    label: "Marketing",
-    to: "/marketing",
-    icone: "comercial",
-    abas: [
-      { label: "Aquisição", to: "/marketing" },
-      { label: "Biblioteca de mensagens", to: "/biblioteca-mensagens" },
-    ],
-    prefixos: ["/marketing", "/biblioteca-mensagens"],
-  },
-  {
     id: "contratos",
     label: "Formalização & Financeiro",
     to: "/contratos",
     icone: "contratos",
     abas: [
-      { label: "Contratos", to: "/contratos" },
+      { label: "Jurídico & Contrato", to: "/contratos" },
       { label: "Validação jurídica", to: "/matriz-juridica" },
       { label: "Ordens de serviço", to: "/ordens-servico" },
       { label: "Financeiro", to: "/financeiro" },
@@ -404,12 +411,11 @@ export const SETORES_DESK_V5: readonly SetorDesk[] = [
   },
   {
     id: "governanca",
-    label: "Governança & Configuração",
+    label: "Governança & Administração",
     to: "/configuracoes",
     icone: "governanca",
     abas: [
-      { label: "Configuração", to: "/configuracoes" },
-      { label: "Portal & Acessos", to: "/acessos-portal" },
+      { label: "Configuração & Acesso", to: "/configuracoes" },
       { label: "Equipe e acesso", to: "/equipe", adminOnly: true },
       { label: "Catálogos e preços", to: "/catalogo" },
       { label: "Integrações", to: "/integracoes" },
@@ -417,7 +423,6 @@ export const SETORES_DESK_V5: readonly SetorDesk[] = [
     ],
     prefixos: [
       "/configuracoes",
-      "/acessos-portal",
       "/equipe",
       "/catalogo",
       "/integracoes",
@@ -434,6 +439,26 @@ export const SETORES_DESK_V5: readonly SetorDesk[] = [
       "/golive",
     ],
   },
+];
+
+/**
+ * As 13 superfícies da prancha, na ordem das pílulas do topo de toda tela
+ * do Desk. Cada uma aponta para a rota real que a implementa.
+ */
+export const SUPERFICIES_PRANCHA_V4: readonly { label: string; to: string }[] = [
+  { label: "Hoje", to: "/painel" },
+  { label: "Comercial / CRM Vivo", to: "/leads" },
+  { label: "Checklist / Kanban operacional", to: "/tarefas" },
+  { label: "Caso 360", to: "/casos" },
+  { label: "Pessoa 360", to: "/clientes" },
+  { label: "Radar & Matrizes", to: "/qualidade" },
+  { label: "Pesquisa", to: "/pesquisa-modulo" },
+  { label: "Biblioteca Mestre", to: "/biblioteca" },
+  { label: "Financeiro", to: "/financeiro" },
+  { label: "Jurídico & Contrato", to: "/contratos" },
+  { label: "Pessoas & Famílias", to: "/nucleos" },
+  { label: "Portal do cliente (visão interna)", to: "/acessos-portal" },
+  { label: "Configuração & Acesso", to: "/configuracoes" },
 ];
 
 export const MENU_LEGADO_DESK: {

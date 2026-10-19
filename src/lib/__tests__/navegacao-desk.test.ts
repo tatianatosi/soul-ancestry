@@ -16,6 +16,8 @@ import {
   rotasDoMenuConta,
   MENU_CONTA,
   setorDaRota,
+  SETORES_DESK_V5,
+  SUPERFICIES_PRANCHA_V4,
 } from "@/lib/navegacao-desk";
 import { MATRIZ_EQUIVALENCIA } from "@/lib/matriz-equivalencia";
 
@@ -166,7 +168,7 @@ describe("Navegação do Desk — 7 grupos do V4 (03/10/2026)", () => {
   // CLASSIFICACAO_SANEAMENTO_V4, que fica como metadado histórico.
   it("V4: /crm-mestre graduou de alimento contextual para aba própria em Comercial", () => {
     expect(rotasDoMenu()).toContain("/crm-mestre");
-    expect(grupoDonoDaRota("/crm-mestre")).toBe("Comercial");
+    expect(grupoDonoDaRota("/crm-mestre")).toBe("Marketing & Comercial");
   });
 
   it("Painel de Calls permanece na face de Comercial", () => {
@@ -184,10 +186,11 @@ describe("Navegação do Desk — 7 grupos do V4 (03/10/2026)", () => {
   });
 
   it("cada função mora em um único grupo — privacidade e SKU legado não são operação diária", () => {
-    expect(grupoDonoDaRota("/calls")).toBe("Comercial");
-    expect(grupoDonoDaRota("/leads")).toBe("Comercial");
-    expect(grupoDonoDaRota("/casos")).toBe("Casos");
-    expect(grupoDonoDaRota("/evidencias")).toBe("Pesquisa");
+    // 19/10/2026: lateral da prancha V4 — 6 grupos, rótulos da prancha.
+    expect(grupoDonoDaRota("/calls")).toBe("Marketing & Comercial");
+    expect(grupoDonoDaRota("/leads")).toBe("Marketing & Comercial");
+    expect(grupoDonoDaRota("/casos")).toBe("Pessoas & Casos");
+    expect(grupoDonoDaRota("/evidencias")).toBe("Inteligência & Pesquisa");
     // 18/10/2026: SETORES_DESK_V5 (lateral real, 8 setores) deu a contratos e
     // financeiro um setor próprio, "Formalização & Financeiro" — não mais
     // fundidos em Comercial. Alinhamento de testes autorizado pela Proprietária.
@@ -196,7 +199,7 @@ describe("Navegação do Desk — 7 grupos do V4 (03/10/2026)", () => {
     // 18/10/2026: SETORES_DESK_V5 fundiu Configuração dentro do setor
     // "governanca", cujo rótulo é "Governança & Configuração" — não há mais
     // um grupo "Configuração" isolado. Alinhamento autorizado pela Proprietária.
-    expect(grupoDonoDaRota("/catalogo")).toBe("Governança & Configuração");
+    expect(grupoDonoDaRota("/catalogo")).toBe("Governança & Administração");
     // /privacidade perdeu a aba própria no setor "governanca" (só está no
     // prefixo) — mesmo padrão de /relatorios: alimento contextual, não dono de grupo.
     expect(grupoDonoDaRota("/privacidade") ?? undefined).toBeUndefined();
@@ -223,5 +226,20 @@ describe("Navegação do Desk — 7 grupos do V4 (03/10/2026)", () => {
     expect(setorDaRota("/biblioteca-evidencias/abc")?.id).toBe("pesquisa");
     expect(setorDaRota("/relatorios-fase/abc")?.id).toBe("pesquisa");
     expect(setorDaRota("/app-cliente-demo")?.id).toBe("casos");
+  });
+
+  it("lateral = os 6 grupos da prancha V4, e as 13 superfícies apontam para rotas com dono", () => {
+    expect(SETORES_DESK_V5.map((g) => g.label)).toEqual([
+      "Hoje",
+      "Marketing & Comercial",
+      "Pessoas & Casos",
+      "Inteligência & Pesquisa",
+      "Formalização & Financeiro",
+      "Governança & Administração",
+    ]);
+    expect(SUPERFICIES_PRANCHA_V4).toHaveLength(13);
+    for (const s of SUPERFICIES_PRANCHA_V4) expect(setorDaRota(s.to), s.to).toBeDefined();
+    expect(setorDaRota("/qualidade")?.id).toBe("casos");
+    expect(setorDaRota("/acessos-portal")?.id).toBe("casos");
   });
 });

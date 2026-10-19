@@ -29,6 +29,7 @@ import {
   rotaAtendeDestino,
   setorDaRota,
   SETORES_DESK_V5,
+  SUPERFICIES_PRANCHA_V4,
   type AbaSetor,
   type GrupoDesk,
 } from "@/lib/navegacao-desk";
@@ -184,6 +185,11 @@ export function SaasShell({
   // cabeçalho. Abas restritas a admin só aparecem para admin.
   const setorAtivo = setorDaRota(rota);
   const abasSetor = (setorAtivo?.abas ?? []).filter((a) => !a.adminOnly || ehAdmin);
+  const rotasSuperficie = new Set(SUPERFICIES_PRANCHA_V4.map((s) => s.to));
+  const abasExtras = abasSetor.filter((a) => !rotasSuperficie.has(a.to));
+  const superficieAtiva = SUPERFICIES_PRANCHA_V4.filter((s) => rota === s.to || rota.startsWith(`${s.to}/`)).sort(
+    (a, b) => b.to.length - a.to.length,
+  )[0]?.to;
   // Avatar da topbar: só o que o perfil da sessão traz — nada fixo no código.
   const nomeExibido = contexto?.perfil?.nome?.trim() || contexto?.perfil?.email || "Conta";
   const iniciais =
@@ -363,14 +369,34 @@ export function SaasShell({
             </div>
             {acoes ? <div className="min-w-0 max-w-full">{acoes}</div> : null}
           </div>
-          {/* Pílulas da prancha: as abas do setor ativo. */}
-          {abasSetor.length ? (
+          {/* Pílulas da prancha V4: as 13 superfícies, iguais em toda tela do Desk. */}
+          <nav aria-label="Superfícies do Desk" className="mt-4 flex min-w-0 flex-wrap gap-2" data-desk-superficies>
+            {SUPERFICIES_PRANCHA_V4.map((sup) => {
+              const ativa = superficieAtiva === sup.to;
+              return (
+                <Link
+                  key={sup.to}
+                  to={sup.to}
+                  aria-current={ativa ? "page" : undefined}
+                  className={cn(
+                    "inline-flex min-h-8 items-center rounded-full border px-3 py-1 text-[11px] transition-colors",
+                    ativa ? "border-navy bg-navy text-white" : "border-navy/15 bg-card/60 text-navy/70 hover:bg-cream",
+                  )}
+                >
+                  {sup.label}
+                </Link>
+              );
+            })}
+          </nav>
+          {/* Demais telas do grupo ativo que não são superfície da prancha: continuam a um clique. */}
+          {abasExtras.length ? (
             <nav
-              aria-label={`Abas de ${setorAtivo?.label ?? "setor"}`}
-              className="mt-4 flex min-w-0 flex-wrap gap-2"
+              aria-label={`Mais em ${setorAtivo?.label ?? "este grupo"}`}
+              className="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1"
               data-desk-abas-setor={setorAtivo?.id}
             >
-              {abasSetor.map((aba) => {
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-navy/40">Também em {setorAtivo?.label}</span>
+              {abasExtras.map((aba) => {
                 const ativa = abaAtiva(rota, aba, abasSetor);
                 return (
                   <Link
@@ -378,8 +404,8 @@ export function SaasShell({
                     to={aba.to}
                     aria-current={ativa ? "page" : undefined}
                     className={cn(
-                      "inline-flex min-h-8 items-center rounded-full border px-3 py-1 text-[11px] transition-colors",
-                      ativa ? "border-navy bg-navy text-white" : "border-navy/15 text-navy/70 hover:bg-cream",
+                      "text-[11px] underline-offset-4 transition-colors",
+                      ativa ? "font-semibold text-navy underline" : "text-navy/60 hover:text-navy hover:underline",
                     )}
                   >
                     {aba.label}
@@ -406,7 +432,7 @@ export function SaasShell({
         {/* Prancha V4: no celular a navegação entre setores é a barra fixa de ícones embaixo. */}
         <nav
           aria-label="Setores do Desk"
-          className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-8 border-t border-navy/10 bg-card px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-sm md:hidden"
+          className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-navy/10 bg-card px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-sm md:hidden"
           data-desk-nav-movel
         >
           {SETORES_DESK_V5.map((setor) => {
