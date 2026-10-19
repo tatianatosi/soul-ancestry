@@ -469,24 +469,19 @@ function PainelHomeMockup({
               itens.push({ chave: s.id, titulo: s.titulo, detalhe: "Documento solicitado", destino: "/portal/documentos" });
             }
             if (itens.length === 0) {
-              return (
-                <div className="app-home-passo-vazio rounded-xl border border-border border-l-4 border-l-gold/50 bg-card px-4 py-4 shadow-sm" data-home-passos-vazio>
-                  <p className="text-sm leading-relaxed text-navy/70">{PROXIMO_PASSO_VAZIO}</p>
-                  <span className="app-estado-editorial mt-3">Em preparação</span>
-                </div>
-              );
+              return <CartaoEditorial texto={PROXIMO_PASSO_VAZIO} />;
             }
             return (
               <ol className="space-y-2.5">
                 {itens.map((item, i) => {
                   const conteudo = (
                     <>
-                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gold/15 font-serif text-xs text-navy" aria-hidden="true">{i + 1}</span>
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-navy font-serif text-sm font-semibold text-gold" aria-hidden="true">{i + 1}</span>
                       <span className="min-w-0 flex-1">
                         <span className="block whitespace-pre-line text-sm font-medium leading-snug text-navy">{item.titulo}</span>
                         <span className="mt-0.5 block text-xs text-navy/60">{item.detalhe}</span>
                       </span>
-                      {item.destino ? <ArrowRight className="h-4 w-4 shrink-0 text-navy/70" aria-hidden="true" /> : null}
+                      <ArrowRight className={cn("h-4 w-4 shrink-0", item.destino ? "text-navy/70" : "text-navy/30")} aria-hidden="true" />
                     </>
                   );
                   const classe = "app-home-passo flex min-h-14 items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-sm";
@@ -530,46 +525,28 @@ function PainelHomeMockup({
 
         <section aria-label="Achados recentes">
           <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
-            <h3 className="min-w-0 font-serif text-2xl text-navy">Achados da sua história</h3>
+            <h3 className="min-w-0 font-serif text-2xl text-navy">Achados recentes</h3>
             <LinkPortal to="/portal/jornada" className="shrink-0 text-xs font-medium text-navy/60 underline-offset-2 hover:text-navy hover:underline">
               Ver Jornada
             </LinkPortal>
           </div>
           {achados.length === 0 ? (
-            <div className="rounded-xl border border-border border-l-4 border-l-gold/50 bg-card px-4 py-4">
-              <p className="text-sm leading-relaxed text-navy/70">
-                Em preparação — os achados aparecem aqui quando forem compartilhados.
-              </p>
-              <span className="app-estado-editorial mt-3">Em preparação</span>
-            </div>
+            <CartaoEditorial texto="Em preparação — os achados aparecem aqui quando forem compartilhados com a família." />
           ) : (
             <div className="grid gap-2.5">
-              {achados.slice(0, 6).map((a) => {
+              {achados.slice(0, 3).map((a) => {
                 const [titulo, ...resto] = a.texto.split(/(?<=[.!?])\s+/);
-                const resumo = resto.join(" ");
                 return (
-                  <details key={a.id} className="app-achado-editorial group rounded-xl border border-border border-l-4 border-l-gold bg-card shadow-sm" data-home-achado>
-                    <summary className="flex min-h-11 cursor-pointer list-none items-start gap-3 px-4 py-3 text-left [&::-webkit-details-marker]:hidden">
-                      <span className="min-w-0 flex-1">
-                        <span className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-widest text-gold">
-                          <Search className="h-3 w-3" aria-hidden="true" />
-                          {a.tipo}
-                          {a.ano ? <span className="ml-1 font-serif text-sm normal-case tracking-normal text-gold">· {a.ano}</span> : null}
-                        </span>
-                        <span className="mt-1 block text-sm font-medium leading-snug text-navy">{titulo}</span>
-                      </span>
-                      <ChevronDown className="mt-1 h-4 w-4 shrink-0 text-navy/60 transition-transform duration-200 group-open:rotate-180" aria-hidden="true" />
-                    </summary>
-                    <div className="border-t border-border px-4 pb-3 pt-2">
-                      {resumo ? <p className="text-sm leading-relaxed text-navy/70">{resumo}</p> : null}
-                      <LinkPortal to={a.destino} className="mt-1 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver na sua história</LinkPortal>
-                    </div>
-                  </details>
+                  <CartaoAchado
+                    key={a.id}
+                    rotulo={<span className="inline-flex items-center gap-1.5"><Search className="h-3 w-3" aria-hidden="true" />{a.tipo}{a.ano ? <span className="font-serif text-sm normal-case tracking-normal">· {a.ano}</span> : null}</span>}
+                    titulo={titulo ?? a.texto}
+                    resumo={resto.join(" ") || undefined}
+                    extra={<LinkPortal to={a.destino} className="mt-1 inline-flex min-h-11 items-center text-sm text-navy underline decoration-gold underline-offset-4">Abrir na aba</LinkPortal>}
+                  />
                 );
               })}
             </div>
-          )}
-        </section>
         {microentrega ? (
           <section aria-label="Microentrega" className="app-home-entrega border-l-2 border-gold/60 py-1 pl-4 sm:col-span-2">
             <p className="text-[10px] font-medium text-navy">Da nossa jornada</p>
@@ -584,15 +561,7 @@ function PainelHomeMockup({
             <LinkPortal to="/portal/documentos" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Documentos <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></LinkPortal>
           </section>
         ) : null}
-        <section aria-label="Assessoria Familiar" data-home-assessoria className="rounded-xl border-b-2 border-gold/70 bg-navy-800 p-5 text-cream shadow-md sm:col-span-2">
-          <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-gold">Assessoria Familiar</p>
-          <h3 className="mt-1 font-serif text-2xl text-cream">Fale com a sua especialista</h3>
-          <p className="mt-2 text-sm leading-relaxed text-cream/75">Dúvidas sobre a história da família ou os próximos passos? A equipe responde pelo canal oficial.</p>
-          <a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer" data-home-whatsapp className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full bg-emerald-700 px-5 text-sm font-medium text-white transition-colors duration-200 hover:bg-emerald-800">
-            <MessageCircle className="h-4 w-4" aria-hidden="true" />
-            WhatsApp · {WHATSAPP_ESPECIALISTA.rotulo}
-          </a>
-        </section>
+        <CartaoAssessoria />
       </div>
     </div>
   );

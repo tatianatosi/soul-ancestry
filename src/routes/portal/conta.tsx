@@ -13,6 +13,7 @@ import { MENSAGEM_INSTABILIDADE_FINANCEIRA } from "@/lib/portal-resiliencia";
 import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
 import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { Button } from "@/components/ui/button";
+import { CartaoEditorial, dataCurta, iniciais } from "@/components/portal/elementos-mockup";
 
 export const Route = createFileRoute("/portal/conta")({
   head: () => ({

@@ -192,8 +192,8 @@ export function radarSeisDimensoes(entrada: {
     legenda:
       achados.length > 0
         ? `${achados.length} achado(s) de memória familiar publicados.`
-        : "Em pesquisa — os achados de memória familiar aparecem aqui quando forem compartilhados.",
-    rotuloNumero: achados.length > 0 ? `${achados.length} achado(s)` : "Nenhum ainda",
+        : "Em pesquisa — os achados de memória familiar aparecem aqui quando forem publicados.",
+    rotuloNumero: achados.length > 0 ? `${achados.length} achado(s)` : "Em preparação",
     comoCalculamos:
       "Não existe um total conhecido de achados de memória que uma família pode ter, então mostramos a contagem publicada em vez de uma porcentagem.",
   };
@@ -205,8 +205,8 @@ export function radarSeisDimensoes(entrada: {
     legenda:
       marcos.length > 0
         ? `${marcos.length} marco(s)/resumo(s) de jornada publicados.`
-        : "Em preparação — os marcos da jornada aparecem aqui quando forem compartilhados.",
-    rotuloNumero: marcos.length > 0 ? `${marcos.length} marco(s)` : "Nenhum ainda",
+        : "Em preparação — os marcos da jornada aparecem aqui quando forem publicados.",
+    rotuloNumero: marcos.length > 0 ? `${marcos.length} marco(s)` : "Em preparação",
     comoCalculamos:
       "Não existe um total fechado de marcos de legado, então mostramos a contagem publicada em vez de uma porcentagem.",
   };
