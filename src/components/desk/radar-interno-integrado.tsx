@@ -8,6 +8,8 @@ import { RadarIndividualOperacional } from "@/components/clube-ancestral-kit";
 import { MatrizPrioridadesConectada } from "@/components/desk/matriz-prioridades-conectada";
 import { HeatmapAderenciaPais } from "@/components/desk/heatmap-aderencia-pais";
 import { Button } from "@/components/ui/button";
+import { CaCard } from "@/components/ui/ca-card";
+import { RadarMatrizesPrancha, type CasoSelecionadoPrancha } from "@/components/qualidade/radar-matrizes-prancha";
 import { ESTADO_EIXO_LABEL, ESTADO_EIXO_TOM } from "@/lib/radar-eixos";
 
 import {
@@ -50,6 +52,7 @@ export function RadarInternoIntegrado() {
   const listar = useServerFn(listarRegistros);
   const carregar = useServerFn(carregarFichaCaso);
   const [caseId, setCaseId] = useState("");
+  const [incluirDemos, setIncluirDemos] = useState(false);
 
   const casosQuery = useQuery({
     queryKey: ["saas", "crm_casos", false],
@@ -72,6 +75,30 @@ export function RadarInternoIntegrado() {
     retry: false,
   });
 
+  // Prancha V4: os MESMOS casos já carregados, posicionados pelo motor
+  // (`posicionar`), com demonstrações fora por padrão — mesma regra da
+  // matriz detalhada (BUG-MATRIZ-DEMO-VAZA).
+  const demosNaCarteira = casos.filter((l) => papelDoRegistro(l).valor === "demo").length;
+  const casosPosicionados = useMemo(
+    () =>
+      casos
+        .filter((l) => incluirDemos || papelDoRegistro(l).valor !== "demo")
+        .map((l) =>
+          posicionar({
+            tipo: "caso",
+            id: String(l["id"]),
+            rotulo: String(l["codigo"] ?? l["titulo"] ?? l["id"]),
+            elegibilidade: (l["hipotese_elegibilidade"] as string) ?? null,
+            prazo: (l["prazo_proxima_acao"] as string) ?? null,
+            diasSemTouchpoint: (l["dias_sem_touchpoint"] as number) ?? null,
+            esperaExternaAtiva: Boolean(l["aguardando_instituicao_externa"]),
+            responsavel: (l["proxima_acao_responsavel"] as string) ?? null,
+            origem: papelDoRegistro(l).valor === "demo" ? "demo" : "real",
+          }),
+        ),
+    [casos, incluirDemos],
+  );
+
   const selecionarNaMatriz = (id: string) => {
     setCaseId(id);
   };
@@ -93,53 +120,84 @@ export function RadarInternoIntegrado() {
       })
     : null;
 
+  const fracao = (feitos: number, total: number) => (total > 0 ? (feitos / total) * 100 : null);
+  const opcional = (v: unknown) => {
+    const t = String(v ?? "").trim();
+    return t || null;
+  };
+  const selecionado: CasoSelecionadoPrancha | null =
+    caso && ficha && posicao
+      ? {
+          posicao,
+          situacao: opcional(caso["status"]),
+          responsavel: opcional(caso["proxima_acao_responsavel"]),
+          prazo: opcional(caso["prazo_proxima_acao"]),
+          proximaAcao: opcional(caso["proxima_acao"] ?? caso["proxima_acao_codigo"]),
+          bloqueios: ficha.bloqueiosReais.map((b) => b.motivo),
+          historiaPct: fracao(
+            ficha.nucleoCriterios.filter((c) => (c as { ok?: boolean }).ok).length,
+            ficha.nucleoCriterios.length,
+          ),
+          documentosPct: fracao(
+            ficha.checksAtivacao.filter((c) => c["status"] === "ok" || c["status"] === "concluido").length,
+            ficha.checksAtivacao.length,
+          ),
+        }
+      : null;
+
+  const seletorCaso = (
+    <Select value={caseId} onValueChange={setCaseId}>
+      <SelectTrigger
+        aria-label="Selecionar caso para o Radar Individual"
+        className="h-8 rounded-full border-navy bg-navy text-xs text-cream"
+      >
+        <SelectValue placeholder="Selecione um caso" />
+      </SelectTrigger>
+      <SelectContent>
+        {casos.map((item) => {
+          const id = texto(item["id"], "");
+          if (!id) return null;
+          const demonstrativo = papelDoRegistro(item).valor === "demo";
+          return (
+            <SelectItem key={id} value={id}>
+              Caso: {texto(item["codigo"] ?? item["titulo"] ?? id)}{demonstrativo ? " · demonstração" : ""}
+            </SelectItem>
+          );
+        })}
+      </SelectContent>
+    </Select>
+  );
+
   return (
     <div data-radar-interno-integrado aria-label="Modo do Radar & Matrizes">
       {/*
-        14/10/2026 — Matriz e Radar Individual lado a lado (decisão explícita
-        da Proprietária), substituindo as abas que alternavam o conteúdo.
-        Os dois pills abaixo são só o cabeçalho visual do mockup (sem
-        conteúdo próprio para alternar — as duas leituras já ficam visíveis
-        ao mesmo tempo nas colunas abaixo).
+        19/10/2026 — composição da prancha visual V4 no topo (cabeçalho
+        "Radar interno", alternador, matriz e radar individual). Tudo o que a
+        tela já mostrava continua logo abaixo, em cartões de detalhe.
       */}
-      <div aria-hidden className="mb-5 flex h-auto w-fit gap-1 rounded-lg bg-navy/5 p-1">
-        <span className="rounded-md bg-card px-3 py-1.5 text-sm font-medium text-navy shadow-sm">Matriz de Prioridade</span>
-        <span className="px-3 py-1.5 text-sm text-navy/60">Radar Individual</span>
-      </div>
+      <RadarMatrizesPrancha
+        casos={casosPosicionados}
+        carregando={casosQuery.isLoading}
+        erro={casosQuery.isError}
+        demosOcultos={demosNaCarteira}
+        incluirDemos={incluirDemos}
+        onIncluirDemos={setIncluirDemos}
+        seletorCaso={seletorCaso}
+        casoSelecionadoId={caseId}
+        onSelecionarCaso={selecionarNaMatriz}
+        selecionado={selecionado}
+        carregandoSelecionado={fichaQuery.isLoading}
+      />
+      <p className="mt-3 text-xs text-navy/55">A seleção não altera o caso nem sua prioridade — só qual aparece no Radar Individual.</p>
 
-      <section className="mb-5 rounded-xl border border-navy/10 bg-cream/40 p-4">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-navy/50">
-              Caso ativo
-            </span>
-            <Select value={caseId} onValueChange={setCaseId}>
-              <SelectTrigger aria-label="Selecionar caso para o Radar Individual" className="bg-cream text-navy">
-                <SelectValue placeholder="Selecione um caso" />
-              </SelectTrigger>
-              <SelectContent>
-                {casos.map((item) => {
-                  const id = texto(item["id"], "");
-                  if (!id) return null;
-                  const demonstrativo = papelDoRegistro(item).valor === "demo";
-                  return (
-                    <SelectItem key={id} value={id}>
-                      {texto(item["codigo"] ?? item["titulo"] ?? id)}{demonstrativo ? " · demonstração" : ""}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          </label>
-          <p className="text-xs text-navy/55">A seleção não altera o caso nem sua prioridade — só qual aparece no Radar Individual à direita.</p>
-        </div>
-      </section>
+      <div className="mt-6 grid gap-5 lg:grid-cols-2">
+        <CaCard titulo="Matriz detalhada" eyebrow="Radar & Matrizes · grade elegibilidade × urgência">
+          <div data-radar-coluna-matriz>
+            <MatrizPrioridadesConectada casoSelecionado={caseId} onSelecionarCaso={selecionarNaMatriz} />
+          </div>
+        </CaCard>
 
-      <div className="grid gap-5 xl:grid-cols-2">
-        <div data-radar-coluna-matriz>
-          <MatrizPrioridadesConectada casoSelecionado={caseId} onSelecionarCaso={selecionarNaMatriz} />
-        </div>
-
+        <CaCard titulo="Radar individual — detalhe operacional" eyebrow="Radar & Matrizes · caso selecionado">
         <div data-radar-coluna-individual className="space-y-4">
         {casosQuery.isLoading || fichaQuery.isLoading ? (
           <p className="rounded-xl border border-navy/10 bg-cream/40 p-5 text-sm text-navy/60">
@@ -244,6 +302,7 @@ export function RadarInternoIntegrado() {
           })()
         ) : null}
         </div>
+        </CaCard>
       </div>
     </div>
   );
