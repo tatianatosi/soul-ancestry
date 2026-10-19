@@ -390,3 +390,6 @@ PEDIDO AO CLAUDE neste corte: revisar projeção master de pessoas (ancestrais a
 - [ ] Antes/depois público: bloqueado pela verificação de privacidade incompleta nos pixels; comparativos retidos em /tmp, não compartilhados.
 - [ ] Paridade peça a peça: faltam timeline/rosca Caso 360, funil CRM, matriz nominal/radar, árvore com arestas confirmadas, contrato contínuo e gavetas/subáreas específicas; templates de família não substituem essas cascas.
 - [ ] PEDIDO AO CLAUDE: preparador grava na carga; separar leitura somente com autorização própria. Pesquisa módulo tem erro de hooks; Pesquisa/Privacidade em carregamento. Nenhuma correção no produto neste turno.
+
+- [ ] 19/10/2026 14:32 UTC — Inventário tela a tela (topo→rodapé): online × código × estático, áreas incorporadas, motores migrados, Vercel × Lovable, canos. Mockup completo em pausa (Claude sobe o mockup).
+- [ ] 19/10/2026 14:43 UTC — Sugestões visuais UX/UI por elemento sistêmico (Central de Pesquisa → matrizes jurídicas/contratos, assistente de pesquisa), uso real diário, sem scroll infinito nem gavetas escondidas, mais cores e elementos além de cards.
