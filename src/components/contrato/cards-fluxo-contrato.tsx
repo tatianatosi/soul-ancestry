@@ -95,8 +95,8 @@ export function CardsFluxoContrato({
                   : "border-navy/10 bg-cream/40",
             )}
           >
-            <div className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-2 text-sm font-semibold text-navy">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+              <span className="flex min-w-0 items-center gap-2 text-sm font-semibold text-navy">
                 {passo.estado === "concluido" ? (
                   <CheckCircle2 className="h-4 w-4 text-sucesso" aria-hidden />
                 ) : passo.estado === "disponivel" ? (
@@ -106,7 +106,9 @@ export function CardsFluxoContrato({
                 )}
                 {indice + 1}. {passo.rotulo}
               </span>
-              <KitBadge tone={TOM_ESTADO[passo.estado]}>{ROTULO_ESTADO[passo.estado]}</KitBadge>
+              <span className="shrink-0">
+                <KitBadge tone={TOM_ESTADO[passo.estado]}>{ROTULO_ESTADO[passo.estado]}</KitBadge>
+              </span>
             </div>
             {passo.motivos.length ? (
               <ul className="mt-2 space-y-1 text-[11px] text-navy/60">
@@ -158,7 +160,7 @@ export function ResumoFamiliarContrato({
         </div>
         <div>
           <dt className="text-navy/50">Valor de referência</dt>
-          <dd className="font-medium text-navy">{valorReferencia ?? "Não registrado"}</dd>
+          <dd className="font-medium text-navy">{formatarValorReferencia(valorReferencia)}</dd>
         </div>
         <div>
           <dt className="text-navy/50">Vencimentos de referência</dt>
