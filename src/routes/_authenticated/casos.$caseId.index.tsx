@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound, redirect, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect, useNavigate, useParams } from "@tanstack/react-router";
 import { BarraEtapasCaso } from "@/components/caso/barra-etapas-caso";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -11,7 +11,15 @@ import { BarrasHorizontais, DonutEstados, Etiqueta, JornadaMarcos, Linha, LinhaT
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { atualizarRegistro, criarRegistro } from "@/lib/saas.functions";
+import { atualizarRegistro, criarRegistro, listarRegistros } from "@/lib/saas.functions";
+// Frente 1 (19/10/2026) — Seletor Universal de Casos e "Visão Concreta":
+// reaproveita exatamente os leitores já existentes da esteira /golive/* —
+// nenhuma leitura nova é escrita aqui, nenhuma tabela/coluna/CHECK inventada.
+// `useGoLive`/`montarFicha` continuam presos ao único caso-piloto
+// (CODIGO_CASO_GO_LIVE) — ver nota no corpo de FichaCaso.
+import { useGoLive } from "@/components/golive/dados";
+import { montarFicha, resumoLote, type CampoFicha } from "@/lib/golive-ficha";
+import { CODIGO_CASO_GO_LIVE } from "@/lib/golive.functions";
 import {
   obterPropostaCanvaDoCliente,
   obterResumoFinanceiroCaso,
@@ -398,6 +406,336 @@ const SECOES = [
   { id: "log", rotulo: "Histórico" },
 ] as const;
 
+/**
+ * Seletor Universal de Casos (Frente 1, 19/10/2026) — cabeçalho do Caso 360.
+ * Lista real de `crm_casos` via o mesmo `listarRegistros` genérico já usado
+ * em outras telas do Desk (nenhuma tabela/consulta nova); trocar a opção
+ * navega de fato (useNavigate), não é um estado local decorativo. "Novo
+ * caso" leva ao fluxo real já existente (`AbrirCasoMotor`, em /casos).
+ */
+function SeletorDeCasos({ atual, codigoAtual }: { atual: string; codigoAtual: string | null }) {
+  const navigate = useNavigate();
+  const listar = useServerFn(listarRegistros);
+  const q = useQuery({
+    queryKey: ["casos-seletor-universal"],
+    queryFn: () => listar({ data: { entidade: "crm_casos" } }),
+    retry: false,
+    staleTime: 60_000,
+  });
+  const casos = (q.data ?? []) as Record<string, unknown>[];
+  const conhecido = casos.some((c) => String(c["id"]) === atual);
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <label className="sr-only" htmlFor="seletor-universal-casos">
+        Trocar de caso
+      </label>
+      <select
+        id="seletor-universal-casos"
+        value={atual}
+        disabled={q.isLoading}
+        onChange={(e) => {
+          const novoId = e.target.value;
+          if (novoId && novoId !== atual) {
+            void navigate({ to: "/casos/$caseId", params: { caseId: novoId } });
+          }
+        }}
+        className="max-w-[18rem] truncate rounded-lg border border-navy/15 bg-cream px-2 py-1.5 text-xs text-navy"
+      >
+        {!conhecido ? <option value={atual}>{codigoAtual ?? "Caso atual"}</option> : null}
+        {casos.map((c) => (
+          <option key={String(c["id"])} value={String(c["id"])}>
+            {String(c["codigo"] ?? c["titulo"] ?? c["id"])}
+            {c["codigo"] && c["titulo"] ? ` — ${String(c["titulo"])}` : ""}
+          </option>
+        ))}
+      </select>
+      <Link
+        to="/casos"
+        hash="abrir-caso-operacional"
+        className="whitespace-nowrap rounded-lg border border-gold/50 bg-gold/10 px-3 py-1.5 text-xs font-medium text-navy hover:bg-gold/20"
+      >
+        + Novo caso
+      </Link>
+    </div>
+  );
+}
+
+/**
+ * "Visão Concreta" (Frente 1, 19/10/2026) — sub-aba dentro da seção "Visão"
+ * (uma das 8 SECOES já existentes; não é uma 9ª seção). Reúne, no mesmo
+ * lugar, o que a esteira /golive/painel-caso.tsx já mostrava — linha do
+ * tempo, participantes/relações, dossiê documental, pesquisa e hipóteses,
+ * condição comercial/faturas e projeções publicadas — mas lendo dos
+ * carregadores já parametrizados por caseId desta própria ficha (q,
+ * qPesquisa, qDocumentos, qFinanceiro, qc2), em vez do leitor de
+ * /golive/painel-caso.tsx, que é fixo no caso-piloto (ver nota mais abaixo,
+ * em FichaQuatroLotesGoLive). Assim o conteúdo troca de verdade quando o
+ * Seletor Universal de Casos troca de caso. Nenhuma tabela/consulta nova.
+ */
+function VisaoConcretaCaso({
+  caseId,
+  timeline,
+  membros,
+  documentos,
+  pesquisa,
+  financeiro,
+  entregas,
+}: {
+  caseId: string;
+  timeline: Record<string, unknown>[];
+  membros: Record<string, unknown>[];
+  documentos: Record<string, unknown>[];
+  pesquisa:
+    | {
+        fontes: unknown[];
+        evidencias: unknown[];
+        achados: unknown[];
+        pessoas: unknown[];
+        relacoes: unknown[];
+      }
+    | null
+    | undefined;
+  financeiro: {
+    valorContratado: number | null;
+    moeda: string;
+    condicaoComercial: string | null;
+    valorRecebido: number;
+    saldoAberto: number | null;
+    status: string;
+    proximaAcaoFinanceira: string;
+  } | null;
+  entregas: Record<string, unknown>[];
+}) {
+  const cartao = "min-w-0 rounded-xl border border-navy/10 bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]";
+  const documentosLiberados = documentos.filter((d) => d["status"] === "liberado").length;
+
+  return (
+    <div className="grid gap-5 lg:grid-cols-2" data-caso360-visao-concreta>
+      <div className={cartao}>
+        <p className="mb-2 font-serif text-base text-navy">Linha do tempo do caso</p>
+        {timeline.length ? (
+          <ul className="space-y-1.5 text-sm text-navy/80">
+            {[...timeline]
+              .sort((a, b) => String(b["occurred_at"] ?? b["created_at"] ?? "").localeCompare(String(a["occurred_at"] ?? a["created_at"] ?? "")))
+              .slice(0, 8)
+              .map((e) => (
+                <li key={String(e["id"])}>
+                  {String(e["title"] ?? "Evento")}{" "}
+                  <span className="text-xs text-navy/50">
+                    — {new Date(String(e["occurred_at"] ?? e["created_at"])).toLocaleDateString("pt-BR")}
+                  </span>
+                </li>
+              ))}
+          </ul>
+        ) : (
+          <p className="text-xs text-navy/55">Nenhum evento registrado ainda.</p>
+        )}
+      </div>
+
+      <div className={cartao}>
+        <p className="mb-2 font-serif text-base text-navy">Participantes e relações</p>
+        {membros.length ? (
+          <ul className="space-y-1.5 text-sm text-navy/80">
+            {membros.slice(0, 8).map((m) => (
+              <li key={String(m["id"])}>
+                {String(m["nome"] ?? m["nome_completo"] ?? "Pessoa sem nome registrado")}
+                <span className="text-xs text-navy/50"> — {String(m["papel"] ?? "papel não registrado")}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-xs text-navy/55">Nenhum participante confirmado neste núcleo.</p>
+        )}
+        <Link to="/pessoas-linhagens/$caseId" params={{ caseId }} className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4">
+          Abrir Pessoas & Linhagens
+        </Link>
+      </div>
+
+      <div className={cartao}>
+        <p className="mb-2 font-serif text-base text-navy">Dossiê documental</p>
+        {documentos.length ? (
+          <p className="text-sm text-navy/80">
+            {documentos.length} documento(s) registrado(s) · {documentosLiberados} liberado(s) para a cliente.
+          </p>
+        ) : (
+          <p className="text-xs text-navy/55">Nenhum documento registrado ainda.</p>
+        )}
+        <Link to="/biblioteca-evidencias/$caseId" params={{ caseId }} className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4">
+          Abrir Biblioteca de Evidências
+        </Link>
+      </div>
+
+      <div className={cartao}>
+        <p className="mb-2 font-serif text-base text-navy">Pesquisa e hipóteses</p>
+        {pesquisa && (pesquisa.fontes.length || pesquisa.evidencias.length || pesquisa.achados.length) ? (
+          <p className="text-sm text-navy/80">
+            {pesquisa.fontes.length} fonte(s) · {pesquisa.evidencias.length} evidência(s) · {pesquisa.achados.length} achado(s)
+            {pesquisa.relacoes.length ? ` · ${pesquisa.relacoes.length} relação(ões) genealógica(s)` : ""}.
+          </p>
+        ) : (
+          <p className="text-xs text-navy/55">Nenhuma linha de pesquisa aberta ainda.</p>
+        )}
+        <Link to="/pesquisa-evidencias/$caseId" params={{ caseId }} className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4">
+          Abrir Pesquisa & Evidências
+        </Link>
+      </div>
+
+      <div className={cartao}>
+        <p className="mb-2 font-serif text-base text-navy">Condição comercial e faturas</p>
+        {financeiro ? (
+          <>
+            <p className="text-sm text-navy/80">
+              {financeiro.condicaoComercial ?? "Sem condição comercial registrada"}
+              {financeiro.valorContratado ? ` — ${financeiro.valorContratado.toLocaleString("pt-BR", { style: "currency", currency: financeiro.moeda || "BRL" })}` : ""}
+            </p>
+            <p className="text-xs text-navy/55">
+              Recebido: {financeiro.valorRecebido.toLocaleString("pt-BR", { style: "currency", currency: financeiro.moeda || "BRL" })}
+              {financeiro.saldoAberto ? ` · Saldo em aberto: ${financeiro.saldoAberto.toLocaleString("pt-BR", { style: "currency", currency: financeiro.moeda || "BRL" })}` : ""}
+            </p>
+            <p className="text-xs text-navy/55">
+              {(ROTULO_STATUS_FINANCEIRO_CASO as Record<string, string>)[financeiro.status] ?? financeiro.status} · {financeiro.proximaAcaoFinanceira}
+            </p>
+          </>
+        ) : (
+          <p className="text-xs text-navy/55">Nenhuma proposta, fatura ou despesa registrada ainda.</p>
+        )}
+      </div>
+
+      <div className={cartao}>
+        <p className="mb-2 font-serif text-base text-navy">Projeções publicadas no App Cliente</p>
+        {entregas.length ? (
+          <ul className="space-y-1.5 text-sm text-navy/80">
+            {entregas.slice(0, 6).map((m) => (
+              <li key={String(m["id"])}>{String(m["title_client"] ?? m["titulo"] ?? "Entrega")}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-xs text-navy/55">Nada publicado para a família até agora.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Resgate dos 4 lotes (A–D) de /golive-ficha.ts — Tarefa 3. `montarFicha`
+ * é 100% reaproveitado sem reescrita; o único gap real é o leitor que a
+ * alimenta (`carregarGoLive`, em golive.functions.ts) estar fixo no
+ * caso-piloto `CODIGO_CASO_GO_LIVE` (não recebe caseId — ver AGENTS.md:
+ * "painel-dia.tsx × golive-* aguardam decisão; não tocar"). Por isso este
+ * bloco mostra a ficha completa só quando o caso aberto é o piloto, e um
+ * vazio honesto — nunca inferido — nos demais, com o caminho real para
+ * resolver a lacuna.
+ */
+function FichaQuatroLotesGoLive({ codigoCasoAtual }: { codigoCasoAtual: string | null }) {
+  const { data, isPending } = useGoLive();
+  const [lote, setLote] = useState<"A" | "B" | "C" | "D">("A");
+  const casoPiloto = data?.encontrado ? data : null;
+  const ehOCasoAberto = Boolean(codigoCasoAtual) && codigoCasoAtual === CODIGO_CASO_GO_LIVE;
+
+  if (!ehOCasoAberto) {
+    return (
+      <div className="rounded-xl border border-dashed border-navy/20 bg-cream/60 p-4 text-sm text-navy/70">
+        <p>
+          A ficha por lotes com fonte, estado, responsável e visibilidade por campo (golive-ficha.ts) hoje só está
+          disponível para o caso-piloto <code className="text-xs">{CODIGO_CASO_GO_LIVE}</code> — o leitor que a
+          alimenta (<code className="text-xs">carregarGoLive</code>) não recebe caseId ainda. Lacuna real a resolver
+          pela Proprietária, não inferida aqui.
+        </p>
+      </div>
+    );
+  }
+
+  if (isPending) return <p className="text-sm text-navy/60">Carregando ficha por lotes…</p>;
+  if (!casoPiloto) return <p className="text-xs text-navy/55">Ficha do caso-piloto indisponível agora.</p>;
+
+  const lotes = montarFicha(casoPiloto);
+  const loteAtual = lotes.find((l) => l.chave === lote) ?? null;
+
+  return (
+    <div className="space-y-3">
+      <nav aria-label="Lotes da ficha" className="min-w-0 overflow-x-auto">
+        <ul className="flex min-w-0 flex-wrap gap-1.5">
+          {lotes.map((l) => {
+            const r = resumoLote(l);
+            return (
+              <li key={l.chave}>
+                <button
+                  type="button"
+                  aria-current={l.chave === lote ? "true" : undefined}
+                  onClick={() => setLote(l.chave)}
+                  className={
+                    l.chave === lote
+                      ? "rounded-full bg-gold/25 px-3 py-1.5 text-xs font-semibold text-navy"
+                      : "rounded-full border border-navy/15 px-3 py-1.5 text-xs text-navy/70"
+                  }
+                >
+                  {l.titulo} · {r.registrados}/{r.total}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+      {loteAtual ? (
+        <ul className="space-y-2">
+          {loteAtual.campos.map((c) => (
+            <CampoFichaLinha key={c.chave} campo={c} />
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
+/** Uma linha de campo da ficha GoLive: valor, fonte, responsável, visibilidade e estado. */
+function CampoFichaLinha({ campo }: { campo: CampoFicha }) {
+  const cor =
+    campo.estado === "registrado"
+      ? "border-navy/15 bg-white/70 text-navy"
+      : campo.estado === "em revisão" || campo.estado === "hipótese"
+        ? "border-gold/50 bg-gold/10 text-navy"
+        : "border-dashed border-navy/20 bg-cream/60 text-navy/70";
+  return (
+    <li className={`min-w-0 rounded-xl border p-3 ${cor}`}>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-sm font-semibold break-words">{campo.rotulo}</p>
+        <span className="rounded-full border border-navy/15 px-2 py-0.5 text-[11px] uppercase tracking-wide text-navy/65">
+          {campo.estado}
+        </span>
+      </div>
+      <p className="mt-1 break-words text-sm">{campo.valor ?? "Sem registro — preencher na tela dona."}</p>
+      <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-navy/60 sm:grid-cols-4">
+        <div>
+          <dt className="uppercase tracking-wide text-navy/45">Fonte</dt>
+          <dd className="break-words">{campo.fonte}</dd>
+        </div>
+        <div>
+          <dt className="uppercase tracking-wide text-navy/45">Responsável</dt>
+          <dd className="break-words">{campo.responsavel ?? "não atribuído"}</dd>
+        </div>
+        <div>
+          <dt className="uppercase tracking-wide text-navy/45">Data</dt>
+          <dd className="break-words">{campo.data ? dataHumanaGoLive(campo.data) : "sem data"}</dd>
+        </div>
+        <div>
+          <dt className="uppercase tracking-wide text-navy/45">Visibilidade</dt>
+          <dd className="break-words">{campo.visibilidade}</dd>
+        </div>
+      </dl>
+      <Link to={campo.telaDona} className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4">
+        {campo.estado === "registrado" ? "Abrir tela dona" : "Preencher na tela dona"}
+      </Link>
+    </li>
+  );
+}
+
+function dataHumanaGoLive(v: string): string {
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? v : d.toLocaleDateString("pt-BR");
+}
+
 function FichaCaso() {
   const { caseId: id } = useParams({ from: "/_authenticated/casos/$caseId/" });
   const { podeEscrever } = useSaas();
@@ -487,6 +825,9 @@ function FichaCaso() {
   });
 
   const [secaoFoco, setSecaoFoco] = useState<(typeof SECOES)[number]["id"] | null>(SECOES[0].id);
+  // Frente 1 (19/10/2026) — sub-aba "Visão Concreta" DENTRO da seção "Visão"
+  // (uma das 8 SECOES existentes; nunca uma 9ª seção solta).
+  const [abaVisao, setAbaVisao] = useState<"indicadores" | "concreta">("indicadores");
   // Link contextual vindo de outra tela (ex.: Pessoa 360 → "Conferir", #pessoas).
   useEffect(() => {
     const alvo = window.location.hash.replace("#", "");
@@ -818,7 +1159,8 @@ function FichaCaso() {
       titulo="Caso 360"
       descricao="Ficha operacional canônica do caso"
       acoes={
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <SeletorDeCasos atual={id} codigoAtual={(caso["codigo"] as string | null) ?? null} />
           {/* CA04-CASO360-SIMPLES (09/09/2026): este botão morava aqui e
               também no hero — duplicava a mesma ação. Só no hero agora. */}
           <span className="text-xs text-navy/60">
@@ -2051,6 +2393,77 @@ function FichaCaso() {
           <div className="mb-4">
             <PendenciasHumanasCaso caseId={id} />
           </div>
+
+          {/*
+            Frente 1 (19/10/2026) — "Visão Concreta": sub-aba DENTRO da seção
+            "Visão" (uma das 8 SECOES fixas), não uma 9ª seção. Consolida o
+            que /golive/painel-caso.tsx já mostrava (linha do tempo,
+            participantes/relações, dossiê documental, pesquisa e hipóteses,
+            condição comercial/faturas e publicações) a partir dos leitores
+            já parametrizados por caseId desta própria ficha.
+          */}
+          <div role="tablist" aria-label="Indicadores ou Visão Concreta" className="mb-4 flex gap-2">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={abaVisao === "indicadores"}
+              onClick={() => setAbaVisao("indicadores")}
+              className={
+                "rounded-full border px-3 py-1 text-[12px] transition-colors " +
+                (abaVisao === "indicadores"
+                  ? "border-navy bg-navy text-cream"
+                  : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
+              }
+            >
+              Indicadores
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={abaVisao === "concreta"}
+              onClick={() => setAbaVisao("concreta")}
+              className={
+                "rounded-full border px-3 py-1 text-[12px] transition-colors " +
+                (abaVisao === "concreta"
+                  ? "border-navy bg-navy text-cream"
+                  : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
+              }
+            >
+              Visão Concreta
+            </button>
+          </div>
+
+          {abaVisao === "concreta" ? (
+            <div className="mb-6 space-y-6">
+              <VisaoConcretaCaso
+                caseId={id}
+                timeline={(q.data?.timeline ?? []) as Record<string, unknown>[]}
+                membros={(q.data?.membros ?? []) as Record<string, unknown>[]}
+                documentos={(qDocumentos.data ?? []) as Record<string, unknown>[]}
+                pesquisa={
+                  qPesquisa.data
+                    ? {
+                        fontes: qPesquisa.data.fontes,
+                        evidencias: qPesquisa.data.evidencias,
+                        achados: qPesquisa.data.achados,
+                        pessoas: qPesquisa.data.pessoas,
+                        relacoes: qPesquisa.data.relacoes,
+                      }
+                    : null
+                }
+                financeiro={qFinanceiro.data ?? null}
+                entregas={(qc2.data?.entregas ?? []) as Record<string, unknown>[]}
+              />
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy/50">
+                  Resgate dos 4 lotes (golive-ficha.ts) — fonte, estado, responsável e visibilidade por campo
+                </p>
+                <FichaQuatroLotesGoLive codigoCasoAtual={(caso["codigo"] as string | null) ?? null} />
+              </div>
+            </div>
+          ) : null}
+
+          <div className={abaVisao === "indicadores" ? "" : "hidden"}>
           <EstadoDados
             carregando={q.isLoading}
             erro={q.error}
@@ -2315,6 +2728,7 @@ function FichaCaso() {
                 />
               </div>
             </Secao>
+          </div>
           </div>
         </SecaoAncora>
 
