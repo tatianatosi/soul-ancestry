@@ -11,6 +11,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
 import { PainelEstadoContratual } from "@/components/contratos/painel-estado-contratual";
 import { FormalizacaoConectada } from "@/components/desk/superficies-kit-conectadas";
+import { PranchaJuridicoContrato, PranchaJuridicoVazia } from "@/components/contratos/prancha-juridico-contrato";
 import { criarInstrumento, listarContratos } from "@/lib/contratos.functions";
 import { listarCasosFicha } from "@/lib/caso-ficha.functions";
 import {
@@ -61,6 +62,24 @@ function ContratosPage() {
     queryFn: () => listar({ data: { tipo: tipo || undefined, status: status || undefined, busca: busca || undefined } }),
   });
   const qCasos = useQuery({ queryKey: ["casos-ficha-picker"], queryFn: () => carregarCasos() });
+  /*
+    Jurídico & Contrato (prancha V4, 19/10/2026): a pílula aponta para esta
+    tela; a composição da prancha é montada para UM instrumento escolhido no
+    seletor — padrão = o mais recente (lista já vem por created_at desc),
+    preferindo o que não é demonstração. Lista sem filtros, só leitura.
+  */
+  const qTodos = useQuery({ queryKey: ["contratos-prancha-seletor"], queryFn: () => listar({ data: {} }) });
+  const todos = (qTodos.data?.contratos ?? []) as {
+    id: string;
+    contract_number?: string;
+    title?: string;
+    contract_type?: string;
+    parent_contract_id?: string | null;
+    status?: string;
+    demo?: boolean;
+  }[];
+  const [selecionado, setSelecionado] = useState("");
+  const contratoPrancha = selecionado || (todos.find((x) => !x.demo) ?? todos[0])?.id || "";
 
   const bases = (qLista.data?.contratos ?? []).filter((c: any) => c.contract_type === "contract_base");
   const basesIndisponiveis = !qLista.isLoading && (Boolean(qLista.error) || qLista.data === undefined);
@@ -90,6 +109,40 @@ function ContratosPage() {
         )
       }
     >
+      <section className="mb-6 space-y-4" data-contratos-prancha-juridico>
+        <div className="flex flex-wrap items-center gap-2">
+          <label htmlFor="prancha-contrato" className="text-xs font-medium uppercase tracking-widest text-navy/55">
+            Instrumento
+          </label>
+          <select
+            id="prancha-contrato"
+            value={contratoPrancha}
+            onChange={(e) => setSelecionado(e.target.value)}
+            disabled={!todos.length}
+            className="min-w-0 max-w-full rounded-lg border border-navy/20 bg-card px-3 py-2 text-sm"
+          >
+            {todos.length ? null : <option value="">{qTodos.isLoading ? "Carregando…" : "Nenhum instrumento"}</option>}
+            {todos.map((x) => (
+              <option key={x.id} value={x.id}>
+                {x.contract_number} — {x.title}
+                {x.demo ? " (demonstração)" : ""}
+              </option>
+            ))}
+          </select>
+          {contratoPrancha ? (
+            <Link to="/contratos/$id" params={{ id: contratoPrancha }} className="text-xs text-navy underline underline-offset-4">
+              Abrir instrumento
+            </Link>
+          ) : null}
+        </div>
+        {contratoPrancha ? (
+          <PranchaJuridicoContrato contratoId={contratoPrancha} instrumentos={todos} />
+        ) : qTodos.isLoading ? (
+          <p className="text-sm text-navy/60">Carregando…</p>
+        ) : (
+          <PranchaJuridicoVazia erro={Boolean(qTodos.error)} />
+        )}
+      </section>
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4" data-contratos-kpis-v4>
         <Indicador rotulo="Instrumentos" valor={kpi(listaContratos.length)} apoio="conforme os filtros" />
         <Indicador rotulo="Contratos-base" valor={kpi(bases.length)} />
