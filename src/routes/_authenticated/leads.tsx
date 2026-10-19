@@ -862,6 +862,39 @@ function LeadsPage() {
         <div className="mt-4 space-y-3">
           {msg ? <p className="rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-sm text-navy">{msg}</p> : null}
 
+          {/*
+            19/10/2026 — corte L03 (Prancha V4): identidade da pessoa sempre
+            visível no topo da ficha (nome, origem, etapa, responsável,
+            próxima ação), antes de qualquer leitura derivada. Só repete
+            fatos já registrados; ausências são explícitas.
+          */}
+          {atual ? (
+            <div className="rounded-xl border border-navy/15 bg-navy px-4 py-3 text-cream" data-l03-identidade>
+              <p className="font-serif text-lg leading-tight">{atual.nome || "Nome não registrado"}</p>
+              <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] sm:grid-cols-4">
+                <div>
+                  <dt className="uppercase tracking-wide text-cream/55">Origem</dt>
+                  <dd>{atual.origem ? rotulo("origem", atual.origem) : "Não registrado"}</dd>
+                </div>
+                <div>
+                  <dt className="uppercase tracking-wide text-cream/55">Etapa</dt>
+                  <dd>{atual.etapa ? rotulo("etapa", atual.etapa) : "Não registrado"}</dd>
+                </div>
+                <div>
+                  <dt className="uppercase tracking-wide text-cream/55">Responsável</dt>
+                  <dd>{atual.responsavel_nome || "Não registrado"}</dd>
+                </div>
+                <div>
+                  <dt className="uppercase tracking-wide text-cream/55">Próxima ação</dt>
+                  <dd>
+                    {atual.proxima_acao ? rotulo("proxima_acao", atual.proxima_acao) : "Não registrado"}
+                    {atual.proxima_acao_em ? ` · ${String(atual.proxima_acao_em).slice(0, 10).split("-").reverse().join("/")}` : ""}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          ) : null}
+
           {atual ? (
             <div className="flex flex-wrap gap-2 rounded-xl border border-navy/10 bg-cream/40 px-3 py-2 text-xs">
               {atual.case_id ? (
@@ -1015,6 +1048,19 @@ function LeadsPage() {
               </ul>
             </div>
           ) : null}
+
+          {/*
+            19/10/2026 — corte L03: tudo que se edita na ficha mora nesta
+            área única, abaixo deste divisor. Leituras derivadas (SPIN,
+            radar, sinais) ficam acima e não se editam aqui.
+          */}
+          <div className="flex items-center gap-3 pt-2" data-l03-area-edicao>
+            <span className="h-px flex-1 bg-navy/15" aria-hidden />
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-navy/50">
+              Área única de edição — as leituras acima são derivadas
+            </p>
+            <span className="h-px flex-1 bg-navy/15" aria-hidden />
+          </div>
 
           <Secao titulo="Identificação e responsabilidade" descricao="Lead ativo exige área, responsável e próxima ação datada.">
             <div className="grid gap-3 md:grid-cols-2">
