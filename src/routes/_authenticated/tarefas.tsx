@@ -2,11 +2,11 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Clock, Filter, User } from "lucide-react";
 import { useAutoridade } from "@/components/saas/autoridade";
 
 import { EntidadeCrud } from "@/components/saas/entidade-crud";
 import { BotaoTentarNovamente, EstadoVazio, SaasShell, useSaas } from "@/components/saas/shell";
-import { CaCard } from "@/components/ui/ca-card";
 import { Etiqueta, Indicador } from "@/components/prancha-v4/kit";
 import { ESTADOS, PRIORIDADES, rotuloEstado } from "@/lib/estados";
 import { listarFilaOps, referenciasOps } from "@/lib/ops.functions";
@@ -136,8 +136,12 @@ function diasParada(t: LinhaTarefa): number | null {
   `dataUpdatedAt` da lista do Checklist abaixo — mesma chave de cache do
   EntidadeCrud — para que criar/editar/arquivar lá redesenhe o quadro.
   Edição de status continua no Checklist (Editar), que valida transições.
-  "Confirmar" e "Em revisão" do mockup não existem no vocabulário real:
-  ficam como "sem dado", sem status novo.
+  19/10/2026 — conferência com a prancha V4 (kanban.png): "Confirmar · itens
+  concluídos" conta as tarefas com status `concluida` (o próprio apoio da
+  prancha diz o que é); "Em revisão" não existe no vocabulário real e fica
+  "—", sem status novo. As 5 colunas aparecem sempre, com "0" e vazio
+  honesto; o cabeçalho "Trabalho dos casos" é um cartão próprio, como na
+  prancha, e o quadro vem logo abaixo.
 */
 function KanbanTarefas() {
   const fnFila = useServerFn(listarFilaOps);
@@ -192,6 +196,7 @@ function KanbanTarefas() {
     (t) => t["prioridade"] === "critica" && STATUS_ABERTO.has(String(t["status"])),
   ).length;
   const slaEmRisco = tarefas.filter((t) => t["sla_status"] === "em_risco").length;
+  const concluidas = tarefas.filter((t) => t["status"] === "concluida").length;
   const kpisComDado = fila.isSuccess;
 
   const responsaveisNaFila = Array.from(
@@ -201,46 +206,51 @@ function KanbanTarefas() {
   return (
     <div className="mb-6 space-y-4" data-tarefas-kanban-v4>
       <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-tarefas-kpis>
-        <Indicador rotulo="Confirmar" valor="sem dado" apoio="Status inexistente no vocabulário real" />
-        <Indicador rotulo="Em revisão" valor="sem dado" apoio="Status inexistente no vocabulário real" />
+        <Indicador
+          rotulo="Confirmar"
+          valor={kpisComDado ? String(concluidas) : "sem dado"}
+          apoio={kpisComDado ? `itens concluídos${filtroAtivo ? " · no filtro atual" : ""}` : "Fila não carregada"}
+        />
+        <Indicador rotulo="Em revisão" valor="—" apoio="esta semana · status inexistente no vocabulário real" />
         <Indicador
           rotulo="Pendente crítico"
           valor={kpisComDado ? String(pendenteCritico) : "sem dado"}
-          apoio={kpisComDado ? `Prioridade crítica em aberto · ${apoioFiltro}` : "Fila não carregada"}
+          apoio={kpisComDado ? `exige decisão · ${apoioFiltro}` : "Fila não carregada"}
         />
         <Indicador
           rotulo="SLA em risco"
           valor={kpisComDado ? String(slaEmRisco) : "sem dado"}
-          apoio={kpisComDado ? `SLA calculado pelo banco · ${apoioFiltro}` : "Fila não carregada"}
+          apoio={kpisComDado ? `prazo próximo · SLA calculado pelo banco` : "Fila não carregada"}
         />
       </dl>
 
-      <CaCard
-        titulo="Trabalho dos casos"
-        eyebrow="Próxima ação, responsável, prazo e bloqueio em uma única leitura"
-        className="rounded-2xl p-6"
-        acao={
+      <section className="rounded-2xl border border-border bg-card p-6 shadow-sm" data-tarefas-cabecalho>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="font-serif text-xl text-navy">Trabalho dos casos</h2>
+            <p className="mt-1 text-xs text-navy/60">Próxima ação, responsável, prazo e bloqueio em uma única leitura</p>
+          </div>
           <div className="flex shrink-0 flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setFiltrosAbertos((v) => !v)}
               aria-expanded={filtrosAbertos}
-              className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5"
+              className="inline-flex items-center gap-1.5 rounded-full border border-navy/20 px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5"
             >
+              <Filter className="h-3.5 w-3.5" aria-hidden="true" />
               Filtros{filtroAtivo ? " •" : ""}
             </button>
             <a
               href="#checklist-registros"
-              className="rounded-lg bg-navy px-3 py-2 text-sm text-cream hover:bg-navy-soft"
+              className="rounded-full bg-navy px-3 py-1.5 text-xs font-medium text-cream hover:bg-navy-soft"
               data-tarefas-nova
             >
-              + Nova tarefa
+              Nova tarefa
             </a>
           </div>
-        }
-      >
+        </div>
         {filtrosAbertos ? (
-          <div className="mb-4 grid gap-3 sm:grid-cols-3" data-tarefas-filtros>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3" data-tarefas-filtros>
             <label className="text-xs text-navy/70">
               Responsável
               <select
@@ -285,96 +295,106 @@ function KanbanTarefas() {
             ) : null}
           </div>
         ) : null}
+      </section>
 
-        {fila.isLoading ? (
-          <EstadoVazio mensagem="Carregando tarefas…" />
-        ) : fila.isError ? (
-          <EstadoVazio
-            mensagem="Não foi possível carregar a fila de tarefas."
-            acao={<BotaoTentarNovamente aoClicar={() => void fila.refetch()} />}
-          />
-        ) : tarefas.length === 0 ? (
-          <EstadoVazio
-            mensagem={filtroAtivo ? "Nenhuma tarefa com esses filtros." : "Nenhuma tarefa registrada ainda."}
-          />
-        ) : (
-          <div className="grid gap-4 overflow-x-auto sm:grid-cols-2 lg:grid-cols-5" data-tarefas-kanban-colunas>
-            {ESTADOS.tarefa.map((coluna) => {
-              const daColuna = tarefas.filter((t) => t["status"] === coluna.valor);
-              return (
-                <div key={coluna.valor} className="min-w-[180px] rounded-xl border border-navy/10 bg-cream/40 p-3">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-[11px] font-semibold uppercase tracking-wide text-navy/60">
-                      {coluna.rotulo}
-                    </span>
-                    <span className="rounded-full bg-navy/10 px-2 py-0.5 text-[11px] font-medium text-navy">
-                      {daColuna.length}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    {daColuna.length === 0 ? (
-                      <p className="text-[11px] text-navy/45">Nenhuma tarefa neste status.</p>
-                    ) : (
-                      daColuna.map((t) => {
-                        const aberta = STATUS_ABERTO.has(String(t["status"]));
-                        const dias = aberta ? diasParada(t) : null;
-                        const bloqueada = t["status"] === "bloqueada" || t["bloqueio"] === true;
-                        const proxima = t["caso_id"] ? proximaDoCaso.get(String(t["caso_id"])) : undefined;
-                        const responsavel = t["responsavel_id"]
-                          ? nomeEquipe.get(String(t["responsavel_id"])) || "Responsável sem nome"
-                          : "Sem responsável";
-                        const prazo = dataCurta(t["prazo"]);
-                        return (
-                          <article
-                            key={t["id"]}
-                            className="rounded-lg border border-navy/10 bg-card p-2.5 shadow-sm"
-                            data-tarefa-cartao
-                          >
-                            <p className="text-sm font-medium text-navy">{t["titulo"]}</p>
-                            <p className="mt-0.5 truncate text-[11px] text-navy/60">
-                              {t["caso_codigo"]
-                                ? `${t["caso_codigo"]}${t["caso_titulo"] ? ` · ${t["caso_titulo"]}` : ""}`
-                                : "Sem caso vinculado"}
-                            </p>
-                            <p className="mt-1 text-[11px] text-navy/75">
-                              <span className="font-medium">Próximo passo:</span>{" "}
-                              {proxima ?? "não registrado no caso"}
-                            </p>
-                            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                              <Etiqueta
-                                texto={`Prioridade ${
-                                  PRIORIDADES.find((p) => p.valor === t["prioridade"])?.rotulo ??
-                                  String(t["prioridade"] ?? "—")
-                                }`}
-                                tom={t["prioridade"] === "critica" ? "critico" : t["prioridade"] === "alta" ? "atencao" : "neutro"}
-                              />
-                              {bloqueada ? (
-                                <Etiqueta
-                                  texto={t["motivo_bloqueio"] ? `Bloqueio: ${t["motivo_bloqueio"]}` : "Bloqueio"}
-                                  tom="critico"
-                                />
-                              ) : null}
-                              {t["sla_status"] === "atrasada" ? <Etiqueta texto="SLA vencido" tom="critico" /> : null}
-                              {t["sla_status"] === "em_risco" ? <Etiqueta texto="SLA em risco" tom="atencao" /> : null}
-                              {dias !== null && dias >= 7 ? (
-                                <Etiqueta texto={`Atividade parada há ${dias} dias`} tom="atencao" />
-                              ) : null}
-                            </div>
-                            <div className="mt-2 flex items-center justify-between gap-2 border-t border-navy/5 pt-1.5 text-[11px] text-navy/60">
-                              <span className="min-w-0 truncate">{responsavel}</span>
-                              <span className="shrink-0 tabular-nums">{prazo ? `Prazo ${prazo}` : "Sem prazo"}</span>
-                            </div>
-                          </article>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </CaCard>
+      {fila.isLoading ? (
+        <EstadoVazio mensagem="Carregando tarefas…" />
+      ) : fila.isError ? (
+        <EstadoVazio
+          mensagem="Não foi possível carregar a fila de tarefas."
+          acao={<BotaoTentarNovamente aoClicar={() => void fila.refetch()} />}
+        />
+      ) : tarefas.length === 0 ? (
+        <p className="text-sm text-navy/60" data-tarefas-vazio>
+          {filtroAtivo ? "Nenhuma tarefa com esses filtros." : "Nenhuma tarefa registrada ainda."}
+        </p>
+      ) : null}
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5" data-tarefas-kanban-colunas>
+        {ESTADOS.tarefa.map((coluna) => {
+          const daColuna = fila.isSuccess ? tarefas.filter((t) => t["status"] === coluna.valor) : [];
+          return (
+            <div key={coluna.valor} className="min-w-0 rounded-2xl border border-navy/10 bg-cream/40 p-3">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="font-serif text-[11px] uppercase tracking-wide text-navy/70">{coluna.rotulo}</span>
+                <span className="grid h-5 min-w-5 place-items-center rounded-full bg-card px-1.5 text-[10px] font-semibold text-navy shadow-sm">
+                  {fila.isSuccess ? daColuna.length : "—"}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {daColuna.length === 0 ? (
+                  <p className="rounded-lg border border-dashed border-navy/15 px-2 py-3 text-center text-[11px] text-navy/45">
+                    Nenhuma tarefa neste status.
+                  </p>
+                ) : (
+                  daColuna.map((t) => {
+                    const aberta = STATUS_ABERTO.has(String(t["status"]));
+                    const dias = aberta ? diasParada(t) : null;
+                    const bloqueada = t["status"] === "bloqueada" || t["bloqueio"] === true;
+                    const proxima = t["caso_id"] ? proximaDoCaso.get(String(t["caso_id"])) : undefined;
+                    const responsavel = t["responsavel_id"]
+                      ? nomeEquipe.get(String(t["responsavel_id"])) || "Responsável sem nome"
+                      : "Sem responsável";
+                    const prazo = dataCurta(t["prazo"]);
+                    return (
+                      <article
+                        key={t["id"]}
+                        className="rounded-xl border border-navy/10 bg-card p-3 shadow-sm"
+                        data-tarefa-cartao
+                      >
+                        <p className="text-sm font-semibold text-navy">{t["titulo"]}</p>
+                        <p className="mt-0.5 truncate text-[11px] text-navy/55">
+                          {t["caso_codigo"]
+                            ? `${t["caso_codigo"]}${t["caso_titulo"] ? ` · ${t["caso_titulo"]}` : ""}`
+                            : "Sem caso vinculado"}
+                        </p>
+                        <p className="mt-2 border-t border-navy/5 pt-2 text-[11px] text-navy/70">
+                          <span className="font-semibold text-navy">Próximo passo:</span>{" "}
+                          {proxima ?? "não registrado no caso"}
+                        </p>
+                        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                          {aberta ? (
+                            <Etiqueta
+                              texto={
+                                PRIORIDADES.find((p) => p.valor === t["prioridade"])?.rotulo ??
+                                (t["prioridade"] ? String(t["prioridade"]) : "Sem prioridade")
+                              }
+                              tom={t["prioridade"] === "critica" ? "critico" : t["prioridade"] === "alta" ? "atencao" : "neutro"}
+                            />
+                          ) : null}
+                          {dias !== null && dias >= 7 ? (
+                            <Etiqueta texto={`Atividade parada há ${dias} dias`} tom="atencao" />
+                          ) : null}
+                          {t["sla_status"] === "em_risco" ? <Etiqueta texto="SLA em risco" tom="atencao" /> : null}
+                          {t["sla_status"] === "atrasada" ? <Etiqueta texto="SLA vencido" tom="critico" /> : null}
+                          {bloqueada ? (
+                            <Etiqueta
+                              texto={t["motivo_bloqueio"] ? `Bloqueio: ${t["motivo_bloqueio"]}` : "Bloqueio"}
+                              tom="critico"
+                            />
+                          ) : null}
+                          {t["status"] === "concluida" ? <Etiqueta texto="Concluída" tom="sucesso" /> : null}
+                          {t["status"] === "cancelada" ? <Etiqueta texto="Histórico" tom="neutro" /> : null}
+                        </div>
+                        <div className="mt-2 flex items-center justify-between gap-2 border-t border-navy/5 pt-2 text-[10px] text-navy/55">
+                          <span className="flex min-w-0 items-center gap-1">
+                            <User className="h-3 w-3 shrink-0" aria-hidden="true" />
+                            <span className="truncate">{responsavel}</span>
+                          </span>
+                          <span className="flex shrink-0 items-center gap-1 tabular-nums">
+                            <Clock className="h-3 w-3" aria-hidden="true" />
+                            {prazo ?? "Sem prazo"}
+                          </span>
+                        </div>
+                      </article>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

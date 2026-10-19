@@ -15,9 +15,13 @@ describe("Comercial — cabeçalho de ações do funil", () => {
   it("\"Filtros\" rola até a seção de filtros real (âncora), \"+ Novo lead\" abre o NovoLeadDialog real já existente", () => {
     expect(rota).toContain('href="#leads-filtros"');
     expect(rota).toContain('id="leads-filtros"');
-    const trecho = rota.slice(rota.indexOf("Funil comercial vivo") - 50, rota.indexOf("Funil comercial vivo") + 900);
+    // 19/10/2026 — prancha V4 conferida rótulo a rótulo: o botão é "Novo
+    // lead" (sem "+") dentro do cartão-cabeçalho "Funil comercial vivo".
+    const inicio = rota.indexOf("data-leads-funil-cabecalho");
+    const trecho = rota.slice(inicio, inicio + 1400);
+    expect(trecho).toContain("Funil comercial vivo");
     expect(trecho).toContain("setNovoLeadAberto(true)");
-    expect(trecho).toContain("+ Novo lead");
+    expect(trecho).toMatch(/>\s*Novo lead\s*</);
   });
 });
 
