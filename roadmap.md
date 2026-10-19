@@ -293,7 +293,16 @@
 - [x] Mapa de rotas V4 + canos da jornada 8 fases (18/10): dois diagramas .mmd em Arquivos e na coleção
 
 ## 18/10/2026 — Jornada viva da Ana (novo pedido)
-- [ ] Jornada completa somente leitura: Ana como lead → Discovery → proposta → assinatura do contrato, com todos os cards e mudanças sugeridas aplicados em todas as abas do Desk.
+- [ ] Jornada completa somente leitura: Ana como lead → Discovery → proposta → assinatura do contrato, com cortes de ficha L03/L04/L08 em execução no rascunho isolado “Ana — jornada viva e fichas V4” (drft_01m58gggqcet08ecsv365d8p0v), autorizado em 18/10 às 22:00 UTC; sem integrar/publicar.
 - [ ] Comparar cada etapa com a prancha V4 aprovada (mockup).
 - [ ] Somente leitura: nenhum writer, cobrança, assinatura ou publicação real.
-- Bloqueio: executar após concluir L02 (capturas antes/depois 375/1280).
+- L02 entregue. Leitura atual confirmou lead vinculado ao caso, proposta v1 aprovada e contrato vigente em revisão humana, sem assinatura. Preparador excluído da auditoria por gravar na abertura; alterações de lógica L05/L06 e demais cortes não incluídas neste corte visual.
+
+## 18/10/2026 — Mockup V4 do dia a dia (11 telas) — revisão após a jornada da Ana
+- [ ] Revisar o último mockup após concluir a jornada da Ana: rejeitado pela Proprietária às 22:04 UTC por não corresponder às sugestões anteriores nem às cascas originais do Desk V4. A entrega anterior não comprova paridade.
+- [ ] Comparar peça a peça as 11 telas com as cascas V4 originais e sugestões das rodadas 1–4; apresentar cobertura, divergências e novas capturas para aprovação, sem publicar ou integrar.
+
+## 18/10/2026 às 23:18 UTC — Todas as telas com cascas V4 reais
+- [ ] Recompor o mockup de todas as superfícies e estados contextuais do Desk, não limitado às onze principais nem à prancha aprovada: resgatar cascas/componentes/estudos V4 reais por tela. Em execução no rascunho isolado “Desk — todas as telas com cascas V4 reais” (drft_01m58n10hyefm9sz2m3rz46dxh), sem integrar/publicar.
+- [ ] Entregar inventário completo com origem da casca e comparação antes/depois em 375/1280, PDF e imagens conferidas; distinguir captura atual, referência histórica e proposta.
+- App congelado; sem produto paralelo, integração, escrita de dados, assinatura ou publicação. Telas não recuperadas devem constar como pendências explícitas, nunca cobertura presumida.
