@@ -171,7 +171,7 @@ export function PortalLegado() {
                                  {p.id === "cadernos"
                                    ? "Os cadernos da família aparecerão aqui quando forem liberados."
                                    : p.id === "relatorios"
-                                     ? "Nenhum dossiê ou relatório foi liberado para a família até agora."
+                                     ? "Em preparação — os dossiês e relatórios aparecem aqui quando forem compartilhados com a família."
                                      : "As narrativas de origem aparecerão aqui quando estiverem prontas para a família."}
                              </p></div>
                           ) : (

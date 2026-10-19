@@ -156,7 +156,7 @@ export function PortalArvore() {
                         <span className="text-xs text-navy/60">
                            {temConteudo
                              ? "Os nomes já compartilhados ainda não têm posição disponível nesta árvore."
-                             : "Nenhum nome liberado para esta árvore até agora."}
+                             : "Em pesquisa — os nomes aparecem aqui quando forem compartilhados."}
                         </span>
                       )}
                     </p>

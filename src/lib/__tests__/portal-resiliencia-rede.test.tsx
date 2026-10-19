@@ -114,7 +114,7 @@ describe("Conta — erro de conexão (fail-closed)", () => {
       </FontePortalProvider>,
     );
     expect(screen.getByText(MENSAGEM_INSTABILIDADE_FINANCEIRA)).toBeTruthy();
-    expect(screen.queryByText(/Nenhuma assinatura publicada/)).toBeNull();
+    expect(screen.queryByText(/Em preparação — a assinatura aparece aqui/)).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: /Tentar novamente/ }));
     expect(recarregar).toHaveBeenCalledTimes(1);
   });
@@ -124,7 +124,7 @@ describe("Conta — erro de conexão (fail-closed)", () => {
         <PortalConta />
       </FontePortalProvider>,
     );
-    expect(screen.getByText(/Nenhuma assinatura publicada/)).toBeTruthy();
+    expect(screen.getByText(/Em preparação — a assinatura aparece aqui/)).toBeTruthy();
     expect(screen.queryByText(MENSAGEM_INSTABILIDADE_FINANCEIRA)).toBeNull();
   });
 });
