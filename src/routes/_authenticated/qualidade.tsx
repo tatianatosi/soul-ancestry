@@ -54,23 +54,16 @@ function QualidadePage() {
         elegibilidade; o Radar Individual reúne os quatro eixos, responsável, prazo, próxima ação e
         bloqueios do mesmo registro. Dados ausentes permanecem declarados, nunca inferidos.
       </p>
-<<<<<<< src/routes/_authenticated/qualidade.tsx
       <div className="mb-6">
         <KpisQualidadeV4 />
       </div>
-      <div className="mb-6 rounded-2xl border border-navy/10 bg-card p-6 shadow-sm">
+      <div className="mb-6 min-w-0 rounded-2xl border border-navy/10 bg-card p-6 shadow-sm" data-desk-mockup4="radar">
         <RadarInternoIntegrado />
       </div>
       <div className="mb-6">
         <RecomendacoesQualidadeV4 />
       </div>
-      <details className="mb-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
-=======
-      <div className="mb-6 min-w-0" data-desk-mockup4="radar">
-        <RadarInternoIntegrado />
-      </div>
       <details className="mb-6 rounded-xl border border-navy/10 bg-card p-4">
->>>>>>> /tmp/d
         <summary className="cursor-pointer font-serif text-base text-navy">
           Qualidade, checklists e exportação
         </summary>

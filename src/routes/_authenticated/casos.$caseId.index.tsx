@@ -6,12 +6,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import { SaasShell, useSaas, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
 import { ResumoKitCaso } from "@/components/desk/kit-conectado";
-<<<<<<< src/routes/_authenticated/casos.$caseId.index.tsx
-import { BarrasHorizontais, DonutEstados, Etiqueta, JornadaMarcos, Linha, LinhaTempoGrafica, Pessoa } from "@/components/prancha-v4/kit";
-=======
 import "@/components/desk/mockup4-superficies.css";
-import { BarrasHorizontais, DonutEstados, JornadaMarcos, Linha, LinhaTempoGrafica, Pessoa } from "@/components/prancha-v4/kit";
->>>>>>> /tmp/d
+import { BarrasHorizontais, DonutEstados, Etiqueta, JornadaMarcos, Linha, LinhaTempoGrafica, Pessoa } from "@/components/prancha-v4/kit";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";

@@ -42,7 +42,6 @@ function TarefasPage() {
           Pendência registrada: {pendenciaVinculo}
         </p>
       ) : null}
-<<<<<<< src/routes/_authenticated/tarefas.tsx
       {/*
         19/10/2026 — Prancha V4: contexto como alimento visível (a faixa
         declara fonte e consumidor) e as tarefas também em colunas por
@@ -54,9 +53,7 @@ function TarefasPage() {
         detalheTecnico="tarefas · listarRegistros"
       />
       <KanbanTarefas />
-=======
       <div data-desk-mockup4="checklist">
->>>>>>> /tmp/d
       <EntidadeCrud
         entidade="tarefas"
         titulo="Checklist"

@@ -47,16 +47,12 @@ function Painel() {
       descricao="O que está parado, vencido ou pede decisão — com ação e link para a aba dona."
       visualKit="pantone"
     >
-<<<<<<< src/routes/_authenticated/painel.tsx
       <FonteAlimento
         fonte="Exceções, sinais e descobertas derivados das fichas reais"
         consumidor="A decisão do dia da equipe — nada aqui é digitado, tudo é derivado"
         detalheTecnico="painel-caso-destaque · pendencias-humanas-caso"
       />
-      <PainelConsolidado />
-=======
       <div data-desk-mockup4="hoje"><PainelConsolidado /></div>
->>>>>>> /tmp/d
     </SaasShell>
   );
 }
@@ -168,19 +164,8 @@ function PainelConsolidado() {
     <section aria-labelledby="painel-consolidado-titulo" data-painel-hoje-v4>
       <h2 id="painel-consolidado-titulo" className="sr-only">Hoje</h2>
 
-<<<<<<< src/routes/_authenticated/painel.tsx
       {/* Topo — 4 KPIs (grade V4, desk-01-hoje). */}
-      <dl className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-hoje-indicadores>
-=======
-        21/09/2026: "Decisões do dia" deixou de ser "Não registrado". A regra
-        existe e já estava no repositório — `filaDeAprovacoes` classifica
-        achado, proposta e contrato em pendente/pronto, e "Aprovar escopo",
-        um dos quatro exemplos da linha 3 do De-Para, é literalmente uma das
-        suas ações. O que faltava era a Visão Geral usar a mesma função da
-        tela que já a usava, em vez de um número próprio.
-      */}
       <dl className="mb-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4" data-hoje-indicadores>
->>>>>>> /tmp/d
         {[
           { rotulo: "Decisões do dia", valor: decisoesDoDia, apoio: "aguardando você", to: "/golive/aprovacoes" },
           { rotulo: "Cadências vencidas", valor: hoje.vencidas, apoio: "pedem retomada", to: "/golive" },
@@ -204,55 +189,8 @@ function PainelConsolidado() {
         ))}
       </dl>
 
-<<<<<<< src/routes/_authenticated/painel.tsx
       {/* Grid central, 2 colunas, 3 linhas — mesma ordem da prancha V4. */}
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
-=======
-      <details open className="mb-6 rounded-lg border border-navy/15 bg-card p-4">
-        <summary className="cursor-pointer text-sm font-medium text-navy">
-          Abrir operação detalhada do dia
-        </summary>
-        <div className="mt-5 border-t border-navy/10 pt-5">
-      <div className="mb-6">
-        <CaCard
-          titulo="Tarefas e microentregas"
-          eyebrow="Prazos e responsáveis registrados"
-          acao={
-            <Button asChild size="sm" variant="outline">
-              <Link to="/tarefas">Abrir</Link>
-            </Button>
-          }
-        >
-          {itensKanban.length === 0 ? (
-            <EstadoVazio mensagem="Nenhuma tarefa ou microentrega registrada para esta leitura." />
-          ) : (
-            <ul className="grid gap-2 md:grid-cols-2">
-              {itensKanban.slice(0, 6).map((item) => {
-                const faixa = faixaDePrazo(item);
-                return (
-                  <li key={item.id} className="flex min-w-0 items-start justify-between gap-3 rounded-lg border border-navy/10 bg-cream/35 px-3 py-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-navy">{item.titulo}</p>
-                      <p className="mt-0.5 truncate text-[11px] text-navy/55">{item.responsavel || "Responsável não registrado"}</p>
-                    </div>
-                    <span className="shrink-0 rounded-full border border-navy/15 bg-card px-2 py-0.5 text-[10px] font-medium text-navy/65">{faixa}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </CaCard>
-      </div>
-
-      {/*
-        §11 linha 3 — "Decisões prioritárias". Cada linha precisa abrir
-        contexto e ação possível, então mostra o que está pendente, por quê, e
-        leva à tela onde a decisão é tomada. A lista é o mesmo array que gera
-        o número de "Decisões do dia" acima: nenhum dos dois pode divergir do
-        outro sem divergir de si mesmo.
-      */}
-      <div className="mb-6">
->>>>>>> /tmp/d
         <CaCard
           titulo="Decisões prioritárias"
           eyebrow={`Fonte: fila de aprovações · ${decisoesDoDia} pendente(s)`}

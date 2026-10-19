@@ -1,6 +1,5 @@
 # Roadmap
 
-<<<<<<< roadmap.md
 ## Caso 360 V4 — rascunho isolado (13/10, 13:25 UTC)
 - [x] Comparar painel/kit existentes com desk-04-caso360.png; capturas autenticadas antes em 375/1280/1440.
 - [x] Ajustar somente a Visão existente em três colunas; preservar oito seções, blocos recolhidos, dados e App.
@@ -24,7 +23,6 @@
 - [x] Correção de typecheck (18/10): restaurados itemNavAtivo, grupoNavAtivo e LACUNAS_CONHECIDAS em navegacao-desk.ts; 4 falhas de teste restantes são a divergência V4×V5 de menu, decisão pendente da Proprietária.
 - [ ] PEDIDO AO CLAUDE: comprovar persistência/releitura, conexões dos alimentos aos motores e resultado autorizado no App; depende de autorização de escrita e execução contextual, não realizada nesta auditoria.
 - Não executar escritas, convites, liberação, cobrança, integração ou publicação nesta auditoria.
-=======
 ## Mockup 4 — rascunho isolado (13/10/2026 16:55 UTC)
 Checklist inicial: **NÃO EXECUTADO**. Sem integração, publicação, dados ou permissões; itens históricos abaixo não autorizam trabalho fora deste corte.
 
@@ -55,7 +53,6 @@ Checklist inicial: **NÃO EXECUTADO**. Sem integração, publicação, dados ou 
 - [ ] Homologação visual da Proprietária (não COMPROVADO_EM_USO).
 
 PEDIDO AO CLAUDE neste corte: revisar projeção master de pessoas (ancestrais aparecem como núcleo; Cleusa/Ana Maria compartilham G3 registrada), reconciliar timeline interna versus marcos publicados no resumo do Caso, expor títulos/datas/URLs autorizadas no leitor de Documentos antes de leitura física, reconciliar seis grupos solicitados versus oito entradas atuais sem mudança unilateral de navegação, adequar teste A2 à última ordem mobile de uma coluna. Não inferir/regravar dados aqui. Contrato/Gov.br/OS, narrativas/fotos/achados/FAQ ausentes continuam sem conteúdo fabricado.
->>>>>>> /tmp/d
 
 ## Polimento de luxo 12/10 (pedido 16:38)
 - [ ] Jornada: texto editorial Graz (1895) no lugar de Lacuna (autorizado)
