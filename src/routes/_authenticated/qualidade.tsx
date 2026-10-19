@@ -46,21 +46,28 @@ function QualidadePage() {
       titulo="Radar & Matrizes"
       descricao="Matriz de elegibilidade × urgência e Radar Individual sincronizados; leitura interna por caso."
     >
-      <p className="mb-4 text-sm text-navy/70">
-        Alterne entre a carteira completa e a leitura de um caso. A matriz usa urgência e hipótese de
-        elegibilidade; o Radar Individual reúne os quatro eixos, responsável, prazo, próxima ação e
-        bloqueios do mesmo registro. Dados ausentes permanecem declarados, nunca inferidos.
-      </p>
+      {/*
+        19/10/2026 — prancha visual V4: a composição aprovada (cabeçalho
+        "Radar interno", alternador, matriz e radar individual) abre a tela.
+        KPIs, recomendações, panorama e checklists seguem abaixo, inalterados.
+      */}
       <div className="mb-6">
-        <KpisQualidadeV4 />
+        <RadarInternoIntegrado />
       </div>
       <CaCard
-        titulo="Matriz de prioridade e Radar Individual"
+        titulo="Como ler esta tela"
         eyebrow="Radar & Matrizes · carteira e caso"
         className="mb-6"
       >
-        <RadarInternoIntegrado />
+        <p className="text-sm text-navy/70">
+          Alterne entre a carteira completa e a leitura de um caso. A matriz usa urgência e hipótese de
+          elegibilidade; o Radar Individual reúne os quatro eixos, responsável, prazo, próxima ação e
+          bloqueios do mesmo registro. Dados ausentes permanecem declarados, nunca inferidos.
+        </p>
       </CaCard>
+      <div className="mb-6">
+        <KpisQualidadeV4 />
+      </div>
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
         <RecomendacoesQualidadeV4 />
         <PanoramaQualidadeV4 />

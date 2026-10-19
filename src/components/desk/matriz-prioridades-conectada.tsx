@@ -15,7 +15,7 @@ import { ROTULO_SINAL, type SinalPrioridade } from "@/lib/prioridade-matriz";
   posicionados pelo motor. Nenhum número novo é calculado aqui: a posição
   vem de `posicionar`, e este mapa só traduz faixa em coordenada de desenho.
 */
-const ESCALA_ELEGIBILIDADE: Record<CasoPosicionado["elegibilidade"], number> = {
+export const ESCALA_ELEGIBILIDADE: Record<CasoPosicionado["elegibilidade"], number> = {
   forte: 95,
   provavel: 78,
   possivel_com_pesquisa: 58,
@@ -24,14 +24,14 @@ const ESCALA_ELEGIBILIDADE: Record<CasoPosicionado["elegibilidade"], number> = {
   nao_avaliada: 8,
 };
 
-const ESCALA_URGENCIA: Record<CasoPosicionado["urgencia"], number> = {
+export const ESCALA_URGENCIA: Record<CasoPosicionado["urgencia"], number> = {
   vencida: 92,
   aproximando: 68,
   em_dia: 40,
   sem_base: 10,
 };
 
-const PESO_SINAL: Record<CasoPosicionado["sinal"], number> = {
+export const PESO_SINAL: Record<CasoPosicionado["sinal"], number> = {
   critica: 0,
   atencao: 1,
   acompanhada: 2,
