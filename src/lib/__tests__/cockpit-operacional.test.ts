@@ -8,7 +8,7 @@ const ler = (p: string) => readFileSync(p, "utf8");
 
 describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
   it("os 6 grupos do Desk permanecem; não volta o mockup de 14 abas", () => {
-    expect(GRUPOS_DESK).toHaveLength(7);
+    expect(GRUPOS_DESK).toHaveLength(8); // 18/10/2026: 7 grupos V4 + Financeiro
     expect(GRUPOS_DESK.map((g) => g.id)).toEqual([
       "hoje",
       "comercial",
@@ -16,6 +16,7 @@ describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
       "pessoas",
       "pesquisa",
       "marketing",
+      "financeiro",
       "governanca",
     ]);
   });

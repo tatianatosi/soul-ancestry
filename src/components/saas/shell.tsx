@@ -14,6 +14,9 @@ import {
   ShieldCheck,
   Search,
   ChevronDown,
+  Users,
+  Megaphone,
+  Wallet,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -28,7 +31,9 @@ import {
   MENU_LEGADO_DESK,
   rotaAtendeDestino,
   setorDaRota,
-  SETORES_DESK_V5,
+  SETORES_DESK,
+  destinoDaAba,
+  itemNavAtivo,
   type AbaSetor,
   type GrupoDesk,
 } from "@/lib/navegacao-desk";
@@ -83,6 +88,9 @@ const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
   pesquisa: Library,
   contratos: Scale,
   governanca: ShieldCheck,
+  pessoas: Users,
+  marketing: Megaphone,
+  financeiro: Wallet,
 };
 
 /**
@@ -95,12 +103,15 @@ const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
  * itens. Aqui ficou só o layout.
  */
 
-/** A aba mais específica que casa com a rota fica ativa (ex.: /casos/:id → Casos). */
-function abaAtiva(rota: string, aba: AbaSetor, abas: readonly AbaSetor[]): boolean {
+/** A aba mais específica que casa com a rota (e com a âncora, quando houver) fica ativa. */
+function abaAtiva(rota: string, hash: string, aba: AbaSetor, abas: readonly AbaSetor[]): boolean {
+  const comHash = abas.find((a) => a.hash && hash && itemNavAtivo(rota.replace(/^\/casos\/[^/]+$/, "/casos"), hash, a));
+  if (comHash) return comHash === aba;
+  if (aba.hash) return false;
   const melhor = abas
-    .filter((a) => rota === a.to || rota.startsWith(`${a.to}/`))
+    .filter((a) => !a.hash && (rota === a.to || rota.startsWith(`${a.to}/`)))
     .sort((a, b) => b.to.length - a.to.length)[0];
-  return melhor?.to === aba.to;
+  return melhor === aba;
 }
 
 export function SaasShell({
@@ -120,6 +131,7 @@ export function SaasShell({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const rota = useRouterState({ select: (s) => s.location.pathname });
+  const hashAtual = useRouterState({ select: (s) => s.location.hash });
   const [aberto, setAberto] = useState(false);
   const registrarSaida = useServerFn(registrarLogoutEquipe);
 
@@ -224,7 +236,7 @@ export function SaasShell({
         </div>
 
         <nav aria-label="Navegação do Desk" className="flex flex-1 flex-col gap-1">
-          {SETORES_DESK_V5.map((setor) => {
+          {SETORES_DESK.map((setor) => {
             const Icon = ICONES[setor.icone];
             const ativo = setorAtivo?.id === setor.id;
             return (
@@ -371,11 +383,15 @@ export function SaasShell({
               data-desk-abas-setor={setorAtivo?.id}
             >
               {abasSetor.map((aba) => {
-                const ativa = abaAtiva(rota, aba, abasSetor);
+                const ativa = abaAtiva(rota, hashAtual, aba, abasSetor);
+                const destino = destinoDaAba(aba, rota);
                 return (
                   <Link
-                    key={aba.to}
-                    to={aba.to}
+                    key={`${aba.to}#${aba.hash ?? ""}`}
+                    to={destino.to}
+                    params={destino.caseId ? { caseId: destino.caseId } : undefined}
+                    hash={destino.hash}
+                    data-aba-destino={`${destino.caseId ? `/casos/${destino.caseId}` : destino.to}${destino.hash ? `#${destino.hash}` : ""}`}
                     aria-current={ativa ? "page" : undefined}
                     className={cn(
                       "inline-flex min-h-8 items-center rounded-full border px-3 py-1 text-[11px] transition-colors",
@@ -409,7 +425,7 @@ export function SaasShell({
           className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-8 border-t border-navy/10 bg-card px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-sm md:hidden"
           data-desk-nav-movel
         >
-          {SETORES_DESK_V5.map((setor) => {
+          {SETORES_DESK.map((setor) => {
             const Icon = ICONES[setor.icone];
             const ativo = setorAtivo?.id === setor.id;
             return (

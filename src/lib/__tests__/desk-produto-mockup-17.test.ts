@@ -15,7 +15,7 @@ import {
 
 describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas como referência)", () => {
   it("expõe exatamente os 6 grupos, na ordem aprovada", () => {
-    expect(GRUPOS_DESK).toHaveLength(7);
+    expect(GRUPOS_DESK).toHaveLength(8); // 18/10/2026: 7 grupos V4 + Financeiro
     expect(GRUPOS_DESK.map((g) => g.label)).toEqual([...GRUPOS_OPERACIONAIS_DESK]);
     expect(GRUPOS_DESK.map((g) => g.to)).toEqual([
       "/painel",
@@ -24,6 +24,7 @@ describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas com
       "/clientes",
       "/pesquisa-modulo",
       "/marketing",
+      "/financeiro",
       "/configuracoes",
     ]);
   });
@@ -36,6 +37,7 @@ describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas com
       "pessoas",
       "pesquisa",
       "marketing",
+      "financeiro",
       "governanca",
     ]);
     expect(GRUPOS_DESK.map((g) => g.id)).not.toContain("visao-geral");

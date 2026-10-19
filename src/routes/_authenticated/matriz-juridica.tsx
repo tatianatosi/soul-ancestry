@@ -7,6 +7,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
+import { MarcosJuridicosCartoes } from "@/components/juridico/marcos-cartoes";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { consolidarMatrizJuridica, listarMatrizJuridica, registrarDecisaoTema } from "@/lib/crm-desk.functions";
@@ -75,6 +76,9 @@ function MatrizPage() {
       titulo="Validação Jurídica"
       descricao="Registro de decisão por tema. Esta tela não guarda redação de cláusula e nenhum conteúdo público é versão vigente."
     >
+      <MarcosJuridicosCartoes />
+
+      <h2 className="mb-2 font-serif text-xl text-navy">Temas da matriz contratual</h2>
       <div className="mb-4 rounded-xl border border-navy/10 bg-cream/50 p-4 text-sm text-navy">
         {pendentes.length
           ? `${pendentes.length} tema(s) bloqueante(s) sem decisão: assinatura fica como pendência.`

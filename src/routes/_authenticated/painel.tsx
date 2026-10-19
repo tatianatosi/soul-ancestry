@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { useGoLive } from "@/components/golive/dados";
+import { listarExcecoes } from "@/lib/ops.functions";
 import { EstadoVazio, SaasShell } from "@/components/saas/shell";
 import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { Button } from "@/components/ui/button";
@@ -326,6 +327,8 @@ function PainelConsolidado() {
         </CaCard>
       </div>
 
+      <AlertaExcecoesAbertas />
+
       {/* Base — Alertas + Ritmo lado a lado, Distribuição das prioridades abaixo. */}
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
         <CaCard titulo="Alertas centralizados · com origem" eyebrow="Onde o sinal começou">
@@ -398,5 +401,37 @@ function PainelConsolidado() {
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * 18/10/2026 — Exceções operacionais saíram do menu e aparecem aqui como
+ * alerta. Aberta = não consumida e dentro da validade. Leitura apenas; a
+ * tela de registro continua no endereço próprio.
+ */
+function AlertaExcecoesAbertas() {
+  const fn = useServerFn(listarExcecoes);
+  const q = useQuery({ queryKey: ["ops", "excecoes"], queryFn: () => fn(), retry: false });
+  if (q.isPending || q.isError) return null;
+  const agora = Date.now();
+  const abertas = (q.data?.excecoes ?? []).filter(
+    (e) => !e.consumida_em && (!e.valido_ate || new Date(e.valido_ate).getTime() >= agora),
+  );
+  if (abertas.length === 0) return null;
+  return (
+    <div className="ca-cartao-natureza mb-6" data-natureza="atencao" data-hoje-excecoes>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0">
+          <span className="ca-selo-natureza" data-natureza="atencao">Atenção</span>
+          <p className="mt-1 font-serif text-lg text-navy">
+            {abertas.length === 1 ? "1 exceção operacional em aberto" : `${abertas.length} exceções operacionais em aberto`}
+          </p>
+          <p className="text-xs text-navy/60">Autorizadas pela administração e ainda não consumidas.</p>
+        </div>
+        <Button asChild size="sm" variant="outline">
+          <Link to="/ops-excecoes">Ver exceções</Link>
+        </Button>
+      </div>
+    </div>
   );
 }

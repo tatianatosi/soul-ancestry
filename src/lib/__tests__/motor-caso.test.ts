@@ -151,7 +151,7 @@ describe("projeção autorizada no App Cliente (mesma ordem da RPC)", () => {
 
 describe("premissas que o motor não pode desfazer", () => {
   it("Desk continua com 6 grupos; Inteligência hospeda a Biblioteca Mestre", () => {
-    expect(GRUPOS_DESK).toHaveLength(7);
+    expect(GRUPOS_DESK).toHaveLength(8); // 18/10/2026: 7 grupos V4 + Financeiro
     expect(GRUPOS_DESK[4]?.id).toBe("pesquisa");
     expect(GRUPOS_DESK[2]?.label).toMatch(/Casos/i);
   });
