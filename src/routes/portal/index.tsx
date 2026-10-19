@@ -15,10 +15,10 @@ import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada, ROTULOS_ETAPA_CLIENTE } from "@/lib/portal-dados-vivos";
 import { cn } from "@/lib/utils";
-import { ArrowRight, CheckCircle2, UsersRound, Search, ChevronDown, MessageCircle } from "lucide-react";
-import { CaCard } from "@/components/ui/ca-card";
-import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
+import { ArrowRight, CheckCircle2, UsersRound, Search } from "lucide-react";
 import { pessoasDaArvore } from "@/lib/arvore-publicacao";
+import { CartaoAchado, CartaoAssessoria, CartaoEditorial, ReguaEtapas, SeloEstadoCaso } from "@/components/portal/elementos-mockup";
+import type { ResumoCasoCliente } from "@/lib/portal-resumo-caso";
 
 const PROXIMO_PASSO_VAZIO =
   "Assim que houver um próximo passo compartilhado com sua família, você o verá aqui.";
@@ -114,6 +114,7 @@ export function PortalHome() {
         ) : (
           <PainelHomeMockup
             tituloCaso={previa.titulo}
+            resumo={vivo.data?.resumoCaso ?? null}
             proximoPasso={passoPublicado?.conteudo ?? PROXIMO_PASSO_VAZIO}
             proximoPassoDestino={passoPublicado ? vivo.data?.proximaAcao?.destino ?? "/portal/jornada" : null}
             pais={previa.pais ?? null}
@@ -179,7 +180,7 @@ export function PortalHome() {
             <div className="space-y-4">
               <PainelHomeMockup
                 tituloCaso={principal.titulo}
-                statusTexto={principal.statusRotulo || undefined}
+                resumo={vivo.data?.resumoCaso ?? null}
                  proximoPasso={passoPublicado?.conteudo ?? PROXIMO_PASSO_VAZIO}
                 proximoPassoDestino={passoPublicado ? vivo.data?.proximaAcao?.destino ?? principal.proximoPassoDestino ?? "/portal/jornada" : null}
                 pais={principal.pais}
@@ -325,7 +326,7 @@ function EstepeJornada({
 
 function PainelHomeMockup({
   tituloCaso,
-  statusTexto,
+  resumo,
   proximoPasso,
   proximoPassoDestino,
   proximaEntrega,
@@ -341,7 +342,8 @@ function PainelHomeMockup({
   pais,
 }: {
   tituloCaso: string;
-  statusTexto?: string;
+  /** Estado do caso, régua das 5 etapas e perfil (13/10/2026). */
+  resumo?: ResumoCasoCliente | null;
   proximoPasso: string;
   proximoPassoDestino?: string | null;
   /** P3: só a data sanitizada da próxima entrega (portal_casos). */
@@ -396,11 +398,7 @@ function PainelHomeMockup({
       <section data-home-editorial className="relative overflow-hidden rounded-xl border-b-2 border-gold/70 bg-navy-800 p-6 text-cream shadow-md sm:p-8">
         <div className="min-w-0">
             <p className="app-selo-projeto text-[10px] font-medium text-gold">Projeto familiar</p>
-          {statusTexto ? (
-            <span className="absolute right-4 top-6 rounded-full bg-gold px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-navy">
-              {statusTexto}
-            </span>
-          ) : null}
+          <span className="absolute right-4 top-6"><SeloEstadoCaso resumo={resumo} /></span>
             <p className="app-home-boas-vindas mt-4 text-[11px] font-medium uppercase tracking-[0.25em] text-gold">Bem-vinda à sua história</p>
           <h2 className="mt-1 font-serif text-[1.9rem] leading-tight text-cream sm:text-4xl">
             {tituloCaso}
@@ -428,7 +426,9 @@ function PainelHomeMockup({
         </div>
 
         {/* Mockup p.3: progresso dentro do mesmo cartão do caso, não num segundo cartão. */}
-        {fase ? (
+        {resumo && resumo.etapas.length > 0 ? (
+          <ReguaEtapas etapas={resumo.etapas} />
+        ) : fase ? (
           <div aria-label="Progresso da jornada" data-home-progresso className="mt-4 border-t border-cream/10 pt-1">
             <EstepeJornada rotulos={fase.rotulos} indice={fase.indice} percentual={fase.percentual} valor={fase.valor} compacto={fase.compacto ?? false} />
           </div>
@@ -441,7 +441,7 @@ function PainelHomeMockup({
         )}
       </section>
 
-      {fase ? null : (
+      {fase || (resumo && resumo.etapas.length > 0) ? null : (
         <section className="app-home-resumo app-card-resumo-jornada" aria-label="Resumo da Jornada">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
             <div className="min-w-0"><h3 className="font-serif text-xl text-navy">{marcos > 0 ? "Nossa jornada" : "Uma história em construção"}</h3><p className="mt-1 text-sm text-navy/70">{marcos > 0 ? "Acompanhe os trechos já compartilhados da sua história." : "Os primeiros marcos terão seu lugar aqui quando forem compartilhados."}</p></div>
