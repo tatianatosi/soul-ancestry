@@ -14,7 +14,7 @@ import {
 } from "@/lib/consolidacao-catalogos-templates";
 import { EstadoVazio, SaasShell, useSaas } from "@/components/saas/shell";
 import { CaCard } from "@/components/ui/ca-card";
-import { Indicador } from "@/components/prancha-v4/kit";
+import { Etiqueta, Indicador } from "@/components/prancha-v4/kit";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -370,17 +370,18 @@ function BibliotecaMensagensPage() {
                     <div className="text-sm font-medium text-foreground">{t.nome}</div>
                     <p className="mt-0.5 text-xs text-navy/65">{t.objetivo ?? "—"}</p>
                   </div>
-                  <span
-                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${
+                  <Etiqueta
+                    texto={STATUS_TEMPLATE.find((s) => s.valor === t.status)?.rotulo ?? String(t.status)}
+                    tom={
                       t.status === "vigente"
-                        ? "bg-navy/10 text-navy"
+                        ? "sucesso"
                         : t.status === "aprovado"
-                          ? "bg-cream/60 text-foreground"
-                          : "bg-destructive/10 text-destructive"
-                    }`}
-                  >
-                    {STATUS_TEMPLATE.find((s) => s.valor === t.status)?.rotulo}
-                  </span>
+                          ? "neutro"
+                          : t.status === "rascunho" || t.status === "em_revisao"
+                            ? "atencao"
+                            : "critico"
+                    }
+                  />
                 </div>
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-navy/65">
                   <span>{t.categoriaNome}</span>
