@@ -9,12 +9,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
+import { KitCard } from "@/components/clube-ancestral-kit/base";
 import { CrmKanban } from "@/components/clube-ancestral-kit/operacao";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { ESTADOS, PRIORIDADES, rotuloEstado } from "@/lib/estados";
+import { ESTADOS, PRIORIDADES } from "@/lib/estados";
 import { listarRegistros } from "@/lib/saas.functions";
-
-const TOM_COLUNA = ["neutro", "gold", "attention", "success", "neutro"] as const;
 
 export function KanbanTarefas() {
   const carregar = useServerFn(listarRegistros);
@@ -25,21 +24,19 @@ export function KanbanTarefas() {
   });
 
   const linhas = (Array.isArray(q.data) ? q.data : []) as any[];
-  const colunas = ESTADOS.tarefa.map((estado, i) => ({
-    titulo: estado.rotulo,
-    tom: TOM_COLUNA[i] ?? "neutro",
-    itens: linhas
+  const colunas = ESTADOS.tarefa.map((estado) => ({
+    id: estado.valor,
+    title: estado.rotulo,
+    items: linhas
       .filter((t) => (t.status ?? "nao_iniciada") === estado.valor)
       .map((t) => ({
         id: String(t.id),
-        titulo: String(t.titulo ?? "Sem título"),
-        subtitulo: [
-          PRIORIDADES.find((p) => p.valor === t.prioridade)?.rotulo ?? null,
-          t.prazo ? `Prazo ${String(t.prazo).slice(0, 10).split("-").reverse().join("/")}` : null,
-        ]
-          .filter(Boolean)
-          .join(" · ") || undefined,
-        selo: t.bloqueio ? "Bloqueada" : rotuloEstado("tarefa", t.status),
+        title: String(t.titulo ?? "Sem título"),
+        context: PRIORIDADES.find((p) => p.valor === t.prioridade)?.rotulo
+          ? `Prioridade ${PRIORIDADES.find((p) => p.valor === t.prioridade)!.rotulo.toLowerCase()}`
+          : undefined,
+        due: t.prazo ? String(t.prazo).slice(0, 10).split("-").reverse().join("/") : undefined,
+        alert: t.bloqueio ? String(t.motivo_bloqueio ?? "Bloqueada") : undefined,
       })),
   }));
 
@@ -54,16 +51,12 @@ export function KanbanTarefas() {
         vazio="Nenhuma tarefa registrada."
       >
         {() => (
-          <>
-            <CrmKanban
-              titulo="Tarefas em colunas"
-              eyebrow="A mesma lista do Checklist, agrupada por status"
-              colunas={colunas as any}
-            />
-            <p className="mt-2 text-[11px] text-navy/55">
+          <KitCard title="Tarefas em colunas" eyebrow="A mesma lista do Checklist, agrupada por status">
+            <CrmKanban columns={colunas} />
+            <p className="mt-3 text-[11px] text-navy/55">
               Visão de leitura: para mudar o status de uma tarefa, edite-a na tabela abaixo.
             </p>
-          </>
+          </KitCard>
         )}
       </EstadoDados>
     </div>
