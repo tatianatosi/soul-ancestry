@@ -10,8 +10,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { definirPapel, listarAuditoria, listarUsuarios, type Papel } from "@/lib/saas.functions";
 import { obterModoProprietaria, type EventoProprietaria } from "@/lib/modo-proprietaria.functions";
 import { CAPACIDADES_PROPRIETARIA, ROTULO_CAPACIDADE } from "@/lib/modo-proprietaria";
-import { KitBadge, KitCard, KpiCard } from "@/components/clube-ancestral-kit";
-import { GovernancaConectada } from "@/components/desk/superficies-kit-conectadas";
+import { ConfiguracaoAcessoV4 } from "@/components/desk/configuracao-acesso-v4";
 import { CaCard } from "@/components/ui/ca-card";
 import { Etiqueta } from "@/components/prancha-v4/kit";
 
@@ -76,29 +75,24 @@ function ConfiguracoesPage() {
   });
 
   return (
-    <SaasShell titulo="Configuração & Acesso Master" descricao="Somente administradores da organização. Gestão de contas da equipe fica em Equipe e papéis." visualKit="pantone">
-      <GovernancaConectada />
-      <section aria-label="Resumo de acesso master" className="mb-4 space-y-3">
-        <div className="grid gap-3 sm:grid-cols-3">
-          <KpiCard label="Membros" value={usuariosOperacionais?.length} detail="Contas operacionais vinculadas" />
-          <KpiCard label="Papéis disponíveis" value={PAPEIS.length} detail="Perfis internos controlados" />
-          <KpiCard
-            label="Modo Proprietária"
-            value={qModo.data ? (qModo.data.ativo ? "Ativo" : "Inativo") : null}
-            detail="Autoridade confirmada no servidor"
-            tone={qModo.data?.ativo ? "success" : "neutral"}
-          />
-        </div>
-        <KitCard
-          eyebrow="Acesso Master"
-          title="Política operacional"
-          action={<KitBadge tone="gold">Confirmação externa obrigatória</KitBadge>}
-        >
-          <p className="text-sm text-navy/70">
-            Papéis, decisões da Proprietária e alterações de acesso permanecem validados no servidor e registrados na auditoria.
-          </p>
-        </KitCard>
-      </section>
+    <SaasShell titulo="Configuração & Acesso" descricao="Composição da prancha V4. Somente administradores da organização. Gestão de contas da equipe fica em Equipe e papéis." visualKit="pantone">
+      {/*
+        Prancha V4 (19/10/2026): Permissões · painel selecionado (Política
+        operacional por padrão) · Registro de auditoria — somente leitura,
+        sobre as mesmas consultas desta rota.
+      */}
+      <ConfiguracaoAcessoV4
+        liberado={liberado}
+        motivoBloqueio={decisao.motivo}
+        papelAtual={qModo.data?.papel}
+        usuarios={usuariosOperacionais}
+        carregandoUsuarios={q.isLoading}
+        eventos={qAuditoria.data}
+        carregandoEventos={qAuditoria.isLoading}
+        erroEventos={qAuditoria.error}
+        rotuloAcao={rotuloAcaoEvento}
+        renderTrilha={(eventos) => <TrilhaAuditoria eventos={eventos} />}
+      />
       <CaCard className="mt-4"><details>
         <summary className="cursor-pointer font-serif text-lg text-navy">Abrir Modo Proprietária</summary>
         <div className="mt-5 border-t border-navy/10 pt-5">
