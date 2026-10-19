@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { useAutoridade } from "@/components/saas/autoridade";
 import {
   NUCLEO_AMBIENTES,
@@ -360,6 +361,11 @@ function NucleosPage() {
       titulo="Núcleos familiares"
       descricao="Um dossiê-mãe por núcleo. Requerentes têm registro individual vinculado."
     >
+      <FonteAlimento
+        fonte="Membros e vínculos registrados do núcleo familiar"
+        consumidor="Dossiê-mãe, Caso 360 e a Árvore publicada no App Cliente"
+        detalheTecnico="composicao-linhagem-v4"
+      />
       <div className="space-y-5">
         {(() => {
           /*

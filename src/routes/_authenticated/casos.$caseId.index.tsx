@@ -46,6 +46,7 @@ import { PublicarPlanoApp } from "@/components/contrato/publicar-plano-app";
 import { PublicarAssinaturaApp } from "@/components/contrato/publicar-assinatura-app";
 import { CalculadoraOrcamento } from "@/components/contrato/calculadora-orcamento";
 import { CondicaoComercialVersionada } from "@/components/contrato/condicao-comercial-versionada";
+import { CardsContratoCaso } from "@/components/contrato/cards-contrato-caso";
 import { OrcamentoPorProdutoPai } from "@/components/contrato/orcamento-produto-pai";
 import { OverrideComercial } from "@/components/caso/override-comercial";
 import { PainelJornadaPlanejador } from "@/components/caso/jornada-planejador";
@@ -2304,6 +2305,8 @@ function FichaCaso() {
             composição exige e as lacunas.
           */}
           <CondicaoComercialVersionada caseId={id} />
+          {/* Corte L08 (19/10/2026): 6 marcos do contrato em cards, leitura pura. */}
+          <CardsContratoCaso caseId={id} />
           <OrcamentoPorProdutoPai caseId={id} />
           <CalculadoraOrcamento caseId={id} />
 
