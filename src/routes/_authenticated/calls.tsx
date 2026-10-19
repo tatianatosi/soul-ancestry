@@ -7,6 +7,7 @@ import { PainelCalls } from "@/components/crm/painel-calls";
 import { ErroSuperficieDesk } from "@/components/saas/erro-superficie";
 import { SaasShell } from "@/components/saas/shell";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
+import { registrarInteracao } from "@/lib/crm-fluxo.functions";
 import { CATALOGOS, rotulo, type LeadDesk } from "@/lib/crm-desk";
 import { estadoCall, ROTULO_ESTADO_CALL, type EstadoCall } from "@/lib/painel-calls";
 import {
@@ -254,6 +255,7 @@ function CallsPage() {
   // Qualificação ao vivo do roteiro SPIN — mesma mutação real (salvarLeadDesk)
   // por campo, com controle de pendente/erro por campo para não travar a
   // tela inteira numa única gravação.
+  const registrarInteracaoCaso = useServerFn(registrarInteracao);
   const [campoPendente, setCampoPendente] = useState<string | null>(null);
   const [errosCampo, setErrosCampo] = useState<Record<string, string>>({});
   async function gravarCampoSpin(leadId: string, campo: string, valor: string | boolean | null) {
@@ -268,6 +270,41 @@ function CallsPage() {
           return resto;
         });
         void qc.invalidateQueries({ queryKey: ["leads-desk"] });
+        /*
+         * Gravação dupla em crm_interactions (ordem de 19/10/2026): a coluna
+         * crm_interactions.case_id é NOT NULL (types.ts + migration
+         * 20260820195845) — um lead em Discovery normalmente ainda não tem
+         * case_id (só é gravado no Handoff Discovery, handoff-discovery.
+         * functions.ts, quando o lead passa a eixo_comercial "ganho"). Para
+         * esse lead comum, a interação do roteiro SPIN continua só em
+         * `leads`, como já funcionava.
+         * Regra exata aplicada aqui: só quando ESTE lead específico já tem
+         * `case_id` preenchido (reaproveito de caso já existente no Handoff,
+         * ou edição tardia de um lead que já tornou-se caso) é que a mesma
+         * resposta do roteiro também gera uma interação real em
+         * crm_interactions, usando o mesmo `registrarInteracao` que o painel
+         * de Fluxo Comercial já usa — nenhuma lógica nova, nenhuma coluna
+         * nova.
+         */
+        const leadAtual = ((qLeads.data ?? []) as LeadDesk[]).find((l) => l.id === leadId);
+        if (leadAtual?.case_id) {
+          const rotuloCampo = ROTULO_CAMPO_ROTEIRO[campo] ?? campo;
+          const valorTexto = Array.isArray(valor) ? valor.join(", ") : String(valor ?? "não registrado");
+          try {
+            await registrarInteracaoCaso({
+              data: {
+                case_id: leadAtual.case_id,
+                tipo: "call",
+                canal: "desk_only",
+                direcao: "interno",
+                resumo_interno: `Mesa de Discovery · roteiro SPIN · ${rotuloCampo}: ${valorTexto}`,
+              },
+            });
+          } catch {
+            // A gravação em crm_interactions é um espelho adicional: se falhar,
+            // o campo já está salvo no lead (gravação principal) e não trava a Mesa.
+          }
+        }
       }
     } catch {
       setErrosCampo((e) => ({ ...e, [campo]: "Falha ao salvar." }));

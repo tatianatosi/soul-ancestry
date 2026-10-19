@@ -1260,6 +1260,7 @@ export const criarLeadManual = createServerFn({ method: "POST" })
       telefone?: string | null;
       origem: string;
       objetivo: string;
+      area_responsavel?: string | null;
       responsavel_nome: string;
       proxima_acao: string;
       proxima_acao_em: string;
@@ -1281,10 +1282,16 @@ export const criarLeadManual = createServerFn({ method: "POST" })
     const supabase = (context as any).supabase;
     const userId = (context as any).userId as string;
 
+    /*
+     * Verificação de duplicidade NÃO bloqueante (ordem de 19/10/2026): antes,
+     * encontrar mesmo e-mail/telefone/nome impedia a primeira gravação —
+     * quem estava cadastrando em plena call tinha de clicar de novo só para
+     * confirmar "é outro contato mesmo". Agora a duplicidade é só aviso: o
+     * lead sempre grava já na primeira tentativa, e a lista de duplicidades
+     * encontradas volta no mesmo retorno de sucesso para a tela mostrar o
+     * selo/aviso, sem nunca travar o salvamento.
+     */
     const duplicidades = await buscarDuplicidades(supabase, data);
-    if (duplicidades.length && !data.confirmarDuplicidade) {
-      return { ok: false as const, duplicidades, erros: [], lead: null };
-    }
 
     const candidato: LeadDesk = {
       nome: data.nome.trim(),
@@ -1292,7 +1299,7 @@ export const criarLeadManual = createServerFn({ method: "POST" })
       telefone: data.telefone?.trim() || null,
       origem: data.origem,
       objetivo: data.objetivo,
-      area_responsavel: "comercial",
+      area_responsavel: data.area_responsavel?.trim() || "comercial",
       responsavel_nome: data.responsavel_nome.trim(),
       proxima_acao: data.proxima_acao,
       proxima_acao_em: data.proxima_acao_em,
@@ -1304,7 +1311,7 @@ export const criarLeadManual = createServerFn({ method: "POST" })
 
     const livre = await proprietariaOperando(supabase, userId);
     const erros = validarLead(candidato, livre);
-    if (erros.length) return { ok: false as const, duplicidades: [], erros, lead: null };
+    if (erros.length) return { ok: false as const, duplicidades, erros, lead: null };
 
     const organization_id = await orgDoUsuario(supabase, userId);
     const { data: row, error } = await supabase
@@ -1313,5 +1320,5 @@ export const criarLeadManual = createServerFn({ method: "POST" })
       .select("*")
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return { ok: true as const, duplicidades: [], erros: [], lead: row as LeadDesk };
+    return { ok: true as const, duplicidades, erros: [], lead: row as LeadDesk };
   });
