@@ -547,6 +547,8 @@ function PainelHomeMockup({
                 );
               })}
             </div>
+          )}
+        </section>
         {microentrega ? (
           <section aria-label="Microentrega" className="app-home-entrega border-l-2 border-gold/60 py-1 pl-4 sm:col-span-2">
             <p className="text-[10px] font-medium text-navy">Da nossa jornada</p>
