@@ -205,6 +205,31 @@ function ContratoDetalhe() {
       ) : null}
       <AvisoInstrumento tipo={c.contract_type} status={c.status} />
 
+      {/*
+        19/10/2026 — Prancha V4 / corte L08: os 6 marcos do contrato em cards
+        e o resumo em leitura familiar entram no topo do instrumento. Leitura
+        pura sobre fatos persistidos (status + versão interna); nada grava,
+        envia, assina ou cobra. Contexto como alimento visível: a faixa
+        declara a fonte e quem consome.
+      */}
+      <div className="mt-4">
+        <FonteAlimento
+          fonte="Instrumento contratual e parâmetros do Planejador"
+          consumidor="Caso 360 (Formalização) e, após publicação autorizada, o App Cliente"
+          detalheTecnico="contracts · contract_case_parameters · obterContrato"
+        />
+        <div className="grid gap-4 xl:grid-cols-[1fr_22rem]">
+          <CardsFluxoContrato status={c.status} temVersaoInterna={Boolean(versaoAtual)} />
+          <ResumoFamiliarContrato
+            titulo={c.title}
+            statusRotulo={ROTULO_STATUS_CONTRATO[c.status] ?? c.status}
+            valorReferencia={(d as any).valorReferencia ?? null}
+            prazoReferencia={(d as any).prazoReferencia ?? null}
+            proximoPasso={null}
+          />
+        </div>
+      </div>
+
       {d.contratoBase ? (
         <p className="mt-3 rounded-lg border border-navy/15 bg-cream/40 px-3 py-2 text-sm">
           Contrato-base vinculado: <strong>{(d.contratoBase as any).contract_number}</strong> —{" "}
