@@ -28,6 +28,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useGoLive } from "@/components/golive/dados";
+import { Acao, Acoes } from "@/components/golive/acoes";
+import {
+  aprovarAchadoGoLive,
+  registrarAchadoGoLive,
+  registrarEvidenciaGoLive,
+  registrarFonteGoLive,
+} from "@/lib/golive-escritores.functions";
+import { humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/pesquisa-modulo/")({
   head: () => ({
@@ -96,6 +105,181 @@ function Index() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  /*
+   * Esteira operacional Pergunta → Fonte → Evidência → Achado → Aprovação,
+   * resgatada de golive.pesquisa.tsx (Frente 4, 19/10/2026). Mesmos
+   * componentes e funções reais, sem lógica duplicada — `useGoLive` lê o
+   * caso operacional configurado no servidor (idêntico ao que
+   * /golive/pesquisa já lê) e os escritores (`registrarFonteGoLive` etc.)
+   * são os mesmos que já gravam em produção. Isto NÃO é um seletor de caso
+   * à parte: continua sendo o caso piloto único que os escritores do Go
+   * Live sempre resolvem (ver `contexto()` em golive-escritores.functions),
+   * por isso o rótulo abaixo é explícito sobre o escopo. Para agir em outro
+   * caso específico, use o dossiê dele na lista "Pesquisas em andamento".
+   */
+  const golive = useGoLive();
+  const casoGoLive = golive.data?.encontrado ? golive.data : null;
+  const novaFonteGoLive = useServerFn(registrarFonteGoLive);
+  const novaEvidenciaGoLive = useServerFn(registrarEvidenciaGoLive);
+  const novoAchadoGoLive = useServerFn(registrarAchadoGoLive);
+  const aprovarAchadoGoLiveFn = useServerFn(aprovarAchadoGoLive);
+
+  const perguntasGoLive = casoGoLive
+    ? [
+        ...(casoGoLive.pesquisa?.objetivo
+          ? [{ id: "obj", texto: casoGoLive.pesquisa.objetivo, detalhe: "Objetivo da pesquisa" }]
+          : []),
+        ...casoGoLive.hipoteses.map((h) => ({
+          id: h.id,
+          texto: h.titulo,
+          detalhe: `${humano(h.status, "sem situação")} · confiança ${humano(h.confianca, "não informada")}`,
+        })),
+      ]
+    : [];
+  const fontesGoLive = casoGoLive?.fontes ?? [];
+  const evidenciasGoLive = casoGoLive?.evidencias ?? [];
+  const achadosGoLive = casoGoLive?.achados ?? [];
+
+  const acaoFonteGoLive = (
+    <Acao
+      rotulo="Registrar fonte"
+      titulo="Fonte consultada"
+      variante="outline"
+      campos={[
+        { nome: "titulo", rotulo: "Fonte", obrigatorio: true },
+        { nome: "instituicao", rotulo: "Arquivo ou instituição" },
+        { nome: "tipo", rotulo: "Tipo", padrao: "registro_civil" },
+        { nome: "url", rotulo: "Endereço (se houver)" },
+      ]}
+      aoConfirmar={(v) =>
+        novaFonteGoLive({
+          data: {
+            titulo: v["titulo"] ?? "",
+            instituicao: v["instituicao"] ?? "",
+            tipo: v["tipo"] ?? "",
+            url: v["url"] ?? "",
+          },
+        })
+      }
+      confirmacao="Fonte registrada."
+    />
+  );
+
+  const acaoEvidenciaGoLive = (
+    <Acao
+      rotulo="Anexar evidência"
+      titulo="Evidência coletada"
+      variante="outline"
+      campos={[
+        { nome: "titulo", rotulo: "Evidência", obrigatorio: true },
+        { nome: "tipo", rotulo: "Tipo", padrao: "documento" },
+        {
+          nome: "fonteId",
+          rotulo: "Fonte de origem",
+          tipo: "escolha",
+          opcoes: fontesGoLive.map((f) => ({ valor: f.id, rotulo: f.titulo ?? "Fonte" })),
+        },
+        { nome: "descricao", rotulo: "Descrição interna", tipo: "area" },
+      ]}
+      aoConfirmar={(v) =>
+        novaEvidenciaGoLive({
+          data: {
+            titulo: v["titulo"] ?? "",
+            tipo: v["tipo"] ?? "",
+            fonteId: v["fonteId"] ?? "",
+            descricao: v["descricao"] ?? "",
+          },
+        })
+      }
+      confirmacao="Evidência registrada para revisão."
+    />
+  );
+
+  const acaoAchadoGoLive = (
+    <Acao
+      rotulo="Registrar achado"
+      titulo="Achado em revisão"
+      variante="outline"
+      campos={[
+        { nome: "titulo", rotulo: "Achado", obrigatorio: true },
+        { nome: "tipo", rotulo: "Tipo", padrao: "vinculo_familiar" },
+        {
+          nome: "evidenciaId",
+          rotulo: "Evidência que sustenta",
+          tipo: "escolha",
+          opcoes: evidenciasGoLive.map((e) => ({ valor: e.id, rotulo: e.titulo ?? "Evidência" })),
+        },
+        {
+          nome: "fonteId",
+          rotulo: "Fonte que sustenta",
+          tipo: "escolha",
+          opcoes: fontesGoLive.map((f) => ({ valor: f.id, rotulo: f.titulo ?? "Fonte" })),
+        },
+        { nome: "resumo", rotulo: "Resumo interno", tipo: "area" },
+      ]}
+      aoConfirmar={(v) =>
+        novoAchadoGoLive({
+          data: {
+            titulo: v["titulo"] ?? "",
+            tipo: v["tipo"] ?? "",
+            resumo: v["resumo"] ?? "",
+            evidenciaId: v["evidenciaId"] ?? "",
+            fonteId: v["fonteId"] ?? "",
+          },
+        })
+      }
+      confirmacao="Achado registrado como hipótese em revisão."
+    />
+  );
+
+  /*
+   * Aprovação humana explícita (preservada de golive.pesquisa.tsx): só grava
+   * quando uma pessoa escolhe o achado e confirma o formulário — não existe
+   * caminho automático. Aprovar aqui marca `validation_status =
+   * validado_internamente` e nunca publica nada para a família por conta
+   * própria.
+   */
+  const acaoAprovarGoLive = (
+    <Acao
+      rotulo="Aprovar achado"
+      titulo="Aprovação interna do achado"
+      variante="outline"
+      campos={[
+        {
+          nome: "achadoId",
+          rotulo: "Achado em revisão",
+          tipo: "escolha",
+          obrigatorio: true,
+          opcoes: achadosGoLive
+            .filter((a) => a.validacao !== "validado_internamente")
+            .map((a) => ({ valor: a.id, rotulo: a.titulo ?? "Achado" })),
+        },
+        {
+          nome: "impactoArvore",
+          rotulo: "Impacto na árvore",
+          tipo: "escolha",
+          padrao: "proposto",
+          opcoes: [
+            { valor: "proposto", rotulo: "Proposto — entra como sugestão na árvore interna" },
+            { valor: "aplicado", rotulo: "Aplicado — vínculo confirmado na árvore interna" },
+            { valor: "nenhum", rotulo: "Sem impacto na árvore" },
+          ],
+        },
+        { nome: "observacao", rotulo: "Observação interna", tipo: "area" },
+      ]}
+      aoConfirmar={(v) =>
+        aprovarAchadoGoLiveFn({
+          data: {
+            achadoId: v["achadoId"] ?? "",
+            impactoArvore: v["impactoArvore"] ?? "proposto",
+            observacao: v["observacao"] ?? "",
+          },
+        })
+      }
+      confirmacao="Achado aprovado internamente. Nada foi publicado para a família."
+    />
+  );
 
   const d = q.data;
   const casosParaMiniatura = d
@@ -419,6 +603,129 @@ function Index() {
                 )}
               </div>
             </div>
+          </CaCard>
+
+          <CaCard titulo="Inconsistências de pesquisa em aberto" eyebrow="Pesquisa Genealógica · Centro de Inteligência">
+            {d.inconsistencias.length === 0 ? (
+              <EstadoVazio mensagem="Nenhuma inconsistência aberta." />
+            ) : (
+              <ul className="space-y-2">
+                {d.inconsistencias.map((i: any) => (
+                  <li key={i["id"]} className="text-sm">
+                    <Selo texto={String(i["severidade"] ?? "")} tom={i["severidade"] === "critica" ? "erro" : "alerta"} />{" "}
+                    {String(i["titulo"] ?? "")}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CaCard>
+
+          <CaCard
+            variante="compacto"
+            titulo="Esteira operacional — Pergunta → Fonte → Evidência → Achado → Aprovação"
+            data-esteira-golive
+          >
+            <p className="mb-3 text-xs text-navy/55">
+              Mesmo motor de /golive/pesquisa: estas ações escrevem no caso operacional configurado no servidor, não
+              no caso selecionado na miniatura acima. Para agir num caso específico, abra o dossiê dele em
+              &ldquo;Pesquisas em andamento&rdquo;.
+            </p>
+            {golive.isLoading ? <p className="text-sm text-navy/60">Carregando caso operacional…</p> : null}
+            {golive.error ? (
+              <p className="text-sm text-terracotta">Não foi possível carregar o caso operacional agora.</p>
+            ) : null}
+            {!golive.isLoading && !golive.error && !casoGoLive ? (
+              <EstadoVazio mensagem="Nenhum caso operacional configurado ainda para esta esteira." />
+            ) : null}
+            {casoGoLive ? (
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div data-esteira-perguntas>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-widest text-navy/55">
+                    1. Perguntas de pesquisa
+                  </h4>
+                  {perguntasGoLive.length === 0 ? (
+                    <EstadoVazio mensagem="Nenhuma pergunta registrada ainda." />
+                  ) : (
+                    <ul className="space-y-1 text-sm text-navy">
+                      {perguntasGoLive.map((p) => (
+                        <li key={p.id} className="break-words">
+                          {p.texto} <span className="text-navy/55">— {p.detalhe}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                <div data-esteira-fontes>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-widest text-navy/55">2. Fontes</h4>
+                  {fontesGoLive.length === 0 ? (
+                    <EstadoVazio mensagem="Nenhuma fonte registrada ainda." />
+                  ) : (
+                    <ul className="space-y-1 text-sm text-navy">
+                      {fontesGoLive.map((f) => (
+                        <li key={f.id} className="break-words">
+                          {f.titulo}
+                          <span className="text-navy/55">
+                            {" "}
+                            — {humano(f.tipo, "tipo não informado")} · {humano(f.status, "sem situação")}
+                            {f.instituicao ? ` · ${f.instituicao}` : ""}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="mt-2">{acaoFonteGoLive}</div>
+                </div>
+
+                <div data-esteira-evidencias>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-widest text-navy/55">
+                    3. Evidências
+                  </h4>
+                  {evidenciasGoLive.length === 0 ? (
+                    <EstadoVazio mensagem="Nenhuma evidência registrada ainda." />
+                  ) : (
+                    <ul className="space-y-1 text-sm text-navy">
+                      {evidenciasGoLive.map((e) => (
+                        <li key={e.id} className="break-words">
+                          {e.titulo}
+                          <span className="text-navy/55">
+                            {" "}
+                            — {humano(e.status, "sem situação")} · confiança {humano(e.confianca, "não informada")}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="mt-2">{acaoEvidenciaGoLive}</div>
+                </div>
+
+                <div data-esteira-achados>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-widest text-navy/55">
+                    4. Achados e 5. Aprovação humana
+                  </h4>
+                  {achadosGoLive.length === 0 ? (
+                    <EstadoVazio mensagem="Nenhum achado registrado ainda." />
+                  ) : (
+                    <ul className="space-y-1 text-sm text-navy">
+                      {achadosGoLive.map((a) => (
+                        <li key={a.id} className="break-words">
+                          {a.titulo}
+                          <span className="text-navy/55">
+                            {" "}
+                            — {humano(a.validacao, "sem validação")} · confiança {humano(a.confianca, "não informada")}
+                            {a.impactoArvore && a.impactoArvore !== "nenhum" ? ` · árvore: ${humano(a.impactoArvore)}` : ""}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <Acoes>
+                    {acaoAchadoGoLive}
+                    {achadosGoLive.length ? acaoAprovarGoLive : null}
+                  </Acoes>
+                </div>
+              </div>
+            ) : null}
           </CaCard>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">

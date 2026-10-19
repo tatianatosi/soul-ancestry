@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { listarFilaMicroentregas } from "@/lib/biblioteca-evidencias.functions";
 import { APROVACOES } from "@/lib/biblioteca-evidencias";
 import { FilaKitMicroentregas } from "@/components/desk/kit-conectado";
+import { RascunhosApp } from "@/components/golive/rascunhos-app";
 
 export const Route = createFileRoute("/_authenticated/microentregas")({
   head: () => ({
@@ -140,6 +141,26 @@ function MicroentregasPage() {
             )}
           </aside>
         </div>
+
+        {/*
+          Resgate (Frente 4, 19/10/2026): o editor real de rascunhos de copy
+          — RascunhosApp, de golive.microentregas.tsx — com validação de
+          texto antes de publicar no App Cliente. A fila acima é a visão
+          geral multi-caso, só leitura; esta é a única superfície de edição
+          e publicação desta tela (compõe, não compete: antes desta
+          integração a tela não tinha editor nem gate de publicação
+          próprios). RascunhosApp e seus escritores
+          (`salvarRascunhoProjecaoApp`/`publicarRascunhoProjecaoApp`) leem e
+          gravam em `app_projections`, a mesma tabela da fila acima — mas
+          escopados ao caso operacional configurado no servidor (mesmo
+          mecanismo de /golive/microentregas), não a um caso escolhido nesta
+          tela. Edição de outro caso específico continua pela Biblioteca.
+        */}
+        <SectionHeader
+          titulo="Rascunhos para o App Cliente"
+          descricao="Editor do caso operacional configurado: grava, relê e só libera para publicação depois de passar na validação de texto do servidor."
+        />
+        <RascunhosApp />
       </section>
     </SaasShell>
   );
