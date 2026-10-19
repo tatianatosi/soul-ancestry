@@ -1,5 +1,11 @@
 # Roadmap
 
+## 19/10 — Atualização da recomposição densa do App
+- [x] Restaurar Documentos e reconciliar os ajustes exclusivos de Home, Árvore, Conta e aparência local com a versão principal.
+- [x] Preservar leitores, permissões, sete abas, grade móvel atual e botão institucional; sem edição do Desk ou dados.
+- [ ] Validar testes seletivos e capturas autenticadas em 375/1280.
+- [ ] Aprovação da Proprietária; sem aceitar ou publicar.
+
 ## Caso 360 V4 — rascunho isolado (13/10, 13:25 UTC)
 - [x] Comparar painel/kit existentes com desk-04-caso360.png; capturas autenticadas antes em 375/1280/1440.
 - [x] Ajustar somente a Visão existente em três colunas; preservar oito seções, blocos recolhidos, dados e App.
