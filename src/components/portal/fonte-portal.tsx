@@ -15,6 +15,7 @@ import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 import type { ProximaAcaoCliente } from "@/lib/motor-caso";
 import type { EscopoCliente } from "@/lib/app-visibilidade";
 import type { IdentidadeCaso } from "@/lib/caso-compartilhado";
+import type { ResumoCasoCliente } from "@/lib/portal-resumo-caso";
 
 /**
  * Fonte de dados do App Cliente — ponto único de desacoplamento.
@@ -63,6 +64,8 @@ export type DadosPortal = {
    * Proprietária): denominador real de "Conexões Familiares" no Radar.
    */
   pessoasMapeadas?: number;
+  /** Régua das 5 etapas, estado do caso e perfil da titular. */
+  resumoCaso?: ResumoCasoCliente | null;
 };
 
 /**

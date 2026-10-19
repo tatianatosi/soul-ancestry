@@ -35,12 +35,12 @@ function casalAscendenteDestaque(pessoas: PessoaNaArvore[], vinculos: readonly V
   return new Set(melhor ?? []);
 }
 
-export function PerfilPessoaArvore({ pessoa, destaque = false, titular = false }: { pessoa: PessoaNaArvore; destaque?: boolean; titular?: boolean }) {
+export function PerfilPessoaArvore({ pessoa, destaque = false, titular = false, conectado = false }: { pessoa: PessoaNaArvore; destaque?: boolean; titular?: boolean; conectado?: boolean }) {
   return (
     <details className={`app-arvore-perfil${destaque || titular ? " app-arvore-perfil--destaque" : ""}`} data-arvore-pessoa data-arvore-chave={pessoa.chave} data-arvore-titular={titular || undefined}>
       <summary>
         <span className="app-arvore-inicial" aria-hidden="true">{pessoa.nome.charAt(0)}</span>
-        <span className="min-w-0"><span className="block font-medium">{pessoa.nome}</span>{titular ? <span className="text-xs text-navy/60">G1 · Você</span> : pessoa.geracao ? <span className="text-xs text-navy/60">G{pessoa.geracao} · {pessoa.geracao}ª geração</span> : null}</span>
+        <span className="min-w-0"><span className="block font-medium">{pessoa.nome}</span>{conectado ? <span className="app-arvore-conectado" data-arvore-conectado>Conectado</span> : null}{titular ? <span className="text-xs text-navy/60">G1 · Você</span> : pessoa.geracao ? <span className="text-xs text-navy/60">G{pessoa.geracao} · {pessoa.geracao}ª geração</span> : null}</span>
         <ChevronDown className="app-detalhe-seta h-4 w-4 shrink-0" aria-hidden="true" />
       </summary>
       <div className="app-arvore-ficha">
@@ -136,7 +136,9 @@ export function ExploradorArvore({ pessoas, geracoes, vinculos = [] }: { pessoas
   const pessoasVisiveis = foco ? pessoas.filter((pessoa) => pessoa.chave === foco) : pessoas;
   const ascendentes = casalAscendenteDestaque(pessoas, vinculos);
   const temTitular = pessoas.some((p) => p.geracao === 1);
-  const perfil = (pessoa: PessoaNaArvore) => <PerfilPessoaArvore key={pessoa.chave} pessoa={pessoa} titular={pessoa.geracao === 1} destaque={ascendentes.has(pessoa.chave)} />;
+  // "Conectado" só quando a pessoa tem ao menos um vínculo aprovado publicado.
+  const conectados = new Set(vinculos.flatMap((v) => [v.de, v.para]));
+  const perfil = (pessoa: PessoaNaArvore) => <PerfilPessoaArvore key={pessoa.chave} pessoa={pessoa} titular={pessoa.geracao === 1} destaque={ascendentes.has(pessoa.chave)} conectado={conectados.has(pessoa.chave)} />;
   return (
     <div className="app-explorador-arvore" data-explorador-arvore>
       <div className="app-arvore-ferramentas">

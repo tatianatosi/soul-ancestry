@@ -30,7 +30,7 @@ describe("radarSeisDimensoes", () => {
   it("sem nenhuma publicação nem documento, nenhum eixo mostra 0% fictício", () => {
     const dimensoes = radarSeisDimensoes({ projecoes: [], documentos: [] });
     for (const d of dimensoes) expect(d.percentual).toBeNull();
-    expect(dimensoes.find((d) => d.id === "documentacao")!.rotuloNumero).toBe("Lacuna");
+    expect(dimensoes.find((d) => d.id === "documentacao")!.rotuloNumero).toBe("Em pesquisa");
   });
 
   it("elegibilidade nunca lê parecer jurídico — é sempre a média dos outros 5 eixos", () => {
@@ -50,7 +50,7 @@ describe("radarSeisDimensoes", () => {
     const dimensoes = radarSeisDimensoes({ projecoes: [], documentos: [] });
     const eixo = dimensoes.find((d) => d.id === "elegibilidade")!;
     expect(eixo.percentual).toBeNull();
-    expect(eixo.rotuloNumero).toBe("Lacuna");
+    expect(eixo.rotuloNumero).toBe("Em pesquisa");
   });
 
   it("RADAR-APP-SEMANTICA-PROGRESSO: título do eixo 'elegibilidade' não usa o termo, e a legenda afirma progresso, não conclusão jurídica", () => {

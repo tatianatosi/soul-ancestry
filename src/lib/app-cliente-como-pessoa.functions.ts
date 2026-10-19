@@ -10,6 +10,7 @@ import { escopoAPartirDePublicacoes, type EscopoCliente } from "@/lib/app-visibi
 import { projetarProximaAcaoCliente, sinaisDoCasoPortal, type ProximaAcaoCliente } from "@/lib/motor-caso";
 import type { DocumentoPortal } from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
+import { lerResumoCaso, type ResumoCasoCliente } from "@/lib/portal-resumo-caso";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -24,6 +25,8 @@ export type DadosPortalComoAdmin = {
   /** Nome da titular (cadastro do cliente do caso) — só nome, para a Conta da prévia. */
   titularNome: string | null;
   vinculosArvore: { de: string; para: string; tipo: "pai_mae" | "conjuge" }[];
+  /** Régua das 5 etapas, estado do caso e perfil da titular (13/10/2026). */
+  resumoCaso: ResumoCasoCliente | null;
 };
 
 /**
@@ -157,7 +160,10 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
       titularNome = ((cli.data as any)?.nome as string | undefined)?.trim() || null;
     }
 
+    const resumoCaso = await lerResumoCaso(supabase, data.casoId).catch(() => null);
+
     return {
+      resumoCaso,
       titularNome,
       vinculosArvore,
       projecoes,
