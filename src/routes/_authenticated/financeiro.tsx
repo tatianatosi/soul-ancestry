@@ -122,6 +122,30 @@ function FinanceiroPage() {
     enabled: podeFinanceiro,
   });
   const qv = useQuery({ queryKey: ["comercial-vinculos"], queryFn: () => vinculos({}), enabled: podeFinanceiro });
+  /*
+    Resgate do plano de parcelas com dias após a call (Proprietária,
+    19/10/2026): `leads.call_realizada_em` já existe e já é a mesma origem
+    usada por `/golive/financeiro` (origemDaCondicao/planoDeParcelas em
+    golive-analitico.ts) para um único caso. Aqui, com faturas de toda a
+    organização, cada fatura usa a call do PRÓPRIO caso vinculado — mesma
+    fórmula, sem inventar regra nova. Caso sem lead com call realizada
+    gravada mostra "sem call registrada", nunca um número inferido.
+  */
+  const qLeadsCall = useQuery({
+    queryKey: ["financeiro", "leads-call-realizada"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("leads")
+        .select("case_id,call_realizada_em,status_call,discovery_resultado,resumo_call")
+        .is("archived_at", null)
+        .eq("dados_teste", false)
+        .not("case_id", "is", null)
+        .not("call_realizada_em", "is", null);
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: podeFinanceiro,
+  });
   const qAjustes = useQuery({
     queryKey: ["ajustes"],
     queryFn: () => ajustes({}),
@@ -264,6 +288,52 @@ function FinanceiroPage() {
     { rotulo: "Vencidas", valor: contarSituacao("Vencida"), tom: "terracotta" as const },
   ];
   const totalParcelas = segmentosParcelas.reduce((t, s) => t + s.valor, 0);
+
+  /*
+    Mesmo plano, agora com a distância até a call de descoberta do caso de
+    cada fatura (`leads.call_realizada_em`). Agrupa as faturas por
+    `case_id` e roda `planoDeParcelas` (golive-analitico.ts, inalterado)
+    uma vez por caso, com a call daquele caso — nunca uma call de outro
+    caso aplicada a uma fatura que não é dele.
+  */
+  const callPorCaso = new Map<
+    string,
+    { callRealizada: string | null; statusCall: string | null; discoveryResultado: string | null; resumoCall: string | null }
+  >();
+  for (const l of qLeadsCall.data ?? []) {
+    const caseId = l["case_id"] as string | null;
+    if (caseId && !callPorCaso.has(caseId)) {
+      callPorCaso.set(caseId, {
+        callRealizada: (l["call_realizada_em"] as string | null) ?? null,
+        statusCall: (l["status_call"] as string | null) ?? null,
+        discoveryResultado: (l["discovery_resultado"] as string | null) ?? null,
+        resumoCall: (l["resumo_call"] as string | null) ?? null,
+      });
+    }
+  }
+  const faturasPorCaso = new Map<string, (FaturaGoLive & { numero?: string | null })[]>();
+  for (const f of faturas) {
+    const caseId = (f["case_id"] as string | null) ?? null;
+    const chave = caseId ?? "__sem_caso__";
+    const lista = faturasPorCaso.get(chave) ?? [];
+    lista.push({
+      id: String(f["id"]),
+      numero: (f["numero"] as string | null) ?? null,
+      valor: typeof f["valor"] === "number" ? f["valor"] : Number(f["valor"]) || null,
+      valorPago: typeof f["valor_pago"] === "number" ? f["valor_pago"] : null,
+      status: String(f["status"] ?? ""),
+      vencimento: (f["vencimento"] as string | null) ?? null,
+      pagaEm: (f["paga_em"] as string | null) ?? null,
+    });
+    faturasPorCaso.set(chave, lista);
+  }
+  const parcelasComCall = Array.from(faturasPorCaso.entries())
+    .flatMap(([caseId, lista]) => {
+      const lead = caseId === "__sem_caso__" ? null : callPorCaso.get(caseId) ?? null;
+      return planoDeParcelas(lista, lead).map((p) => ({ ...p, caseId: caseId === "__sem_caso__" ? null : caseId }));
+    })
+    .sort((a, b) => (a.vencimento ?? "9999-99-99").localeCompare(b.vencimento ?? "9999-99-99"))
+    .slice(0, 12);
 
   /*
     Reconciliação (Prancha V4): `conciliacao_status` já existe em
@@ -569,6 +639,68 @@ function FinanceiroPage() {
             <p className="mt-3 text-[11px] text-navy/50">Nenhuma cobrança é enviada a partir desta tela.</p>
           </CaCard>
         </div>
+
+        {/*
+          Resgate do plano de parcelas com dias após a call (Proprietária,
+          19/10/2026): mesma fórmula de `/golive/financeiro`
+          (`planoDeParcelas` sobre a call registrada no caso,
+          `leads.call_realizada_em`), agora por fatura de toda a
+          organização — cada uma usando a call do próprio caso vinculado.
+          Seção nova; nada do que já existia acima (carteira, fluxo do
+          contrato, parcelas previstas, reconciliação) foi removido ou
+          alterado.
+        */}
+        <CaCard
+          titulo="Plano de parcelas — dias após a call"
+          eyebrow="Financeiro · Mesma fórmula do piloto (/golive/financeiro)"
+          data-financeiro-parcelas-dias-apos-call
+          className="rounded-2xl p-5 sm:p-6"
+        >
+          <p className="mb-3 text-xs text-navy/55">
+            Distância entre a call de descoberta registrada no caso da fatura e o vencimento de cada parcela. Caso sem
+            call realizada gravada mostra a situação sem inferir uma data.
+          </p>
+          {qLeadsCall.isError ? (
+            <p className="mb-3 text-xs text-terracotta">
+              Não foi possível ler as calls dos casos — a distância em dias aparece como não registrada até a leitura
+              funcionar, não por ausência de call.
+            </p>
+          ) : null}
+          {parcelasComCall.length === 0 ? (
+            <EstadoVazio mensagem="Nenhuma fatura com vencimento para compor o plano de parcelas." />
+          ) : (
+            <ul className="space-y-1.5 text-sm text-navy" data-financeiro-parcelas-dias-apos-call-lista>
+              {parcelasComCall.map((p, i) => {
+                const caso = p.caseId ? casoDoId(p.caseId) : null;
+                return (
+                  <li key={p.id} className="break-words border-b border-navy/5 py-1.5 last:border-0">
+                    <span className="font-medium">{i === 0 ? "Entrada" : `Parcela ${i + 1}`}</span>
+                    {p.numero ? ` · ${p.numero}` : ""}
+                    {typeof p.valor === "number" ? ` — ${moeda(p.valor, "BRL")}` : ""}{" "}
+                    <span className="text-navy/55">
+                      · {p.vencimento ? `vence ${dataBr(p.vencimento)}` : "sem vencimento registrado"} · {p.situacao}
+                      {p.diasAposCall !== null
+                        ? ` · ${p.diasAposCall} dia${Math.abs(p.diasAposCall) === 1 ? "" : "s"} após a call`
+                        : " · sem call registrada no caso"}
+                    </span>
+                    {caso ? (
+                      <>
+                        {" · "}
+                        <Link
+                          to="/casos/$caseId"
+                          params={{ caseId: caso.id }}
+                          className="text-navy underline underline-offset-4"
+                        >
+                          {caso.codigo ?? caso.titulo}
+                        </Link>
+                      </>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </CaCard>
 
         {/*
           Alertas financeiros contextualizados: três sinais reais —
