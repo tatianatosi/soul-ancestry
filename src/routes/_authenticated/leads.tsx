@@ -1066,7 +1066,6 @@ function LeadsPage() {
             </div>
           ) : null}
 
-<<<<<<< src/routes/_authenticated/leads.tsx
           {/*
             19/10/2026 — corte L03: tudo que se edita na ficha mora nesta
             área única, abaixo deste divisor. Leituras derivadas (SPIN,
@@ -1080,10 +1079,7 @@ function LeadsPage() {
             <span className="h-px flex-1 bg-navy/15" aria-hidden />
           </div>
 
-          <Secao titulo="Identificação e responsabilidade" descricao="Lead ativo exige área, responsável e próxima ação datada.">
-=======
           <FichaSecao titulo="Identificação e responsabilidade" descricao="Lead ativo exige área, responsável e próxima ação datada.">
->>>>>>> /tmp/d
             <div className="grid gap-3 md:grid-cols-2">
               <Texto
                 label="Nome"
