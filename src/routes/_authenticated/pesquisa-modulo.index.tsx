@@ -19,7 +19,17 @@ import { filtrarPorBusca } from "@/lib/rotulo-negocio";
 import { CardIndicador } from "@/components/desk/ui-desk";
 import { CaCard } from "@/components/ui/ca-card";
 import { semFixtures } from "@/lib/fixtures";
-import { Pessoa } from "@/components/prancha-v4/kit";
+import {
+  AnelPercentual,
+  BarrasHorizontais,
+  Cartao,
+  Etiqueta,
+  GraficoColunas,
+  Linha,
+  Pessoa,
+  ReguaEtapas,
+  type Tom,
+} from "@/components/prancha-v4/kit";
 import { papelDoRegistro } from "@/lib/caso-ficha";
 import {
   Select,
@@ -28,6 +38,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+/** Tipos reais de `source_type` mostrados em zero quando ainda não há fonte (formato da prancha). */
+const TIPOS_FONTE_VAZIOS = ["Registro civil", "Paroquial", "Arquivo público", "Documento familiar"];
+
+/** Tom da etiqueta por `research_sources.source_status` real. */
+function tomStatusFonte(status: string): Tom {
+  if (status === "verified" || status === "reviewed") return "sucesso";
+  if (status === "located") return "atencao";
+  if (status === "inaccessible" || status === "rejected") return "critico";
+  return "neutro";
+}
+
+/** Tom da etiqueta por `research_case_hypotheses.status` real. */
+function tomStatusHipotese(status: string): Tom {
+  if (status === "supported") return "sucesso";
+  if (status === "not_supported") return "critico";
+  if (status === "open" || status === "under_review") return "atencao";
+  return "neutro";
+}
 
 export const Route = createFileRoute("/_authenticated/pesquisa-modulo/")({
   head: () => ({
@@ -137,8 +166,8 @@ function Index() {
 
   return (
     <SaasShell
-      titulo="Pesquisa Genealógica e Evidências"
-      descricao="Pesquisas por caso, com pendências, evidências e travas de pesquisa externa."
+      titulo="Pesquisa"
+      descricao="Dossiê de pesquisa: fontes, hipóteses, vínculos e produção de evidências, com dado real do Desk."
     >
       {pendenciaVinculo || !podeEscrever ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
@@ -165,7 +194,6 @@ function Index() {
         <div className="space-y-4">
           <CaCard
             titulo="Dossiê de pesquisa"
-            eyebrow="Pesquisa Genealógica · Centro de Inteligência"
             acao={
               <div className="flex flex-wrap gap-2">
                 <button
@@ -188,8 +216,11 @@ function Index() {
               </div>
             }
           >
+            <p className="text-xs text-navy/60" data-dossie-subtitulo>
+              Fontes, transcrições, interpretações, hipóteses e conclusões permanecem separadas
+            </p>
             {mostrarFiltro ? (
-              <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-navy/15 bg-cream/40 p-2" data-dossie-filtro>
+              <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-navy/15 bg-cream/40 p-2" data-dossie-filtro>
                 <span className="text-[11px] font-medium uppercase tracking-wide text-navy/55">Status da fonte</span>
                 <button
                   type="button"
@@ -214,212 +245,211 @@ function Index() {
                 ))}
               </div>
             ) : null}
-
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-dossie-kpis>
-              <CardIndicador rotulo="Acervos mapeados" valor={d.dossie.acervosMapeados} apoio="Catálogo de fontes da organização" />
-              <CardIndicador
-                rotulo="Hipóteses em aberto"
-                valor={d.dossie.hipotesesEmAberto}
-                apoio="Abertas ou em revisão"
-                tom={d.dossie.hipotesesEmAberto > 0 ? "atencao" : "sucesso"}
-              />
-              <CardIndicador
-                rotulo="Evidências validadas"
-                valor={d.dossie.evidenciasValidadas}
-                apoio="Revisão humana concluída"
-                tom="sucesso"
-              />
-              <CardIndicador
-                rotulo="Cartórios acionados"
-                valor={d.dossie.cartoriosAcionados}
-                apoio="Instituições distintas com pedido feito"
-              />
-            </div>
-
-            <div className="mt-5 grid gap-4 lg:grid-cols-2">
-              <div data-dossie-cobertura>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-widest text-navy/55">
-                  Cobertura das fontes
-                </h4>
-                {d.dossie.coberturaFontes.length === 0 ? (
-                  <EstadoVazio mensagem="Nenhuma fonte registrada ainda." />
-                ) : (
-                  <ul className="space-y-2">
-                    {d.dossie.coberturaFontes.map((c) => (
-                      <li key={c.tipo}>
-                        <div className="mb-1 flex items-center justify-between text-xs text-navy/70">
-                          <span>{c.rotulo}</span>
-                          <span className="tabular-nums">{c.quantidade} fonte(s)</span>
-                        </div>
-                        <div className="h-2 w-full rounded-full bg-navy/10">
-                          <div
-                            className="h-2 rounded-full bg-gold"
-                            style={{
-                              width: `${Math.max(4, Math.round((c.quantidade / d.dossie.totalFontes) * 100))}%`,
-                            }}
-                          />
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              <div data-dossie-producao>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-widest text-navy/55">
-                  Produção de evidências (6 meses)
-                </h4>
-                {d.dossie.producaoEvidencias.every((m) => m.quantidade === 0) ? (
-                  <EstadoVazio mensagem="Nenhuma evidência registrada nos últimos 6 meses." />
-                ) : (
-                  <div className="flex h-32 items-end gap-3">
-                    {(() => {
-                      const max = Math.max(1, ...d.dossie.producaoEvidencias.map((m) => m.quantidade));
-                      return d.dossie.producaoEvidencias.map((m) => (
-                        <div key={m.mes} className="flex flex-1 flex-col items-center gap-1">
-                          <span className="text-[11px] tabular-nums text-navy/60">{m.quantidade}</span>
-                          <div
-                            className="w-full rounded-t-md bg-navy/60"
-                            style={{ height: `${Math.max(4, Math.round((m.quantidade / max) * 100))}%` }}
-                          />
-                          <span className="text-[10px] uppercase text-navy/50">{m.mes}</span>
-                        </div>
-                      ));
-                    })()}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="mt-5" data-dossie-etapas>
-              <h4 className="mb-2 text-xs font-semibold uppercase tracking-widest text-navy/55">
-                Da pergunta à microentrega
-              </h4>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {d.dossie.etapas.map((etapa, i) => (
-                  <div key={etapa.id} className="flex items-center gap-1.5">
-                    <span
-                      className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${
-                        etapa.ativa
-                          ? "border-sucesso/30 bg-sucesso-suave text-sucesso"
-                          : "border-navy/15 bg-cream/70 text-navy/50"
-                      }`}
-                      title={etapa.semRastro ? "Sem rastro estruturado no schema" : undefined}
-                    >
-                      {etapa.ativa ? "✔ " : ""}
-                      {etapa.titulo}
-                    </span>
-                    {i < d.dossie.etapas.length - 1 && <span className="text-navy/30">→</span>}
-                  </div>
-                ))}
-              </div>
-              <p className="mt-1 text-[11px] text-navy/50">
-                Pergunta e Pronta para revisão não têm tabela própria no schema — ficam sempre neutras, nunca
-                marcadas como concluídas sem base real.
-              </p>
-            </div>
-
-            <div className="mt-5 grid gap-4 lg:grid-cols-3">
-              <div data-dossie-fontes>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-widest text-navy/55">
-                  Fontes e referências
-                </h4>
-                {fontesExibidas.length === 0 ? (
-                  <EstadoVazio mensagem="Nenhuma fonte registrada ainda." />
-                ) : (
-                  <ul className="space-y-1.5">
-                    {fontesExibidas.map((f) => (
-                      <li key={f.id} className="flex items-center justify-between gap-2 rounded-lg border border-navy/10 bg-cream/40 px-3 py-1.5">
-                        <div className="min-w-0">
-                          <p className="truncate text-xs font-medium text-navy">{f.titulo}</p>
-                          {f.instituicao ? <p className="truncate text-[11px] text-navy/50">{f.instituicao}</p> : null}
-                        </div>
-                        <Selo texto={f.rotuloStatus} tom={f.status === "verified" || f.status === "reviewed" ? "ok" : "neutro"} />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              <div data-dossie-hipoteses>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-widest text-navy/55">
-                  Hipóteses e confiança
-                </h4>
-                {d.dossie.confiancaCadeiaPct === null ? (
-                  <p className="mb-3 text-xs text-navy/50">
-                    Confiança agregada ainda não calculada — sem hipótese ativa para a fórmula (média de
-                    confidence_level entre hipóteses não encerradas).
-                  </p>
-                ) : (
-                  <p className="mb-3 text-xs text-navy/70">
-                    Confiança média das hipóteses ativas:{" "}
-                    <span className="font-serif text-lg text-navy">{d.dossie.confiancaCadeiaPct}%</span>
-                  </p>
-                )}
-                {d.dossie.hipotesesRecentes.length === 0 ? (
-                  <EstadoVazio mensagem="Nenhuma hipótese registrada ainda." />
-                ) : (
-                  <ul className="space-y-1.5">
-                    {d.dossie.hipotesesRecentes.map((h) => (
-                      <li key={h.id} className="flex items-center justify-between gap-2 rounded-lg border border-navy/10 bg-cream/40 px-3 py-1.5">
-                        <p className="truncate text-xs font-medium text-navy">{h.titulo}</p>
-                        <div className="flex shrink-0 gap-1">
-                          <Selo texto={h.rotuloConfianca} />
-                          <Selo texto={h.rotuloStatus} />
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              <div data-dossie-miniatura-familiar>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-widest text-navy/55">
-                  Miniatura familiar
-                </h4>
-                {casosParaMiniatura.length === 0 ? (
-                  <EstadoVazio mensagem="Nenhum caso disponível para leitura familiar." />
-                ) : (
-                  <>
-                    <Select value={casoMiniatura} onValueChange={setCasoMiniatura}>
-                      <SelectTrigger aria-label="Selecionar caso para a miniatura familiar" className="mb-2 bg-cream text-navy">
-                        <SelectValue placeholder="Selecione um caso" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {casosParaMiniatura.map((c: any) => {
-                          const demonstrativo = papelDoRegistro(c).valor === "demo";
-                          return (
-                            <SelectItem key={c["id"]} value={String(c["id"])}>
-                              {String(c["codigo"] ?? c["titulo"] ?? c["id"])}
-                              {demonstrativo ? " · demonstração" : ""}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                    {miniaturaQuery.isLoading ? (
-                      <p className="text-xs text-navy/50">Carregando vínculos…</p>
-                    ) : miniaturaQuery.isError ? (
-                      <p className="text-xs text-terracotta">Vínculos não puderam ser lidos agora.</p>
-                    ) : !miniaturaQuery.data || miniaturaQuery.data.pessoas.length === 0 ? (
-                      <EstadoVazio mensagem="Nenhum vínculo genealógico registrado para este caso ainda." />
-                    ) : (
-                      <div className="flex flex-wrap gap-x-3 gap-y-2" data-dossie-miniatura-pessoas>
-                        {miniaturaQuery.data.pessoas.slice(0, 6).map((p) => (
-                          <Pessoa key={p.id} nome={p.nome} papel={p.papel} />
-                        ))}
-                        {miniaturaQuery.data.pessoas.length > 6 ? (
-                          <span className="self-center text-[11px] text-navy/50">
-                            +{miniaturaQuery.data.pessoas.length - 6} pessoa(s)
-                          </span>
-                        ) : null}
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
           </CaCard>
+
+          {/* Prancha V4 — linha 1: três cartões (fontes · hipóteses · miniatura). */}
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" data-dossie-linha-cartoes>
+            <Cartao titulo="Fontes e referências" data-dossie-fontes>
+              {fontesExibidas.length === 0 ? (
+                <div className="space-y-1">
+                  <Linha rotulo={filtroStatusFonte ? "Nenhuma fonte com este status." : "Nenhuma fonte registrada ainda."} valor="—" />
+                </div>
+              ) : (
+                <div>
+                  {fontesExibidas.map((f) => (
+                    <Linha key={f.id} rotulo={f.instituicao ? `${f.titulo} — ${f.instituicao}` : f.titulo} valor={f.rotuloStatus} tom={tomStatusFonte(f.status)} />
+                  ))}
+                </div>
+              )}
+              <div className="mt-3 rounded-lg border border-navy/10 bg-cream/50 px-3 py-2" data-dossie-referencia-auxiliar>
+                <p className="text-[10px] font-medium uppercase tracking-widest text-navy/55">Referência auxiliar</p>
+                <Link to="/fontes-genealogicas" className="mt-0.5 block text-xs text-navy underline decoration-gold">
+                  Catálogo de acervos genealógicos ·{" "}
+                  {d.dossie.acervosMapeados === 0
+                    ? "nenhum acervo mapeado ainda"
+                    : `${d.dossie.acervosMapeados} ${d.dossie.acervosMapeados === 1 ? "acervo mapeado" : "acervos mapeados"}`}
+                </Link>
+              </div>
+            </Cartao>
+
+            <Cartao titulo="Hipóteses e confiança" data-dossie-hipoteses>
+              <div className="flex items-center gap-3 border-b border-navy/10 pb-3">
+                <AnelPercentual valor={d.dossie.confiancaCadeiaPct} tituloAcessivel="Confiança da cadeia" />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-navy">Confiança da cadeia</p>
+                  <p className="text-[11px] text-navy/55">
+                    {d.dossie.confiancaCadeiaPct === null
+                      ? "Sem hipótese ativa com nível de confiança registrado — nada a calcular."
+                      : `Média do nível de confiança de ${d.dossie.baseConfiancaCadeia} ${
+                          d.dossie.baseConfiancaCadeia === 1 ? "hipótese ativa" : "hipóteses ativas"
+                        } (baixa 33 · média 66 · alta 100).`}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-1">
+                {d.dossie.hipotesesRecentes.length === 0 ? (
+                  <Linha rotulo="Nenhuma hipótese registrada ainda." valor="—" />
+                ) : (
+                  d.dossie.hipotesesRecentes.map((h) => (
+                    <div key={h.id} className="flex items-center justify-between gap-2 border-b border-navy/5 py-1.5 last:border-0">
+                      <span className="min-w-0 truncate text-xs text-navy/80">{h.titulo}</span>
+                      <span className="flex shrink-0 gap-1">
+                        <Etiqueta texto={h.rotuloConfianca} />
+                        <Etiqueta texto={h.rotuloStatus} tom={tomStatusHipotese(h.status)} />
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </Cartao>
+
+            <Cartao titulo="Miniatura familiar" className="md:col-span-2 xl:col-span-1" data-dossie-miniatura-familiar>
+              {casosParaMiniatura.length > 0 ? (
+                <Select value={casoMiniatura} onValueChange={setCasoMiniatura}>
+                  <SelectTrigger aria-label="Selecionar caso para a miniatura familiar" className="mb-3 h-8 bg-cream text-xs text-navy">
+                    <SelectValue placeholder="Selecione um caso" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {casosParaMiniatura.map((c: any) => {
+                      const demonstrativo = papelDoRegistro(c).valor === "demo";
+                      return (
+                        <SelectItem key={c["id"]} value={String(c["id"])}>
+                          {String(c["codigo"] ?? c["titulo"] ?? c["id"])}
+                          {demonstrativo ? " · demonstração" : ""}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              ) : null}
+              {miniaturaQuery.isLoading ? (
+                <p className="text-xs text-navy/50">Carregando vínculos…</p>
+              ) : miniaturaQuery.isError ? (
+                <p className="text-xs text-terracotta">Vínculos não puderam ser lidos agora.</p>
+              ) : !miniaturaQuery.data || miniaturaQuery.data.pessoas.length === 0 ? (
+                <div data-dossie-miniatura-vazia>
+                  <div className="grid grid-cols-2 gap-3" aria-hidden="true">
+                    {[0, 1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="h-8 w-8 shrink-0 rounded-full border border-dashed border-navy/25" />
+                        <span className="h-2 w-16 rounded-full bg-navy/10" />
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-3 text-[11px] text-navy/55">
+                    {casosParaMiniatura.length === 0
+                      ? "Nenhum caso disponível para leitura familiar."
+                      : "Nenhum vínculo genealógico registrado para este caso ainda."}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-2" data-dossie-miniatura-pessoas>
+                    {miniaturaQuery.data.pessoas.slice(0, 6).map((p) => (
+                      <Pessoa key={p.id} nome={p.nome} papel={p.papel} />
+                    ))}
+                  </div>
+                  {miniaturaQuery.data.pessoas.length > 6 ? (
+                    <p className="mt-1 text-[11px] text-navy/50">+{miniaturaQuery.data.pessoas.length - 6} pessoa(s)</p>
+                  ) : null}
+                  {miniaturaQuery.data.relacoes.length > 0 ? (
+                    <ul className="mt-3 space-y-0.5 text-[10px] text-navy/60" data-dossie-miniatura-relacoes>
+                      {miniaturaQuery.data.relacoes.slice(0, 4).map((r) => (
+                        <li key={r.id} className="truncate">
+                          {r.de} → {r.para} · {r.rotulo}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </>
+              )}
+              <div className="mt-3 border-t border-navy/10 pt-2" data-dossie-geracoes>
+                <Linha
+                  rotulo="Gerações documentadas"
+                  valor={
+                    miniaturaQuery.data && miniaturaQuery.data.geracoesDocumentadas > 0
+                      ? String(miniaturaQuery.data.geracoesDocumentadas)
+                      : "—"
+                  }
+                  tom={miniaturaQuery.data && miniaturaQuery.data.geracoesDocumentadas > 0 ? "atencao" : "neutro"}
+                />
+              </div>
+            </Cartao>
+          </div>
+
+          {/* Prancha V4 — linha 2: régua larga. */}
+          <Cartao titulo="Da pergunta à microentrega" data-dossie-etapas>
+            <ReguaEtapas
+              etapas={d.dossie.etapas.map((etapa) => {
+                const n = d.dossie.contagemPorEtapa[etapa.id];
+                return {
+                  rotulo: etapa.titulo,
+                  estado: etapa.ativa ? ("feito" as const) : ("pendente" as const),
+                  apoio: n === null || n === undefined ? "sem rastro no schema" : `${n} ${n === 1 ? "registro" : "registros"}`,
+                };
+              })}
+            />
+            <p className="mt-2 text-[11px] text-navy/50">
+              Pergunta e Pronta para revisão não têm tabela própria no schema — ficam sempre neutras, nunca
+              marcadas como concluídas sem base real.
+            </p>
+          </Cartao>
+
+          {/* Prancha V4 — linha 3: dois gráficos. */}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Cartao titulo="Cobertura das fontes" data-dossie-cobertura>
+              <BarrasHorizontais
+                tituloAcessivel="Cobertura das fontes por tipo"
+                itens={(d.dossie.coberturaFontes.length > 0
+                  ? d.dossie.coberturaFontes
+                  : TIPOS_FONTE_VAZIOS.map((rotulo) => ({ tipo: rotulo, rotulo, quantidade: 0 }))
+                ).map((c, i) => ({
+                  rotulo: c.rotulo,
+                  valor: d.dossie.totalFontes > 0 ? (c.quantidade / d.dossie.totalFontes) * 100 : 0,
+                  apoio: `${c.quantidade} ${c.quantidade === 1 ? "fonte" : "fontes"}`,
+                  tom: i % 2 === 1 ? ("gold" as const) : ("navy" as const),
+                }))}
+              />
+              {d.dossie.totalFontes === 0 ? (
+                <p className="mt-2 text-[11px] text-navy/55">Nenhuma fonte registrada ainda.</p>
+              ) : null}
+            </Cartao>
+
+            <Cartao titulo="Produção de evidências" data-dossie-producao>
+              <GraficoColunas
+                tituloAcessivel="Evidências registradas por mês, últimos 6 meses"
+                itens={d.dossie.producaoEvidencias.map((m, i, todos) => ({
+                  rotulo: m.mes,
+                  valor: m.quantidade,
+                  destaque: i === todos.length - 1 && m.quantidade > 0,
+                }))}
+              />
+              {d.dossie.producaoEvidencias.every((m) => m.quantidade === 0) ? (
+                <p className="mt-2 text-[11px] text-navy/55">Nenhuma evidência registrada nos últimos 6 meses.</p>
+              ) : null}
+            </Cartao>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-dossie-kpis>
+            <CardIndicador rotulo="Acervos mapeados" valor={d.dossie.acervosMapeados} apoio="Catálogo de fontes da organização" />
+            <CardIndicador
+              rotulo="Hipóteses em aberto"
+              valor={d.dossie.hipotesesEmAberto}
+              apoio="Abertas ou em revisão"
+              tom={d.dossie.hipotesesEmAberto > 0 ? "atencao" : "sucesso"}
+            />
+            <CardIndicador
+              rotulo="Evidências validadas"
+              valor={d.dossie.evidenciasValidadas}
+              apoio="Revisão humana concluída"
+              tom="sucesso"
+            />
+            <CardIndicador
+              rotulo="Cartórios acionados"
+              valor={d.dossie.cartoriosAcionados}
+              apoio="Instituições distintas com pedido feito"
+            />
+          </div>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <CardIndicador rotulo="Casos em pesquisa" valor={d.pesquisas.length} apoio="Pesquisas ativas no Desk" />

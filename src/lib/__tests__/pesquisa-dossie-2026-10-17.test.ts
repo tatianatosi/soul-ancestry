@@ -194,4 +194,37 @@ describe("Tela 07 — dossiê de pesquisa (/pesquisa-modulo)", () => {
     expect(comDado.etapas.find((e) => e.id === "pergunta")?.ativa).toBe(false);
     expect(comDado.etapas.find((e) => e.id === "revisao")?.ativa).toBe(false);
   });
+
+  it("10. prancha V4: contagem real por etapa (Pergunta/Revisão sem rastro = null) e denominador da confiança", () => {
+    const vazio = agregarDossiePesquisa({ acervosCatalogo: [], hipoteses: [], evidencias: [], fontes: [], pedidos: [] });
+    expect(vazio.contagemPorEtapa).toEqual({
+      pergunta: null,
+      fonte: 0,
+      evidencia: 0,
+      achado: 0,
+      microentrega: 0,
+      revisao: null,
+    });
+    expect(vazio.baseConfiancaCadeia).toBe(0);
+
+    const comDado = agregarDossiePesquisa({
+      acervosCatalogo: [],
+      hipoteses: [
+        { status: "open", confidence_level: "high" },
+        { status: "open", confidence_level: "" }, // sem nível: fora do denominador
+        { status: "closed", confidence_level: "low" },
+      ],
+      evidencias: [
+        { evidence_status: "validated", created_at: "2026-10-01" },
+        { evidence_status: "under_review", created_at: "2026-10-01" },
+      ],
+      fontes: [{ source_type: "civil_record" }, { source_type: "other" }],
+      pedidos: [],
+      achados: [{ id: "a1" }],
+      microentregas: [],
+    });
+    expect(comDado.contagemPorEtapa).toMatchObject({ fonte: 2, evidencia: 1, achado: 1, microentrega: 0 });
+    expect(comDado.baseConfiancaCadeia).toBe(1);
+    expect(comDado.confiancaCadeiaPct).toBe(100);
+  });
 });

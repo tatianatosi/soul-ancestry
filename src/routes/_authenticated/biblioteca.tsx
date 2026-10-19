@@ -9,7 +9,7 @@ import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { Button } from "@/components/ui/button";
 import { CaCard } from "@/components/ui/ca-card";
-import { Etiqueta, Indicador } from "@/components/prancha-v4/kit";
+import { AnelPercentual, BarrasHorizontais, Cartao, Etiqueta, Indicador } from "@/components/prancha-v4/kit";
 import { ManifestoResgate } from "@/components/governanca/manifesto";
 import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
 
@@ -30,6 +30,14 @@ import {
   type EstadoVigencia,
   type ItemBiblioteca,
 } from "@/lib/biblioteca-mestre.functions";
+
+/** Rótulos da faixa de KPIs, mostrados com "—" enquanto a leitura não chega. */
+const ROTULOS_KPI_BIBLIOTECA = [
+  { rotulo: "Itens vigentes", apoio: "Todas as subáreas" },
+  { rotulo: "Homologados", apoio: "Vigência interna — não publica" },
+  { rotulo: "Não homologados", apoio: "Aguardam critério registrado" },
+  { rotulo: "Arquivados", apoio: "Sem exclusão física" },
+];
 
 export const Route = createFileRoute("/_authenticated/biblioteca")({
   head: () => ({
@@ -164,6 +172,9 @@ function BibliotecaPage() {
         ]
       : null;
 
+  const totalVigentes = itens.filter((i) => !i.arquivado).length;
+  const homologadosVigentes = itens.filter((i) => !i.arquivado && i.homologado).length;
+
   const opcoes = useMemo(() => {
     const st = new Set<string>();
     const rp = new Set<string>();
@@ -237,18 +248,55 @@ function BibliotecaPage() {
       visualKit="pantone"
     >
       <PesquisaConectada />
-      {kpisBiblioteca ? (
-        <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-biblioteca-kpis>
-          {kpisBiblioteca.map((k) => (
-            <Indicador key={k.rotulo} rotulo={k.rotulo} valor={String(k.valor)} apoio={k.apoio} />
-          ))}
-        </div>
-      ) : null}
+      {/*
+        Prancha V4 (19/10/2026): a faixa de KPIs nunca some — sem leitura
+        completa mostra "—" (nunca zero por erro); com leitura, só contagem real.
+      */}
+      <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-biblioteca-kpis>
+        {(kpisBiblioteca ?? ROTULOS_KPI_BIBLIOTECA.map((k) => ({ ...k, valor: null as number | null }))).map((k) => (
+          <Indicador key={k.rotulo} rotulo={k.rotulo} valor={k.valor === null ? "—" : String(k.valor)} apoio={k.apoio} />
+        ))}
+      </div>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2" data-biblioteca-graficos>
+        <Cartao titulo="Itens vigentes por subárea" data-biblioteca-cobertura>
+          <BarrasHorizontais
+            tituloAcessivel="Itens vigentes por subárea da Biblioteca Mestre"
+            itens={entradas.map(({ label, chave }, i) => {
+              const n = kpisBiblioteca ? (contadores.get(chave) ?? 0) : 0;
+              return {
+                rotulo: label,
+                valor: totalVigentes > 0 ? (n / totalVigentes) * 100 : 0,
+                apoio: kpisBiblioteca ? `${n} ${n === 1 ? "item" : "itens"}` : "—",
+                tom: i % 2 === 1 ? ("gold" as const) : ("navy" as const),
+              };
+            })}
+          />
+          {kpisBiblioteca && totalVigentes === 0 ? (
+            <p className="mt-2 text-[11px] text-navy/55">Nenhum item vigente registrado ainda.</p>
+          ) : !kpisBiblioteca ? (
+            <p className="mt-2 text-[11px] text-navy/55">{erroLeitura ? "Leitura indisponível — não é acervo vazio." : "Carregando…"}</p>
+          ) : null}
+        </Cartao>
+        <Cartao titulo="Vigência interna" data-biblioteca-vigencia>
+          <div className="flex items-center gap-4">
+            <AnelPercentual
+              valor={kpisBiblioteca && totalVigentes > 0 ? (homologadosVigentes / totalVigentes) * 100 : null}
+              tituloAcessivel="Itens vigentes homologados"
+            />
+            <div className="min-w-0 text-xs text-navy/70">
+              <p className="text-sm font-semibold text-navy">Homologados entre os vigentes</p>
+              <p className="mt-1 text-[11px] text-navy/55">
+                {kpisBiblioteca && totalVigentes > 0
+                  ? `${homologadosVigentes} de ${totalVigentes} itens vigentes. Homologar é estado interno — não publica no App Cliente.`
+                  : "Sem item vigente lido — nada a calcular."}
+              </p>
+            </div>
+          </div>
+        </Cartao>
+      </div>
       <section className="mt-7" aria-labelledby="entradas-biblioteca">
-        <div className="mb-4">
-          <p className="text-xs font-semibold uppercase tracking-widest text-gold">Biblioteca Mestre</p>
-          <h2 id="entradas-biblioteca" className="mt-1 font-serif text-2xl text-navy">Entradas de referência</h2>
-        </div>
+        <CaCard titulo="Entradas de referência" eyebrow="Biblioteca Mestre">
+        <span id="entradas-biblioteca" className="sr-only">Entradas de referência</span>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {entradas.map(({ label, descricao, chave, Icone }) => {
             const quantidade = contadores.get(chave);
@@ -284,6 +332,7 @@ function BibliotecaPage() {
             );
           })}
         </div>
+        </CaCard>
       </section>
       <details
         id="gestao-biblioteca"
