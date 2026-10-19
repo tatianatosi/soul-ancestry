@@ -42,7 +42,15 @@ describe("Corte U1 — Novo lead (novo-lead.tsx)", () => {
   });
 
   it("campo Telefone aplica formatarTelefone no onChange", () => {
-    expect(novoLeadTsx).toContain('onChange={(v) => set("telefone")(formatarTelefone(v))}');
+    /*
+      19/10/2026 — Frente 2 (reintegração GoLive) acrescentou a checagem de
+      duplicidade ao vivo no mesmo onChange, então o one-liner virou duas
+      linhas (`const formatado = formatarTelefone(v); set("telefone")(formatado)`).
+      O mecanismo que este teste protege — telefone sempre passa por
+      formatarTelefone antes de `set("telefone")` — continua igual.
+    */
+    expect(novoLeadTsx).toContain("const formatado = formatarTelefone(v);");
+    expect(novoLeadTsx).toContain('set("telefone")(formatado)');
   });
 });
 

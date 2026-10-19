@@ -462,9 +462,13 @@ function SeletorDeCasos({ atual, codigoAtual }: { atual: string; codigoAtual: st
 }
 
 /**
- * "Visão Concreta" (Frente 1, 19/10/2026) — sub-aba dentro da seção "Visão"
- * (uma das 8 SECOES já existentes; não é uma 9ª seção). Reúne, no mesmo
- * lugar, o que a esteira /golive/painel-caso.tsx já mostrava — linha do
+ * "Visão Concreta" (Frente 1, 19/10/2026) — a composição de dados vive na
+ * sub-aba "concreta" da seção "Visão" (uma das 8 SECOES já existentes; não
+ * é uma 9ª seção no schema de navegação). Decisão direta da Proprietária
+ * em 19/10/2026: no índice de pílulas do Caso 360 ela quer uma pílula
+ * própria "Visão Concreta" como atalho de um clique — ver
+ * `pilulaVisaoConcretaAtiva` na página — sem duplicar esta composição.
+ * Reúne, no mesmo lugar, o que a esteira /golive/painel-caso.tsx já mostrava — linha do
  * tempo, participantes/relações, dossiê documental, pesquisa e hipóteses,
  * condição comercial/faturas e projeções publicadas — mas lendo dos
  * carregadores já parametrizados por caseId desta própria ficha (q,
@@ -825,9 +829,14 @@ function FichaCaso() {
   });
 
   const [secaoFoco, setSecaoFoco] = useState<(typeof SECOES)[number]["id"] | null>(SECOES[0].id);
-  // Frente 1 (19/10/2026) — sub-aba "Visão Concreta" DENTRO da seção "Visão"
-  // (uma das 8 SECOES existentes; nunca uma 9ª seção solta).
+  // Frente 1 (19/10/2026) — "Visão Concreta" mora na sub-aba da seção "Visão"
+  // (uma das 8 SECOES existentes; nunca uma 9ª seção solta no schema de
+  // navegação). Decisão direta da Proprietária em 19/10/2026: no índice de
+  // pílulas do Caso 360 ela quer uma pílula própria "Visão Concreta" como
+  // atalho de um clique — `pilulaVisaoConcretaAtiva` força a ficha aberta e
+  // a sub-aba certa sem duplicar a composição de dados já construída.
   const [abaVisao, setAbaVisao] = useState<"indicadores" | "concreta">("indicadores");
+  const [pilulaVisaoConcretaAtiva, setPilulaVisaoConcretaAtiva] = useState(false);
   // Link contextual vindo de outra tela (ex.: Pessoa 360 → "Conferir", #pessoas).
   useEffect(() => {
     const alvo = window.location.hash.replace("#", "");
@@ -1264,11 +1273,14 @@ function FichaCaso() {
             <a
               key={a.id}
               href={`#secao-${a.id}`}
-              onClick={() => setSecaoFoco(a.id)}
-              aria-current={secaoFoco === a.id ? "true" : undefined}
+              onClick={() => {
+                setSecaoFoco(a.id);
+                setPilulaVisaoConcretaAtiva(false);
+              }}
+              aria-current={secaoFoco === a.id && !pilulaVisaoConcretaAtiva ? "true" : undefined}
               className={
                 "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors " +
-                (secaoFoco === a.id
+                (secaoFoco === a.id && !pilulaVisaoConcretaAtiva
                   ? "border-navy bg-navy text-cream"
                   : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
               }
@@ -1276,9 +1288,36 @@ function FichaCaso() {
               {a.rotulo}
             </a>
           ))}
+          {/*
+            Decisão da Proprietária, 19/10/2026: pílula própria "Visão
+            Concreta" no índice do Caso 360 (não aninhada). Reaproveita a
+            mesma seção/sub-aba "Visão" já construída — zero composição
+            duplicada — só força a ficha aberta e a sub-aba certa num clique.
+          */}
+          <a
+            href="#secao-visao"
+            onClick={() => {
+              setSecaoFoco("visao");
+              setAbaVisao("concreta");
+              setPilulaVisaoConcretaAtiva(true);
+            }}
+            aria-current={pilulaVisaoConcretaAtiva ? "true" : undefined}
+            data-pilula-visao-concreta
+            className={
+              "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors " +
+              (pilulaVisaoConcretaAtiva
+                ? "border-navy bg-navy text-cream"
+                : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
+            }
+          >
+            Visão Concreta
+          </a>
           <button
             type="button"
-            onClick={() => setSecaoFoco(null)}
+            onClick={() => {
+              setSecaoFoco(null);
+              setPilulaVisaoConcretaAtiva(false);
+            }}
             className={
               "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors " +
               (secaoFoco === null
@@ -2385,7 +2424,10 @@ function FichaCaso() {
 
       {/* Casca V4 (18/10/2026): o índice das 8 SECOES subiu para o cabeçalho (abas-pílula). */}
 
-      <details open={secaoFoco !== null && secaoFoco !== "visao"} className="rounded-lg border border-navy/15 bg-card p-4">
+      <details
+        open={(secaoFoco !== null && secaoFoco !== "visao") || pilulaVisaoConcretaAtiva}
+        className="rounded-lg border border-navy/15 bg-card p-4"
+      >
         <summary className="cursor-pointer text-sm font-medium text-navy">Abrir ficha operacional completa</summary>
       <div className="mt-5 space-y-8 border-t border-navy/10 pt-5">
         <SecaoAncora id="visao" titulo="Indicadores" hidden={secaoFoco !== null && secaoFoco !== "visao"}>
@@ -2407,7 +2449,10 @@ function FichaCaso() {
               type="button"
               role="tab"
               aria-selected={abaVisao === "indicadores"}
-              onClick={() => setAbaVisao("indicadores")}
+              onClick={() => {
+                setAbaVisao("indicadores");
+                setPilulaVisaoConcretaAtiva(false);
+              }}
               className={
                 "rounded-full border px-3 py-1 text-[12px] transition-colors " +
                 (abaVisao === "indicadores"
