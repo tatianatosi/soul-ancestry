@@ -225,7 +225,7 @@ function ContratoDetalhe() {
             statusRotulo={ROTULO_STATUS_CONTRATO[c.status] ?? c.status}
             valorReferencia={(d as any).valorReferencia ?? null}
             prazoReferencia={(d as any).prazoReferencia ?? null}
-            proximoPasso={null}
+            proximoPasso={proximoPassoDoStatus(c.status)}
           />
         </div>
       </div>
