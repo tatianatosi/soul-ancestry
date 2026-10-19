@@ -41,6 +41,7 @@ import { listarDocumentos } from "@/lib/documentos.functions";
 import { resumoVisaoClienteCaso } from "@/lib/app-cliente-como-pessoa.functions";
 import { FasesMotorCidadania } from "@/components/caso/fases-motor-cidadania";
 import { CadeiaCaso360 } from "@/components/caso/cadeia-caso-360";
+import { CadeiaGenealogicaCaso } from "@/components/caso/cadeia-genealogica-caso";
 import { FormularioTarefaCaso } from "@/components/caso/formulario-tarefa-caso";
 import { PlanejadorOperacional } from "@/components/contrato/planejador-operacional";
 import { PublicarPlanoApp } from "@/components/contrato/publicar-plano-app";
@@ -2665,14 +2666,22 @@ function FichaCaso() {
               recurso="as pessoas do caso"
             >
               {([d]) => (
-                <AbaPessoas
-                  casoId={id}
-                  membros={d.membros}
-                  onMudou={recarregar}
-                  atualizar={atualizar}
-                  criar={criar}
-                  bloqueado={bloqueado}
-                />
+                <>
+                  <AbaPessoas
+                    casoId={id}
+                    membros={d.membros}
+                    onMudou={recarregar}
+                    atualizar={atualizar}
+                    criar={criar}
+                    bloqueado={bloqueado}
+                  />
+                  <Secao
+                    titulo="Cadeia genealógica"
+                    descricao="Pessoa a pessoa, elo a elo — lida de genealogical_relationships/research_people deste caso; sem relação gravada, o elo não aparece."
+                  >
+                    <CadeiaGenealogicaCaso caseId={id} membros={d.membros} />
+                  </Secao>
+                </>
               )}
             </EstadoDados>
             <AbaCadastro caseId={id} bloqueado={bloqueado} />
