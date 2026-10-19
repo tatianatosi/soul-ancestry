@@ -13,6 +13,7 @@ import { MENSAGEM_INSTABILIDADE_FINANCEIRA } from "@/lib/portal-resiliencia";
 import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
 import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { Button } from "@/components/ui/button";
+import { CartaoEditorial, dataCurta, iniciais } from "@/components/portal/elementos-mockup";
 
 export const Route = createFileRoute("/portal/conta")({
   head: () => ({
@@ -93,6 +94,22 @@ export function PortalConta() {
     (vivo.data?.projecoes ?? []).filter((p) => p.projection_type === "atualizacao"),
   );
 
+  const resumo = vivo.data?.resumoCaso ?? null;
+  const perfil = resumo?.perfil ?? null;
+  const membroDesde = dataCurta(resumo?.membroDesde);
+  /*
+   * Histórico de atividades (13/10/2026): só marcos aprovados para a família
+   * (case_timeline_events) e marcos/entregas publicados no App, com data.
+   */
+  const atividades = [
+    ...(vivo.data?.historico ?? []).map((m) => ({ id: `h-${m.id}`, rotulo: "Marco da jornada", texto: m.texto, data: m.data ?? null })),
+    ...publicacoesParaCliente(
+      (vivo.data?.projecoes ?? []).filter((p) => p.projection_type === "marco" || p.projection_type === "microentrega"),
+    ).map((p) => ({ id: `p-${p.id}`, rotulo: p.tipoRotulo, texto: p.conteudo, data: p.publicadoEm ?? null })),
+  ]
+    .filter((a) => a.data)
+    .sort((a, b) => String(b.data).localeCompare(String(a.data)));
+
   const proximaAcao = vivo.data?.proximaAcao ?? null;
   const alertaAcionavel =
     proximaAcao &&
@@ -123,15 +140,15 @@ export function PortalConta() {
                   aria-hidden="true"
                   className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-gold/60 bg-navy font-serif text-xl text-gold"
                 >
-                   {titularExibido ? titularExibido.trim().charAt(0).toUpperCase() : <UserRound className="h-5 w-5" />}
+                   {perfil?.nome ?? titularExibido ? iniciais(perfil?.nome ?? titularExibido) : <UserRound className="h-5 w-5" />}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Sua família</p>
-                  <h2 className="font-serif text-xl text-navy">Sobre você e sua família</h2>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Meu perfil</p>
+                  <h2 className="break-words font-serif text-xl text-navy">{perfil?.nome ?? titularExibido ?? "Não registrado"}</h2>
                 </div>
               </div>
                <p className="mt-3 text-sm text-navy/65">Um espaço para cuidar da sua história e acompanhar as novidades da sua família.</p>
-               {titularExibido || paisInteresse || codigoCaso ? <dl className="mt-3 grid grid-cols-1 gap-x-4 md:grid-cols-2">
+               <dl className="mt-3 grid grid-cols-1 gap-x-4 md:grid-cols-2">
                  {codigoCaso ? (
                 <div className="border-b border-border py-3" data-conta-codigo>
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Projeto familiar</dt>
@@ -144,6 +161,18 @@ export function PortalConta() {
                   <dd className="text-sm text-navy">{titularExibido}</dd>
                 </div>
                  ) : null}
+                <div className="border-b border-border py-3" data-conta-email>
+                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">E-mail</dt>
+                  <dd className="break-all text-sm text-navy">{perfil?.email ?? "Não registrado"}</dd>
+                </div>
+                <div className="border-b border-border py-3" data-conta-whatsapp-titular>
+                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">WhatsApp</dt>
+                  <dd className="text-sm text-navy">{perfil?.telefone ?? "Não registrado"}</dd>
+                </div>
+                <div className="border-b border-border py-3" data-conta-membro-desde>
+                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">Membro desde</dt>
+                  <dd className="text-sm text-navy">{membroDesde ?? "Não registrado"}</dd>
+                </div>
                  {paisInteresse ? (
                 <div className="border-b border-border py-3">
                    <dt className="text-[11px] uppercase tracking-widest text-navy/50">Origem de interesse</dt>
@@ -153,10 +182,10 @@ export function PortalConta() {
                  {(vivo.data?.casoAtivoId ?? previa?.identidade?.caseId) === "a11a0000-0000-4000-8000-000000000002" ? (
                 <div className="border-b border-border py-3" data-conta-modalidade>
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Modalidade</dt>
-                  <dd className="text-sm text-navy">Projeto Familiar · condição prevista</dd>
+                  <dd className="text-sm text-navy">Projeto Familiar (3 assinaturas ativas)</dd>
                 </div>
                  ) : null}
-               </dl> : null}
+               </dl>
               <p className="mt-3 text-xs text-navy/55">
                   Se alguma informação mudar, avise a equipe pelo canal que você já utiliza.
               </p>
@@ -206,9 +235,9 @@ export function PortalConta() {
                   via onde o Desk publicaria isso. O estado vazio é sempre
                   editável/publicável do Desk, nunca hardcoded aqui.
                 */
-                <p className="mt-2 text-sm text-navy/60" data-conta-assinatura-vazio>
-                  Em preparação — a assinatura aparece aqui quando a equipe compartilhar.
-                </p>
+                <div className="mt-2" data-conta-assinatura-vazio>
+                  <CartaoEditorial texto="A assinatura da sua família terá seu lugar aqui quando for compartilhada pela equipe." />
+                </div>
                )}
              </section>
 
@@ -218,12 +247,12 @@ export function PortalConta() {
             <section data-conta-plano className="app-v11-faixa">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <h2 className="font-serif text-xl text-navy">Meu plano</h2>
-                {plano?.situacao ? (
+                {plano ? (
                   <span
                     data-conta-plano-situacao
                     className="rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-navy/70"
                   >
-                    {plano.situacao}
+                    {plano.situacao ?? "Não registrado"}
                   </span>
                 ) : null}
               </div>
@@ -237,9 +266,9 @@ export function PortalConta() {
                   ) : null}
                 </>
               ) : (
-                <div><p className="mt-2 text-sm text-navy/60" data-conta-plano-vazio>
-                  Em preparação — o plano aparece aqui quando a equipe compartilhar.
-                </p></div>
+                <div className="mt-2" data-conta-plano-vazio>
+                  <CartaoEditorial texto="O plano da sua família terá seu lugar aqui quando for compartilhado pela equipe." />
+                </div>
               )}
             </section>
 
@@ -279,8 +308,8 @@ export function PortalConta() {
                   ) : null}
                 </div>
               ) : atualizacoes.length === 0 ? (
-                  <div className="app-v11-lacuna mt-3">
-                   <p className="text-sm text-navy/70">Em preparação — os recados da equipe aparecem aqui quando forem compartilhados.</p>
+                  <div className="mt-3">
+                   <CartaoEditorial texto="Os recados da equipe terão seu lugar aqui." />
                 </div>
               ) : null}
             </section>
@@ -295,27 +324,24 @@ export function PortalConta() {
               esta leitura. Só o texto que a equipe escreveu explicitamente
               para a família — nunca o título interno do evento.
             */}
-            <section data-conta-marcos className="app-v11-faixa">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-xl text-navy">Marcos da sua jornada</h2>
-              </div>
-              {(vivo.data?.historico ?? []).length === 0 ? (
-                <p className="app-v11-lacuna mt-3 text-sm text-navy/60">
-                   Ainda não há um marco da jornada liberado para a família.
-                </p>
+            <section data-conta-marcos data-conta-historico className="app-v11-faixa">
+              <h2 className="font-serif text-xl text-navy">Histórico de atividades</h2>
+              {atividades.length === 0 ? (
+                <div className="mt-3">
+                  <CartaoEditorial texto="As atividades da sua jornada terão seu lugar aqui à medida que forem liberadas para a família." />
+                </div>
               ) : (
-                <ul className="mt-3 space-y-2">
-                  {(vivo.data?.historico ?? []).map((marco) => (
-                     <li key={marco.id} className="app-conta-registro text-sm text-navy/80">
-                      <p>{marco.texto}</p>
-                      {marco.data ? (
-                        <p className="mt-1 text-xs text-navy/45">
-                          {new Date(marco.data).toLocaleDateString("pt-BR")}
-                        </p>
-                      ) : null}
+                <ol className="mt-3 space-y-0 border-l-2 border-gold/40 pl-4">
+                  {atividades.map((a) => (
+                    <li key={a.id} className="relative py-2.5">
+                      <span aria-hidden="true" className="absolute -left-[1.4rem] top-4 h-2.5 w-2.5 rounded-full bg-gold" />
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-navy/55">
+                        {dataCurta(a.data)} · {a.rotulo}
+                      </p>
+                      <p className="mt-0.5 line-clamp-3 whitespace-pre-line text-sm text-navy/85">{a.texto}</p>
                     </li>
                   ))}
-                </ul>
+                </ol>
               )}
             </section>
             </>

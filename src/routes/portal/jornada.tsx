@@ -193,16 +193,28 @@ function TimelineVertical({
   eventos,
   eyebrow,
   variante = "navy",
+  idsUniao,
+  etapaAtual,
 }: {
   eventos: NoEvento[];
   eyebrow: string;
   variante?: "gold" | "navy";
+  /** Marcos publicados que já registram uma União de Ramos (projeção `uniao_ramos`). */
+  idsUniao?: ReadonlySet<string>;
+  /** Etapa atual do caso (src/lib/etapas-caso.ts), destacada na Linha do Processo. */
+  etapaAtual?: string | null;
 }) {
   return (
     <div className="app-jornada-linha min-w-0" data-linha-tom={variante}>
       <div className={cn("h-1 w-full", variante === "gold" ? "bg-gold" : "bg-navy")} aria-hidden="true" />
       <div className="py-4">
       <h2 className={cn("mb-3 text-[11px] font-semibold uppercase tracking-[0.2em]", variante === "gold" ? "text-gold" : "text-navy")}>{eyebrow}</h2>
+      {etapaAtual ? (
+        <p className="mb-3 rounded-xl border-2 border-gold bg-gold/10 px-3 py-2 text-sm text-navy" data-jornada-etapa-atual>
+          <span className="block text-[10px] font-semibold uppercase tracking-widest text-[var(--app-ouro-texto)]">Etapa atual</span>
+          {etapaAtual}
+        </p>
+      ) : null}
       {eventos.length === 0 ? (
         <div><p className="py-3 text-sm leading-relaxed text-navy/60">
           {variante === "gold"
@@ -237,6 +249,9 @@ function TimelineVertical({
                       {no.dataPrincipal ? <p className="mt-0.5 text-[11px] text-navy/55">{no.dataPrincipal}</p> : null}
                     </>
                   )}
+                  {idsUniao?.has(no.id) ? (
+                    <span className="mt-1 inline-flex rounded-full bg-gold px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-navy" data-jornada-pilula-uniao>União de Ramos</span>
+                  ) : null}
                   <p className="mt-1 text-xs leading-relaxed text-navy/70">{no.conteudo}</p>
                 </div>
                 {no.dataSecundaria ? <p className="mt-0.5 text-[10px] text-navy/40">{no.dataSecundaria}</p> : null}
@@ -466,6 +481,11 @@ export function PortalJornada() {
               (n): n is NoEvento => n.tipo === "evento" && n.categoria === "navy",
             );
             const pontes = nos.filter((n): n is NoPonte => n.tipo === "ponte");
+            const idsUniao = new Set(ehDemo ? [] : jornada.pontes.map((p) => p.historiaProjecaoId));
+            const etapasCaso = vivo.resumoCaso?.etapas ?? [];
+            const etapaAtualRotulo = etapasCaso.length === 0
+              ? null
+              : (etapasCaso.find((e) => e.estado !== "concluido")?.rotulo ?? "Cinco etapas de preparação concluídas");
 
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
@@ -513,10 +533,10 @@ export function PortalJornada() {
                       </div>
                         <div data-jornada-duas-linhas className="relative grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2 md:gap-x-8">
                           <div id="linha-origem" className="relative min-w-0 scroll-mt-20">
-                          <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" variante="gold" />
+                          <TimelineVertical eventos={linhaAncestral} eyebrow="Linha Ancestral" variante="gold" idsUniao={idsUniao} />
                         </div>
                           <div id="linha-processo" className="relative min-w-0 scroll-mt-20">
-                          <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" />
+                          <TimelineVertical eventos={linhaProcesso} eyebrow="Linha do Processo" variante="navy" idsUniao={idsUniao} etapaAtual={etapaAtualRotulo} />
                             {passoAtualIndice !== null ? (
                               <div className="mt-3"><TrilhaCompacta passos={passos} passoAtualIndice={passoAtualIndice} /></div>
                             ) : null}

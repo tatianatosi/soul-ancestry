@@ -138,7 +138,7 @@ export function PortalArvore() {
                         <>
                           <span className="font-serif text-base text-navy">
                             {pessoas.length}{" "}
-                            {pessoas.length === 1 ? "pessoa compartilhada" : "pessoas compartilhadas"}
+                            {pessoas.length === 1 ? "pessoa conectada" : "pessoas conectadas"}
                           </span>
                           {/*
                             O rodapé "de um universo de N possíveis" do mockup de
@@ -156,7 +156,7 @@ export function PortalArvore() {
                         <span className="text-xs text-navy/60">
                            {temConteudo
                              ? "Os nomes já compartilhados ainda não têm posição disponível nesta árvore."
-                             : "Em pesquisa — os nomes aparecem aqui quando forem compartilhados."}
+                             : "Em pesquisa — os nomes terão seu lugar aqui quando forem liberados."}
                         </span>
                       )}
                     </p>

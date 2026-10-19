@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { CartaoEditorial } from "@/components/portal/elementos-mockup";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { CASO_DEMO_CODIGO } from "@/lib/portal-demo-sophia";
@@ -64,9 +65,7 @@ export function PortalFase02() {
               />
             </div>
             {itens.length === 0 ? (
-              <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
-                Em preparação — o material desta etapa aparece aqui quando for compartilhado.
-              </p>
+              <CartaoEditorial texto="As atualizações desta etapa terão seu lugar aqui quando forem publicadas." />
             ) : (
               <ul className="space-y-3">
                 {itens.map((item) => (

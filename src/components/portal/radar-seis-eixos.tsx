@@ -70,6 +70,23 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
             />
           );
         })}
+        {/* Área dourada preenchida (13/10/2026): uma pétala por eixo com dado
+            real; eixo sem dado não é desenhado como zero. */}
+        {dimensoes.map((d, i) => {
+          if (d.percentual === null || d.percentual <= 0) return null;
+          const r = RAIO * (d.percentual / 100);
+          const pts = [{ x: CENTRO, y: CENTRO }, ponto(i - 0.5, r * 0.5), ponto(i, r), ponto(i + 0.5, r * 0.5)];
+          return (
+            <polygon
+              key={`area-${d.id}`}
+              data-radar-area
+              points={pts.map((p) => `${p.x},${p.y}`).join(" ")}
+              className="fill-gold/35 stroke-gold"
+              strokeWidth={1.5}
+              strokeLinejoin="round"
+            />
+          );
+        })}
         {dimensoes.map((d, i) => {
           if (d.percentual === null) return null;
           const valor = ponto(i, RAIO * (d.percentual / 100));

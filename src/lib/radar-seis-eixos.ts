@@ -123,8 +123,8 @@ export function radarSeisDimensoes(entrada: {
     percentual: temDocs ? percentual(liberados, docs.length) : null,
     legenda: temDocs
       ? `${liberados} de ${docs.length} documentos do seu caso já liberados para você.`
-      : "Lacuna: a lista de documentos do seu caso ainda não foi registrada.",
-    rotuloNumero: temDocs ? `${percentual(liberados, docs.length)}%` : "Lacuna",
+      : "Em preparação — a lista de documentos do seu caso ainda não foi registrada.",
+    rotuloNumero: temDocs ? `${percentual(liberados, docs.length)}%` : "Em pesquisa",
     comoCalculamos: temDocs
       ? `Documentos liberados para você (${liberados}) ÷ documentos do seu caso (${docs.length}).`
       : "O percentual aparece quando a equipe registrar os documentos do seu caso; antes disso não há total para comparar.",
@@ -144,7 +144,7 @@ export function radarSeisDimensoes(entrada: {
         ? `${arvore.length} registro(s) de origem/linha publicados pela equipe.`
         : "Ainda não há registro de origem publicado pela equipe.",
     // Presença/ausência, não "% concluído" — rótulo mostra a contagem real.
-    rotuloNumero: arvore.length > 0 ? `${arvore.length} registro(s)` : "Nenhum ainda",
+    rotuloNumero: arvore.length > 0 ? `${arvore.length} registro(s)` : "Em preparação",
     comoCalculamos:
       "Não existe um total conhecido de registros de origem que um caso pode ter, então mostramos a contagem publicada em vez de uma porcentagem.",
   };
@@ -178,7 +178,7 @@ export function radarSeisDimensoes(entrada: {
         ? `${percentualConexoes}%`
         : arvore.length > 0
           ? `${arvore.length} registro(s)`
-          : "Lacuna",
+          : "Em pesquisa",
     comoCalculamos:
       percentualConexoes !== null
         ? `Pessoas publicadas na árvore (${pessoasPublicadasNaArvore}) ÷ pessoas mapeadas pela pesquisa neste caso (${pessoasMapeadas}).`
@@ -192,8 +192,8 @@ export function radarSeisDimensoes(entrada: {
     legenda:
       achados.length > 0
         ? `${achados.length} achado(s) de memória familiar publicados.`
-        : "Em pesquisa — os achados de memória familiar aparecem aqui quando forem compartilhados.",
-    rotuloNumero: achados.length > 0 ? `${achados.length} achado(s)` : "Nenhum ainda",
+        : "Em pesquisa — os achados de memória familiar aparecem aqui quando forem publicados.",
+    rotuloNumero: achados.length > 0 ? `${achados.length} achado(s)` : "Em preparação",
     comoCalculamos:
       "Não existe um total conhecido de achados de memória que uma família pode ter, então mostramos a contagem publicada em vez de uma porcentagem.",
   };
@@ -205,8 +205,8 @@ export function radarSeisDimensoes(entrada: {
     legenda:
       marcos.length > 0
         ? `${marcos.length} marco(s)/resumo(s) de jornada publicados.`
-        : "Em preparação — os marcos da jornada aparecem aqui quando forem compartilhados.",
-    rotuloNumero: marcos.length > 0 ? `${marcos.length} marco(s)` : "Nenhum ainda",
+        : "Em preparação — os marcos da jornada aparecem aqui quando forem publicados.",
+    rotuloNumero: marcos.length > 0 ? `${marcos.length} marco(s)` : "Em preparação",
     comoCalculamos:
       "Não existe um total fechado de marcos de legado, então mostramos a contagem publicada em vez de uma porcentagem.",
   };
@@ -231,9 +231,9 @@ export function radarSeisDimensoes(entrada: {
     percentual: mediaOutros,
     legenda:
       mediaOutros === null
-        ? "Lacuna: nenhum eixo tem ainda um total real para calcular o andamento — acompanhamento de progresso, não parecer jurídico, chance ou resultado."
+        ? "Em pesquisa — os eixos ainda não têm um total real para calcular o andamento — acompanhamento de progresso, não parecer jurídico, chance ou resultado."
         : "Andamento médio dos eixos que já têm total real — acompanhamento de progresso, não parecer jurídico, chance ou resultado.",
-    rotuloNumero: mediaOutros === null ? "Lacuna" : `${mediaOutros}%`,
+    rotuloNumero: mediaOutros === null ? "Em pesquisa" : `${mediaOutros}%`,
     comoCalculamos:
       mediaOutros === null
         ? "A média aparece quando ao menos um eixo tiver total real; eixos só com contagem não entram."

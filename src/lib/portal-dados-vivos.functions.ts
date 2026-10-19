@@ -18,6 +18,7 @@ import {
   solicitacoesAbertasCliente,
 } from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
+import { lerResumoCaso, type ResumoCasoCliente } from "@/lib/portal-resumo-caso";
 import { projetarProximaAcaoCliente, sinaisDoCasoPortal, type ProximaAcaoCliente } from "@/lib/motor-caso";
 
 export type VinculoArvoreCliente = { de: string; para: string; tipo: "pai_mae" | "conjuge" };
@@ -79,6 +80,8 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
      * de/para/tipo — nenhuma nota, fonte ou status interno.
      */
     vinculosArvore: VinculoArvoreCliente[];
+    /** Régua das 5 etapas, estado do caso e perfil da titular (13/10/2026). */
+    resumoCaso: ResumoCasoCliente | null;
   }> => {
     semCache();
     const supabase = context.supabase as any;
@@ -134,6 +137,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         solicitacoes: [],
         pessoasMapeadas: 0,
         vinculosArvore: [],
+        resumoCaso: null,
       };
     const alvo = [String(casoAtivo.id)];
 
@@ -214,7 +218,18 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         }));
     }
 
+    // Acesso ao caso já decidido pela RLS de `portal_casos`; leitura do resumo
+    // no servidor, recortada a campos sanitizados (sem CPF/RG/endereço).
+    let resumoCaso: ResumoCasoCliente | null = null;
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      resumoCaso = await lerResumoCaso(supabaseAdmin, String(casoAtivo.id));
+    } catch {
+      resumoCaso = null;
+    }
+
     return {
+      resumoCaso,
       vinculosArvore,
       projecoes,
       documentos: (docs.data ?? []) as DocumentoPortal[],
