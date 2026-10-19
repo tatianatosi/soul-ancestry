@@ -309,6 +309,17 @@
 
 - [ ] 19/10/2026 00:04 UTC — Comparar mockup (drft_01m58n10hyefm9sz2m3rz46dxh) com prancha V4 tela a tela, sem publicar; contrato autorizado a gravar rascunho interno da Ana. Aguarda o draft terminar.
 
+## 19/10 — Mockup Desk V4 completo (draft drft_01m58xcem1fgk9dyps5y780yh9) — ENTREGUE
+- [x] Contrato: 6 marcos em cards + resumo familiar (cards-fluxo-contrato.tsx)
+- [x] L08: marcos no Caso 360 Formalização (cards-contrato-caso.tsx, leitura pura)
+- [x] L03: identidade visível + área única de edição em leads.tsx
+- [x] L04: três momentos (Antes/Durante/Revisão) em calls.tsx
+- [x] Contexto como alimento: FonteAlimento em 9 superfícies
+- [x] Kanban de tarefas por status (leitura) em tarefas.tsx
+- [x] Antes/depois 375/1280 + PDF MOCKUP (30 págs) entregue; typecheck limpo; 53 testes OK; build OK; HEAD 9d4eba54
+- [ ] Falta: gavetas abertas, árvore com linhas ligadas, radar/matriz, funil, fluxo de publicação, L01 (aguarda aprovação)
+- [ ] Bug pré-existente: título do contrato quebra verticalmente a 375 px (já existia antes)
+
 ## 19/10 — Mockup Desk V4 completo (draft drft_01m58xcem1fgk9dyps5y780yh9)
 - [ ] Modelos V4 próprios por tela do Desk (cascas reais: previa-desk-telas, desk-mockup, clube-ancestral-kit).
 - [ ] Capturas: gavetas abertas, árvore com linhas, radar/matriz, funil, fluxo de publicação.
