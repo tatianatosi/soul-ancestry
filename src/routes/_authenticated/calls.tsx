@@ -359,6 +359,36 @@ function CallsPage() {
         </div>
       </div>
 
+      {/*
+        19/10/2026 — corte L04 (Prancha V4): a Mesa se organiza em três
+        momentos visíveis. Nada se duplica: cada cartão aponta para a seção
+        real que já existe abaixo (agenda/consentimento, roteiro SPIN ao
+        lado das respostas, revisão e handoff no PainelCalls).
+      */}
+      <ol className="mb-6 grid gap-3 sm:grid-cols-3" data-l04-momentos>
+        <li className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-terracotta">1 · Antes da call</p>
+          <p className="mt-1 text-sm font-medium text-navy">Agenda do dia e consentimento</p>
+          <p className="mt-1 text-[11px] text-navy/55">
+            Horário, canal, responsável e permissão de gravação — confirmados antes de começar.
+          </p>
+        </li>
+        <li className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-terracotta">2 · Durante</p>
+          <p className="mt-1 text-sm font-medium text-navy">Roteiro SPIN ao lado das respostas</p>
+          <p className="mt-1 text-[11px] text-navy/55">
+            Situação, Problema, Implicação e Necessidade — pergunta e resposta na mesma tela.
+          </p>
+        </li>
+        <li className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-terracotta">3 · Revisão</p>
+          <p className="mt-1 text-sm font-medium text-navy">Resumo validado e handoff</p>
+          <p className="mt-1 text-[11px] text-navy/55">
+            Resumo da call revisado pela pessoa responsável antes de virar proposta — nunca automático.
+          </p>
+        </li>
+      </ol>
+
       <div className="mb-6 grid gap-6 lg:grid-cols-2">
         {/* Coluna da esquerda: Agenda & Consentimento */}
         <div className="space-y-6">
