@@ -209,6 +209,10 @@ export function PortalConta() {
                 <p className="mt-2 text-sm text-navy/60" role="status">Carregando sua assinatura…</p>
               ) : assinatura ? (
                 <>
+                  {/* Selo do estado real: nunca "Assinatura ativa" sem pagamento confirmado. */}
+                  <span className="app-chip mt-2" data-tom="pendente" data-conta-assinatura-selo>
+                    {assinatura.situacao ? "Aguardando confirmação" : "Condição prevista"}
+                  </span>
                   <p className="mt-2 text-sm text-navy" data-conta-assinatura-nome>
                     {assinatura.nome}
                   </p>

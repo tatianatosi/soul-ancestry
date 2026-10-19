@@ -386,7 +386,7 @@ function PainelHomeMockup({
 }) {
   const trilhaAustria = /^(á|a)ustria$/i.test((pais ?? "").trim());
   return (
-    <div className="space-y-4" data-aba-home>
+    <div className="space-y-7" data-aba-home>
       {/*
         Correção 2026-09-12: um card navy só, sem cartão bege duplicado
         antes dele nem cartão cinza/claro dentro dele (o chip de
@@ -395,40 +395,28 @@ function PainelHomeMockup({
       */}
       {/* 16/09/2026 — primeira dobra: o cartão do processo é o elemento
           principal (maior), e a linha do tempo abaixo fica discreta. */}
-      <section data-home-editorial className="relative overflow-hidden rounded-xl border-b-2 border-gold/70 bg-navy-800 p-6 text-cream shadow-md sm:p-8">
+      <section data-home-editorial className="app-cartao-caso relative overflow-hidden bg-navy-800 p-6 text-cream shadow-md sm:p-8">
+        {/* 13/10 — recomposição densa: a régua abre o cartão do caso (mockup p.3). */}
+        {resumo && resumo.etapas.length > 0 ? (
+          <div className="app-regua-topo"><ReguaEtapas etapas={resumo.etapas} /></div>
+        ) : null}
         <div className="min-w-0">
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
             <p className="app-selo-projeto text-[10px] font-medium text-gold">Projeto familiar</p>
-          <span className="absolute right-4 top-6"><SeloEstadoCaso resumo={resumo} /></span>
-            <p className="app-home-boas-vindas mt-4 text-[11px] font-medium uppercase tracking-[0.25em] text-gold">Bem-vinda à sua história</p>
-          <h2 className="mt-1 font-serif text-[1.9rem] leading-tight text-cream sm:text-4xl">
+            <SeloEstadoCaso resumo={resumo} />
+          </div>
+          <p className="app-home-boas-vindas mt-5 font-serif text-lg italic leading-relaxed text-gold">Bem-vinda à sua história</p>
+          <h2 className="mt-1 font-serif text-[1.9rem] leading-snug text-cream sm:text-4xl">
             {tituloCaso}
             {composicao ? <span className="text-cream/60"> · {composicao}</span> : null}
           </h2>
           {trilhaAustria ? (
             <p className="app-selo-trilha mt-4" data-selo-trilha>Cidadania Austríaca (§ 58c StbG)</p>
           ) : null}
-          {/* Membros do núcleo: só entram quando publicados para a família.
-              Sem publicação, a ausência é dita — nunca deduzida do cadastro. */}
-          <div className="mt-4 border-t border-cream/10 pt-4" data-home-nucleo>
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-cream/60">Núcleo familiar</p>
-             {nomesNucleo.length > 0 ? (
-               <ul className="mt-2 flex flex-wrap gap-2" data-home-nucleo-membros>
-                 {nomesNucleo.map((p) => (
-                   <li key={p.chave} className="rounded-full border border-gold/50 px-3 py-1 text-xs text-cream">
-                     {p.nome}
-                   </li>
-                 ))}
-               </ul>
-             ) : (
-               <p className="mt-1 text-sm text-cream/75">Os membros terão seu lugar aqui quando forem compartilhados com a família.</p>
-             )}
-          </div>
         </div>
 
         {/* Mockup p.3: progresso dentro do mesmo cartão do caso, não num segundo cartão. */}
-        {resumo && resumo.etapas.length > 0 ? (
-          <ReguaEtapas etapas={resumo.etapas} />
-        ) : fase ? (
+        {resumo && resumo.etapas.length > 0 ? null : fase ? (
           <div aria-label="Progresso da jornada" data-home-progresso className="mt-4 border-t border-cream/10 pt-1">
             <EstepeJornada rotulos={fase.rotulos} indice={fase.indice} percentual={fase.percentual} valor={fase.valor} compacto={fase.compacto ?? false} />
           </div>
@@ -450,7 +438,7 @@ function PainelHomeMockup({
         </section>
       )}
 
-      <div className="grid gap-6 pt-2" data-home-paridade-mockup>
+      <div className="app-home-pilha grid gap-7 pt-2" data-home-paridade-mockup>
         {/*
           Mockup p.3 "Próximos passos": cartões brancos numerados. Só itens
           reais — a próxima ação publicada e os pedidos de documento abertos
@@ -520,12 +508,20 @@ function PainelHomeMockup({
               )}
             </div>
           </div>
+          {/* Membros saem do cartão azul (diretriz de leveza 13/10): só publicados. */}
+          {nomesNucleo.length > 0 ? (
+            <ul className="mt-4 flex flex-wrap gap-2" data-home-nucleo data-home-nucleo-membros>
+              {nomesNucleo.map((p) => (
+                <li key={p.chave} className="app-pilula-membro">{p.nome}</li>
+              ))}
+            </ul>
+          ) : null}
           <LinkPortal to="/portal/arvore" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4">Ver Árvore</LinkPortal>
         </section>
 
         <section aria-label="Achados recentes">
           <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
-            <h3 className="min-w-0 font-serif text-2xl text-navy">Achados recentes</h3>
+            <h3 className="min-w-0 font-serif text-2xl text-navy">Achados da sua história</h3>
             <LinkPortal to="/portal/jornada" className="shrink-0 text-xs font-medium text-navy/60 underline-offset-2 hover:text-navy hover:underline">
               Ver Jornada
             </LinkPortal>

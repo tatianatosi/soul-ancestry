@@ -1,3 +1,4 @@
+import { iniciais } from "@/components/portal/elementos-mockup";
 import { useEffect, useState } from "react";
 import { ChevronDown, Network, Rows3, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ export function PerfilPessoaArvore({ pessoa, destaque = false, titular = false, 
     <details className={`app-arvore-perfil${destaque || titular ? " app-arvore-perfil--destaque" : ""}`} data-arvore-pessoa data-arvore-chave={pessoa.chave} data-arvore-titular={titular || undefined}>
       <summary>
         <span className="app-arvore-inicial" aria-hidden="true">{pessoa.nome.charAt(0)}</span>
-        <span className="min-w-0"><span className="block font-medium">{pessoa.nome}</span>{conectado ? <span className="app-arvore-conectado" data-arvore-conectado>Conectado</span> : null}{titular ? <span className="text-xs text-navy/60">G1 · Você</span> : pessoa.geracao ? <span className="text-xs text-navy/60">G{pessoa.geracao} · {pessoa.geracao}ª geração</span> : null}</span>
+        <span className="min-w-0"><span className="app-no-iniciais" aria-hidden="true">{iniciais(pessoa.nome)}</span><span className="block font-medium">{pessoa.nome}</span>{conectado ? <span className="app-arvore-conectado" data-arvore-conectado>Conectado</span> : null}{titular ? <span className="text-xs text-navy/60">G1 · Você</span> : pessoa.geracao ? <span className="text-xs text-navy/60">G{pessoa.geracao} · {pessoa.geracao}ª geração</span> : null}</span>
         <ChevronDown className="app-detalhe-seta h-4 w-4 shrink-0" aria-hidden="true" />
       </summary>
       <div className="app-arvore-ficha">

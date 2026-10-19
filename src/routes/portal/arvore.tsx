@@ -138,7 +138,7 @@ export function PortalArvore() {
                         <>
                           <span className="font-serif text-base text-navy">
                             {pessoas.length}{" "}
-                            {pessoas.length === 1 ? "pessoa conectada" : "pessoas conectadas"}
+                            {pessoas.length === 1 ? "pessoa conectada na linhagem" : "pessoas conectadas na linhagem"}
                           </span>
                           {/*
                             O rodapé "de um universo de N possíveis" do mockup de

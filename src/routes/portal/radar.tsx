@@ -101,7 +101,8 @@ export function PortalRadar() {
 
                   <section aria-label="Dimensões do Radar">
                     <h2 className="mb-3 font-serif text-xl text-navy">A história em seis dimensões</h2>
-                     {/* Grade de 6 cartões (mockup original, 13/10/2026): percentual e barra só com dado real. */}
+                     {/* Grade de 6 cartões (mockup original, 13/10/2026): percentual e barra só com dado real.
+                         Reconciliação: conteúdo do rascunho preservado; bg-card mantém a superfície semântica atual. */}
                      <ul className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 lg:grid-cols-3" data-radar-grade>
                       {dimensoes.map((d, i) => {
                         const temPercentual = d.percentual !== null;

@@ -207,7 +207,7 @@ export function PortalLegado() {
                                   key={item.id}
                                   className="border-b border-border py-4"
                                 >
-                                  <details>
+                                  <details open>
                                   <summary className="min-h-11 cursor-pointer font-serif text-lg text-navy">
                                     {item.tipo === "microentrega" ? "Da nossa jornada" : item.tipoRotulo}
                                     {item.publicadoEm && dataPublicacao(item.publicadoEm) ? <span className="ml-2 font-sans text-xs text-navy/60">{dataPublicacao(item.publicadoEm)}</span> : null}
