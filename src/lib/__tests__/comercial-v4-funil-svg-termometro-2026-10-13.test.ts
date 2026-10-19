@@ -13,9 +13,15 @@ const rota = readFileSync("src/routes/_authenticated/leads.tsx", "utf8");
 const kit = readFileSync("src/components/prancha-v4/kit.tsx", "utf8");
 
 describe("Comercial — Funil em degraus/trapézio (FunilVisualSvg)", () => {
-  it("o Funil comercial usa FunilVisualSvg, não mais BarrasHorizontais", () => {
-    const trecho = rota.slice(rota.indexOf("data-leads-funil"), rota.indexOf("</CaCard>", rota.indexOf("data-leads-funil")));
-    expect(trecho).toContain("<FunilVisualSvg");
+  it("o Funil comercial usa o funil em degraus da prancha (FunilDegraus), não BarrasHorizontais", () => {
+    // 19/10/2026 — prancha V4 conferida: "Conversão por etapa" é o funil em
+    // degraus centralizados com a CONTAGEM real por etapa (mesmo desenho do
+    // Hoje), não barras de percentual. O percentual segue no texto acessível
+    // só quando há denominador (pipelineLeads.length).
+    const inicio = rota.indexOf("data-leads-funil\n");
+    const trecho = rota.slice(inicio, rota.indexOf("</CaCard>", inicio));
+    expect(trecho).toContain("<FunilDegraus");
+    expect(trecho).toContain("pipelineLeads.length ?");
     expect(trecho).not.toContain("<BarrasHorizontais");
   });
 

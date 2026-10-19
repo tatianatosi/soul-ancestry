@@ -92,7 +92,9 @@ describe("Comercial — Aquisição/Qualidade por canal (trio infográfico)", ()
 
 describe("Comercial — arredondamento V4 (segunda rodada)", () => {
   it("os quatro novos cartões (propostas, leads ativos, saúde canais) têm rounded-2xl e os KPIs rounded-xl", () => {
-    const grandes = rota.match(/className="mb-6 rounded-2xl p-6"/g) ?? [];
+    // 19/10/2026 — o cartão-cabeçalho do funil também é rounded-2xl p-6,
+    // com classes de layout próprias; conta todo cartão V4 grande.
+    const grandes = rota.match(/className="mb-6 [^"]*rounded-2xl[^"]*p-6[^"]*"|className="mb-6 rounded-2xl p-6"/g) ?? [];
     expect(grandes.length).toBeGreaterThanOrEqual(3);
     expect(rota).toContain('data-leads-kpis-topo');
   });
