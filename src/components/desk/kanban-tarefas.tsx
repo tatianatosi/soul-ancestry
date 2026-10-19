@@ -24,7 +24,7 @@ export function KanbanTarefas() {
     retry: false,
   });
 
-  const linhas = ((q.data as any)?.registros ?? (q.data as any)?.linhas ?? []) as any[];
+  const linhas = (Array.isArray(q.data) ? q.data : []) as any[];
   const colunas = ESTADOS.tarefa.map((estado, i) => ({
     titulo: estado.rotulo,
     tom: TOM_COLUNA[i] ?? "neutro",

@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useAutoridade } from "@/components/saas/autoridade";
 
 import { EntidadeCrud } from "@/components/saas/entidade-crud";
+import { FonteAlimento } from "@/components/desk/fonte-alimento";
+import { KanbanTarefas } from "@/components/desk/kanban-tarefas";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { ESTADOS, PRIORIDADES, rotuloEstado } from "@/lib/estados";
 
