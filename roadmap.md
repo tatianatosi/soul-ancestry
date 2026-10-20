@@ -1,5 +1,10 @@
 # Roadmap
 
+## 20/10 — Sugestões completas de jornada guiada (somente documento)
+- [ ] Revisar estudo v3-v2, inventário integral de 19/10 e código atual por área/subárea; separar evidência histórica de estado atual.
+- [ ] Produzir novo PDF visual: Preparar → Conversar → Revisar, contextos aplicados, formatos V4 variados, legado/sanitização por tela e canos reais versus propostos.
+- [ ] Renderizar e conferir todas as páginas, entregar na coleção de estudos; não alterar produto, trabalho do Claude ou publicar.
+
 ## 19/10 — Atualização da recomposição densa do App
 - [x] Restaurar Documentos e reconciliar os ajustes exclusivos de Home, Árvore, Conta e aparência local com a versão principal.
 - [x] Preservar leitores, permissões, sete abas, grade móvel atual e botão institucional; sem edição do Desk ou dados.
