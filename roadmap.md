@@ -1,9 +1,9 @@
 # Roadmap
 
 ## 20/10 — Sugestões completas de jornada guiada (somente documento)
-- [ ] Revisar estudo v3-v2, inventário integral de 19/10 e código atual por área/subárea; separar evidência histórica de estado atual.
-- [ ] Produzir novo PDF visual: Preparar → Conversar → Revisar, contextos aplicados, formatos V4 variados, legado/sanitização por tela e canos reais versus propostos.
-- [ ] Renderizar e conferir todas as páginas, entregar na coleção de estudos; não alterar produto, trabalho do Claude ou publicar.
+- [x] Revisar estudo v3-v2, inventário integral de 19/10 e código local 731f666c por área/subárea; separar observação histórica, código e proposta. Auditoria de todos os filhos/writers não exercitada; estado online atual do Claude não recapturado.
+- [x] PDF de 80 páginas: 29 composições, 90 entradas Desk históricas, 12 subabas de pesquisa, 11 de linhagens, 10 alimentos da Biblioteca, cinco cartões/seis atos, jornada 375, legado/sanitização e achados citados ao Claude.
+- [x] Todas as páginas renderizadas e inspecionadas em folhas de contato; corrigida sobreposição de interpretação/ação na pesquisa. PDF salvo em Arquivos para a coleção existente; nenhum src, dado, trabalho do Claude, App ou publicação alterado. Testes/build do produto não aplicáveis a este corte documental.
 
 ## 19/10 — Atualização da recomposição densa do App
 - [x] Restaurar Documentos e reconciliar os ajustes exclusivos de Home, Árvore, Conta e aparência local com a versão principal.
