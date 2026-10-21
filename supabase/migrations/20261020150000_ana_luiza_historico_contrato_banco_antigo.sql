@@ -9,8 +9,8 @@
 --    para o contrato a11a0000-0000-4000-8000-0000000000c1:
 --      6 contract_versions (v1..v6, 21/08 a 10/09; v5 = v6, 14 cláusulas, selo RASCUNHO INTERNO),
 --      84 contract_validation_results, 20 contract_review_events.
--- 3) Completa cadastro de Adair e Alice SOMENTE onde o campo está vazio, com os dados
---    do Contrato de Estudo Genealógico v2.0 (PDF de 10/10/2026, Drive).
+-- 3) Corrige o cadastro do caso (telefone, nascimento e quadra/lote de Ana; quadra/lote de Adair e Alice),
+--    só quando o valor atual for o lido na B1 de 21/10/2026.
 --
 -- O QUE NÃO FAZ
 -- - Não cria/ativa/substitui versão de contrato, não altera status, valor, cláusula ou assinatura.
@@ -46,10 +46,22 @@ from src,
  lateral jsonb_array_elements(t.arr) e
 on conflict (id) do nothing;
 
--- Complemento de cadastro (somente campos vazios)
-update public.clientes set rg_numero = '3184582'  where id = 'a11a0000-0000-4000-8000-000000000003' and rg_numero is null;
-update public.clientes set rg_orgao_uf = 'SSP/GO' where id = 'a11a0000-0000-4000-8000-000000000003' and rg_orgao_uf is null;
-update public.clientes set estado_civil = 'casado' where id = 'a11a0000-0000-4000-8000-000000000003' and estado_civil is null;
-update public.clientes set estado_civil = 'solteiro' where id = 'a11a0000-0000-4000-8000-000000000004' and estado_civil is null;
-update public.clientes set data_nascimento = '2006-03-18' where id = 'a11a0000-0000-4000-8000-000000000004' and data_nascimento is null;
-update public.clientes set rg_orgao_uf = 'SSP/GO' where id = 'a11a0000-0000-4000-8000-000000000001' and rg_orgao_uf is null;
+-- Correções de cadastro do caso Ana Luiza (aprovadas pela Proprietária em 20/10/2026).
+-- Base: leitura B1 do Lovable (21/10/2026) × Contrato v2.0 PDF de 10/10/2026 × banco antigo.
+-- Cada update só age se o valor atual for exatamente o lido na B1 (nada é sobrescrito às cegas).
+
+-- C1. Telefone de Ana: falta o dígito 9 no Lovable. PDF v2.0 e banco antigo: (62) 98158-4015.
+update public.clientes set telefone = '(62) 98158-4015'
+ where id = 'a11a0000-0000-4000-8000-000000000001' and telefone = '(62) 8158-4015';
+
+-- C2. Nascimento de Ana: vazio no Lovable; banco antigo: 27/06/2001.
+update public.clientes set data_nascimento = '2001-06-27'
+ where id = 'a11a0000-0000-4000-8000-000000000001' and data_nascimento is null;
+
+-- C3. Quadra/lote (PDF v2.0): Ana Qd. 21, Lt. 21; Adair e Alice Qd. 21, Lt. 20.
+update public.clientes set endereco_numero = 'Qd. 21, Lt. 21'
+ where id = 'a11a0000-0000-4000-8000-000000000001' and endereco_numero is null;
+update public.clientes set endereco_numero = 'Qd. 21, Lt. 20'
+ where id in ('a11a0000-0000-4000-8000-000000000003','a11a0000-0000-4000-8000-000000000004') and endereco_numero is null;
+
+-- Não alterado (pendente de documento): CPF e RG de Alice; nascimento de Adair; CEP de Adair e Alice.
