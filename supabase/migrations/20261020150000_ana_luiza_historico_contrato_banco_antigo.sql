@@ -14,7 +14,7 @@
 --
 -- O QUE NÃO FAZ
 -- - Não cria/ativa/substitui versão de contrato, não altera status, valor, cláusula ou assinatura.
--- - Não sobrescreve nenhum dado já preenchido no Lovable (dossiê da semana passada prevalece).
+-- - Só sobrescreve o telefone de Ana (C1), e apenas se ainda for o valor errado lido na B1. Demais campos: só se vazios.
 -- - Não apaga nada. Idempotente (on conflict do nothing / where ... is null).
 
 create table if not exists public.contract_history_imports (
