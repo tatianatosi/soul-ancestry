@@ -77,7 +77,9 @@ export const carregarGoLive = createServerFn({ method: "GET" })
     const porId = entrada.casoId;
 
     const consulta = supabase.from("crm_casos").select("*").eq("organization_id", organizationId);
-    const { data: caso, error } = await (porId ? consulta.eq("id", porId) : consulta.eq("codigo", CODIGO_CASO_GO_LIVE))
+    const ehUuid = Boolean(porId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(porId));
+    const filtrada = !porId ? consulta.eq("codigo", CODIGO_CASO_GO_LIVE) : ehUuid ? consulta.eq("id", porId) : consulta.eq("codigo", porId);
+    const { data: caso, error } = await filtrada
       .is("archived_at", null)
       .maybeSingle();
     if (error) throw new Error(error.message);

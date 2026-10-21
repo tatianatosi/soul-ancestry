@@ -12,7 +12,7 @@ const financeiro = readFileSync("src/routes/_authenticated/financeiro.tsx", "utf
 describe("21/10/2026 — carregarGoLive({ casoId? })", () => {
   it("aceita casoId e cai no caso-piloto quando ausente", () => {
     expect(golive).toContain("casoId?: string");
-    expect(golive).toMatch(/porId \? consulta\.eq\("id", porId\) : consulta\.eq\("codigo", CODIGO_CASO_GO_LIVE\)/);
+    expect(golive).toContain('!porId ? consulta.eq("codigo", CODIGO_CASO_GO_LIVE) : ehUuid ? consulta.eq("id", porId) : consulta.eq("codigo", porId)');
     expect(golive).toContain('.eq("organization_id", organizationId)');
   });
 

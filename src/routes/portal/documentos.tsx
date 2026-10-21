@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
+import { createServerFn, useServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { Button } from "@/components/ui/button";
 import { SecaoDocumental } from "@/components/portal/secao-documental";
 import { Download, FileText, LockKeyhole, UploadCloud } from "lucide-react";
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/portal/documentos")({
 export function PortalDocumentos() {
   const previa = usePreviaPortal();
   const vivo = usePortalVivo();
+  const acervoVisivel = useAcervoVisivel(vivo.data?.casoAtivoId ?? null);
   const carregar = useServerFn(minhasEntregas);
   const baixar = useServerFn(baixarEntrega);
   const [erro, setErro] = useState<string | null>(null);
@@ -82,7 +84,7 @@ export function PortalDocumentos() {
                 <div className="app-cofre-ausencia" data-cofre-ausencia>
                   <LockKeyhole className="h-8 w-8 text-navy" aria-hidden="true" />
                   <h2 className="mt-3 font-serif text-2xl text-navy">Acervo sob curadoria técnica</h2>
-                  <AcervoEmConferencia />
+                  <AcervoEmConferencia visivel={acervoVisivel} />
                   <LinkPortal to="/portal/legado" className="mt-4 flex min-h-11 items-center text-sm text-navy underline decoration-gold underline-offset-4">Conhecer o Legado</LinkPortal>
                 </div>
               </div>
@@ -232,7 +234,7 @@ export function PortalDocumentos() {
             <div className="app-cofre-ausencia" data-cofre-ausencia>
               <LockKeyhole className="h-8 w-8 text-navy" aria-hidden="true" />
               <h2 className="mt-3 font-serif text-2xl text-navy">Acervo sob curadoria técnica</h2>
-              <AcervoEmConferencia />
+              <AcervoEmConferencia visivel={acervoVisivel} />
               <div className="mt-4"><EnviarDocumento casoId={casoAtivo} /></div>
               <LinkPortal to="/portal/legado" className="mt-3 inline-flex min-h-11 items-center text-sm text-navy underline decoration-gold underline-offset-4">Conhecer o Legado</LinkPortal>
             </div>
@@ -428,14 +430,50 @@ export function PortalDocumentos() {
   );
 }
 
-/* Acervo informado pela Proprietária (13/10/2026): só estado, sem botão de ver/baixar até o arquivo ser enviado e liberado. */
-const ACERVO_EM_CONFERENCIA = [
+/* Evidências reais do dossiê da Ana Luiza (CA-CID-AT-FAM-2026-001), informadas pela Proprietária em 13/10 e confirmadas em 21/10/2026. Ligar aos registros do banco após o lançamento. */
+export const CODIGO_CASO_ACERVO_ANA = "CA-CID-AT-FAM-2026-001";
+export const ACERVO_EM_CONFERENCIA = [
   { titulo: "Certidão de Nascimento", detalhe: "Graz, Áustria · 1895" },
   { titulo: "Dossiê Genealógico da Família", detalhe: "Linhagem Friedmann-Reimer" },
   { titulo: "Registro da Comunidade Israelita", detalhe: "Viena · 1938–39" },
 ];
 
-function AcervoEmConferencia() {
+export function acervoVisivelNoCaso(codigoCaso: string | null | undefined): boolean {
+  return codigoCaso === CODIGO_CASO_ACERVO_ANA;
+}
+
+/* O código vem do próprio caso ativo, lido com a sessão do usuário (RLS decide o acesso). */
+const acervoDoCasoAtivo = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { casoId: string | null }) => data)
+  .handler(async ({ data, context }) => {
+    if (!data.casoId) return { visivel: false };
+    const { data: caso } = await (context.supabase as any)
+      .from("crm_casos")
+      .select("codigo")
+      .eq("id", data.casoId)
+      .maybeSingle();
+    return { visivel: acervoVisivelNoCaso((caso?.codigo as string | null) ?? null) };
+  });
+
+function useAcervoVisivel(casoId: string | null): boolean {
+  const ler = useServerFn(acervoDoCasoAtivo);
+  const { data } = useQuery({
+    queryKey: ["portal-acervo-caso", casoId],
+    queryFn: () => ler({ data: { casoId } }),
+    enabled: Boolean(casoId),
+  });
+  return data?.visivel === true;
+}
+
+export function AcervoEmConferencia({ visivel }: { visivel: boolean }) {
+  if (!visivel) {
+    return (
+      <p className="app-estado-editorial mt-3" data-acervo-vazio>
+        Seu acervo está em preparação
+      </p>
+    );
+  }
   return (
     <ul className="mt-4 grid w-full gap-3 text-left sm:grid-cols-3" data-acervo-conferencia>
       {ACERVO_EM_CONFERENCIA.map((d) => (

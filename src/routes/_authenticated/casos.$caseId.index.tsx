@@ -471,9 +471,8 @@ function SeletorDeCasos({ atual, codigoAtual }: { atual: string; codigoAtual: st
  * tempo, participantes/relações, dossiê documental, pesquisa e hipóteses,
  * condição comercial/faturas e projeções publicadas — mas lendo dos
  * carregadores já parametrizados por caseId desta própria ficha (q,
- * qPesquisa, qDocumentos, qFinanceiro, qc2), em vez do leitor de
- * /golive/painel-caso.tsx, que é fixo no caso-piloto (ver nota mais abaixo,
- * em FichaQuatroLotesGoLive). Assim o conteúdo troca de verdade quando o
+ * qPesquisa, qDocumentos, qFinanceiro, qc2); a ficha dos 4 lotes usa
+ * carregarGoLive({ casoId }). Assim o conteúdo troca de verdade quando o
  * Seletor Universal de Casos troca de caso. Nenhuma tabela/consulta nova.
  */
 function VisaoConcretaCaso({
