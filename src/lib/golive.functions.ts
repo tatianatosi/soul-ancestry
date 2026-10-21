@@ -64,27 +64,30 @@ async function lista(
 
 export type DadosGoLive = Awaited<ReturnType<typeof carregarGoLive>>;
 
+// Sem casoId, cai no caso-piloto (CODIGO_CASO_GO_LIVE): as superfícies /golive-* seguem idênticas.
 export const carregarGoLive = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((data: { casoId?: string } | undefined) => ({
+    casoId: typeof data?.casoId === "string" && data.casoId.trim() ? data.casoId.trim() : undefined,
+  }))
+  .handler(async ({ data: entrada, context }) => {
     semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
+    const porId = entrada.casoId;
 
-    const { data: caso, error } = await supabase
-      .from("crm_casos")
-      .select("*")
-      .eq("organization_id", organizationId)
-      .eq("codigo", CODIGO_CASO_GO_LIVE)
+    const consulta = supabase.from("crm_casos").select("*").eq("organization_id", organizationId);
+    const { data: caso, error } = await (porId ? consulta.eq("id", porId) : consulta.eq("codigo", CODIGO_CASO_GO_LIVE))
       .is("archived_at", null)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!caso) {
       return {
         encontrado: false as const,
-        codigo: CODIGO_CASO_GO_LIVE,
+        codigo: porId ?? CODIGO_CASO_GO_LIVE,
       };
     }
+    const codigoDoCaso = String(caso.codigo ?? (porId ? "" : CODIGO_CASO_GO_LIVE));
 
     const casoId = String(caso.id);
     const [
@@ -461,7 +464,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
 
     return {
       encontrado: true as const,
-      codigo: CODIGO_CASO_GO_LIVE,
+      codigo: codigoDoCaso,
       /*
        * Denominador real do eixo "Conexões Familiares" do Radar (05/10/2026,
        * PREMISSA da Proprietária): nunca o teto ilustrativo de 31.
@@ -472,7 +475,7 @@ export const carregarGoLive = createServerFn({ method: "GET" })
         pessoaPrincipalId: String(clienteCanonico?.id ?? contratante?.["id"] ?? "") || null,
         email: (clienteCanonico?.email as string) ?? (contratante?.["email"] as string) ?? null,
         telefone: (clienteCanonico?.telefone as string) ?? (contratante?.["telefone"] as string) ?? null,
-        casoCanonico: CODIGO_CASO_GO_LIVE,
+        casoCanonico: codigoDoCaso,
         casoId,
         nucleo: nucleo ? String(nucleo["nome"] ?? "Núcleo familiar") : null,
         nucleoMembros: nucleoMembros.map((m) => ({
@@ -492,8 +495,8 @@ export const carregarGoLive = createServerFn({ method: "GET" })
       },
       caso: {
         id: casoId,
-        codigo: String(caso.codigo ?? CODIGO_CASO_GO_LIVE),
-        titulo: (caso.titulo as string) ?? "Projeto familiar — Ana Luiza",
+        codigo: codigoDoCaso,
+        titulo: (caso.titulo as string) ?? (porId ? "Caso sem título registrado" : "Projeto familiar — Ana Luiza"),
         cliente: (caso.cliente_nome as string) ?? null,
         status: (caso.status as string) ?? null,
         fase: (caso.fase as string) ?? null,

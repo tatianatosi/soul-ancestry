@@ -16,11 +16,8 @@ import { atualizarRegistro, criarRegistro, listarRegistros } from "@/lib/saas.fu
 // Frente 1 (19/10/2026) — Seletor Universal de Casos e "Visão Concreta":
 // reaproveita exatamente os leitores já existentes da esteira /golive/* —
 // nenhuma leitura nova é escrita aqui, nenhuma tabela/coluna/CHECK inventada.
-// `useGoLive`/`montarFicha` continuam presos ao único caso-piloto
-// (CODIGO_CASO_GO_LIVE) — ver nota no corpo de FichaCaso.
-import { useGoLive } from "@/components/golive/dados";
 import { montarFicha, resumoLote, type CampoFicha } from "@/lib/golive-ficha";
-import { CODIGO_CASO_GO_LIVE } from "@/lib/golive.functions";
+import { carregarGoLive, type DadosGoLive } from "@/lib/golive.functions";
 import {
   obterPropostaCanvaDoCliente,
   obterResumoFinanceiroCaso,
@@ -624,37 +621,19 @@ function VisaoConcretaCaso({
   );
 }
 
-/**
- * Resgate dos 4 lotes (A–D) de /golive-ficha.ts — Tarefa 3. `montarFicha`
- * é 100% reaproveitado sem reescrita; o único gap real é o leitor que a
- * alimenta (`carregarGoLive`, em golive.functions.ts) estar fixo no
- * caso-piloto `CODIGO_CASO_GO_LIVE` (não recebe caseId — ver AGENTS.md:
- * "painel-dia.tsx × golive-* aguardam decisão; não tocar"). Por isso este
- * bloco mostra a ficha completa só quando o caso aberto é o piloto, e um
- * vazio honesto — nunca inferido — nos demais, com o caminho real para
- * resolver a lacuna.
- */
-function FichaQuatroLotesGoLive({ codigoCasoAtual }: { codigoCasoAtual: string | null }) {
-  const { data, isPending } = useGoLive();
+/** Resgate dos 4 lotes (A–D) de golive-ficha.ts, lidos do caso aberto (carregarGoLive({ casoId })). */
+function FichaQuatroLotesGoLive({ casoId }: { casoId: string }) {
+  const carregar = useServerFn(carregarGoLive);
+  const { data, isPending, isError } = useQuery<DadosGoLive>({
+    queryKey: ["go-live", "caso", casoId],
+    queryFn: () => carregar({ data: { casoId } }),
+    enabled: Boolean(casoId),
+  });
   const [lote, setLote] = useState<"A" | "B" | "C" | "D">("A");
   const casoPiloto = data?.encontrado ? data : null;
-  const ehOCasoAberto = Boolean(codigoCasoAtual) && codigoCasoAtual === CODIGO_CASO_GO_LIVE;
-
-  if (!ehOCasoAberto) {
-    return (
-      <div className="rounded-xl border border-dashed border-navy/20 bg-cream/60 p-4 text-sm text-navy/70">
-        <p>
-          A ficha por lotes com fonte, estado, responsável e visibilidade por campo (golive-ficha.ts) hoje só está
-          disponível para o caso-piloto <code className="text-xs">{CODIGO_CASO_GO_LIVE}</code> — o leitor que a
-          alimenta (<code className="text-xs">carregarGoLive</code>) não recebe caseId ainda. Lacuna real a resolver
-          pela Proprietária, não inferida aqui.
-        </p>
-      </div>
-    );
-  }
 
   if (isPending) return <p className="text-sm text-navy/60">Carregando ficha por lotes…</p>;
-  if (!casoPiloto) return <p className="text-xs text-navy/55">Ficha do caso-piloto indisponível agora.</p>;
+  if (isError || !casoPiloto) return <p className="text-xs text-navy/55">Ficha por lotes indisponível para este caso agora.</p>;
 
   const lotes = montarFicha(casoPiloto);
   const loteAtual = lotes.find((l) => l.chave === lote) ?? null;
@@ -1520,7 +1499,7 @@ function FichaCaso() {
             </section>
             <section aria-label="Lote B · Pesquisa e árvore" data-caso360-lote="B" className="contents">
                 <div className="order-2 min-w-0" data-caso360-participantes>
-                <CaCard className="h-full" eyebrow="Lote B · Pesquisa e árvore" titulo="Participantes">
+                <CaCard className="h-full" eyebrow="Lote B · Pesquisa e árvore" titulo="Núcleo familiar e participantes">
                   {(() => {
                     const membros = (q.data?.membros ?? []) as any[];
                     if (!membros.length)
@@ -2552,7 +2531,7 @@ function FichaCaso() {
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy/50">
                   Resgate dos 4 lotes (golive-ficha.ts) — fonte, estado, responsável e visibilidade por campo
                 </p>
-                <FichaQuatroLotesGoLive codigoCasoAtual={(caso["codigo"] as string | null) ?? null} />
+                <FichaQuatroLotesGoLive casoId={String(caso["id"] ?? "")} />
               </div>
             </div>
           ) : null}

@@ -350,7 +350,7 @@ function Index() {
 
   return (
     <SaasShell
-      titulo="Pesquisa"
+      titulo="Pesquisa Genealógica e Evidências"
       descricao="Dossiê de pesquisa: fontes, hipóteses, vínculos e produção de evidências, com dado real do Desk."
     >
       {pendenciaVinculo || !podeEscrever ? (

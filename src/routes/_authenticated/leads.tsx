@@ -580,6 +580,7 @@ function LeadsPage() {
         `ultimo_followup_em`/`created_at`, nunca de prazo de exemplo.
       */}
       <section className="mb-6" data-leads-quadro-etapas aria-label="Funil comercial vivo por etapa">
+        <h3 className="mb-3 font-serif text-lg text-navy">Quadro por etapa</h3>
         {pipelineLeads.length === 0 ? (
           <p className="mb-3 text-sm text-navy/60" data-leads-quadro-etapas-vazio>
             Sem dados suficientes

@@ -534,37 +534,6 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
           </p>
         </Bloco>
 
-        <CaCard>
-        <details>
-          <summary className="cursor-pointer font-serif text-lg text-navy">
-            Leitura complementar de aquisição
-          </summary>
-          <div className="mt-4 space-y-5">
-        <Bloco id="conteudo-ctas" titulo="Conteúdo e CTAs" descricao={SECOES_MARKETING.find((s) => s.hash === "conteudo-ctas")!.descricao}>
-          {/*
-            27/08/2026 — "conteúdo vai pra área de comunicação" (Proprietária).
-            editorial_content_items já é consultado de verdade em
-            /biblioteca-mensagens (message-library.functions.ts) — aqui nunca
-            foi, apesar do mapa técnico desta página dizer "parcial/real".
-            Vira ponte, não duplicata.
-          */}
-          <p>
-            Conteúdo editorial (posts, CTAs, temas por etapa de funil) é governado na Biblioteca de Mensagens, junto
-            dos modelos de WhatsApp, e-mail e portal — não aqui.
-          </p>
-          <Link
-            to="/biblioteca-mensagens"
-            search={{ alerta: undefined, caso: undefined, codigo: undefined }}
-            className="mt-3 inline-block rounded-lg border border-navy/15 px-3 py-1.5 text-[13px] text-navy hover:border-gold"
-          >
-            Abrir Biblioteca de Mensagens e Conteúdos
-          </Link>
-          <p data-marketing-vazio="captura" className="mt-2 text-[12px] text-navy/55">
-            {VAZIOS_MARKETING.captura} Sem CTA com link rastreável, conteúdo não gera origem atribuível: a lacuna
-            fica declarada, sem estimativa.
-          </p>
-        </Bloco>
-
         <Bloco id="atribuicao" titulo="Atribuição e origem" descricao={SECOES_MARKETING.find((s) => s.hash === "atribuicao")!.descricao}>
           <p data-marketing-vazio="atribuicao" className="mb-3">
             {entrada.atribuicoes.length === 0
@@ -646,6 +615,50 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
           </ul>
         </Bloco>
 
+        <Bloco id="aprendizados" titulo="Aprendizados das campanhas" descricao={SECOES_MARKETING.find((s) => s.hash === "aprendizados")!.descricao}>
+          <p>
+            Derivado do desempenho por canal acima — nunca uma lista fixa. Leitura de canal é insumo interno de
+            decisão humana; nenhum aprendizado registrado aqui aciona campanha, verba, link ou mensagem.
+          </p>
+          <ul data-marketing="aprendizados-campanha" className="mt-3 list-disc space-y-1 pl-5 text-[12px] text-navy/70">
+            {aprendizados.map((a) => (
+              <li key={a}>{a}</li>
+            ))}
+          </ul>
+        </Bloco>
+
+        <CaCard>
+        <details>
+          <summary className="cursor-pointer font-serif text-lg text-navy">
+            Leitura complementar de aquisição
+          </summary>
+          <div className="mt-4 space-y-5">
+        <Bloco id="conteudo-ctas" titulo="Conteúdo e CTAs" descricao={SECOES_MARKETING.find((s) => s.hash === "conteudo-ctas")!.descricao}>
+          {/*
+            27/08/2026 — "conteúdo vai pra área de comunicação" (Proprietária).
+            editorial_content_items já é consultado de verdade em
+            /biblioteca-mensagens (message-library.functions.ts) — aqui nunca
+            foi, apesar do mapa técnico desta página dizer "parcial/real".
+            Vira ponte, não duplicata.
+          */}
+          <p>
+            Conteúdo editorial (posts, CTAs, temas por etapa de funil) é governado na Biblioteca de Mensagens, junto
+            dos modelos de WhatsApp, e-mail e portal — não aqui.
+          </p>
+          <Link
+            to="/biblioteca-mensagens"
+            search={{ alerta: undefined, caso: undefined, codigo: undefined }}
+            className="mt-3 inline-block rounded-lg border border-navy/15 px-3 py-1.5 text-[13px] text-navy hover:border-gold"
+          >
+            Abrir Biblioteca de Mensagens e Conteúdos
+          </Link>
+          <p data-marketing-vazio="captura" className="mt-2 text-[12px] text-navy/55">
+            {VAZIOS_MARKETING.captura} Sem CTA com link rastreável, conteúdo não gera origem atribuível: a lacuna
+            fica declarada, sem estimativa.
+          </p>
+        </Bloco>
+
+
         <Bloco id="funil-aquisicao" titulo="Funil de aquisição" descricao={SECOES_MARKETING.find((s) => s.hash === "funil-aquisicao")!.descricao}>
           {/*
             27/08/2026 — era referência 100% estática, nunca lia banco. Ganha
@@ -688,17 +701,6 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
           </p>
         </Bloco>
 
-        <Bloco id="aprendizados" titulo="Aprendizados das campanhas" descricao={SECOES_MARKETING.find((s) => s.hash === "aprendizados")!.descricao}>
-          <p>
-            Derivado do desempenho por canal acima — nunca uma lista fixa. Leitura de canal é insumo interno de
-            decisão humana; nenhum aprendizado registrado aqui aciona campanha, verba, link ou mensagem.
-          </p>
-          <ul data-marketing="aprendizados-campanha" className="mt-3 list-disc space-y-1 pl-5 text-[12px] text-navy/70">
-            {aprendizados.map((a) => (
-              <li key={a}>{a}</li>
-            ))}
-          </ul>
-        </Bloco>
           </div>
         </details>
         </CaCard>

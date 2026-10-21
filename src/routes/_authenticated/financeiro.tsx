@@ -533,6 +533,7 @@ function FinanceiroPage() {
                   <dt className="text-[10px] font-medium uppercase tracking-widest text-navy/55">{item.rotulo}</dt>
                   <dd className="mt-1 font-serif text-2xl leading-none tabular-nums text-navy">{moeda(item.valor, "BRL")}</dd>
                   <span className="mt-1 block text-[11px] text-navy/55">{item.apoio}</span>
+                  <span className="mt-1 block text-[11px] text-navy/45">Ver lista →</span>
                 </button>
               ))}
             </dl>

@@ -11,6 +11,8 @@ import { definirPapel, listarAuditoria, listarUsuarios, type Papel } from "@/lib
 import { obterModoProprietaria, type EventoProprietaria } from "@/lib/modo-proprietaria.functions";
 import { CAPACIDADES_PROPRIETARIA, ROTULO_CAPACIDADE } from "@/lib/modo-proprietaria";
 import { ConfiguracaoAcessoV4 } from "@/components/desk/configuracao-acesso-v4";
+import { KpiCard } from "@/components/clube-ancestral-kit";
+import { GovernancaConectada } from "@/components/desk/superficies-kit-conectadas";
 import { CaCard } from "@/components/ui/ca-card";
 import { Etiqueta } from "@/components/prancha-v4/kit";
 
@@ -76,6 +78,17 @@ function ConfiguracoesPage() {
 
   return (
     <SaasShell titulo="Configuração & Acesso" descricao="Composição da prancha V4. Somente administradores da organização. Gestão de contas da equipe fica em Equipe e papéis." visualKit="pantone">
+      <GovernancaConectada />
+      <section aria-label="Resumo de acesso master" className="mb-4 grid gap-3 sm:grid-cols-3">
+        <KpiCard label="Membros" value={usuariosOperacionais?.length} detail="Contas operacionais vinculadas" />
+        <KpiCard label="Papéis disponíveis" value={PAPEIS.length} detail="Perfis internos controlados" />
+        <KpiCard
+          label="Modo Proprietária"
+          value={qModo.data ? (qModo.data.ativo ? "Ativo" : "Inativo") : null}
+          detail="Autoridade confirmada no servidor"
+          tone={qModo.data?.ativo ? "success" : "neutral"}
+        />
+      </section>
       {/*
         Prancha V4 (19/10/2026): Permissões · painel selecionado (Política
         operacional por padrão) · Registro de auditoria — somente leitura,
