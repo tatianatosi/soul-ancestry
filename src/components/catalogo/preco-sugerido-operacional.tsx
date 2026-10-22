@@ -2,6 +2,7 @@
  * Painel de leitura — preço sugerido como referência comercial operacional.
  * Somente leitura: não cria preço, condição, cobrança, link ou comunicação.
  */
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -37,7 +38,7 @@ export function PrecoSugeridoOperacional() {
         métricas. Não é cobrança, link, assinatura nem valor final: condição e proposta aprovadas prevalecem.
       </p>
 
-      {q.isLoading ? <p className="mt-3 text-sm text-navy/60">Carregando…</p> : null}
+      {q.isLoading ? <div className="mt-3"><CarregandoDesk linhas={1} rotulo="Carregando o preço sugerido" /></div> : null}
       {q.error ? (
         <p role="alert" className="mt-3 flex flex-wrap items-center gap-3 text-sm text-terracotta">
           Não foi possível ler o preço sugerido canônico. Totais e divergências abaixo estão vazios por falha de

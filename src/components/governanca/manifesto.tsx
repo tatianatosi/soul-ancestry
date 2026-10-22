@@ -25,6 +25,7 @@ import {
   salvarDecisao,
   salvarItemConhecimento,
 } from "@/lib/governanca.functions";
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
@@ -146,7 +147,7 @@ export function ManifestoResgate() {
         ))}
       </nav>
 
-      {isLoading ? <p className="text-sm text-navy/60">Carregando…</p> : null}
+      {isLoading ? <CarregandoDesk linhas={3} rotulo="Carregando o manifesto" /> : null}
 
       {aba === "manifesto" ? (
         <section className="space-y-4">

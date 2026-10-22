@@ -52,9 +52,18 @@ describe("o tamanho da sobreposição, medido e congelado", () => {
     expect(rotasDoMenu).not.toMatch(/"\/golive/);
   });
 
-  it("a home pública ainda abre o Desk paralelo — porta declarada, não escondida", () => {
-    expect(home).toMatch(/to="\/golive"/);
-    expect(home).toMatch(/Nova tela do Desk/);
+  /*
+   * 22/10/2026 — decisão da Proprietária (parecer de design): a vitrine pública
+   * ficou com dois botões apenas, "Entrar no Clube" e "Falar com Especialista".
+   * Com isso a porta pública para o Desk paralelo FECHOU. A sobreposição não
+   * sumiu — as 19 rotas e a nav própria continuam medidas acima, e o Painel Hoje
+   * ainda aponta para dentro —, mas deixou de estar exposta a quem não tem
+   * sessão. O teste passa a travar o lado oposto: a porta não volta à home
+   * pública sem nova decisão.
+   */
+  it("a home pública não abre mais o Desk paralelo — porta fechada em 22/10, e não volta sozinha", () => {
+    expect(home).not.toMatch(/to="\/golive"/);
+    expect(home).not.toMatch(/Nova tela do Desk/);
   });
 
   it("o Painel Hoje manda para dentro do paralelo em 7 pontos", () => {

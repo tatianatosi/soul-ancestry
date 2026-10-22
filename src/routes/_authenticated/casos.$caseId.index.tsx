@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound, redirect, useNavigate, useParams, useRouterState } from "@tanstack/react-router";
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { BarraEtapasCaso } from "@/components/caso/barra-etapas-caso";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -2026,7 +2027,7 @@ function FichaCaso() {
           {/* CA06-APP-NO-DESK: preferências sem fonte viva homologada — nunca inferido nem simulado. */}
           <p className="mt-1 text-xs text-navy/60">Preferências: sem fonte viva homologada</p>
           {qVisaoCliente.isLoading ? (
-            <p className="mt-2 text-xs text-navy/50">Carregando…</p>
+            <div className="mt-2"><CarregandoDesk linhas={2} rotulo="Carregando a visão do cliente" /></div>
           ) : qVisaoCliente.isError ? (
             <p className="mt-2 text-xs text-terracotta">Não foi possível carregar a visão do cliente.</p>
           ) : (
@@ -2112,7 +2113,7 @@ function FichaCaso() {
         <div id="resumo-financeiro" className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)] sm:col-span-2 lg:col-span-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Financeiro</p>
           {qFinanceiro.isLoading ? (
-            <p className="mt-2 text-xs text-navy/50">Carregando…</p>
+            <div className="mt-2"><CarregandoDesk linhas={2} rotulo="Carregando o financeiro deste caso" /></div>
           ) : qFinanceiro.isError ? (
             <p className="mt-2 text-xs text-terracotta">Não foi possível carregar o financeiro deste caso.</p>
           ) : (
@@ -2929,7 +2930,7 @@ function FichaCaso() {
               descricao="Decisão de ato formal, não bloqueio universal — leads, Discovery, pesquisa, tarefas, rascunhos e OS internas seguem sem depender disto."
             >
               {qJuridico.isLoading ? (
-                <p className="text-xs text-navy/50">Carregando…</p>
+                <CarregandoDesk linhas={2} rotulo="Carregando a validação jurídica" />
               ) : qJuridico.isError ? (
                 <p className="text-xs text-terracotta">Não foi possível carregar a validação jurídica.</p>
               ) : qJuridico.data?.semRotaAplicavel && !qJuridico.data.rota ? (
@@ -3424,7 +3425,7 @@ function FichaCaso() {
             descricao="Registrar pagamento e preparar cobrança ficam no resumo executivo, no topo da página — aqui é só o estado, para consulta rápida."
           >
             {qFinanceiro.isLoading ? (
-              <p className="text-xs text-navy/50">Carregando…</p>
+              <CarregandoDesk linhas={2} rotulo="Carregando o financeiro deste caso" />
             ) : qFinanceiro.isError ? (
               <p className="text-xs text-terracotta">Não foi possível carregar o financeiro deste caso.</p>
              ) : (

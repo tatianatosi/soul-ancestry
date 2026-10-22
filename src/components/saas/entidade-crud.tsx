@@ -11,6 +11,7 @@ import {
   restaurarRegistro,
   type Entidade,
 } from "@/lib/saas.functions";
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { rotuloEstado, transicoesDe, type Dominio } from "@/lib/estados";
 import { filtrarPorBusca } from "@/lib/rotulo-negocio";
 import { BotaoTentarNovamente, EstadoVazio } from "./shell";
@@ -267,7 +268,7 @@ export function EntidadeCrud({
       ) : null}
 
       {q.isLoading ? (
-        <EstadoVazio mensagem="Carregando…" />
+        <CarregandoDesk linhas={4} rotulo={`Carregando ${titulo.toLowerCase()}`} />
       ) : q.isError ? (
         <EstadoVazio
           mensagem={`Não foi possível carregar ${titulo.toLowerCase()}.`}

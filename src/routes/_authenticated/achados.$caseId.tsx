@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -374,7 +375,7 @@ function Pagina() {
           ))}
         </div>
       ) : null}
-      {q.isLoading ? <p className="text-sm text-navy/50">Carregando…</p> : null}
+      {q.isLoading ? <CarregandoDesk linhas={3} rotulo="Carregando os achados" /> : null}
       {q.isError ? (
         <p className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 p-3 text-sm text-terracotta">
           Não foi possível carregar achados e encontros deste caso.

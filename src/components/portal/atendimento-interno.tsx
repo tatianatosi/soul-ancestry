@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Check, Eye, EyeOff, Lock, Plus, Send, X } from "lucide-react";
 import { toast } from "sonner";
 
-import { CardIndicador } from "@/components/desk/ui-desk";
+import { CarregandoDesk, CardIndicador } from "@/components/desk/ui-desk";
 import { CaCard } from "@/components/ui/ca-card";
 import { Etiqueta } from "@/components/prancha-v4/kit";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
@@ -574,7 +574,7 @@ export function AtendimentoInterno() {
       </div>
 
 
-      {isLoading ? <p className="text-sm text-navy/60">Carregando…</p> : null}
+      {isLoading ? <CarregandoDesk linhas={3} rotulo="Carregando o atendimento" /> : null}
 
       <Painel
         titulo="Solicitar documento ao cliente"

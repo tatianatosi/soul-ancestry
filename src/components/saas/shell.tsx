@@ -17,6 +17,7 @@ import {
   Users,
   Megaphone,
   Wallet,
+  Inbox,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -425,7 +426,13 @@ export function SaasShell({
           data-desk-content="true"
           data-marca="guia"
         >
-          {children}
+          {/* 22/10/2026 — decisão da Proprietária: o Desk ganha o mesmo fade de
+              entrada do App. A chave pela rota remonta o bloco a cada troca de
+              tela, para a animação de 200ms rodar de novo; quem pede menos
+              movimento no sistema não recebe nenhuma (ver styles.css). */}
+          <div key={rota} data-desk-entrada>
+            {children}
+          </div>
         </main>
         {/* Prancha V4: no celular a navegação entre setores é a barra fixa de ícones embaixo. */}
         <nav
@@ -464,6 +471,10 @@ export function SaasShell({
 export function EstadoVazio({ mensagem, acao }: { mensagem: string; acao?: ReactNode }) {
   return (
     <div className="rounded-xl border border-dashed border-navy/20 bg-cream/50 p-10 text-center text-sm text-navy/60">
+      {/* 22/10/2026 — decisão da Proprietária: ícone dourado discreto acima do
+          texto. O texto honesto não muda; o ícone é só moldura, por isso
+          aria-hidden. */}
+      <Inbox className="mx-auto mb-3 h-7 w-7 text-gold" aria-hidden="true" strokeWidth={1.5} />
       <p>{mensagem}</p>
       {acao ? <div className="mt-3 flex justify-center">{acao}</div> : null}
     </div>
