@@ -27,6 +27,19 @@ export function formatarCpf(valor: string): string {
   return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
 }
 
+/**
+ * Máscara de privacidade para leitura: `•••.•••.123-45` (22/10/2026, decisão da
+ * Proprietária). Esconde os 6 primeiros dígitos e mostra os 5 últimos, que
+ * bastam para conferir identidade no dia a dia sem deixar o documento inteiro
+ * à vista. CPF curto ou sem dígito suficiente vira só pontos — nunca um número
+ * parcial que pareça completo.
+ */
+export function mascararCpf(valor: string): string {
+  const d = apenasDigitos(valor).slice(0, 11);
+  if (d.length < 11) return "•••.•••.•••-••";
+  return `•••.•••.${d.slice(6, 9)}-${d.slice(9)}`;
+}
+
 /** Dígito verificador padrão da Receita Federal. Rejeita sequências repetidas (ex.: 111.111.111-11). */
 export function cpfValido(valor: string): boolean {
   const d = apenasDigitos(valor);

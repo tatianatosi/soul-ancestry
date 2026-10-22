@@ -367,22 +367,22 @@ function CallsPage() {
         </p>
       ) : null}
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">Calls Agendadas</p>
-          <p className="mt-1 font-serif text-3xl text-navy">{agendadas.length}</p>
+          <p className="mt-1 font-serif text-2xl text-navy sm:text-3xl">{agendadas.length}</p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">Realizadas</p>
-          <p className="mt-1 font-serif text-3xl text-navy">{realizadas.length}</p>
+          <p className="mt-1 font-serif text-2xl text-navy sm:text-3xl">{realizadas.length}</p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">No-Show</p>
-          <p className="mt-1 font-serif text-3xl text-navy">{noShow.length}</p>
+          <p className="mt-1 font-serif text-2xl text-navy sm:text-3xl">{noShow.length}</p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">Taxa de Qualificação</p>
-          <p className="mt-1 font-serif text-3xl text-navy">{taxaQualificacao === null ? "—" : `${taxaQualificacao}%`}</p>
+          <p className="mt-1 font-serif text-2xl text-navy sm:text-3xl">{taxaQualificacao === null ? "—" : `${taxaQualificacao}%`}</p>
         </div>
       </div>
 
@@ -430,22 +430,38 @@ function CallsPage() {
         real que já existe abaixo (agenda/consentimento, roteiro SPIN ao
         lado das respostas, revisão e handoff no PainelCalls).
       */}
+      {/*
+        22/10/2026 — acabamento visual: no celular (375 px) estes três cartões
+        descritivos empilhavam logo abaixo da própria navegação de momentos,
+        repetindo o mesmo rótulo e empurrando o trabalho real para fora da
+        primeira tela. Nada foi removido: os três continuam no documento e
+        aparecem juntos a partir de sm:. No celular fica visível o cartão do
+        momento ativo, que é o único que descreve o que a pessoa está fazendo
+        agora. A composição homologada em 14/10 (2 colunas, topo sem Kanban)
+        não muda.
+      */}
       <ol className="mb-6 grid gap-3 sm:grid-cols-3" data-l04-momentos>
-        <li className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+        <li
+          className={`rounded-xl border border-navy/10 bg-cream/40 p-4 sm:block ${momento === "antes" ? "" : "hidden"}`}
+        >
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-terracotta">1 · Antes da call</p>
           <p className="mt-1 text-sm font-medium text-navy">Agenda do dia e consentimento</p>
           <p className="mt-1 text-[11px] text-navy/55">
             Horário, canal, responsável e permissão de gravação — confirmados antes de começar.
           </p>
         </li>
-        <li className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+        <li
+          className={`rounded-xl border border-navy/10 bg-cream/40 p-4 sm:block ${momento === "durante" ? "" : "hidden"}`}
+        >
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-terracotta">2 · Durante</p>
           <p className="mt-1 text-sm font-medium text-navy">Roteiro SPIN ao lado das respostas</p>
           <p className="mt-1 text-[11px] text-navy/55">
             Situação, Problema, Implicação e Necessidade — pergunta e resposta na mesma tela.
           </p>
         </li>
-        <li className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+        <li
+          className={`rounded-xl border border-navy/10 bg-cream/40 p-4 sm:block ${momento === "revisao" ? "" : "hidden"}`}
+        >
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-terracotta">3 · Revisão</p>
           <p className="mt-1 text-sm font-medium text-navy">Resumo validado e handoff</p>
           <p className="mt-1 text-[11px] text-navy/55">

@@ -453,3 +453,33 @@
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 
+
+/*
+  Acabamento visual do Desk (22/10/2026, decisão da Proprietária).
+
+  1. Fade de entrada de 200ms a cada troca de tela, igual ao que o App Cliente
+     já faz (`app-entrada`, em portal-v11.css). O bloco `[data-desk-entrada]`
+     é remontado por rota no SaasShell, então a animação roda de novo.
+  2. Quem pede menos movimento no sistema operacional não recebe animação
+     nenhuma no Desk — mesma regra que o kit já aplica no escopo dele.
+  Escopo limitado ao Desk: nenhum token global muda.
+*/
+[data-desk-entrada] {
+  animation: desk-entrada 200ms ease-out;
+}
+
+@keyframes desk-entrada {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-desk-shell] *,
+  [data-desk-shell] *::before,
+  [data-desk-shell] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

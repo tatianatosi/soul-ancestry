@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { supabase } from "@/integrations/supabase/client";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -507,7 +508,7 @@ function FinanceiroPage() {
           className="rounded-2xl p-5 sm:p-6"
         >
           {qFaturas.isLoading || qPagamentos.isLoading ? (
-            <p className="text-sm text-navy/50">Carregando…</p>
+            <CarregandoDesk linhas={4} rotulo="Carregando o resumo financeiro" />
           ) : (
             <dl className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
               {(
@@ -625,7 +626,7 @@ function FinanceiroPage() {
           */}
           <CaCard
             titulo="Reconciliação"
-            eyebrow="Financeiro · payments.conciliacao_status"
+            eyebrow="Financeiro · situação da conciliação"
             data-financeiro-reconciliacao
             className="rounded-2xl p-5 sm:p-6"
           >
@@ -812,7 +813,7 @@ function FinanceiroPage() {
           className="rounded-2xl p-5 sm:p-6"
         >
           {qDespesasTerceiros.isLoading ? (
-            <p className="text-sm text-navy/60">Carregando…</p>
+            <CarregandoDesk linhas={3} rotulo="Carregando as despesas de terceiros" />
           ) : resumoDespesas.total === 0 ? (
             <EstadoVazio mensagem="Nenhuma despesa de terceiro registrada ainda." />
           ) : (
@@ -1543,7 +1544,7 @@ function CondicoesPrevistas() {
   return (
     <CaCard titulo="Condições previstas por caso" eyebrow="Financeiro · Previsão sem cobrança" data-financeiro-condicoes>
       {q.isLoading ? (
-        <p className="text-sm text-navy/50">Carregando…</p>
+        <CarregandoDesk linhas={3} rotulo="Carregando as condições previstas" />
       ) : q.isError ? (
         <p className="text-sm text-terracotta">
           Não foi possível ler as condições.{" "}

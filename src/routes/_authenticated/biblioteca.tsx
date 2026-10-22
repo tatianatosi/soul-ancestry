@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Archive, BookOpen, Bookmark, Database, FileText, Scale } from "lucide-react";
 
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { SaasShell } from "@/components/saas/shell";
 import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import "@/components/desk/mockup4-superficies.css";
@@ -282,7 +283,11 @@ function BibliotecaPage() {
           {kpisBiblioteca && totalVigentes === 0 ? (
             <p className="mt-2 text-[11px] text-navy/55">Nenhum item vigente registrado ainda.</p>
           ) : !kpisBiblioteca ? (
-            <p className="mt-2 text-[11px] text-navy/55">{erroLeitura ? "Leitura indisponível — não é acervo vazio." : "Carregando…"}</p>
+            erroLeitura ? (
+              <p className="mt-2 text-[11px] text-navy/55">Leitura indisponível — não é acervo vazio.</p>
+            ) : (
+              <div className="mt-2"><CarregandoDesk linhas={1} rotulo="Carregando os indicadores da biblioteca" /></div>
+            )
           ) : null}
         </Cartao>
         <Cartao titulo="Vigência interna" data-biblioteca-vigencia>

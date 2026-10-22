@@ -1,3 +1,4 @@
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { PainelCatalogo } from "@/components/painel/painel-catalogo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -139,7 +140,7 @@ function ContratosPage() {
         {contratoPrancha ? (
           <PranchaJuridicoContrato contratoId={contratoPrancha} instrumentos={todos} />
         ) : qTodos.isLoading ? (
-          <p className="text-sm text-navy/60">Carregando…</p>
+          <CarregandoDesk linhas={4} rotulo="Carregando os instrumentos contratuais" />
         ) : (
           <PranchaJuridicoVazia erro={Boolean(qTodos.error)} />
         )}

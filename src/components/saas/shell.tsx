@@ -17,6 +17,7 @@ import {
   Users,
   Megaphone,
   Wallet,
+  Inbox,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -369,8 +370,16 @@ export function SaasShell({
           </details>
         </header>
         <div className="min-w-0 px-4 pt-4 md:px-6 md:pt-6" data-desk-titulo>
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 sm:flex sm:justify-between">
-            <div className="min-w-0">
+          {/*
+            22/10/2026 — decisão da Proprietária: no celular o cabeçalho empilha.
+            Antes era grade de duas colunas já em 375px: a coluna das ações tinha
+            largura natural (no Caso 360 ela leva o Seletor de Casos, que é
+            largo) e a do título podia encolher até zero, então "Caso 360" saía
+            uma letra por linha. Empilhado, o título sempre tem a largura toda; a
+            partir de `sm:` volta a dividir a linha com as ações, como antes.
+          */}
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+            <div className="min-w-0 max-w-full">
               <h1 className="break-words font-serif text-3xl leading-tight text-navy">{titulo}</h1>
               {descricao ? <p className="overflow-wrap-anywhere mt-1 text-xs text-navy/60">{descricao}</p> : null}
             </div>
@@ -425,7 +434,13 @@ export function SaasShell({
           data-desk-content="true"
           data-marca="guia"
         >
-          {children}
+          {/* 22/10/2026 — decisão da Proprietária: o Desk ganha o mesmo fade de
+              entrada do App. A chave pela rota remonta o bloco a cada troca de
+              tela, para a animação de 200ms rodar de novo; quem pede menos
+              movimento no sistema não recebe nenhuma (ver styles.css). */}
+          <div key={rota} data-desk-entrada>
+            {children}
+          </div>
         </main>
         {/* Prancha V4: no celular a navegação entre setores é a barra fixa de ícones embaixo. */}
         <nav
@@ -464,6 +479,10 @@ export function SaasShell({
 export function EstadoVazio({ mensagem, acao }: { mensagem: string; acao?: ReactNode }) {
   return (
     <div className="rounded-xl border border-dashed border-navy/20 bg-cream/50 p-10 text-center text-sm text-navy/60">
+      {/* 22/10/2026 — decisão da Proprietária: ícone dourado discreto acima do
+          texto. O texto honesto não muda; o ícone é só moldura, por isso
+          aria-hidden. */}
+      <Inbox className="mx-auto mb-3 h-7 w-7 text-gold" aria-hidden="true" strokeWidth={1.5} />
       <p>{mensagem}</p>
       {acao ? <div className="mt-3 flex justify-center">{acao}</div> : null}
     </div>

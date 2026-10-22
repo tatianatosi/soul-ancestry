@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -29,7 +30,7 @@ export function MetricasJornada() {
       </p>
 
       {q.isLoading || !m ? (
-        <p className="mt-4 text-sm text-navy/55">Carregando…</p>
+        <div className="mt-4"><CarregandoDesk linhas={2} rotulo="Carregando as métricas da jornada" /></div>
       ) : (
         <>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

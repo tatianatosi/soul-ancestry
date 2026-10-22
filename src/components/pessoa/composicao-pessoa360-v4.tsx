@@ -12,7 +12,7 @@ import {
   type Tom,
 } from "@/components/prancha-v4/kit";
 import { PAPEIS_PESSOA } from "@/lib/caso-ficha";
-import { formatarCpf } from "@/lib/validacao-pessoa";
+import { mascararCpf } from "@/lib/validacao-pessoa";
 import { cn } from "@/lib/utils";
 
 /*
@@ -265,7 +265,11 @@ export function ComposicaoPessoa360V4({
             </div>
           ) : null}
           <Linha rotulo="Nome civil" valor={texto(cliente.nome) ?? "Não registrado"} tom={texto(cliente.nome) ? "neutro" : "atencao"} />
-          <Linha rotulo="CPF" valor={texto(cliente.cpf) ? formatarCpf(String(cliente.cpf)) : "Não registrado"} tom={texto(cliente.cpf) ? "neutro" : "atencao"} />
+          {/* 22/10/2026: na composição V4 o CPF é selo de resumo, sempre
+              mascarado. O número inteiro, com "revelar", fica na ficha completa
+              (CpfMascarado em pessoas.$clienteId.tsx) — um selo não comporta
+              botão sem mexer no kit compartilhado. */}
+          <Linha rotulo="CPF" valor={texto(cliente.cpf) ? mascararCpf(String(cliente.cpf)) : "Não registrado"} tom={texto(cliente.cpf) ? "neutro" : "atencao"} />
           <Linha rotulo="Nascimento" valor={nascimento ?? "Não registrado"} tom={nascimento ? "neutro" : "atencao"} />
           <Linha rotulo="Naturalidade" valor={naturalidade ?? "Não registrada"} tom={naturalidade ? "neutro" : "atencao"} />
           <Linha

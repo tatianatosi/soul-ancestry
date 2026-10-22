@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { CaCard } from "@/components/ui/ca-card";
@@ -162,7 +163,12 @@ function ContratoDetalhe() {
     onError: (e: Error) => setAviso(e.message),
   });
 
-  if (q.isLoading) return <SaasShell titulo="Instrumento contratual">Carregando…</SaasShell>;
+  if (q.isLoading)
+    return (
+      <SaasShell titulo="Instrumento contratual">
+        <CarregandoDesk linhas={5} rotulo="Carregando o instrumento contratual" />
+      </SaasShell>
+    );
   if (q.isError || !q.data)
     return (
       <SaasShell titulo="Instrumento contratual">

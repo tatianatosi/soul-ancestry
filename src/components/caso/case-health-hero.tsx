@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 /**
  * Cabeçalho de saúde do Caso 360 (Pranchas Desk v4): situação, próxima ação,
  * responsável, prazo, motivo e impacto num só bloco, acima da dobra.
- * Paleta oficial da prancha: #13294B / #1B365D sobre fundo #F0EEE9.
+ * Paleta oficial da prancha pelos tokens: navy / navy-800 sobre fundo cream
+ * (22/10/2026 — decisão da Proprietária: nada de hex fixo fora dos tokens).
  *
  * A "saúde" é derivada só do que já está lido do caso (bloqueios reais,
  * próxima ação, responsável, prazo) e vem sempre escrita — nunca só por cor.
@@ -62,14 +63,14 @@ export function CaseHealthHero({
 }) {
   return (
     <div
-      className="mb-4 overflow-hidden rounded-xl border border-[#13294B]/20 bg-[#F0EEE9]"
+      className="mb-4 overflow-hidden rounded-xl border border-navy/20 bg-cream"
       data-case-health-hero
       data-saude={saude}
     >
-      <div className="bg-[#13294B] px-4 py-2 text-xs font-medium text-white" data-saude-rotulo>
+      <div className="bg-navy px-4 py-2 text-xs font-medium text-white" data-saude-rotulo>
         Saúde do caso: {ROTULO_SAUDE[saude]}
       </div>
-      <div className="bg-[#1B365D] p-4">
+      <div className="bg-navy-800 p-4">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Item rotulo="Situação hoje">
             <span className="font-medium">{situacao}</span>
@@ -94,7 +95,7 @@ export function CaseHealthHero({
             {resolverBloqueio ? (
               <a
                 href={resolverBloqueio.href}
-                className="mt-1 block text-xs font-medium text-[#FCB73A] underline underline-offset-2"
+                className="mt-1 block text-xs font-medium text-gold underline underline-offset-2"
               >
                 Resolver bloqueio
               </a>
@@ -102,7 +103,7 @@ export function CaseHealthHero({
           </Item>
         </div>
       </div>
-      {children ? <div className="flex flex-wrap gap-2 bg-[#F0EEE9] p-4">{children}</div> : null}
+      {children ? <div className="flex flex-wrap gap-2 bg-cream p-4">{children}</div> : null}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, PlayCircle, ShieldCheck, TestTube2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { EstadoVazio } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
@@ -205,7 +206,7 @@ export function CentroIntegracoes() {
         </section>
       ) : null}
 
-      {isLoading ? <p className="text-sm text-navy/60">Carregando…</p> : null}
+      {isLoading ? <CarregandoDesk linhas={3} rotulo="Carregando as integrações" /> : null}
       {isError ? (
         <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
           Não foi possível carregar as integrações.

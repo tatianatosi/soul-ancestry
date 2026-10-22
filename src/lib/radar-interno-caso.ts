@@ -24,6 +24,10 @@ import {
   type EixoRadar,
   type EstadoEixo,
 } from "@/lib/radar-eixos";
+// 22/10/2026 — decisão da Proprietária: o Radar mostrava o valor cru do banco
+// ("nao_avaliada", "a_definir"). As mesmas listas que a ficha do caso já usa
+// para esses campos passam a traduzir aqui também — nenhum vocabulário novo.
+import { HIPOTESE_ELEGIBILIDADE, VIAS_JURIDICAS, rotulo } from "@/lib/caso-ficha";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
@@ -82,9 +86,12 @@ export function radarInternoDoCaso(entrada: {
       // cliente (que nunca expõe isso — ver radar-eixos.ts, topo do arquivo).
       const itens = [
         entrada.caso.hipotese_elegibilidade
-          ? { rotulo: "Hipótese de elegibilidade", valor: entrada.caso.hipotese_elegibilidade }
+          ? {
+              rotulo: "Hipótese de elegibilidade",
+              valor: rotulo(HIPOTESE_ELEGIBILIDADE, entrada.caso.hipotese_elegibilidade),
+            }
           : null,
-        entrada.caso.via ? { rotulo: "Via jurídica", valor: entrada.caso.via } : null,
+        entrada.caso.via ? { rotulo: "Via jurídica", valor: rotulo(VIAS_JURIDICAS, entrada.caso.via) } : null,
         entrada.caso.pais ? { rotulo: "País alvo", valor: entrada.caso.pais } : null,
       ].filter((i): i is { rotulo: string; valor: string } => i !== null);
       return {

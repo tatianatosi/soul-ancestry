@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
+import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { motivoCampoInvalido } from "@/components/campos/aviso-campo";
 import { ChipsEscolha, MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
 import { DerivacaoJornada } from "@/components/crm/derivacao-jornada";
@@ -736,7 +737,7 @@ function LeadsPage() {
         className="mb-6 rounded-2xl p-6"
       >
         {qPropostas.isLoading ? (
-          <p className="text-sm text-navy/60">Carregando…</p>
+          <CarregandoDesk linhas={3} rotulo="Carregando as propostas comerciais" />
         ) : propostasVisiveis.length === 0 ? (
           <p className="text-sm text-navy/60" data-leads-propostas-vazio>
             Sem dados suficientes
