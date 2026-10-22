@@ -15,6 +15,9 @@ import {
   rotasSemLink,
   rotasDoMenuConta,
   MENU_CONTA,
+  setorDaRota,
+  SETORES_DESK_V5,
+  SUPERFICIES_PRANCHA_V4,
 } from "@/lib/navegacao-desk";
 import { MATRIZ_EQUIVALENCIA } from "@/lib/matriz-equivalencia";
 
@@ -150,15 +153,32 @@ describe("Navegação do Desk — 7 grupos do V4 (03/10/2026)", () => {
     }
   });
 
-  it("V4: CA-04 e o dicionário saem do menu como alimento, sem sumir", () => {
+  it("V4: o dicionário sai do menu como alimento, sem sumir", () => {
     const todas = new Set(rotasDoMenu());
-    for (const r of ["/crm-mestre", "/governanca/dicionario-calls-crm"]) {
-      expect(todas.has(r), r).toBe(false);
-      expect(CLASSIFICACAO_SANEAMENTO_V4[r], r).toBe("ALIMENTO_CONTEXTUAL");
-    }
+    const r = "/governanca/dicionario-calls-crm";
+    expect(todas.has(r), r).toBe(false);
+    expect(CLASSIFICACAO_SANEAMENTO_V4[r], r).toBe("ALIMENTO_CONTEXTUAL");
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
     expect(comercial.sub.filter((s) => "to" in s).map((s) => s.to)).toContain("/calls");
     expect(rotasDoMenuConta()).not.toContain("/crm-mestre");
+  });
+
+  // 18/10/2026: SETORES_DESK_V5 (o que a lateral renderiza hoje) deu a
+  // /crm-mestre aba própria ("Roteiro Discovery" em Comercial) — graduou de
+  // alimento contextual para item de menu real. Alinhamento de testes
+  // autorizado pela Proprietária; não altera a classificação em
+  // CLASSIFICACAO_SANEAMENTO_V4, que fica como metadado histórico.
+  // 19/10/2026 — reconciliação com o Lovable: a casca adotada classifica
+  // /crm-mestre como ALIMENTO_CONTEXTUAL (dicionário CA-04, sem aba própria
+  // de menu); o grupo dono por prefixo continua sendo Comercial.
+  it("V4: /crm-mestre é dicionário CA-04 (alimento contextual), sem aba própria no menu", () => {
+    expect(rotasDoMenu()).not.toContain("/crm-mestre");
+    expect(CLASSIFICACAO_SANEAMENTO_V4["/crm-mestre"]).toBe("ALIMENTO_CONTEXTUAL");
+    // grupoDonoDaRota só reconhece abas reais de menu, não prefixo de
+    // alimento contextual — por isso retorna null aqui (comportamento
+    // correto; setorDaRota, que usa prefixo, é quem resolve o setor real).
+    expect(grupoDonoDaRota("/crm-mestre")).toBeNull();
+    expect(setorDaRota("/crm-mestre")?.id).toBe("comercial");
   });
 
   it("Painel de Calls permanece na face de Comercial", () => {
@@ -176,6 +196,9 @@ describe("Navegação do Desk — 7 grupos do V4 (03/10/2026)", () => {
   });
 
   it("cada função mora em um único grupo — privacidade e SKU legado não são operação diária", () => {
+    // 19/10/2026: reconciliação com o Lovable — a lateral adota a casca
+    // derivada de GRUPOS_DESK (18/10, 8 grupos: 7 da V4 + Financeiro),
+    // não mais a versão hand-authored de 6 grupos que existia nesta branch.
     expect(grupoDonoDaRota("/calls")).toBe("Comercial");
     expect(grupoDonoDaRota("/leads")).toBe("Comercial");
     expect(grupoDonoDaRota("/casos")).toBe("Casos");
@@ -201,5 +224,26 @@ describe("Navegação do Desk — 7 grupos do V4 (03/10/2026)", () => {
       expect(CLASSIFICACAO_SANEAMENTO_V4[r], r).toBe("LEGADO_SEM_MENU");
       expect(rotasDoMenuConta()).not.toContain(r);
     }
+  });
+
+  it("toda rota com contexto de caso tem setor dono na lateral real (sem órfãs)", () => {
+    expect(setorDaRota("/biblioteca-evidencias/abc")?.id).toBe("pesquisa");
+    expect(setorDaRota("/relatorios-fase/abc")?.id).toBe("pesquisa");
+    // /app-cliente-demo é intencionalmente sem dono de grupo — rota
+    // preservada (URL funciona), mas o espelho demo saiu do menu de propósito
+    // (ver app-cliente-demo.test.ts, "a sessão demo saiu do grupo Cliente").
+    expect(setorDaRota("/app-cliente-demo")).toBeUndefined();
+  });
+
+  // 19/10/2026: reconciliação com o Lovable — a lateral é SETORES_DESK (8
+  // grupos, derivado de GRUPOS_DESK). SUPERFICIES_PRANCHA_V4 deixou de ser
+  // um menu paralelo e passou a ser metadado/referência interna das 13
+  // áreas canônicas; continua existindo, só não governa mais a lateral.
+  it("lateral = os 8 grupos derivados de GRUPOS_DESK, e as 13 superfícies da prancha apontam para rotas com dono", () => {
+    expect(SETORES_DESK_V5.map((g) => g.label)).toEqual([...GRUPOS_OPERACIONAIS_DESK]);
+    expect(SUPERFICIES_PRANCHA_V4).toHaveLength(13);
+    for (const s of SUPERFICIES_PRANCHA_V4) expect(setorDaRota(s.to), s.to).toBeDefined();
+    expect(setorDaRota("/qualidade")?.id).toBe("governanca");
+    expect(setorDaRota("/acessos-portal")?.id).toBe("pessoas");
   });
 });

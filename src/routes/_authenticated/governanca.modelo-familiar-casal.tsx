@@ -8,7 +8,7 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CaCard } from "@/components/ui/ca-card";
 import {
   ANEXOS_MODELO_FAMILIAR_CASAL,
   CAMPOS_OBRIGATORIOS_POR_PESSOA,
@@ -86,11 +86,8 @@ function RegistroVersionado() {
     | undefined;
 
   return (
-    <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
-      <CardHeader>
-        <CardTitle className="text-base">Registro versionado (organização)</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3 text-sm">
+    <CaCard titulo="Registro versionado (organização)">
+      <div className="space-y-3 text-sm">
         {modelo ? (
           <div className="flex flex-wrap gap-2 text-xs">
             <Badge variant="outline">{modelo.versao}</Badge>
@@ -139,8 +136,8 @@ function RegistroVersionado() {
             </ul>
           )}
         </EstadoDados>
-      </CardContent>
-    </Card>
+      </div>
+    </CaCard>
   );
 }
 
@@ -193,11 +190,8 @@ function ModeloFamiliarCasalPage() {
         <RegistroVersionado />
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base">Estrutura do núcleo familiar</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
+          <CaCard titulo="Estrutura do núcleo familiar">
+            <div className="space-y-2 text-sm">
               <ul className="space-y-1">
                 {Object.entries(NUCLEO_FAMILIAR_CASAL).map(([chave, valor]) => (
                   <li key={chave} className="flex items-center justify-between gap-3">
@@ -213,14 +207,11 @@ function ModeloFamiliarCasalPage() {
               <p className="text-xs text-navy/65">
                 Nunca inferido: {NAO_INFERIDOS.join(", ")}.
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </CaCard>
 
-          <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base">Papéis e campos obrigatórios</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm text-navy/65">
+          <CaCard titulo="Papéis e campos obrigatórios">
+            <div className="space-y-2 text-sm text-navy/65">
               <p className="text-navy">
                 Pessoa A — requerente principal · Pessoa B — cônjuge/segunda requerente
               </p>
@@ -232,15 +223,12 @@ function ModeloFamiliarCasalPage() {
               <p className="pt-1 text-xs">
                 Pessoa que não é parte contratante não se torna signatária automaticamente.
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </CaCard>
         </div>
 
-        <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base">Anexos do modelo</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
+        <CaCard titulo="Anexos do modelo">
+          <div className="space-y-3 text-sm">
             {ANEXOS_MODELO_FAMILIAR_CASAL.map((anexo) => (
               <div key={anexo.codigo} className="rounded-md border p-3">
                 <div className="flex flex-wrap items-center gap-2">
@@ -254,15 +242,12 @@ function ModeloFamiliarCasalPage() {
                 <p className="pt-1 text-xs text-navy/65">{anexo.regra}</p>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </CaCard>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base">Gates bloqueantes</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
+          <CaCard titulo="Gates bloqueantes">
+            <div className="space-y-3 text-sm">
               {GATES_MODELO_FAMILIAR_CASAL.map((gate) => (
                 <div key={gate.codigo} className="rounded-md border p-3">
                   <p className="font-medium text-navy">{gate.codigo}</p>
@@ -270,28 +255,22 @@ function ModeloFamiliarCasalPage() {
                   <p className="pt-1 text-xs text-terracotta">Bloqueia: {gate.bloqueia}</p>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </CaCard>
 
           <div className="space-y-6">
-            <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-base">Privacidade e acesso</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <CaCard titulo="Privacidade e acesso">
+              <div>
                 <ul className="list-disc space-y-1 pl-5 text-sm text-navy/65">
                   {REGRAS_PRIVACIDADE_FAMILIAR.map((regra) => (
                     <li key={regra}>{regra}</li>
                   ))}
                 </ul>
-              </CardContent>
-            </Card>
+              </div>
+            </CaCard>
 
-            <Card className="border-navy/10 bg-cream/50 text-navy shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-base">Prévia TESTE</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
+            <CaCard titulo="Prévia TESTE">
+              <div className="space-y-3 text-sm">
                 <Badge variant="outline">{previa.marca}</Badge>
                 {previa.blocos.map((bloco) => (
                   <div key={bloco.titulo} className="rounded-md border bg-cream/40 p-3">
@@ -301,8 +280,8 @@ function ModeloFamiliarCasalPage() {
                     <p className="font-mono text-sm text-navy">{bloco.conteudo}</p>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </CaCard>
           </div>
         </div>
       </div>

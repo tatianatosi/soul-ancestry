@@ -27,6 +27,14 @@ describe("P25 — Painel Hoje ganha país/via e radar de marcos jurídicos (supe
     const fimDonut = pagina.lastIndexOf("Distribuição das prioridades");
     expect(fimDonut).toBeGreaterThan(-1);
     const resto = pagina.slice(fimDonut);
-    expect(resto).not.toContain("<CaCard");
+    // 18/10/2026: a única exceção autorizada é a âncora da busca global do
+    // cabeçalho ("Encontrar no Desk", id="encontrar-no-desk"). Nenhum outro
+    // bloco pode voltar a ficar pendurado abaixo do donut.
+    const semAncoraBusca = resto.replace(
+      /<div id="encontrar-no-desk"[\s\S]*?<\/div>\s*<\/CaCard>\s*<\/div>/,
+      "",
+    );
+    expect(resto).toContain('id="encontrar-no-desk"');
+    expect((semAncoraBusca.match(/<CaCard/g) ?? []).length).toBe(0);
   });
 });

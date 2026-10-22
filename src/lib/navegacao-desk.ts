@@ -130,6 +130,16 @@ export const CLASSIFICACAO_SANEAMENTO_V4: Readonly<Record<string, "ALIMENTO_CONT
   "/escopo-origem": "LEGADO_SEM_MENU",
   "/pesquisa": "LEGADO_SEM_MENU",
   "/ops-excecoes": "LEGADO_SEM_MENU",
+  // 18/10/2026: estas rotas estão no prefixo dos seus setores em
+  // SETORES_DESK_V5 (a lateral real) mas perderam a aba própria que tinham
+  // no modelo anterior de 7 grupos — seguem abertas por endereço direto.
+  // Alinhamento de testes autorizado pela Proprietária.
+  "/relatorios": "ALIMENTO_CONTEXTUAL",
+  "/privacidade": "ALIMENTO_CONTEXTUAL",
+  "/governanca/modelos-contratuais": "ALIMENTO_CONTEXTUAL",
+  "/biblioteca": "ALIMENTO_CONTEXTUAL",
+  "/importacoes": "ALIMENTO_CONTEXTUAL",
+  "/atendimento": "ALIMENTO_CONTEXTUAL",
 };
 
 /**
@@ -250,7 +260,19 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/relatorios", label: "Relatórios" },
       { to: "/pesquisa-modulo", hash: "assistente-ia", label: "Assistente de pesquisa" },
     ],
-    prefixos: ["/pesquisa", "/evidencias", "/atendimento", "/biblioteca", "/fontes-genealogicas", "/relatorios", "/studio-devolutivas", "/achados", "/plano-acao"],
+    prefixos: [
+      "/pesquisa",
+      "/evidencias",
+      "/atendimento",
+      "/biblioteca",
+      "/biblioteca-evidencias",
+      "/fontes-genealogicas",
+      "/relatorios",
+      "/relatorios-fase",
+      "/studio-devolutivas",
+      "/achados",
+      "/plano-acao",
+    ],
   },
   {
     id: "marketing",
@@ -315,6 +337,13 @@ export type SetorDesk = {
 /**
  * Setores que a lateral renderiza — derivados de `GRUPOS_DESK` (fonte única).
  * O nome `SETORES_DESK_V5` fica como alias para quem ainda importa.
+ *
+ * 19/10/2026 — decisão da Proprietária (reconciliação com o Lovable): a
+ * casca visual/taxonômica do menu é esta (derivada de `GRUPOS_DESK`, 8
+ * grupos), não mais a versão de 6 grupos hand-authored que existia antes
+ * nesta branch. As 13 superfícies que viviam em `SUPERFICIES_PRANCHA_V4`
+ * continuam existindo como metadados/rotas internas (ver abaixo), nunca
+ * como um segundo menu.
  */
 export const SETORES_DESK: readonly SetorDesk[] = GRUPOS_DESK.map((g) => ({
   id: g.id,
@@ -332,6 +361,26 @@ export function destinoDaAba(aba: AbaSetor, rotaAtual: string): { to: string; ha
   if (aba.to === "/casos" && aba.hash && m) return { to: "/casos/$caseId", hash: aba.hash, caseId: m[1] };
   return { to: aba.to, hash: aba.hash };
 }
+
+/**
+ * As 13 superfícies da prancha, na ordem das pílulas do topo de toda tela
+ * do Desk. Cada uma aponta para a rota real que a implementa.
+ */
+export const SUPERFICIES_PRANCHA_V4: readonly { label: string; to: string }[] = [
+  { label: "Hoje", to: "/painel" },
+  { label: "Comercial / CRM Vivo", to: "/leads" },
+  { label: "Checklist / Kanban operacional", to: "/tarefas" },
+  { label: "Caso 360", to: "/casos" },
+  { label: "Pessoa 360", to: "/clientes" },
+  { label: "Radar & Matrizes", to: "/qualidade" },
+  { label: "Pesquisa", to: "/pesquisa-modulo" },
+  { label: "Biblioteca Mestre", to: "/biblioteca" },
+  { label: "Financeiro", to: "/financeiro" },
+  { label: "Jurídico & Contrato", to: "/contratos" },
+  { label: "Pessoas & Famílias", to: "/nucleos" },
+  { label: "Portal do cliente (visão interna)", to: "/acessos-portal" },
+  { label: "Configuração & Acesso", to: "/configuracoes" },
+];
 
 export const MENU_LEGADO_DESK: {
   label: string;

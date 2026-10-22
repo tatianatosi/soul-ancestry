@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Download, Loader2, Printer, TriangleAlert } from "lucide-react";
 
 import { EstadoVazio, SaasShell } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import { baixarCsvCrmMestre, imprimirPdfCrmMestre } from "@/lib/crm-mestre-export";
 import {
   BLOQUEIOS_EXEMPLARES_HANDOFF,
@@ -43,7 +45,6 @@ export const Route = createFileRoute("/_authenticated/crm-mestre")({
 });
 
 const CARTAO = "rounded-xl border border-navy/10 bg-cream/40 p-4";
-const TITULO_SECAO = "font-serif text-xl text-navy";
 const BOTAO =
   "inline-flex items-center gap-2 rounded-lg border border-navy/20 bg-cream/40 px-3 py-2 text-sm font-medium text-navy transition-colors hover:bg-cream disabled:opacity-60";
 
@@ -107,10 +108,10 @@ function Secao({
   children: React.ReactNode;
 }) {
   return (
-    <section className="space-y-3">
-      <h2 className={TITULO_SECAO}>{titulo}</h2>
-      {vazio ? <EstadoVazio mensagem={mensagemVazio} /> : children}
-    </section>
+    // V4-02: seção do dicionário CA-04 dentro do CaCard (casca V4), só leitura.
+    <CaCard titulo={titulo} eyebrow="CA-04 · referência" className="rounded-2xl">
+      <div className="space-y-3">{vazio ? <EstadoVazio mensagem={mensagemVazio} /> : children}</div>
+    </CaCard>
   );
 }
 
@@ -161,7 +162,18 @@ function Pagina() {
       descricao="CA-04 — mapa de regras do sistema comercial (Painel de Calls + CRM Vivo). Nenhum lead é gravado aqui: a operação vive em /calls e /leads, na mesma tabela."
       acoes={<AcoesExportacao />}
     >
-      <div className="space-y-10">
+      <div className="space-y-6">
+        {/* V4-02: contagens do próprio dicionário versionado (ca04-crm-mestre.ts) — referência, não operação. */}
+        <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-crm-mestre-kpis>
+          <Indicador rotulo="Fontes de verdade" valor={String(FONTES_VERDADE_CA04.length)} apoio="Camadas do CA-04" />
+          <Indicador
+            rotulo="Transições de eixo"
+            valor={String(EIXO_COMERCIAL_TRANSICOES.length + EIXO_FORMALIZACAO_TRANSICOES.length)}
+            apoio={`Comercial ${EIXO_COMERCIAL_TRANSICOES.length} · Formalização ${EIXO_FORMALIZACAO_TRANSICOES.length}`}
+          />
+          <Indicador rotulo="Listas controladas" valor={String(listas.length)} apoio="LISTAS_BASE v1.1" />
+          <Indicador rotulo="Decisões pendentes" valor={String(DECISOES_PENDENTES_CA04.length)} apoio="Aguardam decisão humana" />
+        </dl>
         <p className="rounded-xl border border-gold/40 bg-gold/10 px-4 py-3 text-sm text-navy">
           Este é o sistema que vai junto com o Painel de Calls — não é legado de Governança.
           Operar a call em{" "}

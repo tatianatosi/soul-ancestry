@@ -12,7 +12,9 @@ const rota = readFileSync("src/routes/_authenticated/pessoas.$clienteId.tsx", "u
 
 describe("Pessoa 360 — prancha V4", () => {
   it("a composição abre a tela e a ficha completa fica logo abaixo", () => {
-    expect(rota).toContain("<ComposicaoPessoa360V4 nome={nome} dados={{ cliente, casos, caseMembers, documentos }} />");
+    expect(rota).toContain("dados={{ cliente, casos, caseMembers, documentos }}");
+    // Cabeçalho "sem duplicidade" só com a verificação real que a rota já faz (candidatos).
+    expect(rota).toContain("duplicidadesAbertas={candidatos.length}");
     expect(rota.indexOf("<ComposicaoPessoa360V4")).toBeLessThan(rota.indexOf("data-pessoa360-ficha-completa"));
   });
 
@@ -26,6 +28,22 @@ describe("Pessoa 360 — prancha V4", () => {
     }
     expect(html).toContain("Nenhuma fonte registrada");
     expect(html).toContain("pai não registrado");
+    // Sem denominador não há número: nem estrelas medidas, nem afirmação de duplicidade.
+    expect(html).toContain("Confiança sem fonte para medir");
+    expect(html).not.toContain("0.0");
+    expect(html).not.toContain("sem duplicidade");
+    expect(html).toContain("Nome civil");
+  });
+
+  it("cabeçalho só afirma 'sem duplicidade' quando a rota verificou", async () => {
+    const { ComposicaoPessoa360V4 } = await import("@/components/pessoa/composicao-pessoa360-v4");
+    const vazio = { cliente: { id: "c" }, casos: [], caseMembers: [], documentos: [] };
+    expect(renderToStaticMarkup(<ComposicaoPessoa360V4 nome="A" dados={vazio} duplicidadesAbertas={0} />)).toContain(
+      "sem duplicidade detectada",
+    );
+    expect(renderToStaticMarkup(<ComposicaoPessoa360V4 nome="A" dados={vazio} duplicidadesAbertas={2} />)).toContain(
+      "2 possível(is) duplicidade(s) em revisão",
+    );
   });
 
   it("parentesco só vem de pai_id/mae_id gravados, nunca do sobrenome", async () => {

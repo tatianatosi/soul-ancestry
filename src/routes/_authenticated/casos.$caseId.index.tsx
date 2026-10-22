@@ -1,17 +1,23 @@
-import { createFileRoute, Link, notFound, redirect, useParams, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect, useNavigate, useParams, useRouterState } from "@tanstack/react-router";
 import { BarraEtapasCaso } from "@/components/caso/barra-etapas-caso";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 
 import { SaasShell, useSaas, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
 import { ResumoKitCaso } from "@/components/desk/kit-conectado";
 import "@/components/desk/mockup4-superficies.css";
 import { BarrasHorizontais, DonutEstados, Etiqueta, JornadaMarcos, Linha, LinhaTempoGrafica, Pessoa } from "@/components/prancha-v4/kit";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { atualizarRegistro, criarRegistro } from "@/lib/saas.functions";
+import { atualizarRegistro, criarRegistro, listarRegistros } from "@/lib/saas.functions";
+// Frente 1 (19/10/2026) — Seletor Universal de Casos e "Visão Concreta":
+// reaproveita exatamente os leitores já existentes da esteira /golive/* —
+// nenhuma leitura nova é escrita aqui, nenhuma tabela/coluna/CHECK inventada.
+import { montarFicha, resumoLote, type CampoFicha } from "@/lib/golive-ficha";
+import { carregarGoLive, type DadosGoLive } from "@/lib/golive.functions";
 import {
   obterPropostaCanvaDoCliente,
   obterResumoFinanceiroCaso,
@@ -41,6 +47,7 @@ import { listarDocumentos } from "@/lib/documentos.functions";
 import { resumoVisaoClienteCaso } from "@/lib/app-cliente-como-pessoa.functions";
 import { FasesMotorCidadania } from "@/components/caso/fases-motor-cidadania";
 import { CadeiaCaso360 } from "@/components/caso/cadeia-caso-360";
+import { CadeiaGenealogicaCaso } from "@/components/caso/cadeia-genealogica-caso";
 import { FormularioTarefaCaso } from "@/components/caso/formulario-tarefa-caso";
 import { PlanejadorOperacional } from "@/components/contrato/planejador-operacional";
 import { PublicarPlanoApp } from "@/components/contrato/publicar-plano-app";
@@ -398,6 +405,321 @@ const SECOES = [
   { id: "log", rotulo: "Histórico" },
 ] as const;
 
+/**
+ * Seletor Universal de Casos (Frente 1, 19/10/2026) — cabeçalho do Caso 360.
+ * Lista real de `crm_casos` via o mesmo `listarRegistros` genérico já usado
+ * em outras telas do Desk (nenhuma tabela/consulta nova); trocar a opção
+ * navega de fato (useNavigate), não é um estado local decorativo. "Novo
+ * caso" leva ao fluxo real já existente (`AbrirCasoMotor`, em /casos).
+ */
+function SeletorDeCasos({ atual, codigoAtual }: { atual: string; codigoAtual: string | null }) {
+  const navigate = useNavigate();
+  const listar = useServerFn(listarRegistros);
+  const q = useQuery({
+    queryKey: ["casos-seletor-universal"],
+    queryFn: () => listar({ data: { entidade: "crm_casos" } }),
+    retry: false,
+    staleTime: 60_000,
+  });
+  const casos = (q.data ?? []) as Record<string, unknown>[];
+  const conhecido = casos.some((c) => String(c["id"]) === atual);
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <label className="sr-only" htmlFor="seletor-universal-casos">
+        Trocar de caso
+      </label>
+      <select
+        id="seletor-universal-casos"
+        value={atual}
+        disabled={q.isLoading}
+        onChange={(e) => {
+          const novoId = e.target.value;
+          if (novoId && novoId !== atual) {
+            void navigate({ to: "/casos/$caseId", params: { caseId: novoId } });
+          }
+        }}
+        className="max-w-[18rem] truncate rounded-lg border border-navy/15 bg-cream px-2 py-1.5 text-xs text-navy"
+      >
+        {!conhecido ? <option value={atual}>{codigoAtual ?? "Caso atual"}</option> : null}
+        {casos.map((c) => (
+          <option key={String(c["id"])} value={String(c["id"])}>
+            {String(c["codigo"] ?? c["titulo"] ?? c["id"])}
+            {c["codigo"] && c["titulo"] ? ` — ${String(c["titulo"])}` : ""}
+          </option>
+        ))}
+      </select>
+      <Link
+        to="/casos"
+        hash="abrir-caso-operacional"
+        className="whitespace-nowrap rounded-lg border border-gold/50 bg-gold/10 px-3 py-1.5 text-xs font-medium text-navy hover:bg-gold/20"
+      >
+        + Novo caso
+      </Link>
+    </div>
+  );
+}
+
+/**
+ * "Visão Concreta" (Frente 1, 19/10/2026) — a composição de dados vive na
+ * sub-aba "concreta" da seção "Visão" (uma das 8 SECOES já existentes; não
+ * é uma 9ª seção no schema de navegação). Decisão direta da Proprietária
+ * em 19/10/2026: no índice de pílulas do Caso 360 ela quer uma pílula
+ * própria "Visão Concreta" como atalho de um clique — ver
+ * `pilulaVisaoConcretaAtiva` na página — sem duplicar esta composição.
+ * Reúne, no mesmo lugar, o que a esteira /golive/painel-caso.tsx já mostrava — linha do
+ * tempo, participantes/relações, dossiê documental, pesquisa e hipóteses,
+ * condição comercial/faturas e projeções publicadas — mas lendo dos
+ * carregadores já parametrizados por caseId desta própria ficha (q,
+ * qPesquisa, qDocumentos, qFinanceiro, qc2); a ficha dos 4 lotes usa
+ * carregarGoLive({ casoId }). Assim o conteúdo troca de verdade quando o
+ * Seletor Universal de Casos troca de caso. Nenhuma tabela/consulta nova.
+ */
+function VisaoConcretaCaso({
+  caseId,
+  timeline,
+  membros,
+  documentos,
+  pesquisa,
+  financeiro,
+  entregas,
+}: {
+  caseId: string;
+  timeline: Record<string, unknown>[];
+  membros: Record<string, unknown>[];
+  documentos: Record<string, unknown>[];
+  pesquisa:
+    | {
+        fontes: unknown[];
+        evidencias: unknown[];
+        achados: unknown[];
+        pessoas: unknown[];
+        relacoes: unknown[];
+      }
+    | null
+    | undefined;
+  financeiro: {
+    valorContratado: number | null;
+    moeda: string;
+    condicaoComercial: string | null;
+    valorRecebido: number;
+    saldoAberto: number | null;
+    status: string;
+    proximaAcaoFinanceira: string;
+  } | null;
+  entregas: Record<string, unknown>[];
+}) {
+  const cartao = "min-w-0 rounded-xl border border-navy/10 bg-card p-4 shadow-[0_1px_3px_color-mix(in_srgb,var(--navy)_8%,transparent)]";
+  const documentosLiberados = documentos.filter((d) => d["status"] === "liberado").length;
+
+  return (
+    <div className="grid gap-5 lg:grid-cols-2" data-caso360-visao-concreta>
+      <div className={cartao}>
+        <p className="mb-2 font-serif text-base text-navy">Linha do tempo do caso</p>
+        {timeline.length ? (
+          <ul className="space-y-1.5 text-sm text-navy/80">
+            {[...timeline]
+              .sort((a, b) => String(b["occurred_at"] ?? b["created_at"] ?? "").localeCompare(String(a["occurred_at"] ?? a["created_at"] ?? "")))
+              .slice(0, 8)
+              .map((e) => (
+                <li key={String(e["id"])}>
+                  {String(e["title"] ?? "Evento")}{" "}
+                  <span className="text-xs text-navy/50">
+                    — {new Date(String(e["occurred_at"] ?? e["created_at"])).toLocaleDateString("pt-BR")}
+                  </span>
+                </li>
+              ))}
+          </ul>
+        ) : (
+          <p className="text-xs text-navy/55">Nenhum evento registrado ainda.</p>
+        )}
+      </div>
+
+      <div className={cartao}>
+        <p className="mb-2 font-serif text-base text-navy">Participantes e relações</p>
+        {membros.length ? (
+          <ul className="space-y-1.5 text-sm text-navy/80">
+            {membros.slice(0, 8).map((m) => (
+              <li key={String(m["id"])}>
+                {String(m["nome"] ?? m["nome_completo"] ?? "Pessoa sem nome registrado")}
+                <span className="text-xs text-navy/50"> — {String(m["papel"] ?? "papel não registrado")}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-xs text-navy/55">Nenhum participante confirmado neste núcleo.</p>
+        )}
+        <Link to="/pessoas-linhagens/$caseId" params={{ caseId }} className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4">
+          Abrir Pessoas & Linhagens
+        </Link>
+      </div>
+
+      <div className={cartao}>
+        <p className="mb-2 font-serif text-base text-navy">Dossiê documental</p>
+        {documentos.length ? (
+          <p className="text-sm text-navy/80">
+            {documentos.length} documento(s) registrado(s) · {documentosLiberados} liberado(s) para a cliente.
+          </p>
+        ) : (
+          <p className="text-xs text-navy/55">Nenhum documento registrado ainda.</p>
+        )}
+        <Link to="/biblioteca-evidencias/$caseId" params={{ caseId }} className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4">
+          Abrir Biblioteca de Evidências
+        </Link>
+      </div>
+
+      <div className={cartao}>
+        <p className="mb-2 font-serif text-base text-navy">Pesquisa e hipóteses</p>
+        {pesquisa && (pesquisa.fontes.length || pesquisa.evidencias.length || pesquisa.achados.length) ? (
+          <p className="text-sm text-navy/80">
+            {pesquisa.fontes.length} fonte(s) · {pesquisa.evidencias.length} evidência(s) · {pesquisa.achados.length} achado(s)
+            {pesquisa.relacoes.length ? ` · ${pesquisa.relacoes.length} relação(ões) genealógica(s)` : ""}.
+          </p>
+        ) : (
+          <p className="text-xs text-navy/55">Nenhuma linha de pesquisa aberta ainda.</p>
+        )}
+        <Link to="/pesquisa-evidencias/$caseId" params={{ caseId }} className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4">
+          Abrir Pesquisa & Evidências
+        </Link>
+      </div>
+
+      <div className={cartao}>
+        <p className="mb-2 font-serif text-base text-navy">Condição comercial e faturas</p>
+        {financeiro ? (
+          <>
+            <p className="text-sm text-navy/80">
+              {financeiro.condicaoComercial ?? "Sem condição comercial registrada"}
+              {financeiro.valorContratado ? ` — ${financeiro.valorContratado.toLocaleString("pt-BR", { style: "currency", currency: financeiro.moeda || "BRL" })}` : ""}
+            </p>
+            <p className="text-xs text-navy/55">
+              Recebido: {financeiro.valorRecebido.toLocaleString("pt-BR", { style: "currency", currency: financeiro.moeda || "BRL" })}
+              {financeiro.saldoAberto ? ` · Saldo em aberto: ${financeiro.saldoAberto.toLocaleString("pt-BR", { style: "currency", currency: financeiro.moeda || "BRL" })}` : ""}
+            </p>
+            <p className="text-xs text-navy/55">
+              {(ROTULO_STATUS_FINANCEIRO_CASO as Record<string, string>)[financeiro.status] ?? financeiro.status} · {financeiro.proximaAcaoFinanceira}
+            </p>
+          </>
+        ) : (
+          <p className="text-xs text-navy/55">Nenhuma proposta, fatura ou despesa registrada ainda.</p>
+        )}
+      </div>
+
+      <div className={cartao}>
+        <p className="mb-2 font-serif text-base text-navy">Projeções publicadas no App Cliente</p>
+        {entregas.length ? (
+          <ul className="space-y-1.5 text-sm text-navy/80">
+            {entregas.slice(0, 6).map((m) => (
+              <li key={String(m["id"])}>{String(m["title_client"] ?? m["titulo"] ?? "Entrega")}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-xs text-navy/55">Nada publicado para a família até agora.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Resgate dos 4 lotes (A–D) de golive-ficha.ts, lidos do caso aberto (carregarGoLive({ casoId })). */
+function FichaQuatroLotesGoLive({ casoId }: { casoId: string }) {
+  const carregar = useServerFn(carregarGoLive);
+  const { data, isPending, isError } = useQuery<DadosGoLive>({
+    queryKey: ["go-live", "caso", casoId],
+    queryFn: () => carregar({ data: { casoId } }),
+    enabled: Boolean(casoId),
+  });
+  const [lote, setLote] = useState<"A" | "B" | "C" | "D">("A");
+  const casoPiloto = data?.encontrado ? data : null;
+
+  if (isPending) return <p className="text-sm text-navy/60">Carregando ficha por lotes…</p>;
+  if (isError || !casoPiloto) return <p className="text-xs text-navy/55">Ficha por lotes indisponível para este caso agora.</p>;
+
+  const lotes = montarFicha(casoPiloto);
+  const loteAtual = lotes.find((l) => l.chave === lote) ?? null;
+
+  return (
+    <div className="space-y-3">
+      <nav aria-label="Lotes da ficha" className="min-w-0 overflow-x-auto">
+        <ul className="flex min-w-0 flex-wrap gap-1.5">
+          {lotes.map((l) => {
+            const r = resumoLote(l);
+            return (
+              <li key={l.chave}>
+                <button
+                  type="button"
+                  aria-current={l.chave === lote ? "true" : undefined}
+                  onClick={() => setLote(l.chave)}
+                  className={
+                    l.chave === lote
+                      ? "rounded-full bg-gold/25 px-3 py-1.5 text-xs font-semibold text-navy"
+                      : "rounded-full border border-navy/15 px-3 py-1.5 text-xs text-navy/70"
+                  }
+                >
+                  {l.titulo} · {r.registrados}/{r.total}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+      {loteAtual ? (
+        <ul className="space-y-2">
+          {loteAtual.campos.map((c) => (
+            <CampoFichaLinha key={c.chave} campo={c} />
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
+/** Uma linha de campo da ficha GoLive: valor, fonte, responsável, visibilidade e estado. */
+function CampoFichaLinha({ campo }: { campo: CampoFicha }) {
+  const cor =
+    campo.estado === "registrado"
+      ? "border-navy/15 bg-white/70 text-navy"
+      : campo.estado === "em revisão" || campo.estado === "hipótese"
+        ? "border-gold/50 bg-gold/10 text-navy"
+        : "border-dashed border-navy/20 bg-cream/60 text-navy/70";
+  return (
+    <li className={`min-w-0 rounded-xl border p-3 ${cor}`}>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-sm font-semibold break-words">{campo.rotulo}</p>
+        <span className="rounded-full border border-navy/15 px-2 py-0.5 text-[11px] uppercase tracking-wide text-navy/65">
+          {campo.estado}
+        </span>
+      </div>
+      <p className="mt-1 break-words text-sm">{campo.valor ?? "Sem registro — preencher na tela dona."}</p>
+      <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-navy/60 sm:grid-cols-4">
+        <div>
+          <dt className="uppercase tracking-wide text-navy/45">Fonte</dt>
+          <dd className="break-words">{campo.fonte}</dd>
+        </div>
+        <div>
+          <dt className="uppercase tracking-wide text-navy/45">Responsável</dt>
+          <dd className="break-words">{campo.responsavel ?? "não atribuído"}</dd>
+        </div>
+        <div>
+          <dt className="uppercase tracking-wide text-navy/45">Data</dt>
+          <dd className="break-words">{campo.data ? dataHumanaGoLive(campo.data) : "sem data"}</dd>
+        </div>
+        <div>
+          <dt className="uppercase tracking-wide text-navy/45">Visibilidade</dt>
+          <dd className="break-words">{campo.visibilidade}</dd>
+        </div>
+      </dl>
+      <Link to={campo.telaDona} className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4">
+        {campo.estado === "registrado" ? "Abrir tela dona" : "Preencher na tela dona"}
+      </Link>
+    </li>
+  );
+}
+
+function dataHumanaGoLive(v: string): string {
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? v : d.toLocaleDateString("pt-BR");
+}
+
 function FichaCaso() {
   const { caseId: id } = useParams({ from: "/_authenticated/casos/$caseId/" });
   const { podeEscrever } = useSaas();
@@ -487,6 +809,14 @@ function FichaCaso() {
   });
 
   const [secaoFoco, setSecaoFoco] = useState<(typeof SECOES)[number]["id"] | null>(SECOES[0].id);
+  // Frente 1 (19/10/2026) — "Visão Concreta" mora na sub-aba da seção "Visão"
+  // (uma das 8 SECOES existentes; nunca uma 9ª seção solta no schema de
+  // navegação). Decisão direta da Proprietária em 19/10/2026: no índice de
+  // pílulas do Caso 360 ela quer uma pílula própria "Visão Concreta" como
+  // atalho de um clique — `pilulaVisaoConcretaAtiva` força a ficha aberta e
+  // a sub-aba certa sem duplicar a composição de dados já construída.
+  const [abaVisao, setAbaVisao] = useState<"indicadores" | "concreta">("indicadores");
+  const [pilulaVisaoConcretaAtiva, setPilulaVisaoConcretaAtiva] = useState(false);
   // Link contextual vindo de outra tela (ex.: Pessoa 360 → "Conferir", #pessoas).
   // 18/10/2026: reage também à âncora vinda do menu lateral (Caso 360 / Jornada / Ficha Única).
   const hashRota = useRouterState({ select: (s) => s.location.hash });
@@ -801,13 +1131,27 @@ function FichaCaso() {
       .filter(Boolean)
       .join(" ") || null;
 
+  // Etapa atual lida do planejador (case_plans) — a mesma leitura do chip
+  // "Etapa atual" da Jornada D0–D365; usada também no subtítulo do topo.
+  const etapaAtualPlanejador = (() => {
+    const f = qCadeia.data?.planejador?.fase_jornada ?? qCadeia.data?.planejador?.etapa;
+    if (!f) return null;
+    const t = String(f)
+      .replace(/_/g, " ")
+      .replace(/formalizacao/gi, "formalização")
+      .replace(/diagnostico/gi, "diagnóstico")
+      .replace(/ativacao/gi, "ativação");
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  })();
+
   return (
     <SaasShell
       visualKit="pantone"
       titulo="Caso 360"
       descricao="Ficha operacional canônica do caso"
       acoes={
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <SeletorDeCasos atual={id} codigoAtual={(caso["codigo"] as string | null) ?? null} />
           {/* CA04-CASO360-SIMPLES (09/09/2026): este botão morava aqui e
               também no hero — duplicava a mesma ação. Só no hero agora. */}
           <span className="text-xs text-navy/60">
@@ -847,12 +1191,24 @@ function FichaCaso() {
         informativa — informa, não impede: nenhuma ação desta tela é travada
         por ela (gravar pede motivo, ver `pendenciaCadastro`).
       */}
-      <section className="mb-4 rounded-xl border border-navy/10 bg-card p-4" data-caso360-identidade>
-        <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-navy/55">Lote A · Entrada e caso</p>
+      {/*
+        Casca V4 (18/10/2026) — mockup aprovado "Caso 360": cabeçalho em
+        CaCard branco com nome, subtítulo (tipo de serviço · etapa) e as
+        abas-pílula. As pílulas são o MESMO índice das 8 SECOES (antes uma
+        <nav> solta mais abaixo) — só mudou de lugar e de casca; nenhum
+        mecanismo novo de abas.
+      */}
+      <div className="mb-4" data-caso360-identidade>
+      <CaCard>
+        <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-terracotta">Lote A · Entrada e caso</p>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 className="truncate font-serif text-2xl text-navy">{String(caso["titulo"] ?? "Caso sem título")}</h2>
-            <p className="mt-1 text-xs text-navy/60">
+            <p className="mt-1 text-sm text-navy/70" data-caso360-subtitulo>
+              {String(caso["tipo_servico"] ?? "").trim() || "Tipo de serviço não registrado"} ·{" "}
+              {etapaAtualPlanejador ?? "Etapa não registrada"}
+            </p>
+            <p className="mt-0.5 text-xs text-navy/55">
               {String(caso["codigo"] ?? "Sem código")} · {caso["ativo"] ? "Caso ativo" : rotulo(STATUS_DERIVADO, derivado.valor)}
             </p>
           </div>
@@ -893,7 +1249,69 @@ function FichaCaso() {
           })}
         />
         </div>
-      </section>
+        {/* Índice: âncoras fixas; seções fora de foco ficam no DOM com hidden. */}
+        <nav aria-label="Seções do caso" className="mt-4 flex flex-wrap gap-2 border-t border-navy/10 pt-4">
+          {SECOES.map((a) => (
+            <a
+              key={a.id}
+              href={`#secao-${a.id}`}
+              onClick={() => {
+                setSecaoFoco(a.id);
+                setPilulaVisaoConcretaAtiva(false);
+              }}
+              aria-current={secaoFoco === a.id && !pilulaVisaoConcretaAtiva ? "true" : undefined}
+              className={
+                "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors " +
+                (secaoFoco === a.id && !pilulaVisaoConcretaAtiva
+                  ? "border-navy bg-navy text-cream"
+                  : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
+              }
+            >
+              {a.rotulo}
+            </a>
+          ))}
+          {/*
+            Decisão da Proprietária, 19/10/2026: pílula própria "Visão
+            Concreta" no índice do Caso 360 (não aninhada). Reaproveita a
+            mesma seção/sub-aba "Visão" já construída — zero composição
+            duplicada — só força a ficha aberta e a sub-aba certa num clique.
+          */}
+          <a
+            href="#secao-visao"
+            onClick={() => {
+              setSecaoFoco("visao");
+              setAbaVisao("concreta");
+              setPilulaVisaoConcretaAtiva(true);
+            }}
+            aria-current={pilulaVisaoConcretaAtiva ? "true" : undefined}
+            data-pilula-visao-concreta
+            className={
+              "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors " +
+              (pilulaVisaoConcretaAtiva
+                ? "border-navy bg-navy text-cream"
+                : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
+            }
+          >
+            Visão Concreta
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              setSecaoFoco(null);
+              setPilulaVisaoConcretaAtiva(false);
+            }}
+            className={
+              "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors " +
+              (secaoFoco === null
+                ? "border-gold bg-gold text-navy"
+                : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
+            }
+          >
+            Ver página completa
+          </button>
+        </nav>
+      </CaCard>
+      </div>
       {/*
         Prancha V4 (13/10/2026) — grade de cartões da Visão geral do Caso 360,
         organizada pelos 4 lotes da especificação canônica
@@ -910,16 +1328,24 @@ function FichaCaso() {
         `progressoPorFrente` (caso-ficha.ts) deriva cada frente de dado já
         carregado (contrato_assinado, dossiê, documentos_minimos_ok, publicação).
       */}
+      {/*
+        Casca V4 (18/10/2026) — uma grade única (1 coluna no celular,
+        2 no desktop) na ordem do mockup: Linha do tempo · Participantes ·
+        Progresso por frente · Estados do dossiê · Jornada (largura total),
+        depois os lotes C e D. Os 4 lotes continuam marcados na fonte
+        (`data-caso360-lote`) e como eyebrow de cada CaCard; as seções de
+        lote usam `display: contents` para que os cartões entrem na mesma
+        grade e a ordem visual venha de `order-*`.
+      */}
       {(() => {
         const ESCALA_FRENTE = ["inicial", "em_coleta", "em_andamento", "concluida"] as const;
         /*
           DECISÃO EXECUTIVA 14/10/2026 ("ACABAMENTO VISUAL DO CASO 360"):
-          contraste suave + respiro (rounded-2xl, p-6, shadow-sm, gap-6) e
-          badges de status pelos tokens semânticos reais do projeto
+          contraste suave + respiro (casca V4, 18/10/2026: o cartão avulso
+          virou o CaCard canônico — mesma superfície do Desk) e badges de status pelos tokens semânticos reais do projeto
           (sucesso/atencao/critico — AGENTS.md proíbe hex literal e paleta
           Tailwind padrão como emerald-50/amber-50/rose-50/slate-200).
         */
-        const cartao = "min-w-0 rounded-2xl border border-navy/10 bg-card p-6 shadow-sm";
         const tomStatusCadastral = { completo: "sucesso", parcial: "atencao", pendente: "critico" } as const;
         const dossieResumo = estadoDossieDoCaso(qPesquisa.data?.evidencias ?? []);
         const progresso = progressoPorFrente({
@@ -934,19 +1360,16 @@ function FichaCaso() {
           },
         });
         return (
-          <div className="mb-6 space-y-6" data-caso360-resumo-v4 data-desk-mockup4="caso">
-            <section aria-labelledby="caso360-lote-a" data-caso360-lote="A">
-              <h3 id="caso360-lote-a" className="mb-4 font-serif text-2xl text-navy">
-                Lote A · Entrada e caso
-              </h3>
-              <div className="grid gap-6 lg:grid-cols-2">
-                <section className={`${cartao} lg:order-2`} data-caso360-progresso-frente>
-                  <p className="mb-3 font-serif text-lg text-navy">Progresso do caso por frente</p>
+          <div className="mb-6 grid gap-4 lg:grid-cols-2" data-caso360-resumo-v4 data-desk-mockup4="caso">
+            <section aria-label="Lote A · Entrada e caso" data-caso360-lote="A" className="contents">
+                <div className="order-3 min-w-0" data-caso360-progresso-frente>
+                <CaCard className="h-full" eyebrow="Lote A · Entrada e caso" titulo="Progresso do caso por frente">
                   {/*
                     13/10/2026 — Proprietária: a barra da prancha é sempre
                     desenhada. Comprimento = degrau atingido na escala de 4
-                    estados de `progressoPorFrente` (inicial 0 · em coleta 1/3 ·
-                    em andamento 2/3 · concluída 3/3); o texto mostra o estado.
+                    estados de `progressoPorFrente` (inicial 1/4 · em coleta 2/4 ·
+                    em andamento 3/4 · concluída 4/4); o texto mostra o estado.
+                    Escala ordinal, não percentual de execução.
                   */}
                   <BarrasHorizontais
                     tituloAcessivel={`Progresso do caso por frente: ${(
@@ -971,9 +1394,12 @@ function FichaCaso() {
                       const nivel = ESCALA_FRENTE.indexOf(estado as (typeof ESCALA_FRENTE)[number]);
                       return {
                         rotulo,
-                        valor: (Math.max(0, nivel) / (ESCALA_FRENTE.length - 1)) * 100,
+                        // 19/10/2026 — prancha V4: cada degrau da escala ordinal
+                        // ocupa 1/4 do trilho (inicial já mostra o primeiro
+                        // degrau); só "em andamento" em dourado, como na prancha.
+                        valor: ((Math.max(0, nivel) + 1) / ESCALA_FRENTE.length) * 100,
                         apoio: ROTULO_FRENTE[estado],
-                        tom: estado === "concluida" ? ("navy" as const) : estado === "inicial" ? ("terracotta" as const) : ("gold" as const),
+                        tom: estado === "em_andamento" ? ("gold" as const) : ("navy" as const),
                       };
                     })}
                   />
@@ -984,9 +1410,10 @@ function FichaCaso() {
                       </li>
                     ))}
                   </ul>
-                </section>
-                <section className={`${cartao}`} data-caso360-linha-tempo>
-                  <p className="mb-1 font-serif text-lg text-navy">Linha do tempo do caso</p>
+                </CaCard>
+                </div>
+                <div className="order-1 min-w-0" data-caso360-linha-tempo role="group" aria-label="Linha do tempo do caso">
+                <CaCard className="h-full" eyebrow="Lote A · Entrada e caso" titulo="Linha do tempo">
                   {(() => {
                     const quando = (e: any) => new Date(String(e.occurred_at ?? e.created_at ?? 0)).getTime();
                     const eventos = ((q.data?.timeline ?? []) as any[])
@@ -1002,9 +1429,10 @@ function FichaCaso() {
                       }));
                     return <LinhaTempoGrafica eventos={eventos} />;
                   })()}
-                </section>
-                <section className={`${cartao} lg:order-3 lg:col-span-2`} data-caso360-jornada>
-                  <p className="font-serif text-lg text-navy">Jornada D0–D365</p>
+                </CaCard>
+                </div>
+                <div className="order-5 min-w-0 lg:col-span-2" data-caso360-jornada>
+                <CaCard eyebrow="Lote A · Entrada e caso" titulo="Jornada D0–D365">
                   {(() => {
                     const marcos = qCadeia.data?.planejador?.marcos ?? [];
                     const fase = String(qCadeia.data?.planejador?.fase_jornada ?? qCadeia.data?.planejador?.etapa ?? "")
@@ -1012,7 +1440,7 @@ function FichaCaso() {
                       .replace(/_/g, " ");
                     const atual = fase ? marcos.findIndex((m) => String(m).toLowerCase().includes(fase)) : -1;
                     return (
-                      <div className="mt-3">
+                      <div className="mt-1">
                         <JornadaMarcos marcos={marcos} atual={atual >= 0 ? atual : null} />
                         {!marcos.length ? (
                           <p className="mt-2 text-[10px] text-navy/50">Nenhum marco registrado no planejador.</p>
@@ -1020,31 +1448,42 @@ function FichaCaso() {
                       </div>
                     );
                   })()}
-                  <dl className="mt-5 grid gap-3 border-t border-navy/10 pt-4 text-sm sm:grid-cols-3">
-                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
-                      <dt className="text-navy/60">Etapa atual</dt>
-                      <dd className="rounded-full border border-gold/50 bg-gold/10 px-2.5 py-0.5 text-xs text-navy">
-                        {(() => {
-                          const f = qCadeia.data?.planejador?.fase_jornada ?? qCadeia.data?.planejador?.etapa;
-                          if (!f) return "Etapa não registrada";
-                          const t = String(f)
-                            .replace(/_/g, " ")
-                            .replace(/formalizacao/gi, "formalização")
-                            .replace(/diagnostico/gi, "diagnóstico")
-                            .replace(/ativacao/gi, "ativação");
-                          return t.charAt(0).toUpperCase() + t.slice(1);
-                        })()}
+                  {/*
+                    Linha de chips do mockup: Etapa atual / Cadência / Próxima
+                    ação / Microentrega / Alertas. Cadência não tem fonte
+                    carregada nesta tela — mostra o vazio honesto, sem inferir.
+                  */}
+                  <dl className="mt-5 grid gap-x-4 gap-y-2 border-t border-navy/10 pt-4 text-sm sm:grid-cols-2 lg:grid-cols-5" data-caso360-jornada-chips>
+                    <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
+                      <dt className="shrink-0 text-xs text-navy/70">Etapa atual</dt>
+                      <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-gold/50 bg-gold/10 px-2.5 py-0.5 text-xs text-navy">
+                        {etapaAtualPlanejador ?? "Etapa não registrada"}
                       </dd>
                     </div>
-                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
-                      <dt className="text-navy/60">Próxima ação</dt>
-                      <dd className="max-w-full truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
+                    <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
+                      <dt className="shrink-0 text-xs text-navy/70">Cadência</dt>
+                      <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-dashed border-navy/20 px-2.5 py-0.5 text-xs text-navy/55">
+                        Sem dado registrado ainda
+                      </dd>
+                    </div>
+                    <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
+                      <dt className="shrink-0 text-xs text-navy/70">Próxima ação</dt>
+                      <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
                         {canonica?.acao ?? "Sem próxima ação definida"}
                       </dd>
                     </div>
-                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
-                      <dt className="text-navy/60">Alertas</dt>
-                      <dd className="rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
+                    <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
+                      <dt className="shrink-0 text-xs text-navy/70">Microentrega</dt>
+                      <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
+                        {(() => {
+                          const ultima = ((qc2.data?.entregas ?? []) as any[])[0];
+                          return ultima ? String(ultima.title_client ?? "Microentrega sem título") : "Nenhuma microentrega registrada";
+                        })()}
+                      </dd>
+                    </div>
+                    <div className="flex min-w-0 items-center justify-between gap-2 border-b border-navy/5 pb-2">
+                      <dt className="shrink-0 text-xs text-navy/70">Alertas</dt>
+                      <dd className="min-w-0 max-w-[60%] truncate rounded-full border border-navy/15 px-2.5 py-0.5 text-xs text-navy">
                         {(() => {
                           const n = ((qc2.data?.alertas ?? []) as any[]).filter(
                             (a) => a.criticidade === "critica" && a.status !== "completed",
@@ -1054,23 +1493,21 @@ function FichaCaso() {
                       </dd>
                     </div>
                   </dl>
-                </section>
-              </div>
+                </CaCard>
+                </div>
             </section>
-            <section aria-labelledby="caso360-lote-b" data-caso360-lote="B">
-              <h3 id="caso360-lote-b" className="mb-4 font-serif text-2xl text-navy">
-                Lote B · Pesquisa e árvore
-              </h3>
-              <div className="grid gap-6 lg:grid-cols-2">
-                <section className={`${cartao}`} data-caso360-participantes>
-                  <p className="mb-3 font-serif text-lg text-navy">Núcleo familiar e participantes</p>
+            <section aria-label="Lote B · Pesquisa e árvore" data-caso360-lote="B" className="contents">
+                <div className="order-2 min-w-0" data-caso360-participantes>
+                <CaCard className="h-full" eyebrow="Lote B · Pesquisa e árvore" titulo="Núcleo familiar e participantes">
                   {(() => {
                     const membros = (q.data?.membros ?? []) as any[];
                     if (!membros.length)
                       return (
-                        <div className="flex items-center gap-2 opacity-60">
-                          <span className="grid h-8 w-8 place-items-center rounded-full border border-dashed border-navy/25 text-[11px] text-navy/40">—</span>
-                          <span className="text-xs text-navy/50">Nenhum participante registrado.</span>
+                        <div className="flex items-center gap-2" data-caso360-participantes-vazio>
+                          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-dashed border-navy/25 text-[11px] text-navy/35" aria-hidden="true">
+                            —
+                          </span>
+                          <span className="text-xs text-navy/55">Nenhum participante registrado ainda.</span>
                         </div>
                       );
                     return (
@@ -1097,15 +1534,16 @@ function FichaCaso() {
                       </div>
                     );
                   })()}
-                </section>
-                <section className={`${cartao}`} data-caso360-dossie>
-                  <p className="mb-3 font-serif text-lg text-navy">Estados do dossiê</p>
+                </CaCard>
+                </div>
+                <div className="order-4 min-w-0" data-caso360-dossie>
+                <CaCard className="h-full" eyebrow="Lote B · Pesquisa e árvore" titulo="Estados do dossiê">
                   <DonutEstados
                     tituloAcessivel={`Estado do dossiê: ${dossieResumo.confirmados} confirmados, ${dossieResumo.emRevisao} em revisão, ${dossieResumo.pendentes} pendentes.`}
                     segmentos={[
                       { rotulo: "Confirmados", valor: dossieResumo.confirmados, tom: "sucesso" },
                       { rotulo: "Em revisão", valor: dossieResumo.emRevisao, tom: "gold" },
-                      { rotulo: "Pendentes", valor: dossieResumo.pendentes, tom: "terracotta" },
+                      { rotulo: "Pendentes", valor: dossieResumo.pendentes, tom: "navy" },
                     ]}
                   />
                   <p className="mt-3 text-[10px] text-navy/55" role={qPesquisa.isError ? "alert" : undefined}>
@@ -1117,49 +1555,42 @@ function FichaCaso() {
                           ? `${dossieResumo.total} evidência(s) registrada(s) · situação atual do caso.`
                           : "Nenhuma evidência registrada no dossiê ainda."}
                   </p>
-                </section>
-              </div>
+                </CaCard>
+                </div>
             </section>
-            <section aria-labelledby="caso360-lote-c" data-caso360-lote="C">
-              <h3 id="caso360-lote-c" className="mb-4 font-serif text-2xl text-navy">
-                Lote C · Proposta, escopo e contrato
-              </h3>
-              <div className="grid gap-6 lg:grid-cols-2">
-                <section className={cartao} data-caso360-formalizacao>
-                  <p className="font-serif text-lg text-navy">Proposta, escopo e contrato</p>
-                  <div className="mt-3">
+            <section aria-label="Lote C · Proposta, escopo e contrato" data-caso360-lote="C" className="contents">
+                <div className="order-6 min-w-0" data-caso360-formalizacao>
+                <CaCard className="h-full" eyebrow="Lote C · Proposta, escopo e contrato" titulo="Proposta, escopo e contrato">
+                  <div>
                     <Linha rotulo="Etapa comercial" valor={String(rotulo(EIXO_COMERCIAL, v("eixo_comercial")))} />
                     <Linha rotulo="Formalização" valor={String(rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao")))} />
                     <Linha rotulo="Contrato" valor={String(caso["contrato_assinado"] ? "Assinado" : "Assinatura não registrada")} />
                   </div>
                   <a href="#secao-comercial" onClick={() => setSecaoFoco("comercial")} className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4">Abrir Formalização</a>
-                </section>
-                <section className={cartao} data-caso360-condicao>
-                  <p className="font-serif text-lg text-navy">Condição comercial</p>
+                </CaCard>
+                </div>
+                <div className="order-7 min-w-0" data-caso360-condicao>
+                <CaCard className="h-full" eyebrow="Lote C · Proposta, escopo e contrato" titulo="Condição comercial">
                   {qFinanceiro.isLoading ? (
-                    <p className="mt-3 text-sm text-navy/60" role="status">Carregando condição comercial…</p>
+                    <p className="text-sm text-navy/60" role="status">Carregando condição comercial…</p>
                   ) : qFinanceiro.isError ? (
-                    <p className="mt-3 text-sm text-terracotta" role="alert">Não foi possível carregar a condição comercial.</p>
+                    <p className="text-sm text-terracotta" role="alert">Não foi possível carregar a condição comercial.</p>
                   ) : (
-                    <p className="mt-3 text-sm text-navy">{qFinanceiro.data?.condicaoComercial ?? "Nenhuma condição comercial registrada."}</p>
+                    <p className="text-sm text-navy">{qFinanceiro.data?.condicaoComercial ?? "Nenhuma condição comercial registrada."}</p>
                   )}
                   <a href="#secao-financeiro" onClick={() => setSecaoFoco("financeiro")} className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4">Abrir Financeiro</a>
-                </section>
-              </div>
+                </CaCard>
+                </div>
             </section>
-            <section aria-labelledby="caso360-lote-d" data-caso360-lote="D">
-              <h3 id="caso360-lote-d" className="mb-4 font-serif text-2xl text-navy">
-                Lote D · Publicação e App
-              </h3>
-              <div className="grid gap-6 lg:grid-cols-2">
-                <section className={cartao} data-caso360-prontidao-app>
-                  <p className="font-serif text-lg text-navy">Prontidão para o App</p>
+            <section aria-label="Lote D · Publicação e App" data-caso360-lote="D" className="contents">
+                <div className="order-8 min-w-0" data-caso360-prontidao-app>
+                <CaCard className="h-full" eyebrow="Lote D · Publicação e App" titulo="Prontidão para o App">
                   {qVisaoCliente.isLoading ? (
-                    <p className="mt-3 text-sm text-navy/60" role="status">Carregando o estado do App…</p>
+                    <p className="text-sm text-navy/60" role="status">Carregando o estado do App…</p>
                   ) : qVisaoCliente.isError || !qVisaoCliente.data ? (
-                    <p className="mt-3 text-sm text-terracotta" role="alert">Não foi possível carregar o estado do App.</p>
+                    <p className="text-sm text-terracotta" role="alert">Não foi possível carregar o estado do App.</p>
                   ) : (
-                    <div className="mt-3">
+                    <div>
                       <Linha rotulo="Acesso da família" valor={String(qVisaoCliente.data.acesso.liberado ? "Liberado" : "Não liberado")} />
                       <Linha rotulo="Publicado no App" valor={String(qVisaoCliente.data.estadoPublicacao.publicadas)} />
                       <Linha rotulo="Aguardando publicação" valor={String(qVisaoCliente.data.estadoPublicacao.pendentes)} />
@@ -1167,23 +1598,24 @@ function FichaCaso() {
                   )}
                   <p className="mt-3 text-[11px] text-navy/50">O App mostra só o que foi aprovado e publicado; notas internas ficam no Desk.</p>
                   <Link to="/app-cliente-como-pessoa" search={{ casoId: id }} className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4">Ver como a família vê</Link>
-                </section>
-                <section className={cartao} data-caso360-acervo>
-                  <p className="font-serif text-lg text-navy">Cofre e acervo</p>
+                </CaCard>
+                </div>
+                <div className="order-9 min-w-0" data-caso360-acervo>
+                <CaCard className="h-full" eyebrow="Lote D · Publicação e App" titulo="Cofre e acervo">
                   {qDocumentos.isLoading ? (
-                    <p className="mt-3 text-sm text-navy/60" role="status">Carregando documentos…</p>
+                    <p className="text-sm text-navy/60" role="status">Carregando documentos…</p>
                   ) : qDocumentos.isError ? (
-                    <p className="mt-3 text-sm text-terracotta" role="alert">Não foi possível carregar os documentos.</p>
+                    <p className="text-sm text-terracotta" role="alert">Não foi possível carregar os documentos.</p>
                   ) : (
-                    <div className="mt-3">
+                    <div>
                       <Linha rotulo="Documentos registrados" valor={String(((qDocumentos.data ?? []) as unknown[]).length)} />
                       <Linha rotulo="Documentos mínimos" valor={String(caso["documentos_minimos_ok"] ? "Confirmados" : "Não confirmados")} />
                       <Linha rotulo="Disponíveis à família" valor={String(qVisaoCliente.data?.documentosDisponiveis ?? "—")} />
                     </div>
                   )}
                   <a href="#secao-documentos" onClick={() => setSecaoFoco("documentos")} className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4">Abrir Documentos</a>
-                </section>
-              </div>
+                </CaCard>
+                </div>
             </section>
           </div>
         );
@@ -1591,6 +2023,8 @@ function FichaCaso() {
               Cada porta separa o que está publicado (vai ao App) do que é interno (não sai do Desk). */}
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Como a família vê</p>
           <p className="mt-1 text-xs text-navy/60">O que o App Cliente mostra hoje — só conteúdo sanitizado, aprovado e publicado.</p>
+          {/* CA06-APP-NO-DESK: preferências sem fonte viva homologada — nunca inferido nem simulado. */}
+          <p className="mt-1 text-xs text-navy/60">Preferências: sem fonte viva homologada</p>
           {qVisaoCliente.isLoading ? (
             <p className="mt-2 text-xs text-navy/50">Carregando…</p>
           ) : qVisaoCliente.isError ? (
@@ -1639,13 +2073,13 @@ function FichaCaso() {
                   titulo: "Histórico",
                   natureza: "neutro",
                   publicado: v?.ultimaAtualizacaoLiberada ? `Última liberação em ${String(v.ultimaAtualizacaoLiberada.em).slice(0, 10)}` : "Não registrado",
-                  interno: v?.acesso.ultimoAcessoEm ? `Último acesso da família: ${String(v.acesso.ultimoAcessoEm).slice(0, 10)}` : "Sem acesso registrado; auditoria fica no Desk",
+                  interno: v?.acesso.ultimoAcessoEm ? `Último acesso do cliente: ${String(v.acesso.ultimoAcessoEm).slice(0, 10)}` : "Sem acesso registrado; auditoria fica no Desk",
                 },
               ];
               return (
                 <>
                   <p className="mt-2 text-sm text-navy">
-                    <span className="ca-selo-natureza mr-2" data-natureza="acao">Próximo passo publicado</span>
+                    <span className="ca-selo-natureza mr-2" data-natureza="acao">Próximo passo publicado ao cliente</span>
                     {v?.proximaAcao?.acao ?? "Não registrado"}
                   </p>
                   <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -2015,41 +2449,12 @@ function FichaCaso() {
         />
       </div>
 
-      {/* Índice: âncoras fixas; seções fora de foco ficam no DOM com hidden. */}
-      <nav
-        aria-label="Seções do caso"
-        className="sticky top-0 z-10 -mx-1 mb-5 flex flex-wrap gap-2 border-b border-navy/10 bg-cream/95 px-1 py-2.5 backdrop-blur"
-      >
-        {SECOES.map((a) => (
-          <a
-            key={a.id}
-            href={`#secao-${a.id}`}
-            onClick={() => setSecaoFoco(a.id)}
-            className={
-              "rounded-full border px-3 py-1 text-[12px] transition-colors " +
-              (secaoFoco === a.id
-                ? "border-navy bg-navy text-cream"
-                : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
-            }
-          >
-            {a.rotulo}
-          </a>
-        ))}
-        <button
-          type="button"
-          onClick={() => setSecaoFoco(null)}
-          className={
-            "rounded-full border px-3 py-1 text-[12px] transition-colors " +
-            (secaoFoco === null
-              ? "border-gold bg-gold font-medium text-navy"
-              : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
-          }
-        >
-          Ver página completa
-        </button>
-      </nav>
+      {/* Casca V4 (18/10/2026): o índice das 8 SECOES subiu para o cabeçalho (abas-pílula). */}
 
-      <details open={secaoFoco !== null && secaoFoco !== "visao"} className="rounded-lg border border-navy/15 bg-card p-4">
+      <details
+        open={(secaoFoco !== null && secaoFoco !== "visao") || pilulaVisaoConcretaAtiva}
+        className="rounded-lg border border-navy/15 bg-card p-4"
+      >
         <summary className="cursor-pointer text-sm font-medium text-navy">Abrir ficha operacional completa</summary>
       <div className="mt-5 space-y-8 border-t border-navy/10 pt-5">
         <SecaoAncora id="visao" titulo="Indicadores" hidden={secaoFoco !== null && secaoFoco !== "visao"}>
@@ -2057,6 +2462,80 @@ function FichaCaso() {
           <div className="mb-4">
             <PendenciasHumanasCaso caseId={id} />
           </div>
+
+          {/*
+            Frente 1 (19/10/2026) — "Visão Concreta": sub-aba DENTRO da seção
+            "Visão" (uma das 8 SECOES fixas), não uma 9ª seção. Consolida o
+            que /golive/painel-caso.tsx já mostrava (linha do tempo,
+            participantes/relações, dossiê documental, pesquisa e hipóteses,
+            condição comercial/faturas e publicações) a partir dos leitores
+            já parametrizados por caseId desta própria ficha.
+          */}
+          <div role="tablist" aria-label="Indicadores ou Visão Concreta" className="mb-4 flex gap-2">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={abaVisao === "indicadores"}
+              onClick={() => {
+                setAbaVisao("indicadores");
+                setPilulaVisaoConcretaAtiva(false);
+              }}
+              className={
+                "rounded-full border px-3 py-1 text-[12px] transition-colors " +
+                (abaVisao === "indicadores"
+                  ? "border-navy bg-navy text-cream"
+                  : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
+              }
+            >
+              Indicadores
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={abaVisao === "concreta"}
+              onClick={() => setAbaVisao("concreta")}
+              className={
+                "rounded-full border px-3 py-1 text-[12px] transition-colors " +
+                (abaVisao === "concreta"
+                  ? "border-navy bg-navy text-cream"
+                  : "border-navy/15 bg-card text-navy/70 hover:bg-cream hover:text-navy")
+              }
+            >
+              Visão Concreta
+            </button>
+          </div>
+
+          {abaVisao === "concreta" ? (
+            <div className="mb-6 space-y-6">
+              <VisaoConcretaCaso
+                caseId={id}
+                timeline={(q.data?.timeline ?? []) as Record<string, unknown>[]}
+                membros={(q.data?.membros ?? []) as Record<string, unknown>[]}
+                documentos={(qDocumentos.data ?? []) as Record<string, unknown>[]}
+                pesquisa={
+                  qPesquisa.data
+                    ? {
+                        fontes: qPesquisa.data.fontes,
+                        evidencias: qPesquisa.data.evidencias,
+                        achados: qPesquisa.data.achados,
+                        pessoas: qPesquisa.data.pessoas,
+                        relacoes: qPesquisa.data.relacoes,
+                      }
+                    : null
+                }
+                financeiro={qFinanceiro.data ?? null}
+                entregas={(qc2.data?.entregas ?? []) as Record<string, unknown>[]}
+              />
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy/50">
+                  Resgate dos 4 lotes (golive-ficha.ts) — fonte, estado, responsável e visibilidade por campo
+                </p>
+                <FichaQuatroLotesGoLive casoId={String(caso["id"] ?? "")} />
+              </div>
+            </div>
+          ) : null}
+
+          <div className={abaVisao === "indicadores" ? "" : "hidden"}>
           <EstadoDados
             carregando={q.isLoading}
             erro={q.error}
@@ -2321,6 +2800,7 @@ function FichaCaso() {
                 />
               </div>
             </Secao>
+          </div>
           </div>
         </SecaoAncora>
 
@@ -2687,14 +3167,22 @@ function FichaCaso() {
               recurso="as pessoas do caso"
             >
               {([d]) => (
-                <AbaPessoas
-                  casoId={id}
-                  membros={d.membros}
-                  onMudou={recarregar}
-                  atualizar={atualizar}
-                  criar={criar}
-                  bloqueado={bloqueado}
-                />
+                <>
+                  <AbaPessoas
+                    casoId={id}
+                    membros={d.membros}
+                    onMudou={recarregar}
+                    atualizar={atualizar}
+                    criar={criar}
+                    bloqueado={bloqueado}
+                  />
+                  <Secao
+                    titulo="Cadeia genealógica"
+                    descricao="Pessoa a pessoa, elo a elo — lida de genealogical_relationships/research_people deste caso; sem relação gravada, o elo não aparece."
+                  >
+                    <CadeiaGenealogicaCaso caseId={id} membros={d.membros} />
+                  </Secao>
+                </>
               )}
             </EstadoDados>
             <AbaCadastro caseId={id} bloqueado={bloqueado} />

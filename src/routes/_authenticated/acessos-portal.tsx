@@ -9,6 +9,7 @@ import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { CardIndicador } from "@/components/desk/ui-desk";
 import { CaCard } from "@/components/ui/ca-card";
+import { PortalVisaoInternaV4 } from "@/components/desk/portal-visao-interna-v4";
 import {
   alterarStatusAcessoPortal,
   criarConvitePortal,
@@ -197,8 +198,8 @@ function AcessosPortalPage() {
 
   return (
     <SaasShell
-      titulo="Acessos ao portal"
-      descricao="Clientes entram apenas por link mágico de uso único, enviado a e-mail previamente autorizado e validado."
+      titulo="Portal do cliente (visão interna)"
+      descricao="Composição da prancha V4. Clientes entram apenas por link mágico de uso único, enviado a e-mail previamente autorizado e validado."
     >
       {pendenciaVinculo || !podeEscrever ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
@@ -216,6 +217,20 @@ function AcessosPortalPage() {
       >
         {() => (
         <div className="space-y-8">
+          {/*
+            Prancha V4 (19/10/2026): Família no portal, Núcleos com/sem
+            acesso, Conteúdo publicado no App e Fila de publicação — somente
+            leitura, sobre os mesmos dados desta rota (+ núcleo existente).
+          */}
+          <PortalVisaoInternaV4
+            casos={casos}
+            acessos={q.data?.acessos ?? []}
+            casosAcesso={q.data?.casosAcesso ?? []}
+            clientes={pessoas}
+            projecoes={projecoes}
+            casosComAcessoPortal={casosComAcessoPortal}
+          />
+
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <CardIndicador rotulo="Acessos ativos ao portal" valor={acessosAtivos} apoio="Link válido e não revogado" />
             <CardIndicador rotulo="Convites pendentes" valor={convitesPendentes} apoio="Aguardando primeiro acesso" tom="atencao" />

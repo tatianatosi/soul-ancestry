@@ -75,14 +75,11 @@ describe("atalhos de descoberta", () => {
   });
 
   it("o atalho aponta para a aba dona da função, não para o nome antigo do grupo", () => {
+    // 19/10/2026: reconciliação com o Lovable — o dono vem de GRUPOS_DESK (8
+    // grupos derivados); Radar (/qualidade) e Integrações moram em "Configuração".
     expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe("Configuração");
     expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/matriz-juridica")?.onde).toBeDefined();
-    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe(
-      "Configuração",
-    );
-    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/integracoes")?.onde).toBe(
-      "Configuração",
-    );
+    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/integracoes")?.onde).toBe("Configuração");
     expect(painel).toContain('to: "/calls"');
     expect(painel).toContain("Mesa de Discovery");
   });

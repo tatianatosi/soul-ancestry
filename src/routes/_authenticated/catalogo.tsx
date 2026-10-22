@@ -21,6 +21,9 @@ import {
   type TipoDivergencia,
 } from "@/lib/catalogo-importacao";
 
+import { CaCard } from "@/components/ui/ca-card";
+import { Etiqueta, Indicador } from "@/components/prancha-v4/kit";
+
 export const Route = createFileRoute("/_authenticated/catalogo")({
   head: () => ({
     meta: [
@@ -65,12 +68,23 @@ function CatalogoPage() {
     }
     return [...porProdutoPai.entries()].sort(([a], [b]) => a.localeCompare(b));
   }, [itens]);
+  const kpi = (n: number | undefined) => (q.isLoading ? "…" : q.error || n === undefined ? "—" : String(n));
 
   return (
     <SaasShell
       titulo="Catálogo homologado"
       descricao="Produto-pai, contexto e status de condição do catálogo já saneado. Origem (Planilha Mestre) é rastreabilidade, não decisão. Nada é recriado, reprecificado ou homologado novamente aqui, e nenhum link Asaas é criado, chamado ou alterado."
     >
+      {/* V4-05: faixa de KPIs no topo, só com contagem real da leitura do catálogo. */}
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4" data-catalogo-kpis-v4>
+        <Indicador rotulo="Itens no catálogo homologado" valor={kpi(itens?.length)} />
+        <Indicador rotulo="Produtos-pai" valor={kpi(itens ? grupos.length : undefined)} />
+        <Indicador
+          rotulo="Elegíveis para proposta"
+          valor={kpi(itens?.filter((i) => elegivelParaPropostaReal(i).permitido).length)}
+        />
+        <Indicador rotulo="Divergências abertas" valor={kpi(divergencias?.length)} />
+      </div>
 
       <div className="mb-6">
         <PrecoSugeridoOperacional />
@@ -80,18 +94,6 @@ function CatalogoPage() {
       <div className="mt-6">
         <CatalogoSaneamento />
       </div>
-
-      <section className="mt-6 grid gap-3 sm:grid-cols-2">
-        {[
-          { r: "Itens no catálogo homologado", v: itens ? itens.length : "—" },
-          { r: "Divergências abertas", v: divergencias ? divergencias.length : "—" },
-        ].map((c) => (
-          <div key={c.r} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
-            <p className="text-xs uppercase tracking-wide text-navy/50">{c.r}</p>
-            <p className="mt-1 font-serif text-2xl text-navy">{c.v}</p>
-          </div>
-        ))}
-      </section>
 
       <section className="mt-6 space-y-4">
         <EstadoDados
@@ -104,10 +106,8 @@ function CatalogoPage() {
         >
           {() =>
             grupos.map(([produtoPai, lista]) => (
-              <div key={produtoPai} className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
-                <p className="border-b border-navy/10 bg-navy/5 p-3 text-sm font-medium text-navy">
-                  {produtoPai}
-                </p>
+              <CaCard key={produtoPai} titulo={produtoPai} eyebrow="Produto-pai" className="overflow-hidden">
+                <div className="-mx-4 overflow-x-auto sm:-mx-5">
                 <table className="w-full text-left text-xs">
                   <thead className="text-navy/60">
                     <tr>
@@ -131,7 +131,7 @@ function CatalogoPage() {
                           <td className="p-3 text-navy/60">{i.tipo_oferta}</td>
                           <td className="p-3">
                             {sel.permitido ? (
-                              <span className="text-gold">Elegível para proposta</span>
+                              <Etiqueta texto="Elegível para proposta" tom="sucesso" />
                             ) : (
                               <span className="text-terracotta">{sel.motivo}</span>
                             )}
@@ -148,14 +148,14 @@ function CatalogoPage() {
                     })}
                   </tbody>
                 </table>
-              </div>
+                </div>
+              </CaCard>
             ))
           }
         </EstadoDados>
       </section>
 
-      <section className="mt-6">
-        <h2 className="font-serif text-xl text-navy">Divergências de reconciliação</h2>
+      <CaCard className="mt-6" titulo="Divergências de reconciliação">
         <EstadoDados
           carregando={q.isLoading}
           erro={q.error}
@@ -180,7 +180,7 @@ function CatalogoPage() {
             </ul>
           )}
         </EstadoDados>
-      </section>
+      </CaCard>
 
       <AuditoriaCatalogo />
 

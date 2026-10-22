@@ -36,7 +36,9 @@ import {
 import { CompartilharAchado } from "@/components/pesquisa/compartilhar-achado";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useAutoridade } from "@/components/saas/autoridade";
-import { SaasShell, useSaas } from "@/components/saas/shell";
+import { EstadoVazio, SaasShell, useSaas } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
+import { Etiqueta, Indicador, type Tom } from "@/components/prancha-v4/kit";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 export const Route = createFileRoute("/_authenticated/biblioteca-evidencias/$caseId")({
@@ -72,6 +74,17 @@ export const Route = createFileRoute("/_authenticated/biblioteca-evidencias/$cas
 
 const rotulo = (lista: { id: string; rotulo: string }[], id: unknown) =>
   lista.find((x) => x.id === id)?.rotulo ?? String(id ?? "—");
+
+// V4-04: tom do chip de estado da projeção (só leitura do motor estadoMicroentrega).
+const TOM_ESTADO_PROJECAO: Record<string, Tom> = {
+  planejada: "neutro",
+  em_producao: "neutro",
+  em_revisao: "atencao",
+  aprovada: "atencao",
+  liberada: "sucesso",
+  publicada: "sucesso",
+  arquivada: "neutro",
+};
 
 function Campo({ label, ajuda, children }: { label: string; ajuda?: string; children: React.ReactNode }) {
   return (
@@ -232,6 +245,33 @@ function Pagina() {
     );
   }
 
+  // V4-04: KPIs só com contagem do payload já lido. Aprovada ≠ publicada;
+  // "Publicadas no App" conta só vigência já iniciada (estadoMicroentrega).
+  const estadosProjecao = projecoes.map((p) =>
+    estadoMicroentrega({
+      approval_status: p["approval_status"] as string,
+      effective_from: p["effective_from"] as string | null,
+    }),
+  );
+  const kpis = [
+    { rotulo: "Evidências do caso", valor: evidencias.length, apoio: "Registro interno" },
+    {
+      rotulo: "Elegíveis a projeção",
+      valor: evidencias.filter((e) => evidenciaProjetavel(e).ok).length,
+      apoio: "Critério evidenciaProjetavel",
+    },
+    {
+      rotulo: "Projeções aprovadas",
+      valor: estadosProjecao.filter((e) => e === "aprovada").length,
+      apoio: "Aprovação interna — ainda não publicadas",
+    },
+    {
+      rotulo: "Publicadas no App",
+      valor: estadosProjecao.filter((e) => e === "publicada").length,
+      apoio: "Vigência já iniciada",
+    },
+  ];
+
   return (
     <SaasShell
       titulo="Biblioteca de evidências e projeções autorizadas"
@@ -240,12 +280,17 @@ function Pagina() {
     <div>
       <header className="mb-5">
         <p className="text-[11px] uppercase tracking-widest text-gold">G-03 · Uso interno</p>
-        <h1 className="text-xl font-semibold text-navy">Biblioteca de evidências e projeções autorizadas</h1>
         <p className="mt-1 text-xs text-navy/70">
           {data?.caso ? `${data.caso["codigo"]} · ${data.caso["titulo"]}` : "Carregando caso…"} — integração invisível,
           evidência visível. Nada chega ao App Cliente sem projeção aprovada e sanitizada.
         </p>
       </header>
+
+      <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-biblioteca-evidencias-kpis>
+        {kpis.map((k) => (
+          <Indicador key={k.rotulo} rotulo={k.rotulo} valor={String(k.valor)} apoio={k.apoio} />
+        ))}
+      </div>
 
       {pendenciaVinculo || !podeEscrever ? (
         <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
@@ -278,17 +323,16 @@ function Pagina() {
       </nav>
 
       {aba === "evidencias" ? (
+        <CaCard titulo="Evidências do caso" eyebrow="G-03 · evidências">
         <section className="space-y-3">
           {evidencias.length === 0 ? (
-            <p className="text-xs text-navy/60">Nenhuma evidência registrada para este caso.</p>
+            <EstadoVazio mensagem="Nenhuma evidência registrada para este caso." />
           ) : null}
           {evidencias.map((e) => (
             <article key={String(e["id"])} className="rounded border border-navy/15 bg-cream/40 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-sm font-semibold text-navy">{String(e["title_internal"])}</h2>
-                <span className="rounded-full bg-cream px-2 py-0.5 text-[11px] text-navy">
-                  {rotulo(NIVEIS_ACESSO, e["access_level"])}
-                </span>
+                <Etiqueta texto={rotulo(NIVEIS_ACESSO, e["access_level"])} />
               </div>
               <p className="mt-1 text-[11px] text-navy/70">
                 {rotulo(NATUREZAS, e["evidence_nature"])} · {rotulo(FLUXO_EVIDENCIA, e["workflow_status"])} ·{" "}
@@ -325,6 +369,7 @@ function Pagina() {
             </article>
           ))}
         </section>
+        </CaCard>
       ) : null}
 
       {aba === "nova" ? <FormEvidencia caseId={caseId} data={data} onSalvar={(v) => mNova.mutate(v)} /> : null}
@@ -367,6 +412,10 @@ function Pagina() {
             membrosDoCaso={(data.membrosDoCaso ?? []) as never}
             podeEditar={Boolean(data.podeEditar)}
           />
+          <CaCard titulo="Projeções do caso" eyebrow="G-03 · projeções autorizadas">
+          {projecoes.length === 0 ? (
+            <EstadoVazio mensagem="Nenhuma projeção registrada para este caso." />
+          ) : null}
           <div className="space-y-3">
             {projecoes.map((p) => {
               const estado = estadoMicroentrega({
@@ -377,8 +426,9 @@ function Pagina() {
               <article key={String(p["id"])} className="rounded border border-navy/15 bg-cream/40 p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold text-navy">{String(p["projection_type"])}</h3>
-                  <span className="rounded-full bg-cream px-2 py-0.5 text-[11px] text-navy">
-                    {rotulo(DESTINOS, p["destination"])} · {ROTULO_ESTADO_MICROENTREGA[estado]}
+                  <span className="flex flex-wrap items-center gap-1.5">
+                    <Etiqueta texto={rotulo(DESTINOS, p["destination"])} />
+                    <Etiqueta texto={ROTULO_ESTADO_MICROENTREGA[estado]} tom={TOM_ESTADO_PROJECAO[estado] ?? "neutro"} />
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-navy/80">{String(p["content_sanitized"])}</p>
@@ -452,19 +502,29 @@ function Pagina() {
               );
             })}
           </div>
+          </CaCard>
         </section>
       ) : null}
 
       {aba === "cadeia" ? (
+        <CaCard titulo="Cadeia evidência → projeção" eyebrow="G-03 · rastreabilidade">
         <section className="space-y-3">
+          {evidencias.length === 0 ? (
+            <EstadoVazio mensagem="Nenhuma evidência registrada para este caso." />
+          ) : null}
           {evidencias.map((e) => {
             const c = cadeiaDaEvidencia(e, validacoes, projecoes);
             return (
               <article key={String(e["id"])} className="rounded border border-navy/15 bg-cream/40 p-3 text-xs text-navy">
                 <p className="font-semibold">{String(e["title_internal"])}</p>
-                <p className="mt-1 text-[11px] text-navy/70">
-                  Evidência → {c.validacoes.length} validação(ões) → {c.projecoes.length} projeção(ões) ·{" "}
-                  {c.publicadaNoApp ? "publicada no App" : "não publicada no App"}
+                <p className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-navy/70">
+                  <span>
+                    Evidência → {c.validacoes.length} validação(ões) → {c.projecoes.length} projeção(ões)
+                  </span>
+                  <Etiqueta
+                    texto={c.publicadaNoApp ? "publicada no App" : "não publicada no App"}
+                    tom={c.publicadaNoApp ? "sucesso" : "neutro"}
+                  />
                 </p>
                 <ul className="mt-2 space-y-1 text-[11px] text-navy/70">
                   {c.validacoes.map((v) => (
@@ -478,6 +538,7 @@ function Pagina() {
             );
           })}
         </section>
+        </CaCard>
       ) : null}
     </div>
     </SaasShell>

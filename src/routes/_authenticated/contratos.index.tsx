@@ -5,10 +5,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { SaasShell } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
+import { ResumoMatrizJuridica } from "@/components/contratos/resumo-matriz-juridica";
 import { PainelEstadoContratual } from "@/components/contratos/painel-estado-contratual";
 import { FormalizacaoConectada } from "@/components/desk/superficies-kit-conectadas";
+import { PranchaJuridicoContrato, PranchaJuridicoVazia } from "@/components/contratos/prancha-juridico-contrato";
 import { criarInstrumento, listarContratos } from "@/lib/contratos.functions";
 import { listarCasosFicha } from "@/lib/caso-ficha.functions";
 import {
@@ -59,9 +63,30 @@ function ContratosPage() {
     queryFn: () => listar({ data: { tipo: tipo || undefined, status: status || undefined, busca: busca || undefined } }),
   });
   const qCasos = useQuery({ queryKey: ["casos-ficha-picker"], queryFn: () => carregarCasos() });
+  /*
+    Jurídico & Contrato (prancha V4, 19/10/2026): a pílula aponta para esta
+    tela; a composição da prancha é montada para UM instrumento escolhido no
+    seletor — padrão = o mais recente (lista já vem por created_at desc),
+    preferindo o que não é demonstração. Lista sem filtros, só leitura.
+  */
+  const qTodos = useQuery({ queryKey: ["contratos-prancha-seletor"], queryFn: () => listar({ data: {} }) });
+  const todos = (qTodos.data?.contratos ?? []) as {
+    id: string;
+    contract_number?: string;
+    title?: string;
+    contract_type?: string;
+    parent_contract_id?: string | null;
+    status?: string;
+    demo?: boolean;
+  }[];
+  const [selecionado, setSelecionado] = useState("");
+  const contratoPrancha = selecionado || (todos.find((x) => !x.demo) ?? todos[0])?.id || "";
 
   const bases = (qLista.data?.contratos ?? []).filter((c: any) => c.contract_type === "contract_base");
   const basesIndisponiveis = !qLista.isLoading && (Boolean(qLista.error) || qLista.data === undefined);
+  // V4-05: faixa de KPIs só com contagem real da lista já carregada (respeita os filtros).
+  const listaContratos = (qLista.data?.contratos ?? []) as { status?: string }[];
+  const kpi = (n: number) => (qLista.isLoading ? "…" : qLista.error || qLista.data === undefined ? "—" : String(n));
 
   const mCriar = useMutation({
     mutationFn: (dados: any) => criar({ data: dados }),
@@ -85,18 +110,65 @@ function ContratosPage() {
         )
       }
     >
+      <section className="mb-6 space-y-4" data-contratos-prancha-juridico>
+        <div className="flex flex-wrap items-center gap-2">
+          <label htmlFor="prancha-contrato" className="text-xs font-medium uppercase tracking-widest text-navy/55">
+            Instrumento
+          </label>
+          <select
+            id="prancha-contrato"
+            value={contratoPrancha}
+            onChange={(e) => setSelecionado(e.target.value)}
+            disabled={!todos.length}
+            className="min-w-0 max-w-full rounded-lg border border-navy/20 bg-card px-3 py-2 text-sm"
+          >
+            {todos.length ? null : <option value="">{qTodos.isLoading ? "Carregando…" : "Nenhum instrumento"}</option>}
+            {todos.map((x) => (
+              <option key={x.id} value={x.id}>
+                {x.contract_number} — {x.title}
+                {x.demo ? " (demonstração)" : ""}
+              </option>
+            ))}
+          </select>
+          {contratoPrancha ? (
+            <Link to="/contratos/$id" params={{ id: contratoPrancha }} className="text-xs text-navy underline underline-offset-4">
+              Abrir instrumento
+            </Link>
+          ) : null}
+        </div>
+        {contratoPrancha ? (
+          <PranchaJuridicoContrato contratoId={contratoPrancha} instrumentos={todos} />
+        ) : qTodos.isLoading ? (
+          <p className="text-sm text-navy/60">Carregando…</p>
+        ) : (
+          <PranchaJuridicoVazia erro={Boolean(qTodos.error)} />
+        )}
+      </section>
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4" data-contratos-kpis-v4>
+        <Indicador rotulo="Instrumentos" valor={kpi(listaContratos.length)} apoio="conforme os filtros" />
+        <Indicador rotulo="Contratos-base" valor={kpi(bases.length)} />
+        <Indicador
+          rotulo="Em revisão"
+          valor={kpi(listaContratos.filter((c) => c.status === "ready_for_review" || c.status === "under_human_review").length)}
+        />
+        <Indicador rotulo="Assinados" valor={kpi(listaContratos.filter((c) => c.status === "signed").length)} />
+      </div>
       <div className="mb-6">
         <PainelEstadoContratual />
+      </div>
+      <div className="mb-6">
+        <ResumoMatrizJuridica />
       </div>
       <FormalizacaoConectada />
       <details className="mt-6 rounded-lg border border-navy/15 bg-card p-4" open={novo}>
         <summary className="cursor-pointer font-medium text-navy">Abrir instrumentos, inventário e gestão contratual</summary>
         <div className="mt-5 border-t border-navy/10 pt-5">
-      <section className="mb-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
-        <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-serif text-lg text-navy">Contrato de Estudo Genealógico v2 e anexos</h2>
-          <span className="text-[11px] text-navy/50">Inventário patrimonial · leitura de {INVENTARIO_DATA}</span>
-        </div>
+      <CaCard
+        className="mb-6"
+        eyebrow="Inventário patrimonial"
+        titulo="Contrato de Estudo Genealógico v2 e anexos"
+        acao={<span className="text-[11px] text-navy/50">Leitura de {INVENTARIO_DATA}</span>}
+      >
         <p className="mb-3 text-xs text-navy/60">
           Ativos preservados: versão, situação e onde cada um realmente está. Somente leitura — nenhum texto
           jurídico é reescrito ou substituído aqui.{" "}
@@ -130,7 +202,7 @@ function ContratosPage() {
             </tbody>
           </table>
         </div>
-      </section>
+      </CaCard>
 
       <FilaRevisaoJuridica />
 
@@ -181,7 +253,8 @@ function ContratosPage() {
         vazio="Nenhum instrumento contratual nesta organização ainda."
       >
         {(contratos) => (
-        <div className="overflow-x-auto rounded-xl border border-navy/10 bg-cream/40">
+        <CaCard titulo="Instrumentos contratuais" className="overflow-hidden">
+        <div className="-mx-4 overflow-x-auto sm:-mx-5">
           <table className="w-full min-w-[720px] text-sm">
             <thead className="bg-navy/5 text-left text-xs uppercase tracking-wide text-navy/60">
               <tr>
@@ -252,6 +325,7 @@ function ContratosPage() {
             </tbody>
           </table>
         </div>
+        </CaCard>
         )}
       </EstadoDados>
       <PainelCatalogo />

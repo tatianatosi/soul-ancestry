@@ -6,8 +6,11 @@ import { toast } from "sonner";
 
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
+import { CaCard } from "@/components/ui/ca-card";
+import { Indicador } from "@/components/prancha-v4/kit";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { CadeiaFormalizacao } from "@/components/contrato/cadeia-formalizacao";
+import { PranchaJuridicoContrato } from "@/components/contratos/prancha-juridico-contrato";
 import { CardsFluxoContrato, ResumoFamiliarContrato } from "@/components/contrato/cards-fluxo-contrato";
 import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -261,6 +264,15 @@ function ContratoDetalhe() {
         </div>
       </div>
 
+      {/*
+        Jurídico & Contrato — composição da prancha V4 (19/10/2026) no topo da
+        ficha: os mesmos seis blocos de /contratos, somente leitura. As ações
+        (aprovar, enviar, assinar) seguem nas abas abaixo, sob useAutoridade.
+      */}
+      <div className="mt-4" data-contrato-prancha-topo>
+        <PranchaJuridicoContrato contratoId={id} />
+      </div>
+
       {d.contratoBase ? (
         <p className="mt-3 rounded-lg border border-navy/15 bg-cream/40 px-3 py-2 text-sm">
           Contrato-base vinculado: <strong>{(d.contratoBase as any).contract_number}</strong> —{" "}
@@ -406,16 +418,34 @@ function ContratoDetalhe() {
         ))}
       </nav>
 
+      {/* V4-05: faixa de KPIs só com contagem real do que o instrumento já carrega (arquivados fora). */}
+      <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4" data-contrato-kpis-v4>
+        {(
+          [
+            ["Partes", d.partes],
+            ["Itens de escopo", d.escopo],
+            ["Cláusulas", d.clausulas],
+            ["Anexos", d.anexos],
+          ] as [string, unknown][]
+        ).map(([rotulo, lista]) => (
+          <Indicador
+            key={rotulo}
+            rotulo={rotulo}
+            valor={String(((lista as any[]) ?? []).filter((x: any) => !x?.archived_at).length)}
+          />
+        ))}
+      </div>
+
       <div className="mt-4 space-y-5">
-        <section id="contrato-resumo" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Resumo</h2><Resumo dados={d} onSalvo={recarregar} /></section>
-        <section id="contrato-partes" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Partes</h2><Partes dados={d} contratoId={id} onSalvo={recarregar} /></section>
-        <section id="contrato-escopo" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Escopo e condição comercial</h2><Escopo dados={d} contratoId={id} onSalvo={recarregar} /></section>
-        <section id="contrato-cláusulas" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Texto do contrato</h2><Clausulas dados={d} contratoId={id} onSalvo={recarregar} /></section>
-        <section id="contrato-anexos" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Anexos e ordem de serviço</h2><Anexos dados={d} contratoId={id} onSalvo={recarregar} /></section>
-        <details id="contrato-fontes" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><summary className="cursor-pointer font-serif text-xl text-navy">Fontes</summary><div className="mt-4"><Fontes dados={d} contratoId={id} onSalvo={recarregar} /></div></details>
-        <section id="contrato-validações" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Validação jurídica da trilha</h2><Validacoes dados={d} /></section>
-        <details id="contrato-versões" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><summary className="cursor-pointer font-serif text-xl text-navy">Versões e histórico</summary><div className="mt-4"><Versoes dados={d} contratoId={id} /></div></details>
-        <section id="contrato-revisão" className="scroll-mt-24 rounded-xl border border-navy/10 bg-cream/40 p-4"><h2 className="mb-4 font-serif text-xl text-navy">Revisão e assinatura</h2><Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} /></section>
+        <div id="contrato-resumo" className="scroll-mt-24"><CaCard titulo="Resumo"><Resumo dados={d} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-partes" className="scroll-mt-24"><CaCard titulo="Partes"><Partes dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-escopo" className="scroll-mt-24"><CaCard titulo="Escopo e condição comercial"><Escopo dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-cláusulas" className="scroll-mt-24"><CaCard titulo="Texto do contrato"><Clausulas dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-anexos" className="scroll-mt-24"><CaCard titulo="Anexos e ordem de serviço"><Anexos dados={d} contratoId={id} onSalvo={recarregar} /></CaCard></div>
+        <div id="contrato-fontes" className="scroll-mt-24"><CaCard><details><summary className="cursor-pointer font-serif text-lg text-navy">Fontes</summary><div className="mt-4"><Fontes dados={d} contratoId={id} onSalvo={recarregar} /></div></details></CaCard></div>
+        <div id="contrato-validações" className="scroll-mt-24"><CaCard titulo="Validação jurídica da trilha"><Validacoes dados={d} /></CaCard></div>
+        <div id="contrato-versões" className="scroll-mt-24"><CaCard><details><summary className="cursor-pointer font-serif text-lg text-navy">Versões e histórico</summary><div className="mt-4"><Versoes dados={d} contratoId={id} /></div></details></CaCard></div>
+        <div id="contrato-revisão" className="scroll-mt-24"><CaCard titulo="Revisão e assinatura"><Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} /></CaCard></div>
       </div>
     </SaasShell>
     </div>

@@ -841,14 +841,16 @@ export const salvarPagamento = createServerFn({ method: "POST" })
 /** Conciliação manual: exige data, valor e referência; divergência é marcada pelo banco. */
 export const conciliarPagamento = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string; pago_em: string; valor: number; referencia_externa: string; motivo?: string }) => {
-    if (!data.pago_em) throw new Error("Conciliação exige data do pagamento.");
-    if (!Number.isFinite(Number(data.valor)) || Number(data.valor) <= 0) throw new Error("Conciliação exige valor do pagamento.");
-    if (!data.referencia_externa || !data.referencia_externa.trim()) {
-      throw new Error("Conciliação exige referência externa.");
-    }
-    return { ...data, motivo: data.motivo?.trim() || "Motivo não informado (fluxo sem confirmação humana explícita)." };
-  })
+  .inputValidator(
+    (data: { id: string; pago_em: string; valor: number; referencia_externa: string; metodo?: string; motivo?: string }) => {
+      if (!data.pago_em) throw new Error("Conciliação exige data do pagamento.");
+      if (!Number.isFinite(Number(data.valor)) || Number(data.valor) <= 0) throw new Error("Conciliação exige valor do pagamento.");
+      if (!data.referencia_externa || !data.referencia_externa.trim()) {
+        throw new Error("Conciliação exige referência externa.");
+      }
+      return { ...data, motivo: data.motivo?.trim() || "Motivo não informado (fluxo sem confirmação humana explícita)." };
+    },
+  )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
@@ -863,6 +865,12 @@ export const conciliarPagamento = createServerFn({ method: "POST" })
         pago_em: data.pago_em,
         valor: Number(data.valor),
         referencia_externa: data.referencia_externa.trim(),
+        // Frente 4 (19/10/2026): `metodo` existe em `payments` desde sempre e
+        // nenhuma tela o preenchia na baixa manual — a conciliação do link
+        // de pagamento do Asaas ficava sem registrar a forma. Opcional: não
+        // sobrescreve com string vazia nem força um valor que o humano não
+        // confirmou.
+        ...(data.metodo && data.metodo.trim() ? { metodo: data.metodo.trim() } : {}),
         status: "confirmado",
         conciliacao_status: "conciliado",
       },

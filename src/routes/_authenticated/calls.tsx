@@ -8,6 +8,7 @@ import { ErroSuperficieDesk } from "@/components/saas/erro-superficie";
 import { SaasShell } from "@/components/saas/shell";
 import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
+import { registrarInteracao } from "@/lib/crm-fluxo.functions";
 import { CATALOGOS, rotulo, type LeadDesk } from "@/lib/crm-desk";
 import { estadoCall, ROTULO_ESTADO_CALL, type EstadoCall } from "@/lib/painel-calls";
 import {
@@ -21,6 +22,12 @@ import {
 import { podeExecutarHandoffDiscovery } from "@/lib/handoff-discovery";
 import { Etiqueta, Pessoa, type Tom } from "@/components/prancha-v4/kit";
 import { CaCard } from "@/components/ui/ca-card";
+// Frente 2 (19/10/2026) — produtos_recomendados aqui é só leitura (edição
+// completa fica na Mesa de Propostas, /leads); este componente dá ao
+// atendente, durante a call, a visão real do catálogo PP-01–09
+// (planner_catalog_feed) ao decidir o que recomendar. Reaproveitado de
+// /catalogo e /leads — não é segunda implementação.
+import { PlanejadorProdutosPai } from "@/components/catalogo/planejador-produtos-pai";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/calls")({
@@ -32,13 +39,13 @@ export const Route = createFileRoute("/_authenticated/calls")({
   ),
   head: () => ({
     meta: [
-      { title: "CRM Vivo & Discovery Calls — Clube Ancestral" },
+      { title: "Mesa de Discovery — Clube Ancestral" },
       {
         name: "description",
         content:
           "Entrada comercial: calls agendadas e realizadas, roteiro SPIN, consentimento e handoff para pessoa/caso. KPIs de atraso ficam no Hoje.",
       },
-      { property: "og:title", content: "CRM Vivo & Discovery Calls — Clube Ancestral" },
+      { property: "og:title", content: "Mesa de Discovery — Clube Ancestral" },
       {
         property: "og:description",
         content: "A Mesa de Discovery faz a entrada comercial funcionar — Calls, SPIN e handoff no Desk.",
@@ -250,6 +257,7 @@ function CallsPage() {
   // Qualificação ao vivo do roteiro SPIN — mesma mutação real (salvarLeadDesk)
   // por campo, com controle de pendente/erro por campo para não travar a
   // tela inteira numa única gravação.
+  const registrarInteracaoCaso = useServerFn(registrarInteracao);
   const [campoPendente, setCampoPendente] = useState<string | null>(null);
   const [errosCampo, setErrosCampo] = useState<Record<string, string>>({});
   const [momento, setMomento] = useState<"antes" | "durante" | "revisao">("antes");
@@ -265,6 +273,41 @@ function CallsPage() {
           return resto;
         });
         void qc.invalidateQueries({ queryKey: ["leads-desk"] });
+        /*
+         * Gravação dupla em crm_interactions (ordem de 19/10/2026): a coluna
+         * crm_interactions.case_id é NOT NULL (types.ts + migration
+         * 20260820195845) — um lead em Discovery normalmente ainda não tem
+         * case_id (só é gravado no Handoff Discovery, handoff-discovery.
+         * functions.ts, quando o lead passa a eixo_comercial "ganho"). Para
+         * esse lead comum, a interação do roteiro SPIN continua só em
+         * `leads`, como já funcionava.
+         * Regra exata aplicada aqui: só quando ESTE lead específico já tem
+         * `case_id` preenchido (reaproveito de caso já existente no Handoff,
+         * ou edição tardia de um lead que já tornou-se caso) é que a mesma
+         * resposta do roteiro também gera uma interação real em
+         * crm_interactions, usando o mesmo `registrarInteracao` que o painel
+         * de Fluxo Comercial já usa — nenhuma lógica nova, nenhuma coluna
+         * nova.
+         */
+        const leadAtual = ((qLeads.data ?? []) as LeadDesk[]).find((l) => l.id === leadId);
+        if (leadAtual?.case_id) {
+          const rotuloCampo = ROTULO_CAMPO_ROTEIRO[campo] ?? campo;
+          const valorTexto = Array.isArray(valor) ? valor.join(", ") : String(valor ?? "não registrado");
+          try {
+            await registrarInteracaoCaso({
+              data: {
+                case_id: leadAtual.case_id,
+                tipo: "call",
+                canal: "desk_only",
+                direcao: "interno",
+                resumo_interno: `Mesa de Discovery · roteiro SPIN · ${rotuloCampo}: ${valorTexto}`,
+              },
+            });
+          } catch {
+            // A gravação em crm_interactions é um espelho adicional: se falhar,
+            // o campo já está salvo no lead (gravação principal) e não trava a Mesa.
+          }
+        }
       }
     } catch {
       setErrosCampo((e) => ({ ...e, [campo]: "Falha ao salvar." }));
@@ -310,7 +353,7 @@ function CallsPage() {
 
   return (
     <SaasShell
-      titulo="CRM Vivo & Discovery Calls"
+      titulo="Mesa de Discovery"
       descricao="Calls agendadas e realizadas, roteiro SPIN e consentimento. O handoff do Discovery vira oportunidade abaixo, na Mesa."
     >
       <FonteAlimento
@@ -614,6 +657,14 @@ function CallsPage() {
                   />
                 </label>
                 {errosCampo.resumo_call ? <p className="mt-0.5 text-[11px] text-terracotta">{errosCampo.resumo_call}</p> : null}
+              </div>
+            ) : null}
+            {selecionado ? (
+              <div data-calls-produto-pai-real className="mt-4 border-t border-navy/10 pt-4">
+                <p className="mb-1 text-xs font-medium text-navy/60">
+                  Catálogo real ao vivo — para decidir "produtos/serviços recomendados" (edição completa em /leads)
+                </p>
+                <PlanejadorProdutosPai />
               </div>
             ) : null}
           </CaCard>

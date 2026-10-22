@@ -57,7 +57,7 @@ describe("Lista /clientes preserva moldura, ações e vazio honesto", () => {
   const arquivo = readFileSync("src/routes/_authenticated/clientes.tsx", "utf8");
 
   it("mantém a moldura da lista mesmo quando a busca não encontra ninguém", () => {
-    expect(arquivo).toContain("Perfis de cliente ({listaVisivel.length})");
+    expect(arquivo).toContain("Perfis de cliente (${listaVisivel.length})");
     expect(arquivo).toContain("Nenhuma pessoa encontrada para");
   });
 

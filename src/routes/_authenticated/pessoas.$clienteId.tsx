@@ -551,7 +551,11 @@ function Pessoa() {
           A ficha completa (edição, comercial, consentimentos, sinais,
           núcleo, propostas, publicação) continua inteira logo abaixo.
         */}
-        <ComposicaoPessoa360V4 nome={nome} dados={{ cliente, casos, caseMembers, documentos }} />
+        <ComposicaoPessoa360V4
+          nome={nome}
+          dados={{ cliente, casos, caseMembers, documentos }}
+          duplicidadesAbertas={candidatos.length}
+        />
 
         <details className="rounded-xl border border-navy/10 bg-card p-4" open={editando || undefined} data-pessoa360-ficha-completa>
           <summary className="cursor-pointer font-serif text-base text-navy">

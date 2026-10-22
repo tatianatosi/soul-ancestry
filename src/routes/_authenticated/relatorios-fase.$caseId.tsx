@@ -25,7 +25,9 @@ import {
   vincularMicroentregaRelatorio,
 } from "@/lib/relatorios-fase.functions";
 import { useAutoridade } from "@/components/saas/autoridade";
-import { SaasShell, useSaas } from "@/components/saas/shell";
+import { EstadoVazio, SaasShell, useSaas } from "@/components/saas/shell";
+import { CaCard } from "@/components/ui/ca-card";
+import { Etiqueta, Indicador } from "@/components/prancha-v4/kit";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -178,8 +180,7 @@ function RelatoriosFase() {
         ← Voltar à ficha do caso
       </Link>
 
-      <h1 className="mt-3 font-serif text-2xl text-navy">Relatórios de fase</h1>
-      <p className="mt-1 text-sm text-navy/70">
+      <p className="mt-3 text-sm text-navy/70">
         {dados?.caso?.codigo ? `${dados.caso.codigo} — ` : ""}
         {dados?.caso?.titulo ?? "Caso"}. Registro interno. Nenhum PDF é gerado, nenhum envio ao cliente e nenhuma publicação no App
         nesta entrega.
@@ -193,17 +194,47 @@ function RelatoriosFase() {
         </p>
       ) : null}
 
-      <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {cards.map((c) => (
-          <article key={c.tipo} className="rounded-xl border border-navy/15 bg-cream p-4">
-            <p className="text-sm font-semibold text-navy">{c.rotulo}</p>
-            <p className="mt-1 text-xs text-navy/70">{c.descricao}</p>
-            <p className="mt-2 text-xs text-navy/60">
-              {c.existentes ? `${c.existentes} registro(s)` : "Sem registro — não iniciado"}
-            </p>
-          </article>
-        ))}
-      </section>
+      {/* V4-04: KPIs só com contagem do painel já lido (sem percentual). */}
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-relatorios-fase-kpis>
+        <Indicador
+          rotulo="Relatórios registrados"
+          valor={String((dados.relatorios ?? []).length)}
+          apoio="Registro interno do caso"
+        />
+        <Indicador
+          rotulo="Marcados publicados no App"
+          valor={String((dados.relatorios ?? []).filter((r: any) => visivelNoApp(r)).length)}
+          apoio="Entregue + resumo aprovado; projeção segue na Biblioteca"
+        />
+        <Indicador
+          rotulo="Evidências vinculadas"
+          valor={String((dados.vinculos ?? []).length)}
+          apoio="Vínculos relatório × evidência"
+        />
+        <Indicador
+          rotulo="Micro-entregas vinculadas"
+          valor={String((dados.microVinculos ?? []).length)}
+          apoio="Vínculos relatório × micro-entrega"
+        />
+      </div>
+
+      <CaCard titulo="Fases do caso" eyebrow="Relatórios · F1 a F5 e legado" className="mt-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {cards.map((c) => (
+            <article key={c.tipo} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm font-semibold text-navy">{c.rotulo}</p>
+                <Etiqueta
+                  texto={c.existentes ? `${c.existentes} registro(s)` : "Não iniciado"}
+                  tom={c.existentes ? "sucesso" : "neutro"}
+                />
+              </div>
+              <p className="mt-1 text-xs text-navy/70">{c.descricao}</p>
+              {c.existentes ? null : <p className="mt-2 text-xs text-navy/60">Sem registro — não iniciado</p>}
+            </article>
+          ))}
+        </div>
+      </CaCard>
 
       {/*
         CA21-BIBLIOTECA-MESTRE-CONECTADA (09/09/2026): a Biblioteca Mestre já
@@ -212,35 +243,42 @@ function RelatoriosFase() {
         via qual versão de modelo está homologada. case_reports não tem campo
         de vínculo, então isto é só leitura: mostra o modelo, não grava nada.
       */}
-      <section className="mt-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-sm font-semibold text-navy">Modelos F1/F2 homologados (Biblioteca Mestre)</h2>
+      <CaCard
+        titulo="Modelos F1/F2 homologados (Biblioteca Mestre)"
+        eyebrow="Relatórios · modelos"
+        className="mt-4"
+        acao={
           <Link to="/biblioteca" className="text-[11px] text-terracotta underline">
             Ver Biblioteca Mestre completa
           </Link>
-        </div>
+        }
+      >
         {(dados.modelosBiblioteca ?? []).length === 0 ? (
-          <p className="mt-1 text-xs text-navy/60">
-            Sem dado — nenhum modelo cadastrado na Biblioteca Mestre (subárea Modelos) para esta organização.
-          </p>
+          <EstadoVazio mensagem="Sem dado — nenhum modelo cadastrado na Biblioteca Mestre (subárea Modelos) para esta organização." />
         ) : (
-          <ul className="mt-2 space-y-1 text-xs text-navy/70">
-            {(dados.modelosBiblioteca ?? []).map((m: any) => (
-              <li key={m.id}>
-                <strong className="text-navy">{m.titulo}</strong> · versão {m.versao} ·{" "}
-                {m.vigencia_estado === "homologado" || m.vigencia_estado === "vigente"
-                  ? "homologado"
-                  : "não homologado"}{" "}
-                ({m.status})
-              </li>
-            ))}
+          <ul className="space-y-1 text-xs text-navy/70">
+            {(dados.modelosBiblioteca ?? []).map((m: any) => {
+              const homologado = m.vigencia_estado === "homologado" || m.vigencia_estado === "vigente";
+              return (
+                <li key={m.id} className="flex items-center justify-between gap-3 border-b border-navy/5 py-1.5 last:border-0">
+                  <span className="min-w-0">
+                    <strong className="text-navy">{m.titulo}</strong> · versão {m.versao} ({m.status})
+                  </span>
+                  <Etiqueta texto={homologado ? "homologado" : "não homologado"} tom={homologado ? "sucesso" : "atencao"} />
+                </li>
+              );
+            })}
           </ul>
         )}
-      </section>
+      </CaCard>
 
-      <section className="mt-8 rounded-xl border border-navy/15 p-4">
-        <h2 className="font-serif text-lg text-navy">{editandoId ? "Editar relatório" : "Registrar relatório existente"}</h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+      <CaCard
+        titulo={editandoId ? "Editar relatório" : "Registrar relatório existente"}
+        eyebrow="Relatórios · registro interno"
+        className="mt-6"
+      >
+      <section>
+        <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-xs text-navy/70">
             Tipo
             <select
@@ -400,16 +438,17 @@ function RelatoriosFase() {
           ) : null}
         </div>
       </section>
+      </CaCard>
 
-      <section className="mt-8 space-y-4">
-        <h2 className="font-serif text-lg text-navy">Relatórios do caso</h2>
+      <CaCard titulo="Relatórios do caso" eyebrow="Relatórios · lista" className="mt-6">
+      <section className="space-y-4">
         {pendenciaPapel ? (
           <p className="mb-3 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
             Pendência registrada: {pendenciaPapel}
           </p>
         ) : null}
         {(dados?.relatorios ?? []).length === 0 ? (
-          <p className="text-sm text-navy/70">Nenhum relatório registrado. Nada é iniciado automaticamente.</p>
+          <EstadoVazio mensagem="Nenhum relatório registrado. Nada é iniciado automaticamente." />
         ) : null}
 
         {(dados?.relatorios ?? []).map((r: any) => {
@@ -423,9 +462,13 @@ function RelatoriosFase() {
                   <p className="text-sm font-semibold text-navy">
                     {rotuloTipo(r.report_type)} · v{r.versao}
                   </p>
-                  <p className="text-xs text-navy/70">
-                    {rotuloStatus(r.report_status)} · fase {r.fase_jornada} ·{" "}
-                    {visivelNoApp(r) ? "publicado no App" : "não publicado no App"}
+                  <p className="flex flex-wrap items-center gap-2 text-xs text-navy/70">
+                    <Etiqueta texto={rotuloStatus(r.report_status)} />
+                    <span>fase {r.fase_jornada}</span>
+                    <Etiqueta
+                      texto={visivelNoApp(r) ? "publicado no App" : "não publicado no App"}
+                      tom={visivelNoApp(r) ? "sucesso" : "neutro"}
+                    />
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -591,6 +634,7 @@ function RelatoriosFase() {
           );
         })}
       </section>
+      </CaCard>
     </div>
     </SaasShell>
   );

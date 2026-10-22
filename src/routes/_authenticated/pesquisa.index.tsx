@@ -7,6 +7,7 @@ import { SaasShell } from "@/components/saas/shell";
 import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { CarregandoDesk, PageHeader } from "@/components/desk/ui-desk";
+import { CaCard } from "@/components/ui/ca-card";
 // Corte 2 do Design System — superfície piloto: Cartão, Selo, KPI e Estado vazio.
 import {
   FaixaIndicadoresCA,
@@ -121,6 +122,7 @@ function PesquisaIndex() {
         recurso="os casos em pesquisa"
       >
         {() => (
+        <CaCard titulo="Casos em pesquisa" eyebrow="Pesquisa · dossiês por caso" className="mt-4">
         <section aria-label="Casos em pesquisa" className="space-y-2">
           <input
             type="search"
@@ -173,6 +175,7 @@ function PesquisaIndex() {
             />
           ) : null}
         </section>
+        </CaCard>
         )}
       </EstadoDados>
 

@@ -3,7 +3,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { FonteAlimento } from "@/components/desk/fonte-alimento";
 import { PainelQualidade } from "@/components/qualidade/painel";
-import { KpisQualidadeV4, RecomendacoesQualidadeV4 } from "@/components/qualidade/kpis-recomendacoes";
+import {
+  KpisQualidadeV4,
+  PanoramaQualidadeV4,
+  RecomendacoesQualidadeV4,
+} from "@/components/qualidade/kpis-recomendacoes";
 import { RadarInternoIntegrado } from "@/components/desk/radar-interno-integrado";
 import { CaCard } from "@/components/ui/ca-card";
 import { Selo } from "@/components/comercial/base";
@@ -44,24 +48,37 @@ function QualidadePage() {
       titulo="Radar & Matrizes"
       descricao="Matriz de elegibilidade × urgência e Radar Individual sincronizados; leitura interna por caso."
     >
+      {/*
+        19/10/2026 — reconciliação com o Lovable: FonteAlimento + moldura
+        mockup4 do Lovable envolvendo o Radar Interno Integrado da branch;
+        card explicativo "Como ler esta tela" da branch preservado. Nada
+        duplicado, nada perdido.
+      */}
       <FonteAlimento
         fonte="Urgência e hipótese de elegibilidade registradas em cada caso"
         consumidor="A prioridade dos casos no Painel Hoje — leitura interna, nunca exposta ao cliente"
         detalheTecnico="radar-interno-caso"
       />
-      <p className="mb-4 text-sm text-navy/70">
-        Alterne entre a carteira completa e a leitura de um caso. A matriz usa urgência e hipótese de
-        elegibilidade; o Radar Individual reúne os quatro eixos, responsável, prazo, próxima ação e
-        bloqueios do mesmo registro. Dados ausentes permanecem declarados, nunca inferidos.
-      </p>
-      <div className="mb-6">
-        <KpisQualidadeV4 />
-      </div>
       <div className="mb-6 min-w-0 rounded-2xl border border-navy/10 bg-card p-6 shadow-sm" data-desk-mockup4="radar">
         <RadarInternoIntegrado />
       </div>
+      <CaCard
+        titulo="Como ler esta tela"
+        eyebrow="Radar & Matrizes · carteira e caso"
+        className="mb-6"
+      >
+        <p className="text-sm text-navy/70">
+          Alterne entre a carteira completa e a leitura de um caso. A matriz usa urgência e hipótese de
+          elegibilidade; o Radar Individual reúne os quatro eixos, responsável, prazo, próxima ação e
+          bloqueios do mesmo registro. Dados ausentes permanecem declarados, nunca inferidos.
+        </p>
+      </CaCard>
       <div className="mb-6">
+        <KpisQualidadeV4 />
+      </div>
+      <div className="mb-6 grid gap-4 lg:grid-cols-2">
         <RecomendacoesQualidadeV4 />
+        <PanoramaQualidadeV4 />
       </div>
       <details className="mb-6 rounded-xl border border-navy/10 bg-card p-4">
         <summary className="cursor-pointer font-serif text-base text-navy">

@@ -47,6 +47,7 @@ import { blocosRenderizados } from "@/lib/matriz-aceite";
 import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
 import { garantirPerfilInstitucionalDaSessao, lerPerfilInstitucionalPersistido } from "@/lib/perfil-institucional-persistido.functions";
 import { MatrizClausulas, PerfilInstitucionalBloco } from "@/components/contrato/matriz-clausulas";
+import { MatrizJuridicaPreparacao } from "@/components/contrato/matriz-juridica-preparacao";
 import { modeloAplicavelAoCaso } from "@/lib/matriz-modelos-contratuais";
 import {
   CLAUSULAS_FIXAS,
@@ -1384,6 +1385,17 @@ function Pagina() {
                   <MatrizAceiteTabela blocos={blocosCaso} />
                 </div>
               </CaCard>
+              {/*
+               * Frente 4 (19/10/2026): a matriz A–P acima é texto fixo do
+               * contrato-base (estudo). A matriz jurídica real por tema —
+               * lida de `legal_clause_matrix`, sem contar de cabeça — vivia
+               * num componente já escrito (`MatrizJuridicaPreparacao`,
+               * ANA-E-01) mas nunca ligado a esta tela. Só leitura: nenhuma
+               * cláusula, gravação ou assinatura muda aqui.
+               */}
+              <div className="mt-3">
+                <MatrizJuridicaPreparacao caseId={casoUuid ?? caseId} />
+              </div>
             </CartaoDetalhe>
 
             <CartaoDetalhe

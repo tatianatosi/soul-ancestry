@@ -192,7 +192,8 @@ export function SaasShell({
     (alertas.data?.atrasadas?.length ?? 0) + (alertas.data?.microAtrasadas?.length ?? 0);
   const badgeDe = (id: string): number => (id === "casos" ? atrasadasCasos : 0);
 
-  // Seis setores fixos; o setor ativo define a única linha de abas abaixo do
+  // Oito setores (GRUPOS_DESK/SETORES_DESK, decisão da Proprietária
+  // 18-19/10/2026); o setor ativo define a única linha de abas abaixo do
   // cabeçalho. Abas restritas a admin só aparecem para admin.
   const setorAtivo = setorDaRota(rota);
   const abasSetor = (setorAtivo?.abas ?? []).filter((a) => !a.adminOnly || ehAdmin);
@@ -375,11 +376,18 @@ export function SaasShell({
             </div>
             {acoes ? <div className="min-w-0 max-w-full">{acoes}</div> : null}
           </div>
-          {/* Pílulas da prancha: as abas do setor ativo. */}
+          {/*
+            19/10/2026 — reconciliação com o Lovable: a pílula cross-grupo das
+            13 "superfícies" (`SUPERFICIES_PRANCHA_V4`) saiu de cena como
+            menu paralelo; a navegação de segundo nível é só as sub-tabs do
+            setor ativo, por rota/hash (`destinoDaAba`/`itemNavAtivo`).
+            `SUPERFICIES_PRANCHA_V4` continua existindo em `navegacao-desk.ts`
+            como metadado/referência interna das 13 áreas canônicas.
+          */}
           {abasSetor.length ? (
             <nav
-              aria-label={`Abas de ${setorAtivo?.label ?? "setor"}`}
-              className="mt-4 flex min-w-0 flex-wrap gap-2"
+              aria-label={`Abas de ${setorAtivo?.label ?? "este grupo"}`}
+              className="mt-4 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1"
               data-desk-abas-setor={setorAtivo?.id}
             >
               {abasSetor.map((aba) => {
@@ -394,8 +402,8 @@ export function SaasShell({
                     data-aba-destino={`${destino.caseId ? `/casos/${destino.caseId}` : destino.to}${destino.hash ? `#${destino.hash}` : ""}`}
                     aria-current={ativa ? "page" : undefined}
                     className={cn(
-                      "inline-flex min-h-8 items-center rounded-full border px-3 py-1 text-[11px] transition-colors",
-                      ativa ? "border-navy bg-navy text-white" : "border-navy/15 text-navy/70 hover:bg-cream",
+                      "text-[11px] underline-offset-4 transition-colors",
+                      ativa ? "font-semibold text-navy underline" : "text-navy/60 hover:text-navy hover:underline",
                     )}
                   >
                     {aba.label}

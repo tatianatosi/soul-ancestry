@@ -10,6 +10,8 @@ import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { MarcosJuridicosCartoes } from "@/components/juridico/marcos-cartoes";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
+import { CaCard } from "@/components/ui/ca-card";
+import { Etiqueta, Indicador } from "@/components/prancha-v4/kit";
 import { consolidarMatrizJuridica, listarMatrizJuridica, registrarDecisaoTema } from "@/lib/crm-desk.functions";
 import { STATUS_TEMA, rotuloStatusTema, temasBloqueantesPendentes, type LinhaMatriz } from "@/lib/matriz-juridica";
 import { separarNotaTecnica } from "@/lib/rotulo-negocio";
@@ -71,20 +73,36 @@ function MatrizPage() {
 
   const linhas = q.data as LinhaMatriz[] | undefined;
   const pendentes = linhas ? temasBloqueantesPendentes(linhas) : [];
+  const kpi = (n: number) => (q.isLoading ? "…" : q.error || !linhas ? "—" : String(n));
 
   return (
     <SaasShell
       titulo="Validação Jurídica"
       descricao="Registro de decisão por tema. Esta tela não guarda redação de cláusula e nenhum conteúdo público é versão vigente."
     >
+      {/* V4-05: faixa de KPIs só com contagem real da matriz carregada. */}
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4" data-matriz-kpis-v4>
+        <Indicador rotulo="Temas" valor={kpi(linhas?.length ?? 0)} />
+        <Indicador rotulo="Bloqueiam assinatura" valor={kpi(linhas?.filter((l) => l.bloqueia_assinatura).length ?? 0)} />
+        <Indicador rotulo="Bloqueantes sem decisão" valor={kpi(pendentes.length)} />
+        <Indicador rotulo="Aprovados" valor={kpi(linhas?.filter((l) => l.status === "aprovado").length ?? 0)} />
+      </div>
+
       <MarcosJuridicosCartoes />
 
-      <h2 className="mb-2 font-serif text-xl text-navy">Temas da matriz contratual</h2>
-      <div className="mb-4 rounded-xl border border-navy/10 bg-cream/50 p-4 text-sm text-navy">
-        {pendentes.length
-          ? `${pendentes.length} tema(s) bloqueante(s) sem decisão: assinatura fica como pendência.`
-          : "Nenhum tema bloqueante pendente."}
-      </div>
+      <h2 className="mb-2 mt-4 font-serif text-xl text-navy">Temas da matriz contratual</h2>
+      <CaCard className="mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-navy">
+          <span>
+            {pendentes.length
+              ? `${pendentes.length} tema(s) bloqueante(s) sem decisão: assinatura fica como pendência.`
+              : "Nenhum tema bloqueante pendente."}
+          </span>
+          {linhas ? (
+            <Etiqueta texto={pendentes.length ? "Assinatura pendente" : "Sem bloqueio"} tom={pendentes.length ? "atencao" : "sucesso"} />
+          ) : null}
+        </div>
+      </CaCard>
 
       {pendenciaVinculo || !podeEscrever ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">

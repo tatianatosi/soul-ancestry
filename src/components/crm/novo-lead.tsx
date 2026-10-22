@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { motivoCampoInvalido } from "@/components/campos/aviso-campo";
 import { Rotulo, Selecao, Texto, inputCls } from "@/components/caso/campos";
 import { useSaas } from "@/components/saas/shell";
-import { criarLeadManual, type PossivelDuplicidade } from "@/lib/crm-desk.functions";
-import { OBJETIVOS, ORIGENS_LEAD, PROXIMAS_ACOES } from "@/lib/crm-desk";
+import { criarLeadManual, verificarDuplicidadeLead, type PossivelDuplicidade } from "@/lib/crm-desk.functions";
+import { AREAS_RESPONSAVEIS, OBJETIVOS, ORIGENS_LEAD, PROXIMAS_ACOES } from "@/lib/crm-desk";
 import { hojeISO } from "@/lib/painel-dia";
 import { formatarTelefone } from "@/lib/validacao-pessoa";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
@@ -31,6 +31,7 @@ const vazio = {
   telefone: "",
   origem: "",
   objetivo: "",
+  area_responsavel: "comercial",
   responsavel_nome: "",
   proxima_acao: "realizar_discovery",
   proxima_acao_em: hojeISO(),
@@ -41,15 +42,18 @@ const vazio = {
 /** Cadastro manual curto: cria o lead já em Triagem, com deduplicação por e-mail e telefone. */
 export function NovoLeadDialog({ aberto, onFechar, onCriado }: Props) {
   const criar = useServerFn(criarLeadManual);
+  const verificarDuplicidade = useServerFn(verificarDuplicidadeLead);
   const qc = useQueryClient();
   const { contexto } = useSaas();
   const [form, setForm] = useState({ ...vazio });
-  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
-  // 18/10/2026: o responsável é preenchido sozinho pela sessão e o diálogo
-  // fechado não é edição — antes isso prendia a saída do CRM Vivo.
+  /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente.
+     18/10/2026: o responsável é preenchido sozinho pela sessão e o diálogo
+     fechado não é edição — antes isso prendia a saída do CRM Vivo. */
   useAvisoEdicaoNaoSalva(
     aberto && JSON.stringify({ ...form, responsavel_nome: "" }) !== JSON.stringify({ ...vazio, responsavel_nome: "" }),
   );
+  /* Aviso não bloqueante (ordem de 19/10/2026): duplicidade nunca impede o
+     salvamento — só mostra o selo depois que o lead já foi gravado. */
   const [duplicidades, setDuplicidades] = useState<PossivelDuplicidade[]>([]);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -63,21 +67,41 @@ export function NovoLeadDialog({ aberto, onFechar, onCriado }: Props) {
 
   const set = (k: keyof typeof vazio) => (v: unknown) => setForm((f) => ({ ...f, [k]: String(v ?? "") }));
 
+  /*
+   * Checagem de duplicidade não bloqueante, enquanto a usuária ainda digita
+   * (ordem de 19/10/2026): roda no blur de nome/e-mail/telefone, só para
+   * mostrar o selo de aviso antes do clique em salvar. Nunca impede digitar
+   * nem salvar — mesma busca real (buscarDuplicidades) que o salvamento usa.
+   */
+  async function conferirDuplicidadeAoVivo(nome: string, email: string, telefone: string) {
+    const emailPronto = email.includes("@") && email.includes(".");
+    const telefonePronto = telefone.replace(/\D/g, "").length >= 8;
+    if (!emailPronto && !telefonePronto) return;
+    try {
+      const r = await verificarDuplicidade({ data: { nome, email: email || null, telefone: telefone || null } });
+      setDuplicidades(r.duplicidades);
+    } catch {
+      // Checagem é só um aviso adicional; falha nela não impede o cadastro.
+    }
+  }
+
   const mut = useMutation({
-    mutationFn: (confirmarDuplicidade: boolean) => criar({ data: { ...form, confirmarDuplicidade } }),
+    mutationFn: () => criar({ data: { ...form } }),
     onSuccess: (r) => {
       if (!r.ok) {
-        if (r.duplicidades.length) {
-          setDuplicidades(r.duplicidades);
-          setMsg("Possível duplicidade encontrada. Abra a ficha existente ou confirme que é outro contato.");
-          return;
-        }
+        // Só erro real de validação bloqueia (ex. nome ausente, e-mail
+        // inválido) — duplicidade nunca chega aqui: ela vem em r.duplicidades
+        // mesmo quando r.ok é true, como aviso depois de já ter salvo.
         setMsg(r.erros.map((e) => `${e.campo}: ${e.motivo}`).join(" · "));
         return;
       }
       setForm({ ...vazio });
-      setDuplicidades([]);
-      setMsg(null);
+      setDuplicidades(r.duplicidades);
+      setMsg(
+        r.duplicidades.length
+          ? "Lead salvo em Triagem. Possível duplicidade encontrada — confirme se é a mesma pessoa."
+          : null,
+      );
       void qc.invalidateQueries({ queryKey: ["leads-desk"] });
       onCriado(r.lead?.id ?? null);
     },
@@ -114,16 +138,29 @@ export function NovoLeadDialog({ aberto, onFechar, onCriado }: Props) {
             label="E-mail (e-mail ou telefone obrigatório)"
             tipo="email"
             valor={form.email}
-            onChange={set("email")}
+            onChange={(v) => {
+              set("email")(v);
+              void conferirDuplicidadeAoVivo(form.nome, v, form.telefone);
+            }}
             erro={motivoCampoInvalido("E-mail", "email", form.email)}
           />
           <Texto
             label="Telefone (e-mail ou telefone obrigatório)"
             valor={form.telefone}
-            onChange={(v) => set("telefone")(formatarTelefone(v))}
+            onChange={(v) => {
+              const formatado = formatarTelefone(v);
+              set("telefone")(formatado);
+              void conferirDuplicidadeAoVivo(form.nome, form.email, formatado);
+            }}
             erro={motivoCampoInvalido("Telefone", "telefone", form.telefone)}
           />
           <Selecao label="Origem *" valor={form.origem} opcoes={ORIGENS_LEAD} onChange={set("origem")} />
+          <Selecao
+            label="Área responsável *"
+            valor={form.area_responsavel}
+            opcoes={AREAS_RESPONSAVEIS}
+            onChange={set("area_responsavel")}
+          />
           <Selecao label="Interesse inicial *" valor={form.objetivo} opcoes={OBJETIVOS} onChange={set("objetivo")} />
           <Texto label="Responsável *" valor={form.responsavel_nome} onChange={set("responsavel_nome")} />
           <Selecao label="Próxima ação *" valor={form.proxima_acao} opcoes={PROXIMAS_ACOES} onChange={set("proxima_acao")} />
@@ -141,9 +178,18 @@ export function NovoLeadDialog({ aberto, onFechar, onCriado }: Props) {
           </div>
         </div>
 
+        {/*
+          Selo de duplicidade — sempre aviso, nunca trava (ordem de
+          19/10/2026): aparece enquanto a usuária digita (checagem ao vivo por
+          e-mail/telefone) e continua visível depois de salvar, se o
+          resultado do servidor também achou duplicidade. O botão "Salvar"
+          abaixo nunca fica desabilitado por isso.
+        */}
         {duplicidades.length ? (
           <div className="mt-4 rounded-xl border border-terracotta/40 bg-terracotta/5 p-3">
-            <p className="text-sm font-medium text-terracotta">Possíveis duplicidades</p>
+            <p className="text-sm font-medium text-terracotta">
+              Possível duplicidade — salvar continua liberado, confirme se é a mesma pessoa
+            </p>
             <ul className="mt-2 space-y-1 text-xs text-navy/70">
               {duplicidades.map((d) => (
                 <li key={d.id}>
@@ -165,20 +211,10 @@ export function NovoLeadDialog({ aberto, onFechar, onCriado }: Props) {
             type="button"
             className="rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-50"
             disabled={mut.isPending}
-            onClick={() => mut.mutate(false)}
+            onClick={() => mut.mutate()}
           >
             {mut.isPending ? "Salvando…" : "Salvar lead em Triagem"}
           </button>
-          {duplicidades.length ? (
-            <button
-              type="button"
-              className="rounded-lg border border-terracotta/50 px-3 py-2 text-sm text-terracotta disabled:opacity-50"
-              disabled={mut.isPending}
-              onClick={() => mut.mutate(true)}
-            >
-              Confirmar que é outro contato e salvar
-            </button>
-          ) : null}
           <button type="button" className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy" onClick={onFechar}>
             Cancelar
           </button>
