@@ -13,6 +13,8 @@ import {
 import { listarCasosFicha } from "@/lib/caso-ficha.functions";
 import { dadosVivosDoPortalComoAdmin } from "@/lib/app-cliente-como-pessoa.functions";
 import { identidadeDeCrmCaso } from "@/lib/caso-compartilhado";
+import { FilaPublicacaoReal } from "@/components/biblioteca/fila-publicacao-real";
+import { NucleosAcessoCaso } from "@/components/desk/nucleos-acesso-caso";
 
 
 /**
@@ -66,6 +68,13 @@ function AppClienteComoPessoa() {
           <p className="font-serif text-base text-cream sm:text-lg">Visualização Master Administrativa — Sessão de Auditoria</p>
           <p className="text-[11px] tracking-wide text-gold">Somente leitura · você vê o aplicativo como a família, sem virar cliente</p>
         </div>
+      ) : null}
+      {casoId ? (
+        <section className="mx-auto grid max-w-5xl gap-4 px-4 py-4" aria-label="Painel interno da equipe" data-painel-interno-visao-master>
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-navy/55">Painel interno da equipe — não aparece para a família</p>
+          <FilaPublicacaoReal caseId={casoId} />
+          <NucleosAcessoCaso caseId={casoId} />
+        </section>
       ) : null}
       {!casoId ? (
         <div className="mx-auto max-w-xl p-6">

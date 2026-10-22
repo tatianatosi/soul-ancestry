@@ -898,3 +898,28 @@ export const listarCompartilhamentosAchado = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return (linhas ?? []) as Record<string, any>[];
   });
+
+/**
+ * Leitura (21/10/2026, prancha V4): contagem de entregas ao cliente
+ * (client_deliverables) por estado de aprovação, opcionalmente de um caso.
+ * Só lê; não publica nem altera nada.
+ */
+export const contarEntregasPorEstado = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { caseId?: string } | undefined) => ({ caseId: d?.caseId && /^[0-9a-f-]{36}$/i.test(d.caseId) ? d.caseId : undefined }))
+  .handler(async ({ context, data }) => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
+    if (!PAPEIS_LE_DETALHE.includes(papel)) throw new Error("Seu papel não acessa a fila de publicação.");
+    let q = supabase.from("client_deliverables").select("approval_status").eq("organization_id", organizationId).is("archived_at", null);
+    if (data.caseId) q = q.eq("case_id", data.caseId);
+    const { data: linhas, error } = await q;
+    if (error) throw new Error(error.message);
+    const contagem: Record<string, number> = {};
+    for (const l of (linhas ?? []) as { approval_status: string | null }[]) {
+      const k = String(l.approval_status ?? "sem_estado");
+      contagem[k] = (contagem[k] ?? 0) + 1;
+    }
+    return contagem;
+  });
