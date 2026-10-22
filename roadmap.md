@@ -1,5 +1,15 @@
 # Roadmap
 
+## 22/10 — Fechamento aprovado v4.0 (sem redesign/publicação)
+- [x] PR #171 já presente na base bdab2ec0; nenhum pull, merge ou alteração visual executado.
+- [x] Aplicadas as duas migrations existentes de suporte financeiro e telemetria; função, RLS, políticas e privilégios conferidos no banco.
+- [x] 80 testes passaram; compilação automática OK; seletor de caso troca entre dois casos e mantém Ana após F5.
+- [x] Sete abas conferidas em 1280/375 na prévia administrativa oficial: zero overflow, erros de página ou respostas HTTP com erro. Sessão da Proprietária, não login independente da Ana.
+- [ ] Aceite cliente real: bloqueado por vínculo do acesso da Ana à identidade da Proprietária; nenhum acesso/login alterado.
+- [ ] Três documentos: não encontrados ativos em documents para o caso canônico; prévia mostra acervo em preparação. Não liberar checklist reservado ou inventar arquivos.
+- [ ] Contrato 8 páginas: versão 2 contém 16 cláusulas e RASCUNHO, sem arquivo renderizado; PDF oficial precisa ser fornecido/verificado pelo Claude.
+- [ ] Validação integral das onze telas e homologação pessoal: não executadas nesta conferência limitada às sete abas e ao seletor. App congelado e nada publicado.
+
 ## 20/10 — Sugestões completas de jornada guiada (somente documento)
 - [x] Revisar estudo v3-v2, inventário integral de 19/10 e código local 731f666c por área/subárea; separar observação histórica, código e proposta. Auditoria de todos os filhos/writers não exercitada; estado online atual do Claude não recapturado.
 - [x] PDF de 80 páginas: 29 composições, 90 entradas Desk históricas, 12 subabas de pesquisa, 11 de linhagens, 10 alimentos da Biblioteca, cinco cartões/seis atos, jornada 375, legado/sanitização e achados citados ao Claude.
