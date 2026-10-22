@@ -28,6 +28,8 @@ import {
 } from "@/lib/comercial.functions";
 import { ROTULO_STATUS_FINANCEIRO_CASO } from "@/lib/financeiro-caso";
 import { validacaoJuridicaCaso } from "@/lib/crm-desk.functions";
+import { FilaPublicacaoReal } from "@/components/biblioteca/fila-publicacao-real";
+import { NucleosAcessoCaso } from "@/components/desk/nucleos-acesso-caso";
 import { cadeiaPesquisaDoCaso } from "@/lib/pesquisa-cadeia.functions";
 import { estadoDossieDoCaso } from "@/lib/pesquisa-cadeia";
 import { pendenciaPesquisaAberta } from "@/lib/rotulo-negocio";
@@ -1626,6 +1628,11 @@ function FichaCaso() {
                   <a href="#secao-documentos" onClick={() => setSecaoFoco("documentos")} className="mt-4 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4">Abrir Documentos</a>
                 </CaCard>
                 </div>
+              {/* 21/10/2026 — prancha V4: fila de publicação e acessos do caso, só leitura. */}
+              <div className="mt-6 grid gap-6">
+                <FilaPublicacaoReal caseId={id} />
+                <NucleosAcessoCaso caseId={id} />
+              </div>
             </section>
           </div>
         );

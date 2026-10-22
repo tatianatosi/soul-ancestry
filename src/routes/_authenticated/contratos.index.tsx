@@ -11,8 +11,7 @@ import { Indicador } from "@/components/prancha-v4/kit";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
 import { ResumoMatrizJuridica } from "@/components/contratos/resumo-matriz-juridica";
-import { PainelEstadoContratual } from "@/components/contratos/painel-estado-contratual";
-import { FormalizacaoConectada } from "@/components/desk/superficies-kit-conectadas";
+import { JuridicoContratoV4 } from "@/components/contratos/juridico-contrato-v4";
 import { PranchaJuridicoContrato, PranchaJuridicoVazia } from "@/components/contratos/prancha-juridico-contrato";
 import { criarInstrumento, listarContratos } from "@/lib/contratos.functions";
 import { listarCasosFicha } from "@/lib/caso-ficha.functions";
@@ -154,13 +153,11 @@ function ContratosPage() {
         />
         <Indicador rotulo="Assinados" valor={kpi(listaContratos.filter((c) => c.status === "signed").length)} />
       </div>
-      <div className="mb-6">
-        <PainelEstadoContratual />
-      </div>
-      <div className="mb-6">
+      {/* 21/10/2026 — prancha V4: um bloco aberto com no máximo 4 indicadores; o painel de 7 contadores e o de Formalização saíram do topo. */}
+      <JuridicoContratoV4 />
+      <div className="mt-6">
         <ResumoMatrizJuridica />
       </div>
-      <FormalizacaoConectada />
       <details className="mt-6 rounded-lg border border-navy/15 bg-card p-4" open={novo}>
         <summary className="cursor-pointer font-medium text-navy">Abrir instrumentos, inventário e gestão contratual</summary>
         <div className="mt-5 border-t border-navy/10 pt-5">

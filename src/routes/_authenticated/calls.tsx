@@ -7,6 +7,7 @@ import { PainelCalls } from "@/components/crm/painel-calls";
 import { ErroSuperficieDesk } from "@/components/saas/erro-superficie";
 import { SaasShell } from "@/components/saas/shell";
 import { FonteAlimento } from "@/components/desk/fonte-alimento";
+import { ComercialV4Topo } from "@/components/crm/comercial-v4-topo";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { registrarInteracao } from "@/lib/crm-fluxo.functions";
 import { CATALOGOS, rotulo, type LeadDesk } from "@/lib/crm-desk";
@@ -387,11 +388,12 @@ function CallsPage() {
       </div>
 
       {/*
-        Nem funil nem Kanban por etapa comercial aqui — pedido explícito da
-        Proprietária: ambos pertencem exclusivamente a /leads (PR #157). Esta
-        rota é só a mesa operacional de atendimento ao vivo: KPIs de
-        atendimento, agenda do dia, roteiro SPIN e handoff.
+        21/10/2026 — nova decisão da Proprietária (prancha V4): funil vivo,
+        aquisição por canal, conversão, origem e qualidade e leads por etapa
+        voltam ao topo de /calls, acima da Mesa — só leitura, mesmos leads.
+        Revoga a regra de 14/10/2026 (PR #157) apenas para esta tela.
       */}
+      <ComercialV4Topo leads={leadsReais} />
       <nav aria-label="Momentos da call" className="mb-4 grid grid-cols-3 gap-2">
         {([ ["antes", "Antes"], ["durante", "Durante"], ["revisao", "Revisão"] ] as const).map(([valor, titulo]) => (
           <Button key={valor} variant={momento === valor ? "default" : "outline"} className="min-h-11" aria-pressed={momento === valor} onClick={() => setMomento(valor)}>{titulo}</Button>
