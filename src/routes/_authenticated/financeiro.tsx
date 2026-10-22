@@ -626,7 +626,7 @@ function FinanceiroPage() {
           */}
           <CaCard
             titulo="Reconciliação"
-            eyebrow="Financeiro · payments.conciliacao_status"
+            eyebrow="Financeiro · situação da conciliação"
             data-financeiro-reconciliacao
             className="rounded-2xl p-5 sm:p-6"
           >

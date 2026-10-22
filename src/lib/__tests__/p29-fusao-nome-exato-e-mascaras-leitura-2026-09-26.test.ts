@@ -68,8 +68,23 @@ describe("Fase 0 — decidirClienteDoHandoff nunca funde automaticamente só por
 describe("P29 — Pessoa 360: leitura de CPF/telefone volta a usar a mesma máscara do modo Editar", () => {
   const pagina = readFileSync("src/routes/_authenticated/pessoas.$clienteId.tsx", "utf8");
 
-  it("CPF e telefone em modo leitura chamam formatarCpf/formatarTelefone, não o valor cru", () => {
+  it("telefone em modo leitura chama formatarTelefone, não o valor cru", () => {
     expect(pagina).toContain("formatarTelefone(String(cliente.telefone))");
-    expect(pagina).toContain("formatarCpf(String(cliente.cpf))");
+  });
+
+  /*
+   * 22/10/2026 — decisão da Proprietária (laudo de polimento visual): o CPF em
+   * leitura passa a ser mascarado por padrão (`•••.•••.123-45`), com botão
+   * "revelar" para quem precisa do número inteiro. A regra que o P29 criou
+   * continua valendo — leitura nunca mostra o valor cru de 11 dígitos —, só o
+   * formatador mudou: de `formatarCpf` para `mascararCpf`, ambos em
+   * validacao-pessoa.ts. Quem revela vê `formatarCpf`, dentro de CpfMascarado.
+   */
+  it("CPF em modo leitura é mascarado por padrão, nunca o valor cru", () => {
+    expect(pagina).toContain("<CpfMascarado cpf={String(cliente.cpf)} />");
+    expect(pagina).not.toContain("formatarCpf(String(cliente.cpf))");
+    const componente = readFileSync("src/components/campos/cpf-mascarado.tsx", "utf8");
+    expect(componente).toContain("mascararCpf(cpf)");
+    expect(componente).toContain("formatarCpf(cpf)");
   });
 });

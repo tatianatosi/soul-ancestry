@@ -370,8 +370,16 @@ export function SaasShell({
           </details>
         </header>
         <div className="min-w-0 px-4 pt-4 md:px-6 md:pt-6" data-desk-titulo>
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 sm:flex sm:justify-between">
-            <div className="min-w-0">
+          {/*
+            22/10/2026 — decisão da Proprietária: no celular o cabeçalho empilha.
+            Antes era grade de duas colunas já em 375px: a coluna das ações tinha
+            largura natural (no Caso 360 ela leva o Seletor de Casos, que é
+            largo) e a do título podia encolher até zero, então "Caso 360" saía
+            uma letra por linha. Empilhado, o título sempre tem a largura toda; a
+            partir de `sm:` volta a dividir a linha com as ações, como antes.
+          */}
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+            <div className="min-w-0 max-w-full">
               <h1 className="break-words font-serif text-3xl leading-tight text-navy">{titulo}</h1>
               {descricao ? <p className="overflow-wrap-anywhere mt-1 text-xs text-navy/60">{descricao}</p> : null}
             </div>

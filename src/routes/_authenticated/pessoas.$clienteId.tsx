@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
+import { CpfMascarado } from "@/components/campos/cpf-mascarado";
 
 import { SaasShell, useSaas, EstadoVazio } from "@/components/saas/shell";
 import { CaCard } from "@/components/ui/ca-card";
@@ -715,7 +716,10 @@ function Pessoa() {
                 <Campo rotulo="Nacionalidade" valor={cliente.nacionalidade} />
                 <Campo rotulo="Profissão" valor={cliente.profissao} />
                 <Campo rotulo="Data de nascimento" valor={formatarDia(cliente.data_nascimento)} />
-                <Campo rotulo="CPF" valor={cliente.cpf ? formatarCpf(String(cliente.cpf)) : cliente.cpf} />
+                <Campo
+                  rotulo="CPF"
+                  valor={cliente.cpf ? <CpfMascarado cpf={String(cliente.cpf)} /> : null}
+                />
                 <Campo
                   rotulo="RG"
                   valor={
@@ -1732,7 +1736,7 @@ function ExperienciaNoApp({ caseId }: { caseId: string }) {
   );
 }
 
-function Campo({ rotulo, valor }: { rotulo: string; valor?: string | null }) {
+function Campo({ rotulo, valor }: { rotulo: string; valor?: ReactNode }) {
   return (
     <div>
       <dt className="text-[11px] font-medium uppercase tracking-wide text-navy/50">{rotulo}</dt>
