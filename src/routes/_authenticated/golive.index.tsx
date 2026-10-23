@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Bloco, FaixaKpis, GoLiveShell, GradeDesk, Vazio } from "@/components/golive/shell";
 import { Linha, Rosca } from "@/components/golive/graficos";
 import { Acao, Acoes } from "@/components/golive/acoes";
-import { useGoLive } from "@/components/golive/dados";
+import { useGoLive, useEscritorGoLive, buscaGoLive } from "@/components/golive/dados";
 import type { DadosGoLive } from "@/lib/golive.functions";
 import { definirProximaAcaoGoLive } from "@/lib/golive-escritores.functions";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Hoje — Go-live Clube Ancestral" },
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/golive/")({
 
 function HojeGoLive() {
   const { data, isPending, error } = useGoLive();
-  const definir = useServerFn(definirProximaAcaoGoLive);
+  const definir = useEscritorGoLive(definirProximaAcaoGoLive);
   const caso = data?.encontrado ? data : null;
 
   const kpis = caso ? kpisHoje(caso.carteira, caso.tarefas) : null;
@@ -108,7 +109,7 @@ function HojeGoLive() {
             ) : (
               <Vazio
                 cta={
-                  <Link to="/golive/caso">
+                  <Link search={true} to="/golive/caso">
                     <Button size="sm" variant="outline">
                       Abrir Caso 360
                     </Button>
@@ -128,7 +129,7 @@ function HojeGoLive() {
             ) : (
               <Vazio
                 cta={
-                  <Link to="/golive/kanban">
+                  <Link search={true} to="/golive/kanban">
                     <Button size="sm" variant="outline">
                       Abrir Operação
                     </Button>
@@ -142,7 +143,7 @@ function HojeGoLive() {
             {pendencia(caso) ? (
               <p className="text-sm text-navy/80">{pendencia(caso)}</p>
             ) : (
-              <Vazio cta={<Link to="/golive/caso"><Button size="sm">Abrir caso</Button></Link>} />
+              <Vazio cta={<Link search={true} to="/golive/caso"><Button size="sm">Abrir caso</Button></Link>} />
             )}
           </Bloco>
           </GradeDesk>
@@ -157,7 +158,7 @@ function HojeGoLive() {
                 <Item rotulo="Anexos" valor={String(caso.anexos.length)} />
               </dl>
               <Acoes>
-                <Link to="/golive/juridico"><Button size="sm" variant="outline">Abrir Jurídico</Button></Link>
+                <Link search={true} to="/golive/juridico"><Button size="sm" variant="outline">Abrir Jurídico</Button></Link>
               </Acoes>
             </Bloco>
 
@@ -169,7 +170,7 @@ function HojeGoLive() {
                 <Item rotulo="Achados" valor={String(caso.achados.length)} />
               </dl>
               <Acoes>
-                <Link to="/golive/pesquisa"><Button size="sm" variant="outline">Abrir Pesquisa</Button></Link>
+                <Link search={true} to="/golive/pesquisa"><Button size="sm" variant="outline">Abrir Pesquisa</Button></Link>
               </Acoes>
             </Bloco>
           </GradeDesk>
@@ -183,7 +184,7 @@ function HojeGoLive() {
                 <Item rotulo="Acessos ativos" valor={String(acessosAtivos)} />
               </dl>
               <Acoes>
-                <Link to="/golive/portal"><Button size="sm" variant="outline">Abrir Portal</Button></Link>
+                <Link search={true} to="/golive/portal"><Button size="sm" variant="outline">Abrir Portal</Button></Link>
               </Acoes>
             </Bloco>
 
@@ -195,13 +196,13 @@ function HojeGoLive() {
                 <Item rotulo="Identidade" valor={caso.identidade.revisarIdentidade ? "Revisar identidade" : "Sem conflito registrado"} />
               </dl>
               <Acoes>
-                <Link to="/golive/pessoas"><Button size="sm" variant="outline">Abrir Pessoas & Famílias</Button></Link>
+                <Link search={true} to="/golive/pessoas"><Button size="sm" variant="outline">Abrir Pessoas & Famílias</Button></Link>
               </Acoes>
             </Bloco>
           </GradeDesk>
 
           <div>
-            <Link to="/golive/caso">
+            <Link search={true} to="/golive/caso">
               <Button>Abrir Caso Ana</Button>
             </Link>
           </div>

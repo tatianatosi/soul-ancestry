@@ -742,6 +742,13 @@ function CasosPage() {
               Abrir ficha operacional
             </Link>
             <Link
+              to="/golive"
+              search={{ casoId: String(linha["id"]) }}
+              className="rounded-md border border-navy/20 px-2 py-1 text-xs text-navy hover:bg-navy/5"
+            >
+              GoLive · vida completa
+            </Link>
+            <Link
               to="/onboarding/$id"
               params={{ id: String(linha["id"]) }}
               className="rounded-md border border-gold/50 px-2 py-1 text-xs text-navy hover:bg-gold/10"

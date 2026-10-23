@@ -42,7 +42,9 @@ describe("os quatro cards restantes existem e citam a função pura", () => {
     expect(painel).toContain("microentregasAbertas.length");
     expect(painel).toContain("microentregasAbertas.slice(0, 6)");
     // Abre a fila de onde o número sai.
-    expect(painel).toContain('to="/golive/microentregas"');
+    // 23/10/2026 — decisão da Proprietária: GoLive = vida completa de CADA cliente, dentro de Casos; Hoje (macro) abre listas macro do Desk V4.
+    expect(painel).toContain('to="/microentregas"');
+    expect(painel).not.toContain('/golive/microentregas');
   });
 
   it("Alertas por origem chama origemDoSinal", () => {

@@ -192,13 +192,13 @@ function PainelConsolidado() {
       <dl className="mb-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4" data-hoje-indicadores>
         {[
           { rotulo: "Decisões do dia", valor: decisoesDoDia, apoio: "aguardando você", to: "/golive/aprovacoes" },
-          { rotulo: "Cadências vencidas", valor: hoje.vencidas, apoio: "pedem retomada", to: "/golive" },
-          { rotulo: "Casos sem próxima ação", valor: hoje.semProxima, apoio: "precisa de decisão", to: "/golive" },
+          { rotulo: "Cadências vencidas", valor: hoje.vencidas, apoio: "pedem retomada", to: "/casos" },
+          { rotulo: "Casos sem próxima ação", valor: hoje.semProxima, apoio: "precisa de decisão", to: "/casos" },
           {
             rotulo: "Microentregas para revisão",
             valor: microentregasAguardandoRevisao,
             apoio: "prontas para conferir",
-            to: "/golive/microentregas",
+            to: "/microentregas",
           },
         ].map((k) => (
           <Link
@@ -313,7 +313,7 @@ function PainelConsolidado() {
           eyebrow="concluída === false"
           acao={
             <Button asChild size="sm" variant="outline">
-              <Link to="/golive/microentregas">Abrir</Link>
+              <Link to="/microentregas">Abrir</Link>
             </Button>
           }
         >
@@ -452,7 +452,7 @@ function AlertaExcecoesAbertas() {
           <p className="text-xs text-navy/60">Autorizadas pela administração e ainda não consumidas.</p>
         </div>
         <Button asChild size="sm" variant="outline">
-          <Link to="/ops-excecoes">Ver exceções</Link>
+          <Link to="/alertas">Ver exceções nos alertas</Link>
         </Button>
       </div>
     </div>

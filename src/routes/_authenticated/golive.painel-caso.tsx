@@ -10,7 +10,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { Bloco, FaixaKpis, GoLiveShell, GradeDesk, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
-import { useGoLive } from "@/components/golive/dados";
+import { useGoLive, buscaGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import {
@@ -25,6 +25,7 @@ import {
 } from "@/lib/golive-app";
 
 export const Route = createFileRoute("/_authenticated/golive/painel-caso")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Painel do caso — Go-live Clube Ancestral" },

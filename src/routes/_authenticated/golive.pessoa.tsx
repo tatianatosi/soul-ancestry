@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { Bloco, FaixaKpis, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
-import { useGoLive } from "@/components/golive/dados";
+import { useGoLive, buscaGoLive } from "@/components/golive/dados";
 import { BarrasPercentual, Estrelas, Rede } from "@/components/golive/graficos";
 import {
   completudePorDominio,
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { formatarTelefone } from "@/lib/validacao-pessoa";
 
 export const Route = createFileRoute("/_authenticated/golive/pessoa")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Pessoa 360 — Go-live Clube Ancestral" },
@@ -91,7 +92,7 @@ function PessoaGoLive() {
               <Campo rotulo="Telefone" valor={caso.identidade.telefone ? formatarTelefone(String(caso.identidade.telefone)) : caso.identidade.telefone} />
             </dl>
             <div className="flex flex-wrap items-center gap-3">
-              <Link to="/golive/pessoas" className="text-sm text-navy underline decoration-gold underline-offset-4">
+              <Link search={true} to="/golive/pessoas" className="text-sm text-navy underline decoration-gold underline-offset-4">
                 Ver núcleo familiar
               </Link>
               <Link
@@ -128,7 +129,7 @@ function PessoaGoLive() {
             ) : (
               <Vazio
                 cta={
-                  <Link to="/golive/pessoas">
+                  <Link search={true} to="/golive/pessoas">
                     <Button size="sm">Abrir núcleo familiar</Button>
                   </Link>
                 }
@@ -142,7 +143,7 @@ function PessoaGoLive() {
             ) : (
               <Vazio
                 cta={
-                  <Link to="/golive/pessoas">
+                  <Link search={true} to="/golive/pessoas">
                     <Button size="sm">Abrir núcleo familiar</Button>
                   </Link>
                 }
@@ -157,7 +158,7 @@ function PessoaGoLive() {
               <Campo rotulo="Próxima ação" valor={humano(caso.plano?.proximaAcao ?? caso.caso.proximaAcao)} />
               <Campo rotulo="Responsável" valor={caso.caso.responsavel} />
             </dl>
-            <Link to="/golive/caso">
+            <Link search={true} to="/golive/caso">
               <Button size="sm">Abrir Caso 360</Button>
             </Link>
           </Bloco>
@@ -174,7 +175,7 @@ function PessoaGoLive() {
             ) : (
               <Vazio
                 cta={
-                  <Link to="/golive/caso">
+                  <Link search={true} to="/golive/caso">
                     <Button size="sm">Ver documentos no caso</Button>
                   </Link>
                 }

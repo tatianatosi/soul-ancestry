@@ -12,7 +12,7 @@ import { BookOpen, FileText, Home, Radar, Route as RouteIcon, Trees, UserRound }
 import { Bloco, Vazio } from "@/components/golive/shell";
 import { BrandLogo } from "@/components/brand";
 import { Barras, BarrasPercentual, Linha, LinhaDoTempo } from "@/components/golive/graficos";
-import { useGoLive } from "@/components/golive/dados";
+import { useGoLive, buscaGoLive } from "@/components/golive/dados";
 import {
   ABAS_APP,
   contratoParaFamilia,
@@ -36,6 +36,7 @@ import { Button } from "@/components/ui/button";
 import { formatarTelefone } from "@/lib/validacao-pessoa";
 
 export const Route = createFileRoute("/_authenticated/golive/app")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "App Cliente — Go-live Clube Ancestral" },

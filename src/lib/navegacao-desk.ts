@@ -214,18 +214,21 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     id: "casos",
     to: "/casos",
     label: "Casos",
-    descricao: "Todos os casos, Caso 360, onboarding, ordens de serviço, entregas com validação e operação.",
+    descricao: "Todos os casos, Caso 360, GoLive (vida do cliente), onboarding, ordens de serviço, entregas com validação e operação.",
     icone: "casos",
     agrupador: true,
     sub: [
       { to: "/casos", label: "Todos os casos" },
       { to: "/casos", hash: "visao", label: "Caso 360" },
+      // 23/10/2026 — decisão da Proprietária: o GoLive é a vida COMPLETA de cada
+      // cliente e tem lugar próprio dentro de Casos (o Caso 360 é o resumo macro).
+      { to: "/golive", label: "GoLive · Vida do cliente" },
       { to: "/casos", hash: "jornada", label: "Onboarding e jornada" },
       { to: "/ordens-servico", label: "Ordens de serviço" },
       { to: "/microentregas", label: "Entregas e validações" },
       { to: "/ops", label: "Operação" },
     ],
-    prefixos: ["/casos", "/ordens-servico", "/microentregas", "/ops", "/onboarding"],
+    prefixos: ["/casos", "/ordens-servico", "/microentregas", "/ops", "/onboarding", "/golive"],
   },
   {
     id: "pessoas",

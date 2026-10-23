@@ -46,10 +46,12 @@ describe("o tamanho da sobreposição, medido e congelado", () => {
     expect(abas.length).toBe(19);
   });
 
-  it("o Desk do menu continua com 6 grupos — o paralelo nunca virou o 7º", () => {
+  it("o menu continua com 8 grupos — o GoLive entra DENTRO de Casos, não como grupo novo", () => {
+    // 23/10/2026 — decisão da Proprietária: GoLive = vida completa de CADA cliente, dentro de Casos; Hoje (macro) abre listas macro do Desk V4.
     expect(GRUPOS_DESK.length).toBe(8); // 18/10/2026: 7 V4 + Financeiro
-    const rotasDoMenu = JSON.stringify(GRUPOS_DESK);
-    expect(rotasDoMenu).not.toMatch(/"\/golive/);
+    expect(GRUPOS_DESK.some((g) => g.to.startsWith("/golive"))).toBe(false);
+    const casos = GRUPOS_DESK.find((g) => g.id === "casos");
+    expect(JSON.stringify(casos)).toMatch(/"\/golive"/);
   });
 
   /*
@@ -66,9 +68,10 @@ describe("o tamanho da sobreposição, medido e congelado", () => {
     expect(home).not.toMatch(/Nova tela do Desk/);
   });
 
-  it("o Painel Hoje manda para dentro do paralelo em 7 pontos", () => {
+  it("o Painel Hoje só aponta para o GoLive nas Aprovações (3 pontos)", () => {
+    // 23/10/2026 — decisão da Proprietária: GoLive = vida completa de CADA cliente, dentro de Casos; Hoje (macro) abre listas macro do Desk V4.
     const links = painel.match(/"\/golive[^"]*"/g) ?? [];
-    expect(links.length).toBe(7);
+    expect(links).toEqual(["/golive/aprovacoes", "/golive/aprovacoes", "/golive/aprovacoes"].map((l) => `"${l}"`));
   });
 });
 
