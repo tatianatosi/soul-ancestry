@@ -31,9 +31,22 @@ import {
  *    se aplicou ao caso dela;
  *  - `contract_annexes` do contrato da Ana tinha **0 linhas**.
  *
- * A composição da condição (páginas 4 e 6) é: Ana R$ 4.800, pai R$ 2.400,
- * irmã R$ 2.400, Felipe dependente representado, total R$ 9.600 em 3
- * assinaturas de R$ 320 × 10 meses.
+ * A condição é: total R$ 9.600, rateado **igualitariamente** entre os três
+ * adultos — R$ 3.200 cada, em 3 assinaturas de R$ 320 × 10 meses; Felipe
+ * dependente representado, sem acréscimo.
+ *
+ * 23/10/2026 — correção da Proprietária, reafirmando decisão já aprovada
+ * várias vezes. A redação anterior deste comentário registrava valores
+ * desiguais por pessoa (Ana R$ 4.800, pai R$ 2.400, irmã R$ 2.400), lidos da
+ * extração das páginas 4 e 6: aquilo era dimensionamento técnico interno de
+ * horas, não a obrigação de cada contratante. O total sempre foi o mesmo.
+ *
+ * ATENÇÃO — o fixture ANA abaixo mantém 4800/2400/2400 de propósito: é o que
+ * `case_commercial_condition.approved_items` ainda guarda em produção. O banco
+ * está congelado em só-leitura desde 20/10 (PR #172), então a correção do dado
+ * depende de nova versão da condição comercial (writer `novaVersao`, que exige
+ * motivo e não reescreve a anterior) — não foi feita aqui. Trocar o fixture
+ * agora esconderia essa pendência.
  */
 
 const ANA: CondicaoComercialCaso = {
