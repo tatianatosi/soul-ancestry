@@ -41,12 +41,13 @@ import {
  * extração das páginas 4 e 6: aquilo era dimensionamento técnico interno de
  * horas, não a obrigação de cada contratante. O total sempre foi o mesmo.
  *
- * ATENÇÃO — o fixture ANA abaixo mantém 4800/2400/2400 de propósito: é o que
- * `case_commercial_condition.approved_items` ainda guarda em produção. O banco
- * está congelado em só-leitura desde 20/10 (PR #172), então a correção do dado
- * depende de nova versão da condição comercial (writer `novaVersao`, que exige
- * motivo e não reescreve a anterior) — não foi feita aqui. Trocar o fixture
- * agora esconderia essa pendência.
+ * O dado de produção foi corrigido no mesmo dia, no banco do Lovable Cloud
+ * (projeto Ancestral Canvas), pela migration
+ * `20261023140000_rateio_igualitario_condicao_ana.sql`: a versão 3 nasceu
+ * aprovada com os três em R$ 3.200,00 e a versão 2 passou a `substituida`,
+ * preservada com a composição antiga. Por isso o fixture abaixo acompanha o
+ * estado real — R$ 3.200,00 por adulto. Os escopos não mudaram: continuam
+ * descrevendo quem carrega o dossiê-base e quem o aproveita.
  */
 
 const ANA: CondicaoComercialCaso = {
@@ -56,9 +57,9 @@ const ANA: CondicaoComercialCaso = {
   propostaReferencia: "DECK-CANVA-CA-CID-AT-FAM-2026-001-v1 (páginas 1–7 extraídas)",
   versao: 1,
   itens: [
-    { parte: "Ana Luiza Gomes Silveira Rodrigues", valor: 4800, escopo: "Pesquisa histórica, dossiê-base e declaração individual" },
-    { parte: "Adair Gomes Silveira", valor: 2400, escopo: "Elo documental direto e declaração própria" },
-    { parte: "Alice Gomes Silveira", valor: 2400, escopo: "Certidões pessoais e declaração própria" },
+    { parte: "Ana Luiza Gomes Silveira Rodrigues", valor: 3200, escopo: "Pesquisa histórica, dossiê-base e declaração individual" },
+    { parte: "Adair Pinto Silveira Júnior", valor: 3200, escopo: "Elo documental direto e declaração própria" },
+    { parte: "Alice Gomes Silveira", valor: 3200, escopo: "Certidões pessoais e declaração própria" },
     { parte: "Felipe", valor: 0, escopo: "Dependente menor representado — sem assinatura e sem cobrança própria" },
   ],
   total: 9600,
