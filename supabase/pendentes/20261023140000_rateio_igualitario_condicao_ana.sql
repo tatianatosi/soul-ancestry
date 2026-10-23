@@ -1,3 +1,20 @@
+-- ┌─────────────────────────────────────────────────────────────────────────┐
+-- │ ESTADO: JÁ APLICADO no banco do Lovable Cloud em 23/10/2026.            │
+-- │                                                                         │
+-- │ Mora em `supabase/pendentes/` por causa da Decisão de Hospedagem Única  │
+-- │ (23/10/2026), regra 3: o Claude Code nunca escreve em                   │
+-- │ `supabase/migrations/` nem em `drizzle/migrations/`; mudanças de banco   │
+-- │ são propostas aqui e aplicadas pelo Lovable.                            │
+-- │                                                                         │
+-- │ Ressalva honesta: estas três foram aplicadas por mim, direto via a      │
+-- │ ferramenta do Lovable, sob autorização explícita da Proprietária        │
+-- │ ("descongelo", "escreva na base do Lovable", opção B) — ANTES de a      │
+-- │ regra 3 existir. A regra agora proíbe isso, e eu não repito: daqui em   │
+-- │ diante proponho aqui e a aplicação é pelo chat do Lovable.              │
+-- │                                                                         │
+-- │ Reaplicar é seguro: os três blocos são idempotentes e viram no-op.      │
+-- └─────────────────────────────────────────────────────────────────────────┘
+
 -- Rateio igualitário da condição comercial do caso CA-CID-AT-FAM-2026-001 (23/10/2026).
 --
 -- Ordem da Proprietária, reafirmando decisão já aprovada várias vezes: o total
