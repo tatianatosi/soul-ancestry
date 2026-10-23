@@ -1,0 +1,819 @@
+# Current State: telemetria de primeira parte (sem SDK de terceiros)
+# Scanned: 2026-10-23
+# SDK: none (nenhuma dependencia de analytics em package.json)
+# Coletores: tabelas Postgres via Supabase, gravadas por createServerFn
+
+events:
+  # --- coletor: audit_logs (68 valores distintos) ---
+  - name: aceitar_sugestao_trilha_scan
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/ancestralscan-triagem.server.ts:188
+  - name: achado_despublicado_do_app
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/biblioteca-evidencias.functions.ts:732
+  - name: analysis_blocked_insufficient_case_data
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/routes/api/pesquisa-assistente.ts:199
+  - name: anexo_dispensa_revertida
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/contrato-parametros.functions.ts:1362
+  - name: anexo_dispensado_com_motivo
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/contrato-parametros.functions.ts:1305
+  - name: anexo_i_derivado_da_proposta
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/cadeia-formalizacao.server.ts:342
+  - name: anexos_ressincronizados_da_ficha_atual
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/contrato-parametros.functions.ts:1262
+  - name: anexos_revisados_materializados
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/contrato-parametros.functions.ts:1171
+  - name: arvore_pessoa_despublicada
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/arvore-publicacao.functions.ts:210
+  - name: assinatura_app_despublicada
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/assinatura-app.functions.ts:197
+  - name: ativacao_bloqueada
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/onboarding.functions.ts:360
+      - src/lib/onboarding.functions.ts:383
+      - src/lib/onboarding.functions.ts:455
+      - src/lib/onboarding.functions.ts:468
+      - src/lib/onboarding.functions.ts:493
+  - name: bootstrap_denied
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/equipe.functions.ts:444
+  - name: caso_ativado
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/onboarding.functions.ts:503
+  - name: caso_suspenso
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/onboarding.functions.ts:535
+  - name: catalogo_preco_produto_pai_arquivado
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/catalogo-precos-produtos-pai.functions.ts:201
+  - name: catalogo_preco_produto_pai_criado
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/catalogo-precos-produtos-pai.functions.ts:100
+  - name: catalogo_preco_produto_pai_editado
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/catalogo-precos-produtos-pai.functions.ts:156
+  - name: cep_conferido_contra_cadastro_canonico
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/caso-canonico.functions.ts:1084
+  - name: cep_conflito_resolvido_pelo_canonico
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/caso-canonico.functions.ts:1045
+  - name: checklist_58c_semeado
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/dossie-58c.functions.ts:450
+  - name: conciliacao_catalogo_executada
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/conciliacao-catalogo.server.ts:288
+  - name: conciliacao_catalogo_reprocessada
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/conciliacao-catalogo.server.ts:390
+  - name: condicao_comercial_versao_criada
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/condicao-comercial-caso.functions.ts:215
+  - name: conflito_pais_rota_superado_por_decisao_proprietaria
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/coerencia-caso.server.ts:86
+  - name: consulta_preparacao_instrumentos
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/instrumentos-preparacao.functions.ts:205
+  - name: cpf_conferido_contra_cadastro_canonico
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/caso-canonico.functions.ts:833
+  - name: cpf_conflito_resolvido_pelo_canonico
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/caso-canonico.functions.ts:793
+  - name: criar_lead
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/ancestralscan-triagem.server.ts:107
+  - name: divergencia_catalogo_observacao_registrada
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/divergencias-catalogo.server.ts:144
+  - name: documento_enviado_pelo_cliente
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/portal-cliente.functions.ts:301
+  - name: download
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/documentos.functions.ts:219
+  - name: download_entrega_cliente
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/portal-cliente.functions.ts:347
+  - name: elos_mecanicos_do_fio_religados
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/pessoa-unificada-fio.functions.ts:374
+  - name: escopo_proposta_conferido
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/escopo-conferencia.functions.ts:29
+  - name: evidencia_arquivada
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/evidencia-canonica.server.ts:427
+  - name: evidencia_mudou_situacao
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/evidencia-canonica.server.ts:359
+  - name: excecao_operacional
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/ops.functions.ts:530
+  - name: export_csv
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/qualidade.functions.ts:316
+  - name: fio_membro_nao_derivado
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/pessoas-linhagens.functions.ts:690
+  - name: formalizacao_conferencia_marcada
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/formalizacao-cartoes.functions.ts:175
+  - name: gate_formalizacao_bloqueado
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/escopo-conferencia.server.ts:350
+  - name: gate_superado_por_decisao_proprietaria
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/escopo-conferencia.server.ts:330
+  - name: handoff_concluido
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/handoff-discovery.functions.ts:138
+  - name: handoff_rascunho_gravado
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/handoff-discovery.functions.ts:214
+  - name: historico_fase_arquivado
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/historico-fase.functions.ts:119
+  - name: historico_fase_registrado
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/historico-fase.functions.ts:84
+  - name: leitura_arquivo
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/fontes-documentos.functions.ts:366
+  - name: leitura_demo_bloqueada
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/comercial.functions.ts:50
+  - name: marco_juridico_promovido_a_vigente
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/marcos-juridicos.functions.ts:225
+  - name: membros_sincronizados_de_nucleo
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/caso-canonico.functions.ts:700
+  - name: onboarding_checklist_item_atualizado
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/onboarding.functions.ts:215
+  - name: orcamento_calculado_aplicado_na_proposta
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/orcamento-proposta.functions.ts:321
+  - name: parametros_preenchidos_do_deck_canva
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/contrato-parametros.functions.ts:2296
+  - name: pessoa_adicionada_ao_caso
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/caso-canonico.functions.ts:1426
+  - name: pessoa_sincronizada_do_cadastro_canonico
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/contratos.functions.ts:761
+  - name: planejador_parametro_corrigido
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/contrato-parametros.functions.ts:2138
+  - name: plano_app_despublicado
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/plano-publicacao.functions.ts:166
+  - name: ponte_fonte_pesquisa_copiada
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/pontes-pesquisa.functions.ts:99
+  - name: previas_substituidas_por_versao_nova
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/contrato-parametros.functions.ts:1636
+  - name: projecao_app_publicada
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/golive-escritores.functions.ts:1303
+  - name: proposta_revalidacao_solicitada
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/escopo-conferencia.functions.ts:125
+  - name: qualificacao_contratada_reconciliada_com_perfil_institucional
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/contrato-parametros.functions.ts:323
+  - name: rejeitar_sugestao_trilha_scan
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/ancestralscan-triagem.server.ts:208
+  - name: sku_homologado_em_lote
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/homologacao-revisao.functions.ts:82
+  - name: telefone_conferido_contra_cadastro_canonico
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/caso-canonico.functions.ts:958
+  - name: telefone_conflito_resolvido_pelo_canonico
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/caso-canonico.functions.ts:919
+  - name: uniao_ramos_despublicada
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/uniao-ramos.functions.ts:211
+  - name: versao_final_com_pendencia_assumida
+    sink: audit_logs
+    field: audit_logs.acao
+    status: LIVE
+    category_inferred: "inferido: operacional/auditoria"
+    locations:
+      - src/lib/contrato-parametros.functions.ts:1676
+  # --- coletor: client_access_events (8 valores distintos) ---
+  - name: access_denied
+    sink: client_access_events
+    field: client_access_events.event_type
+    status: LIVE
+    category_inferred: "inferido: ciclo de vida de acesso"
+    locations:
+      - src/lib/portal-cliente.functions.ts:102
+      - src/lib/portal-cliente.functions.ts:331
+      - src/lib/portal.functions.ts:245
+      - src/lib/portal.functions.ts:43
+  - name: authenticated
+    sink: client_access_events
+    field: client_access_events.event_type
+    status: LIVE
+    category_inferred: "inferido: ciclo de vida de acesso"
+    locations:
+      - src/lib/portal.functions.ts:154
+  - name: authentication_denied
+    sink: client_access_events
+    field: client_access_events.event_type
+    status: LIVE
+    category_inferred: "inferido: ciclo de vida de acesso"
+    locations:
+      - src/lib/portal.functions.ts:98
+  - name: invite_created
+    sink: client_access_events
+    field: client_access_events.event_type
+    status: LIVE
+    category_inferred: "inferido: ciclo de vida de acesso"
+    locations:
+      - src/lib/portal.functions.ts:666
+  - name: invite_resent
+    sink: client_access_events
+    field: client_access_events.event_type
+    status: LIVE
+    category_inferred: "inferido: ciclo de vida de acesso"
+    locations:
+      - src/lib/portal.functions.ts:772
+  - name: magic_link_requested
+    sink: client_access_events
+    field: client_access_events.event_type
+    status: LIVE
+    category_inferred: "inferido: ciclo de vida de acesso"
+    locations:
+      - src/lib/portal.functions.ts:53
+  - name: magic_link_sent
+    sink: client_access_events
+    field: client_access_events.event_type
+    status: LIVE
+    category_inferred: "inferido: ciclo de vida de acesso"
+    locations:
+      - src/lib/portal.functions.ts:673
+      - src/lib/portal.functions.ts:77
+  - name: session_expired
+    sink: client_access_events
+    field: client_access_events.event_type
+    status: LIVE
+    category_inferred: "inferido: ciclo de vida de acesso"
+    locations:
+      - src/lib/portal.functions.ts:127
+  # --- coletor: case_timeline_events (2 valores distintos) ---
+  - name: caso
+    sink: case_timeline_events
+    field: case_timeline_events.event_type
+    status: LIVE
+    category_inferred: "inferido: operacional"
+    locations:
+      - src/lib/abrir-caso-operacional.functions.ts:99
+      - src/lib/achados-genealogicos.functions.ts:216
+      - src/lib/achados-genealogicos.functions.ts:277
+      - src/lib/arvore-publicacao.functions.ts:174
+      - src/lib/arvore-publicacao.functions.ts:221
+      - src/lib/assinatura-app.functions.ts:163
+      - src/lib/biblioteca-evidencias.functions.ts:411
+      - src/lib/biblioteca-evidencias.functions.ts:448
+      - src/lib/biblioteca-evidencias.functions.ts:575
+      - src/lib/biblioteca-evidencias.functions.ts:680
+      - src/lib/biblioteca-evidencias.functions.ts:722
+      - src/lib/biblioteca-evidencias.functions.ts:805
+      - src/lib/caso-canonico.functions.ts:1058
+      - src/lib/caso-canonico.functions.ts:1097
+      - src/lib/caso-canonico.functions.ts:1206
+      - src/lib/caso-canonico.functions.ts:1295
+      - src/lib/caso-canonico.functions.ts:1337
+      - src/lib/caso-canonico.functions.ts:141
+      - src/lib/caso-canonico.functions.ts:1437
+      - src/lib/caso-canonico.functions.ts:161
+      - src/lib/caso-canonico.functions.ts:202
+      - src/lib/caso-canonico.functions.ts:232
+      - src/lib/caso-canonico.functions.ts:405
+      - src/lib/caso-canonico.functions.ts:440
+      - src/lib/caso-canonico.functions.ts:502
+      - src/lib/caso-canonico.functions.ts:534
+      - src/lib/caso-canonico.functions.ts:593
+      - src/lib/caso-canonico.functions.ts:713
+      - src/lib/caso-canonico.functions.ts:806
+      - src/lib/caso-canonico.functions.ts:846
+      - src/lib/caso-canonico.functions.ts:932
+      - src/lib/caso-canonico.functions.ts:971
+      - src/lib/comercial.functions.ts:1007
+      - src/lib/comercial.functions.ts:290
+      - src/lib/comercial.functions.ts:318
+      - src/lib/comercial.functions.ts:355
+      - src/lib/comercial.functions.ts:387
+      - src/lib/comercial.functions.ts:467
+      - src/lib/comercial.functions.ts:506
+      - src/lib/comercial.functions.ts:547
+      - src/lib/comercial.functions.ts:599
+      - src/lib/comercial.functions.ts:636
+      - src/lib/comercial.functions.ts:682
+      - src/lib/comercial.functions.ts:702
+      - src/lib/comercial.functions.ts:741
+      - src/lib/comercial.functions.ts:807
+      - src/lib/comercial.functions.ts:830
+      - src/lib/comercial.functions.ts:914
+      - src/lib/condicao-comercial-caso.functions.ts:228
+      - src/lib/contrato-parametros.functions.ts:1316
+      - src/lib/contrato-parametros.functions.ts:1664
+      - src/lib/contrato-parametros.functions.ts:192
+      - src/lib/contrato-parametros.functions.ts:2012
+      - src/lib/contrato-parametros.functions.ts:2317
+      - src/lib/contrato-parametros.functions.ts:801
+      - src/lib/contrato-parametros.functions.ts:896
+      - src/lib/contratos.functions.ts:1067
+      - src/lib/contratos.functions.ts:1273
+      - src/lib/contratos.functions.ts:1343
+      - src/lib/contratos.functions.ts:1403
+      - src/lib/contratos.functions.ts:1488
+      - src/lib/contratos.functions.ts:1535
+      - src/lib/contratos.functions.ts:1589
+      - src/lib/contratos.functions.ts:1675
+      - src/lib/contratos.functions.ts:349
+      - src/lib/contratos.functions.ts:425
+      - src/lib/contratos.functions.ts:541
+      - src/lib/crm-desk.functions.ts:631
+      - src/lib/d7-microentrega.server.ts:268
+      - src/lib/documentos.functions.ts:152
+      - src/lib/documentos.functions.ts:180
+      - src/lib/documentos.functions.ts:262
+      - src/lib/documentos.functions.ts:340
+      - src/lib/documentos.functions.ts:380
+      - src/lib/documentos.functions.ts:421
+      - src/lib/dossie-58c.functions.ts:462
+      - src/lib/escopo-conferencia.functions.ts:192
+      - src/lib/evidencia-canonica.server.ts:305
+      - src/lib/evidencia-canonica.server.ts:381
+      - src/lib/fontes-documentos.functions.ts:260
+      - src/lib/fontes-documentos.functions.ts:299
+      - src/lib/fontes-documentos.functions.ts:331
+      - src/lib/golive-escritores.functions.ts:1314
+      - src/lib/handoff-discovery.functions.ts:317
+      - src/lib/handoff-discovery.functions.ts:492
+      - src/lib/jornada-planejador.server.ts:183
+      - src/lib/nucleo-duplicidade.functions.ts:362
+      - src/lib/nucleos-desk.functions.ts:291
+      - src/lib/nucleos-desk.functions.ts:384
+      - src/lib/nucleos-desk.functions.ts:486
+      - src/lib/nucleos-desk.functions.ts:562
+      - src/lib/nucleos-desk.functions.ts:648
+      - src/lib/nucleos-desk.functions.ts:679
+      - src/lib/ops.functions.ts:348
+      - src/lib/ops.functions.ts:373
+      - src/lib/ops.functions.ts:421
+      - src/lib/ops.functions.ts:542
+      - src/lib/orcamento-proposta.functions.ts:341
+      - src/lib/pesquisa-modulo.functions.ts:197
+      - src/lib/pesquisa-modulo.functions.ts:418
+      - src/lib/pesquisa-modulo.functions.ts:438
+      - src/lib/pesquisa-modulo.functions.ts:478
+      - src/lib/pesquisa-modulo.functions.ts:550
+      - src/lib/pesquisa-modulo.functions.ts:760
+      - src/lib/pesquisa.functions.ts:179
+      - src/lib/pesquisa.functions.ts:223
+      - src/lib/pesquisa.functions.ts:261
+      - src/lib/pessoa-unificada-fio.functions.ts:399
+      - src/lib/pessoas-linhagens.functions.ts:737
+      - src/lib/pessoas-linhagens.functions.ts:794
+      - src/lib/plano-publicacao.functions.ts:129
+      - src/lib/plano-publicacao.functions.ts:177
+      - src/lib/pontes-pesquisa.functions.ts:110
+      - src/lib/portal-atendimento.functions.ts:301
+      - src/lib/portal-atendimento.functions.ts:334
+      - src/lib/portal-atendimento.functions.ts:411
+      - src/lib/portal-atendimento.functions.ts:538
+      - src/lib/portal-atendimento.functions.ts:636
+      - src/lib/portal-atendimento.functions.ts:701
+      - src/lib/portal-atendimento.functions.ts:781
+      - src/lib/portal-atendimento.functions.ts:820
+      - src/lib/portal-atendimento.functions.ts:930
+      - src/lib/portal-atendimento.functions.ts:964
+      - src/lib/portal.functions.ts:1008
+      - src/lib/portal.functions.ts:1064
+      - src/lib/portal.functions.ts:902
+      - src/lib/qualidade.functions.ts:113
+      - src/lib/qualidade.functions.ts:208
+      - src/lib/qualidade.functions.ts:255
+      - src/lib/regra-comercial.functions.ts:212
+      - src/lib/relatorios-fase.functions.ts:141
+      - src/lib/relatorios-fase.functions.ts:222
+      - src/lib/saas.functions.ts:542
+      - src/lib/saas.functions.ts:734
+      - src/lib/saas.functions.ts:835
+      - src/lib/saas.functions.ts:938
+      - src/lib/timeline-operacional.server.ts:17
+      - src/lib/uniao-ramos.functions.ts:170
+      - src/lib/uniao-ramos.functions.ts:222
+  - name: tarefa
+    sink: case_timeline_events
+    field: case_timeline_events.event_type
+    status: LIVE
+    category_inferred: "inferido: operacional"
+    locations:
+      - src/lib/abrir-caso-operacional.functions.ts:111
+      - src/lib/handoff-discovery.functions.ts:504
+  # --- coletor: institutional_profile_events (2 valores distintos) ---
+  - name: perfil_institucional_registrado
+    sink: institutional_profile_events
+    field: institutional_profile_events.evento
+    status: LIVE
+    category_inferred: "inferido: versionamento contratual"
+    locations:
+      - src/lib/perfil-institucional-persistido.functions.ts:111
+  - name: snapshot_institucional_registrado
+    sink: institutional_profile_events
+    field: institutional_profile_events.evento
+    status: LIVE
+    category_inferred: "inferido: versionamento contratual"
+    locations:
+      - src/lib/perfil-institucional-persistido.functions.ts:176
+  # --- coletor: owner_override_events (5 valores distintos) ---
+  - name: ativar_caso_com_pendencia
+    sink: owner_override_events
+    field: owner_override_events.acao
+    status: LIVE
+    category_inferred: "inferido: override da proprietaria"
+    locations:
+      - src/lib/onboarding.functions.ts:389
+  - name: conflito_pais_rota_superado_por_decisao_proprietaria
+    sink: owner_override_events
+    field: owner_override_events.acao
+    status: LIVE
+    category_inferred: "inferido: override da proprietaria"
+    locations:
+      - src/lib/coerencia-caso.server.ts:75
+  - name: corrigir_fila_canonica
+    sink: owner_override_events
+    field: owner_override_events.acao
+    status: LIVE
+    category_inferred: "inferido: override da proprietaria"
+    locations:
+      - src/lib/painel-hoje-acoes.functions.ts:124
+  - name: gate_superado_por_decisao_proprietaria
+    sink: owner_override_events
+    field: owner_override_events.acao
+    status: LIVE
+    category_inferred: "inferido: override da proprietaria"
+    locations:
+      - src/lib/escopo-conferencia.server.ts:318
+  - name: handoff_discovery_com_pendencia
+    sink: owner_override_events
+    field: owner_override_events.acao
+    status: LIVE
+    category_inferred: "inferido: override da proprietaria"
+    locations:
+      - src/lib/handoff-discovery.functions.ts:242
+  # --- coletor: client_tab_dwell_events (1 writer) ---
+  - name: tab_dwell
+    sink: client_tab_dwell_events
+    field: "tab + duracao_ms"
+    status: LIVE
+    category_inferred: "inferido: engajamento no App Cliente"
+    properties: [tab, duracao_ms, caso_id]
+    vocabulary: [home, jornada, radar, arvore, documentos, legado, conta]
+    locations:
+      - src/lib/portal-cliente.functions.ts:706
+      - src/components/portal/portal-shell.tsx
+
+identity:
+  # Nenhum SDK de analytics: nao existem chamadas identify() nem group().
+  # A identidade e relacional, carregada em coluna em cada evento.
+  identify_calls: []
+  group_calls: []
+  observed_mechanism:
+    - field: organization_id
+      present_in: [audit_logs, client_access_events, case_timeline_events, institutional_profile_events, owner_override_events, client_tab_dwell_events]
+      note: "Coluna NOT NULL nos coletores; equivale ao grupo/tenant"
+    - field: user_id
+      present_in: [audit_logs]
+      note: "Ator da acao, quando informado pelo writer"
+    - field: actor_user_id
+      present_in: [client_access_events, owner_override_events]
+    - field: auth_user_id
+      present_in: [client_access_events]
+      note: "Usuario de auth do cliente no App"
+    - field: case_id
+      present_in: [case_timeline_events, client_tab_dwell_events]
+      note: "Unidade de trabalho; segundo nivel de agrupamento de fato"
+  server_context:
+    - "context.userId vem do middleware requireSupabaseAuth em 668 de 678 createServerFn"
+    - "auth.uid() usado dentro de funcoes SECURITY DEFINER (portal_meu_acesso, portal_meu_cliente)"
+
+patterns:
+  naming_style: snake_case
+  naming_exceptions:
+    - "7 valores em ingles no vocabulario de audit_logs (ex.: download, export_csv, awaiting_documents, analysis_blocked_insufficient_case_data), o resto em portugues"
+    - "client_access_events usa vocabulario integralmente em ingles (access_denied, authenticated, magic_link_sent)"
+  centralized: parcial
+  centralization_detail:
+    - "4 helpers compartilhados existem: registrarEvento (client_access_events), registrarTimelineCaso (case_timeline_events), registrar (audit_logs, escopo onboarding), registrarEventoInstitucional (institutional_profile_events)"
+    - "audit_logs tambem recebe 98 inserts diretos espalhados por 55 arquivos, sem passar por helper"
+    - "institutional_profile_events tem caminho duplicado: 2 inserts diretos em perfil-institucional-persistido.functions.ts e 1 helper em perfil-institucional-persistido.server.ts"
+  delivery: sincrono
+  delivery_detail:
+    - "Insert direto no Postgres dentro do mesmo handler da acao; sem fila, sem batch, sem flush"
+    - "registrarEventoInstitucional devolve { registrado, motivo } em vez de lancar"
+    - "A maioria dos inserts de audit_logs nao verifica o erro de retorno"
+  orphans:
+    - name: registrarEventoInstitucional
+      kind: helper
+      location: src/lib/perfil-institucional-persistido.server.ts:32
+      note: "Definido e exportado; nenhum chamador fora do proprio arquivo. A tabela e alimentada por inserts diretos"
+    - name: "eventType pendencia"
+      kind: valor_de_vocabulario
+      location: src/lib/timeline-operacional.server.ts:18
+      note: "Declarado na uniao de tipos (caso | tarefa | pendencia); nenhum call site usa pendencia"
+  hygiene_observations:
+    - "audit_logs acumula 68 valores distintos de acao, de granularidades diferentes: desde criar_lead ate qualificacao_contratada_reconciliada_com_perfil_institucional"
+    - "4 valores de acao chegam pelo helper registrar() e 64 por insert direto; os dois caminhos coexistem na mesma tabela"
+    - "client_tab_dwell_events e o unico coletor de comportamento (tempo por aba); os outros cinco registram mudanca de estado"
+    - "Nenhum evento carrega propriedade de sessao, dispositivo, referrer ou origem de trafego"
+    - "institutional_profile_events: valores adicionais de evento sao declarados em perfil-institucional-persistido.ts e passados por variavel, nao por literal no insert"
