@@ -2,7 +2,7 @@
 
 ## 24/10 — Publicação Desk V4 e documentos da Ana (11:47 UTC)
 - [x] Publicação solicitada para soul-ancestry.lovable.app após varredura básica sem achados; conclusão do deploy não confirmada e análise profunda não realizada.
-- [ ] Liberação dos documentos: responsabilidade de localizar/reconciliar o acervo já recebido, sem pedir reenvio genérico. Há três referências em evidencias já vinculadas à Ana; nenhum registro em documents/case_source_documents. Leitura autenticada e assinatura temporária dos três objetos retornaram NoSuchKey em 24/10: recuperar os bytes e conferir/sanitizar o conteúdo antes da liberação. Os 14 itens do checklist não são arquivos.
+- [ ] Liberação dos documentos: três arquivos recebidos localizados nos uploads, já vinculados à Ana em evidencias (Registro Unificado PDF/texto e Dossiê Consolidado PDF); não duplicados. PDFs conferidos (426500/432805 bytes, 5/7 páginas): contêm condições comerciais/hipóteses e são material interno, não certidões nem entregas sanitizadas. Nenhum registro em documents/case_source_documents. Leitura/assinatura dos objetos privados retornou NoSuchKey nesta sessão; bytes disponíveis nos uploads. BLOQUEADO_POR_DADO: não localizadas certidões/versões sanitizadas próprias para a família; não solicitar reenvio genérico nem liberar material interno. Os 14 itens do checklist não são arquivos.
 
 ## 22/10 — Fechamento aprovado v4.0 (sem redesign/publicação)
 - [x] PR #171 já presente na base bdab2ec0; nenhum pull, merge ou alteração visual executado.
@@ -422,7 +422,8 @@ PEDIDO AO CLAUDE neste corte: revisar projeção master de pessoas (ancestrais a
 - [x] EXEC-01 `resolverBloqueioPiloto` já montado em `/onboarding/$id` (12 testes ok); prova autenticada pendente da Proprietária
 - [x] EXEC-05 `/golive/app`: "Ver proposta" abre a prévia do mesmo caso; pendência `/piloto-ana` → `/casos`
 - [ ] EXEC-02 contrato/cobrança — bloqueado: envio para assinatura e cobrança exigem autorização específica
-- [ ] EXEC-03 documentos reais — recuperar o acervo existente: três referências internas já vinculadas à Ana, mas leitura/assinatura retorna NoSuchKey; reconciliar arquivo e publicação sem duplicar e sem pedir reenvio genérico
+- [ ] EXEC-03 documentos reais — acervo recebido localizado nos uploads e já vinculado à Ana; PDFs internos conferidos, sem certidões ou versões sanitizadas localizadas. Não duplicar nem publicar material interno; recuperação da leitura no armazenamento ainda pendente
 - [ ] EXEC-04 sete abas do App — aguarda conteúdo do EXEC-03 e liberação do congelamento por aba
 - [ ] EXEC-07 homologação final — depende de login real da Ana
-- [ ] Acervo recebido (24/10, prompt `2026-10-24-lovable-acervo-recebido-lancamento`): localizar documentos já enviados, ligar cada um ao caso certo sem duplicar, e liberar à família só com autorização
+- [x] Acervo recebido (24/10): localizados Registro Unificado PDF/texto e Dossiê Consolidado PDF em uploads/mirror; mesmos nomes/conteúdos/tamanhos das três referências de evidencias já vinculadas à Ana. Nenhuma duplicação, upload ou alteração de acesso executada.
+- [ ] Mostrar acervo em Documentos: BLOQUEADO_POR_DADO — os três recebidos são material interno; não localizadas certidões nem versões sanitizadas para entrega à família. Leitura temporária do armazenamento retornou NoSuchKey nesta sessão; sem substituir diagnóstico por exposição de conteúdo interno.
