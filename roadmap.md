@@ -1,5 +1,9 @@
 # Roadmap
 
+## 24/10 — Publicação Desk V4 e documentos da Ana (11:47 UTC)
+- [x] Publicação solicitada para soul-ancestry.lovable.app após varredura básica sem achados; conclusão do deploy não confirmada e análise profunda não realizada.
+- [ ] Liberação dos 14 documentos BLOQUEADA_POR_DADO: nenhum registro em documents ou case_source_documents no caso; só três arquivos em evidencias, internos e não revisados. Os 14 são itens pendentes do checklist, não arquivos. Necessário fornecer os documentos reais ou indicar sua origem; nenhum conteúdo interno liberado.
+
 ## 22/10 — Fechamento aprovado v4.0 (sem redesign/publicação)
 - [x] PR #171 já presente na base bdab2ec0; nenhum pull, merge ou alteração visual executado.
 - [x] Aplicadas as duas migrations existentes de suporte financeiro e telemetria; função, RLS, políticas e privilégios conferidos no banco.
