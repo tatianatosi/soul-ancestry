@@ -39,5 +39,15 @@ dist-ssr
 
 # Worktrees e artefatos locais de sessão do agente (nunca committar —
 # contém checkouts git aninhados, corromperia o repositório se versionado)
-.claude/
+.claude/*
+# Nota: é `.claude/*` (o conteúdo) e não `.claude/` (o diretório) porque o git
+# não reinclui arquivo dentro de diretório excluído — a exceção abaixo seria
+# ignorada em silêncio.
+# Exceção deliberada: o settings.json carrega os hooks que fazem cumprir regras
+# do AGENTS.md (hoje, a regra 3 da Decisão de Hospedagem Única — nunca escrever
+# em supabase/migrations/ nem drizzle/migrations/). Um hook que vivesse só no
+# contêiner efêmero de uma sessão não protegeria ninguém. É um arquivo de
+# configuração, não um checkout aninhado: o aviso acima segue valendo para
+# worktrees, que continuam ignorados.
+!.claude/settings.json
 tmp/
