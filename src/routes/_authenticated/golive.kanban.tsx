@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Bloco, FaixaKpis, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo, FaixaIdentidade } from "@/components/golive/identidade";
 import { Acao, Acoes } from "@/components/golive/acoes";
-import { useGoLive } from "@/components/golive/dados";
+import { useGoLive, useEscritorGoLive, buscaGoLive } from "@/components/golive/dados";
 import { definirProximaAcaoGoLive } from "@/lib/golive-escritores.functions";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 import {
@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/kanban")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Kanban — Go-live Clube Ancestral" },
@@ -35,7 +36,7 @@ type Coluna = (typeof COLUNAS)[number];
 function KanbanGoLive() {
   const { data, isPending, error } = useGoLive();
   const caso = data?.encontrado ? data : null;
-  const definir = useServerFn(definirProximaAcaoGoLive);
+  const definir = useEscritorGoLive(definirProximaAcaoGoLive);
   const [colunaMobile, setColunaMobile] = useState<Coluna>("Hoje");
 
   /* Fonte das colunas: ações do caso (tarefas) e microentregas em aberto,
@@ -153,7 +154,7 @@ function KanbanGoLive() {
 
 function LinkCaso() {
   return (
-    <Link to="/golive/caso">
+    <Link search={true} to="/golive/caso">
       <Button size="sm" variant="outline">
         Abrir Caso 360
       </Button>
@@ -179,7 +180,7 @@ function ColunaKanban({ titulo, itens }: { titulo: string; itens: AcaoOperaciona
       ) : (
         <div className="rounded-xl border border-dashed border-navy/20 bg-white/60 p-4 text-center">
           <p className="text-sm text-navy/70">Sem itens nesta etapa</p>
-          <Link to="/golive/caso" className="mt-2 inline-block text-sm text-navy underline decoration-gold underline-offset-4">
+          <Link search={true} to="/golive/caso" className="mt-2 inline-block text-sm text-navy underline decoration-gold underline-offset-4">
             Abrir Caso 360
           </Link>
         </div>

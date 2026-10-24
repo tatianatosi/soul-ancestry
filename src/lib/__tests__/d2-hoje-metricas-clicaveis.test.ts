@@ -18,15 +18,14 @@ import { describe, expect, it } from "vitest";
 const painel = readFileSync("src/routes/_authenticated/painel.tsx", "utf8");
 
 describe("toda contagem com regra abre sua origem", () => {
-  it("cadências vencidas e casos sem próxima ação abrem /golive", () => {
-    // /golive publica exatamente "Vencidas" e "Sem próxima ação" dos
-    // mesmos kpis — abrir ali reconcilia, não leva a lista parecida.
-    expect(painel).toContain('apoio: "pedem retomada", to: "/golive"');
-    expect(painel).toContain('apoio: "precisa de decisão", to: "/golive"');
+  it("cadências vencidas e casos sem próxima ação abrem Todos os casos (macro)", () => {
+    // 23/10/2026 — decisão da Proprietária: GoLive = vida completa de CADA cliente, dentro de Casos; Hoje (macro) abre listas macro do Desk V4.
+    expect(painel).toContain('apoio: "pedem retomada", to: "/casos"');
+    expect(painel).toContain('apoio: "precisa de decisão", to: "/casos"');
   });
 
-  it("microentregas abre a fila de microentregas", () => {
-    expect(painel).toContain('to: "/golive/microentregas"');
+  it("microentregas abre a fila de microentregas do Desk V4", () => {
+    expect(painel).toContain('to: "/microentregas"');
   });
 
   it("o card vira link quando há destino", () => {

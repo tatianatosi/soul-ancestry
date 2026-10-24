@@ -15,7 +15,7 @@ import { useMemo, useState } from "react";
 
 import { Bloco, FaixaKpis, GoLiveShell, GradeDesk } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
-import { useGoLive } from "@/components/golive/dados";
+import { useGoLive, buscaGoLive } from "@/components/golive/dados";
 import { Button } from "@/components/ui/button";
 import {
   diasAte,
@@ -30,6 +30,7 @@ import { impactoNaArvore } from "@/lib/golive-pesquisa";
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/radar")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Radar interno — Go-live Clube Ancestral" },
@@ -49,7 +50,7 @@ function SemDado() {
   return (
     <div className="space-y-3">
       <p className="text-sm text-navy/60">{SEM_DADO}</p>
-      <Link to="/golive/caso">
+      <Link search={true} to="/golive/caso">
         <Button size="sm">Abrir Caso 360</Button>
       </Link>
     </div>
@@ -120,7 +121,7 @@ function RadarGoLive() {
           ) : (
             <div className="space-y-3">
               <p className="text-sm text-navy/60">Nenhum achado aprovado internamente ainda.</p>
-              <Link to="/golive/pesquisa">
+              <Link search={true} to="/golive/pesquisa">
                 <Button size="sm">Abrir Pesquisa</Button>
               </Link>
             </div>
@@ -160,7 +161,7 @@ function RadarGoLive() {
                     <Button size="sm" variant="outline" onClick={() => setSelecionadoId(linha.caso.id)}>
                       Ver no radar
                     </Button>
-                    <Link to="/golive/caso">
+                    <Link search={true} to="/golive/caso">
                       <Button size="sm">Abrir Caso 360</Button>
                     </Link>
                   </div>
@@ -194,7 +195,7 @@ function RadarGoLive() {
                   <p className="mt-1 break-words text-xs text-[var(--terracota,#9A3A2F)]">{l.alerta}</p>
                 ) : null}
                 <div className="mt-2 flex flex-wrap gap-2">
-                  <Link to="/golive/leads">
+                  <Link search={true} to="/golive/leads">
                     <Button size="sm" variant="outline">Abrir lead</Button>
                   </Link>
                 </div>
@@ -204,7 +205,7 @@ function RadarGoLive() {
         ) : (
           <div className="space-y-3">
             <p className="text-sm text-navy/60">Sem itens nesta etapa.</p>
-            <Link to="/golive/leads">
+            <Link search={true} to="/golive/leads">
               <Button size="sm">Registrar lead</Button>
             </Link>
           </div>
@@ -352,7 +353,7 @@ function Individual({ caso }: { caso: CasoRadar }) {
       </p>
 
       <div className="pt-1">
-        <Link to="/golive/caso" className="text-sm text-navy underline decoration-gold underline-offset-4">
+        <Link search={true} to="/golive/caso" className="text-sm text-navy underline decoration-gold underline-offset-4">
           Abrir Caso 360
         </Link>
       </div>

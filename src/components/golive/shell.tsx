@@ -1,24 +1,27 @@
 /**
- * Shell da superfície de go-live.
- *
- * Enxuto de propósito: topo, menu em gaveta (fechado no celular) e conteúdo.
- * Sem launcher flutuante, sem painéis históricos, sem explicação técnica.
+ * Shell do GoLive — a VIDA COMPLETA de cada cliente (23/10/2026, decisão da
+ * Proprietária). Desde 23/10 o GoLive abre DENTRO do Desk V4 (grupo Casos →
+ * "GoLive · Vida do cliente"), com a mesma lateral do Desk, um seletor de
+ * cliente no topo e as abas da vida do cliente. O caso escolhido viaja na URL
+ * (`?casoId=`) e é o mesmo para leitura e gravação. O Caso 360 continua sendo
+ * a visão macro (cards-resumo) e aponta para cá.
  */
-import { Link } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { type ReactNode } from "react";
 
-import { BrandLogo } from "@/components/brand";
+import { SaasShell } from "@/components/saas/shell";
+import { useCasoGoLive, useGoLive } from "@/components/golive/dados";
 import { cn } from "@/lib/utils";
 
 const TELAS = [
-  { to: "/golive", rotulo: "Hoje" },
+  { to: "/golive", rotulo: "Visão do cliente" },
   { to: "/golive/comercial", rotulo: "Comercial" },
   { to: "/golive/leads", rotulo: "Leads" },
   { to: "/golive/kanban", rotulo: "Kanban" },
-  { to: "/golive/pessoa", rotulo: "Pessoa 360" },
+  { to: "/golive/pessoa", rotulo: "Pessoa" },
   { to: "/golive/pessoas", rotulo: "Pessoas & Famílias" },
   { to: "/golive/painel-caso", rotulo: "Painel do caso" },
-  { to: "/golive/caso", rotulo: "Caso 360" },
+  { to: "/golive/caso", rotulo: "Ficha do caso" },
   { to: "/golive/radar", rotulo: "Radar" },
   { to: "/golive/pesquisa", rotulo: "Pesquisa" },
   { to: "/golive/formalizacao", rotulo: "Formalização" },
@@ -26,11 +29,57 @@ const TELAS = [
   { to: "/golive/financeiro", rotulo: "Financeiro" },
   { to: "/golive/microentregas", rotulo: "Microentregas" },
   { to: "/golive/portal", rotulo: "Portal" },
-  { to: "/golive/aprovacoes", rotulo: "Aprovações pendentes" },
+  { to: "/golive/aprovacoes", rotulo: "Aprovações" },
   { to: "/golive/prontidao", rotulo: "Prontidão para o App" },
   { to: "/golive/app", rotulo: "App Cliente" },
   { to: "/golive/configuracoes", rotulo: "Configurações" },
 ] as const;
+
+export const TELAS_GOLIVE = TELAS;
+
+function SeletorDeCliente() {
+  const casoId = useCasoGoLive();
+  const { data } = useGoLive();
+  const navigate = useNavigate();
+  const rota = useRouterState({ select: (s) => s.location.pathname });
+  const carteira = data?.encontrado ? data.carteira : [];
+  const atual = data?.encontrado ? data.caso : null;
+  const valor = casoId ?? atual?.id ?? "";
+  return (
+    <div className="flex min-w-0 flex-wrap items-center gap-2">
+      <label className="flex min-w-0 items-center gap-2 text-xs text-navy/70">
+        <span className="shrink-0 font-medium">Cliente</span>
+        <select
+          aria-label="Escolher o cliente do GoLive"
+          className="min-w-0 max-w-[22rem] rounded-lg border border-navy/20 bg-white px-2 py-1.5 text-sm text-navy"
+          value={valor}
+          onChange={(e) => {
+            const id = e.target.value;
+            void navigate({ to: rota, search: id ? { casoId: id } : {} } as never);
+          }}
+        >
+          {atual && !carteira.some((c) => c.id === atual.id) ? (
+            <option value={atual.id}>{[atual.codigo, atual.titulo].filter(Boolean).join(" · ")}</option>
+          ) : null}
+          {carteira.map((c) => (
+            <option key={c.id} value={c.id}>
+              {[c.codigo, c.titulo].filter(Boolean).join(" · ") || "Caso sem título"}
+            </option>
+          ))}
+        </select>
+      </label>
+      {atual ? (
+        <Link
+          to="/casos/$caseId"
+          params={{ caseId: String(atual.id) }}
+          className="whitespace-nowrap rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy hover:bg-navy/5"
+        >
+          Ver no Caso 360 (resumo)
+        </Link>
+      ) : null}
+    </div>
+  );
+}
 
 export function GoLiveShell({
   titulo,
@@ -41,58 +90,37 @@ export function GoLiveShell({
   descricao?: string;
   children: ReactNode;
 }) {
-  const [menuAberto, setMenuAberto] = useState(false);
-
+  const { data } = useGoLive();
+  const atual = data?.encontrado ? data.caso : null;
+  const nomeCliente = atual ? [atual.codigo, atual.titulo].filter(Boolean).join(" · ") : null;
   return (
-    <div className="min-h-dvh w-full overflow-x-hidden bg-cream">
-      <header className="sticky top-0 z-20 border-b border-navy/10 bg-cream/95 backdrop-blur">
-        <div className="mx-auto grid w-full max-w-[1400px] grid-cols-[auto_minmax(0,1fr)] items-center gap-3 px-4 py-3 lg:px-8">
-          <button
-            type="button"
-            aria-expanded={menuAberto}
-            aria-label={menuAberto ? "Fechar menu" : "Abrir menu"}
-            onClick={() => setMenuAberto((v) => !v)}
-            className="rounded-lg border border-navy/15 px-3 py-2 text-sm text-navy lg:hidden"
-          >
-            ☰
-          </button>
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="hidden shrink-0 lg:block">
-              <BrandLogo size={28} showText={false} variant="client-light" />
-            </span>
-            <div className="min-w-0">
-              <h1 className="font-serif text-lg leading-tight text-navy sm:text-xl">{titulo}</h1>
-              {descricao ? <p className="text-xs leading-snug text-navy/55">{descricao}</p> : null}
-            </div>
-          </div>
-        </div>
-        <nav
-          aria-label="Telas do go-live"
-          className={`${menuAberto ? "block" : "hidden"} border-t border-navy/10 px-4 py-2 lg:block lg:px-8`}
-        >
-          <ul className="mx-auto flex w-full max-w-[1400px] flex-col gap-1 lg:flex-row lg:flex-wrap lg:gap-x-1 lg:gap-y-1">
-            {TELAS.map((tela) => (
-              <li key={tela.to} className="min-w-0">
-                <Link
-                  to={tela.to}
-                  onClick={() => setMenuAberto(false)}
-                  className="block whitespace-nowrap rounded-lg px-3 py-2 text-sm text-navy/70 hover:bg-navy/5"
-                  activeOptions={{ exact: tela.to === "/golive" }}
-                  activeProps={{
-                    className:
-                      "block whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold text-navy bg-gold/20",
-                  }}
-                >
-                  {tela.rotulo}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </header>
-
-      <main className="mx-auto w-full max-w-[1400px] space-y-5 px-4 pb-24 pt-5 lg:px-8">{children}</main>
-    </div>
+    <SaasShell
+      titulo={`GoLive · ${titulo}`}
+      descricao={nomeCliente ? `Vida completa do cliente — ${nomeCliente}${descricao ? ` · ${descricao}` : ""}` : descricao}
+      acoes={<SeletorDeCliente />}
+    >
+      <nav aria-label="Abas da vida do cliente (GoLive)" className="-mx-1 mb-4 overflow-x-auto">
+        <ul className="flex w-max min-w-full gap-1 px-1 pb-1">
+          {TELAS.map((tela) => (
+            <li key={tela.to}>
+              <Link
+                search={true}
+                to={tela.to}
+                className={cn("block whitespace-nowrap rounded-full border border-navy/15 px-3 py-1.5 text-xs text-navy/70 hover:bg-navy/5")}
+                activeOptions={{ exact: tela.to === "/golive", includeSearch: false }}
+                activeProps={{
+                  className:
+                    "block whitespace-nowrap rounded-full border border-gold bg-gold/20 px-3 py-1.5 text-xs font-semibold text-navy",
+                }}
+              >
+                {tela.rotulo}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <div className="min-w-0 space-y-5">{children}</div>
+    </SaasShell>
   );
 }
 

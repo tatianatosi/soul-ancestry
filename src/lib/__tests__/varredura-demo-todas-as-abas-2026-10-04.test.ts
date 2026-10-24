@@ -154,10 +154,10 @@ describe("Varredura de demonstração — todas as abas do menu (04/10/2026)", (
     expect(falhas, falhas.join("\n")).toEqual([]);
   });
 
-  it("3. nenhuma aba do menu precisa de exceção, e /golive fica fora do menu", () => {
+  it("3. nenhuma aba do menu precisa de exceção; /golive entra só como a vida do cliente", () => {
     expect(ABAS_COM_EXCECAO_DECLARADA).toEqual([]);
-    // /golive* é Desk paralelo sem decisão da Proprietária: fica fora do menu.
-    expect(rotas.filter((r) => r.startsWith("/golive"))).toEqual([]);
+    // 23/10/2026 — decisão da Proprietária: GoLive = vida completa de CADA cliente, dentro de Casos; Hoje (macro) abre listas macro do Desk V4.
+    expect(rotas.filter((r) => r.startsWith("/golive"))).toEqual(["/golive"]);
   });
 
   it("4. o helper continua decidindo por coluna E por rótulo, sem apagar nada", () => {

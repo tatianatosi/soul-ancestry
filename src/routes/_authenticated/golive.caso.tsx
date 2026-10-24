@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Bloco, FaixaKpis, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaFluxo } from "@/components/golive/identidade";
 import { Acao, Acoes } from "@/components/golive/acoes";
-import { useGoLive } from "@/components/golive/dados";
+import { useGoLive, useEscritorGoLive, buscaGoLive } from "@/components/golive/dados";
 import { publicarProjecaoApp } from "@/lib/portal-atendimento.functions";
 import {
   aprovarMicroentregaGoLive,
@@ -20,6 +20,7 @@ import { montarFicha, resumoLote, type CampoFicha, type LoteFicha } from "@/lib/
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/golive/caso")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Caso 360 — Ficha guiada por lotes" },
@@ -48,9 +49,9 @@ type Lote = "A" | "B" | "C" | "D";
 function CasoGoLive() {
   const { data, isPending, refetch } = useGoLive();
   const publicar = useServerFn(publicarProjecaoApp);
-  const criarMicroentrega = useServerFn(criarMicroentregaGoLive);
-  const aprovar = useServerFn(aprovarMicroentregaGoLive);
-  const despublicar = useServerFn(despublicarDoAppGoLive);
+  const criarMicroentrega = useEscritorGoLive(criarMicroentregaGoLive);
+  const aprovar = useEscritorGoLive(aprovarMicroentregaGoLive);
+  const despublicar = useEscritorGoLive(despublicarDoAppGoLive);
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [lote, setLote] = useState<Lote>("A");
@@ -113,7 +114,7 @@ function CasoGoLive() {
       <FaixaFluxo atual="Caso" />
 
       {isPending ? <p className="text-sm text-navy/60">Carregando…</p> : null}
-      {!caso && !isPending ? <Vazio cta={<Link to="/golive"><Button size="sm">Voltar para Hoje</Button></Link>} /> : null}
+      {!caso && !isPending ? <Vazio cta={<Link search={true} to="/golive"><Button size="sm">Voltar para Hoje</Button></Link>} /> : null}
 
       {caso ? (
         <>
@@ -200,10 +201,10 @@ function CasoGoLive() {
                   <p className="text-xs text-navy/55">Identidade única confirmada para este piloto.</p>
                 )}
                 <div className="flex flex-wrap items-center gap-3 pt-1">
-                  <Link to="/golive/pessoa" className="text-sm text-navy underline decoration-gold underline-offset-4">
+                  <Link search={true} to="/golive/pessoa" className="text-sm text-navy underline decoration-gold underline-offset-4">
                     Abrir Pessoa 360
                   </Link>
-                  <Link to="/golive/pessoas" className="text-sm text-navy underline decoration-gold underline-offset-4">
+                  <Link search={true} to="/golive/pessoas" className="text-sm text-navy underline decoration-gold underline-offset-4">
                     Abrir Pessoas & Famílias
                   </Link>
                 </div>
@@ -246,7 +247,7 @@ function CasoGoLive() {
                       }))}
                   />
                 ) : (
-                  <Vazio cta={<Link to="/golive/kanban"><Button size="sm" variant="outline">Abrir Operação</Button></Link>} />
+                  <Vazio cta={<Link search={true} to="/golive/kanban"><Button size="sm" variant="outline">Abrir Operação</Button></Link>} />
                 )}
               </Bloco>
 
@@ -254,7 +255,7 @@ function CasoGoLive() {
                 {origemDoSinal(caso.eventos).length ? (
                   <Barras titulo="Eventos registrados por área" dados={origemDoSinal(caso.eventos)} />
                 ) : (
-                  <Vazio cta={<Link to="/golive/kanban"><Button size="sm" variant="outline">Abrir Operação</Button></Link>} />
+                  <Vazio cta={<Link search={true} to="/golive/kanban"><Button size="sm" variant="outline">Abrir Operação</Button></Link>} />
                 )}
               </Bloco>
             </>
@@ -272,7 +273,7 @@ function CasoGoLive() {
                     ))}
                   </ul>
                 ) : (
-                  <Vazio cta={<Link to="/golive/pessoas"><Button size="sm">Abrir Pessoas & Famílias</Button></Link>} />
+                  <Vazio cta={<Link search={true} to="/golive/pessoas"><Button size="sm">Abrir Pessoas & Famílias</Button></Link>} />
                 )}
               </Bloco>
 
@@ -292,7 +293,7 @@ function CasoGoLive() {
 
               <Bloco titulo="Pesquisa do caso">
                 <p className="text-sm text-navy/70">Pergunta, fonte, evidência e achado seguem na superfície de pesquisa.</p>
-                <Link to="/golive/pesquisa">
+                <Link search={true} to="/golive/pesquisa">
                   <Button size="sm">Abrir pesquisa do caso</Button>
                 </Link>
               </Bloco>
@@ -305,9 +306,9 @@ function CasoGoLive() {
                 Proposta, escopo, contrato, anexos e ordem de serviço abrem nas telas donas. Valor e condição continuam manuais.
               </p>
               <div className="flex flex-wrap gap-2">
-                <Link to="/golive/formalizacao"><Button size="sm">Abrir proposta e escopo</Button></Link>
-                <Link to="/golive/juridico"><Button size="sm" variant="outline">Abrir Jurídico</Button></Link>
-                <Link to="/golive/financeiro"><Button size="sm" variant="outline">Abrir Financeiro</Button></Link>
+                <Link search={true} to="/golive/formalizacao"><Button size="sm">Abrir proposta e escopo</Button></Link>
+                <Link search={true} to="/golive/juridico"><Button size="sm" variant="outline">Abrir Jurídico</Button></Link>
+                <Link search={true} to="/golive/financeiro"><Button size="sm" variant="outline">Abrir Financeiro</Button></Link>
               </div>
             </Bloco>
           ) : null}
@@ -367,7 +368,7 @@ function CasoGoLive() {
                 </Button>
                 <p className="text-xs text-navy/55">
                   Publicados até agora: {caso.publicados.length}.{" "}
-                  <Link to="/golive/app" className="underline">Ver no App Cliente</Link>
+                  <Link search={true} to="/golive/app" className="underline">Ver no App Cliente</Link>
                 </p>
                 {caso.publicados.length > 0 ? (
                   <Acoes>

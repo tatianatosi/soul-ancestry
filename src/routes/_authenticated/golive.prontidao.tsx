@@ -9,13 +9,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { Bloco, GoLiveShell, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
-import { useGoLive } from "@/components/golive/dados";
+import { useGoLive, buscaGoLive } from "@/components/golive/dados";
 import { Barras } from "@/components/golive/graficos";
 import { Button } from "@/components/ui/button";
 import { prontidaoDoApp, prontidaoPorGrupo, resumoProntidao } from "@/lib/golive-prontidao";
 import { humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/prontidao")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Prontidão para o App — Clube Ancestral" },
@@ -115,7 +116,7 @@ function ProntidaoGoLive() {
           ) : (
             <Vazio
               cta={
-                <Link to="/golive/caso">
+                <Link search={true} to="/golive/caso">
                   <Button size="sm" variant="outline">
                     Abrir Caso 360
                   </Button>
@@ -144,7 +145,7 @@ function ProntidaoGoLive() {
           ) : (
             <Vazio
               cta={
-                <Link to="/golive/portal">
+                <Link search={true} to="/golive/portal">
                   <Button size="sm" variant="outline">
                     Abrir Portal
                   </Button>
@@ -171,7 +172,7 @@ function ProntidaoGoLive() {
           ) : (
             <Vazio
               cta={
-                <Link to="/golive/juridico">
+                <Link search={true} to="/golive/juridico">
                   <Button size="sm" variant="outline">
                     Abrir Jurídico
                   </Button>

@@ -1153,6 +1153,15 @@ function FichaCaso() {
       acoes={
         <div className="flex flex-wrap items-center gap-3">
           <SeletorDeCasos atual={id} codigoAtual={(caso["codigo"] as string | null) ?? null} />
+          {/* 23/10/2026 — Caso 360 é o resumo macro; a vida completa do cliente
+              mora no GoLive (Casos → GoLive · Vida do cliente), deste mesmo caso. */}
+          <Link
+            to="/golive"
+            search={{ casoId: id }}
+            className="whitespace-nowrap rounded-lg bg-navy px-3 py-2 text-sm text-cream hover:bg-navy/90"
+          >
+            Abrir no GoLive · vida completa
+          </Link>
           {/* CA04-CASO360-SIMPLES (09/09/2026): este botão morava aqui e
               também no hero — duplicava a mesma ação. Só no hero agora. */}
           <span className="text-xs text-navy/60">

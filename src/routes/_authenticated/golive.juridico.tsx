@@ -15,7 +15,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { Bloco, FaixaKpis, GoLiveShell, GradeDesk, Vazio } from "@/components/golive/shell";
 import { FaixaIdentidade } from "@/components/golive/identidade";
-import { useGoLive } from "@/components/golive/dados";
+import { useGoLive, buscaGoLive } from "@/components/golive/dados";
 import { Barras, BarrasPercentual, Escada } from "@/components/golive/graficos";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +28,7 @@ import {
 import { dataHumana, humano } from "@/lib/rotulos-golive";
 
 export const Route = createFileRoute("/_authenticated/golive/juridico")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Validação jurídica da trilha — Go-live Clube Ancestral" },
@@ -86,7 +87,7 @@ function JuridicoGoLive() {
         ) : (
           <Vazio
             cta={
-              <Link to="/golive/formalizacao">
+              <Link search={true} to="/golive/formalizacao">
                 <Button size="sm">Abrir Formalização</Button>
               </Link>
             }
@@ -170,7 +171,7 @@ function JuridicoGoLive() {
         ) : (
           <Vazio
             cta={
-              <Link to="/golive/formalizacao">
+              <Link search={true} to="/golive/formalizacao">
                 <Button size="sm">Abrir Formalização</Button>
               </Link>
             }
