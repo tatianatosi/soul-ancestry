@@ -103,6 +103,10 @@ function OnboardingPage() {
       setAviso(r.ok ? "Requisito atualizado e registrado em auditoria." : `Bloqueado: ${r.erro}`);
       recarregar();
     },
+    // 24/10/2026 (EXEC-06): mesma classe de bug corrigida em mAtivar/mBloqueio
+    // neste arquivo — sem onError, uma exceção do servidor deixava a tela muda.
+    onError: (e) =>
+      setAviso(`Falhou antes de gravar: ${e instanceof Error ? e.message : String(e)}`),
   });
   const mAtivar = useMutation({
     mutationFn: (motivo?: string) =>
@@ -147,6 +151,9 @@ function OnboardingPage() {
       );
       recarregar();
     },
+    // 24/10/2026 (EXEC-06): mesma classe de bug corrigida em mAtivar/mBloqueio.
+    onError: (e) =>
+      setAviso(`Falhou antes de gravar: ${e instanceof Error ? e.message : String(e)}`),
   });
   const mSuspender = useMutation({
     mutationFn: () => suspender({ data: { casoId: id, motivo: motivoSuspensao } }),
@@ -162,6 +169,9 @@ function OnboardingPage() {
       }
       recarregar();
     },
+    // 24/10/2026 (EXEC-06): mesma classe de bug corrigida em mAtivar/mBloqueio.
+    onError: (e) =>
+      setAviso(`Falhou antes de gravar: ${e instanceof Error ? e.message : String(e)}`),
   });
 
   const autoridade = useAutoridade();
