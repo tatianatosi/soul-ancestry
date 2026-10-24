@@ -201,7 +201,7 @@ function TimelineVertical({
   variante?: "gold" | "navy";
   /** Marcos publicados que já registram uma União de Ramos (projeção `uniao_ramos`). */
   idsUniao?: ReadonlySet<string>;
-  /** Etapa atual do caso (src/lib/etapas-caso.ts), destacada na Linha do Processo. */
+  /** Etapa da PREPARAÇÃO do caso (src/lib/etapas-caso.ts), destacada na Linha do Processo (L4-A). */
   etapaAtual?: string | null;
 }) {
   return (
@@ -211,7 +211,7 @@ function TimelineVertical({
       <h2 className={cn("mb-3 text-[11px] font-semibold uppercase tracking-[0.2em]", variante === "gold" ? "text-gold" : "text-navy")}>{eyebrow}</h2>
       {etapaAtual ? (
         <p className="mb-3 rounded-xl border-2 border-gold bg-gold/10 px-3 py-2 text-sm text-navy" data-jornada-etapa-atual>
-          <span className="block text-[10px] font-semibold uppercase tracking-widest text-[var(--app-ouro-texto)]">Etapa atual</span>
+          <span className="block text-[10px] font-semibold uppercase tracking-widest text-[var(--app-ouro-texto)]">Preparação do caso</span>
           {etapaAtual}
         </p>
       ) : null}
@@ -485,7 +485,7 @@ export function PortalJornada() {
             const etapasCaso = vivo.resumoCaso?.etapas ?? [];
             const etapaAtualRotulo = etapasCaso.length === 0
               ? null
-              : (etapasCaso.find((e) => e.estado !== "concluido")?.rotulo ?? "Cinco etapas de preparação concluídas");
+              : (etapasCaso.find((e) => e.estado !== "concluido")?.rotulo ?? "Concluída — as cinco etapas de preparação");
 
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
