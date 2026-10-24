@@ -87,3 +87,7 @@ Existem 27 branches `lovable-sync*`, criadas entre 30/09 e 18/10 quando o Lovabl
 2. Todo merge em `main` deve ser seguido de Publish no Lovable no mesmo dia.
 3. O Claude Code nunca escreve em `supabase/migrations/` nem em `drizzle/migrations/`. Mudanças no banco são propostas em `supabase/pendentes/` e aplicadas pelo Lovable.
 4. Se aparecer uma nova branch `lovable-sync`, mesclar com merge commit em até 24 h (nunca squash nem rebase).
+5. **Publicação pelo Claude Code após merge — autorizado pela Proprietária em 23/10/2026** ("sim eu autorizo publicar logo apos o merge em main"). Complementa a regra 2: quando **o próprio Claude Code** executa um merge em `main`, ele publica no Lovable no mesmo turno, pela ferramenta `deploy_project`, e confirma os dois passos. Condições:
+   - Vale só para merges que o Claude Code executa. Merge ou mudança feita pela Proprietária no editor continua sendo publicada por ela — o Claude Code não tem como saber se o que está no editor está pronto.
+   - Antes de publicar, o Claude Code verifica `agentFinished` no projeto do Lovable. Se o agente estiver no meio de um turno ou parado esperando input, ele **não publica**: espera e avisa, para não subir estado pela metade.
+   - Autorizar a publicação **não** autoriza o merge. Cada merge em `main` continua exigindo autorização explícita da Proprietária, conforme o `AGENTS.md`.
