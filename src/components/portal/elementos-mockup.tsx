@@ -32,14 +32,20 @@ export function CartaoEditorial({
   );
 }
 
-/** Régua "Hoje você está aqui" — 5 etapas de src/lib/etapas-caso.ts. */
+/**
+ * Régua de PREPARAÇÃO do caso — as 5 etapas de ativação de src/lib/etapas-caso.ts.
+ * L4, opção A (24/10/2026): estas etapas são internas (Diagnóstico, Documentação,
+ * Jurídico, Financeiro, App Cliente), não as fases da jornada do mockup p.3;
+ * por isso o título diz "Preparação do seu caso" e não "Hoje você está aqui".
+ * A régua das 5 fases da jornada depende da correspondência 8→5 ainda não aprovada.
+ */
 export function ReguaEtapas({ etapas }: { etapas: ResumoCasoCliente["etapas"] }) {
   if (etapas.length === 0) return null;
   const indiceAtual = etapas.findIndex((e) => e.estado !== "concluido");
   const todasConcluidas = indiceAtual === -1;
   return (
-    <div className="mt-4 border-t border-cream/10 pt-4" data-regua-etapas aria-label="Hoje você está aqui">
-      <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-cream/70">Hoje você está aqui</p>
+    <div className="mt-4 border-t border-cream/10 pt-4" data-regua-etapas aria-label="Preparação do seu caso">
+      <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-cream/70">Preparação do seu caso</p>
       <ol className="mt-3 grid grid-cols-5 gap-0.5" lang="pt-BR">
         {etapas.map((e, i) => {
           const concluida = e.estado === "concluido";
@@ -71,7 +77,7 @@ export function ReguaEtapas({ etapas }: { etapas: ResumoCasoCliente["etapas"] })
         })}
       </ol>
       <p className="mt-3 text-sm text-cream">
-        {todasConcluidas ? "As cinco etapas de preparação estão concluídas." : <>Etapa atual: <span className="text-gold">{etapas[indiceAtual]!.rotulo}</span></>}
+        {todasConcluidas ? "As cinco etapas de preparação estão concluídas." : <>Etapa da preparação: <span className="text-gold">{etapas[indiceAtual]!.rotulo}</span></>}
       </p>
     </div>
   );

@@ -25,10 +25,10 @@ export function AndamentoPublicado({ rota }: { rota: string }) {
     <details className="app-andamento-publicado" data-andamento-publicado>
       <summary>
         <span className="app-andamento-ponto" aria-hidden="true" />
-        <span>{parcial ? "Como sua jornada está avançando" : dimensao.titulo}</span>
+        <span>{parcial ? "Andamento da pesquisa" : dimensao.titulo}</span>
         <strong>{dimensao.percentual !== null ? `${dimensao.percentual}%` : rotuloAusencia}</strong>
       </summary>
-      {dimensao.percentual !== null ? <JourneyProgress label={parcial ? "Avanço da sua jornada" : dimensao.titulo} value={dimensao.percentual} /> : null}
+      {dimensao.percentual !== null ? <JourneyProgress label={parcial ? "Andamento da pesquisa" : dimensao.titulo} value={dimensao.percentual} /> : null}
       <p>{dimensao.comoCalculamos}</p>
     </details>
   );
