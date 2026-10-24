@@ -575,10 +575,17 @@ export function DeskOperacional() {
             valores: nao_iniciada, em_andamento, bloqueada, concluida,
             cancelada); continuam fora.
           */}
-          <dl className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-kanban-indicadores>
+          {/*
+            22/10/2026 — mesma leitura mobile que a Mesa de Discovery: esta
+            faixa de 4 KPIs empilhava um por linha em 375px. A composição
+            homologada em 14/10 (rótulos, derivação sobre `tarefas`, 5
+            colunas abaixo) não muda — só a grade abre em 2 colunas desde o
+            celular, com respiro e número um pouco menores.
+          */}
+          <dl className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4" data-kanban-indicadores>
             {kpisKanban.map((k) => (
-              <div key={k.rotulo} className="rounded-xl border border-border bg-card p-5 shadow-sm">
-                <dd className="font-serif text-3xl text-navy">{k.valor}</dd>
+              <div key={k.rotulo} className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-5">
+                <dd className="font-serif text-2xl text-navy sm:text-3xl">{k.valor}</dd>
                 <dt className="mt-1 text-xs font-semibold uppercase tracking-[0.1em] text-navy/70">{k.rotulo}</dt>
                 <p className="text-[11px] text-navy/45">{k.apoio}</p>
               </div>
