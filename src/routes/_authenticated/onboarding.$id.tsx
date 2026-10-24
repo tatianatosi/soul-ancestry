@@ -18,6 +18,7 @@ import {
   suspenderCaso,
 } from "@/lib/onboarding.functions";
 import { resolverBloqueioPiloto } from "@/lib/piloto.functions";
+import { ResolucaoBloqueioPiloto } from "@/components/caso/resolucao-bloqueio-piloto";
 import {
   podeValidar,
   responsavelDoCheck,
@@ -420,28 +421,9 @@ function OnboardingPage() {
                   {(dados.bloqueiosPiloto ?? []).map((b: { id: string; descricao: string }) => (
                     <li key={b.id} className="rounded border border-navy/10 bg-cream/40 p-2">
                       <p>{b.descricao}</p>
-                      <div className="mt-1 flex flex-wrap gap-2">
-                        {(["resolvido", "nao_aplicavel"] as const).map((st) => (
-                          <AcaoOperacional
-                            key={st}
-                            rotulo={st === "resolvido" ? "Resolver" : "Marcar não aplicável"}
-                            capacidade="avancar_caso_planejador_tarefa"
-                            variant="outline"
-                            efeito={
-                              st === "resolvido"
-                                ? "Fecha este bloqueio crítico do piloto. A justificativa fica auditada e o banco exige no mínimo 10 caracteres."
-                                : "Declara que este bloqueio não se aplica a este caso. A justificativa fica auditada."
-                            }
-                            onConfirmar={(motivo) =>
-                              mBloqueio.mutate({
-                                id: b.id,
-                                status: st,
-                                justificativa: String(motivo ?? ""),
-                              })
-                            }
-                          />
-                        ))}
-                      </div>
+                      <ResolucaoBloqueioPiloto bloqueioId={b.id}
+                        podeResolver={Boolean(dados.podeAtivar)} pendente={mBloqueio.isPending}
+                        onResolver={(decisao) => mBloqueio.mutateAsync({ id: b.id, ...decisao })} />
                     </li>
                   ))}
                 </ul>

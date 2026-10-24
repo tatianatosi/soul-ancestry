@@ -32,6 +32,7 @@ import { describe, expect, it } from "vitest";
 
 const piloto = readFileSync("src/lib/piloto.functions.ts", "utf8");
 const tela = readFileSync("src/routes/_authenticated/onboarding.$id.tsx", "utf8");
+const formulario = readFileSync("src/components/caso/resolucao-bloqueio-piloto.tsx", "utf8");
 const orfaos = readFileSync("src/lib/orfaos-classificados.ts", "utf8");
 const migration = readFileSync(
   "supabase/migrations/20260816232935_a72396bb-9c38-4f6d-9885-b163c680b7d8.sql",
@@ -97,13 +98,16 @@ describe("a justificativa automática, que burlava o guard, saiu", () => {
 
 describe("o botão existe, dentro do portão que o PR #188 passou a mostrar", () => {
   it("cada bloqueio ganha as duas ações do vocabulário real", () => {
-    expect(tela).toContain('(["resolvido", "nao_aplicavel"] as const).map(');
-    expect(tela).toContain('rotulo={st === "resolvido" ? "Resolver" : "Marcar não aplicável"}');
+    expect(tela).toContain("ResolucaoBloqueioPiloto");
+    expect(formulario).toContain('rotulo="Resolver"');
+    expect(formulario).toContain('rotulo="Marcar não aplicável"');
     expect(tela).toContain("id: b.id");
   });
 
-  it("a justificativa vem do motivo que a ação operacional já exige", () => {
-    expect(tela).toContain('justificativa: String(motivo ?? "")');
+  it("a justificativa é coletada explicitamente, mesmo quando admin executa direto", () => {
+    expect(formulario).toContain("justificativa: justificativa.trim()");
+    expect(formulario).toContain("justificativa.trim().length < 10");
+    expect(tela).toContain("mBloqueio.mutateAsync");
   });
 
   it("erro do servidor não é silencioso nesta mutation", () => {
