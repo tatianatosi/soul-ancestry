@@ -124,7 +124,12 @@ export const ORFAS_CLASSIFICADAS: OrfaClassificada[] = [
       "painelPiloto",
       "salvarDadoPiloto",
       "verificarDadoPiloto",
-      "resolverBloqueioPiloto",
+      // `resolverBloqueioPiloto` saiu desta lista em 24/10/2026: ela é a única
+      // das seis que foi montada em tela, dentro do portão que /onboarding/$id
+      // passou a mostrar (PR #188). Motivo: os 19 bloqueios críticos do caso da
+      // Ana recusavam a ativação e NÃO havia tela alguma para resolvê-los — a
+      // Proprietária não tinha botão. Montar esta ação não decide onde o piloto
+      // mora; as outras cinco seguem aguardando essa decisão.
       "criarPesquisaPiloto",
       "liberarPortalPiloto",
     ] as const

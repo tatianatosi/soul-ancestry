@@ -146,7 +146,21 @@ export const resolverBloqueioPiloto = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
     const org = await orgDoUsuario(supabase, context.userId as string);
-    const justificativa = (data.justificativa ?? "").trim() || "Sem justificativa informada.";
+    /*
+      24/10/2026 — defeito achado ao montar esta função em tela: o padrão
+      "Sem justificativa informada." tem 28 caracteres, então PASSAVA pela
+      exigência de 10 do `fn_piloto_bloqueio_guard` e deixava fechar um
+      bloqueio crítico do piloto sem justificativa nenhuma. Quem decide isso
+      escreve o porquê; a recusa é dita aqui, não contornada.
+    */
+    const justificativa = (data.justificativa ?? "").trim();
+    if (justificativa.length < 10) {
+      return {
+        ok: false as const,
+        erro:
+          "Registre a justificativa da resolução com ao menos 10 caracteres — ela fica auditada junto com a decisão.",
+      };
+    }
     await gravarComVerificacao({
       supabase,
       tabela: "piloto_bloqueios",
@@ -155,7 +169,7 @@ export const resolverBloqueioPiloto = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: { status: data.status, justificativa },
     });
-    return { ok: true };
+    return { ok: true as const, erro: null as string | null };
   });
 
 /** Cria a pesquisa do piloto — só depois de o caso operacional estar canônico. */

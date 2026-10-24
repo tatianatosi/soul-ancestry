@@ -17,6 +17,7 @@ import {
   obterOnboarding,
   suspenderCaso,
 } from "@/lib/onboarding.functions";
+import { resolverBloqueioPiloto } from "@/lib/piloto.functions";
 import {
   podeValidar,
   responsavelDoCheck,
@@ -68,6 +69,7 @@ function OnboardingPage() {
   const atualizar = useServerFn(atualizarCheckAtivacao);
   const atualizarItemOnboarding = useServerFn(atualizarItemChecklistOnboarding);
   const ativar = useServerFn(ativarCasoComChecks);
+  const resolverBloqueio = useServerFn(resolverBloqueioPiloto);
   const suspender = useServerFn(suspenderCaso);
 
   const [aviso, setAviso] = useState<string | null>(null);
@@ -121,6 +123,19 @@ function OnboardingPage() {
       setAviso(
         `Ativação falhou antes de gravar: ${e instanceof Error ? e.message : String(e)}`,
       ),
+  });
+  // 24/10/2026: até hoje não existia tela nenhuma para resolver um bloqueio do
+  // piloto — o único escritor era órfão. Sem isto, o portão que o #188 passou a
+  // mostrar seria apenas uma má notícia sem saída.
+  const mBloqueio = useMutation({
+    mutationFn: (v: { id: string; status: "resolvido" | "nao_aplicavel"; justificativa: string }) =>
+      resolverBloqueio({ data: v }),
+    onSuccess: (r) => {
+      setAviso(r.ok ? "Bloqueio do piloto resolvido e auditado." : `Bloqueado: ${r.erro}`);
+      recarregar();
+    },
+    onError: (e) =>
+      setAviso(`Falhou antes de gravar: ${e instanceof Error ? e.message : String(e)}`),
   });
   const mAtualizarOnboarding = useMutation({
     mutationFn: (v: Parameters<typeof atualizarItemChecklistOnboarding>[0]["data"]) =>
@@ -401,9 +416,33 @@ function OnboardingPage() {
                   devolve “Ativação operacional NO_GO” e nada é gravado. Cada item precisa ser
                   resolvido ou arquivado na trilha do piloto.
                 </p>
-                <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-navy/80">
+                <ul className="mt-3 space-y-2 text-xs text-navy/80">
                   {(dados.bloqueiosPiloto ?? []).map((b: { id: string; descricao: string }) => (
-                    <li key={b.id}>{b.descricao}</li>
+                    <li key={b.id} className="rounded border border-navy/10 bg-cream/40 p-2">
+                      <p>{b.descricao}</p>
+                      <div className="mt-1 flex flex-wrap gap-2">
+                        {(["resolvido", "nao_aplicavel"] as const).map((st) => (
+                          <AcaoOperacional
+                            key={st}
+                            rotulo={st === "resolvido" ? "Resolver" : "Marcar não aplicável"}
+                            capacidade="avancar_caso_planejador_tarefa"
+                            variant="outline"
+                            efeito={
+                              st === "resolvido"
+                                ? "Fecha este bloqueio crítico do piloto. A justificativa fica auditada e o banco exige no mínimo 10 caracteres."
+                                : "Declara que este bloqueio não se aplica a este caso. A justificativa fica auditada."
+                            }
+                            onConfirmar={(motivo) =>
+                              mBloqueio.mutate({
+                                id: b.id,
+                                status: st,
+                                justificativa: String(motivo ?? ""),
+                              })
+                            }
+                          />
+                        ))}
+                      </div>
+                    </li>
                   ))}
                 </ul>
               </div>
