@@ -425,3 +425,4 @@ PEDIDO AO CLAUDE neste corte: revisar projeção master de pessoas (ancestrais a
 - [ ] EXEC-03 documentos reais — bloqueado: só 3 arquivos internos; faltam os arquivos reais
 - [ ] EXEC-04 sete abas do App — aguarda conteúdo do EXEC-03 e liberação do congelamento por aba
 - [ ] EXEC-07 homologação final — depende de login real da Ana
+- [ ] Acervo recebido (24/10, prompt `2026-10-24-lovable-acervo-recebido-lancamento`): localizar documentos já enviados, ligar cada um ao caso certo sem duplicar, e liberar à família só com autorização
