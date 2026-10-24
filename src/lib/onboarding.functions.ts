@@ -72,30 +72,10 @@ export const obterOnboarding = createServerFn({ method: "GET" })
     });
     const pendencias = await supabase.rpc("case_activation_pendencias", { _case: data.casoId });
 
-    // 24/10/2026 — MESMA CLASSE DE BUG do comentário de 05/09 acima, com uma
-    // quinta fonte que ficou de fora: o trigger `fn_piloto_caso_guard`
-    // (migration 20260816232935) recusa QUALQUER transição para ativo, num
-    // caso com `piloto = true`, enquanto houver linha em `piloto_bloqueios`
-    // com status 'aberto' e criticidade 'critico'. Essa tabela não entra em
-    // `case_ativacao_bloqueios_reais`, então a tela mostrava "pronto" e
-    // prometia que "pendências não impedem a proprietária" — enquanto o banco
-    // recusava a gravação com "Ativação operacional NO_GO". A Proprietária
-    // clicou em Ativar por dois meses sem que nada salvasse.
-    //
-    // O override da proprietária NÃO alcança este portão: ele é do banco, e
-    // vem depois do owner_override_events. Por isso ele é lido e mostrado
-    // aqui, separado dos demais, com o nome do que de fato trava.
-    const bloqueiosPiloto = (caso.data as { piloto?: boolean | null }).piloto
-      ? await supabase
-          .from("piloto_bloqueios")
-          .select("id,descricao,criticidade,status")
-          .eq("organization_id", organizationId)
-          .eq("case_id", data.casoId)
-          .eq("status", "aberto")
-          .eq("criticidade", "critico")
-          .is("archived_at", null)
-          .order("created_at", { ascending: true })
-      : { data: [] as unknown[], error: null };
+    // 24/10/2026 — Decisão da Proprietária: os bloqueios do piloto (`piloto_bloqueios`)
+    // deixaram de ser camada de ativação. O gatilho `fn_piloto_caso_guard` cede à
+    // proprietária (supabase/pendentes/20261024170000_ativacao_cede_a_proprietaria.sql),
+    // então a tela não lê nem exibe mais essa lista.
 
     // Fonte #4 do bloqueio real (ver migration 20260905120000): tabela
     // diferente do checklist de 14 itens acima, e — até hoje — sem nenhuma
@@ -170,8 +150,6 @@ export const obterOnboarding = createServerFn({ method: "GET" })
         cta_tela: string | null;
       }[],
       checklistOnboarding: checklistOperacional,
-      /** Quinta fonte: portão do banco que o override da proprietária não vence. */
-      bloqueiosPiloto: (bloqueiosPiloto.data ?? []) as { id: string; descricao: string }[],
       podeAtivar: podeAtivar(papeis),
       timeline,
     };

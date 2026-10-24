@@ -17,8 +17,6 @@ import {
   obterOnboarding,
   suspenderCaso,
 } from "@/lib/onboarding.functions";
-import { resolverBloqueioPiloto } from "@/lib/piloto.functions";
-import { ResolucaoBloqueioPiloto } from "@/components/caso/resolucao-bloqueio-piloto";
 import {
   podeValidar,
   responsavelDoCheck,
@@ -70,7 +68,6 @@ function OnboardingPage() {
   const atualizar = useServerFn(atualizarCheckAtivacao);
   const atualizarItemOnboarding = useServerFn(atualizarItemChecklistOnboarding);
   const ativar = useServerFn(ativarCasoComChecks);
-  const resolverBloqueio = useServerFn(resolverBloqueioPiloto);
   const suspender = useServerFn(suspenderCaso);
 
   const [aviso, setAviso] = useState<string | null>(null);
@@ -124,19 +121,6 @@ function OnboardingPage() {
       setAviso(
         `Ativação falhou antes de gravar: ${e instanceof Error ? e.message : String(e)}`,
       ),
-  });
-  // 24/10/2026: até hoje não existia tela nenhuma para resolver um bloqueio do
-  // piloto — o único escritor era órfão. Sem isto, o portão que o #188 passou a
-  // mostrar seria apenas uma má notícia sem saída.
-  const mBloqueio = useMutation({
-    mutationFn: (v: { id: string; status: "resolvido" | "nao_aplicavel"; justificativa: string }) =>
-      resolverBloqueio({ data: v }),
-    onSuccess: (r) => {
-      setAviso(r.ok ? "Bloqueio do piloto resolvido e auditado." : `Bloqueado: ${r.erro}`);
-      recarregar();
-    },
-    onError: (e) =>
-      setAviso(`Falhou antes de gravar: ${e instanceof Error ? e.message : String(e)}`),
   });
   const mAtualizarOnboarding = useMutation({
     mutationFn: (v: Parameters<typeof atualizarItemChecklistOnboarding>[0]["data"]) =>
@@ -400,36 +384,6 @@ function OnboardingPage() {
               })}
             </ul>
 
-            {(dados.bloqueiosPiloto ?? []).length > 0 && !ativo ? (
-              <div
-                data-portao-piloto
-                className="mt-4 rounded-lg border-2 border-terracotta/40 bg-terracotta/5 p-4"
-              >
-                <p className="text-sm font-semibold text-terracotta">
-                  O banco vai recusar a ativação deste caso: {(dados.bloqueiosPiloto ?? []).length}{" "}
-                  bloqueio(s) crítico(s) do piloto em aberto.
-                </p>
-                <p className="mt-1 text-xs text-navy/70">
-                  Este portão é do banco (<code>fn_piloto_caso_guard</code> sobre{" "}
-                  <code>piloto_bloqueios</code>), não do checklist acima, e{" "}
-                  <strong className="font-semibold">o override da proprietária não o vence</strong> —
-                  ele é verificado depois. Enquanto houver item nesta lista, clicar em Ativar
-                  devolve “Ativação operacional NO_GO” e nada é gravado. Cada item precisa ser
-                  resolvido ou arquivado na trilha do piloto.
-                </p>
-                <ul className="mt-3 space-y-2 text-xs text-navy/80">
-                  {(dados.bloqueiosPiloto ?? []).map((b: { id: string; descricao: string }) => (
-                    <li key={b.id} className="rounded border border-navy/10 bg-cream/40 p-2">
-                      <p>{b.descricao}</p>
-                      <ResolucaoBloqueioPiloto bloqueioId={b.id}
-                        podeResolver={Boolean(dados.podeAtivar)} pendente={mBloqueio.isPending}
-                        onResolver={(decisao) => mBloqueio.mutateAsync({ id: b.id, ...decisao })} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-
             <div className="mt-4 flex flex-wrap items-center gap-2">
               {dados.podeAtivar && !ativo ? (
                 <AcaoOperacional
@@ -447,8 +401,7 @@ function OnboardingPage() {
               {!ativo && !pronto && dados.podeAtivar ? (
                 <p className="text-xs text-navy/55">
                   Pendências do checklist informam — para a proprietária não impedem. O botão acima
-                  registra a decisão. Isso não vale para o portão do piloto acima, quando houver:
-                  aquele é do banco e recusa a gravação.
+                  registra a decisão.
                 </p>
               ) : null}
               {dados.podeAtivar && ativo ? (
