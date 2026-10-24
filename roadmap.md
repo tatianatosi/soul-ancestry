@@ -416,3 +416,12 @@ PEDIDO AO CLAUDE neste corte: revisar projeção master de pessoas (ancestrais a
 - [x] 19/10/2026 15:08 UTC — Caderno sistêmico cobre rotas e subabas de pesquisa/contrato em código, cadeia alimento → ação → writer → releitura → consumidor; proposta, não implementação nem prova de uso.
 - [x] 19/10/2026 15:17 UTC — Inventário v2 entregue na mesma pasta: 117 endereços, alturas de documento e conteúdo main em 1280/375, gavetas prioritárias abertas, categoria vazio/bloqueado, sessão da Proprietária identificada, erros reconciliados. V1 122 páginas e V2 284 páginas renderizadas e conferidas por folhas de contato; sem submissão manual. Preparador pode escrever automaticamente na carga, não auditado como ausência de escrita.
 - [ ] Prova de gravação com F5/releitura, login cliente e equivalência Vercel atual: não executadas nesta auditoria de leitura; exigem teste autorizado e configuração atual comparável.
+
+## Plano executável App/Desk (24/10/2026) — `docs/prompts/2026-10-24-plano-executavel-app-desk-lovable.md`
+- [x] EXEC-00 plano registrado no histórico
+- [x] EXEC-01 `resolverBloqueioPiloto` já montado em `/onboarding/$id` (12 testes ok); prova autenticada pendente da Proprietária
+- [x] EXEC-05 `/golive/app`: "Ver proposta" abre a prévia do mesmo caso; pendência `/piloto-ana` → `/casos`
+- [ ] EXEC-02 contrato/cobrança — bloqueado: envio para assinatura e cobrança exigem autorização específica
+- [ ] EXEC-03 documentos reais — bloqueado: só 3 arquivos internos; faltam os arquivos reais
+- [ ] EXEC-04 sete abas do App — aguarda conteúdo do EXEC-03 e liberação do congelamento por aba
+- [ ] EXEC-07 homologação final — depende de login real da Ana
