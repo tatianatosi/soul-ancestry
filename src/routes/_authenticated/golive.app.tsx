@@ -80,7 +80,18 @@ const ABERTURA_APP: Record<AbaApp, { titulo: string; descricao: string }> = {
 };
 
 /** CTA de navegação do espelho interno: leva à superfície do Desk que trata o assunto. */
-function IrPara({ para, rotulo }: { para: string; rotulo: string }) {
+function IrPara({ para, rotulo, casoId }: { para: string; rotulo: string; casoId?: string | null }) {
+  // Dentro do Desk, nunca levar a equipe ao portal real de outra identidade:
+  // destinos /portal/* abrem a prévia administrativa do MESMO caso.
+  if (para.startsWith("/portal")) {
+    return (
+      <Link to="/app-cliente-como-pessoa" search={{ casoId: casoId ?? undefined }}>
+        <Button size="sm" variant="outline">
+          {rotulo}
+        </Button>
+      </Link>
+    );
+  }
   return (
     <Link to={para}>
       <Button size="sm" variant="outline">
@@ -532,14 +543,14 @@ function AppClienteGoLive() {
                     <p className="text-navy/70">Convite do App ainda não enviado.</p>
                   )}
                   <div className="flex flex-wrap gap-2 pt-1">
-                    <IrPara para="/portal/proposta" rotulo="Ver proposta e escopo" />
+                    <IrPara para="/portal/proposta" rotulo="Ver proposta e escopo" casoId={caso?.caso.id} />
                   </div>
                 </div>
               ) : (
                 <Vazio
                   cta={
                     <div className="flex flex-wrap gap-2">
-                      <IrPara para="/portal/proposta" rotulo="Ver proposta e escopo" />
+                      <IrPara para="/portal/proposta" rotulo="Ver proposta e escopo" casoId={caso?.caso.id} />
                     </div>
                   }
                 />
