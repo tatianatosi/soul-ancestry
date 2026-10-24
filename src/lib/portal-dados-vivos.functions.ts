@@ -7,10 +7,13 @@ import type {
   EtapaCliente,
   EventoTimelinePortal,
   MarcoHistoricoCliente,
+  ChecklistDocumentalCliente,
+  SolicitacaoChecklistBruta,
   SolicitacaoDocumentoBruta,
   SolicitacaoDocumentoCliente,
 } from "@/lib/portal-dados-vivos";
 import {
+  checklistDocumentalCliente,
   composicaoDoCasoCliente,
   etapaDoCasoCliente,
   historicoSanitizado,
@@ -66,6 +69,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
     historico: MarcoHistoricoCliente[];
     /** Documentos pedidos pela equipe e ainda abertos, com o nome do pedido. */
     solicitacoes: SolicitacaoDocumentoCliente[];
+    checklist: ChecklistDocumentalCliente;
     /**
      * Pessoas mapeadas pela pesquisa neste caso (05/10/2026, PREMISSA da
      * Proprietária): denominador real do eixo "Conexões Familiares" do
@@ -135,6 +139,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         proximaEntrega: null,
         historico: [],
         solicitacoes: [],
+        checklist: { itens: [], total: 0, concluidos: 0 },
         pessoasMapeadas: 0,
         vinculosArvore: [],
         resumoCaso: null,
@@ -156,9 +161,12 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       // aba Documentos passa a nomear QUAL documento é pedido.
       supabase
         .from("portal_document_requests")
-        .select("id, case_id, status, titulo, descricao, prazo, motivo_recusa")
+        .select("id, case_id, status, titulo, descricao, prazo, motivo_recusa, obrigatorio")
         .in("case_id", alvo)
-        .in("status", ["aguardando", "recusado"]),
+        // P0 do App (24/10/2026): lê TODOS os pedidos do caso (a policy `pdr_sel_portal`
+        // já os entrega à família, sem arquivados) para montar o checklist com
+        // contador. As contagens de pendência abaixo continuam só com aguardando/recusado.
+        .is("archived_at", null),
       supabase.from("invoices").select("case_id, status").in("case_id", alvo).in("status", ["aberta", "vencida"]),
       // REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026): "Histórico (3 marcos)"
       // da Ficha Piloto. RLS (`cte_select_portal`) já restringe a leitura a
@@ -174,7 +182,8 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         .limit(3),
     ]);
 
-    const documentosPendentes = ((pendencias.data ?? []) as { case_id: string }[]).length;
+    const pedidos = (pendencias.data ?? []) as Array<SolicitacaoChecklistBruta & { case_id: string }>;
+    const documentosPendentes = pedidos.filter((p) => p.status === "aguardando" || p.status === "recusado").length;
     const pagamentoPendente = ((faturas.data ?? []) as { case_id: string }[]).length > 0;
     // Mesma origem do conteúdo. Antes era `permitidos.find(...) ?? permitidos[0]`,
     // que com o alvo agregado devolvia o PRIMEIRO caso — a próxima ação de um
@@ -239,7 +248,8 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
       composicao: composicaoDoCasoCliente(casoAtivo.composicao),
       proximaEntrega: proximaEntregaCliente(casoAtivo.proxima_entrega_prevista_em),
       historico: historicoSanitizado((timeline.data ?? []) as EventoTimelinePortal[]),
-      solicitacoes: solicitacoesAbertasCliente((pendencias.data ?? []) as SolicitacaoDocumentoBruta[]),
+      solicitacoes: solicitacoesAbertasCliente(pedidos),
+      checklist: checklistDocumentalCliente(pedidos),
       pessoasMapeadas: Math.max(0, Number(casoAtivo.pessoas_mapeadas ?? 0)),
     };
   });
