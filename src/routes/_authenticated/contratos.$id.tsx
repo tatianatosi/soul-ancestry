@@ -1233,6 +1233,12 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
     rascunho: boolean;
     perfil: { versao: string | null; status: string | null; capturadoEm: string | null } | null;
   } | null>(null);
+  // Defeito relatado pela Proprietária em 24/10/2026: o `window.open` daqui
+  // era chamado DEPOIS do `await` da URL assinada, então já havia perdido o
+  // gesto do usuário e o bloqueador de pop-up descartava a aba. O arquivo
+  // privado passa a virar um link visível na própria linha da versão: quem
+  // abre é um clique de verdade num <a href>, que navegador nenhum bloqueia.
+  const [arquivo, setArquivo] = useState<{ versao: number; url: string } | null>(null);
   // Achado real (08/09/2026): "Ver prévia interna" só existia na coluna
   // "Ações" da tabela — que tem 640px mínimos e exige rolar para o lado num
   // celular (~390px de tela). A proprietária aprovava decisões sem nunca ter
@@ -1294,19 +1300,31 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
                   Ver prévia interna
                 </button>
                 {v.rendered_file_path ? (
+                arquivo && arquivo.versao === v.version_number ? (
+                  <a
+                    href={arquivo.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold text-navy underline decoration-gold underline-offset-2"
+                  >
+                    Abrir arquivo da v{v.version_number}
+                  </a>
+                ) : (
                 <button
                   onClick={async () => {
                     try {
+                      setErro(null);
                       const r = await baixar({ data: { contract_id: contratoId, version_id: v.id } });
-                      window.open(r.url, "_blank", "noopener");
+                      setArquivo({ versao: v.version_number, url: r.url });
                     } catch (e) {
                       setErro(e instanceof Error ? e.message : "Falha ao abrir arquivo.");
                     }
                   }}
                   className="text-xs underline"
                 >
-                  Baixar arquivo
+                  Preparar arquivo
                 </button>
+                )
                 ) : null}
               </div>
             </td>
