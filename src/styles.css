@@ -267,6 +267,10 @@
     -webkit-font-smoothing: antialiased;
   }
   h1, h2, h3, .font-serif { font-family: var(--font-serif); }
+  /* Evita títulos terminando com uma palavra órfã numa linha isolada —
+     regra aditiva, não toca composição nem className de tela nenhuma. */
+  h1, h2, h3 { text-wrap: balance; }
+  p { text-wrap: pretty; }
 }
 
 /* Patch global de responsividade do Desk autenticado. O escopo impede que
