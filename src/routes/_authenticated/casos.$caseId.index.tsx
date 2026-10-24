@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound, redirect, useNavigate, useParams, useRouterState } from "@tanstack/react-router";
+import { CardsVidaDoCliente } from "@/components/caso/cards-vida-do-cliente";
 import { CarregandoDesk } from "@/components/desk/ui-desk";
 import { BarraEtapasCaso } from "@/components/caso/barra-etapas-caso";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -812,6 +813,8 @@ function FichaCaso() {
   });
 
   const [secaoFoco, setSecaoFoco] = useState<(typeof SECOES)[number]["id"] | null>(SECOES[0].id);
+  // G2 (23/10/2026): resumo (cards da vida do cliente) × ficha operacional completa.
+  const [modo, setModo] = useState<"resumo" | "ficha">("resumo");
   // Frente 1 (19/10/2026) — "Visão Concreta" mora na sub-aba da seção "Visão"
   // (uma das 8 SECOES existentes; nunca uma 9ª seção solta no schema de
   // navegação). Decisão direta da Proprietária em 19/10/2026: no índice de
@@ -827,6 +830,8 @@ function FichaCaso() {
     const alvo = (hashRota || window.location.hash).replace("#", "");
     const secao = SECOES.find((x) => x.id === alvo);
     if (secao) setSecaoFoco(secao.id);
+    // #visao (menu "Caso 360") abre o resumo; qualquer outra seção abre a ficha nela.
+    if (secao && secao.id !== "visao") setModo("ficha");
   }, [hashRota]);
 
   // CA08-JURIDICO-PROPORCIONAL (09/09/2026): fontes já existentes
@@ -1151,7 +1156,7 @@ function FichaCaso() {
     <SaasShell
       visualKit="pantone"
       titulo="Caso 360"
-      descricao="Ficha operacional canônica do caso"
+      descricao={modo === "resumo" ? "Resumo da vida do cliente · visão macro" : "Ficha operacional completa do caso"}
       acoes={
         <div className="flex flex-wrap items-center gap-3">
           <SeletorDeCasos atual={id} codigoAtual={(caso["codigo"] as string | null) ?? null} />
@@ -1268,6 +1273,7 @@ function FichaCaso() {
               key={a.id}
               href={`#secao-${a.id}`}
               onClick={() => {
+                setModo("ficha");
                 setSecaoFoco(a.id);
                 setPilulaVisaoConcretaAtiva(false);
               }}
@@ -1291,6 +1297,7 @@ function FichaCaso() {
           <a
             href="#secao-visao"
             onClick={() => {
+              setModo("ficha");
               setSecaoFoco("visao");
               setAbaVisao("concreta");
               setPilulaVisaoConcretaAtiva(true);
@@ -1309,6 +1316,7 @@ function FichaCaso() {
           <button
             type="button"
             onClick={() => {
+              setModo("ficha");
               setSecaoFoco(null);
               setPilulaVisaoConcretaAtiva(false);
             }}
@@ -1323,6 +1331,38 @@ function FichaCaso() {
           </button>
         </nav>
       </CaCard>
+      </div>
+      {/*
+        G2 (23/10/2026) — decisão da Proprietária: o Caso 360 é a visão MACRO
+        (cards-resumo da vida do cliente); a vida COMPLETA mora no GoLive do
+        mesmo caso. A ficha operacional (lotes, estado integrado, resumos,
+        trabalho/documentos e as 8 seções com todos os editores) continua
+        inteira e montada, mas num MODO próprio — não empilhada abaixo dos
+        cards. Pílulas do índice, âncoras (#secao-*) e o menu (Onboarding e
+        jornada) abrem esse modo direto na seção.
+      */}
+      {modo === "resumo" ? (
+        <CardsVidaDoCliente
+          casoId={id}
+          aoAbrirFicha={(secao) => {
+            setSecaoFoco(secao);
+            setPilulaVisaoConcretaAtiva(false);
+            setModo("ficha");
+          }}
+        />
+      ) : (
+      <>
+      <div className="mb-4 flex flex-wrap items-center gap-3" data-caso360-modo-ficha>
+        <button
+          type="button"
+          onClick={() => setModo("resumo")}
+          className="rounded-lg border border-navy/20 px-3 py-1.5 text-sm text-navy hover:bg-navy/5"
+        >
+          ← Voltar ao resumo (Caso 360)
+        </button>
+        <Link to="/golive" search={{ casoId: id }} className="text-sm text-navy underline decoration-gold underline-offset-4">
+          Vida completa no GoLive
+        </Link>
       </div>
       {/*
         Prancha V4 (13/10/2026) — grade de cartões da Visão geral do Caso 360,
@@ -3699,6 +3739,8 @@ function FichaCaso() {
         </details>
       </div>
       </details>
+      </>
+      )}
 
       <AlertDialog open={bloqueio.status === "blocked"}>
         <AlertDialogContent>
