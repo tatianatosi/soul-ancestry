@@ -1,23 +1,19 @@
 import { semCache } from "@/lib/no-store";
+import { origemDeAutenticacao } from "@/lib/origem-canonica";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/** URL pública de produção do Desk (destino oficial dos convites/redefinições). */
-const ORIGEM_PRODUCAO = "https://soul-ancestry.lovable.app";
-
+/**
+ * Destino oficial dos convites e redefinições de senha da equipe.
+ * E1 (23/10/2026): antes era uma lista de BLOQUEIO (prévia/localhost) sobre o cabeçalho
+ * da requisição — qualquer host novo passava. Agora é lista de PERMISSÃO exata
+ * (`origem-canonica.ts`): só a produção; o cabeçalho nunca define o destino.
+ */
 function origem() {
-  const o = getRequestHeader("origin");
-  const host = getRequestHeader("host");
-  const bruta = o || (host ? `https://${host}` : "");
-  // Convites e redefinições nunca podem apontar para a prévia do editor:
-  // o destino é sempre o ambiente publicado de produção.
-  if (!bruta || /lovableproject\.com|id-preview|localhost|127\.0\.0\.1/.test(bruta)) {
-    return ORIGEM_PRODUCAO;
-  }
-  return bruta;
+  return origemDeAutenticacao(getRequestHeader("origin"));
 }
 
 /** Rate limit de login. Resposta neutra: não revela existência de conta. */
