@@ -1,5 +1,9 @@
 # Roadmap
 
+## 24/10 — Publicação Desk V4 e documentos da Ana (11:47 UTC)
+- [ ] Solicitar publicação após conferência de segurança.
+- [ ] Identificar e liberar os 14 documentos reais pelo fluxo existente, com releitura; não confundir checklist com arquivos.
+
 ## 22/10 — Fechamento aprovado v4.0 (sem redesign/publicação)
 - [x] PR #171 já presente na base bdab2ec0; nenhum pull, merge ou alteração visual executado.
 - [x] Aplicadas as duas migrations existentes de suporte financeiro e telemetria; função, RLS, políticas e privilégios conferidos no banco.
