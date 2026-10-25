@@ -1,5 +1,11 @@
 # Roadmap
 
+## 25/10 — Fechamento v4.0 e conteúdo real da Ana (15:43 UTC)
+- [ ] Conferir PR #171 e migrations de suporte já sincronizadas/aplicadas; não repetir migrations.
+- [ ] Documentos: exibir checklist existente também na prévia com arquivos; identificar pedidos reais da equipe e contador sem inferir conclusão.
+- [ ] Legado: localizar e publicar apenas dossiês/relatórios reais aprovados e sanitizados pelo fluxo existente.
+- [ ] Validar sete abas em 375/1280, seletor universal e testes pertinentes; relatar bloqueios de conteúdo/contrato sem redesign.
+
 ## 25/10 — Resgate da experiência rica do App Cliente
 - [ ] Cruzar prompts aprovados e comparativo editorial indicado com as sete abas atuais; separar ausências visuais de falta de conteúdo publicado.
 - [ ] Executar os refinamentos faltantes nas telas existentes, preservando leitores, dados, sete abas e privacidade; sem publicação.
