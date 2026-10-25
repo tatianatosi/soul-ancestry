@@ -52,7 +52,7 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
         viewBox="-70 -30 360 280"
         className="app-radar-svg mx-auto w-full pb-2"
         role="img"
-        aria-label={`Radar das 6 dimensões da sua jornada: ${dimensoes.map((d) => `${d.titulo} ${d.percentual === null ? "em pesquisa" : `${d.percentual}%`}`).join("; ")}`}
+        aria-label={`Radar das 6 dimensões da sua jornada: ${dimensoes.map((d) => `${d.titulo}: ${d.percentual === null ? "em preparação" : "registros compartilhados"}`).join("; ")}`}
       >
         {[0.25, 0.5, 0.75, 1].map((f) => anelDeFundo(f, String(f)))}
         {dimensoes.map((_, i) => {
@@ -117,7 +117,7 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
           // Rótulo em até duas linhas + andamento real (ou "Em pesquisa"), para a teia ocupar mais área.
           const palavras = d.titulo.split(" ");
           const linhas = palavras.length > 1 ? [palavras.slice(0, -1).join(" "), palavras[palavras.length - 1]] : [d.titulo];
-          const andamento = d.percentual === null ? "Em pesquisa" : `${d.percentual}%`;
+          const andamento = d.percentual === null ? "Em preparação" : "Compartilhado";
           const topo = rotulo.y - ((linhas.length) * 15) / 2;
           return (
             <text key={d.id} x={rotulo.x} y={topo} textAnchor={textAnchor} className="fill-navy text-[13px] font-medium">

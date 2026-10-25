@@ -70,9 +70,13 @@ export function PortalLegado() {
               ["achado", "relatorio_fase", "relatorio_f1", "relatorio_f2", "microentrega"].includes(item.tipo),
             );
             const acervo = [...entregas, ...materiaisPublicados];
-            const porPrateleira = Object.fromEntries(
-              PRATELEIRAS.map((p) => [p.id, acervo.filter((e) => prateleiraDe(e) === p.id)]),
-            ) as Record<PrateleiraId, PublicacaoCliente[]>;
+            const colecoes = [
+              { id: "cadernos", rotulo: "Cadernos", dica: "Histórias compartilhadas", itens: acervo.filter((e) => prateleiraDe(e) === "cadernos") },
+              { id: "relatorios", rotulo: "Dossiês", dica: "Sínteses da pesquisa familiar", itens: acervo.filter((e) => prateleiraDe(e) === "relatorios" && !["relatorio_f1", "relatorio_f2"].includes(e.tipo)) },
+              { id: "fase1", rotulo: "Relatórios Fase 1", dica: "Primeira fase da pesquisa", itens: acervo.filter((e) => e.tipo === "relatorio_f1") },
+              { id: "fase2", rotulo: "Relatórios Fase 2", dica: "Continuidade da pesquisa", itens: acervo.filter((e) => e.tipo === "relatorio_f2") },
+              { id: "memoria", rotulo: "Memórias", dica: "Narrativas para guardar", itens: acervo.filter((e) => ["memoria", "narrativas"].includes(prateleiraDe(e))) },
+            ];
 
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
