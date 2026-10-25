@@ -155,7 +155,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
           "id, case_id, projection_type, content_sanitized, effective_from, updated_at, pessoa_id, geracao_cliente, source_entity_id, vinculo_projecao_id",
         )
         .in("case_id", alvo),
-      supabase.from("documents").select("id, liberado_cliente, origem, is_demo").in("case_id", alvo),
+      supabase.from("documents").select("id, liberado_cliente, origem, is_demo, titulo, liberado_em").in("case_id", alvo),
       // REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026): mesma consulta de antes,
       // agora também com título/descrição/prazo (policy `pdr_sel_portal`) — a
       // aba Documentos passa a nomear QUAL documento é pedido.

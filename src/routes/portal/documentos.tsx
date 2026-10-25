@@ -145,7 +145,20 @@ export function PortalDocumentos() {
                   {COPY_TELAS.documentos.vazio}
                 </p>
               ) : (
-                <p className="mt-3 text-sm text-navy/70">{liberados.length} {liberados.length === 1 ? "documento disponível" : "documentos disponíveis"} para você consultar.</p>
+                <>
+                  <p className="mt-3 text-sm text-navy/70">{liberados.length} {liberados.length === 1 ? "documento disponível" : "documentos disponíveis"} para você consultar.</p>
+                  <ul className="mt-3 space-y-2" data-documentos-liberados-lista>
+                    {liberados.map((d) => (
+                      <li key={`lib-${d.id}`} className="app-documento-registro grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-4">
+                        <div className="min-w-0">
+                          <p className="flex items-start gap-2 font-medium text-navy"><FileText className="h-5 w-5 shrink-0" aria-hidden="true" /><span className="min-w-0 break-words">{textoParaCliente(d.titulo) || "Não registrado"}</span></p>
+                          {d.liberado_em ? <p className="text-xs text-navy/50">liberado em {new Date(d.liberado_em).toLocaleDateString("pt-BR")}</p> : null}
+                        </div>
+                        <span className="app-chip shrink-0" data-tom="ok">Disponível</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
               </div>
             
