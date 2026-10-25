@@ -3370,7 +3370,6 @@ function FichaCaso() {
               {([c]) => (
                 <AbaOnboarding
                   caso={caso}
-                  itens={c.onboarding}
                   nucleos={c.nucleos}
                   membrosNucleo={c.membrosNucleo}
                   planoInicialOk={Boolean(q.data?.planoInicialOk)}

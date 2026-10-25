@@ -12,13 +12,10 @@ import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 import {
   atualizarCheckAtivacao,
-  atualizarItemChecklistOnboarding,
   ativarCasoComChecks,
   obterOnboarding,
   suspenderCaso,
 } from "@/lib/onboarding.functions";
-import { resolverBloqueioPiloto } from "@/lib/piloto.functions";
-import { ResolucaoBloqueioPiloto } from "@/components/caso/resolucao-bloqueio-piloto";
 import {
   podeValidar,
   responsavelDoCheck,
@@ -68,9 +65,7 @@ function OnboardingPage() {
   const qc = useQueryClient();
   const carregar = useServerFn(obterOnboarding);
   const atualizar = useServerFn(atualizarCheckAtivacao);
-  const atualizarItemOnboarding = useServerFn(atualizarItemChecklistOnboarding);
   const ativar = useServerFn(ativarCasoComChecks);
-  const resolverBloqueio = useServerFn(resolverBloqueioPiloto);
   const suspender = useServerFn(suspenderCaso);
 
   const [aviso, setAviso] = useState<string | null>(null);
@@ -83,13 +78,6 @@ function OnboardingPage() {
   useAvisoEdicaoNaoSalva(
     motivo.trim() !== "" || expira.trim() !== "" || motivoSuspensao.trim() !== "",
   );
-  const [itemOnboardingDe, setItemOnboardingDe] = useState<{
-    id: string;
-    label: string;
-    status: "concluido" | "nao_aplicavel";
-  } | null>(null);
-  const [evidenciaOnboarding, setEvidenciaOnboarding] = useState("");
-
   const q = useQuery({
     queryKey: ["onboarding", id],
     queryFn: () => carregar({ data: { casoId: id } }),
@@ -124,29 +112,6 @@ function OnboardingPage() {
       setAviso(
         `Ativação falhou antes de gravar: ${e instanceof Error ? e.message : String(e)}`,
       ),
-  });
-  // 24/10/2026: até hoje não existia tela nenhuma para resolver um bloqueio do
-  // piloto — o único escritor era órfão. Sem isto, o portão que o #188 passou a
-  // mostrar seria apenas uma má notícia sem saída.
-  const mBloqueio = useMutation({
-    mutationFn: (v: { id: string; status: "resolvido" | "nao_aplicavel"; justificativa: string }) =>
-      resolverBloqueio({ data: v }),
-    onSuccess: (r) => {
-      setAviso(r.ok ? "Bloqueio do piloto resolvido e auditado." : `Bloqueado: ${r.erro}`);
-      recarregar();
-    },
-    onError: (e) =>
-      setAviso(`Falhou antes de gravar: ${e instanceof Error ? e.message : String(e)}`),
-  });
-  const mAtualizarOnboarding = useMutation({
-    mutationFn: (v: Parameters<typeof atualizarItemChecklistOnboarding>[0]["data"]) =>
-      atualizarItemOnboarding({ data: v }),
-    onSuccess: (r) => {
-      setAviso(
-        r.ok ? "Item de onboarding atualizado e registrado em auditoria." : `Bloqueado: ${r.erro}`,
-      );
-      recarregar();
-    },
   });
   const mSuspender = useMutation({
     mutationFn: () => suspender({ data: { casoId: id, motivo: motivoSuspensao } }),
@@ -183,7 +148,6 @@ function OnboardingPage() {
   // 20260905120000_case_ativacao_bloqueios_reais.sql); só quando ela vem
   // vazia é que a tela pode dizer "completo".
   const bloqueiosReais = dados?.bloqueiosReais ?? [];
-  const checklistOnboarding = dados?.checklistOnboarding ?? [];
   const pronto = bloqueiosReais.length === 0;
   const ativo = Boolean(caso["ativo"]);
 
@@ -252,11 +216,6 @@ function OnboardingPage() {
             rotulo="Pendências reais"
             valor={String(bloqueiosReais.length)}
             apoio="Mesma projeção usada pelo banco"
-          />
-          <Indicador
-            rotulo="Checklist concluído"
-            valor={String(checklistOnboarding.filter((i) => i.status === "concluido").length)}
-            apoio={`de ${checklistOnboarding.length} item(ns)`}
           />
           <Indicador rotulo="Situação do caso" valor={ativo ? "Ativo" : "Não ativo"} apoio={String(caso["status"] ?? "—")} />
         </div>
@@ -400,36 +359,6 @@ function OnboardingPage() {
               })}
             </ul>
 
-            {(dados.bloqueiosPiloto ?? []).length > 0 && !ativo ? (
-              <div
-                data-portao-piloto
-                className="mt-4 rounded-lg border-2 border-terracotta/40 bg-terracotta/5 p-4"
-              >
-                <p className="text-sm font-semibold text-terracotta">
-                  O banco vai recusar a ativação deste caso: {(dados.bloqueiosPiloto ?? []).length}{" "}
-                  bloqueio(s) crítico(s) do piloto em aberto.
-                </p>
-                <p className="mt-1 text-xs text-navy/70">
-                  Este portão é do banco (<code>fn_piloto_caso_guard</code> sobre{" "}
-                  <code>piloto_bloqueios</code>), não do checklist acima, e{" "}
-                  <strong className="font-semibold">o override da proprietária não o vence</strong> —
-                  ele é verificado depois. Enquanto houver item nesta lista, clicar em Ativar
-                  devolve “Ativação operacional NO_GO” e nada é gravado. Cada item precisa ser
-                  resolvido ou arquivado na trilha do piloto.
-                </p>
-                <ul className="mt-3 space-y-2 text-xs text-navy/80">
-                  {(dados.bloqueiosPiloto ?? []).map((b: { id: string; descricao: string }) => (
-                    <li key={b.id} className="rounded border border-navy/10 bg-cream/40 p-2">
-                      <p>{b.descricao}</p>
-                      <ResolucaoBloqueioPiloto bloqueioId={b.id}
-                        podeResolver={Boolean(dados.podeAtivar)} pendente={mBloqueio.isPending}
-                        onResolver={(decisao) => mBloqueio.mutateAsync({ id: b.id, ...decisao })} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-
             <div className="mt-4 flex flex-wrap items-center gap-2">
               {dados.podeAtivar && !ativo ? (
                 <AcaoOperacional
@@ -447,8 +376,7 @@ function OnboardingPage() {
               {!ativo && !pronto && dados.podeAtivar ? (
                 <p className="text-xs text-navy/55">
                   Pendências do checklist informam — para a proprietária não impedem. O botão acima
-                  registra a decisão. Isso não vale para o portão do piloto acima, quando houver:
-                  aquele é do banco e recusa a gravação.
+                  registra a decisão.
                 </p>
               ) : null}
               {dados.podeAtivar && ativo ? (
@@ -465,106 +393,6 @@ function OnboardingPage() {
                 </p>
               ) : null}
             </div>
-          </CaCard>
-
-          <CaCard>
-            <h2 className="font-serif text-lg text-navy">Checklist de onboarding</h2>
-            <p className="mb-3 mt-1 text-xs text-navy/50">
-              Esta tabela existe há semanas e é lida pelo banco (trg_caso_ativo_guard) e pela lista
-              de bloqueios acima, mas nenhuma tela permitia completá-la — os itens abaixo ficaram
-              "pendente" desde a criação do caso, mesmo quando o dado real já existia. Concluir ou
-              marcar não aplicável exige registrar a evidência real; não é um clique vazio.
-            </p>
-            <ul className="divide-y divide-navy/10">
-              {checklistOnboarding.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex flex-wrap items-start justify-between gap-3 py-2.5"
-                >
-                  <div className="min-w-[200px]">
-                    <p className="text-sm font-medium text-navy">{item.label}</p>
-                    {item.item_code === ITEM_CODE_D7 ? (
-                      <p className="mt-0.5 text-xs text-navy/60" data-d7-derivado>
-                        Segue a micro-entrega real do caso (Ops). Para criar ou reconciliar, use o
-                        Caso 360, aba Onboarding — “Criar ou reconciliar micro-entrega D7”.
-                      </p>
-                    ) : null}
-                    {item.observacao ? (
-                      <p className="mt-0.5 whitespace-pre-line text-xs text-navy/55">
-                        {item.observacao}
-                      </p>
-                    ) : null}
-                    {item.concluido_em ? (
-                      <p className="text-xs text-navy/50">
-                        {new Date(item.concluido_em).toLocaleString("pt-BR")}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`rounded-full px-2 py-1 text-xs ${
-                        item.status === "concluido"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : item.status === "nao_aplicavel"
-                            ? "bg-navy/10 text-navy/60"
-                            : "bg-terracotta/10 text-terracotta"
-                      }`}
-                    >
-                      {item.status === "concluido"
-                        ? "Concluído"
-                        : item.status === "nao_aplicavel"
-                          ? "Não aplicável"
-                          : "Pendente"}
-                    </span>
-                    {item.status !== "concluido" && item.item_code !== ITEM_CODE_D7 ? (
-                      <button
-                        onClick={() => {
-                          setItemOnboardingDe({
-                            id: item.id,
-                            label: item.label,
-                            status: "concluido",
-                          });
-                          setEvidenciaOnboarding("");
-                        }}
-                        className="rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/70 hover:bg-navy/5"
-                      >
-                        Concluir
-                      </button>
-                    ) : null}
-                    {item.status !== "nao_aplicavel" ? (
-                      <button
-                        onClick={() => {
-                          setItemOnboardingDe({
-                            id: item.id,
-                            label: item.label,
-                            status: "nao_aplicavel",
-                          });
-                          setEvidenciaOnboarding("");
-                        }}
-                        className="rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/60 hover:bg-navy/5"
-                      >
-                        Não aplicável
-                      </button>
-                    ) : null}
-                    {item.status !== "pendente" && item.item_code !== ITEM_CODE_D7 ? (
-                      <button
-                        onClick={() =>
-                          mAtualizarOnboarding.mutate({ itemId: item.id, status: "pendente" })
-                        }
-                        className="rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/60 hover:bg-navy/5"
-                      >
-                        Reverter
-                      </button>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-              {!checklistOnboarding.length ? (
-                <li className="py-2.5 text-sm text-navy/55">
-                  Nenhum item de onboarding para este caso.
-                </li>
-              ) : null}
-            </ul>
           </CaCard>
 
           <CaCard>
@@ -637,50 +465,6 @@ function OnboardingPage() {
                 className="rounded-md bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
               >
                 Autorizar
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {itemOnboardingDe ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4">
-          <div className="w-full max-w-md rounded-xl bg-cream/40 p-4">
-            <h3 className="text-sm font-semibold text-navy">
-              {itemOnboardingDe.status === "concluido" ? "Concluir" : "Marcar não aplicável"} —{" "}
-              {itemOnboardingDe.label}
-            </h3>
-            <p className="mt-1 text-xs text-navy/60">
-              Registre a evidência real que sustenta isto — o que foi verificado, onde e quando. Não
-              é permitido marcar sem essa evidência.
-            </p>
-            <textarea
-              value={evidenciaOnboarding}
-              onChange={(e) => setEvidenciaOnboarding(e.target.value)}
-              className="mt-3 w-full rounded-md border border-navy/15 px-2 py-1 text-sm"
-              rows={3}
-              placeholder="Ex.: contrato assinado em 05/09 (2026-CB-0001); responsável já definido em crm_casos.responsavel_id"
-            />
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={() => setItemOnboardingDe(null)}
-                className="rounded-md border border-navy/15 px-3 py-1.5 text-xs text-navy/70"
-              >
-                Cancelar
-              </button>
-              <button
-                disabled={mAtualizarOnboarding.isPending || !evidenciaOnboarding.trim()}
-                onClick={() => {
-                  mAtualizarOnboarding.mutate({
-                    itemId: itemOnboardingDe.id,
-                    status: itemOnboardingDe.status,
-                    observacao: evidenciaOnboarding,
-                  });
-                  setItemOnboardingDe(null);
-                }}
-                className="rounded-md bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
-              >
-                Confirmar
               </button>
             </div>
           </div>
