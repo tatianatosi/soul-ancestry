@@ -1348,3 +1348,35 @@
 [data-app-cliente] #conteudo-portal .app-chip[data-tom="pendente"] { background: var(--app-chip-pendente-bg); color: var(--app-chip-pendente-tx); }
 [data-app-cliente] #conteudo-portal [data-conta-assinatura] .app-chip[data-tom="pendente"] { color: var(--app-chip-pendente-tx) !important; }
 [data-app-cliente] #conteudo-portal .app-arvore-conectado { overflow-wrap: normal !important; word-break: keep-all !important; white-space: nowrap !important; }
+
+/* 25/10/2026 — experiência rica resgatada (draft). Escopo: App Cliente.
+   Reusa tokens existentes; sem paleta nova; raios 20/24 da camada de leveza. */
+/* Radar: teia ocupando ~70% da largura útil, rótulos legíveis. */
+[data-app-cliente] .app-radar-svg { max-width: min(100%, 34rem); }
+@media (min-width: 768px) { [data-app-cliente] .app-radar-svg { width: 70%; } }
+[data-app-cliente] [data-radar-grafico] { background: #fff; border: 1px solid var(--app-borda-folha); border-radius: 24px; box-shadow: var(--app-sombra-folha); padding-inline: 1.25rem; }
+[data-app-cliente] [data-radar-grade] > li { border-radius: 20px; border-color: var(--app-borda-folha); box-shadow: var(--app-sombra-folha); }
+/* Árvore: selo "Conectado" legível (era 9px), foco visível, nós com respiro. */
+[data-app-cliente] #conteudo-portal .app-arvore-nos .app-arvore-conectado,
+[data-app-cliente] #conteudo-portal .app-arvore-conectado {
+  display: inline-flex; margin: 0.25rem auto; font-size: 11px !important; line-height: 1.4; font-weight: 600;
+  padding: 0.1rem 0.55rem !important; border-radius: 9999px;
+  background: var(--app-chip-ok-bg); color: var(--app-chip-ok-tx);
+}
+[data-app-cliente] .app-arvore-perfil summary { min-height: 44px; }
+[data-app-cliente] .app-arvore-perfil summary:focus-visible,
+[data-app-cliente] .app-arvore-modos button:focus-visible,
+[data-app-cliente] .app-arvore-foco select:focus-visible { outline: 2px solid var(--ca-gold); outline-offset: 2px; }
+[data-app-cliente] .app-arvore-modos button { min-height: 44px; }
+[data-app-cliente] .app-arvore-modos button[aria-pressed="true"] { background: var(--ca-navy); color: var(--ca-cream); }
+[data-app-cliente] .app-arvore-foco select { min-height: 44px; border-radius: 12px; border: 1px solid var(--app-borda-folha); background: #fff; padding: 0 0.75rem; }
+[data-app-cliente] .app-arvore-conectores path { stroke: var(--ca-gold); stroke-width: 1.5; fill: none; }
+[data-app-cliente] .app-ligacoes-moldura { background: #fff; border: 1px solid var(--app-borda-folha); border-radius: 20px; box-shadow: var(--app-sombra-folha); padding: 1.25rem; }
+/* Navegação: rótulo "Jornada" em 11px sem quebrar. */
+[data-app-cliente] nav[aria-label="Navegação do aplicativo do cliente"] :where(a,button) :where(span) { font-size: 11px; white-space: nowrap; }
+/* Títulos sem quebra de palavra; nomes completos permanecem visíveis. */
+[data-app-cliente] #conteudo-portal :where(h1,h2,h3) { overflow-wrap: normal; word-break: normal; hyphens: manual; }
+[data-app-cliente] #conteudo-portal :where(summary, a, button):focus-visible { outline: 2px solid var(--ca-gold); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  [data-app-cliente] * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
