@@ -98,3 +98,24 @@ describe("checklist de 14 itens removido de /onboarding/$id (25/10/2026)", () =>
     expect(sqlCompleto).not.toMatch(/onboarding_checklist/i);
   });
 });
+
+describe("checklist de 14 itens removido também do Caso 360 (25/10/2026)", () => {
+  const aba = readFileSync("src/components/caso/onboarding-caso.tsx", "utf8");
+  const caso360 = readFileSync("src/routes/_authenticated/casos.$caseId.index.tsx", "utf8");
+  const canon = readFileSync("src/lib/caso-canonico.functions.ts", "utf8");
+
+  it("a aba de onboarding do Caso 360 não tem o checklist, o item editável nem o escritor", () => {
+    expect(aba).not.toContain("Checklist de onboarding");
+    expect(aba).not.toContain("ItemOnboarding");
+    expect(aba).not.toContain("atualizarItemOnboarding");
+    expect(caso360).not.toContain("itens={c.onboarding}");
+    expect(canon).not.toContain("atualizarItemOnboarding");
+  });
+
+  it("o resto da aba segue: plano de onboarding, jornada pós-gates, gates e núcleo familiar", () => {
+    expect(aba).toContain("PainelPlanoOnboarding");
+    expect(aba).toContain("PainelJornadaPosGates");
+    expect(aba).toContain("Gates de cliente ativo");
+    expect(aba).toContain("Núcleo familiar");
+  });
+});

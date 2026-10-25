@@ -247,14 +247,14 @@ describe("ligações e superfícies", () => {
     expect(plano.match(/reconciliarD7Caso\(supabase, \{/g)?.length).toBe(2);
     expect(ops.match(/reconciliarD7Caso\(supabase, \{/g)?.length).toBe(3);
   });
-  it("a tela de checklist que sobrou (Caso 360) recusa o tick manual do D7; a de /onboarding saiu", () => {
-    // 25/10/2026 — decisão da Proprietária: o checklist de 14 itens saiu de /onboarding/$id
-    // (tela, leitura e escritor `atualizarItemChecklistOnboarding`). Não há mais tick manual ali.
+  it("nenhuma tela escreve o checklist de 14 itens: o tick manual do D7 deixou de existir", () => {
+    // 25/10/2026 — decisão da Proprietária: o checklist saiu de /onboarding/$id e do Caso 360.
+    // O D7 segue a micro-entrega real (reconciliarD7Caso), que escreve na tabela direto.
     expect(onb).not.toContain("atualizarItemChecklistOnboarding");
-    expect(onb).not.toContain("recusaTickManualD7");
+    expect(canon).not.toContain("atualizarItemOnboarding");
+    expect(canon).not.toContain("recusaTickManualD7");
     expect(readFileSync("src/routes/_authenticated/onboarding.$id.tsx", "utf8")).not.toContain("Checklist de onboarding");
-    expect(canon).toContain('recusaTickManualD7(String(item.item_code ?? ""), data.status)');
-    expect(readFileSync("src/components/caso/onboarding-caso.tsx", "utf8")).toContain("data-d7-derivado");
+    expect(readFileSync("src/components/caso/onboarding-caso.tsx", "utf8")).not.toContain("Checklist de onboarding");
   });
   it("Caso 360 mostra o D7 com prazo, responsável, estado e próxima ação", () => {
     const ui = readFileSync("src/components/caso/onboarding-plano.tsx", "utf8");
