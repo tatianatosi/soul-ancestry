@@ -1364,7 +1364,8 @@
   background: var(--app-chip-ok-bg); color: var(--app-chip-ok-tx);
 }
 [data-app-cliente] .app-arvore-perfil summary { min-height: 44px; }
-[data-app-cliente] #conteudo-portal .app-arvore-conectado + span { display: block; margin-top: 0.15rem; }
+[data-app-cliente] #conteudo-portal .app-arvore-conectado + span { display: block !important; margin-top: 0.15rem; }
+[data-app-cliente] #conteudo-portal .app-arvore-nos .app-arvore-conectado { display: table !important; }
 [data-app-cliente] .app-arvore-perfil summary:focus-visible,
 [data-app-cliente] .app-arvore-modos button:focus-visible,
 [data-app-cliente] .app-arvore-foco select:focus-visible { outline: 2px solid var(--ca-gold); outline-offset: 2px; }
