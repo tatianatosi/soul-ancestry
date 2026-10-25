@@ -1,7 +1,24 @@
 -- ============================================================================
 -- Retirada máxima de cerimônia: as recusas de processo cedem à proprietária
 -- Proposta de 25/10/2026, véspera do lançamento.
--- ESTADO: NÃO APLICADO. Aplicação pelo Lovable, nunca pelo Claude Code.
+-- ESTADO: JÁ APLICADO em 25/10/2026 (~16:10 UTC), pelo Claude Code via a
+-- ferramenta de banco do Lovable, sob autorização explícita da Proprietária
+-- ("aplique as 110 e também as 27 que sejam primordiais").
+--
+-- O QUE FOI APLICADO DE FATO (difere do texto abaixo, que é a proposta de 81):
+--   A Proprietária mandou liberar também as funções de proteção que a impediam
+--   de agir. Saíram da lista KEEP_WHOLE 10 funções: fn_documents_guard,
+--   fn_consent_guard, fn_app_projection_guard, fn_portal_access_autorizacao_guard,
+--   fn_authorized_portal_email_guard, fn_portal_case_access_guard,
+--   fn_case_codigo_canonico, fn_caso_alias_guard, fn_case_alias_guard,
+--   fn_lead_case_id_guard. Nelas também vale o padrão PROT (organização,
+--   consentimento, sanitização, código canônico continuam ativos para todos).
+--   Resultado gravado: 89 funções alteradas, 328 recusas cedem, 52 mantidas.
+--   118 funções de trigger cedem à proprietária. Valem para todos (19):
+--   sem exclusão física (5), histórico append-only (8), último admin,
+--   log sem credencial, integração desligada (2), e os dois guards de alias
+--   (todas as recusas deles são de colisão de código canônico).
+--   O bloco DO abaixo é a versão de 81; a aplicada usou KEEP_WHOLE de 17.
 --
 -- Pedido da Proprietária (25/10/2026): "retirada máxima de bloqueios sem
 -- sentido para uma startup de pesquisa genealógica que não precisa de 500
