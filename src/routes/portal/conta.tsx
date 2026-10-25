@@ -199,7 +199,8 @@ export function PortalConta() {
             </section>
 
              <section data-conta-assinatura className="app-v11-faixa">
-              <h2 className="font-serif text-xl text-navy">Condição do projeto familiar</h2>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--app-ouro-texto)]">Sua assinatura · ainda não cobrada</p>
+              <h2 className="mt-1 font-serif text-xl text-navy">Condição do projeto familiar</h2>
               {vivo.isError ? (
                 /* 12/10/2026 — falha de leitura (fail-closed): nunca "nenhuma assinatura", nunca dado financeiro. */
                 <div className="mt-2" data-conta-assinatura-erro>
