@@ -2,7 +2,7 @@
 
 ## 24/10 — Publicação Desk V4 e documentos da Ana (11:47 UTC)
 - [x] Publicação solicitada para soul-ancestry.lovable.app após varredura básica sem achados; conclusão do deploy não confirmada e análise profunda não realizada.
-- [ ] Liberação dos 14 documentos BLOQUEADA_POR_DADO: nenhum registro em documents ou case_source_documents no caso; só três arquivos em evidencias, internos e não revisados. Os 14 são itens pendentes do checklist, não arquivos. Necessário fornecer os documentos reais ou indicar sua origem; nenhum conteúdo interno liberado.
+- [ ] Liberação dos documentos: três arquivos recebidos localizados nos uploads, já vinculados à Ana em evidencias (Registro Unificado PDF/texto e Dossiê Consolidado PDF); não duplicados. PDFs conferidos (426500/432805 bytes, 5/7 páginas): contêm condições comerciais/hipóteses e são material interno, não certidões nem entregas sanitizadas. Nenhum registro em documents/case_source_documents. Leitura/assinatura dos objetos privados retornou NoSuchKey nesta sessão; bytes disponíveis nos uploads. BLOQUEADO_POR_DADO: não localizadas certidões/versões sanitizadas próprias para a família; não solicitar reenvio genérico nem liberar material interno. Os 14 itens do checklist não são arquivos.
 
 ## 22/10 — Fechamento aprovado v4.0 (sem redesign/publicação)
 - [x] PR #171 já presente na base bdab2ec0; nenhum pull, merge ou alteração visual executado.
@@ -416,3 +416,14 @@ PEDIDO AO CLAUDE neste corte: revisar projeção master de pessoas (ancestrais a
 - [x] 19/10/2026 15:08 UTC — Caderno sistêmico cobre rotas e subabas de pesquisa/contrato em código, cadeia alimento → ação → writer → releitura → consumidor; proposta, não implementação nem prova de uso.
 - [x] 19/10/2026 15:17 UTC — Inventário v2 entregue na mesma pasta: 117 endereços, alturas de documento e conteúdo main em 1280/375, gavetas prioritárias abertas, categoria vazio/bloqueado, sessão da Proprietária identificada, erros reconciliados. V1 122 páginas e V2 284 páginas renderizadas e conferidas por folhas de contato; sem submissão manual. Preparador pode escrever automaticamente na carga, não auditado como ausência de escrita.
 - [ ] Prova de gravação com F5/releitura, login cliente e equivalência Vercel atual: não executadas nesta auditoria de leitura; exigem teste autorizado e configuração atual comparável.
+
+## Plano executável App/Desk (24/10/2026) — `docs/prompts/2026-10-24-plano-executavel-app-desk-lovable.md`
+- [x] EXEC-00 plano registrado no histórico
+- [x] EXEC-01 `resolverBloqueioPiloto` já montado em `/onboarding/$id` (12 testes ok); prova autenticada pendente da Proprietária
+- [x] EXEC-05 `/golive/app`: "Ver proposta" abre a prévia do mesmo caso; pendência `/piloto-ana` → `/casos`
+- [ ] EXEC-02 contrato/cobrança — bloqueado: envio para assinatura e cobrança exigem autorização específica
+- [ ] EXEC-03 documentos reais — acervo recebido localizado nos uploads e já vinculado à Ana; PDFs internos conferidos, sem certidões ou versões sanitizadas localizadas. Não duplicar nem publicar material interno; recuperação da leitura no armazenamento ainda pendente
+- [ ] EXEC-04 sete abas do App — aguarda conteúdo do EXEC-03 e liberação do congelamento por aba
+- [ ] EXEC-07 homologação final — depende de login real da Ana
+- [x] Acervo recebido (24/10): localizados Registro Unificado PDF/texto e Dossiê Consolidado PDF em uploads/mirror; mesmos nomes/conteúdos/tamanhos das três referências de evidencias já vinculadas à Ana. Nenhuma duplicação, upload ou alteração de acesso executada.
+- [ ] Mostrar acervo em Documentos: BLOQUEADO_POR_DADO — os três recebidos são material interno; não localizadas certidões nem versões sanitizadas para entrega à família. Leitura temporária do armazenamento retornou NoSuchKey nesta sessão; sem substituir diagnóstico por exposição de conteúdo interno.

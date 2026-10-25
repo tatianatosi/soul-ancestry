@@ -1,8 +1,6 @@
 import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { recusaTickManualD7 } from "@/lib/d7-microentrega";
-import { tratarTickManualD7 } from "@/lib/d7-microentrega.server";
 import { exigirLinhaGravada } from "@/lib/persistencia.server";
 import {
   meusPapeis,
@@ -18,7 +16,6 @@ import {
 import {
   autoSatisfazerChecksIdentidade,
   filtrarChecksAtivacaoOperacionais,
-  filtrarItensOnboardingOperacionais,
 } from "@/lib/checks-identidade-startup";
 
 export type { CheckAtivacao, EventoOnboarding, Papel } from "@/lib/onboarding-regras";
@@ -72,42 +69,10 @@ export const obterOnboarding = createServerFn({ method: "GET" })
     });
     const pendencias = await supabase.rpc("case_activation_pendencias", { _case: data.casoId });
 
-    // 24/10/2026 — MESMA CLASSE DE BUG do comentário de 05/09 acima, com uma
-    // quinta fonte que ficou de fora: o trigger `fn_piloto_caso_guard`
-    // (migration 20260816232935) recusa QUALQUER transição para ativo, num
-    // caso com `piloto = true`, enquanto houver linha em `piloto_bloqueios`
-    // com status 'aberto' e criticidade 'critico'. Essa tabela não entra em
-    // `case_ativacao_bloqueios_reais`, então a tela mostrava "pronto" e
-    // prometia que "pendências não impedem a proprietária" — enquanto o banco
-    // recusava a gravação com "Ativação operacional NO_GO". A Proprietária
-    // clicou em Ativar por dois meses sem que nada salvasse.
-    //
-    // O override da proprietária NÃO alcança este portão: ele é do banco, e
-    // vem depois do owner_override_events. Por isso ele é lido e mostrado
-    // aqui, separado dos demais, com o nome do que de fato trava.
-    const bloqueiosPiloto = (caso.data as { piloto?: boolean | null }).piloto
-      ? await supabase
-          .from("piloto_bloqueios")
-          .select("id,descricao,criticidade,status")
-          .eq("organization_id", organizationId)
-          .eq("case_id", data.casoId)
-          .eq("status", "aberto")
-          .eq("criticidade", "critico")
-          .is("archived_at", null)
-          .order("created_at", { ascending: true })
-      : { data: [] as unknown[], error: null };
-
-    // Fonte #4 do bloqueio real (ver migration 20260905120000): tabela
-    // diferente do checklist de 14 itens acima, e — até hoje — sem nenhuma
-    // tela que permitisse completá-la. Carregada aqui para dar uma ação real
-    // a cada item que a bloqueiosReais aponta.
-    const checklistOnboarding = await supabase
-      .from("onboarding_checklist")
-      .select("*")
-      .eq("organization_id", organizationId)
-      .eq("case_id", data.casoId)
-      .is("archived_at", null)
-      .order("ordem", { ascending: true });
+    // 24/10/2026 — Decisão da Proprietária: os bloqueios do piloto (`piloto_bloqueios`)
+    // deixaram de ser camada de ativação. O gatilho `fn_piloto_caso_guard` cede à
+    // proprietária (supabase/pendentes/20261024170000_ativacao_cede_a_proprietaria.sql),
+    // então a tela não lê nem exibe mais essa lista.
 
     const logs = await supabase
       .from("audit_logs")
@@ -142,18 +107,6 @@ export const obterOnboarding = createServerFn({ method: "GET" })
             : String((l["metadados"] as any)?.["resumo"] ?? "Caso"),
       }));
 
-    const checklistOperacional = filtrarItensOnboardingOperacionais(
-      (checklistOnboarding.data ?? []) as {
-        id: string;
-        item_code: string;
-        label: string;
-        obrigatorio: boolean;
-        status: string;
-        observacao: string | null;
-        concluido_em: string | null;
-      }[],
-    );
-
     return {
       caso: linha,
       papeis,
@@ -169,88 +122,9 @@ export const obterOnboarding = createServerFn({ method: "GET" })
         valor_atual: string;
         cta_tela: string | null;
       }[],
-      checklistOnboarding: checklistOperacional,
-      /** Quinta fonte: portão do banco que o override da proprietária não vence. */
-      bloqueiosPiloto: (bloqueiosPiloto.data ?? []) as { id: string; descricao: string }[],
       podeAtivar: podeAtivar(papeis),
       timeline,
     };
-  });
-
-/**
- * Marca um item do checklist de onboarding (onboarding_checklist) —
- * 05/09/2026: até hoje essa tabela existia e era lida por
- * trg_caso_ativo_guard/case_ativacao_bloqueios_reais, mas nenhuma tela
- * permitia completá-la. Concluir ou marcar não aplicável exige uma
- * observação com a evidência real; não é um clique vazio.
- */
-export const atualizarItemChecklistOnboarding = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (data: {
-      itemId: string;
-      status: "pendente" | "concluido" | "nao_aplicavel";
-      observacao?: string;
-    }) => data,
-  )
-  .handler(async ({ data, context }) => {
-    const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
-
-    if (data.status !== "pendente" && !data.observacao?.trim()) {
-      return {
-        ok: false,
-        erro: "Informe a evidência real que sustenta esta conclusão — não é permitido marcar sem registrar o que foi verificado.",
-      };
-    }
-
-    const { data: atual } = await supabase
-      .from("onboarding_checklist")
-      .select("id,case_id,label,item_code")
-      .eq("id", data.itemId)
-      .eq("organization_id", organizationId)
-      .maybeSingle();
-    if (!atual) return { ok: false, erro: "Item não encontrado." };
-
-    // P3 (25/09/2026): o D7 não é caixinha — segue a micro-entrega real.
-    if (recusaTickManualD7(atual.item_code as string, data.status)) {
-      const r = await tratarTickManualD7(supabase, {
-        organizationId,
-        caseId: atual.case_id as string,
-        userId: context.userId as string,
-        status: data.status,
-      });
-      return { ok: r.ok, erro: r.erro };
-    }
-
-    const { data: linhaAtualizada, error } = await supabase
-      .from("onboarding_checklist")
-      .update({
-        status: data.status,
-        observacao: data.observacao?.trim() || null,
-        concluido_em: data.status === "pendente" ? null : new Date().toISOString(),
-        concluido_por: data.status === "pendente" ? null : context.userId,
-      })
-      .eq("id", data.itemId)
-      .eq("organization_id", organizationId)
-      .select("id")
-      .maybeSingle();
-    if (error) return { ok: false, erro: error.message };
-    if (!linhaAtualizada?.id)
-      return { ok: false, erro: "Nada foi gravado: verifique permissão e identificação do item." };
-
-    await registrar(
-      supabase,
-      organizationId,
-      "onboarding_checklist_item_atualizado",
-      atual.case_id as string,
-      {
-        resumo: `${atual.label as string}: ${data.status}`,
-        observacao: data.observacao ?? null,
-      },
-    );
-
-    return { ok: true, erro: null as string | null };
   });
 
 export const atualizarCheckAtivacao = createServerFn({ method: "POST" })

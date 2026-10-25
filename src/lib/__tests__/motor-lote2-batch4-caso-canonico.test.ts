@@ -53,15 +53,13 @@ describe("caso-canonico.functions.ts — histórico em todos os escritores case-
   });
 
   it("aprovarRascunho registra histórico quando o rascunho tem caso vinculado", () => {
-    const t = trechoDe(casoCanonico, "aprovarRascunho", "atualizarItemOnboarding");
+    const t = trechoDe(casoCanonico, "aprovarRascunho", "sincronizarMembrosDoCaso");
     expect(t).toContain('r.registro["case_id"]');
     expect(t).toContain("registrarTimelineCaso(");
   });
 
-  it("atualizarItemOnboarding registra histórico", () => {
-    const t = trechoDe(casoCanonico, "atualizarItemOnboarding", "sincronizarMembrosDoCaso");
-    expect(t).toContain("item.case_id");
-    expect(t).toContain("registrarTimelineCaso(");
+  it("atualizarItemOnboarding saiu (25/10/2026): o checklist de 14 itens não é mais escrito pelo Caso 360", () => {
+    expect(casoCanonico).not.toContain("atualizarItemOnboarding");
   });
 
   it("sincronizarMembrosDoCaso registra histórico só quando cria membro novo", () => {

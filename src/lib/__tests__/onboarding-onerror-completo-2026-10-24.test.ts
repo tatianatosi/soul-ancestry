@@ -19,11 +19,16 @@ import { describe, expect, it } from "vitest";
  * Os outros 16 apontados pela contagem estão em arquivos fora do escopo
  * tocado hoje e não foram alterados nesta rodada — exigem leitura individual
  * do caller/tratamento compartilhado, como o plano pede.
+ *
+ * 25/10/2026 (PR #196 em main): mBloqueio e mAtualizarOnboarding foram
+ * removidos deste arquivo — a camada de bloqueios do piloto e o checklist de
+ * 14 itens saíram da tela (ver ativacao-portao-piloto-2026-10-24.test.ts).
+ * As 3 mutations que seguem existindo aqui continuam exigindo onError.
  */
 const tela = readFileSync("src/routes/_authenticated/onboarding.$id.tsx", "utf8");
 
-describe("as 5 mutations de onboarding.$id.tsx têm onError", () => {
-  for (const nome of ["mAtualizar", "mAtivar", "mBloqueio", "mAtualizarOnboarding", "mSuspender"]) {
+describe("as 3 mutations de onboarding.$id.tsx têm onError", () => {
+  for (const nome of ["mAtualizar", "mAtivar", "mSuspender"]) {
     it(`${nome} trata exceção lançada, não só retorno negativo`, () => {
       const inicio = tela.indexOf(`const ${nome} = useMutation({`);
       expect(inicio, `${nome} não encontrada`).toBeGreaterThan(-1);
