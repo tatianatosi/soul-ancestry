@@ -51,3 +51,6 @@ dist-ssr
 # worktrees, que continuam ignorados.
 !.claude/settings.json
 tmp/
+
+# Cartographer skill scratch state (local audit working directory)
+.cartographer/
