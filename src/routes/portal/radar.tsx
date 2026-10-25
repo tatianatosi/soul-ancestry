@@ -85,7 +85,7 @@ export function PortalRadar() {
                   <RadarSeisEixos dimensoes={dimensoes} />
                   <section aria-label="Checklist documental" className="border-l-2 border-terracotta/40 py-1 pl-4">
                     <h2 className="font-serif text-xl text-navy">Checklist documental</h2>
-                    <p className="mt-2 text-sm leading-relaxed text-navy/75">O checklist completo do caso ainda não foi compartilhado. Sem essa lista, não há uma base documental completa para comparar.</p>
+                    <p className="mt-2 text-sm leading-relaxed text-navy/75">Os documentos pedidos à sua família e o andamento de cada um ficam reunidos na aba Documentos, conforme forem compartilhados com você.</p>
                   </section>
 
                   {/* Próximo passo real (mesma fonte de Home/Jornada) — nunca um passo por eixo inventado. */}
