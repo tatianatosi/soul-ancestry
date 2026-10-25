@@ -65,6 +65,7 @@ export function PortalDocumentos() {
           />
         ) : (
           <div className="app-v11-secoes" data-aba-documentos>
+            <ChecklistDocumental checklist={vivo.data?.checklist} />
             {docs.length === 0 && !solicitado ? (
               <div className="grid gap-7">
                 {/* Prévia da equipe: o envio real existe só para a família autenticada. */}
@@ -74,7 +75,6 @@ export function PortalDocumentos() {
                   <p className="mt-1 text-xs text-navy/65">PDF, JPG ou PNG. O envio fica disponível para a família no próprio App.</p>
                   <span className="app-chip mt-3" data-tom="preparo">Somente leitura nesta prévia</span>
                 </section>
-                <ChecklistDocumental checklist={vivo.data?.checklist} />
                 <section className="app-folha" aria-label="Entregas do caso" data-documentos-entregas-caso>
                   <h2 className="font-serif text-xl text-navy">Entregas do caso</h2>
                   <p className="mt-1 text-sm leading-relaxed text-navy/70">As certidões e documentos entregues à família aparecem aqui, cada um com a data da entrega.</p>
@@ -444,10 +444,8 @@ export function PortalDocumentos() {
 }
 
 /**
- * Checklist do mockup p.7 (13/10/2026). O caso tem itens de checklist
- * registrados pela equipe, mas nenhum está liberado para a família: não há
- * leitura do App que os exponha. Por isso o desenho completo aparece com
- * "Em preparação" — nenhum item do mockup é copiado nem inventado.
+ * Pedidos documentais reais da equipe, pela mesma fonte sanitizada no App
+ * e na prévia. Ausência de pedidos não é conclusão nem lista do mockup.
  */
 function ChecklistDocumental({ checklist }: { checklist?: ChecklistDocumentalCliente | null }) {
   const legenda: Array<{ tom: "ok" | "analise" | "pendente"; rotulo: string }> = [
@@ -463,7 +461,7 @@ function ChecklistDocumental({ checklist }: { checklist?: ChecklistDocumentalCli
         <h2 className="min-w-0 font-serif text-xl text-navy">Checklist consolidado</h2>
         {comItens ? (
           <span className="app-chip" data-tom="ok" data-checklist-contador>
-            {checklist!.concluidos} de {checklist!.total} {checklist!.total === 1 ? "concluído" : "concluídos"}
+            {checklist?.concluidos ?? 0} de {checklist?.total ?? 0} {checklist?.total === 1 ? "concluído" : "concluídos"}
           </span>
         ) : (
           <span className="app-chip" data-tom="preparo">Em preparação</span>
