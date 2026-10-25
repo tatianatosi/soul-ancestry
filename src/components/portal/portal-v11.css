@@ -1353,7 +1353,7 @@
    Reusa tokens existentes; sem paleta nova; raios 20/24 da camada de leveza. */
 /* Radar: teia ocupando ~70% da largura útil, rótulos legíveis. */
 [data-app-cliente] .app-radar-svg { max-width: min(100%, 34rem); }
-@media (min-width: 768px) { [data-app-cliente] .app-radar-svg { width: 70%; } }
+[data-app-cliente] .app-radar-svg { width: 100%; }
 [data-app-cliente] [data-radar-grafico] { background: #fff; border: 1px solid var(--app-borda-folha); border-radius: 24px; box-shadow: var(--app-sombra-folha); padding-inline: 1.25rem; }
 [data-app-cliente] [data-radar-grade] > li { border-radius: 20px; border-color: var(--app-borda-folha); box-shadow: var(--app-sombra-folha); }
 /* Árvore: selo "Conectado" legível (era 9px), foco visível, nós com respiro. */
@@ -1364,6 +1364,7 @@
   background: var(--app-chip-ok-bg); color: var(--app-chip-ok-tx);
 }
 [data-app-cliente] .app-arvore-perfil summary { min-height: 44px; }
+[data-app-cliente] #conteudo-portal .app-arvore-conectado + span { display: block; margin-top: 0.15rem; }
 [data-app-cliente] .app-arvore-perfil summary:focus-visible,
 [data-app-cliente] .app-arvore-modos button:focus-visible,
 [data-app-cliente] .app-arvore-foco select:focus-visible { outline: 2px solid var(--ca-gold); outline-offset: 2px; }
