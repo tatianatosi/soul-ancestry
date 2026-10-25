@@ -1,5 +1,10 @@
 # Roadmap
 
+## 25/10 — Resgate da experiência rica do App Cliente
+- [ ] Cruzar prompts aprovados e comparativo editorial indicado com as sete abas atuais; separar ausências visuais de falta de conteúdo publicado.
+- [ ] Executar os refinamentos faltantes nas telas existentes, preservando leitores, dados, sete abas e privacidade; sem publicação.
+- [ ] Conferir sete abas autenticadas em 375/1280, interações, testes relevantes e erros; registrar diferenças e bloqueios restantes.
+
 ## 25/10 — PDF: sete abas atuais × mockup de 17 páginas
 - [x] Capturar as sete abas do App Cliente como estão agora (375 px e desktop), pela prévia administrativa oficial, com selo de origem e data.
 - [x] Localizar o mockup aprovado de 17 páginas e comparar aba a aba: o que coincide, o que falta, o que é dado atual e não estilo.
