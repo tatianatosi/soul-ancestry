@@ -135,6 +135,9 @@ export type DocumentoPortal = {
   liberado_cliente?: boolean | null;
   origem?: string | null;
   is_demo?: boolean | null;
+  /** Título e data de liberação: só usados para listar documentos liberados. */
+  titulo?: string | null;
+  liberado_em?: string | null;
 };
 
 export type EixoVivo = {
