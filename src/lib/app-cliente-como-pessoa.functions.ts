@@ -93,7 +93,7 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
         .lte("effective_from", agora),
       supabase
         .from("documents")
-        .select("id, liberado_cliente, origem")
+        .select("id, liberado_cliente, origem, titulo, liberado_em")
         .eq("organization_id", organizationId)
         .eq("case_id", data.casoId),
       supabase

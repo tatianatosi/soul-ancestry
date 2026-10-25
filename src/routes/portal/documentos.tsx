@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import type { ChecklistDocumentalCliente } from "@/lib/portal-dados-vivos";
 import { useQuery } from "@tanstack/react-query";
-import { createServerFn, useServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { ChecklistDocumentalCliente } from "@/lib/portal-dados-vivos";
+import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { SecaoDocumental } from "@/components/portal/secao-documental";
 import { Download, FileText, LockKeyhole, UploadCloud } from "lucide-react";
@@ -35,7 +34,6 @@ export const Route = createFileRoute("/portal/documentos")({
 export function PortalDocumentos() {
   const previa = usePreviaPortal();
   const vivo = usePortalVivo();
-  const acervoVisivel = useAcervoVisivel(vivo.data?.casoAtivoId ?? null);
   const carregar = useServerFn(minhasEntregas);
   const baixar = useServerFn(baixarEntrega);
   const [erro, setErro] = useState<string | null>(null);
@@ -67,6 +65,7 @@ export function PortalDocumentos() {
           />
         ) : (
           <div className="app-v11-secoes" data-aba-documentos>
+            <ChecklistDocumental checklist={vivo.data?.checklist} />
             {docs.length === 0 && !solicitado ? (
               <div className="grid gap-7">
                 {/* Prévia da equipe: o envio real existe só para a família autenticada. */}
@@ -76,7 +75,6 @@ export function PortalDocumentos() {
                   <p className="mt-1 text-xs text-navy/65">PDF, JPG ou PNG. O envio fica disponível para a família no próprio App.</p>
                   <span className="app-chip mt-3" data-tom="preparo">Somente leitura nesta prévia</span>
                 </section>
-                <ChecklistDocumental checklist={vivo.data?.checklist} />
                 <section className="app-folha" aria-label="Entregas do caso" data-documentos-entregas-caso>
                   <h2 className="font-serif text-xl text-navy">Entregas do caso</h2>
                   <p className="mt-1 text-sm leading-relaxed text-navy/70">As certidões e documentos entregues à família aparecem aqui, cada um com a data da entrega.</p>
@@ -85,7 +83,7 @@ export function PortalDocumentos() {
                 <div className="app-cofre-ausencia" data-cofre-ausencia>
                   <LockKeyhole className="h-8 w-8 text-navy" aria-hidden="true" />
                   <h2 className="mt-3 font-serif text-2xl text-navy">Acervo sob curadoria técnica</h2>
-                  <AcervoEmConferencia visivel={acervoVisivel} />
+                  <p className="app-estado-editorial mt-3" data-acervo-vazio>Seu acervo está em preparação</p>
                   <LinkPortal to="/portal/legado" className="mt-4 flex min-h-11 items-center text-sm text-navy underline decoration-gold underline-offset-4">Conhecer o Legado</LinkPortal>
                 </div>
               </div>
@@ -148,7 +146,20 @@ export function PortalDocumentos() {
                   {COPY_TELAS.documentos.vazio}
                 </p>
               ) : (
-                <p className="mt-3 text-sm text-navy/70">{liberados.length} {liberados.length === 1 ? "documento disponível" : "documentos disponíveis"} para você consultar.</p>
+                <>
+                  <p className="mt-3 text-sm text-navy/70">{liberados.length} {liberados.length === 1 ? "documento disponível" : "documentos disponíveis"} para você consultar.</p>
+                  <ul className="mt-3 space-y-2" data-documentos-liberados-lista>
+                    {liberados.map((d) => (
+                      <li key={`lib-${d.id}`} className="app-documento-registro grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-4">
+                        <div className="min-w-0">
+                          <p className="flex items-start gap-2 font-medium text-navy"><FileText className="h-5 w-5 shrink-0" aria-hidden="true" /><span className="min-w-0 break-words">{textoParaCliente(d.titulo) || "Não registrado"}</span></p>
+                          {d.liberado_em ? <p className="text-xs text-navy/50">liberado em {new Date(d.liberado_em).toLocaleDateString("pt-BR")}</p> : null}
+                        </div>
+                        <span className="app-chip shrink-0" data-tom="ok">Disponível</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
               </div>
             
@@ -231,13 +242,12 @@ export function PortalDocumentos() {
             const solicitacoesAbertas = vivo.data?.solicitacoes ?? [];
             return (
         <div className="app-v11-secoes" data-aba-documentos-vivo>
-          {/* P0 do App (24/10/2026): checklist consolidado no login real, com contador. */}
           <ChecklistDocumental checklist={vivo.data?.checklist} />
           {liberados_lista.length === 0 && recebidos.length === 0 && !solicitado && solicitacoesAbertas.length === 0 ? (
             <div className="app-cofre-ausencia" data-cofre-ausencia>
               <LockKeyhole className="h-8 w-8 text-navy" aria-hidden="true" />
               <h2 className="mt-3 font-serif text-2xl text-navy">Acervo sob curadoria técnica</h2>
-              <AcervoEmConferencia visivel={acervoVisivel} />
+              <p className="app-estado-editorial mt-3" data-acervo-vazio>Seu acervo está em preparação</p>
               <div className="mt-4"><EnviarDocumento casoId={casoAtivo} /></div>
               <LinkPortal to="/portal/legado" className="mt-3 inline-flex min-h-11 items-center text-sm text-navy underline decoration-gold underline-offset-4">Conhecer o Legado</LinkPortal>
             </div>
@@ -433,69 +443,9 @@ export function PortalDocumentos() {
   );
 }
 
-/* Evidências reais do dossiê da Ana Luiza (CA-CID-AT-FAM-2026-001), informadas pela Proprietária em 13/10 e confirmadas em 21/10/2026. Ligar aos registros do banco após o lançamento. */
-export const CODIGO_CASO_ACERVO_ANA = "CA-CID-AT-FAM-2026-001";
-export const ACERVO_EM_CONFERENCIA = [
-  { titulo: "Certidão de Nascimento", detalhe: "Graz, Áustria · 1895" },
-  { titulo: "Dossiê Genealógico da Família", detalhe: "Linhagem Friedmann-Reimer" },
-  { titulo: "Registro da Comunidade Israelita", detalhe: "Viena · 1938–39" },
-];
-
-export function acervoVisivelNoCaso(codigoCaso: string | null | undefined): boolean {
-  return codigoCaso === CODIGO_CASO_ACERVO_ANA;
-}
-
-/* O código vem do próprio caso ativo, lido com a sessão do usuário (RLS decide o acesso). */
-const acervoDoCasoAtivo = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: { casoId: string | null }) => data)
-  .handler(async ({ data, context }) => {
-    if (!data.casoId) return { visivel: false };
-    const { data: caso } = await (context.supabase as any)
-      .from("crm_casos")
-      .select("codigo")
-      .eq("id", data.casoId)
-      .maybeSingle();
-    return { visivel: acervoVisivelNoCaso((caso?.codigo as string | null) ?? null) };
-  });
-
-function useAcervoVisivel(casoId: string | null): boolean {
-  const ler = useServerFn(acervoDoCasoAtivo);
-  const { data } = useQuery({
-    queryKey: ["portal-acervo-caso", casoId],
-    queryFn: () => ler({ data: { casoId } }),
-    enabled: Boolean(casoId),
-  });
-  return data?.visivel === true;
-}
-
-export function AcervoEmConferencia({ visivel }: { visivel: boolean }) {
-  if (!visivel) {
-    return (
-      <p className="app-estado-editorial mt-3" data-acervo-vazio>
-        Seu acervo está em preparação
-      </p>
-    );
-  }
-  return (
-    <ul className="mt-4 grid w-full gap-3 text-left sm:grid-cols-3" data-acervo-conferencia>
-      {ACERVO_EM_CONFERENCIA.map((d) => (
-        <li key={d.titulo} className="app-documento-registro min-w-0 border-l-4 border-gold p-4">
-          <p className="font-serif text-lg leading-snug text-navy">{d.titulo}</p>
-          <p className="mt-1 text-xs text-navy/60">{d.detalhe}</p>
-          <span className="mt-3 inline-block rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/70">Acervo sob conferência técnica</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 /**
- * Checklist consolidado (mockup p.7). P0 do App, 24/10/2026: com pedidos reais da
- * equipe para esta família, lista cada um com o seu estado e o contador
- * "X de Y concluídos" (fonte: `portal_document_requests`, a mesma que a família já
- * lê). Sem nenhum pedido, o desenho completo aparece com "Em preparação": nenhum
- * item do mockup é copiado nem inventado.
+ * Pedidos documentais reais da equipe, pela mesma fonte sanitizada no App
+ * e na prévia. Ausência de pedidos não é conclusão nem lista do mockup.
  */
 function ChecklistDocumental({ checklist }: { checklist?: ChecklistDocumentalCliente | null }) {
   const legenda: Array<{ tom: "ok" | "analise" | "pendente"; rotulo: string }> = [
@@ -511,7 +461,7 @@ function ChecklistDocumental({ checklist }: { checklist?: ChecklistDocumentalCli
         <h2 className="min-w-0 font-serif text-xl text-navy">Checklist consolidado</h2>
         {comItens ? (
           <span className="app-chip" data-tom="ok" data-checklist-contador>
-            {checklist!.concluidos} de {checklist!.total} {checklist!.total === 1 ? "concluído" : "concluídos"}
+            {checklist?.concluidos ?? 0} de {checklist?.total ?? 0} {checklist?.total === 1 ? "concluído" : "concluídos"}
           </span>
         ) : (
           <span className="app-chip" data-tom="preparo">Em preparação</span>

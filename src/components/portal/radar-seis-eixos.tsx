@@ -49,10 +49,10 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
         </p>
       ) : null}
       <svg
-        viewBox="-76 -24 372 268"
-        className="mx-auto w-full max-w-xl pb-2"
+        viewBox="-70 -30 360 280"
+        className="app-radar-svg mx-auto w-full pb-2"
         role="img"
-        aria-label="Radar das 6 dimensões da sua jornada"
+        aria-label={`Radar das 6 dimensões da sua jornada: ${dimensoes.map((d) => `${d.titulo} ${d.percentual === null ? "em pesquisa" : `${d.percentual}%`}`).join("; ")}`}
       >
         {[0.25, 0.5, 0.75, 1].map((f) => anelDeFundo(f, String(f)))}
         {dimensoes.map((_, i) => {

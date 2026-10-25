@@ -4,9 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Check, Eye, EyeOff, Lock, Plus, Send, X } from "lucide-react";
 import { toast } from "sonner";
 
-import { CarregandoDesk, CardIndicador } from "@/components/desk/ui-desk";
-import { CaCard } from "@/components/ui/ca-card";
-import { Etiqueta } from "@/components/prancha-v4/kit";
+import { CardIndicador } from "@/components/desk/ui-desk";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
@@ -57,19 +55,24 @@ type Confirmacao = {
 
 const inputCls = "w-full rounded-lg border border-navy/15 bg-cream/40 px-3 py-2 text-sm";
 
-// V4-04: o painel local passa a ser o cartão canônico (CaCard) e o selo, o
-// chip de estado do kit V4 (Etiqueta). API local inalterada para os chamadores.
 function Painel({ titulo, descricao, children }: { titulo: string; descricao?: string; children: React.ReactNode }) {
   return (
-    <CaCard titulo={titulo} eyebrow="Atendimento ao cliente">
-      {descricao ? <p className="-mt-1 text-sm text-navy/60">{descricao}</p> : null}
+    <section className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+      <h2 className="font-serif text-lg">{titulo}</h2>
+      {descricao ? <p className="mt-0.5 text-sm text-navy/60">{descricao}</p> : null}
       <div className="mt-3">{children}</div>
-    </CaCard>
+    </section>
   );
 }
 
 function Selo({ texto, tom = "neutro" }: { texto: string; tom?: "neutro" | "alerta" | "ok" }) {
-  return <Etiqueta texto={texto} tom={tom === "alerta" ? "critico" : tom === "ok" ? "sucesso" : "neutro"} />;
+  const cls =
+    tom === "alerta"
+      ? "border-terracotta/40 bg-terracotta/10 text-terracotta"
+      : tom === "ok"
+        ? "border-gold/50 bg-gold/15 text-navy"
+        : "border-navy/15 bg-cream text-navy/70";
+  return <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${cls}`}>{texto}</span>;
 }
 
 /**
@@ -574,7 +577,7 @@ export function AtendimentoInterno() {
       </div>
 
 
-      {isLoading ? <CarregandoDesk linhas={3} rotulo="Carregando o atendimento" /> : null}
+      {isLoading ? <p className="text-sm text-navy/60">Carregando…</p> : null}
 
       <Painel
         titulo="Solicitar documento ao cliente"

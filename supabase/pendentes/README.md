@@ -24,6 +24,16 @@ Nada daqui é aplicado automaticamente. Um arquivo nesta pasta é uma proposta, 
 | `20261023140000_rateio_igualitario_condicao_ana.sql` | JÁ APLICADO em 23/10 | Versão 3 da condição comercial do caso `CA-CID-AT-FAM-2026-001`: rateio igualitário de R$ 3.200,00 por contratante adulto |
 | `20261023150000_redacao_canonica_rateio_familiar_ana.sql` | JÁ APLICADO em 23/10 | Versão 4: redação canônica (Pacote Áustria § 58c), nome completo do dependente, rateio igualitário explícito no `payment_terms` |
 | `20261023160000_libera_fatura_ana_checklist_e_flags.sql` | JÁ APLICADO em 23/10 | Conclui os 2 itens abertos do `onboarding_checklist` e reconcilia as 3 flags do portão do App |
+| `20261024120000_documentos_reais_ana_liberados.sql` | NÃO APLICADO; BLOQUEADO_POR_DADO | Proposta de inserção/publicação de documentos, não schema. Materiais recebidos contêm informações internas; faltam versões sanitizadas e correspondência documental comprovada. |
+| `20261024170000_ativacao_cede_a_proprietaria.sql` | JÁ APLICADO em 25/10 | Registrado em `drizzle/migrations/0002_ativacao_cede_a_proprietaria.sql`; consulta ao banco confirmou `piloto_cede = true` e `ativacao_cede = true`. |
+
+### Conferência do banco em 25/10/2026
+
+- 234 arquivos em `supabase/migrations/`: 231 registrados no histórico anterior; as duas mudanças de suporte financeiro/telemetria estão registradas no histórico Drizzle, com hashes conferidos. O saneamento do núcleo restante é uma alteração de dados já refletida no banco (três contratantes ativos e linha vazia arquivada), não schema pendente.
+- As três propostas de dados de 23/10 foram conferidas: condições v3/v4 existentes, v4 aprovada, dois itens concluídos e três flags verdadeiras. Não foram reaplicadas.
+- Os três arquivos do histórico Drizzle têm hashes idênticos aos registros aplicados no banco. As funções de ativação foram novamente conferidas.
+- Todas as 194 tabelas públicas têm o mesmo conjunto de colunas que os tipos gerados. Nenhuma migration de schema pendente foi identificada nesta comparação; isso não comprova toda regra funcional, política ou uso em tela.
+- Nenhum documento foi publicado, nenhum dado foi alterado e nenhum deploy foi executado nesta conferência.
 
 As três foram aplicadas por mim direto via a ferramenta do Lovable, sob autorização explícita da Proprietária, **antes** de a regra 3 existir. Ficam registradas aqui porque a regra proíbe que vivam em `supabase/migrations/`. Os três blocos são idempotentes: reaplicar vira no-op.
 

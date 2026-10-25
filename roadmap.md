@@ -1,5 +1,28 @@
 # Roadmap
 
+## 25/10 — Fechamento v4.0 e conteúdo real da Ana (15:43 UTC)
+- [x] Base com PR #171 presente; migrations financeiro/telemetria já registradas em Drizzle 0000/0001, função/tabela/privilégios/RLS conferidos. Nenhum pull ou migration repetida.
+- [x] Checklist aparece na prévia também com arquivos; Documentação deixa de mostrar 100% por arquivos liberados e usa somente pedidos aceitos/total. Recarga seguida de reabertura confirmada.
+- [ ] Pedidos reais da equipe: BLOQUEADO_POR_DADO — zero portal_document_requests e document_requests no caso; 18 case_checklist_items são preparação interna, não pedidos à família. Pesquisa nos uploads/repositório não localizou solicitação documental comprovada; não inventar 14 itens ou contador 0/0.
+- [ ] Legado: BLOQUEADO_POR_DADO — zero case_reports/client_deliverables/research_reports e nenhuma projeção de relatório aprovada. Arquivos de trabalho existentes não possuem resumo final sanitizado aprovado; não duplicados nem publicados como relatório.
+- [x] Sete abas reais em 375/1280: sem overflow, pageerrors ou HTTP >=400; checklist após F5/reabrir, seletor universal troca e mantém Ana após F5. 35 testes passaram; build automático OK. Capturas em /tmp/browser/fechamento-v4. Inspeção administrativa, não login independente da Ana.
+- [ ] Paridade integral das onze telas Desk e PDF oficial de 16 cláusulas/8 páginas: não comprovados neste corte; dependem de validação integral e arquivo contratual final. Sem redesign ou publicação do site.
+
+## 25/10 — Resgate da experiência rica do App Cliente
+- [ ] Cruzar prompts aprovados e comparativo editorial indicado com as sete abas atuais; separar ausências visuais de falta de conteúdo publicado.
+- [ ] Executar os refinamentos faltantes nas telas existentes, preservando leitores, dados, sete abas e privacidade; sem publicação.
+- [ ] Conferir sete abas autenticadas em 375/1280, interações, testes relevantes e erros; registrar diferenças e bloqueios restantes.
+
+## 25/10 — PDF: sete abas atuais × mockup de 17 páginas
+- [x] Capturar as sete abas do App Cliente como estão agora (375 px e desktop), pela prévia administrativa oficial, com selo de origem e data.
+- [x] Localizar o mockup aprovado de 17 páginas e comparar aba a aba: o que coincide, o que falta, o que é dado atual e não estilo.
+- [x] Montar PDF com os prints e o comparativo; salvar em Arquivos.
+
+## 25/10 — Conferência e aplicação de migrations pendentes
+- [x] Comparados 234 arquivos históricos e cinco propostas com os dois históricos do banco: 231 registrados no histórico anterior, dois no Drizzle e saneamento de dados já refletido. Três hashes Drizzle conferidos; funções de ativação retornam true/true. Nenhum schema pendente identificado; nada reaplicado.
+- [x] Separadas propostas de dados: as três de 23/10 já estão refletidas no banco. Todas as 194 tabelas e seus conjuntos de colunas correspondem aos tipos gerados. Inventário atualizado em supabase/pendentes/README.md.
+- [ ] Proposta 20261024120000_documentos_reais_ana_liberados.sql: BLOQUEADO_POR_DADO — publica materiais internos, não altera schema; faltam versões sanitizadas e correspondência comprovada com os documentos pretendidos. Não executada.
+
 ## 24/10 — Publicação Desk V4 e documentos da Ana (11:47 UTC)
 - [x] Publicação solicitada para soul-ancestry.lovable.app após varredura básica sem achados; conclusão do deploy não confirmada e análise profunda não realizada.
 - [ ] Liberação dos documentos: três arquivos recebidos localizados nos uploads, já vinculados à Ana em evidencias (Registro Unificado PDF/texto e Dossiê Consolidado PDF); não duplicados. PDFs conferidos (426500/432805 bytes, 5/7 páginas): contêm condições comerciais/hipóteses e são material interno, não certidões nem entregas sanitizadas. Nenhum registro em documents/case_source_documents. Leitura/assinatura dos objetos privados retornou NoSuchKey nesta sessão; bytes disponíveis nos uploads. BLOQUEADO_POR_DADO: não localizadas certidões/versões sanitizadas próprias para a família; não solicitar reenvio genérico nem liberar material interno. Os 14 itens do checklist não são arquivos.
