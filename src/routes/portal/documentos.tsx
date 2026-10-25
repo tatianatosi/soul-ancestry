@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import type { ChecklistDocumentalCliente } from "@/lib/portal-dados-vivos";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { SecaoDocumental } from "@/components/portal/secao-documental";
@@ -73,7 +74,7 @@ export function PortalDocumentos() {
                   <p className="mt-1 text-xs text-navy/65">PDF, JPG ou PNG. O envio fica disponível para a família no próprio App.</p>
                   <span className="app-chip mt-3" data-tom="preparo">Somente leitura nesta prévia</span>
                 </section>
-                <ChecklistDocumental />
+                <ChecklistDocumental checklist={vivo.data?.checklist} />
                 <section className="app-folha" aria-label="Entregas do caso" data-documentos-entregas-caso>
                   <h2 className="font-serif text-xl text-navy">Entregas do caso</h2>
                   <p className="mt-1 text-sm leading-relaxed text-navy/70">As certidões e documentos entregues à família aparecem aqui, cada um com a data da entrega.</p>
@@ -241,6 +242,7 @@ export function PortalDocumentos() {
             const solicitacoesAbertas = vivo.data?.solicitacoes ?? [];
             return (
         <div className="app-v11-secoes" data-aba-documentos-vivo>
+          <ChecklistDocumental checklist={vivo.data?.checklist} />
           {liberados_lista.length === 0 && recebidos.length === 0 && !solicitado && solicitacoesAbertas.length === 0 ? (
             <div className="app-cofre-ausencia" data-cofre-ausencia>
               <LockKeyhole className="h-8 w-8 text-navy" aria-hidden="true" />
@@ -468,21 +470,45 @@ function AcervoEmConferencia() {
  * leitura do App que os exponha. Por isso o desenho completo aparece com
  * "Em preparação" — nenhum item do mockup é copiado nem inventado.
  */
-function ChecklistDocumental() {
+function ChecklistDocumental({ checklist }: { checklist?: ChecklistDocumentalCliente | null }) {
   const legenda: Array<{ tom: "ok" | "analise" | "pendente"; rotulo: string }> = [
     { tom: "ok", rotulo: "Recebido" },
     { tom: "analise", rotulo: "Em análise" },
     { tom: "pendente", rotulo: "Pendente de envio" },
   ];
+  const itens = checklist?.itens ?? [];
+  const comItens = itens.length > 0;
   return (
     <section className="app-folha" aria-label="Checklist consolidado" data-documentos-checklist-caso>
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2">
         <h2 className="min-w-0 font-serif text-xl text-navy">Checklist consolidado</h2>
-        <span className="app-chip" data-tom="preparo">Em preparação</span>
+        {comItens ? (
+          <span className="app-chip" data-tom="ok" data-checklist-contador>
+            {checklist!.concluidos} de {checklist!.total} {checklist!.total === 1 ? "concluído" : "concluídos"}
+          </span>
+        ) : (
+          <span className="app-chip" data-tom="preparo">Em preparação</span>
+        )}
       </div>
-      <p className="mt-2 text-sm leading-relaxed text-navy/70">
-        A lista de documentos de cada pessoa da família, com o cartório ou arquivo de origem, aparece aqui assim que a equipe a compartilhar com você.
-      </p>
+      {comItens ? (
+        <ul className="mt-3 divide-y divide-navy/10" aria-label="Documentos pedidos à sua família" data-checklist-itens>
+          {itens.map((i) => (
+            <li key={i.id} className="flex items-start justify-between gap-3 py-2.5" data-checklist-item data-tom={i.tom}>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-navy">{i.titulo}</p>
+                {i.prazo ? (
+                  <p className="text-xs text-navy/60">Até {new Date(`${i.prazo}T12:00:00`).toLocaleDateString("pt-BR")}</p>
+                ) : null}
+              </div>
+              <span className="app-chip shrink-0" data-tom={i.tom}>{i.rotulo}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 text-sm leading-relaxed text-navy/70">
+          A lista de documentos de cada pessoa da família, com o cartório ou arquivo de origem, aparece aqui assim que a equipe a compartilhar com você.
+        </p>
+      )}
       <ul className="mt-4 flex flex-wrap gap-2" aria-label="Como cada documento será sinalizado">
         {legenda.map((l) => (
           <li key={l.tom}><span className="app-chip" data-tom={l.tom}>{l.rotulo}</span></li>
