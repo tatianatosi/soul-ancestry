@@ -117,7 +117,7 @@ export const meuCaso = createServerFn({ method: "GET" })
         .order("created_at", { ascending: true }),
       supabase
         .from("documents")
-        .select("id, titulo, categoria, status, origem, entrega_cliente, liberado_cliente, liberado_em, nome_arquivo, revisao_motivo, created_at, is_demo")
+        .select("id, titulo, categoria, status, origem, entrega_cliente, liberado_cliente, liberado_em, nome_arquivo, revisao_motivo, created_at")
         .eq("case_id", data.casoId)
         .order("created_at", { ascending: false }),
       supabase
@@ -260,6 +260,12 @@ export const confirmarEnvioDocumento = createServerFn({ method: "POST" })
     const acesso = await h.acessoDoCliente(supabase, context.userId as string);
     const caso = await h.casoAutorizado(supabase, data.casoId);
     if (!caso) throw new Error("Caso não disponível para o seu acesso.");
+    // 25/10/2026: o caminho vem do navegador; só aceita a pasta de envio do
+    // próprio caso que o passo 1 gerou (sem "..", sem outro caso ou organização).
+    const prefixo = `${acesso.organization_id}/${data.casoId}/cliente/`;
+    if (typeof data.caminho !== "string" || !data.caminho.startsWith(prefixo) || data.caminho.includes("..")) {
+      throw new Error("Envio inválido: arquivo fora da pasta do seu caso. Envie de novo.");
+    }
 
     const inserido = await supabase
       .from("documents")
@@ -487,7 +493,7 @@ export const minhasEntregas = createServerFn({ method: "GET" })
     const [docs, casos] = await Promise.all([
       supabase
         .from("documents")
-        .select("id, case_id, titulo, status, origem, liberado_cliente, liberado_em, created_at, revisao_motivo, nome_arquivo, is_demo")
+        .select("id, case_id, titulo, status, origem, liberado_cliente, liberado_em, created_at, revisao_motivo, nome_arquivo")
         .order("created_at", { ascending: false }),
       supabase.from("portal_casos").select("id, titulo"),
     ]);

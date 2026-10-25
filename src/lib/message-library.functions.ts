@@ -201,9 +201,16 @@ async function resolverOrg(supabase: Cliente, userId: string): Promise<string> {
   return data.organization_id as string;
 }
 
-async function papeis(supabase: Cliente, org: string): Promise<string[]> {
-  const { data } = await supabase.from("user_roles").select("role").eq("organization_id", org);
-  return ((data ?? []) as { role: string }[]).map((r) => r.role);
+/** Papéis da PESSOA (não da organização inteira): staff_access ativo + user_roles dela. */
+async function papeis(supabase: Cliente, org: string, userId: string): Promise<string[]> {
+  const [roles, staff] = await Promise.all([
+    supabase.from("user_roles").select("role").eq("organization_id", org).eq("user_id", userId),
+    supabase.from("staff_access").select("role,status").eq("auth_user_id", userId).is("archived_at", null).maybeSingle(),
+  ]);
+  const lista = ((roles.data ?? []) as { role: string }[]).map((r) => r.role);
+  const s = staff.data as { role?: string; status?: string } | null;
+  if (s?.status === "active" && s.role && !lista.includes(s.role)) lista.push(s.role);
+  return lista;
 }
 
 function lista(valor: unknown): string[] {
@@ -225,7 +232,7 @@ export const listarBibliotecaMensagens = createServerFn({ method: "GET" })
       semCache();
       const supabase = context.supabase as unknown as Cliente;
       const org = await resolverOrg(supabase, context.userId as string);
-      const meus = await papeis(supabase, org);
+      const meus = await papeis(supabase, org, context.userId as string);
 
       const [cats, tpls, edit, links] = await Promise.all([
         supabase
@@ -461,7 +468,7 @@ export const definirStatusTemplate = createServerFn({ method: "POST" })
     semCache();
     const supabase = context.supabase as unknown as Cliente;
     const org = await resolverOrg(supabase, context.userId as string);
-    const meus = await papeis(supabase, org);
+    const meus = await papeis(supabase, org, context.userId as string);
     if (ESTADOS_ADMIN.includes(data.status) && !meus.includes("admin")) {
       throw new Error("Somente administrador pode tornar o modelo vigente, suspenso, substituído ou arquivado.");
     }

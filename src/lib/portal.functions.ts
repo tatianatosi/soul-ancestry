@@ -278,7 +278,7 @@ export const portalDocumentos = createServerFn({ method: "GET" })
     const [docs, casos] = await Promise.all([
       supabase
         .from("documents")
-        .select("id, case_id, titulo, liberado_cliente, liberado_em, is_demo")
+        .select("id, case_id, titulo, liberado_cliente, liberado_em")
         .order("created_at", { ascending: false }),
       supabase.from("portal_casos").select("id, titulo"),
     ]);

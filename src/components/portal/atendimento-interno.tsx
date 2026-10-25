@@ -339,7 +339,7 @@ export function AtendimentoInterno() {
   const faturas = lista(data?.faturas);
   const enviosPendentes = envios ? envios.filter((e: any) => e.status === "pendente_de_revisao").length : null;
   const solicitacoesAbertas = solicitacoes
-    ? solicitacoes.filter((s: any) => s.status === "pendente" || s.status === "enviado").length
+    ? solicitacoes.filter((s: any) => ["aguardando", "recebido", "em_revisao"].includes(s.status) /* CHECK portal_document_requests_status_chk */).length
     : null;
   const ticketsAbertos = tickets
     ? tickets.filter((t: any) => !["resolvido", "fechado"].includes(t.status)).length
@@ -703,7 +703,7 @@ export function AtendimentoInterno() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Selo texto={STATUS_SOLICITACAO[s.status] ?? s.status} />
-                    {["pendente", "recusado"].includes(s.status) ? (
+                    {["aguardando", "recusado"].includes(s.status) ? (
                       <AcaoOperacional
                         rotulo="Cancelar"
                         className="rounded-lg border border-navy/20 px-2.5 py-1 text-xs"

@@ -1078,8 +1078,6 @@ export const diagnosticoInstrumentos = createServerFn({ method: "GET" })
 
     const conferencia = linhasDe<any>(confRes, "conferência de escopo da proposta")[0] ?? null;
     if (!conferencia) bloqueios.push({ origem: "conferencia_canva", detalhe: "Conferência de escopo da proposta não registrada." });
-    else if (String(conferencia.status ?? "") !== "aprovado_para_preparacao")
-      bloqueios.push({ origem: "conferencia_canva", detalhe: `Conferência de escopo em estado “${conferencia.status}”.` });
 
     return {
       linhas,

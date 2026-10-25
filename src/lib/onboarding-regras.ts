@@ -72,9 +72,24 @@ export async function resolverOrganizacao(supabase: SupabaseCliente, userId?: st
 }
 
 
-export async function meusPapeis(supabase: SupabaseCliente, organizationId: string): Promise<Papel[]> {
-  const { data } = await supabase.from("user_roles").select("role").eq("organization_id", organizationId);
-  return ((data ?? []) as { role: Papel }[]).map((r) => r.role);
+/**
+ * Papéis da PESSOA na organização. 25/10/2026: antes filtrava só pela
+ * organização e devolvia o papel de todo mundo (qualquer membro herdava
+ * "admin"). Agora: staff_access ativo dela + user_roles dela.
+ */
+export async function meusPapeis(
+  supabase: SupabaseCliente,
+  organizationId: string,
+  userId: string,
+): Promise<Papel[]> {
+  const [roles, staff] = await Promise.all([
+    supabase.from("user_roles").select("role").eq("organization_id", organizationId).eq("user_id", userId),
+    supabase.from("staff_access").select("role,status").eq("auth_user_id", userId).is("archived_at", null).maybeSingle(),
+  ]);
+  const lista = ((roles.data ?? []) as { role: Papel }[]).map((r) => r.role);
+  const s = staff.data as { role?: Papel; status?: string } | null;
+  if (s?.status === "active" && s.role && !lista.includes(s.role)) lista.push(s.role);
+  return lista;
 }
 
 export async function registrar(

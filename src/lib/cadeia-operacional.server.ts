@@ -546,7 +546,7 @@ export async function aprovarPropostaEstruturada(
     );
   }
 
-  const condicao = derivarCondicaoComercial(proposta, sku as SkuCanonicoProposta);
+  const condicao = derivarCondicaoComercial(proposta, sku as SkuCanonicoProposta | null);
 
   const { error: erroProposta, data: gravadasAprovacao } = await supabase
     .from("proposals")

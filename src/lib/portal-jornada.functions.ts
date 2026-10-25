@@ -42,7 +42,7 @@ export const escopoDoPortal = createServerFn({ method: "GET" })
     }
 
     const [docs, casos] = await Promise.all([
-      supabase.from("documents").select("id, liberado_cliente, is_demo").eq("liberado_cliente", true),
+      supabase.from("documents").select("id, liberado_cliente").eq("liberado_cliente", true),
       // portal_casos não expõe is_demo (a view só tem id/codigo/titulo/...) —
       // selecionar uma coluna inexistente falhava a consulta inteira e
       // zerava "casosReais" para qualquer cliente real, sempre.
