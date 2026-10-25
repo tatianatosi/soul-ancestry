@@ -95,9 +95,11 @@ describe("tela de Documentos da família", () => {
     expect(comp).not.toMatch(/Certid[ãa]o|Graz|Dossiê|Registro da|Passaporte|Naturaliza/);
   });
 
-  it("o acervo em conferência da Ana não foi ampliado por esta PR (continua com os 3 itens já confirmados)", () => {
-    const bloco = tela.slice(tela.indexOf("export const ACERVO_EM_CONFERENCIA"), tela.indexOf("export function acervoVisivelNoCaso"));
-    expect((bloco.match(/titulo:/g) ?? []).length).toBe(3);
+  // 25/10/2026, decisão da Proprietária: os documentos da Ana vêm dos registros
+  // liberados no banco, com o nome real do arquivo — nenhuma lista fixa na tela.
+  it("a tela não traz lista fixa de documentos; liberados vêm do registro real", () => {
+    expect(tela).not.toMatch(/ACERVO_EM_CONFERENCIA|Graz|Viena · 1938/);
+    expect(tela).toMatch(/d\.liberado_cliente/);
   });
 
   it("a leitura traz todos os pedidos do caso, sem arquivados, e a contagem de pendência segue restrita", () => {
