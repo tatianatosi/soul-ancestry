@@ -1801,7 +1801,12 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .maybeSingle();
     if (!registro) throw new Error("Registro de parâmetros não encontrado.");
-    if (registro.status !== "aprovado") throw new Error("Aprove os parâmetros antes de enviar para assinatura.");
+    if (registro.status !== "aprovado") {
+      // 25/10/2026: a Proprietária envia direto; a coerência abaixo continua valendo.
+      const { proprietariaOperando } = await import("@/lib/autoridade.server");
+      if (!(await proprietariaOperando(supabase as never, context.userId as string)))
+        throw new Error("Aprove os parâmetros antes de enviar para assinatura.");
+    }
     await exigirCoerencia(supabase, registro);
     /*
      * 09/10/2026 — mesmo gap da revisão, com consequência maior: preparar

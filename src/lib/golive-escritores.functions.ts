@@ -17,6 +17,7 @@ import { semCache } from "@/lib/no-store";
 import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import { exigirLinhaGravada, gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { CODIGO_CASO_GO_LIVE } from "@/lib/golive.functions";
+import { proprietariaOperando } from "@/lib/autoridade.server";
 import { etapaDoResultado, passoDeEtapa } from "@/lib/golive-comercial";
 import { tipoEvidenciaCanonico } from "@/lib/evidencia-canonica";
 import { gravarEvidenciaCanonica } from "@/lib/evidencia-canonica.server";
@@ -529,10 +530,13 @@ export const aprovarEscopoPropostaGoLive = createServerFn({ method: "POST" })
     if (!p) throw new Error("Proposta não encontrada neste caso.");
     if (p.archived_at) throw new Error("Proposta arquivada não pode ser aprovada.");
     if (p.status === "aprovada") throw new Error("Esta proposta já está aprovada.");
-    if (!texto(p.origem_referencia) && !texto(p.deck_referencia_interna))
-      throw new Error("Registre o link/referência do Canva antes de aprovar o escopo.");
-    if (!(Number(p.versao) > 0)) throw new Error("Registre a versão do Canva antes de aprovar o escopo.");
-    if (!texto(p.escopo)) throw new Error("A proposta precisa do escopo apresentado antes da aprovação.");
+    // Proprietária aprova direto (decisão de 25/10/2026); a pendência fica na nota.
+    const livre = await proprietariaOperando(s, userId);
+    const faltas: string[] = [];
+    if (!texto(p.origem_referencia) && !texto(p.deck_referencia_interna)) faltas.push("link/referência do Canva");
+    if (!(Number(p.versao) > 0)) faltas.push("versão do Canva");
+    if (!texto(p.escopo)) faltas.push("escopo apresentado");
+    if (faltas.length && !livre) throw new Error(`Registre antes de aprovar o escopo: ${faltas.join(", ")}.`);
 
     const nota = texto(data.observacao);
     const r = await s
@@ -541,7 +545,13 @@ export const aprovarEscopoPropostaGoLive = createServerFn({ method: "POST" })
         status: "aprovada",
         aprovada_em: new Date().toISOString(),
         observacoes_internas:
-          [texto(p.observacoes_internas), nota && `Escopo aprovado: ${nota}`].filter(Boolean).join("\n") || null,
+          [
+            texto(p.observacoes_internas),
+            nota && `Escopo aprovado: ${nota}`,
+            faltas.length && `Aprovado pela Proprietária com pendência: ${faltas.join(", ")}.`,
+          ]
+            .filter(Boolean)
+            .join("\n") || null,
         updated_by: userId,
       })
       .eq("id", propostaId)
@@ -590,7 +600,7 @@ export const enviarContratoParaRevisaoGoLive = createServerFn({ method: "POST" }
       .eq("status", "aprovada")
       .is("archived_at", null)
       .limit(1);
-    if (!(aprovada.data ?? []).length)
+    if (!(aprovada.data ?? []).length && !(await proprietariaOperando(s, userId)))
       throw new Error("Aprove o escopo da proposta antes de mandar o contrato para revisão.");
 
     const r = await s
@@ -639,7 +649,10 @@ export const registrarAssinaturaContratoGoLive = createServerFn({ method: "POST"
     if (!c) throw new Error("Contrato não encontrado neste caso.");
     if (c.archived_at) throw new Error("Contrato arquivado não pode ser assinado.");
     if (c.status === "signed") throw new Error("Este contrato já está assinado.");
-    if (!["under_human_review", "approved_for_send", "sent"].includes(String(c.status)))
+    if (
+      !["under_human_review", "approved_for_send", "sent"].includes(String(c.status)) &&
+      !(await proprietariaOperando(s, userId))
+    )
       throw new Error("Passe o contrato por revisão humana antes de registrar a assinatura.");
 
     const r = await s
@@ -723,7 +736,8 @@ export const registrarMembroNucleoGoLive = createServerFn({ method: "POST" })
     const s = context.supabase as any;
     const { organizationId, casoId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.nome)) throw new Error("Nome é obrigatório.");
-    if (!texto(data.base))
+    const livreRelacao = await proprietariaOperando(s, userId);
+    if (!texto(data.base) && !livreRelacao)
       throw new Error("Relação familiar exige evidência ou decisão humana registrada.");
 
     const n = await s
@@ -743,7 +757,7 @@ export const registrarMembroNucleoGoLive = createServerFn({ method: "POST" })
         nucleo_id: nucleoId,
         nome: texto(data.nome),
         papel: data.papel,
-        vinculo: texto(data.base),
+        vinculo: texto(data.base) || "Decisão da Proprietária",
         status_cadastral: "pendente",
         created_by: userId,
       })
@@ -1061,8 +1075,10 @@ export const registrarFaturaGoLive = createServerFn({ method: "POST" })
     const { organizationId, casoId, clienteId, userId } = await contexto(s, context.userId as string, casoEscolhido(data));
     if (!texto(data.numero)) throw new Error("Número da fatura é obrigatório.");
     if (!(Number(data.valor) > 0)) throw new Error("Informe um valor maior que zero.");
-    if (!texto(data.autorizacao))
+    const livreFatura = await proprietariaOperando(s, userId);
+    if (!texto(data.autorizacao) && !livreFatura)
       throw new Error("A fatura só é registrada com a autorização declarada (quem autorizou e quando).");
+    const autorizacao = texto(data.autorizacao) || `Proprietária, ${new Date().toISOString().slice(0, 10)}`;
 
     const assinado = await s
       .from("contracts")
@@ -1072,7 +1088,7 @@ export const registrarFaturaGoLive = createServerFn({ method: "POST" })
       .eq("status", "signed")
       .is("archived_at", null)
       .limit(1);
-    if (!(assinado.data ?? []).length)
+    if (!(assinado.data ?? []).length && !livreFatura)
       throw new Error("Registre a assinatura do contrato antes de emitir fatura deste caso.");
 
     const r = await s
@@ -1086,7 +1102,7 @@ export const registrarFaturaGoLive = createServerFn({ method: "POST" })
         moeda: "BRL",
         vencimento: texto(data.vencimento) || null,
         descricao:
-          [texto(data.descricao), `Autorização: ${texto(data.autorizacao)}`].filter(Boolean).join(" · ") || null,
+          [texto(data.descricao), `Autorização: ${autorizacao}`].filter(Boolean).join(" · ") || null,
         status: "emitida",
         emitida_em: new Date().toISOString(),
         created_by: userId,

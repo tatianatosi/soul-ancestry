@@ -753,17 +753,39 @@ export async function emitirOuRecuperarOS(
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (!propostaRecente?.id) {
+    let escolhida = propostaRecente?.id ?? null;
+    if (!escolhida) {
+      // Proprietária: sem proposta aprovada, usa a mais recente do caso.
+      const { proprietariaOperando } = await import("@/lib/autoridade.server");
+      if (await proprietariaOperando(supabase as never, input.userId)) {
+        const { data: qualquer } = await supabase
+          .from("proposals")
+          .select("id")
+          .eq("organization_id", input.org)
+          .eq("case_id", input.caseId)
+          .is("archived_at", null)
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        escolhida = qualquer?.id ?? null;
+      }
+    }
+    if (!escolhida) {
       throw new Error(
         "OS/Anexo I exige proposta aprovada para o caso (Proposta → Condição comercial → OS) — nenhuma encontrada.",
       );
     }
-    proposalId = propostaRecente.id;
+    proposalId = escolhida;
   }
 
   const { data: row } = await supabase.from("proposals").select("*").eq("id", proposalId).maybeSingle();
   if (!row || row.organization_id !== input.org) throw new Error("Proposta não encontrada nesta organização.");
-  if (row.status !== "aprovada") throw new Error("OS/Anexo I exige proposta aprovada.");
+  if (row.status !== "aprovada") {
+    // 25/10/2026: a Proprietária gera a OS sem esperar a aprovação formal.
+    const { proprietariaOperando } = await import("@/lib/autoridade.server");
+    if (!(await proprietariaOperando(supabase as never, input.userId)))
+      throw new Error("OS/Anexo I exige proposta aprovada.");
+  }
   const caso = await casoDaCadeia(supabase, input.org, row.case_id);
 
   const { data: condicao } = await supabase

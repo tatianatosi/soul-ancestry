@@ -69,9 +69,7 @@ export function OverrideComercial({ caseId }: { caseId: string }) {
           ? "Declare ao menos um gate pendente."
           : escopos.length === 0
             ? "Escolha o escopo liberado."
-            : justificativa.trim().length < 10
-              ? "Justificativa obrigatória."
-              : !dataRevisao
+            : !dataRevisao
                 ? "Informe a data de revisão da exceção."
                 : null;
 
@@ -85,7 +83,7 @@ export function OverrideComercial({ caseId }: { caseId: string }) {
           condicaoOriginal: condicao.trim(),
           gatesPendentes: [{ chave: gate.trim(), motivo: gateMotivo.trim() || gate.trim() }],
           escopoLiberado: escopos,
-          justificativa: justificativa.trim(),
+          justificativa: justificativa.trim().length >= 10 ? justificativa.trim() : "Decisão da Proprietária (sem motivo escrito)",
           dataRevisao,
         },
       }),
@@ -104,7 +102,7 @@ export function OverrideComercial({ caseId }: { caseId: string }) {
 
   const mRevogar = useMutation({
     mutationFn: (eventoOriginalId: string) =>
-      revogar({ data: { eventoOriginalId, casoId: caseId, motivo: motivoRevogacao.trim() } }),
+      revogar({ data: { eventoOriginalId, casoId: caseId, motivo: motivoRevogacao.trim() || "Decisão da Proprietária (sem motivo escrito)" } }),
     onSuccess: () => {
       toast.success("Override revogado, com motivo registrado.");
       setMotivoRevogacao("");
@@ -146,10 +144,6 @@ export function OverrideComercial({ caseId }: { caseId: string }) {
                           type="button"
                           className="ml-1 underline decoration-gold text-[10px] text-navy/50"
                           onClick={() => {
-                            if (motivoRevogacao.trim().length < 5) {
-                              toast.error("Escreva o motivo da revogação no campo abaixo antes de revogar.");
-                              return;
-                            }
                             mRevogar.mutate(String(o.id));
                           }}
                         >

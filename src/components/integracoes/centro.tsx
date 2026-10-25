@@ -61,7 +61,7 @@ export function CentroIntegracoes() {
   const [retry, setRetry] = useState(3);
   const [backoff, setBackoff] = useState(60);
   const [modalAtivar, setModalAtivar] = useState(false);
-  const [confirmacao, setConfirmacao] = useState("");
+  const [, setConfirmacao] = useState("");
   const [resultado, setResultado] = useState<any>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({ queryKey: ["integracoes"], queryFn: () => carregar({}) });
@@ -125,7 +125,8 @@ export function CentroIntegracoes() {
   });
 
   const mAtivar = useMutation({
-    mutationFn: () => ativar({ data: { id: atual.id, confirmacao } }),
+    // 25/10/2026: sem digitar ATIVAR; o botão "Confirmar ativação" já é o aceite.
+    mutationFn: () => ativar({ data: { id: atual.id, confirmacao: "ATIVAR" } }),
     onSuccess: () => {
       setModalAtivar(false);
       setConfirmacao("");
@@ -462,10 +463,6 @@ export function CentroIntegracoes() {
               A partir da ativação esta integração pode agir fora do sistema. A ação exige admin, fica registrada em
               auditoria e pode ser revertida a qualquer momento.
             </p>
-            <label className="mt-4 block text-sm">
-              <span className="text-navy/60">Digite ATIVAR para confirmar</span>
-              <input value={confirmacao} onChange={(e) => setConfirmacao(e.target.value)} className={inputCls} />
-            </label>
             <div className="mt-4 flex justify-end gap-2">
               <button
                 onClick={() => {
@@ -478,7 +475,7 @@ export function CentroIntegracoes() {
               </button>
               <button
                 onClick={() => mAtivar.mutate()}
-                disabled={confirmacao.trim().toUpperCase() !== "ATIVAR" || mAtivar.isPending}
+                disabled={mAtivar.isPending}
                 className="rounded-lg bg-gold px-3 py-2 text-sm font-medium text-navy disabled:opacity-60"
               >
                 Confirmar ativação

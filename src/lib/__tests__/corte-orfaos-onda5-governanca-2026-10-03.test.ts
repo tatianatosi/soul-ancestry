@@ -70,8 +70,10 @@ describe("a exceção da Proprietária não ficou mais frouxa por ter tela", () 
     expect(ACOES_JAMAIS_LIBERADAS_POR_OVERRIDE.length).toBeGreaterThan(0);
   });
 
-  it("revogar exige motivo escrito antes de agir", () => {
-    expect(painelOverride).toMatch(/Escreva o motivo da revogação/);
+  // 25/10/2026 (decisão da Proprietária): revogar não exige mais motivo
+  // escrito; sem texto, a revogação registra um motivo padrão rastreável.
+  it("revogar sempre grava um motivo (o escrito ou o padrão)", () => {
+    expect(painelOverride).toMatch(/motivo: motivoRevogacao\.trim\(\) \|\| "Decisão da Proprietária/);
   });
 });
 
