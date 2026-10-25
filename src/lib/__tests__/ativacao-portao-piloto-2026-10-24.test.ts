@@ -76,3 +76,25 @@ describe("a proposta SQL faz os dois guards cederem, e só neles", () => {
     expect(sql).not.toMatch(/\bRENAME\b/i);
   });
 });
+
+describe("checklist de 14 itens removido de /onboarding/$id (25/10/2026)", () => {
+  it("a tela não mostra o checklist, o diálogo de evidência nem o indicador", () => {
+    expect(tela).not.toContain("Checklist de onboarding");
+    expect(tela).not.toContain("Checklist concluído");
+    expect(tela).not.toContain("itemOnboardingDe");
+    expect(tela).not.toContain("evidenciaOnboarding");
+    expect(tela).not.toContain("atualizarItemChecklistOnboarding");
+  });
+
+  it("o servidor não lê onboarding_checklist para a tela nem expõe o escritor", () => {
+    expect(fn).not.toContain('.from("onboarding_checklist")');
+    expect(fn).not.toContain("checklistOnboarding");
+    expect(fn).not.toContain("atualizarItemChecklistOnboarding");
+  });
+
+  it("os outros requisitos e a linha do tempo da tela seguem, e a tabela no banco não foi tocada", () => {
+    expect(tela).toContain("Requisitos validados");
+    expect(tela).toContain("Linha do tempo do onboarding");
+    expect(sqlCompleto).not.toMatch(/onboarding_checklist/i);
+  });
+});

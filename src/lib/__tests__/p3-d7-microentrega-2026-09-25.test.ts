@@ -247,10 +247,13 @@ describe("ligações e superfícies", () => {
     expect(plano.match(/reconciliarD7Caso\(supabase, \{/g)?.length).toBe(2);
     expect(ops.match(/reconciliarD7Caso\(supabase, \{/g)?.length).toBe(3);
   });
-  it("as duas telas de checklist recusam o tick manual do D7", () => {
-    expect(onb).toContain("recusaTickManualD7(atual.item_code as string, data.status)");
+  it("a tela de checklist que sobrou (Caso 360) recusa o tick manual do D7; a de /onboarding saiu", () => {
+    // 25/10/2026 — decisão da Proprietária: o checklist de 14 itens saiu de /onboarding/$id
+    // (tela, leitura e escritor `atualizarItemChecklistOnboarding`). Não há mais tick manual ali.
+    expect(onb).not.toContain("atualizarItemChecklistOnboarding");
+    expect(onb).not.toContain("recusaTickManualD7");
+    expect(readFileSync("src/routes/_authenticated/onboarding.$id.tsx", "utf8")).not.toContain("Checklist de onboarding");
     expect(canon).toContain('recusaTickManualD7(String(item.item_code ?? ""), data.status)');
-    expect(readFileSync("src/routes/_authenticated/onboarding.$id.tsx", "utf8")).toContain("item.item_code !== ITEM_CODE_D7");
     expect(readFileSync("src/components/caso/onboarding-caso.tsx", "utf8")).toContain("data-d7-derivado");
   });
   it("Caso 360 mostra o D7 com prazo, responsável, estado e próxima ação", () => {
