@@ -4,6 +4,7 @@ import { ChevronDown, FileCheck2, Files, Inbox, LibraryBig } from "lucide-react"
 const ICONES = {
   solicitados: Files,
   recebidos: Inbox,
+  conferencia: FileCheck2,
   liberados: FileCheck2,
   entregas: LibraryBig,
 };
@@ -11,6 +12,7 @@ const ICONES = {
 const ROTULOS = {
   solicitados: "Pedidos da equipe",
   recebidos: "Envios e conferência",
+  conferencia: "Revisão da equipe",
   liberados: "Disponíveis para consulta",
   entregas: "Histórias e materiais",
 };

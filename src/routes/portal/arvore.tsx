@@ -66,7 +66,7 @@ export function PortalArvore() {
           {([vivo]) => {
             // Corte 2a: pessoas nomeadas (uma por pessoa) viram nós; o restante
             // das publicações da árvore continua como nota.
-            const pessoas = pessoasDaArvore(vivo.projecoes);
+            const pessoas = pessoasDaArvore(vivo.projecoes).filter((p) => p.geracao !== null && p.geracao <= 10);
             const idsComPessoa = new Set(vivo.projecoes.filter((p) => p.pessoa_id).map((p) => String(p.id)));
             const itens = arvoreSanitizada(vivo.projecoes).filter((p) => !idsComPessoa.has(p.id));
             const painel = painelArvoreGeracoes(itens);
@@ -76,7 +76,7 @@ export function PortalArvore() {
              // Gerações vêm do que foi publicado (sem lista fixa nem teto).
              const geracoesExibidas = pessoas.length > 0
                ? geracoesParaExibir(pessoas.map((pessoa) => pessoa.geracao))
-               : GERACOES_ARVORE_EXIBICAO;
+               : [];
              const maiorGeracao = geracoesExibidas.reduce(
                (maior, geracao) => Math.max(maior, Number(geracao.id.slice(1)) || 1),
                1,

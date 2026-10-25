@@ -66,35 +66,15 @@ export function PortalDocumentos() {
         ) : (
           <div className="app-v11-secoes" data-aba-documentos>
             <ChecklistDocumental checklist={vivo.data?.checklist} />
-            {docs.length === 0 && !solicitado ? (
-              <div className="grid gap-7">
-                {/* Prévia da equipe: o envio real existe só para a família autenticada. */}
-                <section className="app-envio-tracejado" data-documentos-envio aria-label="Enviar novo documento">
-                  <UploadCloud className="mx-auto h-7 w-7 text-[var(--app-ouro-texto)]" aria-hidden="true" />
-                  <h2 className="mt-2 font-serif text-xl text-navy">Enviar novo documento</h2>
-                  <p className="mt-1 text-xs text-navy/65">PDF, JPG ou PNG. O envio fica disponível para a família no próprio App.</p>
-                  <span className="app-chip mt-3" data-tom="preparo">Somente leitura nesta prévia</span>
-                </section>
-                <section className="app-folha" aria-label="Entregas do caso" data-documentos-entregas-caso>
-                  <h2 className="font-serif text-xl text-navy">Entregas do caso</h2>
-                  <p className="mt-1 text-sm leading-relaxed text-navy/70">As certidões e documentos entregues à família aparecem aqui, cada um com a data da entrega.</p>
-                  <span className="app-chip mt-3" data-tom="preparo">Em preparação</span>
-                </section>
-                <div className="app-cofre-ausencia" data-cofre-ausencia>
-                  <LockKeyhole className="h-8 w-8 text-navy" aria-hidden="true" />
-                  <h2 className="mt-3 font-serif text-2xl text-navy">Acervo sob curadoria técnica</h2>
-                  <p className="app-estado-editorial mt-3" data-acervo-vazio>Seu acervo está em preparação</p>
-                  <LinkPortal to="/portal/legado" className="mt-4 flex min-h-11 items-center text-sm text-navy underline decoration-gold underline-offset-4">Conhecer o Legado</LinkPortal>
-                </div>
-              </div>
-            ) : (<>
+            <>
+
             {/* 1. Solicitados — só o pedido real da equipe, com a instrução de envio integrada ao card. */}
             <section
               data-documentos-solicitados
               data-documentos-checklist
               className="app-v11-faixa"
             >
-              <SecaoDocumental tipo="solicitados" titulo="Solicitados">
+              <SecaoDocumental tipo="solicitados" titulo="Solicitados à Família">
               
               <div className="py-1">
                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -103,7 +83,7 @@ export function PortalDocumentos() {
                    Quando precisarmos de você
                 </span>
                 </div>
-              {solicitado ? (
+              {(vivo.data?.checklist?.itens ?? []).some((i) => i.tom === "pendente") ? <ul className="mt-3 space-y-3">{(vivo.data?.checklist?.itens ?? []).filter((i) => i.tom === "pendente").map((i) => <li key={i.id} className="flex items-start justify-between gap-3 text-sm text-navy"><span>{i.titulo}</span><span className="app-chip" data-tom="pendente">Aguardando</span></li>)}</ul> : solicitado ? (
                 <div className="mt-3 rounded-lg border border-gold/35 bg-gold/10 px-4 py-3 text-sm text-navy">{solicitado}</div>
               ) : (
                 <p className="app-estado-editorial mt-3">
@@ -118,7 +98,7 @@ export function PortalDocumentos() {
 
             {/* 2. Recebidos — enviar nunca comunica validação automática. */}
             <section data-documentos-recebidos data-documentos-enviados className="app-v11-faixa">
-              <SecaoDocumental tipo="recebidos" titulo="Em conferência">
+              <SecaoDocumental tipo="recebidos" titulo="Recebidos">
               
               <div className="py-1">
               <div className="flex flex-wrap items-start justify-between gap-2"><h2 className="font-serif text-xl text-navy">Em conferência</h2><span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">Aguardam conferência</span></div>
@@ -135,12 +115,13 @@ export function PortalDocumentos() {
               </SecaoDocumental>
 </section>
 
+            <section data-documentos-conferencia className="app-v11-faixa"><SecaoDocumental tipo="conferencia" titulo="Em Conferência"><span className="app-chip" data-tom="analise">Em análise</span><p className="mt-3 text-sm text-navy/70">{(vivo.data?.checklist?.itens ?? []).filter((i) => i.tom === "analise").map((i) => i.titulo).join(" · ") || "Quando houver um documento em análise, você poderá acompanhar a conferência aqui."}</p></SecaoDocumental></section>
             {/* 3. Liberados — somente publicações reais. */}
             <section data-documentos-liberados data-documentos-preparado className="app-v11-faixa">
-              <SecaoDocumental tipo="liberados" titulo="Certidões liberadas">
+              <SecaoDocumental tipo="liberados" titulo="Entregas Liberadas">
               
               <div className="py-1">
-              <div className="flex flex-wrap items-start justify-between gap-2"><h2 className="font-serif text-xl text-navy">Certidões liberadas</h2><span className="rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/65">Abertos para você</span></div>
+              <div className="flex flex-wrap items-start justify-between gap-2"><h2 className="font-serif text-xl text-navy">Entregas Liberadas</h2><span className="rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/65">Abertos para você</span></div>
               {liberados.length === 0 ? (
                 <p className="app-estado-editorial mt-3">
                   {COPY_TELAS.documentos.vazio}
@@ -155,30 +136,16 @@ export function PortalDocumentos() {
                           <p className="flex items-start gap-2 font-medium text-navy"><FileText className="h-5 w-5 shrink-0" aria-hidden="true" /><span className="min-w-0 break-words">{textoParaCliente(d.titulo) || "Não registrado"}</span></p>
                           {d.liberado_em ? <p className="text-xs text-navy/50">liberado em {new Date(d.liberado_em).toLocaleDateString("pt-BR")}</p> : null}
                         </div>
-                        <span className="app-chip shrink-0" data-tom="ok">Disponível</span>
+                        <span className="app-chip shrink-0" data-tom="ok">Liberado</span>
                       </li>
                     ))}
                   </ul>
                 </>
               )}
               </div>
-            
               </SecaoDocumental>
-</section>
-
-            {/* 4. Entregas — atalho contextual; a lista editorial continua em Legado. */}
-            <section data-documentos-entregas className="app-v11-faixa">
-              <SecaoDocumental tipo="entregas" titulo="Entregas do Legado">
-              
-              <div className="py-1">
-                <h2 className="font-serif text-xl text-navy">Entregas do Legado</h2>
-                <p className="mt-2 text-sm text-navy/70">As histórias e os materiais preparados para a sua família ficam reunidos no Legado, quando estiverem disponíveis.</p>
-                 <LinkPortal to="/portal/legado" className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4 hover:text-terracotta">Conhecer o Legado</LinkPortal>
-              </div>
-            
-              </SecaoDocumental>
-</section>
-            </>)}
+            </section>
+            </>
           </div>
         )}
       </PortalShell>
@@ -243,18 +210,11 @@ export function PortalDocumentos() {
             return (
         <div className="app-v11-secoes" data-aba-documentos-vivo>
           <ChecklistDocumental checklist={vivo.data?.checklist} />
-          {liberados_lista.length === 0 && recebidos.length === 0 && !solicitado && solicitacoesAbertas.length === 0 ? (
-            <div className="app-cofre-ausencia" data-cofre-ausencia>
-              <LockKeyhole className="h-8 w-8 text-navy" aria-hidden="true" />
-              <h2 className="mt-3 font-serif text-2xl text-navy">Acervo sob curadoria técnica</h2>
-              <p className="app-estado-editorial mt-3" data-acervo-vazio>Seu acervo está em preparação</p>
-              <div className="mt-4"><EnviarDocumento casoId={casoAtivo} /></div>
-              <LinkPortal to="/portal/legado" className="mt-3 inline-flex min-h-11 items-center text-sm text-navy underline decoration-gold underline-offset-4">Conhecer o Legado</LinkPortal>
-            </div>
-          ) : (<>
+          <>
+
           {/* 1. Solicitados — o que a equipe pediu, com a instrução de envio integrada ao card. */}
           <section data-documentos-solicitados className="app-v11-faixa">
-              <SecaoDocumental tipo="solicitados" titulo="Solicitados">
+              <SecaoDocumental tipo="solicitados" titulo="Solicitados à Família">
             
             <div className="py-1">
             <div className="flex flex-wrap items-start justify-between gap-2">
@@ -313,7 +273,7 @@ export function PortalDocumentos() {
 
           {/* 2. Recebidos — chegou, mas ainda não foi conferido. */}
           <section data-documentos-recebidos className="app-v11-faixa">
-              <SecaoDocumental tipo="recebidos" titulo="Em conferência">
+              <SecaoDocumental tipo="recebidos" titulo="Recebidos">
             
             <div className="py-1">
             <div className="flex flex-wrap items-start justify-between gap-2">
@@ -357,13 +317,14 @@ export function PortalDocumentos() {
               </SecaoDocumental>
 </section>
 
+            <section data-documentos-conferencia className="app-v11-faixa"><SecaoDocumental tipo="conferencia" titulo="Em Conferência"><span className="app-chip" data-tom="analise">Em análise</span><p className="mt-3 text-sm text-navy/70">{(vivo.data?.checklist?.itens ?? []).filter((i) => i.tom === "analise").map((i) => i.titulo).join(" · ") || "Quando houver um documento em análise, você poderá acompanhar a conferência aqui."}</p></SecaoDocumental></section>
           {/* 3. Liberados — conferidos e abertos para a família. */}
           <section data-documentos-liberados className="app-v11-faixa">
-              <SecaoDocumental tipo="liberados" titulo="Certidões liberadas">
+              <SecaoDocumental tipo="liberados" titulo="Entregas Liberadas">
             
             <div className="py-1">
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <h2 className="font-serif text-xl text-navy">Certidões liberadas</h2>
+              <h2 className="font-serif text-xl text-navy">Entregas Liberadas</h2>
               <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
                 Abertos para você
               </span>
@@ -399,41 +360,7 @@ export function PortalDocumentos() {
               </SecaoDocumental>
 </section>
 
-          {/*
-            4. Entregas — material editorial publicado.
-
-            §7 do De-Para: "Entregas" contém somente material final para
-            consulta/download. Hoje esse material vive em portal_projecoes
-            (fonte SANITIZADA que a aba Legado consome via
-            legadoSanitizado). A aba Documentos NÃO tem fonte por caso
-            para essa lista — a alternativa seria duplicar Legado, o que
-            criaria duas fontes de verdade. A caixa vira atalho canônico
-            para Legado. Bloqueio catalogado em portal-dados-vivos.ts.
-          */}
-          <section data-documentos-entregas className="app-v11-faixa">
-              <SecaoDocumental tipo="entregas" titulo="Entregas do Legado">
-            
-            <div className="py-1">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-               <h2 className="font-serif text-xl text-navy">Entregas do Legado</h2>
-              <span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
-                Cadernos, relatórios e narrativas
-              </span>
-            </div>
-            <p className="mt-3 text-sm text-navy/70">
-               As histórias e os materiais preparados para a sua família ficam reunidos no Legado, quando estiverem disponíveis.
-            </p>
-            <LinkPortal
-              to="/portal/legado"
-               className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold underline-offset-4 hover:text-terracotta"
-            >
-               Conhecer o Legado
-            </LinkPortal>
-            </div>
-          
-              </SecaoDocumental>
-</section>
-          </>)}
+          </>
         </div>
           );
           }}
@@ -449,9 +376,9 @@ export function PortalDocumentos() {
  */
 function ChecklistDocumental({ checklist }: { checklist?: ChecklistDocumentalCliente | null }) {
   const legenda: Array<{ tom: "ok" | "analise" | "pendente"; rotulo: string }> = [
-    { tom: "ok", rotulo: "Recebido" },
+    { tom: "ok", rotulo: "Liberado" },
     { tom: "analise", rotulo: "Em análise" },
-    { tom: "pendente", rotulo: "Pendente de envio" },
+    { tom: "pendente", rotulo: "Aguardando" },
   ];
   const itens = checklist?.itens ?? [];
   const comItens = itens.length > 0;
@@ -477,7 +404,7 @@ function ChecklistDocumental({ checklist }: { checklist?: ChecklistDocumentalCli
                   <p className="text-xs text-navy/60">Até {new Date(`${i.prazo}T12:00:00`).toLocaleDateString("pt-BR")}</p>
                 ) : null}
               </div>
-              <span className="app-chip shrink-0" data-tom={i.tom}>{i.rotulo}</span>
+              <span className="app-chip shrink-0" data-tom={i.tom}>{i.tom === "ok" ? "Liberado" : i.tom === "analise" ? "Em análise" : "Aguardando"}</span>
             </li>
           ))}
         </ul>

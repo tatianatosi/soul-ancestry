@@ -1382,3 +1382,43 @@
 @media (prefers-reduced-motion: reduce) {
   [data-app-cliente] * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Approved seven-tab finish: all rules stay inside PortalShell. */
+[data-app-cliente="true"][data-app-editorial] {
+  --app-v11-orientacao: var(--app-editorial-navy);
+  --app-v11-topo: var(--app-editorial-hero);
+  --app-v11-fundo: var(--app-editorial-cream);
+  --app-v11-texto: var(--app-editorial-ink);
+  --app-v11-superficie: var(--ca-white);
+  --app-borda-folha: color-mix(in srgb, var(--ca-navy) 8%, transparent);
+  --app-ouro-texto: var(--ca-estado-aguardando);
+}
+[data-app-cliente] #conteudo-portal .app-cartao-caso { background: var(--ca-navy-hero); border-radius: 16px; }
+[data-app-cliente] #conteudo-portal [data-home-editorial]::before { content: none; }
+[data-app-cliente] .app-home-boas-vindas { letter-spacing: 0; }
+[data-app-cliente] #conteudo-portal :where([data-cartao-editorial], [data-cartao-achado], .app-folha, .app-home-pessoas, .app-home-passo, .app-arvore-moldura, [data-radar-grafico], [data-radar-grade] > li) { background: var(--ca-surface-raised); border-radius: 16px; border-color: var(--app-borda-folha); }
+[data-app-cliente] #conteudo-portal .app-assessoria-discreta { background: transparent; border-top: 1px solid var(--ca-border); padding-top: 1rem; }
+[data-app-cliente] .app-jornada-mobile { display: none; }
+[data-app-cliente] [data-jornada-duas-linhas] { position: relative; }
+[data-app-cliente] .app-jornada-desktop .app-jornada-fio { background: var(--ca-gold); }
+[data-app-cliente] .app-jornada-desktop .app-jornada-evento { border-bottom: 1px solid color-mix(in srgb, var(--ca-gold) 30%, transparent); padding-bottom: 1rem; }
+[data-app-cliente] #conteudo-portal .app-documento-acordeao { background: var(--ca-surface-raised); border: 1px solid var(--ca-border); border-radius: 16px; padding: 1rem; }
+[data-app-cliente] #conteudo-portal .app-documento-conteudo h2 { display: none; }
+[data-app-cliente] .app-documento-conteudo { padding-top: 1rem; }
+[data-app-cliente] .app-radar-svg { min-height: 260px; }
+[data-app-cliente] .app-prateleiras { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 1.25rem; }
+[data-app-cliente] .app-colecao-capa[data-capa] { height: 8rem; width: 5.5rem; border-left: 4px solid var(--ca-gold); background: var(--ca-navy); color: var(--ca-cream); border-radius: 3px 8px 8px 3px; }
+[data-app-cliente] .app-colecao-capa[data-capa="memoria"] { background: var(--ca-gold); color: var(--ca-navy); }
+[data-app-cliente] .app-colecao-capa[data-capa="fase2"] { background: var(--ca-navy-hero); }
+[data-app-cliente] #conteudo-portal [data-conta-perfil] { background: var(--ca-surface-raised); border: 1px solid var(--ca-border); border-radius: 16px; padding: 1.25rem; }
+[data-app-cliente] #conteudo-portal [data-conta-assinatura] { border-radius: 16px; padding: 1.25rem; }
+[data-app-cliente] #conteudo-portal .app-arvore-moldura { padding: 1.25rem; }
+[data-app-cliente] .app-arvore-geracoes { position: relative; }
+[data-app-cliente] #conteudo-portal .app-abertura-tela h1 { white-space: normal; }
+@media (max-width:767px) {
+  [data-app-cliente] .app-jornada-mobile { display: block; }
+  [data-app-cliente] .app-jornada-desktop { display: none; }
+  [data-app-cliente] .app-prateleiras { grid-template-columns: minmax(0,1fr); }
+  [data-app-cliente] .app-arvore-nos { grid-template-columns: minmax(0,1fr); }
+  [data-app-cliente] [data-regua-etapas] li > span:last-child { font-size: 9px; overflow-wrap: normal; hyphens: auto; }
+}

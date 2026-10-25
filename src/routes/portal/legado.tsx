@@ -70,9 +70,13 @@ export function PortalLegado() {
               ["achado", "relatorio_fase", "relatorio_f1", "relatorio_f2", "microentrega"].includes(item.tipo),
             );
             const acervo = [...entregas, ...materiaisPublicados];
-            const porPrateleira = Object.fromEntries(
-              PRATELEIRAS.map((p) => [p.id, acervo.filter((e) => prateleiraDe(e) === p.id)]),
-            ) as Record<PrateleiraId, PublicacaoCliente[]>;
+            const colecoes = [
+              { id: "cadernos", rotulo: "Cadernos", dica: "Histórias compartilhadas", itens: acervo.filter((e) => prateleiraDe(e) === "cadernos") },
+              { id: "relatorios", rotulo: "Dossiês", dica: "Sínteses da pesquisa familiar", itens: acervo.filter((e) => prateleiraDe(e) === "relatorios" && !["relatorio_f1", "relatorio_f2"].includes(e.tipo)) },
+              { id: "fase1", rotulo: "Relatórios Fase 1", dica: "Primeira fase da pesquisa", itens: acervo.filter((e) => e.tipo === "relatorio_f1") },
+              { id: "fase2", rotulo: "Relatórios Fase 2", dica: "Continuidade da pesquisa", itens: acervo.filter((e) => e.tipo === "relatorio_f2") },
+              { id: "memoria", rotulo: "Memórias", dica: "Narrativas para guardar", itens: acervo.filter((e) => ["memoria", "narrativas"].includes(prateleiraDe(e))) },
+            ];
 
             return (
               <BlocoVisibilidade visibilidade={visibilidade}>
@@ -164,10 +168,8 @@ export function PortalLegado() {
                   </section>
 
                   <div className="app-prateleiras" data-legado-prateleiras>
-                    {PRATELEIRAS.filter((p) => p.id !== "memoria").map((p) => {
-                      const itens = p.id === "narrativas"
-                        ? [...porPrateleira.narrativas, ...porPrateleira.memoria]
-                        : porPrateleira[p.id];
+                    {colecoes.map((p) => {
+                      const itens = p.itens;
                       const IconeColecao = p.id === "cadernos" ? BookOpen : p.id === "relatorios" ? FileText : Feather;
                       return (
                         <section
@@ -198,7 +200,9 @@ export function PortalLegado() {
                                    ? "Os cadernos da família aparecerão aqui quando forem liberados."
                                    : p.id === "relatorios"
                                      ? "Os dossiês e relatórios terão seu lugar aqui quando forem liberados para a família."
-                                     : "As narrativas de origem aparecerão aqui quando estiverem prontas para a família."
+                                     : p.id === "fase1" || p.id === "fase2"
+                                       ? "O relatório desta fase aparecerá aqui quando for aprovado e compartilhado com a família."
+                                       : "As memórias aparecerão aqui quando estiverem prontas para a família."
                              } /></div>
                           ) : (
                             <ul className="mt-3 space-y-2">
