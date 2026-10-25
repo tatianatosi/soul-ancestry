@@ -23,15 +23,36 @@
 --   "Nota interna de estrategia"
 --   "RG enviado pelo cliente"
 --
--- POR QUE ESTE ARQUIVO NÃO TRAZ OS VALORES PRONTOS
+-- ATUALIZAÇÃO (24/10/2026, revisão posterior): os valores PREENCHER foram
+-- substituídos por metadado REAL, medido direto no storage do banco vivo
+-- (bucket "documentos"), não inventado:
 --
--- Eu não tenho as 3 certidões reais: nem título, nem tipo, nem o arquivo em
--- storage. Inserir linhas com nome inventado e storage_path = null publicaria
--- para uma cliente de verdade três documentos que não abrem — o oposto da
--- regra "App mostra só conteúdo sanitizado/aprovado/publicado; vazio honesto;
--- nada inferido". É exatamente o risco que a Proprietária apontou ao recusar a
--- branch de nome enganoso em 23/10/2026. Então os valores ficam como parâmetro
--- explícito, e o script se recusa a rodar enquanto não forem preenchidos.
+--   11f32aae.../a11a0000.../evidencias/Dossie-Consolidado-Projeto-Familiar-Austria.pdf
+--     432.805 bytes, application/pdf, enviado 13/10/2026 13:07:43 UTC
+--   11f32aae.../a11a0000.../evidencias/Registro-Unificado-e-Timeline.pdf
+--     426.500 bytes, application/pdf, enviado 13/10/2026 13:07:40 UTC
+--   11f32aae.../a11a0000.../evidencias/Registro-Unificado-e-Timeline.md
+--     9.748 bytes, text/markdown (gravado como application/octet-stream no
+--     storage — mime_type abaixo corrigido para o real), enviado 13/10/2026
+--
+-- Esses são os ÚNICOS 3 objetos do bucket "documentos" ligados a este caso —
+-- não há mais nenhum outro arquivo no storage para a Ana. Confirmado também
+-- que não existe vínculo pré-existente em evidences, artifact_register nem
+-- documents (as 3 fontes óbvias) — são arquivos recebidos e nunca indexados,
+-- não arquivos que não existem.
+--
+-- RESSALVA QUE EU NÃO POSSO RESOLVER SOZINHO: um prompt anterior desta mesma
+-- conversa nomeou as "3 certidões reais da Ana" como "Certidão Graz 1895",
+-- "Dossiê Friedmann-Reimer" e "Registro Viena 1938-39". Esses nomes NÃO
+-- aparecem nos nomes de arquivo reais encontrados no storage. Pode ser a
+-- mesma coisa com apelido diferente, ou pode ser um engano daquele prompt —
+-- não decido isso sozinho; não vou inventar o vínculo entre um nome e outro.
+-- Os títulos abaixo usam o nome real do arquivo, não os apelidos do prompt
+-- anterior. Troque antes de aplicar, se a correspondência for outra.
+--
+-- Os valores ainda ficam como parâmetro explícito abaixo — não hardcoded no
+-- INSERT — para que a correspondência título↔arquivo continue visível e
+-- revisável numa única tabela, em vez de espalhada em múltiplos VALUES.
 --
 -- ANTES DE APLICAR, SAIBA QUE ISSO SOZINHO NÃO FAZ O APP MOSTRAR OS DOCUMENTOS
 --
@@ -67,9 +88,33 @@ create temporary table _docs_reais_ana (
 ) on commit drop;
 
 insert into _docs_reais_ana (tipo, categoria, titulo, nome_arquivo, storage_path, mime_type, origem, sensibilidade) values
-  ('PREENCHER', 'PREENCHER', 'PREENCHER', 'PREENCHER', 'PREENCHER', 'application/pdf', 'cliente', 'normal'),
-  ('PREENCHER', 'PREENCHER', 'PREENCHER', 'PREENCHER', 'PREENCHER', 'application/pdf', 'cliente', 'normal'),
-  ('PREENCHER', 'PREENCHER', 'PREENCHER', 'PREENCHER', 'PREENCHER', 'application/pdf', 'cliente', 'normal');
+  (
+    'evidencia_pesquisa', 'evidencia_pesquisa',
+    'Dossiê consolidado do projeto familiar (Áustria)',
+    'Dossie-Consolidado-Projeto-Familiar-Austria.pdf',
+    '11f32aae-ea08-47e0-8114-f5d8a900c9a1/a11a0000-0000-4000-8000-000000000002/evidencias/Dossie-Consolidado-Projeto-Familiar-Austria.pdf',
+    'application/pdf', 'interno', 'normal'
+  ),
+  (
+    'evidencia_pesquisa', 'evidencia_pesquisa',
+    'Registro unificado e linha do tempo (PDF)',
+    'Registro-Unificado-e-Timeline.pdf',
+    '11f32aae-ea08-47e0-8114-f5d8a900c9a1/a11a0000-0000-4000-8000-000000000002/evidencias/Registro-Unificado-e-Timeline.pdf',
+    'application/pdf', 'interno', 'normal'
+  ),
+  (
+    'evidencia_pesquisa', 'evidencia_pesquisa',
+    'Registro unificado e linha do tempo (texto-fonte)',
+    'Registro-Unificado-e-Timeline.md',
+    '11f32aae-ea08-47e0-8114-f5d8a900c9a1/a11a0000-0000-4000-8000-000000000002/evidencias/Registro-Unificado-e-Timeline.md',
+    'text/markdown', 'interno', 'normal'
+  );
+-- `categoria = 'evidencia_pesquisa'` (não 'certidao'): são dossiê/timeline
+-- compilados pela pesquisa, não certidão civil bruta digitalizada. Se a
+-- intenção for categorizar como 'certidao', troque aqui — é a única
+-- categoria do CHECK que mapearia um documento oficial escaneado.
+-- `origem = 'interno'` (não 'cliente'): produzidos pela equipe de pesquisa a
+-- partir de fontes, não enviados diretamente pela família.
 
 -- 2) Guarda: nada entra com placeholder. Falhar aqui é o comportamento certo.
 do $$
