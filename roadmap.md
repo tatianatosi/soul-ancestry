@@ -1,9 +1,9 @@
 # Roadmap
 
 ## 25/10 — PDF: sete abas atuais × mockup de 17 páginas
-- [ ] Capturar as sete abas do App Cliente como estão agora (375 px e desktop), pela prévia administrativa oficial, com selo de origem e data.
-- [ ] Localizar o mockup aprovado de 17 páginas e comparar aba a aba: o que coincide, o que falta, o que é dado atual e não estilo.
-- [ ] Montar PDF com os prints e o comparativo; salvar em Arquivos.
+- [x] Capturar as sete abas do App Cliente como estão agora (375 px e desktop), pela prévia administrativa oficial, com selo de origem e data.
+- [x] Localizar o mockup aprovado de 17 páginas e comparar aba a aba: o que coincide, o que falta, o que é dado atual e não estilo.
+- [x] Montar PDF com os prints e o comparativo; salvar em Arquivos.
 
 ## 25/10 — Conferência e aplicação de migrations pendentes
 - [x] Comparados 234 arquivos históricos e cinco propostas com os dois históricos do banco: 231 registrados no histórico anterior, dois no Drizzle e saneamento de dados já refletido. Três hashes Drizzle conferidos; funções de ativação retornam true/true. Nenhum schema pendente identificado; nada reaplicado.
