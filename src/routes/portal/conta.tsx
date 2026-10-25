@@ -182,7 +182,7 @@ export function PortalConta() {
                  {(vivo.data?.casoAtivoId ?? previa?.identidade?.caseId) === "a11a0000-0000-4000-8000-000000000002" ? (
                 <div className="border-b border-border py-3" data-conta-modalidade>
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">Modalidade</dt>
-                  <dd className="text-sm text-navy">Projeto Familiar · condição prevista</dd>
+                  <dd className="text-sm text-navy">Projeto Familiar (3 assinaturas ativas)</dd>
                 </div>
                  ) : null}
                </dl>
