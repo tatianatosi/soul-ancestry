@@ -4,6 +4,7 @@ import { Check, ChevronDown, MessageCircle } from "lucide-react";
 import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
 import type { ResumoCasoCliente } from "@/lib/portal-resumo-caso";
 import { Button } from "@/components/ui/button";
+import { rotuloSeloCaso } from "@/lib/selo-caso-cliente";
 import { cn } from "@/lib/utils";
 
 /**
@@ -32,15 +33,19 @@ export function CartaoEditorial({
   );
 }
 
-/** Régua "Hoje você está aqui" — 5 etapas de src/lib/etapas-caso.ts. */
+/**
+ * Régua de PREPARAÇÃO do caso — as 5 etapas de ativação de src/lib/etapas-caso.ts.
+ * L4, opção A (24/10/2026): estas etapas são internas (Diagnóstico, Documentação,
+ * Jurídico, Financeiro, App Cliente), não as fases da jornada do mockup p.3;
+ * por isso o título diz "Preparação do seu caso" e os rótulos vêm do registro.
+ */
 export function ReguaEtapas({ etapas }: { etapas: ResumoCasoCliente["etapas"] }) {
   if (etapas.length === 0) return null;
-  const rotulos = ["Diagnóstico", "Pesquisa", "Reconstrução", "Validação", "Entrega"];
   const indiceAtual = etapas.findIndex((e) => e.estado !== "concluido");
   const todasConcluidas = indiceAtual === -1;
   return (
-    <div className="mt-4 border-t border-cream/10 pt-4" data-regua-etapas aria-label="Etapas da pesquisa familiar">
-      <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-cream/70">Etapas da pesquisa familiar</p>
+    <div className="mt-4 border-t border-cream/10 pt-4" data-regua-etapas aria-label="Preparação do seu caso">
+      <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-cream/70">Preparação do seu caso</p>
       <ol className="mt-3 grid grid-cols-5 gap-0.5" lang="pt-BR">
         {etapas.map((e, i) => {
           const concluida = e.estado === "concluido";
@@ -65,14 +70,14 @@ export function ReguaEtapas({ etapas }: { etapas: ResumoCasoCliente["etapas"] })
                 {concluida ? <Check className="h-4 w-4" aria-hidden="true" /> : i + 1}
               </span>
               <span className={cn("mt-1.5 block w-full hyphens-auto text-[9px] leading-tight min-[400px]:text-[10px] sm:text-xs", atual ? "font-semibold text-gold" : "text-cream/75")}>
-                {rotulos[i] ?? e.rotulo}
+                {e.rotulo}
               </span>
             </li>
           );
         })}
       </ol>
       <p className="mt-3 text-sm text-cream">
-        {todasConcluidas ? "As cinco etapas de preparação estão concluídas." : <>Etapa atual: <span className="text-gold">{rotulos[indiceAtual] ?? etapas[indiceAtual]?.rotulo}</span></>}
+        {todasConcluidas ? "As cinco etapas de preparação estão concluídas." : <>Etapa da preparação: <span className="text-gold">{etapas[indiceAtual]?.rotulo}</span></>}
       </p>
     </div>
   );
@@ -80,7 +85,8 @@ export function ReguaEtapas({ etapas }: { etapas: ResumoCasoCliente["etapas"] })
 
 /** Selo do estado real do caso: "Caso ativo" só quando o registro diz ativo. */
 export function SeloEstadoCaso({ resumo }: { resumo: ResumoCasoCliente | null | undefined }) {
-  const texto = resumo?.ativo ? "Caso ativo" : resumo?.statusRotulo ?? "Não registrado";
+  const texto = rotuloSeloCaso(resumo?.statusCaso ?? null, resumo?.ativo);
+  if (!texto) return null;
   return (
     <span
       data-selo-estado-caso
