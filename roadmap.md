@@ -1,5 +1,10 @@
 # Roadmap
 
+## 25/10 — Conferência e aplicação de migrations pendentes
+- [x] Comparados 234 arquivos históricos e cinco propostas com os dois históricos do banco: 231 registrados no histórico anterior, dois no Drizzle e saneamento de dados já refletido. Três hashes Drizzle conferidos; funções de ativação retornam true/true. Nenhum schema pendente identificado; nada reaplicado.
+- [x] Separadas propostas de dados: as três de 23/10 já estão refletidas no banco. Todas as 194 tabelas e seus conjuntos de colunas correspondem aos tipos gerados. Inventário atualizado em supabase/pendentes/README.md.
+- [ ] Proposta 20261024120000_documentos_reais_ana_liberados.sql: BLOQUEADO_POR_DADO — publica materiais internos, não altera schema; faltam versões sanitizadas e correspondência comprovada com os documentos pretendidos. Não executada.
+
 ## 24/10 — Publicação Desk V4 e documentos da Ana (11:47 UTC)
 - [x] Publicação solicitada para soul-ancestry.lovable.app após varredura básica sem achados; conclusão do deploy não confirmada e análise profunda não realizada.
 - [ ] Liberação dos documentos: três arquivos recebidos localizados nos uploads, já vinculados à Ana em evidencias (Registro Unificado PDF/texto e Dossiê Consolidado PDF); não duplicados. PDFs conferidos (426500/432805 bytes, 5/7 páginas): contêm condições comerciais/hipóteses e são material interno, não certidões nem entregas sanitizadas. Nenhum registro em documents/case_source_documents. Leitura/assinatura dos objetos privados retornou NoSuchKey nesta sessão; bytes disponíveis nos uploads. BLOQUEADO_POR_DADO: não localizadas certidões/versões sanitizadas próprias para a família; não solicitar reenvio genérico nem liberar material interno. Os 14 itens do checklist não são arquivos.
