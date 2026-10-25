@@ -1,33 +1,31 @@
-# Caso 360: envio de documentos com checklist e Árvore com pai e mãe
+# Acabamento das 7 abas do App Cliente (somente /portal)
 
-Tudo acontece no Desk, dentro do Caso 360. O App Cliente continua congelado e nada é publicado.
+Escopo: só as telas e componentes do App Cliente. Desk, banco, permissões, migrations e publicação ficam de fora. Nenhum dado é inventado. Quando faltar conteúdo, a tela mostra uma mensagem acolhedora.
 
-## 1. Documentos: área de envio e checklist
-- Na seção Documentos do caso, entra uma área tracejada onde a equipe arrasta ou escolhe um arquivo. O arquivo vai para o acervo privado que já existe, e o registro usa o mesmo envio que o sistema já tem. Não crio um espaço novo nem regras de acesso novas.
-- Ao enviar, a equipe escolhe a qual item do checklist o arquivo pertence.
-- Logo abaixo, o checklist do caso. Hoje a Ana tem 18 itens ativos: 14 pendentes e 4 cumpridos. Cada item aparece com um selo escrito:
-  - **OK**: item cumprido.
-  - **Parcial**: item pendente que já tem arquivo enviado, mas ainda não foi conferido.
-  - **Pendente**: item sem arquivo.
-- "Parcial" é calculado na tela. O banco continua aceitando só as três situações de hoje.
-- Você autorizou mostrar os 14 itens à família. Aqui eles aparecem só para a equipe; levar ao App fica para quando você liberar o congelamento.
-- Se o envio falhar, aparece uma mensagem clara e o checklist não muda.
+## Ajustes que preservam regras já aprovadas
+- **Home, 5 etapas:** os nomes Diagnóstico, Pesquisa, Reconstrução, Validação e Entrega aparecem como etapas da **pesquisa familiar**, nunca "da cidadania", porque não prometemos resultado. O andamento continua vindo da regra única das etapas do caso.
+- **Conta, "ficha civil":** mostra nome, e-mail e telefone de contato. CPF, RG e endereço nunca aparecem no App (regra de privacidade).
+- **Árvore, ancestral de origem:** o destaque vai para a pessoa mais antiga já liberada, calculado a partir dos dados. Nada fica fixo em "Otto Reimer 1895". As gerações aparecem conforme a publicação, até G10, sem gerações vazias inventadas.
+- **Documentos, 4 grupos:** os grupos só se preenchem com pedidos e arquivos reais. Hoje não há pedidos registrados, então "Solicitados" e "Em conferência" aparecem vazios, com uma mensagem gentil. "Entregas liberadas" mostra os 3 arquivos da Ana. O botão de baixar só aparece em arquivo liberado.
+- **Legado:** a estante mostra capas para Cadernos, Dossiês, Relatórios Fase 1 e Fase 2, e Memórias. Só o caderno já aprovado aparece preenchido; as demais capas ficam como "em preparação".
 
-## 2. Árvore do Caso 360: pai e mãe
-- Cada pessoa só se liga ao pai e à mãe quando esse vínculo já está liberado para a família (aprovado ou publicado).
-- Onde falta o vínculo liberado, o lugar do pai ou da mãe mostra "Em preparação". O sistema nunca deduz quem é o pai ou a mãe.
-- Cristiane continua fora, e Felipe aparece só como dependente menor.
+## O que muda por aba
+1. **Home:** topo com o logo e o nome da família, cartão azul-marinho com o título do caso, régua de 5 etapas, 3 próximos passos e 3 descobertas (só as publicadas) e botão discreto de WhatsApp (11 98838-4907).
+2. **Jornada:** duas linhas lado a lado, a história ancestral e o processo, ligadas por traços dourados. Só entram marcos aprovados. No celular, as duas linhas viram uma coluna intercalada.
+3. **Radar:** teia ampla de 6 dimensões com os nomes pedidos, sem notas nem promessas, acompanhada de uma legenda de evolução.
+4. **Documentos:** 4 grupos que abrem e fecham, com selos em texto (Aguardando, Em análise, Liberado) e o contador real.
+5. **Árvore:** moldura branca sobre fundo marfim, iniciais elegantes, traços em dourado e azul-marinho e destaque para o ancestral de origem.
+6. **Legado:** estante de capas e espaço para narrativas e memórias.
+7. **Conta:** contato, resumo do plano familiar ("condição prevista"), situação do acompanhamento, termos de uso, canais oficiais e acesso seguro.
 
-## O que fica de fora
-- Nada muda no App, nada é publicado, nenhum convite é enviado e o banco não muda de estrutura.
-- Os arquivos novos não ficam visíveis à família por conta própria: liberar continua sendo um ato separado.
+## Visual
+Uso as cores já oficiais: azul-marinho #13294B, apoio #1B365D, creme #F0EEE9, dourado #C2A84D e texto #28334A. Os cartões são brancos, com cantos bem arredondados. A troca vale só dentro do App, sem mudar as cores do restante do sistema. Termos internos, códigos de produto e preços provisórios nunca aparecem.
 
-## Conferência
-- Envio um arquivo de teste no caso da Ana e recarrego a página para confirmar que ele continua lá e que o item muda de Pendente para Parcial.
-- Fotos no computador e no celular (375 px), sem rolagem para o lado. Verificação de erros, testes e build.
+## Verificação
+- Testes automáticos existentes.
+- Capturas das 7 abas no computador (1280) e no celular (375), sem rolagem para os lados e sem erros, pela prévia "Ver App Cliente como pessoa" da Ana.
+- Ao final, apresento a lista de arquivos alterados. Não publico sem a sua autorização.
 
 ## Detalhes técnicos
-- Envio: `prepararUploadDocumento` e `salvarDocumento` (`src/lib/documentos.functions.ts`), no bucket privado `documentos`. O vínculo com o item é feito pelo `evidencia_url`/observação existente em `case_checklist_items`, ou pelo próprio registro do documento ligado ao caso, sem coluna nova.
-- Status: `case_checklist_items.status` (CHECK pendente/cumprido/nao_aplicavel). "Parcial" = pendente + documento vinculado com status diferente de conferido.
-- Árvore: vínculos de `genealogical_relationships`/`research_relationships` filtrados por estado aprovado/publicado, na composição da árvore já usada em `casos.$caseId.index.tsx`.
-- Arquivos: `src/routes/_authenticated/casos.$caseId.index.tsx` e um componente de seção de documentos. Sem rota nova.
+- Arquivos: `src/routes/portal/*.tsx` e `src/components/portal/*`. O CSS fica restrito ao container do PortalShell, sem mexer nos tokens globais.
+- A leitura dos dados continua igual: mesmos leitores e projeções sanitizadas, e nenhuma nova consulta de escrita.
