@@ -84,7 +84,7 @@ export function PortalHome() {
   /*
    * Retificação de 07/10/2026: uma pessoa publicada na árvore NÃO é achado.
    * Antes, `tipo === "arvore"` entrava aqui, e os nomes da família apareciam
-   * em "Achados da sua história" ao mesmo tempo que em "Pessoas conectadas".
+   * em "Descobertas publicadas" ao mesmo tempo que em "Pessoas conectadas".
    * Achado é só o que foi publicado COMO achado — regra do Lovable, mantida
    * por ser a mais estreita: pessoa nunca entra, por construção.
    */
@@ -384,7 +384,7 @@ function PainelHomeMockup({
   /** País da trilha (crm_casos.pais). O selo §58c só aparece para Áustria. */
   pais?: string | null;
 }) {
-  const trilhaAustria = /^(á|a)ustria$/i.test((pais ?? "").trim());
+
   return (
     <div className="space-y-7" data-aba-home>
       {/*
@@ -410,9 +410,7 @@ function PainelHomeMockup({
             {tituloCaso}
             {composicao ? <span className="text-cream/60"> · {composicao}</span> : null}
           </h2>
-          {trilhaAustria ? (
-            <p className="app-selo-trilha mt-4" data-selo-trilha>Cidadania Austríaca (§ 58c StbG)</p>
-          ) : null}
+
         </div>
 
         {/* Mockup p.3: progresso dentro do mesmo cartão do caso, não num segundo cartão. */}
@@ -521,7 +519,7 @@ function PainelHomeMockup({
 
         <section aria-label="Achados recentes">
           <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
-            <h3 className="min-w-0 font-serif text-2xl text-navy">Achados da sua história</h3>
+            <h3 className="min-w-0 font-serif text-2xl text-navy">Descobertas publicadas</h3>
             <LinkPortal to="/portal/jornada" className="shrink-0 text-xs font-medium text-navy/60 underline-offset-2 hover:text-navy hover:underline">
               Ver Jornada
             </LinkPortal>

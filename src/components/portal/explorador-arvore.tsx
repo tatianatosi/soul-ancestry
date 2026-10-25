@@ -13,7 +13,8 @@ function ascendentesDiretos(pessoas: PessoaNaArvore[], vinculos: readonly Vincul
   if (!titular) return out;
   const fila = [titular.chave];
   while (fila.length) {
-    const atual = fila.shift()!;
+    const atual = fila.shift();
+    if (!atual) continue;
     for (const v of vinculos) {
       if (v.tipo === "pai_mae" && v.para === atual && !out.has(v.de)) {
         out.add(v.de);
@@ -38,14 +39,14 @@ function casalAscendenteDestaque(pessoas: PessoaNaArvore[], vinculos: readonly V
 
 export function PerfilPessoaArvore({ pessoa, destaque = false, titular = false, conectado = false }: { pessoa: PessoaNaArvore; destaque?: boolean; titular?: boolean; conectado?: boolean }) {
   return (
-    <details className={`app-arvore-perfil${destaque || titular ? " app-arvore-perfil--destaque" : ""}`} data-arvore-pessoa data-arvore-chave={pessoa.chave} data-arvore-titular={titular || undefined}>
+    <details className={`app-arvore-perfil${destaque || titular ? " app-arvore-perfil--destaque" : ""}`} data-arvore-pessoa data-arvore-chave={pessoa.chave} data-arvore-titular={titular || undefined} data-arvore-origem={destaque || undefined}>
       <summary>
         <span className="app-arvore-inicial" aria-hidden="true">{pessoa.nome.charAt(0)}</span>
         <span className="min-w-0"><span className="app-no-iniciais" aria-hidden="true">{iniciais(pessoa.nome)}</span><span className="block font-medium">{pessoa.nome}</span>{conectado ? <span className="app-arvore-conectado" data-arvore-conectado>Conectado</span> : null}{titular ? <span className="text-xs text-navy/60">G1 · Você</span> : pessoa.geracao ? <span className="text-xs text-navy/60">G{pessoa.geracao} · {pessoa.geracao}ª geração</span> : null}</span>
         <ChevronDown className="app-detalhe-seta h-4 w-4 shrink-0" aria-hidden="true" />
       </summary>
       <div className="app-arvore-ficha">
-        <h3 className="font-serif text-xl text-navy">Na história da família</h3>
+        <h3 className="font-serif text-xl text-navy">Na história da família</h3>{destaque ? <p className="mt-2 text-sm text-navy/70">Origem compartilhada · geração mais antiga publicada. A geração não informa a data de nascimento.</p> : null}
         <p className="mt-2 text-sm text-navy/75">{pessoa.vinculo ?? "Em pesquisa"}</p>
         <p className="mt-3 text-sm leading-relaxed text-navy/70">Eventos, lugares e documentos desta pessoa aparecerão quando forem compartilhados com sua família.</p>
         <p className="mt-3 border-t border-border pt-3 text-xs leading-relaxed text-navy/70">Para sugerir uma correção, fale com a equipe pelos canais já combinados.</p>
@@ -78,8 +79,8 @@ export function LigacoesArvore({ pessoas, vinculos }: { pessoas: PessoaNaArvore[
       <h3 className="font-serif text-xl text-navy">Ligações da família</h3>
       <p className="mt-1 text-sm text-navy/70">Uniões e gerações compartilhadas com você pela equipe.</p>
       <ul className="mt-4 space-y-3">
-        {casais.map((v) => <Linha key={`${v.de}-${v.para}`} a={nome.get(v.de)!} b={nome.get(v.para)!} rotulo="casal" />)}
-        {filiacoes.map((v) => <Linha key={`${v.de}-${v.para}`} a={nome.get(v.de)!} b={nome.get(v.para)!} rotulo="pai ou mãe de" />)}
+        {casais.map((v) => <Linha key={`${v.de}-${v.para}`} a={nome.get(v.de) ?? "Não registrado"} b={nome.get(v.para) ?? "Não registrado"} rotulo="casal" />)}
+        {filiacoes.map((v) => <Linha key={`${v.de}-${v.para}`} a={nome.get(v.de) ?? "Não registrado"} b={nome.get(v.para) ?? "Não registrado"} rotulo="pai ou mãe de" />)}
       </ul>
     </section>
   );
@@ -135,7 +136,9 @@ export function ExploradorArvore({ pessoas, geracoes, vinculos = [] }: { pessoas
   const [foco, setFoco] = useState<string | null>(null);
   const [caixa, setCaixa] = useState<HTMLDivElement | null>(null);
   const pessoasVisiveis = foco ? pessoas.filter((pessoa) => pessoa.chave === foco) : pessoas;
-  const ascendentes = casalAscendenteDestaque(pessoas, vinculos);
+  // Birth dates are not exposed by the approved reader: use only published generation.
+  const geracaoOrigem = Math.max(0, ...pessoas.map((p) => p.geracao ?? 0));
+  const ascendentes = new Set(pessoas.filter((p) => geracaoOrigem > 1 && p.geracao === geracaoOrigem).map((p) => p.chave));
   const temTitular = pessoas.some((p) => p.geracao === 1);
   // "Conectado" só quando a pessoa tem ao menos um vínculo aprovado publicado.
   const conectados = new Set(vinculos.flatMap((v) => [v.de, v.para]));
