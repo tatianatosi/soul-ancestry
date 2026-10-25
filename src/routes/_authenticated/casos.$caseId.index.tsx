@@ -940,18 +940,22 @@ function FichaCaso() {
   const mSalvar = useMutation({
     mutationFn: () => atualizar({ data: { entidade: "crm_casos", id, dados: form } }),
     onSuccess: async (r: any) => {
+      const { alterados, naoGuardados } = resumoGravacao(r);
       setErro(null);
       setSalvoEm(new Date().toLocaleTimeString("pt-BR"));
-      setCamposSalvos(Array.isArray(r?.alterados) ? (r.alterados as string[]) : []);
+      setCamposSalvos(alterados);
       // Relê primeiro e só então limpa o rascunho — sem "piscar" o valor antigo.
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["ficha-caso", id] }),
         qc.invalidateQueries({ queryKey: ["caso-canonico", id] }),
       ]);
+      if (naoGuardados.length > 0) {
+        setForm((f) => manterSo(f, naoGuardados)); // rascunho só com o que não ficou
+        toast.warning(avisoNaoGuardados(alterados, naoGuardados));
+        return;
+      }
       setForm({});
-      toast.success(
-        `Salvo e conferido no banco${Array.isArray(r?.alterados) && r.alterados.length ? ` — ${r.alterados.length} campo(s)` : ""}.`,
-      );
+      toast.success(avisoSalvo(alterados));
     },
     onError: (e: unknown) => {
       const classificado = classificarErroPersistencia(e);
@@ -4323,4 +4327,25 @@ function CartaoPessoa({
       </div>
     </Secao>
   );
+}
+
+/** Lê o retorno de atualizarRegistro: o que ficou gravado e o que o banco não guardou como enviado. */
+function resumoGravacao(r: unknown): { alterados: string[]; naoGuardados: string[] } {
+  const o = (r ?? {}) as { alterados?: unknown; naoGuardados?: unknown };
+  return {
+    alterados: Array.isArray(o.alterados) ? (o.alterados as string[]) : [],
+    naoGuardados: Array.isArray(o.naoGuardados) ? (o.naoGuardados as string[]) : [],
+  };
+}
+
+function manterSo(f: Record<string, unknown>, campos: string[]): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(f).filter(([k]) => campos.includes(k)));
+}
+
+function avisoSalvo(alterados: string[]): string {
+  return `Salvo e conferido no banco${alterados.length ? ` — ${alterados.length} campo(s)` : ""}.`;
+}
+
+function avisoNaoGuardados(alterados: string[], naoGuardados: string[]): string {
+  return `${alterados.length} campo(s) salvo(s). ${naoGuardados.length} não ficou(aram) como enviado(s): ${naoGuardados.join(", ")}.`;
 }

@@ -666,13 +666,20 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
       (k) => JSON.stringify(anterior[k] ?? null) !== JSON.stringify(alteracoes[k] ?? null),
     );
     if (diff.length === 0) {
-      return { ok: true, alterados: [] as string[], ignorados, salvoEm: new Date().toISOString() };
+      return {
+        ok: true,
+        alterados: [] as string[],
+        naoGuardados: [] as string[],
+        ignorados,
+        salvoEm: new Date().toISOString(),
+      };
     }
 
     // eventos_financeiros não tem coluna updated_by (confirmado na migration):
     // gravarComVerificacao sempre grava updated_by, então essa tabela precisa
     // do mesmo UPDATE verificado manualmente, sem esse campo.
     let salvoEm: string;
+    let naoGuardados: string[] = [];
     if (data.entidade === "eventos_financeiros") {
       const { data: linhaAtualizada, error: erroAtualizar } = await supabase
         .from(data.entidade)
@@ -685,7 +692,8 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
       if (!linhaAtualizada) throw new Error("NENHUMA_LINHA_AFETADA: nada foi gravado.");
       for (const campo of diff) {
         if (JSON.stringify((linhaAtualizada as any)[campo] ?? null) !== JSON.stringify(alteracoes[campo] ?? null)) {
-          console.warn(`[saas] Divergência tolerada em ${data.entidade}:${data.id} no campo "${campo}"`);
+          console.warn(`[saas] Divergência em ${data.entidade}:${data.id} no campo "${campo}"`);
+          naoGuardados.push(campo);
         }
       }
       salvoEm = new Date().toISOString();
@@ -699,6 +707,7 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
         payload: alteracoes,
       });
       salvoEm = gravacao.salvoEm;
+      naoGuardados = gravacao.divergencias.map((d) => d.campo);
     }
 
     // Registro de alterações do caso (quem, quando, o quê) — sensíveis mascarados.
@@ -755,7 +764,13 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
       });
     }
 
-    return { ok: true, alterados: diff, ignorados, salvoEm };
+    return {
+      ok: true,
+      alterados: diff.filter((c) => !naoGuardados.includes(c)),
+      naoGuardados: naoGuardados.filter((c) => diff.includes(c)),
+      ignorados,
+      salvoEm,
+    };
 
   });
 
