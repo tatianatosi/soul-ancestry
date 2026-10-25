@@ -143,7 +143,7 @@ export function PortalShell({
     : [];
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-cream text-navy" data-marca-guia="oki" data-app-cliente="true" data-app-editorial={["/portal", "/portal/jornada", "/portal/arvore", "/portal/documentos"].includes(rotaAtiva) ? rotaAtiva : undefined}>
+    <div className="min-h-screen overflow-x-hidden bg-cream text-navy" data-marca-guia="oki" data-app-cliente="true" data-app-editorial={rotaAtiva}>
       {/*
         Faixa navy única e compacta (correção 2026-09-12: duas faixas altas
         empurravam o conteúdo real para baixo da dobra e destoavam do mockup

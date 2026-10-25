@@ -168,10 +168,8 @@ export function PortalLegado() {
                   </section>
 
                   <div className="app-prateleiras" data-legado-prateleiras>
-                    {PRATELEIRAS.filter((p) => p.id !== "memoria").map((p) => {
-                      const itens = p.id === "narrativas"
-                        ? [...porPrateleira.narrativas, ...porPrateleira.memoria]
-                        : porPrateleira[p.id];
+                    {colecoes.map((p) => {
+                      const itens = p.itens;
                       const IconeColecao = p.id === "cadernos" ? BookOpen : p.id === "relatorios" ? FileText : Feather;
                       return (
                         <section
