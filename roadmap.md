@@ -1,5 +1,13 @@
 # Roadmap
 
+## 25/10 — Fechamento v4.0 e conteúdo real da Ana (15:43 UTC)
+- [x] Base com PR #171 presente; migrations financeiro/telemetria já registradas em Drizzle 0000/0001, função/tabela/privilégios/RLS conferidos. Nenhum pull ou migration repetida.
+- [x] Checklist aparece na prévia também com arquivos; Documentação deixa de mostrar 100% por arquivos liberados e usa somente pedidos aceitos/total. Recarga seguida de reabertura confirmada.
+- [ ] Pedidos reais da equipe: BLOQUEADO_POR_DADO — zero portal_document_requests e document_requests no caso; 18 case_checklist_items são preparação interna, não pedidos à família. Pesquisa nos uploads/repositório não localizou solicitação documental comprovada; não inventar 14 itens ou contador 0/0.
+- [ ] Legado: BLOQUEADO_POR_DADO — zero case_reports/client_deliverables/research_reports e nenhuma projeção de relatório aprovada. Arquivos de trabalho existentes não possuem resumo final sanitizado aprovado; não duplicados nem publicados como relatório.
+- [x] Sete abas reais em 375/1280: sem overflow, pageerrors ou HTTP >=400; checklist após F5/reabrir, seletor universal troca e mantém Ana após F5. 35 testes passaram; build automático OK. Capturas em /tmp/browser/fechamento-v4. Inspeção administrativa, não login independente da Ana.
+- [ ] Paridade integral das onze telas Desk e PDF oficial de 16 cláusulas/8 páginas: não comprovados neste corte; dependem de validação integral e arquivo contratual final. Sem redesign ou publicação do site.
+
 ## 25/10 — Resgate da experiência rica do App Cliente
 - [ ] Cruzar prompts aprovados e comparativo editorial indicado com as sete abas atuais; separar ausências visuais de falta de conteúdo publicado.
 - [ ] Executar os refinamentos faltantes nas telas existentes, preservando leitores, dados, sete abas e privacidade; sem publicação.
