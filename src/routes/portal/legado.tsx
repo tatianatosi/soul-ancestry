@@ -200,7 +200,9 @@ export function PortalLegado() {
                                    ? "Os cadernos da família aparecerão aqui quando forem liberados."
                                    : p.id === "relatorios"
                                      ? "Os dossiês e relatórios terão seu lugar aqui quando forem liberados para a família."
-                                     : "As narrativas de origem aparecerão aqui quando estiverem prontas para a família."
+                                     : p.id === "fase1" || p.id === "fase2"
+                                       ? "O relatório desta fase aparecerá aqui quando for aprovado e compartilhado com a família."
+                                       : "As memórias aparecerão aqui quando estiverem prontas para a família."
                              } /></div>
                           ) : (
                             <ul className="mt-3 space-y-2">
