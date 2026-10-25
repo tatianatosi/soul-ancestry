@@ -45,7 +45,7 @@ describe("a tela de onboarding não tem mais a camada de bloqueios do piloto", (
   });
 
   it("um erro do servidor nunca é silencioso na ativação", () => {
-    const bloco = tela.slice(tela.indexOf("const mAtivar"), tela.indexOf("const mAtualizarOnboarding"));
+    const bloco = tela.slice(tela.indexOf("const mAtivar"), tela.indexOf("const mSuspender"));
     expect(bloco).toContain("onError:");
     expect(bloco).toContain("Ativação falhou antes de gravar");
   });
