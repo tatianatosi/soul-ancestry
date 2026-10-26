@@ -57,6 +57,24 @@ código antes de corrigir.
 | Idioma e marca | `lang="pt-BR"`, páginas de erro em português, "Clube Ancestral" na prévia de e-mail |
 | Vercel | `vercel.json` removido |
 
+## Corrigido em 26/10 (terceira rodada — demais achados dos 6 relatórios)
+
+| Item | O que mudou |
+|---|---|
+| Homologação de SKU | item com pendência marcado "Homologar" nunca chegava ao servidor (filtro duplicado descartava antes); diálogo sem ids não fecha mais em silêncio |
+| Caso 360 — marcos do App | "Aprovar para o cliente"/"Revogar" trocaram botão cru (gated por flag de vínculo, sem confirmação) por `AcaoOperacional` — nunca some sem explicação |
+| Alertas / Microentregas | falha de leitura não aparece mais como "vazio"; KPI mostra "…"/"—" em vez de "0" |
+| Importações | editar CSV/mapeamento depois de pré-visualizar invalida a prévia |
+| Matriz jurídica | dois diagnósticos liam `legal_clause_matrix` sem filtro de organização (dependiam só de RLS) |
+| Checklist cadastral | "completo" não existe no CHECK da coluna — item sempre contava como pendente (2 lugares) |
+| Condição comercial | mesmo bug de comparação ("pendente" não existe no CHECK) deixava a pendência invisível no diagnóstico da cadeia |
+| Evento de conversão | case_id/lead_id do cliente iam para dentro de uma string de filtro `.or()` do PostgREST; INSERT trocou `{ ...data }` por payload explícito |
+| /calls | link de navegação ao handoff travava com `pointer-events-none` mesmo a ação real já liberando a proprietária com aviso |
+| leads.tsx | validação no cliente ignorava o modo livre da proprietária |
+| Planejador | SKU sem o campo `elegivel_para_proposta` preenchido sumia da lista (`NULL <> false` é NULL em SQL, não verdadeiro) |
+| Compartilhar achado (App) | titular podia compartilhar com client_id de outra família; a policy de SELECT deixaria essa pessoa ler. Checagem extra: destinatário precisa ter acesso ativo ao mesmo caso |
+| Mensagens de erro (App) | 11 pontos devolviam texto cru de Postgres/Storage ao cliente; fatura mostrava status interno cru ("emitida") em vez de "Em aberto" |
+
 ## Ainda pendente (decisão da Proprietária ou trabalho maior)
 
 1. **Testes vermelhos do App herdados de `main`** (Documentos, Conta, Home,
@@ -71,6 +89,21 @@ código antes de corrigir.
    segurança (fatura de não-contratante) já foi fechada.
 4. **Duas máquinas de contrato** (parâmetros × contratos) e **preços escritos
    no código** (`catalogo-homologacao.ts`): decisões de produto, não bugs.
+5. **`validarLead`** ainda tem regras não liberadas para a proprietária além
+   das já corrigidas (pagamento sem referência Asaas, via inviável x produto
+   recomendado) — deixadas de propósito: parecem proteção real (financeiro/
+   cliente), não cerimônia, e eu não tenho certeza suficiente para liberar
+   sem decisão sua.
+6. **`leads.tsx`**: trocar de lead no kanban, "Abrir ficha" ou fechar a ficha
+   descarta rascunho não salvo sem aviso (a tela já alerta ao sair da
+   página/F5, só não nesses três cliques internos). Não mexi porque o
+   projeto proíbe `window.confirm` e a forma certa de confirmar inline é
+   uma escolha de produto.
+7. **Gestão de acessos ao portal** (`listarAcessosPortal`): lê todo o
+   histórico de acesso de todos os clientes da organização sem checar papel
+   — qualquer `podeEscrever` (inclusive comercial/financeiro/pesquisador) vê.
+   As mutações da mesma área já exigem admin/operações; não apertei a
+   leitura porque não sei se outro papel depende dela hoje.
 
 ## Por que "as queries falhavam"
 
