@@ -149,6 +149,23 @@ function LeadsPage() {
   /* F5 / sair da linha (09/10/2026): trava a saída com edição pendente. */
   useAvisoEdicaoNaoSalva(Object.keys(rascunho).length > 0);
   const [leadPendente, setLeadPendente] = useState<string | null>(null);
+  /*
+   * 26/10/2026 — achado da auditoria pré-lançamento: trocar de lead pelo
+   * Kanban ou por "Abrir ficha" descartava rascunho sem aviso; só o clique na
+   * lista (abaixo) tinha a confirmação do Corte 1. `window.confirm` é
+   * proibido no projeto — reaproveita o MESMO banner inline já desenhado
+   * para a lista, em vez de inventar um segundo mecanismo.
+   */
+  const trocarDeLead = (id: string | null) => {
+    if (id === selecionado) return;
+    if (Object.keys(rascunho).length > 0) {
+      setLeadPendente(id);
+      return;
+    }
+    setSelecionado(id);
+    setRascunho({});
+    setMsg(null);
+  };
   const [filtroEixo, setFiltroEixo] = useState("");
   const [mostrarConvertidos, setMostrarConvertidos] = useState(false);
   const [indicadorAtivo, setIndicadorAtivo] = useState<IndicadorLeads | null>(null);
@@ -616,10 +633,7 @@ function LeadsPage() {
                       <button
                         key={l.id}
                         type="button"
-                        onClick={() => {
-                          setSelecionado(l.id ?? null);
-                          setRascunho({});
-                        }}
+                        onClick={() => trocarDeLead(l.id ?? null)}
                         className="block w-full rounded-xl border border-navy/10 bg-card p-3 text-left shadow-sm hover:border-gold"
                       >
                         <span className="block truncate text-sm font-semibold text-navy">{l.nome}</span>
@@ -817,10 +831,7 @@ function LeadsPage() {
                   <button
                     type="button"
                     className="rounded-full border border-navy/15 px-2 py-1 text-[11px] text-navy/70 hover:bg-navy/5"
-                    onClick={() => {
-                      setSelecionado(l.id ?? null);
-                      setRascunho({});
-                    }}
+                    onClick={() => trocarDeLead(l.id ?? null)}
                   >
                     Abrir ficha
                   </button>
@@ -890,17 +901,7 @@ function LeadsPage() {
                 <li key={l.id}>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (l.id === selecionado) return;
-                      // Corte 1: trocar de lead com edição pendente pede confirmação.
-                      if (Object.keys(rascunho).length > 0) {
-                        setLeadPendente(l.id ?? null);
-                        return;
-                      }
-                      setSelecionado(l.id ?? null);
-                      setRascunho({});
-                      setMsg(null);
-                    }}
+                    onClick={() => trocarDeLead(l.id ?? null)}
                     className={`w-full rounded-lg border px-3 py-2 text-left text-sm ${
                       selecionado === l.id ? "border-gold bg-cream/60" : "border-navy/10 bg-cream/40"
                     }`}

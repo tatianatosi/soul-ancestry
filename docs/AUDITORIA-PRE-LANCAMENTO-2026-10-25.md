@@ -94,16 +94,20 @@ código antes de corrigir.
    recomendado) — deixadas de propósito: parecem proteção real (financeiro/
    cliente), não cerimônia, e eu não tenho certeza suficiente para liberar
    sem decisão sua.
-6. **`leads.tsx`**: trocar de lead no kanban, "Abrir ficha" ou fechar a ficha
-   descarta rascunho não salvo sem aviso (a tela já alerta ao sair da
-   página/F5, só não nesses três cliques internos). Não mexi porque o
-   projeto proíbe `window.confirm` e a forma certa de confirmar inline é
-   uma escolha de produto.
+6. ~~**`leads.tsx`**: trocar de lead no kanban, "Abrir ficha" ou fechar a
+   ficha descarta rascunho não salvo sem aviso~~ — **corrigido em 26/10**.
+   Extraído `trocarDeLead` (reaproveita o banner inline que a lista já
+   desenhava — "Descartar e abrir o outro lead" / "Continuar editando" —,
+   sem `window.confirm`) e aplicado nos três pontos. Teste dedicado:
+   `leads-descarte-rascunho-2026-10-26.test.ts`.
 7. **Gestão de acessos ao portal** (`listarAcessosPortal`): lê todo o
    histórico de acesso de todos os clientes da organização sem checar papel
    — qualquer `podeEscrever` (inclusive comercial/financeiro/pesquisador) vê.
-   As mutações da mesma área já exigem admin/operações; não apertei a
-   leitura porque não sei se outro papel depende dela hoje.
+   Investigado em 26/10: a rota está agrupada em "Pessoas & Casos" no menu
+   (`navegacao-desk.ts`), não em Governança — indício de que o público
+   pretendido já é mais largo que admin, não um vazamento de role. Mantido
+   sem apertar: estreitar errado quebraria comercial/pesquisador sem eu
+   saber qual papel depende disso hoje. Decisão de produto, não bug óbvio.
 
 ## Por que "as queries falhavam"
 
