@@ -9,20 +9,20 @@
 }
 [data-app-cliente] {
   /* Measured on App reference pages 3–9; these aliases never affect Desk. */
-  --navy: #1b2b4b;
-  --navy-800: #233659;
-  --gold: #c9a84c;
-  --cream: #f5f0e8;
+  --navy: var(--app-editorial-navy);
+  --navy-800: var(--app-editorial-hero);
+  --gold: var(--app-editorial-gold);
+  --cream: var(--app-editorial-cream);
   --ca-navy: var(--navy);
   --ca-navy-hero: var(--navy-800);
   --ca-gold: var(--gold);
-  --ca-ink: #3d444b;
+  --ca-ink: var(--app-editorial-ink);
   --ca-cream: var(--cream);
   --ca-surface-base: var(--cream);
-  --ca-surface-accent: #efe7dd;
-  --ca-text-muted: #59616b;
-  --ca-border: #d9d1bf;
-  --app-reference-accent-ink: #80621e;
+  --ca-surface-accent: color-mix(in srgb, var(--app-brand-cream) 65%, var(--cream));
+  --ca-text-muted: color-mix(in srgb, var(--ca-ink) 75%, var(--cream));
+  --ca-border: color-mix(in srgb, var(--ca-navy) 15%, var(--cream));
+  --app-reference-accent-ink: var(--ca-estado-aguardando);
   --app-v11-orientacao: var(--ca-navy);
   --app-v11-topo: var(--ca-navy-hero);
   --app-v11-conexao: var(--ca-gold);
@@ -1385,6 +1385,10 @@
 
 /* Approved seven-tab finish: all rules stay inside PortalShell. */
 [data-app-cliente="true"][data-app-editorial] {
+  --app-brand-cream: #ECDFCD;
+  --app-brand-navy: #2F4B6E;
+  --app-brand-gold: #FCB73A;
+  --app-brand-black: #101010;
   --app-v11-orientacao: var(--app-editorial-navy);
   --app-v11-topo: var(--app-editorial-hero);
   --app-v11-fundo: var(--app-editorial-cream);
@@ -1421,4 +1425,46 @@
   [data-app-cliente] .app-prateleiras { grid-template-columns: minmax(0,1fr); }
   [data-app-cliente] .app-arvore-nos { grid-template-columns: minmax(0,1fr); }
   [data-app-cliente] [data-regua-etapas] li > span:last-child { font-size: 9px; overflow-wrap: normal; hyphens: auto; }
+}
+
+/* Full brand accents approved 26 October; scoped to the client App only. */
+[data-app-cliente] .app-home-whatsapp { color: var(--ca-cream); border: 1px solid color-mix(in srgb, var(--app-brand-gold) 50%, transparent); }
+[data-app-cliente] .app-home-whatsapp:hover { color: var(--ca-cream); background: var(--app-brand-navy); }
+[data-app-cliente] .app-home-hoje { border-left: 3px solid var(--ca-terracotta); padding: 1rem 1.25rem; background: var(--app-brand-cream); }
+[data-app-cliente] [data-app-cabecalho] [data-botao-perfil] { border-color: var(--app-brand-gold); color: var(--app-brand-gold); }
+[data-app-cliente] .app-regua-topo { border-bottom-color: var(--ca-terracotta); }
+[data-app-cliente] .app-jornada-ponto { background: var(--app-brand-gold); }
+[data-app-cliente] .app-colecao-capa[data-capa="relatorios"] { background: var(--app-brand-navy); }
+[data-app-cliente] .app-colecao-capa[data-capa="fase1"] { border-left-color: var(--app-brand-gold); }
+[data-app-cliente] .app-colecao-capa[data-capa="memoria"] { background: var(--ca-terracotta); color: var(--ca-white); }
+[data-app-cliente] [data-conta-condicao-familiar] { border-top: 2px solid var(--app-brand-gold); padding-top: 1rem; }
+[data-app-cliente] .app-condicao-valores { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem; }
+[data-app-cliente="true"] #conteudo-portal [data-conta-assinatura] { background: var(--app-brand-cream); color: var(--ca-ink); }
+[data-app-cliente="true"] #conteudo-portal [data-conta-assinatura] :where(p,dt,dd,h2,strong) { color: var(--ca-ink); }
+[data-app-cliente] [data-radar-area] { fill: color-mix(in srgb, var(--app-brand-gold) 28%, transparent); stroke: var(--ca-navy); }
+[data-app-cliente] .app-genograma-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; margin-block: 1rem; }
+[data-app-cliente] .app-genograma-toolbar label { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+[data-app-cliente] .app-genograma-toolbar select { min-width: 0; max-width: 15rem; min-height: 44px; border: 1px solid var(--ca-border); border-radius: 8px; background: var(--ca-white); padding: .5rem; }
+[data-app-cliente] .app-genograma-viewport { max-height: 660px; overflow: auto; overscroll-behavior: contain; touch-action: none; background: var(--ca-cream); border: 1px solid var(--ca-border); border-radius: 8px; cursor: grab; }
+[data-app-cliente] .app-genograma-viewport:active { cursor: grabbing; }
+[data-app-cliente] .app-genograma-viewport svg { display: block; max-width: none; }
+[data-app-cliente] .app-genograma-filiacao { fill: none; stroke: var(--ca-navy); stroke-width: 2; }
+[data-app-cliente] .app-genograma-uniao { fill: none; stroke: var(--app-brand-gold); stroke-width: 3; }
+[data-app-cliente] [data-genograma-no] { cursor: pointer; outline: none; }
+[data-app-cliente] .app-genograma-circulo { fill: var(--ca-navy); stroke: var(--app-brand-gold); stroke-width: 3; }
+[data-app-cliente] [data-genograma-no][data-raiz] .app-genograma-circulo { fill: var(--ca-terracotta); }
+[data-app-cliente] [data-genograma-no]:is(:focus-visible,[aria-pressed="true"]) .app-genograma-circulo { stroke-width: 6; }
+[data-app-cliente] .app-genograma-iniciais { fill: var(--app-brand-gold); font: 600 24px var(--ca-font-title); }
+[data-app-cliente] .app-genograma-nome { fill: var(--ca-ink); font: 500 12px var(--ca-font-body); }
+[data-app-cliente] .app-genograma-geracao { fill: var(--ca-text-muted); font: 11px var(--ca-font-body); }
+[data-app-cliente] .app-genograma-detalhe { border-top: 2px solid var(--app-brand-gold); margin-top: 1rem; padding-top: .75rem; }
+[data-app-cliente] .app-genograma-legenda { display: flex; align-items: center; gap: .5rem; }
+[data-app-cliente] .app-genograma-legenda::before { content: ""; width: 1.5rem; height: 2px; background: var(--ca-navy); }
+[data-app-cliente] .app-genograma-legenda[data-tipo="uniao"]::before { background: var(--app-brand-gold); }
+[data-app-cliente] [data-aba-radar] > [data-radar-grafico] { grid-column: 1 / -1; width: 100%; }
+[data-app-cliente] [data-radar-grafico] .app-radar-svg { max-width: 760px; }
+@media (max-width:767px) {
+  [data-app-cliente] .app-genograma-viewport { max-height: 520px; }
+  [data-app-cliente] .app-genograma-toolbar { flex-direction: column; align-items: stretch; }
+  [data-app-cliente] .app-genograma-toolbar > div { justify-content: flex-end; }
 }

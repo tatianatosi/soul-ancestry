@@ -14,6 +14,8 @@ import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
 import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { Button } from "@/components/ui/button";
 import { CartaoEditorial, dataCurta, iniciais } from "@/components/portal/elementos-mockup";
+import { condicaoFamiliarPrevista } from "@/components/portal/condicao-familiar";
+import { formatarValor } from "@/lib/assinatura-app";
 
 export const Route = createFileRoute("/portal/conta")({
   head: () => ({
@@ -54,6 +56,7 @@ export function PortalConta() {
    const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null);
    const titularExibido = titular ?? titularPrevia;
    const codigoCaso = previaDemo ? null : (previa?.identidade?.codigo ?? null);
+   const condicaoFamiliar = previaDemo ? null : condicaoFamiliarPrevista(codigoCaso ?? vivo.data?.casoAtivoId);
    const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null);
   const acompanhamento = previa || data?.autorizado ? "Sua jornada está sendo acompanhada pela equipe." : "Aguardando novidades da equipe.";
 
@@ -188,6 +191,16 @@ export function PortalConta() {
                 </div>
               ) : vivo.isLoading ? (
                 <p className="mt-2 text-sm text-navy/60" role="status">Carregando sua assinatura…</p>
+              ) : condicaoFamiliar ? (
+                <div className="mt-3" data-conta-condicao-familiar>
+                  <span className="app-chip" data-tom="pendente">Condição prevista · aguardando confirmação</span>
+                  <p className="mt-4 text-sm leading-relaxed text-navy"><strong>{String(condicaoFamiliar.assinaturas).padStart(2, "0")} assinaturas de {formatarValor(condicaoFamiliar.mensalCentavos)} por mês durante {condicaoFamiliar.meses} meses</strong></p>
+                  <dl className="app-condicao-valores mt-4">
+                    <div><dt className="text-xs text-navy/70">Por adulto</dt><dd className="font-serif text-2xl text-navy">{formatarValor(condicaoFamiliar.adultoCentavos)}</dd></div>
+                    <div><dt className="text-xs text-navy/70">Valor Total</dt><dd className="font-serif text-2xl text-navy">{formatarValor(condicaoFamiliar.totalCentavos)}</dd></div>
+                  </dl>
+                  <p className="mt-4 text-xs leading-relaxed text-navy/70">Condição prevista; não representa cobrança ativa, fatura ou pagamento confirmado.</p>
+                </div>
               ) : assinatura ? (
                 <>
                   {/* Selo do estado real: nunca "Assinatura ativa" sem pagamento confirmado. */}

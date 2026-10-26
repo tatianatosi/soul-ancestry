@@ -104,7 +104,7 @@ export function PortalShell({
   const rotaAtiva = fonte?.rotaInterna ?? rota;
   const vivo = usePortalVivo();
   const nomeTitular = vivo.data?.resumoCaso?.perfil.nome ?? null;
-  const primeiroNome = nomeTitular?.split(/\s+/)[0] ?? null;
+  const primeiroNome = nomeTitular?.split(/\s+/).slice(0, 2).join(" ") ?? null;
 
   useTelemetriaDePermanencia(rotaAtiva, Boolean(previa));
 
