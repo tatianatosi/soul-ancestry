@@ -1,5 +1,8 @@
 # Roadmap
 
+## 26/10 — Dossiês e Relatórios reais do Legado da Ana
+- [ ] Localizar conteúdo real com aprovação registrada nas fontes existentes; disponibilizar apenas material sanitizado aprovado, sem inventar relatórios ou reclassificar arquivos internos.
+
 ## 26/10 — Experiência integral das sete abas
 - [x] Apresentação local com paleta completa, sete abas e fontes sanitizadas existentes; autorização preservada. app-visibilidade já mantém as sete abas disponíveis mesmo com zero entregas, comprovado por teste.
 - [x] Quatro grupos de Documentos, genograma SVG com 8 pessoas/13 relações publicadas sem lista plana, zoom/pan/foco; Radar com seis nomes solicitados sem parecer/score inventado; Conta com condição prevista exclusiva da Ana. Home com país real, WhatsApp e estado contextual.
