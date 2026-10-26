@@ -74,7 +74,10 @@ function MicroentregasPage() {
     [fila.data, status],
   );
   const selecionada = (fila.data ?? []).find((item) => item.id === selecionadaId) ?? null;
-  const contagem = (valor: string) => (fila.data ?? []).filter((item) => item.status === valor).length;
+  // 26/10/2026 (auditoria): "0" enquanto carrega ou após falha de leitura
+  // parece fila vazia; agora mostra "…"/"—" e só conta quando a leitura deu certo.
+  const contagem = (valor: string): string =>
+    fila.isLoading ? "…" : fila.isError ? "—" : String((fila.data ?? []).filter((item) => item.status === valor).length);
 
   return (
     <SaasShell

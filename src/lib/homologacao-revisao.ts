@@ -153,7 +153,16 @@ export function validarConfirmacaoLote(e: EntradaConfirmacao): string[] {
   return erros;
 }
 
-/** IDs efetivamente homologáveis, na ordem de exibição. */
+/**
+ * IDs marcados para homologar, na ordem de exibição.
+ *
+ * 26/10/2026 (auditoria pré-lançamento) — antes filtrava `&& i.elegivel`
+ * aqui, então um SKU com pendência marcado "Homologar" nunca chegava ao
+ * servidor, mesmo com a proprietária confirmando a justificativa na tela.
+ * `confirmarHomologacaoLote` já decide a elegibilidade por item (e já aceita
+ * a decisão da proprietária sobre pendência); o filtro duplicado aqui só
+ * descartava o pedido antes dele ser avaliado.
+ */
 export function selecaoHomologavel(e: EntradaConfirmacao): string[] {
-  return e.itens.filter((i) => (e.decisoes[i.id] ?? "pendente") === "homologar" && i.elegivel).map((i) => i.id);
+  return e.itens.filter((i) => (e.decisoes[i.id] ?? "pendente") === "homologar").map((i) => i.id);
 }

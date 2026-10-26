@@ -3640,16 +3640,24 @@ function FichaCaso() {
                               <span className="rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[11px] text-navy/70">
                                 Visível no App
                               </span>
-                              {podeEscrever ? (
-                                <button
-                                  type="button"
-                                  className="text-xs text-navy/60 underline hover:text-navy disabled:opacity-50"
-                                  disabled={mRevogarEvento.isPending}
-                                  onClick={() => mRevogarEvento.mutate({ eventoId })}
-                                >
-                                  Revogar
-                                </button>
-                              ) : null}
+                              {/*
+                                26/10/2026 (auditoria): antes gated por
+                                `podeEscrever` (flag de vínculo de equipe) — com
+                                a flag errada, a proprietária perdia o botão
+                                sem explicação nem caminho de confirmação.
+                                `AcaoOperacional` com `acaoExterna` sempre pede
+                                confirmação explícita, nunca esconde sem dizer
+                                por quê (regra: nada sai para o App sem aceite).
+                              */}
+                              <AcaoOperacional
+                                rotulo="Revogar"
+                                acaoExterna="publicar_no_app_cliente"
+                                efeito="A família deixa de ver este marco na Jornada. Nada é apagado — o evento volta a ficar só interno."
+                                className="text-xs text-navy/60 underline hover:text-navy disabled:opacity-50"
+                                onConfirmar={async () => {
+                                  await mRevogarEvento.mutateAsync({ eventoId });
+                                }}
+                              />
                             </div>
                           ) : (
                             <span className="rounded-full border border-navy/15 px-2 py-0.5 text-[11px] text-navy/50">Só interno</span>
@@ -3657,7 +3665,7 @@ function FichaCaso() {
                         </div>
                         {aprovado ? (
                           <p className="mt-1 text-xs text-navy/60">Texto para a família: “{resumoAprovado}”</p>
-                        ) : podeEscrever ? (
+                        ) : (
                           <div className="mt-2 flex flex-wrap items-center gap-2">
                             <input
                               type="text"
@@ -3668,21 +3676,25 @@ function FichaCaso() {
                               }
                               className="min-w-[16rem] flex-1 rounded-lg border border-navy/15 px-2 py-1 text-xs text-navy"
                             />
-                            <button
-                              type="button"
+                            <AcaoOperacional
+                              rotulo="Aprovar para o cliente"
+                              acaoExterna="publicar_no_app_cliente"
+                              validacaoFormulario={
+                                !(resumoClientePorEvento[eventoId] ?? "").trim()
+                                  ? "Escreva o texto que a família vai ler antes de aprovar."
+                                  : null
+                              }
+                              efeito="A família passa a ver este marco, com o texto acima, na Jornada do App. O título interno do evento não atravessa."
                               className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
-                              disabled={mAprovarEvento.isPending || !(resumoClientePorEvento[eventoId] ?? "").trim()}
-                              onClick={() =>
-                                mAprovarEvento.mutate({
+                              onConfirmar={async () => {
+                                await mAprovarEvento.mutateAsync({
                                   eventoId,
                                   resumoCliente: resumoClientePorEvento[eventoId] ?? "",
-                                })
-                              }
-                            >
-                              Aprovar para o cliente
-                            </button>
+                                });
+                              }}
+                            />
                           </div>
-                        ) : null}
+                        )}
                       </li>
                     );
                   })}
