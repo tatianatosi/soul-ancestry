@@ -67,9 +67,32 @@ export function DocumentoDoInstrumento({ caseId }: { caseId: string }) {
     <section className="space-y-2" aria-label="Documento do instrumento" data-documento-instrumento>
       <p className="text-xs text-navy/60">{rotuloPrevia(previaAtual, CONTRATO_BASE_VERSAO, CLAUSULAS_FIXAS.length)}</p>
 
+      {/*
+        26/10/2026 (opção "b" da Proprietária): o download não depende mais da
+        prévia congelada — sai do dado atual, por isso a defasagem deixa de
+        travar a leitura do contrato. A prévia continua informada abaixo porque
+        é ela que vale para revisão, congelamento e assinatura.
+      */}
+      <div className="flex flex-wrap gap-2">
+        <BaixarPdfContrato
+          previaId={null}
+          caseId={caseId}
+          rotulo="Baixar PDF (dado atual)"
+          className="min-h-11 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50 sm:min-h-0"
+        />
+        <BaixarDocxContrato
+          previaId={null}
+          caseId={caseId}
+          rotulo="Baixar DOCX (dado atual)"
+          className="min-h-11 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50 sm:min-h-0"
+        />
+      </div>
+
       {bloqueio ? (
         <div className="rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-xs text-navy">
-          <p data-documento-instrumento-bloqueio>{bloqueio}</p>
+          <p data-documento-instrumento-bloqueio>
+            Para revisão, congelamento e assinatura, a prévia ainda precisa ser regerada: {bloqueio}
+          </p>
           <Link
             to="/casos/$caseId/contrato/preparar"
             params={{ caseId }}
@@ -80,16 +103,13 @@ export function DocumentoDoInstrumento({ caseId }: { caseId: string }) {
         </div>
       ) : null}
 
-      <div className="flex flex-wrap gap-2">
+      {previaId ? (
         <BaixarPdfContrato
           previaId={previaId}
-          className="min-h-11 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50 sm:min-h-0"
+          rotulo="Baixar a versão congelada (histórico)"
+          className="min-h-11 rounded-lg border border-navy/15 px-3 py-1.5 text-[11px] text-navy/70 disabled:opacity-50 sm:min-h-0"
         />
-        <BaixarDocxContrato
-          previaId={previaId}
-          className="min-h-11 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50 sm:min-h-0"
-        />
-      </div>
+      ) : null}
     </section>
   );
 }

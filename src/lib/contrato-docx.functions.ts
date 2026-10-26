@@ -17,17 +17,28 @@ import { semCache } from "@/lib/no-store";
 import { htmlParaBlocos, nomeArquivoDocx } from "@/lib/contrato-pdf";
 import { gerarDocxContratoBase64 } from "@/lib/contrato-docx-gerador";
 import { exigirPreviaVigenteLiberada } from "@/lib/previa-vigente.server";
+import { documentoAtualDoCaso } from "@/lib/contrato-documento-atual.server";
 
 export const baixarDocxContrato = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { previaId: string }) => {
-    if (!data?.previaId) throw new Error("Prévia não informada.");
+  .inputValidator((data: { previaId?: string; caseId?: string }) => {
+    if (!data?.previaId && !data?.caseId) throw new Error("Informe a prévia ou o caso.");
     return data;
   })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
+
+    // 26/10/2026 (opção "b"): mesma regra do PDF — sem `previaId`, renderiza
+    // do dado atual. PDF e DOCX continuam saindo da mesma fonte.
+    if (!data.previaId && data.caseId) {
+      const atual = await documentoAtualDoCaso(supabase, { caseId: data.caseId, organizationId });
+      return {
+        nomeArquivo: nomeArquivoDocx(atual.identificacao),
+        base64: await gerarDocxContratoBase64(htmlParaBlocos(atual.html), atual.identificacao),
+      };
+    }
 
     const { data: previa, error } = await supabase
       .from("contract_parameter_previews")

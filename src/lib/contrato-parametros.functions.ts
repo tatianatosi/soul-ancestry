@@ -909,7 +909,13 @@ export const definirStatusParametro = createServerFn({ method: "POST" })
  * Monta o conteúdo da prévia a partir dos parâmetros do registro mestre.
  * Não grava nada: quem grava decide se é rascunho editável ou snapshot.
  */
-async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "final") {
+/**
+ * Monta o corpo do contrato a partir do dado ATUAL do registro de parâmetros.
+ * Leitura pura: não grava, não congela, não versiona — por isso serve tanto
+ * para gerar a prévia quanto para renderizar o documento na hora do download
+ * (decisão da Proprietária em 26/10/2026, opção "b").
+ */
+export async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "final") {
   const { data: registro } = await supabase.from("contract_case_parameters").select("*").eq("id", id).maybeSingle();
   if (!registro) throw new Error("Registro de parâmetros não encontrado.");
 

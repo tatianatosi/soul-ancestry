@@ -19,6 +19,7 @@ import { semCache } from "@/lib/no-store";
 import { htmlParaBlocos, nomeArquivoPdf } from "@/lib/contrato-pdf";
 import { gerarPdfContrato } from "@/lib/contrato-pdf-gerador";
 import { exigirPreviaVigenteLiberada } from "@/lib/previa-vigente.server";
+import { documentoAtualDoCaso } from "@/lib/contrato-documento-atual.server";
 
 function paraBase64(bytes: Uint8Array): string {
   let binario = "";
@@ -29,14 +30,27 @@ function paraBase64(bytes: Uint8Array): string {
 
 export const baixarPdfContrato = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { previaId: string }) => {
-    if (!data?.previaId) throw new Error("Prévia não informada.");
+  .inputValidator((data: { previaId?: string; caseId?: string }) => {
+    if (!data?.previaId && !data?.caseId) throw new Error("Informe a prévia ou o caso.");
     return data;
   })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
+
+    /*
+     * 26/10/2026 (opção "b" da Proprietária): sem `previaId`, o documento é
+     * renderizado na hora a partir do dado atual do caso. Não há defasagem
+     * possível — logo, não há guard de prévia a aplicar. `previaId` continua
+     * aceito para baixar uma versão congelada específica do histórico.
+     */
+    if (!data.previaId && data.caseId) {
+      const atual = await documentoAtualDoCaso(supabase, { caseId: data.caseId, organizationId });
+      const blocosAtuais = htmlParaBlocos(atual.html);
+      const bytesAtuais = gerarPdfContrato(blocosAtuais, atual.identificacao);
+      return { nomeArquivo: nomeArquivoPdf(atual.identificacao), base64: paraBase64(bytesAtuais) };
+    }
 
     const { data: previa, error } = await supabase
       .from("contract_parameter_previews")

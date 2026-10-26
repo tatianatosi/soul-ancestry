@@ -25,10 +25,13 @@ function baixarBase64ComoArquivo(base64: string, nomeArquivo: string) {
 
 export function BaixarDocxContrato({
   previaId,
+  caseId,
   rotulo = "Baixar DOCX",
   className = "rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50",
 }: {
   previaId: string | null;
+  /** 26/10/2026 (opção "b"): com `caseId`, renderiza do dado atual. */
+  caseId?: string;
   rotulo?: string;
   className?: string;
 }) {
@@ -36,13 +39,13 @@ export function BaixarDocxContrato({
   const [carregando, setCarregando] = useState(false);
 
   async function onClick() {
-    if (!previaId) {
+    if (!previaId && !caseId) {
       toast.info("Gere a prévia do contrato primeiro — o DOCX sai da prévia, não de texto novo.");
       return;
     }
     setCarregando(true);
     try {
-      const r = await baixar({ data: { previaId } });
+      const r = await baixar({ data: previaId ? { previaId } : { caseId } });
       baixarBase64ComoArquivo(r.base64, r.nomeArquivo);
       toast.success(`DOCX baixado: ${r.nomeArquivo}`);
     } catch (e) {

@@ -146,13 +146,22 @@ describe("a trava desarma os botões, não só mostra o aviso", () => {
     expect(rota).toContain("{bloqueioPrevia ?");
   });
 
-  it("sem id de prévia, o botão não chama o servidor", () => {
+  /*
+   * 26/10/2026 — decisão da Proprietária (opção "b"): o documento passou a ser
+   * renderizado na hora, do dado atual, quando o botão recebe `caseId`. O
+   * invariante que este teste protege continua o mesmo — o botão nunca chama o
+   * servidor sem nada que identifique o que renderizar — mas agora existem
+   * dois identificadores válidos: `previaId` (versão congelada do histórico)
+   * ou `caseId` (dado atual). A trava de defasagem segue valendo para o
+   * caminho da prévia, no guard do servidor, verificado acima.
+   */
+  it("sem prévia e sem caso, o botão não chama o servidor", () => {
     for (const alvo of [
       "src/components/contrato/baixar-pdf-contrato.tsx",
       "src/components/contrato/baixar-docx-contrato.tsx",
     ]) {
       const src = ler(alvo);
-      expect(src).toMatch(/if \(!previaId\)[\s\S]{0,200}return;/);
+      expect(src, alvo).toMatch(/if \(!previaId && !caseId\)[\s\S]{0,200}return;/);
     }
   });
 });
