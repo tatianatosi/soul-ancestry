@@ -1295,9 +1295,9 @@
 [data-app-cliente] {
   --app-sombra-folha: 0 4px 20px -4px rgba(19, 41, 75, 0.06);
   --app-borda-folha: color-mix(in srgb, #13294b 6%, transparent);
-  --app-chip-ok-bg: #e7f2ea; --app-chip-ok-tx: #2f6a43;
-  --app-chip-analise-bg: #e6eef8; --app-chip-analise-tx: #2b4f7e;
-  --app-chip-pendente-bg: #fbeee0; --app-chip-pendente-tx: #8a4b1f;
+  --app-chip-ok-bg: #E8F2EC; --app-chip-ok-tx: #21613D;
+  --app-chip-analise-bg: #EBF3F8; --app-chip-analise-tx: #1E507A;
+  --app-chip-pendente-bg: #FEF5E7; --app-chip-pendente-tx: #9A3A2F;
 }
 [data-app-cliente] #conteudo-portal :where(.app-home-passo, [data-cartao-editorial], [data-cartao-achado], .app-home-pessoas, .app-folha) {
   background: #fff;
@@ -1392,9 +1392,9 @@
   --app-v11-orientacao: var(--app-editorial-navy);
   --app-v11-topo: var(--app-editorial-hero);
   --app-v11-fundo: var(--app-editorial-cream);
-  --app-v11-texto: var(--app-editorial-ink);
+  --app-v11-texto: #2B2F33;
   --app-v11-superficie: var(--ca-white);
-  --app-borda-folha: color-mix(in srgb, var(--ca-navy) 8%, transparent);
+  --app-borda-folha: color-mix(in srgb, var(--ca-navy) 6%, transparent);
   --app-ouro-texto: var(--ca-estado-aguardando);
 }
 [data-app-cliente] #conteudo-portal .app-cartao-caso { background: var(--ca-navy-hero); border-radius: 16px; }
@@ -1463,7 +1463,22 @@
 [data-app-cliente] .app-genograma-legenda[data-tipo="uniao"]::before { background: var(--app-brand-gold); }
 [data-app-cliente] [data-aba-radar] > [data-radar-grafico] { grid-column: 1 / -1; width: 100%; }
 [data-app-cliente] [data-radar-grafico] .app-radar-svg { max-width: 760px; }
+[data-app-cliente="true"] #conteudo-portal :where(.app-home-passo, [data-cartao-achado], [data-cartao-editorial], [data-conta-perfil], [data-radar-grade] > li, .app-documento-acordeao) { background: var(--ca-white); border-color: var(--app-borda-folha); box-shadow: var(--app-sombra-folha); }
+[data-app-cliente] #conteudo-portal [data-home-proximo-passo] .app-home-passo > span:first-child { background: var(--ca-gold); color: var(--ca-navy); font-size: 1.25rem; }
+[data-app-cliente] #conteudo-portal [data-cartao-achado] { border-left-color: var(--ca-gold); }
+[data-app-cliente] #conteudo-portal [data-aba-radar] [data-radar-grade] { grid-template-columns: repeat(3,minmax(0,1fr)); gap: .75rem; }
+[data-app-cliente] #conteudo-portal [data-aba-radar] [data-radar-grade] > li { padding: 1rem; border: 1px solid var(--app-borda-folha); }
+[data-app-cliente] .app-radar-mini-barra { height: 6px; border-radius: 4px; overflow: hidden; background: var(--app-chip-analise-bg); }
+[data-app-cliente] .app-radar-mini-barra span { display: block; height: 100%; width: 0; background: var(--ca-gold); }
+[data-app-cliente] .app-radar-mini-barra[data-compartilhado="true"] span { width: 100%; }
+[data-app-cliente] .app-radar-svg polygon:not([data-radar-area]), [data-app-cliente] .app-radar-svg line { stroke: var(--ca-gold); }
+[data-app-cliente] #conteudo-portal [data-conta-perfil] { border-top: 3px solid var(--ca-gold); }
+[data-app-cliente] .app-perfil-whatsapp { border-color: var(--ca-gold); color: var(--ca-navy); }
+[data-app-cliente] #conteudo-portal :where([data-aba-documentos], [data-aba-documentos-vivo]) input[type="file"] + button { background: var(--ca-navy); color: var(--ca-white); border: 2px solid var(--ca-gold); box-shadow: var(--app-sombra-folha); }
 @media (max-width:767px) {
+  [data-app-cliente] #conteudo-portal [data-aba-radar] [data-radar-grade] { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  [data-app-cliente] #conteudo-portal [data-aba-radar] [data-radar-grade] > li { padding: .75rem; }
+  [data-app-cliente] #conteudo-portal [data-radar-grade] .app-chip { white-space: normal; }
   [data-app-cliente] .app-genograma-viewport { max-height: 520px; }
   [data-app-cliente] .app-genograma-toolbar { flex-direction: column; align-items: stretch; }
   [data-app-cliente] .app-genograma-toolbar > div { justify-content: flex-end; }
