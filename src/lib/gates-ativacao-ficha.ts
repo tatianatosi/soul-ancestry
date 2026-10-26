@@ -69,6 +69,10 @@ function gatesValidadosPorCheck(checks: readonly CheckValidado[] = []): Set<stri
     if (status !== "validado" && status !== "isento" && status !== "ok") continue;
     const gate = GATE_POR_CHECK[c.check_key];
     if (gate) satisfeitos.add(gate);
+    // 26/10/2026: "cobrança aprovada" não tinha check próprio e nunca era
+    // satisfeita pelos requisitos validados. O check de pagamento/condição
+    // financeira autorizada cobre a cobrança também.
+    if (gate === "pagamento_confirmado") satisfeitos.add("cobranca_aprovada");
   }
   return satisfeitos;
 }
@@ -88,10 +92,13 @@ export function gatesAtivacaoFicha(
     String(caso["preparacao_status"] ?? ""),
   );
   const assinado = Boolean(caso["contrato_assinado"]);
-  const cobrancaAprovada = ["cobranca_emitida", "pagamento_inicial_confirmado", "pagamento_parcial", "quitado"].includes(
-    String(caso["situacao_financeira"] ?? ""),
-  );
   const pago = Boolean(caso["pagamento_confirmado"]);
+  // Pagamento confirmado implica cobrança aprovada (26/10/2026).
+  const cobrancaAprovada =
+    pago ||
+    ["cobranca_emitida", "pagamento_inicial_confirmado", "pagamento_parcial", "quitado"].includes(
+      String(caso["situacao_financeira"] ?? ""),
+    );
   const ativacaoAprovada = preenchido(caso["ativado_em"]) || String(caso["ativacao_operacional"] ?? "") === "aprovada";
 
   const caseId = String(caso["id"] ?? "");

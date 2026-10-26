@@ -12,8 +12,11 @@ import { listarFilaMicroentregas } from "@/lib/biblioteca-evidencias.functions";
 import { APROVACOES } from "@/lib/biblioteca-evidencias";
 import { FilaKitMicroentregas } from "@/components/desk/kit-conectado";
 import { RascunhosApp } from "@/components/golive/rascunhos-app";
+import { buscaGoLive, useCasoGoLive } from "@/components/golive/dados";
+import { listarRegistros } from "@/lib/saas.functions";
 
 export const Route = createFileRoute("/_authenticated/microentregas")({
+  validateSearch: buscaGoLive,
   head: () => ({
     meta: [
       { title: "Microentregas — Clube Ancestral" },
@@ -171,7 +174,8 @@ function MicroentregasPage() {
           titulo="Rascunhos para o App Cliente"
           descricao="Editor do caso operacional configurado: grava, relê e só libera para publicação depois de passar na validação de texto do servidor."
         />
-        <RascunhosApp />
+        {/* 26/10/2026: sem ?casoId os rascunhos caíam no caso piloto (Ana). Agora escolhe-se o caso. */}
+        <EscolhaDeCasoRascunhos />
       </section>
     </SaasShell>
   );
@@ -204,5 +208,42 @@ function Bloco({ titulo, texto, vazio }: { titulo: string; texto: string | null 
       <h3 className="text-xs font-semibold uppercase tracking-wider text-navy/55">{titulo}</h3>
       <p className={texto ? "mt-1 text-navy/80" : "mt-1 text-navy/45"}>{texto || vazio}</p>
     </section>
+  );
+}
+
+function EscolhaDeCasoRascunhos() {
+  const casoId = useCasoGoLive();
+  const listar = useServerFn(listarRegistros);
+  const casos = useQuery({
+    queryKey: ["microentregas-casos"],
+    queryFn: () => listar({ data: { entidade: "crm_casos" } }),
+    enabled: !casoId,
+  });
+  if (casoId) {
+    return (
+      <>
+        <p className="mb-2 text-xs text-navy/60">
+          Caso escolhido. <Link to="/microentregas" className="underline">Trocar de caso</Link>
+        </p>
+        <RascunhosApp />
+      </>
+    );
+  }
+  const lista = ((casos.data ?? []) as Array<{ id: string; codigo?: string | null; titulo?: string | null }>).slice(0, 50);
+  return (
+    <div className="rounded-xl border border-navy/10 bg-cream/40 p-4 text-sm" data-microentregas-escolher-caso>
+      <p className="text-navy/70">Escolha o caso para editar os rascunhos que vão ao App Cliente:</p>
+      {casos.isPending ? <p className="mt-2 text-navy/50">Carregando casos…</p> : null}
+      {casos.isError ? <p className="mt-2 text-terracotta">Não foi possível carregar os casos.</p> : null}
+      <ul className="mt-3 flex flex-wrap gap-2">
+        {lista.map((c) => (
+          <li key={c.id}>
+            <Link to="/microentregas" search={{ casoId: c.id }} className="inline-flex min-h-11 items-center rounded-lg border border-navy/20 px-3">
+              {c.codigo ?? c.titulo ?? c.id.slice(0, 8)}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
