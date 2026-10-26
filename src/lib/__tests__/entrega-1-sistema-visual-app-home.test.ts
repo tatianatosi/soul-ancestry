@@ -79,7 +79,10 @@ describe("Entrega 1 — hero navy + stepper de 5 fases na Home", () => {
   it("o passo ativo do stepper usa check nos concluídos, sem painel/anel/escala extras (versão compacta)", () => {
     const home = readFileSync("src/routes/portal/index.tsx", "utf8");
     expect(home).toContain("CheckCircle2");
-    expect(home).not.toContain("Hoje você está aqui");
+    // 26/10/2026 — Lovable (mockup17, prompt aprovado 26/10/2026) reintroduziu
+    // o card "Hoje você está aqui" como status contextual do caso, por cima
+    // do stepper: era proibido numa versão anterior, agora é conteúdo pedido
+    // explicitamente pela especificação aprovada (ABA 01 HOME).
     expect(home).not.toContain("ring-4 ring-gold/30");
   });
 
