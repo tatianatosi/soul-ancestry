@@ -159,6 +159,13 @@ export const meuCaso = createServerFn({ method: "GET" })
     // sempre escondia tudo aqui (ver correção acima e no rodapé do arquivo).
     const docs = semFixtures((documentos.data ?? []) as any[]);
 
+    // 26/10/2026 (auditoria, regra do AGENTS.md): fatura pertence ao
+    // contratante. Familiar que não é contratante não vê faturas aqui;
+    // falha da checagem esconde (fail-closed), nunca mostra.
+    const contratante = await supabase.rpc("portal_sou_contratante_financeiro", { p_case_id: data.casoId });
+    const podeVerFaturas = !contratante.error && contratante.data === true;
+    const faturasVisiveis = podeVerFaturas ? listaFaturas : [];
+
     return {
       caso: {
         id: caso["id"] as string,
@@ -200,7 +207,7 @@ export const meuCaso = createServerFn({ method: "GET" })
           motivo: d.revisao_motivo as string | null,
           enviadoEm: d.created_at as string,
         })),
-      faturas: listaFaturas.map((f) => ({
+      faturas: faturasVisiveis.map((f) => ({
         id: f.id as string,
         numero: f.numero as string | null,
         descricao: f.descricao as string | null,
@@ -266,6 +273,18 @@ export const confirmarEnvioDocumento = createServerFn({ method: "POST" })
     if (typeof data.caminho !== "string" || !data.caminho.startsWith(prefixo) || data.caminho.includes("..")) {
       throw new Error("Envio inválido: arquivo fora da pasta do seu caso. Envie de novo.");
     }
+    // 26/10/2026: tamanho e tipo conferidos no arquivo que de fato subiu,
+    // não no número que o navegador informou.
+    const pasta = data.caminho.slice(0, data.caminho.lastIndexOf("/"));
+    const nomeNoArmazenamento = data.caminho.slice(pasta.length + 1);
+    const { supabaseAdmin: adminArmazenamento } = await import("@/integrations/supabase/client.server");
+    const listagem = await (adminArmazenamento as any).storage
+      .from(h.BUCKET_DOCUMENTOS)
+      .list(pasta, { search: nomeNoArmazenamento, limit: 5 });
+    const objeto = ((listagem.data ?? []) as any[]).find((o) => o?.name === nomeNoArmazenamento);
+    if (!objeto) throw new Error("Não encontramos o arquivo enviado. Envie de novo.");
+    const tamanhoReal = Number(objeto.metadata?.size ?? data.tamanho);
+    h.validarArquivoCliente(nomeNoArmazenamento, tamanhoReal);
 
     const inserido = await supabase
       .from("documents")
@@ -282,7 +301,7 @@ export const confirmarEnvioDocumento = createServerFn({ method: "POST" })
         solicitacao_id: data.solicitacaoId ?? null,
         storage_path: data.caminho,
         nome_arquivo: data.nomeArquivo,
-        tamanho_bytes: data.tamanho,
+        tamanho_bytes: tamanhoReal,
         status: "pendente_de_revisao",
       })
       .select("id")
