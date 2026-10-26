@@ -237,8 +237,36 @@ export function PortalVazio({ mensagem }: { mensagem: string }) {
   );
 }
 
-/** Estado de carregamento padrão do App Cliente. */
+/**
+ * Estado de carregamento padrão do App Cliente.
+ *
+ * 26/10/2026 — restaurado o esqueleto (silhueta dos cards) da decisão
+ * vinculante da Proprietária no parecer de design de 22/10/2026
+ * (`badba1c`): um commit de reconciliação do Lovable tinha colapsado de
+ * volta para o texto puro. Mantém o texto de leitor de tela.
+ */
 export function PortalCarregando() {
+  return (
+    <div className="grid gap-5" role="status" aria-busy="true" data-portal-carregando>
+      <span className="sr-only">{COPY_GERAL.carregando}</span>
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          aria-hidden="true"
+          className="app-folha animate-pulse rounded-2xl border border-navy/10 bg-cream/60 p-6"
+        >
+          <div className="h-3 w-24 rounded-full bg-navy/10" />
+          <div className="mt-4 h-5 w-3/5 rounded-full bg-navy/10" />
+          <div className="mt-3 h-3 w-full rounded-full bg-navy/[0.07]" />
+          <div className="mt-2 h-3 w-4/5 rounded-full bg-navy/[0.07]" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Mantido para quem precisa só da frase, sem a silhueta. */
+export function PortalCarregandoTexto() {
   return (
     <p className={TIPO_CLIENTE.corpo} role="status">
       {COPY_GERAL.carregando}

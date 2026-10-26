@@ -2,14 +2,15 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import { BLOQUEIOS_CA_PORTAL_02 } from "@/lib/portal-dados-vivos";
-
 /**
  * §7 do De-Para (App — 05. Documentos) separa QUATRO estados que a tela nunca
- * pode fundir. Ao reler o corte anterior, achei que Liberados e Entregas
- * liam o MESMO array `entregas` — fusão que §7 proíbe. Corrigido: cada
- * seção lê a fonte do seu estado, e a caixa Entregas vira atalho canônico
- * para Legado enquanto client_deliverables não tem policy de portal.
+ * pode fundir. Cada seção lê a fonte exata do seu estado.
+ *
+ * 26/10/2026 — Lovable (mockup17) reformulou a tela: a caixa "Entregas"
+ * (atalho canônico para Legado, sem fonte própria aqui) saiu; entrou
+ * "Conferência", que lê o checklist consolidado (tom "analise") — um estado
+ * real da família, não um placeholder. As outras três caixas mantiveram a
+ * fonte exclusiva de antes.
  */
 const arquivo = readFileSync("src/routes/portal/documentos.tsx", "utf8");
 
@@ -17,8 +18,8 @@ describe("as quatro caixas têm data-attribute próprio (§7 wireframe)", () => 
   it.each([
     "data-documentos-solicitados",
     "data-documentos-recebidos",
+    "data-documentos-conferencia",
     "data-documentos-liberados",
-    "data-documentos-entregas",
   ])("%s existe", (attr) => {
     expect(arquivo).toContain(attr);
   });
@@ -34,52 +35,31 @@ describe("cada caixa lê a fonte do seu estado, sem fundir", () => {
     expect(arquivo).toContain("enquanto a equipe os confere");
   });
 
+  it("Conferência vem do checklist consolidado (tom analise), fonte própria", () => {
+    const secao = arquivo.slice(
+      arquivo.lastIndexOf("data-documentos-conferencia"),
+      arquivo.indexOf("</section>", arquivo.lastIndexOf("data-documentos-conferencia")),
+    );
+    expect(secao).toMatch(/checklist\?\.itens.*filter\(\(i\) => i\.tom === "analise"\)/);
+    // Sem lista de documentos renderizada aqui — nenhuma das outras fontes é lida nesta caixa.
+    expect(secao).not.toMatch(/\bliberados_lista\.map\(/);
+    expect(secao).not.toMatch(/\brecebidos\.map\(/);
+  });
+
   it("Liberados vem de entregas (documents.liberado_cliente = true)", () => {
     expect(arquivo).toContain("noCaso(data?.entregas)");
-    // A variável foi renomeada para deixar CLARO que não é o mesmo array
-    // que a caixa "Entregas" da prancha 5/7 nomeia.
+    // A variável foi renomeada para deixar CLARO que não é a mesma lista da
+    // antiga caixa "Entregas" da prancha 5/7 (que não existe mais na tela).
     expect(arquivo).toContain("liberados_lista.map((d)");
     expect(arquivo).toContain("liberados_lista.length === 0");
   });
 
-  it("Liberados NÃO reusa a variável que se chamaria 'entregas'", () => {
-    // Sinal explícito da separação: dentro da caixa Liberados, nenhum
-    // `entregas.map(` ou `entregas.length` — teriam sido o bug antigo.
+  it("Liberados não lê a fonte de Recebidos nem de Conferência", () => {
     const secao = arquivo.slice(
-      arquivo.indexOf("data-documentos-liberados"),
-      arquivo.indexOf("data-documentos-entregas"),
+      arquivo.lastIndexOf("data-documentos-liberados"),
+      arquivo.length,
     );
-    expect(secao).not.toMatch(/\bentregas\.length\b/);
-    expect(secao).not.toMatch(/\bentregas\.map\(/);
-  });
-
-  it("Entregas é atalho canônico para Legado, com motivo declarado", () => {
-    expect(arquivo).toContain('to="/portal/legado"');
-    expect(arquivo).toContain("Cadernos, relatórios e narrativas");
-    // Nenhuma lista fingida nesta caixa: nada de .map( dentro dela.
-    const secao = arquivo.slice(
-      arquivo.indexOf("data-documentos-entregas"),
-      arquivo.indexOf("</section>", arquivo.indexOf("data-documentos-entregas")),
-    );
-    expect(secao).not.toMatch(/\.map\(/);
-  });
-});
-
-describe("a decisão de linkar Entregas para Legado vem de bloqueio real, não escolha estética", () => {
-  it("client_deliverables está declarada como sem policy de portal", () => {
-    const bloqueio = BLOQUEIOS_CA_PORTAL_02.find(
-      (b) => b.fonte === "public.client_deliverables",
-    );
-    expect(bloqueio).toBeDefined();
-    expect(bloqueio!.motivo).toContain("não existe policy de portal");
-  });
-
-  it("o comentário do código aponta o catálogo de bloqueios como fonte da decisão", () => {
-    // A rota do App não pode citar `client_deliverables` pelo nome — regra
-    // travada por `ca05-cadencia-microentregas.test.ts`. A citação vai pelo
-    // arquivo canônico onde o bloqueio está catalogado.
-    expect(arquivo).toContain("portal-dados-vivos.ts");
-    expect(arquivo).not.toContain("client_deliverables");
+    expect(secao).not.toMatch(/\brecebidos\.map\(/);
   });
 });
 

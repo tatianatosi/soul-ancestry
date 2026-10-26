@@ -59,11 +59,14 @@ describe("3. Documentos — 4 cards, envio integrado a Solicitados, sem KPI/pain
   });
 
   it("mantém exatamente as 4 caixas do §7", () => {
+    // 26/10/2026 — Lovable (mockup17) trocou a 4ª caixa, de "Entregas"
+    // (atalho sem fonte própria para Legado) para "Conferência" (fonte
+    // própria: checklist consolidado). Ver a5-documentos-*-estados-*.test.ts.
     for (const attr of [
       "data-documentos-solicitados",
       "data-documentos-recebidos",
       "data-documentos-liberados",
-      "data-documentos-entregas",
+      "data-documentos-conferencia",
     ]) {
       expect(documentos).toContain(attr);
     }

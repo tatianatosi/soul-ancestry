@@ -105,6 +105,7 @@ describe("Entrega 1 — hero navy + stepper de 5 fases na Home", () => {
   it("títulos de seção da Home usam sans, não serifada dominante (serifada só como acento no nome do caso)", () => {
     const home = readFileSync("src/routes/portal/index.tsx", "utf8");
     expect(home).toContain("Próxima ação");
-    expect(home).toContain("Achados da sua história");
+    // 26/10/2026 — texto atualizado pelo Lovable (mockup17): "Descobertas publicadas".
+    expect(home).toContain("Descobertas publicadas");
   });
 });
