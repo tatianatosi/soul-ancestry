@@ -1,6 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 
 import { EquipeMoldura } from "@/components/equipe/moldura";
+import { supabase } from "@/integrations/supabase/client";
+import { decidirAcessoDesk } from "@/lib/superficie-interna-regras";
 
 /**
  * Página TEMPORÁRIA de diagnóstico de rotas (validação humana em andamento).
@@ -8,6 +10,20 @@ import { EquipeMoldura } from "@/components/equipe/moldura";
  * organização, e-mail ou token é lido ou exibido aqui.
  */
 export const Route = createFileRoute("/equipe/diagnostico-rotas")({
+  // 26/10/2026 (auditoria pré-lançamento, M2): só a equipe vê o mapa de rotas.
+  ssr: false,
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getSession();
+    const usuario = data.session?.user ?? null;
+    if (!usuario) throw redirect({ to: "/equipe/entrar" });
+    const { data: papeis, error } = await supabase.from("user_roles").select("role").eq("user_id", usuario.id);
+    const decisao = decidirAcessoDesk({
+      autenticado: true,
+      papeis: (papeis ?? []).map((p) => p.role as string),
+      erroLeitura: Boolean(error),
+    });
+    if (decisao === "portal") throw redirect({ to: "/portal" });
+  },
   head: () => ({
     meta: [
       { title: "Diagnóstico de rotas — Equipe Clube Ancestral" },
@@ -26,7 +42,7 @@ type Linha = { rota: string; origem: string; escopo: string; guard: string; semS
 
 const ROTAS: Linha[] = [
   { rota: "/", origem: "src/routes/index.tsx", escopo: "Público", guard: "nenhum", semSessao: "renderiza (sem redirect)" },
-  { rota: "/devolutiva", origem: "src/routes/devolutiva.tsx", escopo: "Público (legado/demo)", guard: "nenhum", semSessao: "renderiza" },
+  { rota: "/devolutiva", origem: "src/routes/devolutiva.tsx", escopo: "Equipe", guard: "sessão + papel interno (beforeLoad)", semSessao: "→ /equipe/entrar" },
   { rota: "/canvas/$token", origem: "src/routes/canvas.$token.tsx", escopo: "Público por token", guard: "token + canvas_publicado no servidor", semSessao: "renderiza se publicado" },
   { rota: "/acesso", origem: "src/routes/acesso.tsx", escopo: "Cliente", guard: "nenhum", semSessao: "renderiza formulário de link mágico" },
   { rota: "/acesso/confirmar", origem: "src/routes/acesso.confirmar.tsx", escopo: "Cliente", guard: "sessão do link mágico", semSessao: "mensagem de link inválido" },
@@ -36,7 +52,7 @@ const ROTAS: Linha[] = [
   { rota: "/equipe/esqueci-minha-senha", origem: "src/routes/equipe.esqueci-minha-senha.tsx", escopo: "Equipe", guard: "nenhum", semSessao: "renderiza (resposta genérica)" },
   { rota: "/equipe/redefinir-senha", origem: "src/routes/equipe.redefinir-senha.tsx", escopo: "Equipe", guard: "sessão de recuperação do link", semSessao: "pede novo link" },
   { rota: "/equipe/sem-permissao", origem: "src/routes/equipe.sem-permissao.tsx", escopo: "Equipe", guard: "nenhum", semSessao: "renderiza" },
-  { rota: "/equipe/diagnostico-rotas", origem: "este arquivo (temporário)", escopo: "Equipe", guard: "nenhum — só topologia, sem dados", semSessao: "renderiza" },
+  { rota: "/equipe/diagnostico-rotas", origem: "este arquivo (temporário)", escopo: "Equipe", guard: "sessão + papel interno (beforeLoad)", semSessao: "→ /equipe/entrar" },
   { rota: "/painel, /casos, /clientes, /leads, /tarefas, /evidencias, /financeiro, /relatorios, /contratos, /contratos/$id, /acessos-portal, /equipe, /qualidade, /configuracoes, /mockup, /studio-devolutivas", origem: "src/routes/_authenticated/*", escopo: "Backoffice", guard: "layout _authenticated (ssr:false, getUser) + SaasShell (staff ativo + papel)", semSessao: "→ /equipe/entrar" },
   { rota: "/auth", origem: "src/routes/auth.tsx", escopo: "Legado", guard: "redirect permanente", semSessao: "→ /equipe/entrar" },
 ];

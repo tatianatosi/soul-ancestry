@@ -13,6 +13,9 @@ import { MENSAGEM_INSTABILIDADE_FINANCEIRA } from "@/lib/portal-resiliencia";
 import { WHATSAPP_ESPECIALISTA } from "@/lib/contato-especialista";
 import { CLIENTE_DEMO_NOME } from "@/lib/portal-demo-sophia";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { CartaoEditorial, dataCurta, iniciais } from "@/components/portal/elementos-mockup";
 
 export const Route = createFileRoute("/portal/conta")({
@@ -176,6 +179,8 @@ export function PortalConta() {
               <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Situação do acompanhamento: {resumo?.statusRotulo ?? "Não registrado"}.</p></details>
               <details className="mt-4"><summary className="min-h-11 cursor-pointer font-serif text-xl text-navy">Termos e privacidade</summary><p className="mt-2 text-sm text-navy/70">Os termos de uso e informações de privacidade serão apresentados aqui quando forem disponibilizados pela equipe.</p></details>
               <details className="mt-4"><summary className="min-h-11 cursor-pointer font-serif text-xl text-navy">Acesso seguro</summary><p className="mt-2 text-sm text-navy/70">Seu acesso é pessoal. Não compartilhe links de entrada. Para dúvidas sobre o acesso, procure a equipe no canal oficial.</p></details>
+              {/* 26/10/2026: o App não tinha como sair. Na prévia do admin não aparece (não derruba a sessão da equipe). */}
+              {previa ? null : <BotaoSair />}
             </section>
 
              <section data-conta-assinatura className="app-v11-faixa">
@@ -322,5 +327,29 @@ export function PortalConta() {
         </BlocoVisibilidade>
       )}
     </PortalShell>
+  );
+}
+
+function BotaoSair() {
+  const [saindo, setSaindo] = useState(false);
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      className="mt-4 h-auto min-h-11"
+      disabled={saindo}
+      data-conta-sair
+      onClick={async () => {
+        setSaindo(true);
+        try {
+          await supabase.auth.signOut();
+        } finally {
+          limparArmazenamentoDaSessao();
+          window.location.assign("/acesso");
+        }
+      }}
+    >
+      {saindo ? "Saindo…" : "Sair do App"}
+    </Button>
   );
 }

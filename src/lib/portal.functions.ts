@@ -1,4 +1,5 @@
 import { semCache } from "@/lib/no-store";
+import { comoUnico } from "@/lib/portal-vinculo";
 import { urlDeRetorno } from "@/lib/origem-canonica";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
@@ -190,10 +191,12 @@ export const portalContexto = createServerFn({ method: "GET" })
     const supabase = context.supabase as any;
     const acesso = await supabase
       .from("client_portal_access")
-      .select("id, access_level, access_status, client_id, organization_id")
+      .select("id, access_level, access_status, client_id, organization_id, updated_at")
       .eq("auth_user_id", context.userId)
       .is("archived_at", null)
-      .maybeSingle();
+      .order("updated_at", { ascending: false })
+      .limit(10)
+      .then(comoUnico);
 
     if (!acesso.data || acesso.data.access_status !== "active") {
       return { autorizado: false as const, cliente: null, casos: [], nivel: null };
@@ -237,9 +240,11 @@ export const portalCaso = createServerFn({ method: "GET" })
       const helpers = await import("./portal.server");
       const acesso = await supabase
         .from("client_portal_access")
-        .select("id, organization_id")
+        .select("id, organization_id, updated_at")
         .eq("auth_user_id", context.userId)
-        .maybeSingle();
+        .order("updated_at", { ascending: false })
+      .limit(10)
+      .then(comoUnico);
       if (acesso.data && !caso) {
         await helpers.registrarEvento({
           organizationId: acesso.data.organization_id,
@@ -291,12 +296,8 @@ export const portalProposta = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const acesso = await supabase
-      .from("client_portal_access")
-      .select("client_id")
-      .eq("auth_user_id", context.userId)
-      .is("archived_at", null)
-      .maybeSingle();
+    const acesso = await supabase.from("client_portal_access").select("client_id, access_status, updated_at")
+      .eq("auth_user_id", context.userId).is("archived_at", null).limit(10).then(comoUnico);
     // CA-APP-01: invoices tem RLS própria do portal — fonte viva certa.
     const [casos, faturas] = await Promise.all([
       supabase.from("portal_casos").select("id, codigo, titulo, pais, via, status"),
