@@ -9,6 +9,14 @@ import { projetarProximaAcaoCliente, sinaisDoCasoPortal } from "@/lib/motor-caso
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
+ * 26/10/2026 (auditoria pré-lançamento) — texto para toda falha de escrita
+ * que chega ao cliente. Antes várias funções jogavam `r.error.message` ou
+ * `error.message` direto (texto cru do Postgres/Storage: nome de coluna,
+ * policy, tabela) na tela do cliente. Nunca expõe detalhe interno.
+ */
+const ERRO_ESCRITA_CLIENTE = "Não foi possível concluir agora. Tente de novo em instantes.";
+
+/**
  * Espaço do cliente: leitura e escrita mínimas, sempre com o client autenticado
  * do próprio usuário. RLS valida client_id + organization_id + caso autorizado
  * em cada consulta. Nenhuma dessas funções envia e-mail, WhatsApp ou aciona
@@ -243,7 +251,7 @@ export const prepararEnvioDocumento = createServerFn({ method: "POST" })
     const assinado = await (supabaseAdmin as any).storage
       .from(h.BUCKET_DOCUMENTOS)
       .createSignedUploadUrl(caminho);
-    if (assinado.error) throw new Error(assinado.error.message);
+    if (assinado.error) throw new Error(ERRO_ESCRITA_CLIENTE);
     return { caminho, token: assinado.data.token as string, url: assinado.data.signedUrl as string };
   });
 
@@ -306,7 +314,7 @@ export const confirmarEnvioDocumento = createServerFn({ method: "POST" })
       })
       .select("id")
       .maybeSingle();
-    if (inserido.error) throw new Error(inserido.error.message);
+    if (inserido.error) throw new Error(ERRO_ESCRITA_CLIENTE);
 
     const portal = await import("./portal.server");
     if (data.solicitacaoId) {
@@ -318,7 +326,7 @@ export const confirmarEnvioDocumento = createServerFn({ method: "POST" })
         .eq("organization_id", acesso.organization_id)
         .select("id")
         .maybeSingle();
-      if (atualizado.error) throw new Error(atualizado.error.message);
+      if (atualizado.error) throw new Error(ERRO_ESCRITA_CLIENTE);
       if (!atualizado.data?.id) {
         throw new Error("NENHUMA_LINHA_AFETADA: solicitação de documento não encontrada neste caso.");
       }
@@ -367,7 +375,7 @@ export const baixarEntrega = createServerFn({ method: "POST" })
     const assinado = await (supabaseAdmin as any).storage
       .from(h.BUCKET_DOCUMENTOS)
       .createSignedUrl(doc.data.storage_path, 120);
-    if (assinado.error) throw new Error(assinado.error.message);
+    if (assinado.error) throw new Error(ERRO_ESCRITA_CLIENTE);
 
     await portal.adminClient.from("audit_logs").insert({
       organization_id: acesso.organization_id,
@@ -411,7 +419,7 @@ export const abrirTicket = createServerFn({ method: "POST" })
       })
       .select("id")
       .maybeSingle();
-    if (ticket.error) throw new Error(ticket.error.message);
+    if (ticket.error) throw new Error(ERRO_ESCRITA_CLIENTE);
 
     const msg = await supabase.from("portal_ticket_messages").insert({
       organization_id: acesso.organization_id,
@@ -419,7 +427,7 @@ export const abrirTicket = createServerFn({ method: "POST" })
       autor_tipo: "cliente",
       corpo: mensagem,
     });
-    if (msg.error) throw new Error(msg.error.message);
+    if (msg.error) throw new Error(ERRO_ESCRITA_CLIENTE);
 
     await h.alertaInternoTicket({
       organizationId: acesso.organization_id,
@@ -481,7 +489,7 @@ export const responderTicketCliente = createServerFn({ method: "POST" })
       autor_tipo: "cliente",
       corpo: mensagem,
     });
-    if (r.error) throw new Error(r.error.message);
+    if (r.error) throw new Error(ERRO_ESCRITA_CLIENTE);
 
     // Fila interna da equipe (sem envio externo e sem conteúdo da mensagem).
     const t = await supabase
@@ -571,7 +579,7 @@ export const minhasFaturas = createServerFn({ method: "GET" })
       supabase.from("portal_casos").select("id, titulo"),
     ]);
     // 12/10/2026 — fail-closed: falha de leitura é erro, nunca "nenhuma fatura".
-    if (faturas.error) throw new Error(faturas.error.message);
+    if (faturas.error) throw new Error(ERRO_ESCRITA_CLIENTE);
     const nome = new Map(((casos.data ?? []) as any[]).map((c) => [c.id, c.titulo]));
     const semFixturesFaturas = semFixtures((faturas.data ?? []) as any[]);
     const casosDasFaturas = [...new Set(semFixturesFaturas.map((f) => f.case_id).filter(Boolean))] as string[];
@@ -579,7 +587,7 @@ export const minhasFaturas = createServerFn({ method: "GET" })
       await Promise.all(
         casosDasFaturas.map(async (caseId) => {
           const { data, error } = await supabase.rpc("portal_sou_contratante_financeiro", { p_case_id: caseId });
-          if (error) throw new Error(error.message);
+          if (error) throw new Error(ERRO_ESCRITA_CLIENTE);
           return [caseId, Boolean(data)] as const;
         }),
       ),
@@ -665,7 +673,7 @@ export const autorizarCompartilhamentoAchado = createServerFn({ method: "POST" }
       })
       .select("id")
       .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
+    if (r.error) throw new Error(ERRO_ESCRITA_CLIENTE);
     if (!r.data?.id) {
       throw new Error("Não foi possível autorizar: confirme que este achado é seu e que já foi aprovado.");
     }
@@ -690,7 +698,7 @@ export const revogarCompartilhamentoAchadoPortal = createServerFn({ method: "POS
       .is("revogado_em", null)
       .select("id")
       .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
+    if (r.error) throw new Error(ERRO_ESCRITA_CLIENTE);
     if (!r.data?.id) {
       throw new Error("Não foi possível revogar: confirme que a autorização existe e é sua.");
     }
@@ -719,7 +727,7 @@ export const membrosDoMeuCaso = createServerFn({ method: "GET" })
     const supabase = context.supabase as any;
     await h.acessoDoCliente(supabase, context.userId as string);
     const { data, error } = await supabase.rpc("portal_membros_do_meu_caso");
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(ERRO_ESCRITA_CLIENTE);
     return ((data ?? []) as any[]).map((m) => ({
       casoId: String(m.case_id),
       clienteId: String(m.cliente_id),
@@ -740,7 +748,7 @@ export const meusCompartilhamentosDeAchado = createServerFn({ method: "GET" })
       .from("app_projection_shares")
       .select("id, projection_id, compartilhado_com_client_id, autorizado_em, revogado_em")
       .order("autorizado_em", { ascending: false });
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(ERRO_ESCRITA_CLIENTE);
     return {
       meuClienteId: acesso.client_id as string,
       compartilhamentos: (data ?? []) as Record<string, any>[],
@@ -778,6 +786,6 @@ export const registrarTempoNaAba = createServerFn({ method: "POST" })
       tab: data.tab,
       duracao_ms: duracaoMs,
     });
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(ERRO_ESCRITA_CLIENTE);
     return { ok: true as const };
   });
