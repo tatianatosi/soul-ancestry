@@ -20,10 +20,15 @@ import { montarChecklistJuridico } from "@/lib/checklist-juridico";
 import {
   AvisoInstrumento,
   ROTULO_CATEGORIA_ESCOPO,
+  ROTULO_ESCOPO_EXCECAO,
   ROTULO_GATE_PESQUISA,
+  ROTULO_ORIGEM_ESCOPO,
   ROTULO_PAPEL_PARTE,
+  ROTULO_SEVERIDADE_VALIDACAO,
+  ROTULO_SITUACAO_VALIDACAO,
   ROTULO_STATUS_ANEXO,
   ROTULO_STATUS_CONTRATO,
+  ROTULO_STATUS_ESCOPO,
   ROTULO_STATUS_VERSAO,
   ROTULO_TIPO_ANEXO,
   ROTULO_TIPO_INSTRUMENTO,
@@ -868,8 +873,8 @@ function Escopo({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
               <tr key={s.id} className={`border-t border-navy/10 ${s.archived_at ? "opacity-50" : ""}`}>
                 <td className="px-3 py-2">{s.title}</td>
                 <td className="px-3 py-2">{ROTULO_CATEGORIA_ESCOPO[s.category] ?? s.category}</td>
-                <td className="px-3 py-2">{s.status}</td>
-                <td className="px-3 py-2">{s.source_type}</td>
+                <td className="px-3 py-2">{ROTULO_STATUS_ESCOPO[s.status] ?? s.status}</td>
+                <td className="px-3 py-2">{ROTULO_ORIGEM_ESCOPO[s.source_type] ?? s.source_type}</td>
                 <td className="px-3 py-2 text-right">
                   {!s.archived_at ? (
                     <AcaoOperacional
@@ -1221,9 +1226,12 @@ function Validacoes({ dados }: { dados: any }) {
               {(itens as any[]).map((v) => (
                 <tr key={v.id} className="border-t border-navy/10">
                   <td className="px-3 py-2">{v.label}</td>
-                  <td className="px-3 py-2">{v.severity}</td>
+                  <td className="px-3 py-2">{ROTULO_SEVERIDADE_VALIDACAO[v.severity] ?? v.severity}</td>
                   <td className="px-3 py-2">
-                    <Selo texto={v.status} tom={v.status === "open" ? "alerta" : "ok"} />
+                    <Selo
+                      texto={ROTULO_SITUACAO_VALIDACAO[v.status] ?? v.status}
+                      tom={v.status === "open" ? "alerta" : "ok"}
+                    />
                   </td>
                 </tr>
               ))}
@@ -1539,7 +1547,7 @@ function Revisao({
             <ul className="mt-2 space-y-1 text-xs text-navy/70">
               {(excecoes as any[]).map((e) => (
                 <li key={e.id}>
-                  {e.scope} · {e.reason} ·{" "}
+                  {ROTULO_ESCOPO_EXCECAO[e.scope] ?? e.scope} · {e.reason} ·{" "}
                   {e.expires_at ? `expira em ${new Date(e.expires_at).toLocaleDateString("pt-BR")}` : "sem expiração"}
                 </li>
               ))}
