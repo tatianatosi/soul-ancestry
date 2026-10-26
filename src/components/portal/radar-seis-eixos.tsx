@@ -34,7 +34,7 @@ function anelDeFundo(fracao: number, chave: string) {
  */
 export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
   const comProgresso = dimensoes.some(
-    (d) => d.estado === "percentual" && (d.percentual ?? 0) > 0,
+     (d) => d.rotuloNumero === "Compartilhado" || (d.estado === "percentual" && (d.percentual ?? 0) > 0),
   );
 
   return (
@@ -73,8 +73,9 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
         {/* Área dourada preenchida (13/10/2026): uma pétala por eixo com dado
             real; eixo sem dado não é desenhado como zero. */}
         {dimensoes.map((d, i) => {
-          if (d.percentual === null || d.percentual <= 0) return null;
-          const r = RAIO * (d.percentual / 100);
+          if (d.percentual === null && d.rotuloNumero !== "Compartilhado") return null;
+          if (d.percentual !== null && d.percentual <= 0) return null;
+          const r = d.percentual === null ? RAIO : RAIO * (d.percentual / 100);
           const pts = [{ x: CENTRO, y: CENTRO }, ponto(i - 0.5, r * 0.5), ponto(i, r), ponto(i + 0.5, r * 0.5)];
           return (
             <polygon
@@ -127,7 +128,7 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
           );
         })}
       </svg>
-      <p className="pb-4 text-sm leading-relaxed text-navy/70">Cada dimensão acompanha registros compartilhados pela equipe, sem notas, chances ou promessa de resultado.</p>
+      <p className="pb-4 text-sm leading-relaxed text-navy/70">O preenchimento indica presença de registros compartilhados, não conclusão. As dimensões em preparação permanecem sem preenchimento; não representam notas, chances ou promessa de resultado.</p>
     </div>
   );
 }

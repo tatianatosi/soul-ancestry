@@ -98,7 +98,7 @@ export function PortalDocumentos() {
 
             {/* 2. Recebidos — enviar nunca comunica validação automática. */}
             <section data-documentos-recebidos data-documentos-enviados className="app-v11-faixa">
-              <SecaoDocumental tipo="recebidos" titulo="Recebidos">
+              <SecaoDocumental tipo="recebidos" titulo="Em conferência">
               
               <div className="py-1">
               <div className="flex flex-wrap items-start justify-between gap-2"><h2 className="font-serif text-xl text-navy">Em conferência</h2><span className="rounded-full border border-navy/15 bg-cream/70 px-2.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">Aguardam conferência</span></div>
@@ -115,7 +115,7 @@ export function PortalDocumentos() {
               </SecaoDocumental>
 </section>
 
-            <section data-documentos-conferencia className="app-v11-faixa"><SecaoDocumental tipo="conferencia" titulo="Em Conferência"><span className="app-chip" data-tom="analise">Em análise</span><p className="mt-3 text-sm text-navy/70">{(vivo.data?.checklist?.itens ?? []).filter((i) => i.tom === "analise").map((i) => i.titulo).join(" · ") || "Quando houver um documento em análise, você poderá acompanhar a conferência aqui."}</p></SecaoDocumental></section>
+            <section data-documentos-conferencia className="app-v11-faixa"><SecaoDocumental tipo="conferencia" titulo="Em validação"><p className="mt-3 text-sm text-navy/70">{(vivo.data?.checklist?.itens ?? []).filter((i) => i.tom === "analise").map((i) => i.titulo).join(" · ") || "Nenhum documento em validação no momento. Novidades aparecerão quando a equipe compartilhar a revisão."}</p></SecaoDocumental></section>
             {/* 3. Liberados — somente publicações reais. */}
             <section data-documentos-liberados data-documentos-preparado className="app-v11-faixa">
               <SecaoDocumental tipo="liberados" titulo="Entregas Liberadas">
@@ -272,7 +272,7 @@ export function PortalDocumentos() {
 
           {/* 2. Recebidos — chegou, mas ainda não foi conferido. */}
           <section data-documentos-recebidos className="app-v11-faixa">
-              <SecaoDocumental tipo="recebidos" titulo="Recebidos">
+              <SecaoDocumental tipo="recebidos" titulo="Em conferência">
             
             <div className="py-1">
             <div className="flex flex-wrap items-start justify-between gap-2">
@@ -316,7 +316,7 @@ export function PortalDocumentos() {
               </SecaoDocumental>
 </section>
 
-            <section data-documentos-conferencia className="app-v11-faixa"><SecaoDocumental tipo="conferencia" titulo="Em Conferência"><span className="app-chip" data-tom="analise">Em análise</span><p className="mt-3 text-sm text-navy/70">{(vivo.data?.checklist?.itens ?? []).filter((i) => i.tom === "analise").map((i) => i.titulo).join(" · ") || "Quando houver um documento em análise, você poderá acompanhar a conferência aqui."}</p></SecaoDocumental></section>
+            <section data-documentos-conferencia className="app-v11-faixa"><SecaoDocumental tipo="conferencia" titulo="Em validação"><p className="mt-3 text-sm text-navy/70">{(vivo.data?.checklist?.itens ?? []).filter((i) => i.tom === "analise").map((i) => i.titulo).join(" · ") || "Nenhum documento em validação no momento. Novidades aparecerão quando a equipe compartilhar a revisão."}</p></SecaoDocumental></section>
           {/* 3. Liberados — conferidos e abertos para a família. */}
           <section data-documentos-liberados className="app-v11-faixa">
               <SecaoDocumental tipo="liberados" titulo="Entregas Liberadas">

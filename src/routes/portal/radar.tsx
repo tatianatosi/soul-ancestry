@@ -74,17 +74,17 @@ export function PortalRadar() {
             const base = radarSeisDimensoes({ projecoes: vivo.projecoes, documentos: vivo.documentos, pessoasMapeadas: vivo.pessoasMapeadas ?? 0 });
             const porId = new Map(base.map((d) => [d.id, d]));
             const dimensoes = [
-              { id: "origem", titulo: "História Familiar", tipos: ["linha_tempo", "arvore"] },
-              { id: "documentacao", titulo: "Documentos", tipos: ["evidencia"] },
-              { id: "memoria", titulo: "Estratégia", tipos: ["plano"] },
-              { id: "conexoes", titulo: "Conexões Familiares", tipos: ["arvore"] },
-              { id: "elegibilidade", titulo: "Prontidão", tipos: ["resumo_caso"] },
-              { id: "legado", titulo: "Próximos Passos", tipos: ["proxima_acao"] },
+              { id: "origem", titulo: "Genealogia", tipos: ["linha_tempo", "arvore"], explicacao: "As pessoas, gerações e origens já compartilhadas da sua família." },
+              { id: "documentacao", titulo: "Prova Documental", tipos: ["evidencia"], explicacao: "Os documentos liberados para consulta, sem confundir arquivo disponível com validação concluída." },
+              { id: "elegibilidade", titulo: "Elegibilidade Jurídica", tipos: [], explicacao: "A orientação jurídica aparece quando houver uma síntese aprovada para a família; não indica chance ou reconhecimento garantido." },
+              { id: "memoria", titulo: "Viabilidade Histórica", tipos: ["achado", "linha_tempo"], explicacao: "Os registros históricos compartilhados ajudam a contextualizar a trajetória da família, sem concluir elegibilidade." },
+              { id: "conexoes", titulo: "Consistência Familiar", tipos: ["arvore"], explicacao: "As pessoas e relações já publicadas, sem presumir vínculos ainda não confirmados." },
+              { id: "legado", titulo: "Prontidão para Protocolo", tipos: [], explicacao: "Esta dimensão aguarda uma orientação aprovada da equipe; nenhum documento disponível, isoladamente, confirma prontidão." },
             ].flatMap((eixo) => {
               const d = porId.get(eixo.id as typeof base[number]["id"]);
               if (!d) return [];
               const compartilhado = vivo.projecoes.some((p) => eixo.tipos.includes(p.projection_type ?? "")) || (eixo.id === "documentacao" && vivo.documentos.some((d) => d.liberado_cliente));
-              return [{ ...d, titulo: eixo.titulo, percentual: null, estado: "em_preparacao" as const, rotuloNumero: compartilhado ? "Compartilhado" : "Em preparação", legenda: compartilhado ? "Há registros compartilhados com sua família nesta dimensão." : "Este espaço ganhará conteúdo quando a equipe o compartilhar.", comoCalculamos: "Somente registros compartilhados; não representa nota, probabilidade ou promessa." }];
+              return [{ ...d, titulo: eixo.titulo, percentual: null, estado: "em_preparacao" as const, rotuloNumero: compartilhado ? "Compartilhado" : "Em preparação", legenda: eixo.explicacao, comoCalculamos: "Somente registros compartilhados; não representa nota, probabilidade ou promessa." }];
             });
              const passoPublicado = jornadaSanitizada(vivo.projecoes, new Date(), vivo.proximaAcao).linha.find((item) => item.tipo === "proxima_acao");
             return (
