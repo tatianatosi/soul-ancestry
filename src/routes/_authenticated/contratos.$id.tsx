@@ -11,6 +11,7 @@ import { CaCard } from "@/components/ui/ca-card";
 import { Indicador } from "@/components/prancha-v4/kit";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { CadeiaFormalizacao } from "@/components/contrato/cadeia-formalizacao";
+import { DocumentoDoInstrumento } from "@/components/contrato/documento-do-instrumento";
 import { PranchaJuridicoContrato } from "@/components/contratos/prancha-juridico-contrato";
 import { CardsFluxoContrato, ResumoFamiliarContrato } from "@/components/contrato/cards-fluxo-contrato";
 import { FonteAlimento } from "@/components/desk/fonte-alimento";
@@ -243,6 +244,17 @@ function ContratoDetalhe() {
         </div>
         <p className="mt-3 text-xs text-muted-foreground">{c.signed_at ? "Assinatura registrada no instrumento." : "Assinatura não registrada no instrumento."}</p>
         <a href="#contrato-versões" className="mt-2 inline-block text-xs underline">Consultar versões e histórico deste contrato</a>
+        {/*
+          26/10/2026 — a saída em documento (PDF/DOCX) só existia em
+          /casos/$caseId/contrato/preparar; nesta tela não havia nenhuma. Mesmo
+          precedente do bloco CadeiaFormalizacao abaixo: trazer o motor para
+          dentro do instrumento em vez de exigir navegação.
+        */}
+        {c.case_id ? (
+          <div className="mt-3">
+            <DocumentoDoInstrumento caseId={String(c.case_id)} />
+          </div>
+        ) : null}
       </section>
 
       {/*
