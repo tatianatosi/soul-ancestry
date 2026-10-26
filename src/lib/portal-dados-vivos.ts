@@ -224,7 +224,7 @@ export function legadoSanitizado(projecoes: ProjecaoBruta[]): PublicacaoCliente[
   return publicacoesParaCliente(projecoes)
     .filter((p) => p.tipo === "legado")
     // The approved collection heading is editorial; keep all body-content guards.
-    .filter((p) => !contemConteudoInterno(p.conteudo.replace(/^Dossiê do projeto familiar\s*\n\s*/i, "")));
+    .filter((p) => !contemConteudoInterno(p.conteudo.replace(/^Dossiê do projeto familiar(?:\s+|$)/i, "")));
 }
 
 /** Entregas da jornada: publicações do repositório, sem Árvore e sem Legado (abas próprias). */
