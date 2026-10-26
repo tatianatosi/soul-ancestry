@@ -1,9 +1,11 @@
 # Roadmap
 
 ## 26/10 — Experiência integral das sete abas
-- [ ] Completar apresentação local com paleta completa, sete abas e fontes sanitizadas existentes; não remover controles de autorização.
-- [ ] Ajustar quatro grupos de Documentos, genograma sem lista plana, Radar e Conta com condição prevista exclusiva da Ana.
-- [ ] Conferir sete abas autenticadas 375/1280, interações, recarga, testes e erros; informar conteúdo não registrado. Sem publicação neste pedido.
+- [x] Apresentação local com paleta completa, sete abas e fontes sanitizadas existentes; autorização preservada. app-visibilidade já mantém as sete abas disponíveis mesmo com zero entregas, comprovado por teste.
+- [x] Quatro grupos de Documentos, genograma SVG com 8 pessoas/13 relações publicadas sem lista plana, zoom/pan/foco; Radar com seis nomes solicitados sem parecer/score inventado; Conta com condição prevista exclusiva da Ana. Home com país real, WhatsApp e estado contextual.
+- [x] Sete abas na sessão da Proprietária via prévia administrativa, 375/1280 sem overflow/pageerrors/HTTP >=400; quatro grupos, três arquivos, cinco coleções e valores conferidos; recarga mantém caso. 44 testes passaram; tsgo sem erros; compilação sem erros (typecheck automático excedeu tempo). Capturas /tmp/browser/app-integral. Nada publicado.
+- [ ] Conteúdo não registrado: fotos/novos achados, três certidões específicas, pedidos com prazos e Dossiês/Relatórios aprovados não fornecidos por leitores existentes. Três arquivos disponíveis são dossiê/registro PDF/texto-fonte, não certidões; nenhum conteúdo criado/publicado para preencher espaços.
+- [ ] Download na prévia administrativa: leitor não fornece URL liberada; nenhuma nova função privilegiada criada neste corte. Download do cliente permanece no mecanismo autorizado existente, não exercitado como Ana.
 
 ## 25/10 — Fechamento v4.0 e conteúdo real da Ana (15:43 UTC)
 - [x] Base com PR #171 presente; migrations financeiro/telemetria já registradas em Drizzle 0000/0001, função/tabela/privilégios/RLS conferidos. Nenhum pull ou migration repetida.

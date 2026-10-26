@@ -14,7 +14,7 @@ import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
 import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
-import { ExploradorArvore, PerfilPessoaArvore } from "@/components/portal/explorador-arvore";
+import { PerfilPessoaArvore } from "@/components/portal/explorador-arvore";
 import { GenogramaFamiliar } from "@/components/portal/genograma-familiar";
 
 /**

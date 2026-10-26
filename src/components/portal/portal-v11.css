@@ -1439,7 +1439,8 @@
 [data-app-cliente] .app-colecao-capa[data-capa="memoria"] { background: var(--ca-terracotta); color: var(--ca-white); }
 [data-app-cliente] [data-conta-condicao-familiar] { border-top: 2px solid var(--app-brand-gold); padding-top: 1rem; }
 [data-app-cliente] .app-condicao-valores { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem; }
-[data-app-cliente] [data-conta-assinatura] { background: var(--app-brand-cream); }
+[data-app-cliente="true"] #conteudo-portal [data-conta-assinatura] { background: var(--app-brand-cream); color: var(--ca-ink); }
+[data-app-cliente="true"] #conteudo-portal [data-conta-assinatura] :where(p,dt,dd,h2,strong) { color: var(--ca-ink); }
 [data-app-cliente] [data-radar-area] { fill: color-mix(in srgb, var(--app-brand-gold) 28%, transparent); stroke: var(--ca-navy); }
 [data-app-cliente] .app-genograma-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; margin-block: 1rem; }
 [data-app-cliente] .app-genograma-toolbar label { display: flex; align-items: center; gap: .5rem; min-width: 0; }
