@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { iniciais } from "@/components/portal/elementos-mockup";
@@ -22,12 +22,23 @@ export function GenogramaFamiliar({ pessoas, vinculos }: { pessoas: PessoaNaArvo
   }, [pessoas]);
   const porId = new Map(layout.nos.map((n) => [n.pessoa.chave, n]));
   const pessoa = pessoas.find((p) => p.chave === selecionada);
+  useEffect(() => {
+    const el = viewport.current;
+    if (!el) return;
+    setZoom(Math.min(1, Math.max(0.4, el.clientWidth / layout.largura)));
+  }, [layout.largura]);
+  useEffect(() => {
+    const no = layout.nos.find((n) => n.pessoa.chave === selecionada);
+    const el = viewport.current;
+    if (!no || !el) return;
+    el.scrollTo({ left: no.x * zoom - el.clientWidth / 2, top: no.y * zoom - el.clientHeight / 2, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }, [selecionada, zoom, layout.nos]);
   return (
     <div data-genograma-familiar>
       <div className="app-genograma-toolbar">
         <label className="text-sm text-navy">Pessoa <select aria-label="Focar pessoa" value={selecionada ?? ""} onChange={(e) => setSelecionada(e.target.value || null)}><option value="">Toda a família</option>{pessoas.map((p) => <option key={p.chave} value={p.chave}>{p.nome}</option>)}</select></label>
         <div className="flex items-center gap-1" role="group" aria-label="Ampliação da árvore">
-          <Button variant="ghost" size="icon" title="Diminuir" aria-label="Diminuir árvore" disabled={zoom <= 0.6} onClick={() => setZoom((z) => Math.max(0.6, z - 0.2))}><Minus /></Button>
+          <Button variant="ghost" size="icon" title="Diminuir" aria-label="Diminuir árvore" disabled={zoom <= 0.4} onClick={() => setZoom((z) => Math.max(0.4, z - 0.2))}><Minus /></Button>
           <span className="w-12 text-center text-xs text-navy" aria-live="polite">{Math.round(zoom * 100)}%</span>
           <Button variant="ghost" size="icon" title="Ampliar" aria-label="Ampliar árvore" disabled={zoom >= 2} onClick={() => setZoom((z) => Math.min(2, z + 0.2))}><Plus /></Button>
           <Button variant="ghost" size="icon" title="Restaurar visão" aria-label="Restaurar visão da árvore" onClick={() => { setZoom(1); setSelecionada(null); viewport.current?.scrollTo({ left: 0, top: 0 }); }}><RotateCcw /></Button>

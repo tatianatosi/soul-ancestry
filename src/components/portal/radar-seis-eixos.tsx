@@ -34,7 +34,7 @@ function anelDeFundo(fracao: number, chave: string) {
  */
 export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
   const comProgresso = dimensoes.some(
-    (d) => d.estado === "percentual" && (d.percentual ?? 0) > 0,
+     (d) => d.rotuloNumero === "Compartilhado" || (d.estado === "percentual" && (d.percentual ?? 0) > 0),
   );
 
   return (
@@ -128,7 +128,7 @@ export function RadarSeisEixos({ dimensoes }: { dimensoes: DimensaoRadar[] }) {
           );
         })}
       </svg>
-      <p className="pb-4 text-sm leading-relaxed text-navy/70">Cada dimensão acompanha registros compartilhados pela equipe, sem notas, chances ou promessa de resultado.</p>
+      <p className="pb-4 text-sm leading-relaxed text-navy/70">O preenchimento indica presença de registros compartilhados, não conclusão. As dimensões em preparação permanecem sem preenchimento; não representam notas, chances ou promessa de resultado.</p>
     </div>
   );
 }
