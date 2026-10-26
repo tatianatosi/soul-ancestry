@@ -691,14 +691,19 @@ function CallsPage() {
             ) : null}
           </CaCard>
 
+          {/*
+            26/10/2026 (auditoria): isto é só navegação até #calls-handoff —
+            a ação real de handoff, lá dentro de PainelCalls, já passa
+            `gateHandoff.motivo` como `pendenciaGate` para AcaoOperacional
+            (que libera a proprietária com aviso, nunca bloqueia). Travar o
+            link com `pointer-events-none` trancava a própria proprietária
+            fora da tela onde ela poderia assumir a pendência.
+          */}
           <a
             href="#calls-handoff"
             onClick={() => setMomento("revisao")}
-            aria-disabled={!gateHandoff.ok}
             className={`block rounded-2xl px-5 py-4 text-center text-sm font-semibold transition-colors ${
-              gateHandoff.ok
-                ? "bg-navy text-cream hover:bg-navy/90"
-                : "pointer-events-none cursor-not-allowed bg-navy/10 text-navy/40"
+              gateHandoff.ok ? "bg-navy text-cream hover:bg-navy/90" : "bg-navy/10 text-navy hover:bg-navy/20"
             }`}
           >
             Concluir Discovery e Gerar Proposta

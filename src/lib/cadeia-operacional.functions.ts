@@ -93,7 +93,11 @@ export const listarSkusPlanejador = createServerFn({ method: "GET" })
       .from("product_catalog")
       .select("id,code,nome_comercial")
       .is("archived_at", null)
-      .neq("elegivel_para_proposta", false)
+      // 26/10/2026: `.neq(..., false)` vira `<> false` em SQL — `NULL <> false`
+      // é NULL, não verdadeiro, então SKU sem o campo preenchido sumia da
+      // lista. Em todo o resto do código `elegivel_para_proposta == null` é
+      // tratado como elegível (`!== false`, não `=== true`); aqui também.
+      .or("elegivel_para_proposta.is.null,elegivel_para_proposta.eq.true")
       .order("code", { ascending: true })
       .limit(500);
     if (error) throw new Error(error.message);

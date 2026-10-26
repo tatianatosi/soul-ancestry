@@ -1030,8 +1030,12 @@ export async function estadoCadeiaOperacional(
       versao: sku?.code ?? null,
     },
     condicao_comercial: {
+      // 26/10/2026: "pendente" não é valor do CHECK de commercial_conditions.status
+      // (rascunho|em_revisao|homologada|recusada|substituida); o escritor grava
+      // "em_revisao" quando há pendência (cadeia-operacional.server.ts, derivarCondicaoComercial).
+      // A comparação nunca era verdadeira e a pendência ficava invisível aqui.
       motivos: condicao
-        ? condicao.status === "pendente"
+        ? condicao.status === "em_revisao"
           ? [condicao.observacao_interna ?? "Condição comercial com pendência declarada."]
           : []
         : ["Condição comercial não persistida a partir da proposta aprovada."],

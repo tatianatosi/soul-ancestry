@@ -164,7 +164,15 @@ function LeadsPage() {
   const leads = (q.data ?? []) as LeadComPendencias[];
   const atual = useMemo(() => leads.find((l) => l.id === selecionado) ?? null, [leads, selecionado]);
   const editado = useMemo(() => ({ ...(atual ?? { nome: "" }), ...rascunho }) as LeadDesk, [atual, rascunho]);
-  const erros = useMemo(() => (atual || Object.keys(rascunho).length ? validarLead(editado) : []), [editado, atual, rascunho]);
+  // 26/10/2026 (auditoria): sem o segundo argumento, a validação do cliente
+  // sempre rodava em modo estrito, mesmo para a proprietária — o servidor já
+  // libera pendência de processo para ela (`proprietariaOperando`); a tela
+  // mostrava "Pendências que impedem esta gravação" para regras que o
+  // servidor ia aceitar.
+  const erros = useMemo(
+    () => (atual || Object.keys(rascunho).length ? validarLead(editado, autoridade.proprietaria) : []),
+    [editado, atual, rascunho, autoridade.proprietaria],
+  );
   const errosBloqueantes = useMemo(
     () => errosBloqueantesAlteracao(atual, editado, Object.keys(rascunho)),
     [atual, editado, rascunho],
