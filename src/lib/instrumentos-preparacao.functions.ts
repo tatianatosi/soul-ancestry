@@ -162,7 +162,10 @@ export const lerPreparacaoInstrumentos = createServerFn({ method: "GET" })
       },
       cadastro: {
         itens_obrigatorios: obrigatorios.length,
-        itens_completos: obrigatorios.filter((c) => String(c.status ?? "") === "completo").length,
+        // 26/10/2026: "completo" não é valor do CHECK de checklist_cadastral.status
+        // (pendente|informado|verificado|nao_aplicavel|aguarda_fonte_societaria) —
+        // a comparação nunca era verdadeira e o indicador sempre mostrava 0.
+        itens_completos: obrigatorios.filter((c) => ["verificado", "nao_aplicavel"].includes(String(c.status ?? ""))).length,
         pessoas_sem_referencia: [...new Set(checklist.filter((c) => !c.pessoa_ref_id).map((c) => String(c.pessoa_nome ?? "—")))],
         nucleo_criterios_pendentes: nucleoPendentes,
       },

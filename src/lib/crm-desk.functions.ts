@@ -1013,9 +1013,13 @@ export const diagnosticoInstrumentos = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = (context as any).supabase;
+    // 26/10/2026 (auditoria): sem filtro de organização aqui, a leitura
+    // dependia só de RLS — a mesma classe de vazamento entre organizações já
+    // corrigida em listarMatrizJuridica (comentário de 08/09/2026 acima).
+    const organization_id = await orgDoUsuario(supabase, (context as any).userId as string);
 
     const [matrizRes, depRes, checkRes, servRes, critRes, confRes] = await Promise.all([
-      supabase.from("legal_clause_matrix").select("*").is("archived_at", null),
+      supabase.from("legal_clause_matrix").select("*").eq("organization_id", organization_id).is("archived_at", null),
       supabase.from("case_dependents").select("*").eq("case_id", data.caseId).is("archived_at", null),
       supabase.from("checklist_cadastral").select("*").eq("case_id", data.caseId).is("archived_at", null),
       supabase.from("case_services").select("*").eq("case_id", data.caseId).is("archived_at", null),
@@ -1060,7 +1064,11 @@ export const diagnosticoInstrumentos = createServerFn({ method: "GET" })
     }
 
     const checklist = linhasDe<any>(checkRes, "checklist cadastral do caso");
-    const checklistPendente = checklist.filter((c) => String(c.status ?? "") !== "completo").length;
+    // 26/10/2026: "completo" não é valor do CHECK de checklist_cadastral.status
+    // (pendente|informado|verificado|nao_aplicavel|aguarda_fonte_societaria) —
+    // a comparação nunca era verdadeira e todo item contava como pendente.
+    const CHECKLIST_CONCLUIDO = new Set(["verificado", "nao_aplicavel"]);
+    const checklistPendente = checklist.filter((c) => !CHECKLIST_CONCLUIDO.has(String(c.status ?? ""))).length;
     if (checklistPendente) {
       bloqueios.push({ origem: "checklist_cadastral", detalhe: `${checklistPendente} item(ns) cadastrais pendentes.` });
     }
@@ -1108,6 +1116,9 @@ export const validacaoJuridicaCaso = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = (context as any).supabase;
+    // 26/10/2026 (auditoria): mesma correção de diagnosticoInstrumentos acima —
+    // sem filtro de organização, a leitura dependia só de RLS.
+    const organization_id = await orgDoUsuario(supabase, (context as any).userId as string);
 
     const [servRes, matrizRes, depRes, planoRes] = await Promise.all([
       supabase
@@ -1118,7 +1129,7 @@ export const validacaoJuridicaCaso = createServerFn({ method: "GET" })
         .not("citizenship_track_id", "is", null)
         .order("created_at", { ascending: false })
         .limit(1),
-      supabase.from("legal_clause_matrix").select("*").is("archived_at", null),
+      supabase.from("legal_clause_matrix").select("*").eq("organization_id", organization_id).is("archived_at", null),
       supabase.from("case_dependents").select("nome:nome_completo,participa_do_contrato,status_representacao").eq("case_id", data.caseId).is("archived_at", null),
       supabase
         .from("case_plans")

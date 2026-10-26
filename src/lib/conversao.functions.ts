@@ -7,6 +7,13 @@ import { EVENTO_DO_ESTADO, validarTransicaoAceite, type EstadoAceite } from "@/l
 import { validarTransicaoEvento } from "@/lib/conversao-funil";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 
+const UUID = /^[0-9a-f-]{36}$/i;
+/** Só aceita um valor que parece UUID — nunca interpola texto livre num filtro `.or()`. */
+function comoUuidOuNulo(v: unknown): string | null {
+  const s = String(v ?? "").trim();
+  return UUID.test(s) ? s : null;
+}
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /** Conversão, marketing e Painel Hoje. Nenhuma ação externa é disparada aqui. */
@@ -128,12 +135,19 @@ export const registrarEventoConversao = createServerFn({ method: "POST" })
 
     // Máquina de estados no servidor: nenhuma chamada direta salta etapa obrigatória.
     if (!data.lead_id && !data.case_id) throw new Error("Evento exige vínculo com lead ou caso.");
+    // 26/10/2026 (auditoria): case_id/lead_id vêm do cliente e iam direto para
+    // dentro de uma string de filtro `.or()` do PostgREST — um valor com vírgula
+    // ou operador podia acrescentar cláusulas não pretendidas ao filtro.
+    const caseIdSeguro = comoUuidOuNulo(data.case_id);
+    const leadIdSeguro = comoUuidOuNulo(data.lead_id);
+    if (data.case_id && !caseIdSeguro) throw new Error("case_id inválido.");
+    if (data.lead_id && !leadIdSeguro) throw new Error("lead_id inválido.");
     const anteriores = await seguro(
       supabase
         .from("conversion_events")
         .select("event_type")
         .eq("organization_id", organizationId)
-        .or(data.case_id ? `case_id.eq.${data.case_id}` : `lead_id.eq.${data.lead_id}`),
+        .or(caseIdSeguro ? `case_id.eq.${caseIdSeguro}` : `lead_id.eq.${leadIdSeguro}`),
     );
     const transicao = validarTransicaoEvento(
       data.event_type,
@@ -141,13 +155,21 @@ export const registrarEventoConversao = createServerFn({ method: "POST" })
     );
     if (!transicao.permitido) throw new Error(transicao.motivos.join(" "));
 
+    // 26/10/2026: payload explícito — `{ ...data, ... }` deixava qualquer
+    // campo extra que o cliente mandasse (o inputValidator aqui é identidade,
+    // não filtra chaves) atravessar direto para o INSERT.
     const { error } = await supabase.from("conversion_events").insert({
-      ...data,
-      lead_id: data.lead_id || null,
-      case_id: data.case_id || null,
-      cliente_id: data.cliente_id || null,
-      campaign_id: data.campaign_id || null,
-      lead_source_id: data.lead_source_id || null,
+      event_type: data.event_type,
+      lead_id: leadIdSeguro,
+      case_id: caseIdSeguro,
+      cliente_id: comoUuidOuNulo(data.cliente_id),
+      campaign_id: comoUuidOuNulo(data.campaign_id),
+      lead_source_id: comoUuidOuNulo(data.lead_source_id),
+      responsavel: data.responsavel ?? null,
+      evidencia_referencia: data.evidencia_referencia ?? null,
+      observacao: data.observacao ?? null,
+      origem: data.origem ?? null,
+      canal: data.canal ?? null,
       occurred_at: data.occurred_at ? new Date(data.occurred_at).toISOString() : new Date().toISOString(),
       organization_id: organizationId,
       responsavel_id: context.userId,
