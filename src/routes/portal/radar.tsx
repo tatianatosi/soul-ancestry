@@ -118,6 +118,7 @@ export function PortalRadar() {
                           <p className="text-[11px] font-medium text-navy/60">Parte {i + 1} de 6</p>
                           <h3 className="mt-1 font-serif text-lg leading-tight text-navy">{d.titulo}</h3>
                           <span className="app-chip mt-3" data-tom={d.rotuloNumero === "Compartilhado" ? "ok" : "preparo"}>{d.rotuloNumero}</span>
+                          <div className="app-radar-mini-barra mt-3" data-compartilhado={d.rotuloNumero === "Compartilhado"} aria-hidden="true"><span /></div>
                           {d.legenda ? <p className="mt-2 text-sm leading-relaxed text-navy/75">{d.legenda}</p> : null}
                         </li>
                         );
