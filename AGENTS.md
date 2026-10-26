@@ -34,3 +34,4 @@ Texto integral (autoridade, legado, schema, navegação, artefatos 005–010, ad
 - Documentos displays completion only from the canonical portal request checklist in both the client App and administrative preview; available files are not completed requests — why: avoid false completion and keep one request source.
 - The client tree uses a single SVG genogram of published people and explicit relationships with local zoom, pan, and person detail; no repeated relationship list — why: keep the requested network as the sole family visualization.
 - Case-specific authorized commercial presentation is resolved by canonical case identity, never by person name or matching price — why: prevent terms from leaking into another family's account.
+- Explicit dossier identification takes precedence in the shared collection classifier — why: mentions of family or records must not move a dossier into notebooks or memories.
