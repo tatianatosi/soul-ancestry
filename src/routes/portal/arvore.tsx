@@ -15,6 +15,7 @@ import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
 import { ExploradorArvore, PerfilPessoaArvore } from "@/components/portal/explorador-arvore";
+import { GenogramaFamiliar } from "@/components/portal/genograma-familiar";
 
 /**
  * Corte 2a (28/09/2026): pessoa da família publicada pela equipe — nome e
@@ -100,7 +101,7 @@ export function PortalArvore() {
                          : "Esta árvore ainda não tem nomes e vínculos liberados para a família."}
                     </p>
                     {pessoas.length > 0 ? (
-                      <ExploradorArvore pessoas={pessoas} geracoes={geracoesExibidas} vinculos={"vinculosArvore" in vivo ? vivo.vinculosArvore : []} />
+                      <GenogramaFamiliar pessoas={pessoas} vinculos={"vinculosArvore" in vivo ? vivo.vinculosArvore : []} />
                     ) : (
                     <div className="mt-6 divide-y divide-border">
                       {geracoesExibidas.map((geracao: GeracaoArvore) => (
