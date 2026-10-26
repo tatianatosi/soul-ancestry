@@ -83,10 +83,18 @@ código antes de corrigir.
    passam a seguir o texto novo.
 2. **Remover papel apaga a linha de `user_roles`**: a tabela não tem coluna de
    arquivo; mudar exige migration. Hoje a remoção fica registrada em auditoria.
-3. **Telas extras do App ainda roteáveis** (`/portal/casos/$id`,
-   `/portal/mensagens/$id`, `/portal/faturas`): várias partes do App apontam
-   para elas; tirar exige decidir para onde cada link vai. A falha de
-   segurança (fatura de não-contratante) já foi fechada.
+3. ~~**Telas extras do App ainda roteáveis** (`/portal/casos/$id`,
+   `/portal/mensagens/$id`, `/portal/faturas`)~~ — **`/portal/faturas`
+   corrigido em 26/10** (achado da Proprietária: "Invoices são as faturas
+   dos clientes revise"). Confirmado por grep: a rota existia com RLS e
+   gate de contratante prontos (`minhasFaturas`, `portal_sou_contratante_financeiro`),
+   mas nenhuma das 7 abas canônicas linkava para lá —
+   `PORTAL_ROTAS_FORA_DO_SPEC` já registrava a opção recomendada "A.
+   Faturas dentro de Conta". Implementada: seção "Faturas" dentro da aba
+   Conta, mesma função/gate/fail-closed da rota solta, sem criar 8ª aba.
+   `/portal/casos/$id` e `/portal/mensagens/$id` continuam como pendência —
+   decidir para onde cada link vai. A falha de segurança (fatura de
+   não-contratante) já tinha sido fechada antes.
 4. **Duas máquinas de contrato** (parâmetros × contratos) e **preços escritos
    no código** (`catalogo-homologacao.ts`): decisões de produto, não bugs.
 5. **`validarLead`** ainda tem regras não liberadas para a proprietária além

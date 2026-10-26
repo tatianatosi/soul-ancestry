@@ -26,6 +26,9 @@ vi.mock("@tanstack/react-start", async (orig) => ({
 vi.mock("@/lib/portal-cliente.functions", () => ({
   prepararEnvioDocumento: (...a: unknown[]) => prepararMock(...a),
   confirmarEnvioDocumento: (...a: unknown[]) => confirmarMock(...a),
+  // 26/10/2026: Conta passou a chamar minhasFaturas (seção "Faturas" dentro
+  // da Conta); vazio honesto aqui, sem afetar os cenários que este arquivo testa.
+  minhasFaturas: async () => ({ faturas: [], restritoAoContratante: false }),
 }));
 vi.mock("@/components/portal/portal-shell", () => ({
   PortalShell: ({ children }: { children: ReactNode }) => <div>{children}</div>,

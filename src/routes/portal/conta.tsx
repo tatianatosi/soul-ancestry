@@ -1,7 +1,9 @@
 import { UserRound, ShieldCheck, ChevronDown } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 
-import { COPY_TELAS } from "@/lib/portal-copy";
+import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
 import { planoPublicado } from "@/lib/plano-publicacao";
 import { assinaturaPublicada } from "@/lib/assinatura-app";
 import { publicacoesParaCliente } from "@/lib/projecoes-cliente";
@@ -19,6 +21,8 @@ import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { CartaoEditorial, dataCurta, iniciais } from "@/components/portal/elementos-mockup";
 import { condicaoFamiliarPrevista } from "@/components/portal/condicao-familiar";
 import { formatarValor } from "@/lib/assinatura-app";
+import { minhasFaturas } from "@/lib/portal-cliente.functions";
+import { comTimeout } from "@/lib/portal-resiliencia";
 
 export const Route = createFileRoute("/portal/conta")({
   head: () => ({
@@ -122,6 +126,21 @@ export function PortalConta() {
     (proximaAcao.destino === "/portal/documentos" || proximaAcao.destino === "/portal/conta")
       ? proximaAcao
       : null;
+
+  /*
+   * 26/10/2026 — achado: `/portal/faturas` existia, com RLS e gate de
+   * contratante prontos (`minhasFaturas`), mas nenhuma aba das 7 canônicas
+   * linkava para lá (`PORTAL_ROTAS_FORA_DO_SPEC` já registrava a opção
+   * recomendada "A. Faturas dentro de Conta"). A família não tinha como
+   * ver a própria fatura no App. Mesma função, mesmo gate — só passa a
+   * aparecer dentro de Conta em vez de depender de uma rota sem link.
+   */
+  const carregarFaturas = useServerFn(minhasFaturas);
+  const faturasQuery = useQuery({
+    queryKey: ["portal-conta-faturas"],
+    queryFn: () => comTimeout(carregarFaturas({})),
+    retry: false,
+  });
 
   return (
     <PortalShell titulo={COPY_TELAS.conta.titulo} descricao={COPY_TELAS.conta.descricao}>
@@ -234,6 +253,58 @@ export function PortalConta() {
                 </div>
                )}
              </section>
+
+            <section data-conta-faturas className="app-v11-faixa">
+              <h2 className="font-serif text-xl text-navy">{COPY_TELAS.faturas.titulo}</h2>
+              {faturasQuery.isError ? (
+                <div className="mt-2" data-conta-faturas-erro>
+                  <AvisoFalhaConexao
+                    mensagem={MENSAGEM_INSTABILIDADE_FINANCEIRA}
+                    aoTentar={() => void faturasQuery.refetch()}
+                    ocupado={faturasQuery.isFetching}
+                  />
+                </div>
+              ) : faturasQuery.isLoading ? (
+                <p className="mt-2 text-sm text-navy/60" role="status">Carregando suas faturas…</p>
+              ) : !faturasQuery.data || faturasQuery.data.faturas.length === 0 ? (
+                <div className="mt-2" data-conta-faturas-vazio>
+                  <CartaoEditorial
+                    texto={
+                      faturasQuery.data?.restritoAoContratante
+                        ? COPY_GERAL.faturasApenasContratante
+                        : COPY_TELAS.faturas.vazio
+                    }
+                  />
+                </div>
+              ) : (
+                <ul className="mt-3 space-y-2" data-conta-faturas-lista>
+                  {faturasQuery.data.faturas.map((f) => (
+                    <li
+                      key={f.id}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-cream/40 p-4"
+                    >
+                      <div>
+                        <p className="font-medium text-navy">{f.descricao ?? f.numero ?? "Fatura"}</p>
+                        <p className="text-xs text-navy/50">
+                          {f.caso} · vencimento{" "}
+                          {f.vencimento ? new Date(f.vencimento).toLocaleDateString("pt-BR") : "—"}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-navy">
+                          {new Intl.NumberFormat("pt-BR", { style: "currency", currency: f.moeda || "BRL" }).format(
+                            f.valor,
+                          )}
+                        </p>
+                        <span className="rounded-full border border-navy/15 bg-cream px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
+                          {f.statusRotulo}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
 
             {/* 12/10/2026: com falha de leitura, nenhuma seção afirma vazio. */}
             {vivo.isError ? null : (
