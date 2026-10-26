@@ -1,5 +1,9 @@
 # Roadmap
 
+## 26/10 — Paleta rica e densidade editorial do App
+- [ ] Aplicar cores funcionais locais, cartões e detalhes de Home/Documentos/Radar/Árvore/Conta sem alterar Desk, regras ou inventar dados.
+- [ ] Conferir telas em 375/1280 e testes relevantes; selo ativo, titulares, progresso e membro desde somente com fontes reais.
+
 ## 26/10 — Dossiês e Relatórios reais do Legado da Ana
 - [x] Conferidas fontes persistidas e repositório: Ana tem zero case_reports/client_deliverables/projeções de Legado ou relatório; único research_reports é rascunho DEMO de outro caso, sem aprovação. Os três documents liberados são evidências de pesquisa, sem revisão, resumo aprovado ou classificação de entrega; não convertidos em relatórios.
 - [ ] Disponibilização BLOQUEADA_POR_DADO: faltam versão sanitizada do dossiê e relatórios da Ana com aprovação identificável; referências históricas e relatório geral multipaís aprovado não comprovam aprovação de entrega da Ana. Nenhum conteúdo, acesso ou publicação alterado.
