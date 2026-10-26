@@ -39,38 +39,38 @@ código antes de corrigir.
 - Servidor: sequência do GoLive, envio para assinatura, OS sem proposta
   aprovada, solicitação/entrega/ticket em caso ainda não ativado.
 
-## Pendente (não corrigido — precisa de decisão ou é maior)
+## Corrigido em 26/10 (segunda rodada, "fix all")
 
-### Antes do lançamento (P0/P1)
-1. **App Cliente — testes vermelhos herdados de `main`** (Documentos, Conta,
-   Home, carregamento): depende do fim do resgate do Lovable e da decisão de
-   texto, tela a tela.
-2. **Cliente reconvidado fica trancado**: revogar não arquiva o acesso antigo;
-   o reconvite cria segunda linha e `.maybeSingle()` falha
-   (`portal.functions.ts:196`, `portal.server.ts:192`).
-3. **App sem botão "Sair"** e links de aba que perdem `?casoId` (família com
-   mais de um caso vê casos diferentes por aba) — `fonte-portal.tsx:213`.
-4. **Login: limite de tentativas** pode trancar a proprietária e não protege
-   o caminho real de senha (relatório auth-session H2).
-5. **Endpoints de diagnóstico sem login**: `equipe.diagnostico-conexao`,
-   `equipe.diagnostico-rotas`.
-6. **`/microentregas` e o Painel Hoje** montam o GoLive sem `?casoId` e caem
-   no caso piloto (Ana).
-7. **Onboarding**: `cobranca_aprovada` não é satisfeito pelos checks; o
-   recálculo volta plano `em_andamento` para `liberado_preparacao`.
-8. **/calls**: botão "Confirmar consentimento" sempre recusado (falta a versão
-   do aviso); campos SPIN carregam texto do lead anterior ao trocar de lead.
+| Item | O que mudou |
+|---|---|
+| Cliente reconvidado trancado | `portal-vinculo.ts` escolhe o vínculo ativo/mais recente em vez de falhar com duas linhas |
+| App sem "Sair" | botão "Sair do App" na Conta (fora da prévia do admin) |
+| Caso perdido ao trocar de aba | `LinkPortal` mantém `?casoId` |
+| Login trancável | o limite próprio não bloqueia mais o formulário (Supabase já limita); falhas seguem registradas |
+| Diagnósticos sem login | conexão: só admin ativo com token; rotas: só equipe |
+| Microentregas no caso piloto | rascunhos do App exigem escolher o caso |
+| Painel Hoje | decisões e microentregas dizem de qual caso são; leitura dos casos em paralelo (lotes de 8) |
+| Onboarding | pagamento confirmado satisfaz "cobrança aprovada"; recálculo não volta o plano de estado |
+| /calls | consentimento envia a versão do aviso; SPIN e anotações não vazam entre leads |
+| Faturas no caso do App | só para o contratante (fail-closed) |
+| Envio do cliente | tamanho/tipo conferidos no arquivo armazenado |
+| Idioma e marca | `lang="pt-BR"`, páginas de erro em português, "Clube Ancestral" na prévia de e-mail |
+| Vercel | `vercel.json` removido |
 
-### Depois do lançamento (P2)
-- `confirmarEnvioDocumento`/uploads: tamanho e tipo conferidos só no navegador.
-- `definirPapel` apaga `user_roles` fisicamente (contra a regra de não excluir).
-- Três telas extras ainda roteáveis no App (`/portal/casos/$id`,
-  `/portal/mensagens/$id`, `/portal/faturas`; esta última sem a checagem de contratante).
-- Painel Hoje: ~1.000 consultas sequenciais por carga (`pendenciasCadeiaPainel`).
-- Duas máquinas de contrato (parâmetros × contratos) sem amarração forte.
-- Preços e decisões de catálogo escritos no código (`catalogo-homologacao.ts`).
-- `<html lang="en">` e página de erro em inglês; marca antiga "Ancestral Canvas" no e-mail.
-- `vercel.json` e comentários da Vercel podem sair.
+## Ainda pendente (decisão da Proprietária ou trabalho maior)
+
+1. **Testes vermelhos do App herdados de `main`** (Documentos, Conta, Home,
+   carregamento): o texto atual veio do resgate do Lovable; decidir, tela a
+   tela, se volta o texto antigo (como nos rótulos L3/L4) ou se os testes
+   passam a seguir o texto novo.
+2. **Remover papel apaga a linha de `user_roles`**: a tabela não tem coluna de
+   arquivo; mudar exige migration. Hoje a remoção fica registrada em auditoria.
+3. **Telas extras do App ainda roteáveis** (`/portal/casos/$id`,
+   `/portal/mensagens/$id`, `/portal/faturas`): várias partes do App apontam
+   para elas; tirar exige decidir para onde cada link vai. A falha de
+   segurança (fatura de não-contratante) já foi fechada.
+4. **Duas máquinas de contrato** (parâmetros × contratos) e **preços escritos
+   no código** (`catalogo-homologacao.ts`): decisões de produto, não bugs.
 
 ## Por que "as queries falhavam"
 

@@ -1138,13 +1138,26 @@ export async function pendenciasCadeiaPainel(
     etapa: string | null;
   }[] = [];
 
+  // 26/10/2026 (auditoria): os casos eram lidos um a um, em série (~10
+  // consultas por caso). Agora em lotes paralelos de 8: mesmo resultado,
+  // tempo de carga do Painel dividido pelo tamanho do lote.
+  type EstadoCadeia = Awaited<ReturnType<typeof estadoCadeiaOperacional>>;
+  const estados = new Map<string, EstadoCadeia>();
+  const LOTE = 8;
+  for (let i = 0; i < elegiveis.length; i += LOTE) {
+    const lote = elegiveis.slice(i, i + LOTE);
+    const lidos = await Promise.all(
+      lote.map((c) => estadoCadeiaOperacional(supabase, org, c.id).catch(() => null)),
+    );
+    lote.forEach((c, k) => {
+      const e = lidos[k];
+      if (e) estados.set(c.id, e);
+    });
+  }
+
   for (const caso of elegiveis) {
-    let estado: Awaited<ReturnType<typeof estadoCadeiaOperacional>>;
-    try {
-      estado = await estadoCadeiaOperacional(supabase, org, caso.id);
-    } catch {
-      continue;
-    }
+    const estado = estados.get(caso.id);
+    if (!estado) continue;
     const pendencia = pendenciasParaPainel({
       caseId: caso.id,
       rotulo: `${caso.codigo ?? "caso"} · ${caso.titulo ?? "sem título"}`,
