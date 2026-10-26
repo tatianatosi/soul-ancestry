@@ -187,20 +187,19 @@ export function PortalDocumentos() {
             const noCaso = <T extends { caseId?: string | null }>(l: T[] | undefined) =>
               (l ?? []).filter((d) => !casoAtivo || !d.caseId || d.caseId === casoAtivo);
             /*
-              §7 do De-Para separa quatro estados que nunca podem se
-              misturar. Cada seção lê a fonte exata do seu estado — nada de
-              somar duas listas para forjar contagem.
+              26/10/2026 (Lovable, mockup17) — §7 do De-Para separa quatro
+              estados que nunca podem se misturar. Cada seção lê a fonte
+              exata do seu estado — nada de somar duas listas para forjar
+              contagem. A caixa "Entregas → atalho para Legado" (material
+              editorial sem fonte própria aqui, ver histórico em
+              portal-dados-vivos.ts/BLOQUEIOS_CA_PORTAL_02) saiu da tela:
+              em nenhum lugar substituída, era um placeholder.
 
-              Solicitados  → proximaAcao com destino /portal/documentos
+              Solicitados  → solicitacoesAbertas (portal_document_requests) /
+                             proximaAcao com destino /portal/documentos
               Recebidos    → envios (documents.origem === 'cliente')
+              Conferência  → checklist.itens com tom "analise"
               Liberados    → entregas (documents.liberado_cliente === true)
-              Entregas     → material editorial (cadernos/relatórios/narrativas)
-                             — só chega ao portal via portal_projecoes,
-                             consumida pela aba Legado. Como a rota Documentos
-                             não tem fonte própria para essa lista, a caixa
-                             vira atalho para Legado até haver uma fonte
-                             sanitizada por caso. Bloqueio catalogado em
-                             portal-dados-vivos.ts (BLOQUEIOS_CA_PORTAL_02).
             */
             const liberados_lista = noCaso(data?.entregas);
             const recebidos = noCaso(data?.envios);

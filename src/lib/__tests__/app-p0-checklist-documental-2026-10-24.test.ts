@@ -77,9 +77,12 @@ describe("tela de Documentos da família", () => {
 
   it("o envio de documento aparece no estado vazio E quando há pedidos (login real)", () => {
     const real = tela.slice(tela.indexOf("data-aba-documentos-vivo"));
-    expect(real).toMatch(/<EnviarDocumento casoId=\{casoAtivo\} \/>[\s\S]*?Conhecer o Lega/); // estado vazio
+    // 26/10/2026 — Lovable (mockup17) removeu a caixa "Entregas → atalho para
+    // Legado" (e o CTA "Conhecer o Legado" que vivia nela). O botão de envio
+    // "catch-all" segue sempre visível no fim de Solicitados.
+    expect(real).toMatch(/A lista de documentos será apresentada quando for compartilhada com você[\s\S]*?<EnviarDocumento casoId=\{casoAtivo\} \/>/); // estado vazio
     expect(real).toMatch(/<EnviarDocumento casoId=\{casoAtivo\} solicitacaoId=\{s\.id\} \/>/); // em cada pedido
-    expect((real.match(/<EnviarDocumento /g) ?? []).length).toBeGreaterThanOrEqual(3);
+    expect((real.match(/<EnviarDocumento /g) ?? []).length).toBeGreaterThanOrEqual(2);
   });
 
   it("o checklist consolidado existe no login real, acima das seções, e na prévia da equipe", () => {
