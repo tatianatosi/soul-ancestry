@@ -4,6 +4,7 @@ import {
   AVISO_PUBLICACAO_CLIENTE,
   contarPublicacoesPorCaso,
   publicacoesParaCliente,
+  prateleiraDe,
   rotuloTipoProjecao,
 } from "../projecoes-cliente";
 
@@ -111,6 +112,9 @@ const linhas = [
 ];
 
 describe("publicações do Desk no App Cliente", () => {
+  it("mantém dossiê familiar em Dossiês mesmo quando menciona registros", () => {
+    expect(prateleiraDe({ conteudo: "Dossiê do projeto familiar · registros da família", tipoRotulo: "Entrega de legado" })).toBe("relatorios");
+  });
   it("devolve lista vazia quando não há projeções elegíveis", () => {
     expect(publicacoesParaCliente([])).toEqual([]);
     expect(publicacoesParaCliente(viewPortalProjecoes(linhas, "caso-sem-publicacao"))).toEqual([]);

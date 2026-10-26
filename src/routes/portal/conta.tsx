@@ -166,7 +166,12 @@ export function PortalConta() {
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">WhatsApp</dt>
                   <dd className="text-sm text-navy">{perfil?.telefone ?? "Não registrado"}</dd>
                 </div>
+                <div className="border-b border-border py-3" data-conta-membro-desde>
+                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">Membro desde</dt>
+                  <dd className="text-sm text-navy">{membroDesde ?? "Não registrado"}</dd>
+                </div>
                </dl>
+              <Button asChild variant="outline" className="app-perfil-whatsapp mt-3 h-auto min-h-11 whitespace-normal"><a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer">Falar com a Especialista no WhatsApp</a></Button>
               <p className="mt-3 text-xs text-navy/55">
                   Se alguma informação mudar, avise a equipe pelo canal que você já utiliza.
               </p>

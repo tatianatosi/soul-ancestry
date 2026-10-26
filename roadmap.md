@@ -1,8 +1,13 @@
 # Roadmap
 
+## 26/10 — Paleta rica e densidade editorial do App
+- [x] Cores funcionais exatas nos chips, borda navy 6%, cartões brancos/sombra suave, números em ouro, teia dourada e grade compacta 3x2 desktop/2x3 mobile com barras de presença de registros (não percentuais inventados); perfil com membro desde persistido e WhatsApp direto. Árvore existente já põe cônjuges lado a lado na geração registrada; oito nós e treze relações preservados.
+- [x] Sete abas em 375/1280 sem overflow/pageerrors/HTTP >=400; 27 testes passam, build automático OK. Capturas /tmp/browser/app-integral; visual não publicado neste corte.
+- [ ] Agrupamento documental Ana/Adair/Alice/Felipe bloqueado por fonte: checklist sem pedidos, sem titular sanitizado por item; nenhum grupo ou pedido inferido. Upload existente destacado no acesso cliente; prévia administrativa não recebe permissão de envio.
+
 ## 26/10 — Dossiês e Relatórios reais do Legado da Ana
 - [x] Conferidas fontes persistidas e repositório: Ana tem zero case_reports/client_deliverables/projeções de Legado ou relatório; único research_reports é rascunho DEMO de outro caso, sem aprovação. Os três documents liberados são evidências de pesquisa, sem revisão, resumo aprovado ou classificação de entrega; não convertidos em relatórios.
-- [ ] Disponibilização BLOQUEADA_POR_DADO: faltam versão sanitizada do dossiê e relatórios da Ana com aprovação identificável; referências históricas e relatório geral multipaís aprovado não comprovam aprovação de entrega da Ana. Nenhum conteúdo, acesso ou publicação alterado.
+- [x] Resumo sanitizado do dossiê aprovado expressamente pela Proprietária e publicado pelo escritor autenticado existente (d9d5b074-3800-4a4f-a913-894019feafc1), com aprovadora/data/auditoria. Dossiês mostra um material em 375/1280 após F5; PDF integral reservado. Relatórios permanecem em preparação, pois ainda não estão prontos.
 - [x] Após esclarecimento da Proprietária, localizado e lido o PDF original Dossie-Consolidado-Ana-Luiza-Projeto-Familiar-Austria.pdf (enviado em 13/10). Contém hipóteses jurídicas, condições técnicas proibidas no App, status históricos e automações propostas; não deve ser publicado integralmente. Relatórios ainda não estão prontos, confirmado pela Proprietária.
 
 ## 26/10 — Experiência integral das sete abas
