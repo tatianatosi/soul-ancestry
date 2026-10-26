@@ -624,6 +624,37 @@ export const autorizarCompartilhamentoAchado = createServerFn({ method: "POST" }
     const h = await import("./portal-cliente.server");
     const supabase = context.supabase as any;
     const acesso = await h.acessoDoCliente(supabase, context.userId as string);
+
+    /*
+     * 26/10/2026 (auditoria pré-lançamento): a policy de INSERT de
+     * app_projection_shares só confere organização e que quem compartilha é
+     * o titular — não que o destinatário é da MESMA família/caso. Sem esta
+     * checagem, o titular podia compartilhar um achado com qualquer client_id
+     * da organização, inclusive de outra família, e a policy de SELECT
+     * (`compartilhado_com_client_id = portal_meu_cliente()`) deixava essa
+     * pessoa ler o achado. Defesa em profundidade na aplicação: o
+     * destinatário precisa ter acesso ATIVO ao mesmo caso do achado.
+     */
+    const projecao = await supabase.from("portal_projecoes").select("case_id").eq("id", data.projecaoId).maybeSingle();
+    const caseIdDoAchado = (projecao.data as { case_id?: string } | null)?.case_id ?? null;
+    if (!caseIdDoAchado) throw new Error("Não foi possível autorizar: achado não encontrado ou não é seu.");
+    // A policy de leitura de client_portal_case_access só deixa a pessoa ver a
+    // PRÓPRIA linha — para conferir o vínculo de OUTRO cliente é preciso a
+    // ponte admin (mesmo padrão já usado neste arquivo), sempre com filtro
+    // explícito de organização.
+    const { supabaseAdmin: pontePortal } = await import("@/integrations/supabase/client.server");
+    const vinculoDestino = await (pontePortal as any)
+      .from("client_portal_case_access")
+      .select("id, client_portal_access:client_portal_access_id!inner(client_id, organization_id)")
+      .eq("case_id", caseIdDoAchado)
+      .eq("access_status", "active")
+      .eq("client_portal_access.client_id", data.compartilharComClienteId)
+      .eq("client_portal_access.organization_id", acesso.organization_id)
+      .maybeSingle();
+    if (!vinculoDestino.data) {
+      throw new Error("Não foi possível autorizar: a pessoa escolhida não tem acesso a este caso.");
+    }
+
     const r = await supabase
       .from("app_projection_shares")
       .insert({
