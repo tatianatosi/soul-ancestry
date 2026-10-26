@@ -2,38 +2,69 @@
  * Saída em documento na tela do PRÓPRIO instrumento (`/contratos/$id`).
  *
  * Defeito relatado pela Proprietária em 26/10/2026: "não consegui nem baixar o
- * PDF pra verificar como ficou a versão final do contrato". Era literal, e por
- * dois motivos somados:
+ * PDF pra verificar como ficou a versão final do contrato", e o conteúdo
+ * vinha desatualizado — texto editado não aparecia. Duas causas somadas:
  *
- * 1. `BaixarPdfContrato` e `BaixarDocxContrato` existiam, mas só estavam
- *    montados em `/casos/$caseId/contrato/preparar`. A tela do instrumento —
- *    onde se lê o contrato e se pede revisão — não tinha nenhuma saída em
- *    documento. Quem abria o contrato pelo instrumento não tinha caminho.
- * 2. Quando a prévia está defasada, o botão recebe `previaId = null` e só
- *    responde com um aviso em toast. Sem o motivo visível na tela, o efeito
- *    prático é um botão que "não faz nada".
+ * 1. `BaixarPdfContrato`/`BaixarDocxContrato` só estavam montados em
+ *    `/casos/$caseId/contrato/preparar` — a tela do instrumento não tinha
+ *    nenhuma saída em documento.
+ * 2. O parâmetro `contratante_documento` foi salvo 35 segundos depois da
+ *    última vez que a prévia foi regerada. `previaDefasada()` passou a
+ *    recusar a prévia, e como PDF/revisão/assinatura saem exclusivamente
+ *    dela, o contrato ficou trancado: editar um dado invalidava o documento,
+ *    e o documento invalidado bloqueava a conferência da própria edição.
  *
- * Aqui o motivo do bloqueio é texto na tela, não toast, e aponta para onde se
- * regera a prévia. Mesmo motor, mesma prévia, mesma regra do servidor: nada é
- * reescrito, enviado, assinado ou cobrado.
+ * Decisão da Proprietária em 26/10/2026 (opção "b"), com duas condições: ter
+ * acesso à versão criada, e parametrizar automaticamente. "Gerar documento
+ * atual" (`gerarDocumentoAtual`) resolve as duas num só passo — primeiro
+ * preenche do cadastro canônico o que estiver vazio (nunca sobrescreve o que
+ * já tem valor), depois regera o rascunho de trabalho pelo MESMO renderizador
+ * da prévia. A versão fica PERSISTIDA em `contract_parameter_previews`, com
+ * hash de conteúdo: é a "versão criada", consultável depois pelo histórico
+ * de prévias — não um render efêmero que desaparece ao fechar a aba. Como a
+ * prévia é regerada DEPOIS dos parâmetros, não há mais defasagem possível
+ * entre os dois.
  */
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 
 import { BaixarDocxContrato } from "@/components/contrato/baixar-docx-contrato";
 import { BaixarPdfContrato } from "@/components/contrato/baixar-pdf-contrato";
 import { abrirPreparacaoContrato } from "@/lib/contrato-preparar.functions";
+import { gerarDocumentoAtual } from "@/lib/contrato-parametros.functions";
 import { motivoBloqueioSaida, previaVigente, rotuloPrevia } from "@/lib/previa-vigente";
 import { RENDERIZADOR_VERSAO } from "@/lib/renderizador-versao";
 import { CLAUSULAS_FIXAS, CONTRATO_BASE_VERSAO } from "@/lib/contrato-base-consolidado";
 
 export function DocumentoDoInstrumento({ caseId }: { caseId: string }) {
+  const qc = useQueryClient();
+  const chave = ["instrumento-documento", caseId];
   const abrir = useServerFn(abrirPreparacaoContrato);
   const q = useQuery({
-    queryKey: ["instrumento-documento", caseId],
+    queryKey: chave,
     queryFn: () => abrir({ data: { caseId } }),
     retry: false,
+  });
+
+  const gerar = useServerFn(gerarDocumentoAtual);
+  const [ultimoAviso, setUltimoAviso] = useState<string | null>(null);
+  const mGerar = useMutation({
+    mutationFn: () => gerar({ data: { caseId } }),
+    onSuccess: (r) => {
+      setUltimoAviso(
+        r.parametrizacao.executada && r.parametrizacao.preenchidos > 0
+          ? `${r.parametrizacao.preenchidos} parâmetro(s) preenchido(s) do cadastro canônico antes de gerar.`
+          : r.parametrizacao.aviso
+            ? `Parametrização automática não rodou: ${r.parametrizacao.aviso}`
+            : null,
+      );
+      toast.success(r.identico ? "Documento já estava com o dado atual." : "Documento regerado com o dado atual.");
+      void qc.invalidateQueries({ queryKey: chave });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   if (q.isLoading) {
@@ -67,48 +98,52 @@ export function DocumentoDoInstrumento({ caseId }: { caseId: string }) {
     <section className="space-y-2" aria-label="Documento do instrumento" data-documento-instrumento>
       <p className="text-xs text-navy/60">{rotuloPrevia(previaAtual, CONTRATO_BASE_VERSAO, CLAUSULAS_FIXAS.length)}</p>
 
+      <button
+        type="button"
+        onClick={() => mGerar.mutate()}
+        disabled={mGerar.isPending}
+        data-documento-instrumento-gerar-atual
+        className="min-h-11 rounded-lg border border-gold/60 bg-gold/10 px-3 py-1.5 text-xs font-medium text-navy disabled:opacity-50 sm:min-h-0"
+      >
+        {mGerar.isPending ? "Gerando…" : "Gerar documento com o dado atual"}
+      </button>
+      {ultimoAviso ? <p className="text-[11px] text-navy/55">{ultimoAviso}</p> : null}
+
       {/*
-        26/10/2026 (opção "b" da Proprietária): o download não depende mais da
-        prévia congelada — sai do dado atual, por isso a defasagem deixa de
-        travar a leitura do contrato. A prévia continua informada abaixo porque
-        é ela que vale para revisão, congelamento e assinatura.
+        26/10/2026 — "Gerar documento com o dado atual" parametriza (só
+        preenche vazio) e regera a prévia ANTES de oferecer o download, para
+        que PDF/DOCX nunca saiam defasados em relação ao parâmetro que
+        acabou de ser editado. Continua sendo a mesma prévia de sempre —
+        download por `previaId`, sob o mesmo guard do servidor.
       */}
       <div className="flex flex-wrap gap-2">
         <BaixarPdfContrato
-          previaId={null}
-          caseId={caseId}
-          rotulo="Baixar PDF (dado atual)"
+          previaId={previaId}
+          rotulo="Baixar PDF"
           className="min-h-11 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50 sm:min-h-0"
         />
         <BaixarDocxContrato
-          previaId={null}
-          caseId={caseId}
-          rotulo="Baixar DOCX (dado atual)"
+          previaId={previaId}
+          rotulo="Baixar DOCX"
           className="min-h-11 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50 sm:min-h-0"
         />
       </div>
 
       {bloqueio ? (
         <div className="rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-xs text-navy">
-          <p data-documento-instrumento-bloqueio>
-            Para revisão, congelamento e assinatura, a prévia ainda precisa ser regerada: {bloqueio}
+          <p data-documento-instrumento-bloqueio>{bloqueio}</p>
+          <p className="mt-1">
+            Use "Gerar documento com o dado atual" acima, ou{" "}
+            <Link
+              to="/casos/$caseId/contrato/preparar"
+              params={{ caseId }}
+              className="font-medium underline decoration-gold underline-offset-4"
+            >
+              abra a preparação do contrato
+            </Link>
+            .
           </p>
-          <Link
-            to="/casos/$caseId/contrato/preparar"
-            params={{ caseId }}
-            className="mt-1 inline-block font-medium underline decoration-gold underline-offset-4"
-          >
-            Abrir a preparação para gerar a prévia de novo →
-          </Link>
         </div>
-      ) : null}
-
-      {previaId ? (
-        <BaixarPdfContrato
-          previaId={previaId}
-          rotulo="Baixar a versão congelada (histórico)"
-          className="min-h-11 rounded-lg border border-navy/15 px-3 py-1.5 text-[11px] text-navy/70 disabled:opacity-50 sm:min-h-0"
-        />
       ) : null}
     </section>
   );

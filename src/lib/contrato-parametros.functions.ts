@@ -359,8 +359,30 @@ async function contratoAssinadoDoRegistro(supabase: Sb, parametersId: string): P
 export const preencherDeOrigens = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => d)
-  .handler(async ({ data, context }) => {
-    const supabase = context.supabase as Sb;
+  .handler(async ({ data, context }) => preencherDeOrigensNucleo(context.supabase as Sb, data.id));
+
+/**
+ * Modo de preenchimento a partir das origens.
+ *
+ * 26/10/2026 — `somentePreencherVazios` é o modo AUTOMÁTICO, que roda em toda
+ * geração de documento. Ele só preenche campo vazio: nunca substitui, nunca
+ * limpa, nunca reescreve a origem de um valor existente. Divergência vira o
+ * sinal de conflito que já existe, nunca uma escrita.
+ *
+ * Por que essa restrição: uma edição manual grava com status
+ * `importado_a_confirmar` (não `validado`), e no modo do botão manual um
+ * candidato de confiança igual ou maior a substitui — `crm` (4) empata com
+ * `preenchimento_humano` (4). Rodando sozinho a cada geração, isso apagaria a
+ * correção da Proprietária com o valor do cadastro, recriando o "nada salva".
+ * É a regra que ela mesma decidiu na P32b: "só deixar o cadastro mais
+ * completo, somente adicionando dado".
+ *
+ * Sem modo (botão manual "importar das origens"): comportamento intacto.
+ */
+type ModoPreenchimento = { somentePreencherVazios?: boolean };
+
+async function preencherDeOrigensNucleo(supabase: Sb, id: string, modo: ModoPreenchimento = {}) {
+    const data = { id };
 
     const { data: registro } = await supabase
       .from("contract_case_parameters")
@@ -546,7 +568,8 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
     // é limpo, virando pendência — nunca permanece herdado de outra cidadania.
     const camposHomologados = new Set(candidatos.map((c) => c.campo));
     const limpos: { campo: string; valor: string }[] = [];
-    for (const v of valores) {
+    // Limpar valor é decisão: só o botão manual faz. O modo automático só soma.
+    for (const v of modo.somentePreencherVazios ? [] : valores) {
       if (v.origem !== "planejador" || !v.valor?.trim()) continue;
       if (temCorrecaoHomologada(v)) continue;
       const revogado = !camposHomologados.has(v.campo);
@@ -612,7 +635,7 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       if (atual.valor && atual.valor.trim() === texto) {
         // Mesmo valor, origem diferente: a ficha passa a registrar a proposta
         // aprovada como fonte, preservando a origem anterior na auditoria.
-        if (c.origem === "proposta" && atual.origem !== "proposta" && atual.status !== "validado") {
+        if (!modo.somentePreencherVazios && c.origem === "proposta" && atual.origem !== "proposta" && atual.status !== "validado") {
           const rOrigem = await supabase
             .from("contract_parameter_values")
             .update({
@@ -635,7 +658,10 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       const menorConfianca = Boolean(atual.valor) && confianca(c.origem) < confianca(atual.origem);
       const propostaSobreValorExistente = c.origem === "proposta" && Boolean(atual.valor?.trim());
 
-      if ((atual.status === "validado" && atual.valor) || menorConfianca || propostaSobreValorExistente) {
+      // Modo automático: campo já preenchido nunca é substituído — só sinaliza.
+      const automaticoSobreValorExistente = Boolean(modo.somentePreencherVazios) && Boolean(atual.valor?.trim());
+
+      if ((atual.status === "validado" && atual.valor) || menorConfianca || propostaSobreValorExistente || automaticoSobreValorExistente) {
 
         conflitos.push({
           campo: c.campo,
@@ -730,7 +756,7 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
         campos: planejador.parametros.length,
       },
     };
-  });
+}
 
 
 /** Grava um parâmetro com origem obrigatória e valor dentro do dicionário. */
@@ -909,13 +935,7 @@ export const definirStatusParametro = createServerFn({ method: "POST" })
  * Monta o conteúdo da prévia a partir dos parâmetros do registro mestre.
  * Não grava nada: quem grava decide se é rascunho editável ou snapshot.
  */
-/**
- * Monta o corpo do contrato a partir do dado ATUAL do registro de parâmetros.
- * Leitura pura: não grava, não congela, não versiona — por isso serve tanto
- * para gerar a prévia quanto para renderizar o documento na hora do download
- * (decisão da Proprietária em 26/10/2026, opção "b").
- */
-export async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "final") {
+async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "final") {
   const { data: registro } = await supabase.from("contract_case_parameters").select("*").eq("id", id).maybeSingle();
   if (!registro) throw new Error("Registro de parâmetros não encontrado.");
 
@@ -1387,13 +1407,21 @@ export const gerarPrevia = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; tipo: "rascunho" | "final" }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
+    // 26/10/2026: toda geração parametriza antes — só preenche vazio.
+    const parametrizacao = await parametrizarAutomaticamente(supabase, data.id);
+    const r = await gerarPreviaNucleo(supabase, context.userId as string, data);
+    return { ...r, parametrizacao };
+  });
+
+/** Gera ou atualiza o rascunho de trabalho do registro (núcleo do `gerarPrevia`). */
+async function gerarPreviaNucleo(supabase: Sb, userId: string, data: { id: string; tipo: "rascunho" | "final" }) {
     const { registro, template, previa, corpo, anexosInternos } = await montarDoRegistro(supabase, data.id, "rascunho");
     if (data.tipo === "final") {
-      await exigirCoerencia(supabase, registro, { userId: context.userId as string, organizationId: registro.organization_id });
+      await exigirCoerencia(supabase, registro, { userId: userId, organizationId: registro.organization_id });
       await exigirGate(supabase, {
         caseId: registro.case_id,
         acao: "gerar_versao_final",
-        userId: context.userId as string,
+        userId: userId,
         organizationId: registro.organization_id,
       });
     }
@@ -1412,7 +1440,7 @@ export const gerarPrevia = createServerFn({ method: "POST" })
       if (rascunho.conteudo_hash === hash) {
         await supabase
           .from("contract_parameter_previews")
-          .update({ updated_by: context.userId })
+          .update({ updated_by: userId })
           .eq("id", rascunho.id);
         await atualizarCompletude(supabase, data.id);
         return {
@@ -1438,15 +1466,15 @@ export const gerarPrevia = createServerFn({ method: "POST" })
           legado_sem_evento: false,
           template_code: template.code,
           template_version: template.template_version ?? null,
-          gerado_por: context.userId,
-          updated_by: context.userId,
+          gerado_por: userId,
+          updated_by: userId,
         })
         .eq("id", rascunho.id);
       if (error) throw new Error(error.message);
       const sync = await sincronizarMotor(supabase, {
         registro,
         previaId: rascunho.id as string,
-        userId: context.userId as string,
+        userId: userId,
         corpo,
         anexosInternos,
       });
@@ -1481,9 +1509,9 @@ export const gerarPrevia = createServerFn({ method: "POST" })
         renderizador_versao: RENDERIZADOR_VERSAO,
         template_code: template.code,
         template_version: template.template_version ?? null,
-        gerado_por: context.userId,
-        created_by: context.userId,
-        updated_by: context.userId,
+        gerado_por: userId,
+        created_by: userId,
+        updated_by: userId,
       })
       .select("id,versao")
       .single();
@@ -1491,13 +1519,77 @@ export const gerarPrevia = createServerFn({ method: "POST" })
     const sync = await sincronizarMotor(supabase, {
       registro,
       previaId: nova.id as string,
-      userId: context.userId as string,
+      userId: userId,
       corpo,
       anexosInternos,
     });
     await atualizarCompletude(supabase, data.id);
     return { previaId: nova.id as string, versao: 0, identico: false, rascunho: true, pendentes: previa.placeholdersPendentes, ...sync };
+}
 
+/**
+ * Parametrização automática em toda geração de documento (26/10/2026).
+ *
+ * O motor `preencherDeOrigens` já existia e é cuidadoso — Pessoa 360,
+ * Planejador, proposta, anexos; nunca sobrescreve correção homologada — mas só
+ * rodava num botão manual. Era a fase que faltava: o parâmetro
+ * `contratante_documento` foi digitado à mão em 23/10 enquanto o cadastro
+ * canônico tinha o dado, e o contrato ficou trancado.
+ *
+ * Roda no modo que só preenche vazio. Falha de origem (caso sem convenção no
+ * Planejador, caso de demonstração) não impede gerar o documento: volta como
+ * aviso, nunca é engolida em silêncio.
+ */
+async function parametrizarAutomaticamente(supabase: Sb, id: string) {
+  try {
+    const r = await preencherDeOrigensNucleo(supabase, id, { somentePreencherVazios: true });
+    return { executada: true, preenchidos: r.importados, conflitos: r.conflitos.length, aviso: null as string | null };
+  } catch (e) {
+    return { executada: false, preenchidos: 0, conflitos: 0, aviso: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/**
+ * Documento do contrato a partir do dado ATUAL — decisão da Proprietária em
+ * 26/10/2026 (opção "b"), com duas condições dela: ter acesso à versão criada
+ * e parametrizar automaticamente.
+ *
+ * 1. Parametriza (só preenche vazio).
+ * 2. Regera o rascunho de trabalho pelo mesmo núcleo do `gerarPrevia`. A
+ *    versão fica PERSISTIDA em `contract_parameter_previews`, com hash de
+ *    conteúdo — é a "versão criada", acessível depois pelo id.
+ * 3. Devolve o id para o download, que passa pelo guard de sempre. Como o
+ *    rascunho acabou de ser regerado depois dos parâmetros (o trigger
+ *    `fn_cpp_guard` grava `updated_at = now()` em toda atualização, mesmo com
+ *    conteúdo idêntico), a defasagem que trancou o contrato da Ana em 23/10
+ *    não pode mais acontecer.
+ *
+ * POST porque grava. Registro resolvido sempre com filtro de organização da
+ * sessão — nunca vindo do cliente.
+ */
+export const gerarDocumentoAtual = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { caseId: string }) => {
+    if (!d?.caseId) throw new Error("Caso não informado.");
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as Sb;
+    const organizationId = await orgDoUsuario(supabase, context.userId as string);
+    const { data: registro, error } = await supabase
+      .from("contract_case_parameters")
+      .select("id")
+      .eq("case_id", data.caseId)
+      .eq("organization_id", organizationId)
+      .is("archived_at", null)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!registro) {
+      throw new Error("Este caso ainda não tem matriz de parâmetros do contrato — abra a preparação do contrato primeiro.");
+    }
+    const parametrizacao = await parametrizarAutomaticamente(supabase, registro.id as string);
+    const previa = await gerarPreviaNucleo(supabase, context.userId as string, { id: registro.id as string, tipo: "rascunho" });
+    return { previaId: previa.previaId, versao: previa.versao, identico: previa.identico, parametrizacao };
   });
 
 /**
