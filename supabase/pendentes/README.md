@@ -26,6 +26,7 @@ Nada daqui é aplicado automaticamente. Um arquivo nesta pasta é uma proposta, 
 | `20261023160000_libera_fatura_ana_checklist_e_flags.sql` | JÁ APLICADO em 23/10 | Conclui os 2 itens abertos do `onboarding_checklist` e reconcilia as 3 flags do portão do App |
 | `20261024120000_documentos_reais_ana_liberados.sql` | NÃO APLICADO; BLOQUEADO_POR_DADO | Proposta de inserção/publicação de documentos, não schema. Materiais recebidos contêm informações internas; faltam versões sanitizadas e correspondência documental comprovada. |
 | `20261024170000_ativacao_cede_a_proprietaria.sql` | JÁ APLICADO em 25/10 | Registrado em `drizzle/migrations/0002_ativacao_cede_a_proprietaria.sql`; consulta ao banco confirmou `piloto_cede = true` e `ativacao_cede = true`. |
+| `20261018120000_force_row_level_security.sql` (PR #170, mesclada em `main` em 26/10) | JÁ APLICADO em 26/10 | `FORCE ROW LEVEL SECURITY` nas 167 tabelas com RLS habilitado. Aplicado direto via ferramenta do Lovable, sob autorização explícita da Proprietária ("Aprovado Pr 170", 26/10). Conferido no banco: `pg_class.relforcerowsecurity = true` nas 167 tabelas — nenhuma faltante, nenhuma extra. Idempotente, não cria política nova, não altera dado, `service_role` não afetado. |
 
 ### Conferência do banco em 25/10/2026
 
