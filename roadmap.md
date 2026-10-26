@@ -1,7 +1,8 @@
 # Roadmap
 
 ## 26/10 — Dossiês e Relatórios reais do Legado da Ana
-- [ ] Localizar conteúdo real com aprovação registrada nas fontes existentes; disponibilizar apenas material sanitizado aprovado, sem inventar relatórios ou reclassificar arquivos internos.
+- [x] Conferidas fontes persistidas e repositório: Ana tem zero case_reports/client_deliverables/projeções de Legado ou relatório; único research_reports é rascunho DEMO de outro caso, sem aprovação. Os três documents liberados são evidências de pesquisa, sem revisão, resumo aprovado ou classificação de entrega; não convertidos em relatórios.
+- [ ] Disponibilização BLOQUEADA_POR_DADO: faltam versão sanitizada do dossiê e relatórios da Ana com aprovação identificável; referências históricas e relatório geral multipaís aprovado não comprovam aprovação de entrega da Ana. Nenhum conteúdo, acesso ou publicação alterado.
 
 ## 26/10 — Experiência integral das sete abas
 - [x] Apresentação local com paleta completa, sete abas e fontes sanitizadas existentes; autorização preservada. app-visibilidade já mantém as sete abas disponíveis mesmo com zero entregas, comprovado por teste.
