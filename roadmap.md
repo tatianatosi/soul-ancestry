@@ -3,6 +3,7 @@
 ## 26/10 — Dossiês e Relatórios reais do Legado da Ana
 - [x] Conferidas fontes persistidas e repositório: Ana tem zero case_reports/client_deliverables/projeções de Legado ou relatório; único research_reports é rascunho DEMO de outro caso, sem aprovação. Os três documents liberados são evidências de pesquisa, sem revisão, resumo aprovado ou classificação de entrega; não convertidos em relatórios.
 - [ ] Disponibilização BLOQUEADA_POR_DADO: faltam versão sanitizada do dossiê e relatórios da Ana com aprovação identificável; referências históricas e relatório geral multipaís aprovado não comprovam aprovação de entrega da Ana. Nenhum conteúdo, acesso ou publicação alterado.
+- [x] Após esclarecimento da Proprietária, localizado e lido o PDF original Dossie-Consolidado-Ana-Luiza-Projeto-Familiar-Austria.pdf (enviado em 13/10). Contém hipóteses jurídicas, condições técnicas proibidas no App, status históricos e automações propostas; não deve ser publicado integralmente. Relatórios ainda não estão prontos, confirmado pela Proprietária.
 
 ## 26/10 — Experiência integral das sete abas
 - [x] Apresentação local com paleta completa, sete abas e fontes sanitizadas existentes; autorização preservada. app-visibilidade já mantém as sete abas disponíveis mesmo com zero entregas, comprovado por teste.
