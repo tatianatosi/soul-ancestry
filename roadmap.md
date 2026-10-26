@@ -1,5 +1,10 @@
 # Roadmap
 
+## 26/10 — Experiência integral das sete abas
+- [ ] Completar apresentação local com paleta completa, sete abas e fontes sanitizadas existentes; não remover controles de autorização.
+- [ ] Ajustar quatro grupos de Documentos, genograma sem lista plana, Radar e Conta com condição prevista exclusiva da Ana.
+- [ ] Conferir sete abas autenticadas 375/1280, interações, recarga, testes e erros; informar conteúdo não registrado. Sem publicação neste pedido.
+
 ## 25/10 — Fechamento v4.0 e conteúdo real da Ana (15:43 UTC)
 - [x] Base com PR #171 presente; migrations financeiro/telemetria já registradas em Drizzle 0000/0001, função/tabela/privilégios/RLS conferidos. Nenhum pull ou migration repetida.
 - [x] Checklist aparece na prévia também com arquivos; Documentação deixa de mostrar 100% por arquivos liberados e usa somente pedidos aceitos/total. Recarga seguida de reabertura confirmada.
