@@ -95,13 +95,42 @@ código antes de corrigir.
    `/portal/casos/$id` e `/portal/mensagens/$id` continuam como pendência —
    decidir para onde cada link vai. A falha de segurança (fatura de
    não-contratante) já tinha sido fechada antes.
-4. **Duas máquinas de contrato** (parâmetros × contratos) e **preços escritos
-   no código** (`catalogo-homologacao.ts`): decisões de produto, não bugs.
-5. **`validarLead`** ainda tem regras não liberadas para a proprietária além
-   das já corrigidas (pagamento sem referência Asaas, via inviável x produto
-   recomendado) — deixadas de propósito: parecem proteção real (financeiro/
-   cliente), não cerimônia, e eu não tenho certeza suficiente para liberar
-   sem decisão sua.
+4. ~~**Duas máquinas de contrato** (parâmetros × contratos) e **preços
+   escritos no código** (`catalogo-homologacao.ts`)~~ — **verificado em
+   26/10, era leitura apressada minha, não achado real.** `contracts`
+   (status, gates, assinatura, `signature_reference`) e
+   `contract_case_parameters` (conteúdo/parametrização) são ligadas por
+   `contract_id` (FK real) e o código já usa a ligação
+   (`contrato-parametros.functions.ts:242-243` lê `contracts` a partir de
+   `registro.contract_id`) — não são duas máquinas competindo pelo mesmo
+   papel, são duas tabelas de responsabilidades diferentes (ciclo de vida
+   × conteúdo), devidamente unidas. `contracts` não tem nenhuma coluna de
+   preço/valor — confirmado por grep no schema gerado. Os dois números em
+   `catalogo-homologacao.ts` (R$ 280, R$ 297) são anotações de referência
+   de um bloqueio de governança para 3 SKUs nominados
+   (`DECISOES_INICIAIS`), nunca lidos por nenhuma tela ou fluxo de preço —
+   só por `catalogo-homologacao.functions.ts`, server-side, para decidir
+   se o SKU está liberado para proposta. Nada a decidir aqui; nada a
+   corrigir.
+5. **`validarLead`** (`src/lib/crm-desk.ts:646-760`) — lista exata das regras
+   que continuam valendo mesmo em modo livre (sem `!livre` no `if`), para
+   você decidir quais liberar:
+   | Linha | Regra | Por que pode ser proteção real |
+   |---|---|---|
+   | 692-697 | Pagamento inicial confirmado exige `asaas_evento_referencia` | Financeiro: lead marcado como pago sem prova de que o Asaas confirmou |
+   | 699-701 | Onboarding iniciado exige `asaas_evento_referencia` | Mesmo risco — onboarding sem pagamento comprovado |
+   | 732-744 | Consentimento concedido exige data/canal/versão do aviso; gravação sem consentimento é bloqueada | LGPD — gravar sem consentimento registrado é risco legal, não cerimônia |
+   | 746-749 | Elegibilidade Forte/Provável exige `confianca_triagem` + `linha_transmissao` | Mesma regra já é liberada em modo livre na linha 708 (duplicada) — **inconsistência**: um bloco idêntico está livre, o outro não |
+   | 751-756 | Escopo de pesquisa prévia exige autorização registrada; vocabulário controlado (escopo/nacionalidade) | O vocabulário controlado provavelmente nunca deveria ser livre (é integridade de dado, não cerimônia); a autorização de pesquisa é mais perto de LGPD |
+
+   Nome/e-mail/vocabulário dos `CATALOGOS` (linhas 650-661) também nunca são
+   livres — não entraram na tabela porque são integridade estrutural
+   básica, não proteção de negócio: não parecem candidatas a liberar.
+
+   Decisão pendente: dizer quais das 5 linhas acima podem ganhar `!livre`
+   (e a 746-749 precisa de resposta mesmo que a decisão seja "manter
+   travada", só para resolver a duplicidade com a 708). Nenhuma alterada
+   sem essa resposta — são proteções financeiras/legais, não bug de UI.
 6. ~~**`leads.tsx`**: trocar de lead no kanban, "Abrir ficha" ou fechar a
    ficha descarta rascunho não salvo sem aviso~~ — **corrigido em 26/10**.
    Extraído `trocarDeLead` (reaproveita o banner inline que a lista já
