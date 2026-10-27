@@ -11,7 +11,7 @@ import {
   type GeracaoArvore,
 } from "@/lib/portal-arvore-geracoes";
 import { pessoasDaArvore, type PessoaNaArvore } from "@/lib/arvore-publicacao";
-import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
+import { LinkPortal, useFontePortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
 import { PerfilPessoaArvore } from "@/components/portal/explorador-arvore";
@@ -42,6 +42,7 @@ export const Route = createFileRoute("/portal/arvore")({
 });
 
 export function PortalArvore() {
+  const fonte = useFontePortal();
   const { visibilidade, carregando } = useVisibilidade("arvore");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
 
@@ -102,7 +103,7 @@ export function PortalArvore() {
                          : "Esta árvore ainda não tem nomes e vínculos liberados para a família."}
                     </p>
                     {pessoas.length > 0 ? (
-                      <GenogramaFamiliar pessoas={pessoas} vinculos={"vinculosArvore" in vivo ? vivo.vinculosArvore : []} raizId={raizAutorizada(vivo.casoAtivoId, pessoas)} />
+                      <GenogramaFamiliar pessoas={pessoas} vinculos={"vinculosArvore" in vivo ? vivo.vinculosArvore : []} raizId={raizAutorizada(vivo.casoAtivoId ?? fonte?.previa.identidade?.caseId, pessoas)} />
                     ) : (
                     <div className="mt-6 divide-y divide-border">
                       {geracoesExibidas.map((geracao: GeracaoArvore) => (
