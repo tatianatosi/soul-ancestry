@@ -1483,3 +1483,14 @@
   [data-app-cliente] .app-genograma-toolbar { flex-direction: column; align-items: stretch; }
   [data-app-cliente] .app-genograma-toolbar > div { justify-content: flex-end; }
 }
+
+/* Fechamento 27/10 — selo terracota, semáforo do Radar e anel do ancestral de origem (escopo App). */
+[data-app-cliente] [data-selo-estado-caso] { background: #9A3A2F; color: #F0EEE9; }
+[data-app-cliente] [data-aba-radar] .app-chip[data-tom="ok"] { background: #E6ECE7; color: #3F5247; border: 1px solid #7A8B7B; }
+[data-app-cliente] [data-aba-radar] .app-chip[data-tom="analise"] { background: #FEF5E7; color: #6B4E0E; border: 1px solid #FCB73A; }
+[data-app-cliente] [data-aba-radar] .app-chip[data-tom="pendente"] { background: #ECDFCD; color: #9A3A2F; border: 1px solid #9A3A2F; }
+[data-app-cliente] #conteudo-portal [data-aba-radar] .app-chip[data-tom="ok"] { background: #E6ECE7; color: #3F5247; }
+[data-app-cliente] #conteudo-portal [data-aba-radar] .app-chip[data-tom="analise"] { background: #FEF5E7; color: #6B4E0E; }
+[data-app-cliente] #conteudo-portal [data-aba-radar] .app-chip[data-tom="pendente"] { background: #ECDFCD; color: #9A3A2F; }
+[data-app-cliente] [data-genograma-no] .app-genograma-circulo { stroke: #C2A84D; stroke-width: 3; }
+[data-app-cliente] [data-genograma-no][data-raiz] .app-genograma-circulo { stroke: #9A3A2F; stroke-width: 5; paint-order: stroke; }
