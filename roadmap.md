@@ -1,5 +1,10 @@
 # Roadmap
 
+## 27/10 — Correção focal da Árvore (sem publicação)
+- [ ] Remover raiz por nome e corte visual acima de G10; abrir/restaurar pelo mesmo enquadramento.
+- [ ] Testar nomes longos e relações explícitas; comparar mockup App p.6 com candidata em 375/1280.
+- [ ] Entregar arquivos, testes e prova visual; publicação e homologação continuam dependentes de aprovação.
+
 ## 26/10 — Paleta rica e densidade editorial do App
 - [x] Cores funcionais exatas nos chips, borda navy 6%, cartões brancos/sombra suave, números em ouro, teia dourada e grade compacta 3x2 desktop/2x3 mobile com barras de presença de registros (não percentuais inventados); perfil com membro desde persistido e WhatsApp direto. Árvore existente já põe cônjuges lado a lado na geração registrada; oito nós e treze relações preservados.
 - [x] Sete abas em 375/1280 sem overflow/pageerrors/HTTP >=400; 27 testes passam, build automático OK. Capturas /tmp/browser/app-integral; visual não publicado neste corte.
