@@ -5,6 +5,7 @@ import { COPY_TELAS } from "@/lib/portal-copy";
 import { planoPublicado } from "@/lib/plano-publicacao";
 import { assinaturaPublicada } from "@/lib/assinatura-app";
 import { publicacoesParaCliente } from "@/lib/projecoes-cliente";
+import { mensagemDeFalha, rotuloEstadoVivo, textoParaCliente } from "@/lib/portal-linguagem-viva";
 import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
 import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
@@ -114,7 +115,7 @@ export function PortalConta() {
     ).map((p) => ({ id: `l-${p.id}`, rotulo: "Publicado no Legado", texto: p.conteudo.split("\n")[0], data: p.publicadoEm ?? null })),
     ...(vivo.data?.documentos ?? [])
       .filter((d) => d.liberado_cliente && !d.is_demo && d.liberado_em)
-      .map((d) => ({ id: `d-${d.id}`, rotulo: "Documento liberado", texto: textoParaCliente(d.titulo) ?? "Documento disponível em Documentos", data: d.liberado_em ?? null })),
+      .map((d) => ({ id: `d-${d.id ?? d.titulo}`, rotulo: "Documento liberado", texto: textoParaCliente(d.titulo) ?? "Documento disponível em Documentos", data: d.liberado_em ?? null })),
   ]
     .filter((a) => a.data)
     .sort((a, b) => String(b.data).localeCompare(String(a.data)));
