@@ -19670,6 +19670,7 @@ export type Database = {
       }
       user_roles: {
         Row: {
+          archived_at: string | null
           created_at: string
           id: string
           organization_id: string
@@ -19677,6 +19678,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           id?: string
           organization_id: string
@@ -19684,6 +19686,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           id?: string
           organization_id?: string
