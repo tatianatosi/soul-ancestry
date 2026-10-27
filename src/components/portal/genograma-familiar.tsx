@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { iniciais } from "@/components/portal/elementos-mockup";
 import type { PessoaNaArvore } from "@/lib/arvore-publicacao";
 import type { VinculoArvoreCliente } from "@/lib/portal-dados-vivos.functions";
-import { enquadramentoGenograma, layoutGenograma } from "./genograma-layout";
+import { CARTAO_LARGURA, enquadramentoGenograma, layoutGenograma } from "./genograma-layout";
 
 /** Only published people and explicit relationships are drawn. */
 export function GenogramaFamiliar({ pessoas, vinculos, raizId }: { pessoas: PessoaNaArvore[]; vinculos: readonly VinculoArvoreCliente[]; raizId?: string }) {
@@ -28,7 +27,7 @@ export function GenogramaFamiliar({ pessoas, vinculos, raizId }: { pessoas: Pess
     const no = layout.nos.find((n) => n.pessoa.chave === selecionada);
     const el = viewport.current;
     if (!no || !el) return;
-    el.scrollTo({ left: no.x * zoom - el.clientWidth / 2, top: no.y * zoom - el.clientHeight / 2, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    el.scrollTo({ left: no.x * zoom - el.clientWidth / 2, top: (no.y + no.altura / 2) * zoom - el.clientHeight / 2, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   }, [selecionada, zoom, layout.nos]);
   return (
     <div data-genograma-familiar>
@@ -56,29 +55,28 @@ export function GenogramaFamiliar({ pessoas, vinculos, raizId }: { pessoas: Pess
           {vinculos.map((v, i) => {
             const a = porId.get(v.de), b = porId.get(v.para);
             if (!a || !b) return null;
-            // Saída abaixo do rótulo (nome + geração) e chegada acima do círculo: nenhuma linha cruza nomes.
+            // Linhas saem da base do cartão e chegam ao topo: nunca cruzam nomes.
             const [sup, inf] = a.y <= b.y ? [a, b] : [b, a];
-            const saida = sup.y + sup.geracaoY + 12, chegada = inf.y - 44, meio = (saida + chegada) / 2;
+            const saida = sup.y + sup.altura, chegada = inf.y, meio = (saida + chegada) / 2;
             const [esq, dir] = a.x <= b.x ? [a, b] : [b, a];
             const interposto = layout.nos.some((n) => n.y === esq.y && n.x > esq.x && n.x < dir.x);
+            const m = CARTAO_LARGURA / 2;
             const uniao = interposto || esq.y !== dir.y
-              ? `M${esq.x} ${esq.y - 40} V${Math.min(esq.y, dir.y) - 60} H${dir.x} V${dir.y - 40}`
-              : `M${esq.x + 40} ${esq.y} L${dir.x - 40} ${dir.y}`;
-            // Skipped generations use an outside lane, not intermediate people's labels.
+              ? `M${esq.x} ${esq.y} V${Math.min(esq.y, dir.y) - 24} H${dir.x} V${dir.y}`
+              : `M${esq.x + m} ${esq.y + esq.altura / 2} L${dir.x - m} ${dir.y + dir.altura / 2}`;
             const intermediario = layout.nos.some((n) => n.y > sup.y && n.y < inf.y);
             const corredor = layout.largura - 20 - (i % 4) * 6;
             const filiacao = a.y === b.y
-              ? `M${a.x} ${a.y - 40} V${a.y - 74} H${b.x} V${b.y - 40}`
+              ? `M${a.x} ${a.y} V${a.y - 30} H${b.x} V${b.y}`
               : intermediario
                 ? `M${sup.x} ${saida} V${saida + 18} H${corredor} V${chegada - 18} H${inf.x} V${chegada}`
                 : `M${sup.x} ${saida} V${meio} H${inf.x} V${chegada}`;
             return <path key={`${v.de}-${v.para}-${i}`} data-de={v.de} data-para={v.para} className={v.tipo === "conjuge" ? "app-genograma-uniao" : "app-genograma-filiacao"} d={v.tipo === "conjuge" ? uniao : filiacao}><title>{a.pessoa.nome} · {v.tipo === "conjuge" ? "União" : "Filiação"} · {b.pessoa.nome}</title></path>;
           })}
-          {layout.nos.map(({ pessoa: p, x, y, linhas, geracaoY }) => (
-            <g key={p.chave} transform={`translate(${x} ${y})`} role="button" tabIndex={0} aria-label={`Abrir ${p.nome}`} aria-pressed={p.chave === selecionada} data-genograma-no data-raiz={p.chave === raizId || undefined} onClick={() => setSelecionada(p.chave)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelecionada(p.chave); } }}>
-              <circle r={36} className="app-genograma-circulo" />
-              <text textAnchor="middle" dominantBaseline="central" className="app-genograma-iniciais">{iniciais(p.nome)}</text>
-              <text textAnchor="middle" y={56} className="app-genograma-nome">{linhas.map((linha, i) => <tspan key={i} x={0} dy={i === 0 ? 0 : 17}>{linha}</tspan>)}</text>
+          {layout.nos.map(({ pessoa: p, x, y, linhas, geracaoY, altura }) => (
+            <g key={p.chave} transform={`translate(${x} ${y})`} role="button" tabIndex={0} aria-label={`Abrir ${p.nome}`} aria-pressed={p.chave === selecionada} data-genograma-no data-raiz={p.chave === raizId || undefined} data-geracao-um={p.geracao === 1 || undefined} onClick={() => setSelecionada(p.chave)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelecionada(p.chave); } }}>
+              <rect x={-CARTAO_LARGURA / 2} y={0} width={CARTAO_LARGURA} height={altura} rx={8} className="app-genograma-cartao" />
+              <text textAnchor="middle" y={26} className="app-genograma-nome">{linhas.map((linha, i) => <tspan key={i} x={0} dy={i === 0 ? 0 : 16}>{linha}</tspan>)}</text>
               <text textAnchor="middle" y={geracaoY} className="app-genograma-geracao">G{p.geracao}{p.geracao === 1 ? " · Você" : ""}</text>
             </g>
           ))}
