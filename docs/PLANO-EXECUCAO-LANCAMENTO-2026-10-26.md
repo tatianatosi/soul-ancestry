@@ -91,18 +91,65 @@ Real, mas não bloqueia a Ana esta semana:
   `orfaos-classificados.ts` como `AGUARDA_DECISAO` ou `CASCA_DUPLICADA` — ou
   seja, já têm veredicto, só não têm decisão de produto.
 
-## 5. O que fica de fora deste plano e por quê
+## 5. Atualização de 27/10 — fila fechada sob a autorização "execute os demais itens pendentes"
 
-- **Idioma, Faixa 2 e 3** (qual camada é canônica em `name_variants` vs.
-  `research_name_variants`; tradução de vocabulário CHECK) — decisão de
-  schema, não código; precisa de você escolher o lado canônico antes de eu
-  tocar.
-- **Remover papel apaga `user_roles`** — exige migration (coluna de
-  arquivamento não existe).
-- **Duas máquinas de contrato + preços no código** — decisão de arquitetura
-  grande, não cabe "sem aprovação" com segurança.
+As três perguntas da seção 6 (texto original abaixo, mantido como registro)
+foram todas resolvidas ou ficaram sem objeto nesta rodada:
 
-## 6. Resumo para decidir rápido
+1. **PR #170** — mesclada e aplicada em 26/10 (ver `supabase/pendentes/README.md`).
+2. **PR #185/#194** — já estavam mescladas desde 24-25/10 (minha lista estava
+   desatualizada). O SQL de documentos reais da Ana (`20261024120000_...sql`)
+   continua `NÃO APLICADO; BLOQUEADO_POR_DADO`: falta sua confirmação se
+   `Dossie-Consolidado-Projeto-Familiar-Austria.pdf` é a mesma coisa citada
+   como "Certidão Graz 1895" num prompt anterior — pergunta de fato, não de
+   código.
+3. **5 PRs de navegação do Desk (#99/#111/#112/#115/#116)** — fechadas em
+   27/10, nenhuma mesclada. Todas de 10-12/09/2026; a decisão real de
+   navegação (`SETORES_DESK`/`GRUPOS_DESK`) só veio em 18-19/10 e já está em
+   `main` — nenhuma das 5 corresponde à casca hoje vigente.
+
+Mais dois PRs de contrato fechados pelo mesmo motivo (achado nesta rodada,
+não estava na lista original): **#35 e #40** (reconciliação de botões em
+`contratos.$id.tsx`, 30-31/08) — o próprio arquivo já tinha a mesma correção
+feita de forma independente em 09/09 ("Corte D"); mesclar agora reintroduzia
+a duplicidade que as PRs queriam resolver.
+
+**PR #173** (histórico do contrato + complemento de cadastro de Ana,
+autorizada por você em 20/10) — revisei o SQL e é seguro, mas o arquivo tem
+uma única linha de ~150KB (JSON histórico) que não consigo reproduzir com
+segurança via este mecanismo de execução. Copiado por `git show` (sem
+retranscrição) para `supabase/pendentes/20261020150000_...sql`, registrado
+como `NÃO APLICADO; BLOQUEADO_POR_TAMANHO` — precisa ir ao chat do Lovable
+diretamente, não é bloqueio de autorização.
+
+**`validarLead`** (item 5 da auditoria) — todas as 5 proteções liberadas em
+modo livre, autorizado nominalmente ("Pode liberar todas as proteções do
+item 5"). Ver `AUDITORIA-PRE-LANCAMENTO-2026-10-25.md`.
+
+**`user_roles`** (item 2) — coluna `archived_at` aplicada, código dos 2
+escritores e 13 leitores ajustado, autorizado nominalmente ("Autorizado item
+02 para os dois juntos").
+
+**Achado novo, fora da lista original**: `/portal/casos/$id` +
+`/portal/mensagens/$id` formam uma funcionalidade completa (detalhe de caso
++ sistema de tickets/mensagens para o cliente), só alcançável por um botão
+de teste interno do Desk (`botao-testar-cliente.tsx`) e por uma ferramenta de
+debug — nenhuma aba das 7 canônicas linka para lá. Diferente do caso de
+Faturas (that não tinha equivalente nenhum): aqui já existe "Estamos por
+perto" (WhatsApp) na Conta como canal de atendimento ao vivo. Ligar este
+sistema de tickets ao App criaria um SEGUNDO canal de atendimento
+concorrente com o que já está no ar — não religuei. Decisão sua: manter só
+WhatsApp (arquivar/isolar esta funcionalidade) ou trazer o sistema de
+tickets para dentro de uma aba canônica (provavelmente Conta), substituindo
+ou complementando o WhatsApp.
+
+Itens que continuam fora do que posso decidir sozinho, sem mudança:
+- Idioma Faixa 2/3 (schema, não código).
+- `/portal/casos/$id` + `/portal/mensagens/$id` — decisão acima.
+- Convite de Adair/Alice ao portal, publicação do `resumo_caso` pendente, e o
+  CPF de Alice (dado real que só você tem) — Fila da Ana, tarefa #2.
+
+## 6. Texto original de 26/10 (histórico — já resolvido, ver seção 5)
 
 Preciso de três "sim" seus para desbloquear o resto, cada um pontual:
 
@@ -111,7 +158,3 @@ Preciso de três "sim" seus para desbloquear o resto, cada um pontual:
    da Ana aparecem no App.
 3. Uma decisão sobre qual das 5 PRs de navegação do Desk (se alguma) deve
    virar o menu — ou "nenhuma, manter como está".
-
-Sem essas três respostas, não há mais código seguro para eu executar sozinho
-nesta fila — o resto é merge de decisão de produto ou migration, as duas
-coisas que o seu próprio AGENTS.md trava atrás de autorização explícita.
