@@ -39,8 +39,8 @@ export function ReguaEtapas({ etapas }: { etapas: ResumoCasoCliente["etapas"] })
   const indiceAtual = etapas.findIndex((e) => e.estado !== "concluido");
   const todasConcluidas = indiceAtual === -1;
   return (
-    <div className="mt-4 border-t border-cream/10 pt-4" data-regua-etapas aria-label="Etapas da pesquisa familiar">
-      <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-cream/70">Etapas da pesquisa familiar</p>
+    <div className="mt-4 border-t border-cream/10 pt-4" data-regua-etapas aria-label="Preparação do seu caso">
+      <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-cream/70">Preparação do seu caso</p>
       <ol className="mt-3 grid grid-cols-5 gap-0.5" lang="pt-BR">
         {etapas.map((e, i) => {
           const concluida = e.estado === "concluido";
@@ -72,7 +72,7 @@ export function ReguaEtapas({ etapas }: { etapas: ResumoCasoCliente["etapas"] })
         })}
       </ol>
       <p className="mt-3 text-sm text-cream">
-        {todasConcluidas ? "As cinco etapas de preparação estão concluídas." : <>Etapa atual: <span className="text-gold">{rotulos[indiceAtual] ?? etapas[indiceAtual]?.rotulo}</span></>}
+        {todasConcluidas ? "As cinco etapas de preparação estão concluídas." : <>Etapa da preparação: <span className="text-gold">{rotulos[indiceAtual] ?? etapas[indiceAtual]?.rotulo}</span></>}
       </p>
     </div>
   );
