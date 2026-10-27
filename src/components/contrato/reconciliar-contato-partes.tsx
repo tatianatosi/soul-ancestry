@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { useAvisoEdicaoNaoSalva } from "@/lib/aviso-edicao-nao-salva";
 
 import {
@@ -155,19 +156,37 @@ function BlocoCampoContato({
       // Fase C (27/09/2026): preenchimento de campo vazio passa a ser
       // automático — conflito continua só sinal, nunca escrito sozinho.
       // Nunca dispara em contrato já assinado (snapshot imutável).
-      if (r.simulado && !contratoAssinado && Array.isArray(r.plano) && r.plano.some((p: any) => p.acao === "preencher")) {
+      if (
+        r.simulado &&
+        !contratoAssinado &&
+        Array.isArray(r.plano) &&
+        r.plano.some((p: any) => p.acao === "preencher")
+      ) {
         mVerificar.mutate(true);
       }
     },
+    // Laudo #189, primeiro corte (27/10/2026): sem onError, uma recusa do
+    // banco (ex.: trigger de reconciliação) ficava indistinguível de "nada
+    // salva" — o clique simplesmente não fazia nada visível.
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const mResolver = useMutation({
     mutationFn: (vars: { id: string; decisao: DecisaoConflitoContrato; motivo: string }) =>
-      sincronizar({ data: { caseId, campo, resolverPartyId: vars.id, decisao: vars.decisao, motivo: vars.motivo } }),
+      sincronizar({
+        data: {
+          caseId,
+          campo,
+          resolverPartyId: vars.id,
+          decisao: vars.decisao,
+          motivo: vars.motivo,
+        },
+      }),
     onSuccess: (r: any) => {
       setPlano(Array.isArray(r.plano) ? r.plano : plano);
       if (r.atualizados > 0) onMudou();
     },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const preencher = plano ? plano.filter((p) => p.acao === "preencher").length : 0;
@@ -212,7 +231,10 @@ function BlocoCampoContato({
       {aberto && plano && plano.length > 0 ? (
         <ul className="mt-2 space-y-1">
           {plano
-            .filter((p) => p.acao === "conflito" || p.acao === "conflito_aceito" || p.acao === "preencher")
+            .filter(
+              (p) =>
+                p.acao === "conflito" || p.acao === "conflito_aceito" || p.acao === "preencher",
+            )
             .map((p) => (
               <li key={p.id} className={`rounded border p-1.5 text-[11px] ${ESTILO_ACAO[p.acao]}`}>
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -222,22 +244,31 @@ function BlocoCampoContato({
                 {p.acao === "conflito" || p.acao === "conflito_aceito" ? (
                   <>
                     <p className="mt-1">
-                      Na parte do contrato: {p.atual ?? "—"} · No cadastro canônico: {p.canonico ?? "—"}
-                      {p.acao === "conflito" ? " — decisão humana pendente." : " — decisão humana já registrada."}
+                      Na parte do contrato: {p.atual ?? "—"} · No cadastro canônico:{" "}
+                      {p.canonico ?? "—"}
+                      {p.acao === "conflito"
+                        ? " — decisão humana pendente."
+                        : " — decisão humana já registrada."}
                     </p>
                     <ResolverConflitoContato
                       item={p}
                       campo={campo}
                       contratoAssinado={contratoAssinado}
                       ocupado={mResolver.isPending}
-                      onResolver={(decisao, motivo) => mResolver.mutate({ id: p.id, decisao, motivo })}
+                      onResolver={(decisao, motivo) =>
+                        mResolver.mutate({ id: p.id, decisao, motivo })
+                      }
                     />
                   </>
                 ) : null}
               </li>
             ))}
-          {plano.every((p) => p.acao !== "conflito" && p.acao !== "conflito_aceito" && p.acao !== "preencher") ? (
-            <li className="text-[11px] text-navy/55">Nenhuma pendência — todos sincronizados ou sem dado canônico.</li>
+          {plano.every(
+            (p) => p.acao !== "conflito" && p.acao !== "conflito_aceito" && p.acao !== "preencher",
+          ) ? (
+            <li className="text-[11px] text-navy/55">
+              Nenhuma pendência — todos sincronizados ou sem dado canônico.
+            </li>
           ) : null}
         </ul>
       ) : null}
@@ -260,13 +291,15 @@ export function ReconciliarContatoPartesContrato({
         <h3 className="text-sm font-medium text-navy">
           Conferir nome, e-mail, telefone e endereço das partes com o cadastro canônico
         </h3>
-        <span className="text-[11px] text-navy/55">Pessoa Canônica · nunca funde automaticamente</span>
+        <span className="text-[11px] text-navy/55">
+          Pessoa Canônica · nunca funde automaticamente
+        </span>
       </div>
       <p className="mt-1 text-xs text-navy/65">
-        `contract_parties` é o snapshot da parte no contrato; `clientes` é a Pessoa Canônica viva. Só
-        preenche o que está vazio a partir do cadastro canônico; conflito (os dois já preenchidos,
-        divergentes) é só sinal — não funde, não sobrescreve. Endereço compara a string composta do
-        endereço estruturado de `clientes` contra o texto livre do contrato.
+        `contract_parties` é o snapshot da parte no contrato; `clientes` é a Pessoa Canônica viva.
+        Só preenche o que está vazio a partir do cadastro canônico; conflito (os dois já
+        preenchidos, divergentes) é só sinal — não funde, não sobrescreve. Endereço compara a string
+        composta do endereço estruturado de `clientes` contra o texto livre do contrato.
       </p>
       {contratoAssinado ? (
         <p className="mt-2 text-xs text-terracotta">
@@ -276,7 +309,13 @@ export function ReconciliarContatoPartesContrato({
       ) : null}
       <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {CAMPOS_CONTATO_PARTE_RECONCILIAVEIS.map((campo) => (
-          <BlocoCampoContato key={campo} caseId={caseId} campo={campo} contratoAssinado={contratoAssinado} onMudou={onMudou} />
+          <BlocoCampoContato
+            key={campo}
+            caseId={caseId}
+            campo={campo}
+            contratoAssinado={contratoAssinado}
+            onMudou={onMudou}
+          />
         ))}
       </div>
     </section>
