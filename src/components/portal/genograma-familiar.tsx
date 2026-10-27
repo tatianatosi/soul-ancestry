@@ -67,9 +67,11 @@ export function GenogramaFamiliar({ pessoas, vinculos, raizId }: { pessoas: Pess
             // Skipped generations use an outside lane, not intermediate people's labels.
             const intermediario = layout.nos.some((n) => n.y > sup.y && n.y < inf.y);
             const corredor = layout.largura - 20 - (i % 4) * 6;
-            const filiacao = intermediario
-              ? `M${sup.x} ${saida} V${saida + 18} H${corredor} V${chegada - 18} H${inf.x} V${chegada}`
-              : `M${sup.x} ${saida} V${meio} H${inf.x} V${chegada}`;
+            const filiacao = a.y === b.y
+              ? `M${a.x} ${a.y - 40} V${a.y - 74} H${b.x} V${b.y - 40}`
+              : intermediario
+                ? `M${sup.x} ${saida} V${saida + 18} H${corredor} V${chegada - 18} H${inf.x} V${chegada}`
+                : `M${sup.x} ${saida} V${meio} H${inf.x} V${chegada}`;
             return <path key={`${v.de}-${v.para}-${i}`} data-de={v.de} data-para={v.para} className={v.tipo === "conjuge" ? "app-genograma-uniao" : "app-genograma-filiacao"} d={v.tipo === "conjuge" ? uniao : filiacao}><title>{a.pessoa.nome} · {v.tipo === "conjuge" ? "União" : "Filiação"} · {b.pessoa.nome}</title></path>;
           })}
           {layout.nos.map(({ pessoa: p, x, y, linhas, geracaoY }) => (
