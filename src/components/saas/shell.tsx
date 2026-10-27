@@ -482,10 +482,18 @@ export function SaasShell({
             {children}
           </div>
         </main>
-        {/* Prancha V4: no celular a navegação entre setores é a barra fixa de ícones embaixo. */}
+        {/*
+          Prancha V4: no celular a navegação entre setores é a barra fixa de
+          ícones embaixo. Achado 28 (design critique, 27/10/2026): com 8
+          setores (vs. 7 abas do App), a barra usava h-12/text-[8px]/ícone de
+          16px — bem mais densa que a barra do App (min-h-16/text-[11px]/
+          ícone de 17-19px) sem que a contagem de itens exigisse isso. Os
+          tamanhos abaixo aproximam a densidade da do App, dentro do espaço
+          que 8 colunas (contra 7) ainda permitem.
+        */}
         <nav
           aria-label="Setores do Desk"
-          className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-8 border-t border-navy/10 bg-card px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 shadow-sm md:hidden"
+          className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-8 border-t border-navy/10 bg-card px-1 pb-[env(safe-area-inset-bottom)] pt-2 shadow-sm md:hidden"
           data-desk-nav-movel
         >
           {SETORES_DESK.map((setor) => {
@@ -498,11 +506,11 @@ export function SaasShell({
                 aria-current={ativo ? "page" : undefined}
                 aria-label={setor.label}
                 className={cn(
-                  "flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-md px-0.5 text-[8px] font-medium",
+                  "flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-md px-0.5 text-[10px] font-medium",
                   ativo ? "bg-gold/20 text-navy" : "text-navy/50",
                 )}
               >
-                <Icon className="h-4 w-4" aria-hidden="true" />
+                <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
                 <span className="max-w-full truncate">{setor.label.split(" ")[0]}</span>
               </Link>
             );
