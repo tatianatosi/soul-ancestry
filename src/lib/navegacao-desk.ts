@@ -538,8 +538,32 @@ export function rotasSemLink(): string[] {
   return ROTAS_PRESERVADAS.filter((r) => !menu.has(r) && !(r in CLASSIFICACAO_SANEAMENTO_V4));
 }
 
+/*
+ * Achado 13 (pendências da auditoria, 27/10/2026): esta função tinha lógica
+ * real contando duplicatas dentro de cada grupo de GRUPOS_DESK; na
+ * migração para SETORES_DESK_V5 (commit 68da7b21) o corpo foi substituído
+ * por `return []` e nunca reescrito contra a nova fonte — ficou um guarda
+ * inerte, sempre "limpo" mesmo que uma duplicata real apareça. RELIGADA:
+ * GRUPOS_DESK continua sendo a fonte real (SETORES_DESK_V5 é só um apelido
+ * derivado dela, linha 400), então a lógica original continua válida sem
+ * nenhuma reescrita de dados.
+ *
+ * Um mesmo destino (rota + hash) não pode se repetir DENTRO de um grupo.
+ * Entre grupos, a repetição é link contextual declarado (ex.: Validação
+ * Jurídica em Governança com atalho em Comercial e Casos) — não é falha nova.
+ */
 export function destinosDuplicados(): string[] {
-  return [];
+  const dup: string[] = [];
+  for (const g of GRUPOS_DESK) {
+    const vistos = new Set<string>();
+    for (const s of g.sub) {
+      if (!("to" in s)) continue;
+      const chave = `${g.id}:${s.to}#${s.hash ?? ""}`;
+      if (vistos.has(chave)) dup.push(chave);
+      vistos.add(chave);
+    }
+  }
+  return dup;
 }
 
 export function grupoDonoDaRota(rota: string): string | null {
@@ -552,15 +576,55 @@ export function grupoDonoDaRota(rota: string): string | null {
   return null;
 }
 
+/*
+ * Achado 13: mesmo caso de destinosDuplicados — ficou `return []` fixo
+ * desde a migração para SETORES_DESK_V5. RELIGADA contra GRUPOS_DESK (a
+ * mesma fonte real).
+ *
+ * Mesmo destino (rota + hash) citado em mais de um grupo. Com os grupos
+ * sem sobreposição, a lista deve ficar vazia — mas agora é calculada, não
+ * assumida.
+ */
 export function destinosSobrepostos(): string[] {
-  return [];
+  const visto = new Map<string, string[]>();
+  for (const g of GRUPOS_DESK) {
+    for (const s of g.sub) {
+      if (!("to" in s)) continue;
+      const chave = `${s.to}#${s.hash ?? ""}`;
+      const grupos = visto.get(chave) ?? [];
+      grupos.push(g.id);
+      visto.set(chave, grupos);
+    }
+  }
+  return [...visto.entries()].filter(([, grupos]) => grupos.length > 1).map(([chave]) => chave);
 }
 
+/** Sem atalhos cruzados declarados hoje: cada rota mora em um único grupo. */
 export const LINKS_CONTEXTUAIS: readonly { rota: string; origem: string; tambemEm: string[] }[] =
   [];
 
+/*
+ * Achado 13: o corpo também virou `return null` fixo na mesma migração.
+ * Como LINKS_CONTEXTUAIS já é `[]`, o resultado observável não mudou — mas
+ * a função parou de checar o registro, e um link contextual futuro
+ * declarado em LINKS_CONTEXTUAIS seria ignorado em silêncio. RELIGADA.
+ *
+ * O grupo onde a rota mora, quando ela está sendo citada de fora dele.
+ *
+ * 26/08/2026 — a Proprietária leu o menu como tendo "muitas sobreposições".
+ * As repetições são deliberadas (`LINKS_CONTEXTUAIS`), mas eram indistinguíveis
+ * da entrada canônica: `/matriz-juridica` aparecia com o MESMO rótulo em três
+ * grupos, sem nada dizendo que mora em Governança. Repetição sem marca lê-se
+ * como duplicação.
+ *
+ * Devolve o grupo de origem quando o item é atalho, e null quando é a entrada
+ * canônica — aí não há nada a marcar.
+ */
 export function origemDoAtalho(grupoLabel: string, rota: string): string | null {
-  return null;
+  const registro = LINKS_CONTEXTUAIS.find((l) => l.rota === rota);
+  if (!registro) return null;
+  if (registro.origem === grupoLabel) return null;
+  return registro.tambemEm.includes(grupoLabel) ? registro.origem : null;
 }
 
 export const NATUREZA_BIBLIOTECA: readonly {
