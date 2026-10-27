@@ -25,7 +25,7 @@
  * prévia é regerada DEPOIS dos parâmetros, não há mais defasagem possível
  * entre os dois.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -35,7 +35,12 @@ import { BaixarDocxContrato } from "@/components/contrato/baixar-docx-contrato";
 import { BaixarPdfContrato } from "@/components/contrato/baixar-pdf-contrato";
 import { abrirPreparacaoContrato } from "@/lib/contrato-preparar.functions";
 import { gerarDocumentoAtual } from "@/lib/contrato-parametros.functions";
-import { motivoBloqueioSaida, previaVigente, rotuloPrevia } from "@/lib/previa-vigente";
+import {
+  motivoBloqueioSaida,
+  previaVigente,
+  rotuloPrevia,
+  type PreviaRegistro,
+} from "@/lib/previa-vigente";
 import { RENDERIZADOR_VERSAO } from "@/lib/renderizador-versao";
 import { CLAUSULAS_FIXAS, CONTRATO_BASE_VERSAO } from "@/lib/contrato-base-consolidado";
 
@@ -51,6 +56,10 @@ export function DocumentoDoInstrumento({ caseId }: { caseId: string }) {
 
   const gerar = useServerFn(gerarDocumentoAtual);
   const [ultimoAviso, setUltimoAviso] = useState<string | null>(null);
+  // 27/10/2026 (R7, auditoria de espectro completo): sem isto, o aviso do
+  // contrato anterior ficava visível ao trocar de caso com o componente
+  // montado — mesma classe do bug de rascunho vazando entre leads.
+  useEffect(() => setUltimoAviso(null), [caseId]);
   const mGerar = useMutation({
     mutationFn: () => gerar({ data: { caseId } }),
     onSuccess: (r) => {
@@ -61,7 +70,23 @@ export function DocumentoDoInstrumento({ caseId }: { caseId: string }) {
             ? `Parametrização automática não rodou: ${r.parametrizacao.aviso}`
             : null,
       );
-      toast.success(r.identico ? "Documento já estava com o dado atual." : "Documento regerado com o dado atual.");
+      /*
+       * 27/10/2026 (R3): quando a parametrização não roda, o documento é
+       * regerado mesmo assim — mas a partir do parâmetro que já estava lá,
+       * não necessariamente "o dado atual". Dizer isso quando não se
+       * cumpriu é o mesmo defeito que motivou esta tela inteira.
+       */
+      if (r.parametrizacao.executada) {
+        toast.success(
+          r.identico
+            ? "Documento já estava com o dado atual."
+            : "Documento regerado com o dado atual.",
+        );
+      } else {
+        toast.warning(
+          "Documento regerado, mas a parametrização automática não rodou — veja o aviso abaixo.",
+        );
+      }
       void qc.invalidateQueries({ queryKey: chave });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -84,19 +109,30 @@ export function DocumentoDoInstrumento({ caseId }: { caseId: string }) {
     );
   }
 
-  const d = q.data as Record<string, unknown>;
-  const previas = Array.isArray(d.previas) ? (d.previas as Record<string, unknown>[]) : [];
-  const previaAtual = previaVigente(previas as never);
+  /*
+   * 27/10/2026 (R6): `abrirPreparacaoContrato` não tem tipo de retorno
+   * exportado (é um objeto grande, inferido) — mas os dois campos usados
+   * aqui têm forma conhecida e exportada: `previas` é exatamente o que
+   * `previaVigente` espera. `Record<string, unknown>` + `as never` jogava
+   * fora a checagem justamente no dado que decide se o PDF pode sair; um
+   * campo renomeado passava pelo tsc e `previaId` virava `null` em
+   * silêncio — o mesmo sintoma relatado originalmente.
+   */
+  const d = q.data as { previas?: PreviaRegistro[]; parametroAlteradoEm?: string | null };
+  const previas = Array.isArray(d.previas) ? d.previas : [];
+  const previaAtual = previaVigente(previas);
   const bloqueio = motivoBloqueioSaida(
     previaAtual,
-    (d.parametroAlteradoEm as string | null) ?? null,
+    d.parametroAlteradoEm ?? null,
     RENDERIZADOR_VERSAO,
   );
   const previaId = bloqueio ? null : (previaAtual?.id ?? null);
 
   return (
     <section className="space-y-2" aria-label="Documento do instrumento" data-documento-instrumento>
-      <p className="text-xs text-navy/60">{rotuloPrevia(previaAtual, CONTRATO_BASE_VERSAO, CLAUSULAS_FIXAS.length)}</p>
+      <p className="text-xs text-navy/60">
+        {rotuloPrevia(previaAtual, CONTRATO_BASE_VERSAO, CLAUSULAS_FIXAS.length)}
+      </p>
 
       <button
         type="button"
@@ -108,6 +144,29 @@ export function DocumentoDoInstrumento({ caseId }: { caseId: string }) {
         {mGerar.isPending ? "Gerando…" : "Gerar documento com o dado atual"}
       </button>
       {ultimoAviso ? <p className="text-[11px] text-navy/55">{ultimoAviso}</p> : null}
+
+      {/*
+        27/10/2026 (R4, auditoria de espectro completo): o bloqueio vinha
+        DEPOIS dos botões de download desabilitados — a família via dois
+        botões cinzas e só descobria o motivo rolando a tela. Explicação
+        antes da ação que ela explica.
+      */}
+      {bloqueio ? (
+        <div className="rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-xs text-navy">
+          <p data-documento-instrumento-bloqueio>{bloqueio}</p>
+          <p className="mt-1">
+            Use "Gerar documento com o dado atual" acima, ou{" "}
+            <Link
+              to="/casos/$caseId/contrato/preparar"
+              params={{ caseId }}
+              className="font-medium underline decoration-gold underline-offset-4"
+            >
+              abra a preparação do contrato
+            </Link>
+            .
+          </p>
+        </div>
+      ) : null}
 
       {/*
         26/10/2026 — "Gerar documento com o dado atual" parametriza (só
@@ -128,23 +187,6 @@ export function DocumentoDoInstrumento({ caseId }: { caseId: string }) {
           className="min-h-11 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50 sm:min-h-0"
         />
       </div>
-
-      {bloqueio ? (
-        <div className="rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-xs text-navy">
-          <p data-documento-instrumento-bloqueio>{bloqueio}</p>
-          <p className="mt-1">
-            Use "Gerar documento com o dado atual" acima, ou{" "}
-            <Link
-              to="/casos/$caseId/contrato/preparar"
-              params={{ caseId }}
-              className="font-medium underline decoration-gold underline-offset-4"
-            >
-              abra a preparação do contrato
-            </Link>
-            .
-          </p>
-        </div>
-      ) : null}
     </section>
   );
 }
