@@ -27,7 +27,7 @@ import {
   qualificacaoCompletaContratada,
   qualificacaoContratadaCoerente,
 } from "@/lib/contrato-base-consolidado";
-import { renderCorpoContratual } from "@/lib/contrato-corpo.server";
+import { renderCorpoContratual, type ClausulaOverride } from "@/lib/contrato-corpo.server";
 import {
   ORIGEM_CANVA,
   STATUS_CANVA,
@@ -48,21 +48,31 @@ import {
 } from "@/lib/anexos-persistidos.server";
 import { ehAnexoRevisado, planejarMaterializacao } from "@/lib/anexos-materializacao";
 
-
 import { skuHomologadoParaCaso } from "@/lib/catalogo-sku.server";
 import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
 import { referenciaFinanceiraDoCaso } from "@/lib/financeiro-referencia.server";
-import { CONFLITO_PAIS_ROTA, textoCompativel, qualificadorPaisDoCodigo } from "@/lib/coerencia-caso";
-import { MARCA_CORRECAO_PLANEJADOR, exigirCoerencia, temCorrecaoHomologada } from "@/lib/coerencia-caso.server";
+import {
+  CONFLITO_PAIS_ROTA,
+  textoCompativel,
+  qualificadorPaisDoCodigo,
+} from "@/lib/coerencia-caso";
+import {
+  MARCA_CORRECAO_PLANEJADOR,
+  exigirCoerencia,
+  temCorrecaoHomologada,
+} from "@/lib/coerencia-caso.server";
 import { exigirGate } from "@/lib/escopo-conferencia.server";
-import { MARCA_ESVAZIADO_PELA_EQUIPE, definicaoCampo, validarValorCampo } from "@/lib/parametros-dicionario";
+import {
+  MARCA_ESVAZIADO_PELA_EQUIPE,
+  definicaoCampo,
+  validarValorCampo,
+} from "@/lib/parametros-dicionario";
 import { candidatosComerciaisDaProposta, propostaAptaParaPrecarga } from "@/lib/proposta-comercial";
 import { exigirPreviaVigenteLiberada } from "@/lib/previa-vigente.server";
 import { RENDERIZADOR_VERSAO } from "@/lib/renderizador-versao";
 
 /** Chave de conflito por campo quando a proposta aprovada diverge do valor homologado no Planejador. */
 const CONFLITO_PROPOSTA_PLANEJADOR = "proposal_planner_value_conflict";
-
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -145,7 +155,8 @@ export const garantirParametros = createServerFn({ method: "POST" })
       .select("id,demo,organization_id,cliente_id")
       .eq("id", data.caseId)
       .maybeSingle();
-    if (!caso || caso.organization_id !== org) throw new Error("Caso não encontrado nesta organização.");
+    if (!caso || caso.organization_id !== org)
+      throw new Error("Caso não encontrado nesta organização.");
     if (caso.demo) throw new Error("Casos de demonstração não alimentam o motor contratual real.");
 
     const { data: existente } = await supabase
@@ -223,24 +234,42 @@ export const painelParametros = createServerFn({ method: "GET" })
         .order("ordem", { ascending: true }),
       supabase
         .from("contract_parameter_previews")
-        .select("id,versao,tipo,placeholders_pendentes,anexos,congelado_em,aprovado_em,aprovado_por,template_code,template_version")
+        .select(
+          "id,versao,tipo,placeholders_pendentes,anexos,congelado_em,aprovado_em,aprovado_por,template_code,template_version",
+        )
         .eq("parameters_id", data.id)
         .is("archived_at", null)
         .order("versao", { ascending: false }),
       supabase.from("crm_casos").select("*").eq("id", registro.case_id).maybeSingle(),
       registro.contract_template_id
-        ? supabase.from("contract_templates").select("id,code,name,template_version,status").eq("id", registro.contract_template_id).maybeSingle()
+        ? supabase
+            .from("contract_templates")
+            .select("id,code,name,template_version,status")
+            .eq("id", registro.contract_template_id)
+            .maybeSingle()
         : Promise.resolve({ data: null }),
       supabase.rpc("contract_parameters_completude", { _id: data.id }),
       supabase.rpc("contract_parameters_pendencias", { _id: data.id }),
     ]);
 
     const cliente = caso.data?.cliente_id
-      ? (await supabase.from("clientes").select("id,nome,email,telefone,demo").eq("id", caso.data.cliente_id).maybeSingle()).data
+      ? (
+          await supabase
+            .from("clientes")
+            .select("id,nome,email,telefone,demo")
+            .eq("id", caso.data.cliente_id)
+            .maybeSingle()
+        ).data
       : null;
 
     const contrato = registro.contract_id
-      ? (await supabase.from("contracts").select("id,contract_number,status,signed_at,signature_reference,signed_source").eq("id", registro.contract_id).maybeSingle()).data
+      ? (
+          await supabase
+            .from("contracts")
+            .select("id,contract_number,status,signed_at,signature_reference,signed_source")
+            .eq("id", registro.contract_id)
+            .maybeSingle()
+        ).data
       : null;
 
     const valoresLista = await anexarOpcoesVivasDoCatalogo(
@@ -382,393 +411,437 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
 type ModoPreenchimento = { somentePreencherVazios?: boolean };
 
 async function preencherDeOrigensNucleo(supabase: Sb, id: string, modo: ModoPreenchimento = {}) {
-    const data = { id };
+  const data = { id };
 
-    const { data: registro } = await supabase
-      .from("contract_case_parameters")
-      .select("*")
-      .eq("id", data.id)
-      .maybeSingle();
-    if (!registro) throw new Error("Registro de parâmetros não encontrado.");
+  const { data: registro } = await supabase
+    .from("contract_case_parameters")
+    .select("*")
+    .eq("id", data.id)
+    .maybeSingle();
+  if (!registro) throw new Error("Registro de parâmetros não encontrado.");
 
-    const { data: caso } = await supabase.from("crm_casos").select("*").eq("id", registro.case_id).maybeSingle();
-    if (!caso || caso.demo) throw new Error("Origem indisponível: o caso é inválido ou de demonstração.");
-    const cliente = caso.cliente_id
-      ? (await supabase.from("clientes").select("*").eq("id", caso.cliente_id).maybeSingle()).data
-      : null;
-    if (cliente?.demo) throw new Error("Cliente de demonstração não pode alimentar o contrato real.");
+  const { data: caso } = await supabase
+    .from("crm_casos")
+    .select("*")
+    .eq("id", registro.case_id)
+    .maybeSingle();
+  if (!caso || caso.demo)
+    throw new Error("Origem indisponível: o caso é inválido ou de demonstração.");
+  const cliente = caso.cliente_id
+    ? (await supabase.from("clientes").select("*").eq("id", caso.cliente_id).maybeSingle()).data
+    : null;
+  if (cliente?.demo) throw new Error("Cliente de demonstração não pode alimentar o contrato real.");
 
-    // Identidade da própria contratada: mesma em todo caso, independente do
-    // Planejador (que é específico da rota/país do caso da Ana etc.).
-    const { qualificacaoContratadaTexto } = await import("@/lib/perfil-institucional");
-    const candidatos: { campo: string; valor: unknown; origem: string; detalhe: string }[] = [
-      {
-        campo: "contratada_qualificacao",
-        valor: qualificacaoContratadaTexto(),
-        origem: "perfil_institucional",
-        detalhe: "Perfil institucional vigente do Clube Ancestral",
-      },
-    ];
+  // Identidade da própria contratada: mesma em todo caso, independente do
+  // Planejador (que é específico da rota/país do caso da Ana etc.).
+  const { qualificacaoContratadaTexto } = await import("@/lib/perfil-institucional");
+  const candidatos: { campo: string; valor: unknown; origem: string; detalhe: string }[] = [
+    {
+      campo: "contratada_qualificacao",
+      valor: qualificacaoContratadaTexto(),
+      origem: "perfil_institucional",
+      detalhe: "Perfil institucional vigente do Clube Ancestral",
+    },
+  ];
 
-    // Fonte da pré-carga específica do caso: Planejador Universal homologado.
-    // SKU só entra se product_catalog confirmar o código da convenção (P7 / #68).
-    const orgDoCaso = (registro.organization_id ?? caso.organization_id) as string | undefined;
-    const skuHomologado = await skuHomologadoParaCaso(supabase, orgDoCaso, caso.codigo);
-    // Parâmetro financeiro vem de dado vivo (condição do caso ou referência
-    // do país), nunca do lookup estático legado (P22, 2026-09-26).
-    const paisCodigo = qualificadorPaisDoCodigo(caso.codigo)?.sigla ?? null;
-    const referenciaFinanceira = orgDoCaso
-      ? await referenciaFinanceiraDoCaso(supabase, orgDoCaso, caso.id, paisCodigo)
-      : null;
-    const planejador = parametrosDoPlanejador(caso.codigo, skuHomologado, referenciaFinanceira);
-    if (!planejador.convencao) {
-      throw new Error("Sem convenção homologada no Planejador para este caso: nada a pré-carregar.");
-    }
+  // Fonte da pré-carga específica do caso: Planejador Universal homologado.
+  // SKU só entra se product_catalog confirmar o código da convenção (P7 / #68).
+  const orgDoCaso = (registro.organization_id ?? caso.organization_id) as string | undefined;
+  const skuHomologado = await skuHomologadoParaCaso(supabase, orgDoCaso, caso.codigo);
+  // Parâmetro financeiro vem de dado vivo (condição do caso ou referência
+  // do país), nunca do lookup estático legado (P22, 2026-09-26).
+  const paisCodigo = qualificadorPaisDoCodigo(caso.codigo)?.sigla ?? null;
+  const referenciaFinanceira = orgDoCaso
+    ? await referenciaFinanceiraDoCaso(supabase, orgDoCaso, caso.id, paisCodigo)
+    : null;
+  const planejador = parametrosDoPlanejador(caso.codigo, skuHomologado, referenciaFinanceira);
+  if (!planejador.convencao) {
+    throw new Error("Sem convenção homologada no Planejador para este caso: nada a pré-carregar.");
+  }
 
-    // Corte U2 (28/09/2026): partes vêm da Pessoa 360 (origem "crm"); o
-    // cadastro legado do Planejador só cobre o que a Pessoa 360 não tem.
-    const { parametrosCanonicosDoCaso, mesclarComPessoaCanonica } = await import("@/lib/contrato-partes-canonicas.server");
-    const canonicos = await parametrosCanonicosDoCaso(supabase, orgDoCaso, caso as { id: string; cliente_id?: string | null });
-    candidatos.push(
-      ...mesclarComPessoaCanonica(planejador.parametros, canonicos).map((p) => ({
-        campo: p.campo,
-        valor: p.valor,
-        origem: "origem" in p ? p.origem : "planejador",
-        detalhe: p.detalhe,
-      })),
-    );
+  // Corte U2 (28/09/2026): partes vêm da Pessoa 360 (origem "crm"); o
+  // cadastro legado do Planejador só cobre o que a Pessoa 360 não tem.
+  const { parametrosCanonicosDoCaso, mesclarComPessoaCanonica } =
+    await import("@/lib/contrato-partes-canonicas.server");
+  const canonicos = await parametrosCanonicosDoCaso(
+    supabase,
+    orgDoCaso,
+    caso as { id: string; cliente_id?: string | null },
+  );
+  candidatos.push(
+    ...mesclarComPessoaCanonica(planejador.parametros, canonicos).map((p) => ({
+      campo: p.campo,
+      valor: p.valor,
+      origem: "origem" in p ? p.origem : "planejador",
+      detalhe: p.detalhe,
+    })),
+  );
 
-    // Exceção controlada (somente domínio comercial): quando o Planejador não
-    // possui parâmetro financeiro homologado para a rota, a proposta vinculada,
-    // ativa e aprovada pré-carrega os campos comerciais como
-    // `importado_a_confirmar`. Planejador continua tendo precedência: se ele
-    // homologou o campo, a proposta só pode gerar conflito, nunca sobrescrever.
-    const { data: propostaCaso } = await supabase
-      .from("proposals")
-      .select("id,versao,status,archived_at,valor,moeda,forma_pagamento,escopo,exclusoes")
-      .eq("case_id", registro.case_id)
-      .is("archived_at", null)
-      .order("versao", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+  // Exceção controlada (somente domínio comercial): quando o Planejador não
+  // possui parâmetro financeiro homologado para a rota, a proposta vinculada,
+  // ativa e aprovada pré-carrega os campos comerciais como
+  // `importado_a_confirmar`. Planejador continua tendo precedência: se ele
+  // homologou o campo, a proposta só pode gerar conflito, nunca sobrescrever.
+  const { data: propostaCaso } = await supabase
+    .from("proposals")
+    .select("id,versao,status,archived_at,valor,moeda,forma_pagamento,escopo,exclusoes")
+    .eq("case_id", registro.case_id)
+    .is("archived_at", null)
+    .order("versao", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-    const propostaApta = propostaAptaParaPrecarga(propostaCaso as any);
-    const camposDoPlanejador = new Set(candidatos.map((c) => c.campo));
-    const conflitosProposta: { campo: string; proposta: string; planejador: string }[] = [];
-    const candidatosProposta = candidatosComerciaisDaProposta(propostaCaso as any);
-    for (const c of candidatosProposta) {
-      const homologado = candidatos.find((p) => p.campo === c.campo);
-      if (homologado) {
-        if (String(homologado.valor ?? "").trim() !== c.valor) {
-          conflitosProposta.push({ campo: c.campo, proposta: c.valor, planejador: String(homologado.valor ?? "") });
-        }
-        continue;
-      }
-      candidatos.push({ campo: c.campo, valor: c.valor, origem: "proposta", detalhe: c.detalhe });
-    }
-
-    /*
-     * 04/10/2026 — os 3 obrigatórios vazios que já tinham fonte real.
-     *
-     * Medição do caso canônico CA-CID-AT-FAM-2026-001: 5 parâmetros
-     * obrigatórios vazios travavam a prévia. Três deles tinham fonte viva e
-     * nenhuma delas era lida aqui; dois não têm fonte e continuam pendência
-     * humana declarada (`vencimentos`, porque a condição comercial do caso não
-     * tem dia de vencimento nem parcelas; `ancestral_referencia`, porque a
-     * âncora da linhagem é a própria requerente, não o ancestral — derivar
-     * dali poria a cliente como ancestral de si mesma).
-     *
-     * Nada é inferido: cada candidato abaixo só existe se a fonte existir.
-     */
-    if (propostaApta) {
-      const exclusoes = String((propostaCaso as any)?.exclusoes ?? "").trim();
-      if (exclusoes && !camposDoPlanejador.has("servicos_excluidos")) {
-        candidatos.push({
-          campo: "servicos_excluidos",
-          valor: exclusoes,
-          origem: "proposta",
-          detalhe: `Exclusões declaradas na proposta aprovada v${(propostaCaso as any)?.versao ?? "?"}`,
-        });
-      }
-    }
-
-    /*
-     * Produto contratado vem do PRODUTO-PAI do Planejador, não de SKU de
-     * catálogo: "planilha mestre é legado, SKU não manda" (Proprietária,
-     * 03/10/2026). O campo se chama `produto_sku` por histórico de schema —
-     * o conteúdo é o produto-pai homologado e a rota confirmada.
-     */
-    const { data: planoAtivo } = await supabase
-      .from("case_plans")
-      .select("produto_pai_id,rota_confirmada")
-      .eq("case_id", registro.case_id)
-      .is("archived_at", null)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const produtoPaiId = String(planoAtivo?.produto_pai_id ?? "").trim();
-    if (produtoPaiId) {
-      const { produtoPaiPorId } = await import("@/lib/planejador-produtos-pai");
-      const pp = produtoPaiPorId(produtoPaiId as never);
-      const rota = String(planoAtivo?.rota_confirmada ?? "").trim();
-      candidatos.push({
-        campo: "produto_sku",
-        valor: [produtoPaiId, pp?.nome, rota ? `rota ${rota}` : null].filter(Boolean).join(" — "),
-        origem: "planejador",
-        detalhe: "Produto-pai homologado no Planejador do caso (sem SKU técnico de catálogo)",
-      });
-    }
-
-    /*
-     * Anexos aplicáveis: derivados da instância já persistida em
-     * `contract_annexes` — o que foi materializado para este caso, não uma
-     * segunda derivação em memória que poderia divergir da instância salva.
-     */
-    const { data: anexosDoCaso } = await supabase
-      .from("contract_annexes")
-      .select("annex_code,status,annex_version")
-      .eq("organization_id", orgDoCaso ?? "")
-      .eq("case_id", registro.case_id)
-      .is("archived_at", null)
-      .order("annex_version", { ascending: false });
-    const aplicaveis = [
-      ...new Set(
-        ((anexosDoCaso ?? []) as any[])
-          .filter((a) => !["not_applicable", "archived"].includes(String(a.status)))
-          .map((a) => String(a.annex_code)),
-      ),
-    ].sort();
-    if (aplicaveis.length) {
-      candidatos.push({
-        campo: "anexos_aplicaveis",
-        valor: aplicaveis.join(", "),
-        origem: "calculo_aprovado",
-        detalhe: "Derivado das instâncias de anexo já materializadas para o caso",
-      });
-    }
-
-
-
-
-    const valoresRes = await supabase
-      .from("contract_parameter_values")
-      .select("*")
-      .eq("parameters_id", data.id)
-      .is("archived_at", null);
-    const valores = linhas<any>(valoresRes, "valores dos parâmetros do contrato");
-
-    let importados = 0;
-    const conflitos: { campo: string; atual: string; origem_atual: string; candidato: string; origem_candidata: string }[] = [];
-
-    const qualificador = qualificadorPaisDoCodigo(caso.codigo);
-    const incoerentes: { campo: string; valor: string; esperado: string }[] = [];
-
-    // Higiene: valor gravado com origem `planejador` que não corresponde mais à
-    // convenção homologada (campo revogado ou país incoerente com o código canônico)
-    // é limpo, virando pendência — nunca permanece herdado de outra cidadania.
-    const camposHomologados = new Set(candidatos.map((c) => c.campo));
-    const limpos: { campo: string; valor: string }[] = [];
-    // Limpar valor é decisão: só o botão manual faz. O modo automático só soma.
-    for (const v of modo.somentePreencherVazios ? [] : valores) {
-      if (v.origem !== "planejador" || !v.valor?.trim()) continue;
-      if (temCorrecaoHomologada(v)) continue;
-      const revogado = !camposHomologados.has(v.campo);
-      const incoerente = Boolean(qualificador) && !textoCompativel(v.valor, qualificador!.sigla);
-      if (!revogado && !incoerente) continue;
-      const { data: linhaLimpa, error } = await supabase
-        .from("contract_parameter_values")
-        .update({
-          valor: "",
-          status: "vazio",
-          origem: null,
-          origem_detalhe: null,
-          conflito: [],
-          justificativa: revogado
-            ? `Parâmetro revogado na convenção homologada ${planejador.convencao?.prefixo} (${planejador.versao}): valor anterior removido e devolvido a pendência.`
-            : `Valor incoerente com o qualificador de país do código canônico (${qualificador?.pais}): removido e devolvido a pendência.`,
-        })
-        .eq("id", v.id)
-        .select("id");
-      if (error) throw new Error(error.message);
-      if (!linhaLimpa?.length) throw new Error("NENHUMA_LINHA_AFETADA: parâmetro não foi limpo.");
-
-      limpos.push({ campo: v.campo, valor: v.valor });
-      v.valor = "";
-      v.status = "vazio";
-      v.origem = null;
-    }
-
-
-    for (const c of candidatos) {
-      const texto = String(c.valor ?? "").trim();
-      if (!texto || PLACEHOLDER_PARAM.test(texto)) continue;
-      const atual = valores.find((v: any) => v.campo === c.campo);
-      if (!atual) continue;
-
-      // Correção humana homologada nunca é sobrescrita pela pré-carga.
-      if (temCorrecaoHomologada(atual)) continue;
-
-      // Coerência com o qualificador de país do código canônico.
-      if (qualificador && !textoCompativel(texto, qualificador.sigla)) {
-        incoerentes.push({ campo: c.campo, valor: texto, esperado: qualificador.pais });
-        const rIncoerente = await supabase
-          .from("contract_parameter_values")
-          .update({
-            conflito: [
-              {
-                chave: CONFLITO_PAIS_ROTA,
-                origem: c.origem,
-                detalhe: c.detalhe,
-                valor: texto,
-                esperado: qualificador.pais,
-                detectado_em: new Date().toISOString(),
-              },
-            ],
-          })
-          .eq("id", atual.id)
-          .select("id");
-        if (rIncoerente.error) throw new Error(rIncoerente.error.message);
-        if (!rIncoerente.data?.length) throw new Error("NENHUMA_LINHA_AFETADA: conflito de país não foi registrado.");
-        continue;
-      }
-
-      if (atual.valor && atual.valor.trim() === texto) {
-        // Mesmo valor, origem diferente: a ficha passa a registrar a proposta
-        // aprovada como fonte, preservando a origem anterior na auditoria.
-        if (!modo.somentePreencherVazios && c.origem === "proposta" && atual.origem !== "proposta" && atual.status !== "validado") {
-          const rOrigem = await supabase
-            .from("contract_parameter_values")
-            .update({
-              origem: "proposta",
-              origem_detalhe: c.detalhe,
-              justificativa: `Origem corrigida para proposta aprovada após conferência; origem anterior: ${atual.origem ?? "não informada"}.`,
-            })
-            .eq("id", atual.id)
-            .select("id");
-          if (rOrigem.error) throw new Error(rOrigem.error.message);
-          if (!rOrigem.data?.length) throw new Error("NENHUMA_LINHA_AFETADA: origem do parâmetro não foi corrigida.");
-          atual.origem = "proposta";
-        }
-        continue;
-      }
-
-      // Fonte de menor confiança nunca sobrescreve valor já carregado
-      // (o Planejador homologado é a fonte mais confiável): vira conflito.
-      // A proposta também nunca sobrescreve valor já presente: só abre conflito.
-      const menorConfianca = Boolean(atual.valor) && confianca(c.origem) < confianca(atual.origem);
-      const propostaSobreValorExistente = c.origem === "proposta" && Boolean(atual.valor?.trim());
-
-      // Modo automático: campo já preenchido nunca é substituído — só sinaliza.
-      const automaticoSobreValorExistente = Boolean(modo.somentePreencherVazios) && Boolean(atual.valor?.trim());
-
-      if ((atual.status === "validado" && atual.valor) || menorConfianca || propostaSobreValorExistente || automaticoSobreValorExistente) {
-
-        conflitos.push({
+  const propostaApta = propostaAptaParaPrecarga(propostaCaso as any);
+  const camposDoPlanejador = new Set(candidatos.map((c) => c.campo));
+  const conflitosProposta: { campo: string; proposta: string; planejador: string }[] = [];
+  const candidatosProposta = candidatosComerciaisDaProposta(propostaCaso as any);
+  for (const c of candidatosProposta) {
+    const homologado = candidatos.find((p) => p.campo === c.campo);
+    if (homologado) {
+      if (String(homologado.valor ?? "").trim() !== c.valor) {
+        conflitosProposta.push({
           campo: c.campo,
-          atual: atual.valor,
-          origem_atual: atual.origem,
-          candidato: texto,
-          origem_candidata: c.origem,
+          proposta: c.valor,
+          planejador: String(homologado.valor ?? ""),
         });
-        const rConflito = await supabase
-          .from("contract_parameter_values")
-          .update({
-            conflito: [{ origem: c.origem, detalhe: c.detalhe, valor: texto, detectado_em: new Date().toISOString() }],
-          })
-          .eq("id", atual.id)
-          .select("id");
-        if (rConflito.error) throw new Error(rConflito.error.message);
-        if (!rConflito.data?.length) throw new Error("NENHUMA_LINHA_AFETADA: conflito de parâmetro não foi registrado.");
-        continue;
       }
-
-      const { data: linhaImportada, error } = await supabase
-        .from("contract_parameter_values")
-        .update({
-          valor: texto,
-          origem: c.origem,
-          origem_detalhe: c.detalhe,
-          status: "importado_a_confirmar",
-        })
-        .eq("id", atual.id)
-        .select("id");
-      if (error) throw new Error(error.message);
-      if (!linhaImportada?.length) throw new Error("NENHUMA_LINHA_AFETADA: parâmetro não foi importado.");
-      importados += 1;
-      // mantém o estado local coerente para os próximos candidatos do mesmo campo
-      atual.valor = texto;
-      atual.origem = c.origem;
-      atual.origem_detalhe = c.detalhe;
-      atual.status = "importado_a_confirmar";
+      continue;
     }
+    candidatos.push({ campo: c.campo, valor: c.valor, origem: "proposta", detalhe: c.detalhe });
+  }
 
-    // Divergência proposta × Planejador: o Planejador já venceu na pré-carga acima
-    // (candidatos só tem o valor do Planejador quando ele existe, linha ~298), mas a
-    // proposta descartada não fica visível em lugar nenhum — some ao fechar o toast
-    // desta ação. Grava a mesma marca de conflito por campo (contract_parameter_values.conflito)
-    // já usada para incoerência de país/rota, para que apareça de forma persistente em
-    // LinhaParametro e possa ser resolvida do mesmo jeito (editar o valor limpa o conflito).
-    for (const cp of conflitosProposta) {
-      const atual = valores.find((v: any) => v.campo === cp.campo);
-      if (!atual) continue;
-      const rConflitoProposta = await supabase
+  /*
+   * 04/10/2026 — os 3 obrigatórios vazios que já tinham fonte real.
+   *
+   * Medição do caso canônico CA-CID-AT-FAM-2026-001: 5 parâmetros
+   * obrigatórios vazios travavam a prévia. Três deles tinham fonte viva e
+   * nenhuma delas era lida aqui; dois não têm fonte e continuam pendência
+   * humana declarada (`vencimentos`, porque a condição comercial do caso não
+   * tem dia de vencimento nem parcelas; `ancestral_referencia`, porque a
+   * âncora da linhagem é a própria requerente, não o ancestral — derivar
+   * dali poria a cliente como ancestral de si mesma).
+   *
+   * Nada é inferido: cada candidato abaixo só existe se a fonte existir.
+   */
+  if (propostaApta) {
+    const exclusoes = String((propostaCaso as any)?.exclusoes ?? "").trim();
+    if (exclusoes && !camposDoPlanejador.has("servicos_excluidos")) {
+      candidatos.push({
+        campo: "servicos_excluidos",
+        valor: exclusoes,
+        origem: "proposta",
+        detalhe: `Exclusões declaradas na proposta aprovada v${(propostaCaso as any)?.versao ?? "?"}`,
+      });
+    }
+  }
+
+  /*
+   * Produto contratado vem do PRODUTO-PAI do Planejador, não de SKU de
+   * catálogo: "planilha mestre é legado, SKU não manda" (Proprietária,
+   * 03/10/2026). O campo se chama `produto_sku` por histórico de schema —
+   * o conteúdo é o produto-pai homologado e a rota confirmada.
+   */
+  const { data: planoAtivo } = await supabase
+    .from("case_plans")
+    .select("produto_pai_id,rota_confirmada")
+    .eq("case_id", registro.case_id)
+    .is("archived_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const produtoPaiId = String(planoAtivo?.produto_pai_id ?? "").trim();
+  if (produtoPaiId) {
+    const { produtoPaiPorId } = await import("@/lib/planejador-produtos-pai");
+    const pp = produtoPaiPorId(produtoPaiId as never);
+    const rota = String(planoAtivo?.rota_confirmada ?? "").trim();
+    candidatos.push({
+      campo: "produto_sku",
+      valor: [produtoPaiId, pp?.nome, rota ? `rota ${rota}` : null].filter(Boolean).join(" — "),
+      origem: "planejador",
+      detalhe: "Produto-pai homologado no Planejador do caso (sem SKU técnico de catálogo)",
+    });
+  }
+
+  /*
+   * Anexos aplicáveis: derivados da instância já persistida em
+   * `contract_annexes` — o que foi materializado para este caso, não uma
+   * segunda derivação em memória que poderia divergir da instância salva.
+   */
+  const { data: anexosDoCaso } = await supabase
+    .from("contract_annexes")
+    .select("annex_code,status,annex_version")
+    .eq("organization_id", orgDoCaso ?? "")
+    .eq("case_id", registro.case_id)
+    .is("archived_at", null)
+    .order("annex_version", { ascending: false });
+  const aplicaveis = [
+    ...new Set(
+      ((anexosDoCaso ?? []) as any[])
+        .filter((a) => !["not_applicable", "archived"].includes(String(a.status)))
+        .map((a) => String(a.annex_code)),
+    ),
+  ].sort();
+  if (aplicaveis.length) {
+    candidatos.push({
+      campo: "anexos_aplicaveis",
+      valor: aplicaveis.join(", "),
+      origem: "calculo_aprovado",
+      detalhe: "Derivado das instâncias de anexo já materializadas para o caso",
+    });
+  }
+
+  const valoresRes = await supabase
+    .from("contract_parameter_values")
+    .select("*")
+    .eq("parameters_id", data.id)
+    .is("archived_at", null);
+  const valores = linhas<any>(valoresRes, "valores dos parâmetros do contrato");
+
+  let importados = 0;
+  const conflitos: {
+    campo: string;
+    atual: string;
+    origem_atual: string;
+    candidato: string;
+    origem_candidata: string;
+  }[] = [];
+
+  const qualificador = qualificadorPaisDoCodigo(caso.codigo);
+  const incoerentes: { campo: string; valor: string; esperado: string }[] = [];
+
+  // Higiene: valor gravado com origem `planejador` que não corresponde mais à
+  // convenção homologada (campo revogado ou país incoerente com o código canônico)
+  // é limpo, virando pendência — nunca permanece herdado de outra cidadania.
+  const camposHomologados = new Set(candidatos.map((c) => c.campo));
+  const limpos: { campo: string; valor: string }[] = [];
+  // Limpar valor é decisão: só o botão manual faz. O modo automático só soma.
+  for (const v of modo.somentePreencherVazios ? [] : valores) {
+    if (v.origem !== "planejador" || !v.valor?.trim()) continue;
+    if (temCorrecaoHomologada(v)) continue;
+    const revogado = !camposHomologados.has(v.campo);
+    const incoerente = Boolean(qualificador) && !textoCompativel(v.valor, qualificador!.sigla);
+    if (!revogado && !incoerente) continue;
+    const { data: linhaLimpa, error } = await supabase
+      .from("contract_parameter_values")
+      .update({
+        valor: "",
+        status: "vazio",
+        origem: null,
+        origem_detalhe: null,
+        conflito: [],
+        justificativa: revogado
+          ? `Parâmetro revogado na convenção homologada ${planejador.convencao?.prefixo} (${planejador.versao}): valor anterior removido e devolvido a pendência.`
+          : `Valor incoerente com o qualificador de país do código canônico (${qualificador?.pais}): removido e devolvido a pendência.`,
+      })
+      .eq("id", v.id)
+      .select("id");
+    if (error) throw new Error(error.message);
+    if (!linhaLimpa?.length) throw new Error("NENHUMA_LINHA_AFETADA: parâmetro não foi limpo.");
+
+    limpos.push({ campo: v.campo, valor: v.valor });
+    v.valor = "";
+    v.status = "vazio";
+    v.origem = null;
+  }
+
+  for (const c of candidatos) {
+    const texto = String(c.valor ?? "").trim();
+    if (!texto || PLACEHOLDER_PARAM.test(texto)) continue;
+    const atual = valores.find((v: any) => v.campo === c.campo);
+    if (!atual) continue;
+
+    // Correção humana homologada nunca é sobrescrita pela pré-carga.
+    if (temCorrecaoHomologada(atual)) continue;
+
+    // Coerência com o qualificador de país do código canônico.
+    if (qualificador && !textoCompativel(texto, qualificador.sigla)) {
+      incoerentes.push({ campo: c.campo, valor: texto, esperado: qualificador.pais });
+      const rIncoerente = await supabase
         .from("contract_parameter_values")
         .update({
           conflito: [
             {
-              chave: CONFLITO_PROPOSTA_PLANEJADOR,
-              origem: "proposta",
-              detalhe: `Proposta aprovada tem valor diferente do homologado no Planejador (${cp.planejador || "vazio"}).`,
-              valor: cp.proposta,
-              esperado: cp.planejador,
+              chave: CONFLITO_PAIS_ROTA,
+              origem: c.origem,
+              detalhe: c.detalhe,
+              valor: texto,
+              esperado: qualificador.pais,
               detectado_em: new Date().toISOString(),
             },
           ],
         })
         .eq("id", atual.id)
         .select("id");
-      if (rConflitoProposta.error) throw new Error(rConflitoProposta.error.message);
-      if (!rConflitoProposta.data?.length) {
-        throw new Error("NENHUMA_LINHA_AFETADA: conflito proposta×planejador não foi registrado.");
-      }
+      if (rIncoerente.error) throw new Error(rIncoerente.error.message);
+      if (!rIncoerente.data?.length)
+        throw new Error("NENHUMA_LINHA_AFETADA: conflito de país não foi registrado.");
+      continue;
     }
 
-    return {
-      importados,
-      conflitos,
-      incoerentes,
-      limpos,
-      propostaAprovada: propostaApta,
-      proposta: propostaApta
-        ? {
-            id: String((propostaCaso as any).id),
-            versao: Number((propostaCaso as any).versao ?? 1),
-            campos: candidatosProposta.map((c) => c.campo),
-            conflitos: conflitosProposta,
-          }
-        : null,
+    if (atual.valor && atual.valor.trim() === texto) {
+      // Mesmo valor, origem diferente: a ficha passa a registrar a proposta
+      // aprovada como fonte, preservando a origem anterior na auditoria.
+      if (
+        !modo.somentePreencherVazios &&
+        c.origem === "proposta" &&
+        atual.origem !== "proposta" &&
+        atual.status !== "validado"
+      ) {
+        const rOrigem = await supabase
+          .from("contract_parameter_values")
+          .update({
+            origem: "proposta",
+            origem_detalhe: c.detalhe,
+            justificativa: `Origem corrigida para proposta aprovada após conferência; origem anterior: ${atual.origem ?? "não informada"}.`,
+          })
+          .eq("id", atual.id)
+          .select("id");
+        if (rOrigem.error) throw new Error(rOrigem.error.message);
+        if (!rOrigem.data?.length)
+          throw new Error("NENHUMA_LINHA_AFETADA: origem do parâmetro não foi corrigida.");
+        atual.origem = "proposta";
+      }
+      continue;
+    }
 
+    // Fonte de menor confiança nunca sobrescreve valor já carregado
+    // (o Planejador homologado é a fonte mais confiável): vira conflito.
+    // A proposta também nunca sobrescreve valor já presente: só abre conflito.
+    const menorConfianca = Boolean(atual.valor) && confianca(c.origem) < confianca(atual.origem);
+    const propostaSobreValorExistente = c.origem === "proposta" && Boolean(atual.valor?.trim());
 
-      planejador: {
-        convencao: planejador.convencao?.prefixo ?? null,
-        versao: planejador.versao,
-        homologadoEm: planejador.homologadoEm,
-        campos: planejador.parametros.length,
-      },
-    };
+    // Modo automático: campo já preenchido nunca é substituído — só sinaliza.
+    const automaticoSobreValorExistente =
+      Boolean(modo.somentePreencherVazios) && Boolean(atual.valor?.trim());
+
+    if (
+      (atual.status === "validado" && atual.valor) ||
+      menorConfianca ||
+      propostaSobreValorExistente ||
+      automaticoSobreValorExistente
+    ) {
+      conflitos.push({
+        campo: c.campo,
+        atual: atual.valor,
+        origem_atual: atual.origem,
+        candidato: texto,
+        origem_candidata: c.origem,
+      });
+      const rConflito = await supabase
+        .from("contract_parameter_values")
+        .update({
+          conflito: [
+            {
+              origem: c.origem,
+              detalhe: c.detalhe,
+              valor: texto,
+              detectado_em: new Date().toISOString(),
+            },
+          ],
+        })
+        .eq("id", atual.id)
+        .select("id");
+      if (rConflito.error) throw new Error(rConflito.error.message);
+      if (!rConflito.data?.length)
+        throw new Error("NENHUMA_LINHA_AFETADA: conflito de parâmetro não foi registrado.");
+      continue;
+    }
+
+    const { data: linhaImportada, error } = await supabase
+      .from("contract_parameter_values")
+      .update({
+        valor: texto,
+        origem: c.origem,
+        origem_detalhe: c.detalhe,
+        status: "importado_a_confirmar",
+      })
+      .eq("id", atual.id)
+      .select("id");
+    if (error) throw new Error(error.message);
+    if (!linhaImportada?.length)
+      throw new Error("NENHUMA_LINHA_AFETADA: parâmetro não foi importado.");
+    importados += 1;
+    // mantém o estado local coerente para os próximos candidatos do mesmo campo
+    atual.valor = texto;
+    atual.origem = c.origem;
+    atual.origem_detalhe = c.detalhe;
+    atual.status = "importado_a_confirmar";
+  }
+
+  // Divergência proposta × Planejador: o Planejador já venceu na pré-carga acima
+  // (candidatos só tem o valor do Planejador quando ele existe, linha ~298), mas a
+  // proposta descartada não fica visível em lugar nenhum — some ao fechar o toast
+  // desta ação. Grava a mesma marca de conflito por campo (contract_parameter_values.conflito)
+  // já usada para incoerência de país/rota, para que apareça de forma persistente em
+  // LinhaParametro e possa ser resolvida do mesmo jeito (editar o valor limpa o conflito).
+  for (const cp of conflitosProposta) {
+    const atual = valores.find((v: any) => v.campo === cp.campo);
+    if (!atual) continue;
+    const rConflitoProposta = await supabase
+      .from("contract_parameter_values")
+      .update({
+        conflito: [
+          {
+            chave: CONFLITO_PROPOSTA_PLANEJADOR,
+            origem: "proposta",
+            detalhe: `Proposta aprovada tem valor diferente do homologado no Planejador (${cp.planejador || "vazio"}).`,
+            valor: cp.proposta,
+            esperado: cp.planejador,
+            detectado_em: new Date().toISOString(),
+          },
+        ],
+      })
+      .eq("id", atual.id)
+      .select("id");
+    if (rConflitoProposta.error) throw new Error(rConflitoProposta.error.message);
+    if (!rConflitoProposta.data?.length) {
+      throw new Error("NENHUMA_LINHA_AFETADA: conflito proposta×planejador não foi registrado.");
+    }
+  }
+
+  return {
+    importados,
+    conflitos,
+    incoerentes,
+    limpos,
+    propostaAprovada: propostaApta,
+    proposta: propostaApta
+      ? {
+          id: String((propostaCaso as any).id),
+          versao: Number((propostaCaso as any).versao ?? 1),
+          campos: candidatosProposta.map((c) => c.campo),
+          conflitos: conflitosProposta,
+        }
+      : null,
+
+    planejador: {
+      convencao: planejador.convencao?.prefixo ?? null,
+      versao: planejador.versao,
+      homologadoEm: planejador.homologadoEm,
+      campos: planejador.parametros.length,
+    },
+  };
 }
-
 
 /** Grava um parâmetro com origem obrigatória e valor dentro do dicionário. */
 export const salvarParametro = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string; valor: string; origem: string; origemDetalhe?: string; justificativa?: string }) => d)
+  .inputValidator(
+    (d: {
+      id: string;
+      valor: string;
+      origem: string;
+      origemDetalhe?: string;
+      justificativa?: string;
+    }) => d,
+  )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
     const valor = String(data.valor ?? "").trim();
     if (valor && !ORIGENS_PARAM.includes(data.origem as any)) throw new Error("Origem inválida.");
     if (valor.length > 4000) throw new Error("Valor excede 4000 caracteres.");
-    if (valor && PLACEHOLDER_PARAM.test(valor)) throw new Error("Placeholder não é aceito como parâmetro contratual.");
+    if (valor && PLACEHOLDER_PARAM.test(valor))
+      throw new Error("Placeholder não é aceito como parâmetro contratual.");
 
     const { data: linha } = await supabase
       .from("contract_parameter_values")
@@ -800,7 +873,11 @@ export const salvarParametro = createServerFn({ method: "POST" })
     // reconfirmação. Antes disso, "Salvar" derrubava qualquer campo já
     // "validado" de volta para "a confirmar" mesmo sem edição nenhuma.
     const inalterado = valor === (linha.valor ?? "") && data.origem === linha.origem;
-    const statusFinal = !valor ? "vazio" : inalterado && linha.status === "validado" ? "validado" : "importado_a_confirmar";
+    const statusFinal = !valor
+      ? "vazio"
+      : inalterado && linha.status === "validado"
+        ? "validado"
+        : "importado_a_confirmar";
 
     const r = await gravarComVerificacao({
       supabase,
@@ -813,7 +890,9 @@ export const salvarParametro = createServerFn({ method: "POST" })
         origem: valor ? data.origem : null,
         // Corte 1 (27/09/2026): esvaziar de propósito fica marcado, para a
         // pré-carga ao abrir a preparação não devolver o valor apagado.
-        origem_detalhe: valor ? (data.origemDetalhe ?? "").slice(0, 300) : MARCA_ESVAZIADO_PELA_EQUIPE,
+        origem_detalhe: valor
+          ? (data.origemDetalhe ?? "").slice(0, 300)
+          : MARCA_ESVAZIADO_PELA_EQUIPE,
         justificativa: (data.justificativa ?? "").slice(0, 500) || null,
         status: statusFinal,
         conflito: sinalOrigem ? [sinalOrigem] : [],
@@ -834,11 +913,16 @@ export const salvarParametro = createServerFn({ method: "POST" })
     return { ok: true, salvoEm: r.salvoEm };
   });
 
-
 /** Confirmação humana de um parâmetro (ou bloqueio explícito). */
 export const definirStatusParametro = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string; status: "validado" | "bloqueado" | "importado_a_confirmar"; justificativa?: string }) => d)
+  .inputValidator(
+    (d: {
+      id: string;
+      status: "validado" | "bloqueado" | "importado_a_confirmar";
+      justificativa?: string;
+    }) => d,
+  )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
 
@@ -901,8 +985,8 @@ export const definirStatusParametro = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: {
         status: data.status,
-        justificativa: (
-          pendenciasAssumidas.length
+        justificativa:
+          (pendenciasAssumidas.length
             ? [
                 (data.justificativa ?? "").trim(),
                 `Validado por decisão da proprietária com pendência registrada: ${pendenciasAssumidas.join(" ")}`,
@@ -910,7 +994,7 @@ export const definirStatusParametro = createServerFn({ method: "POST" })
                 .filter(Boolean)
                 .join(" — ")
             : (data.justificativa ?? "")
-        ).slice(0, 500) || atual.justificativa,
+          ).slice(0, 500) || atual.justificativa,
         conflito: data.status === "validado" ? [] : atual.conflito,
       },
     });
@@ -936,7 +1020,11 @@ export const definirStatusParametro = createServerFn({ method: "POST" })
  * Não grava nada: quem grava decide se é rascunho editável ou snapshot.
  */
 async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "final") {
-  const { data: registro } = await supabase.from("contract_case_parameters").select("*").eq("id", id).maybeSingle();
+  const { data: registro } = await supabase
+    .from("contract_case_parameters")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
   if (!registro) throw new Error("Registro de parâmetros não encontrado.");
 
   const [valoresRes, { data: caso }, { data: template }] = await Promise.all([
@@ -949,7 +1037,11 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
       .order("ordem"),
     supabase.from("crm_casos").select("*").eq("id", registro.case_id).maybeSingle(),
     registro.contract_template_id
-      ? supabase.from("contract_templates").select("code,template_version").eq("id", registro.contract_template_id).maybeSingle()
+      ? supabase
+          .from("contract_templates")
+          .select("code,template_version")
+          .eq("id", registro.contract_template_id)
+          .maybeSingle()
       : Promise.resolve({ data: null } as any),
   ]);
 
@@ -960,6 +1052,41 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
   const cliente = caso?.cliente_id
     ? (await supabase.from("clientes").select("nome").eq("id", caso.cliente_id).maybeSingle()).data
     : null;
+
+  /*
+   * 27/10/2026 — fase 2 das edições de cláusula. A fase 1 (gravar/listar/
+   * escalar em `contract_clause_overrides`) existia desde antes, mas este
+   * montador nunca leu a tabela: a edição era salva e não aparecia no
+   * documento, sem nada dizer por quê.
+   *
+   * Decisão da Proprietária, perguntada nominalmente em 27/10/2026:
+   * "override só depois da revisão humana". `revisado` é `reviewed_at`
+   * preenchido — quem não foi revisado não entra no texto e aparece
+   * declarado como pendente (ver `secaoEdicoesPendentesDeRevisao`).
+   */
+  const clausulaOverrides: ClausulaOverride[] = registro.contract_id
+    ? (
+        linhas<any>(
+          await supabase
+            .from("contract_clause_overrides")
+            .select(
+              "clause_code,clause_title,action,clause_text,change_reason,precedence_statement,reviewed_at",
+            )
+            .eq("contract_id", registro.contract_id)
+            .is("archived_at", null)
+            .order("clause_code"),
+          "edições de cláusula do contrato",
+        ) ?? []
+      ).map((o) => ({
+        clauseCode: String(o.clause_code ?? ""),
+        clauseTitle: String(o.clause_title ?? ""),
+        action: o.action as ClausulaOverride["action"],
+        clauseText: (o.clause_text as string | null) ?? null,
+        changeReason: (o.change_reason as string | null) ?? null,
+        precedenceStatement: (o.precedence_statement as string | null) ?? null,
+        revisado: Boolean(o.reviewed_at),
+      }))
+    : [];
 
   const valores = linhas<any>(valoresRes, "valores dos parâmetros do contrato");
   const valoresFicha = valores.map((v) => ({
@@ -991,22 +1118,26 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
    * Pessoas vêm da função canônica (CA19); dependentes e representação vêm
    * como estão registrados — nada é inferido por valor zero ou posição.
    */
-  const [membrosDoCaso, { data: dependentesDoCaso }, { data: condicoesDoCaso }] = await Promise.all([
-    pessoasDoCasoComFallbackNucleo(supabase, registro.case_id),
-    supabase
-      .from("case_dependents")
-      .select("nome_completo,titular_responsavel_legal_nome,status_representacao")
-      .eq("organization_id", registro.organization_id)
-      .eq("case_id", registro.case_id)
-      .is("archived_at", null),
-    supabase
-      .from("case_commercial_condition")
-      .select("approved_items,fees,moeda,proposal_reference,approval_status,versao,responsaveis_financeiros")
-      .eq("organization_id", registro.organization_id)
-      .eq("case_id", registro.case_id)
-      .is("archived_at", null)
-      .order("versao", { ascending: false }),
-  ]);
+  const [membrosDoCaso, { data: dependentesDoCaso }, { data: condicoesDoCaso }] = await Promise.all(
+    [
+      pessoasDoCasoComFallbackNucleo(supabase, registro.case_id),
+      supabase
+        .from("case_dependents")
+        .select("nome_completo,titular_responsavel_legal_nome,status_representacao")
+        .eq("organization_id", registro.organization_id)
+        .eq("case_id", registro.case_id)
+        .is("archived_at", null),
+      supabase
+        .from("case_commercial_condition")
+        .select(
+          "approved_items,fees,moeda,proposal_reference,approval_status,versao,responsaveis_financeiros",
+        )
+        .eq("organization_id", registro.organization_id)
+        .eq("case_id", registro.case_id)
+        .is("archived_at", null)
+        .order("versao", { ascending: false }),
+    ],
+  );
 
   const vigente = condicaoVigente(
     ((condicoesDoCaso ?? []) as any[]).map((c) => ({
@@ -1038,7 +1169,9 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
 
   const responsaveisFinanceiros = ((condicoesDoCaso ?? []) as any[])
     .filter((c) => c.approval_status === "aprovada")
-    .flatMap((c) => (Array.isArray(c.responsaveis_financeiros) ? (c.responsaveis_financeiros as any[]) : []))
+    .flatMap((c) =>
+      Array.isArray(c.responsaveis_financeiros) ? (c.responsaveis_financeiros as any[]) : [],
+    )
     .map((x) => String(x));
 
   const corpo = renderCorpoContratual({
@@ -1063,8 +1196,13 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
       responsaveisFinanceiros,
     },
     condicao: vigente
-      ? { total: vigente.total, moeda: vigente.moeda, propostaReferencia: vigente.propostaReferencia }
+      ? {
+          total: vigente.total,
+          moeda: vigente.moeda,
+          propostaReferencia: vigente.propostaReferencia,
+        }
       : null,
+    clausulaOverrides,
   });
 
   const previa = montarPrevia({
@@ -1079,7 +1217,6 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
 
   return { registro, template, previa, corpo, anexosInternos };
 }
-
 
 async function atualizarCompletude(supabase: Sb, id: string) {
   const completude = await supabase.rpc("contract_parameters_completude", { _id: id });
@@ -1097,7 +1234,10 @@ async function sincronizarMotor(
   supabase: Sb,
   input: { registro: any; previaId: string; userId: string; corpo: any; anexosInternos: any[] },
 ) {
-  const instancias = instanciasDeAnexos({ anexos: input.corpo.anexos, internos: input.anexosInternos as any });
+  const instancias = instanciasDeAnexos({
+    anexos: input.corpo.anexos,
+    internos: input.anexosInternos as any,
+  });
   const anexosPersistidos = await sincronizarAnexosPersistidos(
     supabase,
     {
@@ -1118,9 +1258,6 @@ async function sincronizarMotor(
   return { anexosPersistidos, comercial };
 }
 
-
-
-
 /**
  * Materializa os Anexos II, IV e V JÁ REVISADOS JURIDICAMENTE como instância
  * documental canônica do caso. Cria apenas vínculo e versão: nunca reescreve
@@ -1140,7 +1277,9 @@ export const materializarAnexosRevisados = createServerFn({ method: "POST" })
 
     const existentes = await supabase
       .from("contract_annexes")
-      .select("annex_code,title,status,annex_version,model_version,file_hash,rendered_html,updated_at,is_test")
+      .select(
+        "annex_code,title,status,annex_version,model_version,file_hash,rendered_html,updated_at,is_test",
+      )
       .eq("organization_id", registro.organization_id)
       .eq("case_id", registro.case_id)
       .is("archived_at", null);
@@ -1168,7 +1307,9 @@ export const materializarAnexosRevisados = createServerFn({ method: "POST" })
 
     if (!data.confirmar) return { simulado: true, plano, materializados: 0 };
 
-    const codigosAMaterializar = new Set(plano.filter((p) => p.acao === "materializar").map((p) => p.codigo));
+    const codigosAMaterializar = new Set(
+      plano.filter((p) => p.acao === "materializar").map((p) => p.codigo),
+    );
     const aGravar = doLote.filter((i) => codigosAMaterializar.has(i.annex_code));
     if (!aGravar.length) return { simulado: false, plano, materializados: 0 };
 
@@ -1211,7 +1352,12 @@ export const materializarAnexosRevisados = createServerFn({ method: "POST" })
       },
     });
 
-    return { simulado: false, plano, materializados: resultado.novas, mantidas: resultado.mantidas };
+    return {
+      simulado: false,
+      plano,
+      materializados: resultado.novas,
+      mantidas: resultado.mantidas,
+    };
   });
 
 /**
@@ -1231,9 +1377,16 @@ export const ressincronizarAnexosDoCaso = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
     const userId = context.userId as string;
-    const { registro, corpo, anexosInternos } = await montarDoRegistro(supabase, data.id, "rascunho");
+    const { registro, corpo, anexosInternos } = await montarDoRegistro(
+      supabase,
+      data.id,
+      "rascunho",
+    );
 
-    const instancias = instanciasDeAnexos({ anexos: corpo.anexos, internos: anexosInternos as any });
+    const instancias = instanciasDeAnexos({
+      anexos: corpo.anexos,
+      internos: anexosInternos as any,
+    });
 
     const existentes = await supabase
       .from("contract_annexes")
@@ -1255,8 +1408,7 @@ export const ressincronizarAnexosDoCaso = createServerFn({ method: "POST" })
         codigo: i.annex_code,
         titulo: i.title,
         acao: (vigente && vigente.file_hash === hash ? "ja_canonica" : "materializar") as
-          | "ja_canonica"
-          | "materializar",
+          "ja_canonica" | "materializar",
         versaoAtual: (vigente?.annex_version as number | undefined) ?? null,
       };
     });
@@ -1301,7 +1453,12 @@ export const ressincronizarAnexosDoCaso = createServerFn({ method: "POST" })
       },
     });
 
-    return { simulado: false, plano, materializados: resultado.novas, mantidas: resultado.mantidas };
+    return {
+      simulado: false,
+      plano,
+      materializados: resultado.novas,
+      mantidas: resultado.mantidas,
+    };
   });
 
 /**
@@ -1356,9 +1513,16 @@ export const reativarAnexoDispensado = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
     const userId = context.userId as string;
-    const { registro, corpo, anexosInternos } = await montarDoRegistro(supabase, data.id, "rascunho");
+    const { registro, corpo, anexosInternos } = await montarDoRegistro(
+      supabase,
+      data.id,
+      "rascunho",
+    );
 
-    const todasAsInstancias = instanciasDeAnexos({ anexos: corpo.anexos, internos: anexosInternos as any });
+    const todasAsInstancias = instanciasDeAnexos({
+      anexos: corpo.anexos,
+      internos: anexosInternos as any,
+    });
     const instanciaAtual = todasAsInstancias.find((i) => i.annex_code === data.annexCode);
     if (!instanciaAtual) throw new Error("Regra atual não reconhece mais este código de anexo.");
 
@@ -1414,117 +1578,134 @@ export const gerarPrevia = createServerFn({ method: "POST" })
   });
 
 /** Gera ou atualiza o rascunho de trabalho do registro (núcleo do `gerarPrevia`). */
-async function gerarPreviaNucleo(supabase: Sb, userId: string, data: { id: string; tipo: "rascunho" | "final" }) {
-    const { registro, template, previa, corpo, anexosInternos } = await montarDoRegistro(supabase, data.id, "rascunho");
-    if (data.tipo === "final") {
-      await exigirCoerencia(supabase, registro, { userId: userId, organizationId: registro.organization_id });
-      await exigirGate(supabase, {
-        caseId: registro.case_id,
-        acao: "gerar_versao_final",
-        userId: userId,
-        organizationId: registro.organization_id,
-      });
-    }
+async function gerarPreviaNucleo(
+  supabase: Sb,
+  userId: string,
+  data: { id: string; tipo: "rascunho" | "final" },
+) {
+  const { registro, template, previa, corpo, anexosInternos } = await montarDoRegistro(
+    supabase,
+    data.id,
+    "rascunho",
+  );
+  if (data.tipo === "final") {
+    await exigirCoerencia(supabase, registro, {
+      userId: userId,
+      organizationId: registro.organization_id,
+    });
+    await exigirGate(supabase, {
+      caseId: registro.case_id,
+      acao: "gerar_versao_final",
+      userId: userId,
+      organizationId: registro.organization_id,
+    });
+  }
 
-    const hash = hashConteudo(previa.conteudo);
+  const hash = hashConteudo(previa.conteudo);
 
-    const { data: rascunho } = await supabase
-      .from("contract_parameter_previews")
-      .select("id,versao,conteudo_hash")
-      .eq("parameters_id", data.id)
-      .eq("estado", "rascunho_editavel")
-      .is("archived_at", null)
-      .maybeSingle();
+  const { data: rascunho } = await supabase
+    .from("contract_parameter_previews")
+    .select("id,versao,conteudo_hash")
+    .eq("parameters_id", data.id)
+    .eq("estado", "rascunho_editavel")
+    .is("archived_at", null)
+    .maybeSingle();
 
-    if (rascunho) {
-      if (rascunho.conteudo_hash === hash) {
-        await supabase
-          .from("contract_parameter_previews")
-          .update({ updated_by: userId })
-          .eq("id", rascunho.id);
-        await atualizarCompletude(supabase, data.id);
-        return {
-          previaId: rascunho.id as string,
-          versao: rascunho.versao as number,
-          identico: true,
-          rascunho: true,
-          pendentes: previa.placeholdersPendentes,
-        };
-      }
-      const { error } = await supabase
+  if (rascunho) {
+    if (rascunho.conteudo_hash === hash) {
+      await supabase
         .from("contract_parameter_previews")
-        .update({
-          conteudo: previa.conteudo,
-          html: previa.html,
-          anexos: previa.anexos,
-          placeholders_pendentes: previa.placeholdersPendentes,
-          conteudo_hash: hash,
-          evento: "rascunho_atualizado",
-          corpo_contratual: previa.corpoContratual,
-          renderizador_versao: RENDERIZADOR_VERSAO,
-          legado_sem_corpo: false,
-          legado_sem_evento: false,
-          template_code: template.code,
-          template_version: template.template_version ?? null,
-          gerado_por: userId,
-          updated_by: userId,
-        })
+        .update({ updated_by: userId })
         .eq("id", rascunho.id);
-      if (error) throw new Error(error.message);
-      const sync = await sincronizarMotor(supabase, {
-        registro,
-        previaId: rascunho.id as string,
-        userId: userId,
-        corpo,
-        anexosInternos,
-      });
       await atualizarCompletude(supabase, data.id);
       return {
         previaId: rascunho.id as string,
         versao: rascunho.versao as number,
-        identico: false,
+        identico: true,
         rascunho: true,
         pendentes: previa.placeholdersPendentes,
-        ...sync,
       };
     }
-
-
-    const { data: nova, error } = await supabase
+    const { error } = await supabase
       .from("contract_parameter_previews")
-      .insert({
-        organization_id: registro.organization_id,
-        parameters_id: data.id,
-        versao: 0,
-        tipo: "rascunho",
-        estado: "rascunho_editavel",
-        evento: "rascunho_atualizado",
-        motivo: "Rascunho de trabalho do caso",
+      .update({
         conteudo: previa.conteudo,
-        conteudo_hash: hash,
         html: previa.html,
         anexos: previa.anexos,
         placeholders_pendentes: previa.placeholdersPendentes,
+        conteudo_hash: hash,
+        evento: "rascunho_atualizado",
         corpo_contratual: previa.corpoContratual,
         renderizador_versao: RENDERIZADOR_VERSAO,
+        legado_sem_corpo: false,
+        legado_sem_evento: false,
         template_code: template.code,
         template_version: template.template_version ?? null,
         gerado_por: userId,
-        created_by: userId,
         updated_by: userId,
       })
-      .select("id,versao")
-      .single();
+      .eq("id", rascunho.id);
     if (error) throw new Error(error.message);
     const sync = await sincronizarMotor(supabase, {
       registro,
-      previaId: nova.id as string,
+      previaId: rascunho.id as string,
       userId: userId,
       corpo,
       anexosInternos,
     });
     await atualizarCompletude(supabase, data.id);
-    return { previaId: nova.id as string, versao: 0, identico: false, rascunho: true, pendentes: previa.placeholdersPendentes, ...sync };
+    return {
+      previaId: rascunho.id as string,
+      versao: rascunho.versao as number,
+      identico: false,
+      rascunho: true,
+      pendentes: previa.placeholdersPendentes,
+      ...sync,
+    };
+  }
+
+  const { data: nova, error } = await supabase
+    .from("contract_parameter_previews")
+    .insert({
+      organization_id: registro.organization_id,
+      parameters_id: data.id,
+      versao: 0,
+      tipo: "rascunho",
+      estado: "rascunho_editavel",
+      evento: "rascunho_atualizado",
+      motivo: "Rascunho de trabalho do caso",
+      conteudo: previa.conteudo,
+      conteudo_hash: hash,
+      html: previa.html,
+      anexos: previa.anexos,
+      placeholders_pendentes: previa.placeholdersPendentes,
+      corpo_contratual: previa.corpoContratual,
+      renderizador_versao: RENDERIZADOR_VERSAO,
+      template_code: template.code,
+      template_version: template.template_version ?? null,
+      gerado_por: userId,
+      created_by: userId,
+      updated_by: userId,
+    })
+    .select("id,versao")
+    .single();
+  if (error) throw new Error(error.message);
+  const sync = await sincronizarMotor(supabase, {
+    registro,
+    previaId: nova.id as string,
+    userId: userId,
+    corpo,
+    anexosInternos,
+  });
+  await atualizarCompletude(supabase, data.id);
+  return {
+    previaId: nova.id as string,
+    versao: 0,
+    identico: false,
+    rascunho: true,
+    pendentes: previa.placeholdersPendentes,
+    ...sync,
+  };
 }
 
 /**
@@ -1543,9 +1724,19 @@ async function gerarPreviaNucleo(supabase: Sb, userId: string, data: { id: strin
 async function parametrizarAutomaticamente(supabase: Sb, id: string) {
   try {
     const r = await preencherDeOrigensNucleo(supabase, id, { somentePreencherVazios: true });
-    return { executada: true, preenchidos: r.importados, conflitos: r.conflitos.length, aviso: null as string | null };
+    return {
+      executada: true,
+      preenchidos: r.importados,
+      conflitos: r.conflitos.length,
+      aviso: null as string | null,
+    };
   } catch (e) {
-    return { executada: false, preenchidos: 0, conflitos: 0, aviso: e instanceof Error ? e.message : String(e) };
+    return {
+      executada: false,
+      preenchidos: 0,
+      conflitos: 0,
+      aviso: e instanceof Error ? e.message : String(e),
+    };
   }
 }
 
@@ -1585,11 +1776,21 @@ export const gerarDocumentoAtual = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!registro) {
-      throw new Error("Este caso ainda não tem matriz de parâmetros do contrato — abra a preparação do contrato primeiro.");
+      throw new Error(
+        "Este caso ainda não tem matriz de parâmetros do contrato — abra a preparação do contrato primeiro.",
+      );
     }
     const parametrizacao = await parametrizarAutomaticamente(supabase, registro.id as string);
-    const previa = await gerarPreviaNucleo(supabase, context.userId as string, { id: registro.id as string, tipo: "rascunho" });
-    return { previaId: previa.previaId, versao: previa.versao, identico: previa.identico, parametrizacao };
+    const previa = await gerarPreviaNucleo(supabase, context.userId as string, {
+      id: registro.id as string,
+      tipo: "rascunho",
+    });
+    return {
+      previaId: previa.previaId,
+      versao: previa.versao,
+      identico: previa.identico,
+      parametrizacao,
+    };
   });
 
 /**
@@ -1601,13 +1802,23 @@ export const congelarPrevia = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; evento: EventoSnapshot; motivo: string }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
-    if (!EVENTOS_SNAPSHOT.includes(data.evento)) throw new Error("Evento inválido para congelar versão.");
+    if (!EVENTOS_SNAPSHOT.includes(data.evento))
+      throw new Error("Evento inválido para congelar versão.");
     const motivo = (String(data.motivo ?? "").trim() || "Sem motivo informado.").slice(0, 500);
 
-    const tipo = ["aprovacao", "envio_assinatura", "assinatura_registrada"].includes(data.evento) ? "final" : "rascunho";
-    const { registro, template, previa, corpo, anexosInternos } = await montarDoRegistro(supabase, data.id, tipo as any);
+    const tipo = ["aprovacao", "envio_assinatura", "assinatura_registrada"].includes(data.evento)
+      ? "final"
+      : "rascunho";
+    const { registro, template, previa, corpo, anexosInternos } = await montarDoRegistro(
+      supabase,
+      data.id,
+      tipo as any,
+    );
     if (tipo === "final") {
-      await exigirCoerencia(supabase, registro, { userId: context.userId as string, organizationId: registro.organization_id });
+      await exigirCoerencia(supabase, registro, {
+        userId: context.userId as string,
+        organizationId: registro.organization_id,
+      });
       await exigirGate(supabase, {
         caseId: registro.case_id,
         acao: data.evento === "envio_assinatura" ? "solicitar_assinatura" : "gerar_versao_final",
@@ -1628,13 +1839,17 @@ export const congelarPrevia = createServerFn({ method: "POST" })
         pendenciasAssumidas.push(
           ...assumirOuRecusar(
             papel,
-            previa.placeholdersPendentes.map((p) => `${p.label ?? p.campo} (${p.campo}): ${p.status}`),
+            previa.placeholdersPendentes.map(
+              (p) => `${p.label ?? p.campo} (${p.campo}): ${p.status}`,
+            ),
             `Versão final bloqueada: ${previa.placeholdersPendentes.length} parâmetro(s) obrigatório(s) ainda não validados.`,
           ),
         );
       }
 
-      const anexoBloqueante = corpo.anexos.find((a) => a.aplicavel && a.obrigatorio && a.pendencias.length > 0);
+      const anexoBloqueante = corpo.anexos.find(
+        (a) => a.aplicavel && a.obrigatorio && a.pendencias.length > 0,
+      );
       if (anexoBloqueante) {
         pendenciasAssumidas.push(
           ...assumirOuRecusar(
@@ -1656,7 +1871,6 @@ export const congelarPrevia = createServerFn({ method: "POST" })
       }
     }
 
-
     const hash = hashConteudo(previa.conteudo);
 
     const { data: iguais } = await supabase
@@ -1669,7 +1883,12 @@ export const congelarPrevia = createServerFn({ method: "POST" })
       .is("archived_at", null)
       .maybeSingle();
     if (iguais) {
-      return { previaId: iguais.id as string, versao: iguais.versao as number, duplicada: true, pendentes: previa.placeholdersPendentes };
+      return {
+        previaId: iguais.id as string,
+        versao: iguais.versao as number,
+        duplicada: true,
+        pendentes: previa.placeholdersPendentes,
+      };
     }
 
     const { data: ultima } = await supabase
@@ -1799,7 +2018,6 @@ export const congelarPrevia = createServerFn({ method: "POST" })
     };
   });
 
-
 /** HTML de uma prévia congelada (visualização interna). */
 export const lerPrevia = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -1809,7 +2027,9 @@ export const lerPrevia = createServerFn({ method: "GET" })
     const supabase = context.supabase as Sb;
     const { data: previa } = await supabase
       .from("contract_parameter_previews")
-      .select("id,versao,tipo,estado,evento,motivo,html,anexos,placeholders_pendentes,template_code,template_version,congelado_em,gerado_por")
+      .select(
+        "id,versao,tipo,estado,evento,motivo,html,anexos,placeholders_pendentes,template_code,template_version,congelado_em,gerado_por",
+      )
       .eq("id", data.previaId)
       .maybeSingle();
     if (!previa) throw new Error("Prévia não encontrada.");
@@ -1878,7 +2098,8 @@ export const aprovarParametros = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .select("id");
     if (e2) throw new Error(e2.message);
-    if (!linhaParametros?.length) throw new Error("NENHUMA_LINHA_AFETADA: parâmetros do caso não foram aprovados.");
+    if (!linhaParametros?.length)
+      throw new Error("NENHUMA_LINHA_AFETADA: parâmetros do caso não foram aprovados.");
 
     return { ok: true };
   });
@@ -1932,7 +2153,11 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
     const valores = linhas<any>(valoresRes, "valores dos parâmetros do contrato");
     const pegar = (campo: string) => valores.find((v: any) => v.campo === campo)?.valor ?? null;
 
-    const { data: caso } = await supabase.from("crm_casos").select("*").eq("id", registro.case_id).maybeSingle();
+    const { data: caso } = await supabase
+      .from("crm_casos")
+      .select("*")
+      .eq("id", registro.case_id)
+      .maybeSingle();
 
     let contratoId = registro.contract_id as string | null;
     if (!contratoId) {
@@ -1974,13 +2199,27 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
         updated_by: context.userId,
       });
       if (erroParteContratante) {
-        throw new Error(`Falha ao registrar a parte contratante do contrato ${contratoId}: ${erroParteContratante.message}`);
+        throw new Error(
+          `Falha ao registrar a parte contratante do contrato ${contratoId}: ${erroParteContratante.message}`,
+        );
       }
 
       const escopo = [
-        { category: "included", title: "Serviços incluídos", description: pegar("servicos_incluidos") },
-        { category: "excluded", title: "Serviços excluídos", description: pegar("servicos_excluidos") },
-        { category: "deliverable", title: "Fases e entregas", description: pegar("fases_entregas") },
+        {
+          category: "included",
+          title: "Serviços incluídos",
+          description: pegar("servicos_incluidos"),
+        },
+        {
+          category: "excluded",
+          title: "Serviços excluídos",
+          description: pegar("servicos_excluidos"),
+        },
+        {
+          category: "deliverable",
+          title: "Fases e entregas",
+          description: pegar("fases_entregas"),
+        },
       ].filter((s) => s.description);
       if (escopo.length) {
         const { error: erroEscopo } = await supabase.from("contract_scope_items").insert(
@@ -1999,7 +2238,9 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
           })),
         );
         if (erroEscopo) {
-          throw new Error(`Falha ao registrar o escopo do contrato ${contratoId}: ${erroEscopo.message}`);
+          throw new Error(
+            `Falha ao registrar o escopo do contrato ${contratoId}: ${erroEscopo.message}`,
+          );
         }
       }
     }
@@ -2010,7 +2251,8 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .select("id");
     if (e2) throw new Error(e2.message);
-    if (!linhaEnvio?.length) throw new Error("NENHUMA_LINHA_AFETADA: envio para assinatura não foi registrado.");
+    if (!linhaEnvio?.length)
+      throw new Error("NENHUMA_LINHA_AFETADA: envio para assinatura não foi registrado.");
 
     return { contratoId };
   });
@@ -2028,7 +2270,13 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
 export const registrarAssinatura = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (d: { id: string; dataAssinatura: string; origemExterna: string; referencia: string; motivo?: string }) => d,
+    (d: {
+      id: string;
+      dataAssinatura: string;
+      origemExterna: string;
+      referencia: string;
+      motivo?: string;
+    }) => d,
   )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
@@ -2049,7 +2297,8 @@ export const registrarAssinatura = createServerFn({ method: "POST" })
       .select("*")
       .eq("id", data.id)
       .maybeSingle();
-    if (!registro?.contract_id) throw new Error("Envie para assinatura antes de registrar o instrumento assinado.");
+    if (!registro?.contract_id)
+      throw new Error("Envie para assinatura antes de registrar o instrumento assinado.");
     await exigirGate(supabase, {
       caseId: registro.case_id,
       acao: "formalizacao_contrato_enviado",
@@ -2170,7 +2419,6 @@ export const destinosParametros = createServerFn({ method: "GET" })
     };
   });
 
-
 /**
  * Correção humana rastreável do parâmetro homologado do Planejador.
  * Não há substituição automática: exige valor anterior, novo valor,
@@ -2180,16 +2428,29 @@ export const destinosParametros = createServerFn({ method: "GET" })
 export const corrigirParametroPlanejador = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (d: { valorId: string; valorAnterior: string; novoValor: string; justificativa: string; versaoHomologacao: string }) => d,
+    (d: {
+      valorId: string;
+      valorAnterior: string;
+      novoValor: string;
+      justificativa: string;
+      versaoHomologacao: string;
+    }) => d,
   )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
     const userId = context.userId as string;
 
     const novoValor = exigirTexto(data.novoValor, "novo valor", 4000);
-    const justificativa = (String(data.justificativa ?? "").trim() || "Sem justificativa informada.").slice(0, 500);
-    const versao = exigirTexto(data.versaoHomologacao, "nova versão de homologação do Planejador", 120);
-    if (PLACEHOLDER_PARAM.test(novoValor)) throw new Error("Placeholder não é aceito como parâmetro contratual.");
+    const justificativa = (
+      String(data.justificativa ?? "").trim() || "Sem justificativa informada."
+    ).slice(0, 500);
+    const versao = exigirTexto(
+      data.versaoHomologacao,
+      "nova versão de homologação do Planejador",
+      120,
+    );
+    if (PLACEHOLDER_PARAM.test(novoValor))
+      throw new Error("Placeholder não é aceito como parâmetro contratual.");
 
     const { data: valor } = await supabase
       .from("contract_parameter_values")
@@ -2211,10 +2472,16 @@ export const corrigirParametroPlanejador = createServerFn({ method: "POST" })
     if (!registro) throw new Error("Ficha de parâmetros não encontrada.");
 
     // Somente perfil autorizado a preparar/aprovar contrato pode corrigir a fonte.
-    const { data: autorizado } = await supabase.rpc("contract_pode_aprovar", { _org: registro.organization_id });
+    const { data: autorizado } = await supabase.rpc("contract_pode_aprovar", {
+      _org: registro.organization_id,
+    });
     if (!autorizado) throw new Error("Sem permissão para corrigir o parâmetro homologado.");
 
-    const { data: caso } = await supabase.from("crm_casos").select("codigo").eq("id", registro.case_id).maybeSingle();
+    const { data: caso } = await supabase
+      .from("crm_casos")
+      .select("codigo")
+      .eq("id", registro.case_id)
+      .maybeSingle();
     const qualificador = qualificadorPaisDoCodigo(caso?.codigo);
     if (qualificador && !textoCompativel(novoValor, qualificador.sigla)) {
       throw new Error(
@@ -2236,7 +2503,8 @@ export const corrigirParametroPlanejador = createServerFn({ method: "POST" })
       .eq("id", valor.id)
       .select("id");
     if (error) throw new Error(error.message);
-    if (!linhaCorrigida?.length) throw new Error("NENHUMA_LINHA_AFETADA: parâmetro não foi corrigido.");
+    if (!linhaCorrigida?.length)
+      throw new Error("NENHUMA_LINHA_AFETADA: parâmetro não foi corrigido.");
 
     await supabase.from("audit_logs").insert({
       organization_id: registro.organization_id,
@@ -2329,7 +2597,8 @@ export const preencherParametrosDoCanva = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string; motivo: string }) => {
     if (!d?.id) throw new Error("Registro de parâmetros é obrigatório.");
-    if (!String(d?.motivo ?? "").trim()) throw new Error("Informe o motivo do preenchimento a partir do deck.");
+    if (!String(d?.motivo ?? "").trim())
+      throw new Error("Informe o motivo do preenchimento a partir do deck.");
     return d;
   })
   .handler(async ({ data, context }) => {

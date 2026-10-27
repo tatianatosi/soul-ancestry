@@ -1,5 +1,20 @@
--- ESTADO: NÃO APLICADO; AGUARDA AUTORIZAÇÃO EXPLÍCITA
--- BLOQUEIA O MERGE da branch claude/modest-carson-28pij2.
+-- ESTADO: JÁ APLICADO em 27/10/2026, sob autorização explícita da
+-- Proprietária ("autorizo migration do critico 1"). Conferido depois de
+-- aplicar: as 3 funções filtram `archived_at is null` e cada uma manteve a
+-- própria guarda de prefixo original.
+--
+-- DUAS CORREÇÕES QUE SÓ APARECERAM NA HORA DE APLICAR (o aviso no fim deste
+-- arquivo, de conferir o corpo vigente antes de substituir, se provou certo):
+--
+--  1. `has_org_role` usa `public.is_staff_ativo(_org)`, NÃO `is_org_member`.
+--     O rascunho abaixo foi escrito SEM nenhuma guarda de prefixo nessa
+--     função — aplicá-lo literalmente teria REMOVIDO uma proteção de
+--     segurança em 32 policies. Aplicado o corpo vivo + a cláusula nova.
+--  2. `bootstrap_primeiro_admin` NÃO precisava da mudança: ela só faz
+--     INSERT em user_roles, nunca lê para autorizar (a guarda dela é
+--     bootstrap_lock/staff_access vazios). Era falso positivo da auditoria.
+--
+-- O SQL efetivamente aplicado está no fim do arquivo, em APLICADO EM 27/10.
 --
 -- Por quê: completa o item 2 da auditoria pré-lançamento, que eu entreguei
 -- pela metade em 27/10/2026. Eu troquei .delete() por soft-delete em
@@ -97,3 +112,40 @@ $$;
 --   where n.nspname='public' and p.prokind='f'
 --     and p.proname in ('can_write','has_org_role','can_write_financeiro');
 --   -- esperado: ok = true nas três.
+
+-- ============================================================
+-- APLICADO EM 27/10/2026 — este é o SQL que de fato rodou,
+-- construído a partir de pg_get_functiondef do banco vivo + a cláusula
+-- `and r.archived_at is null`. Nada mais foi alterado em cada corpo.
+-- bootstrap_primeiro_admin ficou de fora (só faz INSERT; não autoriza).
+-- ============================================================
+
+create or replace function public.can_write(_org uuid)
+ returns boolean language sql stable security definer set search_path to 'public'
+as $function$
+  select public.is_org_member(_org) and exists (
+    select 1 from public.user_roles r
+    where r.organization_id = _org and r.user_id = auth.uid()
+      and r.role in ('admin','operacoes','pesquisador','comercial','financeiro')
+      and r.archived_at is null)
+$function$;
+
+create or replace function public.can_write_financeiro(_org uuid)
+ returns boolean language sql stable security definer set search_path to 'public'
+as $function$
+  select public.is_org_member(_org) and exists (
+    select 1 from public.user_roles r
+    where r.organization_id = _org and r.user_id = auth.uid()
+      and r.role in ('admin','financeiro')
+      and r.archived_at is null)
+$function$;
+
+create or replace function public.has_org_role(_org uuid, _role app_role)
+ returns boolean language sql stable security definer set search_path to 'public'
+as $function$
+  select public.is_staff_ativo(_org) and exists (
+    select 1 from public.user_roles r
+    where r.organization_id = _org and r.user_id = auth.uid() and r.role = _role
+      and r.archived_at is null
+  )
+$function$;

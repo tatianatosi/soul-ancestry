@@ -63,6 +63,36 @@ export function esc(v: unknown) {
 
 export type AnexoInterno = { codigo: string; titulo: string; motivo: string };
 
+/**
+ * Edição de cláusula vinda de `contract_clause_overrides`.
+ *
+ * Fase 2 entregue em 27/10/2026. A fase 1 (gravar/listar/escalar) existia
+ * desde antes, mas este montador ignorava a tabela por completo — a edição
+ * era salva, listada e nunca aparecia no documento, sem nada dizer por quê.
+ *
+ * Decisão da Proprietária em 27/10/2026, perguntada nominalmente: **"override
+ * só depois da revisão humana"**. Portanto:
+ *  - `revisado = true`  → o texto entra no documento, com procedência visível;
+ *  - `revisado = false` → o texto NUNCA entra, e o documento declara que
+ *    existe edição pendente de revisão (em vez de silêncio, que era o defeito).
+ */
+export type ClausulaOverride = {
+  clauseCode: string;
+  clauseTitle: string;
+  action: "retain" | "specify" | "replace" | "add" | "remove_not_permitted";
+  clauseText: string | null;
+  changeReason: string | null;
+  precedenceStatement: string | null;
+  revisado: boolean;
+};
+
+/** Ações que, revisadas, mudam o texto do documento. */
+const ACOES_QUE_ALTERAM_TEXTO = new Set(["specify", "replace", "add"]);
+
+function overrideAlteraTexto(o: ClausulaOverride): boolean {
+  return ACOES_QUE_ALTERAM_TEXTO.has(o.action) && Boolean(o.clauseText?.trim());
+}
+
 export type EntradaCorpo = {
   caseId: string;
   casoCodigo: string | null;
@@ -81,6 +111,11 @@ export type EntradaCorpo = {
     moeda: string;
     propostaReferencia: string | null;
   } | null;
+  /**
+   * Edições de cláusula do contrato (`contract_clause_overrides`, ativas).
+   * Ausente = nenhuma edição: o corpo sai com a redação base, como antes.
+   */
+  clausulaOverrides?: ClausulaOverride[];
 };
 
 export type CorpoContratual = {
@@ -99,7 +134,13 @@ export type CorpoContratual = {
     perfilVersao: string;
     corpoVersao: string;
     clausulas: number;
-    anexosCondicionais: { codigo: string; versaoModelo: string; aplicavel: boolean; estado: string; pendencias: string[] }[];
+    anexosCondicionais: {
+      codigo: string;
+      versaoModelo: string;
+      aplicavel: boolean;
+      estado: string;
+      pendencias: string[];
+    }[];
     anexosInternos: AnexoInterno[];
     anexoIIncorporadoNoCorpo: boolean;
   };
@@ -172,7 +213,10 @@ export function blocosDoCaso(e: EntradaCorpo): {
     origens: Object.fromEntries(
       e.valores.map((v) => [
         v.campo,
-        { origem: v.origem ?? null, detalhe: (v as { origem_detalhe?: string | null }).origem_detalhe ?? null },
+        {
+          origem: v.origem ?? null,
+          detalhe: (v as { origem_detalhe?: string | null }).origem_detalhe ?? null,
+        },
       ]),
     ),
   });
@@ -184,7 +228,9 @@ function blocoHtml(b: BlocoIncorporado) {
     .map(
       (l) =>
         `<li><strong>${esc(l.rotulo)}:</strong> ${
-          l.valor ? esc(l.valor) : `<span class="pend">${esc(l.pendencia ?? "sem fonte rastreável")}</span>`
+          l.valor
+            ? esc(l.valor)
+            : `<span class="pend">${esc(l.pendencia ?? "sem fonte rastreável")}</span>`
         } <span class="orig">[${esc(l.fonte)}]</span></li>`,
     )
     .join("");
@@ -198,9 +244,9 @@ function blocoHtml(b: BlocoIncorporado) {
  * continuarem apontando para algo que o leitor acha no documento.
  */
 function secaoBlocosIncorporados(blocos: BlocoIncorporado[]) {
-  const daOrdemDeServico = BLOCOS_QUE_INCORPORAM_ANEXO_I.map((chave) => blocos.find((b) => b.chave === chave)).filter(
-    (b): b is BlocoIncorporado => Boolean(b),
-  );
+  const daOrdemDeServico = BLOCOS_QUE_INCORPORAM_ANEXO_I.map((chave) =>
+    blocos.find((b) => b.chave === chave),
+  ).filter((b): b is BlocoIncorporado => Boolean(b));
   const demais = blocos.filter((b) => !BLOCOS_QUE_INCORPORAM_ANEXO_I.some((c) => c === b.chave));
 
   const secaoOs = daOrdemDeServico.length
@@ -241,13 +287,88 @@ function secaoPerfil() {
     .join("")}</ul></section>`;
 }
 
-function secaoClausulas() {
-  return CLAUSULAS_FIXAS.map(
-    (c) =>
-      `<section class="clausula"><h2>Cláusula ${c.numero} — ${esc(c.titulo)}</h2><ol>${c.itens
-        .map((i) => `<li>${esc(i)}</li>`)
-        .join("")}</ol></section>`,
-  ).join("");
+/**
+ * Cláusulas do contrato-base, com as edições revisadas aplicadas.
+ *
+ * `clause_code` casa com o número da cláusula (ex. "4.2" pertence à cláusula
+ * 4). Um override revisado de `specify`/`replace` substitui os itens daquela
+ * cláusula; `add` entra como item extra ao fim dela. `retain` e
+ * `remove_not_permitted` não mudam texto — o primeiro confirma a redação
+ * base, o segundo registra que a remoção foi pedida e não é permitida.
+ */
+function secaoClausulas(overrides: ClausulaOverride[] = []) {
+  const revisados = overrides.filter((o) => o.revisado);
+  const numeroDaCláusula = (code: string) => Number.parseInt(code.split(".")[0] ?? "", 10);
+
+  return CLAUSULAS_FIXAS.map((c) => {
+    const meus = revisados.filter((o) => numeroDaCláusula(o.clauseCode) === c.numero);
+    const substituicoes = meus.filter((o) => overrideAlteraTexto(o) && o.action !== "add");
+    const adicoes = meus.filter((o) => overrideAlteraTexto(o) && o.action === "add");
+    const naoPermitidas = meus.filter((o) => o.action === "remove_not_permitted");
+
+    const itens = substituicoes.length
+      ? substituicoes.map(
+          (o) =>
+            `<li>${esc(o.clauseText)} <span class="orig">[${esc(o.clauseCode)} · ${esc(
+              o.action === "replace" ? "redação substituída" : "redação especificada",
+            )}${o.changeReason ? ` · ${esc(o.changeReason)}` : ""} · revisada]</span></li>`,
+        )
+      : c.itens.map((i) => `<li>${esc(i)}</li>`);
+
+    const extras = adicoes.map(
+      (o) =>
+        `<li>${esc(o.clauseText)} <span class="orig">[${esc(o.clauseCode)} · item acrescentado${
+          o.changeReason ? ` · ${esc(o.changeReason)}` : ""
+        } · revisada]</span></li>`,
+    );
+
+    const precedencia = meus
+      .filter((o) => o.precedenceStatement?.trim())
+      .map(
+        (o) =>
+          `<p class="orig">Prevalência declarada (${esc(o.clauseCode)}): ${esc(o.precedenceStatement)}</p>`,
+      )
+      .join("");
+
+    const bloqueadas = naoPermitidas
+      .map(
+        (o) =>
+          `<p class="pend">Remoção solicitada para ${esc(o.clauseCode)} e não permitida: a redação base permanece.</p>`,
+      )
+      .join("");
+
+    return `<section class="clausula"><h2>Cláusula ${c.numero} — ${esc(c.titulo)}</h2><ol>${itens
+      .concat(extras)
+      .join("")}</ol>${precedencia}${bloqueadas}</section>`;
+  }).join("");
+}
+
+/**
+ * Edições que NÃO estão no documento por falta de revisão humana.
+ *
+ * Existe para que o documento nunca fique em silêncio sobre uma edição
+ * salva: antes de 27/10/2026 a edição era gravada e simplesmente não
+ * aparecia, sem explicação — o que se lia como "o sistema perdeu o que eu
+ * escrevi". O texto pendente não é impresso de propósito: só a identificação
+ * da cláusula e o motivo, porque texto jurídico não revisado não entra em
+ * instrumento.
+ */
+function secaoEdicoesPendentesDeRevisao(overrides: ClausulaOverride[] = []) {
+  const pendentes = overrides.filter(
+    (o) => !o.revisado && (overrideAlteraTexto(o) || o.action === "retain"),
+  );
+  if (!pendentes.length) return "";
+  const linhas = pendentes
+    .map(
+      (o) =>
+        `<li><strong>${esc(o.clauseCode)}</strong> — ${esc(o.clauseTitle)} <span class="orig">(${esc(
+          o.action,
+        )}${o.changeReason ? ` · ${esc(o.changeReason)}` : ""})</span></li>`,
+    )
+    .join("");
+  return `<section><h2>Edições de cláusula aguardando revisão humana</h2><p class="pend">As ${
+    pendentes.length
+  } edição(ões) abaixo foram salvas e <strong>não</strong> integram o texto deste instrumento: por decisão de 27/10/2026, edição de cláusula só entra no documento depois de revisão humana registrada. O texto acima é a redação base vigente.</p><ul>${linhas}</ul></section>`;
 }
 
 function secaoAnexos(anexos: AnexoGovernado[], internos: AnexoInterno[]) {
@@ -257,7 +378,9 @@ function secaoAnexos(anexos: AnexoGovernado[], internos: AnexoInterno[]) {
         .map(
           (c) =>
             `<li><strong>${esc(c.rotulo)}:</strong> ${
-              c.valor ? esc(c.valor) : `<span class="pend">${esc(c.observacaoAusencia ?? "sem fonte rastreável")}</span>`
+              c.valor
+                ? esc(c.valor)
+                : `<span class="pend">${esc(c.observacaoAusencia ?? "sem fonte rastreável")}</span>`
             } <span class="orig">[${esc(c.fonte)}]</span></li>`,
         )
         .join("");
@@ -272,7 +395,10 @@ function secaoAnexos(anexos: AnexoGovernado[], internos: AnexoInterno[]) {
     .join("");
 
   const anx = internos
-    .map((a) => `<li><strong>${esc(a.codigo)}</strong> — ${esc(a.titulo)} <span class="orig">(${esc(a.motivo)})</span></li>`)
+    .map(
+      (a) =>
+        `<li><strong>${esc(a.codigo)}</strong> — ${esc(a.titulo)} <span class="orig">(${esc(a.motivo)})</span></li>`,
+    )
     .join("");
 
   return `<section><h2>Anexos aplicáveis</h2>${linhas}<h3>Anexos internos por regra de produto/escopo</h3><ul>${anx}</ul></section>`;
@@ -304,7 +430,8 @@ export function renderCorpoContratual(e: EntradaCorpo): CorpoContratual {
 <p class="pend">${esc(CONTRATO_BASE_AVISO)}</p></section>
 ${secaoPerfil()}
 <section><h2>Preâmbulo</h2><p>${esc(PREAMBULO_CONTRATO_BASE)}</p></section>
-${secaoClausulas()}
+${secaoClausulas(e.clausulaOverrides)}
+${secaoEdicoesPendentesDeRevisao(e.clausulaOverrides)}
 ${secaoBlocosIncorporados(doCaso.blocos)}
 ${secaoAnexos(anexos, e.anexosInternos)}
 ${secaoBlocos(blocos)}`;

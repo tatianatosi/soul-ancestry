@@ -34,7 +34,9 @@ describe("gerarDocumentoAtual — opção 'b' da Proprietária (26/10/2026)", ()
     expect(bloco).toContain("parametrizarAutomaticamente(supabase, registro.id");
     expect(bloco).toContain("gerarPreviaNucleo(supabase, context.userId as string");
     // a ordem importa: parametriza, DEPOIS regera — nunca o contrário.
-    expect(bloco.indexOf("parametrizarAutomaticamente")).toBeLessThan(bloco.indexOf("gerarPreviaNucleo"));
+    expect(bloco.indexOf("parametrizarAutomaticamente")).toBeLessThan(
+      bloco.indexOf("gerarPreviaNucleo"),
+    );
   });
 
   it("a versão fica persistida (mesma tabela/mecanismo do rascunho de trabalho de sempre)", () => {
@@ -53,7 +55,10 @@ describe("gerarDocumentoAtual — opção 'b' da Proprietária (26/10/2026)", ()
     // higiene (limpar valor divergente) é exclusiva do botão manual
     expect(bloco).toContain("modo.somentePreencherVazios ? [] : valores");
     // correção de origem (proposta sobrescrevendo a origem gravada) também é exclusiva do manual
-    expect(bloco).toContain("!modo.somentePreencherVazios && c.origem ===");
+    // 27/10/2026: o Prettier quebrou a condição em múltiplas linhas; checa os
+    // dois lados da condição em vez do texto exato numa linha só.
+    expect(bloco).toContain("!modo.somentePreencherVazios &&");
+    expect(bloco).toContain('c.origem === "proposta"');
     // valor existente nunca é substituído no modo automático — só gera sinal de conflito
     expect(bloco).toContain("automaticoSobreValorExistente");
     expect(bloco).toContain("Boolean(modo.somentePreencherVazios) && Boolean(atual.valor?.trim())");
