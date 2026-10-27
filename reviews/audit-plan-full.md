@@ -198,11 +198,11 @@ O que a medição sustenta, e o que corrige:
 6. **Coletor de erro em produção** (#176 item 2) e **rota de saúde com o SHA** (item 8) — antes de cliente pagante real.
 7. `importacoes.tsx` (3 mutations, 0 `onError`); classificação formal dos 87 órfãos e das 4 guardas inertes.
 
-## Decisões que são suas, não minhas
+## Decisões que já foram tomadas (27/10/2026)
 
-1. **Autorizar a migration do Crítico 1** (4 funções SQL). Sem isso a branch não deve entrar.
-2. **Overrides de cláusula**: quando houver edição real, ela entra no documento **antes** ou **só depois** de revisão humana? Hoje há 2 linhas DEMO sem texto e o renderizador ignora a tabela. A fase 2 não deve ser escrita antes dessa resposta — é conteúdo jurídico.
-3. **`/portal/casos/$id` + `/portal/mensagens/$id`**: o cliente ganha sistema de tickets dentro de uma aba canônica, ou o atendimento fica só no WhatsApp e essa ilha é aposentada com classificação?
+1. **Crítico 1 autorizado e aplicado.** As 4 funções SQL (3 na verdade — `bootstrap_primeiro_admin` era falso positivo, só faz INSERT) já filtram `archived_at`. Ver `supabase/pendentes/20261027150000_user_roles_archived_at_nas_funcoes_rls.sql`.
+2. **Override de cláusula: "só depois da revisão humana".** Fase 2 implementada em `contrato-corpo.server.ts` — edição sem `reviewed_at` nunca entra no texto, aparece declarada numa seção própria de pendências.
+3. **`/portal/casos/$id` + `/portal/mensagens/$id`: "o cliente ganha tickets e deve ir para as áreas correspondentes no desk das suas demandas e o atendimento é feito pelo whatsapp".** Veredicto `APOSENTADA_CLASSIFICADA`: a ilha de tickets não entra no App Cliente. Nenhum código apagado — os arquivos de rota continuam existindo, só não são promovidos a aba nem linkados. Travado por teste (`ilha-tickets-cliente-aposentada-2026-10-27.test.ts`): falha se alguém religar sem decisão nova.
 
 ## Limites desta auditoria
 
