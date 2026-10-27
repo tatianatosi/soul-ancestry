@@ -1451,11 +1451,13 @@
 [data-app-cliente] .app-genograma-filiacao { fill: none; stroke: var(--ca-navy); stroke-width: 2; }
 [data-app-cliente] .app-genograma-uniao { fill: none; stroke: var(--app-brand-gold); stroke-width: 3; }
 [data-app-cliente] [data-genograma-no] { cursor: pointer; outline: none; }
-[data-app-cliente] .app-genograma-circulo { fill: var(--ca-navy); stroke: var(--app-brand-gold); stroke-width: 3; }
-[data-app-cliente] [data-genograma-no][data-raiz] .app-genograma-circulo { fill: var(--ca-terracotta); }
-[data-app-cliente] [data-genograma-no]:is(:focus-visible,[aria-pressed="true"]) .app-genograma-circulo { stroke-width: 6; }
+[data-app-cliente] .app-genograma-cartao { fill: var(--ca-white); stroke: var(--ca-border); stroke-width: 1.5; }
+[data-app-cliente] [data-genograma-no][data-geracao-um] .app-genograma-cartao { fill: var(--ca-navy); stroke: var(--ca-navy); }
+[data-app-cliente] [data-genograma-no][data-geracao-um] :is(.app-genograma-nome,.app-genograma-geracao) { fill: var(--ca-white); }
+[data-app-cliente] [data-genograma-no][data-raiz] .app-genograma-cartao { stroke: var(--ca-terracotta); stroke-width: 3; }
+[data-app-cliente] [data-genograma-no]:is(:focus-visible,[aria-pressed="true"]) .app-genograma-cartao { stroke: var(--app-brand-gold); stroke-width: 3; }
 [data-app-cliente] .app-genograma-iniciais { fill: var(--app-brand-gold); font: 600 24px var(--ca-font-title); }
-[data-app-cliente] .app-genograma-nome { fill: var(--ca-ink); font: 500 12px var(--ca-font-body); }
+[data-app-cliente] .app-genograma-nome { fill: var(--ca-navy); font: 600 12px var(--ca-font-body); }
 [data-app-cliente] .app-genograma-geracao { fill: var(--ca-text-muted); font: 11px var(--ca-font-body); }
 [data-app-cliente] .app-genograma-detalhe { border-top: 2px solid var(--app-brand-gold); margin-top: 1rem; padding-top: .75rem; }
 [data-app-cliente] .app-genograma-legenda { display: flex; align-items: center; gap: .5rem; }

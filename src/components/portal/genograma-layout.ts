@@ -24,19 +24,21 @@ export function linhasNome(nome: string, largura = 150) {
   return linhas.map((l) => l.trim());
 }
 
+/** Rectangular cards (mockup p.6): y is the card top; altura is the card height. */
+export const CARTAO_LARGURA = 170;
 export function layoutGenograma(pessoas: readonly PessoaNaArvore[]) {
   const geracoes = [...new Set(pessoas.map((p) => p.geracao ?? 1))].sort((a, b) => b - a);
-  const largura = Math.max(540, ...geracoes.map((g) => pessoas.filter((p) => (p.geracao ?? 1) === g).length * 190 + 80));
-  let y = 90;
+  const largura = Math.max(540, ...geracoes.map((g) => pessoas.filter((p) => (p.geracao ?? 1) === g).length * 200 + 80));
+  let y = 60;
   const nos = geracoes.flatMap((g) => {
     const grupo = pessoas.filter((p) => (p.geracao ?? 1) === g);
     const linhaY = y;
     const preparados = grupo.map((pessoa) => ({ pessoa, linhas: linhasNome(pessoa.nome) }));
-    const alturaRotulo = Math.max(2, ...preparados.map((p) => p.linhas.length)) * 17;
-    y += Math.max(230, 56 + alturaRotulo + 140);
-    return preparados.map((p, coluna) => ({ ...p, x: largura / 2 + (coluna - (grupo.length - 1) / 2) * 190, y: linhaY, geracaoY: 56 + Math.max(2, p.linhas.length) * 17 + 1 }));
+    const altura = 30 + Math.max(1, ...preparados.map((p) => p.linhas.length)) * 16 + 22;
+    y += altura + 110;
+    return preparados.map((p, coluna) => ({ ...p, altura, x: largura / 2 + (coluna - (grupo.length - 1) / 2) * 200, y: linhaY, geracaoY: altura - 14 }));
   });
-  return { nos, largura, altura: Math.max(340, y - 80) };
+  return { nos, largura, altura: Math.max(300, y - 60) };
 }
 
 export function enquadramentoGenograma(largura: number, viewport: number) {
