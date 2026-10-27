@@ -64,7 +64,13 @@ export function GenogramaFamiliar({ pessoas, vinculos, raizId }: { pessoas: Pess
             const uniao = interposto || esq.y !== dir.y
               ? `M${esq.x} ${esq.y - 40} V${Math.min(esq.y, dir.y) - 60} H${dir.x} V${dir.y - 40}`
               : `M${esq.x + 40} ${esq.y} L${dir.x - 40} ${dir.y}`;
-            return <path key={`${v.de}-${v.para}-${i}`} data-de={v.de} data-para={v.para} className={v.tipo === "conjuge" ? "app-genograma-uniao" : "app-genograma-filiacao"} d={v.tipo === "conjuge" ? uniao : `M${sup.x} ${saida} V${meio} H${inf.x} V${chegada}`}><title>{a.pessoa.nome} · {v.tipo === "conjuge" ? "União" : "Filiação"} · {b.pessoa.nome}</title></path>;
+            // Skipped generations use an outside lane, not intermediate people's labels.
+            const intermediario = layout.nos.some((n) => n.y > sup.y && n.y < inf.y);
+            const corredor = layout.largura - 20 - (i % 4) * 6;
+            const filiacao = intermediario
+              ? `M${sup.x} ${saida} V${saida + 18} H${corredor} V${chegada - 18} H${inf.x} V${chegada}`
+              : `M${sup.x} ${saida} V${meio} H${inf.x} V${chegada}`;
+            return <path key={`${v.de}-${v.para}-${i}`} data-de={v.de} data-para={v.para} className={v.tipo === "conjuge" ? "app-genograma-uniao" : "app-genograma-filiacao"} d={v.tipo === "conjuge" ? uniao : filiacao}><title>{a.pessoa.nome} · {v.tipo === "conjuge" ? "União" : "Filiação"} · {b.pessoa.nome}</title></path>;
           })}
           {layout.nos.map(({ pessoa: p, x, y, linhas, geracaoY }) => (
             <g key={p.chave} transform={`translate(${x} ${y})`} role="button" tabIndex={0} aria-label={`Abrir ${p.nome}`} aria-pressed={p.chave === selecionada} data-genograma-no data-raiz={p.chave === raizId || undefined} onClick={() => setSelecionada(p.chave)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelecionada(p.chave); } }}>
