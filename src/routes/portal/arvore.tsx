@@ -16,6 +16,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { AvisoFalhaConexao } from "@/components/portal/aviso-falha-conexao";
 import { PerfilPessoaArvore } from "@/components/portal/explorador-arvore";
 import { GenogramaFamiliar } from "@/components/portal/genograma-familiar";
+import { raizAutorizada } from "@/components/portal/genograma-layout";
 
 /**
  * Corte 2a (28/09/2026): pessoa da família publicada pela equipe — nome e
@@ -67,7 +68,7 @@ export function PortalArvore() {
           {([vivo]) => {
             // Corte 2a: pessoas nomeadas (uma por pessoa) viram nós; o restante
             // das publicações da árvore continua como nota.
-            const pessoas = pessoasDaArvore(vivo.projecoes).filter((p) => p.geracao !== null && p.geracao <= 10);
+            const pessoas = pessoasDaArvore(vivo.projecoes).filter((p) => p.geracao !== null);
             const idsComPessoa = new Set(vivo.projecoes.filter((p) => p.pessoa_id).map((p) => String(p.id)));
             const itens = arvoreSanitizada(vivo.projecoes).filter((p) => !idsComPessoa.has(p.id));
             const painel = painelArvoreGeracoes(itens);
@@ -101,7 +102,7 @@ export function PortalArvore() {
                          : "Esta árvore ainda não tem nomes e vínculos liberados para a família."}
                     </p>
                     {pessoas.length > 0 ? (
-                      <GenogramaFamiliar pessoas={pessoas} vinculos={"vinculosArvore" in vivo ? vivo.vinculosArvore : []} />
+                      <GenogramaFamiliar pessoas={pessoas} vinculos={"vinculosArvore" in vivo ? vivo.vinculosArvore : []} raizId={raizAutorizada(vivo.casoAtivoId, pessoas)} />
                     ) : (
                     <div className="mt-6 divide-y divide-border">
                       {geracoesExibidas.map((geracao: GeracaoArvore) => (
