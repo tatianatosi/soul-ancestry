@@ -12,7 +12,11 @@ export const Route = createFileRoute("/devolutiva")({
     const { data } = await supabase.auth.getSession();
     const usuario = data.session?.user ?? null;
     if (!usuario) throw redirect({ to: "/equipe/entrar" });
-    const { data: papeis, error } = await supabase.from("user_roles").select("role").eq("user_id", usuario.id);
+    const { data: papeis, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", usuario.id)
+      .is("archived_at", null);
     const decisao = decidirAcessoDesk({
       autenticado: true,
       papeis: (papeis ?? []).map((p) => p.role as string),

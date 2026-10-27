@@ -248,7 +248,8 @@ export async function contextoRg(supabase: Sb, userId: string) {
     .from("user_roles")
     .select("role")
     .eq("organization_id", membro.data.organization_id)
-    .eq("user_id", userId); // 25/10/2026: só os papéis DESTA pessoa
+    .eq("user_id", userId) // 25/10/2026: só os papéis DESTA pessoa
+    .is("archived_at", null); // 27/10/2026: papel arquivado não conta como ativo
   const lista = ((papeis.data ?? []) as { role: string }[]).map((p) => p.role);
   return {
     organizationId: membro.data.organization_id as string,

@@ -83,7 +83,7 @@ export async function meusPapeis(
   userId: string,
 ): Promise<Papel[]> {
   const [roles, staff] = await Promise.all([
-    supabase.from("user_roles").select("role").eq("organization_id", organizationId).eq("user_id", userId),
+    supabase.from("user_roles").select("role").eq("organization_id", organizationId).eq("user_id", userId).is("archived_at", null),
     supabase.from("staff_access").select("role,status").eq("auth_user_id", userId).is("archived_at", null).maybeSingle(),
   ]);
   const lista = ((roles.data ?? []) as { role: Papel }[]).map((r) => r.role);

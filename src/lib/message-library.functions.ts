@@ -204,7 +204,7 @@ async function resolverOrg(supabase: Cliente, userId: string): Promise<string> {
 /** Papéis da PESSOA (não da organização inteira): staff_access ativo + user_roles dela. */
 async function papeis(supabase: Cliente, org: string, userId: string): Promise<string[]> {
   const [roles, staff] = await Promise.all([
-    supabase.from("user_roles").select("role").eq("organization_id", org).eq("user_id", userId),
+    supabase.from("user_roles").select("role").eq("organization_id", org).eq("user_id", userId).is("archived_at", null),
     supabase.from("staff_access").select("role,status").eq("auth_user_id", userId).is("archived_at", null).maybeSingle(),
   ]);
   const lista = ((roles.data ?? []) as { role: string }[]).map((r) => r.role);

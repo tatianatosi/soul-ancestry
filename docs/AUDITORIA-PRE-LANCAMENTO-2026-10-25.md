@@ -81,8 +81,13 @@ código antes de corrigir.
    carregamento): o texto atual veio do resgate do Lovable; decidir, tela a
    tela, se volta o texto antigo (como nos rótulos L3/L4) ou se os testes
    passam a seguir o texto novo.
-2. **Remover papel apaga a linha de `user_roles`**: a tabela não tem coluna de
-   arquivo; mudar exige migration. Hoje a remoção fica registrada em auditoria.
+2. ~~**Remover papel apaga a linha de `user_roles`**~~ — **corrigido em
+   27/10, autorizado ("Autorizado item 02 para os dois juntos")**: coluna
+   `archived_at` aplicada no banco real + `equipe.server.ts` e
+   `definirPapel` (`saas.functions.ts`) trocaram `.delete()`/`.insert()`
+   por soft-delete/upsert + as 13 leituras de papel em todo o código
+   passaram a filtrar `archived_at is null`. Registrado em
+   `supabase/pendentes/README.md`.
 3. ~~**Telas extras do App ainda roteáveis** (`/portal/casos/$id`,
    `/portal/mensagens/$id`, `/portal/faturas`)~~ — **`/portal/faturas`
    corrigido em 26/10** (achado da Proprietária: "Invoices são as faturas
@@ -112,25 +117,22 @@ código antes de corrigir.
    só por `catalogo-homologacao.functions.ts`, server-side, para decidir
    se o SKU está liberado para proposta. Nada a decidir aqui; nada a
    corrigir.
-5. **`validarLead`** (`src/lib/crm-desk.ts:646-760`) — lista exata das regras
-   que continuam valendo mesmo em modo livre (sem `!livre` no `if`), para
-   você decidir quais liberar:
-   | Linha | Regra | Por que pode ser proteção real |
-   |---|---|---|
-   | 692-697 | Pagamento inicial confirmado exige `asaas_evento_referencia` | Financeiro: lead marcado como pago sem prova de que o Asaas confirmou |
-   | 699-701 | Onboarding iniciado exige `asaas_evento_referencia` | Mesmo risco — onboarding sem pagamento comprovado |
-   | 732-744 | Consentimento concedido exige data/canal/versão do aviso; gravação sem consentimento é bloqueada | LGPD — gravar sem consentimento registrado é risco legal, não cerimônia |
-   | 746-749 | Elegibilidade Forte/Provável exige `confianca_triagem` + `linha_transmissao` | Mesma regra já é liberada em modo livre na linha 708 (duplicada) — **inconsistência**: um bloco idêntico está livre, o outro não |
-   | 751-756 | Escopo de pesquisa prévia exige autorização registrada; vocabulário controlado (escopo/nacionalidade) | O vocabulário controlado provavelmente nunca deveria ser livre (é integridade de dado, não cerimônia); a autorização de pesquisa é mais perto de LGPD |
+5. ~~**`validarLead`**~~ — **todas liberadas em 27/10, autorizado ("Pode
+   liberar todas as proteções do item 5")**: as 5 regras da tabela abaixo
+   ganharam `!livre`. A inconsistência achada (746-749 duplicava a regra já
+   livre na 708, sem o guard) foi resolvida igualando as duas.
+   | Linha | Regra liberada |
+   |---|---|
+   | 692-697 | Pagamento inicial confirmado exige `asaas_evento_referencia` |
+   | 699-701 | Onboarding iniciado exige `asaas_evento_referencia` |
+   | 732-744 | Consentimento concedido exige data/canal/versão do aviso; gravação sem consentimento é bloqueada |
+   | 746-749 | Elegibilidade Forte/Provável exige `confianca_triagem` + `linha_transmissao` |
+   | 752-753 | Escopo de pesquisa prévia exige autorização registrada |
 
-   Nome/e-mail/vocabulário dos `CATALOGOS` (linhas 650-661) também nunca são
-   livres — não entraram na tabela porque são integridade estrutural
-   básica, não proteção de negócio: não parecem candidatas a liberar.
-
-   Decisão pendente: dizer quais das 5 linhas acima podem ganhar `!livre`
-   (e a 746-749 precisa de resposta mesmo que a decisão seja "manter
-   travada", só para resolver a duplicidade com a 708). Nenhuma alterada
-   sem essa resposta — são proteções financeiras/legais, não bug de UI.
+   Vocabulário controlado (`CATALOGOS`, linhas 650-655; escopo/nacionalidade,
+   755-759) e nome/e-mail continuam sem `!livre` — integridade estrutural
+   de dado, fora do pedido (não eram proteção de negócio, por isso não
+   entraram na lista original).
 6. ~~**`leads.tsx`**: trocar de lead no kanban, "Abrir ficha" ou fechar a
    ficha descarta rascunho não salvo sem aviso~~ — **corrigido em 26/10**.
    Extraído `trocarDeLead` (reaproveita o banner inline que a lista já

@@ -156,7 +156,7 @@ export async function exigirGestor(supabase: any, userId: string) {
 
   // 25/10/2026: papéis DESTA pessoa (antes: de toda a organização) + staff_access ativo.
   const [papeis, staff] = await Promise.all([
-    supabase.from("user_roles").select("role").eq("organization_id", organizationId).eq("user_id", userId),
+    supabase.from("user_roles").select("role").eq("organization_id", organizationId).eq("user_id", userId).is("archived_at", null),
     supabase.from("staff_access").select("role,status").eq("auth_user_id", userId).is("archived_at", null).maybeSingle(),
   ]);
   const lista = ((papeis.data ?? []) as { role: string }[]).map((p) => p.role);
