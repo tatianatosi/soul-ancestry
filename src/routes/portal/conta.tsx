@@ -39,7 +39,6 @@ export const Route = createFileRoute("/portal/conta")({
   component: PortalConta,
 });
 
-
 export function PortalConta() {
   const previa = usePreviaPortal();
   const { visibilidade, carregando } = useVisibilidade("conta");
@@ -57,15 +56,21 @@ export function PortalConta() {
    * para nunca fabricar titular/país fora da demo de verdade.
    */
   const previaDemo = previa?.identidade?.fonte === "demo";
-   const titularPrevia = vivo.data && "titularNome" in vivo.data ? (vivo.data.titularNome as string | null) : null;
-   // 13/10/2026 (hotfix autorizado): o nome fixo da demo só entra na demo
-   // institucional; prévia real mostra só o nome vindo do cadastro do caso.
-   const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null);
-   const titularExibido = titular ?? titularPrevia;
-   const codigoCaso = previaDemo ? null : (previa?.identidade?.codigo ?? null);
-   const condicaoFamiliar = previaDemo ? null : condicaoFamiliarPrevista(codigoCaso ?? vivo.data?.casoAtivoId);
-   const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null);
-  const acompanhamento = previa || data?.autorizado ? "Sua jornada está sendo acompanhada pela equipe." : "Aguardando novidades da equipe.";
+  const titularPrevia =
+    vivo.data && "titularNome" in vivo.data ? (vivo.data.titularNome as string | null) : null;
+  // 13/10/2026 (hotfix autorizado): o nome fixo da demo só entra na demo
+  // institucional; prévia real mostra só o nome vindo do cadastro do caso.
+  const titular = data?.cliente?.nome ?? (previaDemo ? CLIENTE_DEMO_NOME : null);
+  const titularExibido = titular ?? titularPrevia;
+  const codigoCaso = previaDemo ? null : (previa?.identidade?.codigo ?? null);
+  const condicaoFamiliar = previaDemo
+    ? null
+    : condicaoFamiliarPrevista(codigoCaso ?? vivo.data?.casoAtivoId);
+  const paisInteresse = data?.cliente?.pais_interesse ?? (previaDemo ? "Itália" : null);
+  const acompanhamento =
+    previa || data?.autorizado
+      ? "Sua jornada está sendo acompanhada pela equipe."
+      : "Aguardando novidades da equipe.";
 
   /**
    * Alertas usa o mesmo `proximaAcao` já publicado para Home/Documentos —
@@ -112,10 +117,22 @@ export function PortalConta() {
    * (case_timeline_events) e marcos/entregas publicados no App, com data.
    */
   const atividades = [
-    ...(vivo.data?.historico ?? []).map((m) => ({ id: `h-${m.id}`, rotulo: "Marco da jornada", texto: m.texto, data: m.data ?? null })),
+    ...(vivo.data?.historico ?? []).map((m) => ({
+      id: `h-${m.id}`,
+      rotulo: "Marco da jornada",
+      texto: m.texto,
+      data: m.data ?? null,
+    })),
     ...publicacoesParaCliente(
-      (vivo.data?.projecoes ?? []).filter((p) => p.projection_type === "marco" || p.projection_type === "microentrega"),
-    ).map((p) => ({ id: `p-${p.id}`, rotulo: p.tipoRotulo, texto: p.conteudo, data: p.publicadoEm ?? null })),
+      (vivo.data?.projecoes ?? []).filter(
+        (p) => p.projection_type === "marco" || p.projection_type === "microentrega",
+      ),
+    ).map((p) => ({
+      id: `p-${p.id}`,
+      rotulo: p.tipoRotulo,
+      texto: p.conteudo,
+      data: p.publicadoEm ?? null,
+    })),
   ]
     .filter((a) => a.data)
     .sort((a, b) => String(b.data).localeCompare(String(a.data)));
@@ -135,11 +152,22 @@ export function PortalConta() {
    * ver a própria fatura no App. Mesma função, mesmo gate — só passa a
    * aparecer dentro de Conta em vez de depender de uma rota sem link.
    */
+  /*
+   * 27/10/2026 — `enabled: previa === null`, pelo mesmo motivo que
+   * `usePortal()` (portal-shell.tsx) já fazia: `minhasFaturas` exige
+   * `client_portal_access` ativo e RECUSA quem não tem ("Acesso não
+   * autorizado.", portal-cliente.server.ts:112). Sem este gate, a prévia do
+   * admin (`/app-cliente-como-pessoa`, o único caminho pelo qual a
+   * Proprietária vê o App) e a demo institucional caíam no aviso de
+   * instabilidade financeira em vez de mostrar a seção — quebrando a tela
+   * exatamente para quem pediu a seção.
+   */
   const carregarFaturas = useServerFn(minhasFaturas);
   const faturasQuery = useQuery({
     queryKey: ["portal-conta-faturas"],
     queryFn: () => comTimeout(carregarFaturas({})),
     retry: false,
+    enabled: previa === null,
   });
 
   return (
@@ -155,80 +183,163 @@ export function PortalConta() {
               no cartão "Dados da conta" logo abaixo.
             */}
 
-
-            <section
-              data-conta-perfil
-              className="app-v11-faixa"
-            >
+            <section data-conta-perfil className="app-v11-faixa">
               <div className="flex min-w-0 items-center gap-3">
                 <span
                   aria-hidden="true"
                   className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-gold/60 bg-navy font-serif text-xl text-gold"
                 >
-                   {perfil?.nome ?? titularExibido ? iniciais(perfil?.nome ?? titularExibido) : <UserRound className="h-5 w-5" />}
+                  {(perfil?.nome ?? titularExibido) ? (
+                    iniciais(perfil?.nome ?? titularExibido)
+                  ) : (
+                    <UserRound className="h-5 w-5" />
+                  )}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">Meu perfil</p>
-                  <h2 className="break-words font-serif text-xl text-navy">{perfil?.nome ?? titularExibido ?? "Não registrado"}</h2>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-gold">
+                    Meu perfil
+                  </p>
+                  <h2 className="break-words font-serif text-xl text-navy">
+                    {perfil?.nome ?? titularExibido ?? "Não registrado"}
+                  </h2>
                 </div>
               </div>
-               <p className="mt-3 text-sm text-navy/65">Um espaço para cuidar da sua história e acompanhar as novidades da sua família.</p>
-               <dl className="mt-3 grid grid-cols-1 gap-x-4 md:grid-cols-2">
-                 {titularExibido ? (
-                <div className="border-b border-border py-3">
-                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>
-                  <dd className="text-sm text-navy">{titularExibido}</dd>
-                </div>
-                 ) : null}
+              <p className="mt-3 text-sm text-navy/65">
+                Um espaço para cuidar da sua história e acompanhar as novidades da sua família.
+              </p>
+              <dl className="mt-3 grid grid-cols-1 gap-x-4 md:grid-cols-2">
+                {titularExibido ? (
+                  <div className="border-b border-border py-3">
+                    <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>
+                    <dd className="text-sm text-navy">{titularExibido}</dd>
+                  </div>
+                ) : null}
                 <div className="border-b border-border py-3" data-conta-email>
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">E-mail</dt>
-                  <dd className="break-all text-sm text-navy">{perfil?.email ?? "Não registrado"}</dd>
+                  <dd className="break-all text-sm text-navy">
+                    {perfil?.email ?? "Não registrado"}
+                  </dd>
                 </div>
                 <div className="border-b border-border py-3" data-conta-whatsapp-titular>
                   <dt className="text-[11px] uppercase tracking-widest text-navy/50">WhatsApp</dt>
                   <dd className="text-sm text-navy">{perfil?.telefone ?? "Não registrado"}</dd>
                 </div>
                 <div className="border-b border-border py-3" data-conta-membro-desde>
-                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">Membro desde</dt>
+                  <dt className="text-[11px] uppercase tracking-widest text-navy/50">
+                    Membro desde
+                  </dt>
                   <dd className="text-sm text-navy">{membroDesde ?? "Não registrado"}</dd>
                 </div>
-               </dl>
-              <Button asChild variant="outline" className="app-perfil-whatsapp mt-3 h-auto min-h-11 whitespace-normal"><a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer">Falar com a Especialista no WhatsApp</a></Button>
+              </dl>
+              <Button
+                asChild
+                variant="outline"
+                className="app-perfil-whatsapp mt-3 h-auto min-h-11 whitespace-normal"
+              >
+                <a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer">
+                  Falar com a Especialista no WhatsApp
+                </a>
+              </Button>
               <p className="mt-3 text-xs text-navy/55">
-                  Se alguma informação mudar, avise a equipe pelo canal que você já utiliza.
+                Se alguma informação mudar, avise a equipe pelo canal que você já utiliza.
               </p>
             </section>
 
             <section className="app-v11-faixa app-conta-atendimento">
-              <details open className="app-conta-contato"><summary className="flex min-h-11 cursor-pointer items-center gap-2 font-serif text-xl text-navy"><ShieldCheck className="h-5 w-5" aria-hidden="true" /><span className="flex-1">Estamos por perto</span><ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" /></summary>
-              <p className="mt-2 text-sm text-navy/75">{acompanhamento}</p>
-              <Button asChild variant="outline" className="mt-3 h-auto min-h-11 whitespace-normal text-left"><a href={WHATSAPP_ESPECIALISTA.url} target="_blank" rel="noopener noreferrer" data-conta-whatsapp>Falar com a Especialista no WhatsApp · {WHATSAPP_ESPECIALISTA.rotulo}</a></Button>
-              <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">Situação do acompanhamento: {resumo?.statusRotulo ?? "Não registrado"}.</p></details>
-              <details className="mt-4"><summary className="min-h-11 cursor-pointer font-serif text-xl text-navy">Termos e privacidade</summary><p className="mt-2 text-sm text-navy/70">Os termos de uso e informações de privacidade serão apresentados aqui quando forem disponibilizados pela equipe.</p></details>
-              <details className="mt-4"><summary className="min-h-11 cursor-pointer font-serif text-xl text-navy">Acesso seguro</summary><p className="mt-2 text-sm text-navy/70">Seu acesso é pessoal. Não compartilhe links de entrada. Para dúvidas sobre o acesso, procure a equipe no canal oficial.</p></details>
+              <details open className="app-conta-contato">
+                <summary className="flex min-h-11 cursor-pointer items-center gap-2 font-serif text-xl text-navy">
+                  <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+                  <span className="flex-1">Estamos por perto</span>
+                  <ChevronDown className="app-detalhe-seta h-4 w-4" aria-hidden="true" />
+                </summary>
+                <p className="mt-2 text-sm text-navy/75">{acompanhamento}</p>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="mt-3 h-auto min-h-11 whitespace-normal text-left"
+                >
+                  <a
+                    href={WHATSAPP_ESPECIALISTA.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-conta-whatsapp
+                  >
+                    Falar com a Especialista no WhatsApp · {WHATSAPP_ESPECIALISTA.rotulo}
+                  </a>
+                </Button>
+                <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-navy/70">
+                  Situação do acompanhamento: {resumo?.statusRotulo ?? "Não registrado"}.
+                </p>
+              </details>
+              <details className="mt-4">
+                <summary className="min-h-11 cursor-pointer font-serif text-xl text-navy">
+                  Termos e privacidade
+                </summary>
+                <p className="mt-2 text-sm text-navy/70">
+                  Os termos de uso e informações de privacidade serão apresentados aqui quando forem
+                  disponibilizados pela equipe.
+                </p>
+              </details>
+              <details className="mt-4">
+                <summary className="min-h-11 cursor-pointer font-serif text-xl text-navy">
+                  Acesso seguro
+                </summary>
+                <p className="mt-2 text-sm text-navy/70">
+                  Seu acesso é pessoal. Não compartilhe links de entrada. Para dúvidas sobre o
+                  acesso, procure a equipe no canal oficial.
+                </p>
+              </details>
               {/* 26/10/2026: o App não tinha como sair. Na prévia do admin não aparece (não derruba a sessão da equipe). */}
               {previa ? null : <BotaoSair />}
             </section>
 
-             <section data-conta-assinatura className="app-v11-faixa">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--app-ouro-texto)]">Plano familiar · condição prevista</p>
+            <section data-conta-assinatura className="app-v11-faixa">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--app-ouro-texto)]">
+                Plano familiar · condição prevista
+              </p>
               <h2 className="mt-1 font-serif text-xl text-navy">Condição do projeto familiar</h2>
               {vivo.isError ? (
                 /* 12/10/2026 — falha de leitura (fail-closed): nunca "nenhuma assinatura", nunca dado financeiro. */
                 <div className="mt-2" data-conta-assinatura-erro>
-                  <AvisoFalhaConexao mensagem={MENSAGEM_INSTABILIDADE_FINANCEIRA} aoTentar={vivo.refetch} />
+                  <AvisoFalhaConexao
+                    mensagem={MENSAGEM_INSTABILIDADE_FINANCEIRA}
+                    aoTentar={vivo.refetch}
+                  />
                 </div>
               ) : vivo.isLoading ? (
-                <p className="mt-2 text-sm text-navy/60" role="status">Carregando sua assinatura…</p>
+                <p className="mt-2 text-sm text-navy/60" role="status">
+                  Carregando sua assinatura…
+                </p>
               ) : condicaoFamiliar ? (
                 <div className="mt-3" data-conta-condicao-familiar>
-                  <span className="app-chip" data-tom="pendente">Condição prevista · aguardando confirmação</span>
-                  <p className="mt-4 text-sm leading-relaxed text-navy"><strong>{String(condicaoFamiliar.assinaturas).padStart(2, "0")} assinaturas de {formatarValor(condicaoFamiliar.mensalCentavos)} por mês durante {condicaoFamiliar.meses} meses</strong></p>
+                  <span className="app-chip" data-tom="pendente">
+                    Condição prevista · aguardando confirmação
+                  </span>
+                  <p className="mt-4 text-sm leading-relaxed text-navy">
+                    <strong>
+                      {String(condicaoFamiliar.assinaturas).padStart(2, "0")} assinaturas de{" "}
+                      {formatarValor(condicaoFamiliar.mensalCentavos)} por mês durante{" "}
+                      {condicaoFamiliar.meses} meses
+                    </strong>
+                  </p>
                   <dl className="app-condicao-valores mt-4">
-                    <div><dt className="text-xs text-navy/70">Por adulto</dt><dd className="font-serif text-2xl text-navy">{formatarValor(condicaoFamiliar.adultoCentavos)}</dd></div>
-                    <div><dt className="text-xs text-navy/70">Valor Total</dt><dd className="font-serif text-2xl text-navy">{formatarValor(condicaoFamiliar.totalCentavos)}</dd></div>
+                    <div>
+                      <dt className="text-xs text-navy/70">Por adulto</dt>
+                      <dd className="font-serif text-2xl text-navy">
+                        {formatarValor(condicaoFamiliar.adultoCentavos)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-navy/70">Valor Total</dt>
+                      <dd className="font-serif text-2xl text-navy">
+                        {formatarValor(condicaoFamiliar.totalCentavos)}
+                      </dd>
+                    </div>
                   </dl>
-                  <p className="mt-4 text-xs leading-relaxed text-navy/70">Condição prevista; não representa cobrança ativa, fatura ou pagamento confirmado.</p>
+                  <p className="mt-4 text-xs leading-relaxed text-navy/70">
+                    Condição prevista; não representa cobrança ativa, fatura ou pagamento
+                    confirmado.
+                  </p>
                 </div>
               ) : assinatura ? (
                 <>
@@ -239,9 +350,12 @@ export function PortalConta() {
                   <p className="mt-2 text-sm text-navy" data-conta-assinatura-nome>
                     {assinatura.nome}
                   </p>
-                  <p className="mt-3 text-sm leading-relaxed text-navy/75">Condição prevista. A equipe confirmará os detalhes do plano familiar pelos canais oficiais; não há cobrança ou pagamento confirmado neste espaço.</p>
+                  <p className="mt-3 text-sm leading-relaxed text-navy/75">
+                    Condição prevista. A equipe confirmará os detalhes do plano familiar pelos
+                    canais oficiais; não há cobrança ou pagamento confirmado neste espaço.
+                  </p>
                 </>
-               ) : (
+              ) : (
                 /*
                   07/10/2026 — este espaço nunca some: antes a seção inteira
                   desaparecia sem assinatura nem upsell publicados, e ninguém
@@ -251,8 +365,8 @@ export function PortalConta() {
                 <div className="mt-2" data-conta-assinatura-vazio>
                   <CartaoEditorial texto="A assinatura da sua família terá seu lugar aqui quando for compartilhada pela equipe." />
                 </div>
-               )}
-             </section>
+              )}
+            </section>
 
             <section data-conta-faturas className="app-v11-faixa">
               <h2 className="font-serif text-xl text-navy">{COPY_TELAS.faturas.titulo}</h2>
@@ -265,7 +379,9 @@ export function PortalConta() {
                   />
                 </div>
               ) : faturasQuery.isLoading ? (
-                <p className="mt-2 text-sm text-navy/60" role="status">Carregando suas faturas…</p>
+                <p className="mt-2 text-sm text-navy/60" role="status">
+                  Carregando suas faturas…
+                </p>
               ) : !faturasQuery.data || faturasQuery.data.faturas.length === 0 ? (
                 <div className="mt-2" data-conta-faturas-vazio>
                   <CartaoEditorial
@@ -284,7 +400,9 @@ export function PortalConta() {
                       className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-cream/40 p-4"
                     >
                       <div>
-                        <p className="font-medium text-navy">{f.descricao ?? f.numero ?? "Fatura"}</p>
+                        <p className="font-medium text-navy">
+                          {f.descricao ?? f.numero ?? "Fatura"}
+                        </p>
                         <p className="text-xs text-navy/50">
                           {f.caso} · vencimento{" "}
                           {f.vencimento ? new Date(f.vencimento).toLocaleDateString("pt-BR") : "—"}
@@ -292,9 +410,10 @@ export function PortalConta() {
                       </div>
                       <div className="text-right">
                         <p className="font-medium text-navy">
-                          {new Intl.NumberFormat("pt-BR", { style: "currency", currency: f.moeda || "BRL" }).format(
-                            f.valor,
-                          )}
+                          {new Intl.NumberFormat("pt-BR", {
+                            style: "currency",
+                            currency: f.moeda || "BRL",
+                          }).format(f.valor)}
                         </p>
                         <span className="rounded-full border border-navy/15 bg-cream px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
                           {f.statusRotulo}
@@ -308,78 +427,82 @@ export function PortalConta() {
 
             {/* 12/10/2026: com falha de leitura, nenhuma seção afirma vazio. */}
             {vivo.isError ? null : (
-            <>
-            <section data-conta-plano className="app-v11-faixa">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-xl text-navy">Meu plano</h2>
-                {plano ? (
-                  <span
-                    data-conta-plano-situacao
-                    className="rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-navy/70"
-                  >
-                    {plano.situacao ?? "Não registrado"}
-                  </span>
-                ) : null}
-              </div>
-              {plano ? (
-                <>
-                  <p className="mt-2 text-sm text-navy" data-conta-plano-nome>
-                    {plano.nome}
-                  </p>
-                  {plano.vigencia ? (
-                    <p className="mt-1 text-xs text-navy/60">{plano.vigencia}</p>
-                  ) : null}
-                </>
-              ) : (
-                <div className="mt-2" data-conta-plano-vazio>
-                  <CartaoEditorial texto="O plano da sua família terá seu lugar aqui quando for compartilhado pela equipe." />
-                </div>
-              )}
-            </section>
-
-            <section data-conta-alertas className="app-v11-faixa">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <h2 className="font-serif text-xl text-navy">Novidades para você</h2>
-                <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
-                  Da sua jornada
-                </span>
-              </div>
-              {atualizacoes.length > 0 ? (
-                <ul className="mt-3 space-y-2" data-conta-atualizacoes>
-                  {atualizacoes.map((a) => (
-                    <li key={a.id} className="app-conta-registro">
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
-                        {a.tipoRotulo}
-                        {a.publicadoEm ? ` · ${new Date(a.publicadoEm).toLocaleDateString("pt-BR")}` : ""}
+              <>
+                <section data-conta-plano className="app-v11-faixa">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <h2 className="font-serif text-xl text-navy">Meu plano</h2>
+                    {plano ? (
+                      <span
+                        data-conta-plano-situacao
+                        className="rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-navy/70"
+                      >
+                        {plano.situacao ?? "Não registrado"}
+                      </span>
+                    ) : null}
+                  </div>
+                  {plano ? (
+                    <>
+                      <p className="mt-2 text-sm text-navy" data-conta-plano-nome>
+                        {plano.nome}
                       </p>
-                      <p className="mt-1 whitespace-pre-line text-sm text-navy">{a.conteudo}</p>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-              {alertaAcionavel ? (
-                <div className="mt-3 rounded-xl border border-gold/40 bg-gold/10 px-4 py-4">
-                  <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
-                     {alertaAcionavel.destino === "/portal/conta" ? "Aviso para você" : "Documento solicitado"}
-                  </p>
-                  <p className="mt-1 text-sm text-navy">{alertaAcionavel.acao}</p>
-                  {alertaAcionavel.destino === "/portal/documentos" ? (
-                    <LinkPortal
-                      to="/portal/documentos"
-                      className="mt-2 inline-flex min-h-11 items-center text-xs font-medium text-navy/70 underline hover:text-navy"
-                    >
-                      Ver documentos solicitados
-                    </LinkPortal>
-                  ) : null}
-                </div>
-              ) : atualizacoes.length === 0 ? (
-                  <div className="mt-3">
-                   <CartaoEditorial texto="Os recados da equipe terão seu lugar aqui." />
-                </div>
-              ) : null}
-            </section>
+                      {plano.vigencia ? (
+                        <p className="mt-1 text-xs text-navy/60">{plano.vigencia}</p>
+                      ) : null}
+                    </>
+                  ) : (
+                    <div className="mt-2" data-conta-plano-vazio>
+                      <CartaoEditorial texto="O plano da sua família terá seu lugar aqui quando for compartilhado pela equipe." />
+                    </div>
+                  )}
+                </section>
 
-            {/*
+                <section data-conta-alertas className="app-v11-faixa">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <h2 className="font-serif text-xl text-navy">Novidades para você</h2>
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-navy/45">
+                      Da sua jornada
+                    </span>
+                  </div>
+                  {atualizacoes.length > 0 ? (
+                    <ul className="mt-3 space-y-2" data-conta-atualizacoes>
+                      {atualizacoes.map((a) => (
+                        <li key={a.id} className="app-conta-registro">
+                          <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
+                            {a.tipoRotulo}
+                            {a.publicadoEm
+                              ? ` · ${new Date(a.publicadoEm).toLocaleDateString("pt-BR")}`
+                              : ""}
+                          </p>
+                          <p className="mt-1 whitespace-pre-line text-sm text-navy">{a.conteudo}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  {alertaAcionavel ? (
+                    <div className="mt-3 rounded-xl border border-gold/40 bg-gold/10 px-4 py-4">
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
+                        {alertaAcionavel.destino === "/portal/conta"
+                          ? "Aviso para você"
+                          : "Documento solicitado"}
+                      </p>
+                      <p className="mt-1 text-sm text-navy">{alertaAcionavel.acao}</p>
+                      {alertaAcionavel.destino === "/portal/documentos" ? (
+                        <LinkPortal
+                          to="/portal/documentos"
+                          className="mt-2 inline-flex min-h-11 items-center text-xs font-medium text-navy/70 underline hover:text-navy"
+                        >
+                          Ver documentos solicitados
+                        </LinkPortal>
+                      ) : null}
+                    </div>
+                  ) : atualizacoes.length === 0 ? (
+                    <div className="mt-3">
+                      <CartaoEditorial texto="Os recados da equipe terão seu lugar aqui." />
+                    </div>
+                  ) : null}
+                </section>
+
+                {/*
               REVERIFICACAO-ADVERSARIAL-GIOVANNA (27/09/2026) — Ficha Piloto
               da Giovanna, campos #47-49 ("Conta > Histórico", 3 marcos).
               `case_timeline_events` (visibility='cliente_aprovado',
@@ -389,29 +512,33 @@ export function PortalConta() {
               esta leitura. Só o texto que a equipe escreveu explicitamente
               para a família — nunca o título interno do evento.
             */}
-            <section data-conta-marcos data-conta-historico className="app-v11-faixa">
-              <h2 className="font-serif text-xl text-navy">Histórico de atividades</h2>
-              {atividades.length === 0 ? (
-                <div className="mt-3">
-                  <CartaoEditorial texto="As atividades da sua jornada terão seu lugar aqui à medida que forem liberadas para a família." />
-                </div>
-              ) : (
-                <ol className="mt-3 space-y-0 border-l-2 border-gold/40 pl-4">
-                  {atividades.map((a) => (
-                    <li key={a.id} className="relative py-2.5">
-                      <span aria-hidden="true" className="absolute -left-[1.4rem] top-4 h-2.5 w-2.5 rounded-full bg-gold" />
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-navy/55">
-                        {dataCurta(a.data)} · {a.rotulo}
-                      </p>
-                      <p className="mt-0.5 line-clamp-3 whitespace-pre-line text-sm text-navy/85">{a.texto}</p>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </section>
-            </>
+                <section data-conta-marcos data-conta-historico className="app-v11-faixa">
+                  <h2 className="font-serif text-xl text-navy">Histórico de atividades</h2>
+                  {atividades.length === 0 ? (
+                    <div className="mt-3">
+                      <CartaoEditorial texto="As atividades da sua jornada terão seu lugar aqui à medida que forem liberadas para a família." />
+                    </div>
+                  ) : (
+                    <ol className="mt-3 space-y-0 border-l-2 border-gold/40 pl-4">
+                      {atividades.map((a) => (
+                        <li key={a.id} className="relative py-2.5">
+                          <span
+                            aria-hidden="true"
+                            className="absolute -left-[1.4rem] top-4 h-2.5 w-2.5 rounded-full bg-gold"
+                          />
+                          <p className="text-[11px] font-medium uppercase tracking-wide text-navy/55">
+                            {dataCurta(a.data)} · {a.rotulo}
+                          </p>
+                          <p className="mt-0.5 line-clamp-3 whitespace-pre-line text-sm text-navy/85">
+                            {a.texto}
+                          </p>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </section>
+              </>
             )}
-
           </div>
         </BlocoVisibilidade>
       )}
