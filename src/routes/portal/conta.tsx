@@ -109,6 +109,12 @@ export function PortalConta() {
     ...publicacoesParaCliente(
       (vivo.data?.projecoes ?? []).filter((p) => p.projection_type === "marco" || p.projection_type === "microentrega"),
     ).map((p) => ({ id: `p-${p.id}`, rotulo: p.tipoRotulo, texto: p.conteudo, data: p.publicadoEm ?? null })),
+    ...publicacoesParaCliente(
+      (vivo.data?.projecoes ?? []).filter((p) => p.projection_type === "legado"),
+    ).map((p) => ({ id: `l-${p.id}`, rotulo: "Publicado no Legado", texto: p.conteudo.split("\n")[0], data: p.publicadoEm ?? null })),
+    ...(vivo.data?.documentos ?? [])
+      .filter((d) => d.liberado_cliente && !d.is_demo && d.liberado_em)
+      .map((d) => ({ id: `d-${d.id}`, rotulo: "Documento liberado", texto: textoParaCliente(d.titulo) ?? "Documento disponível em Documentos", data: d.liberado_em ?? null })),
   ]
     .filter((a) => a.data)
     .sort((a, b) => String(b.data).localeCompare(String(a.data)));

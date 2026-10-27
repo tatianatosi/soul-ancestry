@@ -16,9 +16,9 @@ export function GenogramaFamiliar({ pessoas, vinculos }: { pessoas: PessoaNaArvo
     const largura = Math.max(540, ...geracoes.map((g) => pessoas.filter((p) => p.geracao === g).length * 190 + 80));
     const nos = geracoes.flatMap((g, linha) => {
       const grupo = pessoas.filter((p) => (p.geracao ?? 1) === g);
-      return grupo.map((p, coluna) => ({ pessoa: p, x: largura / 2 + (coluna - (grupo.length - 1) / 2) * 190, y: 90 + linha * 185 }));
+      return grupo.map((p, coluna) => ({ pessoa: p, x: largura / 2 + (coluna - (grupo.length - 1) / 2) * 190, y: 90 + linha * 230 }));
     });
-    return { nos, largura, altura: Math.max(340, geracoes.length * 185 + 30) };
+    return { nos, largura, altura: Math.max(340, geracoes.length * 230 + 10) };
   }, [pessoas]);
   const porId = new Map(layout.nos.map((n) => [n.pessoa.chave, n]));
   const pessoa = pessoas.find((p) => p.chave === selecionada);
@@ -55,12 +55,15 @@ export function GenogramaFamiliar({ pessoas, vinculos }: { pessoas: PessoaNaArvo
         e.currentTarget.scrollLeft = g.left + g.x - e.clientX;
         e.currentTarget.scrollTop = g.top + g.y - e.clientY;
       }} onPointerUp={() => { gesto.current = null; }} onPointerCancel={() => { gesto.current = null; }}>
-        <svg width={layout.largura * zoom} height={layout.altura * zoom} viewBox={`0 0 ${layout.largura} ${layout.altura}`} role="group" aria-label="Pessoas e relações publicadas">
+        <svg style={{ display: "block", margin: "0 auto" }} width={layout.largura * zoom} height={layout.altura * zoom} viewBox={`0 0 ${layout.largura} ${layout.altura}`} role="group" aria-label="Pessoas e relações publicadas">
           {vinculos.map((v, i) => {
             const a = porId.get(v.de), b = porId.get(v.para);
             if (!a || !b) return null;
-            const meio = (a.y + b.y) / 2;
-            return <path key={`${v.de}-${v.para}-${i}`} className={v.tipo === "conjuge" ? "app-genograma-uniao" : "app-genograma-filiacao"} d={v.tipo === "conjuge" ? `M${a.x} ${a.y} L${b.x} ${b.y}` : `M${a.x} ${a.y} V${meio} H${b.x} V${b.y}`}><title>{a.pessoa.nome} · {v.tipo === "conjuge" ? "União" : "Filiação"} · {b.pessoa.nome}</title></path>;
+            // Saída abaixo do rótulo (nome + geração) e chegada acima do círculo: nenhuma linha cruza nomes.
+            const [sup, inf] = a.y <= b.y ? [a, b] : [b, a];
+            const saida = sup.y + 102, chegada = inf.y - 44, meio = (saida + chegada) / 2;
+            const [esq, dir] = a.x <= b.x ? [a, b] : [b, a];
+            return <path key={`${v.de}-${v.para}-${i}`} className={v.tipo === "conjuge" ? "app-genograma-uniao" : "app-genograma-filiacao"} d={v.tipo === "conjuge" ? `M${esq.x + 40} ${esq.y} L${dir.x - 40} ${dir.y}` : `M${sup.x} ${saida} V${meio} H${inf.x} V${chegada}`}><title>{a.pessoa.nome} · {v.tipo === "conjuge" ? "União" : "Filiação"} · {b.pessoa.nome}</title></path>;
           })}
           {layout.nos.map(({ pessoa: p, x, y }) => (
             <g key={p.chave} transform={`translate(${x} ${y})`} role="button" tabIndex={0} aria-label={`Abrir ${p.nome}`} aria-pressed={p.chave === selecionada} data-genograma-no data-raiz={p.nome.trim().toLocaleLowerCase("pt-BR") === "otto reimer" || undefined} onClick={() => setSelecionada(p.chave)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelecionada(p.chave); } }}>
