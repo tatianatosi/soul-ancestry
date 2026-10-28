@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -30,7 +31,12 @@ SKIP_DIRS = {
     "__pycache__", ".output", ".vercel", "archive", "output",
 }
 EXTENSOES = (".js", ".ts", ".tsx", ".py", ".html", ".css", ".vue", ".go", ".java")
-MARCADORES = ("TODO", "FIXME", "codigo restante", "código restante")
+PADROES = (
+    re.compile(r"\bTODO\b"),
+    re.compile(r"\bFIXME\b"),
+    re.compile(r"codigo restante", re.IGNORECASE),
+    re.compile(r"código restante", re.IGNORECASE),
+)
 
 def linha_incompleta(linha):
     texto = linha.strip()
@@ -39,7 +45,7 @@ def linha_incompleta(linha):
     baixa = texto.lower()
     if "placeholder=" in baixa or "placeholder:" in baixa:
         return False
-    return any(m.lower() in baixa for m in MARCADORES)
+    return any(padrao.search(texto) for padrao in PADROES)
 
 def sensivel(linha_status):
     caminho = linha_status[3:].strip().strip('"')
