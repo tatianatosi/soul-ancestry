@@ -73,7 +73,9 @@ describe("3. Documentos — 4 cards, envio integrado a Solicitados, sem KPI/pain
   });
 
   it("a instrução de envio está integrada ao card Solicitados nos dois modos (prévia e real)", () => {
-    expect(documentos).toContain("Se precisarmos de algo, o pedido e a orientação para enviar aparecerão aqui.");
+    expect(documentos).toContain(
+      "Se precisarmos de algo, o pedido e a orientação para enviar aparecerão aqui.",
+    );
     expect(documentos).toContain("<EnviarDocumento casoId={casoAtivo} />");
     /*
       08/10/2026: a âncora deixou de depender da classe CSS (o Lovable trocou
@@ -130,11 +132,18 @@ describe("5. Caso 360 — visão geral não repete o mesmo bloqueio em banner e 
   });
 
   it("as seis seções originais continuam intactas — Documentos e Financeiro somaram-se (P24, 2026-09-26)", () => {
-    const secoes = [...pagina.matchAll(/<SecaoAncora id="(\w+)"|<details id="secao-(\w+)"/g)].map(
-      (m) => m[1] ?? m[2],
-    );
+    const secoes = [
+      ...pagina.matchAll(/<SecaoAncora\s+id="(\w+)"|<details\s+id="secao-(\w+)"/g),
+    ].map((m) => m[1] ?? m[2]);
     expect(secoes).toEqual([
-      "visao", "comercial", "tecnico", "pessoas", "jornada", "documentos", "financeiro", "log",
+      "visao",
+      "comercial",
+      "tecnico",
+      "pessoas",
+      "jornada",
+      "documentos",
+      "financeiro",
+      "log",
     ]);
   });
 
