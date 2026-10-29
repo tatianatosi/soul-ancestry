@@ -103,7 +103,12 @@ export function PortalArvore() {
                          : "Esta árvore ainda não tem nomes e vínculos liberados para a família."}
                     </p>
                     {pessoas.length > 0 ? (
-                      <GenogramaFamiliar pessoas={pessoas} vinculos={"vinculosArvore" in vivo ? vivo.vinculosArvore : []} raizId={raizAutorizada(vivo.casoAtivoId ?? fonte?.previa.identidade?.caseId, pessoas)} />
+                      <GenogramaFamiliar
+                        pessoas={pessoas}
+                        vinculos={"vinculosArvore" in vivo ? vivo.vinculosArvore : []}
+                        raizId={raizAutorizada(vivo.casoAtivoId ?? fonte?.previa.identidade?.caseId, pessoas)}
+                        anos={Object.fromEntries(("anosArvore" in vivo ? vivo.anosArvore : []).map((a) => [a.pessoa_id, a.rotulo]))}
+                      />
                     ) : (
                     <div className="mt-6 divide-y divide-border">
                       {geracoesExibidas.map((geracao: GeracaoArvore) => (

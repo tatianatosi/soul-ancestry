@@ -26,15 +26,17 @@ export function linhasNome(nome: string, largura = 150) {
 
 /** Rectangular cards (mockup p.6): y is the card top; altura is the card height. */
 export const CARTAO_LARGURA = 170;
-export function layoutGenograma(pessoas: readonly PessoaNaArvore[]) {
+/** 29/10/2026: rótulo de ano autorizado por pessoa (ex.: "n. 1873"); ausente = sem linha. */
+export function layoutGenograma(pessoas: readonly PessoaNaArvore[], anosPorPessoa?: Readonly<Record<string, string>>) {
   const geracoes = [...new Set(pessoas.map((p) => p.geracao ?? 1))].sort((a, b) => b - a);
   const largura = Math.max(540, ...geracoes.map((g) => pessoas.filter((p) => (p.geracao ?? 1) === g).length * 200 + 80));
   let y = 60;
   const nos = geracoes.flatMap((g) => {
     const grupo = pessoas.filter((p) => (p.geracao ?? 1) === g);
     const linhaY = y;
-    const preparados = grupo.map((pessoa) => ({ pessoa, linhas: linhasNome(pessoa.nome) }));
-    const altura = 30 + Math.max(1, ...preparados.map((p) => p.linhas.length)) * 16 + 22;
+    const preparados = grupo.map((pessoa) => ({ pessoa, linhas: linhasNome(pessoa.nome), ano: anosPorPessoa?.[pessoa.chave] ?? null }));
+    const temAno = preparados.some((p) => p.ano);
+    const altura = 30 + Math.max(1, ...preparados.map((p) => p.linhas.length)) * 16 + (temAno ? 16 : 0) + 22;
     y += altura + 110;
     return preparados.map((p, coluna) => ({ ...p, altura, x: largura / 2 + (coluna - (grupo.length - 1) / 2) * 200, y: linhaY, geracaoY: altura - 14 }));
   });

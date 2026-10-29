@@ -1459,6 +1459,8 @@
 [data-app-cliente] .app-genograma-iniciais { fill: var(--app-brand-gold); font: 600 24px var(--ca-font-title); }
 [data-app-cliente] .app-genograma-nome { fill: var(--ca-navy); font: 600 12px var(--ca-font-body); }
 [data-app-cliente] .app-genograma-geracao { fill: var(--ca-text-muted); font: 11px var(--ca-font-body); }
+[data-app-cliente] .app-genograma-ano { fill: var(--ca-navy); fill-opacity: .68; font: 600 11px var(--ca-font-body); }
+[data-app-cliente] [data-genograma-no][data-geracao-um] .app-genograma-ano { fill: var(--ca-white); fill-opacity: 1; }
 [data-app-cliente] .app-genograma-detalhe { border-top: 2px solid var(--app-brand-gold); margin-top: 1rem; padding-top: .75rem; }
 [data-app-cliente] .app-genograma-legenda { display: flex; align-items: center; gap: .5rem; }
 [data-app-cliente] .app-genograma-legenda::before { content: ""; width: 1.5rem; height: 2px; background: var(--ca-navy); }
