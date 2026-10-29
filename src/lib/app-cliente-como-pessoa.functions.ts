@@ -168,7 +168,7 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
           .in("research_person_id", [...publicadosArvore]);
         anosArvore = ((prof.data ?? []) as any[])
           .map((r) => ({ pessoa_id: String(r.research_person_id), rotulo: rotuloAnoArvore(r) }))
-          .filter((a) => Boolean(a.rotulo));
+          .filter((a): a is { pessoa_id: string; rotulo: string } => Boolean(a.rotulo));
       } catch {
         anosArvore = [];
       }
