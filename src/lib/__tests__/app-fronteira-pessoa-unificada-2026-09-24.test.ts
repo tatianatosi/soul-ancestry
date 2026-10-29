@@ -110,13 +110,25 @@ describe("App Cliente — caminho alcançado pelas rotas do portal", () => {
     expect([...alcancados.keys()].some((a) => a.startsWith("src/lib/portal"))).toBe(true);
   });
 
-  it("nenhum módulo alcançado lê as fontes internas dos vínculos novos", () => {
+  it("nenhum módulo alcançado lê as fontes internas dos vínculos novos, fora a leitura de anos autorizada (29/10/2026)", () => {
     const achados: string[] = [];
     for (const arquivo of alcancados.keys()) {
       const src = readFileSync(arquivo, "utf8");
       for (const t of TABELAS_PROIBIDAS) {
         if (src.includes(`.from("${t}")`)) achados.push(`${arquivo} → ${t}`);
       }
+    }
+    // 29/10/2026 — anos do cartão da Árvore: única exceção autorizada pela
+    // Proprietária, mesma fronteira sanitizada dos vínculos. O módulo deve
+    // filtrar client_visibility='aprovada' + arquivado no servidor.
+    const LEITURA_ANOS = "src/lib/portal-dados-vivos.functions.ts";
+    for (const [arquivo, src] of [...alcancados.entries()].filter(([a]) => a === LEITURA_ANOS || a.endsWith("portal-dados-vivos.functions.ts"))) {
+      const usos = src.split('.from("genealogical_person_profiles")').length - 1;
+      if (!usos) continue;
+      achados.splice(achados.indexOf(`${arquivo} → genealogical_person_profiles`), 1);
+      const corpo = src.slice(src.indexOf('.from("genealogical_person_profiles")'));
+      expect(corpo).toContain('.eq("client_visibility", "aprovada")');
+      expect(corpo).toContain('.is("archived_at", null)');
     }
     expect(achados).toEqual([]);
   });
