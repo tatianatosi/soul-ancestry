@@ -19,6 +19,17 @@
  * `fn_guard_ativacao` cedem a `fn_proprietaria_operando()` — então
  * `bloqueiaAtivacaoHoje` é calculado por ator (quem está logado agora),
  * não um booleano fixo por portão.
+ *
+ * Peça C (28/10/2026, ver peca-c-trava-portoes-crm-casos-2026-10-28.test.ts):
+ * medidos no banco vivo 6 guards de ativação em `crm_casos`. 5 já cobertos
+ * aqui (`fn_guard_ativacao`, `fn_piloto_caso_guard`,
+ * `fn_guard_consentimento_ativacao`, `fn_quality_guard_ativacao` e
+ * `fn_caso_ativacao_gates_guard` — os 3 últimos leem a mesma tabela que
+ * `case_ativacao_bloqueios_reais` já projeta). O 6º, `fn_caso_ativo_guard`
+ * (transição `eixo_operacao = 'caso_ativo'`, checa `onboarding_checklist` +
+ * `onboarding_iniciado_em`), está FORA deste inventário — dormente, porque
+ * nenhum código escreve esse valor hoje (travado por teste dedicado). Se
+ * essa escrita aparecer, estenda este arquivo antes de prosseguir.
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
