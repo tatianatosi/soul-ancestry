@@ -31,9 +31,13 @@ SKIP_DIRS = {
     "__pycache__", ".output", ".vercel", "archive", "output",
 }
 EXTENSOES = (".js", ".ts", ".tsx", ".py", ".html", ".css", ".vue", ".go", ".java")
+# "TODO" em maiúsculas também é a palavra portuguesa ("TODO campo", "TODO o
+# perfil"), que aparece em comentários e nomes de teste deste repositório. Só
+# contam como marcador de entrega incompleta as formas de código: `TODO:`,
+# `FIXME(...)` ou o marcador abrindo a própria linha de comentário.
 PADROES = (
-    re.compile(r"\bTODO\b"),
-    re.compile(r"\bFIXME\b"),
+    re.compile(r"\b(?:TODO|FIXME)\s*[:(]"),
+    re.compile(r"^(?://+|/\*+|\*|#)\s*(?:TODO|FIXME)\b"),
     re.compile(r"codigo restante", re.IGNORECASE),
     re.compile(r"código restante", re.IGNORECASE),
 )
@@ -61,7 +65,8 @@ achados = []
 for raiz, dirs, arquivos in os.walk("."):
     dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
     for arquivo in arquivos:
-        if arquivo == "pipeline.py" or not arquivo.endswith(EXTENSOES):
+        # Os próprios varredores citam os marcadores como dado, não como pendência.
+        if arquivo in ("pipeline.py", "auditar_projeto.py") or not arquivo.endswith(EXTENSOES):
             continue
         caminho = os.path.join(raiz, arquivo)
         try:
