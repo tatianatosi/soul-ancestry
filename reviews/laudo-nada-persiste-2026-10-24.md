@@ -157,3 +157,42 @@ deixaram de ser camada de ativação... a tela não lê nem exibe mais essa list
 
 Não escrevo pensando por você: registro a medição, porque o plano da seção 4 foi
 escrito ontem sobre um banco que já não existe hoje.
+
+---
+
+## 7. Peças A, B e C construídas (28/10/2026) — e uma correção à seção 6
+
+Decisão da Proprietária: "deve ser construída todas as peças não só no caso
+360". As três foram construídas:
+
+- **Peça A** (`src/lib/inventario-portoes.server.ts`): leitor único, usado no
+  Caso 360 **e** na Lista de Casos (não hardcoded numa tela), somando
+  `piloto_bloqueios` ao que `case_ativacao_bloqueios_reais` já projetava —
+  role-aware (`bloqueiaAtivacaoHoje` calculado por quem está logado agora).
+- **Peça B** (`src/lib/recusa-traducao.server.ts`): tradutor aplicado no ponto
+  único (`exigirLinhaGravada`), seed com 3 entradas de texto exato verificado
+  contra o trigger vivo; as demais ~689 recusas passam pelo mesmo hook sem
+  alteração.
+- **Peça C** (`peca-c-trava-portoes-crm-casos-2026-10-28.test.ts`): ao medir
+  todos os 20 triggers de `crm_casos` para travar o resultado, encontrei
+  **4 guardas de ativação que eu não conhecia** até então:
+  `fn_guard_consentimento_ativacao`, `fn_quality_guard_ativacao`,
+  `fn_caso_ativacao_gates_guard` e `fn_caso_ativo_guard`.
+
+**Isso corrige a própria seção 6, item 2, escrita há um dia**: eu afirmei que
+"`piloto_bloqueios`, consentimento, `onboarding_checklist` e `quality_issues`
+não bloqueiam ninguém hoje — nenhum trigger de ativação os lê". Falso. Lido
+agora o corpo vivo dos 4 triggers acima: `fn_guard_consentimento_ativacao` e
+`fn_quality_guard_ativacao` leem consentimento e `quality_issues`
+independentemente de `case_ativacao_bloqueios_reais`, e cedem só a
+`fn_proprietaria_operando()` — ou seja, **para qualquer membro de equipe que
+não seja você, esses dois portões recusam de fato hoje**, não só o
+requisito de `case_activation_checks` que eu tinha identificado. A frase
+"informa, não impede" no Caso 360 e na Lista de Casos é precisa só para
+você; para a equipe, é mais estreita do que eu disse ontem.
+
+Dos 4, só um ficou de fora do inventário da Peça A: `fn_caso_ativo_guard`
+(transição `eixo_operacao = 'caso_ativo'`, nunca exercida — medido no banco,
+nenhum caso tem esse valor, e nenhum código escreve). Travado por teste
+dedicado; os outros 3 liam tabelas já cobertas, então o inventário já
+estava certo para eles, mesmo sem eu saber que existiam.
