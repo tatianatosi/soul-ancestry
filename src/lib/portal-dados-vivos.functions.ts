@@ -239,6 +239,29 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
         }));
     }
 
+    // 29/10/2026 — anos autorizados: perfil do próprio caso, visibilidade
+    // "aprovada", não arquivado, com data registrada e pessoa já publicada na
+    // Árvore. Falha de leitura devolve lista vazia, nunca ano inventado.
+    let anosArvore: AnoArvoreCliente[] = [];
+    if (publicados.size > 0) {
+      try {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const prof = await (supabaseAdmin as any)
+          .from("genealogical_person_profiles")
+          .select("id, nascimento_data, nascimento_precisao, morte_data, morte_precisao")
+          .eq("case_id", String(casoAtivo.id))
+          .eq("client_visibility", "aprovada")
+          .is("archived_at", null)
+          .or("nascimento_data.not.is.null,morte_data.not.is.null")
+          .in("id", [...publicados]);
+        anosArvore = ((prof.data ?? []) as any[])
+          .map((r) => ({ pessoa_id: String(r.id), rotulo: rotuloAnoArvore(r) }))
+          .filter((a): a is AnoArvoreCliente => Boolean(a.rotulo));
+      } catch {
+        anosArvore = [];
+      }
+    }
+
     // Acesso ao caso já decidido pela RLS de `portal_casos`; leitura do resumo
     // no servidor, recortada a campos sanitizados (sem CPF/RG/endereço).
     let resumoCaso: ResumoCasoCliente | null = null;
@@ -252,6 +275,7 @@ export const dadosVivosDoPortal = createServerFn({ method: "GET" })
     return {
       resumoCaso,
       vinculosArvore,
+      anosArvore,
       projecoes,
       documentos: (docs.data ?? []) as DocumentoPortal[],
       proximaAcao,
