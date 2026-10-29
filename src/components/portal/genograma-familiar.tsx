@@ -6,12 +6,12 @@ import type { VinculoArvoreCliente } from "@/lib/portal-dados-vivos.functions";
 import { CARTAO_LARGURA, enquadramentoGenograma, layoutGenograma } from "./genograma-layout";
 
 /** Only published people and explicit relationships are drawn. */
-export function GenogramaFamiliar({ pessoas, vinculos, raizId }: { pessoas: PessoaNaArvore[]; vinculos: readonly VinculoArvoreCliente[]; raizId?: string }) {
+export function GenogramaFamiliar({ pessoas, vinculos, raizId, anos }: { pessoas: PessoaNaArvore[]; vinculos: readonly VinculoArvoreCliente[]; raizId?: string; anos?: Readonly<Record<string, string>> }) {
   const [zoom, setZoom] = useState(1);
   const [selecionada, setSelecionada] = useState<string | null>(null);
   const viewport = useRef<HTMLDivElement>(null);
   const gesto = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
-  const layout = useMemo(() => layoutGenograma(pessoas), [pessoas]);
+  const layout = useMemo(() => layoutGenograma(pessoas, anos), [pessoas, anos]);
   const porId = new Map(layout.nos.map((n) => [n.pessoa.chave, n]));
   const pessoa = pessoas.find((p) => p.chave === selecionada);
   const enquadrar = useCallback(() => {
@@ -73,10 +73,12 @@ export function GenogramaFamiliar({ pessoas, vinculos, raizId }: { pessoas: Pess
                 : `M${sup.x} ${saida} V${meio} H${inf.x} V${chegada}`;
             return <path key={`${v.de}-${v.para}-${i}`} data-de={v.de} data-para={v.para} className={v.tipo === "conjuge" ? "app-genograma-uniao" : "app-genograma-filiacao"} d={v.tipo === "conjuge" ? uniao : filiacao}><title>{a.pessoa.nome} · {v.tipo === "conjuge" ? "União" : "Filiação"} · {b.pessoa.nome}</title></path>;
           })}
-          {layout.nos.map(({ pessoa: p, x, y, linhas, geracaoY, altura }) => (
+          {layout.nos.map(({ pessoa: p, x, y, linhas, ano, geracaoY, altura }) => (
             <g key={p.chave} transform={`translate(${x} ${y})`} role="button" tabIndex={0} aria-label={`Abrir ${p.nome}`} aria-pressed={p.chave === selecionada} data-genograma-no data-raiz={p.chave === raizId || undefined} data-geracao-um={p.geracao === 1 || undefined} onClick={() => setSelecionada(p.chave)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelecionada(p.chave); } }}>
               <rect x={-CARTAO_LARGURA / 2} y={0} width={CARTAO_LARGURA} height={altura} rx={8} className="app-genograma-cartao" />
               <text textAnchor="middle" y={26} className="app-genograma-nome">{linhas.map((linha, i) => <tspan key={i} x={0} dy={i === 0 ? 0 : 16}>{linha}</tspan>)}</text>
+              {/* Ano só quando a equipe liberou a data do perfil (29/10/2026). */}
+              {ano ? <text data-genograma-ano textAnchor="middle" y={26 + (linhas.length - 1) * 16 + 18} className="app-genograma-ano">{ano}</text> : null}
               <text textAnchor="middle" y={geracaoY} className="app-genograma-geracao">G{p.geracao}{p.geracao === 1 ? " · Você" : ""}</text>
             </g>
           ))}
