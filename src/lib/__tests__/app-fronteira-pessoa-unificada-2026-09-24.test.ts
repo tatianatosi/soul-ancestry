@@ -122,13 +122,15 @@ describe("App Cliente — caminho alcançado pelas rotas do portal", () => {
     // Proprietária, mesma fronteira sanitizada dos vínculos. O módulo deve
     // filtrar client_visibility='aprovada' + arquivado no servidor.
     const LEITURA_ANOS = "src/lib/portal-dados-vivos.functions.ts";
-    for (const [arquivo, src] of [...alcancados.entries()].filter(([a]) => a === LEITURA_ANOS || a.endsWith("portal-dados-vivos.functions.ts"))) {
+    if (alcancados.has(LEITURA_ANOS)) {
+      const src = readFileSync(LEITURA_ANOS, "utf8");
       const usos = src.split('.from("genealogical_person_profiles")').length - 1;
-      if (!usos) continue;
-      achados.splice(achados.indexOf(`${arquivo} → genealogical_person_profiles`), 1);
-      const corpo = src.slice(src.indexOf('.from("genealogical_person_profiles")'));
-      expect(corpo).toContain('.eq("client_visibility", "aprovada")');
-      expect(corpo).toContain('.is("archived_at", null)');
+      if (usos) {
+        achados.splice(achados.indexOf(`${LEITURA_ANOS} → genealogical_person_profiles`), 1);
+        const corpo = src.slice(src.indexOf('.from("genealogical_person_profiles")'));
+        expect(corpo).toContain('.eq("client_visibility", "aprovada")');
+        expect(corpo).toContain('.is("archived_at", null)');
+      }
     }
     expect(achados).toEqual([]);
   });
