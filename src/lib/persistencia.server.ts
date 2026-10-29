@@ -9,6 +9,7 @@
 import { compararPersistencia, mensagemDivergencia } from "@/lib/verificacao-persistencia";
 import { CODIGOS_PERSISTENCIA } from "@/lib/persistencia-erros";
 import { mascararParaLog } from "@/lib/persistencia-mascara";
+import { traduzirRecusa } from "@/lib/recusa-traducao.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Supa = { from: (t: string) => any };
@@ -21,7 +22,14 @@ export type ResultadoGravacao = {
 };
 
 /** Campos de controle que o cliente nunca pode enviar. */
-const NUNCA_DO_CLIENTE = ["updated_by", "created_by", "organization_id", "id", "demo", "data_origin"];
+const NUNCA_DO_CLIENTE = [
+  "updated_by",
+  "created_by",
+  "organization_id",
+  "id",
+  "demo",
+  "data_origin",
+];
 
 export function limparCamposDeControle(dados: Record<string, unknown>): Record<string, unknown> {
   const saida: Record<string, unknown> = {};
@@ -43,12 +51,17 @@ export function limparCamposDeControle(dados: Record<string, unknown>): Record<s
  * "Salvo" e nada tinha mudado. É o "nada salva" relatado.
  *
  * Uso: acrescentar `.select("id")` à escrita e passar o resultado aqui.
+ *
+ * Peça B do laudo "nada persiste" (#189, 27/10/2026): este é o ponto único
+ * por onde as recusas do Postgres passam antes de chegar à tela — por
+ * isso é aqui que `traduzirRecusa` soma orientação aos portões conhecidos,
+ * sem alterar o texto original (ver src/lib/recusa-traducao.server.ts).
  */
 export function exigirLinhaGravada(
   res: { data?: unknown; error?: { message: string } | null },
   tabela: string,
 ): void {
-  if (res.error) throw new Error(res.error.message);
+  if (res.error) throw new Error(traduzirRecusa(res.error.message));
   const linhas = Array.isArray(res.data) ? res.data.length : res.data ? 1 : 0;
   if (linhas === 0) {
     throw new Error(
@@ -91,11 +104,7 @@ export async function gravarComVerificacao(opcoes: {
   // sai sem o filtro de organização.
   let gravouForaDaOrganizacao = false;
   if (!error && (!linhas || linhas.length === 0) && id) {
-    const retry = await supabase
-      .from(tabela)
-      .update(gravar)
-      .eq("id", id)
-      .select("id");
+    const retry = await supabase.from(tabela).update(gravar).eq("id", id).select("id");
     if (!retry.error && retry.data && retry.data.length > 0) {
       linhas = retry.data;
       error = null;
@@ -170,7 +179,12 @@ export async function inserirComVerificacao(opcoes: {
     console.warn(`[persistencia] Falha na comparação pós-inserção em ${tabela}:${linha.id}`);
   }
 
-  return { ok: true, id: linha.id as string, registro: registro ?? {}, salvoEm: new Date().toISOString() };
+  return {
+    ok: true,
+    id: linha.id as string,
+    registro: registro ?? {},
+    salvoEm: new Date().toISOString(),
+  };
 }
 
 /** Trilha por campo com valores sensíveis mascarados. */
