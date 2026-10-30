@@ -325,7 +325,8 @@ export const CABECALHO_CSV_MARKETING = [
 
 function celula(valor: string | number | null | undefined): string {
   const texto = (valor ?? "").toString().replace(/\r?\n/g, " ").trim();
-  return `"${texto.replace(/"/g, '""')}"`;
+  const seguro = /^[=+\-@\t\r]/.test(texto) ? `'${texto}` : texto;
+  return `"${seguro.replace(/"/g, '""')}"`;
 }
 
 export type LinhaCsvMarketing = {

@@ -111,7 +111,8 @@ export async function contextoQualidade(supabase: Sb, userId: string) {
 export function paraCsv(campos: { chave: string; rotulo: string }[], linhas: Record<string, unknown>[]) {
   const escapar = (v: unknown) => {
     if (v === null || v === undefined) return "";
-    const s = String(v);
+    const bruto = String(v);
+    const s = /^[=+\-@\t\r]/.test(bruto) ? `'${bruto}` : bruto;
     return /[",;\n]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
   };
   const cabecalho = campos.map((c) => escapar(c.rotulo)).join(";");
