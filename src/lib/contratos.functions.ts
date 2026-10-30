@@ -357,6 +357,80 @@ export const criarInstrumento = createServerFn({ method: "POST" })
     return novo as { id: string; contract_number: string };
   });
 
+/**
+ * Abre o instrumento-base (rascunho) do caso a partir do Caso 360: reaproveita
+ * se já existir um `contract_base` não arquivado para o caso, nunca cria um
+ * segundo em paralelo. Quando precisa criar, segue exatamente o mesmo caminho
+ * de `criarInstrumento` (inclusive a reconexão de `contract_case_parameters`
+ * órfãos — achado real do caso da Ana, onde os parâmetros já existiam e nunca
+ * tinham sido ligados a um contrato).
+ */
+export const abrirContratoDoCaso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string }) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    exigir(papel, PREPARA, "Seu papel não permite abrir instrumentos contratuais.");
+
+    const { data: caso } = await supabase
+      .from("crm_casos")
+      .select("id,codigo,titulo,cliente_id,organization_id,archived_at,demo")
+      .eq("id", data.caseId)
+      .maybeSingle();
+    if (!caso || caso.organization_id !== organizationId) throw new Error("Caso não encontrado nesta organização.");
+    if (caso.archived_at) throw new Error("Caso arquivado: não é possível abrir contrato.");
+    if (caso.demo) throw new Error("Caso de demonstração não alimenta o motor contratual real.");
+
+    const { data: existente } = await supabase
+      .from("contracts")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .eq("case_id", caso.id)
+      .eq("contract_type", "contract_base")
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (existente?.id) return { id: existente.id as string, criado: false };
+
+    const { data: novo, error } = await supabase
+      .from("contracts")
+      .insert({
+        organization_id: organizationId,
+        contract_number: "auto",
+        contract_type: "contract_base",
+        title: `Contrato — ${caso.titulo ?? caso.codigo}`,
+        relationship_type: "independent",
+        case_id: caso.id,
+        client_id: caso.cliente_id ?? null,
+        status: "draft",
+      })
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!novo?.id) throw new Error("O instrumento não foi criado.");
+
+    await supabase
+      .from("contract_case_parameters")
+      .update({ contract_id: novo.id, updated_by: context.userId })
+      .eq("case_id", caso.id)
+      .is("contract_id", null);
+
+    await evento(supabase, organizationId, novo.id, "created", { tipo: "contract_base", origem: "caso_360" });
+    await registrarTimelineCaso(supabase, {
+      organizationId,
+      caseId: caso.id,
+      eventType: "caso",
+      title: "Instrumento contratual criado",
+      summaryInternal: `contract_base — Contrato — ${caso.titulo ?? caso.codigo}`,
+      sourceEntityType: "contracts",
+      sourceEntityId: novo.id as string,
+      userId: context.userId as string,
+    });
+    return { id: novo.id as string, criado: true };
+  });
+
 const CAMPOS_GERAIS = [
   "title",
   "purpose_summary",
